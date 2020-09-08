@@ -68,15 +68,30 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
     for (const auto &an_array : np_arrays) {
         int       ndims = PyArray_NDIM(an_array);
         npy_intp *dims  = PyArray_DIMS(an_array);
+        bool is_c_order = false;
+        if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
+
         void* data = PyArray_DATA(an_array);
-        if      (ndims == 1) field = zfp_field_1d(data, type, dims[0]);
-        else if (ndims == 2) field = zfp_field_2d(data, type, dims[1], dims[0]);
-        else if (ndims == 3) field = zfp_field_3d(data, type, dims[2], dims[1], dims[0]);
-        else if (ndims == 4) field = zfp_field_4d(data, type, dims[3], dims[2], dims[1], dims[0]);
-        else
+        if (ndims > 4)
         {
             PyErr_SetString(PyExc_ValueError, "Array must have less than five entries");
             return NULL;
+        }
+        if      (ndims == 1) field = zfp_field_1d(data, type, dims[0]); 
+        else 
+        {
+            if (is_c_order)//_ C order _
+            {
+                if (ndims == 2) field = zfp_field_2d(data, type, dims[1], dims[0]);
+                else if (ndims == 3) field = zfp_field_3d(data, type, dims[2], dims[1], dims[0]);
+                else if (ndims == 4) field = zfp_field_4d(data, type, dims[3], dims[2], dims[1], dims[0]);
+            }
+            else //_ Fortran order _
+            {
+                if (ndims == 2) field = zfp_field_2d(data, type, dims[0], dims[1]);
+                else if (ndims == 3) field = zfp_field_3d(data, type, dims[0], dims[1], dims[2]);
+                else if (ndims == 4) field = zfp_field_4d(data, type, dims[0], dims[1], dims[2], dims[3]);
+            }
         }
         /* allocate meta data for a compressed stream */
         zfp = zfp_stream_open(NULL);
@@ -106,11 +121,21 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
         npy_intp cprsize = zfpsize;
         PyObject *shape = PyTuple_New(ndims);
         for (int i = 0; i < ndims; ++i) PyTuple_SET_ITEM(shape, i, PyLong_FromLong(long(dims[i])));
-        PyObject *obj = PyTuple_New(2);
+        PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
         PyArrayObject* cdata = (PyArrayObject*)PyArray_SimpleNewFromData(1, &cprsize, NPY_BYTE, buffer);
         PyArray_ENABLEFLAGS(cdata, NPY_ARRAY_OWNDATA);
         PyTuple_SET_ITEM(obj, 1, (PyObject*)cdata);
+        if (is_c_order)
+        {
+            Py_IncRef(Py_True);
+            PyTuple_SetItem(obj, 2, Py_True); 
+        }
+        else
+        {
+            Py_IncRef(Py_False);
+            PyTuple_SetItem(obj, 2, Py_False); 
+        }
         PyList_SetItem(compressed_list, ind_list, obj);
         ind_list++;
         zfp_field_free(field);
@@ -162,10 +187,12 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
     bool                         is_list = false;
     std::vector<PyArrayObject *> cpr_arrays;
     std::vector<PyObject*>       shapes;
+    std::vector<bool>            is_c_order;
     if (PyList_Check(arrays)) {
         is_list              = true;
         Py_ssize_t list_size = PyList_Size(arrays);
         cpr_arrays.reserve(list_size);
+        is_c_order.reserve(list_size);
         for (Py_ssize_t i = 0; i < list_size; ++i) {
             PyObject *tuple = PyList_GetItem(arrays, i);
             if (!PyTuple_Check(tuple)) {
@@ -184,6 +211,15 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
                 return NULL;
             }
             shapes.push_back(shp);
+            PyObject *py_is_c_order = PyTuple_GetItem(tuple, 2);
+            if (py_is_c_order == Py_True)
+                is_c_order.push_back(1);
+            else//_ Fortran order _
+            {
+                assert(py_is_c_order == Py_False);
+                is_c_order.push_back(0);
+            }
+
         }
     }
     else if (PyTuple_Check(arrays)) {
@@ -200,6 +236,14 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
             return NULL;
         }
         shapes.push_back(shape);
+        PyObject *py_is_c_order = PyTuple_GetItem(arrays, 2);
+        if (py_is_c_order == Py_True)
+            is_c_order.push_back(1);
+        else//_ Fortran order _
+        {
+            assert(py_is_c_order == Py_False);
+            is_c_order.push_back(0);
+        }
     }
     else {
         PyErr_SetString(PyExc_TypeError, "First argument must be an compressed array or a list of compressed arrays");
@@ -228,13 +272,26 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
             long dim                            = PyLong_AsLong(py_dim);
             dims[j] = dim;
         }
-        PyArrayObject *py_array      = (PyArrayObject *)PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
+        bool is_c = (is_c_order[i]==1);
+        PyArrayObject *py_array;
+        if (is_c)  py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,0);
+        else py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,1);
         unsigned char *py_array_data = (unsigned char *)PyArray_DATA(py_array);
 
         if (ndim == 1) field = zfp_field_1d(py_array_data, type, dims[0]);
-        else if (ndim == 2) field = zfp_field_2d(py_array_data, type, dims[1], dims[0]);
-        else if (ndim == 3) field = zfp_field_3d(py_array_data, type, dims[2], dims[1], dims[0]);
-        else if (ndim == 4) field = zfp_field_4d(py_array_data, type, dims[3], dims[2], dims[1], dims[0]);
+        else 
+        if (is_c)
+        {
+            if (ndim == 2) field = zfp_field_2d(py_array_data, type, dims[1], dims[0]);
+            else if (ndim == 3) field = zfp_field_3d(py_array_data, type, dims[2], dims[1], dims[0]);
+            else if (ndim == 4) field = zfp_field_4d(py_array_data, type, dims[3], dims[2], dims[1], dims[0]);
+        }
+        else//_ Fortran order _
+        {
+            if (ndim == 2) field = zfp_field_2d(py_array_data, type, dims[1], dims[0]);
+            else if (ndim == 3) field = zfp_field_3d(py_array_data, type, dims[0], dims[1], dims[2]);
+            else if (ndim == 4) field = zfp_field_4d(py_array_data, type, dims[0], dims[1], dims[2], dims[3]);            
+        }
         /* allocate meta data for a compressed stream */
         zfp = zfp_stream_open(NULL);
         if (reversible==1) zfp_stream_set_reversible(zfp);

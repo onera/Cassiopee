@@ -512,22 +512,43 @@ py_compress(PyObject *self, PyObject *args)
         r1              = 0;
         int       ndims = PyArray_NDIM(an_array);
         npy_intp *dims  = PyArray_DIMS(an_array);
-        if (ndims > 4) r5 = dims[0];
-        if (ndims > 3) r4 = dims[ndims-4];
-        if (ndims > 2) r3 = dims[ndims-3];
-        if (ndims > 1) r2 = dims[ndims-2];
-        r1                = dims[ndims-1];
-        //std::cout << "r5 : " << r5 << ", r4 : " << r4 << ", r3 : " << r3 << ", r2 : " << r2 << ", r1 : " << r1 << std::endl;
+        bool is_c_order = false;
+        if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
+        if (is_c_order)
+        {
+            if (ndims > 4) r5 = dims[0];
+            if (ndims > 3) r4 = dims[ndims-4];
+            if (ndims > 2) r3 = dims[ndims-3];
+            if (ndims > 1) r2 = dims[ndims-2];
+            r1                = dims[ndims-1];
+        }
+        else //_ Fortran order _
+        {
+            r1                = dims[0];
+            if (ndims > 1) r2 = dims[1];
+            if (ndims > 2) r3 = dims[2];
+            if (ndims > 3) r4 = dims[3];
+            if (ndims > 4) r5 = dims[4];
+        }
         unsigned char *compressed_data = SZ_compress(SZ_DOUBLE, PyArray_DATA(an_array), &outSize, r5, r4, r3, r2, r1);
         npy_intp       out_dim         = outSize;
-        // std::cout << "out_dim : " << out_dim << " outSize : " << outSize << std::endl;
         PyObject *shape = PyTuple_New(ndims);
         for (int i = 0; i < ndims; ++i) PyTuple_SET_ITEM(shape, i, PyLong_FromLong(long(dims[i])));
-        PyObject *obj = PyTuple_New(2);
+        PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
         PyArrayObject* data = (PyArrayObject*)PyArray_SimpleNewFromData(1, &out_dim, NPY_BYTE, compressed_data);
         PyArray_ENABLEFLAGS(data, NPY_ARRAY_OWNDATA);
         PyTuple_SET_ITEM(obj, 1, (PyObject*)data);
+        if (is_c_order)
+        {
+            Py_IncRef(Py_True);
+            PyTuple_SetItem(obj, 2, Py_True); 
+        }
+        else
+        {
+            Py_IncRef(Py_False);
+            PyTuple_SetItem(obj, 2, Py_False); 
+        }
         PyList_SetItem(compressed_list, ind_list, obj);
         ind_list++;
     }
@@ -570,18 +591,21 @@ py_decompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays, *options;
     options = nullptr;
-    if (!PyArg_ParseTuple(args, "OO|O", &cpr_arrays, &options)) {
+    if (!PyArg_ParseTuple(args, "O|O", &cpr_arrays, &options)) {
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpack(array or list of compressed arrays");
         return NULL;
     }
+    //_ _________________ Dépouillement des tableaux à décompresser____________
     bool                         is_list = false;
     std::vector<PyArrayObject *> np_cpr_arrays;
     std::vector<sz_ndims>        shape_arrays;
+    std::vector<int>             is_fortran_order;
     if (PyList_Check(cpr_arrays)) {
         is_list              = true;
         Py_ssize_t list_size = PyList_Size(cpr_arrays);
         np_cpr_arrays.reserve(list_size);
         shape_arrays.resize(list_size);
+        is_fortran_order.reserve(list_size);
         for (Py_ssize_t i = 0; i < list_size; ++i) {
             PyObject *tuple = PyList_GetItem(cpr_arrays, i);
             if (!PyTuple_Check(tuple)) {
@@ -604,6 +628,7 @@ py_decompress(PyObject *self, PyObject *args)
                 PyErr_SetString(PyExc_ValueError, "Shape must have only five or less elements");
                 return NULL;
             }
+            PyObject *py_is_c_order = PyTuple_GetItem(tuple, 2);
             for (Py_ssize_t j = 0; j < dimshape; ++j) {
                 PyObject *py_dim = PyTuple_GetItem(shp, j);
                 if (!PyLong_Check(py_dim)) {
@@ -611,11 +636,26 @@ py_decompress(PyObject *self, PyObject *args)
                     return NULL;
                 }
                 long dim                            = PyLong_AsLong(py_dim);
-                shape_arrays[i].r[5 - dimshape + j] = std::size_t(dim);
+                if (py_is_c_order == Py_True)
+                {
+                    shape_arrays[i].r[5 - dimshape + j] = std::size_t(dim);
+                }
+                else//_ Fortran order _
+                {
+                    shape_arrays[i].r[5 - j -1] = std::size_t(dim);
+                }
+            }
+            if (py_is_c_order == Py_True)
+                is_fortran_order.push_back(0);
+            else
+            {
+                assert(py_is_c_order == Py_False);
+                is_fortran_order.push_back(1);
             }
         } // End for (i= 0; i < list_size; ...)
     }     // Fin du cas si c'est une liste
     else if (PyTuple_Check(cpr_arrays)) {
+        //_ ___________ Cas où il n'y a qu'un seul tableau ____________________
         PyObject *shape = PyTuple_GetItem(cpr_arrays, 0);
         PyObject *array = PyTuple_GetItem(cpr_arrays, 1);
         if (!PyArray_Check(array)) {
@@ -634,6 +674,7 @@ py_decompress(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_ValueError, "Shape must have only five or less elements");
             return NULL;
         }
+        PyObject *py_is_c_order = PyTuple_GetItem(cpr_arrays, 2);
         for (Py_ssize_t j = 0; j < dimshape; ++j) {
             PyObject *py_dim = PyTuple_GetItem(shape, j);
             if (!PyLong_Check(py_dim)) {
@@ -641,7 +682,24 @@ py_decompress(PyObject *self, PyObject *args)
                 return NULL;
             }
             long dim                            = PyLong_AsLong(py_dim);
-            shape_arrays[0].r[5 - dimshape + j] = std::size_t(dim);
+            if (py_is_c_order == Py_True)
+            {
+                shape_arrays[0].r[5 - dimshape + j] = std::size_t(dim);
+            }
+            else//_ Fortran order _
+            {
+                shape_arrays[0].r[5 - j -1] = std::size_t(dim);
+            }
+        }
+        is_fortran_order.reserve(1);
+        if (py_is_c_order == Py_True)
+        {
+            is_fortran_order.push_back(0);
+        }
+        else
+        {
+            assert(py_is_c_order == Py_False);
+            is_fortran_order.push_back(1);
         }
     } // Fin du cas avec un seul tableau
     else {
@@ -679,48 +737,39 @@ py_decompress(PyObject *self, PyObject *args)
             return NULL;
         }
     }
-    //std::cout << "Initialisation SZ fini. Reconstitution des tableaux" << std::flush << std::endl;
+    //_ ___________Parcours des tableaux pour les décompresser ________________
     PyObject *lst_out_arrays;
     lst_out_arrays = PyList_New(np_cpr_arrays.size());
     for (size_t i = 0; i < np_cpr_arrays.size(); ++i) {
         npy_intp  dims[5];
         int       ndim;
         ndim = shape_arrays[i].ndims();
-        for (int j = 0; j < ndim; ++j) { dims[j] = shape_arrays[i].r[5 - ndim + j]; }
+        bool is_fortran = (is_fortran_order[i]==1);
+        if (!is_fortran)
+            for (int j = 0; j < ndim; ++j) { dims[j] = shape_arrays[i].r[5 - ndim + j]; }
+        else
+            for (int j = 0; j < ndim; ++j) { dims[j] = shape_arrays[i].r[4 - j]; }
         for ( int j = ndim; j < 5; ++j) dims[j] = 0;
-        //std::cout << "ndims : " << ndim << ", dims : {";
-        //for ( auto di : dims ) std::cout << di << " ";
-        //std::cout << "}" << std::flush << std::endl;
-        PyArrayObject *py_array      = (PyArrayObject *)PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
+        PyArrayObject *py_array;
+        if (!is_fortran)  py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,0);
+        else 
+        {
+            py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,1);
+        }
         unsigned char *py_array_data = (unsigned char *)PyArray_DATA(py_array);
         std::size_t    cpr_length    = PyArray_SIZE(np_cpr_arrays[i]);
         unsigned char *cpr_data = (unsigned char *)PyArray_DATA(np_cpr_arrays[i]);
-        //std::cout << "Décompression effective" << std::flush << std::endl;
-        //std::cout << "cpr_data : " << (void*)cpr_data << ", cpr_length : " << cpr_length
-        //          << ", py_array_data : " << (void*)py_array_data << ",shape_arrays : "
-        //          << shape_arrays[i].r[0] << ", " << shape_arrays[i].r[1] << ", "
-        //          << shape_arrays[i].r[2] << ", " << shape_arrays[i].r[3] << ", "
-        //          << shape_arrays[i].r[4] << std::flush << std::endl;
         std::size_t    sz_decompressed_array =
             SZ_decompress_args(SZ_DOUBLE, cpr_data, cpr_length, py_array_data, shape_arrays[i].r[0],
                                shape_arrays[i].r[1], shape_arrays[i].r[2], shape_arrays[i].r[3], shape_arrays[i].r[4]);
-        //std::cout << "Fin decompression" << std::flush << std::endl;
-        //for ( int id = 0; id < shape_arrays[i].r[4]; ++id ) std::cout << ((double*)py_array_data)[id] << " ";
-        //std::cout << std::flush << std::endl;
         if (!is_list) {
             SZ_Finalize();
             Py_DecRef(lst_out_arrays);
-            //std::cout << "Nb ref list : " << Py_REFCNT(lst_out_arrays) << std::flush << std::endl;
-            //std::cout << "Nb ref py_array : " << Py_REFCNT(py_array) << std::flush << std::endl;
-            //std::cout << "Retour du tableau décompressé (pas une liste)" << std::flush << std::endl;
             return (PyObject *)py_array;
         }
         PyList_SetItem(lst_out_arrays, i, (PyObject *)py_array);
-        //std::cout << "Nb ref py_array : " << Py_REFCNT(py_array) << std::flush << std::endl;
     }
     SZ_Finalize();
-    //std::cout << "Retour de la liste de tableaux décompressés" << std::flush << std::endl;
-    //std::cout << "Nb ref list : " << Py_REFCNT(lst_out_arrays) << std::flush << std::endl;
     return lst_out_arrays;
 }
 } // namespace sz
