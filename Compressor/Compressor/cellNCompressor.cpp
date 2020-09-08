@@ -38,10 +38,12 @@ py_cellN_compress(PyObject *self, PyObject *args)
         npy_intp *dims  = PyArray_DIMS(an_array);
         std::size_t  an_array_length = PyArray_SIZE(an_array);
         double* array_data = (double*)PyArray_DATA(an_array);
+        bool is_c_order = false;
+        if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
         //= On prépare l'objet décrivant la compression du cellN
         PyObject *shape = PyTuple_New(ndims);
         for (int j = 0; j < ndims; ++j) PyTuple_SET_ITEM(shape, j, PyLong_FromLong(long(dims[j])));
-        PyObject *obj = PyTuple_New(2);
+        PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
         //= Réservation mémoire pour le buffer compressé de cellN
         npy_intp sz = npy_intp(an_array_length+3)/4;
@@ -72,6 +74,16 @@ py_cellN_compress(PyObject *self, PyObject *args)
         }
         //= On rajoute le tableau au tuple (shape,buffer)
         PyTuple_SET_ITEM(obj, 1, (PyObject*)cpr_arr);
+        if (is_c_order)
+        {
+            Py_IncRef(Py_True);
+            PyTuple_SetItem(obj, 2, Py_True); 
+        }
+        else
+        {
+            Py_IncRef(Py_False);
+            PyTuple_SetItem(obj, 2, Py_False); 
+        }
         PyList_SetItem(compressed_list, i, obj);
     }
     if (!is_list) {
@@ -96,11 +108,13 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
     bool                         is_list = false;
     std::vector<PyArrayObject *> np_cpr_arrays;
     std::vector<std::vector<npy_intp>> shape_arrays;
+    std::vector<bool> is_c_order;
     if (PyList_Check(cpr_arrays)) {
         is_list              = true;
         Py_ssize_t list_size = PyList_Size(cpr_arrays);
         np_cpr_arrays.reserve(list_size);
         shape_arrays.resize(list_size);
+        is_c_order.reserve(list_size);
         for (Py_ssize_t i = 0; i < list_size; ++i) {
             PyObject *tuple = PyList_GetItem(cpr_arrays, i);
             if (!PyTuple_Check(tuple)) {
@@ -118,6 +132,15 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
                 PyErr_SetString(PyExc_TypeError, "A shape must be a tuple of integers");
                 return NULL;
             }
+            PyObject* py_is_c_order = PyTuple_GetItem(tuple,2);
+            if (py_is_c_order == Py_True)
+            {
+                is_c_order.push_back(true);
+            }
+            else
+            {
+                is_c_order.push_back(false);
+            }
             Py_ssize_t dimshape = PyTuple_Size(shp);
             shape_arrays[i].reserve(dimshape);
             for (Py_ssize_t j = 0; j < dimshape; ++j) {
@@ -134,6 +157,7 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
     else if (PyTuple_Check(cpr_arrays)) {
         PyObject *shape = PyTuple_GetItem(cpr_arrays, 0);
         PyObject *array = PyTuple_GetItem(cpr_arrays, 1);
+        PyObject *py_is_c_order = PyTuple_GetItem(cpr_arrays, 2);
         if (!PyArray_Check(array)) {
             PyErr_SetString(PyExc_TypeError, "Second value of tuple must be an array with compressed data");
             return NULL;
@@ -145,6 +169,15 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
                             "First value of tuple must be a tuple containing the shape of the original array");
             return NULL;
         }
+        if (py_is_c_order == Py_True)
+        {
+            is_c_order.push_back(true);
+        }
+        else
+        {
+            is_c_order.push_back(false);
+        }
+
         Py_ssize_t dimshape = PyTuple_Size(shape);
         shape_arrays[0].resize(dimshape);
         for (Py_ssize_t j = 0; j < dimshape; ++j) {
@@ -171,7 +204,13 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
         for (int j = 0; j < ndim; ++j) { 
             dims[j] = shape_arrays[i][j]; 
         }
-        PyArrayObject *py_array      = (PyArrayObject *)PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
+        PyArrayObject *py_array;
+        bool is_c_ord = is_c_order[i];
+        if (is_c_ord)  py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,0);
+        else 
+        {
+            py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,1);
+        }
         double *py_array_data = (double *)PyArray_DATA(py_array);
         std::size_t    cpr_length    = PyArray_SIZE(np_cpr_arrays[i]);
         //std::size_t    array_length  = PyArray_SIZE(py_array);
