@@ -129,16 +129,20 @@ Input/output
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Mpi.convertFile2PyTree(fileName, format=None)
+.. py:function:: Converter.Mpi.convertFile2PyTree(fileName, format=None, proc=None)
 
-    Read a full tree. The fully loaded in
+    If proc=None, read a full tree. The fully loaded in
     memory tree is identical on all processors.
+    
+    If proc is given, read a partial tree of zones corresponding to proc.
 
     :param fileName: file name to read from
     :type fileName: string
     :param format: any converter format (optional)
     :type format: string
-    :return: fully loaded tree
+    :param proc: None or rank number 
+    :type None or int
+    :return: fully loaded or partial tree
     :rtype: pyTree node
 
     *Example of use:*

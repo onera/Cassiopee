@@ -724,14 +724,14 @@ py_decompress(PyObject *self, PyObject *args)
     }
     int ok;
     if (filename) {
-        //int ok = SZ_Init(filename);
+        int ok = SZ_Init(filename);
         if (ok == SZ_NSCS) {
             PyErr_SetString(PyExc_RuntimeError, "Failed to initialize SZ librarie ! (Wrong parameters ?)");
             return NULL;
         }
     }
     else {
-        //int ok = SZ_Init_Params(&parameters);
+        int ok = SZ_Init_Params(&parameters);
         if (ok == SZ_NSCS) {
             PyErr_SetString(PyExc_RuntimeError, "Failed to initialize SZ librarie ! (Wrong parameters ?)");
             return NULL;

@@ -4,7 +4,7 @@ from . import Internal
 from . import Distributed
 
 # Acces a Distributed
-from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
+from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv',
     'bcast', 'Bcast', 'bcastZone', 'allgatherZones',
@@ -26,6 +26,11 @@ KCOMM = COMM_WORLD
 rank = KCOMM.rank
 size = KCOMM.size
 
+# version collective
+def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
+    seq(Distributed.writeZones, t, fileName, format, proc, zoneNames, links)
+    return None
+        
 #==============================================================================
 # Change de communicateur
 #==============================================================================
@@ -201,15 +206,21 @@ def convertFile2DistributedPyTree(fileName):
 
 #==============================================================================
 # Lecture complete d'un arbre dans un fichier
-# Lecture proc 0 + bcast
+# si proc=None, lecture proc 0 + bcast
+# sinon lecture des zones correspondant a proc
 #==============================================================================
-def convertFile2PyTree(fileName, format=None):
-    """Read a file and return a full tree."""
-    if rank == 0: t = C.convertFile2PyTree(fileName, format)
-    else: t = None
-    t = KCOMM.bcast(t)
+def convertFile2PyTree(fileName, format=None, proc=None):
+    """Read a file and return a full tree or partial tree."""
+    if proc is None: # load full tree on all procs
+        if rank == 0: t = C.convertFile2PyTree(fileName, format)
+        else: t = None
+        t = KCOMM.bcast(t)
+    else:
+        t = convertFile2SkeletonTree(fileName, format)
+        _readZones(t, fileName, rank=proc)
+        _convert2PartialTree(t, rank=proc)
     return t
-
+    
 #==============================================================================
 # Ecriture sequentielle
 # Avec recuperation de toutes les zones
@@ -235,7 +246,8 @@ def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False
             if nzones > 0:
                 C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1
         if rank < size-1: KCOMM.send(go, dest=rank+1)
-
+    barrier()
+    
 #==============================================================================
 # Execute sequentiellement F sur tous les procs
 #==============================================================================
@@ -247,6 +259,7 @@ def seq(F, *args):
         go = KCOMM.recv(source=rank-1)
         F(*args)
         if rank < size-1: KCOMM.send(rank+1, dest=rank+1)
+    barrier()
         
 #==============================================================================
 # Print uniquement du proc 0

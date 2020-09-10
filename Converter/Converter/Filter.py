@@ -4,7 +4,8 @@ from . import PyTree
 from . import Converter
 from . import Mpi as Cmpi
 from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
-_convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths, fixPaths__
+_convert2SkeletonTree, readNodesFromPaths, fixPaths__
+from . import Distributed
 import numpy
 
 # Prend un fileName, si c'est toto/*, rend la liste des fichiers
@@ -15,6 +16,25 @@ def expand(fileName):
     if s[1] == '*': files = glob.glob(s[0]+'/*.cgns')
     else: files = glob.glob(fileName)
   return files
+
+# version collective/serialisee
+def writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0):
+  """Write nodes to file given their paths."""
+  Cmpi.seq(Distributed.writeNodesFromPaths, fileName, paths, nodes, format, maxDepth, mode)
+  return None
+
+# version collective/serialisee
+def writePyTreeFromPaths(t, fileName, paths, format=None, maxDepth=-1):
+  """Write some nodes of the pyTree given their paths."""
+  Cmpi.seq(Distributed.writePyTreeFromPaths, t, fileName, paths, format, maxDepth)
+  return None
+  
+# version collective/serialisee
+def deletePaths(fileName, paths, format=None):
+  """Delete nodes in file given their paths."""
+  Cmpi.seq(Distributed.deletePaths, fileName, paths, format)
+  return None  
+
 
 #==============================================================================
 # Lit seulement une partie des tableaux d'un fichier a partir de la definition d'un filtre.
@@ -44,7 +64,10 @@ def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelD
     b = fixPaths__([i])[0]
     val = filter[i]
     filter2[b] = val
-  Converter.converter.convertPyTree2FilePartial(t, fileName, format, skelData, com, filter)
+  # serialise
+  Cmpi.seq(Converter.converter.convertPyTree2FilePartial, t, fileName, format, skelData, com, filter)
+  # ok si parallel HDF
+  #Converter.converter.convertPyTree2FilePartial(t, fileName, format, skelData, com, filter)
   return None
 
 #============================================================================

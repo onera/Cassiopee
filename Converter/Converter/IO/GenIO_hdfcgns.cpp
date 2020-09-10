@@ -45,7 +45,7 @@ E_Int checkCompressionFilters()
     printf ("Warning: hdf: szip filter not available.\n");
     return 1;
   }
-  E_Int status = H5Zget_filter_info (H5Z_FILTER_SZIP, &filter_info);
+  H5Zget_filter_info (H5Z_FILTER_SZIP, &filter_info);
   if ( !(filter_info & H5Z_FILTER_CONFIG_ENCODE_ENABLED) ||
       !(filter_info & H5Z_FILTER_CONFIG_DECODE_ENABLED) ) 
   {
@@ -1245,7 +1245,7 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
       char querybuff[512];
       const char *file; const char *path;
       char rfile[512]; char rpath[512];
-      H5Lget_info(node, L3S_LINK, &lk, NULL);
+      H5Lget_info(node, L3S_LINK, &lk, H5P_DEFAULT);
       H5Lget_val(node, L3S_LINK, querybuff, sizeof(querybuff), H5P_DEFAULT);
       if (lk.type == H5L_TYPE_EXTERNAL)
       {

@@ -111,7 +111,7 @@ else
 	# MSMPI
 	mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         set +x
-    elif [ $ELSAPROD == 'msys64p3' ] # MSYS 2 With Win64 production
+    elif [ $ELSAPROD == 'win64' ] # MSYS 2 With Win64 production
     then
         set -x
 	# MSMPI

@@ -370,7 +370,7 @@ PyInit_czfp(void)
 PyMODINIT_FUNC
 initczfp(void)
 {
-    PyObject* m = Py_InitModule3("czfp", NULL, module_doc);
+    PyObject* m = Py_InitModule3("czfp", Pycompressor_zfp, module_doc);
     if (m == NULL) return;
     /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();

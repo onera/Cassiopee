@@ -1172,7 +1172,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
       # > Write Tree Data except Data in Filter
       SkeletonTree = Internal.copyRef(t)
       for path in Filter:
-        print(path)
+        #print(path)
         Node = Internal.getNodeFromPath(SkeletonTree, path)
         Node[1] = None
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -1206,7 +1206,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
         comm.barrier()
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   
-    else:  # > Si MPI Mode Off (HDF Not Parallel)
+    else:  # > HDF Parallel
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       # > Write Tree Data except Data in Filter
       SkeletonTree = Internal.copyRef(t)

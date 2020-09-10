@@ -90,7 +90,18 @@ typedef struct DataSpace_t
 
   hsize_t GlobDataSetDim[L3C_MAX_DIMS];   /* Number of Block Entry */
 
-  hsize_t Flags[L3C_MAX_DIMS];   /* Number of Block Entry */
+  hsize_t Flags[L3C_MAX_DIMS];            /* Number of Block Entry */
+
+  bool data_space_combine;
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Src_Offset;  /* Begin                 */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Src_Count;   /* Number of Entry       */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Src_Stride;  /* Stride Block to Block */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Src_Block;   /* Number of Block Entry */
+
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Dst_Offset;  /* Begin                 */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Dst_Count;   /* Number of Entry       */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Dst_Stride;  /* Stride Block to Block */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Dst_Block;   /* Number of Block Entry */
 
 } DataSpace_t;
 
@@ -166,6 +177,7 @@ class GenIOHdf
 
     /* DataSpace Fill */
     void fillDataSpaceWithFilter(PyObject* Filter);
+    void fillDataSpaceWithFilterCombine(PyObject* Filter);
 
     /* Full dump of a tree */
     PyObject* dumpOne(PyObject* tree, int depth, PyObject* links=NULL);
@@ -237,6 +249,7 @@ class GenIOHdf
 
 
 void fillArrayLongWithList( PyObject* obj, int item, hsize_t *val);
+bool haveMultipleDataSpace(PyObject* Filter);
 // void fillDataSpaceWithList( PyObject* obj, DataSpace_t *DataSpace);
 
 int HDF_Get_DataDimensionsPartial(hid_t nid, int     *dims,
@@ -255,3 +268,8 @@ hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
                                        hsize_t *dst_stride,
                                        hsize_t *dst_count,
                                        hsize_t *dst_block);
+
+hid_t createDataSpaceEntryCombine(hid_t nid, std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_offset,
+                                             std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_stride,
+                                             std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_count,
+                                             std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_block);
