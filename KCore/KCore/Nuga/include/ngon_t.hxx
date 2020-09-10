@@ -2233,10 +2233,12 @@ static E_Int stats_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi, 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
-E_Int remove_degenerated_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
+E_Int remove_degenerated_pgs(E_Int ngon_dim, Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
 {
   Vector_t<E_Int> pgindices;
-  PGs.get_degenerated(pgindices); // Degenrated edge(<2) or Polygons (<3)
+  E_Int min_nb_facets = ngon_dim;
+  PGs.get_degenerated(min_nb_facets, pgindices); // Degenrated edge(<2) or Polygons (<3)
+  //if (!pgindices.empty())std::cout << "HAD SOME DEGEN!!!!!!!!!!!" << std::endl;
   remove_pgs(pgindices, pgnids, phnids); //sync the PHs accordingly
   PGs.updateFacets();//fixme : required ?
   return pgindices.size();
@@ -2471,45 +2473,6 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   }
   
   ///
-  E_Int get_degenerated_phs(Vector_t<E_Int>& toremove)
-  {    
-    PHs.updateFacets();
-
-    E_Int nb_phs = PHs.size();
-#ifdef DEBUG_NGON_T
-    E_Int mins=1000, imin;
-    E_Int maxs=0, imax;
-#endif
-    //
-    for (E_Int i=0; i < nb_phs; ++i)
-    {
-      const E_Int& s = PHs.stride(i);
-#ifdef DEBUG_NGON_T
-      if (s < mins)
-      {
-        mins = s;
-        imin=i;
-      }
-      if (s > maxs)
-      {
-        maxs = s;
-        imax=i;
-      }
-#endif
-      if (s < 4)
-        toremove.push_back(i);
-    }
-    
-#ifdef DEBUG_NGON_T
-    std::cout << "min stride : " << mins << " reached at : " << imin << std::endl;
-    std::cout << "max stride : " << maxs << " reached at : " << imax << std::endl;
-    std::cout << "nb of degen : " << toremove.size() << std::endl;
-#endif
-    
-    
-    return 0;
-  }
-  
   E_Int remove_baffles()
   {
     PHs.updateFacets();
@@ -2596,7 +2559,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     if (ngon_dim != 1)
     {
       //E_Int nb_degen_faces = 
-      NG.remove_degenerated_pgs(pgnids, phnids);
+      NG.remove_degenerated_pgs(ngon_dim, pgnids, phnids);
       //E_Int nb_consec_changes = 
       NG.PGs.remove_consecutive_duplicated(); //removing duplicated nodes : compact representation
     }
@@ -2615,10 +2578,8 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
 
     // 4- Elimination des elts degeneres
     Vector_t<E_Int> toremove;
-    if (ngon_dim ==3) //volumic
-      NG.get_degenerated_phs(toremove);
-    else
-      NG.PHs.get_degenerated(toremove);
+    E_Int min_nb_facets = ngon_dim + 1;
+    NG.PHs.get_degenerated(min_nb_facets, toremove);
 
     // 5- Elimination des elts doubles : WARNING : do not care of multiple occ in toremove as remove_entities handles it.
     if (remove_dup_phs)

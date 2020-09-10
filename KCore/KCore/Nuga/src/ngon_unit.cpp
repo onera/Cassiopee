@@ -707,16 +707,11 @@ E_Int ngon_unit::remove_consecutive_duplicated()
 
 ///
 /*
-Une face est degeneree quand le nbre de pts identiques est superieur
- au nombre de noeuds-2.
- nvert=1 -> 1D -> jamais degenere
- nvert=2 -> 2D -> egalite=1 (degenere)
- nvert=3 -> 3D (face TRI) -> egalite >= 1 (degenere)
- nvert=4 -> 3D (face QUAD) -> egalite >= 2 (degenere)
- nvert=5 -> 3D -> egalite >= 3 (degenere)
+if PGS : min_nb_facets = 1 for lineic, 3 otherwise
+if PHs : min_nb_facets = 2 for lineic, 4 otherwise
 */
 //=============================================================================
-void ngon_unit::get_degenerated(Vector_t<E_Int>& indices) 
+void ngon_unit::get_degenerated(E_Int min_nb_facets, Vector_t<E_Int>& indices) 
 {
   updateFacets();
   
@@ -727,13 +722,19 @@ void ngon_unit::get_degenerated(Vector_t<E_Int>& indices)
   for (E_Int i = 0; i < nb_elts; ++i)
   {
     s = stride(i);
-    if (s==1) continue;
+    
+    if (s < min_nb_facets)
+    {
+      indices.push_back(i);
+      continue;
+    }
+    // remove duplicates
     unic.clear();
     unic.insert(get_facets_ptr(i), get_facets_ptr(i)+s);
-    eq=unic.size();//s - unic.size()
-    eq = (s==2) ? eq+1 : eq;
-    if (eq <= 2) // i.e s-2 <= s-u
-      indices.push_back(i); 
+    s=unic.size();
+
+    if (s < min_nb_facets)
+      indices.push_back(i);
   }
 }
 

@@ -551,7 +551,7 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   std::vector<E_Int> pgids, phnids;
   if (ngon_dim != 1)
   {
-    NG.remove_degenerated_pgs(pgids, phnids);
+    NG.remove_degenerated_pgs(ngon_dim, pgids, phnids);
     NG.PGs.remove_consecutive_duplicated(); //compact representation
   }
    
@@ -567,9 +567,9 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   NG.PHs.remove_duplicated();
 
   // 4- Elimination des elts degeneres
-  //Vector_t<E_Int> toremove, nids;
-  //NG.PHs.get_degenerated(toremove);
-  //NG.PHs.remove_entities(toremove, nids);
+  Vector_t<E_Int> toremove;
+  E_Int min_nb_facets = ngon_dim + 1;
+  NG.PHs.get_degenerated(min_nb_facets, toremove);
 
   // 5- Elimination des elts doubles
   //

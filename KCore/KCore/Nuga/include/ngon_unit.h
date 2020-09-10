@@ -254,7 +254,7 @@ class ngon_unit
     /// WARNING : nids is 0-based, "this" is kept 1-based
     void change_indices (const Vector_t<E_Int>& nIds, E_Int idx_start=1);
     ///
-    void get_degenerated(Vector_t<E_Int>& indices);
+    void get_degenerated(E_Int min_nb_facets, Vector_t<E_Int>& indices);
     ///
     void get_duplicated(Vector_t<E_Int>& indices);
     ///
