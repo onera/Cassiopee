@@ -23,7 +23,8 @@ __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'com
 'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf', 'isoSurfMC',
 'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution', 'refine', 'renameVars',
 'selectCells', 'selectCells2', 'selectCells3', 'sharpEdges', 'silhouette', 'slice',
-'streamLine', 'streamLine2', 'streamRibbon', 'streamSurf', 'usurp', 'zip', 'zipper', 'growOfEps__']
+'streamLine', 'streamLine2', 'streamRibbon', 'streamRibbon2', 
+'streamSurf', 'usurp', 'zip', 'zipper', 'growOfEps__']
 
 #==============================================================================
 # Add two layers to surface arrays
@@ -603,6 +604,14 @@ def streamRibbon(arrays, X0, N0, vector, N=2000, dir=2):
         elif b == 0 and a != 0: return a
         elif a == 0 and b != 0: return b
         else: raise
+
+def streamRibbon2(arrays, X0, vector, N=2000, dir=1, width=1.):
+    """Compute a streamribbon starting from (x0,y0,z0) given
+    a list of arrays containing 'vector' information. The width could be given (default 1).
+    Usage: streamRibbon2(arrays, (x0,y0,z0), vector, dir)"""
+    r = post.comp_stream_ribbon(arrays, X0, vector, dir, N, width)
+    return r
+
 
 def streamSurf(arrays, b, vector, N=2000, dir=1):
     """Compute a stream surface."""

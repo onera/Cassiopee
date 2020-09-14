@@ -25,40 +25,53 @@
 
 namespace K_POST
 {
-    /**
-     * @brief      This class describes a streamline.
-     */
+    //# ################################################################
+    //# #              Définition de la classe streamline              #
+    //# ################################################################
+
+    //@brief      This class describes a streamline.                    
     class streamline
     {
     public:
-        /**
-         * @brief      Constructs a new instance.
-         *
-         * @param[in]  init_pos          The initialize position
-         * @param[in]  zones             The zones
-         * @param[in]  is_bidirectional  Indicates if bidirectional
-         * 
-         * Construit une streamline à partir d'un point initial donné dans l'espace. Si l'option is_bidirectional
-         * est vrai, on construit la streamline dans les deux sens, en aval et en amont du flux, sinon on ne construit
-         * que dans le sens 
-         */
-        streamline( const point3d& init_pos, const std::vector<zone_data_view>&  zones, E_Int max_vertices_for_streamline, bool is_bidirectional = false);
+        //_______________ Constructeurs et destructeur _________________
 
-        /**
-         * @brief      Retourne les segments constituant la streamline
-         *
-         * @return     liste des points constituant la streamline
-         */
+        // @brief     Construit une nouvelle instance                   
+        //
+        // @param[in]  init_pos          The initialize position        
+        // @param[in]  zones             The zones                      
+        // @param[in]  is_bidirectional  Indicates if bidirectional     
+        // 
+        // @details Construit une streamline à partir d'un point initial
+        //-         donné dans  l'espace. Si  l'option  is_bidirectional
+        //-         est vrai, on construit la streamline dans les  deux 
+        //-         sens, en  aval  et  en  amont  du  flux, sinon on ne
+        //-         construit que dans le sens amont.                   
+        streamline( 
+            const point3d& init_pos, 
+            const std::vector<zone_data_view>&  zones, 
+            E_Int max_vertices_for_streamline, bool is_bidirectional = false);
+
+        //@brief Destructeur                                            
+        //@details Détruit l'implémentation du streamline...            
+        ~streamline();
+
+        //__________________ Accesseurs et modifieurs __________________
+
+        //@brief      Retourne les segments constituant la streamline   
+        //
+        //@return     liste des points constituant la streamline        
         std::vector<point3d> segments() const;
 
-        /**
-         * Retourne le champs correspondant à la streamline (qui contient également les coordonnées)
-         */
+        //@brief Retourne le champs correspondant à la streamline       
+        // 
+        // @details Le champs contient également les coordonnées        
         const FldArrayF& field() const;
-        /**
-         * Retourne le champs correspondant à la streamline (qui contient également les coordonnées)
-         */
+
+        //@brief Retourne le champs correspondant à la streamline       
+        // 
+        //@details Le champ contient également les coordonnées          
         FldArrayF& field();
+        //~                  Partie privée de la classe                 
     private:
         struct Implementation;
         Implementation* ptr_impl;

@@ -25,6 +25,8 @@
 #include "triangulated_polyhedron.hpp"
 #include "unstructured_data_view_p.hpp"
 #include "connectivity.hpp"
+#include "rotational.hpp"
+#include "volume.hpp"
 
 namespace K_POST
 {
@@ -55,7 +57,7 @@ namespace K_POST
     const std::array<std::vector<std::vector<unsigned char>>,unstructured_data_view::Implementation::number_of_element_types>
     unstructured_data_view::Implementation::vertices_per_face_per_element =
     {
-        // Pour le tetraedre :
+        //# Pour le tetraedre :
         std::vector<std::vector<unsigned char>> 
         {
             std::vector<unsigned char>{0,2,1},
@@ -63,7 +65,7 @@ namespace K_POST
                                       {1,2,3},
                                       {2,0,3}
         },
-        // Pour la pyramide :
+        //# Pour la pyramide :
         {
             std::vector<unsigned char>{0,3,2,1},
                                       {0,1,4},
@@ -71,7 +73,7 @@ namespace K_POST
                                       {2,3,4},
                                       {3,0,4}
         },
-        // Pour le pentaedre :
+        //# Pour le pentaedre :
         {
             std::vector<unsigned char>{0,1,4,3},
                                       {1,2,5,4},
@@ -79,7 +81,7 @@ namespace K_POST
                                       {0,2,1},
                                       {3,4,5}
         },
-        // Pour l'hexaedre
+        //# Pour l'hexaedre
         {
             std::vector<unsigned char>{0,3,2,1},
                                       {0,1,5,4},
@@ -89,13 +91,15 @@ namespace K_POST
                                       {4,5,6,7}
         }
     };
-    // ########################################## Private part #################################### 
+    //# ###########################################################################################
+    //_ _                                 Mise en oeuvre de la partie privée                      _
+    //# ###########################################################################################
     void unstructured_data_view::Implementation::compute_faces_connectivity()
     {
         /**
          * L'algorithme utilise ici est base sur l'algorithme formel presente dans l'article suivant :
          * 
-         *             A. Logg (2008), 'Efficient Representation of Computational Meshes'
+         * @ref          A. Logg (2008), 'Efficient Representation of Computational Meshes'
          * 
          * poste sur arXiv le quatorze mai 2012.
          * 
@@ -104,7 +108,6 @@ namespace K_POST
         //E_Int nb_verts = m_beg_vert2elts.size()-1;
         E_Int nb_elts  = m_elt2verts->getSize();
         E_Int nb_faces_per_elt = number_of_faces_per_element[m_type_of_element];
-        //std::cout << "nb_faces_per_elt : " << nb_faces_per_elt << std::endl;
         const FldArrayI& e2v = *m_elt2verts;
         m_elt2faces.resize(nb_elts * nb_faces_per_elt);
 
@@ -225,36 +228,6 @@ namespace K_POST
         m_elt2faces.shrink_to_fit();
         m_beg_face2verts.shrink_to_fit();
         m_face2verts.shrink_to_fit();
-        /*std::cout << "elt2verts : " << std::endl;
-        for (E_Int ielt = 0; ielt < nb_elts; ++ielt)
-        {
-            std::cout << "\telt no" << ielt << " : ";
-            for ( E_Int iv = 0; iv < m_elt2verts->getNfld(); ++iv )
-                std::cout << (*m_elt2verts)(ielt,iv+1)-1 << " ";
-            std::cout << std::endl;
-        }
-        std::cout << "elt2faces : " << std::endl;
-        for (E_Int ielt = 0; ielt < nb_elts; ++ielt)
-        {
-            std::cout << "elt no" << ielt << " : ";
-            for ( E_Int iv = 0; iv < number_of_vertices_per_element[m_type_of_element]; ++iv)
-            {
-                std::cout << m_elt2faces[ielt*number_of_vertices_per_element[m_type_of_element]+iv] << " ";
-            }
-            std::cout << std::endl;
-        }
-        for ( E_Int ef : m_elt2faces)
-            std::cout << ef << " ";
-        std::cout << "\nface2verts : " << std::endl;
-        for ( E_Int pt_f  = 0; pt_f < m_beg_face2verts.size()-1; ++pt_f )
-        {
-            std::cout << "\tface no" << pt_f << " : ";
-            for ( E_Int iface = m_beg_face2verts[pt_f]; iface < m_beg_face2verts[pt_f+1]; ++iface )
-            {
-                std::cout << m_face2verts[iface] << " ";
-            }
-            std::cout << std::endl;
-        }*/
         // On calcule m_face2elts en sachant que first pour element correspondant a face directe
         // et second a element avec face indirecte
         // Au vue de la construction ci--dessus, le premier element faisant reference a une face donnee aura forcement
@@ -278,14 +251,12 @@ namespace K_POST
                 }
             }
         }
-        /*std::cout << "face 2elts : ";
-        for ( const auto& fe : m_face2elts )
-        {
-            std::cout << "{" << fe.first << ", " << fe.second << "}";
-        }
-        std::cout << std::endl;*/
     }
-    // ########################################### Public part ####################################
+    //C #######################################################################
+    //# #                Partie publique de la classe privée                  #
+    //# #######################################################################
+
+    //_____________________________ Constructeur ______________________________
     unstructured_data_view::Implementation::Implementation( const char* str_elt_type, const pt_connect_type elt2verts,
                                                             const fields_type& fields, const coordinates_npos& pos_coords, 
                                                             const coordinates_npos& pos_velocity) : 
@@ -298,7 +269,7 @@ namespace K_POST
         std::tie(m_beg_vert2elts, m_vert2elts) = compute_vertex_to_elements( fields->getSize(), *elt2verts); 
         this->compute_faces_connectivity();
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ _                                  Retourne les faces d'un élément                      _
     std::vector<face> unstructured_data_view::Implementation::get_faces_of_element( E_Int number, E_Int no_zone ) const
     {
         E_Int nb_faces_per_elt = number_of_faces_per_element[m_type_of_element];
@@ -325,7 +296,22 @@ namespace K_POST
         }
         return faces;
     }
-    // ---------------------------------------------------------------------------------------------------
+
+    //_ _____________________ Retourne les indices des sommets d'une cellule ____________________
+    std::vector<E_Int> 
+    unstructured_data_view::Implementation::get_indices_of_vertices(E_Int icell) const
+    {
+        auto nb_verts = number_of_vertices_per_element[m_type_of_element];
+        std::vector<E_Int> vertices(nb_verts);
+        for ( auto i = 0; i < nb_verts; ++i )
+        {
+            FldArrayI& e2v = *this->m_elt2verts;
+            vertices[i] = e2v(icell,i+1)-1;
+        }
+        return vertices;
+    }        
+
+    //_ ________________________ Test si un élément donné contient un point donné _______________
     bool 
     unstructured_data_view::Implementation::is_containing(E_Int ind_elt, const point3d& pt) const
     {
@@ -377,16 +363,6 @@ namespace K_POST
             }
         }
         // Construction du polyedre :
-        /*std::cout << "point a localiser : " << std::string(pt) << std::endl;
-        std::cout << "polyedre genere : " << std::endl;
-        for ( const auto& face : faces )
-        {
-            std::cout << "{" << std::string(point3d{coords[0][face[0]],coords[1][face[0]],coords[2][face[0]]})
-                      << "," << std::string(point3d{coords[0][face[1]],coords[1][face[1]],coords[2][face[1]]})
-                      << "," << std::string(point3d{coords[0][face[2]],coords[1][face[2]],coords[2][face[2]]})
-                      << "}" << std::endl;
-        }*/
-
         triangulated_polyhedron polyedre( faces, {
                                      K_MEMORY::vector_view<const double>(coords[0].begin(),coords[0].end()),
                                      K_MEMORY::vector_view<const double>(coords[1].begin(),coords[1].end()),
@@ -398,14 +374,13 @@ namespace K_POST
         } catch(std::invalid_argument& err)
         {
             // On est sur la frontiere de l'element :
-            std::cerr << "Warning: interpolated point is on interface. Possibility to have two points in same location in the stream line"
+            std::cerr << "Warning : interpolated point is on interface. Possibility to have two points in same location in the stream line"
                       << std::flush << std::endl;
             is_inside = true; // Dans ce cas, on considere qu'on est a l'interieur (on prend l'element comme un ferme topologique)
         }
-        //std::cout << "is inside " << std::boolalpha << is_inside << std::endl;
         return is_inside;
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ _____________________ Retourne l'indice de cellule contenant un point donné ____________
     E_Int
     unstructured_data_view::Implementation::get_interpolation_cell( const point3d& point ) const
     {
@@ -437,7 +412,7 @@ namespace K_POST
         }
         return -1;
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ _________________ Interpole un champs donné à un point donné dans une cellule ___________________
     void 
     unstructured_data_view::Implementation::compute_interpolated_field( const point3d& pt, E_Int ind_cell, 
                                                                         E_Int ipos, FldArrayF& interpolatedField ) const
@@ -734,7 +709,88 @@ namespace K_POST
             }
         }
     }
-    // ===================================================================================================
+    //_ _____________________________ Calcul le rotationnel dans une cellule donnée                      _
+    vector3d unstructured_data_view::Implementation::compute_rotational_in_cell(E_Int ind_cell) const
+    {
+        E_Int nb_verts_per_elt = number_of_vertices_per_element[m_type_of_element];
+        const auto& crds = this->getCoordinates();
+        std::vector<point3d> coords;// Nombre de sommet depend du type d'element (avec barycentre pour certains)
+        coords.reserve(nb_verts_per_elt);
+        FldArrayF* fld = this->fields;
+        std::vector<vector3d> velo;
+        velo.reserve(nb_verts_per_elt);
+        // On extrait tous les points de la cellule selon l'ordre CGNS :
+        for (E_Int ivert = 0; ivert < nb_verts_per_elt; ++ivert)
+        {
+            E_Int ind_vert = (*m_elt2verts)(ind_cell,ivert+1)-1;
+            coords.emplace_back(crds[0][ind_vert], crds[1][ind_vert], crds[2][ind_vert]);
+            velo.emplace_back( (*fld)(ind_vert,this->pos_velocity[0]),
+                               (*fld)(ind_vert,this->pos_velocity[1]),
+                               (*fld)(ind_vert,this->pos_velocity[2]) );
+        }
+        // L'interpolation va dependre ici du type d'element :
+        if (this->m_type_of_element == tetraedre)
+        {
+            return compute_rotational_on_tetrahedra(coords[0], coords[1], coords[2], coords[3],
+                                                    velo  [0], velo  [1], velo  [2], velo  [3] );
+        }
+        else if (this->m_type_of_element == pyramide)
+        {
+            return compute_rotational_on_pyramid(coords[0], coords[1], coords[2], coords[3], coords[4], 
+                                                 velo  [0], velo  [1], velo  [2], velo  [3], velo  [4] );
+        }
+        else if (this->m_type_of_element == pentaedre)
+        {
+            return compute_rotational_on_pentahedra(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5], 
+                                                    velo  [0], velo  [1], velo  [2], velo  [3], velo  [4], velo  [5] );
+        }
+        else
+        {
+            assert(this->m_type_of_element == hexaedre);
+            return compute_rotational_on_hexaedra(coords[0], coords[1], coords[2], coords[3], 
+                                                  coords[4], coords[5], coords[6], coords[7], 
+                                                  velo  [0], velo  [1], velo  [2], velo  [3],
+                                                  velo  [4], velo  [5], velo  [6], velo  [7] );
+        }
+        return {0.,0.,0.};
+    }
+    //_ _____________________________ Calcul du volume d'une cellule donnée ______________________________
+    double unstructured_data_view::Implementation::compute_volume_of_cell(E_Int ind_cell) const
+    {
+        E_Int nb_verts_per_elt = number_of_vertices_per_element[m_type_of_element];
+        const auto& crds = this->getCoordinates();
+        std::vector<point3d> coords;// Nombre de sommet depend du type d'element (avec barycentre pour certains)
+        coords.reserve(nb_verts_per_elt);
+        // On extrait tous les points de la cellule selon l'ordre CGNS :
+        for (E_Int ivert = 0; ivert < nb_verts_per_elt; ++ivert)
+        {
+            E_Int ind_vert = (*m_elt2verts)(ind_cell,ivert+1)-1;
+            coords.emplace_back(crds[0][ind_vert], crds[1][ind_vert], crds[2][ind_vert]);
+        }
+        // L'interpolation va dependre ici du type d'element :
+        if (this->m_type_of_element == tetraedre)
+        {
+            return compute_volume_tetrahedra(coords[0], coords[1], coords[2], coords[3]);
+        }
+        else if (this->m_type_of_element == pyramide)
+        {
+            return compute_volume_pyramid(coords[0], coords[1], coords[2], coords[3], coords[4]);
+        }
+        else if (this->m_type_of_element == pentaedre)
+        {
+            return compute_volume_pentaedra(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
+        }
+        else
+        {
+            assert(this->m_type_of_element == hexaedre);
+            return compute_volume_hexaedra(coords[0], coords[1], coords[2], coords[3], 
+                                           coords[4], coords[5], coords[6], coords[7] );
+        }
+        return -1.; 
+    }
+    //# ##################################################################################################
+    //_ _                                   Mise en oeuvre de l'interface publique                       _
+    //# ##################################################################################################
     unstructured_data_view::unstructured_data_view(const char* eltType, const pt_connect_type elt2verts,
                                                    const fields_type& fields,
                                                    const coordinates_npos& pos_coords, const coordinates_npos& pos_velocity) :

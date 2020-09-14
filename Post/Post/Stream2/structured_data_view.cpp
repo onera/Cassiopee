@@ -22,10 +22,15 @@
 #include "structured_data_view_p.hpp"
 #include "triangulated_polyhedron.hpp"
 #include "linear_algebra.hpp"
+#include "rotational.hpp"
+#include "volume.hpp"
 //#define VERBOSE_DEBUG
 
 namespace K_POST
 {
+    //# ###################################################################################################
+    //_ _                              Méthodes pour la classe privée                                     _
+    //# ###################################################################################################
     std::array<E_Int,3> 
     structured_data_view::Implementation::get_indices_of_cell_from_unique_index(E_Int index) const
     {
@@ -173,6 +178,27 @@ namespace K_POST
         return faces;
     }
     // --------------------------------------------------------------------------------------------
+    std::vector<E_Int> 
+    structured_data_view::Implementation::get_indices_of_vertices(E_Int icell) const
+    {
+        std::vector<E_Int> indices;
+        indices.reserve(8);
+        auto indices_cell = this->get_indices_of_cell_from_unique_index(icell);
+        for (const std::array<int,3>& inds : std::vector<std::array<int,3>>{
+                            indices_cell,                                                // i  ,j  ,k
+                            {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
+                            {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]  },   // i+1,j+1,k
+                            {indices_cell[0]  , indices_cell[1]+1, indices_cell[2]  },   // i  ,j+1,k
+                            {indices_cell[0]  , indices_cell[1]  , indices_cell[2]+1},   // i  ,j  ,k+1
+                            {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]+1},   // i+1,j  ,k+1
+                            {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]+1},   // i+1,j+1,k+1
+                            {indices_cell[0]  , indices_cell[1]+1, indices_cell[2]+1} }) // i  ,j+1,k+1
+        {
+            indices.push_back(this->get_unique_index_from_indices_of_vertex(inds));
+        }
+        return indices;
+    }
+    // --------------------------------------------------------------------------------------------
     bool 
     structured_data_view::Implementation::is_containing( const std::array<E_Int,3>& indices_cell, const point3d& pt) const
     {
@@ -282,7 +308,7 @@ namespace K_POST
         } catch(std::invalid_argument& err)
         {
             // On est sur la frontière de l'élément :
-            std::cerr << "Warning: interpolated point is on interface. Possibility to have two points in same location in the stream line"
+            std::cerr << "Warning : interpolated point is on interface. Possibility to have two points in same location in the stream line"
                       << std::flush << std::endl;
             is_inside = true; // Dans ce cas, on considère qu'on est à l'intérieur (on prend l'élément comme un fermé topologique)
         }
@@ -487,7 +513,73 @@ namespace K_POST
 #           endif
         }
     }
-    // ###################################################################################################
+    // _ _________________________ Calcul du rotationel dans une cellule d'un maillage structuré __________
+    vector3d structured_data_view::Implementation::compute_rotational_in_cell( E_Int ind_cell ) const
+    {
+        const auto& crds = this->getCoordinates();
+        auto indices_cell = this->get_indices_of_cell_from_unique_index(ind_cell);
+        std::array<point3d,8> coords; // 8 points/cellules
+        // On extrait tous les points de la cellule ainsi que le champs vitesse :
+        FldArrayF* fld = this->fields;
+        std::array<vector3d,8> vel;
+        //coordinates_npos pos_vel = this->pos_velocity;
+
+        E_Int ivert = 0;
+        for (const std::array<int,3>& indices : std::vector<std::array<int,3>>{
+                            indices_cell,                                                // i  ,j  ,k
+                            {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
+                            {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]  },   // i+1,j+1,k
+                            {indices_cell[0]  , indices_cell[1]+1, indices_cell[2]  },   // i  ,j+1,k
+                            {indices_cell[0]  , indices_cell[1]  , indices_cell[2]+1},   // i  ,j  ,k+1
+                            {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]+1},   // i+1,j  ,k+1
+                            {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]+1},   // i+1,j+1,k+1
+                            {indices_cell[0]  , indices_cell[1]+1, indices_cell[2]+1} }) // i  ,j+1,k+1
+        {
+            E_Int indv = this->get_unique_index_from_indices_of_vertex(indices);
+#           if defined(VERBOSE_DEBUG)
+            std::cout << "indice sommet interpolation " << indv << std::endl;
+#           endif
+            coords[ivert] = {crds[0][indv],crds[1][indv],crds[2][indv]};
+            vel[ivert] = { (*fld)(indv, this->pos_velocity[0]),
+                           (*fld)(indv, this->pos_velocity[1]),
+                           (*fld)(indv, this->pos_velocity[2]) };
+            //std::cout << "coords(rot," << ivert << ") : " << std::string(coords[ivert]) << ", vel(" << ivert << ") = " 
+            //          << std::string(vel[ivert]) << " ";
+            ivert += 1;
+        }
+        return compute_rotational_on_hexaedra(coords[0], coords[1], coords[2], coords[3], 
+                                              coords[4], coords[5], coords[6], coords[7], 
+                                              vel   [0], vel   [1], vel   [2], vel   [3], 
+                                              vel   [4], vel   [5], vel   [6], vel   [7]);
+
+    }
+    //_ ___________________ Calcul du volume d'une cellule du maillage structuré __________________________
+    double structured_data_view::Implementation::compute_volume_of_cell(E_Int ind_cell) const
+    {
+        const auto& crds = this->getCoordinates();
+        auto indices_cell = this->get_indices_of_cell_from_unique_index(ind_cell);
+        std::array<point3d,8> coords; // 8 points/cellules
+        E_Int ivert = 0;
+        for (const std::array<int,3>& indices : std::vector<std::array<int,3>>{
+                            indices_cell,                                                // i  ,j  ,k
+                            {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
+                            {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]  },   // i+1,j+1,k
+                            {indices_cell[0]  , indices_cell[1]+1, indices_cell[2]  },   // i  ,j+1,k
+                            {indices_cell[0]  , indices_cell[1]  , indices_cell[2]+1},   // i  ,j  ,k+1
+                            {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]+1},   // i+1,j  ,k+1
+                            {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]+1},   // i+1,j+1,k+1
+                            {indices_cell[0]  , indices_cell[1]+1, indices_cell[2]+1} }) // i  ,j+1,k+1
+        {
+            E_Int indv = this->get_unique_index_from_indices_of_vertex(indices);
+            coords[ivert] = {crds[0][indv],crds[1][indv],crds[2][indv]};
+            ivert += 1;
+        }
+        return compute_volume_hexaedra(coords[0], coords[1], coords[2], coords[3], 
+                                       coords[4], coords[5], coords[6], coords[7] );
+    }
+    //# ###################################################################################################
+    //_ _                              Méthodes pour la classe publique                                   _
+    //# ###################################################################################################
     structured_data_view::structured_data_view( const dimension_type& dim, const fields_type& fields, const coordinates_npos& pos_coords, 
                                                 const coordinates_npos& pos_velocity, E_Int cellN) :
         zone_data_view(new Implementation(dim, pos_coords, fields, pos_velocity, cellN))

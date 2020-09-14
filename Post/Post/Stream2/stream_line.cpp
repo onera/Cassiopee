@@ -280,6 +280,11 @@ namespace K_POST
         ptr_impl(new Implementation(init_pos, zones, max_vertices_for_streamline, is_bidirectional))
     {
     }// Fin du constructeur
+    //_______________________________ Destructeur _____________________________
+    streamline::~streamline()
+    {
+        delete ptr_impl;
+    }
     // -------------------------------------------------------------------------------------------------------------
     const FldArrayF& streamline::field() const
     {

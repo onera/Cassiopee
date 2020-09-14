@@ -34,10 +34,11 @@ namespace K_POST
      */
     class zone_data_view
     {
-    protected:
+    public:
         struct Implementation;
         std::shared_ptr<Implementation> implementation;
 
+    protected:
         zone_data_view( Implementation* impl );
     public:
         zone_data_view(const zone_data_view&) = default;
@@ -106,24 +107,30 @@ namespace K_POST
         coordinates_npos get_position_of_coordinates() const;
 
         /**
+         * @brief Retourne les indices dans la zone des sommets de la cellule d'index icell.
+         * 
+         * @param icell Le n° de la cellule
+         * @return Retourne dans la convention CGNS les n° des sommets de la cellule d'index icell
+         */
+        std::vector<E_Int> get_indices_of_vertices(E_Int icell) const;
+
+        /**
          * @brief      Retourne la position des composantes u,v et w du vecteur vitesse du champs associé à la zone
          *
          * @return     Les numéros de poisition des trois composantes de la vitesse du champs
          */
         coordinates_npos get_position_of_velocity() const;
 
-        const_coordinates_type get_velocity() const
-        {
-            auto npos = get_position_of_velocity();
-            return { getField(npos[0]), getField(npos[1]), getField(npos[2])};
-        }
-
         /**
          * @brief      Retourne le champs de vecteur vitesse de la zone courante
          *
          * @return     Le champs de vecteur vitesse
          */
-        coordinates_type getVelocity() const;
+        const_coordinates_type get_velocity() const
+        {
+            auto npos = get_position_of_velocity();
+            return { getField(npos[0]), getField(npos[1]), getField(npos[2])};
+        }
 
         /**
          * @brief      Retourne les faces appartenant à un élément de la zone repéré par son indice
@@ -160,6 +167,24 @@ namespace K_POST
          */
         void compute_interpolated_field( const point3d& pt, E_Int ind_cell, 
                                          E_Int ipos, FldArrayF& interpolatedField) const;
+
+        /**
+         * @brief Calcule le rotationel d'une cellule donnée de la zone
+         * @details Calcule le rotationnel donné d'une cellule selon son type géométrique
+         * 
+         * @param ind_cell Le numéro de la cellule
+         * @return Retourne le vecteur rotationnel de la cellule donnée
+         */
+        vector3d compute_rotational_in_cell( E_Int ind_cell ) const;
+
+        /**
+         * @brief Calcule le volume d'une cellule de la zone
+         * @details Calcule le volume d'une cellule de la zone selon son type
+         * 
+         * @param ind_cell Numéro de la cellule
+         * @return Un réel en virgule flottante donnant le volume de la cellule
+         */
+        double compute_volume_of_cell( E_Int ind_cell ) const;
         //@}
     };
 }

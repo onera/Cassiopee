@@ -60,28 +60,46 @@ namespace K_POST
         return this->implementation->pos_coordinates;
     }
     // ================================================================================ 
+    std::vector<E_Int> zone_data_view::get_indices_of_vertices(E_Int icell) const
+    {
+        assert(implementation != nullptr);
+        return this->implementation->get_indices_of_vertices(icell);
+    } 
+    //_ ______________________________________________________________________________
     auto zone_data_view::get_position_of_velocity() const -> coordinates_npos
     {
         assert(implementation != nullptr);
         return this->implementation->pos_velocity;
     }
-    // ================================================================================ 
+    //_ ______________________________________________________________________________
     E_Int zone_data_view::get_interpolation_cell(const point3d &point) const
     {
         assert(implementation != nullptr);
         return implementation->get_interpolation_cell(point);
     }
-    // ================================================================================ 
+    //_ ______________________________________________________________________________
     void zone_data_view::compute_interpolated_field( const point3d &pt, E_Int ind_cell, 
                                                      E_Int ipos, FldArrayF &interpolatedField ) const
     {
         assert(implementation != nullptr);
         implementation->compute_interpolated_field(pt, ind_cell, ipos, interpolatedField);
     }
-    // ================================================================================ 
+    //_ ______________________________________________________________________________
     std::vector<face> zone_data_view::get_faces_of_element( E_Int number, E_Int no_zone ) const
     {
         assert(implementation != nullptr);
         return implementation->get_faces_of_element(number, no_zone);
+    }
+    //_ _______________________ Calcul du rotationnel dans une cellule _______________
+    vector3d zone_data_view::compute_rotational_in_cell(E_Int ind_cell) const
+    {
+        assert(implementation != nullptr);
+        return implementation->compute_rotational_in_cell(ind_cell);
+    }
+    //_ ___________________ Calcul du volume d'une cellule ___________________________
+    double zone_data_view::compute_volume_of_cell(E_Int ind_cell) const
+    {
+        assert(implementation != nullptr);
+        return implementation->compute_volume_of_cell(ind_cell);        
     }
 }

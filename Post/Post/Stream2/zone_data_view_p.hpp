@@ -35,7 +35,6 @@ namespace K_POST
         Implementation( kind_of_zone type_zone, const coordinates_npos& pos_coords, const fields_type& f, const coordinates_npos& vel) :
             kind(type_zone), pos_coordinates(pos_coords), pos_velocity(vel), fields(f)//, interpdata(interp)
         {
-            //std::cout << "Construction de l'implementation de base à l'adresse " << (void*)this << std::endl;
             const auto& coords = this->getCoordinates();
             tree = std::move(kdtree(coords, 100u));
             aabbox = aligned_axis_bounding_box(coords[0], coords[1], coords[2]);
@@ -58,9 +57,12 @@ namespace K_POST
         }
 
         virtual std::vector<face> get_faces_of_element( E_Int number, E_Int no_zone ) const = 0;
+        virtual std::vector<E_Int> get_indices_of_vertices(E_Int icell) const = 0;
         virtual E_Int get_interpolation_cell( const point3d& point ) const = 0;
         virtual void compute_interpolated_field( const point3d& pt, E_Int ind_cell, 
                                                  E_Int ipos, FldArrayF& interpolatedField ) const = 0;
+        virtual vector3d compute_rotational_in_cell( E_Int ind_cell ) const = 0;
+        virtual double compute_volume_of_cell( E_Int ind_cell ) const = 0;
     };
 
 }

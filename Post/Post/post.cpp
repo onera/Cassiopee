@@ -69,6 +69,7 @@ static PyMethodDef Pypost [] =
   {"compStreamLine", K_POST::compStreamLine, METH_VARARGS},
   {"comp_stream_line", K_POST::comp_stream_line, METH_VARARGS}, // version XJ
   {"compStreamRibbon", K_POST::compStreamRibbon, METH_VARARGS},
+  {"comp_stream_ribbon", K_POST::comp_streamribbon, METH_VARARGS}, // version XJ
   {"compStreamSurf", K_POST::compStreamSurf, METH_VARARGS},
   {"isoLine", K_POST::isoLine, METH_VARARGS},
   {"isoSurf", K_POST::isoSurf, METH_VARARGS},

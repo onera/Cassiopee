@@ -73,6 +73,7 @@ namespace K_POST
   PyObject* compStreamLine(PyObject* self, PyObject* args);
   PyObject* comp_stream_line(PyObject* self, PyObject* args);
   PyObject* compStreamRibbon(PyObject* self, PyObject* args);
+  PyObject* comp_streamribbon(PyObject* self, PyObject* args);
   PyObject* compStreamSurf(PyObject* self, PyObject* args);
   PyObject* isoLine(PyObject* self, PyObject* args);
   PyObject* isoSurf(PyObject* self, PyObject* args);

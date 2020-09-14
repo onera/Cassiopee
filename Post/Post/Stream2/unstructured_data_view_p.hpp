@@ -89,9 +89,12 @@ namespace K_POST
         bool is_containing(E_Int ind_elt, const point3d& pt) const;
 
         virtual std::vector<face> get_faces_of_element( E_Int number, E_Int no_zone ) const override;
+        virtual std::vector<E_Int> get_indices_of_vertices(E_Int icell) const override;        
         virtual E_Int get_interpolation_cell( const point3d& point ) const override;
         virtual void compute_interpolated_field( const point3d& pt, E_Int ind_cell, 
                                                  E_Int ipos, FldArrayF& interpolatedField ) const override;
+        virtual vector3d compute_rotational_in_cell( E_Int ind_cell ) const override;
+        virtual double compute_volume_of_cell( E_Int ind_cell ) const override;
     private:
         void compute_faces_connectivity();
     };

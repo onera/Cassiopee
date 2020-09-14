@@ -27,10 +27,17 @@
 #include "ngon_data_view_p.hpp"
 #include "vector3d.hpp"
 #include "linear_algebra.hpp"
+#include "rotational.hpp"
+#include "volume.hpp"
 
 //#define DEBUG_VERBOSE
 namespace K_POST
 {
+    //# #####################################################################################################
+    //_ _                                    Mise en oeuvre de la classe privée                             _
+    //# #####################################################################################################
+
+    //_ ______________________________________ Constructeur _________________________________________________
     ngon_data_view::Implementation::Implementation( E_Int nb_faces, const const_view_type<E_Int>& face2verts, 
                                                     E_Int nb_elts , const const_view_type<E_Int>& elt2Faces,
                                                     const fields_type& fields, const coordinates_npos& pos_coords, 
@@ -432,13 +439,11 @@ namespace K_POST
                 else
                     is_direct[ref_face] = false;
             }
-            //std::cout << "La face n" << m_elt2faces[m_beg_elt2faces[ielt]+ref_face] << " est orienté "
-            //          << (is_direct[ref_face] ? "dans le sens direct" : "dans le sens indirect") << " de l'élément n°" << ielt << std::endl;
 
             /**
              * @brief      Fonction lambda retournant 0 si par d'arêtes communes (donc cas encore indéterminé), 
-             *                                        1 si même orientation
-             *                                       -1 si orientation opposée
+             !                                        1 si même orientation
+             !                                       -1 si orientation opposée
              *
              * @param[in]  f1    La première face
              * @param[in]  f2    La seconde face
@@ -545,7 +550,7 @@ namespace K_POST
         }
 #       endif
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ _______________________________ Retourne les faces constituant un élément donné __________________
     std::vector<face> ngon_data_view::Implementation::get_faces_of_element( E_Int number, E_Int no_zone ) const
     {
         E_Int beg_e2f = m_beg_elt2faces[number  ];
@@ -576,7 +581,7 @@ namespace K_POST
         }
         return faces;
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ ____________________________ Test si un élément donné contient un point donné ____________________
     bool 
     ngon_data_view::Implementation::is_containing(E_Int ind_elt, const point3d& pt) const
     {
@@ -765,7 +770,7 @@ namespace K_POST
         return is_inside;
 
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ ___________________________ Retourne la cellule contenant un point donné _________________________
     E_Int 
     ngon_data_view::Implementation::get_interpolation_cell( const point3d& point ) const
     {
@@ -797,7 +802,7 @@ namespace K_POST
         }
         return -1;
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ ________________________ Interpole un champ sur un point donné ___________________________________
     void 
     ngon_data_view::Implementation::compute_interpolated_field( const point3d& pt, E_Int ind_cell, 
                                                                 E_Int ipos, FldArrayF& interpolatedField ) const
@@ -874,7 +879,41 @@ namespace K_POST
                                              gamma * values[ifld][vertices_index[3]];
         }
     }
-    // ===================================================================================================
+    //_ ___________________________ Retourne les indices des sommets de l'élément ________________________
+    std::vector<E_Int> ngon_data_view::Implementation::get_indices_of_vertices(E_Int icell) const
+    {
+        // Ne connaissant le nombre de sommets qu'à l'exécution, l'idée ici est de faire une simple
+        // interpolation linéaire en prenant le tétraèdre formé par les quatre sommets les plus proches
+        // du point d'interpolation.
+        E_Int nb_verts_per_elt = this->m_beg_elt2verts[icell+1] - this->m_beg_elt2verts[icell];
+        std::vector<E_Int> ind_verts;
+        ind_verts.reserve(nb_verts_per_elt);
+        for (E_Int ivert = 0; ivert < nb_verts_per_elt; ++ivert)
+            ind_verts.push_back(this->m_elt2verts[this->m_beg_elt2verts[icell]+ivert]);
+        return ind_verts;
+    }
+    //_ ___________________________ Calcul le rotationel pour un élément donné ___________________________
+    vector3d ngon_data_view::Implementation::compute_rotational_in_cell(E_Int ind_cell) const
+    {
+        auto faces = this->get_faces_of_element(ind_cell, 0);
+        return compute_rotational_on_ngon(faces, 
+                                          {
+                                            this->getField(this->pos_velocity[0]),
+                                            this->getField(this->pos_velocity[1]),
+                                            this->getField(this->pos_velocity[2])
+                                          } );
+    }
+    //_ ___________________________ Calcul le volume d'un élément donné __________________________________
+    double ngon_data_view::Implementation::compute_volume_of_cell(E_Int ind_cell) const
+    {
+        auto faces = this->get_faces_of_element(ind_cell, 0);
+        return compute_volume_ngon(faces);
+    }
+    //# ##################################################################################################
+    //_ _                                 Mise en oeuvre de la classe publique                           _
+    //# ##################################################################################################
+
+    //_ _________________________________________ Constructeur ___________________________________________
     ngon_data_view::ngon_data_view(E_Int nb_faces, const const_view_type<E_Int>& face2verts, 
                                    E_Int nb_elts,  const const_view_type<E_Int>& elt2faces,  const fields_type& fields,
                                    const coordinates_npos& pos_coords, const coordinates_npos& pos_velocity) :
@@ -882,7 +921,7 @@ namespace K_POST
                                           pos_coords, pos_velocity))
     {
     }
-    // ===================================================================================================
+    //_ __________________________ Retourne le nombre d'éléments dans le maillage _______________________
     E_Int ngon_data_view::number_of_elements() const
     {
         assert(implementation != nullptr);
@@ -890,7 +929,7 @@ namespace K_POST
         auto& impl = static_cast<ngon_data_view::Implementation&>(*implementation);
         return impl.m_beg_elt2faces.size() - 1;
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ __________________________ Retourne la connectivité face vers sommets __________________________
     auto ngon_data_view::get_face_to_vertices() const 
                                 -> std::pair<const std::vector<E_Int>&, const std::vector<E_Int>&>
     {
@@ -899,7 +938,7 @@ namespace K_POST
         auto& impl = static_cast<ngon_data_view::Implementation&>(*implementation);
         return {impl.m_beg_face2verts, impl.m_face2verts};
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ _________________________ Retourne la connectivité face vers éléments _________________________
     auto ngon_data_view::get_face_to_elements() const -> const std::vector<std::pair<E_Int,E_Int>>&
     {
         assert(implementation != nullptr);
@@ -907,7 +946,7 @@ namespace K_POST
         auto& impl = static_cast<ngon_data_view::Implementation&>(*implementation);
         return impl.m_face2elts;   
     }
-    // ---------------------------------------------------------------------------------------------------
+    //_ ______________________________ Retourne la connectivité élément vers faces ___________________
     auto ngon_data_view::get_element_to_faces() const 
                                 -> std::pair<const std::vector<E_Int>&,const std::vector<E_Int>&>
     {

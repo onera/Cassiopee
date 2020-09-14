@@ -80,13 +80,13 @@ namespace K_POST
         /// Soustraction inplace
         vector3d& operator -= (const vector3d& u)
         {
-            this->x += u.x; this->y += u.y; this->z += u.z;
+            this->x -= u.x; this->y -= u.y; this->z -= u.z;
             return *this;
         }
         /// Soustraction non inplace
         vector3d operator - ( const vector3d& u ) const
         {
-            return { this->x + u.x, this->y + u.y, this->z + u.z };
+            return { this->x - u.x, this->y - u.y, this->z - u.z };
         }
         /// Inversion du vecteur
         vector3d operator -() const
@@ -179,6 +179,35 @@ namespace K_POST
     inline double abs( const vector3d& u )
     {
         return std::sqrt(norm(u));
+    }
+
+    /**
+     * @brief Effectue une rotation selon un axe et un angle theta d'un vecteur u
+     * @details Effectue une rotation selon un axe a (vecteur normalisé) et un angle theta d'un vecteur u
+     * 
+     * On applique la formule suivante pour effectuer la rotation :
+     * 
+     # ⎛vₓ⎞     ⎛uₓ⎞          ⎧ cos²(θ/2) + sin²(θ/2)(2aᵢ²-1) si i = j 
+     # ⎜vᵧ⎟ = R.⎜uᵧ⎟ où Rᵢⱼ = ⎨                                        
+     # ⎝vz⎠     ⎝uz⎠          ⎩ 2aᵢaⱼsin²(θ/2) - εᵢⱼₖaₖ sin(θ) si i ≠ j 
+     * 
+     * @param axis Le vecteur a donnant l'axe de la rotation
+     * @param theta L'angle de la rotation
+     * @param u Le vecteur sur lequel on applique la rotation
+     * 
+     * @return Le vecteur résultat après rotation
+     */
+    inline vector3d rotate( const vector3d& axis, double theta, const vector3d& u)
+    {
+        assert(std::abs(abs(axis) - 1.) < 1.E-14);
+        double ct = std::cos(theta);
+        double st = std::sin(theta);
+        double umct = 1. - ct;
+        return {
+            (ct + axis.x*axis.x*umct)*u.x + (axis.x*axis.y*umct-axis.z*st)*u.y + (axis.x*axis.z*umct+axis.y*st)*u.z,
+            (axis.y*axis.x*umct+axis.z*st)*u.x + (ct + axis.y*axis.y*umct)*u.y + (axis.y*axis.z*umct-axis.x*st)*u.z,
+            (axis.x*axis.z*umct-axis.y*st)*u.x + (axis.z*axis.y*umct+axis.x*st)*u.y + (ct + axis.z*axis.z*umct)*u.z
+        };
     }
 }
 /**

@@ -162,7 +162,7 @@
  *     - Chaque triangle PQR de la surface qui n'est pas coplanaire avec O est considéré *positif*
  *       si sa normale pointe en s'éloignant de O, et *négatif" si sa normale pointe vers O.
  *       
- *       De manière calculatorie, le signe du triangle PQR est le signe du déterminant 4x4 :
+ *       De manière calculatoire, le signe du triangle PQR est le signe du déterminant 4x4 :
  *          
  *              | P𝑥 Q𝑥 R𝑥 O𝑥 |
  *              | P𝑦 Q𝑦 R𝑦 O𝑦 ⎜

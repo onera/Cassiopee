@@ -82,7 +82,11 @@ if STREAMLINE2:
             "Post/Stream2/ngon_data_view.cpp",
             "Post/Stream2/stream_line.cpp",
             "Post/Stream2/py_stream_line.cpp",
-            "Post/Stream2/write_svg.cpp"]
+            "Post/Stream2/write_svg.cpp",
+            "Post/Stream2/volume.cpp",
+            "Post/Stream2/rotational.cpp",
+            "Post/Stream2/ribbon_stream_line.cpp",
+            "Post/Stream2/py_streamribbon.cpp"]
 else:
     cpp_srcs += [
             "Post/Stream2/py_stream_line_stub.cpp"]
