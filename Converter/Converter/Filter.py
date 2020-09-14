@@ -374,6 +374,7 @@ def _loadTreeExtras(a, fileName, format=None):
   return None
 
 # Load extra data of zones (cartesianData or solver#define)
+# decompresse eventuellement
 def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
@@ -388,9 +389,9 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
     for i in n[2]:
       if i[3] == 'UserDefinedData_t':
         for j in i[2]:
-          if i[3] == 'DataArray_t': paths.append(p+'/'+i[0]+'/'+j[0])
+          if j[3] == 'DataArray_t': paths.append(p+'/'+i[0]+'/'+j[0])
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format)
-  # Decompression cartesien eventuellement
+  # Decompression eventuellement
   if uncompress:
     for p in znps:
       n = Internal.getNodeFromPath(a, p)
@@ -400,6 +401,10 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
             import Compressor.PyTree as Compressor
             Compressor._uncompressCartesian(n)
           except: pass
+    try:
+      import Compressor.PyTree as Compressor
+      Compressor._uncompressAll(n)
+    except: pass
   return None
 
 # get variables: return a list

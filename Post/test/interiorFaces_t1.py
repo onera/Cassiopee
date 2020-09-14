@@ -1,5 +1,4 @@
 # - interiorFaces (array) -
-import Converter as C
 import Post as P
 import Generator as G
 import KCore.test as test

@@ -2,7 +2,6 @@
 import Post as P
 import Converter as C
 import Generator as G
-import Geom as D
 import KCore.test as test
 
 def F(x, y): return x*x+y*y

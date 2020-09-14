@@ -1,5 +1,4 @@
 # - selectCells (array) -
-import Converter as C
 import Generator as G
 import Post as P
 import KCore.test as test

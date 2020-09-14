@@ -2,7 +2,6 @@
 import Post.PyTree as P
 import Converter.PyTree as C
 import Generator.PyTree as G
-import Geom.PyTree as D
 
 def F(x, y): return x*x+y*y
 

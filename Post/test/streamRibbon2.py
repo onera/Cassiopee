@@ -1,4 +1,4 @@
-# - streamRibbon (array) -
+# - streamRibbon2 (array) -
 import Converter as C
 import Post as P
 import Generator as G

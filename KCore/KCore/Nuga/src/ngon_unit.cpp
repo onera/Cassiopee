@@ -715,7 +715,7 @@ void ngon_unit::get_degenerated(E_Int min_nb_facets, Vector_t<E_Int>& indices)
 {
   updateFacets();
   
-  E_Int s, nb_elts(size()), eq;
+  E_Int s, nb_elts(size());
   std::set<E_Int> unic;
   indices.clear();
   

@@ -1,6 +1,5 @@
 # - zipper (pyTree) -
 import Converter.PyTree as C
-import Post.PyTree as P
 import Generator.PyTree as G
 import Transform.PyTree as T
 import KCore.test as test
