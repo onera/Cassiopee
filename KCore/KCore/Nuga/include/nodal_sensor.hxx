@@ -55,8 +55,6 @@ void nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   //
   sensor_input_t& Ln = parent_t::_data;
   
-  // E_Int n_nodes= parent_t::_hmesh._crd.size();
-  // Ln.resize(n_nodes, 0);
   E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
   E_Int nb_elt= parent_t::_hmesh._ng.PHs.size();
   bool flag(false);
@@ -91,21 +89,103 @@ void nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   }
 }
 
-
 ///
 template <typename mesh_t>
 bool nodal_sensor<mesh_t>::update()
 {
   sensor_input_t& Ln = parent_t::_data;
   E_Int nb_pts = parent_t::_hmesh._crd.size();
-  Ln.resize(nb_pts, 0);
+  E_Int nb_new_pts = nb_pts - Ln.size();
+  Ln.resize(nb_pts, IDX_NONE);
+
+  bool updated{ false };
+
+  //std::cout << "updating..." << std::endl;
   
   for (int i=0; i< nb_pts; i++)
   {
-    if (Ln[i]>0)
+    if (Ln[i] > 0 && Ln[i] != IDX_NONE)
+    {
       Ln[i]--;
+      updated = true;
+    }
   }
-  return false;
+
+  // interpolate new points 
+  if (updated)
+  {
+    std::vector<E_Int> weight;
+    E_Int nb_iter = nb_new_pts; //to avoid eventual infinite loop
+    //E_Int count{0};
+    while (nb_new_pts != 0 && nb_iter-- > 0)
+    {
+      weight.clear();
+      weight.resize(nb_pts, 0);
+
+      E_Int nb_new_pts0 = nb_new_pts;
+      const ngon_unit& pgs = parent_t::_hmesh._ng.PGs;
+      for (E_Int i = 0; i < pgs.size(); ++i)
+      {
+        E_Int nnodes = pgs.stride(i);
+        const E_Int* pnodes = pgs.get_facets_ptr(i);
+
+        for (E_Int j = 0; j < nnodes; ++j)
+        {
+          E_Int Nm1 = pnodes[j] - 1;
+          E_Int N = pnodes[(j + 1) % nnodes] - 1;
+          E_Int Np1 = pnodes[(j + 2) % nnodes] - 1;
+
+          if (Ln[N] == IDX_NONE || weight[N] != 0) continue; // interpolated value (at this iter) does not contribute
+          
+          if (Ln[Nm1] == IDX_NONE || weight[Nm1] != 0) // to interpolate
+          {
+            if (Ln[Nm1] == IDX_NONE)
+            {
+              --nb_new_pts; //first update => reduce counter
+              Ln[Nm1] = 0;
+            }
+            Ln[Nm1] += Ln[N];
+            ++weight[Nm1];
+          }
+
+          if (Ln[Np1] == IDX_NONE || weight[Np1] != 0) // to interpolate
+          {
+            if (Ln[Np1] == IDX_NONE)
+            {
+              --nb_new_pts; //first update => reduce counter
+              Ln[Np1] = 0;
+            }
+            Ln[Np1] += Ln[N];
+            ++weight[Np1];
+          }
+        }
+      }
+
+      for (size_t i = 0; i < Ln.size(); ++i)
+      {
+        if (weight[i] != 0) Ln[i] /= weight[i];
+      }
+
+      if (nb_new_pts0 == nb_new_pts) break;
+
+      //std::cout << "iter : " << count++ << " nb of processed : " << nb_new_pts0 - nb_new_pts<< std::endl;
+    }
+
+    //reset eventual non processed values
+    for (size_t i = 0; i < Ln.size(); ++i)
+    {
+      if (Ln[i] == IDX_NONE) Ln[i] = 0;
+    }
+
+    E_Int minv = *std::min_element(ALL(Ln));
+    E_Int maxv = *std::max_element(ALL(Ln));
+
+    //std::cout << "VALS are bewteen " << minv << " and " << maxv << std::endl;
+  }
+
+  //std::cout << "updating done" << std::endl;
+
+  return updated;
 }
 
 }
