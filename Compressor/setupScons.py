@@ -36,7 +36,7 @@ extensions = [
               sources=["Compressor/compressor.cpp"],
               include_dirs=["Compressor"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
+              libraries=libraries+["zstd"]+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs())]
 if srcs.SZ:

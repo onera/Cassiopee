@@ -28,6 +28,8 @@ static PyMethodDef Pycompressor [] =
   {"writeUnsteadyCoefs", K_COMPRESSOR::writeUnsteadyCoefs, METH_VARARGS},
   {"compressCellN", K_COMPRESSOR::py_cellN_compress, METH_VARARGS},
   {"uncompressCellN", K_COMPRESSOR::py_cellN_uncompress, METH_VARARGS},
+  {"compressIndices", K_COMPRESSOR::py_indices_compress, METH_VARARGS},
+  {"uncompressIndices", K_COMPRESSOR::py_indices_uncompress, METH_VARARGS},
   {NULL, NULL}
 };
 

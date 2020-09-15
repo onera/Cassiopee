@@ -28,5 +28,7 @@ namespace K_COMPRESSOR
   PyObject* writeUnsteadyCoefs(PyObject* self, PyObject* args);
   PyObject * py_cellN_compress(PyObject *self, PyObject *args);
   PyObject * py_cellN_uncompress(PyObject *self, PyObject *args);
+  PyObject* py_indices_compress(PyObject* self, PyObject* args);
+  PyObject* py_indices_uncompress(PyObject* self, PyObject* args);
 }
 #endif
