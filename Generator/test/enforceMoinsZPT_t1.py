@@ -1,6 +1,5 @@
 # - enforceMoinsZ (pyTree) -
 import Generator.PyTree as G
-import Converter.PyTree as C
 import KCore.test as test
 
 Ni = 50; Nj = 2; Nk = 50

@@ -1,7 +1,6 @@
 # - compressCartesian (pyTree) -
 import Compressor.PyTree as Compressor
 import Generator.PyTree as G
-import Converter.Internal as Internal
 import KCore.test as test
 
 # 3D

@@ -36,7 +36,7 @@ def pack(a, method=0):
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
     elif method == 1:
         try: import cPickle as pickle # best for now
-        except: import picle
+        except: import pickle
         import zlib
         return zlib.compress(pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL), level=1)
     else:

@@ -258,7 +258,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
   if (pyJzids != Py_None) 
   {
     E_Int nb_joins = PyList_Size(pyJzids);
-    E_Int nb_ptl = PyList_Size(pyJptlists);
+    //E_Int nb_ptl = PyList_Size(pyJptlists);
 
     // JOINS
     assert (nb_joins == nb_ptl);

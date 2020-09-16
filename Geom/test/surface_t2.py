@@ -2,7 +2,6 @@
 # surfaces parametriques predefinies
 import Geom as D
 import KCore.test as test
-import Converter as C
 from Geom.Parametrics import base
 
 a = D.surface(base['plane'], N=100)

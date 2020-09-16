@@ -3,7 +3,6 @@ import Compressor.compressor as Co
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import numpy as np
-from math import sqrt
 
 a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
 n = Internal.getNodeFromName(a,"ElementConnectivity")[1]

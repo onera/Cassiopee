@@ -1,7 +1,6 @@
 #
 # Cassiopee's world
 #
-import numpy
 import math
 import Converter
 import Generator

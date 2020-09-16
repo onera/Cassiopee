@@ -1,6 +1,5 @@
 # - bboxIntersection (array) -
 import Generator as G
-import Transform as T
 import KCore.test as test
 
 ni = 11; nj = 3; nk = 11

@@ -177,8 +177,8 @@ bool nodal_sensor<mesh_t>::update()
       if (Ln[i] == IDX_NONE) Ln[i] = 0;
     }
 
-    E_Int minv = *std::min_element(ALL(Ln));
-    E_Int maxv = *std::max_element(ALL(Ln));
+    //E_Int minv = *std::min_element(ALL(Ln));
+    //E_Int maxv = *std::max_element(ALL(Ln));
 
     //std::cout << "VALS are bewteen " << minv << " and " << maxv << std::endl;
   }

@@ -1,5 +1,4 @@
 # - box (array) -
-import Converter as C
 import Transform as T
 import Modeler.Models as Models
 import KCore.test as test
