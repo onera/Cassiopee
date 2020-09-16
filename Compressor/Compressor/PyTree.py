@@ -279,13 +279,20 @@ def _packNode(node, tol=1.e-8, ctype=0):
         shape = [1.,tol,float(ret[2])]+list(ret[0])
         node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
-    else: # cellN
+    elif ctype == 2: # cellN
         ret = Compressor.compressor.compressCellN(node[1])
-        print(ret)
         iscorder = not numpy.isfortran(node[1])
         shape = [2.,tol,float(iscorder)]+list(ret[0])
         node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
+    elif ctype == 3: # Elements
+        net = int(tol)
+        ret = Compressor.compressor.compressIndices((net,node[1]))
+        shape = [3.,0.,0.,net,node[1].size]
+        node[1] = ret[2]
+        Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
+    else:
+        raise ValueError("packNode: unknow compression type.")
     return None
 
 def _unpackNode(node):
@@ -298,19 +305,25 @@ def _unpackNode(node):
         shape = shape[3:]
         shape = [int(i) for i in shape]
         shape = tuple(shape)
-        if ctype == 0:
+        if ctype == 0: # sz
             from . import sz
             ret = sz.unpack((shape,node[1],iscorder), {})
             node[1] = ret
             Internal._rmNodesFromName1(node, 'ZData')
-        elif ctype == 1:
+        elif ctype == 1: # zfp
             from . import zfp
             ret = zfp.unpack((shape,node[1],iscorder), accuracy=tol)
             node[1] = ret
             Internal._rmNodesFromName1(node, 'ZData')
-        else:
+        elif ctype == 2: # cellN
             node[1] = Compressor.compressor.uncompressCellN((shape,node[1],iscorder))
             Internal._rmNodesFromName1(node, 'ZData')
+        elif ctype == 3: # Elements
+            ret = Compressor.compressor.uncompressIndices((shape[0], shape[1], node[1]))
+            node[1] = ret[0]
+            Internal._rmNodesFromName1(node, 'ZData')
+        else: 
+            raise ValueError("unpackNode: unknown compression type.")
     return None
 
 # compressFields of zones
@@ -361,22 +374,46 @@ def _compressCellN(t):
     return None
 
 def compressCellN(t):
-    """Compress cellN on 2 bits."""    
+    """Compress cellN on 2 bits.""" 
     tp = Internal.copyRef(t)
     _compressCellN(tp)
+    return tp
+
+# Compress Elements_t (elts basiques)
+def _compressElements(t):
+    """Compress Element connectivity."""
+    zones = Internal.getZones(t)
+    for z in zones:
+        elts = Internal.getNodesFromType1(z, 'Elements_t')
+        for e in elts:
+            eltno = e[1][0]
+            (stype, net) = Internal.eltNo2EltName(eltno)
+            n = Internal.getNodeFromName1(e, 'ElementConnectivity')
+            _packNode(n, net, 3)
+    return None
+    
+def compressElements(t):
+    """Compress Element connectivity.""" 
+    tp = Internal.copyRef(t)
+    _compressElements(tp)
     return tp
 
 # uncompressFields of zones (si ZData est trouve dans le noeud DataArray_t)
 def _uncompressAll(t):
     """Uncompress all compressed data."""
-    from . import sz
     zones = Internal.getZones(t)
     for z in zones:
+        # unpack field
         GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
         FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
         fields = []
         for c in GC+FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields: _unpackNode(f)
+        # unpack connectivity
+        elts = Internal.getNodesFromType1(z, 'Elements_t')
+        for e in elts:
+            cn = Internal.getNodeFromName1(e, 'ElementConnectivity')
+            _unpackNode(cn)
     return None
 
 def uncompressAll(t):

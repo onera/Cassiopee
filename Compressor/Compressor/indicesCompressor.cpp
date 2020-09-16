@@ -68,13 +68,13 @@ py_indices_compress(PyObject* self, PyObject* args)
         int       ndims = PyArray_NDIM(an_array);
         if (ndims != 1)
         {
-            PyErr_SetString(PyExc_TypeError, "Wrong data : The indices arrays must have one dimension only");
+            PyErr_SetString(PyExc_TypeError, "Wrong data: The indices arrays must have one dimension only");
             return NULL;                
         }
         std::size_t  an_array_length = PyArray_SIZE(an_array);
         if ( an_array_length%nb_v_per_elt != 0 )
         {
-            PyErr_SetString(PyExc_TypeError, "Wrong data : The length of the indice array is not a multiple of number of vertices per element !");
+            PyErr_SetString(PyExc_TypeError, "Wrong data: The length of the indice array is not a multiple of number of vertices per element !");
             return NULL;                
         }
 
@@ -124,7 +124,7 @@ py_indices_uncompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays;
     if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) {
-        PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpackIndices(array or list of compressed arrays");
+        PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax: unpackIndices(array or list of compressed arrays");
         return NULL;
     }
     std::vector<PyArrayObject *> np_cpr_arrays;

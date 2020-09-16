@@ -1,4 +1,4 @@
-# - compressCartesian (pyTree) -
+# - compressIndices (pyTree) -
 import Compressor.compressor as Co
 import Generator.PyTree as G
 import Converter.Internal as Internal

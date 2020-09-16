@@ -13,5 +13,3 @@ test.testO(a, 1)
 a = G.cart((0,0,0), (1,1,1), (10,10,1))
 Compressor._compressCartesian(a)
 test.testO(a, 2)
-
-
