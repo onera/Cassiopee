@@ -18,6 +18,7 @@ nodal_vals[:] = 2
 
 ## HEXA static adaptation
 z = C.fillEmptyBCWith(z, 'wall', 'BCWall')
+z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
 m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type = 1, subdiv_type=0, hmesh=None)
 
@@ -40,6 +41,7 @@ test.testT(m,2)
 
 ## TETRA static adaptation
 zTH4 = C.fillEmptyBCWith(zTH4, 'wall', 'BCWall')
+zTH4 = C.initVars(zTH4, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
 n = C.getNPts(zTH4)
 #nodal_vals = numpy.zeros((n,), dtype=numpy.int32)

@@ -25,6 +25,8 @@ p2 = C.convertArray2NGon(zones[1])
 mesh = XOR.booleanUnion(p1,p2) #conformize the join
 #C.convertPyTree2File(mesh, 'u.cgns')
 
+mesh = C.initVars(mesh, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
+
 m0 = XOR.adaptCells(mesh,source, sensor_type=0)
 m0 = XOR.closeCells(m0)
 test.testT(m0,1)
@@ -47,7 +49,7 @@ m3 = XOR.conformizeHMesh(m3, hmsh)
 m3 = XOR.closeCells(m3)
 XOR.deleteHMesh(hmsh);
 test.testT(m3,4)
-#C.convertPyTree2File(m, 'out3.cgns')
+#C.convertPyTree2File(m3, 'out3.cgns')
 
 hmsh = XOR.createHMesh(mesh)
 m4 = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0, smoothing_type=1)
@@ -55,12 +57,12 @@ m4 = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0, smoothing_type=1)
 m4 = XOR.conformizeHMesh(m4, hmsh)
 m4 = XOR.closeCells(m4)
 test.testT(m4,5)
-#C.convertPyTree2File(cm, 'out4.cgns')
+#C.convertPyTree2File(m4, 'out4.cgns')
 
 m5 = XOR.adaptCells(m4, source, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
 
-m5 = XOR.conformizeHMesh(m5, hmsh)
+m5 = XOR.conformizeHMesh(m4, hmsh)
 m5 = XOR.closeCells(m5)
 XOR.deleteHMesh(hmsh);
 test.testT(m5,6)
-#C.convertPyTree2File(cm, 'out5.cgns')
+#C.convertPyTree2File(m5, 'out5.cgns')

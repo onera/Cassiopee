@@ -57,6 +57,8 @@ class tree
       _enabled.clear();
       _enabled.resize(sz, val);
     }
+
+    const Vector_t<bool>& get_enabled() { return _enabled;}
     
     // expand a tree with fixed-stride-children
     void resize(const Vector_t<E_Int>& ids, E_Int stride)

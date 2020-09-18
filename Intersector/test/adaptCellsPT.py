@@ -10,6 +10,7 @@ b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 #C.convertPyTree2File(b, 'b.cgns')
 
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
+a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
 ## static adaptation
 m = XOR.adaptCells(a,b, sensor_type=0)
@@ -27,10 +28,10 @@ C.convertPyTree2File(m, 'out2.cgns')
 ## dynamic adaptation
 hmsh = XOR.createHMesh(a)
 m = XOR.adaptCells(a, b, hmesh = hmsh, sensor_type=0)
-m = XOR.conformizeHMesh(m, hmsh)
-m = XOR.closeCells(m)
+cm = XOR.conformizeHMesh(m, hmsh)
+cm = XOR.closeCells(m)
 XOR.deleteHMesh(hmsh);
-C.convertPyTree2File(m, 'out3.cgns')
+C.convertPyTree2File(cm, 'out3.cgns')
 
 hmsh = XOR.createHMesh(a)
 m = XOR.adaptCells(a, b, hmesh = hmsh, sensor_type=0, smoothing_type=1)
@@ -41,9 +42,9 @@ C.convertPyTree2File(cm, 'out4.cgns')
 
 m = XOR.adaptCells(m, b, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
 
-cm = XOR.conformizeHMesh(m, hmsh)
+cm = XOR.conformizeHMesh(cm, hmsh)
 cm = XOR.closeCells(cm)
 
 XOR.deleteHMesh(hmsh);
-C.convertPyTree2File(m, 'out5.cgns')
+C.convertPyTree2File(cm, 'out5.cgns')
 

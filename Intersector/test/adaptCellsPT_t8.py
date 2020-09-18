@@ -12,6 +12,7 @@ a = C.convertArray2NGon(a); a = G.close(a)
 s = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 
 z = C.fillEmptyBCWith(a, 'wall', 'BCWall')
+z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
 
 ########################## create the hook
@@ -34,7 +35,7 @@ z = XOR.conformizeHMesh(z, hmsh)     # each children faces replace its mother in
 z = XOR.closeCells(z)            # close cells (adding point on lateral faces)
 
 test.testT(z, 1)
-C.convertPyTree2File(z, "out1.cgns")
+#C.convertPyTree2File(z, "out1.cgns")
 
 ########################## free the hook
 XOR.deleteHMesh(hmsh);

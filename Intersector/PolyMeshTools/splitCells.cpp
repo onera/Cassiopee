@@ -559,7 +559,7 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray*& crdo, K_FLD::IntA
   }
 
   // transfer fields
-  //hmesh->project_cell_center_sol_order1(fields);
+  hmesh->project_cell_center_sol_order1(fields);
 }
 
 template <NUGA::eSUBDIV_TYPE STYPE>

@@ -23,6 +23,7 @@ b = G.close(b)
 #C.convertPyTree2File(b,'z_nonreg7_source.cgns')
 
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
+a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
 m1 = XOR.adaptCells(a,b, sensor_type=0)
 m1 = XOR.closeCells(m1)

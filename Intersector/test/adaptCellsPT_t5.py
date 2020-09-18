@@ -18,16 +18,16 @@ b = C.convertArray2NGon(b)
 b = G.close(b)
 
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
+a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
-#C.convertPyTree2File(a, 'z_nonreg_pyra.cgns')
-#C.convertPyTree2File(b, 'z_nonreg_pyra_source.cgns')
+#C.convertPyTree2File(a, 'out5.cgns')
 
 m1 = XOR.adaptCells(a,b, sensor_type=0)
 m1 = XOR.closeCells(m1)
-#C.convertPyTree2File(m1, 'out5b.cgns')
+#C.convertPyTree2File(m1, 'out51.cgns')
 test.testT(m1,1)
 
 m2 = XOR.adaptCells(a,b, sensor_type=0, smoothing_type=1)
 m2 = XOR.closeCells(m2)
-#C.convertPyTree2File(m2, 'out51.cgns')
+#C.convertPyTree2File(m2, 'out52.cgns')
 test.testT(m2,2)

@@ -80,7 +80,6 @@ class hierarchical_mesh
     // BCs
     bc_data_t BCptLists;
 
-    
     // JOINS
     E_Int            zid;
     join_t<self_t>* join;
@@ -89,6 +88,10 @@ class hierarchical_mesh
 
     //hack
     mutable std::vector<E_Int> _pgnids, _phnids;
+
+    // for fields projetion
+    E_Int                     _nb_phs0;         // intial nb of PHs
+    Vector_t<bool>            _enabledPHi;      // current PH enabling status
 
     ///
     hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(0) { init(); }
@@ -149,6 +152,9 @@ class hierarchical_mesh
     
     ///
     bool is_initialised() const ;
+
+    ///
+    E_Int project_cell_center_sol_order1(std::vector<std::vector<E_Float>>& fields);
 
 private:
     ///
@@ -271,6 +277,8 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
   if (_initialized) return 0;
 
   if (_ng.PGs.size() == 0) return 1;
+
+  _nb_phs0 = _ng.PHs.size();
   
   E_Int err(0);
   
@@ -685,7 +693,138 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
     // for the outside world
     K_CONNECT::IdTool::shift(ptlist, _idx_start);
   }
+}
 
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
+(std::vector<std::vector<E_Float>>& cfields)
+{
+  size_t nbf = cfields.size();
+
+  if (nbf == 0) return 0;
+
+  //check all fields have same size
+  E_Int fsz{0};
+  for (size_t f=0; f < nbf; ++f)
+  {
+    if (fsz==0)fsz = cfields[f].size();
+    else if (fsz != cfields[f].size())
+    {
+      std::cout << "project_cell_center_sol_order1 : ERROR. input fields sizes are inconsistent between them." << std::endl;
+      return 1;
+    }
+  }
+
+  if (_enabledPHi.empty()) // one-shot adaption or first time in adaptCellsDyn
+    _enabledPHi.resize(_nb_phs0, true);
+  else
+  {
+    /*std::cout << "next pass !!!" << std::endl;
+    std::cout << "nb phs : " << _ng.PHs.size() << std::endl;
+    std::cout << "_enabledPHi sz : " << _enabledPHi.size() << std::endl;
+    std::cout << "fsz : " << fsz << std::endl;*/
+  }
+
+  E_Int nb_enabledi = std::count(ALL(_enabledPHi), true);
+  
+  if (fsz != nb_enabledi)
+  {
+    std::cout << "project_cell_center_sol_order1 : ERROR. input fields sizes are inconsistent with hmesh." << std::endl;
+    return 1;
+  }
+
+  // compute indir field to PH in _enabledPHi
+  std::vector<E_Int> PHid1(fsz);
+  size_t c{0};
+  for (size_t i=0; i < _enabledPHi.size(); ++i)
+  {
+    if (_enabledPHi[i]) PHid1[c++]=i;
+  }
+
+  // compute indir field to PH and reverse in current enabled vector
+  std::vector<E_Int> nPHid, nfid(_ng.PHs.size(), IDX_NONE);
+  c=0;
+  for (size_t i=0; i < _ng.PHs.size(); ++i)
+  {
+    if (_PHtree.is_enabled(i)) 
+    {
+      nfid[i] = nPHid.size();
+      nPHid.push_back(i);
+    }
+  }
+  E_Int fsz2 = nPHid.size();
+
+  // initialize new fields
+  std::vector<std::vector<E_Float>> new_fields(nbf);
+  for (size_t f = 0; f < nbf; ++f)
+    new_fields[f].resize(fsz2, 0.);
+
+  std::vector<E_Int> children;
+  std::vector<bool> to_agglo(fsz2, false);
+
+  // loop on old fields and apply to new
+  for (size_t i=0; i < PHid1.size(); ++i)
+  {
+    E_Int PHj = PHid1[i];
+    assert (_enabledPHi[PHj] == true); //by defininition
+
+    if (_PHtree.is_enabled(PHj)) // still enabled, just pass the values
+    {
+      for (size_t f = 0; f < nbf; ++f)
+        new_fields[f][nfid[PHj]] = cfields[f][i];
+    }
+    else // refinement :look in the genealogy where are the enabled
+    {
+      _PHtree.get_enabled_descendants(PHj, children);
+
+      if (!children.empty())
+      {
+        for (size_t c=0; c < children.size(); ++c)
+        {
+          for (size_t f = 0; f < nbf; ++f)
+            new_fields[f][nfid[children[c]]] = cfields[f][i];
+        }
+      }
+      else //agglo : get the enabled ancestor
+      {
+        E_Int pid{IDX_NONE};
+        _PHtree.get_enabled_parent(PHj, pid);
+        assert (pid != IDX_NONE);
+
+        //compute PHj volume
+        E_Float v;
+        K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(_crd, _ng.PGs, _ng.PHs.get_facets_ptr(PHj), _ng.PHs.stride(PHj), v, true);
+
+        for (size_t f = 0; f < nbf; ++f)
+          new_fields[f][nfid[pid]] += cfields[f][i] * ::fabs(v); // accumulate mass
+
+        to_agglo[nfid[pid]] = true;
+
+      }
+    }
+  }
+
+  // go back to density for agglomerated cells
+  for (size_t i=0; i < to_agglo.size(); ++i) // i is ith field value
+  {
+    if (!to_agglo[i]) continue;
+
+    E_Int PH = nPHid[i];
+
+    E_Float v;
+    K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(_crd, _ng.PGs, _ng.PHs.get_facets_ptr(PH), _ng.PHs.stride(PH), v, true);
+
+    if (::fabs(v) < ZERO_M) continue;
+
+    for (size_t f = 0; f < nbf; ++f)
+      new_fields[f][i] /= v;
+  }
+
+  cfields = new_fields;
+  _enabledPHi = _PHtree.get_enabled();
+
+  return 0;
 }
 
 }

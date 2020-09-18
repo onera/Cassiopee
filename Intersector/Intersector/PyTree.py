@@ -1608,10 +1608,10 @@ def _conformizeHMesh(t, hooks):
           updateBCPointLists2(z, bcptlists)
 
         ## MAJ center fields
-        # C._deleteFlowSolutions__(z)
-        # fieldz = res[range[2]:]
-        # for f in fieldz:
-        #   C.setFields([f], z, 'centers', False)
+        C._deleteFlowSolutions__(z)
+        fieldz = res[ranges[2]:]
+        for f in fieldz:
+          C.setFields([f], z, 'centers', False)
         
         i=i+1
 
