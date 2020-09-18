@@ -52,21 +52,17 @@ void join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   adap_incr.face_adap_incr.resize(nb_faces, 0);
 
   // 1. filling adap_incr.face_adap_incr : select if face plan ask for and not already subdivided
-  bool has_face_adap{ false };
   for (auto& dat : parent_t::_data)
   {
     E_Int PGi = dat.first;
     auto& plan = dat.second;
-    if (plan.getSize() == 0) continue;                               // nothing planned
+    if (plan.getSize() == 0) continue;                            // nothing planned
     //std::cout << plan << std::endl;
 
     if (parent_t::_hmesh._PGtree.nb_children(PGi) != 0) continue; // already subdivided
 
     adap_incr.face_adap_incr[PGi] = 1;
-    has_face_adap = true;
   }
-
-  if (!has_face_adap) return;
 
   // 2. filling adap_incr.cell_adap_incr : select if face plan is going beyond next generation
   for (int i = 0; i < nb_elts; ++i)
@@ -95,14 +91,29 @@ void join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 template <typename mesh_t>
 bool join_sensor<mesh_t>::update()
 {
-  // compute plans for next generation
+  // compute plans for next generation and enable joins PG for that generation
   input_t new_data;
+
+  //std::cout << "SENSOR ENABLING UPDATE" << std::endl;
   
   for (auto& dat : parent_t::_data)
   {
     E_Int PGi = dat.first;
-    pg_arr_t& plan = dat.second;
+    auto& plan = dat.second;
 
+    if (plan.getSize() == 0) continue;                            // nothing planned
+    //std::cout << plan << std::endl;
+    
+    // enable children : if they are in plan, it means they are enabled on the other join side
+    E_Int nbc{parent_t::_hmesh._PGtree.nb_children(PGi)};
+    if (nbc != 0)
+    {
+      const E_Int* children = parent_t::_hmesh._PGtree.children(PGi);
+      for (E_Int i=0; i < nbc; ++i)
+        parent_t::_hmesh._PGtree.enable(children[i]);
+    }
+
+    // get plans for children fort next adaptation pass
     join_plan<pg_arr_t>::extract_sub_plans(parent_t::_hmesh._PGtree, PGi, plan, new_data);
   }
 

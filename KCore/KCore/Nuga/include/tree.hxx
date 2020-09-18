@@ -51,6 +51,12 @@ class tree
       _level.resize(nb_ent, 0);
       _enabled.resize(nb_ent, true);
     }
+
+    void reset_enabled(E_Int sz, bool val) // for PG enabling in hmesh
+    {
+      _enabled.clear();
+      _enabled.resize(sz, val);
+    }
     
     // expand a tree with fixed-stride-children
     void resize(const Vector_t<E_Int>& ids, E_Int stride)
@@ -120,21 +126,22 @@ class tree
     inline E_Int parent(E_Int i /*zero based*/) const { assert(i < _parent.size());  return _parent[i];}
     
     void get_oids(std::vector<E_Int>& oids) const ; //WARNING : NOT VALID AFTER CONFOMIZE
-    //
-    void add_children(E_Int i/*zero based*/, const E_Int* children, E_Int n){
+    
+    //WRONG (enablin logic) and unused
+    // void add_children(E_Int i/*zero based*/, const E_Int* children, E_Int n){
      
-      assert(i < _entities->size());
-      _indir[i] = array_trait<children_array>::size(_children);// size of _children
+    //   assert(i < _entities->size());
+    //   _indir[i] = array_trait<children_array>::size(_children);// size of _children
 
-      array_trait<children_array>::add_children(_children, children, n);
+    //   array_trait<children_array>::add_children(_children, children, n);
       
-      for (size_t c=0; c<n; ++c) _parent[children[c]] = i;
+    //   for (size_t c=0; c<n; ++c) _parent[children[c]] = i;
       
-      _level.resize(_level.size()+n, _level[i]+1);
-      // enable the children, disable himself
-      _enabled.resize(_level.size()+n, true);
-      _enabled[i] = false;
-    }
+    //   _level.resize(_level.size()+n, _level[i]+1);
+    //   // enable the children, disable himself
+    //   _enabled.resize(_level.size()+n, true); // WRONG : use method enable
+    //   _enabled[i] = false;                    // WRONG
+    // }
     
     // set n random children ids
     void set_children(E_Int i/*zero based*/, const E_Int* childr, E_Int n){
@@ -180,14 +187,17 @@ class tree
       return array_trait<children_array>::children(_children, _indir[i]);
     }
     
-    void enable(E_Int i /*zero based*/)
+    void enable(E_Int i /*zero based*/, bool act_on_genealogy = true)
     {
        assert(i < _enabled.size());
 
        _enabled[i] = true;
+
+       if (!act_on_genealogy) return;
        
        // disable its parent
-       if ( parent(i) !=  IDX_NONE )_enabled[parent(i)] = false;
+       E_Int pid = parent(i);
+       if ( pid !=  IDX_NONE )_enabled[pid] = false;
 
        // disable its children
        E_Int nbc = nb_children(i);
@@ -197,6 +207,12 @@ class tree
     }
       
     inline bool is_enabled(E_Int i /*zero based*/) const { assert(i < _enabled.size());  return _enabled[i]; }
+
+    E_Int get_enabled_parent(E_Int i, E_Int& parent) const;
+
+    E_Int get_enabled_descendants(E_Int i, std::vector<E_Int>& ids) const;
+
+    void __get_enabled_descendants(E_Int i, std::vector<E_Int>& ids) const;
 
 };
 
@@ -218,6 +234,49 @@ void tree<children_array>::get_oids(std::vector<E_Int>& oids) const
       pid = _parent[pid];
     };
   }
+}
+
+///
+template <typename children_array>
+E_Int tree<children_array>::get_enabled_parent(E_Int i, E_Int& pid) const
+{
+  pid = _parent[i];
+
+  while (pid != IDX_NONE && !_enabled[pid]) {pid = _parent[pid];}
+
+  return 0;
+}
+
+///
+template <typename children_array>
+E_Int tree<children_array>::get_enabled_descendants(E_Int i, std::vector<E_Int>& ids) const
+{
+  ids.clear();
+  if (_enabled[i]) return 0;
+
+  E_Int nbc = nb_children(i);
+  const E_Int* childr = children(i);
+
+  for (E_Int c=0; c <nbc; ++c)
+    __get_enabled_descendants(childr[c], ids);
+
+  return 0;
+}
+
+template <typename children_array>
+void tree<children_array>::__get_enabled_descendants(E_Int i, std::vector<E_Int>& ids) const
+{
+  if (_enabled[i])
+  {
+    ids.push_back(i);
+    return;
+  }
+
+  E_Int nbc = nb_children(i);
+  const E_Int* childr = children(i);
+
+  for (E_Int c=0; c <nbc; ++c)
+    __get_enabled_descendants(childr[c], ids);
 }
 
 //////////////  ARRAY TRAITS : how to get size, expand an array whether it is fixed stride (IntArray) or not (ngon_unit) 

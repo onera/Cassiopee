@@ -23,7 +23,6 @@ a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 #C.convertPyTree2File(b, 'z_nonreg_pyra_source.cgns')
 
 m1 = XOR.adaptCells(a,b, sensor_type=0)
-#C.convertPyTree2File(m1, 'out5a.cgns')
 m1 = XOR.closeCells(m1)
 #C.convertPyTree2File(m1, 'out5b.cgns')
 test.testT(m1,1)

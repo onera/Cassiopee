@@ -59,6 +59,8 @@ class hierarchical_mesh
     using pg_tree_t = tree<pg_arr_t>; 
     using ph_tree_t = tree<ph_arr_t>;
 
+    using bc_data_t = std::vector<std::vector<E_Int>>;
+
     // mutli-zone stuff
     using jsensor_t = join_sensor<self_t>;
     using join_data_t = std::vector<std::pair<E_Int, std::vector<E_Int>>>;
@@ -73,18 +75,28 @@ class hierarchical_mesh
     bool                      _initialized;     // flag to avoid initialization more than once.
     refiner<ELT_t, STYPE>     _refiner;         // refinement methods must stay static, so this object is here to store _ecenter (not relevant in hmesh)
 
+    E_Int _idx_start;
+
+    // BCs
+    bc_data_t BCptLists;
+
+    
+    // JOINS
     E_Int            zid;
     join_t<self_t>* join;
     jsensor_t*       jsensor;
     communicator_t*  COM;
 
+    //hack
+    mutable std::vector<E_Int> _pgnids, _phnids;
+
     ///
-    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
+    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(0) { init(); }
     ///
-    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
+    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
 
     //multi-zone constructor
-    hierarchical_mesh(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const join_data_t& jdata, E_Int idx_start, communicator_t* com);
+    hierarchical_mesh(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const bc_data_t& bcptlists, const join_data_t& jdata, E_Int idx_start, communicator_t* com);
 
     ~hierarchical_mesh()
     {
@@ -131,7 +143,9 @@ class hierarchical_mesh
     ///
     void get_higher_level_neighbours(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours) const ;
     ///
-    bool enabled_neighbours(E_Int PHi) const ; // return true if the PHi-th PH only has enabled neighbours
+    void enable_PGs();
+
+    void update_BCs();
     
     ///
     bool is_initialised() const ;
@@ -139,8 +153,6 @@ class hierarchical_mesh
 private:
     ///
     void __init();
-    ///
-    void __conformize_next_lvl(Vector_t<E_Int>& molec, E_Int PGi, E_Int i) const ;
     ///
     template <typename PG_t>
     void __append_children_plan(E_Int PGi, bool reverse, int i0, std::map<E_Int, std::vector<E_Int>>& lvl_to_plan, E_Int lvl);
@@ -150,8 +162,8 @@ private:
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 hierarchical_mesh<ELT_t, STYPE, ngo_t>::hierarchical_mesh
-(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const join_data_t& jdata, E_Int idx_start, communicator_t* com) :
-  _crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), zid(id), join(nullptr), jsensor(nullptr), COM(com)
+(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const bc_data_t& bcptlists, const join_data_t& jdata, E_Int idx_start, communicator_t* com) :
+  _crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(id), join(nullptr), jsensor(nullptr), COM(com)
 {
   //std::cout << "hierarchical_mesh : begin " << std::endl;
   init();
@@ -309,7 +321,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
     // refine Cells with missing children (those PHi with _PHtree.nb_children(PHi) == 0)
     if (cmax > 0) refiner<ELT_t, STYPE>::refine_PHs(adap_incr, _ng, _PGtree, _PHtree, _crd, _F2E);
         
-    // enable the right PHs & their levels, disable subdivided PHs
+    // update cell_adap_incr, enable the right PHs & their levels
     adap_incr.cell_adap_incr.resize(_ng.PHs.size(),0);
     for (E_Int PHi = 0; PHi < _ng.PHs.size(); ++PHi)
     {
@@ -344,7 +356,9 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
           adap_incr.cell_adap_incr[*(children + j)] = 0;
       }
     }
-        
+
+    enable_PGs();
+    
     _ng.PGs.updateFacets();
     _ng.PHs.updateFacets();
 
@@ -384,13 +398,8 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_Int>& pgoids) const
 {
-  Vector_t<E_Int> old_pgoids;
-  _PGtree.get_oids(old_pgoids);
-
-  pgoids.clear();//for history (BC and Join preserving)
-
   ngon_unit new_phs;
-  Vector_t<E_Int> molec;
+  Vector_t<E_Int> molec, ids;
 
   E_Int nb_phs = _ng.PHs.size();
   for (E_Int i = 0; i < nb_phs; ++i)
@@ -404,37 +413,16 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
     for (E_Int j = 0; j < s; ++j)
     {
       E_Int PGi = *(pPGi + j) - 1;
-      E_Int PHn = NEIGHBOR(i, _F2E, PGi);
 
-      if (PHn == IDX_NONE)
-      {
-        E_Int nbc = _PGtree.nb_children(PGi);
-        if (nbc == 0)
-          molec.push_back(PGi + 1);
-        else // case for joins
-        {
-          for (E_Int c = 0; c < nbc; ++c)
-          {
-            E_Int PG_f = *(_PGtree.children(PGi) + c);
-            __conformize_next_lvl(molec, PG_f, PHn);
-          }
-        }
-      }
-      else if (_PHtree.is_enabled(PHn))
+      if (_PGtree.is_enabled(PGi))
         molec.push_back(PGi + 1);
-      else // father or children ?
+      else // get enabled descendants
       {
-        E_Int PHf = _PHtree.parent(i);
-        if ((PHf != IDX_NONE) && _PHtree.is_enabled(PHf))
-          molec.push_back(PGi + 1);
-        else // append the children
-        {
-          E_Int nbc = _PGtree.nb_children(PGi);
-          for (E_Int c = 0; c < nbc; ++c) {
-            E_Int PG_f = *(_PGtree.children(PGi) + c);
-            __conformize_next_lvl(molec, PG_f, PHn);
-          }
-        }
+        ids.clear();
+        _PGtree.get_enabled_descendants(PGi, ids);
+        assert (!ids.empty());
+        K_CONNECT::IdTool::shift(ids, 1);
+        molec.insert(molec.end(), ALL(ids));
       }
     }
 
@@ -445,39 +433,22 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
   ngo.PHs = new_phs;
   ngo.PHs.updateFacets();
 
-  std::vector<E_Int> pgnids, phnids;
-  ngo.remove_unreferenced_pgs(pgnids, phnids);
+  _pgnids.clear();
+  _phnids.clear();
+  ngo.remove_unreferenced_pgs(_pgnids, _phnids);
 
+  //for history (BC and Join preserving)
+
+  pgoids.clear();
   K_CONNECT::IdTool::init_inc(pgoids, _ng.PGs.size());
-
-  for (size_t i = 0; i < pgnids.size(); ++i)
+  
+  Vector_t<E_Int> old_pgoids;
+  _PGtree.get_oids(old_pgoids);
+  
+  for (size_t i = 0; i < _pgnids.size(); ++i)
   {
     //old_pgoids cannot have IDX_NONE : new entities must be self referring
-    if (pgnids[i] != IDX_NONE)pgoids[pgnids[i]] = old_pgoids[i];
-  }
-}
-
-///
-template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__conformize_next_lvl(Vector_t<E_Int> &molec, E_Int PGi, E_Int i) const 
-{
-  E_Int sid =  (_PHtree.parent(_F2E(0,PGi)) == i) ? 0 : 1 ;
-  E_Int PHj = _F2E(sid,PGi);
-
-  //E_Int PHj = NEIGHBOR(i, _F2E, PGi);
-
-  if(PHj == IDX_NONE)
-    molec.push_back(PGi+1);
-  else if (_PHtree.is_enabled(PHj))
-    molec.push_back(PGi+1);
-  else // children 
-  {
-    E_Int nbc = _PGtree.nb_children(PGi);
-    for (E_Int c=0; c < nbc; ++c){
-      //molec.push_back(*(_PGtree.children(PGi)+c) + 1);
-      E_Int PG_f= *(_PGtree.children(PGi)+c);
-      __conformize_next_lvl(molec, PG_f, PHj);
-    }
+    if (_pgnids[i] != IDX_NONE)pgoids[_pgnids[i]] = old_pgoids[i];
   }
 }
 
@@ -509,15 +480,19 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_phs(ngon_type& filt
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& pointlist)
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& ids)
 {
+  ids.clear();
+  if (_PGtree.is_enabled(PGi))
+    return;
+
   reordering_func F{ nullptr };
   if (_ng.PGs.stride(PGi) == 3)
     F = subdiv_pol<K_MESH::Triangle, STYPE>::reorder_children;
   else if (_ng.PGs.stride(PGi) == 4)
     F = subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children;
   
-  __extract_enabled_pgs_descendance(PGi, F, reverse, pointlist);
+  __extract_enabled_pgs_descendance(PGi, F, reverse, ids);
 }
 
 ///
@@ -529,16 +504,16 @@ void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E_Int PGi, reordering_func F, bool reverse, std::vector<E_Int>& ptlist)
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E_Int PGi, reordering_func F, bool reverse, std::vector<E_Int>& ids)
 {
   //
-  E_Int nbc = _PGtree.nb_children(PGi);
-  if (nbc == 0) //leave
+  if (_PGtree.is_enabled(PGi))
   {
-    ptlist.push_back(PGi);
+    ids.push_back(PGi);
     return;
   }
 
+  E_Int nbc = _PGtree.nb_children(PGi);
   const E_Int* pchild = _PGtree.children(PGi);
 
   STACK_ARRAY(E_Int, nbc, children);
@@ -549,7 +524,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E
 
   //
   for (E_Int i = 0; i < nbc; ++i)
-    __extract_enabled_pgs_descendance(children[i], F, reverse, ptlist);
+    __extract_enabled_pgs_descendance(children[i], F, reverse, ids);
 }
 
 ///
@@ -622,15 +597,95 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_plan(E_Int PGi, bool revers
   /*E_Int ret{ 0 };*/
 
   if (_ng.PGs.stride(PGi) == 3)
-    /*ret = */join_plan<pg_arr_t>::extract_compact_tree(_PGtree, PGi, subdiv_pol<K_MESH::Triangle, STYPE>::reorder_children, reverse, i0, plan);
+    /*ret = */join_plan<pg_arr_t>::extract_compact_enabled_tree(_PGtree, PGi, subdiv_pol<K_MESH::Triangle, STYPE>::reorder_children, reverse, i0, plan);
   else if (_ng.PGs.stride(PGi) == 4)
-    /*ret = */join_plan<pg_arr_t>::extract_compact_tree(_PGtree, PGi, subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children, reverse, i0, plan);
+    /*ret = */join_plan<pg_arr_t>::extract_compact_enabled_tree(_PGtree, PGi, subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children, reverse, i0, plan);
 }
 
 template <>
 void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const
 {
   //todo
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_PGs()
+{
+  // INFO : at the end, some join PG can be wrongly disbaled
+  // (those which ensure conformal join with the other side)
+  // indeed, for some join, children must be enabled instead of natural face
+  // but these are fixed in join_sensor<mesh_t>::update()
+
+  //reset
+  _PGtree.reset_enabled(_ng.PGs.size(), false);
+
+  for (E_Int PHi = 0; PHi < _ng.PHs.size(); ++PHi)
+  {
+    if (!_PHtree.is_enabled(PHi)) continue;
+
+    const E_Int* faces = _ng.PHs.get_facets_ptr(PHi);
+    E_Int nfaces = _ng.PHs.stride(PHi);
+
+    for (E_Int j = 0; j < nfaces; ++j)
+    {
+      E_Int PGi = faces[j] - 1;
+      E_Int PHn = NEIGHBOR(PHi, _F2E, PGi);
+
+      if (PHn == IDX_NONE)
+        _PGtree.enable(PGi);
+      else if (_PHtree.is_enabled(PHn))
+        _PGtree.enable(PGi);
+    }
+  }
+}
+
+//
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
+{
+  //std::cout << "join_t<mesh_t>::update() : begin" << std::endl;
+  std::vector<E_Int> ids;
+
+  // update pointlists
+  for (size_t i=0; i < BCptLists.size(); ++i)
+  {
+    std::vector<E_Int>& ptlist = BCptLists[i];
+    std::vector<E_Int> new_ptlist;
+
+    for (size_t i = 0; i < ptlist.size(); ++i)
+    {
+      E_Int PGi = ptlist[i] - _idx_start;
+      //std::cout << "PGi : " << PGi << std::endl;
+      
+      if (_PGtree.is_enabled(PGi))
+        new_ptlist.push_back(PGi);
+      else // look in the genealogy where are the enabled
+      {
+        ids.clear();
+        extract_enabled_pgs_descendance(PGi, false/*reverse not required*/, ids);
+
+        if (!ids.empty()) //refinement
+          new_ptlist.insert(new_ptlist.end(), ALL(ids));
+        else //agglo : get the enabled ancestor
+        {
+          E_Int pid{IDX_NONE};
+          _PGtree.get_enabled_parent(PGi, pid);
+          assert (pid != IDX_NONE);
+          new_ptlist.push_back(pid);
+        }
+      }
+    }
+
+    //std::cout << "old BC sz vs new : " << ptlist.size() << " vs " << new_ptlist.size() << std::endl;
+
+    ptlist = new_ptlist;
+    // remove duplicates due to agglo
+    K_CONNECT::IdTool::compress_unic(ptlist);
+    // for the outside world
+    K_CONNECT::IdTool::shift(ptlist, _idx_start);
+  }
+
 }
 
 }

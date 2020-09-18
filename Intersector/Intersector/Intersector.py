@@ -358,7 +358,7 @@ def adaptBox(a, box_ratio=10., smoothing_type=0, itermax=-1):
     return intersector.adaptBox(a, box_ratio, smoothing_type, itermax)
 
 def createHMesh(a, subdiv_type = 0): # 0 : ISO, 1: ISO_HEX
-    return intersector.createHMesh(a, subdiv_type, 0, None, None, None)
+    return intersector.createHMesh(a, subdiv_type, None, 0, None, None, None)
 
 def deleteHMesh(hmesh):
     return intersector.deleteHMesh(hmesh)

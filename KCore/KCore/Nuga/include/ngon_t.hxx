@@ -2238,7 +2238,6 @@ E_Int remove_degenerated_pgs(E_Int ngon_dim, Vector_t<E_Int>& pgnids, Vector_t<E
   Vector_t<E_Int> pgindices;
   E_Int min_nb_facets = ngon_dim;
   PGs.get_degenerated(min_nb_facets, pgindices); // Degenrated edge(<2) or Polygons (<3)
-  //if (!pgindices.empty())std::cout << "HAD SOME DEGEN!!!!!!!!!!!" << std::endl;
   remove_pgs(pgindices, pgnids, phnids); //sync the PHs accordingly
   PGs.updateFacets();//fixme : required ?
   return pgindices.size();

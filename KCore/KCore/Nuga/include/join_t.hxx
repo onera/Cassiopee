@@ -61,6 +61,9 @@ namespace NUGA
   template <typename mesh_t>
   void join_t<mesh_t>::update()
   {
+    //std::cout << "join_t<mesh_t>::update() : begin" << std::endl;
+    std::vector<E_Int> ids;
+
     // update pointlists
     for (auto& j : jid_to_joinlist)
     {
@@ -71,16 +74,38 @@ namespace NUGA
       for (size_t i = 0; i < ptlist.size(); ++i)
       {
         E_Int PGi = ptlist[i] - idx_start;
-        //std::cout << "new nb of children of " << PGi <<" : "<< mesh._PGtree.nb_children(PGi) << std::endl;
-        if (mesh._PGtree.nb_children(PGi) == 0)
+        //std::cout << "PGi : " << PGi << std::endl;        
+        if (mesh._PGtree.is_enabled(PGi))
           new_ptlist.push_back(PGi);
-        else //extract descendance
+        else // look in the genealogy where are the enabled
         {
+          ids.clear();
           bool reverse = (jzid < id); // the lower id dictate the sorting
-          mesh.extract_enabled_pgs_descendance(PGi, reverse, new_ptlist);// append
+          mesh.extract_enabled_pgs_descendance(PGi, reverse, ids);
+
+          if (!ids.empty()) //refinement
+            new_ptlist.insert(new_ptlist.end(), ALL(ids));
+          else //agglo : get the enabled ancestor
+          {
+            E_Int pid{IDX_NONE};
+            mesh._PGtree.get_enabled_parent(PGi, pid);
+            assert (pid != IDX_NONE);
+            new_ptlist.push_back(pid);
+          }
         }
       }
+
       ptlist = new_ptlist;
+      // remove duplicates due to agglo
+      K_CONNECT::IdTool::compress_unic(ptlist);
+      // for the outside world
+      K_CONNECT::IdTool::shift(ptlist, idx_start);
+
+      //std::cout << "join_t<mesh_t>::update() : end" << std::endl;
+
+      /*for (size_t i=0; i< ptlist.size(); ++i)
+        std::cout << ptlist[i] << "/";
+      std::cout << std::endl;*/
     }
   }
 }

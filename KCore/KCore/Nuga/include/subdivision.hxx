@@ -230,5 +230,6 @@ struct dir_incr_type //fixme : separate also here face & cell adap incr
   //  using type = Vector_t<E_Float>;
   //};
 
-  };
+  } // NUGA
+
 #endif

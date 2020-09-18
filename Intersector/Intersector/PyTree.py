@@ -118,12 +118,12 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
 
 # update BC and JOINS point lists given an indirection "new id to old id"
 def updatePointLists(z, zones, oids):
-    #print('updateBCPointLists')
-    updateBCPointLists(z, oids)
+    #print('updateBCPointLists1')
+    updateBCPointLists1(z, oids)
     #print('updateJoinsPointLists')
-    updateJoinsPointLists(z, zones, oids)
+    updateJoinsPointLists1(z, zones, oids)
 
-def updateBCPointLists(z, oids):
+def updateBCPointLists1(z, oids):
     bnds = Internal.getNodesFromType(z, 'BC_t')
     zname=z[0]
 
@@ -145,7 +145,7 @@ def updateBCPointLists(z, oids):
       #print(ptl[0][1])
       i=i+1
 
-def updateJoinsPointLists(z, zones, oids):
+def updateJoinsPointLists1(z, zones, oids):
 
     joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
     zname=z[0]
@@ -180,7 +180,7 @@ def updateJoinsPointLists(z, zones, oids):
         PG0D = ptlD[1][0][0] # first polygon in the poitn list
         if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
         
-        ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i]))) #FIXJOIN : seems to be useless 
+        ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i]))) #checkme : seems to be useless 
 
         ptl[1]= ptLists[i]
         ptlD[1] = ptLists[i]
@@ -188,7 +188,7 @@ def updateJoinsPointLists(z, zones, oids):
         break
       i=i+1
 
-def getJoinsList(z, zname2id):
+def getJoinsPtList(z, zname2id):
 	raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
 	nb_racs = len(raccords)
 
@@ -214,10 +214,24 @@ def getJoinsList(z, zname2id):
 
 	return (jzid, jptlist)
 
+def getBCPtList(z):
+  #
+  bnds = Internal.getNodesFromType(z, 'BC_t')
+  zname=z[0]
+
+  ptLists = []
+  for bb in bnds :
+    ptList = Internal.getNodesFromType(bb, 'IndexArray_t')
+    ptLists.append(ptList[0][1][0])
+    #ptLists.append(ptList)
+
+  #print (ptLists)
+  return ptLists
+
 #------------------------------------------------------------------------------
 # 
 #------------------------------------------------------------------------------
-def updateJPointLists(z, zones, jzids, ptLists):
+def updateJoinsPointLists2(z, zones, jzids, ptLists):
   # zone name to id
   name2id = dict()
   i = 0
@@ -250,9 +264,9 @@ def updateJPointLists(z, zones, jzids, ptLists):
       
       id = name2id[donnorName]
 
-      print('donnor is ' + donnorName + ' with id  : ' + str(id))
-      print(ptl[1])
-      print(numpy.shape(ptl[1]))
+      # print('donnor is ' + donnorName + ' with id  : ' + str(id))
+      # print(ptl[1])
+      # print(numpy.shape(ptl[1]))
 
       # find rank for this id and set list
       i=-1
@@ -260,25 +274,27 @@ def updateJPointLists(z, zones, jzids, ptLists):
         i+=1
         if k != id: continue
 
-        print('new j')
+        #print('new j')
 
         ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
-
-        # print('new shape ptLists[i]: ')
-        # print(numpy.shape(ptLists[i]))
         # print(ptLists[i])
-
-        # print('avant')
-        # print(ptl)
 
         ptl[1]= ptLists[i]
         ptlD[1] = ptLists[i]
 
-        # print('apres')
-        # print(ptl)
-
         break
       break
+
+def updateBCPointLists2(z, ptLists):
+    bnds = Internal.getNodesFromType(z, 'BC_t')
+    
+    i=0
+    # update the BC pointlists 
+    for bb in bnds :
+      ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
+      ptl[0][1] = ptLists[i]
+      #print(ptl[0][1])
+      i=i+1
 
 #------------------------------------------------------------------------------
 # Conformisation d'une soupe de TRI ou de BAR
@@ -1399,7 +1415,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     		print('INPUT ERROR : sensor data list must be sized as nb of sensors')
     		return
 
-    _adaptCellsDynZone(t, hmesh, sensor)
+    intersector.adaptCells(hmesh, sensor)
 
     if owesHmesh == 1 : #and owesSensor == 1 :
     	#print("_conformizeHMesh")
@@ -1417,60 +1433,6 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     	deleteCom(com)
 
 #==============================================================================
-# adaptCellsDyn : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
-# IN: t : 3D NGON mesh
-# IN: nodal_vals : nb of subdivision required expressed at mesh nodes
-# OUT: returns a 3D NGON Mesh with adapted cells
-#==============================================================================
-def adaptCellsDyn(t, hmesh, sensor):
-  tp = Internal.copyRef(t)
-  _adaptCellsDyn(tp, hmesh, sensor)
-  return tp
-#==============================================================================
-# _adaptCellsDyn : Adapts a polyhedral mesh a1 with repsect to a2 points
-# IN: t1 : 3D NGON mesh
-# IN: t2 : source points (any kind of mesh)
-# IN: sensor_type : basic (0) or xsensor (1)
-# IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
-# OUT: returns a 3D NGON Mesh with adapted cells
-#==============================================================================
-def _adaptCellsDyn(t, hmesh, sensor):
-    """XXX.
-    Usage: _adaptCellsDyn(hmesh, sensor)"""
-    zones = Internal.getZones(t)
-    nb_zones = len(zones)
-    
-    i=-1
-    for z in zones:
-      i+=1
-      coords = C.getFields(Internal.__GridCoordinates__, z)[0]
-      if coords == []: continue
-
-      res = intersector.adaptCells([hmesh[i]], [sensor[i]])
-
-      mesh = res[0]
-      # MAJ du maillage de la zone
-      C.setFields([mesh], z, 'nodes')
-
-def _adaptCellsDynZone(t, hmesh, sensor):
-    """XXX.
-    Usage: _adaptCellsDyn(hmesh, sensor)"""
-    zones = Internal.getZones(t)
-    #print('_adaptCellsDynZone : begin')
-    nb_zones = len(zones)
-    if nb_zones != len(hmesh) or len(hmesh) != len(sensor):
-    	print('_adaptCellsDynZone : nb of zones/hmeshes/sensors does not match')
-    	return 
-
-    res = intersector.adaptCells(hmesh, sensor)
-
-    # MAJ du maillage de chaque zone
-    i=-1
-    for z in zones:
-      i +=1
-      C.setFields([res[i]], z, 'nodes')
-
-#==============================================================================
 # adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
 # IN: t : 3D NGON mesh
 # IN: nodal_vals : nb of subdivision required expressed at mesh nodes
@@ -1481,49 +1443,47 @@ def adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=N
     _adaptCells(tp, sensdata, 2, smoothing_type, -1, subdiv_type, hmesh, sensor)
     return tp
 
-def createHMesh(t, subdiv_type= 0):
-    zones = Internal.getZones(t)
+def createHMesh(z, subdiv_type= 0):
+    
+    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    bcptlists = getBCPtList(z)
+
     hmeshs = []
-
-    nbz = len(zones)
-
-    if nbz == 1:
-    	z = zones[0]
-    	m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    	hmeshs.append(intersector.createHMesh(m, subdiv_type, 0, None, None, None))
-  
+    hmeshs.append(intersector.createHMesh(m, subdiv_type, bcptlists, 0, None, None, None))
     return hmeshs
 
 def createHZones(t, subdiv_type= 0):
+
     zones = Internal.getZones(t)
     hmeshs = []
 
     nbz = len(zones)
 
     if nbz == 1:
-    	z = zones[0]
-    	m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    	hmeshs.append(intersector.createHMesh(m, subdiv_type, 0, None, None, None))
-    else:
-    	# zone name to id
-    	name2id = dict()
-    	i = 0
-    	for z in zones :
-    		name2id[z[0]] = i
-    		#print('zone ' + z[0] + ' has ' + str(i))
-    		i += 1
+      hmeshs = createHMesh(zones[0], subdiv_type)
+      return (hmeshs, None)
 
-    	# create COM
-    	m = C.getFields(Internal.__GridCoordinates__, zones[0])[0] # fixme : first zone tells for all
-    	com = createCom(m, subdiv_type, nbz)
-    	
-    	# create HZones
-    	zid=0
-    	for z in zones:
-    		(jzids, jptlists) = getJoinsList(z, name2id)
-    		m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    		hmeshs.append(intersector.createHMesh(m, subdiv_type, zid, jzids, jptlists, com))
-    		zid+=1
+    # zone name to id
+    name2id = dict()
+    i = 0
+    for z in zones :
+      name2id[z[0]] = i
+      #print('zone ' + z[0] + ' has ' + str(i))
+      i += 1
+
+    # create COM
+    m = C.getFields(Internal.__GridCoordinates__, zones[0])[0] # fixme : first zone tells for all
+    com = createCom(m, subdiv_type, nbz)
+
+    # create HZones
+    zid=0
+    for z in zones:
+      (jzids, jptlists) = getJoinsPtList(z, name2id)
+      bcptlists = getBCPtList(z)
+
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      hmeshs.append(intersector.createHMesh(m, subdiv_type, bcptlists, zid, jzids, jptlists, com))
+      zid+=1
     
     return (hmeshs, com)
 
@@ -1600,8 +1560,7 @@ def conformizeHMesh(t, hooks):
     _conformizeHMesh(tp, hooks)
     return tp
 
-#FIXJOIN : updatePointLists creates pointlist in ascending PG order
-#          should use updateJPointLists (to fix) and updateBCPointLists instead
+#
 def _conformizeHMesh(t, hooks):
     nb_hooks = len(hooks)
     zones = Internal.getZones(t)
@@ -1614,26 +1573,46 @@ def _conformizeHMesh(t, hooks):
     for z in zones:
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         if m == []: continue
-        res = intersector.conformizeHMesh(hooks[i])
+
+        fields = C.getFields(Internal.__FlowSolutionCenters__, z)
+
+        if fields == [] or fields == [[]] : fields = None
+
+        res = intersector.conformizeHMesh(hooks[i], fields)
+
+        # res[0] : mesh
+        # res[1] : ranges for what is in res from 3 to end in res
+        #          res[1][0] -> res[1][1]-1 : joins
+        #          res[1][1] -> res[1][2]-1 : bcs
+        #          res[1][2] -> res[1][3]-1 : fields 
+        # res[2] : joined zones ids
+        # res[3] -> end :  joins, bcs, fields
+
         mesh = res[0]
+        ranges = res[1]
+        jzids = res[2]
+        #print(ranges)
+
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
+        
+        # MAJ Joins
+        jptlists = res[ranges[0] : ranges[1]]
+        if jptlists != []:
+          updateJoinsPointLists2(z, zones, jzids, jptlists)
 
-        # MAJ des BCs
-        if (len(res) > 1):
-            pg_oids=res[1]
-            # MAJ POINT LISTS #
-            updatePointLists(z, zones, pg_oids) #FIXJOIN updateBCPointLists(z, pg_oids)
-        # FIXJOIN
-        # # MAJ des Raccords
-        # if (len(res) > 3):
-        #   jzids = res[2]
-        #   nptlist = len(jzids)
-        #   if nptlist != len(res)-3:
-        #     return
-        #   pt_lists=res[3:]
-        #   # MAJ POINT LISTS #
-        #   updateJPointLists(z, zones, jzids, pt_lists)
+        # MAJ BCs
+        bcptlists = res[ranges[1] : ranges[2]]
+        #print(bcptlists)
+        if bcptlists != [] :
+          updateBCPointLists2(z, bcptlists)
+
+        ## MAJ center fields
+        # C._deleteFlowSolutions__(z)
+        # fieldz = res[range[2]:]
+        # for f in fieldz:
+        #   C.setFields([f], z, 'centers', False)
+        
         i=i+1
 
 #==============================================================================

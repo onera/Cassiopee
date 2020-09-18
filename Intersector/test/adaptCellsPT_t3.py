@@ -27,38 +27,40 @@ mesh = XOR.booleanUnion(p1,p2) #conformize the join
 
 m0 = XOR.adaptCells(mesh,source, sensor_type=0)
 m0 = XOR.closeCells(m0)
-#C.convertPyTree2File(m0, 'out.cgns')
 test.testT(m0,1)
+#C.convertPyTree2File(m0, 'out0.cgns')
 
 m1 = XOR.adaptCells(mesh,source, sensor_type=0, smoothing_type=1)
 m1 = XOR.closeCells(m1)
-#C.convertPyTree2File(m1, 'out.cgns')
 test.testT(m1,2)
+#C.convertPyTree2File(m1, 'out1.cgns')
 
 m2 = XOR.adaptCells(mesh,source, sensor_type=0)
 m2 = XOR.closeCells(m2)
-#C.convertPyTree2File(m2, 'out2.cgns')
 test.testT(m2,3)
+#C.convertPyTree2File(m2, 'out2.cgns')
 
 ## dynamic adaptation
 hmsh = XOR.createHMesh(mesh)
-m = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0)
-m = XOR.conformizeHMesh(m, hmsh)
-m = XOR.closeCells(m)
+m3 = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0)
+m3 = XOR.conformizeHMesh(m3, hmsh)
+m3 = XOR.closeCells(m3)
 XOR.deleteHMesh(hmsh);
-test.testT(m,4)
+test.testT(m3,4)
+#C.convertPyTree2File(m, 'out3.cgns')
 
 hmsh = XOR.createHMesh(mesh)
-m = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0, smoothing_type=1)
+m4 = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0, smoothing_type=1)
 
-cm = XOR.conformizeHMesh(m, hmsh)
-cm = XOR.closeCells(cm)
-test.testT(m,5)
+m4 = XOR.conformizeHMesh(m4, hmsh)
+m4 = XOR.closeCells(m4)
+test.testT(m4,5)
+#C.convertPyTree2File(cm, 'out4.cgns')
 
-m = XOR.adaptCells(m, source, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
+m5 = XOR.adaptCells(m4, source, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
 
-cm = XOR.conformizeHMesh(m, hmsh)
-cm = XOR.closeCells(cm)
-
+m5 = XOR.conformizeHMesh(m5, hmsh)
+m5 = XOR.closeCells(m5)
 XOR.deleteHMesh(hmsh);
-test.testT(m,6)
+test.testT(m5,6)
+#C.convertPyTree2File(cm, 'out5.cgns')

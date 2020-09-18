@@ -19,6 +19,9 @@ t = C.convertArray2NGon(t); t = G.close(t)
 
 t = X.connectMatch(t)
 
+t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
+#C.convertPyTree2File(t, 't.cgns')
+
 zs = I.getZones(t)
 n = C.getNPts(zs[0])
 

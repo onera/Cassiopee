@@ -28,7 +28,7 @@ class join_plan
 {
 public:
 
-  static E_Int extract_compact_tree(const tree<arr_t>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, arr_t& plan);
+  static E_Int extract_compact_enabled_tree(const tree<arr_t>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, arr_t& plan);
   
   static void extract_sub_plans(const tree<arr_t>& PGtree, E_Int PGi, const arr_t& plan, std::map<E_Int, arr_t>& odata);
 
@@ -37,22 +37,22 @@ public:
 private:
   ///
   static void __extract_subplan(E_Int i, const arr_t& plan, arr_t& sub_plan);
-  static E_Int __extract_compact_tree(const tree<arr_t> & PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, arr_t& plan);  
+  static E_Int __extract_compact_enabled_tree(const tree<arr_t> & PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, arr_t& plan);  
 };
 
 ///
 template <>
-E_Int join_plan<K_FLD::IntArray>::__extract_compact_tree
+E_Int join_plan<K_FLD::IntArray>::__extract_compact_enabled_tree
 (const tree < K_FLD::IntArray > & PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, K_FLD::IntArray& plan)
 {
   //std::cout << "__extract_compact_tree : begin" << std::endl;
-  E_Int nbc = PGtree.nb_children(PGi);
-  if (nbc == 0) return NO_CHILDREN;
 
+  if (PGtree.is_enabled(PGi)) return NO_CHILDREN; //stop at enabled entities
+
+  E_Int nbc = PGtree.nb_children(PGi);
   //std::cout << "nbc : " << nbc << std::endl;
 
   const E_Int* pchild = PGtree.children(PGi);
-
   //std::cout << "pchild : " << pchild << std::endl;
 
   STACK_ARRAY(E_Int, nbc, children);
@@ -64,29 +64,31 @@ E_Int join_plan<K_FLD::IntArray>::__extract_compact_tree
   //std::cout << "after F" << std::endl;
 
   //to compact : dont create empty columns for all-leaves children
-  E_Int nb_tot_grand_children{ 0 };
+  E_Int nb_tot_enabled_grand_children{ 0 };
   for (E_Int i = 0; i < nbc; ++i)
   {
+    // since PGi is disabled, if one of it children is disabled, it means that it has grand children
+    
     //std::cout << "children[i] : " << children[i] << std::endl;
-    nb_tot_grand_children += PGtree.nb_children(children[i]);
+    nb_tot_enabled_grand_children += E_Int(!PGtree.is_enabled(children[i]));
   }
 
   E_Int cols = plan.cols();
 
-  if (nb_tot_grand_children == 0)
+  if (nb_tot_enabled_grand_children == 0)
   {
     plan.pushBack(NO_CHILDREN, nbc);
     return  cols;
   }
  
-  //std::cout << "nb_tot_grand_children : " << nb_tot_grand_children << std::endl;
+  //std::cout << "nb_tot_enabled_grand_children : " << nb_tot_enabled_grand_children << std::endl;
 
   plan.pushBack(IDX_NONE, nbc);
   //std::cout << plan << std::endl;
 
   for (E_Int i = 0; i < nbc; ++i)
   {
-    E_Int val = __extract_compact_tree(PGtree, children[i], F, reverse, i0, plan);
+    E_Int val = __extract_compact_enabled_tree(PGtree, children[i], F, reverse, i0, plan);
     //std::cout << "plan sz / cols /val : " << plan.cols() << "/" << cols<< "/" << val << std::endl;
     plan(i, cols) = val;
   }
@@ -154,10 +156,10 @@ void join_plan<K_FLD::IntArray>::__extract_subplan
 
 ///
 template <>
-E_Int join_plan<K_FLD::IntArray>::extract_compact_tree(const tree<K_FLD::IntArray>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, K_FLD::IntArray& plan)
+E_Int join_plan<K_FLD::IntArray>::extract_compact_enabled_tree(const tree<K_FLD::IntArray>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, K_FLD::IntArray& plan)
 {
   plan.clear();
-  E_Int ret = __extract_compact_tree(PGtree, PGi, F, reverse, i0, plan);
+  E_Int ret = __extract_compact_enabled_tree(PGtree, PGi, F, reverse, i0, plan);
   //std::cout << plan << std::endl;
   return ret;
 }
@@ -174,14 +176,11 @@ void join_plan<K_FLD::IntArray>::extract_sub_plans(const tree<K_FLD::IntArray>& 
   const E_Int* children = PGtree.children(PGi);
   
 #ifdef DEBU_JOIN_PLAN
-  E_Int nbchildren =
-#endif
-    PGtree.nb_children(PGi);
-
-#ifdef DEBU_JOIN_PLAN
+  E_Int nbchildren = PGtree.nb_children(PGi);
   assert(nbchildren != 0);    //must have been subdivided or had children already
   assert(nbchildren == 4);    // WARNING : ISO ASSUMPTION  : NBC = 4
 #endif
+  
   // at least one column (sized as NBC)
  
 #ifdef DEBU_JOIN_PLAN
@@ -220,7 +219,7 @@ bool join_plan<K_FLD::IntArray>::one_child_requires(const K_FLD::IntArray& plan)
 //////////////// ngon_unit impl //////////////////////////////
 ///
 template <>
-E_Int join_plan<ngon_unit>::extract_compact_tree(const tree<ngon_unit>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, ngon_unit& plan)
+E_Int join_plan<ngon_unit>::extract_compact_enabled_tree(const tree<ngon_unit>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, ngon_unit& plan)
 {
   //todo
   return 1;

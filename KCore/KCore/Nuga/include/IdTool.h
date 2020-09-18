@@ -57,6 +57,9 @@ public:
   /// Convert a flag array to both corresponding compacted indirections old_to_new and new_to_old
   static void build_indir(const std::vector<bool>& keep, std::vector<E_Int> & nids, std::vector<E_Int> & oids);
   ///
+  template < typename T>
+  static E_Int compress_unic(std::vector<T>& vec);
+  ///
   template < typename T, typename Predicate_t>
   static E_Int compress(std::vector<T>& vec, const Predicate_t& P);
   ///
@@ -180,6 +183,23 @@ bool IdTool::equal_vec(const Vector_t<T>& a, const Vector_t<T>& b)
       return false;
   
   return true;
+}
+
+///
+template < typename T>
+E_Int IdTool::compress_unic(std::vector<T>& vec)
+{
+  std::set<T> uset;
+  std::vector<T> new_vec;
+
+  new_vec.reserve(vec.size());
+
+  for (size_t i=0; i < vec.size(); ++i)
+    if (uset.insert(vec[i]).second) // not already in
+      new_vec.push_back(vec[i]);
+
+  vec = new_vec;
+  return 0;
 }
 
 ///

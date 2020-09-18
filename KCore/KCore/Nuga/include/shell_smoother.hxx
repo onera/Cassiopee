@@ -53,50 +53,69 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_
   {
     n = n + 1;
     carry_on = false;
-    for (int i = 0; i<hmesh._ng.PHs.size(); i++) {
+    for (int i = 0; i<hmesh._ng.PHs.size(); i++)
+    {  
       E_Int Mnodes(0);
-      if (adap_incr[i]) continue;
-      if (hmesh._PHtree.is_enabled(i)) {
-        Lc = hmesh._PHtree.get_level(i);
-        const E_Int* pPHi = hmesh._ng.PHs.get_facets_ptr(i);
+      
+      if (adap_incr[i]) continue; // i.e. already processed
 
-        // Mnodes definition
-        for (int j = 0; j<hmesh._ng.PHs.stride(i); j++) {
-          E_Int PGi = *(pPHi + j) - 1;
-          E_Int PHn = NEIGHBOR(i, hmesh._F2E, PGi);
-          if (!(PHn == IDX_NONE) && !(hmesh._PHtree.is_enabled(PHn)) && !(hmesh._PHtree.get_level(PHn) == 0) && !(hmesh._PHtree.is_enabled(hmesh._PHtree.parent(PHn)))) {
-            E_Int nb_ch = hmesh._PGtree.nb_children(PGi);
-            for (int k = 0; k< nb_ch; k++) {
-              const E_Int* enf = hmesh._PGtree.children(PGi);
-              E_Int stride = hmesh._ng.PGs.stride(*(enf + k));
-              const E_Int* ind = hmesh._ng.PGs.get_facets_ptr(*(enf + k));
-              for (int l = 0; l<stride; l++) {
-                Mnodes = std::max(_Ln[*(ind + l) - 1], Mnodes);
-              }
-            }
-          }
-          else {
-            E_Int stride = hmesh._ng.PGs.stride(PGi);
-            const E_Int *ind = hmesh._ng.PGs.get_facets_ptr(PGi);
-            for (int l = 0; l< stride; l++) {
-              Mnodes = std::max(_Ln[*(ind + l) - 1], Mnodes);
-            }
-          }
-        }
-        // fin Mnodes definition
-        if (Lc < Mnodes - 1)
+      if (!hmesh._PHtree.is_enabled(i)) continue;
+
+      Lc = hmesh._PHtree.get_level(i);
+      const E_Int* pPHi = hmesh._ng.PHs.get_facets_ptr(i);
+
+      // Mnodes definition
+      for (int j = 0; j<hmesh._ng.PHs.stride(i); j++) {
+        E_Int PGi = *(pPHi + j) - 1;
+        E_Int PHn = NEIGHBOR(i, hmesh._F2E, PGi);
+        // if the neighbor exist and its children are enabled then travers PGi children nodes
+        bool traverse{false};
+        if ((PHn != IDX_NONE) && !(hmesh._PHtree.is_enabled(PHn)))
         {
-          const E_Int* faces = hmesh._ng.PHs.get_facets_ptr(i);
-          E_Int nb_faces = hmesh._ng.PHs.stride(i);
-          bool admissible_elt = K_MESH::Polyhedron<0>::is_basic(hmesh._ng.PGs, faces, nb_faces);
-
-          if (!admissible_elt)
-            continue;
-
-          adap_incr[i] = 1;
-          __update_nodal_levels(hmesh, i);
-          carry_on = true;
+          // check that its children (if exist) are enabled
+          E_Int nbc = hmesh._PHtree.nb_children(PHn);
+          if (nbc)
+          {
+            // if any child is enabled, all of the are, so check on first one
+            const E_Int* children = hmesh._PHtree.children(PHn);
+            traverse = hmesh._PHtree.is_enabled(children[0]);
+          }
         }
+
+        if (traverse)
+        {
+          E_Int nb_ch = hmesh._PGtree.nb_children(PGi);
+          assert (nb_ch != 0);
+          const E_Int* enf = hmesh._PGtree.children(PGi);
+          for (int k = 0; k< nb_ch; k++)
+          {
+            E_Int stride = hmesh._ng.PGs.stride(*(enf + k));
+            const E_Int* ind = hmesh._ng.PGs.get_facets_ptr(*(enf + k));
+            for (int l = 0; l<stride; l++)
+              Mnodes = std::max(_Ln[*(ind + l) - 1], Mnodes);
+          }
+        }
+        else // get the max among PGi nodes
+        {
+          E_Int stride = hmesh._ng.PGs.stride(PGi);
+          const E_Int *ind = hmesh._ng.PGs.get_facets_ptr(PGi);
+          for (int l = 0; l< stride; l++)
+            Mnodes = std::max(_Ln[*(ind + l) - 1], Mnodes);
+        }
+      }
+      // fin Mnodes definition
+      if (Lc < Mnodes - 1)
+      {
+        const E_Int* faces = hmesh._ng.PHs.get_facets_ptr(i);
+        E_Int nb_faces = hmesh._ng.PHs.stride(i);
+        bool admissible_elt = K_MESH::Polyhedron<0>::is_basic(hmesh._ng.PGs, faces, nb_faces);
+
+        if (!admissible_elt)
+          continue;
+
+        adap_incr[i] = 1;
+        __update_nodal_levels(hmesh, i);
+        carry_on = true;
       }
     }
   }
@@ -107,14 +126,15 @@ void shell_smoother<mesh_t>::__update_nodal_levels(const mesh_t& hmesh, E_Int PH
 {
   E_Int Lc = hmesh._PHtree.get_level(PHi);
   E_Int nb_faces = hmesh._ng.PHs.stride(PHi);
-  for (int j = 0; j< nb_faces; j++) {
+
+  for (int j = 0; j< nb_faces; j++)
+  {
     const E_Int* PGj = hmesh._ng.PHs.get_facets_ptr(PHi);
     E_Int PG = PGj[j] - 1;
     const E_Int* pN = hmesh._ng.PGs.get_facets_ptr(PG);
     E_Int nb_nodes = hmesh._ng.PGs.stride(PG);
-    for (int l = 0; l< nb_nodes; l++) {
+    for (int l = 0; l< nb_nodes; l++)
       _Ln[*(pN + l) - 1] = std::max(_Ln[*(pN + l) - 1], Lc + 1);
-    }
   }
 }
 

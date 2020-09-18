@@ -29,14 +29,12 @@ for i in range(3): # simple loop to demonstrate the feature sequencing adaptCell
   # refine now with source mesh
   z = XOR.adaptCells(z, s, itermax=-1, hmesh = hmsh)
 
-  test.testT(z, i+1)
-
 z = XOR.conformizeHMesh(z, hmsh)     # each children faces replace its mother in any polyhedron
 
 z = XOR.closeCells(z)            # close cells (adding point on lateral faces)
 
-test.testT(z, 4)
-#C.convertPyTree2File(z, "out1.cgns")
+test.testT(z, 1)
+C.convertPyTree2File(z, "out1.cgns")
 
 ########################## free the hook
 XOR.deleteHMesh(hmsh);

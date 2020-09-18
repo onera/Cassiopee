@@ -62,7 +62,7 @@ namespace NUGA
 
         if (F2E(0, PGi) == IDX_NONE && F2E(1, PGi) == IDX_NONE) // init with parent data for outer faces
         {
-          std::cout << "toto" << std::endl;
+          //std::cout << "toto" << std::endl;
           F2E(0, PGi) = F2E(0, parentPGi);
           F2E(1, PGi) = F2E(1, parentPGi);
         }
@@ -71,18 +71,18 @@ namespace NUGA
         if (side == 1)
         {
           if (!IS_INWARD(F2E, parentPGi, parentPHi)) {
-            std::cout << "PHi/parentPHi : " << PHi << "/" << parentPHi << std::endl;
+            /*std::cout << "PHi/parentPHi : " << PHi << "/" << parentPHi << std::endl;
             std::cout << "PGi/parentPGi : " << PGi << "/" << parentPGi << std::endl;
             std::cout << "F2E(0, PGi) : " << F2E(0, PGi) << std::endl;
             std::cout << "F2E(1, PGi) : " << F2E(1, PGi) << std::endl;
             std::cout << "F2E(0, parentPGi) : " << F2E(0, parentPGi) << std::endl;
-            std::cout << "F2E(1, parentPGi) : " << F2E(1, parentPGi) << std::endl;
+            std::cout << "F2E(1, parentPGi) : " << F2E(1, parentPGi) << std::endl;*/
           }
         }
 
         F2E(side, PGi) = PHi;
 
-        //fixme : to be really genric, the following must be recursive for the entire descendance of PGi
+        //fixme : to be really generic, the following must be recursive for the entire descendance of PGi
         E_Int nb_child_PGi = PGtree.nb_children(PGi);
         if (nb_child_PGi == 0) continue;
 

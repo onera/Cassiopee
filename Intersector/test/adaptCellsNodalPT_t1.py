@@ -29,6 +29,7 @@ test.testT(m,1)
 hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
 
 m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type = 1, subdiv_type=0, hmesh=hmsh)
+m = XOR.conformizeHMesh(m, hmsh)
 m = XOR.closeCells(m)            # close cells (adding point on lateral faces)
 
 XOR.deleteHMesh(hmsh);
