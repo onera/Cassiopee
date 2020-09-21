@@ -6,7 +6,6 @@ import Converter.Internal as Ci
 import CPlot.PyTree as CPlot
 
 from math import sqrt
-import sys
 
 #qsph = GP.quadrangle((0.,0.,0.),(1.,0.,0.),(1.,1.,0.),(0.,1.,0.))
 qsph = GP.sphere6((0.,0.,0.), 1.,N=3, ntype='QUAD')

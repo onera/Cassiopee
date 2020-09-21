@@ -8,7 +8,6 @@ import CPlot.Tk as CTK
 import Converter.Internal as Internal
 import Fast.PyTree as Fast
 import CPlot.iconics as iconics
-import os, math, os.path
 # local widgets list
 WIDGETS = {}; VARS = []
 

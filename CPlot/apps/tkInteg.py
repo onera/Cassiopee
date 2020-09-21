@@ -88,17 +88,16 @@ def compute():
             res1 += P.integ(z, var1)[0]
         elif type == 'INT(v1.ndS)':
             res = P.integNorm(z,var1)[0]
-            res1 += res[0]; res2+=res[1]; res3+=res[2]
+            res1 += res[0]; res2 += res[1]; res3 += res[2]
         elif type == 'INT((v1,v2,v3).ndS)':
             res1 += P.integNormProduct(z,vector)
         elif type == 'INT((v1,v2,v3)^OMdS)':
             res = P.integMoment(z,center,vector)
-            res1+= res[0]; res2+=res[1]; res3+=res[2]
+            res1 += res[0]; res2 += res[1]; res3 += res[2]
         elif type == 'INT(v1n^OMdS)':
             res = P.integMomentNorm(z,center,var1)[0]
-            res1+= res[0]; res2+=res[1]; res3+=res[2]
-    if type == 'INT((v1,v2,v3)^OMdS)' or
-       type == 'INT(v1n^OMdS)' or type == 'INT(v1.ndS)'):
+            res1 += res[0]; res2 += res[1]; res3 += res[2]
+    if type == 'INT((v1,v2,v3)^OMdS)' or type == 'INT(v1n^OMdS)' or type == 'INT(v1.ndS)':
         res = [res1,res2,res3]
     else: res = res1
     CTK.TXT.insert('START', 'Res='+str(res)+'.\n')
@@ -235,7 +234,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

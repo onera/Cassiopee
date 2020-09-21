@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys
+import os
 from distutils.core import setup, Extension
 
 #=============================================================================

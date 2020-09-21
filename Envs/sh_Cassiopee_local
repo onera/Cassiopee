@@ -48,9 +48,6 @@ if [ "$MACHINE" != "" ]; then
 fi
 
 # ----------------------------- Common ----------------------------------------
-#export ELSADIST=$CASSIOPEE  # production (cfg)
-#export ELSAPATH=$CASSIOPEE  # production (cfg)
-#export ELSAWKSP=$CASSIOPEE  # production (cfg)
 
 if [ "$MAC" = "ld" ]; then
 #------------------------------- ld centos 7 + python 3 -----------------------------------
@@ -89,7 +86,7 @@ elif [ "$MAC" = "ld_python2" ]; then
     #export PATH=$PATH
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
-    export LD_LIBRARY_PATHL=/stck/benoit/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export LD_LIBRARY_PATHL=/stck/benoit/lib:/stck/benoit/opencascade/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
     # Pour utilisation MKL+numpy
     #export LD_PRELOAD=/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so

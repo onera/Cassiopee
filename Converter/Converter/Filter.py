@@ -33,8 +33,7 @@ def writePyTreeFromPaths(t, fileName, paths, format=None, maxDepth=-1):
 def deletePaths(fileName, paths, format=None):
   """Delete nodes in file given their paths."""
   Cmpi.seq(Distributed.deletePaths, fileName, paths, format)
-  return None  
-
+  return None
 
 #==============================================================================
 # Lit seulement une partie des tableaux d'un fichier a partir de la definition d'un filtre.
@@ -274,7 +273,7 @@ def _enforceProcNode(a):
 # Load les variables "var" pour les znp donnes
 # var='Density', 'centers:Density', 'FlowSolution/Density' or list of vars
 #==========================================================================
-def _loadVariables(a, fileName, znp, var, format):
+def _loadVariables(a, fileName, znp, var, format, uncompress=True):
     if isinstance(var, list): vars = var
     else: vars = [var]
     if isinstance(znp, list): znps = znp
@@ -307,6 +306,15 @@ def _loadVariables(a, fileName, znp, var, format):
             if c is not None and fp[1] is not None:
               if PyTree.getNPts(zp) != fp[1].size:
                 Internal.createUniqueChild(c, 'GridLocation', 'GridLocation_t', 'CellCenter')
+
+    # Decompression eventuellement
+    if uncompress:
+      for p in znps:
+        n = Internal.getNodeFromPath(a, p)
+        try:
+          import Compressor.PyTree as Compressor
+          Compressor._uncompressAll(n)
+        except: pass
     return None
 
 #==================================================================================
@@ -401,10 +409,10 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
             import Compressor.PyTree as Compressor
             Compressor._uncompressCartesian(n)
           except: pass
-    try:
-      import Compressor.PyTree as Compressor
-      Compressor._uncompressAll(n)
-    except: pass
+      try:
+        import Compressor.PyTree as Compressor
+        Compressor._uncompressAll(n)
+      except: pass
   return None
 
 # get variables: return a list
@@ -1030,12 +1038,6 @@ class Handle:
       if self.bbox is None: self.geomProp()
       for zp in znp:
         zbb = self.bbox[zp]
-        #print zbb[3],'<', bbox[0]
-        #print zbb[0],'>', bbox[3]
-        #print zbb[4],'<', bbox[1]
-        #print zbb[1],'>', bbox[4]
-        #print zbb[5],'<', bbox[2]
-        #print zbb[2],'>', bbox[5]
         if zbb[3] >= bbox[0] and zbb[0] <= bbox[3] and zbb[4] >= bbox[1] and zbb[1] <= bbox[4] and zbb[5] >= bbox[2] and zbb[2] <= bbox[5]:
           print('loading: %s'%zp)
           _readPyTreeFromPaths(a, self.fileName, [zp], self.format, maxFloatSize=0)
@@ -1075,17 +1077,17 @@ class Handle:
     _loadContainerPartial(a, self.fileName, znp, variablesN, variablesC, self.format)
     return None
    
-  def loadVariables(self, a, var, znp=None):
+  def loadVariables(self, a, var, znp=None, uncompress=True):
     """Load specified variables."""
     b = Internal.copyRef(a)
-    self._loadVariables(b, var, znp)
+    self._loadVariables(b, var, znp, uncompress)
     return b
 
   # Charge la ou les variables "var" pour toutes les zones de a
-  def _loadVariables(self, a, var, znp=None):
+  def _loadVariables(self, a, var, znp=None, uncompress=True):
     """Load specified variables."""
     if znp is None: znp = self.getZonePaths(a)
-    _loadVariables(a, self.fileName, znp, var, self.format)
+    _loadVariables(a, self.fileName, znp, var, self.format, uncompress)
     return None
   
   def isInBBox(self, a, bbox, znp=None):

@@ -8,7 +8,6 @@ import CPlot.Tk as CTK
 import CPlot.Panels as Panels
 import Converter.Internal as Internal
 import Post.PyTree as P
-import time
 
 # local widgets list
 WIDGETS = {}; VARS = []

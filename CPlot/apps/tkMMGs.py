@@ -5,7 +5,6 @@ import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import CPlot.Panels as Panels
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import Post.PyTree as P

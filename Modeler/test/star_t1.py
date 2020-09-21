@@ -1,5 +1,4 @@
 # - star (array) -
-import Converter as C
 import Modeler.Models as Models
 import Transform as T
 import KCore.test as test

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from distutils.core import setup, Extension
-import os, sys
+from distutils.core import setup
+import os
 
 #=============================================================================
 # Modeler requires:

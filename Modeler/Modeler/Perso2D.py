@@ -3,7 +3,6 @@
 import Geom.PyTree as D
 import Transform.PyTree as T
 import CPlot.PyTree as CPlot
-import Generator.PyTree as G
 import Converter.Internal as Internal
 import Converter.PyTree as C
 from . import Sound

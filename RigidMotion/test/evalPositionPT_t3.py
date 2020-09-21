@@ -1,8 +1,6 @@
 # - evalPosition (pyTree) - 
 import RigidMotion.PyTree as R
 import KCore.test as test
-import Converter.PyTree as C
-import math
 def F(a):
     R._setPrescribedMotion3(a, 'constant', transl_speed=(0.1,0,0),
                             axis_pnt=(0.,0.,0.), axis_vct=(0,0,1), omega=1.)

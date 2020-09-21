@@ -1544,7 +1544,7 @@ def getPathLeaf(path):
 def getPathAncestor(path, level=1):
     """Return the path ancestor of path."""
     if level == 0: return path
-    s = path.split('/'); ls =  len(s); c = 0
+    s = path.split('/'); ls = len(s); c = 0
     for i in range(level): c += len(s[ls-i-1])+1
     return path[0:-c]
 

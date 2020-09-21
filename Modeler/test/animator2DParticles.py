@@ -2,7 +2,6 @@
 # Essai particles
 import Modeler.Animator2D as Animator2D
 import time
-import CPlot
 
 a = Animator2D.Animator2D()
 

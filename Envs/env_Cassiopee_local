@@ -47,9 +47,6 @@ endif
 unset KC
 
 # ----------------------------- Common ----------------------------------------
-#setenv ELSADIST $CASSIOPEE  # production (cfg)
-#setenv ELSAPATH $CASSIOPEE  # production (cfg)
-#setenv ELSAWKSP $CASSIOPEE  # production (cfg)
 
 # Si la variable ELSA est dans l'environnement, on cree des chemins compatibles
 # avec la version public : par ex: ELSA=/home/elsa/Public/v3.6.02 [eos only]
@@ -109,20 +106,11 @@ else if ($MAC == "ld_python2") then
         @ ncpu++
         setenv OMP_NUM_THREADS $ncpu
         #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7],explicit"
-        # chemin de mpirun (forced)
         #set path=($path)
-        # Chemin de go
         set path=($path $CASSIOPEE/Dist/bin)
-        if ($?ELSA == 0) then # Cassiopee
-            set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-            setenv LD_LIBRARY_PATHL /stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-            #setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
-        else # elsA public
-            set path=($ELSA/Dist/bin/eos-intel $path)
-            setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$ELSA/Dist/bin/eos-intel:$ELSA/Dist/bin/eos-intel/lib:/usr/local/python/lib
-            setenv PYTHONPATHL $CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages:$ELSA/Dist/lib/py:$ELSA/Dist/bin/eos-intel
-        endif
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
         # Pour utilisation MKL+numpy
         #setenv LD_PRELOAD /opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
 

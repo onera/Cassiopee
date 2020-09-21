@@ -6,7 +6,6 @@ import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import CPlot.Panels as Panels
 import Converter.Internal as Internal
-import Converter.Distributed as Distributed
 import os
 import os.path, sys
 

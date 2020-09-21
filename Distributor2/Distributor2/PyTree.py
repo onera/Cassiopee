@@ -113,17 +113,18 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                     if donorName in dict: d = dict[donorName]+zc
                     else: d = -1
                     node = Internal.getNodeFromName1(m, 'PointRange')
-                    win = node[1]
-                    w = Internal.range2Window(win)
-                    vol = (w[1]-w[0]+1)*(w[3]-w[2]+1)*(w[5]-w[4]+1)
-                    if d != -1: com[c, d] += vol
+                    if node is not None and node[1] is not None:
+                        win = node[1]
+                        w = Internal.range2Window(win)
+                        vol = (w[1]-w[0]+1)*(w[3]-w[2]+1)*(w[5]-w[4]+1)
+                        if d != -1: com[c, d] += vol
                 match = Internal.getNodesFromType2(z, 'GridConnectivity_t') # non structure
                 for m in match:
                     donorName = Internal.getValue(m)
                     if donorName in dict: d = dict[donorName]+zc
                     else: d = -1
                     node = Internal.getNodeFromName1(m, 'PointList')
-                    if node is not None:
+                    if node is not None and node[1] is not None:
                         vol = node[1].size
                         if d != -1: com[c, d] += vol              
                 c += 1

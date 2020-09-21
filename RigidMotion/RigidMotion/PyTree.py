@@ -14,7 +14,6 @@ except:
     raise ImportError("RigidMotion: requires Converter, Transform modules.")
 
 import numpy
-import math
 from math import cos, sin, sqrt, pi
 # Stocke les functions deja definies
 DEFINEDMOTIONS = {}

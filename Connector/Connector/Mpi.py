@@ -415,10 +415,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     nozc = dictOfNozOfDnrZones[znamed]
                     zdnr = tc[2][nobc][2][nozc]
                     adt = dictOfADT[znamed]
-                    if adt is None: 
-                        interpDataType = 0
-                    else:
-                        interpDataType = 1
+                    if adt is None: interpDataType = 0
+                    else: interpDataType = 1
                     #if znamed in dictOfMotionMatA2R:
                     #    MatAbs2RelD = dictOfMotionMatA2R[znamed]
                     #else:                        
@@ -475,10 +473,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             nozc = dictOfNozOfDnrZones[zdnrname]
             zdnr = tc[2][nobc][2][nozc]
             adt = dictOfADT[zdnrname]
-            if adt is None: 
-                interpDataType = 0
-            else:
-                interpDataType = 1
+            if adt is None: interpDataType = 0
+            else: interpDataType = 1
             # if zdnrname in dictOfMotionMatA2R:
             #     MatAbs2RelD=dictOfMotionMatA2R[zdnrname]
             # else:

@@ -12,7 +12,6 @@ try: import Tkdnd # drag and drop
 except: import tkinter.dnd as Tkdnd
 import numpy
 
-from sys import version_info
 try: range = xrange
 except: pass
 

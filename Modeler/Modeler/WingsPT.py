@@ -6,7 +6,6 @@ import numpy as np
 try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
-    import Converter
 except:
     raise ImportError("Aero.PyTree: requires Converter.PyTree module.")
 __version__ = Aero.__version__

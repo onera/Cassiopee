@@ -252,10 +252,12 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
       
   else: # by zone names
       paths = zoneNames[:]
+      if isinstance(paths, str): paths = [paths]
       for c in range(len(paths)):
+          paths[c] = paths[c].replace('CGNSTree', '')
           if paths[c][0] != '/': paths[c] = '/'+paths[c]
 
-  #print 'Reading '+fileName+' '+str(paths)+'...',
+  #print('Reading '+fileName+' '+str(paths)+'...'),
   print('Reading %s [%d zones]...'%(fileName,len(paths))),
   if format is None: format = Converter.convertExt2Format__(fileName)
   if format == 'bin_cgns' or format == 'unknown': format = Converter.checkFileType(fileName)
@@ -323,13 +325,15 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
                     paths.append('/%s'%b[0]); nodes.append(z)
     else: # by zone names
         paths = zoneNames[:]
+        if isinstance(paths, str): paths = [paths]
         nodes = []
         for p in paths:
             n = Internal.getNodeFromPath(tp, p)
             nodes.append(n)
         for c in range(len(paths)):
+            paths[c] = paths[c].replace('CGNSTree','')
             if paths[c][0] != '/': paths[c] = '/'+paths[c]
-            path[c] = Internal.getPathAncestor(path[c])
+            paths[c] = Internal.getPathAncestor(paths[c])
 
     print('Writing %s [%d zones]...'%(fileName,len(paths))),
     if format is None: format = Converter.convertExt2Format__(fileName)

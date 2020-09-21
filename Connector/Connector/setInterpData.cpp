@@ -65,7 +65,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   for (int i = 0; i < ninterptypes; i++)
   {
     E_Int itype = PyLong_AsLong(PyList_GetItem(InterpDataType, i)); 
-    if ( itype != 0 && itype != 1 )
+    if (itype != 0 && itype != 1)
     {
       PyErr_SetString(PyExc_TypeError,
                       "setInterpData: InterpDataType must be 0 for CART or 1 for ADT.");
@@ -76,7 +76,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   // ordre des interpolations
   E_Int interporder = Order;
   E_Int nature = Nature; // O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
-  E_Int penalty = PenalizeBorders;//1 : penalité sur le volume des pts ou cellules frontieres
+  E_Int penalty = PenalizeBorders; //1: penalite sur le volume des pts ou cellules frontieres
   // Interpolation type
   K_INTERP::InterpData::InterpolationType interpType;
   E_Int nindi, ncfmax;
@@ -127,11 +127,11 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     return NULL;
   }
   posxr++; posyr++; poszr++;
-  E_Int posdir = K_ARRAY::isNamePresent("EXdir",varStringr);
+  E_Int posdir = K_ARRAY::isNamePresent("EXdir", varStringr);
   E_Int isEX = 0;
   if (posdir > -1) {isEX=1; posdir++;}
   /*-------------------------------------------------------*/
-  /* Extraction des infos sur les domaines d interpolation */
+  /* Extraction des infos sur les domaines d'interpolation */
   /*-------------------------------------------------------*/
   vector<E_Int> resl;  vector<char*> varString;
   vector<FldArrayF*> fields;
@@ -168,7 +168,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     if (resl[noz] == 2) 
     {
       char* eltType0 = (char*)a3[noz];
-      if (K_STRING::cmp(eltType0,"TETRA")!= 0)
+      if (K_STRING::cmp(eltType0, "TETRA")!= 0)
       {
         RELEASESHAREDB(resr, receiverArray, fr, cnr); 
         for (E_Int no = 0; no < nzones; no++)
@@ -215,7 +215,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
     PyErr_SetString(PyExc_TypeError,
                     "setInterpData: structured donor zones must be 3D or 2D with z=constant.");
-    return NULL; 
+    return NULL;
   }
 
   // Liste des interpDatas
@@ -230,19 +230,19 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     for (E_Int no = 0; no < nzones; no++)
     {
       E_Int interpdatatype = listOfInterpDataTypes[no];
-      if ( interpdatatype == 1)
+      if (interpdatatype == 1)
       {
         K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(fields[no]->getSize(), 
                                                            fields[no]->begin(posxs[no]),
                                                            fields[no]->begin(posys[no]),
                                                            fields[no]->begin(poszs[no]),
                                                            a2[no], a3[no], a4[no], isBuilt);
-        if ( isBuilt == 1 ) interpDatas.push_back(adt);
+        if (isBuilt == 1) interpDatas.push_back(adt);
         else failed = 1;
       }
       else //CART
       {
-        if ( resl[no] == 1)
+        if (resl[no] == 1)
         {
           E_Float* xt = fields[no]->begin(posxs[no]);
           E_Float* yt = fields[no]->begin(posys[no]);
@@ -258,7 +258,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
           interpDatas.push_back(interpCart);
         }
       }
-      if (failed==1)
+      if (failed == 1)
       {
         RELEASESHAREDB(resr, receiverArray, fr, cnr); 
         for (E_Int no = 0; no < nzones; no++)
@@ -290,9 +290,9 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     }
     oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
 
-    if ( oki<1 ) 
+    if (oki < 1)
     {
-      if ( oki==-1)
+      if (oki == -1)
       {
         PyErr_SetString(PyExc_TypeError,
                         "setInterpData: hook must define an ADT.");
@@ -435,7 +435,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
           break;
 
         case 4:
-          if (a4[noDonorBlk] == NULL ) //non structure
+          if (a4[noDonorBlk] == NULL) //non structure
           {
             for (E_Int nocf = 0; nocf < 4; nocf++) 
               donorCf[sizecf+nocf] = cf[nocf];
@@ -524,7 +524,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   {   
     //     coefficients d'interpolation
     PyObject* fout = K_NUMPY::buildNumpyArray(*listOfInterpCoefs[noz],1);
-    PyList_Append(PyListCoefficients, fout);  Py_DECREF(fout);
+    PyList_Append(PyListCoefficients, fout); Py_DECREF(fout);
     delete listOfInterpCoefs[noz];
 
     //     donorIndices1D
