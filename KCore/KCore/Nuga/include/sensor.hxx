@@ -39,6 +39,8 @@ class sensor
     const mesh_t& get_hmesh() { return _hmesh; }
 
     virtual void fill_adap_incr(output_t& adap_incr, bool do_agglo) = 0;
+
+    void append_adap_incr_w_over_connected(output_t& adap_incr);
   
     virtual bool update() { return false; };
 
@@ -128,8 +130,11 @@ bool sensor<mesh_t, sensor_input_t>::compute(output_t& adap_incr, bool do_agglo)
 {
   if (this->stop()) return false; // e.g. itermax is reached for geom_sensor
 
-  //fill in adap incr thanks to points to cell
+  //
   this->fill_adap_incr(adap_incr, do_agglo);
+
+  // expand adap_incr with over-connected cells : more than twice the nb of natural neighbors
+  append_adap_incr_w_over_connected(adap_incr);
 
   //apply the 2:1 rule
   if (_smoother != nullptr) _smoother->smooth(_hmesh, adap_incr.cell_adap_incr);
@@ -151,6 +156,26 @@ bool sensor<mesh_t, sensor_input_t>::compute(output_t& adap_incr, bool do_agglo)
   for (int i = 0; i < nb_faces; ++i)
     if (adap_incr.face_adap_incr[i] != 0) return true;
   return false;
+}
+
+template <typename mesh_t, typename sensor_input_t>
+void sensor<mesh_t, sensor_input_t>::append_adap_incr_w_over_connected(output_t& adap_incr)
+{
+  //
+  for (size_t i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
+  {
+    if (adap_incr.cell_adap_incr[i] != 0) continue;
+
+    E_Int nbf = _hmesh._ng.PHs.stride(i);
+    
+    STACK_ARRAY(E_Int, 4 * nbf, neighbours);//fixme 4s
+    E_Int nb_neighbours{ 0 };
+    _hmesh.get_enabled_neighbours(i, neighbours.get(), nb_neighbours);
+
+    if (nb_neighbours > 2 * nbf)
+      adap_incr.cell_adap_incr[i] = 1;
+
+  }
 }
 
 }

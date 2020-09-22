@@ -35,7 +35,7 @@ z = XOR.conformizeHMesh(z, hmsh)     # each children faces replace its mother in
 z = XOR.closeCells(z)            # close cells (adding point on lateral faces)
 
 test.testT(z, 1)
-#C.convertPyTree2File(z, "out1.cgns")
+#C.convertPyTree2File(z, "PT_t8.cgns")
 
 ########################## free the hook
 XOR.deleteHMesh(hmsh);

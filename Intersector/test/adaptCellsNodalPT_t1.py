@@ -23,7 +23,7 @@ z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type = 1, subdiv_type=0, hmesh=None)
 
 m = XOR.closeCells(m)
-#C.convertPyTree2File(m, 'out.cgns')
+#C.convertPyTree2File(m, 'nodalPT_t1_1.cgns')
 test.testT(m,1)
 
 ## HEXA dynamic adaptation
@@ -34,7 +34,7 @@ m = XOR.conformizeHMesh(m, hmsh)
 m = XOR.closeCells(m)            # close cells (adding point on lateral faces)
 
 XOR.deleteHMesh(hmsh);
-#C.convertPyTree2File(m, 'out1.cgns')
+#C.convertPyTree2File(m, 'nodalPT_t1_2.cgns')
 test.testT(m,2)
 
 
@@ -51,7 +51,7 @@ nodal_vals[:] = 2
 m = XOR.adaptCellsNodal(zTH4, [nodal_vals], smoothing_type = 1, subdiv_type=0)
 
 m = XOR.closeCells(m)
-#C.convertPyTree2File(m, 'out2.cgns')
+#C.convertPyTree2File(m, 'nodalPT_t1_3.cgns')
 test.testT(m,3)
 
 

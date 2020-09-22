@@ -227,9 +227,9 @@ static E_Int read(const char* filename, phmesh_type& mesh)
   INT_t rows = connect.rows();
 
   if (rows == 4) // TETRA
-    ngon_type::convert<K_MESH::Tetrahedron>(connect, ng);
+    ngon_type::template convert<K_MESH::Tetrahedron>(connect, ng);
   else if (rows == 8) // HEXA
-    ngon_type::convert<K_MESH::Hexahedron>(connect, ng);
+    ngon_type::template convert<K_MESH::Hexahedron>(connect, ng);
   else
   {
     std::cout << "elt type no handled" << std::endl;
@@ -500,7 +500,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     }
   }
 
-  template <typename crd3D_t, typename vngon_unit>
+  /*template <typename crd3D_t, typename vngon_unit>
   static E_Int write(const char* filename, crd3D_t& crd3D, const vngon_unit& pgs)
   {
     K_FLD::FloatArray crd(crd3D.p, 3, crd3D.n, (crd3D.CALLOC == 1));
@@ -515,7 +515,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     crd.relay_mem(crd3D.p, dim, crd3D.n, calloc);
 
     return 0;
-  }
+  }*/
 
   template< typename color_t = E_Int>
   static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_type& ng, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start = 0, const std::vector<color_t>* colors = nullptr)
@@ -597,7 +597,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     K_FLD::FloatArray crdl(crd);
     ngo_t::compact_to_used_nodes(one_ph.PGs, crdl);
 
-    write(filename, crdl, one_ph.PGs);
+    write<E_Int>(filename, crdl, one_ph.PGs);
 
     return 0;
   }
