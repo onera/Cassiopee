@@ -33,6 +33,8 @@ namespace NUGA
     template <typename arr_t>
     static void __update_outer_F2E(const ngon_type& ng, E_Int parentPHi, const E_Int* childrenPHi, E_Int nchildren, const tree<arr_t>& PGtree, K_FLD::IntArray& F2E);
 
+    template <typename arr_t>
+    static void __propagate_PH_neighbour_in_PG_descendance(E_Int PGi, E_Int side, E_Int PH, const tree<arr_t>& PGtree, K_FLD::IntArray& F2E);
   };
 
   template <typename ELT_t, eSUBDIV_TYPE STYPE, short ORDER>
@@ -80,18 +82,26 @@ namespace NUGA
           }
         }
 
-        F2E(side, PGi) = PHi;
+        // replace parentPHi and propagate this PHi to PGi entire descendance
+        __propagate_PH_neighbour_in_PG_descendance(PGi, side, PHi, PGtree, F2E);
 
-        //fixme : to be really generic, the following must be recursive for the entire descendance of PGi
-        E_Int nb_child_PGi = PGtree.nb_children(PGi);
-        if (nb_child_PGi == 0) continue;
-
-        const E_Int* childPGi = PGtree.children(PGi);
-        for (E_Int n = 0; n < nb_child_PGi; ++n)
-          F2E(side, childPGi[n]) = PHi;
       }
 
     }
+  }
+
+  ///
+  template <typename arr_t>
+  void splitting_base_t::__propagate_PH_neighbour_in_PG_descendance(E_Int PGi, E_Int side, E_Int PH, const tree<arr_t>& PGtree, K_FLD::IntArray& F2E)
+  {
+    F2E(side, PGi) = PH;
+
+    E_Int nbc = PGtree.nb_children(PGi);
+    if (nbc == 0) return;
+
+    const E_Int* children = PGtree.children(PGi);
+    for (E_Int n = 0; n < nbc; ++n)
+      __propagate_PH_neighbour_in_PG_descendance(children[n], side, PH, PGtree, F2E);
   }
 
 }

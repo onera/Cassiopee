@@ -428,7 +428,41 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
       {
         ids.clear();
         _PGtree.get_enabled_descendants(PGi, ids);
+
+#ifdef DEBUG_HIERARCHICAL_MESH
+        if (ids.empty())
+        {
+          E_Int pid = _PGtree.parent(PGi);
+          E_Int gpid = E_IDX_NONE;
+          E_Int nbc = _PGtree.nb_children(PGi);
+          bool pid_is_enabled = (pid != E_IDX_NONE) ? _PGtree.is_enabled(pid) : false;
+
+          bool gpid_is_enabled = false;
+          if (pid != E_IDX_NONE){
+            gpid = _PGtree.parent(pid);
+            gpid_is_enabled = (gpid != E_IDX_NONE) ? _PGtree.is_enabled(gpid) : false;
+          }
+
+          std::cout << "faulty PGi : " << PGi << std::endl;
+          std::cout << "PHi : " << i << std::endl;
+          std::cout << "F2E : " << _F2E(0,PGi) << "/" << _F2E(1,PGi) << std::endl;
+          std::cout << "parent ? : " << pid << " enabled ? : " << pid_is_enabled << std::endl;
+          std::cout << "grand parent ? : " << gpid << " enabled ? : " << gpid_is_enabled<< std::endl;
+          std::cout << "nbc ? : " << nbc << std::endl;
+          if (nbc != 0)
+          {
+            const E_Int* childz = _PGtree.children(PGi);
+            for (size_t i=0; i < nbc; ++i)
+              std::cout << "child : " << i << " : " << childz[i] << std::endl;
+          }
+
+          medith::write("faultyPG", _crd, _ng.PGs.get_facets_ptr(PGi), _ng.PGs.stride(PGi), 1);
+          medith::write("PH557", _crd, _ng, i);
+          medith::write("PH6", _crd, _ng, _F2E(0,PGi));
+        }
+#endif
         assert (!ids.empty());
+
         K_CONNECT::IdTool::shift(ids, 1);
         molec.insert(molec.end(), ALL(ids));
       }
