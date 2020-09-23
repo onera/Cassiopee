@@ -309,34 +309,28 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do_agglo)
 {
-  E_Int err(0);
+  E_Int fmax{1}, cmax{1}; //initialized wit 1 to do refinement at first iter
 
-  // identify the sensor
-  E_Int cmax = *std::max_element(ALL(adap_incr.cell_adap_incr));
-  E_Int cmin = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr.cell_adap_incr));
-  E_Int fmax = *std::max_element(ALL(adap_incr.face_adap_incr));
-  E_Int fmin = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr.face_adap_incr));
-
-  if (cmax == 0 && cmin == 0 && fmin == 0 && fmax == 0) return 0; // no adaptation required
-  
-  // adaptation has only one sub iteration ? => yes, break at the end
-  bool one_generation = ((abs(cmin) <= 1) && (abs(cmax) <= 1)) ? true : false;
-    
-  while (!err)
+  // infinite loop but breaking test is done at each iteration (and terminates at some point)
+  while (true)
   {
     // refine Faces : create missing children (those PGi with _PGtree.nb_children(PGi) == 0)
     if (fmax > 0 || cmax > 0) refiner<ELT_t, STYPE>::refine_Faces(adap_incr, _ng, _PGtree, _crd, _F2E, _refiner._ecenter);
     // refine Cells with missing children (those PHi with _PHtree.nb_children(PHi) == 0)
     if (cmax > 0) refiner<ELT_t, STYPE>::refine_PHs(adap_incr, _ng, _PGtree, _PHtree, _crd, _F2E);
         
-    // update cell_adap_incr, enable the right PHs & their levels
-    adap_incr.cell_adap_incr.resize(_ng.PHs.size(),0);
+    //std::cout << "update cell_adap_incr, enable the right PHs & their levels" << std::endl;
+    adap_incr.cell_adap_incr.resize(_ng.PHs.size(),0);// resize to new size
     for (E_Int PHi = 0; PHi < _ng.PHs.size(); ++PHi)
     {
-      if (!_PHtree.is_enabled(PHi)) continue;
-      
       E_Int& adincrPHi = adap_incr.cell_adap_incr[PHi];
       if (adincrPHi == 0) continue;
+
+      if (!_PHtree.is_enabled(PHi))
+      {
+        adincrPHi = 0; // reset in cas it has something : do not allow splitting of disabled entities
+        continue;
+      }
 
       if (adincrPHi > 0) // refinement : activate the children, transfer the adapincr & set their level
       {
@@ -365,14 +359,13 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
       }
     }
 
+    //std::cout << "enable_PGs..." << std::endl;
     enable_PGs();
     
     _ng.PGs.updateFacets();
     _ng.PHs.updateFacets();
 
-#ifdef DEBUG_HIERARCHICAL_MESH  
-    //std::cout << "is hybrid at the end of adap ? " << is_hybrid(_ng) << std::endl;
-    //    debug_draw(0, _ng, _PHtree, _crd);   
+#ifdef DEBUG_HIERARCHICAL_MESH     
     if (! _ng.attributes_are_consistent()) return false;
 #endif
     
@@ -395,10 +388,18 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
     ++iter;
 #endif
 
-    if (one_generation) break;
+    // get the extrema values
+    cmax = *std::max_element(ALL(adap_incr.cell_adap_incr));
+    E_Int cmin = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr.cell_adap_incr));
+    fmax = *std::max_element(ALL(adap_incr.face_adap_incr));
+    //E_Int fmin = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr.face_adap_incr));
+
+    //std::cout << "fmin/fmax/cmin/cmax : " << fmin << "/" << fmax << "/" << cmin << "/" << cmax << std::endl;
+
+    if (cmax == 0 && cmin == 0 /*&& fmin == 0 && fmax == 0*/) return 0; // no adaptation required anymore
   }
 
-  return err;
+  return 1;
 }
 
 

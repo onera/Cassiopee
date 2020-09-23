@@ -1362,9 +1362,9 @@ def _closeCells(t):
 
 #==============================================================================
 # adaptCells : Adapts a polyhedral mesh a1 with repsect to a2 points
-# IN: t1 : 3D NGON mesh
-# IN: t2 : source points (any kind of mesh)
-# IN: sensor_type : basic (0) or xsensor (1)
+# IN: t : 3D NGON mesh
+# IN: sensdata : sensor data
+# IN: sensor_type : geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3)
 # IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
 # IN itermax : max number of level in the hierarchy
 # IN subdiv_type : XXX
