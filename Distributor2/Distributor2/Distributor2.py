@@ -45,15 +45,13 @@ def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=[],
                 c = max(a[2]-nghost,1)*max(a[3]-nghost,1)*max(a[4]-nghost,1)
         elif len(a) == 4:
             if mode == 'cells':
-                if isinstance(a[1], list):
-                    if a[3] == 'NGON' or a[3] == 'NGON*':
-                        c = a[2][3].size
+                if a[3] == 'NGON' or a[3] == 'NGON*': c = a[2][3].size
                 else: c = a[2][0].shape[0]
             else: # nodes
                 if a[3][-1] != '*': 
                     if isinstance(a[1], list): c = a[1][0].size
                     else: c = a[1].shape[1]
-                else: c = 0 # don't know
+                else: c = 0 # dont know
         nbPts.append(c)
 
     # Liste des arrays deja distribues

@@ -60,7 +60,7 @@ def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
     tp = Internal.copyRef(t)
     out = _distribute(tp, NProc, prescribed=prescribed, perfo=perfo,
                       weight=weight, useCom=useCom, algorithm=algorithm,
-                      mode='nodes', nghost=nghost, tbb=tbb)
+                      mode=mode, nghost=nghost, tbb=tbb)
     return tp, out
 
 # in place version

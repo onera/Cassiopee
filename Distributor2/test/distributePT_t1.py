@@ -68,3 +68,11 @@ for i in range(N):
 
 t, stats = D2.distribute(t, NProc=5, weight=weightDict,algorithm='gradient', useCom='bbox')
 test.testT(t,8)
+
+t2 = C.convertArray2Hexa(t)
+stats = D2._distribute(t2, NProc=5, weight=weightDict,algorithm='gradient', useCom='bbox', mode='cells')
+test.testT(t2,9)
+
+t2 = C.convertArray2NGon(t)
+stats = D2._distribute(t2, NProc=5, weight=weightDict,algorithm='gradient', useCom='bbox', mode='cells')
+test.testT(t2,10)
