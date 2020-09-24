@@ -1894,6 +1894,37 @@ def checkCellsClosure(t):
     return XOR.checkCellsClosure(m)
 
 #==============================================================================
+# checkCellsFlux : Computes the cell fluxes using the ParentElement node
+#==============================================================================
+def checkCellsFlux(t):
+    """ XXX"""
+    zones = Internal.getZones(t)
+    i=0
+    for z in zones:
+        GEl = Internal.getElementNodes(z)
+        NGON = 0; found = False
+        for c in GEl:
+            if c[1][0] == 22: found = True; break
+            NGON += 1
+        PE = None
+        if found:
+            node = GEl[NGON]
+            PE = Internal.getNodeFromName1(node, 'ParentElements')
+            if PE is None:
+                print ('skipping zone %d as it does not have ParentElement'%i)
+                continue
+        else:
+            print ('skipping zone %d as it does not have ParentElement'%i)
+            continue
+        
+        print('checking nullity of fluxes for zone %d'%i)
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        XOR.checkCellsFlux(m, PE[1])
+        i+=1
+
+
+
+#==============================================================================
 # checkForDegenCells : XXX
 #==============================================================================
 def checkForDegenCells(t):

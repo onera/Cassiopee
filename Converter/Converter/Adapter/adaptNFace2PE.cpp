@@ -29,12 +29,12 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
 {
   PyObject* arrayNF; PyObject* arrayNG;  
   E_Int nfaces; E_Int nelts;
-  E_Int method(0);
+  E_Int methodPE(0);
   PyObject* arrayX; PyObject* arrayY; PyObject* arrayZ; 
 
   if (!PYPARSETUPLEI(args, "OOOOOlll", "OOOOOiii", &arrayNF,  &arrayNG, 
                      &arrayX, &arrayY, &arrayZ, 
-                     &nelts, &nfaces, &method)) return NULL;
+                     &nelts, &nfaces, &methodPE)) return NULL;
 
   // Check numpy (NFace)
   FldArrayI* cNFace;
@@ -95,9 +95,9 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   E_Int* cFE = K_NUMPY::getNumpyPtrI(tpl);
 
   bool is_3D = (cNGon->begin()[0] > 2);
-  if (!is_3D) method = 0;
+  if (!is_3D) methodPE = 0;
 
-  if (method == 0) // GEOMETRIC APPROACH => assume all cells are centroid-star-shaped.
+  if (methodPE == 0) // GEOMETRIC APPROACH => assume all cells are centroid-star-shaped.
   {
     for (E_Int i = 0; i < nfaces*2; i++) cFE[i] = 0;
 
@@ -314,7 +314,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
       }
     }
   }
-  else if (method == 1) // TOPOLOGICAL => GENERAL CASE
+  else if (methodPE == 1) // TOPOLOGICAL => GENERAL CASE
   {
     ngon_type ng(cNGon->begin(), cNGon->getSize(), nfaces, cNFace->begin(), cNFace->getSize(), nelts);
     K_FLD::FloatArray crd(3, coordX->getSize());
@@ -341,17 +341,24 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
       return NULL;
     }
 
-    // F2E
+    // build oriented F2E
     K_FLD::IntArray F2E2;
     ngon_unit neighbors;
     ng.build_ph_neighborhood(neighbors);
     ng.build_F2E(neighbors, F2E2);
 
+    // fill cFE
     for (E_Int i=0; i < nfaces; ++i)
     {
       cFE[i] = (F2E2(0,i) == E_IDX_NONE) ? 0 : F2E2(0,i) + 1;          //left elt
       cFE[i + nfaces] = (F2E2(1,i) == E_IDX_NONE) ? 0 : F2E2(1,i) + 1; //right elt
     }
+
+    // replace NGON/NFACE
+    E_Int* ptrNG2 = cNGon->begin();
+    std::copy ( ng.PGs._NGON.begin()+2, ng.PGs._NGON.end(), ptrNG2 );
+    //E_Int* ptrNF = cNFace->begin();
+    //std::copy ( ng.PHs._NGON.begin()+2, ng.PHs._NGON.end(), ptrNF );
   }
   
   RELEASESHAREDN(arrayNF, cNFace);

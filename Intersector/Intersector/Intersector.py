@@ -527,6 +527,16 @@ def checkCellsClosure(a):
     return intersector.checkCellsClosure(a)
 
 #==============================================================================
+# checkCellsFlux : Computes the cell fluxes using ParentElement
+# IN: a:               : 3D NGON mesh
+# OUT: Returns the first cell id that is non-closed
+#==============================================================================
+def checkCellsFlux(a, PE):
+    """ XXX
+    Usage: checkCellsFlux(a)"""
+    return intersector.checkCellsFlux(a, PE)
+
+#==============================================================================
 # checkForDegenCells : check if there are any cell with less than 4 faces.
 #==============================================================================
 def checkForDegenCells(a):

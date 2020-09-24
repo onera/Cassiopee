@@ -994,7 +994,7 @@ def _adaptNearMatch(t):
 def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     """Create elsAHybrid node necessary for NGON zones."""
     tp = Internal.copyRef(t)
-    _createElsaHybrid(tp, method, axe2D)
+    _createElsaHybrid(tp, method, axe2D, methodPE)
     return tp
 
 def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
@@ -1011,7 +1011,7 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
              CE = Internal.getNodeFromName1(node, 'ElementConnectivity')
              PE = Internal.getNodeFromName1(node, 'ParentElements')
              if PE is None:
-                 Internal._adaptNFace2PE(z, remove=False, methodPE=0)
+                 Internal._adaptNFace2PE(z, remove=False, methodPE = methodPE)
                  PE = Internal.getNodeFromName1(node, 'ParentElements')
              er = Internal.getNodeFromName1(node, 'ElementRange')
              nfaces = er[1][1]-er[1][0]+1

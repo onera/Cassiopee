@@ -885,6 +885,83 @@ PyObject* K_INTERSECTOR::checkCellsClosure(PyObject* self, PyObject* args)
 #endif
 }
 
+PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *PE;
+
+  if (!PyArg_ParseTuple(args, "OO", &arr, &PE)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  // Check numpy (parentElement)
+  FldArrayI* cFE;
+  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  if (ngi.PGs.size() != cFE->getSize())
+  {
+    std::cout << "le ParentElment ne correpsond pas au nb de pgs" << std::endl;
+    delete f; delete cn;
+    return nullptr;
+  }
+
+  std::vector<E_Int> orient;
+  E_Int imax=-1;
+  E_Float Lmax = -1;
+  for (E_Int i=0; i < ngi.PHs.size(); ++i)
+  {
+    orient.clear();
+
+    const E_Int* pF = ngi.PHs.get_facets_ptr(i);
+    E_Int nbf = ngi.PHs.stride(i);
+    orient.resize(nbf, 1);
+
+    for (E_Int f = 0; f < nbf; ++f)
+    {
+      E_Int PGi = *(pF+f) - 1;
+      //std::cout << "PGi bef wwong :" << PGi << std::endl;
+      if ((*cFE)(PGi, 1) != i+1) orient[f] = -1;
+      assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
+    }
+
+    //std::cout << "computing flux for PH : " << i << std::endl;
+    K_MESH::Polyhedron<0> PH(ngi, i);
+    E_Float flxVec[3];
+    PH.flux(crd, &orient[0], flxVec);
+
+    E_Float L = ::sqrt(K_FUNC::sqrNorm<3>(flxVec));
+
+    if (L > Lmax)
+    {
+      imax = i;
+      Lmax = L;
+    }
+  }
+
+  std::cout << "max flux is : " << Lmax << " reached at cell : " << imax << std::endl;
+
+  delete f; delete cn;
+
+#ifdef E_DOUBLEINT
+    return Py_BuildValue("l", long(err));
+#else
+    return Py_BuildValue("i", err);
+#endif
+}
+
 PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
 {
   PyObject *arr, *axcelln;

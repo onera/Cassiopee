@@ -93,6 +93,7 @@ static PyMethodDef Pyintersector [] =
 
   { "checkCellsClosure", K_INTERSECTOR::checkCellsClosure, METH_VARARGS },
   { "checkForDegenCells", K_INTERSECTOR::checkForDegenCells, METH_VARARGS },
+  { "checkCellsFlux", K_INTERSECTOR::checkCellsFlux, METH_VARARGS },
   { "detectIdenticalCells", K_INTERSECTOR::detectIdenticalCells, METH_VARARGS },
   { "detectOverConnectedFaces", K_INTERSECTOR::detectOverConnectedFaces, METH_VARARGS },
   { "edgeLengthExtrema", K_INTERSECTOR::edgeLengthExtrema, METH_VARARGS },
