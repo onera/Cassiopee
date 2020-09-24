@@ -44,10 +44,20 @@ class cell_sensor : public sensor<mesh_t, Vector_t<E_Int>>
 template <typename mesh_t>
 E_Int cell_sensor<mesh_t>::assign_data(const sensor_input_t& data)
 {
-  parent_t::assign_data(data);
-
   E_Int nphs = parent_t::_hmesh._ng.PHs.size();
+  parent_t::_data.clear();
   parent_t::_data.resize(nphs, 0.); // resize anyway to ensure same size as cells
+
+  // now tranfer input data sized as enabled cells
+
+  E_Int pos{0};
+  for (E_Int i = 0; i < nphs; ++i)
+  {
+    if (pos >= data.size()) break; //input was too small (shoudl not happen)
+    if (!parent_t::_hmesh._PHtree.is_enabled(i)) continue;
+
+    parent_t::_data[i] = data[pos++];
+  }
 
   return 0;
 }
@@ -64,10 +74,10 @@ void cell_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 
   adap_incr.cell_adap_incr = parent_t::_data;
 
-  std::cout << "cell adapt incr sz : " << adap_incr.cell_adap_incr.size() << std::endl;
+  //std::cout << "cell adapt incr sz : " << adap_incr.cell_adap_incr.size() << std::endl;
   E_Int minv = *std::min_element(ALL(adap_incr.cell_adap_incr));
   E_Int maxv = *std::max_element(ALL(adap_incr.cell_adap_incr));
-  std::cout << "cell adapt incr min/max : " << minv << "/" << maxv << std::endl;
+  //std::cout << "cell adapt incr min/max : " << minv << "/" << maxv << std::endl;
 }
 
 }

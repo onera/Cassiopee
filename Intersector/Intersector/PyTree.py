@@ -1574,9 +1574,8 @@ def _conformizeHMesh(t, hooks):
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         if m == []: continue
 
-        fields = C.getFields(Internal.__FlowSolutionCenters__, z)
-
-        if fields == [] or fields == [[]] : fields = None
+        fields = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        if fields == [] : fields = None
 
         res = intersector.conformizeHMesh(hooks[i], fields)
 

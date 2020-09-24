@@ -603,39 +603,36 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
 
 
   // FIELDS
-  E_Int nb_fields{0};
-  if (pyfields != Py_None && PyList_Check(pyfields))
-    nb_fields = PyList_Size(pyfields);
-
-  std::vector<char*> fvarStrings, feltType;
-
+  bool has_fields = (pyfields != Py_None);
+  
+  char* fvarStrings, *feltType;
   std::vector<std::vector<E_Float>> fields;
+  E_Int nfields{0};
 
-  if (nb_fields)
+  if (has_fields)
   {
-    fvarStrings.resize(nb_fields);
-    feltType.resize(nb_fields);
-    fields.resize(nb_fields);
+    
+    E_Int ni, nj, nk;
+    K_FLD::FloatArray fs;
+    K_FLD::IntArray cn;
 
-    for (E_Int f = 0; f < nb_fields; ++f)
-    {
-      PyObject* fo = PyList_GetItem(pyfields, f);
-      E_Int ni, nj, nk;
-      K_FLD::FloatArray fs;
-      K_FLD::IntArray cn;
+    E_Int res = 
+      K_ARRAY::getFromArray(pyfields, fvarStrings, fs, ni, nj, nk, cn, feltType);
 
-      /*E_Int res = */
-        K_ARRAY::getFromArray(fo, fvarStrings[f], fs, ni, nj, nk, cn, feltType[f]);
+    /*std::cout << "res : " << res << std::endl;
+    std::cout << "var : " << fvarStrings[0] << std::endl;
+    std::cout << "f : " << fs.rows() << "/" << fs.cols() << std::endl;
+    std::cout << "cn : " << cn.rows() << "/" << cn.cols() << std::endl;*/
 
-      fields[f].resize(fs.cols(), 0.);
-      for (E_Int i=0; i < fs.cols(); ++i)
-        fields[f][i]=fs(0,i);
+    nfields = fs.rows();
+    E_Int nvals = fs.cols();
+    fields.resize(nfields);
+    for (E_Int j = 0; j < nfields; ++j)
+      fields[j].resize(nvals);
 
-      /*std::cout << "res : " << res << std::endl;
-      std::cout << "var : " << fvarStrings[f] << std::endl;
-      std::cout << "f : " << fs.rows() << "/" << fs.cols() << std::endl;
-      std::cout << "cn : " << cn.rows() << "/" << cn.cols() << std::endl;*/
-    }
+    for (E_Int i = 0; i < nvals; ++i)
+      for (E_Int j = 0; j < nfields; ++j)
+        fields[j][i] = fs(j, i);
   }
 
   // CONFORMIZE, UPDATE POINTLISTS and TRANSFER FIELDS
@@ -668,7 +665,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   ranges[2] = ranges[1];
   if (bcptlists.size()) ranges[2] += bcptlists.size(); //one-pas-the-end
   ranges[3] = ranges[2];
-  if (fields.size()) ranges[3] += fields.size(); //one-pas-the-end
+  if (fields.size()) ranges[3] += 1/*compacted in one array*/; //one-pas-the-end
   //ranges[2] = 3+jptlists.size() + bcptlists.size() + 1; //one-pas-the-end
   //ranges[3] = 3+jptlists.size() + bcptlists.size() + fields.size() + 1; //one-pas-the-end
 
@@ -711,19 +708,18 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   }
 
   // FIELDS
-  if (nb_fields)
+  if (has_fields)
   {
+    K_FLD::FloatArray farr(nfields, fields[0].size());
     for (size_t i=0; i < fields.size(); ++i)
     {
       std::vector<double>& fld = fields[i];
-      //tpl = K_NUMPY::buildNumpyArray(&field[0], field.size(), 1, 0);
-      K_FLD::FloatArray farr(1, fld.size());
-      for (size_t j = 0; j < fld.size(); ++j)farr(0, j) = fld[j];
-      PyObject* tpl = K_ARRAY::buildArray(farr, fvarStrings[i], cnto, -1, feltType[i], false);
-
-      PyList_Append(l, tpl);
-      Py_DECREF(tpl);
+      for (size_t j = 0; j < fld.size(); ++j)farr(i, j) = fld[j];
     }
+
+    PyObject* tpl = K_ARRAY::buildArray(farr, fvarStrings, cnto, -1, feltType, false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
   }
 
   return l;
