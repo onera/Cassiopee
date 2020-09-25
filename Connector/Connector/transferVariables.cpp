@@ -39,8 +39,8 @@ using namespace K_FLD;
 //=============================================================================
 PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
 {
-  E_Float penaltyExtrap = 1e6;
-  E_Float penaltyOrphan = 1e12;
+  E_Float penaltyExtrap = 1.e6;
+  E_Float penaltyOrphan = 1.e12;
 
   E_Int locDnr = 0;//localisation des champs dans la zone donneuse - en noeuds
 
@@ -59,7 +59,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
                     &zoneD, &interpPtsCoordX, &interpPtsCoordY, &interpPtsCoordZ,
                     &interporder, &nature, &penalty, &constraint, &hookADT, &pyVariables,
                     &InterpDataType, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
-  if ( InterpDataType != 0 && InterpDataType != 1 )
+  if (InterpDataType != 0 && InterpDataType != 1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "transferFields: InterpDataType must be 0 for CART or 1 for ADT.");
@@ -149,7 +149,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
                     "transferFields: 1st arg is not a valid zone.");
     return NULL;
   }   // cas seulement non structure : ncf a 4 (minimum)
-  else if (typeZoneD==2)
+  else if (typeZoneD == 2)
   {
     RELEASEDATA;
     PyErr_SetString(PyExc_TypeError, 
@@ -159,8 +159,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Int nfld = fieldsD.size();
   E_Int npts = imd*jmd*kmd;
   E_Float** rakeFieldsD = new E_Float*[nfld];
-  for (E_Int i =0; i < nfld; i++)
-    rakeFieldsD[i] = fieldsD[i];
+  for (E_Int i =0; i < nfld; i++) rakeFieldsD[i] = fieldsD[i];
   // FldArrayF* donorFields = new FldArrayF(npts, nfld, rakeFieldsD, true, true);
   FldArrayF donorFields(npts, nfld, rakeFieldsD, true, true);
 
@@ -182,9 +181,9 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   }
   posxd++; posyd++; poszd++; poscd++;
 
-  //recup de l interpData
+  //recup de l'interpData
   K_INTERP::InterpData* interpData;
-  if ( InterpDataType == 1)
+  if (InterpDataType == 1)
   {
     if (hookADT == Py_None)
     {
@@ -212,7 +211,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   #endif    
       E_Int* typeHookp = (E_Int*)packet[0];
       E_Int typeHook = typeHookp[0];
-      if  ( typeHook != 1 ) 
+      if  (typeHook != 1) 
       {
         PyErr_SetString(PyExc_TypeError, 
                         "transferFields: 5th arg must be a hook on an ADT.");
@@ -220,7 +219,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
         return NULL;
       }
       E_Int s1 = typeHookp[1];
-      if ( s1 > 1)
+      if (s1 > 1)
       {
         PyErr_SetString(PyExc_TypeError, 
                         "transferFields: only one ADT must be provided in hook.");
@@ -240,12 +239,9 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     E_Float hj = yt[imd]-yt[0];
     E_Float hk;
 
-    //Cas 2D
-    if (kmd == 1)
-      hk = 1;
-    else
-      hk = zt[imd*jmd]-zt[0];
-
+    // Cas 2D
+    if (kmd == 1) hk = 1;
+    else hk = zt[imd*jmd]-zt[0];
     interpData = new K_INTERP::InterpCart(imd,jmd,kmd,hi,hj,hk,x0,y0,z0);
   }
 
@@ -258,7 +254,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   if (PyList_Check(pyVariables) != 0)
   {
     int nvariables = PyList_Size(pyVariables);
-    if ( nvariables > 0 )
+    if (nvariables > 0)
     {
       for (int i = 0; i < nvariables; i++)
       {
@@ -334,9 +330,6 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   void* a4 = &kmd;
   void* a5 = NULL;
 
-  E_Int type, noblk;
-  E_Float volD;
-
   //-----------------------//
   // Champs a interpoler   //
   //-----------------------//
@@ -349,10 +342,12 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   interpolatedFields.setAllValuesAtNull();
   E_Float* ptrVol = interpolatedFields.begin(nfldD);
 
-#pragma omp parallel default(shared)  private(type, noblk, volD) if (nbInterpPts > 50)
+#pragma omp parallel default(shared)
 {
+  E_Int noblk, type;
+  E_Float volD;
   FldArrayI indi(nindi); FldArrayF cf(ncfmax);
-  #pragma omp for
+#pragma omp for
   for (E_Int noind = 0; noind < nbInterpPts; noind++)
   {
     E_Float x = xr[noind];
@@ -363,6 +358,9 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
                                               a2, a3, a4, a5, posxd, posyd, poszd, poscd,
                                               volD, indi, cf, type, noblk, interpType, 
                                               nature, penalty);   
+    
+    // CB: essai pour enlever les extrapolations
+    /* 
     if (ok != 1)
     {
       ok = K_INTERP::getExtrapolationCell(x, y, z, interpData, &donorFields,
@@ -374,7 +372,11 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
       else //orphan
         volD = penaltyOrphan;
     }
-    if (ok == 1)//formule d'interpolation
+    */
+    if (ok != 1) volD = penaltyOrphan;
+    // END CB
+
+    if (ok == 1) // formule d'interpolation
     {
       // on n'interpole que les variables dans posvars0, qui sont les 1eres variables ds interpolatedFields
       K_INTERP::compInterpolatedValues(indi.begin(), cf, donorFields, a2, a3, a4, 
@@ -386,17 +388,11 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   RELEASEDATA;
   delete [] varStringOut;
 
-if ( InterpDataType == 1 )
-{
-  if ( hookADT == Py_None )
+  if (InterpDataType == 1)
   {
-    delete interpData;
+    if (hookADT == Py_None) delete interpData;
   }
-}
-else
-{
-  delete interpData;
-}
+  else delete interpData;
 
   return tpl; 
 }

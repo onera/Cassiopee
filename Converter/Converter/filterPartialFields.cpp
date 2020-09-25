@@ -35,9 +35,8 @@ using namespace std;
 PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
 {
   E_Float ZEROVOL=1.e-16;
-  E_Float penaltyExtrap = 1e6;
-  E_Float penaltyOrphan = 1e12;
-  E_Int countExtrap= 0; E_Int countOrphan = 0;
+  E_Float penaltyExtrap = 1.e6;
+  E_Float penaltyOrphan = 1.e12;
 
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   PyObject* zone;
@@ -112,7 +111,6 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int nPts = listIndices->getSize();
   E_Int* indices = listIndices->begin();
 
-
   /* Variables communes entre la zone et les champs a inserer */
   char* varStringC; // chaine de caractere commune
   E_Int lenD = strlen(varStringD[0]);
@@ -130,54 +128,74 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nzonesD; i++)
   {
     E_Int posf = K_ARRAY::isNamePresent(filterName, varStringD[i]);
-    if ( posf == -1) 
+    if (posf == -1)
     {
-        RELEASESHAREDZ(hook, varStringZ, eltTypeZ);
-        RELEASESHAREDN(listIndicesO, listIndices);
-        for (E_Int no = 0; no < nzonesD; no++)
-          RELEASESHAREDA(resD[no],objsD[no],fieldsD[no],a2[no],a3[no],a4[no]); 
-        PyErr_SetString(PyExc_TypeError, 
-                        "filterPartialFields: filter variable not found in 2nd arg.");
-        return NULL;        
+      RELEASESHAREDZ(hook, varStringZ, eltTypeZ);
+      RELEASESHAREDN(listIndicesO, listIndices);
+      for (E_Int no = 0; no < nzonesD; no++)
+        RELEASESHAREDA(resD[no],objsD[no],fieldsD[no],a2[no],a3[no],a4[no]); 
+      PyErr_SetString(PyExc_TypeError, 
+                      "filterPartialFields: filter variable not found in 2nd arg.");
+      return NULL;        
     }
     posfD.push_back(posf+1);
   }
-#pragma omp for
-  for (E_Int i = 0; i < nPts; i++)
-  {
-    E_Float filterMax = K_CONST::E_MAX_FLOAT;
-    E_Int bestDnr=-1;
-    for (E_Int nozD=0; nozD < nzonesD; nozD++)
-    {
-      E_Int posf = posfD[nozD];//demarre a 1
-      E_Float* ptrFilter = fieldsD[nozD]->begin(posf);
-      E_Float filterVal = ptrFilter[i];
-      if (filterVal < filterMax && filterVal> ZEROVOL)
-      {
-        filterMax = filterVal;
-        bestDnr=nozD;
-      }
-    }
-    if ( filterMax >= penaltyOrphan ) countOrphan++;
-    else
-    {
-      if ( filterMax >= penaltyExtrap) {
-        countExtrap++;}
-      if ( bestDnr>-1)
-      {
-        E_Int ind = indices[i]-startFrom;
 
-        for (E_Int eq = 0; eq < ncommonfields; eq++)
+  E_Int nthreads = __NUMTHREADS__;
+  E_Int* countOrphanL = new E_Int [nthreads];
+  for (E_Int i = 0; i < nthreads; i++) countOrphanL[i] = 0;
+  E_Int* countExtrapL = new E_Int [nthreads];
+  for (E_Int i = 0; i < nthreads; i++) countExtrapL[i] = 0;
+  
+#pragma omp parallel
+  {
+    E_Float filterMax;
+    E_Int bestDnr;
+    E_Int ithread = __CURRENT_THREAD__;
+
+#pragma omp for
+    for (E_Int i = 0; i < nPts; i++)
+    {
+      filterMax = K_CONST::E_MAX_FLOAT;
+      bestDnr = -1;
+      for (E_Int nozD=0; nozD < nzonesD; nozD++)
+      {
+        E_Int posf = posfD[nozD]; //demarre a 1
+        E_Float* ptrFilter = fieldsD[nozD]->begin(posf);
+        E_Float filterVal = ptrFilter[i];
+        if (filterVal < filterMax && filterVal > ZEROVOL)
         {
-          E_Int posZ = posvZ[eq]; 
-          E_Float* fZ = fieldsZ[posZ-1];
-          E_Int posD = posvD[eq]; 
-          E_Float* ptrFieldD = fieldsD[bestDnr]->begin(posD);          
-          fZ[ind] = ptrFieldD[i];
+          filterMax = filterVal;
+          bestDnr = nozD;
+        }
+      }
+      if (filterMax >= penaltyOrphan) countOrphanL[ithread]++;
+      else
+      {
+        if (filterMax >= penaltyExtrap) { countExtrapL[ithread]++; }
+        if (bestDnr > -1)
+        {
+          E_Int ind = indices[i]-startFrom;
+
+          for (E_Int eq = 0; eq < ncommonfields; eq++)
+          {
+            E_Int posZ = posvZ[eq]; 
+            E_Float* fZ = fieldsZ[posZ-1];
+            E_Int posD = posvD[eq]; 
+            E_Float* ptrFieldD = fieldsD[bestDnr]->begin(posD);          
+            fZ[ind] = ptrFieldD[i];
+          }
         }
       }
     }
   }
+
+  E_Int countOrphan = 0;
+  for (E_Int i = 0; i < nthreads; i++) countOrphan += countOrphanL[i];
+  delete [] countOrphanL;
+  E_Int countExtrap = 0;
+  for (E_Int i = 0; i < nthreads; i++) countExtrap += countExtrapL[i];
+  delete [] countExtrapL;
 
   if (countExtrap>0 || countOrphan>0)
   {
@@ -191,7 +209,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     
     if (verbose == 1) 
     {
-      printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n",zname, countInterp, countExtrap, countOrphan);
+      printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n", zname, countInterp, countExtrap, countOrphan);
       if (countOrphan > 0)
         printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
     }

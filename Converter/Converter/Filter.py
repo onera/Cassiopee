@@ -301,20 +301,16 @@ def _loadVariables(a, fileName, znp, var, format, uncompress=True):
         # Ensure location in containers
         zp = Internal.getNodeFromPath(a, p)
         fp = Internal.getNodeFromPath(a, paths[0])
+        if uncompress:
+          try:
+            import Compressor.PyTree as Compressor
+            Compressor._uncompressAll(zp)
+          except: pass
         if zp is not None and fp is not None:
             c = Internal.getNodeFromName1(zp, cont)
             if c is not None and fp[1] is not None:
               if PyTree.getNPts(zp) != fp[1].size:
                 Internal.createUniqueChild(c, 'GridLocation', 'GridLocation_t', 'CellCenter')
-
-    # Decompression eventuellement
-    if uncompress:
-      for p in znps:
-        n = Internal.getNodeFromPath(a, p)
-        try:
-          import Compressor.PyTree as Compressor
-          Compressor._uncompressAll(n)
-        except: pass
     return None
 
 #==================================================================================
@@ -1044,6 +1040,7 @@ class Handle:
           _loadContainer(a, self.fileName, [zp], 'GridCoordinates', self.format)
           _loadConnectivity(a, self.fileName, [zp], self.format)
           _loadZoneBCs(a, self.fileName, [zp], self.format)
+          _loadZoneExtras(a, self.fileName, znp, self.format)
           _convert2PartialTree(Internal.getNodeFromPath(a, zp))
     return None
 

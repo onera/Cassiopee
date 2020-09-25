@@ -102,10 +102,10 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
     # Construction des raccords 
     a = X.connectMatchPeriodic(a,rotationCenter,rotationAngle,translation,tol,dim,unitAngle)
 
-    # # Suppression des XZones et correction des matchs 
+    # Suppression des XZones et correction des matchs 
     Cmpi._rmBXZones(a)
 
-    # # Fusion des fenetres des raccords 
+    # Fusion des fenetres des raccords 
     a = mergeWindows(a)
 
     return a 
@@ -148,10 +148,8 @@ def mergeWindows(t):
                     zopp  = Internal.getValue(n)
                     pos   = giveName2Window(p,z[0],zopp)
 
-                    if pos not in dico.keys():
-                        dico[pos] = [n[0]]
-                    else:
-                        dico[pos].append(n[0])
+                    if pos not in dico.keys(): dico[pos] = [n[0]]
+                    else: dico[pos].append(n[0])
                   
             # Test si match peuvent etre fusionnes
             for match in dico.keys():
@@ -363,7 +361,7 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
 #---------------------------------------------------------------------------------------------------------
 # Transferts instationnaires en parallele
 # avec prise en compte du mouvement
-# absFrame = True : les coordonnees de t sont deja dans le repere absolu en entree
+# absFrame=True: les coordonnees de t sont deja dans le repere absolu en entree
 #---------------------------------------------------------------------------------------------------------
 def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT, 
               dictOfNobOfRcvZones, dictOfNozOfRcvZones,
@@ -417,19 +415,6 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     adt = dictOfADT[znamed]
                     if adt is None: interpDataType = 0
                     else: interpDataType = 1
-                    #if znamed in dictOfMotionMatA2R:
-                    #    MatAbs2RelD = dictOfMotionMatA2R[znamed]
-                    #else:                        
-                    #    if znamed in dictOfMotionMatR2A:
-                    #        MatRel2AbsD = dictOfMotionMatR2A[znamed]
-                    #        MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-                    #        dictOfMotionMatA2R[znamed] = MatAbs2RelD
-                    #    else:
-                    #        MatRel2AbsD = RM.getMotionMatrixForZone(zdnr, time=time, F=None)
-                    #        dictOfMotionMatR2A[znamed] = MatRel2AbsD
-                    #        MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-                    #        dictOfMotionMatA2R[znamed] = MatAbs2RelD
-                    #[XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
                     [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)                    
                     # transfers avec coordonnees dans le repere relatif
                     # hack par CB
@@ -437,11 +422,9 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
                     T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T                    
                     #print(" TRANSFERTS LOCAUX : ", z[0], zdnr[0], interpDataType)
-
                     fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
                     # hack par CB
-                    T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T                    
-                    
+                    T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T        
                     
                     if zname not in dictOfFields:
                         dictOfFields[zname] = [fields]
@@ -454,12 +437,12 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     if procD not in datas:
                         datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                     else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
-
+    
     # print 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' , datas.keys()
     # print ' a partir du graphe ', graph
     # 1er envoi : envoi des numpys des donnees a interpoler suivant le graphe
     interpDatas = Cmpi.sendRecv(datas, graph)
-
+    
     # recuperation par le proc donneur des donnees pour faire les transferts    
     transferedDatas={}
     for i in interpDatas:
@@ -475,18 +458,6 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             adt = dictOfADT[zdnrname]
             if adt is None: interpDataType = 0
             else: interpDataType = 1
-            # if zdnrname in dictOfMotionMatA2R:
-            #     MatAbs2RelD=dictOfMotionMatA2R[zdnrname]
-            # else:
-            #     if zdnrname in dictOfMotionMatR2A:
-            #         MatRel2AbsD = dictOfMotionMatR2A[zdnrname]
-            #         MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-            #         dictOfMotionMatA2R[zdnrname] = MatAbs2RelD
-            #     else:
-            #         MatRel2AbsD=RM.getMotionMatrixForZone(zdnr, time=time, F=None)
-            #         dictOfMotionMatR2A[zdnrname]=MatRel2AbsD
-            #         MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-            #         dictOfMotionMatA2R[zdnrname] = MatAbs2RelD
             [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
             # [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
             # transferts avec coordonnees dans le repere relatif 
@@ -506,8 +477,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             
     if transferedDatas != {}:
         # 2nd envoi : envoi des numpys des donnees interpolees suivant le graphe
-        rcvDatas = Cmpi.sendRecv(transferedDatas,graph)
-                                                              
+        rcvDatas = Cmpi.sendRecv(transferedDatas, graph)
+
         # remise des donnees interpolees chez les zones receveuses
         # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
         for i in rcvDatas:

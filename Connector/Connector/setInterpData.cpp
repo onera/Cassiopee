@@ -248,7 +248,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
           E_Float* yt = fields[no]->begin(posys[no]);
           E_Float* zt = fields[no]->begin(poszs[no]);
           E_Int ni = *(E_Int*)a2[no];
-          E_Int nj = *(E_Int*)a3[no]; 
+          E_Int nj = *(E_Int*)a3[no];
           E_Int nk = *(E_Int*)a4[no];
           E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
           E_Float hi = xt[1]-xt[0];

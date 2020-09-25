@@ -44,7 +44,6 @@ extern "C"
                              const E_Float* zt, E_Float& vol);
 }
 
-
 //=============================================================================
 // Global bounding box of KMeshes
 //=============================================================================
@@ -134,44 +133,34 @@ short K_KINTERP::getInterpolationCell(
       indiu, cfu, noblku,
       nature, penalty);
   }
-  if ( noblks > 0 && noblku > 0 ) //interpolation sur maillage mixte
+  if (noblks > 0 && noblku > 0) //interpolation sur maillage mixte
   {
     if ( vols < volu ) 
     {
-      for (E_Int i = 0; i < indis.getSize(); i++)
-        indi[i] = indis[i];
-      for (E_Int c = 0 ; c < cfs.getSize(); c++)
-        cf[c] = cfs[c];
+      for (E_Int i = 0; i < indis.getSize(); i++) indi[i] = indis[i];
+      for (E_Int c = 0 ; c < cfs.getSize(); c++) cf[c] = cfs[c];
       voli = vols;
       return noblks;
     }
     else 
     {  
-      for (E_Int i = 0; i < indiu.getSize(); i++)
-        indi[i] = indiu[i];
-      for (E_Int c = 0 ; c < cfu.getSize(); c++)
-        cf[c] = cfu[c];
-      
+      for (E_Int i = 0; i < indiu.getSize(); i++) indi[i] = indiu[i];
+      for (E_Int c = 0 ; c < cfu.getSize(); c++) cf[c] = cfu[c];
       voli = volu;
       return noblku+shift;
     }
   }
-  else if ( noblks > 0 && noblku == 0 ) // structure
+  else if (noblks > 0 && noblku == 0) // structure
   {   
-    for (E_Int i = 0; i < indis.getSize(); i++)
-      indi[i] = indis[i];
-    for (E_Int c = 0 ; c < cfs.getSize(); c++)
-      cf[c] = cfs[c];
+    for (E_Int i = 0; i < indis.getSize(); i++) indi[i] = indis[i];
+    for (E_Int c = 0 ; c < cfs.getSize(); c++) cf[c] = cfs[c];
     voli = vols;
     return noblks;
   }
-  else if ( noblks == 0 && noblku > 0 ) // non structure 
+  else if (noblks == 0 && noblku > 0) // non structure 
   {
-    for (E_Int i = 0; i < indiu.getSize(); i++)
-      indi[i] = indiu[i];
-    for (E_Int c = 0 ; c < cfu.getSize(); c++)
-      cf[c] = cfu[c];
-
+    for (E_Int i = 0; i < indiu.getSize(); i++) indi[i] = indiu[i];
+    for (E_Int c = 0 ; c < cfu.getSize(); c++) cf[c] = cfu[c];
     voli = volu;
     return noblku+shift;
   }

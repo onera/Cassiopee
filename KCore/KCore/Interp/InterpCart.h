@@ -24,8 +24,7 @@
 namespace K_INTERP
 {
 // ============================================================================
-// Remarque : en non structure tetra, les noeuds de l adt correspondent
-// aux elements et non aux sommets des elts 
+// Class pour interpoler d'une grille cartesienne reguliere 
 //=============================================================================
 class InterpCart  : public InterpData
 {
@@ -39,7 +38,8 @@ public:
   /* Build data for a donor cell search on an uniform per direction Cartesian grid*/
   InterpCart(E_Int ni, E_Int nj, E_Int nk,
              E_Float hi, E_Float hj, E_Float hk,
-             E_Float x0, E_Float y0, E_Float z0);
+             E_Float x0, E_Float y0, E_Float z0,
+             E_Int ioff=0, E_Int joff=0, E_Int koff=0);
 
   virtual
   short searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_Int nk,
@@ -102,6 +102,7 @@ private:
   E_Float _hii, _hji, _hki;
   E_Float _his2i, _hjs2i, _hks2i;
   E_Float _xminp, _xminm, _yminp, _yminm, _zminp, _zminm;
+  E_Int _ioff, _joff, _koff;
 };
 }
 #endif

@@ -1383,7 +1383,7 @@ def filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filter
   _filterPartialFields(ap, arrays, listIndices, loc=loc, startFrom=startFrom, filterName=filterName, verbose=verbose)
   return ap
 
-def _filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName='',verbose=True):
+def _filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName='', verbose=True):
   if loc == 'nodes': locI=0
   elif loc == 'centers': locI=1
   else: raise ValueError("_filterPartialFields: value of loc argument is not valid.")

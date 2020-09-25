@@ -22,8 +22,6 @@
 using namespace std;
 //using namespace K_FLD;
 
-//#define TOLCELLN = 1.e-2;
-
 //=============================================================================
 /* Destructor */
 //=============================================================================
@@ -36,7 +34,8 @@ K_INTERP::InterpCart::~InterpCart()
 //=============================================================================
 K_INTERP::InterpCart::InterpCart(E_Int ni, E_Int nj, E_Int nk,
                                  E_Float hi, E_Float hj, E_Float hk,
-                                 E_Float x0, E_Float y0, E_Float z0):
+                                 E_Float x0, E_Float y0, E_Float z0,
+                                 E_Int ioff, E_Int joff, E_Int koff):
    InterpData(0, x0, y0, z0), _ni(ni), _nj(nj), _nk(nk)
 {
   _hi = hi;
@@ -51,6 +50,9 @@ K_INTERP::InterpCart::InterpCart(E_Int ni, E_Int nj, E_Int nk,
   _xmax = _xmin+(_ni-1)*_hi;
   _ymax = _ymin+(_nj-1)*_hj;
   _zmax = _zmin+(_nk-1)*_hk;
+  _ioff = ioff+1; // offset si decalage de la grille (ghostcells)
+  _joff = joff+1;
+  _koff = koff+1;
 }
 
 //=============================================================================
@@ -103,7 +105,7 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_
 
   if (_nk <=2 && K_FUNC::E_abs(_zmax-_zmin)<EPS)
   {
-    cfp[4]=0.; cf[5] = 0.; cfp[6] = 0.; cfp[7] = 0.;
+    cfp[4]=0.; cf[5]=0.; cfp[6]=0.; cfp[7]=0.;
   }
   else 
   {
@@ -346,12 +348,12 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
   E_Int jcmax = E_Int((y1-_ymin)*_hji)+1;
   E_Int kcmax = E_Int((z1-_zmin)*_hki)+1;
 
-  if ( icmin < 1 && icmax < 1 ) return 0;
-  if ( jcmin < 1 && jcmax < 1 ) return 0;
-  if ( kcmin < 1 && kcmax < 1 ) return 0;
-  if ( icmin > _ni && icmax > _ni ) return 0;
-  if ( jcmin > _nj && jcmax > _nj ) return 0;
-  if ( kcmin > _nk && kcmax > _nk ) return 0;
+  if (icmin < 1 && icmax < 1) return 0;
+  if (jcmin < 1 && jcmax < 1) return 0;
+  if (kcmin < 1 && kcmax < 1) return 0;
+  if (icmin > _ni && icmax > _ni) return 0;
+  if (jcmin > _nj && jcmax > _nj) return 0;
+  if (kcmin > _nk && kcmax > _nk) return 0;
 
   icmin = K_FUNC::E_min(_ni-1,icmin); icmin = K_FUNC::E_max(1,icmin); 
   icmax = K_FUNC::E_min(_ni-1,icmax); icmax = K_FUNC::E_max(1,icmax); 
