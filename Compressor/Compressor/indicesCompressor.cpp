@@ -18,13 +18,15 @@ py_indices_compress(PyObject* self, PyObject* args)
     bool  is_list = false;
     std::vector<PyArrayObject *> np_arrays;
     std::vector<long>             nb_verts_per_elt_arr;
+    std::vector<bool>             is_c_order;
     if (PyList_Check(arrays)) {
         is_list = true;
         np_arrays.reserve(PyList_Size(arrays));
         nb_verts_per_elt_arr.reserve(PyList_Size(arrays));
+        is_c_order.reserve(PyList_Size(arrays));
         for (Py_ssize_t i = 0; i < PyList_Size(arrays); ++i)
         {
-            PyObject* tuple_indices = PyList_GetItem(arrays, i);            
+            PyObject* tuple_indices = PyList_GetItem(arrays, i);
             if (!PyTuple_Check(tuple_indices))
             {
                 PyErr_SetString(PyExc_TypeError, "Wrong syntax : each element of the list must be a tuple as (nb_verts_per_elt, indices)");
@@ -37,7 +39,18 @@ py_indices_compress(PyObject* self, PyObject* args)
                 return NULL;                
             }
             long nb_v_per_elt = PyLong_AsLong(py_nb_v_p_e);
-            np_arrays.push_back((PyArrayObject *)PyTuple_GetItem(tuple_indices, 1));
+            PyObject* py_indices = PyTuple_GetItem(tuple_indices, 1);
+            if (!PyArray_Check(py_indices))
+            {
+                PyErr_SetString(PyExc_TypeError, "Wront syntax: The second element of each tuple must be an array of indices");
+                return NULL;
+            }
+            if (PyArray_CHKFLAGS((PyArrayObject*)py_indices, NPY_ARRAY_C_CONTIGUOUS)) 
+                is_c_order.push_back(true);
+            else 
+                is_c_order.push_back(false);
+
+            np_arrays.push_back((PyArrayObject *)py_indices);
             nb_verts_per_elt_arr.push_back(nb_v_per_elt);
         }
     }
@@ -46,11 +59,21 @@ py_indices_compress(PyObject* self, PyObject* args)
         PyObject* py_nb_v_p_e = PyTuple_GetItem(arrays, 0);
         if (!PyLong_Check(py_nb_v_p_e))
         {
-            PyErr_SetString(PyExc_TypeError, "Wrong syntax : First element of each tuple must be an integer for number of vertices per element");
+            PyErr_SetString(PyExc_TypeError, "Wrong syntax: First element of each tuple must be an integer for number of vertices per element");
             return NULL;                
         }
         long nb_v_per_elt = PyLong_AsLong(py_nb_v_p_e);
-        np_arrays.push_back((PyArrayObject *)PyTuple_GetItem(arrays, 1));
+        PyObject* py_indices = PyTuple_GetItem(arrays, 1);
+        if (!PyArray_Check(py_indices))
+        {
+            PyErr_SetString(PyExc_TypeError, "Wrong syntax: Second element of each tuple must be an array of indices");
+            return NULL;                            
+        }
+        if (PyArray_CHKFLAGS((PyArrayObject*)py_indices, NPY_ARRAY_C_CONTIGUOUS)) 
+            is_c_order.push_back(true);
+        else 
+            is_c_order.push_back(false);
+        np_arrays.push_back((PyArrayObject *)py_indices);
         nb_verts_per_elt_arr.push_back(nb_v_per_elt);
     }
     else {
@@ -81,7 +104,7 @@ py_indices_compress(PyObject* self, PyObject* args)
         E_Int* array_data = (E_Int*)PyArray_DATA(an_array);
         //= On prépare l'objet décrivant la compression du cellN
         PyObject *py_nb_v_per_e = PyLong_FromLong(nb_v_per_elt);
-        PyObject *obj = PyTuple_New(3);
+        PyObject *obj = PyTuple_New(4);
         PyTuple_SET_ITEM(obj, 0, py_nb_v_per_e);
         //= Rajout de la taille du tableau au tuple
         PyObject *py_length = PyLong_FromLong(long(an_array_length));
@@ -105,6 +128,17 @@ py_indices_compress(PyObject* self, PyObject* args)
         std::copy(compressed_data.data(), compressed_data.data()+szCompress, buffer);
         //= On rajoute le tableau au tuple (nb_v_p_e,size,buffer)
         PyTuple_SET_ITEM(obj, 2, (PyObject*)cpr_arr);
+        //$ Rajout du flag pour savoir si on est en fortran order ou pas
+        if (is_c_order[i])
+        {
+            Py_IncRef(Py_True);
+            PyTuple_SetItem(obj, 3, Py_True);
+        }
+        else
+        {
+            Py_IncRef(Py_False);
+            PyTuple_SetItem(obj, 3, Py_False);
+        }
         //= Rajout du tuple à la liste éventuelle
         PyList_SetItem(compressed_list, i, obj);
     }
@@ -118,7 +152,7 @@ py_indices_compress(PyObject* self, PyObject* args)
     //= Sinon on retourne une liste de tableaux
     return compressed_list;
 }
-//@ ____________________________________________________________________
+//@ ________________________________________________________________________________________________
 PyObject *
 py_indices_uncompress(PyObject *self, PyObject *args)
 {
@@ -130,17 +164,24 @@ py_indices_uncompress(PyObject *self, PyObject *args)
     std::vector<PyArrayObject *> np_cpr_arrays;
     std::vector<npy_intp> length_arrays;
     std::vector<E_Int>    nb_verts_per_elt;
+    std::vector<bool>     is_c_order;
     if (PyList_Check(cpr_arrays)) {
         Py_ssize_t list_size = PyList_Size(cpr_arrays);
         np_cpr_arrays.reserve(list_size);
         length_arrays.reserve(list_size);
         nb_verts_per_elt.reserve(list_size);
+        is_c_order.reserve(list_size);
         for (Py_ssize_t i = 0; i < list_size; ++i) {
             PyObject *tuple = PyList_GetItem(cpr_arrays, i);
             if (!PyTuple_Check(tuple)) {
                 PyErr_SetString(PyExc_TypeError, "The values of the list must be tuple as (nb_v_per_e, length, compressed data)");
                 return NULL;
             }
+            PyObject* flag = PyTuple_GetItem(tuple,3);
+            if (flag == Py_True)
+                is_c_order.push_back(true);
+            else
+                is_c_order.push_back(false);
             PyObject *array = PyTuple_GetItem(tuple, 2);
             if (!PyArray_Check(array)) {
                 PyErr_SetString(PyExc_TypeError, "Third value of the tuple must be an array with compressed data");
@@ -158,13 +199,14 @@ py_indices_uncompress(PyObject *self, PyObject *args)
                 PyErr_SetString(PyExc_TypeError, "First element of the tuple must be an integer");
                 return NULL;
             }
-            nb_verts_per_elt.push_back(E_Int(PyLong_AsLong(py_nb_v_p_e)));            
+            nb_verts_per_elt.push_back(E_Int(PyLong_AsLong(py_nb_v_p_e)));
         } // End for (i= 0; i < list_size; ...)
     }     // Fin du cas si c'est une liste
     else if (PyTuple_Check(cpr_arrays)) {
         PyObject *py_nb_v_p_e = PyTuple_GetItem(cpr_arrays, 0);
         PyObject *lgth        = PyTuple_GetItem(cpr_arrays, 1);
         PyObject *array       = PyTuple_GetItem(cpr_arrays, 2);
+        PyObject *flag        = PyTuple_GetItem(cpr_arrays, 3);
         if (!PyArray_Check(array)) {
             PyErr_SetString(PyExc_TypeError, "Second value of tuple must be an array with compressed data");
             return NULL;
@@ -179,7 +221,11 @@ py_indices_uncompress(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_TypeError, "First element of the tuple must be an integer");
             return NULL;
         }
-        nb_verts_per_elt.push_back(E_Int(PyLong_AsLong(py_nb_v_p_e)));            
+        nb_verts_per_elt.push_back(E_Int(PyLong_AsLong(py_nb_v_p_e)));
+        if (flag == Py_True)
+            is_c_order.push_back(true);
+        else
+            is_c_order.push_back(false);
     } // Fin du cas avec un seul tableau
     else {
         PyErr_SetString(PyExc_TypeError, "First argument must be an compressed array or a list of compressed arrays");
@@ -190,7 +236,8 @@ py_indices_uncompress(PyObject *self, PyObject *args)
     lst_out_arrays = PyList_New(np_cpr_arrays.size());
     for (size_t i = 0; i < np_cpr_arrays.size(); ++i) {
         npy_intp  length = length_arrays[i];
-        PyArrayObject *py_array = (PyArrayObject *)PyArray_EMPTY(1, &length, NPY_INT32, 0);
+        int ordering = (is_c_order[i] ? 0 : 1);
+        PyArrayObject *py_array = (PyArrayObject *)PyArray_EMPTY(1, &length, NPY_INT32, ordering);
         E_Int *py_array_data = (E_Int *)PyArray_DATA(py_array);
         std::uint8_t *cpr_data = (std::uint8_t *)PyArray_DATA(np_cpr_arrays[i]);
         std::size_t compressed_size = PyArray_SIZE((PyArrayObject*)np_cpr_arrays[i]);
