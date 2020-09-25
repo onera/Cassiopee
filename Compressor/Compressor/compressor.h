@@ -30,5 +30,7 @@ namespace K_COMPRESSOR
   PyObject * py_cellN_uncompress(PyObject *self, PyObject *args);
   PyObject* py_indices_compress(PyObject* self, PyObject* args);
   PyObject* py_indices_uncompress(PyObject* self, PyObject* args);
+  PyObject* py_ngon_indices_compress(PyObject* self, PyObject* args);
+  PyObject* py_ngon_indices_uncompress(PyObject* self, PyObject* args);
 }
 #endif

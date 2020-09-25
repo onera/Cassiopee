@@ -30,6 +30,8 @@ static PyMethodDef Pycompressor [] =
   {"uncompressCellN", K_COMPRESSOR::py_cellN_uncompress, METH_VARARGS},
   {"compressIndices", K_COMPRESSOR::py_indices_compress, METH_VARARGS},
   {"uncompressIndices", K_COMPRESSOR::py_indices_uncompress, METH_VARARGS},
+  {"compressNGonIndices", K_COMPRESSOR::py_ngon_indices_compress, METH_VARARGS},
+  {"uncompressNGonIndices", K_COMPRESSOR::py_ngon_indices_uncompress, METH_VARARGS},
   {NULL, NULL}
 };
 

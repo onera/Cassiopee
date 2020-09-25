@@ -8,7 +8,8 @@ ZFP = True
 cpp_srcs = ["Compressor/deltaIndex.cpp",
             "Compressor/writeUnsteadyCoefs.cpp",
             "Compressor/cellNCompressor.cpp",
-            "Compressor/indicesCompressor.cpp"]
+            "Compressor/indicesCompressor.cpp",
+            "Compressor/NGonConnectivityCompressor.cpp"]
 
 if ZSTD:
 	zstd_srcs = ["Compressor/zstd/common/debug.c",
