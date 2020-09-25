@@ -285,11 +285,18 @@ def _packNode(node, tol=1.e-8, ctype=0):
         shape = [2.,tol,float(iscorder)]+list(ret[0])
         node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
-    elif ctype == 3: # Elements
+    elif ctype == 3: # Elements basiques
         net = int(tol)
         ret = Compressor.compressor.compressIndices((net,node[1]))
-        shape = [3.,0.,0.,net,node[1].size]
+        iscorder = not numpy.isfortran(node[1])
+        shape = [3.,0.,float(iscorder),net,node[1].size]
         node[1] = ret[2]
+        Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
+    elif ctype == 4: # Elements NGONs
+        ret = Compressor.compressor.compressNGonIndices(node[1])
+        iscorder = not numpy.isfortran(node[1])
+        shape = [4.,0.,float(iscorder),ret[0]]
+        node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
     else:
         raise ValueError("packNode: unknow compression type.")
@@ -297,7 +304,7 @@ def _packNode(node, tol=1.e-8, ctype=0):
 
 def _unpackNode(node):
     shape = Internal.getNodeFromName1(node, 'ZData')
-    if shape is not None:
+    if shape is not None and node[1] is not None:
         shape = shape[1]
         ctype = int(shape[0])
         tol = shape[1]
@@ -318,11 +325,16 @@ def _unpackNode(node):
         elif ctype == 2: # cellN
             node[1] = Compressor.compressor.uncompressCellN((shape,node[1],iscorder))
             Internal._rmNodesFromName1(node, 'ZData')
-        elif ctype == 3: # Elements
-            ret = Compressor.compressor.uncompressIndices((shape[0], shape[1], node[1]))
+        elif ctype == 3: # Elements (basiques)
+            ret = Compressor.compressor.uncompressIndices((shape[0], shape[1], node[1],iscorder))
             node[1] = ret[0]
             Internal._rmNodesFromName1(node, 'ZData')
-        else: 
+        elif ctype == 4: # Elements (NGONs)
+            print('shape', shape[0])
+            ret = Compressor.compressor.uncompressNGonIndices((shape[0],node[1],iscorder))
+            node[1] = ret[0]
+            Internal._rmNodesFromName1(node, 'ZData')
+        else:
             raise ValueError("unpackNode: unknown compression type.")
     return None
 
@@ -379,17 +391,21 @@ def compressCellN(t):
     _compressCellN(tp)
     return tp
 
-# Compress Elements_t (elts basiques)
+# Compress Elements_t (elts basiques ou NGONs)
 def _compressElements(t):
-    """Compress Element connectivity."""
+    """Compress Element connectivities."""
     zones = Internal.getZones(t)
     for z in zones:
         elts = Internal.getNodesFromType1(z, 'Elements_t')
         for e in elts:
             eltno = e[1][0]
-            (stype, net) = Internal.eltNo2EltName(eltno)
-            n = Internal.getNodeFromName1(e, 'ElementConnectivity')
-            _packNode(n, net, 3)
+            if eltno == 22 or eltno == 23: # NGON
+                n = Internal.getNodeFromName1(e, 'ElementConnectivity')
+                _packNode(n, 0, 4)
+            else:                  
+                (stype, net) = Internal.eltNo2EltName(eltno)
+                n = Internal.getNodeFromName1(e, 'ElementConnectivity')
+                _packNode(n, net, 3)
     return None
     
 def compressElements(t):

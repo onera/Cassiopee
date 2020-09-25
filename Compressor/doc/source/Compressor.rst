@@ -48,6 +48,7 @@ List of functions
    Compressor.PyTree.compressCellN
    Compressor.PyTree.compressCoords
    Compressor.PyTree.compressFields
+   Compressor.PyTree.compressElements
    Compressor.PyTree.uncompressAll
 
 Contents
@@ -209,6 +210,22 @@ Object serialize/compression
 ---------------------------------------
 
 
+.. py:function:: Compressor.PyTree.compressElements(a)
+
+    Compress zone elements (connectivity).
+
+    Exists also as an in-place version (_compressElements) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [zone, list of zones, base, pyTree]
+    :return: identical to input
+
+    * `Element compression (pyTree) <Examples/Compressor/compressElementsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Compressor/compressElementsPT.py
+
+
+---------------------------------------
 
 .. py:function:: Compressor.PyTree.uncompressAll(a, tol=1.e-8)
 
