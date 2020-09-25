@@ -18,16 +18,22 @@ for i in range(N):
     t[2][1][2].append(a)
 t = X.connectMatch(t)
 if Cmpi.rank == 0: C.convertPyTree2File(t, 'in.cgns')
+Cmpi.barrier()
 
 # arbre complet 
-t, stats = D2.distribute(t, NProc=5, algorithm='gradient', useCom='bbox')
-print('full:', stats)
-if Cmpi.rank == 0: test.testT(t, 1)
+t, stats = D2.distribute(t, NProc=Cmpi.size, algorithm='gradient', useCom='bbox')
+if Cmpi.rank == 0:
+    print('full:', stats)
+    test.testT(t, 1)
+Cmpi.barrier()
 
 # arbre squelette charge (doit etre identique)
 t = Cmpi.convertFile2SkeletonTree('in.cgns')
 t, stats = D2.distribute(t, NProc=Cmpi.size, algorithm='fast', useCom=0)
 t = Cmpi.readZones(t, 'in.cgns', rank=Cmpi.rank)
-t, stats = D2.distribute(t, NProc=5, algorithm='gradient', useCom='bbox')
-print('loaded skel:', stats)
-if Cmpi.rank == 0: test.testT(t, 2)
+#t = Cmpi.createBBoxTree(t)
+t, stats = D2.distribute(t, NProc=Cmpi.size, algorithm='gradient', useCom='bbox')
+
+if Cmpi.rank == 0:
+    print('loaded skel:', stats)
+    test.testT(t, 2)

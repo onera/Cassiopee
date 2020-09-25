@@ -132,7 +132,7 @@ Contents
     When using distributed trees, prescribed must be a dictionary containing 
     the zones names as key, and the prescribed proc as value.  
     weight is also a dictionary where the keys are the zone names and the weight as the value.
-    It is not mandatory to assign a weight to all the zones of the pyTree. Default value is assumed 1,
+    It is not mandatory to assign a weight to all the zones of the pyTree. Default value is assumed to be 1,
     only different weight values can be assigned to zones. 
     t can be either a skeleton or a loaded skeleton pyTree for useCom=0 or useCom='match', 
     but must be a loaded skeleton tree only for the other settings.

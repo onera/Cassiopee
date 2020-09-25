@@ -1,7 +1,6 @@
 import Distributor2
 import Converter.Internal as Internal
 import Converter.PyTree as C
-import Converter
 import Generator as G
 import numpy
 __version__ = Distributor2.__version__
@@ -21,7 +20,6 @@ def computeBBoxes__(arrays, zoneNames):
         except: bb = [0,0,0,1,1,1,zoneNames[c],False]
         bboxes.append(bb)
         c += 1
-
     # Parallel eventuel
     try: 
         import Converter.Mpi as Cmpi
@@ -69,8 +67,8 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
     """Distribute a pyTree over processors.
     Usage: _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
     zones = Internal.getZones(t)
-    # Formation des arrays
-    arrays = []; zoneNames = []; aset = []; weightlist = [] # weight for all zones
+    # Formation des arrays (seulement pour useCom=overlap ou bbox, sinon on met directement le nbre de pts)
+    nbPts = []; arrays = []; zoneNames = []; aset = []; weightlist = [] # weight for all zones
     for z in zones:
         zname = z[0]
         zoneNames.append(zname)
@@ -80,19 +78,25 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
         else: weightlist.append(1)
 
         a = C.getFields(Internal.__GridCoordinates__, z, api=2)
-        if a == [[]]: # no coord present in z
-            dim = Internal.getZoneDim(z)
-            if dim[0] == 'Structured':
-                ar = Converter.array('x', dim[1], dim[2], dim[3], api=2)
-            elif dim[3] == 'NGON':
-                ar = Converter.array('x', dim[1], dim[2], 'HEXA', api=2) # hack
-            elif dim[3] == 'UNKNOWN':
-                ar = Converter.array('x', dim[1], dim[2], 'HEXA', api=2) # hack
-            else:
-                ar = Converter.array('x', dim[1], dim[2], dim[3], api=2)
-            arrays.append(ar)
+        if a == [[]]: arrays.append(None)
         else: arrays.append(a[0])
-    Nb = len(arrays)
+
+        if mode == 'cells': nbPts.append(C.getNCells(z))
+        else: nbPts.append(C.getNPts(z))
+
+        #if useCom == 'overlap' or useCom == 'bbox':
+        #    a = C.getFields(Internal.__GridCoordinates__, z, api=2)
+        #    if a == [[]]: # no coord present in z
+        #        print('Warning: no coordinates found. You shouldnt use useCom=overlap or bbox with skeleton tree.')
+        #        useCom = 'match'
+        #        if mode == 'cells': arrays.append(C.getNCell(z))
+        #        else: arrays.append(C.getNPts(z))
+        #    else: arrays.append(a[0])
+        #else:
+        #    if mode == 'cells': arrays.append(C.getNCell(z))
+        #    else: arrays.append(C.getNPts(z))
+
+    Nb = len(nbPts)
     com = numpy.zeros((Nb, Nb), numpy.int32)
 
     if useCom == 'match' or useCom == 'all':
@@ -221,9 +225,10 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                     com[dict[zname],dict[oppname]] = 1.
 
     # Equilibrage
-    out = Distributor2.distribute(arrays, NProc, prescribed=aset, com=com,
+    out = Distributor2.distribute(nbPts, NProc, prescribed=aset, com=com,
                                   perfo=perfo, weight=weightlist, 
                                   algorithm=algorithm, mode=mode, nghost=nghost)
+
     # Sortie
     zones = Internal.getZones(t)
     procs = out['distrib']
