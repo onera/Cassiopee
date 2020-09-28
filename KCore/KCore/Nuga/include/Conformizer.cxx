@@ -43,7 +43,7 @@ static int xtestreal=0;
 #endif
 
 #ifdef FLAG_STEP
-#include "chrono.h"
+#include "Nuga/include/chrono.h"
 #include <iostream>
 #endif
 
@@ -144,10 +144,10 @@ E_Int Conformizer<DIM, Element_t>::run
   }
   
 #ifdef FLAG_STEP
-    if (chrono::verbose > 0) std::cout << "Conformizer::__initialize : X0 "        << X0 << std::endl;
-    if (chrono::verbose > 0) std::cout << "Conformizer::__initialize : tolerance " << tolerance << std::endl;
-    if (chrono::verbose > 0) std::cout << "Conformizer::__initialize : nb elts "   << connect.cols() << std::endl;
-    if (chrono::verbose > 0) std::cout << "Conformizer::__initialize : xc size "   << xc.size() << std::endl;
+     std::cout << "Conformizer::__initialize : X0 "        << X0 << std::endl;
+     std::cout << "Conformizer::__initialize : tolerance " << tolerance << std::endl;
+     std::cout << "Conformizer::__initialize : nb elts "   << connect.cols() << std::endl;
+     std::cout << "Conformizer::__initialize : xc size "   << xc.size() << std::endl;
 #endif
 
   this->__initialize(pos, connect, tolerance, ancestors, xc, X0);
@@ -155,8 +155,8 @@ E_Int Conformizer<DIM, Element_t>::run
   do
   {
 #ifdef FLAG_STEP
-    if (chrono::verbose > 0) std::cout << "Conformizer::run : ITER " << iter << std::endl;
-    if (chrono::verbose > 1) std::cout << "Conformizer::run : Initial Nb Points : " << pos.cols() << std::endl;
+     std::cout << "Conformizer::run : ITER " << iter << std::endl;
+    std::cout << "Conformizer::run : Initial Nb Points : " << pos.cols() << std::endl;
 #endif
 
     ++_iter;
@@ -171,7 +171,7 @@ E_Int Conformizer<DIM, Element_t>::run
     this->__prepare_data(pos, connect);
     
 #ifdef FLAG_STEP
-    if (chrono::verbose > 1) std::cout << "Conformizer::run : __prepare_data : " << c.elapsed() << std::endl;
+    std::cout << "Conformizer::run : __prepare_data : " << c.elapsed() << std::endl;
     c.start();
 #endif
 
@@ -182,7 +182,7 @@ E_Int Conformizer<DIM, Element_t>::run
     { ++_itermax; _itermax = std::min((E_Int)10, _itermax);} // max thershold set to 10.
     
 #ifdef FLAG_STEP
-    if (chrono::verbose > 1) std::cout << "Conformizer::run : __run : " << c.elapsed() << std::endl;
+    std::cout << "Conformizer::run : __run : " << c.elapsed() << std::endl;
     c.start();
 #endif
 
@@ -193,7 +193,7 @@ E_Int Conformizer<DIM, Element_t>::run
       break;
     
 #ifdef FLAG_STEP
-    if (chrono::verbose > 1) std::cout << "Conformizer::run : __finalize : " << c.elapsed() << std::endl;
+    std::cout << "Conformizer::run : __finalize : " << c.elapsed() << std::endl;
 #endif
     
     // If not specified by the user, update (if bigger) the tolerance based only on the intersecting ORIGINAL triangles set.
@@ -206,11 +206,11 @@ E_Int Conformizer<DIM, Element_t>::run
    }
 
 #ifdef FLAG_STEP
-    if (chrono::verbose > 1) std::cout << "Conformizer::run : Final Nb Points : " << pos.cols() << std::endl;
+    std::cout << "Conformizer::run : Final Nb Points : " << pos.cols() << std::endl;
 #endif
 
 #ifdef FLAG_STEP
-    if (chrono::verbose > 0) std::cout << "Conformizer::run : iter time : " << chr.elapsed() << std::endl;
+     std::cout << "Conformizer::run : iter time : " << chr.elapsed() << std::endl;
 #endif
     
     _connect0.release(); //no required anymore
@@ -299,7 +299,6 @@ Conformizer<DIM, Element_t>::__initialize
 
 //#ifdef DEBUG_CONFORMIZER
 #ifdef FLAG_STEP
-  if (chrono::verbose >0)
   {
     std::cout << "input tol       : "  << tolerance << std::endl;
     std::cout << "min edge length : "  << Lmin << std::endl;
@@ -403,7 +402,7 @@ E_Int Conformizer<DIM, Element_t>::__run
 #endif
 
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "Conformizer : init : " << tt.elapsed() << std::endl;
+   std::cout << "Conformizer : init : " << tt.elapsed() << std::endl;
   tt.start();
 #endif
 
@@ -424,11 +423,11 @@ E_Int Conformizer<DIM, Element_t>::__run
 #endif
 
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "Conformizer : get x pairs : " << tt.elapsed() << std::endl;
-  if (chrono::verbose > 0) std::cout << "Conformizer : nb pts : " << pos.cols() << std::endl;
-  if (chrono::verbose > 0) std::cout << "Conformizer : nb_elts : " << connect.cols() << std::endl;
-  if (chrono::verbose > 0) std::cout << "Conformizer : xc size : " << xc.size() << std::endl;
-  if (chrono::verbose > 0) std::cout << "Conformizer : tol_x :  " << _tol_x << std::endl;
+   std::cout << "Conformizer : get x pairs : " << tt.elapsed() << std::endl;
+   std::cout << "Conformizer : nb pts : " << pos.cols() << std::endl;
+   std::cout << "Conformizer : nb_elts : " << connect.cols() << std::endl;
+   std::cout << "Conformizer : xc size : " << xc.size() << std::endl;
+   std::cout << "Conformizer : tol_x :  " << _tol_x << std::endl;
 
   tt.start();
 #endif
@@ -442,7 +441,7 @@ E_Int Conformizer<DIM, Element_t>::__run
     nbX = this->__compute_intersections_brute(pos, connect, xc, _tol_x/*EPSILON for now*/);
 
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "Conformizer : compute intersections : " << tt.elapsed() << std::endl;
+   std::cout << "Conformizer : compute intersections : " << tt.elapsed() << std::endl;
   tt.start();
 #endif
   
@@ -478,7 +477,7 @@ E_Int Conformizer<DIM, Element_t>::__run
     __merge_clean(_tol_clean/*1.e-9 for now*/, pos, connect, ancestors, nids, &xc, _N0);
 
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0)  std::cout << "inter : __merge_clean (clean after X - nb merged : " << nb_merges << " ) :" << tt.elapsed() << std::endl;
+    std::cout << "inter : __merge_clean (clean after X - nb merged : " << nb_merges << " ) :" << tt.elapsed() << std::endl;
   tt.start();
 #endif
   
@@ -492,7 +491,7 @@ E_Int Conformizer<DIM, Element_t>::__run
     this->__update_data(pos, connect, nids);
 
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "inter : __update_data after cleaning :" << tt.elapsed() << std::endl;
+   std::cout << "inter : __update_data after cleaning :" << tt.elapsed() << std::endl;
   tt.start();
 #endif
   }
@@ -517,7 +516,7 @@ E_Int Conformizer<DIM, Element_t>::__run
 #ifdef FLAG_STEP
   {
     tt.start();
-    if (chrono::verbose > 0) std::cout << "Conformizer : splitting " << connect.cols() << " elements ... " << std::endl;
+     std::cout << "Conformizer : splitting " << connect.cols() << " elements ... " << std::endl;
     /*std::cout << " pos sz : " << pos.cols() << std::endl;
     std::cout << " connect sz : " << connect.cols() << std::endl;
     std::cout << " xc sz : " << xc.size() << std::endl;
@@ -540,8 +539,8 @@ E_Int Conformizer<DIM, Element_t>::__run
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0)std::cout << "Conformizer : splitting elements : " << tt.elapsed() << std::endl;
-  if (chrono::verbose > 0)std::cout << "Conformizer : new connect size : " << connect.cols() << std::endl;
+  std::cout << "Conformizer : splitting elements : " << tt.elapsed() << std::endl;
+  std::cout << "Conformizer : new connect size : " << connect.cols() << std::endl;
 #endif
     
   
@@ -624,7 +623,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   }
 
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "Conformizer : compact : " << tt.elapsed() << std::endl;
+   std::cout << "Conformizer : compact : " << tt.elapsed() << std::endl;
   tt.start();
 #endif
 
@@ -826,13 +825,13 @@ Conformizer<DIM, Element_t>::__compute_intersections_w_localizer
   xc = new_xc;
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "cloud size (nb of T3s)   : " << connect.cols() << std::endl;
+   std::cout << "cloud size (nb of T3s)   : " << connect.cols() << std::endl;
 #ifdef DEBUG_CONFORMIZER
-  if (chrono::verbose > 0) std::cout << "total nb of X tests done : " << NUGA::ConformizerRoot::xtest_counter << std::endl;
-  if (chrono::verbose > 0) std::cout << "nb of X quicly discarded : " << NUGA::ConformizerRoot::fastdiscard_counter << std::endl;
-  if (chrono::verbose > 0) std::cout << " REDUCING NB OF TESTS ??? : " << xtestreal << " instead of " << xtesttotal << std::endl;
+   std::cout << "total nb of X tests done : " << NUGA::ConformizerRoot::xtest_counter << std::endl;
+   std::cout << "nb of X quicly discarded : " << NUGA::ConformizerRoot::fastdiscard_counter << std::endl;
+   std::cout << " REDUCING NB OF TESTS ??? : " << xtestreal << " instead of " << xtesttotal << std::endl;
 #endif
-  if (chrono::verbose > 0) std::cout << "nb of X detected         : " << nbX << std::endl;
+   std::cout << "nb of X detected         : " << nbX << std::endl;
 #endif
 
 #ifdef DEBUG_CONFORMIZER
@@ -949,13 +948,13 @@ Conformizer<DIM, Element_t>::__compute_intersections_brute
   xc = new_xc;
 
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "cloud size (nb of T3s)   : " << connect.cols() << std::endl;
+   std::cout << "cloud size (nb of T3s)   : " << connect.cols() << std::endl;
 #ifdef DEBUG_CONFORMIZER
-  if (chrono::verbose > 0) std::cout << "total nb of X tests done : " << NUGA::ConformizerRoot::xtest_counter << std::endl;
-  if (chrono::verbose > 0) std::cout << "nb of X quicly discarded : " << NUGA::ConformizerRoot::fastdiscard_counter << std::endl;
-  if (chrono::verbose > 0) std::cout << " REDUCING NB OF TESTS ??? : " << xtestreal << " instead of " << xtesttotal << std::endl;
+   std::cout << "total nb of X tests done : " << NUGA::ConformizerRoot::xtest_counter << std::endl;
+   std::cout << "nb of X quicly discarded : " << NUGA::ConformizerRoot::fastdiscard_counter << std::endl;
+   std::cout << " REDUCING NB OF TESTS ??? : " << xtestreal << " instead of " << xtesttotal << std::endl;
 #endif
-  if (chrono::verbose > 0) std::cout << "nb of X detected         : " << nbX << std::endl;
+   std::cout << "nb of X detected         : " << nbX << std::endl;
 #endif
 
 #ifdef DEBUG_CONFORMIZER

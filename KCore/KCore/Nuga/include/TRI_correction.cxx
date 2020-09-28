@@ -29,7 +29,7 @@
 using namespace K_SEARCH;
 
 #ifdef FLAG_STEP
-#include "chrono.h"
+#include "Nuga/include/chrono.h"
 #endif
 
 namespace NUGA
@@ -601,7 +601,7 @@ TRI_Conformizer<DIM>::__get_zones
   zones.clear();
 
 #ifdef FLAG_STEP
-  chrono tt;
+  NUGA::chrono tt;
   tt.start();
 #endif
 
@@ -670,7 +670,7 @@ TRI_Conformizer<DIM>::__run_correction_alpha1
   std::set<K_MESH::NO_Edge>                 common_edges;
   
 #ifdef FLAG_STEP
-  DELAUNAY::chrono tt;
+  NUGA::chrono tt;
   tt.start();
 #endif
 
@@ -1349,7 +1349,7 @@ TRI_Conformizer<DIM>::__multi_swap
     
 #ifdef FLAG_STEP
     
-    chrono tt;
+    NUGA::chrono tt;
     tt.start();
 #endif
     
@@ -1357,7 +1357,7 @@ TRI_Conformizer<DIM>::__multi_swap
     __get_swapE(pos, connect, swapE);
 
 #ifdef FLAG_STEP
-  if (chrono::verbose > 1) std::cout << "Conformizer : correction 1 : finding swapE " << tt.elapsed() << std::endl;
+  if (NUGA::chrono::verbose > 1) std::cout << "Conformizer : correction 1 : finding swapE " << tt.elapsed() << std::endl;
   tt.start();
 #endif
   
@@ -1371,7 +1371,7 @@ TRI_Conformizer<DIM>::__multi_swap
   algoT3::getBoundToElements(acT3, noE_to_oTs);
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 1) std::cout << "Conformizer : correction 1 : getBoundToElements " << tt.elapsed() << std::endl;
+  if (NUGA::chrono::verbose > 1) std::cout << "Conformizer : correction 1 : getBoundToElements " << tt.elapsed() << std::endl;
   tt.start();
 #endif
   
@@ -1379,7 +1379,7 @@ TRI_Conformizer<DIM>::__multi_swap
   __get_triangles_to_swap(pos, connect, parent_type::_connect0, ancestors, swapE, T_to_Swap);
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 1) std::cout << "Conformizer : correction 1 : __get_triangles_to_swap " << tt.elapsed() << std::endl;
+  if (NUGA::chrono::verbose > 1) std::cout << "Conformizer : correction 1 : __get_triangles_to_swap " << tt.elapsed() << std::endl;
   tt.start();
 #endif
   
@@ -1451,7 +1451,7 @@ TRI_Conformizer<DIM>::__multi_swap
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 1) std::cout << "Conformizer : correction 1 : splitting " << tt.elapsed() << std::endl;
+  if (NUGA::chrono::verbose > 1) std::cout << "Conformizer : correction 1 : splitting " << tt.elapsed() << std::endl;
   tt.start();
 #endif
   

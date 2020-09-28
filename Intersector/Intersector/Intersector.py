@@ -330,14 +330,20 @@ def closeCells(a):
     return intersector.closeCells(a)
 
 #==============================================================================
-# adaptCells : Adapts a polyhedral mesh a1 with repsect to a2 points
-# IN: a : 3D NGON mesh
-# IN: sensdata : sensor data (any mesh for a geom sensor, nodal values for a nodal sensor)
-# OUT: returns a 3D NGON Mesh with adapted cells
+# adaptCells : Adapts an unstructured mesh a with respect to a sensor
+# IN: a : 3D NGON unstructured mesh (with some basic elements)
+# IN: sensdata : sensor data (a bunch of vertices or a mesh for a geom sensor, a mesh for a xsensor, punctual values for a nodal or cell sensor)
+# IN: sensor_type : geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3)
+# IN: smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
+# IN: itermax : max number of level in the hierarchy
+# IN: subdiv_type : isotropic currently
+# IN: hmesh : hierarchical mesh hook
+# IN: sensor : sensor hook
+# OUT: returns a 3D NGON conformal polyhedral mesh with adapted cells
 #==============================================================================
 def adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
-    """Adapts a polyhedral mesh a1 with repsect to a2 points.
-    Usage: adaptCells(a1, a2, [sensor_type, itermax, hmesh])"""
+    """Adapts an unstructured mesh a with repsect to a sensor.
+    Usage: adaptCells(a1, [sensdata, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor])"""
     owesHMesh=0
     if hmesh is None:
         hmesh = createHMesh(a, subdiv_type)
@@ -522,18 +528,19 @@ def diffMesh(a1, a2):
 # OUT: Returns the first cell id that is non-closed
 #==============================================================================
 def checkCellsClosure(a):
-    """ Returns the first cell id that is non-closed.
+    """ Returns the first cell id that is open
     Usage: checkCellsClosure(a)"""
     return intersector.checkCellsClosure(a)
 
 #==============================================================================
-# checkCellsFlux : Computes the cell fluxes using ParentElement
+# checkCellsFlux : Computes the Gauss fluxes using the input orientation (ParentElement). 
+#                  Should be clsoe to zero machine for a closed and well oriented mesh.
 # IN: a:               : 3D NGON mesh
-# OUT: Returns the first cell id that is non-closed
+# OUT: A message telling the cell id for which the Gauss flux is the greatest. 
 #==============================================================================
 def checkCellsFlux(a, PE):
-    """ XXX
-    Usage: checkCellsFlux(a)"""
+    """ Returns the cell id for which the Gauss flux is the greatest
+    Usage: checkCellsFlux(a, PE)"""
     return intersector.checkCellsFlux(a, PE)
 
 #==============================================================================

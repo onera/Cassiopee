@@ -40,7 +40,7 @@ cm = XOR.conformizeHMesh(m, hmsh)
 cm = XOR.closeCells(cm)
 C.convertPyTree2File(cm, 'out4.cgns')
 
-m = XOR.adaptCells(m, b, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
+m = XOR.adaptCells(m, b, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the geometrical sensor
 
 cm = XOR.conformizeHMesh(cm, hmsh)
 cm = XOR.closeCells(cm)

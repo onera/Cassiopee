@@ -1326,7 +1326,7 @@ public:
     return has_bfl;
   }
 
-  double L2ref(const K_FLD::FloatArray& crd) const
+  double Lref2(const K_FLD::FloatArray& crd) const
   {
     double val = NUGA::FLOAT_MAX;
     for (E_Int i = 0; i < _nb_faces; ++i)
@@ -1344,7 +1344,7 @@ public:
     return val;
   }
 
-  double L2ref(const std::vector<E_Float>& nodal_tol2) const
+  double Lref2(const std::vector<E_Float>& nodal_tol2) const
   {
     double val = NUGA::FLOAT_MAX;
     for (E_Int i = 0; i < _nb_faces; ++i)
@@ -1353,7 +1353,7 @@ public:
       const E_Int* nodes = _pgs->get_facets_ptr(PGi);
       E_Int nb_nodes = _pgs->stride(PGi);
 
-      double L2r = K_MESH::Polygon::L2ref(nodes, nb_nodes, nodal_tol2, -1);
+      double L2r = K_MESH::Polygon::Lref2(nodes, nb_nodes, nodal_tol2, -1);
 
       val = std::min(val, L2r);
     }

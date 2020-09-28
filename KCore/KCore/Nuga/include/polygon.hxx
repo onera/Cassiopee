@@ -23,27 +23,27 @@ struct aPolygon : public K_MESH::Polygon
   
   std::vector<E_Int>   m_nodes;
   K_FLD::FloatArray    m_crd;
-  E_Float              m_L2ref;
+  E_Float              m_Lref2;
   mutable E_Float      m_normal[3];
   mutable E_Float      m_centroid[3];
     
   aPolygon() = delete;
   aPolygon(const E_Int* nodes, E_Int nb_nodes, const K_FLD::FloatArray& crd) = delete; // from "mesh" to autonmous
-  aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd):parent_type(pg.begin(), pg.nb_nodes(), pg.shift()), m_L2ref(-1.)
+  aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd):parent_type(pg.begin(), pg.nb_nodes(), pg.shift()), m_Lref2(-1.)
   {
     NUGA::MeshTool::compact_to_mesh(crd, _nodes, _nb_nodes, -_shift, m_crd);
     
     m_nodes.clear();
     K_CONNECT::IdTool::init_inc(m_nodes, pg.nb_nodes(), 0);
     
-    parent_type::_nb_nodes = m_nodes.size();
+    parent_type::_nb_nodes = (E_Int)m_nodes.size();
     parent_type::_nodes = &m_nodes[0];
     _triangles = nullptr;
     parent_type::_shift = 0;
     m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
   }
   
-  aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd, E_Float L2r) :aPolygon(pg, crd) { m_L2ref = L2r; m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX; }
+  aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd, E_Float L2r) :aPolygon(pg, crd) { m_Lref2 = L2r; m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX; }
 
   aPolygon(K_FLD::FloatArray && crd):parent_type(nullptr, 0), m_crd(std::move(crd))
   {
@@ -77,7 +77,7 @@ struct aPolygon : public K_MESH::Polygon
   {
     m_nodes = rhs.m_nodes;
     m_crd = rhs.m_crd;
-    m_L2ref = rhs.m_L2ref;
+    m_Lref2 = rhs.m_Lref2;
 
     parent_type::_nb_nodes = m_nodes.size();
     parent_type::_nodes = &m_nodes[0];
@@ -96,7 +96,7 @@ struct aPolygon : public K_MESH::Polygon
   }
 
   aPolygon(aPolygon&& rhs) :/* = default; rejected by old compiler intel (15)*/
-  parent_type(rhs), m_nodes(std::move(rhs.m_nodes)), m_crd(std::move(rhs.m_crd)), m_L2ref(rhs.m_L2ref)
+  parent_type(rhs), m_nodes(std::move(rhs.m_nodes)), m_crd(std::move(rhs.m_crd)), m_Lref2(rhs.m_Lref2)
   {
     m_normal[0] = rhs.m_normal[0];
     m_normal[1] = rhs.m_normal[1];
@@ -111,7 +111,7 @@ struct aPolygon : public K_MESH::Polygon
   {
     m_nodes = std::move(rhs.m_nodes);
     m_crd = std::move(rhs.m_crd);
-    m_L2ref = rhs.m_L2ref;
+    m_Lref2 = rhs.m_Lref2;
 
     parent_type::_nb_nodes = m_nodes.size();
     parent_type::_nodes = &m_nodes[0];
@@ -174,7 +174,7 @@ struct aPolygon : public K_MESH::Polygon
     return m_centroid;
   }
 
-  double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : parent_type::L2ref(m_crd);} // if passed by mesh_t, return it, otherwise compute it first
+  double Lref2() const { return (m_Lref2 > 0.) ? m_Lref2 : parent_type::Lref2(m_crd);} // if passed by mesh_t, return it, otherwise compute it first
 };
 
 }

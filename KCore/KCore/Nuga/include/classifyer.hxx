@@ -185,10 +185,10 @@ namespace NUGA
 
         // pick randomly an edge, for the ray(GC) from its mid point to the centroid of ae1
         int i = std::rand() % front.ncells();
-        double C[3], G[3], norm[3];
+        double C[3], G[3], nrm[3];
         NUGA::sum<3>(0.5, front.crd.col(front.cnt(0, i)), 0.5, front.crd.col(front.cnt(1, i)), C);
         ae1.centroid<3>(G);
-        ae1.normal<3>(norm);
+        ae1.normal<3>(nrm);
 
         // get the visible edge : since we are 3D, we use plane containing the edge and norm
         double lambda_min(NUGA::FLOAT_MAX), R[3];
@@ -196,7 +196,7 @@ namespace NUGA
         {
           const double * P = front.crd.col(front.cnt(0, j));
           const double * Q = front.crd.col(front.cnt(1, j));
-          NUGA::sum<3>(Q, norm, R);
+          NUGA::sum<3>(Q, nrm, R);
 
           double lambda, UV[2], min_d;
           E_Bool parallel, coincident;
@@ -207,7 +207,7 @@ namespace NUGA
             // is G above or under the plane ?
             double PQ[3], pnorm[3], ray[3];
             NUGA::diff<3>(Q, P, PQ);
-            NUGA::crossProduct<3>(PQ, norm, pnorm);
+            NUGA::crossProduct<3>(PQ, nrm, pnorm);
             NUGA::diff<3>(C, G, ray);
             double ps = NUGA::dot<3>(ray, pnorm);
             sign = zSIGN(ps, EPSILON); // >0 means under
@@ -689,6 +689,7 @@ namespace NUGA
   bool TEMPLATE_CLASS::__flag_colliding_cells
   (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& data)
   {
+    assert (im < mask_bits.size());
     const bound_mesh_t* pmask = mask_bits[im];
     if (pmask == nullptr) return false;
 
@@ -703,17 +704,19 @@ namespace NUGA
     E_Int nbcells = z_mesh.ncells();
 
     using loc_t = typename zmesh_t::loc_t;
-    const loc_t& mask_loc = *(mask_bit.get_localizer());
+    const loc_t* l= mask_bit.get_localizer();
+    assert (l != nullptr);
+    const loc_t& mask_loc = *l;
 
-    mask_bit.get_nodal_tolerance();
-    z_mesh.get_nodal_tolerance();
+    mask_bit.get_nodal_metric2();
+    z_mesh.get_nodal_metric2();
   
     std::vector<E_Int> cands;
     
     for (E_Int i = 0; i < nbcells; ++i)
     {
       //std::cout << i << " over " << nbcells << std::endl;
-
+      assert (i < data.size());
       // in any POLICY, X must be re-processed to avoid missing element in current X-front being computed
       if (data[i] == IN) continue;
 

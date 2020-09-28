@@ -50,7 +50,7 @@ static bool xtest=false;
 #endif
 
 #ifdef FLAG_STEP
-#include "chrono.h"
+#include "Nuga/include/chrono.h"
 #endif
 
 #define OLD_STYLE
@@ -148,7 +148,7 @@ TRI_Conformizer<DIM>::__split_Elements
 #endif
 
 #ifdef FLAG_STEP
-  chrono c;
+  NUGA::chrono c;
 #endif
   
 #ifdef DEBUG_CONFORMIZER
@@ -446,7 +446,7 @@ TRI_Conformizer<DIM>::__split_Elements
   
 #ifdef DEBUG_TRI_CONFORMIZER
 #ifdef FLAG_STEP
-  if (chrono::verbose > 1)
+  if (NUGA::chrono::verbose > 1)
   {
 #ifdef DEBUG_CONFORMIZER
     std::cout << "split : nb of quicly discarded : " << NUGA::ConformizerRoot::split_fastdiscard_counter << std::endl;
@@ -1268,7 +1268,7 @@ TRI_Conformizer<DIM>::__get_mesh_data
   }
 
 #ifdef FLAG_STEP
-  chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
   K_FLD::IntArray cnt0, cnt1;
@@ -1437,7 +1437,7 @@ TRI_Conformizer<DIM>::__get_connectB2
   _wnodes_set.clear();
 
 #ifdef FLAG_STEP
-  chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
 
@@ -1651,7 +1651,7 @@ TRI_Conformizer<DIM>::__simplify_and_clean
   NUGA::int_vector_type nodesX, nodesXC;
   
 #ifdef FLAG_STEP
-  chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
 

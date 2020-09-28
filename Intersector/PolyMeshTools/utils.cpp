@@ -2063,18 +2063,23 @@ PyObject* K_INTERSECTOR::convertBasic2NGONFaces(PyObject* self, PyObject* args)
   char* varString, *eltType;
   // Check array # 1
   E_Int err = check_is_BASICF(arr, f, cn, varString, eltType);
-  if (err) return NULL;
+  if (err)
+  {
+    std::cout << "convertBasic2NGONFaces : ERROR : " << err << std::endl;
+    return nullptr;
+  }
 
   K_FLD::FloatArray & crd = *f;
-  K_FLD::IntArray & cntQ4 = *cn;
+  K_FLD::IntArray & cnt = *cn;
 
-  ngon_type wNG;
-  ngon_unit::convert_fixed_stride_to_ngon_unit(cntQ4, 1, wNG.PGs);
+  ngon_unit pgs;
+  ngon_unit::convert_fixed_stride_to_ngon_unit(cnt, 1, pgs);
 
   PyObject* tpl = NULL;
 
-  if (wNG.PGs.size() != 0)
+  if (pgs.size() != 0)
   {
+    ngon_type wNG(pgs, true);
     K_FLD::IntArray cnto;
     wNG.export_to_array(cnto);
     tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
@@ -2583,7 +2588,7 @@ PyObject* K_INTERSECTOR::drawOrientation(PyObject* self, PyObject* args)
     K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1, n);
 
     K_MESH::Polygon pg(nodes, nb_nodes, -1);
-    double Lref = ::sqrt(pg.L2ref(crd));
+    double Lref = ::sqrt(pg.Lref2(crd));
 
     K_FUNC::sum<3>(1., c, Lref, n, top);
 

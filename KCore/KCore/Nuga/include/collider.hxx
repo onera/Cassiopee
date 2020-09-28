@@ -23,9 +23,11 @@
 #include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/maths.hxx"
 #include "Nuga/include/mesh_t.hxx"
+#include "Nuga/include/vertex.h"
 
+//#define COLLIDER_DBG
 #ifdef COLLIDER_DBG
-#include "IO/io.h"
+//#include "IO/io.h"
 #include "Nuga/include/medit.hxx"
 #endif
 
@@ -422,7 +424,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
 template <typename aelt_t, typename bound_mesh_t>
 bool get_colliding(const aelt_t& e1, const bound_mesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool only_first_found);
 
-///
+/// Polygon vs polyLine impl.
 template <> inline
 bool get_colliding<NUGA::aPolygon, edge_mesh_t>
 (const NUGA::aPolygon& ae1, const edge_mesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool first_found)
@@ -441,8 +443,8 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
   //medith::write("cutter_front_before_projection", lmask.crd, lmask.cnt);
 #endif
 
-  double l21 = ae1.L2ref();
-  double l22 = lmask.L2ref();//compute it before proj
+  double l21 = ae1.Lref2();
+  double l22 = lmask.Lref2();//compute it before proj
   double ATOL(RTOL * ::sqrt(std::min(l21, l22)));
 
   // project candidates on e1's plane => 2D problem
@@ -564,12 +566,13 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
 
   if (hasX)
   {
-    K_CONNECT::keep<bool> pred(keep);
-    K_CONNECT::IdTool::compress(cands, pred);
+    K_CONNECT::keep<bool> pred1(keep);
+    K_CONNECT::IdTool::compress(cands, pred1);
   }
   return hasX;
 }
 
+/// Polyhedron vs surface impl.
 template <> inline
 bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
 (const NUGA::aPolyhedron<UNKNOWN>& ae1, const pg_smesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool first_found)
@@ -580,12 +583,12 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   //pg_smesh_t lmask(mask_bit, cands, idx_start);
   const pg_smesh_t& lmask = mask_bit;
 
-#ifdef CLASSIFYER_DBG
-  //medith::write("lmask", lmask.crd, lmask.cnt);
+#ifdef COLLIDER_DBG
+  medith::write("lmask", lmask.crd, lmask.cnt);
 #endif
 
-  //double l21 = ae1.L2ref();
-  //double l22 = lmask.L2ref(cands, idx_start);
+  //double l21 = ae1.Lref2();
+  //double l22 = lmask.Lref2(cands, idx_start);
   //double ATOL(RTOL * ::sqrt(std::min(l21, l22)));
 
   // compute collision between e1 and each candidate until founding one collision
@@ -649,8 +652,133 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   return hasX;
 }
 
+/// Vertex vs surface impl.
+template <> inline
+bool get_colliding<vertex, pg_smesh_t>
+(const vertex& pt, const pg_smesh_t& surface, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool first_found_dummy)
+{
+  cands.clear();
+
+  auto loc = surface.get_localizer();
+
+  double Lref = ::sqrt(pt.val2);
+
+  K_SEARCH::BBox3D bb1;
+  bb1.minB[0] = pt.vec[0] - RTOL * Lref;
+  bb1.minB[1] = pt.vec[1] - RTOL * Lref;
+  bb1.minB[2] = pt.vec[2] - RTOL * Lref;
+  bb1.maxB[0] = pt.vec[0] + RTOL * Lref;
+  bb1.maxB[1] = pt.vec[1] + RTOL * Lref;
+  bb1.maxB[2] = pt.vec[2] + RTOL * Lref;
   
-} //COLLIDE
+  loc->get_candidates(bb1, cands, idx_start, -1./*dummy*/);
+
+  return !cands.empty();
+}
+/// above wrapper for list of vertices : returns indir 'pt to face'
+inline void get_colliding
+(const std::vector<vertex>& pts, const pg_smesh_t& surface, double RTOL, std::vector<E_Int>& pt_to_elt)
+{
+  pt_to_elt.clear();
+
+  size_t npts = pts.size();
+
+  pt_to_elt.resize(npts, IDX_NONE);
+
+  surface.get_nodal_metric2(); // to compute it if missing
+
+  DELAUNAY::Triangulator dt;
+  std::vector<E_Int> cands;
+  E_Int T[3];
+  E_Float UV[3];
+  //
+  for (size_t i = 0; i < npts; ++i)
+  {
+    get_colliding(pts[i], surface, cands, surface.index_start, RTOL, false/*dummy*/);
+    
+    if (cands.empty()) continue; // regular
+    
+    //find best PG
+    double dmin{ NUGA::FLOAT_MAX };
+    E_Int PGtarget{ IDX_NONE };
+    //
+    for (size_t c = 0; c < cands.size(); ++c)
+    {
+      E_Int PGi = cands[c] - surface.index_start;
+      auto PG = surface.element(PGi);
+
+      PG.triangulate(dt, surface.crd);
+
+      for (E_Int t = 0; t < PG.nb_tris(); ++t)
+      {
+        PG.triangle(t, T);
+
+        const E_Float * P0 = surface.crd.col(T[0]);
+        const E_Float * P1 = surface.crd.col(T[1]);
+        const E_Float * P2 = surface.crd.col(T[2]);
+
+        bool interfere, inside;
+        double d = K_MESH::Triangle::minDistanceToPoint(P0, P1, P2, pts[i].vec, UV, interfere, inside);
+        if (!interfere) continue;
+
+        if (d < dmin)
+        {
+          PGtarget = PGi;
+          dmin = d;
+          break;
+        }
+      }
+    }
+
+    if (PGtarget != IDX_NONE) //check is not too far
+    {
+      auto PG = surface.element(PGtarget);
+      double PGLref2 = PG.Lref2(surface.nodal_metric2);
+      double TOLi = RTOL * ::sqrt(std::min(pts[i].val2, PGLref2));
+      if (dmin > TOLi)
+        PGtarget = IDX_NONE;
+      else
+        PGtarget = PGtarget;
+    }
+
+    pt_to_elt[i] = PGtarget;
+  }
+
+#ifdef COLLIDER_DBG
+  K_FLD::FloatArray crd = surface.crd;
+  std::vector<bool> keep(surface.ncells(), false);
+  for (size_t i = 0; i < pt_to_elt.size(); ++i)
+  {
+    if (pt_to_elt[i] != IDX_NONE)
+    {
+      crd.pushBack(pts[i].vec, pts[i].vec + 3);
+      keep[pt_to_elt[i]] = true;
+    }
+  }
+  K_CONNECT::keep<bool> pred(keep);
+  std::vector<E_Int> oids, nids;
+
+  ngon_unit pgs;
+  surface.cnt.extract_by_predicate(pred, pgs, oids, nids);
+
+  medith::write("singular", crd, pgs);
+  
+  ngon_type ng(pgs, true);
+  K_FLD::IntArray cnto;
+  ng.export_to_array(cnto);
+  MIO::write("singular.tp", crd, cnto, "NGON");
+  cnto.clear();
+  MIO::write("nodes.tp", crd, cnto, "BAR");
+  cnto.resize(2, 1, 0);
+  cnto(1, 0) = 1;
+  medith::write("nodes", crd, cnto, "BAR");
+  //K_FLD::IntArray dum;
+  //MIO::write("D:\\slandier\\DATA\\tmp\\immersion\\nodes.tp", crd, dum);
+
+#endif
+}
+  
+}   // COLLIDE
 }   // NUGA
 
 #endif /* NUGA_COLLIDER_HXX */

@@ -198,19 +198,19 @@ public:
     }
   }
 
-  double L2ref(const K_FLD::FloatArray& crd) const
+  double Lref2(const K_FLD::FloatArray& crd) const
   {
     E_Float Lmin2, Lmax2;
     edge_length_extrema(crd, Lmin2, Lmax2);
     return Lmin2;
   }
 
-  double L2ref(const std::vector<E_Float>& nodal_tol2) const
+  double Lref2(const std::vector<E_Float>& nodal_tol2) const
   {
-    return L2ref(_nodes, _nb_nodes, nodal_tol2, _shift);
+    return Lref2(_nodes, _nb_nodes, nodal_tol2, _shift);
   }
 
-  static double L2ref(const E_Int* nodes, E_Int nb_nodes, const std::vector<E_Float>& nodal_tol2, E_Int shift)
+  static double Lref2(const E_Int* nodes, E_Int nb_nodes, const std::vector<E_Float>& nodal_tol2, E_Int shift)
   {
     double val = NUGA::FLOAT_MAX;
     for (E_Int n = 0; n < nb_nodes; ++n)

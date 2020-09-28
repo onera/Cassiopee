@@ -222,8 +222,14 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
     if (py_mask == Py_None) continue;
 
     err = get_of_type(types, py_mask, mask_crds[i], false, mask_cnts[i], msk_varString, msk_eltType);
-    //std::cout << "mask sizes : " << mask_crds[i].cols() << " points" << std::endl;
-    //std::cout << "mask sizes : " << mask_cnts[i].cols() << " cells" << std::endl;
+    // std::cout << "mask sizes : " << mask_crds[i].cols() << " points" << std::endl;
+    // if (strcmp("NGON", msk_eltType) == 0)
+    // {
+    //   ngon_type ng(mask_cnts[i]);
+    //   std::cout << "mask sizes : "<< ng.PGs.size() << " cells" << std::endl;
+    // }
+    // else
+    //   std::cout << "mask sizes : "<< mask_cnts[i].cols() << " cells" << std::endl;
   }
 
   bool DIM3 = (strcmp("NGON", msk_eltType) == 0);

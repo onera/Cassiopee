@@ -23,7 +23,7 @@
 #include "time.h"
 #include "Nuga/include/defs.h"
 
-namespace DELAUNAY
+namespace NUGA
 {
   class chrono
   {

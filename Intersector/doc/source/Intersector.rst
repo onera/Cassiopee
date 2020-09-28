@@ -41,6 +41,7 @@ List of functions
    Intersector.diffSurf
    Intersector.intersection
    Intersector.PyTree.XcellN
+   Intersector.adaptCells
 .. Intersector.booleanModifiedSolid
 .. Intersector.P1ConservativeChimeraCoeffs
 
@@ -66,9 +67,18 @@ List of functions
    Intersector.agglomerateNonStarCells
    Intersector.agglomerateCellsWithSpecifiedFaces
    Intersector.closeCells
-   Intersector.adaptCells
-   Intersector.adaptCellsNodal
-   Intersector.adaptBox
+
+**-- Adaptation Specific Functions**
+
+.. autosummary::
+
+  Intersector.adaptBox
+  Intersector.createHMesh
+  Intersector.deleteHMesh
+  Intersector.conformizeHMesh
+  Intersector.createSensor
+  Intersector.assignData2Sensor
+  Intersector.deleteSensor
 
 **-- Extraction Functions**
 
@@ -88,6 +98,7 @@ List of functions
    
    Intersector.diffMesh
    Intersector.checkCellsClosure
+   Intersector.checkCellsFlux
    Intersector.computeAspectRatio
    
 .. Intersector.statsUncomputableFaces
@@ -399,6 +410,57 @@ Main Functions
 ---------------------------------------
 
 
+.. py:function:: Intersector.adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)
+
+    Adapts a cells (any basic cells - TETRA, PENTA, PYRA, HEXA - currently) with respect to the sensor and its data (sensdata).
+    
+    Adaptation is a per-cell octal 2:1 decomposition.
+    
+    With a sensor_type equal to :
+
+    * 0 (geometrical sensor), sensdata must contain vertices : a will be refined until any a cell contains at most 1 data vertex.
+    
+    * 1 (xsensor), sensdata must be a mesh *m*, ant its connectivity is also taken into account by adding refinement wherever a cells are crossed by m edges.
+    
+    * 2 (nodal sensor), sensdata are nodal values giving the number of required subdivision around that node.
+    
+    * 3 (cell sensor), sensdata are cell values giving the number of required subdivision per cell.
+
+    :param           a:  Input mesh (NGON format)
+    :type            a:  [array] or [ single zone pyTree (currently)]
+    :param           sensdata:  Data for the sensor
+    :type            sensdata:  [array, list of arrays] or [pyTree, base, zone, list of zones] for sensor type 0 and 1. Numpy of integers for other sensors.
+    :param           sensor_type:  type of sensor. geometrical (0), xensor (1), nodal sensor (2), cell sensor (3)
+    :type            sensor_type:  int
+    :param           smoothing_type:  first-neighborhood (0), shell-neighborhood(1)
+    :type            smoothing_type:  int
+    :param           itermax:  maximum nb of generations
+    :type            itermax:  int
+    :param           subdiv_type:  xxx
+    :type            subdiv_type:  int
+    :param           hmesh:  structure that holds the hierarchical genealogy structure in case of successive adaptations on a mesh. Instantiated with Intersector.createHMesh
+    :type            hmesh:  hook
+    :param           sensor:  structure that holds the sensor and its data in case of successive adaptations on a mesh
+    :type            sensor:  hook
+
+    *Example of use:*
+
+    * `adaptCells (array) <Examples/Intersector/adaptCells.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCells.py
+
+    * `adaptCells (pyTree) <Examples/Intersector/adaptCellsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCellsPT.py
+
+    *Tips and Notes:*
+
+    * Do this transformation before calling any Volume-Volume boolean operations in order to improve the mesh quality of the result.
+    * When the input mesh has any kind of polyhedral elements, only basic elements will be considered currently for adaptation. but the result wil be conformal, the non-handled elements will modified to respect the conformity. 
+
+---------------------------------------
+
+
 Transformation Functions
 --------------------------
 
@@ -668,68 +730,11 @@ Transformation Functions
 
     * Do this transformation whenever you need to use a surface algorithm on the octree (e.g. :any:`reorientExternalFaces`)
 
----------------------------------------
-
-
-.. py:function:: Intersector.adaptCells(a1, a2, sensor_type=0)
-
-    Adapts a1 cells (any basic cells - TETRA, PENTA, PYRA, HEXA - currently) with respect to a2 points. Adaptation is a per-cell octal 2:1 decomposition.
-    With a sensor_type equal to 0, a2 points are only considered : a1 will be refined such any a1 cell contains at most 1 a2's point.
-    With a sensor_type equal to 1, a2's connectivity is also taken into account by adding refinement wherever a1 cells are crossed by a2 edges.
-
-    :param           a1:  Input mesh (NGON format)
-    :type            a1:  [array] or [ single zone pyTree (currently)]
-    :param           a2:  Source points or source mesh
-    :type            a2:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param           sensor_type:  type of sensor. Using only the point cloud (0) or both points and connectivity via instersections (1)
-    :type            sensor_type:  int
-
-    *Example of use:*
-
-    * `adaptCells (array) <Examples/Intersector/adaptCells.py>`_:
-
-    .. literalinclude:: ../build/Examples/Intersector/adaptCells.py
-
-    * `adaptCells (pyTree) <Examples/Intersector/adaptCellsPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Intersector/adaptCellsPT.py
-
-    *Tips and Notes:*
-
-    * Do this transformation before calling any Volume-Volume boolean operations in order to improve the mesh quality of the result.
-    * When the input mesh has any kind of polyhedral elements, only basic elements will be considered currently for adaptation. but the result wil be conformal, the non-handled elements will modified to respect the conformity. 
 
 ---------------------------------------
 
-
-.. py:function:: Intersector.adaptCellsNodal(a1, nodal_vals)
-
-    Adapts a1 cells (any basic cells - TETRA, PENTA, PYRA, HEXA - currently) with respect to nodal subdivision values. Adaptation is a per-cell octal 2:1 decomposition.
-    If nodal_vals[i] is n>0, cells sharing point i will be at least subdivided n times.
-
-    :param           a1:  Input mesh (NGON format)
-    :type            a1:  [array] or [ single zone pyTree (currently)]
-    :param           nodal_vals:  Nodal subdivision specification
-    :type            nodal_vals:  [list of numpy arrays] one per zone in a
-    
-
-    *Example of use:*
-
-    * `adaptCellsNodal (array) <Examples/Intersector/adaptCellsNodal.py>`_:
-
-    .. literalinclude:: ../build/Examples/Intersector/adaptCellsNodal.py
-
-    * `adaptCellsNodal (pyTree) <Examples/Intersector/adaptCellsNodalPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Intersector/adaptCellsNodalPT.py
-
-    *Tips and Notes:*
-
-    * Do this transformation before calling any Volume-Volume boolean operations in order to improve the mesh quality of the result.
-    * When the input mesh has any kind of polyhedral elements, only basic elements will be considered currently for adaptation. but the result wil be conformal, the non-handled elements will modified to respect the conformity.
-
+Adaptation Specific Functions
 ---------------------------------------
-
 
 .. py:function:: Intersector.adaptBox(a, box_ratio)
 
@@ -750,11 +755,36 @@ Transformation Functions
 
     .. literalinclude:: ../build/Examples/Intersector/adaptBoxPT.py
 
+---------------------------------------
+
+
+.. py:function::Intersector.createHMesh(a, subdiv_type = 0)
+
+---------------------------------------
+
+.. py:function::Intersector.deleteHMesh(hmesh)
+
+---------------------------------------
+
+.. py:function::Intersector.conformizeHMesh(hmesh)
+
+---------------------------------------
+
+.. py:function::Intersector.createSensor(hmesh, sensor_type = 0, smoothing_type=0 , itermax = -1)
+
+---------------------------------------
+
+.. py:function::Intersector.assignData2Sensor(hmesh, sensdata)
+
+---------------------------------------
+
+.. py:function::Intersector.deleteSensor(hmesh)
+
 
 ---------------------------------------
 
 Extraction Functions
---------------------------
+---------------------------------------
 
 
 .. py:function:: Intersector.extractPathologicalCells(a, neigh_level=0)

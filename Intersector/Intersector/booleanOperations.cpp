@@ -35,7 +35,7 @@ using namespace std;
 using namespace NUGA;
 
 #ifdef FLAG_STEP
-E_Int chrono::verbose=1;
+#include "Nuga/include/chrono.h"
 #endif
 #if defined(DEBUG_TRIANGULATOR)
       bool DELAUNAY::Triangulator::dbg_enabled = false;

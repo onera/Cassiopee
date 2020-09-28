@@ -101,7 +101,7 @@ public:
   
   static void get_edges(const E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges);
   
-  static bool cross(const ngon_type& ng, const K_FLD::FloatArray& crd, const E_Int* face, E_Int nb_faces, K_FLD::FloatArray& data, E_Float* P0, E_Float* P1, E_Float& lambda0, E_Float& lambda1, E_Float tolerance);
+  static bool cross(const ngon_t<K_FLD::IntArray>& ng, const K_FLD::FloatArray& crd, const E_Int* face, E_Int nb_faces, K_FLD::FloatArray& data, E_Float* P0, E_Float* P1, E_Float& lambda0, E_Float& lambda1, E_Float tolerance);
   
   inline void getBoundary(E_Int n, boundary_type& b) const {
     

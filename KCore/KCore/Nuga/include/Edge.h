@@ -89,11 +89,11 @@ public: /* Set and Get methods */
     box = box_t(crd, _nodes, NB_NODES);
   }
 
-  double L2ref(const K_FLD::FloatArray& crd) const
+  double Lref2(const K_FLD::FloatArray& crd) const
   {
     return NUGA::sqrDistance(crd.col(_nodes[0]), crd.col(_nodes[1]), 3);
   }
-  double L2ref(const std::vector<E_Float>& nodal_tol2) const
+  double Lref2(const std::vector<E_Float>& nodal_tol2) const
   {
     return std::min(nodal_tol2[_nodes[0]], nodal_tol2[_nodes[1]]);
   }

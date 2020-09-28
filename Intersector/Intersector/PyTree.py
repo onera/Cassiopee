@@ -551,9 +551,10 @@ def _XcellN(t, priorities, output_type=0, rtol=0.05):
             b_bounds = XOR.convertNGON2DToNGON3D(b_bounds)
       else:
         if DIM == 3 :
-          b_bounds = convertBasic2NGONFaces(b_bounds)
+          _convertBasic2NGONFaces(b_bounds)
 
       m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
+      if DBG == True :C.convertPyTree2File(b_bounds, 'boundsAfter'+str(bid)+'.cgns')
 
       walls = []
       for btype in WALLBCS:
@@ -1361,15 +1362,15 @@ def _closeCells(t):
     return t
 
 #==============================================================================
-# adaptCells : Adapts a polyhedral mesh a1 with repsect to a2 points
+# adaptCells : Adapts an unstructured mesh a with respect to a sensor
 # IN: t : 3D NGON mesh
-# IN: sensdata : sensor data
+# IN: sensdata : sensor data (a bunch of vertices or a mesh for a geom sensor, a mesh for a xsensor, punctual values for a nodal or cell sensor)
 # IN: sensor_type : geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3)
 # IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
 # IN itermax : max number of level in the hierarchy
-# IN subdiv_type : XXX
-# IN hmesh : XXX
-# IN sensor : XXX
+# IN: subdiv_type : isotropic currently
+# IN: hmesh : hierarchical mesh hook
+# IN: sensor : sensor hook
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
 def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
@@ -1378,8 +1379,8 @@ def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1
   return tp
 
 def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
-    """Adapts a polyhedral mesh t1 with repsect to t2 points.
-    Usage: adaptCells(t1, t2, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor)"""
+    """Adapts an unstructured mesh a with respect to a sensor.
+    Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
 
     if sensdata is None and sensor is None:
       print('INPUT ERROR : no source data to initialize a sensor')
@@ -1433,7 +1434,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     	deleteCom(com)
 
 #==============================================================================
-# adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
+# adaptCellsNodal (deprecated) : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
 # IN: t : 3D NGON mesh
 # IN: nodal_vals : nb of subdivision required expressed at mesh nodes
 # OUT: returns a 3D NGON Mesh with adapted cells

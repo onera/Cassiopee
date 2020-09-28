@@ -37,7 +37,7 @@ namespace NUGA
       E_Int ncells = z_mesh.ncells();
       assert(ncells == wdata.size());
 
-      z_mesh.get_nodal_tolerance();
+      z_mesh.get_nodal_metric2();
 
       outdata_t xcelln(ncells, OUT);
       if (mask_bits.empty()) return xcelln;// completely visible
@@ -66,6 +66,8 @@ namespace NUGA
           vcur += bits[b].extent();
 
         xcelln[i] = vcur / v0;
+        assert(xcelln[i] < 1. + EPSILON);
+        xcelln[i] = std::min(1., xcelln[i]);
       }
 
       return xcelln;
@@ -125,7 +127,7 @@ namespace NUGA
       xmesh.full_out = (ncells == xmesh.mesh.ncells());
       if (xmesh.full_out) return xmesh;
 
-      z_mesh.get_nodal_tolerance();
+      z_mesh.get_nodal_metric2();
 
       std::vector<int> cands;
       std::vector<aelt_t> bits, tmpbits; // one clip can produce several bits
@@ -244,10 +246,10 @@ namespace NUGA
     }
 
     // append with opposite pairs for considering WNPS
-    for (size_t i = 0; i < clean_priority.size(); ++i)
+    for (size_t j = 0; j < clean_priority.size(); ++j)
     {
-      E_Int Lcompid = clean_priority[i].first;
-      E_Int Rcompid = clean_priority[i].second;
+      E_Int Lcompid = clean_priority[j].first;
+      E_Int Rcompid = clean_priority[j].second;
       decrease_prior_per_comp[Rcompid].push_back(Lcompid);
     }
   }
@@ -294,6 +296,8 @@ namespace NUGA
     comp_priorities(priority, sorted_comps_per_comp, rank_wnps);
 
     E_Int nb_zones = crds.size();
+    //std::cout << "total nb of zones : " << nb_zones << std::endl;
+    //std::cout << "nb of masks : " << mask_crds.size() << std::endl;
 
     xcelln.resize(nb_zones); // xcelln can be clipped mesh
 
@@ -336,7 +340,6 @@ namespace NUGA
       //for (size_t u = 0; u < it->second.size(); ++u)std::cout << it->second[u] << "/";
       //std::cout << std::endl;
       //std::cout << "rank WNP : " << z_rank_wnp << std::endl;
-      //std::cout << "NB of ELT in MASK  AT  Z POS : " << mask_crds[z].cols() << std::endl;
       
       E_Int err = MOVLP_xcelln_1zone<classifyer_t>(crds[z], cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, xcelln[z], RTOL);
       if (err) break;

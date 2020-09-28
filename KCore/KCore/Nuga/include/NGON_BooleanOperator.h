@@ -976,6 +976,7 @@ E_Int NGON_BOOLEAN_CLASS::Diffsurf
   }
   
   coord=_coord;
+  ngon_type::clean_connectivity(_ng1, coord);
   ngon_type::simplify_pgs(_ng1, coord);
   __compact_and_join(_ng1, coord);
   _ng1.export_to_array(connect);
@@ -1837,7 +1838,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
 #endif
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : init NGON data struct : " << c.elapsed() << std::endl;
+  std::cout << "__get_working_PGs : init NGON data struct : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -1852,7 +1853,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     ngon_type::close_phs(wNG2, _crd2);
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : close_phs : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : close_phs : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -1862,7 +1863,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     return err;
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : __reorient_externals : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : __reorient_externals : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -1887,7 +1888,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
   }
 
 #ifdef FLAG_STEP
-    if (chrono::verbose >0) std::cout << "__get_working_PGs : build_F2Es : " << c.elapsed() << std::endl;
+     std::cout << "__get_working_PGs : build_F2Es : " << c.elapsed() << std::endl;
   c.start();
 #endif
 
@@ -1936,7 +1937,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : externality : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : externality : " << c.elapsed() << std::endl;
   c.start();
 #endif
 
@@ -1948,7 +1949,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
 #endif
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : orienting (build_F2E) : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : orienting (build_F2E) : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -1967,7 +1968,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
 #endif
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : __discard_holes : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : __discard_holes : " << c.elapsed() << std::endl;
   c.start();
 #endif
 
@@ -2003,7 +2004,7 @@ if (_XPol != BOTH_SURFACE)
 #endif
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : __focus_on_intersection_zone : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : __focus_on_intersection_zone : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -2045,7 +2046,7 @@ if (_XPol != BOTH_SURFACE)
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : update orienting after focus : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : update orienting after focus : " << c.elapsed() << std::endl;
 #endif
 }
 
@@ -2101,7 +2102,7 @@ if (_XPol != BOTH_SURFACE)
   }
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : flag new skin type : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : flag new skin type : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -2127,7 +2128,7 @@ if (_XPol != BOTH_SURFACE)
     _ng2.PGs.shift(nb_pts1);
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : one container : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : one container : " << c.elapsed() << std::endl;
 #endif
   
 #ifdef DEBUG_BOOLEAN
@@ -2233,7 +2234,7 @@ if (_XPol != BOTH_SURFACE)
   }
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__get_working_PGs : form wPGs set : " << c.elapsed() << std::endl;
+   std::cout << "__get_working_PGs : form wPGs set : " << c.elapsed() << std::endl;
 #endif
 
 #ifdef DEBUG_BOOLEAN
@@ -2616,7 +2617,7 @@ NGON_BOOLEAN_CLASS::__process_intersections
     
 #ifdef FLAG_STEP
   c.start();
-  if (chrono::verbose > 0) std::cout << "NGON Boolean : __conformize ..." << std::endl;
+  std::cout << "NGON Boolean : __conformize ..." << std::endl;
 #endif
 
   // Set priorities for duplicates
@@ -3223,7 +3224,7 @@ NGON_BOOLEAN_CLASS::__reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngo
     wNG1 = ngon_type(ngu, false);//
 
 #ifdef FLAG_STEP
-    if (chrono::verbose >0) std::cout << "__get_working_PGs : SURFACE RIGHT MODE : reorient the right surface : " << c.elapsed() << std::endl;
+     std::cout << "__get_working_PGs : SURFACE RIGHT MODE : reorient the right surface : " << c.elapsed() << std::endl;
 #endif
   }
   else
@@ -3256,7 +3257,7 @@ NGON_BOOLEAN_CLASS::__reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngo
     wNG2.PHs._ancEs.clear();
 
 #ifdef FLAG_STEP
-    if (chrono::verbose >0) std::cout << "__get_working_PGs : SURFACE RIGHT MODE : reorient the right surface : " << c.elapsed() << std::endl;
+     std::cout << "__get_working_PGs : SURFACE RIGHT MODE : reorient the right surface : " << c.elapsed() << std::endl;
 #endif
   }
   else
@@ -3361,7 +3362,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
 #endif
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >0) std::cout << "__focus_on_intersection_zone : E1 : " << c.elapsed() << std::endl;
+  std::cout << "__focus_on_intersection_zone : E1 : " << c.elapsed() << std::endl;
 #endif
   
 
@@ -3390,7 +3391,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
     return EMPTY_X;
   }
   #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__focus_on_intersection_zone : create boxes : " << c.elapsed() << std::endl;
+  std::cout << "__focus_on_intersection_zone : create boxes : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -3436,7 +3437,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__focus_on_intersection_zone : E2 : " << c.elapsed() << std::endl;
+  std::cout << "__focus_on_intersection_zone : E2 : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -3510,7 +3511,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
     __flag_PHs_sharing_nodes_with_selected_PGs(wNG2, is_in2, pg_oids);
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__focus_on_intersection_zone : E3 : " << c.elapsed() << std::endl;
+  std::cout << "__focus_on_intersection_zone : E3 : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -3533,7 +3534,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
   wNG2.PGs.updateFacets();
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__focus_on_intersection_zone : __refine_working_area : " << c.elapsed() << std::endl;
+  std::cout << "__focus_on_intersection_zone : __refine_working_area : " << c.elapsed() << std::endl;
 #endif
 
 #ifdef DEBUG_BOOLEAN
@@ -3769,7 +3770,7 @@ E_Int NGON_BOOLEAN_CLASS::__discard_holes_by_box(const K_FLD::FloatArray& coord,
     return 0; //should be only the case where One of the mesh contains completely the other
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__discard_holes : extract_of_type : " << c.elapsed() << std::endl;
+  std::cout << "__discard_holes : extract_of_type : " << c.elapsed() << std::endl;
   c.start();
 #endif
     
@@ -3778,7 +3779,7 @@ E_Int NGON_BOOLEAN_CLASS::__discard_holes_by_box(const K_FLD::FloatArray& coord,
   K_MESH::Polygon::build_pg_neighborhood(pg_ext, neighbors);
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__discard_holes : build_pg_neighborhood : " << c.elapsed() << std::endl;
+  std::cout << "__discard_holes : build_pg_neighborhood : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -3792,7 +3793,7 @@ E_Int NGON_BOOLEAN_CLASS::__discard_holes_by_box(const K_FLD::FloatArray& coord,
   }
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__discard_holes : coloring : " << c.elapsed() << std::endl;
+  std::cout << "__discard_holes : coloring : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -4247,13 +4248,13 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
   if (err)
   {
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "NGON Boolean : ERROR in __build_neighbors_table : " << c1.elapsed() << std::endl;
+  std::cout << "NGON Boolean : ERROR in __build_neighbors_table : " << c1.elapsed() << std::endl;
 #endif
     return err;
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "NGON Boolean : __build_PHT3s : __build_neighbors_table : " << c1.elapsed() << std::endl;
+  std::cout << "NGON Boolean : __build_PHT3s : __build_neighbors_table : " << c1.elapsed() << std::endl;
 #endif
     
 #ifdef FLAG_STEP
@@ -4264,7 +4265,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
   if (err)
   {
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "NGON Boolean : ERROR in __assemble_PHT3s : " << c1.elapsed() << std::endl;
+  std::cout << "NGON Boolean : ERROR in __assemble_PHT3s : " << c1.elapsed() << std::endl;
 #endif
     return err;
   }
@@ -4283,7 +4284,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
 #endif
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "NGON Boolean : __build_PHT3s : __assemble_PHT3s : " << c1.elapsed() << std::endl;
+  std::cout << "NGON Boolean : __build_PHT3s : __assemble_PHT3s : " << c1.elapsed() << std::endl;
   c1.start();
 #endif
   
@@ -4294,7 +4295,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
   if (err)
   {
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "NGON Boolean : ERROR in __remove_parasite_PHT3s : " << c1.elapsed() << std::endl;
+  std::cout << "NGON Boolean : ERROR in __remove_parasite_PHT3s : " << c1.elapsed() << std::endl;
 #endif
 //#ifdef DEBUG_BOOLEAN
 //    if (PHierr > -1)
@@ -4311,7 +4312,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
 #endif
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "NGON Boolean : __build_PHT3s : __remove_parasite_PHT3s : " << c1.elapsed() << std::endl;
+  std::cout << "NGON Boolean : __build_PHT3s : __remove_parasite_PHT3s : " << c1.elapsed() << std::endl;
   c1.start();
 #endif
    
@@ -4337,7 +4338,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
   PHierr = __check_PHT3s_closure(check_also_manifoldness, coord, connectT3o, PHT3s);
   
 #ifdef FLAG_STEP
-  if (chrono::verbose > 0) std::cout << "NGON Boolean : __build_PHT3s : __check_PHT3s_closure : " << c1.elapsed() << std::endl;
+  std::cout << "NGON Boolean : __build_PHT3s : __check_PHT3s_closure : " << c1.elapsed() << std::endl;
 #endif
 
   if (PHierr != -1)
@@ -5364,7 +5365,7 @@ E_Int NGON_BOOLEAN_CLASS::__assemble_PGT3s
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose>0) std::cout << "NGON Boolean : __build_PHs : __assemble_PGT3s : " << c.elapsed() << std::endl;
+  std::cout << "NGON Boolean : __build_PHs : __assemble_PGT3s : " << c.elapsed() << std::endl;
 #endif
    
   return err;
@@ -5438,7 +5439,7 @@ E_Int NGON_BOOLEAN_CLASS::__split_non_connex_PGT3s
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose>0) std::cout << "NGON Boolean : __build_PHs : __split_non_connex_PGT3s : " << c.elapsed() << std::endl;
+  std::cout << "NGON Boolean : __build_PHs : __split_non_connex_PGT3s : " << c.elapsed() << std::endl;
 #endif
   
   return err;
@@ -5522,7 +5523,7 @@ E_Int NGON_BOOLEAN_CLASS::__split_multiply_shared_PGT3s
   }
   
 #ifdef FLAG_STEP
-  if (chrono::verbose>0) std::cout << "NGON Boolean : __build_PHs : __split_multiply_shared_PGT3s : " << c.elapsed() << std::endl;
+  std::cout << "NGON Boolean : __build_PHs : __split_multiply_shared_PGT3s : " << c.elapsed() << std::endl;
 #endif
   
   return err;

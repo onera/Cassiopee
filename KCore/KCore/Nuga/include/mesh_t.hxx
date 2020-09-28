@@ -14,6 +14,7 @@
 # include "Nuga/include/BbTree.h"
 #include "Nuga/include/polygon.hxx"
 #include "Nuga/include/polyhedron.hxx"
+#include "Nuga/include/metric.hxx"
 
 #ifndef NUGA_MESH_T_HXX
 #define NUGA_MESH_T_HXX
@@ -61,14 +62,14 @@ struct connect_trait<LINEIC, true>
     K_CONNECT::keep<bool> pred_keep(keep);
     K_CONNECT::IdTool::compress(c, pred_keep, nids);
   }
-  static void compress(cnt_t&c, const std::vector<int>& keepids, int index_start)
+  static void compress(cnt_t&c, const std::vector<int>& keepids, int idx_start)
   {
-    K_CONNECT::IdTool::compress(c, keepids, index_start);
+    K_CONNECT::IdTool::compress(c, keepids, idx_start);
   }
 
-  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids,int index_start)
+  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids,int idx_start)
   {
-    return K_CONNECT::IdTool::compress_(c, keepids, index_start);
+    return K_CONNECT::IdTool::compress_(c, keepids, idx_start);
   }
 
   static void compact(cnt_t&c, const std::vector<bool>& keep){ std::vector<E_Int> nids; K_FLD::IntArray::compact(c, keep, nids);}
@@ -92,12 +93,17 @@ struct connect_trait<LINEIC, true>
     return lcrd;
   }
 
-  static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_tolerance)
+  static void compute_nodal_metric2(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_metric2, eMetricType metric_type)
   {
     // should be factorized in a behaviour class
     K_FLD::FloatArray L;
     NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
-    L.extract_field(0, nodal_tolerance); // 0: extract the min
+
+    E_Int col{ 0 };
+    if (metric_type == eMetricType::ISO_MIN) col = 0;
+    else if (metric_type == eMetricType::ISO_MAX) col = 1;
+
+    L.extract_field(col, nodal_metric2); // 0: extract the min
   }
   
   static void reverse_orient(cnt_t&c)
@@ -168,11 +174,11 @@ struct connect_trait<SURFACIC, false>
     }
   }
     
-  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int index_start)
+  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int idx_start)
   {
     std::vector<E_Int> oids;
     ngon_unit pgs;
-    c.extract(keepids, pgs, oids, index_start);
+    c.extract(keepids, pgs, oids, idx_start);
     return pgs;
   }
 
@@ -196,11 +202,16 @@ struct connect_trait<SURFACIC, false>
     return ngon_type::compress_to_used_nodes(c, crdi, nids);
   }
 
-  static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_tolerance)
+  static void compute_nodal_metric2(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_metric2, eMetricType metric_type)
   {
     K_FLD::FloatArray L;
     NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
-    L.extract_field(0, nodal_tolerance); // 0: extract the min
+
+    E_Int col{ 0 };
+    if (metric_type == eMetricType::ISO_MIN) col = 0;
+    else if (metric_type == eMetricType::ISO_MAX) col = 1;
+
+    L.extract_field(col, nodal_metric2); // 0: extract the min
   }
 
   static void reverse_orient(cnt_t&c)
@@ -275,11 +286,11 @@ struct connect_trait<VOLUMIC, false>
     ancestors = new_anc;
   }
 
-  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int index_start)
+  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int idx_start)
   {
     std::vector<E_Int> oids;
     cnt_t ng;
-    c.PHs.extract(keepids, ng.PHs, oids, index_start);
+    c.PHs.extract(keepids, ng.PHs, oids, idx_start);
 
     ng.PGs = c.PGs;
 
@@ -317,12 +328,17 @@ struct connect_trait<VOLUMIC, false>
     return ngon_type::compress_to_used_nodes(c.PGs, crdi, nids);
   }
 
-  static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& c, std::vector<E_Float>& nodal_tolerance)
+  static void compute_nodal_metric2(const K_FLD::FloatArray& crd, const cnt_t& c, std::vector<E_Float>& nodal_metric2, eMetricType metric_type)
   {
     // should be factorized in a behaviour class
     K_FLD::FloatArray L;
     NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, c.PGs, L);
-    L.extract_field(0, nodal_tolerance); // 0: extract the min
+
+    E_Int col{ 0 };
+    if (metric_type == eMetricType::ISO_MIN) col = 0;
+    else if (metric_type == eMetricType::ISO_MAX) col = 1;
+
+    L.extract_field(col, nodal_metric2); // 0: extract the min
   }
 };
 
@@ -353,16 +369,17 @@ struct mesh_t
   K_FLD::FloatArray   crd;
   cnt_t               cnt;
   mutable std::vector<E_Int>   e_type, flag;
-  mutable std::vector<E_Float> nodal_tolerance; // square dist
+  mutable std::vector<E_Float> nodal_metric2; // square dist
+  mutable eMetricType          metric_type;
   mutable loc_t*               localiz;
   mutable neighbor_t*          neighbors;
-  int                         oriented;
+  int                          oriented;
 
   // CONSTRUCTORS / DESTRUCTOR //
 
-  mesh_t():localiz(nullptr), neighbors(nullptr), oriented(0){}
+  mesh_t():localiz(nullptr), neighbors(nullptr), oriented(0), metric_type(eMetricType::ISO_MIN){}
 
-  mesh_t(const K_FLD::FloatArray &crd, const K_FLD::IntArray& cnt, int orient=0):crd(crd),cnt(cnt), localiz(nullptr), neighbors(nullptr), oriented(orient){}
+  mesh_t(const K_FLD::FloatArray &crd, const K_FLD::IntArray& cnt, int orient=0):crd(crd),cnt(cnt), localiz(nullptr), neighbors(nullptr), oriented(orient), metric_type(eMetricType::ISO_MIN) {}
   
   mesh_t& operator=(const mesh_t&m)
   {
@@ -383,7 +400,8 @@ struct mesh_t
     
     e_type = m.e_type;
     flag = m.flag;
-    nodal_tolerance = m.nodal_tolerance;
+    nodal_metric2 = m.nodal_metric2;
+    metric_type = m.metric_type;
 
     return *this;
   }
@@ -404,7 +422,8 @@ struct mesh_t
     
     e_type = std::move(m.e_type);
     flag = std::move(m.flag);
-    nodal_tolerance = std::move(m.nodal_tolerance);
+    nodal_metric2 = std::move(m.nodal_metric2);
+    metric_type = m.metric_type;
 
     m.localiz = nullptr;
     m.neighbors = nullptr;
@@ -422,7 +441,8 @@ struct mesh_t
     crd = trait::compact_to_used_nodes(cnt, m.crd, nids);
     oriented = m.oriented;
 
-    nodal_tolerance = K_CONNECT::IdTool::compact_(m.nodal_tolerance, nids); //sync the tolerance 
+    nodal_metric2 = K_CONNECT::IdTool::compact_(m.nodal_metric2, nids); //sync the metric
+    metric_type = m.metric_type;
 
     //sync the neighborhood
     if (m.neighbors != nullptr)
@@ -453,8 +473,8 @@ struct mesh_t
   aelt_t aelement(int i) const 
   {  
     elt_t e(cnt, i);
-    E_Float L2r = e.L2ref(nodal_tolerance);
-    return aelt_t(e, crd, L2r);
+    E_Float Lr2 = e.Lref2(nodal_metric2);
+    return aelt_t(e, crd, Lr2);
   }
     
   template <bool BSTRIDE = BOUND_STRIDE> void get_boundary(int i, int j, bound_elt_t<BSTRIDE>& b) const
@@ -579,37 +599,37 @@ struct mesh_t
     e.bbox(crd, box);
   }
 
-  double L2ref() const
+  double Lref2() const
   {
-    if (not nodal_tolerance.empty())
-      return *std::min_element(ALL(nodal_tolerance));
+    if (! nodal_metric2.empty())
+      return *std::min_element(ALL(nodal_metric2));
 
-    double minLref = NUGA::FLOAT_MAX;
+    double minLref2 = NUGA::FLOAT_MAX;
     for (E_Int i=0; i < ncells(); ++i)
     {
       elt_t e =element(i);
-      minLref = std::min(e.L2ref(crd), minLref);
-      //std::cout << "minlRef/i/ncel" << minLref << "/" << i << "/" << ncells() << std::endl;
+      minLref2 = std::min(e.Lref2(crd), minLref2);
+      //std::cout << "minLref2/i/ncel" << minLref2 << "/" << i << "/" << ncells() << std::endl;
     }
-    return minLref;
+    return minLref2;
   }
   
-  double L2ref(int i) const
+  double Lref2(int i) const
   { 
     elt_t e =element(i);
     
-    if (not nodal_tolerance.empty())
-      return e.L2ref(nodal_tolerance); // taking into acount surrounding elements
+    if (! nodal_metric2.empty())
+      return e.Lref2(nodal_metric2); // taking into acount surrounding metric field (based on neighbors)
     // otherwise only based on this element
-    return e.L2ref(crd);               // isolated val
+    return e.Lref2(crd);               // isolated val
   }
 
-  double L2ref(const std::vector<E_Int>& cands, E_Int idx_start) const
+  double Lref2(const std::vector<E_Int>& cands, E_Int idx_start) const
   {
     double val = NUGA::FLOAT_MAX;
     for (size_t i = 0; i < cands.size(); ++i)
     {
-      val = std::min(val, L2ref(cands[i] - idx_start));
+      val = std::min(val, Lref2(cands[i] - idx_start));
     }
     return val;
   }
@@ -622,7 +642,7 @@ struct mesh_t
     std::vector<E_Int> nids;
     trait::compact_to_used_nodes(cnt,crd, nids);
     
-    K_CONNECT::IdTool::compact(nodal_tolerance, nids); //sync the tolerance 
+    K_CONNECT::IdTool::compact(nodal_metric2, nids); //sync the metric 
     
     if (neighbors != nullptr)
       trait::compress(*neighbors, keep); //sync the neighborhood
@@ -675,16 +695,17 @@ struct mesh_t
     return neighbors;
   }
 
-  const std::vector<E_Float>& get_nodal_tolerance() const
+  const std::vector<E_Float>& get_nodal_metric2(eMetricType mtype = eMetricType::ISO_MIN) const
   {
-    if (nodal_tolerance.empty() || ((E_Int)nodal_tolerance.size() != crd.cols()))
-       build_nodal_tolerance(); // already computed and correctly sized
-    return nodal_tolerance;
+    if ( (metric_type != mtype) || nodal_metric2.empty() || ((E_Int)nodal_metric2.size() != crd.cols()))
+       build_nodal_metric2(mtype); // already computed and correctly sized
+    return nodal_metric2;
   }
 
-  void build_nodal_tolerance() const
+  void build_nodal_metric2(eMetricType mtype) const
   {
-    trait::compute_nodal_tolerance(crd, cnt, nodal_tolerance);
+    metric_type = mtype;
+    trait::compute_nodal_metric2(crd, cnt, nodal_metric2, metric_type);
 
     // check if close point other than cnt (specially with folded surfaces)
     using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
@@ -694,9 +715,9 @@ struct mesh_t
     double d2;
     for (E_Int i=0; i < crd.cols(); ++i)
     {
-      double r2 = (1. - EPSILON) * nodal_tolerance[i]; //reduc it
+      double r2 = (1. - EPSILON) * nodal_metric2[i]; //reduce it to discard nodes connected to i.
       int N = tree.getClosest(i, r2, d2);
-      if (N != IDX_NONE)nodal_tolerance[i] = d2;
+      if (N != IDX_NONE)nodal_metric2[i] = d2;
     }
   }
 

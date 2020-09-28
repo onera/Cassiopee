@@ -265,17 +265,17 @@ namespace NUGA
         {
           //
           nids.clear();
-          K_FLD::FloatArray crd(*data.pos); //should not hurt as meshes are small
-          NUGA::MeshTool::compact_to_mesh(crd, it->second, nids);
+          K_FLD::FloatArray crd1(*data.pos); //should not hurt as meshes are small
+          NUGA::MeshTool::compact_to_mesh(crd1, it->second, nids);
 
           PGi.clear();
           // sort the nodes
           BARSplitter::getSortedNodes(it->second, PGi);
 
-          E_Int str = crd.rows();
+          E_Int str = crd1.rows();
           crd_res[i].reserve(str, PGi.size());
           for (size_t j = 0; j < PGi.size(); ++j)
-            crd_res[i].pushBack(crd.col(PGi[j]), crd.col(PGi[j]) + str);
+            crd_res[i].pushBack(crd1.col(PGi[j]), crd1.col(PGi[j]) + str);
         }
       }
       else //connex
@@ -284,19 +284,19 @@ namespace NUGA
         NUGA::MeshTool::getBoundaryT3Mesh(data.connectM, data.neighbors, cB);
 
         std::vector<E_Int> nids;
-        K_FLD::FloatArray& crd = *data.pos;
-        NUGA::MeshTool::compact_to_mesh(crd, cB, nids);
+        K_FLD::FloatArray& crd1 = *data.pos;
+        NUGA::MeshTool::compact_to_mesh(crd1, cB, nids);
 
         std::vector<E_Int> PGi;
         // sort the nodes
         BARSplitter::getSortedNodes(cB, PGi);
 
         crd_res.resize(1);
-        E_Int str = crd.rows();
+        E_Int str = crd1.rows();
         crd_res[0].reserve(str, PGi.size());
  
         for (size_t j = 0; j < PGi.size(); ++j)
-          crd_res[0].pushBack(crd.col(PGi[j]), crd.col(PGi[j]) + str);
+          crd_res[0].pushBack(crd1.col(PGi[j]), crd1.col(PGi[j]) + str);
       }
 
       bits.reserve(crd_res.size());

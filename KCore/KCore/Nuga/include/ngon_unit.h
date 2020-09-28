@@ -116,7 +116,7 @@ class ngon_unit
         _dirty = true;
       }
 
-      E_Int sz0 = _facet.size();
+      E_Int sz0 = (E_Int)_facet.size();
       _NGON.resize(_NGON.size() + n*(strd+1), strd) ; _facet.resize(sz0 + n) ; 
       if (!_type.empty()) _type.resize(_type.size() + n) ;
       if (_ancEs.cols()!=0) _ancEs.resize(2, _ancEs.cols() + n);
@@ -126,7 +126,7 @@ class ngon_unit
 //        _facet[sz0 + i] = pos;
 
       _NGON[0] += n;
-      _NGON[1] = _NGON.size() - 2;
+      _NGON[1] = (E_Int)_NGON.size() - 2;
       // the following update has been added since the commented block above doesn't work in Basic element mode.
       _dirty=true;
       updateFacets();
@@ -143,8 +143,8 @@ class ngon_unit
       }
 
       E_Int sz_tot = (na * (astrd+1) + nb * (bstrd+1)) * nn;
-      E_Int sz0    = _facet.size();
-      E_Int ng_sz0 = _NGON.size();
+      E_Int sz0    = (E_Int)_facet.size();
+      E_Int ng_sz0 = (E_Int)_NGON.size();
 
       _NGON.resize(ng_sz0 + sz_tot); _facet.resize(sz0 + nn * (na + nb));
       

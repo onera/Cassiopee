@@ -45,7 +45,7 @@
 #include "Nuga/include/medit.hxx"
 #endif
 #ifdef FLAG_STEP
-#include "chrono.h"
+#include "Nuga/include/chrono.h"
 #endif
 
 #define STARTFACE 0
@@ -2075,7 +2075,7 @@ static E_Int discard_by_box(const K_FLD::FloatArray& coord, ngon_t& ngi, bool ho
   assert (ngi.PHs.size() < ngi.PGs.size()); //i.e. not one ph per pg beacuse we need at least a closed PH
 
 #ifdef FLAG_STEP
-  chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
   
@@ -2087,7 +2087,7 @@ static E_Int discard_by_box(const K_FLD::FloatArray& coord, ngon_t& ngi, bool ho
     return 0; //should be only the case where One of the mesh contains completely the other
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__discard_holes : extract_of_type : " << c.elapsed() << std::endl;
+  std::cout << "__discard_holes : extract_of_type : " << c.elapsed() << std::endl;
   c.start();
 #endif
     
@@ -2096,7 +2096,7 @@ static E_Int discard_by_box(const K_FLD::FloatArray& coord, ngon_t& ngi, bool ho
   K_MESH::Polygon::build_pg_neighborhood(pg_ext, neighbors);
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__discard_holes : build_pg_neighborhood : " << c.elapsed() << std::endl;
+  std::cout << "__discard_holes : build_pg_neighborhood : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -2110,7 +2110,7 @@ static E_Int discard_by_box(const K_FLD::FloatArray& coord, ngon_t& ngi, bool ho
   }
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__discard_holes : coloring : " << c.elapsed() << std::endl;
+  std::cout << "__discard_holes : coloring : " << c.elapsed() << std::endl;
   c.start();
 #endif
   
@@ -2940,7 +2940,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   ///
   template <typename TriangulatorType>
   static E_Int __reorient_skin
-(const K_FLD::FloatArray& coord, ngon_t& NGZ, const ngon_unit& pg_ext, const Vector_t<E_Int>& pg_ext_to_wPG, const ngon_unit& neighbors, Vector_t<E_Int>& orient)
+(const K_FLD::FloatArray& coord, const ngon_t& NGZ, const ngon_unit& pg_ext, const Vector_t<E_Int>& pg_ext_to_wPG, const ngon_unit& neighbors, Vector_t<E_Int>& orient)
 {
   E_Int refPG(IDX_NONE), ori(IDX_NONE);
   E_Int err = __set_ref_PGs_for_orient<TriangulatorType>(coord, NGZ, refPG,ori);
@@ -3014,7 +3014,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   
 ///
 template <typename TriangulatorType>
-static E_Int __set_ref_PGs_for_orient(const K_FLD::FloatArray& coord, ngon_t& ng, E_Int& PGref, E_Int& orient)
+static E_Int __set_ref_PGs_for_orient(const K_FLD::FloatArray& coord, const ngon_t& ng, E_Int& PGref, E_Int& orient)
 {
   E_Int err(0);
   K_FLD::ArrayAccessor<K_FLD::FloatArray> ac(coord);
@@ -3158,7 +3158,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
   has_been_reversed = false;
 
 #ifdef FLAG_STEP
-  chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
 
@@ -3171,7 +3171,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
     return 0;
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__reorient_skins : extract_of_type : " << c.elapsed() << std::endl;
+  std::cout << "__reorient_skins : extract_of_type : " << c.elapsed() << std::endl;
   c.start();
 #endif
 
@@ -3194,7 +3194,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
   K_MESH::Polygon::build_pg_neighborhood(pg_ext, neighbors);
   
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__reorient_skins : build_pg_neighborhood : " << c.elapsed() << std::endl;
+  std::cout << "__reorient_skins : build_pg_neighborhood : " << c.elapsed() << std::endl;
   std::cout << "reorient_skins : cut non-manifolds in graph..." << std::endl;
   c.start();
 #endif
@@ -3243,7 +3243,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
   }
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__reorient_skins : cut non-manifolds in graph : " << c.elapsed() << std::endl;
+  std::cout << "__reorient_skins : cut non-manifolds in graph : " << c.elapsed() << std::endl;
   std::cout << "reorient_skins : coloring..." << std::endl;
   c.start();
 #endif
@@ -3258,7 +3258,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
   }
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__reorient_skins : coloring : " << c.elapsed() << std::endl;
+  std::cout << "__reorient_skins : coloring : " << c.elapsed() << std::endl;
   std::cout << "NB CONNEX FOUND : " << nb_connex << std::endl;
   c.start();
 #endif
@@ -3284,7 +3284,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
       NGZ.keep_PHs_having_PGs(keep);
 
 #ifdef FLAG_STEP
-      if (chrono::verbose >1) std::cout << "__reorient_skins : prepare connex part number : " << z << " " << c.elapsed() << std::endl;
+      std::cout << "__reorient_skins : prepare connex part number : " << z << " " << c.elapsed() << std::endl;
       c.start();
 #endif
 
@@ -3304,7 +3304,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
       }
 
 #ifdef FLAG_STEP
-      if (chrono::verbose >1) std::cout << "__reorient_skins : __reorient_skin number : " << z << " " << c.elapsed() << std::endl;
+      std::cout << "__reorient_skins : __reorient_skin number : " << z << " " << c.elapsed() << std::endl;
       c.start();
 #endif
     }
@@ -3328,7 +3328,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
     }
 
 #ifdef FLAG_STEP
-    if (chrono::verbose >1) std::cout << "__reorient_skins : __reorient_skin : " << c.elapsed() << std::endl;
+    std::cout << "__reorient_skins : __reorient_skin : " << c.elapsed() << std::endl;
     c.start();
 #endif
   }
@@ -3347,7 +3347,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
   }
 
 #ifdef FLAG_STEP
-  if (chrono::verbose >1) std::cout << "__reorient_skins : apply orientation  : " << c.elapsed() << std::endl;
+  std::cout << "__reorient_skins : apply orientation  : " << c.elapsed() << std::endl;
 #endif
 
 #ifdef DEBUG_NGON_T

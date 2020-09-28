@@ -21,6 +21,8 @@
 #include "Nuga/include/collider.hxx"
 #include "Nuga/include/TRI_Conformizer.h"
 
+//#define DEBUG_CLIPPER
+
 #ifdef DEBUG_CLIPPER
 //#include "Nuga/include/NGON_debug.h"
 //using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
@@ -263,7 +265,7 @@ namespace NUGA
 
 #ifdef DEBUG_CLIPPER
       if (dbg)
-        medith::write("conformized.mesh", crd, cT3, "TRI", 0, &ancT3);
+        medith::write("conformized", crd, cT3, "TRI", 0, &ancT3);
 #endif
 
       // recompute normals or take ancestor is not doable

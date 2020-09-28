@@ -298,7 +298,7 @@ template <int TopoShape>
 double aPolyhedron<TopoShape>::extent() const
 {
   double v(0.);
-  volume<DELAUNAY::Triangulator>(v, false/*do not reorient*/);
+  volume<DELAUNAY::Triangulator>(v, true/*reorient*/);//fixme : avoid systematic reorient
   return ::fabs(v);
 }
 
