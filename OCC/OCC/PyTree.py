@@ -1,9 +1,6 @@
 # OCC pyTree
 try:
     import OCC as O
-    import numpy
-    import re
-    import KCore
     import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal

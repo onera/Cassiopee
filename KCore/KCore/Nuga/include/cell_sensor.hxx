@@ -75,8 +75,8 @@ void cell_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   adap_incr.cell_adap_incr = parent_t::_data;
 
   //std::cout << "cell adapt incr sz : " << adap_incr.cell_adap_incr.size() << std::endl;
-  E_Int minv = *std::min_element(ALL(adap_incr.cell_adap_incr));
-  E_Int maxv = *std::max_element(ALL(adap_incr.cell_adap_incr));
+  //E_Int minv = *std::min_element(ALL(adap_incr.cell_adap_incr));
+  //E_Int maxv = *std::max_element(ALL(adap_incr.cell_adap_incr));
   //std::cout << "cell adapt incr min/max : " << minv << "/" << maxv << std::endl;
 }
 

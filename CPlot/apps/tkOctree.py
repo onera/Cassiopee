@@ -273,7 +273,7 @@ def adaptInsideOctree():
         C._initVars(tp,'{centers:indicator}=({centers:cellN}<1.)*({centers:vol}>%20.16g)'%volmin)
         end = 1
         if C.getMaxValue(tp,'centers:indicator') == 1.: end = 0
-        for noz in xrange(len(tp[2][1][2])):
+        for noz in range(len(tp[2][1][2])):
             tp[2][1][2][noz] = G.adaptOctree(tp[2][1][2][noz],'centers:indicator', balancing=1)
         count += 1
     
@@ -333,7 +333,7 @@ def hexaOctree():
         if (dim[4] == 2 or dim[4] == 1): surfs.append(z) # surfaces ou courbes
 
     if len(snears) == 1 :
-        snears = [snears[0] for x in xrange(len(surfs))]
+        snears = [snears[0] for x in range(len(surfs))]
     elif len(snears) != len(surfs):
         CTK.TXT.insert('START', 'snear is invalid.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')

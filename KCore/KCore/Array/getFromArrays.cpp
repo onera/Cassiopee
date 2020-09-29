@@ -245,7 +245,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   E_Int n = PyList_Size(o);
   
   // Dim varString common
-  E_Int size = 0;
+  E_Int size = 1;
   E_Int nvertex, nelt, sizeConnect;
   for (int i = 0; i < n; i++)
   {

@@ -76,7 +76,7 @@ while 1 != 2:
     #print '>>',a, len(streams)
     l = len(streams)
     if l < 4: s = gunshot(); streams.append(s); l += 1
-    for i in xrange(l):
+    for i in range(l):
         j = l-i-1
         if streams[j].is_active() == False: 
             streams[j].close()

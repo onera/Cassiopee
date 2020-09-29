@@ -290,7 +290,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     }
     oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
 
-    if (oki < 1)
+    if (oki < 1) 
     {
       if (oki == -1)
       {
@@ -407,7 +407,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
           donorCf[sizecf] = cf[0];
           sizecf += 1;
           donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
-          sizeOfIndDonor1DForBlk++; 
+          sizeOfIndDonor1DForBlk++;
           break;
 
         case 2:          

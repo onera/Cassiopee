@@ -4462,7 +4462,7 @@ def _mergeEltsTPerType(t):
         rmin = 1; rmax= -1
         newElts_t=[]; etype = -1
    
-        while ( rmin < rmaxall):
+        while rmin < rmaxall:
             name1 = -1; name2 = -1
             #start
             for name in rangeMinT:

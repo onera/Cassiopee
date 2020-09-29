@@ -16,7 +16,7 @@ def convertCAD2Arrays(fileName, format='fmt_iges',
     if algo == 0: # pure OCC
         if chordal_err == 0.: chordal_err = 1.
         a = occ.convertCAD2Arrays0(fileName, format, "None", "None", chordal_err)
-        try: import Generator; a = G.close(a)
+        try: import Generator; a = Generator.close(a)
         except: pass
         return a
     elif algo == 1: # OCC+T3Mesher
