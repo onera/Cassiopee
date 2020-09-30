@@ -103,8 +103,7 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
   // Build array here
   if (res == 1)
   {
-    tpl = K_ARRAY::buildArray(nt, fstring, 
-                              nil, njl, nkl);
+    tpl = K_ARRAY::buildArray(nt, fstring, nil, njl, nkl);
   }
   else
   {

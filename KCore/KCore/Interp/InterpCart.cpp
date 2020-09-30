@@ -30,7 +30,14 @@ K_INTERP::InterpCart::~InterpCart()
 }
 
 //=============================================================================
-/* Constructor */
+/* Constructor 
+  IN: ni,nj,nk: nbre de pts de la grille cartesienne reguliere
+  IN: hi,hj,hk: le pas dans chaque direction
+  IN: x0,y0,z0: les coords du premier point
+  IN: ioff,joff,koff: par defaut 0
+  Si la grille est une grille cartesienne reguliere avec 2 ghost cells de chaque
+  cote, il faut mettre ioff=2, ni au nbre de pts-2, x0 a x[2] et hi a x[3]-x[2].
+  */
 //=============================================================================
 K_INTERP::InterpCart::InterpCart(E_Int ni, E_Int nj, E_Int nk,
                                  E_Float hi, E_Float hj, E_Float hk,
@@ -47,9 +54,9 @@ K_INTERP::InterpCart::InterpCart(E_Int ni, E_Int nj, E_Int nk,
   _his2 = 0.5*hi;
   _hjs2 = 0.5*hj;
   _hks2 = 0.5*hk;
-  _xmax = _xmin+(_ni-1)*_hi;
-  _ymax = _ymin+(_nj-1)*_hj;
-  _zmax = _zmin+(_nk-1)*_hk;
+  _xmax = _xmin+(_ni-1-ioff)*_hi;
+  _ymax = _ymin+(_nj-1-joff)*_hj;
+  _zmax = _zmin+(_nk-1-koff)*_hk;
   _ioff = ioff+1; // offset si decalage de la grille (ghostcells)
   _joff = joff+1;
   _koff = koff+1;
@@ -71,13 +78,13 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_
   if (z < _zmin-EPS) return 0;
   if (z > _zmax+EPS) return 0;
 
-  ic = E_Int((x-_xmin)*_hii)+1;
-  jc = E_Int((y-_ymin)*_hji)+1;
-  kc = E_Int((z-_zmin)*_hki)+1;
+  ic = E_Int((x-_xmin)*_hii)+_ioff;
+  jc = E_Int((y-_ymin)*_hji)+_ioff;
+  kc = E_Int((z-_zmin)*_hki)+_ioff;
 
   ic = std::min(ic,ni-1); ic = std::max(ic,1); 
   jc = std::min(jc,nj-1); jc = std::max(jc,1); 
-  kc = std::min(kc,nk-1); kc = std::max(kc,1); 
+  kc = std::min(kc,nk-1); kc = std::max(kc,1);
         
   E_Float* cfp = cf.begin();
   
@@ -135,9 +142,9 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_
   if (y > _ymax+EPS) return 0;
   if (z < _zmin-EPS) return 0;
   if (z > _zmax+EPS) return 0;
-  ic = E_Int((x-_xmin)*_hii)+1;
-  jc = E_Int((y-_ymin)*_hji)+1;
-  kc = E_Int((z-_zmin)*_hki)+1;
+  ic = E_Int((x-_xmin)*_hii)+_ioff;
+  jc = E_Int((y-_ymin)*_hji)+_joff;
+  kc = E_Int((z-_zmin)*_hki)+_koff;
   ic = std::max(ic,1); ic = std::min(ic,ni-1);
   jc = std::max(jc,1); jc = std::min(jc,nj-1);
   kc = std::max(kc,1); kc = std::min(kc,nk-1);
@@ -340,13 +347,13 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
   E_Float y0 = y-dy; E_Float y1 = y+dy;
   E_Float z0 = z-dz; E_Float z1 = z+dz;
 
-  E_Int icmin = E_Int((x0-_xmin)*_hii)+1;
-  E_Int jcmin = E_Int((y0-_ymin)*_hji)+1;
-  E_Int kcmin = E_Int((z0-_zmin)*_hki)+1;
+  E_Int icmin = E_Int((x0-_xmin)*_hii)+_ioff;
+  E_Int jcmin = E_Int((y0-_ymin)*_hji)+_joff;
+  E_Int kcmin = E_Int((z0-_zmin)*_hki)+_koff;
 
-  E_Int icmax = E_Int((x1-_xmin)*_hii)+1;
-  E_Int jcmax = E_Int((y1-_ymin)*_hji)+1;
-  E_Int kcmax = E_Int((z1-_zmin)*_hki)+1;
+  E_Int icmax = E_Int((x1-_xmin)*_hii)+_ioff;
+  E_Int jcmax = E_Int((y1-_ymin)*_hji)+_joff;
+  E_Int kcmax = E_Int((z1-_zmin)*_hki)+_koff;
 
   if (icmin < 1 && icmax < 1) return 0;
   if (jcmin < 1 && jcmax < 1) return 0;

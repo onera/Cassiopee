@@ -5563,7 +5563,7 @@ def _patchArrayForCenter2NodeNK1__(fields, a):
       ni = dim[1]; nj = dim[2]; nk = dim[3]
       fp = f[1]
       nfld = fp.shape[0]; s = fp.shape[1]
-      if (dim[0] == 'Structured' and nk == 2 and s == ni*nj):
+      if dim[0] == 'Structured' and nk == 2 and s == ni*nj:
         b = numpy.empty( (nfld, ni*nj*2) )
         b[:,0:ni*nj] = fp[:,0:ni*nj]
         b[:,ni*nj:2*ni*nj] = fp[:,0:ni*nj]
@@ -5656,7 +5656,7 @@ def center2Node(t, var=None, cellNType=0):
         var2 = vars[:]
         for v in vars:
           variable = v.split(':')
-          if (len(variable) == 2 and variable[0] == 'centers'):
+          if len(variable) == 2 and variable[0] == 'centers':
             var2.append(variable[1])
         a = Internal.rmGhostCells(a, a, 1, modified=var2)
       return a

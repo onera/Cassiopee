@@ -277,7 +277,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   E_Int sizevars;
 
   // dimensionnement varString
-  E_Int varStringL = 0;
+  E_Int varStringL = 1;
   for (int l = 0; l < n; l++)
   {
     array = PyList_GetItem(arrays, l);
@@ -285,7 +285,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
     if (PyString_Check(tpl)) varString = PyString_AsString(tpl);
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(tpl)) varString = (char*)PyUnicode_AsUTF8(tpl);
-#endif
+#endif    
     varStringL += strlen(varString)+4;
   }
   char* fstring = new char [varStringL];  // var string du array de sortie

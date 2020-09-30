@@ -196,8 +196,8 @@ def _addGhostCellsNGON__(zp, bp, d, isghost, stdNode, modified):
 # and FlowSolution#Centers
 # IN: z: les zones doivent avoir des dimensions en noeuds avec ghost cells
 # IN: modified: si [], modifie GridCoordinates+FlowSolution+FlowSolution#Centers
-# adaptBCs = 0: BC non modifiees par addGC
-#          = 1: ranges des BC phys + BCMatch + BCOverlap modifies par addGC
+# adaptBCs=0: BC non modifiees par addGC
+#         =1: ranges des BC phys + BCMatch + BCOverlap modifies par addGC
 # Return a new zone
 #==============================================================================
 def rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
@@ -241,11 +241,11 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
             # check dimensions
             dim_zone = dim[4]
             if dim_zone == 3:
-                if (im <= 0) or (jm <= 0) or (km <= 0):
+                if im <= 0 or jm <= 0 or km <= 0:
                     print("Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d)
                     return b
             elif dim_zone == 2:
-                if (im <= 0) or (jm <= 0):
+                if im <= 0 or jm <= 0:
                     print("Warning: rmGhostCells: cannot to remove %d ghost cells. Try less."%d)
                     return b
             else:

@@ -29,7 +29,7 @@ using namespace K_FLD;
 
 //=============================================================================
 /* Recherche les donnees d interpolation et calcule les formules d interpolation
-   directement pour une liste de points a partir d une zone donnee 
+   directement pour une liste de points a partir d'une zone donnee 
    Similaire a un extractMesh
    PENALISATION DU VOLUME DONNEUR : 
    INTERPOLATION DEPUIS UN BORD : vol += 1e3
@@ -238,9 +238,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     E_Float hi = xt[1]-xt[0];
     E_Float hj = yt[imd]-yt[0];
     E_Float hk;
-
-    // Cas 2D
-    if (kmd == 1) hk = 1;
+    if (kmd == 1) hk = 1; // Cas 2d
     else hk = zt[imd*jmd]-zt[0];
     interpData = new K_INTERP::InterpCart(imd,jmd,kmd,hi,hj,hk,x0,y0,z0);
   }
