@@ -375,7 +375,7 @@ Graphs
     - If type='IBCD' (S/LS/P), a zone is connected to another if they have IBC data between them. A can be a skeleton, a loaded skeleton or a partial tree.
     - If type='ALLD' (S/LS/P), a zone is connected to another if they have Interpolation or IBC data between them. A can be a skeleton, a loaded skeleton or a partial tree.
     - If type='proc', a zone is attributed to another proc than the one it is loaded on. A can be a skeleton, a loaded skeleton tree or a partial tree.
-
+    - If type='POST', t defines the donor tree, where the interpolation data is stored and t2 the receptor tree, as they do not define the same zones. Requires procDict and procDict2
 
     :param t: input data
     :type t: [pyTree, base, zone, list of zones]

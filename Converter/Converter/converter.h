@@ -29,6 +29,9 @@ namespace K_CONVERTER
   PyObject* setPartialFields(PyObject* self, PyObject* args);
   PyObject* _setPartialFields(PyObject* self, PyObject* args);
   PyObject* setPartialFieldsPT(PyObject* self, PyObject* args);
+  PyObject* updatePartialFields(PyObject* self, PyObject* args);
+  PyObject* _updatePartialFields(PyObject* self, PyObject* args);
+  PyObject* updatePartialFieldsPT(PyObject* self, PyObject* args);
   PyObject* _setPartialFieldsAverage(PyObject* self, PyObject* args);
   PyObject* filterPartialFields(PyObject* self, PyObject* args);
   PyObject* extractVars(PyObject* self, PyObject* args);

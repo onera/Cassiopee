@@ -1456,6 +1456,22 @@ def _setPartialFields1(t, listFields, listIndices, loc='nodes', startFrom=0):
                                           startFrom)
   return None
 
+def _updatePartialFields(t, arrays, listIndices, loc='nodes',startFrom=0):
+  if loc == 'nodes': locI = 0
+  else: locI = 1
+
+  nodes = Internal.getZones(t)
+  nzones = len(nodes)
+  for c in range(nzones):
+    a = arrays[c]; indices = listIndices[c]
+    z = nodes[c] # zone
+    Converter.converter.updatePartialFieldsPT(z, a, indices, locI,
+                                           Internal.__GridCoordinates__,
+                                           Internal.__FlowSolutionNodes__,
+                                           Internal.__FlowSolutionCenters__,
+                                           startFrom)
+  return None
+
 # -- setFields
 # Set fields a partir de n'importe quel noeud de l'arbre et
 # d'une liste d'arrays dans les conteneurs standards:
@@ -3957,7 +3973,77 @@ def recoverBCs(a, T, tol=1.e-11):
   _recoverBCs(tp, T, tol)
   return tp
 
-def _recoverBCs(a, T, tol=1.e-11):
+def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True):
+  if removeBC: return _recoverBCs1(t, BCInfo, tol)
+  else: return _recoverBCs2(t, BCInfo, tol)
+
+def _recoverBCs2(t, BCInfo, tol):
+  try: import Post.PyTree as P
+  except: raise ImportError("_recoverBCs: requires Post module.")
+  try: import Transform.PyTree as T
+  except: raise ImportError("_recoverBCs: requires Transform module.")
+  for z in Internal.getZones(t):
+      indicesF = []
+      zf = P.exteriorFaces(z, indices=indicesF)
+      indicesF = indicesF[0]
+      
+      # BC classique
+      bnds = Internal.getNodesFromType2(z, 'BC_t')
+      # BC Match
+      bnds += Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+      # BC Overlap/NearMatch/NoMatch
+      bnds += Internal.getNodesFromType2(z, 'GridConnectivity_t')
+      indicesBC = []
+      for b in bnds:
+          f = Internal.getNodeFromName1(b, 'PointList')
+          indicesBC.append(f[1])
+
+      undefBC = False
+      if indicesBC != []:
+          indicesBC = numpy.concatenate(indicesBC, axis=1)
+          nfacesExt = indicesF.shape[0]
+          nfacesDef = indicesBC.shape[1]
+          if nfacesExt < nfacesDef:
+              print('Warning: zone %s: number of faces defined by BCs is greater than the number of external faces. Try to reduce the matching tolerance.'%(z[0]))
+          elif nfacesExt > nfacesDef:
+              indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
+              undefBC = True
+      else:
+          undefBC = True
+          indicesE = indicesF
+      if undefBC:
+          zf = T.subzone(z, indicesE, type='faces')
+          hook = createHook(zf, 'elementCenters')
+          for c in range(len(BCs)):
+              b = BCs[c]                      
+              if b == []: raise ValueError("_recoverBCs: boundary is probably ill-defined.")
+              if G.bboxIntersection(zf,b):
+                  # Break BC connectivity si necessaire
+                  elts = Internal.getElementNodes(b)
+                  size = 0
+                  for e in elts:
+                      erange = Internal.getNodeFromName1(e, 'ElementRange')[1]
+                      size += erange[1]-erange[0]+1
+                  n = len(elts)
+                  if n == 1:
+                      ids = identifyElements(hook, b, tol)
+                  else:
+                      bb = breakConnectivity(b)
+                      ids = numpy.array([], dtype=numpy.int32)
+                      for bc in bb:
+                          ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
+
+                  # Cree les BCs
+                  ids = ids[ids > -1]
+                  sizebc = ids.size
+                  if sizebc > 0:
+                      id2 = numpy.empty(sizebc, numpy.int32)
+                      id2[:] = indicesE[ids[:]-1]
+                      _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
+          freeHook(hook)
+  return None
+
+def _recoverBCs1(a, T, tol=1.e-11):
   """Recover given BCs on a tree.
   Usage: _recoverBCs(a, (BCs, BCNames, BCTypes), tol)"""
   try:import Post.PyTree as P
@@ -4803,8 +4889,9 @@ def getBCs(t, reorder=True):
       name = n[0]; typeBC = Internal.getValue(n)
       if typeBC == 'FamilySpecified':
         fname = Internal.getNodeFromType1(n,'FamilyName_t')
-        fname = Internal.getValue(fname)
-        typeBC = 'FamilySpecified:%s'%fname
+        if fname is not None:
+          fname = Internal.getValue(fname)
+          typeBC = 'FamilySpecified:%s'%fname
       zBC = extractBCOfName(z, name, reorder)
       if zBC == []:
         name2 = name.split(':')

@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 // Computes MLS coefficients for the projection of IBM solution on a triangulated surface
 
 # include "connector.h"
@@ -26,7 +25,7 @@
 using namespace K_FLD;
 using namespace std;
 
-#define CLOUDMAX 400
+#define CLOUDMAX 200
 
 // ============================================================================
 /*  IN: nuage de points donneur defini par une zone NODE
@@ -36,9 +35,16 @@ using namespace std;
 PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
 {
   E_Int dimPb, order;
-  PyObject *arrayR, *arrayD;
-  if (!PYPARSETUPLEI(args, "OOll", "OOii", &arrayD, &arrayR, &dimPb, &order))
+  PyObject *arrayR, *arraysD;
+  if (!PYPARSETUPLEI(args, "OOll", "OOii", &arraysD, &arrayR, &dimPb, &order))
     return NULL;
+  
+  if (PyList_Check(arraysD) == 0)
+  {
+    PyErr_SetString(PyExc_TypeError, 
+                    "setInterpDataIBMWall: 1st argument must be a list of arrays.");
+    return NULL;
+  }
   /*-----------------------------------------------*/
   /* Extraction des infos sur le domaine recepteur */
   /*-----------------------------------------------*/
@@ -46,15 +52,16 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
   E_Int resr = K_ARRAY::getFromArray(arrayR, varStringr, fr,
-                                      imr, jmr, kmr, cnr, eltTyper);
+                                      imr, jmr, kmr, cnr, eltTyper, true);
   if (resr != 2)
   {
+    if (resr == 1) RELEASESHAREDS(arrayR, fr);
     PyErr_SetString(PyExc_TypeError,
                     "setInterpData_IBMWall: invalid receptor zone.");
     return NULL;
   }
 
-  if (K_STRING::cmp(eltTyper, "TRI") != 0 && K_STRING::cmp(eltTyper, "BAR") != 0)
+  if (K_STRING::cmp(eltTyper, "TRI") != 0)//&& K_STRING::cmp(eltTyper, "BAR") != 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setInterpData_IBMWall: unstructured receptor zone must be TRI or BAR.");
@@ -66,6 +73,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   E_Int poszr = K_ARRAY::isCoordinateZPresent(varStringr);
   if (posxr == -1 || posyr == -1 || poszr == -1)
   {
+    RELEASESHAREDU(arrayR, fr, cnr);
     PyErr_SetString(PyExc_TypeError,
                     "setInterpData_IBMWall: coordinates not found in receptor zone.");
     return NULL;
@@ -75,297 +83,335 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   /*------------------------------------------------*/
   /* Extraction des infos sur les domaines donneurs */
   /*------------------------------------------------*/
-  E_Int imd, jmd, kmd;
-  FldArrayF* fd; FldArrayI* cnd;
-  char* varStringd; char* eltTyped;
-  K_ARRAY::getFromArray(arrayD, varStringd, fd,
-                        imd, jmd, kmd, cnd, eltTyped);
-
-  E_Int posxd = K_ARRAY::isCoordinateXPresent(varStringd);
-  E_Int posyd = K_ARRAY::isCoordinateYPresent(varStringd);
-  E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringd);
-  if (posxd == -1 || posyd == -1 || poszd == -1)
+  E_Int nzonesD = PyList_Size(arraysD);
+  vector<FldArrayF*> vectOfDnrZones;
+  vector<FldArrayI*> vectOfDnrConnects;
+  vector<E_Int> posxtd; vector<E_Int> posytd; vector<E_Int> posztd;
+  E_Int nptsTotD = 0;
+  for (E_Int i = 0; i < nzonesD; i++)
   {
-    PyErr_SetString(PyExc_TypeError,
-                    "setInterpData_IBMWall: coordinates not found in donor zone.");
-    return NULL;
+    E_Int imd, jmd, kmd;
+    FldArrayF* fd; FldArrayI* cnd;
+    char* varStringd; char* eltTyped;
+    PyObject* arrayD = PyList_GetItem(arraysD, i);
+    E_Int ret = K_ARRAY::getFromArray(arrayD, varStringd, fd,
+                                      imd, jmd, kmd, cnd, eltTyped, true);
+    if (ret == 2 )
+    {
+      E_Int posxd = K_ARRAY::isCoordinateXPresent(varStringd);
+      E_Int posyd = K_ARRAY::isCoordinateYPresent(varStringd);
+      E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringd);
+      posxd++; posyd++; poszd++;      
+      posxtd.push_back(posxd); posytd.push_back(posyd); posztd.push_back(poszd);
+      vectOfDnrZones.push_back(fd); vectOfDnrConnects.push_back(cnd);      
+    }
+    nptsTotD += fd->getSize();
   }
-  posxd++; posyd++; poszd++;
+  /* End of checks and extractions */
 
-  const E_Int sizeBasis = K_FUNC::fact(dimPb+order-1)*1./(K_FUNC::fact(dimPb)*K_FUNC::fact(order-1));
-
-  //1. Determination du(des) triangles contenant le point dnr
   E_Float* xtRcv = fr->begin(posxr);
   E_Float* ytRcv = fr->begin(posyr);
   E_Float* ztRcv = fr->begin(poszr);
 
-  // Creation du kdtree des points de la triangulation
+  // Creation of the kdtree of vertices of the tesselation 
   ArrayAccessor<FldArrayF>* coordAcc = new ArrayAccessor<FldArrayF>(*fr, posxr, posyr, poszr);
   K_SEARCH::KdTree<FldArrayF>* kdt = new K_SEARCH::KdTree<FldArrayF>(*coordAcc);
-
-  // Creation du bboxtree
   E_Int nbEltsR = cnr->getSize();
   E_Int nbPtsR = fr->getSize();
 
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType;
-  vector<BBox3DType*> boxes(nbEltsR);// liste des bbox de ts les elements de a2
-  K_FLD::FldArrayF bbox(nbEltsR,6);// xmin, ymin, zmin, xmax, ymax, zmax
-  K_COMPGEOM::boundingBoxOfUnstrCells(*cnr, xtRcv, ytRcv, ztRcv, bbox);
-  E_Float minB[3];  E_Float maxB[3];
-  E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
-  E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
-  E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
-  for (E_Int et = 0; et < nbEltsR; et++)
-  {
-    minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-    maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et];
-    boxes[et] = new BBox3DType(minB, maxB);
-  }
-  // Build the box tree.
-  K_SEARCH::BbTree3D bbtree(boxes);
   //projection des points de fd(nuage) sur fr(TRI)
   E_Float xo, yo, zo, rx, ry, rz, rad;
   E_Float pt[3];
   E_Int indev, indR;
-  vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
-  E_Int nbPtsD = fd->getSize();
-
   vector < vector<E_Int> > cveR(nbPtsR);//connectivite vertex/elts
   K_CONNECT::connectEV2VE(*cnr, cveR);
-
-  vector< vector<E_Int> > listOfCloudPtsPerTri(nbEltsR);
-
-  FldArrayI matching(nbPtsR); matching.setAllValuesAt(-1);
-  E_Int* matchingP = matching.begin();
-  E_Float* xtDnr = fd->begin(posxd);
-  E_Float* ytDnr = fd->begin(posyd);
-  E_Float* ztDnr = fd->begin(poszd);
-
-  for (E_Int indD = 0; indD < nbPtsD; indD++)
+  vector< vector<E_Int> > listOfDnrIndPerTri(nbEltsR);
+  vector< vector<E_Int> > listOfDnrNoZPerTri(nbEltsR);
+  nzonesD = vectOfDnrZones.size();
+  E_Float rad2;
+  E_Int* cn1 = cnr->begin(1);
+  E_Int* cn2 = cnr->begin(2);
+  if ( strcmp(eltTyper,"TRI") == 0)
   {
-    // printf(" indD %d \n", indD);
+    E_Int* cn3 = cnr->begin(3);
 
-    // recherche du pt le plus proche P' de P
-    pt[0] = xtDnr[indD]; pt[1] = ytDnr[indD]; pt[2] = ztDnr[indD];
-    indR = kdt->getClosest(pt);
-    // printf(" indR %d \n", indR);
-
-    // calcul de la bounding box de la sphere de rayon PP'
-    rx = pt[0]-xtRcv[indR]; ry = pt[1]-ytRcv[indR]; rz = pt[2]-ztRcv[indR];
-    rad = sqrt(rx*rx+ry*ry+rz*rz);
-    if (rad < K_CONST::E_GEOM_CUTOFF) //matching
-    {matchingP[indR] = indD;}
-      
-    else //projection 
+    for (E_Int nozd = 0; nozd < nzonesD; nozd++)
     {
-      minB[0] = pt[0]-rad; minB[1] = pt[1]-rad; minB[2] = pt[2]-rad;
-      maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
-      bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
-      indev = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2],
-                                              xtRcv, ytRcv, ztRcv, indicesBB, *cnr, xo, yo, zo);
-      indicesBB.clear();
-      if (indev != -1)
+      E_Int nptsD = vectOfDnrZones[nozd]->getSize();
+      E_Float* xtDnr = vectOfDnrZones[nozd]->begin(posxtd[nozd]);
+      E_Float* ytDnr = vectOfDnrZones[nozd]->begin(posytd[nozd]);
+      E_Float* ztDnr = vectOfDnrZones[nozd]->begin(posztd[nozd]);
+      for (E_Int indD = 0; indD < nptsD; indD++)
       {
-        // E_Float dist = (xo-pt[0])*(xo-pt[0])+(yo-pt[1])*(yo-pt[1])+(zo-pt[2])*(zo-pt[2]);
-        // // if ( K_FUNC::E_abs(xtRcv[indev]-0.750889)< 1.e-4 && K_FUNC::E_abs(ytRcv[indR]-0.0305362)<1.e-4) 
-        // printf("Pt dans le nuage : %g %g %g | projete %g %g %g , size = %d | dist = %g \n", pt[0], pt[1], pt[2], xo,yo,zo,
-        //        listOfCloudPtsPerTri[indev].size(), dist);
-        listOfCloudPtsPerTri[indev].push_back(indD);
+        pt[0] = xtDnr[indD]; pt[1] = ytDnr[indD]; pt[2] = ztDnr[indD];
+        indR = kdt->getClosest(pt, rad2);
+
+        // search for the max length of the triangles containing indR 
+        vector<E_Int>& eltsVoisins = cveR[indR];
+        E_Float projTol2 = 0.;
+        for (E_Int noetv = 0; noetv < eltsVoisins.size(); noetv++)
+        {
+          E_Int etv = eltsVoisins[noetv];
+          E_Int ind1 = cn1[etv]-1; E_Int ind2 = cn2[etv]-1; E_Int ind3 = cn3[etv]-1;
+          E_Float lx = xtRcv[ind1]-xtRcv[ind2];
+          E_Float ly = ytRcv[ind1]-ytRcv[ind2];
+          E_Float lz = ztRcv[ind1]-ztRcv[ind2];
+          E_Float d2 = lx*lx+ly*ly+lz*lz;
+          lx = xtRcv[ind3]-xtRcv[ind2];
+          ly = ytRcv[ind3]-ytRcv[ind2];
+          lz = ztRcv[ind3]-ztRcv[ind2];
+          d2 = max(d2, lx*lx+ly*ly+lz*lz);
+          lx = xtRcv[ind3]-xtRcv[ind1];
+          ly = ytRcv[ind3]-ytRcv[ind1];
+          lz = ztRcv[ind3]-ztRcv[ind1];
+          d2 = max(d2, lx*lx+ly*ly+lz*lz);        
+          projTol2 = max(d2,projTol2);
+        }
+
+        // test if the cloud point is on a triangle to which the closest vertex belongs
+        // printf(" ind = %d, rad2 = %g %g \n", indD, rad2, projTol2);
+        if (rad2 < projTol2)
+        {
+          listOfDnrIndPerTri[indR].push_back(indD);
+          listOfDnrNoZPerTri[indR].push_back(nozd);
+        }
       }
-      else printf(" indev = %d\n", indev);
+    }
+  }
+  else // receptor is a BAR
+  {
+    for (E_Int nozd = 0; nozd < nzonesD; nozd++)
+    {
+      E_Int nptsD = vectOfDnrZones[nozd]->getSize();
+      E_Float* xtDnr = vectOfDnrZones[nozd]->begin(posxtd[nozd]);
+      E_Float* ytDnr = vectOfDnrZones[nozd]->begin(posytd[nozd]);
+      E_Float* ztDnr = vectOfDnrZones[nozd]->begin(posztd[nozd]);
+      for (E_Int indD = 0; indD < nptsD; indD++)
+      {
+        pt[0] = xtDnr[indD]; pt[1] = ytDnr[indD]; pt[2] = ztDnr[indD];
+        indR = kdt->getClosest(pt, rad2);
+
+        // search for the max length of the triangles containing indR 
+        vector<E_Int>& eltsVoisins = cveR[indR];
+        E_Float projTol2 = 0.;
+        for (E_Int noetv = 0; noetv < eltsVoisins.size(); noetv++)
+        {
+          E_Int etv = eltsVoisins[noetv];
+          E_Int ind1 = cn1[etv]-1; E_Int ind2 = cn2[etv]-1; 
+          E_Float lx = xtRcv[ind1]-xtRcv[ind2];
+          E_Float ly = ytRcv[ind1]-ytRcv[ind2];
+          E_Float lz = ztRcv[ind1]-ztRcv[ind2];
+          E_Float d2 = lx*lx+ly*ly+lz*lz;
+          projTol2 = max(d2,projTol2);
+        }
+
+        // test if the cloud point is on a triangle to which the closest vertex belongs
+        // printf(" ind = %d, rad2 = %g %g \n", indD, rad2, projTol2);
+        if (rad2 < projTol2)
+        {
+          listOfDnrIndPerTri[indR].push_back(indD);
+          listOfDnrNoZPerTri[indR].push_back(nozd);
+        }
+      }
     }
   }
   // cleanings
   delete kdt; delete coordAcc;
-  E_Int size = boxes.size();
-  for (E_Int v = 0; v < size; v++) delete boxes[v];
-    
+
+  /* MLS interpolation data for each vertex indR*/
+  const E_Int sizeBasis = K_FUNC::fact(dimPb+order-1)*1./(K_FUNC::fact(dimPb)*K_FUNC::fact(order-1));  
+  // printf(" MLS interpolation of order %d: minimum number of cloud points = %d\n", order, sizeBasis+1);
+
   E_Int sizeMinOfCloud = sizeBasis+1;
-  vector< vector<E_Int> > cEEN(nbEltsR);
-  K_CONNECT::connectEV2EENbrs(eltTyper, nbPtsR, *cnr, cEEN); 
+  // vector< vector<E_Int> > cEEN(nbEltsR);
+  // K_CONNECT::connectEV2EENbrs(eltTyper, nbPtsR, *cnr, cEEN); 
 
   E_Int axisConst[3]; // =1 si l'axe est une direction constante, 0 sinon
-  axisConst[0] = axisConst[1] = axisConst[2] = 0;
-  if (dimPb == 2) axisConst[2] = 1;// pas de z
   E_Float radius[3]; // longueurs des axes de l'ellipse
-  radius[0] = radius[1] = radius[2] = 1.;
   E_Float axis[9];  // Axes de l'ellipse
-  axis[0] = 1.; axis[1] = 0.; axis[2] = 0.;
-  axis[3] = 0.; axis[4] = 1.; axis[5] = 0.;
-  axis[6] = 0.; axis[7] = 0.; axis[8] = 1.;
-  
-  FldArrayI* indicesR = new FldArrayI(nbPtsR); indicesR->setAllValuesAtNull();
-  FldArrayI* indicesD = new FldArrayI(nbPtsR*(CLOUDMAX+1)); indicesD->setAllValuesAt(-1);
-  FldArrayI* itypes   = new FldArrayI(nbPtsR); itypes->setAllValuesAtNull();
-  FldArrayF* icoefs   = new FldArrayF(nbPtsR*CLOUDMAX); icoefs->setAllValuesAtNull();
-  E_Int*   ptrIndicesD = indicesD->begin();
-  E_Float* ptrCoefs = icoefs->begin();
-  E_Int* ptrIndicesR = indicesR->begin();  
-  E_Int sizeIndDnr=0; E_Int sizeCf=0;
 
-  vector<E_Int> indicesExtrap;
-  E_Int noindR=0;
+  vector<FldArrayF*> listOfInterpCoefs;
+  vector<FldArrayI*> listOfDnrIndices;
+  vector<FldArrayI*> listOfRcvIndices;
+  vector<FldArrayI*> listOfDnrTypes;
+  vector<E_Int> posPtrDnrIndices(nzonesD);
+  vector<E_Int> posPtrCoefs(nzonesD);
+  vector<E_Int> posPtrRcvIndices(nzonesD);
+
+  for (E_Int nozd = 0; nozd < nzonesD; nozd++)
+  {
+    FldArrayI* indicesR = new FldArrayI(nbPtsR); indicesR->setAllValuesAtNull();
+    listOfRcvIndices.push_back(indicesR);
+
+    FldArrayI* indicesD = new FldArrayI(nbPtsR*(CLOUDMAX+1)); indicesD->setAllValuesAt(-1);
+    listOfDnrIndices.push_back(indicesD);
+
+    FldArrayI* itypes   = new FldArrayI(nbPtsR); itypes->setAllValuesAtNull();
+    listOfDnrTypes.push_back(itypes);
+
+    FldArrayF* icoefs   = new FldArrayF(nbPtsR*CLOUDMAX); icoefs->setAllValuesAtNull();
+    listOfInterpCoefs.push_back(icoefs);
+
+    posPtrDnrIndices[nozd]=0;
+    posPtrCoefs[nozd]=0;
+    posPtrRcvIndices[nozd] = 0;
+  }
+  
   for (E_Int indR = 0; indR < nbPtsR; indR++)
   {
-    E_Int indD = matchingP[indR];
+    pt[0] = xtRcv[indR]; pt[1] = ytRcv[indR]; pt[2] = ztRcv[indR];
+    vector<E_Int>& dnrIndices = listOfDnrIndPerTri[indR];
+    vector<E_Int>& dnrNoZ = listOfDnrNoZPerTri[indR];
+    E_Int sizeOfCloud = dnrIndices.size();
+    E_Int isExtrap = 0;
+    FldArrayF cfLoc(sizeOfCloud);   
+    vector<E_Int> listOfCloudPtsPerVertex(sizeOfCloud); 
 
-    if (indD>-1) // matching
+    if (sizeOfCloud == 0)
     {
-      ptrIndicesD[sizeIndDnr] = 1;    sizeIndDnr++;
-      ptrIndicesD[sizeIndDnr] = indD; sizeIndDnr++;
-      ptrCoefs[sizeCf]=1.; sizeCf++;
-      ptrIndicesR[noindR]=indR; noindR++;
+      printf(" No valid point cloud found for vertex %d \n", indR);
     }
-    else // non matching: interpolation, then extrapolation
+    else if (sizeOfCloud < sizeMinOfCloud)
     {
-      vector<E_Int>& eltsVoisins = cveR[indR];
-      // create the cloud of donor points
-      vector<E_Int> listOfCloudPtsPerVertex;
-      for (size_t noe = 0; noe < eltsVoisins.size(); noe++)
+      isExtrap = 1;
+      printf("Extrap 1 \n");      
+
+      for (E_Int noind = 0; noind < sizeOfCloud; noind++)
       {
-        E_Int indEltR = eltsVoisins[noe];// index of one elt with indR as vertex
-        vector<E_Int>& projectedPts = listOfCloudPtsPerTri[indEltR];// projected points on this elt
-        for (size_t nop = 0; nop < projectedPts.size(); nop++)
-          listOfCloudPtsPerVertex.push_back(projectedPts[nop]);
+        cfLoc[noind] = 1./(sizeOfCloud);
       }
-      sort(listOfCloudPtsPerVertex.begin(), listOfCloudPtsPerVertex.end());
-      listOfCloudPtsPerVertex.erase(unique(listOfCloudPtsPerVertex.begin(), listOfCloudPtsPerVertex.end()), 
-                                    listOfCloudPtsPerVertex.end());
-      // if the MLS cloud is not big enough : increase it - then closest pt should be used
-      E_Int sizeOfCloud = listOfCloudPtsPerVertex.size();
-      if ( sizeOfCloud < sizeMinOfCloud)
-      {
-        for (size_t noe = 0; noe < eltsVoisins.size(); noe++)
-        {
-          E_Int indEltR = eltsVoisins[noe];// index of one elt with indR as vertex
-          vector<E_Int>& eltsVoisins2 = cEEN[indEltR];
-          for (size_t noe2 = 0; noe2 < eltsVoisins2.size(); noe2++)
-          {
-            E_Int indEltR2 = eltsVoisins2[noe2];
-            vector<E_Int>& projectedPts = listOfCloudPtsPerTri[indEltR2];// projected points on this elt
-            for (size_t nop = 0; nop < projectedPts.size(); nop++)
-              listOfCloudPtsPerVertex.push_back(projectedPts[nop]);
-          }
-        }
-      }
-      sort(listOfCloudPtsPerVertex.begin(), listOfCloudPtsPerVertex.end());
-      listOfCloudPtsPerVertex.erase(unique(listOfCloudPtsPerVertex.begin(), listOfCloudPtsPerVertex.end()), 
-                                    listOfCloudPtsPerVertex.end()); 
-      sizeOfCloud = listOfCloudPtsPerVertex.size();
-      if ( indR == 899 )
-        printf(" xR = %g %g %g | sizeOfCloud = %d \n", xtRcv[indR],ytRcv[indR], ztRcv[indR], sizeOfCloud);
-      if (sizeOfCloud < sizeMinOfCloud) indicesExtrap.push_back(indR);//extrap
-      else
-      {
-        pt[0] = xtRcv[indR]; pt[1] = ytRcv[indR]; pt[2] = ztRcv[indR];
-        vector<E_Float> cfLoc(sizeOfCloud);
-        axisConst[0] = 0; axisConst[1] = 0; axisConst[2] = 0;
-        E_Float x_max =-K_CONST::E_MAX_FLOAT; 
-        E_Float y_max =-K_CONST::E_MAX_FLOAT; 
-        E_Float z_max =-K_CONST::E_MAX_FLOAT; 
-        E_Float x_min = K_CONST::E_MAX_FLOAT; 
-        E_Float y_min = K_CONST::E_MAX_FLOAT; 
-        E_Float z_min = K_CONST::E_MAX_FLOAT; 
-        for (E_Int noindd = 0; noindd < sizeOfCloud; noindd++)
-        {
-          E_Int indD = listOfCloudPtsPerVertex[noindd];
-          x_max = K_FUNC::E_max(xtDnr[indD],x_max);
-          y_max = K_FUNC::E_max(ytDnr[indD],y_max);
-          z_max = K_FUNC::E_max(ztDnr[indD],z_max);
-          x_min = K_FUNC::E_min(xtDnr[indD],x_min);
-          y_min = K_FUNC::E_min(ytDnr[indD],y_min);
-          z_min = K_FUNC::E_min(ztDnr[indD],z_min);
-        }
-        if ( K_FUNC::E_abs(x_max-x_min) < 1.e-6 ) axisConst[0] = 1;
-        if ( K_FUNC::E_abs(y_max-y_min) < 1.e-6 ) axisConst[1] = 1;
-        if ( K_FUNC::E_abs(z_max-z_min) < 1.e-6 ) axisConst[2] = 1;
-        // if ( listOfCloudPtsPerVertex.size() > CLOUDMAX) printf(" size = %d \n", listOfCloudPtsPerVertex.size() );
-        E_Int ok = K_INTERP::getInterpCoefMLS(order, dimPb, sizeBasis, pt, xtDnr, ytDnr, ztDnr, 
-                                              listOfCloudPtsPerVertex,
-                                              radius, axis, axisConst, &cfLoc[0]);
-        if ( ok != 1)
-        {
-          indicesExtrap.push_back(indR);
-        }
-        else 
-        {
-          E_Int nbNonZeroCfs = 0;
-          for (E_Int nocf = 0; nocf < sizeOfCloud; nocf++)
-          {
-            if ( K_FUNC::E_abs(cfLoc[nocf]) > K_CONST::E_GEOM_CUTOFF) nbNonZeroCfs++;
-          }
-          if ( nbNonZeroCfs < 2) 
-          { 
-            indicesExtrap.push_back(indR);           
-          }
-          else
-          {
-            //check if extrapolated first
-            E_Float sumCf = 0.;
-            for(E_Int noind = 0; noind < sizeOfCloud; noind++)
-              sumCf += cfLoc[noind];
-            if ( K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
-            else // not extrapolated -> interpolated
-            {
-              // Nb de donneurs ds la molecule + indices des donneurs
-              ptrIndicesD[sizeIndDnr] = sizeOfCloud; sizeIndDnr++;
-              ptrIndicesR[noindR]=indR; noindR++;
-
-              for (E_Int noind = 0; noind < sizeOfCloud; noind++)
-              {
-                E_Int indD = listOfCloudPtsPerVertex[noind];
-                ptrIndicesD[sizeIndDnr] = indD; sizeIndDnr++;                 
-                ptrCoefs[sizeCf] = cfLoc[noind]; sizeCf++;
-              }
-            }
-          }          
-        }
-      }
-    }// indR to be interpolated
-  }// loop on indR
-
-  //cleanings
-  for (E_Int nov =0; nov < nbPtsR; nov++)
-    cveR[nov].clear();
-  cveR.clear();
-  
-  for (E_Int nov = 0; nov < nbEltsR; nov++)
-  {
-    listOfCloudPtsPerTri[nov].clear();
-    cEEN[nov].clear();
-  }
-  listOfCloudPtsPerTri.clear(); cEEN.clear();
-
-  E_Int nbExtrapPts = indicesExtrap.size();
-  if (nbExtrapPts > 0)
-  {
-    // kdtree of cloud pts
-    ArrayAccessor<FldArrayF>* coordAcc = new ArrayAccessor<FldArrayF>(*fd, posxd, posyd, poszd);
-    K_SEARCH::KdTree<FldArrayF>* kdt = new K_SEARCH::KdTree<FldArrayF>(*coordAcc);
-
-    for(E_Int noind = 0; noind < nbExtrapPts; noind++)
-    {
-      E_Int indR = indicesExtrap[noind];
-      pt[0] = xtRcv[indR]; pt[1] = ytRcv[indR]; pt[2] = ztRcv[indR];
-      E_Int indD = kdt->getClosest(pt);
-      ptrIndicesD[sizeIndDnr] = 1; sizeIndDnr++;
-      ptrIndicesD[sizeIndDnr] = indD; sizeIndDnr++;
-      ptrCoefs[sizeCf] = 1.; sizeCf++;
-      ptrIndicesR[noindR]=indR; noindR++;
     }
-    delete kdt; delete coordAcc;
-  }
-  indicesD->resize(sizeIndDnr); icoefs->resize(sizeCf);
+    else
+    {      
+      FldArrayF cloudCoords(sizeOfCloud,3);
+      E_Float* dnrX = cloudCoords.begin(1);
+      E_Float* dnrY = cloudCoords.begin(2);
+      E_Float* dnrZ = cloudCoords.begin(3);
+
+      for (E_Int noind = 0; noind < sizeOfCloud; noind++)
+      {
+        E_Int nozDnr = dnrNoZ[noind]; E_Int indDnr = dnrIndices[noind];
+        E_Float* xtDnr = vectOfDnrZones[nozDnr]->begin(posxtd[nozDnr]);
+        E_Float* ytDnr = vectOfDnrZones[nozDnr]->begin(posytd[nozDnr]);
+        E_Float* ztDnr = vectOfDnrZones[nozDnr]->begin(posztd[nozDnr]);
+
+        dnrX[noind] = xtDnr[indDnr]; dnrY[noind] = ytDnr[indDnr]; dnrZ[noind] = ztDnr[indDnr];    
+        listOfCloudPtsPerVertex[noind]=noind;
+      }
+      axisConst[0] = axisConst[1] = axisConst[2] = 0;
+      if (dimPb == 2) axisConst[2] = 1;// pas de z
+      radius[0] = radius[1] = radius[2] = 1.;
+      axis[0] = 1.; axis[1] = 0.; axis[2] = 0.;
+      axis[3] = 0.; axis[4] = 1.; axis[5] = 0.;
+      axis[6] = 0.; axis[7] = 0.; axis[8] = 1.;
+      E_Int ok = K_INTERP::getInterpCoefMLS(order, dimPb, sizeBasis, pt, dnrX, dnrY, dnrZ, 
+                                            listOfCloudPtsPerVertex, radius, axis, axisConst, cfLoc.begin());
+      listOfCloudPtsPerVertex.clear();
+
+      if ( ok != 1) // extrapolation
+      {
+        printf("Extrap2 ! \n");
+        for (E_Int noind = 0; noind < sizeOfCloud; noind++)
+        { 
+          cfLoc[noind] = 1./(sizeOfCloud);
+        } 
+      }
+    }
+    if ( sizeOfCloud >0)
+    {
+      // Nb de donneurs ds la molecule + indices des donneurs
+      vector < vector<E_Int> > vectOfIndDPerDnrZone(nzonesD);
+
+      for (E_Int noind = 0; noind < sizeOfCloud; noind++)
+      {
+        E_Int nozDnr = dnrNoZ[noind]; 
+        vector<E_Int>& vectOfDnrIndices = vectOfIndDPerDnrZone[nozDnr];
+        vectOfDnrIndices.push_back(noind);
+      }
+
+      for (size_t nozDnr = 0; nozDnr < nzonesD; nozDnr++)
+      {
+        vector<E_Int>& vectOfDnrIndices = vectOfIndDPerDnrZone[nozDnr];
+
+        E_Int nbOfDnrIndices=vectOfDnrIndices.size();
+        if (nbOfDnrIndices>0)
+        {
+          E_Int* ptrIndicesR = listOfRcvIndices[nozDnr]->begin();
+          E_Int& posIndR = posPtrRcvIndices[nozDnr];
+          ptrIndicesR[posIndR] = indR; posIndR++;
+
+          E_Float* ptrCoefs  = listOfInterpCoefs[nozDnr]->begin();
+          E_Int& posCf = posPtrCoefs[nozDnr];
+
+          E_Int* ptrIndicesD = listOfDnrIndices[nozDnr]->begin();
+          E_Int& posIndD = posPtrDnrIndices[nozDnr];
+          ptrIndicesD[posIndD] = vectOfIndDPerDnrZone[nozDnr].size(); posIndD++;
+
+          for (size_t ii = 0; ii < nbOfDnrIndices; ii++)
+          {
+            E_Int noind = vectOfDnrIndices[ii];
+            ptrIndicesD[posIndD] = dnrIndices[noind]; posIndD++;
+            ptrCoefs[posCf] = cfLoc[noind]; posCf++;
+          }
+        }
+      }
+    }
+  }   
+  for (E_Int nozd = 0; nozd < nzonesD; nozd++)
+  {
+    // delete vectOfClosestTriIndices[nozd];
+    E_Int sizeDnrIndices = posPtrDnrIndices[nozd];
+    E_Int sizeCf = posPtrCoefs[nozd];
+    E_Int sizeRcvIndices = posPtrRcvIndices[nozd];
+    listOfInterpCoefs[nozd]->resize(sizeCf);
+    listOfDnrIndices[nozd]->resize(sizeDnrIndices);
+    listOfRcvIndices[nozd]->resize(sizeRcvIndices);
+    listOfDnrTypes[nozd]->resize(sizeRcvIndices);
+  }   
 
   /*----------------------------------------------------------*/
-  /* Output Python objects: creation */
-  /*----------------------------------------------------------*/  
-  PyObject* PyCellIndicesR = K_NUMPY::buildNumpyArray(*indicesR,1); delete indicesR;
-  PyObject* PyCellIndicesD = K_NUMPY::buildNumpyArray(*indicesD,1); delete indicesD;
-  PyObject* PyInterpTypes = K_NUMPY::buildNumpyArray(*itypes,1); delete itypes;
-  PyObject* PyCoefficients = K_NUMPY::buildNumpyArray(*icoefs,1); delete icoefs;
+  /* Ecriture dans des objets Python retournes par la methode */
+  /*----------------------------------------------------------*/
+  // listes pour stocker les indices de cellules (receveuse et donneuses) par bloc de domaine d'interpolation correspondant
+  PyObject* PyListCellIndicesR = PyList_New(0);
+  PyObject* PyListCellIndicesD = PyList_New(0);
+  // liste pour stocker les coefficients d'interpolation par bloc de domaine d'interpolation correspondant
+  PyObject* PyListCoefficients = PyList_New(0);
+  // liste pour stocker les types d interpolation par domaine d'interpolation correspondant
+  PyObject* PyListInterpTypes = PyList_New(0);
 
-  PyObject* tpl = Py_BuildValue("[OOOO]", PyCellIndicesR, PyCellIndicesD,  PyInterpTypes, PyCoefficients);
-  Py_DECREF(PyCellIndicesD); Py_DECREF(PyInterpTypes); Py_DECREF(PyCoefficients);  Py_DECREF(PyCellIndicesR); 
+  // ------------------------------
+  // Construction des PyArrays
+  // ------------------------------
+  for (E_Int noz = 0; noz < nzonesD; noz++)
+  {   
+    //     coefficients d'interpolation
+    PyObject* fout = K_NUMPY::buildNumpyArray(*listOfInterpCoefs[noz],1);
+    PyList_Append(PyListCoefficients, fout);  Py_DECREF(fout);
+    delete listOfInterpCoefs[noz];
+
+    //     donorIndices1D
+    PyObject* donorIndOut = K_NUMPY::buildNumpyArray(*listOfDnrIndices[noz],1);
+    PyList_Append(PyListCellIndicesD, donorIndOut); Py_DECREF(donorIndOut);
+    delete listOfDnrIndices[noz];
+
+     //     receiverIndices1D
+    PyObject* rcvIndOut = K_NUMPY::buildNumpyArray(*listOfRcvIndices[noz],1);
+    PyList_Append(PyListCellIndicesR, rcvIndOut); Py_DECREF(rcvIndOut);
+    delete listOfRcvIndices[noz];
+
+    //     donorType
+    PyObject* donorTypeOut = K_NUMPY::buildNumpyArray(*listOfDnrTypes[noz],1);
+    PyList_Append(PyListInterpTypes, donorTypeOut); Py_DECREF(donorTypeOut);
+    delete listOfDnrTypes[noz];
+  } // fin parcours des zones donneuses
+  
+  PyObject* tpl = Py_BuildValue("[OOOO]", PyListCellIndicesR, PyListCellIndicesD, 
+                                PyListInterpTypes, PyListCoefficients);
+
+  Py_DECREF(PyListInterpTypes); 
+  Py_DECREF(PyListCoefficients); 
+  Py_DECREF(PyListCellIndicesR); 
+  Py_DECREF(PyListCellIndicesD); 
   return tpl;
 }

@@ -13,6 +13,7 @@ import Converter.Mpi as Cmpi
 import Converter.Filter as Filter
 from Apps.Fast.Common import Common
 import Connector.connector as connector
+import Connector.OversetData as XOD
 import math
 import numpy
 try: range = xrange
@@ -1407,13 +1408,16 @@ def _distribute(t_in, tc_in, NP, algorithm='graph'):
     print('All points: {} million points'.format(NptsTot/1.e6))
     return None
 
-#====================================================================================
-#  Build data in an additional tree used for co-processing and post-processing
-#====================================================================================
-def transferInfoForWallReconstruction__(tw,tc,variables=[], interDict=None, graph=None):
-    rank = Cmpi.rank
+def prepareWallReconstruction(tw, tc):
     import Converter.Distributed as Distributed
+    import Converter
 
+    # MLS interpolation order
+    LSorder = 2
+
+    dimPb = Internal.getNodeFromName(tw, 'EquationDimension')
+    dimPb = Internal.getValue(dimPb)
+    rank = Cmpi.rank
     # GLOBAL
     # pour eviter les trous lies au split des zones IBM en nuages de points
     tolBB = 0.
@@ -1421,41 +1425,47 @@ def transferInfoForWallReconstruction__(tw,tc,variables=[], interDict=None, grap
         snearval = Internal.getValue(snear)
         tolBB = max(tolBB,2*snearval)
 
-    tcw = TIBM.createIBMWZones(tc,variables=variables)
+    tcw = TIBM.createIBMWZones(tc,variables=[])
+    nzones = len(Internal.getZones(tcw))
+
     dimPb = Internal.getNodeFromName(tw, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)
+
     if dimPb ==2: C._initVars(tcw,"CoordinateZ",0.0)
-    for z in Internal.getZones(tcw): Cmpi._setProc(z,rank)
-    # C.convertPyTree2File(tcw,"tcw.cgns")
     # 
-    if graph is not None and interDict is not None:
-        Cmpi._addXZones(tcw, graph, subr=False)
-        return tcw, interDict, graph
+    # Create the bbtree 
+    tcw_bb = C.newPyTree(["Base"])
+    zonesl = []
+    for base in Internal.getBases(tcw):
+        for z in Internal.getZones(base):
+            zbb = G.BB(z)
 
-    tcw_bb = Cmpi.createBBoxTree(tcw)
-    for z in Internal.getZones(tcw_bb):
-        valxm = C.getValue(z,'CoordinateX',0)-tolBB
-        valxp = C.getValue(z,'CoordinateX',1)-tolBB
-        C.setValue(z,'CoordinateX',0, valxm)
-        C.setValue(z,'CoordinateX',1, valxp)
-        valxm = C.getValue(z,'CoordinateY',0)-tolBB
-        valxp = C.getValue(z,'CoordinateY',1)-tolBB
-        C.setValue(z,'CoordinateY',0, valxm)
-        C.setValue(z,'CoordinateY',1, valxp)
-        if dimPb == 3:
-            valxm = C.getValue(z,'CoordinateZ',0)-tolBB
-            valxp = C.getValue(z,'CoordinateZ',1)-tolBB
-            C.setValue(z,'CoordinateZ',0, valxm)
-            C.setValue(z,'CoordinateZ',1, valxp)
+            # Clean up (zoneSubRegion)
+            Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
+            valxm = C.getValue(zbb,'CoordinateX',0)-tolBB
+            valxp = C.getValue(zbb,'CoordinateX',1)-tolBB
+            C.setValue(zbb,'CoordinateX',0, valxm)
+            C.setValue(zbb,'CoordinateX',1, valxp)
+            valxm = C.getValue(zbb,'CoordinateY',0)-tolBB
+            valxp = C.getValue(zbb,'CoordinateY',1)-tolBB
+            C.setValue(zbb,'CoordinateY',0, valxm)
+            C.setValue(zbb,'CoordinateY',1, valxp)
+            if dimPb == 3:
+                valxm = C.getValue(zbb,'CoordinateZ',0)-tolBB
+                valxp = C.getValue(zbb,'CoordinateZ',1)-tolBB
+                C.setValue(zbb,'CoordinateZ',0, valxm)
+                C.setValue(zbb,'CoordinateZ',1, valxp)
+            Cmpi._setProc(zbb,rank)
+            zonesl.append(zbb)    
 
-    D2._copyDistribution(tcw, tcw_bb)
-
+    zonesBB = Cmpi.allgatherZones(zonesl)
+    tcw_bb[2][1][2] += zonesBB
     graph={}
     for zw in Internal.getZones(tw):
         zwBB = G.BB(zw)
         for zdBB in Internal.getZones(tcw_bb):
             if G.bboxIntersection(zwBB,zdBB,isBB=True):
-                popp=Cmpi.getProc(zdBB)
+                popp = Cmpi.getProc(zdBB)
                 zdname = zdBB[0]
                 Distributed.updateGraph__(graph, popp, rank, zdname)
 
@@ -1468,91 +1478,183 @@ def transferInfoForWallReconstruction__(tw,tc,variables=[], interDict=None, grap
                 if not j in graph[k]: graph[k][j] = []
                 graph[k][j] += i[k][j]
                 graph[k][j] = list(set(graph[k][j])) # pas utile?
-    
+
     Cmpi._addXZones(tcw, graph, subr=False)
     interDict = X.getIntersectingDomains(tw,tcw_bb)
+    procDict = Cmpi.getProcDict(tcw)
+
+    graphX = {}
+    for zw in Internal.getZones(tw):
+        zwname = Internal.getName(zw)
+        for zdname in interDict[zwname]:
+            zdbb = Internal.getNodeFromName2(tcw_bb,zdname)
+            popp = Cmpi.getProc(zdbb)
+            Distributed.updateGraph__(graphX, rank, popp, zdname)
+
+    allGraph = Cmpi.KCOMM.allgather(graphX)
+    graphX = {}
+    for i in allGraph:
+        for k in i:
+            if not k in graphX: graphX[k] = {}
+            for j in i[k]:
+                if not j in graphX[k]: graphX[k][j] = []
+                graphX[k][j] += i[k][j]
+                graphX[k][j] = list(set(graphX[k][j])) # pas utile?
     del tcw_bb 
-    return tcw, interDict, graph
 
-def _prepareWallReconstruction(tw, tc):
-    import Generator.PyTree as G
-    import Connector.OversetData as XOD
-
-    # Order LS
-    LSorder = 3
-    dimPb = Internal.getNodeFromName(tw, 'EquationDimension')
-    dimPb = Internal.getValue(dimPb)
-    rank = Cmpi.rank
-
-    tcw, interDict,graph = transferInfoForWallReconstruction__(tw,tc)
-
-    # C.convertPyTree2File(tcw,"tcw_%d.cgns"%rank)
     EXTRAP = numpy.array([],numpy.int32)
     VOL = numpy.array([],numpy.float64)
     ORPHAN = numpy.array([],numpy.float64)
+    datas = {}
     for zw in Internal.getZones(tw):
         zwname = Internal.getName(zw)
-        children=[]
-        zones =[]
-        size = 0
+        dnrZones=[]
+        dnrZoneNames=[]
         for zdname in interDict[zwname]:
-            zd = Internal.getNodeFromName(tcw,zdname)            
-            children.append(Internal.createNode(zdname,'UsedDefinedData_t',value=size,children=None))
-            size += Internal.getZoneDim(zd)[1]
-            zones.append(zd)
-        zones = C.convertArray2Node(zones)
-        zones = T.join(zones)
-        coordsD = C.getFields(Internal.__GridCoordinates__, zones, api=1)[0]
-        coordsR = C.getFields(Internal.__GridCoordinates__, zw, api=1)[0]        
-        if coordsR[1].shape[1]>0 and coordsD[1].shape[1]>0 and rank==2:                    
-            ret = connector.setInterpData_IBMWall(coordsD, coordsR, dimPb, LSorder)
-            PL = ret[0]; PLD = ret[1]; COEFS=ret[3]; ITYPE=ret[2]
-            XOD._createInterpRegion__(zw, zw[0], PL, PLD, COEFS, ITYPE, VOL, EXTRAP, ORPHAN, \
-                                      tag='Receiver', loc='nodes',itype='chimera', prefix='IDW_')
-            zsr = Internal.getNodeFromType2(zw,'ZoneSubRegion_t')
-            POSTW_node = Internal.createNode('.Solver#POSTW','UserDefinedData_t',value=None,children=children,parent=zsr)
+            zd = Internal.getNodeFromName2(tcw,zdname)     
+            #if zd is None or zd == []: print(zdname, zd)
+            dnrZones.append(zd)
+            dnrZoneNames.append(zdname)
 
-    return interDict,graph
+        coordsD = C.getFields(Internal.__GridCoordinates__, dnrZones, api=1)
+        coordsR = C.getFields(Internal.__GridCoordinates__, zw, api=1)[0]        
+        if coordsR[1].shape[1]>0:
+            coordsD = Converter.convertArray2Node(coordsD)
+            ret = connector.setInterpData_IBMWall(coordsD, coordsR, dimPb, LSorder)
+            allPLR = ret[0]; allPLD = ret[1]; allCOEFS=ret[3]; allITYPE=ret[2]
+
+            nozd = 0
+            for zd in dnrZones:
+                zdname = zd[0]
+                XOD._createInterpRegion__(zd, zw[0], allPLD[nozd], allPLR[nozd], allCOEFS[nozd], allITYPE[nozd], \
+                                          VOL, EXTRAP, ORPHAN, \
+                                          tag='Donor', loc='nodes',itype='chimera', prefix='IDW_')
+                nozd+=1
+
+                destProc = procDict[zdname]
+
+                IDs = []
+                for i in zd[2]:
+                    if i[0][0:3] == 'IDW':
+                        if Internal.getValue(i)==zwname: IDs.append(i)
+
+                if IDs != []:
+                    if destProc == rank:
+                        zD = Internal.getNodeFromName2(tcw, zdname)
+                        zD[2] += IDs
+                    else:
+                        if destProc not in datas: datas[destProc] = [[zdname,IDs]]
+                        else: datas[destProc].append([zdname,IDs])
+                else:
+                    if destProc not in datas: datas[destProc] = []
+    for i in range(Cmpi.size):
+        if i not in datas: datas[i]=[]
+    Cmpi._rmXZones(tcw)
+  
+    destDatas = Cmpi.sendRecv(datas, graphX)
+    for i in destDatas:
+        for n in destDatas[i]:
+            zname = n[0]
+            IDs = n[1]
+            if IDs != []:
+                zD = Internal.getNodeFromName2(tcw, zname)
+                zD[2] += IDs
+    datas = {}; destDatas = None; graph={}
+    return tcw
+ 
 
 # reconstruit les champs parietaux a partir des infos stockees dans tw et les champs de tc
-def _computeWallReconstruction(tw, tc, interDict=None, graph=None, variables=['Pressure']):
-    rank = Cmpi.rank
-    import Converter.Distributed as Distributed
-    # C.convertPyTree2File(tw,'outr_%d.cgns'%rank)
-    tcw, interDict, graph = transferInfoForWallReconstruction__(tw,tc,variables=variables,
-                                                                interDict=interDict, graph=graph)
+def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None, 
+                               variables=['Pressure','Density','utau','yplus']):
+    
+    if graph is None: graph = Cmpi.computeGraph(tcw, type='POST',procDict=procDictD, procDict2=procDictR, t2=tw)
 
-    for var in variables: C._initVars(tw,var,0.)
-    for zw in Internal.getZones(tw):
-        zwname = Internal.getName(zw)
-        IDW = Internal.getNodeFromName2(zw,'IDW_%s'%zwname)
-        if IDW is not None:
-            COEFS   = Internal.getNodeFromName1(IDW,'InterpolantsDonor')[1]
-            DNRTYPE = Internal.getNodeFromName1(IDW,'InterpolantsType')[1] 
-            LISTRCV = Internal.getNodeFromName1(IDW,'PointList')[1]
-            LISTDNR = Internal.getNodeFromName1(IDW,'PointListDonor')[1]
-            DNRINFO = Internal.getNodeFromName1(IDW,'.Solver#POSTW')[2]
-            zones = []
-            for dnrname in DNRINFO:
-                dnrname = Internal.getName(dnrname)
-                zdnr = Internal.getNodeFromName2(tcw,dnrname)                
-                if zdnr is None: 
-                    print(zwname,dnrname)
-                    print("_computeWallReconstruction : IMPLEMENTATION ERROR !!!!")
-                zones.append(zdnr)
-            #C.convertPyTree2File(zones,"dnrs_%d.cgns"%rank)
+    cellNVariable=''; varType=1; compact=0
 
-            zones = C.convertArray2Node(zones); zones = T.join(zones)
-            loc = 0; varType = 1; compact=0; cellNVariable='' 
-            RotAngleX = 0.; RotAngleY = 0.; RotAngleZ = 0. 
-            connector._setInterpTransfers(zw,zones,variables, LISTRCV, LISTDNR, DNRTYPE, COEFS, 
-                                          loc, varType, compact, 
-                                          cellNVariable,
-                                          Internal.__GridCoordinates__, 
-                                          Internal.__FlowSolutionNodes__, 
-                                          Internal.__FlowSolutionCenters__, 
-                                          RotAngleX, RotAngleY, RotAngleZ)
+    datas={}
+    # interpolation from a cloud of points
+    for zc_w in Internal.getZones(tcw):
+        infos = []
+        zcw_name = Internal.getName(zc_w)
+        zcw_namel = zcw_name.split('#')
+        zc_orig_name = zcw_namel[0]; zsrname = zcw_namel[1]
+
+        FSN = Internal.getNodeFromName2(zc_w,Internal.__FlowSolutionNodes__)
+        if FSN is None:
+            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
+                                           gridLocation='Vertex', parent=zc_w)
+
+        # put the fields in corresponding zcw zone 
+        zc_orig = Internal.getNodeFromName2(tc,zc_orig_name)
+        zsr_orig = Internal.getNodeFromName2(zc_orig,zsrname)
+        for varname in variables:
+            varnode = Internal.getNodeFromName(zsr_orig,varname)
+            FSN[2].append(varnode)
+
+        # search for IDW_zrname node
+        for zsr in Internal.getNodesFromType1(zc_w, "ZoneSubRegion_t"):
+            sname = zsr[0][0:3]
+            if sname=='IDW' and variables is not None:
+                dname = Internal.getValue(zsr)
+                idn = Internal.getNodeFromName1(zsr, 'InterpolantsDonor')
+                if idn is not None: # la subRegion decrit des interpolations
+                    zoneRole = Internal.getNodeFromName2(zsr, 'ZoneRole')
+                    zoneRole = Internal.getValue(zoneRole)
+                    if zoneRole == 'Donor':
+                        location = Internal.getNodeFromName1(zsr, 'GridLocation') # localisation des donnees des receveurs
+
+                        if location is not None: 
+                            location = Internal.getValue(location)
+                            if location == 'CellCenter': loc = 'centers'
+                            else: loc = 'nodes'
+    
+                        else: loc = 'nodes'
+    
+                        Coefs     = idn[1]
+                        DonorType = Internal.getNodeFromName1(zsr,'InterpolantsType')[1]
+                        ListDonor = Internal.getNodeFromName1(zsr,'PointList')[1]
+                        ListRcv   = Internal.getNodeFromName1(zsr,'PointListDonor')[1]
+
+                        arrayT = connector._setInterpTransfersD(zc_w, variables, ListDonor, DonorType, Coefs, varType, compact,                                                                
+                                                                cellNVariable,
+                                                                Internal.__GridCoordinates__, 
+                                                                Internal.__FlowSolutionNodes__, 
+                                                                Internal.__FlowSolutionCenters__)    
+                        infos.append([dname,arrayT,ListRcv,loc])
+        for n in infos:
+            rcvName = n[0]
+            proc = procDictR[rcvName]
+            if proc == Cmpi.rank:
+                fields = n[1]
+                if fields != []:
+                    listIndices = n[2]
+                    zr = Internal.getNodeFromName2(tw,rcvName)
+                    print("zname", zr[0])
+                    print("field = ", fields)
+                    print(" indices = ", listIndices)                    
+                    C._updatePartialFields(zr, [fields], [listIndices], loc=n[3])
+            else:
+                rcvNode = procDictR[rcvName]
+                if rcvNode not in datas: datas[rcvNode] = [n]
+                else: datas[rcvNode] += [n] 
+
+    #send numpys using graph
+    rcvDatas = Cmpi.sendRecv(datas, graph)
+
+    # put contribution of donor zone to the interpolated fields in the receptor zone
+    for i in rcvDatas:
+        for n in rcvDatas[i]:
+            rcvName = n[0]
+            field = n[1]
+            if field != []:
+                listIndices = n[2]
+                z = Internal.getNodeFromName2(tw, rcvName)
+                print("zname", z[0])
+                print("field = ", field)
+                print(" indices = ", listIndices)
+                C._updatePartialFields(z,[field], [listIndices], loc=n[3])
     return None
+
 
 #====================================================================================
 # Prend les snears dans t, les multiplie par factor

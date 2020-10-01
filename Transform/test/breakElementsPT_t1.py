@@ -12,7 +12,7 @@ a6 = G.cartTetra((-0.4,1.,0),(0.1,0.1,0.1),(5,5,5))
 a7 = G.cartPenta((-0.4,1.4,0),(0.1,0.1,0.1),(5,5,5))
 A = [a1,a3,a4,a5,a6,a7]
 A = C.convertArray2NGon(A); a = T.join(A)
-a = C.initVars(a,'{F}={CoordinateX}+{CoordinateY}**2')
+C._initVars(a,'{F}={CoordinateX}+{CoordinateY}**2')
 # sur une zone
 res = T.breakElements(a)
 t = C.newPyTree(['Base']); t[2][1][2]+=res

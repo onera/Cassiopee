@@ -2221,9 +2221,15 @@ def extractIBMInfo(tc):
 # retourne tw avec une zone 1D par IBCD de depart
 # Sert au post traitement paroi en parallele et instationnaire
 def createIBMWZones(tc,variables=[]):
+    import Converter.Mpi as Cmpi
     tw = C.newPyTree(['IBM_WALL'])
     for z in Internal.getZones(tc):
         ZSR = Internal.getNodesFromType2(z,'ZoneSubRegion_t')
+        procNode = Internal.getNodeFromName(z,'proc')
+        proc = -1
+        if procNode is not None:
+            proc = Internal.getValue(procNode)
+
         for IBCD in Internal.getNodesFromName(ZSR,"IBCD_*"):
             xPW = Internal.getNodesFromName(IBCD,"CoordinateX_PW")[0][1]
             yPW = Internal.getNodesFromName(IBCD,"CoordinateY_PW")[0][1]
@@ -2243,5 +2249,6 @@ def createIBMWZones(tc,variables=[]):
                         fieldW[1] = fieldV[1]
 
             zw[0]=z[0]+"#"+IBCD[0]
+            if proc != -1: Cmpi._setProc(zw,proc)
             tw[2][1][2].append(zw)
     return tw

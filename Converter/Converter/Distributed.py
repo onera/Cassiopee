@@ -442,8 +442,10 @@ def getProcGlobal__(zoneName, t, procDict=None):
 # type='IBCD' si donnees IBC entres zones (full/skel/load skel/partial+procDict)
 # type='ALLD' si toutes donnees (Interp+IBC) (full/skel/load skel/partial+procDict)
 # type='proc' si la zone a un noeud proc different du proc courant (full/skel/load skel/partial)
-# intersectionsDict: dictionnaire Python contenant la liste de zones intersec-
-# tantes, comme produit par "X.getIntersectingDomains". Attention, si type='bbox3',
+#￿type='POST': t donor tree and t2 receptor tree. To interpolate data from donor to receptor where interpolation 
+#              data is stored in t in ID* subregions nodes. Requires procDict and procDict2
+# intersectionsDict: dictionnaire Python contenant la liste de zones intersectantes, 
+# comme produit par "X.getIntersectingDomains". Attention, si type='bbox3',
 # l'utilisateur doit fournir l'arbre t2 et intersectionDict doit decrire les 
 # intersections entre t et t2, comme produit par "X.getIntersectingDomains(t,t2)".
 # exploc: True si explicite local
@@ -542,6 +544,21 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         #        popp = getProcGlobal__(d[0], t2, None)
         #        updateGraph__(graph, proc, popp, z[0])
       
+    elif type == 'POST':
+        if procDict is None:
+            raise ValueError("computeGraph: type=POST requires procDict for donor tree")
+        if procDict2 is None:
+            raise ValueError("computeGraph: type=POST requires procDict for receptor tree")
+
+        for z in zones:
+            proc = getProcLocal__(z,procDict)
+            subRegions = []
+            for zsr in Internal.getNodesFromType1(z,'ZoneSubRegion_t'):
+                sname = Internal.getName(zsr)[0:2]
+                if sname=='ID':
+                    rcvname = Internal.getValue(zsr)
+                    popp = getProcGlobal__(rcvname, t2, procDict2)
+                    updateGraph__(graph, proc, popp, z[0])
 
     elif type == 'ID': # base sur les interpolations data
       if not exploc:
