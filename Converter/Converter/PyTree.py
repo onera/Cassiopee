@@ -3980,8 +3980,14 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True):
 def _recoverBCs2(t, BCInfo, tol):
   try: import Post.PyTree as P
   except: raise ImportError("_recoverBCs: requires Post module.")
+
   try: import Transform.PyTree as T
   except: raise ImportError("_recoverBCs: requires Transform module.")
+
+  try: import Generator.PyTree as G
+  except: raise ImportError("_recoverBCs: requires Generator module.")
+
+  (BCs, BCNames, BCTypes) = BCInfo
   for z in Internal.getZones(t):
       indicesF = []
       zf = P.exteriorFaces(z, indices=indicesF)
@@ -4017,29 +4023,31 @@ def _recoverBCs2(t, BCInfo, tol):
           for c in range(len(BCs)):
               b = BCs[c]                      
               if b == []: raise ValueError("_recoverBCs: boundary is probably ill-defined.")
-              if G.bboxIntersection(zf,b):
-                  # Break BC connectivity si necessaire
-                  elts = Internal.getElementNodes(b)
-                  size = 0
-                  for e in elts:
-                      erange = Internal.getNodeFromName1(e, 'ElementRange')[1]
-                      size += erange[1]-erange[0]+1
-                  n = len(elts)
-                  if n == 1:
-                      ids = identifyElements(hook, b, tol)
-                  else:
-                      bb = breakConnectivity(b)
-                      ids = numpy.array([], dtype=numpy.int32)
-                      for bc in bb:
-                          ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
 
-                  # Cree les BCs
-                  ids = ids[ids > -1]
-                  sizebc = ids.size
-                  if sizebc > 0:
-                      id2 = numpy.empty(sizebc, numpy.int32)
-                      id2[:] = indicesE[ids[:]-1]
-                      _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
+              for b in BCs[c]:
+                if G.bboxIntersection(zf,b):
+                    # Break BC connectivity si necessaire
+                    elts = Internal.getElementNodes(b)
+                    size = 0
+                    for e in elts:
+                        erange = Internal.getNodeFromName1(e, 'ElementRange')[1]
+                        size += erange[1]-erange[0]+1
+                    n = len(elts)
+                    if n == 1:
+                        ids = identifyElements(hook, b, tol)
+                    else:
+                        bb = breakConnectivity(b)
+                        ids = numpy.array([], dtype=numpy.int32)
+                        for bc in bb:
+                            ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
+
+                    # Cree les BCs
+                    ids = ids[ids > -1]
+                    sizebc = ids.size
+                    if sizebc > 0:
+                        id2 = numpy.empty(sizebc, numpy.int32)
+                        id2[:] = indicesE[ids[:]-1]
+                        _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
           freeHook(hook)
   return None
 
