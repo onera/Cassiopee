@@ -218,7 +218,8 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
         if dim[0] == 'Unstructured':
             typeElt = dim[3]
             if typeElt == 'NGON':
-                _rmGhostCellsNGON__(zp, b, d, stdNode, modified)
+                pass
+                #_rmGhostCellsNGON__(zp, b, d, stdNode, modified)
             else: 
                 #print('Warning: rmGhostCells: not yet implemented for BE zones.')
                 pass # other elt types 
@@ -325,7 +326,7 @@ def _rmGhostCellsNGON__(zp, bp, d, stdNode, modified):
     if fieldsc == [] and fieldsn == []:
         print('Warning: rmGhostCells: variables not found. No ghost cells removed.')
     elif fieldsc == [] and fieldsn != []:
-        out = Converter.converter.rmGhostCellsNGonNodes(fieldsn,d)
+        out = Converter.converter.rmGhostCellsNGonNodes(fieldsn, d)
         #PyTree.setFields([out], zp, 'nodes', writeDim=True)
     elif fieldsc != [] and fieldsn == []:
         pass

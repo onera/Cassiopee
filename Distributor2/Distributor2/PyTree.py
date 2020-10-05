@@ -1,3 +1,4 @@
+# Distributor2 (pyTree)
 import Distributor2
 import Converter.Internal as Internal
 import Converter.PyTree as C
@@ -130,7 +131,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                     node = Internal.getNodeFromName1(m, 'PointList')
                     if node is not None and node[1] is not None:
                         vol = node[1].size
-                        if d != -1: com[c, d] += vol              
+                        if d != -1: com[c, d] += vol      
                 c += 1
             zc += len(zones)
 

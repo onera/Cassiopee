@@ -122,6 +122,7 @@ def createApp(win):
     else:
         B = ttk.Combobox(F, textvariable=VARS[0],
                          values=[], state='normal')
+        B.bind("<<ComboboxSelected>>", setNames)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateGridCoordinates)
         B.bind('<Return>', setNames)
@@ -143,6 +144,7 @@ def createApp(win):
     else:
         B = ttk.Combobox(F, textvariable=VARS[1],
                          values=[], state='normal')
+        B.bind("<<ComboboxSelected>>", setNames)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFlowSolution)
         B.bind('<Return>', setNames)
@@ -164,6 +166,7 @@ def createApp(win):
     else:
         B = ttk.Combobox(F, textvariable=VARS[2],
                          values=[], state='normal')
+        B.bind("<<ComboboxSelected>>", setNames)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFlowSolutionCenters)
         B.bind('<Return>', setNames)
@@ -218,9 +221,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

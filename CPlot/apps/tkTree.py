@@ -773,12 +773,24 @@ class Node:
             else: txt += str(v)
             CTK.TXT.insert('START', txt+'\n')
             ret = Internal.getParentOfNode(CTK.t, pid)
-            if ret[0][3] == 'FlowSolution_t' and \
-                (ret[0][0] == Internal.__FlowSolutionNodes__ or \
-                ret[0][0] == Internal.__FlowSolutionCenters__):
-                field = pid[0]
-                if ret[0][0] == Internal.__FlowSolutionCenters__:
-                    field = 'centers:'+field
+            cont = ret[0]
+            if cont[3] == 'FlowSolution_t':
+                gp = Internal.getNodeFromType1(cont, 'GridLocation_t')
+                
+                field = None
+                if cont[0] == Internal.__FlowSolutionNodes__:
+                    field = pid[0]
+                elif cont[0] == Internal.__FlowSolutionCenters__:
+                    field = 'centers:'+pid[0]
+                elif gp is not None and Internal.getValue(gp) == 'CellCenter':
+                    Internal.__FlowSolutionCenters__ = cont[0]
+                    field = 'centers:'+pid[0]
+                    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+                else:
+                    Internal.__FlowSolutionNode__ = cont[0]
+                    field = pid[0]
+                    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+
                 vars = C.getVarNames(CTK.t)[0]
                 ifield = 0; lenvars = 0
                 for i in vars:
@@ -789,7 +801,7 @@ class Node:
                     if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                         ifield += 1
                 CPlot.setState(mode=3, scalarField=ifield)
-                
+
         elif pid[3] == 'BC_t':
             v = Internal.getValue(pid)
             CTK.TXT.insert('START', 'BC type: %s\n'%v)
@@ -831,7 +843,18 @@ class Node:
 
         elif pid[3] == 'FlowSolution_t':
             CTK.TXT.insert('START', 'Displaying '+pid[0]+'\n')
+            contName = pid[0]
             CPlot.setMode(3)
+            gp = Internal.getNodeFromType1(pid, 'GridLocation_t') 
+            if gp is not None:
+                if Internal.getValue(gp) == 'CellCenter' and Internal.__FlowSolutionCenters__ != contName:
+                    Internal.__FlowSolutionCenters__ = contName
+                    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+                    CTK.display(CTK.t)
+                elif Internal.__FlowSolutionNodes__ != contName:
+                    Internal.__FlowSolutionNodes__ = contName
+                    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+                    CTK.display(CTK.t)
 
         elif pid[3] == 'FamilyName_t':
             v = Internal.getValue(pid)

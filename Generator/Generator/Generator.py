@@ -2128,7 +2128,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
     cellN = None # champ pour le blanking
 
     for k1 in range(kmax-1):
-        print("Generating layer %d"%k1)
+        #print("Generating layer %d"%k1)
         hloc = distrib[1][0,k1+1]-distrib[1][0,k1]
         if algo == 0: # algo=0, lissage partout, hauteur 1
             if niter == 0:
