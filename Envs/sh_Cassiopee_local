@@ -336,7 +336,7 @@ elif [ "$MAC" = "xdaap" ]; then
     export ELSAPROD=xdaap_r8
     . /etc/profile.d/modules-dri.sh
     module unload $(module -t list 2>&1 | grep -i intel)
-    #module load gcc/4.8.1
+    module load gcc/5.2
     module load intel/15.0.6
     # Nombre de threads
     export OMP_NUM_THREADS=16

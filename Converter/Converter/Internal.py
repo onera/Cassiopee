@@ -2265,7 +2265,7 @@ def copyNode(node):
     if node[1] is not None and isinstance(node[1], numpy.ndarray):
         d = [node[0], node[1].copy('F'), node[2], node[3]]
     else: d = [node[0], node[1], node[2], node[3]]
-    return d
+    return d    
 
 # -- copyOnly(node) --
 # Copie recursivement les noms (si names=True), les types (si types=True)

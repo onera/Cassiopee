@@ -89,7 +89,8 @@ if STREAMLINE2:
             "Post/Stream2/py_streamribbon.cpp"]
 else:
     cpp_srcs += [
-            "Post/Stream2/py_stream_line_stub.cpp"]
+            "Post/Stream2/py_stream_line_stub.cpp",
+            "Post/Stream2/py_stream_ribbon_stub.cpp"]
     
 if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
     cpp_srcs.append("Post/usurp.cpp")

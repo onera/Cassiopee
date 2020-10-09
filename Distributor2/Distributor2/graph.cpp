@@ -36,7 +36,8 @@ using namespace K_FLD;
 //=============================================================================
 void K_DISTRIBUTOR2::graph(
   vector<E_Float>& nbPts, vector<E_Int>& setBlocks,
-  E_Int NProc, int* com, vector<E_Float>& solver,
+  E_Int NProc, int* com, int* comd, E_Int sizeComd,
+  vector<E_Float>& solver,
   vector<E_Float>& latence, vector<E_Float>& comSpeed, E_Int param,
   vector<E_Int>& out, E_Float& meanPtsPerProc, E_Float& varMin,
   E_Float& varMax, E_Float& varRMS, E_Int& nptsCom, E_Float& volRatio,
@@ -115,6 +116,10 @@ void K_DISTRIBUTOR2::graph(
         size++;
       }
     }
+
+  // taille des adj par comd
+  //size = sizeComd/2;
+  
   //printf("size of adj %d\n", size);
 
   idx_t* adj = new idx_t [size];
@@ -152,6 +157,33 @@ void K_DISTRIBUTOR2::graph(
   }
   //printf("size2 of adj %d\n", size);
 
+  /*
+  size = 0;
+  for (E_Int i = 0; i < nb; i++)
+  {
+    xadj[i] = size;
+
+    for (E_Int n = 0; n < sizeComd; n++)
+    {
+      b1 = comd[2*n]/Nb;
+      b2 = comd[2*n]-b1*Nb;
+      if (b1 == i && b2 =! i)
+      {
+        adj[size] = b2;
+        adjweight[size] = comd[2*n+1];
+        size++;
+      }  
+      else if (b2 == i && b1 != i)
+      {
+        adj[size] = b1;
+        adjweight[size] = comd[2*n+1];
+        size++;
+      }
+    }
+    xadj[nb] = size;
+  }
+  */
+  
   E_Int objval = 0;
   E_Int ncon = 1;
   idx_t* parts = new idx_t [nb];

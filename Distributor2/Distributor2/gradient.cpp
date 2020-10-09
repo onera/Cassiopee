@@ -32,7 +32,8 @@ using namespace K_FLD;
 //=============================================================================
 void K_DISTRIBUTOR2::gradient(
   vector<E_Float>& nbPts, vector<E_Int>& setBlocks,
-  E_Int NProc, int* com, vector<E_Float>& solver,
+  E_Int NProc, int* com, int* comd, E_Int sizeComd,
+  vector<E_Float>& solver,
   vector<E_Float>& latence, vector<E_Float>& comSpeed, E_Int param,
   vector<E_Int>& out, E_Float& meanPtsPerProc, E_Float& varMin,
   E_Float& varMax, E_Float& varRMS, E_Int& nptsCom, E_Float& volRatio,

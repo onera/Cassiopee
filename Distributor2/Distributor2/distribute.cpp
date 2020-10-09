@@ -27,11 +27,11 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
 {
   PyObject* nbPts; PyObject* setBlocks;
   PyObject* perfProcs; PyObject* weight;
-  PyObject* com; E_Int NProc;
+  PyObject* com; PyObject* comd; E_Int NProc;
   char* algorithm;
-  if (!PYPARSETUPLEI(args,"OOOOOls","OOOOOis", 
+  if (!PYPARSETUPLEI(args,"OOOOOOls","OOOOOOis", 
                      &nbPts, &setBlocks, &perfProcs, &weight, 
-                     &com, &NProc, &algorithm)) return NULL;
+                     &com, &comd, &NProc, &algorithm)) return NULL;
 
   // Check algorithm
   E_Int algo, param;
@@ -87,8 +87,9 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  // Analyse de com
   IMPORTNUMPY;
+
+  // Analyse de com
   if (PyArray_Check(com) == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -99,6 +100,20 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   PyArrayObject* coma = (PyArrayObject*)com;
   int* volCom = (int*)PyArray_DATA(coma);
   Py_INCREF(coma);
+
+  // Analyse de comd
+  if (PyArray_Check(comd) == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "distribute: comd must a numpy array.");
+    return NULL;
+  }
+  
+  coma = (PyArrayObject*)comd;
+  int* volComd = (int*)PyArray_DATA(coma);
+  Py_INCREF(coma);
+  E_Int sizeComd = PyArray_SIZE(coma);
+
 
   // Analyse perfProcs
   if (PyList_Check(perfProcs) == 0)
@@ -171,6 +186,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   E_Int nptsCom; 
   if (algo == 1) // genetic
     K_DISTRIBUTOR2::genetic(lnbPts, lsetBlocks, NProc, volCom, 
+                            volComd, sizeComd,  
                             solver, latence, comSpeed, param, out,
                             meanPtsPerProc, varMin,
                             varMax, varRMS, nptsCom, comRatio,
@@ -178,6 +194,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   else if (algo == 2) // graph
   {
     K_DISTRIBUTOR2::graph(lnbPts, lsetBlocks, NProc, volCom, 
+                          volComd, sizeComd,
                           solver, latence, comSpeed, param, out,
                           meanPtsPerProc, varMin,
                           varMax, varRMS, nptsCom, comRatio,
@@ -185,6 +202,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   }
   else // algo = 0
     K_DISTRIBUTOR2::gradient(lnbPts, lsetBlocks, NProc, volCom, 
+                             volComd, sizeComd,
                              solver, latence, comSpeed, param, out,
                              meanPtsPerProc, varMin,
                              varMax, varRMS, nptsCom, comRatio, 

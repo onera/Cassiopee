@@ -36,6 +36,15 @@ def computeBBoxes__(arrays, zoneNames):
     except: pass
     return bboxes
 
+# Retourne une cle unique pour le dictionnaire de com
+def addCom__(comd, c, d, NProc, vol):
+    if c < d: key = c+d*NProc; vol2 = vol/2
+    elif c > d: key = d+c*NProc; vol2 = vol/2
+    else: key = d+c*NProc; vol2 = vol
+    #key = c+d*NProc
+    if key in comd: comd[c+d*NProc] += vol2
+    else: comd[c+d*NProc] = vol2
+
 #==============================================================================
 # Distribute t (pyTree) over NProc processors
 # IN: NProc: number of processors
@@ -99,6 +108,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
 
     Nb = len(nbPts)
     com = numpy.zeros((Nb, Nb), numpy.int32)
+    comd = {}
 
     if useCom == 'match' or useCom == 'all':
         # Formation des coms - raccords coincidents
@@ -123,6 +133,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                         w = Internal.range2Window(win)
                         vol = (w[1]-w[0]+1)*(w[3]-w[2]+1)*(w[5]-w[4]+1)
                         if d != -1: com[c, d] += vol
+                        #if d != -1: addCom__(comd, c, d, NProc, vol)
                 match = Internal.getNodesFromType2(z, 'GridConnectivity_t') # non structure
                 for m in match:
                     donorName = Internal.getValue(m)
@@ -131,7 +142,8 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                     node = Internal.getNodeFromName1(m, 'PointList')
                     if node is not None and node[1] is not None:
                         vol = node[1].size
-                        if d != -1: com[c, d] += vol      
+                        if d != -1: com[c, d] += vol
+                        #if d != -1: addCom__(comd, c, d, NProc, vol)
                 c += 1
             zc += len(zones)
 
@@ -166,6 +178,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                                     ymax1 > ymin2-tol and ymin1 < ymax2+tol and
                                     zmax1 > zmin2-tol and zmin1 < zmax2+tol):
                                     com[c, d] += vol
+                                    #addCom__(comd, c, d, NProc, vol)
                             d += 1
             c += 1
 
@@ -207,6 +220,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                         ymax1 > ymin2-tol and ymin1 < ymax2+tol and
                         zmax1 > zmin2-tol and zmin1 < zmax2+tol):
                         com[c, d] += np
+                        #addCom__(comd, c, d, NProc, np)
                 d += 1
             c += 1
 
@@ -222,11 +236,14 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                 PL = Internal.getNodeFromName1(s, 'PointList')
                 if PL is not None and PL[1] is not None:
                     com[dict[zname],dict[oppname]] = PL[1].size
+                    #addCom__(comd, dict[zname], dict[oppname], NProc, PL[1].size)
                 else:
                     com[dict[zname],dict[oppname]] = 1.
+                    #addCom__(comd, dict[zname], dict[oppname], NProc, 1)
 
     # Equilibrage
-    out = Distributor2.distribute(nbPts, NProc, prescribed=aset, com=com,
+    out = Distributor2.distribute(nbPts, NProc, prescribed=aset, 
+                                  com=com, comd=comd,
                                   perfo=perfo, weight=weightlist, 
                                   algorithm=algorithm, mode=mode, nghost=nghost)
 
