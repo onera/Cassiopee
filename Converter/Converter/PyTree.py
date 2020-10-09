@@ -40,6 +40,10 @@ def getBCName(proposedName):
   (name, __BCNameServer__) = getUniqueName(proposedName, __BCNameServer__)
   return name
 
+# Retourne le denier nom de BC propose par le serveur pour le nom proposedName
+def getLastBCName(proposedName):
+  return getLastName(proposedName, __BCNameServer__)
+
 # Enregistre les noms des BCs de t dans le __BCNameServer__
 def registerBCNames(t):
   global __BCNameServer__
@@ -106,6 +110,20 @@ def getUniqueName(proposedName, server):
     server[name2] = 0
     server[name] = c
     return (name2, server)
+
+# Retourne le dernier nom fourni par le serveur
+def getLastName(proposedName, server):
+  namespl = proposedName.rsplit('.', 1)
+  if len(namespl) == 2:
+    try: c = int(namespl[1]); name = namespl[0]
+    except: name = proposedName
+  else: name = proposedName
+  if name not in server:
+    return None
+  else:
+    c = server[name]
+    if c == 0: return name
+    else: return name+'.'+str(c-1)
 
 #==============================================================================
 # -- pyTree informations --
@@ -3977,22 +3995,59 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True):
   if removeBC: return _recoverBCs1(t, BCInfo, tol)
   else: return _recoverBCs2(t, BCInfo, tol)
 
+def _recoverBCs1(a, BCInfo, tol=1.e-11):
+  """Recover given BCs on a tree.
+  Usage: _recoverBCs(a, (BCs, BCNames, BCTypes), tol)"""
+  try:import Post.PyTree as P
+  except: raise ImportError("_recoverBCs: requires Post module.")
+  _deleteZoneBC__(a)
+  (BCs, BCNames, BCTypes) = BCInfo
+  for z in Internal.getZones(a):
+    indicesF = []
+    f = P.exteriorFaces(z, indices=indicesF)
+    indicesF = indicesF[0]
+    hook = createHook(f, 'elementCenters')
+
+    for c, b in enumerate(BCs):
+      if b == []:
+        raise ValueError("_recoverBCs: boundary is probably ill-defined.")
+      # Break BC connectivity si necessaire
+      elts = Internal.getElementNodes(b)
+      size = 0
+      for e in elts:
+        erange = Internal.getNodeFromName1(e, 'ElementRange')[1]
+        size += erange[1]-erange[0]+1
+      n = len(elts)
+      if n == 1:
+        ids = identifyElements(hook, b, tol)
+      else:
+        bb = breakConnectivity(b)
+        ids = numpy.array([], dtype=numpy.int32)
+        for bc in bb:
+          ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
+      # Cree les BCs
+      ids = ids[ids > -1]
+      sizebc = ids.size
+      if sizebc > 0:
+        id2 = numpy.empty(sizebc, numpy.int32)
+        id2[:] = indicesF[ids[:]-1]
+        _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
+    freeHook(hook)
+  return None
+
+# N'efface pas les matchs et bc deja existantes
 def _recoverBCs2(t, BCInfo, tol):
   try: import Post.PyTree as P
   except: raise ImportError("_recoverBCs: requires Post module.")
-
   try: import Transform.PyTree as T
   except: raise ImportError("_recoverBCs: requires Transform module.")
-
   try: import Generator.PyTree as G
   except: raise ImportError("_recoverBCs: requires Generator module.")
-
   (BCs, BCNames, BCTypes) = BCInfo
   for z in Internal.getZones(t):
       indicesF = []
       zf = P.exteriorFaces(z, indices=indicesF)
       indicesF = indicesF[0]
-      
       # BC classique
       bnds = Internal.getNodesFromType2(z, 'BC_t')
       # BC Match
@@ -4021,11 +4076,9 @@ def _recoverBCs2(t, BCInfo, tol):
           zf = T.subzone(z, indicesE, type='faces')
           hook = createHook(zf, 'elementCenters')
           for c in range(len(BCs)):
-              b = BCs[c]                      
-              if b == []: raise ValueError("_recoverBCs: boundary is probably ill-defined.")
-
+              if BCs[c] == []: raise ValueError("_recoverBCs: boundary is probably ill-defined.")
               for b in BCs[c]:
-                if G.bboxIntersection(zf,b):
+                if G.bboxIntersection(zf, b):
                     # Break BC connectivity si necessaire
                     elts = Internal.getElementNodes(b)
                     size = 0
@@ -4049,50 +4102,6 @@ def _recoverBCs2(t, BCInfo, tol):
                         id2[:] = indicesE[ids[:]-1]
                         _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
           freeHook(hook)
-  return None
-
-def _recoverBCs1(a, T, tol=1.e-11):
-  """Recover given BCs on a tree.
-  Usage: _recoverBCs(a, (BCs, BCNames, BCTypes), tol)"""
-  try:import Post.PyTree as P
-  except: raise ImportError("_recoverBCs: requires Post module.")
-  _deleteZoneBC__(a)
-  zones = Internal.getZones(a)
-  (BCs, BCNames, BCTypes) = T
-  for z in zones:
-    indicesF = []
-    try: f = P.exteriorFaces(z, indices=indicesF)
-    except: continue
-    indicesF = indicesF[0]
-    hook = createHook(f, 'elementCenters')
-
-    for c in range(len(BCs)):
-      b = BCs[c]
-      if b == []:
-        raise ValueError("_recoverBCs: boundary is probably ill-defined.")
-      # Break BC connectivity si necessaire
-      elts = Internal.getElementNodes(b)
-      size = 0
-      for e in elts:
-        erange = Internal.getNodeFromName1(e, 'ElementRange')[1]
-        size += erange[1]-erange[0]+1
-      n = len(elts)
-      if n == 1:
-        ids = identifyElements(hook, b, tol)
-      else:
-        bb = breakConnectivity(b)
-        ids = numpy.array([], dtype=numpy.int32)
-        for bc in bb:
-          ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
-      # Cree les BCs
-      ids = ids[ids > -1]
-      sizebc = ids.size
-      if sizebc > 0:
-        id2 = numpy.empty(sizebc, numpy.int32)
-        id2[:] = indicesF[ids[:]-1]
-        _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
-    freeHook(hook)
-
   return None
 
 # -- pushBC

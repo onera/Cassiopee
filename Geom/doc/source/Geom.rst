@@ -769,8 +769,6 @@ Geometry modification
 
     .. literalinclude:: ../build/Examples/Geom/uniformizePT.py
 
-    .. note:: new in version 2.7.
-
 ---------------------------------------------------------------
 
 .. py:function:: Geom.refine(a, N=10, factor=-1, sharpAngle=30.)
@@ -797,8 +795,6 @@ Geometry modification
     * `Refining/coarsening a 1D curve (pyTree) <Examples/Geom/refinePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/refinePT.py
-
-    .. note:: new in version 2.7.
 
 ---------------------------------------------------------------
 
@@ -827,8 +823,6 @@ Geometry modification
     * `Enforce steps in a 1D curve (pyTree) <Examples/Geom/enforcehPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/enforcehPT.py
-
-    .. note:: new in version 2.7.
 
 ---------------------------------------------------------------
 
