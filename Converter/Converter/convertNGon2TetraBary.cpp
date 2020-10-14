@@ -165,7 +165,7 @@ PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
     break;
   }
 
- // Nouvelle connectivite
+  // Nouvelle connectivite
   FldArrayI newcn(sizeConnect,nconnect); // tetraedre
   // Pointeurs sur la nouvelle connectivite
   vector<E_Int*> newcnp(nconnect);

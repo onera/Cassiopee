@@ -76,8 +76,8 @@ def getenv(name):
 # Check all (python, numpy, C++, fortran, hdf, mpi, mpi4py, png, osmesa, mpeg)
 #==============================================================================
 def checkAll(summary=True):
-    from config import additionalLibPaths, additionalIncludePaths
-    
+    from config import additionalLibPaths, additionalIncludePaths, useCuda
+
     out = []
     try:
         (pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = checkPython()
@@ -111,7 +111,11 @@ def checkAll(summary=True):
     (ok, mpi4pyIncDir, mpi4pyLibDir) = checkMpi4py(additionalLibPaths, additionalIncludePaths)
     if ok: out += ['mpi4py: OK (%s).'%(mpi4pyIncDir)]
     else: out += ['mpi4py: missing (%s).'%(mpi4pyIncDir)]
-    
+
+    if useCuda:
+        (ok, cudaIncDir, cudaLib, cudaBin) = checkCuda(additionalLibPaths, additionalIncludePaths) 
+        if ok: out += ['cuda: used (%s)'%(cudaIncDir)]
+        else: out += ['cuda: missing. Not used (%s).'%(cudaIncDir)]
     if summary:
         print('Summary:')
         print('========')
@@ -752,6 +756,20 @@ def getCppArgs():
     return opt
 
 #==============================================================================
+# Retourne les arguments pour le compilateur Cuda
+# IN: config.Cppcompiler, config.useStatic, config.useOMP,
+# config.CppAdditionalOptions
+#==============================================================================
+def getCudaArgs():
+    try: from config import NvccAdditionalOptions
+    except: from KCore.config import NvccAdditionalOptions
+
+    options = NvccAdditionalOptions
+    if DEBUG: options += ['-g', '-O0']
+    else: options += ['-DNDEBUG', '-O2']
+    return options
+
+#==============================================================================
 # Retourne les arguments pour le compilateur Fortran
 # IN: config.f77compiler
 #==============================================================================
@@ -1367,6 +1385,66 @@ def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
         return (False, i, '')
 
 #=============================================================================
+# Check for Cuda
+# additionalPaths : chemins d'installation non standards : ['/home/toto', ...]
+# Retourne : (True/False, chemin des includes, chemin de la librairie, chemin
+#             executable nvcc)
+#=============================================================================
+def checkCuda(additionalLibPaths=[], additionalIncludePaths=[]):
+    # Check if the user want cuda supported
+    # -------------------------------------
+    from config import useCuda
+    if not useCuda:
+        #print('Info: cuda is not activated. No cuda support.')
+        return (False, None, None, None, None)
+    # Check for executable
+    # --------------------
+    cuda_root = os.getenv("CUDA_ROOT")
+    if cuda_root is None:
+        print('Info: CUDA_ROOT environment variable not set. No cuda support.')
+        return (False, None, None, None, None)
+    has_nvcc_exe = os.access(cuda_root+"/bin/nvcc.exe", os.F_OK)
+    has_nvcc     = os.access(cuda_root+"/bin/nvcc", os.F_OK)
+    nvcc_exec    = None
+    if not has_nvcc and not has_nvcc_exe :
+        print('Info: nvcc not found at %s/bin. No cuda support.'%cuda_root) 
+        return (False, None, None, None, None)
+    elif has_nvcc: nvcc_exec = cuda_root+"/bin/nvcc" 
+    else: nvcc_exec = cuda_root+"/bin/nvcc.exe"
+
+    # Check for library :
+    # ------------------
+    libPaths = [cuda_root+'/lib/x64', cuda_root+'/lib/win32',
+                cuda_root+'/lib64'] + additionalLibPaths
+    libnames = []
+    l = checkLibFile__('libcuda.so', libPaths)
+    if l is None:
+        l = checkLibFile__('cuda.lib', libPaths)
+        if l is not None:
+            libnames.append('cuda.lib')
+    else:
+        libnames.append('libcuda.so')
+    # Check for include :
+    # -------------------
+    incPaths = [cuda_root+'/include',] + additionalIncludePaths
+    incnames = []
+    i = checkIncFile__("cuda.h", incPaths)
+    if i is not None and l is not None:
+        print('Info: cuda detected at %s.'%l)
+        return (True, i, l, libnames, nvcc_exec)
+    elif l is None and i is not None:
+        print('Info: libcuda/cuda.lib was not found on your system. No cuda support.')
+        return (False, i, l, libnames, nvcc_exec)
+    elif l is not None and i is None:
+        print('Info: cuda.h was not found on your system. No cuda support.')
+        return (False, i, l, libnames, nvcc_exec)
+    else:
+        print('Info: libcuda/cuda.lib or cuda.h was not found on your system. No cuda support.')
+        return (False, i, l, libnames, nvcc_exec)
+
+    return (False, i, l, libnames, nvcc_exec)
+
+#=============================================================================
 # Check for paradigma python binding
 # additionalPaths: chemins d'installation non standards : ['/home/toto',...]
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
@@ -1754,6 +1832,12 @@ def writeBuildInfo():
      if mpi: dict['mpi'] = mpiLib
      else: dict['mpi'] = "None"
 
+     # Check cuda
+     (cuda, cudaIndDir, cudaLib, cudalibNames, cudaexec) = checkCuda(config.additionalLibPaths,
+                                                                     config.additionalIncludePaths)
+     if cuda: dict['cuda'] = cudaLib
+     else:    dict['cuda'] = "None" 
+
      # Write dictionnary
      p.write("# This file is generated by Cassiopee installer.\n")
      p.write("buildDict = "+str(dict))
@@ -1800,7 +1884,9 @@ def writeInstallBase(dict):
                elif lc == 9: p.write("%s, # CPlotOffScreen\n"%lstr)
                elif lc == 10: p.write("%s, # additionalIncludePaths\n"%lstr)
                elif lc == 11: p.write("%s, # additionalLibs\n"%lstr)
-               elif lc == 12: p.write("%s # additionalLibPaths\n"%lstr)
+               elif lc == 12: p.write("%s, # additionalLibPaths\n"%lstr)
+               elif lc == 13: p.write("%s, # useCuda\n"%lstr)
+               elif lc == 14: p.write("%s  # NvccAdditionalOptions\n"%lstr)
           kc += 1
           if kc == len(dict): p.write("]\n")
           else: p.write("], \n")
@@ -1953,6 +2039,65 @@ def createFortranScanner(env):
                                             recursive=True)
      env.Append(SCANNERS=fortranscanner)
      return env
+
+# Cree le scanner Cuda dans env
+def createCudaScanner(env):
+    import Scons
+    CudaScanner = SCons.Scanner.C.CScanner()
+    SCons.Tool.SourceFileScanner.add_scanner(['.cu'], CudaScanner)
+    return env
+
+def add_common_nvcc_variables(env):
+    """
+    Add underlying common "NVIDIA CUDA compiler" variables that
+    are used by multiple builders.
+    """
+
+    # "NVCC common command line"
+    if not env.has_key('_NVCCCOMCOM'):
+        # nvcc needs '-I' prepended before each include path, regardless of platform
+        env['_NVCCWRAPCPPPATH'] = '${_concat("-I", CPPPATH, "", __env__)}'
+        # prepend -Xcompiler before each flag
+        # assemble the common command line
+        env['_NVCCCOMCOM'] = '$_NVCCWRAPCPPPATH'
+    return env
+
+def createCudaBuilders(env, dirs = []):
+    import SCons
+    # create a builder that makes PTX files from .cu files
+    (ok, incCuda, libCude, libNameCuda, binCuda) = checkCuda()
+    opts = getCppArgs()
+    add_common_nvcc_variables(env)
+    path = ''
+    for i in dirs: path += '-I"%s" '%i
+    action_cuda = binCuda + ' -ptx '
+    #for o in opts :
+    #    action_cuda += o + " "
+    action_cuda += path + '$NVCCFLAGS $_NVCCCOMCOM $SOURCES -o $TARGET'
+    ptx_builder = SCons.Builder.Builder(action = action_cuda,
+                                        emitter = {},
+                                        suffix = '.ptx',
+                                        src_suffix = ['.cu'])
+    env['BUILDERS']['PTXFile'] = ptx_builder
+
+    # create builders that make static & shared objects from .cu files
+    static_obj, shared_obj = SCons.Tool.createObjBuilders(env)
+
+    NVCCCOM   = '"' + binCuda + '"' + ' -o $TARGET -c '
+    SHNVCCCOM = '"' + binCuda + '"' + ' -shared -o $TARGET -c '
+    #for o in opts :
+    #    NVCCCOM   += o + " "
+    #    SHNVCCCOM += o + " "
+
+    NVCCCOM   += '$NVCCFLAGS $_NVCCWRAPCFLAGS $NVCCWRAPCCFLAGS $_NVCCCOMCOM $SOURCES'
+    SHNVCCCOM += '$NVCCFLAGS $_NVCCWRAPSHCFLAGS $_NVCCWRAPSHCCFLAGS $_NVCCCOMCOM $SOURCES'
+    # Add this suffix to the list of things buildable by Object
+    static_obj.add_action('.cu', NVCCCOM)
+    shared_obj.add_action('.cu', SHNVCCCOM)
+    static_obj.add_emitter('.cu', SCons.Defaults.StaticObjectEmitter)
+    shared_obj.add_emitter('.cu', SCons.Defaults.SharedObjectEmitter)
+
+    return env
 
 #==============================================================================
 # Builder Cython

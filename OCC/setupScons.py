@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from distutils.core import setup, Extension
 from KCore.config import *
-import os, sys
+import os
 
 #=============================================================================
 # OCC requires:

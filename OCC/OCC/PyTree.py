@@ -1,7 +1,6 @@
 # OCC pyTree
 try:
     import OCC as O
-    import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
 except: raise ImportError("OCC.PyTree: requires Converter module.")

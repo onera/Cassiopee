@@ -1,5 +1,4 @@
 # Class for FastS "IBM"+"Overset" prepare and compute
-import Fast.PyTree as Fast
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Transform.PyTree as T

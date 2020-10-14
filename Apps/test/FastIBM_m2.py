@@ -4,7 +4,6 @@ import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import KCore.test as test
-import Transform.PyTree as T
 import Converter.Internal as Internal
 import Geom.PyTree as D
 import FastC.PyTree as FastC

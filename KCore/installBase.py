@@ -18,7 +18,9 @@ False, # static
 False, # CPlotOffScreen
 ['/usr/include/mpi', '/usr/include/hdf5/serial'], # additionalIncludePaths
 ['gfortran', 'gomp', 'pthread'], # additionalLibs
-['/usr/lib/x86_64-linux-gnu','/usr/lib/x86_64-linux-gnu/hdf5/serial/'] # additionalLibPaths
+['/usr/lib/x86_64-linux-gnu','/usr/lib/x86_64-linux-gnu/hdf5/serial/'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'WDSNA81OZ': [ 'Machine de production win32 (Onera)',
@@ -32,21 +34,25 @@ False, # static
 False, # CPlotOffScreen
 ['c:/MinGW/include'], # additionalIncludePaths
 ['gfortran', 'gomp', 'pthread'], # additionalLibs
-['c:/MinGW/lib', 'c:/Python27/libs', 'c:/MinGW/bin'] # additionalLibPaths
+['c:/MinGW/lib', 'c:/Python27/libs', 'c:/MinGW/bin'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'WDAAA728Z': [ 'Windows win64+msys2 (XJ-Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
-['-D__SHADERS__', '-isystem /d/juvigny/msys64/mingw64/include/python2.7', '-isystem /d/juvigny/msys64/mingw64/lib/python2.7/site-packages/numpy/core/include/numpy/', '-Wno-attributes'], # CppAdditionalOptions
+['-D__SHADERS__', '-isystem /d/juvigny/msys64/mingw64/include/python3.8', '-isystem /d/juvigny/msys64/mingw64/lib/python3.8/site-packages/numpy/core/include/numpy/'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
 False, # CPlotOffScreen
-['d:/juvigny/msys64/mingw64/include',"c:/Program Files (x86)/Microsoft SDKs/MPI/Include", "d:/juvigny/msys64/mingw64/include/OpenBLAS"], # additionalIncludePaths
+['d:/juvigny/msys64/mingw64/include',"d:/juvigny/msys64/mingw64/include/OpenBLAS"], # additionalIncludePaths
 ['gfortran', 'gomp', 'pthread', 'openblas', 'psapi'], # additionalLibs
-['d:/juvigny/msys64/mingw64/lib', 'd:/juvigny/msys64/mingw64/bin',"c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64"] # additionalLibPaths
+['d:/juvigny/msys64/mingw64/lib', 'd:/juvigny/msys64/mingw64/bin'], # additionalLibPaths
+True, # useCuda
+['-arch=sm_60'] # NvccAdditionalOptions
 ],
 ###############################################################################
 'WDAAA859Z': [ 'Windows win64+msys2 (CB-Onera)',
@@ -60,7 +66,9 @@ False, # static
 False, # CPlotOffScreen
 ['c:/msys64/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
-['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'] # additionalLibPaths
+['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'WDAAA878Z': [ 'Windows win64+msys2 (SL-Onera)',
@@ -74,7 +82,9 @@ False, # static
 False, # CPlotOffScreen
 ['c:/msys64/mingw64/include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
-['c:/msys64/mingw64/lib'] # additionalLibPaths
+['c:/msys64/mingw64/lib'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'node6.cluster': [ 'MacOSX (generic)',
@@ -89,6 +99,8 @@ False, # CPlotOffScreen
 ['/usr/X11/include' ], # additionalIncludePaths
 ['python2.7', 'ifcore'], # additionalLibs
 ['/usr/X11/lib', '/System/Library/Frameworks/OpenGL.framework/Libraries/'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'd1log1':[ 'Cluster HPC4B dev/val (Airbus)',
@@ -102,7 +114,9 @@ False, # static
 False, # CPlotOffScreen
 ['/opt/hpmpi/include', '/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
 ['svml', 'irc', 'ifcore', 'iomp5'], # additionalLibs
-['/opt/soft/cdtng/tools/intelcompiler/16.0/compiler/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib', '/opt/hpmpi/lib/linux_amd64'] # additionalLibPaths
+['/opt/soft/cdtng/tools/intelcompiler/16.0/compiler/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib', '/opt/hpmpi/lib/linux_amd64'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'devt1n007.':[ 'Cluster HPC5 dev/val tou_b (Airbus)',
@@ -116,7 +130,9 @@ False, # static
 False, # CPlotOffScreen
 ['/opt/mpi10/include', '/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
 ['ifcore', 'iomp5', 'svml', 'irc'], # additionalLibs
-['/opt/soft/cdtng/tools/intelcompiler/2018/compilers_and_libraries_2018.5.274/linux/compiler/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib', '/opt/mpi10/lib'] # additionalLibPaths
+['/opt/soft/cdtng/tools/intelcompiler/2018/compilers_and_libraries_2018.5.274/linux/compiler/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib', '/opt/mpi10/lib'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'caefr0p...': [ 'Cluster GISEH (Airbus)',
@@ -130,7 +146,9 @@ False, # static
 False, # CPlotOffScreen
 ['/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
 ['svml', 'irc', 'ifcore', 'iomp5'], # additionalLibs
-['/opt/soft/cdtng/tools/portage/1.11/composerxe/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib'] # additionalLibPaths
+['/opt/soft/cdtng/tools/portage/1.11/composerxe/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'papin': [ 'Cluster MBDA (MBDA)',
@@ -144,7 +162,9 @@ False, # static
 True, # CPlotOffScreen
 ['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/include64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/include'], # additionalIncludePaths
 ['mpi'], # additionalLibs
-['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'] # additionalLibPaths
+['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'eiffel': [ 'Machine MBDA2 (MBDA)',
@@ -158,7 +178,9 @@ False, # static
 True, # CPlotOffScreen
 ['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/include64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/include'], # additionalIncludePaths
 ['mpi'], # additionalLibs
-['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'] # additionalLibPaths
+['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'wfrontend1': [ 'Cluster Kairos (Safran)',
@@ -172,7 +194,9 @@ False, # static
 False, # CPlotOffScreen
 ['/appl/APPLI_SNECMA/HDF5/oper/1.8.11/include'], # additionalIncludePaths
 ['ifcore', 'svml', 'irc'], # additionalLibs
-['/opt/intel/composer_xe_2013_sp1.0.080/lib/intel64', '/appl/APPLI_SNECMA/HDF5/oper/1.8.11/lib'] # additionalLibPaths
+['/opt/intel/composer_xe_2013_sp1.0.080/lib/intel64', '/appl/APPLI_SNECMA/HDF5/oper/1.8.11/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'santafe': [ 'MacOSX - santafe (Onera)',
@@ -187,6 +211,8 @@ False, # CPlotOffScreen
 ['/usr/X11/include' ], # additionalIncludePaths
 ['python2.7', 'ifcore'], # additionalLibs
 ['/usr/X11/lib', '/System/Library/Frameworks/OpenGL.framework/Libraries/'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'daapuv': [ 'Machine DAAP (Onera)',
@@ -200,7 +226,9 @@ False, # static
 True, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.7/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/hdf5-1.8.7/lib'] # additionalLibPaths
+['/usr/local/hdf5-1.8.7/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'celeste': [ 'Grosse machine de post-traitement (Onera)',
@@ -214,7 +242,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
-[] # additionalLibPath
+[], # additionalLibPath
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'oneroa142': [ 'Machine dev (Onera)',
@@ -228,7 +258,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'linux64': [ 'Production linux64 (generic)',
@@ -242,7 +274,9 @@ False, # static
 False, # CPlotOffScreen
 ['/stck1/benoit/include'], # additionalIncludePaths
 [], # additionalLibs
-['/stck1/benoit/lib'] # additionalLibPaths
+['/stck1/benoit/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'eos...z': [ 'Poste grand calcul eosXXXz (Onera)',
@@ -256,7 +290,9 @@ False, # static
 False, # CPlotOffScreen
 ['/usr/local/hdf5-gnu-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/hdf5-gnu-1.8.8/lib'] # additionalLibPaths
+['/usr/local/hdf5-gnu-1.8.8/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'eos...': [ 'Onera-eos (legacy-doit etre apres eosZ)',
@@ -270,7 +306,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'ld...': [ 'Poste grand calcul Onera-ld (Onera)',
@@ -284,7 +322,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'tiamat': [ 'Machine de dev elsA (Onera)',
@@ -298,7 +338,9 @@ False, # static
 True, # CPlotOffScreen
 ['/home/benoit/x86_64t/include'], # additionalIncludePaths
 [], # additionalLibs
-['/home/benoit/x86_64t'] # additionalLibPaths
+['/home/benoit/x86_64t'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'austri.onera': [ 'Cluster dev austri (Onera)',
@@ -312,7 +354,9 @@ False, # static
 True, # CPlotOffScreen
 ['/home/benoit/aus/include'], # additionalIncludePaths
 [], # additionalLibs
-['/home/benoit/aus/lib'] # additionalLibPaths
+['/home/benoit/aus/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'rosetta-ws': [ 'Machine rosetta (Safran)',
@@ -326,7 +370,9 @@ False, # static
 True, # CPlotOffScreen
 ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include'], # additionalIncludePaths
 [], # additionalLibs
-['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'] # additionalLibPaths
+['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'rosetta-compute': [ 'Machine rosetta-calcul (Safran)',
@@ -340,7 +386,9 @@ False, # static
 True, # CPlotOffScreen
 ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include'], # additionalIncludePaths
 [], # additionalLibs
-['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'] # additionalLibPaths
+['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'westri': [ 'Machine westri-KNL (Onera)',
@@ -354,7 +402,9 @@ False, # static
 True, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.8-intel-16/include','/home/benoit/aus/include','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/include64/','/stck/nalferez/intel/parallel_studio_xe_2018/vtune_amplifier_2018/include/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/include/intel64'], # additionalIncludePaths
 [], # additionalLibs
-['/home/benoit/aus/lib','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/lib64/','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/lib64/','/usr/local/hdf5-1.8.8-intel-16/lib/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/lib64'] # additionalLibPaths
+['/home/benoit/aus/lib','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/lib64/','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/lib64/','/usr/local/hdf5-1.8.8-intel-16/lib/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/lib64'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'giulia': [ 'Machine dev elsA-ASO (Onera)',
@@ -369,7 +419,9 @@ False, # CPlotOffScreen
 ["/tmp_opt/lib/hdf5-1.8.8-intel-16-impi/include",
 "/usr/local/intel/studio/2016/compilers_and_libraries_2016.0.109/linux/mpi/include64"], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'mangrove': [ 'Machine avec acces GPU (Onera)',
@@ -383,7 +435,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'moloch': [ 'Machine dev Cedre (Onera)',
@@ -397,7 +451,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'cc-wdsna': [ 'Portable sous redhat (Onera)',
@@ -412,6 +468,8 @@ False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'cephee': [ 'Cluser de dev Cassiopee (Onera)',
@@ -425,7 +483,9 @@ False, # static
 True, # CPlotOffScreen
 ['/home/tools/local/x86_64a/include'], # additionalIncludePaths
 [], # additionalLibs
-['/home/tools/local/x86_64a/lib'] # additionalLibPaths
+['/home/tools/local/x86_64a/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'btmclx2': [ 'Cluster Turbomeca (Safran)',
@@ -439,7 +499,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-['/usr/lib/gcc/x86_64-redhat-linux/4.1.2'] # additionalLibPaths
+['/usr/lib/gcc/x86_64-redhat-linux/4.1.2'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'WDSNAXXX': [ '??',
@@ -453,7 +515,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'pgi': [ 'Machine eos avec PGI',
@@ -467,7 +531,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ["pgf90","pgf902","pgc","pgmath","pgf90_rpm1","rt","pgf90rtl","pgftnrtl"], # additionalLibs
-["/d/juvigny/Logiciels/linux86-64/2018/lib"] # additionalLibPaths
+["/d/juvigny/Logiciels/linux86-64/2018/lib"],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ##############################################################################
 'visio': [ 'Machine de post gfx (Onera)',
@@ -481,7 +547,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'elmer': [ 'Machine de gros post gfx (Onera)',
@@ -495,7 +563,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'WDSNA917Z': [ 'Machine de production win64 (Onera)',
@@ -509,8 +579,10 @@ True, # static
 False, # CPlotOffScreen
 ['c:/TDM-GCC-64/include'], # additionalIncludePaths
 ['gfortran', 'gomp', 'quadmath'], # additionalLibs
-['c:/TDM-GCC-64/lib', 'c:/Python2.7/libs'] # additionalLibPaths
-#['c:/TDM-GCC-64/lib', 'c:/Users/Adminstrateur/Anaconda2/libs'] # additionalLibPaths
+['c:/TDM-GCC-64/lib', 'c:/Python2.7/libs'],  # additionAllIbpaths
+#['c:/TDM-GCC-64/lib', 'c:/Users/Adminstrateur/Anaconda2/libs'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'fulvio': [ 'Machine post gfx legacy (Onera)',
@@ -524,7 +596,9 @@ False, # static
 False, # CPlotOffScreen
 ['/usr/local/hdf5-intel-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/hdf5-intel-1.8.8/lib'] # additionalLibPaths
+['/usr/local/hdf5-intel-1.8.8/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'cobalt': [ 'CCRT machine Cobalt',
@@ -538,7 +612,9 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'ouessant': [ 'Machine IDRIS IBM  POWER + NVIDIA P100)',
@@ -552,7 +628,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ["pgf90","pgf902","pgc","pgmath","pgkomp",'omp',"pgf90_rpm1","rt","pgf90rtl"], # additionalLibs
-["/opt/pgi/linuxpower/18.4/lib/"] # additionalLibPaths
+["/opt/pgi/linuxpower/18.4/lib/"],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'ubuntu': [ 'Linux ubuntu (Onera)',
@@ -566,7 +644,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'linux': [ 'Linux (generic)',
@@ -580,7 +660,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'pdev': [ 'Machine Airbus (Airbus)',
@@ -594,7 +676,9 @@ False, # static
 False, # CPlotOffScreen
 ['/opt/soft/cdtng/tools/portage/1.9/usr/include', '/opt/hpmpi/include'], # additionalIncludePaths
 [], # additionalLibs
-['/opt/soft/cdtng/tools/portage/1.9/usr/lib', '/opt/hpmpi/lib', '/opt/soft/cdtng/tools/intelcompiler/11.0/lib/intel64'] # additionalLibPaths
+['/opt/soft/cdtng/tools/portage/1.9/usr/lib', '/opt/hpmpi/lib', '/opt/soft/cdtng/tools/intelcompiler/11.0/lib/intel64'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'laura': [ 'Machine de dev acou (Onera)',
@@ -608,7 +692,9 @@ False, # static
 False, # CPlotOffScreen
 ['/usr/local/hdf5/1.8.7/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/lib64', '/usr/local/hdf5/1.8.7/lib','/tmp_opt/Python/2.7.3/icc-mpt/lib'] # additionalLibPaths
+['/usr/local/lib64', '/usr/local/hdf5/1.8.7/lib','/tmp_opt/Python/2.7.3/icc-mpt/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'service': [ 'Cluster de calcul Stelvio (Onera)',
@@ -622,7 +708,9 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 'r.i.n.': [ 'Cluster Stelvio-batch node (Onera)',
 'ifort', # f77compiler
@@ -635,7 +723,9 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'sator': [ 'Cluster de calcul Sator (Onera)',
@@ -649,8 +739,10 @@ False, # static
 True, # CPlotOffScreen
 ['/opt/tools/intel/studio/2017/compilers_and_libraries_2017.4.196/linux/mpi/intel64/include','/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/include/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/include/intel64'], # additionalIncludePaths
 ['ittnotify','advisor'], # additionalLibs
-['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64','/opt/tools/lib/hdf5-1.8.17-intel-17/lib/'] # additionalLibPaths
-#['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64'] # additionalLibPaths
+['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64','/opt/tools/lib/hdf5-1.8.17-intel-17/lib/'],  # additionAllIbpaths
+#['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'sat_sky': [ 'Cluster de calcul Sator skylake(Onera)',
@@ -664,8 +756,10 @@ False, # static
 True, # CPlotOffScreen
 ['/opt/tools/intel/studio/2017/compilers_and_libraries_2017.4.196/linux/mpi/intel64/include','/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/include/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/include/intel64'], # additionalIncludePaths
 ['ittnotify','advisor'], # additionalLibs
-['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64','/opt/tools/lib/hdf5-1.8.17-intel-17/lib/'] # additionalLibPaths
-#['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64'] # additionalLibPaths
+['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64','/opt/tools/lib/hdf5-1.8.17-intel-17/lib/'],  # additionAllIbpaths
+#['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'spiro_sky': [ 'Machine dev Spiro (proc skylake)',
@@ -679,7 +773,9 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'spiro_amd': [ 'Machine dev Spiro (proc amd)',
@@ -693,7 +789,9 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'spiro': [ 'Machine dev Spiro (Onera)',
@@ -707,7 +805,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'chi85bi': [ 'Cluster EDF (Onera)',
@@ -721,7 +821,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'Raspail': [ 'Machine DTIM (Onera)',
@@ -737,7 +839,9 @@ False, # CPlotOffScreen
 ['/usr/include/hdf5/serial/'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/lib/gcc/x86_64-linux-gnu/7',
- '/usr/lib/x86_64-linux-gnu/'] # additionalLibPaths
+ '/usr/lib/x86_64-linux-gnu/'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'curie': [ 'Cluster Curie',
@@ -751,7 +855,9 @@ False, # static
 False, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/hdf5-1.8.8/lib'] # hdfPath
+['/usr/local/hdf5-1.8.8/lib'], # hdfPath
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
  ##############################################################################
 'madmax64': [ 'Cluster madmax DTIS (Onera)',
@@ -766,6 +872,8 @@ True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/local/intel/cluster_studio/2012_0_032/lib/intel64'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'localhost.localdomain': [ 'Unknown',
@@ -779,7 +887,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'default': [ 'Default',
@@ -793,7 +903,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'stelvio_impi15': [ 'Cluster Stelvio Full intel (Onera)',
@@ -811,7 +923,9 @@ False, # CPlotOffScreen
 ['mpi'], # additionalLibs
 ['/tmp_opt/lib/hdf5-1.8.8-intel-15-impi/lib', 
  '/tmp_opt/lib/hdf5/1.8.17/15/impi/lib', 
- '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/lib'] # additionalLibPaths
+ '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/lib'],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'dumbo': [ 'Grosse machine de post-traitement (Onera)',
@@ -825,7 +939,9 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
-[] # additionalLibPath
+[], # additionalLibPath
+False, # useCuda
+[] # NvccAdditionalOptions
 ],
 ###############################################################################
 'xdaap': [ 'Xdaap (Onera)',
@@ -839,6 +955,8 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[] # additionalLibPaths
+[],  # additionAllIbpaths
+False, # useCuda
+[] # NvccAdditionalOptions
 ]
 }

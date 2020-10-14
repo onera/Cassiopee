@@ -4,7 +4,6 @@ import Apps.Fast.IBMO as App
 import Converter.Mpi as Cmpi
 import Transform.PyTree as T
 import Converter.Internal as Internal
-import KCore.test as test
 
 NP = Cmpi.size
 rank = Cmpi.rank
