@@ -5,6 +5,8 @@ import Converter.Internal as Internal
 import KCore.test as test
 test.TOLERANCE = 1.e-6
 
+LOCAL = test.getLocal()
+
 FILE = 'naca_IBMO.cgns'
 myApp = App.IBMO(format='single')
 myApp.set(numb={"temporal_scheme": "explicit",
@@ -15,10 +17,10 @@ myApp.set(numz={"time_step": 0.002,
                 "time_step_nature":"local",
                 "cfl":0.5})
 
-t,tc = myApp.prepare(FILE, t_out='t.cgns', tc_out='tc.cgns', expand=3, vmin=11, check=False, NP=Cmpi.size, distrib=True)
+t,tc = myApp.prepare(FILE, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', expand=3, vmin=11, check=False, NP=Cmpi.size, distrib=True)
 if Cmpi.rank == 0: test.testT(t,1)
 
-t,tc = myApp.compute('t.cgns','tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns', nit=100)
+t,tc = myApp.compute(LOCAL+'/t.cgns',LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=100)
 if Cmpi.rank == 0:
 	Internal._rmNodesByName(t, '.Solver#Param')
 	Internal._rmNodesByName(t, '.Solver#ownData')

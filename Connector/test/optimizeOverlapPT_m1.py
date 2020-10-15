@@ -8,6 +8,8 @@ import Connector.Mpi as Xmpi
 import Distributor2.PyTree as Distributor2
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 # Cree le fichier test
 if Cmpi.rank == 0:
     Ni = 50; Nj = 50; Nk = 2
@@ -18,12 +20,12 @@ if Cmpi.rank == 0:
     t[2][1][2].append(a); t[2][2][2].append(b)
     t = C.fillEmptyBCWith(t, 'overlap', 'BCOverlap', dim=2)
     t = C.addVars(t,'Density'); t = C.addVars(t,'centers:Pressure')
-    C.convertPyTree2File(t, 'in.cgns')
+    C.convertPyTree2File(t, LOCAL+'/in.cgns')
 Cmpi.barrier()
 
-t = Cmpi.convertFile2SkeletonTree('in.cgns')
+t = Cmpi.convertFile2SkeletonTree(LOCAL+'/in.cgns')
 (t, dic) = Distributor2.distribute(t, NProc=Cmpi.size, algorithm='fast')
-t = Cmpi.readZones(t, 'in.cgns', rank=Cmpi.rank)
+t = Cmpi.readZones(t, LOCAL+'/in.cgns', rank=Cmpi.rank)
 
 t2 = Xmpi.optimizeOverlap(t)
 if Cmpi.rank == 0: test.testT(t2, 1)

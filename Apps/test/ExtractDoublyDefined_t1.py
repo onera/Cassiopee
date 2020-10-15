@@ -1,9 +1,10 @@
 # - ExtractDoublyDefined -
 import Apps.Chimera.ExtractDoublyDefined as App
-
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Converter.Internal as Internal
+import KCore.test as test
+LOCAL = test.getLocal()
 
 # Le gros bloc
 a = G.cart((0,0,0),(1,1,1),(10,10,10))
@@ -31,5 +32,5 @@ for z in Internal.getZones(t[2][2]): C._tagWithFamily(z,'FENTE')
 for z in Internal.getZones(t[2][1]): C._tagWithFamily(z,'BLOC')
 
 myApp = App.ExtractDoublyDefined()
-myApp.set(dataIn=t)
+myApp.set(dataIn=t, dataOut=LOCAL+'/out.cgns')
 myApp.run()

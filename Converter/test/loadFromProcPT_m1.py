@@ -3,6 +3,8 @@ import Converter.Filter as Filter
 import Converter.Mpi as Cmpi
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 # Build case
 if Cmpi.rank == 0:
     import Converter.PyTree as C
@@ -12,11 +14,9 @@ if Cmpi.rank == 0:
     a = G.cart((0,0,0), (1,1,1), (100,50,50))
     a = T.splitNParts(a, Cmpi.size)
     D2._distribute(a, Cmpi.size)
-    C.convertPyTree2File(a, 'case1.cgns')
+    C.convertPyTree2File(a, LOCAL+'/case1.cgns')
 Cmpi.barrier()
 
-h = Filter.Handle('case1.cgns')
+h = Filter.Handle(LOCAL+'/case1.cgns')
 a = h.loadFromProc()
 if Cmpi.rank == 0: test.testT(a, 1)
-
-

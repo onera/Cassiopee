@@ -4,6 +4,7 @@ import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import KCore.test as test
+test.TOLERANCE = 1.e-6
 
 LOCAL = test.getLocal()
 
