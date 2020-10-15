@@ -28,7 +28,7 @@ using namespace K_FLD;
 E_Float K_DISTRIBUTOR2::eval(
   E_Int nb, E_Int NProc, E_Float meanPtsPerProc,
   vector<E_Float>& solver, vector<E_Float>& latence,
-  vector<E_Float>& comSpeed, int* com,
+  vector<E_Float>& comSpeed, int* com, int* comd, E_Int sizeComd,
   FldArrayF& nbPtsPerProcs, vector<E_Float>& nbPts,
   E_Int* dis)
 {
@@ -47,6 +47,7 @@ E_Float K_DISTRIBUTOR2::eval(
   for (p = 0; p < NProc; p++)
     res += solver[p] * K_FUNC::E_abs(nbPtsPerProcsp[p]-meanPtsPerProc);
 
+  // avec com
   for (i = 0; i < nb; i++)
   {
     proci = dis[i];
@@ -66,6 +67,26 @@ E_Float K_DISTRIBUTOR2::eval(
       }
     }
   }
+
+  // avec comd
+  /*
+  E_Int v1;
+  for (E_Int v = 0; v < sizeComd; v++)
+  {
+    v1 = comd[2*v]; volcom = comd[2*v+1];
+    i = E_Int(v1/nb);
+    k = v1-i*nb;
+    proci = dis[i];
+    lati = latence[proci];
+    speedi = comSpeed[proci];
+    prock = dis[k];
+    // le voisin est-il sur le meme processeur?
+    if (proci != prock)
+    {
+      res += lati + speedi*volcom;
+    }
+  }
+  */
 
   // Check for empty processors
   for (i = 0; i < NProc; i++)

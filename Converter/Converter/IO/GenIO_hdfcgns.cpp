@@ -1558,9 +1558,9 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     /** Make the link effective **/
     HDF_Add_Attribute_As_Data(nid, L3S_PATH, cur_path, strlen(cur_path));
     
-    H5Lcreate_external(tgt_file_all, tgt_path, nid, L3S_LINK,H5P_DEFAULT, H5P_DEFAULT);
+    H5Lcreate_external(tgt_file_all, tgt_path, nid, L3S_LINK, H5P_DEFAULT, H5P_DEFAULT);
     HDF_Add_Attribute_As_Data(nid, L3S_FILE, tgt_file, strlen(tgt_file));
-        
+
     H5Gclose(gidp); H5Gclose(nid);
     delete [] tgt_file_all;
       

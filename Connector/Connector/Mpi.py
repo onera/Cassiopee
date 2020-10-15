@@ -5,7 +5,6 @@ import Converter.Internal as Internal
 import Converter.PyTree as C
 from . import connector
 import RigidMotion.PyTree as RM
-import numpy
 
 try: range = xrange
 except: pass

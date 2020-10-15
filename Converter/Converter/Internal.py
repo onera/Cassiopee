@@ -4382,7 +4382,7 @@ def getRotationAngleValueInDegrees(RotationAngleNode):
     angleUnitNode = getNodeFromType1(RotationAngleNode, 'DimensionalUnits_t')
     if angleUnitNode is not None:
         angleUnit = getValue(angleUnitNode)[4]
-        print("angleUnit", angleUnit)
+        #print("angleUnit", angleUnit)
         if angleUnit == 'Radian': alpha = __RAD2DEG__
         elif angleUnit == 'Degree': alpha = 1.
         else:

@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Connector.ToolboxIBM as IBM
-import Post.PyTree as P
 import Geom.PyTree as D
 import Dist2Walls.PyTree as DTW
 import KCore.test as test
@@ -40,8 +39,7 @@ test.testT(tc,13)
 
 # CAS 2D
 N = 21
-a = G.cart((0,0,0),(1./(N-1),1./(N-1),1./(N-1)),(N,N,2))
-a[0]='cart.4'
+a = G.cart((0,0,0),(1./(N-1),1./(N-1),1./(N-1)),(N,N,2)); a[0]='cart.4'
 body = D.circle((0.5,0,0),0.1)
 t = C.newPyTree(['Base',a])
 tb = C.newPyTree(['Base',body])
@@ -51,11 +49,11 @@ DTW._distance2Walls(t,bodies=tb,loc='centers',type='ortho',dim=2)
 DEPTH = 2; dimPb = 2; model = 'NSTurbulent'
 t,tc=IBM.prepareIBMData(t,tb,DEPTH=2,frontType=0)
 test.testT(tc,2)
-#
+
 C._initVars(t,'centers:cellN',1.)
 t,tc=IBM.prepareIBMData(t,tb,DEPTH=2,frontType=1)
 test.testT(tc,22)
-#
+
 C._initVars(t,'centers:cellN',1.)
 t,tc=IBM.prepareIBMData(t,tb,DEPTH=2,frontType=2, interpDataType=1)
 test.testT(tc,23)

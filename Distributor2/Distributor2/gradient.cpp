@@ -179,13 +179,13 @@ void K_DISTRIBUTOR2::gradient(
 
   E_Float evalp1 = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                         solver, latence,
-                                        comSpeed, com, 
+                                        comSpeed, com, comd, sizeComd, 
                                         nbPtsPerProcs, nbPts,
                                         dis1.begin());
   
   E_Float evalp = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                        solver, latence,
-                                       comSpeed, com, 
+                                       comSpeed, com, comd, sizeComd,
                                        nbPtsPerProcs, nbPts,
                                        dis.begin());
   if (evalp1 < evalp)
@@ -220,7 +220,7 @@ void K_DISTRIBUTOR2::gradient(
     }
     evalp = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                  solver, latence,
-                                 comSpeed, com, 
+                                 comSpeed, com, comd, sizeComd, 
                                  nbPtsPerProcs, nbPts,
                                  dis.begin());
     //printf("Adaptation randomized: %f\n", evalp);
@@ -251,7 +251,7 @@ void K_DISTRIBUTOR2::gradient(
             // Recherche du bloc swap qui baisse F
             evaln = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                          solver, latence,
-                                         comSpeed, com, 
+                                         comSpeed, com, comd, sizeComd, 
                                          nbPtsPerProcs, nbPts,
                                          disp);
             if (evaln < evalp)
@@ -325,6 +325,27 @@ void K_DISTRIBUTOR2::gradient(
       }
     }
   }
+
+  /*
+  E_Int v1, volcom;
+  nptsCom = 0;
+  E_Int volTot = 0;
+  for (E_Int v = 0; v < sizeComd; v++)
+  {
+    v1 = comd[2*v]; volcom = comd[2*v+1];
+    i = E_Int(v1/nb);
+    k = v1-i*nb;
+    E_Int proci = popp[i+(jBest-1)*nb];
+    E_Int prock = popp[k+(jBest-1)*nb];
+    volTot += volcom;
+    // le voisin est-il sur le meme processeur?
+    if (proci != prock) 
+    {
+      nptsCom += volcom;
+    }
+  }
+  */
+
   //printf("Volume de communication=%d\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
   else volRatio = 0.;

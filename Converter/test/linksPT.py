@@ -15,7 +15,9 @@ C.convertPyTree2File(t, 'main.hdf', links=links)
 # full read of main returning links
 LC=[]
 t = C.convertFile2PyTree('main.hdf', links=LC); print(LC)
+#>> [['.', './coord.hdf', '/Base/cart/GridCoordinates', '/Base/cart/GridCoordinates']]
 
 # Read links with skeleton
 LC=[]
 t = Filter.convertFile2SkeletonTree('main.hdf', links=LC); print(LC)
+#>> [['.', './coord.hdf', '/Base/cart/GridCoordinates', '/Base/cart/GridCoordinates']]

@@ -27,7 +27,7 @@ namespace K_DISTRIBUTOR2
 {
 E_Float eval(E_Int nb, E_Int NProc, E_Float meanPtsPerProc,
              std::vector<E_Float>& solver, std::vector<E_Float>& latence,
-             std::vector<E_Float>& comSpeed, int* com, 
+             std::vector<E_Float>& comSpeed, int* com, int* comd, E_Int sizeComd, 
              K_FLD::FldArrayF& nbPtsPerProcs, std::vector<E_Float>& nbPts,
              E_Int* nicePeople );
 void genetic(std::vector<E_Float>& nbPts, std::vector<E_Int>& setBlocks,

@@ -6,12 +6,14 @@ import Converter.Filter as Filter
 import Converter.Mpi as Cmpi
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 # Ecrit la zone en entier
 t = C.newPyTree(['Base'])
 a = G.cart((0,0,0), (1,1,1), (10,10,10))
 t[2][1][2] += [a]
 if Cmpi.rank == 0:
-    C.convertPyTree2File(t, 'out.hdf')
+    C.convertPyTree2File(t, LOCAL+'/out.hdf')
 Cmpi.barrier()
 
 # Prend une subzone et la remplace dans le fichier
@@ -37,9 +39,9 @@ elif Cmpi.rank == 1:
 f = {}
 f['/Base/cart/GridCoordinates/CoordinateX'] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 # skelData != None car le noeud existe deja
-Filter.writePyTreeFromFilter(t, 'out.hdf', f, skelData=[])
+Filter.writePyTreeFromFilter(t, LOCAL+'/out.hdf', f, skelData=[])
 Cmpi.barrier()
 
 if Cmpi.rank == 0:
-    r = C.convertFile2PyTree('out.hdf')
+    r = C.convertFile2PyTree(LOCAL+'/out.hdf')
     test.testT(r, 1)

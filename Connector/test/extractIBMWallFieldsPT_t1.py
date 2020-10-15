@@ -10,7 +10,7 @@ import Initiator.PyTree as I
 import Converter.Internal as Internal
 import Connector.ToolboxIBM as IBM
 import KCore.test as test
-import numpy , sys
+import numpy
 
 N = 41
 a = G.cart((0,0,0),(1./(N-1),1./(N-1),1./(N-1)),(N,N,N))

@@ -274,7 +274,7 @@ void K_DISTRIBUTOR2::genetic(
   {
     evalp[j-1] = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                       solver, latence,
-                                      comSpeed, com, 
+                                      comSpeed, com, comd, sizeComd,
                                       nbPtsPerProcs, nbPts,
                                       popp+(j-1)*nb);
   }
@@ -495,7 +495,7 @@ void K_DISTRIBUTOR2::genetic(
     {
       evalp[j-1] = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                         solver, latence,
-                                        comSpeed, com, 
+                                        comSpeed, com, comd, sizeComd, 
                                         nbPtsPerProcs, nbPts,
                                         popp+(j-1)*nb);
     }
@@ -543,6 +543,7 @@ void K_DISTRIBUTOR2::genetic(
   varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
   //printf("varMin=%f, varMax=%f, varRMS=%f\n", varMin, varMax, varRMS);
 
+  // volume total de com
   nptsCom = 0;
   E_Int volTot = 0;
   for (E_Int i = 0; i < nb; i++)
@@ -562,6 +563,28 @@ void K_DISTRIBUTOR2::genetic(
       }
     }
   }
+
+  // volume total de com avec comd
+  /*
+  E_Int v1, volcom;
+  nptsCom = 0;
+  E_Int volTot = 0;
+  for (E_Int v = 0; v < sizeComd; v++)
+  {
+    v1 = comd[2*v]; volcom = comd[2*v+1];
+    i = E_Int(v1/nb);
+    k = v1-i*nb;
+    E_Int proci = popp[i+(jBest-1)*nb];
+    E_Int prock = popp[k+(jBest-1)*nb];
+    volTot += volcom;
+    // le voisin est-il sur le meme processeur?
+    if (proci != prock) 
+    {
+      nptsCom += volcom;
+    }
+  }
+  */
+
   //printf("Volume de communication=%d\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
   else volRatio = 0.;
