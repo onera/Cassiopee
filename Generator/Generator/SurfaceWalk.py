@@ -104,7 +104,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
                 ds = G.cart((0,0,0),(hp,1,1),(nds,1,1))
                 if ds[2] > 1: constraints2.append(G.map(cons, ds))
                 else: constraints2.append(cons)
-                constrainedPts.append(indc-1) # demarre a 1
+                constrainedPts.append(int(indc-1))# demarre a 1
         
         # Free hook
         C.freeHook(hook)
@@ -152,7 +152,8 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
         if stop == 0:
             alpp = alpn
             etap = C.normalize(eta, veta)
-            if constraints2 != []: eta = generator.straightenVector(c2, etap, constrainedPts, constraints2, loop, niter, toldist)
+            if constraints2 != []: 
+                eta = generator.straightenVector(c2, etap, constrainedPts, constraints2, loop, niter, toldist)
             else: eta = etap
             if loop == 1: # meme eta en imin et imax
                 eta1 = (eta[1][0,0]+eta[1][0,imax-1])/2.
