@@ -117,7 +117,13 @@ namespace NUGA
         if (do_compact)
         {
           std::vector<E_Int> nids;
+          E_Int nb_edgesi = cnt.cols();
           K_FLD::IntArray::compact(cnt, keep, nids);
+          // IMPORTANT : discard also those bits from cutter to synchronize it, in case of a I/O classify test afterwards
+          assert (cnt2.cols() == (nb_edgesi - nb_edges1));
+          std::vector<bool> kp(cnt2.cols(), true);// make keep info  relative to cutter
+          for (E_Int i = nb_edges1; i < nb_edgesi; ++i) kp[i-nb_edges1]=keep[i];
+          cut.compress(kp);
         }
       }
       // now apply zmean to front points such remaining ones at the end will be roughly on subj supporting surface
@@ -397,10 +403,11 @@ namespace NUGA
       for (size_t m = 0; (m < nmask) && (vcur > veps); ++m)
       {
         E_Int mi = mask_ids[m];
+        if (mask_bits[mi] == nullptr) continue; // fixme : this is walls mask that does not exist anymore : clearing it from mask_ids before loop ?
         const bound_mesh_t& mask_bit = *mask_bits[mi];
         const loc_t& mask_loc = *(mask_bit.get_localizer());
 
-#ifdef DEBUG_XCELLN
+#ifdef DEBUG_CLIPPER
         medith::write("mask", mask_bit.crd, mask_bit.cnt);
 #endif
         E_Int idx_start = mask_bit.index_start;
@@ -422,7 +429,7 @@ namespace NUGA
           // autonomous cutter front
           bound_mesh_t acut_front(mask_bit, cands, idx_start);
 
-#ifdef DEBUG_XCELLN
+#ifdef DEBUG_CLIPPER
           medith::write("subj", ae1);// or medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
           medith::write("cutter_front", acut_front.crd, acut_front.cnt);
 #endif
@@ -436,7 +443,11 @@ namespace NUGA
           {
             assert(tmpbits.empty());
             NUGA::eClassify wher = NUGA::CLASSIFY::classify(ae1, acut_front, true/*unambiguous*/);
-            //std::cout << "where OUT ? " << (wher == OUT) << std::endl;
+
+#ifdef DEBUG_CLIPPER
+            medith::write("cutter_front", acut_front.crd, acut_front.cnt);
+            std::cout << "where OUT ? " << (wher == OUT) << std::endl;
+#endif
             if (wher == OUT)
               continue; //will be considered with next front
           }

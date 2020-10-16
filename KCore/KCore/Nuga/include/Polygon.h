@@ -114,9 +114,13 @@ public:
     target[2] = *p;
     
   }
+
+  template <typename acrd_t>
+  E_Int cvx_triangulate (const acrd_t& acrd) const;
   
   ///
-  static inline void cvx_triangulate(const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int ibest, E_Int index_start, K_FLD::IntArray& connectT3)
+  template <typename acrd_t>
+  static inline void cvx_triangulate(const acrd_t& coord, const E_Int* nodes, E_Int nb_nodes, E_Int ibest, E_Int index_start, K_FLD::IntArray& connectT3)
   {
     ibest = (ibest != IDX_NONE) ? ibest : 0;
     ibest = (ibest < nb_nodes && ibest > -1) ? ibest : 0;
@@ -278,6 +282,10 @@ public:
   static bool is_convex
     (const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start,
     const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest);
+
+  template <typename acrd_t>
+  static bool is_convex(const acrd_t& acrd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start,
+                   const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest);
 
   // predicate
   static bool is_convex
@@ -462,6 +470,35 @@ E_Int Polygon::triangulate
 
   return err;
   }
+
+///
+template <typename acrd_t>
+E_Int Polygon::cvx_triangulate (const acrd_t& crd) const
+{
+  if (_triangles != nullptr) return 0;
+
+  E_Int ntris = _nb_nodes - 2;
+  _triangles = new E_Int[ntris * 3];
+
+  E_Float n[3];
+  //fixme
+  //Polygon::normal<K_FLD::FloatArray, 3>(crd, _nodes, _nb_nodes, -_shift/*index start*/, n);
+  //E_Int iworst, ibest;
+  //is_convex(crd, _nodes, _nb_nodes, -_shift/*index start*/, n, 1.e-8/*convexity_tol*/, iworst, ibest);
+
+  K_FLD::IntArray cT3;
+  cvx_triangulate(crd, _nodes, _nb_nodes, 0/*ibest*/, -_shift/*index start*/, cT3);
+
+  E_Int j = 0;
+  for (E_Int i = 0; i < cT3.cols(); ++i)
+  {
+    _triangles[j++] = cT3(0, i);
+    _triangles[j++] = cT3(1, i);
+    _triangles[j++] = cT3(2, i);
+  }
+
+  return 0;
+}
 
   template<>
   inline void Polygon::split<NUGA::ISO_HEX>(const E_Int* refE, E_Int n, ngon_unit& PGs, E_Int posChild)
@@ -973,6 +1010,49 @@ bool Polygon::is_spiky
   if (ie < is) std::swap(is, ie);
 
   return (count == 2);
+}
+
+/// fixme : added to shut up balnkCellsTetra with ArrayAccessor
+template <typename acrd_t>
+bool Polygon::is_convex
+(const acrd_t& acrd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start,
+const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
+{
+  //
+  E_Float Ei[3], Ej[3];
+  bool convex = true;
+  ibest = iworst = IDX_NONE;
+  
+  E_Float Z[3], det_min(-convexity_tol), det_max(0.);
+  for (E_Int i = 1; i < nb_nodes + 1; ++i)
+  {
+    E_Int ei = nodes[i%nb_nodes] - index_start;
+    E_Int eim1 = nodes[i - 1] - index_start;
+    E_Int eip1 = nodes[(i + 1) % nb_nodes] - index_start;
+
+    NUGA::diff<3>(acrd.col(ei), acrd.col(eim1), &Ei[0]); //fixme : no normalization ??
+    NUGA::diff<3>(acrd.col(eip1), acrd.col(ei), &Ej[0]);
+    NUGA::sum<3>(normal, acrd.col(ei), Z);
+
+    E_Float det = NUGA::zzdet4(acrd.col(eim1), acrd.col(ei), acrd.col(eip1), Z);
+
+    if (det < det_min)
+    {
+      convex = false;
+      iworst = i%nb_nodes;
+      det_min = det;
+    }
+    
+    det /= (NUGA::normalize<3>(Ei)*NUGA::normalize<3>(Ej)); //normalization to really have a angular-based test.
+    
+    if (det > det_max)
+    {
+      ibest = i%nb_nodes;
+      det_max = det;
+    }
+  }
+
+  return convex;
 }
 
 }

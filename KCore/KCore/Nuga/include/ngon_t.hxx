@@ -37,6 +37,8 @@
 #include "Nuga/include/MeshTool.h"
 #include "Nuga/include/FittingBox.h"
 #include "Nuga/include/macros.h"
+#include "Nuga/include/BbTree.h"
+
 #ifdef DEBUG_NGON_T
 #include "IO/io.h"
 #include "Nuga/include/NGON_debug.h"
@@ -60,6 +62,8 @@ struct ngon_t
   enum ePathoPH { PATHO_PH_NONE=dPATHO_PH_NONE, CENTROID_NOT_STAR =dCENTROID_NOT_STAR, 
                   ISO_BARY_NOT_STAR =dISO_BARY_NOT_STAR, OPEN_PHS = dOPEN_PHS, CONCAVITY_TO_SPLIT = dCONCAVITY_TO_SPLIT, PH_DELAUNAY_FAILURE = dDELAUNAY_FAILURE, PH_DEGEN = 999};
   enum eExtrudeStrategy { CST_ABS=0, CST_REL_MEAN, CST_REL_MIN, VAR_REL_MEAN, VAR_REL_MIN};
+
+  enum eGEODIM { ERROR=-2, MIXED = -1, LINEIC=0, SURFACIC_CASSIOPEE = 1, SURFACIC = 2, VOLUMIC = 3};
   
   using unit_type = ngon_unit;
  
@@ -143,6 +147,69 @@ struct ngon_t
   ngon_t(){}
 
   void updateFacets() const { PGs.updateFacets(); PHs.updateFacets(); }
+
+  static eGEODIM get_ngon_geodim(const K_FLD::IntArray& cnt)
+  {
+    ngon_t ng(cnt);
+
+    E_Int nb_pgs(ng.PGs.size());
+    E_Int nb_phs(ng.PHs.size());
+
+    E_Int min_s(INT_MAX), max_s(0);
+
+    for (E_Int i = 0; i < nb_pgs; ++i)
+    {
+      E_Int s = ng.PGs.stride(i);
+      min_s = std::min(min_s, s);
+      max_s = std::max(max_s, s);
+    }
+
+    if (min_s <= 0) // stride 0 => error
+      return eGEODIM::ERROR;
+
+    // => min_s & max_s >= 1
+
+    if (max_s == 1)
+      return eGEODIM::LINEIC;
+
+    // => min_s >= 1 & max_s >= 2
+    
+    if (min_s == 1)
+      return eGEODIM::MIXED;
+    
+    // => min_s >=2 & max_s >= 2
+    
+    if (max_s == 2)
+      return eGEODIM::SURFACIC_CASSIOPEE;
+
+    // => min_s >= 2 & max_s >= 3
+
+    if (min_s == 2)
+      return eGEODIM::MIXED;
+
+    // => min_s >= 3 & max_s >= 3 == > SURFACIC or VOLUMIC ?
+
+    if (ng.PHs.size() == 1 && ng.PHs.stride(0) == ng.PGs.size()) // SURFACIC with one PH for all
+      return eGEODIM::SURFACIC;
+
+    // compute max stride for PHs
+    max_s = 0;
+    for (E_Int i = 0; i < nb_phs; ++i)
+    {
+      E_Int s = ng.PGs.stride(i);
+      max_s = std::max(max_s, s);
+    }
+
+    if (ng.PHs.size() == ng.PGs.size())
+    {
+      if (max_s == 1) // SURFACIC with one ph per face 
+        return eGEODIM::SURFACIC;
+      //else                      fixme : not sure how to handle this
+      //  return eGEODIM::ERROR;
+    }
+
+    return eGEODIM::VOLUMIC;
+  }
 
   bool is_consistent(E_Int max_node_id) const { 
     
@@ -1192,7 +1259,72 @@ struct ngon_t
       PHs.remove_duplicated();//clean
     return found;
   }
-  
+
+  template <typename CoordAccType>
+  bool detect_duplicated_pgs(const CoordAccType& coord, std::vector<E_Int>& nids, bool check_node_ids)
+  {
+    nids.clear();
+
+    if (PGs.size() == 0)
+      return false;
+
+    PGs.updateFacets();
+    E_Int nb_pgs(PGs.size());
+
+    E_Float G[3];
+    K_FLD::FloatArray barys;
+    barys.reserve(3, PGs.size());
+
+    Vector_t<E_Int> ISO(PGs.size(), IDX_NONE), PGI;
+
+    // Loop over PH rather than directly over PGs to consider only used PGs
+    E_Int count{ 0 };
+    for (E_Int i = 0; i < nb_pgs; ++i)
+    {
+      E_Int s = PGs.stride(i);
+      K_MESH::Polygon PGi(PGs.get_facets_ptr(i), s, -1/*to make it zero based*/);
+      PGi.iso_barycenter<CoordAccType, 3>(coord, G);
+      barys.pushBack(G, G + 3);
+
+      ISO[i] = count++;
+    }
+
+    K_CONNECT::IdTool::reverse_indirection(ISO, PGI);
+
+    // Merge
+    K_FLD::ArrayAccessor<K_FLD::FloatArray> cab(barys);
+    E_Int nmerges = ::merge(cab, EPSILON, nids);
+
+    if (!nmerges) //no duplicated faces.
+      return false;
+
+    if (!check_node_ids)
+      return (nmerges > 0);
+
+    // check if matching isoG means really identical PGs
+    bool found = false;
+    for (size_t i = 0; i < nids.size(); ++i)
+    {
+      if (nids[i] == (E_Int)i)
+        continue;
+
+      const E_Int &pgi1 = PGI[i];
+      const E_Int &pgi2 = PGI[nids[i]];
+
+      if (PGs.stride(pgi1) != PGs.stride(pgi2)) // fast treatment : not the same number of nodes
+      {
+        nids[i] = i;
+        continue;
+      }
+      if (!K_CONNECT::IdTool::equal(PGs.get_facets_ptr(pgi1), PGs.get_facets_ptr(pgi2), PGs.stride(pgi1), true/*permut*/, false/*strict orient*/))
+        nids[i] = i;
+      else
+        found = true;
+    }
+
+    return found;
+  }
+
   ///
   template <typename CoordAccType>
   bool replace_duplicated_pgs (const CoordAccType& coord)

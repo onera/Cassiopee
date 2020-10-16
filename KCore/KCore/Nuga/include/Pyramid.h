@@ -71,6 +71,9 @@ class Pyramid {
     ///
     template <typename TriangulatorType, typename acrd_t>
     void triangulate (const TriangulatorType& dt, const acrd_t& acrd) {} // dummy since it is a basic element
+    ///
+    template <typename acrd_t>
+    E_Int cvx_triangulate (const acrd_t& acrd) {return 0;}
         
     inline void triangle(E_Int i, E_Int* target)
     {

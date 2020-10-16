@@ -36,9 +36,6 @@ namespace NUGA
 {
   namespace COLLIDE
   {
-    
-    enum eOVLPTYPE { NONE, OVERSET, ABUTTING, INTERSECT};
-
     using collision_func = bool (*) (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1, const E_Float* Q2, E_Float tol);
     
     // Valid for any VOL or SURF elements
@@ -51,10 +48,11 @@ namespace NUGA
             
       t1=t2 = IDX_NONE;
       
-      DELAUNAY::Triangulator dt;
-
-      e1.triangulate(dt, crd1);
-      e2.triangulate(dt, crd2);
+      //DELAUNAY::Triangulator dt;
+      //e1.triangulate(dt, crd1);
+      //e2.triangulate(dt, crd2);
+      e1.cvx_triangulate(crd1);
+      e2.cvx_triangulate(crd2);
 
       for (E_Int i=0; i < e1.nb_tris(); ++i)
       {
@@ -220,7 +218,8 @@ namespace NUGA
 template <typename ELT1, typename ELT2, typename loc_t>
 void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
                      const K_FLD::FloatArray& crd2, const ngon_unit& PGs2, const loc_t& loc2, 
-                     std::vector<eOVLPTYPE>& is_x1, std::vector<eOVLPTYPE>& is_x2,
+                     std::vector<E_Int>& is_x1/*1-based w negval for abutt*/,
+                     std::vector<E_Int>& is_x2/*1-based w negval for abutt*/,
                      E_Float RTOL, 
                      double ps_min = 0.95/*overlap criterion*/,bool swap = true, const E_Float* norm2 = nullptr) //norm2 when right direction is known upon entry
 {
@@ -230,8 +229,8 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
   E_Int nb_pgs1 = PGs1.size();
   E_Int it1, it2;
   
-  is_x1.resize(nb_pgs1, NONE);
-  is_x2.resize(PGs2.size(), NONE);
+  is_x1.resize(nb_pgs1, IDX_NONE);
+  is_x2.resize(PGs2.size(), IDX_NONE);
   
   using crd_t = K_FLD::FloatArray;
     
@@ -282,8 +281,8 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
     for (E_Int n=0; n < nb_nodes;++n)
       Lref = MIN(Lref, L(0,nodes[n]-1));
 
-    E_Float abstol = MAX(EPSILON, RTOL*::sqrt(Lref));
-    //std::cout << abstol << std::endl;
+    E_Float abstol = MAX(ZERO_M, RTOL*::sqrt(Lref));
+    //std::cout << "compute_overlap for VOL : " << abstol << std::endl;
     for (j = 0; (j < cands2.size()); ++j)
     {
       E_Int J = cands2[j];
@@ -314,7 +313,16 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
       //assert (J > -1 && J < is_x2.size());
       if (isx)
       {
-        is_x2[J] = is_x1[i] = (ps < 0.) ? ABUTTING : OVERSET;
+        if (ps < 0.) // ABUTTING
+        {
+          is_x1[i] = -(J+1); // 1-based because of neg val logic
+          is_x2[J] = -(i+1);
+        }
+        else         // OVERSET
+        {
+          is_x1[i] = (J + 1); // 1-based because of neg val logic
+          is_x2[J] = (i + 1);
+        }
       }
     }
   }
@@ -324,7 +332,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
 template <typename ELT1, typename ELT2, typename loc_t>
 void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges1,
                      const K_FLD::FloatArray& crd2, const K_FLD::IntArray& edges2, const loc_t& loc2, 
-                     std::vector<eOVLPTYPE>& is_x1, std::vector<eOVLPTYPE>& is_x2,
+                     std::vector<E_Int>& is_x1/*1-based w negval for abutt*/, std::vector<E_Int>& is_x2 /*1-based w negval for abutt*/,
                      E_Float RTOL)
 {
   is_x1.clear();
@@ -333,8 +341,8 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
   E_Int nb_elts1 = edges1.cols();
   //E_Int it1, it2;
   
-  is_x1.resize(nb_elts1, NONE);
-  is_x2.resize(edges2.cols(), NONE);
+  is_x1.resize(nb_elts1, IDX_NONE);
+  is_x2.resize(edges2.cols(), IDX_NONE);
   
   using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
   //using acnt_t = K_FLD::ArrayAccessor<K_FLD::IntArray>;
@@ -410,11 +418,17 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
         NUGA::diff<3>(crd1.col(nodes[1]),  crd1.col(nodes[0]),  d1);
         NUGA::diff<3>(crd2.col(nodes2[1]), crd2.col(nodes2[0]), d2);
         double ps = NUGA::dot<3>(d1,d2);
-        eOVLPTYPE res;
-        if (ps < 0.) res = ABUTTING;
-        else res=OVERSET;
 
-        is_x2[J] = is_x1[i] = res;
+        if (ps < 0.) // ABUTTING
+        {
+          is_x1[i] = -(J + 1); // 1-based because of neg val logic
+          is_x2[J] = -(i + 1);
+        }
+        else        // OVERSET
+        {
+          is_x1[i] = J + 1; // 1-based because of neg val logic
+          is_x2[J] = i + 1;
+        }
       }
     }
   }
@@ -594,8 +608,10 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   // compute collision between e1 and each candidate until founding one collision
 
   // a. triangulate e1, check if any lmask point falls into the triangulation
-  DELAUNAY::Triangulator dt;
-  ae1.triangulate(dt);
+  //DELAUNAY::Triangulator dt;
+  //ae1.triangulate(dt);
+  ae1.cvx_triangulate(ae1.m_crd);
+  
 
   // (b. projection for 2D)
 

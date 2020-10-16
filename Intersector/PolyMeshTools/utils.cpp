@@ -1372,11 +1372,11 @@ PyObject* K_INTERSECTOR::extrudeRevolSurf(PyObject* self, PyObject* args)
   E_Float pt[3], dir[3];
   E_Int   nlayers(1);   // 0 : CST_ABS , 1 : CST_REL_MEAN, 2 : CST_REL_MIN, 3 : VAR_REL_MEAN, 4 : VAR_REL_MIN
 
-  std::cout << "extrudeRevolSurf : 1" << std::endl;
+  //std::cout << "extrudeRevolSurf : 1" << std::endl;
  
   if (!PYPARSETUPLE(args, "O(ddd)(ddd)l", "O(ddd)(ddd)i", "O(fff)(fff)l", "O(fff)(fff)i", &arr, &pt[0], &pt[1], &pt[2], &dir[0], &dir[1], &dir[2], &nlayers)) return NULL;
 
-  std::cout << "extrudeRevolSurf : 2" << std::endl;
+  //std::cout << "extrudeRevolSurf : 2" << std::endl;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -1403,11 +1403,11 @@ PyObject* K_INTERSECTOR::extrudeRevolSurf(PyObject* self, PyObject* args)
 
   E_Float angle = K_FUNC::normalize<3>(dir);
 
-  std::cout << "extrudeRevolSurf : 3 : angle : " << angle << std::endl;
+  //std::cout << "extrudeRevolSurf : 3 : angle : " << angle << std::endl;
 
   for (int l = 0; l < nlayers; ++l)
   {
-    std::cout << "extrudeRevolSurf : layer : " << l << std::endl;
+    //std::cout << "extrudeRevolSurf : layer : " << l << std::endl;
     tops.clear();
     ngon_type::extrude_revol_faces(crd, ngio, pglist, dir, pt, angle, &tops);
 
@@ -1415,7 +1415,7 @@ PyObject* K_INTERSECTOR::extrudeRevolSurf(PyObject* self, PyObject* args)
     pglist.insert(pglist.end(), tops.begin(), tops.end());
   }
 
-  std::cout << "extrudeRevolSurf : 4" << std::endl;
+  //std::cout << "extrudeRevolSurf : 4" << std::endl;
 
   PyObject* tpl = NULL;
 
@@ -1426,59 +1426,9 @@ PyObject* K_INTERSECTOR::extrudeRevolSurf(PyObject* self, PyObject* args)
     tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
   }
 
-  std::cout << "extrudeRevolSurf : 5" << std::endl;
+  //std::cout << "extrudeRevolSurf : 5" << std::endl;
   
   delete f; delete cn;
-  return tpl;
-}
-
-//=============================================================================
-/* XXX */
-//=============================================================================
-PyObject* K_INTERSECTOR::reorientExternalFaces(PyObject* self, PyObject* args)
-{
-  PyObject *arr;
-
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
-
-  K_FLD::FloatArray* f(0);
-  K_FLD::IntArray* cn(0);
-  char* varString, *eltType;
-  // Check array # 1
-  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
-  if (err) return NULL;
-
-  K_FLD::FloatArray & crd = *f;
-  K_FLD::IntArray & cnt = *cn;
-
-  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
-  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
-
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
-  ngon_type ngio(cnt), outer, remaining;
-
-  ngio.flag_externals(INITIAL_SKIN);
-
-  bool has_been_reversed;
-  DELAUNAY::Triangulator t;
-  err = ngon_type::reorient_skins(t, crd, ngio, has_been_reversed);
-
-  // if (has_been_reversed)
-  //   std::cout << "reorientExternalFaces : external faces has been reoriented" << std::endl;
-  // else
-  //   std::cout << "reorientExternalFaces : external faces orientation is correct" << std::endl;
-
-  PyObject* tpl = NULL;
-
-  if (!err)
-  {
-    K_FLD::IntArray cnto;
-    ngio.export_to_array(cnto);
-    tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
-  }
-  
-  delete f; delete cn;
-
   return tpl;
 }
 
@@ -1504,7 +1454,7 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
 
-  std::cout << "before numpy" << std::endl;
+  //std::cout << "before numpy" << std::endl;
 
   E_Int res=0;
   E_Int* pgsList=NULL;
@@ -1512,7 +1462,7 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   if (py_pgs != Py_None)
     res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/, 0);
 
-  std::cout << "after numpy" << std::endl;
+  //std::cout << "after numpy" << std::endl;
 
   std::cout << res << std::endl;
 
@@ -1525,16 +1475,16 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   
   ngon_type ngio(cnt);
 
-  std::cout << "after ngio construct" << std::endl;
+  //std::cout << "after ngio construct" << std::endl;
 
   std::vector<E_Int> plist, oids;
   plist.insert(plist.end(), pgsList, pgsList+size);
 
-  std::cout << "after insert" << std::endl;
+  //std::cout << "after insert" << std::endl;
   //K_CONNECT::IdTool::shift(plist, -1);
 
-  std::cout << "min pg specified : " << *std::min_element(pgsList, pgsList+size) << std::endl;
-  std::cout << "max pg specified : " << *std::max_element(pgsList, pgsList+size) << std::endl;
+  //std::cout << "min pg specified : " << *std::min_element(pgsList, pgsList+size) << std::endl;
+  //std::cout << "max pg specified : " << *std::max_element(pgsList, pgsList+size) << std::endl;
 
   ngon_unit pgs;
   ngio.PGs.extract(plist, pgs, oids);
@@ -1558,7 +1508,7 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
     std::reverse(p, p + s);
   }
 
-  std::cout << "nb of reoriented : "  << count  << " over " << size << " in pglist"<< std::endl;
+  //std::cout << "nb of reoriented : "  << count  << " over " << size << " in pglist"<< std::endl;
     
   K_FLD::IntArray cnto;
   ngio.export_to_array(cnto);
@@ -1573,7 +1523,7 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
-PyObject* K_INTERSECTOR::reorientSurf(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::reorient(PyObject* self, PyObject* args)
 {
   PyObject *arr;
   E_Int dir(1); //1 : outward -1 : inward
@@ -1599,23 +1549,26 @@ PyObject* K_INTERSECTOR::reorientSurf(PyObject* self, PyObject* args)
   
   ngon_type ngio(cnt);
 
-  std::vector<E_Int> orient;
-  ngon_type::reorient_connex_PGs(ngio.PGs, (dir==-1), orient);
+  ngio.flag_externals(INITIAL_SKIN);
+  bool has_been_reversed;
+  DELAUNAY::Triangulator t;
+  err = ngon_type::reorient_skins(t, crd, ngio, has_been_reversed);
 
-  // replace reverted polygons
-  E_Int count(0);
-  E_Int nb_pgs = ngio.PGs.size();
-  for (E_Int i=0; i < nb_pgs; ++i)
+  if (dir == -1)
   {
-    if (orient[i] == 1) continue;
+    Vector_t<E_Int> oids;
+    ngon_unit pg_ext;
+    ngio.PGs.extract_of_type(INITIAL_SKIN, pg_ext, oids);
 
-    ++count;
-    
-    E_Int PGi =i;
+    E_Int nb_pgs = pg_ext.size();
+    for (E_Int i=0; i < nb_pgs; ++i)
+    {
+      E_Int PGi = oids[i];
 
-    E_Int s = ngio.PGs.stride(PGi);
-    E_Int* p = ngio.PGs.get_facets_ptr(PGi);
-    std::reverse(p, p + s);
+      E_Int s = ngio.PGs.stride(PGi);
+      E_Int* p = ngio.PGs.get_facets_ptr(PGi);
+      std::reverse(p, p + s);
+    }
   }
     
   K_FLD::IntArray cnto;
@@ -1626,6 +1579,93 @@ PyObject* K_INTERSECTOR::reorientSurf(PyObject* self, PyObject* args)
   
   delete f; delete cn;
   return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return nullptr;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  using ngon_type = ngon_t<K_FLD::IntArray>;
+  ngon_type::eGEODIM geodim = ngon_type::get_ngon_geodim(cnt);
+
+  //std::cout << "GEO dIM ? " << geodim << std::endl;
+
+  if (geodim == ngon_type::eGEODIM::ERROR)
+  {
+    std::cout << "externalFaces : Input Error : mesh is corrupted." << std::endl;
+    return nullptr;
+  }
+  if (geodim == ngon_type::eGEODIM::MIXED)
+  {
+    std::cout << "externalFaces : Input Error : mesh mixed elt types (lineic and/or surfacic and /or volumic." << std::endl;
+    return nullptr;
+  }
+  if (geodim == ngon_type::eGEODIM::LINEIC)
+  {
+    std::cout << "externalFaces : Unsupported : lineic NGON are not handled." << std::endl;
+    return nullptr;
+  }
+
+  // so either SURFACIC, SURFACIC_CASSIOPEE or VOLUMIC
+
+  if (geodim == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnt1;
+    ng.export_surfacic_view(cnt1);
+    //std::cout << "exported" << std::endl;
+    geodim = ngon_type::eGEODIM::SURFACIC;
+    cnt=cnt1;
+  }
+
+  PyObject *tpl = nullptr;
+  
+  // SURFACIC OR VOLUMIC ?
+
+  if (geodim == ngon_type::eGEODIM::SURFACIC)
+  {
+    //std::cout << "mesh object..." << std::endl;
+    NUGA::pg_smesh_t mesh(crd, cnt);
+    //std::cout << "getting boundary..." << std::endl;
+    NUGA::edge_mesh_t ef;
+    mesh.get_boundary<true/*BAR : fixed stride*/>(ef);
+    // pushing out the BAR
+    //std::cout << "pushing out" << std::endl;
+    tpl = K_ARRAY::buildArray(ef.crd, varString, ef.cnt, -1, "BAR", false);
+  }
+  else if (geodim == ngon_type::eGEODIM::VOLUMIC)
+  {
+    NUGA::ph_mesh_t mesh(crd, cnt);
+    NUGA::pg_smesh_t ef;
+    mesh.get_boundary<false>(ef);
+    // pushing out the NGON SURFACE
+    K_FLD::IntArray cnto;
+    ngon_type ng(ef.cnt, true);
+    ng.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(ef.crd, varString, cnto, -1, "NGON", false);
+  }
+  
+  delete f; delete cn;
+  return tpl;
+
 }
 
 //=============================================================================
@@ -2268,7 +2308,7 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   
   ngon_type ng1(cnt1), ng2(cnt2);
 
-  std::vector<NUGA::COLLIDE::eOVLPTYPE> isx1, isx2;
+  std::vector<E_Int> isx1, isx2;
     
   using tree_t = K_SEARCH::BbTree3D;
     
@@ -2304,9 +2344,9 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   std::vector<E_Int> pgids1, pgids2;
 
   for (size_t i=0; i < isx1.size(); ++i)
-    if (isx1[i]) pgids1.push_back(i);
+    if (isx1[i] != IDX_NONE) pgids1.push_back(i);
   for (size_t i=0; i < isx2.size(); ++i)
-    if (isx2[i]) pgids2.push_back(i);
+    if (isx2[i] != IDX_NONE) pgids2.push_back(i);
     
   tpl = K_NUMPY::buildNumpyArray(&pgids1[0], pgids1.size(), 1, 0);
  
@@ -2533,6 +2573,9 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
 
   ngon_type::clean_connectivity(ng, crd, -1, tol);
 
+  if (ng.PHs.size() == cnts.size()) // NUGA SURF
+    ng = ngon_type(ng.PGs, true);
+
   //std::cout << "after clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
  
 
@@ -2585,7 +2628,7 @@ PyObject* K_INTERSECTOR::drawOrientation(PyObject* self, PyObject* args)
 
     E_Float c[3], n[3], top[3];
     K_MESH::Polygon::centroid<3>(crd, nodes, nb_nodes, 1, c);
-    K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1, n);
+    K_MESH::Polygon::normal<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1, n);
 
     K_MESH::Polygon pg(nodes, nb_nodes, -1);
     double Lref = ::sqrt(pg.Lref2(crd));

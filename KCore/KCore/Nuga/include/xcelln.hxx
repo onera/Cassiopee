@@ -66,7 +66,7 @@ namespace NUGA
           vcur += bits[b].extent();
 
         xcelln[i] = vcur / v0;
-        assert(xcelln[i] < 1. + EPSILON);
+        assert(xcelln[i] < 1.1);
         xcelln[i] = std::min(1., xcelln[i]);
       }
 
@@ -271,9 +271,23 @@ namespace NUGA
 
     classifyer_t classs(RTOL);
 
+#ifdef DEBUG_XCELLN
+    std::cout << "MOVLP_xcelln_1zone : PREPARE " << std::endl;
+#endif
+
     std::vector<bmesh_t*> mask_meshes;
     classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, z_priorities, rank_wnp, mask_meshes);
+
+#ifdef DEBUG_XCELLN
+    std::cout << "MOVLP_xcelln_1zone : COMPUTE " << std::endl;
+#endif
+
     err = classs.compute(z_mesh, mask_meshes, z_xcelln);
+
+#ifdef DEBUG_XCELLN
+    std::cout << "MOVLP_xcelln_1zone : FINALIZE " << std::endl;
+#endif
+
     if(!err) classs.finalize(z_mesh, z_xcelln); //replace IN/OUT with 0./1.
 
     for (size_t u = 0; u < mask_meshes.size(); ++u)
@@ -328,7 +342,11 @@ namespace NUGA
 #endif
     for (E_Int z = 0; z < nb_zones; ++z)
     {
-      //std::cout << "processing zone : " << z << " from comp " << comp_id[z] << std::endl;
+
+#ifdef DEBUG_XCELLN
+      //if (z != 29) continue;
+      std::cout << "processing zone : " << z << " from comp " << comp_id[z] << std::endl;
+#endif
 
       auto it = sorted_comps_per_comp.find(comp_id[z]);
       if (it == sorted_comps_per_comp.end()) continue;
@@ -336,13 +354,20 @@ namespace NUGA
       E_Int z_rank_wnp = rank_wnps[it->first];
       IntVec& z_priorities = it->second;
 
+#ifdef DEBUG_XCELLN
+      //NUGA::chrono c;
+      //c.start();
+
       //std::cout << "priorities : ";
       //for (size_t u = 0; u < it->second.size(); ++u)std::cout << it->second[u] << "/";
       //std::cout << std::endl;
       //std::cout << "rank WNP : " << z_rank_wnp << std::endl;
+#endif
       
       E_Int err = MOVLP_xcelln_1zone<classifyer_t>(crds[z], cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, xcelln[z], RTOL);
       if (err) break;
+
+      //std::cout << "processed in : " << c.elapsed() << " s." << std::endl;
     }
   }
 

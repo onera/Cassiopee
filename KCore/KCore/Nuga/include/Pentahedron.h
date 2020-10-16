@@ -57,6 +57,10 @@ class Pentahedron {
     {
       // dummy function : no need to do something.
     }
+
+    ///
+    template <typename acrd_t>
+    E_Int cvx_triangulate (const acrd_t& acrd) {return 0;}
         
     inline void triangle(E_Int i, E_Int* target)
     {

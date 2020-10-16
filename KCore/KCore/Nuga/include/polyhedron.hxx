@@ -66,6 +66,8 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
   template <typename TriangulatorType>
   E_Int triangulate(const TriangulatorType& dt) const;
 
+  E_Int cvx_triangulate(const K_FLD::FloatArray& dummy) const;
+
   const double* get_centroid() const; // WARNING : currently implemented as iso_bary
 
   double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : parent_type::L2ref(m_crd); } // if passed by mesh_t, return it, otherwise compute it first
@@ -269,6 +271,13 @@ E_Int aPolyhedron<TopoShape>::triangulate(const TriangulatorType& dt) const
 {
   return parent_type::triangulate(dt, m_crd);
 }
+
+template <int TopoShape>
+E_Int aPolyhedron<TopoShape>::cvx_triangulate(const K_FLD::FloatArray& dummy) const
+{
+  return parent_type::cvx_triangulate(m_crd);
+}
+
 
 template <int TopoShape>
 const double* aPolyhedron<TopoShape>::get_centroid() const 

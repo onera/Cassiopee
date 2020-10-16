@@ -241,9 +241,16 @@ namespace K_MESH
     template <E_Int DIM>
     static E_Float qualityG(const E_Float* P0, const E_Float* P1, const E_Float* P2);
     
-    //dummy
+    //dummies
     static inline void triangulate(const E_Int* nodes, E_Int* target){target[0]=nodes[0]; target[1]=nodes[1]; target[2]=nodes[2];}
+    ///
     inline void triangulate(E_Int* target){target[0]=_nodes[0]; target[1]=_nodes[1]; target[2]=_nodes[2];}
+    ///
+    template <typename acrd_t>
+    E_Int cvx_triangulate (const acrd_t& acrd) {return 0;}
+    ///
+    template <typename TriangulatorType, typename acrd_t>
+    void triangulate (const TriangulatorType& dt, const acrd_t& crd){}
 
     inline void triangle(E_Int i, E_Int* target){assert (i==0); triangulate(target);}
     
@@ -254,11 +261,7 @@ namespace K_MESH
       {bb.minB[i] = NUGA::FLOAT_MAX; bb.maxB[i] = -NUGA::FLOAT_MAX;}
 
       bb.compute(acrd, _nodes, NB_NODES, 0/*idx start*/);
-    }
-    
-     /// dummy
-     template <typename TriangulatorType, typename acrd_t>
-     void triangulate (const TriangulatorType& dt, const acrd_t& crd){}
+    }   
     
     static eDegenType degen_type(const K_FLD::FloatArray& crd, E_Int N0, E_Int N1, E_Int N2, E_Float tol2, E_Float lambdac, E_Int& ns);
 

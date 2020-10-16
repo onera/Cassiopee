@@ -55,6 +55,9 @@ struct connect_trait<LINEIC, true>
 
   static int ncells(const cnt_t& c) {return c.cols();}
   static void unique_indices(const cnt_t&c, std::vector<E_Int>& uinds) { c.uniqueVals(uinds);}
+
+  static void shift(cnt_t& c, int v) { c.shift(v);}
+  static void append(cnt_t& c, const cnt_t& to_append){c.pushBack(to_append);}
   
   static void compress(cnt_t&c, const std::vector<bool>& keep)
   {
@@ -129,6 +132,8 @@ struct connect_trait<SURFACIC, false>
   static void shift(cnt_t& c, int v) { c.shift(v);}
   static void unique_indices(const cnt_t& c, std::vector<E_Int>& uinds) { c.unique_indices(uinds);}
 
+  static void append(cnt_t& c, const cnt_t& to_append){c.append(to_append);}
+
   template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e)
   {
     E_Int shift = crd.cols() + index_start - e.shift();
@@ -144,6 +149,7 @@ struct connect_trait<SURFACIC, false>
   static void get_boundary(const cnt_t& c, K_FLD::IntArray& bc)
   {
     NUGA::MeshTool::getBoundary(c, bc);
+    bc.shift(-1); //NGON store 1-based, IntArray is 0-based
   }
   static void get_boundary(const cnt_t& c, K_FLD::IntArray& bc, std::vector<E_Int>& ancestors)
   {
@@ -547,7 +553,9 @@ struct mesh_t
     trait::shift(mcnt, crd.cols());
     
     crd.pushBack(m.crd);
-    cnt.append(mcnt);
+    trait::append(cnt, mcnt);
+
+    e_type.insert(e_type.end(), ALL(m.e_type));
   }
 
   ///
@@ -641,8 +649,11 @@ struct mesh_t
     trait::compress(cnt, keep);
     std::vector<E_Int> nids;
     trait::compact_to_used_nodes(cnt,crd, nids);
-    
-    K_CONNECT::IdTool::compact(nodal_metric2, nids); //sync the metric 
+
+    if (nids.empty())
+      nodal_metric2.clear();
+    else    
+      K_CONNECT::IdTool::compact(nodal_metric2, nids); //sync the metric 
     
     if (neighbors != nullptr)
       trait::compress(*neighbors, keep); //sync the neighborhood

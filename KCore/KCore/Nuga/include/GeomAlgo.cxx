@@ -268,7 +268,7 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
    K_FLD::FloatArray crd(*crds[0]);
    K_FLD::IntArray cnt(*cnts[0]);
    
-   E_Int* shiftcnt = new E_Int [nb_zones]; // to pass from local index to surface index
+   std::vector<E_Int> shiftcnt(nb_zones); // to pass from local index to surface index
    shiftcnt[0]=0;
    
    for (E_Int i=1; i < nb_zones; ++i)
@@ -337,28 +337,11 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
      for (size_t c = 0; c < nb_colors; ++c)
        EltAlgo<K_MESH::Triangle>::reversi_connex(*cnts[i], neighbors, Krefs[c], orient);
      
-     //D. Apply reorientation if required
-     // fast search : if one of the ref was reversed
-     bool need_a_swap=false;
-     for (size_t c = 0; (c < nb_colors) && !need_a_swap; ++c)
-       if (Krefs[c] != IDX_NONE) need_a_swap |= orient[Krefs[c]];//fixme : seems to be a bug
-     //"deeper" search : if one reversed is found
-     for (size_t j=0; (j< orient.size()) && !need_a_swap; ++j)
-     {
-       if (orient[j]==-1)
-       {
-         need_a_swap=true;
-         break;
-       }
-     }
-    
-    if (need_a_swap)
-    {
-      //permut the third and second nodes
+     //D. Apply reorientation 
+     //permut the third and second nodes
       for (size_t k = 0; k < orient.size(); ++k)
         if (orient[k] == -1)
           std::swap((*cnts[i])(1,k), (*cnts[i])(2,k));
-    }
    }
 }
 

@@ -121,14 +121,7 @@ def XcellN(coord, basenum, masks, wall_ids, priorities, output_type=0, rtol=0.05
     """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
     Usage : XcellN(t, priorities [, output_type, rtol])"""
     return intersector.XcellN(coord, basenum, masks, wall_ids, priorities, output_type, rtol)
-    
-#==============================================================================
-# unify
-# IN: coords: 3D structured or unstructured mesh
-# OUT: returns the cellnfields, 0 for fully inside, 1 for fully outside, in between when intersecting
-#==============================================================================
-def unify(coords, basenum, masks, priorities, walls = None):
-    return intersector.unify(coords, basenum, masks, priorities)
+
 #==============================================================================
 # P1ConservativeChimeraCoeffs
 # IN: aR: receiver mesh
@@ -176,14 +169,22 @@ def triangulateNFaces(a, improve_qual=1, min_nvertices=5, discard_joins=True):
     return intersector.triangulateNFaces(a, improve_qual, min_nvertices, discard_joins)
 
 #==============================================================================
-# reorientExternalFaces
+# externalFaces : Returns erternal faces for CASSIOPEE NGON types and NUGA NGON
+#==============================================================================
+def externalFaces(a):
+    """Returns erternal faces for CASSIOPEE NGON types and NUGA NGON.
+    Usage: externalFaces(t)"""
+    return intersector.externalFaces(a)
+
+#==============================================================================
+# reorient
 # IN: 
 # OUT: 
 #==============================================================================
-def reorientExternalFaces(a):
+def reorient(a, dir = 1):
     """Reorients outward the external polygons of a mesh.
-    Usage: reorientExternalFaces(a)"""
-    return intersector.reorientExternalFaces(a)
+    Usage: reorient(a)"""
+    return intersector.reorient(a, dir)
 
 #==============================================================================
 # reorientSpecifiedFaces

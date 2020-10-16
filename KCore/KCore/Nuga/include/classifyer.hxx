@@ -588,7 +588,7 @@ namespace NUGA
     }
 #endif
 
-  	std::vector<COLLIDE::eOVLPTYPE> is_x1, is_x2;
+  	std::vector<E_Int> is_x1, is_x2;
 
 #ifdef CLASSIFYER_DBG
     bool has_abut_ovlp = false;
@@ -621,13 +621,19 @@ namespace NUGA
       std::vector<E_Int> ids;
       for (size_t u=0; u< is_x1.size(); ++u) 
       {
-      	bool appendit = (is_x1[u] == COLLIDE::ABUTTING && (E_Int)m >=  rank_wnp); // test on rank : ie. is a WNP
-      	appendit     |= (is_x1[u] == COLLIDE::OVERSET  && (E_Int)m <   rank_wnp); // test on rank : ie. is not a WNP, it is as OVLP
+        E_Int maskid = is_x1[u];
+        if (maskid == IDX_NONE) continue;
+        
+        bool is_abutting = (maskid < 0);
+        maskid = ::abs(maskid) - 1; //go 0-based positive
+
+      	bool appendit = (is_abutting && (E_Int)m >=  rank_wnp); // test on rank : ie. is a WNP
+      	appendit     |= (!is_abutting  && (E_Int)m <   rank_wnp); // test on rank : ie. is not a WNP, it is as OVLP
       	if (appendit) ids.push_back(ancestor[u]);
       }
       if (!ids.empty()) 
       {
-        z_mesh.set_type(IN, ids);
+        //z_mesh.set_type(IN, cids);
 #ifdef CLASSIFYER_DBG
         has_abut_ovlp = true;
 #endif
@@ -639,7 +645,7 @@ namespace NUGA
       //std::cout << "nbcells/is_x2 size : " << nbcells << "/" << is_x2.size() << std::endl;
       std::vector<bool> keep(nbcells, true);
   	  for (E_Int u=0; u<nbcells; ++u )
-  	   	if (is_x2[u] == COLLIDE::ABUTTING || is_x2[u] == COLLIDE::OVERSET) keep[u] = false;
+  	   	if (is_x2[u] != IDX_NONE) keep[u] = false;
 
 #ifdef CLASSIFYER_DBG
       {

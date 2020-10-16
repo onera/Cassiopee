@@ -65,9 +65,10 @@ public:
   template<typename T> inline static void coloring_one_connex_heterogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color);
   template<typename T> inline static bool coloring_one_connex_homogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, T FRONT_COL, T& bad_col);
   template<typename T> inline static bool coloring_one_connex_homogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, T FRONT_COL);
-  
+  template<typename T> inline static bool coloring_one_connex_heterogeneous_if_cols_in_bound(const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, E_Int OK_BCOL);
+
   template<typename T> inline static void coloring_homogeneous_zones_only (const ngon_unit& neighbors, std::vector<T>& colors, T UNSET_COL, T FIRST_COL, T FRONT_COL);
-  
+  template<typename T> inline static void coloring_attached_to_col_zones_only(const ngon_unit& neighbors, std::vector<T>& colors, T UNSET_COL, T FIRST_COL, T OK_BCOL);
   template<typename T> inline static void coloring (const ngon_unit& neighbors, std::vector<T>& colors, T UNSET_COL, T FIRST_COL);
   
   inline static void extrapolate (const ngon_unit& neighbors, K_FLD::IntArray& properties);

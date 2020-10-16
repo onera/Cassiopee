@@ -5,6 +5,7 @@
 #
 from . import Intersector as XOR
 from . import intersector
+import time
 
 __version__ = XOR.__version__
 
@@ -52,11 +53,29 @@ def nb_cells(a):
 def getTreeDim(t):
   zs = Internal.getZones(t)
   d = 0
+  nb_elts_per_zone = 0
   for z in zs:
     dims = Internal.getZoneDim(z)
     if d == 0: d = dims[4]
     if dims[4] != d:return 0; # mixed type : not handled
+    if dims[3] == 'NGON' : nb_elts_per_zone += nb_cells(z)
+
+  if d == 3 and nb_elts_per_zone == len(zs) : d = 21 # NGON with one cell per zone => NUGA NGON => 2D
+
   return d
+
+def getZoneNSTypeAndDim(z):
+  dims = Internal.getZoneDim(z)
+  d = dims[4]
+  if d == 2:
+    if dims[3] == 'NGON' : return ('NGON_CASSIOPEE', 2)
+    else : return ('BASIC', 2)
+  else: # 3D
+    #print(nb_cells(z))
+    if dims[3] == 'NGON' and nb_cells(z) == 1 : return ('NGON_NUGA',2)
+    elif dims[3] == 'NGON' : return ('NGON', 3)
+    else : return ('BASIC', 3)
+
 
 # return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (PyTree), 4(list of zones)
 def InputType(t): # fixme : based on first block only
@@ -476,7 +495,29 @@ def XcellN(t, priorities, output_type=0, rtol=0.05):
 #==============================================================================
 def _XcellN(t, priorities, output_type=0, rtol=0.05):
   """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
+  Usage : _XcellN(t, priorities [, rtol])"""
+
+  DIM = getTreeDim(t)
+  #print ('DIM ? ' +str(DIM))
+  if DIM != 2 and DIM != 3 : # and DIM != 21: # 21 NUGA SURFACE
+    print ('XcellN : Input error : the input file has an unsupported format or contain mixed 2D/3D zones.')
+    return
+
+  _XcellN_(t, priorities, output_type, rtol)
+  
+#==============================================================================
+# _XcellN_ (in-place version)
+# IN: t: 3D NGON SURFACE mesh
+# IN : priorities : one-to-one priorities between components
+# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface. 
+# OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
+#==============================================================================
+def _XcellN_(t, priorities, output_type=0, rtol=0.05):
+  """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
   Usage : _XcellNSurf(t, priorities [, rtol])"""
+
+  DBG = False
+  TIMER = False
 
   try: import Transform.PyTree as T
   except: raise ImportError("XcellN: requires Transform module.")
@@ -488,133 +529,112 @@ def _XcellN(t, priorities, output_type=0, rtol=0.05):
   WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal']
 
   DIM = getTreeDim(t)
-  if DIM != 2 and DIM != 3:
-    print ('XcellN : the input file contain mixed 2D/3D zones : not handled currently')
-    return
 
   bases = Internal.getBases(t)
    #(BCs,BCNames,BCTypes) = C.getBCs(t)
 
   if len(bases) == 1 :
-    print('Only one base in the file. Each component must be separated in a given Base. No check between zones of the same component.')
+    print('XcellN : Input error : Only one base in the file. Each component must be separated in a given Base. No check between zones of the same component.')
     return
 
-  boundaries = []
-  wall_ids = []
+  min_compid = min(min(priorities, key=min))
+  max_compid = max(max(priorities, key=max))
+  if max_compid < 0 :
+    print('XcellN : Input error : Negativle values passes as priorities. mus be component id (0-based).')
+    return
+  if max_compid >= len(bases):
+    print('XcellN : Input error : Greatest component specified in priorities exceeds nb of components.')
+    return
 
-  DBG = False
-  dbgbounds = []
+  # 1 PREPARE INPUTS : NUGA NGON zones + oriented BAR boundaries with wall ids
+  if TIMER == True:
+    xcelln_time = time.time()
+    xcelln_time2 = time.time()
+  # 1.1 convert to NUGA NGON
+  tNG = convertTree2NUGANGON(t)
+  #C.convertPyTree2File(tNG, 'tNG.cgns')
   
-  # PREPARE INPUTS FOR ALL ZONES : boundaries and wall ids
+  # 1.2 reorient
+  if DIM == 3 :
+    _reorient(tNG)
+
+  if TIMER == True:
+    print ('XCellN : Preparing Inputs ::: NGON convert & reorientation ::: CPU time : ',time.time()-xcelln_time2,'s')
+    xcelln_time2 = time.time()
+
+  #C.convertPyTree2File(tNG, 'tNGo.cgns')
+  
+  # 1.3 get boundaries and wall ids
+  wall_ids = []
+  boundaries = []
+
+  basesNG = Internal.getBases(tNG)
   bid=-1
-  for b in bases:
-    # we need to get the exteriorFace of the compnent (no inner joins), so :
-    # if first zone is STRUCT, assume the entire base is STRUCT
-    # in this case, convert in HEXA to do a join
-    bz = Internal.getZones(b)
-    dims = Internal.getZoneDim(bz[0])
-    firstzonetype = dims[0]
-    #print(firstzonetype)
-    if firstzonetype == 'Structured' :
-      bj = C.convertArray2Hexa(b)
-    else : bj = b
-
-    if len(bz) > 1:
-      bj = T.join(bj)
-      bj = G.close(bj)
-
-    nbf=0
-    try:
-      b_bounds = P.exteriorFaces(bj)
-      nbf = nb_cells(b_bounds)
-    except ValueError: # empty set
-      nbf = 0
-      pass
+  for bNG in basesNG:
+    bid +=1
+    zj = concatenate(bNG, tol = 1.e-10) # discard inner joins
+    #if DBG == True : C.convertPyTree2File(zj, 'zj_'+str(bid)+'.cgns')
+    b_bounds = externalFaces(zj) # keeping orientation
+    if DBG == True : C.convertPyTree2File(b_bounds, 'bound_b_'+str(bid)+'.cgns')
     
-    if nbf > 0 :
-      bid +=1
-      if dims[0] == 'Structured':
-        b_bounds = C.convertArray2Hexa(b_bounds)
+    # empty set (e.g. sphere)
+    nbf = nb_cells(b_bounds)
+    if nbf == 0:
+      boundaries.append(None)
+      wall_ids.append(None)
+      continue
 
-      if DBG == True : C.convertPyTree2File(b_bounds, 'bounds'+str(bid)+'.cgns')
-
-      if DIM == 3 : b_bounds = T.reorderAll(b_bounds, dir=1) # assume reordered inputs in 2D
-
-      if dims[3] == 'NGON' :
-        if DIM == 2 :
-          b_bounds = C.convertArray2Tetra(b_bounds) # to always have BARs even with NGON component
-        else:
-          bbzs = Internal.getZones(b_bounds)
-          dd = Internal.getZoneDim(bbzs[0])
-          #print(dd)
-          if dd[4] == 2:
-            b_bounds = XOR.convertNGON2DToNGON3D(b_bounds)
-      else:
-        if DIM == 3 :
-          _convertBasic2NGONFaces(b_bounds)
-
-      m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
-      if DBG == True :C.convertPyTree2File(b_bounds, 'boundsAfter'+str(bid)+'.cgns')
-
-      walls = []
-      for btype in WALLBCS:
-        walls += C.extractBCOfType(b, btype)
-      wallf = None
-      if len(walls) != 0:
-          if dims[0] == 'Structured':
-            walls = C.convertArray2Hexa(walls)
-          walls = T.join(walls)
-          if DIM == 2:
-            hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
-          else:
-            hook = C.createHook(b_bounds, function='faceCenters')
-          wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
-          wallf -= 1 # make it 0 based
-    else:
-      m_bounds = None
-      wallf = None
-    
+    m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
     boundaries.append(m_bounds)
+
+    # extract wall ids from input tree t and map them to tNG
+    bS = bases[bid]
+    dims = Internal.getZoneDim(Internal.getZones(bS)[0])
+    walls = []
+    for btype in WALLBCS:
+      walls += C.extractBCOfType(bS, btype)
+    wallf = None
+    if len(walls) != 0:
+      if dims[0] == 'Structured': walls = C.convertArray2Hexa(walls)
+      walls = T.join(walls)
+      if DIM == 2 :
+        hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
+      elif DIM == 3 :
+        hook = C.createHook(b_bounds, function='faceCenters')
+      wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
+      wallf -= 1 # make it 0 based
+
     wall_ids.append(wallf)
 
-  # get the zones in a single list with parent base id
+  if TIMER == True:
+    print ('XCellN : Preparing Inputs ::: BC and Walls ::: CPU time : ',time.time()-xcelln_time2,'s')
+    xcelln_time2 = time.time()
+
+  # 1.4 get the zones in a single list with parent base id
   ngons = []
   basenum = []
-
-  structured_tree=True
-  ngon_tree=True
-  zs = Internal.getZones(t)
-  for z in zs:
-    dims = Internal.getZoneDim(z)
-    if dims[0] == 'Unstructured' : 
-      structured_tree = False
-    if dims[3] != 'NGON' : 
-      ngon_tree = False
-  #print('ngon_tree?',ngon_tree, 'structured_tree?', structured_tree )
-
-  if ngon_tree == False:
-    tNG = C.convertArray2NGon(t)
-    #tNG = G.close(tNG, tol=1.e-15)
-    bases = Internal.getBases(tNG)
-
   base_id=-1
-  for b in bases:
-
+  for b in basesNG:
     base_id += 1
     zones = Internal.getZones(b)
-    
     for z in zones:
-        if DIM == 2 : z = convertNGON2DToNGON3D(z)
         c = C.getFields(Internal.__GridCoordinates__, z)[0]
         ngons.append(c)
         basenum.append(base_id)
 
-  #print(wall_ids)
+  if TIMER == True:
+    print ('XCellN : Preparing Inputs : CPU time : ',time.time()-xcelln_time,'s')
+    xcelln_time = time.time()
 
-  # COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
+  # 2. COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
   xcellns = XOR.XcellN(ngons, basenum, boundaries, wall_ids, priorities, output_type, rtol)
 
-  if output_type == 2: # output as ckipped NGON
+  if TIMER == True:
+    print ('XCellN : Computing : CPU time : ',time.time()-xcelln_time,'s')
+    xcelln_time = time.time()
+
+  # 3. OUTPUT
+  if output_type == 2: # output as clipped NGON
     i = 0
     # delete all data that are no longer valid
     C._deleteFlowSolutions__(t, 'nodes') #no histo for nodes currently
@@ -646,205 +666,53 @@ def _XcellN(t, priorities, output_type=0, rtol=0.05):
         i += 2
     for p in paths: Internal._rmNodeFromPath(t, p)
     G._close(t)
+
+    if TIMER == True:
+      print ('XCellN : Writing output : CPU time : ',time.time()-xcelln_time,'s')
+      xcelln_time = time.time()
+
     return None
 
-  #APPLY IT TO ZONES
-  if structured_tree == False:
-    bases = Internal.getBases(t)
+  #SET XCELLN FIELD tO ZONES
+  # fixme : conversion here because tNG NUGA does not work with node2center
+  #         use convertArray2NGon to ensure that t is converted whatever its type
+  #         e.g convert2Hexa does not work if t is NGON
+  tNG = C.convertArray2NGon(t)
+  basesNG = Internal.getBases(tNG)
 
-  i=0
+  zid = -1
+  bid = -1
+  has_structured_bases = False
   for b in bases:
+    bid +=1
     zones = Internal.getZones(b)
-    for z in zones:
-      C.setFields([xcellns[i]], z, 'centers', False)
-      i = i+1
+    dims = Internal.getZoneDim(zones[0])
+    if dims[0] == 'Structured' : # set field on tNG
+      has_structured_bases = True
+      zonesNG = Internal.getZones(basesNG[bid])
+      for z in zonesNG:
+        zid +=1
+        #print('set field on tNG')
+        C.setFields([xcellns[zid]], z, 'centers', False)
+      mc = C.node2Center(basesNG[bid])
+      hookC = C.createGlobalHook([mc], 'nodes')
+      hookN = C.createGlobalHook([basesNG[bid]], 'nodes')
 
-  if structured_tree == True :
-    # back to STRUCT
-    #print('XcellN : back to original mesh type (STRUCT, Basic...)')
-    mc = C.node2Center(tNG)
-    hookC = C.createGlobalHook([mc], 'nodes')
-    hookN = C.createGlobalHook([tNG], 'nodes')
+      C._identifySolutions(b, basesNG[bid], hookN, hookC, tol=1000.)
+      C.freeHook(hookC)
+      C.freeHook(hookN)
+    else : # set field on t
+      for z in zones:
+        zid +=1
+        #print('set field on t')
+        C.setFields([xcellns[zid]], z, 'centers', False)
 
-    C._identifySolutions(t, tNG, hookN, hookC, tol=1000.)
-    C.freeHook(hookC)
-    C.freeHook(hookN)
+  if TIMER == True:
+      print ('XCellN : Writing output : CPU time : ',time.time()-xcelln_time,'s')
     
   return None
-  #C.convertPyTree2File(tNG, 'tNG.cgns')
-  #C.convertPyTree2File(t, 't.cgns')
 
-#==============================================================================
-# unify
-# IN: t: background Mesh (NGON 3D)
-# IN: priorities: XXX
-# OUT: XXX
-#==============================================================================
-def unify(t, priorities):
-     
-    tp = Internal.copyRef(t)
-    _unify(tp, priorities)
-    return tp
 
-def _unify(t, priorities):
-
-    try: import Transform.PyTree as T
-    except: raise ImportError("unify: requires Transform module.")
-    try: import Post.PyTree as P
-    except: raise ImportError("unify: requires Post module.")
-    try: import Converter.Internal as I
-    except: raise ImportError("unify: requires Post module.")
-    try: import Converter.PyTree as C
-    except: raise ImportError("unify: requires Converter module.")
-    try: import Generator.PyTree as G
-    except: raise ImportError("unify: requires Generator module.")
-
-    # create the masks and flag the walls
-    print('unify : prepare masks...')
-
-    # get walls in STRUCT from STRUCt tree (because convertArray2Hexa does not preserve walls)
-    walls = []
-    bs = I.getBases(t)
-    for b in bs:
-        # walls (BEFORE NGON CONVERSION)
-        ws = extractBaseWalls(b) # QUAD
-        #print ws
-        if (ws != []):
-          ws = C.convertArray2NGon(ws)
-          ws = T.join(ws)
-          ws = G.close(ws) #ficme : necessary ?
-          ws = convertNGON2DToNGON3D(ws)
-
-        walls.append(ws)
-
-    # build mask and associate walls
-    masks = []
-    basewallfaces = []
-    thx8 = C.convertArray2Hexa(t) #FIXME : enable if structured
-    C._deleteFlowSolutions__(thx8)
-    bs = I.getBases(thx8)
-    ib=0
-    #ms = []
-    for b in bs:
-     
-        # mask ORIENTED OUTWARD
-        b = T.join(b); b = G.close(b)
-        b = C.convertArray2NGon(b)
-        b = reorientExternalFaces(b)
-        b = P.exteriorFaces(b)
-        m = convertNGON2DToNGON3D(b)
-        #m = simplifyCells(m, 1, 5.e-4)
-        #C.convertPyTree2File(m, "m.cgns")
-                
-        c = C.getFields(Internal.__GridCoordinates__, m)[0]
-        masks.append(c)
-        #ms.append(m)
-
-        wallf = []
-        if (walls[ib] != []):
-          hook = C.createHook(m, function='faceCenters')
-          wallf = C.identifyFaces(hook, walls[ib]) # wallf are ids in m
-          #print(wallf)
-        basewallfaces.append(wallf)
-        ib = ib+1
-
-    #C.convertPyTree2File(ms, "masks.cgns")
-    
-    # compute
-    print('unify : compute celln...')
-    C._initVars(t, 'centers:xcelln', 1.)
-
-    tNG = C.convertArray2NGon(t)
-    tNG = G.close(tNG, tol=1.e-15)
-
-    bases = I.getBases(tNG)
-    i=0;
-    for b in bases:
- 
-        print("unify :    for component %d over %d ..."%(i+1, len(bases)))
-
-        zones = I.getZones(b)
-        ngons = []
-        basenum = []
-        for z in zones:
-            c = C.getFields(Internal.__GridCoordinates__, z)[0]
-            ngons.append(c)
-            basenum.append(i)
-
-        xcellns = intersector.unify(ngons, basenum, masks, priorities, basewallfaces)
-        C.setFields(xcellns, b, 'centers', False)
-        i = i+1
-    
-    
-    # back to STRUCT
-    print('unify : back to STRUCT...')
-    mc = C.node2Center(tNG)
-    hookC = C.createGlobalHook([mc], 'nodes')
-    hookN = C.createGlobalHook([tNG], 'nodes')
-
-    C._identifySolutions(t, tNG, hookN, hookC, tol=1000.)
-    C.freeHook(hookC)
-    C.freeHook(hookN)
-
-    #C.convertPyTree2File(tNG, 'tNG.cgns')
-    #C.convertPyTree2File(t, 't.cgns')
-
-def extractBaseWalls(b):
-    try: import Transform.PyTree as T
-    except: raise ImportError("unify: requires Transform module.")
-    try: import Converter.Internal as I
-    except: raise ImportError("unify: requires Post module.")
-    try: import Converter.PyTree as C
-    except: raise ImportError("unify: requires Converter module.")
-    walls = []
-    zbc = C.extractBCOfType(b, 'BCWall')
-    for zb in zbc:
-      if (zb == []) : continue 
-      walls.append(zb)
-
-    zbc = C.extractBCOfType(b, 'BCWallInviscid')
-    for zb in zbc:
-      if (zb == []) : continue 
-      walls.append(zb)
-
-    zbc = C.extractBCOfType(b, 'BCWallViscous')
-    for zb in zbc:
-      if (zb == []) : continue 
-      walls.append(zb)
-
-    return walls
-
-# def getWallsCentroids(t):
-#     try: import Transform.PyTree as T
-#     except: raise ImportError("unify: requires Transform module.")
-#     try: import Converter.Internal as I
-#     except: raise ImportError("unify: requires Post module.")
-#     try: import Converter.PyTree as C
-#     except: raise ImportError("unify: requires Converter module.")
-#     cloud = []
-#     bs = I.getBases(t)
-#     for b in bs:
-#         zbc = C.extractBCOfType(b, 'BCWall')
-#         if (zbc == []) : continue 
-#         for zb in zbc:
-#             if (zb == []) : continue 
-#             zb = C.node2Center(zb)
-#             cloud.append(zb)
-#         zbc = C.extractBCOfType(b, 'BCWallInviscid')
-#         if (zbc == []) : continue 
-#         for zb in zbc:
-#             if (zb == []) : continue 
-#             zb = C.node2Center(zb)
-#             cloud.append(zb)
-#         zbc = C.extractBCOfType(b, 'BCWallViscous')
-#         if (zbc == []) : continue 
-#         for zb in zbc:
-#             if (zb == []) : continue 
-#             zb = C.node2Center(zb)
-#             cloud.append(zb)
-#     #cloud = C.convertArray2Node(cloud)
-#     #cloud = T.join(cloud)
-#     return cloud
 #==============================================================================
 # triangulateExteriorFaces
 # IN: mesh: 3D NGON mesh
@@ -1012,15 +880,33 @@ def convexifyFaces(t, convexity_TOL=1.e-8):
     return C.convertArrays2ZoneNode('allPGconvex', [m])
 
 #==============================================================================
-# reorientExternalFaces : reorients outward the external polygons of a mesh
+# externalFaces : Returns erternal faces for CASSIOPEE NGON types and NUGA NGON
 #==============================================================================
-def reorientExternalFaces(t):
-    """Reorients outward the external polygons of a mesh.
-    Usage: reorientExternalFaces(t)"""
-    return C.TZA(t, 'nodes', 'nodes', XOR.reorientExternalFaces, t)
+def externalFaces(t):
+    """Returns erternal faces for CASSIOPEE NGON types and NUGA NGON.
+    Usage: externalFaces(t)"""
+    zs = Internal.getZones(t)
+    efs = []
 
-def _reorientExternalFaces(t):
-    return C._TZA(t, 'nodes', 'nodes', XOR.reorientExternalFaces, t)
+    i=-1
+    for z in zs:
+      i+=1
+      coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+      if coords == []: continue
+      ef = XOR.externalFaces(coords)
+      efs.append(C.convertArrays2ZoneNode('ef_z'+str(i), [ef]))
+    return efs
+
+#==============================================================================
+# reorient : reorients outward the external polygons of a mesh
+#==============================================================================
+def reorient(t, dir=1):
+    """Reorients outward the external polygons of a mesh.
+    Usage: reorient(t)"""
+    return C.TZA(t, 'nodes', 'nodes', XOR.reorient, t, dir)
+
+def _reorient(t, dir=1):
+    return C._TZA(t, 'nodes', 'nodes', XOR.reorient, t, dir)
 
 #==============================================================================
 # triangulateBC
@@ -2069,6 +1955,7 @@ def convertNGON2DToNGON3D(t):
 def _convertNGON2DToNGON3D(t):
     """ Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
     Usage: convertNGON2DToNGON3D(t)"""
+    C._deleteFlowSolutions__(t) # fixme
     zones = Internal.getZones(t)
     zo = []
     for z in zones:
@@ -2090,6 +1977,35 @@ def _convertBasic2NGONFaces(t):
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         m = XOR.convertBasic2NGONFaces(m)
         C.setFields([m], z, 'nodes')
+
+def convertTree2NUGANGON(t):
+    tp = Internal.copyRef(t)
+    _convertTree2NUGANGON(tp)
+    return tp
+
+def _convertTree2NUGANGON(t):
+
+  zones = Internal.getZones(t)
+  for z in zones:
+    dims = Internal.getZoneDim(z)
+    firstzonetype = dims[0]
+    #print(firstzonetype)
+    # Go Unstructured
+    if firstzonetype == 'Structured' :
+      #print('Structured -> Basic')
+      C._convertArray2Hexa(z)
+
+    (typ, d) = getZoneNSTypeAndDim(z)
+    
+    #print((typ,d))
+    if typ == 'BASIC':
+      #print('BASic -> NGON cassiopee')
+      C._convertArray2NGon(z)
+      if d == 2 : typ = 'NGON_CASSIOPEE'
+    # now it s a NGON (cassiopee or NUGA)
+    if typ == 'NGON_CASSIOPEE':
+      #print('NGON cassiopee -> NUGA')
+      _convertNGON2DToNGON3D(z)
 
 def centroids(t):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
@@ -2115,13 +2031,14 @@ def merge(tz, sz, tol = 1.e-15): #target zone, list source zones
     #print s
     return XOR.merge(m, s, tol)
 
-def concatenate(zones, tol = 1.e-15):
-    ms = []
-    for z in zones:
-        m = C.getFields(Internal.__GridCoordinates__, z)[0]
-        ms.append(m)
-    m = XOR.concatenate(ms, tol)
-    return C.convertArrays2ZoneNode('assembly', [m])
+def concatenate(t, tol = 1.e-15):
+  zones = Internal.getZones(t)
+  ms = []
+  for z in zones:
+    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    ms.append(m)
+  m = XOR.concatenate(ms, tol)
+  return C.convertArrays2ZoneNode('assembly', [m])
 
 def drawOrientation(t):
     zones = Internal.getZones(t)

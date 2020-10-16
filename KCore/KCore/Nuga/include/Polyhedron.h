@@ -1558,6 +1558,45 @@ public:
     
     return err;
   }
+
+  ///
+  template <typename crd_t>
+  E_Int cvx_triangulate (const crd_t& crd) const
+  {
+    if (_triangles != nullptr) delete _triangles;
+
+    _pgs->updateFacets();
+
+    E_Int ntris = nb_tris();
+    _triangles = new E_Int[ntris * 3];
+
+    K_FLD::IntArray cT3;
+
+    E_Int err{ 0 };
+
+    for (E_Int i = 0; (i < _nb_faces) && !err; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      E_Int nb_nodes = _pgs->stride(PGi);
+      const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+
+      E_Float normal[3];
+      K_MESH::Polygon::normal<crd_t, 3>(crd, nodes, nb_nodes, 1, normal);
+      E_Int iworst, ibest{-1};
+      K_MESH::Polygon::is_convex(crd, nodes, nb_nodes, 1, normal, 1.e-8/*convexity_tol*/, iworst, ibest);
+      K_MESH::Polygon::cvx_triangulate(crd, nodes, nb_nodes, ibest, 1, cT3);
+    }
+
+    E_Int j = 0;
+    for (E_Int i = 0; i < cT3.cols(); ++i)
+    {
+      _triangles[j++] = cT3(0, i);
+      _triangles[j++] = cT3(1, i);
+      _triangles[j++] = cT3(2, i);
+    }
+
+    return err;
+  }
   
   inline void triangle(E_Int i, E_Int* target) const 
   {

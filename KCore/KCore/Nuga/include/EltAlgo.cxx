@@ -323,6 +323,7 @@ NUGA::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& ne
 {
   std::vector<T> colors_cpy(colors);//in case of invalid domain (i.e multiple color fronteer)
   bool good_dom = true;
+  bool has_boundary_other_than_none = false;
   
   int_vector_type cpool;
   cpool.push_back(Kseed);
@@ -354,10 +355,19 @@ NUGA::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& ne
         break;
       }
 
+      // arbitrary choice to make classifyer::__flag_isolated working.
+      // IDX_NONE neighbors are ignored providing there is ate least one elt connected to FRONTCOL.
+      // To findout connex island, use another function.
+      if ((Kn != IDX_NONE) && (colors[Kn] == FRONT_COL))
+        has_boundary_other_than_none = true;
+
       if ((Kn != IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
         cpool.push_back(Kn);
     }
   }
+
+  good_dom &= has_boundary_other_than_none;
+
   if (!good_dom) //revert colors
   {
     colors = colors_cpy;
@@ -372,6 +382,7 @@ inline bool
 NUGA::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, T FRONT_COL)
 {
   bool good_dom = true;
+  E_Int nb_front_col{ 0 };
   
   int_vector_type cpool;
   cpool.push_back(Kseed);
@@ -395,16 +406,22 @@ NUGA::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& ne
     for (size_t i = 0; i < sz; ++i)
     {
       E_Int Kn = *(ptr++);
-      
-      if ( (Kn != IDX_NONE) && (colors[Kn] != UNSET_COL) && (colors[Kn] != color) && (colors[Kn] != FRONT_COL) )
-        good_dom = false; //other fronteer than the one expected (FRONT_COL)
 
-      if ((Kn != IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+      if (Kn == IDX_NONE) continue;
+      
+      if ((colors[Kn] != UNSET_COL) && (colors[Kn] != color) && (colors[Kn] != FRONT_COL))
+        return false; //good_dom = false; //other fronteer than the one expected (FRONT_COL)
+
+      if (colors[Kn] == UNSET_COL) // Not colored.
         cpool.push_back(Kn);
+
+      if (colors[Kn] == FRONT_COL)
+        ++nb_front_col;
     }
   }
   
-  return good_dom;
+  //std::cout << "nb of FRONT_COL : " << nb_front_col << std::endl;
+  return (nb_front_col > 0); // here either pure none or mixed with front_col : ok iff has front_col
 }
 
 // color a connex part surrounded by multiple color frontier
@@ -451,6 +468,52 @@ NUGA::EltAlgo<ElementType>::coloring_one_connex_heterogeneous (const ngon_unit& 
 //  std::cout << std::endl;
 }
 
+// color iff the fontier is of the same color : stop at first inconsistency and return that "bad color"
+template <typename ElementType>
+template<typename T>
+inline bool
+NUGA::EltAlgo<ElementType>::coloring_one_connex_heterogeneous_if_cols_in_bound(const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, E_Int OK_BCOL)
+{
+  std::vector<T> colors_cpy(colors);//in case of invalid domain (i.e multiple color fronteer)
+  
+  int_vector_type cpool;
+  cpool.push_back(Kseed);
+
+  K_FLD::IntArray neighs;
+
+  std::set<E_Int> boundcols;
+
+  while (!cpool.empty())
+  {
+    E_Int K = cpool.back();
+    cpool.pop_back();
+
+    if (colors[K] != UNSET_COL)
+      continue;
+
+    colors[K] = color;
+
+    E_Int sz = neighbors.stride(K);
+    neighs.reserve(1, sz);
+    neighbors.getEntry(K, neighs.begin());
+    E_Int* ptr = neighs.begin();
+    for (E_Int i = 0; i < sz; ++i)
+    {
+      E_Int Kn = *(ptr++);
+
+      if ((Kn != IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+        cpool.push_back(Kn);
+      else if (Kn == IDX_NONE)
+        boundcols.insert(IDX_NONE);
+      else if (colors[Kn] != UNSET_COL)
+        boundcols.insert(colors[Kn]);
+    }
+  }
+
+  bool good_dom = (boundcols.find(OK_BCOL) != boundcols.end());
+  return good_dom;
+}
+
 template <typename ElementType>
 template<typename T>
 inline void
@@ -485,13 +548,12 @@ NUGA::EltAlgo<ElementType>::coloring_homogeneous_zones_only (const ngon_unit& ne
   
   assert (colors.size() >= NB_ELTS);
   
-  std::set<bool> bad_colors;
+  std::set<E_Int> bad_colors;
   
   while (1)
   {
     while ((Kseed < NB_ELTS) && (colors[Kseed] != UNSET_COL)) ++Kseed;
-    if (NB_ELTS-1 < Kseed)
-      return;
+    if (NB_ELTS-1 < Kseed) break; //nothing to color anymore
 
     bool good_dom = coloring_one_connex_homogeneous (neighbors, colors, Kseed, UNSET_COL, color++, FRONT_COL);
     if (!good_dom) bad_colors.insert(color-1);//tells if color is ok or not (fully surrounded by the same color)
@@ -501,6 +563,39 @@ NUGA::EltAlgo<ElementType>::coloring_homogeneous_zones_only (const ngon_unit& ne
   if (!bad_colors.empty())
   {
     for (size_t i=0; i < colors.size(); ++i)
+    {
+      if (bad_colors.find(colors[i]) != bad_colors.end())colors[i] = UNSET_COL;
+    }
+  }
+}
+
+template <typename ElementType>
+template<typename T>
+inline void
+NUGA::EltAlgo<ElementType>::coloring_attached_to_col_zones_only(const ngon_unit& neighbors, std::vector<T>& colors, T UNSET_COL, T FIRST_COL, T OK_BCOL)
+{
+  // WARNING : colors are not cleared and suppose that contains coloured elements.
+
+  size_t Kseed(0), NB_ELTS(neighbors.size());
+  T color(FIRST_COL);
+
+  assert(colors.size() >= NB_ELTS);
+
+  std::set<E_Int> bad_colors;
+
+  while (1)
+  {
+    while ((Kseed < NB_ELTS) && (colors[Kseed] != UNSET_COL)) ++Kseed;
+    if (NB_ELTS - 1 < Kseed) break; //nothing to color anymore
+
+    bool good_dom = coloring_one_connex_heterogeneous_if_cols_in_bound(neighbors, colors, Kseed, UNSET_COL, color++, OK_BCOL);
+    if (!good_dom) bad_colors.insert(color - 1);//tells if color is ok or not (fully surrounded by the same color)
+  }
+
+  // reset any bad color
+  if (!bad_colors.empty())
+  {
+    for (size_t i = 0; i < colors.size(); ++i)
     {
       if (bad_colors.find(colors[i]) != bad_colors.end())colors[i] = UNSET_COL;
     }

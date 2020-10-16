@@ -5,7 +5,6 @@ cpp_srcs = ["Intersector/conformUnstr.cpp",
             
             "Intersector/booleanOperations.cpp",
 
-            "Intersector/unify.cpp",
             "Intersector/xcelln.cpp",
             
             "Intersector/selfX.cpp",

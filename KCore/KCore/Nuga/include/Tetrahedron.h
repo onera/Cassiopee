@@ -109,9 +109,12 @@ class Tetrahedron {
     
     void edge_length_extrema(const K_FLD::FloatArray& crd, E_Float& Lmin2, E_Float& Lmax2);
     
+    //dummies for generecity
     ///
     template <typename TriangulatorType, typename acrd_t>
     void triangulate (const TriangulatorType& dt, const acrd_t& acrd) {} //dummy : for genericity
+    template <typename acrd_t>
+    E_Int cvx_triangulate (const acrd_t& acrd) {return 0;}
         
     static void get_edges(const E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges);
 

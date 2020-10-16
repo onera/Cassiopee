@@ -39,7 +39,6 @@ static PyMethodDef Pyintersector [] =
   {"DiffSurf", K_INTERSECTOR::DiffSurf, METH_VARARGS},
 
   {"XcellN", K_INTERSECTOR::XcellN, METH_VARARGS},
-  {"unify", K_INTERSECTOR::unify, METH_VARARGS},
   
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},
   
@@ -105,9 +104,9 @@ static PyMethodDef Pyintersector [] =
   { "extrudeSurf", K_INTERSECTOR::extrudeSurf, METH_VARARGS },
   { "extrudeRevolSurf", K_INTERSECTOR::extrudeRevolSurf, METH_VARARGS },
 
-  { "reorientExternalFaces", K_INTERSECTOR::reorientExternalFaces, METH_VARARGS },
+  { "externalFaces", K_INTERSECTOR::externalFaces, METH_VARARGS },
+  { "reorient", K_INTERSECTOR::reorient, METH_VARARGS },
   { "reorientSpecifiedFaces", K_INTERSECTOR::reorientSpecifiedFaces, METH_VARARGS },
-  { "reorientSurf", K_INTERSECTOR::reorientSurf, METH_VARARGS },
 
   { "convertNGON2DToNGON3D", K_INTERSECTOR::convertNGON2DToNGON3D, METH_VARARGS },
   { "convertBasic2NGONFaces", K_INTERSECTOR::convertBasic2NGONFaces, METH_VARARGS },
@@ -197,9 +196,10 @@ E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyO
     std::stringstream o;
     o << "input error : " << eltType << " is an invalid array, must be a ";
     for (size_t i=0; i < types.size()-1; ++i){
-      o << types[i] << ", ";
+      o << types[i];
+      if (i < types.size()-2) o << ", ";
     }
-    o << types[types.size()-1] << " array." ;
+    o << " or " << types[types.size()-1] << " array." ;
     PyErr_SetString(PyExc_TypeError, o.str().c_str());//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
     //delete f1; delete cn1;
     //f1 = nullptr; cn1 = nullptr;
@@ -245,8 +245,10 @@ E_Int K_INTERSECTOR::get_of_type
     std::stringstream o;
     o << "input error : invalid array, must be a ";
     for (size_t i=0; i < types.size()-1; ++i){
-      o << types[i] << ",";
+      o << types[i];
+      if (i < types.size() - 2) o << ", ";
     }
+    if (types.size() > 1) o << " or ";
     o << types[types.size()-1] << " array." ;
     PyErr_SetString(PyExc_TypeError, o.str().c_str());//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
     //delete f1; delete cn1;

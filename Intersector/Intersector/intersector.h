@@ -100,9 +100,9 @@ namespace K_INTERSECTOR
   PyObject* detectOverConnectedFaces(PyObject* self, PyObject* args);
   PyObject* edgeLengthExtrema(PyObject* self, PyObject* args);
   
-  PyObject* reorientExternalFaces(PyObject* self, PyObject* args);
+  PyObject* externalFaces(PyObject* self, PyObject* args);
+  PyObject* reorient(PyObject* self, PyObject* args);
   PyObject* reorientSpecifiedFaces(PyObject* self, PyObject* args);
-  PyObject* reorientSurf(PyObject* self, PyObject* args);
 
   PyObject* removeBaffles(PyObject* self, PyObject* args);
 
