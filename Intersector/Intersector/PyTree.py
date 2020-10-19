@@ -1218,6 +1218,64 @@ def removeNonManifoldExternalCells(t):
     return C.convertArrays2ZoneNode('manifoldOuter', [m])
 
 #==============================================================================
+# immerseNodes : Regularize the mesh to be cut (by boolean operations) by immersing its nodes lying on cutter surface
+# IN: t : 3D NGON mesh
+# IN: s : unstructured surface mesh
+# IN: TOL : tolerance (negative value means relative)
+# OUT: returns a 3D NGON Mesh with moved vertices
+#==============================================================================
+def immerseNodes(t, s, TOL):
+    """Regularize the mesh to be cut (by boolean operations) by immersing its nodes lying on the cutter surface.
+    Usage: immerseNodes(t,s, TOL)"""
+    tp = Internal.copyRef(t)
+    _immerseNodes(tp, s, TOL)
+    return tp
+
+def _immerseNodes(t, s, TOL):
+    """Regularize the mesh to be cut (by boolean operations) by immersing its nodes lying on the cutter surface.
+    Usage: immerseNodes(t,s, TOL)"""
+
+    zones = Internal.getZones(t)
+
+    DIM = getTreeDim(t)
+    if DIM != 3:
+      print ('immerseNodes : t is not a 3D mesh')
+      return
+
+    szones = Internal.getZones(s)
+    sdims = Internal.getZoneDim(szones[0])
+    #print(sdims[0])
+    # go unstructured
+    if sdims[0] == 'Structured':
+      s = C.convertArray2Hexa(s)
+    # single surface mesh
+    s = T.join(s)
+    # convert to NUGA surface
+    if sdims[3] == 'NGON' :
+      _convertNGON2DToNGON3D(s)
+    else:
+      _convertBasic2NGONFaces(s)
+
+    # now we have a NUGA unstructured surface
+    surf = C.getFields(Internal.__GridCoordinates__, s)[0]
+
+    for z in zones:
+
+      coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+      if coords == []: continue
+
+      dims = Internal.getZoneDim(z)
+      if dims[3] != 'NGON' :
+        coords = Converter.convertArray2NGon(coords)
+
+      moved = intersector.immerseNodes(coords, surf, TOL)
+
+      # MAJ du maillage de la zone
+      C.setFields([moved], z, 'nodes')
+
+    return t
+
+#==============================================================================
 # closeCells : Closes any polyhedral cell in a mesh (processes hanging nodes on edges)
 # IN: t: 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all cells closed

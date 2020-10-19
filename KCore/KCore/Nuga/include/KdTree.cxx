@@ -254,7 +254,7 @@ K_SEARCH::KdTree<CoordArrayType>::getClosest(const E_Float* point, const E_Float
   size_type m = IDX_NONE;  
   dist2 = guessed_d2;
 
-  if (_tolerance < dist2)
+  if (_tolerance*_tolerance < dist2)
     __seek_closest(point, 0/*root col*/, 0/*axis*/, dist2, m);
 
   return m;

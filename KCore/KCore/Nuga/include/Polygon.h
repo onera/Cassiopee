@@ -252,11 +252,18 @@ public:
   /// Computes the surface vector
   template <typename CoordAcc, E_Int DIM>
   static inline void ndS(const CoordAcc& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* ndS);
+
+  // Compute the surface : norm of ndS
+  template <E_Int DIM>
+  inline void ndS(const K_FLD::FloatArray& crd, E_Float* nds)
+  {
+    ndS<K_FLD::FloatArray, DIM>(crd, _nodes, _nb_nodes, -_shift, nds);
+  }
   
   template <typename mesh_t>
   static inline void compute_dir(const mesh_t& mesh, const E_Float* origin, E_Float* dir);
     
-  /// Compute the surface : norm of above
+  /// Compute the surface : norm of ndS
   template <typename Coord_t, E_Int DIM>
   static E_Float surface(const Coord_t& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start);
 
@@ -270,6 +277,15 @@ public:
   {
     normal<CoordAcc, DIM>(crd, _nodes, _nb_nodes, -_shift, W);
   }
+
+  // Compute the surface : norm of ndS
+  template <E_Int DIM>
+  inline E_Float surface(const K_FLD::FloatArray& crd)
+  {
+    return surface<K_FLD::FloatArray, DIM>(crd, _nodes, _nb_nodes, -_shift);
+  }
+
+
 
   //
   static E_Int get_oriented_normal(const K_FLD::FloatArray& crd, const ngon_unit& pgs, E_Int PGi/*glob id : sync with normals*/, bool reverse, E_Float* Normi, const E_Float** normals = 0);
@@ -293,8 +309,8 @@ public:
     const E_Float* normal, E_Float convexity_tol);
   
   template <typename InputIterator>
-  static bool is_spiky
-  (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie);
+  static bool is_hatty
+  (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL=0.);
 
   // Polygon-Edge intersection
   template <typename TriangulatorType>
@@ -975,8 +991,8 @@ inline void Polygon::shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int
 }
 
 template <typename InputIterator>
-bool Polygon::is_spiky
-(const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie)
+bool Polygon::is_hatty
+(const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL)
 {
   is = IDX_NONE;
   ie = IDX_NONE;
@@ -1007,9 +1023,31 @@ bool Polygon::is_spiky
     }
   }
 
+  if (count != 2) return false;
+
   if (ie < is) std::swap(is, ie);
 
-  return (count == 2);
+  // check if max dist is in scope
+  if (ARTOL != 0.)
+  {
+    K_MESH::Edge e(nodes[is] - idx_start, nodes[ie] - idx_start);
+    if (ARTOL < 0.) // relative
+      ARTOL *= - ::sqrt(e.Lref2(crd)); // turn to absolute
+
+    E_Float dmax{ -1. };
+    for (E_Int n = 0; n < nb_nodes; ++n)
+    {
+      if (n == is || n == ie) continue;
+      E_Int Ni = nodes[n] - idx_start;
+      double lambda;
+      double d = K_MESH::Edge::edgePointMinDistance<3>(crd.col(e.node(0)), crd.col(e.node(1)), crd.col(Ni), lambda);
+      if (d > dmax)
+        dmax = d;
+    }
+    if (dmax >= ARTOL) return false;
+  }
+
+  return true;
 }
 
 /// fixme : added to shut up balnkCellsTetra with ArrayAccessor

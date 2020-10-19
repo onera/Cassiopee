@@ -671,35 +671,39 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
 /// Vertex vs surface impl.
 template <> inline
 bool get_colliding<vertex, pg_smesh_t>
-(const vertex& pt, const pg_smesh_t& surface, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool first_found_dummy)
+(const vertex& pt, const pg_smesh_t& surface, std::vector<E_Int>& cands, E_Int idx_start, double ARTOL, bool first_found_dummy)
 {
   cands.clear();
 
   auto loc = surface.get_localizer();
 
-  double Lref = ::sqrt(pt.val2);
+  if (ARTOL < 0.)// relative
+  {
+    double Lref = ::sqrt(pt.val2);
+    ARTOL *= -Lref;
+  }
 
   K_SEARCH::BBox3D bb1;
-  bb1.minB[0] = pt.vec[0] - RTOL * Lref;
-  bb1.minB[1] = pt.vec[1] - RTOL * Lref;
-  bb1.minB[2] = pt.vec[2] - RTOL * Lref;
-  bb1.maxB[0] = pt.vec[0] + RTOL * Lref;
-  bb1.maxB[1] = pt.vec[1] + RTOL * Lref;
-  bb1.maxB[2] = pt.vec[2] + RTOL * Lref;
+  bb1.minB[0] = pt.vec[0] - ARTOL;
+  bb1.minB[1] = pt.vec[1] - ARTOL;
+  bb1.minB[2] = pt.vec[2] - ARTOL;
+  bb1.maxB[0] = pt.vec[0] + ARTOL;
+  bb1.maxB[1] = pt.vec[1] + ARTOL;
+  bb1.maxB[2] = pt.vec[2] + ARTOL;
   
   loc->get_candidates(bb1, cands, idx_start, -1./*dummy*/);
 
   return !cands.empty();
 }
-/// above wrapper for list of vertices : returns indir 'pt to face'
+/// above wrapper for list of vertices : returns indir 'pt to faces'
 inline void get_colliding
-(const std::vector<vertex>& pts, const pg_smesh_t& surface, double RTOL, std::vector<E_Int>& pt_to_elt)
+(const std::vector<vertex>& pts, const pg_smesh_t& surface, double ARTOL, std::vector<std::vector<E_Int>>& pt_to_elt)
 {
   pt_to_elt.clear();
 
   size_t npts = pts.size();
 
-  pt_to_elt.resize(npts, IDX_NONE);
+  pt_to_elt.resize(npts);
 
   surface.get_nodal_metric2(); // to compute it if missing
 
@@ -707,17 +711,19 @@ inline void get_colliding
   std::vector<E_Int> cands;
   E_Int T[3];
   E_Float UV[3];
+
   //
   for (size_t i = 0; i < npts; ++i)
   {
-    get_colliding(pts[i], surface, cands, surface.index_start, RTOL, false/*dummy*/);
+    const E_Float& x = pts[i].vec[0];
+    const E_Float& y = pts[i].vec[1];
+    const E_Float& z = pts[i].vec[2];
+
+    get_colliding(pts[i], surface, cands, surface.index_start, ARTOL, false/*dummy*/);
     
     if (cands.empty()) continue; // regular
     
-    //find best PG
-    double dmin{ NUGA::FLOAT_MAX };
-    E_Int PGtarget{ IDX_NONE };
-    //
+    //find sticking PGs
     for (size_t c = 0; c < cands.size(); ++c)
     {
       E_Int PGi = cands[c] - surface.index_start;
@@ -737,27 +743,21 @@ inline void get_colliding
         double d = K_MESH::Triangle::minDistanceToPoint(P0, P1, P2, pts[i].vec, UV, interfere, inside);
         if (!interfere) continue;
 
-        if (d < dmin)
+        // check PG is not too far
+        double TOLi = ARTOL;
+        if (ARTOL < 0.) // relative
         {
-          PGtarget = PGi;
-          dmin = d;
-          break;
+          double PGLref2 = PG.Lref2(surface.nodal_metric2);
+          TOLi *= -::sqrt(std::min(pts[i].val2, PGLref2));
         }
+
+        if (d >= TOLi) continue;
+
+        // sticking PG found
+        pt_to_elt[i].push_back(PGi);
+        break;
       }
     }
-
-    if (PGtarget != IDX_NONE) //check is not too far
-    {
-      auto PG = surface.element(PGtarget);
-      double PGLref2 = PG.Lref2(surface.nodal_metric2);
-      double TOLi = RTOL * ::sqrt(std::min(pts[i].val2, PGLref2));
-      if (dmin > TOLi)
-        PGtarget = IDX_NONE;
-      else
-        PGtarget = PGtarget;
-    }
-
-    pt_to_elt[i] = PGtarget;
   }
 
 #ifdef COLLIDER_DBG

@@ -1459,7 +1459,7 @@ E_Float NUGA::MeshTool::get_max_deviation
 
       K_MESH::Triangle::normal(crd, cT3.col(j), nj);
 
-      E_Float alpha = NUGA::GeomAlgo<K_MESH::Triangle>::angle_measure(ni, nj, E0, E1);
+      E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
       amax = std::max(amax, ::fabs(NUGA::PI - alpha)); // max deviation from flatness
     }
   }

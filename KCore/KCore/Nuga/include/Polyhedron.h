@@ -320,6 +320,22 @@ public:
 
   }
 
+  ///
+  E_Float surface (const K_FLD::FloatArray& crd)
+  {
+    E_Float s{0.};
+    for (E_Int i=0; i < _nb_faces; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+      E_Int nb_nodes =  _pgs->stride(PGi);
+
+      // compute nds
+      s += K_MESH::Polygon::surface<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1);
+    }
+    return s;
+  }
+
   /// Predicate on given element in a mesh
   static E_Int is_concave
     (const K_FLD::FloatArray& crd, const ngon_unit& PGS, 
@@ -387,7 +403,7 @@ public:
         if (er) continue; // degen element
 
         // Concave or not ?
-        E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
+        E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
 
         if (alpha < angle_threshold)
         {
@@ -468,7 +484,7 @@ public:
         if (er) continue; // degen element
 
         // Concave or not ?
-        E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
+        E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
         
 #ifdef DEBUG1_POLYHEDRON
           K_FLD::FloatArray crdt(crd);
@@ -619,7 +635,7 @@ public:
         if (er) continue; // degen element
 
         // Concave or not ?
-        E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
+        E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
 
         if (alpha < angle_threshold)
         {
@@ -710,7 +726,7 @@ public:
         //if (er) continue; // degen element
 
         // Concave or not ?
-        E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
+        E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
         
         // adding er test for concave but not convex is a hack : 
         // doesn't hurt to add an extra convex but it does hurt to add a concave edge as we might end up with a falsely-non-manifold discarded chain
@@ -812,7 +828,7 @@ public:
         //if (er) continue; // degen element
 
         // Concave or not ?
-        E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
+        E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
         
         // adding er test for concave but not convex is a hack : 
         // doesn't hurt to add an extra convex but it does hurt to add a concave edge as we might end up with a falsely-non-manifold discarded chain

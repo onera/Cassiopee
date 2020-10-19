@@ -321,6 +321,18 @@ def removeNonManifoldExternalCells(a):
     return intersector.removeNonManifoldExternalCells(a)
 
 #==============================================================================
+# immerseNodes : Regularize the mesh to be cut (by boolean operations) by immersing its nodes lying on cutter surface.
+# IN: a : 3D NGON mesh
+# IN: s : unstructured surface mesh
+# IN: TOL : tolerance (negative value means relative)
+# OUT: returns a 3D NGON Mesh with moved vertices
+#==============================================================================
+def immerseNodes(a, s, TOL):
+    """Regularize the mesh to be cut (by boolean operations) by immersing its nodes lying on the cutter surface.
+    Usage: immerseNodes(a,s, TOL)"""
+    return intersector.immerseNodes(a, s, TOL)
+
+#==============================================================================
 # closeCells : Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
 # IN: a : 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all cells closed

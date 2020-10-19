@@ -3978,7 +3978,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
     
     if (sz == 2) break; //no need to sort
     
-    q = NUGA::GeomAlgo<K_MESH::Triangle>::angle_measure(normals.col(K0), normals.col(Ki), coord.col(E0), coord.col(E1));
+    q = NUGA::angle_measure(normals.col(K0), normals.col(Ki), coord.col(E0), coord.col(E1));
     if (q == ERRORVAL)
     {
       std::cout << "ERROR at edge E0E1 : " << E0 << "/" << E1 << std::endl;
@@ -4092,7 +4092,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       normi[2] = -normi[2];
     }
 
-    q = NUGA::GeomAlgo<K_MESH::Triangle>::angle_measure(normals.col(K0), normi, coord.col(E0), coord.col(E1));
+    q = NUGA::angle_measure(normals.col(K0), normi, coord.col(E0), coord.col(E1));
     if (q == ERRORVAL)
       faulty_T3pairs.insert(std::make_pair(K0, Ki));
 

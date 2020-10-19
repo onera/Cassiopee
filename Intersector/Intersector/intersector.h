@@ -60,6 +60,8 @@ namespace K_INTERSECTOR
   //PyObject* agglomerateUncomputableCells(PyObject* self, PyObject* args);
   PyObject* agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args);
 
+  PyObject* immerseNodes(PyObject* self, PyObject* args);
+
   PyObject* getOverlappingFaces(PyObject* self, PyObject* args);
   PyObject* getAnisoInnerFaces(PyObject* self, PyObject* args);
 

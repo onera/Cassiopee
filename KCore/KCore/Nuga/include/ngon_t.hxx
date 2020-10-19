@@ -895,6 +895,31 @@ struct ngon_t
     pg_molec[0]=pg_molec.size()-1;
     return (sz < pg_molec[0]);
   }
+
+  /// Remove hatty PGs (chinese hats when 3 nodes) from a mesh => open mesh to fix with close_phs
+  static void remove_hatty_PGs(ngon_t& ngio, const K_FLD::FloatArray& crd, double ARTOL)
+  {
+    ngio.PGs.updateFacets();
+
+    E_Int nb_pgs = ngio.PGs.size();
+    Vector_t<E_Int> hatties;
+    for (E_Int i = 0; i < nb_pgs; ++i)
+    {
+      const E_Int* nodes = ngio.PGs.get_facets_ptr(i);
+      E_Int nnodes = ngio.PGs.stride(i);
+
+      E_Int is(IDX_NONE), ie(IDX_NONE);
+      if (!K_MESH::Polygon::is_hatty(crd, nodes, nnodes, 1, is, ie, ARTOL)) continue;
+      hatties.push_back(i);
+    }
+
+#ifdef DEBUG_NGON_T
+    NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs("hatties", crd, ngio.PGs, hatties, false);
+#endif
+
+    Vector_t<E_Int> pgnids, phnids;
+    ngio.remove_pgs(hatties, pgnids, phnids); //sync the PHs accordingly
+  }
   
   /// Close PHs having free edges (GEOM algo).
   static void close_phs(ngon_t& ngio, const K_FLD::FloatArray& crd)
@@ -959,7 +984,7 @@ struct ngon_t
             --nnodes;
 
             E_Int is(IDX_NONE), ie(IDX_NONE);
-            if (!K_MESH::Polygon::is_spiky(crd, chains[c].begin(), nnodes, 1, is, ie)) continue;
+            if (!K_MESH::Polygon::is_hatty(crd, chains[c].begin(), nnodes, 1, is, ie)) continue;
             // put spiky nodes at the right place (start & end). following works beacause is < ie
             if (is != 0) std::swap(chains[c][0], chains[c][is]);
             if (ie != nnodes - 1) std::swap(chains[c][nnodes - 1], chains[c][ie]);

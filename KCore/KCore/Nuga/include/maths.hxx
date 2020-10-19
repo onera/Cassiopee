@@ -230,6 +230,82 @@ inline double project(double const * plane_pt, double const * plane_dir, double 
   return k;
 }
 
+///
+inline double angle_measure
+(const E_Float* ni, const E_Float* nj, const E_Float* E0, const E_Float* E1)
+{
+  //
+  E_Float nk[3];
+  NUGA::crossProduct<3>(ni, nj, nk);
+  E_Float c = NUGA::dot<3>(ni, nj);
+
+  E_Int s = zSIGN(::fabs(c) - 1., ZERO_M);
+
+  if (s != 0) // non-degn case
+  {
+    E_Float E0E1[3];
+    NUGA::diff<3>(E1, E0, E0E1);
+    NUGA::normalize<3>(E0E1);
+    E_Float K2 = -NUGA::dot<3>(E0E1, nk);
+    E_Int signK2 = zSIGN(K2, ZERO_M);
+
+    E_Float s2 = NUGA::sqrNorm<3>(nk);
+
+#ifdef DEBUG_GEOM_ALGO
+    if (signK2 == 0) std::cout << "ERROR : GeomAlgo::angle_measure : inconsistence between s and c" << std::endl;
+    assert(signK2 != 0);
+#endif
+
+    E_Float alpha = ::atan2(::sqrt(s2), c);
+    alpha = NUGA::PI - signK2 * alpha;
+
+    return alpha;
+  }
+  else // (s == 0) : ni and nj are nearly colinear : 0, Pi or 2Pi
+  {
+    if (c > 0.) return NUGA::PI;
+
+#ifdef DEBUG_GEOM_ALGO
+    std::cout << "ERROR : GeomAlgo::angle_measure : 0 or 2Pi ?" << std::endl;
+    assert(false);
+#endif
+    return 2.*NUGA::PI; //error : either 0 or 2Pi are wrong. return one of them as an arbitray choice.
+  }
+
+}
+
+///
+inline bool angular_weighted_normal(const double* Pim1, const double* Pi, const double* Pip1, double* n)
+{
+  double ray1[3], ray2[3];
+  NUGA::diff<3>(Pip1, Pi, ray1);
+  NUGA::normalize<3>(ray1);
+  NUGA::diff<3>(Pim1, Pi, ray2);
+  NUGA::normalize<3>(ray2);
+    
+  NUGA::crossProduct<3>(ray1, ray2, n);    // normal
+  NUGA::normalize<3>(n);
+
+  // E1 is such PiE1 is normal to Pim1PiPip1
+  double ni[3], nj[3], E1[3];
+  NUGA::sum<3>(Pi, n, E1);
+
+  // ni = E0E1 ^ PiPip1
+  NUGA::crossProduct<3>(n, ray1, ni);
+
+  // nj = PiPim1 ^ E0E1
+  NUGA::crossProduct<3>(ray2, n, nj);
+
+  double alpha = angle_measure(ni, nj, Pi/*E0*/, E1);
+  if (alpha == 2.*NUGA::PI) return true;
+
+  n[0] *= alpha;
+  n[1] *= alpha;
+  n[2] *= alpha;
+
+  return false;
+}
+
 } // NUGA
 #endif
 

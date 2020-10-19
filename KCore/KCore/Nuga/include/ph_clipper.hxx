@@ -416,7 +416,7 @@ namespace NUGA
             normj[2] = -normj[2]; 
           }
           
-          E_Float q = NUGA::GeomAlgo<K_MESH::Triangle>::angle_measure(normalsT3.col(K0), normj, crd.col(E0), crd.col(E1));
+          E_Float q = NUGA::angle_measure(normalsT3.col(K0), normj, crd.col(E0), crd.col(E1));
           if (q == ERRORVAL)
           {
 #if defined (DEBUG_CLIPPER)

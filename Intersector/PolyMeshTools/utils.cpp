@@ -32,6 +32,7 @@ E_Int chrono::verbose=1;
 #include "Nuga/include/localizer.hxx"
 #include "Nuga/include/collider.hxx"
 #include "Nuga/include/mesh_t.hxx"
+#include "Nuga/include/displacement.hxx"
 
 //#include <iostream>
 #include <memory>
@@ -920,7 +921,7 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
 
   std::vector<E_Int> orient;
   E_Int imax=-1;
-  E_Float Lmax = -1;
+  E_Float fluxmax = -1;
   for (E_Int i=0; i < ngi.PHs.size(); ++i)
   {
     orient.clear();
@@ -942,16 +943,19 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
     E_Float flxVec[3];
     PH.flux(crd, &orient[0], flxVec);
 
-    E_Float L = ::sqrt(K_FUNC::sqrNorm<3>(flxVec));
+    E_Float flux = ::sqrt(K_FUNC::sqrNorm<3>(flxVec));
+    E_Float s = PH.surface(crd);
 
-    if (L > Lmax)
+    flux /= s; // normalizing
+
+    if (flux > fluxmax)
     {
       imax = i;
-      Lmax = L;
+      fluxmax = flux;
     }
   }
 
-  std::cout << "max flux is : " << Lmax << " reached at cell : " << imax << std::endl;
+  std::cout << "normalized max flux is : " << fluxmax << " reached at cell : " << imax << std::endl;
 
   delete f; delete cn;
 
@@ -2009,6 +2013,86 @@ PyObject* K_INTERSECTOR::oneZonePerCell(PyObject* self, PyObject* args)
   delete f; delete cn;
   return l;
 }
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::immerseNodes(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *arr2;
+  double TOL{0.};
+
+  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &TOL)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  K_FLD::FloatArray* sf(0);
+  K_FLD::IntArray* scn(0);
+  char* svarString, *seltType;
+  // Check array # 2
+  err = check_is_NGON(arr2, sf, scn, svarString, seltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & surf_crd = *sf;
+  K_FLD::IntArray & surf_cnt = *scn;
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  //////// IMMERSING NODES
+
+  using zmesh_t = NUGA::ph_mesh_t;
+  using bmesh_t = NUGA::pg_smesh_t;
+
+  // mesh on which some nodes will move
+  zmesh_t m1(crd, cnt);
+  // surface to test
+  bmesh_t s2(surf_crd, surf_cnt);
+
+  // reorient outward
+  std::cout << " S2 ORIENT ? " << s2.oriented << std::endl;
+  if (s2.oriented == 0)
+  {
+    ngon_type ng2(s2.cnt, true/*one ph for all*/);
+    bool has_been_reversed;
+    DELAUNAY::Triangulator dt;
+    ngon_type::reorient_skins(dt, s2.crd, ng2, has_been_reversed);
+    s2.cnt = ng2.PGs;
+    s2.oriented = 1;
+  }
+  else if (s2.oriented == -1)
+    s2.reverse_orient();
+
+  auto opp_dirs  = NUGA::immerse_nodes(m1, s2, TOL);
+
+  // // grabb involved points
+  // auto crd = m1.crd;
+  // std::vector<bool> keep(crd.cols(), false);
+  // for (size_t i = 0; i < opp_dirs.size(); ++i)
+  //   keep[opp_dirs[i].flag] = true;
+
+  // K_CONNECT::keep<bool> pred(keep);
+  // K_CONNECT::IdTool::compress(crd, pred);
+
+  ////////////////////////
+  
+  K_FLD::IntArray cnto;
+  m1.cnt.export_to_array(cnto);
+  PyObject* tpl = K_ARRAY::buildArray(m1.crd, varString, cnto, 8, "NGON", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
+
 
 //=============================================================================
 /* XXX */

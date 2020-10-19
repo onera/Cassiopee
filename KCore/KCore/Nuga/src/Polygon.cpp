@@ -378,7 +378,7 @@ E_Int Polygon::get_sharp_edges
       if (er) continue; // degen element so we consider its edges as permeable
 
       // Concave or not ?
-      E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
+      E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
       alpha = ::fabs(NUGA::PI - alpha);
 
       if (alpha >= angular_threshold)
@@ -436,7 +436,7 @@ E_Int Polygon::update_neighbor_with_sharp_edges
       if (er) continue; // degen element so we consider its edges as permeable
 
       // Concave or not ?
-      E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
+      E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
       alpha = ::fabs(NUGA::PI - alpha);
 
       if (alpha < angular_threshold)
