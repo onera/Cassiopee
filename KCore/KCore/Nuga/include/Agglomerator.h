@@ -52,7 +52,7 @@ namespace NUGA
     /// agglomerate superfluous polygons (multiply-shared by the same polyhedra. within the flatness tolerance only for area-computable polygons)
     inline static void simplify_phs
       (const K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& orienti, const ngon_unit& phneighborsi, E_Float angular_max, bool process_externals,
-       ngon_type& ngo, ngon_unit& oriento, ngon_unit& phneighborso, const Vector_t<E_Int>* PHlist = 0);
+       ngon_type& ngo, ngon_unit& oriento, ngon_unit& phneighborso, const Vector_t<E_Int>* PHlist = nullptr, const Vector_t<E_Int>* skipPGlist = nullptr);
 
     ///
 //    template<typename TriangulatorType>
@@ -68,7 +68,7 @@ namespace NUGA
   private:
       
     inline static void __simplify_phs
-      (const K_FLD::FloatArray& crd, const ngon_type& ngi, E_Int PHi, const ngon_unit& orienti, const ngon_unit& phneighborsi, E_Float angular_max, bool process_externals,
+      (const K_FLD::FloatArray& crd, const ngon_type& ngi, E_Int PHi, const ngon_unit& orienti, const ngon_unit& phneighborsi, E_Float angular_max, std::vector<bool> PGprocess,
       ngon_unit& gagg_pgs, std::vector<E_Int>& nids, ngon_unit& wagg_pgs, std::map<E_Int, std::vector<E_Int> >& wneigh_to_faces);
 
   };
@@ -76,7 +76,7 @@ namespace NUGA
   ///
   void NUGA::Agglomerator::simplify_phs
   (const K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& orienti, const ngon_unit& phneighborsi, E_Float angular_max, bool process_externals,
-   ngon_type& ngo, ngon_unit& oriento, ngon_unit& phneighborso, const Vector_t<E_Int>* PHlist)
+   ngon_type& ngo, ngon_unit& oriento, ngon_unit& phneighborso, const Vector_t<E_Int>* PHlist, const Vector_t<E_Int>* skipPGlist)
   {
     typedef std::map<E_Int, std::vector<E_Int> > map_t;
     map_t neigh_to_faces;
@@ -87,6 +87,36 @@ namespace NUGA
 
     nids.clear();
     nids.resize(ngi.PGs.size(), NONEVAL);
+
+    std::vector<bool> toprocess(ngi.PGs.size(), true);
+    if (!process_externals)
+    {
+      for (E_Int i = 0; i < ngi.PHs.size(); ++i)
+      {
+        E_Int nb_neighs = phneighborsi.stride(i);
+        const E_Int* neighs = phneighborsi.get_facets_ptr(i);
+        const E_Int* pgs = ngi.PHs.get_facets_ptr(i);
+
+        for (E_Int n = 0; n < nb_neighs; ++n)
+        {
+          E_Int PHn = *(neighs + n);
+          if (PHn != IDX_NONE) continue;
+
+          E_Int PGi = *(pgs + n) - 1;
+          toprocess[PGi] = false;
+        }
+      }
+    }
+
+    if (skipPGlist != nullptr)
+    {
+      std::cout << "PGS TO SKIP : " << skipPGlist->size() << std::endl;
+      for (size_t i = 0; i < skipPGlist->size(); ++i)
+      {
+        E_Int PGi = (*skipPGlist)[i];
+        toprocess[PGi] = false;
+      }
+    }
     
 #ifdef DEBUG_AGGLOMERATOR   
     std::cout << "simplify_phs : initial nb of pgs : " << ngi.PGs.size() << std::endl;
@@ -98,7 +128,7 @@ namespace NUGA
       {
         E_Int PHi = (*PHlist)[i];
         NUGA::Agglomerator::__simplify_phs
-          (crd, ngi, PHi, orienti, phneighborsi, angular_max, process_externals, gagg_pgs, nids, lagg_pgs, neigh_to_faces);
+          (crd, ngi, PHi, orienti, phneighborsi, angular_max, toprocess, gagg_pgs, nids, lagg_pgs, neigh_to_faces);
       }
     }
     else
@@ -107,7 +137,7 @@ namespace NUGA
       for (E_Int PHi = 0; PHi < nb_phs; ++PHi)
       {
         NUGA::Agglomerator::__simplify_phs
-          (crd, ngi, PHi, orienti, phneighborsi, angular_max, process_externals, gagg_pgs, nids, lagg_pgs, neigh_to_faces);
+          (crd, ngi, PHi, orienti, phneighborsi, angular_max, toprocess, gagg_pgs, nids, lagg_pgs, neigh_to_faces);
       }
     }
     
@@ -801,11 +831,11 @@ namespace NUGA
 
   ///
   void NUGA::Agglomerator::__simplify_phs
-  (const K_FLD::FloatArray& crd, const ngon_type& ngi, E_Int PHi, const ngon_unit& orienti, const ngon_unit& phneighborsi, E_Float angular_max, bool process_externals,
+  (const K_FLD::FloatArray& crd, const ngon_type& ngi, E_Int PHi, const ngon_unit& orienti, const ngon_unit& phneighborsi, E_Float angular_max, std::vector<bool> PGprocess,
    ngon_unit& gagg_pgs, std::vector<E_Int>& nids, ngon_unit& wagg_pgs, std::map<E_Int, std::vector<E_Int> >& wneigh_to_faces)
   {
     // nids[i] == -1         =>  UNCHANGED
-    // nids[i] == IDX_NONE =>  DELETED
+    // nids[i] == IDX_NONE   =>  DELETED
     // nids[i] == j          =>  j-th PG in agg_pgs
     
     typedef std::map<E_Int, std::vector<E_Int> > map_t;
@@ -822,10 +852,12 @@ namespace NUGA
 
     for (E_Int n = 0; n < nb_neighs; ++n)
     {
-      E_Int PHn = *(neighs + n);
-      if (!process_externals && PHn == IDX_NONE)
-        continue;
-      //E_Int PGi = *(pgs + n) - 1;
+      E_Int PGi = *(pgs + n) - 1;
+      if (!PGprocess[PGi]) 
+        continue; // include external choice
+
+      E_Int PHn = *(neighs + n); // can be IDX_NONE in case of externals
+
       wneigh_to_faces[PHn].push_back(n);
     }
 

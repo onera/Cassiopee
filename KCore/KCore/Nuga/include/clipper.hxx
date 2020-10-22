@@ -80,10 +80,10 @@ namespace NUGA
       // got 2D (in sub ref frame)
       K_FLD::FloatArray P(3, 3), iP(3, 3);
       
-      FittingBox::computeAFrame(W, P);
+      NUGA::computeAFrame(W, P);
       iP = P;
       K_FLD::FloatArray::inverse3(iP);
-      FittingBox::transform(crd, iP);
+      NUGA::transform(crd, iP);
 
       std::vector<double> zs;
       crd.extract_field(2, zs); //keep 3rd coord appart (altitude)
@@ -235,7 +235,7 @@ namespace NUGA
       // go back 3D
       data.pos->resize(3, data.pos->cols());
       data.pos->set_field(2, zs); //
-      FittingBox::transform(*data.pos, P); // back to original ref frame  
+      NUGA::transform(*data.pos, P); // back to original ref frame  
 
 #ifdef DEBUG_CLIPPER
       //medith::write("boolean", *data.pos, data.connectM, "TRI");

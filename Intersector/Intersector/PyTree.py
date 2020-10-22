@@ -1040,14 +1040,43 @@ def splitNonStarCells(t, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_
 # simplifyCells : agglomerate superfluous polygons that overdefine cells
 # IN: mesh: 3D NGON mesh
 # IN: angular_threshold : should be as small as possible to avoid introducing degeneracies
+# IN: discard_joins : when set to True, faces at joins are not modified
 # OUT: returns a 3D NGON Mesh with less polygons (but same shape)
 #==============================================================================
-def simplifyCells(t, treat_externals, angular_threshold = 1.e-12):
+def simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins=True):
     """Simplifies over-defined polyhedral cells (agglomerate some elligible polygons).
-    Usage: simplifyCells(t, treat_externals, angular_threshold)"""
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    m = XOR.simplifyCells(m, treat_externals, angular_threshold)
-    return C.convertArrays2ZoneNode('simplifiedCells', [m])
+    Usage: simplifyCells(t, treat_externals, angular_threshold, discard_joins)"""
+
+    zones = Internal.getZones(t)
+    ozones = []
+
+    for z in zones:
+
+      m = C.getFields(Internal.__GridCoordinates__, t)[0]
+      ids=None
+
+      if treat_externals == 1 and discard_joins == True:
+        joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+        if joins != []:
+          ids=[]
+          for j in joins :
+            ptl = Internal.getNodeFromName1(j, 'PointList')
+            ids.append(ptl[1])
+
+          if (ids != []):
+            #print ids
+            ids = numpy.concatenate(ids) # create a single list
+            ids = ids -1 # 0-based
+            ids = numpy.concatenate(ids) # create a single list
+            #print ids
+          else:
+            ids=None
+    
+      m = XOR.simplifyCells(m, treat_externals, angular_threshold, discarded_ids=ids)
+
+      ozones.append(C.convertArrays2ZoneNode(z[0], [m]))
+
+    return ozones
 
 #==============================================================================
 # simplifySurf : agglomerate superfluous polygons that overdefine the surface
@@ -1161,13 +1190,13 @@ def agglomerateNonStarCells(t):
 # IN: pgs : list of polygons
 # OUT: returns a 3D NGON Mesh
 #==============================================================================
-def agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2, amax = 1.e-12): # 0 : dno not simplify, 1 : simplify only internals, 2 : simlplify evrywhere
+def agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=1, amax = 1.e-12, treat_externals=1): # 0 : dno not simplify, 1 : simplify only internals, 2 : simlplify evrywhere
      
     tp = Internal.copyRef(t)
-    _agglomerateCellsWithSpecifiedFaces(tp,pgs, simplify, amax)
+    _agglomerateCellsWithSpecifiedFaces(tp,pgs, simplify, amax, treat_externals)
     return tp
 
-def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2, amax = 1.e-12):
+def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=1, amax = 1.e-12, treat_externals=1):
 
     zones = Internal.getZones(t)
     if len(pgs) != len(zones):
@@ -1175,22 +1204,41 @@ def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2, amax = 1.e-12):
     	return None
 
     if simplify < 0 : simplify = 0
-    if simplify > 2 : simplify = 2
+    if simplify > 1 : simplify = 1
+
     i=0
     for z in zones:
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      m = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i])
 
-      if simplify == 2: # set to 'no treat externals' if it has joins (to ensure consistency at joins)
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      m = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i]) # FIXME : need oids to use discarded_ids
+
+      ids = None
+      doext = treat_externals
+
+      if simplify == 1:
         joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
         if joins != []:
-          #print('has joins, no agglo there')
-          simplify=1
+          # FIXME : need to sync m PGs ids with the pointlists before passing them to simplifyCells
+          doext=0 
+          # ids=[]
+          # for j in joins :
+          #       ptl = Internal.getNodeFromName1(j, 'PointList')
+          #       ids.append(ptl[1])
 
-      if (simplify != 0) : 
-        simplify -= 1
-        m = XOR.simplifyCells(m, treat_externals=simplify, angular_threshold=amax)# treat externals iff simplify==1
-      C.setFields([m], z, 'nodes') # replace the mesh in the zone
+          # if (ids != []):
+          #   #print ids
+          #   ids = numpy.concatenate(ids) # create a single list
+          #   ids = ids -1 # 0-based
+          #   ids = numpy.concatenate(ids) # create a single list
+          #   #print ptLists
+          # else:
+          #   ids=None
+            
+        m = XOR.simplifyCells(m, doext, angular_threshold=amax, discarded_ids = ids)
+        C.setFields([m], z, 'nodes') # replace the mesh in the zone
+        C._deleteGridConnectivity__(z)
+        if doext : 
+          C._deleteZoneBC__(z)
       i = i+1
  
 #==============================================================================

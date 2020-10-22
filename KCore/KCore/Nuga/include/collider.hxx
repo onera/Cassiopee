@@ -512,14 +512,14 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
   // Computes the fitting box coordinate system optimizing the view over the contour
   K_FLD::FloatArray P(3, 3), iP(3, 3);
 
-  FittingBox::computeAFrame(normal1, P);
+  NUGA::computeAFrame(normal1, P);
   iP = P;
   K_FLD::FloatArray::inverse3(iP);
 
   K_FLD::FloatArray crd2D(ae1.m_crd);
-  FittingBox::transform(crd2D, iP);// Now we are in the fitting coordinate system.
+  NUGA::transform(crd2D, iP);// Now we are in the fitting coordinate system.
   crd2D.resize(2, crd2D.cols()); // e1 is 2D now.
-  FittingBox::transform(lmask.crd, iP);// Now we are in the fitting coordinate system.
+  NUGA::transform(lmask.crd, iP);// Now we are in the fitting coordinate system.
   lmask.crd.resize(2, lmask.crd.cols()); // lmask is 2D now.
 
 #ifdef COLLIDER_DBG

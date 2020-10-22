@@ -36,12 +36,12 @@ using namespace NUGA;
 //=============================================================================
 PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
 {
-  PyObject *arr;
+  PyObject *arr, *py_skipids;
   E_Float angular_threshold(0.);
   E_Int treat_externals(1);
 
-  if (!PYPARSETUPLE(args, "Old", "Oid", "Olf", "Oif", 
-                    &arr, &treat_externals, &angular_threshold)) return NULL;
+  if (!PYPARSETUPLE(args, "OldO", "OidO", "OlfO", "OifO", 
+                    &arr, &treat_externals, &angular_threshold, &py_skipids)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -49,6 +49,16 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
   // Check array # 1
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
+
+  // get PG ids to skip
+  std::vector<E_Int>* skipPGids = nullptr;
+  if (py_skipids != Py_None)
+  {
+    skipPGids = new std::vector<E_Int>;
+    E_Int *ptL, size, nfld;
+    K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld, true/* shared*/, false/* inverse*/);
+    skipPGids->insert(skipPGids->end(), ptL, ptL + size);
+  }
     
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -63,14 +73,14 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
   ngi.build_ph_neighborhood(neighborsi);
   ngi.build_orientation_ngu<DELAUNAY::Triangulator>(crd, ngi, orienti);
   
-  NUGA::Agglomerator::simplify_phs (crd, ngi, orienti, neighborsi, angular_threshold, bool(treat_externals), ngo, oriento, neighborso);
-  
+  NUGA::Agglomerator::simplify_phs (crd, ngi, orienti, neighborsi, angular_threshold, bool(treat_externals), ngo, oriento, neighborso, nullptr/*PHlist*/, skipPGids);
+
   K_FLD::IntArray cnto;
   ngo.export_to_array(cnto);
   
   PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, eltType, false);;
   
-  
+  if (skipPGids != nullptr) delete skipPGids;
   delete f; delete cn;
   return tpl;
 }

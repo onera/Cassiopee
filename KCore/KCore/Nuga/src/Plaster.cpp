@@ -94,7 +94,7 @@ Plaster::make
 
   iP = P;
   K_FLD::FloatArray::inverse3(iP);
-  FittingBox::transform(posE2, iP);// Now we are in the fitting coordinate system.
+  NUGA::transform(posE2, iP);// Now we are in the fitting coordinate system.
 
   NUGA::MeshTool::boundingBox(posE2, connectE2, minB, maxB);
 
@@ -177,14 +177,14 @@ Plaster::make
     plaster(2, i) -= z[i];
 
   // Transform back to the real space.
-  FittingBox::transform(plaster, P);
+  NUGA::transform(plaster, P);
 
   //std::cout << "plaster 12" << std::endl;
 
 #ifdef WIN32
 #ifdef E_DEBUG
   {
-    FittingBox::transform(posE2, P);
+    NUGA::transform(posE2, P);
     K_FLD::FloatArray pp = posE2;
     NUGA::int_vector_type new_IDs;
     NUGA::MeshTool::compact_to_mesh(pp, connectE2, new_IDs);

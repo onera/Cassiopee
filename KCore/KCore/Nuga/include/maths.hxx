@@ -13,6 +13,8 @@ Author : Sam Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/defs.h"
 #include "Nuga/include/macros.h"
+#include "Nuga/include/DynArray.h"
+
 #include <cmath>
 
 namespace NUGA {
@@ -305,6 +307,124 @@ inline bool angular_weighted_normal(const double* Pim1, const double* Pi, const 
 
   return false;
 }
+
+///
+inline void __get_transform_matrix
+(E_Float* U, E_Float*V, E_Float* W, K_FLD::FloatArray& P)
+{
+  P.resize(3, 3);
+
+  for (E_Int i = 0; i < 3; ++i)
+  {
+    P(i, 0) = U[i];
+    P(i, 1) = V[i];
+    P(i, 2) = W[i];
+  }
+}
+
+///
+inline void __get_normal_to
+(const E_Float* V, E_Float* N)
+{
+  N[0] = 1.0;
+  for (E_Int k = 1; k < 3; ++k)
+    N[k] = 0.;
+
+  if ((V[0] != 0.) || (V[1] != 0.))
+  {
+    N[0] = -V[1];
+    N[1] = V[0];
+  }
+}
+
+/// Computes a transformation matrix to the coordinate system (having W as 3rd axis)
+inline void computeAFrame(const E_Float* W, K_FLD::FloatArray& P)
+{
+  E_Float U[3], V[3], w[] = { W[0], W[1], W[2] };
+  NUGA::normalize<3>(w);
+  __get_normal_to(w, U);
+  assert(NUGA::dot<3>(w, U) == 0.);
+  NUGA::crossProduct<3>(w, U, V);
+  NUGA::normalize<3>(U);
+  NUGA::normalize<3>(V);
+
+  __get_transform_matrix(U, V, w, P);
+}
+
+inline void transform(K_FLD::FloatArray& pos, const K_FLD::FloatArray& t)
+{
+  K_FLD::FloatArray::iterator pN;
+  E_Float Q[3];
+  E_Int i, j, n;
+  for (i = 0; i < pos.cols(); ++i)
+  {
+    pN = pos.col(i);
+
+    for (j = 0; j < 3; ++j)
+    {
+      Q[j] = 0.;
+      for (n = 0; n < 3; ++n)
+        Q[j] += t(j, n) * (*(pN + n));
+    }
+
+    for (j = 0; j < 3; ++j)
+      pos(j, i) = Q[j];
+  }
+}
+
+inline // assume z is (0,0,1)
+void computeNodeRadiusAndAngles
+(K_FLD::FloatArray& coord, E_Float x0, E_Float y0, std::vector<E_Float>& radius, std::vector<E_Float>& angles)
+{
+  radius.clear();
+  radius.resize(coord.cols(), NUGA::FLOAT_MAX);
+  angles.clear();
+  angles.resize(coord.cols(), NUGA::FLOAT_MAX);
+
+  for (E_Int i = 0; i < coord.cols(); ++i)
+  {
+    const E_Float* pt = coord.col(i);
+
+    radius[i] = ::sqrt(((pt[0] - x0)*(pt[0] - x0)) + ((pt[1] - y0)*(pt[1] - y0)));
+
+    E_Float c = pt[0] / radius[i];
+    E_Float s = pt[1] / radius[i];
+
+    angles[i] = ::atan2(s, c);
+  }
+}
+
+inline void axial_rotate(K_FLD::FloatArray& crd, const double* axis_pt, const double* axis_dir, double angle)
+{
+  crd.pushBack(axis_pt, axis_pt + 3); // to embark it in the transfo
+
+  K_FLD::FloatArray P(3, 3), iP(3, 3);
+  computeAFrame(axis_dir, P);
+  iP = P;
+  K_FLD::FloatArray::inverse3(iP);
+  transform(crd, iP);// Now we are in the reference cylindrical coordinate system.
+
+  double * axi_pt = crd.col(crd.cols() - 1);
+
+  for (E_Int i = 0; i < crd.cols(); ++i)
+  {
+    double* pt = crd.col(i);
+    double radius = ::sqrt(((pt[0] - axi_pt[0])*(pt[0] - axi_pt[0])) + ((pt[1] - axi_pt[1])*(pt[1] - axi_pt[1])));
+    
+    if (radius == 0.) continue;
+    E_Float c = pt[0] / radius;
+    E_Float s = pt[1] / radius;
+
+    double a0 = ::atan2(s, c);
+
+    pt[0] = radius * ::cos(a0 + angle);
+    pt[1] = radius * ::sin(a0 + angle);
+  }
+
+  NUGA::transform(crd, P); // back to original ref frame  
+
+}
+
 
 } // NUGA
 #endif

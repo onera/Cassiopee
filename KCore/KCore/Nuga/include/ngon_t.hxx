@@ -3020,9 +3020,50 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     return 0;
 
   }
+
+  /// symplify PGs
+  static void simplify_pgs(ngon_unit& PGs, const K_FLD::FloatArray& crd)
+  {
+    Vector_t<bool> man_nodes;
+
+    flag_manifold_nodes(PGs, crd, man_nodes);
+
+#ifdef DEBUG_NGON_T
+    E_Int count{ 0 };
+#endif
+    Vector_t<E_Int> pgnids, node_ids(crd.cols());//0-based ids
+    for (E_Int i = 0; i < crd.cols(); ++i)
+    {
+      node_ids[i] = (man_nodes[i]) ? IDX_NONE : i;
+      //std::cout << "manifold ? : " << man_nodes[i] << " . so new val is : " << node_ids[i] << std::endl;
+#ifdef DEBUG_NGON_T
+      if (node_ids[i] == IDX_NONE)++count;
+#endif
+    }
+
+#ifdef DEBUG_NGON_T
+    std::cout << " nb of removed nodes : " << count << std::endl;
+
+    count = 0;
+    for (size_t u = 0; u < ng.PGs.size(); ++u)
+      count += PGs.stride(u);
+
+    std::cout << "cumulated stride before cleaning : " << count << std::endl;
+#endif
+
+    //E_Int nb_remove = PGs.remove_facets(node_ids, pgnids, 2);//a surface must have at least 3 nodes
+
+#ifdef DEBUG_NGON_T 
+    count = 0;
+    for (size_t u = 0; u < PGs.size(); ++u)
+      count += PGs.stride(u);
+
+    std::cout << "cumulated stride after cleaning : " << count << std::endl;
+#endif
+  }
   
  
-  /// Clean superfluous nodes
+  /// Clean superfluous nodes on PGs and sync PHs
   static void simplify_pgs (ngon_t& ng, const K_FLD::FloatArray& crd, bool process_externals = true)
   {
     Vector_t<bool> man_nodes;
@@ -4577,10 +4618,10 @@ static E_Int extrude_revol_faces
   coord.pushBack(ax_pt, ax_pt+3); // to embark it in the transfo
 
   K_FLD::FloatArray P(3,3), iP(3,3);
-  FittingBox::computeAFrame(ax, P);
+  NUGA::computeAFrame(ax, P);
   iP = P;
   K_FLD::FloatArray::inverse3(iP);
-  FittingBox::transform(coord, iP);// Now we are in the reference cylindrical coordinate system.
+  NUGA::transform(coord, iP);// Now we are in the reference cylindrical coordinate system.
 
   axis_pt = coord.col(coord.cols()-1);
   
@@ -4626,7 +4667,7 @@ static E_Int extrude_revol_faces
     img[i] = nid++;
   }
 
-  FittingBox::transform(coord, P); // back to original ref frame  
+  NUGA::transform(coord, P); // back to original ref frame  
   
 #ifdef DEBUG_NGON_T
   ngon_unit bulks;

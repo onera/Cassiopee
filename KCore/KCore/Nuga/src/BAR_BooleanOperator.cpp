@@ -170,10 +170,10 @@ BAR_BooleanOperator::compute_zones()
   
   // Go to the plane
   K_FLD::FloatArray P, iP;
-  FittingBox::computeAFrame(_normal, P);
+  NUGA::computeAFrame(_normal, P);
   iP = P;
   K_FLD::FloatArray::inverse3(iP);
-  FittingBox::transform(coord2D, iP);// Transform to computed frame.
+  NUGA::transform(coord2D, iP);// Transform to computed frame.
   
   coord2D.resize(2, coord2D.cols());
   

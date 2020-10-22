@@ -78,10 +78,10 @@ E_Int Triangulator::run
   K_FLD::FloatArray P(3,3), iP(3,3);
   E_Float W[3];
   FittingBox::computeNormalToContour(Wpos, connectE2b, W);
-  FittingBox::computeAFrame(W, P);
+  NUGA::computeAFrame(W, P);
   iP = P;
   K_FLD::FloatArray::inverse3(iP);
-  FittingBox::transform(Wpos, iP);// Now we are in the fitting coordinate system.
+  NUGA::transform(Wpos, iP);// Now we are in the fitting coordinate system.
   
   Wpos.resize(2, Wpos.cols()); // Wpos is 2D now.
   

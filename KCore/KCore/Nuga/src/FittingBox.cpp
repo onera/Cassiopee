@@ -28,6 +28,8 @@
 
 #define ROUND(x) (((x<EPSILON) && (x>-EPSILON)) ? 0.: x)
 
+using namespace NUGA;
+
 ///
 void
 FittingBox::computeNormalToContour
@@ -73,22 +75,6 @@ FittingBox::computeNormalToContour
     NUGA::sum<3>(w, W, W);
   }
   NUGA::normalize<3>(W);
-}
-
-///
-void
-FittingBox::computeAFrame
-(const E_Float* W, K_FLD::FloatArray& P)
-{
-  E_Float U[3], V[3], w[] = {W[0], W[1], W[2]};
-  NUGA::normalize<3>(w);
-  __get_normal_to(w, U);
-  assert (NUGA::dot<3>(w, U) == 0.);
-  NUGA::crossProduct<3>(w, U, V);
-  NUGA::normalize<3>(U);
-  NUGA::normalize<3>(V);
-
-  __get_transform_matrix(U, V, w, P);
 }
 
 ///
@@ -158,30 +144,6 @@ FittingBox::computeOptimalViewFrame
 }
 
 ///
-void
-FittingBox::transform
-(K_FLD::FloatArray& pos, const K_FLD::FloatArray& t)
-{
-  K_FLD::FloatArray::iterator pN;
-  E_Float Q[3];
-  E_Int i, j, n;
-  for (i = 0; i < pos.cols(); ++i)
-  {
-    pN = pos.col(i);
-
-    for (j = 0; j < 3; ++j)
-    {
-      Q[j] = 0.;
-      for (n = 0; n < 3; ++n)
-        Q[j] += t(j, n) * (*(pN+n)) ;
-    }
-
-    for (j = 0; j < 3; ++j)
-      pos(j, i) = Q[j];
-  }
-}
-
-///
 E_Int
 FittingBox::__computeOptimalViewFrame
 (const K_FLD::FloatArray& posE2, const K_FLD::IntArray& connectE2, const E_Float* W0, const K_FLD::FloatArray& R, K_FLD::FloatArray& P)
@@ -202,10 +164,10 @@ FittingBox::__computeOptimalViewFrame
   {
     error = 0;
     posFrame = posE2;
-    FittingBox::computeAFrame(W, P);
+    NUGA::computeAFrame(W, P);
     iP = P;
     K_FLD::FloatArray::inverse3(iP);
-    FittingBox::transform(posFrame, iP);// Transform to computed frame.
+    NUGA::transform(posFrame, iP);// Transform to computed frame.
 
 #ifdef DEBUG_FITTINGBOX
     K_CONVERTER::DynArrayIO::write("transformed.mesh", posFrame, connectE2, "BAR");
@@ -227,7 +189,7 @@ FittingBox::__computeOptimalViewFrame
     {
       error = 1;
       // Rotate
-      FittingBox::transform(P, R);
+      NUGA::transform(P, R);
       W[0] = P(0, 2);
       W[1] = P(1, 2);
       W[2] = P(2, 2);
@@ -239,36 +201,6 @@ FittingBox::__computeOptimalViewFrame
   return error;
 }
 
-///
-void
-FittingBox::__get_transform_matrix
-(E_Float* U, E_Float*V, E_Float* W, K_FLD::FloatArray& P)
-{
-  P.resize(3,3);
-
-  for (E_Int i = 0; i < 3; ++i)
-  {
-    P(i, 0) = U[i];
-    P(i, 1) = V[i];
-    P(i, 2) = W[i];
-  }
-}
-
-///
-void
-FittingBox::__get_normal_to
-(const E_Float* V, E_Float* N)
-{
-  N[0] = 1.0;
-  for (E_Int k = 1; k < 3; ++k)
-    N[k] = 0.;
-
-  if ((V[0] != 0.) || (V[1] != 0.))
-  {
-    N[0] = -V[1];
-    N[1] = V[0];
-  }
-}
 
 ///
 void

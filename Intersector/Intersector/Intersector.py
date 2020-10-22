@@ -255,12 +255,13 @@ def splitNonStarCells(a, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_
 # simplifyCells : agglomerate superfluous polygons that overdefine cells
 # IN: a                 : 3D NGON mesh
 # IN: angular_threshold : should be as small as possible to avoid introducing degeneracies
+# IN : discarded_ids : list of ids (0-based) to skip
 # OUT: returns a 3D NGON Mesh with less polygons (but same shape)
 #==============================================================================
-def simplifyCells(a, treat_externals, angular_threshold = 1.e-12):
+def simplifyCells(a, treat_externals, angular_threshold = 1.e-12, discarded_ids=None):
     """Simplifies over-defined polyhedral cells (agglomerate some elligible polygons).
     Usage: simplifyCells(a, treat_externals, angular_threshold)"""
-    return intersector.simplifyCells(a, treat_externals, angular_threshold)
+    return intersector.simplifyCells(a, treat_externals, angular_threshold, discarded_ids)
 
 #==============================================================================
 # simplifySurf : agglomerate superfluous polygons that overdefine cells
