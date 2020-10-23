@@ -1422,6 +1422,7 @@ def makeCartesianXYZ(t):
     return t2
 
 def _makeCartesianXYZ(t):
+    tol = 1.e-10
     for z in Internal.getZones(t):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Structured':
@@ -1431,15 +1432,15 @@ def _makeCartesianXYZ(t):
             dy_i = C.getValue(z,'CoordinateX',indj)-C.getValue(z,'CoordinateX',ind)
             dz_i = C.getValue(z,'CoordinateX',indk)-C.getValue(z,'CoordinateX',ind)
             diri = 1; dirj = 2; dirk = 3
-            if abs(dx_i) > 0.: diri = 1
-            elif abs(dy_i) > 0.: diri = 2
-            elif abs(dz_i) > 0.: diri = 3
+            if abs(dx_i) > tol: diri = 1
+            elif abs(dy_i) > tol: diri = 2
+            elif abs(dz_i) > tol: diri = 3
             dx_j = C.getValue(z,'CoordinateY',indi)-C.getValue(z,'CoordinateY',ind)
             dy_j = C.getValue(z,'CoordinateY',indj)-C.getValue(z,'CoordinateY',ind)
             dz_j = C.getValue(z,'CoordinateY',indk)-C.getValue(z,'CoordinateY',ind)
-            if abs(dx_j) > 0.: dirj = 1
-            elif abs(dy_j) > 0.: dirj = 2
-            elif abs(dz_j) > 0.: dirj = 3
+            if abs(dx_j) > tol: dirj = 1
+            elif abs(dy_j) > tol: dirj = 2
+            elif abs(dz_j) > tol: dirj = 3
             dx_k = C.getValue(z,'CoordinateZ',indi)-C.getValue(z,'CoordinateZ',ind)
             dy_k = C.getValue(z,'CoordinateZ',indj)-C.getValue(z,'CoordinateZ',ind)
             dz_k = C.getValue(z,'CoordinateZ',indk)-C.getValue(z,'CoordinateZ',ind)

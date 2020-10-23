@@ -15,18 +15,18 @@ from Apps.Fast.Common import Common
 # Multibloc prepare (avec split)
 # NP is the target number of processors
 #================================================================================ 
-def prepare(t_case, t_out, tc_out, NP=0, format='single'):
+def prepare(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
-    if rank == 0: ret = prepare0(t_case, t_out, tc_out, NP, format)
+    if rank == 0: ret = prepare0(t_case, t_out, tc_out, NP=NP, format=format, removeGC=removeGC)
     return ret
 
 #================================================================================
 # Multibloc prepare - seq
 #================================================================================
-def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
+def prepare0(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
 
     if isinstance(t_case, str): t = C.convertFile2PyTree(t_case)
     else: t = t_case 
@@ -103,7 +103,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
     tc = X.setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
                          sameName=1, dim=dim)
     C._rmVars(tc, 'FlowSolution')
-    C._rmVars(tc, 'GridCoordinates')
+    if removeGC: C._rmVars(tc, 'GridCoordinates')
 
     if isinstance(tc_out, str):
         #Fast.save(tc, tc_out, split=format, NP=-NP)
@@ -117,7 +117,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
 # Multibloc prepare - parallel - en cours
 # NP is the target number of processors
 #================================================================================
-def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
+def prepare1(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
 
     import Distributor2.PyTree as D2
     import Converter.Mpi as Cmpi
@@ -165,7 +165,7 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
         T._contract(t, (0,0,0), (1,0,0), (0,1,0), 0.01)
         T._makeDirect(t)
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
-    Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
+    if removeGC: Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
 
     # Solution initiale
     eqs = Internal.getNodeFromType(t, 'GoverningEquations_t')

@@ -311,7 +311,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 #=============================================================================
 def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
-               interpDataType=1, hook=None, sameName=0, he=0., hi=0., dim=3, bcType=0):
+               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0):
     """Compute Immersed Boundary data."""
     try: from . import ToolboxIBM as IBM
     except: raise ImportError("setIBCData: requires ToolboxIBM module.")
@@ -346,7 +346,7 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
     #-------------------------------------------
     # 1. Get the list of IBC pts
     #-------------------------------------------
-    res = IBM.getAllIBMPoints(zonesRcv, loc=locR, hi=hi, he=he)
+    res = IBM.getAllIBMPoints(zonesRcv, loc=locR, hi=hi, he=he, tfront=tfront)
     #correctedPts=list(res[0].values())[0]; wallPts=list(res[1].values())[0]; interpPts=list(res[2].values())[0]
     correctedPts=res[0][3]; wallPts=res[1][3]; interpPts=res[2][3]
     

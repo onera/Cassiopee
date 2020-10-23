@@ -361,12 +361,14 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
 # Transferts instationnaires en parallele
 # avec prise en compte du mouvement
 # absFrame=True: les coordonnees de t sont deja dans le repere absolu en entree
+# interpInDnrFrame = True : interpolation avec les coordonnees des pts a interpoler dans le repere relatif au donneur 
+# applicable en mouvement rigide; en mvt avec deformation : mettre False
 #---------------------------------------------------------------------------------------------------------
 def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT, 
               dictOfNobOfRcvZones, dictOfNozOfRcvZones,
               dictOfNobOfDnrZones, dictOfNozOfDnrZones, 
               dictOfNobOfRcvZonesC, dictOfNozOfRcvZonesC, 
-              time=0., absFrame=True, procDict=None, cellNName='cellN'):
+              time=0., absFrame=True, procDict=None, cellNName='cellN', interpInDnrFrame=True):
   
     if procDict is None: procDict = Cmpi.getProcDict(tc)
     if Cmpi.size == 1:
@@ -414,16 +416,18 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     adt = dictOfADT[znamed]
                     if adt is None: interpDataType = 0
                     else: interpDataType = 1
-                    [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)                    
+                    [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
                     # transfers avec coordonnees dans le repere relatif
-                    # hack par CB
-                    GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
-                    GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
-                    T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T                    
-                    #print(" TRANSFERTS LOCAUX : ", z[0], zdnr[0], interpDataType)
+                    if interpInDnrFrame: # hack par CB
+                        GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
+                        GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
+                        TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP                    
+
                     fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
+
                     # hack par CB
-                    T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T        
+                    if interpInDnrFrame: 
+                        TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP        
                     
                     if zname not in dictOfFields:
                         dictOfFields[zname] = [fields]
@@ -460,12 +464,16 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
             # [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
             # transferts avec coordonnees dans le repere relatif 
-            GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
-            GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
-            T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T   
+            if interpInDnrFrame:
+                GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
+                GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
+                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP   
+
             fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
+
             # hack par CB
-            T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T            
+            if interpInDnrFrame:
+                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP            
 
             procR = procDict[zrcvname]
             

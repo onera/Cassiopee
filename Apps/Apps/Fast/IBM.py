@@ -1,4 +1,4 @@
-# Class for FastS "IBM" prepare and compute
+#Class for FastS "IBM" prepare and compute
 import FastC.PyTree as FastC
 import Converter.PyTree as C
 import Generator.PyTree as G
@@ -1426,6 +1426,7 @@ def prepareWallReconstruction(tw, tc):
         tolBB = max(tolBB,2*snearval)
 
     tcw = TIBM.createIBMWZones(tc,variables=[])
+
     nzones = len(Internal.getZones(tcw))
 
     dimPb = Internal.getNodeFromName(tw, 'EquationDimension')
@@ -1477,7 +1478,7 @@ def prepareWallReconstruction(tw, tc):
             for j in i[k]:
                 if not j in graph[k]: graph[k][j] = []
                 graph[k][j] += i[k][j]
-                graph[k][j] = list(set(graph[k][j])) # pas utile?
+                graph[k][j] = list(set(graph[k][j])) 
 
     Cmpi._addXZones(tcw, graph, subr=False)
     interDict = X.getIntersectingDomains(tw,tcw_bb)
@@ -1499,20 +1500,20 @@ def prepareWallReconstruction(tw, tc):
             for j in i[k]:
                 if not j in graphX[k]: graphX[k][j] = []
                 graphX[k][j] += i[k][j]
-                graphX[k][j] = list(set(graphX[k][j])) # pas utile?
+                graphX[k][j] = list(set(graphX[k][j])) 
     del tcw_bb 
 
     EXTRAP = numpy.array([],numpy.int32)
     VOL = numpy.array([],numpy.float64)
     ORPHAN = numpy.array([],numpy.float64)
     datas = {}
+
     for zw in Internal.getZones(tw):
         zwname = Internal.getName(zw)
         dnrZones=[]
         dnrZoneNames=[]
         for zdname in interDict[zwname]:
             zd = Internal.getNodeFromName2(tcw,zdname)     
-            #if zd is None or zd == []: print(zdname, zd)
             dnrZones.append(zd)
             dnrZoneNames.append(zdname)
 
@@ -1521,6 +1522,7 @@ def prepareWallReconstruction(tw, tc):
         if coordsR[1].shape[1]>0:
             coordsD = Converter.convertArray2Node(coordsD)
             ret = connector.setInterpData_IBMWall(coordsD, coordsR, dimPb, LSorder)
+
             allPLR = ret[0]; allPLD = ret[1]; allCOEFS=ret[3]; allITYPE=ret[2]
 
             nozd = 0
@@ -1550,7 +1552,6 @@ def prepareWallReconstruction(tw, tc):
     for i in range(Cmpi.size):
         if i not in datas: datas[i]=[]
     Cmpi._rmXZones(tcw)
-  
     destDatas = Cmpi.sendRecv(datas, graphX)
     for i in destDatas:
         for n in destDatas[i]:
@@ -1628,10 +1629,7 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
                 fields = n[1]
                 if fields != []:
                     listIndices = n[2]
-                    zr = Internal.getNodeFromName2(tw,rcvName)
-                    print("zname", zr[0])
-                    print("field = ", fields)
-                    print(" indices = ", listIndices)                    
+                    zr = Internal.getNodeFromName2(tw,rcvName)              
                     C._updatePartialFields(zr, [fields], [listIndices], loc=n[3])
             else:
                 rcvNode = procDictR[rcvName]
@@ -1649,9 +1647,6 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
             if field != []:
                 listIndices = n[2]
                 z = Internal.getNodeFromName2(tw, rcvName)
-                print("zname", z[0])
-                print("field = ", field)
-                print(" indices = ", listIndices)
                 C._updatePartialFields(z,[field], [listIndices], loc=n[3])
     return None
 

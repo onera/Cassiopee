@@ -25,7 +25,7 @@
 using namespace K_FLD;
 using namespace std;
 
-#define CLOUDMAX 200
+#define CLOUDMAX 100
 
 // ============================================================================
 /*  IN: nuage de points donneur defini par une zone NODE
@@ -83,29 +83,32 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   /*------------------------------------------------*/
   /* Extraction des infos sur les domaines donneurs */
   /*------------------------------------------------*/
-  E_Int nzonesD = PyList_Size(arraysD);
+  vector<E_Int> resl;  vector<char*> varStringd;
   vector<FldArrayF*> vectOfDnrZones;
-  vector<FldArrayI*> vectOfDnrConnects;
+  vector<void*> a2; //ni,nj,nk ou cnt en NS
+  vector<void*> a3; //eltType en NS
+  vector<void*> a4;
+  vector<PyObject*> objs;
+  E_Boolean skipNoCoord = true;  E_Boolean skipStructured = false;
+  E_Boolean skipUnstructured = false;  E_Boolean skipDiffVars = true;
+  E_Int isOk = K_ARRAY::getFromArrays(arraysD, resl, varStringd, vectOfDnrZones,
+                                      a2, a3, a4, objs,  
+                                      skipDiffVars, skipNoCoord, skipStructured,
+                                      skipUnstructured, true);
+  E_Int nzonesD = objs.size();
+  
   vector<E_Int> posxtd; vector<E_Int> posytd; vector<E_Int> posztd;
   E_Int nptsTotD = 0;
+  E_Int nptsMaxD = 0;
   for (E_Int i = 0; i < nzonesD; i++)
   {
-    E_Int imd, jmd, kmd;
-    FldArrayF* fd; FldArrayI* cnd;
-    char* varStringd; char* eltTyped;
-    PyObject* arrayD = PyList_GetItem(arraysD, i);
-    E_Int ret = K_ARRAY::getFromArray(arrayD, varStringd, fd,
-                                      imd, jmd, kmd, cnd, eltTyped, true);
-    if (ret == 2 )
-    {
-      E_Int posxd = K_ARRAY::isCoordinateXPresent(varStringd);
-      E_Int posyd = K_ARRAY::isCoordinateYPresent(varStringd);
-      E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringd);
-      posxd++; posyd++; poszd++;      
-      posxtd.push_back(posxd); posytd.push_back(posyd); posztd.push_back(poszd);
-      vectOfDnrZones.push_back(fd); vectOfDnrConnects.push_back(cnd);      
-    }
-    nptsTotD += fd->getSize();
+    E_Int posxd = K_ARRAY::isCoordinateXPresent(varStringd[i]);
+    E_Int posyd = K_ARRAY::isCoordinateYPresent(varStringd[i]);
+    E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringd[i]);
+    posxd++; posyd++; poszd++;      
+    posxtd.push_back(posxd); posytd.push_back(posyd); posztd.push_back(poszd);
+    nptsTotD += vectOfDnrZones[i]->getSize();
+    nptsMaxD = K_FUNC::E_max(nptsMaxD,vectOfDnrZones[i]->getSize());
   }
   /* End of checks and extractions */
 
@@ -125,12 +128,36 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   E_Int indev, indR;
   vector < vector<E_Int> > cveR(nbPtsR);//connectivite vertex/elts
   K_CONNECT::connectEV2VE(*cnr, cveR);
-  vector< vector<E_Int> > listOfDnrIndPerTri(nbEltsR);
-  vector< vector<E_Int> > listOfDnrNoZPerTri(nbEltsR);
+  vector< vector<E_Int> > listOfDnrIndPerTri(nbPtsR);
+  vector< vector<E_Int> > listOfDnrNoZPerTri(nbPtsR);
   nzonesD = vectOfDnrZones.size();
   E_Float rad2;
   E_Int* cn1 = cnr->begin(1);
   E_Int* cn2 = cnr->begin(2);
+
+  vector<E_Int> indicesExtrap;
+  //creation du kdtree du nuage de points donneurs
+  FldArrayF dnrCoords(nptsTotD,3);
+  E_Float* xdnr = dnrCoords.begin(1);
+  E_Float* ydnr = dnrCoords.begin(2);
+  E_Float* zdnr = dnrCoords.begin(3);
+  E_Int noindg = 0;
+  FldArrayI indicesGlob(nptsMaxD*nzonesD); indicesGlob.setAllValuesAt(-1);
+  for (E_Int nozd =  0; nozd < nzonesD; nozd++)
+  {
+    E_Float* xd = vectOfDnrZones[nozd]->begin(posxtd[nozd]);
+    E_Float* yd = vectOfDnrZones[nozd]->begin(posytd[nozd]);
+    E_Float* zd = vectOfDnrZones[nozd]->begin(posztd[nozd]);
+    for (E_Int noind = 0; noind < vectOfDnrZones[nozd]->getSize(); noind++)
+    {
+      xdnr[noindg]=xd[noind]; ydnr[noindg]=yd[noind]; zdnr[noindg]=zd[noind];
+      indicesGlob[noindg] = noind + nozd*nptsMaxD;
+      noindg++;
+    }
+  }
+
+  ArrayAccessor<FldArrayF>* coordAccD = new ArrayAccessor<FldArrayF>(dnrCoords, 1,2,3);
+  K_SEARCH::KdTree<FldArrayF>* kdtD = new K_SEARCH::KdTree<FldArrayF>(*coordAccD);
   if ( strcmp(eltTyper,"TRI") == 0)
   {
     E_Int* cn3 = cnr->begin(3);
@@ -223,9 +250,6 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   // printf(" MLS interpolation of order %d: minimum number of cloud points = %d\n", order, sizeBasis+1);
 
   E_Int sizeMinOfCloud = sizeBasis+1;
-  // vector< vector<E_Int> > cEEN(nbEltsR);
-  // K_CONNECT::connectEV2EENbrs(eltTyper, nbPtsR, *cnr, cEEN); 
-
   E_Int axisConst[3]; // =1 si l'axe est une direction constante, 0 sinon
   E_Float radius[3]; // longueurs des axes de l'ellipse
   E_Float axis[9];  // Axes de l'ellipse
@@ -256,7 +280,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
     posPtrCoefs[nozd]=0;
     posPtrRcvIndices[nozd] = 0;
   }
-  
+
   for (E_Int indR = 0; indR < nbPtsR; indR++)
   {
     pt[0] = xtRcv[indR]; pt[1] = ytRcv[indR]; pt[2] = ztRcv[indR];
@@ -265,21 +289,12 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
     E_Int sizeOfCloud = dnrIndices.size();
     E_Int isExtrap = 0;
     FldArrayF cfLoc(sizeOfCloud);   
-    vector<E_Int> listOfCloudPtsPerVertex(sizeOfCloud); 
+    vector<E_Int> listOfCloudPtsPerVertex(sizeOfCloud);
 
-    if (sizeOfCloud == 0)
-    {
-      printf(" No valid point cloud found for vertex %d \n", indR);
-    }
-    else if (sizeOfCloud < sizeMinOfCloud)
+    if ( sizeOfCloud < sizeMinOfCloud)
     {
       isExtrap = 1;
-      printf("Extrap 1 \n");      
-
-      for (E_Int noind = 0; noind < sizeOfCloud; noind++)
-      {
-        cfLoc[noind] = 1./(sizeOfCloud);
-      }
+      indicesExtrap.push_back(indR);
     }
     else
     {      
@@ -310,14 +325,11 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
 
       if ( ok != 1) // extrapolation
       {
-        printf("Extrap2 ! \n");
-        for (E_Int noind = 0; noind < sizeOfCloud; noind++)
-        { 
-          cfLoc[noind] = 1./(sizeOfCloud);
-        } 
+        isExtrap = 1;
+        indicesExtrap.push_back(indR);
       }
-    }
-    if ( sizeOfCloud >0)
+    }//test sizeOfCloud < sizeMin ?
+    if (isExtrap==0)
     {
       // Nb de donneurs ds la molecule + indices des donneurs
       vector < vector<E_Int> > vectOfIndDPerDnrZone(nzonesD);
@@ -355,20 +367,54 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
           }
         }
       }
-    }
-  }   
+    }//fin isExtrap=0
+    else
+    {
+      //recherche du pt le plus proche
+      pt[0] = xtRcv[indR]; pt[1] = ytRcv[indR]; pt[2] = ztRcv[indR];
+      E_Int noindg = kdtD->getClosest(pt, rad2);
+
+      E_Int nozDorig = E_Int(indicesGlob[noindg]/nptsMaxD);
+      E_Int indDorig = (indicesGlob[noindg]-nozDorig*nptsMaxD);
+      // if ( indR == 734) 
+      // {
+      //   printf(" x = %g %g %g : %d \n",pt[0], pt[1], pt[2], isExtrap);
+      //   printf(" donneur %g %g %g \n", xdnr[noindg], ydnr[noindg], zdnr[noindg]);
+      //   printf(" indD = %d %d \n", indDorig, nozDorig);
+      // }
+      E_Int* ptrIndicesR = listOfRcvIndices[nozDorig]->begin();
+      E_Int& posIndR = posPtrRcvIndices[nozDorig];
+      ptrIndicesR[posIndR] = indR; posIndR++;
+
+      E_Float* ptrCoefs  = listOfInterpCoefs[nozDorig]->begin();
+      E_Int& posCf = posPtrCoefs[nozDorig];
+      
+      E_Int* ptrIndicesD = listOfDnrIndices[nozDorig]->begin();
+      E_Int& posIndD = posPtrDnrIndices[nozDorig];
+      ptrIndicesD[posIndD] = 1; posIndD++;
+      ptrIndicesD[posIndD] = indDorig; posIndD++;
+      ptrCoefs[posCf] = 1.; posCf++;
+    }//fin isExtrap=1
+  } // boucle indR
+  delete kdtD; delete coordAccD;
+
   for (E_Int nozd = 0; nozd < nzonesD; nozd++)
   {
-    // delete vectOfClosestTriIndices[nozd];
     E_Int sizeDnrIndices = posPtrDnrIndices[nozd];
     E_Int sizeCf = posPtrCoefs[nozd];
     E_Int sizeRcvIndices = posPtrRcvIndices[nozd];
+    printf(" zone donneuse %d : sizeDnrIndices = %d, sizeCf = %d, sizeRcvIndices = %d\n", nozd, sizeDnrIndices, sizeCf, sizeRcvIndices);
     listOfInterpCoefs[nozd]->resize(sizeCf);
     listOfDnrIndices[nozd]->resize(sizeDnrIndices);
     listOfRcvIndices[nozd]->resize(sizeRcvIndices);
     listOfDnrTypes[nozd]->resize(sizeRcvIndices);
   }   
-
+  RELEASESHAREDU(arrayR, fr, cnr);
+  // Nettoyages
+  for (E_Int no = 0; no < nzonesD; no++)
+  {
+    RELEASESHAREDA(resl[no],objs[no], vectOfDnrZones[no],a2[no],a3[no],a4[no]);  
+  }
   /*----------------------------------------------------------*/
   /* Ecriture dans des objets Python retournes par la methode */
   /*----------------------------------------------------------*/

@@ -922,8 +922,7 @@ def getIBMFront(tc, frontvar, dim, frontType):
 
     return front
 
-# front of first computed cells - with overlappin
-    if isinstance(t_in, str):g
+# front of first computed cells - with overlapping
 def getIBMFrontType1(tc, frontvar, dim):
     if dim == 2:
         z0 = Internal.getNodeFromType2(tc, 'Zone_t')

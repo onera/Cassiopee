@@ -383,7 +383,7 @@ def applyBCOverlapsStruct__(a, minIndex, maxIndex, depth, loc, val=2, cellNName=
 # retourne le cellN modifie de la zone: si un point de la CL n est pas
 # interpolable a partir de la listOfInterpZones, le cellN est remis a 1
 #=============================================================================
-def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, range,
+def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, winrange,
                        depth=1):
     """Set cellN to 2 to interpolated points of z near border of indices range defining a doubly defined BC.
     Usage: setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, range, depth)"""
@@ -392,7 +392,7 @@ def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, range,
         listOfCelln = C.initVars(listOfCelln,'{cellN}=minimum(1.,{cellN})')
     except: pass
     return connector.setDoublyDefinedBC(z, cellN, listOfInterpZones, 
-                                        listOfCelln, range, depth)
+                                        listOfCelln, winrange, depth)
 #===============================================================================
 # Calcul les donneurs et coefs d interpolation pour une zone receveuse
 # a partir d'une liste de zones donneuses. Si plusieurs candidats possibles

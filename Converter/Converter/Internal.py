@@ -1926,6 +1926,10 @@ def getValue(node):
         elif n.dtype == numpy.int32:
             if n.size == 1: return int(n.flat[0])
             else: return n
+        elif n.dtype == numpy.int64:
+            if n.size == 1: return int(n.flat[0])
+            else: return n
+            
         elif n.dtype == numpy.float64:
             if n.size == 1: return float(n.flat[0])
             else: return n
