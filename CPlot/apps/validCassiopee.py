@@ -4,7 +4,8 @@ except: import tkinter as TK
 try: import tkFont as Font
 except: import tkinter.font as Font
 import os, sys, re
-import subprocess
+import subprocess 
+import threading
 import time
 import KCore
 import KCore.Dist as Dist
@@ -48,6 +49,12 @@ TESTS = []
 # Repertoire 'module' des modules
 MODULESDIR = {}
 
+# Si THREAD est None, les test unitaires ne tournent pas
+# Sinon, THREAD vaut le thread lance
+THREAD = None
+# Le process lance sinon None
+PROCESS = None
+
 # Est egal a 1 si on doit s'arreter
 STOP = 0
 
@@ -59,29 +66,37 @@ WIDGETS = {}
 # Retourne le resultat de cmd comme une string
 #==============================================================================
 def check_output(cmd, shell, stderr):
+    global PROCESS
     version = sys.version_info
     version0 = version[0]
     version1 = version[1]
-    if ((version0 == 2 and version1 >= 7) or
-        (version0 == 3 and version1 >= 2) or
-        version0 > 3):
-        return subprocess.check_output(cmd, shell=shell, stderr=stderr)
-    else:
+    mode = 3
+
+    #if (version0 == 2 and version1 >= 7) or (version0 == 3 and version1 >= 2) or version0 > 3:
+    
+    if mode == 0: # avec check_output
+        out = subprocess.check_output(cmd, shell=shell, stderr=stderr)
+        return out
+    elif mode == 1: # avec run
+        PROCESS = subprocess.run(cmd, check=True, shell=shell, stderr=stderr, stdout=subprocess.PIPE)
+        return PROCESS.stdout
+    elif mode == 2: # avec Popen + python 2.7
         import shlex
         cmd = shlex.split(cmd)
+        
         wdir = '.'
         # modifie cd en working dir
         if cmd[0] == 'cd': wdir = cmd[1]; cmd = cmd[3:]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, cwd=wdir)
+        PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, cwd=wdir)
         out = ''
         while True:
-            line = proc.stdout.readline()
+            line = PROCESS.stdout.readline()
             if line != '': out += line
             else: break
         ti = ''
         while True:
-            line = proc.stderr.readline()
+            line = PROCESS.stderr.readline()
             if line != '': ti += line
             else: break
         # change le retour de time pour etre identique a celui du shell
@@ -92,7 +107,35 @@ def check_output(cmd, shell, stderr):
             ti = ti.replace(':', 'm')
             ti += 's'
             out += ti
-    return out
+        return out
+        
+    elif mode == 3: # avec Popen + python 3
+        cmd = cmd.split(' ')
+        
+        wdir = '.'
+        # modifie cd en working dir
+        if cmd[0] == 'cd': wdir = cmd[1]; cmd = cmd[3:]
+        PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, cwd=wdir, shell=shell)
+        out = b''
+        while True:
+            line = PROCESS.stdout.readline()
+            if line != b'': out += line
+            else: break
+        ti = b''
+        while True:
+            line = PROCESS.stderr.readline()
+            if line != b'': ti += line
+            else: break
+        # change le retour de time pour etre identique a celui du shell
+        i1 = ti.find(b'elapsed')
+        i2 = ti.find(b'system')
+        if i1 != -1 and i2 != -1:
+            ti = b'real '+ti[i2+7:i1]
+            ti = ti.replace(b':', b'm')
+            ti += b's'
+            out += ti
+        return out
 
 # retourne une chaine justifiee en fonction de la font et
 # d'une taille voulue
@@ -411,12 +454,14 @@ def runSingleUnitaryTest(no, module, test):
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            CPUtime = extractCPUTime(output1, output2)
+            try: CPUtime = extractCPUTime(output1, output2)
+            except: CPUtime = 'Unknown'
         else:
             i1 = output.find('\nreal')
             if i1 == -1: CPUtime = 'Unknown'
             else:
-                CPUtime = extractCPUTime2(output)
+                try: CPUtime = extractCPUTime2(output)
+                except: CPUtime = 'Unknown'
                 #CPUtime = output[i1+5:i1+15]; CPUtime = CPUtime.strip()
 
         # Recupere le coverage
@@ -466,7 +511,7 @@ def runSingleCFDTest(no, module, test):
     m1 = None # si None=seq
     if test == 'RAE2822_IBC': m1 = True
     try: import mpi4py
-    except: m1 = None 
+    except: m1 = None
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
@@ -497,11 +542,14 @@ def runSingleCFDTest(no, module, test):
         if regError.search(output) is not None: success = False
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            CPUtime = extractCPUTime(output1)
+            CPUtime = extractCPUTime(output1, output2)
         else:
             i1 = output.find('real')
             if i1 == -1: CPUtime = 'Unknown'
-            else: CPUtime = output[i1+4:i1+14]; CPUtime = CPUtime.strip()
+            else:
+                try: CPUtime = extractCPUTime2(output)
+                except: CPUtime = 'Unknown'
+                #CPUtime = output[i1+4:i1+14]; CPUtime = CPUtime.strip()
         # Recupere le coverage
         coverage = '100%'
     except Exception as e:
@@ -548,7 +596,7 @@ def getTestsTime():
 # Update TESTS, update listbox, update progression
 #==============================================================================
 def runTests():
-    global STOP
+    global STOP, THREAD
     selection = listbox.curselection()
     displayStatus(1)
     current = 0
@@ -569,8 +617,14 @@ def runTests():
         elapsed += CPUtime # real elapsed time
         if STOP == 1: STOP = 0; displayStatus(0); return
     displayStatus(0)
+    THREAD=None
     if len(selection) == len(TESTS): notifyValidOK()
-    return
+
+def runTestsInThread():
+    global THREAD
+    if THREAD is not None: return
+    THREAD = threading.Thread(target=runTests)
+    THREAD.start()
 
 #==============================================================================
 # Update the data base for selected tests
@@ -600,7 +654,12 @@ def updateTests():
         rmFile(pathl, test2)
     # Run les tests
     runTests()
-    return
+
+def updateTestsInThread():
+    global THREAD
+    if THREAD is not None: return
+    THREAD = threading.Thread(target=updateTests)
+    THREAD.start()
 
 #==============================================================================
 # Supprime un fichier
@@ -617,7 +676,6 @@ def rmFile(path, fileName):
         subprocess.call(cmd, shell=True, stderr=subprocess.STDOUT)
         subprocess.call(cmd2, shell=True, stderr=subprocess.STDOUT)
     except: pass
-    return
 
 #==============================================================================
 # Construit la liste des tests
@@ -839,8 +897,18 @@ def showAll():
 # Stop l'execution des tests
 #==============================================================================
 def stopTests():
-    global STOP
+    global STOP, THREAD, PROCESS
     STOP = 1
+    if THREAD is not None:
+        print("Stopping thread...")
+        #THREAD._stop() # kill?
+        #THREAD.join() # wait
+        #THREAD.terminate()
+        THREAD = None
+    if PROCESS is not None: 
+        #PROCESS.kill()
+        PROCESS.terminate()
+        PROCESS = None    
 
 #==============================================================================
 # Affiche le status: running/stopped
@@ -873,7 +941,6 @@ def setThreads(event=None):
         print('Num threads set to %d.\n'%nti)
     except:
         print('Bad thread number.\n')
-    return
 
 #==============================================================================
 # Recupere le nbre de threads (OMP_NUM_THREADS)
@@ -882,7 +949,6 @@ def getThreads():
     nt = KCore.kcore.getOmpMaxThreads()
     Threads.set(str(nt))
     text.update()
-    return
 
 #==============================================================================
 # Exporte les resultats de la valid dans un fichier texte
@@ -897,7 +963,6 @@ def export2Text():
     file = open(ret, 'w')
     for t in TESTS: file.write(t); file.write('\n')
     file.close()
-    return
 
 #=======================================
 # Notify "Commit ready" 
@@ -1121,12 +1186,12 @@ text.bind('<KeyRelease>', filterTestList)
 text.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
 BB = CTK.infoBulle(parent=text, text='Filter tests by this regexp.')
 
-button = TK.Button(frame, text='Run', command=runTests, fg='blue')
+button = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
 BB = CTK.infoBulle(parent=button, text='Run selected tests.')
 button.grid(row=1, column=5, sticky=TK.EW)
 button = TK.Button(frame, text='Stop', command=stopTests, fg='red')
 button.grid(row=1, column=6, sticky=TK.EW)
-button = TK.Button(frame, text='Update', command=updateTests, fg='blue')
+button = TK.Button(frame, text='Update', command=updateTestsInThread, fg='blue')
 BB = CTK.infoBulle(parent=button, text='Update tests (replace data base files).')
 WIDGETS['updateButton'] = button
 button.grid(row=1, column=7, sticky=TK.EW)
