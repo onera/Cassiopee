@@ -886,17 +886,17 @@ def reorderAll(arrays, dir=1):
     elif btype == 4: return transform.reorderAllUnstr(arrays, dir)
     else: raise TypeError("reorderAll: blocks types are not supported.")
 
-def makeCartesianXYZ(a):
+def makeCartesianXYZ(a, tol=1.e-10):
     """Reorder a Cartesian mesh in order to get i,j,k aligned with X,Y,Z."""
     if isinstance(a[0], list):
         b = []
         for i in a:
-            b.append(makeCartesianXYZ__(i))
+            b.append(makeCartesianXYZ__(i, tol))
         return b
     else:
-        return makeCartesianXYZ__(a)
+        return makeCartesianXYZ__(a, tol)
 
-def makeCartesianXYZ__(z):
+def makeCartesianXYZ__(z, tol=1.e-10):
     if len(z) == 5:
         import KCore
         ni = z[2]; nj = z[3]; nk = z[4]
@@ -914,21 +914,21 @@ def makeCartesianXYZ__(z):
         dy_i = valindj[posx]-valind[posx]
         dz_i = valindk[posx]-valind[posx]
         diri = 1; dirj = 2; dirk = 3
-        if abs(dx_i) > 0.: diri = 1
-        elif abs(dy_i) > 0.: diri = 2
-        elif abs(dz_i) > 0.: diri = 3
+        if abs(dx_i) > tol: diri = 1
+        elif abs(dy_i) > tol: diri = 2
+        elif abs(dz_i) > tol: diri = 3
         dx_j = valindi[posy]-valind[posy]
         dy_j = valindj[posy]-valind[posy]
         dz_j = valindk[posy]-valind[posy]
-        if abs(dx_j) > 0.: dirj = 1
-        elif abs(dy_j) > 0.: dirj = 2
-        elif abs(dz_j) > 0.: dirj = 3
+        if abs(dx_j) > tol: dirj = 1
+        elif abs(dy_j) > tol: dirj = 2
+        elif abs(dz_j) > tol: dirj = 3
         dx_k = valindi[posz]-valind[posz]
         dy_k = valindj[posz]-valind[posz]
         dz_k = valindk[posz]-valind[posz]
-        if abs(dx_k) > 0.: dirk = 1
-        elif abs(dy_k) > 0.: dirk = 2
-        elif abs(dz_k) > 0.: dirk = 3
+        if abs(dx_k) > tol: dirk = 1
+        elif abs(dy_k) > tol: dirk = 2
+        elif abs(dz_k) > tol: dirk = 3
         dirs = [0,0,0]
         if diri == 1: dirs[0] = 1
         elif diri==2: dirs[1] = 1 
@@ -950,11 +950,11 @@ def makeCartesianXYZ__(z):
         dx_i = valindi[posx]-valind[posx]
         ok = 0
         diri = 1; dirj = 2; dirk = 3
-        if dx_i < 0.: diri =-1; ok = 1
+        if dx_i < tol: diri =-1; ok = 1
         dy_j = valindj[posy]-valind[posy] 
-        if dy_j < 0.: dirj =-2; ok = 1
+        if dy_j < tol: dirj =-2; ok = 1
         dz_k = valindk[posz]-valind[posz] 
-        if dz_k < 0.: dirk =-3; ok = 1
+        if dz_k < tol: dirk =-3; ok = 1
         if ok == 1: z = reorder(z,(diri,dirj,dirk))
     return z
 

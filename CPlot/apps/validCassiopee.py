@@ -3,7 +3,7 @@ try: import Tkinter as TK
 except: import tkinter as TK
 try: import tkFont as Font
 except: import tkinter.font as Font
-import os, sys, re
+import os, sys, re, signal
 import subprocess 
 import threading
 import time
@@ -70,7 +70,7 @@ def check_output(cmd, shell, stderr):
     version = sys.version_info
     version0 = version[0]
     version1 = version[1]
-    mode = 3
+    mode = 4
 
     #if (version0 == 2 and version1 >= 7) or (version0 == 3 and version1 >= 2) or version0 > 3:
     
@@ -111,10 +111,12 @@ def check_output(cmd, shell, stderr):
         
     elif mode == 3: # avec Popen + python 3
         cmd = cmd.split(' ')
-        
         wdir = '.'
         # modifie cd en working dir
-        if cmd[0] == 'cd': wdir = cmd[1]; cmd = cmd[3:]
+        if cmd[0] == 'cd': wdir = cmd[1]
+        if mySystem == 'windows' or mySystem == 'mingw': cmd = cmd[3:]
+        else: cmd = cmd[2:]
+        if wdir[-1] == ';': wdir = wdir[:-1]
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell)
         out = b''
@@ -136,6 +138,22 @@ def check_output(cmd, shell, stderr):
             ti += b's'
             out += ti
         return out
+
+    elif mode == 4: # inspire de python
+        cmd = cmd.split(';', 1)
+        cmd1 = cmd[0]; cmd2 = cmd[1]
+        cmd1 = cmd1.split(' ')
+        wdir = '.'
+        if cmd1[0] == 'cd': wdir = cmd1[1]
+        if wdir[-1] == ';': wdir = wdir[:-1]
+        
+        if mySystem == 'windows' or mySystem == 'mingw': cmd = cmd2.replace('time', '')
+        else: cmd = cmd2
+
+        PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=os.setsid)
+        stdout, stderr = PROCESS.communicate(None, timeout=None)
+        return stdout+stderr
 
 # retourne une chaine justifiee en fonction de la font et
 # d'une taille voulue
@@ -286,6 +304,7 @@ def getUnitaryTests(module):
         m2 = expTest2.search(f)
         m3 = expTest3.search(f)
         m4 = expTest4.search(f)
+        if f[0] == '#': m2 = None # enleve les fichiers edite avec emacs
         if m2 is not None and m3 is None:
             if m1 is not None: tests.append(f) # test seq
             elif isMpi and m4 is not None: tests.append(f) # test mpi
@@ -899,17 +918,19 @@ def showAll():
 def stopTests():
     global STOP, THREAD, PROCESS
     STOP = 1
+
+    if PROCESS is not None: 
+        #PROCESS.kill()
+        os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM) 
+        PROCESS = None
+
     if THREAD is not None:
         print("Stopping thread...")
         #THREAD._stop() # kill?
         #THREAD.join() # wait
         #THREAD.terminate()
         THREAD = None
-    if PROCESS is not None: 
-        #PROCESS.kill()
-        PROCESS.terminate()
-        PROCESS = None    
-
+    
 #==============================================================================
 # Affiche le status: running/stopped
 #==============================================================================

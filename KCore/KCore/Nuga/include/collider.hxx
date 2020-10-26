@@ -715,9 +715,9 @@ inline void get_colliding
   //
   for (size_t i = 0; i < npts; ++i)
   {
-    const E_Float& x = pts[i].vec[0];
-    const E_Float& y = pts[i].vec[1];
-    const E_Float& z = pts[i].vec[2];
+    //const E_Float& x = pts[i].vec[0];
+    //const E_Float& y = pts[i].vec[1];
+    //const E_Float& z = pts[i].vec[2];
 
     get_colliding(pts[i], surface, cands, surface.index_start, ARTOL, false/*dummy*/);
     

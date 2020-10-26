@@ -368,7 +368,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
               dictOfNobOfRcvZones, dictOfNozOfRcvZones,
               dictOfNobOfDnrZones, dictOfNozOfDnrZones, 
               dictOfNobOfRcvZonesC, dictOfNozOfRcvZonesC, 
-              time=0., absFrame=True, procDict=None, cellNName='cellN', interpInDnrFrame=True):
+              time=0., absFrame=True, procDict=None, cellNName='cellN', 
+              interpInDnrFrame=True):
   
     if procDict is None: procDict = Cmpi.getProcDict(tc)
     if Cmpi.size == 1:

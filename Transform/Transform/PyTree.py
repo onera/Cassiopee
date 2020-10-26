@@ -1416,13 +1416,12 @@ def _reorderAll(t, dir=1):
 # Align I,J,K directions of a Cartesian mesh with X,Y,Z axes
 # Order the mesh such that it is direct
 #=============================================================================
-def makeCartesianXYZ(t):
+def makeCartesianXYZ(t, tol=1.e-10):
     t2 = Internal.copyRef(t)
-    _makeCartesianXYZ(t2)
+    _makeCartesianXYZ(t2, tol)
     return t2
 
-def _makeCartesianXYZ(t):
-    tol = 1.e-10
+def _makeCartesianXYZ(t, tol=1.e-10):
     for z in Internal.getZones(t):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Structured':
@@ -1444,9 +1443,9 @@ def _makeCartesianXYZ(t):
             dx_k = C.getValue(z,'CoordinateZ',indi)-C.getValue(z,'CoordinateZ',ind)
             dy_k = C.getValue(z,'CoordinateZ',indj)-C.getValue(z,'CoordinateZ',ind)
             dz_k = C.getValue(z,'CoordinateZ',indk)-C.getValue(z,'CoordinateZ',ind)
-            if abs(dx_k) > 0.: dirk = 1
-            elif abs(dy_k) > 0.: dirk = 2
-            elif abs(dz_k) > 0.: dirk = 3
+            if abs(dx_k) > tol: dirk = 1
+            elif abs(dy_k) > tol: dirk = 2
+            elif abs(dz_k) > tol: dirk = 3
             dirs = [0,0,0]
             if diri == 1: dirs[0] = 1
             elif diri==2: dirs[1] = 1
@@ -1465,11 +1464,11 @@ def _makeCartesianXYZ(t):
             dx_i = C.getValue(z,'CoordinateX',indi)-C.getValue(z,'CoordinateX',ind)
             ok = 0
             diri = 1; dirj = 2; dirk = 3
-            if dx_i < 0.: diri =-1; ok = 1
+            if dx_i < tol: diri =-1; ok = 1
             dy_j = C.getValue(z,'CoordinateY',indj)-C.getValue(z,'CoordinateY',ind)
-            if dy_j < 0.: dirj =-2; ok = 1
+            if dy_j < tol: dirj =-2; ok = 1
             dz_k = C.getValue(z,'CoordinateZ',indk)-C.getValue(z,'CoordinateZ',ind)
-            if dz_k < 0.: dirk =-3; ok = 1
+            if dz_k < tol: dirk =-3; ok = 1
             if ok == 1: _reorder(z,(diri,dirj,dirk))
     return None
 

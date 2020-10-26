@@ -496,7 +496,7 @@ E_Int Polygon::cvx_triangulate (const acrd_t& crd) const
   E_Int ntris = _nb_nodes - 2;
   _triangles = new E_Int[ntris * 3];
 
-  E_Float n[3];
+  //E_Float n[3];
   //fixme
   //Polygon::normal<K_FLD::FloatArray, 3>(crd, _nodes, _nb_nodes, -_shift/*index start*/, n);
   //E_Int iworst, ibest;
