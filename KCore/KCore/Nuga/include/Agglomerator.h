@@ -110,7 +110,6 @@ namespace NUGA
 
     if (skipPGlist != nullptr)
     {
-      std::cout << "PGS TO SKIP : " << skipPGlist->size() << std::endl;
       for (size_t i = 0; i < skipPGlist->size(); ++i)
       {
         E_Int PGi = (*skipPGlist)[i];
@@ -853,8 +852,7 @@ namespace NUGA
     for (E_Int n = 0; n < nb_neighs; ++n)
     {
       E_Int PGi = *(pgs + n) - 1;
-      if (!PGprocess[PGi]) 
-        continue; // include external choice
+      if (!PGprocess[PGi]) continue; // include external choice
 
       E_Int PHn = *(neighs + n); // can be IDX_NONE in case of externals
 

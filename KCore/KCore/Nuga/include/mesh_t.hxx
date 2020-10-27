@@ -102,11 +102,18 @@ struct connect_trait<LINEIC, true>
     K_FLD::FloatArray L;
     NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
 
-    E_Int col{ 0 };
-    if (metric_type == eMetricType::ISO_MIN) col = 0;
-    else if (metric_type == eMetricType::ISO_MAX) col = 1;
-
-    L.extract_field(col, nodal_metric2); // 0: extract the min
+    if (metric_type == eMetricType::ISO_MIN)
+      L.extract_field(0, nodal_metric2); // 0: extract the min
+    else if (metric_type == eMetricType::ISO_MAX)
+      L.extract_field(1, nodal_metric2); // 0: extract the min
+    else if (metric_type == eMetricType::ISO_MEAN)
+    {
+      nodal_metric2.resize(crd.cols(), 0.);
+      for (E_Int i = 0; i < cnt.cols(); ++i)
+      {
+        nodal_metric2[i] = 0.5* (L(0, i) + L(1, i));
+      }
+    }
   }
   
   static void reverse_orient(cnt_t&c)
@@ -199,8 +206,7 @@ struct connect_trait<SURFACIC, false>
   
   static void compact_to_used_nodes(cnt_t& c, K_FLD::FloatArray& crd, std::vector<E_Int>& nids)
   {
-    nids.clear();
-    ngon_type::compact_to_used_nodes(c, crd);
+    ngon_type::compact_to_used_nodes(c, crd, nids);
   }
 
   static K_FLD::FloatArray compact_to_used_nodes(cnt_t&c, K_FLD::FloatArray const & crdi, std::vector<E_Int>& nids)
@@ -291,6 +297,94 @@ struct connect_trait<VOLUMIC, false>
     for (size_t i = 0; i < new_anc.size(); ++i) new_anc[i] = ancestors[oids[i]];
     ancestors = new_anc;
   }
+
+  ///
+  static E_Int get_nth_neighborhood (cnt_t const& c, neighbor_t const& neighbors, E_Int N, const std::vector<E_Int>& iList, std::vector<E_Int>& oList)
+  {
+    oList.clear();
+
+    N = std::max(0, N);
+    if (N == 0) return 0;
+
+    std::set<E_Int> front, iset, oset;
+
+    iset.insert(ALL(iList));
+
+    do 
+    {
+      for (auto PHi : iset)
+      {
+        E_Int nneighs = neighbors.stride(PHi);
+        const E_Int* pneighs = neighbors.get_facets_ptr(PHi);
+
+        for (E_Int n = 0; n < nneighs; ++n)
+        {
+          if (pneighs[n] == IDX_NONE) continue;
+          front.insert(pneighs[n]);
+        }
+      }
+
+      for (auto e : iset)
+        front.erase(e);
+
+      oset.insert(ALL(front));
+      iset = front;
+      front.clear();
+    }
+    while (--N > 0);
+
+    for (size_t i = 0; i < iList.size(); ++i)
+      oset.erase(iList[i]);
+
+    oList.insert(oList.end(), ALL(oset));
+
+    return 0;
+
+  }
+
+  //fixme : slow
+  /*static void get_nth_neighborhood
+  (cnt_t const& c, neighbor_t const& neighbors, E_Int i, E_Int N, std::set<E_Int>& neighs)
+  {
+    neighs.clear();
+
+    // assumption : N >= 1
+    if (N < 1) return;
+
+    E_Int nneighs = neighbors.stride(i);
+    const E_Int* pneighs = neighbors.get_facets_ptr(i);
+
+    std::set<E_Int> processed, pool, pool2;
+    
+    pool.insert(i);
+
+    while (N-- > 0)
+    {
+      pool2 = pool;
+      for (auto e : pool)
+      {
+        processed.insert(e);
+        pool2.erase(e);
+        neighs.insert(e);
+
+        E_Int nneighs = neighbors.stride(e);
+        const E_Int* pneighs = neighbors.get_facets_ptr(e);
+
+        for (E_Int n = 0; n < nneighs; ++n)
+        {
+          if (pneighs[n] == IDX_NONE) continue;
+
+          if (processed.find(pneighs[n]) == processed.end())
+          {
+            pool2.insert(pneighs[n]);
+            neighs.insert(pneighs[n]);
+          }
+        }
+      }
+      pool = pool2;
+    }
+    neighs.erase(i);
+  }*/
 
   static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int idx_start)
   {
@@ -477,7 +571,7 @@ struct mesh_t
 
   elt_t element(int i) const { return elt_t(cnt,i);}
   aelt_t aelement(int i) const 
-  {  
+  {
     elt_t e(cnt, i);
     E_Float Lr2 = e.Lref2(nodal_metric2);
     return aelt_t(e, crd, Lr2);
@@ -503,6 +597,16 @@ struct mesh_t
     //compact crd to boundary only
     std::vector<E_Int> nids;
     bound_trait<BSTRIDE>::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
+    //tranfer metric if any
+    if (!nodal_metric2.empty())
+    {
+      bound_mesh.nodal_metric2.resize(bound_mesh.crd.cols(), NUGA::FLOAT_MAX);
+      for (size_t i = 0; i < nids.size(); ++i)
+      {
+        if (nids[i] != IDX_NONE)
+          bound_mesh.nodal_metric2[nids[i]] = nodal_metric2[i];
+      }
+    }
   }
 
   ///
@@ -706,6 +810,19 @@ struct mesh_t
     return neighbors;
   }
 
+  void get_nth_neighborhood(E_Int N, std::vector<E_Int>& iList, std::vector<E_Int>& oList) const
+  {
+    get_neighbors();//lazy build
+    trait::get_nth_neighborhood(cnt, *neighbors, N, iList, oList);
+  }
+
+  /* fixme : slow impl : to review
+  void get_nth_neighborhood(E_Int i, E_Int N, std::set<E_Int>& neighs) const
+  {
+    get_neighbors();//lazy build
+    trait::get_nth_neighborhood(cnt, *neighbors, i, N, neighs);
+  }*/
+
   const std::vector<E_Float>& get_nodal_metric2(eMetricType mtype = eMetricType::ISO_MIN) const
   {
     if ( (metric_type != mtype) || nodal_metric2.empty() || ((E_Int)nodal_metric2.size() != crd.cols()))
@@ -718,17 +835,20 @@ struct mesh_t
     metric_type = mtype;
     trait::compute_nodal_metric2(crd, cnt, nodal_metric2, metric_type);
 
-    // check if close point other than cnt (specially with folded surfaces)
-    using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
-    acrd_t acrd(crd);
-    K_SEARCH::KdTree<> tree(acrd);
-
-    double d2;
-    for (E_Int i=0; i < crd.cols(); ++i)
+    if (mtype == ISO_MIN)
     {
-      double r2 = (1. - EPSILON) * nodal_metric2[i]; //reduce it to discard nodes connected to i.
-      int N = tree.getClosest(i, r2, d2);
-      if (N != IDX_NONE)nodal_metric2[i] = d2;
+      // check if close point other than cnt (specially with folded surfaces)
+      using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
+      acrd_t acrd(crd);
+      K_SEARCH::KdTree<> tree(acrd);
+
+      double d2;
+      for (E_Int i = 0; i < crd.cols(); ++i)
+      {
+        double r2 = (1. - EPSILON) * nodal_metric2[i]; //reduce it to discard nodes connected to i.
+        int N = tree.getClosest(i, r2, d2);
+        if (N != IDX_NONE)nodal_metric2[i] = d2;
+      }
     }
   }
 

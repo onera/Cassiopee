@@ -171,9 +171,9 @@ public:
 ////////////////
 struct aEdge : public Edge
 {
-  E_Float m_L2ref;
+  E_Float m_Lref2;
   
-  aEdge(const Edge& e, const K_FLD::FloatArray& crd):m_L2ref(-1.)
+  aEdge(const Edge& e, const K_FLD::FloatArray& crd):m_Lref2(-1.)
   {
     v1[0] = crd(0, e.node(0));
     v1[1] = crd(1, e.node(0));
@@ -184,7 +184,7 @@ struct aEdge : public Edge
     v2[2] = crd(2, e.node(1));
   } // from "mesh" to autonmous
   
-  aEdge(const Edge& e, const K_FLD::FloatArray& crd, E_Float L2r):aEdge(e, crd){m_L2ref = L2r;}
+  aEdge(const Edge& e, const K_FLD::FloatArray& crd, E_Float L2r):aEdge(e, crd){m_Lref2 = L2r;}
 
   aEdge(const K_FLD::IntArray& cnt, E_Int i, const K_FLD::FloatArray& crd)
   {
@@ -199,10 +199,10 @@ struct aEdge : public Edge
     v2[1] = pt2[1];
     v2[2] = pt2[2];
 
-    m_L2ref = L2ref();
+    m_Lref2 = Lref2();
   }
 
-  double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : NUGA::sqrDistance(v1, v2, 3);}
+  double Lref2() const { return (m_Lref2 > 0.) ? m_Lref2 : NUGA::sqrDistance(v1, v2, 3);}
  
   E_Float v1[3], v2[3];
 };

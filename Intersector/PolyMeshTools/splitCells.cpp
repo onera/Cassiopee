@@ -39,6 +39,7 @@
 #include "Nuga/include/cell_sensor.hxx"
 #include "Nuga/include/adaptor.hxx"
 #include "Nuga/include/hierarchical_mesh.hxx"
+#include "Nuga/include/smoother.hxx"
 
 #include "Nuga/include/BbTree.h"
 #include <memory>

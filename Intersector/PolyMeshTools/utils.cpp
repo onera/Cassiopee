@@ -27,6 +27,9 @@
 E_Int chrono::verbose=1;
 #endif
 
+//#include "Nuga/include/medit.hxx"
+//std::string medith::wdir = "./";
+
 # include "Nuga/include/ngon_t.hxx"
 # include "Nuga/include/Triangulator.h"
 #include "Nuga/include/localizer.hxx"
@@ -39,7 +42,7 @@ E_Int chrono::verbose=1;
 
 using namespace std;
 using namespace K_FLD;
-
+using namespace NUGA;
 
 //=============================================================================
 /* Creates 4 zones : 1) uncomputable polygons 2) uncomputable polyhedra 
@@ -2445,6 +2448,174 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   return l;
 
 }
+
+//=============================================================================
+/* retrieves any cells that are colliding */
+//=============================================================================
+PyObject* K_INTERSECTOR::getCollidingCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *arr2;
+  E_Float RTOL(1.e-12);
+
+  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &RTOL)) return NULL;
+
+  K_FLD::FloatArray *f1(0), *f2(0);
+  K_FLD::IntArray *cn1(0), *cn2(0);
+  char *varString1, *varString2, *eltType1, *eltType2;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f1, cn1, varString1, eltType1);
+  if (err) return NULL;
+
+  // Check array # 2
+  err = check_is_NGON(arr2, f2, cn2, varString2, eltType2);
+  if (err) return NULL;
+
+  std::unique_ptr<K_FLD::FloatArray> pf1(f1), pf2(f2);   //for memory cleaning
+  std::unique_ptr<K_FLD::IntArray> pcn1(cn1), pcn2(cn2); //for memory cleaning
+
+  K_FLD::FloatArray & crd1 = *f1;
+  K_FLD::IntArray & cnt1 = *cn1;
+  K_FLD::FloatArray & crd2 = *f2;
+  K_FLD::IntArray & cnt2 = *cn2;
+
+  ngon_type::eGEODIM dim1 = ngon_type::get_ngon_geodim(cnt1);
+  ngon_type::eGEODIM dim2 = ngon_type::get_ngon_geodim(cnt2);
+ 
+  if (dim1 == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt1);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnttmp;
+    ng.export_surfacic_view(cnttmp);
+    //std::cout << "exported" << std::endl;
+    dim1 = ngon_type::eGEODIM::SURFACIC;
+    cnt1=cnttmp;
+  }
+
+  std::vector<bool> isx1, isx2;
+  
+  if (dim2 == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt2);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnttmp;
+    ng.export_surfacic_view(cnttmp);
+    //std::cout << "exported" << std::endl;
+    dim2 = ngon_type::eGEODIM::SURFACIC;
+    cnt2=cnttmp;
+  }
+
+  if (dim1 == ngon_type::eGEODIM::SURFACIC && dim2 == ngon_type::eGEODIM::SURFACIC) // S vs BAR
+  {
+    pg_smesh_t m1(crd1, cnt1);
+    edge_mesh_t m2(crd2, cnt2);
+    NUGA::COLLIDE::compute(m1,m2, isx1, isx2, RTOL); 
+  }
+  else if (dim1 == ngon_type::eGEODIM::VOLUMIC && dim2 == ngon_type::eGEODIM::SURFACIC) // V vs S
+  {
+    ph_mesh_t m1(crd1, cnt1);
+    pg_smesh_t m2(crd2, cnt2);
+    NUGA::COLLIDE::compute(m1,m2, isx1, isx2, RTOL); 
+  }
+  else
+  {
+    std::cout << "getCollidingCells : INPUT ERROR : input mesh dimensiosn combination is not handled yet." << std::endl;
+    return nullptr;
+  }
+
+  PyObject *l(PyList_New(0)), *tpl;
+
+  std::vector<E_Int> pgids1, pgids2;
+
+  for (size_t i=0; i < isx1.size(); ++i)
+    if (isx1[i]) pgids1.push_back(i);
+  for (size_t i=0; i < isx2.size(); ++i)
+    if (isx2[i]) pgids2.push_back(i);
+    
+  tpl = K_NUMPY::buildNumpyArray(&pgids1[0], pgids1.size(), 1, 0);
+ 
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  tpl = K_NUMPY::buildNumpyArray(&pgids2[0], pgids2.size(), 1, 0);
+ 
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  return l;
+
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::getNthNeighborhood(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *py_ids;
+  E_Int N{0};
+
+  if (!PYPARSETUPLEI(args, "OiO", "OlO", &arr1, &N, &py_ids)) return NULL;
+
+  K_FLD::FloatArray *f1(0);
+  K_FLD::IntArray *cn1(0);
+  char *varString1, *eltType1;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f1, cn1, varString1, eltType1);
+  if (err) return NULL;
+
+  // Check numpy array
+  FldArrayI* fids;
+  E_Int res = K_NUMPY::getFromNumpyArray(py_ids, fids, true);
+
+  std::vector<E_Int> ids(fids->getSize());
+  for (size_t i=0; i < ids.size();++i)
+    ids[i] = (*fids)[i];
+  delete fids;
+
+  std::unique_ptr<K_FLD::FloatArray> pf1(f1);   //for memory cleaning
+  std::unique_ptr<K_FLD::IntArray> pcn1(cn1); //for memory cleaning
+
+  K_FLD::FloatArray & crd1 = *f1;
+  K_FLD::IntArray & cnt1 = *cn1;
+  
+
+  ngon_type::eGEODIM dim1 = ngon_type::get_ngon_geodim(cnt1);
+  
+  if (dim1 == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt1);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnttmp;
+    ng.export_surfacic_view(cnttmp);
+    //std::cout << "exported" << std::endl;
+    dim1 = ngon_type::eGEODIM::SURFACIC;
+    cnt1=cnttmp;
+  }
+
+  std::vector<E_Int> neighs;
+
+  /*if (dim1 == ngon_type::eGEODIM::SURFACIC )
+  {
+    pg_smesh_t m1(crd1, cnt1);
+    m1.get_nth_neighborhood(N, ids, neighs);
+  }
+  else*/ if (dim1 == ngon_type::eGEODIM::VOLUMIC)
+  {
+    ph_mesh_t m1(crd1, cnt1);
+    m1.get_nth_neighborhood(N, ids, neighs);
+  }
+  else
+  {
+    std::cout << "getNthNeighborhood : INPUT ERROR : input mesh dimension combination is not handled yet." << std::endl;
+    return nullptr;
+  }
+
+  PyObject *tpl = K_NUMPY::buildNumpyArray(&neighs[0], neighs.size(), 1, 0);
+
+  return tpl;
+
+}
+
 
 //=============================================================================
 /* retrieves any polygon that are connecting 2 aniso HEXA */

@@ -26,7 +26,7 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
   ngon_unit          m_pgs;
   std::vector<E_Int> m_faces;
   K_FLD::FloatArray  m_crd;
-  E_Float            m_L2ref;
+  E_Float            m_Lref2;
   E_Int              m_oriented;
   mutable E_Float    m_normal[3];
   mutable E_Float    m_centroid[3];
@@ -70,14 +70,14 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
 
   const double* get_centroid() const; // WARNING : currently implemented as iso_bary
 
-  double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : parent_type::L2ref(m_crd); } // if passed by mesh_t, return it, otherwise compute it first
+  double Lref2() const { return (m_Lref2 > 0.) ? m_Lref2 : parent_type::Lref2(m_crd); } // if passed by mesh_t, return it, otherwise compute it first
 
   void plug() { parent_type::_pgs = &m_pgs; parent_type::_faces = &m_faces[0]; parent_type::_nb_faces = m_faces.size(); }
 };
 
 ///
 template <int TopoShape>
-aPolyhedron<TopoShape>::aPolyhedron() :parent_type(), m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
+aPolyhedron<TopoShape>::aPolyhedron() :parent_type(), m_Lref2(NUGA::FLOAT_MAX), m_oriented(0)
 {
   m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
   //plug();
@@ -86,7 +86,7 @@ aPolyhedron<TopoShape>::aPolyhedron() :parent_type(), m_L2ref(NUGA::FLOAT_MAX), 
 ///
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit* pgs, const E_Int* faces, E_Int nb_faces, const K_FLD::FloatArray& crd)
-  :m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
+  :m_Lref2(NUGA::FLOAT_MAX), m_oriented(0)
 {
   parent_type ph(pgs, faces, nb_faces);
   set(ph, crd);
@@ -95,7 +95,7 @@ aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit* pgs, const E_Int* faces, E_
 ///
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const parent_type& ph, const K_FLD::FloatArray& crd)
-  :m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
+  :m_Lref2(NUGA::FLOAT_MAX), m_oriented(0)
 {
   set(ph, crd);
   m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
@@ -104,7 +104,7 @@ aPolyhedron<TopoShape>::aPolyhedron(const parent_type& ph, const K_FLD::FloatArr
 ///
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit& lpgs, const K_FLD::FloatArray& lcrd)
-  :m_pgs(lpgs), m_crd(lcrd), m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
+  :m_pgs(lpgs), m_crd(lcrd), m_Lref2(NUGA::FLOAT_MAX), m_oriented(0)
 {
   
   m_faces.clear();
@@ -119,13 +119,13 @@ aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit& lpgs, const K_FLD::FloatArr
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const parent_type& ph, const K_FLD::FloatArray& crd, E_Float L2r) :aPolyhedron(ph, crd)
 {
-  m_L2ref = L2r;
+  m_Lref2 = L2r;
   m_oriented = 0;
   m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
 }
 
 template <int TopoShape>
-aPolyhedron<TopoShape>::aPolyhedron(const aPolyhedron& r) :m_pgs(r.m_pgs), m_faces(r.m_faces), m_crd(r.m_crd), m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
+aPolyhedron<TopoShape>::aPolyhedron(const aPolyhedron& r) :m_pgs(r.m_pgs), m_faces(r.m_faces), m_crd(r.m_crd), m_Lref2(NUGA::FLOAT_MAX), m_oriented(0)
 { 
   m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
 
@@ -134,7 +134,7 @@ aPolyhedron<TopoShape>::aPolyhedron(const aPolyhedron& r) :m_pgs(r.m_pgs), m_fac
 
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron (aPolyhedron<TopoShape>&& rhs) :/* = default; rejected by old compiler intel (15)*/
-  parent_type(rhs), m_pgs(std::move(rhs.m_pgs)), m_faces(std::move(rhs.m_faces)), m_crd(std::move(rhs.m_crd)), m_L2ref(rhs.m_L2ref), m_oriented(rhs.m_oriented)
+  parent_type(rhs), m_pgs(std::move(rhs.m_pgs)), m_faces(std::move(rhs.m_faces)), m_crd(std::move(rhs.m_crd)), m_Lref2(rhs.m_Lref2), m_oriented(rhs.m_oriented)
 {
   m_normal[0] = rhs.m_normal[0];
   m_normal[1] = rhs.m_normal[1];
@@ -153,7 +153,7 @@ aPolyhedron<TopoShape>& aPolyhedron<TopoShape>::operator=(const aPolyhedron& rhs
   m_pgs = rhs.m_pgs;
   m_faces = rhs.m_faces;
   m_crd = rhs.m_crd;
-  m_L2ref = rhs.m_L2ref;
+  m_Lref2 = rhs.m_Lref2;
   m_oriented = rhs.m_oriented;
 
   parent_type::_triangles = rhs._triangles;
@@ -177,7 +177,7 @@ aPolyhedron<TopoShape>& aPolyhedron<TopoShape>::operator=(aPolyhedron&& rhs)
   m_pgs = std::move(rhs.m_pgs);
   m_faces = std::move(rhs.m_faces);
   m_crd = std::move(rhs.m_crd);
-  m_L2ref = rhs.m_L2ref;
+  m_Lref2 = rhs.m_Lref2;
   m_oriented = rhs.m_oriented;
 
   parent_type::_triangles = rhs._triangles;

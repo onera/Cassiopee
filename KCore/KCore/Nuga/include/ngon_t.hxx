@@ -1221,19 +1221,28 @@ struct ngon_t
   template <typename Coordinate_t>
   static void compact_to_used_nodes (ngon_unit& PGs, Coordinate_t& coord)
   {
+    Vector_t<E_Int> newIDs;
+    compact_to_used_nodes(PGs, coord, newIDs);
+  }
+
+  ///
+  template <typename Coordinate_t>
+  static void compact_to_used_nodes(ngon_unit& PGs, Coordinate_t& coord, std::vector<E_Int>& nids)
+  {
+    nids.clear();
+
     Vector_t<E_Int> unic_nodes;
     PGs.unique_indices(unic_nodes);
-  
+
     Vector_t<bool> flag(coord.getSize(), false);
-  
+
     size_t sz(unic_nodes.size());
-    for (size_t i = 0; i < sz; ++i) flag[unic_nodes[i]-1]=true; // indices start at 1.
-  
-    Vector_t<E_Int> newIDs;
-    E_Int nb_removed = Coordinate_t::compact(coord, flag, newIDs);
+    for (size_t i = 0; i < sz; ++i) flag[unic_nodes[i] - 1] = true; // indices start at 1.
+
+    E_Int nb_removed = Coordinate_t::compact(coord, flag, nids);
     if (nb_removed == 0) return;
-  
-    PGs.change_indices(newIDs); 
+
+    PGs.change_indices(nids);
   }
   
   ///

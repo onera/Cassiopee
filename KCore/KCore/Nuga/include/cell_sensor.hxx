@@ -13,6 +13,7 @@
 #define NUGA_CELL_SENSOR_HXX
 
 #include "Nuga/include/sensor.hxx"
+#include "Nuga/include/shell_smoother.hxx"
 
 
 namespace NUGA
@@ -22,12 +23,13 @@ template <typename mesh_t>
 class cell_sensor : public sensor<mesh_t, Vector_t<E_Int>>
 {
   public:
-  
+    bool _single_pass_done;
+
     using sensor_input_t = Vector_t<E_Int>;
     using parent_t = sensor<mesh_t, sensor_input_t>;
     using output_t = typename mesh_t::output_t; //fixme: static assert to add : must be ISO => IntVec
 
-    cell_sensor(mesh_t& mesh, eSmoother smoo_type): parent_t(mesh, nullptr)
+    cell_sensor(mesh_t& mesh, eSmoother smoo_type): parent_t(mesh, nullptr), _single_pass_done(false)
     {
       if (smoo_type == eSmoother::V1_NEIGH)
         parent_t::_smoother = new V1_smoother<mesh_t>();
@@ -38,6 +40,8 @@ class cell_sensor : public sensor<mesh_t, Vector_t<E_Int>>
     virtual E_Int assign_data(const sensor_input_t& data) override;
     
     void fill_adap_incr(output_t& adap_incr, bool do_agglo) override ;
+
+    virtual bool stop() override { return _single_pass_done; }
 };
 
 /// 
@@ -73,6 +77,8 @@ void cell_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   adap_incr.face_adap_incr.resize(nb_faces, 0);
 
   adap_incr.cell_adap_incr = parent_t::_data;
+
+  _single_pass_done = true; // to exit after first outer loop (based on sensor update)
 
   //std::cout << "cell adapt incr sz : " << adap_incr.cell_adap_incr.size() << std::endl;
   //E_Int minv = *std::min_element(ALL(adap_incr.cell_adap_incr));

@@ -23,6 +23,9 @@ class localizer
     using box_t = typename Tree_t::box_type;
   
   public:
+
+  localizer() = delete;
+  localizer(const localizer&) = delete; // to avoid to copy a loc owned by mesh_t that will destroy it
   
   localizer(Tree_t& tree, E_Float tolerance):_tree(&tree), _owner(false), _tolerance(tolerance){_tree->_tolerance = _tolerance;}
 

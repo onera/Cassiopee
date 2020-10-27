@@ -314,6 +314,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
   // infinite loop but breaking test is done at each iteration (and terminates at some point)
   while (true)
   {
+    E_Int nb_phs0 = _ng.PHs.size();
     // refine Faces : create missing children (those PGi with _PGtree.nb_children(PGi) == 0)
     if (fmax > 0 || cmax > 0) refiner<ELT_t, STYPE>::refine_Faces(adap_incr, _ng, _PGtree, _crd, _F2E, _refiner._ecenter);
     // refine Cells with missing children (those PHi with _PHtree.nb_children(PHi) == 0)
@@ -321,7 +322,8 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
         
     //std::cout << "update cell_adap_incr, enable the right PHs & their levels" << std::endl;
     adap_incr.cell_adap_incr.resize(_ng.PHs.size(),0);// resize to new size
-    for (E_Int PHi = 0; PHi < _ng.PHs.size(); ++PHi)
+
+    for (E_Int PHi = 0; PHi < nb_phs0; ++PHi)
     {
       E_Int& adincrPHi = adap_incr.cell_adap_incr[PHi];
       if (adincrPHi == 0) continue;
@@ -427,7 +429,6 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
         molec.push_back(PGi + 1);
       else // get enabled descendants
       {
-        ids.clear();
         _PGtree.get_enabled_descendants(PGi, ids);
 
 #ifdef DEBUG_HIERARCHICAL_MESH
@@ -621,7 +622,6 @@ bool hierarchical_mesh<ELT_t, STYPE, ngo_t>::is_initialised() const
 {
   return _initialized;
 }
-
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>

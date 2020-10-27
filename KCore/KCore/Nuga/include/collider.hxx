@@ -213,6 +213,61 @@ namespace NUGA
       }
     }
 
+    ///
+    template <typename mesh_t1, typename mesh_t2>
+    void compute(const mesh_t1& m1, const mesh_t2& m2, 
+                 std::vector<bool>& is_x1, std::vector<bool>& is_x2, E_Float RTOL = ZERO_M,
+                 bool roughly_by_bbox=false)
+    {
+      //
+      is_x1.resize(m1.ncells(), 0);
+      is_x2.resize(m2.ncells(), 0);
+
+      auto m2_loc = m2.get_localizer();
+      if (m2_loc == nullptr) return;
+
+      if (!roughly_by_bbox)
+        m1.get_nodal_metric2();//for ae
+
+      std::vector<E_Int> cands;
+ 
+#ifndef COLLIDER_DBG
+#pragma omp parallel for private (cands)
+#endif
+      for (E_Int i = 0; i < m1.ncells(); ++i)
+      {
+        cands.clear();
+        
+        if (roughly_by_bbox)
+        {
+          auto e1 = m1.element(i);
+
+          m2_loc->get_candidates(e1, m1.crd, cands, 1, RTOL); //return as 0-based (fixme for volumic, was 1-based)
+          if (cands.empty()) continue;
+        }
+        else
+        {
+          auto ae1 = m1.aelement(i);
+
+          m2_loc->get_candidates(ae1, ae1.m_crd, cands, 1, RTOL); //return as 0-based (fixme for volumic, was 1-based)
+          if (cands.empty()) continue;
+
+#ifdef DEBUG_METRIC
+          if (cands.size() > 50)
+          {
+            std::cout << "found more than 50 cands" << std::endl;
+            medith::write("cands", fldm.crd, fldm.cnt, &cands, 1);
+            medith::write("ae1", ae1);
+          }
+#endif
+
+          bool is_x = get_colliding(ae1, m2, cands, 1, RTOL, true/*returns at first found*/);
+          if (!is_x) continue;
+        }
+
+        is_x1[i] = is_x2[cands[0] - 1] = true;
+      }
+    }
 
 ///
 template <typename ELT1, typename ELT2, typename loc_t>

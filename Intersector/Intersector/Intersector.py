@@ -504,6 +504,30 @@ def getOverlappingFaces(a1, a2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
     return intersector.getOverlappingFaces(a1,a2, RTOL, amax, dir2)
 
 #==============================================================================
+# getCollidingCells     : returns the list of cells in a1 and a2 that are colliding.
+# IN : t1:              : NGON mesh (surface or volume).
+# IN : t2:              : NGON mesh (surface or volume).
+# IN : RTOL:            : Relative tolerance (in ]0., 1.[).
+# OUT: 2 lists of colliding cells, the first one for a1, the seoncd one for a2.
+#==============================================================================
+def getCollidingCells(a1, a2, RTOL = 1.e-12):
+    """ Returns the list of cells in a1 and a2 that are colliding.
+   Usage: getOverlappingFaces(t1, t2, RTOL)"""
+    return intersector.getCollidingCells(a1, a2, RTOL)
+
+#==============================================================================
+# getNthNeighborhood     : returns the list of cells in the N-thneighborhood of t cells given in ids 
+# IN : a :               : NGON mesh.
+# IN : N :               : number of neighborhood required
+# IN : ids :             : input cells ids
+# OUT: Returns the list of cells in the N-th neighborhood.
+#==============================================================================
+def getNthNeighborhood(a, N, ids):
+   """ Returns the list of cells in the N-th neighborhood of cells given in ids.
+   Usage: getNthNeighborhood(t, N, ids)"""
+   return intersector.getNthNeighborhood(a, N, ids)
+
+#==============================================================================
 # getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
 # IN : a1:              : NGON mesh (surface or volume).
 # IN : aniso_ratio:            : xxx

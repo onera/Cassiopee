@@ -1817,6 +1817,65 @@ def getOverlappingFaces(t1, t2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
    return pgids
 
 #==============================================================================
+# getCollidingCells     : returns the list of cells in a1 and a2 that are colliding.
+# IN : t1:              : NGON mesh (surface or volume).
+# IN : t2:              : NGON mesh (surface or volume).
+# IN : RTOL:            : Relative tolerance (in ]0., 1.[).
+# OUT: 2 lists of colliding cells, the first one for t1, the seoncd one for t2.
+#==============================================================================
+def getCollidingCells(t1, t2, RTOL = 1.e-12):
+   """ Returns the list of cells in a1 and a2 that are colliding.
+   Usage: getOverlappingFaces(t1, t2, RTOL)"""
+
+   try: import Transform as T
+   except: raise ImportError("getCollidingCells: requires Transform module.")
+   
+   zones2 = Internal.getZones(t2)
+   m2 = concatenate(zones2); m2 = G.close(m2)
+   m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
+
+   zones1 = Internal.getZones(t1)
+   pgids = []
+
+   i=-1
+   for z in zones1:
+     i+=1
+     m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+     if m1 == []: continue
+
+     pgids.append(XOR.getCollidingCells(m1,m2, RTOL))
+
+   return pgids
+
+#==============================================================================
+# getNthNeighborhood     : returns the list of cells in the N-thneighborhood of t cells given in ids 
+# IN : t :               : NGON mesh.
+# IN : N :               : number of neighborhood required
+# IN : ids :             : input cells ids
+# OUT: Returns the list of cells in the N-th neighborhood.
+#==============================================================================
+def getNthNeighborhood(t, N, ids):
+   """ Returns the list of cells in the N-th neighborhood of cells given in ids.
+   Usage: getNthNeighborhood(t, N, ids)"""
+
+   zones = Internal.getZones(t)
+   if len(ids) != len(zones) : 
+    print ('getNthNeighborhood : input ERROR : ids list and nb of zones are different')
+    return
+
+   idsNeigh = []
+
+   i=-1
+   for z in zones:
+     i+=1
+     m = C.getFields(Internal.__GridCoordinates__, z)[0]
+     if m == []: continue
+
+     idsNeigh.append(XOR.getNthNeighborhood(m, N, ids[i]))
+
+   return idsNeigh
+
+#==============================================================================
 # getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
 # IN : t1:              : NGON mesh (surface or volume).
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).

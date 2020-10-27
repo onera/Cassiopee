@@ -32,7 +32,6 @@ namespace NUGA
 {
   
   using crd_t = K_FLD::FloatArray;
-  enum eSmoother { V1_NEIGH = 0, SHELL = 1 };
 
 /// Geometric sensor
 template <typename mesh_t, typename sensor_input_t = crd_t>

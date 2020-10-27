@@ -69,6 +69,8 @@ static PyMethodDef Pyintersector [] =
   {"assignData2Sensor", K_INTERSECTOR::assignData2Sensor, METH_VARARGS},
   {"createCom", K_INTERSECTOR::createCom, METH_VARARGS},
   {"deleteCom", K_INTERSECTOR::deleteCom, METH_VARARGS},
+  {"deleteCom", K_INTERSECTOR::deleteCom, METH_VARARGS},
+  
   {"closeCells", K_INTERSECTOR::closeCells, METH_VARARGS},
   {"extractUncomputables", K_INTERSECTOR::extractUncomputables, METH_VARARGS},
   {"extractPathologicalCells", K_INTERSECTOR::extractPathologicalCells, METH_VARARGS},
@@ -78,7 +80,10 @@ static PyMethodDef Pyintersector [] =
   {"extractBiggestCell", K_INTERSECTOR::extractBiggestCell, METH_VARARGS},
   {"removeNthCell", K_INTERSECTOR::removeNthCell, METH_VARARGS},
 
+  {"getNthNeighborhood", K_INTERSECTOR::getNthNeighborhood, METH_VARARGS},
+
   {"getOverlappingFaces", K_INTERSECTOR::getOverlappingFaces, METH_VARARGS},
+  {"getCollidingCells", K_INTERSECTOR::getCollidingCells, METH_VARARGS},
   {"getAnisoInnerFaces", K_INTERSECTOR::getAnisoInnerFaces, METH_VARARGS},
 
   {"statsUncomputableFaces", K_INTERSECTOR::statsUncomputableFaces, METH_VARARGS},

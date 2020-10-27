@@ -17,6 +17,7 @@
 
 namespace NUGA
 {
+  enum eSmoother { V1_NEIGH = 0, SHELL = 1 };
 
 /// Base smoother class
 template <typename mesh_t>
