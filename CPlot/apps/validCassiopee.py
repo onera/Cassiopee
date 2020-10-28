@@ -140,18 +140,12 @@ def check_output(cmd, shell, stderr):
         return out
 
     elif mode == 4: # inspire de python
-        cmd = cmd.split(';', 1)
-        cmd1 = cmd[0]; cmd2 = cmd[1]
-        cmd1 = cmd1.split(' ')
-        wdir = '.'
-        if cmd1[0] == 'cd': wdir = cmd1[1]
-        if wdir[-1] == ';': wdir = wdir[:-1]
-        
-        if mySystem == 'windows' or mySystem == 'mingw': cmd = cmd2.replace('time', '')
-        else: cmd = cmd2
+        wdir = '.'; ossid = None
+        if mySystem == 'windows' or mySystem == 'mingw': ossid = None
+        else: ossid = os.setsid
 
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=os.setsid)
+                                   stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
         stdout, stderr = PROCESS.communicate(None, timeout=None)
         return stdout+stderr
 
@@ -920,8 +914,10 @@ def stopTests():
     STOP = 1
 
     if PROCESS is not None: 
-        #PROCESS.kill()
-        os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM) 
+        if mySystem == 'mingw' or mySystem == 'windows':
+            subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
+        else:
+            os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
         PROCESS = None
 
     if THREAD is not None:

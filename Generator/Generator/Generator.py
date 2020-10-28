@@ -677,7 +677,9 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
             else: fixedNodes = None
             if sizeConstraints != []:
                 i = defineSizeMapForMMGs(i, hmax, sizeConstraints)
-            l.append(generator.mmgs(i, ridgeAngle, hmin, hmax, hausd,
+                hmaxl = 1000.
+            else: hmaxl = hmax
+            l.append(generator.mmgs(i, ridgeAngle, hmin, hmaxl, hausd,
                                     grow, anisotropy, optim, fixedNodes))
         return l
     else:
@@ -689,7 +691,9 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
         else: fixedNodes = None
         if sizeConstraints != []:
             array = defineSizeMapForMMGs(array, hmax, sizeConstraints)
-        return generator.mmgs(array, ridgeAngle, hmin, hmax, hausd, 
+            hmaxl = 1000.
+        else: hmaxl = hmax
+        return generator.mmgs(array, ridgeAngle, hmin, hmaxl, hausd, 
                               grow, anisotropy, optim, fixedNodes)
 
 #==============================================================================
