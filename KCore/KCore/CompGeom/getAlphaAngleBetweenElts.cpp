@@ -548,7 +548,7 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenBars(E_Float* ptA1, E_Float* ptB1,
 
   fin:;
 
-  // Compute angle
+  // Calcul l'angle par produit scalaire et produit vectoriel
   E_Float dx1 = t1[0]; E_Float dx2 = t2[0];
   E_Float dy1 = t1[1]; E_Float dy2 = t2[1];
   E_Float dz1 = t1[2]; E_Float dz2 = t2[2];

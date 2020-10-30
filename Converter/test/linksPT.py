@@ -5,8 +5,9 @@ import Converter.PyTree as C
 import Converter.Filter as Filter
 
 a = G.cart((0,0,0),(1,1,1),(50,50,50))
-C._initVars(a, 'Density=1.')
 t = C.newPyTree(['Base',a])
+C.convertPyTree2File(t, 'coord.hdf')
+C._initVars(t, 'Density=1.')
 
 # Save file with links
 links=[['.','coord.hdf','/Base/cart/GridCoordinates','/Base/cart/GridCoordinates']]

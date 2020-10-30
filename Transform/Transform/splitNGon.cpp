@@ -107,7 +107,7 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
       e2 = cFE2[indf];
       //printf("%d - %d %d\n",i+1, e1,e2);
       if (e1 > 0 && e1 != i+1) { adj[size] = e1-1; size++; }
-      else if (e2 > 0 && e2 != i+1) { adj[size] = e2-1; size++;}
+      else if (e2 > 0 && e2 != i+1) { adj[size] = e2-1; size++; }
     }
     cne += nf+1;
   }

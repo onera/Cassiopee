@@ -143,7 +143,6 @@ def check_output(cmd, shell, stderr):
         wdir = '.'; ossid = None
         if mySystem == 'windows' or mySystem == 'mingw': ossid = None
         else: ossid = os.setsid
-
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
         stdout, stderr = PROCESS.communicate(None, timeout=None)

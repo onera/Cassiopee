@@ -1526,10 +1526,9 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     else cur_path = NULL;
     
     // > Dramatic verbose 
-    // printf(" tgt_dire : %s \n", tgt_dire);
-    // printf(" tgt_file : %s \n", tgt_file);
-    // printf(" tgt_path : %s \n", tgt_path);
-    // printf(" cur_path : %s \n", cur_path);
+    //printf(" tgt_file_all : %s \n", tgt_file_all);
+    //printf(" tgt_path : %s \n", tgt_path);
+    //printf(" cur_path : %s \n", cur_path);
     
     /* Rip end of path to get parent */
     char* startPath; char* name;
@@ -1556,10 +1555,21 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     delete [] name;
   
     /** Make the link effective **/
-    HDF_Add_Attribute_As_Data(nid, L3S_PATH, cur_path, strlen(cur_path));
+    //HDF_Add_Attribute_As_Data(nid, L3S_PATH, cur_path, strlen(cur_path));
+    HDF_Add_Attribute_As_Data(nid, L3S_PATH, tgt_path, strlen(tgt_path));
     
-    H5Lcreate_external(tgt_file_all, tgt_path, nid, L3S_LINK, H5P_DEFAULT, H5P_DEFAULT);
-    HDF_Add_Attribute_As_Data(nid, L3S_FILE, tgt_file, strlen(tgt_file));
+    
+    if (strcmp(tgt_file_all, "./") == 0 || strcmp(tgt_file_all, "/") == 0)
+    {
+      // soft
+      H5Lcreate_soft(tgt_path, nid, L3S_LINK, H5P_DEFAULT, H5P_DEFAULT);
+    }
+    else
+    {
+      // external
+      H5Lcreate_external(tgt_file_all, tgt_path, nid, L3S_LINK, H5P_DEFAULT, H5P_DEFAULT);
+      HDF_Add_Attribute_As_Data(nid, L3S_FILE, tgt_file, strlen(tgt_file));
+    }
 
     H5Gclose(gidp); H5Gclose(nid);
     delete [] tgt_file_all;

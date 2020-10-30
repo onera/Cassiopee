@@ -3387,7 +3387,7 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], element
     info[2].append(['PointRange', r, [], 'IndexRange_t'])
 
   elif typeZone == 1: # NGON
-    if faceList==[]: raise ValueError("_addFamilyOfStageGC__: faceList is empty.")
+    if faceList == []: raise ValueError("_addFamilyOfStageGC__: faceList is empty.")
 
     if isinstance(faceList, numpy.ndarray): r = faceList
     else: r = numpy.array(faceList, dtype=numpy.int32)

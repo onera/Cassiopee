@@ -110,39 +110,39 @@ def merge(A, Ac=[], sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
         else: ret += r[0]; retc += r[1]
     if len(BARs) > 0:
         if len(BARc) > 0: 
-            r = join(BARs, arrayc=BARc)
+            r = join(BARs, arrayc=BARc, tol=tol)
             ret += [r[0]]; retc += [r[1]]
-        else: ret += [join(BARs)]
+        else: ret += [join(BARs, tol=tol)]
     if len(TRIs) > 0:
         if len(TRIc) > 0:
-            r = join(TRIs, arrayc=TRIc)
+            r = join(TRIs, arrayc=TRIc, tol=tol)
             ret += [r[0]]; retc += [r[1]]
-        else: ret += [join(TRIs)]
+        else: ret += [join(TRIs, tol=tol)]
     if len(QUADs) > 0:
         if len(QUADc) > 0:
-            r = join(QUADs, arrayc=QUADc)
+            r = join(QUADs, arrayc=QUADc, tol=tol)
             ret += [r[0]]; retc += [r[1]]
-        else: ret += [join(QUADs)]
+        else: ret += [join(QUADs, tol=tol)]
     if len(TETRAs) > 0:
         if len(TETRAc) > 0:
-            r = join(TETRAs, arrayc=TETRAc)
+            r = join(TETRAs, arrayc=TETRAc, tol=tol)
             ret += [r[0]]; retc += [r[1]]
-        else: ret += [join(TETRAs)]
+        else: ret += [join(TETRAs, tol=tol)]
     if len(PYRAs) > 0:
         if len(PYRAc) > 0:
-            r = join(PYRAs, arrayc=PYRAc)
+            r = join(PYRAs, arrayc=PYRAc, tol=tol)
             ret += [r[0]]; retc += [r[1]]
-        else: ret += [join(PYRAs)]
+        else: ret += [join(PYRAs, tol=tol)]
     if len(PENTAs) > 0:
         if len(PENTAc) > 0:
-            r = join(PENTAs, arrayc=PENTAc)
+            r = join(PENTAs, arrayc=PENTAc, tol=tol)
             ret += [r[0]]; retc += [r[1]]
-        else: ret += [join(PENTAs)]
+        else: ret += [join(PENTAs, tol=tol)]
     if len(NGONs) > 0:
         if len(NGONc) > 0:
-            r = join(NGONs, arrayc=NGONc)
+            r = join(NGONs, arrayc=NGONc, tol=tol)
             ret += [r[0]]; retc += [r[1]]
-        else: ret += [join(NGONs)]
+        else: ret += [join(NGONs, tol=tol)]
     if len(Ac) > 0: return (ret, retc)
     else: return ret
 

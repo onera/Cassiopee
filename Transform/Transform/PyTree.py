@@ -660,8 +660,7 @@ def shiftMatrix__(trirac):
     return m
 
 def triracopp__(trirac):
-    m=numpy.zeros((3,3),dtype=numpy.int32)
-    
+    m = numpy.zeros((3,3),dtype=numpy.int32)
     for no in range(3):
         signt = (trirac[no]>0)*1+(-1*(trirac[no]<0))
         i1 = abs(trirac[no])-1
@@ -785,6 +784,44 @@ def _replaceZoneWithSplit(t, zname, z1, z2):
             else: p[2] += z2            
     return None
 
+def getWinSize(w):
+    s1 = w[1]-w[0]+1
+    s2 = w[3]-w[2]+1
+    s3 = w[5]-w[4]+1
+    return s1*s2*s3
+
+def getWinDir(w):
+    (oi1,oi2,oj1,oj2,ok1,ok2) = w
+    dim = 3
+    if oi1 != oi2 and ok1 == 1 and ok2 == 1: dim = 2
+    if oj1 != oj2 and ok1 == 1 and ok2 == 1: dim = 2
+    if dim == 2: 
+        if oi1 == oi2: return 1
+        else: return 2
+    if dim == 3: 
+        if oi1 == oi2: return 1
+        elif oj1 == oj2: return 2
+        else: return 3
+    
+def getCutDir(winz1, winz2):
+    (oi1,oi2,oj1,oj2,ok1,ok2) = winz1
+    (pi1,pi2,pj1,pj2,pk1,pk2) = winz2
+    if oi2 == pi1: return 1
+    elif oj2 == pj1: return 2
+    elif ok2 == pk1: return 3
+    elif pi2 == oi1: return 1
+    elif pj2 == oj2: return 2
+    else: return 3
+
+# Retourne false si les fenetres sont identiques
+# Retourne true si wins1 correspond a une sous fenetre de win
+def isWinCut(wins1, win):
+    if wins1[0] == win[0] and wins1[1] == win[1] and \
+        wins1[2] == win[2] and wins1[3] == win[3] and \
+        wins1[4] == win[4] and wins1[5] == win[5]:
+     return False
+    else: return True
+    
 # Reporte les BC matchs de z sur z1 et z2 (et modifie t)
 def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
     bcs = getBCMatchs__(z)
@@ -793,6 +830,8 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
         triracopp = triracopp__(trirac)
 
         if oppBlock == z[0]: # self attached BCMatch
+            print(winDonor, winz1, winz2)
+            print(getWinDir(winz), getCutDir(winz1,winz2))
             wins1 = intersectWins__(winz1, winDonor, ret=1)
             wins2 = intersectWins__(winz2, winDonor, ret=1)
             windonor1 = None; windonor2 = None
@@ -803,29 +842,44 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             wini1 = intersectWins__(winz1, winz, ret=0)
             wini = intersectWins__(winz1, winz, ret=1)
 
-            if wini is not None and windonor1 is not None:
-                if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock1, windonor1, trirac)
-                else: C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock1, windonor1, trirac, 
+            if wini is not None:
+                if wins1 is None:
+                    oppBlock = z2[0]
+                    winopp = windonor2
+                elif wins2 is None:
+                    oppBlock = z1[0]
+                    winopp = windonor1  
+                elif isWinCut(wini1, winz):
+                    oppBlock = z1[0]
+                    winopp = windonor1
+                else:
+                    oppBlock = z2[0]
+                    winopp = windonor2
+                if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
+                else: C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock, winopp, trirac, 
                                     rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
-            
-            if wini is not None and windonor2 is not None:
-                if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock2, windonor2, trirac)
-                else: C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock2, windonor2, trirac, 
-                                    rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
-                
+                                
             # Reporte cette BC sur z2
             wini1 = intersectWins__(winz2, winz, ret=0)
             wini = intersectWins__(winz2, winz, ret=1)
 
-            if wini is not None and windonor1 is not None:
-                if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock1, windonor1, trirac)
-                else: C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock1, windonor1, trirac,
+            if wini is not None:
+                if wins1 is None:
+                    oppBlock = z2[0]
+                    winopp = windonor2
+                elif wins2 is None:
+                    oppBlock = z1[0]
+                    winopp = windonor1
+                elif isWinCut(wini1, winz):
+                    oppBlock = z2[0]
+                    winopp = windonor2
+                else:
+                    oppBlock = z1[0]
+                    winopp = windonor1
+                if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
+                else: C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock, winopp, trirac, 
                                     rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
-            if wini is not None and windonor2 is not None:
-                if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock2, windonor2, trirac)
-                else: C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock2, windonor2, trirac,
-                                    rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
-
+            
         else: # not self opposite
                 
             # Reporte cette BC sur z1
@@ -2337,7 +2391,6 @@ def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
         outS.append(outL)
     return outS+outN+outO
 """
-
 def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
     zones = Internal.getZones(t)
     # Fait des paquets de zones structurees et non structurees
