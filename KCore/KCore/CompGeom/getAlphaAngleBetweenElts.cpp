@@ -491,6 +491,7 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenQuads(
   }
   return alpha1;
 }
+
 //=============================================================================
 /* Return the alpha angle between two vectors ptA1ptB1 and ptA2ptB2
    dirVect must be (approximatively) the direction vector orthogonal to the 
@@ -561,9 +562,14 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenBars(E_Float* ptA1, E_Float* ptB1,
   E_Float pv1 = dy1*dz2 - dz1*dy2;
   E_Float pv2 = dz1*dx2 - dx1*dz2;
   E_Float pv3 = dx1*dy2 - dy1*dx2;
-  E_Float pv = pv1*dirVect[0] + pv2*dirVect[1] + pv3*dirVect[2]; 
+  E_Float pv = pv1*pv1+pv2*pv2+pv3*pv3;
+  pv = sqrt(pv);
+  if (pv1*dirVect[0] + pv2*dirVect[1] + pv3*dirVect[2] < 0) pv = -pv; 
+  //E_Float pv = pv1*dirVect[0] + pv2*dirVect[1] + pv3*dirVect[2]; 
+  
   pv = pv * inv;
-  E_Float ps = dx2*dx1 + dy2*dy1 + dz1*dz2;
+  
+  E_Float ps = dx1*dx2 + dy1*dy2 + dz1*dz2;
   ps = ps * inv;
   
   // avec un meilleur conditionnement
