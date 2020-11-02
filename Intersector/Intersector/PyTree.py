@@ -1239,6 +1239,8 @@ def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=1, amax = 1.e-12, treat
         C._deleteGridConnectivity__(z)
         if doext : 
           C._deleteZoneBC__(z)
+      else:
+        C.setFields([m], z, 'nodes') # replace the mesh in the zone
       i = i+1
  
 #==============================================================================
