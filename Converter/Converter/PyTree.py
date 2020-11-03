@@ -3193,7 +3193,7 @@ def _convertArray2NGon(t, recoverBC=True):
     for z in zones:
       dims = Internal.getZoneDim(z)
       if dims[0] == 'Unstructured' and dims[3] == 'NGON': gbcs.append([])
-      else: gbcs.append(getBCs(z))
+      else: gbcs.append(getBCs(z, extrapFlow=False))
   else: _deleteZoneBC__(t)
   _deleteGridConnectivity__(t)
   _TZA(t, 'both', 'both', Converter.convertArray2NGon, None)
@@ -4002,46 +4002,6 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True):
   if removeBC: return _recoverBCs1(t, BCInfo, tol)
   else: return _recoverBCs2(t, BCInfo, tol)
 
-def _recoverBCs1(a, BCInfo, tol=1.e-11):
-  """Recover given BCs on a tree.
-  Usage: _recoverBCs(a, (BCs, BCNames, BCTypes), tol)"""
-  try:import Post.PyTree as P
-  except: raise ImportError("_recoverBCs: requires Post module.")
-  _deleteZoneBC__(a)
-  (BCs, BCNames, BCTypes) = BCInfo
-  for z in Internal.getZones(a):
-    indicesF = []
-    f = P.exteriorFaces(z, indices=indicesF)
-    indicesF = indicesF[0]
-    hook = createHook(f, 'elementCenters')
-
-    for c, b in enumerate(BCs):
-      if b == []:
-        raise ValueError("_recoverBCs: boundary is probably ill-defined.")
-      # Break BC connectivity si necessaire
-      elts = Internal.getElementNodes(b)
-      size = 0
-      for e in elts:
-        erange = Internal.getNodeFromName1(e, 'ElementRange')[1]
-        size += erange[1]-erange[0]+1
-      n = len(elts)
-      if n == 1:
-        ids = identifyElements(hook, b, tol)
-      else:
-        bb = breakConnectivity(b)
-        ids = numpy.array([], dtype=numpy.int32)
-        for bc in bb:
-          ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
-      # Cree les BCs
-      ids = ids[ids > -1]
-      sizebc = ids.size
-      if sizebc > 0:
-        id2 = numpy.empty(sizebc, numpy.int32)
-        id2[:] = indicesF[ids[:]-1]
-        _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
-    freeHook(hook)
-  return None
-
 # N'efface pas les matchs et bc deja existantes
 def _recoverBCs2(t, BCInfo, tol):
   try: import Post.PyTree as P
@@ -4102,13 +4062,99 @@ def _recoverBCs2(t, BCInfo, tol):
                             ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
 
                     # Cree les BCs
+                    ids0 = ids # keep ids for bcdata
                     ids = ids[ids > -1]
                     sizebc = ids.size
                     if sizebc > 0:
                         id2 = numpy.empty(sizebc, numpy.int32)
                         id2[:] = indicesE[ids[:]-1]
                         _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
+                                
+                        # Recupere BCDataSets
+                        fsc = Internal.getNodeFromName(b, Internal.__FlowSolutionCenters__)
+                        
+                        if fsc is not None:
+                          newNameOfBC = getLastBCName(BCNames[c])
+                          bcz = Internal.getNodeFromNameAndType(z, newNameOfBC, 'BC_t')
+        
+                          ds = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
+                                                     gridLocation='FaceCenter', parent=bcz)
+                          d = Internal.newBCData('NeumannData', parent=ds)
+        
+                          for node in Internal.getChildren(fsc):
+                            if Internal.isType(node, 'DataArray_t'):
+                              val0 = Internal.getValue(node)
+                              val0 = numpy.reshape(val0, val0.size, order='F')
+                              val1 = val0[ids0>-1]
+                              Internal._createUniqueChild(d, node[0], 'DataArray_t', value=val1)
           freeHook(hook)
+  return None
+
+def _recoverBCs1(a, T, tol=1.e-11):
+  """Recover given BCs on a tree.
+  Usage: _recoverBCs(a, (BCs, BCNames, BCTypes), tol)"""
+  try:import Post.PyTree as P
+  except: raise ImportError("_recoverBCs: requires Post module.")
+  _deleteZoneBC__(a)
+  zones = Internal.getZones(a)
+  (BCs, BCNames, BCTypes) = T
+  for z in zones:
+    indicesF = []
+    try: f = P.exteriorFaces(z, indices=indicesF)
+    except: continue
+    indicesF = indicesF[0]
+    hook = createHook(f, 'elementCenters')
+
+    for c in range(len(BCs)):
+      b = BCs[c]
+    
+      if b == []:
+        raise ValueError("_recoverBCs: boundary is probably ill-defined.")
+      # Break BC connectivity si necessaire
+      elts = Internal.getElementNodes(b)
+      size = 0
+      for e in elts:
+        erange = Internal.getNodeFromName1(e, 'ElementRange')[1]
+
+        size += erange[1]-erange[0]+1
+      n = len(elts)
+      if n == 1:
+        ids = identifyElements(hook, b, tol)
+      else:
+        bb = breakConnectivity(b)
+        ids = numpy.array([], dtype=numpy.int32)
+        for bc in bb:
+          ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
+ 
+      # Cree les BCs
+      ids0 = ids # keep ids for bcdata
+      ids  = ids[ids > -1]
+      sizebc = ids.size
+      if sizebc > 0:
+        id2 = numpy.empty(sizebc, numpy.int32)
+        id2[:] = indicesF[ids[:]-1]
+        _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
+        
+        # Recupere BCDataSets
+        fsc = Internal.getNodeFromName(b, Internal.__FlowSolutionCenters__)
+        
+        if fsc is not None:
+          newNameOfBC = getLastBCName(BCNames[c])
+          bcz = Internal.getNodeFromNameAndType(z, newNameOfBC, 'BC_t')
+        
+          ds = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
+                                   gridLocation='FaceCenter', parent=bcz)
+          d = Internal.newBCData('NeumannData', parent=ds)
+
+          for node in Internal.getChildren(fsc):
+            if Internal.isType(node, 'DataArray_t'):
+              val0 = Internal.getValue(node)
+              val0 = numpy.reshape(val0, val0.size, order='F')
+              val1 = val0[ids0>-1]
+              Internal._createUniqueChild(d, node[0], 'DataArray_t', value=val1)
+
+    freeHook(hook)
+
   return None
 
 # -- pushBC
@@ -4714,7 +4760,7 @@ def _reorderSubzone__(z, w, T):
 # IN: i: BC_t node or GridConnectivity_t node
 # IN: z: zone owning BC
 # IN: T: transform module
-def getBC__(i, z, T, res, reorder=True):
+def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
   # IndexRange
   r = Internal.getNodeFromType1(i, 'IndexRange_t')
   if r is not None and r[1].shape[0] > 1: # structure - suppose range in nodes
@@ -4726,11 +4772,19 @@ def getBC__(i, z, T, res, reorder=True):
     zp[0] = z[0]+Internal.SEP1+i[0]
     # Get BCDataSet if any
     datas = Internal.getBCDataSet(z, i)
-    if datas != []:
+    if datas == [] and extrapFlow == False: 
+      Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+      Internal._rmNodesByName(zp, 'FlowSolution')
+    elif datas != []:
+      if extrapFlow == False:
+        Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+        Internal._rmNodesByName(zp, 'FlowSolution')
       f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                      'FlowSolution_t')
       Internal.newGridLocation(value='CellCenter', parent=f)
       for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
+
+      
     if reorder: _reorderSubzone__(zp, w, T) # normales ext
     _deleteZoneBC__(zp)
     _deleteGridConnectivity__(zp)
@@ -4745,7 +4799,13 @@ def getBC__(i, z, T, res, reorder=True):
     _deleteSolverNodes__(zp)
     # Get BCDataSet if any
     datas = Internal.getBCDataSet(z, i)
-    if datas != []:
+    if datas == [] and extrapFlow == False: 
+      Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+      Internal._rmNodesByName(zp, 'FlowSolution')
+    elif datas != []:
+      if extrapFlow == False:
+        Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+        Internal._rmNodesByName(zp, 'FlowSolution')
       f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                      'FlowSolution_t')
       Internal.newGridLocation(value='CellCenter', parent=f)
@@ -4773,7 +4833,13 @@ def getBC__(i, z, T, res, reorder=True):
         _deleteSolverNodes__(zp)
         # Get BCDataSet if any
         datas = Internal.getBCDataSet(z, i)
-        if datas != []:
+        if datas == [] and extrapFlow == False: 
+          Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+          Internal._rmNodesByName(zp, 'FlowSolution')
+        elif datas != []:
+          if extrapFlow == False:
+            Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+            Internal._rmNodesByName(zp, 'FlowSolution')
           f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                          'FlowSolution_t')
           Internal.newGridLocation(value='CellCenter', parent=f)
@@ -4788,7 +4854,13 @@ def getBC__(i, z, T, res, reorder=True):
         _deleteSolverNodes__(zp)
         # Get BCDataSet if any
         datas = Internal.getBCDataSet(z, i)
-        if datas != []:
+        if datas == [] and extrapFlow == False: 
+          Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+          Internal._rmNodesByName(zp, 'FlowSolution')
+        elif datas != []:
+          if extrapFlow == False:
+            Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+            Internal._rmNodesByName(zp, 'FlowSolution')
           f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                          'FlowSolution_t')
           Internal.newGridLocation(value='Vertex', parent=f)
@@ -4808,7 +4880,13 @@ def getBC__(i, z, T, res, reorder=True):
       _deleteSolverNodes__(zp)
       # Get BCDataSet if any
       datas = Internal.getBCDataSet(z, i)
-      if datas != []:
+      if datas == [] and extrapFlow == False: 
+        Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+        Internal._rmNodesByName(zp, 'FlowSolution')
+      elif datas != []:
+        if extrapFlow == False:
+          Internal._rmNodesByName(zp, 'FlowSolution#Centers')
+          Internal._rmNodesByName(zp, 'FlowSolution')
         f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                        'FlowSolution_t')
         Internal.newGridLocation(value='CellCenter', parent=f)
@@ -4819,7 +4897,7 @@ def getBC__(i, z, T, res, reorder=True):
 # Extract all BC of a given type
 # Recognised bndType: classic CGNS + BCMatch + BCNearMatch + BCOverlap
 # topTree: utile si t n'est pas un topTree, permet de trouver les familyBCs
-def extractBCOfType(t, bndType, topTree=None, reorder=True):
+def extractBCOfType(t, bndType, topTree=None, reorder=True, extrapFlow=True):
     """Extract the grid coordinates of given BC type as zones."""
     try: import Transform.PyTree as T
     except:
@@ -4827,7 +4905,7 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True):
 
     names = bndType.split(':')
     if len(names) == 2: # Family
-      return extractBCOfName(t, bndType)
+      return extractBCOfName(t, bndType, extrapFlow=extrapFlow)
 
     zones = Internal.getZones(t)
     res = []
@@ -4835,14 +4913,14 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True):
         for z in zones:
             # Cherche GridConnectivity1to1_t
             nodes = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-            for i in nodes: getBC__(i, z, T, res, reorder=reorder)
+            for i in nodes: getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
             # Cherche GridConnectivity_t + Abutting1to1
             nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
             for i in nodes:
               type = Internal.getNodeFromName1(i, 'GridConnectivityType')
               if type is not None:
                 val = Internal.getValue(type)
-                if val == 'Abutting1to1': getBC__(i, z, T, res, reorder=reorder)
+                if val == 'Abutting1to1': getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
     elif bndType == 'BCNearMatch' or bndType == 'BCStage':
         for z in zones:
             nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -4850,7 +4928,7 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True):
               type = Internal.getNodeFromName1(i, 'GridConnectivityType')
               if type is not None:
                 val = Internal.getValue(type)
-                if val == 'Abutting': getBC__(i, z, T, res, reorder=reorder)
+                if val == 'Abutting': getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
     elif bndType == 'BCOverlap':
         for z in zones:
             nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -4858,7 +4936,7 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True):
                 r = Internal.getNodeFromName1(i, 'GridConnectivityType')
                 if r is not None:
                   val = Internal.getValue(r)
-                  if val == 'Overset': getBC__(i, z, T, res, reorder=reorder)
+                  if val == 'Overset': getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
     else: # BC physiques
         if topTree is None: topTree = t
         families = getFamilyBCNamesOfType(topTree, bndType)
@@ -4873,11 +4951,11 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True):
               nodes += Internal.getNodesFromValue(z, 'BCWallViscous*')
               nodes += getFamilyBCs(z, families1)
               nodes += getFamilyBCs(z, families2)
-            for i in nodes: getBC__(i, z, T, res, reorder=reorder)
+            for i in nodes: getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
     return res
 
 # -- extractBCOfName
-def extractBCOfName(t, bndName, reorder=True):
+def extractBCOfName(t, bndName, reorder=True, extrapFlow=True):
   """Extract the grid coordinates of given BC name as zones.
   Usage: extractBCOfName(t, bndName)"""
   try: import Transform.PyTree as T
@@ -4891,11 +4969,11 @@ def extractBCOfName(t, bndName, reorder=True):
       nodes = Internal.getNodesFromName(z, bndName)
       for i in nodes:
         if Internal.getType(i) in ['BC_t', 'GridConnectivity1to1_t', 'GridConnectivity_t']:
-          getBC__(i, z, T, res, reorder=reorder)
+          getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
   else: # family specified BC
     for z in Internal.getZones(t):
       nodes = getFamilyBCs(z, names[1])
-      for i in nodes: getBC__(i, z, T, res, reorder=reorder)
+      for i in nodes: getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
   return res
 
 # -- getBCs
@@ -4904,7 +4982,8 @@ def extractBCOfName(t, bndName, reorder=True):
 # OUT: BCs: liste des geometries de bcs
 # OUT: BCNames: liste des noms des BCs
 # OUT: BCTypes: liste des types des BCs
-def getBCs(t, reorder=True):
+# extrapFlow : extrapolate flow solution if True 
+def getBCs(t, reorder=True, extrapFlow=True):
   """Return geometry, names and types of boundary conditions."""
   BCs = []; BCNames = []; BCTypes = []
   for z in Internal.getZones(t):
@@ -4916,7 +4995,7 @@ def getBCs(t, reorder=True):
         if fname is not None:
           fname = Internal.getValue(fname)
           typeBC = 'FamilySpecified:%s'%fname
-      zBC = extractBCOfName(z, name, reorder)
+      zBC = extractBCOfName(z, name, reorder, extrapFlow)
       if zBC == []:
         name2 = name.split(':')
         if len(name2)>1 and name2[0] == 'FamilySpecified':
@@ -4931,7 +5010,7 @@ def getBCs(t, reorder=True):
         fname = Internal.getNodeFromType1(gc, 'FamilyName_t')
         if fname is not None:
           fname = Internal.getValue(fname)
-          zBC = extractBCOfName(z, name, reorder)
+          zBC = extractBCOfName(z, name, reorder, extrapFlow)
           typeGC = 'FamilySpecified:%s'%fname
           BCs.append(zBC); BCNames.append(name); BCTypes.append(typeGC)
   return (BCs, BCNames, BCTypes)
