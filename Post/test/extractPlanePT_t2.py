@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Post.PyTree as P
-import Transform.PyTree as T
 import KCore.test as test
 
 def f(u,v,w): return 3*u*v + 2*w

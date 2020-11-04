@@ -49,7 +49,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   if (res != 1) 
   {    
     PyErr_SetString(PyExc_TypeError, 
-                    "applyBCOverlapStruct: 1st argument must be structured.");
+                    "applyBCOverlaps: 1st argument must be structured.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
 
@@ -60,7 +60,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   if (posc == -1)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "applyBCOverlapStruct: 1st arg must contain cellN variable.");
+                    "applyBCOverlaps: 1st arg must contain cellN variable.");
     RELEASESHAREDS(array, f); return NULL;
   }
   posc++;
@@ -70,7 +70,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
     if (imin < 1 || imax > im || jmin < 1 || jmax > jm || kmin < 1 || kmax > km)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "applyBCOverlapStruct: indices of structured window are not valid.");
+                      "applyBCOverlaps: indices of structured window are not valid.");
       RELEASESHAREDS(array, f); return NULL;
     }
   }
@@ -79,7 +79,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
     if (imin < 1 || imax > im+1 || jmin < 1 || jmax > jm+1 || kmin < 1 || kmax > km+1)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "applyBCOverlapStruct: indices of structured window are not valid.");
+                      "applyBCOverlaps: indices of structured window are not valid.");
       RELEASESHAREDS(array, f); return NULL;
     }
   }

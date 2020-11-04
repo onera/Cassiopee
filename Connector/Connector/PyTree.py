@@ -1032,7 +1032,7 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
         print('Warning: blankCellsOpt: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
     if blankingType == 'center_in':
-        print('Warning: _blankCellsOpt: cannot be applied yet with center_in.')
+        print('Warning: blankCellsOpt: cannot be applied yet with center_in.')
         #raise ValueError("_blankCells : cannot be applied yet with center_in.")
         blankingType='cell_intersect'
 
@@ -1104,7 +1104,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
         print('Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
     if blankingType == 'center_in':
-        print('Warning: _blankCells: cannot be applied yet with center_in.')
+        print('Warning: blankCells: cannot be applied yet with center_in.')
         blankingType='cell_intersect'
 
     if blankingType != 'cell_intersect' and \
@@ -1742,7 +1742,7 @@ def _applyBCOverlaps(a, depth=2, loc='centers', val=2, cellNName='cellN', checkC
       else:
           if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val, cellNName=cellNName)
           else:
-              print('Warning: _applyBCOverlaps: only for NGON unstructured zones.')
+              print('Warning: applyBCOverlaps: only for NGON unstructured zones.')
   return None
 
 #==============================================================================

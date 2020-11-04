@@ -2,8 +2,7 @@
 import Compressor.compressor as Co
 import Generator.PyTree as G
 import Converter.Internal as Internal
-import numpy as np
-from math import sqrt
+import numpy
 
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,10))
 n = Internal.getNodeFromName(a,"ElementConnectivity")[1]
@@ -15,5 +14,5 @@ print(f"Compressed data size : {comp[1].size}")
 print(f"Ratio de compression : {comp[1].size/(n.size*4.)}")
 n2 = Co.uncompressNGonIndices(comp)[0]
 diff = n - n2
-err = np.max(np.abs(diff))
+err = numpy.max(numpy.abs(diff))
 print(f"Erreur max faite sur les indices : {err}")

@@ -1,6 +1,5 @@
 # - adaptNGon2Index (pyTree) -
 import Generator.PyTree as G
-import Converter.PyTree as C
 import Converter.Internal as Internal
 import KCore.test as test
 
@@ -9,4 +8,3 @@ Internal._adaptNFace2PE(a, remove=False)
 Internal._adaptNGon2Index(a)
 Internal._adaptNFace2Index(a)
 test.testT(a, 1)
-

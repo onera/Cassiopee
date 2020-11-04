@@ -1,4 +1,5 @@
-# - adapts a cells with respect to b points (array) -
+# - adaptCells (array) -
+# adapts a cells with respect to b points
 import Intersector as XOR
 import Converter as C
 import Generator as G
@@ -16,7 +17,7 @@ nodal_vals = numpy.empty((n,), dtype=numpy.int32)
 nodal_vals[:] = 2
 
 ## HEXA static adaptation
-m = XOR.adaptCells(a, nodal_vals, sensor_type = 3, smoothing_type = 1)
+m = XOR.adaptCells(a, nodal_vals, sensor_type=3, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 test.testA(m,1)
@@ -26,7 +27,7 @@ n = C.getNCells(aTH4)
 nodal_vals = numpy.empty((n,), dtype=numpy.int32)
 nodal_vals[:] = 2
 
-m = XOR.adaptCells(aTH4, nodal_vals, sensor_type = 3, smoothing_type = 1)
+m = XOR.adaptCells(aTH4, nodal_vals, sensor_type=3, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 test.testA(m,2)

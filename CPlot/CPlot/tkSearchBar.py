@@ -268,10 +268,8 @@ class AutocompleteEntry(TK.Entry):
 
     def up(self, event):
         if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
+            if self.lb.curselection() == (): index = '0'
+            else: index = self.lb.curselection()[0]
             if index != '0':                
                 self.lb.selection_clear(first=index)
                 index = str(int(index)-1)                
@@ -280,10 +278,8 @@ class AutocompleteEntry(TK.Entry):
 
     def down(self, event):
         if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '-1'
-            else:
-                index = self.lb.curselection()[0]
+            if self.lb.curselection() == (): index = '-1'
+            else: index = self.lb.curselection()[0]
             if index != TK.END:
                 self.lb.selection_clear(first=index)
                 index = str(int(index)+1)        
@@ -385,7 +381,4 @@ if __name__ == '__main__':
     F.grid(row=0, column=0, sticky=TK.EW)
     entry = AutocompleteEntry(lista, F)
     entry.grid(row=0, column=0, sticky=TK.EW)
-    #Button(text='nothing').grid(row=1, column=0)
-    #Button(text='nothing').grid(row=2, column=0)
-    #Button(text='nothing').grid(row=3, column=0)
     root.mainloop()

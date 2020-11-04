@@ -3,7 +3,6 @@ import Generator as G
 import Converter as C
 import Geom as D
 import Post as P
-import KCore.test as test
 
 s = D.circle((0,0,0), 1., N=100); snear = 0.1
 o = G.octree([s], [snear], dfar=10., balancing=1)
@@ -13,4 +12,4 @@ indicator, valInf, valSup = P.computeIndicatorField(
     o, indicVal, nbTargetPts=2.*npts, bodies=[s])
 indicator = C.center2Node(indicator)
 o = C.addVars([o, indicator])
-C.convertArrays2File([o], "out.plt")
+C.convertArrays2File(o, "out.plt")

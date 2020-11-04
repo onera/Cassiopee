@@ -430,7 +430,7 @@ def setInterpData__(interpPts, zonesD, order=2, penalty=1, nature=0, method='lag
 
     elif method == 'leastsquares':
         if isinstance(interpPts[0], list): # liste d'arrays
-            print('Warning: setInterpData__: only 1st zone in 1st arg taken into account.')
+            print('Warning: setInterpData: only 1st zone in 1st arg taken into account.')
             if interpPts[0][1].shape[1]>0: 
                 return connector.setInterpDataLS(interpPts[0], zonesD, order, nature, penalty, hook, dim)
             else: return None

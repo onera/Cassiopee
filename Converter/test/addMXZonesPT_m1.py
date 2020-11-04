@@ -3,9 +3,10 @@ import Converter.PyTree as CP
 import Generator.PyTree as GP
 import Transform.PyTree as TP 
 import Converter.Filter as Filter
-import Post.PyTree      as PT
 import Converter.Mpi    as Cmpi
 import KCore.test       as test
+
+LOCAL = test.getLocal()
 
 # Create case
 if Cmpi.rank == 0:
@@ -15,13 +16,12 @@ if Cmpi.rank == 0:
     b = TP.reorder(b,(-3,2,1))
     t = CP.newPyTree(['Base',a,b])
     t = TP.splitNParts(t, 5, multigrid=0, dirs=[1,2,3])
-
-    CP.convertPyTree2File(t, 'case.cgns')
+    CP.convertPyTree2File(t, LOCAL+'/case.cgns')
 Cmpi.barrier()
 
 # Load 
-h     = Filter.Handle('case.cgns')
-a     = h.loadAndDistribute()
+h = Filter.Handle(LOCAL+'/case.cgns')
+a = h.loadAndDistribute()
 
 # # Ajout XZones 
 Cmpi._addMXZones(a)

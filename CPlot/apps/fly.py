@@ -40,6 +40,6 @@ posCam = [bb[0],bb[1],bb[2]]
 posEye = [xc,yc,zc]
 dirCam = [0,0,1]
 i = 0
-while (i != -1):
+while i != -1:
     posCam = fly(a, bb, posCam, posEye, dirCam, 0.003)
     i = i+1

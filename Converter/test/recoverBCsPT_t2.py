@@ -1,6 +1,5 @@
 # - recoverBCs (pyTree) -
 import Converter.PyTree   as C
-import Converter.Internal as Internal
 import Generator.PyTree   as G
 import Post.PyTree        as P 
 import KCore.test         as test
@@ -24,7 +23,6 @@ test.testT(b, 1)
 
 C._recoverBCs(c,(BCs,BCNames,BCTypes),removeBC=True)
 test.testT(c, 2)
-
 
 # HEXA 
 a = G.cartHexa((0,0,0),(1,1,1),(10,10,2))
