@@ -1952,7 +1952,11 @@ def checkCellsClosure(t):
 #==============================================================================
 def checkCellsFlux(t):
     """ XXX"""
+    import sys;
     zones = Internal.getZones(t)
+    maxflux=-sys.float_info.max
+    cellid = -1
+    zoneid=-1
     i=0
     for z in zones:
         GEl = Internal.getElementNodes(z)
@@ -1973,8 +1977,13 @@ def checkCellsFlux(t):
         
         print('checking nullity of fluxes for zone %d'%i)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
-        XOR.checkCellsFlux(m, PE[1])
+        res=XOR.checkCellsFlux(m, PE[1])
+        if res[1] > maxflux:
+          maxflux=res[1]
+          cellid=res[0]
+          zoneid=i
         i+=1
+    return (maxflux, cellid, zoneid)
 
 
 

@@ -962,11 +962,25 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
 
   delete f; delete cn;
 
+  PyObject *l(PyList_New(0)), *tpl;
+
 #ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(err));
+  tpl =  Py_BuildValue("l", long(imax));
+   PyList_Append(l, tpl);
 #else
-    return Py_BuildValue("i", err);
+  tpl =  Py_BuildValue("i", imax);
+  PyList_Append(l, tpl);
 #endif
+
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(fluxmax));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", float(fluxmax);
+  PyList_Append(l, tpl);
+#endif
+  
+  return l;
 }
 
 PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
@@ -1882,7 +1896,7 @@ PyObject* K_INTERSECTOR::statsSize(PyObject* self, PyObject* args)
 	  //
 	  
 	  ngon_type::volume_extrema<DELAUNAY::Triangulator>(ngi, crd, vmin, imin, vmax, imax);
-	  //std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
+	  std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
     // if not a single cell
 	  //if (imax != E_IDX_NONE) std::cout << "the " << imax << "-th cells has the biggest volume : " << vmax << std::endl;
   }

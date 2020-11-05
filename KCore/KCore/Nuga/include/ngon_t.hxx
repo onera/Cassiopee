@@ -1906,7 +1906,8 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
       continue;
     }
       
-    
+    if (vratio <= 0.) continue;
+
     E_Int nb_neighs = neighborsi.stride(i);
     bool found=false;
     for (E_Int n=0; n < nb_neighs && !found; ++n)
