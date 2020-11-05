@@ -2909,7 +2909,7 @@ def splitMultiplePts__(tp, dim):
                 for j in range(j1-1,j2):
                     for i in range(i1-1,i2):
                         ind = i+j*ni+k*ninj
-                        taga[1][0,ind]+= 1
+                        taga[1][0,ind] += 1
 
         z = C.setFields([taga],z,'nodes')
 
@@ -2997,3 +2997,12 @@ def splitManifold(t):
         zone = C.convertArrays2ZoneNode('manifold',[i])
         zones.append(zone)
     return zones
+
+def _splitNGon(t, N):
+    """Split a NGon putting result in a "part" field"""
+    zones = Internal.getZones(t)
+    for z in zones:
+        n1 = C.getAllFields(z, 'nodes')[0]
+        n2 = C.getAllFields(z, 'centers')[0] # must contain "part" field
+        Transform.transform.splitNGon2(n1, n2, N)
+        C.setFields([n2], z, 'centers', writeDim=False)

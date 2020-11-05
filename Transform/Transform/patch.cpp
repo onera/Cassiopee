@@ -268,7 +268,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
                     "patch: one array is empty.");
     return NULL;      
   }
-  else if ( res0 == 0)
+  else if (res0 == 0)
   {
     printf("Warning: patch: arrays have different variables."); 
     printf("Only common variables are kept.\n");
@@ -298,13 +298,16 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
 
   if (res2 == 1) 
   {
+    RELEASESHAREDN(nodesIndices, n0);
     tpl = K_ARRAY::buildArray(*f2, varString, im2, jm2, km2);
     delete [] varString; delete f2;
   }
   else if (res2 == 2) 
   {
+    RELEASESHAREDN(nodesIndices, n0);
     tpl = K_ARRAY::buildArray(*f2, varString, *cn2, -1, eltType2);
     delete [] varString; delete cn2; delete f2;
   }
+  RELEASESHAREDN(nodesIndices, n0);
   return tpl;
 }

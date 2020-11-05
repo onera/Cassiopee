@@ -87,6 +87,7 @@ static PyMethodDef PyTransform[] =
   {"computeDeformationVector", K_TRANSFORM::computeDeformationVector, METH_VARARGS},
   {"breakElements", K_TRANSFORM::breakElements, METH_VARARGS},
   {"splitNGon", K_TRANSFORM::splitNGon, METH_VARARGS},
+  {"splitNGon2", K_TRANSFORM::splitNGon2, METH_VARARGS},
   {"splitElement", K_TRANSFORM::splitElement, METH_VARARGS},
   {"dualNGon", K_TRANSFORM::dualNGon, METH_VARARGS},
   {"flipEdges", K_TRANSFORM::flipEdges, METH_VARARGS},

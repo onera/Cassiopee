@@ -369,6 +369,7 @@ namespace K_TRANSFORM
   PyObject* mergeStructGrids(PyObject* self, PyObject* args);
   PyObject* breakElements(PyObject* self, PyObject* args);
   PyObject* splitNGon(PyObject* self, PyObject* args);
+  PyObject* splitNGon2(PyObject* self, PyObject* args);
   PyObject* splitElement(PyObject* self, PyObject* args);
   PyObject* dualNGon(PyObject* self, PyObject* args);
   PyObject* flipEdges(PyObject* self, PyObject* args);
