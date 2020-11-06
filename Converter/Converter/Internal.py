@@ -833,6 +833,27 @@ def newAverageInterface(value='Null', parent=None):
                                    'AverageInterface_t', value=value)
     return node
 
+# -- newZoneSubRegion
+def newZoneSubRegion(name='SubRegion', pointRange=None, pointList=None,
+                    bcName=None, gcName=None, gridLocation=None, parent=None):
+    """Create a new ZoneSubRegion node."""
+    if parent is None:
+        node = createNode(name, 'ZoneSubRegion_t')
+    else: node = createUniqueChild(parent, name, 'ZoneSubRegion_t')
+    if (bcName is None) and (gcName is None):
+        if pointRange is not None: newPointRange(value=pointRange, parent=node)
+        if pointList is not None: newPointList(value=pointList, parent=node)
+        if gridLocation is not None: newGridLocation(gridLocation, parent=node)
+    if (bcName is not None) and (gcName is not None):
+        raise AttributeError('newZoneSubRegion: bcName and gcName could not be both defined !')
+    if bcName is not None:
+        createChild(node, 'BCRegionName', 'Descriptor_t', value=bcName)
+        newGridLocation('FaceCenter', parent=node)
+    if gcName is not None:
+        createChild(node, 'GridConnectivityRegionName', 'Descriptor_t', value=gcName)
+        newGridLocation('FaceCenter', parent=node)
+    return node
+
 # -- newOversetHoles
 def newOversetHoles(name='OversetHoles', pointRange=None,
                     pointList=None, parent=None):
@@ -2360,7 +2381,7 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
     elif stdNode == -1: rep = ''.join(repr__(node, code=code))
     else:
         out = []
-        for b in node: out += repr__(b)
+        for b in node: out += repr__(b, code=code)
         rep = ''.join(out)
 
     if stdOut: stdOut.write(rep)

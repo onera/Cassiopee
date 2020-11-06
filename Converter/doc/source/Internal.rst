@@ -201,6 +201,7 @@ List of functions
     Converter.Internal.newGridConnectivityType
     Converter.Internal.newGridConnectivityProperty
     Converter.Internal.newPeriodic
+    Converter.Internal.newZoneSubRegion 
     Converter.Internal.newOversetHoles 
     Converter.Internal.newFlowEquationSet
     Converter.Internal.newGoverningEquations
@@ -2435,6 +2436,37 @@ Create specific CGNS nodes
 
     .. literalinclude:: ../build/Examples/Converter/newPeriodicPT.py
 
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.newZoneSubRegion(name='SubRegion', pointRange=None, pointList=None, bcName=None, gcName=None, gridLocation=None, parent=None)
+
+    Create a ZoneSubRegion node. 
+    If parent is not None, attach it to parent node.
+
+    :param name: name of node
+    :type name: string
+    :param pointRange: list of point indices ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
+    :type pointRange: list of integers
+    :param pointList: list of point indices (for unstructured grid)
+    :type pointList: list of integers
+    :param bcName:  name of the BC node to which is connected the ZoneSubRegion
+    :type bcName: string
+    :param gcName: name of the GridConnectivity node to which is connected the ZoneSubRegion
+    :type gcName: string
+    :param gridLocation: location of zoneSubRegion data  (Vertex, FaceCenter, CellCenter…)
+    :type gridLocation: string
+    :param parent: optional parent node
+    :type parent: pyTree node
+    :return: created node
+    :rtype: pyTree node
+
+    *Example of use:*
+
+    * `Create a new ZoneSubRegion node (pyTree) <Examples/Converter/newZoneSubRegionPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/newZoneSubRegionPT.py
+
 ---------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.newOversetHoles(name='OversetHoles', pointRange=None, pointList=None, parent=None)   
@@ -2442,8 +2474,8 @@ Create specific CGNS nodes
     Create a OversetHoles node. 
     If parent is not None, attach it to parent node.
 
-    :param name: coordinates of the rotation center
-    :type name: list of 3 floats
+    :param name: name of the node
+    :type name: string
     :param pointRange: list of point indices ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
     :type pointRange: list of integers
     :param pointList: list of point indices (for unstructured grid)
