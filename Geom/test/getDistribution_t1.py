@@ -1,7 +1,6 @@
 # - getDistribution -
 import Geom as D
 import KCore.test as test
-import Converter as C
 import Transform as T
 
 # User definition of parametric curve

@@ -2998,11 +2998,11 @@ def splitManifold(t):
         zones.append(zone)
     return zones
 
-def _splitNGon(t, N):
+def _splitNGon(t, N, N2=-1, shift=1000):
     """Split a NGon putting result in a "part" field"""
     zones = Internal.getZones(t)
     for z in zones:
-        n1 = C.getAllFields(z, 'nodes')[0]
-        n2 = C.getAllFields(z, 'centers')[0] # must contain "part" field
-        Transform.transform.splitNGon2(n1, n2, N)
-        C.setFields([n2], z, 'centers', writeDim=False)
+        a1 = C.getAllFields(z, 'nodes')[0]
+        a2 = C.getAllFields(z, 'centers')[0] # must contain "part" field
+        Transform.transform.splitNGon2(a1, a2, N, N2, shift)
+        C.setFields([a2], z, 'centers', writeDim=False)

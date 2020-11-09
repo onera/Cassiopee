@@ -27,14 +27,17 @@ using namespace std;
 //=============================================================================
 // Split NGon using METIS
 // IN: array NGON, arrayc in center containing "part"
+// IN: nparts: nbre de parties pour le decoupage de premier niveau
+// IN: nparts2: nbre de parties pour le decoupage de niveau 2
 // OUT: modified center field with NPart indicator
 //==============================================================================
 PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
 {
-  PyObject* array; PyObject* arrayc; E_Int nparts;
+  PyObject* array; PyObject* arrayc; 
+  E_Int nparts; E_Int nparts2; E_Int shift;
   if (!PYPARSETUPLEI(args,
-                    "OOl", "OOi",
-                    &array, &arrayc, &nparts))
+                    "OOlll", "OOiii",
+                    &array, &arrayc, &nparts, &nparts2, &shift))
   {
       return NULL;
   }
@@ -122,7 +125,7 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
   //for (E_Int i = 0; i < nelts+1; i++) printf("%d ",xadj[i]); printf("\n\n");
   //for (E_Int i = 0; i < size; i++) printf("%d ",adj[i]);
 
-  cFE.malloc(0);
+  //cFE.malloc(0);
 
   E_Int ncon = 1;
   E_Int objval = 0;
@@ -144,15 +147,80 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
     p = parts[i]; partSize[p] += 1;
   }
   for (E_Int i = 0; i < nparts; i++) printf("Info: partSize=%d\n", partSize[i]);
-
+  
   // output on field
   for (E_Int i = 0; i < nelts; i++)
   {
-    fp[i] = parts[i];
+    fp[i] = shift*parts[i];
   }
   
-  delete [] partSize;
+  // Deuxieme niveau de decoupage
+  if (nparts2 > 0)
+  {
+    for (E_Int np = 0; np < nparts; np++) // pour chaque partie de niveau 1
+    {
+      // nbre d'elements de cette partie 
+      E_Int nelts2 = partSize[np];
+      cne = cnp+4+cnp[1];
+      size = 0; // size of adj
+      E_Int c = 0;
+      E_Int* indir = new E_Int [nelts]; // indirection
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        nf = cne[0];  
+        if (parts[i] == np)
+        { size += nf; indir[i] = c; c +=1; }
+        cne += nf+1;
+      }
+      printf("%d %d\n", nelts2, size);
+      
+      adj1 = new idx_t [size];
+      adj = adj1;
+      xadj = new idx_t [nelts2+1];
+      cne = cnp+4+cnp[1];
+      size = 0; c = 0;
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        xadj[c] = size;
+        if (parts[i] == np) c += 1;
+        nf = cne[0];
+      
+        for (E_Int n = 0; n < nf; n++)
+        {
+          indf = cne[n+1]-1;
+          e1 = cFE1[indf];
+          e2 = cFE2[indf];
+          if (e1 > 0 && e1 != i+1 && parts[i] == np && parts[e1-1] == np) { adj[size] = indir[e1-1]; size++; }
+          else if (e2 > 0 && e2 != i+1 && parts[i] == np && parts[e2-1] == np) { adj[size] = indir[e2-1]; size++; }
+        }
+        cne += nf+1;
+      }
+      xadj[nelts2] = size;
+      adj = adj1;
+            
+      ncon = 1;
+      objval = 0;
+      idx_t* parts2 = new idx_t [nelts2];
+
+      METIS_PartGraphKway(&nelts2, &ncon, xadj, adj, NULL, NULL, NULL, 
+                          &nparts2, NULL, NULL, NULL, &objval, parts2);
+      delete [] xadj; delete [] adj1;
+      
+      c = 0;
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        if (parts[i] == np)
+        {
+          fp[i] += parts2[c]; c += 1;
+        }
+      }
+      delete [] parts2;
+
+    } // Fin parts de niveau 1
+  }
   delete [] parts;
+  delete [] partSize;
+
   RELEASESHAREDU(array, f, cn);
   Py_INCREF(Py_None);
   return Py_None;

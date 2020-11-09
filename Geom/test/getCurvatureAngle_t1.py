@@ -2,7 +2,6 @@
 import KCore.test as test
 import Geom as D
 import Converter as C
-import Generator as G
 
 # User definition of parametric curve
 def f(t):

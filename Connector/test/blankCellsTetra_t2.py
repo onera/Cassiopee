@@ -2,7 +2,6 @@
 import Converter as C
 import Connector as X
 import Generator as G
-import Geom as D
 import KCore.test as test
 
 # Test 1

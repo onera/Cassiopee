@@ -25,6 +25,5 @@ a = C.addVars(a, 'var')
 a = C.addVars(a, 'centers:var2')
 b = D.line((0,0,0), (0,0.,1.))
 c = D.lineDrive(a, b)
-import Converter.Internal as Internal
 t = C.newPyTree(['Base',3,c])
 test.testT(t, 3)

@@ -5,7 +5,6 @@ import Generator.PyTree as G
 import Connector.PyTree as X
 import Geom.PyTree as D
 import KCore.test as test
-import Converter.Internal as Internal
 
 # Structured zone
 a = G.cart((0,0,-0.2),(0.01,0.01,0.1),(101,101,5))
@@ -22,4 +21,3 @@ for location in ['nodes', 'centers']:
                                            nature=nat, loc=location, \
                                            storage=stk)
                     notest += 1
-

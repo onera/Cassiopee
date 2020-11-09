@@ -3,7 +3,7 @@ import Connector.PyTree as X
 import Generator.PyTree as G
 import KCore.test as test
 import Transform.PyTree as T
-import Converter.Internal as Internal
+
 NK = 51
 a = G.cylinder( (0,0,0), 1, 2, 10, 130, 4., (60, 20, NK)); a[0] = 'cyl1'
 b = G.cart((0.4,1.2,-0.3),(0.04,0.04,0.1),(11,11,21))
