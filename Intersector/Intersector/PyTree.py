@@ -1985,7 +1985,43 @@ def checkCellsFlux(t):
         i+=1
     return (maxflux, cellid, zoneid)
 
-
+#==============================================================================
+# checkCellsVolume : Computes the cell fluxes using the ParentElement node
+#==============================================================================
+def checkCellsVolume(t):
+    """ XXX"""
+    import sys;
+    zones = Internal.getZones(t)
+    vmin=sys.float_info.max
+    cellid = -1
+    zoneid=-1
+    i=0
+    for z in zones:
+        GEl = Internal.getElementNodes(z)
+        NGON = 0; found = False
+        for c in GEl:
+            if c[1][0] == 22: found = True; break
+            NGON += 1
+        PE = None
+        if found:
+            node = GEl[NGON]
+            PE = Internal.getNodeFromName1(node, 'ParentElements')
+            if PE is None:
+                print ('skipping zone %d as it does not have ParentElement'%i)
+                continue
+        else:
+            print ('skipping zone %d as it does not have ParentElement'%i)
+            continue
+        
+        print('checking vol min for zone %d'%i)
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res=XOR.checkCellsVolume(m, PE[1])
+        if res[1] < vmin:
+          vmin=res[1]
+          cellid=res[0]
+          zoneid=i
+        i+=1
+    return (vmin, cellid, zoneid)
 
 #==============================================================================
 # checkForDegenCells : XXX

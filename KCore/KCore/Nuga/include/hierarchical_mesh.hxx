@@ -689,6 +689,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
 {
   //std::cout << "join_t<mesh_t>::update() : begin" << std::endl;
   std::vector<E_Int> ids;
+  E_Int nb_pgs = _ng.PGs.size();
 
   // update pointlists
   for (size_t i=0; i < BCptLists.size(); ++i)
@@ -700,6 +701,12 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
     {
       E_Int PGi = ptlist[i] - _idx_start;
       //std::cout << "PGi : " << PGi << std::endl;
+
+      if (PGi < 0 || PGi >= nb_pgs)
+      {
+        std::cout << "update_BCs : WARNING : wrong PG id : " << PGi << std::endl;
+        continue;
+      }
       
       if (_PGtree.is_enabled(PGi))
         new_ptlist.push_back(PGi);

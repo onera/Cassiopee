@@ -582,6 +582,17 @@ def checkCellsFlux(a, PE):
     return intersector.checkCellsFlux(a, PE)
 
 #==============================================================================
+# checkCellsVolume : Computes the volumes using the input orientation (ParentElement). 
+#              
+# IN: a:               : 3D NGON mesh
+# OUT: A message telling the cell id for which the volume is the smallest. 
+#==============================================================================
+def checkCellsVolume(a, PE):
+    """ Returns the cell id for which the Gauss flux is the greatest
+    Usage: checkCellsVolume(a, PE)"""
+    return intersector.checkCellsVolume(a, PE)
+
+#==============================================================================
 # checkForDegenCells : check if there are any cell with less than 4 faces.
 #==============================================================================
 def checkForDegenCells(a):

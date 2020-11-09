@@ -1479,6 +1479,37 @@ public:
   }
 
   ///
+  template<typename TriangulatorType>
+  E_Int volume(const K_FLD::FloatArray& crd, const E_Int* orient, double& v)
+  {
+    v = {-NUGA::FLOAT_MAX};
+
+    TriangulatorType t;
+    K_FLD::FloatArray aT3;
+    std::vector<E_Int> colors;
+    E_Int err = triangulate<TriangulatorType>(t, *_pgs, _faces, _nb_faces, crd, aT3, 
+                                              colors, false/*do not shuffle*/, true/*improve qual*/);
+    if(err)
+      return err;
+
+    for (E_Int i=0; i < aT3.cols(); i+=3)
+    {
+      if (orient[colors[i]] == -1)
+      {
+        std::swap(aT3(0,i+1), aT3(0,i+2));
+        std::swap(aT3(1,i+1), aT3(1,i+2));
+        std::swap(aT3(2,i+1), aT3(2,i+2));
+      }
+    }
+
+    double G[3];
+    metrics(aT3, v, G);
+    
+    return 0;
+
+  }
+
+  ///
   template <typename TriangulatorType>
   static E_Int triangulate
     (const TriangulatorType& dt, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const K_FLD::FloatArray& crd, K_FLD::IntArray& connectT3, std::vector<E_Int>& colors, bool do_not_shuffle, bool improve_quality)
@@ -1491,8 +1522,13 @@ public:
     for (E_Int i = 0; (i<nb_pgs) && !err; ++i)
     {
       E_Int PGi = *(first_pg + i) - 1;
-      err = K_MESH::Polygon::triangulate(dt, crd, PGS.get_facets_ptr(PGi), PGS.stride(PGi), 1/*index start*/, connectT3, do_not_shuffle, improve_quality);
+      const E_Int* nodes = PGS.get_facets_ptr(PGi);
+      E_Int nb_nodes = PGS.stride(PGi);
+      err = K_MESH::Polygon::triangulate(dt, crd, nodes, nb_nodes, 1/*index start*/, connectT3, do_not_shuffle, improve_quality);
+      
       colors.resize(connectT3.cols(), i); // assign color i to the appendaned T3s
+      if (err)
+        std::cout << "triangulate error for face : " << err-1 << std::endl;
     }
     return err;
   }
@@ -1513,6 +1549,7 @@ public:
     for (E_Int i = 0; (i<nb_pgs) && !err; ++i)
     {
       err = K_MESH::Polygon::triangulate(dt, crd, lpgs.get_facets_ptr(i), lpgs.stride(i), 1/*index start*/, connectT3, do_not_shuffle, improve_quality);
+      if (err)err=i+1;
     }
     return err;
   }
@@ -1526,6 +1563,54 @@ public:
       ntris += (_pgs->stride(PGi)-2);
     }
     return ntris;
+  }
+
+  ///
+  template <typename TriangulatorType>
+  static E_Int triangulate
+    (const TriangulatorType& dt, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const K_FLD::FloatArray& crd, K_FLD::FloatArray& aT3, std::vector<E_Int>& colors, bool do_not_shuffle, bool improve_quality)
+  {
+    colors.clear();
+    PGS.updateFacets();
+
+    K_FLD::IntArray cT3;
+
+    E_Int err(0);
+    for (E_Int i = 0; (i<nb_pgs) && !err; ++i)
+    {
+      cT3.clear();
+      E_Int PGi = *(first_pg + i) - 1;
+      const E_Int* nodes = PGS.get_facets_ptr(PGi);
+      E_Int nb_nodes = PGS.stride(PGi);
+      err = K_MESH::Polygon::triangulate(dt, crd, nodes, nb_nodes, 1/*index start*/, cT3, do_not_shuffle, improve_quality);
+
+      if (!err) // cT3 => aT3
+      {
+        aT3.reserve(3, aT3.cols()+3*cT3.cols());
+        for (E_Int j=0; j < cT3.cols(); ++j)
+        {
+          aT3.pushBack(crd.col(cT3(0,j)), crd.col(cT3(0,j))+3);
+          aT3.pushBack(crd.col(cT3(1,j)), crd.col(cT3(1,j))+3);
+          aT3.pushBack(crd.col(cT3(2,j)), crd.col(cT3(2,j))+3);
+        }
+      }
+      else //try again if star-shaped
+      {
+        double G[3];
+        Polygon::iso_barycenter<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1, G);
+        bool is_star_shaped = Polygon::is_star_shaping<3>(G, crd, nodes, nb_nodes, 1);
+        if (is_star_shaped)
+        {
+          err = 0;
+          K_MESH::Polygon::star_triangulate(crd, nodes, nb_nodes, 1/*index start*/, G, aT3);
+        }
+      }
+      
+      colors.resize(aT3.cols(), i); // assign color i to the appended T3s
+      if (err)
+        std::cout << "triangulate error for face : " << err-1 << std::endl;
+    }
+    return err;
   }
   
    ///
@@ -1798,6 +1883,59 @@ inline static void metrics(const K_FLD::FloatArray& crd, const K_FLD::IntArray& 
     const E_Float *p0 = crd.col(i0);
     const E_Float *p1 = crd.col(i1);
     const E_Float *p2 = crd.col(i2);
+    
+    E_Float a1 = p1[0] - p0[0];
+    E_Float b1 = p1[1] - p0[1];
+    E_Float c1 = p1[2] - p0[2];
+    
+    E_Float a2 = p2[0] - p0[0];
+    E_Float b2 = p2[1] - p0[1];
+    E_Float c2 = p2[2] - p0[2];
+    
+    E_Float d0 = b1 * c2 - b2 * c1;
+    E_Float d1 = a2 * c1 - a1 * c2;
+    E_Float d2 = a1 * b2 - a2 * b1;
+    
+    expressions(p0[0],p1[0],p2[0], f1x, f2x, f3x, g0x, g1x, g2x);
+    expressions(p0[1],p1[1],p2[1], f1y, f2y, f3y, g0y, g1y, g2y);
+    expressions(p0[2],p1[2],p2[2], f1z, f2z, f3z, g0z, g1z, g2z);
+    
+    intg[0] += d0*f1x;
+    intg[1] += d0*f2x;
+    intg[2] += d1*f2y;
+    intg[3] += d2*f2z;
+    intg[4] += d0*f3x;
+    intg[5] += d1*f3y;
+    intg[6] += d2*f3z;
+    intg[7] += d0 * (p0[1] * g0x + p1[1] * g1x + p2[1] * g2x);
+    intg[8] += d1 * (p0[2] * g0y + p1[2] * g1y + p2[2] * g2y);
+    intg[9] += d2 * (p0[0] * g0z + p1[0] * g1z + p2[0] * g2z);;
+  }
+  
+  for (E_Int i=0; i < 10; ++i) intg[i] *= mult[i];
+  
+  volume = intg[0];
+  
+  E_Float k=1./volume;
+  
+  centroid[0] = k * intg[1];
+  centroid[1] = k * intg[2];
+  centroid[2] = k * intg[3];
+  
+}
+
+inline static void metrics(const K_FLD::FloatArray& aT3, E_Float & volume, E_Float* centroid)
+{
+  const E_Float  mult[10] = {1./6. ,1./24. ,1./24. ,1./24. ,1./60. ,1./60. ,1./60. ,1./120. ,1./120. ,1./120.};
+  E_Float  intg[10] = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};//  order :  1 ,  x ,  y ,  z ,  x ^2 ,  y ^2 ,  z ^2 ,  xy ,  yz ,  zx
+  
+  E_Float f1x, f2x, f3x, g0x, g1x, g2x, f1y, f2y, f3y, g0y, g1y, g2y, f1z, f2z, f3z, g0z, g1z, g2z;
+  
+  for (E_Int i=0; i < aT3.cols(); i+=3)
+  {
+    const E_Float *p0 = aT3.col(i);
+    const E_Float *p1 = aT3.col(i+1);
+    const E_Float *p2 = aT3.col(i+2);
     
     E_Float a1 = p1[0] - p0[0];
     E_Float b1 = p1[1] - p0[1];

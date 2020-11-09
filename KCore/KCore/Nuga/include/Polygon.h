@@ -138,6 +138,22 @@ public:
       I = (I + 1) % nb_nodes;
     }
   }
+
+  ///
+  template <typename acrd_t>
+  static inline void star_triangulate(const acrd_t& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, 
+                                      const E_Float* G, K_FLD::FloatArray& aT3)
+  {
+    for (E_Int i=0; i < nb_nodes; ++i)
+    {
+      const E_Float* p1 = crd.col(nodes[i] - index_start);
+      const E_Float* p2 = crd.col(nodes[(i+1)%nb_nodes] - index_start);
+
+      aT3.pushBack(G, G + 3);
+      aT3.pushBack(p1, p1 + 3);
+      aT3.pushBack(p2, p2 + 3); 
+    }
+  }
   
   ///
   E_Int shuffle_triangulation();
@@ -292,7 +308,7 @@ public:
   
   /// Tells if the input Polygon is star-shaped in regard with queryP.
   template <E_Int DIM>
-  bool is_star_shaping(const E_Float* queryP, const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start);
+  static bool is_star_shaping(const E_Float* queryP, const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start);
 
   // returns the worst reflex info (K0, n0)
   static bool is_convex
@@ -837,7 +853,7 @@ bool Polygon::is_star_shaping
 (const E_Float* queryP, const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start)
 {
   E_Float ndS[DIM], vsi[DIM];
-  K_MESH::Polygon::ndS<DIM>(crd, nodes, nb_nodes, index_start, ndS);
+  K_MESH::Polygon::ndS<K_FLD::FloatArray, DIM>(crd, nodes, nb_nodes, index_start, ndS);
   
   for (E_Int i = 0; i < nb_nodes; ++i)
   {
@@ -1076,6 +1092,7 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
 
     if (det < det_min)
     {
+      //std::cout << "det val : " << det << std::endl;
       convex = false;
       iworst = i%nb_nodes;
       det_min = det;
