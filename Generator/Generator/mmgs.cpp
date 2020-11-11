@@ -295,7 +295,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   // Table to know if a vertex/tetra/tria/edge is required
   int* required = new int [K_FUNC::E_max(npo,nto,nao)+1];
   
-  // Table to know if a componant is corner and/or required
+  // Table to know if a component is corner and/or required
   int* ridge = new int [nao+1];
 
   // Allocate array2

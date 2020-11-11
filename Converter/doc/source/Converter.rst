@@ -213,7 +213,7 @@ List of functions
     Converter.normalize
     Converter.magnitude
     Converter.randomizeVar
-   
+    Converter.isFinite
 
 **-- Array / PyTree input/output**
 
@@ -719,7 +719,7 @@ pyTree creation and manipulation
     :param bndType: type of bnd
     :type bndType: string
     :param dim: dimension of problem
-    :param dim: 2 or 3
+    :type dim: 2 or 3
     :rtype: reference copy of input
 
     *Example of use:*
@@ -1024,7 +1024,7 @@ pyTree creation and manipulation
 .. py:function:: Converter.PyTree.getFamilyZones(a, familyName)
 
     Get all zones of given family (family of zones).
-    
+
     :param a: input data 
     :type a: [pyTree, base, zone, list of zones]
     :rtype: list of zones (shared with a)
@@ -1040,7 +1040,7 @@ pyTree creation and manipulation
 .. py:function:: Converter.PyTree.getFamilyBCs(a, familyName)
 
     Get all BC nodes corresponding to a given familyName (family of BCs).
-    
+
     :param a: input data 
     :type a: [pyTree, base, zone, list of zones]
     :rtype: list of BC nodes (shared with a)
@@ -1055,7 +1055,7 @@ pyTree creation and manipulation
 
 .. py:function:: Converter.PyTree.getFamilyZoneNames(a)
 
-     Return all family zone names defined in a. 
+    Return all family zone names defined in a. 
     
     :param a: input data 
     :type a: [pyTree, base]
@@ -1071,8 +1071,8 @@ pyTree creation and manipulation
 
 .. py:function:: Converter.PyTree.getFamilyBCNamesOfType(a, bndType=None)
 
-     Return all family BC names of a given type. If type is None, 
-     return all family BC names.
+    Return all family BC names of a given type. If type is None, 
+    return all family BC names.
     
     :param a: input data 
     :type a: [pyTree, base]
@@ -1088,8 +1088,8 @@ pyTree creation and manipulation
 
 .. py:function:: Converter.PyTree.getFamilyBCNamesDict(a)
 
-     Return all family BC names contained in a as a dictionary 'familyName', 'BCType'.
-     The dictionary is dict['familyName'] = 'BCType'.
+    Return all family BC names contained in a as a dictionary 'familyName', 'BCType'.
+    The dictionary is dict['familyName'] = 'BCType'.
      
     :param a: input data 
     :type a: [pyTree, base]
@@ -1106,18 +1106,18 @@ pyTree creation and manipulation
 
 .. py:function:: Converter.PyTree.getValue(a, var, ind)
 
-     Return the field value(s) defined in a zone a for point of index ind 
-     (for both structured and unstructured zones). 
-     For structured zones, you can specify (i,j,k) instead of ind. 
-     For unstructured zones, the index ind corresponds to the location 
-     type of point defining zone a. For instance, if a describes a 
-     field at element vertices, ind is a vertex index. 
-     var is the name of the field variable or a list of field variables
-     or a container name. Variable name can be preceded with 'centers:'
-     or 'nodes:'. 
-     This routine is slow and must not be used to access all points of a zone. In this case,
-     it is better to access the field numpy with Internal.getNodeFromName
-     for example.     
+    Return the field value(s) defined in a zone a for point of index ind 
+    (for both structured and unstructured zones). 
+    For structured zones, you can specify (i,j,k) instead of ind. 
+    For unstructured zones, the index ind corresponds to the location 
+    type of point defining zone a. For instance, if a describes a 
+    field at element vertices, ind is a vertex index. 
+    var is the name of the field variable or a list of field variables
+    or a container name. Variable name can be preceded with 'centers:'
+    or 'nodes:'. 
+    This routine is slow and must not be used to access all points of a zone. In this case,
+    it is better to access the field numpy with Internal.getNodeFromName
+    for example.     
     
     :param a: input zone 
     :type a: zone
@@ -1137,14 +1137,14 @@ pyTree creation and manipulation
 
 .. py:function:: Converter.PyTree.setValue(a, var, ind, value)
 
-     Set the values of one point of index ind in a zone a. 
-     var is the name of the field variable
-     or a container name. Variable name can be preceded with 'centers:'
-     or 'nodes:'. 
-     value can be a float or a list of floats corresponding to the values 
-     of the variables to be modified. 
-     This routine is slow and must not be used to access all points of a zone. In this case,
-     it is better to use setPartialFields.
+    Set the values of one point of index ind in a zone a. 
+    var is the name of the field variable
+    or a container name. Variable name can be preceded with 'centers:'
+    or 'nodes:'. 
+    value can be a float or a list of floats corresponding to the values 
+    of the variables to be modified. 
+    This routine is slow and must not be used to access all points of a zone. In this case,
+    it is better to use setPartialFields.
     
     :param a: input zone 
     :type a: zone
@@ -1182,7 +1182,7 @@ pyTree creation and manipulation
     :param startFrom: starting indice of I (e.g. 0 or 1)
     :type startFrom: integer 
     :rtype: reference copy of input
-    
+
 
     *Example of use:*
 
@@ -1366,9 +1366,9 @@ Array / PyTree common manipulations
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varNameString: string describing variable or formula
+    :type varNameString: string
     :param value: value in case of constant init or function.
     :type value: float or function and parameters
-    :type var: string
     :rtype: identical to input
 
     *Example of use:*
@@ -1710,7 +1710,7 @@ Array / PyTree common manipulations
     :param var: variables to modify
     :type var: string or list of strings or container name
     :param cellNType: describes the type of treatment for cellN variables.
-    :param cellNType: int
+    :type cellNType: int
     :rtype: Identical to input
 
     *Example of use:*
@@ -2003,6 +2003,7 @@ Array / PyTree analysis
     :param varName: field to randomize
     :type varName: string
     :param deltaMin,deltaMax: range for random
+    :type deltaMin,deltaMax: floats
     :rtype: Identical to input
 
     *Example of use:*
@@ -2014,6 +2015,28 @@ Array / PyTree analysis
     * `Randomize a field (pyTree) <Examples/Converter/randomizeVarPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/randomizeVarPT.py
+
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter.isFinite(a, var=None)
+
+    Return True if a contains only finite values (no NAN, no INF).
+
+    :param a: input data
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param var: variable name (optional)
+    :type var: string
+    :rtype: True or False
+
+    *Example of use:*
+
+    * `Test if fields are finite (array) <Examples/Converter/isFinite.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/isFinite.py
+
+    * `Test if fields are finite (pyTree) <Examples/Converter/isFinitePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/isFinitePT.py
 
 
 .. Array / PyTree conversion
@@ -2037,7 +2060,7 @@ Array / PyTree analysis
 
     .. literalinclude:: ../build/Examples/Converter/convertPyTree2Array.py
 
-    
+
 Array / PyTree input/output
 ------------------------------
 
@@ -2094,7 +2117,6 @@ Array / PyTree input/output
     * `Binary tecplot file read/write <Examples/Converter/convertArrays2File.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/convertArrays2File.py
-
 
 
 -------------------------------------------------------------------------

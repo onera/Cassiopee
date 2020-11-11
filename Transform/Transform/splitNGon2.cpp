@@ -73,7 +73,7 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
   res = K_ARRAY::getFromArray(arrayc, varStringc, 
                               fc, nic, njc, nkc, cnc, eltTypec, true);
 
-  E_Int posc = K_ARRAY::isNamePresent(varStringc, "part"); posc++;  
+  E_Int posc = K_ARRAY::isNamePresent("part", varStringc); posc++;  
   E_Float* fp = fc->begin(posc);
   
   // Construit le graph

@@ -648,8 +648,11 @@ def defineSizeMapForMMGs(array, hmax, sizeConstraints):
         array = Converter.addVars([array, vol])
     pos = KCore.isNamePresent(array, 'sizemap')
 
-    c = Transform.join(sizeConstraints)
-    v = Generator.getVolumeMap(c); v = Converter.center2Node(v); c = Converter.addVars([c,v])
+    szcs = C.convertArray2Hexa(sizeConstraints)
+    c = Transform.join(szcs)
+    v = Generator.getVolumeMap(c)
+    v = Converter.center2Node(v) # devrait etre max
+    c = Converter.addVars([c,v])
     hook = Converter.createHook(c, function='nodes')
     ret = Converter.nearestNodes(hook, array)
     n = ret[0]; d = ret[1] 

@@ -5917,6 +5917,7 @@ def node2ExtCenter(t, var=''):
 # diff 2 pyTrees
 #==============================================================================
 def diffArrays(A, B, removeCoordinates=True):
+  """Compute the difference of two pyTrees."""
   t1 = Internal.copyRef(A); t2 = Internal.copyRef(B)
   zones1 = Internal.getZones(t1)
   zones2 = Internal.getZones(t2)
@@ -5950,6 +5951,30 @@ def diffArrays(A, B, removeCoordinates=True):
       setFields(diff, zones1[no], 'centers')
   if removeCoordinates: t1 = rmNodes(t1, Internal.__GridCoordinates__)
   return t1
+
+# Check if all fields are finite (no NAN no INF)
+def isFinite(a, var=None):
+  """Return true if all fields in a have no NAN or INF values."""
+  if var is not None:
+    var = var.replace('centers:', '')
+    var = var.replace('nodes:', '')
+  zones = Internal.getZones(a)
+  containers = [Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__]
+  ret = True
+  for z in zones:
+    for name in containers:
+      c = Internal.getNodeFromName1(z, name)
+      if c is not None:
+        nodes = Internal.getNodesFromType1(c, 'DataArray_t')
+        for n in nodes:
+          if var is None or n[0] == var:
+            array = n[1]
+            b = numpy.isfinite(array)
+            res = numpy.all(b)
+            if not res:
+              ret = False
+              print('Warning: NAN or INF value in %s (%s)'%(n[0],z[0]))
+    return ret
 
 #==============================================================================
 # - add specific nodes -

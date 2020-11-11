@@ -19,7 +19,7 @@ __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'cent
     'convertArrays2File', 'convertBAR2Struct', 'convertFile2Arrays', 'convertTri2Quad', 'copy', 
     'createGlobalHook', 'createHook', 
     'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
-    'createSockets', 'diffArrays', 'extCenter2Node', 'extractVars', 'getIndexField',
+    'createSockets', 'diffArrays', 'isFinite', 'extCenter2Node', 'extractVars', 'getIndexField',
     'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue', 
     'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes', 
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude', 
@@ -671,6 +671,30 @@ def diffArrays(arrays1, arrays2, arrays3=[]):
     """Diff arrays defining solutions.
     Usage: diffArrays(arrays1, arrays2, [arrays3])"""
     return converter.diffArrays(arrays1, arrays2, arrays3)
+
+def isFinite__(a, var=None):
+    nfld = a[1].shape[0]
+    vars = getVarNames(a)
+    ret = True
+    for c, v in enumerate(vars):
+        if var is None or v == var:
+            ptr = a[1][c]
+            b = numpy.isfinite(ptr)
+            res = numpy.all(b)
+            if not res:
+                ret = False
+                print('Warning: NAN or INF value in field (%s)'%v)
+    return ret
+    
+def isFinite(array, var=None):
+    """Return true if all fields have no NAN or INF values."""
+    if isinstance(array[0], list):
+        ret = True
+        for a in array:
+            ret1 = isFinite__(a, var)
+            if ret1 == False: ret = False
+        return ret 
+    else: return isFinite__(array, var)
 
 def getValue(array, ind):
     """Return the values of an array for a point of index ind or (i,j,k)...
