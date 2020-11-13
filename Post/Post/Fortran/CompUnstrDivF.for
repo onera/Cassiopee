@@ -92,7 +92,7 @@ c     calcul de la divergence au centre des elts
             gradzz = gradzz + snz(eti, fi) * fieldfz(eti,fi)
          ENDDO
 
-         invvol = ONE/vol(eti)
+         invvol = ONE/MAX(vol(eti), E_MIN_VOL)
          div(eti) = (gradxx + gradyy + gradzz)* invvol
       ENDDO
 !$OMP END DO

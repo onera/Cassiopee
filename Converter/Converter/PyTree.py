@@ -5974,7 +5974,7 @@ def isFinite(a, var=None):
             if not res:
               ret = False
               print('Warning: NAN or INF value in %s (%s)'%(n[0],z[0]))
-    return ret
+  return ret
 
 #==============================================================================
 # - add specific nodes -

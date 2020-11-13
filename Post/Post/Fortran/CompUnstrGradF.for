@@ -78,7 +78,7 @@ c     calcul du gradient au centre des elts
          sumx = ZERO
          sumy = ZERO
          sumz = ZERO
-         invvol = ONE/vol(eti)
+         invvol = ONE/MAX(vol(eti), E_MIN_VOL)
          
          DO fi = 1, nedges
             sumx = sumx + snx(eti, fi) * fieldf(eti,fi)

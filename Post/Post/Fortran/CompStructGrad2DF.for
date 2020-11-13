@@ -81,7 +81,7 @@ C
 
          nn = sqrt(nx*nx+ny*ny+nz*nz)
          vinv = 2D0 * surf(indcell) * nn 
-         vinv = ONE/vinv
+         vinv = ONE/MAX(vinv, E_MIN_VOL)
 
          xAB = xt(indB)-xt(indA)
          yAB = yt(indB)-yt(indA)

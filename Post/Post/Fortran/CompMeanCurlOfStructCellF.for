@@ -136,7 +136,7 @@ C-----------------------------------------------------------------------------
          curlz = curlz + uint(l,1)*surf(l,2) - uint(l,2)*surf(l,1)
       ENDDO
      
-      cellvol = -ONE_FOURTH / cellvol
+      cellvol = -ONE_FOURTH / MAX(cellvol, E_MIN_VOL)
       
       rotu = cellvol * curlx
       rotv = cellvol * curly

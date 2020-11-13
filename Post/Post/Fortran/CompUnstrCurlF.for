@@ -88,7 +88,7 @@ c     calcul du rotationnel au centre des elts
          curly = ZERO
          curlz = ZERO
 
-         vinv = -ONE/vol(eti)
+         vinv = -ONE/MAX(vol(eti), E_MIN_VOL)
 
          DO fi = 1, nedges
             sxi = snx(eti,fi) 

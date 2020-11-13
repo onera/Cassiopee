@@ -12,7 +12,7 @@ def computeVorticity(t):
     presvx = C.isNamePresent(t2, 'VelocityX')
     if presvx == -1: 
         presvxc = C.isNamePresent(t2, 'centers:VelocityX') 
-        if presvxc > -1: t2 = C.center2Node(t2,['centers:VelocityX','centers:VelocityY','centers:VelocityZ'])
+        if presvxc > -1: t2 = C.center2Node(t2, ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'])
         else: t2 = P.computeVariables(t2, ['VelocityX', 'VelocityY', 'VelocityZ'])
 
     t2 = P.computeCurl(t2, ['VelocityX', 'VelocityY', 'VelocityZ'])

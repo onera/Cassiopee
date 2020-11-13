@@ -109,7 +109,7 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
   // Check array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int ni, nj, nk;// number of points of array
+  E_Int ni, nj, nk; // number of points of array
   E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, 
                                     eltType, true);
   if (res != 1 && res != 2) 
@@ -235,8 +235,8 @@ E_Int K_POST::computeCurlStruct(E_Int ni, E_Int nj, E_Int nk,
   if (dim == 2) 
     k6compstructcurl2dt_(ni, nj, ncells, 
                          xt, yt, zt, ux, uy, uz,
-                         rotx, roty, rotz);  
-  else 
+                         rotx, roty, rotz);
+  else
     k6compstructcurlt_(ni, nj, nk, ncells, nint, 
                        xt, yt, zt, ux, uy, uz,
                        rotx, roty, rotz,

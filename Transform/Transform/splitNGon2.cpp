@@ -130,11 +130,13 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
   E_Int ncon = 1;
   E_Int objval = 0;
   idx_t* parts = new idx_t [nelts];
-  //for (E_Int i = 0; i < nelts; i++) parts[i] = 0; // dbx
-  //METIS_PartGraphRecursive(&nelts, &ncon, xadj, adj, NULL, NULL, NULL, 
-  //                         &nparts, NULL, NULL, NULL, &objval, parts);
+  if (nparts == 1) { for (E_Int i = 0; i < nelts; i++) parts[i] = 0; } 
+  else
   METIS_PartGraphKway(&nelts, &ncon, xadj, adj, NULL, NULL, NULL, 
                       &nparts, NULL, NULL, NULL, &objval, parts);
+  //METIS_PartGraphRecursive(&nelts, &ncon, xadj, adj, NULL, NULL, NULL, 
+  //                         &nparts, NULL, NULL, NULL, &objval, parts);
+  
   delete [] xadj; delete [] adj1;
 
   // output: sortie de la liste des elements pour chaque part
@@ -172,7 +174,7 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
         { size += nf; indir[i] = c; c +=1; }
         cne += nf+1;
       }
-      printf("%d %d\n", nelts2, size);
+      //printf("%d %d\n", nelts2, size);
       
       adj1 = new idx_t [size];
       adj = adj1;
@@ -201,7 +203,8 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
       ncon = 1;
       objval = 0;
       idx_t* parts2 = new idx_t [nelts2];
-
+      if (nparts2 == 1) { for (E_Int i = 0; i < nelts2; i++) parts2[i] = 0; }
+      else
       METIS_PartGraphKway(&nelts2, &ncon, xadj, adj, NULL, NULL, NULL, 
                           &nparts2, NULL, NULL, NULL, &objval, parts2);
       delete [] xadj; delete [] adj1;

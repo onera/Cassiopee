@@ -142,7 +142,7 @@ C attention : surf n est pas oriente : tjs positif
          sz5 = -surf(indint5,3)
          sz6 =  surf(indint6,3)
 
-         vinv = -ONE/vol(indcell)
+         vinv = -ONE/MAX(vol(indcell), E_MIN_VOL)
       
          curlx = 
      &        uinty(indint1)* sz1 - uintz(indint1)* sy1 +  

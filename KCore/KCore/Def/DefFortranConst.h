@@ -46,6 +46,7 @@ C     ----------------------
       REAL_E FOUR
       REAL_E E_CUTOFF
       REAL_E E_MIN_SURFACE
+      REAL_E E_MIN_VOL
       REAL_E E_PI
       REAL_E E_MAXEXP
       REAL_E INFTYS
@@ -62,6 +63,7 @@ C     ----------------------
       PARAMETER (FOUR         =  4.0D0  )
 C     Useful 
       PARAMETER (E_CUTOFF     = 1.0D-11)
+      PARAMETER (E_MIN_SURFACE= 1.0D-30)
       PARAMETER (E_MIN_SURFACE= 1.0D-30)
       PARAMETER (E_PI         = 3.14159265359)
 C     Avoid exponential overflow

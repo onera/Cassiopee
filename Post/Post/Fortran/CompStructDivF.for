@@ -139,7 +139,7 @@ C attention: surf n est pas oriente: tjs positif
          sz5 = -surf(indint5,3)
          sz6 =  surf(indint6,3)
 
-         vinv = ONE/vol(indcell)
+         vinv = ONE/MAX(vol(indcell), E_MIN_VOL)
 
          gradxx = sx1 * fldintX(indint1)+sx2 * fldintX(indint2)
      &          + sx3 * fldintX(indint3)+sx4 * fldintX(indint4)

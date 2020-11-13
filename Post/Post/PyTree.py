@@ -791,8 +791,7 @@ def computeExtraVariable(t, varname, gamma=-1, rgp=-1.,
         return t2
     elif varname == 'centers:Vorticity':
         return extraVariablesPT.computeVorticity(t)
-    elif (varname == 'VorticityMagnitude' or
-          varname == 'nodes:VorticityMagnitude'):
+    elif varname == 'VorticityMagnitude' or varname == 'nodes:VorticityMagnitude':
         t2 = extraVariablesPT.computeVorticityMagnitude(t)
         t2 = C.center2Node(t2, 'centers:VorticityMagnitude')
         C._rmVars(t2, 'centers:VorticityMagnitude')
