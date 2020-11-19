@@ -90,42 +90,51 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   IMPORTNUMPY;
 
   // Analyse de com
-  if (PyArray_Check(com) == 0)
+  int* volCom = NULL; PyArrayObject* coma = NULL;
+  if (com == Py_None) volCom = NULL;
+  else if (PyArray_Check(com) == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "distribute: com must a numpy array.");
     return NULL;
   }
+  else
+  {
+    coma = (PyArrayObject*)com;
+    volCom = (int*)PyArray_DATA(coma);
+    Py_INCREF(coma);
+  }
   
-  PyArrayObject* coma = (PyArrayObject*)com;
-  int* volCom = (int*)PyArray_DATA(coma);
-  Py_INCREF(coma);
-
   // Analyse de comd
-  if (PyArray_Check(comd) == 0)
+  int* volComd = NULL; E_Int sizeComd = 0; PyArrayObject* comad = NULL;
+  if (comd == Py_None) volComd = NULL;
+  else if (PyArray_Check(comd) == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "distribute: comd must a numpy array.");
     return NULL;
   }
-  
-  coma = (PyArrayObject*)comd;
-  int* volComd = (int*)PyArray_DATA(coma);
-  Py_INCREF(coma);
-  E_Int sizeComd = PyArray_SIZE(coma);
-
+  else
+  {
+    comad = (PyArrayObject*)comd;
+    volComd = (int*)PyArray_DATA(comad);
+    Py_INCREF(comad);
+    sizeComd = PyArray_SIZE(comad);
+  }
 
   // Analyse perfProcs
   if (PyList_Check(perfProcs) == 0)
   {
-    Py_DECREF(coma);
+    if (coma != NULL) Py_DECREF(coma);
+    if (comad != NULL) Py_DECREF(comad);
     PyErr_SetString(PyExc_TypeError,
                     "distribute: perfo must be a list.");
     return NULL;
   }
   if (PyList_Size(perfProcs) != NProc)
   {
-    Py_DECREF(coma);
+    if (coma != NULL) Py_DECREF(coma);
+    if (comad != NULL) Py_DECREF(comad);
     PyErr_SetString(PyExc_TypeError,
                     "distribute: perfo must have NProc elements.");
     return NULL;
@@ -138,7 +147,8 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
     PyObject* o = PyList_GetItem(perfProcs, i);
     if (PyTuple_Check(o) == 0 || PyTuple_Size(o) != 3)
     {
-      Py_DECREF(coma);
+      if (coma != NULL) Py_DECREF(coma);
+      if (comad != NULL) Py_DECREF(comad);
       PyErr_SetString(PyExc_TypeError,
                       "distribute: perfo must be tuples (solver,latency,comSpeed).");
       return NULL;
@@ -217,8 +227,9 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
     o = Py_BuildValue("l", out[i]);
     PyList_Append(tpl, o); Py_DECREF(o);
   }
-  Py_DECREF(coma);
-
+  if (coma != NULL) Py_DECREF(coma);
+  if (comad != NULL) Py_DECREF(comad);
+  
   // Formation du dictionnaire de stats
   PyObject* stats = PyDict_New();
   PyDict_SetItemString(stats, "distrib", tpl); Py_DECREF(tpl);

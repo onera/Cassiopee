@@ -84,7 +84,7 @@ void K_DISTRIBUTOR2::genetic(
   sizeOfPopulation = K_FUNC::E_min(sizeOfPopulation, 300);
   // Number max of generations
   E_Int nitMax = 50;
-  if (param == 1) { nitMax = 0; sizeOfPopulation = 5; } // fast
+  if (param == 1) { nitMax = 0; sizeOfPopulation = 4; } // fast
 
   // Local data
   E_LONG idum = -1;
@@ -193,6 +193,7 @@ void K_DISTRIBUTOR2::genetic(
   }
 
   // Pour le cinquieme, best fit avec utilisation des coms
+  /*
   E_Int* pop5 = popp+4*nb;
   E_Int* alreadySet = new E_Int [nb];
   for (E_Int i = 0; i < nb; i++) alreadySet[i] = 0;
@@ -248,13 +249,14 @@ void K_DISTRIBUTOR2::genetic(
     }
   }
   delete [] alreadySet;
-
+  */
+  
   //for (E_Int i = 0; i < nb; i++)
   //  printf("%d %d %d\n", i, pop(i, 3), nbPts[i]);
   delete [] largest;
 
   // Pour les autres, c'est completement au hasard:
-  for (E_Int j = 6; j <= sizeOfPopulation; j++)
+  for (E_Int j = 5; j <= sizeOfPopulation; j++)
   {
     E_Int* popj = popp+(j-1)*nb;
     for (E_Int i = 0; i < nb; i++)
@@ -316,7 +318,7 @@ void K_DISTRIBUTOR2::genetic(
     }
     else
     {
-      // Ah, on a une meilleurs population:
+      // Ah, on a une meilleur population:
       nbItWithFail = 0;
     }
     E_Int nbSurvivors = 0;
@@ -544,51 +546,52 @@ void K_DISTRIBUTOR2::genetic(
   //printf("varMin=%f, varMax=%f, varRMS=%f\n", varMin, varMax, varRMS);
 
   // volume total de com
-  nptsCom = 0;
-  E_Int volTot = 0;
-  for (E_Int i = 0; i < nb; i++)
+  nptsCom = 0; E_Int volTot = 0;
+  if (com != NULL)
   {
-    E_Int proci = popp[i+(jBest-1)*nb];
-    for (E_Int k = 0; k < nb; k++)
+    for (E_Int i = 0; i < nb; i++)
     {
-      if (com[k + i*nb] > 0)
+      E_Int proci = popp[i+(jBest-1)*nb];
+      for (E_Int k = 0; k < nb; k++)
       {
-        E_Int prock = popp[k+(jBest-1)*nb];
-        volTot += com[k + i*nb];
-        // le voisin est-il sur le meme processeur?
-        if (proci != prock) 
+        if (com[k + i*nb] > 0)
         {
-          nptsCom += com[k + i*nb];
+          E_Int prock = popp[k+(jBest-1)*nb];
+          volTot += com[k + i*nb];
+          // le voisin est-il sur le meme processeur?
+          if (proci != prock) 
+          {
+            nptsCom += com[k + i*nb];
+          }
         }
       }
     }
   }
-
+  
   // volume total de com avec comd
-  /*
-  E_Int v1, volcom;
-  nptsCom = 0;
-  E_Int volTot = 0;
-  for (E_Int v = 0; v < sizeComd; v++)
+  if (comd != NULL)
   {
-    v1 = comd[2*v]; volcom = comd[2*v+1];
-    i = E_Int(v1/nb);
-    k = v1-i*nb;
-    E_Int proci = popp[i+(jBest-1)*nb];
-    E_Int prock = popp[k+(jBest-1)*nb];
-    volTot += volcom;
-    // le voisin est-il sur le meme processeur?
-    if (proci != prock) 
+    E_Int v1, volcom, i, k, proci, prock;
+    for (E_Int v = 0; v < sizeComd/2; v++)
     {
-      nptsCom += volcom;
+      v1 = comd[2*v]; volcom = comd[2*v+1];
+      k = E_Int(v1/nb);
+      i = v1-k*nb;
+      proci = popp[i+(jBest-1)*nb];
+      prock = popp[k+(jBest-1)*nb];
+      volTot += volcom;
+      // le voisin est-il sur le meme processeur?
+      if (proci != prock) 
+      {
+        nptsCom += volcom;
+      }
     }
   }
-  */
 
-  //printf("Volume de communication=%d\n", nptsCom);
+  printf("Volume de communication=%d\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
   else volRatio = 0.;
-  //printf("Volume de communication/volume total=%f\n", volRatio);
+  printf("Volume de communication/volume total=%f\n", volRatio);
 
   bestAdapt = evalp[jBest-1];
   //printf("Adaptation: %f\n", bestAdapt);

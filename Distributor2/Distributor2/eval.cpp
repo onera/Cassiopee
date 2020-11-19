@@ -48,45 +48,49 @@ E_Float K_DISTRIBUTOR2::eval(
     res += solver[p] * K_FUNC::E_abs(nbPtsPerProcsp[p]-meanPtsPerProc);
 
   // avec com
-  for (i = 0; i < nb; i++)
+  if (com != NULL)
   {
-    proci = dis[i];
-    lati = latence[proci];
-    speedi = comSpeed[proci];
-    for (k = 0; k < nb; k++)
+    for (i = 0; i < nb; i++)
     {
-      volcom = com[k + i*nb];
-      if (volcom > 0)
+      proci = dis[i];
+      lati = latence[proci];
+      speedi = comSpeed[proci];
+      for (k = 0; k < nb; k++)
       {
-        prock = dis[k];
-        // le voisin est-il sur le meme processeur?
-        if (proci != prock)
+        volcom = com[k + i*nb];
+        if (volcom > 0)
         {
-          res += lati + speedi*volcom;
+          prock = dis[k];
+          // le voisin est-il sur le meme processeur?
+          if (proci != prock)
+          {
+            res += lati + speedi*volcom;
+          }
         }
       }
     }
   }
-
+  
   // avec comd
-  /*
-  E_Int v1;
-  for (E_Int v = 0; v < sizeComd; v++)
+  if (comd != NULL)
   {
-    v1 = comd[2*v]; volcom = comd[2*v+1];
-    i = E_Int(v1/nb);
-    k = v1-i*nb;
-    proci = dis[i];
-    lati = latence[proci];
-    speedi = comSpeed[proci];
-    prock = dis[k];
-    // le voisin est-il sur le meme processeur?
-    if (proci != prock)
+    E_Int v1;
+    for (E_Int v = 0; v < sizeComd/2; v++)
     {
-      res += lati + speedi*volcom;
+      v1 = comd[2*v]; volcom = comd[2*v+1];
+      k = E_Int(v1/nb);
+      i = v1-k*nb;
+      proci = dis[i];
+      lati = latence[proci];
+      speedi = comSpeed[proci];
+      prock = dis[k];
+      // le voisin est-il sur le meme processeur?
+      if (proci != prock)
+      {
+        res += lati + speedi*volcom;
+      }
     }
   }
-  */
 
   // Check for empty processors
   for (i = 0; i < NProc; i++)

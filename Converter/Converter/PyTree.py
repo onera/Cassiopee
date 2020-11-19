@@ -1130,19 +1130,26 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
   registerAllNames(t)
   return t
 
+# Suppress invalid links
+def checkLinks__(links, t):
+  out = []
+  for l in links:
+    a = l[2]; b = l[3]
+    if len(a) > 8 and a[0:8] == 'CGNSTree': l[2] = a.replace('CGNSTree', '')
+    elif a[0] != '/': l[2] = '/'+a
+    if len(b) > 8 and b[0:8] == 'CGNSTree': l[3] = b.replace('CGNSTree', '')
+    elif b[0] != '/': l[3] = '/'+b
+    if Internal.getNodeFromPath(t, b) is not None: out.append(l)
+  #for c, i in enumerate(links): print(out[c], links[c])
+  return out
+
 # -- convertPyTree2File
 def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ', links=[]):
   """Write a pyTree to a file.
   Usage: convertPyTree2File(t, fileName, format, options)"""
   if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
-  if links is not None:
-    for l in links: 
-      a = l[2]; b = l[3]
-      if len(a) > 8 and a[0:8] == 'CGNSTree': l[2] = a.replace('CGNSTree', '')
-      elif a[0] != '/': l[2] = '/'+a
-      if len(b) > 8 and b[0:8] == 'CGNSTree': l[3] = b.replace('CGNSTree', '')
-      elif b[0] != '/': l[3] = '/'+b
+  if links is not None: links = checkLinks__(links, t)
   if format is None:
     format = Converter.convertExt2Format__(fileName)
     if format == 'unknown': format = 'bin_cgns'

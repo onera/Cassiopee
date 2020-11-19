@@ -122,6 +122,7 @@ void K_DISTRIBUTOR2::gradient(
   }
 
   // Essai best fit avec coms
+  /*
   nbPtsPerProcs.setAllValuesAtNull();
   E_Int* alreadySet = new E_Int [nb];
   for (E_Int i = 0; i < nb; i++) alreadySet[i] = 0;
@@ -175,6 +176,7 @@ void K_DISTRIBUTOR2::gradient(
     }
   }
   delete [] alreadySet;
+  */
   delete [] largest;
 
   E_Float evalp1 = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
@@ -183,6 +185,9 @@ void K_DISTRIBUTOR2::gradient(
                                         nbPtsPerProcs, nbPts,
                                         dis1.begin());
   
+  dis = dis1;
+  E_Float evalp = evalp1;
+  /*
   E_Float evalp = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                        solver, latence,
                                        comSpeed, com, comd, sizeComd,
@@ -190,7 +195,8 @@ void K_DISTRIBUTOR2::gradient(
                                        dis.begin());
   if (evalp1 < evalp)
   { dis = dis1; evalp1 = evalp; }
-
+  */
+  
   //printf("Adaptation init: %f\n", evalp);
 
   if (param == 1)
@@ -306,45 +312,47 @@ void K_DISTRIBUTOR2::gradient(
   varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
   //printf("varMin=%f, varMax=%f, varRMS=%f\n", varMin, varMax, varRMS);
 
-  nptsCom = 0;
-  E_Int volTot = 0;
-  for (E_Int i = 0; i < nb; i++)
+  nptsCom = 0; E_Int volTot = 0;
+  if (com != NULL)
   {
-    E_Int proci = dis[i];
-    for (E_Int k = 0; k < nb; k++)
+    for (E_Int i = 0; i < nb; i++)
     {
-      if (com[k+i*nb] > 0)
+      E_Int proci = dis[i];
+      for (E_Int k = 0; k < nb; k++)
       {
-        E_Int prock = dis[k];
-        volTot += com[k + i*nb];
-        // le voisin est-il sur le meme processeur?
-        if (proci != prock)
+        if (com[k+i*nb] > 0)
         {
-          nptsCom += com[k + i*nb];
+          E_Int prock = dis[k];
+          volTot += com[k + i*nb];
+          // le voisin est-il sur le meme processeur?
+          if (proci != prock)
+          {
+            nptsCom += com[k + i*nb];
+          }
         }
       }
     }
   }
-
-  /*
-  E_Int v1, volcom;
-  nptsCom = 0;
-  E_Int volTot = 0;
-  for (E_Int v = 0; v < sizeComd; v++)
+  
+  if (comd != NULL)
   {
-    v1 = comd[2*v]; volcom = comd[2*v+1];
-    i = E_Int(v1/nb);
-    k = v1-i*nb;
-    E_Int proci = popp[i+(jBest-1)*nb];
-    E_Int prock = popp[k+(jBest-1)*nb];
-    volTot += volcom;
-    // le voisin est-il sur le meme processeur?
-    if (proci != prock) 
+    E_Int v1, volcom, proci, prock;
+    E_Int i,k;
+    for (E_Int v = 0; v < sizeComd/2; v++)
     {
-      nptsCom += volcom;
+      v1 = comd[2*v]; volcom = comd[2*v+1];
+      k = E_Int(v1/nb);
+      i = v1-k*nb;
+      proci = dis[i];
+      prock = dis[k];
+      volTot += volcom;
+      // le voisin est-il sur le meme processeur?
+      if (proci != prock) 
+      {
+        nptsCom += volcom;
+      }
     }
   }
-  */
 
   //printf("Volume de communication=%d\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);

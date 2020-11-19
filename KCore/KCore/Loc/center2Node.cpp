@@ -494,6 +494,9 @@ E_Int K_LOC::center2nodeUnstruct(FldArrayF& FCenter,
 // FNode doit etre alloue au nb de noeuds
 // IN: cNG: connectivite NGON
 // IN: cEV: connectivite Elts/Vertex associes aux NGON
+// IN: cellN: position du champ cellN dans FCenter
+// IN: mod: type de cellN
+// IN: algo: type de prise en compte du cellN
 // Retourne 1 en cas de succes, 0 en cas d'echec.
 //=============================================================================
 E_Int K_LOC::center2nodeNGon(

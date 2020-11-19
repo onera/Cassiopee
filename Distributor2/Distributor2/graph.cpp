@@ -79,17 +79,42 @@ void K_DISTRIBUTOR2::graph(
   for (E_Int i = 0; i < nb; i++) nbPtsMax = K_FUNC::E_max(nbPts[i], nbPtsMax);
 
   // Enforce com graph symetry (necessary for metis but not necessarily ensured by IBM)
-  for (E_Int i = 0; i < nb; i++)
-    for (E_Int j = 0; j < nb; j++)
-    {
-      if (com[i+j*nb] != com[j+i*nb])
+  if (com != NULL)
+  {
+    for (E_Int i = 0; i < nb; i++)
+      for (E_Int j = 0; j < nb; j++)
       {
-        //printf("No Symetry - forced: %d %d (%d %d)\n", i,j, com[i+j*nb], com[j+i*nb]);
-        //com[i+j*nb] = com[j+i*nb];
-        if (com[j+i*nb] > 0) com[i+j*nb] = com[j+i*nb];
-        else com[j+i*nb] = com[i+j*nb];
+        if (com[i+j*nb] != com[j+i*nb])
+        {
+          //printf("No Symetry - forced: %d %d (%d %d)\n", i,j, com[i+j*nb], com[j+i*nb]);
+          //com[i+j*nb] = com[j+i*nb];
+          if (com[j+i*nb] > 0) com[i+j*nb] = com[j+i*nb];
+          else com[j+i*nb] = com[i+j*nb];
+        }
+      }
+  }
+  // Force symetrie (matrice inferieure)
+  if (comd != NULL)
+  {
+    E_Int b1,b2,bb1,bb2;
+    bool exist;
+    for (E_Int i = 0; i < sizeComd/2; i++)
+    {
+      b2 = comd[2*i]/nb;
+      b1 = comd[2*i]-b2*nb;
+      if (b1 > b2) // retourne que si il n'existe pas deja dans la partie inferieure de la matrice
+      {  
+        exist = false;  
+        for (E_Int n = 0; n < sizeComd/2; n++)
+        {
+          bb2 = comd[2*n]/nb;
+          bb1 = comd[2*n]-bb2*nb;
+          if (n != i && bb1 == b2 && bb2 == b1) { exist = true; break; }
+        }
+        if (exist == false) comd[2*i] = b2 + b1*nb; // inverse 
       }
     }
+  }
 
   /*
   for (E_Int i = 0; i < nb; i++)
@@ -108,20 +133,32 @@ void K_DISTRIBUTOR2::graph(
   
   // taille des adj
   E_Int size = 0;
-  for (E_Int i = 0; i < nb; i++)
-    for (E_Int j = 0; j < nb; j++)
-    {
-      if (com[i+j*nb] > 0 && i != j)
+  if (com != NULL)
+  {
+    for (E_Int i = 0; i < nb; i++)
+      for (E_Int j = 0; j < nb; j++)
       {
-        size++;
+        if (com[i+j*nb] > 0 && i != j) size++;
+      }
+  }
+  if (comd != NULL)
+  {
+    //size = sizeComd/2;
+    E_Int b1,b2;
+    for (E_Int i = 0; i < nb; i++)
+    {
+      for (E_Int n = 0; n < sizeComd/2; n++)
+      {
+        b2 = comd[2*n]/nb;
+        b1 = comd[2*n]-b2*nb;
+        if (b1 < b2 && b1 == i) size++;
+        else if (b1 < b2 && b2 == i) size++;
       }
     }
-
-  // taille des adj par comd
-  //size = sizeComd/2;
+  }
   
   //printf("size of adj %d\n", size);
-
+  
   idx_t* adj = new idx_t [size];
   idx_t* xadj = new idx_t [nb+1];
   idx_t* vweight = new idx_t [nb];
@@ -136,54 +173,62 @@ void K_DISTRIBUTOR2::graph(
   // com relative weight
   // E_Float rel = 0.5;
 
-  // remplissage adj + xadj
-  size = 0;
-  for (E_Int i = 0; i < nb; i++)
+  // remplissage adj + xadj a partir de com
+  if (com != NULL)
   {
-    xadj[i] = size;
-    for (E_Int j = 0; j < nb; j++)
+    size = 0;
+    for (E_Int i = 0; i < nb; i++)
     {
-      if (com[i+j*nb] > 0 && i != j)
+      xadj[i] = size;
+      for (E_Int j = 0; j < nb; j++)
       {
-        adj[size] = j;
-        //printf("%d %d\n",com[i+j*nb],com[j+i*nb]);
-        //if (i < j) adjweight[size] = rel*com[i+j*nb];
-        //else adjweight[size] = rel*com[j+i*nb]; // force symetrie
-        adjweight[size] = com[i+j*nb];
-        size++;
+        if (com[i+j*nb] > 0 && i != j)
+        {
+          adj[size] = j;
+          //printf("%d %d\n",com[i+j*nb],com[j+i*nb]);
+          //if (i < j) adjweight[size] = rel*com[i+j*nb];
+          //else adjweight[size] = rel*com[j+i*nb]; // force symetrie
+          adjweight[size] = com[i+j*nb];
+          size++;
+        }
       }
+      xadj[nb] = size;
     }
-    xadj[nb] = size;
   }
-  //printf("size2 of adj %d\n", size);
-
-  /*
-  size = 0;
-  for (E_Int i = 0; i < nb; i++)
-  {
-    xadj[i] = size;
-
-    for (E_Int n = 0; n < sizeComd; n++)
-    {
-      b1 = comd[2*n]/Nb;
-      b2 = comd[2*n]-b1*Nb;
-      if (b1 == i && b2 =! i)
-      {
-        adj[size] = b2;
-        adjweight[size] = comd[2*n+1];
-        size++;
-      }  
-      else if (b2 == i && b1 != i)
-      {
-        adj[size] = b1;
-        adjweight[size] = comd[2*n+1];
-        size++;
-      }
-    }
-    xadj[nb] = size;
-  }
-  */
   
+  // remplissage adj + xadj a partir de comd (symetrisation ici)
+  if (comd != NULL)
+  {
+    size = 0;
+    E_Int b1,b2;
+    for (E_Int i = 0; i < nb; i++)
+    {
+      xadj[i] = size;
+
+      for (E_Int n = 0; n < sizeComd/2; n++)
+      {
+        b2 = comd[2*n]/nb;
+        b1 = comd[2*n]-b2*nb;
+        if (b1 < b2 && b1 == i)
+        {
+          adj[size] = b2;
+          adjweight[size] = comd[2*n+1];
+          size++;
+        }
+        else if (b1 < b2 && b2 == i)
+        {
+          adj[size] = b1;
+          adjweight[size] = comd[2*n+1];
+          size++;
+        }
+      }
+      xadj[nb] = size;
+    }
+  }
+
+  //printf("size of adj %d\n", size);
+  //for (E_Int i = 0; i < size; i++) printf("adj=%d %d\n", adj[i], adjweight[i]);
+
   E_Int objval = 0;
   E_Int ncon = 1;
   idx_t* parts = new idx_t [nb];
@@ -229,25 +274,51 @@ void K_DISTRIBUTOR2::graph(
   varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
   //printf("varMin=%f, varMax=%f, varRMS=%f\n", varMin, varMax, varRMS);
 
-  nptsCom = 0;
-  E_Int volTot = 0;
-  for (E_Int i = 0; i < nb; i++)
+  nptsCom = 0; E_Int volTot = 0;
+
+  // avec com
+  if (com != NULL)
   {
-    E_Int proci = out[i];
-    for (E_Int k = 0; k < nb; k++)
+    for (E_Int i = 0; i < nb; i++)
     {
-      if (com[k + i*nb] > 0)
+      E_Int proci = out[i];
+      for (E_Int k = 0; k < nb; k++)
       {
-        E_Int prock = out[k];
-        volTot += com[k + i*nb];
-        // le voisin est-il sur le meme processeur?
-        if (proci != prock) 
+        if (com[k + i*nb] > 0)
         {
-          nptsCom += com[k + i*nb];
+          E_Int prock = out[k];
+          volTot += com[k + i*nb];
+          // le voisin est-il sur le meme processeur?
+          if (proci != prock)
+          {
+            nptsCom += com[k + i*nb];
+          }
         }
       }
     }
   }
+   
+  // avec comd
+  if (comd != NULL)
+  {
+    E_Int v1, volCom;
+    E_Int i,k,proci,prock;
+    for (E_Int v = 0; v < sizeComd/2; v++)
+    {
+      v1 = comd[2*v]; volCom = comd[2*v+1];
+      k = E_Int(v1/nb);
+      i = v1-k*nb;
+      proci = out[i];
+      prock = out[k];
+      // le voisin est-il sur le meme processeur?
+      if (i < k) volTot += 2*volCom;
+      if (proci != prock && i < k)
+      {
+        nptsCom += 2*volCom;
+      }
+    }
+  }
+  
   //printf("Volume de communication=%d\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
   else volRatio = 0.;

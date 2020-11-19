@@ -26,11 +26,11 @@ import numpy
 # IN: algorithm: 'gradient0', 'gradient1', 'genetic', 'fast'
 # IN: nghost: nbre de couches de ghost cells
 #==============================================================================
-def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=[], comd={},
+def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=None, comd=None,
                algorithm='graph', mode='nodes', nghost=0):
     """Distribute zones over NProc processors.
     Usage: distribute(A, NProc, prescribed, perfo, weight, com, algorithm)"""
-    if NProc <= 0: 
+    if NProc <= 0:
         raise ValueError("distribute: can not distribute on %d (<=0) processors."%NProc)
 
     # Liste du nombre de points pour chaque arrays
@@ -84,41 +84,34 @@ def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=[], comd={
     Nb = len(arrays)
     if weight == []: weight = [1]*Nb
 
-    # Matrice du volume des coms
-    if com == []: volCom = numpy.zeros((Nb, Nb), numpy.int32)
-    elif isinstance(com, list): volCom = numpy.array(com)
-    else: volCom = com
-    
-    # Convertit les coms en tableau a plat volComd
-    if com != [] and False:
-        size = 0
-        for i in range(Nb):
-            for j in range(Nb):
-                if com[i,j] > 0: size += 1
-        volComd = numpy.empty((2*size), numpy.int32)
-        s = 0
-        for i in range(Nb):
-            for j in range(Nb):
-                if com[i,j] > 0: 
-                    volComd[2*s] = i+j*Nb
-                    volComd[2*s+1] = com[i,j]
-                    s += 1
-
-    # Converti comd en tableau a plat des coms volComd
-    elif comd != {} and False:
-        allkeys = comd.keys()
-        size = len(allkeys)
-        volComd = numpy.empty((2*size), numpy.int32)
-        for i, k in enumerate(allkeys):
-            volComd[2*i] = k
-            volComd[2*i+1] = comd[k]
-        comd = None
-
-    else: volComd = numpy.empty((0), numpy.int32)
-
+    # Matrice du volume des coms (volCom ou volComd)
+    volCom = None; volComd = None
+    if com is None and comd is None: volComd = numpy.empty((0), numpy.int32)
+    elif com is not None and comd is None:
+        if isinstance(com, list): volCom = numpy.array(com)
+        else: volCom = com
+    else: # comd is not None
+        if isinstance(comd, dict):
+            allkeys = comd.keys()
+            size = len(allkeys)
+            volComd = numpy.empty((2*size), numpy.int32)
+            for i, k in enumerate(allkeys):
+                volComd[2*i] = k
+                volComd[2*i+1] = comd[k]   
+        else: volComd = comd
+        
     # Si algo=graph et pas de com, force algo=fast
-    if algorithm == 'graph' and numpy.amax(volCom) <= 0: algorithm = 'fast'
-    #if algorithm == 'graph' and volComd.size == 0: algorithm = 'fast'
+    if volCom is not None:
+        if algorithm == 'graph' and numpy.amax(volCom) <= 0: algorithm = 'fast'
+    if volComd is not None:
+        if algorithm == 'graph' and volComd.size == 0: algorithm = 'fast'
+    if volCom is None and volComd is None:
+        if algorithm == 'graph': algorithm = 'fast'
+    #print('algorithm', algorithm)
+    #print('com:\n', com)
+    #print('comd', comd)
+    #print('volCom:\n', volCom)
+    #print('volComd', volComd)
 
     # Distribution
     out = distributor2.distribute(nbPts, setArrays, perfProcs, weight,
