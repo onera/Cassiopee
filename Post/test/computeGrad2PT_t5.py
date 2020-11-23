@@ -1,10 +1,7 @@
 # - computeGrad2 (pyTree) -
-import Converter.Internal as CI
 import Converter.PyTree   as C
 import Post.PyTree        as P
 import Generator.PyTree   as G
-import Transform.PyTree   as T
-import Connector.PyTree   as X
 import KCore.test         as test
 
 # Cas 3D NGon avec volume calcule 

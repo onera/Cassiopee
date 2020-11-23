@@ -1,5 +1,4 @@
 # - computeGrad2 (pyTree) -
-import Converter.Internal as CI
 import Converter.PyTree   as C
 import Post.PyTree        as P
 import Generator.PyTree   as G

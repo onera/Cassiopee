@@ -295,6 +295,9 @@ namespace K_TRANSFORM
   PyObject* rotateA1(PyObject* self, PyObject* args);
   PyObject* rotateA2(PyObject* self, PyObject* args);
   PyObject* rotateA3(PyObject* self, PyObject* args);
+  PyObject* _rotateA1(PyObject* self, PyObject* args);
+  PyObject* _rotateA2(PyObject* self, PyObject* args);
+  PyObject* _rotateA3(PyObject* self, PyObject* args);
   PyObject* homothety(PyObject* self, PyObject* args);
   PyObject* contract(PyObject* self, PyObject* args);
   PyObject* symetrize(PyObject* self, PyObject* args);

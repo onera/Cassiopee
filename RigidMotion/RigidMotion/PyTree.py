@@ -306,7 +306,7 @@ def _moveZone__(z, time):
                 T._translate(z, (tx,ty,tz))
                 if angle != 0:
                     angle = angle #*__RAD2DEG__
-                    T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
+                    T._rotate2(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
             elif dtype == 2: # type 2: rotation motion CassiopeeSolver
                 try: 
                     import Cassiopee as K
@@ -443,7 +443,7 @@ def _moveZone__(z, time):
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 angle = omega[0]*time*__RAD2DEG__
-                T._rotate(z, (cx,cy,cz), (ex,ey,ez), angle)
+                T._rotate2(z, (cx,cy,cz), (ex,ey,ez), angle)
                 T._translate(z, (transl_speed[0]*time,transl_speed[1]*time,transl_speed[2]*time))
             else:
                 print("Warning: Motion type not found. Nothing done.")
@@ -462,6 +462,14 @@ def _copyGridInit2Grid(t):
       xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')[1]
       ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')[1]
       zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')[1]
+      
+      xcoord = xcoord.ravel('k')
+      ycoord = ycoord.ravel('k')
+      zcoord = zcoord.ravel('k')
+      xcoord0 = xcoord0.ravel('k')
+      ycoord0 = ycoord0.ravel('k')
+      zcoord0 = zcoord0.ravel('k')
+      
       xcoord[:] = xcoord0[:]; ycoord[:] = ycoord0[:]; zcoord[:] = zcoord0[:]
   return None
 
@@ -486,7 +494,6 @@ def _copyGrid2GridInit(t):
       zcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateZ')
       if zcoord0 is None: 
         zcoord0 = Internal.copyNode(zcoord); gridInit[2].append(zcoord0)
-      
       xcoord0[1][:] = xcoord[1][:]; ycoord0[1][:] = ycoord[1][:]; zcoord0[1][:] = zcoord[1][:]
   return None
 

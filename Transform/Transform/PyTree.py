@@ -98,6 +98,10 @@ def _rotate(a, center, arg1, arg2=None,
                     center, arg1, arg2, vectorsN,
                     center, arg1, arg2, vectorsC)
 
+# Really in place - on coordinates only
+def _rotate2(t, center, arg1, arg2=None):
+    return C.__TZGC2(t, Transform._rotate, center, arg1, arg2)
+
 def homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and
     of factor alpha.
