@@ -377,7 +377,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
     # dictionnaire des matrices de mouvement pour passer du repere relatif d'une zone au repere absolu
     dictOfMotionMatR2A={}
     dictOfMotionMatA2R={}
-    coordsD=[0.,0.,0.]; coordsC=[0.,0.,0.] # XAbs = coordsD + Mat*(XRel-coordsC)
+    coordsD=[0.,0.,0.]; coordsC=[0.,0.,0.] # XAbs = coordsD + coordsC + Mat*(XRel-coordsC)
     dictOfFields={}; dictOfIndices={}
     
     datas={}
@@ -410,19 +410,32 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             procR = procDict[zname]
             for znamed in intersectionDict[zname]:
                 procD = procDict[znamed]
-                if procD == Cmpi.rank:
+                if procD == Cmpi.rank: # local
                     nobc = dictOfNobOfDnrZones[znamed]
                     nozc = dictOfNozOfDnrZones[znamed]
                     zdnr = tc[2][nobc][2][nozc]
                     adt = dictOfADT[znamed]
                     if adt is None: interpDataType = 0
                     else: interpDataType = 1
-                    [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+                    [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+
                     # transfers avec coordonnees dans le repere relatif
                     if interpInDnrFrame: # hack par CB
                         GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
                         GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
                         TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP                    
+
+                    # Sortie DBX
+                    #import Generator.PyTree as G
+                    #dbx = G.cart( (0,0,0), (1,1,1), (XIRel.size,1,1) )
+                    #dbx[0] = "%sInFrame%s"%(z[0], zdnr[0])
+                    #dbx = C.convertArray2Node(dbx)
+                    #Internal.getNodeFromName(dbx, 'CoordinateX')[1] = XIRel
+                    #Internal.getNodeFromName(dbx, 'CoordinateY')[1] = YIRel
+                    #Internal.getNodeFromName(dbx, 'CoordinateZ')[1] = ZIRel
+                    #C.convertPyTree2File(dbx, dbx[0]+'.cgns')
+                    #C.convertPyTree2File(zdnr, znamed+'Source.cgns')
+                    #ZIRel[:] = 5.e-3
 
                     fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
 
@@ -462,8 +475,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             adt = dictOfADT[zdnrname]
             if adt is None: interpDataType = 0
             else: interpDataType = 1
-            [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
-            # [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
+            [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+            # [XIRel,YIRel,ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
             # transferts avec coordonnees dans le repere relatif 
             if interpInDnrFrame:
                 GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
@@ -509,5 +522,4 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
         indicesI = dictOfIndices[zrcvname]
         C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol')
 
-    # SORTIE
     return None

@@ -111,7 +111,7 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
     return NULL;
   }
   int size=PyList_Size(pyCoordsN);
-  if ( size != 3)
+  if (size != 3)
   {
     PyErr_SetString(PyExc_TypeError,"moveN: 1st arg must be a list of 3 elements.");    
     return NULL;
@@ -128,8 +128,8 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
   E_Float* yt = coords[1]->begin();
   E_Float* zt = coords[2]->begin();
 
-  E_Int npts = coords[0]->getSize();
-
+  E_Int npts = coords[0]->getSize() * coords[0]->getNfld();
+  
 #pragma omp parallel default(shared) 
   {
     E_Float x, y, z;
@@ -137,9 +137,9 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
     for (E_Int ind = 0; ind < npts; ind++)
     {
       x = xt[ind]; y = yt[ind]; z = zt[ind];
-      xt[ind] = r11*(x-cx) + r12*(y-cy) + r13*(z-cz) + dx;
-      yt[ind] = r21*(x-cx) + r22*(y-cy) + r23*(z-cz) + dy;
-      zt[ind] = r31*(x-cx) + r32*(y-cy) + r33*(z-cz) + dz;
+      xt[ind] = r11*(x-cx) + r12*(y-cy) + r13*(z-cz) + cx + dx;
+      yt[ind] = r21*(x-cx) + r22*(y-cy) + r23*(z-cz) + cy + dy;
+      zt[ind] = r31*(x-cx) + r32*(y-cy) + r33*(z-cz) + cz + dz;
     }
   }
 

@@ -862,6 +862,7 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
       dims[n] = PyArray_DIMS(ar)[dim-n-1];
     }
 
+    //if (dim == 1 && dims[0] == 1 && strcmp(label, "DataArray_t") != 0) // modif suggere par Bruno
     if (dim == 1 && dims[0] == 1) // valeur simple
     {
       if (typeNum == NPY_DOUBLE)

@@ -1840,6 +1840,20 @@ def getNodeFromNameAndType__(node, name, ntype):
         if ret is not None: return ret
     return None
 
+# Pour un noeud node, retourne le premier enfant 
+# de nom donne (pas de widcard)
+def getChildFromName(node, name):
+    for i in node[2]:
+        if i[0] == name: return i
+    return None
+
+# Pour un noeud node, retourne le premier enfant 
+# de type donne (pas de widcard)
+def getChildFromType(node, ntype):
+    for i in node[2]:
+        if i[3] == ntype: return i
+    return None
+    
 # -- (p, c) = getParentOfNode(start, node). Retourne :
 # Si start est un noeud standard, retourne le noeud parent de node et le no
 # dans la liste des fils. p[2][c] = node.

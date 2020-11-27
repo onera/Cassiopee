@@ -643,7 +643,6 @@ def getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta):
 # Applique la formule XP=d+r*(XN-c) sur des numpys de coordonnees
 # in place
 def _moveN(coordsN, d, c, r):
-    # return RigidMotion.rigidMotion.moveN(coordsN, d, c, r)
     return RigidMotion._moveN(coordsN, d, c, r)
 
 def moveN(coordsN, d, c, r):
@@ -664,22 +663,22 @@ def _evalGridSpeed(a, time):
     xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
     ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')
     zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')
-  
-    # Get speed pointers
-    name  = 'Motion'
-    #name = 'FlowSolution'
-    mmo = Internal.getNodeFromName1(z, name)
-    if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
-    sx = Internal.getNodeFromName1(mmo, 'VelocityX')
-    if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size));
-    sy = Internal.getNodeFromName1(mmo, 'VelocityY')
-    if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size));
-    sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
-    if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size));
-  
+      
     # Get translation vector
     cont = Internal.getNodeFromName1(z, 'TimeMotion')
     if cont is not None:
+      # Get speed pointers
+      name  = 'Motion'
+      #name = 'FlowSolution'
+      mmo = Internal.getNodeFromName1(z, name)
+      if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
+      sx = Internal.getNodeFromName1(mmo, 'VelocityX')
+      if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size));
+      sy = Internal.getNodeFromName1(mmo, 'VelocityY')
+      if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size));
+      sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
+      if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size));
+      
       motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
       for m in motions:
         mtype = Internal.getNodeFromName1(m, 'MotionType')
@@ -732,7 +731,7 @@ def _evalGridSpeed(a, time):
   
 # Evaluation de la position inverse
 # coords : liste de numpys a inverser attaches a la zone
-# a : zone contenant le motion 
+# z : zone contenant le motion 
 def evalPositionM1(coords, z, time):
   cont = Internal.getNodeFromName1(z, 'TimeMotion')
   coordsO = [numpy.copy(coords[0]),numpy.copy(coords[1]),numpy.copy(coords[2])]
@@ -746,10 +745,10 @@ def evalPositionM1(coords, z, time):
         axis_vct = getNodeValue__(m, 'axis_vct')
         omega = getNodeValue__(m, 'omega')
         speed = getNodeValue__(m, 'transl_speed')
-        coordsD = [speed[0]*time, speed[1]*time, speed[2]*time]
+        coordsD = [-speed[0]*time, -speed[1]*time, -speed[2]*time]
         coordsC = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
         mat = getRotationMatrix__(axis_pnt[0],axis_pnt[1],axis_pnt[2],
               axis_vct[0],axis_vct[1],axis_vct[2],omega*time)
         mat = numpy.transpose(mat)
-        _moveN(coordsO, coordsC, coordsD, mat)
+        _moveN(coordsO, coordsD, coordsC, mat)
   return coordsO

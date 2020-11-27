@@ -110,7 +110,7 @@ public:
      Retourne la taille de listOfCandidateCells */
     virtual E_Int getListOfCandidateCells(E_Float x, E_Float y, E_Float z,
                                           std::list<E_Int>& listOfCandidateCells,
-                                          E_Float alphaTol=0.);
+                                          E_Float alphaTol=1.e-10);
 
 
   // public:

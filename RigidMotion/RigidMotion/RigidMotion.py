@@ -59,7 +59,7 @@ def _evalPosition(array, time, F):
                                 r[1][0], r[1][1], r[1][2], \
                                 r[2][0], r[2][1], r[2][2])
 
-# Applique la formule XP=d+r*(XN-c) sur des numpys de coordonnees
+# Applique la formule XP=d+c+r*(XN-c) sur des numpys de coordonnees
 # in place
 def _moveN(coordsN, d, c, r):
     return rigidMotion.moveN(coordsN, 
