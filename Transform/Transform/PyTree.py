@@ -1489,6 +1489,7 @@ def _makeCartesianXYZ(t, tol=1.e-10):
             dy_i = C.getValue(z,'CoordinateX',indj)-C.getValue(z,'CoordinateX',ind)
             dz_i = C.getValue(z,'CoordinateX',indk)-C.getValue(z,'CoordinateX',ind)
             diri = 1; dirj = 2; dirk = 3
+            diri = -1; dirj = -1; dirk = -1
             if abs(dx_i) > tol: diri = 1
             elif abs(dy_i) > tol: diri = 2
             elif abs(dz_i) > tol: diri = 3
@@ -1504,6 +1505,23 @@ def _makeCartesianXYZ(t, tol=1.e-10):
             if abs(dx_k) > tol: dirk = 1
             elif abs(dy_k) > tol: dirk = 2
             elif abs(dz_k) > tol: dirk = 3
+        
+            if diri==-1:
+                sump = abs(dirj)+abs(dirk)
+                if sump==3: diri = 3
+                elif sump==4: diri = 2
+                elif sump == 5: diri=1
+            if dirj==-1:
+                sump = abs(diri)+abs(dirk)
+                if sump==3: dirj = 3
+                elif sump==4: dirj = 2
+                elif sump == 5: dirj=1
+            if dirk==-1:
+                sump = abs(dirj)+abs(diri)
+                if sump==3: dirk = 3
+                elif sump==4: dirk = 2
+                elif sump == 5: dirk=1
+
             dirs = [0,0,0]
             if diri == 1: dirs[0] = 1
             elif diri==2: dirs[1] = 1
@@ -1514,6 +1532,7 @@ def _makeCartesianXYZ(t, tol=1.e-10):
             if dirk == 1: dirs[0] = 3
             elif dirk==2: dirs[1] = 3
             else: dirs[2] = 3
+     
             _reorder(z,(dirs[0], dirs[1], dirs[2]))
             dims = Internal.getZoneDim(z)
             ni = dims[1]; nj = dims[2]; nk = dims[3]

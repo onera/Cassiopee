@@ -69,9 +69,9 @@ def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
         
     return None
 
-#=============================================================================
-# Permet de definir un mouvement de RotorMotion calcule par le CassiopeeSolver
-#=============================================================================
+#==================================================================
+# Permet de definir un mouvement de RotorMotion 
+#==================================================================
 def setPrescribedMotion2(t, name,
                          transl_speed=(0.,0.,0.), psi0=0., psi0_b=0.,
                          alp_pnt=(0.,0.,0.), alp_vct=(0.,1.,0.), alp0=0.,
@@ -88,7 +88,7 @@ def setPrescribedMotion2(t, name,
     """Define a motion of type 2 into zones."""
     tp = Internal.copyRef(t)
     _setPrescribedMotion2(tp, name, transl_speed=transl_speed, psi0=psi0, psi0_b=psi0_b,
-                          alp_pnt=alp_pnt, alp_vct=pl_vct, alp0=alp0,
+                          alp_pnt=alp_pnt, alp_vct=alp_vct, alp0=alp0,
                           rot_pnt=rot_pnt, rot_vct=rot_vct, rot_omg=rot_omg,
                           del_pnt=del_pnt, del_vct=del_vct, del0=del0,
                           delc=delc, dels=dels,
@@ -102,16 +102,17 @@ def setPrescribedMotion2(t, name,
     return tp
 
 def _setPrescribedMotion2(t, name,
-                          transl_speed=(0.,0.,0.), psi0=0., psi0_b=0.,
+                          transl_speed=(0.,0.,0.),# forward velocity in the abs frame
+                          psi0=0., psi0_b=0.,
                           alp_pnt=(0.,0.,0.), alp_vct=(0.,1.,0.), alp0=0.,
                           rot_pnt=(0.,0.,0.), rot_vct=(0.,0.,1.), rot_omg=0.,
                           del_pnt=(0.,0.,0.), del_vct=(0.,0.,1.), del0=0.,
-                          delc=(0.,0.,0.), dels=(0.,0.,0.),
+                          delc=(0.,), dels=(0.,),# harmonics for lead lag
                           bet_pnt=(0.,0.,0.), bet_vct=(0.,1.,0.), bet0=0.,
-                          betc=(0.,0.,0.), bets=(0.,0.,0.),
+                          betc=(0.,), bets=(0.,),#harmonics for flapping
                           tet_pnt=(0.,0.,0.), tet_vct=(1.,0.,0.), tet0=0.,
-                          tetc=(0.,), tets=(0.,),
-                          span_vct=(1.,0.,0.),
+                          tetc=(0.,), tets=(0.,),# harmonics for pitching
+                          span_vct=(1.,0.,0.), # blade spanwise vct
                           pre_lag_pnt=(0.,0.,0.), pre_lag_vct=(1.,0.,0.), pre_lag_ang=0.,
                           pre_con_pnt=(0.,0.,0.), pre_con_vct=(1.,0.,0.), pre_con_ang=0.):
     for z in Internal.getZones(t):
@@ -151,49 +152,62 @@ def _setPrescribedMotion2(t, name,
         motion[2].append(['rot_omg', numpy.array([rot_omg], numpy.float64),
                           [], 'DataArray_t'])
 
+        # LEAD LAG
         motion[2].append(['del_pnt', numpy.array([del_pnt[0], del_pnt[1], del_pnt[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['del_vct', numpy.array([del_vct[0], del_vct[1], del_vct[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['del0', numpy.array([del0], numpy.float64),
                           [], 'DataArray_t'])
-        motion[2].append(['delc', numpy.array([delc[0], delc[1], delc[2]], numpy.float64),
-                          [], 'DataArray_t'])
-        motion[2].append(['dels', numpy.array([dels[0], dels[1], dels[2]], numpy.float64),
-                          [], 'DataArray_t'])
+        # harmonics for lead-lag
+        DELHC = []
+        for noh in range(len(delc)): DELHC.append(delc[noh])
+        motion[2].append(['delc', numpy.array(DELHC, numpy.float64), [], 'DataArray_t'])
+        DELHS = []
+        for noh in range(len(dels)): DELHS.append(dels[noh])
+        motion[2].append(['dels', numpy.array(DELHS, numpy.float64), [], 'DataArray_t'])
 
+        # FLAPPING
         motion[2].append(['bet_pnt', numpy.array([bet_pnt[0], bet_pnt[1], bet_pnt[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['bet_vct', numpy.array([bet_vct[0], bet_vct[1], bet_vct[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['bet0', numpy.array([bet0], numpy.float64),
                           [], 'DataArray_t'])
-        motion[2].append(['betc', numpy.array([betc[0], betc[1], betc[2]], numpy.float64),
-                          [], 'DataArray_t'])
-        motion[2].append(['bets', numpy.array([bets[0], bets[1], bets[2]], numpy.float64),
-                          [], 'DataArray_t'])
+        # harmonics for flapping
+        DELHC = []
+        for noh in range(len(betc)): DELHC.append(betc[noh])
+        motion[2].append(['betc', numpy.array(DELHC, numpy.float64), [], 'DataArray_t'])
+        DELHS = []
+        for noh in range(len(bets)): DELHS.append(bets[noh])
+        motion[2].append(['bets', numpy.array(DELHS, numpy.float64), [], 'DataArray_t'])
 
+        # PITCHING
         motion[2].append(['tet_pnt', numpy.array([tet_pnt[0], tet_pnt[1], tet_pnt[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['tet_vct', numpy.array([tet_vct[0], tet_vct[1], tet_vct[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['tet0', numpy.array([tet0], numpy.float64),
                           [], 'DataArray_t'])
-        motion[2].append(['tetc', numpy.array([tetc[0]], numpy.float64),
-                          [], 'DataArray_t'])
-        motion[2].append(['tets', numpy.array([tets[0]], numpy.float64),
-                          [], 'DataArray_t'])
-
+        DELHC = []
+        for noh in range(len(tetc)): DELHC.append(tetc[noh])
+        motion[2].append(['tetc', numpy.array(DELHC, numpy.float64), [], 'DataArray_t'])
+        DELHS = []
+        for noh in range(len(tets)): DELHS.append(tets[noh])
+        motion[2].append(['tets', numpy.array(DELHS, numpy.float64), [], 'DataArray_t'])
+        
+        # blade spanwise vector 
         motion[2].append(['span_vct', numpy.array([span_vct[0], span_vct[1], span_vct[2]], numpy.float64),
                           [], 'DataArray_t'])
-        
+
+        # pre-lag 
         motion[2].append(['pre_lag_pnt', numpy.array([pre_lag_pnt[0], pre_lag_pnt[1], pre_lag_pnt[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['pre_lag_vct', numpy.array([pre_lag_vct[0], pre_lag_vct[1], pre_lag_vct[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['pre_lag_ang', numpy.array([pre_lag_ang], numpy.float64),
                           [], 'DataArray_t'])
-        
+        # pre-conicity
         motion[2].append(['pre_con_pnt', numpy.array([pre_con_pnt[0], pre_con_pnt[1], pre_con_pnt[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['pre_con_vct', numpy.array([pre_con_vct[0], pre_con_vct[1], pre_con_vct[2]], numpy.float64),
@@ -307,130 +321,71 @@ def _moveZone__(z, time):
                 if angle != 0:
                     angle = angle #*__RAD2DEG__
                     T._rotate2(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
-            elif dtype == 2: # type 2: rotation motion CassiopeeSolver
-                try: 
-                    import Cassiopee as K
-                    import elsA_user as E # caveat
-                    import KBridge
-                except: raise ImportError("evalPosition: motionRotor requires CassiopeeSolver.")
-                transl_speed = getNodeValue__(m, 'transl_speed')
-                psi0 = getNodeValue__(m, 'psi0')
-                psi0_b = getNodeValue__(m, 'psi0_b')
-                alp_pnt = getNodeValue__(m, 'alp_pnt')
-                alp_vct = getNodeValue__(m, 'alp_vct')
-                alp0 = getNodeValue__(m, 'alp0')
-                rot_pnt = getNodeValue__(m, 'rot_pnt')
-                rot_vct = getNodeValue__(m, 'rot_vct')
-                rot_omg = getNodeValue__(m, 'rot_omg')
-                del_pnt = getNodeValue__(m, 'del_pnt')
-                del_vct = getNodeValue__(m, 'del_vct')
-                del0 = getNodeValue__(m, 'del0')
+            elif dtype == 2: # type 2: rotor_motion for helicopters in FF
+                # Find Coordinates pointers (must already be updated)
+                grid = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
+                if grid is None: grid = Internal.getNodeFromName1(z, 'GridCoordinates')
+                xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
+                
+                # Get grid velocity pointers
+                name = 'Motion'
+                mmo = Internal.getNodeFromName1(z,name)
+                if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
+                sx = Internal.getNodeFromName1(mmo, 'VelocityX')
+                if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size));
+                sy = Internal.getNodeFromName1(mmo, 'VelocityY')
+                if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size));
+                sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
+                if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size));
+                
+                transl_speed=Internal.getValue(Internal.getNodeFromName(m,'transl_speed'))
+                psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
+                psi0_b = Internal.getValue(Internal.getNodeFromName(m, 'psi0_b'))
+                alp_pnt = Internal.getValue(Internal.getNodeFromName(m, 'alp_pnt'))
+                alp_vct = Internal.getValue(Internal.getNodeFromName(m, 'alp_vct'))
+                alp0 = Internal.getValue(Internal.getNodeFromName(m, 'alp0'))
+                rot_pnt = Internal.getValue(Internal.getNodeFromName(m, 'rot_pnt'))
+                rot_vct = Internal.getValue(Internal.getNodeFromName(m, 'rot_vct'))
+                rot_omg = Internal.getValue(Internal.getNodeFromName(m, 'rot_omg'))
+                del_pnt = Internal.getValue(Internal.getNodeFromName(m, 'del_pnt'))
+                del_vct = Internal.getValue(Internal.getNodeFromName(m, 'del_vct'))
+                del0 = Internal.getValue(Internal.getNodeFromName(m, 'del0'))
                 delc = getNodeValue__(m, 'delc')
                 dels = getNodeValue__(m, 'dels')
-                bet_pnt = getNodeValue__(m, 'bet_pnt')
-                bet_vct = getNodeValue__(m, 'bet_vct')
-                bet0 = getNodeValue__(m, 'bet0')
+                bet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'bet_pnt'))
+                bet_vct = Internal.getValue(Internal.getNodeFromName(m, 'bet_vct'))
+                bet0 = Internal.getValue(Internal.getNodeFromName(m, 'bet0'))
+                betc = getNodeValue__(m, 'betc')
+                bets = getNodeValue__(m, 'bets')                
                 betc = getNodeValue__(m, 'betc')
                 bets = getNodeValue__(m, 'bets')
-                tet_pnt = getNodeValue__(m, 'tet_pnt')
-                tet_vct = getNodeValue__(m, 'tet_vct')
-                tet0 = getNodeValue__(m, 'tet0')
+                tet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'tet_pnt'))
+                tet_vct = Internal.getValue(Internal.getNodeFromName(m, 'tet_vct'))
+                tet0 = Internal.getValue(Internal.getNodeFromName(m, 'tet0'))
                 tetc = getNodeValue__(m, 'tetc')
                 tets = getNodeValue__(m, 'tets')
-                span_vct = getNodeValue__(m, 'span_vct')
-                pre_lag_ang = getNodeValue__(m, 'pre_lag_ang')
-                pre_lag_pnt = getNodeValue__(m, 'pre_lag_pnt')
-                pre_lag_vct = getNodeValue__(m, 'pre_lag_vct')
-                pre_con_ang = getNodeValue__(m, 'pre_con_ang')
-                pre_con_pnt = getNodeValue__(m, 'pre_con_pnt')
-                pre_con_vct = getNodeValue__(m, 'pre_con_vct')
+                span_vct = Internal.getValue(Internal.getNodeFromName(m, 'span_vct'))
+                pre_lag_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_ang'))
+                pre_lag_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_pnt'))
+                pre_lag_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_vct'))
+                pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
+                pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
+                pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
 
-                if z[0]+'_'+m[0] not in DEFINEDMOTIONS:
-                    Func1 = E.function('rotor_motion', z[0]+'_'+m[0])
-                    # angle initial du rotor par rapport au champ a l'infini
-                    Func1.set("psi0", float(psi0[0]))
-                    # Angle initial de la pale 
-                    # (si z est l'axe de rotation cet angle vaut psi0_b+pi/2)
-                    Func1.set("psi0_b", float(psi0_b[0]))
-                    # parametres inclinaison du rotor
-                    Func1.set("alp_pnt_x", float(alp_pnt[0]))
-                    Func1.set("alp_pnt_y", float(alp_pnt[1]))
-                    Func1.set("alp_pnt_z", float(alp_pnt[2]))
-                    Func1.set("alp_vct_x", float(alp_vct[0]))
-                    Func1.set("alp_vct_y", float(alp_vct[1]))
-                    Func1.set("alp_vct_z", float(alp_vct[2]))
-                    Func1.set("alp0", float(alp0[0]))
-                    # parametres rotation uniforme du rotor
-                    Func1.set("rot_pnt_x", float(rot_pnt[0]))
-                    Func1.set("rot_pnt_y", float(rot_pnt[1]))
-                    Func1.set("rot_pnt_z", float(rot_pnt[2]))
-                    Func1.set("rot_vct_x", float(rot_vct[0]))
-                    Func1.set("rot_vct_y", float(rot_vct[1]))
-                    Func1.set("rot_vct_z", float(rot_vct[2]))
-                    Func1.set("rot_omg", float(rot_omg[0]))
-                    # parametres 1ere rotation: trainee
-                    Func1.set("del_pnt_x", float(del_pnt[0]))
-                    Func1.set("del_pnt_y", float(del_pnt[1]))
-                    Func1.set("del_pnt_z", float(del_pnt[2]))
-                    Func1.set("del_vct_x", float(del_vct[0]))
-                    Func1.set("del_vct_y", float(del_vct[1]))
-                    Func1.set("del_vct_z", float(del_vct[2]))
-                    Func1.set("del0", float(del0[0]))
-                    Func1.set("nhdel", 3)
-                    Func1.set("del1c", float(delc[0]))
-                    Func1.set("del1s", float(dels[0]))
-                    Func1.set("del2c", float(delc[1]))
-                    Func1.set("del2s", float(dels[1]))
-                    Func1.set("del3c", float(delc[2]))
-                    Func1.set("del3s", float(dels[2]))
-                    # parametres 2eme rotation: battement
-                    Func1.set("bet_pnt_x", float(bet_pnt[0]))
-                    Func1.set("bet_pnt_y", float(bet_pnt[1]))
-                    Func1.set("bet_pnt_z", float(bet_pnt[2]))
-                    Func1.set("bet_vct_x", float(bet_vct[0]))
-                    Func1.set("bet_vct_y", float(bet_vct[1]))
-                    Func1.set("bet_vct_z", float(bet_vct[2]))
-                    Func1.set("bet0", float(bet0[0]))
-                    Func1.set("nhbet", 3)
-                    Func1.set("bet1c", float(betc[0]))
-                    Func1.set("bet1s", float(bets[0]))
-                    Func1.set("bet2c", float(betc[1]))
-                    Func1.set("bet2s", float(bets[1]))
-                    Func1.set("bet3c", float(betc[2]))
-                    Func1.set("bet3s", float(bets[2]))
-                    # parametres 3eme rotation: pas cyclique 
-                    Func1.set("tet_pnt_x", float(tet_pnt[0]))
-                    Func1.set("tet_pnt_y", float(tet_pnt[1]))
-                    Func1.set("tet_pnt_z", float(tet_pnt[2]))
-                    Func1.set("tet_vct_x", float(tet_vct[0]))
-                    Func1.set("tet_vct_y", float(tet_vct[1]))
-                    Func1.set("tet_vct_z", float(tet_vct[2]))
-                    Func1.set("tet0", float(tet0[0]))
-                    Func1.set("nhtet", 1)
-                    Func1.set("tet1c", float(tetc[0]))
-                    Func1.set("tet1s", float(tets[0]))
-                    Func1.set('span_vct_x', float(span_vct[0]))
-                    Func1.set('span_vct_y', float(span_vct[1]))
-                    Func1.set('span_vct_z', float(span_vct[2]))
-                    Func1.set('pre_lag_ang', float(pre_lag_ang[0]))
-                    Func1.set('pre_lag_pnt_x', float(pre_lag_pnt[0]))
-                    Func1.set('pre_lag_pnt_y', float(pre_lag_pnt[1]))
-                    Func1.set('pre_lag_pnt_z', float(pre_lag_pnt[2]))
-                    Func1.set('pre_lag_vct_x', float(pre_lag_vct[0]))
-                    Func1.set('pre_lag_vct_y', float(pre_lag_vct[1]))
-                    Func1.set('pre_lag_vct_z', float(pre_lag_vct[2]))
-                    Func1.set('pre_con_ang', float(pre_con_ang[0]))
-                    Func1.set('pre_con_pnt_x', float(pre_con_pnt[0]))
-                    Func1.set('pre_con_pnt_y', float(pre_con_pnt[1]))
-                    Func1.set('pre_con_pnt_z', float(pre_con_pnt[2]))
-                    Func1.set('pre_con_vct_x', float(pre_con_vct[0]))
-                    Func1.set('pre_con_vct_y', float(pre_con_vct[1]))
-                    Func1.set('pre_con_vct_z', float(pre_con_vct[2]))
-                    DEFINEDMOTIONS[z[0]+'_'+m[0]] = Func1
-                else: Func1 = DEFINEDMOTIONS[z[0]+'_'+m[0]]
-                M = KBridge.evalKDesFunction(Func1, time)
-                _evalPosition___(z, None, M)
-                T._translate(z, (transl_speed[0]*time,transl_speed[1]*time,transl_speed[2]*time))
+                rigidMotion._computeRotorMotionZ(
+                    z,  sx[1], sy[1], sz[1], time, transl_speed.tolist(), psi0, psi0_b,
+                    alp_pnt.tolist(),alp_vct.tolist(),alp0,
+                    rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
+                    del_pnt.tolist(),del_vct.tolist(),del0, delc.tolist(), dels.tolist(),
+                    bet_pnt.tolist(), bet_vct.tolist(), bet0, betc.tolist(), bets.tolist(),
+                    tet_pnt.tolist(), tet_vct.tolist(), tet0, tetc.tolist(), tets.tolist(),
+                    span_vct.tolist(),
+                    pre_lag_ang, pre_lag_pnt.tolist(), pre_lag_vct.tolist(),
+                    pre_con_ang, pre_con_pnt.tolist(), pre_con_vct.tolist(),
+                    Internal.__GridCoordinates__,
+                    Internal.__FlowSolutionNodes__,
+                    Internal.__FlowSolutionCenters__)
+                
             elif dtype == 3: # type 3: translation+rotation
                 transl_speed = getNodeValue__(m, 'transl_speed')
                 axis_pnt = getNodeValue__(m, 'axis_pnt')
@@ -449,7 +404,7 @@ def _moveZone__(z, time):
                 print("Warning: Motion type not found. Nothing done.")
     return None
   
-# Recopie GridCoordinates#Init (si il existe) dans GridCoordinates  
+# Recopie GridCoordinates#Init (s il existe) dans GridCoordinates  
 def _copyGridInit2Grid(t):
   zones = Internal.getZones(t)
   for z in zones:

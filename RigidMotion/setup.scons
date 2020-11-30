@@ -1,14 +1,12 @@
 import distutils.sysconfig, os
 import KCore.Dist as Dist
+from KCore.config import *
 #==============================================================================
 # RigidMotion requires:
 # C++ compiler
 # Numpy
 # KCore
-#
-# Optional motion from solvers requires:
-# Cassiopee/Kernel
-# elsA/Kernel
+#Fortran compiler: defined in config.py
 #==============================================================================
 
 # Get prefix from command line
@@ -28,9 +26,10 @@ installPath = Dist.getInstallPath(prefix)
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = [pythonLibDir, kcoreLibDir]
+libraryDirs = ['..','.', pythonLibDir, kcoreLibDir]
 libraries = ["kcore"]
-from KCore.config import *
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
@@ -40,6 +39,7 @@ if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
 else: tools = None
 AR = Dist.getAR()
 env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  FORTRAN=f77compiler,
                   LIBPATH=additionalLibPaths+libraryDirs,
                   LIBS=libraries+additionalLibs,
                   CPPPATH=["RigidMotion"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
@@ -52,9 +52,12 @@ env.Replace(CXXFLAGS=Dist.getCppArgs())
 ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
 env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
+env = Dist.createFortranBuilder(env, [kcoreIncDir])
+ppf = Dist.createFortranFiles(env, srcs)
+
 #==============================================================================
 
-myMod = env.StaticLibrary('rigidMotion', srcs.cpp_srcs)
+myMod = env.StaticLibrary('rigidMotion', srcs.cpp_srcs+ppf)
 modDir = installPath+'/RigidMotion/'
 dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, Glob('RigidMotion/*.py'))

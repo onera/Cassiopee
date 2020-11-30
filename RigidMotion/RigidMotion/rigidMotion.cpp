@@ -27,6 +27,7 @@ static PyMethodDef PyrigidMotion [] =
   {"move", K_RIGIDMOTION::move, METH_VARARGS},
   {"moveN", K_RIGIDMOTION::moveN, METH_VARARGS},
   {"evalSpeed3", K_RIGIDMOTION::evalSpeed3, METH_VARARGS},
+  {"_computeRotorMotionZ",K_RIGIDMOTION::_computeRotorMotionZ, METH_VARARGS},
   {NULL, NULL}
 };
 

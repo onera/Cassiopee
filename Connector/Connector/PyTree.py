@@ -1632,7 +1632,7 @@ def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN', a
 # Seulement pour les grilles structurees (no check)
 #==============================================================================
 # version in place (getFromArray2)
-def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN'):
+def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN', oversetFamNames=[]):
     varc = cellNName
     if loc == 'centers': varc = 'centers:'+varc; shift = 0
     else: shift = 1
@@ -1663,10 +1663,28 @@ def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN'):
                         imax = w[1]; jmax = w[3]; kmax = w[5]
                         Connector._applyBCOverlapsStruct__(cellN,(imin,jmin,kmin),(imax,jmax,kmax),depth,loc,
                                                            val=val, cellNName=cellNName)
+    # defined by a family with .Solver#Overlap
+    # list of families of type overset
+    for bc in Internal.getNodesFromType2(z,'BC_t'):
+        famName = Internal.getNodeFromType1(bc,'FamilyName_t')
+        if famName is not None:
+            famName = Internal.getValue(famName)
+            if famName in oversetFamNames:
+                r = Internal.getNodesFromType(bc, 'IndexRange_t')
+                l = Internal.getNodesFromType(bc, 'IndexArray_t')
+                if r == [] and l == []:
+                    print("Warning: applyBCOverlaps: BCOverlap is ill-defined.")
+                elif r != []:
+                    rangew = r[0][1]
+                    w = Internal.range2Window(rangew)
+                    imin = w[0]; jmin = w[2]; kmin = w[4]
+                    imax = w[1]; jmax = w[3]; kmax = w[5]
+                Connector._applyBCOverlapsStruct__(cellN,(imin,jmin,kmin),(imax,jmax,kmax),depth,loc, val=val, cellNName=cellNName)
     return None
 
 # Version avec getField/setField - avec copie du tableau
-def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN'):
+def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN',
+                              oversetFamNames=[]):
     varc = cellNName
     if loc == 'centers': varc = 'centers:'+cellNName; shift = 0
     else: shift = 1
@@ -1698,17 +1716,39 @@ def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN'):
                         cellN = Connector.applyBCOverlapsStruct__(cellN,(imin,jmin,kmin),(imax,jmax,kmax),depth,loc,
                                                                   val=val, cellNName=cellNName)
                         C.setFields([cellN], z, loc, False)
-
+    # defined by a family with .Solver#Overlap
+    # list of families of type overset
+    for bc in Internal.getNodesFromType2(z,'BC_t'):
+        famName = Internal.getNodeFromType1(bc,'FamilyName_t')
+        if famName is not None:
+            famName = Internal.getValue(famName)
+            if famName in oversetFamNames:
+                r = Internal.getNodesFromType(bc, 'IndexRange_t')
+                l = Internal.getNodesFromType(bc, 'IndexArray_t')
+                if r == [] and l == []:
+                    print("Warning: applyBCOverlaps: BCOverlap is ill-defined.")
+                elif r != []:
+                    rangew = r[0][1]
+                    w = Internal.range2Window(rangew)
+                    imin = w[0]; jmin = w[2]; kmin = w[4]
+                    imax = w[1]; jmax = w[3]; kmax = w[5]
+                cellN = Connector.applyBCOverlapsStruct__(cellN,(imin,jmin,kmin),(imax,jmax,kmax),depth,loc, val=val, cellNName=cellNName)
+                C.setFields([cellN], z, loc, False)
     return None
 
-def applyBCOverlapsUnstructured(z, depth, loc, val=2, cellNName='cellN'):
+def applyBCOverlapsUnstructured(z, depth, loc, val=2, cellNName='cellN',oversetFamNames=[]):
     varc = cellNName
     if loc == 'centers': varc = 'centers:'+cellNName
     cellN = C.getField(varc, z)[0]
     zoneBC = Internal.getNodesFromType2(z, 'BC_t')
     for bc in zoneBC:
         v = Internal.getValue(bc)
-        if v == 'BCOverlap':
+        isOv = False
+        if v == 'BCOverlap': isOv=True
+        elif v=='FamilySpecified':
+            famName = Internal.getNodeFromName1(bc,'FamilyName')
+            if famName in oversetFamNames: isOv=True
+        if isOv:
             faceListN = Internal.getNodesFromName(bc, Internal.__FACELIST__)
             if faceListN != []:
                 faceList = Internal.getValue(faceListN[0])
@@ -1720,12 +1760,22 @@ def applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN'):
   a = Internal.copyRef(t)
   # ajout du celln si n'existe pas pour une zone
   _addCellN__(a, loc=loc, cellNName=cellNName)
+
+  # only non doubly defined
+  oversetFamNames=[]
+  for fam in Internal.getNodesFromType(a,'Family_t'):
+      OV = Internal.getNodeFromName1(fam,'.Solver#Overlap')
+      if OV is not None:
+          dd = Internal.getNodeFromName1(OV,'doubly_defined')
+          if dd is None:
+              oversetFamNames.append(Internal.getName(fam))
+
   zones = Internal.getZones(a)
   for z in zones:
       dimZ = Internal.getZoneDim(z)
-      if dimZ[0] == 'Structured': applyBCOverlapsStructured(z, depth, loc, val=val, cellNName=cellNName)
+      if dimZ[0] == 'Structured': applyBCOverlapsStructured(z, depth, loc, val=val, cellNName=cellNName, oversetFamNames=oversetFamNames)
       else:
-          if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val=val, cellNName=cellNName)
+          if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val=val, cellNName=cellNName, oversetFamNames=oversetFamNames)
           else:
               print('Warning: applyBCOverlaps: only for NGON unstructured zones.')
   return a
@@ -1734,13 +1784,17 @@ def applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN'):
 def _applyBCOverlaps(a, depth=2, loc='centers', val=2, cellNName='cellN', checkCellN=True):
   # ajout du celln si n'existe pas pour une zone
   if checkCellN: _addCellN__(a, loc=loc, cellNName=cellNName)
-
+  oversetFamNames=[]
+  for fam in Internal.getNodesFromType(a,'Family_t'):
+      OV = Internal.getNodeFromName1(fam,'.Solver#Overlap')
+      if OV is not None:
+          oversetFamNames.append(Internal.getName(fam))
   zones = Internal.getZones(a)
   for z in zones:
       dimZ = Internal.getZoneDim(z)
-      if dimZ[0] == 'Structured': _applyBCOverlapsStructured(z, depth, loc, val, cellNName=cellNName)
+      if dimZ[0] == 'Structured': _applyBCOverlapsStructured(z, depth, loc, val, cellNName=cellNName, oversetFamNames=oversetFamNames)
       else:
-          if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val, cellNName=cellNName)
+          if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val, cellNName=cellNName, oversetFamNames=oversetFamNames)
           else:
               print('Warning: applyBCOverlaps: only for NGON unstructured zones.')
   return None

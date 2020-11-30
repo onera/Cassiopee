@@ -25,7 +25,7 @@ def uniformize(a, N=100, h=-1., factor=-1, density=-1., sharpAngle=30.):
         L = D.getLength(a)
         if density > 0: N = int(L*density)+1
         elif factor > 0: N = int(factor*(C.getNPts(a)-1))+1
-        elif h > 0: N = int(L/H)+1
+        elif h > 0: N = int(L/h)+1
         b = []; Nt = 0; rest = 0
         for ct, i in enumerate(a):
             Li = D.getLength(i)
