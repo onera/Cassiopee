@@ -356,7 +356,7 @@ void Data::display()
   }
 
   // Info + legende
-  if (ptrState->dim != 1)
+  if (ptrState->dim != 1 && ptrState->offscreen != 1)
   {
     if (ptrState->header == 1) printHeader();
     if (ptrState->info == 1) 

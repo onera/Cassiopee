@@ -315,7 +315,7 @@ void Data::initState()
 
   // Export
   strcpy(ptrState->exportFile, "CPlot");
-  ptrState->exportWidth = -1; // default = screen resolution
+  ptrState->exportWidth = -1;
   ptrState->exportHeight = -1;
   ptrState->continuousExport = 0;
   ptrState->ptrFile = NULL;

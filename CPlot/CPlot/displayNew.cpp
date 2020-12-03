@@ -201,17 +201,17 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     int argc = 0;
     char* com = NULL;
     INITTHREADS;
-    glutInit(&argc, &com);
+    // Dans ce cas, on ne fait pas de glutInit, car il requiert
+    // un serveur X
 #ifdef __MESA__
     /* Init */
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+
+    // Window size base sur l'export
+    if (d->ptrState->exportWidth == -1) d->ptrState->exportWidth = 1280;
+    if (d->ptrState->exportHeight == -1) d->ptrState->exportHeight = 768;
+    d->_view.w = d->ptrState->exportWidth; d->_view.h = d->ptrState->exportHeight;
+    //printf("%d %d\n", d->ptrState->exportWidth, d->ptrState->exportHeight);
     
-    // Window size base sur la taille de l'ecran
-    int screenWidth = glutGet(GLUT_SCREEN_WIDTH);
-    int screenHeight = glutGet(GLUT_SCREEN_HEIGHT);
-    d->_view.w = screenWidth-320;
-    d->_view.h = screenHeight;
- 
     //printf("Creating OS context..."); fflush(stdout);
     OSMesaContext ctx; 
     ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
