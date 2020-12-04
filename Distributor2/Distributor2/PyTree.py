@@ -196,7 +196,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
                 maxx = C.getMaxValue(z, 'CoordinateX')
                 maxy = C.getMaxValue(z, 'CoordinateY')
                 maxz = C.getMaxValue(z, 'CoordinateZ')
-                bboxes.append([xmin,ymin,zmin,xmax,ymax,zmax,z[0],True])
+                bboxes.append([minx,miny,minz,maxx,maxy,maxz,z[0],True])
 
         c = 0
         zones = Internal.getZones(t)
