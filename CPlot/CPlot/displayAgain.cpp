@@ -171,9 +171,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
                     GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
 
-  glShadeModel(GL_SMOOTH);
-  glEnable(GL_DEPTH_TEST);
-  d->setBgColor();
+  d->init(); // a supprimer si le thread reste actif
   d->ptrState->farClip = 1;
   d->ptrState->render = 0;
   d->ptrState->shootScreen = 0;
@@ -184,7 +182,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
   OSMesaDestroyContext(ctx);
 #else
-  printf("Error: CPlot: MESA offscreen unavailable.\n");
+  printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif
   }
   else

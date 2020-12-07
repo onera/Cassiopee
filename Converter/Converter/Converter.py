@@ -347,7 +347,7 @@ def _addVars2__(a):
 
 # -- randomize a variable --
 def randomizeVar(array, var, deltaMin, deltaMax):
-    """Randomize a field defined by var within a range [a-deltaMin, a+deltaMax]
+    """Randomize a field defined by var within a range [a-deltaMin, a+deltaMax].
     Usage: a = randomizeVar(array, var, deltaMin, deltaMax)"""
     if isinstance(array[0], list):
         out = []
@@ -1558,11 +1558,10 @@ def listen(s):
         client, address = s.accept()
         data = None
         nb = client.recv(255)
-        if nb != "":
+        if nb != b"":
             nb = nb.rstrip()
             (size,sizeBuf) = Compressor.unpack(nb, method=0)
-            #print('Received ',size)
-            data = ''
+            data = b''
             nbytes = 0
             while nbytes < size:
                 if nbytes+sizeBuf < size:

@@ -68,6 +68,7 @@ void Data::displayFrameTex(int mode, double sobelThreshold)
     _shaders[shader]->setUniform("focalDepth", (float)ptrState->activePointZBuf);
     _shaders[shader]->setUniform("radius", (float)ptrState->dofPower);
     _shaders[shader]->setUniform("ext", (float)1.);
+    _shaders[shader]->setUniform("toneMapping", (int)ptrState->toneMapping);
     _shaders[shader]->setUniform("gamma", (float)ptrState->gamma);
     _shaders[shader]->setUniform("sobelThreshold", (float)sobelThreshold); 
   }

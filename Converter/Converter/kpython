@@ -3,6 +3,7 @@
 # kpython -n 2 script.py: lance 2 process, choisit le nbre de threads en fonction de la ressource
 # kpython -n2 -t4 script.py: lance 2 process avec 4 threads chacuns
 # kpython -a "env::" -n2 script.py: lance mpirun avec une option supplementaire
+# kpython -p: ajoute un profiling python
 if ([ $# -eq 0 ])
 then
     echo 'kpython -n 5 -t 2 script.py'
@@ -18,7 +19,7 @@ if [ -z "$OMP_NUM_THREADS" ]
 then
     OMPNUMTHREADSINIT=$OMP_NUM_THREADS
 else
-    OMPNUMTHREADSINIT=1
+    OMPNUMTHREADSINIT="1"
 fi
 
 # Ressources
@@ -35,10 +36,10 @@ then
     ELSAPROD=""
 fi
 
-NPROCS=0
-NTHREADS=0
+NPROCS="0"
+NTHREADS="0"
 ARGS=""
-while getopts hn:t:a: OPTION
+while getopts hpn:t:a: OPTION
 do
      case $OPTION in
          h)
@@ -46,34 +47,47 @@ do
              exit 1
              ;;
          n)
-             NPROCS=$OPTARG
+             if [[ ${OPTARG:0:1} == "p" ]]
+             then
+                NPROCS=${OPTARG:1}
+             else
+                NPROCS=$OPTARG
+             fi
              ;;
          t)
              NTHREADS=$OPTARG
              ;;
          a)
-             ARGS=$OPTARG
+             ARGS+=$OPTARG
+             ;;
+         p) 
+             ARGS+="-m cProfile -s tottime"
              ;;
      esac
 done
 shift $((OPTIND-1))
 SCRIPT=$*
 
-if test $NTHREADS -eq 0
+if [ $NTHREADS == "0" ]
 then
-    NTHREADS=`expr $ncpu / $NPROCS`
-    if test $NTHREADS -eq 0
+    if [ $NPROCS != "0" ]
+    then
+        NTHREADS=`expr $ncpu / $NPROCS`
+    else
+        NTHREADS=`expr $ncpu`
+    fi
+    if [ $NTHREADS == "0" ]
     then
         NTHREADS=1
     fi
 fi
 echo 'Running '$SCRIPT' with Nprocs='$NPROCS' and Nthreads='$NTHREADS
 
-if test $NPROCS -eq 0
+if [ $NPROCS == "0" ]
 then
     export MPIRUN=0
     export OMP_NUM_THREADS=$NTHREADS
-    $PYTHONEXE $SCRIPT
+    $PYTHONEXE $ARGS $SCRIPT
     export OMP_NUM_THREADS=$OMPNUMTHREADSINIT
     unset MPIRUN
 else

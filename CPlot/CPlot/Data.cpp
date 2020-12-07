@@ -250,6 +250,7 @@ void Data::initState()
   ptrState->shadow = 0;
   ptrState->dofPower = 0.; // inactif par defaut
   ptrState->gamma = 1.; // inactif par defaut
+  ptrState->toneMapping = 0; // rien par defaut
   ptrState->sobelThreshold = -0.5; // inactif par defaut
 
   strcpy(ptrState->winTitle, "CPlot - array/pyTree display");

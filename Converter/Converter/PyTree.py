@@ -2490,8 +2490,10 @@ def _mergeBCDataSets(t):
 def _nullifyBCDataSetVectors(t, bndType, loc='FaceCenter',
                              vectors=[['VelocityX','VelocityY','VelocityZ']]):
   locI = 0
-  if loc == 'FaceCenter': locI = 1; FSCont = Internal.__FlowSolutionCenters__
-  else: locI = 0; FSCont = Internal.__FlowSolutionNodes__
+  if loc == 'FaceCenter' or loc == 'CellCenter': 
+    locI = 1; FSCont = Internal.__FlowSolutionCenters__
+  else: 
+    locI = 0; FSCont = Internal.__FlowSolutionNodes__
 
   zones = Internal.getZones(t)
   families = getFamilyBCNamesOfType(t, bndType)
@@ -4361,10 +4363,10 @@ def tagDefinedBCForZone2D__(z):
     bnds = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
     for bc in bnds:
       gl = Internal.getNodeFromType1(bc,'GridLocation_t')
-      isHybrid=False
+      isHybrid = False
       if gl is not None:
         gl = Internal.getValue(gl)
-        if gl=='FaceCenter': isHybrid=True
+        if gl == 'FaceCenter' or gl == 'CellCenter': isHybrid=True
       if not isHybrid:
         wrange = Internal.getNodeFromName1(bc, 'PointRange')
         r = wrange[1]
@@ -4420,7 +4422,7 @@ def tagDefinedBCForZone3D__(z):
       isHybrid=False
       if gl is not None:
         gl = Internal.getValue(gl)
-        if gl=='FaceCenter': isHybrid=True
+        if gl == 'FaceCenter' or gl == 'CellCenter': isHybrid=True
       if not isHybrid:
         wrange = Internal.getNodeFromName1(bc, 'PointRange')
         r = wrange[1]
@@ -4790,8 +4792,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
                                      'FlowSolution_t')
       Internal.newGridLocation(value='CellCenter', parent=f)
       for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
-
-      
+  
     if reorder: _reorderSubzone__(zp, w, T) # normales ext
     _deleteZoneBC__(zp)
     _deleteGridConnectivity__(zp)
@@ -4826,7 +4827,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
     loc = Internal.getNodeFromName1(i, 'GridLocation')
     if loc is not None:
       val = Internal.getValue(loc)
-      if val == 'FaceCenter': # Face list (BE ou NGON)
+      if val == 'FaceCenter' or val == 'CellCenter': # Face list (BE ou NGON)
         faceList = r[1]
         rf = Internal.getElementRange(z, type='NGON')
         if rf is not None and rf[0] != 1: # decalage possible du NGON
@@ -6334,7 +6335,7 @@ def getBCFaces(t, nameType=0):
       p = Internal.getNodesFromType1(b, 'GridLocation_t')
       if p != []:
         loc = Internal.getValue(p[0])
-        if n != [] and loc == 'FaceCenter':
+        if n != [] and (loc == 'FaceCenter' or loc == 'CellCenter'):
           if BCtype == 'FamilySpecified':
             familyName = Internal.getNodeFromType1(b, 'FamilyName_t')
             if familyName is not None:

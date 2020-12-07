@@ -6,6 +6,7 @@ uniform sampler2D depthMap;
 uniform float focalDepth; // position de la focale
 uniform float radius; // taille du rayon de blur
 uniform float ext; // extension du blur
+uniform int toneMapping; // type de tone mapping
 uniform float gamma; // gamma correction
 uniform float sobelThreshold; // threshold for sobel
 
@@ -160,6 +161,23 @@ vec4 sobel(vec2 coords)
      return vec4(e, 1.);
 }
 
+// Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+vec3 aces(vec3 x) {
+  const float a = 2.51;
+  const float b = 0.03;
+  const float c = 2.43;
+  const float d = 0.59;
+  const float e = 0.14;
+  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+// Filmic Tonemapping Operators http://filmicworlds.com/blog/filmic-tonemapping-operators/
+vec3 filmic(vec3 x) {
+  vec3 X = max(vec3(0.0), x - 0.004);
+  vec3 result = (X * (6.2 * X + 0.5)) / (X * (6.2 * X + 1.7) + 0.06);
+  return pow(result, vec3(2.2));
+}
+
 void main()
 {
      pixelSizeHigh = 1.0/textureSize(FrameBuffer, 0);
@@ -196,8 +214,23 @@ void main()
      else color = color1;
 
      // gamma correction
-     vec4 res = pow(color, vec4(1.0 / gamma));
-     res.a = color.a;
-     
+     vec4 res = color;
+     if (toneMapping == 0) // pure gamma
+     {
+          res = pow(color, vec4(1.0 / gamma));
+          res.a = color.a;
+     }
+     else if (toneMapping == 1) // ACES
+     {
+          res.rgb = aces(color.rgb);
+          res.rgb = pow(res.rgb, vec3(1.0 / gamma));
+          res.a = color.a;
+     }
+     else if (toneMapping == 2) // Filmic
+     {
+          res.rgb = filmic(color.rgb);
+          res.rgb = pow(res.rgb, vec3(1.0 / gamma));
+          res.a = color.a;
+     }
 	gl_FragColor = res;
 }

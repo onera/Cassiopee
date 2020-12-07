@@ -50,6 +50,15 @@ def setGammaCorrection(event=None):
     CPlot.setState(gamma=off)
 
 #==============================================================================
+def setToneMapping(event=None):
+    ntype = VARS[7].get()
+    rtype = 0
+    if ntype == 'None': rtype = 0
+    elif ntype == 'ACE': rtype = 1
+    elif ntype == 'Filmic': rtype = 2
+    CPlot.setState(toneMapping=rtype)
+
+#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
@@ -60,7 +69,8 @@ def createApp(win):
     Frame.bind('<Control-c>', hideApp)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
-    Frame.columnconfigure(0, weight=1)
+    Frame.columnconfigure(0, weight=0)
+    Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
     
@@ -91,52 +101,66 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Depth of field power.'); VARS.append(V)
     # -6- Gamma correction info bulle
     V = TK.StringVar(win); V.set('Gamma correction.'); VARS.append(V)
+    # -7- Type of tone mapping
+    V = TK.StringVar(win); V.set('None'); VARS.append(V)
 
     # - Camera angle -
-    B = TTK.Button(Frame, text="Set Cam angle", command=setViewAngle)
+    B = TTK.Button(Frame, text="Cam angle", command=setViewAngle)
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set the camera view angle.')
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=5)
-    B.grid(row=0, column=1, sticky=TK.EW)
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     B.bind('<Return>', setViewAngle)
     BB = CTK.infoBulle(parent=B, text='Cam view angle (deg).')
 
+    # - Shadow -
+    B = TTK.Checkbutton(Frame, text='Shadow', variable=VARS[1],
+                        command=setShadow)
+    BB = CTK.infoBulle(parent=B, text='Toggle shadows.')
+    B.grid(row=1, column=0, sticky=TK.EW)
+    
     # - Light offset X -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setLightOffsetX, value=55)
     WIDGETS['lightOffsetX'] = B
-    B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[3])
     
     # - Light offset Y -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setLightOffsetY, value=25)
     WIDGETS['lightOffsetY'] = B
-    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[4])
     
-    # - DOF power -
-    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-                  borderwidth=1, command=setDofPower, value=0)
-    WIDGETS['dofPower'] = B
-    B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, textVariable=VARS[5])
+    # - Post -
+    B = TTK.Checkbutton(Frame, text='Post', variable=VARS[2], command=setDOF)
+    BB = CTK.infoBulle(parent=B, text='Toggle image post processing (depth of field blur/gamma correction/tone mapping).')
+    B.grid(row=2, column=0, sticky=TK.EW)
     
+
+    # - Tone mapping -
+    B = TTK.OptionMenu(Frame, VARS[7], 'None', 'ACE', 'Filmic', command=setToneMapping)
+    B.grid(row=2, column=1, sticky=TK.EW)
+
     # - Gamma correction -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setGammaCorrection, value=50)
     WIDGETS['gammaCorrection'] = B
-    B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=2, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
     
-    # - Shadow + DOF -
-    B = TTK.Checkbutton(Frame, text='Shadow', variable=VARS[1],
-                        command=setShadow)
-    BB = CTK.infoBulle(parent=B, text='Toggle shadows.')
+    # - DOF -
+    B = TTK.Label(Frame, text='DOF')
+    BB = CTK.infoBulle(parent=B, text='Depth of field blur (around cliked point).')
     B.grid(row=3, column=0, sticky=TK.EW)
-    B = TTK.Checkbutton(Frame, text='DOF/Gamma', variable=VARS[2], command=setDOF)
-    BB = CTK.infoBulle(parent=B, text='Toggle depth of field blur/gamma correction.')
-    B.grid(row=3, column=1, sticky=TK.EW)
+        
+    # - DOF power -
+    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
+                  borderwidth=1, command=setDofPower, value=0)
+    WIDGETS['dofPower'] = B
+    B.grid(row=3, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, textVariable=VARS[5])
     
 #==============================================================================
 # Called to display widgets
@@ -177,9 +201,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)
@@ -188,7 +212,7 @@ if (__name__ == "__main__"):
         except: pass
 
     # Main window
-    (win, menu, file, tools) = CTK.minimal('tkStereo '+C.__version__)
+    (win, menu, file, tools) = CTK.minimal('tkEffects '+C.__version__)
 
     createApp(win); showApp()
 

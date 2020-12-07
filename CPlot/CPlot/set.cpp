@@ -52,13 +52,14 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   PyObject* materials; PyObject* bumpMaps;
   int gridSizeI, gridSizeJ;
   E_Float lightOffsetX, lightOffsetY; 
-  E_Float dofPower; E_Float gamma; E_Float sobelThreshold;
+  E_Float dofPower; E_Float gamma; E_Int toneMapping; 
+  E_Float sobelThreshold; 
   int timer; int selectionStyle; int frameBuffer; int offscreen;
   int continuousExport; int activateShortCuts;
   char* backgroundFile;
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(args, 
-	      "iOOiiiiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)d(dd)isiidddiiississidi(ii)iiiOdOOii",
+	      "iOOiiiiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)d(dd)isiiddidiiississidi(ii)iiiOdOOii",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -72,7 +73,8 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &dirx, &diry, &dirz, &viewAngle,
         &lightOffsetX, &lightOffsetY,
         &bgColor, &backgroundFile,
-        &shadow, &dof, &dofPower, &gamma, &sobelThreshold,
+        &shadow, &dof, &dofPower, &gamma, &toneMapping,
+        &sobelThreshold,
         &ghostifyDeactivatedZones, &edgifyActivatedZones,
         &edgifyDeactivatedZones,
         &exportFile, &exportResolution, &continuousExport,
@@ -132,6 +134,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   if (gridSizeJ != -1) d->ptrState->gridSizeJ = gridSizeJ;
   if (dofPower != -1.) d->ptrState->dofPower = dofPower;
   if (gamma != -1.) d->ptrState->gamma = gamma;
+  if (toneMapping != -1) d->ptrState->toneMapping = toneMapping;
   if (lightOffsetX != -999.) d->ptrState->lightOffsetX = lightOffsetX;
   if (lightOffsetY != -999.) d->ptrState->lightOffsetY = lightOffsetY;
   //if (viewAngle != -1) d->ptrState->farClip = 1;

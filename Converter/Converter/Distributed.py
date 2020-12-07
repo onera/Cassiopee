@@ -470,7 +470,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         for z in zones:
             proc = getProcLocal__(z, procDict)
             for z2 in zones:
-                if z[0] in intersectionsDict[z2[0]]:
+                if z2[0] in intersectionsDict and z[0] in intersectionsDict[z2[0]]:
                     popp = getProcGlobal__(z2[0], t, procDict) 
                     updateGraph__(graph, proc, popp, z[0])
         #import Connector.PyTree as X 
@@ -491,7 +491,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
             base = p[0]
             proc = getProcLocal__(z, procDict)
             for z2 in zones:
-                if z[0] in intersectionsDict[z2[0]]:
+                if z2[0] in intersectionsDict and z[0] in intersectionsDict[z2[0]]:
                     (p, c) = Internal.getParentOfNode(t, z2)
                     based = p[0]
                     popp = getProcGlobal__(z2[0], t, procDict) 
@@ -529,7 +529,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
             intersectionsDict = X.getIntersectingDomains(t, t2)
         for z in zones:
             proc = getProcLocal__(z, procDict)
-            for z2 in zones2:
+            for z[0] in intersectionsDict and z2 in zones2:
                 if z2[0] in intersectionsDict[z[0]]:
                     popp = getProcGlobal__(z2[0], t2, procDict2)
                     updateGraph__(graph, proc, popp, z[0])

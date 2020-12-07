@@ -815,7 +815,7 @@ pyTree creation and manipulation
     bndType accepts wildcards. 
     bndType can also be a family BC name. Int this case, to extract
     the BCs of 'myFamily', you must set
-    bntType to 'FamilySpecified:myFamily. 
+    bntType to 'FamilySpecified:myFamily'. 
     
     :param a: input data 
     :type a: [pyTree, base, zone, list of zones]
@@ -845,7 +845,7 @@ pyTree creation and manipulation
     bndName accepts wildcards. 
     bndName can also be a family BC name. Int this case, to extract
     the BCs of 'myFamily', you must set
-    bntName to 'FamilySpecified:myFamily. 
+    bntName to 'FamilySpecified:myFamily'. 
     
     :param a: input data 
     :type a: [pyTree, base, zone, list of zones]

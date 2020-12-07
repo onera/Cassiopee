@@ -94,6 +94,9 @@ struct CPlotState {
     
     // Gamma correction
     double gamma;
+    
+    // Tone Mapping type
+    int toneMapping;
 
     // Sobel threshold
     double sobelThreshold;
