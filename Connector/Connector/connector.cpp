@@ -94,6 +94,8 @@ static PyMethodDef Pyconnector [] =
   {"indiceToCoord2",K_CONNECTOR::indiceToCoord2, METH_VARARGS},//on a zone, in place
   {"correctCoeffList",K_CONNECTOR::correctCoeffList, METH_VARARGS},//on a zone, in place
   {"_blankClosestTargetCells",K_CONNECTOR::_blankClosestTargetCells, METH_VARARGS},
+  {"_modCellN1",K_CONNECTOR::_modCellN1, METH_VARARGS},
+  {"_modCellN2",K_CONNECTOR::_modCellN2, METH_VARARGS},
   {NULL, NULL}
 };
 

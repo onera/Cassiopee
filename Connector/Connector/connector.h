@@ -717,5 +717,7 @@ namespace K_CONNECTOR
   PyObject* indiceToCoord2(PyObject* self, PyObject* args);//on a zone, in place
   PyObject* correctCoeffList(PyObject* self, PyObject* args);//on a zone, in place
   PyObject* _blankClosestTargetCells(PyObject* self, PyObject* args);
+  PyObject* _modCellN1(PyObject* self, PyObject* args);
+  PyObject* _modCellN2(PyObject* self, PyObject* args);
 }
 #endif

@@ -2195,7 +2195,7 @@ def __TZGC2(t, _F, *args):
     if fc != []: _F(fc, *args)
   return None
 
-# Recupere les coord, applique F qui renvoie une copie, fait un setFields
+# Recupere les coords, applique F qui renvoie une copie, fait un setFields
 def _TZGC2(t, F, locout, writeDim, *args):
   zones = Internal.getZones(t)
   for z in zones:

@@ -56,7 +56,8 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
             "Connector/getIBMPtsWithoutFront.cpp",
             "Connector/getIBMPtsBasic.cpp",
             "Connector/indiceToCoord2.cpp",
-            "Connector/correctCoeffList.cpp"
+            "Connector/correctCoeffList.cpp",
+            "Connector/modCellN.cpp"
              ]
 
 #==============================================================================

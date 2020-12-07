@@ -56,6 +56,7 @@ def setToneMapping(event=None):
     if ntype == 'None': rtype = 0
     elif ntype == 'ACE': rtype = 1
     elif ntype == 'Filmic': rtype = 2
+    elif ntype == 'Uchimura': rtype = 3
     CPlot.setState(toneMapping=rtype)
 
 #==============================================================================
@@ -140,7 +141,7 @@ def createApp(win):
     
 
     # - Tone mapping -
-    B = TTK.OptionMenu(Frame, VARS[7], 'None', 'ACE', 'Filmic', command=setToneMapping)
+    B = TTK.OptionMenu(Frame, VARS[7], 'None', 'ACE', 'Filmic', 'Uchimura', command=setToneMapping)
     B.grid(row=2, column=1, sticky=TK.EW)
 
     # - Gamma correction -

@@ -565,8 +565,27 @@ def maskXRay__(body, delta=0., dim=3, isNot=0, tol=1.e-8):
     body = T.join(body)
     return connector.maskXRay([body], delta, dim, isNot, tol)
 
+# cellN modification
+def _modCellN1(a, cellNName='cellN'):
+    """Change cellN: 0->-1, 2->0"""
+    if isinstance(a[0], list):
+        for i in a:
+            connector._modCellN1(i, cellNName)
+    else:
+        return connector._modCellN1(a, cellNName)
+    return None
+
+# cellN modification
+def _modCellN2(a, cellNName='cellN'):
+    """Change cellN: -1->0"""
+    if isinstance(a[0], list):
+        for i in a:
+            connector._modCellN2(i, cellNName)
+    else:
+        return connector._modCellN2(a, cellNName)
+    return None
+
 #------------------------------------------------------------------------------
-# Retourne sous forme de NODE les sommets interpoles de a
 # IN: x,y,z, cellN localises au meme endroit
 # OUT: array 'NODE' avec 'x,y,z,indcell' 
 #      avec indcell l indice du noeud correspondant de z tq cellN(indcell)=2

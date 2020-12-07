@@ -10,8 +10,15 @@ then
     exit 1
 fi
 
+# executable python
 if [ "$PYTHONEXE" = "" ]; then
     PYTHONEXE=python
+fi
+
+# Machine avec remote GL (utilisant virtual GL)
+if [ $ELSAPROD == 'vis_r8' ] || [ $ELSAPROD == 'spiro_r8' ] 
+then
+    PYTHONEXE='vglrun '$PYTHONEXE
 fi
 
 # OMP_NUM_THREADS init
@@ -105,7 +112,7 @@ else
     then
         set -x
         # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l python $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
         set +x
     elif [ $ELSAPROD == 'sat_r8' ] # sator
     then
