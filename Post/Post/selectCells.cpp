@@ -20,6 +20,7 @@
 // selectCells
 # include "stdio.h"
 # include "post.h"
+# include "Nuga/include/ngon_t.hxx"
 
 using namespace std;
 using namespace K_FLD;
@@ -31,11 +32,12 @@ using namespace K_FUNC;
 PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 {
   PyObject* arrayNodes;  PyObject* arrayCenters; PyObject* tag;
+  PyObject* PE;
   E_Int strict;
   
   if (!PYPARSETUPLEI(args,
-                    "OOOl", "OOOi",
-		     &arrayNodes, &arrayCenters, &tag, &strict))
+                    "OOOlO", "OOOiO",
+		     &arrayNodes, &arrayCenters, &tag, &strict, &PE))
   {
       return NULL;
   }
@@ -298,6 +300,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     }
   }
 
+  PyObject* l = PyList_New(0); 
+  
   // Infos sur le type d'element
   E_Int isNGon = 1; E_Int isNode = 1;
   isNGon = strcmp(eltType, "NGON"); // vaut 0 si l'elmt est un NGON
@@ -533,6 +537,15 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     FldArrayF& fcenter0 = *fC;
     E_Int nfldC         = fC->getNfld();
     E_Int ii            = 0 ;
+
+    FldArrayI new_pg_ids(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
+    FldArrayI keep_pg(nbFaces);       // Flag de conservation des faces 
+    FldArrayI new_ph_ids(nbElements); // Tableau d'indirection des elmts (pour maj PE)
+
+    new_pg_ids = -1 ;
+    new_ph_ids = -1 ;
+    keep_pg    = -1 ; 
+    E_Int newNumFace = 0 ;
     
     // Selection des faces valides
     E_Int fa = 0; E_Int numFace = 0; cnpp += 2;
@@ -563,72 +576,230 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
         cnpp += nbnodes+1; fa += nbnodes+1; numFace++;
       }
     }
-
-    // Selection des elements en fonction des faces valides
-    if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
-    {
-      for (E_Int i = 0; i < nbElements; i++)
-      {
-        nbfaces = cnEFp[0];
-        for (E_Int n = 1; n <= nbfaces; n++)
+	   
+    
+   // Si mise a jour du ParentElement, tab d'indirection des faces et des elmts
+    // ------------------------------------------------------------------------
+    if (PE != Py_None)
+    {     
+        // Selection des elements en fonction des faces valides
+        if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
         {
-          if (selectedFacesp[cnEFp[n]-1] == 1) 
-          { 
-            cn2p[0] = nbfaces; size2 += 1;
-            for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
-            size2 += nbfaces; cn2p += nbfaces+1; next++;
+          for (E_Int i = 0; i < nbElements; i++)
+          {
+	    new_ph_ids[i] = -1;
+            nbfaces       = cnEFp[0];
+            for (E_Int n = 1; n <= nbfaces; n++)
+            {
+              if (selectedFacesp[cnEFp[n]-1] == 1) 
+              { 
+                cn2p[0] = nbfaces; size2 += 1;
+                for (E_Int n = 1; n <= nbfaces; n++)
+		{
+		  cn2p[n] = cnEFp[n];
+		  if (new_pg_ids[cnEFp[n]-1] == -1) keep_pg[cnEFp[n]-1] = +1;
+		}
+		
+                size2 += nbfaces; cn2p += nbfaces+1; next++;
+    	    
+		for (E_Int k = 1; k <= nfldC; k++)
+		  fcenter(ii,k) = fcenter0(i,k);
 	    
-	    for (E_Int k = 1; k <= nfldC; k++)
-	        fcenter(ii,k) = fcenter0(i,k);
-	    ii++;
-	    	      
-            break; 
+		new_ph_ids[i] = ii;
+		ii++;
+    	    	      
+                break; 
+              }
+            }
+            cnEFp += nbfaces+1; 
+          }	  
+	  
+        }
+        else //strict=1, cell selectionnee si tous les sommets sont tag
+        {
+          for (E_Int i = 0; i < nbElements; i++)
+          {
+            isSel         = 0;
+	    new_ph_ids[i] = -1;
+            nbfaces       = cnEFp[0];
+            for (E_Int n = 1; n <= nbfaces; n++)
+            {
+              if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+            }
+            if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+            {
+              cn2p[0] = nbfaces; size2 +=1;
+              for (E_Int n = 1; n <= nbfaces; n++)
+	      {
+		cn2p[n] = cnEFp[n];
+		if (new_pg_ids[cnEFp[n]-1] == -1)
+		{
+		  keep_pg[cnEFp[n]-1] = +1;
+		}		
+	      }
+              size2 += nbfaces; cn2p += nbfaces+1; next++;
+    	  
+	      for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
+		
+	      new_ph_ids[i] = ii;
+		
+	      ii++;
+            }
+            cnEFp += nbfaces+1; 
+          } 
+        }
+        cn2.reAlloc(size2);
+        foutC->reAllocMat(ii,nfldC);
+
+
+	E_Int nn = 0 ; 
+	for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
+	{
+	  if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
+	}	
+
+    }
+    else  // PE == Py_None - pas de creation de tab d'indirection 
+    {
+    
+        // Selection des elements en fonction des faces valides
+        if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
+        {
+          for (E_Int i = 0; i < nbElements; i++)
+          {
+            nbfaces = cnEFp[0];
+            for (E_Int n = 1; n <= nbfaces; n++)
+            {
+              if (selectedFacesp[cnEFp[n]-1] == 1) 
+              { 
+                cn2p[0] = nbfaces; size2 += 1;
+                for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
+                size2 += nbfaces; cn2p += nbfaces+1; next++;
+    	    
+		for (E_Int k = 1; k <= nfldC; k++)
+		  fcenter(ii,k) = fcenter0(i,k);
+		ii++;
+    	    	      
+                break; 
+              }
+            }
+            cnEFp += nbfaces+1; 
           }
         }
-        cnEFp += nbfaces+1; 
-      }
-    }
-    else //strict=1, cell selectionnee si tous les sommets sont tag
-    {
-      for (E_Int i = 0; i < nbElements; i++)
-      {
-        isSel = 0;
-        nbfaces = cnEFp[0];
-        for (E_Int n = 1; n <= nbfaces; n++)
+        else //strict=1, cell selectionnee si tous les sommets sont tag
         {
-          if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+          for (E_Int i = 0; i < nbElements; i++)
+          {
+            isSel = 0;
+            nbfaces = cnEFp[0];
+            for (E_Int n = 1; n <= nbfaces; n++)
+            {
+              if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+            }
+            if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+            {
+              cn2p[0] = nbfaces; size2 +=1;
+              for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
+              size2 += nbfaces; cn2p += nbfaces+1; next++;
+    	  
+    	        for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
+    	        ii++;
+            }
+            cnEFp += nbfaces+1; 
+          } 
         }
-        if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
-        {
-          cn2p[0] = nbfaces; size2 +=1;
-          for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
-          size2 += nbfaces; cn2p += nbfaces+1; next++;
-	  
-	        for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
-	        ii++;
-        }
-        cnEFp += nbfaces+1; 
-      } 
+        cn2.reAlloc(size2);
+        foutC->reAllocMat(ii,nfldC);
+ 
     }
-    cn2.reAlloc(size2);
-    foutC->reAllocMat(ii,nfldC);
-    
+
     // Cree la nouvelle connectivite complete
     E_Int coutsize = sizeFN+4+size2;
     FldArrayI* cout = new FldArrayI(coutsize);
     E_Int* coutp = cout->begin();
-    cnpp = cnp->begin(); cn2p = cn2.begin();
+    cnpp = cnp->begin(); cn2p = cn2.begin(); 
     for (E_Int i = 0; i < sizeFN+2; i++) coutp[i] = cnpp[i];
     coutp += sizeFN+2;
     coutp[0] = next;
     coutp[1] = size2; coutp += 2;
     for (E_Int i = 0; i < size2; i++) coutp[i] = cn2p[i];
 
-    RELEASESHAREDB(res2, tag, f2, cnp2);    
+    RELEASESHAREDB(res2, tag, f2, cnp2);
 
+
+    if (PE != Py_None)
+    {
+      // Check numpy (parentElement)
+      FldArrayI* cFE;
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      
+      if (res == 0)
+      {
+	RELEASESHAREDN(PE, cFE);
+	PyErr_SetString(PyExc_TypeError, 
+			"selectCellsBoth: PE numpy is invalid.");
+	return NULL;
+      }
+      
+
+      ngon_t<K_FLD::FldArrayI> ng(*cout); // construction d'un ngon_t à partir d'un FldArrayI
+
+      FldArrayI* cFEp_new = new FldArrayI(newNumFace,2);
+      FldArrayI& cFE_new  = *cFEp_new ; 
+
+      E_Int* cFEl = cFE_new.begin(1);
+      E_Int* cFEr = cFE_new.begin(2);
+
+      E_Int* cFEl_old = cFE->begin(1);
+      E_Int* cFEr_old = cFE->begin(2);
+      
+      E_Int old_ph_1, old_ph_2;
+
+      for (E_Int pgi = 0; pgi < nbFaces; pgi++)
+      {
+	if (new_pg_ids[pgi]>=0)
+	{
+	  old_ph_1 = cFEl_old[pgi]-1;
+	  old_ph_2 = cFEr_old[pgi]-1;
+
+	  if (old_ph_1 >= 0) // l'elmt gauche existe 
+	  {
+	    cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
+ 
+	    if (old_ph_2 >= 0) // l'elmt droit existe 
+	      cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1; 
+	    else
+	      cFEr[new_pg_ids[pgi]] = 0;
+	  }
+	  else // l'elmt gauche a disparu - switch droite/gauche
+	  {
+	    cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+	    cFEr[new_pg_ids[pgi]] = 0;
+	    // reverse
+	    E_Int s = ng.PGs.stride(pgi);
+	    E_Int* p = ng.PGs.get_facets_ptr(pgi);
+	    std::reverse(p, p + s);
+	  }
+	  
+	}
+      } // boucle pgi      
+      
+      // export ngon
+      ng.export_to_array(*cout);
+
+      // objet Python de sortie
+      PyObject* pyPE = K_NUMPY::buildNumpyArray(cFE_new, 1);
+
+      PyList_Append(l,pyPE);
+      
+      RELEASESHAREDN(PE, cFE);
+    }
+
+   
     // close
     if (posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
+    
     tpl  = K_ARRAY::buildArray(*fout,   varString, *cout, 8);
     tplc = K_ARRAY::buildArray(*foutC, varStringC, *cout, 8);
     
@@ -637,11 +808,10 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 
   RELEASESHAREDB(res, arrayNodes, f, cnp);
   RELEASESHAREDB(resC, arrayCenters, fC, cnpC);
-
-  PyObject* l = PyList_New(0);
+  
   PyList_Append(l,tpl) ; Py_DECREF(tpl);
   PyList_Append(l,tplc); Py_DECREF(tplc);
-  
+
   return l;  
 }
 
@@ -747,10 +917,12 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
 PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* tag;
+  PyObject* PE;
   E_Int strict;
+  
   if (!PYPARSETUPLEI(args,
-                    "OOl", "OOi",
-                    &array, &tag, &strict))
+                    "OOlO", "OOiO",
+                    &array, &tag, &strict, &PE))
   {
       return NULL;
   }
@@ -998,6 +1170,8 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     }
   }
 
+  PyObject* l = PyList_New(0);
+  
   // Infos sur le type d'element
   E_Int isNGon = 1; E_Int isNode = 1;
   isNGon = strcmp(eltType, "NGON"); // vaut 0 si l'elmt est un NGON
@@ -1199,8 +1373,19 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     E_Int nbfaces, nbnodes;
     E_Int isSel;
     
+    FldArrayI new_pg_ids(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
+    FldArrayI keep_pg(nbFaces);       // Flag de conservation des faces 
+    FldArrayI new_ph_ids(nbElements); // Tableau d'indirection des elmts (pour maj PE)
+    E_Int ii = 0 ;
+ 
+    new_pg_ids = -1 ;
+    new_ph_ids = -1 ;
+    keep_pg    = -1 ; 
+    E_Int newNumFace = 0 ;    
+
     // Selection des faces valides
     E_Int fa = 0; E_Int numFace = 0; cnpp += 2;
+    
 
     if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
     {
@@ -1229,46 +1414,125 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
       }
     }
 
-    // Selection des elements en fonction des faces valides
-    if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
-    {
-      for (E_Int i = 0; i < nbElements; i++)
-      {
-        nbfaces = cnEFp[0];
-        for (E_Int n = 1; n <= nbfaces; n++)
+    
+   // Si mise a jour du ParentElement, tab d'indirection des faces et des elmts
+    // ------------------------------------------------------------------------
+    if (PE != Py_None)
+    {         
+        // Selection des elements en fonction des faces valides
+        if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
         {
-          if (selectedFacesp[cnEFp[n]-1] == 1) 
-          { 
-            cn2p[0] = nbfaces; size2 += 1;
-            for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
-            size2 += nbfaces; cn2p += nbfaces+1; next++;
-            break; 
+          for (E_Int i = 0; i < nbElements; i++)
+          {
+	    new_ph_ids[i] = -1;
+            nbfaces       = cnEFp[0];
+            for (E_Int n = 1; n <= nbfaces; n++)
+            {
+              if (selectedFacesp[cnEFp[n]-1] == 1) 
+              { 
+                cn2p[0] = nbfaces; size2 += 1;
+                for (E_Int n = 1; n <= nbfaces; n++)
+		{
+		  cn2p[n] = cnEFp[n];
+		  if (new_pg_ids[cnEFp[n]-1] == -1)
+		  {
+		    keep_pg[cnEFp[n]-1] = +1;
+		  }
+		}
+		
+                size2 += nbfaces; cn2p += nbfaces+1; next++;
+
+		
+		new_ph_ids[i] = ii;
+		ii++;
+		
+                break; 
+              }
+            }
+            cnEFp += nbfaces+1; 
           }
         }
-        cnEFp += nbfaces+1; 
-      }
+        else //strict=1, cell selectionnee si tous les sommets sont tag
+        {
+          for (E_Int i = 0; i < nbElements; i++)
+          {
+            isSel = 0;
+            nbfaces = cnEFp[0];
+            for (E_Int n = 1; n <= nbfaces; n++)
+            {
+              if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+            }
+            if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+            {
+              cn2p[0] = nbfaces; size2 +=1;
+              for (E_Int n = 1; n <= nbfaces; n++)
+	      {
+		cn2p[n] = cnEFp[n];
+		if (new_pg_ids[cnEFp[n]-1] == -1)
+		{
+		  keep_pg[cnEFp[n]-1] = +1;
+		}
+	      }
+              size2 += nbfaces; cn2p += nbfaces+1; next++;
+	      
+	      new_ph_ids[i] = ii;	
+	      ii++;
+            }
+            cnEFp += nbfaces+1; 
+          } 
+        }
+        cn2.reAlloc(size2);	
+	
+	E_Int nn = 0 ; 
+	for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
+	{
+	  if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
+	}
+
     }
-    else //strict=1, cell selectionnee si tous les sommets sont tag
+    else  // PE == Py_None - pas de creation de tab d'indirection
     {
-      for (E_Int i = 0; i < nbElements; i++)
-      {
-        isSel = 0;
-        nbfaces = cnEFp[0];
-        for (E_Int n = 1; n <= nbfaces; n++)
+        // Selection des elements en fonction des faces valides
+        if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
         {
-          if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+          for (E_Int i = 0; i < nbElements; i++)
+          {
+            nbfaces = cnEFp[0];
+            for (E_Int n = 1; n <= nbfaces; n++)
+            {
+              if (selectedFacesp[cnEFp[n]-1] == 1) 
+              { 
+                cn2p[0] = nbfaces; size2 += 1;
+                for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
+                size2 += nbfaces; cn2p += nbfaces+1; next++;
+                break; 
+              }
+            }
+            cnEFp += nbfaces+1; 
+          }
         }
-        if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+        else //strict=1, cell selectionnee si tous les sommets sont tag
         {
-          cn2p[0] = nbfaces; size2 +=1;
-          for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
-          size2 += nbfaces; cn2p += nbfaces+1; next++;
+          for (E_Int i = 0; i < nbElements; i++)
+          {
+            isSel = 0;
+            nbfaces = cnEFp[0];
+            for (E_Int n = 1; n <= nbfaces; n++)
+            {
+              if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+            }
+            if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+            {
+              cn2p[0] = nbfaces; size2 +=1;
+              for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
+              size2 += nbfaces; cn2p += nbfaces+1; next++;
+            }
+            cnEFp += nbfaces+1; 
+          } 
         }
-        cnEFp += nbfaces+1; 
-      } 
+        cn2.reAlloc(size2);
     }
-    cn2.reAlloc(size2);
-    
+        
     // Cree la nouvelle connectivite complete
     E_Int coutsize = sizeFN+4+size2;
     FldArrayI* cout = new FldArrayI(coutsize);
@@ -1282,13 +1546,83 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
 
     RELEASESHAREDB(res2, tag, f2, cnp2);    
 
+    if (PE != Py_None)
+    {
+      // Check numpy (parentElement)
+      FldArrayI* cFE;
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+          
+      if (res == 0)
+      {
+	RELEASESHAREDN(PE, cFE);
+	PyErr_SetString(PyExc_TypeError, 
+			"selectCells: PE numpy is invalid.");
+	return NULL;
+      }
+            
+      ngon_t<K_FLD::FldArrayI> ng(*cout); // construction d'un ngon_t à partir d'un FldArrayI
+      
+      FldArrayI* cFEp_new = new FldArrayI(newNumFace,2);
+      FldArrayI& cFE_new  = *cFEp_new ; 
+      
+      E_Int* cFEl = cFE_new.begin(1);
+      E_Int* cFEr = cFE_new.begin(2);
+      
+      E_Int* cFEl_old = cFE->begin(1);
+      E_Int* cFEr_old = cFE->begin(2);
+      
+      E_Int old_ph_1, old_ph_2;
+
+      for (E_Int pgi = 0; pgi < nbFaces; pgi++)
+      {
+	if (new_pg_ids[pgi]>=0)
+	{
+	  old_ph_1 = cFEl_old[pgi]-1;
+	  old_ph_2 = cFEr_old[pgi]-1;
+
+	  if (old_ph_1 >= 0) // l'elmt gauche existe 
+	  {
+	    cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
+ 
+	    if (old_ph_2 >= 0) // l'elmt droit existe 
+	      cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1; 
+	    else
+	      cFEr[new_pg_ids[pgi]] = 0;
+	  }
+	  else // l'elmt gauche a disparu - switch droite/gauche
+	  {
+	    cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+	    cFEr[new_pg_ids[pgi]] = 0;
+	    // reverse
+	    E_Int s = ng.PGs.stride(pgi);
+	    E_Int* p = ng.PGs.get_facets_ptr(pgi);
+	    std::reverse(p, p + s);
+	  }
+	  
+	}
+      } // boucle pgi     
+      
+      // export ngon
+      ng.export_to_array(*cout);
+
+      // objet Python de sortie
+      PyObject* pyPE = K_NUMPY::buildNumpyArray(cFE_new, 1);
+
+      PyList_Append(l,pyPE);
+      
+      RELEASESHAREDN(PE, cFE);
+    }
+
     // close
     if (posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
     tpl = K_ARRAY::buildArray(*fout, varString, *cout, 8);
     delete fout; delete cout;
   }
-  RELEASESHAREDB(res, array, f, cnp); 
-  return tpl;  
+  RELEASESHAREDB(res, array, f, cnp);
+  
+  PyList_Append(l,tpl) ; Py_DECREF(tpl);
+  
+  return l;  
 }
 

@@ -305,6 +305,17 @@ def selectCells(t, F, varStrings=[], strict=0):
         
         zones = Internal.getZones(tp)
         for z in zones:
+
+            # Get ParentElement node if any
+            GEl = Internal.getElementNodes(z)
+            NGON = 0; found = False; PE = None
+            for c in GEl:
+                if c[1][0] == 22: found = True; break
+                NGON += 1         
+            if found:
+                node = GEl[NGON]
+                PE = Internal.getNodeFromName1(node, 'ParentElements')
+
             fc = C.getFields(Internal.__GridCoordinates__, z)[0]
             fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
             fb = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
@@ -313,32 +324,69 @@ def selectCells(t, F, varStrings=[], strict=0):
                 ft = Converter.addVars([fc, fa])
                 
                 if fb != []:
-                    (fp,fq) = Post.selectCells(ft, F, fb, varStrings, strict)
+                    if PE is not None:
+                        (PE2,fp,fq) = Post.selectCells(ft, F, fb, varStrings, strict, PE[1])
+                    else:
+                        (fp,fq) = Post.selectCells(ft, F, fb, varStrings, strict, None)
+                        
                     C._deleteFlowSolutions__(z, 'centers')
                     C.setFields([fq], z, 'centers')
-                else:
-                    fp = Post.selectCells(ft, F, fb, varStrings, strict)
-                    C._deleteFlowSolutions__(z, 'centers')
                     
-                C.setFields([fp], z, 'nodes')
+                else:
+                    if PE is not None:
+                        (PE2,fp) = Post.selectCells(ft, F, fb, varStrings, strict, PE[1])
+                    else:
+                        fp = Post.selectCells(ft, F, fb, varStrings, strict, None)
+                        
+                    C._deleteFlowSolutions__(z, 'centers')
+
+                C.setFields([fp], z, 'nodes')                  
                 
             elif fa != []:
+                print("cas 2.")
                 if fb != []:
-                    (fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict )
+                    if PE is not None:
+                        (PE2,fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict, PE[1] )
+                    else:
+                        (fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict, None )
+                        
                     C.setFields([fq], z, 'centers')
                 else:
-                    fp = Post.selectCells(ft, F, fb, varStrings, strict)
-                    
+                    if PE is not None:
+                        (PE2,fp) = Post.selectCells(ft, F, fb, varStrings, strict, PE[1]) 
+                    else:
+                        fp = Post.selectCells(ft, F, fb, varStrings, strict, None)
+                        
+                        
                 C.setFields([fp], z, 'nodes')
                 
             elif fc != []:
                 if fb != []:
-                    (fp,fq) = Post.selectCells(fc, F, fb, varStrings, strict)
+                    if PE is not None:
+                        (PE2,fp,fq) = Post.selectCells(fc, F, fb, varStrings, strict, PE[1])
+                    else:
+                        (fp,fq) = Post.selectCells(fc, F, fb, varStrings, strict, None)
+                    
                     C.setFields([fq], z, 'centers')
                 else:
-                    fp = Post.selectCells(fc, F, fb, varStrings, strict)
-                    
+                    if PE is not None:
+                        fp = Post.selectCells(fc, F, fb, varStrings, strict, PE[1])
+                    else:
+                        (PE2,fp) = Post.selectCells(fc, F, fb, varStrings, strict, None) 
+                        
+                        
                 C.setFields([fp], z, 'nodes')
+
+
+            # Set ParentElement 
+            if PE is not None:
+                GEl = Internal.getElementNodes(z)
+                NGON = 0; found = False
+                for c in GEl:
+                    if c[1][0] == 22: found = True; break
+                    NGON += 1
+                if found: Internal.createUniqueChild(GEl[NGON], 'ParentElements', 'DataArray_t', value=PE2)
+                    
         
         if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
         return tp
@@ -385,6 +433,18 @@ def selectCells2(t, tagName, strict=0):
     
     zones = Internal.getZones(tp)
     for z in zones:
+
+        # Get ParentElement node if any
+        # =============================
+        GEl = Internal.getElementNodes(z)
+        NGON = 0; found = False; PE = None
+        for c in GEl:
+            if c[1][0] == 22: found = True; break
+            NGON += 1
+            if found:
+                node = GEl[NGON]
+                PE = Internal.getNodeFromName1(node, 'ParentElements')
+                    
         if loc == 0: # noeuds
             fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0] 
             taga = C.getFields(Internal.__FlowSolutionNodes__, z)
@@ -407,30 +467,53 @@ def selectCells2(t, tagName, strict=0):
             f = Converter.addVars([fc, fa])
 
             if fb != [] and fb is not None : # il y a des champs en centres
-                (fp,fq) = Post.selectCells2(f, taga, fb, strict, loc)
+                if PE is not None:
+                    (fp,fq) = Post.selectCells2(f, taga, fb, strict, loc, PE[1])
+                else:
+                    (fp,fq) = Post.selectCells2(f, taga, fb, strict, loc, None)
+                    
                 C._deleteFlowSolutions__(z, 'centers')
                 C.setFields([fq], z, 'centers')
-            else:        # pas de champ en centres 
-                fp = Post.selectCells2(f, taga, [], strict, loc)
+                
+            else:  # pas de champ en centres 
+                if PE is not None:
+                    fp = Post.selectCells2(f, taga, [], strict, loc, PE[1])
+                else:
+                    fp = Post.selectCells2(f, taga, [], strict, loc, None)
+                    
                 Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
 
             C.setFields([fp], z, 'nodes')
 
         elif fa != []:
             if fb != [] and fb is not None: # il y a des champs en centres 
-                (fp,fq) = Post.selectCells2(fa, taga, fb, strict, loc)
+                if PE is not None: 
+                    (fp,fq) = Post.selectCells2(fa, taga, fb, strict, loc, PE[1])
+                else:
+                    (fp,fq) = Post.selectCells2(fa, taga, fb, strict, loc, None)
                 C.setFields([fq], z, 'centers')
-            else:        # pas de champ en centres 
-                fp = Post.selectCells2(fa, taga, [], strict, loc)
+            else:        # pas de champ en centres
+                if PE is not None: 
+                    fp = Post.selectCells2(fa, taga, [], strict, loc, PE[1])
+                else:
+                    fp = Post.selectCells2(fa, taga, [], strict, loc, None)
                 Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
             C.setFields([fp], z, 'nodes')
 
         elif fc != []:
             if fb != [] and fb is not None: # il y a des champs en centres
-                (fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc)
+                if PE is not None: 
+                    (fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc, PE[1])
+                else:
+                    (fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc, None)
+                
                 C.setFields([fq], z, 'centers')
-            else:        # pas de champ en centres 
-                fp = Post.selectCells2(fc, taga, [], strict, loc)
+            else:        # pas de champ en centres
+                
+                if PE is not None: 
+                    fp = Post.selectCells2(fc, taga, [], strict, loc, PE[1])
+                else:
+                    fp = Post.selectCells2(fc, taga, [], strict, loc, None)
                 Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
             C.setFields([fp], z, 'nodes')
     if Internal.isTopTree(tp): C._deleteEmptyZones(tp)

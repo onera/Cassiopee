@@ -678,33 +678,42 @@ def buildTag1__(array, F, varStrings):
     return out
 
 
-def selectCells__(arrayNodes, F, arrayCenters, varStrings, strict):
+def selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E):
     if varStrings == []: tag = buildTag2__(arrayNodes, F)
     else: tag = buildTag1__(arrayNodes, F, varStrings)
+    
     if arrayCenters != []:
-        return post.selectCellsBoth(arrayNodes, arrayCenters, tag, strict)
+        return post.selectCellsBoth(arrayNodes, arrayCenters, tag, strict, F2E)
     else:
-        return post.selectCells(arrayNodes, tag, strict)
+        return post.selectCells(arrayNodes, tag, strict, F2E)
 
-def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0):
+def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=None):
     """Select cells in a given array.
     Usage: selectCells(array, F, varStrings, strict)"""
     if isinstance(arrayNodes[0], list):
         b = []
-        print("arrayCenters: ", arrayCenters)
         if arrayCenters != []:
             if len(arrayNodes) != len(arrayCenters): raise ValueError("selectCells: Nodes and Centers arrays have different size.")
             
         for i in range(len(arrayNodes)):
             if arrayCenters != []:
-                ret = selectCells__(arrayNodes[i], F, arrayCenters[i], varStrings, strict)
-            else:               
-                ret = selectCells__(arrayNodes[i], F, [], varStrings, strict)
-            b.append(ret)
+                ret = selectCells__(arrayNodes[i], F, arrayCenters[i], varStrings, strict, F2E)
+            else:
+                ret = selectCells__(arrayNodes[i], F, [], varStrings, strict, F2E)
+                
+            if F2E is None and arrayCenters == []:
+                b.append(ret[0])
+            else:
+                b.append(ret)
+            
         return b
     else:
-        ret = selectCells__(arrayNodes, F, arrayCenters, varStrings, strict)
-        return ret
+        ret = selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E)
+
+        if F2E is None and arrayCenters == []:
+            return ret[0]
+        else:
+            return ret
 
 #------------------------------------------------------------------------------
 # Select cells where tag=1
@@ -713,7 +722,7 @@ def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0):
 # selectCells preserving center flow field solutions
 # an : coordinates and fields in nodes
 # ac : fields in centers 
-def selectCells2(an, tag, ac=[], strict=0, loc=-1):
+def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
     """Select cells in a given array following tag.
     Usage: selectCells2(arrayN, arrayC, tag, strict)"""
     if isinstance(an[0], list):
@@ -729,12 +738,18 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1):
                 (retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i])
             else:
                 if ac == []:
-                    retn = post.selectCells(an[i], tag[i], strict) 
+                    if F2E != None:
+                        (PE2, retn) = post.selectCells(an[i], tag[i], strict, F2E)
+                    else:
+                        retn = post.selectCells(an[i], tag[i], strict, None)[0]
                 else:
-                    (retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict)
+                    if F2E != None:
+                        (PE2, retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, F2E)
+                    else:
+                        (retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, None)
 
             if ac == []:      
-                b.append(retn)
+                b.append(retn) 
             else:
                 b.append((retn, retc))
                 
@@ -750,9 +765,16 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1):
                 (retn, retc) = post.selectCellCentersBoth(an, ac, tag)
         else:
             if ac == []:
-                retn         = post.selectCells(an, tag, strict)
+                if F2E != None:
+                    retn         = post.selectCells(an, tag, strict, F2E)
+                else:
+                    retn         = post.selectCells(an, tag, strict, None)[0]
+                    
             else:
-                (retn, retc) = post.selectCellsBoth(an, ac, tag, strict)
+                if F2E != None:
+                    (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, F2E)
+                else:
+                    (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, None)
 
         if ac != []:
             return (retn,retc)
