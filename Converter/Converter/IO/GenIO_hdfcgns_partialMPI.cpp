@@ -862,68 +862,152 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
       dims[n] = PyArray_DIMS(ar)[dim-n-1];
     }
 
-    //if (dim == 1 && dims[0] == 1 && strcmp(label, "DataArray_t") != 0) // modif suggere par Bruno
-    if (dim == 1 && dims[0] == 1) // valeur simple
+    if (strcmp(label, "DataArray_t") != 0) // ecriture complete si pas DataArray_t
     {
-      if (typeNum == NPY_DOUBLE)
+      if (dim == 1 && dims[0] == 1) // valeur simple
       {
-        if (strcmp(name, "CGNSLibraryVersion") == 0)
+        if (typeNum == NPY_DOUBLE)
         {
-          double* ptr = (double*)PyArray_DATA(ar);
-          setSingleR4(node, (float)ptr[0]);
+          if (strcmp(name, "CGNSLibraryVersion") == 0)
+          {
+            double* ptr = (double*)PyArray_DATA(ar);
+            setSingleR4(node, (float)ptr[0]);
+          }
+          else
+          {
+            double* ptr = (double*)PyArray_DATA(ar);
+            setSingleR8(node, ptr[0]);
+          }
         }
-        else
+        else if (typeNum == NPY_INT)
         {
-          double* ptr = (double*)PyArray_DATA(ar);
-          setSingleR8(node, ptr[0]);
+          if (elSize == 4)
+          {
+            int* ptr = (int*)PyArray_DATA(ar);
+            setSingleI4(node, ptr[0]);
+          }
+          else
+          {
+            E_LONG* ptr = (E_LONG*)PyArray_DATA(ar);
+            setSingleI8(node, ptr[0]);
+          }
+        }
+        else if (typeNum == NPY_STRING ||
+                 typeNum == NPY_BYTE ||
+                 //typeNum == NPY_SBYTE ||
+                 typeNum == NPY_UBYTE)
+        {
+          E_Int diml = PyArray_DIMS(ar)[0];
+          char* buf = new char [diml+1];
+          strncpy(buf, (char*)PyArray_DATA(ar), diml);
+          buf[diml] = '\0';
+          setArrayC1(node, buf);
+          HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_C1);
+          delete [] buf;
+        }
+        else if (typeNum == NPY_LONG)
+        {
+          if (elSize == 4)
+          {
+            int* ptr = (int*)PyArray_DATA(ar);
+            setSingleI4(node, ptr[0]);
+          }
+          else
+          {
+            E_LONG* ptr = (E_LONG*)PyArray_DATA(ar);
+            setSingleI8(node, ptr[0]);
+          } 
+        }
+        else if (typeNum == NPY_FLOAT)
+        {
+          float* ptr = (float*)PyArray_DATA(ar);
+          setSingleR4(node, ptr[0]);
         }
       }
-      else if (typeNum == NPY_INT)
+      else // tableau
       {
-        if (elSize == 4)
+        if (typeNum == NPY_DOUBLE)
         {
-          int* ptr = (int*)PyArray_DATA(ar);
-          setSingleI4(node, ptr[0]);
+          // patch pour la norme ADF
+          if (strcmp(name, "RotationCenter") == 0 ||
+              strcmp(name, "RotationAngle") == 0 ||
+              strcmp(name, "RotationRateVector") == 0 ||
+              strcmp(name, "Translation") == 0)
+          {
+            E_Int s = PyArray_Size(v);
+            float* buf = new float [s];
+            double* ptr = (double*)PyArray_DATA(ar);
+            for (int i = 0; i < s; i++) buf[i] = ptr[i];
+            setArrayR4(node, buf, dim, dims);
+            delete [] buf;
+          }
+          else
+          {
+            setArrayR8(node, (double*)PyArray_DATA(ar), dim, dims);
+          }
         }
-        else
+        else if (typeNum == NPY_INT)
         {
-          E_LONG* ptr = (E_LONG*)PyArray_DATA(ar);
-          setSingleI8(node, ptr[0]);
+          if (elSize == 4)
+          {
+            setArrayI4(node, (int*)PyArray_DATA(ar), dim, dims);
+          }
+          else if (elSize == 1)
+          {
+            setArrayI1(node, (char*)PyArray_DATA(ar), dim, dims);
+          }
+          else
+          {
+            setArrayI8(node, (E_LONG*)PyArray_DATA(ar), dim, dims);
+          }
+        }
+        else if (typeNum == NPY_BYTE)
+        {
+           setArrayI1(node, (char*)PyArray_DATA(ar), dim, dims);
+        }
+        else if (typeNum == NPY_STRING ||
+                //typeNum == NPY_BYTE ||
+                //typeNum == NPY_SBYTE ||
+                typeNum == NPY_UBYTE)
+        {
+          if (dim == 1)
+          {
+            E_Int diml = PyArray_DIMS(ar)[0];
+            char* buf = new char [diml+1];
+            strncpy(buf, (char*)PyArray_DATA(ar), diml);
+            buf[diml] = '\0';
+            setArrayC1(node, buf);
+            HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_C1);
+            delete [] buf;
+          }
+          else
+          { 
+            setArrayC1(node, (char*)PyArray_DATA(ar), dim, dims);
+          }
+        }
+        else if (typeNum == NPY_LONG)
+        {
+          if (elSize == 4)
+          {
+            setArrayI4(node, (int*)PyArray_DATA(ar), dim, dims);
+          }
+          else if (elSize == 1)
+          {
+            setArrayI1(node, (char*)PyArray_DATA(ar), dim, dims);
+          }
+          else
+          {
+            setArrayI8(node, (E_LONG*)PyArray_DATA(ar), dim, dims);
+          }
+        }
+        else if (typeNum == NPY_FLOAT)
+        {
+          setArrayR4(node, (float*)PyArray_DATA(ar), dim, dims);
         }
       }
-      else if (typeNum == NPY_STRING ||
-               typeNum == NPY_BYTE ||
-               //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE)
-      {
-        E_Int diml = PyArray_DIMS(ar)[0];
-        char* buf = new char [diml+1];
-        strncpy(buf, (char*)PyArray_DATA(ar), diml);
-        buf[diml] = '\0';
-        setArrayC1(node, buf);
-        HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_C1);
-        delete [] buf;
-      }
-      else if (typeNum == NPY_LONG)
-      {
-        if (elSize == 4)
-        {
-          int* ptr = (int*)PyArray_DATA(ar);
-          setSingleI4(node, ptr[0]);
-        }
-        else
-        {
-          E_LONG* ptr = (E_LONG*)PyArray_DATA(ar);
-          setSingleI8(node, ptr[0]);
-        }
-      }
-      else if (typeNum == NPY_FLOAT)
-      {
-        float* ptr = (float*)PyArray_DATA(ar);
-        setSingleR4(node, ptr[0]);
-      }
+
     }
-    else // tableau
+    else // ecriture partielle (DataArray_t)
     {
       if (typeNum == NPY_DOUBLE)
       {

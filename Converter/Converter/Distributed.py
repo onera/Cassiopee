@@ -529,8 +529,8 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
             intersectionsDict = X.getIntersectingDomains(t, t2)
         for z in zones:
             proc = getProcLocal__(z, procDict)
-            for z[0] in intersectionsDict and z2 in zones2:
-                if z2[0] in intersectionsDict[z[0]]:
+            for z2 in zones2:
+                if z[0] in intersectionsDict and z2[0] in intersectionsDict[z[0]]:
                     popp = getProcGlobal__(z2[0], t2, procDict2)
                     updateGraph__(graph, proc, popp, z[0])
                     #updateGraphSet__(graph, proc, popp, z[0])

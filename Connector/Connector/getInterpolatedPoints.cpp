@@ -205,7 +205,7 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct(E_Int imc, E_Int jmc, E_Int 
           i = ind-j*imc;
           sensor = (2+blankedCells[ind])/2;
           unmsensor = 1-sensor;
-              
+
           im1 = K_FUNC::E_max(0,i-d); ip1 = K_FUNC::E_min(i+d,imc-1);
           jm1 = K_FUNC::E_max(0,j-d); jp1 = K_FUNC::E_min(j+d,jmc-1);
           indices[0] = im1 + j*imc;
@@ -562,7 +562,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
                                      field, im, jm, km, cn, eltType); 
   if (res != 1)
   {    
-    if ( res == 2 )
+    if (res == 2)
     {
       PyErr_SetString(PyExc_TypeError,
                       "_getOversetHolesInterpCellCenters: not yet implemented for unstructured zones.");
@@ -590,27 +590,33 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
   E_Int ncells = field->getSize();
   FldArrayI blankedCells(ncells); blankedCells.setAllValuesAt(1);
   FldArrayI cellNatFld(ncells); cellNatFld.setAllValuesAt(1);
-  for (E_Int ind = 0; ind < ncells; ind++)
+  
+#pragma omp parallel
   {
-    if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
-    else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+#pragma omp for
+    for (E_Int ind = 0; ind < ncells; ind++)
+    {
+      if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
+      else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+    }
   }
-
+  
   searchMaskInterpolatedCellsStruct(im, jm, km, depth, dir, blankedCells, cellNatFld);
 
-#pragma omp parallel shared(cellNp, cellNatFld, ncells)
+#pragma omp parallel
   {
 # pragma omp for
-  for (E_Int ind = 0; ind < ncells; ind++)
-  {
-    if (cellNatFld[ind] == 0) cellNp[ind] = 2.; 
-    else if (cellNatFld[ind] == -1) cellNp[ind] = 0.; 
-  }
+    for (E_Int ind = 0; ind < ncells; ind++)
+    {
+      if (cellNatFld[ind] == 0) cellNp[ind] = 2.; 
+      else if (cellNatFld[ind] == -1) cellNp[ind] = 0.; 
+    }
   }
   RELEASESHAREDS(centersArray, field);
   Py_INCREF(Py_None);
   return Py_None;
 }
+
 //=============================================================================
 /* Determine les centres interpoles a partir du cellN 
    Si le celln contient des pts masques, alors les points interpoles autour 

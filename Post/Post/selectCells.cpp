@@ -536,16 +536,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     FldArrayF& fcenter  = *foutC;
     FldArrayF& fcenter0 = *fC;
     E_Int nfldC         = fC->getNfld();
-    E_Int ii            = 0 ;
-
-    FldArrayI new_pg_ids(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
-    FldArrayI keep_pg(nbFaces);       // Flag de conservation des faces 
-    FldArrayI new_ph_ids(nbElements); // Tableau d'indirection des elmts (pour maj PE)
-
-    new_pg_ids = -1 ;
-    new_ph_ids = -1 ;
-    keep_pg    = -1 ; 
-    E_Int newNumFace = 0 ;
+    E_Int ii            = 0;
     
     // Selection des faces valides
     E_Int fa = 0; E_Int numFace = 0; cnpp += 2;
@@ -578,36 +569,47 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     }
 	   
     
-   // Si mise a jour du ParentElement, tab d'indirection des faces et des elmts
+    // Si mise a jour du ParentElement, tab d'indirection des faces et des elmts
     // ------------------------------------------------------------------------
+    E_Int newNumFace = 0;
+    FldArrayI new_pg_ids;
+    FldArrayI keep_pg;
+    FldArrayI new_ph_ids;
+    
     if (PE != Py_None)
-    {     
-        // Selection des elements en fonction des faces valides
-        if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
+    {   
+      new_pg_ids.malloc(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
+      keep_pg.malloc(nbFaces);       // Flag de conservation des faces 
+      new_ph_ids.malloc(nbElements); // Tableau d'indirection des elmts (pour maj PE)
+
+      new_pg_ids = -1;
+      new_ph_ids = -1;
+      keep_pg    = -1; 
+      
+      // Selection des elements en fonction des faces valides
+      if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
+      {
+        for (E_Int i = 0; i < nbElements; i++)
         {
-          for (E_Int i = 0; i < nbElements; i++)
+	        new_ph_ids[i] = -1;
+          nbfaces       = cnEFp[0];
+          for (E_Int n = 1; n <= nbfaces; n++)
           {
-	    new_ph_ids[i] = -1;
-            nbfaces       = cnEFp[0];
-            for (E_Int n = 1; n <= nbfaces; n++)
-            {
               if (selectedFacesp[cnEFp[n]-1] == 1) 
               { 
                 cn2p[0] = nbfaces; size2 += 1;
                 for (E_Int n = 1; n <= nbfaces; n++)
-		{
-		  cn2p[n] = cnEFp[n];
-		  if (new_pg_ids[cnEFp[n]-1] == -1) keep_pg[cnEFp[n]-1] = +1;
-		}
-		
+		            {
+		              cn2p[n] = cnEFp[n];
+		              if (new_pg_ids[cnEFp[n]-1] == -1) keep_pg[cnEFp[n]-1] = +1;
+		            }
                 size2 += nbfaces; cn2p += nbfaces+1; next++;
     	    
-		for (E_Int k = 1; k <= nfldC; k++)
-		  fcenter(ii,k) = fcenter0(i,k);
+		            for (E_Int k = 1; k <= nfldC; k++)
+		              fcenter(ii,k) = fcenter0(i,k);
 	    
-		new_ph_ids[i] = ii;
-		ii++;
-    	    	      
+		            new_ph_ids[i] = ii;
+		            ii++;  
                 break; 
               }
             }
@@ -620,7 +622,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
           for (E_Int i = 0; i < nbElements; i++)
           {
             isSel         = 0;
-	    new_ph_ids[i] = -1;
+	          new_ph_ids[i] = -1;
             nbfaces       = cnEFp[0];
             for (E_Int n = 1; n <= nbfaces; n++)
             {
@@ -630,20 +632,20 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
             {
               cn2p[0] = nbfaces; size2 +=1;
               for (E_Int n = 1; n <= nbfaces; n++)
-	      {
-		cn2p[n] = cnEFp[n];
-		if (new_pg_ids[cnEFp[n]-1] == -1)
-		{
-		  keep_pg[cnEFp[n]-1] = +1;
-		}		
-	      }
+	            {
+		            cn2p[n] = cnEFp[n];
+		            if (new_pg_ids[cnEFp[n]-1] == -1)
+		            {
+		              keep_pg[cnEFp[n]-1] = +1;
+		            }		
+	            }
               size2 += nbfaces; cn2p += nbfaces+1; next++;
     	  
-	      for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
+	            for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
 		
-	      new_ph_ids[i] = ii;
+	            new_ph_ids[i] = ii;
 		
-	      ii++;
+	            ii++;
             }
             cnEFp += nbfaces+1; 
           } 
@@ -651,13 +653,11 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
         cn2.reAlloc(size2);
         foutC->reAllocMat(ii,nfldC);
 
-
-	E_Int nn = 0 ; 
-	for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
-	{
-	  if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
-	}	
-
+	   E_Int nn = 0; 
+	   for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
+	   {
+	     if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
+	   }	
     }
     else  // PE == Py_None - pas de creation de tab d'indirection 
     {
@@ -676,9 +676,9 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
                 for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
                 size2 += nbfaces; cn2p += nbfaces+1; next++;
     	    
-		for (E_Int k = 1; k <= nfldC; k++)
-		  fcenter(ii,k) = fcenter0(i,k);
-		ii++;
+          		  for (E_Int k = 1; k <= nfldC; k++)
+		              fcenter(ii,k) = fcenter0(i,k);
+		            ii++;
     	    	      
                 break; 
               }
@@ -735,13 +735,11 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
       
       if (res == 0)
       {
-	RELEASESHAREDN(PE, cFE);
-	PyErr_SetString(PyExc_TypeError, 
-			"selectCellsBoth: PE numpy is invalid.");
-	return NULL;
+	      RELEASESHAREDN(PE, cFE);
+	      PyErr_SetString(PyExc_TypeError, "selectCellsBoth: PE numpy is invalid.");
+	      return NULL;
       }
       
-
       ngon_t<K_FLD::FldArrayI> ng(*cout); // construction d'un ngon_t à partir d'un FldArrayI
 
       FldArrayI* cFEp_new = new FldArrayI(newNumFace,2);
@@ -757,31 +755,30 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 
       for (E_Int pgi = 0; pgi < nbFaces; pgi++)
       {
-	if (new_pg_ids[pgi]>=0)
-	{
-	  old_ph_1 = cFEl_old[pgi]-1;
-	  old_ph_2 = cFEr_old[pgi]-1;
+	     if (new_pg_ids[pgi]>=0)
+	     {
+	       old_ph_1 = cFEl_old[pgi]-1;
+	       old_ph_2 = cFEr_old[pgi]-1;
 
-	  if (old_ph_1 >= 0) // l'elmt gauche existe 
-	  {
-	    cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
+	       if (old_ph_1 >= 0) // l'elmt gauche existe 
+	       {
+	         cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
  
-	    if (old_ph_2 >= 0) // l'elmt droit existe 
-	      cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1; 
-	    else
-	      cFEr[new_pg_ids[pgi]] = 0;
-	  }
-	  else // l'elmt gauche a disparu - switch droite/gauche
-	  {
-	    cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
-	    cFEr[new_pg_ids[pgi]] = 0;
-	    // reverse
-	    E_Int s = ng.PGs.stride(pgi);
-	    E_Int* p = ng.PGs.get_facets_ptr(pgi);
-	    std::reverse(p, p + s);
-	  }
-	  
-	}
+	         if (old_ph_2 >= 0) // l'elmt droit existe 
+	           cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1; 
+	         else
+	           cFEr[new_pg_ids[pgi]] = 0;
+	       } 
+	       else // l'elmt gauche a disparu - switch droite/gauche
+	       {
+	         cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+	         cFEr[new_pg_ids[pgi]] = 0;
+	         // reverse
+	         E_Int s = ng.PGs.stride(pgi);
+	         E_Int* p = ng.PGs.get_facets_ptr(pgi);
+	         std::reverse(p, p + s);
+	       }
+	     }
       } // boucle pgi      
       
       // export ngon

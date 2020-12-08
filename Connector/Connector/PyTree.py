@@ -1850,7 +1850,7 @@ def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         if dims[0] == 'Unstructured' and count == 1: pass
         else: # passage ghost cells
             cellN = C.getField(varcelln, z, api=2)[0]
-            if cellN !=[]:
+            if cellN != []:
                 Connector._setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
     return None
 
@@ -1868,8 +1868,8 @@ def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
             Internal._addGhostCells(a, a, 2, modified=[varcelln])
             _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
             Internal._rmGhostCells(a,a,2, modified=[varcelln])
-
     return None
+    
 #=============================================================================
 # Retourne la liste des zones donneuses definies dans la CL doubly defined
 # ainsi que le cellN associe. Prend en compte les zones donneuses periodisees

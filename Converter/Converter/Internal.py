@@ -848,10 +848,8 @@ def newZoneSubRegion(name='SubRegion', pointRange=None, pointList=None,
         raise AttributeError('newZoneSubRegion: bcName and gcName could not be both defined !')
     if bcName is not None:
         createChild(node, 'BCRegionName', 'Descriptor_t', value=bcName)
-        newGridLocation('FaceCenter', parent=node)
     if gcName is not None:
         createChild(node, 'GridConnectivityRegionName', 'Descriptor_t', value=gcName)
-        newGridLocation('FaceCenter', parent=node)
     return node
 
 # -- newOversetHoles

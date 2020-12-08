@@ -738,12 +738,12 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
                 (retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i])
             else:
                 if ac == []:
-                    if F2E != None:
+                    if F2E is not None:
                         (PE2, retn) = post.selectCells(an[i], tag[i], strict, F2E)
                     else:
                         retn = post.selectCells(an[i], tag[i], strict, None)[0]
                 else:
-                    if F2E != None:
+                    if F2E is not None:
                         (PE2, retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, F2E)
                     else:
                         (retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, None)
@@ -765,13 +765,13 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
                 (retn, retc) = post.selectCellCentersBoth(an, ac, tag)
         else:
             if ac == []:
-                if F2E != None:
+                if F2E is not None:
                     retn         = post.selectCells(an, tag, strict, F2E)
                 else:
                     retn         = post.selectCells(an, tag, strict, None)[0]
                     
             else:
-                if F2E != None:
+                if F2E is not None:
                     (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, F2E)
                 else:
                     (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, None)

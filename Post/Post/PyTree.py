@@ -343,20 +343,18 @@ def selectCells(t, F, varStrings=[], strict=0):
                 C.setFields([fp], z, 'nodes')                  
                 
             elif fa != []:
-                print("cas 2.")
                 if fb != []:
                     if PE is not None:
-                        (PE2,fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict, PE[1] )
+                        (PE2,fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict, PE[1])
                     else:
-                        (fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict, None )
+                        (fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict, None) 
                         
                     C.setFields([fq], z, 'centers')
                 else:
                     if PE is not None:
                         (PE2,fp) = Post.selectCells(ft, F, fb, varStrings, strict, PE[1]) 
                     else:
-                        fp = Post.selectCells(ft, F, fb, varStrings, strict, None)
-                        
+                        fp = Post.selectCells(ft, F, fb, varStrings, strict, None)      
                         
                 C.setFields([fp], z, 'nodes')
                 
@@ -370,10 +368,9 @@ def selectCells(t, F, varStrings=[], strict=0):
                     C.setFields([fq], z, 'centers')
                 else:
                     if PE is not None:
-                        fp = Post.selectCells(fc, F, fb, varStrings, strict, PE[1])
+                        (PE2, fp) = Post.selectCells(fc, F, fb, varStrings, strict, PE[1])
                     else:
-                        (PE2,fp) = Post.selectCells(fc, F, fb, varStrings, strict, None) 
-                        
+                        fp = Post.selectCells(fc, F, fb, varStrings, strict, None) 
                         
                 C.setFields([fp], z, 'nodes')
 
@@ -466,7 +463,7 @@ def selectCells2(t, tagName, strict=0):
         if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
 
-            if fb != [] and fb is not None : # il y a des champs en centres
+            if fb != [] and fb is not None: # il y a des champs en centres
                 if PE is not None:
                     (fp,fq) = Post.selectCells2(f, taga, fb, strict, loc, PE[1])
                 else:

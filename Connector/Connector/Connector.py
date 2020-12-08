@@ -166,7 +166,7 @@ def maximizeBlankedCells(a, depth=2, dir=1, cellNName='cellN'):
         return connector.maximizeBlankedCells(a, depth, dir, cellNName)
 
 #-----------------------------------------------------------------------------
-def _setHoleInterpolatedPoints(cellN,depth=2, dir=0, cellNName='cellN'):
+def _setHoleInterpolatedPoints(cellN, depth=2, dir=0, cellNName='cellN'):
     """Set interpolated points cellN=2 around cellN=0 points."""
     if depth == 0: return None
     try: import Converter
