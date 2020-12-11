@@ -68,7 +68,7 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
   nj=nj-1;
   nk=nk-1;
 
-  cout << ni <<" "<<nj<<" "<<nk << endl;
+  //cout <<"ni= "<< ni <<" "<<"nj= "<<nj<<" "<<"nk= " << nk << endl;
 
   E_Int i;
   E_Int j;
@@ -303,8 +303,11 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
 
     }
 
+   if (imin < 3 or jmin < 3){cout << "danger_min" << endl;}
+   if (jmax > nj-2 or imax > ni-2){cout << "danger_max" << endl;}
 
-   cout << imin <<" "<< imax <<" "<<jmin<<" "<<jmax<<" "<<kmin<<" "<<kmax<<" "<<  endl;
+
+   //cout <<"indices pas corriges= "<< imin <<" "<< imax <<" "<<jmin<<" "<<jmax<<  endl;
 
 
    li = imax - imin;
@@ -318,7 +321,9 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
      {
        kmin = 1;
      }
-   kmax = kmin + lk;
+   //kmax = kmin + lk;
+   ///proposition
+   kmax = kmax - 2;
    if (kmax > nk-4)
      {
        kmax = nk -4;
@@ -334,7 +339,9 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
      {
        jmin = 1;
      }
-   jmax = jmin + lj;
+   //jmax = jmin + lj;
+   ///proposition
+   jmax = jmax - 2;
    if (jmax > nj - 4)
      {
        jmax = nj -4;
@@ -349,7 +356,9 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
      {
        imin = 1;
      }
-   imax = imin + li;
+   //imax = imin + li;
+   ///proposition
+   imax = imax - 2;
    if (imax > ni-4)
      {
        imax = ni -4;
@@ -359,7 +368,7 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
        imax = 1;
      } 
 
-   cout << imin <<" "<< imax <<" "<<jmin<<" "<<jmax<<" "<<kmin<<" "<<kmax<<" "<<  endl;
+   cout <<"indices corriges= "<< imin <<" "<< imax <<" "<<jmin<<" "<<jmax<<" "<<kmin<<" "<<kmax<<  endl;
 
    if (nk == 1) // 2D
 
@@ -388,13 +397,13 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
 
      {
 
-      if (lk == min(min(li,lj),lk) and kmax > (nk-1)/2)  // dirR = -3
-	{
-	  ipt_dirD[0] = -3;
-	}
-      else if (lk == min(min(li,lj),lk) and kmin < (nk-1)/2)  // dirR = 3
+      if (lk == min(min(li,lj),lk) and kmax > (nk-1)/2)  // dirR = +3
 	{
 	  ipt_dirD[0] = 3;
+	}
+      else if (lk == min(min(li,lj),lk) and kmin < (nk-1)/2)  // dirR = -3
+	{
+	  ipt_dirD[0] = -3;
 	}
       else if (lj == min(min(li,lj),lk) and jmax > (nj-1)/2)  // dirR = +2
 	{
@@ -417,7 +426,7 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
 
      }
       
-   
+    cout <<"dirD= "<< ipt_dirD[0] <<  endl;
 
  if (ipt_dirD[0]==1)
    {
@@ -450,7 +459,7 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
      kmax = kmin;
    }
 
- //cout << "profondeur= " << ipt_profondeur[0] << endl;
+ cout << "profondeur= " << ipt_profondeur[0] << endl;
  /*
    kmax=kmax-2;
    if (kmax == nk-2 or kmax == nk-3)
@@ -510,7 +519,7 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
   ipt_rangedonor[4]=kmin;
   ipt_rangedonor[5]=kmax;
 
-
+ 
 
  RELEASESHAREDN( indiceslist  , ind_list );
  RELEASESHAREDN( rangedonor  , rangedonor_ );
@@ -519,6 +528,9 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
  RELEASESHAREDN( dirD  , dirD_ );
 
  Py_INCREF(Py_None);
+
+
  return Py_None;
+
 
 }

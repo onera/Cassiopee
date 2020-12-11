@@ -13,16 +13,31 @@ except: pass
 # fonctionne avec ___setInterpTransfer
 #==============================================================================
 def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
-    if graph is not None :
-        # Suppose mpirun
+
+    if isinstance(graph, list):
+        ###########################IMPORTANT ######################################
+        #test pour savoir si graph est une liste de dictionnaires (explicite local)
+        #ou juste un dictionnaire (explicite global, implicite)
+        graphliste=True
+    else:
+        graphliste=False
+    
+    if graph is not None and graphliste==False:
         procDict  = graph['procDict']
         procList  = graph['procList']
         graphID   = graph['graphID']
         graphIBCD = graph['graphIBCD']
         import Converter.Mpi as Cmpi
         rank = Cmpi.rank
+    elif graph is not None and graphliste==True:
+        procDict  = graph[0]['procDict']
+        procList  = graph[0]['procList']
+        graphID   = graph[0]['graphID']
+        graphIBCD = graph[0]['graphIBCD']
+        import Converter.Mpi as Cmpi
+        rank = Cmpi.rank
     else: 
-        procDict=None; procList=None; graphID=None; graphIBCD=None; rank=0
+        procDict=None; graphID=None; graphIBCD=None
 
     # if Cmpi is not None and rank == 0: 
     #    print "GRAPH IBC IS : ",graph['graphIBCD']
@@ -61,7 +76,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
          zRname = Internal.getValue(s)
          proc = 0
          if procDict is not None: proc = procDict[zRname]
-
+         
          #tri des pas de temps instationnaire
          #  1) les stationnaires
          #  2) les instationnaires regroupes par pas de temps
@@ -187,7 +202,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                 sizeR[pos]    = sizeR[pos]     + Nbpts_InterpD + size_IBC + rotation
                 sizeNbD[pos]  = sizeNbD[pos]   + Nbpts_D
                 sizeType[pos] = sizeType[pos]  + Nbpts_D                 + nbTypeSize+1
-
+    
       c += 1
 
     #for pos in range(len(rac)):
@@ -212,9 +227,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     size_int  =  1 + NbP2P + sum(sizeproc)
     size_real =  sum(sizeR)
 
-    ### list_graph est necessaire pour l'explicite local ####
     
-    if list_graph is None: # Si list_graph n existe pas, on est pas en explicite local
+     
+    if graphliste == False: # Si le graph n est pas une liste, on est pas en explicite local
         graphIBCrcv=[]
         if graphIBCD is not None:
             for proc in graphIBCD.keys():
@@ -227,7 +242,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                 for n in graphID[proc].keys():
                     if n == rank: graphIDrcv.append(proc)
     
-    else:  # Si list_graph existe, on est en explicite local, 1 graphe par ss ite      
+    else:  # le graph est une liste, on est en explicite local, 1 graphe par ss ite
+
+                
         graphIBCrcv_=[]
         graphIDrcv_=[]
         pos_ID=[]
@@ -235,12 +252,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
         S_IBC=0
         S_ID=0
 
-        for nstep in range(0,len(list_graph)):
+        for nstep in range(0,len(graph)):
 
-            graphID_   = list_graph[nstep]['graphID']
-            graphIBCD_ = list_graph[nstep]['graphIBCD']
+            graphID_   = graph[nstep]['graphID']
+            graphIBCD_ = graph[nstep]['graphIBCD']
 
-            pos_IBC.append(len(list_graph)+S_IBC)
+            pos_IBC.append(len(graph)+S_IBC)
             k_IBC=0
             stokproc=[]
             for proc in graphIBCD_.keys():
@@ -251,10 +268,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
             graphIBCrcv_.append(k_IBC)
             S_IBC += k_IBC+1
             for proc in stokproc:
-                graphIBCrcv_.append(proc)              
+                graphIBCrcv_.append(proc)
 
 
-            pos_ID.append(len(list_graph)+S_ID)            
+
+
+            pos_ID.append(len(graph)+S_ID)            
             k_ID=0
             stokproc=[]
             for proc in graphID_.keys():
@@ -268,9 +287,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                 graphIDrcv_.append(proc)
 
         graphIBCrcv  = pos_IBC + graphIBCrcv_    
-        graphIDrcv   = pos_ID  + graphIDrcv_    
+        graphIDrcv   = pos_ID  + graphIDrcv_
 
-            #if sum(graphIBCrcv) < 1 : graphIBCrcv=[]
+
         
     
     #graphIDrcv=[0,3]
@@ -294,7 +313,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
     param_int[1                 :1+len(graphIBCrcv)+1] = _graphIBC
     param_int[2+len(graphIBCrcv):2+len(graphIBCrcv)+len(graphIDrcv)+1] = _graphID    
-
+  
     # print "param_int is ",param_int[0:2+len(graphIBCrcv)+len(graphIDrcv)+1]
     # Dictionnaire pour optimisation
     znd = []
@@ -381,7 +400,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        param_int[ pt_ech +3 ] = TimeLevelNumber
        nrac_inst_deb  =  nrac_steady
        for i in range(TimeLevelNumber):
-            # len(inst[i][0])  = nb de raccord instationnaire pour le temps i
+
             # len(inst[i][3])  = list destination du rac pour le temps i
             NracInsta=0
             for procSearch in inst[i+numero_min][3]:
@@ -508,7 +527,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        else                : param_int[ iadr +rac[pos]*4 ] = 1   # role= Receiver
             
        param_int[ iadr +rac[pos]*5 ] = NozoneD                    # No zone donneuse
-
+       
        lst                              = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + sizeNbD[pos] + sizeType[pos] + size_ptlist[pos]  
        param_int[ iadr +rac[pos]*6    ] = lst                                                                      # PointlistAdr
        ptTy                             = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + sizeNbD[pos] + size_ptType[pos]
@@ -654,10 +673,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            numero_iter = int( s[0].split('#')[1].split('_')[0] )
            param_int[ iadr +rac[pos]*15  ] = numero_iter
 
-       if nrac != 0:    
-
+       if nrac != 0:
+           
          if pranged is not None and prange is not None : #Si on est en explicite local, on rajoute des choses dans param_int
-         
+
            param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] : iadr2 + rac[pos]*16 + 27*nb_rac[pos]+6 ] = prange[1]
            param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos]  + 6] = direction[1]
            param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 7 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13 ] = pranged[1]

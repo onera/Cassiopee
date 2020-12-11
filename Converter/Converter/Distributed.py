@@ -458,7 +458,7 @@ def getProcGlobal__(zoneName, t, procDict=None):
 # attend ensuite les zones graph[opp][rank] pour tout opp.
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
-                 intersectionsDict=None, exploc=False, procDict2=None):
+                 intersectionsDict=None, exploc=False, procDict2=None, it=0):
     """Return the communication graph for different block relation types."""
     zones = Internal.getZones(t)
     graph = {}
@@ -570,11 +570,23 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 sname = s[0][0:2]
                 if sname=='ID': subRegions.append(s)
             for s in subRegions:
-                donor = Internal.getValue(s)
-                idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
-                if idn != []: # la subRegion decrit des interpolations
-                    popp = getProcGlobal__(donor, t, procDict)
-                    updateGraph__(graph, proc, popp, z[0])
+                if '#' in s[0]:
+                   numero_iter = int( s[0].split('#')[1].split('_')[0] )
+                   #if (rank == 0 and proc == 32) :print('numero_iter, it : ', numero_iter, it)
+                   if numero_iter == it :
+                      donor = Internal.getValue(s)
+                      idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
+                      if idn != []: # la subRegion decrit des interpolations
+                         popp = getProcGlobal__(donor, t, procDict)
+                         updateGraph__(graph, proc, popp, z[0])
+                else :
+                     donor = Internal.getValue(s)
+                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
+                     if idn != []: # la subRegion decrit des interpolations
+                         popp = getProcGlobal__(donor, t, procDict)
+                         updateGraph__(graph, proc, popp, z[0])
+
+
       else:
         maxlevel=1
         for z in zones:
@@ -590,6 +602,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         
         list_graph_=[]
         for ssiter in range(1,2*nssiter+1):
+            #print('ssiter= ', ssiter)
             graph_={}
             for z in zones:
                 proc = getProcLocal__(z, procDict)
@@ -617,14 +630,15 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])          
                     if levdnr == levrcv and ssiter <= nssiter:
-                        if (ssiter%cycl==cycl/2-1 or (ssiter%cycl==cycl//2 and (ssiter//cycl)%2==0) or ssiter%cycl==cycl-1): 
+                        if (ssiter%cycl==cycl/2-1 or (ssiter%cycl==cycl/2 and (ssiter/cycl)%2==0) or ssiter%cycl==cycl-1): 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
                     if levdnr == levrcv and ssiter > nssiter:
                         #if (ssiter%8==6): 
                         ssiter_ = ssiter - nssiter
-                        if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
+                        if ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
+                        #if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
@@ -644,7 +658,8 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                 if idn != []: # la subRegion decrit des IBC
                     popp = getProcGlobal__(donor, t, procDict)
-                    updateGraph__(graph, proc, popp, z[0])
+                    updateGraph__(graph, proc, popp, z[0])                 
+                   
 
       else:
         maxlevel=1
@@ -669,6 +684,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 for s in subRegions2:
                     sname = s[0][0:2]
                     if sname=='IB': subRegions.append(s)
+                    
                 for s in subRegions:
                     donor = Internal.getValue(s)
                     levdnr_ = Internal.getNodesFromName1(s,'LevelZDnr')
@@ -677,27 +693,30 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     levrcv  = int(levrcv_[0][1][0])
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                     cycl = nssiter//levdnr
-                    if (levdnr > levrcv and ssiter <= nssiter):
-                        if (ssiter%cycl==cycl-1 or ssiter%cycl==cycl/2 and (ssiter/cycl)%2==1): 
+                    if levdnr > levrcv and ssiter <= nssiter:
+                        if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter/cycl)%2==1: 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])     
                     if levdnr < levrcv and ssiter <= nssiter:
-                        if (ssiter%cycl==1 or ssiter%cycl==cycl/4 or ssiter%cycl==cycl/2-1 or ssiter%cycl==cycl/2+1 or ssiter%cycl==cycl/2+cycl/4 or ssiter%cycl==cycl-1): 
+                        if (ssiter%cycl==1 or ssiter%cycl==cycl//4 or ssiter%cycl==cycl//2-1 or ssiter%cycl==cycl//2+1 or ssiter%cycl==cycl//2+cycl//4 or ssiter%cycl==cycl-1): 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])          
                     if levdnr == levrcv and ssiter <= nssiter:
-                        if ssiter%cycl==cycl/2-1 or ssiter%cycl==cycl/2 or ssiter%cycl==cycl-1: 
+                        if (ssiter%cycl==cycl/2-1 or (ssiter%cycl==cycl/2 and (ssiter/cycl)%2==0) or ssiter%cycl==cycl-1): 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
                     if levdnr == levrcv and ssiter > nssiter:
-                        if ssiter%8 == 6: 
+                        #if (ssiter%8==6): 
+                        ssiter_ = ssiter - nssiter
+                        if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
             list_graph_.append(graph_)
+  
 
     elif type == 'ALLD': # base sur les Interpolations+IBC data
         for z in zones:

@@ -70,9 +70,12 @@ def sendRecv(datas, graph):
     
     if rank in graph:
         g = graph[rank] # graph du proc courant
+        #if (rank==32):print('graph[32]= ', g)
         for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
             #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
+            #if (oppNode == 17):print(rank, 'envoie a 17')
+            #print('data17= ', datas[17], rank)
             s = KCOMM.isend(datas[oppNode], dest=oppNode)
             reqs.append(s)
     rcvDatas={}
@@ -341,11 +344,11 @@ def createBboxDict(t):
 # computeGraph dans Distributed.py pour plus de details.
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True, 
-                 intersectionsDict=None, exploc=False, procDict2=None):
+                 intersectionsDict=None, exploc=False, procDict2=None, it=0):
     """Return the communication graph for different block relation types."""
     if not procDict: procDict = getProcDict(t)
     graph = Distributed.computeGraph(t, type, t2, procDict, rank, 
-                                     intersectionsDict, exploc, procDict2)
+                                     intersectionsDict, exploc, procDict2, it)
 
     if reduction:
         # Assure que le graph est le meme pour tous les processeurs

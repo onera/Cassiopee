@@ -919,7 +919,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           E_Int irac_auto= irac-irac_deb;
 	  autorisation_transferts[pass_inst][irac_auto]=0;
 
-	  if(rk==3 && exploc == 2) // Si on est en explicit local, on va autoriser les transferts entre certaines zones seulement en fonction de la ss-ite courante
+	  if(exploc == 1)  //if(rk==3 && exploc == 2) // Si on est en explicit local, on va autoriser les transferts entre certaines zones seulement en fonction de la ss-ite courante 	  
+
 	    {
 	      E_Int debut_rac = ech + 4 + timelevel*2 + 1 + nrac*16 + 27*irac;     
 	      E_Int levelD = ipt_param_int[debut_rac + 25];
