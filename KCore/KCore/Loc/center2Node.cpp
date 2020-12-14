@@ -201,14 +201,63 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
   if (algo == 0 || cellN == -1)
   {
     if (dim == 1)
+    {
       k6conv2node11d_(im, nv, 
                       FCenter.begin(), FNode.begin());
+      /*
+#pragma omp parallel
+      {
+        E_Int alpha, ind0, ind1;
+#pragma omp for 
+        for (E_Int i = 0; i <= im; i++)
+        {
+          alpha = 1;
+          if (i == 0 || i == im) alpha = 0;
+          ind0 = max(i, 1)-1;
+          ind1 = ind0 + alpha;
+          for (E_Int n = 1; n <= nv; n++)
+            FNode(i,n) = 0.5*(FCenter(ind0,n)+FCenter(ind1,n));
+        }
+      }
+      */
+    }
     else if (dim == 2)
+    {
       k6conv2node12d_(im, jm, nv, 
                       FCenter.begin(), FNode.begin());
+      /*
+      E_Int im1 = im+1; E_Int jm1 = jm+1;
+#pragma omp parallel
+      {
+        E_Int alpha, beta, i, j, i0, j0, ind0, ind1, ind2, ind3;
+#pragma omp for
+        for (E_Int ind = 0; ind < im1*jm1; ind++)
+        {
+          j = ind / jm1;
+          i = ind - j*jm1;
+          alpha = 1;
+          if (i == 0 || i == ni) alpha = 0;
+          i0 = max(i, 1)-1;    
+          beta = im;
+          if (j == 0 || j == jm) beta = 0;
+          j0 = max(j, 1)-1;
+
+          ind0 = i0 + j0 * im;
+          ind1 = ind0 + alpha;
+          ind2 = ind0 + beta;
+          ind3 = ind2 + alpha;
+
+          for (E_Int n = 1; n <= nv; n++)
+              FNode(ind,n) = 0.25*(FCenter(ind0,n)+FCenter(ind1,n)+FCenter(ind2,n)+FCenter(ind3,n));
+        }
+      }
+      */
+    }
     else
+    {
       k6conv2node1_(im, jm, km, nv, 
                     FCenter.begin(), FNode.begin());
+    }
   }
   else // algo=1 et cellN existe
   {

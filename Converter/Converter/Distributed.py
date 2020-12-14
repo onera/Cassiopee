@@ -572,20 +572,18 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
             for s in subRegions:
                 if '#' in s[0]:
                    numero_iter = int( s[0].split('#')[1].split('_')[0] )
-                   #if (rank == 0 and proc == 32) :print('numero_iter, it : ', numero_iter, it)
-                   if numero_iter == it :
+                   if numero_iter == it:
                       donor = Internal.getValue(s)
-                      idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
+                      idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
                       if idn != []: # la subRegion decrit des interpolations
                          popp = getProcGlobal__(donor, t, procDict)
                          updateGraph__(graph, proc, popp, z[0])
-                else :
+                else:
                      donor = Internal.getValue(s)
-                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
+                     idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
                      if idn != []: # la subRegion decrit des interpolations
                          popp = getProcGlobal__(donor, t, procDict)
                          updateGraph__(graph, proc, popp, z[0])
-
 
       else:
         maxlevel=1
@@ -597,12 +595,11 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 levdnr_ = Internal.getNodesFromName1(s,'LevelZDnr')
                 levdnr  = int(levdnr_[0][1][0])
                 maximum = max(levrcv,levdnr)
-                if (maximum > maxlevel):maxlevel=maximum
+                if maximum > maxlevel:maxlevel=maximum
         nssiter = 4*maxlevel
         
         list_graph_=[]
         for ssiter in range(1,2*nssiter+1):
-            #print('ssiter= ', ssiter)
             graph_={}
             for z in zones:
                 proc = getProcLocal__(z, procDict)
@@ -635,7 +632,6 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
                     if levdnr == levrcv and ssiter > nssiter:
-                        #if (ssiter%8==6): 
                         ssiter_ = ssiter - nssiter
                         if ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
                         #if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:

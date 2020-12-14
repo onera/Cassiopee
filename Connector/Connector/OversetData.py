@@ -2409,92 +2409,73 @@ def extractChimeraInfo(a,type='interpolated',loc='centers'):
                     allChimPts.append(chimPts)
 
     return allChimPts
+    
 #==============================================================================
 # Cette fonction retourne la transformation vectorielle d'une zone à l'autre
 #==============================================================================
-def getTransfo(zdonor,zrcv):
+def getTransfo(zdonor, zrcv):
 
-    transfo = numpy.zeros(3,dtype=numpy.int32)
-
+    transfo = numpy.zeros(3, dtype=numpy.int32)
     a = C.getFields(Internal.__GridCoordinates__, zdonor)[0]
     ni = a[2]; nj=a[3]; nk=a[4]
 
-    if (nk == 1): #2D
-    #print ni, nj ,nk
-        i = ni/2; j = nj/2; k = nk/2
+    if nk == 1: #2D
+        i = ni//2; j = nj//2; k = nk//2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
         ind = i + j*ni + k*ni*nj
-        #print ind
         P0 = [ a[1][0][ind], a[1][1][ind],0.0 ]
         ind = ip1 + j*ni + k*ni*nj
-        #print ind
         P1 = [ a[1][0][ind], a[1][1][ind],0.0 ]
         ind = i + jp1*ni + k*ni*nj
-        #print ind
         P2 = [ a[1][0][ind], a[1][1][ind],0.0 ]
         l1 = Vector.sub(P1,P0)
         l2 = Vector.sub(P2,P0)
         l1=Vector.normalize(l1)
         l2=Vector.normalize(l2)
-        #print l1
-        #print l2
         x=[1.0,0.0,0.0]
         y=[0.0,1.0,0.0]
         a=Vector.dot(l1,x);b=Vector.dot(l1,y)
         c=Vector.dot(l2,x);d=Vector.dot(l2,y)
-        mat_ = numpy.array([[a,b],
-                          [c,d]])
-        #print 'mat_= ',mat_
+        mat_ = numpy.array([[a,b], 
+                            [c,d]])
         
         a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
-        #print a
         ni = a[2]; nj=a[3]; nk=a[4]
-        i = ni/2; j = nj/2; k = nk/2
+        i = ni//2; j = nj//2; k = nk//2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
         #ip1=i+1;jp1=j+1
         ind = i + j*ni + k*ni*nj
-        #print ind
         P0_  = [ a[1][0][ind], a[1][1][ind],0.0 ]
         ind = ip1 + j*ni + k*ni*nj
-        #print P0_
-        #print ind
         P1_ = [ a[1][0][ind], a[1][1][ind],0.0 ]
         ind = i + jp1*ni + k*ni*nj
-        #print P1_
-        #print ind
         P2_ = [ a[1][0][ind], a[1][1][ind],0.0 ]
         l1rcv = Vector.sub(P1_,P0_)
         l2rcv = Vector.sub(P2_,P0_)
         l1rcv=Vector.normalize(l1rcv)
         l2rcv=Vector.normalize(l2rcv)
-        #print l1rcv
-        #print l2rcv
         x=[1.0,0.0,0.0]
         y=[0.0,1.0,0.0]
         a=Vector.dot(l1rcv,x);b=Vector.dot(l1rcv,y)
         c=Vector.dot(l2rcv,x);d=Vector.dot(l2rcv,y)
         mat = numpy.array([[a,b],
                           [c,d]])
-        #print 'mat= ',mat
         mat=mat.T
         a=mat_[0,0]*mat[0,0] + mat_[0,1]*mat[1,0] 
         b=mat_[0,0]*mat[0,1] + mat_[0,1]*mat[1,1]
         c=mat_[1,0]*mat[0,0] + mat_[1,1]*mat[1,0] 
         d=mat_[1,0]*mat[0,1] + mat_[1,1]*mat[1,1]
         mat__ = numpy.array([[a,b],
-                            [c,d]])
-        #print mat__[0,:] 
-        #print mat__[1,:]
+                             [c,d]])
         transfo[0]=(numpy.nonzero(mat__[0,:])[0][0]+1)*numpy.sign(mat__[0,numpy.nonzero(mat__[0,:])[0][0]])
         transfo[1]=(numpy.nonzero(mat__[1,:])[0][0]+1)*numpy.sign(mat__[1,numpy.nonzero(mat__[1,:])[0][0]])
         transfo[2]=3
         
         return transfo
 
+    else: #3D
 
-    else : #3D
-
-        i = ni/2; j = nj/2; k = nk/2
+        i = ni//2; j = nj//2; k = nk//2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
         ind = i + j*ni + k*ni*nj
         P0 = [ a[1][0][ind], a[1][1][ind],a[1][2][ind] ]
@@ -2510,8 +2491,6 @@ def getTransfo(zdonor,zrcv):
         l1=Vector.normalize(l1)
         l2=Vector.normalize(l2)
         l3=Vector.normalize(l3)
-        #print l1
-        #print l2
         x=[1.0,0.0,0.0]
         y=[0.0,1.0,0.0]
         z=[0.0,0.0,1.0]
@@ -2524,7 +2503,7 @@ def getTransfo(zdonor,zrcv):
         
         a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
         ni = a[2]; nj=a[3]; nk=a[4]
-        i = ni/2; j = nj/2; k = nk/2
+        i = ni//2; j = nj//2; k = nk//2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
         ind = i + j*ni + k*ni*nj
         P0_  = [ a[1][0][ind], a[1][1][ind],a[1][2][ind] ]
@@ -2540,8 +2519,6 @@ def getTransfo(zdonor,zrcv):
         l1rcv=Vector.normalize(l1rcv)
         l2rcv=Vector.normalize(l2rcv)
         l3rcv=Vector.normalize(l3rcv)
-        #print l1rcv
-        #print l2rcv
         x=[1.0,0.0,0.0]
         y=[0.0,1.0,0.0]
         z=[0.0,0.0,1.0]
@@ -2551,7 +2528,6 @@ def getTransfo(zdonor,zrcv):
         mat = numpy.array([[a,b,c],
                            [d,e,f],
                            [g,h,i]])
-        #print 'mat= ',mat
         mat=mat.T
         a=mat_[0,0]*mat[0,0] + mat_[0,1]*mat[1,0] + mat_[0,2]*mat[2,0]
         b=mat_[0,0]*mat[0,1] + mat_[0,1]*mat[1,1] + mat_[0,2]*mat[2,1]
@@ -2566,14 +2542,8 @@ def getTransfo(zdonor,zrcv):
         mat__ = numpy.array([[a,b,c],
                              [d,e,f],
                              [g,h,i]])
-        #print mat__[0,:] 
-        #print mat__[1,:]
         transfo[0]=(numpy.nonzero(mat__[0,:])[0][0]+1)*numpy.sign(mat__[0,numpy.nonzero(mat__[0,:])[0][0]])
         transfo[1]=(numpy.nonzero(mat__[1,:])[0][0]+1)*numpy.sign(mat__[1,numpy.nonzero(mat__[1,:])[0][0]])
         transfo[2]=(numpy.nonzero(mat__[2,:])[0][0]+1)*numpy.sign(mat__[2,numpy.nonzero(mat__[2,:])[0][0]])
-        #print transfo
         
         return transfo        
-        #print 'mat= ',mat__
-        
-

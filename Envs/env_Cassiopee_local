@@ -279,11 +279,10 @@ else if ($MAC == "austri") then
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
+        module load gcc/4.9
         module load intel/17.0.4
         module load impi/17 # very bad install
         module unload impi/17
-        #source /home/nalferez/intel/parallel_studio_xe_2018/psxevars.csh
-        #module load gcc/5.2
         module load hdf5/1.8.8-intel-11
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)

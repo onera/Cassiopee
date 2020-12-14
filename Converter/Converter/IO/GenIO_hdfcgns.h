@@ -21,6 +21,7 @@
 #include "kcore.h"
 #include "hdf5.h"
 #include <map>
+#include <array>
 
 // For now, force output of v1.8 of HDF
 #if H5_VERSION_GE(1,10,2)

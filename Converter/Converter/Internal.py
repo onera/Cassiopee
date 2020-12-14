@@ -1955,7 +1955,6 @@ def getValue(node):
                 else: v = n[:,i].tostring().decode()
                 out.append(v.strip())
             return out
-
         elif n.dtype == numpy.int32:
             if n.size == 1: return int(n.flat[0])
             else: return n
@@ -1972,6 +1971,7 @@ def getValue(node):
                 b = numpy.empty(n.shape, dtype=numpy.float64)
                 b[:] = n[:]
                 return b
+        else: return node[1]
     else: return node[1]
 
 #==============================================================================

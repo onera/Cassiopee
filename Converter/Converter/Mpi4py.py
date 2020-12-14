@@ -70,12 +70,9 @@ def sendRecv(datas, graph):
     
     if rank in graph:
         g = graph[rank] # graph du proc courant
-        #if (rank==32):print('graph[32]= ', g)
         for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
             #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
-            #if (oppNode == 17):print(rank, 'envoie a 17')
-            #print('data17= ', datas[17], rank)
             s = KCOMM.isend(datas[oppNode], dest=oppNode)
             reqs.append(s)
     rcvDatas={}
@@ -234,6 +231,7 @@ def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False
     """Write a skeleton or partial tree."""
     tp = convert2PartialTree(t)
     tp = C.deleteEmptyZones(tp)
+    Internal._adaptZoneNamesForSlash(tp)
     nzones = len(Internal.getZones(tp))
     if rank == 0:
         if nzones > 0:
