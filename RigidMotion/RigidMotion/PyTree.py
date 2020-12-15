@@ -304,8 +304,8 @@ def _moveZone__(z, time):
         motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
         motions.reverse()
         for m in motions:
-            type = Internal.getNodeFromName1(m, 'MotionType')
-            dtype = type[1][0]
+            mtype = Internal.getNodeFromName1(m, 'MotionType')
+            dtype = mtype[1][0]
             if dtype == 1: # type 1: time string
                 tx = evalTimeString__(m, 'tx', time)
                 ty = evalTimeString__(m, 'ty', time)
@@ -321,23 +321,7 @@ def _moveZone__(z, time):
                 if angle != 0:
                     angle = angle #*__RAD2DEG__
                     T._rotate2(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
-            elif dtype == 2: # type 2: rotor_motion for helicopters in FF
-                # Find Coordinates pointers (must already be updated)
-                grid = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
-                if grid is None: grid = Internal.getNodeFromName1(z, 'GridCoordinates')
-                xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
-                
-                # Get grid velocity pointers
-                name = 'Motion'
-                mmo = Internal.getNodeFromName1(z,name)
-                if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
-                sx = Internal.getNodeFromName1(mmo, 'VelocityX')
-                if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size));
-                sy = Internal.getNodeFromName1(mmo, 'VelocityY')
-                if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size));
-                sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
-                if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size));
-                
+            elif dtype == 2: # type 2: rotor_motion for helicopters in FF                
                 transl_speed=Internal.getValue(Internal.getNodeFromName(m,'transl_speed'))
                 psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
                 psi0_b = Internal.getValue(Internal.getNodeFromName(m, 'psi0_b'))
@@ -371,9 +355,8 @@ def _moveZone__(z, time):
                 pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
                 pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
                 pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
-
-                rigidMotion._computeRotorMotionZ(
-                    z,  sx[1], sy[1], sz[1], time, transl_speed.tolist(), psi0, psi0_b,
+                [r0,x0,rotMat,s0]=rigidMotion._computeRotorMotionInfo(
+                    time, transl_speed.tolist(), psi0, psi0_b,
                     alp_pnt.tolist(),alp_vct.tolist(),alp0,
                     rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
                     del_pnt.tolist(),del_vct.tolist(),del0, delc.tolist(), dels.tolist(),
@@ -381,10 +364,20 @@ def _moveZone__(z, time):
                     tet_pnt.tolist(), tet_vct.tolist(), tet0, tetc.tolist(), tets.tolist(),
                     span_vct.tolist(),
                     pre_lag_ang, pre_lag_pnt.tolist(), pre_lag_vct.tolist(),
-                    pre_con_ang, pre_con_pnt.tolist(), pre_con_vct.tolist(),
-                    Internal.__GridCoordinates__,
-                    Internal.__FlowSolutionNodes__,
-                    Internal.__FlowSolutionCenters__)
+                    pre_con_ang, pre_con_pnt.tolist(), pre_con_vct.tolist())
+                coordsC = [x0[0], x0[1], x0[2]]
+                coordsD = [r0[0], r0[1], r0[2]]
+                GC = Internal.getNodeFromName(z,Internal.__GridCoordinates__)
+                XN = Internal.getNodeFromName(GC,'CoordinateX')
+                YN = Internal.getNodeFromName(GC,'CoordinateY')
+                ZN = Internal.getNodeFromName(GC,'CoordinateZ')
+                XI = Internal.getValue(XN)
+                YI = Internal.getValue(YN)
+                ZI = Internal.getValue(ZN)
+                _moveN([XI,YI,ZI], coordsD, coordsC, rotMat)
+                Internal.setValue(XN,XI)
+                Internal.setValue(YN,YI)
+                Internal.setValue(ZN,ZI)
                 
             elif dtype == 3: # type 3: translation+rotation
                 transl_speed = getNodeValue__(m, 'transl_speed')
@@ -661,7 +654,52 @@ def _evalGridSpeed(a, time):
           dcz = evalTimeDerivativeString__(m, 'cz', time)
         
           sx[1][:] = 0.; sy[1][:] = 0.; sz[1][:] = 0.
-        
+        elif dtype == 2: # rotor motion
+            transl_speed=Internal.getValue(Internal.getNodeFromName(m,'transl_speed'))
+            psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
+            psi0_b = Internal.getValue(Internal.getNodeFromName(m, 'psi0_b'))
+            alp_pnt = Internal.getValue(Internal.getNodeFromName(m, 'alp_pnt'))
+            alp_vct = Internal.getValue(Internal.getNodeFromName(m, 'alp_vct'))
+            alp0 = Internal.getValue(Internal.getNodeFromName(m, 'alp0'))
+            rot_pnt = Internal.getValue(Internal.getNodeFromName(m, 'rot_pnt'))
+            rot_vct = Internal.getValue(Internal.getNodeFromName(m, 'rot_vct'))
+            rot_omg = Internal.getValue(Internal.getNodeFromName(m, 'rot_omg'))
+            del_pnt = Internal.getValue(Internal.getNodeFromName(m, 'del_pnt'))
+            del_vct = Internal.getValue(Internal.getNodeFromName(m, 'del_vct'))
+            del0 = Internal.getValue(Internal.getNodeFromName(m, 'del0'))
+            delc = getNodeValue__(m, 'delc')
+            dels = getNodeValue__(m, 'dels')
+            bet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'bet_pnt'))
+            bet_vct = Internal.getValue(Internal.getNodeFromName(m, 'bet_vct'))
+            bet0 = Internal.getValue(Internal.getNodeFromName(m, 'bet0'))
+            betc = getNodeValue__(m, 'betc')
+            bets = getNodeValue__(m, 'bets')                
+            betc = getNodeValue__(m, 'betc')
+            bets = getNodeValue__(m, 'bets')
+            tet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'tet_pnt'))
+            tet_vct = Internal.getValue(Internal.getNodeFromName(m, 'tet_vct'))
+            tet0 = Internal.getValue(Internal.getNodeFromName(m, 'tet0'))
+            tetc = getNodeValue__(m, 'tetc')
+            tets = getNodeValue__(m, 'tets')
+            span_vct = Internal.getValue(Internal.getNodeFromName(m, 'span_vct'))
+            pre_lag_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_ang'))
+            pre_lag_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_pnt'))
+            pre_lag_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_vct'))
+            pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
+            pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
+            pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
+            [r0,x0,rotMat,s0]=rigidMotion._computeRotorMotionInfo(
+                time, transl_speed.tolist(), psi0, psi0_b,
+                alp_pnt.tolist(),alp_vct.tolist(),alp0,
+                rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
+                del_pnt.tolist(),del_vct.tolist(),del0, delc.tolist(), dels.tolist(),
+                bet_pnt.tolist(), bet_vct.tolist(), bet0, betc.tolist(), bets.tolist(),
+                tet_pnt.tolist(), tet_vct.tolist(), tet0, tetc.tolist(), tets.tolist(),
+                span_vct.tolist(),
+                pre_lag_ang, pre_lag_pnt.tolist(), pre_lag_vct.tolist(),
+                pre_con_ang, pre_con_pnt.tolist(), pre_con_vct.tolist())
+            sx[1][:] = s0[0]; sy[1][:] = s0[1]; sz[1][:] = s0[2]
+
         elif dtype == 3: # type 3: constant rotation / translation
           transl_speed = Internal.getNodeFromName1(m, 'transl_speed')
           if transl_speed is None: transl_speed = [0,0,0]
@@ -688,22 +726,152 @@ def _evalGridSpeed(a, time):
 # coords : liste de numpys a inverser attaches a la zone
 # z : zone contenant le motion 
 def evalPositionM1(coords, z, time):
-  cont = Internal.getNodeFromName1(z, 'TimeMotion')
-  coordsO = [numpy.copy(coords[0]),numpy.copy(coords[1]),numpy.copy(coords[2])]
-  if cont is not None:
-    motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
-    for m in motions:
-      mtype = Internal.getNodeFromName1(m, 'MotionType')
-      dtype = mtype[1][0]
-      if dtype == 3:
-        axis_pnt = getNodeValue__(m, 'axis_pnt')
-        axis_vct = getNodeValue__(m, 'axis_vct')
-        omega = getNodeValue__(m, 'omega')
-        speed = getNodeValue__(m, 'transl_speed')
-        coordsD = [-speed[0]*time, -speed[1]*time, -speed[2]*time]
-        coordsC = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
-        mat = getRotationMatrix__(axis_pnt[0],axis_pnt[1],axis_pnt[2],
-              axis_vct[0],axis_vct[1],axis_vct[2],omega*time)
-        mat = numpy.transpose(mat)
-        _moveN(coordsO, coordsD, coordsC, mat)
-  return coordsO
+    cont = Internal.getNodeFromName1(z, 'TimeMotion')
+    coordsO = [numpy.copy(coords[0]),numpy.copy(coords[1]),numpy.copy(coords[2])]
+    if cont is not None:
+        motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
+        for m in motions:
+            mtype = Internal.getNodeFromName1(m, 'MotionType')
+            dtype = mtype[1][0]
+            
+            if dtype == 3:
+                axis_pnt = getNodeValue__(m, 'axis_pnt')
+                axis_vct = getNodeValue__(m, 'axis_vct')
+                omega = getNodeValue__(m, 'omega')
+                speed = getNodeValue__(m, 'transl_speed')
+                coordsD = [-speed[0]*time, -speed[1]*time, -speed[2]*time]
+                coordsC = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
+                mat = getRotationMatrix__(axis_pnt[0],axis_pnt[1],axis_pnt[2],
+                                          axis_vct[0],axis_vct[1],axis_vct[2],omega*time)
+                mat = numpy.transpose(mat)
+                _moveN(coordsO, coordsD, coordsC, mat)
+
+            elif dtype == 2:# type 2: rotor_motion for helicopters in FF
+                transl_speed=Internal.getValue(Internal.getNodeFromName(m,'transl_speed'))
+                psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
+                psi0_b = Internal.getValue(Internal.getNodeFromName(m, 'psi0_b'))
+                alp_pnt = Internal.getValue(Internal.getNodeFromName(m, 'alp_pnt'))
+                alp_vct = Internal.getValue(Internal.getNodeFromName(m, 'alp_vct'))
+                alp0 = Internal.getValue(Internal.getNodeFromName(m, 'alp0'))
+                rot_pnt = Internal.getValue(Internal.getNodeFromName(m, 'rot_pnt'))
+                rot_vct = Internal.getValue(Internal.getNodeFromName(m, 'rot_vct'))
+                rot_omg = Internal.getValue(Internal.getNodeFromName(m, 'rot_omg'))
+                del_pnt = Internal.getValue(Internal.getNodeFromName(m, 'del_pnt'))
+                del_vct = Internal.getValue(Internal.getNodeFromName(m, 'del_vct'))
+                del0 = Internal.getValue(Internal.getNodeFromName(m, 'del0'))
+                delc = getNodeValue__(m, 'delc')
+                dels = getNodeValue__(m, 'dels')
+                bet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'bet_pnt'))
+                bet_vct = Internal.getValue(Internal.getNodeFromName(m, 'bet_vct'))
+                bet0 = Internal.getValue(Internal.getNodeFromName(m, 'bet0'))
+                betc = getNodeValue__(m, 'betc')
+                bets = getNodeValue__(m, 'bets')                
+                betc = getNodeValue__(m, 'betc')
+                bets = getNodeValue__(m, 'bets')
+                tet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'tet_pnt'))
+                tet_vct = Internal.getValue(Internal.getNodeFromName(m, 'tet_vct'))
+                tet0 = Internal.getValue(Internal.getNodeFromName(m, 'tet0'))
+                tetc = getNodeValue__(m, 'tetc')
+                tets = getNodeValue__(m, 'tets')
+                span_vct = Internal.getValue(Internal.getNodeFromName(m, 'span_vct'))
+                pre_lag_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_ang'))
+                pre_lag_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_pnt'))
+                pre_lag_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_vct'))
+                pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
+                pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
+                pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
+                [r0,x0,rotMat,s0]=rigidMotion._computeRotorMotionInfo(
+                    time, transl_speed.tolist(), psi0, psi0_b,
+                    alp_pnt.tolist(),alp_vct.tolist(),alp0,
+                    rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
+                    del_pnt.tolist(),del_vct.tolist(),del0, delc.tolist(), dels.tolist(),
+                    bet_pnt.tolist(), bet_vct.tolist(), bet0, betc.tolist(), bets.tolist(),
+                    tet_pnt.tolist(), tet_vct.tolist(), tet0, tetc.tolist(), tets.tolist(),
+                    span_vct.tolist(),
+                    pre_lag_ang, pre_lag_pnt.tolist(), pre_lag_vct.tolist(),
+                    pre_con_ang, pre_con_pnt.tolist(), pre_con_vct.tolist())
+                coordsD = [x0[0], x0[1], x0[2]]
+                coordsC = [r0[0], r0[1], r0[2]]
+                rotMat = numpy.transpose(rotMat)
+               
+                # XP=d+r*(XN-c)
+                _moveN(coordsO, coordsD, coordsC, rotMat)
+
+    return coordsO
+
+
+# Computes the new coordinates and grid velocity for rotor motion
+def _setRotorMotionCoordinatesAndVelocityZ(a, time):
+  _copyGridInit2Grid(a)
+  zones = Internal.getZones(a)
+  for z in zones:
+      cont = Internal.getNodeFromName1(z, 'TimeMotion')
+      if cont is not None:
+          motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
+          motions.reverse()
+          for m in motions:
+              mtype = Internal.getNodeFromName1(m, 'MotionType')
+              dtype = mtype[1][0]
+              if dtype == 2:
+                  # Find Coordinates pointers (must already be updated)
+                  grid = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
+                  if grid is None: grid = Internal.getNodeFromName1(z, 'GridCoordinates')
+                  xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
+                
+                  # Get grid velocity pointers
+                  name = 'Motion'
+                  mmo = Internal.getNodeFromName1(z,name)
+                  if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
+                  sx = Internal.getNodeFromName1(mmo, 'VelocityX')
+                  if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size));
+                  sy = Internal.getNodeFromName1(mmo, 'VelocityY')
+                  if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size));
+                  sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
+                  if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size));
+                  transl_speed=Internal.getValue(Internal.getNodeFromName(m,'transl_speed'))
+                  psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
+                  psi0_b = Internal.getValue(Internal.getNodeFromName(m, 'psi0_b'))
+                  alp_pnt = Internal.getValue(Internal.getNodeFromName(m, 'alp_pnt'))
+                  alp_vct = Internal.getValue(Internal.getNodeFromName(m, 'alp_vct'))
+                  alp0 = Internal.getValue(Internal.getNodeFromName(m, 'alp0'))
+                  rot_pnt = Internal.getValue(Internal.getNodeFromName(m, 'rot_pnt'))
+                  rot_vct = Internal.getValue(Internal.getNodeFromName(m, 'rot_vct'))
+                  rot_omg = Internal.getValue(Internal.getNodeFromName(m, 'rot_omg'))
+                  del_pnt = Internal.getValue(Internal.getNodeFromName(m, 'del_pnt'))
+                  del_vct = Internal.getValue(Internal.getNodeFromName(m, 'del_vct'))
+                  del0 = Internal.getValue(Internal.getNodeFromName(m, 'del0'))
+                  delc = getNodeValue__(m, 'delc')
+                  dels = getNodeValue__(m, 'dels')
+                  bet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'bet_pnt'))
+                  bet_vct = Internal.getValue(Internal.getNodeFromName(m, 'bet_vct'))
+                  bet0 = Internal.getValue(Internal.getNodeFromName(m, 'bet0'))
+                  betc = getNodeValue__(m, 'betc')
+                  bets = getNodeValue__(m, 'bets')                
+                  betc = getNodeValue__(m, 'betc')
+                  bets = getNodeValue__(m, 'bets')
+                  tet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'tet_pnt'))
+                  tet_vct = Internal.getValue(Internal.getNodeFromName(m, 'tet_vct'))
+                  tet0 = Internal.getValue(Internal.getNodeFromName(m, 'tet0'))
+                  tetc = getNodeValue__(m, 'tetc')
+                  tets = getNodeValue__(m, 'tets')
+                  span_vct = Internal.getValue(Internal.getNodeFromName(m, 'span_vct'))
+                  pre_lag_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_ang'))
+                  pre_lag_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_pnt'))
+                  pre_lag_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_lag_vct'))
+                  pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
+                  pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
+                  pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
+                  rigidMotion._computeRotorMotionZ(
+                      z,  sx[1], sy[1], sz[1], time, transl_speed.tolist(), psi0, psi0_b,
+                      alp_pnt.tolist(),alp_vct.tolist(),alp0,
+                      rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
+                      del_pnt.tolist(),del_vct.tolist(),del0, delc.tolist(), dels.tolist(),
+                      bet_pnt.tolist(), bet_vct.tolist(), bet0, betc.tolist(), bets.tolist(),
+                      tet_pnt.tolist(), tet_vct.tolist(), tet0, tetc.tolist(), tets.tolist(),
+                      span_vct.tolist(),
+                      pre_lag_ang, pre_lag_pnt.tolist(), pre_lag_vct.tolist(),
+                      pre_con_ang, pre_con_pnt.tolist(), pre_con_vct.tolist(),
+                      Internal.__GridCoordinates__,
+                      Internal.__FlowSolutionNodes__,
+                      Internal.__FlowSolutionCenters__)
+  return None
