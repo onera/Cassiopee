@@ -73,7 +73,8 @@ struct CPlotState {
     int frameBuffer;        // numero du frame buffer (0-9)
     char* offscreenBuffer[10];  // buffer for rendering (offscreen)
     float* offscreenDepthBuffer[10]; // Depth buffer storage for offscreen rendering 3 et 4
-
+    void* ctx;
+  
     // overlay message
     char* message;
 

@@ -55,6 +55,10 @@
 #include <GL/osmesa.h>
 #endif
 
+#ifdef _MPI
+#include <mpi.h>
+#endif
+
 #ifdef _WIN32
 #define GLAPI extern
 #endif

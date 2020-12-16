@@ -66,6 +66,14 @@ if mpeg:
     libraryDirs += [mpegLib]
     includeDirs += [mpegIncDir]
 
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
+
+if mpi:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+
 import srcs
 if srcs.SHADERS == 2: 
   includeDirs += ['CPlot/Shaders2.0']; print('INFO: using 2.0 shaders.')
@@ -96,6 +104,8 @@ EXTRA = ['-D__SHADERS__']
 if OSMesa: EXTRA += ['-D__MESA__']
 
 if mySystem == 'Darwin': EXTRA += ['-framework OpenGL']
+
+if mpi: EXTRA += ['-D_MPI']
 
 env.Append(CPPFLAGS=EXTRA)
 

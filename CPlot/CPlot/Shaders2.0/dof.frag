@@ -195,14 +195,14 @@ void main()
 
      // color
      vec4 color1, color2, color;
-     if (radius > 0) color1 = dof(gl_TexCoord[0].xy);
+     if (radius > 0.) color1 = dof(gl_TexCoord[0].xy);
      else color1 = texture2D(FrameBuffer, gl_TexCoord[0].xy);
 
-     if (sobelThreshold > 0) color2 = sobel(gl_TexCoord[0].xy);
+     if (sobelThreshold > 0.) color2 = sobel(gl_TexCoord[0].xy);
      else color2 = vec4(0.);
 
      // mix colors
-     if (sobelThreshold > 0)
+     if (sobelThreshold > 0.)
      {
         float ct = max(color2.r, color2.g);
         ct = max(ct, color2.b);

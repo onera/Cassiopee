@@ -86,9 +86,18 @@ from srcs import SHADERS
 if SHADERS == 2: includeDirs += ['CPlot/Shaders2.0']
 else: includeDirs += ['CPlot/Shaders']
 
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
+
 # Extensions =================================================================
 EXTRA = ['-D__SHADERS__']
 if OSMesa: EXTRA += ['-D__MESA__']
+if mpi:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+    libraries += mpiLibs
+    EXTRA += ['-D_MPI']
 
 EXTRA += Dist.getCppArgs()
 

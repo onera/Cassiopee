@@ -160,12 +160,17 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   if (offscreen > 0) { d->ptrState->offscreen = offscreen; d->ptrState->shootScreen = 1; }
   if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;
 
-  if (d->ptrState->offscreen == 1) // MESA offscreen
+  if (d->ptrState->offscreen == 1 ||
+      d->ptrState->offscreen == 5 ||
+      d->ptrState->offscreen == 6 ||
+      d->ptrState->offscreen == 7) // MESA offscreen
   {
 #ifdef __MESA__
   //printf("Creating OS context...");
   OSMesaContext ctx; 
-  ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+  //ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+  ctx = OSMesaCreateContextExt(OSMESA_RGBA, 4, 0, 0, NULL);
+  d->ptrState->ctx = (void*)&ctx;
   d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
   (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
   OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 

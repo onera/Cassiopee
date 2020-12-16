@@ -196,10 +196,11 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < unstrFSize; i++) 
     RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
 
-  if (d->ptrState->offscreen == 1) // MESA offscreen
+  if (d->ptrState->offscreen == 1 ||
+      d->ptrState->offscreen == 5 ||
+      d->ptrState->offscreen == 6 ||
+      d->ptrState->offscreen == 7) // MESA offscreen
   {
-    int argc = 0;
-    char* com = NULL;
     INITTHREADS;
     // Dans ce cas, on ne fait pas de glutInit, car il requiert
     // un serveur X
@@ -214,7 +215,9 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     
     //printf("Creating OS context..."); fflush(stdout);
     OSMesaContext ctx; 
-    ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+    //ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+    ctx = OSMesaCreateContextExt(OSMESA_RGBA, 4, 0, 0, NULL);
+    d->ptrState->ctx = (void*)&ctx;
     d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
     (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
     OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
@@ -232,7 +235,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
 #else
     printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif
-  }// if (d->ptrState->offscreen == 1)
+  }// MESA offscreen
   else
   { // direct ou offscreen FBO
     d->ptrState->farClip = 1;

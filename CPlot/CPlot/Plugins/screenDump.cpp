@@ -83,7 +83,9 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   
   glGenRenderbuffersEXT(1, &db);
   glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, db);
-  if (ptrState->offscreen > 2) 
+  if (ptrState->offscreen == 3 || ptrState->offscreen == 4) // ||
+    //ptrState->offscreen == 5 || ptrState->offscreen == 6 ||
+    //  ptrState->offscreen == 7) // need depth buffer for compositing
   {
     //glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8, exportWidth, exportHeight);
     //glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, exportWidth, exportHeight);
@@ -95,8 +97,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   {
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, exportWidth, exportHeight);
     // Attach depth buffer to FBO
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
-                                 GL_RENDERBUFFER_EXT, db);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, db);
   }
 
   int status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
@@ -114,13 +115,10 @@ char* Data::export2Image(int exportWidth, int exportHeight)
 #endif
 
   int s = exportWidth*exportHeight;
-  unsigned szDepth = 4*s; // Nombre d'octets par pixel si DEPTH32F et STENCIL 8 : 4 bytes pour detpth + 1 byte  spare + 1 byte stencil
+  unsigned szDepth = 4*s; // Nombre d'octets par pixel si DEPTH32F et STENCIL 8 : 4 bytes pour depth + 1 byte spare + 1 byte stencil
   // _accumBuffer = 4*s pixels à afficher + 4*s donnée de profondeur :-)
   //if (_accumBuffer.size() == 0) std::vector<unsigned char>(8*s, unsigned char(0)).swap(_accumBuffer);
-  char* buffer;
-  buffer = (char*)malloc(s*3*sizeof(char));
-  float* depth = (float*)malloc(szDepth);
-  for (E_Int i = 0; i < s; i++) depth[i] = 0;
+  char* buffer = (char*)malloc(s*3*sizeof(char));
 
   // Switch viewport
   int viewWSav = _view.w; int viewHSav = _view.h;
@@ -136,86 +134,9 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   _view.ratio = (double)_view.w/(double)_view.h;
   glViewport(0, 0, (GLsizei) _view.w, (GLsizei) _view.h);
 
-  // Traduction en buffer
-  if (ptrState->offscreen != 1)
+  // Traduction dans buffer
+  if (ptrState->offscreen == 1) // mesa RGBA
   {
-    if (ptrState->offscreen > 2)
-    {
-      if (ptrState->offscreenBuffer[ptrState->frameBuffer] == NULL)
-      {
-        //float scale, bias;
-        //glGetFloatv(GL_DEPTH_SCALE, &scale);
-        //glGetFloatv(GL_DEPTH_BIAS, &bias);
-        //printf("scale=%f bias=%f\n", scale, bias);
-        
-        glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-
-        glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
-        //glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT_24_8, depth);
-        //glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depth);
-        //glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, depth);
-        //glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depth);
-
-        //glGetFloatv(GL_DEPTH_SCALE, &scale);
-        //glGetFloatv(GL_DEPTH_BIAS, &bias);GL_UNSIGNED_INT_24_8
-        //printf("scale=%f bias=%f\n", scale, bias);
-        
-        ptrState->offscreenBuffer[ptrState->frameBuffer] = (char*)malloc(s*3*sizeof(char));
-        memcpy(ptrState->offscreenBuffer[ptrState->frameBuffer], buffer, s*3*sizeof(char));
-        ptrState->offscreenDepthBuffer[ptrState->frameBuffer] = (float*)malloc(szDepth);
-        float* ptd = ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
-        double zNear = _view.nearD; 
-        double zFar  = _view.farD;
-        for (int i = 0; i < exportHeight*exportWidth; i++)
-        {
-          double z_n = 2.*double(depth[i])-1.0;
-          double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
-          ptd[i] = float(z_e); //0.5*(-A*depth[i]+B)/depth[i] + 0.5;
-        }
-        
-        //memcpy(ptrState->offscreenDepthBuffer, depth, szDepth);
-      }
-      else
-      {
-        // Relit et stocke RGB + depth
-        glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-        glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
-        double zNear = _view.nearD; 
-        double zFar  = _view.farD;
-        for (int i = 0; i < exportHeight*exportWidth; i++)
-        {
-          double z_n = 2.*double(depth[i])-1.0;
-          double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
-          depth[i] = float(z_e);//0.5*(-A*depth[i]+B)/depth[i] + 0.5;
-        }
-        
-        char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer];
-        float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
-        for ( int i = 0; i < exportHeight; ++i ) {
-          for ( int j = 0; j < exportWidth; ++j ) {
-            unsigned ind = i*exportWidth+j;
-            assert(ind<s);
-            if (depth[ind] < offscreenD[ind]) {
-              offscreen[3*ind  ] = buffer[3*ind  ];
-              offscreen[3*ind+1] = buffer[3*ind+1];
-              offscreen[3*ind+2] = buffer[3*ind+2];
-              offscreenD[ind]    = depth[ind];
-            }
-          }
-        }
-        memcpy(buffer, ptrState->offscreenBuffer[ptrState->frameBuffer], 3*s*sizeof(char));
-      }
-    }
-    else
-    {
-      if (ptrState->offscreenBuffer[ptrState->frameBuffer] != NULL)
-          memcpy(buffer, ptrState->offscreenBuffer[ptrState->frameBuffer], 3*s*sizeof(char));
-      else
-          glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-    }
-  }
-  else 
-  { // mesa offscreen rendering
     char* buffRGBA = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer];
     for (int i = 0; i < s; i++)
     { 
@@ -223,6 +144,224 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       buffer[3*i+1] = buffRGBA[4*i+1];
       buffer[3*i+2] = buffRGBA[4*i+2];
     }
+  }
+  else if (ptrState->offscreen == 2) // FBO RGB
+  {
+    if (ptrState->offscreenBuffer[ptrState->frameBuffer] != NULL)
+        memcpy(buffer, ptrState->offscreenBuffer[ptrState->frameBuffer], 3*s*sizeof(char));
+    else
+        glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+  }
+  else if (ptrState->offscreen == 3 || ptrState->offscreen == 4) // FBO RGB+DEPTH+COMPOSE
+  {
+    float* depth = (float*)malloc(szDepth);
+    for (E_Int i = 0; i < s; i++) depth[i] = 0;
+
+    if (ptrState->offscreenBuffer[ptrState->frameBuffer] == NULL)
+    {
+      glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+
+      glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
+      //glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT_24_8, depth);
+      //glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depth);
+      //glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, depth);
+      //glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depth);
+        
+      ptrState->offscreenBuffer[ptrState->frameBuffer] = (char*)malloc(s*3*sizeof(char));
+      memcpy(ptrState->offscreenBuffer[ptrState->frameBuffer], buffer, s*3*sizeof(char));
+      ptrState->offscreenDepthBuffer[ptrState->frameBuffer] = (float*)malloc(szDepth);
+      float* ptd = ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
+      double zNear = _view.nearD; 
+      double zFar  = _view.farD;
+      for (int i = 0; i < exportHeight*exportWidth; i++)
+      {
+        double z_n = 2.*double(depth[i])-1.0;
+        double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
+        ptd[i] = float(z_e); //0.5*(-A*depth[i]+B)/depth[i] + 0.5;
+      }
+      //memcpy(ptrState->offscreenDepthBuffer, depth, szDepth);
+    }
+    else
+    {
+      // Relit et stocke RGB + depth
+      glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+      glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
+      double zNear = _view.nearD; 
+      double zFar  = _view.farD;
+      for (int i = 0; i < exportHeight*exportWidth; i++)
+      {
+        double z_n = 2.*double(depth[i])-1.0;
+        double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
+        depth[i] = float(z_e);
+      }
+        
+      char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer];
+      float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
+      for ( int i = 0; i < exportHeight; ++i ) {
+        for ( int j = 0; j < exportWidth; ++j ) {
+          unsigned ind = i*exportWidth+j;
+          assert(ind<s);
+          if (depth[ind] < offscreenD[ind]) {
+            offscreen[3*ind  ] = buffer[3*ind  ];
+            offscreen[3*ind+1] = buffer[3*ind+1];
+            offscreen[3*ind+2] = buffer[3*ind+2];
+            offscreenD[ind]    = depth[ind];
+          }
+        }
+      }
+      memcpy(buffer, ptrState->offscreenBuffer[ptrState->frameBuffer], 3*s*sizeof(char));
+    }
+    free(depth);
+  }
+  else if (ptrState->offscreen == 7) // parallel composite mesa
+  {
+#if defined(_MPI) && defined(__MESA__)
+
+    E_Int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    E_Int size; MPI_Comm_size(MPI_COMM_WORLD, &size);
+    E_Int screenSize = _view.w * _view.h; 
+    
+    // Recupere le depth buffer et l'adimensionne
+    //float* depth = (float*)malloc(screenSize * sizeof(float));
+
+    void* depthl;
+    OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
+    E_Int w, h, bpv;
+    OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
+    printf("w=%d %d\n", w, _view.w);
+    printf("h=%d %d\n", h, _view.h);
+    printf("bpv=%d\n", bpv);
+    float* depth = (float*)malloc(screenSize * sizeof(float));
+    assert(w == _view.w);
+    assert(h == _view.h);
+    
+    if (bpv == 2)
+    {
+      short* d = (short*)depthl;
+      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)d[i]; }
+    }
+    else if (bpv == 4)
+    {
+      int* d = (int*)depthl;
+      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)d[i]; }
+    }
+    
+    double zNear = _view.nearD; 
+    double zFar  = _view.farD;
+    for (int i = 0; i < screenSize; i++)
+    {
+      double z_n = 2.*double(depth[i])-1.0;
+      double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
+      depth[i] = float(z_e);
+    }
+    //for (E_Int i = 0; i < screenSize; i++) printf("%f ", depth[i]);
+    
+    // Reduce buffer
+    char* buf = ptrState->offscreenBuffer[ptrState->frameBuffer];
+    for (E_Int i = 0; i < screenSize; i++)
+    {
+      buffer[3*i] = buf[4*i]; buffer[3*i+1] = buf[4*i+1]; buffer[3*i+2] = buf[4*i+2]; 
+    }
+    if (rank > 0)
+    {
+      MPI_Send(buf, screenSize*4, MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+      MPI_Send(depth, screenSize, MPI_FLOAT, 0, 1, MPI_COMM_WORLD);
+    }
+   
+    if (rank == 0)
+    {
+      MPI_Status mstatus;
+      char* localBuf = (char*)malloc(screenSize * sizeof(GLubyte));
+      float* localDepth = (float*)malloc(screenSize * sizeof(float));
+      for (E_Int source = 1; source < size; source++)
+      {
+	MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 0, 
+		 MPI_COMM_WORLD, &mstatus);
+	MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 1, 
+		 MPI_COMM_WORLD, &mstatus);
+      
+        // compose in buf
+	for (E_Int i = 0; i < screenSize; i++)
+	{
+	  if (localDepth[i] > depth[i])
+	  {
+	    for (E_Int c = 0; c < 3; c++) buffer[3*i+c] = localBuf[4*i+c];
+	  }
+	}
+      }
+    }
+    free(depth);
+#else
+  printf("Error: CPlot: mesa offscreen or MPI unavailable.\n");
+#endif
+  }
+  else if (ptrState->offscreen == 5 || ptrState->offscreen == 6) // MESA RGB+DEPTH+COMPOSE)
+  {
+    E_Int screenSize = _view.w * _view.h; 
+    // Get the depth buffer partiel -> depth
+    void* depthl;
+    OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
+    E_Int w, h, bpv;
+    OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
+    float* depth = (float*)malloc(screenSize * sizeof(float));
+    printf("bpv=%d\n", bpv);
+    if (bpv == 2)
+    {
+      short* d = (short*)depthl;
+      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)d[i]; }
+    }
+    else if (bpv == 4)
+    {
+      int* d = (int*)depthl;
+      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)d[i]; }
+    }
+    float* ptd = depth;
+    double zNear = _view.nearD; 
+    double zFar  = _view.farD;
+    for (int i = 0; i < screenSize; i++)
+    {
+      double z_n = 2.*double(depth[i])-1.0;
+      double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
+      ptd[i] = float(z_e);
+    }
+    
+    // Stockage de l'image complete en cours de construction (ici frameBuffer contient l'image partielle)
+    char* bufferRGBA = ptrState->offscreenBuffer[ptrState->frameBuffer];
+    if (ptrState->offscreenBuffer[ptrState->frameBuffer+1] == NULL)
+    {
+      ptrState->offscreenBuffer[ptrState->frameBuffer+1] = (char*)malloc(screenSize*3*sizeof(char));
+      char* b = ptrState->offscreenBuffer[ptrState->frameBuffer+1];
+      for (int i = 0; i < screenSize; i++)
+      { 
+	b[3*i] = bufferRGBA[4*i]; b[3*i+1] = bufferRGBA[4*i+1]; b[3*i+2] = bufferRGBA[4*i+2];
+      }
+      
+      ptrState->offscreenDepthBuffer[ptrState->frameBuffer] = (float*)malloc(screenSize*sizeof(float));
+      float* ptd = ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
+      for (E_Int i = 0; i < screenSize; i++) ptd[i] = depth[i];
+    }
+    else
+    {
+      // composition
+      char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
+      float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer]; // stored
+      for ( int i = 0; i < exportHeight; ++i ) {
+	for ( int j = 0; j < exportWidth; ++j ) {
+	  unsigned ind = i*exportWidth+j;
+	  if (depth[ind] < offscreenD[ind]) {
+	    offscreen[3*ind  ] = buffer[3*ind  ];
+	    offscreen[3*ind+1] = buffer[3*ind+1];
+	    offscreen[3*ind+2] = buffer[3*ind+2];
+	    offscreenD[ind]    = depth[ind];
+	  }
+	}
+      }
+    }
+    // export dans buffer
+    char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
+    for (E_Int i = 0; i < screenSize*3; i++) buffer[i] = offscreen[i];
+    
+    free(depth);
   }
 
 #ifdef __SHADERS__
@@ -234,7 +373,6 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   glDeleteFramebuffersEXT(1, &fb);
 #endif
 
-  free(depth);
   return buffer;
 }
 
@@ -277,7 +415,6 @@ void Data::dumpWindow()
   }
   else // Other formats
   {
-
     int exportWidth = _view.w;
     int exportHeight = _view.h;
     double r = _view.h * 1. / _view.w;
@@ -300,9 +437,8 @@ void Data::dumpWindow()
     exportHeight = (exportHeight/2)*2; // doit etre pair
     
     char* buffer; char* buffer2;
-    int antialiasing = 1;
-    if (ptrState->offscreen >= 3) antialiasing=0;
-    if (ptrState->offscreen == 1) antialiasing=0; // suppressed for OSMESA
+    int antialiasing = 0;
+    if (ptrState->offscreen == 2) antialiasing=1; // FBO rendering with no compositing
 
     if (antialiasing == 1)
     {
@@ -338,7 +474,7 @@ void Data::dumpWindow()
     }
 
     // Dump the buffer to a file
-    if (ptrState->offscreen != 3)
+    if (ptrState->offscreen != 3 && ptrState->offscreen != 5)
       _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);    
     free(buffer);
   }
