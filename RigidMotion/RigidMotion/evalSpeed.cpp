@@ -45,20 +45,20 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
                      &kx, &ky, &kz)) return NULL;
   // Check numpys
   E_Float* x; E_Int size; E_Int nfld;
-  E_Int ret = K_NUMPY::getFromNumpyArray(xo, x, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(xo, x, size, nfld, true);
   E_Float* y;
-  ret = K_NUMPY::getFromNumpyArray(yo, y, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(yo, y, size, nfld, true);
   E_Float* z;
-  ret = K_NUMPY::getFromNumpyArray(zo, z, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(zo, z, size, nfld, true);
   
   E_Float* sx;
-  ret = K_NUMPY::getFromNumpyArray(sxo, sx, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(sxo, sx, size, nfld, true);
   
   E_Float* sy;
-  ret = K_NUMPY::getFromNumpyArray(syo, sy, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(syo, sy, size, nfld, true);
   
   E_Float* sz;
-  ret = K_NUMPY::getFromNumpyArray(szo, sz, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(szo, sz, size, nfld, true);
 
   size = size*nfld;
   

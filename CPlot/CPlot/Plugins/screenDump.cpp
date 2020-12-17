@@ -275,28 +275,29 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       float* localDepth = (float*)malloc(screenSize * sizeof(float));
       for (E_Int source = 1; source < size; source++)
       {
-	MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 0, 
-		 MPI_COMM_WORLD, &mstatus);
-	MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 1, 
-		 MPI_COMM_WORLD, &mstatus);
+       MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 0, 
+              MPI_COMM_WORLD, &mstatus);
+       MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 1, 
+             MPI_COMM_WORLD, &mstatus);
       
-        // compose in buf
-	for (E_Int i = 0; i < screenSize; i++)
-	{
-	  if (localDepth[i] > depth[i])
-	  {
-	    for (E_Int c = 0; c < 3; c++) buffer[3*i+c] = localBuf[4*i+c];
-	  }
-	}
+      // compose in buf
+      for (E_Int i = 0; i < screenSize; i++)
+      {
+        if (localDepth[i] > depth[i])
+        {
+          for (E_Int c = 0; c < 3; c++) buffer[3*i+c] = localBuf[4*i+c];
+        }
       }
     }
-    free(depth);
+  }
+  free(depth);
 #else
   printf("Error: CPlot: mesa offscreen or MPI unavailable.\n");
 #endif
   }
   else if (ptrState->offscreen == 5 || ptrState->offscreen == 6) // MESA RGB+DEPTH+COMPOSE)
   {
+#ifdef __OSMESA__
     E_Int screenSize = _view.w * _view.h; 
     // Get the depth buffer partiel -> depth
     void* depthl;
@@ -333,7 +334,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       char* b = ptrState->offscreenBuffer[ptrState->frameBuffer+1];
       for (int i = 0; i < screenSize; i++)
       { 
-	b[3*i] = bufferRGBA[4*i]; b[3*i+1] = bufferRGBA[4*i+1]; b[3*i+2] = bufferRGBA[4*i+2];
+        b[3*i] = bufferRGBA[4*i]; b[3*i+1] = bufferRGBA[4*i+1]; b[3*i+2] = bufferRGBA[4*i+2];
       }
       
       ptrState->offscreenDepthBuffer[ptrState->frameBuffer] = (float*)malloc(screenSize*sizeof(float));
@@ -346,15 +347,15 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
       float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer]; // stored
       for ( int i = 0; i < exportHeight; ++i ) {
-	for ( int j = 0; j < exportWidth; ++j ) {
-	  unsigned ind = i*exportWidth+j;
-	  if (depth[ind] < offscreenD[ind]) {
-	    offscreen[3*ind  ] = buffer[3*ind  ];
-	    offscreen[3*ind+1] = buffer[3*ind+1];
-	    offscreen[3*ind+2] = buffer[3*ind+2];
-	    offscreenD[ind]    = depth[ind];
-	  }
-	}
+      for ( int j = 0; j < exportWidth; ++j ) {
+        unsigned ind = i*exportWidth+j;
+        if (depth[ind] < offscreenD[ind]) {
+          offscreen[3*ind  ] = buffer[3*ind  ];
+          offscreen[3*ind+1] = buffer[3*ind+1];
+          offscreen[3*ind+2] = buffer[3*ind+2];
+          offscreenD[ind]    = depth[ind];
+          }
+        }
       }
     }
     // export dans buffer
@@ -362,6 +363,9 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     for (E_Int i = 0; i < screenSize*3; i++) buffer[i] = offscreen[i];
     
     free(depth);
+#else
+  printf("Error: CPlot: mesa offscreen unavailable.\n");
+#endif
   }
 
 #ifdef __SHADERS__

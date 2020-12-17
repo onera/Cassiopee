@@ -236,7 +236,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           j = ind / jm1;
           i = ind - j*jm1;
           alpha = 1;
-          if (i == 0 || i == ni) alpha = 0;
+          if (i == 0 || i == im) alpha = 0;
           i0 = max(i, 1)-1;    
           beta = im;
           if (j == 0 || j == jm) beta = 0;
@@ -257,19 +257,215 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
     {
       k6conv2node1_(im, jm, km, nv, 
                     FCenter.begin(), FNode.begin());
+      /*
+      E_Int im1 = im+1; E_Int jm1 = jm+1; E_Int km1 = km+1;
+      E_Int ijm = im*jm; E_Int ijm1= im1*jm1;
+      
+      #pragma omp parallel
+      {
+        E_Int alpha, beta, gamma, i, j, k, i0, j0, k0;
+        E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
+#pragma omp for
+        for (E_Int ind = 0; ind < im1*jm1*km1; ind++)
+        {
+          k = ind / ijm1;
+          j = (ind - k*ijm1) / jm1;
+          i = ind - j*jm1 - k*ijm1;
+          alpha = 1;
+          if (i == 0 || i == im) alpha = 0;
+          i0 = max(i, 1)-1;
+          beta = im;
+          if (j == 0 || j == jm) beta = 0;
+          j0 = max(j, 1)-1;
+          gamma = ijm;
+          if (k == 0 || k == km) gamma = 0;
+          k0 = max(k, 1)-1;
+                    
+          ind0 = i0 + j0 * im;
+          ind1 = ind0 + alpha;
+          ind2 = ind0 + beta;
+          ind3 = ind2 + alpha;
+          
+          ind0 = i0 + j0 * im + k0 * im*jm;
+          ind1 = ind0 + alpha;
+          ind2 = ind0 + beta;
+          ind3 = ind2 + alpha;
+          ind4 = ind0 + gamma;
+          ind5 = ind4 + alpha;
+          ind6 = ind4 + beta;
+          ind7 = ind6 + alpha;
+
+          for (E_Int n = 1; n <= nv; n++)
+              FNode(ind,n) = 0.125*(FCenter(ind0,n)+FCenter(ind1,n)+
+                FCenter(ind2,n)+FCenter(ind3,n)+
+                FCenter(ind4,n)+FCenter(ind5,n)+
+                FCenter(ind6,n)+FCenter(ind7,n));
+        }
+      }
+      */
     }
   }
   else // algo=1 et cellN existe
   {
     if (dim == 1)
+    {
       k6conv2node11dp_(im, nv, 
                        FCenter.begin(), FCenter.begin(cellN), FNode.begin());
+      /*
+      E_Int im1 = im+1;
+      E_Float* cellNp = FCenter.begin(cellN);
+      
+#pragma omp parallel
+      {
+        E_Int alpha, i, i0;
+        E_Int ind0, ind1;
+        E_Float cellN0, cellN1, w;
+#pragma omp for
+        for (E_Int ind = 0; ind < im1; ind++)
+        {
+          i = ind;
+          alpha = 1;
+          if (i == 0 || i == im) alpha = 0;
+          i0 = max(i, 1)-1;
+                    
+          ind0 = i0;
+          ind1 = ind0 + alpha;
+          
+          cellN0 = min(cellNp[ind0], 1.);
+          cellN1 = min(cellNp[ind1], 1.);
+               
+          w = cellN0 + cellN1;
+          if (w == 0.)
+          {
+            w = 0.5; cellN0 = 1.; cellN1 = 1.;
+          }
+          else w = 1./w;
+               
+          for (E_Int n = 1; n <= nv; n++)
+              FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n));
+        }
+      }
+      */
+    }
     else if (dim == 2)
+    {  
       k6conv2node12dp_(im, jm, nv, 
                        FCenter.begin(), FCenter.begin(cellN), FNode.begin());
+      
+      /*
+      E_Int im1 = im+1; E_Int jm1 = jm+1;
+      E_Float* cellNp = FCenter.begin(cellN);
+      
+#pragma omp parallel
+      {
+        E_Int alpha, beta, i, j, i0, j0;
+        E_Int ind0, ind1, ind2, ind3;
+        E_Float cellN0, cellN1, cellN2, cellN3, w;
+#pragma omp for
+        for (E_Int ind = 0; ind < im1*jm1; ind++)
+        {
+          j = ind / jm1;
+          i = ind - j*jm1;
+          alpha = 1;
+          if (i == 0 || i == im) alpha = 0;
+          i0 = max(i, 1)-1;
+          beta = im;
+          if (j == 0 || j == jm) beta = 0;
+          j0 = max(j, 1)-1;
+                    
+          ind0 = i0 + j0 * im;
+          ind1 = ind0 + alpha;
+          ind2 = ind0 + beta;
+          ind3 = ind2 + alpha;
+          
+          cellN0 = min(cellNp[ind0], 1.);
+          cellN1 = min(cellNp[ind1], 1.);
+          cellN2 = min(cellNp[ind2], 1.);
+          cellN3 = min(cellNp[ind3], 1.);
+               
+          w = cellN0 + cellN1 + cellN2 + cellN3;
+          if (w == 0.)
+          {
+            w = 0.5; cellN0 = 1.; cellN1 = 1.; cellN2 = 1.;
+            cellN3 = 1.; 
+          }
+          else w = 1./w;
+               
+          for (E_Int n = 1; n <= nv; n++)
+              FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n)+
+                cellN2*FCenter(ind2,n)+cellN3*FCenter(ind3,n));
+        }
+      }
+    */
+    }
     else
+    {
       k6conv2node1p_(im, jm, km, nv, 
                      FCenter.begin(), FCenter.begin(cellN), FNode.begin());
+      /*
+      E_Int im1 = im+1; E_Int jm1 = jm+1; E_Int km1 = km+1;
+      E_Int ijm = im*jm; E_Int ijm1= im1*jm1;
+      E_Float* cellNp = FCenter.begin(cellN);
+      
+      #pragma omp parallel
+      {
+        E_Int alpha, beta, gamma, i, j, k, i0, j0, k0;
+        E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
+        E_Float cellN0, cellN1, cellN2, cellN3, cellN4, cellN5;
+        E_Float cellN6, cellN7, w;
+#pragma omp for
+        for (E_Int ind = 0; ind < im1*jm1*km1; ind++)
+        {
+          k = ind / ijm1;
+          j = (ind - k*ijm1) / jm1;
+          i = ind - j*jm1 - k*ijm1;
+          alpha = 1;
+          if (i == 0 || i == im) alpha = 0;
+          i0 = max(i, 1)-1;
+          beta = im;
+          if (j == 0 || j == jm) beta = 0;
+          j0 = max(j, 1)-1;
+          gamma = ijm;
+          if (k == 0 || k == km) gamma = 0;
+          k0 = max(k, 1)-1;
+          
+          ind0 = i0 + j0 * im + k0 * im*jm;
+          ind1 = ind0 + alpha;
+          ind2 = ind0 + beta;
+          ind3 = ind2 + alpha;
+          ind4 = ind0 + gamma;
+          ind5 = ind4 + alpha;
+          ind6 = ind4 + beta;
+          ind7 = ind6 + alpha;
+
+          cellN0 = min(cellNp[ind0], 1.);
+          cellN1 = min(cellNp[ind1], 1.);
+          cellN2 = min(cellNp[ind2], 1.);
+          cellN3 = min(cellNp[ind3], 1.);
+          cellN4 = min(cellNp[ind4], 1.);
+          cellN5 = min(cellNp[ind5], 1.);
+          cellN6 = min(cellNp[ind6], 1.);
+          cellN7 = min(cellNp[ind7], 1.);
+               
+          w = cellN0 + cellN1 + cellN2 + cellN3 + cellN4 + 
+              cellN5 + cellN6 + cellN7;
+          if (w == 0.)
+          {
+            w = 0.125; cellN0 = 1.; cellN1 = 1.; cellN2 = 1.;
+            cellN3 = 1.; cellN4 = 1.; cellN5 = 1.; cellN6 = 1.;
+            cellN7 = 1.;
+          }
+          else w = 1./w;
+               
+          for (E_Int n = 1; n <= nv; n++)
+              FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n)+
+                cellN2*FCenter(ind2,n)+cellN3*FCenter(ind3,n)+
+                cellN4*FCenter(ind4,n)+cellN5*FCenter(ind5,n)+
+                cellN6*FCenter(ind6,n)+cellN7*FCenter(ind7,n));
+        }
+      }
+      */
+    }
   }
 
   // Traitement special pour les coords
