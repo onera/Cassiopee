@@ -1841,6 +1841,7 @@ def getNodeFromNameAndType__(node, name, ntype):
 # Pour un noeud node, retourne le premier enfant 
 # de nom donne (pas de widcard)
 def getChildFromName(node, name):
+    """Return the first child of given name."""
     for i in node[2]:
         if i[0] == name: return i
     return None
@@ -1848,6 +1849,7 @@ def getChildFromName(node, name):
 # Pour un noeud node, retourne le premier enfant 
 # de type donne (pas de widcard)
 def getChildFromType(node, ntype):
+    """Return the first child of given type."""
     for i in node[2]:
         if i[3] == ntype: return i
     return None
@@ -1974,6 +1976,10 @@ def getValue(node):
         else: return node[1]
     else: return node[1]
 
+def getVal(node):
+    """Return the value of a node always as a numpy."""
+    return node[1]
+    
 #==============================================================================
 # -- rm Nodes --
 #==============================================================================

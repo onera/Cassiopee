@@ -141,7 +141,7 @@ Input/output
     :param format: any converter format (optional)
     :type format: string
     :param proc: None or rank number 
-    :type None or int
+    :type proc: None or int
     :return: fully loaded or partial tree
     :rtype: pyTree node
 

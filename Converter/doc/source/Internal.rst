@@ -89,14 +89,16 @@ List of functions
     Converter.Internal.getType
     Converter.Internal.getChildren
     Converter.Internal.getValue
+    Converter.Internal.getVal
     Converter.Internal.getPath
-
     Converter.Internal.getNodesFromName
     Converter.Internal.getNodeFromName
     Converter.Internal.getByName
+    Converter.Internal.getChildFromName
     Converter.Internal.getNodesFromType
     Converter.Internal.getNodeFromType
     Converter.Internal.getByType
+    Converter.Internal.getChildFromType
     Converter.Internal.getNodesFromNameAndType
     Converter.Internal.getNodeFromNameAndType
     Converter.Internal.getNodesFromValue
@@ -603,6 +605,25 @@ Acess nodes
 
 ---------------------------------------------------------------------------------
 
+.. py:function:: Converter.Internal.getVal(node)
+
+    Return value of node always as a numpy. Completely equivalent to node[1].
+   
+    :param node:  input node
+    :type  node:  pyTree node
+    :return: node value
+    :rtype: numpy array
+
+    *Example of use:*
+
+    * `Return numpy value of pyTree node (pyTree) <Examples/Converter/getValPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getValPT.py
+
+    .. note:: new in version 3.2.
+
+---------------------------------------------------------------------------------
+
 .. py:function:: Converter.Internal.getPath(t, node, pyCGNSLike=False)
 
     Return path of node in t. Path is a string describing the node names from
@@ -694,6 +715,26 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getByNamePT.py
 
+---------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getChildFromName(node)
+
+    Return the first child of node matching given name (one level search). 
+    If not found, return None.
+   
+    :param node:  input node
+    :type  node:  pyTree node
+    :return: found node or None
+    :rtype: pyTree node
+
+    *Example of use:*
+
+    * `Return first child of name (pyTree) <Examples/Converter/getChildFormNamePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getChildFromNamePT.py
+
+    .. note:: new in version 3.2.
+
 -----------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getNodesFromType(t, ntype)
@@ -760,6 +801,25 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getByTypePT.py
 
+---------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getChildFromType(node)
+
+    Return the first child of node matching given type (one level search). 
+    If not found, return None.
+   
+    :param node:  input node
+    :type  node:  pyTree node
+    :return: found node or None
+    :rtype: pyTree node
+
+    *Example of use:*
+
+    * `Return first child of type (pyTree) <Examples/Converter/getChildFormTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getChildFromTypePT.py
+
+    .. note:: new in version 3.2.
 
 -----------------------------------------------------------------------------
 

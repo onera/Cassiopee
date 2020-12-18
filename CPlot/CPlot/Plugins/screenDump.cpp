@@ -121,8 +121,6 @@ char* Data::export2Image(int exportWidth, int exportHeight)
 
   int s = exportWidth*exportHeight;
   unsigned szDepth = 4*s; // Nombre d'octets par pixel si DEPTH32F et STENCIL 8 : 4 bytes pour depth + 1 byte spare + 1 byte stencil
-  // _accumBuffer = 4*s pixels à afficher + 4*s donnée de profondeur :-)
-  //if (_accumBuffer.size() == 0) std::vector<unsigned char>(8*s, unsigned char(0)).swap(_accumBuffer);
   char* buffer = (char*)malloc(s*3*sizeof(char));
 
   // Switch viewport
@@ -184,7 +182,6 @@ char* Data::export2Image(int exportWidth, int exportHeight)
         double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
         ptd[i] = float(z_e); //0.5*(-A*depth[i]+B)/depth[i] + 0.5;
       }
-      //memcpy(ptrState->offscreenDepthBuffer, depth, szDepth);
     }
     else
     {
@@ -268,10 +265,9 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     }
     else
     {
-      printf("init from rank0\n");
       for (E_Int i = 0; i < screenSize; i++)
       {
-	  buffer[3*i] = buf[4*i]; buffer[3*i+1] = buf[4*i+1]; buffer[3*i+2] = buf[4*i+2]; 
+        buffer[3*i] = buf[4*i]; buffer[3*i+1] = buf[4*i+1]; buffer[3*i+2] = buf[4*i+2]; 
       }
     }
     if (rank == 0)
@@ -281,25 +277,24 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       float* localDepth = (float*)malloc(screenSize * sizeof(float));
       for (E_Int source = 1; source < size; source++)
       {
-	printf("composing with %d\n", source);
        MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 0, 
               MPI_COMM_WORLD, &mstatus);
        MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 1, 
              MPI_COMM_WORLD, &mstatus);
       
-       // compose in buf
+      // compose in buf
       for (E_Int i = 0; i < screenSize; i++)
       {
         if (localDepth[i] < depth[i])
         {
           buffer[3*i  ] = localBuf[4*i  ];
-	  buffer[3*i+1] = localBuf[4*i+1];
-	  buffer[3*i+2] = localBuf[4*i+2];
-	  depth[i] = localDepth[i];
+          buffer[3*i+1] = localBuf[4*i+1];
+          buffer[3*i+2] = localBuf[4*i+2];
+          depth[i] = localDepth[i];
         }
       }
     }
-      free(localBuf); free(localDepth);
+    free(localBuf); free(localDepth);
   }
   free(depth);
 

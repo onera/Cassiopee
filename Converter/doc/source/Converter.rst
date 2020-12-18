@@ -2038,6 +2038,8 @@ Array / PyTree analysis
 
     .. literalinclude:: ../build/Examples/Converter/isFinitePT.py
 
+    .. note:: new in version 3.2.
+
 
 .. Array / PyTree conversion
 .. --------------------------------

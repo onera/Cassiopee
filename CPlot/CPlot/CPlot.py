@@ -391,8 +391,7 @@ def fitView():
 
 def finalizeExport(action=0):
     """Finalize export for continuous export."""
-    while (cplot.isDisplayRunning() == 0):
-        pass
+    while cplot.isDisplayRunning() == 0: pass
     cplot.finalizeExport(action)
 
 def hide():
