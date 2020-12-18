@@ -90,7 +90,7 @@ void writePNGFile(Data* d, char* filename, char* buffer,
 
   /* write bytes */
   if (setjmp(png_jmpbuf(png_ptr))) return;
-  
+   
   row_pointers = new png_bytep [height];
   for (int y = 0; y < height; y++)
   {
@@ -100,7 +100,6 @@ void writePNGFile(Data* d, char* filename, char* buffer,
   png_write_image(png_ptr, row_pointers);
 
   if (setjmp(png_jmpbuf(png_ptr))) {delete[] row_pointers; return;}
-
   png_write_end(png_ptr, NULL);
 
   /* cleanup heap allocation */

@@ -83,9 +83,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   
   glGenRenderbuffersEXT(1, &db);
   glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, db);
-  if (ptrState->offscreen == 3 || ptrState->offscreen == 4) // ||
-    //ptrState->offscreen == 5 || ptrState->offscreen == 6 ||
-    //  ptrState->offscreen == 7) // need depth buffer for compositing
+  if (ptrState->offscreen == 3 || ptrState->offscreen == 4)
   {
     //glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8, exportWidth, exportHeight);
     //glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, exportWidth, exportHeight);
@@ -93,7 +91,14 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     // Attach depth buffer to FBO
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER_EXT, db);
   }
-  else 
+  else if (ptrState->offscreen == 5 || ptrState->offscreen == 6 ||
+	   ptrState->offscreen == 7) // need float depth buffer for compositing
+  {
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, exportWidth, exportHeight);
+    // Attach depth buffer to FBO
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER_EXT, db);
+  }
+  else
   {
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, exportWidth, exportHeight);
     // Attach depth buffer to FBO
@@ -228,24 +233,21 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;
     OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
-    printf("w=%d %d\n", w, _view.w);
-    printf("h=%d %d\n", h, _view.h);
-    printf("bpv=%d\n", bpv);
+    //printf("bpv=%d\n", bpv);
+    //printf("size %d %d\n", s, screenSize);
     float* depth = (float*)malloc(screenSize * sizeof(float));
     assert(w == _view.w);
     assert(h == _view.h);
-    
     if (bpv == 2)
     {
-      short* d = (short*)depthl;
-      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)d[i]; }
+      unsigned short* d = (unsigned short*)depthl;
+      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)(d[i])/65535.; }
     }
     else if (bpv == 4)
     {
-      int* d = (int*)depthl;
-      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)d[i]; }
-    }
-    
+      unsigned int* d = (unsigned int*)depthl;
+      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)(d[i])/4294967295.; }
+    }    
     double zNear = _view.nearD; 
     double zFar  = _view.farD;
     for (int i = 0; i < screenSize; i++)
@@ -258,46 +260,56 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     
     // Reduce buffer
     char* buf = ptrState->offscreenBuffer[ptrState->frameBuffer];
-    for (E_Int i = 0; i < screenSize; i++)
-    {
-      buffer[3*i] = buf[4*i]; buffer[3*i+1] = buf[4*i+1]; buffer[3*i+2] = buf[4*i+2]; 
-    }
+    
     if (rank > 0)
     {
       MPI_Send(buf, screenSize*4, MPI_BYTE, 0, 0, MPI_COMM_WORLD);
       MPI_Send(depth, screenSize, MPI_FLOAT, 0, 1, MPI_COMM_WORLD);
     }
-   
+    else
+    {
+      printf("init from rank0\n");
+      for (E_Int i = 0; i < screenSize; i++)
+      {
+	  buffer[3*i] = buf[4*i]; buffer[3*i+1] = buf[4*i+1]; buffer[3*i+2] = buf[4*i+2]; 
+      }
+    }
     if (rank == 0)
     {
       MPI_Status mstatus;
-      char* localBuf = (char*)malloc(screenSize * sizeof(GLubyte));
+      char* localBuf = (char*)malloc(4*screenSize * sizeof(GLubyte));
       float* localDepth = (float*)malloc(screenSize * sizeof(float));
       for (E_Int source = 1; source < size; source++)
       {
+	printf("composing with %d\n", source);
        MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 0, 
               MPI_COMM_WORLD, &mstatus);
        MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 1, 
              MPI_COMM_WORLD, &mstatus);
       
-      // compose in buf
+       // compose in buf
       for (E_Int i = 0; i < screenSize; i++)
       {
-        if (localDepth[i] > depth[i])
+        if (localDepth[i] < depth[i])
         {
-          for (E_Int c = 0; c < 3; c++) buffer[3*i+c] = localBuf[4*i+c];
+          buffer[3*i  ] = localBuf[4*i  ];
+	  buffer[3*i+1] = localBuf[4*i+1];
+	  buffer[3*i+2] = localBuf[4*i+2];
+	  depth[i] = localDepth[i];
         }
       }
     }
+      free(localBuf); free(localDepth);
   }
   free(depth);
+
 #else
   printf("Error: CPlot: mesa offscreen or MPI unavailable.\n");
 #endif
   }
   else if (ptrState->offscreen == 5 || ptrState->offscreen == 6) // MESA RGB+DEPTH+COMPOSE)
   {
-#ifdef __OSMESA__
+#ifdef __MESA__
     E_Int screenSize = _view.w * _view.h; 
     // Get the depth buffer partiel -> depth
     void* depthl;
@@ -308,23 +320,24 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     printf("bpv=%d\n", bpv);
     if (bpv == 2)
     {
-      short* d = (short*)depthl;
-      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)d[i]; }
+      unsigned short* d = (unsigned short*)depthl;
+      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)(d[i])/65535.; }
     }
     else if (bpv == 4)
     {
-      int* d = (int*)depthl;
-      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)d[i]; }
+      unsigned int* d = (unsigned int*)depthl;
+      for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)(d[i])/4294967295.; }
     }
-    float* ptd = depth;
+    
     double zNear = _view.nearD; 
     double zFar  = _view.farD;
     for (int i = 0; i < screenSize; i++)
     {
       double z_n = 2.*double(depth[i])-1.0;
       double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
-      ptd[i] = float(z_e);
+      depth[i] = float(z_e);
     }
+    //for (E_Int i = 0; i < screenSize; i++) printf("%g ", depth[i]);
     
     // Stockage de l'image complete en cours de construction (ici frameBuffer contient l'image partielle)
     char* bufferRGBA = ptrState->offscreenBuffer[ptrState->frameBuffer];
@@ -336,7 +349,6 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       { 
         b[3*i] = bufferRGBA[4*i]; b[3*i+1] = bufferRGBA[4*i+1]; b[3*i+2] = bufferRGBA[4*i+2];
       }
-      
       ptrState->offscreenDepthBuffer[ptrState->frameBuffer] = (float*)malloc(screenSize*sizeof(float));
       float* ptd = ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
       for (E_Int i = 0; i < screenSize; i++) ptd[i] = depth[i];
@@ -350,9 +362,9 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       for ( int j = 0; j < exportWidth; ++j ) {
         unsigned ind = i*exportWidth+j;
         if (depth[ind] < offscreenD[ind]) {
-          offscreen[3*ind  ] = buffer[3*ind  ];
-          offscreen[3*ind+1] = buffer[3*ind+1];
-          offscreen[3*ind+2] = buffer[3*ind+2];
+          offscreen[3*ind  ] = bufferRGBA[4*ind  ];
+          offscreen[3*ind+1] = bufferRGBA[4*ind+1];
+          offscreen[3*ind+2] = bufferRGBA[4*ind+2];
           offscreenD[ind]    = depth[ind];
           }
         }
@@ -478,8 +490,16 @@ void Data::dumpWindow()
     }
 
     // Dump the buffer to a file
-    if (ptrState->offscreen != 3 && ptrState->offscreen != 5)
-      _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);    
+    if (ptrState->offscreen != 3 && ptrState->offscreen != 5 &&
+	ptrState->offscreen != 7)
+      _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
+
+#ifdef _MPI
+    E_Int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (rank == 0 && ptrState->offscreen == 7)
+      _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
+#endif
+						  
     free(buffer);
   }
 }
