@@ -184,7 +184,7 @@ namespace K_GENERATOR
                            E_Int ni, E_Int nj, E_Int nk, E_Float eps);    
 /* close an unstructured mesh */
   void closeUnstructuredMesh(E_Int posx, E_Int posy,E_Int posz,E_Float eps,
-                             char* eltType, FldArrayF& f, FldArrayI& cn);
+                             char* eltType, FldArrayF& f, FldArrayI& cn, E_Int removeDegen=0);
 /* close a BAR mesh */
   void closeBARMesh(E_Int posx, E_Int posy, E_Int posz, 
                     FldArrayF& f, FldArrayI& cn);

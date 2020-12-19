@@ -34,8 +34,9 @@ PyObject* K_GENERATOR::closeAllMeshes(PyObject* self, PyObject* args)
 {
   PyObject* arrays;
   E_Float eps;
+  E_Int removeDegen{0};
   
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arrays, &eps))   
+  if (!PYPARSETUPLE(args, "Odl", "Odi", "Ofl", "Ofi", &arrays, &eps, &removeDegen))   
     return NULL;
 
   // Extract infos from arrays
@@ -103,7 +104,7 @@ PyObject* K_GENERATOR::closeAllMeshes(PyObject* self, PyObject* args)
   {
     FldArrayF& f0 = *unstrF[v]; 
     closeUnstructuredMesh(posxu[v], posyu[v], poszu[v], 
-                          eps, eltType[v], f0, *cnt[v]);
+                          eps, eltType[v], f0, *cnt[v], removeDegen);
   }
 
   PyObject* l = PyList_New(0);
@@ -137,8 +138,9 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float eps;
+  E_Int removeDegen{0};
   
-  if (!PYPARSETUPLEF(args, "Od", "Of", &array, &eps)) return NULL;
+  if (!PYPARSETUPLE(args, "Odl", "Odi", "Ofl", "Ofi", &array, &eps, &removeDegen)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -194,7 +196,7 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
      }
      posx++; posy++; posz++;
      
-     closeUnstructuredMesh(posx, posy, posz, eps, eltType, *f, *cn);
+     closeUnstructuredMesh(posx, posy, posz, eps, eltType, *f, *cn, removeDegen);
      PyObject* tpl = 
        K_ARRAY::buildArray(*f, varString, *cn, -1, eltType, false);
      delete f; delete cn;
@@ -213,13 +215,13 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
 //=============================================================================
 void K_GENERATOR::closeUnstructuredMesh(E_Int posx, E_Int posy, E_Int posz,
                                         E_Float eps, char* eltType,
-                                        FldArrayF& f, FldArrayI& cn)
+                                        FldArrayF& f, FldArrayI& cn, E_Int removeDegen)
 {
   //E_Int nv = cn.getNfld();
   //if (nv == 2)
   //  closeBARMesh(posx, posy, posz, f, cn);
   
-  K_CONNECT::cleanConnectivity(posx, posy, posz, eps, eltType, f, cn);
+  K_CONNECT::cleanConnectivity(posx, posy, posz, eps, eltType, f, cn, removeDegen);
 }
 
 //=============================================================================

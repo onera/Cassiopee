@@ -35,10 +35,10 @@ using namespace std;
 //=============================================================================
 void K_CONNECT::cleanConnectivity(E_Int posx, E_Int posy, E_Int posz, 
                                   E_Float eps,  const char* eltType, 
-                                  FldArrayF& f, FldArrayI& cn)
+                                  FldArrayF& f, FldArrayI& cn, bool remove_degen)
 {
   if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0) 
-    cleanConnectivityNGon(posx, posy, posz, eps, f, cn);
+    cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen);
   else
     cleanConnectivityBasic(posx, posy, posz, eps, eltType, f, cn);
 }
@@ -51,11 +51,11 @@ void K_CONNECT::cleanConnectivity(E_Int posx, E_Int posy, E_Int posz,
 //=============================================================================
 void K_CONNECT::cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz, 
                                   E_Float eps,  const char* eltType, 
-                                  FldArrayF& f, FldArrayI& cn)
+                                  FldArrayF& f, FldArrayI& cn, bool remove_degen)
 {
   if (K_STRING::cmp(eltType, "NGON") == 0 || 
       K_STRING::cmp(eltType, "NGON*") == 0) 
-    cleanConnectivityNGon(posx, posy, posz, eps, f, cn);
+    cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen);
   else
     cleanConnectivityBasic_opt(posx, posy, posz, eps, eltType, f, cn);
 }
@@ -520,11 +520,13 @@ void K_CONNECT::createConnectEV_opt(FldArrayI& cn, vector<E_Int> newId,
    (ex une face quad degeneree passe en tri)
    3. elimination des faces doubles et maj dans cEF
    4. elimination des faces non utilisees dans les elements
-   [5. supp des elemts doubles]
+   [5. supp des elemts doubles] : INACTIF
+   [6. elimination, des elemts degeneres]
+
 */
 //=============================================================================
 void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz, 
-                                      E_Float eps, FldArrayF& f, FldArrayI& cn)
+                                      E_Float eps, FldArrayF& f, FldArrayI& cn, bool remove_degen)
 {
   ArrayAccessor<FldArrayF> fcA(f, posx, posy, posz);
   typedef ngon_t<K_FLD::FldArrayI> ngon_type;
@@ -566,13 +568,30 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   // remove duplicated references to PGs within each elements
   NG.PHs.remove_duplicated();
 
+  NG.PHs.updateFacets();
+
   // 4- Elimination des elts degeneres
   Vector_t<E_Int> toremove;
-  E_Int min_nb_facets = ngon_dim + 1;
-  NG.PHs.get_degenerated(min_nb_facets, toremove);
+  if (remove_degen)
+  {
+    //std::cout << "REMOVE DEGN ENABLED" << std::endl;
+    E_Int min_nb_facets = ngon_dim + 1;
+    NG.PHs.get_degenerated(min_nb_facets, toremove);
+  }
 
-  // 5- Elimination des elts doubles
-  //
+  // 5- Elimination des elts doubles : do not care of multiple occ in toremove as remove_entities handles it.
+  /*if (remove_dups)
+  {
+    std::vector<E_Int> duphnids;
+    NG.detect_phs_with_same_centroid(f, duphnids);
+    for (size_t k = 0; k < duphnids.size(); ++k)
+    {
+      if (duphnids[k] != (E_Int)k)
+        toremove.push_back(k);
+    }
+  }*/
+
+  NG.PHs.remove_entities(toremove, phnids);
   
   // 6- Suppression des faces non referencees
   NG.remove_unreferenced_pgs(pgids, phnids);

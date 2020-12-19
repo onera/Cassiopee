@@ -38,13 +38,15 @@ namespace K_CONNECT
   /* Nettoyage de la connectivite de maillage non-structures */
   void cleanConnectivity(E_Int posx, E_Int posy, E_Int posz, 
                          E_Float eps, const char* eltType, 
-                         K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+                         K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
+                         bool remove_degen = false);
 
   /* Nettoyage de la connectivite de maillage non-structures 
      (openmp coarse grain) */
   void cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz, 
                              E_Float eps, const char* eltType, 
-                             K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+                             K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
+                             bool remove_degen = false);
 
   /*-------------*/
   /*- Structure -*/
@@ -382,10 +384,12 @@ namespace K_CONNECT
      IN: posx, posy, posz: position des coord. dans f
      IN: eps: tolerance pour eliminer les doublons
      IN: f, cNG: array NGON.
+     IN : remove_degen : suppression des elts degeneres compte tenu de la dimension du NGON
   */
   void cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz, 
                              E_Float eps, K_FLD::FldArrayF& f, 
-                             K_FLD::FldArrayI& cNG);
+                             K_FLD::FldArrayI& cNG,
+                             bool remove_degen = false);
 
   /* Nettoyage des faces non referencees dans la connectivity NGon */
   void cleanUnreferencedFacesNGon(K_FLD::FldArrayI& cn);

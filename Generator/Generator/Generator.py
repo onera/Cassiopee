@@ -735,13 +735,13 @@ def hyper2D4(array, arrayd, type):
     Usage: hyper2D4(array, arrayd, type)"""
     return generator.hyper2D4(array, arrayd, type)
 
-def close(array, tol=1.e-12):
+def close(array, tol=1.e-12, removedegen=False):
     """Close a mesh defined by an array gathering points closer than tol.
     Usage: close(array, tol)"""
     if isinstance(array[0], list):
-        return generator.closeAll(array, tol)
+        return generator.closeAll(array, tol, removedegen)
     else:
-        return generator.close(array, tol)
+        return generator.close(array, tol, removedegen)
 
 def pointedHat(array, coord):
     """Create a structured surface defined by a contour and a point (x,y,z).

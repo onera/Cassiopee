@@ -743,18 +743,18 @@ def addPointInDistribution(a, ind):
     a = C.deleteAllBCAndSolutions__(a)
     return C.TZGC(a, 'nodes', Generator.addPointInDistribution, ind)
 
-def close(a, tol=1.e-12):
+def close(a, tol=1.e-12, suppressDegeneratedNGons=False):
     """Close a mesh defined by an array gathering points nearer than tol.
     Usage: close(array, tol)"""
     t = Internal.copyRef(a)
     fields = C.getAllFields(t, 'nodes')
-    fields = Generator.close(fields, tol)
+    fields = Generator.close(fields, tol, suppressDegeneratedNGons)
     C.setFields(fields, t, 'nodes')
     return t
 
-def _close(t, tol=1.e-12):
+def _close(t, tol=1.e-12, suppressDegeneratedNGons=False):
     fields = C.getAllFields(t, 'nodes')
-    fields = Generator.close(fields, tol)
+    fields = Generator.close(fields, tol, suppressDegeneratedNGons)
     C.setFields(fields, t, 'nodes')
     return None
 
