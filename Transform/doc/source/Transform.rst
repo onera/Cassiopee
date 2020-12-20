@@ -769,7 +769,7 @@ Mesh splitting and merging
 
 ---------------------------------------
 
-.. py:function:: Transform.join(a, b=None)
+.. py:function:: Transform.join(a, b=None, tol=1.e-10)
 
     .. A1.O0.D0
     
@@ -778,6 +778,8 @@ Mesh splitting and merging
 
     :param a: input data
     :type  a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param tol: tolerance for abutting grids 
+    :type tol: float
     :return: unique joined zone
     :rtype: array or zone
 

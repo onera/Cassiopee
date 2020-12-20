@@ -28,7 +28,7 @@ using namespace K_FLD;
   RELEASESHAREDZ(hook, varStringD, eltTypeD);\
 
 //=============================================================================
-/* Recherche les donnees d interpolation et calcule les formules d interpolation
+/* Recherche les donnees d'interpolation et calcule les formules d interpolation
    directement pour une liste de points a partir d'une zone donnee 
    Similaire a un extractMesh
    PENALISATION DU VOLUME DONNEUR : 
@@ -39,7 +39,7 @@ using namespace K_FLD;
 //=============================================================================
 PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
 {
-  E_Float penaltyExtrap = 1.e6;
+  //E_Float penaltyExtrap = 1.e6;
   E_Float penaltyOrphan = 1.e12;
 
   E_Int locDnr = 0;//localisation des champs dans la zone donneuse - en noeuds
@@ -53,7 +53,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Int nature;// O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
   E_Int penalty;//1 : penalite sur le volume des pts ou cellules frontieres
   E_Float constraint;
-  E_Int extrapOrder = 1;
+  //E_Int extrapOrder = 1;
   E_Int InterpDataType;// 0 : cart, 1 par ADT
   if (!PYPARSETUPLE(args, "OOOOllldOOlsss", "OOOOiiidOOisss","OOOOlllfOOlsss","OOOOiiifOOisss",
                     &zoneD, &interpPtsCoordX, &interpPtsCoordY, &interpPtsCoordZ,

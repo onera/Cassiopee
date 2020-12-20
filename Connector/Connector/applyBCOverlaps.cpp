@@ -83,7 +83,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
       RELEASESHAREDS(array, f); return NULL;
     }
   }
-  E_Int npts = f->getSize(); //E_Int nfld = f->getNfld();
+  //E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
   
   if (imin == imax)
   {

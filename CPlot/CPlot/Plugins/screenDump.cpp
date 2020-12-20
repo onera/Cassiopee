@@ -490,9 +490,12 @@ void Data::dumpWindow()
       _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
 
 #ifdef _MPI
-    E_Int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (rank == 0 && ptrState->offscreen == 7)
-      _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
+    if (ptrState->offscreen == 7)
+    {
+      E_Int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      if (rank == 0) 
+        _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
+    }
 #endif
 						  
     free(buffer);

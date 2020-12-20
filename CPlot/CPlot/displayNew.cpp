@@ -201,7 +201,6 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
       d->ptrState->offscreen == 6 ||
       d->ptrState->offscreen == 7) // MESA offscreen
   {
-    INITTHREADS;
     // Dans ce cas, on ne fait pas de glutInit, car il requiert
     // un serveur X
 #ifdef __MESA__
@@ -235,7 +234,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
 #else
     printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif
-  }// MESA offscreen
+  }
   else
   { // direct ou offscreen FBO
     d->ptrState->farClip = 1;

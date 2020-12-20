@@ -176,7 +176,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
         // search for the max length of the triangles containing indR 
         vector<E_Int>& eltsVoisins = cveR[indR];
         E_Float projTol2 = 0.;
-        for (E_Int noetv = 0; noetv < eltsVoisins.size(); noetv++)
+        for (size_t noetv = 0; noetv < eltsVoisins.size(); noetv++)
         {
           E_Int etv = eltsVoisins[noetv];
           E_Int ind1 = cn1[etv]-1; E_Int ind2 = cn2[etv]-1; E_Int ind3 = cn3[etv]-1;
@@ -341,7 +341,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
         vectOfDnrIndices.push_back(noind);
       }
 
-      for (size_t nozDnr = 0; nozDnr < nzonesD; nozDnr++)
+      for (E_Int nozDnr = 0; nozDnr < nzonesD; nozDnr++)
       {
         vector<E_Int>& vectOfDnrIndices = vectOfIndDPerDnrZone[nozDnr];
 

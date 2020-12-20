@@ -121,6 +121,8 @@ Actions
     
     Display entity.
     Display function has a lot of optional options that can be specified as arguments.
+    In offscreen mode, you can render with openGL if you have a GPU or with osmesa
+    if you only have a CPU.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -198,7 +200,7 @@ Actions
     :type renderTags: list of strings
     :param frameBuffer: the number of the frame buffer we are rendering to for offscreen rendering
     :type frameBuffer: int
-    :param offscreen: 1: offscreen rendering (mesa), 2: offscreen rendering (openGL), 3: partial composite offscreen rendering, 4: final composite offscreen rendering (default: 0)
+    :param offscreen: 0:  rendering, 1: offscreen rendering (osmesa), 2: offscreen rendering (openGL), 3: partial composite offscreen rendering (openGL), 4: final composite offscreen rendering (openGL), 5: partial composite offscreen rendering (osmesa), 6: final composite offscreen rendering (osmesa), 7: parallel offscreen rendering (osmesa) (default: 0)
     :type offscreen: int
 
     *Example of use:*
@@ -210,6 +212,14 @@ Actions
     * `Display (pyTree) <Examples/CPlot/displayPT.py>`_:
 
     .. literalinclude:: ../build/Examples/CPlot/displayPT.py
+    
+    * `Display offscren with openGL (pyTree) <Examples/CPlot/displayOffScreenPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/displayOffScreenPT.py
+    
+    * `Display offscren with osmesa (pyTree) <Examples/CPlot/displayOffScreen2PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/displayOffScreen2PT.py
 
 ------------------------------------------
 
@@ -901,6 +911,7 @@ Shader settings
     - Cloud: [1] Size; [2] None
     - Gooch : [1] width; [2] shinyness
     - Sphere: [1] size of sphere; [2] type of billboard
+    - TexMat: [1] SpecularFactor; [2] texture number
 
 .. toctree::
    :maxdepth: 2

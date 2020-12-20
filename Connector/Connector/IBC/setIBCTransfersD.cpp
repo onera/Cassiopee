@@ -340,7 +340,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int varType = E_Int(vartype); // 1:conservatives, 2:(ro,u,v,w,t), 3:(ro,u,v,w,p)
 
   vector<PyArrayObject*> hook;
-  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, ndimdxD, meshtype;
+  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype, ndimdxD=1;
   E_Float* iptroD=NULL; 
 
 # include "extract_interpD.h"

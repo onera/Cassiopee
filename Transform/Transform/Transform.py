@@ -791,7 +791,7 @@ def joins__(array1, array2, tol):
         if array1[3] == "NGON" and array2[3] != "NGON":
             a = Converter.convertArray2NGon(array2)
             return transform.join(array1, a, tol)
-        elif (array1[3] != "NGON" and array2[3] == "NGON"):
+        elif array1[3] != "NGON" and array2[3] == "NGON":
             a = Converter.convertArray2NGon(array1)
             return transform.join(a, array2, tol)
         else: return transform.join(array1, array2, tol)
