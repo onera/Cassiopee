@@ -533,7 +533,8 @@ def convertExt2Format__(fileName):
 
 def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., zoneNames=None, BCFaces=None, 
-                       deflection=1., centerArrays=None):
+                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0, 
+                       centerArrays=None):
     """Read file and return arrays containing file data.
     Usage: a = convertFile2Arrays(fileName, options)"""
     try: import locale; locale.setlocale(locale.LC_NUMERIC, 'C') # force .
@@ -562,8 +563,9 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         try: import OCC
         except: raise ImportError("convertFile2Arrays: CAD readers requires OCC module.")
         
-        a = OCC.convertCAD2Arrays(fileName, format=format, h=0., chordal_err=deflection, 
-                                  growth_ratio=0., merge_tol=-1, algo=0)
+        a = OCC.convertCAD2Arrays(fileName, format=format, h=hmax, 
+                                  chordal_err=hausd, growth_ratio=grow, 
+                                  merge_tol=mergeTol, algo=occAlgo)
         if zoneNames is not None: 
             for c in range(len(a)): zoneNames.append('zone%d'%c)
         return a

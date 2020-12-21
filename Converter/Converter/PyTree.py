@@ -982,7 +982,8 @@ def hackCenters(a):
 # -- convertFile2PyTree
 def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., skeletonData=None, dataShape=None, 
-                       links=None, skipTypes=None, uncompress=True, deflection=1.):
+                       links=None, skipTypes=None, uncompress=True, 
+                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0):
   """Read a file and return a pyTree containing file data.
   Usage: convertFile2PyTree(fileName, format, options)"""
   if format is None:
@@ -1060,7 +1061,9 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     centerArrays = []
     a = Converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine,
                                      density, zoneNames=zn, BCFaces=bcfaces,
-                                     deflection=deflection, centerArrays=centerArrays)
+                                     hmax=hmax, hausd=hausd, grow=grow, 
+                                     mergeTol=mergeTol, occAlgo=occAlgo, 
+                                     centerArrays=centerArrays)
 
   t = newPyTree([])
   base1 = False; base2 = False; base3 = False; base = 1; c = 0
