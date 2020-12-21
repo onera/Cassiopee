@@ -95,8 +95,8 @@ void* __createHM<NUGA::ISO>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
 {
   if (typ == elt_t::UNKN)
   {
-    PyErr_SetString(PyExc_ValueError,
-      "createHMesh: input mesh to adapt must have basic elements and must be in NGON format.");
+    PyErr_WarnEx(PyExc_Warning,
+      "createHMesh: input mesh to adapt must have basic elements and must be in NGON format : no adaptation for this mesh.", 1);
     return nullptr;
   }
   else if (typ == elt_t::HEXA)
@@ -317,7 +317,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
   else if (*subtype == 1) //ISO_HEX
     packet[1] = __createHM<NUGA::ISO_HEX>(*etyp, crd, cnt, bcptlists, zid, joinlists, com);
 
-  if (packet[1] == nullptr) return nullptr;
+  if (packet[1] == nullptr) return Py_None;// the input mesh does not have basic elts
 
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);

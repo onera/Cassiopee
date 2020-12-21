@@ -1388,10 +1388,14 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
 
     owesHmesh=0
     com = None
+    if hmesh == [None]: # no basic elts in t
+      return 
     if hmesh is None :
-      #print("create hm")
+      #print("create hm : ", NBZ)
       if NBZ == 1:
-      	hmesh = createHMesh(t, subdiv_type)
+        hmesh = createHMesh(t, subdiv_type)
+        if hmesh == [None] : # no basic elts in t (assumed because hmesh creation as done [None]
+          return
       else :
       	(hmesh, com) = createHZones(t, subdiv_type)
       owesHmesh=1
@@ -1484,16 +1488,21 @@ def createHZones(t, subdiv_type= 0):
 
 def deleteHMesh(hooks):
     for h in hooks:
+      if h == None : continue
       intersector.deleteHMesh(h)
 
 def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1):
     sensors = []
     for hmesh in hmeshs:
-      sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax))
+      if hmesh == None : 
+        sensors.append(None)
+      else :
+        sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax))
     return sensors
 
 def deleteSensor(hooks):
     for h in hooks:
+      if h == None : continue
       intersector.deleteSensor(h)
 
 def assignData2Sensor(hooks, sensdata):
@@ -1568,6 +1577,7 @@ def _conformizeHMesh(t, hooks):
     for z in zones:
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         if m == []: continue
+        if hooks[i] == None : continue
 
         fields = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
         if fields == [] : fields = None

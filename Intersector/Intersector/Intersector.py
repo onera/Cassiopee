@@ -361,6 +361,7 @@ def adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1
     owesHMesh=0
     if hmesh is None:
         hmesh = createHMesh(a, subdiv_type)
+        if hmesh == None : return [a] # no basic elt in a
         owesHMesh=1
     sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax)
     assignData2Sensor(sensor, sensdata)
