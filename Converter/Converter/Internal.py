@@ -2183,23 +2183,21 @@ def rmNodesByValue__(t, value):
 
 _rmNodesFromValue = _rmNodesByValue # alias
 
-import Converter.Internal as Internal
-
 def _moveNodeFromPaths(t, path1, path2):
     """Move a node from path1 to path2."""
     # path1 : path of node to move (must exist)
     # path2 : destination path (must exist)
-    p1 = Internal.getPathAncestor(path1)
-    n1 = Internal.getPathLeaf(path1)
-    parent = Internal.getNodeFromPath(t, p1)
+    p1 = getPathAncestor(path1)
+    n1 = getPathLeaf(path1)
+    parent = getNodeFromPath(t, p1)
     if parent is None: 
         raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path1)
         return None
-    child = Internal.getChildFromName(parent, n1)
+    child = getChildFromName(parent, n1)
     if child is None: 
         raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path1)
         return None
-    dest = Internal.getNodeFromPath(t, path2)
+    dest = getNodeFromPath(t, path2)
     if dest is None: 
         raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path2)
         return None
@@ -2207,7 +2205,7 @@ def _moveNodeFromPaths(t, path1, path2):
     parent[2].remove(child)
     return None
 
-def rmNodesFromPaths(t, path1, path2):
+def moveNodeFromPaths(t, path1, path2):
     """Move a node from path1 to path2."""
     tp = copyRef(t)
     _moveNodeFromPaths(tp, path1, path2)
