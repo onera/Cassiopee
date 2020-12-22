@@ -338,7 +338,6 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
     if (id==41 || id==101)
       MIO::write("Ei.mesh", coords, connectEs[id], "BAR");
 #endif
-      
     }
   }
     
@@ -429,7 +428,7 @@ E_Int K_OCC::CADviaOCC::build_loops
 
 #ifdef DEBUG_CAD_READER
     if (faulty_id==i)
-      MIO::write("connectBi.mesh", coords , connectBs[i], "BAR");
+      MIO::write("connectBi.mesh", coords, connectBs[i], "BAR");
 #endif
     
     // clean it

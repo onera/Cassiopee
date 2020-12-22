@@ -220,18 +220,39 @@ def convertFile2PyTree(fileName, format=None, proc=None):
         _readZones(t, fileName, rank=proc)
         _convert2PartialTree(t, rank=proc)
     return t
+
+# parallel merge on proc0 without zones
+def _merge__(t):
+    tp = Internal.copyRef(t)
+    if rank > 0:
+        out = []
+        for i in t[2]:
+            if i[3] != 'Zone_t': out.append(i)
+        tp[2] = out
+        KCOMM.send(tp, dest=0)
+    if rank == 0:
+        for i in range(1, size):
+            ret = KCOMM.recv(source=i)
+            if ret is not None:
+                tp = Internal.merge([tp, ret])
+    return tp
     
 #==============================================================================
 # Ecriture sequentielle
 # Avec recuperation de toutes les zones
 # si ignoreProcNodes=True, toutes les zones non squelette sont ecrites,
 # sinon ecrit seulement les zones procNode correspondant a rank
+# si merge=True, effectue un merge prealable des arbres de tous les procs 
+# sans zones
 #==============================================================================
-def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False):
+def convertPyTree2File(t, fileName, format=None, links=[], 
+    ignoreProcNodes=False, merge=False):
     """Write a skeleton or partial tree."""
     tp = convert2PartialTree(t)
     tp = C.deleteEmptyZones(tp)
     Internal._adaptZoneNamesForSlash(tp)
+    if merge: tp = _merge__(tp)
+        
     nzones = len(Internal.getZones(tp))
     if rank == 0:
         if nzones > 0:

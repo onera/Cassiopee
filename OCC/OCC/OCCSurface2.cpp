@@ -900,8 +900,6 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
     if (stepB < 0.9*step1) { v = vn; }
   }
   
-  
-  
   return 0;
   
   
