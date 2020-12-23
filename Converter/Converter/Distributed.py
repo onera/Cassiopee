@@ -599,7 +599,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         nssiter = 4*maxlevel
         
         list_graph_=[]
-        for ssiter in range(1,2*nssiter+1):
+        for ssiter in range(3,4):#range(1,2*nssiter+1):
             graph_={}
             for z in zones:
                 proc = getProcLocal__(z, procDict)
@@ -616,24 +616,26 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     levrcv  = int(levrcv_[0][1][0])
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                     cycl = nssiter//levdnr
+                    
                     if levdnr > levrcv and ssiter <= nssiter:
-                        if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter/cycl)%2==1: 
+                        if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter//cycl)%2==1: 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])     
                     if levdnr < levrcv and ssiter <= nssiter:
-                        if (ssiter%cycl==1 or ssiter%cycl==cycl//4 or ssiter%cycl==cycl//2-1 or ssiter%cycl==cycl//2+1 or ssiter%cycl==cycl//2+cycl//4 or ssiter%cycl==cycl-1): 
+                        if (ssiter%cycl==1 or ssiter%cycl==cycl//4 or ssiter%cycl==cycl//2-1 or ssiter%cycl==cycl//2+1 or ssiter%cycl==cycl//2+cycl//4 or ssiter%cycl==cycl-1):                        
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])          
                     if levdnr == levrcv and ssiter <= nssiter:
-                        if (ssiter%cycl==cycl/2-1 or (ssiter%cycl==cycl/2 and (ssiter/cycl)%2==0) or ssiter%cycl==cycl-1): 
+                        if (ssiter%cycl==cycl//2-1 or (ssiter%cycl==cycl//2 and (ssiter//cycl)%2==0) or ssiter%cycl==cycl-1):
+                            #print(donor, ssiter) 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
                     if levdnr == levrcv and ssiter > nssiter:
                         ssiter_ = ssiter - nssiter
-                        if ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
+                        if ssiter_%cycl==cycl//2 and (ssiter_//cycl)%2==1:
                         #if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
@@ -690,7 +692,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                     cycl = nssiter//levdnr
                     if levdnr > levrcv and ssiter <= nssiter:
-                        if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter/cycl)%2==1: 
+                        if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter//cycl)%2==1: 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])     
@@ -700,14 +702,14 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])          
                     if levdnr == levrcv and ssiter <= nssiter:
-                        if (ssiter%cycl==cycl/2-1 or (ssiter%cycl==cycl/2 and (ssiter/cycl)%2==0) or ssiter%cycl==cycl-1): 
+                        if (ssiter%cycl==cycl//2-1 or (ssiter%cycl==cycl//2 and (ssiter//cycl)%2==0) or ssiter%cycl==cycl-1): 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
                     if levdnr == levrcv and ssiter > nssiter:
                         #if (ssiter%8==6): 
                         ssiter_ = ssiter - nssiter
-                        if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
+                        if ssiter_%2==0 and ssiter_%cycl==cycl//2 and (ssiter_//cycl)%2==1:
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
