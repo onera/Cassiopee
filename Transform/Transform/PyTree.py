@@ -235,7 +235,7 @@ def join(t, t2=0, tol=1.e-10):
         z = C.convertArrays2ZoneNode('join', [res[0]])
         z = C.setFields([res[1]], z, 'centers')
     if Internal.getZoneType(z) == 1: # structured
-        z = C.identifyBC(z, allBCInfos)
+        z = C.identifyBC(z, allBCInfos, tol)
     return z
 
 def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
@@ -257,7 +257,7 @@ def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
             z = C.convertArrays2ZoneNode('zone',[res[0][noi]])
             z = C.setFields([res[1][noi]], z, 'centers')
             zones += [z]
-    zones = C.identifyBC(zones, allBCInfos)
+    zones = C.identifyBC(zones, allBCInfos, tol)
     return zones
 
 def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
@@ -268,7 +268,7 @@ def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
     A = Transform.mergeCart(A, sizeMax, tol)
     for noz in range(len(A)):
         A[noz] = C.convertArrays2ZoneNode('Cart',[A[noz]])
-    A = C.identifyBC(A, allBCInfos)
+    A = C.identifyBC(A, allBCInfos, tol)
     return A
 
 def patch(t1, t2, position=None, nodes=None):

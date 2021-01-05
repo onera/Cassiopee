@@ -54,7 +54,7 @@ E_Int cell_sensor<mesh_t>::assign_data(const sensor_input_t& data)
 
   // now tranfer input data sized as enabled cells
 
-  E_Int pos{0};
+  size_t pos{0};
   for (E_Int i = 0; i < nphs; ++i)
   {
     if (pos >= data.size()) break; //input was too small (shoudl not happen)

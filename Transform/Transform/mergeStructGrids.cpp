@@ -426,7 +426,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
                              pos1, pos2, posc1, posc2,
                              *mergedField, nio, njo, nko, 
                              *mergedFieldc, nioc, njoc, nkoc, tol); 
-    if (res!=0)
+    if (res != 0)
     {
       if (dircons == 1 && gradeMin == -10000) 
       {

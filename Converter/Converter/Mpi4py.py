@@ -243,10 +243,10 @@ def _merge__(t):
 # si ignoreProcNodes=True, toutes les zones non squelette sont ecrites,
 # sinon ecrit seulement les zones procNode correspondant a rank
 # si merge=True, effectue un merge prealable des arbres de tous les procs 
-# sans zones
+# sans zones (pour recuperer toutes les bases et les data des bases)
 #==============================================================================
 def convertPyTree2File(t, fileName, format=None, links=[], 
-    ignoreProcNodes=False, merge=False):
+    ignoreProcNodes=False, merge=True):
     """Write a skeleton or partial tree."""
     tp = convert2PartialTree(t)
     tp = C.deleteEmptyZones(tp)

@@ -41,7 +41,7 @@
 #include "Geom_TrimmedCurve.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
 
-# include "Nuga/include/ArrayAccessor.h"
+#include "Nuga/include/ArrayAccessor.h"
 #include "Nuga/include/merge.h"
 #include "Nuga/include/SurfaceMesher.h"
 
@@ -50,7 +50,7 @@
 
 #include "Nuga/include/ContourSplitter.h"
 #include "Nuga/include/BARSplitter.h"
-# include "Nuga/include/BbTree.h"
+#include "Nuga/include/BbTree.h"
 #include "Nuga/include/FittingBox.h"
 #include "Nuga/include/MeshUtils1D.h"
 #include <Precision.hxx>
@@ -895,7 +895,7 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
   E_Int nb_surfs, nb_solids(0);
   TopTools_IndexedMapOfShape toto;
   // Traverse the solids and stamp the faces as belonging to the current solid
-  // And store ORIENTED edges ids. //fixme : orinetation doesn't seem to work..
+  // And store ORIENTED edges ids. //fixme : orientation doesn't seem to work..
   for (top_expl.Init(occ_shape, TopAbs_SOLID); top_expl.More(); top_expl.Next(), ++nb_solids)
   {
     sol_surfs.Clear();
@@ -912,7 +912,7 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
     {
       E_Int idx = (E_Int)_surfs.FindIndex(sol_surfs(i));
       const TopoDS_Face& F=TopoDS::Face(sol_surfs(i));
-                  
+
       vFG[idx] = new OCCSurface(F, _edges, nb_solids);
   
 #ifdef DEBUG_CAD_READER

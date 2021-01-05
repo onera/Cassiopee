@@ -63,7 +63,7 @@ void Data::exportFile()
 //=============================================================================
 char* Data::export2Image(int exportWidth, int exportHeight) 
 {
-  //printf("mode = %d\n", ptrState->offscreen);
+  printf("mode = %d\n", ptrState->offscreen);
 
   // resolution
   GLuint fb, rb, db;
@@ -148,7 +148,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       buffer[3*i+2] = buffRGBA[4*i+2];
     }
   }
-  else if (ptrState->offscreen == 2) // FBO RGB
+  else if (ptrState->offscreen == 2 || ptrState->offscreen == 0) // FBO RGB
   {
     if (ptrState->offscreenBuffer[ptrState->frameBuffer] != NULL)
         memcpy(buffer, ptrState->offscreenBuffer[ptrState->frameBuffer], 3*s*sizeof(char));

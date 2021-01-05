@@ -2185,8 +2185,8 @@ _rmNodesFromValue = _rmNodesByValue # alias
 
 def _moveNodeFromPaths(t, path1, path2):
     """Move a node from path1 to path2."""
-    # path1 : path of node to move (must exist)
-    # path2 : destination path (must exist)
+    # path1: path of node to move (must exist)
+    # path2: destination path (must exist)
     p1 = getPathAncestor(path1)
     n1 = getPathLeaf(path1)
     parent = getNodeFromPath(t, p1)
@@ -4415,7 +4415,7 @@ def gatherInStructPatch2D__(listIndices, indirWin, niw, njw, dirf, niZ, njZ, nkZ
         for i in range(istart+1,niw):
             ind = i+jstart*niw
             indH = listIndices[ind]
-            if indH == -1 or indirWin[indH-1] != noBlk:break
+            if indH == -1 or indirWin[indH-1] != noBlk: break
             else: iend=i; jend=jstart; indend=ind
         for j in range(jstart+1,njw):
             ok = 1

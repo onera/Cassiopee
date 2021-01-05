@@ -750,8 +750,8 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
   E_Int fsz{0};
   for (size_t f=0; f < nbf; ++f)
   {
-    if (fsz==0)fsz = cfields[f].size();
-    else if (fsz != cfields[f].size())
+    if (fsz==0) fsz = cfields[f].size();
+    else if (fsz != (E_Int)cfields[f].size())
     {
       std::cout << "project_cell_center_sol_order1 : ERROR. input fields sizes are inconsistent between them." << std::endl;
       return 1;
@@ -787,7 +787,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
   // compute indir field to PH and reverse in current enabled vector
   std::vector<E_Int> nPHid, nfid(_ng.PHs.size(), IDX_NONE);
   c=0;
-  for (size_t i=0; i < _ng.PHs.size(); ++i)
+  for (E_Int i=0; i < _ng.PHs.size(); ++i)
   {
     if (_PHtree.is_enabled(i)) 
     {

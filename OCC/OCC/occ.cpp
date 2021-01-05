@@ -27,9 +27,10 @@ static PyMethodDef Pyocc [] =
   {"convertCAD2Arrays0", K_OCC::convertCAD2Arrays0, METH_VARARGS},
   {"convertCAD2Arrays1", K_OCC::convertCAD2Arrays1, METH_VARARGS},
   {"convertCAD2Arrays2", K_OCC::convertCAD2Arrays2, METH_VARARGS},
+  {"readCAD", K_OCC::readCAD, METH_VARARGS},
+  {"meshGlobalEdges", K_OCC::meshGlobalEdges, METH_VARARGS},
   {NULL, NULL}
 };
-
 
 #if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))

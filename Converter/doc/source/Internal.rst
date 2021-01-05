@@ -151,7 +151,7 @@ List of functions
     Converter.Internal.rmNodesByType
     Converter.Internal.rmNodesByNameAndType
     Converter.Internal.rmNodesByValue
-    Converter.Internal.FromPaths
+    Converter.Internal.moveNodeFromPaths
 
 **-- Modify nodes**
 
@@ -1577,27 +1577,27 @@ Add/remove node
 
 .. py:function:: Converter.Internal.moveNodeFromPaths(t, path1, path2) 
 
-    Move node designated by path2 to path2.
-    
+    Move node located at path1 in t to path2.
+
     Exists also as in place version (_moveNodeFromPaths) that modifies t and returns None.
 
     :param t: input node
-    :type  t: pyTree node or list of pyTree nodes
-    :param path1: node path that mus be moved (must exist)
+    :type  t: pyTree node
+    :param path1: initial path of node to move
     :type  path1: string
-    :param path2: destination path (must exist)
+    :param path2: destination path
     :type  path2: string
     :return: reference copy of t with node moved
     :rtype: same as t
 
+    .. note:: new in version 3.2.
+
     *Example of use:*
 
-    * `Move node from paths (pyTree) <Examples/Converter/moveNodeFromPathsPT.py>`_:
+    * `Move node from path1 to path2 (pyTree) <Examples/Converter/moveNodeFromPathsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/moveNodeFromPathsPT.py
 
-    .. Note: new in version 3.2.
-    
 
 Modify nodes
 -------------

@@ -26,6 +26,9 @@ namespace K_OCC
   PyObject* convertCAD2Arrays0(PyObject* self, PyObject* args); // with OCC internal
   PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher
   PyObject* convertCAD2Arrays2(PyObject* self, PyObject* args); // with T3Mesher
+  PyObject* readCAD(PyObject* self, PyObject* args);
+  PyObject* meshGlobalEdges(PyObject* self, PyObject* args);
+  PyObject* meshSurfaceEdges(PyObject* self, PyObject* args);
 }
 
 #endif

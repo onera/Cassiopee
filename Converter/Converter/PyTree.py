@@ -4127,7 +4127,6 @@ def _recoverBCs1(a, T, tol=1.e-11):
       size = 0
       for e in elts:
         erange = Internal.getNodeFromName1(e, 'ElementRange')[1]
-
         size += erange[1]-erange[0]+1
       n = len(elts)
       if n == 1:
@@ -4232,6 +4231,7 @@ def identifyBC(t, infos, tol=1.e-12):
   except: raise ImportError("identifyBC: requires Post.PyTree module.")
   allWins = []
   for info in infos: allWins.append(Converter.node2Center(info[3]))
+  
   # Creation d'un hook global a partir de toutes les fenetres
   indirWins = [] # permet d'identifier la fenetre a laquelle se rapporte un pt du hook
   globalHook, indirWins = Converter.createGlobalHook(allWins, 'nodes', indir=1)
