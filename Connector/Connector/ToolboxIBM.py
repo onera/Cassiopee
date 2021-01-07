@@ -81,7 +81,7 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
 def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False, 
                  check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns'):
-    
+    import Converter.Mpi as Cmpi
     if fileo is None: raise ValueError("adaptIBMMesh: Octree mesh must be specified by a file.")
     try: to = C.convertFile2PyTree(fileo)
     except: raise ValueError("adaptIBMMesh: %s file not found."%fileo)
@@ -118,7 +118,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     if len(res) == 3: to = res[0]
     o = Internal.getZones(to)[0]
     o = G.adaptOctree(o, balancing=2)
-    if mpisize==1: C.convertPyTree2File(o, fileo)
+    if Cmpi.size==1: C.convertPyTree2File(o, fileo)
 
     t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH,
                             sizeMax=sizeMax, check=check, symmetry=symmetry, 
@@ -425,6 +425,7 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
 #--------------------------------------------------------------------------
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
                 dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2, dfarDir=0):
+    import Converter.Mpi as Cmpi
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
@@ -607,7 +608,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             print('Warning: number of zones (%d) on rank %d is high (block merging might last a long time).'%(nelts, rank))
 
     if fileout is not None:
-        if mpisize==1: C.convertPyTree2File(o, fileout)
+        if Cmpi.size==1: C.convertPyTree2File(o, fileout)
     return o
 
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None, 

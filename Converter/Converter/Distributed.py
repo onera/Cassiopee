@@ -442,7 +442,7 @@ def getProcGlobal__(zoneName, t, procDict=None):
 # type='IBCD' si donnees IBC entres zones (full/skel/load skel/partial+procDict)
 # type='ALLD' si toutes donnees (Interp+IBC) (full/skel/load skel/partial+procDict)
 # type='proc' si la zone a un noeud proc different du proc courant (full/skel/load skel/partial)
-#￿type='POST': t donor tree and t2 receptor tree. To interpolate data from donor to receptor where interpolation 
+# type='POST': t donor tree and t2 receptor tree. To interpolate data from donor to receptor where interpolation 
 #              data is stored in t in ID* subregions nodes. Requires procDict and procDict2
 # intersectionsDict: dictionnaire Python contenant la liste de zones intersectantes, 
 # comme produit par "X.getIntersectingDomains". Attention, si type='bbox3',

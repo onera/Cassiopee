@@ -287,7 +287,7 @@ def evalTimeDerivativeString__(m, string, time):
     crds = Converter.array('t',2,1,1); crds[1][0,0] = time; crds[1][0,1] = time
     Converter._addVars(crds, string); a.run(crds)
     Converter._addVars(crds, 'd_'+string); da.run(crds, d_t=numpy.ones(1))
-    print(crds[1][2,0])
+    #print(crds[1][2,0])
     return crds[1][2,0]
         
 #==============================================================================
@@ -739,7 +739,7 @@ def evalPositionM1(coords, z, time):
                 axis_vct = getNodeValue__(m, 'axis_vct')
                 omega = getNodeValue__(m, 'omega')
                 speed = getNodeValue__(m, 'transl_speed')
-                coordsD = [-speed[0]*time, -speed[1]*time, -speed[2]*time]
+                coordsD = [-speed[0]*time+axis_pnt[0], -speed[1]*time+axis_pnt[1], -speed[2]*time+axis_pnt[2]]
                 coordsC = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
                 mat = getRotationMatrix__(axis_pnt[0],axis_pnt[1],axis_pnt[2],
                                           axis_vct[0],axis_vct[1],axis_vct[2],omega*time)

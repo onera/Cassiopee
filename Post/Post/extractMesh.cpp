@@ -149,7 +149,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   vector<void*> a4;
   vector<PyObject*> objs;
   skipNoCoord = true; skipStructured = false;
-  skipUnstructured = false; skipDiffVars = true;
+  skipUnstructured = false; skipDiffVars = false;
   isOk = K_ARRAY::getFromArrays(
     listFields, resl, varString, fields, a2, a3, a4, objs,  
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
@@ -179,6 +179,47 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     return arrays;
   }
   E_Int nvars = nfldTot;
+  for (E_Int no = 0; no < nzones; no++)
+  {
+    if ( fields[no]->getNfld() != nvars)
+    {
+      for (E_Int nos = 0; nos < ns0; nos++)
+        RELEASESHAREDS(objst0[nos], structF0[nos]);
+      for (E_Int nos = 0; nos < nu0; nos++)
+        RELEASESHAREDU(objut0[nos], unstrF0[nos], cnt0[nos]);
+      for (E_Int no = 0; no < nzones; no++)
+        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+      PyErr_SetString(PyExc_TypeError,
+                      "extractMesh: all arrays must have the same number of variables.");
+      return NULL;      
+    }
+  }
+  vector < vector<E_Int> > posCommonVars(nzones);
+  vector<char*> vars1; vector<char*> vars2;
+  K_ARRAY::extractVars(varString[0], vars1);
+  vector<E_Int> posVars(nvars);
+  for (E_Int i = 0; i < nvars; i++)
+    posVars[i]=i;
+  posCommonVars[0] = posVars;
+  
+  for (E_Int no = 1; no < nzones; no++)
+  {
+    K_ARRAY::extractVars(varString[no], vars2);
+    vector<E_Int> posVars2(nvars);
+    for (E_Int i2 = 0 ; i2 < nvars; i2++)
+    {
+      for (E_Int i1 = 0; i1 < nvars; i1++)
+      {
+        if (K_STRING::cmp(vars1[i1],vars2[i2]) == 0 )
+        {
+          posVars2[i1]=i2;
+          break;
+        }
+      }
+    }
+    posCommonVars[no] = posVars2;
+  }
+    
   E_Int nzonesS = 0; E_Int nzonesU = 0;
   vector<E_Int> posxa; vector<E_Int> posya; vector<E_Int> posza; 
   vector<E_Int> posca;
@@ -294,7 +335,9 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     FldArrayF* interp = new FldArrayF(nbI, nvars); //x,y,z + interpolated field
     interp->setAllValuesAtNull();
     posxi = posxs0[v]; posyi = posys0[v]; poszi = poszs0[v];
-
+    FldArrayF interp2(nbI, nvars); //x,y,z + interpolated field
+    interp2.setAllValuesAtNull();
+    
     // Interpolation from all interpDatas
     E_Float* xt = f.begin(posxi);
     E_Float* yt = f.begin(posyi);
@@ -326,7 +369,13 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
           noblk = noblk-1;
           K_INTERP::compInterpolatedValues(indi.begin(), cf, *fields[noblk],
                                            a2[noblk], a3[noblk], a4[noblk], 
-                                           ind, type, *interp);      
+                                           ind, type, interp2);
+          vector<E_Int> posVarsLoc = posCommonVars[noblk];
+          for (E_Int novar = 0; novar < nvars; novar++)
+          {
+            E_Int novar2 = posVarsLoc[novar];
+            (*interp)(ind,novar+1) = interp2(ind,novar2+1);
+          }
         }
         xi[ind] = x; yi[ind] = y; zi[ind] = z;
       }
@@ -352,6 +401,8 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     E_Float* xi = interp->begin(posxo);
     E_Float* yi = interp->begin(posyo);
     E_Float* zi = interp->begin(poszo);
+    FldArrayF interp2(nbI, nvars); //x,y,z + interpolated field
+    interp2.setAllValuesAtNull();
 #pragma omp parallel default(shared) private(vol, noblk, type) if (nbI > 50)
     {
       FldArrayI indi(nindi*2); FldArrayF cf(ncf);
@@ -378,7 +429,13 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
           noblk = noblk-1;
           K_INTERP::compInterpolatedValues(indi.begin(), cf, *fields[noblk],
                                            a2[noblk], a3[noblk], a4[noblk], 
-                                           ind, type, *interp);
+                                           ind, type, interp2);
+          vector<E_Int> posVarsLoc = posCommonVars[noblk];
+          for (E_Int novar = 0; novar < nvars; novar++)
+          {
+            E_Int novar2 = posVarsLoc[novar];
+            (*interp)(ind,novar+1) = interp2(ind,novar2+1);
+          }
         }
         xi[ind] = x; yi[ind] = y; zi[ind] = z;
       }

@@ -9,7 +9,7 @@ try: import Converter as C
 except: raise ImportError("RigidMotion: requires Converter module.")
 
 #==============================================================================
-# IN: time: instant d'avaluation
+# IN: time: instant d'evaluation
 # IN: F: une fonction du temps de la forme (d, c, R), deplacement, centre,
 # de rotation, matrice de rotation.
 # si time est different de None, sinon des scalaires.
@@ -59,7 +59,7 @@ def _evalPosition(array, time, F):
                                 r[1][0], r[1][1], r[1][2], \
                                 r[2][0], r[2][1], r[2][2])
 
-# Applique la formule XP=d+c+r*(XN-c) sur des numpys de coordonnees
+# Applique la formule XP=d+r*(XN-c) sur des numpys de coordonnees
 # in place
 def _moveN(coordsN, d, c, r):
     return rigidMotion.moveN(coordsN, 
