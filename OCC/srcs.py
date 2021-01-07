@@ -33,7 +33,10 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/convertCAD2Arrays1.cpp',
         'OCC/convertCAD2Arrays2.cpp',
         'OCC/Atomic/readCAD.cpp',
-        'OCC/Atomic/meshEdge.cpp']
+        'OCC/Atomic/meshEdge.cpp',
+        'OCC/Atomic/identifyLoopsInEdges.cpp',
+        'OCC/Atomic/parameterEdges.cpp',
+        'OCC/Atomic/evalFace.cpp']
 
 import KCore.Dist as Dist
 if Dist.getSystem()[0] == 'mingw':

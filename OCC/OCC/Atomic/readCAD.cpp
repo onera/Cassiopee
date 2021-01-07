@@ -49,10 +49,9 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     
     //if (occ_list.IsNull()) return 1;
 
-    Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
-  
+    //Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
     Standard_Integer nb_cad_faces = occ_list->Length();
-    std::cout << "IGES Faces: " << nb_cad_faces << "   Transferred:" << nb_transfered_faces << std::endl;
+    printf("IGES Faces: %d\n", nb_cad_faces);
     *shp = reader.OneShape();
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)

@@ -29,6 +29,9 @@ static PyMethodDef Pyocc [] =
   {"convertCAD2Arrays2", K_OCC::convertCAD2Arrays2, METH_VARARGS},
   {"readCAD", K_OCC::readCAD, METH_VARARGS},
   {"meshGlobalEdges", K_OCC::meshGlobalEdges, METH_VARARGS},
+  {"meshGlobalEdges2", K_OCC::meshGlobalEdges2, METH_VARARGS},
+  {"identifyLoopsInEdges", K_OCC::identifyLoopsInEdges, METH_VARARGS},
+  {"evalFace", K_OCC::evalFace, METH_VARARGS},
   {NULL, NULL}
 };
 
