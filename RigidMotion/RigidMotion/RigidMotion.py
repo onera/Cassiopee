@@ -1,4 +1,4 @@
-"""Module of computation of rigid motion.
+"""Module performing rigid motion.
 """
 __version__ = '3.2'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
@@ -44,7 +44,6 @@ def _evalPosition(array, time, F):
     else:
         if len(r[0]) != 3: raise ValueError("evalPosition: rotation matrix must be 3x3.")
     if isinstance(array[0], list): 
-        b = []
         for i in array:
             rigidMotion.move(i, d[0], d[1], d[2], \
                              c[0], c[1], c[2], \

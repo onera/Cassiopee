@@ -47,7 +47,9 @@ Contents
 .. py:function:: RigidMotion.setPrescribedMotion1(a, motionName, tx="0", ty="0", tz="0", cx="0", cy="0", cz="0", ex="0", ey="0", ez="0", angle="0")
 
     Set a precribed motion defined by a translation of the origin (tx,ty,tz), the center of a rotation (cx,cy,cz), the second point of the rotation axis (ex,ey,ez) and the rotation angle in degrees. They can depend on time {t}.
-
+    
+    Exists also as an in-place version (_setPrescribedMotion1) which modifies a and returns None.
+    
     :param a: Input data
     :type  a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param tx: translation in x motion string
@@ -83,28 +85,17 @@ Contents
 
     Set a precribed motion defined by a elsA rotor motion. Arguments are identical to elsA rotor motion. 
 
+    Exists also as an in-place version (_setPrescribedMotion2) which modifies a and returns None.
+
     :param a: Input data
     :type  a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param tx: translation in x motion string
-    :type tx: string
-    :param ty: translation in y motion string
-    :type ty: string
-    :param tz: translation in z motion string
-    :type tz: string
-    :param cx: rotation center x coordinate motion string
-    :type cx: string
-    :param cy: rotation center y coordinate motion string
-    :type cy: string
-    :param cz: rotation center z coordinate motion string
-    :type cz: string
-    :param ex: rotation axis x coordinate motion string
-    :type ex: string
-    :param ey: rotation axis y coordinate motion string
-    :type ey: string
-    :param ez: rotation axis z coordinate motion string
-    :type ez: string
-    :param angle: rotation angle motion string
-    :type angle: string
+    :param transl_speed: translation speed
+    :type transl_speed: list of 3 floats
+    :param psi0: ?
+    :type psi0: float
+    :param psi0_b: ?
+    :type psi0_b: float
+    
     
     *Example of use:*
 
@@ -118,6 +109,10 @@ Contents
 
     Set a precribed motion defined by a constant speed rotation and constant translation vector. 
     omega is in rad/time unit.
+    Since rotation is applied before translation, the center of rotation (axis_pnt) is
+    moving with translation speed also.
+
+    Exists also as an in-place version (_setPrescribedMotion3) which modifies a and returns None.
 
     :param a: Input data
     :type  a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -146,7 +141,10 @@ General functions
 .. py:function:: RigidMotion.evalPosition(a, time)
 
     Evaluate the position at time t according to a motion.
-    If the motion is defined in a with setPrescribedMotion. 
+    The motion must be defined in a with setPrescribedMotion. 
+    Grid coordinates in a must be the coordinates at time=0.
+
+    Exists also as an in-place version (_evalPosition) which modifies a and returns None.
 
     :param a: input data
     :type a: [pyTree, base, zone, list of zones]

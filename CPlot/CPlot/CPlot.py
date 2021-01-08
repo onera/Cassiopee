@@ -1,4 +1,4 @@
-"""Plotter functions.
+"""Simple plotter for CFD.
 """
 __version__ = '3.2'
 __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier, Bertrand Michel"

@@ -64,11 +64,12 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
   
 #pragma omp parallel
   {
-    E_Float sin_teta, cos_teta, kcm, cmx, cmy, cmz;
+    //E_Float sin_teta, cos_teta, kcm, 
+    E_Float cmx, cmy, cmz;
     E_Float kvcmx, kvcmy, kvcmz;
 
-    sin_teta = sin(teta);
-    cos_teta = cos(teta);
+    //sin_teta = sin(teta);
+    //cos_teta = cos(teta);
 
 #pragma omp for
     for (E_Int i = 0; i < size; i++)
@@ -79,7 +80,7 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
       cmz = z[i] - cz;
     
       // k.cm
-      kcm = kx*cmx + ky*cmy + kz*cmz;
+      //kcm = kx*cmx + ky*cmy + kz*cmz;
     
       // k x cm
       kvcmx = ky*cmz-kz*cmy;
@@ -87,9 +88,12 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
       kvcmz = kx*cmy-ky*cmx;
 
       // grid speed
-      sx[i] = tx-omega*sin_teta*(cmx-kcm*kx)+omega*cos_teta*kvcmx;
-      sy[i] = ty-omega*sin_teta*(cmy-kcm*ky)+omega*cos_teta*kvcmy;
-      sz[i] = tz-omega*sin_teta*(cmz-kcm*kz)+omega*cos_teta*kvcmz;
+      //sx[i] = tx-omega*sin_teta*(cmx-kcm*kx)+omega*cos_teta*kvcmx;
+      //sy[i] = ty-omega*sin_teta*(cmy-kcm*ky)+omega*cos_teta*kvcmy;
+      //sz[i] = tz-omega*sin_teta*(cmz-kcm*kz)+omega*cos_teta*kvcmz;
+      sx[i] = tx + omega*kvcmx;
+      sy[i] = ty + omega*kvcmy;
+      sz[i] = tz + omega*kvcmz;
       //printf("%f %f %f\n",sx[i],sy[i],sz[i]);
     }
   }

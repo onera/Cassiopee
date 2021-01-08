@@ -25,5 +25,5 @@ a = G.cart((0,0,0), (1,1,1), (11,11,2))
 
 # Move the mesh
 time = 3.
-b = R.evalPosition(a, time, F); b[0]='move'
+b = R.evalPosition(a, time, F); b[0]='moved'
 C.convertPyTree2File([a,b], "out.cgns")

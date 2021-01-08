@@ -1,4 +1,4 @@
-"""Plotter functions for pyTrees.
+"""Simple plotter for CFD.
 """
 import numpy
 from . import CPlot

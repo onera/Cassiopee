@@ -1,8 +1,5 @@
 """Find grid connectivity.
 """
-#
-# Python Interface to define grid connectivity
-#
 from . import Connector
 from . import connector
 import numpy

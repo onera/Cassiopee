@@ -1,6 +1,5 @@
-#
-# Python Interface to compress solutions from PyTrees
-#
+"""Module for CFD solution compression.
+"""
 from . import Compressor
 import numpy
 import Converter.Internal as Internal
