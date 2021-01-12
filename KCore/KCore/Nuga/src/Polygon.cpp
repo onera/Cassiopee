@@ -155,14 +155,14 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
 
     E_Float det = NUGA::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
 
+    det /= (NUGA::normalize<3>(Ei)*NUGA::normalize<3>(Ej)); //normalization to really have a angular-based test.
+    //std::cout << det << std::endl;
     if (det < det_min)
     {
       convex = false;
       iworst = i%nb_nodes;
       det_min = det;
     }
-    
-    det /= (NUGA::normalize<3>(Ei)*NUGA::normalize<3>(Ej)); //normalization to really have a angular-based test.
     
     if (det > det_max)
     {

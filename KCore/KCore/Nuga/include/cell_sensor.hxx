@@ -14,6 +14,7 @@
 
 #include "Nuga/include/sensor.hxx"
 #include "Nuga/include/shell_smoother.hxx"
+#include "Nuga/include/V1_smoother.hxx"
 
 
 namespace NUGA

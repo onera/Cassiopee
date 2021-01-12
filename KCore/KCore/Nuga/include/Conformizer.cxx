@@ -583,7 +583,7 @@ E_Int Conformizer<DIM, Element_t>::__run
 #ifdef DEBUG_CONFORMIZER
     nb_merges2 = 
 #endif
-    this->__simplify_and_clean2(pos, _tolerance, connect, ancestors, xc);
+    this->__simplify_and_clean2(pos, EPSILON, connect, ancestors, xc);
   else if (!_one_pass_mode)
 #ifdef DEBUG_CONFORMIZER
     nb_merges2 = 

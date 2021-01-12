@@ -214,11 +214,11 @@ private:
   ///
   eRetCode __get_working_PGs(eInterPolicy XPol, eMergePolicy MPol, ngon_unit& wPGs, E_Int& nb_pgs1, ngon_unit& extrawPGs);
   ///
-  E_Int __conformize(K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3, Vector_t<E_Int>& colors, E_Int X0, Vector_t<E_Int>& priority);
+  eRetCode __conformize(K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3, Vector_t<E_Int>& colors, E_Int X0, Vector_t<E_Int>& priority);
   ///
   eRetCode __focus_on_intersection_zone(eInterPolicy XPol, ngon_type& wNG1, ngon_type& wNG2, ngon_type& rNG1, ngon_type& rNG2);
   ///
-  eRetCode __reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngon_type& wNG2);
+  eRetCode __reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngon_type& wNG2, bool outward=true);
   ///
   void __flag_PHs_sharing_nodes_with_selected_PGs(const ngon_type& wNG, Vector_t<bool>& keep, const Vector_t<E_Int>& pg_oids);
   
@@ -601,7 +601,6 @@ private:
   void __remove_orientations(std::map<E_Int, Vector_t<E_Int> >& PHT3s, E_Int shift);
   ///
   ///
-  E_Int __discard_holes_by_box(const K_FLD::FloatArray& coord, ngon_type& wNG);
   E_Int __discard_prescribed_polygons(const K_FLD::FloatArray& coord, ngon_type& wNG, const Vector_t<E_Int>& PGlist);
   ///
   
@@ -689,6 +688,7 @@ public:
   Vector_t<E_Int> _pglist2[2]; // 0 : WALL / 1 : GHOST EXTRUSION
   
   E_Int _nb_cells2;
+  bool _outward;
 
 #ifdef DEBUG_BOOLEAN
   bool _enabled;
@@ -762,7 +762,7 @@ NGON_BOOLEAN_CLASS::NGON_BooleanOperator
 (const K_FLD::FldArrayF& pos1, E_Int px, E_Int py, E_Int pz, const K_FLD::FldArrayI& cNGON1,
  const K_FLD::FldArrayF& pos2, E_Int px2, E_Int py2, E_Int pz2, const K_FLD::FldArrayI& cNGON2, E_Float tolerance, eAggregation aggtype)
 : _tolerance(tolerance), _convexity_tol(1.e-2), _AggPol(aggtype), _processed(false),
- _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1, px, py, pz), _crd2(pos2, px2, py2, pz2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true)
+ _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1, px, py, pz), _crd2(pos2, px2, py2, pz2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true)
 {}
 
 /// Constructor for DynArrays
@@ -771,7 +771,7 @@ NGON_BOOLEAN_CLASS::NGON_BooleanOperator
 (const K_FLD::FloatArray& pos1, const K_FLD::IntArray& cNGON1,
  const K_FLD::FloatArray& pos2, const K_FLD::IntArray& cNGON2, E_Float tolerance, eAggregation aggtype)
   : _AggPol(aggtype), _tolerance(tolerance),  _convexity_tol(1.e-2), _processed(false),
- _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1), _crd2(pos2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true)
+ _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1), _crd2(pos2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true)
 {
 #ifdef DEBUG_BOOLEAN
   std::cout << "pos1 " << pos1.cols() << "/" << pos1.rows() << std::endl;
@@ -955,7 +955,7 @@ E_Int NGON_BOOLEAN_CLASS::Diffsurf
   c.start();
 #endif
   
-  E_Int err(0);
+  eRetCode ret(OK);
   
   coord.clear();
   connect.clear();
@@ -965,14 +965,25 @@ E_Int NGON_BOOLEAN_CLASS::Diffsurf
   if (!_processed)
   {
     // process the transform.
-    err = __compute();
-    if (err)
-      return err;
+    ret = __compute();
+    if (ret == ERROR)
+      return ret;
     
     // color and split : 1, 2 or IN (coloring algo based on "external" info).
-    err = __classify_soft();
-    if (err)
-      return err;
+    if (ret != EMPTY_X)
+    {
+      E_Int err = __classify_soft();
+      if (err)
+        return err;
+    }
+    else //EMPTY_X . fixme : case where v is inside s is not handled here
+    {
+      coord = _aCoords1.array();
+      _ng1 = _cNGON1;
+      _ng1.export_to_array(connect);
+      return 0;
+    }
+
   }
   
   coord=_coord;
@@ -991,7 +1002,7 @@ E_Int NGON_BOOLEAN_CLASS::Diffsurf
   std::cout << "NGON Booelan : total CPU : " << c.elapsed() << std::endl;
 #endif
 
-  return err;
+  return (E_Int)ret;
 }
 
 ///
@@ -1858,7 +1869,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
 #endif
   
   //Externality : MUST BE PRECEEDED BY close_phs IN CASE OF OCTREES
-  eRetCode err = __reorient_externals(XPol, wNG1, wNG2);
+  eRetCode err = __reorient_externals(XPol, wNG1, wNG2, _outward);
   if (err)
     return err;
 
@@ -1959,7 +1970,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     if (!_pglist2[0].empty())
       __discard_prescribed_polygons(_crd2, wNG2, _pglist2[0]);
     else
-      __discard_holes_by_box(_crd2, wNG2);
+      ngon_type::discard_holes_by_box(_crd2, wNG2);
   }
   
 #ifdef DEBUG_BOOLEAN
@@ -2255,7 +2266,8 @@ if (_XPol != BOTH_SURFACE)
 
 ///
 TEMPLATE_COORD_CONNECT
-E_Int NGON_BOOLEAN_CLASS::__conformize
+typename NGON_BOOLEAN_CLASS::eRetCode
+NGON_BOOLEAN_CLASS::__conformize
 (K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3, Vector_t<E_Int>& colors, E_Int X0, Vector_t<E_Int>& priority)
 {
     
@@ -2267,9 +2279,10 @@ E_Int NGON_BOOLEAN_CLASS::__conformize
   TRI_Conformizer<3> conformizer(true/* keep track of nodes history*/);
   conformizer._split_swap_afterwards = _conformizer_split_swap_afterwards;
           
+  E_Int nb_t30 = connectT3.cols();
   E_Int err = conformizer.run(crd, connectT3, colors, &priority, _tolerance, X0, 1 /*one iter only*/);
-  if (err)
-    return err;
+  if (err != 0)
+    return ERROR;
   
 #ifdef DEBUG_BOOLEAN
     //ok = NUGA::TRI_BooleanOperator::isClosed(coord, connectT3);
@@ -2303,7 +2316,7 @@ E_Int NGON_BOOLEAN_CLASS::__conformize
   }
 #endif
   
-  return 0;
+  return OK;
 }
 
 ///
@@ -2629,8 +2642,8 @@ NGON_BOOLEAN_CLASS::__process_intersections
   }
   
   Vector_t<E_Int> nT3_to_oT3; // new triangles to old triangles.
-  err = __conformize(_coord, connectT3, nT3_to_oT3, nb_tleft/*X0*/, priority);
-  if (err) return ERROR;
+  er = __conformize(_coord, connectT3, nT3_to_oT3, nb_tleft/*X0*/, priority);
+  if (er != OK) return er; // can be EMPTY_X
   
 #ifdef DEBUG_BOOLEAN
 
@@ -2664,31 +2677,7 @@ NGON_BOOLEAN_CLASS::__process_intersections
   for (E_Int i = 0; i < nT3nb; ++i)
     nT3_to_PG[i]= oT3_to_PG[nT3_to_oT3[i]];
   
-#ifdef DEBUG_BOOLEAN
-  // Check what happened to a given PG
-  //NGON_DBG::draw_PG_to_T3(PGi, nT3_to_PG, _coord, connectT3);
-#endif
-  
-#ifdef FLAG_STEP
-  c.start();
-#endif
-  
-#ifdef DEBUG_BOOLEAN
-  // process duplicates
-  err = __process_duplicates(wPGs, connectT3, nT3_to_PG, priority);
-  if (err) return ERROR;
-#endif
-  
-  // Compute the normals and replace it by the PG ancestor for nearly degen triangles.
-  K_FLD::ArrayAccessor<Coordinate_t> ac(_coord);
-  K_FLD::ArrayAccessor<K_FLD::IntArray> acT3n(connectT3);
-  NUGA::MeshTool::compute_or_transfer_normals(ac, acT3n, wPGs, nT3_to_PG, _normals);
-  
-#ifdef FLAG_STEP
-  std::cout << "NGON Boolean : __process_duplicates : " << c.elapsed() << std::endl;
-  std::cout << "NGON Boolean : nb of triangles in the conformal cloud : " << connectT3.cols() << std::endl;
-#endif
-    
+
 #ifdef DEBUG_BOOLEAN
   // conformized
   {
@@ -2703,39 +2692,32 @@ NGON_BOOLEAN_CLASS::__process_intersections
   }
 #endif
   
-#ifdef DEBUG_BOOLEAN
-  {
-  //medith::write(_coord, extrawPGs);
-  //medith::write(_coord, wPGs);
-  //NGON_DBG::draw_PG_to_T3(886, nT3_to_PG, _coord, connectT3);
-  /*E_Int PGi = 5080;
-  NGON_DBG::draw_PGT3(_coord, wPGs, PGi);
-  std::vector<bool> flag(connectT3.cols(), false);
-  for (size_t i=0; i < connectT3.cols(); ++i)flag[i]=(nT3_to_PG[i]==PGi);
-  medith::write("PGi.mesh", _coord, connectT3, "TRI", &flag);*/
-  //TRI_debug::draw_connected_to_T3(_coord, connectT3, 12330, 12409, 7205);
-  //E_Int Ti = TRI_DBG::get_T3_index(connectT3, TRUPLE);
-  //E_Int a = (Ti != IDX_NONE) ? nT3_to_oT3[Ti] : IDX_NONE;
-  }
+// fix degeneracies for sorting elemnt sharing a edge : removing degen + refining the other sharing the edge
+#ifdef FLAG_STEP
+   std::cout << "NGON Boolean : __fix_degen_for_turning_left..." << std::endl;
+   c.start();
+ #endif
+   bool has_collapsed{ false };
+   E_Int nb_max_attempts{ connectT3.cols() / 2 }, railing{ 0 };
+   do
+   {
+     E_Int err = __process_duplicates(wPGs, connectT3, nT3_to_PG, priority);
+     if (err) return ERROR;
+
+     K_FLD::ArrayAccessor<Coordinate_t> ac(_coord);
+     K_FLD::ArrayAccessor<K_FLD::IntArray> acT3n(connectT3);
+     NUGA::MeshTool::compute_or_transfer_normals(ac, acT3n, wPGs, nT3_to_PG, _normals);
+
+     has_collapsed = __fix_degen_for_turning_left(_coord, connectT3, nT3_to_PG, _normals);
+     
+   } while (has_collapsed && ++railing < nb_max_attempts);
+  
+   assert(connectT3.cols() == nT3_to_PG.size());
+
+#ifdef FLAG_STEP
+   std::cout << "NGON Boolean : __fix_degen_for_turning_left : " << c.elapsed() << std::endl;
 #endif
 
-//   // fix degeneracies for sorting elemnt sharing a edge : removing degen + refining the other sharing the edge
-// #ifdef FLAG_STEP
-//   std::cout << "NGON Boolean : __fix_degen_for_turning_left..." << std::endl;
-//   c.start();
-// #endif
-//   bool has_fixed;
-//   do
-//   {
-//     has_fixed = __fix_degen_for_turning_left(_coord, connectT3, nT3_to_PG, _normals);
-//   } while (has_fixed);
-  
-//   assert(connectT3.cols() == nT3_to_PG.size());
-
-// #ifdef FLAG_STEP
-//   std::cout << "NGON Boolean : __fix_degen_for_turning_left : " << c.elapsed() << std::endl;
-// #endif
-  
   return OK;
 }
 
@@ -2748,7 +2730,7 @@ E_Int NGON_BOOLEAN_CLASS::__process_duplicates(const ngon_unit&wPGs, K_FLD::IntA
   bool has_duplis = NUGA::MeshTool::detectDuplicated(connectT3, dupIds, false);
   
   // THIS FUNCTION MUST BE USELESS AS DUPLICATES ARE PROCESSED AT THE CONFORMIZER STAGE
-  assert (!has_duplis);
+  //assert (!has_duplis);
   
 
   if (!has_duplis)
@@ -2795,16 +2777,22 @@ E_Int NGON_BOOLEAN_CLASS::__process_duplicates(const ngon_unit&wPGs, K_FLD::IntA
   K_CONNECT::IdTool::compress(nT3_to_PG, pred, nids);
   
   for (size_t i = 0; i < priorityOut.size(); ++i)
-    priorityOut[i] = nids[priorityOut[i]];
-  
-  priority.insert(priority.end(), priorityOut.begin(), priorityOut.end());
-    
+  {
+    E_Int& p = priorityOut[i];
+    E_Int np = nids[p];
+    p = np;
+    if (np == IDX_NONE) continue;
+    priority.push_back(np);
+  }
+   
 #ifdef DEBUG_BOOLEAN
   K_FLD::IntArray tmp;
   std::vector<E_Int> colors;
   for (E_Int i=0; i < priorityOut.size(); ++i)
   {
     const E_Int& Ki = priorityOut[i];
+    if (Ki == IDX_NONE) continue;
+        
     tmp.pushBack(connectT3.col(Ki),connectT3.col(Ki)+3);
     colors.push_back(nT3_to_PG[Ki]);
   }
@@ -3196,7 +3184,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
 // skin and connection skin
 TEMPLATE_COORD_CONNECT
 typename NGON_BOOLEAN_CLASS::eRetCode
-NGON_BOOLEAN_CLASS::__reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngon_type& wNG2)
+NGON_BOOLEAN_CLASS::__reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngon_type& wNG2, bool outward)
 {
   wNG1.flag_externals(INITIAL_SKIN);
   wNG2.flag_externals(INITIAL_SKIN);
@@ -3250,6 +3238,16 @@ NGON_BOOLEAN_CLASS::__reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngo
     E_Int er = ngon_type::reorient_skins(dt, _crd2, wNG2, has_been_rev);
     if (er)
       return ERROR;
+
+    if (!outward)
+    {
+      for (E_Int PGi = 0; PGi < wNG2.PGs.size(); ++PGi)
+      {
+        E_Int s = wNG2.PGs.stride(PGi);
+        E_Int* p = wNG2.PGs.get_facets_ptr(PGi);
+        std::reverse(p, p + s);
+      }
+    }
     
     //now we build one ph for each pg to reduce the working set with __refine_working_area
     ngu = wNG2.PGs;
@@ -3750,114 +3748,6 @@ void NGON_BOOLEAN_CLASS::__refine_working_area
   remainingNG.append(rNG);  
 }
 
-
-///
-TEMPLATE_COORD_CONNECT
-E_Int NGON_BOOLEAN_CLASS::__discard_holes_by_box(const K_FLD::FloatArray& coord, ngon_type& wNG)
-{
-  assert (wNG.PHs.size() < wNG.PGs.size()); //i.e. not one ph per pg beacuse we need at least a closed PH
-
-#ifdef FLAG_STEP
-  chrono c;
-  c.start();
-#endif
-  
-  // 1. Get the skin PGs
-  Vector_t<E_Int> oids;
-  ngon_unit pg_ext;
-  wNG.PGs.extract_of_type (INITIAL_SKIN, pg_ext, oids);
-  if (pg_ext.size() == 0)
-    return 0; //should be only the case where One of the mesh contains completely the other
-
-#ifdef FLAG_STEP
-  std::cout << "__discard_holes : extract_of_type : " << c.elapsed() << std::endl;
-  c.start();
-#endif
-    
-  // 2. Build the neighbourhood for skin PGs
-  ngon_unit neighbors;
-  K_MESH::Polygon::build_pg_neighborhood(pg_ext, neighbors);
-
-#ifdef FLAG_STEP
-  std::cout << "__discard_holes : build_pg_neighborhood : " << c.elapsed() << std::endl;
-  c.start();
-#endif
-  
-  // Color to get connex parts
-  E_Int nb_connex = 1;
-  Vector_t<E_Int> colors;
-  if (wNG.PHs.size() > 1)
-  {
-    NUGA::EltAlgo<K_MESH::Polygon>::coloring (neighbors, colors);
-    nb_connex = 1+*std::max_element(colors.begin(), colors.end());
-  }
-
-#ifdef FLAG_STEP
-  std::cout << "__discard_holes : coloring : " << c.elapsed() << std::endl;
-  c.start();
-#endif
-  
-  if (nb_connex == 1) //no holes
-    return 0;
-  
-  // Find out which is the external (the one with the biggest bbox)
-  Vector_t<K_SEARCH::BBox3D> bbox_per_color(nb_connex);
-  //init boxes
-  for (E_Int i=0; i < nb_connex; ++i)
-  {
-    bbox_per_color[i].maxB[0]=bbox_per_color[i].maxB[1]=bbox_per_color[i].maxB[2]=-NUGA::FLOAT_MAX;
-    bbox_per_color[i].minB[0]=bbox_per_color[i].minB[1]=bbox_per_color[i].minB[2]=NUGA::FLOAT_MAX;
-  }
-  
-  Vector_t<E_Int> nodes;
-  
-  E_Int nb_pgex=colors.size();
-  K_SEARCH::BBox3D box;
-  for (E_Int i=0; i < nb_pgex; ++i)
-  {
-    const E_Int& s = pg_ext.stride(i);
-    const E_Int* pN = pg_ext.get_facets_ptr(i);
-    
-    nodes.clear();
-    for (E_Int j = 0; j < s; ++j, ++pN)
-      nodes.push_back((*pN)-1);//indices convention : start at 1 
-
-    box.compute(coord, nodes);
-    
-    K_SEARCH::BBox3D& b = bbox_per_color[colors[i]];
-    
-    for (size_t j = 0; j < 3; ++j) 
-    {
-      b.minB[j] = (b.minB[j] > box.minB[j]) ? box.minB[j] : b.minB[j];
-      b.maxB[j] = (b.maxB[j] < box.maxB[j]) ? box.maxB[j] : b.maxB[j];
-    }
-  }
-  // And the hole color are..
-  std::set<E_Int> hole_colors;
-  for (E_Int i = 0; i < nb_connex; ++i)
-  {
-    for (E_Int j = i + 1; j < nb_connex; ++j)
-    {
-      if (BbTree3D::box1IsIncludedinbox2(&bbox_per_color[i], &bbox_per_color[j], EPSILON))
-        hole_colors.insert(i);
-      else if (BbTree3D::box1IsIncludedinbox2(&bbox_per_color[j], &bbox_per_color[i], EPSILON))
-        hole_colors.insert(j);
-    }
-  }
-
-  // Reset flag for holes
-  // Hole-cell bug fix : rather than creating an extra color for reseted PGs (INNER doesn't work in case of a single layer solid), we use CONNEXION_SKIN :
-  // it prevents to take them into account in the workingPGs AND allow to discard the big parasite corresponfding to holes
-  for (E_Int i=0; i < nb_pgex; ++i)
-  {
-    if (hole_colors.find(colors[i]) != hole_colors.end())
-      wNG.PGs._type[oids[i]]=CONNEXION_SKIN; 
-  }
-  wNG.flag_external_phs(INITIAL_SKIN);//update consistently PHs flags
-  
-  return 0;
-}
-
 ///
 TEMPLATE_COORD_CONNECT
 E_Int NGON_BOOLEAN_CLASS::__discard_prescribed_polygons(const K_FLD::FloatArray& coord, ngon_type& wNG, const Vector_t<E_Int>& PGlist)
@@ -3983,8 +3873,13 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
     {
       std::cout << "ERROR at edge E0E1 : " << E0 << "/" << E1 << std::endl;
       std::cout << "The conformizer missed some intersections there." << std::endl;
+      std::cout << "nb of PGs at edge : " << sz << std::endl;
+      E_Float q1 = K_MESH::Triangle::qualityG<3>(coord.col(connectT3(0, K0)), coord.col(connectT3(1, K0)), coord.col(connectT3(2, K0)));
+      E_Float q2 = K_MESH::Triangle::qualityG<3>(coord.col(connectT3(0, Ki)), coord.col(connectT3(1, Ki)), coord.col(connectT3(2, Ki)));
+      std::cout << "q  : K0 : " << K0  << "=>" << q1 << std::endl;
+      std::cout << "q  : Ki : " << Ki  << "=>" << q2 << std::endl;
       err = 1;
-      break;
+      //break;
     }
     
     _palmares.push_back(std::make_pair(q, Ki));
@@ -4008,8 +3903,10 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       {
         std::cout << "ERROR at edge E0E1 : " << E0 << "/" << E1 << std::endl;
         std::cout << "The conformizer missed some intersections there." << std::endl;
+        std::cout << "nb of PGs at edge (palma) : " << _palmares.size() << std::endl;
+
         err = 1;
-        break;
+        //break;
       }
     }
   }
@@ -4026,12 +3923,29 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
     T3indices[0] -= shift; // to have a correct display for Wsorted_on_edge_
 
     std::vector<E_Int> PGs;
+    E_Float dmin = NUGA::FLOAT_MAX;
     for (size_t i = 0; i < T3indices.size(); ++i)
     {
       sorted_cnt.pushBack(connectT3.col(T3indices[i]), connectT3.col(T3indices[i])+3);
       keep[T3indices[i]]=true;
-      std::cout << "Triangle : " << T3indices[i] << std::endl;
+      E_Int t = (T3indices[i] < shift) ? T3indices[i] : T3indices[i] - shift;
+      std::cout << "Triangle : " << t << std::endl;
       if (i > 0)colors[i] = 0;
+
+      E_Int N0 = connectT3(0, t);
+      E_Int N1 = connectT3(1, t);
+      E_Int N2 = connectT3(2, t);
+
+      E_Float q = K_MESH::Triangle::qualityG<3>(coord.col(N0), coord.col(N1), coord.col(N2));
+      std::cout << "q  : K0 : " << t << "=>" << q << std::endl;
+
+      E_Float d1 = NUGA::sqrDistance(coord.col(N0), coord.col(N1), 3);
+      E_Float d2 = NUGA::sqrDistance(coord.col(N0), coord.col(N2), 3);
+      E_Float d3 = NUGA::sqrDistance(coord.col(N1), coord.col(N2), 3);
+
+      dmin = std::min(dmin, d1);
+      dmin = std::min(dmin, d2);
+      dmin = std::min(dmin, d3);
 
       E_Int tid = (T3indices[i] < shift) ? T3indices[i] : T3indices[i] - shift;
       PGs.push_back(_nT3_to_oPG[tid]);
@@ -4041,6 +3955,8 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       std::ostringstream o;
       o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
       medith::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
+
+      std::cout << "DMIN : " << ::sqrt(dmin) << std::endl;
     }
     /*{
       std::ostringstream o;
@@ -4933,13 +4849,10 @@ bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
   algoT3::BoundToEltType noE_to_oTs; // non oriented edge to oriented triangles (1 to n).
 
   algoT3::getBoundToElements(acT3, noE_to_oTs);
-  
-  E_Int K0, E0, E1, N1, sz, Kb, i, j;
 
-  std::vector<bool> keep(connectT3.cols(), true);
-  std::map<K_MESH::NO_Edge, std::set<E_Int> > edge_to_splitnodes;
+  E_Int K0, E0, E1, N1, sz, Kb, i, j;
   std::set<std::pair<E_Int, E_Int> > faultyT3_pairs;
-  
+
   algoT3::BoundToEltType::iterator it, itEnd(noE_to_oTs.end());
   K_FLD::IntArray::const_iterator pS;
   for (it = noE_to_oTs.begin(); it != itEnd; ++it)
@@ -4960,117 +4873,117 @@ bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
 
     sz = T3s.size();
     if (sz <= 2) continue;
-   
+
     __sort_T3_sharing_an_edge(E0, E1, normals, coord, connectT3, T3s, faultyT3_pairs);
-    
+
   }
 
   if (faultyT3_pairs.empty()) return false;
 
-  //
+  std::vector<bool> keep(connectT3.cols(), true);
+  std::vector<bool> freeze(connectT3.cols(), false);
+
+  // reorder pair per quality, putting also worst quality triangle first in each pair
+  std::vector<std::pair<double, std::pair<E_Int, E_Int>>> q_to_pairs;
   for (auto& p : faultyT3_pairs)
   {
-    E_Int badT3, khat;//rank of the splitting node
-    __get_degen_T3(coord, connectT3, p.first, p.second, badT3, khat);
+    E_Int K1 = p.first;
+    E_Int K2 = p.second;
 
-    keep[badT3] = false;
+    if (freeze[K1] || freeze[K2]) continue;
+    
+    E_Int N10 = connectT3(0, K1);
+    E_Int N11 = connectT3(1, K1);
+    E_Int N12 = connectT3(2, K1);
+    E_Int N20 = connectT3(0, K2);
+    E_Int N21 = connectT3(1, K2);
+    E_Int N22 = connectT3(2, K2);
 
-    E_Int splitNode = connectT3(khat, badT3);
-    K_MESH::NO_Edge E(connectT3((khat + 1) % 3, badT3), connectT3((khat + 2) % 3, badT3));
+    E_Float q1 = K_MESH::Triangle::qualityG<3>(coord.col(N10), coord.col(N11), coord.col(N12));
+    E_Float q2 = K_MESH::Triangle::qualityG<3>(coord.col(N20), coord.col(N21), coord.col(N22));
 
-    edge_to_splitnodes[E].insert(splitNode);
-  }
-
-  // from edge_to_split_node to edge_to_refined_edge
-  std::map<K_MESH::NO_Edge, Vector_t<E_Int> > edge_to_refined_edge;
-  std::vector<std::pair<E_Float, E_Int> > sorted_nodes;
-  for (auto& i : edge_to_splitnodes)
-  {
-    E_Int N1 = i.first.node(0);
-    E_Int N2 = i.first.node(1);
-
-    if (i.second.size() == 1)
+    //special treatment for duplicates
+    if (::fabs(q1 - q2) < ZERO_M)
     {
-      edge_to_refined_edge[i.first].push_back(N1);
-      edge_to_refined_edge[i.first].push_back(*(i.second.begin()));
-      edge_to_refined_edge[i.first].push_back(N2);
-    }
-    else
-    {
-      sorted_nodes.clear();
-      sorted_nodes.push_back(std::make_pair(-NUGA::FLOAT_MAX,N1));
-      sorted_nodes.push_back(std::make_pair(NUGA::FLOAT_MAX, N2));
+      K_MESH::NO_Triangle t1(N10, N11, N12);
+      K_MESH::NO_Triangle t2(N20, N21, N22);
 
-      E_Float dN1N22 = NUGA::sqrDistance(coord.col(N1), coord.col(N2), 3);
-
-      for (auto it = i.second.begin(); it != i.second.end(); ++it)
+      if (t1 == t2)
       {
-        E_Float dN1n2 = NUGA::sqrDistance(coord.col(N1), coord.col(*it), 3);
-        sorted_nodes.push_back(std::make_pair(dN1n2/dN1N22, *it));
+        keep[std::max(K1, K2)] = false; // keep smaller id
+        freeze[std::max(K1, K2)] = false;
+        continue;
       }
-
-      std::sort(sorted_nodes.begin(), sorted_nodes.end());
-
-      for (size_t n = 0; n < sorted_nodes.size(); ++n)
-        edge_to_refined_edge[i.first].push_back(sorted_nodes[n].second);
     }
+
+    if (q2 < q1)
+      q_to_pairs.push_back(std::make_pair(q2, std::make_pair(p.second, p.first)));
+    else
+      q_to_pairs.push_back(std::make_pair(q1, p));
   }
-  
-  //remove first bad T3
-  K_CONNECT::keep<bool> pred(keep);
+
+  std::sort(ALL(q_to_pairs));
+
+  std::vector<E_Int> nids;
+  K_CONNECT::IdTool::init_inc(nids, coord.cols());
+
+  //
+  for (auto& q2p : q_to_pairs)
+  {
+    double q     = q2p.first;
+    E_Int worstK = q2p.second.first;
+    E_Int K2     = q2p.second.second;
+
+    if (freeze[worstK] || freeze[K2]) continue;
+
+    E_Int N0 = connectT3(0, worstK);
+    E_Int N1 = connectT3(1, worstK);
+    E_Int N2 = connectT3(2, worstK);
+
+    E_Float d1 = NUGA::sqrDistance(coord.col(N0), coord.col(N1), 3);
+    E_Float d2 = NUGA::sqrDistance(coord.col(N0), coord.col(N2), 3);
+    E_Float d3 = NUGA::sqrDistance(coord.col(N1), coord.col(N2), 3);
+
+    if (d1 <= d2 && d1 <= d3)
+    {
+      nids[std::max(N0, N1)] = std::min(N0, N1);
+    }
+    else if (d2 <= d1 && d2 <= d3)
+    {
+      nids[std::max(N0, N2)] = std::min(N0, N2);
+    }
+    else if (d3 <= d1 && d3 <= d2)
+    {
+      nids[std::max(N2, N1)] = std::min(N2, N1);
+    }
+
+    freeze[worstK] = true;
+    std::cout << "DEGENERATING LEFT : " << worstK << std::endl;
+    /*K_FLD::IntArray toto;
+    std::ostringstream o;
+    o << "degentri_" << worstK ;
+    toto.pushBack(connectT3.col(worstK), connectT3.col(worstK)+3);
+    medith::write(o.str().c_str(), coord, toto, "TRI");*/
+  }
+
+  // remove duplicates
+  K_CONNECT::keep<> pred(keep);
   K_CONNECT::IdTool::compress(connectT3, pred);
   K_CONNECT::IdTool::compress(nT3_to_PG, pred);
   K_CONNECT::IdTool::compress(normals, pred);
 
-  // split
-  std::vector<E_Int> new_pg_oids;
-  K_FLD::IntArray new_cnt;
-  K_FLD::FloatArray new_normals;
-  K_MESH::NO_Edge E;
-  std::vector<E_Int> pg_molec;
-  DELAUNAY::Triangulator dt;
+  // degenerate elements to discard
+  K_FLD::IntArray::changeIndices(connectT3, nids); //node ids
 
-  for (E_Int i = 0; i < connectT3.cols(); ++i)
+  std::vector<E_Int> newIDs;
+  if (SwapperT3::remove_degen(connectT3, newIDs))
   {
-    pg_molec.clear();
-
-    for (E_Int n = 0; n < 3; ++n)
-    {
-      E_Int Nn = connectT3(n, i);
-      E_Int Np1 = connectT3((n+1)%3, i);
-
-      E.setNodes(Nn, Np1);
-
-      auto it = edge_to_refined_edge.find(E);
-      if (it != edge_to_refined_edge.end())
-      {
-        auto nodes = it->second;
-        if (Nn == E.node(0)) //same orientation
-          for (size_t j = 0; j< nodes.size() - 1; ++j)
-            pg_molec.push_back(nodes[j]);
-        else
-          for (E_Int j = nodes.size() - 1; j>0; --j)
-            pg_molec.push_back(nodes[j]);
-      }
-      else
-        pg_molec.push_back(Nn);
-    }
-
-    E_Int sz0 = new_cnt.cols();
-    K_MESH::Polygon::triangulate(dt, coord, &pg_molec[0], pg_molec.size(), 0, new_cnt, false, true);
-    new_pg_oids.resize(new_cnt.cols(), nT3_to_PG[i]);
-
-    E_Int sz = new_cnt.cols() - sz0;
-    for (size_t k = 0; k < sz; ++k)
-      new_normals.pushBack(normals.col(i), normals.col(i) + 3);
+    K_CONNECT::valid pred(newIDs);
+    K_CONNECT::IdTool::compress(nT3_to_PG, pred);
+    K_CONNECT::IdTool::compress(normals, pred);
   }
 
-  connectT3 = new_cnt;
-  nT3_to_PG = new_pg_oids;
-  normals = new_normals;
-
-  return (!faultyT3_pairs.empty());
-
+  return true;
 }
 
 ///
@@ -5212,7 +5125,7 @@ E_Int NGON_BOOLEAN_CLASS::__remove_parasite_PHT3s
     thrashIds.push_back(PHT3i);
     
 #ifdef DEBUG_BOOLEAN
-    //NGON_DBG::draw_PHT3(_coord, connectT3o, PHT3s, PHT3i);
+    NGON_DBG::draw_PHT3(_coord, connectT3o, PHT3s, PHT3i, true);
 #endif
     
 #ifdef DEBUG_W_PYTHON_LAYER

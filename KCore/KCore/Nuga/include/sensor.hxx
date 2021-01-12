@@ -164,7 +164,11 @@ void sensor<mesh_t, sensor_input_t>::append_adap_incr_w_over_connected(output_t&
   //
   for (size_t i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
   {
+    if (!_hmesh._PHtree.is_enabled(i)) continue;
     if (adap_incr.cell_adap_incr[i] != 0) continue;
+
+    E_Int nbc = _hmesh._PHtree.nb_children(i);
+    if (nbc != 0) continue; // deal only with leaf elts : enabling info is not up to date at this stage
 
     E_Int nbf = _hmesh._ng.PHs.stride(i);
     

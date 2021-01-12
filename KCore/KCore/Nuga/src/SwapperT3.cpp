@@ -17,14 +17,14 @@ SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int
 {
   ns = IDX_NONE;// ns for "special node" : the pick for a spike, the hat node for a hat
   //
-  E_Float normal[3];
+  E_Float normal[3], MINQUAL{ ZERO_M }, BADQUAL_RTOL{ 0.25 }; //bad qual => we need to make it vanish => has to fall into spike/hat/small so big tol..
   K_MESH::Triangle::normal(crd.col(N0), crd.col(N1), crd.col(N2), normal);
   E_Float l2 = ::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
   //
-  if (::fabs(l2 - 1.) < EPSILON)
-    return OK;
-
-  // we have a degen !
+  bool normal_failure = !(::fabs(l2 - 1.) < EPSILON);
+  
+  double q = K_MESH::Triangle::qualityG<3>(crd.col(N0), crd.col(N1), crd.col(N2));
+  bool good_qual = (q > MINQUAL);
 
   std::pair<E_Float, E_Int> palma[3];
   E_Int N[] = { N0, N1, N2 };
@@ -39,25 +39,35 @@ SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int
   // Ntop is the node to project on the base
   E_Int n = palma[2].second;
   E_Int& Ntop = N[n];
-  E_Float& Lbase = palma[2].first;
+  E_Float& Lbase2 = palma[2].first;
+  E_Float& Lmin2 = palma[0].first;
+
+  /*std::cout << "Lmin : " << ::sqrt(palma[0].first) << std::endl;
+  std::cout << "Lmax : " << ::sqrt(palma[2].first) << std::endl;
+  std::cout << " ratio : " << ::sqrt(palma[0].first / palma[2].first) << std::endl;*/
+
+  E_Float lambda;
+  E_Float d = K_MESH::Edge::edgePointMinDistance<3>(crd.col(N[(n + 1) % 3]), crd.col(N[(n + 2) % 3]), crd.col(Ntop), lambda);
+  if (!normal_failure && (d*d > tol2) && good_qual) return OK;
+
+  if (!good_qual) // increase the tolerance
+    tol2 = BADQUAL_RTOL*Lbase2;
 
   //if the biggest is too small, all of them are and this element need to be collapsed
   // the factor 4 is for implicit small : if the projected point cut in 2 pieces smaller than tol <=> Lbase < 2* tol
-  if (Lbase*Lbase < 4.*tol2) return SMALL; 
+  if (Lbase2 < 4.*tol2)
+    return SMALL;
 
-  E_Float lambda;
-  //E_Float d = 
-  K_MESH::Edge::edgePointMinDistance<3>(crd.col(N[(n + 1) % 3]), crd.col(N[(n + 2) % 3]), crd.col(Ntop), lambda);
+  //assert(lambda >= -1.e-15 && lambda <= 1. + 1.e-15);
+  //std::cout << "lambda : " << lambda << std::endl;
 
-  assert(lambda >= -1.e-15 && lambda <= 1. + 1.e-15);
-
-  if ( (lambda < lambdac) || (lambda*lambda*Lbase*Lbase < tol2) )
+  if ( (lambda < lambdac) || (lambda*lambda*Lbase2 < tol2) )
   {
     ns = (n + 2) % 3;
     return SPIKE;
   }
 
-  if ((lambda > 1. - lambdac) || ((1. - lambda) * (1. - lambda) * Lbase * Lbase < tol2))
+  if ((lambda > 1. - lambdac) || ((1. - lambda) * (1. - lambda) * Lbase2 < tol2))
   {
     ns = (n + 1) % 3;
     return SPIKE;
@@ -68,11 +78,13 @@ SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int
 }
 
 //
-E_Int SwapperT3::clean(const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArray& connect, std::vector<E_Int> & colors)
+E_Int SwapperT3::clean(const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArray& connect, std::vector<E_Int> & coids, std::vector<E_Int>& cnids)
 {
 
   E_Float tol2(tol*tol);
   E_Int nb_tris0;
+
+  K_CONNECT::IdTool::init_inc(cnids, connect.cols());
 
   do
   {
@@ -82,8 +94,8 @@ E_Int SwapperT3::clean(const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntAr
 
     nb_tris0 = connect.cols();
 
-    std::vector<E_Int> nids;
-    K_CONNECT::IdTool::init_inc(nids, coord.cols());
+    std::vector<E_Int> nodnids;
+    K_CONNECT::IdTool::init_inc(nodnids, coord.cols());
 
     for (Si = 0; Si < nb_tris0; ++Si)
     {
@@ -101,24 +113,25 @@ E_Int SwapperT3::clean(const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntAr
       if (type == SMALL)
       {
         E_Int Ni = std::min(N0, std::min(N1, N2));
-        nids[N0] = nids[N1] = nids[N2] = Ni;
+        nodnids[N0] = nodnids[N1] = nodnids[N2] = Ni;
       }
       else if (type == SPIKE)
       {
         E_Int N1 = *(pS + (ni + 1) % 3);
         E_Int N2 = *(pS + (ni + 2) % 3);
         E_Int Ni = std::min(N1, N2);
-        nids[N1] = nids[N2] = Ni;
+        nodnids[N1] = nodnids[N2] = Ni;
       }
     }
 
-    K_FLD::IntArray::changeIndices(connect, nids); //node ids
+    K_FLD::IntArray::changeIndices(connect, nodnids); //node ids
 
     std::vector<E_Int> newIDs;
     if (remove_degen(connect, newIDs))// 
     {
       K_CONNECT::valid pred(newIDs);
-      K_CONNECT::IdTool::compress(colors, pred);
+      K_CONNECT::IdTool::compress(coids, pred);
+      K_CONNECT::IdTool::propagate(newIDs, cnids);
     }
   }
   while (connect.cols() < nb_tris0);
@@ -139,6 +152,25 @@ bool SwapperT3::has_degen(const K_FLD::FloatArray& coord, const K_FLD::IntArray&
     E_Int ni;
     eDegenType type = degen_type2(coord, N0, N1, N2, tol2, 0., ni);
     if (type != OK)
+      return true;
+  }
+  return false;
+
+}
+
+bool SwapperT3::has_hat(const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect, E_Float tol2)
+{
+  for (E_Int i = 0; i < connect.cols(); ++i)
+  {
+    K_FLD::IntArray::const_iterator pS = connect.col(i);
+
+    E_Int N0 = *pS;
+    E_Int N1 = *(pS + 1);
+    E_Int N2 = *(pS + 2);
+
+    E_Int ni;
+    eDegenType type = degen_type2(coord, N0, N1, N2, tol2, 0., ni);
+    if (type == HAT)
       return true;
   }
   return false;
@@ -216,7 +248,7 @@ E_Int SwapperT3::run (const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArr
       connectSmall.pushBack(pS, pS + 3);
 #endif
 
-    assert(type == OK || type == HAT);
+    //assert(type == OK || type == HAT);
 
     if (type != HAT) continue;
 

@@ -142,9 +142,9 @@ class hierarchical_mesh
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
-    void get_enabled_neighbours(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours) const ;
+    template <typename InputIterator> void get_enabled_neighbours(E_Int PHi, InputIterator neighbours, E_Int& nb_neighbours) const ;
     ///
-    void get_higher_level_neighbours(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours) const ;
+    template <typename InputIterator> void get_higher_level_neighbours(E_Int PHi, E_Int PGi, InputIterator neighbours, E_Int& nb_neighbours) const ;
     ///
     void enable_PGs();
 
@@ -573,8 +573,9 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+template <typename InputIterator>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_higher_level_neighbours
-(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours) const
+(E_Int PHi, E_Int PGi, InputIterator neighbours, E_Int& nb_neighbours) const
 {
   // Warning : assume same orientation for all the descendant of a given PG
 
@@ -590,8 +591,9 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_higher_level_neighbours
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+template <typename InputIterator>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_enabled_neighbours
-(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours) const
+(E_Int PHi, InputIterator neighbours, E_Int& nb_neighbours) const
 {
   // fill in up to 24 enabled neighbours and gives the number of enabled neighbours
   const E_Int* p = _ng.PHs.get_facets_ptr(PHi);
@@ -747,11 +749,11 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
   if (nbf == 0) return 0;
 
   //check all fields have same size
-  E_Int fsz{0};
+  size_t fsz{0};
   for (size_t f=0; f < nbf; ++f)
   {
-    if (fsz==0) fsz = cfields[f].size();
-    else if (fsz != (E_Int)cfields[f].size())
+    if (fsz==0)fsz = cfields[f].size();
+    else if (fsz != cfields[f].size())
     {
       std::cout << "project_cell_center_sol_order1 : ERROR. input fields sizes are inconsistent between them." << std::endl;
       return 1;
@@ -768,7 +770,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
     std::cout << "fsz : " << fsz << std::endl;*/
   }
 
-  E_Int nb_enabledi = std::count(ALL(_enabledPHi), true);
+  size_t nb_enabledi = std::count(ALL(_enabledPHi), true);
   
   if (fsz != nb_enabledi)
   {

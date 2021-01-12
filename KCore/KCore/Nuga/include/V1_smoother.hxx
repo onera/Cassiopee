@@ -26,7 +26,7 @@ struct V1_smoother : public smoother<mesh_t>
 
   V1_smoother() = default;
 
-  void smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_incr) ;
+  virtual void smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_incr) ;
 
   ~V1_smoother(){}
 };
@@ -39,11 +39,10 @@ void V1_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_inc
   
   std::stack<E_Int> stck;
 
-  for (E_Int i = 0; i < ng.PHs.size(); i++) {
-    if (adap_incr[i] != 0) {
-      stck.push(i);
-    }
-  }
+  for (E_Int i = 0; i < ng.PHs.size(); i++)
+    if (adap_incr[i] != 0) stck.push(i);
+
+  std::vector<E_Int> neighbours;
 
   while (!stck.empty()) {
 
@@ -51,10 +50,11 @@ void V1_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_inc
     stck.pop();
     E_Int s = ng.PHs.stride(ind_PHi);
 
-    STACK_ARRAY(E_Int, 4*s, neighbours);//fixme 4s
+    neighbours.clear();
+    neighbours.resize(4*s);//fixme 4s
     E_Int nb_neighbours = 0;
     
-    hmesh.get_enabled_neighbours(ind_PHi, neighbours.get(), nb_neighbours); // get the effective neighbours (enabled ones) to assert the 2:1 rule
+    hmesh.get_enabled_neighbours(ind_PHi, neighbours.begin(), nb_neighbours); // get the effective neighbours (enabled ones) to assert the 2:1 rule
 
     E_Int incr = adap_incr[ind_PHi] + PHtree.get_level(ind_PHi);
 
@@ -86,7 +86,6 @@ void V1_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_inc
       }
     }
   }
-
 }
 
 }

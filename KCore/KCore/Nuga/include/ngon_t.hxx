@@ -1201,6 +1201,11 @@ struct ngon_t
 #endif
 
       err = K_MESH::Polygon::triangulate(dt, coord, PGs.get_facets_ptr(i), PGs.stride(i), 1/*index start*/, connectT3, do_not_shuffle, improve_quality);
+      if (err)
+      {
+        K_MESH::Polygon::cvx_triangulate(coord, PGs.get_facets_ptr(i), PGs.stride(i), 0/*ibest*/, 1/*index start*/, connectT3);
+        err = 0;
+      }
       
       colors.resize(connectT3.getSize(), i);
     }
@@ -4965,6 +4970,92 @@ static void get_pgs_with_non_manifold_edges(const ngon_unit& PGs, std::set<E_Int
     }
   }
   
+}
+
+///
+static E_Int discard_holes_by_box(const K_FLD::FloatArray& coord, ngon_t& wNG)
+{
+  assert(wNG.PHs.size() < wNG.PGs.size()); //i.e. not one ph per pg beacuse we need at least a closed PH
+
+  // 1. Get the skin PGs
+  Vector_t<E_Int> oids;
+  ngon_unit pg_ext;
+  wNG.PGs.extract_of_type(INITIAL_SKIN, pg_ext, oids);
+  if (pg_ext.size() == 0)
+    return 0; //should be only the case where One of the mesh contains completely the other
+
+  // 2. Build the neighbourhood for skin PGs
+  ngon_unit neighbors;
+  K_MESH::Polygon::build_pg_neighborhood(pg_ext, neighbors);
+
+  // Color to get connex parts
+  E_Int nb_connex = 1;
+  Vector_t<E_Int> colors;
+  if (wNG.PHs.size() > 1)
+  {
+    NUGA::EltAlgo<K_MESH::Polygon>::coloring(neighbors, colors);
+    nb_connex = 1 + *std::max_element(colors.begin(), colors.end());
+  }
+
+  if (nb_connex == 1) //no holes
+    return 0;
+
+  // Find out which is the external (the one with the biggest bbox)
+  Vector_t<K_SEARCH::BBox3D> bbox_per_color(nb_connex);
+  //init boxes
+  for (E_Int i = 0; i < nb_connex; ++i)
+  {
+    bbox_per_color[i].maxB[0] = bbox_per_color[i].maxB[1] = bbox_per_color[i].maxB[2] = -NUGA::FLOAT_MAX;
+    bbox_per_color[i].minB[0] = bbox_per_color[i].minB[1] = bbox_per_color[i].minB[2] = NUGA::FLOAT_MAX;
+  }
+
+  Vector_t<E_Int> nodes;
+
+  E_Int nb_pgex = colors.size();
+  K_SEARCH::BBox3D box;
+  for (E_Int i = 0; i < nb_pgex; ++i)
+  {
+    const E_Int& s = pg_ext.stride(i);
+    const E_Int* pN = pg_ext.get_facets_ptr(i);
+
+    nodes.clear();
+    for (E_Int j = 0; j < s; ++j, ++pN)
+      nodes.push_back((*pN) - 1);//indices convention : start at 1 
+
+    box.compute(coord, nodes);
+
+    K_SEARCH::BBox3D& b = bbox_per_color[colors[i]];
+
+    for (size_t j = 0; j < 3; ++j)
+    {
+      b.minB[j] = (b.minB[j] > box.minB[j]) ? box.minB[j] : b.minB[j];
+      b.maxB[j] = (b.maxB[j] < box.maxB[j]) ? box.maxB[j] : b.maxB[j];
+    }
+  }
+  // And the hole color are..
+  std::set<E_Int> hole_colors;
+  for (E_Int i = 0; i < nb_connex; ++i)
+  {
+    for (E_Int j = i + 1; j < nb_connex; ++j)
+    {
+      if (K_SEARCH::BbTree3D::box1IsIncludedinbox2(&bbox_per_color[i], &bbox_per_color[j], EPSILON))
+        hole_colors.insert(i);
+      else if (K_SEARCH::BbTree3D::box1IsIncludedinbox2(&bbox_per_color[j], &bbox_per_color[i], EPSILON))
+        hole_colors.insert(j);
+    }
+  }
+
+  // Reset flag for holes
+  // Hole-cell bug fix : rather than creating an extra color for reseted PGs (INNER doesn't work in case of a single layer solid), we use CONNEXION_SKIN :
+  // it prevents to take them into account in the workingPGs AND allow to discard the big parasite corresponfding to holes
+  for (E_Int i = 0; i < nb_pgex; ++i)
+  {
+    if (hole_colors.find(colors[i]) != hole_colors.end())
+      wNG.PGs._type[oids[i]] = CONNEXION_SKIN;
+  }
+  wNG.flag_external_phs(INITIAL_SKIN);//update consistently PHs flags
+
+  return 0;
 }
     
   ngon_unit PGs;

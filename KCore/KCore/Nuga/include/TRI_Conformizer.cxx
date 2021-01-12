@@ -132,7 +132,7 @@ TRI_Conformizer<DIM>::__split_Elements
   mode.mesh_mode = mode.TRIANGULATION_MODE;
   mode.remove_holes = false;  // option to speed up.
   mode.ignore_coincident_nodes = true;
-  mode.silent_errors = parent_type::_silent_errors;
+  
   DELAUNAY::T3Mesher<E_Float> mesher(mode);
   
   NUGA::int_vector_type gnids, lnids;
@@ -310,15 +310,17 @@ TRI_Conformizer<DIM>::__split_Elements
       /*if (i==59259 || i == 59281)
         {
         std::ostringstream o;
-        o << "/home/slandier/tmp/contot_" << i << ".mesh";
+        o << "contot_" << i << ".mesh";
         medith::write(o.str().c_str(), pi, ci2, "toto");
         //continue;
       }*/
 #endif
 #endif
-      // iterative for robustness : try shuffling the input data
+      // iterative for robustness : try shuffling the input data, then try without forcing edges (hasardous)
       
-      err = __iterative_run (mesher, pi, ci2, hnodes, data, lnids);
+      err = __iterative_run (mesher, pi, ci2, hnodes, data, lnids, false/*i.e. try to force all edge*/, true/*i.e silent also last it*/);
+      if (err != 0)
+        err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, true/*i.e. ignore unforceable edges*/, false/*i.e output last it error*/);
       
       if (err != 0)
       {
@@ -364,7 +366,7 @@ TRI_Conformizer<DIM>::__split_Elements
 #endif
         }
 #ifdef DEBUG_TRI_CONFORMIZER
-        MIO::write("contot.mesh", pi, ci2, "BAR");
+        medith::write("contot.mesh", pi, ci2, "BAR");
         ++err_count;
 #endif
 
@@ -446,7 +448,7 @@ TRI_Conformizer<DIM>::__split_Elements
   
 #ifdef DEBUG_TRI_CONFORMIZER
 #ifdef FLAG_STEP
-  if (NUGA::chrono::verbose > 1)
+  //if (NUGA::chrono::verbose > 1)
   {
 #ifdef DEBUG_CONFORMIZER
     std::cout << "split : nb of quicly discarded : " << NUGA::ConformizerRoot::split_fastdiscard_counter << std::endl;
@@ -513,22 +515,23 @@ template <E_Int DIM>
 E_Int
 TRI_Conformizer<DIM>::__iterative_run
 (DELAUNAY::T3Mesher<E_Float>& mesher, K_FLD::FloatArray& crd, K_FLD::IntArray& cB, 
- NUGA::int_vector_type& hnodes, DELAUNAY::MeshData& data, std::vector<E_Int>& lnids)
+ NUGA::int_vector_type& hnodes, DELAUNAY::MeshData& data, std::vector<E_Int>& lnids,
+ bool ignore_unforceable_edge, bool silent_last_iter)
 {
   E_Int err(0), nb_pts(crd.cols());
   
-  bool silent_last_it = mesher._mode.silent_errors;
-  
-  
+  mesher._mode.silent_errors = silent_last_iter;
+  mesher._mode.ignore_unforceable_edges = ignore_unforceable_edge;
+    
   lnids.clear();
   if (mesher._mode.ignore_coincident_nodes) //and eventually unforceable edge
     K_CONNECT::IdTool::init_inc(lnids, nb_pts);
-  
-
+ 
   // Multiple attempts : do not shuffle first, and then do shuffle
   E_Int railing = -1;
   E_Int nb_attemps = std::min(cB.cols(), (E_Int)6);//to test all RTOL2 values in range [1.e-8, 1.e-3]
   E_Int k = 9;
+
   while (railing++ < nb_attemps)
   {
     //if (err) std::cout << "atempt " << railing << " return error : " << err << std::endl;
@@ -539,9 +542,10 @@ TRI_Conformizer<DIM>::__iterative_run
     data.clear(); //reset containers
     mesher._edge_errors.clear();
     
-    mesher._mode.do_not_shuffle=bool(!railing); // i.e. shuffle every time but the first
-    mesher._mode.silent_errors=(railing == nb_attemps) ? silent_last_it : true; // only listen EVENTUALLY the last attempt
+    mesher._mode.do_not_shuffle=(railing == 0); // i.e. shuffle every time but the first
 
+    if (!silent_last_iter && (railing == nb_attemps)) mesher._mode.silent_errors = false; // only listen the last iter
+    
     data.pos = &crd;
     data.connectB = &cB;
 #ifdef OLD_STYLE
@@ -551,7 +555,7 @@ TRI_Conformizer<DIM>::__iterative_run
     err = mesher.run(data);
     
     // process errors and update cB, hNodes and lnids
-    if (mesher._mode.ignore_unforceable_edges) //and eventually unforceable edge
+    if (mesher._mode.ignore_unforceable_edges)
     {
       if (!mesher._edge_errors.empty())//has errors
       {
@@ -1722,6 +1726,50 @@ TRI_Conformizer<DIM>::__simplify_and_clean
   return nb_merges;
 }
 
+#ifdef DEBUG_TRI_CONFORMIZER
+template <E_Int DIM>
+void
+TRI_Conformizer<DIM>::draw(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, double tol, E_Int what, K_FLD::IntArray& out)
+{
+  // OK=0, HAT = 1, SPIKE = 2, SMALL = 4, BADQUAL = 5
+  
+  out.clear();
+
+  double MINQUAL{ 1.e-3 };
+  double tol2 = tol * tol;
+
+  for (E_Int i = 0; i < connect.cols(); ++i)
+  {
+    K_FLD::IntArray::const_iterator pS = connect.col(i);
+
+    E_Int N0 = *pS;
+    E_Int N1 = *(pS + 1);
+    E_Int N2 = *(pS + 2);
+
+    E_Int ni;
+    SwapperT3::eDegenType type = SwapperT3::degen_type2(pos, N0, N1, N2, tol2, 0., ni);
+
+    bool skip = true;
+
+    if (what == 5)
+    {
+      E_Float q = K_MESH::Triangle::qualityG<3>(pos.col(connect(0, i)), pos.col(connect(1, i)), pos.col(connect(2, i)));
+      if (q < MINQUAL)
+        skip = false;
+    }
+    else if (what == 1 && type == SwapperT3::eDegenType::HAT)
+      skip = false;
+    else if (what == 2 && type == SwapperT3::eDegenType::SPIKE)
+      skip = false;
+    else if (what == 4 && type == SwapperT3::eDegenType::SMALL)
+      skip = false;
+
+    if (skip) continue;
+ 
+    out.pushBack(connect.col(i), connect.col(i) + 3);
+  }
+}
+#endif
 ///
 template <E_Int DIM>
 E_Int
@@ -1729,16 +1777,81 @@ TRI_Conformizer<DIM>::__simplify_and_clean2
 (const K_FLD::FloatArray& pos, E_Float tolerance,
 K_FLD::IntArray& connect, NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc)
 {
+  //std::cout << "FIXING SPIKES" << std::endl;
   E_Int nb_elts0 = connect.cols(), nb_elts;
+  //E_Int it(-1);
   bool has_degn = false;
   do
   {
+    //std::cout << "iter : " << ++it << std::endl;
     nb_elts = connect.cols();
-    SwapperT3::clean(pos, tolerance, connect, ancestors);
-    SwapperT3::run(pos, tolerance, connect, ancestors);
-    has_degn = SwapperT3::has_degen(pos, connect, tolerance*tolerance);
+    std::vector<E_Int> cnids;
+    SwapperT3::clean(pos, tolerance, connect, ancestors, cnids);//compress inside
+    
+    K_CONNECT::valid pred(cnids);
+    K_CONNECT::IdTool::compress(parent_type::_colors, pred); //must be compress for below xr update and validity
+
+    // xr must keep the same size to refer to ancestors : might have empty slots for totally vanished elts
+    std::vector<E_Int> xr = parent_type::_xr;
+    for (size_t i = 0; i < parent_type::_xr.size()-1; ++i)
+    {
+      E_Int v = 0;
+      for (size_t u = parent_type::_xr[i]; u < parent_type::_xr[i + 1]; ++u)
+        if (cnids[i] != IDX_NONE)++v;
+      xr[i + 1] = xr[i] + v;
+    }
+    parent_type::_xr = xr;
+
+    //std::cout << "xr size : " << parent_type::_xr.size() << std::endl;
+    //std::cout << "xr last : " << parent_type::_xr[parent_type::_xr.size() - 1] << std::endl;
+
+    // SwapperT3::run changes connect sorting => need to recompute xr, colors, and ancestors
+    std::map<E_Int, E_Int> col_to_anc;
+    for (size_t i = 0; i < connect.cols(); ++i)
+      col_to_anc[parent_type::_colors[i]] = ancestors[i];
+    
+    SwapperT3::run(pos, tolerance, connect, parent_type::_colors);
+
     xc.resize(connect.cols(), true);
-  } while (has_degn && nb_elts != connect.cols());
+
+    std::map<E_Int, K_FLD::IntArray> col_to_elts;
+    for (size_t i = 0; i < connect.cols(); ++i)
+      col_to_elts[parent_type::_colors[i]].pushBack(connect.col(i), connect.col(i) + 3);
+
+    ancestors.clear();
+    parent_type::_colors.clear();
+    connect.clear();
+    E_Int nbanc = parent_type::_xr.size();
+    parent_type::_xr.clear();
+    parent_type::_xr.resize(nbanc, 0);
+ 
+    for (auto it : col_to_elts)
+    {
+      E_Int subcol = it.first;
+      K_FLD::IntArray& cnt = it.second;
+      E_Int anc = col_to_anc[subcol];
+
+      //std::cout << "sub/anc/nbe : " << subcol << "/" << anc << "/" << cnt.cols() << std::endl;
+
+      parent_type::_xr[anc+1] += cnt.cols(); // accum all sub colors size for a given anc
+
+      for (size_t k = 0; k < cnt.cols(); ++k)
+      {
+        connect.pushBack(cnt.col(k), cnt.col(k) + 3);
+        parent_type::_colors.push_back(subcol);
+        ancestors.push_back(anc);
+      }
+    }
+
+    // xr : now go to accumulated storage as it should be
+    for (size_t i = 0; i < parent_type::_xr.size() - 1; ++i)
+      parent_type::_xr[i + 1] += parent_type::_xr[i];
+
+    has_degn = SwapperT3::has_degen(pos, connect, tolerance*tolerance);
+    
+    //std::cout << "has degen ?" << has_degn << std::endl;
+    //std::cout << "has cleaned ?" << (nb_elts != connect.cols()) << std::endl;
+  } while (has_degn  && nb_elts != connect.cols());
 
   return (connect.cols() - nb_elts0);
 }

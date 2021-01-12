@@ -556,6 +556,7 @@ E_Int NUGA::Splitter::split_pgs
   //
   transfo_t p;
   p.convexity_tol = convexity_tol;
+  p.improve_qual = true;
 
   Vector_t<bool> *PGs_to_process(0), tmp;
   if (PHlist)

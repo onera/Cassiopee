@@ -109,6 +109,9 @@ E_Int __swap_edges(std::vector<std::pair<E_Int, E_Int> >& sapwE, K_FLD::IntArray
   ///
   void drawElements(const char* fname, const char* filefmt, const K_FLD::FloatArray& coord,
                     const K_FLD::IntArray& connect, const std::vector<T3> & elts, bool localid = false, std::vector<E_Int>* colors=0);
+  ///
+  void draw(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, double tol, E_Int what, K_FLD::IntArray& out);
+
 #endif
   
   /////////////////////////////////////////////////////////////////////////////
@@ -121,7 +124,8 @@ public:
   
   ///
   E_Int __iterative_run(DELAUNAY::T3Mesher<E_Float>& mesher, K_FLD::FloatArray& crd, K_FLD::IntArray& cB, 
-                        NUGA::int_vector_type& hnodes, DELAUNAY::MeshData& data, std::vector<E_Int>& nids);
+                        NUGA::int_vector_type& hnodes, DELAUNAY::MeshData& data, std::vector<E_Int>& nids,
+                        bool ignore_unforceable_edge, bool silent_last_iter);
   ///
   E_Int __get_mesh_data(const K_FLD::FloatArray & pos, const K_FLD::IntArray & connect, const T3& t, edge_container_type& Edges,
                         K_FLD::FloatArray& p, K_FLD::IntArray& c, std::vector<E_Int>& oids);

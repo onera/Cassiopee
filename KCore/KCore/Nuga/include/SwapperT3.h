@@ -16,12 +16,12 @@ public:
   static E_Int run
     (const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArray& connect, std::vector<E_Int>& oids);
 
-  static E_Int clean(const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArray& connect, std::vector<E_Int> & oids);
+  static E_Int clean(const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArray& connect, std::vector<E_Int> & coids, std::vector<E_Int> & cnids);
 
-  static E_Int remove_degen(K_FLD::IntArray& connect, std::vector<E_Int>& newIDs);
+  static E_Int remove_degen(K_FLD::IntArray& connect, std::vector<E_Int>& cnids);
 
   static bool has_degen(const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect, E_Float tol2);
-  
+  static bool has_hat(const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect, E_Float tol2);
   static void edit_T3_caracs(const K_FLD::FloatArray& crd, E_Int* pN);
   
   //

@@ -140,11 +140,11 @@ void join_plan<K_FLD::IntArray>::__extract_subplan
   K_CONNECT::IdTool::compress(sub_plan, pred_keep, nids);
   //std::cout << sub_plan << std::endl;
   // now update "pointers" (column references)
-  for (E_Int i = 0; i < sub_plan.cols(); ++i)
+  for (E_Int ii = 0; ii < sub_plan.cols(); ++ii)
   {
     for (E_Int j = 0; j < sub_plan.rows(); ++j)
     {
-      E_Int& p = sub_plan(j, i);
+      E_Int& p = sub_plan(j, ii);
       if (p <= 0) continue;
       assert(p > 1); // first column is gone and is the only one to point on 2nd so must not encounter p==1
       p = nids[p];

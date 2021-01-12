@@ -325,6 +325,13 @@ namespace K_MESH
       _nodes[2] = MAX_ID(n0, n1, n2);
       _nodes[1] = ((_nodes[0] != n0) && (_nodes[2] != n0)) ? n0 : ((_nodes[0] != n1) && (_nodes[2] != n1)) ? n1 : n2;
     }
+
+    bool operator==(const NO_Triangle& t)
+    {
+      if (*this < t) return false;
+      if (t < *this) return false;
+      return true;
+    }
   };
 
 #define MIN_LOC_ID(n0, n1, n2) (!(n0 > n1) && !(n0 > n2)) ? 0 : (!(n1 > n0) && !(n1 > n2)) ? 1 : 2; 
