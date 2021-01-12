@@ -30,7 +30,7 @@ __RAD2DEG__= 180./pi
 def setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
                          cx="0", cy="0", cz="0",
                          ex="0", ey="0", ez="1", angle="0"):
-  """Define a motion of type 1 into zones."""
+  """Define a motion of type 1 (time strings)."""
   tp = Internal.copyRef(t)
   _setPrescribedMotion1(tp, name, tx=tx, ty=ty, tz=tz, cx=cx, cy=cy, cz=cz, 
                         ex=ex, ey=ey, ez=ez, angle=angle)
@@ -84,7 +84,7 @@ def setPrescribedMotion2(t, name,
                          span_vct=(1.,0.,0.),
                          pre_lag_pnt=(0.,0.,0.), pre_lag_vct=(1.,0.,0.), pre_lag_ang=0.,
                          pre_con_pnt=(0.,0.,0.), pre_con_vct=(1.,0.,0.), pre_con_ang=0.):
-    """Define a motion of type 2 into zones."""
+    """Define a motion of type 2 (rotor)"""
     tp = Internal.copyRef(t)
     _setPrescribedMotion2(tp, name, transl_speed=transl_speed, psi0=psi0, psi0_b=psi0_b,
                           alp_pnt=alp_pnt, alp_vct=alp_vct, alp0=alp0,
@@ -899,6 +899,7 @@ def _setRotorMotionCoordinatesAndVelocityZ(a, time):
 
 # Evaluation de la vitesse par differences finies
 # Il faut que les coordonnees dans a correpondent a time=0
+# si il n'y as pas de GridCoordinates#Init
 def _evalGridSpeed2(a, time, dtime=1.e-6):
     # evalue la position a l'instant time
     b = evalPosition(a, time)

@@ -48,10 +48,8 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     Handle(TColStd_HSequenceOfTransient) occ_list = reader.GiveList("iges-faces");
     
     //if (occ_list.IsNull()) return 1;
-
-    //Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
     Standard_Integer nb_cad_faces = occ_list->Length();
-    printf("IGES Faces: %d\n", nb_cad_faces);
+    Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
     *shp = reader.OneShape();
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
@@ -59,6 +57,7 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     // Read the file
     STEPControl_Reader reader;
     reader.ReadFile(fileName);
+    reader.TransferRoots();
     *shp = reader.OneShape();
   }
   
@@ -69,6 +68,8 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
   // Extract edges
   TopTools_IndexedMapOfShape* edges = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*shp, TopAbs_EDGE, *edges);
+  printf("INFO: Nb edges=%d\n", edges->Extent());
+  printf("INFO: Nb faces=%d\n", surfs->Extent());
   
   // capsule 
   PyObject* hook;
@@ -86,6 +87,44 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
 
   return hook;
 } 
+
+// ============================================================================
+// Retourne le nbre de faces dans le hook
+// ============================================================================
+PyObject* K_OCC::getNbFaces(PyObject* self, PyObject* args)
+{
+  PyObject* hook;
+  if (!PYPARSETUPLEI(args, "O", "O", &hook)) return NULL;  
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  return Py_BuildValue("l", surfaces.Extent());
+}
+
+// ============================================================================
+PyObject* K_OCC::getNbEdges(PyObject* self, PyObject* args)
+{
+  PyObject* hook;
+  if (!PYPARSETUPLEI(args, "O", "O", &hook)) return NULL;  
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  return Py_BuildValue("l", edges.Extent());
+
+}
+
 
 
 

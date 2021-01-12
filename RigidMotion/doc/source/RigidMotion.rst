@@ -29,16 +29,16 @@ List of functions
 
 .. autosummary::
 
-   RigidMotion.setPrescribedMotion1
-   RigidMotion.setPrescribedMotion2
-   RigidMotion.setPrescribedMotion3
+   RigidMotion.PyTree.setPrescribedMotion1
+   RigidMotion.PyTree.setPrescribedMotion2
+   RigidMotion.PyTree.setPrescribedMotion3
 
 **-- General functions**
 
 .. autosummary::
 
-   RigidMotion.evalPosition
-
+   RigidMotion.PyTree.evalPosition
+   RigidMotion.PyTree.evalGridSpeed
    
 
 Contents
@@ -124,6 +124,7 @@ Contents
     :type axis_vect: tuple of 3 floats
     :param omega: constant rotation speed
     :type omega: float 
+    
     *Example of use:*
 
     * `Set a prescribed motion of type 3 (pyTree) <Examples/RigidMotion/setPrescribedMotion3PT.py>`_:
@@ -141,8 +142,9 @@ General functions
 .. py:function:: RigidMotion.evalPosition(a, time)
 
     Evaluate the position at time t according to a motion.
-    The motion must be defined in a with setPrescribedMotion. 
-    Grid coordinates in a must be the coordinates at time=0.
+    The motion must be defined in a with setPrescribedMotion.
+    If GridCoordinates#Init is present, it is used to compute position. 
+    Otherwise, Grid coordinates in a must be the coordinates at time=0.
 
     Exists also as an in-place version (_evalPosition) which modifies a and returns None.
 
@@ -180,6 +182,30 @@ General functions
 
     .. literalinclude:: ../build/Examples/RigidMotion/evalPosition2PT.py
     
+
+------------------------------------------------------------------------------------------------
+
+.. py:function:: RigidMotion.evalGridSpeed(a, time)
+
+    Evaluate grid speed at given time.
+    The position must already have been evaluated at this time.
+
+    Exists also as an in-place version (_evalGridSpeed) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [pyTree, base, zone, list of zones]
+    :param time: evaluation time
+    :type time: float
+    :return: reference copy of a
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Evaluate speed (pyTree) <Examples/RigidMotion/evalGridSpeedPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/RigidMotion/evalGridSpeedPT.py
+    
+
 
 .. toctree::
    :maxdepth: 2   

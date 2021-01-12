@@ -24,7 +24,7 @@
 #include <ShapeAnalysis.hxx>
 #include <ShapeAnalysis_Surface.hxx>
 #include <StdFail_NotDone.hxx>
-#include <BrepAdaptor_Surface.hxx>
+#include <BRepAdaptor_Surface.hxx>
 #include <Geom_Surface.hxx>
 #include <BRep_Tool.hxx>
 

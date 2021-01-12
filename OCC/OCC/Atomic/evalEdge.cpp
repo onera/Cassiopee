@@ -18,38 +18,41 @@
 */
 
 #include "occ.h"
-#include "TopoDS_Face.hxx"
+#include "TopoDS_Edge.hxx"
 #include "Geom_Surface.hxx"
 #include "BRep_Tool.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopoDS.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
+#include "BRepAdaptor_Curve.hxx"
 
-// evalue une maillage uv en x,y,z a partir de la face 
-void evalFace__(E_Int npts, E_Float* u, E_Float* v, const TopoDS_Face& F,
+// evalue une courbe u en x,y,z a partir de l'edge 
+void evalEdge__(E_Int npts, E_Float* u, const TopoDS_Edge& E,
                 E_Float* x, E_Float* y, E_Float* z)
 {
-    Handle(Geom_Surface) face = BRep_Tool::Surface(F);
+    //Handle(Geom_Curve) edge = BRep_Tool::Curve(E);
+    BRepAdaptor_Curve C0(E);
+  
 #pragma omp parallel
 {
     gp_Pnt Pt;
-#pragma omp for 
+#pragma omp for
     for (E_Int i = 0; i < npts; i++)
     {
-        face->D0(u[i], v[i], Pt);
+        C0.D0(u[i], Pt);
         x[i] = Pt.X(); y[i] = Pt.Y(); z[i] = Pt.Z();
     }
 }
 }
 
-// evalFace
-// IN: arrayUV: arrayUV corresponding to the face faceNo of CAD
-PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
+// evalEdge
+// IN: arrayU: arrayU corresponding to the edge edgeNo of CAD
+PyObject* K_OCC::evalEdge(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  PyObject* arrayUV;
-  E_Int faceNo; // No de la face 
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &hook, &arrayUV, &faceNo)) return NULL;  
+  PyObject* arrayU;
+  E_Int edgeNo; // No de la face 
+  if (!PYPARSETUPLEI(args, "OOl", "OOi", &hook, &arrayU, &edgeNo)) return NULL;  
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -58,21 +61,20 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   packet = (void**) PyCapsule_GetPointer(hook, NULL);
 #endif
 
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopExp_Explorer expl;
 
-  const TopoDS_Face& F = TopoDS::Face(surfaces(faceNo));
+  const TopoDS_Edge& E = TopoDS::Edge(edges(edgeNo));
   FldArrayF* fi; E_Int ni, nj, nk;
   char* varString; FldArrayI* ci; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray2(arrayUV, varString, fi, ni, nj, nk, ci, eltType);
+  E_Int ret = K_ARRAY::getFromArray2(arrayU, varString, fi, ni, nj, nk, ci, eltType);
   E_Float* pu = fi->begin(1);
-  E_Float* pv = fi->begin(2);
-  PyObject* o = NULL;
+  PyObject* o;
   if (ret == 1) o = K_ARRAY::buildArray2(3, "x,y,z", ni, nj, nk, 1);
   else o = K_ARRAY::buildArray2(3, "x,y,z", fi->getSize(), ci->getSize(), -1, eltType);
-  FldArrayF* fo; FldArrayI* co; E_Int npts;
+  FldArrayF* fo; FldArrayI* co;
   if (ret == 1) K_ARRAY::getFromArray2(o, fo);
-  else 
+  else
   {
     K_ARRAY::getFromArray2(o, fo, co);
     E_Int* pci = ci->begin(); E_Int* pco = co->begin();
@@ -81,8 +83,8 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   E_Float* px = fo->begin(1);
   E_Float* py = fo->begin(2);
   E_Float* pz = fo->begin(3);
-  evalFace__(fo->getSize(), pu, pv, F, px, py, pz);
-  RELEASESHAREDB(ret, arrayUV, fi, ci);
+  evalEdge__(fo->getSize(), pu, E, px, py, pz);
+  RELEASESHAREDB(ret, arrayU, fi, ci);
   if (ret == 1) { RELEASESHAREDS(o, fo); }
   else { RELEASESHAREDU(o, fo, co); }
   return o;

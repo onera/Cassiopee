@@ -27,10 +27,15 @@ namespace K_OCC
   PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher
   PyObject* convertCAD2Arrays2(PyObject* self, PyObject* args); // with T3Mesher
   PyObject* readCAD(PyObject* self, PyObject* args);
+  PyObject* getNbFaces(PyObject* self, PyObject* args);
+  PyObject* getNbEdges(PyObject* self, PyObject* args);
   PyObject* meshGlobalEdges(PyObject* self, PyObject* args);
   PyObject* meshGlobalEdges2(PyObject* self, PyObject* args);
+  PyObject* meshEdgesByFace(PyObject* self, PyObject* args);
   PyObject* identifyLoopsInEdges(PyObject* self, PyObject* args);
+  PyObject* evalEdge(PyObject* self, PyObject* args);
   PyObject* evalFace(PyObject* self, PyObject* args);
+  PyObject* projectOnFaces(PyObject* self, PyObject* args);
 }
 
 #endif

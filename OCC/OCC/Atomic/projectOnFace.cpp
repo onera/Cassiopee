@@ -21,9 +21,12 @@
 #include <TopoDS_Face.hxx>
 #include <GeomAPI_ProjectPointOnSurf.hxx>
 #include <BRep_Tool.hxx>
+#include <TopTools_IndexedMapOfShape.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
 
 // Project coords on CAD face
-void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, TopoDS_Face& F)
+void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const TopoDS_Face& F)
 {
   gp_Pnt Point;
   Handle(Geom_Surface) face = BRep_Tool::Surface(F);
@@ -36,4 +39,76 @@ void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, TopoDS_F
     //printf("projection %f %f %f -> %f %f %f\n",x,y,z,Pj.X(),Pj.Y(),Pj.Z());
     px[i] = Pj.X(); py[i] = Pj.Y(); pz[i] = Pj.Z();
   }
+}
+
+// ============================================================================
+/* Project array in place  */
+// ============================================================================
+PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
+{
+  PyObject* hook; PyObject* array;
+  if (!PYPARSETUPLEF(args, "OO", "OO", &hook, &array)) return NULL;  
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  // array a projeter
+  FldArrayF* fi; E_Int ni, nj, nk;
+  char* varString; FldArrayI* c; char* eltType;
+  E_Int ret = K_ARRAY::getFromArray2(array, varString, fi, ni, nj, nk, c, eltType);
+  
+  E_Float* px = fi->begin(1); // fix
+  E_Float* py = fi->begin(2);
+  E_Float* pz = fi->begin(3);
+  E_Int npts = fi->getSize();
+  
+  E_Float* ptx = new E_Float [npts];
+  E_Float* pty = new E_Float [npts];
+  E_Float* ptz = new E_Float [npts];
+  E_Float* pox = new E_Float [npts];
+  E_Float* poy = new E_Float [npts];
+  E_Float* poz = new E_Float [npts];
+  E_Float* dist = new E_Float [npts];
+  E_Float d, dx, dy, dz;
+
+  for (E_Int i = 0; i < npts; i++) pox[i] = px[i];
+  for (E_Int i = 0; i < npts; i++) poy[i] = py[i];
+  for (E_Int i = 0; i < npts; i++) poz[i] = pz[i];
+  for (E_Int i = 0; i < npts; i++) dist[i] = K_CONST::E_MAX_FLOAT;
+
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  
+  TopExp_Explorer expl;
+  for (E_Int i=1; i <= surfaces.Extent(); i++)
+  {
+
+    for (E_Int i = 0; i < npts; i++) ptx[i] = pox[i];
+    for (E_Int i = 0; i < npts; i++) pty[i] = poy[i];
+    for (E_Int i = 0; i < npts; i++) ptz[i] = poz[i];
+
+    const TopoDS_Face& F = TopoDS::Face(surfaces(i));
+    projectOnFace__(npts, ptx, pty, ptz, F);
+
+    for (E_Int i = 0; i < npts; i++)
+    {
+      dx = ptx[i]-pox[i];
+      dy = pty[i]-poy[i];
+      dz = ptz[i]-poz[i];
+      
+      d = dx*dx+dy*dy+dz*dz;
+      if (d < dist[i]) 
+      { dist[i] = d; px[i] = ptx[i]; py[i] = pty[i]; pz[i] = ptz[i]; }
+    }
+  }
+
+  delete [] pox; delete [] poy; delete [] poz;
+  delete [] ptx; delete [] pty; delete [] ptz;
+  delete [] dist;
+  Py_DECREF(Py_None);
+  return Py_None;
 }
