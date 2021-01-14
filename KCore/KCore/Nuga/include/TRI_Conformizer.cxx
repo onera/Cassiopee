@@ -1796,7 +1796,7 @@ K_FLD::IntArray& connect, NUGA::int_vector_type& ancestors, NUGA::bool_vector_ty
     for (size_t i = 0; i < parent_type::_xr.size()-1; ++i)
     {
       E_Int v = 0;
-      for (size_t u = parent_type::_xr[i]; u < parent_type::_xr[i + 1]; ++u)
+      for (E_Int u = parent_type::_xr[i]; u < parent_type::_xr[i + 1]; ++u)
         if (cnids[i] != IDX_NONE)++v;
       xr[i + 1] = xr[i] + v;
     }
@@ -1807,7 +1807,7 @@ K_FLD::IntArray& connect, NUGA::int_vector_type& ancestors, NUGA::bool_vector_ty
 
     // SwapperT3::run changes connect sorting => need to recompute xr, colors, and ancestors
     std::map<E_Int, E_Int> col_to_anc;
-    for (size_t i = 0; i < connect.cols(); ++i)
+    for (E_Int i = 0; i < connect.cols(); ++i)
       col_to_anc[parent_type::_colors[i]] = ancestors[i];
     
     SwapperT3::run(pos, tolerance, connect, parent_type::_colors);
@@ -1815,7 +1815,7 @@ K_FLD::IntArray& connect, NUGA::int_vector_type& ancestors, NUGA::bool_vector_ty
     xc.resize(connect.cols(), true);
 
     std::map<E_Int, K_FLD::IntArray> col_to_elts;
-    for (size_t i = 0; i < connect.cols(); ++i)
+    for (E_Int i = 0; i < connect.cols(); ++i)
       col_to_elts[parent_type::_colors[i]].pushBack(connect.col(i), connect.col(i) + 3);
 
     ancestors.clear();
@@ -1835,7 +1835,7 @@ K_FLD::IntArray& connect, NUGA::int_vector_type& ancestors, NUGA::bool_vector_ty
 
       parent_type::_xr[anc+1] += cnt.cols(); // accum all sub colors size for a given anc
 
-      for (size_t k = 0; k < cnt.cols(); ++k)
+      for (E_Int k = 0; k < cnt.cols(); ++k)
       {
         connect.pushBack(cnt.col(k), cnt.col(k) + 3);
         parent_type::_colors.push_back(subcol);

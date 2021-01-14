@@ -1094,7 +1094,7 @@ def TFIO(a):
 
 def TFIHalfO(a1, a2):
     """Generate a transfinite interpolation mesh from 2 input curves.
-    Usage: TFIHalfO(a)"""
+    Usage: TFIHalfO(a1,a2)"""
     a1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     a2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
     r1,r2,r3,r4 = Generator.TFIHalfO(a1, a2)
@@ -1110,6 +1110,18 @@ def TFIMono(a1, a2):
     a2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
     r = Generator.TFIMono(a1, a2)
     return [C.convertArrays2ZoneNode('tfi', [r[0]])]
+
+def TFIStar(a):
+    """Generate a transfinite interpolation mesh from a list of input curves.
+    Usage: TFIStar(a)"""
+    m = []
+    for ai in a:
+        m.append(C.getFields(Internal.__GridCoordinates__, ai)[0])
+    ret = Generator.TFIStar(m)
+    out = []
+    for c, r in enumerate(ret):
+        out.append(C.convertArrays2ZoneNode('tfi%d'%c, [r]))
+    return out
 
 def TTM(a, niter=100):
     """Smooth a mesh using Thomson-Mastin elliptic generator.

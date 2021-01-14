@@ -28,7 +28,7 @@ def quality(meshes):
 # IN: a1,a2,a3: les 3 cotes du triangle (N3-N2+N1 impair)
 # OUT: 3 maillages
 #==============================================================================
-def TFITri(a1, a2, a3):
+def TFITri(a1, a2, a3, tol=1.e-6):
     import Transform as T
     from . import Generator as G
     import Geom as D
@@ -46,20 +46,19 @@ def TFITri(a1, a2, a3):
     P0 = (a1[1][0,N1-1], a1[1][1,N1-1], a1[1][2,N1-1])
     P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
     P01 = (a2[1][0,N2-1], a2[1][1,N2-1], a2[1][2,N2-1])
-    if (abs(P0[0]-P00[0]) + abs(P0[1]-P00[1]) + abs(P0[2]-P00[2]) > 1.e-6
-        and abs(P0[0]-P01[0]) + abs(P0[1]-P01[1]) + abs(P0[2]-P01[2]) > 1.e-6):
+    if abs(P0[0]-P00[0]) + abs(P0[1]-P00[1]) + abs(P0[2]-P00[2]) > tol and abs(P0[0]-P01[0]) + abs(P0[1]-P01[1]) + abs(P0[2]-P01[2]) > tol:
         t = a2; a2 = a3; a3 = t
         N2 = a2[2]; N3 = a3[2]
         P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
         
-    if abs(P0[0]-P00[0]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
-    elif abs(P0[1]-P00[1]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
-    elif abs(P0[2]-P00[2]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
+    if abs(P0[0]-P00[0]) > tol: a2 = T.reorder(a2, (-1,2,3))
+    elif abs(P0[1]-P00[1]) > tol: a2 = T.reorder(a2, (-1,2,3))
+    elif abs(P0[2]-P00[2]) > tol: a2 = T.reorder(a2, (-1,2,3))
     P0 = (a2[1][0,N2-1], a2[1][1,N2-1], a2[1][2,N2-1])
     P00 = (a3[1][0,0], a3[1][1,0], a3[1][2,0])
-    if abs(P0[0]-P00[0]) > 1.e-6: a3 = T.reorder(a3, (-1,2,3))
-    elif abs(P0[1]-P00[1]) > 1.e-6: a3 = T.reorder(a3, (-1,2,3))
-    elif abs(P0[2]-P00[2]) > 1.e-6: a3 = T.reorder(a3, (-1,2,3))
+    if abs(P0[0]-P00[0]) > tol: a3 = T.reorder(a3, (-1,2,3))
+    elif abs(P0[1]-P00[1]) > tol: a3 = T.reorder(a3, (-1,2,3))
+    elif abs(P0[2]-P00[2]) > tol: a3 = T.reorder(a3, (-1,2,3))
     #C.convertArrays2File([a1,a2,a3], 'order.plt')
 
     # Center
@@ -210,7 +209,7 @@ def TFIO(a):
 # a1: straight, a2: round
 # Celle qui a le plus de points est prise pour round.
 #==============================================================================
-def TFIHalfO__(a1, a2, weight, offset=0):
+def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
     import Transform as T
     import Geom as D
 
@@ -221,9 +220,9 @@ def TFIHalfO__(a1, a2, weight, offset=0):
     # Check
     P0 = (a1[1][0,0], a1[1][1,0], a1[1][2,0])
     P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
-    if abs(P0[0]-P00[0]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
-    elif abs(P0[1]-P00[1]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
-    elif abs(P0[2]-P00[2]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
+    if abs(P0[0]-P00[0]) > tol: a2 = T.reorder(a2, (-1,2,3))
+    elif abs(P0[1]-P00[1]) > tol: a2 = T.reorder(a2, (-1,2,3))
+    elif abs(P0[2]-P00[2]) > tol: a2 = T.reorder(a2, (-1,2,3))
     
     # Round
     w1 = C.array('weight', Nt1, 1, 1); w1 = C.initVars(w1, 'weight', 1.)
@@ -339,3 +338,20 @@ def TFIMono(a1, a2):
     b3 = T.subzone(a2, (Np,1,1), (N2-Np+1,1,1))
     m1 = G.TFI([a1,b1,b3,b2])
     return [m1]
+
+# Cree un ensemble de maillage TFI
+def TFIStar(edges):
+    import Generator as G
+    import Geom as D
+    XG = G.barycenter(edges)
+    out = []
+    for e in edges:
+        N = e[2]
+        ep = e[1]
+        P0 = (ep[0,0], ep[1,0], ep[2,0])
+        P1 = (ep[0,-1], ep[1,-1], ep[2,-1])
+        l1 = D.line(P0,XG,N=N)
+        l2 = D.line(XG,P1,N=N)
+        ret = TFITri(e,l1,l2)
+        out += ret
+    return out

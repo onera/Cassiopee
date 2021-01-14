@@ -18,7 +18,7 @@ __all__ = ['cart', 'cartHexa', 'cartTetra', 'cartPenta', 'cartPyra', 'cartNGon',
     'map1d', 'map1dpl', 'map2d', 'mapCurvature', 'refine', 'defineSizeMapForMMGs',
     'mmgs', 'densify', 'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4',
     'close', 'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts',
-    'grow', 'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono',
+    'grow', 'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar',
     'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap', 'getNormalMap',
     'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
     'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
@@ -825,7 +825,7 @@ def TFITri(a1, a2, a3):
 
 def TFIO(a):
     """Generate a transfinite interpolation mesh for 1 input curve.
-    Usage: TFIO(a1,a2,a3)"""
+    Usage: TFIO(a)"""
     from . import TFIs
     return TFIs.TFIO(a)
 
@@ -840,6 +840,12 @@ def TFIMono(a1, a2):
     Usage: TFIMono(a1, a2)"""
     from . import TFIs
     return TFIs.TFIMono(a1, a2)
+
+def TFIStar(a):
+    """Generate a transfinite interpolation mesh for a list of input curves.
+    Usage: TFIStar(a)"""
+    from . import TFIs
+    return TFIs.TFIStar(a)
 
 def TTM(array, niter=100):
     """Smooth a mesh with Thompson-Mastin elliptic generator.

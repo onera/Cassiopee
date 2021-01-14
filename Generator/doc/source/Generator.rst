@@ -587,7 +587,7 @@ General purpose grid generator
 
 .. py:function:: Generator.TFIO(a)
 
-    Generate five meshes by transfinite interpolation around one given curves a. The number of points of a must be odd.
+    Generate five meshes by transfinite interpolation around one given curve a. The number of points of a must be odd.
 
     :param a:  curve
     :type  a:  array

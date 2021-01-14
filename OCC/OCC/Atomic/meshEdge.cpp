@@ -96,6 +96,24 @@ E_Int& nbPoints, K_FLD::FldArrayF& coords)
   E_Float* pu = coords.begin(4);
   E_Float* pv = coords.begin(5);
   
+  if (BRep_Tool::Degenerated(E))
+  {
+    gp_Pnt Pt; gp_Pnt2d Puv; 
+    E_Float u = pFirst;
+    C0.D0(u, Pt);
+      
+    for (E_Int i = 0; i < nbPoints; i++)
+    {
+      u = i*1./(nbPoints-1);
+      u = u*(pEnd-pFirst)+pFirst;
+      pCurve->D0(u, Puv);
+      px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
+      pu[i] = Puv.X(); pv[i] = Puv.Y();
+    }
+    return 0;
+  }
+
+  // non degenerated case
 #pragma omp parallel
 {
     gp_Pnt Pt; gp_Pnt2d Puv; E_Float u;

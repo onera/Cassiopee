@@ -40,7 +40,7 @@ SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int
   E_Int n = palma[2].second;
   E_Int& Ntop = N[n];
   E_Float& Lbase2 = palma[2].first;
-  E_Float& Lmin2 = palma[0].first;
+  //E_Float& Lmin2 = palma[0].first;
 
   /*std::cout << "Lmin : " << ::sqrt(palma[0].first) << std::endl;
   std::cout << "Lmax : " << ::sqrt(palma[2].first) << std::endl;
