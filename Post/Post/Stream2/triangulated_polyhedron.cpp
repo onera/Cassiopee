@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2020 Onera.
+    Copyright 2013-2021 Onera.
 
     This file is part of Cassiopee.
 
@@ -238,7 +238,7 @@
  *  
  *
  * @author     Xavier Juvigny
- * @date       2020
+ * @date       2021
  */
 #include <stdexcept>
 #include "point3d.hpp"
