@@ -213,13 +213,13 @@ Actions
 
     .. literalinclude:: ../build/Examples/CPlot/displayPT.py
     
-    * `Display offscren with openGL (pyTree) <Examples/CPlot/displayOffScreenPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/CPlot/displayOffScreenPT.py
-    
-    * `Display offscren with osmesa (pyTree) <Examples/CPlot/displayOffScreen2PT.py>`_:
+    * `Display offscreen with openGL (pyTree) <Examples/CPlot/displayOffScreen2PT.py>`_:
 
     .. literalinclude:: ../build/Examples/CPlot/displayOffScreen2PT.py
+    
+    * `Display offscreen with osmesa (pyTree) <Examples/CPlot/displayOffScreenPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/displayOffScreenPT.py
 
 ------------------------------------------
 

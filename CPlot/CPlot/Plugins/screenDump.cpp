@@ -63,7 +63,7 @@ void Data::exportFile()
 //=============================================================================
 char* Data::export2Image(int exportWidth, int exportHeight) 
 {
-  printf("mode = %d\n", ptrState->offscreen);
+  //printf("mode = %d\n", ptrState->offscreen);
 
   // resolution
   GLuint fb, rb, db;
@@ -312,7 +312,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     E_Int w, h, bpv;
     OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
     float* depth = (float*)malloc(screenSize * sizeof(float));
-    printf("bpv=%d\n", bpv);
+    //printf("bpv=%d\n", bpv);
     if (bpv == 2)
     {
       unsigned short* d = (unsigned short*)depthl;

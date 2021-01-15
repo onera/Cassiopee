@@ -1,4 +1,5 @@
 # - display (array) -
+# display composite using GL
 import Geom      as D
 import Generator as G
 import CPlot

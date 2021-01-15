@@ -34,12 +34,12 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   PyObject* modeObject;
   PyObject* scalarFieldObject;
   PyObject* vectorFieldObject1, *vectorFieldObject2, *vectorFieldObject3;
-  int displayBB, displayInfo, displayIsoLegend;
   int winx, winy;
+  int displayBB, displayInfo, displayIsoLegend;
   int meshStyle, solidStyle, scalarStyle, vectorStyle, colormap, niso;
   char* colormapC1; char* colormapC2; char* colormapC3;
   E_Float xcam, ycam, zcam, xeye, yeye, zeye, dirx, diry, dirz, isoEdges;
-  E_Float viewAngle, stereoDist, vectorScale, vectorDensity;
+  E_Float stereoDist, viewAngle, vectorScale, vectorDensity;
   int vectorNormalize, vectorShowSurface, vectorShape, vectorProjection;
   char* exportFile; char* exportResolution;
   PyObject* zoneNamesObject;
@@ -52,7 +52,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
-                        &meshStyle, &solidStyle, &scalarStyle, 
+                        &meshStyle, &solidStyle, &scalarStyle,
                         &vectorStyle, &vectorScale, &vectorDensity, &vectorNormalize, 
                         &vectorShowSurface, &vectorShape, &vectorProjection, 
                         &colormap, &colormapC1, &colormapC2, &colormapC3,
@@ -61,7 +61,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
                         &xeye, &yeye, &zeye,
                         &dirx, &diry, &dirz, &viewAngle,
                         &bgColor, &backgroundFile,
-                        &shadow, &dof, &stereo, &stereoDist, 
+                        &shadow, &dof, &stereo, &stereoDist,
                         &exportFile, &exportResolution,
                         &zoneNamesObject, &renderTagsObject,
                         &frameBuffer, &offscreen))
@@ -77,14 +77,10 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   vector<char*> renderTags;
   getStringsFromPyObj(renderTagsObject, renderTags);
 
-  // Recuperation du container de donnees
-  Data* d = Data::getInstance();
-  
   // Lecture des arrays
   vector<E_Int> res;
-  vector<char*> structVarString;
-  vector<char*> unstrVarString;
-  vector<FldArrayF*> structF;  vector<FldArrayF*> unstrF;
+  vector<char*> structVarString; vector<char*> unstrVarString;
+  vector<FldArrayF*> structF; vector<FldArrayF*> unstrF;
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
@@ -104,15 +100,16 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "display: invalid list of arrays.");
     E_Int structFSize = structF.size();
-    for (E_Int i = 0; i < structFSize; i++) 
+    for (E_Int i = 0; i < structFSize; i++)
       RELEASESHAREDS(objs[i], structF[i]);
 
     E_Int unstrFSize = unstrF.size();
     for (E_Int i = 0; i < unstrFSize; i++)
       RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
-    
     return NULL;
   }
+
+  Data* d = Data::getInstance();
 
   // Construction de la chaine de toutes les variables
   E_Int referenceNfield;
@@ -156,9 +153,18 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
 
+
   // offscreen rendering?
   if (offscreen > 0) { d->ptrState->offscreen = offscreen; d->ptrState->shootScreen = 1; }
   if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;
+
+  // Free the input arrays
+  E_Int structFSize = structF.size();
+  for (E_Int i = 0; i < structFSize; i++) RELEASESHAREDS(objs[i], structF[i]);
+
+  E_Int unstrFSize = unstrF.size();
+  for (E_Int i = 0; i < unstrFSize; i++)
+    RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
 
   if (d->ptrState->offscreen == 1 ||
       d->ptrState->offscreen == 5 ||
@@ -196,14 +202,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
     d->ptrState->render = 1;
   }
 
-  // Free the input arrays
-  E_Int structFSize = structF.size();
-  for (E_Int i = 0; i < structFSize; i++) 
-    RELEASESHAREDS(objs[i], structF[i]);
-
-  E_Int unstrFSize = unstrF.size();
-  for (E_Int i = 0; i < unstrFSize; i++)
-    RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
+ 
 
   // Retourne le hook
   return Py_BuildValue("l", d);

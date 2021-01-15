@@ -730,15 +730,15 @@ def _evalGridSpeed(a, time):
             axis_vct[0], axis_vct[1], axis_vct[2])
   
       # DBX: recopie le champ dans un FlowSolution
-      C._initVars(z, 'GridVelocityX', 0.)
-      C._initVars(z, 'GridVelocityY', 0.)
-      C._initVars(z, 'GridVelocityZ', 0.)
-      px = Internal.getNodeFromName(a, 'GridVelocityX')[1]
-      py = Internal.getNodeFromName(a, 'GridVelocityY')[1]
-      pz = Internal.getNodeFromName(a, 'GridVelocityZ')[1]
-      px.ravel('k')[:] = sx[1][:]
-      py.ravel('k')[:] = sy[1][:]
-      pz.ravel('k')[:] = sz[1][:]
+      #C._initVars(z, 'GridVelocityX', 0.)
+      #C._initVars(z, 'GridVelocityY', 0.)
+      #C._initVars(z, 'GridVelocityZ', 0.)
+      #px = Internal.getNodeFromName(a, 'GridVelocityX')[1]
+      #py = Internal.getNodeFromName(a, 'GridVelocityY')[1]
+      #pz = Internal.getNodeFromName(a, 'GridVelocityZ')[1]
+      #px.ravel('k')[:] = sx[1][:]
+      #py.ravel('k')[:] = sy[1][:]
+      #pz.ravel('k')[:] = sz[1][:]
       # fin DBX
   return None
   

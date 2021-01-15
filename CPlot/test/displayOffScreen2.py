@@ -1,5 +1,5 @@
 # - display (array) -
-# Offscreen using FBO
+# display offscreen using GL
 import CPlot
 import Transform as T
 import Geom as D

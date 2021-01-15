@@ -191,9 +191,9 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   // Free the input arrays
   E_Int structFSize = structF.size();
   for (E_Int i = 0; i < structFSize; i++) RELEASESHAREDS(objs[i], structF[i]);
-  
+
   E_Int unstrFSize = unstrF.size();
-  for (E_Int i = 0; i < unstrFSize; i++) 
+  for (E_Int i = 0; i < unstrFSize; i++)
     RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
 
   if (d->ptrState->offscreen == 1 ||

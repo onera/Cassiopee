@@ -5,7 +5,7 @@ from KCore.config import *
 (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
                                              additionalIncludePaths)
 # SHADERS=2 (glsl2.0) =4 (glsl4.0)
-SHADERS = 4
+SHADERS = 2
 
 #==============================================================================
 # Fichiers C++
