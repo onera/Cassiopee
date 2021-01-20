@@ -1,11 +1,11 @@
 # OCC pyTree
 try:
-    import OCC as O
+    import OCC
     import Converter.PyTree as C
     import Converter.Internal as Internal
 except: raise ImportError("OCC.PyTree: requires Converter module.")
 
-__version__ = O.__version__
+__version__ = OCC.__version__
 
 #==============================================================================
 # -- convertCAD2PyTree --
@@ -14,7 +14,7 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
   growth_ratio=0., merge_tol=-1, algo=1):
   """Convert a CAD (IGES or STEP) file to pyTree.
   Usage: convertCAD2PyTree(fileName, options)"""
-  a = O.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio, merge_tol, algo)
+  a = OCC.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio, merge_tol, algo)
   
   t = C.newPyTree([])
   base1 = False; base2 = False; base3 = False; base = 1; c = 0
@@ -74,3 +74,51 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
   Internal._correctPyTree(t, level=2) # force unique name
   Internal._correctPyTree(t, level=7) # create familyNames
   return t
+
+def meshSTRUCT(fileName, format="fmt_step", N=11):
+  """Return a STRUCT discretisation of CAD."""
+  a = OCC.meshSTRUCT(fileName, format, N)
+  out = []
+  for i in a:
+    z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    out.append(z)
+  return out
+
+def meshTRI(fileName, format="fmt_step", N=11):
+  """Return a TRI discretisation of CAD."""
+  a = OCC.meshTRI(fileName, format, N)
+  out = []
+  for i in a:
+    z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    out.append(z)
+  return out
+
+def meshTRIHO(fileName, format="fmt_step", N=11):
+  """Return a TRI HO discretisation of CAD."""
+  a = OCC.meshTRIHO(fileName, format, N)
+  out = []
+  for i in a:
+    z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    out.append(z)
+  return out
+
+def meshQUADHO(fileName, format="fmt_step", N=11):
+  """Return a QUAD HO discretisation of CAD."""
+  a = OCC.meshQUADHO(fileName, format, N)
+  out = []
+  for i in a:
+    z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    out.append(z)
+  return out

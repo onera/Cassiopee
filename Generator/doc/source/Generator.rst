@@ -53,6 +53,7 @@ List of functions
    Generator.TFIO
    Generator.TFIHalfO
    Generator.TFIMono
+   Generator.TFIStar
    Generator.hyper2D
    Generator.PolyLine.polyLineMesher
    Generator.PolyC1.polyC1Mesher
@@ -652,6 +653,27 @@ General purpose grid generator
     * `TFI structured mesh generation between two curves (pyTree) <Examples/Generator/TFIMonoPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/TFIMonoPT.py
+
+---------------------------------------
+
+.. py:function:: Generator.TFIStar(a)
+
+    Generate a set of meshes by transfinite interpolation a list of given curves.
+
+    :param a:  input curves
+    :type  a:  list of structured arrays or zones
+    :return: list of 2D structured mesh
+    :rtype: arrays or pyTree
+
+    *Example of use:*
+
+    * `TFI structured mesh generation of a set of curves (array) <Examples/Generator/TFIStar.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/TFIStar.py
+
+    * `TFI structured mesh generation of a set of curves (pyTree) <Examples/Generator/TFIStarPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/TFIStarPT.py
 
 ---------------------------------------
 

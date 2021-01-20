@@ -1123,6 +1123,18 @@ def TFIStar(a):
         out.append(C.convertArrays2ZoneNode('tfi%d'%c, [r]))
     return out
 
+def TFIStar2(a):
+    """Generate a transfinite interpolation mesh from a list of input curves.
+    Usage: TFIStar2(a)"""
+    m = []
+    for ai in a:
+        m.append(C.getFields(Internal.__GridCoordinates__, ai)[0])
+    ret = Generator.TFIStar2(m)
+    out = []
+    for c, r in enumerate(ret):
+        out.append(C.convertArrays2ZoneNode('tfi%d'%c, [r]))
+    return out
+
 def TTM(a, niter=100):
     """Smooth a mesh using Thomson-Mastin elliptic generator.
     Usage: TTM(a, niter)"""

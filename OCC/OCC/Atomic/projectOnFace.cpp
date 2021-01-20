@@ -60,7 +60,13 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   FldArrayF* fi; E_Int ni, nj, nk;
   char* varString; FldArrayI* c; char* eltType;
   E_Int ret = K_ARRAY::getFromArray2(array, varString, fi, ni, nj, nk, c, eltType);
-  
+  if (ret != 1 && ret != 2)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "projectOnFaces: invalid array.");
+    return NULL;
+  }
+
   E_Float* px = fi->begin(1); // fix
   E_Float* py = fi->begin(2);
   E_Float* pz = fi->begin(3);

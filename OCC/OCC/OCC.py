@@ -78,10 +78,11 @@ def allTFI(edges):
         return Generator.TFITri(edges[0],edges[1],edges[2])
     else:
         # TFIStar
-        return Generator.TFIStar(edges)
+        return Generator.TFIStar2(edges)
 
 # Mailleur de CAD structure
 def meshSTRUCT(fileName, format="fmt_step", N=11):
+    """Return a STRUCT discretisation of CAD."""
     import Generator, Converter
     hook = occ.readCAD(fileName, format)
     nbFaces = occ.getNbFaces(hook)
@@ -113,6 +114,7 @@ def meshSTRUCT(fileName, format="fmt_step", N=11):
     
 # Mailleur CAD non structure
 def meshTRI(fileName, format="fmt_step", N=11):
+    """Return a TRI discretisation of CAD."""
     import Generator, Transform, Converter
     hook = occ.readCAD(fileName, format)
     nbFaces = occ.getNbFaces(hook)
@@ -138,4 +140,31 @@ def meshTRI(fileName, format="fmt_step", N=11):
         except Exception as e:
             print(str(e))
             Converter.convertArrays2File(edges, 'edges%d.plt'%i)
+    return out
+
+def meshTRIHO(fileName, format="fmt_step", N=11):
+    """Return a TRI HO discretisation of CAD."""
+    import Converter
+    a = convertCAD2Arrays(fileName, format, 
+                          h=0., chordal_err=0., growth_ratio=0., 
+                          merge_tol=-1, algo=2)
+    #a = meshTRI(fileName, format, N)
+    hook = occ.readCAD(fileName, format)
+    out = []
+    for i in a:
+        b = Converter.convertLO2HO(i, order=2)
+        occ.projectOnFaces(hook, b)
+        out.append(b)
+    return out
+
+def meshQUADHO(fileName, format="fmt_step", N=11):
+    """Return a QUAD HO discretisation of CAD."""
+    import Converter
+    a = meshSTRUCT(fileName, format, N)
+    a = Converter.convertArray2Hexa(a)
+    out = []
+    for i in a:
+        b = Converter.convertLO2HO(i, order=2)
+        occ.projectOnFaces(hook, b)
+        out.append(b)
     return out

@@ -18,7 +18,7 @@ __all__ = ['cart', 'cartHexa', 'cartTetra', 'cartPenta', 'cartPyra', 'cartNGon',
     'map1d', 'map1dpl', 'map2d', 'mapCurvature', 'refine', 'defineSizeMapForMMGs',
     'mmgs', 'densify', 'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4',
     'close', 'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts',
-    'grow', 'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar',
+    'grow', 'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar', 'TFIStar2',
     'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap', 'getNormalMap',
     'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
     'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
@@ -846,6 +846,12 @@ def TFIStar(a):
     Usage: TFIStar(a)"""
     from . import TFIs
     return TFIs.TFIStar(a)
+
+def TFIStar2(a):
+    """Generate a transfinite interpolation mesh for a list of input curves.
+    Usage: TFIStar2(a)"""
+    from . import TFIs
+    return TFIs.TFIStar2(a)
 
 def TTM(array, niter=100):
     """Smooth a mesh with Thompson-Mastin elliptic generator.

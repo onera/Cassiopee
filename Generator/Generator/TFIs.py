@@ -24,6 +24,27 @@ def quality(meshes):
         elif max2 < 1.e-12 and min2 > 0: score += 1000.
     return score
 
+# distance au carre entre deux points
+def dist2(P0,P1):
+    return (P0[0]-P1[0])*(P0[0]-P1[0])+(P0[1]-P1[1])*(P0[1]-P1[1])+(P0[2]-P1[2])*(P0[2]-P1[2])
+
+# Order a set of structured edges in a loop
+def orderEdges(edges, tol=1.e-10):
+    out = [] # ordered list of edges
+    pool = edges[:] # list copy
+    cur = pool[0]; pool.pop(0)
+    out.append(cur)
+    P1p = (cur[1][0,-1],cur[1][1,-1],cur[1][2,-1])
+    while len(pool) > 0:
+        for p in pool:
+            P0 = (p[1][0,0],p[1][1,0],p[1][2,0])
+            P1 = (p[1][0,-1],p[1][1,-1],p[1][2,-1])
+            if dist2(P1p,P0) < tol*tol: 
+                cur = p; out.append(cur); P1p = P1; pool.pop(0); break
+            if dist2(P1p,P1) < tol*tol: 
+                cur = T.reorder(p,(-1,1,1)); out.append(cur); P1p = P0; pool.pop(0); break
+    return out
+
 #==============================================================================
 # IN: a1,a2,a3: les 3 cotes du triangle (N3-N2+N1 impair)
 # OUT: 3 maillages
@@ -297,7 +318,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
 def TFIHalfO(a1, a2):
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt1 = a1[2]; Nt2 = a2[2]
-    if (Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0):
+    if Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0:
         raise ValueError("TFIHalfO: N1 and N2 must be odd.")
     for j in range(-Nt2//8, Nt2//8):
         for i in range(2,10):
@@ -339,7 +360,8 @@ def TFIMono(a1, a2):
     m1 = G.TFI([a1,b1,b3,b2])
     return [m1]
 
-# Cree un ensemble de maillage TFI
+# Cree un ensemble de maillages TFI en étoilant les edges et en 
+# faisant des TFIs par triangle
 def TFIStar(edges):
     import Generator as G
     import Geom as D
@@ -354,4 +376,33 @@ def TFIStar(edges):
         l2 = D.line(XG,P1,N=N)
         ret = TFITri(e,l1,l2)
         out += ret
+    return out
+
+# Cree un ensemble de maillages TFI en étoilant les milieux des edges
+# Les edges doivent tous avoir le meme nombre de points impair
+def TFIStar2(edges):
+    import Generator as G
+    import Geom as D
+    import Transform as T
+    orderEdges(edges, tol=1.e-10)
+    
+    XG = G.barycenter(edges) # a optimiser
+    out = []
+    for c in range(len(edges)):
+        e = edges[c]
+        N1 = e[2]//2+1
+        e1 = T.subzone(e, (N1,1,1), (-1,1,1))
+        if c == len(edges)-1: en = edges[0]
+        else: en = edges[c+1]
+        N2 = en[2]//2+1
+        e2 = T.subzone(en, (1,1,1), (N2,1,1))
+        e1p = e1[1]; e2p = e2[1]
+        P0 = (e1p[0,0], e1p[1,0], e1p[2,0])
+        P1 = (e2p[0,-1], e2p[1,-1], e2p[2,-1])
+        l1 = D.line(P0,XG,N=N2)
+        l2 = D.line(XG,P1,N=N1)
+        ret = G.TFI([e1,e2,l1,l2])
+        #ret = [e1,e2,l1,l2]
+        out += [ret]
+    
     return out

@@ -182,7 +182,7 @@ public:
   void setBgColor();
   
   // Init zone data
-  virtual int initZoneData( std::vector<K_FLD::FldArrayF*>& structF,
+  virtual int initZoneData(std::vector<K_FLD::FldArrayF*>& structF,
 			    std::vector<char*>& structVarString,
 			    std::vector<E_Int>& nit,
 			    std::vector<E_Int>& njt, 
