@@ -6,7 +6,7 @@ RigidMotion: compute/define rigid motions
 Preamble
 ########
 
-RigidMotion enables to define or compute rigid motions for arrays (as defined in Converter documentation) or for CGSN/Python trees (pyTrees).
+RigidMotion enables to define or compute rigid motions for arrays (as defined in Converter documentation) or for CGNS/Python trees (pyTrees).
 
 This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.
 
@@ -46,7 +46,7 @@ Contents
 
 .. py:function:: RigidMotion.setPrescribedMotion1(a, motionName, tx="0", ty="0", tz="0", cx="0", cy="0", cz="0", ex="0", ey="0", ez="0", angle="0")
 
-    Set a precribed motion defined by a translation of the origin (tx,ty,tz), the center of a rotation (cx,cy,cz), the second point of the rotation axis (ex,ey,ez) and the rotation angle in degrees. They can depend on time {t}.
+    Set a prescribed motion defined by a translation of the origin (tx,ty,tz), the center of a rotation (cx,cy,cz), the second point of the rotation axis (ex,ey,ez) and the rotation angle in degrees. They can depend on time {t}.
     
     Exists also as an in-place version (_setPrescribedMotion1) which modifies a and returns None.
     
@@ -83,20 +83,80 @@ Contents
 
 .. py:function:: RigidMotion.setPrescribedMotion2(a, motionName, transl_speed, psi0, pis0_b, alp_pnt, alp_vct, alp0, rot_pnt, rot_vct, rot_omg, del_pnt, del_vct, del0, delc, dels, bet_pnt, bet_vct, bet0, betc, bets, tet_pnt, tet_vct, tet0, tetc, tets, span_vct, pre_lag_pnt, pre_lag_vct, pre_lag_ang, pre_con_pnt, pre_con_vct, pre_con_ang)
 
-    Set a precribed motion defined by a elsA rotor motion. Arguments are identical to elsA rotor motion. 
+    Set a prescribed motion defined by a rigid rotor motion. Arguments are identical to elsA rotor motion. 
 
     Exists also as an in-place version (_setPrescribedMotion2) which modifies a and returns None.
 
     :param a: Input data
     :type  a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param transl_speed: translation speed
-    :type transl_speed: list of 3 floats
-    :param psi0: ?
+    :type transl_speed: a 3-tuple of floats
+    :param psi0: initial pitch angle (in degrees)
     :type psi0: float
-    :param psi0_b: ?
+    :param psi0_b: angle for blade position wrt leading blade (in degrees)
     :type psi0_b: float
+    :param alp_pnt: origin of rotor shaft
+    :type alp_pnt: a 3-tuple of floats
+    :param alp_vct: axis of rotor shaft
+    :type alp_vct: a 3-tuple of floats
+    :param alp0: rotor shaft angle (in degrees)
+    :type alp0: float
+    :param rot_pnt: rotation center 
+    :type rot_pnt: 3-tuple of floats
+    :param rot_vct: rotation axis
+    :type rot_vct: 3-tuple of floats
+    :param rot_omg: rotor angular velocity (in radians per sec)
+    :type rot_omg:  float
+
+    :param del_pnt: origin of lead-lag 
+    :type del_pnt: 3-tuple of floats
+    :param del_vct: lead-lag axis
+    :type del_vct:  3-tuple of floats
+    :param del0: lead-lag angle (in degrees)
+    :type del0: float
+    :param delc: cosine part of harmonics for lead-lag
+    :type delc: tuple of floats
+    :param dels: sine part of harmonics for lead-lag
+    :type dels: tuple of floats
+
+    :param bet_pnt: origin of flapping motion
+    :type bet_pnt: 3-tuple of floats
+    :param bet_vct: flapping axis
+    :type bet_vct:  3-tuple of floats
+    :param bet0: flapping angle (in degrees)
+    :type bet0: float
+    :param betc: cosine part of harmonics for conicity
+    :type betc: tuple of floats
+    :param bets: sine part of harmonics for conicity
+    :type bets: tuple of floats
+
+    :param tet_pnt: origin of pitching motion
+    :type tet_pnt: 3-tuple of floats
+    :param tet_vct: pitching axis
+    :type tet_vct:  3-tuple of floats
+    :param tet0: collective pitch angle (in degrees)
+    :type tet0: float
+    :param tetc: cyclic pitch cosine part
+    :type tetc: tuple of floats
+    :param tets: cyclic pitch sine part
+    :type tets: tuple of floats
+ 
+    :param span_vct: reference blade spanwise axis
+    :type span_vct: 3-tuple of floats
     
-    
+    :param pre_lag_pnt: origin of pre-lag 
+    :type pre_lag_pnt: 3-tuple of floats
+    :param pre_lag_vct: pre-lag axis
+    :type pre_lag_vct: 3-tuple of floats
+    :param pre_lag_ang: pre-lag angle (in degrees)
+    :type pre_lag_ang: float
+    :param pre_con_pnt: origin of pre-conicity
+    :type pre_con_pnt: 3-tuple of floats
+    :param pre_con_vct: pre-conicity axis
+    :type pre_con_vct: 3-tuple of floats
+    :param pre_con_ang: pre-conicity angle (in degrees)
+    :type pre_con_ang: float
+
     *Example of use:*
 
     * `Set a prescribed motion of type 2 (pyTree) <Examples/RigidMotion/setPrescribedMotion2PT.py>`_:

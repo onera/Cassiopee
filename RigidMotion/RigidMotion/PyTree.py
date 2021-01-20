@@ -822,7 +822,7 @@ def evalPositionM1(coords, z, time):
 
 
 # Computes the new coordinates and grid velocity for rotor motion
-def _setRotorMotionCoordinatesAndVelocityZ(a, time):
+def _setRotorMotionCoordsAndGridVel(a, time):
   _copyGridInit2Grid(a)
   zones = Internal.getZones(a)
   for z in zones:

@@ -1,10 +1,11 @@
-# - setPrescribedMotion2 (pyTree) - 
-# Motion defined by a rotor motion
+# - evalPositionM1 pour motion 2 (pyTree) - 
+# Rotor motion
 import RigidMotion.PyTree as R
 import Converter.PyTree as C
 import Generator.PyTree as G
+import Converter.Internal as Internal
 
-# Mime une pale suivant x, quart avant
+time0 = 0.01
 a = G.cart((0.2,-0.075,0), (0.01,0.01,0.1), (131,11,1))
 # Mettre tous les parametres
 RotorMotion={'Motion_Blade1':{'initial_angles' : [0.,0],#PSI0,PSI0_b
@@ -65,4 +66,14 @@ R._setPrescribedMotion2(a, 'Motion_Blade1', transl_speed=transl_speed,
                         span_vct=span_vct,
                         pre_lag_pnt=pre_lag_pnt, pre_lag_vct=pre_lag_vct, pre_lag_ang=pre_lag_ang,
                         pre_con_pnt=pre_con_pnt, pre_con_vct=pre_con_vct, pre_con_ang=pre_con_ang)
-C.convertPyTree2File(a, 'out.cgns')
+
+b = R.evalPosition(a, time=time0); b[0]='moved'
+coords = [Internal.getNodeFromName(b, 'CoordinateX')[1], 
+          Internal.getNodeFromName(b, 'CoordinateY')[1], 
+          Internal.getNodeFromName(b, 'CoordinateZ')[1]]
+coords0 = R.evalPositionM1(coords, b, time=time0)
+c = Internal.copyRef(b); c[0] = 'back'
+Internal.getNodeFromName(c, 'CoordinateX')[1] = coords0[0]
+Internal.getNodeFromName(c, 'CoordinateY')[1] = coords0[1]
+Internal.getNodeFromName(c, 'CoordinateZ')[1] = coords0[2]
+C.convertPyTree2File([a,b,c],"out.cgns")

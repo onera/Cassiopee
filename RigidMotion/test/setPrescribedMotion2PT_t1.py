@@ -3,6 +3,7 @@
 import RigidMotion.PyTree as R
 import Converter.PyTree as C
 import Generator.PyTree as G
+import KCore.test as test
 
 # Mime une pale suivant x, quart avant
 a = G.cart((0.2,-0.075,0), (0.01,0.01,0.1), (131,11,1))
@@ -65,4 +66,4 @@ R._setPrescribedMotion2(a, 'Motion_Blade1', transl_speed=transl_speed,
                         span_vct=span_vct,
                         pre_lag_pnt=pre_lag_pnt, pre_lag_vct=pre_lag_vct, pre_lag_ang=pre_lag_ang,
                         pre_con_pnt=pre_con_pnt, pre_con_vct=pre_con_vct, pre_con_ang=pre_con_ang)
-C.convertPyTree2File(a, 'out.cgns')
+test.testT(a)

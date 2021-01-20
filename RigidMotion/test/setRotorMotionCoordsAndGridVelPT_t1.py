@@ -1,10 +1,11 @@
-# - setPrescribedMotion2 (pyTree) - 
-# Motion defined by a rotor motion
+# - setRotorMotionAndGridVel (pyTree) - 
+# Rotor motion
 import RigidMotion.PyTree as R
 import Converter.PyTree as C
 import Generator.PyTree as G
-
-# Mime une pale suivant x, quart avant
+import Converter.Internal as Internal
+import KCore.test as test
+time0 = 0.01
 a = G.cart((0.2,-0.075,0), (0.01,0.01,0.1), (131,11,1))
 # Mettre tous les parametres
 RotorMotion={'Motion_Blade1':{'initial_angles' : [0.,0],#PSI0,PSI0_b
@@ -65,4 +66,6 @@ R._setPrescribedMotion2(a, 'Motion_Blade1', transl_speed=transl_speed,
                         span_vct=span_vct,
                         pre_lag_pnt=pre_lag_pnt, pre_lag_vct=pre_lag_vct, pre_lag_ang=pre_lag_ang,
                         pre_con_pnt=pre_con_pnt, pre_con_vct=pre_con_vct, pre_con_ang=pre_con_ang)
-C.convertPyTree2File(a, 'out.cgns')
+
+R._setRotorMotionCoordsAndGridVel(a, time=time0)
+test.testT(a)
