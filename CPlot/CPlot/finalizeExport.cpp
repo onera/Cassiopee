@@ -36,7 +36,20 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "i", &finalizeType)) return NULL;
 
   Data* d = Data::getInstance();
-  if ((d->ptrState == NULL) || (d->ptrState->_mustExport == 0)) {
+
+  // Finalize pour osmesa (delete le context)
+  if (finalizeType == 1 || finalizeType == 5 || finalizeType == 6 || finalizeType == 7)
+  {
+#ifdef __MESA__
+    free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
+    OSMesaDestroyContext(*(OSMesaContext*)(d->ptrState->ctx));
+#endif
+    return Py_BuildValue("l", KSUCCESS);
+  }
+
+  // Autre finalize
+  if ((d->ptrState == NULL) || (d->ptrState->_mustExport == 0)) 
+  {
     pthread_mutex_lock(&d->ptrState->export_mutex);
     //if (d->ptrState->shootScreen == 1)
     pthread_cond_wait (&d->ptrState->unlocked_export, &d->ptrState->export_mutex); 
@@ -46,6 +59,7 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
   // Bloc en attendant la fin de l'ecriture
   //if (d->ptrState->continuousExport == 0)
   //{}
+  
   // Finalize mpeg
   if (finalizeType == 1 && strcmp(d->_pref.screenDump->extension, "mpeg") == 0)
     d->finalizeExport(); // force l'ecriture finale du fichier

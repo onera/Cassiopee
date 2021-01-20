@@ -18,5 +18,3 @@ CPlot.display(a, mode='mesh',
 CPlot.display(b, mode='mesh',
               posCam=(0,6,0), posEye=(0,0,0), dirCam=(0,0,1),
               export="composite.png", offscreen=6)
-
-

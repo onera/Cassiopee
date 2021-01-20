@@ -28,7 +28,6 @@
 //============================================================================
 void DataDL::displaySIsoSolid()
 {
-  // TO DO : Surement une grande partie du code a factoriser entre les VBOs et les DLs
   if (_numberOfStructZones == 0) return;
   int zone;
 

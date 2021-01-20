@@ -213,13 +213,13 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     //printf("%d %d\n", d->ptrState->exportWidth, d->ptrState->exportHeight);
     
     //printf("Creating OS context..."); fflush(stdout);
-    OSMesaContext ctx; 
+    OSMesaContext* ctx = new OSMesaContext();
     //ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-    ctx = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
-    d->ptrState->ctx = (void*)&ctx;
+    (*ctx) = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
+    d->ptrState->ctx = ctx;
     d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
     (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
-    OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
+    OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
                       GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
     d->init();
     d->ptrState->farClip = 1;
@@ -229,8 +229,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     d->display();
     d->exportFile();
     //printf("done.\n");
-    free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
-    OSMesaDestroyContext(ctx);
+    // use finalizeExport to free OSMesaContext
 #else
     printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif
