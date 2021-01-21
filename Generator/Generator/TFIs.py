@@ -30,19 +30,22 @@ def dist2(P0,P1):
 
 # Order a set of structured edges in a loop
 def orderEdges(edges, tol=1.e-10):
+    import Transform as T
     out = [] # ordered list of edges
     pool = edges[:] # list copy
     cur = pool[0]; pool.pop(0)
     out.append(cur)
     P1p = (cur[1][0,-1],cur[1][1,-1],cur[1][2,-1])
     while len(pool) > 0:
-        for p in pool:
+        found = False
+        for c, p in enumerate(pool):
             P0 = (p[1][0,0],p[1][1,0],p[1][2,0])
             P1 = (p[1][0,-1],p[1][1,-1],p[1][2,-1])
             if dist2(P1p,P0) < tol*tol: 
-                cur = p; out.append(cur); P1p = P1; pool.pop(0); break
+                cur = p; out.append(cur); P1p = P1; pool.pop(c); found=True; break
             if dist2(P1p,P1) < tol*tol: 
-                cur = T.reorder(p,(-1,1,1)); out.append(cur); P1p = P0; pool.pop(0); break
+                cur = T.reorder(p,(-1,1,1)); out.append(cur); P1p = P0; pool.pop(c); foudn=True; break
+        if not found: break
     return out
 
 #==============================================================================
@@ -384,7 +387,7 @@ def TFIStar2(edges):
     import Generator as G
     import Geom as D
     import Transform as T
-    orderEdges(edges, tol=1.e-10)
+    orderEdges(edges, tol=1.e-6)
     
     XG = G.barycenter(edges) # a optimiser
     out = []

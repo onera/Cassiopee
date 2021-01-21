@@ -610,32 +610,69 @@ void Data::displayInfo()
                   z->zoneName, zu->npts);
           break;
         case 1:
-          sprintf(temp,"@1%s@0 (BAR): %d pts, %d elts",
-                  z->zoneName, zu->npts, zu->ne);
+          if (zu->_is_high_order && zu->eltSize == 3)
+            sprintf(temp,"@1%s@0 (BAR_3): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else
+            sprintf(temp,"@1%s@0 (BAR): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
           break;
         case 2:
-          sprintf(temp,"@1%s@0 (TRI): %d pts, %d elts",
-                  z->zoneName, zu->npts, zu->ne);
+          if (zu->_is_high_order && zu->eltSize == 6)
+            sprintf(temp,"@1%s@0 (TRI_6): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else
+            sprintf(temp,"@1%s@0 (TRI): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
           break;
         case 3:
-          sprintf(temp,"@1%s@0 (QUAD): %d pts, %d elts",
-                  z->zoneName, zu->npts, zu->ne);
+          if (zu->_is_high_order && zu->eltSize == 8)
+            sprintf(temp,"@1%s@0 (QUAD_8): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else if (zu->_is_high_order && zu->eltSize == 9)
+            sprintf(temp,"@1%s@0 (QUAD_9): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else
+            sprintf(temp,"@1%s@0 (QUAD): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
           break;
         case 4:
-          sprintf(temp,"@1%s@0 (TETRA): %d pts, %d elts",
-                  z->zoneName, zu->npts, zu->ne);
+          if (zu->_is_high_order && zu->eltSize == 10)
+            sprintf(temp,"@1%s@0 (TETRA_10): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else
+            sprintf(temp,"@1%s@0 (TETRA): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
           break;
         case 5:
-          sprintf(temp,"@1%s@0 (PENTA): %d pts, %d elts",
-                  z->zoneName, zu->npts, zu->ne);
+          if (zu->_is_high_order && zu->eltSize == 15)
+            sprintf(temp,"@1%s@0 (PENTA_15): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else if (zu->_is_high_order && zu->eltSize == 18)
+            sprintf(temp,"@1%s@0 (PENTA_18): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else
+            sprintf(temp,"@1%s@0 (PENTA): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
           break;
         case 6:
-          sprintf(temp,"@1%s@0 (PYRA): %d pts, %d elts",
-                  z->zoneName, zu->npts, zu->ne);
+          if (zu->_is_high_order && zu->eltSize == 14)
+            sprintf(temp,"@1%s@0 (PYRA_14): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else
+            sprintf(temp,"@1%s@0 (PYRA): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
           break;
         case 7:
-          sprintf(temp,"@1%s@0 (HEXA): %d pts, %d elts",
-                  z->zoneName, zu->npts, zu->ne);
+          if (zu->_is_high_order && zu->eltSize == 20)
+            sprintf(temp,"@1%s@0 (HEXA_20): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else if (zu->_is_high_order && zu->eltSize == 27)
+            sprintf(temp,"@1%s@0 (HEXA_27): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
+          else
+            sprintf(temp,"@1%s@0 (HEXA): %d pts, %d elts",
+                    z->zoneName, zu->npts, zu->ne);
           break;
         case 10:
           sprintf(temp,"@1%s@0 (NGON): %d pts, %d elts, %d faces",

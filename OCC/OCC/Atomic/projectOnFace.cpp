@@ -24,30 +24,44 @@
 #include <TopTools_IndexedMapOfShape.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
+#include <StdFail_NotDone.hxx>
 
 // Project coords on CAD face
 void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const TopoDS_Face& F)
 {
-  gp_Pnt Point;
   Handle(Geom_Surface) face = BRep_Tool::Surface(F);
-  
+
+#pragma omp parallel
+{
+  gp_Pnt Point;
+
+#pragma omp for
   for (E_Int i=0; i < npts; i++)
   {
     Point.SetCoord(px[i], py[i], pz[i]);
-    GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
-    gp_Pnt Pj = o.NearestPoint();
-    //printf("projection %f %f %f -> %f %f %f\n",x,y,z,Pj.X(),Pj.Y(),Pj.Z());
-    px[i] = Pj.X(); py[i] = Pj.Y(); pz[i] = Pj.Z();
+    try
+    { 
+      GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
+      gp_Pnt Pj = o.NearestPoint();
+      //printf("projection %f %f %f -> %f %f %f\n",x,y,z,Pj.X(),Pj.Y(),Pj.Z());
+      px[i] = Pj.X(); py[i] = Pj.Y(); pz[i] = Pj.Z();
+    }
+    catch( StdFail_NotDone& e ) { ; }
   }
+}
 }
 
 // ============================================================================
-/* Project array in place  */
+/* Project array in place 
+  IN: hook: CAD tree hook
+  IN: array: array to project
+  IN: faceList: list of no of faces (starting 1)
+*/
 // ============================================================================
 PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 {
-  PyObject* hook; PyObject* array;
-  if (!PYPARSETUPLEF(args, "OO", "OO", &hook, &array)) return NULL;  
+  PyObject* hook; PyObject* array; PyObject* faceList;
+  if (!PYPARSETUPLEF(args, "OOO", "OOO", &hook, &array, &faceList)) return NULL;  
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -67,6 +81,19 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
     return NULL;
   }
 
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+
+  // liste des no des faces sur lesquelles on projete
+  FldArrayI faces;
+  if (faceList == Py_None)
+  { 
+    E_Int nfaces = surfaces.Extent(); 
+    faces.malloc(nfaces);
+    for (E_Int i = 0; i < nfaces; i++) faces[i] = i+1;
+  }
+  else K_ARRAY::getFromList(faceList, faces);
+
   E_Float* px = fi->begin(1); // fix
   E_Float* py = fi->begin(2);
   E_Float* pz = fi->begin(3);
@@ -85,19 +112,16 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < npts; i++) poy[i] = py[i];
   for (E_Int i = 0; i < npts; i++) poz[i] = pz[i];
   for (E_Int i = 0; i < npts; i++) dist[i] = K_CONST::E_MAX_FLOAT;
-
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   
   TopExp_Explorer expl;
-  for (E_Int i=1; i <= surfaces.Extent(); i++)
+  E_Int nfaces = faces.getSize();
+  for (E_Int j=0; j < nfaces; j++)
   {
-
     for (E_Int i = 0; i < npts; i++) ptx[i] = pox[i];
     for (E_Int i = 0; i < npts; i++) pty[i] = poy[i];
     for (E_Int i = 0; i < npts; i++) ptz[i] = poz[i];
 
-    const TopoDS_Face& F = TopoDS::Face(surfaces(i));
+    const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
     projectOnFace__(npts, ptx, pty, ptz, F);
 
     for (E_Int i = 0; i < npts; i++)

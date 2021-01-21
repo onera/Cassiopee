@@ -919,7 +919,8 @@ def _addTurbulentDistanceIndex(t):
         dist = Internal.getNodeFromName1(sol,'TurbulentDistance')
         if dist is not None:
           #indexa = numpy.full(dist[1].shape,-1, dtype=numpy.int32, order='F')
-          indexa = numpy.empty(dist[1].shape, dtype=numpy.int32, order='F')
+          #indexa = numpy.empty(dist[1].shape, dtype=numpy.int32, order='F')
+          indexa = numpy.empty(dist[1].shape, dtype=numpy.float64, order='F')
           indexa[:] = -1
           distindex = Internal.createNode("TurbulentDistanceIndex",'DataArray_t',value=indexa,parent=sol)
   return None
@@ -942,13 +943,13 @@ def adaptNearMatch(t):
 
 def _adaptNearMatch(t):
   for z in Internal.getZones(t):
-    zgc = Internal.getNodeFromType1(z,"ZoneGridConnectivity_t")
+    zgc = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
     if zgc is not None:
-      allgcs = Internal.getNodesFromType1(zgc, "GridConnectivity_t")
+      allgcs = Internal.getNodesFromType1(zgc, 'GridConnectivity_t')
       for gc in allgcs:
-        udd = Internal.getNodeFromType1(gc,'UserDefinedData_t')
+        udd = Internal.getNodeFromType1(gc, 'UserDefinedData_t')
         if udd is not None:
-          nm = Internal.getNodeFromName1(udd,"NMRatio")
+          nm = Internal.getNodeFromName1(udd, 'NMRatio')
           if nm is not None:
             Internal.setType(gc,'GridConnectivity1to1_t')
             transfo = Internal.getNodeFromName1(udd,'Transform')

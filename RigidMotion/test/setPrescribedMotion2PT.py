@@ -6,8 +6,7 @@ import Generator.PyTree as G
 
 # Mime une pale suivant x, quart avant
 a = G.cart((0.2,-0.075,0), (0.01,0.01,0.1), (131,11,1))
-# Mettre tous les parametres
-RotorMotion={'Motion_Blade1':{'initial_angles' : [0.,0],#PSI0,PSI0_b
+RotorMotion={'Motion_Blade1':{'initial_angles' : [0.,0], #PSI0,PSI0_b
                               'alp0': -12.013,'alp_pnt' : [0.,0.,0.], 'alp_vct':[0.,1.,0.],
                               'rot_pnt' : [0.,0.,0.],'rot_vct':[0.,0.,1.],'rot_omg':104.71,
                               'span_vct' : [1.,0.,0.],

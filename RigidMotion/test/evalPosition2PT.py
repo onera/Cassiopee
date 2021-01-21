@@ -1,4 +1,4 @@
-# - evalPositionM1 pour motion 2 (pyTree) - 
+# - evalPosition pour motion 2 (pyTree) - 
 # Rotor motion
 import RigidMotion.PyTree as R
 import Converter.PyTree as C
@@ -68,4 +68,4 @@ R._setPrescribedMotion2(a, 'Motion_Blade1', transl_speed=transl_speed,
                         pre_con_pnt=pre_con_pnt, pre_con_vct=pre_con_vct, pre_con_ang=pre_con_ang)
 
 b = R.evalPosition(a, time=time0); b[0]='moved'
-C.convertPyTree2File(b,"out.cgns")
+C.convertPyTree2File(b, "out.cgns")

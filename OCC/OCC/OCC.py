@@ -78,17 +78,24 @@ def allTFI(edges):
         return Generator.TFITri(edges[0],edges[1],edges[2])
     else:
         # TFIStar
-        return Generator.TFIStar2(edges)
-
+        #return Generator.TFIStar2(edges)
+        return Generator.TFIStar(edges)
+        
 # Mailleur de CAD structure
-def meshSTRUCT(fileName, format="fmt_step", N=11):
+def meshSTRUCT(fileName, format='fmt_iges', N=11):
+    """Return a STRUCT discretisation of CAD."""
+    hook = occ.readCAD(fileName, format)
+    return meshSTRUCT__(hook, N)
+
+def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     """Return a STRUCT discretisation of CAD."""
     import Generator, Converter
-    hook = occ.readCAD(fileName, format)
     nbFaces = occ.getNbFaces(hook)
-    
+    print('face', faceSubset)
+    if faceSubset is None: flist = list(range(nbFaces))
+    else: flist = faceSubset
     out = []
-    for i in range(nbFaces):
+    for i in flist:
         # edges de la face i
         edges = occ.meshEdgesByFace(hook, i+1, N)
         #print("Face %d has %d edges."%(i+1,len(edges)))
@@ -107,6 +114,7 @@ def meshSTRUCT(fileName, format="fmt_step", N=11):
                 # evaluation sur la CAD
                 o = occ.evalFace(hook, a, i+1)
                 out.append(o)
+                if faceNo is not None: faceNo.append(i+1)
         except Exception as e:
             print(str(e))
             Converter.convertArrays2File(edges, "edges%d.plt"%i)
@@ -114,11 +122,15 @@ def meshSTRUCT(fileName, format="fmt_step", N=11):
     
 # Mailleur CAD non structure
 def meshTRI(fileName, format="fmt_step", N=11):
-    """Return a TRI discretisation of CAD."""
-    import Generator, Transform, Converter
     hook = occ.readCAD(fileName, format)
-    nbFaces = occ.getNbFaces(hook)
+    return meshTRI__(hook, N)
 
+def meshTRI__(hook, N=11, faceSubset=None, faceNo=None):
+    """Return a TRI discretisation of CAD."""
+    import Generator, Converter, Transform
+    nbFaces = occ.getNbFaces(hook)
+    if faceSubset is None: flist = list(range(nbFaces))
+    else: flist = faceSubset
     out = []
     for i in range(nbFaces):
         # edges de la face i
@@ -137,6 +149,7 @@ def meshTRI(fileName, format="fmt_step", N=11):
             # evaluation sur la CAD
             o = occ.evalFace(hook, a, i+1)
             out.append(o)
+            if faceNo is not None: faceNo.append(i+1)
         except Exception as e:
             print(str(e))
             Converter.convertArrays2File(edges, 'edges%d.plt'%i)
@@ -153,18 +166,24 @@ def meshTRIHO(fileName, format="fmt_step", N=11):
     out = []
     for i in a:
         b = Converter.convertLO2HO(i, order=2)
-        occ.projectOnFaces(hook, b)
+        occ.projectOnFaces(hook, b, None)
         out.append(b)
     return out
 
 def meshQUADHO(fileName, format="fmt_step", N=11):
     """Return a QUAD HO discretisation of CAD."""
+    hook = occ.readCAD(fileName, format)
+    return meshQUADHO__(hook, N)
+
+def meshQUADHO__(hook, N=11, faceSubset=None, faceNo=None):
+    """Return a QUAD HO discretisation of CAD."""
     import Converter
-    a = meshSTRUCT(fileName, format, N)
+    if faceNo is None: faceNo = [] 
+    a = meshSTRUCT__(hook, N, faceSubset, faceNo)
     a = Converter.convertArray2Hexa(a)
     out = []
-    for i in a:
+    for c, i in enumerate(a):
         b = Converter.convertLO2HO(i, order=2)
-        occ.projectOnFaces(hook, b)
+        occ.projectOnFaces(hook, b, [faceNo[c]])
         out.append(b)
     return out

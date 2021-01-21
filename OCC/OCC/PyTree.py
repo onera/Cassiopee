@@ -1,4 +1,5 @@
-# OCC pyTree
+"""OpenCascade definition module (pyTree).
+"""
 try:
     import OCC
     import Converter.PyTree as C
@@ -75,28 +76,43 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
   Internal._correctPyTree(t, level=7) # create familyNames
   return t
 
+# meshers
 def meshSTRUCT(fileName, format="fmt_step", N=11):
   """Return a STRUCT discretisation of CAD."""
-  a = OCC.meshSTRUCT(fileName, format, N)
+  hook = OCC.occ.readCAD(fileName, format)
+  return meshSTRUCT__(hook, N) 
+
+def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
+  """Return a STRUCT discretisation of CAD."""
+  faceNoA = []
+  a = OCC.meshSTRUCT__(hook, N, faceSubset, faceNoA)
   out = []
-  for i in a:
+  for c, i in enumerate(a):
     z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                 Internal.__GridCoordinates__,
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     out.append(z)
+    faceNo[z[0]] = faceNoA[c]
   return out
 
 def meshTRI(fileName, format="fmt_step", N=11):
   """Return a TRI discretisation of CAD."""
-  a = OCC.meshTRI(fileName, format, N)
+  hook = OCC.occ.readCAD(fileName, format)
+  return meshTRI__(hook, N) 
+
+def meshTRI__(hook, N=11, faceSubset=None, faceNo=None):
+  """Return a TRI discretisation of CAD."""
+  faceNoA = []
+  a = OCC.meshTRI__(hook, N, faceSubset, faceNoA)
   out = []
-  for i in a:
+  for c, i in enumerate(a):
     z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                 Internal.__GridCoordinates__,
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     out.append(z)
+    faceNo[z[0]] = faceNoA[c]
   return out
 
 def meshTRIHO(fileName, format="fmt_step", N=11):
@@ -113,12 +129,108 @@ def meshTRIHO(fileName, format="fmt_step", N=11):
 
 def meshQUADHO(fileName, format="fmt_step", N=11):
   """Return a QUAD HO discretisation of CAD."""
-  a = OCC.meshQUADHO(fileName, format, N)
+  hook = OCC.occ.readCAD(fileName, format)
+  return meshQUADHO__(hook, N)
+
+def meshQUADHO__(hook, N=11, faceSubset=None, faceNo=None):
+  """Return a QUAD HO discretisation of CAD."""
+  faceNoA = []
+  a = OCC.meshQUADHO__(hook, N, faceSubset, faceNoA)
   out = []
-  for i in a:
+  for c, i in enumerate(a):
     z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                 Internal.__GridCoordinates__,
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     out.append(z)
+    if faceNo is not None: faceNo[z[0]] = faceNoA[c]
   return out
+
+#===========================================================================
+class Edge:
+  def __init__(self, i):
+    self.no = i # no in CAD edge list
+    self.name = 'XXX' # CAD edge name
+    self.hook = None # hook on OCC TOPODS::edge
+
+class Face:
+  def __init__(self, i):
+    self.no = i # no in CAD face list
+    self.name = 'XXX' # CAD face name
+    self.hook = None # hook on OCC TOPODS::face
+
+class CAD:
+  def __init__(self, fileName, format='fmt_iges'):
+    self.fileName = fileName
+    self.format = format
+    self.hook = None # hook on OCC tree
+    self.faces = [] # list of faces
+    self.edges = [] # list of edges
+
+    self.zones = [] # associated discretization (list of zones)
+    self.faceNo = {} # association zone Name -> CAD face no
+
+    # read CAD
+    self.hook = OCC.occ.readCAD(fileName, format)
+    nbfaces = OCC.occ.getNbFaces(self.hook)
+    for i in range(nbfaces): self.faces.append(Face(i+1))
+    nbedges = OCC.occ.getNbEdges(self.hook)
+    for i in range(nbedges): self.edges.append(Edge(i+1))
+  
+  def evalFace(self, face, distribution):
+    if isinstance(face, int): no = face
+    else: no = face.no
+    d = C.getFields(Internal.__GridCoordinates__, distribution)[0] # zone, numpy, array?
+    m = OCC.occ.evalFace(self.hook, d, no)
+    z = Internal.createZoneNode(C.getZoneName('Face'), m, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    return z
+
+  def evalEdge(self, edge, distribution):
+    if isinstance(edge, int): no = edge
+    else: no = edge.no
+    d = C.getFields(Internal.__GridCoordinates__, distribution)[0] # zone, numpy, array?
+    m = OCC.occ.evalEdge(self.hook, d, no)
+    z = Internal.createZoneNode(C.getZoneName('Edge'), m, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    return z
+
+  def _project(self, z, faceList=None):
+    if faceList is not None:
+        out = []
+        for f in faceList:
+          if isinstance(f, int): out.append(f)
+          else: out.append(f.no)
+    else: out = None 
+    a = C.getFields(Internal.__GridCoordinates__, z)
+    for i in a: OCC.occ.projectOnFaces(self.hook, i, out)
+    return None
+
+  def project(self, z, faceList=None):
+    zp = Internal.copyTree(z)
+    _project(zp, faceList)
+    return zp
+
+  # faceList ne marche pas encore
+  def mesh(self, mtype='STRUCT', N=11, faceList=None):
+    if mtype == 'STRUCT':
+      zones = meshSTRUCT__(self.hook, N, None, self.faceNo)
+    elif mtype == 'TRI':
+      zones = meshTRI__(self.hook, N, None, self.faceNo)
+    elif mtype == 'TRIHO':
+      zones = meshTRIHO(self.hook, N)
+    elif mtype == 'QUADHO':
+      zones = meshQUADHO(self.hook, N, None, self.faceNo)
+    else: raise ValueError("mesh: not a valid meshing type.")
+    self.zones += zones
+    return zones
+
+  def getFace(self, zone):
+    if isinstance(zone, str): name = zone
+    else: name = zone[0]
+    no = self.faceNo[name]
+    return self.faces[no]

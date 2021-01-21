@@ -1,5 +1,5 @@
 # - display HO -
-import Geom.PyTree as GP
+import Geom.PyTree as D
 import Converter.PyTree as C
 import Transform.PyTree as T
 import Converter.Internal as Ci
@@ -7,16 +7,16 @@ import CPlot.PyTree as CPlot
 
 from math import sqrt
 
-#qsph = GP.quadrangle((0.,0.,0.),(1.,0.,0.),(1.,1.,0.),(0.,1.,0.))
-qsph = GP.sphere6((0.,0.,0.), 1.,N=3, ntype='QUAD')
+#qsph = D.quadrangle((0.,0.,0.),(1.,0.,0.),(1.,1.,0.),(0.,1.,0.))
+qsph = D.sphere6((0.,0.,0.), 1.,N=3, ntype='QUAD')
 #qsph = C.convertLO2HO(qsph, 1)
 qsph02 = C.convertLO2HO(qsph, 0, 2)
 for i in range(C.getNPts(qsph02)):
     x = C.getValue(qsph02,'CoordinateX',i)
     y = C.getValue(qsph02,'CoordinateY',i)
     z = C.getValue(qsph02,'CoordinateZ',i)
-    nrm = sqrt(x*x+y*y+z*z);
-    x /= nrm; y /= nrm; z /= nrm;
+    nrm = sqrt(x*x+y*y+z*z)
+    x /= nrm; y /= nrm; z /= nrm
     C.setValue(qsph02,'CoordinateX',i,x)
     C.setValue(qsph02,'CoordinateY',i,y)
     C.setValue(qsph02,'CoordinateZ',i,z)
@@ -26,8 +26,8 @@ for i in range(C.getNPts(qsph12)):
     x = C.getValue(qsph12,'CoordinateX',i)
     y = C.getValue(qsph12,'CoordinateY',i)
     z = C.getValue(qsph12,'CoordinateZ',i)
-    nrm = sqrt(x*x+y*y+z*z);
-    x /= nrm; y /= nrm; z /= nrm;
+    nrm = sqrt(x*x+y*y+z*z)
+    x /= nrm; y /= nrm; z /= nrm
     C.setValue(qsph12,'CoordinateX',i,x)
     C.setValue(qsph12,'CoordinateY',i,y)
     C.setValue(qsph12,'CoordinateZ',i,z)
@@ -37,8 +37,8 @@ for i in range(C.getNPts(qsph03)):
     x = C.getValue(qsph03,'CoordinateX',i)
     y = C.getValue(qsph03,'CoordinateY',i)
     z = C.getValue(qsph03,'CoordinateZ',i)
-    nrm = sqrt(x*x+y*y+z*z);
-    x /= nrm; y /= nrm; z /= nrm;
+    nrm = sqrt(x*x+y*y+z*z)
+    x /= nrm; y /= nrm; z /= nrm
     C.setValue(qsph03,'CoordinateX',i,x)
     C.setValue(qsph03,'CoordinateY',i,y)
     C.setValue(qsph03,'CoordinateZ',i,z)
@@ -48,21 +48,21 @@ for i in range(C.getNPts(qsph13)):
     x = C.getValue(qsph13,'CoordinateX',i)
     y = C.getValue(qsph13,'CoordinateY',i)
     z = C.getValue(qsph13,'CoordinateZ',i)
-    nrm = sqrt(x*x+y*y+z*z);
-    x /= nrm; y /= nrm; z /= nrm;
+    nrm = sqrt(x*x+y*y+z*z)
+    x /= nrm; y /= nrm; z /= nrm
     C.setValue(qsph13,'CoordinateX',i,x)
     C.setValue(qsph13,'CoordinateY',i,y)
     C.setValue(qsph13,'CoordinateZ',i,z)
 
-#tsph = GP.triangle((0.,0.,0.),(1.,0.,0.),(0.,1.,0.))#GP.sphere6((0,0,0), 1., N=3, ntype='TRI')
-tsph = GP.sphere6((0,0,0), 1., N=3, ntype='TRI')
+#tsph = D.triangle((0.,0.,0.),(1.,0.,0.),(0.,1.,0.))#D.sphere6((0,0,0), 1., N=3, ntype='TRI')
+tsph = D.sphere6((0,0,0), 1., N=3, ntype='TRI')
 tsph02 = C.convertLO2HO(tsph, 0, 2)
 for i in range(C.getNPts(tsph02)):
     x = C.getValue(tsph02,'CoordinateX',i)
     y = C.getValue(tsph02,'CoordinateY',i)
     z = C.getValue(tsph02,'CoordinateZ',i)
-    nrm = sqrt(x*x+y*y+z*z);
-    x /= nrm; y /= nrm; z /= nrm;
+    nrm = sqrt(x*x+y*y+z*z)
+    x /= nrm; y /= nrm; z /= nrm
     C.setValue(tsph02,'CoordinateX',i,x)
     C.setValue(tsph02,'CoordinateY',i,y)
     C.setValue(tsph02,'CoordinateZ',i,z)
@@ -72,8 +72,8 @@ for i in range(C.getNPts(tsph03)):
     x = C.getValue(tsph03,'CoordinateX',i)
     y = C.getValue(tsph03,'CoordinateY',i)
     z = C.getValue(tsph03,'CoordinateZ',i)
-    nrm = sqrt(x*x+y*y+z*z);
-    x /= nrm; y /= nrm; z /= nrm;
+    nrm = sqrt(x*x+y*y+z*z)
+    x /= nrm; y /= nrm; z /= nrm
     C.setValue(tsph03,'CoordinateX',i,x)
     C.setValue(tsph03,'CoordinateY',i,y)
     C.setValue(tsph03,'CoordinateZ',i,z)
@@ -83,8 +83,8 @@ for i in range(C.getNPts(tsph13)):
     x = C.getValue(tsph13,'CoordinateX',i)
     y = C.getValue(tsph13,'CoordinateY',i)
     z = C.getValue(tsph13,'CoordinateZ',i)
-    nrm = sqrt(x*x+y*y+z*z);
-    x /= nrm; y /= nrm; z /= nrm;
+    nrm = sqrt(x*x+y*y+z*z)
+    x /= nrm; y /= nrm; z /= nrm
     C.setValue(tsph13,'CoordinateX',i,x)
     C.setValue(tsph13,'CoordinateY',i,y)
     C.setValue(tsph13,'CoordinateZ',i,z)
