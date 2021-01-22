@@ -59,6 +59,15 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     reader.ReadFile(fileName);
     reader.TransferRoots();
     *shp = reader.OneShape();
+
+    // tentative pour recuperer les noms des entites
+    //#include "XSControl_WorkSession.hxx"
+    //#include "XSControl_TransferReader.hxx"
+    //#include "Standard_Transient.hxx"
+    //Handle(XSControl_WorkSession) ws = reader.WS();
+    //Handle(XSControl_TransferReader) tr = ws.TransferReader();
+    //Handle(Standard_Transient) item = tr.EntityFromShapeResult(aShape);
+    //char* name = item.Name().ToCString();
   }
   
   // Extract surfaces
@@ -122,9 +131,5 @@ PyObject* K_OCC::getNbEdges(PyObject* self, PyObject* args)
 
   TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   return Py_BuildValue("l", edges.Extent());
-
 }
-
-
-
 

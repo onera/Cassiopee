@@ -27,10 +27,16 @@ cad._project(z)
 # test de projection sur une liste de faces
 cad._project(z, [1,2,3,4,5,6])
 
-# test du mailleur, mesh all faces
+# test des mailleurs, mesh all faces
 m = cad.mesh('STRUCT', N=11)
-C.convertPyTree2File(m, 'out.cgns')
+C.convertPyTree2File(m, 'struct.cgns')
 
 # test de l'association maillage/CAD
-for i in m:
-    face = cad.getFace(i); print(face.no)
+for z in m:
+    face = cad.getLinkFace(z); print(face.no)
+
+# test des autres mailleurs
+m = cad.mesh('TRI', N=11)
+C.convertPyTree2File(m, 'tri.cgns')
+m = cad.mesh('QUADHO', N=11)
+C.convertPyTree2File(m, 'quadho.cgns')

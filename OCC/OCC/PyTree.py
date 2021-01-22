@@ -82,7 +82,7 @@ def meshSTRUCT(fileName, format="fmt_step", N=11):
   hook = OCC.occ.readCAD(fileName, format)
   return meshSTRUCT__(hook, N) 
 
-def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
+def meshSTRUCT__(hook, N=11, faceSubset=None, linkFaceNo=None):
   """Return a STRUCT discretisation of CAD."""
   faceNoA = []
   a = OCC.meshSTRUCT__(hook, N, faceSubset, faceNoA)
@@ -93,7 +93,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     out.append(z)
-    faceNo[z[0]] = faceNoA[c]
+    if linkFaceNo is not None: linkFaceNo[z[0]] = faceNoA[c]
   return out
 
 def meshTRI(fileName, format="fmt_step", N=11):
@@ -101,7 +101,7 @@ def meshTRI(fileName, format="fmt_step", N=11):
   hook = OCC.occ.readCAD(fileName, format)
   return meshTRI__(hook, N) 
 
-def meshTRI__(hook, N=11, faceSubset=None, faceNo=None):
+def meshTRI__(hook, N=11, faceSubset=None, linkFaceNo=None):
   """Return a TRI discretisation of CAD."""
   faceNoA = []
   a = OCC.meshTRI__(hook, N, faceSubset, faceNoA)
@@ -112,7 +112,7 @@ def meshTRI__(hook, N=11, faceSubset=None, faceNo=None):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     out.append(z)
-    faceNo[z[0]] = faceNoA[c]
+    if linkFaceNo is not None: linkFaceNo[z[0]] = faceNoA[c]
   return out
 
 def meshTRIHO(fileName, format="fmt_step", N=11):
@@ -132,7 +132,7 @@ def meshQUADHO(fileName, format="fmt_step", N=11):
   hook = OCC.occ.readCAD(fileName, format)
   return meshQUADHO__(hook, N)
 
-def meshQUADHO__(hook, N=11, faceSubset=None, faceNo=None):
+def meshQUADHO__(hook, N=11, faceSubset=None, linkFaceNo=None):
   """Return a QUAD HO discretisation of CAD."""
   faceNoA = []
   a = OCC.meshQUADHO__(hook, N, faceSubset, faceNoA)
@@ -143,7 +143,7 @@ def meshQUADHO__(hook, N=11, faceSubset=None, faceNo=None):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     out.append(z)
-    if faceNo is not None: faceNo[z[0]] = faceNoA[c]
+    if linkFaceNo is not None: linkFaceNo[z[0]] = faceNoA[c]
   return out
 
 #===========================================================================
@@ -164,11 +164,12 @@ class CAD:
     self.fileName = fileName
     self.format = format
     self.hook = None # hook on OCC tree
-    self.faces = [] # list of faces
-    self.edges = [] # list of edges
+    self.faces = [] # list of CAD faces (class) 
+    self.edges = [] # list of CAD edges (class)
 
     self.zones = [] # associated discretization (list of zones)
-    self.faceNo = {} # association zone Name -> CAD face no
+    self.linkFaceNo = {} # association zone Name -> CAD face no
+    self.linkEdgeNo = {} # association zone Name -> CAD edge no
 
     # read CAD
     self.hook = OCC.occ.readCAD(fileName, format)
@@ -205,7 +206,7 @@ class CAD:
         for f in faceList:
           if isinstance(f, int): out.append(f)
           else: out.append(f.no)
-    else: out = None 
+    else: out = None
     a = C.getFields(Internal.__GridCoordinates__, z)
     for i in a: OCC.occ.projectOnFaces(self.hook, i, out)
     return None
@@ -218,19 +219,19 @@ class CAD:
   # faceList ne marche pas encore
   def mesh(self, mtype='STRUCT', N=11, faceList=None):
     if mtype == 'STRUCT':
-      zones = meshSTRUCT__(self.hook, N, None, self.faceNo)
+      zones = meshSTRUCT__(self.hook, N, None, self.linkFaceNo)
     elif mtype == 'TRI':
-      zones = meshTRI__(self.hook, N, None, self.faceNo)
+      zones = meshTRI__(self.hook, N, None, self.linkFaceNo)
     elif mtype == 'TRIHO':
-      zones = meshTRIHO(self.hook, N)
+      zones = meshTRIHO(self.fileName, self.format, N)
     elif mtype == 'QUADHO':
-      zones = meshQUADHO(self.hook, N, None, self.faceNo)
+      zones = meshQUADHO__(self.hook, N, None, self.linkFaceNo)
     else: raise ValueError("mesh: not a valid meshing type.")
     self.zones += zones
     return zones
 
-  def getFace(self, zone):
+  def getLinkFace(self, zone):
     if isinstance(zone, str): name = zone
     else: name = zone[0]
-    no = self.faceNo[name]
-    return self.faces[no]
+    no = self.linkFaceNo[name]
+    return self.faces[no-1]

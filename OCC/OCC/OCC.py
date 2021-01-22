@@ -164,7 +164,8 @@ def meshTRIHO(fileName, format="fmt_step", N=11):
     #a = meshTRI(fileName, format, N)
     hook = occ.readCAD(fileName, format)
     out = []
-    for i in a:
+    for c, i in enumerate(a):
+        print('Projection %d/%d'%(c,len(a)))
         b = Converter.convertLO2HO(i, order=2)
         occ.projectOnFaces(hook, b, None)
         out.append(b)
@@ -183,6 +184,7 @@ def meshQUADHO__(hook, N=11, faceSubset=None, faceNo=None):
     a = Converter.convertArray2Hexa(a)
     out = []
     for c, i in enumerate(a):
+        print('Projection %d/%d'%(c,len(a)))
         b = Converter.convertLO2HO(i, order=2)
         occ.projectOnFaces(hook, b, [faceNo[c]])
         out.append(b)
