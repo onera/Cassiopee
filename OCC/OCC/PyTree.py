@@ -148,16 +148,22 @@ def meshQUADHO__(hook, N=11, faceSubset=None, linkFaceNo=None):
 
 #===========================================================================
 class Edge:
-  def __init__(self, i):
-    self.no = i # no in CAD edge list
+  def __init__(self, i, cad):
+    self.number = i # no in CAD edge list
     self.name = 'XXX' # CAD edge name
     self.hook = None # hook on OCC TOPODS::edge
+    self.cad = cad # master CAD object
+  def valueAt(self, distribution):
+    return self.cad.evalEdge(self.number, distribution)
 
 class Face:
-  def __init__(self, i):
-    self.no = i # no in CAD face list
+  def __init__(self, i, cad):
+    self.number = i # no in CAD face list
     self.name = 'XXX' # CAD face name
     self.hook = None # hook on OCC TOPODS::face
+    self.cad = cad # master CAD object
+  def valueAt(self, distribution):
+    return self.cad.evalFace(self.number, distribution)
 
 class CAD:
   def __init__(self, fileName, format='fmt_iges'):
@@ -174,14 +180,14 @@ class CAD:
     # read CAD
     self.hook = OCC.occ.readCAD(fileName, format)
     nbfaces = OCC.occ.getNbFaces(self.hook)
-    for i in range(nbfaces): self.faces.append(Face(i+1))
+    for i in range(nbfaces): self.faces.append(Face(i+1, self))
     nbedges = OCC.occ.getNbEdges(self.hook)
-    for i in range(nbedges): self.edges.append(Edge(i+1))
+    for i in range(nbedges): self.edges.append(Edge(i+1, self))
   
   def evalFace(self, face, distribution):
     if isinstance(face, int): no = face
-    else: no = face.no
-    d = C.getFields(Internal.__GridCoordinates__, distribution)[0] # zone, numpy, array?
+    else: no = face.number
+    d = C.getFields(Internal.__GridCoordinates__, distribution, api=2)[0] # zone, numpy, array?
     m = OCC.occ.evalFace(self.hook, d, no)
     z = Internal.createZoneNode(C.getZoneName('Face'), m, [],
                                 Internal.__GridCoordinates__,
@@ -191,8 +197,8 @@ class CAD:
 
   def evalEdge(self, edge, distribution):
     if isinstance(edge, int): no = edge
-    else: no = edge.no
-    d = C.getFields(Internal.__GridCoordinates__, distribution)[0] # zone, numpy, array?
+    else: no = edge.number
+    d = C.getFields(Internal.__GridCoordinates__, distribution, api=2)[0] # zone, numpy, array?
     m = OCC.occ.evalEdge(self.hook, d, no)
     z = Internal.createZoneNode(C.getZoneName('Edge'), m, [],
                                 Internal.__GridCoordinates__,
@@ -205,9 +211,9 @@ class CAD:
         out = []
         for f in faceList:
           if isinstance(f, int): out.append(f)
-          else: out.append(f.no)
+          else: out.append(f.number)
     else: out = None
-    a = C.getFields(Internal.__GridCoordinates__, z)
+    a = C.getFields(Internal.__GridCoordinates__, z, api=2)
     for i in a: OCC.occ.projectOnFaces(self.hook, i, out)
     return None
 

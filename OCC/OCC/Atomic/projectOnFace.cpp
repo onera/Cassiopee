@@ -32,23 +32,23 @@ void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const To
   Handle(Geom_Surface) face = BRep_Tool::Surface(F);
 
 #pragma omp parallel
-{
-  gp_Pnt Point;
+  {
+    gp_Pnt Point;
 
 #pragma omp for
-  for (E_Int i=0; i < npts; i++)
-  {
-    Point.SetCoord(px[i], py[i], pz[i]);
-    try
-    { 
-      GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
-      gp_Pnt Pj = o.NearestPoint();
-      //printf("projection %f %f %f -> %f %f %f\n",x,y,z,Pj.X(),Pj.Y(),Pj.Z());
-      px[i] = Pj.X(); py[i] = Pj.Y(); pz[i] = Pj.Z();
+    for (E_Int i=0; i < npts; i++)
+    {
+      Point.SetCoord(px[i], py[i], pz[i]);
+      try
+      {  
+        GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
+        gp_Pnt Pj = o.NearestPoint();
+        printf("projection %f %f %f -> %f %f %f\n",px[i],py[i],pz[i],Pj.X(),Pj.Y(),Pj.Z());
+        px[i] = Pj.X(); py[i] = Pj.Y(); pz[i] = Pj.Z();
+      }
+      catch( StdFail_NotDone& e ) { printf("FAIL for point %g %g %g\n", px[i],py[i],pz[i]); }
     }
-    catch( StdFail_NotDone& e ) { ; }
   }
-}
 }
 
 // ============================================================================
@@ -98,7 +98,10 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   E_Float* py = fi->begin(2);
   E_Float* pz = fi->begin(3);
   E_Int npts = fi->getSize();
-  
+
+  TopExp_Explorer expl;
+  E_Int nfaces = faces.getSize();
+
   E_Float* ptx = new E_Float [npts];
   E_Float* pty = new E_Float [npts];
   E_Float* ptz = new E_Float [npts];
@@ -106,33 +109,53 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   E_Float* poy = new E_Float [npts];
   E_Float* poz = new E_Float [npts];
   E_Float* dist = new E_Float [npts];
-  E_Float d, dx, dy, dz;
 
-  for (E_Int i = 0; i < npts; i++) pox[i] = px[i];
-  for (E_Int i = 0; i < npts; i++) poy[i] = py[i];
-  for (E_Int i = 0; i < npts; i++) poz[i] = pz[i];
-  for (E_Int i = 0; i < npts; i++) dist[i] = K_CONST::E_MAX_FLOAT;
-  
-  TopExp_Explorer expl;
-  E_Int nfaces = faces.getSize();
-  for (E_Int j=0; j < nfaces; j++)
+#pragma omp parallel
   {
-    for (E_Int i = 0; i < npts; i++) ptx[i] = pox[i];
-    for (E_Int i = 0; i < npts; i++) pty[i] = poy[i];
-    for (E_Int i = 0; i < npts; i++) ptz[i] = poz[i];
+    gp_Pnt Point;
+    E_Float dx,dy,dz,d;
 
-    const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
-    projectOnFace__(npts, ptx, pty, ptz, F);
+#pragma omp for
+    for (E_Int i = 0; i < npts; i++) pox[i] = px[i];
+#pragma omp for
+    for (E_Int i = 0; i < npts; i++) poy[i] = py[i];
+#pragma omp for
+    for (E_Int i = 0; i < npts; i++) poz[i] = pz[i];
+#pragma omp for
+    for (E_Int i = 0; i < npts; i++) dist[i] = K_CONST::E_MAX_FLOAT;
 
-    for (E_Int i = 0; i < npts; i++)
+#pragma omp for
+    for (E_Int i=0; i < npts; i++)
     {
+      for (E_Int j = 0; j < nfaces; j++)
+      {
+        const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
+        Handle(Geom_Surface) face = BRep_Tool::Surface(F);
+
+        Point.SetCoord(pox[i], poy[i], poz[i]);
+        try
+        {  
+          GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
+          gp_Pnt Pj = o.NearestPoint();
+          //printf("projection %f %f %f -> %f %f %f\n",px[i],py[i],pz[i],Pj.X(),Pj.Y(),Pj.Z());
+          ptx[i] = Pj.X(); pty[i] = Pj.Y(); ptz[i] = Pj.Z();
+        }
+        catch (StdFail_NotDone& e) 
+        { 
+          //printf("FAIL for point %g %g %g\n", px[i],py[i],pz[i]); 
+          ptx[i] = K_CONST::E_MAX_FLOAT;
+          pty[i] = K_CONST::E_MAX_FLOAT;
+          ptz[i] = K_CONST::E_MAX_FLOAT;
+        }
+      }
+
       dx = ptx[i]-pox[i];
       dy = pty[i]-poy[i];
       dz = ptz[i]-poz[i];
-      
       d = dx*dx+dy*dy+dz*dz;
-      if (d < dist[i]) 
+      if (d < dist[i])
       { dist[i] = d; px[i] = ptx[i]; py[i] = pty[i]; pz[i] = ptz[i]; }
+      //printf("projection %f %f %f -> %f %f %f\n",pox[i],poy[i],poz[i],px[i],py[i],pz[i]);
     }
   }
 
