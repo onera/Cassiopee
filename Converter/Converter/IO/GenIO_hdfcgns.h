@@ -149,9 +149,11 @@ class GenIOHdf
     
     PyObject* getArrayR8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayR4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayR42R8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI1(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI82I4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     char* getArrayC1(hid_t node, hid_t tid, int dim, int* dims);
 
     /* Method for contiguous array **/

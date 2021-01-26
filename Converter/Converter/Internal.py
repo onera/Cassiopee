@@ -3871,7 +3871,7 @@ def _adaptNFace2PE(t, remove=True, methodPE=0):
                     cNFace = getNodeFromName1(e, 'ElementConnectivity')[1]
             c += 1
 
-        if (cNFace is not None and NGON is not None and cNGon is not None):
+        if cNFace is not None and NGON is not None and cNGon is not None:
             cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces, methodPE)
             createUniqueChild(NGON, 'ParentElements', 'DataArray_t', value=cFE)
         if remove: del z[2][noNFace]
@@ -4087,8 +4087,11 @@ def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
     return tp
 
 def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
-    zones = getZones(t)
+    
+    # Corrige les types eventuellement
+    _adaptTypes(t)
 
+    zones = getZones(t)
     dictOfZTypes = {} # dictionnaire des types de zone (0: struct, 1: non struct)
     for z in zones:
         stype = getZoneType(z)
@@ -4473,8 +4476,8 @@ def getRotationAngleValueInDegrees(RotationAngleNode):
 #=============================================================================
 # Get the periodic connectivity information (rotation or translation)
 # IN: gcnode: GridConnectivity node
-# OUT : [xc,yc,zc,axisX,axisY,axisZ,angleDeg],[translX,translY,translZ]
-#       avec angleDeg en degres ! 
+# OUT: [xc,yc,zc,axisX,axisY,axisZ,angleDeg],[translX,translY,translZ]
+#      avec angleDeg en degres ! 
 #=============================================================================
 def getPeriodicInfo__(gcnode):
     cont = getNodeFromName1(gcnode, 'GridConnectivityProperty')
@@ -4903,3 +4906,36 @@ def getGlob2Loc(z):
     if a is not None: a = getValue(a)
     if b is not None: b = getValue(b)
     return b, a
+
+# change les numpy R4 en R8 et les numpy i8 en i4
+# dans FlowSolution/Coordinates et Elements_t
+def _adaptTypes(t, convertR42R8=True, convertI82I4=True):
+    zones = getZones(t)
+    for z in zones:
+        if convertR42R8:
+            nodes = getNodesFromType1(z, 'GridCoordinates_t')
+            for no in nodes:
+                for n in no[2]: 
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.float32:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.float64)
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+            nodes = getNodesFromType1(z, 'FlowSolution_t')
+            for no in nodes:
+                for n in no[2]:
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.float32:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.float64)
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+        if convertI82I4:
+            nodes = getNodesFromType1(z, 'Elements_t')
+            for no in nodes:
+                for n in no[2]:
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32)
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+    return None

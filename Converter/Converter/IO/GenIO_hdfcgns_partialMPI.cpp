@@ -1214,7 +1214,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
       //DataSpace.GlobDataSetDim[i] = DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1];
       i++;
     }
-    if (DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1] != -1){
+    if (DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1] != -1)
+    {
       DataSpace.GlobDataSetDim[j] = DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1];
       j++;
     }
@@ -1263,15 +1264,17 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   // On cherche la liste dans l'objet python
   int n_data_space = -1;
   int flags_src_or_dst = -1;
-  for(int i_list = 0; i_list < FilterSize; ++i_list)
+  for (int i_list = 0; i_list < FilterSize; ++i_list)
   {
     PyObject* item = PyList_GetItem(Filter, i_list);
     bool is_multiple_data_space = false;
     // On doit recuperer seulement la list imbrique
     E_Int litem_size = PyList_Size(item);
-    for(int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list){
+    for(int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list)
+    {
       PyObject* subitem = PyList_GetItem(item, i_sub_list);
-      if(PyList_Check(subitem) == true){
+      if (PyList_Check(subitem) == true)
+      {
         is_multiple_data_space = true;
       }
     }
@@ -1287,7 +1290,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         DataSpace.List_Src_Count .resize(n_data_space);
         DataSpace.List_Src_Block .resize(n_data_space);
 
-        for(int il = 0; il < L3C_MAX_DIMS; ++il) {
+        for (int il = 0; il < L3C_MAX_DIMS; ++il) 
+        {
           DataSpace.Src_Offset[il] = -1;
           DataSpace.Src_Stride[il] = -1;
           DataSpace.Src_Count [il] = -1;
@@ -1295,7 +1299,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         }
 
         int shift = 0;
-        for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space){
+        for (int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+        {
           fillArrayLongWithList(item, 0+shift, DataSpace.List_Src_Offset[i_data_space].data());
           fillArrayLongWithList(item, 1+shift, DataSpace.List_Src_Stride[i_data_space].data());
           fillArrayLongWithList(item, 2+shift, DataSpace.List_Src_Count [i_data_space].data());
@@ -1310,7 +1315,9 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         fillArrayLongWithList(Filter, 4, DataSpace.Dst_Block );
 
 
-      } else if(i_list == 4){ // Pour l'instant on a pas le cas ou l'entré et la sortie sont en multiple_data_space
+      } 
+      else if(i_list == 4)
+      { // Pour l'instant on a pas le cas ou l'entré et la sortie sont en multiple_data_space
         flags_src_or_dst = 2; // Multiple data_space in destination
         // printf("flags_src_or_dst ---> %i \n", flags_src_or_dst);
 
@@ -1320,7 +1327,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         fillArrayLongWithList(Filter, 2, DataSpace.Src_Count );
         fillArrayLongWithList(Filter, 3, DataSpace.Src_Block );
 
-        for(int il = 0; il < L3C_MAX_DIMS; ++il) {
+        for(int il = 0; il < L3C_MAX_DIMS; ++il) 
+        {
           DataSpace.Dst_Offset[il] = -1;
           DataSpace.Dst_Stride[il] = -1;
           DataSpace.Dst_Count [il] = -1;
@@ -1333,14 +1341,14 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         DataSpace.List_Dst_Block .resize(n_data_space);
 
         int shift = 0;
-        for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space){
+        for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+        {
           fillArrayLongWithList(item, 0+shift, DataSpace.List_Dst_Offset[i_data_space].data());
           fillArrayLongWithList(item, 1+shift, DataSpace.List_Dst_Stride[i_data_space].data());
           fillArrayLongWithList(item, 2+shift, DataSpace.List_Dst_Count [i_data_space].data());
           fillArrayLongWithList(item, 3+shift, DataSpace.List_Dst_Block [i_data_space].data());
           shift += 4;
         }
-
       }
     }
   }
@@ -1353,7 +1361,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   // printf("Fill fillArrayLongWithList(Filter, 5, DataSpace.GlobDataSetDim) end ...  \n");
 
   /* Fill flags */
-  if(PyList_Size(Filter) > 5)
+  if (PyList_Size(Filter) > 5)
   {
     // printf("Fill additional ... \n");
     fillArrayLongWithList(Filter, 6, DataSpace.Flags);
@@ -1364,8 +1372,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   /** Better make reverse that in interface **/
   DataSpace_t DataSpaceSave = DataSpace;
 
-  int i=0;
-  int j=0;
+  int i=0; int j=0;
   for (int n=0; n<L3C_MAX_DIMS; n++)
   {
     DataSpace.Src_Offset[n] = -1;
@@ -1405,8 +1412,10 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
     }
   }
 
-  if(flags_src_or_dst == 1){
-    for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space){
+  if (flags_src_or_dst == 1)
+  {
+    for (int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+    {
       i=0;
       for (int n=0; n<L3C_MAX_DIMS; n++)
       {
@@ -1425,8 +1434,11 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
       }
     }
 
-  } else if (flags_src_or_dst == 2 ){
-    for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space){
+  } 
+  else if (flags_src_or_dst == 2 )
+  {
+    for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+    {
       i=0;
       for (int n=0; n<L3C_MAX_DIMS; n++)
       {
@@ -1507,8 +1519,8 @@ int HDF_Get_DataDimensionsPartial(hid_t nid, int *dims,
                                   hsize_t *dst_count,
                                   hsize_t *dst_block)
 {
-  int   n;
-  int   ndims;
+  int n;
+  int ndims;
   L3M_CLEARDIMS(dims);
   ndims = 0;
   for (n = 0; dst_count[n] != -1; n++)
@@ -1528,18 +1540,18 @@ hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
                                       hsize_t *src_count,
                                       hsize_t *src_block)
 {
-  int       /*n, dst_ndims,*/src_ndims;
-  hsize_t   src_dim_vals[L3C_MAX_DIMS];
-  hid_t     did,sid;
-  herr_t    stat;
+  //int       src_ndims;
+  //hsize_t   src_dim_vals[L3C_MAX_DIMS];
+  hid_t did, sid;
+  herr_t stat;
   
   did = H5Dopen2(nid,L3S_DATA,H5P_DEFAULT);
   sid = H5Dget_space(did);
 
-  src_ndims = H5Sget_simple_extent_ndims(sid);
-  H5Sget_simple_extent_dims(sid, src_dim_vals, NULL);
-
-  src_dim_vals[src_ndims]=-1;
+  // A supprimer:
+  //src_ndims = H5Sget_simple_extent_ndims(sid);
+  //H5Sget_simple_extent_dims(sid, src_dim_vals, NULL);
+  //src_dim_vals[src_ndims] = -1;
 
   stat = H5Sselect_hyperslab(sid, H5S_SELECT_SET,
                              src_offset, src_stride, src_count, src_block);
@@ -1547,7 +1559,7 @@ hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
   /* Fermeture */
   H5Dclose(did);
 
-  /* CAUTION - sid need to be close after */
+  /* CAUTION - sid need to be closed after */
   return sid;
 }
 
@@ -1578,7 +1590,7 @@ hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
     dst_ndims += 1;
     dst_dim_vals[n] = dst_dims[n];
   }
-  dst_dim_vals[dst_ndims]=-1;
+  dst_dim_vals[dst_ndims] = -1;
 
   /* Create DataSpace */
   mid  = H5Screate_simple(dst_ndims, dst_dim_vals, NULL);
@@ -1598,26 +1610,25 @@ hid_t createDataSpaceEntryCombine(hid_t nid, std::vector<std::array<hsize_t, L3C
                                              std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_count,
                                              std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_block)
 {
-  int       /*n, dst_ndims,*/src_ndims;
-  hsize_t   src_dim_vals[L3C_MAX_DIMS];
-  hid_t     did,sid;
-  herr_t    stat;
+  //int src_ndims;
+  //hsize_t   src_dim_vals[L3C_MAX_DIMS];
+  hid_t did,sid;
+  herr_t stat;
 
   did = H5Dopen2(nid,L3S_DATA,H5P_DEFAULT);
   sid = H5Dget_space(did);
 
-  src_ndims = H5Sget_simple_extent_ndims(sid);
-  H5Sget_simple_extent_dims(sid, src_dim_vals, NULL);
-
-  src_dim_vals[src_ndims]=-1;
+  //src_ndims = H5Sget_simple_extent_ndims(sid);
+  //H5Sget_simple_extent_dims(sid, src_dim_vals, NULL);
+  //src_dim_vals[src_ndims] = -1;
 
   assert(src_offset.size() >= 1);
   stat = H5Sselect_hyperslab(sid, H5S_SELECT_SET,
                              src_offset[0].data(), src_stride[0].data(),
                              src_count [0].data(), src_block [0].data());
 
-  for(int i_data_space = 1; i_data_space < static_cast<int>(src_offset.size()); ++i_data_space){
-
+  for (int i_data_space = 1; i_data_space < static_cast<int>(src_offset.size()); ++i_data_space)
+  {
     stat = H5Sselect_hyperslab(sid, H5S_SELECT_OR,
                                src_offset[i_data_space].data(),
                                src_stride[i_data_space].data(),
@@ -1633,21 +1644,23 @@ hid_t createDataSpaceEntryCombine(hid_t nid, std::vector<std::array<hsize_t, L3C
 }
 
 //=============================================================================
-// Cree un dataspace HDF - Entry
+// Retourne true si le filtre a plusieurs data space
 //=============================================================================
 bool haveMultipleDataSpace(PyObject* Filter)
 {
-
   E_Int FilterSize = PyList_Size(Filter);
   //printf("FilterSize: %d \n", FilterSize);
   /* Orient if mutiple_data_space or not */
   bool have_multiple_data_space = false;
-  for(int i_list = 0; i_list < FilterSize; ++i_list){
+  for (int i_list = 0; i_list < FilterSize; ++i_list)
+  {
     PyObject* item = PyList_GetItem(Filter, i_list);
     E_Int litem_size = PyList_Size(item);
-    for(int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list){
+    for(int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list)
+    {
       PyObject* subitem = PyList_GetItem(item, i_sub_list);
-      if(PyList_Check(subitem) == true){
+      if (PyList_Check(subitem) == true)
+      {
         //E_Int lsub_size = PyList_Size(subitem);
         // printf("\t\t subitem of size :: %i | %i \n", lsub_size, lsub_size%4);
         assert(litem_size % 4 == 0);
