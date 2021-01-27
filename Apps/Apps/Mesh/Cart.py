@@ -11,7 +11,7 @@ import Transform.PyTree as T
 import numpy 
 # Generates in parallel a Cartesian mesh
 # if ext=0, match and nearmatch joins are not computed
-def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, tbox=None, snearsf=None, ext=2, dimPb=3):
+def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, tbox=None, snearsf=None, ext=2, dimPb=3, sizeMax=1000000):
     
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -58,7 +58,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
 
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
-    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
+    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=sizeMax)
     del p 
     if parento is not None:
         for po in parento: del po
