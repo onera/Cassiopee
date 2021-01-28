@@ -6,7 +6,7 @@ except: pass
 
 import numpy
 import fnmatch # unix wildcards
-import KCore
+import KCore.kcore as KCore
 from . import converter
 
 # Containeurs
@@ -2192,15 +2192,12 @@ def _moveNodeFromPaths(t, path1, path2):
     parent = getNodeFromPath(t, p1)
     if parent is None: 
         raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path1)
-        return None
     child = getChildFromName(parent, n1)
     if child is None: 
         raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path1)
-        return None
     dest = getNodeFromPath(t, path2)
     if dest is None: 
         raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path2)
-        return None
     dest[2].append(child)
     parent[2].remove(child)
     return None
@@ -2636,9 +2633,9 @@ def window2Range(win):
     return r
 
 # -- PointList (face) to range (struct zones)
-def pointList2Windows(PL, ni, nj, nk):
+#def pointList2Windows(PL, ni, nj, nk):
     # find face
-    ind = PL[0]
+    #ind = PL[0]
     # find i,j
     # regrouper dans des vector[j]
     # pour chaque j, trouve imin, imax
@@ -2906,7 +2903,6 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
             return ['unknown', array]
     elif gtype == 'Unstructured':
         cr, ettype = adaptConnect__(connects, dim)
-        lconnects = len(connects)
         s = ar.size
         a = numpy.reshape(ar, (1, s), order='F')
         locout = 'nodes'
@@ -2977,7 +2973,6 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     ettype, stype = eltNo2EltName(eltType)
 
     if eltType == 22: # NGON
-        info = connect1
         e = getNodeFromName(connect1, 'ElementConnectivity')
         f = getNodeFromName(connect2, 'ElementConnectivity')
         g = getNodeFromName(connect1, 'FaceIndex')
@@ -3129,7 +3124,6 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     ettype, stype = eltNo2EltName(eltType)
 
     if eltType == 22: # NGON
-        info = connect1
         e = getNodeFromName(connect1, 'ElementConnectivity')
         f = getNodeFromName(connect2, 'ElementConnectivity')
         g = getNodeFromName(connect1, 'FaceIndex')
@@ -3169,7 +3163,7 @@ def _groupByFamily(t, familyChilds=None, unique=False):
     if familyChilds is None: familyChilds=[]
     for b in getBases(t):
         # Name of Nodes Family_t
-        familiesNodeNames = [fam[0] for fam in getNodesFromType(b,'Family_t')]
+        familyNodeNames = [fam[0] for fam in getNodesFromType(b, 'Family_t')]
         # All node BC_t not family specified
         BCNotSpec = []
         for bc in getNodesFromType3(b, 'BC_t'):
@@ -3184,12 +3178,12 @@ def _groupByFamily(t, familyChilds=None, unique=False):
             else: solverBCChilds = solverBC[2]
 
             # if a family node already exist
-            if FamilyName in FamiliesNodeNames:
+            if FamilyName in familyNodeNames:
                 setValue(bc, 'FamilySpecified')
             else:
-                FamiliesNodeNames.append(FamilyName)
-                FamBC = createNode('FamilyBC','FamilyBC_t', getValue(bc))                
-                children = FamilyChilds[:]+solverBCChilds[:]# faut il faire une deepcopy ? dans XTree c est le cas
+                familyNodeNames.append(FamilyName)
+                FamBC = createNode('FamilyBC', 'FamilyBC_t', getValue(bc))                
+                children = familyChilds[:]+solverBCChilds[:]# faut il faire une deepcopy ? dans XTree c est le cas
                 if not unique: children.append(FamBC)
                 else:
                     e = -1
@@ -3200,15 +3194,14 @@ def _groupByFamily(t, familyChilds=None, unique=False):
                             break
                     if e==-1: children.append(FamBC)
                         
-                #
-                nodep=createNode(FamilyName,'Family_t', value=None,children=children,parent=b)
-                setValue(bc,'FamilySpecified')
-                if solverBC: _rmNode(bc,solverBC)
+                nodep = createNode(FamilyName, 'Family_t', value=None, children=children, parent=b)
+                setValue(bc, 'FamilySpecified')
+                if solverBC: _rmNode(bc, solverBC)
     return None
 
-def groupByFamily(t,familyChilds=None, unique=False):
+def groupByFamily(t, familyChilds=None, unique=False):
     tp = copyRef(t)
-    _groupByFamily(tp)
+    _groupByFamily(tp, familyChilds, unique)
     return tp
 
 #==============================================================================
@@ -3847,7 +3840,7 @@ def adaptNFace2PE(t, remove=True, methodPE=0):
 def _adaptNFace2PE(t, remove=True, methodPE=0):
     zones = getZones(t)
     for z in zones:
-        npts = 0; nelts = 0; cNFace = None; NGON = None; noNFace = 0
+        nelts = 0; cNFace = None; NGON = None; noNFace = 0
         cNGon = None
         c = 0
         # Coordonnees
@@ -4103,7 +4096,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
         stype = dictOfZTypes[z[0]]
         if stype == 2: # Unstructured
             # Check NGON, NFACE, BE (first BE met)
-            NGON = -1; NFACE = -1; BE = -1; NFACEORIG = True
+            NGON = -1; NFACE = -1; BE = -1
             sons = z[2]; no = 0
             for s in sons:
                 if s[3] == 'Elements_t':
@@ -4393,7 +4386,6 @@ def convertIJKArray21DArray(*thetuple):
     return b
   else:
     raise TypeError("convertIJKArray2IndexArray: bad number of arguments.")
-    return 0
 
 # -- Return 1D-indice corresponding to (i,j) in 2D and (i,j,k) in 3D
 def adrNode1__(i,j,k,im,jm,km,d):
@@ -4407,14 +4399,14 @@ def gatherInStructPatch2D__(listIndices, indirWin, niw, njw, dirf, niZ, njZ, nkZ
     noBlk = -1
     while restart == 1:
         # Recherche du premier pt identifie
-        noind = 0; indstart=-1; indend=-1
+        noind = 0; indstart=-1
         for indH in listIndices:
             if indH != -1: indstart = noind; noBlk = indirWin[indH-1]; break
             noind += 1
         if indstart == -1: return []
 
         jstart = indstart//niw; istart = indstart-jstart*niw
-        iend = niw-1; jend = njw-1;
+        iend = niw-1; jend = njw-1
         for i in range(istart+1,niw):
             ind = i+jstart*niw
             indH = listIndices[ind]
@@ -4435,7 +4427,7 @@ def gatherInStructPatch2D__(listIndices, indirWin, niw, njw, dirf, niZ, njZ, nkZ
         for j in range(jstart,jend+1):
             for i in range(istart,iend+1):
                 ind = i+j*niw
-                listIndices[ind] = -1;
+                listIndices[ind] = -1
         res.append([istart,iend,jstart,jend,noBlk])
         if max(listIndices) == -1: restart=0
 
@@ -4487,7 +4479,6 @@ def getPeriodicInfo__(gcnode):
     translVect = []; rotationData = []
     transl = getNodeFromName2(cont, 'Translation')
     tx = 0.; ty = 0.; tz = 0. # translation
-    isTranslated = 0; isRotated = 0
     if transl is not None:
         transl = getValue(transl)
         tx = transl[0]; ty = transl[1]; tz = transl[2]
@@ -4499,9 +4490,9 @@ def getPeriodicInfo__(gcnode):
     if center is not None and anglev is not None:
         (xc,yc,zc) = getValue(center)
         anglev = getRotationAngleValueInDegrees(anglev)
-        if   anglev[0] != 0: angle = anglev[0]; vx = 1.; isRotated = 1
-        elif anglev[1] != 0: angle = anglev[1]; vy = 1.; isRotated = 1
-        elif anglev[2] != 0: angle = anglev[2]; vz = 1.; isRotated = 1
+        if   anglev[0] != 0: angle = anglev[0]; vx = 1.
+        elif anglev[1] != 0: angle = anglev[1]; vy = 1.
+        elif anglev[2] != 0: angle = anglev[2]; vz = 1.
         if angle != 0.: rotationData = [xc,yc,zc,vx,vy,vz,angle]
 
     return rotationData, translVect
@@ -4563,16 +4554,16 @@ def _mergeEltsTPerType(t):
                     rmax2 = rmax
                     newElts_t.append(EltsT)
                     
-                elif found == 1:#merge EltsT and EltsT2
+                elif found == 1: #merge EltsT and EltsT2
                     rmin2 = rangeMinT[name1]
                     rmax2 = rangeMaxT[name2]
-                    ER = getNodeFromType(EltsT,'IndexRange_t')
+                    ER = getNodeFromType(EltsT, 'IndexRange_t')
                     ERVal = getValue(ER)
                     ERVal[0] = rmin
                     ERVal[1] = rmax2
                     setValue(ER,ERVal)
-                    ec1 = getNodeFromName(EltsT,'ElementConnectivity')
-                    ec2 = getNodeFromName(EltsT2,'ElementConnectivity')
+                    ec1 = getNodeFromName(EltsT, 'ElementConnectivity')
+                    ec2 = getNodeFromName(EltsT2, 'ElementConnectivity')
                     ec1[1] = numpy.concatenate((ec1[1],ec2[1]))
                     typesEltsT[name2]=-1; rangeMinT[name2]=-1; rangeMaxT[name2]=-1
                     rmax = rmax2
@@ -4806,7 +4797,7 @@ def getBCDataSetContainers(name, z):
 # OUT: __GridCoordinates__, __FlowSolutionCenters__, ...
 #==============================================================================
 def autoSetContainers(t):
-    global __FlowSolutionCenters__, __FlowSolutionNodes__
+    global __FlowSolutionCenters__, __FlowSolutionNodes__, __GridCoordinates__
     zones = getZones(t)
     if len(zones) == 0: return
     z = zones[0]

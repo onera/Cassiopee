@@ -2,9 +2,7 @@
 """
 __version__ = '3.2'
 __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Luis Bernardos"
-# 
-# Python Interface to create arrays defining meshes
-#
+
 from . import generator
 import numpy
 
@@ -115,7 +113,8 @@ def bbox(arrays):
     if not isinstance(arrays[0], list): ars = [arrays]
     else: ars = arrays
     try: import Converter as C
-    except: raise ImportError("bbox: requires Converter module.")
+    except ImportError:
+        raise ImportError("bbox: requires Converter module.")
     xmin = 1.e256; ymin = 1.e256; zmin = 1.e256
     xmax =-1.e256; ymax =-1.e256; zmax =-1.e256
     for a in ars:
@@ -124,7 +123,6 @@ def bbox(arrays):
             varx = KCore.isNamePresent(a, 'x')
             if varx == -1:
                 raise ValueError("bbox: x-coordinate not found.")
-                return []
             else: varx = 'x'
         else: varx = 'CoordinateX'
 
@@ -133,7 +131,6 @@ def bbox(arrays):
             vary = KCore.isNamePresent(a, 'y')
             if vary == -1:
                 raise ValueError("bbox: y-coordinate not found.")
-                return []
             else: vary = 'y'
         else: vary = 'CoordinateY'
 
@@ -142,7 +139,6 @@ def bbox(arrays):
             varz = KCore.isNamePresent(a, 'z')
             if varz == -1 :
                 raise ValueError("bbox: z-coordinate not found.")
-                return []
             else: varz = 'z'
         else: varz = 'CoordinateZ'  
             
@@ -166,7 +162,8 @@ def BB(array, method='AABB', weighting=0):
     """Return the axis-aligned or oriented bounding box of an array as an array.
     Usage: b = BB(a, method='AABB', weighting=0)"""
     try: import Converter as C
-    except: raise ImportError("BB: requires Converter module.")
+    except ImportError:
+        raise ImportError("BB: requires Converter module.")
     if isinstance(array[0], list):
         out = []
         for a in array:
@@ -245,7 +242,7 @@ def bboxIntersection(array1, array2, tol=1.e-6, isBB=False, method='AABB'):
         return generator.crossIntersection(array1, array2)        
     else:
         print('Warning: bboxIntersection: method %s not implemented, switching to AABB.'%method)
-        return generator.bboxIntersection(m1, m2)
+        return generator.bboxIntersection(array1, array2)
 
 def checkPointInCEBB(array, P):
     """Check if point P is in the Cartesian Elements Bounding Box of array."""
@@ -361,7 +358,7 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     if posx != -1: xt = C.extractVars(arrayC, ['x'])[1]
     else:
         posx = KCore.isNamePresent(arrayC, 'CoordinateX')
-        if (posx != -1): xt = C.extractVars(arrayC, ['CoordinateX'])[1]
+        if posx != -1: xt = C.extractVars(arrayC, ['CoordinateX'])[1]
         else: raise ValueError("enforceCurvature2: coordinates must be present in array.")
     posy = KCore.isNamePresent(arrayC, 'y')
     if posy != -1: yt = C.extractVars(arrayC, ['y'])[1]
@@ -648,7 +645,7 @@ def defineSizeMapForMMGs(array, hmax, sizeConstraints):
         array = Converter.addVars([array, vol])
     pos = KCore.isNamePresent(array, 'sizemap')
 
-    szcs = C.convertArray2Hexa(sizeConstraints)
+    szcs = Converter.convertArray2Hexa(sizeConstraints)
     c = Transform.join(szcs)
     v = Generator.getVolumeMap(c)
     v = Converter.center2Node(v) # devrait etre max
@@ -669,6 +666,7 @@ def defineSizeMapForMMGs(array, hmax, sizeConstraints):
 # Remaille une surface avec mmgs
 def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
          anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
+    """Surface remeshing using MMGS."""
     if isinstance(array[0], list):
         l = []
         for i in array:

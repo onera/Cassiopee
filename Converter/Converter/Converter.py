@@ -14,20 +14,20 @@ try: from . import converter
 except: import converter
 import KCore
 
-__all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'center2Node', 'conformizeNGon', 
+__all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'center2Node', 'conformizeNGon',
     'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node', 'convertArray2Tetra',
-    'convertArrays2File', 'convertBAR2Struct', 'convertFile2Arrays', 'convertTri2Quad', 'copy', 
+    'convertArrays2File', 'convertBAR2Struct', 'convertFile2Arrays', 'convertTri2Quad', 'copy',
     'createGlobalHook', 'createHook', 
     'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
     'createSockets', 'diffArrays', 'isFinite', 'extCenter2Node', 'extractVars', 'getIndexField',
-    'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue', 
-    'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes', 
-    'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude', 
-    'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2', 
+    'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue',
+    'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes',
+    'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
+    'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
     'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
     'checkFileType', 'convertHO2LO', 'convertLO2HO']
 
-# -- Create an array -- 
+# -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
 def array(vars, n1, n2, sub, api=1):
     """Create a structured or unstructured array.
@@ -57,7 +57,7 @@ def arrayS(vars, ni, nj, nk, api=1):
         for i in range(v):
             if vl[i] == 'cellN' or vl[i] == 'cellNF':
                 a.append(numpy.ones((ni*nj*nk), numpy.float64))
-            else: 
+            else:
                 a.append(numpy.zeros((ni*nj*nk), numpy.float64))
     return [vars, a, ni, nj, nk]
 
@@ -430,7 +430,7 @@ def _initVarByEq__(a, eq):
     vars = varstring.split(',')
 
     eq = eq.replace('centers:', '')
-    eq = eq.replace('nodes:', '') 
+    eq = eq.replace('nodes:', '')
 
     # Split suivant ; si plusieurs formules sont definies
     eq = eq.split(';')
@@ -472,16 +472,16 @@ def getIndexField__(a):
     n = numpy.arange(0, npts, dtype=numpy.float64)
     # structure/non structure/array1/array2
     if len(a) == 5: # structure
-       if isinstance(a[1], list): return ['index', [n], a[2], a[3], a[4]] # array2
-       else: return ['index', n.reshape(1,npts), a[2], a[3], a[4]] # array1
+        if isinstance(a[1], list): return ['index', [n], a[2], a[3], a[4]] # array2
+        else: return ['index', n.reshape(1,npts), a[2], a[3], a[4]] # array1
     else:
-       if isinstance(a[1], list): return ['index', [n], a[2], a[3]] # array2
-       else: return ['index', n.reshape(1,npts), a[2], a[3]] # array1
+        if isinstance(a[1], list): return ['index', [n], a[2], a[3]] # array2
+        else: return ['index', n.reshape(1,npts), a[2], a[3]] # array1
 
 def getIndexField(array):
     """Return the index field in an array.
     Usage: getIndexField(array)"""
-    if isinstance(array[0], list): 
+    if isinstance(array[0], list):
         b = []
         for i in array:
             b.append(getIndexField__(i))
@@ -532,8 +532,8 @@ def convertExt2Format__(fileName):
     return format
 
 def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
-                       density=-1., zoneNames=None, BCFaces=None, 
-                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0, 
+                       density=-1., zoneNames=None, BCFaces=None,
+                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0,
                        centerArrays=None):
     """Read file and return arrays containing file data.
     Usage: a = convertFile2Arrays(fileName, options)"""
@@ -563,8 +563,8 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         try: import OCC
         except: raise ImportError("convertFile2Arrays: CAD readers requires OCC module.")
         
-        a = OCC.convertCAD2Arrays(fileName, format=format, h=hmax, 
-                                  chordal_err=hausd, growth_ratio=grow, 
+        a = OCC.convertCAD2Arrays(fileName, format=format, h=hmax,
+                                  chordal_err=hausd, growth_ratio=grow,
                                   merge_tol=mergeTol, algo=occAlgo)
         if zoneNames is not None: 
             for c in range(len(a)): zoneNames.append('zone%d'%c)
@@ -605,8 +605,8 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             if not autoTry: raise
             else: pass
             format = checkFileType(fileName)
-            try: 
-               return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
+            try:
+                return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
             except:   
                 FORMATS = ['bin_ply', 'fmt_tp', 'fmt_v3d',
                 'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
@@ -687,7 +687,7 @@ def isFinite__(a, var=None):
                 ret = False
                 print('Warning: NAN or INF value in field (%s)'%v)
     return ret
-    
+
 def isFinite(array, var=None):
     """Return true if all fields have no NAN or INF values."""
     if isinstance(array[0], list):
@@ -695,7 +695,7 @@ def isFinite(array, var=None):
         for a in array:
             ret1 = isFinite__(a, var)
             if ret1 == False: ret = False
-        return ret 
+        return ret
     else: return isFinite__(array, var)
 
 def getValue(array, ind):
@@ -807,7 +807,7 @@ def getMeanValue(array, varName):
             pos2 = KCore.isNamePresent(i, varName)
             a = converter.getMeanValue(i, varName)
             if isinstance(i[1], list): # array2
-               la = i[1][0].size * 1.
+                la = i[1][0].size * 1.
             else: la = i[1].shape[1] * 1.
             b = lb*b + la*a
             lb = lb + la
@@ -1023,7 +1023,7 @@ def convertArray2Tetra(array, split='simple'):
     Usage: convertArray2Tetra(array)"""
     if isinstance(array[0], list):
         b = []
-        for i in array: 
+        for i in array:
             b.append(convertArray2Tetra1__(i, split=split))       
         return b
     else: return convertArray2Tetra1__(array, split=split)
@@ -1047,7 +1047,7 @@ def convertArray2Hexa1__(array):
         tmp = T.breakElements(array)
         brd = []
         for i in tmp:
-            if (i[3] != 'NGON'): brd.append(convertArray2Hexa1__(i))
+            if i[3] != 'NGON': brd.append(convertArray2Hexa1__(i))
         brd = T.join(brd)
         return brd
     elif t == 'TRI*' or t == 'TETRA*' or t == 'PENTA*':
@@ -1522,13 +1522,13 @@ def send(data, host='localhost', rank=0, port=15555):
     #print('sending', header)
     header = Compressor.pack(header, method=0)
     header = header.ljust(255)
-    
+
     s.send(header)
     nbytes = 0
     while nbytes < size:
         if nbytes+sizeBuf > size:
             nbytes += s.send(data[nbytes:nbytes+sizeBuf])
-        else: 
+        else:
             nbytes += s.send(data[nbytes:])
         #print('send',nbytes,size)
     s.close()
@@ -1579,81 +1579,80 @@ def listen(s):
 # checkfile type
 #=============================================================================
 def checkFileType(fileName):
-  """Find file type."""
-  import os
-  try: file = os.open(fileName, os.O_RDONLY)
-  except: raise IOError("checkFileType: file %s not found."%fileName)
-  #header = file.read(512)  # lecture des 512 premiers octets
-  header = os.read(file, 512)
-  os.close(file)
+    """Find file type."""
+    import os
+    try: file = os.open(fileName, os.O_RDONLY)
+    except: raise IOError("checkFileType: file %s not found."%fileName)
+    #header = file.read(512)  # lecture des 512 premiers octets
+    header = os.read(file, 512)
+    os.close(file)
 
-  if header[1:4] == b'HDF': return 'bin_hdf'
-  if header[4:7] == b'ADF': return 'bin_adf'
-  if header[0:5] == b'#!TDV': return 'bin_tp'
-  if header[0:5] == b'TITLE' or header[0:5] == b'title' or header[0:9] == b"VARIABLES" or header[0:9] == b"variables" or header[0:8] == b"FILETYPE" or header[0:8] == b"filetype":
-    return 'fmt_tp'
-  if header.find(b"MeshVersionUnformatted") != -1: return 'bin_mesh'
-  if header.find(b"MeshVersionFormatted") != -1: return 'fmt_mesh'
-  if header.find(b"NDIME=") != -1: return 'fmt_su2'
-  if header.find(b"DONNEES GENERALES") != -1 or header.find(b"--------") != -1: return 'fmt_cedre'
-  if header[0:8] == b'CEDRE_IO': return 'bin_cedre'
-  if header.find(b"solid") == 0: return 'fmt_stl'
-  if header.find(b"v ") != -1: return 'fmt_obj'
-  if header.find(b"$MeshFormat") != -1:
-    EndMesh = header.find(b"$EndMeshFormat")
-    if EndMesh == 20: return 'fmt_gmsh'
-    elif EndMesh == 25: return 'bin_gmsh'
-  if header.find(b"ply") != -1: return 'bin_ply'
-  if header.find(b"#FIG") == 0: return 'fmt_xfig'
-  if header.find(b"<svg") != -1: return 'fmt_svg'
-  if header.find(b"PNG") == 1: return 'bin_png'
-  import binascii as b
-  beader = b.b2a_hex(header)
-  eol = b"0a"
-  if (beader[0:8] == b"04000000" or beader[0:8] == b"00000004") and (header[16:18] == b'va' or header[16:17] == b'x' or header[16:17] == b'y' or header[16:17] == b'z' or header[16:18] == b'VA' or header[16:17] == b'X' or header[16:17] == b'Y' or header[16:17] == b'Z'): 
-    return 'bin_v3d' 
-  if (beader[0:8] == b"08000000" or beader[0:8] == b"00000008") and (header[20:22] == b'va' or header[20:21] == b'x' or header[20:21] == b'y' or header[20:21] == b'z' or header[20:22] == b'VA' or header[20:21] == b'X' or header[20:21] == b'Y' or header[20:21] == b'Z'): 
-    return 'bin_v3d' 
-  if (beader[10:12] == eol and (beader[50:52] == b"78" or beader[50:52] == b"79" or beader[50:52] == b"80" or  beader[12:14] == b"78" or   beader[12:14] == b"79" or beader[12:14] == b"80"  or beader[50:52] == b"58" or beader[50:52] == b"59" or beader[50:52] == b"60" or  beader[12:14] == b"58" or beader[12:14] == b"59" or beader[12:14] == b"60" or beader[46:52] == b"766172" or beader[46:52] == b"564152" or beader[12:18] == b"766172" or beader[12:18] == b"564152")):
-    return 'fmt_v3d' 
-  if beader.find(b"4d4d") == 0: return 'bin_3ds'
-  dt = numpy.dtype('<i4')
-  ieader = numpy.fromfile(fileName,dtype=dt,count=128,sep="")
-  if ieader[0] == 4:
-      ninjnk = ieader[1] * 3 * 4   # 3 pour ni,nj,nk, 4 pour 4 octets cas 3D multibloc
-      ninj   = ieader[1] * 2 * 4 # 3 pour ni,nj, 4 pour 4 octets cas 2D multibloc
-      if ieader[3] == ninjnk or ieader[3] == ninj: 
+    if header[1:4] == b'HDF': return 'bin_hdf'
+    if header[4:7] == b'ADF': return 'bin_adf'
+    if header[0:5] == b'#!TDV': return 'bin_tp'
+    if header[0:5] == b'TITLE' or header[0:5] == b'title' or header[0:9] == b"VARIABLES" or header[0:9] == b"variables" or header[0:8] == b"FILETYPE" or header[0:8] == b"filetype":
+        return 'fmt_tp'
+    if header.find(b"MeshVersionUnformatted") != -1: return 'bin_mesh'
+    if header.find(b"MeshVersionFormatted") != -1: return 'fmt_mesh'
+    if header.find(b"NDIME=") != -1: return 'fmt_su2'
+    if header.find(b"DONNEES GENERALES") != -1 or header.find(b"--------") != -1: return 'fmt_cedre'
+    if header[0:8] == b'CEDRE_IO': return 'bin_cedre'
+    if header.find(b"solid") == 0: return 'fmt_stl'
+    if header.find(b"v ") != -1: return 'fmt_obj'
+    if header.find(b"$MeshFormat") != -1:
+        EndMesh = header.find(b"$EndMeshFormat")
+        if EndMesh == 20: return 'fmt_gmsh'
+        elif EndMesh == 25: return 'bin_gmsh'
+    if header.find(b"ply") != -1: return 'bin_ply'
+    if header.find(b"#FIG") == 0: return 'fmt_xfig'
+    if header.find(b"<svg") != -1: return 'fmt_svg'
+    if header.find(b"PNG") == 1: return 'bin_png'
+    import binascii as b
+    beader = b.b2a_hex(header)
+    eol = b"0a"
+    if (beader[0:8] == b"04000000" or beader[0:8] == b"00000004") and (header[16:18] == b'va' or header[16:17] == b'x' or header[16:17] == b'y' or header[16:17] == b'z' or header[16:18] == b'VA' or header[16:17] == b'X' or header[16:17] == b'Y' or header[16:17] == b'Z'):
+        return 'bin_v3d'
+    if (beader[0:8] == b"08000000" or beader[0:8] == b"00000008") and (header[20:22] == b'va' or header[20:21] == b'x' or header[20:21] == b'y' or header[20:21] == b'z' or header[20:22] == b'VA' or header[20:21] == b'X' or header[20:21] == b'Y' or header[20:21] == b'Z'):
+        return 'bin_v3d'
+    if (beader[10:12] == eol and (beader[50:52] == b"78" or beader[50:52] == b"79" or beader[50:52] == b"80" or  beader[12:14] == b"78" or   beader[12:14] == b"79" or beader[12:14] == b"80"  or beader[50:52] == b"58" or beader[50:52] == b"59" or beader[50:52] == b"60" or  beader[12:14] == b"58" or beader[12:14] == b"59" or beader[12:14] == b"60" or beader[46:52] == b"766172" or beader[46:52] == b"564152" or beader[12:18] == b"766172" or beader[12:18] == b"564152")):
+        return 'fmt_v3d'
+    if beader.find(b"4d4d") == 0: return 'bin_3ds'
+    dt = numpy.dtype('<i4')
+    ieader = numpy.fromfile(fileName,dtype=dt,count=128,sep="")
+    if ieader[0] == 4:
+        ninjnk = ieader[1] * 3 * 4   # 3 pour ni,nj,nk, 4 pour 4 octets cas 3D multibloc
+        ninj   = ieader[1] * 2 * 4 # 3 pour ni,nj, 4 pour 4 octets cas 2D multibloc
+        if ieader[3] == ninjnk or ieader[3] == ninj:
+            return 'bin_plot3d'
+    if ieader[0] == 12 or ieader[0] == 8:  # cas 2D ou 3d monobloc
         return 'bin_plot3d'
-  if ieader[0] == 12 or ieader[0] == 8:  # cas 2D ou 3d monobloc
-    return 'bin_plot3d'
 
-  fileSize = os.path.getsize(fileName)
-  try: ntri = header[80:82]; ntri = int(ntri)
-  except: ntri = 0
-  sizet = ntri*50+84  #format bin_stl 80 octets d entete/nombre de triangles/50 octets par triangles
-  if fileSize == sizet: return 'bin_stl'
+    fileSize = os.path.getsize(fileName)
+    try: ntri = header[80:82]; ntri = int(ntri)
+    except: ntri = 0
+    sizet = ntri*50+84  #format bin_stl 80 octets d entete/nombre de triangles/50 octets par triangles
+    if fileSize == sizet: return 'bin_stl'
 
-  eolx1 = beader.find(eol, 0)
-  eolx2 = beader.find(eol, eolx1 + 1)
-  eol1 = (eolx1 +1)//2
-  eol2 = (eolx2 +1)//2
-  if eol1 != 0:
-      file = open(fileName, 'r')
-      i = 0
-      ligne0=[]
-      ligne1=[]
-      ninjnk_size = 0
-      for line in file:
-        if i == 0:
-          ligne0 = line.split()
-          npi = int(ligne0[0])
-        else:
-          newline = line.split()
-          sfloat = newline[0].count(".")
-          if sfloat == 0: ligne1.extend(newline)
-          else: break
-        i += 1
-      file.close()
-      ninjnk_size += len(ligne1)
-      if ninjnk_size == 2 * npi or ninjnk_size == 3 * npi: return 'fmt_plot3d'
-  return 'unknown'
+    eolx1 = beader.find(eol, 0)
+    eolx2 = beader.find(eol, eolx1 + 1)
+    eol1 = (eolx1 +1)//2
+    if eol1 != 0:
+        file = open(fileName, 'r')
+        i = 0
+        ligne0=[]
+        ligne1=[]
+        ninjnk_size = 0
+        for line in file:
+            if i == 0:
+                ligne0 = line.split()
+                npi = int(ligne0[0])
+            else:
+                newline = line.split()
+                sfloat = newline[0].count(".")
+                if sfloat == 0: ligne1.extend(newline)
+                else: break
+            i += 1
+        file.close()
+        ninjnk_size += len(ligne1)
+        if ninjnk_size == 2 * npi or ninjnk_size == 3 * npi: return 'fmt_plot3d'
+    return 'unknown'

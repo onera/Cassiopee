@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #=============================================================================
-# In installBase.py, you can specify: 
+# In installBase.py, you can specify:
 # - the name of the fortran 90 compiler
 # fortran 90 compiler is required.
 # If you want to specify another C compiler than the one python is

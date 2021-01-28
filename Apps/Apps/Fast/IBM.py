@@ -1,4 +1,4 @@
-#Class for FastS "IBM" prepare and compute
+# Class for FastS "IBM" prepare and compute
 import FastC.PyTree as FastC
 import Converter.PyTree as C
 import Generator.PyTree as G
@@ -39,14 +39,14 @@ def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
                 Re = Internal.getValue(Re)
         else: fail = 1
     if fail: 
-        raise("ValueError: computeYplusOpt requires Reynolds number as a float or in tb.")
+        raise ValueError("computeYplusOpt: requires Reynolds number as a float or in tb.")
     fail = 0
     if snear is None:
         snear = Internal.getNodeFromName(tb,"snear")
         if snear is None: fail=1
         else: snear = Internal.getValue(snear)
     if fail:
-        raise("ValueError: computeYlusOpt requires snear as a float or in tb.")
+        raise ValueError("computeYlusOpt: requires snear as a float or in tb.")
 
     print("Warning: estimation of the optimum y+ at Reynolds number ", Re, " and snear target at image point ", snear)
     h0 = (1.*Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+1
@@ -70,7 +70,7 @@ def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
             else: Re = Internal.getValue(Re)
         else: fail = 1
     if fail: 
-        raise("ValueError: computeSnearOpt requires Reynolds number as a float or in tb.")
+        raise ValueError("computeSnearOpt: requires Reynolds number as a float or in tb.")
 
 
     print("Estimation of the optimum near-wall spacing at Reynolds number ", Re, " and yplus target at image point ", yplus)
@@ -153,7 +153,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             for z in zones:
                 sn = Internal.getNodeFromName2(z, 'snear')
                 if sn is not None: snearsf.append(Internal.getValue(sn))
-                else: snearf.append(1.)
+                else: snearsf.append(1.)
 
     #--------------------------------------------------------
     # Get Reference State and model from body pyTree
@@ -346,7 +346,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             for z in zones:
                 sn = Internal.getNodeFromName2(z, 'snear')
                 if sn is not None: snearsf.append(Internal.getValue(sn))
-                else: snearf.append(1.)
+                else: snearsf.append(1.)
 
     symmetry = 0
     fileout = None
@@ -362,7 +362,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     dimPb = Internal.getValue(dimPb)
 
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError('GoverningEquations is missing in input tree defined in %s.'%FILE)
+    if model is None: raise ValueError('GoverningEquations is missing in input tree.')
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
 
@@ -1655,7 +1655,7 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
 # Prend les snears dans t, les multiplie par factor
 def snearFactor(t, factor=1.):
     tp = Internal.copyRef(t)
-    _snearFactor(t, value)
+    _snearFactor(t, factor)
     return tp
 
 def _snearFactor(t, factor=1.):
@@ -1709,7 +1709,7 @@ def _setDfar(z, value):
     return None
 
 def _modifIBCD(tc):
-    raise(NotImplementedError,"_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
+    raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
 
 # set Pressure to P_tot for a IBC of type outpress of family name FamilyName
 def _initOutflow(tc, familyNameOutflow, P_tot):
@@ -1783,5 +1783,5 @@ class IBM(Common):
         return post(t_case, t_in, tc_in, t_out, wall_out)
 
     # post-processing: extrait les efforts sur les surfaces
-    def loads(self, t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None, famZones=[]):
-        return loads(t_case, t_in, tc_in, wall_out, alpha=alpha, beta=beta, Sref=Sref, famZones=famZones)
+    def loads(self, t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZones=[]):
+        return loads(t_case, tc_in=tc_in, wall_out=wall_out, alpha=alpha, beta=beta, Sref=Sref, famZones=famZones)

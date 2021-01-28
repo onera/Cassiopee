@@ -1,7 +1,8 @@
 # Various specific TFIs
 from . import Generator as G
 try: import Converter as C
-except: raise ImportError("TFIs: requires Converter module.")
+except ImportError:
+    raise ImportError("TFIs: requires Converter module.")
 
 try: range = xrange
 except: pass
@@ -11,6 +12,7 @@ except: pass
 # Plus le score est elevee pour le maillage est mauvais
 #==============================================================================
 def quality(meshes):
+    """Measure the quality of mesh."""
     score = 0.
     for m in meshes:
         ortho = G.getOrthogonalityMap(m)
@@ -25,11 +27,12 @@ def quality(meshes):
     return score
 
 # distance au carre entre deux points
-def dist2(P0,P1):
+def distance2(P0,P1):
     return (P0[0]-P1[0])*(P0[0]-P1[0])+(P0[1]-P1[1])*(P0[1]-P1[1])+(P0[2]-P1[2])*(P0[2]-P1[2])
 
 # Order a set of structured edges in a loop
 def orderEdges(edges, tol=1.e-10):
+    """Order edges in a loop."""
     import Transform as T
     out = [] # ordered list of edges
     pool = edges[:] # list copy
@@ -41,10 +44,10 @@ def orderEdges(edges, tol=1.e-10):
         for c, p in enumerate(pool):
             P0 = (p[1][0,0],p[1][1,0],p[1][2,0])
             P1 = (p[1][0,-1],p[1][1,-1],p[1][2,-1])
-            if dist2(P1p,P0) < tol*tol: 
+            if distance2(P1p,P0) < tol*tol: 
                 cur = p; out.append(cur); P1p = P1; pool.pop(c); found=True; break
-            if dist2(P1p,P1) < tol*tol: 
-                cur = T.reorder(p,(-1,1,1)); out.append(cur); P1p = P0; pool.pop(c); foudn=True; break
+            if distance2(P1p,P1) < tol*tol: 
+                cur = T.reorder(p,(-1,1,1)); out.append(cur); P1p = P0; pool.pop(c); found=True; break
         if not found: break
     return out
 
@@ -53,9 +56,8 @@ def orderEdges(edges, tol=1.e-10):
 # OUT: 3 maillages
 #==============================================================================
 def TFITri(a1, a2, a3, tol=1.e-6):
-    import Transform as T
-    from . import Generator as G
     import Geom as D
+    import Transform as T
     N1 = a1[2]; N2 = a2[2]; N3 = a3[2]
     
     # Verif de N
@@ -145,7 +147,7 @@ def TFIO__(a, weight, offset=0):
     
     # Calcul de P'1: projete de P1 sur le cercle
     b = C.convertArray2Hexa(a); b = G.close(b)
-    PP = C.array('x,y,z', 4,1,1);
+    PP = C.array('x,y,z', 4,1,1)
     C.setValue(PP, 0, (P1[0], P1[1], P1[2]))
     C.setValue(PP, 1, (P2[0], P2[1], P2[2]))
     C.setValue(PP, 2, (P3[0], P3[1], P3[2]))
@@ -212,6 +214,7 @@ def TFIO__(a, weight, offset=0):
 # TFI O (N impair)
 #==============================================================================
 def TFIO(a):
+    """O-TFI from one edge.""" 
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = a[2]
     if Nt//2 - Nt*0.5 == 0: raise ValueError("TFIO: number of points must be odd.")
@@ -220,7 +223,7 @@ def TFIO(a):
         for i in range(3,10):
             try:
                 [m,m1,m2,m3,m4] = TFIO__(a, i, j)
-                score = quality([m,m1,m2,m3])
+                score = quality([m,m1,m2,m3,m4])
                 if score < optScore:
                     optWeight = i; optOffset = j; optScore = score
             except: pass
@@ -258,7 +261,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
 
     # Projection
     b = C.convertArray2Hexa(a2); b = G.close(b)
-    PP = C.array('x,y,z', 2,1,1);
+    PP = C.array('x,y,z', 2,1,1)
     C.setValue(PP, 0, (P3[0], P3[1], P3[2]))
     C.setValue(PP, 1, (P4[0], P4[1], P4[2]))
     PPP = T.projectOrtho(PP, [b])
@@ -319,6 +322,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
 # TFI half O (N1 et N2 impairs)
 #==============================================================================
 def TFIHalfO(a1, a2):
+    """HalfO TFI from two edges."""
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt1 = a1[2]; Nt2 = a2[2]
     if Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0:
@@ -341,6 +345,7 @@ def TFIHalfO(a1, a2):
 # Celle qui a le plus de points est prise pour round.
 #==============================================================================
 def TFIMono(a1, a2):
+    """Mono TFI from two edges."""
     import Transform as T
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
@@ -366,7 +371,7 @@ def TFIMono(a1, a2):
 # Cree un ensemble de maillages TFI en étoilant les edges et en 
 # faisant des TFIs par triangle
 def TFIStar(edges):
-    import Generator as G
+    """Make TFIs from edges."""
     import Geom as D
     XG = G.barycenter(edges)
     out = []
@@ -384,7 +389,7 @@ def TFIStar(edges):
 # Cree un ensemble de maillages TFI en étoilant les milieux des edges
 # Les edges doivent tous avoir le meme nombre de points impair
 def TFIStar2(edges):
-    import Generator as G
+    """Make TFIs from edges."""
     import Geom as D
     import Transform as T
     orderEdges(edges, tol=1.e-6)
@@ -409,3 +414,4 @@ def TFIStar2(edges):
         out += [ret]
     
     return out
+    

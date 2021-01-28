@@ -9,7 +9,7 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Transform.PyTree as T
-except:
+except ImportError:
     raise ImportError("RigidMotion: requires Converter, Transform modules.")
 
 import numpy

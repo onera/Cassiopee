@@ -11,7 +11,7 @@ def initConst(a, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8):
     try:
         import Converter as C
         import KCore.Adim as Adim
-    except:
+    except ImportError:
         raise ImportError("initConst: requires Converter module.")
 
     if MInf is None: raise ValueError("initConst: MInf must be defined.")
@@ -54,7 +54,7 @@ def initYee(a, position=(0.,0.), Gamma=2., MInf=0.5):
     if isinstance(a[0], list):
         b = []
         for i in a:
-            b.append(initiator.initYee(a, position, Gamma, MInf))
+            b.append(initiator.initYee(i, position, Gamma, MInf))
         return b
     else:
         return initiator.initYee(a, position, Gamma, MInf)
@@ -81,7 +81,7 @@ def overlayField(a1, a2, MInf=0.5):
     if isinstance(a1[0], list):
         b = []; c = 0
         for i in a1:
-            b.append(initiator.overlayField(i, a2[c], Gamma, MInf))
+            b.append(initiator.overlayField(i, a2[c], MInf))
             c += 1
         return b
     else:

@@ -5,7 +5,6 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import Connector.PyTree as X
 import Geom.PyTree as D
-import numpy
 
 #=====================================================================
 # Helpers

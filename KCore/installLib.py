@@ -19,7 +19,7 @@ else:
     __EXTSHARED__ = '.so'
 
 try: import KCore.installPath as K
-except: import installPath as K
+except ImportError: import installPath as K
 libPath = K.libPath
 installPathLocal = K.installPath
 
@@ -31,7 +31,7 @@ else: # Essai en dynamique
     a = os.access(installPathLocal+"/KCore/kcore"+__EXTMODULE__, os.F_OK)
     if a:
         shutil.copyfile(installPathLocal+"/KCore/kcore"+__EXTMODULE__,
-                        libPath+"/libkcore"+__EXTSHARED__) 
+                        libPath+"/libkcore"+__EXTSHARED__)
     else:
         print("Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal))
 
@@ -42,7 +42,6 @@ shutil.copyfile("installPath.py", installPathLocal+"/KCore/installPath.py")
 shutil.copyfile("installBase.py", installPathLocal+"/KCore/installBase.py")
 
 # Ecrit les infos d'install
-import Dist
 Dist.writeBuildInfo()
 shutil.copyfile("buildInfo.py", installPathLocal+"/KCore/buildInfo.py")
 

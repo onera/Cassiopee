@@ -1,3 +1,4 @@
+# test CAD objects
 import OCC.PyTree as OCC
 import Converter.PyTree as C
 import Generator.PyTree as G

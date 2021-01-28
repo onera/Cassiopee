@@ -1,9 +1,10 @@
+"""Testing module for Cassiopee validation."""
 # Systeme de validation des modules Cassiopee
 # (c) Onera
 from __future__ import print_function
+import numpy, sys, os
 try: range = xrange
 except: pass
-import numpy, sys, os
 
 # global tolerance on float fields
 TOLERANCE = 1.e-11
@@ -23,16 +24,16 @@ def getLocal():
 # number est le no du test dans le script
 #=============================================================================
 def testA(arrays, number=1):
+    """Test arrays."""
     import Converter as C
-    
     if not isinstance(arrays[0], list): arrays = [arrays]
 
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
-         print("Data directory doesn't exist. Created.")
-         os.mkdir('Data')
-         
+        print("Data directory doesn't exist. Created.")
+        os.mkdir('Data')
+
     # Construit le nom du fichier de reference
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
@@ -49,9 +50,9 @@ def testA(arrays, number=1):
         old = C.convertFile2Arrays(reference, 'bin_pickle')
         ret = C.diffArrays(arrays, old)
         varName = ret[0][0]
-        vars = varName.split(',')
+        mvars = varName.split(',')
         retour = True
-        for v in vars:
+        for v in mvars:
             l0 = 0.; l2 = 0.
             for i in ret:
                 l0 = max(l0, C.normL0(i, v))
@@ -70,7 +71,7 @@ def testT(t, number=1):
     import Converter.Internal as Internal
 
     # Transforme t en pyTree, pour pouvoir relire la reference
-    t, type = Internal.node2PyTree(t)
+    t, ntype = Internal.node2PyTree(t)
 
     # Verifie la compatibilite avec la CGNS lib
     #checkCGNSlib(t, number)
@@ -81,8 +82,8 @@ def testT(t, number=1):
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
-         print("Data directory doesn't exist. Created.")
-         os.mkdir('Data')
+        print("Data directory doesn't exist. Created.")
+        os.mkdir('Data')
 
     # Construit le nom du fichier de reference
     fileName = sys.argv[0]
@@ -92,7 +93,7 @@ def testT(t, number=1):
     if dirName == '': reference = 'Data/%s.ref%d'%(fileName, number)
     else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
     a = os.access(reference, os.R_OK)
-    
+
     if not a:
         print("Warning: reference file %s has been created."%reference)
         C.convertPyTree2File(t, reference, 'bin_pickle')
@@ -103,11 +104,11 @@ def testT(t, number=1):
         ret = C.diffArrays(t, old)
         C._fillMissingVariables(ret)
         allvars = C.getVarNames(ret)
-        if len(allvars) > 0: vars = allvars[0]
-        else: vars = []
+        if len(allvars) > 0: mvars = allvars[0]
+        else: mvars = []
         retour = True
 
-        for v in vars:
+        for v in mvars:
             l0 = C.normL0(ret, v)
             l2 = C.normL2(ret, v)
             if l0 > TOLERANCE:
@@ -123,8 +124,8 @@ def testF(infile, number=1):
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
-         print("Data directory doesn't exist. Created.")
-         os.mkdir('Data')
+        print("Data directory doesn't exist. Created.")
+        os.mkdir('Data')
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
@@ -172,7 +173,7 @@ def checkObject_(a, b, reference):
 # fichier de reference
 #=============================================================================
 def testO(objet, number=1):
-
+    """Test python object."""
     # perform some sort on dict to be predictible
     if isinstance(objet, dict):
         from collections import OrderedDict
@@ -181,8 +182,8 @@ def testO(objet, number=1):
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
-         print("Data directory doesn't exist. Created.")
-         os.mkdir('Data')
+        print("Data directory doesn't exist. Created.")
+        os.mkdir('Data')
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
@@ -190,9 +191,9 @@ def testO(objet, number=1):
     if dirName == '': reference = 'Data/%s.ref%d'%(fileName, number)
     else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
     a = os.access(reference, os.R_OK)
-    
+
     # OWNDATA check / copy
-    if isinstance(objet, numpy.ndarray) and objet.flags['OWNDATA'] == False:
+    if isinstance(objet, numpy.ndarray) and not objet.flags['OWNDATA']:
         objet = numpy.copy(objet)
 
     if not a:
@@ -206,7 +207,7 @@ def testO(objet, number=1):
         return True
     else:
         try: import cPickle as pickle
-        except: import pickle
+        except ImportError: import pickle
         file = open(reference, 'rb')
         oldData = False
         if oldData: a = pickle.load(file, encoding='latin1')
@@ -266,7 +267,7 @@ def testO(objet, number=1):
                     if diff > TOLERANCE:
                         print("DIFF: object value differs from %s (%g)."%(reference, diff)) 
                         return False
-                elif a[i] != objet[i]:      # liste d'autres objets 
+                elif a[i] != objet[i]:      # liste d'autres objets
                     print("DIFF: object differs from "+reference+'.')
                     return False
                 else: return True
@@ -281,7 +282,7 @@ def testO(objet, number=1):
                 # try:
                 v2 = objet[k]
                 ret = checkObject_(v1, v2, reference)
-                if ret == False: return False
+                if not ret: return False
         elif a != objet:                    # autre objet
             print("DIFF: object differs from "+reference+'.')
             return False
@@ -309,11 +310,11 @@ def checkTree(t1, t2):
             node1 = dict1[k]
             checkTree__(node1, node2)
 
-def buildDict__(curr, dict, node):
+def buildDict__(curr, mdict, node):
     d = curr+'/'+node[0]
-    dict[d] = node
-    for i in node[2]: buildDict__(d, dict, i)
-    
+    mdict[d] = node
+    for i in node[2]: buildDict__(d, mdict, i)
+
 def checkTree__(node1, node2):
     if node1[0] != node2[0]: # nom du noeud
         print('DIFF: nom des noeuds differents:')
@@ -416,12 +417,12 @@ def checkTree__(node1, node2):
 # Batterie de tests standards pour les arrays
 #==============================================================================
 def stdTestA(F, *keywords):
-    type = 'std'
-    if len(sys.argv) >= 2: type = sys.argv[1]
-    if type == 'std': stdTest1__(0, 0, 0, F, *keywords)
-    elif type == 'out': stdTest1__(1, 0, 0, F, *keywords)
-    elif type == 'mem': stdTest1__(0, 10, 0, F, *keywords)
-    elif type == 'heavy': stdTest1__(0, 0, 1, F, *keywords)
+    ntype = 'std'
+    if len(sys.argv) >= 2: ntype = sys.argv[1]
+    if ntype == 'std': stdTest1__(0, 0, 0, F, *keywords)
+    elif ntype == 'out': stdTest1__(1, 0, 0, F, *keywords)
+    elif ntype == 'mem': stdTest1__(0, 10, 0, F, *keywords)
+    elif ntype == 'heavy': stdTest1__(0, 0, 1, F, *keywords)
     
 def outTestA(F, *keywords):
     stdTest1__(1, 0, 0, F, *keywords)
@@ -438,14 +439,14 @@ def heavyTestA(F, *keywords):
 def checkType__(a):
     if isinstance(a, list):
         l = len(a)
-        if len(a) == 0: return 2
-        if (isinstance(a[0], str) and (len(a) == 4 or len(a) == 5)):
+        if l == 0: return 2
+        if isinstance(a[0], str) and (l == 4 or l == 5):
             return 0
         else:
             b = a[0]
             if not isinstance(b, list): return 2
             if len(b) == 0: return 2
-            if (isinstance(b[0], str) and (len(b) == 4 or len(b) == 5)):
+            if isinstance(b[0], str) and (len(b) == 4 or len(b) == 5):
                 return 1
             else: return 2
     else: return 2  
@@ -526,7 +527,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print('STRUCT3D: uncovered.')
-    except: print('%s: Structure 3D: fails.'%testName); raise        
+    except: print('%s: Structure 3D: fails.'%testName); raise 
 
     # 4- BAR
     try:
@@ -593,7 +594,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
     except TypeError:
         if output == 1: print('QUAD: uncovered.')
     except: print('%s: QUAD: fails.'%testName); raise
-    
+
     # 7- TETRA
     try:
         a = G.cartTetra((0,0,0), (1,1,1), (10,10,10))
@@ -615,7 +616,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
     except TypeError:
         if output == 1: print('TETRA: uncovered.')
     except: print('%s: TETRA: fails.'%testName); raise
-    
+
     # 8- HEXA
     try:
         a = G.cartHexa( (0,0,0), (1,1,1), (10,10,10) )
@@ -637,7 +638,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
     except TypeError:
         if output == 1: print('HEXA: uncovered.')
     except: print('%s: HEXA: fails.'%testName); raise
-    
+
     # 9- PENTA
     try:
         a = G.cartPenta((0,0,0), (1,1,1), (10,10,10))
@@ -680,8 +681,8 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print('PYRA: uncovered.')
-    except: print('%s: PYRA: fails.'%testName); raise        
-    
+    except: print('%s: PYRA: fails.'%testName); raise
+
     # 11- NGON 1D
     try:
         a = G.cartNGon((0,0,0), (1,1,1), (10,1,1) )
@@ -701,8 +702,8 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if (output == 1): print('NGON1D: uncovered.')
-    except: print('%s: NGON 1D: fails.'%testName); raise        
+        if output == 1: print('NGON1D: uncovered.')
+    except: print('%s: NGON 1D: fails.'%testName); raise
 
     # 12- NGON 2D
     try:
@@ -724,8 +725,8 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print('NGON2D: uncovered.')
-    except: print('%s: NGON 2D: fails.'%testName); raise                
-    
+    except: print('%s: NGON 2D: fails.'%testName); raise
+
     # 13- NGON 3D
     try:
         a = G.cartNGon((0,0,0), (1,1,1), (10,10,10))
@@ -746,7 +747,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print('NGON3D: uncovered.')
-    except: print('%s: NGON 3D: fails.'%testName); raise              
+    except: print('%s: NGON 3D: fails.'%testName); raise
 
     # 14- liste d'arrays
     try:
@@ -765,7 +766,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print('Array list: uncovered.')
-    except: print('%s: Array list: fails.'%testName); raise 
+    except: print('%s: Array list: fails.'%testName); raise
 
     # Write coverage
     writeCoverage(coverage/14.*100)
@@ -805,7 +806,7 @@ def stdTestT__(output, F, *keywords):
         else: testO(b, 1)
         coverage += 1
     except TypeError: pass # 
-    except: print('%s: One zone: fails.'%testName); raise 
+    except: print('%s: One zone: fails.'%testName); raise
 
     # 2- Une liste de zones
     try:
@@ -819,8 +820,8 @@ def stdTestT__(output, F, *keywords):
         if res != -2: testT(B, 2)
         else: testO(B, 2)
         coverage += 1
-    except TypeError: pass # 
-    except: print('%s: Zone list: fails.'%testName); raise 
+    except TypeError: pass
+    except: print('%s: Zone list: fails.'%testName); raise
 
     # 3- Un arbre
     try:
@@ -834,7 +835,7 @@ def stdTestT__(output, F, *keywords):
         if res != -2: testT(t, 3)
         else: testO(t, 3)
         coverage += 1
-    except TypeError: pass # 
+    except TypeError: pass
     except: print('%s: Full tree: fails.'%testName); raise
 
     # 4- Une base
@@ -867,9 +868,9 @@ def stdTestT__(output, F, *keywords):
 ##         if (output == 1): C.convertPyTree2File(t, 'out5.cgns')
 ##         testT(bases, 5)
 ##         coverage += 1
-##     except TypeError: pass # 
+##     except TypeError: pass
 ##     except: print('%s: list of bases: fails.'%testName); raise
-    
+
     # Write coverage
     writeCoverage(coverage/4.*100)
 

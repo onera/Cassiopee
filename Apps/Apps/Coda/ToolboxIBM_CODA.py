@@ -1,8 +1,8 @@
+"""Toolbox for CODA."""
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Connector.ToolboxIBM as TIBM
 import Transform.PyTree as T
-import Converter.Internal as Internal
 import Converter
 import Generator.PyTree as G
 import Post.PyTree as P
@@ -15,6 +15,7 @@ import KCore.test as test
 import Connector.PyTree as X
 import Connector.Mpi as Xmpi
 import Transform
+
 #==============================================
 # IBM prepro for CODA 
 #==============================================
@@ -49,7 +50,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
             for z in zones:
                 sn = Internal.getNodeFromName2(z, 'snear')
                 if sn is not None: snearsf.append(Internal.getValue(sn))
-                else: snearf.append(1.)
+                else: snearsf.append(1.)
 
     # reference state
     refstate = C.getState(tb)
@@ -58,7 +59,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     dimPb = Internal.getValue(dimPb)
 
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError('GoverningEquations is missing in input tree defined in %s.'%FILE)
+    if model is None: raise ValueError('GoverningEquations is missing in input tree.')
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
 
@@ -404,7 +405,6 @@ def _addIBDataZSR(z, correctedPts, wallPts, imagePts=None, prefix='IBCD_'):
     if zsr is None:
         v = numpy.fromstring(zname, 'c')
         z[2].append([nameSubRegion, v, [],'ZoneSubRegion_t'])
-        info = z[2][len(z[2])-1]
         zsr = Internal.getNodeFromName1(z, nameSubRegion)
 
     coordsPC = Converter.extractVars(correctedPts,['CoordinateX','CoordinateY','CoordinateZ'])[0]
@@ -517,7 +517,7 @@ def createIBMZones(tc,variables=[], typeOfPoint='Wall'):
             COORDX = Internal.getNodeFromName2(zw,'CoordinateX'); COORDX[1]=xPW
             COORDY = Internal.getNodeFromName2(zw,'CoordinateY'); COORDY[1]=yPW
             COORDZ = Internal.getNodeFromName2(zw,'CoordinateZ'); COORDZ[1]=zPW
-            if variables != [] and variables != None:
+            if variables != [] and variables is not None:
                 FSN = Internal.newFlowSolution(parent=zw)
                 for varo in variables:
                     fieldV = Internal.getNodeFromName2(IBCD,varo)

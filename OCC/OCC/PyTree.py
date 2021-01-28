@@ -4,7 +4,8 @@ try:
     import OCC
     import Converter.PyTree as C
     import Converter.Internal as Internal
-except: raise ImportError("OCC.PyTree: requires Converter module.")
+except ImportError: 
+  raise ImportError("OCC.PyTree: requires Converter module.")
 
 __version__ = OCC.__version__
 
@@ -18,12 +19,12 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
   a = OCC.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio, merge_tol, algo)
   
   t = C.newPyTree([])
-  base1 = False; base2 = False; base3 = False; base = 1; c = 0
+  base1 = False; base2 = False; base3 = False; base = 1
   
   for i in a:
     if len(i) == 5: # Structure
       if i[3] == 1 and i[4] == 1:
-        if base1 == False:
+        if not base1:
           t = C.addBase2PyTree(t, 'Base1', 1); base1 = base; base += 1
         z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                     Internal.__GridCoordinates__,
@@ -31,7 +32,7 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
                                     Internal.__FlowSolutionCenters__)
         t[2][base1][2].append(z)
       elif i[4] == 1:
-        if base2 == False:
+        if not base2:
           t = C.addBase2PyTree(t, 'Base2', 2); base2 = base; base += 1
         z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                     Internal.__GridCoordinates__,
@@ -39,7 +40,7 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
                                     Internal.__FlowSolutionCenters__) 
         t[2][base2][2].append(z)
       else:
-        if base3 == False:
+        if not base3:
           t = C.addBase2PyTree(t, 'Base', 3); base3 = base; base += 1
         z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                     Internal.__GridCoordinates__,
@@ -48,7 +49,7 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
         t[2][base3][2].append(z)
     else: # non structure
       if i[3] == 'BAR':
-        if base1 == False:
+        if not base1:
           t = C.addBase2PyTree(t, 'Base1', 1); base1 = base; base += 1
         z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                     Internal.__GridCoordinates__,
@@ -56,7 +57,7 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
                                     Internal.__FlowSolutionCenters__)
         t[2][base1][2].append(z)
       elif i[3] == 'TRI' or i[3] == 'QUAD':
-        if base2 == False:
+        if not base2:
           t = C.addBase2PyTree(t, 'Base2', 2); base2 = base; base += 1
         z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                     Internal.__GridCoordinates__,
@@ -64,7 +65,7 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
                                     Internal.__FlowSolutionCenters__)
         t[2][base2][2].append(z)
       else:
-        if base3 == False:
+        if not base3:
           t = C.addBase2PyTree(t, 'Base', 3); base3 = base; base += 1
         z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                     Internal.__GridCoordinates__,
@@ -148,6 +149,7 @@ def meshQUADHO__(hook, N=11, faceSubset=None, linkFaceNo=None):
 
 #===========================================================================
 class Edge:
+  """CAD Edge."""
   def __init__(self, i, cad):
     self.number = i # no in CAD edge list
     self.name = 'XXX' # CAD edge name
@@ -157,6 +159,7 @@ class Edge:
     return self.cad.evalEdge(self.number, distribution)
 
 class Face:
+  """CAD Face."""
   def __init__(self, i, cad):
     self.number = i # no in CAD face list
     self.name = 'XXX' # CAD face name
@@ -166,6 +169,7 @@ class Face:
     return self.cad.evalFace(self.number, distribution)
 
 class CAD:
+  """CAD top tree."""
   def __init__(self, fileName, format='fmt_iges'):
     self.fileName = fileName
     self.format = format
@@ -219,11 +223,12 @@ class CAD:
 
   def project(self, z, faceList=None):
     zp = Internal.copyTree(z)
-    _project(zp, faceList)
+    self._project(zp, faceList)
     return zp
 
   # faceList ne marche pas encore
   def mesh(self, mtype='STRUCT', N=11, faceList=None):
+    """Mesh CAD."""
     if mtype == 'STRUCT':
       zones = meshSTRUCT__(self.hook, N, None, self.linkFaceNo)
     elif mtype == 'TRI':
@@ -237,6 +242,7 @@ class CAD:
     return zones
 
   def getLinkFace(self, zone):
+    """Return the faces linked to zone."""
     if isinstance(zone, str): name = zone
     else: name = zone[0]
     no = self.linkFaceNo[name]

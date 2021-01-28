@@ -37,6 +37,7 @@ static PyMethodDef Pyocc [] =
   {"evalEdge", K_OCC::evalEdge, METH_VARARGS},
   {"evalFace", K_OCC::evalFace, METH_VARARGS},
   {"projectOnFaces", K_OCC::projectOnFaces, METH_VARARGS},
+  {"projectOnEdges", K_OCC::projectOnEdges, METH_VARARGS},
   {NULL, NULL}
 };
 

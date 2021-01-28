@@ -15,8 +15,8 @@ from .compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__
 
 __version__ = Connector.__version__
 try:
-    import KCore
-    import Converter
+    import KCore.kcore as KCore
+    import Converter.Converter as Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
 except: raise ImportError("Connector.PyTree: requires Converter module.")
@@ -871,7 +871,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
             now1 = info[4][0]; now2 = info[4][1]
             if now1 != now2 and noz1 != noz2:
                 range1 = info[1]; range2 = info[2]
-                topp0 = info[3];
+                topp0 = info[3]
                 now1 = info[4][0]; now2 = info[4][1]
                 if dimZ == 3: topp = [1,2,3]
                 else:

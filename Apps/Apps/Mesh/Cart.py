@@ -1,6 +1,5 @@
 import Generator
 import Generator.PyTree as G
-import Converter.Distributed as Distributed
 import KCore.test as test
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
@@ -149,7 +148,7 @@ def addRefinementZones(o, tbox, snearsf=None, vmin=15, dim=3):
 # Prend les snear dans t, les multiplie par factor
 def snearFactor(t, factor=1.):
     tp = Internal.copyRef(t)
-    _snearFactor(t, value)
+    _snearFactor(t, factor)
     return tp
 
 def _snearFactor(t, factor=1.):

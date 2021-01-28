@@ -3,7 +3,7 @@
 import numpy
 from . import CPlot
 try: from . import cplot
-except: ImportError("CPlot: is partially installed (no display).")
+except ImportError: raise ImportError("CPlot: is partially installed (no display).")
 
 try: range = xrange
 except: pass
@@ -95,10 +95,10 @@ def render():
     CPlot.render()
 
 #==============================================================================
-def delete(list):
+def delete(zlist):
     """Delete zones from plotter.
     Usage: delete([i1,i2,...])"""
-    CPlot.delete(list)
+    CPlot.delete(zlist)
     
 #==============================================================================
 def add(t, nob, noz, zone):
@@ -336,25 +336,25 @@ def setActivePoint(x,y,z):
     Usage: setActivePoint(x,y,z)"""
     return CPlot.setActivePoint(x,y,z)
 
-def setSelectedZones(list):
+def setSelectedZones(zlist):
     """Set selected zones.
     Usage: setSelectedZones([(0,1),(1,1),...])"""
-    CPlot.setSelectedZones(list)
+    CPlot.setSelectedZones(zlist)
 
 def unselectAllZones():
     """Unselect all zones.
     Usage: unselectAllZones()"""
     CPlot.unselectAllZones()
 
-def setActiveZones(list):
+def setActiveZones(zlist):
     """Set active (displayed) zones.
     Usage: setActiveZones([(0,1)])"""
-    CPlot.setActiveZones(list)
+    CPlot.setActiveZones(zlist)
 
-def setZoneNames(list):
+def setZoneNames(zlist):
     """Set zone names.
     Usage: setZoneNames([(0,'myZone')])"""
-    CPlot.setZoneNames(list)
+    CPlot.setZoneNames(zlist)
 
 def lookFor():
     """Look for selected zones.
@@ -390,21 +390,27 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     CPlot.moveCamera(posCams, posEyes, dirCams, moveEye, N, speed, pos)
 
 def travelRight(xr=0.1, N=100):
+    """Travel camera right."""
     CPlot.travelRight(xr, N)
 
 def travelLeft(xr=0.1, N=100):
+    """Travel camera left."""
     CPlot.travelLeft(xr, N)
 
 def travelUp(xr=0.1, N=100):
+    """Travel camera up."""
     CPlot.travelUp(xr, N)
 
 def travelDown(xr=0.1, N=100):
+    """Travel camera down."""
     CPlot.travelDown(xr, N)
 
 def travelIn(xr=0.1, N=100):
+    """Zoom camera in."""
     CPlot.travelIn(xr, N)
 
 def travelOut(xr=0.1, N=100):
+    """Zoom camera out."""
     CPlot.travelOut(xr, N)
 
 #==============================================================================
@@ -414,29 +420,30 @@ def travelOut(xr=0.1, N=100):
 # a partir de la numerotation zone de CPlot
 #==============================================================================
 def updateCPlotNumbering(t):
+    """Update the CPlot numbering."""
     Nz = []; Nb = []
     nodes = Internal.getZones(t)
     nstr = 0
     for z in nodes:
         Nz.append(1); Nb.append(1)
-        type = Internal.getZoneType(z)
-        if type == 1: nstr += 1
+        ztype = Internal.getZoneType(z)
+        if ztype == 1: nstr += 1
 
     bases = t[2][1:]
-    str = 0; unstr = 0
+    nstr = 0; nunstr = 0
     nb = 0
     for b in bases:
         nodes = b[2]
         nz = 0
         for z in nodes:
             if z[3] == 'Zone_t':
-                type = Internal.getZoneType(z)
-                if type == 1:
-                    Nz[str] = nz
-                    Nb[str] = nb; str += 1
+                ztype = Internal.getZoneType(z)
+                if ztype == 1:
+                    Nz[nstr] = nz
+                    Nb[nstr] = nb; nstr += 1
                 else:
-                    Nz[unstr+nstr] = nz
-                    Nb[unstr+nstr] = nb; unstr += 1
+                    Nz[nunstr+nstr] = nz
+                    Nb[nunstr+nstr] = nb; nunstr += 1
             nz += 1
         nb += 1
     return (Nb, Nz)
@@ -448,6 +455,7 @@ def updateCPlotNumbering(t):
 # IN: zoneName: le nom de la zone
 #==============================================================================
 def getCPlotNumber(t, baseName, zoneName):
+    """Return the CPlot number of zone defined by baseName/zoneName."""
     base = Internal.getNodeFromName1(t, baseName) # must be unique
     z = Internal.getNodeFromName1(base, zoneName) # must be unique
     type = Internal.getZoneType(z)
@@ -510,6 +518,7 @@ def getNzs(t, zone):
 # OUT: t: avec les zones correspondant a la selection supprimees
 #==============================================================================
 def deleteSelection(t, Nb, Nz, nzs):
+    """Delete a selection of zones."""
     nbases = len(t[2])
     bases = []
     for i in range(nbases): bases.append([])
@@ -557,6 +566,7 @@ def isSelAFullBase(t, Nb, nzs):
 # si renderInfo n'est pas present, on retourne None:None:None:None:None.
 #==============================================================================
 def getRenderTags(t):
+    """Return the render tags of zones."""
     bases = Internal.getBases(t)
     renderTags = []
     if bases == []:
@@ -636,19 +646,19 @@ def _addRender2Zone(a, material=None, color=None, blending=None,
     ri = Internal.createUniqueChild(z, '.RenderInfo', 'UserDefinedData_t')
 
     if material is not None:
-      rt = Internal.createUniqueChild(ri, 'Material', 'DataArray_t', value=material)
+      Internal._createUniqueChild(ri, 'Material', 'DataArray_t', value=material)
 
     if color is not None:
-      rt = Internal.createUniqueChild(ri, 'Color', 'DataArray_t', value=color)
+      Internal._createUniqueChild(ri, 'Color', 'DataArray_t', value=color)
 
     if blending is not None:
-      rt = Internal.createUniqueChild(ri, 'Blending', 'DataArray_t', value=blending)
+      Internal._createUniqueChild(ri, 'Blending', 'DataArray_t', value=blending)
 
     if meshOverlay is not None:
-      rt = Internal.createUniqueChild(ri, 'MeshOverlay', 'DataArray_t', value=meshOverlay)
+      Internal._createUniqueChild(ri, 'MeshOverlay', 'DataArray_t', value=meshOverlay)
 
     if shaderParameters is not None:
-      rt = Internal.createUniqueChild(ri, 'ShaderParameters', 'DataArray_t', value=shaderParameters)
+      Internal._createUniqueChild(ri, 'ShaderParameters', 'DataArray_t', value=shaderParameters)
   return None
 
 # -- addRender2PyTree
@@ -796,9 +806,9 @@ def loadView(t, slot=0):
     pos = Internal.getNodeFromName1(slot, 'scalarField')
     if pos is not None:
         field = Internal.getValue(pos)
-        vars = C.getVarNames(t)[0]
+        avars = C.getVarNames(t)[0]
         ifield = 0
-        for i in vars:
+        for i in avars:
             if i == field: break
             if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                 ifield += 1
@@ -822,8 +832,9 @@ def loadView(t, slot=0):
     pos = Internal.getNodeFromName1(slot, 'colormapC2')
     if pos is not None: colormapC2 = Internal.getValue(pos)
     else: colormapC2 = '#FFFFFF'
+    pos = Internal.getNodeFromName1(slot, 'colormapC3')
     if pos is not None: colormapC3 = Internal.getValue(pos)
-    else: colormapC2 = '#777777'
+    else: colormapC3 = '#777777'
     
     style = 0
     if colormap == 'Blue2Red': style = 0

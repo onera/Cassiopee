@@ -35,7 +35,7 @@ def deltaInterpolations(interpData, ref, loc='cell'):
     alreadyExistingIndices = newRcvIndices[r1] # indices in oldRcvIndices and newRcvIndices
     newIndices = newRcvIndices[r2]             # indices in newRcvIndices but not in oldRcvIndices
     indicesToDelete = oldRcvIndices[r3]        # indices in oldRcvIndices but not in newRcvIndices
-    flag = {} # key: rcvIndex, value : Flag
+    #flag = {} # key: rcvIndex, value : Flag
     storedInterpData = {} # key : rcvIndex, value : storage flag + interpolation data to write
     # Deals with new indices:
     for rcvIndex in newIndices:

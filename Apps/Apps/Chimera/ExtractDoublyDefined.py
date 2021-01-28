@@ -1,10 +1,11 @@
+"""Extract doubly defined boundaries."""
 # A doubly defined BC extractor
 
 # IN: maillage volumique + BC walls + BC Overlap doubly defined
 # Utilise setDoublyDefined -> cellN modifie
 # Recopie le cellN proche aux centres dans le BCDataSet
 # Extrait les BCs
-# Faits un selectCells
+# Fait un selectCells
 
 import Converter.Internal as Internal
 import Converter.PyTree as C
@@ -42,8 +43,6 @@ def _setBCDataSet__(z, bc, variables):
     if r is not None and r[1].shape[0] > 1: rangew = r[1]
     w = Internal.range2Window(rangew)
 
-    dim = Internal.getZoneDim(z)
-    ni = dim[1]; nj = dim[2]; nk = dim[3]
     imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
     zw = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
     # zw = CP.subzoneWithReorder__(z, w) # Modif CW 04/11/16
@@ -106,6 +105,7 @@ def _setBCDataSet__(z, bc, variables):
     return None
 
 def extract(t, bcType, compute):
+    """Extract doubly defined boundaries."""
     if compute:
        # Calculs des doubly defined -> cellN
        C._initVars(t, 'centers:cellN', 1)

@@ -1,6 +1,5 @@
-# 
-# Python Interface to initialize pyTrees solutions
-#
+"""Initialization of grid solutions.
+"""
 from . import Initiator
 __version__ = Initiator.__version__
 
@@ -11,7 +10,7 @@ try:
     import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
-except:
+except ImportError:
     raise ImportError("Initiator.PyTree: requires Converter.PyTree module.")
 
 def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, 
@@ -191,7 +190,7 @@ def _initScully(t, position=(0.,0.), Gamma=2.,
     nodes = Internal.getZones(t)
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
-        if (coordn == []):
+        if coordn == []:
             print ('Warning: initScully: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]

@@ -1,6 +1,4 @@
-#
-# Python Interface to compute distance to walls from PyTrees
-#
+"""Module for wall distance computation."""
 from . import Dist2Walls
 __version__ = Dist2Walls.__version__
 
@@ -8,7 +6,7 @@ try:
     import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
-except:
+except ImportError:
     raise ImportError("Dist2Walls: requires Converter module.")
 
 PHIMAX = 1.e12
@@ -50,8 +48,7 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3):
     zones = Internal.getZones(t)
     for i,z in enumerate(zones):
         if Internal.getZoneType(z)==1: orderedZones.append(i)
-    nzoness = len(orderedZones)
-    for i,z in enumerate(zones):
+    for i, z in enumerate(zones):
         if Internal.getZoneType(z)==2: orderedZones.append(i) 
     
     coords = C.getFields(Internal.__GridCoordinates__,zones)
@@ -82,7 +79,7 @@ def eikonal(t,tc=None,loc='nodes',nitmax=10, err=0.01,algo=fim_old):
 def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
     MB = 1
     try: import Connector.PyTree as X
-    except: MB = 0
+    except ImportError: MB = 0
 
     if tc is None or MB==0:
         for z in Internal.getNodesFromType2(t, 'Zone_t'):
@@ -187,9 +184,8 @@ def _eikonalForZone(z,loc='nodes',algo=fim_old):
 #------------------------------------------------------------------
 def transferCellN__(t,tc,DEPTH,loc):
     if tc is None: return t
-    try:
-        import Connector.PyTree as X
-    except:
+    try: import Connector.PyTree as X
+    except ImportError:
         raise ImportError("Dist2Walls: Eikonal version requires Connector module.")
     # POINTS EXTERIEURS
     # Marquage des pts de front entre du 0 et du 1
@@ -248,6 +244,7 @@ def transferCellN__(t,tc,DEPTH,loc):
 # IN: nitmax: nb of iterative loops for multidomain
 #=============================================================================
 def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitmax=10, type=0,algo=fim_old):
+    """Compute wall distance by solving eikonal equation."""
     #import time
     #beg = time.time()
     flagName='flag'; distName='TurbulentDistance'

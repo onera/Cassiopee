@@ -2,8 +2,7 @@
 """
 from . import dist2walls
 try: import Converter as C
-except(ImportError):
-    raise ImportError("Dist2Walls: requires Converter modules.")
+except ImportError: raise ImportError("Dist2Walls: requires Converter modules.")
 __version__ = '3.2'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 
@@ -11,9 +10,7 @@ try: range = xrange
 except: pass
 
 # Types de solver pour Eikonal
-fmm=0
-fim=1
-fim_old=2 # Temporaire
+fmm=0; fim=1; fim_old=2 # Temporaire
 
 def signDistance__(zones, distances, bodies, loc, dimPb):
     import Connector as X
@@ -53,12 +50,6 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
     if bodies == []:
         print('Warning: distance2Walls: no body defined, no distance computed.')
         return zones
-
-    if signed == 1:
-        try:
-            import Connector as X
-        except(ImportError):
-            raise ImportError("distance2Walls: signed distance requires Connector module.")
 
     if loc != 'centers' and loc != 'nodes':
         raise ValueError("distance2Walls: loc must be centers or nodes.")

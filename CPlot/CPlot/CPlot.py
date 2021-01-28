@@ -2,10 +2,11 @@
 """
 __version__ = '3.2'
 __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier, Bertrand Michel"
-#
-# Plotter for arrays
-#
+
 from . import cplot
+import KCore.kcore as KCore
+import KCore.Vector as Vector
+
 import time
 __timeStep__ = 0.01
 __slot__ = None
@@ -104,11 +105,11 @@ def render():
     cplot.render()
 
 #==============================================================================
-def delete(list):
+def delete(zlist):
     """Delete zones from plotter.
     Usage: delete([i1,i2,...])"""
     if __slot__ is None: return
-    cplot.delete(list)
+    cplot.delete(zlist)
 
 #==============================================================================
 def add(arrays, no, array, zoneName=None, renderTag=None):
@@ -308,8 +309,8 @@ def setState(dim=-1,
     cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
                    vectorField3, displayBB, displayInfo, displayIsoLegend,
                    meshStyle, solidStyle, scalarStyle,
-                   vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                   vectorShowSurface, vectorShape, vectorProjection, 
+                   vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                   vectorShowSurface, vectorShape, vectorProjection,
                    colormap, colormapC1, colormapC2, colormapC3,
                    niso, isoEdges, isoScales, win,
                    posCam, posEye, dirCam, viewAngle, lightOffset,
@@ -358,25 +359,25 @@ def setActivePoint(x,y,z):
     Usage: setActivePoint(x,y,z)"""
     return cplot.setActivePoint(x,y,z)
 
-def setSelectedZones(list):
+def setSelectedZones(zlist):
     """Set selected zones.
     Usage: setSelectedZones([(0,1),(1,1),...])"""
-    cplot.setSelectedZones(list)
+    cplot.setSelectedZones(zlist)
 
 def unselectAllZones():
     """Unselect all zones.
     Usage: unselectAllZones()"""
     cplot.unselectAllZones()
 
-def setActiveZones(list):
+def setActiveZones(zlist):
     """Set active (displayed) zones.
     Usage: setActiveZones([(0,1)])"""
-    cplot.setActiveZones(list)
+    cplot.setActiveZones(zlist)
 
-def setZoneNames(list):
+def setZoneNames(zlist):
     """Set zone names.
     Usage: setZoneNames([(0,'myZone')])"""
-    cplot.setZoneNames(list)
+    cplot.setZoneNames(zlist)
 
 #==============================================================================
 def lookFor():
@@ -408,7 +409,7 @@ def show():
 def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=1., pos=-1):
     """Move posCam and posEye following check points."""
     # Set d, array of posCams and N nbre of points
-    import KCore; import Geom; import KCore.Vector as Vector
+    import Geom
     if len(posCams) == 5 and isinstance(posCams[0], str): # input struct array
       N = posCams[2]
       d = posCams
@@ -471,7 +472,7 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     if dirCams is not None:
       if len(dirCams) == 5 and isinstance(dirCams[0], str): # input struct array
         Ndc = dirCams[2]
-        if Ndc != N: 
+        if Ndc != N:
           import Generator
           dis = Geom.getDistribution(d)
           dirCams = Generator.map(dirCams, dis, 1)
@@ -520,7 +521,7 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
       else: setState(posCam=posCam)
 
 def travelRight(xr=0.1, N=100):
-    import KCore.Vector as Vector
+    """Travel camera right."""
     posCam = getState('posCam')
     posEye = getState('posEye')
     dirCam = getState('dirCam')
@@ -540,8 +541,7 @@ def travelRight(xr=0.1, N=100):
     moveCamera(checkPoints, N=N)
 
 def travelLeft(xr=0.1, N=100):
-    """Travel posCam left."""
-    import KCore.Vector as Vector
+    """Travel camera left."""
     posCam = getState('posCam')
     posEye = getState('posEye')
     dirCam = getState('dirCam')
@@ -561,7 +561,7 @@ def travelLeft(xr=0.1, N=100):
     moveCamera(checkPoints, N=N)
 
 def travelUp(xr=0.1, N=100):
-    import KCore.Vector as Vector
+    """Travel camera up."""
     posCam = getState('posCam')
     posEye = getState('posEye')
     dirCam = getState('dirCam')
@@ -575,7 +575,7 @@ def travelUp(xr=0.1, N=100):
     moveCamera(checkPoints, N=N)
 
 def travelDown(xr=0.1, N=100):
-    import KCore.Vector as Vector
+    """Travel camera down."""
     posCam = getState('posCam')
     posEye = getState('posEye')
     dirCam = getState('dirCam')
@@ -589,10 +589,9 @@ def travelDown(xr=0.1, N=100):
     moveCamera(checkPoints, N=N)
 
 def travelIn(xr=0.1, N=100):
-    import KCore.Vector as Vector
+    """Zoom camera in."""
     posCam = getState('posCam')
     posEye = getState('posEye')
-    dirCam = getState('dirCam')
     d1 = Vector.sub(posEye,posCam)
     R = Vector.norm(d1)
     L = R*xr
@@ -602,10 +601,9 @@ def travelIn(xr=0.1, N=100):
     moveCamera(checkPoints, N=N)
 
 def travelOut(xr=0.1, N=100):
-    import KCore.Vector as Vector
+    """Zoom camera out."""
     posCam = getState('posCam')
     posEye = getState('posEye')
-    dirCam = getState('dirCam')
     d1 = Vector.sub(posEye,posCam)
     R = Vector.norm(d1)
     L = R*xr

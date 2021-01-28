@@ -1,9 +1,9 @@
-# Etats de references adimensionnes et dimensionnes
+"""Fluid state variables for different reference dimensions."""
 
 import math
 
 #==============================================================================
-# [1] Retourne un etat de reference adimensionne correspondant a un 
+# [1] Retourne un etat de reference adimensionne correspondant a un
 # adimensionnement par la densite, la vitesse du son et la temperature
 # Les grandeurs retournees sont des grandeurs adimensionnees
 # Il faut utiliser un maillage adimensionne
@@ -23,7 +23,7 @@ def adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
     DRgp     = 287.053 # R gaz parfait (dimensionne)
     DCs      = 110.4 # Cs air (dimensionne)
     DTs      = 288.15 # Temperature de reference dans Sutherland (dimensionne)
-    DTInf    = DTs # On choisit que l'etat de reference de sutherland 
+    DTInf    = DTs # On choisit que l'etat de reference de sutherland
                    # soit la temperature a l'infini
     DMus     = 1.78938e-5 # Mu dimensionne a la temperature de reference
     DMuInf   = DMus  # toujours identification des grandeurs de reference et infini
@@ -36,7 +36,7 @@ def adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
     AInf    = 1. # adimensionne
 
     UInf = MInf
-    
+
     alz = alphaZ * math.pi / 180.
     aly = alphaY * math.pi / 180.
 
@@ -63,7 +63,7 @@ def adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
 
     # Pour spalart
     RonutildeInf = MutInf
-    
+
     return [RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
             ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
             Mus, Cs, Ts, Pr]
@@ -88,7 +88,7 @@ def adim2(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
     DRgp     = 287.053 # R gaz parfait (dimensionne)
     DCs      = 110.4 # Cs air (dimensionne)
     DTs      = 288.15 # Temperature de reference dans Sutherland (dimensionne)
-    DTInf    = DTs # On choisit que l'etat de reference de sutherland 
+    DTInf    = DTs # On choisit que l'etat de reference de sutherland
                    # soit la temperature a l'infini
     DMus     = 1.78938e-5 # Mu dimensionne a la temperature de reference
     DMuInf   = DMus  # toujours identification des grandeurs de reference et infini
@@ -101,7 +101,7 @@ def adim2(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
     UInf    = 1. # adimensionne
 
     AInf = UInf / MInf
-    
+
     alz = alphaZ * math.pi / 180.
     aly = alphaY * math.pi / 180.
 
@@ -129,7 +129,7 @@ def adim2(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
 
     # Pour spalart
     RonutildeInf = MutInf
-    
+
     return [RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
             ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
             Mus, Cs, Ts, Pr]
@@ -176,7 +176,7 @@ def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
     PInf    = 1. / (Gamma)
     RouInf1 = RoInf * UInf * math.cos(alz)
     RovInf1 = RoInf * UInf * math.sin(alz)
-    RowInf1 = 0.
+    #RowInf1 = 0.
     RouInf  = RouInf1 * math.cos(aly)
     RovInf  = RovInf1
     RowInf  = RouInf1 * math.sin(aly)
@@ -204,7 +204,7 @@ def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
 #==============================================================================
 # [4] Retourne un etat de reference dimensionne correspondant a
 # l'air sec au niveau du sol, considere comme un gaz parfait
-# Retourne des valeurs physiques dimensionnees (USI) 
+# Retourne des valeurs physiques dimensionnees (USI)
 # IN: UInf: vitesse en m/s (default 10km/h)
 # IN: TInf: temperature en K (0 degree=273.15K) (default 25 degres)
 # IN: PInf: pression en Pa (defaut 1 atm)
@@ -216,7 +216,7 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     """Return a dimensioned state specifying velocity, temperature and pressure."""
     alz = alphaZ * math.pi / 180.
     aly = alphaY * math.pi / 180.
-   
+
     Gamma = 1.4 # constante des gaz parfait (sans dimension)
     Rgp = 287.053 # dimensionne
 
@@ -236,20 +236,20 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     # nu en m2/s
     NuInf = MuInf / RoInf
 
-    # diffusivite thermique en W/m/K 
+    # diffusivite thermique en W/m/K
     lambdaInf = 1.5207e-11*TInf**3 -4.857e-8*TInf**2+1.0184e-4*TInf-3.9333e-4
 
-    #print 'RoInf=', RoInf
-    #print 'TInf=', TInf
-    #print 'MuInf=', MuInf
-    #print 'NuInf=', NuInf
-    #print 'Pinf=', PInf
-    #print 'lambdaInf=', lambdaInf
+    #print('RoInf=', RoInf)
+    #print('TInf=', TInf)
+    #print('MuInf=', MuInf)
+    #print('NuInf=', NuInf)
+    #print('Pinf=', PInf)
+    #print('lambdaInf=', lambdaInf)
 
     # deduit
     RouInf1 = RoInf * UInf * math.cos(alz)
     RovInf1 = RoInf * UInf * math.sin(alz)
-    RowInf1 = 0.
+    #RowInf1 = 0.
     RouInf  = RouInf1 * math.cos(aly)
     RovInf  = RovInf1
     RowInf  = RouInf1 * math.sin(aly)
@@ -258,21 +258,21 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     RoEInf = RoeInf+0.5*RoInf*UInf*UInf
     aInf = math.sqrt(Gamma*PInf/RoInf)
     MInf = UInf/aInf
-    #print 'aInf=', aInf
-    #print 'MInf=', MInf
+    #print('aInf=', aInf)
+    #print('MInf=', MInf)
 
     eInf = RoeInf/RoInf
     cvInf = eInf/TInf
     cpInf = Gamma*cvInf
-    #print 'cpInf=', cpInf
+    #print('cpInf=', cpInf)
     ReInf = UInf*LInf/NuInf
-    #print 'ReInf=', ReInf
+    #print('ReInf=', ReInf)
 
     Pr = MuInf*cpInf/lambdaInf # Prandtl (sans dimension)
-    #print 'Pr=', Pr
-    
+    #print('Pr=', Pr)
+
     # Cs
-    #print 'Cs=', Cs
+    #print('Cs=', Cs)
 
     # Pour k-omega
     RokInf = 1.5 * RoInf * (TurbLevelInf * UInf)**2
@@ -329,7 +329,7 @@ def dim3(UInf=2.7777, PInf=101325., RoInf=1.2, LInf=1.,
 def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
          alphaZ=0., alphaY=0., Mus=1.78938e-5, MutSMuInf=0.2,
          TurbLevelInf=1.e-4):
-
+    """Dimensional state 4."""
     alz = alphaZ * math.pi / 180.
     aly = alphaY * math.pi / 180.
 
@@ -355,17 +355,17 @@ def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     # diffusivite thermique en W/m/K
     lambdaInf = 1.5207e-11*TInf**3 -4.857e-8*TInf**2+1.0184e-4*TInf-3.9333e-4
 
-    #print 'RoInf=', RoInf
-    #print 'TInf=', TInf
-    #print 'MuInf=', MuInf
-    #print 'NuInf=', NuInf
-    #print 'Pinf=', PInf
-    #print 'lambdaInf=', lambdaInf
+    #print('RoInf=', RoInf)
+    #print('TInf=', TInf)
+    #print('MuInf=', MuInf)
+    #print('NuInf=', NuInf)
+    #print('Pinf=', PInf)
+    #print('lambdaInf=', lambdaInf)
 
     # deduit
     RouInf1 = RoInf * UInf * math.cos(alz)
     RovInf1 = RoInf * UInf * math.sin(alz)
-    RowInf1 = 0.
+    #RowInf1 = 0.
     RouInf  = RouInf1 * math.cos(aly)
     RovInf  = RovInf1
     RowInf  = RouInf1 * math.sin(aly)
@@ -374,21 +374,21 @@ def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     RoEInf = RoeInf+0.5*RoInf*UInf*UInf
     aInf = math.sqrt(Gamma*PInf/RoInf)
     MInf = UInf/aInf
-    #print 'aInf=', aInf
-    #print 'MInf=', MInf
+    #print('aInf=', aInf)
+    #print('MInf=', MInf)
 
     eInf = RoeInf/RoInf
     cvInf = eInf/TInf
     cpInf = Gamma*cvInf
-    #print 'cpInf=', cpInf
+    #print('cpInf=', cpInf)
     ReInf = UInf*LInf/NuInf
-    #print 'ReInf=', ReInf
+    #print('ReInf=', ReInf)
 
     Pr = MuInf*cpInf/lambdaInf # Prandtl (sans dimension)
-    #print 'Pr=', Pr
+    #print('Pr=', Pr)
 
     # Cs
-    #print 'Cs=', Cs
+    #print('Cs=', Cs)
 
     # Pour k-omega
     RokInf = 1.5 * RoInf * (TurbLevelInf * UInf)**2
@@ -401,4 +401,3 @@ def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     return [RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
             ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
             Mus, Cs, Ts, Pr]
-

@@ -3,14 +3,13 @@
 """
 __version__ = '3.2'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
-# 
-# Python Interface to define geometries in arrays
-#
+
 from . import geom
 import numpy
 import KCore.Vector as Vector
 
-from .MapEdge import *
+#from .MapEdge import *
+from .MapEdge import enforceh, uniformize, refine, setH, setF, enforce, smooth, mapCurvature, enforceh3D
 
 try: range = xrange
 except: pass
@@ -45,7 +44,7 @@ def naca(e, N=101, sharpte=True):
             iq = int(e[5:6]) # ii
             it = int(e[6:7])
         e = 0.
-    if sharpte == False: sharpte = 0
+    if not sharpte: sharpte = 0
     else: sharpte = 1
     return geom.naca(e, N, im, ip, it, ith, iq, sharpte)    
     
@@ -89,7 +88,8 @@ def sphere6(C, R, N=100, ntype='STRUCT'):
     """Create a sphere of 6NxN points and of center C and radius R, made of 6 parts.
     Usage: a = sphere6((xc,yc,zc), R, N)"""
     try: import Transform as T; import Generator as G
-    except: raise ImportError("sphere6: requires Transform and Generator modules.")
+    except ImportError:
+        raise ImportError("sphere6: requires Transform and Generator modules.")
     s = sphere(C, R, 2*N)
     b = G.cart((-R/2.+C[0],-R/2.+C[1],-R/2.+C[2]),
                (R/(N-1.),R/(N-1.),R/(N-1.)), (N,N,N))
@@ -112,8 +112,8 @@ def sphereYinYang(C, R, N=100, ntype='STRUCT'):
     """Create a sphere of center C and radius R made of two overset parts.
     Usage: a = sphereYinYang((xc,yc,zc), R, N)"""
     try: import Transform as T
-    except: raise ImportError("sphereYinYang: requires Transform module.")
-    fringe = 2
+    except ImportError:
+        raise ImportError("sphereYinYang: requires Transform module.")
     Ni = 4*(N//2)
     a = sphere(C, R, N=Ni)
     a = T.subzone(a, (Ni//4-2,Ni//4-2,1), (3*Ni//4+2,7*Ni//4+2,1))
@@ -125,7 +125,8 @@ def sphereYinYang(C, R, N=100, ntype='STRUCT'):
 # IN: liste de maillages struct
 def export__(a, ntype='STRUCT'):
     try: import Converter as C; import Transform as T; import Generator as G
-    except: raise ImportError("export: requires Converter, Generator and Transform modules.")
+    except ImportError: 
+        raise ImportError("export: requires Converter, Generator and Transform modules.")
     if ntype == 'STRUCT': return a
     elif ntype == 'QUAD':
         a = C.convertArray2Hexa(a)
@@ -142,7 +143,8 @@ def disc(C, R, N=100, ntype='STRUCT'):
     """Create a disc of center C and radius R made of 5 parts.
     Usage: a = disc((xc,yc,zc), R, N)"""
     try: import Generator as G; import Transform as T; import math
-    except: raise ImportError("disc: requires Generator and Transform module.")
+    except ImportError:
+        raise ImportError("disc: requires Generator and Transform module.")
     coeff = R*math.sqrt(2.)*0.25
     x = C[0]; y = C[1]; z = C[2]
     c = circle(C, R, tetas=-45., tetae=45., N=N)
@@ -179,7 +181,8 @@ def quadrangle(P1, P2, P3, P4, N=0, ntype='QUAD'):
     """Create a single quadrangle with points P1, P2, P3, P4.
     Usage: a = quadrangle((x1,y,1,z1), (x2,y2,z2), (x3,y3,z3), (x4,y4,z4))"""
     try: import Generator as G
-    except: raise ImportError("quadrangle: requires Generator module.")
+    except ImportError:
+        raise ImportError("quadrangle: requires Generator module.")
     if N == 0 and ntype == 'QUAD': return geom.quadrangle(P1, P2, P3, P4)
     l1 = line(P1, P2, N)
     l2 = line(P2, P3, N)
@@ -193,7 +196,8 @@ def triangle(P0, P1, P2, N=0, ntype='TRI'):
     Usage: a = triangle(P1, P2, P3, N)"""
     if N == 0 and ntype == 'TRI': return geom.triangle(P0, P1, P2)
     try: import Generator as G; import Transform as T
-    except: raise ImportError("disc: requires Generator and Transform module.")
+    except ImportError:
+        raise ImportError("triangle: requires Generator and Transform module.")
     C01 = (0.5*(P0[0]+P1[0]), 0.5*(P0[1]+P1[1]), 0.5*(P0[2]+P1[2]))
     C12 = (0.5*(P1[0]+P2[0]), 0.5*(P1[1]+P2[1]), 0.5*(P1[2]+P2[2]))
     C02 = (0.5*(P0[0]+P2[0]), 0.5*(P0[1]+P2[1]), 0.5*(P0[2]+P2[2]))
@@ -227,7 +231,8 @@ def triangle(P0, P1, P2, N=0, ntype='TRI'):
 def box(Pmin, Pmax, N=100, ntype='STRUCT'):
     """Create a box passing by Pmin and Pmax (axis aligned)."""
     try: import Generator as G; import Transform as T
-    except: raise ImportError("box: requires Generator and Transform module.")
+    except ImportError:
+        raise ImportError("box: requires Generator and Transform module.")
     N = max(N, 2)
     (xmin,ymin,zmin) = Pmin
     (xmax,ymax,zmax) = Pmax
@@ -250,8 +255,9 @@ def box(Pmin, Pmax, N=100, ntype='STRUCT'):
 
 def cylinder(C, R, H, N=100, ntype='STRUCT'):
     """Create a cylinder of center C, radius R and height H."""
-    try: import Generator as G; import Transform as T
-    except: raise ImportError("cylinder: requires Generator and Transform module.")
+    try: import Transform as T
+    except ImportError:
+        raise ImportError("cylinder: requires Generator and Transform module.")
     (x0,y0,z0) = C
     m0 = disc(C, R, N)
     m1 = disc((x0,y0,z0+H), R, N)
@@ -501,7 +507,7 @@ def lineGenerate2__(array, drivingCurves):
     # Copie la distribution de 0 sur les autres courbes
     d = []
     ref = drivingCurves[0]; d += [ref]
-    l = getLength(ref)
+    #l = getLength(ref)
     distrib = getCurvilinearAbscissa(ref)
     distrib[0] = 'x'; distrib = Converter.addVars(distrib, ['y','z'])
     for i in drivingCurves[1:]:
@@ -514,8 +520,9 @@ def lineGenerate2__(array, drivingCurves):
 def orthoDrive(a, d, mode=0):
     """Generate a surface mesh starting from a curve and a driving orthogonally to curve defined by d.
     Usage: orthoDrive(a, d)"""
-    try: import Generator as G
-    except: raise ImportError("orthoDrive: requires Generator module.")
+    try: import Generator as G; import Transform as T
+    except ImportError:
+        raise ImportError("orthoDrive: requires Generator module.")
     coord = d[1]
     center = (coord[0,0],coord[1,0],coord[2,0])
     coordA = a[1]
@@ -535,10 +542,7 @@ def orthoDrive(a, d, mode=0):
         U = Vector.mul(alpha, S)
         U = Vector.add(U, [0,1,0])
     V = Vector.cross(U, S)
-    #print 'S',S
-    #print 'U',U
-    #print 'V',V
-
+    
     n = d[2]
     all = []
     
@@ -603,11 +607,11 @@ def volumeFromCrossSections(contours):
     """Generate a 3D volume from cross sections contours in (x,y) planes.
     Usage: volumeFromCrossSections(contours)"""
     try:
-        import KCore
+        import KCore.kcore as KCore
         import Converter as C
         import Transform as T
         import Generator as G
-    except:
+    except ImportError:
         raise ImportError("volumeFromCrossSections: require Converter, Transform and Generator.")
 
     c = {}
@@ -661,7 +665,8 @@ def text1D(string, font='vera', smooth=0, offset=0.5):
     elif font == 'nimbus': from . import nimbus as Text
     else: from . import text1 as Text
     try: import Transform
-    except: raise ImportError("text1D: requires Transform.")
+    except ImportError:
+        raise ImportError("text1D: requires Transform.")
     retour = []
     offx = 0.; offy = 0.; s = 6
     for i in string:
@@ -755,7 +760,7 @@ def text1D(string, font='vera', smooth=0, offset=0.5):
 
     if smooth != 0:
         try: import Generator
-        except:
+        except ImportError:
             raise ImportError("text1D: requires Generator for smooth option.")
         if smooth == 1:
             nmap = 40; hdensify = 8./100
@@ -777,8 +782,10 @@ def text2D(string, font='vera', smooth=0, offset=0.5):
     """Create a 2D text. 
     Usage: text2D(string, font, smooth, offset)"""
     try:
-        import Generator; import Transform; import Converter
-    except:
+        import Generator
+        import Transform
+        import Converter
+    except ImportError:
         raise ImportError("text2D: requires Generator, Transform, Converter.")
     a = text1D(string, font, smooth, offset)
     a = Converter.convertArray2Tetra(a)
@@ -791,10 +798,9 @@ def text3D(string, font='vera', smooth=0, offset=0.5, thickness=8.):
     """Create a 3D text.
     Usage: text3D(string, font, smooth, offset)"""
     try:
-        import Generator
         import Transform
         import Converter
-    except:
+    except ImportError:
         raise ImportError("text3D: requires Generator, Transform, Converter.")
     a = text1D(string, font, smooth, offset)
     l = line((0,0,0),(0,0,thickness),2)
@@ -821,8 +827,8 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
         import Transform as T
         import Converter as C
         import Generator as G    
-    except:
-        raise(ImportError,"connect1D requires Transform, Converter, Generator and KCore.Vector modules.")
+    except ImportError:
+        raise ImportError("connect1D requires Transform, Converter, Generator modules.")
     #curves = T.splitTBranch(curves)
     curves = C.convertBAR2Struct(curves)
     ncurves = len(curves)
@@ -898,7 +904,7 @@ def intersectionPoint__(P1,n1,P2,n2):
 
 # trouve le pt le plus proche de Pt dans Pts mais different de c
 def findNearest__(Pt, Pts, c):
-    minDist = 1.e6; nearest = None; dmin = -1; ext=0;
+    minDist = 1.e6; nearest = None; dmin = -1; ext=0
     for d in range(len(Pts)):
         if d <= c: # possible sur lui meme !!
             e2a = Pts[d][0]; e2b = Pts[d][1]    

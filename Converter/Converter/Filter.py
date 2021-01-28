@@ -621,9 +621,9 @@ class Handle:
           if r == z[0]: out.append(p); break
     return out
 
-  def setZnp(a):
+  def setZnp(self, a):
     self.znp = []
-    bases = Internal.getBase()
+    bases = Internal.getBases(a)
     for b in bases:
       zones = Internal.getZones(b)
       for z in zones: self.znp.append('/'+b[0]+'/'+z[0])
@@ -739,7 +739,7 @@ class Handle:
         p = Internal.getPath(t, z)+'/.Solver#Param/proc'
         paths.append(p)
       for z in zones:
-        p = Internal._createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t')
+        Internal._createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t')
       _readPyTreeFromPaths(t, self.fileName, paths)
       self._loadTreeExtras(t)
     else: t = None
@@ -949,7 +949,6 @@ class Handle:
        if p in self.bbox: continue
        xc = 0.; yc = 0.; zc = 0.
        bbox = [0.,0.,0.,0.,0.,0.]
-       hmoy = 0.; hmax = 0.; hmin = 0.
        # Coordinate X
        path = '%s/GridCoordinates/CoordinateX'%p
        n = readNodesFromPaths(self.fileName, path, maxDepth=0)
@@ -1129,11 +1128,9 @@ class Handle:
       bases = Internal.getBases(ap)
       for b in bases: b[2] = []
       ap = Cmpi.allgatherTree(ap)
-      if Cmpi.rank == 0: C.convertPyTree2File(ap, fileName)
+      if Cmpi.rank == 0: PyTree.convertPyTree2File(ap, fileName)
       Cmpi.barrier()
       # Ecrit les zones partiellement
       fr = {}
-      zones = Internal.getZones(a)
-      
-      writePyTreeFromFilter(t, fileName, fr, skelData=[])
+      writePyTreeFromFilter(a, fileName, fr, skelData=[])
       

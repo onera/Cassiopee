@@ -6,7 +6,8 @@ __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
 from . import rigidMotion
 import numpy
 try: import Converter as C
-except: raise ImportError("RigidMotion: requires Converter module.")
+except ImportError: 
+    raise ImportError("RigidMotion: requires Converter module.")
 
 #==============================================================================
 # IN: time: instant d'evaluation

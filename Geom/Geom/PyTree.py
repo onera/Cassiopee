@@ -1,8 +1,5 @@
 """Geometry definition module.
 """
-# 
-# Python Interface to define geometries in pyTrees
-#
 import Geom
 __version__ = Geom.__version__
 
@@ -10,7 +7,7 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Converter
-except:
+except ImportError:
     raise ImportError("Geom.PyTree: requires Converter.PyTree module.")
 
 def point(P):
@@ -167,9 +164,9 @@ def triangle(P1, P2, P3, N=0, ntype='TRI'):
     Usage: triangle((x1,y,1,z1), (x2,y2,z2), (x3,y3,z3))"""
     a = Geom.triangle(P1, P2, P3, N, ntype)
     if ntype == 'STRUCT':
-        return [C.convertArrays2ZoneNode('tri-part1', [A[0]]),
-        C.convertArrays2ZoneNode('tri-part2', [A[1]]),
-        C.convertArrays2ZoneNode('tri-part3', [A[2]])]
+        return [C.convertArrays2ZoneNode('tri-part1', [a[0]]),
+        C.convertArrays2ZoneNode('tri-part2', [a[1]]),
+        C.convertArrays2ZoneNode('tri-part3', [a[2]])]
     else:
         return C.convertArrays2ZoneNode('triangle', [a])
 
@@ -178,10 +175,10 @@ def quadrangle(P1, P2, P3, P4, N=0, ntype='QUAD'):
     Usage: quadrangle((x1,y,1,z1), (x2,y2,z2), (x3,y3,z3), (x4,y4,z4))"""
     a = Geom.quadrangle(P1, P2, P3, P4, N, ntype)
     if ntype == 'STRUCT':
-        return [C.convertArrays2ZoneNode('quad-part1', [A[0]]),
-        C.convertArrays2ZoneNode('quad-part2', [A[1]]),
-        C.convertArrays2ZoneNode('quad-part3', [A[2]]),
-        C.convertArrays2ZoneNode('quad-part2', [A[3]])]
+        return [C.convertArrays2ZoneNode('quad-part1', [a[0]]),
+        C.convertArrays2ZoneNode('quad-part2', [a[1]]),
+        C.convertArrays2ZoneNode('quad-part3', [a[2]]),
+        C.convertArrays2ZoneNode('quad-part2', [a[3]])]
     else:
         return C.convertArrays2ZoneNode('quadrangle', [a])
 

@@ -1,8 +1,6 @@
-#
-# Interface Tkinter pour CPlot
-#
+"""Tkinter interface for CPlot"""
 try: import Tkinter as TK
-except: import tkinter as TK
+except ImportError: import tkinter as TK
 from . import Ttk as TTK
 import Converter.PyTree as C
 import Converter
@@ -617,7 +615,7 @@ def addFile():
 def saveFile():
     global FILE
     try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    except ImportError: import tkinter.filedialog as tkFileDialog
     ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes, initialfile=FILE)
     if ret == '' or ret is None or ret == (): # user cancel
         return
@@ -736,10 +734,10 @@ def loadPrefFile():
     else:
       try: file = open(homePath+'/.cassiopee/config', 'r')
       except: savePrefFile(); return []
-    list = file.read()
+    plist = file.read()
     file.close()
-    list = list.split('\n')
-    for i in list:
+    plist = plist.split('\n')
+    for i in plist:
         if i != '':
             a = i.split(':',1)
             if len(a) == 2:
@@ -753,9 +751,9 @@ def loadPrefFile():
 #==============================================================================
 def importTtk():
     try: import ttk
-    except:
+    except ImportError:
       try: import tkinter.ttk as ttk
-      except: ttk = None
+      except ImportError: ttk = None
     return ttk
 
 #==============================================================================
@@ -1085,7 +1083,7 @@ def copyBlock():
 def unselectAll():
     if t == []: return
     if __MAINTREE__ <= 0: CPlot.display(t)
-    bases = Internal.getBases(t)
+    #bases = Internal.getBases(t)
     selected = []
     s = 0
 
@@ -1317,54 +1315,54 @@ def toolBar(win):
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                   image=iconics.PHOTO[0],
                   borderwidth=0, command=quickSaveFile)
-    C = infoBulle(parent=B, text='Save.')
+    BB = infoBulle(parent=B, text='Save.')
     B.grid(row=0, column=0)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                   image=iconics.PHOTO[11],
                   borderwidth=0, command=quickReloadFile)
-    C = infoBulle(parent=B, text='Reload current file.')
+    BB = infoBulle(parent=B, text='Reload current file.')
     B.grid(row=0, column=1)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                   image=iconics.PHOTO[1],
                   borderwidth=0, command=undo)
-    C = infoBulle(parent=B, text='Undo.')
+    BB = infoBulle(parent=B, text='Undo.')
     B.grid(row=0, column=2)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                   image=iconics.PHOTO[2],
                   borderwidth=0, command=rmBlock)
-    C = infoBulle(parent=B, text='Rm block.')
+    BB = infoBulle(parent=B, text='Rm block.')
     B.grid(row=0, column=3)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                    image=iconics.PHOTO[3],
                    borderwidth=0, command=copyBlock)
-    C = infoBulle(parent=B, text='Copy block.')
+    BB = infoBulle(parent=B, text='Copy block.')
     B.grid(row=0, column=4)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                    image=iconics.PHOTO[4],
                    borderwidth=0, command=lookFor)
-    C = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
+    BB = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
     B.grid(row=0, column=5)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                    image=iconics.PHOTO[5],
                    borderwidth=0, command=unselectAll)
-    C = infoBulle(parent=B, text='Unselect all blocks.')
+    BB = infoBulle(parent=B, text='Unselect all blocks.')
     B.grid(row=0, column=6)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                    image=iconics.PHOTO[6],
                    borderwidth=0, command=viewDeactivatedZones)
-    C = infoBulle(parent=B, text='View deactivated zones.')
+    BB = infoBulle(parent=B, text='View deactivated zones.')
     B.grid(row=0, column=7)
     
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                    image=iconics.PHOTO[12],
                    borderwidth=0, command=revertActivated)
-    C = infoBulle(parent=B, text='Toggle active zones.')
+    BB = infoBulle(parent=B, text='Toggle active zones.')
     B.grid(row=0, column=8)
     
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                    image=iconics.PHOTO[7],
                    borderwidth=0, command=displayMainTree)
-    C = infoBulle(parent=B, text='Display main tree.')
+    BB = infoBulle(parent=B, text='Display main tree.')
     B.grid(row=0, column=9)
 
 #==============================================================================

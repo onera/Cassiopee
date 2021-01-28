@@ -18,7 +18,6 @@ import Connector.Mpi as Xmpi
 import Converter.Distributed as Distributed
 import Connector.OversetData as XOD
 from Apps.Fast.Common import Common
-import Compressor.PyTree as Compressor 
 
 # return True si z est une zone chimera
 def isZoneChimera(z):
@@ -128,7 +127,7 @@ def prepare(t_case, t_out, tc_out,
 
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError('GoverningEquations is missing in input tree defined in %s.'%FILE)
+    if model is None: raise ValueError('GoverningEquations is missing in input tree.')
     model = Internal.getValue(model)
 
     # Octree identical on all procs

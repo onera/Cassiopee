@@ -51,7 +51,7 @@ def _distributeOpt(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
         if Cmpi.rank == 0: _distributeOptFile(t_in, tc_in, corePerNode, nptMaxPerCore)
     else: 
         #_distributeOptMem(t_in, tc_in, corePerNode, nptMaxPerCore)
-        raise(ValueError, 'Not implemented.')
+        raise ValueError('Not implemented.')
     return None
 
 def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):

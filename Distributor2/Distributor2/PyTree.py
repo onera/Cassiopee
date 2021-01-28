@@ -1,4 +1,5 @@
-# Distributor2 (pyTree)
+"""Distribution module for Cassiopee package.
+"""
 import Distributor2
 import Converter.Internal as Internal
 import Converter.PyTree as C
@@ -272,7 +273,6 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
 def getProcDict(t, prefixByBase=False):
     """Return the proc of a zone in a dictionary proc['zoneName']."""
     proc = {}
-    tp = Internal.node2PyTree(t)
     bases = Internal.getBases(t)
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
@@ -442,4 +442,3 @@ def printProcStats(t, stats=None, NProc=None):
             print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
 
     return None
-

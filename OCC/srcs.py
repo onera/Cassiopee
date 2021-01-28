@@ -38,7 +38,8 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/parameterEdges.cpp',
         'OCC/Atomic/evalEdge.cpp',
         'OCC/Atomic/evalFace.cpp',
-        'OCC/Atomic/projectOnFace.cpp']
+        'OCC/Atomic/projectOnFace.cpp',
+        'OCC/Atomic/projectOnEdge.cpp']
 
 import KCore.Dist as Dist
 if Dist.getSystem()[0] == 'mingw':

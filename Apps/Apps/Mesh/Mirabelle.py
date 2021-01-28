@@ -612,8 +612,8 @@ if __name__ == "__main__":
     print("== Computing linelet...")
     linelet = buildDistrib(t, block, dir, h1, h2, N)
 
-    if dir == 2: dir = 3;
-    elif dir == 3: dir = 5;
+    if dir == 2: dir = 3
+    elif dir == 3: dir = 5
     stack = [(block, dir)]
 
     # Run

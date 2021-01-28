@@ -921,8 +921,8 @@ False, # CPlotOffScreen
  # '/tmp_opt/lib/hdf5/1.8.17/15/impi/include',
  '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/include'], # additionalIncludePaths
 ['mpi'], # additionalLibs
-['/tmp_opt/lib/hdf5-1.8.8-intel-15-impi/lib', 
- '/tmp_opt/lib/hdf5/1.8.17/15/impi/lib', 
+['/tmp_opt/lib/hdf5-1.8.8-intel-15-impi/lib',
+ '/tmp_opt/lib/hdf5/1.8.17/15/impi/lib',
  '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/lib'],  # additionAllIbpaths
 False, # useCuda
 [] # NvccAdditionalOptions

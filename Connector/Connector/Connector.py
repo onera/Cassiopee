@@ -126,7 +126,7 @@ def optimizeOverlap(nodes1, centers1, nodes2, centers2, prio1=0, prio2=0, isDW=0
     centers1 and centers2 define the coordinates of cell centers, modified by
     the double wall algorithm + cellN variable. 
     Usage: optimizeOverlap(nodes1, centers1, nodes2, centers2,prio1=0, prio2=0,isDW=0)"""
-    import KCore
+    import KCore.kcore as KCore
     import Converter as C
     posv1 = KCore.isNamePresent(centers1,'vol')
     posv2 = KCore.isNamePresent(centers2,'vol')
@@ -292,7 +292,10 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, c
     """Blank cells in coords (by setting the cellN to cellnval) falling inside a Tetra Mesh mask defined by meshT4.
     If overwrite is enabled (1), cells detected outside have a celln reset to 1.
     Usage: blankCellsTetra(coords, cellnfields, meshT4, connectT4, blankingType, tol, cellnval, overwrite)"""
-    try: import Converter as C; import Transform as T; import Post as P
+    try: 
+        import Converter as C
+        import Transform as T
+        import Post as P
     except: raise ImportError("blankCellsTetra: requires Converter, Transform and Post  module.")
     cellnt = []
     maskSkin = P.exteriorFaces(meshT4)
@@ -308,7 +311,7 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, c
         coords[i] = C.node2Center(coords[i])
         bt = 0
       cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
-    connector.deleteTetraMask(mask);
+    connector.deleteTetraMask(mask)
     return cellnt
     
 #==============================================================================
@@ -559,8 +562,7 @@ def getEXPoints__(z, celln):
 def maskXRay__(body, delta=0., dim=3, isNot=0, tol=1.e-8):
     """Create the pierce points of a X-Ray mask defined by body."""
     try: import Converter as C; import Transform as T
-    except:
-        raise ImportError("maskXRay: requires Converter and Transform modules.")
+    except: raise ImportError("maskXRay: requires Converter and Transform modules.")
     body = C.convertArray2Tetra(body)
     body = T.join(body)
     return connector.maskXRay([body], delta, dim, isNot, tol)
@@ -620,7 +622,7 @@ def changeWall__(z, firstWallPoints, projectionSurfaces, planarTol=0.):
 # OUT: zc modifie pour les pts de cellN=2
 #-----------------------------------------------------------------------------
 def changeWallEX__(EXPts, zc, zn, firstWallCenters, projectionSurfaces, planarTol=0.):
-    if projectionSurfaces == [] or firstWallCenters == []: return z
+    if projectionSurfaces == [] or firstWallCenters == []: return zc
     else: return connector.changeWallEX(EXPts, zn, zc, firstWallCenters, projectionSurfaces, planarTol)
 
 #----------------------------------------------------------------------------------------------

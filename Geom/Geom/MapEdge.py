@@ -1,13 +1,14 @@
-# mapEdge
+"""Mapedge functions."""
 try:
     import Generator as G
     import Transform as T
     import Converter as C
     import Geom as D
-    import KCore
+    import KCore.kcore as KCore
     import numpy
     importOK = True
-except: importOK = False
+except ImportError: 
+    importOK = False
 
 try: range = xrange
 except: pass
@@ -15,7 +16,6 @@ except: pass
 def checkImport():
     if not importOK: 
         raise ImportError("mapEdge requires Converter, Generator, Transform.")
-        return None
 
 # uniformize a 1D mesh (regular step) - OK
 def uniformize(a, N=100, h=-1., factor=-1, density=-1., sharpAngle=30.):
@@ -351,6 +351,7 @@ def enforceh__(a, N, h):
 
 # Enforce h at ind (STRUCT)
 def enforce(a, h, ind, supp, add):
+    """Enforce h in distribution."""
     c = D.getDistribution(a)
     L = D.getLength(a)
     if ind == 0: b = G.enforceMoinsX(b, h/L, supp, add)
@@ -398,14 +399,14 @@ def mapCurvature(a, N, factor=1., sharpAngle=30.):
     radius = D.getCurvatureRadius(a)
     # split at local max of radius + angles
     alpha = ang[1][0]
-    rad = radius[1][0]
+    #rad = radius[1][0]
     npts = alpha.size
     out = []
-    radiusp = 0.
+    #radiusp = 0.
     split = [0]
     for i in range(npts):
         alpha0 = abs(alpha[i]-180.)
-        radius0 = rad[i]
+        #radius0 = rad[i]
         if alpha0 > 30.: split.append(i)
     split.append(npts-1)
     

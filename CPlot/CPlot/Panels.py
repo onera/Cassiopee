@@ -1,9 +1,9 @@
-# Panels - les panneaux de tkCassiopee
+"""Panels for tkCassiopee."""
 
 try: import Tkinter as TK
-except: import tkinter as TK
+except ImportError: import tkinter as TK
 try: import Tk as CTK
-except: from . import Tk as CTK
+except ImportError: from . import Tk as CTK
 import Converter
 import Converter.Internal as Internal
 import Converter.PyTree as C
@@ -42,6 +42,7 @@ WIDGETS = {}
 # Affiche le about et les informations d'install
 #==============================================================================
 def about():
+    """About panel."""
     import KCore.buildInfo
     logoImg = TK.PhotoImage(data="""
 R0lGODlhLAFWAOf8AAoGDAkLBw8MEBIQFBUQDhESDxITGhUTFhcVGBUWHRYXFRoWHhgXGhoYGxwa
@@ -1014,7 +1015,7 @@ def setShaderParameter1(event=None):
 
 def setShaderParameter2(event=None):
     nzs = CPlot.getSelectedZones()
-    p1 = VARS[5].get()
+    p2 = VARS[5].get()
     try: p2 = float(p2)
     except:
         CTK.TXT.insert('START', 'Shader parameter value is incorrect.\n')
@@ -1176,7 +1177,7 @@ def updateLoadPanel():
         
     # VARS
     lb = WIDGETS['LBVARS']
-    values = lb.get(0, lb.size())
+    #values = lb.get(0, lb.size())
     lb.delete(0, TK.END)
     for i, value in enumerate(vars):
         lb.insert(i, value)
@@ -1184,7 +1185,7 @@ def updateLoadPanel():
 
     # ZONES
     lb = WIDGETS['LBZONES']
-    values = lb.get(0, lb.size())
+    #values = lb.get(0, lb.size())
     lb.delete(0, TK.END)
     for i, value in enumerate(znp):
         lb.insert(i, value)

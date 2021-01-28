@@ -1,8 +1,5 @@
 """Grid generation module.
 """
-# 
-# Python Interface to create PyTrees defining meshes
-#
 from . import Generator
 from . import generator
 __version__ = Generator.__version__
@@ -11,7 +8,7 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Converter
-except:
+except ImportError:
     raise ImportError("Generator.PyTree: requires Converter.PyTree module.")
 
 def cart(Xo, H, N):
@@ -79,11 +76,12 @@ def conformOctree3(o):
 def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0):
     """Conformizes a TRI or BAR soup (surface1) with taking into account surface2 if it's provided.
     Usage: conformUnstr(s1, s2, tol)"""
+    import Intersector
     s1 = C.getFields(Internal.__GridCoordinates__, surface1)[0]
     if surface2 is not None:
         s2 = C.getFields(Internal.__GridCoordinates__, surface2)[0]
     else: s2 = None
-    s = Generator.conformUnstr(s1, s2, tol, left_or_right)
+    s = Intersector.conformUnstr(s1, s2, tol, left_or_right)
     return C.convertArrays2ZoneNode('conformized', [s])
 
 #------------------------------------------------------------------------------
@@ -131,7 +129,7 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     if AMR == 1: return zones
     if ext == 0:
         try: import Connector.PyTree as X
-        except: 
+        except ImportError: 
             print('Warning: octree2Struct requires Connector module. No grid connectivity built.')
             return zones
         
@@ -447,9 +445,9 @@ def CEBBIntersection(a1, a2, tol=1.e-10):
 def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       
     if Internal.typeOfNode(z1) != 1:
-        raise(ValueError,"First arg must be a zone.")
+        raise ValueError("First arg must be a zone.")
     if Internal.typeOfNode(z2) != 1:
-        raise(ValueError,"Second arg must be a zone.")
+        raise ValueError("Second arg must be a zone.")
     if not isBB:
         z1 = BB(z1, method)
         z2 = BB(z2, method)
@@ -478,9 +476,9 @@ def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
 def _bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       
     if Internal.typeOfNode(z1) != 1:
-        raise(ValueError,"First arg must be a zone.")
+        raise ValueError("First arg must be a zone.")
     if Internal.typeOfNode(z2) != 1:
-        raise(ValueError,"Second arg must be a zone.")
+        raise ValueError("Second arg must be a zone.")
     if not isBB:
         _BB(z1,method)
         _BB(z2,method)
@@ -781,13 +779,13 @@ def selectInsideElts(a, curvesList):
 
 def grow(t, vector):
     """Grow a surface array of one layer by moving points of vector.
-    Usage: grow( t, vector )"""
+    Usage: grow(t, vector)"""
     tp = Internal.copyRef(t)
     if len(vector) != 3: raise ValueError("grow: 3 variables are required.")
     nodes = Internal.getZones(tp)
     for z in nodes:
         fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        if (fa != []):
+        if fa != []:
             a = Converter.extractVars(fa, vector)
         else:
             print("Warning: grow: variables not found in zone.")
@@ -1007,6 +1005,7 @@ def _refineBC__(z, ni0, nj0, nk0, factor, dir):
     return None
 
 def refine(t, power, dir):
+    """Refine a mesh keeping original point distribution."""
     tp = Internal.copyRef(t)
     _refine(tp, power, dir)
     return tp
@@ -1199,7 +1198,7 @@ def buildExtension(c, surfaces, dh, niter=0):
     contours = C.getFields(Internal.__GridCoordinates__,cp)[0]
     surfacesA = C.getFields(Internal.__GridCoordinates__,surfaces)
     dhj = C.getFields(Internal.__GridCoordinates__,dh)[0]
-    coords = G.buildExtension(contours,surfacesA, dhj, niter)
+    coords = Generator.buildExtension(contours, surfacesA, dhj, niter)
     return C.setFields([coords], cp, 'nodes')
 
 #==============================================================================
@@ -1223,7 +1222,7 @@ def surfaceWalk(t, contour, distrib, constraints=[], niter=0,
 
 #=============================================================================
 # Create volume collar grid(s) starting from s1 and s2,
-# type: 'union' or 'difference': assembly type between s1 and s2
+# typer: union or difference: assembly type between s1 and s2
 # return the collar grids(s) and s0 the surface resulting from the
 # boolean operation between s1 and s2 as: collar1,collar2,s0
 #=============================================================================
@@ -1291,7 +1290,7 @@ def polyLineMesher(z, h, yplus, density):
     try:
         import Connector.PyTree as X
         from . import PolyLine as GP
-    except:
+    except ImportError:
         raise ImportError("polyLineMesher: requires Polyline and Connector modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
@@ -1325,7 +1324,8 @@ def polyC1Mesher(z, h, yplus, density, splitCrit=10., dalpha=5., depth=1):
     """Generate a multiple mesh for a polyC1-curve defined by z.
     Usage: polyC1Mesher(z, h, yplus, density, splitCrit, dalpha, depth)"""
     try: import Connector.PyTree as X; from . import PolyC1 as GP
-    except: raise ImportError("polyC1Mesher: requires PolyC1 and Connector.PyTree modules.")
+    except ImportError: 
+        raise ImportError("polyC1Mesher: requires PolyC1 and Connector.PyTree modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
     res = GP.polyC1Mesher(coord, h, yplus, density, splitCrit, dalpha, depth)
@@ -1361,7 +1361,7 @@ def polyQuadMesher(z, h, hf, density, next):
     try:
         import Connector.PyTree as X
         from . import PolyQuad as GP
-    except:
+    except ImportError:
         raise ImportError("polyQuadMesher: requires PolyQuad and Connector modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
@@ -1397,7 +1397,7 @@ def polyTriMesher(z, h, hf, density, next):
     try:
         import Connector.PyTree as X
         from . import PolyTri as GP
-    except:
+    except ImportError:
         raise ImportError("polyTriMesher: requires PolyTri and Connector modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
