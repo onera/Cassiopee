@@ -1222,6 +1222,42 @@ struct ngon_t
     return err;
   }
 
+  /// star-triangulate specified PGs
+  static E_Int triangulate_pgs
+    (const ngon_unit& PGs, K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3, Vector_t<E_Int>& colors, const Vector_t<bool>* process=0) 
+  {
+    connectT3.clear();
+    colors.clear();
+
+    typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
+    
+
+    PGs.updateFacets();
+
+    E_Float P[3];
+
+    E_Int sz = PGs.size(), err(0);
+
+    for (E_Int j=0; (j<sz) ; ++j)
+    {
+      if (process && (*process)[j] == false)
+        continue;
+
+      coord.pushBack(P,P+3);
+      E_Int C = coord.cols()-1;
+
+      //K_MESH::Polygon::centroid<3>(coord, PGs.get_facets_ptr(j), PGs.stride(j), 1, coord.col(C));
+      K_MESH::Polygon::iso_barycenter(coord, PGs.get_facets_ptr(j), PGs.stride(j), 1, coord.col(C));
+
+      acrd_t acrd(coord);
+      K_MESH::Polygon::star_triangulate(acrd, PGs.get_facets_ptr(j), PGs.stride(j), 1, C, connectT3);
+
+      colors.resize(connectT3.getSize(), j);
+    }
+
+    return 0;
+  }
+
   ///
   template <typename Coordinate_t>
   static void compact_to_used_nodes (ngon_unit& PGs, Coordinate_t& coord)
@@ -1885,6 +1921,14 @@ static void detect_uncomputable_phs(const K_FLD::FloatArray& crd, const ngon_t& 
   }
 }
 
+using pair_t = std::pair<E_Float, E_Int>;
+
+struct sort_func : std::binary_function<pair_t, pair_t, bool>
+{
+  bool operator()(pair_t a, pair_t b) { return (a.first < (b.first + 1.e-15)); }
+};
+
+
 ///
 template <typename TriangulatorType>
 static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi, const ngon_unit& neighborsi, E_Float vmin, E_Float vratio, Vector_t<E_Int>& PHlist)
@@ -1897,9 +1941,12 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
   E_Int nb_phs = ngi.PHs.size();
  
   std::vector<E_Float> vols;
-  ngon_t::volumes<TriangulatorType>(crd, ngi, vols, false/*i.e. not all cvx*/, false/* ! new algo*/);
+  ngon_t::volumes<TriangulatorType>(crd, ngi, vols, false/*i.e. not all cvx*/, true/* ! new algo*/);
+  
+  std::vector<pair_t> v_to_id;
 
   E_Float vi, vj;
+  sort_func sortf ;
   
   for (E_Int i=0; i < nb_phs; ++i)
   {
@@ -1907,32 +1954,43 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
     if (vi < vmin)
     {
       //std::cout << " cell " << i << " has volume " << vi << " which is less than " << vmin << std::endl;
-      PHlist.push_back(i);
+      v_to_id.push_back(std::make_pair(vi, i));
       continue;
     }
       
-    if (vratio <= 0.) continue;
-
-    E_Int nb_neighs = neighborsi.stride(i);
-    bool found=false;
-    for (E_Int n=0; n < nb_neighs && !found; ++n)
+    if (vratio > 0.)
     {
-      E_Int j = neighborsi.get_facet(i,n);
-      if (j == IDX_NONE)
-        continue;
-      vj = vols[j];
-      if (vratio*vi <  vj)
+
+      E_Int nb_neighs = neighborsi.stride(i);
+      bool found = false;
+      for (E_Int n = 0; n < nb_neighs && !found; ++n)
       {
-        found=true;
-        //std::cout << " cell " << i << " has volume " << vi << " which is " << vratio << " times smaller than cell " << j << std::endl;
+        E_Int j = neighborsi.get_facet(i, n);
+        if (j == IDX_NONE)
+          continue;
+        vj = vols[j];
+        if (vratio*vi < vj)
+        {
+          found = true;
+          //std::cout << " cell " << i << " has volume " << vi << " which is " << vratio << " times smaller than cell " << j << std::endl;
+        }
+      }
+      if (found)
+      {
+        v_to_id.push_back(std::make_pair(vi, i));
+        continue;
       }
     }
-    if (found)
-    {
-      PHlist.push_back(i);
-      continue;
-    }
   }
+
+  std::stable_sort(v_to_id.begin(), v_to_id.end(), sortf);
+
+  for (size_t i = 0; i < v_to_id.size(); ++i)
+  {
+    //std::cout << "small cell detected : " << v_to_id[i].second << " with volume : " << v_to_id[i].first << std::endl;
+    PHlist.push_back(v_to_id[i].second);
+  }
+
   
   return 0;
 }
@@ -3962,6 +4020,24 @@ static E_Int volume (const K_FLD::FloatArray& crd, const ngon_t& ng, E_Float& to
     for (E_Int i = 0; i < vols.size(); ++i)total_vol += (*coefs)[i]*vols[i];
     
   
+  return 0;
+}
+
+///
+static E_Int centroids(const ngon_unit& PGS, const K_FLD::FloatArray& crd, K_FLD::FloatArray& centroids)
+{
+  PGS.updateFacets();
+
+  E_Int nb_pgs = PGS.size();
+  //std::cout << "nb of pgs : " << nb_pgs << std::endl;
+
+  centroids.clear();
+  centroids.resize(3, nb_pgs, 0.);
+
+  for (E_Int i = 0; i < nb_pgs; ++i)
+    //K_MESH::Polygon::centroid<3>(crd, PGS.get_facets_ptr(i), PGS.stride(i), 1, centroids.col(i));
+    K_MESH::Polygon::iso_barycenter(crd, PGS.get_facets_ptr(i), PGS.stride(i), 1, centroids.col(i));
+
   return 0;
 }
 

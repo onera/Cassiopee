@@ -401,7 +401,12 @@ static E_Int read(const char* filename, phmesh_type& mesh)
         keep[(*toprocess)[u] - idx_start] = true;
     }
 
-    return write<color_t>(filename, crd, cnt, stype.c_str(), keep.empty() ? nullptr : &keep, colors);
+    std::vector<E_Int> nids;
+    K_FLD::FloatArray tmpcrd(crd);
+    K_FLD::IntArray tmpcnt(cnt);
+    NUGA::MeshTool::compact_to_mesh(tmpcrd, tmpcnt, nids);
+
+    return write<color_t>(filename, tmpcrd, tmpcnt, stype.c_str(), keep.empty() ? nullptr : &keep, colors);
   }
 
   template< typename color_t = E_Int>
@@ -470,7 +475,12 @@ static E_Int read(const char* filename, phmesh_type& mesh)
         }
       }
 
-      return write(filename, crd, cT, "TRI", nullptr, colors ? &Tcolors : nullptr);
+      std::vector<E_Int> nids;
+      K_FLD::FloatArray tmpcrd(crd);
+      K_FLD::IntArray tmpcnt(cT);
+      NUGA::MeshTool::compact_to_mesh(tmpcrd, tmpcnt, nids);
+
+      return write(filename, tmpcrd, tmpcnt, "TRI", nullptr, colors ? &Tcolors : nullptr);
     }
     else
     {
@@ -495,8 +505,14 @@ static E_Int read(const char* filename, phmesh_type& mesh)
         }
       }
       ngon_unit::convert_ngon_unit_to_fixed_stride(pgs2, 1, cT);
-      if (cT.rows() == 3) return write(filename, crd, cT, "TRI", nullptr, pColors);
-      else return write(filename, crd, cT, "QUAD", nullptr, pColors);
+
+      std::vector<E_Int> nids;
+      K_FLD::FloatArray tmpcrd(crd);
+      K_FLD::IntArray tmpcnt(cT);
+      NUGA::MeshTool::compact_to_mesh(tmpcrd, tmpcnt, nids);
+
+      if (cT.rows() == 3) return write(filename, tmpcrd, tmpcnt, "TRI", nullptr, pColors);
+      else return write(filename, tmpcrd, tmpcnt, "QUAD", nullptr, pColors);
     }
   }
 
@@ -575,8 +591,11 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     ngo_t ngt(ng);
     std::vector<E_Int> pgnids, phnids;
     ngt.remove_unreferenced_pgs(pgnids, phnids);
+
+    K_FLD::FloatArray crdl(crd);
+    ngo_t::compact_to_used_nodes(ngt.PGs, crdl);
     
-    write(filename, crd, ngt.PGs);
+    write(filename, crdl, ngt.PGs);
     
     return 0;
   }

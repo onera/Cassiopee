@@ -21,10 +21,36 @@
 # include "intersector.h"
 # include "stub.h"
 
+//=============================================================================
+/* get COM hook  */
+//=============================================================================
+void* unpackCOM(PyObject* hook, E_Int *&hook_id, E_Int *&subdiv_type, E_Int *&elt_type, void **&packet)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
 //============================================================================
 /* Create a hmesh and returns a hook */
 //============================================================================
 PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//============================================================================
+/* Create a communicator */
+//============================================================================
+PyObject* K_INTERSECTOR::createCom(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* get hmesh hook  */
+//=============================================================================
+void* unpackHMesh(PyObject* hook_hmesh, E_Int *&hook_hm_id, E_Int *&subdiv_type, E_Int *&elt_type, std::string *&vString, void **&packet)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
@@ -54,11 +80,48 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
 //============================================================================
 /* Creates a Geom Sensor */
 //============================================================================
-PyObject* K_INTERSECTOR::createGeomSensor(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
 }
+
+//=============================================================================
+/* get sensor hook  */
+//=============================================================================
+void* unpackSensor(PyObject* hook_sensor, E_Int *&hook_ss_id, E_Int *&sensor_type, E_Int *&smoothing_type, E_Int *&subdiv_type, E_Int *&elt_type, void **&packet_ss)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* delete sensor hook  */
+//=============================================================================
+PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* assign data to sensor  */
+//=============================================================================
+PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* Deletes a COM  */
+//=============================================================================
+PyObject* K_INTERSECTOR::deleteCOM(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
 
 //=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
@@ -73,24 +136,6 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
-{
-  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
-  return NULL;
-}
-
-//=============================================================================
-/* Dynamic cells adaptation */
-//=============================================================================
-PyObject* K_INTERSECTOR::adaptCellsDyn(PyObject* self, PyObject* args)
-{
-  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
-  return NULL;
-}
-
-//=============================================================================
-/* Adapt cells with respect to the nodal subdivisions query */
-//=============================================================================
-PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;

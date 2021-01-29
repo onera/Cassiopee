@@ -180,7 +180,7 @@ bool getUnionArgs(PyObject* args,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
              E_Float& tolerance, E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual,
-             std::vector<E_Int>& pgsList,
+             std::vector<E_Int>& pgsList, E_Int& simplify_pgs,
              char*& eltType, char*& varString)
 {
   PyObject *arrS[2], *pgs;
@@ -192,8 +192,8 @@ bool getUnionArgs(PyObject* args,
   pgsList.clear();
 
   if (!PYPARSETUPLE(args, 
-                    "OOdllllO", "OOdiiiiO", "OOfllllO", "OOfiiiiO", 
-                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &pgs))
+                    "OOdllllOl", "OOdiiiiOi", "OOfllllOl", "OOfiiiiOi", 
+                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &pgs, &simplify_pgs))
   {
     o << opername << ": wrong arguments.";
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
@@ -278,7 +278,7 @@ bool getUnionArgs(PyObject* args,
     if (pgs != Py_None)
       res = K_NUMPY::getFromNumpyArray(pgs, inds, true);
 
-    std::auto_ptr<K_FLD::FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
+    std::unique_ptr<K_FLD::FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
   
     //std::cout << "result for NUMPY is : " << res << std::endl;
     if ((res == 1) && (inds != NULL)  && (inds->getSize() != 0))
@@ -398,9 +398,10 @@ PyObject* call_union(PyObject* args)
   std::vector<E_Int> colors, ghost_pgs;
   E_Int preserve_right, solid_right, agg_mode;
   bool improve_conformal_cloud_qual(false);
+  E_Int simplify_pgs{1};
   
   bool ok = getUnionArgs(args, pos1, connect1, pos2, connect2, tolerance, 
-        preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, ghost_pgs, eltType, varString);
+        preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, ghost_pgs, simplify_pgs, eltType, varString);
   if (!ok) return NULL;
   PyObject* tpl = NULL;
   E_Int err(0), et=-1;

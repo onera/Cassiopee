@@ -1256,6 +1256,76 @@ PyObject* K_INTERSECTOR::checkForDegenCells(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
+PyObject* K_INTERSECTOR::checkForBigCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Int N{8};
+
+  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &N)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+  E_Int maxf{0};
+  E_Int idm{IDX_NONE};
+  E_Int count{0};
+  std::vector<bool> keep(ngi.PHs.size(), false);
+  for (E_Int i=0; i< ngi.PHs.size(); ++i)
+  {
+    E_Int s = ngi.PHs.stride(i);
+    if (s > N)
+    {
+      ++count;
+      keep[i]=true;
+    }
+    if (s > maxf)
+    {
+      maxf = s;
+      idm = i;
+    }
+    maxf = std::max(maxf, s);
+    
+  }
+
+  PyObject* tpl{nullptr};
+
+  if (idm != IDX_NONE) std::cout << idm << " is the biggest with " << maxf << " faces" << std::endl;
+
+  if (count > 0)
+  {
+    std::cout << count << " cells over the specified number of faces have been found." << std::endl;
+    
+    std::vector<E_Int> pgnids, phnids;
+    ngon_type ngo;
+    ngi.select_phs(ngi, keep, phnids, ngo);
+    ngo.remove_unreferenced_pgs(pgnids, phnids);
+    K_FLD::IntArray cnto;
+    ngo.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  }
+  else
+    std::cout << "No cells over the specified number of faces have been found." << std::endl;
+
+  delete f; delete cn;
+  return tpl;
+
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
 PyObject* K_INTERSECTOR::edgeLengthExtrema(PyObject* self, PyObject* args)
 {
   PyObject *arr;
@@ -2129,6 +2199,53 @@ PyObject* K_INTERSECTOR::oneZonePerCell(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
+PyObject* K_INTERSECTOR::oneZonePerFace(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  PyObject *l(PyList_New(0)), *tpl;
+
+  E_Int nb_pgs = ngi.PGs.size();
+  std::cout << "nb pgs : " << nb_pgs << std::endl;
+  for (E_Int i=0; i < nb_pgs; ++i)
+  {
+    ngon_unit ngu;
+    ngu.add(ngi.PGs.stride(i), ngi.PGs.get_facets_ptr(i));
+    
+    ngon_type ngo(ngu, true);
+
+    K_FLD::FloatArray crdtmp(crd);
+    ngon_type::compact_to_used_nodes(ngo.PGs, crdtmp); //reduce points
+    //export to numpy
+    K_FLD::IntArray cnto;
+    ngo.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(crdtmp, varString, cnto, 8, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  delete f; delete cn;
+  return l;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
 PyObject* K_INTERSECTOR::immerseNodes(PyObject* self, PyObject* args)
 {
   PyObject *arr1, *arr2;
@@ -2204,7 +2321,6 @@ PyObject* K_INTERSECTOR::immerseNodes(PyObject* self, PyObject* args)
   delete f; delete cn;
   return tpl;
 }
-
 
 //=============================================================================
 /* XXX */
@@ -2412,15 +2528,52 @@ PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
   //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
 
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  using ngon_type = ngon_t<K_FLD::IntArray>;
+  ngon_type::eGEODIM geodim = ngon_type::get_ngon_geodim(cnt);
+
+  //std::cout << "GEO dIM ? " << geodim << std::endl;
+
+  if (geodim == ngon_type::eGEODIM::ERROR)
+  {
+    std::cout << "centroids : Input Error : mesh is corrupted." << std::endl;
+    return nullptr;
+  }
+  if (geodim == ngon_type::eGEODIM::MIXED)
+  {
+    std::cout << "centroids : Input Error : mesh mixed elt types (lineic and/or surfacic and /or volumic." << std::endl;
+    return nullptr;
+  }
+  if (geodim == ngon_type::eGEODIM::LINEIC)
+  {
+    std::cout << "centroids : Unsupported : lineic NGON are not handled." << std::endl;
+    return nullptr;
+  }
+
+  // so either SURFACIC, SURFACIC_CASSIOPEE or VOLUMIC
+
+  if (geodim == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnt1;
+    ng.export_surfacic_view(cnt1);
+    //std::cout << "exported" << std::endl;
+    geodim = ngon_type::eGEODIM::SURFACIC;
+    cnt=cnt1;
+  }
+
   ngon_type ngi(cnt);
 
-  K_FLD::FloatArray centroids;
-  ngon_type::centroids<DELAUNAY::Triangulator>(ngi, crd, centroids);
+  K_FLD::FloatArray cents;
+
+  if (geodim == ngon_type::eGEODIM::SURFACIC)
+    ngon_type::centroids(ngi.PGs, crd, cents);
+  else // (geodim == ngon_type::eGEODIM::VOLUMIC)
+    ngon_type::centroids<DELAUNAY::Triangulator>(ngi, crd, cents);
 
   K_FLD::IntArray cnto;
 
-  PyObject* tpl = K_ARRAY::buildArray(centroids, varString, cnto, 0, "NODE", false);
+  PyObject* tpl = K_ARRAY::buildArray(cents, varString, cnto, 0, "NODE", false);
   
   delete f; delete cn;
   return tpl;
@@ -2565,8 +2718,9 @@ PyObject* K_INTERSECTOR::getCollidingCells(PyObject* self, PyObject* args)
 {
   PyObject *arr1, *arr2;
   E_Float RTOL(1.e-12);
+  E_Int only_externals{0};
 
-  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &RTOL)) return NULL;
+  if (!PyArg_ParseTuple(args, "OOdl", &arr1, &arr2, &RTOL, &only_externals)) return NULL;
 
   K_FLD::FloatArray *f1(0), *f2(0);
   K_FLD::IntArray *cn1(0), *cn2(0);
@@ -2614,17 +2768,41 @@ PyObject* K_INTERSECTOR::getCollidingCells(PyObject* self, PyObject* args)
     cnt2=cnttmp;
   }
 
-  if (dim1 == ngon_type::eGEODIM::SURFACIC && dim2 == ngon_type::eGEODIM::SURFACIC) // S vs BAR
+  if (dim1 == ngon_type::eGEODIM::SURFACIC && dim2 == ngon_type::eGEODIM::LINEIC) // S vs BAR
   {
     pg_smesh_t m1(crd1, cnt1);
     edge_mesh_t m2(crd2, cnt2);
     NUGA::COLLIDE::compute(m1,m2, isx1, isx2, RTOL); 
   }
+  /*else if (dim1 == ngon_type::eGEODIM::SURFACIC && dim2 == ngon_type::eGEODIM::SURFACIC) // S vs S
+  {
+    pg_smesh_t m1(crd1, cnt1);
+    pg_smesh_t m2(crd2, cnt2);
+    NUGA::COLLIDE::compute(m1,m2, isx1, isx2, RTOL); 
+  }*/
   else if (dim1 == ngon_type::eGEODIM::VOLUMIC && dim2 == ngon_type::eGEODIM::SURFACIC) // V vs S
   {
     ph_mesh_t m1(crd1, cnt1);
     pg_smesh_t m2(crd2, cnt2);
     NUGA::COLLIDE::compute(m1,m2, isx1, isx2, RTOL); 
+  }
+  else if (dim1 == ngon_type::eGEODIM::VOLUMIC && dim2 == ngon_type::eGEODIM::VOLUMIC) // V vs V (take only PGs into account => pg_smesh_t)
+  {
+    ph_mesh_t m1(crd1, cnt1);
+    pg_smesh_t m2(crd2, cnt2);
+    NUGA::COLLIDE::compute(m1,m2, isx1, isx2, RTOL);
+
+    if (only_externals)
+    {
+      m1.cnt.flag_externals(1);
+      ngon_type::discard_holes_by_box(m1.crd, m1.cnt);
+
+      for (size_t i=0; i < isx1.size(); ++i)
+      {
+       if (!isx1[i]) continue;
+       if (m1.cnt.PHs._type[i] != 1) isx1[i] = 0;
+      }
+    }
   }
   else
   {
@@ -2724,7 +2902,6 @@ PyObject* K_INTERSECTOR::getNthNeighborhood(PyObject* self, PyObject* args)
   return tpl;
 
 }
-
 
 //=============================================================================
 /* retrieves any polygon that are connecting 2 aniso HEXA */
@@ -3012,6 +3189,307 @@ PyObject* K_INTERSECTOR::drawOrientation(PyObject* self, PyObject* args)
   
   delete f; delete cn;
   return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::getFaceIdsWithCentroids(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *arr2;
+
+  if (!PyArg_ParseTuple(args, "OO", &arr1, &arr2)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  E_Int ni, nj, nk;
+  K_FLD::FloatArray* f2(nullptr);
+  K_FLD::IntArray* cn2(nullptr);
+  char* varString2, *eltType2;
+  E_Int res = K_ARRAY::getFromArray(arr2, varString2, f2, ni, nj, nk, cn2, eltType2);
+
+  K_FLD::FloatArray& crd = *f;
+  K_FLD::IntArray& cnt = *cn;
+
+  K_FLD::FloatArray& crd2 = *f2;
+
+  using ngon_type = ngon_t<K_FLD::IntArray>;
+  ngon_type::eGEODIM geodim = ngon_type::get_ngon_geodim(cnt);
+
+  //std::cout << "GEO dIM ? " << geodim << std::endl;
+
+  if (geodim == ngon_type::eGEODIM::ERROR)
+  {
+    std::cout << "externalFaces : Input Error : mesh is corrupted." << std::endl;
+    return nullptr;
+  }
+  if (geodim == ngon_type::eGEODIM::MIXED)
+  {
+    std::cout << "externalFaces : Input Error : mesh mixed elt types (lineic and/or surfacic and /or volumic." << std::endl;
+    return nullptr;
+  }
+  if (geodim == ngon_type::eGEODIM::LINEIC)
+  {
+    std::cout << "externalFaces : Unsupported : lineic NGON are not handled." << std::endl;
+    return nullptr;
+  }
+
+  // so either SURFACIC, SURFACIC_CASSIOPEE or VOLUMIC
+
+  if (geodim == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnt1;
+    ng.export_surfacic_view(cnt1);
+    //std::cout << "exported" << std::endl;
+    geodim = ngon_type::eGEODIM::SURFACIC;
+    cnt=cnt1;
+  }
+
+  PyObject *tpl = nullptr;
+  
+  // SURFACIC OR VOLUMIC ?
+
+  ngon_type ngi(cnt);
+  ngon_unit& PGS = ngi.PGs;
+
+  K_FLD::FloatArray cents;
+  ngon_type::centroids(PGS, crd, cents);
+
+  E_Int nb_pts2 = crd2.cols();
+  //std::cout << "nb pts : " << nb_pts2 << std::endl;
+
+  using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
+  acrd_t acrd(cents);
+  K_SEARCH::KdTree<> tree(acrd);
+
+  std::vector<E_Int> ids;
+
+  for (E_Int i=0; i < nb_pts2; ++i)
+  {
+    double d2;
+    int N = tree.getClosest(crd2.col(i));
+    if (N != IDX_NONE)
+      ids.push_back(N+1);
+  }
+
+  tpl = K_NUMPY::buildNumpyArray(&ids[0], ids.size(), 1, 0);
+
+  delete f; delete cn;
+  delete f2; delete cn2;
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::getFaceIdsCollidingVertex(PyObject* self, PyObject* args)
+{
+  PyObject *arr1;
+  E_Float vtx[3];
+  if (!PYPARSETUPLEF(args, "O(ddd)", "O(fff)", &arr1, &vtx[0], &vtx[1], &vtx[2])) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f, cn, varString, eltType);
+  if (err) return NULL;
+
+
+  K_FLD::FloatArray& crd = *f;
+  K_FLD::IntArray& cnt = *cn;
+
+  using ngon_type = ngon_t<K_FLD::IntArray>;
+  ngon_type::eGEODIM geodim = ngon_type::get_ngon_geodim(cnt);
+
+  //std::cout << "GEO dIM ? " << geodim << std::endl;
+
+  if (geodim == ngon_type::eGEODIM::ERROR)
+  {
+    std::cout << "externalFaces : Input Error : mesh is corrupted." << std::endl;
+    return nullptr;
+  }
+  if (geodim == ngon_type::eGEODIM::MIXED)
+  {
+    std::cout << "externalFaces : Input Error : mesh mixed elt types (lineic and/or surfacic and /or volumic." << std::endl;
+    return nullptr;
+  }
+  if (geodim == ngon_type::eGEODIM::LINEIC)
+  {
+    std::cout << "externalFaces : Unsupported : lineic NGON are not handled." << std::endl;
+    return nullptr;
+  }
+
+  // so either SURFACIC, SURFACIC_CASSIOPEE or VOLUMIC
+
+  if (geodim == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnt1;
+    ng.export_surfacic_view(cnt1);
+    //std::cout << "exported" << std::endl;
+    geodim = ngon_type::eGEODIM::SURFACIC;
+    cnt=cnt1;
+  }
+
+  PyObject *tpl = nullptr;
+  
+  // SURFACIC OR VOLUMIC ?
+
+  ngon_type ngi(cnt);
+  ngon_unit& PGS = ngi.PGs;
+
+  //std::cout << "nb pts : " << nb_pts2 << std::endl;
+
+  std::vector<E_Int> cands;
+  std::set<E_Int> ids;
+
+  double TOL = 1.e-6;
+
+  if (geodim == ngon_type::eGEODIM::SURFACIC)
+  {
+    //std::cout << "mesh object..." << std::endl;
+    NUGA::pg_smesh_t mesh(crd, cnt);
+    //std::cout << "getting boundary..." << std::endl;
+    auto loc = mesh.get_localizer();
+
+    E_Float minB[] = { vtx[0] - TOL, vtx[1] - TOL, vtx[2] - TOL};
+    E_Float maxB[] = { vtx[0] + TOL, vtx[1] + TOL, vtx[2] + TOL};
+      
+    K_SEARCH::BBox3D box(minB, maxB);
+
+    cands.clear();
+    loc->get_candidates(box, cands, 0);
+    ids.insert(ALL(cands));
+  }
+  else if (geodim == ngon_type::eGEODIM::VOLUMIC)
+  {
+    //std::cout << "mesh object..." << std::endl;
+    ngon_type ng(cnt);
+    NUGA::pg_smesh_t mesh(crd, cnt);
+    //std::cout << "getting boundary..." << std::endl;
+    auto loc = mesh.get_localizer();
+
+    E_Float minB[] = { vtx[0] - TOL, vtx[1] - TOL, vtx[2] - TOL};
+    E_Float maxB[] = { vtx[0] + TOL, vtx[1] + TOL, vtx[2] + TOL};
+
+    std::cout << "min : " << minB[0] << "/" << minB[1] << "/" << minB[2] << std::endl;
+    std::cout << "max : " << maxB[0] << "/" << maxB[1] << "/" << maxB[2] << std::endl;
+      
+    K_SEARCH::BBox3D box(minB, maxB);
+
+    cands.clear();
+    loc->get_candidates(box, cands, 0);
+    ids.insert(ALL(cands));
+    
+  }
+
+  cands.clear();
+  cands.insert(cands.end(), ALL(ids));
+
+  tpl = K_NUMPY::buildNumpyArray(&cands[0], cands.size(), 1, 0);
+
+
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *arr2;
+
+  if (!PyArg_ParseTuple(args, "OO", &arr1, &arr2)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  E_Int res=0;
+  E_Int* pgids=NULL;
+  E_Int size, nfld;
+  if (arr2 != Py_None)
+    res = K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld, true/*shared*/, 0);
+
+  K_FLD::FloatArray& crd = *f;
+  K_FLD::IntArray& cnt = *cn;
+
+  std::set<E_Int> sids(pgids, pgids+size);
+
+  using ngon_type = ngon_t<K_FLD::IntArray>;
+  ngon_type ng(cnt), ngo;
+  
+  std::vector<E_Int> elts;
+  ng.PHs.find_elts_with_facets(sids, elts);
+
+  std::vector<bool> keep(ng.PHs.size(), false);
+  for (size_t i=0; i < elts.size(); ++i) keep[elts[i]]=true;
+
+  Vector_t<E_Int> nids;
+  ngon_type::select_phs(ng, keep, nids, ngo);
+
+  K_FLD::IntArray cnto;
+  ngo.export_to_array(cnto);
+  
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+
+  delete f; delete cn;
+  return tpl;
+
+}
+
+PyObject* K_INTERSECTOR::getFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *arr2;
+
+  if (!PyArg_ParseTuple(args, "OO", &arr1, &arr2)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  E_Int res=0;
+  E_Int* pgids=NULL;
+  E_Int size, nfld;
+  if (arr2 != Py_None)
+    res = K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld, true/*shared*/, 0);
+
+  K_FLD::FloatArray& crd = *f;
+  K_FLD::IntArray& cnt = *cn;
+
+  ngon_type ng(cnt);
+
+  ngon_unit nguo;
+
+  std::vector< E_Int> oids;
+  ng.PGs.extract(pgids, size, nguo, oids);
+
+  ngon_type ngo(nguo, true);
+
+  K_FLD::IntArray cnto;
+  ngo.export_to_array(cnto);
+  
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+
+  delete f; delete cn;
+  return tpl;
+
 }
 
 //=======================  Intersector/PolyMeshTools/utils.cpp ====================

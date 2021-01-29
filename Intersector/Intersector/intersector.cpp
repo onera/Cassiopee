@@ -86,6 +86,11 @@ static PyMethodDef Pyintersector [] =
   {"getCollidingCells", K_INTERSECTOR::getCollidingCells, METH_VARARGS},
   {"getAnisoInnerFaces", K_INTERSECTOR::getAnisoInnerFaces, METH_VARARGS},
 
+  {"getFaceIdsWithCentroids", K_INTERSECTOR::getFaceIdsWithCentroids, METH_VARARGS},
+  {"getFaceIdsCollidingVertex", K_INTERSECTOR::getFaceIdsCollidingVertex, METH_VARARGS},
+  {"getCells", K_INTERSECTOR::getCells, METH_VARARGS},
+  {"getFaces", K_INTERSECTOR::getFaces, METH_VARARGS},
+
   {"statsUncomputableFaces", K_INTERSECTOR::statsUncomputableFaces, METH_VARARGS},
   {"statsSize", K_INTERSECTOR::statsSize, METH_VARARGS},
   
@@ -98,6 +103,7 @@ static PyMethodDef Pyintersector [] =
 
   { "checkCellsClosure", K_INTERSECTOR::checkCellsClosure, METH_VARARGS },
   { "checkForDegenCells", K_INTERSECTOR::checkForDegenCells, METH_VARARGS },
+  { "checkForBigCells", K_INTERSECTOR::checkForBigCells, METH_VARARGS },
   { "checkCellsFlux", K_INTERSECTOR::checkCellsFlux, METH_VARARGS },
   { "checkCellsVolume", K_INTERSECTOR::checkCellsVolume, METH_VARARGS },
   { "detectIdenticalCells", K_INTERSECTOR::detectIdenticalCells, METH_VARARGS },
@@ -106,6 +112,7 @@ static PyMethodDef Pyintersector [] =
   { "removeBaffles", K_INTERSECTOR::removeBaffles, METH_VARARGS },
   { "convert2Polyhedron", K_INTERSECTOR::convert2Polyhedron, METH_VARARGS },
   { "oneZonePerCell", K_INTERSECTOR::oneZonePerCell, METH_VARARGS },
+  { "oneZonePerFace", K_INTERSECTOR::oneZonePerFace, METH_VARARGS },
   
   { "extrudeBC", K_INTERSECTOR::extrudeBC, METH_VARARGS },
   { "extrudeSurf", K_INTERSECTOR::extrudeSurf, METH_VARARGS },

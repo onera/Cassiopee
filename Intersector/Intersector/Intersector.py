@@ -149,12 +149,12 @@ def triangulateExteriorFaces(a, in_or_out=2, improve_qual=0):
 #==============================================================================
 def triangulateSpecifiedFaces(a, pgs, improve_qual=1):
     """Triangulates specified polygons of a volume mesh.
-    Usage: triangulateExteriorFaces(a, in_or_out)"""
+    Usage: triangulateSpecifiedFaces(a, pgs, improve_qual)"""
     return intersector.triangulateSpecifiedFaces(a, pgs, improve_qual)
 #synonym
 def triangulateBC(a, pgs, improve_qual=1):
     """Triangulates specified polygons of a volume mesh.
-    Usage: triangulateExteriorFaces(a, in_or_out)"""
+    Usage: triangulateBC(a, pgs, improve_qual=1)"""
     return intersector.triangulateSpecifiedFaces(a, pgs, improve_qual)
 
 #==============================================================================
@@ -165,7 +165,7 @@ def triangulateBC(a, pgs, improve_qual=1):
 #==============================================================================
 def triangulateNFaces(a, improve_qual=1, min_nvertices=5, discard_joins=True):
     """Triangulates nob basic polygons of a volume mesh.
-    Usage: triangulateNFaces(t)"""
+    Usage: triangulateNFaces(t, improve_qual=1, min_nvertices=5, discard_joins=True)"""
     return intersector.triangulateNFaces(a, improve_qual, min_nvertices, discard_joins)
 
 #==============================================================================
@@ -264,6 +264,16 @@ def simplifyCells(a, treat_externals, angular_threshold = 1.e-12, discarded_ids=
     return intersector.simplifyCells(a, treat_externals, angular_threshold, discarded_ids)
 
 #==============================================================================
+# simplifyFaces : remove superfluous nodes
+# IN: a                 : 3D NGON mesh
+# OUT: returns a 3D NGON Mesh with less nodes
+#==============================================================================
+def simplifyFaces(a):
+    """Simplifies over-defined polygons.
+    Usage: simplifyFaces(a)"""
+    return intersector.simplifyFaces(a)
+
+#==============================================================================
 # simplifySurf : agglomerate superfluous polygons that overdefine cells
 # IN: a                 : 3D NGON mesh
 # IN: angular_threshold : should be as small as possible to avoid introducing degeneracies
@@ -281,10 +291,10 @@ def simplifySurf(a, angular_threshold = 1.e-12):
 # IN: vratio : aspect ratio threshold
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
 #==============================================================================
-def agglomerateSmallCells(a, vmin=0., vratio=1000.):
+def agglomerateSmallCells(a, vmin=0., vratio=1000., angular_threshold = 1.e-12):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(a, vmin, vratio)"""
-    return intersector.agglomerateSmallCells(a, vmin, vratio)
+    return intersector.agglomerateSmallCells(a, vmin, vratio,angular_threshold)
 
 #==============================================================================
 # agglomerateCellsWithSpecifiedFaces : Agglomerates cells sharing specified polygons
@@ -304,10 +314,10 @@ def agglomerateCellsWithSpecifiedFaces(a, pgs):
 # IN: vratio : aspect ratio threshold
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
 #==============================================================================
-def agglomerateNonStarCells(a):
+def agglomerateNonStarCells(a, angular_threshold = 1.e-12):
     """Agglomerates non-centroid-star-shaped cells.
     Usage: agglomerateNonStarCells(a)"""
-    return intersector.agglomerateNonStarCells(a)
+    return intersector.agglomerateNonStarCells(a, angular_threshold)
 
 #==============================================================================
 # collapseUncomputableFaces : XXX
@@ -511,10 +521,54 @@ def getOverlappingFaces(a1, a2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).
 # OUT: 2 lists of colliding cells, the first one for a1, the seoncd one for a2.
 #==============================================================================
-def getCollidingCells(a1, a2, RTOL = 1.e-12):
+def getCollidingCells(a1, a2, RTOL = 1.e-12, only_externals = False):
     """ Returns the list of cells in a1 and a2 that are colliding.
    Usage: getOverlappingFaces(t1, t2, RTOL)"""
-    return intersector.getCollidingCells(a1, a2, RTOL)
+    return intersector.getCollidingCells(a1, a2, RTOL, only_externals)
+
+#==============================================================================
+# getFaceIdsWithCentroids     : returns the cells in t1 attached to polygons in s2.
+# IN : t1:              : NGON mesh (volume).
+# IN : t2:              : NGON mesh (surface).
+# OUT: attached cells.
+#==============================================================================
+def getFaceIdsWithCentroids(t1, cents):
+   """ Returns the faces in t1 having their centroids in cents.
+   Usage: getFacesWithCentroids(t1, cents)"""
+   return intersector.getFaceIdsWithCentroids(t1,cents)
+
+#==============================================================================
+# getFaceIdsCollidingVertices     : returns the cells in t1 attached to polygons in s2.
+# IN : t1:              : NGON mesh (volume).
+# IN : cloud:              : vertex cloud.
+# OUT: attached cells.
+#==============================================================================
+def getFaceIdsCollidingVertex(t1, vtx):
+   """ Returns the faces in t1 having their centroids in cents.
+   Usage: getFaceIdsCollidingVertex(t1, vtx)"""
+   return intersector.getFaceIdsCollidingVertex(t1, vtx)
+
+#==============================================================================
+# getFaces              : returns the faces with ids in pgids.
+# IN : t1:              : NGON mesh (volume).
+# IN : pgids:           : polygon ids.
+# OUT: attached cells.
+#==============================================================================
+def getFaces(t1, pgids):
+   """ Returns the faces with ids in pgids.
+   Usage: getFaces(t1, pgids)"""
+   return intersector.getFaces(t1, pgids)
+
+#==============================================================================
+# getCells              : returns the cells in t1 attached to polygons with ids in pgids.
+# IN : t1:              : NGON mesh (volume).
+# IN : pgids:           : polygon ids.
+# OUT: attached cells.
+#==============================================================================
+def getCells(t1, pgids):
+   """ Returns the faces in t1 having their centroids in cents.
+   Usage: getCells(t1, pgids)"""
+   return intersector.getCells(t1, pgids)
 
 #==============================================================================
 # getNthNeighborhood     : returns the list of cells in the N-thneighborhood of t cells given in ids 
@@ -600,6 +654,12 @@ def checkForDegenCells(a):
     return intersector.checkForDegenCells(a)
 
 #==============================================================================
+# checkForBigCells : XXX
+#==============================================================================
+def checkForBigCells(a, n):
+    return intersector.checkForBigCells(a,n)
+
+#==============================================================================
 # oneph : XXX
 #==============================================================================
 def oneph(a):
@@ -670,6 +730,12 @@ def convert2Polyhedron(a):
 #==============================================================================
 def oneZonePerCell(a):
   return intersector.oneZonePerCell(a)
+
+#==============================================================================
+# oneZonePerFace : XXX
+#==============================================================================
+def oneZonePerFace(a):
+  return intersector.oneZonePerFace(a)
 
 #==============================================================================
 # convertNGON2DToNGON3D : Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.

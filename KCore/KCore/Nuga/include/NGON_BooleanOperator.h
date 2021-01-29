@@ -2552,6 +2552,7 @@ NGON_BOOLEAN_CLASS::__process_intersections
 
   Vector_t<E_Int> oT3_to_PG;
   E_Int err = ngon_type::template triangulate_pgs<DELAUNAY::Triangulator>(wPGs, _coord, connectT3, oT3_to_PG, _triangulator_do_not_shuffle, _triangulator_improve_qual_by_swap);
+  //E_Int err = ngon_type::triangulate_pgs(wPGs, _coord, connectT3, oT3_to_PG);
   if (err)
     return ERROR;
   
@@ -2914,6 +2915,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   Vector_t<E_Int> oT3_to_PG; //PG referring to extrawPGs/extraF2E
   K_FLD::IntArray cT3;
   E_Int err = ngon_type::template triangulate_pgs<DELAUNAY::Triangulator>(extrawPGs, _coord, cT3, oT3_to_PG, _triangulator_do_not_shuffle, true /*improve quality*/); // improve qual of bulks triangulation improve robustness
+  //E_Int err = ngon_type::triangulate_pgs(extrawPGs, _coord, cT3, oT3_to_PG);
   if (err) return err;
 
 #ifdef DEBUG_BOOLEAN
@@ -4958,7 +4960,9 @@ bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
     }
 
     freeze[worstK] = true;
+#ifdef DEBUG_BOOLEAN
     std::cout << "DEGENERATING LEFT : " << worstK << std::endl;
+#endif
     /*K_FLD::IntArray toto;
     std::ostringstream o;
     o << "degentri_" << worstK ;

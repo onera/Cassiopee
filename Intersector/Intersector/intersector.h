@@ -66,6 +66,11 @@ namespace K_INTERSECTOR
   PyObject* getCollidingCells(PyObject* self, PyObject* args);
   PyObject* getAnisoInnerFaces(PyObject* self, PyObject* args);
 
+  PyObject* getFaceIdsWithCentroids(PyObject* self, PyObject* args);
+  PyObject* getFaceIdsCollidingVertex(PyObject* self, PyObject* args);
+  PyObject* getCells(PyObject* self, PyObject* args);
+  PyObject* getFaces(PyObject* self, PyObject* args);
+
   PyObject* getNthNeighborhood(PyObject* self, PyObject* args);
 
   PyObject* adaptCells(PyObject* self, PyObject* args);
@@ -100,6 +105,7 @@ namespace K_INTERSECTOR
 
   PyObject* checkCellsClosure(PyObject* self, PyObject* args);
   PyObject* checkForDegenCells(PyObject* self, PyObject* args);
+  PyObject* checkForBigCells(PyObject* self, PyObject* args);
   PyObject* checkCellsFlux(PyObject* self, PyObject* args);
   PyObject* checkCellsVolume(PyObject* self, PyObject* args);
   PyObject* detectIdenticalCells(PyObject* self, PyObject* args);
@@ -114,6 +120,7 @@ namespace K_INTERSECTOR
 
   PyObject* convert2Polyhedron(PyObject* self, PyObject* args);
   PyObject* oneZonePerCell(PyObject* self, PyObject* args);
+  PyObject* oneZonePerFace(PyObject* self, PyObject* args);
 
   PyObject* extrudeBC(PyObject* self, PyObject* args);
   PyObject* extrudeSurf(PyObject* self, PyObject* args);

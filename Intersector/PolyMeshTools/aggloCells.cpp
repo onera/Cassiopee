@@ -37,11 +37,11 @@ using namespace NUGA;
 PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-  E_Float vmin(0.), vratio(1000.);
+  E_Float vmin(0.), vratio(1000.), angle_threshold{1.e-12};
   E_Int debug=0, force(0);
 
-  if (!PYPARSETUPLEF(args, "Odd", "Off",
-                     &arr, &vmin, &vratio)) return NULL;
+  if (!PYPARSETUPLEF(args, "Oddd", "Offf",
+                     &arr, &vmin, &vratio, &angle_threshold)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -60,7 +60,7 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
   ngon_type ngi(cnt), ngo;
 
   E_Int nb_aggs(0);
-  NUGA::Agglomerator::agglomerate_small_phs<DELAUNAY::Triangulator>(crd, ngi, vmin, vratio, ngo, nb_aggs, (force==1));
+  NUGA::Agglomerator::agglomerate_small_phs<DELAUNAY::Triangulator>(crd, ngi, vmin, vratio, ngo, nb_aggs, (force==1), angle_threshold);
 
   PyObject *l(PyList_New(0)), *tpl;
 
@@ -109,8 +109,9 @@ PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)
 {
   PyObject *arr;
   E_Int debug=0;
+  double angle_threshold{1.e-12};
 
-  if (!PYPARSETUPLEF(args, "O", "O", &arr)) return NULL;
+  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &angle_threshold)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -129,7 +130,7 @@ PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)
   ngon_type ngi(cnt), ngo;
 
   E_Int nb_aggs(0);
-  NUGA::Agglomerator::agglomerate_non_star_phs<DELAUNAY::Triangulator>(crd, ngi, ngo, nb_aggs);
+  NUGA::Agglomerator::agglomerate_non_star_phs<DELAUNAY::Triangulator>(crd, ngi, ngo, nb_aggs, angle_threshold);
 
   PyObject *l(PyList_New(0)), *tpl;
 
@@ -172,43 +173,6 @@ PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* Agglomerate XXX */
-//=============================================================================
-// PyObject* K_INTERSECTOR::agglomerateUncomputableCells(PyObject* self, PyObject* args)
-// {
-//   PyObject *arr;
-
-//   if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
-
-//   K_FLD::FloatArray* f(0);
-//   K_FLD::IntArray* cn(0);
-//   char* varString, *eltType;
-//   // Check array # 1
-//   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
-//   if (err) return NULL;
-    
-//   K_FLD::FloatArray & crd = *f;
-//   K_FLD::IntArray & cnt = *cn;
-  
-//   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
-//   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
-  
-//   typedef ngon_t<K_FLD::IntArray> ngon_type;
-//   ngon_type ngi(cnt), ngo;
-  
-//   NUGA::Agglomerator::agglomerate_uncomputable_phs<DELAUNAY::Triangulator>(crd, ngi, ngo);
-
-//   K_FLD::IntArray cnto;
-//   ngo.export_to_array(cnto);
-  
-//   PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, eltType, false);;
-  
-  
-//   delete f; delete cn;
-//   return tpl;
-// }
-
-//=============================================================================
 /* Agglomerate cells where polygons are specified */
 //=============================================================================
 PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args)
@@ -235,15 +199,30 @@ PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyOb
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngio(cnt);
 
-  NUGA::Agglomerator::agglomerate_phs_having_pgs(crd, ngio, pgsList, size);
+  std::vector<E_Int> pgnids;
+  NUGA::Agglomerator::agglomerate_phs_having_pgs(crd, ngio, pgsList, size, pgnids);
 
   K_FLD::IntArray cnto;
   ngio.export_to_array(cnto);
 
-  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, "NGON", false);
+  PyObject *l(PyList_New(0)), *tpl;
+
+  tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, "NGON", false);
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  //convert IDX_NONE value into -1
+  for (size_t k=0; k < pgnids.size(); ++k)
+    if (pgnids[k] == IDX_NONE)
+      pgnids[k]=-1;
+
+  tpl = K_NUMPY::buildNumpyArray(&pgnids[0], pgnids.size(), 1, 0);
+ 
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
   
   delete f; delete cn;
-  return tpl;
+  return l;
 
 }
 //=======================  Intersector/PolyMeshTools/aggloFaces.cpp ====================

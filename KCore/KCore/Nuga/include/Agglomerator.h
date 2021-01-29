@@ -31,16 +31,16 @@ namespace NUGA
    
     ///
     template<typename TriangulatorType>
-    inline static void agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, bool force);
+    inline static void agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, bool force, double angle_threshold=1.e-12);
     ///
     template<typename TriangulatorType>
-    inline static void agglomerate_non_star_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int& nb_aggs);
+    inline static void agglomerate_non_star_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold = 1.e-12);
   
 //    template<typename TriangulatorType>
 //    inline static void agglomerate_uncomputable_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo);
     
     ///
-    inline static void agglomerate_phs_having_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz);
+    inline static void agglomerate_phs_having_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, std::vector<E_Int>& pgnids);
     
     template<typename TriangulatorType>
     inline static void collapse_uncomputable_pgs(K_FLD::FloatArray& crd, ngon_type& ngio);
@@ -62,7 +62,7 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static void agglomerate_phs (const K_FLD::FloatArray& crd, 
                                         const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-                                        ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, bool force);
+                                        ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, bool force, double angle_threshold);
   
   
   private:
@@ -146,9 +146,10 @@ namespace NUGA
     for (size_t i=0; i < nids.size(); ++i) if (nids[i] != IDX_NONE) idmax = std::max(nids[i], idmax);
     assert (idmax == gagg_pgs.size()-1);
     K_FLD::IntArray cnto;
-    ngon_type ng(gagg_pgs);
-    ng.export_to_array(cnto);
-    MIO::write("agg.plt", crd, cnto, "NGON");
+    //ngon_type ng(gagg_pgs);
+    //ng.export_to_array(cnto);
+    //MIO::write("agg.plt", crd, cnto, "NGON");
+    medith::write("agged", crd, gagg_pgs);
   }
 #endif
     
@@ -166,7 +167,8 @@ namespace NUGA
     K_FLD::IntArray cnto;
     ngon_type ng(ngo.PGs);
     ng.export_to_array(cnto);
-    MIO::write("aggandinit.plt", crd, cnto, "NGON");
+    //MIO::write("aggandinit.plt", crd, cnto, "NGON");
+    medith::write("aggandinit", crd, ngo.PGs);
   }
 #endif
    
@@ -291,11 +293,14 @@ namespace NUGA
   void NUGA::Agglomerator::agglomerate_phs
   (const K_FLD::FloatArray& crd, 
    const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, bool force)
+   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, bool force, double angle_threshold)
   {
     ngo.clear();
     oriento.clear();
     nb_aggs = 0;
+
+    double concave_threshold = angle_threshold;
+    double convex_threshold = angle_threshold;
     
     //std::cout << "ngi : initial nb of phs : " << ngi.PHs.size() << std::endl;
   
@@ -305,6 +310,7 @@ namespace NUGA
     TriangulatorType dt;
   
     std::vector<bool> frozen(ngi.PHs.size(), false); //process one agglo at a time
+    
     std::vector<E_Int> shared_pgs;
     std::map<K_MESH::NO_Edge, E_Float> reflex_edges;
     std::set<K_MESH::NO_Edge> convex_edges;
@@ -333,7 +339,7 @@ namespace NUGA
       
       bool conc1;
       K_MESH::Polyhedron<UNKNOWN>::is_concave
-                (crd, ngi.PGs, pgsi, nb_neighs, false/*deal with closed PH*/, orienti.get_facets_ptr(i), conc1, nb_reflex_edges_1);
+                (crd, ngi.PGs, pgsi, nb_neighs, false/*deal with closed PH*/, orienti.get_facets_ptr(i), conc1, nb_reflex_edges_1, concave_threshold, convex_threshold);
 
       // the best is the one sharing the most number of faces
       for (E_Int n = 0; (n < nb_neighs); ++n)
@@ -362,7 +368,7 @@ namespace NUGA
         convex_edges.clear();
 
         E_Int res = K_MESH::Polyhedron<UNKNOWN>::is_pathological
-                (dt, crd, ngi.PGs, cur_agg.get_facets_ptr(0), cur_agg.stride(0), cur_ori.get_facets_ptr(0), reflex_edges, convex_edges);
+                (dt, crd, ngi.PGs, cur_agg.get_facets_ptr(0), cur_agg.stride(0), cur_ori.get_facets_ptr(0), reflex_edges, convex_edges, concave_threshold, convex_threshold);
         
         E_Float Q0;
         if (res == dPATHO_PH_NONE) Q0 = 10.; //give more credit to non-patho result
@@ -378,7 +384,7 @@ namespace NUGA
         bool conc2;
         E_Int nb_reflex_edges_2(0);
         K_MESH::Polyhedron<UNKNOWN>::is_concave
-                  (crd, ngi.PGs, pgsj, nb_pgsj, false/*deal with closed PH*/, orienti.get_facets_ptr(j), conc2, nb_reflex_edges_2);
+                  (crd, ngi.PGs, pgsj, nb_pgsj, false/*deal with closed PH*/, orienti.get_facets_ptr(j), conc2, nb_reflex_edges_2, concave_threshold, convex_threshold);
         
         E_Int nb_reflex_new = (E_Int)reflex_edges.size();
 
@@ -525,7 +531,7 @@ namespace NUGA
   
   ///
   template<typename TriangulatorType>
-  void NUGA::Agglomerator::agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, bool force)
+  void NUGA::Agglomerator::agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, bool force, double angle_threshold)
   {
     ngon_unit neighborsi;
     ngi.build_ph_neighborhood(neighborsi);
@@ -543,12 +549,12 @@ namespace NUGA
     }
 
     ngon_unit oriento;
-    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, force);
+    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, force, angle_threshold);
   }
   
   ///
   template<typename TriangulatorType>
-  void NUGA::Agglomerator::agglomerate_non_star_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int& nb_aggs)
+  void NUGA::Agglomerator::agglomerate_non_star_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold)
   {
     ngon_unit orienti;
     ngon_type::build_orientation_ngu<TriangulatorType>(crd, ngi, orienti);
@@ -569,7 +575,7 @@ namespace NUGA
     ngi.build_ph_neighborhood(neighborsi);
 
     ngon_unit oriento;
-    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, false); //we choose here to agglomerate non star iff it gets better,ie. non-star
+    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, false, angle_threshold); //we choose here to agglomerate non star iff it gets better,ie. non-star
   }
   
 //  ///
@@ -595,7 +601,7 @@ namespace NUGA
 //  }
   
   void NUGA::Agglomerator::agglomerate_phs_having_pgs
-  (const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz)
+  (const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, std::vector<E_Int>& pgnids)
   {
     K_FLD::IntArray F2E;
     ngi.build_noF2E(F2E);
@@ -696,7 +702,8 @@ namespace NUGA
     
     ngi.PHs.updateFacets();
     
-    Vector_t<E_Int> pgnids, phnids;
+    Vector_t<E_Int> phnids;
+    pgnids.clear();
     
     ngi.PHs.remove_entities(PHtoremove, phnids);
     ngi.remove_unreferenced_pgs(pgnids, phnids); 

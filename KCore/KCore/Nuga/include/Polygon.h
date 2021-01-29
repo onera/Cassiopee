@@ -154,6 +154,22 @@ public:
       aT3.pushBack(p2, p2 + 3); 
     }
   }
+
+  ///
+  template <typename acrd_t>
+  static inline void star_triangulate(const acrd_t& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, 
+                                      E_Int C, K_FLD::IntArray& connectT3)
+  {
+    for (E_Int i=0; i < nb_nodes; ++i)
+    {
+      E_Int N1 = nodes[i] - index_start;
+      E_Int N2 = nodes[(i+1)%nb_nodes] - index_start;
+
+      E_Int T[] = {C, N1, N2};
+      
+      connectT3.pushBack(T, T + 3);
+    }
+  }
   
   ///
   E_Int shuffle_triangulation();

@@ -20,6 +20,8 @@ try:
     import Converter
     import Transform.PyTree as T
     import Generator.PyTree as G
+    import Post.PyTree as P
+    import Connector.PyTree as X
 except:
     raise ImportError("Intersector.PyTree: requires Converter.PyTree module.")
         
@@ -40,16 +42,46 @@ def _addVar__(t, var, loc='centers'):
 # Retourne le nombre de cellules d'un maillage
 #=============================================================================
 def nb_cells(a):
-  import Converter.Internal as I
   ncellsTot = 0
-  zones = I.getNodesFromType2(a, 'Zone_t')
+  zones = Internal.getNodesFromType2(a, 'Zone_t')
   for z in zones:
-      dim = I.getZoneDim(z)
+      dim = Internal.getZoneDim(z)
       np = dim[1]
       ncells = dim[2]
       ncellsTot += ncells
   return ncellsTot
 
+#==============================================================================
+# nb_faces : Returns teh numbe rof faces in t
+
+# IN: t             : 3D NGON mesh
+
+# OUT: returns the adapted feature
+#==============================================================================
+def nb_faces(t):
+
+    ncfacesTot = 0
+    zones = Internal.getNodesFromType2(t, 'Zone_t')
+    for z in zones:
+        GEl = Internal.getElementNodes(z)
+        NGON = 0; found = False
+        for c in GEl:
+            if c[1][0] == 22: found = True; break
+            NGON += 1
+        if found:
+            node = GEl[NGON]
+            er = Internal.getNodeFromName1(node, 'ElementRange')
+            ncfacesTot += er[1][1]-er[1][0]+1
+    return ncfacesTot
+
+
+#==============================================================================
+# getTreeDim : XXX
+
+# IN: t             : 3D NGON mesh
+
+# OUT:  XXX
+#==============================================================================
 def getTreeDim(t):
   zs = Internal.getZones(t)
   d = 0
@@ -64,6 +96,13 @@ def getTreeDim(t):
 
   return d
 
+#==============================================================================
+# getZoneNSTypeAndDim : XXX
+
+# IN: t             : 3D NGON mesh
+
+# OUT:  XXX
+#==============================================================================
 def getZoneNSTypeAndDim(z):
   dims = Internal.getZoneDim(z)
   d = dims[4]
@@ -77,6 +116,13 @@ def getZoneNSTypeAndDim(z):
     else : return ('BASIC', 3)
 
 
+#==============================================================================
+# InputType : XXX
+
+# IN: t             : 3D NGON mesh
+
+# OUT:  XXX
+#==============================================================================
 # return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (PyTree), 4(list of zones)
 def InputType(t): # fixme : based on first block only
   if isinstance(t, list):
@@ -98,6 +144,198 @@ def InputType(t): # fixme : based on first block only
   else:
     if isinstance(t, numpy.ndarray): return 0
     else: return -1 # error
+
+#==============================================================================
+# NGONBlock
+
+# GOAL : converts into a single connex NGON zone
+
+# IN: t             : 3D NGON mesh
+# IN: TOL           : tolerance
+# IN: nb_comps      : nb of connex parts
+
+# OUT: returns the adapted feature
+#==============================================================================
+def NGONBlock(t, TOL, nb_comps, keep_BC=False):
+
+    if keep_BC == True:
+      (BCs,BCNames,BCTypes) = C.getBCs(t)
+
+    t = C.convertArray2NGon(t); #t = G.close(t)
+    t = T.join(t, tol=TOL)
+    t = G.close(t, tol=TOL)
+
+    # FIXME : commented because
+    valid = isConformalNConnex(t, nb_comps)
+    if valid == False:
+      C.convertPyTree2File(t, 'bad_oper.cgns')
+      print('Invalid operand. Might increase the tolerance')
+      import sys; sys.exit()
+
+    if keep_BC == True:
+      C._recoverBCs(t,(BCs,BCNames,BCTypes))
+
+    #C.convertPyTree2File(t, 't.cgns')
+    zs = Internal.getZones(t)
+    z = zs[0]
+    return z
+
+
+#==============================================================================
+# isConformalNConnex
+
+# GOAL : check if a component is conformal and connex
+
+# IN: t             : 3D NGON mesh
+# IN: nb_comps      : nb of connex parts
+
+# OUT: returns the adapted feature
+#==============================================================================
+def isConformalNConnex(t, nb_comps):
+
+    F = P.exteriorFaces(t)
+    F = T.splitConnexity(F)
+    zs = Internal.getZones(F)
+    #print('nb of surfs zones: ' + str(len(zs)))
+    if len(zs) != nb_comps : return False
+    F = P.exteriorFaces(F)
+    zs = Internal.getZones(F)
+    #print('nb of edge zones: ' + str(len(zs)))
+    if len(zs) > 0:
+        if nb_faces(zs[0]) != 0 : return False
+    return True
+
+
+#==============================================================================
+# computeMeshAssemblyParameters
+
+# GOAL : Computes the tolerance (based on min edge length) and thr configuration span to nomalize it 
+
+# IN: t             : 3D NGON mesh
+
+# OUT: returns the tolerance and the max bounding box size
+#==============================================================================
+def computeMeshAssemblyParameters(t):
+    t1 = C.convertArray2NGon(t)
+    L = edgeLengthExtrema(t1) # min edge length
+    tol = 0.05*L
+    box = G.bbox(t)
+    dx = abs(box[3] - box[0])
+    dy = abs(box[4] - box[1])
+    dz = abs(box[5] - box[2])
+    H = max(dx, max(dy,dz))
+    print('Computed TOL (on initial config. size) : ' +str(tol))
+    print('Configuration span : '+str(H))
+    return (tol, H)
+
+#==============================================================================
+# computeVmin
+
+# GOAL : Computes the minimum cell volume in a liste of zones
+
+# IN: t             : 3D NGON mesh
+
+# OUT: returns the tolerance and the max bounding box size
+#==============================================================================
+def computeVmin(zones):
+  import sys;
+  vmin=sys.float_info.max
+
+  for z in zones:
+    tmp = Internal.createElsaHybrid(z, method=1, methodPE=1)
+    (vm, cellid, zoneid) = checkCellsVolume(tmp)
+    vmin = min(vmin, vm)
+
+  return vmin
+
+#==============================================================================
+# checkAssemblyForlSolver
+
+# GOAL : Checks that the solver will be happy with the mesh
+
+# IN: t             : 3D NGON mesh
+
+# OUT: messages
+#==============================================================================
+def checkAssemblyForlSolver(t, fullcheck=False, nb_comps=1):
+
+  MAXFLUXVAL=1.e-9
+  VOLMIN_SOLVER = 1.e-20
+
+  # VERIFICATION 1 : CONFORMITE
+  conformal = isConformalNConnex(t, nb_comps)
+  if conformal == False:
+    print('ERROR : non conformal mesh')
+    import sys; sys.exit()
+  else:
+    print('OK : conformal')
+
+  # VERIFICATION 2 : CELLULES FERMEES
+  print("Check cells closure ...")
+  err = checkCellsClosure(t)
+  if err == 1:
+    print('Boolean ERROR : open cells')
+    import sys; sys.exit()
+  # else : 
+  #   print ('OK : all cells are closed')
+
+  # VERIFICATION 3 : ORIENTATION/QUALITE
+  print("Check orientation/quality ...")
+  (maxflux, cellid, zoneid) = checkCellsFlux(t)
+  print('max flux : '+str(maxflux))
+  if maxflux > MAXFLUXVAL:
+      print('Boolean WARNING : quality might be not good enough for solver')
+      #import sys; sys.exit()
+
+  # VERIFICATION 4 : VOL MIN
+  print("Check min cell volume ...")
+  (vmin, cellid, zoneid) = checkCellsVolume(t)
+  print('vol min : ', vmin)
+  if vmin < VOLMIN_SOLVER:
+      print('Boolean ERROR : too small cells detected : under solver threshold')
+
+  if fullcheck == False:
+    return
+
+  # print("Check cell volume extrema...")
+  # res = statsSize(t, 1)
+  # dMax = res[0]
+  # smin = res[1]
+  # smax = res[2]
+  # vmin = res[3]
+  # vmax = res[4]
+  # print ('vmin')
+  # print (vmin)
+  # print ('vmax')
+  # print (vmax) 
+
+  #VERIFICATION 5 : BIG CELLS
+  print("Check big cells (over 40) ...")
+  N=40
+  big = checkForBigCells(t, N)
+  ofile = infile[:-5] + '_big_'+str(N)+'.cgns'
+  C.convertPyTree2File(big, ofile)
+  ofile = infile[:-5] + '_biggest.cgns'
+  z = extractBiggestCell(t)
+  C.convertPyTree2File(z, ofile)
+
+  #VERIDICATION 6 : check for degen
+  print("Check for degen cells...")
+  checkForDegenCells(t)
+
+  #VERIF 7 
+  print("Check for over connected cells..")
+  detectOverConnectedFaces(t)
+
+  #VERIF 8
+  print("extract pathos..")
+  z=extractPathologicalCells(t)
+  ofile = infile[:-5] + '_pathos.cgns'
+  #C.convertPyTree2File(z, ofile)
+
+  #VERIF 9
+  print("Check for identical cells..")
+  detectIdenticalCells(t, TOL=1.e-10, clean=0)
 
 #=============================================================================
 # Concatenation des PointList d un type de BC donne dans une liste de zones
@@ -195,8 +433,8 @@ def updateJoinsPointLists1(z, zones, oids):
         if (dname != zname) : continue
         ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
         
-        PG0 = ptl[1][0][0] # first polygon in the poitn list 
-        PG0D = ptlD[1][0][0] # first polygon in the poitn list
+        PG0 = ptl[1][0][0] # first polygon in the point list 
+        PG0D = ptlD[1][0][0] # first polygon in the point list
         if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
         
         ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i]))) #checkme : seems to be useless 
@@ -345,7 +583,7 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
     s = XOR.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual)
     return C.convertArrays2ZoneNode('inter', [s])
 
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False, simplify_pgs=True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False, simplify_pgs=True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -358,9 +596,11 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         typzone2 = s2[3]
         if typzone1 == 'NGON' and typzone2 == 'NGON': # only for Volume/Volume
           # compute the join tolerance
-          L1 = edgeLengthExtrema(a1)
-          L2 = edgeLengthExtrema(a2)
-          jtol = 0.1*min(L1,L2)
+          if jtol == 0.:
+            L1 = edgeLengthExtrema(a1)
+            L2 = edgeLengthExtrema(a2)
+            jtol = 0.01*min(L1,L2)
+            #print('jtol is : '+str(jtol))
 
           return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_qual, simplify_pgs)
 
@@ -1052,7 +1292,7 @@ def simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins=
 
     for z in zones:
 
-      m = C.getFields(Internal.__GridCoordinates__, t)[0]
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
       ids=None
 
       if treat_externals == 1 and discard_joins == True:
@@ -1079,6 +1319,28 @@ def simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins=
     return ozones
 
 #==============================================================================
+# simplifyFaces : remove superfluous nodes
+# IN: mesh: 3D NGON mesh
+# OUT: returns a 3D NGON Mesh with less polygons (but same shape)
+#==============================================================================
+def simplifyFaces(t):
+    """simplify over-defined polygons
+    Usage: simplifyFaces(t)"""
+
+    zones = Internal.getZones(t)
+    ozones = []
+
+    for z in zones:
+
+      m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    
+      m = XOR.simplifyFaces(m)
+
+      ozones.append(C.convertArrays2ZoneNode(z[0], [m]))
+
+    return ozones
+
+#==============================================================================
 # simplifySurf : agglomerate superfluous polygons that overdefine the surface
 # IN: mesh: 3D NGON mesh
 # IN: angular_threshold : should be as small as possible to avoid introducing degeneracies
@@ -1098,15 +1360,25 @@ def simplifySurf(t, angular_threshold = 1.e-12):
 # IN: vratio : aspect ratio threshold
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
 #==============================================================================
-def agglomerateSmallCells(t, vmin=0., vratio=1000.):
+def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(t, vmin, vratio)"""
+
+    nb_phs0  = nb_cells(t)
+
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
 
-    res = XOR.agglomerateSmallCells(m, vmin, vratio)
+    res = XOR.agglomerateSmallCells(m, vmin, vratio, angular_threshold)
     #print("NB ZONES %d"%(len(res)))
 
     z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
+
+    nb_phs1  = nb_cells(z)
+    if nb_phs1 < nb_phs0:
+      nbc = int(nb_phs0 - nb_phs1)
+      print('agglomerateSmallCells : Nb of small cells agglomerated : ' + str(nbc))
+    else:
+      print('agglomerateSmallCells : None agglomeration.')
 
     debug = False
 
@@ -1158,12 +1430,12 @@ def agglomerateSmallCells(t, vmin=0., vratio=1000.):
 # IN: vratio : aspect ratio threshold
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
 #==============================================================================
-def agglomerateNonStarCells(t):
+def agglomerateNonStarCells(t, angular_threshold=1.e-12):
     """Agglomerates non-centroid-star-shaped cells.
     Usage: agglomerateNonStarCells(t)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
 
-    res = XOR.agglomerateNonStarCells(m)
+    res = XOR.agglomerateNonStarCells(m, angular_threshold)
     #print("NB ZONES %d"%(len(res)))
 
     z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
@@ -1206,42 +1478,49 @@ def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=1, amax = 1.e-12, treat
     if simplify < 0 : simplify = 0
     if simplify > 1 : simplify = 1
 
-    i=0
+    if amax < 0. : amax = 3.15 # value greater than Pi, to have no restrictions
+
+    i=-1
     for z in zones:
 
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      m = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i]) # FIXME : need oids to use discarded_ids
+      i+=1
+      jids = []
 
-      ids = None
-      doext = treat_externals
-
-      if simplify == 1:
+      if simplify == 1 and treat_externals == 1: # keep track of join PGs to freeze them when simplifying
         joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
         if joins != []:
-          # FIXME : need to sync m PGs ids with the pointlists before passing them to simplifyCells
-          doext=0 
-          # ids=[]
-          # for j in joins :
-          #       ptl = Internal.getNodeFromName1(j, 'PointList')
-          #       ids.append(ptl[1])
+          for j in joins :
+            ptl = Internal.getNodeFromName1(j, 'PointList')
+            jids.append(ptl[1][0])
 
-          # if (ids != []):
-          #   #print ids
-          #   ids = numpy.concatenate(ids) # create a single list
-          #   ids = ids -1 # 0-based
-          #   ids = numpy.concatenate(ids) # create a single list
-          #   #print ptLists
-          # else:
-          #   ids=None
-            
-        m = XOR.simplifyCells(m, doext, angular_threshold=amax, discarded_ids = ids)
-        C.setFields([m], z, 'nodes') # replace the mesh in the zone
-        C._deleteGridConnectivity__(z)
-        if doext : 
-          C._deleteZoneBC__(z)
+          if (jids != []):
+            #print(ids)
+            jids = numpy.concatenate(jids) # create a single list
+            jids = jids -1 # 0-based
+            #print(jids)
+          else:
+            jids=None
+
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      res = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i]) # FIXME : need oids to use discarded_ids
+      
+      m    = res[0]
+      nids = res[1] # 0-based
+
+      # update join ids
+      if jids != []:
+        for k in range(len(jids)):
+          oj = jids[k]
+          nj = nids[oj]
+          jids[k]=nj
+        jids = jids[jids > -1]
       else:
-        C.setFields([m], z, 'nodes') # replace the mesh in the zone
-      i = i+1
+        jids = None
+
+      if simplify == 1:
+        m = XOR.simplifyCells(m, treat_externals, angular_threshold=amax, discarded_ids = jids)
+
+      C.setFields([m], z, 'nodes') # replace the mesh in the zone
  
 #==============================================================================
 # agglomerateUncomputableCells : XXX
@@ -1835,7 +2114,7 @@ def getOverlappingFaces(t1, t2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).
 # OUT: 2 lists of colliding cells, the first one for t1, the seoncd one for t2.
 #==============================================================================
-def getCollidingCells(t1, t2, RTOL = 1.e-12):
+def getCollidingCells(t1, t2, RTOL = 1.e-12, only_externals = False):
    """ Returns the list of cells in a1 and a2 that are colliding.
    Usage: getOverlappingFaces(t1, t2, RTOL)"""
 
@@ -1855,9 +2134,104 @@ def getCollidingCells(t1, t2, RTOL = 1.e-12):
      m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
      if m1 == []: continue
 
-     pgids.append(XOR.getCollidingCells(m1,m2, RTOL))
+     pgids.append(XOR.getCollidingCells(m1,m2, RTOL, only_externals))
 
    return pgids
+
+#==============================================================================
+# getAttachedCells     : returns the cells in t1 attached to polygons in s2.
+# IN : t1:              : NGON mesh (volume).
+# IN : t2:              : NGON mesh (surface).
+# OUT: attached cells.
+#==============================================================================
+def getAttachedCells(t1, s2):
+   """ Returns the cells in t1 attached to polygons in s2.
+   Usage: getAttachedCells(t1, s2)"""
+   centsS = centroids(s2)
+
+   pgids = getFaceIdsWithCentroids(t1,s2)
+
+   return getCells(t1, pgids)
+
+#==============================================================================
+# getFacesWithCentroids     : returns the cells in t1 attached to polygons in s2.
+# IN : t1:              : NGON mesh (volume).
+# IN : t2:              : NGON mesh (surface).
+# OUT: attached cells.
+#==============================================================================
+def getFaceIdsWithCentroids(t1, cents):
+   """ Returns the faces in t1 having their centroids in cents.
+   Usage: getFacesWithCentroids(t1, cents)"""
+   c = C.getFields(Internal.__GridCoordinates__, cents)[0]
+
+   zones1 = Internal.getZones(t1)
+   pgids=[]
+   for z in zones1:
+    m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+    pgids.append(XOR.getFaceIdsWithCentroids(m1,c))
+
+   return pgids
+
+#==============================================================================
+# getFaceIdsCollidingVertex     : returns the Faces in t1 colliding a cloud of vertices
+# IN : t1:              : NGON mesh (volume).
+# IN : t2:              : NGON mesh (surface).
+# OUT: attached cells.
+#==============================================================================
+def getFaceIdsCollidingVertex(t1, vtx):
+   """ Returns the faces in t1 having their centroids in cents.
+   Usage: getFaceIdsCollidingVertex(t1, [x,y,z])"""
+   
+   zones1 = Internal.getZones(t1)
+   pgids=[]
+   for z in zones1:
+    m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+    pgids.append(XOR.getFaceIdsCollidingVertex(m1, vtx))
+
+   return pgids
+
+#==============================================================================
+# getCells              : returns the cells in t1 attached to polygons with ids in pgids.
+# IN : t1:              : NGON mesh (volume).
+# IN : pgids:           : polygon ids.
+# OUT: attached cells.
+#==============================================================================
+def getCells(t1, pgids):
+   """ Returns the cells in t1 attached to polygons with ids in pgids.
+   Usage: getCells(t1, pgids)"""
+
+   zones1 = Internal.getZones(t1)
+   cells = []
+
+   i=-1
+   for z in zones1:
+    i+=1
+    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    cells .append(C.convertArrays2ZoneNode('cell%s'%i, [XOR.getCells(m, pgids[i])]))
+
+   return cells
+
+#==============================================================================
+# getFaces              : returns the faces in t1 with ids in pgids.
+# IN : t1:              : NGON mesh (volume).
+# IN : pgids:           : polygon ids.
+# OUT: attached cells.
+#==============================================================================
+def getFaces(t1, pgids):
+   """ Returns the cells in t1 attached to polygons with ids in pgids.
+   Usage: getFaces(t1, pgids)"""
+
+   zones1 = Internal.getZones(t1)
+   cells = []
+
+   i=-1
+   for z in zones1:
+    i+=1
+    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    cells .append(C.convertArrays2ZoneNode('face%s'%i, [XOR.getFaces(m, pgids[i])]))
+
+   return cells
+
 
 #==============================================================================
 # getNthNeighborhood     : returns the list of cells in the N-thneighborhood of t cells given in ids 
@@ -1930,8 +2304,11 @@ def diffMesh(t1, t2):
     zones = []
     nb_zones = len(res)
 
-    if (nb_zones == 0) : 
-        print("No difference.") ; return zones
+    if (nb_zones == 0) : # fixme : never happen
+      print("No difference.") ; return zones
+
+    if res[0][1].size == 0 and res[0][1].size == 0 : 
+      print("No difference.") ; return zones
     
     zones.append(C.convertArrays2ZoneNode('z1', [res[0]]))
     zones.append(C.convertArrays2ZoneNode('z2', [res[1]]))
@@ -2041,6 +2418,14 @@ def checkForDegenCells(t):
     return XOR.checkForDegenCells(m)
 
 #==============================================================================
+# checkForBigCells : XXX
+#==============================================================================
+def checkForBigCells(t, n):
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    m = XOR.checkForBigCells(m, n)
+    return C.convertArrays2ZoneNode('big', [m])
+
+#==============================================================================
 # oneph : XXX
 #==============================================================================
 def oneph(t):
@@ -2145,7 +2530,7 @@ def convert2Polyhedron(t):
     return C.convertArrays2ZoneNode('ph', [m])
 
 #==============================================================================
-# oneZonePerCell : XXX
+# oneZonePerCell : output a PyTree with a zone per cell
 #==============================================================================
 def oneZonePerCell(t):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
@@ -2163,6 +2548,24 @@ def oneZonePerCell(t):
 
     return zones
 
+#==============================================================================
+# oneZonePerFace : output a PyTree with a zone per face
+#==============================================================================
+def oneZonePerFace(t):
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    m = XOR.oneZonePerFace(m)
+    zones = []
+    nb_zones = len(m)
+
+    print(nb_zones)
+
+    if nb_zones == 0: return zones
+
+    # here it has parent elements 
+    for i in range(nb_zones):
+        zones.append(C.convertArrays2ZoneNode('face%s'%i, [m[i]]))
+
+    return zones
 
 #==============================================================================
 # convertNGON2DToNGON3D : Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
@@ -2230,7 +2633,8 @@ def _convertTree2NUGANGON(t):
       _convertNGON2DToNGON3D(z)
 
 def centroids(t):
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    tj = T.join(t)
+    m = C.getFields(Internal.__GridCoordinates__, tj)[0]
     c = XOR.centroids(m)
     return C.convertArrays2ZoneNode('centroids', [c])
 
