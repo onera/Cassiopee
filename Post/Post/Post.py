@@ -8,7 +8,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 from . import post
 import numpy
 try: import Converter
-except: raise ImportError("Post: requires Converter module.")
+except ImportError: raise ImportError("Post: requires Converter module.")
 
 try: range = xrange
 except: pass
@@ -65,8 +65,6 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
     return p
 
 def growOfEps__(arrays, eps, nlayers=1, planarity=True):
-    try: import Generator; import Transform
-    except: return arrays
     inl = []
     dplus = Converter.array('h', nlayers+1, 1, 1)
     dmoins = Converter.array('h', nlayers+1, 1, 1)
@@ -118,7 +116,7 @@ def extractPlane(arrays, T, order=2, tol=1.e-6):
     """Slice solution with a plane.
     Usage: extractPlane(arrays, (coefa, coefb, coefc, coefd), order)"""
     try: import Generator; import Transform
-    except:
+    except ImportError:
         return post.extractPlane(arrays,T, order)
     inl, modified = growOfEps__(arrays, tol, nlayers=2, planarity=False)
     ret1 = post.extractPlane(inl, T, order)
@@ -667,11 +665,11 @@ def buildTag1__(array, F, varStrings):
     tag = numpy.zeros(nsize, numpy.float64)
 
     if l == 0:
-        if F() == True: tag[:] = 1
+        if F(): tag[:] = 1
     else:
         for i in range(nsize):
             x = [n[pos[j]-1,i] for j in range(l)]
-            if F(*x) == True: tag[i] = 1
+            if F(*x): tag[i] = 1
     tag = tag.reshape(1, tag.size)
     if len(array) == 5: out = ['__tag__', tag, array[2], array[3], array[4]]
     else: out = ['__tag__', tag, array[2], array[3]]

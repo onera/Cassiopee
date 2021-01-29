@@ -4921,6 +4921,11 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True):
                         pt2 = n[1].ravel('k')
                         pt2[:] = pt1[:]
         if convertI82I4:
+            if z[3] == 'Zone_t' and z[1] is not None and z[1].dtype == numpy.int64:
+                pt1 = z[1].ravel('k')
+                z[1] = numpy.empty(z[1].shape, dtype=numpy.int32)
+                pt2 = z[1].ravel('k')
+                pt2[:] = pt1[:]
             nodes = getNodesFromType1(z, 'Elements_t')
             for no in nodes:
                 for n in no[2]:
@@ -4929,4 +4934,27 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True):
                         n[1] = numpy.empty(n[1].shape, dtype=numpy.int32)
                         pt2 = n[1].ravel('k')
                         pt2[:] = pt1[:]
+                    if n[3] == 'IndexRange_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32)
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:] 
+            nodes = getNodesFromType2(z, 'BC_t')
+            for no in nodes:
+                for n in no[2]:
+                    if n[3] == 'IndexArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32)
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+            nodes = getNodesFromType2(z, 'GridConnectivity_t')
+            for no in nodes:
+                for n in no[2]:
+                    print(n[0])
+                    if n[3] == 'IndexArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32)
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+            
     return None

@@ -1,10 +1,10 @@
-# - Filters -
+"""Read files with filters."""
 from . import Internal
 from . import PyTree
 from . import Converter
 from . import Mpi as Cmpi
-from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
-_convert2SkeletonTree, readNodesFromPaths, fixPaths__
+from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, \
+  _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, readNodesFromPaths, fixPaths__
 from . import Distributed
 import numpy
 
@@ -81,6 +81,7 @@ def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelD
 #============================================================================
 def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None, BCType=None,
                     maxDepth=3, readProcNode=False, readGridElementRange=False):
+    """Read zone headers."""
     a = convertFile2SkeletonTree(fileName, format, maxDepth=maxDepth, maxFloatSize=6)
     # filter by base names
     if baseNames is not None:
@@ -111,6 +112,8 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
         if BCType == 'BCWall':
           families1 = PyTree.getFamilyBCNamesOfType(a, 'BCWallInviscid')
           families2 = PyTree.getFamilyBCNamesOfType(a, 'BCWallViscous*')
+          families += families1
+          families += families2
         znp = []
         bases = Internal.getBases(a)
         for b in bases:
@@ -203,7 +206,7 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
         DataSpaceFILE = [[j[0]-1,j[2]-1,j[4]-1], [1,1,1], [j[1]-j[0]+1,j[3]-j[2]+1,j[5]-j[4]+1], [1,1,1]]
         DataSpaceGLOB = [[0]]
     
-      for p in paths: f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
+      for pp in paths: f[pp] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 
       # Variables aux centres
       paths = []
@@ -222,7 +225,7 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
         DataSpaceFILEC = [[j[0]-1,j[2]-1,j[4]-1], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1),max(j[5]-j[4],1)], [1,1,1]]
         DataSpaceGLOBC = [[0]]
 
-      for p in paths: f[p] = DataSpaceMMRYC+DataSpaceFILEC+DataSpaceGLOBC
+      for pp in paths: f[pp] = DataSpaceMMRYC+DataSpaceFILEC+DataSpaceGLOBC
 
       r = readNodesFromFilter(fileName, f, format)
 
@@ -362,6 +365,7 @@ def _loadZoneBCsWoData(a, fileName, znp, format=None):
 
 # Load fully extra nodes of a tree (but no Zone or Base)
 def _loadTreeExtras(a, fileName, format=None):
+  """Load extra data in tree."""
   # Fully load nodes of level 1 except CGNSBase_t
   paths = []
   children = a[2]
@@ -380,20 +384,42 @@ def _loadTreeExtras(a, fileName, format=None):
 # Load extra data of zones (cartesianData or solver#define)
 # decompresse eventuellement
 def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
+  """Load extra data in zones."""
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
   paths = []
   for p in znps:
     n = Internal.getNodeFromPath(a, p)
-    # Level1
+
+    # Level1 (DataArray_t)
     for i in n[2]:
-      if i[3] == 'DataArray_t': paths.append(p+'/'+i[0])
+      if i[3] == 'DataArray_t' and i[1] is None: paths.append(p+'/'+i[0])
   
-    # Level2
+    # Level2 (UserDefinedData_t/DataArray_t)
     for i in n[2]:
       if i[3] == 'UserDefinedData_t':
         for j in i[2]:
-          if j[3] == 'DataArray_t': paths.append(p+'/'+i[0]+'/'+j[0])
+          if j[3] == 'DataArray_t' and j[1] is None: paths.append(p+'/'+i[0]+'/'+j[0])
+
+    # generique niveau 2
+    #for i in n[2]:
+    #  for j in i[2]:
+    #    if j[3] == 'DataArray_t' and j[1] is None: paths.append(p+'/'+i[0]+'/'+j[0])
+
+    # Level3 (FlowSolution_t/UserDefinedData_t/DataArray_t)
+    for i in n[2]:
+      if i[3] == 'FlowSolution_t':
+        for j in i[2]:
+          if j[3] == 'UserDefinedData_t':
+            for k in j[2]:
+              if k[3] == 'DataArray_t' and k[1] is None: paths.append(p+'/'+i[0]+'/'+j[0]+'/'+k[0])
+
+    # generique niveau 3
+    #for i in n[2]:
+    #  for j in i[2]:
+    #    for k in j[2]:
+    #      if k[3] == 'DataArray_t' and k[1] is None: paths.append(p+'/'+i[0]+'/'+j[0]+'/'+k[0])
+
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format)
   # Decompression eventuellement
   if uncompress:
@@ -414,6 +440,7 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
 # get variables: return a list
 # this doesnt mean that all vars are defined in all zones!
 def getVariables(fileName, znp, cont=None, format=None):
+  """Return a list of variables contained in file."""
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
   if cont is None: # check containers in files
@@ -430,15 +457,16 @@ def getVariables(fileName, znp, cont=None, format=None):
   for c in cont:
     for p in znps:
       paths.append(p+'/'+c)
-  vars = set()
+  zvars = set()
   nodes = readNodesFromPaths(fileName, paths, format, maxDepth=1, maxFloatSize=0)
   for n in nodes:
     for j in n[2]:
-      if j[3] == 'DataArray_t': vars.add(n[0]+'/'+j[0])
-  return list(vars)
+      if j[3] == 'DataArray_t': zvars.add(n[0]+'/'+j[0])
+  return list(zvars)
 
 # Return the list of variables in BCDataSet
 def getBCVariables(a, fileName, znp, cont=None, format=None):
+  """Return a list of variables contained in BCDataSet."""
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
   paths = []
@@ -449,21 +477,22 @@ def getBCVariables(a, fileName, znp, cont=None, format=None):
         for zbc in zoneBC:
           paths.append(p+'/'+zbc[0])
   nodes = readNodesFromPaths(fileName, paths, format, maxDepth=-1, maxFloatSize=0)
-  vars = set()
+  zvars = set()
   for n in nodes:
     p = Internal.getNodesFromType(n, 'BCData_t')
     for j in p:
       for k in j[2]:
-        if k[3] == 'DataArray_t': vars.add(k[0])
-  return list(vars)
+        if k[3] == 'DataArray_t': zvars.add(k[0])
+  return list(zvars)
 
 # Load un bboxTree
-def bboxTree(fileName):
-    # Load only bboxes
-    return None
+#def bboxTree(fileName):
+#    # Load only bboxes
+#    return None
 
 # Load only zones that match a bbox
 def isInBBox(a, fileName, format, bbox, znp):
+    """Load zones that lien in bbox."""
     xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
     xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
     if isinstance(znp, list): znps = znp
@@ -500,6 +529,7 @@ def isInBBox(a, fileName, format, bbox, znp):
 # a: must be a tree or a zone list coherent with znp
 # znp: is the full path from top
 def writeZones(a, fileName, znp, format=None):
+  """Write Zones in file."""
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
   if len(a) < 4: zones = a # suppose single zone in a list
@@ -520,6 +550,7 @@ def writeZones(a, fileName, znp, format=None):
   
 # Write all except flowfield containers
 def writeZonesWoVars(a, fileName, znp, format=None):
+  """Write zones without variables."""
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
   if len(a) < 4: zones = a # suppose single zone in a list
@@ -550,6 +581,7 @@ def writeZonesWoVars(a, fileName, znp, format=None):
 
 # Write zone variables only
 def writeVariables(a, fileName, var, znp, format=None):
+  """Write variables in file."""
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
   if isinstance(var, list): vars = var
@@ -607,6 +639,7 @@ class Handle:
     
   # Retourne les chemins des zones de a
   def getZonePaths(self, a):
+    """Return the path of zones in a."""
     out = []
     bases = Internal.getBases(a)
     if len(bases) > 0:
@@ -639,6 +672,7 @@ class Handle:
 
   # Retourne les variables de BCDatSet du fichier
   def getBCVariables(self, a):
+    """Return the variables contained in BCDataSet."""
     if a is not None: p = self.getZonePaths(a)
     else: p = self.znp
     vars = getBCVariables(a, self.fileName, p, None, self.format)
@@ -936,7 +970,6 @@ class Handle:
 
     return splitted_a
 
-
   # Calcul et stocke des infos geometriques sur les zones
   def geomProp(self, znp=None):
     """Store some zone properties."""
@@ -989,11 +1022,13 @@ class Handle:
 
   # Charge tous les noeuds extra d'un arbre a
   def _loadTreeExtras(self, a):
+    """Load extra data in tree."""
     _loadTreeExtras(a, self.fileName, self.format)
     return None
 
   # Charge tous les noeuds extra des zones
   def _loadZoneExtras(self, a):
+    """Load extra data in zones."""
     _loadZoneExtras(a, self.fileName, self.format)
     return None
 
@@ -1087,6 +1122,7 @@ class Handle:
     return None
   
   def isInBBox(self, a, bbox, znp=None):
+    """Return true if a is in bbox."""
     if znp is None: znp = self.getZonePaths(a)
     return isInBBox(a, self.fileName, self.format, bbox, znp)
 
@@ -1114,6 +1150,7 @@ class Handle:
   # save zones + field
   # mode 0: parallele, 1: ecriture chacun son tour
   def save(self, a, fileName=None, cartesian=False):
+    """Dave zone and fields in file."""
     a2 = Internal.copyRef(a)
     if cartesian: 
         import Compressor.PyTree as Compressor
@@ -1122,6 +1159,7 @@ class Handle:
       Cmpi.convertPyTree2File(a2, fileName, self.format, ignoreProcNodes=True)
     
   def mergeAndSave(self, a, fileName=None):
+    """Merge and save in file."""
     if fileName is not None:
       # write data without zones
       ap = Internal.copyRef(a)

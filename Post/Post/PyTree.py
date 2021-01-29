@@ -15,7 +15,7 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import numpy
-except:
+except ImportError:
     raise ImportError("Post.PyTree: requires Converter.PyTree module.")
 
 # Extraction de la liste des pts
@@ -23,7 +23,6 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
                  constraint=40., tol=1.e-6, hook=None, mode='robust'):
     """Extract the solution in one point.
     Usage: extractPoint(t, (x,y,z), order, tol, hook, mode)"""
-    listOfPts = []
     if not isinstance(Pts, list):
         a = Converter.array('CoordinateX,CoordinateY,CoordinateZ',1,1,1)
         a[1][0,0] = Pts[0]; a[1][1,0] = Pts[1]; a[1][2,0] = Pts[2]
@@ -120,7 +119,6 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
     orderedZones=[]
     for i,z in enumerate(Internal.getZones(extractionMesh)):
         if Internal.getZoneType(z)==1: orderedZones.append(i)
-    nzoness = len(orderedZones)
     for i,z in enumerate(Internal.getZones(extractionMesh)):
         if Internal.getZoneType(z)==2: orderedZones.append(i)        
 
@@ -528,8 +526,6 @@ def selectCells3(t, tagName):
     res = tagName.split(':')
     if len(res) == 2: name = res[1]
     else: name = tagName
-    zones = Internal.getZones(tpp)
-    out = []
     bases = Internal.getBases(tpp)
     for b in bases:
         c = 0
@@ -1248,10 +1244,10 @@ def integ2(t, var=''):
 def integ(t, var=''):
     """New version."""
     try: import Generator.PyTree as G
-    except: raise ImportError("integ: requires Generator module.")
+    except ImportError: raise ImportError("integ: requires Generator module.")
     vars = var.split(':')
-    if (len(vars) == 2):
-        if  (vars[0] == 'centers'): loc = 1; varName = vars[1]
+    if len(vars) == 2:
+        if vars[0] == 'centers': loc = 1; varName = vars[1]
         else: loc = 0; varName = vars[1]
     else: loc = 0; varName = var
     ret = 0.

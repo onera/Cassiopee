@@ -2,6 +2,7 @@
 """
 try:
     import OCC
+    import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
 except ImportError: 
@@ -155,8 +156,17 @@ class Edge:
     self.name = 'XXX' # CAD edge name
     self.hook = None # hook on OCC TOPODS::edge
     self.cad = cad # master CAD object
+
   def valueAt(self, distribution):
+    """Evaluate edge at given parameters."""
     return self.cad.evalEdge(self.number, distribution)
+
+  def _projectOn(self, z):
+    """Project z on edge."""
+    a = C.getFields(Internal.__GridCoordinates__, z, api=2)
+    for i in a:
+      self.cad._projectOnEdges(i, [self.number])
+    return None
 
 class Face:
   """CAD Face."""
@@ -165,8 +175,17 @@ class Face:
     self.name = 'XXX' # CAD face name
     self.hook = None # hook on OCC TOPODS::face
     self.cad = cad # master CAD object
+
   def valueAt(self, distribution):
+    """Evaluate face at given parameters."""
     return self.cad.evalFace(self.number, distribution)
+
+  def _projectOn(self, z):
+    """Project z on face."""
+    a = C.getFields(Internal.__GridCoordinates__, z, api=2)
+    for i in a:
+      self.cad._projectOnFaces(i, [self.number])
+    return None
 
 class CAD:
   """CAD top tree."""
@@ -189,9 +208,16 @@ class CAD:
     for i in range(nbedges): self.edges.append(Edge(i+1, self))
   
   def evalFace(self, face, distribution):
+    """Evaluate face at given parameters."""
     if isinstance(face, int): no = face
     else: no = face.number
-    d = C.getFields(Internal.__GridCoordinates__, distribution, api=2)[0] # zone, numpy, array?
+    if isinstance(distribution, tuple): 
+      d = Converter.array('x,y,z', 1,1,1)
+      d[1][0,0] = distribution[0]
+      d[1][1,0] = distribution[1]
+      d[1][2,0] = 0.      
+    else:
+      d = C.getFields(Internal.__GridCoordinates__, distribution, api=2)[0]
     m = OCC.occ.evalFace(self.hook, d, no)
     z = Internal.createZoneNode(C.getZoneName('Face'), m, [],
                                 Internal.__GridCoordinates__,
@@ -200,9 +226,16 @@ class CAD:
     return z
 
   def evalEdge(self, edge, distribution):
+    """Evaluate edge ar given parameters."""
     if isinstance(edge, int): no = edge
     else: no = edge.number
-    d = C.getFields(Internal.__GridCoordinates__, distribution, api=2)[0] # zone, numpy, array?
+    if isinstance(distribution, float):
+      d = Converter.array('x,y,z', 1,1,1)
+      d[1][0,0] = distribution
+      d[1][1,0] = 0.
+      d[1][2,0] = 0.
+    else:
+      d = C.getFields(Internal.__GridCoordinates__, distribution, api=2)[0]
     m = OCC.occ.evalEdge(self.hook, d, no)
     z = Internal.createZoneNode(C.getZoneName('Edge'), m, [],
                                 Internal.__GridCoordinates__,
@@ -211,6 +244,7 @@ class CAD:
     return z
 
   def _project(self, z, faceList=None):
+    """Project z on CAD."""
     if faceList is not None:
         out = []
         for f in faceList:
@@ -222,13 +256,14 @@ class CAD:
     return None
 
   def project(self, z, faceList=None):
+    """Project z on CAD."""
     zp = Internal.copyTree(z)
     self._project(zp, faceList)
     return zp
 
   # faceList ne marche pas encore
-  def mesh(self, mtype='STRUCT', N=11, faceList=None):
-    """Mesh CAD."""
+  def mesh(self, mtype='STRUCT', N=11):
+    """Mesh CAD with given type."""
     if mtype == 'STRUCT':
       zones = meshSTRUCT__(self.hook, N, None, self.linkFaceNo)
     elif mtype == 'TRI':
