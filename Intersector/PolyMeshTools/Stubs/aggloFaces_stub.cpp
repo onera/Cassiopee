@@ -31,6 +31,15 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* Agglomerate superfuous nodes (overdefined polygons) */
+//=============================================================================
+PyObject* K_INTERSECTOR::simplifyFaces(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
 PyObject* K_INTERSECTOR::simplifySurf(PyObject* self, PyObject* args)

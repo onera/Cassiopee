@@ -116,7 +116,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
 //=============================================================================
 /* Deletes a COM  */
 //=============================================================================
-PyObject* K_INTERSECTOR::deleteCOM(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::deleteCom(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
