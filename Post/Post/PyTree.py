@@ -861,9 +861,9 @@ def computeExtraVariable(t, varname, gamma=-1, rgp=-1.,
 
     if varname == 'Vorticity' or varname == 'nodes:Vorticity':
         t2 = extraVariablesPT.computeVorticity(t)
-        vars = ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ']
-        t2 = C.center2Node(t2, vars)
-        C._rmVars(t2, vars)
+        zvars = ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ']
+        t2 = C.center2Node(t2, zvars)
+        C._rmVars(t2, zvars)
         return t2
     elif varname == 'centers:Vorticity':
         return extraVariablesPT.computeVorticity(t)
@@ -883,7 +883,7 @@ def computeExtraVariable(t, varname, gamma=-1, rgp=-1.,
         return extraVariablesPT.computeQCriterion(t)
     elif varname == 'ShearStress' or varname == 'nodes:ShearStress':
         t2 = extraVariablesPT.computeShearStress(t, gamma, rgp, Cs, mus, Ts)
-        vars = ['centers:ShearStressXX',
+        zvars = ['centers:ShearStressXX',
                 'centers:ShearStressXY',
                 'centers:ShearStressXZ',
                 'centers:ShearStressYX',
@@ -892,8 +892,8 @@ def computeExtraVariable(t, varname, gamma=-1, rgp=-1.,
                 'centers:ShearStressZX',
                 'centers:ShearStressZY',
                 'centers:ShearStressZZ']
-        t2 = C.center2Node(t2, vars)
-        C._rmVars(t2, vars)
+        t2 = C.center2Node(t2, zvars)
+        C._rmVars(t2, zvars)
         return t2
     elif varname == 'centers:ShearStress':
         return extraVariablesPT.computeShearStress(t, gamma, rgp, Cs, mus, Ts)
@@ -1148,8 +1148,8 @@ def zipper(t, options=[]):
 
 def extractArraysForScalarInteg__(t, var=''):
     zones = Internal.getZones(t)
-    vars = var.split(':')
-    if len(vars) == 2: loc = 'centers'
+    zvars = var.split(':')
+    if len(zvars) == 2: loc = 'centers'
     else: loc = 'nodes'
 
     coords = C.getFields(Internal.__GridCoordinates__,zones)
@@ -1182,11 +1182,11 @@ def extractArraysForVectorInteg__(t, vector):
     zones = Internal.getZones(t)
     loc = 'unknown'
     if len(vector) != 3: raise ValueError("extractArraysForVectorInteg: vector must be of size 3.")
-    vars = []
+    zvars = []
     for var in vector:
         v = var.split(':')
-        if (len(v) == 1 and loc != 'centers'): loc = 'nodes'; vars.append(v[0])
-        elif (len(v)  > 1 and loc != 'nodes'): loc = 'centers'; vars.append(v[1])
+        if len(v) == 1 and loc != 'centers': loc = 'nodes'; zvars.append(v[0])
+        elif len(v)  > 1 and loc != 'nodes': loc = 'centers'; zvars.append(v[1])
         else: raise ValueError("extractArraysForVectorInteg: all the components of the vector must have the same location.")
 
     coords = C.getFields(Internal.__GridCoordinates__,zones)
@@ -1195,10 +1195,10 @@ def extractArraysForVectorInteg__(t, vector):
     else:
         if loc == 'nodes':
             fields = C.getFields(Internal.__FlowSolutionNodes__,zones)
-            fields = Converter.extractVars(fields,vars)
+            fields = Converter.extractVars(fields, zvars)
         else:
             fieldsc = C.getFields(Internal.__FlowSolutionCenters__,zones)
-            fieldsc = Converter.extractVars(fieldsc,vars)
+            fieldsc = Converter.extractVars(fieldsc, zvars)
 
     # mise a jour de fields [[],[],[],..,[]] -> []
     foundn = 0; foundc = 0
@@ -1245,10 +1245,10 @@ def integ(t, var=''):
     """New version."""
     try: import Generator.PyTree as G
     except ImportError: raise ImportError("integ: requires Generator module.")
-    vars = var.split(':')
-    if len(vars) == 2:
-        if vars[0] == 'centers': loc = 1; varName = vars[1]
-        else: loc = 0; varName = vars[1]
+    zvars = var.split(':')
+    if len(zvars) == 2:
+        if zvars[0] == 'centers': loc = 1; varName = zvars[1]
+        else: loc = 0; varName = zvars[1]
     else: loc = 0; varName = var
     ret = 0.
     for z in Internal.getZones(t):
@@ -1868,8 +1868,8 @@ def isoSurfMC_opt(t, var, value, list=[]):
     Usage: isoSurfMC_opt(t, var, value, varlist)"""
     import KCore
     OMP_NUM_THREADS = KCore.getOmpMaxThreads()
-    vars = var.split(':')
-    if len(vars) == 2: var = vars[1]
+    zvars = var.split(':')
+    if len(zvars) == 2: var = zvars[1]
     ret = []; new_list=[]; coord=['CoordinateX','CoordinateY','CoordinateZ']
 
     if list != []:
@@ -1985,13 +1985,13 @@ def _computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
     Return the indicator field.
     Usage: computeIndicatorField(octreeHexa, indicVal, nbTargetPts, bodies,
     refineFinestLevel, coarsenCoarsestLevel)"""
-    vars = varName.split(':')
+    zvars = varName.split(':')
     hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa)[0]
     bodiesA = []
     if bodies != []:
         bodiesA = C.getFields(Internal.__GridCoordinates__, bodies)
     fields = C.getField(varName, octreeHexa)[0]
-    if vars[0] != 'centers': fields = Converter.node2Center(fields)
+    if zvars[0] != 'centers': fields = Converter.node2Center(fields)
     indicator, epsInf, epsSup = Post.computeIndicatorField(
         hexa, fields, nbTargetPts, bodiesA,
         refineFinestLevel, coarsenCoarsestLevel)

@@ -4,10 +4,7 @@ import Converter.Internal as I
 import Generator.PyTree as G
 import Post.PyTree as P
 import Connector.PyTree as X
-try:
-    import Intersector.PyTree as XOR
-except:
-    pass
+from . import PyTree as XOR
 import time
 import numpy
 
@@ -164,9 +161,9 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
 #
 #==============================================================================
 def adaptFirstToSecond(comp1, comp2, XVAL, NVAL, Nneigh):
-    XVAL     # levels of subdivision for colliding cells
-    NVAL     # levels of subdivision for the surrounding zone
-    Nneigh   # the surrounding zone is the Nneigh-th neighborhood
+    # XVAL     : levels of subdivision for colliding cells
+    # NVAL     : levels of subdivision for the surrounding zone
+    # Nneigh   : the surrounding zone is the Nneigh-th neighborhood
 
     n = XOR.nb_cells(comp1)
     cell_vals = numpy.empty((n,), dtype=numpy.int32)
@@ -223,7 +220,7 @@ def periodicMeshAssembly(t1, t2, TOL, real_zone_list):
     print("Check conformity ...")
     ##### VERIFICATION 1 : CONFORMITE (PAS DE FACES INTERNES)
     valid = XOR.isConformalNConnex(assembly, 1)
-    if valid == True:
+    if valid:
         print('Boolean OK : Conformal')
     else:
         print('Boolean ERROR : Internal non conformities ')
@@ -272,7 +269,3 @@ def detectMatchPerioAnomaly(t, nperio, ncontours):
         return True
 
     return False # still need to double check, not a complete checking..
-
-
-
-

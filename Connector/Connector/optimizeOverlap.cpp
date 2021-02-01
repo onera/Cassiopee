@@ -32,18 +32,12 @@ extern "C"
     E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
 }
 #include "stub.h"
-extern int __activation__;
 
 //============================================================================
 /* Optimise le recouvrement */
 //============================================================================
 PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
 {
-  if (__activation__ == 0)
-  {
-    PyErr_SetString(PyExc_NotImplementedError, STUBMSG); return NULL;
-  }
-
   PyObject *coordArray1, *centerArray1;//info de z1
   PyObject *coordArray2, *centerArray2;//info2 de z2
   PyObject *hook1, *hook2;// hook on adt for z1 and z2

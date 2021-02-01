@@ -4950,7 +4950,6 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True):
             nodes = getNodesFromType2(z, 'GridConnectivity_t')
             for no in nodes:
                 for n in no[2]:
-                    print(n[0])
                     if n[3] == 'IndexArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
                         pt1 = n[1].ravel('k')
                         n[1] = numpy.empty(n[1].shape, dtype=numpy.int32)
