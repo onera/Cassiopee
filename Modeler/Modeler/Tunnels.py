@@ -1,4 +1,4 @@
-# - Tunnels -
+"""All models of tunnels."""
 # Fait a partir d'une ligne "x" et de profils empiles
 import Generator
 import Geom

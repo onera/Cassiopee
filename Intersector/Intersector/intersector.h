@@ -153,5 +153,8 @@ namespace K_INTERSECTOR
   PyObject* total_mass(PyObject* self, PyObject* args);
   PyObject* deltaMass(PyObject* self, PyObject* args);
   PyObject* normL1(PyObject* self, PyObject* args);*/
+
+  PyObject* deleteCOM(PyObject*, PyObject*);
+
 }
 #endif

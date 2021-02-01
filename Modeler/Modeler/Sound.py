@@ -1,8 +1,9 @@
-# Sound support
+"""Sound support."""
+# using pyaudio
 # If you add a function, dont forget to add it also to SoundLess.py
 
 try: import pyaudio
-except: raise ImportError("Sound module requires pyaudio.")
+except ImportError: raise ImportError("Sound module requires pyaudio.")
 
 import wave
 

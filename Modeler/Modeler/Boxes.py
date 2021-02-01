@@ -1,5 +1,4 @@
 """All models of boxes."""
-# - all boxes -
 import Geom as D
 import Transform as T
 import Generator as G

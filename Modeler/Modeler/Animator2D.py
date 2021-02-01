@@ -1,4 +1,4 @@
-# Animator2D 
+"""Animation module in 2D."""
 # Billboard animation
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -279,7 +279,7 @@ class Animator2D:
         a = self.getZone(key)
         im = self.images[imageKey]
         Ni = im[1]; Nj = im[2]
-        cur = posi + Ni*posj;
+        cur = posi + Ni*posj
         cur = cur*1. / (Ni*Nj-0.5)
         im[5] = cur
         C._initVars(a, 'TBB__', cur)
@@ -331,6 +331,7 @@ class Animator2D:
     # - getkeys -
     # Modifie le key state en fonction des touches pressees ou relachees
     def getKeys(self):
+        """Modifies keyState depending on pressed keys."""
         state = self.keyState
         key = CPlot.getKeyboard()
         if len(key) == 0: return
@@ -348,6 +349,4 @@ class Animator2D:
             elif v == 8: state['right']=0
             elif v == 32: state['space']=1
             elif v == 27: state['escape']=1
-
-
 

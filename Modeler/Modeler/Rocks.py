@@ -1,4 +1,4 @@
-# - Rocks -
+"""All models of rocks."""
 import Geom as D
 import Transform as T
 import Generator as G
@@ -7,6 +7,7 @@ import Converter as C
 
 #==============================================================================
 def cobbleStone(hx=1., hy=0.3, hz=0.2, N=8):
+    """Cobble stone model."""
     a = D.sphere((0,0,0), R=0.5*hx, N=N)
     #a = C.convertArray2Tetra(a)
     #a = P.refine(a, w=1./8.)

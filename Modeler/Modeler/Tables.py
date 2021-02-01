@@ -1,4 +1,4 @@
-# - all tables -
+"""All models of tables."""
 
 from . import Boxes
 import Geom as D
@@ -9,7 +9,7 @@ import Converter as C
 
 #==============================================================================
 # Table rectangulaire simple
-# L: length: 
+# L: length
 # W: width
 # H: height
 #==============================================================================
