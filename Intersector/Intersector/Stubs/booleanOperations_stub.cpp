@@ -446,6 +446,41 @@ PyObject* call_union(PyObject* args)
     PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
     return NULL;
   }
+  
+#ifndef DEBUG_W_PYTHON_LAYER
+  {
+  	if (err != 1)
+  	  tpl = K_ARRAY::buildArray(crds[0], varString, cnts[0], et, eltType2, false);
+  	else
+    {
+      std::ostringstream o;
+      o << "Union : failed to proceed.";
+      PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    }
+  	
+  	return tpl;
+  }
+#else
+  {
+    {
+      size_t nb_zones = cnts.size();
+      //std::cout << "nb zones : " << nb_zones << std::endl;
+      for (size_t i=0; i < nb_zones; ++i)
+      {
+        if (crds[i].cols() == 0) continue;
+
+      	tpl = K_ARRAY::buildArray(crds[i], varString, cnts[i], et, "NGON", false);
+
+      	PyObject* o = Py_BuildValue("(Os)", tpl, znames[i].c_str());
+        PyList_Append(l, o);
+        Py_DECREF(tpl);
+      }
+    }
+  }
+    
+  return l;
+
+#endif
 }
 
 //=============================================================================

@@ -58,7 +58,7 @@ List of functions
 
    Intersector.triangulateBC
    Intersector.triangulateExteriorFaces
-   Intersector.reorientExternalFaces
+   Intersector.reorient
    Intersector.convexifyFaces  
    Intersector.prepareCellsSplit
    Intersector.splitNonStarCells
@@ -502,7 +502,7 @@ Transformation Functions
 ---------------------------------------
 
 
-.. py:function:: Intersector.reorientExternalFaces(a)
+.. py:function:: Intersector.reorient(a)
 
     Reorients outward the external polygons of a mesh.
 
@@ -728,7 +728,7 @@ Transformation Functions
 
     *Tips and Notes:*
 
-    * Do this transformation whenever you need to use a surface algorithm on the octree (e.g. :any:`reorientExternalFaces`)
+    * Do this transformation whenever you need to use a surface algorithm on the octree (e.g. :any:`reorient`)
 
 
 ---------------------------------------
