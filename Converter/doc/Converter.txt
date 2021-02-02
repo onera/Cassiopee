@@ -1,4 +1,16 @@
 ==============================================================================
+Converter 3.2 [02/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.2
+Optional: Mpi requires mpi4py
+- Internal: newZoneSubRegion
+- Converter: isFinite
+- Internal: getVal: direct return of numpy [1]
+- Internal: getChildFromName: search limited to children
+- Internal: getChildFromType: search limited to children
+- Internal: moveNodeFromPaths: move a node from path1 to path2 in a pyTree
+==============================================================================
 Converter 3.1 [06/2020]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
 Optional: libhdf5 > 1.8.6 (hdf file format)

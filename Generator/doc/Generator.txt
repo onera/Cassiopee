@@ -1,4 +1,12 @@
 ===============================================================================
+Generator 3.2 [02/2021]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+Optional: pyTree interface requires Converter 3.2
+Optional: bbox requires Converter 3.2
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.2
+Optional: stitchedHat requires Transform 3.2
+Optional: mapSplit requires Converter, Transform, Geom 3.2
+===============================================================================
 Generator 3.1 [06/2020]
 Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
 Optional: pyTree interface requires Converter 3.1

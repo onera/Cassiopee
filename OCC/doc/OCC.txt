@@ -1,4 +1,7 @@
 ==============================================================================
+OCC 3.2 [02/2021]
+Require: C++ compiler, python > 2.4, KCore, Generator 3.2
+==============================================================================
 OCC 3.1 [06/2020]
 Require: C++ compiler, python > 2.4, KCore, Generator 3.1
 - support for STEP format

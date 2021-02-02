@@ -94,7 +94,7 @@ E_Int K_IO::GenIO::cedreread(
     if (ret == 1) skipLine(ptrFile);
     //printf("nbre de vertex=%d\n", nvertex);
 
-    ret = readInt(ptrFile, nfaces); 
+    ret = readInt(ptrFile, nfaces);
     if (ret == 1) skipLine(ptrFile);
     //printf("nbre de faces=%d\n", nfaces);
 
@@ -370,7 +370,7 @@ E_Int K_IO::GenIO::cedrewrite(
         fprintf(ptrFile, format1, 
                 j+1, f(j,posx), f(j,posy), f(j,posz)); 
       }
-
+      
       // Connectivite faces->noeuds
       fprintf(ptrFile, "2. FACES -> NODES : FACE no., number of NODES, no of NODE 1,...\n");
       pt = 2; E_Int nf;

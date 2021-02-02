@@ -224,6 +224,7 @@ def convertFile2PyTree(fileName, format=None, proc=None):
 # parallel merge on proc0 without zones
 def _merge__(t):
     tp = Internal.copyRef(t)
+    if not Internal.isTopTree(t): return tp
     if rank > 0:
         out = []
         for i in t[2]:
