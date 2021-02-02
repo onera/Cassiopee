@@ -288,8 +288,8 @@ def simplifySurf(a, angular_threshold = 1.e-12):
 # agglomerateSmallCells : agglomerate prescribed cells
 # IN: a: 3D NGON mesh
 # IN: vmin : volume threshold
-# IN: vratio : aspect ratio threshold
-# OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
+# IN: vratio : growth ratio threshold
+# OUT: returns a 3D NGON Mesh with less cells and with a smoother growth ratio
 #==============================================================================
 def agglomerateSmallCells(a, vmin=0., vratio=1000., angular_threshold = 1.e-12):
     """Agglomerates prescribed cells.
@@ -303,7 +303,7 @@ def agglomerateSmallCells(a, vmin=0., vratio=1000., angular_threshold = 1.e-12):
 # OUT: returns a 3D NGON Mesh
 #==============================================================================
 def agglomerateCellsWithSpecifiedFaces(a, pgs):
-    """Agglomerates cells to make disappear specified polygons
+    """Agglomerates cells to make disappear specified polygons.
     Usage: agglomerateCellsWithSpecifiedFaces(a)"""
     return intersector.agglomerateCellsWithSpecifiedFaces(a, pgs)
 
@@ -311,8 +311,8 @@ def agglomerateCellsWithSpecifiedFaces(a, pgs):
 # agglomerateNonStarCells : Agglomerates non-centroid-star-shaped cells
 # IN: a: 3D NGON mesh
 # IN: vmin : volume threshold
-# IN: vratio : aspect ratio threshold
-# OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
+# IN: vratio : growth ratio threshold
+# OUT: returns a 3D NGON Mesh with less cells and with a smoother growth ratio
 #==============================================================================
 def agglomerateNonStarCells(a, angular_threshold = 1.e-12):
     """Agglomerates non-centroid-star-shaped cells.
@@ -388,13 +388,36 @@ def adaptBox(a, box_ratio=10., smoothing_type=0, itermax=-1):
     """Adapts a bounding box to a cloud of interior points"""
     return intersector.adaptBox(a, box_ratio, smoothing_type, itermax)
 
+#==============================================================================
+# createHMesh : Returns a hierarchical zone hook 
+# IN: a : 3D NGON array
+# IN: subdiv_type : isotropic currently
+# OUT: Returns a hierarchical zone hook 
+#==============================================================================
 def createHMesh(a, subdiv_type = 0): # 0 : ISO, 1: ISO_HEX
+    """Returns a hierarchical zone hook.
+    Usage: createHMesh(a, subdiv_type= 0)"""
     return intersector.createHMesh(a, subdiv_type, None, 0, None, None, None)
 
+#==============================================================================
+# deleteHMesh : Releases a hierachical zone hook 
+# IN: hmesh : hierarchcial mesh hook
+# OUT: Nothing 
+#==============================================================================
 def deleteHMesh(hmesh):
+    """Releases a hierachical zone hook.
+    Usage: deleteHMesh(hooks)"""
     return intersector.deleteHMesh(hmesh)
 
+#==============================================================================
+# conformizeHMesh : Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
+# 
+# IN: hmesh : hierarchcial mesh hook
+# OUT: Nothing 
+#==============================================================================
 def conformizeHMesh(hmesh):
+    """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
+    Usage: conformizeHMesh(hooks)"""
     return intersector.conformizeHMesh(hmesh)
 
 def createSensor(hmesh, sensor_type = 0, smoothing_type=0 , itermax = -1):
@@ -519,11 +542,12 @@ def getOverlappingFaces(a1, a2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
 # IN : t1:              : NGON mesh (surface or volume).
 # IN : t2:              : NGON mesh (surface or volume).
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).
+# IN : only_externals:  : Boolean
 # OUT: 2 lists of colliding cells, the first one for a1, the seoncd one for a2.
 #==============================================================================
 def getCollidingCells(a1, a2, RTOL = 1.e-12, only_externals = False):
     """ Returns the list of cells in a1 and a2 that are colliding.
-   Usage: getOverlappingFaces(t1, t2, RTOL)"""
+   Usage: getCollidingCells(a1, a2, RTOL = 1.e-12, only_externals = False)"""
     return intersector.getCollidingCells(a1, a2, RTOL, only_externals)
 
 #==============================================================================
@@ -560,15 +584,15 @@ def getFaces(t1, pgids):
    return intersector.getFaces(t1, pgids)
 
 #==============================================================================
-# getCells              : returns the cells in t1 attached to polygons with ids in pgids.
+# getCells              : returns the cells in t1 having specified faces or cell ids.
 # IN : t1:              : NGON mesh (volume).
-# IN : pgids:           : polygon ids.
-# OUT: attached cells.
+# IN : ids:             : polygon ids.
+# OUT: selected cells.
 #==============================================================================
-def getCells(t1, pgids):
-   """ Returns the faces in t1 having their centroids in cents.
-   Usage: getCells(t1, pgids)"""
-   return intersector.getCells(t1, pgids)
+def getCells(t1, ids, are_face_ids = True):
+   """ Returns the cells in t1 having specified faces or cell ids.
+   Usage: getCells(t1, ids, are_face_ids)"""
+   return intersector.getCells(t1, ids, are_face_ids)
 
 #==============================================================================
 # getNthNeighborhood     : returns the list of cells in the N-thneighborhood of t cells given in ids 
@@ -621,7 +645,7 @@ def diffMesh(a1, a2):
 # OUT: Returns the first cell id that is non-closed
 #==============================================================================
 def checkCellsClosure(a):
-    """ Returns the first cell id that is open
+    """ Returns the first cell id that is open.
     Usage: checkCellsClosure(a)"""
     return intersector.checkCellsClosure(a)
 
@@ -632,18 +656,18 @@ def checkCellsClosure(a):
 # OUT: A message telling the cell id for which the Gauss flux is the greatest. 
 #==============================================================================
 def checkCellsFlux(a, PE):
-    """ Returns the cell id for which the Gauss flux is the greatest
+    """ Returns the cell id for which the Gauss flux is the greatest.
     Usage: checkCellsFlux(a, PE)"""
     return intersector.checkCellsFlux(a, PE)
 
 #==============================================================================
-# checkCellsVolume : Computes the volumes using the input orientation (ParentElement). 
+# checkCellsVolume : Computes the minimum volume using the input orientation (ParentElement). 
 #              
 # IN: a:               : 3D NGON mesh
 # OUT: A message telling the cell id for which the volume is the smallest. 
 #==============================================================================
 def checkCellsVolume(a, PE):
-    """ Returns the cell id for which the Gauss flux is the greatest
+    """ Computes the minimum volume using the input orientation (ParentElement).
     Usage: checkCellsVolume(a, PE)"""
     return intersector.checkCellsVolume(a, PE)
 
@@ -651,6 +675,8 @@ def checkCellsVolume(a, PE):
 # checkForDegenCells : check if there are any cell with less than 4 faces.
 #==============================================================================
 def checkForDegenCells(a):
+    """ Checks if there are any cell with less than 4 faces.
+    Usage: checkForDegenCells(a)"""
     return intersector.checkForDegenCells(a)
 
 #==============================================================================
@@ -671,15 +697,15 @@ def edgeLengthExtrema(a):
     return intersector.edgeLengthExtrema(a)
 
 #==============================================================================
-# computeAspectRatio : Returns a field of aspect ratio
+# computeGrowthRatio : Returns a field of growth ratio
 # IN: a    : 3D NGON mesh
 # IN: vmim : volume threshold
 # OUT: Returns the first cell id that is non-closed
 #==============================================================================
-def computeAspectRatio(a, vmin=0.):
-    """ Returns a field of aspect ratio.
-    Usage: computeAspectRatio(a, vmin)"""
-    return intersector.computeAspectRatio(a, vmin)
+def computeGrowthRatio(a, vmin=0.):
+    """ Returns a field of growth ratio.
+    Usage: computeGrowthRatio(a, vmin)"""
+    return intersector.computeGrowthRatio(a, vmin)
 
 
 
@@ -757,10 +783,24 @@ def convertBasic2NGONFaces(a):
     Usage: convertBasic2NGONFaces(a)"""
   return intersector.convertBasic2NGONFaces(a)
 
+#==============================================================================
+# centroids : Computes cells centroids in a
+# IN: a    : a 3D polyhedral mesh
+# OUT: a NODE aray
+#==============================================================================
 def centroids(a):
+    """ Computes cells centroids in a.
+    Usage: centroids(a)"""
     return intersector.centroids(a)
 
+#==============================================================================
+# volumes : Computes cells volumes in a
+# IN: a    : a 3D polyhedral mesh
+# OUT: a numpy 1D array of floats.
+#==============================================================================
 def volumes(a, algo=1, all_pgs_convex=False):
+    """ Computes cells volumes in a.
+    Usage: volumes(a, algo=1, all_pgs_convex=False)"""
     return intersector.volumes(a, algo, all_pgs_convex)
 
 def merge(a, s, tol = 1.e-15): #target arr, source arr

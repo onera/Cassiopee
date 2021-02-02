@@ -49,8 +49,9 @@ List of functions
 
 .. autosummary::
 
-   Intersector.selfX
    Intersector.getOverlappingFaces
+   Intersector.getCollidingCells
+   Intersector.selfX
 
 **-- Transformation Functions**
 
@@ -80,12 +81,23 @@ List of functions
   Intersector.assignData2Sensor
   Intersector.deleteSensor
 
+**-- Metric Functions**
+
+.. autosummary::
+
+  Intersector.edgeLengthExtrema
+  Intersector.volumes
+  Intersector.centroids
+  Intersector.computeGrowthRatio
+.. Intersector.statsSize
+
 **-- Extraction Functions**
 
 .. autosummary::
 
    Intersector.extractPathologicalCells
    Intersector.extractOuterLayers
+   Intersector.getCells
 ..   Intersector.extractUncomputables
 ..   Intersector.extractNthCell
 ..   Intersector.extractNthFace
@@ -95,16 +107,14 @@ List of functions
 
 .. autosummary::
 
-   
    Intersector.diffMesh
    Intersector.checkCellsClosure
    Intersector.checkCellsFlux
-   Intersector.computeAspectRatio
-   
+   Intersector.checkCellsVolume
+   Intersector.checkForDegenCells
+  
 .. Intersector.statsUncomputableFaces
-.. Intersector.statsSize
-.. Intersector.edgeLengthExtrema
-.. Intersector.checkForDegenCells
+ 
 .. Intersector.extrudeUserDefinedBC
    
 .. Intersector.removeBaffles
@@ -436,7 +446,7 @@ Main Functions
     :type            smoothing_type:  int
     :param           itermax:  maximum nb of generations
     :type            itermax:  int
-    :param           subdiv_type:  xxx
+    :param           subdiv_type:  type of adaptation, currently only isotropic (0).
     :type            subdiv_type:  int
     :param           hmesh:  structure that holds the hierarchical genealogy structure in case of successive adaptations on a mesh. Instantiated with Intersector.createHMesh
     :type            hmesh:  hook
@@ -642,7 +652,7 @@ Transformation Functions
 
     *Tips and Notes:*
 
-    * See :any:`computeAspectRatio` to get the definition of the computed aspect ratio.
+    * See :any:`computeGrowthRatio` to get the definition of the computed aspect ratio.
 
     *Example of use:*
 
@@ -758,30 +768,167 @@ Adaptation Specific Functions
 ---------------------------------------
 
 
-.. py:function::Intersector.createHMesh(a, subdiv_type = 0)
+.. py:function:: Intersector.createHMesh(a, subdiv_type= 0)
+
+    Builds a hierarchcial mesh structure for a and returns a hook 
+
+    :param           a:  Input points cloud
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           subdiv_type:  type of adaptation, currently only isotropic (0).
+    :type            subdiv_type:  int
+
+    *Example of use:*
+
+    * `createHMesh <Examples/Intersector/adaptCellsDynPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCellsDynPT.py
+
+    
+---------------------------------------
+
+.. py:function:: Intersector.deleteHMesh(hmesh)
+
+    Deletes a hierarchcial mesh
+
+    :param           hmesh:  hmesh hook
+    :type            hmesh:  hook
+
+    *Example of use:*
+
+    * `deleteHMesh <Examples/Intersector/adaptCellsDynPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCellsDynPT.py
+
 
 ---------------------------------------
 
-.. py:function::Intersector.deleteHMesh(hmesh)
+.. py:function:: Intersector.conformizeHMesh(a, hooks)
+
+    Converts the basic element leaves of a hierarchical mesh (`hooks` is a list of pointers to hiearchical zones) to a conformal polyhedral mesh.
+    Each hierarchical zone is referring to a zone in the original Pytree `t`. So the mesh is replaced in the returned tree and the BCs/Joins/Fields are transferred.
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           hooks:  list of pointers to hiearchical zones
+    :type            a:  hooks
+
+    *Example of use:*
+
+    * `conformizeHMesh <Examples/Intersector/adaptCellsDynPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCellsDynPT.py
 
 ---------------------------------------
 
-.. py:function::Intersector.conformizeHMesh(hmesh)
+.. py:function:: Intersector.createSensor(hmesh, sensor_type = 0, smoothing_type=0 , itermax = -1)
+
+    Creates a sensor and returns a hook on it.
+
+    :param           hmesh:  hmesh hook
+    :type            hmesh:  hook
+    :param           sensor_type:  type of sensor. geometrical (0), xensor (1), nodal sensor (2), cell sensor (3)
+    :type            sensor_type:  int
+    :param           smoothing_type:  first-neighborhood (0), shell-neighborhood(1)
+    :type            smoothing_type:  int
+    :param           itermax:  maximum nb of generations
+    :type            itermax:  int
+
+    *Example of use:*
+
+    * `createSensor <Examples/Intersector/adaptCellsDynPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCellsDynPT.py
 
 ---------------------------------------
 
-.. py:function::Intersector.createSensor(hmesh, sensor_type = 0, smoothing_type=0 , itermax = -1)
+.. py:function:: Intersector.assignData2Sensor(sensor, sensdata)
+
+    Assigns data to a sensor.
+
+    :param           sensor:  sensor hook
+    :type            sensor:  hook
+    :param           sensdata:  Data for the sensor
+    :type            sensdata:  [array, list of arrays] or [pyTree, base, zone, list of zones] for sensor type 0 and 1. Numpy of integers for other sensors.
+    
+    *Example of use:*
+
+    * `assignData2Sensor <Examples/Intersector/adaptCellsDynPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCellsDynPT.py
 
 ---------------------------------------
 
-.. py:function::Intersector.assignData2Sensor(hmesh, sensdata)
+.. py:function:: Intersector.deleteSensor(sensor)
+
+   Deletes a sensor
+
+   :param           sensor:  sensor hook
+   :type            sensor:  hook
+
+   *Example of use:*
+
+   * `deleteSensor <Examples/Intersector/adaptCellsDynPT.py>`_:
+
+   .. literalinclude:: ../build/Examples/Intersector/adaptCellsDynPT.py
+
 
 ---------------------------------------
 
-.. py:function::Intersector.deleteSensor(hmesh)
+Metric Functions
+---------------------------------------
 
+.. py:function:: Intersector.edgeLengthExtrema(a)
+
+    Returns the minimum edge length in a. 
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
 
 ---------------------------------------
+
+.. py:function:: Intersector.volumes(a)
+
+    Returns the cell volumes as a field (PyTree) or a numpy of floats. 
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+
+---------------------------------------
+
+.. py:function:: Intersector.centroids(a)
+
+    Returns the cell centroids as a points cloud. 
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+
+---------------------------------------
+
+.. py:function:: Intersector.computeGrowthRatio(a, vmin=0.)
+
+    For each cell, the growth ratio with each of its neighbors is computed as the ratio of the biggest volume to the smallest one.
+
+    The maximum over all the neighbors is chosen:
+
+    Aspect Ratio for Cell i  =  MAX_k ( MAX(vi, vk) / MIN(vi, vk) ) where k is a neighbor. 
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param        vmin:  volume threshold.
+    :type         vmin:  float
+
+    *Example of use:*
+
+    * `computeGrowthRatio (array) <Examples/Intersector/computeGrowthRatio.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/computeGrowthRatio.py
+
+    * `computeGrowthRatio (pyTree) <Examples/Intersector/computeGrowthRatioPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/computeGrowthRatioPT.py
+
+---------------------------------------
+
 
 Extraction Functions
 ---------------------------------------
@@ -837,6 +984,26 @@ Extraction Functions
 
 ---------------------------------------
 
+
+.. py:function:: Intersector.getCells(a, ids, are_face_ids = True)
+
+    Returns the cells in t1 having specified faces or cell ids.
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           ids:  face or cell ids
+    :type            ids:  numpy of ints
+    :param           are_face_ids:  Tells whether the ids are referring to faces or cells.
+    :type            are_face_ids:  boolean
+
+    *Example of use:*
+
+    See :any:`getCollidingCells` for an example.
+
+
+
+---------------------------------------
+
 .. py:function:: Intersector.getOverlappingFaces(t1, t2, RTOL, ps_min, dir2)
 
     Detects all the overlapping polygons in t1 and t2. Returns the result as a list sized as the number of zones in t1. Each entry gives 2 lists : the first is the pg ids in t1 ith-zone, the second is the pg ids in t2 (joined). 
@@ -847,8 +1014,10 @@ Extraction Functions
     :type            t2:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param           RTOL:  relative tolerance
     :type            RTOL:  float
-    :param           RTOL:  minimal dot product between normals of a pair of polygon to consider them as potentially overlapping.
-    :type            RTOL:  float
+    :param           ps_min:  minimal dot product between normals of a pair of polygon to consider them as potentially overlapping.
+    :type            ps_min:  float
+    :param           dir2:  given direction to compare t1's faces with. If None, t2's normals are used.
+    :type            dir2:  tuple
 
 
     *Example of use:*
@@ -868,6 +1037,31 @@ Extraction Functions
     1) getOverlappingFaces (m1, skin(m2)) where skin(m2) is the external polygonal skin of m2
 
     2) agglomerateCellsWithSpecifiedFaces on m1 with the above list of polygons
+
+---------------------------------------
+
+.. py:function:: Intersector.getCollidingCells(t1, t2, RTOL)
+
+    Returns the list of cells in t1 and t2 that are colliding. Possible combinations of mesh types for (t1,t2) are (volume,volume), (volume,surface), (surface, polyline).
+
+    :param           t1:  Input mesh
+    :type            t1:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           t2:  Input mesh
+    :type            t2:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           RTOL:  relative tolerance
+    :type            RTOL:  float
+    
+
+    *Example of use:*
+
+    * `getCollidingCells (array) <Examples/Intersector/getCollidingCells.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/getCollidingCells.py
+
+    * `getCollidingCells (pyTree) <Examples/Intersector/getCollidingCellsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/getCollidingCellsPT.py
+
 
 ---------------------------------------
 
@@ -935,31 +1129,45 @@ Check Functions
 
 ---------------------------------------
 
+.. py:function:: Intersector.checkCellsFlux(a)
 
-.. py:function:: Intersector.computeAspectRatio(a, vmin=0.)
-
-    For each cell, the aspect ratio with each of its neighbors is computed as the ratio of the biggest volume to the smallest one.
-
-    The maximum over all the neighbors is chosen:
-
-    Aspect Ratio for Cell i  =  MAX_k ( MAX(vi, vk) / MIN(vi, vk) ) where k is a neighbor. 
+    Computes the cell fluxes using the ParentElement elsA's node for orientation.
 
     :param           a:  Input mesh
     :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param        vmin:  volume threshold.
-    :type         vmin:  float
 
     *Example of use:*
 
-    * `computeAspectRatio (array) <Examples/Intersector/computeAspectRatio.py>`_:
+    * `checkCellsFlux (pyTree) <Examples/Intersector/checkCellsFluxPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Intersector/computeAspectRatio.py
-
-    * `computeAspectRatio (pyTree) <Examples/Intersector/computeAspectRatioPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Intersector/computeAspectRatioPT.py
+    .. literalinclude:: ../build/Examples/Intersector/checkCellsFluxPT.py
 
 ---------------------------------------
+
+.. py:function:: Intersector.checkCellsVolume(a)
+
+    Computes the minimum volume using the ParentElement elsA's node for orientation.
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+
+    *Example of use:*
+
+    * `checkCellsVolume (pyTree) <Examples/Intersector/checkCellsVolumePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/checkCellsVolumePT.py
+
+---------------------------------------
+
+.. py:function:: Intersector.checkForDegenCells(a)
+
+    Checks if there are any cell with less than 4 faces.
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+
+---------------------------------------
+
 
 Conversion Functions
 --------------------------

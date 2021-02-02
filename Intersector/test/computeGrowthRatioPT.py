@@ -13,5 +13,5 @@ tol = -0.5e-3
 
 t = XOR.booleanMinus(M1, M2, tol, preserve_right=1, solid_right=1, agg_mode=1)
 
-t=XOR.computeAspectRatio(t)
+t=XOR.computeGrowthRatio(t)
 C.convertPyTree2File(t, 'out.cgns')

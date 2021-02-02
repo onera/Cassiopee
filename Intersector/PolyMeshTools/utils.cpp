@@ -1367,7 +1367,7 @@ PyObject* K_INTERSECTOR::edgeLengthExtrema(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
-PyObject* K_INTERSECTOR::computeAspectRatio(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::computeGrowthRatio(PyObject* self, PyObject* args)
 {
 
   PyObject *arr;
@@ -3408,8 +3408,9 @@ PyObject* K_INTERSECTOR::getFaceIdsCollidingVertex(PyObject* self, PyObject* arg
 PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
 {
   PyObject *arr1, *arr2;
+  E_Int is_face_id{1};
 
-  if (!PyArg_ParseTuple(args, "OO", &arr1, &arr2)) return NULL;
+  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr1, &arr2, &is_face_id)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -3419,24 +3420,33 @@ PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
   if (err) return NULL;
 
   E_Int res=0;
-  E_Int* pgids=NULL;
+  E_Int* ids=NULL;
   E_Int size, nfld;
   if (arr2 != Py_None)
-    res = K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld, true/*shared*/, 0);
+    res = K_NUMPY::getFromNumpyArray(arr2, ids, size, nfld, true/*shared*/, 0);
 
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;
 
-  std::set<E_Int> sids(pgids, pgids+size);
-
   using ngon_type = ngon_t<K_FLD::IntArray>;
   ngon_type ng(cnt), ngo;
-  
-  std::vector<E_Int> elts;
-  ng.PHs.find_elts_with_facets(sids, elts);
 
-  std::vector<bool> keep(ng.PHs.size(), false);
-  for (size_t i=0; i < elts.size(); ++i) keep[elts[i]]=true;
+  std::vector<bool> keep;
+
+  if (is_face_id)
+  {
+    std::set<E_Int> sids(ids, ids+size);    
+    std::vector<E_Int> elts;
+    ng.PHs.find_elts_with_facets(sids, elts);
+
+    keep.resize(ng.PHs.size(), false);
+    for (size_t i=0; i < elts.size(); ++i) keep[elts[i]]=true;
+  }
+  else // cell id
+  {
+    keep.resize(ng.PHs.size(), false);
+    for (size_t i=0; i < size; ++i) keep[ids[i]]=true;
+  }
 
   Vector_t<E_Int> nids;
   ngon_type::select_phs(ng, keep, nids, ngo);

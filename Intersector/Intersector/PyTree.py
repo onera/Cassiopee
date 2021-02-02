@@ -1647,6 +1647,8 @@ def _closeCells(t):
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
 def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
+  """Adapts an unstructured mesh a with respect to a sensor.
+  Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
   tp = Internal.copyRef(t)
   _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor)
   return tp
@@ -1717,12 +1719,21 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
 def adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=None, sensor=None):
+    """Adapts an unstructured mesh a with respect to a sensor (DEPRECATED : use adaptCells with a sensor of type 2 instead.)
+    Usage: adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=None, sensor=None)"""
     tp = Internal.copyRef(t)
     _adaptCells(tp, sensdata, 2, smoothing_type, -1, subdiv_type, hmesh, sensor)
     return tp
 
+#==============================================================================
+# createHMesh : Returns a hierarchical zone hook 
+# IN: z : 3D NGON zone
+# IN: subdiv_type : isotropic currently
+# OUT: Returns a hierarchical zone hook 
+#==============================================================================
 def createHMesh(z, subdiv_type= 0):
-    
+    """Returns a hierarchical zone hook .
+    Usage: createHMesh(z, subdiv_type= 0)"""
     m = C.getFields(Internal.__GridCoordinates__, z)[0]
     bcptlists = getBCPtList(z)
 
@@ -1730,8 +1741,15 @@ def createHMesh(z, subdiv_type= 0):
     hmeshs.append(intersector.createHMesh(m, subdiv_type, bcptlists, 0, None, None, None))
     return hmeshs
 
+#==============================================================================
+# createHZones : Returns a hierarchical PyTree hook 
+# IN: t : 3D NGON PyTree
+# IN: subdiv_type : isotropic currently
+# OUT: Returns a hierarchical PyTree hook 
+#==============================================================================
 def createHZones(t, subdiv_type= 0):
-
+    """Returns a hierarchical PyTree hook.
+    Usage: createHZones(t, subdiv_type= 0)"""
     zones = Internal.getZones(t)
     hmeshs = []
 
@@ -1765,12 +1783,27 @@ def createHZones(t, subdiv_type= 0):
     
     return (hmeshs, com)
 
+#==============================================================================
+# deleteHMesh : Releases a hierachical zone hook 
+# IN: hook : Python hook
+# OUT: Nothing 
+#==============================================================================
 def deleteHMesh(hooks):
+    """Releases a hierachical zone hook.
+    Usage: deleteHMesh(hooks)"""
     for h in hooks:
       if h == None : continue
       intersector.deleteHMesh(h)
 
+#==============================================================================
+# createSensor : Returns a sensor hook 
+# IN: t : 3D NGON PyTree
+# IN: subdiv_type : isotropic currently
+# OUT: Returns a hierarchical PyTree hook 
+#==============================================================================
 def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1):
+    """Returns a sensor hook.
+    Usage: createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1)"""
     sensors = []
     for hmesh in hmeshs:
       if hmesh == None : 
@@ -1779,15 +1812,28 @@ def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1):
         sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax))
     return sensors
 
+#==============================================================================
+# deleteSensor : Releases a sensor hook
+# IN: hook : Python hook
+# OUT: Nothing 
+#==============================================================================
 def deleteSensor(hooks):
+    """Releases a sensor hook.
+    Usage: deleteSensor(hooks)"""
     for h in hooks:
       if h == None : continue
       intersector.deleteSensor(h)
 
+#==============================================================================
+# assignData2Sensor : Assigns data to a sensor
+# IN: hook : Python hook
+# OUT: Nothing 
+#==============================================================================
 def assignData2Sensor(hooks, sensdata):
+  """Assigns data to a sensor.
+    Usage: assignData2Sensor(hooks, sensdata)"""
   sens_data_typ = InputType(sensdata)
   #print(sens_data_typ)
-
   if sens_data_typ == -1 :
     print('assignData2Sensor (geom) ERROR : wrong input data for sensor')
     return 1
@@ -1838,13 +1884,30 @@ def createCom(t, subdiv_type = 0, nbz = 1):
 def deleteCom(hook):
     intersector.deleteCom(hook)
         
+#==============================================================================
+# conformizeHMesh : Converts the basic element leaves of a hierarchical mesh (hooks is a list of hooks to hiearchical zones) to a conformal polyhedral mesh.
+#                   Each hiearchcial zone is referring to a zone in the original mesh t. So the mesh is replaced in the returned tree and the BCs/Joins/Fields are transferred.
+# IN: t : PyTree before adaptation
+# IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
+# OUT: Nothing 
+#==============================================================================
 def conformizeHMesh(t, hooks):
+    """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
+    Usage: conformizeHMesh(t, hooks)"""
     tp = Internal.copyRef(t)
     _conformizeHMesh(tp, hooks)
     return tp
 
-#
+#==============================================================================
+# _conformizeHMesh : Converts the basic element leaves of a hierarchical mesh (hooks is a list of hooks to hiearchical zones) to a conformal polyhedral mesh.
+#                   Each hiearchcial zone is referring to a zone in the original mesh t. So the mesh is replaced in the tree and the BCs/Joins/Fields are transferred.
+# IN: t : PyTree before adaptation
+# IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
+# OUT: Nothing 
+#==============================================================================
 def _conformizeHMesh(t, hooks):
+    """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
+    Usage: _conformizeHMesh(t, hooks)"""
     nb_hooks = len(hooks)
     zones = Internal.getZones(t)
     nb_zones = len(zones)
@@ -2191,14 +2254,15 @@ def getFaceIdsCollidingVertex(t1, vtx):
    return pgids
 
 #==============================================================================
-# getCells              : returns the cells in t1 attached to polygons with ids in pgids.
+# getCells              : Returns the cells in t1 having faces or cell ids
 # IN : t1:              : NGON mesh (volume).
-# IN : pgids:           : polygon ids.
+# IN : ids:             : face or cell ids.
+# IN : are_face_ids:    : boolean to tell if ids are referring to faces or cells.
 # OUT: attached cells.
 #==============================================================================
-def getCells(t1, pgids):
-   """ Returns the cells in t1 attached to polygons with ids in pgids.
-   Usage: getCells(t1, pgids)"""
+def getCells(t1, ids, are_face_ids = True):
+   """ Returns the cells in t1 having faces or cell ids.
+   Usage: getCells(t1, pgids, are_face_ids = True)"""
 
    zones1 = Internal.getZones(t1)
    cells = []
@@ -2207,7 +2271,7 @@ def getCells(t1, pgids):
    for z in zones1:
     i+=1
     m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    cells .append(C.convertArrays2ZoneNode('cell%s'%i, [XOR.getCells(m, pgids[i])]))
+    cells .append(C.convertArrays2ZoneNode('cell%s'%i, [XOR.getCells(m, ids[i], are_face_ids)]))
 
    return cells
 
@@ -2218,7 +2282,7 @@ def getCells(t1, pgids):
 # OUT: attached cells.
 #==============================================================================
 def getFaces(t1, pgids):
-   """ Returns the cells in t1 attached to polygons with ids in pgids.
+   """ Returns the faces in t1 with ids in pgids.
    Usage: getFaces(t1, pgids)"""
 
    zones1 = Internal.getZones(t1)
@@ -2328,9 +2392,13 @@ def selfX(t):
     return C.convertArrays2ZoneNode('selfX', [m])
 
 #==============================================================================
-# checkCellsClosure : XXX
+# checkCellsClosure : Returns the first cell id that is non-closed.
+# IN: t:               : 3D NGON mesh
+# OUT: Returns the first cell id that is non-closed
 #==============================================================================
 def checkCellsClosure(t):
+    """ Returns the first cell id that is open
+    Usage: checkCellsClosure(a)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     return XOR.checkCellsClosure(m)
 
@@ -2338,7 +2406,8 @@ def checkCellsClosure(t):
 # checkCellsFlux : Computes the cell fluxes using the ParentElement node
 #==============================================================================
 def checkCellsFlux(t):
-    """ XXX"""
+    """ Returns the cell id for which the Gauss flux is the greatest
+    Usage: checkCellsFlux(a, PE)"""
     import sys;
     zones = Internal.getZones(t)
     maxflux=-sys.float_info.max
@@ -2446,16 +2515,16 @@ def edgeLengthExtrema(t):
     return Lmin
 
 #==============================================================================
-# computeAspectRatio : Returns a field of aspect ratio
+# computeGrowthRatio : Returns a field of aspect ratio
 # IN: t    : 3D NGON mesh
 # IN: vmim : volume threshold
 # OUT: Returns the first cell id that is non-closed
 #==============================================================================
-def computeAspectRatio(t, vmin=0.):
+def computeGrowthRatio(t, vmin=0.):
     """ Returns a field of aspect ratio.
-    Usage: computeAspectRatio(t, vmin)"""
+    Usage: computeGrowthRatio(t, vmin)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    ar = XOR.computeAspectRatio(m, vmin)
+    ar = XOR.computeGrowthRatio(m, vmin)
     z = C.convertArrays2ZoneNode('w_aspect', [m])
     C.setFields([ar], z, 'centers', False)
     return z

@@ -94,7 +94,7 @@ static PyMethodDef Pyintersector [] =
   {"statsUncomputableFaces", K_INTERSECTOR::statsUncomputableFaces, METH_VARARGS},
   {"statsSize", K_INTERSECTOR::statsSize, METH_VARARGS},
   
-  {"computeAspectRatio", K_INTERSECTOR::computeAspectRatio, METH_VARARGS},
+  {"computeGrowthRatio", K_INTERSECTOR::computeGrowthRatio, METH_VARARGS},
   {"centroids", K_INTERSECTOR::centroids, METH_VARARGS},
   {"volumes", K_INTERSECTOR::volumes, METH_VARARGS},
   {"volume", K_INTERSECTOR::volume, METH_VARARGS},

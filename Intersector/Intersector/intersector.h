@@ -95,7 +95,7 @@ namespace K_INTERSECTOR
   PyObject* statsUncomputableFaces(PyObject* self, PyObject* args);
   PyObject* statsSize(PyObject* self, PyObject* args);
   
-  PyObject* computeAspectRatio(PyObject* self, PyObject* args);
+  PyObject* computeGrowthRatio(PyObject* self, PyObject* args);
 
   PyObject* centroids(PyObject* self, PyObject* args);
   PyObject* volumes(PyObject* self, PyObject* args);
