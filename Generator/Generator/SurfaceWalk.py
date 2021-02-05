@@ -23,11 +23,11 @@ except: raise ImportError("SurfaceWalk: requires Converter, Geom, Transform, Pos
 # starting from a curve c on the surface
 #=============================================================================
 def buildExtension__(c, surfaces, dh, niter=0):
-    vars = c[0]
+    #vars = c[0]
     c = C.convertBAR2Struct(c)
     imax = c[1].shape[1]
     for nos in range(len(surfaces)):
-        if (len(surfaces[nos]) == 5): surfaces[nos] = C.convertArray2Hexa(surfaces[nos])
+        if len(surfaces[nos]) == 5: surfaces[nos] = C.convertArray2Hexa(surfaces[nos])
     surfaces = T.join(surfaces)
     surfaces = G.close(surfaces)
     normals = G.getSmoothNormalMap(surfaces, niter=niter)
@@ -100,7 +100,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
             if indc != -1:
                 # redistribution des contraintes
                 L1 = D.getLength(cons); hp = hp0/L1 # ramene a [0,1]
-                nds = int(1./hp)+1; 
+                nds = int(1./hp)+1
                 ds = G.cart((0,0,0),(hp,1,1),(nds,1,1))
                 if ds[2] > 1: constraints2.append(G.map(cons, ds))
                 else: constraints2.append(cons)

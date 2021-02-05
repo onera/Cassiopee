@@ -1,3 +1,4 @@
+"""Module to estimate mesh size."""
 import math
 # Estimation de la taille de la premiere maille a imposer sur le maillage
 # INPUT

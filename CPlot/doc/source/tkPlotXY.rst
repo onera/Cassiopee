@@ -107,7 +107,7 @@ Several methods are available to set, update or even remove data :
     # Display data
     for zone in graphDesktop.data.keys():
         for var in graphDesktop.data[zone].keys():
-            print zone, ' : ', var, ' : ',graphDesktop.data[zone][var]
+            print(zone, ' : ', var, ' : ',graphDesktop.data[zone][var])
 
 
 .. code-block:: python
@@ -138,7 +138,7 @@ Several methods are available to set, update or even remove data :
     # Display data
     for zone in graphDesktop.data.keys():
         for var in graphDesktop.data[zone].keys():
-            print zone, ' : ', var, ' : ',graphDesktop.data[zone][var]
+            print(zone, ' : ', var, ' : ',graphDesktop.data[zone][var])
 
 Graph creation
 --------------
@@ -615,10 +615,10 @@ Complete example
    graphDesktop.setData(tree)
    if DEBUG_CHECKDATA:
        for z in graphDesktop.data.keys():
-           print '*-'*15
-           print 'Zone : ',z
+           print('*-'*15)
+           print('Zone : ',z)
            for k in graphDesktop.data[z].keys():
-               print '---> Var : ',k
+               print('---> Var : ',k)
 
    ########################### Graph creation
    # Create First Graph

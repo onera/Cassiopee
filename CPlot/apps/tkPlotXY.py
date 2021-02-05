@@ -13561,7 +13561,7 @@ class Desktop():
             for zone in Internal.getNodesFromType1(base,'Zone_t'):
                 # Grab GridCoordinates
                 zonename = Internal.getName(zone)
-                ## Get GridCoorinates nodes
+                # Get GridCoordinates nodes
                 try:
                     gridcoord = Internal.getNodesFromType1(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):

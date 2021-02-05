@@ -463,6 +463,7 @@ def map(array, d, dir=0):
     
 # map sur une courbe
 def map1d(array, d):
+    """Map on a curve."""
     return generator.map(array, d)
 
 # map par lignes dans la direction dir
@@ -1153,9 +1154,9 @@ def gencartmb(bodies, h, Dfar, nlvl):
         xmin = ref[1][0,0] + (pmin[0]-1)*Href
         ymin = ref[1][1,0] + (pmin[1]-1)*Href
         zmin = ref[1][2,0] + (pmin[2]-1)*Href
-        xmax = ref[1][0,0] + (pmax[0]-1)*Href
-        ymax = ref[1][1,0] + (pmax[1]-1)*Href
-        zmax = ref[1][2,0] + (pmax[2]-1)*Href
+        #xmax = ref[1][0,0] + (pmax[0]-1)*Href
+        #ymax = ref[1][1,0] + (pmax[1]-1)*Href
+        #zmax = ref[1][2,0] + (pmax[2]-1)*Href
         hloc = 2**(level-1)
         Ni = (pmax[0]-pmin[0])*hloc+1
         Nj = (pmax[1]-pmin[1])*hloc+1
