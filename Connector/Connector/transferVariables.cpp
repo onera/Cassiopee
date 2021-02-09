@@ -235,11 +235,23 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     E_Float* yt = donorFields.begin(posyd);
     E_Float* zt = donorFields.begin(poszd);
     E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
+    /*
     E_Float hi = xt[1]-xt[0];
     E_Float hj = yt[imd]-yt[0];
     E_Float hk;
     if (kmd == 1) hk = 1; // Cas 2d
-    else hk = zt[imd*jmd]-zt[0];
+    else hk = zt[imd*jmd]-zt[0];*/
+    // SP : on prend le pt milieu si ghost cells sur les frontieres
+    E_Float imds2 = E_Int(imd/2);
+    E_Float jmds2 = E_Int(jmd/2);
+    E_Float kmds2 = E_Int(kmd/2);
+    if ( kmd == 1) kmds2 = 1;
+    E_Int inds2 = imds2-1 + (jmds2-1)*imd + (kmds2-1)*imd*jmd;
+    E_Float hi = xt[inds2+1]-xt[inds2];
+    E_Float hj = yt[inds2+imd]-yt[inds2];
+    E_Float hk;
+    if (kmd == 1) hk = 1; // Cas 2d
+    else hk = zt[inds2+imd*jmd]-zt[inds2];
     interpData = new K_INTERP::InterpCart(imd,jmd,kmd,hi,hj,hk,x0,y0,z0);
   }
 

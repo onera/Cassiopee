@@ -5026,7 +5026,41 @@ def getBCs(t, reorder=True, extrapFlow=True):
           BCs.append(zBC); BCNames.append(name); BCTypes.append(typeGC)
   return (BCs, BCNames, BCTypes)
 
-# Merge les BCs sur une zone non structuree
+# merge GridConnectivity nodes (with the same receptor/donor zones)
+# Warning: different GridConnectivityProperty are not considered yet
+def _mergeGCs(z):
+  dictOfGCs={}
+  nodes = Internal.getNodesFromType2(z,'GridConnectivity_t')
+  for gc in nodes:
+      gcname = Internal.getName(gc)
+      zoppname = Internal.getValue(gc)
+      gctype = Internal.getNodeFromType(gc,'GridConnectivityType_t')
+      gctype = Internal.getValue(gctype)
+      if gctype == 'Abutting1to1':
+          #GCP = Internal.getNodeFromType(gc,'GridConnectivityProperty_t')
+          PL = Internal.getNodeFromName(gc,'PointList')[1]
+          PLD = Internal.getNodeFromName(gc,'PointListDonor')[1]
+          if zoppname not in dictOfGCs:
+              dictOfGCs[zoppname]=[PL,PLD,gcname]
+          else:
+              PLN = dictOfGCs[zoppname][0]
+              PLDN = dictOfGCs[zoppname][1]
+              dictOfGCs[zoppname][0]=numpy.concatenate([PLN,PL],axis=1)
+              dictOfGCs[zoppname][1]=numpy.concatenate([PLDN,PLD],axis=1)
+              Internal._rmNodesFromName(z,gcname)   
+     
+  for zoppname in dictOfGCs:
+      PL = dictOfGCs[zoppname][0]
+      PLD = dictOfGCs[zoppname][1]
+      gcname= dictOfGCs[zoppname][2]
+      gcnode = Internal.getNodeFromName(z,gcname)
+      PLNode = Internal.getNodeFromName(gcnode,'PointList')
+      PLDNode = Internal.getNodeFromName(gcnode,'PointListDonor')
+      PLNode[1]=PL
+      PLDNode[1] = PLD
+  return None
+
+# Merge BCs on an unstructured zone
 def _mergeBCs(z):
   bcs = getBCs(z)
   BCs=bcs[0]; BCNames=bcs[1]; BCTypes=bcs[2]

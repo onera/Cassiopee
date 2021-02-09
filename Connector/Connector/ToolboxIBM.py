@@ -464,8 +464,9 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             C._rmVars(o, ['centers:indicator', 'centers:cellN', 'centers:vol', 'centers:cellNBody'])
 
         #if expand > 0: C.convertPyTree2File(o, 'startOctree.cgns')
-
-        if expand == 1:
+        if expand == 0:
+            G._expandLayer(o, level=0, corners=1, balancing=1)
+        elif expand == 1:
             vmint = 31
             if vmin < vmint:
                 if rank==0: print('buildOctree: octree finest level expanded (expandLayer activated).')

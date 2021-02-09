@@ -8,9 +8,11 @@ import Connector.ToolboxIBM as TIBM
 import Connector.PyTree as X
 import Transform.PyTree as T
 import numpy 
+
 # Generates in parallel a Cartesian mesh
 # if ext=0, match and nearmatch joins are not computed
-def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, tbox=None, snearsf=None, ext=2, dimPb=3, sizeMax=1000000):
+def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, tbox=None, snearsf=None, 
+                     ext=2, dimPb=3, sizeMax=1000000, expand=0):
     
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -34,7 +36,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     test.printMem('>>> Octree unstruct [start]')
     # Build octree
     o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to,
-                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
+                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank, expand=expand)
     # addRefinementZones
     if tbox is not None:
         o = addRefinementZones(o, tbox, snearsf, vmin=vmin, dim=dimPb)
