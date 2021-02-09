@@ -1,8 +1,4 @@
-"""CFD Post-processing module.
-"""
-#
-# Python Interface to CFD post-processing using pyTrees
-#
+"""CFD Post-processing module."""
 from . import Post
 from . import post
 __version__ = Post.__version__
@@ -741,7 +737,7 @@ def computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
     _computeVariables2(tp, varList, gamma, rgp, s0, betas, Cs, mus, Ts)
     return tp
 
-def _computeVariables2(t, varList,gamma=-1., rgp=-1., s0=0., betas=-1.,
+def _computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
                           Cs=-1., mus=-1., Ts=-1.):
     if gamma < 0:
         try: gamma = C.getState(t,'gamma')
@@ -1028,7 +1024,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
     for noz1 in range(nzones1):
         if tag[noz1] == 0: extra = True; break
 
-    if extra == True and addExtra == 1:
+    if extra and addExtra == 1:
         print('Warning: importVariables: extra grid(s) in t2 detected, added to EXTRA base.')
         C._addBase2PyTree(a2, 'EXTRA', 3)
         base = Internal.getNodesFromName1(a2, 'EXTRA')

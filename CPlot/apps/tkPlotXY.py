@@ -12414,13 +12414,17 @@ class DesktopFrameTK(TK.Frame):
     # ---------------------------------------------------------- setDataWithTree
     def setDataWithTree(self, t):
         tmp = {}
-        for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
+        bases = Internal.getNodesFromType1(t, 'CGNSBase_t')
+        if bases == []: # list of zones or zone
+            tp = C.newPyTree(['Base',Internal.getZones(t)])
+            bases = Internal.getNodesFromType1(tp, 'CGNSBase_t')
+        for base in bases:
             basename = Internal.getName(base)
             ## Loop on zones
             for zone in Internal.getNodesFromType1(base, 'Zone_t'):
                 # Grab GridCoordinates
                 zonename = Internal.getName(zone)
-                ## Get GridCoorinates nodes
+                ## Get GridCoordinates nodes
                 try:
                     gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):

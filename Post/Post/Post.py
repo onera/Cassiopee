@@ -1,10 +1,7 @@
-"""Post-processing of solutions.
-"""
+"""Post-processing of solutions."""
 __version__ = '3.2'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Christelle Wervaecke, Xavier Juvigny"
-#
-# Python Interface for post-processing tools
-#
+
 from . import post
 import numpy
 try: import Converter
