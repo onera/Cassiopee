@@ -89,14 +89,16 @@ List of functions
     Converter.Internal.getType
     Converter.Internal.getChildren
     Converter.Internal.getValue
+    Converter.Internal.getVal
     Converter.Internal.getPath
-
     Converter.Internal.getNodesFromName
     Converter.Internal.getNodeFromName
     Converter.Internal.getByName
+    Converter.Internal.getChildFromName
     Converter.Internal.getNodesFromType
     Converter.Internal.getNodeFromType
     Converter.Internal.getByType
+    Converter.Internal.getChildFromType
     Converter.Internal.getNodesFromNameAndType
     Converter.Internal.getNodeFromNameAndType
     Converter.Internal.getNodesFromValue
@@ -138,7 +140,7 @@ List of functions
     Converter.Internal.copyValue
     Converter.Internal.copyNode
 
-**-- Add/remove nodes**
+**-- Add/remove/move nodes**
 
 .. autosummary::
 
@@ -149,7 +151,7 @@ List of functions
     Converter.Internal.rmNodesByType
     Converter.Internal.rmNodesByNameAndType
     Converter.Internal.rmNodesByValue
-
+    Converter.Internal.moveNodeFromPaths
 
 **-- Modify nodes**
 
@@ -160,7 +162,7 @@ List of functions
     Converter.Internal.sortByName
     Converter.Internal.appendBaseName2ZoneName
     Converter.Internal.groupBCByBCType
-
+    
 **-- Create specific CGNS nodes**
 
 .. autosummary::
@@ -201,6 +203,7 @@ List of functions
     Converter.Internal.newGridConnectivityType
     Converter.Internal.newGridConnectivityProperty
     Converter.Internal.newPeriodic
+    Converter.Internal.newZoneSubRegion 
     Converter.Internal.newOversetHoles 
     Converter.Internal.newFlowEquationSet
     Converter.Internal.newGoverningEquations
@@ -602,6 +605,25 @@ Acess nodes
 
 ---------------------------------------------------------------------------------
 
+.. py:function:: Converter.Internal.getVal(node)
+
+    Return value of node always as a numpy. Completely equivalent to node[1].
+   
+    :param node:  input node
+    :type  node:  pyTree node
+    :return: node value
+    :rtype: numpy array
+
+    *Example of use:*
+
+    * `Return numpy value of pyTree node (pyTree) <Examples/Converter/getValPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getValPT.py
+
+    .. note:: new in version 3.2.
+
+---------------------------------------------------------------------------------
+
 .. py:function:: Converter.Internal.getPath(t, node, pyCGNSLike=False)
 
     Return path of node in t. Path is a string describing the node names from
@@ -693,6 +715,26 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getByNamePT.py
 
+---------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getChildFromName(node)
+
+    Return the first child of node matching given name (one level search). 
+    If not found, return None.
+   
+    :param node:  input node
+    :type  node:  pyTree node
+    :return: found node or None
+    :rtype: pyTree node
+
+    *Example of use:*
+
+    * `Return first child of name (pyTree) <Examples/Converter/getChildFormNamePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getChildFromNamePT.py
+
+    .. note:: new in version 3.2.
+
 -----------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getNodesFromType(t, ntype)
@@ -759,6 +801,25 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getByTypePT.py
 
+---------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getChildFromType(node)
+
+    Return the first child of node matching given type (one level search). 
+    If not found, return None.
+   
+    :param node:  input node
+    :type  node:  pyTree node
+    :return: found node or None
+    :rtype: pyTree node
+
+    *Example of use:*
+
+    * `Return first child of type (pyTree) <Examples/Converter/getChildFormTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getChildFromTypePT.py
+
+    .. note:: new in version 3.2.
 
 -----------------------------------------------------------------------------
 
@@ -1511,6 +1572,31 @@ Add/remove node
 
     .. literalinclude:: ../build/Examples/Converter/rmNodesByValuePT.py
 
+
+----------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.moveNodeFromPaths(t, path1, path2) 
+
+    Move node located at path1 in t to path2.
+
+    Exists also as in place version (_moveNodeFromPaths) that modifies t and returns None.
+
+    :param t: input node
+    :type  t: pyTree node
+    :param path1: initial path of node to move
+    :type  path1: string
+    :param path2: destination path
+    :type  path2: string
+    :return: reference copy of t with node moved
+    :rtype: same as t
+
+    .. note:: new in version 3.2.
+
+    *Example of use:*
+
+    * `Move node from path1 to path2 (pyTree) <Examples/Converter/moveNodeFromPathsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/moveNodeFromPathsPT.py
 
 
 Modify nodes
@@ -2435,6 +2521,37 @@ Create specific CGNS nodes
 
     .. literalinclude:: ../build/Examples/Converter/newPeriodicPT.py
 
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.newZoneSubRegion(name='SubRegion', pointRange=None, pointList=None, bcName=None, gcName=None, gridLocation=None, parent=None)
+
+    Create a ZoneSubRegion node. 
+    If parent is not None, attach it to parent node.
+
+    :param name: name of node
+    :type name: string
+    :param pointRange: list of point indices ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
+    :type pointRange: list of integers
+    :param pointList: list of point indices (for unstructured grid)
+    :type pointList: list of integers
+    :param bcName:  name of the BC node to which is connected the ZoneSubRegion
+    :type bcName: string
+    :param gcName: name of the GridConnectivity node to which is connected the ZoneSubRegion
+    :type gcName: string
+    :param gridLocation: location of zoneSubRegion data  (Vertex, FaceCenter, CellCenter…)
+    :type gridLocation: string
+    :param parent: optional parent node
+    :type parent: pyTree node
+    :return: created node
+    :rtype: pyTree node
+
+    *Example of use:*
+
+    * `Create a new ZoneSubRegion node (pyTree) <Examples/Converter/newZoneSubRegionPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/newZoneSubRegionPT.py
+
 ---------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.newOversetHoles(name='OversetHoles', pointRange=None, pointList=None, parent=None)   
@@ -2442,8 +2559,8 @@ Create specific CGNS nodes
     Create a OversetHoles node. 
     If parent is not None, attach it to parent node.
 
-    :param name: coordinates of the rotation center
-    :type name: list of 3 floats
+    :param name: name of the node
+    :type name: string
     :param pointRange: list of point indices ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
     :type pointRange: list of integers
     :param pointList: list of point indices (for unstructured grid)

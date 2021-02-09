@@ -28,6 +28,7 @@ size = KCOMM.size
 
 # version collective
 def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
+    """Write zones in parallel."""
     seq(Distributed.writeZones, t, fileName, format, proc, zoneNames, links)
     return None
         
