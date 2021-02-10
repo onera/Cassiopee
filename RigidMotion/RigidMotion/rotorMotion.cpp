@@ -409,7 +409,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
               s0.begin(), omega.begin());
 
   vector<PyArrayObject*> hook;
-  char* zoneName = K_PYTREE::getNodeName(zone, hook);
+  //char* zoneName = K_PYTREE::getNodeName(zone, hook);
   // printf(" MATRICE RMZ : \n");
   // for (E_Int no = 0; no < 3; no++)
   //   printf(" %f %f %f \n", rotMat(no,1), rotMat(no,2), rotMat(no,3));

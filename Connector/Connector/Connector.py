@@ -169,8 +169,9 @@ def maximizeBlankedCells(a, depth=2, dir=1, cellNName='cellN'):
 def _setHoleInterpolatedPoints(cellN, depth=2, dir=0, cellNName='cellN'):
     """Set interpolated points cellN=2 around cellN=0 points."""
     if depth == 0: return None
-    try: import Converter
-    except: raise ImportError("_setHoleInterpolatedPoints: requires Converter module.")
+    if depth < 0:
+        try: import Converter
+        except: raise ImportError("_setHoleInterpolatedPoints: requires Converter module.")
     loc = 'nodes'
     if len(cellN) == 4:
         if cellN[3][-1]=='*': loc = 'centers'
@@ -536,7 +537,7 @@ def getOversetHolesInterpNodes__(z, depth=2, dir=0, cellNName='cellN'):
     equal to 0."""
     return connector.getOversetHolesInterpNodes(z, depth, dir, cellNName)
 
-# version getFromArray2: ne marche qu en structure
+# version getFromArray2: ne marche qu'en structure
 def _getOversetHolesInterpNodes__(z, depth=2, dir=0, cellNName='cellN'):
     """Set cellN=2 for the fringe of interpolated nodes around nodes of celln
     equal to 0."""

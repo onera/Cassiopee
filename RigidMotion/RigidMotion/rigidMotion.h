@@ -30,7 +30,6 @@ namespace K_RIGIDMOTION
   //Return a list of numpys: [r0,x0,rotMat,s0]
   PyObject* _computeRotorMotionInfo(PyObject* self, PyObject* args);
   PyObject* evalSpeed3(PyObject* self, PyObject* args);
-
-  
+  PyObject* copyCoords(PyObject* self, PyObject* args);
 }
 #endif

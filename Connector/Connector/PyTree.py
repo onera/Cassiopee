@@ -673,7 +673,7 @@ def getPeriodicInfo(z,rotationCenter,rotationAngle,translation,signT,signR):
     
 
 #============================================================================================
-# duplique les zones par periodicite . En rotation, on suppose ici que l'angle est en degres
+# duplique les zones par periodicite. En rotation, on suppose ici que l'angle est en degres
 #============================================================================================
 def duplicatePeriodicZones__(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.],
                              translation=[0.,0.,0.], tol=1.e-6, dim=3):
@@ -1422,7 +1422,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
             intersectionsDict.update(periodicZonesIntersectionDict)
 
     # Creation of extended centers meshes
-    allExtCenters = []; allCenters = []; zones = [];
+    allExtCenters = []; allCenters = []; zones = []
     for nob1 in range(nbases):
         zones.append(Internal.getNodesFromType1(bases[nob1], 'Zone_t'))
         nodesPerBase = C.getFields(Internal.__GridCoordinates__,zones[nob1])
@@ -1809,6 +1809,7 @@ def _applyBCOverlaps(a, depth=2, loc='centers', val=2, cellNName='cellN', checkC
 #==============================================================================
 def setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
                               cellNName='cellN'):
+    """Set cellN=2 around cellN=0 points."""
     count = 0
     a = setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
     count += 1
@@ -1853,6 +1854,7 @@ def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
 
 def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
                                cellNName='cellN', addGC=True):
+    """Set cellN=2 around cellN=0 points."""
     count = 0
     _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
 

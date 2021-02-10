@@ -190,12 +190,13 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct(E_Int imc, E_Int jmc, E_Int 
   E_Int im1, ip1, jm1, jp1, km1, kp1;
   E_Int km1imjmc, kimjmc, kp1imjmc;
   E_Int nindices;
-  //On n etend que les points masques (blankedcells = -1)
+  
+  // On n'etend que les points masques (blankedcells = -1)
   if (dir == 0) //directionnel
   {
     if (kmc == 1) 
     {
-      nindices = 4;      
+      nindices = 4;  
       vector<E_Int> indices(nindices);
       for (E_Int d = 1; d <= depth; d++)
       {
@@ -242,7 +243,7 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct(E_Int imc, E_Int jmc, E_Int 
           indices[0] = im1 + j*imc + k*imjmc;
           indices[1] = ip1 + j*imc + k*imjmc;
           indices[2] = i + jm1*imc + k*imjmc;
-          indices[3] = i + jp1*imc + k*imjmc;      
+          indices[3] = i + jp1*imc + k*imjmc;
           indices[4] = i + j*imc + km1*imjmc;      
           indices[5] = i + j*imc + kp1*imjmc;
 
@@ -479,7 +480,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
                                      field, im, jm, km, cn, eltType); 
   if (res != 1)
   {    
-    if ( res == 2)
+    if (res == 2)
     {
       PyErr_SetString(PyExc_TypeError,
                       "_getOversetHolesInterpNodes: not yet implemented for unstructured zones.");
@@ -487,7 +488,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
     }
     else
       PyErr_SetString(PyExc_TypeError,
-                      "getOversetHolesInterpNodes: first argument is not recognized");
+                      "_getOversetHolesInterpNodes: first argument is not recognized");
     return NULL;
   }
 
@@ -509,22 +510,27 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
   E_Int npts = field->getSize();
   FldArrayI blankedCells(npts); blankedCells.setAllValuesAt(1);
   FldArrayI cellNatFld(npts); cellNatFld.setAllValuesAt(1);
-  for (E_Int ind = 0; ind < npts; ind++)
+
+#pragma omp parallel
   {
-    if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
-    else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+#pragma omp for
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+      if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
+      else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+    }
   }
 
   searchMaskInterpolatedCellsStruct(im, jm, km, depth, dir, blankedCells, cellNatFld);
 
-#pragma omp parallel shared(cellNp, cellNatFld)
+#pragma omp parallel
   {
 # pragma omp for
-  for (E_Int ind = 0; ind < npts; ind++)
-  {
-    if (cellNatFld[ind] == 0) cellNp[ind] = 2.; 
-    else if (cellNatFld[ind] == -1) cellNp[ind] = 0.; 
-  }
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+      if (cellNatFld[ind] == 0) cellNp[ind] = 2.; 
+      else if (cellNatFld[ind] == -1) cellNp[ind] = 0.; 
+    }
   }
   RELEASESHAREDS(array, field);
   Py_INCREF(Py_None);

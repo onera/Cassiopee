@@ -410,15 +410,8 @@ def _copyGridInit2Grid(t):
       xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')[1]
       ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')[1]
       zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')[1]
+      rigidMotion.copyCoords(xcoord0, ycoord0, zcoord0, xcoord, ycoord, zcoord)
       
-      xcoord = xcoord.ravel('k')
-      ycoord = ycoord.ravel('k')
-      zcoord = zcoord.ravel('k')
-      xcoord0 = xcoord0.ravel('k')
-      ycoord0 = ycoord0.ravel('k')
-      zcoord0 = zcoord0.ravel('k')
-      
-      xcoord[:] = xcoord0[:]; ycoord[:] = ycoord0[:]; zcoord[:] = zcoord0[:]
   return None
 
 # Copy GridCoordinates dans GridCoordinates#Init
@@ -435,15 +428,16 @@ def _copyGrid2GridInit(t):
       if not gridInit:
        gridInit = Internal.createNode('GridCoordinates#Init', 'GridCoordinates_t', parent=z)
       xcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateX')
-      if xcoord0 is None: 
+      if xcoord0 is None:
         xcoord0 = Internal.copyNode(xcoord); gridInit[2].append(xcoord0)
       ycoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateY')
-      if ycoord0 is None: 
+      if ycoord0 is None:
         ycoord0 = Internal.copyNode(ycoord); gridInit[2].append(ycoord0)
       zcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateZ')
-      if zcoord0 is None: 
+      if zcoord0 is None:
         zcoord0 = Internal.copyNode(zcoord); gridInit[2].append(zcoord0)
-      xcoord0[1][:] = xcoord[1][:]; ycoord0[1][:] = ycoord[1][:]; zcoord0[1][:] = zcoord[1][:]
+      rigidMotion.copyCoords(xcoord[1], ycoord[1], zcoord[1], xcoord0[1], ycoord0[1], zcoord0[1])
+      
   return None
 
 #==============================================================================

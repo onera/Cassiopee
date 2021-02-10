@@ -27,9 +27,9 @@ def updateVarNameList1(event=None):
         varsl = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
     m = WIDGETS['var1'].children['menu']
     m.delete(0, TK.END)
-    vars = ['All', 'FlowSolutionNodes', 'FlowSolutionCenters']
-    if len(varsl) != 0: vars += varsl[0]
-    for i in vars:
+    zvars = ['All', 'FlowSolutionNodes', 'FlowSolutionCenters']
+    if len(varsl) != 0: zvars += varsl[0]
+    for i in zvars:
         m.add_command(label=i, command=lambda v=VARS[5],l=i:v.set(l))
 
 # Pour remove (combobox)
@@ -54,15 +54,15 @@ def updateVarNameList2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
-        vars = C.getVarNames(CTK.t)
+        zvars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz])
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])
     m = WIDGETS['var2'].children['menu']
     m.delete(0, TK.END)
-    if len(vars) == 0: return
-    for i in vars[0]:
+    if len(zvars) == 0: return
+    for i in zvars[0]:
         m.add_command(label=i, command=lambda v=VARS[2],l=i:v.set(l))
 
 # Pour le gradient (combobox)
@@ -70,21 +70,21 @@ def updateVarNameList2_2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
-        vars = C.getVarNames(CTK.t)
+        zvars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz])    
-    if len(vars) == 0: return
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])    
+    if len(zvars) == 0: return
     if 'var2' in WIDGETS:
-        WIDGETS['var2']['values'] = vars[0]
+        WIDGETS['var2']['values'] = zvars[0]
 
 #==============================================================================
 # Pour center2Node - seult les variables en centres (optionMenu)
 def updateVarNameList3(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         varsl = C.getVarNames(CTK.t, excludeXYZ=True, loc='centers')
     else:
         nob = CTK.Nb[0]+1
@@ -93,9 +93,9 @@ def updateVarNameList3(event=None):
                               loc='centers')
     m = WIDGETS['var3'].children['menu']
     m.delete(0, TK.END)
-    vars = ['FlowSolutionCenters']
-    if len(varsl) != 0: vars += varsl[0] 
-    for i in vars:
+    zvars = ['FlowSolutionCenters']
+    if len(varsl) != 0: zvars += varsl[0] 
+    for i in zvars:
         m.add_command(label=i, command=lambda v=VARS[8],l=i:v.set(l))
 
 # Pour center2Node - seult les variables en centres (combobox)
@@ -110,11 +110,11 @@ def updateVarNameList3_2(event=None):
         varsl = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True,
                               loc='centers')
    
-    vars = ['FlowSolutionCenters']
-    if len(varsl) != 0: vars += varsl[0]
+    zvars = ['FlowSolutionCenters']
+    if len(varsl) != 0: zvars += varsl[0]
 
     if 'var3' in WIDGETS:
-        WIDGETS['var3']['values'] = vars
+        WIDGETS['var3']['values'] = zvars
 
 #==============================================================================
 # Pour node2Center - seult les variables en noeuds (optionMenu)
@@ -130,26 +130,26 @@ def updateVarNameList4(event=None):
                               loc='nodes')
     m = WIDGETS['var4'].children['menu']
     m.delete(0, TK.END)
-    vars = ['FlowSolutionNodes']
-    if len(varsl) != 0: vars += varsl[0]
-    for i in vars:
+    zvars = ['FlowSolutionNodes']
+    if len(varsl) != 0: zvars += varsl[0]
+    for i in zvars:
         m.add_command(label=i, command=lambda v=VARS[9],l=i:v.set(l))
    
 # Pour node2Center - seult les variables en noeuds (combobox)
 def updateVarNameList4_2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         varsl = C.getVarNames(CTK.t, excludeXYZ=True, loc='nodes')
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
         varsl = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True,
                               loc='nodes')
-    vars = ['FlowSolutionNodes']
-    if len(varsl) != 0: vars += varsl[0]
+    zvars = ['FlowSolutionNodes']
+    if len(varsl) != 0: zvars += varsl[0]
     if 'var4' in WIDGETS:
-        WIDGETS['var4']['values'] = vars
+        WIDGETS['var4']['values'] = zvars
 
 #==============================================================================
 # Pour rename (optionMenu)
@@ -236,7 +236,6 @@ def node2CenterVar():
     
 #==============================================================================
 def chooseImportFile(event=None):
-    import sys
     try: import tkFileDialog
     except: import tkinter.tkfiledialog as tkFileDialog 
     init = VARS[4].get()
@@ -479,11 +478,11 @@ def computeNormGrad():
 #==============================================================================
 def computeNormCurl():
     if CTK.t == []: return
-    vars = VARS[3].get()
-    vars = vars.replace(' ', '')
-    vars = vars.split(';')
+    zvars = VARS[3].get()
+    zvars = zvars.replace(' ', '')
+    zvars = zvars.split(';')
     CTK.saveTree()
-    try: CTK.t = P.computeNormCurl(CTK.t, vars)
+    try: CTK.t = P.computeNormCurl(CTK.t, zvars)
     except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: computeNormCurl')
         CTK.TXT.insert('START', 'Curl\'s norm computation failed.\n')
@@ -496,11 +495,11 @@ def computeNormCurl():
 #==============================================================================
 def computeCurl():
     if CTK.t == []: return
-    vars = VARS[3].get()
-    vars = vars.replace(' ', '')
-    vars = vars.split(';')
+    zvars = VARS[3].get()
+    zvars = zvars.replace(' ', '')
+    zvars = zvars.split(';')
     CTK.saveTree()
-    try: CTK.t = P.computeCurl(CTK.t, vars)
+    try: CTK.t = P.computeCurl(CTK.t, zvars)
     except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: computeCurl')
         CTK.TXT.insert('START', 'Curl computation failed.\n')
@@ -831,7 +830,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
