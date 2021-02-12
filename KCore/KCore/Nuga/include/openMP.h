@@ -2,12 +2,12 @@
 
 
 
-NUGA
+--------- NUGA v1.0
 
 
-Author : Sam Landier (sam.landier@onera.fr)
+
 */
-
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGALIB
 #include "parallel.h"

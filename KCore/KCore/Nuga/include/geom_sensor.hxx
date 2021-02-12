@@ -1,13 +1,13 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
-//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_GEOM_SENSOR_HXX
 #define NUGA_GEOM_SENSOR_HXX

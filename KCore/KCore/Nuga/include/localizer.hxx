@@ -1,13 +1,13 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
-//Author : Sâm Landier (sam.landier@onera.fr)
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef LOCALIZER_HXX
 #define LOCALIZER_HXX

@@ -1,12 +1,13 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __K_MESH_PYRAMID_H__
 #define __K_MESH_PYRAMID_H__

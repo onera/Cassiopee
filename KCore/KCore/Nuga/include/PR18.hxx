@@ -1,12 +1,13 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_PR18_HXX
 #define NUGA_PR18_HXX

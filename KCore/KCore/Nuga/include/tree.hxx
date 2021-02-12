@@ -1,12 +1,12 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
 //Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr)
  
 #ifndef NUGA_TREE_HXX

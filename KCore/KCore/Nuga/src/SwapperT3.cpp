@@ -1,3 +1,14 @@
+/*
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
+
 #include "Nuga/include/SwapperT3.h"
 #include <map>
 #include <set>

@@ -1,12 +1,12 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
 //Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_JOIN_PLAN_HXX

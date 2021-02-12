@@ -2,12 +2,12 @@
 
 
 
-                  NUGA
+--------- NUGA v1.0
 
 
 
 */
-//Author : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/localizer.hxx"
 #include "Nuga/include/collider.hxx"

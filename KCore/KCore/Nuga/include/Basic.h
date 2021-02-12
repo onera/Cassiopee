@@ -1,13 +1,13 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
-//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __K_MESH_BASIC_H
 #define __K_MESH_BASIC_H

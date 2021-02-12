@@ -1,4 +1,13 @@
+/*
 
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef MEDITH_HXX
 #define MEDITH_HXX
@@ -516,7 +525,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     }
   }
 
-  /*template <typename crd3D_t, typename vngon_unit>
+  template <typename crd3D_t, typename vngon_unit>
   static E_Int write(const char* filename, crd3D_t& crd3D, const vngon_unit& pgs)
   {
     K_FLD::FloatArray crd(crd3D.p, 3, crd3D.n, (crd3D.CALLOC == 1));
@@ -531,7 +540,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     crd.relay_mem(crd3D.p, dim, crd3D.n, calloc);
 
     return 0;
-  }*/
+  }
 
   template< typename color_t = E_Int>
   static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_type& ng, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start = 0, const std::vector<color_t>* colors = nullptr)

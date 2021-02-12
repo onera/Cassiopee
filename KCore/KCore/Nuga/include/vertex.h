@@ -2,12 +2,12 @@
 
 
 
-NUGA
+--------- NUGA v1.0
 
 
 
 */
-//Author : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_VERTEX_H
 #define NUGA_VERTEX_H

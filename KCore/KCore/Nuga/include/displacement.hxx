@@ -1,12 +1,13 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
-Author : Sam Landier (sam.landier@onera.fr) 
- */
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_DISPLACEMENT_HXX
 #define NUGA_DISPLACEMENT_HXX

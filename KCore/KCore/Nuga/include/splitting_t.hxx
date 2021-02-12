@@ -1,12 +1,14 @@
 /*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
+
 #ifndef NUGA_SPLITTING_T_HXX
 #define NUGA_SPLITTING_T_HXX
 
