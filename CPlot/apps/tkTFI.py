@@ -1,6 +1,6 @@
 # - TFI mesher -
 try: import Tkinter as TK
-except: import tkinter as TK
+except ImportError: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -11,6 +11,8 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import Generator.TFIs as TFIs
 import Transform.PyTree as T
+import Converter
+import Generator
 
 try: range = xrange
 except: pass
@@ -49,7 +51,7 @@ def getSurfaces():
         if bases != []:
             zones = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in zones:
-                if (z[0] == sname[1]): surfaces.append(z)
+                if z[0] == sname[1]: surfaces.append(z)
     return surfaces
 
 #==============================================================================
@@ -100,11 +102,11 @@ def trimesh(a1, a2, a3):
     
     # Verif de N
     Nt = N3-N2+N1+1
-    if (Nt//2-Nt*0.5 != 0): return [0, 'N3-N2+N1 must be odd.', 0]
+    if Nt//2-Nt*0.5 != 0: return [0, 'N3-N2+N1 must be odd.', 0]
     N = Nt//2
-    if (N < 2): return [0, 'invalid number of points for this operation.', 0]
-    if (N > N1-1): return [0, 'invalid number of points for this operation.',0]
-    if (N > N2-1): return [0, 'invalid number of points for this operation.',0]
+    if N < 2: return [0, 'invalid number of points for this operation.', 0]
+    if N > N1-1: return [0, 'invalid number of points for this operation.',0]
+    if N > N2-1: return [0, 'invalid number of points for this operation.',0]
 
     return TFIs.TFITri(a1, a2, a3)
 
@@ -133,19 +135,17 @@ def mono1mesh(a1, a2, a3):
 # Plus le score est elevee pour le maillage est mauvais
 #==============================================================================
 def quality(meshes):
-    import Converter as C
-    import Generator as G
     score = 0.
     for m in meshes:
-        ortho = G.getOrthogonalityMap(m)
-        vol = G.getVolumeMap(m)
-        min1 = C.getMinValue(ortho, 'orthogonality')
-        max1 = C.getMaxValue(ortho, 'orthogonality')
-        min2 = C.getMinValue(vol, 'vol')
-        max2 = C.getMaxValue(vol, 'vol')
+        ortho = Generator.getOrthogonalityMap(m)
+        vol = Generator.getVolumeMap(m)
+        min1 = Converter.getMinValue(ortho, 'orthogonality')
+        max1 = Converter.getMaxValue(ortho, 'orthogonality')
+        min2 = Converter.getMinValue(vol, 'vol')
+        max2 = Converter.getMaxValue(vol, 'vol')
         score = max(score, min1); score = max(score, max1)
-        if (min2 < 1.e-12 and max2 > 0): score += 1000.
-        elif (max2 < 1.e-12 and min2 > 0): score += 1000.
+        if min2 < 1.e-12 and max2 > 0: score += 1000.
+        elif max2 < 1.e-12 and min2 > 0: score += 1000.
     return score
 
 #==============================================================================
@@ -265,10 +265,10 @@ def HOTFI():
             try:
                 [m,m1,m2,m3] = TFIs.TFIHalfO__(coords1, coords2, i, j)
                 score = quality([m,m1,m2,m3])
-                if (score < optScore):
+                if score < optScore:
                     optWeight = i; optScore = score; optOffset = j
             except: pass
-    print('resulting score=%g'%optScore)
+    print('Resulting score=%g'%optScore)
     [m,m1,m2,m3] = TFIs.TFIHalfO__(coords1, coords2, optWeight, optOffset) 
     
     m = C.convertArrays2ZoneNode('TFI1', [m])
@@ -323,7 +323,7 @@ def TRITFI():
     coords3 = C.getFields(Internal.__GridCoordinates__, zones[2])[0]
 
     [m1,m2,m3] = trimesh(coords1, coords2, coords3)
-    if (m1 == 0):
+    if m1 == 0:
          CTK.TXT.insert('START', m2+'\n')
          CTK.TXT.insert('START', 'Error: ', 'Error'); return
          
@@ -480,7 +480,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

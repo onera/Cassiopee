@@ -167,7 +167,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Int posyd = K_ARRAY::isCoordinateYPresent(varStringD);
   E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringD);
   E_Int poscd = K_ARRAY::isCellNatureField2Present(varStringD);
-  if (posxd == -1 || posyd == -1 || poszd==-1)
+  if (posxd == -1 || posyd == -1 || poszd == -1)
   {
     PyErr_SetString(PyExc_TypeError, "transferFields: no coordinates found for donor zone.");
     RELEASEDATA;

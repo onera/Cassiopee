@@ -696,7 +696,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   }
   else 
   {
-    if ( K_STRING::cmp(eltType,"NGON*")==0)
+    if (K_STRING::cmp(eltType,"NGON*")==0)
       searchMaskInterpolatedCellsNGON(depth, *cn, blankedCells, cellNatFld);
     else
       searchMaskInterpolatedCellsUnstr(eltType, depth, *cn, blankedCells, cellNatFld);
@@ -737,7 +737,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
   E_Int zoneType = K_PYTREE::getFromZone(zone, xyz, locI, varString, fields, locs, ni, nj, nk, 
                                          cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
                                          FlowSolutionNodes, FlowSolutionCenters);
-  if ( zoneType == 0)
+  if (zoneType == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "getInterpolatedPointsZ: invalid zone.");
@@ -761,7 +761,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Int posc = K_ARRAY::isNamePresent(cellNName, varString);
-  if ( posc == -1) 
+  if (posc == -1) 
   {
     PyErr_SetString(PyExc_TypeError,
                     "getInterpolatedPointsZ: cellN cannot be extracted from zone.");
@@ -776,7 +776,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Int nptsTot;
-  if ( zoneType == 1) nptsTot = ni*nj*nk;
+  if (zoneType == 1) nptsTot = ni*nj*nk;
   else nptsTot = ni;
   E_Float* cellNp = fields[posc];
   FldArrayI indicesInterp(nptsTot);
@@ -789,16 +789,16 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
 
   for (E_Int i = 0; i < nptsTot; i++)
   {
-    if ( cellNp[i]==2. )
+    if ( cellNp[i] == 2. )
     {
       indicesInterp[noi] = i;
       coordX[noi] = xp[i];
       coordY[noi] = yp[i];
-      coordZ[noi] = zp[i];      
-      noi+=1;
+      coordZ[noi] = zp[i];
+      noi += 1;
     }
   }
-  if ( noi == 0) 
+  if (noi == 0) 
   {
     RELEASESHAREDZ(hook, varString, eltType);
     Py_INCREF(Py_None);
@@ -836,7 +836,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
-  if ( res != 1 && res != 2) 
+  if (res != 1 && res != 2) 
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError, 

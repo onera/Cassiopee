@@ -791,12 +791,12 @@ class Node:
                     field = pid[0]
                     if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
 
-                vars = C.getVarNames(CTK.t)[0]
+                zvars = C.getVarNames(CTK.t)[0]
                 ifield = 0; lenvars = 0
-                for i in vars:
+                for i in zvars:
                     if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                         lenvars += 1
-                for i in vars:
+                for i in zvars:
                     if i == field: break
                     if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                         ifield += 1
@@ -1107,7 +1107,7 @@ tcuom2foARAAyKRSmQAAOw==
             deletedZoneNames = []
             for z in id[2]:
                 if z[3] == 'Zone_t': deletedZoneNames.append(id[0]+Internal.SEP1+z[0])
-            if (Internal.isStdNode(ret[0]) >= 0): del ret[0][ret[1]]
+            if Internal.isStdNode(ret[0]) >= 0: del ret[0][ret[1]]
             else: del ret[0][2][ret[1]]
             if deletedZoneNames != []:
                 (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -1122,7 +1122,7 @@ tcuom2foARAAyKRSmQAAOw==
             CPlot.render()
         else: # efface un autre type de noeuds
             ret = Internal.getParentOfNode(CTK.t, id)
-            if (Internal.isStdNode(ret[0]) >= 0): del ret[0][ret[1]]
+            if Internal.isStdNode(ret[0]) >= 0: del ret[0][ret[1]]
             else: del ret[0][2][ret[1]]
         sav = self.pos.prev_visible()
         self.pos.delete()

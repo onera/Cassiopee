@@ -31,7 +31,7 @@ try:
     # from tkColorChooser import askcolor
     import tkFileDialog
     import tkMessageBox
-except:
+except ImportError:
     try:
         import tkinter.filedialog as tkFileDialog
         import tkinter.messagebox as tkMessageBox
@@ -56,20 +56,30 @@ try:
     import matplotlib.pyplot as plt
     # Will be imported in the right movie class:
     # import matplotlib.animation as animation
-    pltLeft = plt.rcParams.get('figure.subplot.left')
-    pltRight = plt.rcParams.get('figure.subplot.right')
-    pltTop = plt.rcParams.get('figure.subplot.top')
-    pltBottom = plt.rcParams.get('figure.subplot.bottom')
+    
+    # subplot param a partir du rc
+    #pltLeft = plt.rcParams.get('figure.subplot.left')
+    #pltRight = plt.rcParams.get('figure.subplot.right')
+    #pltTop = plt.rcParams.get('figure.subplot.top')
+    #pltBottom = plt.rcParams.get('figure.subplot.bottom')
     pltWSpace = plt.rcParams.get('figure.subplot.wspace')
     pltHSpace = plt.rcParams.get('figure.subplot.hspace')
+    
+    # subplot param en dur
+    pltLeft = 0.15
+    pltRight = 0.95
+    pltBottom = 0.1
+    pltTop = 0.95
+    pltWSpace = 0.2
+    pltHSpace = 0.2
 except:
     IMPORTOK = False
-    pltLeft = 0
-    pltRight = 0
-    pltTop = 0
-    pltBottom = 0
-    pltWSpace = 0
-    pltHSpace = 0
+    pltLeft = 0.15
+    pltRight = 0.95
+    pltTop = 0.95
+    pltBottom = 0.1
+    pltWSpace = 0.2
+    pltHSpace = 0.2
     class NavigationToolbar2Tk:
         def __init__(self): return
 
@@ -239,7 +249,7 @@ default_values = {
             'vary':'',
             'line_color':None,
             'line_style':'solid',
-            'line_width':2.0,
+            'line_width':1.5,
             'marker_style':'none',
             'marker_size':6.5,
             'marker_edge_width':0.5,
@@ -254,34 +264,60 @@ default_values = {
             'visible':True
         },
 'Grid':{
+            # Reglage initiaux de Matthieu
+            #'Mx_display' : True,
+            #'Mx_grid_color' : '#000000',
+            #'Mx_grid_style' : 'dashed',
+            #'Mx_grid_width' : 1.,
+            #'Mx_grid_tick_number':5,
+            #'Mx_grid_tick_size':10.,
+            #'My_display' : True,
+            #'My_grid_color' : '#000000',
+            #'My_grid_style' : 'dashed',
+            #'My_grid_width' : 1.,
+            #'My_grid_tick_number':5,
+            #'My_grid_tick_size':10.,
+            #'mx_display' : False,
+            #'mx_grid_color' : '#000000',
+            #'mx_grid_style' : 'dashed',
+            #'mx_grid_width' : 1.,
+            #'mx_grid_tick_number':5,
+            #'mx_grid_tick_size':10.,
+            #'my_display' : False,
+            #'my_grid_color' : '#000000',
+            #'my_grid_style' : 'dashed',
+            #'my_grid_width' : 1.,
+            #'my_grid_tick_number':5,
+            #'my_grid_tick_size':10.
+            # reglages de CB
             'Mx_display' : True,
-            'Mx_grid_color' : '#000000',
-            'Mx_grid_style' : 'dashed',
+            'Mx_grid_color' : '#e3c7c7',
+            'Mx_grid_style' : 'solid',
             'Mx_grid_width' : 1.,
             'Mx_grid_tick_number':5,
             'Mx_grid_tick_size':10.,
             'My_display' : True,
-            'My_grid_color' : '#000000',
-            'My_grid_style' : 'dashed',
+            'My_grid_color' : '#e3c7c7',
+            'My_grid_style' : 'solid',
             'My_grid_width' : 1.,
             'My_grid_tick_number':5,
             'My_grid_tick_size':10.,
-            'mx_display' : False,
-            'mx_grid_color' : '#000000',
-            'mx_grid_style' : 'dashed',
+            'mx_display' : True,
+            'mx_grid_color' : '#f4e1e1',
+            'mx_grid_style' : 'solid',
             'mx_grid_width' : 1.,
             'mx_grid_tick_number':5,
             'mx_grid_tick_size':10.,
-            'my_display' : False,
-            'my_grid_color' : '#000000',
-            'my_grid_style' : 'dashed',
+            'my_display' : True,
+            'my_grid_color' : '#f4e1e1',
+            'my_grid_style' : 'solid',
             'my_grid_width' : 1.,
             'my_grid_tick_number':5,
             'my_grid_tick_size':10.
         },
 'Legend':{
             'legend_display' : True,
-            'legend_title' : 'Legend',
+            'legend_title' : '',
             'legend_border_width' : 0.5,
             'legend_border_color' : '#000000',
             'vary':'',
@@ -291,7 +327,7 @@ default_values = {
             'legend_ncol' : 1,
             'legend_label_weight' : 'normal',
             'legend_label_style' : 'normal',
-            'legend_label_size' : 12,
+            'legend_label_size' : 10,
             'legend_label_color' : '#000000',
             'legend_title_weight' : 'normal',
             'legend_title_style' : 'normal',
@@ -319,8 +355,11 @@ default_values = {
             'axis_y_offset' : 0.,
             'axis_x_label_fontsize' : plt.rcParams.get('font.size'),
             'axis_y_label_fontsize' : plt.rcParams.get('font.size'),
-            'axis_x_label_format' : '{x:.2e}',
-            'axis_y_label_format' : '{x:.2e}',
+            #'axis_x_label_format' : '{x:.2e}',
+            #'axis_y_label_format' : '{x:.2e}',
+            'axis_x_label_format' : '{x:.5g}',
+            'axis_y_label_format' : '{x:.5g}',
+            
         },
 'SubPlotParams':{
                     'left'    : pltLeft,
@@ -510,7 +549,7 @@ class editTextWindow(TK.Toplevel):
         self.frame.grid_rowconfigure(0,weight=1)
         self.frame.grid_rowconfigure(1,weight=0)
         #
-        lblframelvl1=[]
+        #lblframelvl1=[]
         #
         ########################################################################
         ####################
@@ -7835,7 +7874,7 @@ class editGraphWindow(TK.Toplevel):
         graph = self.parent.graphWdwL[self.graph]
         val = var.get()
         alpha = float(val.split()[0])/100.
-        if loc =="border":
+        if loc == "border":
             graph.image_background_alpha = alpha
             fig = self.parent.graphWdwL[self.graph].getFig()
             fig.patch.set_alpha(alpha)
@@ -7869,7 +7908,7 @@ class editGraphWindow(TK.Toplevel):
 
         # 1/- Set size and resolution
 
-        # Can not succeed to adapt dinamicaly the size of the canvas !!!
+        # Can not succeed to adapt dynamicaly the size of the canvas !!!
         # Nevertheless, the user, can change the size of the toplevel window (graphtk) with the mouse,
         # it will change the size of the figure in the mean time.
         # TODO : find a real a solution to this issue !!!
@@ -7885,7 +7924,7 @@ class editGraphWindow(TK.Toplevel):
         self.graphInstance.canvas.draw()
 
         # 2/- Nice view
-        if self.useSubPlotParams :
+        if self.useSubPlotParams:
             params = {'left':None,'right':None,'top':None,'bottom':None,'hspace':None,'wspace':None,'isActive':True}
             for k in params:
                 if k != 'isActive':
@@ -7895,11 +7934,9 @@ class editGraphWindow(TK.Toplevel):
                         params[k] = None
             isParamsOk = self.graphInstance.subPlotParams.checkParams(params)
 
-            #
             if isParamsOk:
                 self.graphInstance.updateSubPlotParams(params)
             else:
-                #
 #                self.lift()
 #                self.focus()
                 return
@@ -9422,6 +9459,7 @@ class GraphTK(TK.Toplevel):
         self.initialize()
         self.subPlotParams = SubPlotParams()
         self.tightLayout = TightLayout()
+        self.applyViewSettings()
         self.image_background_color = default_values['Graph']['image_background_color']
         self.image_background_alpha = default_values['Graph']['image_background_alpha']
         self.subgraph_background_color = default_values['Graph']['subgraph_background_color']
@@ -9899,7 +9937,6 @@ class Graph():
         self.name = self.soleName(name)
         self.conf = conf
         self.initialize()
-    
         self.useSubPlotParams = True
         self.subPlotParams = SubPlotParams()
         self.tightLayout = TightLayout()
@@ -9907,6 +9944,8 @@ class Graph():
         self.image_background_alpha = default_values['Graph']['image_background_alpha']
         self.subgraph_background_color = default_values['Graph']['subgraph_background_color']
         self.subgraph_background_alpha = default_values['Graph']['subgraph_background_alpha']
+        self.applyViewSettings()
+        
     # --------------------------------------------------------------- initialize
     def initialize(self):
 
@@ -11063,7 +11102,7 @@ class editCurvesWindow(TK.Toplevel):
         CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_legend_display(n))#, variable=var)
         CB.val = var
         CB.var = 'legend_display'
-        CB.ind=ind
+        CB.ind = ind
         CB.grid(row=ind,column=0,sticky='NSEW')
         CB.container = self.frame.legend_displayItem
         self.frame.legend_displayItem.append(CB)
@@ -11129,7 +11168,7 @@ class editCurvesWindow(TK.Toplevel):
         #         print('-> ',ind)
         #     lblframe.rowconfigure(len(self.subGraph.curves),weight=0)
         #     print('-> ',len(self.subGraph.curves))
-        #     #
+        #
         self.frame.grid_rowconfigure(0,weight=len(self.subGraph.curves)+1)
         self.frame.grid_rowconfigure(1,weight=0)
     # --------------------------------------------------------------- popUpCurveLine
@@ -11200,7 +11239,7 @@ class editCurvesWindow(TK.Toplevel):
             lblframe = action[0].winfo_parent() # Returns the name of the parent
             lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
             lblframe.grid_rowconfigure(len(self.subGraph.curves)+1,weight=0)
-        #
+
         try:
             self.frameList[self.graph][self.zone] = self.frame
         except KeyError:
@@ -11707,7 +11746,7 @@ class editCurvesWindow(TK.Toplevel):
         self.frame.legend_displayItem[ind].config(variable=var)
         self.frame.legend_displayItem[ind].val = var
         self.frame.legend_displayItem[ind].var = 'legend_display'
-        self.frame.legend_displayItem[ind].ind=ind
+        self.frame.legend_displayItem[ind].ind = ind
         lblframe = self.frame.legend_displayItem[ind].winfo_parent() # Returns the name of the parent
         lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
         # Curve to add
@@ -12411,13 +12450,13 @@ class DesktopFrameTK(TK.Frame):
         for k in d: tmp[k] = d[k]
         # Order dict
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
+    
     # ---------------------------------------------------------- setDataWithTree
     def setDataWithTree(self, t):
         tmp = {}
-        bases = Internal.getNodesFromType1(t, 'CGNSBase_t')
-        if bases == []: # list of zones or zone
-            tp = C.newPyTree(['Base',Internal.getZones(t)])
-            bases = Internal.getNodesFromType1(tp, 'CGNSBase_t')
+        tp = getPlotTree(t)
+        bases = Internal.getNodesFromType1(tp, 'CGNSBase_t')
+        
         for base in bases:
             basename = Internal.getName(base)
             ## Loop on zones
@@ -12724,7 +12763,7 @@ class DesktopFrameTK(TK.Frame):
     def selectPositionByName(self,name):
         ind = self.positionList.index(name)
         # Avoid updating if clicking occured on the same ax as previous click
-        if (self.positionList[ind]==self.position.get()):
+        if self.positionList[ind]==self.position.get():
             return
         # Update
         self.position.val = self.positionList[ind]
@@ -13269,7 +13308,6 @@ class Desktop():
     # --------------------------------------------------------------------- init
     def __init__(self):
         self.initialize()
-#        self.data = data
         self.data = None
         self.thread = None
 
@@ -13557,9 +13595,10 @@ class Desktop():
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
 
     # ---------------------------------------------------------- setDataWithTree
-    def setDataWithTree(self,t):
+    def setDataWithTree(self, t):
         tmp = {}
-        for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
+        tp = getPlotTree(t)
+        for base in Internal.getNodesFromType1(tp, 'CGNSBase_t'):
             basename = Internal.getName(base)
             ## Loop on zones
             for zone in Internal.getNodesFromType1(base,'Zone_t'):
@@ -13867,6 +13906,7 @@ class MatplotlibFigure():
 
     # --------------------------------------------------------------- saveFigure
     def saveFigure(self, path, format=None):
+        print("Writing file %s."%path)
         # self.instance.savefig(path,facecolor=self.instance.get_facecolor(),edgecolor='none',format=format)
         self.instance.savefig(path, format=format)
     # ------------------------------------------------------------------- getFig
@@ -15146,6 +15186,7 @@ class SubPlotParams:
         self.bottom   =  kwargs.get('bottom', default_values['SubPlotParams']['bottom'])
         self.wspace   =  kwargs.get('wspace', default_values['SubPlotParams']['wspace'])
         self.hspace   =  kwargs.get('hspace', default_values['SubPlotParams']['hspace'])
+
     # -------------------------------------------------------------- checkParams
     def checkParams(self,params):
         isOk = True
@@ -15490,7 +15531,6 @@ def openGraphEditor(display):
     return editor.desktop
 
 # ==============================================================================
-# ==============================================================================
 
 def filterInteger(string):
     res = ''
@@ -15498,15 +15538,10 @@ def filterInteger(string):
         if i in '0123456789': res += i
     return res
 
-#===============================================================================
-# Fonction permettant de pointer vers les zones 1D de l'arbre
-#===============================================================================
-def updateFromTree(event=None, t=None):
-    if t is None: # prend l'arbre CTK.t ou CTK.dt
-        if CTK.__MAINTREE__ == 1: tp = CTK.t
-        else: tp = CTK.dt
-    else: tp = t
-
+# getPlotTree
+# extrait de t: si zones->tree, zone 1D, homogeneisation de la localisation des variables
+def getPlotTree(t):
+    tp, typen = Internal.node2PyTree(t)
     to = C.newPyTree()
     bases = Internal.getBases(tp)
     for b in bases: C._addBase2PyTree(to, b[0], 1)
@@ -15518,8 +15553,20 @@ def updateFromTree(event=None, t=None):
             dim = Internal.getZoneDim(z)
             zname = z[0]
             if dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1:
+                # export les champs en centres en noeuds
                 zp = C.center2Node(z, Internal.__FlowSolutionCenters__)
                 zp = C.getIndexField(zp)
+                # export les champs en noeuds aux centres
+                #xp = Internal.getNodeFromName2(zp, 'CoordinateX')
+                #yp = Internal.getNodeFromName2(zp, 'CoordinateY')
+                #zp = Internal.getNodeFromName2(zp, 'CoordinateZ')
+                #cfp = Internal.getNodeFromName1(zp, Internal.__FlowSolutionNodes__)
+                #if cfp is None:
+                #    cfp = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__, gridLocation='Vertex', parent=zp)
+                #cfp[2].append(xp)
+                #cfp[2].append(yp)
+                #cfp[2].append(zp)
+                #zp = C.node2Center(zp, Internal.__FlowSolutionNodes__)
                 bn[2].append(zp)
             elif dim[0] == 'Unstructured' and dim[3] == 'BAR':
                 zps = T.splitConnexity(z)
@@ -15541,14 +15588,28 @@ def updateFromTree(event=None, t=None):
                     i = C.center2Node(i, Internal.__FlowSolutionCenters__)
                 zps = C.getIndexField(zps)
                 bn[2] += zps
+    return to
+
+#===============================================================================
+# Fonction permettant de pointer vers les zones 1D de l'arbre
+# Filtre les zones 1D uniquement, cree le champ index, fait un center2Node
+# Fait ensuite un setData
+#===============================================================================
+def updateFromTree(event=None, t=None):
+    if t is None: # prend l'arbre CTK.t ou CTK.dt
+        if CTK.__MAINTREE__ == 1: tp = CTK.t
+        else: tp = CTK.dt
+    else: tp = t
 
     if CTK.__MAINTREE__ == 1:
-        DESKTOP.setData(to)
+        DESKTOP.setData(tp)
     else:
         global PREVTPZONES
-        if PREVTPZONES == []: DESKTOP.setData(to)
-        else: DESKTOP.replaceGroupZones(to, PREVTPZONES)
-        PREVTPZONES = Internal.getZonePaths(to, 2)
+        if PREVTPZONES == []: DESKTOP.setData(tp)
+        else:
+            to = getPlotTree(tp) 
+            DESKTOP.replaceGroupZones(to, PREVTPZONES)
+            PREVTPZONES = Internal.getZonePaths(to, 2)
 
 #==============================================================================
 # Create app widgets

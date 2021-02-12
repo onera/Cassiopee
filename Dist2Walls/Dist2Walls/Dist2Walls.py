@@ -41,8 +41,7 @@ def signDistance__(zones, distances, bodies, loc, dimPb):
 def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
                    loc='centers', signed=0, dim=3):
     """Compute distance to walls.
-       Usage: distance2Walls(zones, bodies, cellnbodies, type,
-                             loc, signed, dim)"""
+       Usage: distance2Walls(zones, bodies, cellnbodies, type, loc, signed, dim)"""
     onezone = 0
     if not isinstance(zones[0], list):
         onezone = 1

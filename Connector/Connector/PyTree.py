@@ -670,7 +670,6 @@ def _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,signT,si
 # Extraits les informations periodiques d'une zone
 def getPeriodicInfo(z,rotationCenter,rotationAngle,translation,signT,signR):
     node = Internal.getNodeFromType(z, 'GridConnectivity1to1_t')
-    
 
 #============================================================================================
 # duplique les zones par periodicite. En rotation, on suppose ici que l'angle est en degres
@@ -1338,7 +1337,7 @@ def _modCellN2(t, cellNName='cellN'):
 #=====================================================================================
 # returns the numpys of indices of cellN=2 cell centers and corresponding coordinates
 #=====================================================================================
-def getInterpolatedPoints(z,loc='centers', cellNName='cellN'):
+def getInterpolatedPoints(z, loc='centers', cellNName='cellN'):
     if loc == 'centers':
         zc = C.node2Center(z)
         return connector.getInterpolatedPointsZ(zc, cellNName, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)

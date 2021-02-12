@@ -1135,7 +1135,7 @@ Isos
 
 ---------------------------------------
 
-.. py:function:: Post.isoSurf(a, field, val, split='simple', vars=None)
+.. py:function:: Post.isoSurf(a, field, val, vars=None, split='simple')
 
     .. A1.O0.D0
 
@@ -1150,10 +1150,10 @@ Isos
     :type field: string
     :param val: value of field for extraction
     :type val: float
-    :param split: 'simple' or 'withBarycenters', used in decomposing a in tetra (if needed)
-    :type split: string
     :param vars: list of variable names you want to see on final iso-surface
     :type vars: list of strings
+    :param split: 'simple' or 'withBarycenters', used in decomposing a in tetra (if needed)
+    :type split: string
 
     *Example of use:*
 
@@ -1168,7 +1168,7 @@ Isos
 
 ---------------------------------------
 
-.. py:function:: Post.isoSurfMC(a, field, val, split='simple', vars=None)
+.. py:function:: Post.isoSurfMC(a, field, val, vars=None, split='simple')
 
     .. A1.O0.D0
 
@@ -1182,11 +1182,11 @@ Isos
     :type field: string
     :param val: value of field for extraction
     :type val: float
-    :param split: 'simple' or 'withBarycenters', used in decomposing a in tetra (if needed)
-    :type split: string
     :param vars: list of variable names you want to see on final iso-surface
     :type vars: list of strings
-
+    :param split: 'simple' or 'withBarycenters', used in decomposing a in tetra (if needed)
+    :type split: string
+    
     *Example of use:*
 
     * `Isosurface by marching cube (array) <Examples/Post/isoSurfMC.py>`_:

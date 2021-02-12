@@ -1829,9 +1829,9 @@ def isoLine(t, var, value):
     a = Post.isoLine(arrays, v, value)
     return C.convertArrays2ZoneNode('isoLine', [a])
 
-def isoSurf(t, var, value, split='simple', vars=None):
+def isoSurf(t, var, value, vars=None, split='simple'):
     """Compute an iso surface in volume zones using marching tetra.
-    Usage: isoSurf(t, var, value)"""
+    Usage: isoSurf(t, var, value, vars, split)"""
     if vars is None:
         t = C.center2Node(t, Internal.__FlowSolutionCenters__)
     else:
@@ -1922,9 +1922,9 @@ def isoSurfMC_opt(t, var, value, list=[]):
     if var not in coord: ret = C.rmVars(ret, var)
     return ret
 
-def isoSurfMC(t, var, value, split='simple', vars=None):
+def isoSurfMC(t, var, value, vars=None, split='simple'):
     """Compute an iso surface in volume zones using marching cubes.
-    Usage: isoSurfMC(t, var, value, split, vars)"""
+    Usage: isoSurfMC(t, var, value, vars, split)"""
     if vars is None:
         t = C.center2Node(t, Internal.__FlowSolutionCenters__)
     else:

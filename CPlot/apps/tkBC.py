@@ -332,7 +332,7 @@ def check():
     # modifie la couleur du bouton
     bases = Internal.getBases(CTK.dt)
     if len(bases) > 0: l = len(Internal.getZones(bases[0]))
-    else: l == 0
+    else: l = 0
     if l == 0: TTK.setButtonGreen(WIDGETS['undefinedBC'])
     else: TTK.setButtonRed(WIDGETS['undefinedBC'])    
     WIDGETS['undefinedBC'].update()

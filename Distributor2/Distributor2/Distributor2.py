@@ -24,7 +24,7 @@ import numpy
 # IN: algorithm: 'gradient0', 'gradient1', 'genetic', 'fast'
 # IN: nghost: nbre de couches de ghost cells
 #==============================================================================
-def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=None, comd=None,
+def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None, comd=None,
                algorithm='graph', mode='nodes', nghost=0):
     """Distribute zones over NProc processors.
     Usage: distribute(A, NProc, prescribed, perfo, weight, com, algorithm)"""
@@ -60,12 +60,12 @@ def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=None, comd
             nbPts.append(c)
 
     # Liste des arrays deja distribues
-    if prescribed == []: # nothing set
+    if prescribed is None: # nothing set
         setArrays = [-1]*len(arrays)
     else: setArrays = prescribed
     
     # Liste des alpha, beta, gamma pour chaque processeur
-    if perfo == []:
+    if perfo is None:
         # Poids du solveur (par defaut)
         alpha = 1.
         # Poids de la latence (temps pour chaque com)
@@ -80,7 +80,7 @@ def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=None, comd
 
     # Liste des poids du solveur pour chaque bloc
     Nb = len(arrays)
-    if weight == []: weight = [1]*Nb
+    if weight is None: weight = [1]*Nb
 
     # Matrice du volume des coms (volCom ou volComd)
     volCom = None; volComd = None

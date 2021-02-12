@@ -34,7 +34,7 @@ using namespace std;
 //=============================================================================
 PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
 {
-  E_Float ZEROVOL=1.e-16;
+  E_Float ZEROVOL = 1.e-16;
   E_Float penaltyExtrap = 1.e6;
   E_Float penaltyOrphan = 1.e12;
 

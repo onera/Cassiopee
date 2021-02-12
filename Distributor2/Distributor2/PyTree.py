@@ -59,10 +59,10 @@ def addCom__(comd, c, d, NBlocs, vol):
 # IN: algorithm: gradient0, gradient1, genetic, fast
 # IN: nghost: nbre de couches de ghost cells ajoutees
 #==============================================================================
-def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match', 
+def distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match', 
                algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
-    Usage: distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
+    Usage: distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
     tp = Internal.copyRef(t)
     out = _distribute(tp, NProc, prescribed=prescribed, perfo=perfo,
                       weight=weight, useCom=useCom, algorithm=algorithm,
@@ -70,19 +70,20 @@ def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
     return tp, out
 
 # in place version
-def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match', 
+def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match', 
                 algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
-    Usage: _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
+    Usage: _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
     zones = Internal.getZones(t)
     # Formation des arrays (seulement pour useCom=overlap ou bbox, sinon on met directement le nbre de pts)
     nbPts = []; arrays = []; zoneNames = []; aset = []; weightlist = [] # weight for all zones
     for z in zones:
         zname = z[0]
         zoneNames.append(zname)
-        aset.append(prescribed.get(zname,-1))
+        if prescribed is not None: aset.append(prescribed.get(zname,-1))
+        else: aset.append(-1)
 
-        if zname in weight: weightlist.append(weight[zname])
+        if weight is not None: weightlist.append(weight.get(zname, 1))
         else: weightlist.append(1)
 
         a = C.getFields(Internal.__GridCoordinates__, z, api=2)

@@ -255,18 +255,18 @@ def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
 
     if mode == 1: # all vars everywhere
       out = []
-      for vars in allvars:
-        if out == []: out = vars
+      for zvars in allvars:
+        if out == []: out = zvars
         else:
-          for v in vars:
+          for v in zvars:
             if v not in out: out.append(v)
       allvars = [out]
 
     if mode == 2: # common vars only
       out = []
       d = {}
-      for vars in allvars:
-        for v in vars:
+      for zvars in allvars:
+        for v in zvars:
           if v in d: d[v] += 1
           else: d[v] = 1
       out = []
@@ -284,10 +284,10 @@ def isNamePresent(t, varname):
   v = varname.split(':')
   if len(v) > 1 and v[0] == 'nodes':
     varname = v[1]
-  vars = getVarNames(t)
-  if len(vars) == 0: return -1
+  zvars = getVarNames(t)
+  if len(zvars) == 0: return -1
   one = 0
-  for z in vars:
+  for z in zvars:
     found = 0
     for v in z:
       if v == varname: found = 1; one = 1; break
@@ -567,7 +567,7 @@ def setValue(t, var, ind, val):
         and (loc == 'nodes' or loc == '*')):
           if cellDim == 3:
             i[1][im,jm,km] = val[c]; c += 1
-          elif (cellDim == 2):
+          elif cellDim == 2:
             i[1][im,jm] = val[c]; c += 1
           else: i[1][im] = val[c]; c += 1
 
@@ -3963,7 +3963,7 @@ def getNMRatio__(win, winopp, trirac):
   i1o = i1; j1o = j1; k1o = k1; i2o = i2; j2o = j2; k2o = k2
   i1opp = winopp[0]; j1opp = winopp[2]; k1opp = winopp[4]
   i2opp = winopp[1]; j2opp = winopp[3]; k2opp = winopp[5]
-  oi = trirac[0];
+  oi = trirac[0]
   if len(trirac) > 1: oj = trirac[1]
   else: oj = 2
   if len(trirac) > 2: ok = trirac[2]
@@ -5302,14 +5302,14 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
             wr    = Internal.range2Window(prr[1])
             wd    = Internal.range2Window(prd[1])
 
-            iminR = wr[0] ; imaxR = wr[1] ; 
-            jminR = wr[2] ; jmaxR = wr[3] ;
-            kminR = wr[4] ; kmaxR = wr[5] ;
+            iminR = wr[0] ; imaxR = wr[1]
+            jminR = wr[2] ; jmaxR = wr[3]
+            kminR = wr[4] ; kmaxR = wr[5]
 
 
-            iminD = wd[0] ; imaxD = wd[1] ;
-            jminD = wd[2] ; jmaxD = wd[3] ;
-            kminD = wd[4] ; kmaxD = wd[5] ;
+            iminD = wd[0] ; imaxD = wd[1]
+            jminD = wd[2] ; jmaxD = wd[3]
+            kminD = wd[4] ; kmaxD = wd[5]
 
             niR   = dimzR[1]-1 
             njR   = dimzR[2]-1
@@ -6784,7 +6784,7 @@ def breakConnectivity(t):
                 if N == 2:
                   type1 = connects[0][1][0]; type2 = connects[1][1][0]
                   if (type1 == 22 and type2 == 23) or (type1 == 23 and type2 == 22): # pur NGON
-                    break;
+                    break
 
                 iBE = []; iNGon = -1; iNFace = -1; i = 0
                 for co in connects:

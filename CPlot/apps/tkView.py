@@ -1,6 +1,6 @@
 # - CPlot view settings -
 try: import Tkinter as TK
-except: import tkinter as TK
+except ImportError: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -41,16 +41,16 @@ def setMode(event=None):
     elif mode == 'Scalar':
         imode = 3
         if VARS[18].get() == 'None':
-            vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
-            if len(vars)>0 and len(vars[0])>0: VARS[18].set(vars[0][0])
+            zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+            if len(zvars)>0 and len(zvars[0])>0: VARS[18].set(zvars[0][0])
             displayField()
         WIDGETS['scalar'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
     elif mode == 'Vector':
         imode = 4; WIDGETS['vector'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
         if VARS[20].get() == 'None' or VARS[21].get() == 'None' or VARS[22].get() == 'None':
-            vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
-            if len(vars) > 0:
-                vars0 = vars[0]
+            zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+            if len(zvars) > 0:
+                vars0 = zvars[0]
                 lg = len(vars0)
                 # Premiere recherche : on regarde si il existe une variable contenant la lettre X :
                 ivar_with_X = -1
@@ -67,7 +67,7 @@ def setMode(event=None):
                     for jv in range(lg):
                         if vars0[jv] == y_var_str: ivar_with_Y = jv
                         if vars0[jv] == z_var_str: ivar_with_Z = jv
-                        if (ivar_with_Y >= 0) and (ivar_with_Z  >= 0): break
+                        if ivar_with_Y >= 0 and ivar_with_Z  >= 0: break
 
                 if (ivar_with_X >= 0) and (ivar_with_Y == -1 or ivar_with_Z == -1):
                     VARS[20].set(vars0[ivar_with_X])
@@ -103,28 +103,27 @@ def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     m = WIDGETS['scalarField'].children['menu']
     m.delete(0, TK.END)
     allvars = []
-    if len(vars) > 0:
-        for v in vars[0]: allvars.append(v)
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append(v)
     for i in allvars:
         m.add_command(label=i, command=lambda v=VARS[18],
                       l=i:displayFieldl(v,l))
 
 def updateVarNameList_2(event=None):
     if CTK.t == []: return
-    nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     allvars = []
-    if len(vars) > 0:
-        for v in vars[0]: allvars.append(v)
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append(v)
     if 'scalarField' in WIDGETS:
         WIDGETS['scalarField']['values'] = allvars
 
@@ -132,30 +131,28 @@ def updateVarNameList_2(event=None):
 # Pour les vectors
 def updateVarNameList__(no):
     if CTK.t == []: return
-    nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     m = WIDGETS['vectorField'+str(no)].children['menu']
     m.delete(0, TK.END)
     allvars = []
-    if len(vars) > 0:
-        for v in vars[0]: allvars.append(v)
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append(v)
     for i in allvars:
         m.add_command(label=i, command=lambda v=VARS[19+no],
                       l=i:displayVectorl(v,l))
 
 def updateVarNameList2__(no):
     if CTK.t == []: return
-    nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     allvars = []
-    if len(vars) > 0:
-        for v in vars[0]: allvars.append(v)
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append(v)
 
     if 'vectorField'+str(no) in WIDGETS:
         WIDGETS['vectorField'+str(no)]['values'] = allvars
@@ -225,13 +222,13 @@ def displayField(event=None):
     if CTK.t == []: return
     global VARNO
     field = VARS[18].get()
-    if CTK.__MAINTREE__ == 1: vars = C.getVarNames(CTK.t, mode=1)[0]
-    else: vars = C.getVarNames(CTK.dt, mode=1)[0]
+    if CTK.__MAINTREE__ == 1: zvars = C.getVarNames(CTK.t, mode=1)[0]
+    else: zvars = C.getVarNames(CTK.dt, mode=1)[0]
     ifield = 0; lenvars = 0
-    for i in vars:
+    for i in zvars:
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             lenvars += 1
-    for i in vars:
+    for i in zvars:
         if i == field: break
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield += 1
@@ -253,15 +250,15 @@ def displayVector(event=None):
     field1 = VARS[20].get()
     field2 = VARS[21].get()
     field3 = VARS[22].get()
-    if CTK.__MAINTREE__ == 1: vars = C.getVarNames(CTK.t, mode=1)[0]
-    else: vars = C.getVarNames(CTK.dt, mode=1)[0]
+    if CTK.__MAINTREE__ == 1: zvars = C.getVarNames(CTK.t, mode=1)[0]
+    else: zvars = C.getVarNames(CTK.dt, mode=1)[0]
     ifield1 = 0; ifield2 = 0; ifield3 = 0
     lenvars = 0
-    for i in vars:
+    for i in zvars:
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             lenvars += 1
             
-    for i in vars:
+    for i in zvars:
         if i == field1: break
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield1 += 1
@@ -270,7 +267,7 @@ def displayVector(event=None):
         CTK.TXT.insert('START', 'Variable not found in tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    for i in vars:
+    for i in zvars:
         if i == field2: break
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield2 += 1
@@ -279,7 +276,7 @@ def displayVector(event=None):
         CTK.TXT.insert('START', 'Variable not found in tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    for i in vars:
+    for i in zvars:
         if i == field3: break
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield3 += 1
@@ -299,21 +296,19 @@ def displayVector1(event=None):
     field1 = VARS[20].get()
     field2 = VARS[21].get()
     field3 = VARS[22].get()
-    vars = C.getVarNames(CTK.t, mode=1)[0]
-    ifield1 = 0; ifield2 = 0; ifield3 = 0
-    lenvars = 0
+    zvars = C.getVarNames(CTK.t, mode=1)[0]
     index1 = -1
     index2 = -1
     index3 = -1
-    lg = len(vars)
+    lg = len(zvars)
     for i in range(lg):
-        if vars[i] == field1: index1 = i
+        if zvars[i] == field1: index1 = i
     if lg > index1: index2 = index1+1
     else: index2 = index1
     if lg > index2: index3 = index2+1
     else: index3 = index2
-    VARS[21].set(vars[index2])
-    VARS[22].set(vars[index3])
+    VARS[21].set(zvars[index2])
+    VARS[22].set(zvars[index3])
     displayVector(event)
     
 #==============================================================================
@@ -1361,9 +1356,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

@@ -55,7 +55,7 @@ List of functions
 Contents
 #########
 
-.. py:function:: Distributor2.distribute(A, NProc, prescribed=[], perfo=[], weight=[], com=[], algorithm='graph', mode='nodes', nghost=0)
+.. py:function:: Distributor2.distribute(A, NProc, prescribed=None, perfo=None, weight=None, com=None, algorithm='graph', mode='nodes', nghost=0)
 
     Distribute automatically the blocks amongst NProc processors.
 
@@ -115,7 +115,7 @@ Contents
 
 ===================================================================
 
-.. py:function:: Distributor2.PyTree.distribute(A, NProc, prescribed={}, perfo=[], weight=[], useCom='match', algorithm='graph', mode='nodes', nghost=0)
+.. py:function:: Distributor2.PyTree.distribute(A, NProc, prescribed=None, perfo=None, weight=None, useCom='match', algorithm='graph', mode='nodes', nghost=0)
 
     Distribute automatically the blocks amongst NProc processors.
 
