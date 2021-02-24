@@ -101,7 +101,6 @@ def setMode(event=None):
 # Pour le champ scalaire (optionMenu)
 def updateVarNameList(event=None):
     if CTK.t == []: return
-    nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
         zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:

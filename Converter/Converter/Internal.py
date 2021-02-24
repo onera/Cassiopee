@@ -61,7 +61,9 @@ name2CGNS = { \
 
 # Known BCs
 KNOWNBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
-            'BCFarfield', 'BCExtrapolate', 'BCInflow', 'BCInflowSubsonic', 'BCOutflow',
+            'BCFarfield', 'BCExtrapolate', 
+            'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
+            'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
             'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane', 
             'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
             'UserDefined']

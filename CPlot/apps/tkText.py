@@ -47,8 +47,8 @@ def createText(event=None):
     lx = posEye[0]-posCam[0]
     ly = posEye[1]-posCam[1]
     lz = posEye[2]-posCam[2]
-    if (lx*lx + ly*ly + lz*lz == 0.): lx = -1
-    if (dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.):
+    if lx*lx + ly*ly + lz*lz == 0.: lx = -1
+    if dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.:
         dirCam = (0,0,1)
     ll = math.sqrt(lx*lx + ly*ly + lz*lz)
     a = T.homothety(a, (posEye[0], posEye[1], posEye[2]), 0.01*ll)
@@ -297,9 +297,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

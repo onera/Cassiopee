@@ -125,7 +125,7 @@ E_Int& nbPoints, K_FLD::FldArrayF& coords)
         C0.D0(u, Pt);
         pCurve->D0(u, Puv);
         px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
-        pu[i] = Puv.X(); pv[i] = Puv.Y(); // fix periodicite a faire
+        pu[i] = Puv.X(); pv[i] = Puv.Y();
     }
 }
   return 0;
@@ -223,8 +223,8 @@ PyObject* K_OCC::meshGlobalEdges2(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
 {
-  PyObject* hook; E_Int nbPoints; E_Int noFace;
-  if (!PYPARSETUPLEI(args, "Oll", "Oii", &hook, &noFace, &nbPoints)) return NULL;
+  PyObject* hook; E_Int nbPoints; E_Int noFace; E_Float hmax;
+  if (!PYPARSETUPLE(args, "Olld", "Oiid", "Ollf", "Oiif", &hook, &noFace, &nbPoints, &hmax)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -235,7 +235,7 @@ PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
 
   PyObject* out = PyList_New(0);
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopExp_Explorer expl;
 
   const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
@@ -243,6 +243,8 @@ PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
   {
     const TopoDS_Edge& E = TopoDS::Edge(expl.Current());
       
+    if (hmax > 0) __getNbPts(E, hmax, nbPoints);
+
     // create array
     PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
     FldArrayF* f; K_ARRAY::getFromArray2(o, f);
@@ -254,4 +256,3 @@ PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
   }
   return out;
 }
-

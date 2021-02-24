@@ -97,7 +97,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     out = []
     for i in flist:
         # edges de la face i
-        edges = occ.meshEdgesByFace(hook, i+1, N)
+        edges = occ.meshEdgesByFace(hook, i+1, N, -1.)
         #print("Face %d has %d edges."%(i+1,len(edges)))
         # edges dans espace uv
         edges = switch2UV(edges)
@@ -121,11 +121,11 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     return out
     
 # Mailleur CAD non structure
-def meshTRI(fileName, format="fmt_step", N=11):
+def meshTRI(fileName, format="fmt_step", N=11, hmax=-1.):
     hook = occ.readCAD(fileName, format)
-    return meshTRI__(hook, N)
+    return meshTRI__(hook, N, hmax)
 
-def meshTRI__(hook, N=11, faceSubset=None, faceNo=None):
+def meshTRI__(hook, N=11, hmax=-1., faceSubset=None, faceNo=None):
     """Return a TRI discretisation of CAD."""
     import Generator, Converter, Transform
     nbFaces = occ.getNbFaces(hook)
@@ -134,7 +134,7 @@ def meshTRI__(hook, N=11, faceSubset=None, faceNo=None):
     out = []
     for i in range(nbFaces):
         # edges de la face i
-        edges = occ.meshEdgesByFace(hook, i+1, N)
+        edges = occ.meshEdgesByFace(hook, i+1, N, hmax)
         # edges dans espace uv
         edges = switch2UV(edges)
         T = _scaleUV(edges)
@@ -144,7 +144,7 @@ def meshTRI__(hook, N=11, faceSubset=None, faceNo=None):
         edges = Converter.convertArray2Tetra(edges)
         edges = Transform.join(edges)
         try:
-            a = Generator.T3mesher2D(edges)
+            a = Generator.T3mesher2D(edges, grading=1.)
             _unscaleUV([a], T)
             # evaluation sur la CAD
             o = occ.evalFace(hook, a, i+1)

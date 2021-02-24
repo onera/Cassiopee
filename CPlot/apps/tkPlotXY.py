@@ -42,17 +42,12 @@ try:
     from matplotlib.widgets import SubplotTool
     import matplotlib
     # Fit matplotlib usage
-    matplotlib.use('TkAgg')
+    matplotlib.use('TkAgg') # avec Tk
+    #matplotlib.use('Agg') # sans serveur X
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
     try: from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
     except: from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg as NavigationToolbar2Tk
-#
-#    from matplotlib.backends.backend_tkagg import ToolTip
-#    from matplotlib.backends.backend_tkagg import ToolTip,cursord
-#    from matplotlib.backend_bases import NavigationToolbar2
-#    import matplotlib.backends.windowing as windowing
-#    from matplotlib.figure import Figure
-#
+
     import matplotlib.pyplot as plt
     # Will be imported in the right movie class:
     # import matplotlib.animation as animation
@@ -95,8 +90,6 @@ try:
 except ImportError:
     CTK = None
     TTK = TK
-
-# import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}
@@ -376,6 +369,14 @@ default_values = {
                     'wpad'  : None
                 }
 }
+
+#==========================================================
+def setBatch(batch=True):
+    """Set batch mode."""
+    if batch:
+        matplotlib.use('Agg') # sans serveur X
+    else:
+        matplotlib.use('TkAgg') # avec serveur X
 
 font_dic = {}
 # Cette fonction remplit font_dic

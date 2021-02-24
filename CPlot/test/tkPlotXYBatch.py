@@ -2,6 +2,7 @@
 import Converter.PyTree as C
 import Generator.PyTree as G
 import tkPlotXY
+tkPlotXY.setBatch()
 
 # Cas test
 a = G.cart((0,0,0), (1,1,1), (100,1,1))

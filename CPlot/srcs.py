@@ -5,8 +5,11 @@ from KCore.config import *
 (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
                                              additionalIncludePaths)
 # SHADERS=2 (glsl2.0) =4 (glsl4.0)
-SHADERS = 4
-
+if CPlotOffScreen:
+    # Il semble qu'OSMesa n'implemente en general pas le glsl4
+    SHADERS = 2
+else:
+    SHADERS = 4
 #==============================================================================
 # Fichiers C++
 #==============================================================================

@@ -42,17 +42,16 @@ def setColorVar2(event=None):
 #==============================================================================
 def updateVarNameList(event=None):
     if CTK.t == []: return
-    nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     m = WIDGETS['colors'].children['menu']
     m.delete(0, TK.END)
     allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
                'Orange', 'Brown', 'Magenta', 'Custom>']
-    if len(vars) > 0:
-        for v in vars[0]: allvars.append('Iso:'+v)
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append('Iso:'+v)
     for i in allvars:
         #m.add_command(label=i, command=lambda v=VARS[1],l=i:v.set(l))
         m.add_command(label=i, command=lambda v=VARS[1],l=i:setColorVar(l))
@@ -62,15 +61,14 @@ def updateVarNameList(event=None):
 #==============================================================================
 def updateVarNameList2(event=None):
     if CTK.t == []: return
-    nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
                'Orange', 'Brown', 'Magenta', 'Custom>']
-    if len(vars) > 0:
-        for v in vars[0]: allvars.append('Iso:'+v)
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append('Iso:'+v)
 
     if 'colors' in WIDGETS:
         WIDGETS['colors']['values'] = allvars
@@ -164,7 +162,8 @@ def setBlending(event=None):
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
-    
+    VARS[6].set('Blending [%.2f]'%(WIDGETS['blending'].get() / 100.))
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -226,8 +225,8 @@ def setShaderParameter(event=None):
     CPlot.render()
 
 #==============================================================================
-def setBlending(event=None):
-    VARS[6].set('Blending [%.2f]'%(WIDGETS['blending'].get() / 100.))
+#def setBlending(event=None):
+#    VARS[6].set('Blending [%.2f]'%(WIDGETS['blending'].get() / 100.))
 
 #==============================================================================
 def getData():

@@ -18,15 +18,15 @@ def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
-        vars = C.getVarNames(CTK.t)
+        zvars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz])
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])
     m = WIDGETS['variable'].children['menu']
     m.delete(0, TK.END)
-    if len(vars) == 0: return
-    for i in vars[0]:
+    if len(zvars) == 0: return
+    for i in zvars[0]:
         m.add_command(label=i, command=lambda v=VARS[5],l=i:v.set(l))
 
 #==============================================================================
@@ -36,14 +36,14 @@ def updateVarNameList2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
-        vars = C.getVarNames(CTK.t)
+        zvars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz])
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])
 
     if 'variable' in WIDGETS:
-        WIDGETS['variable']['values'] = vars[0]
+        WIDGETS['variable']['values'] = zvars[0]
 
 #==============================================================================
 # Recupere la variable de la souris
@@ -56,7 +56,7 @@ def getVariableValue(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nob = CTK.Nb[0]+1
     noz = CTK.Nz[0]
-    vars = C.getVarNames(CTK.t[2][nob][2][noz])[0]
+    zvars = C.getVarNames(CTK.t[2][nob][2][noz])[0]
     
     index = CPlot.getActivePointIndex()
     if index != []:
@@ -78,7 +78,7 @@ def getVariableValue(event=None):
         VARS[1].set(str(point[2]))
     else:
         ivar = 0
-        for v in vars:
+        for v in zvars:
             if v == cvar: break
             if v[0:10] != 'Coordinate': ivar += 1
         VARS[1].set(str(field[ivar]))

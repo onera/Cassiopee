@@ -103,10 +103,10 @@ def meshTRI(fileName, format="fmt_step", N=11):
   hook = OCC.occ.readCAD(fileName, format)
   return meshTRI__(hook, N) 
 
-def meshTRI__(hook, N=11, faceSubset=None, linkFaceNo=None):
+def meshTRI__(hook, N=11, hmax=-1., faceSubset=None, linkFaceNo=None):
   """Return a TRI discretisation of CAD."""
   faceNoA = []
-  a = OCC.meshTRI__(hook, N, faceSubset, faceNoA)
+  a = OCC.meshTRI__(hook, N, hmax, faceSubset, faceNoA)
   out = []
   for c, i in enumerate(a):
     z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
@@ -226,7 +226,7 @@ class CAD:
     return z
 
   def evalEdge(self, edge, distribution):
-    """Evaluate edge ar given parameters."""
+    """Evaluate edge at given parameters."""
     if isinstance(edge, int): no = edge
     else: no = edge.number
     if isinstance(distribution, float):
@@ -262,12 +262,12 @@ class CAD:
     return zp
 
   # faceList ne marche pas encore
-  def mesh(self, mtype='STRUCT', N=11):
+  def mesh(self, mtype='STRUCT', N=11, hmax=-1.):
     """Mesh CAD with given type."""
     if mtype == 'STRUCT':
       zones = meshSTRUCT__(self.hook, N, None, self.linkFaceNo)
     elif mtype == 'TRI':
-      zones = meshTRI__(self.hook, N, None, self.linkFaceNo)
+      zones = meshTRI__(self.hook, N, hmax, None, self.linkFaceNo)
     elif mtype == 'TRIHO':
       zones = meshTRIHO(self.fileName, self.format, N)
     elif mtype == 'QUADHO':
