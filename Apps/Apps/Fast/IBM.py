@@ -1567,8 +1567,15 @@ def prepareWallReconstruction(tw, tc):
 # reconstruit les champs parietaux a partir des infos stockees dans tw et les champs de tc
 def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None, 
                                variables=['Pressure','Density','utau','yplus']):
-    
-    if graph is None: graph = Cmpi.computeGraph(tcw, type='POST',procDict=procDictD, procDict2=procDictR, t2=tw)
+    if procDictR is None:
+        procDictR={}
+        for z in Internal.getZones(tw): procDictR[z[0]]=0
+    if procDictD is None:
+        procDictD={}
+        for z in Internal.getZones(tcw): procDictD[z[0]]=0
+
+    if graph is None: 
+        graph = Cmpi.computeGraph(tcw, type='POST',procDict=procDictD, procDict2=procDictR, t2=tw)
 
     cellNVariable=''; varType=1; compact=0
 
@@ -1620,7 +1627,7 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
                                                                 cellNVariable,
                                                                 Internal.__GridCoordinates__, 
                                                                 Internal.__FlowSolutionNodes__, 
-                                                                Internal.__FlowSolutionCenters__)    
+                                                                Internal.__FlowSolutionCenters__)   
                         infos.append([dname,arrayT,ListRcv,loc])
         for n in infos:
             rcvName = n[0]
@@ -1629,7 +1636,7 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
                 fields = n[1]
                 if fields != []:
                     listIndices = n[2]
-                    zr = Internal.getNodeFromName2(tw,rcvName)              
+                    zr = Internal.getNodeFromName2(tw,rcvName)     
                     C._updatePartialFields(zr, [fields], [listIndices], loc=n[3])
             else:
                 rcvNode = procDictR[rcvName]

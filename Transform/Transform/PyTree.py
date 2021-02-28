@@ -217,12 +217,11 @@ def _deformMesh(a, surfDelta, beta=4.,type='nearest'):
 def join(t, t2=0, tol=1.e-10):
     """Join two zones in one or join a list of zones in one.
     Usage: join(t,t2) or join(t)"""
+    if t2 != 0:
+        t = C.mergeTrees(t,t2)
+    Internal._orderFlowSolution(t, loc='both')  
     nodes = Internal.getZones(t)
     allBCInfos = C.extractBCInfo(t)
-
-    if t2 != 0:
-        nodes += Internal.getZones(t2)
-        allBCInfos += C.extractBCInfo(t2)
 
     fieldn = C.getAllFields(nodes, 'nodes')
     fieldc = []
@@ -241,6 +240,7 @@ def join(t, t2=0, tol=1.e-10):
 def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
     """Merge a list of matching zones.
     Usage: merge(t, sizeMax, dir, tol, alphaRef)"""
+    Internal._orderFlowSolution(t, loc='both')
     allBCInfos = C.extractBCInfo(t)
     fieldn = C.getAllFields(t, 'nodes')
     fieldc = []
@@ -263,6 +263,7 @@ def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
 def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
     """Merge Cartesian grids defined as a list of zones using Rigby algorithm.
     Usage: mergeCart(t, sizeMax, tol)"""
+    Internal._orderFlowSolution(t, loc='both')
     allBCInfos = C.extractBCInfo(t)
     A = C.getAllFields(t, 'nodes',api=2)
     A = Transform.mergeCart(A, sizeMax, tol)

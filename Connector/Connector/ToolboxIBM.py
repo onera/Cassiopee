@@ -300,7 +300,7 @@ def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=
     if nzones0 < 1000: return None
 
     parento = buildOctree(tb, snears=snears, snearFactor=snearFactor, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
-                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank, expand=0, dfarDir=dfarDir)
+                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank, expand=-1, dfarDir=dfarDir)
     
     bbo = G.bbox(parento)
     xmino=bbo[0]; xmaxo=bbo[3]; xmeano=0.5*(xmino+xmaxo)

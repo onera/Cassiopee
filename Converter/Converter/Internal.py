@@ -4074,7 +4074,7 @@ def referencedElement(ind, zname, d):
 # Si zone BE et breakBE=True
 # Break la zone en plusieurs BE a simple element
 # Si zone MIX et convertMIX=True
-# Converti la zone MIXED en NGON
+# Convertit la zone MIXED en NGON
 # Si addNFace=True, ajoute le NFace
 def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
     tp = copyRef(t)
@@ -4357,6 +4357,40 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
 # -- Purely internal (undocumented) --
 #==============================================================================
 
+# order nodes in FSC
+def _orderFlowSolution(t, loc='both'):
+    if loc=='nodes': loci=0
+    elif loc=='centers': loci=1
+    else: loci=2
+
+    noz = 0; orderedNodesC=[]; orderedNodesN=[]
+    for z in getZones(t):
+        if loci > 0: 
+            FSC = getNodeFromName(z,__FlowSolutionCenters__)
+            if FSC is not None:
+                if noz == 0:
+                    for fieldnode in FSC[2]:
+                        orderedNodesC.append(getName(fieldnode))
+                else:
+                    newChildrens=[]
+                    for nodename in orderedNodesC:
+                        nodel = getNodeFromName1(FSC,nodename)
+                        newChildrens.append(nodel)  
+                    FSC[2]=newChildrens
+        else:
+            FSN = getNodeFromName(z,__FlowSolutionNodes__)
+            if FSN is not None:
+                if noz == 0:
+                    for fieldnode in FSN[2]:
+                        orderedNodesN.append(getName(fieldnode))
+                else:
+                    newChildrens=[]
+                    for nodename in orderedNodesN:
+                        nodel = getNodeFromName1(FSN,nodename)
+                        newChildrens.append(nodel)  
+                    FSN[2]=newChildrens        
+        noz+=1
+    return None
 # -- Convert an array with (i,j,k) numerotation to an array with 1D-index
 # numerotation
 # IN: array with (i,j,k) numerotation
