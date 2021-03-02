@@ -217,11 +217,13 @@ def _deformMesh(a, surfDelta, beta=4.,type='nearest'):
 def join(t, t2=0, tol=1.e-10):
     """Join two zones in one or join a list of zones in one.
     Usage: join(t,t2) or join(t)"""
-    if t2 != 0:
-        t = C.mergeTrees(t,t2)
-    Internal._orderFlowSolution(t, loc='both')  
     nodes = Internal.getZones(t)
     allBCInfos = C.extractBCInfo(t)
+
+    if t2 != 0:
+        nodes += Internal.getZones(t2)
+        allBCInfos += C.extractBCInfo(t2)
+    Internal._orderFlowSolution(nodes, loc='both')  
 
     fieldn = C.getAllFields(nodes, 'nodes')
     fieldc = []
