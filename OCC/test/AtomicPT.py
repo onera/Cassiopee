@@ -8,7 +8,7 @@ hook = OCC.occ.readCAD("cube.step", "fmt_step")
 out = []
 for i in range(6):
     # edges de la face i
-    edges = OCC.occ.meshEdgesByFace(hook, i+1, 10)
+    edges = OCC.occ.meshEdgesByFace(hook, i+1, 10, -1.)
     # edges dans espace uv
     edges = OCC.switch2UV(edges)
     # TFI dans espace uv

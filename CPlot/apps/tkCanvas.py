@@ -1,4 +1,5 @@
-# - tkCanvas : create drawing canvas -
+# - tkCanvas -
+"""Create drawing canvas."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -22,8 +23,8 @@ DIRX = 0; DIRY = 0; DIRZ = 0
 
 #==============================================================================
 def initCanvas(event=None):
-    dir = VARS[0].get()
-    if dir == 'None' and CTK.t == []: return
+    zdir = VARS[0].get()
+    if zdir == 'None' and CTK.t == []: return
     global CANVASSIZE, XC, YC, ZC, UX, UY, UZ, LX, LY, LZ, DIRX, DIRY, DIRZ
     if CANVASSIZE == -1:
         try:
@@ -42,17 +43,17 @@ def initCanvas(event=None):
     if nzs != [] and dir != 'None':
         point = CPlot.getActivePoint()
         if point != []:
-            if dir == 'YZ': XC = point[0]
-            elif dir == 'XZ': YC = point[1]
-            elif dir == 'XY': ZC = point[2]
+            if zdir == 'YZ': XC = point[0]
+            elif zdir == 'XZ': YC = point[1]
+            elif zdir == 'XY': ZC = point[2]
             else: XC = point[0]; YC = point[1]; ZC = point[2]
     
-    if dir == 'None':
+    if zdir == 'None':
         deleteCanvasBase()
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render(); return
-    elif dir == 'View':
+    elif zdir == 'View':
         posCam = CPlot.getState('posCam')
         posEye = CPlot.getState('posEye')
         dirCam = CPlot.getState('dirCam')
@@ -70,11 +71,11 @@ def initCanvas(event=None):
         UY = dirCam[2]*LX - dirCam[0]*LZ
         UZ = dirCam[0]*LY - dirCam[1]*LX
     
-    elif dir == 'YZ':
+    elif zdir == 'YZ':
         DIRX = 1; DIRY = 0; DIRZ = 0
         UX = 0; UY = 1; UZ = 0
         LX = 0; LY = 0; LZ = 1
-    elif dir == 'XZ':
+    elif zdir == 'XZ':
         DIRX = 0; DIRY = 1; DIRZ = 0
         UX = 1; UY = 0; UZ = 0
         LX = 0; LY = 0; LZ = 1
@@ -84,7 +85,7 @@ def initCanvas(event=None):
         LX = 0; LY = 0; LZ = 1
     CTK.TXT.insert('START', 'Set a canvas.\n')
     setCanvas()
-    
+
 #==============================================================================
 def deleteCanvasBase():
     nodes = Internal.getNodesFromName1(CTK.t, 'CANVAS')
@@ -100,24 +101,24 @@ def deleteCanvasBase():
     
 #==============================================================================
 def setCanvas(event=None):
-    dir = VARS[0].get()
+    zdir = VARS[0].get()
     CTK.saveTree()
     deleteCanvasBase()
     CTK.t = C.addBase2PyTree(CTK.t, 'CANVAS', 2)
     
     size = CANVASSIZE
-    if dir == 'View':
+    if zdir == 'View':
         a = G.cart( (-size, 0, -size), (2*size, 2*size, 2*size), (2,1,2) )
         a = T.translate(a, (XC, YC, ZC) )
         a = T.rotate(a, (XC, YC, ZC),
                      ((1,0,0),(0,1,0),(0,0,1)),
                      ((-DIRX,-DIRY,-DIRZ), (LX,LY,LZ), (UX,UY,UZ)))
         VARS[1].set(str(XC)+';'+str(YC)+';'+str(ZC))
-    elif dir == 'YZ':
+    elif zdir == 'YZ':
         a = G.cart( (0, -size, -size), (2*size, 2*size, 2*size), (1,2,2) )
         a = T.translate(a, (XC, YC, ZC) )
         VARS[1].set(str(XC))
-    elif dir == 'XZ':
+    elif zdir == 'XZ':
         a = G.cart( (-size, 0, -size), (2*size, 2*size, 2*size), (2,1,2) )
         a = T.translate(a, (XC, YC, ZC) )
         VARS[1].set(str(YC))
@@ -138,19 +139,19 @@ def setCanvas(event=None):
 #==============================================================================
 def moveUp():
     if CTK.t == []: return
-    dir = VARS[0].get()
+    zdir = VARS[0].get()
     step = VARS[2].get()
     try: step = float(step)
     except: step = 1.
     
     global XC, YC, ZC
-    if dir == 'View':
+    if zdir == 'View':
         XC = XC + step*LX
         YC = YC + step*LY
         ZC = ZC + step*LZ
-    elif dir == 'YZ':
+    elif zdir == 'YZ':
         XC = XC + step
-    elif dir == 'XZ':
+    elif zdir == 'XZ':
         YC = YC + step
     else:
         ZC = ZC + step
@@ -160,19 +161,19 @@ def moveUp():
 #==============================================================================
 def moveDown():
     if CTK.t == []: return
-    dir = VARS[0].get()
+    zdir = VARS[0].get()
     step = VARS[2].get()
     try: step = float(step)
     except: step = 1.
     
     global XC, YC, ZC
-    if dir == 'View':
+    if zdir == 'View':
         XC = XC - step*LX
         YC = YC - step*LY
         ZC = ZC - step*LZ
-    elif dir == 'YZ':
+    elif zdir == 'YZ':
         XC = XC - step
-    elif dir == 'XZ':
+    elif zdir == 'XZ':
         YC = YC - step
     else:
         ZC = ZC - step
@@ -206,9 +207,9 @@ def reduce():
 def setCanvasPos(event=None):
     if CTK.t == []: return
     global XC, YC, ZC
-    dir = VARS[0].get()
+    zdir = VARS[0].get()
     res = CTK.varsFromWidget(VARS[1].get(), type=1)
-    if dir == 'View':
+    if zdir == 'View':
         if len(res) != 3:
             CTK.TXT.insert('START', 'xc;yc;zc is incorrect.\n'); return
         else:
@@ -217,8 +218,8 @@ def setCanvasPos(event=None):
         if len(res) != 1:
             CTK.TXT.insert('START', 'pos is incorrect.\n'); return
         else:
-            if dir == 'YZ': XC = res[0]
-            elif dir == 'XZ': YC = res[0]
+            if zdir == 'YZ': XC = res[0]
+            elif zdir == 'XZ': YC = res[0]
             else: ZC = res[0]
     setCanvas()
     

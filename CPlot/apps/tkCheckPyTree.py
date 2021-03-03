@@ -1,4 +1,5 @@
-# - check pyTree integrity -
+# - tkCheckPyTree -
+"""Check pyTree integrity."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -43,7 +44,7 @@ def runCheckPyTree():
         if len(MGlevel)>0 and len(minBlk)>0 and len(minBC)>0:
             errors += Internal.checkMultigrid(CTK.t, level=MGlevel[0],
                                               nbMinCoarseB=minBlk[0], nbMinCoarseW=minBC[0])
-    if (v == 'Maximum number of nodes'):
+    if v == 'Maximum number of nodes':
         minBlk = CTK.varsFromWidget(VARS[0].get(), type=2)
         if len(minBlk)>0:
             errors = Internal.checkSize(CTK.t, sizeMax=minBlk[0])
@@ -198,9 +199,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

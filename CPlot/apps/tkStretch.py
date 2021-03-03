@@ -1,4 +1,5 @@
-# - mapping/remeshing -
+# - tkStretch -
+"""Mapping/stretching meshes."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -27,11 +28,11 @@ def mapCurvature():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    dir = VARS[1].get()
-    if dir == 'i-indices': dir = 1
-    elif dir == 'j-indices': dir = 2
-    elif dir == 'k-indices': dir = 3
-    else: dir = 0
+    zdir = VARS[1].get()
+    if zdir == 'i-indices': zdir = 1
+    elif zdir == 'j-indices': zdir = 2
+    elif zdir == 'k-indices': zdir = 3
+    else: zdir = 0
 
     power = VARS[4].get()
     try: power = float(power)
@@ -50,11 +51,11 @@ def mapCurvature():
         if dims[3] == 'BAR':
             z = C.convertBAR2Struct(z)
             dims = Internal.getZoneDim(z)
-        if dir == 1:
+        if zdir == 1:
             zp = G.mapCurvature(z, int(power*dims[1]), power2, 1)
-        elif dir == 2:
+        elif zdir == 2:
             zp = G.mapCurvature(z, int(power*dims[2]), power2, 2)
-        elif dir == 3:
+        elif zdir == 3:
             zp = G.mapCurvature(z, int(power*dims[3]), power2, 3)
         else:
             zp = G.mapCurvature(z, int(power*dims[1]), power2, 1)
@@ -86,11 +87,11 @@ def uniformize():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    dir = VARS[1].get()
-    if dir == 'i-indices': dir = 1
-    elif dir == 'j-indices': dir = 2
-    elif dir == 'k-indices': dir = 3
-    else: dir = 0
+    zdir = VARS[1].get()
+    if zdir == 'i-indices': zdir = 1
+    elif zdir == 'j-indices': zdir = 2
+    elif zdir == 'k-indices': zdir = 3
+    else: zdir = 0
 
     power = VARS[3].get()
     try: power = float(power)
@@ -105,11 +106,11 @@ def uniformize():
         if dims[3] == 'BAR':
             z = C.convertBAR2Struct(z)
             dims = Internal.getZoneDim(z)
-        if dir == 1:
+        if zdir == 1:
             zp = uniformizeMesh(z, power*dims[1], 1)
-        elif dir == 2:
+        elif zdir == 2:
             zp = uniformizeMesh(z, power*dims[2], 2)
-        elif dir == 3:
+        elif zdir == 3:
             zp = uniformizeMesh(z, power*dims[3], 3)
         else:
             zp = uniformizeMesh(z, power*dims[1], 1)
@@ -134,11 +135,11 @@ def refine():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    dir = VARS[1].get()
-    if dir == 'i-indices': dir = 1
-    elif dir == 'j-indices': dir = 2
-    elif dir == 'k-indices': dir = 3
-    else: dir = 0
+    zdir = VARS[1].get()
+    if zdir == 'i-indices': zdir = 1
+    elif zdir == 'j-indices': zdir = 2
+    elif zdir == 'k-indices': zdir = 3
+    else: zdir = 0
 
     power = VARS[2].get()
     try: power = float(power)
@@ -151,15 +152,15 @@ def refine():
         z = CTK.t[2][nob][2][noz]
         dim = Internal.getZoneDim(z)
         if dim[3] == 'TRI': # raffinement TRI
-            iter = int(round(power / 2.,0))
-            for i in xrange(iter):
+            niter = int(round(power / 2.,0))
+            for i in range(niter):
                  #z = C.initVars(z, 'centers:__indic__', 1)
                  #z = P.refine(z, 'centers:__indic__')
                  P._refine(z, w=1./16.) # butterfly
                  #z = C.rmVars(z, 'centers:__indic__')
             CTK.replace(CTK.t, nob, noz, z)
 
-        elif (dim[3] == 'BAR' or dim[0] == 'Structured'):
+        elif dim[3] == 'BAR' or dim[0] == 'Structured':
             if dim[3] == 'BAR': z = C.convertBAR2Struct(z)
             z = G.refine(z, power, dir)
             CTK.replace(CTK.t, nob, noz, z)
@@ -188,7 +189,7 @@ def enforceMesh(z, dir, N, width, ind, h):
     distrib = C.initVars(distrib, 'CoordinateZ', 0.)
     distrib = C.rmVars(distrib, 's')
 
-    Nr = int(width*N);
+    Nr = int(width*N)
     #print h, l, Nr, i1, j1, k1
 
     if dir == 1:

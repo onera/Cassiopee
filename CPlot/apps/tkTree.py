@@ -1,5 +1,5 @@
 # - tkTree -
-# View a pyTree in a tree widget
+"""View a pyTree in a tree widget."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK

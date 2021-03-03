@@ -1,4 +1,5 @@
-# - backgrounds -
+# - tkBackgrounds -
+"""Set backgrounds in GUI."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -212,7 +213,7 @@ def createGround():
     if hy < 1.e-10: hy = 0.1
     if hz < 1.e-10: hz = 0.001
     h = max(hx, hy)
-    ay = ax; bx = ax; by = ax; # force square
+    ay = ax; bx = ax; by = ax # force square
     deltax = 0.5*(h-hx); deltay = 0.5*(h-hy)
 
     hx = h * 0.5; hy = h * 0.5; hz = 0.1*hz
@@ -245,21 +246,21 @@ def setBackground(event=None):
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    type = VARS[0].get()
+    btype = VARS[0].get()
     CTK.saveTree()
-    if type == 'None':
+    if btype == 'None':
         deleteBackgroundBase()
     else:
         deleteBackgroundBase()
         CTK.t = C.addBase2PyTree(CTK.t, 'BACKGROUND', 2)
         
-        if type == 'Half-Box': B = createBox(1)
-        elif type == 'Box': B = createBox(0)
-        elif type == 'Z-Half-Box': B = createBox(1, 1)
-        elif type == 'Z-Box': B = createBox(0, 1)
-        elif type == 'Z-Ellipse': B = createZEllipse()
-        elif type == 'Z-Plane': B = createZPlane()
-        elif type == 'Z-Square-Ground': B = createGround()
+        if btype == 'Half-Box': B = createBox(1)
+        elif btype == 'Box': B = createBox(0)
+        elif btype == 'Z-Half-Box': B = createBox(1, 1)
+        elif btype == 'Z-Box': B = createBox(0, 1)
+        elif btype == 'Z-Ellipse': B = createZEllipse()
+        elif btype == 'Z-Plane': B = createZPlane()
+        elif btype == 'Z-Square-Ground': B = createGround()
 
         base = Internal.getNodesFromName1(CTK.t, 'BACKGROUND')[0]
         nob = C.getNobOfBase(base, CTK.t)
@@ -357,9 +358,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

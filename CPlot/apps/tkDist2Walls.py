@@ -1,4 +1,5 @@
-# - tk interface for Dist2Walls -
+# - tkDist2Walls -
+"""Compute distance to walls."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -67,7 +68,7 @@ def compute():
         tp[2][1][2].append(z)
         
     try:
-        if (VARS[2].get() == 'absolute'): signed = 0
+        if VARS[2].get() == 'absolute': signed = 0
         else: signed = 1
         tp = DTW.distance2Walls(tp, walls, type=VARS[0].get(), loc=VARS[3].get(),
                                 signed=signed)
@@ -143,8 +144,7 @@ def createApp(win):
     B.grid(row=2, column=0, sticky=TK.EW)
     B = TTK.OptionMenu(Frame, VARS[3], 'nodes', 'centers')
     B.grid(row=2, column=1, sticky=TK.EW)
-
-    C = CTK.infoBulle(parent=B, text='Compute the wall distance.\nTree is modified.')
+    BB = CTK.infoBulle(parent=B, text='Compute the wall distance.\nTree is modified.')
     
 #==============================================================================
 # Called to display widgets
@@ -182,7 +182,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

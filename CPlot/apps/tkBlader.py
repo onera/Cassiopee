@@ -1,4 +1,5 @@
-# - blader -
+# - tkBlader -
+"""App to create blade meshes."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -67,7 +68,7 @@ def trimesh(a1, a2, a3):
 
     # Verif de N
     Nt = N3-N2+N1+1
-    if (Nt/2-Nt*0.5 != 0): return [0, 'N3-N2+N1 must be odd.', 0]
+    if Nt/2-Nt*0.5 != 0: return [0, 'N3-N2+N1 must be odd.', 0]
     N = Nt/2
     if N < 2: return [0, 'invalid number of points for this operation.', 0]
     if N > N1-1: return [0, 'invalid number of points for this operation.',0]
@@ -118,8 +119,8 @@ def mono2mesh(a1, a2):
     import Generator as G
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
-    if (diff/2 != diff*0.5): return ['N1-N2 must be even.']
-    if (diff < 0): ap = a2; a2 = a1; a1 = ap; diff = -diff; N2 = N1
+    if diff/2 != diff*0.5: return ['N1-N2 must be even.']
+    if diff < 0: ap = a2; a2 = a1; a1 = ap; diff = -diff; N2 = N1
     Np = (diff+2)/2
 
     b1 = T.subzone(a2, (1,1,1), (Np,1,1))
@@ -136,15 +137,15 @@ def step1():
 
     # Recupere le profil
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    if (len(nzs) > 2):
+    if len(nzs) > 2:
         CTK.TXT.insert('START', 'Input profile must be one curve or two curves (blunt profiles).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    if (len(nzs) == 2): culot = 1
+    if len(nzs) == 2: culot = 1
     else: culot = 0
 
     zones = []; errors = []
@@ -161,7 +162,7 @@ def step1():
                 CTK.TXT.insert('START', 'Input profile must be structured.\n')
                 CTK.TXT.insert('START', 'Error: ', 'Error'); return
         zones.append(z)
-    if (len(errors)>0): Panels.displayErrors(errors, header='Error: blader')
+    if len(errors)>0: Panels.displayErrors(errors, header='Error: blader')
     CTK.saveTree()
 
     # -- Go to array world!
@@ -172,10 +173,10 @@ def step1():
 
     # repere le culot si 2 courbes sont fournies
     a = C.getAllFields(zones[0], 'nodes')[0]
-    if (culot == 1):
+    if culot == 1:
         ac = C.getAllFields(zones[1], 'nodes')[0]
         bb1 = G.bbox(a); bb2 = G.bbox(ac)
-        if (bb1[0] > bb2[0]): temp = a; a = ac; ac = temp 
+        if bb1[0] > bb2[0]: temp = a; a = ac; ac = temp 
 
     # taille de maille trailing edge et culot
     h = float(VARS[1].get())
@@ -192,7 +193,7 @@ def step1():
     # Remaille uniforme du profil avec h2
     l = D.getLength(a)
     npts = int(l / h2)+1
-    if (npts/2 == npts*0.5): npts += 1
+    if npts/2 == npts*0.5: npts += 1
     distrib = G.cart( (0,0,0), (1./(npts-1.),1,1), (npts,1,1) )
     a = G.map(a, distrib)
 
@@ -265,16 +266,16 @@ def step1():
     median = G.map(median, s)
     median = G.refine(median, 0.9, 1)
     N1 = c1[2]; N2 = median[2]; d = N1-N2    
-    if (d/2 != d*0.5):
+    if d/2 != d*0.5:
         factor = (N2+2.)/N2
         median = G.refine(median, factor, 1)
 
     #===========================================================================
     # Maillage TRI au bout
-    if (culot == 0):
+    if culot == 0:
         #Converter.convertArrays2File([b1,b2,delta], 'bout1.plt')
         m3 = trimesh(b1, b2, delta)
-        if (m3[0] == 0): raise ValueError(m3[1]) 
+        if m3[0] == 0: raise ValueError(m3[1]) 
         #Converter.convertArrays2File([b1,b2,delta]+m3, 'bout1.plt')
     else:
         # Dans le cas avec culot, on remaille le culot comme delta
@@ -321,7 +322,7 @@ def step1():
     line2 = G.map(line2, s)
     #Converter.convertArrays2File([a1,a2,line2], 'out.plt')
 
-    if (culot == 0):
+    if culot == 0:
         line2p = Converter.copy(line2)
     else:
         P1 = Converter.getValue(a2,0)
@@ -393,7 +394,7 @@ def step1():
         zones.append(z)
 
     base = Internal.getNodesFromName1(CTK.t, 'STEP1')
-    if (base != []):
+    if base != []:
         (p, c) = Internal.getParentOfNode(CTK.t, base[0])
         del p[2][c]
     
@@ -724,7 +725,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

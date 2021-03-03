@@ -595,8 +595,8 @@ def enforceX(a, x0, enforcedh, N, add=0):
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
     a = C.TZGC(a, 'nodes', Generator.enforceX, x0, enforcedh, N, add )
-    dir = 1
-    a = modifyBC__(dir, ni0, nj0, nk0, a)
+    rdir = 1
+    a = modifyBC__(rdir, ni0, nj0, nk0, a)
     return a
 
 def enforceY(a, y0, enforcedh, N, add=0):
@@ -1458,7 +1458,7 @@ def _getOrthogonalityMap(t):
 # Calcul de la regularite (ratio entre des mailles adjacentes) d'une grille
 # 1D: retourne un champ "reg"
 # 2D: retourne deux champs "reg_i", "reg_j"
-# 3D: retourne 3 champs (dans l'ordre "reg_i", "reg_j", "reg_k" pour les grilles structures)
+# 3D: retourne 3 champs (dans l'ordre "reg_i", "reg_j", "reg_k" pour les grilles structurees)
 #------------------------------------------------------------------------------
 def getRegularityMap(t):
     """Return the regularity map in an array.

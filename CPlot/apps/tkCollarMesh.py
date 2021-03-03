@@ -1,4 +1,5 @@
-# - Volume collar mesh generation -
+# - tkCollarMesh -
+"""Volume collar mesh generation."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -102,7 +103,7 @@ def unionCollarMesh():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if (z[0] == sname[1]): surface1.append(z)
@@ -115,10 +116,10 @@ def unionCollarMesh():
         v = v.lstrip(); v= v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): surface2.append(z)
+                if z[0] == sname[1]: surface2.append(z)
 
     # - constraints1 -
     constraints1 = [] 
@@ -128,10 +129,10 @@ def unionCollarMesh():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): constraints1.append(z)
+                if z[0] == sname[1]: constraints1.append(z)
 
     # - constraints2 -
     constraints2 = []
@@ -141,10 +142,10 @@ def unionCollarMesh():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): constraints2.append(z)
+                if z[0] == sname[1]: constraints2.append(z)
                 
     # - Hauteur de chaque maille en j -
     dhj = CTK.varsFromWidget(VARS[2].get(), type=1); dhj = dhj[0]
@@ -224,7 +225,7 @@ def differenceCollarMesh():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if (z[0] == sname[1]): surface2.append(z)
@@ -236,10 +237,10 @@ def differenceCollarMesh():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): constraints1.append(z)
+                if z[0] == sname[1]: constraints1.append(z)
 
     # - constraints2 -
     constraints2 = []
@@ -252,7 +253,7 @@ def differenceCollarMesh():
         if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): constraints2.append(z)
+                if z[0] == sname[1]: constraints2.append(z)
     
     # - Hauteur de chaque maille en j -
     dhj = CTK.varsFromWidget(VARS[2].get(), type=1); dhj = dhj[0]
@@ -477,9 +478,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

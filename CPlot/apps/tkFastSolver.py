@@ -1,4 +1,5 @@
-# - Fast solvers app -
+# - tkFast -
+"""Interface to use Fast solvers."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -115,10 +116,10 @@ def updateBodyAndPrepare():
     if BODY is None: return
     # Creation de l'arbre de reprise
     tinit = CTK.t
-    vars = ['centers:Density_M1', 'centers:VelocityX_M1', 'centers:VelocityY_M1', 'centers:VelocityZ_M1', 'centers:Temperature_M1']
-    vars += ['centers:Density_P1', 'centers:VelocityX_P1', 'centers:VelocityY_P1', 'centers:VelocityZ_P1', 'centers:Temperature_P1']
-    vars += ['centers:TurbulentDistance', 'centers:cellN', 'centers:ViscosityEddy']
-    C._rmVars(tinit, vars)
+    zvars = ['centers:Density_M1', 'centers:VelocityX_M1', 'centers:VelocityY_M1', 'centers:VelocityZ_M1', 'centers:Temperature_M1']
+    zvars += ['centers:Density_P1', 'centers:VelocityX_P1', 'centers:VelocityY_P1', 'centers:VelocityZ_P1', 'centers:Temperature_P1']
+    zvars += ['centers:TurbulentDistance', 'centers:cellN', 'centers:ViscosityEddy']
+    C._rmVars(tinit, zvars)
     CTK.t = None
 
     # Apply motion or something to body
@@ -255,9 +256,7 @@ def compute():
     if CTK.t == []: return
 
     import Apps.Fast.IBM as App
-    import Converter.Internal as Internal
-    import Converter.PyTree as C
-
+    
     # Save preventif avec compression cartesienne
     #import Compressor.PyTree as Compressor
     #tp = Compressor.compressCartesian(CTK.t)

@@ -1,4 +1,5 @@
-# - surface walker -
+# - tkSurfaceWalk -
+"""Generate meshes by walking on surface."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK

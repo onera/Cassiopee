@@ -1,4 +1,5 @@
-# - time machine -
+# - tkTime -
+"""Time machine."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK

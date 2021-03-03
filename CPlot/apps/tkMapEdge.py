@@ -129,8 +129,7 @@ def setEnforceZ(z):
         P0 = C.getValue(z, 'GridCoordinates', ind)
         if ind == npts-1: P1 = C.getValue(z, 'GridCoordinates', ind-1)
         else: P1 = C.getValue(z, 'GridCoordinates', ind+1)
-        import KCore.Vector as V
-        hloc = V.norm(V.sub(P1,P0))
+        hloc = Vector.norm(Vector.sub(P1,P0))
         h = h*hloc
         #print("setting %f"%hloc)
     D.setH(z, ind, h)
@@ -716,7 +715,7 @@ def uniformize(event=None):
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    type = VARS[2].get()
+    rtype = VARS[2].get()
     density = -1; npts = 2; factor = -1
     if type == 'Density':
         density = CTK.varsFromWidget(VARS[0].get(), 1)
@@ -724,13 +723,13 @@ def uniformize(event=None):
             CTK.TXT.insert('START', 'Invalid points density.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
         density = density[0]
-    elif type == 'Npts':
+    elif rtype == 'Npts':
         npts = CTK.varsFromWidget(VARS[0].get(), 2)
         if len(npts) != 1:
             CTK.TXT.insert('START', 'Invalid number of points.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
         npts = npts[0]
-    elif type == 'NFactor':
+    elif rtype == 'NFactor':
         factor = CTK.varsFromWidget(VARS[0].get(), 1)
         if len(factor) != 1:
             CTK.TXT.insert('START', 'Invalid number factor.\n')
@@ -816,9 +815,9 @@ def refine(event=None):
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    type = VARS[4].get()
+    rtype = VARS[4].get()
     factor = -1; npts = 2
-    if type == 'NFactor':
+    if rtype == 'NFactor':
         factor = CTK.varsFromWidget(VARS[5].get(), 1)
         if len(factor) != 1:
             CTK.TXT.insert('START', 'Invalid refinement factor.\n')
@@ -1184,9 +1183,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

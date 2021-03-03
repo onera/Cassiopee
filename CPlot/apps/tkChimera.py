@@ -1,4 +1,5 @@
-# - Chimera app -
+# - tkChimera -
+"""Chimera setup app."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -216,7 +217,7 @@ def optimize():
     t = X.optimizeOverlap(t, double_wall=dw, priorities=prios)
     t = X.maximizeBlankedCells(t, depth=depth)
 
-    c = [0 for x in xrange(len(bases))]
+    c = [0 for x in range(len(bases))]
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -397,9 +398,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
    
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

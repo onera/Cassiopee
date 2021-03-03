@@ -12,7 +12,7 @@ import shlex
 from collections import OrderedDict
 import imp
 
-try: xrange = range
+try: range = xrange
 except: pass
 
 # Import Tkinter
@@ -377,6 +377,7 @@ def setBatch(batch=True):
         matplotlib.use('Agg') # sans serveur X
     else:
         matplotlib.use('TkAgg') # avec serveur X
+#==========================================================
 
 font_dic = {}
 # Cette fonction remplit font_dic

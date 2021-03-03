@@ -1,5 +1,5 @@
 # - tkLuxRender -
-# Interface avec Lux render
+"""Interface with LuxRender ray tracer."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -455,8 +455,8 @@ def createMat(rep):
         s = color.split(':')
         if len(s) == 2 and s[0] == 'Iso':
             vref = C.getVarNames(z)[0]
-            for pos in xrange(len(vref)):
-                if (vref[pos] == s[1]): break
+            for pos in range(len(vref)):
+                if vref[pos] == s[1]: break
             
             if pos == len(vref): color = 'White'; mode = 0
             else: color = 'Iso'; mode = pos+1; material = 'Iso'
@@ -540,7 +540,7 @@ def createStl(rep):
         s = color.split(':')
         if len(s) == 2 and s[0] == 'Iso':
             vref = C.getVarNames(z)[0]
-            for pos in xrange(len(vref)):
+            for pos in range(len(vref)):
                 if vref[pos] == s[1]: break
             
             if pos == len(vref): color = 'White'; mode = 0
@@ -561,10 +561,10 @@ def createFiles():
     dir = os.path.dirname(CTK.FILE)
     rep = os.path.join(dir, rep)
     a = os.access(rep, os.F_OK)
-    if a == False: os.mkdir(rep)
+    if not a: os.mkdir(rep)
     sceneRep = rep+'/'+'Scene'
     a = os.access(sceneRep, os.F_OK)
-    if a == False: os.mkdir(sceneRep)
+    if not a: os.mkdir(sceneRep)
     createStl(sceneRep)
     createGeo(sceneRep)
     createMat(sceneRep)
@@ -669,9 +669,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

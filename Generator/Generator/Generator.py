@@ -2289,7 +2289,7 @@ def getOrthogonalityMap(array):
 def getRegularityMap(array):
     """Return the regularity map in an array.
     Usage: getRegularityMap(array)"""
-    if isinstance(array[0], list): 
+    if isinstance(array[0], list):
         b = []
         for i in array:
             b.append(generator.getRegularityMap(i))

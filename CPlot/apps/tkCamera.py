@@ -1,4 +1,5 @@
-# - display Camera information -
+# - tkCamera -
+"""Display Camera information."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -35,8 +36,7 @@ def setInfo(event=None):
 # Create app widgets
 #==============================================================================
 def createApp(win):
-    ttk = CTK.importTtk()
-
+    
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkCamera', font=CTK.FRAMEFONT, takefocus=1)
@@ -116,9 +116,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

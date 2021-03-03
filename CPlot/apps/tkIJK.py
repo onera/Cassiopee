@@ -171,8 +171,7 @@ def extract(event=None):
 # Create app widgets
 #==============================================================================
 def createApp(win):
-    ttk = CTK.importTtk()
-
+    
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkIJK', font=CTK.FRAMEFONT, takefocus=1)

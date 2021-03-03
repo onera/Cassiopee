@@ -11,7 +11,6 @@ import os.path, sys
 
 # Liste des apps par sous menu et perso
 TREEAPPS = ['tkTreeOps', 'tkCheckPyTree', '---',
-            
             'tkFamily']
 STATEAPPS = ['tkState', '---',
              'tkPrefs', 'tkPerfo', 'tkContainers', 'tkCamera', '---',
@@ -24,11 +23,9 @@ SURFAPPS = ['tkBasicSurfs', 'tkText', '---',
             'tkFixer2', 'tkBoolean', 'tkSculpt', 'tkPaint', '---',
             'tkMMGs', 'tkMapSurfs', 'tkFilterSurfs', 'tkSurfaceWalk', '---',
             'tkProjection']
-MESHAPPS = ['tkCells', 'tkStretch', '---',
+MESHAPPS = ['tkCells', 'tkStretch', 'tkMirabelle', '---',
             'tkExtrusion', 'tkTetraMesher', 'tkTFI', 'tkSmooth', '---',
-            'tkOctree', 'tkCollarMesh', 'tkBlader',
-            #'tkPLM', 'tkPC1M',
-            '---',
+            'tkOctree', 'tkCollarMesh', 'tkBlader', '---',
             'tkMeshQual', 'tkMeshInfo']
 BLOCKAPPS = ['tkBlock', '---',
              'tkTransform', 'tkNGon', 'tkGhostCells', '---',

@@ -1,4 +1,5 @@
-# - tetraMesher -
+# - tkTetraMesher -
+"""Generate TETRA meshes."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK

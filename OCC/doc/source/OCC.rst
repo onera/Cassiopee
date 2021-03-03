@@ -25,14 +25,24 @@ To use the module with the CGNS/Python interface::
 List of functions
 ##################
 
-**-- CAD/mesh conversion**
+**-- CAD/surface mesh conversion**
 
 .. autosummary::
 
     OCC.convertCAD2Arrays
     OCC.PyTree.convertCAD2PyTree
 
-   
+**-- CAD functions**
+
+.. autosummary::
+
+    OCC.PyTree.CAD
+    OCC.PyTree.Face
+    OCC.PyTree.Face.valueAt
+    OCC.PyTree.Face._projetOn
+    OCC.PyTree.Edge.valueAt
+    OCC.PyTree.Edge._projetOn
+
 
 Contents
 #########
@@ -71,7 +81,7 @@ CAD/mesh conversion
 
 .. py:function:: OCC.PyTree.convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0., algo=1)
 
-    Read a CAD and return zone.
+    Read a CAD and return a zone.
 
     :param fileName: CAD file name
     :type fileName: string

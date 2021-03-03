@@ -37,6 +37,7 @@ namespace K_OCC
   PyObject* evalFace(PyObject* self, PyObject* args);
   PyObject* projectOnFaces(PyObject* self, PyObject* args);
   PyObject* projectOnEdges(PyObject* self, PyObject* args);
+  PyObject* trimesh(PyObject* self, PyObject* args);
 }
 
 #endif

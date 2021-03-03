@@ -1,4 +1,5 @@
-# - Manipulation au niveau des cellules d'un maillage -
+# - tkCells -
+"""Cell mesh manipulations."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -48,7 +49,7 @@ def suppressCells():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     W = WIDGETS['suppress']
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.__BUSY__ = True
         TTK.sunkButton(W)
@@ -199,9 +200,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

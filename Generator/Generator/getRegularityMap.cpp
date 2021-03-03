@@ -127,38 +127,38 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     switch (dir)
     {
       case  2: // dim 1 - dir I
-	ni = im; dim = 1; dimC = 1;
-	break;
+	      ni = im; dim = 1; dimC = 1;
+	      break;
       case  3: // dim 1 - dir J
-	ni = jm; dim = 1; dimC = 1;
-	break;
+	      ni = jm; dim = 1; dimC = 1;
+	      break;
       case  4: // dim 1 - dir K
-	ni = km; dim = 1; dimC = 1;
-	break;
+	      ni = km; dim = 1; dimC = 1;
+	      break;
       case  6: // dim 2 - dir IJ
-	ni = im;
-	nj = jm;
-	dim = 2;
-	dimC = 2;
-	if (im == 2) { dimC = 1; ni = jm; nj = 1; }
-	if (jm == 2) { dimC = 1; ni = im; nj = 1; }
-	break;
+	      ni = im;
+	      nj = jm;
+	      dim = 2;
+	      dimC = 2;
+	      if (im == 2) { dimC = 1; ni = jm; nj = 1; }
+	      if (jm == 2) { dimC = 1; ni = im; nj = 1; }
+	      break;
       case  8: // dim 2 - dir IK
-	ni = im;
-	nj = km;
-	dim = 2;
-	dimC = 2;
-	if (im == 2) { dimC = 1; ni = km; nj = 1; }
-	if (km == 2) { dimC = 1; ni = im; nj = 1; }
-	break;
+	      ni = im;
+	      nj = km;
+	      dim = 2;
+	      dimC = 2;
+	      if (im == 2) { dimC = 1; ni = km; nj = 1; }
+	      if (km == 2) { dimC = 1; ni = im; nj = 1; }
+	      break;
       case 12: // dim 2 - dir JK
-	ni = jm;
-	nj = km;
-	dim = 2;
-	dimC = 2;
-	if (im == 2) { dimC = 1; ni = km; nj = 1; }
-	if (km == 2) { dimC = 1; ni = jm; nj = 1; }
-	break;
+	      ni = jm;
+	      nj = km;
+	      dim = 2;
+	      dimC = 2;
+	      if (im == 2) { dimC = 1; ni = km; nj = 1; }
+	      if (km == 2) { dimC = 1; ni = jm; nj = 1; }
+	      break;
     default:
       if (im == 2) { dimC = 2; ni = jm; nj = km; }
       if (jm == 2) { dimC = 2; ni = im; nj = km; }

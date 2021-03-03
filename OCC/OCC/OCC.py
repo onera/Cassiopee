@@ -67,7 +67,6 @@ def _unscaleUV(edges, T):
 def allTFI(edges):
     import Generator
     nedges = len(edges)
-    corners = nedges # not true in general
     if nedges == 4:
         return [Generator.TFI(edges)]
     elif nedges == 1:

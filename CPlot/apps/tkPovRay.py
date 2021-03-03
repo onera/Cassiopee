@@ -1,3 +1,4 @@
+"""Interface to povray ray tracer."""
 # - tkPovRay -
 try: import Tkinter as TK
 except: import tkinter as TK
@@ -43,30 +44,30 @@ def savePovFile():
         material = 'Solid'; color = 'White'; mode = 0;
         blending = 1; shader1 = 1.
         ri = Internal.getNodesFromName1(z, '.RenderInfo')
-        if (ri != []):
+        if ri != []:
             # Material
             mt = Internal.getNodesFromName1(ri[0], 'Material')
-            if (mt != []): material = Internal.getValue(mt[0])
+            if mt != []: material = Internal.getValue(mt[0])
             # Color
             co = Internal.getNodesFromName1(ri[0], 'Color')
-            if (co != []): color = Internal.getValue(co[0])
+            if co != []: color = Internal.getValue(co[0])
             # Blending
             co = Internal.getNodesFromName1(ri[0], 'Blending')
-            if (co != []): blending = Internal.getValue(co[0])
+            if co != []: blending = Internal.getValue(co[0])
             # Shader parameter 1
             co = Internal.getNodesFromName1(ri[0], 'ShaderParameters')
-            if (co != []): shader1 = co[0][1][0]
+            if co != []: shader1 = co[0][1][0]
             else: shader1 = 1.
         s = color.split(':')
-        if (len(s) == 2 and s[0] == 'Iso'): # couleur = iso field
+        if len(s) == 2 and s[0] == 'Iso': # couleur = iso field
             vref = C.getVarNames(z)[0]
-            for pos in xrange(len(vref)):
-                if (vref[pos] == s[1]): break
+            for pos in range(len(vref)):
+                if vref[pos] == s[1]: break
             
-            if (pos == len(vref)): color = 'White'; mode = 0
+            if pos == len(vref): color = 'White'; mode = 0
             else: color = 'Iso'; mode = pos+1
         # traduction color si #FFFFFF
-        if (color[0] == '#'):
+        if color[0] == '#':
             colorR = color[1:3]; colorG = color[3:5]; colorB = color[5:]
             colorR = int(colorR, 16); colorR = colorR / 255.
             colorG = int(colorG, 16); colorG = colorG / 255.
@@ -78,7 +79,7 @@ def savePovFile():
         nt = C.newPyTree(['Base'])
         nt[2][1][2].append(z)
         try:
-            if (mode == 0):
+            if mode == 0:
                 C.convertPyTree2File(nt, 'mesh_'+str(c)+'.pov')
             else:
                 C.convertPyTree2File(nt, 'mesh_'+str(c)+'.pov',
@@ -165,13 +166,13 @@ def savePovFile():
                        str(xc[2])+'> color '+color+'*'+str(intensity)+'}\n')
         c += 1
 
-    if (light == 0): # pas de lumiere dans l'arbre, on met celle par defaut
+    if light == 0: # pas de lumiere dans l'arbre, on met celle par defaut
         file.write('light_source{<'+str(pos[0])+' , '+str(pos[1])+' , '+
                    str(pos[2])+'> color White*4}\n')
         
     # - Background -
     bckgrd = VARS[0].get()
-    if (bckgrd == 'Blue sky'):
+    if bckgrd == 'Blue sky':
         # Ciel bleu
         file.write('sky_sphere { pigment { gradient <0,0,1> turbulence 0\n')
         file.write('       color_map { [0.00 rgb <0.6,0.7,1.0>]\n')
@@ -320,7 +321,7 @@ def savePovFile():
             elif (color == 'Magenta'):
                 file.write('texture{T_Grnt14 \n')
             else: file.write('texture{T_Grnt20 \n')
-            file.write('scale '+str(scales[c])+'\n');
+            file.write('scale '+str(scales[c])+'\n')
             file.write('finish {ambient 0.3 brilliance 0.3 diffuse 0.1 reflection 0.1 specular 0.1 }}\n')
             file.write('}\n')
         elif (material == 'Smoke'):
@@ -349,7 +350,7 @@ def savePovFile():
             file.write('        [0.40 rgb 1] \n')
             file.write('        [1.00 rgb 1] \n')
             file.write('       } // end color_map \n')
-            file.write('scale '+str(scales[c])+'\n');
+            file.write('scale '+str(scales[c])+'\n')
             file.write('} // end of density  \n')
             file.write('samples 1,1   // 3,3 for adaptive sampling \n')
             file.write('intervals 10   // increase up to 15 \n')

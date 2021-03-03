@@ -1,4 +1,5 @@
-# - demo like app -
+# - tkDemo -
+"""Demo like app."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK

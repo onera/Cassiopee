@@ -1,4 +1,5 @@
-# - Tree operations -
+# - tkTreeOps -
+"""General operations on pyTree."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -16,11 +17,11 @@ WIDGETS = {}; VARS = []
 #==============================================================================
 def updateBaseNameList(event=None):
     bases = Internal.getBases(CTK.t)
-    vars = ['New Base']
-    for b in bases: vars.append(b[0])
+    bs = ['New Base']
+    for b in bases: bs.append(b[0])
     m = WIDGETS['base'].children['menu']
     m.delete(0, TK.END)
-    for i in vars:
+    for i in bs:
         m.add_command(label=i, command=lambda v=VARS[0],l=i:v.set(l))
 
 #==============================================================================
@@ -28,10 +29,10 @@ def updateBaseNameList(event=None):
 #==============================================================================
 def updateBaseNameList2(event=None):
     bases = Internal.getBases(CTK.t)
-    vars = []
-    for b in bases: vars.append(b[0])
+    bs = []
+    for b in bases: bs.append(b[0])
     if 'base' in WIDGETS:
-        WIDGETS['base']['values'] = vars
+        WIDGETS['base']['values'] = bs
 
 #==============================================================================
 # Move selected zone in a new base
@@ -465,9 +466,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

@@ -48,9 +48,9 @@ def initSolution():
     Model = 'NSTurbulent'
     if eqs is not None: Model = Internal.getValue(eqs)
 
-    vars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
+    zvars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
             'EnergyStagnationDensity']
-    for v in vars:
+    for v in zvars:
         node = Internal.getNodeFromName(state, v)
         if node is not None:
             val = float(node[1][0])
@@ -60,9 +60,9 @@ def initSolution():
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
     if Model == 'NSTurbulent':
-        vars = ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity',
+        zvars = ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity',
                 'TurbulentDissipationDensity']
-        for v in vars:
+        for v in zvars:
             node = Internal.getNodeFromName(state, v)
             if node is not None:
                 val = float(node[1][0])
@@ -130,7 +130,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

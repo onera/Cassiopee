@@ -1,4 +1,5 @@
-# - simple transformations of mesh -
+# - tkTransform -
+"""Basic transformations of mesh."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -168,7 +169,7 @@ def translateClick():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     prev = []
     w = WIDGETS['translate']
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         nzs = CPlot.getSelectedZones()
         CTK.TXT.insert('START', 'Click start point...\n')
@@ -180,7 +181,7 @@ def translateClick():
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if CTK.__BUSY__ == False: break
+                if not CTK.__BUSY__: break
             if CTK.__BUSY__:
                 if prev == []:
                     prev = l
@@ -257,11 +258,11 @@ def scale():
         if dy >= dx and dy >= dz: v[0] = 1./dy
         if dz >= dy and dz >= dx: v[0] = 1./dz
     
-    list = []
+    zlist = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        list.append( (nob,noz,nz) )
+        zlist.append( (nob,noz,nz) )
         z = CTK.t[2][nob][2][noz]
         if len(v) == 1:
             a = T.homothety(z, (X[0],X[1],X[2]), v[0])
@@ -298,7 +299,7 @@ def changeFrame():
     axis   = (args[3], args[4], args[5])
     CTK.saveTree()
 
-    fail = False;
+    fail = False
     errors = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -442,7 +443,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

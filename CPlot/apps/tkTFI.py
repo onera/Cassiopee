@@ -1,4 +1,5 @@
-# - TFI mesher -
+# - tkTFI -
+"""Transfinite interpolation mesher."""
 try: import Tkinter as TK
 except ImportError: import tkinter as TK
 import CPlot.Ttk as TTK

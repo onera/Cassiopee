@@ -17,31 +17,31 @@ WIDGETS = {}; VARS = []
 def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
-        vars = C.getVarNames(CTK.t)
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
+        zvars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz])
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])
     m = WIDGETS['field'].children['menu']
     m.delete(0, TK.END)
-    if len(vars) == 0: return
-    for i in vars[0]:
+    if len(zvars) == 0: return
+    for i in zvars[0]:
         m.add_command(label=i, command=lambda v=VARS[0],l=i:v.set(l))
 
 def updateVarNameList2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
-        vars = C.getVarNames(CTK.t)
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
+        zvars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz])
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])
     
-    if len(vars) == 0: return
+    if len(zvars) == 0: return
     if 'field' in WIDGETS:
-        WIDGETS['field']['values'] = vars[0]
+        WIDGETS['field']['values'] = zvars[0]
         
 #==============================================================================
 def extractIsoSurf(event=None):

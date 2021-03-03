@@ -1,4 +1,5 @@
-# - slice -
+# - tkSlice -
+"""Slice meshes."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -72,7 +73,7 @@ def fit():
 #==============================================================================
 # Clear other slice planes data and wall data
 def clear():
-    global XDATA, YDATA, ZDATA, WALL;
+    global XDATA, YDATA, ZDATA, WALL
     XDATA = None; YDATA = None; ZDATA = None; WALL = None
     view()
 

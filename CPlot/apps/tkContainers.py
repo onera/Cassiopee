@@ -1,4 +1,5 @@
-# - gestion des containers -
+# - tkContainers -
+"""Data container setup (FlowSolution, GridCoordinates)."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -28,35 +29,35 @@ def updateGridCoordinates(event=None):
 #==============================================================================
 def updateFlowSolution(event=None):
     f = Internal.getNodesFromType3(CTK.t, 'FlowSolution_t')
-    vars = ['FlowSolution']
+    zvars = ['FlowSolution']
     for b in f:
         loc = Internal.getNodesFromType1(b, 'GridLocation_t')
-        if loc == []: vars.append(b[0])
+        if loc == []: zvars.append(b[0])
         else:
             loc = loc[0]; v = Internal.getValue(loc)
-            if v == 'Vertex': vars.append(b[0])
+            if v == 'Vertex': zvars.append(b[0])
     seen = set()
     seen_add = seen.add
-    vars = [x for x in vars if x not in seen and not seen_add(x)]
+    zvars = [x for x in zvars if x not in seen and not seen_add(x)]
     if 'FlowSolution' in WIDGETS:
-        WIDGETS['FlowSolution']['values'] = vars
+        WIDGETS['FlowSolution']['values'] = zvars
 
 #==============================================================================
 # Cree une liste des containers FlowSolution_t + CellCenter
 #==============================================================================
 def updateFlowSolutionCenters(event=None):
     f = Internal.getNodesFromType3(CTK.t, 'FlowSolution_t')
-    vars = ['FlowSolution#Centers']
+    zvars = ['FlowSolution#Centers']
     for b in f:
         loc = Internal.getNodesFromType1(b, 'GridLocation_t')
         if loc != []:
             loc = loc[0]; v = Internal.getValue(loc)
-            if v == 'CellCenter': vars.append(b[0])
+            if v == 'CellCenter': zvars.append(b[0])
     seen = set()
     seen_add = seen.add
-    vars = [x for x in vars if x not in seen and not seen_add(x)]
+    zvars = [x for x in zvars if x not in seen and not seen_add(x)]
     if 'FlowSolutionCenters' in WIDGETS:
-        WIDGETS['FlowSolutionCenters']['values'] = vars
+        WIDGETS['FlowSolutionCenters']['values'] = zvars
 
 #==============================================================================
 def setNames(event=None):

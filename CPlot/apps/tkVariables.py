@@ -1,4 +1,5 @@
-# - Variable manager -
+# - tkVariables -
+"""Variable manager."""
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
@@ -36,17 +37,17 @@ def updateVarNameList1(event=None):
 def updateVarNameList1_2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         varsl = C.getVarNames(CTK.t, excludeXYZ=True)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
         varsl = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
 
-    vars = ['All', 'FlowSolutionNodes', 'FlowSolutionCenters']
-    if len(varsl) != 0: vars += varsl[0]
+    zvars = ['All', 'FlowSolutionNodes', 'FlowSolutionCenters']
+    if len(varsl) != 0: zvars += varsl[0]
     if 'var1' in WIDGETS:
-        WIDGETS['var1']['values'] = vars
+        WIDGETS['var1']['values'] = zvars
 
 #==============================================================================
 # Pour le gradient (optionMenu)
@@ -242,7 +243,7 @@ def chooseImportFile(event=None):
     init = init.split(';')[0]
     files = tkFileDialog.askopenfilenames(
         filetypes=CTK.fileTypes, initialfile=init, multiple=1)
-    if (files == '' or files == None or files == ()): # user cancel
+    if files == '' or files == None or files == (): # user cancel
         return
     # strangely, initfile is part of the return
     files = CTK.fixFileString__(files, init)

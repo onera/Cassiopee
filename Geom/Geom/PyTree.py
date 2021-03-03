@@ -278,6 +278,7 @@ def addSeparationLine(t, line0):
 
 # Obsolete
 def lineGenerate(t, line):
+    """Obsolete function."""
     return lineDrive(t, line)
 
 def lineDrive(t, line):
@@ -384,6 +385,7 @@ def refine(a, N=10, factor=-1, sharpAngle=30.):
     return ap
 
 def _refine(a, N=10, factor=-1, sharpAngle=30.):
+    """Refine a 1D curve."""
     C._deleteFlowSolutions__(a)
     C._TZGC(a, 'nodes', Geom.refine, N, factor, sharpAngle)
     return None
@@ -395,17 +397,28 @@ def enforceh(a, N=100, h=-1.):
     return ap
 
 def _enforceh(a, N=100, h=-1.):
+    """Remesh a 1D curve with imposed steps."""
     C._TZA(a, 'nodes', 'nodes', Geom.enforceh, None, N, h)
     C._deleteFlowSolutions__(a, loc='centers')
     return None
 
 def setH(a, ind, h):
+    """Set h step indicator for enforceh."""
+    _setH(a, ind, h)
+
+def _setH(a, ind, h):
+    """Set h step indicator for enforceh."""
     zones = Internal.getZones(a)
     for z in zones:
         if C.isNamePresent(z, 'h') == -1: C._initVars(a, 'h', 0.)
         C.setValue(a, 'h', ind, h)
 
 def setF(a, ind, f):
+    """Set f factor indicatro for enforceh."""
+    _setF(a, ind, f)
+
+def _setF(a, ind, f):
+    """Set f factor indicatro for enforceh."""
     zones = Internal.getZones(a)
     for z in zones:
         if C.isNamePresent(z, 'f') == -1: C._initVars(a, 'f', 0.)
@@ -418,6 +431,6 @@ def smooth(a, eps, niter):
     return ap
 
 def _smooth(a, eps, niter):
+    """Smooth distribution on a curve."""
     C._TZGC(a, 'nodes', Geom.smooth, eps, niter)
     return None
-

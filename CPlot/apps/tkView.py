@@ -1,4 +1,5 @@
-# - CPlot view settings -
+# - tkView - 
+"""Set the view in plotter."""
 try: import Tkinter as TK
 except ImportError: import tkinter as TK
 import CPlot.Ttk as TTK
