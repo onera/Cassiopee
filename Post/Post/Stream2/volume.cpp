@@ -84,7 +84,7 @@ namespace K_POST
             vector3d eik(pi,pk);
             if (f.number_of_vertices() == 3)// C'est un triangle
             {
-                const point3d& pk = f.get_vertex(2);
+                //const point3d& pk = f.get_vertex(2);
                 vol += 0.5*triple_product(e0i,eij,eik);
             }
             else if (f.number_of_vertices() == 4)// C'est un quadrangle

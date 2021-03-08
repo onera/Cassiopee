@@ -1,9 +1,49 @@
-# Calcul des autres variables de computeVariables
+"""Compute other complex variables than computeVariables."""
 
 from . import PyTree as P
 import Converter.PyTree as C
 import Converter.Internal as Internal
 
+# IN: Velocity en centres
+# OUT: Vorticity en centres
+def _computeVorticity2(t, ghostCells=False):
+    """Compute vorticity for velocity in centers."""
+    P._computeGrad2(t, 'centers:VelocityX', ghostCells)
+    C._initVars(t, '{centers:VorticityX}=0.')
+    C._initVars(t, '{centers:VorticityY}={centers:gradzVelocityX}')
+    C._initVars(t, '{centers:VorticityZ}={centers:gradyVelocityX}')
+    C._rmVars(t, ['centers:gradxVelocityX', 'centers:gradyVelocityX', 'centers:gradzVelocityX'])
+    P._computeGrad2(t, 'centers:VelocityY', ghostCells)
+    C._initVars(t, '{centers:VorticityX}={centers:VorticityX}-{centers:gradzVelocityY}')
+    C._initVars(t, '{centers:VorticityZ}={centers:VorticityZ}+{centers:gradxVelocityY}')
+    C._rmVars(t, ['centers:gradxVelocityY', 'centers:gradyVelocityY', 'centers:gradzVelocityY'])
+    P._computeGrad2(t, 'centers:VelocityZ', ghostCells)
+    C._initVars(t, '{centers:VorticityZ}={centers:VorticityZ}+{centers:gradyVelocityZ}')
+    C._initVars(t, '{centers:VorticityY}={centers:VorticityY}-{centers:gradxVelocityZ}')
+    C._rmVars(t, ['centers:gradxVelocityZ', 'centers:gradyVelocityZ', 'centers:gradzVelocityZ'])
+    return None
+
+def _computeVorticityMagnitude2(t, ghostCells=False):
+    """Compute vorticity magnitude for velocity in centers."""    
+    _computeVorticity2(t, ghostCells)
+    C._magnitude(t, ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ'])
+    C._rmVars(t, ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ'])
+    Internal._renameNode(t, 'magnitudeVorticityXVorticityYVorticityZ', 'VorticityMagnitude')
+    return None
+
+def _computeQCriterion2(t, ghostCells=False):
+    """Compute Q criterion for velocity in centers."""
+    P._computeGrad2(t, 'centers:VelocityX', ghostCells)
+    C._initVars(t, '{centers:Qcriterion}=-0.5*{centers:gradxVelocityX}*{centers:gradxVelocityX}')
+    C._rmVars(t, ['centers:gradxVelocityX'])
+    P._computeGrad2(t, 'centers:VelocityY', ghostCells)
+    C._initVars(t, '{centers:Qcriterion}={centers:Qcriterion}-0.5*{centers:gradyVelocityY}*{centers:gradyVelocityY}-{centers:gradyVelocityX}*{centers:gradxVelocityY}')
+    C._rmVars(t, ['centers:gradyVelocityY', 'centers:gradyVelocityX', 'centers:gradxVelocityY'])
+    P._computeGrad2(t, 'centers:VelocityZ', ghostCells)
+    C._initVars(t, '{centers:Qcriterion}={centers:Qcriterion}-0.5*{centers:gradzVelocityZ}*{centers:gradzVelocityZ}-{centers:gradzVelocityX}*{centers:gradxVelocityZ}-{centers:gradzVelocityY}*{centers:gradyVelocityZ}')
+    C._rmVars(t, ['centers:gradzVelocityZ', 'centers:gradzVelocityX', 'centers:gradzVelocityY', 'centers:gradzVelocityX', 'centers:gradyVelocityZ'])
+    return None
+    
 #==============================================================================
 # Vorticite en centres
 #==============================================================================
