@@ -1053,7 +1053,12 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         }
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
-  return l;
+      PyObject* extentN = K_NUMPY::buildNumpyArray(extension,1);
+  PyObject* tupleOut = Py_BuildValue("[OO]", l, extentN);
+      //return l;
+  Py_DECREF(l); 
+  Py_DECREF(extentN); 
+  return tupleOut;
 }
 
 //=============================================================================

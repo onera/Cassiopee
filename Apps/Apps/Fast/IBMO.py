@@ -44,8 +44,8 @@ def prepare(t_case, t_out, tc_out,
     tolMatch = 1.e-6
     DEPTH = 2
     IBCType = 1
-    if frontType==2: 
-        print("Warning: IBMO.prepare: not fully implemented yet for frontType=2 algorithm.")
+    if frontType!=1: 
+        print("Warning: IBMO.prepare: currently implemented for frontType=1 algorithm only.")
         frontType=1
 
     if isinstance(t_case, str): 
@@ -186,8 +186,10 @@ def prepare(t_case, t_out, tc_out,
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-    coords = Generator.generator.extendCartGrids(coords, 2+1, 1)
+    coords, rinds = Generator.generator.extendCartGrids(coords, 2+1, 1)
     C.setFields(coords, zones, 'nodes')
+    for noz in range(len(zones)):
+        Internal.newRind(value=rinds[noz], parent=zones[noz])
     Cmpi._rmXZones(t)
     coords = None; zones = None
     test.printMem(">>> extended cart grids (after rmXZones) [end]")

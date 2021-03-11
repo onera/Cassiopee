@@ -50,6 +50,8 @@ Cmpi.barrier()
 
 # Prepare
 t,tc = myApp.prepare(FILEB, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=Cmpi.size)
+Internal._rmNodesFromType(tc,'Rind_t')
+
 if Cmpi.rank == 0: test.testT(tc, 1)
 
 # Compute
@@ -58,6 +60,7 @@ Cmpi.barrier()
 
 if Cmpi.rank == 0:
     t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
+    Internal._rmNodesFromType(t,'Rind_t')
     test.testT(t,2)
     
 procDictR = Cmpi.getProcDict(tb)

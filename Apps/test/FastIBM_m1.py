@@ -4,6 +4,7 @@ import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import KCore.test as test
+import Converter.Internal as Internal
 test.TOLERANCE = 1.e-6
 
 LOCAL = test.getLocal()
@@ -19,6 +20,7 @@ myApp.set(numz={"time_step": 0.0007,
 
 # Prepare
 t, tc = myApp.prepare('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=Cmpi.size)
+Internal._rmNodesFromType(tc,'Rind_t')
 if Cmpi.rank == 0: test.testT(tc, 1)
 
 # Compute
@@ -26,4 +28,5 @@ t,tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cg
 
 if Cmpi.rank == 0:
     t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
+    Internal._rmNodesFromType(t,'Rind_t')
     test.testT(t, 2)

@@ -3349,10 +3349,14 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
     return GhostCells._rmGhostCells(t, b, d, adaptBCs, modified)
 
 # -- Remove rind cells
-def rmRindCells(t, d, modified=[]):
-    from . import GhostCells
-    return GhostCells.rmRindCells(t, d, modified)
+def rmRindCells(t, d=-1, modified=[]):
+    tp = Internal.copyRef(t)
+    _rmRindCells(tp,d=d, modified=modified)
+    return tp
 
+def _rmRindCells(t,d=-1, modified=[]):
+    from . import GhostCells
+    return GhostCells._rmRindCells(t, d=d, modified=modified)
 #==============================================================================
 # -- Check --
 #==============================================================================

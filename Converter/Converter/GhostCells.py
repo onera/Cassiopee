@@ -997,12 +997,37 @@ def _rmGhostCellsStruct__(z, dim, modified, d):
 # Modifie un ou plusieurs containers avec Rind pour le transformer en 
 # container standard (centres ou noeuds)
 #==============================================================================
-def rmRindCells(t, d, modified=[]):
+def rmRindCells(t, d=-1, modified=[]):
     tp = Internal.copyRef(t)
     _rmRindCells(tp, d, modified)
     return tp
 
-def _rmRindCells(t, d, modified=[]):
+def _rmRindCells0(t):
+    try:
+        import Transform.PyTree as T
+    except:
+        print("Warning: rmRindCells requires Transform module.")
+        return None
+    
+    for zp in Internal.getZones(t):
+        dim = Internal.getZoneDim(zp)
+        dim_zone = dim[4]
+        if dim[0] == 'Structured':
+            imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
+            rindnode = Internal.getNodeFromType(zp,'Rind_t')
+            if rindnode is not None:
+                rindnode = Internal.getValue(rindnode)
+                rindimin = rindnode[0]; rindimax = rindnode[1]
+                rindjmin = rindnode[2]; rindjmax = rindnode[3]
+                rindkmin = rindnode[4]; rindkmax = rindnode[5]
+                zpp = T.subzone(zp, (1+rindimin,1+rindjmin, 1+rindkmin),
+                                (imz-rindimax,jmz-rindjmax,kmz-rindkmax))
+                zp[2]=zpp[2]; zp[1]=zpp[1] # force in place    
+    return None
+
+def _rmRindCells(t, d=-1, modified=[]):
+    if d == -1: return _rmRindCells0(t)
+ 
     stdNode = Internal.isStdNode(t)
     nodes = Internal.getZones(t)
     for zp in nodes:
@@ -1010,9 +1035,7 @@ def _rmRindCells(t, d, modified=[]):
         dim_zone = dim[4]
         if dim[0] == 'Structured':
             imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
-
-            # recherche les containers
-            for name in modified:
+            for name in modified:  # recherche les containers
                 containers, locations = getContainers__(name, zp)
                 noc = 0
                 for cont in containers:
@@ -1022,7 +1045,7 @@ def _rmRindCells(t, d, modified=[]):
                         im = imz-1; jm = jmz-1; km = kmz-1
                     else: # output sera un champ en noeuds
                         im = imz; jm = jmz; km = kmz
-                    
+
                     if dim_zone == 3:
                         a = numpy.empty((im,jm,km), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,jm,km)

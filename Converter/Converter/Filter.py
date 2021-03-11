@@ -708,7 +708,8 @@ class Handle:
       for b in Internal.getBases(a):
         for z in Internal.getZones(b):
           dim = Internal.getZoneDim(z)
-          Internal._setLoc2Glob(z, z[0], win=[1,dim[1],1,dim[2],1,dim[3]], sourceDim=dim[1:])
+          if dim[0]=='Structured':
+            Internal._setLoc2Glob(z, z[0], win=[1,dim[1],1,dim[2],1,dim[3]], sourceDim=dim[1:])
       
       # Lecture ZoneBC + ZoneGC necessaire pour le split
       for b in Internal.getBases(a):

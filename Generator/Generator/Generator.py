@@ -1688,7 +1688,8 @@ def balanceOctree__(octree, ratio=2, corners=0):
 def extendOctreeGrids__(A, ext, optimized):
     """Extend grids with ext cells. If optimized is ext, the minimum overlapping is ensured.
     Usage: extendOctreeGrids__(cartGrids, ext, optimized)"""
-    return generator.extendCartGrids(A, ext, optimized)
+    A, rinds = generator.extendCartGrids(A, ext, optimized)
+    return A
 
 def adaptOctree(octreeHexa, indicField, balancing=1, ratio=2):
     """Adapt an unstructured octree w.r.t. the indicatorField -n,0,n defined for each element.

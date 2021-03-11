@@ -22,15 +22,22 @@ myApp.set(numz={"time_step": 0.002,
                 "cfl":0.5})
 
 t,tc = myApp.prepare(FILE, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', expand=3, vmin=11, check=False, NP=Cmpi.size, distrib=True)
+cartBase = Internal.getNodeFromName(t,'CARTESIAN')
+Internal._rmNodesFromType(cartBase,'Rind_t')
 test.testT(t,1)
 
 t,tc = myApp.compute(LOCAL+'/t.cgns',LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=NIT)
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
+cartBase = Internal.getNodeFromName(t,'CARTESIAN')
+Internal._rmNodesFromType(cartBase,'Rind_t')
 test.testT(t,2)
 
 t = T.subzone(t,(1,1,1),(-1,-1,1))
 for nob in range(len(t[2])):
     if t[2][nob][0] != 'CARTESIAN' and t[2][nob][3] == 'CGNSBase_t':
         Internal._rmGhostCells(t,t[2][nob],2, adaptBCs=1)
+    else:
+        Internal._rmNodesFromType(t[2][nob],'Rind_t')
+        
 test.testT(t,3)
