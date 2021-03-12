@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
 
 #ifndef NUGA_HIERACHICAL_MESH_HXX
 #define NUGA_HIERACHICAL_MESH_HXX
@@ -229,13 +229,13 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
   for (E_Int i=0; i < nb_phs; ++i)
   {
     K_MESH::Polyhedron<0>::is_prismN(_ng.PGs, _ng.PHs.get_facets_ptr(i), _ng.PHs.stride(i), pg, qopp);
-    // alexis : utiliser pg et qopp pour rÃ©ordonner
+    // alexis : utiliser pg et qopp pour réordonner
   }
   
   // promote eventually to layer type + 2nd reorder
   for (E_Int i=0; i < _F2E.cols(); ++i)
   {
-    // alexis : si i n'est pas une frontiÃ¨re => continue
+    // alexis : si i n'est pas une frontière => continue
     
     E_Int PHi = (_F2E(0,i) != IDX_NONE) ? _F2E(0,i) : _F2E(1,i);
     
@@ -435,14 +435,14 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
         if (ids.empty())
         {
           E_Int pid = _PGtree.parent(PGi);
-          E_Int gpid = E_IDX_NONE;
+          E_Int gpid = IDX_NONE;
           E_Int nbc = _PGtree.nb_children(PGi);
-          bool pid_is_enabled = (pid != E_IDX_NONE) ? _PGtree.is_enabled(pid) : false;
+          bool pid_is_enabled = (pid != IDX_NONE) ? _PGtree.is_enabled(pid) : false;
 
           bool gpid_is_enabled = false;
-          if (pid != E_IDX_NONE){
+          if (pid != IDX_NONE){
             gpid = _PGtree.parent(pid);
-            gpid_is_enabled = (gpid != E_IDX_NONE) ? _PGtree.is_enabled(gpid) : false;
+            gpid_is_enabled = (gpid != IDX_NONE) ? _PGtree.is_enabled(gpid) : false;
           }
 
           std::cout << "faulty PGi : " << PGi << std::endl;

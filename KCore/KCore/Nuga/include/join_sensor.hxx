@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_BALANCING_SENSOR_HXX
 #define NUGA_BALANCING_SENSOR_HXX

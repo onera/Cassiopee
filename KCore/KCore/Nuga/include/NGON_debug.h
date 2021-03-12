@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __NGON_DEBUG_H__
 #define	__NGON_DEBUG_H__

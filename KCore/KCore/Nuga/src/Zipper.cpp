@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/Zipper.h"
 #include "Nuga/include/MeshTool.h"

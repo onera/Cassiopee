@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef REFINER_HXX
 #define REFINER_HXX
@@ -662,7 +662,7 @@ void refiner<K_MESH::Polygon, ISO_HEX>::refine_PG
   E_Int nrefnodes = nnodes * 2 + 1;
   STACK_ARRAY(E_Int, nrefnodes, refE); // emulate E_Int refE[refnodes]
 
-  //todo JP : remplir refE. A toi de choisir une convention d'ordre de stockage coherente avec l'appel qui suit Ã  K_MESH::Polygon::split,
+  //todo JP : remplir refE. A toi de choisir une convention d'ordre de stockage coherente avec l'appel qui suit à K_MESH::Polygon::split,
   // fonction que tu dois definir egalement.
   // si le dernier noeud est le centroid, faire : refE[nrefnodes-1]= posC + 1 
 

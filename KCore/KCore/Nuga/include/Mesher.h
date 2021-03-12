@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __DELAUNAY_MESHER_H__
 #define __DELAUNAY_MESHER_H__
@@ -22,7 +22,9 @@
 #include "Nuga/include/KdTree.h"
 #include "macros.h"
 #include "Nuga/include/Edge.h"
+#ifdef E_TIME
 #include "chrono.h"
+#endif
 #include "Nuga/include/DelaunayMath.h"
 #include "Nuga/include/IdTool.h"
 #include <list>

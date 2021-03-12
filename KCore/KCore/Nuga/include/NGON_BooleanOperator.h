@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __NGON_BOOLEANOPERATOR_H__
 #define	__NGON_BOOLEANOPERATOR_H__
@@ -3511,7 +3511,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
   nb_ghost(wNG2);
 #endif
 
-  __refine_working_area(wNG1, is_in1, _ng1); //fixme : amÃ©liorer cas remap pyramide : trop de travil faita lors qu'au final _ng1 et _ng2 ne contiennent rien...
+  __refine_working_area(wNG1, is_in1, _ng1); //fixme : améliorer cas remap pyramide : trop de travil faita lors qu'au final _ng1 et _ng2 ne contiennent rien...
   __refine_working_area(wNG2, is_in2, _ng2);
   
 #ifdef DEBUG_BOOLEAN

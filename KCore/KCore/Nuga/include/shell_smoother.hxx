@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SHELL_SMOOTHER_HXX
 #define NUGA_SHELL_SMOOTHER_HXX

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __NGON_T_HXX__
 #define	__NGON_T_HXX__
@@ -29,6 +29,7 @@
 #include "Nuga/include/FittingBox.h"
 #include "Nuga/include/macros.h"
 #include "Nuga/include/BbTree.h"
+#include <limits.h>
 
 #ifdef DEBUG_NGON_T
 #include "IO/io.h"
@@ -2770,7 +2771,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     }
 
     // 1- Referencement unique pour les noeuds confondus par kdtree (les doublons seront supprimes a la fin)
-    // si la tolerance est nÃ©gative => pas de merge
+    // si la tolerance est négative => pas de merge
     E_Int nb_merges = 0;
     if (tolerance >= 0.) nb_merges = NG.join_phs(f, tolerance);
   
@@ -2784,7 +2785,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       NG.PGs.remove_consecutive_duplicated(); //removing duplicated nodes : compact representation
     }
 
-    // 3- Faces confondues : identification et suppression des rÃ©fÃ©rences.
+    // 3- Faces confondues : identification et suppression des références.
     /*bool has_dups = false;*/
     if (ngon_dim == 3) //volumic
       /*has_dups = */NG.remove_duplicated_pgs(fcA);

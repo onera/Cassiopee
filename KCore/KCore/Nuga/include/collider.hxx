@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_COLLIDER_HXX
 #define NUGA_COLLIDER_HXX
@@ -58,6 +58,10 @@ namespace NUGA
         P0 = crd1.col(T1[0]);
         P1 = crd1.col(T1[1]);
         P2 = crd1.col(T1[2]);
+
+        K_SEARCH::BBox3D b1;
+        b1.compute(crd1, T1, 3, 0);
+        if (abstol > 0.) b1.enlarge(abstol);
       
         E_Int nb_tris2 = e2.nb_tris();
         for (E_Int j=0; j < nb_tris2; ++j)
@@ -66,35 +70,60 @@ namespace NUGA
           Q0 = crd2.col(T2[0]);
           Q1 = crd2.col(T2[1]);
           Q2 = crd2.col(T2[2]);
-          
-#ifdef COLLIDER_DBG
 
-//  K_FLD::IntArray tmpE;
-//  for (size_t i=0; i < 3; ++i)
-//  {
-//    E_Int E[] = {i,(i+1)%3};
-//    tmpE.pushBack(E, E+2);
-//  }
-//  for (size_t i=0; i < 3; ++i)
-//  {
-//    E_Int E[] = {3+i,3+(i+1)%3};
-//    tmpE.pushBack(E, E+2);
-//  }
-//
-//  K_FLD::FloatArray crd;
-//  crd.pushBack(P0,P0+3);
-//  crd.pushBack(P1,P1+3);
-//  crd.pushBack(P2,P2+3);
-//  crd.pushBack(Q0,Q0+3);
-//  crd.pushBack(Q1,Q1+3);
-//  crd.pushBack(Q2,Q2+3);
-//
-//  MIO::write("conf.mesh", crd, tmpE, "BAR");
-          
-#endif
+          K_SEARCH::BBox3D b2;
+          b2.compute(crd2, T2, 3, 0);
+          if (abstol > 0.) b2.enlarge(abstol);
+
+          // FILTER 1 : faces 3D boxes
+          if (!K_SEARCH::BbTree3D::boxesAreOverlapping(&b1, &b2, E_EPSILON)) // face-box test worth it
+          {
+            /*ngon_type ng1, ng2;
+            K_FLD::FloatArray c1, c2;
+            b1.convert2NG(c1, ng1);
+            b2.convert2NG(c2, ng2);
+            medith::write("b1", c1, ng1);
+            medith::write("b2", c2,  ng2);*/
+            continue;
+          }
 
           if (COLLIDING_FUNC(P0, P1, P2, Q0, Q1, Q2, abstol))
           {
+#ifdef COLLIDER_DBG
+
+            K_FLD::IntArray tmpT(3, 2);
+            tmpT(0, 0) = 0;
+            tmpT(1, 0) = 1;
+            tmpT(2, 0) = 2;
+            tmpT(0, 1) = 3;
+            tmpT(1, 1) = 4;
+            tmpT(2, 1) = 5;
+
+            K_FLD::FloatArray crd;
+            crd.pushBack(P0, P0 + 3);
+            crd.pushBack(P1, P1 + 3);
+            crd.pushBack(P2, P2 + 3);
+
+            K_SEARCH::BBox3D b(crd);
+            b.enlarge(0.05);
+
+            K_FLD::FloatArray crd1;
+            crd1.pushBack(Q0, Q0 + 3);
+            crd1.pushBack(Q1, Q1 + 3);
+            crd1.pushBack(Q2, Q2 + 3);
+
+            K_SEARCH::BBox3D b1(crd1);
+            b1.enlarge(0.05);
+
+            crd.pushBack(crd1);
+
+            medith::write("conf", crd, tmpT, "TRI");
+
+            K_SEARCH::BBox3D bx;
+            bool are_x_box = K_SEARCH::BBox3D::intersection(b, b1, bx);
+
+            //std::cout << "box are colliding ? ! " << are_x_box << std::endl;
+#endif
             t1=i; t2=j;
             return true;
           }
@@ -218,7 +247,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
                      std::vector<E_Int>& is_x1/*1-based w negval for abutt*/,
                      std::vector<E_Int>& is_x2/*1-based w negval for abutt*/,
                      E_Float RTOL, 
-                     double ps_min = 0.95/*overlap criterion*/,bool swap = true, const E_Float* norm2 = nullptr) //norm2 when right direction is known upon entry
+                     double ps_min = 0.99/*overlap criterion*/,bool swap = true, const E_Float* norm2 = nullptr) //norm2 when right direction is known upon entry
 {
   is_x1.clear();
   is_x2.clear();
@@ -608,6 +637,8 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   //DELAUNAY::Triangulator dt;
   //ae1.triangulate(dt);
   ae1.cvx_triangulate(ae1.m_crd);
+
+  double Lref21 = ae1.Lref2();
   
 
   // (b. projection for 2D)
@@ -631,10 +662,14 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
 
       K_MESH::Polygon e2 = lmask.element(cands[j] - idx_start);
 
+      double Lref22 = e2.Lref2(lmask.crd);
+
+      double abstol = RTOL * ::sqrt(std::min(Lref21, Lref22));
+
       //do not pass the tol as we use here a predicate
       E_Int t1, t2;
       using crd_t = K_FLD::FloatArray;
-      bool isx = simplicial_colliding<crd_t, 3>(ae1.m_crd, ae1, lmask.crd, e2, K_MESH::Triangle::fast_intersectT3<3>, -1., t1, t2);
+      bool isx = simplicial_colliding<crd_t, 3>(ae1.m_crd, ae1, lmask.crd, e2, K_MESH::Triangle::fast_intersectT3<3>, abstol, t1, t2);
 
       if (!isx) //deeper check
       {
@@ -671,6 +706,7 @@ bool get_colliding<vertex, pg_smesh_t>
 (const vertex& pt, const pg_smesh_t& surface, std::vector<E_Int>& cands, E_Int idx_start, double ARTOL, bool first_found_dummy)
 {
   cands.clear();
+  if (surface.ncells() == 0) return false;
 
   auto loc = surface.get_localizer();
 
@@ -694,15 +730,17 @@ bool get_colliding<vertex, pg_smesh_t>
 }
 /// above wrapper for list of vertices : returns indir 'pt to faces'
 inline void get_colliding
-(const std::vector<vertex>& pts, const pg_smesh_t& surface, double ARTOL, std::vector<std::vector<E_Int>>& pt_to_elt)
+(const std::vector<vertex>& pts, const pg_smesh_t& surface, double ARTOL, eMetricType mtype, std::vector<std::vector<E_Int>>& pt_to_elt)
 {
   pt_to_elt.clear();
+  if (surface.ncells() == 0) return;
 
   size_t npts = pts.size();
 
   pt_to_elt.resize(npts);
 
-  surface.get_nodal_metric2(); // to compute it if missing
+  if (ARTOL < 0.)
+    surface.get_nodal_metric2(mtype); // to compute it if missing
 
   DELAUNAY::Triangulator dt;
   std::vector<E_Int> cands;
@@ -744,7 +782,7 @@ inline void get_colliding
         double TOLi = ARTOL;
         if (ARTOL < 0.) // relative
         {
-          double PGLref2 = PG.Lref2(surface.nodal_metric2);
+          double PGLref2 = PG.Lref2(surface.crd);// (surface.nodal_metric2);
           TOLi *= -::sqrt(std::min(pts[i].val2, PGLref2));
         }
 
@@ -756,39 +794,6 @@ inline void get_colliding
       }
     }
   }
-
-#ifdef COLLIDER_DBG
-  K_FLD::FloatArray crd = surface.crd;
-  std::vector<bool> keep(surface.ncells(), false);
-  for (size_t i = 0; i < pt_to_elt.size(); ++i)
-  {
-    if (pt_to_elt[i] != IDX_NONE)
-    {
-      crd.pushBack(pts[i].vec, pts[i].vec + 3);
-      keep[pt_to_elt[i]] = true;
-    }
-  }
-  K_CONNECT::keep<bool> pred(keep);
-  std::vector<E_Int> oids, nids;
-
-  ngon_unit pgs;
-  surface.cnt.extract_by_predicate(pred, pgs, oids, nids);
-
-  medith::write("singular", crd, pgs);
-  
-  ngon_type ng(pgs, true);
-  K_FLD::IntArray cnto;
-  ng.export_to_array(cnto);
-  MIO::write("singular.tp", crd, cnto, "NGON");
-  cnto.clear();
-  MIO::write("nodes.tp", crd, cnto, "BAR");
-  cnto.resize(2, 1, 0);
-  cnto(1, 0) = 1;
-  medith::write("nodes", crd, cnto, "BAR");
-  //K_FLD::IntArray dum;
-  //MIO::write("D:\\slandier\\DATA\\tmp\\immersion\\nodes.tp", crd, dum);
-
-#endif
 }
 
 ///
@@ -846,7 +851,7 @@ void compute(const mesh_t1& m1, const mesh_t2& m2,
     is_x1[i] = is_x2[cands[0] - 1] = true;
   }
 }
-  
+
 }   // COLLIDE
 }   // NUGA
 

@@ -485,6 +485,24 @@ def getBCPtList(z):
   #print (ptLists)
   return ptLists
 
+def getBCPtListOfType(z, typesList):
+  #
+  bnds = Internal.getNodesFromType(z, 'BC_t')
+  zname=z[0]
+
+  ptList = []
+  for bb in bnds :
+    bctype = "".join(Internal.getValue(bb))
+    #print(bctype)
+    if bctype not in typesList : continue
+    node = Internal.getNodesFromType(bb, 'IndexArray_t')
+    #print (node)
+    ptList.append(node[0][1][0])
+
+  if (ptList != []) : ptList = numpy.concatenate(ptList).ravel() # create a single list
+  #print (ptList)
+  return ptList
+
 #------------------------------------------------------------------------------
 # 
 #------------------------------------------------------------------------------
@@ -766,7 +784,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   try: import Generator.PyTree as G
   except: raise ImportError("XcellN: requires Generator module.")
 
-  WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal']
+  WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal', 'BCSymmetryPlane']
 
   DIM = getTreeDim(t)
 
@@ -791,7 +809,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     xcelln_time = time.time()
     xcelln_time2 = time.time()
   # 1.1 convert to NUGA NGON
-  tNG = convertTree2NUGANGON(t)
+  tNG = convertTree2NUGANGON(t, True) # keepBC
   #C.convertPyTree2File(tNG, 'tNG.cgns')
   
   # 1.2 reorient
@@ -853,6 +871,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   # 1.4 get the zones in a single list with parent base id
   ngons = []
   basenum = []
+  zwall_ids = [] # for double wall mgt
   base_id=-1
   for b in basesNG:
     base_id += 1
@@ -861,13 +880,20 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
         c = C.getFields(Internal.__GridCoordinates__, z)[0]
         ngons.append(c)
         basenum.append(base_id)
+        zwallf = getBCPtListOfType(z, WALLBCS)
+        #print (type(zwallf))
+        if (zwallf != []) : zwallf -= 1 # make it 0 based
+        zwall_ids.append(zwallf)
+
+  #print(zwall_ids)
+  #import sys; sys.exit()
 
   if TIMER == True:
     print ('XCellN : Preparing Inputs : CPU time : ',time.time()-xcelln_time,'s')
     xcelln_time = time.time()
 
   # 2. COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
-  xcellns = XOR.XcellN(ngons, basenum, boundaries, wall_ids, priorities, output_type, rtol)
+  xcellns = XOR.XcellN(ngons, zwall_ids, basenum, boundaries, wall_ids, priorities, output_type, rtol)
 
   if TIMER == True:
     print ('XCellN : Computing : CPU time : ',time.time()-xcelln_time,'s')
@@ -2672,12 +2698,15 @@ def _convertBasic2NGONFaces(t):
         m = XOR.convertBasic2NGONFaces(m)
         C.setFields([m], z, 'nodes')
 
-def convertTree2NUGANGON(t):
+def convertTree2NUGANGON(t, keep_BC=False):
     tp = Internal.copyRef(t)
-    _convertTree2NUGANGON(tp)
+    _convertTree2NUGANGON(tp, keep_BC)
     return tp
 
-def _convertTree2NUGANGON(t):
+def _convertTree2NUGANGON(t, keep_BC=False):
+
+  if keep_BC == True:
+      (BCs,BCNames,BCTypes) = C.getBCs(t)
 
   zones = Internal.getZones(t)
   for z in zones:
@@ -2700,6 +2729,9 @@ def _convertTree2NUGANGON(t):
     if typ == 'NGON_CASSIOPEE':
       #print('NGON cassiopee -> NUGA')
       _convertNGON2DToNGON3D(z)
+
+  if keep_BC == True:
+      C._recoverBCs(t,(BCs,BCNames,BCTypes))
 
 def centroids(t):
     tj = T.join(t)

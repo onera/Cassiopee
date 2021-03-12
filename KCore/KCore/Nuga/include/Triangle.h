@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __K_MESH_TRIANGLE_H__
 #define __K_MESH_TRIANGLE_H__
@@ -726,7 +726,7 @@ namespace K_MESH
     return false; //not far regarding this rough test
   }
   
-#define SIGN(a) ((a < -EPSILON) ? -1 : ((a > EPSILON) ? 1 : 0))  
+#define SIGN(a) ((a < -ZERO_M) ? -1 : ((a > ZERO_M) ? 1 : 0))  
   
   inline E_Int get_region (const E_Float* M, const E_Float* p, const E_Float* q, const E_Float* r)
   {
@@ -753,9 +753,9 @@ namespace K_MESH
     
     E_Int s = SIGN(a1);
     
-    if ((a1 > -EPSILON) && (a2 > -EPSILON) && (a3 > -EPSILON)) // is inside
+    if ((a1 > -ZERO_M) && (a2 > -ZERO_M) && (a3 > -ZERO_M)) // is inside
       return 0;
-    if ((a1 < EPSILON) && (a2 < EPSILON) && (a3 < EPSILON)) // is inside
+    if ((a1 < ZERO_M) && (a2 < ZERO_M) && (a3 < ZERO_M)) // is inside
       return 0;
 
     if (s == SIGN(a2))
@@ -835,19 +835,19 @@ namespace K_MESH
     if (POTENTIAL_X(region[0]+region[1])) //P2Q2
     {
       solid_angle(region[0], P1, Q1, R1, s, t);
-      if ((CROSS_PRD(P2,s,Q2) > EPSILON) && (CROSS_PRD(P2,Q2,t) > EPSILON))
+      if ((CROSS_PRD(P2,s,Q2) > ZERO_M) && (CROSS_PRD(P2,Q2,t) > ZERO_M))
         return true;
     }
     if (POTENTIAL_X(region[1]+region[2])) //Q2R2
     {
       solid_angle(region[1], P1, Q1, R1, s, t);
-      if ((CROSS_PRD(Q2,s,R2) > EPSILON) && (CROSS_PRD(Q2,R2,t) > EPSILON))
+      if ((CROSS_PRD(Q2,s,R2) > ZERO_M) && (CROSS_PRD(Q2,R2,t) > ZERO_M))
         return true;
     }
     if (POTENTIAL_X(region[2]+region[0])) //R2P2
     {
       solid_angle(region[2], P1, Q1, R1, s, t);
-      if ((CROSS_PRD(R2,s,P2) > EPSILON) && (CROSS_PRD(R2,P2,t) > EPSILON))
+      if ((CROSS_PRD(R2,s,P2) > ZERO_M) && (CROSS_PRD(R2,P2,t) > ZERO_M))
         return true;
     }
     return false;
@@ -868,7 +868,7 @@ namespace K_MESH
     if (POTENTIAL_X(region[0]+region[1])) //P2Q2
     {
       solid_angle(region[0], P1, Q1, R1, s, t);
-      if ((CROSS_PRD(P2,s,Q2) > EPSILON) && (CROSS_PRD(P2,Q2,t) > EPSILON))
+      if ((CROSS_PRD(P2,s,Q2) > ZERO_M) && (CROSS_PRD(P2,Q2,t) > ZERO_M))
         return true;
     }
     
@@ -894,9 +894,9 @@ namespace K_MESH
     E_Float d21 = NUGA::zzdet4(P2,Q2,R2,Q1);
     E_Float d31 = NUGA::zzdet4(P2,Q2,R2,R1);
         
-    if ( (d11 < -EPSILON) && (d21 < -EPSILON) && (d31 < -EPSILON)) // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
+    if ( (d11 < -ZERO_M) && (d21 < -ZERO_M) && (d31 < -ZERO_M)) // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
       return false;
-    if ( (d11 > EPSILON) && (d21 > EPSILON) && (d31 > EPSILON))    // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
+    if ( (d11 > ZERO_M) && (d21 > ZERO_M) && (d31 > ZERO_M))    // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
       return false;
     
     if (IS_ZERO(d11, EPSILON) && IS_ZERO(d21, EPSILON) && IS_ZERO(d31, EPSILON)) // Pi1 == Pi2 => 2D intersection test
@@ -939,9 +939,9 @@ namespace K_MESH
     E_Float d22 = NUGA::zzdet4(P1,Q1,R1,Q2);
     E_Float d32 = NUGA::zzdet4(P1,Q1,R1,R2);
     
-    if ( (d12 < -EPSILON) && (d22 < -EPSILON) && (d32 < -EPSILON)) // P2,Q2,and R2 are strictly on the same side of Pi1 -> no intersection
+    if ( (d12 < -ZERO_M) && (d22 < -ZERO_M) && (d32 < -ZERO_M)) // P2,Q2,and R2 are strictly on the same side of Pi1 -> no intersection
       return false;
-    if ( (d12 > EPSILON) && (d22 > EPSILON) && (d32 > EPSILON))    // P2,Q2,and R2 are strictly on the same side of Pi1 -> no intersection
+    if ( (d12 > ZERO_M) && (d22 > ZERO_M) && (d32 > ZERO_M))    // P2,Q2,and R2 are strictly on the same side of Pi1 -> no intersection
       return false;
     
     // T1 intersects Pi2 and T2 intersects Pi1
@@ -991,12 +991,12 @@ namespace K_MESH
     E_Int s12(SIGN(d12)), s22(SIGN(d22)), s32(SIGN(d32));
     if (s12 == s22)
     {
-      permut1(p2,q2,r2); //p2 = r2; q2 = p2; r2 = q2;
+      permut1(p2,q2,r2); //p2 = R2; q2 = P2; r2 = Q2;
       if (s32 == -1) std::swap(q1,r1);
     }
     else if (s12 == s32)
     {
-      permut2(p2,q2,r2); //p2 = q2; q2 = r2; r2 = p2;
+      permut2(p2,q2,r2); //p2 = Q2; q2 = R2; r2 = P2;
       if (s22 == -1) std::swap(q1,r1);
     }
     else if (s22 == s32)
@@ -1008,12 +1008,12 @@ namespace K_MESH
       // if s12 == 1, nothing to do
       
       if (s22 == 1)
-        permut2(p2,q2,r2); //p2 = q2; q2 = r2; r2 = p2;
+        permut2(p2,q2,r2); //p2 = Q2; q2 = R2; r2 = P2;
       else if (s32 == 1)
-        permut1(p2,q2,r2); //p2 = r2; q2 = p2; r2 = q2;
+        permut1(p2,q2,r2); //p2 = R2; q2 = P2; r2 = Q2;
     }
     
-    return ((NUGA::zzdet4(p1,q1,p2,q2) < EPSILON) && (NUGA::zzdet4(p1,r1,r2,p2) < EPSILON));
+    return ((NUGA::zzdet4(p1,q1,p2,q2) < ZERO_M) && (NUGA::zzdet4(p1,r1,r2,p2) < ZERO_M));
   }
 
   ///

@@ -278,6 +278,36 @@ inline double angle_measure
 }
 
 ///
+inline double normals_angle (const E_Float* ni, const E_Float* nj)
+{
+  //
+  E_Float nk[3];
+  NUGA::crossProduct<3>(ni, nj, nk);
+  E_Float c = NUGA::dot<3>(ni, nj);
+
+  E_Int s = zSIGN(::fabs(c) - 1., ZERO_M);
+
+  if (s != 0) // non-degn case
+  {
+    E_Float s2 = NUGA::sqrNorm<3>(nk);
+
+    E_Float alpha = ::atan2(::sqrt(s2), c);
+    return alpha;
+  }
+  else // (s == 0) : ni and nj are nearly colinear : 0, Pi or 2Pi
+  {
+    if (c > 0.) return 0.;
+
+#ifdef DEBUG_GEOM_ALGO
+    std::cout << "ERROR : GeomAlgo::angle_measure : 0 or 2Pi ?" << std::endl;
+    assert(false);
+#endif
+    return NUGA::PI; //error : either 0 or 2Pi are wrong. return one of them as an arbitray choice.
+  }
+
+}
+
+///
 inline bool angular_weighted_normal(const double* Pim1, const double* Pi, const double* Pip1, double* n)
 {
   double ray1[3], ray2[3];

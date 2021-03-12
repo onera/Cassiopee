@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_XSENSOR_HXX
 #define NUGA_XSENSOR_HXX
@@ -101,7 +101,7 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_input_t& data)
       if (lambdas.empty()) continue;
       // sort the lambdas
       std::sort(lambdas.begin(),lambdas.end());
-      // ne pas ajouter deux points dont les lambdas ont un Ã©cart plus petit que tolÃ©rance
+      // ne pas ajouter deux points dont les lambdas ont un écart plus petit que tolérance
       // add the x points in data
       E_Float coord0[3];
       E_Float coord1[3];

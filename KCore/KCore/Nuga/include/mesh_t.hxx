@@ -187,7 +187,9 @@ struct connect_trait<SURFACIC, false>
       }
     }
   }
-    
+
+  template <typename T> static void set_boundary_type(cnt_t const& c, T typ, const std::vector<int>& ids) { /*todo ?*/ }
+  
   static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int idx_start)
   {
     std::vector<E_Int> oids;
@@ -266,17 +268,31 @@ struct connect_trait<VOLUMIC, false>
     c.PHs.add(e.m_faces.size(), &e.m_faces[0], npgs0);
   }
 
+  ///
   static void build_neighbors(const cnt_t& c, neighbor_t& neighbors)
   {
     c.build_ph_neighborhood(neighbors);
   }
 
+  ///
   static void get_boundary(cnt_t& c, ngon_unit& bc)
   {
+    //for transferring type
+    //auto ctype_cpy = c.PHs._type;
+    auto ftype_cpy = c.PGs._type; //save it before flag_externals
+
     c.flag_externals(INITIAL_SKIN);
     Vector_t<E_Int> oids;
     c.PGs.extract_of_type(INITIAL_SKIN, bc, oids);
+
+    if (ftype_cpy.empty()) return;
+
+    bc._type.resize(oids.size());
+    for (size_t i = 0; i < oids.size(); ++i)
+      bc._type[i] = ftype_cpy[oids[i]];
   }
+
+  ///
   static void get_boundary(cnt_t& c, ngon_unit& bc, std::vector<E_Int>& ancestors)
   {
     c.flag_externals(INITIAL_SKIN);
@@ -386,6 +402,16 @@ struct connect_trait<VOLUMIC, false>
     }
     neighs.erase(i);
   }*/
+
+  template <typename T> static void set_boundary_type(cnt_t const& c, T typ, const std::vector<int>& ids)
+  {
+    c.PGs._type.clear();
+    c.PGs._type.resize(c.PGs.size(), 0/*NUGA::ANY*/);
+    for (size_t u = 0; u < ids.size(); ++u)
+      c.PGs._type[ids[u]] = E_Int(typ);
+
+    //std::cout << "wall ids list size : " << ids.size() << std::endl;
+  }
 
   static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int idx_start)
   {
@@ -595,6 +621,7 @@ struct mesh_t
   {
     trait::get_boundary(cnt, bound_mesh.cnt);
     bound_mesh.crd = crd;
+    bound_mesh.oriented = oriented;
     //compact crd to boundary only
     std::vector<E_Int> nids;
     bound_trait<BSTRIDE>::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
@@ -616,6 +643,7 @@ struct mesh_t
   {
     trait::get_boundary(cnt, bound_mesh.cnt, ancestors);
     bound_mesh.crd = crd;
+    bound_mesh.oriented = oriented;
     //compact crd to boundary only
     std::vector<E_Int> nids;
     bound_trait<BSTRIDE>::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
@@ -676,7 +704,7 @@ struct mesh_t
   }
 
   template <typename T>
-  void set_type(T typ, std::vector<int>& ids)
+  void set_type(T typ, const std::vector<int>& ids)
   {
     //std::cout << "set_type : 1" << std::endl;
     int nbcells = ncells();
@@ -689,6 +717,12 @@ struct mesh_t
       e_type[ids[i]] = (E_Int)typ;
     }
     //std::cout << "set_type : 3" << std::endl;
+  }
+
+  template <typename T>
+  void set_boundary_type(T typ, const std::vector<int>& ids)
+  {
+    trait::set_boundary_type(cnt, typ, ids);
   }
   
   void set_flag(int i, int val) const // fixme : constness here is bad design
@@ -751,15 +785,23 @@ struct mesh_t
   template <typename T>
   void compress(const std::vector<T>& keep)
   {
-    trait::compress(cnt, keep);
-    std::vector<E_Int> nids;
-    trait::compact_to_used_nodes(cnt,crd, nids);
+    std::vector<E_Int> ptnids;
+    compress(keep, ptnids);
+  }
 
-    if (nids.empty())
+  template <typename T>
+  void compress(const std::vector<T>& keep, std::vector<E_Int>& ptnids)
+  {
+    ptnids.clear();
+
+    trait::compress(cnt, keep);
+    trait::compact_to_used_nodes(cnt, crd, ptnids);
+
+    if (ptnids.empty())
       nodal_metric2.clear();
-    else    
-      K_CONNECT::IdTool::compact(nodal_metric2, nids); //sync the metric 
-    
+    else
+      K_CONNECT::IdTool::compact(nodal_metric2, ptnids); //sync the metric 
+
     if (neighbors != nullptr)
       trait::compress(*neighbors, keep); //sync the neighborhood
 
@@ -769,7 +811,7 @@ struct mesh_t
 
     if (flag.size() == keep.size())
       K_CONNECT::IdTool::compact(flag, keep);
-    else flag.clear(); 
+    else flag.clear();
   }
 
   void build_localizer() const 
@@ -844,7 +886,7 @@ struct mesh_t
       K_SEARCH::KdTree<> tree(acrd);
 
       double d2;
-      for (E_Int i = 0; i < crd.cols(); ++i)
+      for (E_Int i = 0; i < nodal_metric2.size(); ++i)
       {
         double r2 = (1. - EPSILON) * nodal_metric2[i]; //reduce it to discard nodes connected to i.
         int N = tree.getClosest(i, r2, d2);

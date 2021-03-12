@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CLIPPER_HXX
 #define NUGA_CLIPPER_HXX
@@ -91,10 +91,16 @@ namespace NUGA
       zmean /= nb_pts1;
       
       // compute an overall 3D abstol
-      E_Float min_d, max_d, ABSTOL;
+      // using meL : NOT WORKING because after first cut, sub is overdefined so underestimate Lref, hence some good cut edges are discarded
+      /*E_Float min_d, max_d, ABSTOL;
       NUGA::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cnt, min_d, max_d);
-      double Lref = ::sqrt(min_d);
-      ABSTOL = Lref * RTOL;
+      double Lref = ::sqrt(min_d);*/
+      // using sub bbox
+      K_SEARCH::BBox3D bx;
+      sub.bbox(sub.m_crd, bx);
+      double Lref = std::min(bx.maxB[0] - bx.minB[0], std::min(bx.maxB[1] - bx.minB[1], bx.maxB[2] - bx.minB[2]));
+ 
+      double ABSTOL = Lref * RTOL;
       ABSTOL = std::max(ABSTOL, ZERO_M);
 
       // discard false overlaps among front (now we are in 2D, those with big altitudes)
@@ -172,7 +178,7 @@ namespace NUGA
       DELAUNAY::MesherMode mode;
       mode.mesh_mode = mode.TRIANGULATION_MODE;
       mode.remove_holes = true;
-      mode.silent_errors = conformizer._silent_errors;
+      mode.silent_errors = true; // conformizer._silent_errors;
       DELAUNAY::T3Mesher<E_Float> mesher(mode);
 
       err = mesher.run(data);
@@ -422,6 +428,7 @@ namespace NUGA
           if (just_io) // try with inital box to catch the bounds and do i/o test
             mask_loc.get_candidates(bx0, cands, idx_start, RTOL);
 
+          if (cands.empty()) continue; //fixme : why this happens ?
           //assert(!cands.empty());
 
           // autonomous cutter front

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __TRI_CONFORMIZER_CXX__
 #define __TRI_CONFORMIZER_CXX__
@@ -311,7 +311,7 @@ TRI_Conformizer<DIM>::__split_Elements
       
       err = __iterative_run (mesher, pi, ci2, hnodes, data, lnids, false/*i.e. try to force all edge*/, true/*i.e silent also last it*/);
       if (err != 0)
-        err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, true/*i.e. ignore unforceable edges*/, false/*i.e output last it error*/);
+        err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, true/*i.e. ignore unforceable edges*/, mode.silent_errors/*i.e output last it error eventually*/);
       
       if (err != 0)
       {
@@ -535,7 +535,9 @@ TRI_Conformizer<DIM>::__iterative_run
     
     mesher._mode.do_not_shuffle=(railing == 0); // i.e. shuffle every time but the first
 
+#ifdef DEBUG_TRI_CONFORMIZER
     if (!silent_last_iter && (railing == nb_attemps)) mesher._mode.silent_errors = false; // only listen the last iter
+#endif
     
     data.pos = &crd;
     data.connectB = &cB;
@@ -1623,6 +1625,14 @@ template <E_Int DIM>
 void
 TRI_Conformizer<DIM>::__tidy_edge (const K_FLD::FloatArray& coord, std::vector<E_Int>& nodes)
 {
+  std::vector<E_Int> tmp;
+  tmp.reserve(nodes.size());
+
+  for (size_t i = 0; i < nodes.size(); ++i)
+    if (nodes[i] != IDX_NONE)tmp.push_back(nodes[i]);
+
+  nodes = tmp;
+
   size_t nb_nodes = nodes.size();
   
   if (nb_nodes == 3)

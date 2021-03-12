@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SENSOR_HXX
 #define NUGA_SENSOR_HXX
@@ -93,7 +93,7 @@ static void fix_adap_incr(mesh_t& hmesh, dir_incr_type& adap_incr)
   //solve inconsistencies
   //alexis : todo
 
-  // premiere version : desactiver l'adaptation dans les cellules XYZ (iso) qui sont connectÃ©es Ã  une cellule "layer" par un QUAD lateral
+  // premiere version : desactiver l'adaptation dans les cellules XYZ (iso) qui sont connectées à une cellule "layer" par un QUAD lateral
   adap_incr._ph_dir.clear();
   E_Int nb_phs = hmesh._ng.PHs.size();
   adap_incr._ph_dir.resize(nb_phs, XYZ);
@@ -109,18 +109,18 @@ static void fix_adap_incr(mesh_t& hmesh, dir_incr_type& adap_incr)
 
   // boucle sur les layer
 
-  // appel Ã  get_local
+  // appel à get_local
 
-  // remplissage appropriÃ© de adap_incr._pg_dir pour les 6 faces : X, Y, ou XY
+  // remplissage approprié de adap_incr._pg_dir pour les 6 faces : X, Y, ou XY
 
   // boucle sur le reste : 
 
-  // appel Ã  get_local
+  // appel à get_local
 
   // remplissage de adap_incr._pg_dir ou desactivation de adap_incr._ph_dir
 
   // si NONE => remplissage
-  // sinon, si valeur diffÃ©rente => desactivation
+  // sinon, si valeur différente => desactivation
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __TRI_OVERLAPFIX_CXX__
 #define __TRI_OVERLAPFIX_CXX__

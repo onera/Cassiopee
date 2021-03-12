@@ -117,10 +117,10 @@ def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False): 
 #      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface ratio of the visible cells
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
-def XcellN(coord, basenum, masks, wall_ids, priorities, output_type=0, rtol=0.05):
+def XcellN(coord, zwall_ids, basenum, masks, wall_ids, priorities, output_type=0, rtol=0.05):
     """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
     Usage : XcellN(t, priorities [, output_type, rtol])"""
-    return intersector.XcellN(coord, basenum, masks, wall_ids, priorities, output_type, rtol)
+    return intersector.XcellN(coord, zwall_ids, basenum, masks, wall_ids, priorities, output_type, rtol)
 
 #==============================================================================
 # P1ConservativeChimeraCoeffs

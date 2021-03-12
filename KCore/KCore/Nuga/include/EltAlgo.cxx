@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef _ELTALGO_CXX_
 #define _ELTALGO_CXX_
@@ -648,10 +648,13 @@ NUGA::EltAlgo<ElementType>::coloring_pure (const K_FLD::IntArray& neighbors, int
   // WARNING : colors are not cleared and suppose that contains coloured elements.
 
   size_t stride (neighbors.rows()), K, Kseed(0),  color(0), NB_ELTS(neighbors.cols());
+  
+  colors.clear();
+  if (NB_ELTS == 0) return;
+
   int_vector_type                  cpool;
   K_FLD::IntArray::const_iterator pK;
   
-  colors.clear();
   colors.resize(NB_ELTS, IDX_NONE);
 
   while (1)

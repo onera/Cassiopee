@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __GENERATOR_DELAUNAY_KERNEL_CXX__
 #define __GENERATOR_DELAUNAY_KERNEL_CXX__

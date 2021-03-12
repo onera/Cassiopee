@@ -17,6 +17,7 @@
 #include "Nuga/include/macros.h"
 #include "Nuga/include/selector.hxx"
 #include "Nuga/include/collider.hxx"
+#include "Nuga/include/displacement.hxx"
 
 #ifdef CLASSIFYER_DBG
 #include "Nuga/include/medit.hxx"
@@ -36,7 +37,7 @@ namespace NUGA
     using wdata_t = std::vector<double>;
     using outdata_t = std::vector<double>;
   
-    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im) { data[i] = -X; } // minus to mark as new X for __flag_hidden_subzones
+    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im, E_Int val) { data[i] = val; } // minus to mark as new X for __flag_hidden_subzones
   };
 
   struct color_t
@@ -48,8 +49,10 @@ namespace NUGA
       val = OUT;  //where this is needed?
     }
 
+    color_t& operator=(color_t& col) { val = col.val; masks = col.masks; return *this;}
+
     color_t& operator=(int col) { val = col; return *this; } // do not touch to masks
-    bool operator!=(int col) const { return (col != val); }
+    bool operator!=(int col) const = delete; // { return (col != val); }
     bool operator==(int col) const { return (col == val); }
 
     operator double() const { return val; }
@@ -64,10 +67,10 @@ namespace NUGA
     using wdata_t = std::vector<color_t>;
     using outdata_t = std::vector<double>;
 
-    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im)
+    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im, E_Int val)
     {
       // minus to mark as new X for __flag_hidden_subzones
-      data[i].val = -X;
+      data[i].val = val;
       data[i].masks.push_back(im);
     }
   };
@@ -109,9 +112,9 @@ namespace NUGA
                  std::vector< std::vector<E_Int> > &mask_wall_ids,
                  const std::vector<K_SEARCH::BBox3D>& comp_boxes,
                  const std::vector<E_Int>& z_priorities, E_Int rank_wnp,
-                 std::vector< bmesh_t*> & mask_bits);
+                 std::vector< bmesh_t*> & mask_bits, bmesh_t& WP, bmesh_t& WNP);
 
-    E_Int compute(zmesh_t const & z_mesh, std::vector< bmesh_t*> const & mask_bits, outdata_t& outdata);
+    E_Int compute(zmesh_t const & z_mesh, std::vector< bmesh_t*> const & mask_bits, bmesh_t& WP, bmesh_t& WNP, outdata_t& outdata);
 
     void finalize(zmesh_t const & z_mesh, outdata_t& outdata);
 
@@ -120,7 +123,7 @@ namespace NUGA
     virtual outdata_t __process_X_cells(zmesh_t const & z_mesh, std::vector< bmesh_t*> const & mask_bits, wdata_t & wdata) = 0;
 
     void __compact_to_box(zmesh_t const & z_mesh, std::vector< bmesh_t*> & mask_bits,
-                          std::vector< std::vector<E_Int> > &mask_wall_ids);
+                          bmesh_t& WP, bmesh_t& WNP);
 
     void __build_mask_bits(const std::vector<K_FLD::FloatArray> &mask_crds,
                            const std::vector<K_FLD::IntArray>& mask_cnts,
@@ -128,11 +131,19 @@ namespace NUGA
                            const std::vector<E_Int>& z_priorities, E_Int rank_wnp,
                            std::vector< bmesh_t*> & mask_bits);
 
+    void __build_mask_bits2(zmesh_t& z_mesh, double ARTOL, eMetricType mtype, double PS_MIN, // these parameters to deal with overlapping
+                            const std::vector<K_FLD::FloatArray> &mask_crds,
+                            const std::vector<K_FLD::IntArray>& mask_cnts,
+                            std::vector< std::vector<E_Int> > &mask_wall_ids,
+                            const std::vector<E_Int>& z_priorities, E_Int rank_wnp,
+                            std::vector< bmesh_t*> & mask_bits,
+                            bmesh_t& WP, bmesh_t& WNP);
+
     void __process_overlapping_boundaries(zmesh_t & z_mesh, std::vector< bmesh_t*> & mask_bits, E_Int rank_wnp, E_Float RTOL);
 
-    bool __flag_colliding_cells(zmesh_t const & z_mesh, std::vector< bmesh_t*> const & mask_bits, E_Int im, wdata_t& wdata);
+    bool __flag_colliding_cells(zmesh_t const & z_mesh, std::vector< bmesh_t*> const & mask_bits, E_Int im, wdata_t& wdata, E_Int XCOL);
 
-    E_Int __flag_hidden_subzones(zmesh_t const & z_mesh, bmesh_t const & mask_bit, wdata_t& wdata);
+    E_Int __flag_hidden_subzones(zmesh_t const & z_mesh, bmesh_t const & mask_bit, wdata_t& wdata, E_Int XCOL, E_Int nsubmin);
 
   protected:
     double _RTOL;
@@ -329,7 +340,7 @@ namespace NUGA
    std::vector< std::vector<E_Int> > &mask_wall_ids,
    const std::vector<K_SEARCH::BBox3D>& comp_boxes,
    const std::vector<E_Int>& z_priorities, E_Int rank_wnp,
-   std::vector< bound_mesh_t*> & mask_bits)
+   std::vector< bound_mesh_t*> & mask_bits, bound_mesh_t& WP, bound_mesh_t& WNP)
   {
 #ifdef CLASSIFYER_DBG
     static int znb = 0;
@@ -342,7 +353,8 @@ namespace NUGA
     _comp_boxes = comp_boxes;
     
     // build mask data structures (mesh object) : WP are discarded. Putting first decreasing OP, then remaining WNP
-    __build_mask_bits(mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_bits);
+    //__build_mask_bits(mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_bits);
+    __build_mask_bits2(z_mesh, -0.1, NUGA::ISO_MAX, 2.*NUGA::PI*15./360, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_bits, WP, WNP);
 
 #ifdef CLASSIFYER_DBG
     for (size_t m = 0; m < mask_bits.size(); ++m) {
@@ -354,7 +366,7 @@ namespace NUGA
 #endif
 
     // reduce masks to pieces in zone box : TO REMOVE IF DONE BEFORE IN THE PYTHON
-    __compact_to_box(z_mesh, mask_bits, mask_wall_ids);
+    __compact_to_box(z_mesh, mask_bits, WP, WNP);
 
 #ifdef CLASSIFYER_DBG
     for (size_t m = 0; m < mask_bits.size(); ++m) {
@@ -362,14 +374,16 @@ namespace NUGA
       o << "mask_inbox_z_" << znb << "_m_" << m;
       if (mask_bits[m] != nullptr) medith::write(o.str().c_str(), mask_bits[m]->crd, mask_bits[m]->cnt);
     }
+    medith::write("WP", WP.crd, WP.cnt);
+    medith::write("WNP", WNP.crd, WNP.cnt);
     std::cout << "PREP_build_structures_and_reduce_to_zone : __process_overlapping_boundaries : " << znb << std::endl;
 #endif    
 
-    // 1. detecting overlaps, 
-    // 2. marking on these overlap regions zmesh' border elts as IN, 
-    // 3. discarding overlap boundaries of mask (not required anymore, neither to blank, nor to clip)
-    if (typeid(zmesh_t) == typeid(ph_mesh_t))
-      __process_overlapping_boundaries(z_mesh, mask_bits, rank_wnp, _RTOL);
+    //// 1. detecting overlaps, 
+    //// 2. marking on these overlap regions zmesh' border elts as IN, 
+    //// 3. discarding overlap boundaries of mask (not required anymore, neither to blank, nor to clip)
+    //if (typeid(zmesh_t) == typeid(ph_mesh_t))
+    //  __process_overlapping_boundaries(z_mesh, mask_bits, rank_wnp, _RTOL);
 
 #ifdef CLASSIFYER_DBG
     for (size_t m = 0; m < mask_bits.size(); ++m) {
@@ -382,6 +396,8 @@ namespace NUGA
 #endif
 
     // now we have reduced the meshes to the useful part, create & add localizers
+    WP.build_localizer();
+    WNP.build_localizer();
     for (size_t m = 0; m < mask_bits.size(); ++m)
       if (mask_bits[m] != nullptr) mask_bits[m]->build_localizer();
   }
@@ -389,31 +405,76 @@ namespace NUGA
   ///
   TEMPLATE_TYPES
   E_Int TEMPLATE_CLASS::compute
-  (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, outdata_t& outdata)
+  (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, bound_mesh_t& WP, bound_mesh_t& WNP, outdata_t& outdata)
   {
     E_Int ncells(z_mesh.ncells());
 
     // initialization of the inner data 
     wdata_t wdata(ncells, OUT);
 
-    //std::cout << "blank flagged elts at __process_overlapping_boundaries stage " << std::endl;
-    /*if (z_mesh.e_type.size() == ncells)
-      for (E_Int i = 0; i < ncells; ++i)
-        if (z_mesh.e_type[i] == IN)
-          wdata[i] = IN;*/
     size_t nbits = mask_bits.size();
+
+    std::vector< bound_mesh_t*> cpy_masks(mask_bits);
+    if (WP.ncells() != 0)
+    {
+      cpy_masks.push_back(&WP);
+      bool has_X = __flag_colliding_cells(z_mesh, cpy_masks, cpy_masks.size() - 1/*last*/, wdata, -IN);
+      if (has_X)
+        __flag_hidden_subzones(z_mesh, WP, wdata, IN, 2);// if there are at least 2 zones => mark as IN the hidden ones.
+      cpy_masks.pop_back(); // WP appends only INs so remove it from list
+    }
+    if (WNP.ncells() != 0)
+    {
+      cpy_masks.push_back(&WNP);
+      bool has_X = __flag_colliding_cells(z_mesh, cpy_masks, cpy_masks.size() - 1/*last*/, wdata, -X);
+      if (has_X)
+        __flag_hidden_subzones(z_mesh, WNP, wdata, X, 2);// if there are at least 2 zones => mark as IN the hidden ones.
+    }
+
+    // rearrange by decreasing mask box size (because a bigger mask potentially hides mor cells) 
+    STACK_ARRAY(int, nbits, maskidx);
+    std::vector<std::pair<double, int>> palma;
+
     for (size_t i = 0; i < nbits; ++i)
     {
+      if (mask_bits[i] == nullptr) continue;
+      K_SEARCH::BBox3D mbx;
+      mask_bits[i]->bbox(mbx);
+      double v = (mbx.maxB[0] - mbx.minB[0])*(mbx.maxB[1] - mbx.minB[1])*(mbx.maxB[2] - mbx.minB[2]);
+      palma.push_back(std::make_pair(v, i));
+    }
+
+    std::sort(palma.rbegin(), palma.rend());
+    
+    wdata_t wdata0 = wdata;
+    
+    // nbits is unchanged => not treating again WP
+    for (size_t ii = 0; ii < palma.size(); ++ii)
+    {
+      int i = palma[ii].second;
+
+      wdata_t virgin_wdata= wdata0;
+
       // append z_xcelln with X
-      bool has_X = __flag_colliding_cells(z_mesh, mask_bits, i, wdata);
+      bool has_X = __flag_colliding_cells(z_mesh, mask_bits, i, virgin_wdata, -X);
       if (!has_X) continue;
 
       // if there are at least 2 zones => mark as IN the hidden ones.
-      __flag_hidden_subzones(z_mesh, *(mask_bits[i]), wdata);
+      __flag_hidden_subzones(z_mesh, *(mask_bits[i]), virgin_wdata, X, 2);
+
+      // update wdata
+      for (size_t u = 0; u < ncells; ++u)
+      {
+        if (wdata[u] == IN) continue;
+        if (virgin_wdata[u] == OUT) continue;
+
+        E_Int val = virgin_wdata[u];
+        data_trait<POLICY, zmesh_t>::mark_cell_w_mask(wdata, u, i, val);
+      }
     }
 
     // set col_X color (collision mode) or polyclip (xcelln mode)
-    outdata = this->__process_X_cells(z_mesh, mask_bits, wdata);
+    outdata = this->__process_X_cells(z_mesh, cpy_masks, wdata);
 
     return 0;
   }
@@ -447,8 +508,7 @@ namespace NUGA
   ///
   TEMPLATE_TYPES
   void TEMPLATE_CLASS::__compact_to_box
-  (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> & mask_bits,
-   std::vector< std::vector<E_Int> > &mask_wall_ids)
+  (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> & mask_bits, bound_mesh_t& WP, bound_mesh_t& WNP)
   {
     //using vmesh_t = NUGA::vmesh_t<bound_mesh_t::ARG1, bound_mesh_t::ARG2>; //i.e same type as boundaries of zmesh but as a pure view
     // zone reduction
@@ -468,6 +528,9 @@ namespace NUGA
         delete mask_bits[m]; mask_bits[m] = nullptr;
       }
     }
+
+    NUGA::selector::reduce_to_box(WP, z_box, true/*brute force*/);
+    NUGA::selector::reduce_to_box(WNP, z_box, true/*brute force*/);
   }
 
   ///
@@ -565,12 +628,153 @@ namespace NUGA
 
   ///
   TEMPLATE_TYPES
+  void TEMPLATE_CLASS::__build_mask_bits2
+  (zmesh_t & z_mesh, double ARTOL, eMetricType mtype, double AMAX, // these parameters to deal with overlapping
+   const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
+   std::vector< std::vector<E_Int> > &mask_wall_ids,
+   const std::vector<E_Int>& z_priorities, E_Int rank_wnp, std::vector< bound_mesh_t*> & mask_bits, bound_mesh_t& WP, bound_mesh_t& WNP)
+  {
+    mask_bits.clear();
+    //int nb_comps = mask_crds.size();
+
+    bound_mesh_t zbound;
+    z_mesh.get_boundary(zbound);
+
+    // separating WP/WNP and OVLP
+    for (size_t i = 0; i <z_priorities.size(); ++i)
+    {
+      int compi = z_priorities[i];
+
+      //std::cout << "__build_mask_bits : comp " << compi << std::endl;
+
+      bool is_a_prior_mask = ((E_Int)i < rank_wnp);
+
+      //std::cout << "is a prioritary mask ? " << is_a_prior_mask << " rank/rank_wnp " << i << "/" << rank_wnp << std::endl;
+
+      if (!is_a_prior_mask && mask_wall_ids[compi].empty()) continue; // no WNP
+
+      //std::cout << "__build_mask_bits : nb walls : " << mask_wall_ids[compi].size() << std::endl;
+
+      bound_mesh_t* bit = new bound_mesh_t(mask_crds[compi], mask_cnts[compi], 1/* ASSUME DIRECT UPEN ENTRY*/);
+
+      int nbcells = bit->ncells();
+
+      //std::cout << "__build_mask_bits : 3 : nb of cells in mask : " << nbcells  << std::endl;
+
+      if (nbcells == 0)
+      {
+#ifdef CLASSIFYER_DBG
+        std::cout << "mask bit " << i << " is discarded" << std::endl;
+#endif
+        delete bit; continue;
+      }
+
+      //nbcells = bit->ncells();
+      //std::cout << "__build_mask_bits : 4 : nb of cells in mask : " << nbcells << std::endl;
+
+#ifdef CLASSIFYER_DBG
+      {
+        std::ostringstream o;
+        o << "mask_0_" << i;
+        medith::write<>(o.str().c_str(), bit->crd, bit->cnt);
+      }
+#endif
+      std::vector<bool> is_dw;
+      NUGA::move_double_walls(bit, zbound, ARTOL, mtype, AMAX, mask_wall_ids[compi], is_dw);
+
+      //
+      bound_mesh_t OVLP, WALL(*bit);
+      
+      std::vector<bool> keep;
+
+      if (is_a_prior_mask)
+      {
+        OVLP = *bit;
+        // remove WALL from OVLP
+        keep.clear();
+        keep.resize(nbcells, true);
+        for (size_t u = 0; u < mask_wall_ids[compi].size(); ++u)
+          keep[mask_wall_ids[compi][u]] = false;
+
+        OVLP.compress(keep);
+      }
+
+      // remove OVLP and DW from WALL
+      keep.clear();
+      keep.resize(nbcells, false);
+      for (size_t u = 0; u < mask_wall_ids[compi].size(); ++u)
+      {
+        E_Int wid = mask_wall_ids[compi][u];
+        keep[wid] = (!is_dw.empty()) ? !is_dw[wid] : true; // is_dw is empty either in surface mode or no walls in volume mode for the current zone.
+      }
+
+      WALL.compress(keep);
+
+      if (WALL.ncells() != 0)
+      {
+        if (!is_a_prior_mask)
+        {
+          WALL.reverse_orient();
+          WNP.append(WALL);
+          //bound_mesh_t* w = new bound_mesh_t(WALL);
+          //mask_bits.push_back(w);
+
+#ifdef CLASSIFYER_DBG
+          {
+            //std::cout << "ouput mask_1_ " << i << std::endl;
+            std::ostringstream o;
+            o << "wnp_" << i;
+            //medith::write<>(o.str().c_str(), WALL.crd, WALL.cnt);
+          }
+#endif
+        }
+        else
+        {
+          WALL.reverse_orient();
+          WP.append(WALL);
+        }
+      }
+
+      *bit = OVLP;
+
+      if (bit->ncells() == 0) // completely gone
+      {
+        delete bit; continue;
+      }
+
+      //nbcells = bit->ncells();
+      //std::cout << "__build_mask_bits : 5 : nb of cells in mask : " << nbcells << std::endl;
+
+      mask_bits.push_back(bit);
+
+      //std::cout << "mask rank : " << mask_bits.size() -1 << std::endl;
+
+#ifdef CLASSIFYER_DBG
+      {
+        //std::cout << "ouput mask_1_ " << i << std::endl;
+        std::ostringstream o;
+        o << "mask_1_" << i;
+        medith::write<>(o.str().c_str(), bit->crd, bit->cnt);
+      }
+#endif
+    }
+
+#ifdef CLASSIFYER_DBG
+    medith::write<>("WNP", WNP.crd, WNP.cnt);
+    medith::write<>("WP", WP.crd, WP.cnt);
+#endif
+
+    //std::cout << "__build_mask_bits : exit" << std::endl;
+  }
+
+  ///
+  TEMPLATE_TYPES
   void TEMPLATE_CLASS::__process_overlapping_boundaries
   (zmesh_t & z_mesh, std::vector< bound_mesh_t*> & mask_bits, E_Int rank_wnp, E_Float RTOL)
   {
   	// WARNING : assume consistent orientation
 
-    // get zmesh boundary (not using the constructor to do so because we need the ancesort info)
+    // get zmesh boundary (not using the constructor to do so because we need the ancestor info)
     bound_mesh_t zbound;
 
     std::vector<E_Int> ancestor;
@@ -694,11 +898,12 @@ namespace NUGA
   ///
   TEMPLATE_TYPES
   bool TEMPLATE_CLASS::__flag_colliding_cells
-  (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& data)
+  (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& data, E_Int XVAL)
   {
     assert (im < mask_bits.size());
     const bound_mesh_t* pmask = mask_bits[im];
     if (pmask == nullptr) return false;
+    if (pmask->ncells() == 0) return false;
 
     bool has_X = false;
     bound_mesh_t const & mask_bit = *pmask;
@@ -749,7 +954,19 @@ namespace NUGA
       
       if (is_x) // cands[0] contains the first found
       {
-        data_trait<POLICY, zmesh_t>::mark_cell_w_mask(data, i, im);
+#ifdef CLASSIFYER_DBG
+        /*medith::write<ngon_type>("ae1", z_mesh.crd, z_mesh.cnt, i);
+        medith::write<ngon_type>("mcan", mask_bit.crd, mask_bit.cnt, cands[0]-1);
+        auto cand = mask_bit.aelement(cands[0] - 1);
+        K_SEARCH::BBox3D bc(cand.m_crd);
+        bc.enlarge(_RTOL);
+        ngon_type ng2;
+        K_FLD::FloatArray c2;
+        bc.convert2NG(c2, ng2);
+        medith::write("bc", c2, ng2);*/
+#endif
+
+        data_trait<POLICY, zmesh_t>::mark_cell_w_mask(data, i, im, XVAL);
         //z_mesh.set_flag(i, cands[0]);
       }
       
@@ -762,7 +979,7 @@ namespace NUGA
     
     for (size_t i=0; i < data.size(); ++i)
     {
-      if (data[i] == -X) xs.push_back(i);
+      if (data[i] == XVAL) xs.push_back(i);
       dat[i] = ::fabs(data[i]);//for medit
     }
     if (xs.empty())
@@ -780,7 +997,7 @@ namespace NUGA
   ///
   TEMPLATE_TYPES
   E_Int TEMPLATE_CLASS::__flag_hidden_subzones
-  (zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& z_xcelln)
+  (zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& z_xcelln, E_Int XCOL/*X or IN*/, E_Int nsubmin)
   {
     // 1. compute neighborhood (lazy mode)
     auto neighborz = z_mesh.get_neighbors();
@@ -794,9 +1011,10 @@ namespace NUGA
     {
       if (z_xcelln[i] == IN)
         cur_xcelln[i] = IN;
-      else if (z_xcelln[i] == -X) // new X
+      else if (z_xcelln[i] == -XCOL) // collision colors : negative to say 'new'
       {
-        z_xcelln[i] = cur_xcelln[i] = X; //reset on z_xcelln
+        z_xcelln[i] = XCOL; //reset on z_xcelln
+        cur_xcelln[i] = XCOL;
       }
     }
     
@@ -824,7 +1042,7 @@ namespace NUGA
     // std::cout << "nb of supposed sub zones: " <<nb_subzones << std::endl;
 #endif
 
-    if (nb_subzones < 1) // no new subzones, just return
+    if (nb_subzones < nsubmin) // no new subzones, just return
       return 0;
     
     // 2.5 : classify subzones
@@ -849,7 +1067,7 @@ namespace NUGA
       bool deep = (iter == 1) ? false : true;
       for (E_Int i = 0; (i < ncell) && missing_col; ++i)
       {
-        if (cur_xcelln[i] != X) continue;
+        if (cur_xcelln[i] != XCOL) continue;
 
         int nneighs = neighborz->stride(i);
         const int* pneighs = neighborz->begin(i);
@@ -860,9 +1078,10 @@ namespace NUGA
 
           E_Int subid = cur_xcelln[pneighs[j]];
 
-          if (subid == IDX_NONE)     continue;
-          if (subid == X)              continue;
-          if (subid == IN)             continue;
+          // discard element that is already colored
+          if (subid == IDX_NONE) continue;
+          if (subid == X)        continue;
+          if (subid == IN)       continue;
 
           subid -= UPPER_COL; // to be 0-based
           assert(subid > -1 && subid < nb_subzones);
@@ -888,17 +1107,19 @@ namespace NUGA
           /*bool is_x = */NUGA::COLLIDE::get_colliding(ae1, mask_bit, cands, 1, _RTOL, false/*i.e reduce cands to true collidings*/);
           if (cands.empty()) continue;
 
+          auto aen = z_mesh.aelement(pneighs[j]);
+
 #ifdef CLASSIFYER_DBG
-          medith::write("subj", ae1);
+          //medith::write("colliding", ae1);
           medith::write("xmolecule", mask_bit.crd, mask_bit.cnt, &cands, 1);
-          //medith::write<ngon_type>("neighj", z_mesh.crd, z_mesh.cnt, pneighs[j]);
+          medith::write("subj", aen);
 #endif
 
         // autonomous cutter front
           bound_mesh_t acut_front(mask_bit, cands, 1);
 
           // b. classify pneigh[j] with that molecule
-          auto aen = z_mesh.aelement(pneighs[j]);
+          
           z_color[subid] = CLASSIFY::classify(aen, acut_front, deep);
           if (z_color[subid] != AMBIGUOUS)
           {
@@ -924,8 +1145,9 @@ namespace NUGA
     {
       E_Int subid = cur_xcelln[i];
       
-      if (subid == IDX_NONE)     continue;
-      if (subid == X)              continue;
+      if (subid == IDX_NONE)  continue;
+      if (subid == X)         continue;
+      if (subid == IN)        continue;
       
       subid -= UPPER_COL; // to be 0-based
       

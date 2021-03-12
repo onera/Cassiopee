@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_JOIN_HXX
 #define NUGA_JOIN_HXX
@@ -48,11 +48,11 @@ namespace NUGA
       K_MESH::Polygon::shift_geom(mesh._crd, nodes, nnodes, idx_start);
 
       E_Int PHL = mesh._F2E(0, PGi);
-      E_Int PHR = mesh._F2E(1, PGi); //should be E_IDX_NONE for oriented joins
+      E_Int PHR = mesh._F2E(1, PGi); //should be IDX_NONE for oriented joins
 
-      if (PHL != E_IDX_NONE)
+      if (PHL != IDX_NONE)
         K_MESH::Basic::reorder_pgs(mesh._ng, mesh._F2E, PHL);
-      if (PHR != E_IDX_NONE)
+      if (PHR != IDX_NONE)
         K_MESH::Basic::reorder_pgs(mesh._ng, mesh._F2E, PHR);
     }
   }

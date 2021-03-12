@@ -49,6 +49,7 @@ template<typename classifyer_t>
 void
 pyMOVLP_XcellN
 (const std::vector<K_FLD::FloatArray> &crds, const std::vector<K_FLD::IntArray>& cnts,
+  const std::vector< std::vector<E_Int>> &zone_wall_ids,
   const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
   const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
   std::vector< std::vector<E_Int>> &mask_wall_ids,
@@ -57,7 +58,7 @@ pyMOVLP_XcellN
   using outdata_t = typename classifyer_t::outdata_t;
   std::vector<outdata_t> xcelln;
   ///
-  NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xcelln, RTOL);
+  NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xcelln, RTOL);
 
   //std::cout << "ng of xcelln upon exit : " << xcelln.size() << std::endl;
   E_Int nb_zones = crds.size();
@@ -79,6 +80,7 @@ template<>
 void
 pyMOVLP_XcellN<NUGA::xcellno<pg_smesh_t, edge_mesh_t>>
 (const std::vector<K_FLD::FloatArray> &crds, const std::vector<K_FLD::IntArray>& cnts,
+  const std::vector< std::vector<E_Int>> &zone_wall_ids,
   const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
   const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
   std::vector< std::vector<E_Int>> &mask_wall_ids,
@@ -87,7 +89,7 @@ pyMOVLP_XcellN<NUGA::xcellno<pg_smesh_t, edge_mesh_t>>
   using classifyer_t = NUGA::xcellno<pg_smesh_t, edge_mesh_t>;
   std::vector<typename classifyer_t::outdata_t> xmesh;
   ///
-  NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xmesh, RTOL);
+  NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xmesh, RTOL);
 
   E_Int nb_zones = crds.size();
   for (E_Int i = 0; i < nb_zones; ++i)
@@ -124,6 +126,7 @@ template<>
 void
 pyMOVLP_XcellN<NUGA::xcellno<ph_mesh_t, pg_smesh_t>>
 (const std::vector<K_FLD::FloatArray> &crds, const std::vector<K_FLD::IntArray>& cnts,
+  const std::vector< std::vector<E_Int>> &zone_wall_ids,
   const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
   const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
   std::vector< std::vector<E_Int>> &mask_wall_ids,
@@ -132,7 +135,7 @@ pyMOVLP_XcellN<NUGA::xcellno<ph_mesh_t, pg_smesh_t>>
   using classifyer_t = NUGA::xcellno<ph_mesh_t, pg_smesh_t>;
   std::vector<typename classifyer_t::outdata_t> xmesh;
   ///
-  NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xmesh, RTOL);
+  NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xmesh, RTOL);
 
   E_Int nb_zones = crds.size();
   for (E_Int i = 0; i < nb_zones; ++i)
@@ -166,19 +169,20 @@ pyMOVLP_XcellN<NUGA::xcellno<ph_mesh_t, pg_smesh_t>>
 
 PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
 {
-  PyObject *zones, *base_num, *masks, *priorities, *wall_ids;
+  PyObject *zones, *zwall_ids, *base_num, *masks, *priorities, *wall_ids;
   E_Int output_type(1);
   E_Float RTOL(0.05);
 
-  if (!PyArg_ParseTuple(args, "OOOOOld", &zones, &base_num, &masks, &wall_ids, &priorities, &output_type, &RTOL)) return NULL;
+  if (!PyArg_ParseTuple(args, "OOOOOOld", &zones, &zwall_ids, &base_num, &masks, &wall_ids, &priorities, &output_type, &RTOL)) return NULL;
 
   E_Int nb_zones = PyList_Size(zones);
+  E_Int nb_wall_zones = PyList_Size(zwall_ids);
   E_Int nb_basenum = PyList_Size(base_num);
   E_Int nb_masks = PyList_Size(masks);
   E_Int nb_priority_pairs = PyList_Size(priorities);
   //E_Int nb_wall_sets = PyList_Size(wall_ids);
 
-  //std::cout << "nb_zones/nb_basenum/nb_masks/nb_priority_pairs/output_type : " << nb_zones << "/" << nb_basenum << "/" << nb_masks << "/" << nb_priority_pairs << "/" << output_type << std::endl;
+  //std::cout << "nb_zones/nb_wall_zones/nb_basenum/nb_masks/nb_priority_pairs/output_type : " << nb_zones << "/" << nb_wall_zones << "/" << nb_basenum << "/" << nb_masks << "/" << nb_priority_pairs << "/" << output_type << std::endl;
 
   if (nb_zones != nb_basenum)
   {
@@ -190,7 +194,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   
   std::vector<K_FLD::FloatArray> crds(nb_zones), mask_crds(nb_masks);
   std::vector<K_FLD::IntArray>   cnts(nb_zones), mask_cnts(nb_masks);
-  std::vector<std::vector<E_Int>>                mask_wall_ids(nb_masks);
+  std::vector<std::vector<E_Int>>                mask_wall_ids(nb_masks), zone_wall_ids(nb_zones);
 
   std::vector<std::pair<E_Int, E_Int>> priority;
   std::vector<E_Int> comp_id;
@@ -235,14 +239,35 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   bool DIM3 = (strcmp("NGON", msk_eltType) == 0);
   //std::cout << "DIM3 ? " << DIM3 << std::endl;
 
-  // get the wall ids
+  // get the zone wall ids
+  for (E_Int i=0; (i < nb_zones) && !err; ++i)
+  {
+    PyObject* py_zwall_ids = PyList_GetItem(zwall_ids, i);
+    //std::cout << "py_zwall_ids" << py_zwall_ids << std::endl;
+    if (py_zwall_ids != Py_None)
+    {
+      E_Int nfld, sz, *data;
+      E_Int ok =  K_NUMPY::getFromNumpyArray(py_zwall_ids, data, sz, nfld, 1/*shared*/, 0 /*inverse*/);
+      if (ok == 0) continue;
+
+      zone_wall_ids[i].insert(zone_wall_ids[i].end(), data, data+sz);
+
+      //std::cout << "zone wall retrieved : ok ? " << ok <<"/" << nfld << "/" << sz << std::endl;
+    }
+  }
+
+  // get the mask wall ids
   for (E_Int i=0; (i < nb_masks) && !err; ++i)
   {
     PyObject* py_wall_ids = PyList_GetItem(wall_ids, i);
     if (py_wall_ids != Py_None)
     {
       E_Int nfld, sz, *data;
-      /*E_Int ok =  */K_NUMPY::getFromNumpyArray(py_wall_ids, data, sz, nfld, 1/*shared*/, 0 /*inverse*/);
+
+#ifdef DEBUG_XCELLN
+      E_Int ok =  
+#endif
+      K_NUMPY::getFromNumpyArray(py_wall_ids, data, sz, nfld, 1/*shared*/, 0 /*inverse*/);
 
       mask_wall_ids[i].insert(mask_wall_ids[i].end(), data, data+sz);
 
@@ -284,20 +309,20 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   if (!DIM3)
   {
     if (output_type == 0)
-      pyMOVLP_XcellN<NUGA::masker<pg_smesh_t, edge_mesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+      pyMOVLP_XcellN<NUGA::masker<pg_smesh_t, edge_mesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
     else if (output_type == 1)
-      pyMOVLP_XcellN<NUGA::xcellnv<pg_smesh_t, edge_mesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+      pyMOVLP_XcellN<NUGA::xcellnv<pg_smesh_t, edge_mesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
     else if (output_type == 2)    
-      pyMOVLP_XcellN<NUGA::xcellno<pg_smesh_t, edge_mesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, z_varString, z_eltType, l);
+      pyMOVLP_XcellN<NUGA::xcellno<pg_smesh_t, edge_mesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, z_varString, z_eltType, l);
   }
   else
   {
     if (output_type == 0)
-      pyMOVLP_XcellN<NUGA::masker<ph_mesh_t, pg_smesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+      pyMOVLP_XcellN<NUGA::masker<ph_mesh_t, pg_smesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
     else if (output_type == 1)
-      pyMOVLP_XcellN<NUGA::xcellnv<ph_mesh_t, pg_smesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+      pyMOVLP_XcellN<NUGA::xcellnv<ph_mesh_t, pg_smesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
     else if (output_type == 2)    
-      pyMOVLP_XcellN<NUGA::xcellno<ph_mesh_t, pg_smesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, z_varString, z_eltType, l);
+      pyMOVLP_XcellN<NUGA::xcellno<ph_mesh_t, pg_smesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, z_varString, z_eltType, l);
   }
 
   return l;

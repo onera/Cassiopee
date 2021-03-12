@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef _DELAUNAY_TRIANGULATOR_H_
 #define _DELAUNAY_TRIANGULATOR_H_

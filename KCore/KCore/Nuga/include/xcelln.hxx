@@ -257,7 +257,7 @@ namespace NUGA
 
   ///
   template <typename classifyer_t> inline
-  E_Int MOVLP_xcelln_1zone(const K_FLD::FloatArray& z_crd, const K_FLD::IntArray& z_cnt,
+  E_Int MOVLP_xcelln_1zone(typename classifyer_t::zmesh_t& z_mesh,
     const IntVec& z_priorities, E_Int rank_wnp,
     const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
     std::vector< std::vector<E_Int>> &mask_wall_ids,
@@ -267,7 +267,6 @@ namespace NUGA
     using zmesh_t = typename classifyer_t::zmesh_t;
     using bmesh_t = typename classifyer_t::bmesh_t;
 
-    zmesh_t  z_mesh(z_crd, z_cnt);  // polygonal surface mesh
     E_Int err(0);
 
     classifyer_t classs(RTOL);
@@ -277,13 +276,14 @@ namespace NUGA
 #endif
 
     std::vector<bmesh_t*> mask_meshes;
-    classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, z_priorities, rank_wnp, mask_meshes);
+    bmesh_t WP, WNP;
+    classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, z_priorities, rank_wnp, mask_meshes, WP, WNP);
 
 #ifdef DEBUG_XCELLN
     std::cout << "MOVLP_xcelln_1zone : COMPUTE " << std::endl;
 #endif
 
-    err = classs.compute(z_mesh, mask_meshes, z_xcelln);
+    err = classs.compute(z_mesh, mask_meshes, WP, WNP, z_xcelln);
 
 #ifdef DEBUG_XCELLN
     std::cout << "MOVLP_xcelln_1zone : FINALIZE " << std::endl;
@@ -300,10 +300,11 @@ namespace NUGA
   ///
   template <typename classifyer_t> inline
   void MOVLP_xcelln_zones(const std::vector<K_FLD::FloatArray> &crds, const std::vector<K_FLD::IntArray>& cnts,
-    const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
-    const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
-    std::vector< std::vector<E_Int>> &mask_wall_ids,
-    std::vector<typename classifyer_t::outdata_t > & xcelln, E_Float RTOL)
+                          const std::vector< std::vector<E_Int>> &zone_wall_ids,
+                          const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
+                          const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
+                          std::vector< std::vector<E_Int>> &mask_wall_ids,
+                          std::vector<typename classifyer_t::outdata_t > & xcelln, E_Float RTOL)
   {
     //priority map
     prior_t sorted_comps_per_comp;
@@ -313,6 +314,8 @@ namespace NUGA
     E_Int nb_zones = crds.size();
     //std::cout << "total nb of zones : " << nb_zones << std::endl;
     //std::cout << "nb of masks : " << mask_crds.size() << std::endl;
+
+    assert(zone_wall_ids.size() == nb_zones);
 
     xcelln.resize(nb_zones); // xcelln can be clipped mesh
 
@@ -364,8 +367,16 @@ namespace NUGA
       //std::cout << std::endl;
       //std::cout << "rank WNP : " << z_rank_wnp << std::endl;
 #endif
-      
-      E_Int err = MOVLP_xcelln_1zone<classifyer_t>(crds[z], cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, xcelln[z], RTOL);
+
+      using zmesh_t = typename classifyer_t::zmesh_t;
+
+      zmesh_t zm(crds[z], cnts[z], 1/*ASSUME ORIENTED*/);
+
+      //std::cout << "nb of walls : " << zone_wall_ids[z].size() << std::endl;
+
+      zm.set_boundary_type(BCWALL, zone_wall_ids[z]);// only implemented for volumes due to double wall management
+            
+      E_Int err = MOVLP_xcelln_1zone<classifyer_t>(zm, z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, xcelln[z], RTOL);
       if (err) break;
 
       //std::cout << "processed in : " << c.elapsed() << " s." << std::endl;

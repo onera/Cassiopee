@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef BND_GEOM_HRAYCLIPPER2D_H
 #define BND_GEOM_HRAYCLIPPER2D_H

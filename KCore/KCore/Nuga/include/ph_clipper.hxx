@@ -7,7 +7,7 @@
 
 
 */
-//Authors : SÃ¢m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_INTERSECT_HXX
 #define NUGA_INTERSECT_HXX
@@ -341,6 +341,13 @@ namespace NUGA
       K_CONNECT::keep2<bool> pred(keepT3.get(), nb_t3);
       std::vector<E_Int> nids;
       K_CONNECT::IdTool::compress(cT3, pred, nids);
+
+      if (cT3.cols() == 0)
+      {
+        result.clear();
+        return 0;
+      }
+
       K_CONNECT::IdTool::compress(type, pred);
       K_CONNECT::IdTool::compress(normalsT3, pred);
 
@@ -374,7 +381,7 @@ namespace NUGA
         Vector_t<E_Int>& T3s = it->second;
         
         assert (T3s.size() > 1); //should have been burned. hypothesis : do not consider open surface bits for output
-        if (T3s.size() == 2) continue;
+        //if (T3s.size() == 2) continue;//fixme : neighbors must be updated at PREVIOUS and CURRENT non-manifold edges only
         
         reversed.clear();
         reversed.resize(T3s.size(), false);
@@ -532,6 +539,16 @@ namespace NUGA
       {
         result.clear();
         return 0;
+      }
+
+      //std::set<E_Int> all_types(ALL(type));
+      //if (all_types.size() == 1) // error : only colors of one operand at this stage means wrong conformizing because other colors have been burnt
+      {
+        //medith::write("cutT3", crd, cT3, "TRI");
+        //std::cout << "error clipping" << std::endl;
+        //std::cout << "min_d / max_d : " << ::sqrt(min_d) << "/" << ::sqrt(max_d) << std::endl;
+        //return 1;
+        //
       }
       
       // build the output ph
