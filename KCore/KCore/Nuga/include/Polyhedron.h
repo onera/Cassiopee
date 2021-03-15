@@ -19,6 +19,7 @@
 #include "Nuga/include/GeomAlgo.h"
 #include "Nuga/include/BARSplitter.h"
 #include "Nuga/include/Polygon.h"
+#include "Nuga/include/defs.h"
 
 #define dPATHO_PH_NONE 0
 #define dCENTROID_NOT_STAR 2
@@ -849,9 +850,7 @@ public:
     nb_reflex_edges = reflex_edges.size();
     return 0;
   }
-  
-  #define SIGN(a) ((a < -EPSILON) ? -1 : ((a > EPSILON) ? 1 : 0))  
-  
+    
   /// is the polyhedron star_shaped regarding the input point ?
   static bool is_star_shaping
   (const E_Float* point, const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient, E_Int& faultyFacet, const E_Float** normals = 0)

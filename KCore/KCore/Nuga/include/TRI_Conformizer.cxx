@@ -21,6 +21,7 @@
 #include "Nuga/include/GeomAlgo.h"
 #include "Nuga/include/SwapperT3.h"
 #include "Nuga/include/Triangulator.h"
+#include "Nuga/include/defs.h"
 
 #if (defined DEBUG_TRI_CONFORMIZER) /*|| (defined DEBUG_EXTRACT)*/
 #include "IO/io.h"
@@ -706,8 +707,6 @@ TRI_Conformizer<DIM>::__improve_triangulation_quality(const T3& tri, const std::
       break;
   }
 }
-
-#define SIGN(a) ((a < -EPSILON) ? -1 : ((a > EPSILON) ? 1 : 0))  
 
 ///
 template <E_Int DIM>

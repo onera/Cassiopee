@@ -726,8 +726,6 @@ namespace K_MESH
     return false; //not far regarding this rough test
   }
   
-#define SIGN(a) ((a < -ZERO_M) ? -1 : ((a > ZERO_M) ? 1 : 0))  
-  
   inline E_Int get_region (const E_Float* M, const E_Float* p, const E_Float* q, const E_Float* r)
   {
     /*

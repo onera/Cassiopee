@@ -19,6 +19,8 @@
 #define Vector_t     std::vector
 #define SQRT         std::sqrt
 
+#define SIGN(a) ((a < -ZERO_M) ? -1 : ((a > ZERO_M) ? 1 : 0))  
+
 // types
 #ifndef NUGALIB
 
