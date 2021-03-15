@@ -1131,6 +1131,8 @@ all the points of the geometry.
   
     Return the curvilinear abscissa of a curve a (scalar in range [0.,1.]).
     
+    Exists also as in place version (_getCurvilinearAbcissa) that modifies a and returns None.
+
     :param a: 1D mesh 
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones] 
     :return: the curvilinear abscissa named 's' as an array or as a flow solution at nodes.

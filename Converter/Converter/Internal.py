@@ -4087,9 +4087,6 @@ def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
 
 def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
     
-    # Corrige les types eventuellement
-    _adaptTypes(t)
-
     zones = getZones(t)
     dictOfZTypes = {} # dictionnaire des types de zone (0: struct, 1: non struct)
     for z in zones:

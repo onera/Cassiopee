@@ -241,17 +241,20 @@ def _getSharpestAngle(t):
     return C._TZGC(t, 'nodes', Geom.getSharpestAngle)
 
 def getCurvilinearAbscissa(t):
-    """Return the curvilinear abscissa for each point...
+    """Return the curvilinear abscissa for each point.
     Usage: getCurvilinearAbscissa(t)"""
     return C.TZGC(t, 'nodes', Geom.getCurvilinearAbscissa)
-    
+
+def _getCurvilinearAbscissa(t):
+    """Return the curvilinear abscissa for each point.
+    Usage: getCurvilinearAbscissa(t)"""
+    return C._TZGC(t, 'nodes', Geom.getCurvilinearAbscissa)
+
 def getDistribution(t):
     """Return the curvilinear abscissa for each point as coordinates
     Usage: getDistribution(t)"""
     return C.TZGC(t, 'nodes', Geom.getDistribution)    
 
-def _getCurvilinearAbscissa(t):
-    return C._TZGC(t, 'nodes', Geom.getCurvilinearAbscissa)
 
 def getTangent(t):
     """

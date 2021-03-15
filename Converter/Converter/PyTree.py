@@ -930,6 +930,7 @@ def _rmNodes(z, name):
 
 # Upgrade tree (applique apres lecture)
 def _upgradeTree(t, uncompress=True):
+  Internal._adaptTypes(t)
   Internal._correctPyTree(t, level=10) # force CGNS names
   Internal._correctPyTree(t, level=2) # force unique name
   Internal._correctPyTree(t, level=7) # create familyNames
@@ -4788,7 +4789,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
       Internal._rmNodesByName(zp, 'FlowSolution#Centers')
       Internal._rmNodesByName(zp, 'FlowSolution')
     elif datas != []:
-      if extrapFlow == False:
+      if not extrapFlow:
         Internal._rmNodesByName(zp, 'FlowSolution#Centers')
         Internal._rmNodesByName(zp, 'FlowSolution')
       f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
@@ -4916,7 +4917,7 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True, extrapFlow=True):
 
     names = bndType.split(':')
     if len(names) == 2: # Family
-      return extractBCOfName(t, bndType, extrapFlow=extrapFlow)
+      return extractBCOfName(t, bndType, reorder=reorder, extrapFlow=extrapFlow)
 
     zones = Internal.getZones(t)
     res = []

@@ -45,7 +45,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
   
     // Cree la OCCSurface
     const TopoDS_Face& F = TopoDS::Face(surfaces(faceNo));
-    const OCCSurface& occ_surf = K_OCC::OCCSurface(F, edges, faceNo);
+    const OCCSurface& occ_surf = K_OCC::OCCSurface(F, edges, faceNo-1);
     
     // Get from array
     FldArrayF* fi; E_Int ni, nj, nk;
@@ -60,10 +60,20 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     // Cree le mailleur
     DELAUNAY::SurfaceMesher<OCCSurface> mesher;
 
-    K_FLD::FloatArray UVcontour(*fi);
-    K_FLD::FloatArray pos3D = UVcontour; // pos3D: les coords reelles?
-    K_FLD::IntArray connectB(*ci); // connectivite
+    // Recuperation des donnees
+    E_Int n = fi->getSize();
+    K_FLD::FloatArray pos3D(3, n); // pos3D: les coords reelles?
+    for (E_Int i = 0; i < n; i++) pos3D(0,i) = (*fi)(i,1);
+    for (E_Int i = 0; i < n; i++) pos3D(1,i) = (*fi)(i,2);
+    for (E_Int i = 0; i < n; i++) pos3D(2,i) = (*fi)(i,3);
     
+    K_FLD::FloatArray UVcontour(2, n);
+    for (E_Int i = 0; i < n; i++) UVcontour(0,i) = (*fi)(i,4);
+    for (E_Int i = 0; i < n; i++) UVcontour(1,i) = (*fi)(i,5);
+    
+    K_FLD::IntArray connectB(*ci); // connectivite
+    printf("connect %d %d\n", connectB.rows(), connectB.cols());
+
     DELAUNAY::SurfaceMeshData<OCCSurface> data(UVcontour, pos3D, connectB, occ_surf);
 
     DELAUNAY::SurfaceMesherMode mode;
@@ -75,8 +85,9 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     mode.symmetrize = false;
     mode.hmax = hmax; // h moyen
     mode.growth_ratio = 0.;
+    //mode.ignore_coincident_nodes = true; // pour bypasser les pb d'insertion 
     mesher.mode = mode;
-    
+
     E_Int err = 0;
     err = mesher.run(data);
     if (err || (data.connectM.cols() == 0))
@@ -89,6 +100,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     
     // recupere la sortie
     //FldArrayI cn(data.connectM);
+    //FldArrayF coords(data.pos3D);
     
     RELEASESHAREDB(ret, arrayUV, fi, ci);
     Py_INCREF(Py_None);

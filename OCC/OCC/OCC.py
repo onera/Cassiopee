@@ -5,6 +5,13 @@ __author__ = "Sam Landier"
 
 from . import occ
 
+import Converter
+import KCore
+
+__all__ = ['convertCAD2Arrays', 'switch2UV', '_scaleUV', '_unscaleUV',
+'allTFI', 'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 
+'meshTRIHO', 'meshQUADHO', 'meshQUADHO__']
+
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
 # algo=2: algorithme T3mesher (h, chordal_error, growth_ratio, merge_tol)
@@ -25,9 +32,8 @@ def convertCAD2Arrays(fileName, format='fmt_iges',
     	return  occ.convertCAD2Arrays2(fileName, format, h, chordal_err, growth_ratio, merge_tol)
 
 # IN: edges: liste d'arrays STRUCT possedant x,y,z,u,v
-# OUT: liste d'arrays STRUCT ayant uv dans x,y
+# OUT: liste d'arrays STRUCT ayant uv dans x,y et z=0
 def switch2UV(edges):
-    import Converter
     out = []
     for e in edges:
         ni = e[2]; nj = e[3]; nk = e[4]
@@ -39,28 +45,34 @@ def switch2UV(edges):
     return out
 
 # IN: edges: liste d'arrays
-def _scaleUV(edges):
-    import Converter
-    umax = Converter.getMaxValue(edges, 'x')
-    umin = Converter.getMinValue(edges, 'x')
-    vmax = Converter.getMaxValue(edges, 'y')
-    vmin = Converter.getMinValue(edges, 'y')
+# scale entre 0 et 1 les variables vu et vv
+def _scaleUV(edges, vu='x', vv='y'):
+    """Scale vu and vv in [0,1]."""
+    umax = Converter.getMaxValue(edges, vu)
+    umin = Converter.getMinValue(edges, vu)
+    vmax = Converter.getMaxValue(edges, vv)
+    vmin = Converter.getMinValue(edges, vv)
     du = max(umax-umin, 1.e-10); du = 1./du
     dv = max(vmax-vmin, 1.e-10); dv = 1./dv
     for e in edges:
-        e[1][0,:] = (e[1][0,:]-umin)*du
-        e[1][1,:] = (e[1][1,:]-vmin)*dv
+        pu = KCore.isNamePresent(e, vu)
+        pv = KCore.isNamePresent(e, vv)
+        e[1][pu,:] = (e[1][pu,:]-umin)*du
+        e[1][pv,:] = (e[1][pv,:]-vmin)*dv
     return (umin,umax,vmin,vmax)
 
 # IN: edges: liste d'arrays
-def _unscaleUV(edges, T):
+def _unscaleUV(edges, T, vu='x', vv='y'):
+    """Unscale vu and vv with given minmax."""
     (umin,umax,vmin,vmax) = T
     du = umax-umin
     dv = vmax-vmin
     for e in edges:
-        e[1][0,:] = e[1][0,:]*du+umin
-        e[1][1,:] = e[1][1,:]*dv+vmin
-    return None    
+        pu = KCore.isNamePresent(e, vu)
+        pv = KCore.isNamePresent(e, vv)
+        e[1][pu,:] = e[1][pu,:]*du+umin
+        e[1][pv,:] = e[1][pv,:]*dv+vmin
+    return None
 
 # IN: edges: list of arrays defining a loop
 # OUT: list of surface meshes
@@ -90,7 +102,6 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     """Return a STRUCT discretisation of CAD."""
     import Generator, Converter
     nbFaces = occ.getNbFaces(hook)
-    print('face', faceSubset)
     if faceSubset is None: flist = list(range(nbFaces))
     else: flist = faceSubset
     out = []
