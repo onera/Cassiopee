@@ -215,8 +215,8 @@
   deltai = 0.5/deltai;
 
   // Colormap
-  void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _pref.colorMap->f;
+  //void (*getrgb)(Data* data, double, float*, float*, float*);
+  //getrgb = _pref.colorMap->f;
 
   int ne = zonep->ne;
   int ne2 = 2*ne; int ne3 = 3*ne;

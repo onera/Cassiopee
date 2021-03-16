@@ -207,8 +207,8 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     /* Init */
 
     // Window size base sur l'export
-    if (d->ptrState->exportWidth == -1) d->ptrState->exportWidth = 1280;
-    if (d->ptrState->exportHeight == -1) d->ptrState->exportHeight = 768;
+    if (d->ptrState->exportWidth == -1) d->ptrState->exportWidth = 1920;
+    if (d->ptrState->exportHeight == -1) d->ptrState->exportHeight = 1080;
     d->_view.w = d->ptrState->exportWidth; d->_view.h = d->ptrState->exportHeight;
     //printf("%d %d\n", d->ptrState->exportWidth, d->ptrState->exportHeight);
     

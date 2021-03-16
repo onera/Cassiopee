@@ -203,7 +203,7 @@ def createApp(win):
     # -7- Selection style
     V = TK.StringVar(win); V.set('Blue'); VARS.append(V)
     # -8- Export resolution
-    V = TK.StringVar(win); V.set('1120x820'); VARS.append(V)
+    V = TK.StringVar(win); V.set('1920x1080'); VARS.append(V)
     # -9- GUI Theme
     V = TK.StringVar(win); V.set('default'); VARS.append(V)
 

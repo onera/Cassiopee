@@ -24,7 +24,6 @@
 #define ABS(x) (x>0 ? x : -x)
 #define MIN(x,y) (x>y ? y : x)
 #define MAX(x,y) (x>y ? x : y)
-#define SIGN(x) (x<0 ? -1. : (x==0 ? 0. : 1.))
 
 // - Pour les NGONS -
 // Nbre de faces

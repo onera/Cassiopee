@@ -634,7 +634,7 @@ def createDoc():
 
     # Dump
     try: exportResolution = CTK.PREFS['exportResolution']
-    except: exportResolution = '1280x720'
+    except: exportResolution = '1920x1080'
     CPlot.setState(exportResolution=exportResolution)
     CPlot.setState(export='.tmp001204.png')
 

@@ -68,8 +68,8 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
         // Sans doute également à modifier pour le high order ?
         triggerShader( *zonep, zonep->material, s, color1 );
 
-        int ff;
-        double offb = 0.;
+        int ff=0;
+        double offb=0.;
 #undef PLOT
         double* f1 = zonep->texu;
         double* f2 = zonep->texv;

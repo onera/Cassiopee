@@ -61,7 +61,7 @@ void DataDL::renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet)
 #ifdef __SHADERS__
       triggerShader(*zonep, zonep->material, s, color1);
 #endif
-      int ff; double offb = 0.;
+      int ff=0; double offb=0.;
       int ret1, ret2, ret3, ret4, i, n1, n2, n3, n4;
       #undef PLOT
       double* f1 = zonep->texu;

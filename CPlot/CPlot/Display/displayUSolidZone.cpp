@@ -66,8 +66,8 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
         triggerShader(*zonep, zonep->material, s, color1);
 #endif
 
-        int ff;
-        double offb = 0.;
+        int ff=0;
+        double offb=0.;
 #undef PLOT
         double* f1 = zonep->texu;
         double* f2 = zonep->texv;
