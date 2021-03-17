@@ -930,7 +930,7 @@ def _rmNodes(z, name):
 
 # Upgrade tree (applique apres lecture)
 def _upgradeTree(t, uncompress=True):
-  Internal._adaptTypes(t)
+  #Internal._adaptTypes(t)
   Internal._correctPyTree(t, level=10) # force CGNS names
   Internal._correctPyTree(t, level=2) # force unique name
   Internal._correctPyTree(t, level=7) # create familyNames

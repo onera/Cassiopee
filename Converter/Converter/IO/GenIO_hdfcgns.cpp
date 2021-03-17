@@ -623,10 +623,10 @@ PyObject* K_IO::GenIOHdf::getArrayI82I4(hid_t node, hid_t tid,
 }
 
 //=============================================================================
-PyObject* K_IO::GenIOHdf::getArrayI8(hid_t node, hid_t tid,
-                                     int dim, int* dims,
-                                     hid_t mid,  /* mem_space_id */
-                                     hid_t sid)
+PyObject* K_IO::GenIOHdf::getArrayI8Raw(hid_t node, hid_t tid,
+                                       int dim, int* dims,
+                                       hid_t mid,  /* mem_space_id */
+                                       hid_t sid)
 {
   IMPORTNUMPY;
   PyArrayObject* r = NULL;
@@ -726,9 +726,9 @@ PyObject* K_IO::GenIOHdf::getArrayR42R8(hid_t node, hid_t tid,
   return (PyObject*)r;
 }
 //=============================================================================
-PyObject* K_IO::GenIOHdf::getArrayR4(hid_t node, hid_t tid, int dim, int* dims,
-                                     hid_t mid,  /* mem_space_id */
-                                     hid_t sid)
+PyObject* K_IO::GenIOHdf::getArrayR4Raw(hid_t node, hid_t tid, int dim, int* dims,
+                                        hid_t mid,  /* mem_space_id */
+                                        hid_t sid)
 {
   IMPORTNUMPY;
   PyArrayObject* r = NULL;

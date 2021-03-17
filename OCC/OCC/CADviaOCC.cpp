@@ -690,6 +690,21 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
     
       OCCSurface occ_surf(F);
+      printf("UVContour\n");
+      printf("rows=%d cols=%d\n", UVcontour.rows(), UVcontour.cols());
+      for (E_Int j = 0; j < UVcontour.cols(); j++)
+      printf("%d = %f %f\n", j, UVcontour(0,j), UVcontour(1,j));
+
+      printf("pos3D\n");
+      printf("rows=%d cols=%d\n", pos3D.rows(), pos3D.cols());
+      for (E_Int j = 0; j < pos3D.cols(); j++)
+      printf("%d = %f %f %f\n", j, pos3D(0,j), pos3D(1,j), pos3D(2,j));
+
+      printf("connectB\n");
+      printf("rows=%d cols=%d\n", connectB.rows(), connectB.cols());
+      for (E_Int j = 0; j < connectB.cols(); j++)
+      printf("%d = %d %d\n", j, connectB(0,j), connectB(1,j));
+
       DELAUNAY::SurfaceMeshData<OCCSurface> data(UVcontour, pos3D, connectB, occ_surf);
     
 #ifdef DEBUG_CAD_READER
@@ -798,7 +813,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       }
     }
 
-    //Final cleaning and compacting
+    // Final cleaning and compacting
     {
       E_Int max_solid_id=0;
       for (E_Int i=1; i <= nb_faces; ++i)
@@ -932,6 +947,7 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
     E_Int idx = (E_Int)_surfs.FindIndex(top_expl.Current());   
     const TopoDS_Face& F=TopoDS::Face(_surfs(idx));
 
+    printf("Creating orphan OCCSurface %d nb_solids=%d\n", idx, nb_solids);
     vFG[idx] = new OCCSurface(F, _edges, nb_solids);
 
 #ifdef DEBUG_CAD_READER

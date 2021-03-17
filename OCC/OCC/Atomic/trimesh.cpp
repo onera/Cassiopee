@@ -45,7 +45,8 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
   
     // Cree la OCCSurface
     const TopoDS_Face& F = TopoDS::Face(surfaces(faceNo));
-    const OCCSurface& occ_surf = K_OCC::OCCSurface(F, edges, faceNo-1);
+    const OCCSurface& occ_surf = K_OCC::OCCSurface(F, edges, 0);
+    
     
     // Get from array
     FldArrayF* fi; E_Int ni, nj, nk;
@@ -62,7 +63,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
 
     // Recuperation des donnees
     E_Int n = fi->getSize();
-    K_FLD::FloatArray pos3D(3, n); // pos3D: les coords reelles?
+    K_FLD::FloatArray pos3D(3, n); // pos3D: les coords reelles
     for (E_Int i = 0; i < n; i++) pos3D(0,i) = (*fi)(i,1);
     for (E_Int i = 0; i < n; i++) pos3D(1,i) = (*fi)(i,2);
     for (E_Int i = 0; i < n; i++) pos3D(2,i) = (*fi)(i,3);
@@ -72,7 +73,26 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < n; i++) UVcontour(1,i) = (*fi)(i,5);
     
     K_FLD::IntArray connectB(*ci); // connectivite
+    E_Int ne = ci->getSize();
+    for (E_Int i = 0; i < ne; i++) connectB(0,i) -= 1;
+    for (E_Int i = 0; i < ne; i++) connectB(1,i) -= 1;
+
     printf("connect %d %d\n", connectB.rows(), connectB.cols());
+
+    printf("UVContour\n");
+    printf("rows=%d cols=%d\n", UVcontour.rows(), UVcontour.cols());
+    for (E_Int j = 0; j < UVcontour.cols(); j++)
+    printf("%d = %f %f\n", j, UVcontour(0,j), UVcontour(1,j));
+
+    printf("pos3D\n");
+    printf("rows=%d cols=%d\n", pos3D.rows(), pos3D.cols());
+    for (E_Int j = 0; j < pos3D.cols(); j++)
+    printf("%d = %f %f %f\n", j, pos3D(0,j), pos3D(1,j), pos3D(2,j));
+
+    printf("connectB\n");
+    printf("rows=%d cols=%d\n", connectB.rows(), connectB.cols());
+    for (E_Int j = 0; j < connectB.cols(); j++)
+    printf("%d = %d %d\n", j, connectB(0,j), connectB(1,j));
 
     DELAUNAY::SurfaceMeshData<OCCSurface> data(UVcontour, pos3D, connectB, occ_surf);
 
@@ -85,7 +105,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     mode.symmetrize = false;
     mode.hmax = hmax; // h moyen
     mode.growth_ratio = 0.;
-    //mode.ignore_coincident_nodes = true; // pour bypasser les pb d'insertion 
+    //mode.ignore_coincident_nodes = true; // pour bypasser les pbs d'insertion 
     mesher.mode = mode;
 
     E_Int err = 0;
@@ -94,15 +114,18 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     {
         // connectM doit etre la sortie
         RELEASESHAREDB(ret, arrayUV, fi, ci);
-        PyErr_SetString(PyExc_TypeError, "trimesh: meshes has failed.");
+        PyErr_SetString(PyExc_TypeError, "trimesh: mesher has failed.");
         return NULL;
     }
     
-    // recupere la sortie
-    //FldArrayI cn(data.connectM);
-    //FldArrayF coords(data.pos3D);
-    
+    // recupere la sortie    
+    FldArrayF* coords = new FldArrayF;
+    data.pos3D.convert(*coords);
+    FldArrayI* cn = new FldArrayI;
+    data.connectM.convert(*cn, 1);
+    PyObject* tpl = K_ARRAY::buildArray(*coords, "x,y,z", *cn, -1, "TRI");
+    delete coords; delete cn;
+
     RELEASESHAREDB(ret, arrayUV, fi, ci);
-    Py_INCREF(Py_None);
-    return Py_None;
+    return tpl;
 }
