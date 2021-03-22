@@ -1324,16 +1324,26 @@ def reorderIndices__(w0, dim, oi, oj, ok):
         if i1 == i2:
             if i1 == 1: i1o = dim[1]; i2o = dim[1]
             else: i1o = 1; i2o = 1
+        else:
+            i1o = dim[1]-i2+1
+            i2o = dim[1]-i1+1
+
     elif oi == -2:
         j1o = i2; j2o = i1
         if i1 == i2:
             if i1 == 1: j1o = dim[1]; j2o = dim[1]
             else: j1o = 1; j2o = 1
+        else:
+            j1o = dim[1]-i2+1
+            j2o = dim[1]-i1+1
     elif oi == -3:
         k1o = i2; k2o = i1
         if i1 == i2:
             if i1 == 1: k1o = dim[1]; k2o = dim[1]
             else: k1o = 1; k2o = 1
+        else:
+            k1o = dim[1]-i2+1
+            k2o = dim[1]-i1+1
     # oj
     if   oj == 1: i1o = j1; i2o = j2
     elif oj == 3: k1o = j1; k2o = j2
@@ -1342,15 +1352,24 @@ def reorderIndices__(w0, dim, oi, oj, ok):
         if j1 == j2:
             if j1 == 1: i1o = dim[2]; i2o = dim[2]
             else: i1o = 1; i2o = 1
+        else:
+            i1o = dim[2]-j2+1
+            i2o = dim[2]-j1+1
     elif oj == -2:
         if j1 == j2:
             if j1 == 1: j1o = dim[2]; j2o = dim[2]
             else: j1o = 1; j2o = 1
+        else:
+            j1o = dim[2]-j2+1
+            j2o = dim[2]-j1+1
     elif oj == -3:
         k1o = j2; k2o = j1
         if j1 == j2:
             if j1 == 1: k1o = dim[2]; k2o = dim[2]
             else: k1o = 1; k2o = 1
+        else:
+            k1o = dim[2]-j2+1
+            k2o = dim[2]-j1+1
     # ok
     if   ok== 1: i1o = k1; i2o = k2
     elif ok== 2: j1o = k1; j2o = k2
@@ -1359,15 +1378,25 @@ def reorderIndices__(w0, dim, oi, oj, ok):
         if k1 == k2:
             if k1 == 1: i1o = dim[3]; i2o = dim[3]
             else: i1o = 1; i2o = 1
+        else:
+            i1o = dim[3]-k2+1
+            i2o = dim[3]-k1+1
     elif ok==-2:
         j1o = k2; j2o = k1
         if k1 == k2:
             if k1 == 1: j1o = dim[3]; j2o = dim[3]
             else: j1o = 1; j2o = 1
+        else:
+            j1o = dim[3]-k2+1
+            j2o = dim[3]-k1+1
     elif ok==-3:
         if k1 == k2:
             if k1 == 1: k1o = dim[3]; k2o = dim[3]
             else: k1o = 1; k2o = 1
+        else:
+            k1o = dim[3]-k2+1
+            k2o = dim[3]-k1+1
+
     return [min(i1o,i2o),max(i1o,i2o),min(j1o,j2o),max(j1o,j2o),min(k1o,k2o),max(k1o,k2o)]
 
 #=============================================================================
@@ -1787,7 +1816,7 @@ def _makeDirect(t):
             if ln1 > 0 and ln2 > 0 and ln3 > 0:
                 c = Vector.cross(l1,l2)
                 c = Vector.dot(c,l3)
-                if c < 0: _reorder(z, (1,2,-3))
+                if c < 0: _reorder(z, (1,2,-3))#, t)
     return None
 
 def addkplane(t, N=1):
@@ -3228,3 +3257,6 @@ def _splitNGon(t, N, N2=-1, shift=1000):
         a2 = C.getAllFields(z, 'centers')[0] # must contain "part" field
         Transform.transform.splitNGon2(a1, a2, N, N2, shift)
         C.setFields([a2], z, 'centers', writeDim=False)
+    return None
+
+
