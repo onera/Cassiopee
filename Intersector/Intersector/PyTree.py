@@ -2352,6 +2352,37 @@ def getNthNeighborhood(t, N, ids):
    return idsNeigh
 
 #==============================================================================
+# estimateAdapReq     : estimates an cell-specified adaptation requirement from 
+#                       on a istotropic metric field based on donnor connectivity
+# IN : t :               : NGON mesh.
+# IN : donnor :          : donnor mesh (Volume; Surface or BAR)
+# IN : metric_policy :   : 0 : ISO_MIN (based on min edge length at nodes), ISO_MEAN : 1 (average edge length), ISO_MAX : 2 (based on max edge length)
+# IN : rtol :            : relative tolerance for collisions detection
+# IN : minv :            : lower threshold for nb of subdivisions
+# IN : maxv :            : upper threshold for nb of subdivisions
+# OUT: Returns a list of integers sized as the nb of cells in t giving the nb of subdivisions
+#      per cell in the range [minv, maxv].
+#==============================================================================
+def estimateAdapReq(t, donnor, metric_policy=2, rtol= 1.e-12, minv=0, maxv=5):
+   """ estimates an cell-specified adaptation requirement from on a istotropic metric field based on donnor connectivity.
+    Usage : estimateAdapReq(t, donnor [, metric_policy, rtol, minv, maxv])"""
+   zones2 = Internal.getZones(donnor)
+   m2 = concatenate(zones2); m2 = G.close(m2)
+   m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
+
+   zones = Internal.getZones(t)
+   cell_vals = []
+   i=-1
+   for z in zones:
+     i+=1
+     m = C.getFields(Internal.__GridCoordinates__, z)[0]
+     if m == []: continue
+
+     cell_vals.append(XOR.estimateAdapReq(m, m2, metric_policy, rtol, minv, maxv))
+
+   return cell_vals
+
+#==============================================================================
 # getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
 # IN : t1:              : NGON mesh (surface or volume).
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).

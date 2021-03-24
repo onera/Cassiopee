@@ -36,6 +36,7 @@ E_Int chrono::verbose=1;
 #include "Nuga/include/collider.hxx"
 #include "Nuga/include/mesh_t.hxx"
 #include "Nuga/include/displacement.hxx"
+#include "Nuga/include/estimator.hxx"
 
 //#include <iostream>
 #include <memory>
@@ -1183,8 +1184,8 @@ PyObject* K_INTERSECTOR::removeBaffles(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  E_Int nb_baffles = ngi.remove_baffles();
-  std::cout << "number of baffles removed : " << nb_baffles << std::endl;
+  E_Int nb_cells_w_baffles = ngi.remove_baffles();
+  if (nb_cells_w_baffles) std::cout << "number of cells with baffles found : " << nb_cells_w_baffles << std::endl;
 
   K_FLD::IntArray cnto;
   ngi.export_to_array(cnto);
@@ -2830,6 +2831,103 @@ PyObject* K_INTERSECTOR::getCollidingCells(PyObject* self, PyObject* args)
   Py_DECREF(tpl);
 
   return l;
+
+}
+
+//=============================================================================
+/* Computes cell sensor data from the metric in a mesh */
+//=============================================================================
+PyObject* K_INTERSECTOR::estimateAdapReq(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *arr2;
+  E_Float RTOL(1.e-12);
+  E_Int minv{0}, maxv{5}, metric_policy{2}; // 0:MIN ; 1:MEAN ; 2:MAX
+
+  if (!PYPARSETUPLE(args, "OOldll", "OOidii", "OOlfll", "OOifii", &arr1, &arr2, &metric_policy, &RTOL, &minv, &maxv)) return NULL;
+
+  K_FLD::FloatArray *f1(0), *f2(0);
+  K_FLD::IntArray *cn1(0), *cn2(0);
+  char *varString1, *varString2, *eltType1, *eltType2;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f1, cn1, varString1, eltType1);
+  if (err) return NULL;
+
+  // Check array # 2
+  err = check_is_NGON(arr2, f2, cn2, varString2, eltType2);
+  if (err) return NULL;
+
+  std::cout << "metric_policy : " << metric_policy << std::endl;
+  NUGA::eMetricType M = (NUGA::eMetricType)metric_policy;
+ //std::cout << "M : " << M << std::endl;
+
+  std::unique_ptr<K_FLD::FloatArray> pf1(f1), pf2(f2);   //for memory cleaning
+  std::unique_ptr<K_FLD::IntArray> pcn1(cn1), pcn2(cn2); //for memory cleaning
+
+  K_FLD::FloatArray & crd1 = *f1;
+  K_FLD::IntArray & cnt1 = *cn1;
+  K_FLD::FloatArray & crd2 = *f2;
+  K_FLD::IntArray & cnt2 = *cn2;
+
+  ngon_type::eGEODIM dim1 = ngon_type::get_ngon_geodim(cnt1);
+  ngon_type::eGEODIM dim2 = ngon_type::get_ngon_geodim(cnt2);
+ 
+  if (dim1 == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt1);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnttmp;
+    ng.export_surfacic_view(cnttmp);
+    //std::cout << "exported" << std::endl;
+    dim1 = ngon_type::eGEODIM::SURFACIC;
+    cnt1=cnttmp;
+  }
+
+  std::vector<E_Int> data;
+  
+  if (dim2 == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt2);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnttmp;
+    ng.export_surfacic_view(cnttmp);
+    //std::cout << "exported" << std::endl;
+    dim2 = ngon_type::eGEODIM::SURFACIC;
+    cnt2=cnttmp;
+  }
+
+  if (dim1 == ngon_type::eGEODIM::SURFACIC && dim2 == ngon_type::eGEODIM::LINEIC) // S vs BAR
+  {
+    pg_smesh_t m1(crd1, cnt1);
+    edge_mesh_t m2(crd2, cnt2);
+    NUGA::estimate_adap_req(m1, m2, M, RTOL, data, minv, maxv);
+  }
+  else if (dim1 == ngon_type::eGEODIM::SURFACIC && dim2 == ngon_type::eGEODIM::SURFACIC) // S vs S
+  {
+    pg_smesh_t m1(crd1, cnt1);
+    edge_mesh_t m2(crd2, cnt2);
+    NUGA::estimate_adap_req(m1, m2, M, RTOL, data, minv, maxv);
+  }
+  else if (dim1 == ngon_type::eGEODIM::VOLUMIC && dim2 == ngon_type::eGEODIM::SURFACIC) // V vs S
+  {
+    ph_mesh_t m1(crd1, cnt1);
+    pg_smesh_t m2(crd2, cnt2);
+    NUGA::estimate_adap_req(m1, m2, M, RTOL, data, minv, maxv);
+  }
+  else if (dim1 == ngon_type::eGEODIM::VOLUMIC && dim2 == ngon_type::eGEODIM::VOLUMIC) // V vs V (take only PGs into account => pg_smesh_t)
+  {
+    ph_mesh_t m1(crd1, cnt1);
+    pg_smesh_t m2(crd2, cnt2);
+    NUGA::estimate_adap_req(m1, m2, M, RTOL, data, minv, maxv);
+  }
+  else
+  {
+    std::cout << "estimateAdapReq : INPUT ERROR : input mesh dimensiosn combination is not handled yet." << std::endl;
+    return nullptr;
+  }
+
+    
+  PyObject* tpl = K_NUMPY::buildNumpyArray(&data[0], data.size(), 1, 0);
+  return tpl;
 
 }
 

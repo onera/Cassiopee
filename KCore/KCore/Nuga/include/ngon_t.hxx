@@ -2711,6 +2711,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     E_Int nb_phs(PHs.size());
     //std::cout << "baffle 4" << std::endl;
     ngon_unit new_phs;
+    E_Int nb_cells_w_baffles{0};
 
     for (E_Int i=0; i < nb_phs; ++i)
     {
@@ -2720,18 +2721,25 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       if (max_stride < nb_pgs) std::cout << "max stride error for PH : " << i << " . nb_pgs/max_stride : " << nb_pgs << "/" << max_stride << std::endl;
       //std::cout << i << std::endl;
       bool has_baff = K_MESH::Polyhedron<UNKNOWN>::has_baffles(PGs, first_pg, nb_pgs, w_map, &buffer_flag_pgs[0]);
+
+      //std::cout << "has baf : " << has_baff << std::endl;
       
       if (!has_baff)
         new_phs.add(nb_pgs, first_pg);
       else
       {
+        ++nb_cells_w_baffles;
         E_Int new_nb_pgs=0;
         for (E_Int j = 0; j < nb_pgs; ++j)
         {
           if (buffer_flag_pgs[j] == IDX_NONE) continue;
           molecule[new_nb_pgs++] = *(first_pg + j);
         }
-        if (new_nb_pgs) new_phs.add(new_nb_pgs, &molecule[0]);
+        if (new_nb_pgs) 
+        {
+          new_phs.add(new_nb_pgs, &molecule[0]);
+          //std::cout << "old/new nb pgs : " << nb_pgs << "/" << new_nb_pgs << std::endl;
+        }
       }
     }
     
@@ -2739,10 +2747,13 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     
     PHs=new_phs;
     PHs.updateFacets();
+
+    Vector_t<E_Int> pgnids, phnids;
+    remove_unreferenced_pgs(pgnids, phnids);
     
     //std::cout << "baffle 6" << std::endl;
     
-    return nb_phs - PHs.size();
+    return nb_cells_w_baffles;
   }
   
   /// Warning : The coordinates are not cleaned, only the connectivity.

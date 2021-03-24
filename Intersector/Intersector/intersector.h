@@ -73,6 +73,8 @@ namespace K_INTERSECTOR
 
   PyObject* getNthNeighborhood(PyObject* self, PyObject* args);
 
+  PyObject* estimateAdapReq(PyObject* self, PyObject* args);
+
   PyObject* adaptCells(PyObject* self, PyObject* args);
   PyObject* adaptBox(PyObject* self, PyObject* args);
   PyObject* createHMesh(PyObject* self, PyObject* args);

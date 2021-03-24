@@ -607,6 +607,23 @@ def getNthNeighborhood(a, N, ids):
    return intersector.getNthNeighborhood(a, N, ids)
 
 #==============================================================================
+# estimateAdapReq     : estimates an cell-specified adaptation requirement from 
+#                       on a istotropic metric field based on donnor connectivity
+# IN : t :               : NGON mesh.
+# IN : donnor :          : donnor mesh (Volume; Surface or BAR)
+# IN : metric_policy :   : 0 : ISO_MIN (based on min edge length at nodes), ISO_MEAN : 1 (average edge length), ISO_MAX : 2 (based on max edge length)
+# IN : rtol :            : relative tolerance for collisions detection
+# IN : minv :            : lower threshold for nb of subdivisions
+# IN : maxv :            : upper threshold for nb of subdivisions
+# OUT: Returns a list of integers sized as the nb of cells in t giving the nb of subdivisions
+#      per cell in the range [minv, maxv].
+#==============================================================================
+def estimateAdapReq(t, donnor, metric_policy=2, rtol= 1.e-12, minv=0, maxv=5):
+    """ estimates an cell-specified adaptation requirement based on a istotropic metric field based on donnor connectivity.
+    Usage : estimateAdapReq(t, donnor [, metric_policy, rtol, minv, maxv])"""
+    return intersector.estimateAdapReq(t, donnor, metric_policy, rtol, minv, maxv)
+
+#==============================================================================
 # getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
 # IN : a1:              : NGON mesh (surface or volume).
 # IN : aniso_ratio:            : xxx
