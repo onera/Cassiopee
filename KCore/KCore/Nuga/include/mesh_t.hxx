@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_t.hxx"
@@ -886,7 +886,7 @@ struct mesh_t
       K_SEARCH::KdTree<> tree(acrd);
 
       double d2;
-      for (E_Int i = 0; i < nodal_metric2.size(); ++i)
+      for (size_t i = 0; i < nodal_metric2.size(); ++i)
       {
         double r2 = (1. - EPSILON) * nodal_metric2[i]; //reduce it to discard nodes connected to i.
         int N = tree.getClosest(i, r2, d2);

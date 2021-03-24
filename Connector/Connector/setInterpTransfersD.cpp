@@ -120,7 +120,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
 
     vector< PyArrayObject* > hook;
     E_Int imdjmd, imd, jmd, kmd, cnNfldD, nvars, ndimdxD, meshtype;
-    E_Float * iptroD;
+    E_Float * iptroD=NULL;
     E_Int poscd = -1;
     E_Int posvd, posvarcd=-1;
 

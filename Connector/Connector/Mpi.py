@@ -25,8 +25,8 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
     tl = Cmpi.addXZones(t, graph)
     tl = Cmpi.convert2PartialTree(tl)
     # print info
-    zones = Internal.getZones(tl)
-    #print 'Rank %d has %d zones.'%(Cmpi.rank, len(zones))
+    # zones = Internal.getZones(tl)
+    # print('Rank %d has %d zones.'%(Cmpi.rank, len(zones)))
     tl = X.optimizeOverlap(tl, double_wall, priorities, intersectionsDict)
     tl = Cmpi.rmXZones(tl)
     return tl
@@ -284,10 +284,10 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 
     # Remise des champs interpoles dans l'arbre receveur
     for i in rcvDatas:
-        #print Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i])
+        #print(Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i]))
         for n in rcvDatas[i]:
             rcvName = n[0]
-            #print 'reception', Cmpi.rank, rcvName
+            #print('reception', Cmpi.rank, rcvName)
             field = n[1]
             if field != []:
                 listIndices = n[2]
@@ -455,8 +455,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                         datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                     else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
     
-    # print 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' , datas.keys()
-    # print ' a partir du graphe ', graph
+    # print('Proc  : ', Cmpi.rank, ' envoie les donnees : ' , datas.keys())
+    # print(' a partir du graphe ', graph)
     # 1er envoi : envoi des numpys des donnees a interpoler suivant le graphe
     interpDatas = Cmpi.sendRecv(datas, graph)
     

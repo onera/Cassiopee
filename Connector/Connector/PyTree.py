@@ -156,7 +156,6 @@ def _connectMatchHybrid__(a, tol, dim, glob):
             indirZones.append(noz)
             noz += 1
             nzonesU += 1
-    nzones = len(zones)
     if len(zones) == 0: return glob
     if nzonesS == 0 or nzonesU == 0: return glob
 

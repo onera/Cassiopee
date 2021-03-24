@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __NGON_BOOLEANOPERATOR_H__
 #define	__NGON_BOOLEANOPERATOR_H__
@@ -2270,7 +2270,7 @@ NGON_BOOLEAN_CLASS::__conformize
   TRI_Conformizer<3> conformizer(true/* keep track of nodes history*/);
   conformizer._split_swap_afterwards = _conformizer_split_swap_afterwards;
           
-  E_Int nb_t30 = connectT3.cols();
+  //E_Int nb_t30 = connectT3.cols();
   E_Int err = conformizer.run(crd, connectT3, colors, &priority, _tolerance, X0, 1 /*one iter only*/);
   if (err != 0)
     return ERROR;
@@ -3511,7 +3511,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
   nb_ghost(wNG2);
 #endif
 
-  __refine_working_area(wNG1, is_in1, _ng1); //fixme : améliorer cas remap pyramide : trop de travil faita lors qu'au final _ng1 et _ng2 ne contiennent rien...
+  __refine_working_area(wNG1, is_in1, _ng1); //fixme : amï¿½liorer cas remap pyramide : trop de travil faita lors qu'au final _ng1 et _ng2 ne contiennent rien...
   __refine_working_area(wNG2, is_in2, _ng2);
   
 #ifdef DEBUG_BOOLEAN
@@ -4923,7 +4923,7 @@ bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
   //
   for (auto& q2p : q_to_pairs)
   {
-    double q     = q2p.first;
+    //double q     = q2p.first;
     E_Int worstK = q2p.second.first;
     E_Int K2     = q2p.second.second;
 

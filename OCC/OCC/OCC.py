@@ -130,21 +130,26 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
             Converter.convertArrays2File(edges, "edges%d.plt"%i)
     return out
     
-# Mailleur CAD non structure
+# Mailleur CAD non structure TRI
 def meshTRI(fileName, format="fmt_step", N=11, hmax=-1.):
     hook = occ.readCAD(fileName, format)
     return meshTRI__(hook, N, hmax)
 
 def meshTRI__(hook, N=11, hmax=-1., faceSubset=None, faceNo=None):
     """Return a TRI discretisation of CAD."""
+    if hmax > 0: out = meshTRIH__(hook, hmax, faceSubset, faceNo)
+    else: out = meshTRIN__(hook, N, faceSubset, faceNo)
+    return out
+
+def meshTRIN__(hook, N=11, faceSubset=None, faceNo=None):
     import Generator, Converter, Transform
     nbFaces = occ.getNbFaces(hook)
     if faceSubset is None: flist = list(range(nbFaces))
     else: flist = faceSubset
     out = []
     for i in range(nbFaces):
-        # edges de la face i
-        edges = occ.meshEdgesByFace(hook, i+1, N, hmax)
+        # maille edges de la face i avec N pt et parametres
+        edges = occ.meshEdgesByFace(hook, i+1, N, -1.)
         # edges dans espace uv
         edges = switch2UV(edges)
         T = _scaleUV(edges)
@@ -160,6 +165,30 @@ def meshTRI__(hook, N=11, hmax=-1., faceSubset=None, faceNo=None):
             o = occ.evalFace(hook, a, i+1)
             out.append(o)
             if faceNo is not None: faceNo.append(i+1)
+        except Exception as e:
+            print(str(e))
+            Converter.convertArrays2File(edges, 'edges%d.plt'%i)
+    return out
+
+def meshTRIH__(hook, hmax=1., faceSubset=None, faceNo=None):
+    import Generator, Converter, Transform
+    nbFaces = occ.getNbFaces(hook)
+    if faceSubset is None: flist = list(range(nbFaces))
+    else: flist = faceSubset
+    out = []
+    for i in range(nbFaces):
+        # edges de la face i mailles avec hmax et parametres
+        edges = occ.meshEdgesByFace(hook, i+1, -1, hmax)
+        _scaleUV(edges, vu='u', vv='v')
+        edges = Converter.convertArray2Tetra(edges)
+        edges = Transform.join(edges)
+        edges = Generator.close(edges, 1.e-4)
+        #edges = Transform.reorder(edges, (-1,))
+        #Converter.convertArrays2File(edges, "edges.plt")
+        #edges doit contenir les coords + uv normalises pour entrer dans trimesh
+        try:
+            a = occ.trimesh(hook, edges, i+1, hmax, 0.02)
+            out.append(a)
         except Exception as e:
             print(str(e))
             Converter.convertArrays2File(edges, 'edges%d.plt'%i)

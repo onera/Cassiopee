@@ -77,8 +77,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < ne; i++) connectB(0,i) -= 1;
     for (E_Int i = 0; i < ne; i++) connectB(1,i) -= 1;
 
-    printf("connect %d %d\n", connectB.rows(), connectB.cols());
-
+    /*
     printf("UVContour\n");
     printf("rows=%d cols=%d\n", UVcontour.rows(), UVcontour.cols());
     for (E_Int j = 0; j < UVcontour.cols(); j++)
@@ -93,18 +92,18 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     printf("rows=%d cols=%d\n", connectB.rows(), connectB.cols());
     for (E_Int j = 0; j < connectB.cols(); j++)
     printf("%d = %d %d\n", j, connectB(0,j), connectB(1,j));
-
+    */
     DELAUNAY::SurfaceMeshData<OCCSurface> data(UVcontour, pos3D, connectB, occ_surf);
 
     DELAUNAY::SurfaceMesherMode mode;
     mode.chordal_error = hausd; // chordal error set
     //if (aniso) mode.metric_mode = mode.ANISO;
-    //else mode.metric_mode = mode.ISO
-
-    // old mode (mais c'est le meilleur)
+    //else mode.metric_mode = mode.ISO_CST;
+    // ANISO mode ne marche pas!!!!!!!!!!
+    mode.metric_mode = mode.ISO_CST;
     mode.symmetrize = false;
     mode.hmax = hmax; // h moyen
-    mode.growth_ratio = 0.;
+    mode.growth_ratio = -1;
     //mode.ignore_coincident_nodes = true; // pour bypasser les pbs d'insertion 
     mesher.mode = mode;
 
