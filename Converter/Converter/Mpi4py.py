@@ -313,7 +313,6 @@ def createBBoxTree(t, method='AABB', weighting=0):
     try: import Generator.PyTree as G
     except: raise ImportError("createBBoxTree requires Generator module.")
     # bounding box des zones locales
-    tp = Internal.node2PyTree(t)
     bases = Internal.getBases(t)
     zb = []
     for b in bases:

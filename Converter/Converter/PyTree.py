@@ -4991,10 +4991,11 @@ def extractBCOfName(t, bndName, reorder=True, extrapFlow=True):
 # -- getBCs
 # Retourne la geometrie de toutes les BCs
 # IN: t: une zone, une liste de zones, une base ou un arbre
+# IN: extrapFlow: extrapolate flow solution if True
+# IN: reorder: if True, extracted zones are reordered such that normals are oriented towards the interior of a
 # OUT: BCs: liste des geometries de bcs
 # OUT: BCNames: liste des noms des BCs
 # OUT: BCTypes: liste des types des BCs
-# extrapFlow : extrapolate flow solution if True 
 def getBCs(t, reorder=True, extrapFlow=True):
   """Return geometry, names and types of boundary conditions."""
   BCs = []; BCNames = []; BCTypes = []

@@ -492,7 +492,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             procR = procDict[zrcvname]
             
             if procR not in transferedDatas:
-                transferedDatas[procR]=[[zrcvname, indicesR, fields]]
+                transferedDatas[procR]=[[zrcvname,indicesR,fields]]
             else:
                 transferedDatas[procR].append([zrcvname,indicesR,fields])
             

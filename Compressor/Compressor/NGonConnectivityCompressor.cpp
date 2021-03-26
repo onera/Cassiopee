@@ -93,7 +93,7 @@ py_ngon_indices_compress(PyObject* self, PyObject* args)
 
     Py_ssize_t sz_list = np_indices.size();
     PyObject *compressed_list = PyList_New(sz_list);
-    for ( size_t i = 0; i < sz_list; ++i )
+    for ( E_Int i = 0; i < sz_list; ++i )
     {
         //= Dans tous les cas, on va mettre au même format, un tableau avec :
         //= [1 (un simple tableau à l'origine) ou 2 (beg + indices), nbre indices 1er élt/face, indice 1er indice sommet,
@@ -275,7 +275,7 @@ py_ngon_indices_uncompress(PyObject *self, PyObject *args)
             py_array = (PyArrayObject *)PyArray_EMPTY(1, &size_of_array, NPY_INT32, ordering);
             E_Int *py_array_data = (E_Int *)PyArray_DATA(py_array);
             // Reconstitution des indices :
-            E_Int cpteur = 1;
+            size_t cpteur = 1;
             while (cpteur < uncompressed_data.size())
             {
                 E_Int N = uncompressed_data[cpteur];
@@ -293,7 +293,7 @@ py_ngon_indices_uncompress(PyObject *self, PyObject *args)
         else
         {
             //= On va compter le nombre de faces/éléments à traiter :
-            E_Int cpteur = 1, nb_elts = 0;
+            size_t cpteur = 1; E_Int nb_elts = 0;
             while ( cpteur < uncompressed_data.size() )
             {
                 nb_elts += 1;
