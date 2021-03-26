@@ -133,6 +133,8 @@ namespace Expression {
                 case ASSIGN:
                     s += "=";
                     break;
+                default:
+                    break;
                 }
             }
             return s + std::string(*m_right_statement) + ")";

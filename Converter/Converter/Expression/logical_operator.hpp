@@ -9,7 +9,7 @@ namespace Expression
     {
     public:
         enum OP {
-            EQU = 0, NE, LT, LE, GT, GE, AND, OR, XOR, NOT
+            EQU = 0, NE, LT, LE, GT, GE, AND, OR, XOR
         };
 
         logical_operator( OP op, std::shared_ptr<ast::node> l_stmt, std::shared_ptr<ast::node> r_stmt ) :

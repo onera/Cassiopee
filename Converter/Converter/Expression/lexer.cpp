@@ -129,10 +129,15 @@ namespace Expression {
             } break;
             case '!': {
                 if ((index >= expr.size() - 1) || (expr[index + 1] != '=')) {
-                    throw std::logic_error("Wrong operator : ! doesn't exist. Want to use != ? ");
+                    m_tokens.push_back({"!", OPERATOR});
+                    index +=1;
                 }
+                else
+                {
                 m_tokens.push_back({"!=", OPERATOR});
+                    index += 2;
             }
+            } break;
             case '{': // Cas d'une variable
             {
                 std::string substr(expr, index);

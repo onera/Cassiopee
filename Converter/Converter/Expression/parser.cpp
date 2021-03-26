@@ -141,7 +141,7 @@ void ast::parser::parse(const lexer::const_iterator &beg, const lexer::const_ite
         }
     }
     // Traitement des + et - unaires :
-    for (std::string s : {"+", "-"}) {
+    for (std::string s : {"+", "-", "!"}) {
         auto it_sparse = find_statement(beg, end, {s, lexer::OPERATOR});
         if (it_sparse != end) { // Il y a bien un opérateur unaire de ce type
             {

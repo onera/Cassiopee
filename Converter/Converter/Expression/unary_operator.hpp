@@ -8,16 +8,15 @@
 
 namespace Expression
 {
-	/**
-	 * @brief Arithmetic binary operators
-	 * @details Arithmetics operators having left and right statements.
-	 * 
-	 */
+	/**************************************************************************
+	 * @brief Arithmetic unary operators                                      *
+	 * @details Arithmetics operators having left and right statements.       *
+	 *************************************************************************/
 	class unary_operator : public ast::node
 	{
 	public:
 		enum OP {
-			ADD = 0, SUB
+			ADD = 0, SUB, NOT
 		};
 		unary_operator( OP op, std::shared_ptr<ast::node> r_stmt ) :
 			m_right_statement(r_stmt), m_op(op)
@@ -33,6 +32,9 @@ namespace Expression
 			case SUB:
 				return -(*m_right_statement)(i);
 				break;
+			case NOT:
+				return !(long((*m_right_statement)(i)));
+				break;
 			}
 			return 0.;
 		}
@@ -46,6 +48,9 @@ namespace Expression
 				break;
 			case SUB:
 				return -m_right_statement->eval_simd(i);
+				break;
+			case NOT:
+				return !m_right_statement->eval_simd(i);
 				break;
 			}
 			return simd_vector_wrapper{};
@@ -61,6 +66,8 @@ namespace Expression
 			case SUB:
 				return "-"+std::string(*m_right_statement);
 				break;
+			case NOT:
+				return "not "+std::string(*m_right_statement);
 			}
 			return std::string("");
 		}
@@ -74,6 +81,9 @@ namespace Expression
 				break;
 			case SUB:
 				return std::make_shared<unary_operator>(SUB,m_right_statement->derivate());
+				break;
+			case NOT:
+				return std::make_shared<unary_operator>(NOT,m_right_statement->derivate());
 				break;
 			}
 			return nullptr;

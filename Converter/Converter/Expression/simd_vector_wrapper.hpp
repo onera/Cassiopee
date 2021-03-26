@@ -405,6 +405,18 @@ namespace Expression {
             return w;
         }
 
+        simd_vector_wrapper operator !() const
+        {
+            simd_vector_wrapper w;
+            const double *__restrict__ pt_u = data();
+            double *__restrict__ pt_w       = w.data();
+#pragma omp simd
+              for (std::size_t i = 0; i < max_size; ++i)
+                pt_w[i] = double(!(long(pt_u[i])));
+            return w;
+        }
+
+
         ///@}
 
       private:
