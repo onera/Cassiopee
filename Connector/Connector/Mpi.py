@@ -346,10 +346,10 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
 
     # Remise des champs interpoles dans l'arbre receveur
     for i in rcvDatas:
-        #if Cmpi.rank==0: print Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i])
+        #if Cmpi.rank==0: print(Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i]))
         for n in rcvDatas[i]:
             rcvName = n[0]
-            #if Cmpi.rank==0: print 'reception', Cmpi.rank, 'no zone', zones[ rcvName ][0]
+            #if Cmpi.rank==0: print('reception', Cmpi.rank, 'no zone', zones[ rcvName ][0])
             field = n[1]
             if field != []:
                 listIndices = n[2]
@@ -379,7 +379,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
     dictOfMotionMatA2R={}
     coordsD=[0.,0.,0.]; coordsC=[0.,0.,0.] # XAbs = coordsD + coordsC + Mat*(XRel-coordsC)
     dictOfFields={}; dictOfIndices={}
-    
+    #print(Cmpi.rank, 'Init', dictOfIndices, flush=True)
+
     datas={}
     for z in Internal.getZones(t):
         zname = Internal.getName(z)
@@ -455,15 +456,15 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                         datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                     else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
     
-    # print('Proc  : ', Cmpi.rank, ' envoie les donnees : ' , datas.keys())
-    # print(' a partir du graphe ', graph)
+    #print(Cmpi.rank, 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' , datas.keys(), flush=True)
+    #print(Cmpi.rank, ' a partir du graphe ', graph, flush=True)
     # 1er envoi : envoi des numpys des donnees a interpoler suivant le graphe
     interpDatas = Cmpi.sendRecv(datas, graph)
     
     # recuperation par le proc donneur des donnees pour faire les transferts    
     transferedDatas={}
     for i in interpDatas:
-        #print(Cmpi.rank, 'recoit de',i, '->', len(interpDatas[i]))
+        #print(Cmpi.rank, 'Proc:', Cmpi.rank, 'recoit de',i, '->', len(interpDatas[i]), flush=True)
         for n in interpDatas[i]:
             zdnrname = n[1]
             zrcvname = n[0]
@@ -495,24 +496,26 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                 transferedDatas[procR]=[[zrcvname,indicesR,fields]]
             else:
                 transferedDatas[procR].append([zrcvname,indicesR,fields])
-            
-    if transferedDatas != {}:
-        # 2nd envoi : envoi des numpys des donnees interpolees suivant le graphe
-        rcvDatas = Cmpi.sendRecv(transferedDatas, graph)
 
-        # remise des donnees interpolees chez les zones receveuses
-        # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
-        for i in rcvDatas:
-            #print(Cmpi.rank, 'recoit des donnees interpolees de',i, '->', len(rcvDatas[i]))
-            for n in rcvDatas[i]:
-                zrcvname = n[0]
-                indicesI = n[1]
-                fields = n[2]
-                if zrcvname not in dictOfFields:
-                    dictOfFields[zrcvname]=[fields]
-                    dictOfIndices[zrcvname]=indicesI
-                else:
-                    dictOfFields[zrcvname].append(fields)
+    #print(Cmpi.rank, 'transferred data ', transferedDatas, flush=True)
+
+    # 2nd envoi : envoi des numpys des donnees interpolees suivant le graphe
+    rcvDatas = Cmpi.sendRecv(transferedDatas, graph)
+    #print(Cmpi.rank, 'rcvDatas ', rcvDatas, flush=True)
+
+    # remise des donnees interpolees chez les zones receveuses
+    # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
+    for i in rcvDatas:
+        #print(Cmpi.rank, 'recoit des donnees interpolees de',i, '->', len(rcvDatas[i]), flush=True)
+        for n in rcvDatas[i]:
+            zrcvname = n[0]
+            indicesI = n[1]
+            fields = n[2]
+            if zrcvname not in dictOfFields:
+                dictOfFields[zrcvname]=[fields]
+                dictOfIndices[zrcvname]=indicesI
+            else:
+                dictOfFields[zrcvname].append(fields)
 
     for zrcvname in dictOfIndices:
         nob = dictOfNobOfRcvZones[zrcvname]

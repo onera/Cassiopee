@@ -78,7 +78,7 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0.,
   Internal._correctPyTree(t, level=7) # create familyNames
   return t
 
-# meshers
+#================================================================================
 def meshSTRUCT(fileName, format="fmt_step", N=11):
   """Return a STRUCT discretisation of CAD."""
   hook = OCC.occ.readCAD(fileName, format)
@@ -98,15 +98,16 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, linkFaceNo=None):
     if linkFaceNo is not None: linkFaceNo[z[0]] = faceNoA[c]
   return out
 
-def meshTRI(fileName, format="fmt_step", N=11):
+#================================================================================
+def meshTRI(fileName, format="fmt_step", N=11, hmax=-1., order=1):
   """Return a TRI discretisation of CAD."""
   hook = OCC.occ.readCAD(fileName, format)
-  return meshTRI__(hook, N) 
+  return meshTRI__(hook, N, hmax, order) 
 
-def meshTRI__(hook, N=11, hmax=-1., faceSubset=None, linkFaceNo=None):
+def meshTRI__(hook, N=11, hmax=-1., order=1, faceSubset=None, linkFaceNo=None):
   """Return a TRI discretisation of CAD."""
   faceNoA = []
-  a = OCC.meshTRI__(hook, N, hmax, faceSubset, faceNoA)
+  a = OCC.meshTRI__(hook, N, hmax, order, faceSubset, faceNoA)
   out = []
   for c, i in enumerate(a):
     z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
@@ -127,6 +128,26 @@ def meshTRIHO(fileName, format="fmt_step", N=11):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     out.append(z)
+  return out
+
+#================================================================================
+def meshQUAD(fileName, format="fmt_step", N=11, order=1):
+  """Return a QUAD discretisation of CAD."""
+  hook = OCC.occ.readCAD(fileName, format)
+  return meshQUAD__(hook, N, order)
+
+def meshQUAD__(hook, N=11, order=1, faceSubset=None, linkFaceNo=None):
+  """Return a QUAD discretisation of CAD."""
+  faceNoA = []
+  a = OCC.meshQUAD__(hook, N, order, faceSubset, faceNoA)
+  out = []
+  for c, i in enumerate(a):
+    z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    out.append(z)
+    if linkFaceNo is not None: linkFaceNo[z[0]] = faceNoA[c]
   return out
 
 def meshQUADHO(fileName, format="fmt_step", N=11):
@@ -268,10 +289,12 @@ class CAD:
       zones = meshSTRUCT__(self.hook, N, None, self.linkFaceNo)
     elif mtype == 'TRI':
       zones = meshTRI__(self.hook, N, hmax, None, self.linkFaceNo)
+    elif mtype == 'QUAD':
+      zones = meshQUAD__(self.hook, N, 1, None, self.linkFaceNo)
     elif mtype == 'TRIHO':
-      zones = meshTRIHO(self.fileName, self.format, N)
+      zones = meshTRI__(self.hook, N, -1., 2, None, self.linkFaceNo)
     elif mtype == 'QUADHO':
-      zones = meshQUADHO__(self.hook, N, None, self.linkFaceNo)
+      zones = meshQUAD__(self.hook, N, 2, None, self.linkFaceNo)
     else: raise ValueError("mesh: not a valid meshing type.")
     self.zones += zones
     return zones

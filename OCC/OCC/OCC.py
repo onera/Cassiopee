@@ -10,7 +10,7 @@ import KCore
 
 __all__ = ['convertCAD2Arrays', 'switch2UV', '_scaleUV', '_unscaleUV',
 'allTFI', 'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 
-'meshTRIHO', 'meshQUADHO', 'meshQUADHO__']
+'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__']
 
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
@@ -34,6 +34,7 @@ def convertCAD2Arrays(fileName, format='fmt_iges',
 # IN: edges: liste d'arrays STRUCT possedant x,y,z,u,v
 # OUT: liste d'arrays STRUCT ayant uv dans x,y et z=0
 def switch2UV(edges):
+    """Switch uv to coordinates."""
     out = []
     for e in edges:
         ni = e[2]; nj = e[3]; nk = e[4]
@@ -44,7 +45,10 @@ def switch2UV(edges):
         out.append(uv)
     return out
 
+# Scale u,v in [0,1]
 # IN: edges: liste d'arrays
+# IN: vu: name for u variable
+# IN: vv: name for v variable
 # scale entre 0 et 1 les variables vu et vv
 def _scaleUV(edges, vu='x', vv='y'):
     """Scale vu and vv in [0,1]."""
@@ -61,7 +65,9 @@ def _scaleUV(edges, vu='x', vv='y'):
         e[1][pv,:] = (e[1][pv,:]-vmin)*dv
     return (umin,umax,vmin,vmax)
 
+# unscale u,v back
 # IN: edges: liste d'arrays
+# IN: T: min max of parameters as returned by scaleUV
 def _unscaleUV(edges, T, vu='x', vv='y'):
     """Unscale vu and vv with given minmax."""
     (umin,umax,vmin,vmax) = T
@@ -74,6 +80,7 @@ def _unscaleUV(edges, T, vu='x', vv='y'):
         e[1][pv,:] = e[1][pv,:]*dv+vmin
     return None
 
+# Build a TFI for a set of edges
 # IN: edges: list of arrays defining a loop
 # OUT: list of surface meshes
 def allTFI(edges):
@@ -92,12 +99,18 @@ def allTFI(edges):
         #return Generator.TFIStar2(edges)
         return Generator.TFIStar(edges)
         
-# Mailleur de CAD structure
+# Mailleur structure de CAD
+# IN: N: the number of points for each patch boundary
 def meshSTRUCT(fileName, format='fmt_iges', N=11):
     """Return a STRUCT discretisation of CAD."""
     hook = occ.readCAD(fileName, format)
     return meshSTRUCT__(hook, N)
 
+# subfunction
+# IN: hook: CAD hook
+# IN: faceSubSet: a list of faces to mesh
+# OUT: faceNo: keep the CAD face number for each zone
+# OUT: one mesh per CAD face 
 def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     """Return a STRUCT discretisation of CAD."""
     import Generator, Converter
@@ -131,23 +144,32 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     return out
     
 # Mailleur CAD non structure TRI
-def meshTRI(fileName, format="fmt_step", N=11, hmax=-1.):
+# IN: N: number of points for each face boundary, discarded if < 0
+# IN: hmax: mesh step, discarded if < 0
+# IN: order: ordre du maillage de sortie
+def meshTRI(fileName, format="fmt_step", N=11, hmax=-1., order=1):
     hook = occ.readCAD(fileName, format)
     return meshTRI__(hook, N, hmax)
 
-def meshTRI__(hook, N=11, hmax=-1., faceSubset=None, faceNo=None):
+# subfunction
+# IN: hook: CAD hook
+# IN: faceSubSet: a list of faces to mesh
+# OUT: faceNo: keep the CAD face number for each zone
+# OUT: one mesh per CAD face 
+def meshTRI__(hook, N=11, hmax=-1., order=1, faceSubset=None, faceNo=None):
     """Return a TRI discretisation of CAD."""
     if hmax > 0: out = meshTRIH__(hook, hmax, faceSubset, faceNo)
-    else: out = meshTRIN__(hook, N, faceSubset, faceNo)
+    else: out = meshTRIN__(hook, N, order, faceSubset, faceNo)
     return out
 
-def meshTRIN__(hook, N=11, faceSubset=None, faceNo=None):
+# mesh with constant N
+def meshTRIN__(hook, N=11, order=1, faceSubset=None, faceNo=None):
     import Generator, Converter, Transform
     nbFaces = occ.getNbFaces(hook)
     if faceSubset is None: flist = list(range(nbFaces))
     else: flist = faceSubset
     out = []
-    for i in range(nbFaces):
+    for i in flist:
         # maille edges de la face i avec N pt et parametres
         edges = occ.meshEdgesByFace(hook, i+1, N, -1.)
         # edges dans espace uv
@@ -161,6 +183,7 @@ def meshTRIN__(hook, N=11, faceSubset=None, faceNo=None):
         try:
             a = Generator.T3mesher2D(edges, grading=1.)
             _unscaleUV([a], T)
+            if order > 1: a = Converter.convertLO2HO(a, order=order)
             # evaluation sur la CAD
             o = occ.evalFace(hook, a, i+1)
             out.append(o)
@@ -170,6 +193,7 @@ def meshTRIN__(hook, N=11, faceSubset=None, faceNo=None):
             Converter.convertArrays2File(edges, 'edges%d.plt'%i)
     return out
 
+# mesh with hmax
 def meshTRIH__(hook, hmax=1., faceSubset=None, faceNo=None):
     import Generator, Converter, Transform
     nbFaces = occ.getNbFaces(hook)
@@ -227,4 +251,43 @@ def meshQUADHO__(hook, N=11, faceSubset=None, faceNo=None):
         b = Converter.convertLO2HO(i, order=2)
         occ.projectOnFaces(hook, b, [faceNo[c]])
         out.append(b)
+    return out
+
+def meshQUAD(fileName, format="fmt_step", N=11, order=1):
+    """Return a QUAD discretisation of CAD."""
+    hook = occ.readCAD(fileName, format)
+    return meshQUAD__(hook, N, order)
+
+def meshQUAD__(hook, N=11, order=1, faceSubset=None, faceNo=None):
+    """Return a QUAD HO discretisation of CAD."""
+    import Generator, Converter
+    nbFaces = occ.getNbFaces(hook)
+    if faceSubset is None: flist = list(range(nbFaces))
+    else: flist = faceSubset
+    out = []
+    for i in flist:
+        # edges de la face i
+        edges = occ.meshEdgesByFace(hook, i+1, N, -1.)
+        #print("Face %d has %d edges."%(i+1,len(edges)))
+        # edges dans espace uv
+        edges = switch2UV(edges)
+        # scale uv
+        T = _scaleUV(edges)
+        # force la fermeture de la boucle
+        edges = Generator.close(edges, 1.e-6) # the weakness
+        # TFI dans espace uv
+        try:
+            als = allTFI(edges)
+            # unscale uv
+            _unscaleUV(als, T)
+            als = Converter.convertArray2Hexa(als)
+            if order > 1: als = Converter.convertLO2HO(als, order=order)
+            for a in als:
+                # evaluation sur la CAD
+                o = occ.evalFace(hook, a, i+1)
+                out.append(o)
+                if faceNo is not None: faceNo.append(i+1)
+        except Exception as e:
+            print(str(e))
+            Converter.convertArrays2File(edges, "edges%d.plt"%i)
     return out
