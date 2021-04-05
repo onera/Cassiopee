@@ -32,6 +32,27 @@
 #ifndef OpenGLText_H__
 #define OpenGLText_H__
 
+// some choices
+#define USE_QUADS
+#define USE_INSTANCED_ARRAYS
+#define USE_PSEUDO_INSTANCING
+#define NV_REPORT_COMPILE_ERRORS
+
+#ifdef USE_QUADS
+#   define TOPOLOGY_PRIM GL_QUADS
+#   define PRIMNUMBER 4
+#else
+#   define TOPOLOGY_PRIM GL_TRIANGLES
+#   define PRIMNUMBER 6
+#endif
+#ifdef USE_INSTANCED_ARRAYS
+#   define USE_FONT_METRIC_AS_TBO
+#endif
+#ifdef USE_PSEUDO_INSTANCING
+#   define USE_INSTANCED_ARRAYS
+#   define USE_FONT_METRIC_AS_TBO
+#endif
+
 #include <vector>
 
 class OpenGLText
@@ -81,35 +102,35 @@ public:
 
     OpenGLText();
     ~OpenGLText();
-    static void BackupStates();
-    static void RestoreStates();
+    static void backupStates();
+    static void restoreStates();
     void beginString();
     void endString();
     void stringSize(const char *text, float *sz);
-    float drawString( int x, int y, const char * text, int nbLines, unsigned long color);
-    float drawString( int x, int y, const char * text, int nbLines, float * color4f);
+    float drawString(int x, int y, const char* text, int nbLines, unsigned long color);
+    float drawString(int x, int y, const char* text, int nbLines, float *color4f);
     bool init(const char * fontName, int w, int h);
     bool init(unsigned char *imageData, FileHeader *glyphInfos, int w, int h);
     void changeCanvas(int w, int h);
     void changeSize(int w, int h);
 private:
     bool init(int w, int h);
-    static char*         cWidgetVSSource2;
-    static char*         cWidgetFSSource2;
-    unsigned int        c_fontNbChars;
-    unsigned int        c_fontHeight;
-    unsigned int        c_fontWidth;
-    unsigned int        m_widgetProgram;
-    unsigned int        m_vShader;
-    unsigned int        m_fShader;
-    unsigned int        m_canvasVar;
-    unsigned int        m_color;
-    unsigned int        m_depthNFRSVar;
-    unsigned int        m_fontTex;
-    float               m_vertexDepth;
-    int                 m_indexOffset;
-    unsigned int        m_vbo;
-    unsigned int        m_vbosz;
+    static char*  cWidgetVSSource2;
+    static char*  cWidgetFSSource2;
+    unsigned int  c_fontNbChars;
+    unsigned int  c_fontHeight;
+    unsigned int  c_fontWidth;
+    unsigned int  m_widgetProgram;
+    unsigned int  m_vShader;
+    unsigned int  m_fShader;
+    unsigned int  m_canvasVar;
+    unsigned int  m_color;
+    unsigned int  m_depthNFRSVar;
+    unsigned int  m_fontTex;
+    float         m_vertexDepth;
+    int           m_indexOffset;
+    unsigned int  m_vbo;
+    unsigned int  m_vbosz;
 #ifdef USE_FONT_METRIC_AS_TBO
     unsigned int        m_GlyphTexOffset;
     unsigned int        m_boGlyphTexOffset;

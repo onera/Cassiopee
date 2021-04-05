@@ -22,6 +22,18 @@
 #include "../Data.h"
 
 //=============================================================================
+// Choix pour la fonction de render de texte :
+// renderBitmapString1 : avec les polices de glut
+// renderBitmapString2 : avec le texte en texture
+//=============================================================================
+void Data::renderBitmapString(float x, float y, float z,
+                              void *font, char *string,
+                              float nx, float ny, float nz,
+                              float r)
+{
+  renderBitmapString1(x, y, z, font, string, nx, ny, nz);
+}
+//=============================================================================
 // Retourne la largeur en pixels de la chaine
 //=============================================================================
 int Data::textWidth(void* font, char* string)
@@ -52,10 +64,10 @@ int Data::textHeight(void* font)
 // IN: r: ratio de distance
 // Don't deal with \n
 //=============================================================================
-void Data::renderBitmapString(float x, float y, float z,
-                              void *font, char *myString,
-                              float nx, float ny, float nz,
-                              float r) 
+void Data::renderBitmapString1(float x, float y, float z,
+                               void *font, char *myString,
+                               float nx, float ny, float nz,
+                               float r) 
 {
   glRasterPos3f(x, y, z);
   int i = 0;
@@ -92,7 +104,7 @@ void Data::renderStringWithShadow(
 
   double shnx, shny, shnz, shtx, shty, shtz;
   
-  // edaclage pour le cas avec depth test (bandeaux)
+  // decalage pour le cas avec depth test (bandeaux)
   double zoffset = 0.;
   if (offtx == 1 && offty == 0 && offtz == 0) zoffset=0.01;
   
@@ -482,8 +494,6 @@ void Data::printTmpMessage(const char* text)
     l++;
   }
   glPopMatrix();
-
-  // Put back the previous projection
   resetPerspectiveProjection();
 }
 
@@ -692,7 +702,7 @@ void Data::displayInfo()
       // structure
       if (ptrState->mode == MESH || ptrState->mode == SOLID)
         strcpy(local, "\nx=@1%g@0, y=@1%g@0, z=@1%g@0 (@1i=%d@0, @1j=%d@0, @1k=%d@0)");
-      else strcpy(local, "\nx=%g, y=%g, z=%g (i=%d, j=%d,  k=%d)"); 
+      else strcpy(local, "\nx=%g, y=%g, z=%g (i=%d, j=%d,  k=%d)");
       sprintf(temp, local,  
               ptrState->activePointX, ptrState->activePointY, ptrState->activePointZ,
               ptrState->activePointI, ptrState->activePointJ, abs(ptrState->activePointK));
@@ -802,3 +812,51 @@ void Data::displayInfo()
   }
   displayInfoWindow(msg, _view.h-15*nlignes-4);
 }
+
+//=============================================================================
+// Render a bitmap string at a given position
+// IN: xyz: position of string
+// IN: font: type de font
+// IN: myString: chaine a afficher
+// IN: nx,ny,nz: vecteur vertical du plan d'ecriture (norme)
+// IN: r: ratio de distance
+// Manque : gestion des couleurs, gestion de l'affichage dans l'espace physique
+//=============================================================================
+#include "../Fonts/OpenGLText.h"
+void Data::renderBitmapString2(float x, float y, float z,
+                               void *font, char *myString,
+                               float nx, float ny, float nz,
+                               float r) 
+{
+  // Load font
+  OpenGLText oglText;
+  char fontName[256];
+  //if (font == FONT1) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_12");
+  //else if (font == FONT2) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_18");
+  //else if (font == FONT3) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_12");
+  if (font == FONT1) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_12");
+  else if (font == FONT2) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_18");
+  else if (font == FONT3) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_12");
+  
+
+  int canvasWidth = _view.w; int canvasHeight = _view.h;
+  if (!oglText.init(fontName, canvasWidth, canvasHeight)) return;
+
+  oglText.backupStates();
+
+  // render string
+  int posX = x; int posY = _view.h-1-y;
+  oglText.beginString();
+  float bbStr[2];
+  oglText.stringSize(myString, bbStr);
+  oglText.drawString(posX, posY, myString, 0, 0xFFFFFFFF);
+  
+  //oglText.changeSize(800, 600);
+  //oglText.changeCanvas(800, 600);
+  oglText.endString(); // will render the whole at once
+
+  oglText.restoreStates();
+
+}
+
+

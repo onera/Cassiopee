@@ -41,6 +41,8 @@ def convertMesh2Arrays(dim=2, tag=-1):
 
         if eltName == 'Line 1': eltType = 'BAR'
         elif eltName == 'Triangle 3': eltType = 'TRI'
+        elif eltName == 'Tetrahedron 4': eltType = 'TETRA'
+        elif eltName == 'Quadrilateral 4': eltType = 'QUAD'
         else:
             raise ValueError('convertMesh2Arrays: unknown element %s'%eltName)
 
@@ -51,7 +53,7 @@ def convertMesh2Arrays(dim=2, tag=-1):
         kelts = numpy.empty( (nof,ne), dtype=numpy.int32)
         for n in range(nof): # bottleneck
             for i in range(ne): 
-                kelts[n,i] = inverse.get(nodeEltTags[3*i+n], 1)
+                kelts[n,i] = inverse.get(nodeEltTags[nof*i+n], 1)
     
         a = ['x,y,z', crds, kelts, eltType]
         out.append(a)

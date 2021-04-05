@@ -414,6 +414,15 @@ public:
                             void *font, char *string,
                             float nx=0., float ny=1., float nz=0.,
                             float r=1.);
+    void renderBitmapString1(float x, float y, float z,
+                             void *font, char *string,
+                             float nx=0., float ny=1., float nz=0.,
+                             float r=1.);
+    void renderBitmapString2(float x, float y, float z,
+                             void *font, char *string,
+                             float nx=0., float ny=1., float nz=0.,
+                             float r=1.);
+                            
     void renderStringWithShadow(
       float x, float y, float z,
       void *font, char *myString,

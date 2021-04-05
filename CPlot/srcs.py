@@ -120,7 +120,9 @@ cpp_srcs = ['CPlot/render.cpp',
             'CPlot/Plugins/writePPMFile.cpp',
             'CPlot/Plugins/imagePost.cpp',
             'CPlot/Plugins/mouseClick.cpp',
-            #'CPlot/Fonts/OpenGLText.cpp',
+
+            'CPlot/Fonts/OpenGLText.cpp',
+            
             'CPlot/GLEW/glew.c',
             'CPlot/GLUT/freeglut_callbacks.c',
             'CPlot/GLUT/freeglut_cursor.c',
