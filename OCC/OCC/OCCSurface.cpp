@@ -109,7 +109,7 @@ K_OCC::OCCSurface::parameters
   UVs.clear();
   
   E_Int err(0), sz(coord3D.cols());
-  UVs.resize(2, sz, K_CONST::E_MAX_FLOAT);
+  UVs.resize(2, sz, NUGA::FLOAT_MAX);
 
   //traverse the edge to check 
   for (E_Int i=0; (i < connectB.cols()) && !err; ++i)
@@ -117,21 +117,21 @@ K_OCC::OCCSurface::parameters
     E_Int Ni = connectB(0,i);
     E_Int Nj = connectB(1,i);
     
-    if (UVs(0, Ni) == K_CONST::E_MAX_FLOAT)
+    if (UVs(0, Ni) == NUGA::FLOAT_MAX)
     {
       err = parameters(coord3D.col(Ni), UVs(0,Ni), UVs(1,Ni), Ni);
     }
-    if (!err && UVs(0, Nj) == K_CONST::E_MAX_FLOAT)
+    if (!err && UVs(0, Nj) == NUGA::FLOAT_MAX)
     {
       err = parameters(coord3D.col(Nj), UVs(0,Nj), UVs(1,Nj), Nj);
     }
 
-    if (_isUClosed && ::fabs(UVs(0,Ni) - UVs(0,Nj)) > K_CONST::E_PI) err = 1;
-    if (_isVClosed && ::fabs(UVs(1,Ni) - UVs(1,Nj)) > K_CONST::E_PI) err = 1;
+    if (_isUClosed && ::fabs(UVs(0,Ni) - UVs(0,Nj)) > NUGA::PI) err = 1;
+    if (_isVClosed && ::fabs(UVs(1,Ni) - UVs(1,Nj)) > NUGA::PI) err = 1;
   }
   
   for (E_Int k=0; k < UVs.cols(); ++k)
-    if (UVs(0,k) == K_CONST::E_MAX_FLOAT)
+    if (UVs(0,k) == NUGA::FLOAT_MAX)
       UVs(0,k) = UVs(1,k) = 0.;
 
   return err;
@@ -194,9 +194,9 @@ K_OCC::OCCSurface::parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::Floa
     
     // Linear interpolation
     if (d2[0] < d2[1])
-      K_FUNC::sum<2>(1.-lambda[0], pos2D.col(N[0]), lambda[0], pos2D.col(Nc), UVs.col(i));
+      NUGA::sum<2>(1.-lambda[0], pos2D.col(N[0]), lambda[0], pos2D.col(Nc), UVs.col(i));
     else
-      K_FUNC::sum<2>(1.-lambda[1], pos2D.col(Nc), lambda[1], pos2D.col(N[1]), UVs.col(i)); 
+      NUGA::sum<2>(1.-lambda[1], pos2D.col(Nc), lambda[1], pos2D.col(N[1]), UVs.col(i)); 
   }
   
   return err;
@@ -261,7 +261,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   
   std::vector<E_Int > nids;
   K_FLD::ArrayAccessor<K_FLD::FloatArray > crdA(pos3D);
-  ::merge(crdA, E_EPSILON, nids);
+  ::merge(crdA, EPSILON, nids);
   
   K_CONNECT::unchanged pred(nids);
   K_CONNECT::IdTool::compress(pos3D, pred);
@@ -420,10 +420,10 @@ void K_OCC::OCCSurface::__denormalize(E_Float& u, E_Float& v) const
   
   // put in [eps,1-eps] : to avoid problems at seam with revolution surface
   
-  //u = std::max(u, E_EPSILON);
-  //u = std::min(u, _U1 - E_EPSILON);
-  //v = std::max(v, E_EPSILON);
-  // v = std::min(v, _V1 - E_EPSILON);
+  //u = std::max(u, EPSILON);
+  //u = std::min(u, _U1 - EPSILON);
+  //v = std::max(v, EPSILON);
+  // v = std::min(v, _V1 - EPSILON);
 }
 
 
@@ -470,7 +470,7 @@ void K_OCC::OCCSurface::__get_params_and_type
   U0 = (::fabs(U0) < paramtol ) ? paramtol : U0;
   V0 = (::fabs(V0) < paramtol ) ? paramtol : V0;
   
-  E_Float twoPI = 2.*K_CONST::E_PI;
+  E_Float twoPI = 2.*NUGA::PI;
   
   // if max is 2Pi (revolution) , we similarily put a value smaller to avoid the seam issu
   U1 = (::fabs(U1 - twoPI) < paramtol ) ? twoPI - paramtol : U1;

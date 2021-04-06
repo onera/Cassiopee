@@ -63,8 +63,9 @@
 */
 
 #ifdef DEBUG_CAD_READER
-#include "IO/io.h"
+#include "Nuga/include/medit.hxx"
 #include <sstream>
+#include <iostream>
 #endif
 
 K_OCC::CADviaOCC::CADviaOCC()
@@ -92,7 +93,7 @@ E_Int import_iges(const char* fname, TopoDS_Shape& sh)
   
 #ifdef DEBUG_CAD_READER
   Standard_Integer nb_cad_faces = occ_list->Length();
-  std::cout << "IGES Faces: " << nb_cad_faces << "   Transferred:" << nb_transfered_faces << endl;
+  std::cout << "IGES Faces: " << nb_cad_faces << "   Transferred:" << nb_transfered_faces << std::endl;
 #endif
 
   sh = reader.OneShape();
@@ -135,7 +136,7 @@ E_Int K_OCC::CADviaOCC::compute_h_sizing(K_FLD::FloatArray& coords, std::vector<
   std::vector<E_Float> Ls;
   Ls.resize(nb_edges+1, 0.);
   
-  _Lmin = K_CONST::E_MAX_FLOAT;
+  _Lmin = NUGA::FLOAT_MAX;
   _Lmean = _Lmax = 0.;
   
   for (E_Int i=1; i <= nb_edges; ++i)
@@ -296,7 +297,7 @@ E_Int K_OCC::CADviaOCC::__eval_chordal_error(const BRepAdaptor_Curve& C, E_Float
     Pm[1] = P0.Y() + 0.25 * (n+1) * (P1.Y() - P0.Y());
     Pm[2] = P0.Z() + 0.25 * (n+1) * (P1.Z() - P0.Z());
     
-    E_Float dm = ::sqrt(K_FUNC::sqrDistance(Pm, Pu, 3));
+    E_Float dm = ::sqrt(NUGA::sqrDistance(Pm, Pu, 3));
     
     dmax = (dm > dmax) ? dm : dmax;
   }
@@ -336,7 +337,7 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
       
 #ifdef DEBUG_CAD_READER
     if (id==41 || id==101)
-      MIO::write("Ei.mesh", coords, connectEs[id], "BAR");
+      medith::write("Ei.mesh", coords, connectEs[id], "BAR");
 #endif
     }
   }
@@ -345,7 +346,7 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
   K_FLD::IntArray tmp;
   for (size_t i=0; i <connectEs.size(); ++i)
     tmp.pushBack(connectEs[i]);
-  MIO::write("wire.mesh", coords, tmp, "BAR");
+  medith::write("wire.mesh", coords, tmp, "BAR");
 #endif
   
   return err;
@@ -428,7 +429,7 @@ E_Int K_OCC::CADviaOCC::build_loops
 
 #ifdef DEBUG_CAD_READER
     if (faulty_id==i)
-      MIO::write("connectBi.mesh", coords, connectBs[i], "BAR");
+      medith::write("connectBi.mesh", coords, connectBs[i], "BAR");
 #endif
     
     // clean it
@@ -437,7 +438,7 @@ E_Int K_OCC::CADviaOCC::build_loops
     
 #ifdef DEBUG_CAD_READER
     if (faulty_id==i)
-      MIO::write("connectBc.mesh", coords, connectBs[i], "BAR");
+      medith::write("connectBc.mesh", coords, connectBs[i], "BAR");
     //std::ostringstream o;
     //o << "clean_loop_" << i << ".mesh";
     //meshIO::write(o.str().c_str(), coords, connectBs[i]);
@@ -609,7 +610,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     
 #ifdef DEBUG_CAD_READER
     if (i==faulty_id)
-      MIO::write("connectB.mesh", coords, connectB);
+      medith::write("connectB.mesh", coords, connectB);
 #endif
     
     connectB.uniqueVals(nodes);
@@ -636,7 +637,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
   
 #ifdef DEBUG_CAD_READER
     if (i == faulty_id)
-      MIO::write("connectBcompacted.mesh", pos3D, connectB, "BAR");
+      medith::write("connectBcompacted.mesh", pos3D, connectB, "BAR");
 #endif
     
 #ifdef DEBUG_CAD_READER
@@ -645,7 +646,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       K_FLD::FloatArray surfc;
       K_FLD::IntArray con;
       _faces[i]->discretize(surfc, con, 30, 30);
-      MIO::write("surface.plt", surfc, con, "QUAD");
+      medith::write("surface.plt", surfc, con, "QUAD");
     }
 #endif
       
@@ -683,9 +684,9 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       
 #ifdef DEBUG_CAD_READER
       if (i==faulty_id&& t==0)
-      MIO::write("connectBUV1.mesh", UVcontour, connectB, "BAR");
+        medith::write("connectBUV1.mesh", UVcontour, connectB, "BAR");
       if (i==faulty_id&& t==1)
-      MIO::write("connectBUV2.mesh", UVcontour, connectB, "BAR");
+        medith::write("connectBUV2.mesh", UVcontour, connectB, "BAR");
       //std::cout << UVcontour << std::endl;
 #endif
     
@@ -749,8 +750,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
             E_Float ds[2];
             const E_Int& Ni = connectB(0,i);
             const E_Int& Nj = connectB(1,i);
-            K_FUNC::diff<2>(UVcontour.col(Ni), UVcontour.col(Nj), ds);
-            K_FUNC::normalize<2>(ds);
+            NUGA::diff<2>(UVcontour.col(Ni), UVcontour.col(Nj), ds);
+            NUGA::normalize<2>(ds);
             
             if (::fabs(ds[0]) < ::fabs(ds[1])) ++nv;
             else ++nu;
@@ -798,12 +799,12 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       {
       std::ostringstream o;
       o << "surfaceUV_" << i << ".mesh";
-      MIO::write(o.str().c_str(), *data.pos, data.connectM);
+      medith::write(o.str().c_str(), *data.pos, data.connectM);
       }
       {
       std::ostringstream o;
       o << "surface3D_" << i << ".mesh";
-      MIO::write(o.str().c_str(), data.pos3D, data.connectM, "TRI");
+      medith::write(o.str().c_str(), data.pos3D, data.connectM, "TRI");
       }
 #endif
     
@@ -853,16 +854,16 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     }
   
 #ifdef DEBUG_CAD_READER
-  {
+  /*{ manque un shift dans avant d'ajouter connectMs[i]
     K_FLD::IntArray tmp;
     K_FLD::FloatArray crd;
-    for (E_Int i=0; i <= connectMs.size(); ++i)
+    for (E_Int i=0; i < connectMs.size(); ++i)
     {
       if (connectMs[i].cols()*crds[i].cols())
         tmp.pushBack(connectMs[i]);crd.pushBack(crds[i]);
     }
-    MIO::write("surfaceALL.mesh", crd, tmp, "TRI");
-  }
+    medith::write("surfaceALL.mesh", crd, tmp, "TRI");
+  }*/
 #endif
   return 0;
 }
@@ -873,7 +874,7 @@ void K_OCC::CADviaOCC::__computeOrient(const K_FLD::FloatArray crd2D, const K_FL
   E_Float Z=0., z=0.;
   for (E_Int i=0; i < cnt.cols(); ++i)
   {
-    K_FUNC::crossProduct<2>(crd2D.col(cnt(0,i)), crd2D.col(cnt(1,i)), &z);
+    NUGA::crossProduct<2>(crd2D.col(cnt(0,i)), crd2D.col(cnt(1,i)), &z);
     Z += z;
   }
   
@@ -893,14 +894,14 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
   E_Int nb_faces = _surfs.Extent();
   
 #ifdef DEBUG_CAD_READER
-  std::cout << "nb of faces : " <<  nb_faces << endl;
+  std::cout << "nb of faces : " <<  nb_faces << std::endl;
 #endif
   
   TopExp::MapShapes(occ_shape, TopAbs_EDGE, _edges);
   E_Int nb_edges = _edges.Extent();
   
 #ifdef DEBUG_CAD_READER
-  std::cout << "nb of edges : " << nb_edges << endl;
+  std::cout << "nb of edges : " << nb_edges << std::endl;
 #endif
   
   // Now build the graph : for each Face in _surfs associate edges ids in _edges and stamp the solid id.
@@ -1076,6 +1077,8 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
   //1. removing any duplicate
   std::set<K_MESH::NO_Edge> uedges;  
   seam_nodes.clear();
+
+  double midway = face->_normalize_domain ? NUGA::PI : 0.5;
   
   //assert ((face->_isUClosed && !face->_isVClosed) || (!face->_isUClosed && face->_isVClosed));
     
@@ -1093,7 +1096,7 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
       E_Int N1 = e.node(1);
       if (seam_nodes.find(N1) == seam_nodes.end())
         __add_seam_node(face, pos3D, N1, seam_nodes);
-    }  
+    }
   }
   
   K_FLD::IntArray new_connect;
@@ -1117,7 +1120,7 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
       if (face->_isVClosed && !face->_isUClosed) p = &v;
       
       E_Int e[] = {N1, E_IDX_NONE};
-      if (*p < K_CONST::E_PI)
+      if (*p < midway)
         e[1] = it0->second.second;
       else
         e[1] = it0->second.first;
@@ -1133,7 +1136,7 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
       if (face->_isVClosed && !face->_isUClosed) p = &v;
       
       E_Int e[] = {N0, E_IDX_NONE};
-      if (*p < K_CONST::E_PI)
+      if (*p < midway)
         e[1] = it1->second.second;
       else
         e[1] = it1->second.first;
@@ -1151,7 +1154,7 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
   connectB = new_connect;
 
 #ifdef DEBUG_CAD_READER
-  MIO::write("revol.mesh", pos3D, connectB);
+  medith::write("revol.mesh", pos3D, connectB);
 #endif  
 }
 
@@ -1165,11 +1168,12 @@ void K_OCC::CADviaOCC::__add_seam_node
   face->parameters(pos3D.col(N0), u, v);
 
   E_Float Pt[3];
+  E_Float eps = 1.e-12;
 
   if (face->_isUClosed && !face->_isVClosed)
   {
-    const E_Float& u0 = face->_U0;
-    const E_Float& u1 = face->_U1;
+    E_Float u0 = face->_U0 + eps;
+    E_Float u1 = face->_U1 -eps;
 
     face->point(u0, v, Pt);
     pos3D.pushBack(Pt, Pt+3);
@@ -1183,8 +1187,8 @@ void K_OCC::CADviaOCC::__add_seam_node
   }
   else if (!face->_isUClosed && face->_isVClosed)
   {
-    const E_Float& v0 = face->_V0;
-    const E_Float& v1 = face->_V1;
+    E_Float v0 = face->_V0 + eps;
+    E_Float v1 = face->_V1 - eps;
     
     face->point(u, v0, Pt);
     pos3D.pushBack(Pt, Pt+3);
