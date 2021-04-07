@@ -741,7 +741,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       {
         mode.growth_ratio = std::max(_gr, 1.); //fixme : values in [1.; 1.25] might cause errors. Anyway do not allow bellow 1. since not useful
         E_Int MIN_NB = 20;
-        if (_gr > 1. && (connectB.cols() > (MIN_NB * 4))) // check if growth ratio is applicable to this patch, i.e. it is symmetrizable
+        if (_gr >= 1. && (connectB.cols() > (MIN_NB * 4))) // check if growth ratio is applicable to this patch, i.e. it is symmetrizable
         {
           // Count the minimum number of edges on a boundary of the param space per direction (U,V)
           E_Float nu(0), nv(0);
@@ -757,13 +757,16 @@ E_Int K_OCC::CADviaOCC::mesh_faces
             else ++nu;
           }
           
-          E_Int n = std::min(nu, nv) / 2; // nu and nv are accumlation for "2" sides
+          E_Int nmin = std::min(nu, nv) / 2; // nu and nv are accumlation for "2" sides
+          E_Int nmax = std::max(nu, nv) / 2; // nu and nv are accumlation for "2" sides
           
-          if (n > MIN_NB)
+          if (nmin > 0.5*nmax) // rougly iso domain
           {
             mode.symmetrize = true;
             mode.nb_smooth_iter = 2;
           }
+          if (_gr == 1.)
+            mode.hmax = _h;
         }
       }
       mesher.mode = mode;
