@@ -263,7 +263,7 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   //x = a1*imin*tx+b1;
   //sprintf(figure, "%f", imin*tx);
   //printf("figure=%s\n", figure);
-  //renderBitmapString(x, posy+dy-bordery, 0., FONT1, figure);
+  //renderBitmapString(x, posy+dy-bordery, 0., _font1Size, figure);
 
   // y ticks
   glVertex3d(posx+borderx, posy+dy-bordery,0.);
@@ -296,7 +296,7 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   //x = a1*imin*tx+b1;
   //sprintf(figure, "%f", imin*tx);
   //printf("figure=%s\n", figure);
-  //renderBitmapString(x, posy+dy-bordery, 0., FONT1, figure);
+  //renderBitmapString(x, posy+dy-bordery, 0., _font1Size, figure);
 
   // y ticks
   glVertex3d(posx+borderx+2., posy+dy-bordery,0.);
@@ -314,7 +314,7 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   glLineWidth(1.);
 
   // x figures
-  E_Int ly = FONTSIZE1;
+  E_Int ly = _font1Size;
   E_Int lx;
   imin = E_Int(r1min/tx);
   imax = E_Int(r1max/tx);
@@ -322,17 +322,17 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   {
     x = a1*i*tx+b1;
     sprintf(figure, "%g", i*tx);
-    lx = textWidth(FONT1, figure);
-    renderStringWithShadow(x-lx*0.5, posy+dy-bordery+2+ly, 0., FONT1, figure,
+    lx = textWidth(_font1Size, figure);
+    renderStringWithShadow(x-lx*0.5, posy+dy-bordery+2+ly, 0., _font1Size, figure,
                            fc, fc, fc, 1.,
                            bc, bc, bc, 1.);
   }
 
   // x var name
   figure[0] = c11; figure[1] = c12; figure[2] = '\0';
-  lx = textWidth(FONT1, figure);
+  lx = textWidth(_font1Size, figure);
   renderStringWithShadow(posx+dx-borderx+lx, posy+dy-bordery+2+ly, 0., 
-                         FONT1, figure, fc, fc, fc, 1.,
+                         _font1Size, figure, fc, fc, fc, 1.,
                          bc, bc, bc, 1.);
 
   // y figures
@@ -342,16 +342,16 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   {
     y = a2*i*ty+b2;
     sprintf(figure, "%g", i*ty);
-    lx = textWidth(FONT1, figure);
-    renderStringWithShadow(posx+borderx-lx-3, y+ly*0.5, 0., FONT1, figure,
+    lx = textWidth(_font1Size, figure);
+    renderStringWithShadow(posx+borderx-lx-3, y+ly*0.5, 0., _font1Size, figure,
                            fc, fc, fc, 1.,
                            bc, bc, bc, 1.);
   }
   
   // y var name
   figure[0] = c21; figure[1] = c22; figure[2] = '\0';
-  lx = textWidth(FONT1, figure);
-  renderStringWithShadow(posx+borderx-3*lx, posy+bordery-ly, 0., FONT1, figure,
+  lx = textWidth(_font1Size, figure);
+  renderStringWithShadow(posx+borderx-3*lx, posy+bordery-ly, 0., _font1Size, figure,
                          fc, fc, fc, 1.,
                          bc, bc, bc, 1.);
   glEnable(GL_DEPTH_TEST);

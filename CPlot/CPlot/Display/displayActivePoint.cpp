@@ -426,8 +426,8 @@ void Data::displayActivePoint()
     */
     
     // render rectangle
-    int width = textWidth(FONT3, msg);
-    int height = textHeight(FONT3);
+    int width = textWidth(_font3Size, msg);
+    int height = textHeight(_font3Size);
     double x0 = ptx-5*shtx-8*shnx;
     double y0 = pty-5*shty-8*shny;
     double z0 = ptz-5*shtz-8*shnz;
@@ -466,7 +466,7 @@ void Data::displayActivePoint()
 
     // render HUD string
     renderStringWithShadow(ptx, pty, ptz, 
-                           FONT3, msg,
+                           _font3Size, msg,
                            1., 1., 1., 1., 
                            0.1, 0.1, 0.1, 0.5,
                            shtx, shty, shtz,
@@ -474,7 +474,7 @@ void Data::displayActivePoint()
                            1.);
     if (msg2[0] != '\0') // deuxieme ligne eventuelle
       renderStringWithShadow(ptx-(20+height)*shnx, pty-(20+height)*shny, ptz-(20+height)*shnz, 
-                            FONT3, msg2,
+                            _font3Size, msg2,
                             1., 1., 1., 1., 
                             0.1, 0.1, 0.1, 0.5,
                             shtx, shty, shtz,

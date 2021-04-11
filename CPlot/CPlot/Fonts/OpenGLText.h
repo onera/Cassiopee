@@ -33,25 +33,8 @@
 #define OpenGLText_H__
 
 // some choices
-#define USE_QUADS
-#define USE_INSTANCED_ARRAYS
-#define USE_PSEUDO_INSTANCING
-#define NV_REPORT_COMPILE_ERRORS
-
-#ifdef USE_QUADS
-#   define TOPOLOGY_PRIM GL_QUADS
-#   define PRIMNUMBER 4
-#else
-#   define TOPOLOGY_PRIM GL_TRIANGLES
-#   define PRIMNUMBER 6
-#endif
-#ifdef USE_INSTANCED_ARRAYS
-#   define USE_FONT_METRIC_AS_TBO
-#endif
-#ifdef USE_PSEUDO_INSTANCING
-#   define USE_INSTANCED_ARRAYS
-#   define USE_FONT_METRIC_AS_TBO
-#endif
+#define TOPOLOGY_PRIM GL_QUADS
+#define PRIMNUMBER 4
 
 #include <vector>
 
@@ -131,21 +114,12 @@ private:
     int           m_indexOffset;
     unsigned int  m_vbo;
     unsigned int  m_vbosz;
-#ifdef USE_FONT_METRIC_AS_TBO
     unsigned int        m_GlyphTexOffset;
     unsigned int        m_boGlyphTexOffset;
     unsigned int        m_texGlyphTexOffset;
     unsigned int        m_locGlyphTexOffset;
-#else
-    unsigned int        locTc;
-#endif
-#ifdef USE_PSEUDO_INSTANCING
     unsigned int        m_locQuads;
     unsigned int        m_texQuads;
-#else
-    unsigned int        locPos;
-    unsigned int        locGlyph;
-#endif
     struct TCanvas
     {
         float w,h;
@@ -157,15 +131,8 @@ private:
     struct Vertex
     {
         float pos[4];
-#ifndef USE_FONT_METRIC_AS_TBO
-        float tc[4];
-#endif
-#ifdef USE_PSEUDO_INSTANCING
         float  iattr;
         float  dummy[3]; // to align with the fact we do 2 texelFetch over vec4
-#else
-        int   iattr;
-#endif
         Vertex()
         { memset(this, 0, sizeof(Vertex)); }
 
@@ -173,13 +140,6 @@ private:
         {
             pos[0] = fx; pos[1] = fy; pos[2] = fz; pos[3] = fw;
         }
-
-#ifndef USE_FONT_METRIC_AS_TBO
-        void setTC( float fx, float fy, float fz, float fw )
-        {
-            tc[0] = fx; tc[1] = fy; tc[2] = fz; tc[3] = fw;
-        }
-#endif
     };
 
     std::vector< Vertex >       m_vertices;

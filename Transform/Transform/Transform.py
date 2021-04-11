@@ -697,7 +697,7 @@ def joing__(arrays, tol):
     if len(arrays) > 1: a = arrays[0]
     elif len(arrays) == 1: return arrays[0]
     else: return []
-    if len(a) == 4 and a[3] != 'NGON': return transform.joinAll(arrays, tol)
+    if len(a) == 4: return transform.joinAll(arrays, tol)
     pool = arrays[:]
     pool.pop(0)
     while len(pool) > 0:
@@ -719,7 +719,7 @@ def joingb__(arrays, arraysc, tol):
     if len(arrays) > 1: a = arrays[0]; ac = arraysc[0]
     elif len(arrays) == 1: return arrays[0],arraysc[0]
     else: return []
-    if len(a) == 4 and a[3] != 'NGON': return transform.joinAllBoth(arrays, arraysc, tol)
+    if len(a) == 4: return transform.joinAllBoth(arrays, arraysc, tol)
     pool = arrays[:]; poolc = arraysc[:]
     pool.pop(0); poolc.pop(0)
     while len(pool) > 0:

@@ -170,7 +170,7 @@ def meshTRIN__(hook, N=11, order=1, faceSubset=None, faceNo=None):
     else: flist = faceSubset
     out = []
     for i in flist:
-        # maille edges de la face i avec N pt et parametres
+        # maille les edges de la face i avec N pt et parametres
         edges = occ.meshEdgesByFace(hook, i+1, N, -1.)
         # edges dans espace uv
         edges = switch2UV(edges)

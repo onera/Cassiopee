@@ -125,6 +125,14 @@ Data::Data(CPlotState* ptState)
   _bumpMapHeights = NULL;
   _bumpMapTexs = NULL;
   
+  // Fonts
+  _font1Size = 12;
+  _font2Size = 18;
+  _font3Size = 12;
+  _oglText1 = NULL;
+  _oglText2 = NULL;
+  _oglText3 = NULL;
+  
   // Init cam
   initCam();
   _CDisplayIsLaunched = 0;

@@ -27,17 +27,40 @@
 // renderBitmapString2 : avec le texte en texture
 //=============================================================================
 void Data::renderBitmapString(float x, float y, float z,
-                              void *font, char *string,
+                              int fontSize, char *string,
+                              float colorR, float colorG, float colorB, float colorA,
                               float nx, float ny, float nz,
                               float r)
 {
-  renderBitmapString1(x, y, z, font, string, nx, ny, nz);
+  renderBitmapString1(x, y, z, fontSize, string, colorR, colorG, colorB, colorA, nx, ny, nz);
+}
+//=============================================================================
+// Choix pour la fonction mesure de la largeur du texte :
+// textWidth1 : avec les polices de glut
+// textWidth2 : avec le texte en texture
+//=============================================================================
+int Data::textWidth(int fontSize, char* string)
+{
+  return textWidth1(fontSize, string);
+}
+
+//=============================================================================
+// Retourne la font GLUT
+//=============================================================================
+void* Data::getGlutFont(int fontSize)
+{
+
+  if (fontSize == 10) return GLUT_BITMAP_HELVETICA_10;
+  else if (fontSize == 12) return GLUT_BITMAP_HELVETICA_12;
+  else if (fontSize == 18) return GLUT_BITMAP_HELVETICA_18;
+  else return GLUT_BITMAP_HELVETICA_12;
 }
 //=============================================================================
 // Retourne la largeur en pixels de la chaine
 //=============================================================================
-int Data::textWidth(void* font, char* string)
+int Data::textWidth1(int fontSize, char* string)
 {
+  void* font = getGlutFont(fontSize);
   int l = 0;
   char* c;
   for (c = string; *c != '\0'; c++) 
@@ -47,12 +70,11 @@ int Data::textWidth(void* font, char* string)
   return l;
 }
 //=============================================================================
-// Retourne la hauteur en pixels de la chaine
+// Retourne la hauteur en pixels de la police
 //=============================================================================
-int Data::textHeight(void* font)
+int Data::textHeight(int fontSize)
 {
-  int l = FONTSIZE1;
-  return l;
+  return fontSize;
 }
 
 //=============================================================================
@@ -65,10 +87,13 @@ int Data::textHeight(void* font)
 // Don't deal with \n
 //=============================================================================
 void Data::renderBitmapString1(float x, float y, float z,
-                               void *font, char *myString,
+                               int fontSize, char *myString,
+                               float colorR, float colorG, float colorB, float colorA,
                                float nx, float ny, float nz,
                                float r) 
 {
+  void* font = getGlutFont(fontSize);
+  glColor4f(colorR, colorG, colorB, colorA);
   glRasterPos3f(x, y, z);
   int i = 0;
   while (myString[i] != '\0')
@@ -81,7 +106,7 @@ void Data::renderBitmapString1(float x, float y, float z,
 // Render a bitmap string at a given position with Shadow
 // Don't deal with \n, deal with color specified with @1, @2, ...
 // IN: xyz: position of string
-// IN: font: type de font
+// IN: fontSize: taille de la font
 // IN: myString: chaine
 // IN: fgColor: couleur ecriture
 // IN: shColor: couleur shadow
@@ -91,7 +116,7 @@ void Data::renderBitmapString1(float x, float y, float z,
 //==============================================================================
 void Data::renderStringWithShadow(
   float x, float y, float z,
-  void *font, char *myString,
+  int fontSize, char *myString,
   float fgColorR, float fgColorG, float fgColorB, float fgColorA,
   float shColorR, float shColorG, float shColorB, float shColorA,
   double offtx, double offty, double offtz,
@@ -123,13 +148,10 @@ void Data::renderStringWithShadow(
     {
       // Ecrit
       msg[i] = '\0';
-      glColor4f(shColorR, shColorG, shColorB, shColorA);
-      renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz-zoffset, font, msg);
-      //renderBitmapString(x+w+shtx, y+shty, z+shtz-zoffset, font, msg);
-      //renderBitmapString(x+w+shnx, y+shny, z+shnz-zoffset, font, msg);
-      glColor4f(lColorR, lColorG, lColorB, fgColorA);
-      renderBitmapString(x+w, y, z, font, msg);
-      w += textWidth(font, msg); i = 0;
+      renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz-zoffset, 
+                         fontSize, msg, shColorR, shColorG, shColorB, shColorA);
+      renderBitmapString(x+w, y, z, fontSize, msg, lColorR, lColorG, lColorB, fgColorA);
+      w += textWidth(fontSize, msg); i = 0;
 
       // Change la couleur
       j++;
@@ -148,31 +170,22 @@ void Data::renderStringWithShadow(
     {
       msg[i] = '\0';
       glColor4f(lColorR, lColorG, lColorB, fgColorA);
-      renderBitmapString(x+w, y, z, font, msg);
+      renderBitmapString(x+w, y, z, fontSize, msg);
       glColor4f(shColorR, shColorG, shColorB, shColorA);
-      renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz, font, msg);
-      renderBitmapString(x+w+shtx, y+shty, z+shtz, font, msg);
-      renderBitmapString(x+w+shnx, y+shny, z+shnz, font, msg);
-      w += textWidth(FONT1, msg); i = 0;
+      renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz, fontSize, msg);
+      renderBitmapString(x+w+shtx, y+shty, z+shtz, fontSize, msg);
+      renderBitmapString(x+w+shnx, y+shny, z+shnz, fontSize, msg);
+      w += textWidth(fontSize, msg); i = 0;
       lColorR = fgColorR; lColorG = fgColorG; lColorB = fgColorB; 
     }
     */
     msg[i] = myString[j]; i++; j++;
   }
   msg[i] = '\0';
-  glColor4f(shColorR, shColorG, shColorB, shColorA);
-  renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz-zoffset, font, msg);
-  //renderBitmapString(x+w+shtx, y+shty, z+shtz-zoffset, font, msg);
-  //renderBitmapString(x+w+shnx, y+shny, z+shnz-zoffset, font, msg);
-  //renderBitmapString(x+w-shtx, y-shty, z+shtz-zoffset, font, msg);
-  //renderBitmapString(x+w-shnx, y-shny, z+shnz-zoffset, font, msg);
-  //renderBitmapString(x+w-shnx-shtx, y-shny-shty, z-shnz-shtz-zoffset, font, msg);
-  //renderBitmapString(x+w+shnx-shtx, y+shny-shty, z+shnz-shtz-zoffset, font, msg);
-  //renderBitmapString(x+w-shnx+shtx, y-shny+shty, z-shnz+shtz-zoffset, font, msg);
-  glColor4f(lColorR, lColorG, lColorB, fgColorA);
-  renderBitmapString(x+w, y, z, font, msg);
+  renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz-zoffset, 
+                    fontSize, msg, shColorR, shColorG, shColorB, shColorA);
+  renderBitmapString(x+w, y, z, fontSize, msg, lColorR, lColorG, lColorB, fgColorA);
   //glDisable(GL_BLEND);
-  
 }
 
 //=============================================================================
@@ -208,7 +221,7 @@ void Data::setOrthographicProjection()
 }
 
 //=============================================================================
-// Display the text at the upper corner
+// Display the text at the upper corner (font1)
 //=============================================================================
 void Data::displayText(char* text)
 {
@@ -217,7 +230,7 @@ void Data::displayText(char* text)
   glPushMatrix(); glLoadIdentity();
 
   // Render a string
-  renderStringWithShadow(5, FONTSIZE1, 0, FONT1, text,
+  renderStringWithShadow(5, _font1Size, 0, _font1Size, text,
                          1., 1., 1., 1.,
                          0.1, 0.1, 0.1, 0.5);
 
@@ -228,8 +241,8 @@ void Data::displayText(char* text)
   glBegin(GL_QUADS);
   glVertex3d(0, 0, 0);
   glVertex3d(_view.w, 0, 0);
-  glVertex3d(_view.w, FONTSIZE1+5, 0);
-  glVertex3d(0, FONTSIZE1+5, 0);
+  glVertex3d(_view.w, _font1Size+5, 0);
+  glVertex3d(0, _font1Size+5, 0);
   glEnd();
   glDisable(GL_BLEND);
 
@@ -239,7 +252,7 @@ void Data::displayText(char* text)
 }
 
 //=============================================================================
-// Display big text
+// Display big text (font2)
 //=============================================================================
 void Data::displayBigText(int posx, int posy, char* text)
 {
@@ -248,8 +261,7 @@ void Data::displayBigText(int posx, int posy, char* text)
   glPushMatrix(); glLoadIdentity();
 
   // Render a string
-  glColor3f(1., 1., 1.);
-  renderBitmapString(posx, posy, 0, FONT2, text);
+  renderBitmapString(posx, posy, 0, _font2Size, text, 1., 1., 1., 1.);
 
   // Put back the previous projection
   glPopMatrix();
@@ -257,7 +269,7 @@ void Data::displayBigText(int posx, int posy, char* text)
 }
 
 //=============================================================================
-// Display small text
+// Display small text (font1)
 //=============================================================================
 void Data::displaySmallText(int posx, int posy, char* text)
 {
@@ -267,8 +279,7 @@ void Data::displaySmallText(int posx, int posy, char* text)
   glLoadIdentity();
 
   // Render a string
-  glColor3f(1.,1.,1.);
-  renderBitmapString(posx, posy, 0, FONT1, text);
+  renderBitmapString(posx, posy, 0, _font1Size, text, 1., 1., 1., 1.);
   glPopMatrix();
 
   // Put back the previous projection
@@ -465,7 +476,7 @@ void Data::printHeader()
 }
 
 //=============================================================================
-// Display temporary message on line two 
+// Display temporary message on line two (font2)
 //=============================================================================
 void Data::printTmpMessage(const char* text)
 {
@@ -488,7 +499,7 @@ void Data::printTmpMessage(const char* text)
     txt[d] = '\0'; c++;
 
     // Render string
-    renderStringWithShadow(5, FONTSIZE1+5+(l+1)*FONTSIZE2, 0, FONT2, txt,
+    renderStringWithShadow(5, _font2Size+5+(l+1)*_font2Size, 0, _font2Size, txt,
                            1.0, 1.0, 1.0, 1.0,
                            0.1, 0.1, 0.1, 0.5);
     l++;
@@ -527,8 +538,8 @@ void Data::displayInfoWindow(char* text, int l)
         else { msg2[jl] = msg[j]; jl++; }
       }
       
-      w = MAX(w, textWidth(FONT1, msg2));
-      renderStringWithShadow(5, l, 0, FONT1, msg,
+      w = MAX(w, textWidth(_font1Size, msg2));
+      renderStringWithShadow(5, l, 0, _font1Size, msg,
                              1.0, 1.0, 1.0, 1.0,
                              0.1, 0.1, 0.1, 0.5);
       i2 = 0; l += 17;
@@ -549,8 +560,8 @@ void Data::displayInfoWindow(char* text, int l)
     if (msg[j] == '@') j++;
     else { msg2[jl] = msg[j]; jl++; }
   }
-  w = MAX(w, textWidth(FONT1, msg2));
-  renderStringWithShadow(5, l, 0, FONT1, msg,
+  w = MAX(w, textWidth(_font1Size, msg2));
+  renderStringWithShadow(5, l, 0, _font1Size, msg,
                          1.0, 1.0, 1.0, 1.0,
                          0.1, 0.1, 0.1, 0.5);
   l += 16;
@@ -813,6 +824,58 @@ void Data::displayInfo()
   displayInfoWindow(msg, _view.h-15*nlignes-4);
 }
 
+//============================================================================
+// Create openGLText si pas encore cree
+// Il y a deux tailles de fontes _font1Size et _font2Size
+// en 1280x720 : 12, 18
+// en 1920x1080: 18, 27
+// en 3840x2160: 36, 54
+// a l'ecran, je crois que windows upscale. Il faut donc utiliser les 
+// polices 12, 18
+// Par contre, pour les sorties offscreen, il faut utiliser les polices
+// correspondants a la resolution de l'export.
+//============================================================================
+OpenGLText* Data::getOpenGLText(int fontSize)
+{
+  char fontName[256];
+  OpenGLText* pt = NULL;
+  if (fontSize == 12)
+  { 
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_12");
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_12");
+    strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/consola_12");
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/shelley_12");
+  }
+  else if (fontSize == 18) 
+  {
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_18");
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_18");
+    strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/consola_18");
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/shelley_18");
+  }
+  else 
+  {
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_12");
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_12");
+    strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/consola_12");
+    //strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/shelley_12");
+  }
+  if (fontSize == _font1Size) pt = _oglText1;
+  else if (fontSize == _font2Size) pt = _oglText2;
+  else pt = _oglText3;
+  
+  if (pt != NULL) return pt;
+  int canvasWidth = _view.w; int canvasHeight = _view.h;
+  pt = new OpenGLText();
+  
+  if (fontSize == _font1Size) _oglText1 = pt;
+  else if (fontSize == _font2Size) _oglText2 = pt;
+  else _oglText3 = pt;
+
+  if (!pt->init(fontName, canvasWidth, canvasHeight)) return NULL;
+  return pt;
+}
+
 //=============================================================================
 // Render a bitmap string at a given position
 // IN: xyz: position of string
@@ -822,41 +885,41 @@ void Data::displayInfo()
 // IN: r: ratio de distance
 // Manque : gestion des couleurs, gestion de l'affichage dans l'espace physique
 //=============================================================================
-#include "../Fonts/OpenGLText.h"
 void Data::renderBitmapString2(float x, float y, float z,
-                               void *font, char *myString,
+                               int fontSize, char *myString,
+                               float colorR, float colorG, float colorB, float colorA,
                                float nx, float ny, float nz,
                                float r) 
 {
   // Load font
-  OpenGLText oglText;
-  char fontName[256];
-  //if (font == FONT1) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_12");
-  //else if (font == FONT2) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_18");
-  //else if (font == FONT3) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/BRITANIC_12");
-  if (font == FONT1) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_12");
-  else if (font == FONT2) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_18");
-  else if (font == FONT3) strcpy(fontName,  "../../Apps/Modules/CPlot/CPlot/Fonts/lucon_12");
+  OpenGLText* pt = getOpenGLText(fontSize);
+  OpenGLText& oglText = *pt;
   
-
   int canvasWidth = _view.w; int canvasHeight = _view.h;
-  if (!oglText.init(fontName, canvasWidth, canvasHeight)) return;
-
+  oglText.changeSize(canvasWidth, canvasHeight);
+  oglText.changeCanvas(canvasWidth, canvasHeight);
+  
   oglText.backupStates();
 
   // render string
   int posX = x; int posY = _view.h-1-y;
   oglText.beginString();
-  float bbStr[2];
-  oglText.stringSize(myString, bbStr);
-  oglText.drawString(posX, posY, myString, 0, 0xFFFFFFFF);
-  
-  //oglText.changeSize(800, 600);
-  //oglText.changeCanvas(800, 600);
+  //float bbStr[2];
+  //oglText.stringSize(myString, bbStr);
+  float color[4];
+  color[0] = colorR; color[1] = colorG; color[2] = colorB; color[3] = colorA;  
+  oglText.drawString(posX, posY, myString, 0, color);
   oglText.endString(); // will render the whole at once
-
   oglText.restoreStates();
-
 }
 
-
+//=============================================================================
+// Retourne la largeur en pixels de la chaine
+//=============================================================================
+int Data::textWidth2(int fontSize, char* string)
+{
+  OpenGLText* pt = getOpenGLText(fontSize);
+  float bbStr[2];
+  pt->stringSize(string, bbStr);
+  return bbStr[0];
+}

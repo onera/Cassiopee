@@ -192,7 +192,7 @@ Actions
     :type stereoDist: float
     :param export: file name for export
     :type export: string
-    :param exportResolution: resolution for export ("1200x900")
+    :param exportResolution: resolution for export ("1920x1080")
     :type exportResolution: string
     :param zoneNames: optional list of zone names (same size as arrays, struct zones, then unstruct zones)
     :type zoneNames: list of strings

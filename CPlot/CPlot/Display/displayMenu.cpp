@@ -73,19 +73,19 @@ void Data::displayDimensionMenu(int* x)
   switch (ptrState->dim)
   {
     case 1:
-      renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "1D");
+      renderBitmapString(posx, posy, 0, _fontSize1, "1D");
       break;
       
     case 2:
-      renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "2D");
+      renderBitmapString(posx, posy, 0, _fontSize1, "2D");
       break;
 
     case 3:
-      renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "3D");
+      renderBitmapString(posx, posy, 0, _fontSisze1, "3D");
       break;
   }
   posy = _view.h - 5;
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "(m)");
+  renderBitmapString(posx, posy, 0, _fontSize1, "(m)");
       
   *x = *x + 12*2 + 4;
 }
@@ -129,11 +129,11 @@ void Data::displayVariableMenu(int* x)
       strcpy(msg, "unknown mode");
       break;
   }
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, msg);
+  renderBitmapString(posx, posy, 0, _fontSize1, msg);
 
   posx = posx + strlen(msg);
   posy = _view.h - 5;
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "(1)");
+  renderBitmapString(posx, posy, 0, _fontSize1, "(1)");
       
   *x = *x + 8*strlen(msg) + 4;
 }
@@ -186,11 +186,11 @@ void Data::displayAxisMenu(int* x)
         break;
     }
   }
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, msg);
+  renderBitmapString(posx, posy, 0, _fontSize1, msg);
 
   posx = posx + strlen(msg);
   posy = _view.h - 5;
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "(2)");
+  renderBitmapString(posx, posy, 0, _fontSize1, "(2)");
       
   *x = *x + 8*strlen(msg) + 4;
 }
@@ -212,11 +212,11 @@ void Data::displayZoneMenu(int* x)
   {
     strcpy(msg, "Select zone");
   }
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, msg);
+  renderBitmapString(posx, posy, 0, _fontSize1, msg);
 
   posx = posx + strlen(msg) - 5;
   posy = _view.h - 5;
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "(z-Z ; a-A)");
+  renderBitmapString(posx, posy, 0, _fontSize1, "(z-Z ; a-A)");
       
   *x = *x + 8*MAX(strlen(msg), strlen("(z-Z ; a-A)")) + 4;
 }

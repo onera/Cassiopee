@@ -540,7 +540,6 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  
   // Extract infos from body arrays: non structures 
   /* Extraction de la surface de masquage */
   E_Int nzonesB = PyList_Size(bodyArrays);

@@ -31,14 +31,6 @@
 #define SCALARFIELD 3
 #define VECTORFIELD 4
 
-// Les differentes fonts
-#define FONT1 GLUT_BITMAP_HELVETICA_12
-#define FONTSIZE1 12
-#define FONT2 GLUT_BITMAP_HELVETICA_18
-#define FONTSIZE2 18
-#define FONT3 GLUT_BITMAP_HELVETICA_12
-#define FONTSIZE3 12
-
 #ifdef __SHADERS__
 #include "GL/glew.h"
 #include "ShaderManager.h"
@@ -75,7 +67,7 @@
 #include "Functions.h"
 #include "Slot1D.h"
 #include "Zone1D.h"
-
+#include "Fonts/OpenGLText.h"
 class Data
 {   
   public:
@@ -408,25 +400,32 @@ public:
     void rollto1Dws();
 
     // Text
-    int textWidth(void* font, char* string);
-    int textHeight(void* font);
+    int textWidth(int fontSize, char* string);
+    int textWidth1(int fontSize, char* string);
+    int textWidth2(int fontSize, char* string);
+    int textHeight(int fontSize);
     void renderBitmapString(float x, float y, float z,
-                            void *font, char *string,
+                            int fontSize, char *string,
+                            float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
                             float nx=0., float ny=1., float nz=0.,
                             float r=1.);
+    void* getGlutFont(int fontSize);
     void renderBitmapString1(float x, float y, float z,
-                             void *font, char *string,
+                             int fontSize, char *string,
+                             float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
                              float nx=0., float ny=1., float nz=0.,
                              float r=1.);
+    OpenGLText* getOpenGLText(int fontSize);
     void renderBitmapString2(float x, float y, float z,
-                             void *font, char *string,
+                             int fontSize, char *string,
+                             float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
                              float nx=0., float ny=1., float nz=0.,
                              float r=1.);
                             
     void renderStringWithShadow(
       float x, float y, float z,
-      void *font, char *myString,
-      float fgColorR, float fgColorG, 
+      int fontSize, char *myString,
+      float fgColorR, float fgColorG,
       float fgColorB, float fgColorA,
       float shColorR, float shColorG, 
       float shColorB, float shColorA,
@@ -525,6 +524,14 @@ public:
     }
 
     unsigned long numberOfNonBlankedCells( UnstructZone& zone, int zonet );
+
+    int _font1Size; // size of font1
+    int _font2Size; // size of font2
+    int _font3Size; // size of font3
+    OpenGLText* _oglText1; // texture font ptr
+    OpenGLText* _oglText2; // texture font ptr
+    OpenGLText* _oglText3; // texture font ptr
+    
  protected:
     virtual void freeGPUResources( int mode, int start, int end, int permanent );
     virtual void updateGPUResources( int mode, int size, int permanent, void* updatedPointer );

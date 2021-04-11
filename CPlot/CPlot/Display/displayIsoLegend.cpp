@@ -91,13 +91,11 @@ void Data::displayIsoLegend(int dir)
 
   // varname
   char text[128];
-  void* font = GLUT_BITMAP_HELVETICA_18;
-  //void* font = GLUT_BITMAP_TIMES_ROMAN_24;
-
+  
   sprintf(text, "%s", _zones[0]->varnames[ptrState->scalarField]);
   int y = y2-5;
-  int x = x2 - textWidth(font, text) - 2;
-  renderStringWithShadow(x, y, 0, font, text,
+  int x = x2 - textWidth(_font2Size, text) - 2;
+  renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
 
@@ -105,32 +103,32 @@ void Data::displayIsoLegend(int dir)
 #define FORMAT "%4.3g"
   sprintf(text, FORMAT, fmin);
   y = y1-5;
-  x = x1 - textWidth(font, text) - 2;
-  renderStringWithShadow(x, y, 0, font, text,
+  x = x1 - textWidth(_font2Size, text) - 2;
+  renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
   sprintf(text, FORMAT, fmax);
   y = y2+17;
-  x = x1 - textWidth(font, text) - 2;
-  renderStringWithShadow(x, y, 0, font, text,
+  x = x1 - textWidth(_font2Size, text) - 2;
+  renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
   sprintf(text, FORMAT, 0.5*(fmax+fmin));
   y = (y1+y2)/2;
-  x = x1 - textWidth(font, text) - 2;
-  renderStringWithShadow(x, y, 0, font, text,
+  x = x1 - textWidth(_font2Size, text) - 2;
+  renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
   sprintf(text, FORMAT, 0.25*fmax+0.75*fmin);
   y = int(0.75*y1+0.25*y2);
-  x = x1 - textWidth(font, text) - 2;
-  renderStringWithShadow(x, y, 0, font, text,
+  x = x1 - textWidth(_font2Size, text) - 2;
+  renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
   sprintf(text, FORMAT, 0.75*fmax+0.25*fmin);
   y = int(0.25*y1+0.75*y2);
-  x = x1 - textWidth(font, text) - 2;
-  renderStringWithShadow(x, y, 0, font, text,
+  x = x1 - textWidth(_font2Size, text) - 2;
+  renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
   glPopMatrix();

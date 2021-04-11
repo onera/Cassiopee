@@ -61,11 +61,13 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   {
     if (strcmp(eltRef, eltType[i]) == 0)
     {
-      size = size + unstructF[i]->getSize();
-      ne = ne + cn[i]->getSize();
+      size += unstructF[i]->getSize();
+      ne += cn[i]->getSize();
     }
     else missed++;
   }
+  if (strcmp(eltRef, "NGON") == 0) ne -= 4*(nu-1);
+
   if (missed > 0) printf("Warning: joinAll: some arrays are not joined: different element types.\n");
   E_Int nfld = unstructF[0]->getNfld();
   FldArrayF field(size, nfld);
@@ -93,29 +95,88 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   // Fusion des connectivites
   E_Int nt = cn[0]->getNfld();
   FldArrayI cno(ne, nt);
-  E_Int nf1 = 0;
+  E_Int* cnop = cno.begin();
 
-  c = 0; csav = 0;
+  // pour les NGON, il faut calculer les decalages avant
+  E_Int nfacesTot = 0; // nbre total de faces
+  E_Int sizeOfFNTot = 0; // sizeOfFN tot
+  E_Int neltsTot = 0; // nbre d'elements tot
+  E_Int sizeOfEFTot = 0; // sizeOfEF tot
   for (E_Int i = 0; i < nu; i++)
   {
-    if (strcmp(eltRef, eltType[i]) == 0)
+    if (strcmp(eltRef, eltType[i]) == 0 && strcmp(eltRef, "NGON") == 0)
+    {
+      E_Int* cnp = cn[i]->begin();
+      E_Int nfaces = cnp[0];
+      E_Int sizeOfFN = cnp[1];
+      E_Int nelts = cnp[sizeOfFN+2];
+      E_Int sizeOfEF = cnp[sizeOfFN+3];
+      nfacesTot += nfaces;
+      neltsTot += nelts;
+      sizeOfFNTot += sizeOfFN;
+      sizeOfEFTot += sizeOfEF;
+    }
+  }
+  if (strcmp(eltRef, "NGON") == 0)
+  {
+    cnop[0] = nfacesTot;
+    cnop[1] = sizeOfFNTot;
+    cnop[sizeOfFNTot+2] = neltsTot;
+    cnop[sizeOfFNTot+3] = sizeOfEFTot;
+  }
+  E_Int nf1 = 0; // decalage des noeuds
+  c = 0; csav = 0; 
+  E_Int nfa = 0; // decalage des faces
+  E_Int* pt1 = cnop+2;
+  E_Int* pt3 = cnop+sizeOfFNTot+4;
+  
+  for (E_Int i = 0; i < nu; i++)
+  {
+    if (strcmp(eltRef, eltType[i]) == 0 && strcmp(eltRef, "NGON") == 0)
+    {
+      E_Int* cnp = cn[i]->begin();
+      E_Int nfaces = cnp[0];
+      E_Int sizeOfFN = cnp[1];
+      E_Int nelts = cnp[sizeOfFN+2];
+      //E_Int sizeOfEF = cnp[sizeOfFN+3];
+
+      E_Int* pt2 = cnp+2;
+      E_Int* pt4 = cnp+sizeOfFN+4;
+      E_Int nv;
+      for (E_Int j = 0; j < nfaces; j++)
+      {
+        nv = pt2[0];
+        pt1[0] = nv;
+        for (E_Int k = 1; k <= nv; k++) pt1[k] = pt2[k]+nf1; 
+        pt1 += nv+1; pt2 += nv+1;
+      }
+      for (E_Int j = 0; j < nelts; j++)
+      {
+        nv = pt4[0];
+        pt3[0] = nv;
+        for (E_Int k = 1; k <= nv; k++) pt3[k] = pt4[k]+nfa; 
+        pt3 += nv+1; pt4 += nv+1;
+      }
+      nfa += nfaces;
+      nf1 += unstructF[i]->getSize();
+    }
+    else if (strcmp(eltRef, eltType[i]) == 0) // other elements
     {
       csav = c;
       for (E_Int n = 1; n <= nt; n++)
       {
         E_Int* cn1n = cn[i]->begin(n);
-        E_Int* cnn = cno.begin(n);
-        
+        E_Int* cnn = cno.begin(n);   
         c = csav;
         for (E_Int j = 0; j < cn[i]->getSize(); j++)
         {
           cnn[c] = cn1n[j]+nf1; c++;
         }
       }
-      nf1 = nf1 + unstructF[i]->getSize();
+      nf1 += unstructF[i]->getSize();
     }
   }
-  
+
   for (E_Int i = 0; i < nu; i++)
     RELEASESHAREDU(obju[i], unstructF[i], cn[i]);
 
@@ -211,8 +272,10 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
     else missedc++;
   }
   if (missed > 0 || missedc > 0) printf("Warning: joinAllBoth: some arrays are not joined: different element types.\n");
+  if (strcmp(eltRef, "NGON") == 0) ne -= 4*(nu-1);
 
   // Fusion des connectivites
+  /*
   E_Int nt = cn[0]->getNfld();
   FldArrayI* cno = new FldArrayI(ne, nt);
   E_Int c = 0; E_Int csav = 0;
@@ -235,6 +298,94 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       nf1 += unstructF[i]->getSize();
     }
   }
+  */
+
+  // Fusion des connectivites
+  E_Int c = 0; E_Int csav = 0;
+  E_Int nt = cn[0]->getNfld();
+  FldArrayI* cno = new FldArrayI(ne, nt);
+  E_Int* cnop = cno->begin();
+
+  // pour les NGON, il faut calculer les decalages avant
+  E_Int nfacesTot = 0; // nbre total de faces
+  E_Int sizeOfFNTot = 0; // sizeOfFN tot
+  E_Int neltsTot = 0; // nbre d'elements tot
+  E_Int sizeOfEFTot = 0; // sizeOfEF tot
+  for (E_Int i = 0; i < nu; i++)
+  {
+    if (strcmp(eltRef, eltType[i]) == 0 && strcmp(eltRef, "NGON") == 0)
+    {
+      E_Int* cnp = cn[i]->begin();
+      E_Int nfaces = cnp[0];
+      E_Int sizeOfFN = cnp[1];
+      E_Int nelts = cnp[sizeOfFN+2];
+      E_Int sizeOfEF = cnp[sizeOfFN+3];
+      nfacesTot += nfaces;
+      neltsTot += nelts;
+      sizeOfFNTot += sizeOfFN;
+      sizeOfEFTot += sizeOfEF;
+    }
+  }
+  if (strcmp(eltRef, "NGON") == 0)
+  {
+    cnop[0] = nfacesTot;
+    cnop[1] = sizeOfFNTot;
+    cnop[sizeOfFNTot+2] = neltsTot;
+    cnop[sizeOfFNTot+3] = sizeOfEFTot;
+  }
+  E_Int nf1 = 0; // decalage des noeuds
+  c = 0; csav = 0; 
+  E_Int nfa = 0; // decalage des faces
+  E_Int* pt1 = cnop+2;
+  E_Int* pt3 = cnop+sizeOfFNTot+4;
+  
+  for (E_Int i = 0; i < nu; i++)
+  {
+    if (strcmp(eltRef, eltType[i]) == 0 && strcmp(eltRef, "NGON") == 0)
+    {
+      E_Int* cnp = cn[i]->begin();
+      E_Int nfaces = cnp[0];
+      E_Int sizeOfFN = cnp[1];
+      E_Int nelts = cnp[sizeOfFN+2];
+      //E_Int sizeOfEF = cnp[sizeOfFN+3];
+
+      E_Int* pt2 = cnp+2;
+      E_Int* pt4 = cnp+sizeOfFN+4;
+      E_Int nv;
+      for (E_Int j = 0; j < nfaces; j++)
+      {
+        nv = pt2[0];
+        pt1[0] = nv;
+        for (E_Int k = 1; k <= nv; k++) pt1[k] = pt2[k]+nf1; 
+        pt1 += nv+1; pt2 += nv+1;
+      }
+      for (E_Int j = 0; j < nelts; j++)
+      {
+        nv = pt4[0];
+        pt3[0] = nv;
+        for (E_Int k = 1; k <= nv; k++) pt3[k] = pt4[k]+nfa; 
+        pt3 += nv+1; pt4 += nv+1;
+      }
+      nfa += nfaces;
+      nf1 += unstructF[i]->getSize();
+    }
+    else if (strcmp(eltRef, eltType[i]) == 0) // other elements
+    {
+      csav = c;
+      for (E_Int n = 1; n <= nt; n++)
+      {
+        E_Int* cn1n = cn[i]->begin(n);
+        E_Int* cnn = cno->begin(n);   
+        c = csav;
+        for (E_Int j = 0; j < cn[i]->getSize(); j++)
+        {
+          cnn[c] = cn1n[j]+nf1; c++;
+        }
+      }
+      nf1 += unstructF[i]->getSize();
+    }
+  }
+
   // join des champs en noeuds
   E_Int nfld = unstructF[0]->getNfld();
   FldArrayF* field = new FldArrayF(size, nfld);
@@ -255,6 +406,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       }
     }
   }
+
   // join des champs en centres
   E_Int nfldc = unstructFc[0]->getNfld();
   FldArrayF* fieldc = new FldArrayF(sizec, nfldc);
