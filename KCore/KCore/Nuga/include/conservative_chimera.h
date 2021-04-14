@@ -60,7 +60,7 @@ namespace NUGA
 
   namespace INTERPOL
   {
-    enum eMode { CLOSEST_CENTROID, CONSERVATIVE };
+    enum eMode { CLOSEST_CENTROID, CONSERVATIVE_O1 };
     /**
     * Computes donnor coefficients and indices for receiver cells
     * crdR : coordinates accessor of the receiver mesh
@@ -84,9 +84,10 @@ namespace NUGA
       std::vector<int>& xr,
       bool do_omp = false)
     {
-      //if (mode == CLOSEST_CENTROID)
-      return compute_surf_coeffs_basic(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
-      //else
+      if (mode == CLOSEST_CENTROID)
+        return compute_surf_coeffs_basic(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
+      else if (mode == CONSERVATIVE_O1)
+        return compute_surf_coeffs_conservative_order1(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
     }
 
     template <typename acrd_t, typename cnt_t>
@@ -137,6 +138,32 @@ namespace NUGA
 
       return ret;
     }
+  }
+
+  template <typename acrd_t, typename cnt_t>
+  int compute_surf_coeffs_conservative_order1(
+    const acrd_t& crdR,
+    const cnt_t& cntR,
+    const acrd_t& crdD,
+    const cnt_t& cntD,
+    std::vector<int>& dindices,
+    std::vector<double>& dcoeffs,
+    std::vector<int>& xr, bool do_omp = false)
+  {
+    dindices.clear();
+    dcoeffs.clear();
+    xr.clear();
+
+    int ret(0);
+    ngon_unit pgsR(cntR.begin()), pgsD(cntD.begin());
+
+    zmesh_t m0(crdR, pgsR);
+    zmesh_t m1(crdD, pgsD);
+    
+    NUGA::interpol_coeffs_for_first(m0, m1, 1.e-6, dindices, dcoeffs, xr, do_omp);
+   
+
+    return ret;
   }
 }
 

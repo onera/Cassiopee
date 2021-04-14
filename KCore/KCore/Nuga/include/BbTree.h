@@ -50,13 +50,15 @@ public:
   }
 
   ///
-  BoundingBox(const K_FLD::FloatArray& pos)
+  BoundingBox(const K_FLD::FloatArray& pos, E_Int N0=-1)
   {
     const E_Float* Pi;
     for (E_Int i = 0; i < DIM; ++i)
     {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
-    for (size_t i = 0; i < pos.cols(); ++i)
+    if (N0 < 0 || N0 >= pos.cols()) N0 = pos.cols(); //if max id is not (or badly) specified
+
+    for (size_t i = 0; i < N0; ++i)
     {
       Pi = pos.col(i);
       for (E_Int j = 0; j < DIM; ++j)

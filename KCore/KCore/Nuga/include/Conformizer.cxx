@@ -397,7 +397,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   tt.start();
 #endif
 
-#ifdef DEBUG_CONFORMIZER
+#ifdef DEBUG_TRI_CONFORMIZER
   {
   std::ostringstream o;
   o << "beforeX_" << _iter << ".mesh";
@@ -467,6 +467,14 @@ E_Int Conformizer<DIM, Element_t>::__run
 #endif
     __merge_clean(_tol_clean/*1.e-9 for now*/, pos, connect, ancestors, nids, &xc, _N0);
 
+#ifdef DEBUG_CONFORMIZER
+  {
+    std::ostringstream o;
+    o << "after_merge_" << _iter << ".mesh";
+    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/);
+}
+#endif
+
 #ifdef FLAG_STEP
     std::cout << "inter : __merge_clean (clean after X - nb merged : " << nb_merges << " ) :" << tt.elapsed() << std::endl;
   tt.start();
@@ -518,6 +526,13 @@ E_Int Conformizer<DIM, Element_t>::__run
 #endif
   }
 #endif
+#ifdef DEBUG_CONFORMIZER
+  {
+    std::ostringstream o;
+    o << "before_splitX_" << _iter << ".mesh";
+    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/);
+  }
+#endif
 
   // Split the triangles.  
   E_Int err = __split_Elements (pos, connect, xc, ancestors); 
@@ -545,7 +560,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   {
     std::ostringstream o;
     o << "splitX_" << _iter << ".mesh";
-    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
+    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/);
   }
 #endif
 
@@ -553,7 +568,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   tt.start();
 #endif
   
-#ifdef DEBUG_CONFORMIZER
+#ifdef DEBUG_TRI_CONFORMIZER
   E_Int Ti = TRI_debug::get_T3_index(connect, TRUPLE);
   E_Int a = (Ti != IDX_NONE) ? ancestors[Ti] : IDX_NONE;
   //E_Int b = ancestors[5416];
@@ -618,7 +633,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   tt.start();
 #endif
 
-#ifdef E_DEBUG
+#ifdef DEBUG_CONFORMIZER
   {
     std::vector<E_Int> colors;
     for (E_Int c = 0; c < connect.cols(); ++c)
@@ -626,11 +641,11 @@ E_Int Conformizer<DIM, Element_t>::__run
     
     std::ostringstream o;
     o << "connecto_" << _iter << ".mesh";
-    MIO::write(o.str().c_str(), pos, connect, colors);
+    MIO::write(o.str().c_str(), pos, connect, 0);
   }
 #endif
   
-#ifdef DEBUG_CONFORMIZER
+#ifdef DEBUG_TRI_CONFORMIZER
   if (nbX)
   {
     std::ostringstream o;
@@ -885,20 +900,21 @@ Conformizer<DIM, Element_t>::__compute_intersections_brute
       DS_Type& e2 = _elements[j];
 
 #ifdef DEBUG_CONFORMIZER
-      if (e1.id == zTi)iTi = i;
+      /*if (e1.id == zTi)iTi = i;
       else if (e2.id == zTi)iTi = j;
 
       if (e1.id == zTi)
         aelts.push_back(e2);
       else if (e2.id == zTi)
-        aelts.push_back(e1);
+        aelts.push_back(e1);*/
 
       //if ((i == Ti && j == 11) || (i == 82624 && j == 25))
-      if (e1.id == zTi || e2.id == zTi)
+      //if (e1.id == zTi || e2.id == zTi)
       {
         std::vector<DS_Type> selec;
         selec.push_back(e1);
         selec.push_back(e2);
+        
         o.str("");
         o << "selec_" << count++ << ".mesh";
         this->drawElements(o.str().c_str(), "fmt_mesh", pos, connect, selec, false);
@@ -950,7 +966,7 @@ Conformizer<DIM, Element_t>::__compute_intersections_brute
 
 #ifdef DEBUG_CONFORMIZER
 
-  o.str("");
+  /*o.str("");
   o << "Xmolecule_" << zTi << ".mesh";
   xelts.push_back(iTi);
   xelts.push_back(zTi);
@@ -963,7 +979,7 @@ Conformizer<DIM, Element_t>::__compute_intersections_brute
   colors.push_back(1);
   aelts.push_back(zTi);
   if (aelts.size() > 1)
-    this->drawElements(o.str().c_str(), "fmt_mesh", pos, connect, aelts, 0, &colors);
+    this->drawElements(o.str().c_str(), "fmt_mesh", pos, connect, aelts, 0, &colors);*/
 
 #endif
 

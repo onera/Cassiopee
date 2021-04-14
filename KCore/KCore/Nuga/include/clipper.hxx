@@ -17,6 +17,7 @@
 #include "Nuga/include/T3Mesher.h"
 
 #include "Nuga/include/ph_clipper.hxx"
+#include "Nuga/include/classifyer.hxx"
 
 
 #ifdef DEBUG_CLIPPER
@@ -30,10 +31,10 @@ namespace NUGA
     using crd_t = K_FLD::FloatArray;
 
     template <typename aELT1, typename aELT2> //sub & cut are non const as they can be reoriented/reversed
-    inline E_Int isolated_clip(aELT1& sub, aELT2& cut, E_Float RTOL, std::vector<aELT1>& res, bool& true_clip);
+    inline E_Int isolated_clip(aELT1& sub, aELT2& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aELT1>& res, bool& true_clip);
 
     template <>
-    inline E_Int isolated_clip<aPolygon, edge_mesh_t>(aPolygon& sub, edge_mesh_t& cut, E_Float RTOL, std::vector<aPolygon>& bits, bool& true_clip)
+    inline E_Int isolated_clip<aPolygon, edge_mesh_t>(aPolygon& sub, edge_mesh_t& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aPolygon>& bits, bool& true_clip)
     {
       using cnt_t = K_FLD::IntArray;
       const crd_t& crd1 = sub.m_crd;
@@ -70,7 +71,8 @@ namespace NUGA
       crd.pushBack(crd2);
       K_FLD::IntArray cnt(subj), cnt2(cutter);
 
-      connect_trait<LINEIC, true>::reverse_orient(cnt2);  // BOOLEAN DIFF
+      if (oper == NUGA::INTERSECT::DIFFERENCE)
+        connect_trait<LINEIC, true>::reverse_orient(cnt2);
 
       cnt2.shift(nb_pts1);
       cnt.pushBack(cnt2);
@@ -96,9 +98,13 @@ namespace NUGA
       NUGA::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cnt, min_d, max_d);
       double Lref = ::sqrt(min_d);*/
       // using sub bbox
+      /* NOT WORKING neither when it's a planar case where the plane is axi-aligned => one corrdinate is the same => Lref gets null
       K_SEARCH::BBox3D bx;
       sub.bbox(sub.m_crd, bx);
-      double Lref = std::min(bx.maxB[0] - bx.minB[0], std::min(bx.maxB[1] - bx.minB[1], bx.maxB[2] - bx.minB[2]));
+      double Lref = std::min(bx.maxB[0] - bx.minB[0], std::min(bx.maxB[1] - bx.minB[1], bx.maxB[2] - bx.minB[2]));*/
+      // using sub bbox in 2D frame
+      K_SEARCH::BBox2D bx(crd, nb_pts1);
+      double Lref = std::min(bx.maxB[0] - bx.minB[0], bx.maxB[1] - bx.minB[1]);
  
       double ABSTOL = Lref * RTOL;
       ABSTOL = std::max(ABSTOL, ZERO_M);
@@ -248,7 +254,7 @@ namespace NUGA
       int minc = *std::min_element(ALL(data.colors));
       int maxc = *std::max_element(ALL(data.colors));
 
-      if (minc != maxc) // non-connex
+      if (minc != maxc) // non-connex or glued on some edges due to a big tol
       {
         std::map<int, K_FLD::IntArray> col_to_cntB;
         E_Int nbe = data.connectM.cols();
@@ -259,7 +265,7 @@ namespace NUGA
           for (size_t n = 0; n < 3; ++n)
           {
             E_Int& Kv = data.neighbors(n, i);
-            if (Kv == IDX_NONE) //border
+            if (Kv == IDX_NONE || data.colors[Kv] != coli) //color border
             {
               int E[] = { *(pS + (n + 1) % 3),*(pS + (n + 2) % 3) };
               col_to_cntB[coli].pushBack(E, E + 2);
@@ -316,7 +322,14 @@ namespace NUGA
     }
 
     template <>
-    inline E_Int isolated_clip<aPolyhedron<0>, pg_smesh_t>(aPolyhedron<0>& sub, pg_smesh_t& cut, E_Float RTOL, std::vector<aPolyhedron<0>>& bits, bool& true_clip)
+    inline E_Int isolated_clip<aPolygon, aPolygon>(aPolygon& sub, aPolygon& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aPolygon>& bits, bool& true_clip)
+    {
+      edge_mesh_t ecut(cut);
+      return isolated_clip<aPolygon, edge_mesh_t>(sub, ecut, oper, RTOL, bits, true_clip);
+    }
+
+    template <>
+    inline E_Int isolated_clip<aPolyhedron<0>, pg_smesh_t>(aPolyhedron<0>& sub, pg_smesh_t& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aPolyhedron<0>>& bits, bool& true_clip)
     {
       bool dbg(true);
       using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
@@ -339,7 +352,7 @@ namespace NUGA
 
 
     template <typename aELT1, typename aELT2>
-    bool compute(aELT1 & subj, aELT2 & cutter, std::vector<aELT1>& bits)
+    bool compute(aELT1 & subj, aELT2 & cutter, NUGA::INTERSECT::eOPER oper, std::vector<aELT1>& bits)
     {
       bool true_clip(false);
       double RTOL = 1.e-9;
@@ -348,7 +361,7 @@ namespace NUGA
       {
         bits.clear();
         true_clip = false;
-        err = isolated_clip(subj, cutter, RTOL, bits, true_clip);
+        err = isolated_clip(subj, cutter, oper, RTOL, bits, true_clip);
         RTOL *= 10;
       }
 
@@ -441,7 +454,7 @@ namespace NUGA
           //CLIPPING
           tmpbits.clear();
           if (!just_io)
-            just_io = !NUGA::CLIP::compute(ae1, acut_front, tmpbits); //robust_clip returns true if true clip
+            just_io = !NUGA::CLIP::compute(ae1, acut_front, NUGA::INTERSECT::DIFFERENCE, tmpbits); //robust_clip returns true if true clip
 
           // IO : current bit does not intersect front (or only along its boundaries)
           if (just_io)

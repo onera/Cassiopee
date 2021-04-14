@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sï¿½m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_t.hxx"
@@ -49,8 +49,9 @@ struct connect_trait<LINEIC, true>
 {
   using cnt_t = K_FLD::IntArray;
   using elt_t = K_MESH::Edge; using aelt_t = K_MESH::aEdge;
-  
   using neighbor_t = cnt_t;
+  using construct_elt_t = NUGA::aPolygon; // a polygon is a polyline (closed) => define a constructor
+
   static const E_Int index_start=0;
   static const bool BOUND_STRIDE = true;
 
@@ -121,6 +122,19 @@ struct connect_trait<LINEIC, true>
   {
     for (E_Int i=0; i<c.cols(); ++i)std::swap(c(0,i), c(1,i));
   }
+
+  // polygon => closed polyline
+  static void contruct_from_elt(const NUGA::aPolygon& e, K_FLD::FloatArray& crd, cnt_t& cnt)
+  {
+    crd = e.m_crd;
+    int nnodes = crd.cols();
+    cnt.resize(2, nnodes);
+    for (size_t i = 0; i < nnodes; ++i)
+    {
+      cnt(0, i) = i;
+      cnt(1, i) = (i + 1) % nnodes;
+    }
+  }
   
 };
 
@@ -131,6 +145,7 @@ struct connect_trait<SURFACIC, false>
   using cnt_t = ngon_unit;
   using elt_t = K_MESH::Polygon;  using aelt_t = NUGA::aPolygon;
   using neighbor_t = cnt_t;
+  using construct_elt_t = NUGA::aPolyhedron<UNKNOWN>;  // a polyhedron is a surface (closed) => define a constructor
 
   static const eGEODIM BOUND_GEODIM = LINEIC;
   static const bool BOUND_STRIDE = true;
@@ -247,6 +262,8 @@ struct connect_trait<VOLUMIC, false>
   using cnt_t = ngon_type;
   using elt_t = K_MESH::Polyhedron<UNKNOWN>; using aelt_t = NUGA::aPolyhedron<UNKNOWN>;
   using neighbor_t = ngon_unit;
+
+  using construct_elt_t = int;//DUMMY : non-sense in volumic
 
   static const eGEODIM BOUND_GEODIM = SURFACIC;
   static const bool BOUND_STRIDE = false;
@@ -489,6 +506,7 @@ struct mesh_t
   
   using elt_t = typename trait::elt_t;
   using aelt_t = typename trait::aelt_t;
+  using construct_elt_t = typename trait::construct_elt_t;
   
   using loc_t = localizer<K_SEARCH::BbTree3D>;
   using neighbor_t = typename trait::neighbor_t;
@@ -584,6 +602,11 @@ struct mesh_t
   mesh_t(const mesh_t<eGEODIM(GEODIM+1), USTRIDE>& parent_mesh):crd(crd), localiz(nullptr), neighbors(nullptr), oriented(parent_mesh.oriented)
   {
     parent_mesh.get_boundary<FIXSTRIDE>(*this);
+  }
+
+  mesh_t(const construct_elt_t& e):localiz(nullptr), neighbors(nullptr), oriented(0), metric_type(eMetricType::ISO_MIN)
+  {
+    trait::contruct_from_elt(e, crd, cnt);// polygon/polyhedron => polyline/surface 
   }
 
   ~mesh_t()

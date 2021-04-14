@@ -123,12 +123,12 @@ BAR_Conformizer<DIM>::__intersect
     {
     
     for (E_Int k = 0; k < DIM; ++k)
-      IP[k] = pos(k, N[n]) + u[n]*Edg1[k];
+      IP[k] = pos(k, N[0]) + u[n]*Edg1[k];
     }
     else
     {
       for (E_Int k = 0; k < DIM; ++k)
-      IP[k] = pos(k, N[n]) + u[n]*Edg2[k];
+      IP[k] = pos(k, N[2]) + u[n]*Edg2[k];
     }
     
     pos.pushBack(IP, IP+DIM);//addPoint(IP, pos);

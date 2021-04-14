@@ -22,6 +22,7 @@ b = G.close(b)
 a4 = T.subzone(a, [2,3,4,5], type='faces')
 a4 = C.convertArray2Hexa(a4)
 a4 = G.quad2Pyra(a4)
+a4 = C.convertArray2NGon(a4)
 a5 = T.join(a, a4)
 
 a5 = C.fillEmptyBCWith(a5, 'wall', 'BCWall')

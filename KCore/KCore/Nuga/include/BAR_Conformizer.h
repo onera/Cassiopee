@@ -52,7 +52,18 @@ protected:
 
 #ifdef DEBUG_CONFORMIZER
   ///
-  void drawElements(const char* fname, const char* filefmt, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect, const std::vector<E2> & elts, bool localid = false, std::vector<E_Int>* colors = 0){/*todo*/ }
+  void drawElements(const char* fname, const char* filefmt, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect, const std::vector<E2> & elts, bool localid = false, std::vector<E_Int>* colors = 0)
+  {
+    K_FLD::IntArray cB;
+    for (size_t i = 0; i < elts.size(); ++i)
+    {
+      cB.pushBack(connect.col(elts[i].id), connect.col(elts[i].id)+2);
+    }
+    K_FLD::FloatArray crd = coord;
+    crd.resize(3, coord.cols(), 0.);
+    medith::write(fname, crd, cB, "BAR");
+
+  }
 #endif
     
 private:

@@ -143,7 +143,7 @@ TRI_Conformizer<DIM>::__split_Elements
   NUGA::chrono c;
 #endif
   
-#ifdef DEBUG_CONFORMIZER
+#ifdef DEBUG_TRI_CONFORMIZER
   drawT3(pos, connect, zTi, true);
 #endif
 

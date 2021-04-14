@@ -135,6 +135,15 @@ namespace K_MESH
       //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
 
     }
+    template <E_Int DIM>
+    static void bary_coordinates(const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* P, E_Float* bary_coord)
+    {
+      E_Float Sinv = 1./ K_MESH::Triangle::surface(P0, P1, P2, DIM);
+
+      bary_coord[0] = Sinv * K_MESH::Triangle::surface(P, P1, P2, DIM);
+      bary_coord[1] = Sinv * K_MESH::Triangle::surface(P, P2, P0, DIM);
+      bary_coord[2] = Sinv * K_MESH::Triangle::surface(P, P0, P1, DIM);
+    }
 
 #ifndef NUGALIB
     static void normal(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* normal);
