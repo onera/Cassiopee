@@ -117,13 +117,27 @@ def contract(a, center, dir1, dir2, alpha):
     return C.TZGC2(a, Transform.contract, 'nodes', False, center, dir1, dir2, alpha)
 
 def _contract(a, center, dir1, dir2, alpha):
+    """Contract a mesh around a plane defined by (center, dir1, dir2) and of factor alpha.
+    Usage: contract(a, (xc,yc,zc), dir1, dir2, alpha)"""
     return C.__TZGC2(a, Transform._contract, center, dir1, dir2, alpha)
 
-def scale(a, factor=1.):
-    return C.TZGC2(a, Transform.scale, 'nodes', False, factor)
+def scale(a, factor=1., X=None):
+    """Scale a mesh of given factor."""
+    if X is None: 
+        try: 
+            import Generator.PyTree as G
+            X = G.barycenter(a)
+        except: pass
+    return C.TZGC2(a, Transform.scale, 'nodes', False, factor, X)
 
-def _scale(a, factor=1.):
-    return C.__TZGC2(a, Transform._scale, factor)
+def _scale(a, factor=1., X=None):
+    """Scale a mesh of given factor."""
+    if X is None: 
+        try: 
+            import Generator.PyTree as G
+            X = G.barycenter(a)
+        except: pass
+    return C.__TZGC2(a, Transform._scale, factor, X)
 
 def symetrize(a, point, vector1, vector2):
     """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.

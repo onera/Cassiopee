@@ -17,6 +17,7 @@ limit stacksize unlimited
 set KC=`uname -n`
 set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator"
 set MAC0=`echo $KC | grep 'ld'`; if ($%MAC0 != 0) set MAC="ld"
+set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'eos'`; if ($%MAC0 != 0) set MAC="eos"
 set MAC0=`echo $KC | grep 'ubuntu'`; if ($%MAC0 != 0) set MAC="ubuntu"
 set MAC0=`echo $KC | grep 'fulvio'`; if ($%MAC0 != 0) set MAC="fulvio"

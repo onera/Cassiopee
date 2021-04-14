@@ -523,13 +523,13 @@ Mesh transformation
 ---------------------------------------
 
 
-.. py:function:: Transform.scale(a, factor=1.)
+.. py:function:: Transform.scale(a, factor=1., X=None)
 
     .. A2.O1.D1
   
     Scale a  mesh of factor factor. If factor is a list of floats, scale
-    with given factor for each canonical axis. The invariant point is
-    the barycenter of a.
+    with given factor for each canonical axis. If invariant reference point X is not
+    given, it is set to the barycenter of a.
 
     Exists also as an in-place version (_scale) which modifies a and returns None.
 
@@ -537,6 +537,8 @@ Mesh transformation
     :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
     :param factor: scaling factor 
     :type factor: float or list of 3 floats
+    :param X: reference point
+    :type X: None or tuple of 3 floats
     :return: mesh after scaling
     :rtype: identical to input
 

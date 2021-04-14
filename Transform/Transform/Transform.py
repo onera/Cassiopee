@@ -297,17 +297,17 @@ def _contract(a, center, dir1, dir2, alpha):
         transform.contract(a, center, dir1, dir2, alpha)
     return None
 
-def scale(a, factor=1.):
+def scale(a, factor=1., X=None):
     """Scale a mesh following factor (constant) or (f1,f2,f3) following dir.
     Usage: scale(a, 1)"""
     b = Converter.copy(a)
-    _scale(b, factor)
+    _scale(b, factor, X)
     return b
 
-def _scale(a, factor=1.):
-    X = (0,0,0)
-    try: import Generator; X = Generator.barycenter(a)
-    except: pass
+def _scale(a, factor=1., X=None):
+    if X is None:
+        try: import Generator; X = Generator.barycenter(a)
+        except: X = (0,0,0)
     if isinstance(factor, list) or isinstance(factor, tuple):
         if len(factor) == 1:
             _homothety(a, X, factor)
