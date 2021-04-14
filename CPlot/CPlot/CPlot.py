@@ -1,6 +1,6 @@
 """Simple plotter for CFD.
 """
-__version__ = '3.2'
+__version__ = '3.3'
 __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier, Bertrand Michel"
 
 from . import cplot
@@ -527,7 +527,7 @@ def travelRight(xr=0.1, N=100):
     dirCam = getState('dirCam')
     d1 = Vector.sub(posEye,posCam)
     R = Vector.norm(d1)
-    L = 2.*3.24*R*xr*0.5
+    L = 2.*3.34*R*xr*0.5
     d2 = Vector.cross(d1, dirCam)
     d2 = Vector.normalize(d2)
     d2 = Vector.mul(L,d2)
@@ -547,7 +547,7 @@ def travelLeft(xr=0.1, N=100):
     dirCam = getState('dirCam')
     d1 = Vector.sub(posEye,posCam)
     R = Vector.norm(d1)
-    L = 2*3.24*R*xr*0.5
+    L = 2*3.34*R*xr*0.5
     d2 = Vector.cross(d1, dirCam)
     d2 = Vector.normalize(d2)
     d2 = Vector.mul(L,d2)
@@ -567,7 +567,7 @@ def travelUp(xr=0.1, N=100):
     dirCam = getState('dirCam')
     d1 = Vector.sub(posEye,posCam)
     R = Vector.norm(d1)
-    L = 2*3.24*R*xr*1.
+    L = 2*3.34*R*xr*1.
     d2 = Vector.normalize(dirCam)
     d2 = Vector.mul(L,d2)
     P2 = Vector.add(posCam, d2)
@@ -581,7 +581,7 @@ def travelDown(xr=0.1, N=100):
     dirCam = getState('dirCam')
     d1 = Vector.sub(posEye,posCam)
     R = Vector.norm(d1)
-    L = 2*3.24*R*xr*1.
+    L = 2*3.34*R*xr*1.
     d2 = Vector.normalize(dirCam)
     d2 = Vector.mul(L,d2)
     P2 = Vector.sub(posCam, d2)

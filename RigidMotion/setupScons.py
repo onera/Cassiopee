@@ -49,7 +49,7 @@ listExtensions.append(
 # Setup ======================================================================
 setup(
     name="RigidMotion",
-    version="3.2",
+    version="3.3",
     description="Compute/define rigid motion.",
     author="Onera",
     package_dir={"":"."},
