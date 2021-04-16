@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_t.hxx"
@@ -129,7 +129,7 @@ struct connect_trait<LINEIC, true>
     crd = e.m_crd;
     int nnodes = crd.cols();
     cnt.resize(2, nnodes);
-    for (size_t i = 0; i < nnodes; ++i)
+    for (E_Int i = 0; i < nnodes; ++i)
     {
       cnt(0, i) = i;
       cnt(1, i) = (i + 1) % nnodes;

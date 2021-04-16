@@ -229,17 +229,19 @@ def _merge__(t):
     tp = Internal.copyRef(t)
     if not Internal.isTopTree(t): return tp
     if rank > 0:
-        out = []
-        for i in t[2]:
-            if i[3] != 'Zone_t': out.append(i)
-        tp[2] = out
+        for b in Internal.getBases(tp):
+            out = []
+            for i in b[2]:
+                if i[3] != 'Zone_t': out.append(i)
+            b[2] = out
         KCOMM.send(tp, dest=0)
+        return t
     if rank == 0:
         for i in range(1, size):
             ret = KCOMM.recv(source=i)
             if ret is not None:
                 tp = Internal.merge([tp, ret])
-    return tp
+        return tp
     
 #==============================================================================
 # Ecriture sequentielle

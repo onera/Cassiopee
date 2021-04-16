@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __KCORE_SEARCH_BBTREE_H__
 #define __KCORE_SEARCH_BBTREE_H__
@@ -58,7 +58,7 @@ public:
 
     if (N0 < 0 || N0 >= pos.cols()) N0 = pos.cols(); //if max id is not (or badly) specified
 
-    for (size_t i = 0; i < N0; ++i)
+    for (E_Int i = 0; i < N0; ++i)
     {
       Pi = pos.col(i);
       for (E_Int j = 0; j < DIM; ++j)

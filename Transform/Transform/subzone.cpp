@@ -47,6 +47,10 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
   if (res == 1)
   { 
     // Negative -> max indices
+    if (i1 < 0) i1 = im+i1+1;
+    if (j1 < 0) j1 = jm+j1+1;
+    if (k1 < 0) k1 = km+k1+1;
+    
     if (i2 < 0) i2 = im+i2+1;
     if (j2 < 0) j2 = jm+j2+1;
     if (k2 < 0) k2 = km+k2+1;

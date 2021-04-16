@@ -145,6 +145,8 @@ def symetrize(a, point, vector1, vector2):
     return C.TZGC2(a, Transform.symetrize, 'nodes', False, point, vector1, vector2)
 
 def _symetrize(a, point, vector1, vector2):
+    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
     return C.__TZGC2(a, Transform._symetrize, point, vector1, vector2)
 
 def perturbate(a, radius, dim=3):
@@ -153,6 +155,8 @@ def perturbate(a, radius, dim=3):
     return C.TZANW(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
 
 def _perturbate(a, radius, dim=3):
+    """Perturbate a mesh randomly of radius
+    Usage: perturbate(a, radius, dim)"""
     return C._TZANW(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
 
 def smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
@@ -166,6 +170,8 @@ def smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
 
 def _smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
             projConstraints=[], delta=1., point=(0,0,0), radius=-1.):
+    """Smooth a mesh with a Laplacian.
+    Usage: smooth(t, eps, niter, type, fixedConstraints, projConstraints, delta)"""
     if fixedConstraints != []:
         c = []
         for z in fixedConstraints:
@@ -193,6 +199,8 @@ def deform(t, vector=['dx','dy','dz']):
     return tp
 
 def _deform(t, vector=['dx','dy','dz']):
+    """Deform surface by moving surface of the vector (dx, dy, dz).
+    Usage: deform(t, vector=['dx','dy','dz'])"""
     if len(vector) != 3: raise ValueError("deform: 3 variables are required.")
     return C._TZANW(t, 'nodes', 'nodes', Transform.deform, None, vector)
 

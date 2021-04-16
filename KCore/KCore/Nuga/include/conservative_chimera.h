@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CONSERVATIVE_CHIMERA_H
 #define NUGA_CONSERVATIVE_CHIMERA_H
@@ -15,7 +15,8 @@
 #include "Nuga/include/conservative_chimera.hxx"
 #include "Nuga/include/Triangulator.h"
 #include "Nuga/include/DynArray.h"
-
+#include "Nuga/include/mesh_t.hxx"
+#include "Nuga/include/xmatch.hxx"
 
 namespace NUGA
 {
@@ -157,8 +158,8 @@ namespace NUGA
     int ret(0);
     ngon_unit pgsR(cntR.begin()), pgsD(cntD.begin());
 
-    zmesh_t m0(crdR, pgsR);
-    zmesh_t m1(crdD, pgsD);
+    NUGA::pg_smesh_t m0(crdR, pgsR);
+    NUGA::pg_smesh_t m1(crdD, pgsD);
     
     NUGA::interpol_coeffs_for_first(m0, m1, 1.e-6, dindices, dcoeffs, xr, do_omp);
    

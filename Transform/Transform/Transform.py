@@ -290,6 +290,8 @@ def contract(a, center, dir1, dir2, alpha):
     return b
 
 def _contract(a, center, dir1, dir2, alpha):
+    """Contract a mesh around a plane defined by (center, dir1, dir2) and of factor alpha.
+    Usage: contract(a, (xc,yc,zc), dir1, dir2, alpha)"""
     if isinstance(a[0], list): 
         for i in a:
             transform.contract(i, center, dir1, dir2, alpha)
@@ -299,12 +301,14 @@ def _contract(a, center, dir1, dir2, alpha):
 
 def scale(a, factor=1., X=None):
     """Scale a mesh following factor (constant) or (f1,f2,f3) following dir.
-    Usage: scale(a, 1)"""
+    Usage: scale(a, 1.)"""
     b = Converter.copy(a)
     _scale(b, factor, X)
     return b
 
 def _scale(a, factor=1., X=None):
+    """Scale a mesh following factor (constant) or (f1,f2,f3) following dir.
+    Usage: scale(a, 1.)"""
     if X is None:
         try: import Generator; X = Generator.barycenter(a)
         except: X = (0,0,0)
