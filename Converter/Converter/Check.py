@@ -104,6 +104,7 @@ CGNSTypes = {
 # OUT: error = [noeud posant probleme, message]
 #==============================================================================
 def checkPyTree(t, level=-20):
+    """Check different conformity in tree."""
     errors = []
     if level <= 0 or level == 0:
         # check version node
@@ -167,11 +168,13 @@ def checkPyTree(t, level=-20):
 # Correct pyTree
 #==============================================================================
 def correctPyTree(t, level=-20):
+    """Correct non conformities in tree."""
     tp = Internal.copyRef(t)
     _correctPyTree(tp, level)
     return tp
 
 def _correctPyTree(t, level=-20):
+    """Correct non conformities in tree."""
     # Corrige le noeud version
     if level <= 0 or level == 0:
         _correctVersionNode(t)
@@ -224,6 +227,7 @@ def _correctPyTree(t, level=-20):
 # Doit etre en premier dans l'arbre et non duplique.
 #==============================================================================
 def checkVersionNode(t):
+    """Check version node."""
     errors = []
     if len(t) == 4 and t[3] == 'CGNSTree_t':
         version = Internal.getNodesFromType1(t, 'CGNSLibraryVersion_t')
@@ -237,6 +241,7 @@ def checkVersionNode(t):
 # Correct version node, en cree un ou supprime ceux en trop
 #==============================================================================
 def _correctVersionNode(t):
+    """Correct version node."""
     errors = checkVersionNode(t)
     le = len(errors)//3
     added = 0
@@ -258,6 +263,7 @@ def _correctVersionNode(t):
 # de caracteres avec des blancs au debut ou a la fin
 #==============================================================================
 def checkNodes(node):
+    """Check basic node conformity (types)."""
     errors = []
     isStd = Internal.isStdNode(node)
     if isStd >= 0:
@@ -302,6 +308,7 @@ def checkNode__(node, parent, errors):
 # Delete les noeuds non conformes
 #==============================================================================
 def _correctNodes(t):
+    """Delete non conform nodes."""
     errors = checkNodes(t)
     le = len(errors)//3
     for e in range(le):
@@ -467,7 +474,6 @@ def checkBCFaces(t, ntype):
     else: ctype = 'ZoneGridConnectivity_t'
     zones = Internal.getZones(t)
     for z in zones:
-        dim = Internal.getZoneDim(z)
         bcs = Internal.getNodesFromType1(z, ctype)
         for bc in bcs:
             r = Internal.getElementRange(bc, type="NGON")
@@ -541,6 +547,9 @@ def checkDonorFaces(t, ntype):
     for z in zones:
         bcs = Internal.getNodesFromType1(z, ctype)
         for bc in bcs:
+            r = Internal.getElementRange(bc, type="NGON")
+            if r is not None: nfaces = r[1]-r[0]+1
+            else: nfaces = 0
             nodes = Internal.getNodesFromType1(bc, ntype)
             for n in nodes:
                 donorName = Internal.getValue(n)
@@ -806,7 +815,6 @@ def checkBaseZonesDim(t):
 def _correctBaseZonesDim(t):
     bases = Internal.getBases(t)
     for b in bases:
-        dimBase = b[1][0]
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         z1 = []; z2 = []; z3 = [] # zones de dim 1,2,3                   
         for z in zones:
@@ -893,6 +901,7 @@ def checkMGForDonorBCRanges(z, ntype, multigrid, sizemin):
 # level is the MG level that must be ensured: N = 2^level+1
 #==============================================================================
 def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
+    """Check multigrid validity (zones, BC and connectivities)."""
     errors = []
     if level == 0: return errors
     puiss = 2**(level)
@@ -929,6 +938,7 @@ def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
 # Check if the number of points of a zone does not exceed sizeMax
 #=============================================================================
 def checkSize(t, sizeMax=100000000):
+    """Check if the number of points of zones dont exceed sizeMax."""
     errors = []
     for z in Internal.getZones(t):
         dims = Internal.getZoneDim(z)
@@ -942,6 +952,7 @@ def checkSize(t, sizeMax=100000000):
 # Verifie que le type des noeuds est dans CGNSTypes
 #==============================================================================
 def checkCGNSType(node):
+    """Check if all node are of a valid CGNS type."""
     errors = []
     isStd = Internal.isStdNode(node)
     if isStd >= 0:
@@ -960,6 +971,7 @@ def checkCGNSType__(node, parent, errors):
 # Delete les noeuds de type non valide
 #==============================================================================
 def _correctCGNSType(t):
+    """Delete nodes of invalid CGNS types."""
     errors = checkCGNSType(t)
     le = len(errors)//3
     for e in range(le):
