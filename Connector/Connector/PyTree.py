@@ -306,7 +306,7 @@ def getEmptyWindowsInfoNGON__(t, dim=3):
                 C._initVars(winp,'centers:tag2',-2.) # defines the opp index in opp window
                 allTags += [winp]; indirBlkOfWins += [noz]
                 allExtIndices += [fl]
-    return allTags, indirBlkOfWins, allExtIndices    
+    return allTags, indirBlkOfWins, allExtIndices
 
 def getEmptyWindowsInfoHybrid__(t, dim=3):
     try: import Transform.PyTree as T
@@ -336,7 +336,7 @@ def getEmptyWindowsInfoHybrid__(t, dim=3):
                 allTags += [winp]; indirBlkOfWins += [noz]
                 ind = Converter.converter.range2PointList(r[0],r[1],r[2],r[3],r[4],r[5],dimZ[1],dimZ[2],dimZ[3])
                 allExtIndices += [ind]
-    return allTags, indirBlkOfWins, allExtIndices  
+    return allTags, indirBlkOfWins, allExtIndices
 
 #==============================================================================
 def getEmptyWindowsInfoStruct__(t, dim=3):
@@ -621,17 +621,17 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
                                signT[i-1],signR[i-1],dupname,unitAngle=unitAngle)
             # CORRECTIF DANS LE CAS 180 DEG : LA PREMIERE PASSE FAIT LES 2 RACCORDS MIN ET MAX
             # MAIS L ANGLE N EST PAS BON POUR LE 2E RACCORD SI PAS CE CORRECTIF
-            if i == 1: 
+            if i == 1:
                 for angle in rotationAngle:
-                    if angle == 180. or angle==-180.: 
+                    if angle == 180. or angle==-180.:
                         nogci = 0
                         for gc in gcnodes:
                             if Internal.getValue(gc)==Internal.getName(zonesS[noz]):
                                 rotation_angle = Internal.getNodeFromName(gc, "RotationAngle")
                                 if rotation_angle:
                                     nogci+=1
-                                    if nogci == 2:# changement de signe                                        
-                                        rotation_angle=Internal.getValue(rotation_angle) 
+                                    if nogci == 2:# changement de signe
+                                        rotation_angle=Internal.getValue(rotation_angle)
                                         for j in range(3): rotation_angle[j]=-rotation_angle[j]
 
         infoPer[i] = []
@@ -1051,7 +1051,7 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
         print('Set to default (cell_intersect).')
         blankType = 1
     loc = 'centers'
-    if blankType == 0: loc = 'nodes' 
+    if blankType == 0: loc = 'nodes'
 
     varCellN = cellNName
     if loc == 'centers': varCellN='centers:'+varCellN
@@ -1060,7 +1060,7 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
     for nos in range(len(tb[2])):
         if tb[2][nos][3]=='CGNSBase_t':
             bodyZones = Internal.getZones(tb[2][nos])
-            if len(bodyZones)>0: 
+            if len(bodyZones)>0:
                 bodies = C.getFields(Internal.__GridCoordinates__, bodyZones) # pas d api=2 car peut etre non structure
 
                 nobase=0
@@ -1123,7 +1123,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
         blankType = 1
 
     nb = 0
-   
+
     # ajout du celln aux centres si n'existe pas pour une zone
     loc = 'centers'
     if blankType == 0: loc = 'nodes'
@@ -1340,7 +1340,7 @@ def getInterpolatedPoints(z, loc='centers', cellNName='cellN'):
     if loc == 'centers':
         zc = C.node2Center(z)
         return connector.getInterpolatedPointsZ(zc, cellNName, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
-    else: 
+    else:
         return connector.getInterpolatedPointsZ(z, cellNName, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
 
 #==============================================================================
@@ -1475,7 +1475,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                 isTempPeriodicZone1 = 0
                 if Internal.getNodeFromName1(z1,'TempPeriodicZone') is None:
                     r1 = Internal.getParentOfNode(a, z1); parent1 = r1[0]; d1 = r1[1]
-                    
+
                 else: isTempPeriodicZone1 = 1
                 ae1 = allExtCenters[nob1][noz1]
                 ac1 = allCenters[nob1][noz1]
@@ -1594,7 +1594,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                                 if isTempPeriodicZone2==0: parent2[2][d2] = z2
     # Delete duplicated periodic zones
     C._removeDuplicatedPeriodicZones__(a)
-    
+
     C._rmVars(a, 'centers:vol')
     # remise a jour du celln : de 3 passe a 2
     C._initVars(a,'{centers:cellN}=minimum(2.,{centers:cellN})')
@@ -1622,7 +1622,7 @@ def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN', a
     cellN = C.getField(var, t)
     cellN = Connector.maximizeBlankedCells(cellN, depth, dir, cellNName=cellNName)
     C.setFields(cellN, t, loc, False)
-    
+
     if addGC:
         if ghost is None: Internal._rmGhostCells(t, t, depth, modified=[var])
     return None
@@ -1816,9 +1816,9 @@ def setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
     if loc == 'centers': varcelln = 'centers:'+cellNName
     else: varcelln = cellNName
     if ghost is None:
-        a = Internal.addGhostCells(a, a, 2, modified=[varcelln])
+        a = Internal.addGhostCells(a, a, abs(depth), modified=[varcelln])
         a = setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-        a = Internal.rmGhostCells(a,a,2, modified=[varcelln])
+        a = Internal.rmGhostCells(a,a,abs(depth), modified=[varcelln])
     return a
 
 def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
@@ -1842,7 +1842,7 @@ def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
     else: varcelln = cellNName
     count = 0
     for z in Internal.getZones(a):
-        dims = Internal.getZoneDim(z)        
+        dims = Internal.getZoneDim(z)
         if dims[0] == 'Unstructured' and count == 1: pass
         else: # passage ghost cells
             cellN = C.getField(varcelln, z, api=2)[0]
@@ -1862,11 +1862,11 @@ def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
         if ghost is None:
             if loc == 'centers': varcelln = 'centers:'+cellNName
             else: varcelln = cellNName
-            Internal._addGhostCells(a, a, 2, modified=[varcelln])
+            Internal._addGhostCells(a, a, abs(depth), modified=[varcelln])
             _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-            Internal._rmGhostCells(a,a,2, modified=[varcelln])
+            Internal._rmGhostCells(a, a, abs(depth), modified=[varcelln])
     return None
-    
+
 #=============================================================================
 # Retourne la liste des zones donneuses definies dans la CL doubly defined
 # ainsi que le cellN associe. Prend en compte les zones donneuses periodisees
@@ -1879,7 +1879,7 @@ def getDoublyDefinedDonorZones__(oversetgcnode, topTreeD):
     else: # nom de famille a la Cannelle
         DFN = Internal.getNodeFromName2(oversetgcnode,'DonorFamilyName')
         if DFN is not None: donorNames0 = Internal.getValue(DFN).split(",")
-    
+
     donorNames = []
     for donorName in donorNames0:
         famZones = C.getFamilyZones(topTreeD,donorName)
