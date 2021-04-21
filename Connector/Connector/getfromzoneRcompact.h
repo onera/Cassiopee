@@ -2,7 +2,7 @@
         // Calcul dimension zone receveuse
         //
         PyObject* solR;
-        if  (loc==0) { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution"        ); }
+        if  (loc==0) { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution"); }
         else  { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution#Centers"); }
         t = K_PYTREE::getNodeFromName1(solR, varname);
         iptroR = K_PYTREE::getValueAF(t, hook);
@@ -18,7 +18,8 @@
           E_Int shift = 0; if(loc == 1) shift = 3;
           if (s0 == 1) { ndimdxR= d[0+shift]; }
           else if (s0 == 2) { ndimdxR= d[0+shift]*d[1+shift]; } 
-          else if (s0 == 3) { ndimdxR= d[0+shift]*d[1+shift]*d[2+shift]; } 
+          else if (s0 == 3) { ndimdxR= d[0+shift]*d[1+shift]*d[2+shift]; }
+          else ndimdxR = -1; // error
          }
         else // non structure
          {

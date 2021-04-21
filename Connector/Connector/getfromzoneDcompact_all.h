@@ -56,6 +56,7 @@
            vector<PyObject*> ln;
            K_PYTREE::getNodesFromType1(zoneD, "Elements_t", ln);
            E_Int size = ln.size();
+           cnNfldD = -1; // must be set
            //printf("size %d\n", size);
            for (E_Int i = 0; i < size; i++)
            {
@@ -118,7 +119,8 @@
                      ptrcnd  = NULL;
                      break;
             
-                   default: break;
+                   default: 
+                     break;
                  }
                }
              }  // loop size

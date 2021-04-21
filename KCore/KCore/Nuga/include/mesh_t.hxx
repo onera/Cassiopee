@@ -515,10 +515,10 @@ struct mesh_t
   cnt_t               cnt;
   mutable std::vector<E_Int>   e_type, flag;
   mutable std::vector<E_Float> nodal_metric2; // square dist
-  mutable eMetricType          metric_type;
   mutable loc_t*               localiz;
   mutable neighbor_t*          neighbors;
   int                          oriented;
+  mutable eMetricType          metric_type;
 
   // CONSTRUCTORS / DESTRUCTOR //
 

@@ -1,4 +1,4 @@
-//#define OPT_VERSION
+#define OPT_VERSION
 
 /*
     Copyright 2013-2021 Onera.

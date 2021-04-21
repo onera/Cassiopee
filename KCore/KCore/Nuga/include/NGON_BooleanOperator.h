@@ -4843,7 +4843,7 @@ bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
 
   algoT3::getBoundToElements(acT3, noE_to_oTs);
 
-  E_Int K0, E0, E1, N1, sz, Kb, i, j;
+  E_Int K0, E0, E1, N1, sz, i;
   std::set<std::pair<E_Int, E_Int> > faultyT3_pairs;
 
   algoT3::BoundToEltType::iterator it, itEnd(noE_to_oTs.end());

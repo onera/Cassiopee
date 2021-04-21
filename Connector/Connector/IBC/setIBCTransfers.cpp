@@ -69,7 +69,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   //E_Int nbRcvPts = rcvPtsI.getSize();
 
   E_Float a0,a1,a2,b0,b1,b2,n0,n1,n2;
-  E_Float normb, ro, u,v,w, p, roE;
+  E_Float normb, u,v,w, roE;
   E_Float vnc, alpha, beta, alphasbeta;
   E_Float* roOut  = vectOfRcvFields[0];// ro
   E_Float* rouOut = vectOfRcvFields[1];// rou

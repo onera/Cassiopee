@@ -119,13 +119,11 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   // Creation of the kdtree of vertices of the tesselation 
   ArrayAccessor<FldArrayF>* coordAcc = new ArrayAccessor<FldArrayF>(*fr, posxr, posyr, poszr);
   K_SEARCH::KdTree<FldArrayF>* kdt = new K_SEARCH::KdTree<FldArrayF>(*coordAcc);
-  E_Int nbEltsR = cnr->getSize();
   E_Int nbPtsR = fr->getSize();
 
   //projection des points de fd(nuage) sur fr(TRI)
-  E_Float xo, yo, zo, rx, ry, rz, rad;
   E_Float pt[3];
-  E_Int indev, indR;
+  E_Int indR;
   vector < vector<E_Int> > cveR(nbPtsR);//connectivite vertex/elts
   K_CONNECT::connectEV2VE(*cnr, cveR);
   vector< vector<E_Int> > listOfDnrIndPerTri(nbPtsR);
@@ -221,7 +219,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
         // search for the max length of the triangles containing indR 
         vector<E_Int>& eltsVoisins = cveR[indR];
         E_Float projTol2 = 0.;
-        for (E_Int noetv = 0; noetv < eltsVoisins.size(); noetv++)
+        for (size_t noetv = 0; noetv < eltsVoisins.size(); noetv++)
         {
           E_Int etv = eltsVoisins[noetv];
           E_Int ind1 = cn1[etv]-1; E_Int ind2 = cn2[etv]-1; 
@@ -359,7 +357,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
           E_Int& posIndD = posPtrDnrIndices[nozDnr];
           ptrIndicesD[posIndD] = vectOfIndDPerDnrZone[nozDnr].size(); posIndD++;
 
-          for (size_t ii = 0; ii < nbOfDnrIndices; ii++)
+          for (E_Int ii = 0; ii < nbOfDnrIndices; ii++)
           {
             E_Int noind = vectOfDnrIndices[ii];
             ptrIndicesD[posIndD] = dnrIndices[noind]; posIndD++;

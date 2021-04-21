@@ -48,7 +48,6 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
   PyObject *indiceslist; // domaines d interpolation
   PyObject *coefflist;
   PyObject *typ;
-  E_Int dim;
   E_Int nb_ind;
   E_Int ni;
   E_Int nj;
@@ -68,22 +67,22 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
   E_Int j;
   E_Int k;
   E_Int compt=0;
-  E_Int imin=ni;
-  E_Int imax=1;
-  E_Int jmin=nj;
-  E_Int jmax=1;
-  E_Int kmin=nk;
-  E_Int kmax=1;
+  //E_Int imin=ni;
+  //E_Int imax=1;
+  //E_Int jmin=nj;
+  //E_Int jmax=1;
+  //E_Int kmin=nk;
+  //E_Int kmax=1;
   E_Int indCoef=0;
   E_Float a;
   E_Float b;
   E_Float xc;
   E_Float yc;
   E_Float zc;
-  E_Float S=0.0;
+  //E_Float S=0.0;
   E_Float tab[8][3];
   E_Int tab_[8];
-  E_Int dirD;
+  //E_Int dirD;
  
  /// Recuperation du tableau de stockage des valeurs
   //PyObject* indiceslist = PyList_GetItem(indiceslist,0); FldArrayF* drodm;

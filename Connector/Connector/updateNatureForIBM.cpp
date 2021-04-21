@@ -78,7 +78,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
   
   E_Float* ptrCellNIBC  = fields[poscellni];
   E_Float* ptrCellNChim = fields[poscellnc];
-  E_Float* ptrCellNFront = fields[poscellnf];
+  //E_Float* ptrCellNFront = fields[poscellnf];
   E_Int imc = K_FUNC::E_max(1,im-1);
   E_Int jmc = K_FUNC::E_max(1,jm-1);
   E_Int kmc = K_FUNC::E_max(1,km-1);

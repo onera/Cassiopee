@@ -153,7 +153,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
         if (PyList_Check(pyVariables) != 0) 
         {
             int nvariables = PyList_Size(pyVariables);
-            if ( nvariables > 0 ) 
+            if (nvariables > 0) 
             {
                 for (int i = 0; i < nvariables; i++ ) 
                 {
@@ -346,11 +346,11 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
 
     // E_Int kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
-    E_Int   kmd, cnNfldD, nvars, ndimdxD, meshtype;
+    E_Int   kmd, cnNfldD, nvars, meshtype;
     //E_Float* iptroD;
 
-    if     ( vartype <= 3 &&  vartype >= 1) nvars =5;
-    else if( vartype == 4 ) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
+    if       (vartype <= 3 &&  vartype >= 1) nvars =5;
+    else if  (vartype == 4) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
     else                    nvars =6;
 
     E_Int nidomD = PyList_Size( zonesD );
@@ -501,7 +501,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 		// Le pas de temps de la zone donneuse est plus petit que celui de la zone receveuse   
 		if (levelD > levelR and num_passage == 1)		
 		  {
-		    if (nstep%cyclD==cyclD-1 or nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==1)
+		    if (nstep%cyclD==cyclD-1 || (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1))
 		      { autorisation_transferts[pass_inst][irac_auto]=1; }
 		    else {continue;}
 		  }

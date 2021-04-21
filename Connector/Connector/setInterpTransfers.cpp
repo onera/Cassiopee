@@ -450,7 +450,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
     {  
       E_Int indR, type, nocf;
       E_Int indD0, indD, i, j, k, ncfLoc;
-      E_Int noi = 0; // compteur sur le tableau d indices donneur
+      E_Int noi = 0; // compteur sur le tableau d'indices donneur
       E_Int sizecoefs = 0;
       E_Float* cellNR = fieldsR[poscr];
       E_Float* cellND = fieldsD[poscd];
@@ -531,7 +531,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
      3  : (ro,u,v,w,p)     
      31 : (ro,u,v,w,p) + ronutildeSA */
   E_Int varType = E_Int(vartype); 
-  E_Int flagIbc = E_Int(flagibc); 
+  E_Int flagIbc = E_Int(flagibc);
   E_Int ibcType =  E_Int(bctype);
   vector<PyArrayObject*> hook;
   E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
@@ -669,7 +669,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
      } 
     }// omp
 
-    if(flagIbc>0)
+    if (flagIbc>0)
     {
       E_Int threadmax_sdm  = __NUMTHREADS__;
       E_Int pos      = ipt_param_int[ shift_rac + irac];
@@ -779,8 +779,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   PyObject *pyParam_int, *pyParam_real;
   E_Int vartype, type_transfert, no_transfert, It_target, nstep, nitmax;
   E_Int rk, exploc, num_passage;
-  E_Float gamma, cv, muS, Cs, Ts, Pr;
-
+  
   if (!PYPARSETUPLE(args,
                     "OOOOOlllllllll", "OOOOOiiiiiiiii",
                     "OOOOOlllllllll", "OOOOOiiiiiiiii",
@@ -976,6 +975,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
     //# pragma omp parallel default(shared)  num_threads(1)
     # pragma omp parallel default(shared)
     {
+      
+      E_Float gamma, cv, muS, Cs, Ts, Pr;
 
 #ifdef _OPENMP
      E_Int  ithread           = omp_get_thread_num()+1;
@@ -1134,10 +1135,10 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
         else { pt_deb = ideb + (chunk+1)*r+(ithread-r-1)*chunk; pt_fin = pt_deb + chunk; } 
 
         //Si type 0, calcul sequentiel
-        if      ( type == 0 )
-          { if (ithread ==1 ){ pt_deb = ideb; pt_fin = ifin;}
-            else             { pt_deb = ideb; pt_fin = ideb;}
-          }
+        if  ( type == 0 )
+        { if (ithread ==1 ){ pt_deb = ideb; pt_fin = ifin;}
+          else             { pt_deb = ideb; pt_fin = ideb;}
+        }
 
 /// newschool suite
 //        if (nd  <  r) { pt_deb = ideb + nd*(chunk+1)               ; pt_fin = pt_deb + (chunk+1); }  
@@ -1236,7 +1237,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
       }// autorisation transfert
     }//irac
    }//pass_inst
-  #pragma omp barrier 
+  #pragma omp barrier
   }//ipass
   }// omp
 

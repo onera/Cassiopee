@@ -299,7 +299,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
     /*--------------------------------------------------------*/    
     E_Float tol = K_CONST::E_GEOM_CUTOFF;
     E_Float dirn, dirx0, diry0, dirz0;
-    E_Float xsb, ysb, zsb, xsf, ysf, zsf;
+    E_Float xsb, ysb, zsb;
     E_Float dist0, xc0, yc0, zc0, xw0, yw0, zw0, xi0, yi0, zi0;
     E_Float dist2, distl;
     vector<E_Int> indicesBB; 
