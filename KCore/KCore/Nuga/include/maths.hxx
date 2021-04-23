@@ -280,7 +280,8 @@ inline double angle_measure
 ///
 inline double normals_angle (const E_Float* ni, const E_Float* nj)
 {
-  //
+  // Angle between 2 normals (conical tolerance)
+
   E_Float nk[3];
   NUGA::crossProduct<3>(ni, nj, nk);
   E_Float c = NUGA::dot<3>(ni, nj);
@@ -302,7 +303,7 @@ inline double normals_angle (const E_Float* ni, const E_Float* nj)
     std::cout << "ERROR : GeomAlgo::angle_measure : 0 or 2Pi ?" << std::endl;
     assert(false);
 #endif
-    return NUGA::PI; //error : either 0 or 2Pi are wrong. return one of them as an arbitray choice.
+    return NUGA::PI; 
   }
 
 }

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sï¿½m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CONSERVATIVE_CHIMERA_H
 #define NUGA_CONSERVATIVE_CHIMERA_H

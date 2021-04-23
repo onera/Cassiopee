@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sï¿½m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_t.hxx"
@@ -127,7 +127,7 @@ struct connect_trait<LINEIC, true>
   static void contruct_from_elt(const NUGA::aPolygon& e, K_FLD::FloatArray& crd, cnt_t& cnt)
   {
     crd = e.m_crd;
-    int nnodes = crd.cols();
+    E_Int nnodes = crd.cols();
     cnt.resize(2, nnodes);
     for (E_Int i = 0; i < nnodes; ++i)
     {
@@ -252,6 +252,13 @@ struct connect_trait<SURFACIC, false>
       E_Int* p = c.get_facets_ptr(PGi);
       std::reverse(p, p + s);
     }
+  }
+
+  // polyhedron => closed surface
+  static void contruct_from_elt(const NUGA::aPolyhedron<0>& e, K_FLD::FloatArray& crd, cnt_t& cnt)
+  {
+    crd = e.m_crd;
+    cnt = e.m_pgs;
   }
 };
 

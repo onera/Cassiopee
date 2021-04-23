@@ -29,7 +29,7 @@
 namespace NUGA
 {
   enum eXPolicy { COLLISION, XCELLN_VAL, XCELLN_OUT, MESH };
-  enum eClassify { AMBIGUOUS = -1, IN = 0, X = 1, OUT = 2, UPPER_COL = 3 };
+  enum eClassify { AMBIGUOUS = -1, IN/*IN_2*/ = 0, IN_1=1, X = 2, OUT = 3, UPPER_COL = 4 };
 
   template <eXPolicy POLICY, typename zmesh_t> // implemented for COLLISION policy. Second template arg is only there for XCELLN_OUT/MESH modes
   struct data_trait
@@ -311,7 +311,50 @@ namespace NUGA
       }
 
       assert(sign);
-      return (sign < 0) ? OUT : IN;
+      return (sign < 0) ? OUT : IN; //assume outward orientation
+    }
+
+    template <>
+    eClassify classify(NUGA::aPolyhedron<0> const& ae1, NUGA::aPolyhedron<0> const& ae2, bool deep)
+    {
+      // WARNING : assume ae1 and ae2 are closed surface (polyhedra)
+      // WARNING : assume no collision situation => 3 posibilities : 1 in 2, 2 in 1 or separated
+
+      assert(ae1.m_oriented != 0);
+      assert(ae2.m_oriented != 0);
+      
+      // 1 in 2 ?
+      const double* G1 = ae1.get_centroid();
+      DELAUNAY::Triangulator dt;
+      ae2.triangulate(dt, ae2.m_crd);
+      double omega = 0.;
+      for (size_t i = 0; i < ae2.nb_tris(); ++i)
+      {
+        int T[3];
+        ae2.triangle(i, T);
+        omega += K_MESH::Triangle::oriented_trihedral_angle(G1, ae2.m_crd.col(T[0]), ae2.m_crd.col(T[1]), ae2.m_crd.col(T[2]));
+      }
+
+      omega = ::fabs(::fabs(omega) - 4. *NUGA::PI);
+
+      if (omega < 1.e-13) return IN;
+
+      // 2 in 1 ?
+      const double* G2 = ae2.get_centroid();
+      ae1.triangulate(dt, ae1.m_crd);
+      omega = 0.;
+      for (size_t i = 0; i < ae1.nb_tris(); ++i)
+      {
+        int T[3];
+        ae1.triangle(i, T);
+        omega += K_MESH::Triangle::oriented_trihedral_angle(G2, ae1.m_crd.col(T[0]), ae1.m_crd.col(T[1]), ae1.m_crd.col(T[2]));
+      }
+
+      omega = ::fabs(::fabs(omega) - 4. *NUGA::PI);
+
+      if (omega < 1.e-13) return IN_1;
+
+      return OUT;
     }
 
     static eClassify classify(K_SEARCH::BBox3D const& t1, K_SEARCH::BBox3D const& t2)

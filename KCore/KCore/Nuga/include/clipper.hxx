@@ -350,6 +350,16 @@ namespace NUGA
       return ret;
     }
 
+    template <>
+    inline E_Int isolated_clip<aPolyhedron<0>, aPolyhedron<0>>(aPolyhedron<0>& sub, aPolyhedron<0>& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aPolyhedron<0>>& bits, bool& true_clip)
+    {
+      if (oper == NUGA::INTERSECT::INTERSECTION)
+        cut.reorient(false);
+
+      pg_smesh_t ecut(cut);
+      return isolated_clip<aPolyhedron<0>, pg_smesh_t>(sub, ecut, oper, RTOL, bits, true_clip);
+    }
+
 
     template <typename aELT1, typename aELT2>
     bool compute(aELT1 & subj, aELT2 & cutter, NUGA::INTERSECT::eOPER oper, std::vector<aELT1>& bits)

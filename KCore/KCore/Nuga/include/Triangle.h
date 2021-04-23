@@ -150,6 +150,9 @@ namespace K_MESH
     static void isoG(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* G);
 #endif
 
+    static double trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
+    static double oriented_trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
+
     /// Returns the rank of N in the storage pointed by pK.
     inline static size_type getLocalNodeId(const size_type* pK, size_type N);
 
@@ -2082,6 +2085,42 @@ namespace K_MESH
     }
     assert (false);// should never get here.
     return IDX_NONE;
+  }
+
+  inline double 
+  K_MESH::Triangle::trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2)
+  {
+    double omega = 0.;
+
+    const double* Ps[] = { P0, P1, P2 };
+    double ni[3], nj[3], nk[3];
+    K_MESH::Triangle::normal(P, P0, P1, ni);
+    K_MESH::Triangle::normal(P, P1, P2, nj);
+    K_MESH::Triangle::normal(P, P2, P0, nk);
+    double * ns[] = { ni, nj, nk };
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+      double alpha = NUGA::angle_measure(ns[i], ns[(i + 1) % 3], P, Ps[(i + 1) % 3]);
+      alpha = (alpha < NUGA::PI) ? alpha : alpha - NUGA::PI; // dihedral angles in a trihedra are in [0;PI]
+      omega += alpha;
+    }
+
+    omega -= NUGA::PI;
+
+    return omega;
+  }
+
+  inline double
+    K_MESH::Triangle::oriented_trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2)
+  {
+    double omega = trihedral_angle(P, P0, P1, P2);
+
+    double n[3], PP0[3];
+    K_MESH::Triangle::normal(P0, P1, P2, n);
+    NUGA::diff<3>(P0, P, PP0);
+    omega *= SIGN(NUGA::dot<3>(PP0, n));
+    return omega;
   }
 
 } // End Namespace K_MESH
