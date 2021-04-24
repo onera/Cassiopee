@@ -2417,23 +2417,38 @@ def getAnisoInnerFaces(t1, aniso_ratio = 0.05):
 def diffMesh(t1, t2):
     """ Returns the difference between 2 meshes as 2 zones.
     Usage: diffMesh(t1, t2)"""
-    m1 = C.getFields(Internal.__GridCoordinates__, t1)[0]
-    m2 = C.getFields(Internal.__GridCoordinates__, t2)[0]
-    
-    res = XOR.diffMesh(m1, m2)
-    
+
     zones = []
-    nb_zones = len(res)
 
-    if (nb_zones == 0) : # fixme : never happen
-      print("No difference.") ; return zones
+    z1s = Internal.getZones(t1)
+    z2s = Internal.getZones(t2)
 
-    if res[0][1].size == 0 and res[0][1].size == 0 : 
-      print("No difference.") ; return zones
+    if len(z1s) != len(z2s):
+        print("inputs have different nb of zones") ; return zones
+
+    zid=-1
+    for z1 in z1s:
+        zid +=1
+        z2 = z2s[zid]
+        m1 = C.getFields(Internal.__GridCoordinates__, z1)[0]
+        m2 = C.getFields(Internal.__GridCoordinates__, z2)[0]
+
+        res = XOR.diffMesh(m1, m2)
+
+        nb_zones = len(res)
+
+        if (nb_zones == 0) : # fixme : never happen
+          continue
+
+        if res[0][1].size == 0 and res[0][1].size == 0 : 
+            continue
+
+        zones.append(C.convertArrays2ZoneNode('z1', [res[0]]))
+        zones.append(C.convertArrays2ZoneNode('z2', [res[1]]))
     
-    zones.append(C.convertArrays2ZoneNode('z1', [res[0]]))
-    zones.append(C.convertArrays2ZoneNode('z2', [res[1]]))
-    
+    if len(zones) == 0:
+        print("No differences")
+
     return zones
 
 #==============================================================================

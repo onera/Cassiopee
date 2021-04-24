@@ -366,8 +366,11 @@ namespace NUGA
     static eClassify classify(K_SEARCH::BBox3D const& t1, std::vector<K_SEARCH::BBox3D> const& ts, std::vector<E_Int> const & ids)
     {
       eClassify ret = OUT;
-      for (size_t i = 0; i < ids.size() && (ret == OUT); ++i)
-        ret = classify(t1, ts[ids[i]]);
+      for (size_t i = 0; i < ids.size() && (ret == OUT); ++i) {
+        K_SEARCH::BBox3D bx = ts[ids[i]];
+        bx.enlarge(0.01); //hack for 2D : eg. collar double wall can fall out of fuselage box
+        ret = classify(t1, bx);
+      }
       //std::cout << "nb prior masks : " << ids.size() << std::endl;
       //std::cout << "box classif : OUT ? " << (ret == OUT) << std::endl;
       return ret;
@@ -557,6 +560,8 @@ namespace NUGA
     // zone reduction
     K_SEARCH::BBox3D z_box;
     z_mesh.bbox(z_box);
+    if (typeid(zmesh_t) == typeid(pg_smesh_t))
+      z_box.enlarge(0.01); //hack for 2D : eg. collar double wall can fall out of fuselage box
 
     int nmasks = mask_bits.size();
     for (E_Int m = 0; m < nmasks; ++m)
