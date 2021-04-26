@@ -485,23 +485,22 @@ def getBCPtList(z):
   #print (ptLists)
   return ptLists
 
-def getBCPtListOfType(z, typesList):
-  #
-  bnds = Internal.getNodesFromType(z, 'BC_t')
-  zname=z[0]
+def getBCPtListOfType(z, typesList, families):
+    #
+    nodes = []
+    for btyp in typesList:
+        nodes += Internal.getNodesFromValue(z, btyp)
+        nodes += C.getFamilyBCs(z, families)
 
-  ptList = []
-  for bb in bnds :
-    bctype = "".join(Internal.getValue(bb))
-    #print(bctype)
-    if bctype not in typesList : continue
-    node = Internal.getNodesFromType(bb, 'IndexArray_t')
-    #print (node)
-    ptList.append(node[0][1][0])
+    ptList = []
+    for n in nodes:
+        ptlnod = Internal.getNodesFromType(n, 'IndexArray_t')
+        #print (ptlnod)
+        ptList.append(ptlnod[0][1][0])
 
-  if (ptList != []) : ptList = numpy.concatenate(ptList).ravel() # create a single list
-  #print (ptList)
-  return ptList
+    if (ptList != []) : ptList = numpy.concatenate(ptList).ravel() # create a single list
+
+    return ptList
 
 #------------------------------------------------------------------------------
 # 
@@ -825,6 +824,14 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   # 1.3 get boundaries and wall ids
   wall_ids = []
   boundaries = []
+  wallfamilies = []
+
+  for z in Internal.getZones(tNG):
+    for btyp in WALLBCS:
+        wallfamilies += C.getFamilyBCNamesOfType(t, btyp)
+
+  wallfamilies = list(set(wallfamilies)) # make unique occurences
+  #print(wallfamilies)
 
   basesNG = Internal.getBases(tNG)
   bid=-1
@@ -848,9 +855,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     # extract wall ids from input tree t and map them to tNG
     bS = bases[bid]
     dims = Internal.getZoneDim(Internal.getZones(bS)[0])
-    walls = []
-    for btype in WALLBCS:
-      walls += C.extractBCOfType(bS, btype)
+    walls = C.extractBCOfType(bS, 'BCWall') # includes all wall types and families
     wallf = None
     if len(walls) != 0:
       if dims[0] == 'Structured': walls = C.convertArray2Hexa(walls)
@@ -880,7 +885,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
         c = C.getFields(Internal.__GridCoordinates__, z)[0]
         ngons.append(c)
         basenum.append(base_id)
-        zwallf = getBCPtListOfType(z, WALLBCS)
+        zwallf = getBCPtListOfType(z, WALLBCS, wallfamilies)
         #print (type(zwallf))
         if (zwallf != []) : zwallf -= 1 # make it 0 based
         zwall_ids.append(zwallf)
