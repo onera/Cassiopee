@@ -490,8 +490,9 @@ def getBCPtListOfType(z, typesList, families):
     nodes = []
     for btyp in typesList:
         nodes += Internal.getNodesFromValue(z, btyp)
-        nodes += C.getFamilyBCs(z, families)
+        if families != []:nodes += C.getFamilyBCs(z, families)
 
+    #print(nodes)
     ptList = []
     for n in nodes:
         ptlnod = Internal.getNodesFromType(n, 'IndexArray_t')
@@ -865,7 +866,11 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
       elif DIM == 3 :
         hook = C.createHook(b_bounds, function='faceCenters')
       wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
-      wallf -= 1 # make it 0 based
+      #print(wallf)
+      wallf = wallf[wallf >= 1]
+      if wallf != [] :
+        wallf -= 1 # make it 0 based
+      else : wallf = None
 
     wall_ids.append(wallf)
 
@@ -886,7 +891,6 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
         ngons.append(c)
         basenum.append(base_id)
         zwallf = getBCPtListOfType(z, WALLBCS, wallfamilies)
-        #print (type(zwallf))
         if (zwallf != []) : zwallf -= 1 # make it 0 based
         zwall_ids.append(zwallf)
 
