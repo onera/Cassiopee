@@ -147,15 +147,15 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
           pty[i] = K_CONST::E_MAX_FLOAT;
           ptz[i] = K_CONST::E_MAX_FLOAT;
         }
-      }
 
-      dx = ptx[i]-pox[i];
-      dy = pty[i]-poy[i];
-      dz = ptz[i]-poz[i];
-      d = dx*dx+dy*dy+dz*dz;
-      if (d < dist[i])
-      { dist[i] = d; px[i] = ptx[i]; py[i] = pty[i]; pz[i] = ptz[i]; }
-      //printf("projection %f %f %f -> %f %f %f\n",pox[i],poy[i],poz[i],px[i],py[i],pz[i]);
+        dx = ptx[i]-pox[i];
+        dy = pty[i]-poy[i];
+        dz = ptz[i]-poz[i];
+        d = dx*dx+dy*dy+dz*dz;
+        if (d < dist[i])
+        { dist[i] = d; px[i] = ptx[i]; py[i] = pty[i]; pz[i] = ptz[i]; }
+        //printf("projection %f %f %f -> %f %f %f\n",pox[i],poy[i],poz[i],px[i],py[i],pz[i]);
+      }
     }
   }
 

@@ -37,11 +37,12 @@ List of functions
 .. autosummary::
 
     OCC.PyTree.CAD
-    OCC.PyTree.Face
+    OCC.PyTree.Edge
+    OCC.PyTree.Face    
     OCC.PyTree.Face.valueAt
-    OCC.PyTree.Face._projetOn
+    OCC.PyTree.Face.project
     OCC.PyTree.Edge.valueAt
-    OCC.PyTree.Edge._projetOn
+    OCC.PyTree.Edge.project
 
 
 Contents
@@ -102,3 +103,31 @@ CAD/mesh conversion
     * `Read a CAD (pyTree) <Examples/OCC/convertCAD2PyTreePT.py>`_:
 
     .. literalinclude:: ../build/Examples/OCC/convertCAD2PyTreePT.py
+
+CAD functions
+----------------------------
+
+.. py:function:: OCC.PyTree.CAD(fileName, format='fmt_iges')
+
+    Read a CAD and return a CAD object correponding to the CAD top tree.
+
+    :param fileName: CAD file name
+    :type fileName: string
+    :param format: file format ('fmt_iges' or 'fmt_step')
+    :type format: string
+    
+    *Example of use:*
+
+.. py:function:: OCC.PyTree.project(a)
+
+    Project a on all CAD faces.
+
+    Exists also as _project that modifies a and returns None.
+
+    :param a: input data
+    :type a: zone, list of zones, base, pyTree
+    :rtype: identical to input
+
+    
+
+
