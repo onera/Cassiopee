@@ -1,4 +1,4 @@
-C  
+C
 C    Copyright 2013-2021 Onera.
 C
 C    This file is part of Cassiopee.
@@ -22,26 +22,25 @@ C compute the bounding box of an unstructured mesh in the local frame
 C tous les elts sont parcourus ... cela revient au meme que de determiner
 C les facettes externes
 C =============================================================================
-      SUBROUTINE k6boundboxunstr(npts, x, y, z, 
-     &                           xmax, ymax, zmax, 
+      SUBROUTINE k6boundboxunstr(npts, x, y, z,
+     &                           xmax, ymax, zmax,
      &                           xmin, ymin, zmin )
-
       IMPLICIT NONE
 
 #include "Def/DefFortranConst.h"
 C==============================================================================
 C_IN
-      INTEGER_E npts            ! nb de noeuds 
+      INTEGER_E npts            ! nb de noeuds
       REAL_E x(0:npts-1)
       REAL_E y(0:npts-1)
       REAL_E z(0:npts-1)
-      
+
 C_OUT
       REAL_E xmax, ymax, zmax, xmin, ymin, zmin
 
 C_LOCAL
       REAL_E xs, ys, zs
-      INTEGER_E ind
+      INTEGER_E ind, rang
 
 C==============================================================================
 
@@ -51,9 +50,13 @@ C==============================================================================
       xmin = +MAXFLOAT
       ymin = +MAXFLOAT
       zmin = +MAXFLOAT
-      
+
+C L'utilisation du parallele ralentit le code sur CYLINDRE et PALE2 --> COMMENTE
+C!$OMP PARALLEL
+C!$OMP DO PRIVATE(xs,ys,zs,ind) REDUCTION(MAX:xmax,ymax,zmax)
+C!$OMP& REDUCTION(MIN:xmin,ymin,zmin)
       DO ind = 0, npts-1
-         
+
          xs = x(ind)
          ys = y(ind)
          zs = z(ind)
@@ -66,6 +69,7 @@ C==============================================================================
          zmin = MIN(zmin, zs)
 
       ENDDO
-
+C!$OMP END DO
+C!$OMP END PARALLEL
       END
 C ===========================================================================

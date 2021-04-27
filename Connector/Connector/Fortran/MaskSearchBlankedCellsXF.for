@@ -1,4 +1,4 @@
-C  
+C
 C    Copyright 2013-2021 Onera.
 C
 C    This file is part of Cassiopee.
@@ -18,7 +18,7 @@ C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 
 C Cas XRay3D + cell intersect
 
-      SUBROUTINE k6searchblankedcellsx(ni, nj, nk, 
+      SUBROUTINE k6searchblankedcellsx(ni, nj, nk,
      &     meshX, meshY, meshZ,
      &     xmin, ymin,
      &     niray, njray,
@@ -46,7 +46,7 @@ C_OUT
       INTEGER_E cellNatureField(0:(ni-1)*(nj-1)*(nk-1)-1) ! Give the nature of the cells ( masked or not )
       INTEGER_E isMasked
 C_LOCAL
-      INTEGER_E i, j, k, l       
+      INTEGER_E i, j, k, l, d
       INTEGER_E ip, jp, kp
       INTEGER_E ind, indray
       REAL_E    dx1, dy1, dz1
@@ -69,35 +69,41 @@ C==============================================================================
       nicnjc = nic*(nj-1)
       isMasked = 0
 
-      IF (isnot .EQ. 0) THEN 
-      DO k = 0, nk-2
-         DO j = 0, nj-2
-            DO i = 0, ni-2
-               cellN = 0
-C     
+      IF (isnot .EQ. 0) THEN
+!$OMP PARALLEL
+!$OMP DO
+      DO d = 0, nicnjc*(nk-1)
+          k = d/nicnjc
+          j = (d - k*nicnjc)/nic
+          i = d - k*nicnjc - j*nic
+          cellN = 0
+C
 #include "../../Connector/Fortran/MaskCell3DF.for"
-C     
-               et = i+j*nic+k*nicnjc
+C
+          et = i+j*nic+k*nicnjc
 #include "../../Connector/Fortran/MaskCellIntersectF.for"
-               
-            ENDDO
-         ENDDO
+
       ENDDO
+!$OMP END DO
+!$OMP END PARALLEL
 
       ELSE
-      DO k = 0, nk-2
-         DO j = 0, nj-2
-            DO i = 0, ni-2
-               cellN = 0
-C     
+!$OMP PARALLEL
+!$OMP DO
+      DO d = 0, nicnjc*(nk-1)
+          k = d/nicnjc
+          j = (d - k*nicnjc)/nic
+          i = d - k*nicnjc - j*nic
+          cellN = 0
+C
 #include "../../Connector/Fortran/MaskCell3DF.for"
-C     
-               et = i+j*nic+k*nicnjc
+C
+          et = i+j*nic+k*nicnjc
 #include "../../Connector/Fortran/MaskCellIntersectNotF.for"
-               
-            ENDDO
-         ENDDO
+
       ENDDO
+!$OMP END DO
+!$OMP END PARALLEL
 
       ENDIF
       END

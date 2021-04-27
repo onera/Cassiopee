@@ -1,4 +1,4 @@
-C  
+C
 C    Copyright 2013-2021 Onera.
 C
 C    This file is part of Cassiopee.
@@ -17,9 +17,9 @@ C    You should have received a copy of the GNU General Public License
 C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 
 C Recherche des points masques cas : plan XRay en (x,y)
-C                                    critere de masquage cell intersect 
+C                                    critere de masquage cell intersect
 
-      SUBROUTINE k6searchblankedcellsx2d( 
+      SUBROUTINE k6searchblankedcellsx2d(
      &     ni, nj, nk, meshX, meshY,
      &     xmin, niray, njray, hiray, indir,
      &     nz, z, isnot, cellNatureField, isMasked )
@@ -43,7 +43,7 @@ C_OUT
       INTEGER_E cellNatureField(0:(ni-1)*(nj-1)*(nk-1)-1) ! nature of the cells ( masked or not )
       INTEGER_E isMasked
 C_LOCAL
-      INTEGER_E i, j, k, l       
+      INTEGER_E i, j, k, l, d
       INTEGER_E ip, jp, et
       INTEGER_E ind, indray
       REAL_E    dx1, dy1
@@ -63,32 +63,37 @@ C==============================================================================
       isMasked = 0
 
       IF ( isnot .EQ. 0 ) THEN
-      DO j = 0, nj-2
-         DO i = 0, nic-1
-            cellN = 0
-            et = i+j*nic
-C     
+!$OMP PARALLEL
+!$OMP DO
+      DO d = 0, nicnjc
+          j = d/nic
+          i = d - j*nic
+          cellN = 0
+          et = i+j*nic
+C
 #include "../../Connector/Fortran/MaskCell2DF.for"
 C
 #include "../../Connector/Fortran/MaskCellIntersect2DF.for"
-         ENDDO
       ENDDO
+!$OMP END DO
+!$OMP END PARALLEL
 
       ELSE
-      DO j = 0, nj-2
-         DO i = 0, nic-1
-            cellN = 0
-            et = i+j*nic
-C     
+!$OMP PARALLEL
+!$OMP DO
+      DO d = 0, nicnjc
+          j = d/nic
+          i = d - j*nic
+          cellN = 0
+          et = i+j*nic
+C
 #include "../../Connector/Fortran/MaskCell2DF.for"
 C
-#include "../../Connector/Fortran/MaskCellIntersectNot2DF.for"            
-         ENDDO
+#include "../../Connector/Fortran/MaskCellIntersectNot2DF.for"
       ENDDO
+!$OMP END DO
+!$OMP END PARALLEL
+
       ENDIF
       END
 C ===== XRay/MaskSearchBlankedCellsX2DF.for =====
-
-
-
-

@@ -1,5 +1,5 @@
 #define OPT_VERSION
-
+#define OMP
 /*
     Copyright 2013-2021 Onera.
 
@@ -377,14 +377,18 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
     {
       nindices = 4*depth;
 
+      #ifdef OMP
       #pragma omp parallel
       {
+      #endif
         // Def de variables privees sur les procs
         vector<E_Int> indices(nindices);
         E_Int i, j, ii, jj;
         E_Int ind2, compteur;
 
-        #pragma omp for// schedule(guided)
+        #ifdef OMP
+        #pragma omp for schedule(static)
+        #endif
         for (E_Int ind = 0; ind < imjmc; ind++)
         {
           if (K_FUNC::fEqual(cellN[ind],1.)) // Si cellN = 1. Changements a faire en fonction du stencil
@@ -420,23 +424,30 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
             for (E_Int noi = 0; noi < nindices; noi++)
             {
               ind2 = indices[noi];
-              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.;}
+              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.; break;}
             }
           }
         }
+      #ifdef OMP
       }
+      #endif
     }// fin 2D
     else // 3D croix
     {
       nindices = 6*depth;
 
+      #ifdef OMP
       #pragma omp parallel
       {
+      #endif
         // Def de variables privees sur les procs
         vector<E_Int> indices(nindices);
         E_Int i, j, k, ii, jj, kk;
         E_Int ind2, compteur;
-        #pragma omp for// schedule(guided)
+
+        #ifdef OMP
+        #pragma omp for schedule(guided)
+        #endif
         for (E_Int ind = 0; ind < imjmkmc; ind++)
         {
           if (K_FUNC::fEqual(cellN[ind],1.))
@@ -483,11 +494,13 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
             for (E_Int noi = 0; noi < nindices; noi++)
             {
               ind2 = indices[noi];
-              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.;}
+              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.; break;}
             }
           }
         }
+      #ifdef OMP
       }
+      #endif
     }//fin 3D dir = 0
   }//dir = 0
   else //stencil etoile
@@ -496,14 +509,18 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
     {
       nindices = 8*depth;
 
+      #ifdef OMP
       #pragma omp parallel
       {
+      #endif
         // Def de variables privees sur les procs
         vector<E_Int> indices(nindices);
         E_Int i, j, ii, jj;
         E_Int ind2, compteur;
 
-        #pragma omp for// schedule(guided)
+        #ifdef OMP
+        #pragma omp for schedule(static)
+        #endif
         for (E_Int ind = 0; ind < imjmc; ind++)
         {
           if (K_FUNC::fEqual(cellN[ind],1.))
@@ -547,24 +564,30 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
             for (E_Int noi = 0; noi < nindices; noi++)
             {
               ind2 = indices[noi];
-              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.;}
+              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.; break;}
             }
           }
         }
+      #ifdef OMP
       }
+      #endif
     }// 2D dir = 1
     else // 3D etoile
     {
       nindices = 26*depth;
 
+      #ifdef OMP
       #pragma omp parallel
       {
+      #endif
         // Def de variables privees sur les procs
         vector<E_Int> indices(nindices);
         E_Int i, j, k, ii, jj, kk;
         E_Int ind2, compteur;
 
-        #pragma omp for// schedule(guided)
+        #ifdef OMP
+        #pragma omp for schedule(guided)
+        #endif
         for (E_Int ind = 0; ind < imjmkmc; ind++)
         {
           if (K_FUNC::fEqual(cellN[ind],1.))
@@ -636,12 +659,14 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
             for (E_Int noi = 0; noi < nindices; noi++)
             {
               ind2 = indices[noi];
-              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.;}
+              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.; break;}
             }
           }
         }
       }
+    #ifdef OMP
     }
+    #endif
   }//dir = 1
 }
 

@@ -627,6 +627,8 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     E_Int ncells = vectOfCellNs[is]->getSize();
     FldArrayI* cellnI = new FldArrayI(ncells);
     E_Int* cellnp = cellnI->begin();
+
+    #pragma omp parallel for
     for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Int(cellNz[i]);
     vectOfCellNI.push_back(cellnI);
   }
@@ -641,10 +643,13 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     E_Int posc = poscellNt[noc];
     E_Int ncells = vectOfCellNI[noc]->getSize();
     E_Float* cellNp = vectOfCellNs[noc]->begin(posc);
+
+    #pragma omp parallel for
     for (E_Int ind = 0; ind < ncells; ind++)
       cellNp[ind] = E_Float(cellNI[ind]);
     delete vectOfCellNI[noc];
   }
+
   RELEASEDATA1; RELEASEDATA2; RELEASEDATA3;
   Py_INCREF(Py_None);
   return Py_None;
@@ -1130,6 +1135,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       FldArrayI* celln = new FldArrayI(ncells);
       E_Float* fp = structFc[is]->begin(posc);
       E_Int* cellnp = celln->begin();
+      #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Int(fp[i]);
       cellns.push_back(celln);
     }
@@ -1142,6 +1148,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       E_Int* fp = cellns[is]->begin();
       FldArrayF* cellnout = new FldArrayF(ncells);
       E_Float* cellnp = cellnout->begin();
+      #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Float(fp[i]);
       tpl = K_ARRAY::buildArray(*cellnout, cellNName,
                                 nitc[is], njtc[is], nktc[is]);
@@ -1163,6 +1170,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       FldArrayI* celln = new FldArrayI(ncells);
       E_Float* fp = unstrFc[iu]->begin(posc);
       E_Int* cellnp = celln->begin();
+      #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Int(fp[i]);
       cellnu.push_back(celln);
     }
@@ -1175,6 +1183,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       E_Int* fp = cellnu[iu]->begin();
       FldArrayF* cellnout = new FldArrayF(ncells);
       E_Float* cellnp = cellnout->begin();
+      #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Float(fp[i]);
       FldArrayI* cnout = new K_FLD::FldArrayI(*cntc[iu]);
       tpl = K_ARRAY::buildArray(*cellnout, cellNName, *cnout, -1, eltTypec[0],
@@ -1187,6 +1196,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       RELEASESHAREDU(objuc[iu], unstrFc[iu], cntc[iu]);
     }
   }
+
   for (E_Int ib = 0; ib < nzonesb; ib++)
     RELEASESHAREDU(objub[ib], unstrbF[ib], cnb[ib]);
   return l;
@@ -1237,6 +1247,7 @@ void K_CONNECTOR::blankCellsUnstr(
       FldArrayI cellN(ncells); cellN.setAllValuesAt(1);
       E_Int* cellN0p = cellN0.begin();
       E_Int* cellNp = cellN.begin();
+      #pragma omp parallel for
       for (E_Int ind = 0; ind < ncells; ind++)
       {
         if (cellN0p[ind] == 0) cellNp[ind] = -1;
@@ -1257,6 +1268,7 @@ void K_CONNECTOR::blankCellsUnstr(
                                  cellN.begin());
         E_Int* cellN0p = cellN0.begin(); // 1/0/2
         E_Int* cellNp = cellN.begin();
+        #pragma omp parallel for
         for (E_Int ind = 0; ind < cellN.getSize(); ind++)
         {
           if (cellNp[ind] == -1) cellN0p[ind] = 0;
@@ -1295,6 +1307,7 @@ void K_CONNECTOR::blankCellsStruct(
   compCharacteristics(isNot, elevationDir, dim1, dim2, tol, delta,
                       posxb, posyb, poszb, fieldsb, cnb, planes,
                       xmin, ymin, zmin, xmax, ymax, zmax);
+
   xmin = xmin - delta; xmax = xmax + delta;
   ymin = ymin - delta; ymax = ymax + delta;
   zmin = zmin - delta; zmax = zmax + delta;
@@ -1320,6 +1333,8 @@ void K_CONNECTOR::blankCellsStruct(
       FldArrayI& cellN0 = *cellns[zone]; // 0: M / 2: I / 1: N
       E_Int ncells = cellN0.getSize();
       FldArrayI cellN(ncells); cellN.setAllValuesAt(1);
+
+      #pragma omp parallel for
       for (E_Int ind = 0; ind < ncells; ind++)
       {
         if (cellN0[ind] == 0) cellN[ind] = -1;
@@ -1327,21 +1342,25 @@ void K_CONNECTOR::blankCellsStruct(
       }
       FldArrayI blankedCells(ncells);// -1: masque / 0: interpole / 1: normal
       blankedCells.setAllValuesAt(1);
+
       E_Int isMasked =
-        searchForBlankedCellsStruct(elevationDir, blankingType,
-                                    isNot, delta, planes,
-                                    nit[zone], njt[zone], nkt[zone],
-                                    posxt[zone], posyt[zone], poszt[zone],
-                                    *blankedCoords[zone],
-                                    blankedCells);
+      searchForBlankedCellsStruct(elevationDir, blankingType,
+        isNot, delta, planes,
+        nit[zone], njt[zone], nkt[zone],
+        posxt[zone], posyt[zone], poszt[zone],
+        *blankedCoords[zone],
+        blankedCells);
+
       if (isMasked == 1)
       {
-        k6adjustcellnaturefield_(blankedCells.getSize(),
-                                 blankedCells.begin(),
-                                 cellN.begin());
+          k6adjustcellnaturefield_(blankedCells.getSize(),
+                                    blankedCells.begin(),
+                                    cellN.begin());
 
         E_Int* cellN0p = cellN0.begin(); // 1/0/2
         E_Int* cellNp = cellN.begin();
+
+        #pragma omp parallel for
         for (E_Int ind = 0; ind < cellN.getSize(); ind++)
         {
           if (cellNp[ind] == -1) cellN0p[ind] = 0;
@@ -1393,11 +1412,12 @@ E_Int K_CONNECTOR::searchForBlankedCellsStruct(
         else
         {
           k6searchblankedcellsx_(ni, nj, nk, field.begin(posx),
-                                 field.begin(posy),field.begin(posz),
-                                 p->xmin, p->ymin, p->ni, p->nj,
-                                 p->hi, p->hj, p->indir.begin(),
-                                 p->Z.getSize(), p->Z.begin(), isNot,
-                                 blankedCells.begin(), maskedl);
+                                  field.begin(posy),field.begin(posz),
+                                  p->xmin, p->ymin, p->ni, p->nj,
+                                  p->hi, p->hj, p->indir.begin(),
+                                  p->Z.getSize(), p->Z.begin(), isNot,
+                                  blankedCells.begin(), maskedl);
+
         }
         break;
 
@@ -1466,7 +1486,6 @@ E_Int K_CONNECTOR::searchForBlankedCellsStruct(
     }
     masked = K_FUNC::E_max(maskedl, masked);
   }
-
   if (delta > 0.)
   {
     return holeExpansionStruct(elevationDir, blankingType, isNot,
