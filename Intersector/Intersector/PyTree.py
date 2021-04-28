@@ -1956,10 +1956,13 @@ def _conformizeHMesh(t, hooks):
         if m == []: continue
         if hooks[i] == None : continue
 
-        fields = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
-        if fields == [] : fields = None
+        fieldsC = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        if fieldsC == [] : fieldsC = None
 
-        res = intersector.conformizeHMesh(hooks[i], fields)
+        fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        if fieldsN == [] : fieldsN = None
+
+        res = intersector.conformizeHMesh(hooks[i], fieldsC, fieldsN)
 
         # res[0] : mesh
         # res[1] : ranges for what is in res from 3 to end in res
@@ -1988,11 +1991,18 @@ def _conformizeHMesh(t, hooks):
         if bcptlists != [] :
           updateBCPointLists2(z, bcptlists)
 
-        ## MAJ center fields
         C._deleteFlowSolutions__(z)
-        fieldz = res[ranges[2]:]
+
+        ## MAJ center fields
+        fieldz = res[ranges[2]: ranges[3]]
         for f in fieldz:
           C.setFields([f], z, 'centers', False)
+
+        ## MAJ node fields
+        fieldz = res[ranges[3]:]
+        #print (fieldz)
+        for f in fieldz:
+          C.setFields([f], z, 'nodes', False)
         
         i=i+1
 

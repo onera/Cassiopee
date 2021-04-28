@@ -510,7 +510,8 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray*& crdo, K_FLD::IntA
                     std::vector<E_Int>& oids/*for BC*/, std::vector<E_Int>& jzids, 
                     std::vector<std::vector<E_Int>>& jptlists,
                     std::vector<std::vector<E_Int>>& bcptlists,
-                    std::vector<std::vector<E_Float>>& fields)
+                    std::vector<std::vector<E_Float>>& fieldsC,
+                    std::vector<std::vector<E_Float>>& fieldsN)
 {
   using mesh_type = NUGA::hierarchical_mesh<ELT_t, STYPE>;
 
@@ -560,8 +561,15 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray*& crdo, K_FLD::IntA
     }
   }
 
-  // transfer fields
-  hmesh->project_cell_center_sol_order1(fields);
+  // transfer center fields
+  hmesh->project_cell_center_sol_order1(fieldsC);
+
+  // transfer node fields : while crd is not purged from useless nodes, history is trivial : crd is just appended with new nodes
+  std::vector<std::vector<E_Float>> new_fieldsN = fieldsN;
+  for (size_t f = 0; f < fieldsN.size(); ++f)
+    new_fieldsN[f].resize(crdo->cols(), NUGA::FLOAT_MAX);
+
+  fieldsN = new_fieldsN;
 }
 
 template <NUGA::eSUBDIV_TYPE STYPE>
@@ -569,16 +577,17 @@ void __conformizeHM(E_Int etype, const void* hmesh_ptr, K_FLD::FloatArray*& crdo
                     std::vector<E_Int>& oids/*for BC*/, std::vector<E_Int>& jzids, 
                     std::vector<std::vector<E_Int>>& jptlists,
                     std::vector<std::vector<E_Int>>& bcptlists,
-                    std::vector<std::vector<E_Float>>& fields)
+                    std::vector<std::vector<E_Float>>& fieldsC,
+                    std::vector<std::vector<E_Float>>& fieldsN)
 {
   if (etype == elt_t::HEXA)
-    __conformizeHM<K_MESH::Hexahedron, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fields);
+    __conformizeHM<K_MESH::Hexahedron, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
   else if (etype == (E_Int)elt_t::TETRA)
-    __conformizeHM<K_MESH::Tetrahedron, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fields);
+    __conformizeHM<K_MESH::Tetrahedron, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
   else if (etype == (E_Int)elt_t::PRISM3)
-    __conformizeHM<K_MESH::Prism, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fields);
+    __conformizeHM<K_MESH::Prism, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
   else if (etype == (E_Int)elt_t::BASIC)
-    __conformizeHM<K_MESH::Basic, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fields);
+    __conformizeHM<K_MESH::Basic, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
 }
 
 template <>
@@ -586,16 +595,17 @@ void __conformizeHM<NUGA::ISO_HEX>(E_Int etype/*dummy*/, const void* hmesh_ptr, 
                                    std::vector<E_Int>& oids/*for BC*/, 
                                    std::vector<E_Int>& jzids, std::vector<std::vector<E_Int>>& jptlists,
                                    std::vector<std::vector<E_Int>>& bcptlists,
-                                   std::vector<std::vector<E_Float>>& fields)
+                                   std::vector<std::vector<E_Float>>& fieldsC,
+                                   std::vector<std::vector<E_Float>>& fieldsN)
 {
-  __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fields);
+  __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
 }
 
 //
 PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
 {
-  PyObject* hook, *pyfields;
-  if (!PyArg_ParseTuple(args, "OO", &hook, &pyfields)) return nullptr;
+  PyObject* hook, *pyfieldsC, *pyfieldsN;
+  if (!PyArg_ParseTuple(args, "OOO", &hook, &pyfieldsC, &pyfieldsN)) return nullptr;
 
   E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
   std::string* vString{ nullptr };
@@ -604,36 +614,63 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
 
 
   // FIELDS
-  bool has_fields = (pyfields != Py_None);
+  bool has_fieldsC = (pyfieldsC != Py_None);
+  bool has_fieldsN = (pyfieldsN != Py_None);
   
-  char* fvarStrings, *feltType;
-  std::vector<std::vector<E_Float>> fields;
+  char* fvarStringsC, *fvarStringsN, *feltType;
+  std::vector<std::vector<E_Float>> fieldsC, fieldsN;
   E_Int nfields{0};
 
-  if (has_fields)
+  if (has_fieldsC)
   {
     
     E_Int ni, nj, nk;
-    K_FLD::FloatArray fs;
+    K_FLD::FloatArray fldsC;
     K_FLD::IntArray cn;
 
     E_Int res = 
-      K_ARRAY::getFromArray(pyfields, fvarStrings, fs, ni, nj, nk, cn, feltType);
+      K_ARRAY::getFromArray(pyfieldsC, fvarStringsC, fldsC, ni, nj, nk, cn, feltType);
 
     /*std::cout << "res : " << res << std::endl;
     std::cout << "var : " << fvarStrings[0] << std::endl;
-    std::cout << "f : " << fs.rows() << "/" << fs.cols() << std::endl;
+    std::cout << "field C : " << fldsC.rows() << "/" << fldsC.cols() << std::endl;
     std::cout << "cn : " << cn.rows() << "/" << cn.cols() << std::endl;*/
 
-    nfields = fs.rows();
-    E_Int nvals = fs.cols();
-    fields.resize(nfields);
+    nfields = fldsC.rows();
+    E_Int nvals = fldsC.cols();
+    fieldsC.resize(nfields);
     for (E_Int j = 0; j < nfields; ++j)
-      fields[j].resize(nvals);
+      fieldsC[j].resize(nvals);
 
     for (E_Int i = 0; i < nvals; ++i)
       for (E_Int j = 0; j < nfields; ++j)
-        fields[j][i] = fs(j, i);
+        fieldsC[j][i] = fldsC(j, i);
+  }
+
+  if (has_fieldsN)
+  {
+    
+    E_Int ni, nj, nk;
+    K_FLD::FloatArray fldsN;
+    K_FLD::IntArray cn;
+
+    E_Int res = 
+      K_ARRAY::getFromArray(pyfieldsN, fvarStringsN, fldsN, ni, nj, nk, cn, feltType);
+
+    /*td::cout << "res : " << res << std::endl;
+    std::cout << "var : " << fvarStrings[0] << std::endl;
+    std::cout << "field N : " << fldsN.rows() << "/" << fldsN.cols() << std::endl;
+    std::cout << "cn : " << cn.rows() << "/" << cn.cols() << std::endl;*/
+
+    nfields = fldsN.rows();
+    E_Int nvals = fldsN.cols();
+    fieldsN.resize(nfields);
+    for (E_Int j = 0; j < nfields; ++j)
+      fieldsN[j].resize(nvals);
+
+    for (E_Int i = 0; i < nvals; ++i)
+      for (E_Int j = 0; j < nfields; ++j)
+        fieldsN[j][i] = fldsN(j, i);
   }
 
   // CONFORMIZE, UPDATE POINTLISTS and TRANSFER FIELDS
@@ -645,9 +682,9 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   K_FLD::FloatArray* crd(nullptr);
 
   if (*sub_type == 0) // ISO
-    __conformizeHM<NUGA::ISO>(*elt_type, hmesh, crd, cnto, dummy_oids, jzids, jptlists, bcptlists, fields);
+    __conformizeHM<NUGA::ISO>(*elt_type, hmesh, crd, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
   else if (*sub_type == 1) // ISO_HEX
-    __conformizeHM<NUGA::ISO_HEX>(*elt_type, hmesh, crd, cnto, dummy_oids, jzids, jptlists, bcptlists, fields);
+    __conformizeHM<NUGA::ISO_HEX>(*elt_type, hmesh, crd, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
 
   //  0 : pushing out the mesh
   PyObject *tpl = K_ARRAY::buildArray(*crd, vString->c_str(), cnto, -1, "NGON", false);
@@ -660,17 +697,19 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   std::cout << "nb bc ptlists : " << bcptlists.size() << std::endl;
   std::cout << "nb fields : " << fields.size() << std::endl;*/
 
-  E_Int ranges[] = {3,3,3,3};
+  E_Int ranges[] = {3,3,3,3,3};
   //ranges[0] = 3; // starting index in l for bcs
   if (jptlists.size()) ranges[1] = ranges[0] + jptlists.size(); //one-pas-the-end
   ranges[2] = ranges[1];
   if (bcptlists.size()) ranges[2] += bcptlists.size(); //one-pas-the-end
   ranges[3] = ranges[2];
-  if (fields.size()) ranges[3] += 1/*compacted in one array*/; //one-pas-the-end
+  if (fieldsC.size()) ranges[3] += 1/*compacted in one array*/; //one-pas-the-end
+  ranges[4] = ranges[3];
+  if (fieldsN.size()) ranges[4] += 1;
   //ranges[2] = 3+jptlists.size() + bcptlists.size() + 1; //one-pas-the-end
   //ranges[3] = 3+jptlists.size() + bcptlists.size() + fields.size() + 1; //one-pas-the-end
 
-  tpl = K_NUMPY::buildNumpyArray(&ranges[0], 4, 1, 0);
+  tpl = K_NUMPY::buildNumpyArray(&ranges[0], 5, 1, 0);
   PyList_Append(l, tpl);
   Py_DECREF(tpl);
 
@@ -709,16 +748,30 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   }
 
   // FIELDS
-  if (has_fields)
+  if (has_fieldsC)
   {
-    K_FLD::FloatArray farr(nfields, fields[0].size());
-    for (size_t i=0; i < fields.size(); ++i)
+    K_FLD::FloatArray farr(nfields, fieldsC[0].size());
+    for (size_t i=0; i < fieldsC.size(); ++i)
     {
-      std::vector<double>& fld = fields[i];
+      std::vector<double>& fld = fieldsC[i];
       for (size_t j = 0; j < fld.size(); ++j)farr(i, j) = fld[j];
     }
 
-    PyObject* tpl = K_ARRAY::buildArray(farr, fvarStrings, cnto, -1, feltType, false);
+    PyObject* tpl = K_ARRAY::buildArray(farr, fvarStringsC, cnto, -1, feltType, false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  if (has_fieldsN)
+  {
+    K_FLD::FloatArray farr(nfields, fieldsN[0].size());
+    for (size_t i=0; i < fieldsN.size(); ++i)
+    {
+      std::vector<double>& fld = fieldsN[i];
+      for (size_t j = 0; j < fld.size(); ++j)farr(i, j) = fld[j];
+    }
+
+    PyObject* tpl = K_ARRAY::buildArray(farr, fvarStringsN, cnto, -1, feltType, false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
