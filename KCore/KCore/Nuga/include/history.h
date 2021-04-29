@@ -85,12 +85,10 @@ namespace NUGA
           for (size_t t=0; t < nb_target; ++t)
             target_flags[tgt_start[t]] = src_flags[srcid];
         }
-
       }
-
     }
 
-  };
+  }; //history_t
 }
 
 #endif

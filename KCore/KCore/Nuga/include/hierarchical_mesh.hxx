@@ -91,8 +91,8 @@ class hierarchical_mesh
     // for fields projetion
     E_Int                     _nb_phs0;         // intial nb of PHs
     E_Int                     _nb_pgs0;         // intial nb of PGs
-
-    Vector_t<E_Int>  pghids0, phhids0;
+    E_Int                     _nb_pts0;         // intial nb of points
+    Vector_t<E_Int>  pthids0, pghids0, phhids0;
     NUGA::history_t  histo;
 
     ///
@@ -296,6 +296,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
 
   _nb_phs0 = _ng.PHs.size();
   _nb_pgs0 = _ng.PGs.size();
+  _nb_pts0 = _crd.cols();
   
   E_Int err(0);
   
@@ -940,8 +941,10 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::build_histo_between_two_enabled_states
 (
+  //const std::vector<E_Int>& pthids0,
   const std::vector<E_Int>& pghids0,
   const std::vector<E_Int>& phhids0,
+  //const std::vector<E_Int>& pthids1,
   const std::vector<E_Int>& pghids1,
   const std::vector<E_Int>& phhids1,
   history_t& histo
