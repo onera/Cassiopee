@@ -511,30 +511,43 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray*& crdo, K_FLD::IntA
                     std::vector<std::vector<E_Int>>& jptlists,
                     std::vector<std::vector<E_Int>>& bcptlists,
                     std::vector<std::vector<E_Float>>& fieldsC,
-                    std::vector<std::vector<E_Float>>& fieldsN)
+                    std::vector<std::vector<E_Float>>& fieldsN,
+                    std::vector<std::vector<E_Float>>& fieldsF)
 {
   using mesh_type = NUGA::hierarchical_mesh<ELT_t, STYPE>;
 
   mesh_type* hmesh = (mesh_type*)hmesh_ptr;
 
-  // ûpdate the bc pointlists in hmesh
+  // update the bc pointlists in hmesh
   hmesh->update_BCs();
 
-  ngon_type ngo;
-  hmesh->conformize(ngo, oids);
-  ngo.export_to_array(cnto);
+  if (hmesh->pghids0.empty())
+  {
+    K_CONNECT::IdTool::init_inc(hmesh->pghids0, hmesh->_nb_pgs0);
+    K_CONNECT::IdTool::init_inc(hmesh->phhids0, hmesh->_nb_phs0);
+  }
 
+  ngon_type ngo;
+  std::vector<E_Int> pghids1, phhids1, hmpgid_to_confpgid;
+  hmesh->conformize(ngo, hmpgid_to_confpgid, pghids1, phhids1);
+
+  // HISTORY BETWEEN PREVIOUS OUTPUT AND CUURENT ONE
+  NUGA::history_t histo;
+  hmesh->build_histo_between_two_enabled_states(hmesh->pghids0, hmesh->phhids0, pghids1, phhids1, histo);
+  
+  // EXPORT MESH
+  ngo.export_to_array(cnto);
   crdo = &hmesh->_crd;
 
    // JOINS and BC POINTLIST updates
   
   // convert ids to conformed view
   bcptlists = hmesh->BCptLists;
-  if (!hmesh->_pgnids.empty())
+  if (!hmpgid_to_confpgid.empty())
   {
     for (size_t i=0; i < bcptlists.size(); ++i)
       for (size_t j=0; j < bcptlists[i].size(); ++j)
-        bcptlists[i][j] = hmesh->_pgnids[bcptlists[i][j]-1]+1;
+        bcptlists[i][j] = hmpgid_to_confpgid[bcptlists[i][j]-1]+1;
   }
 
   if (hmesh->join != nullptr){
@@ -550,10 +563,10 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray*& crdo, K_FLD::IntA
 
       jptlists[i] = j.second;
 
-      if (!hmesh->_pgnids.empty())
+      if (!hmpgid_to_confpgid.empty())
       {
         for (size_t j=0; j < jptlists[i].size(); ++j)
-          jptlists[i][j] = hmesh->_pgnids[jptlists[i][j]-1]+1;
+          jptlists[i][j] = hmpgid_to_confpgid[jptlists[i][j]-1]+1;
       }
 
       jzids.push_back(jzid);
@@ -561,15 +574,35 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray*& crdo, K_FLD::IntA
     }
   }
 
-  // transfer center fields
-  hmesh->project_cell_center_sol_order1(fieldsC);
+  // TRANSFER CENTER SOLUTION FIELDS
+  hmesh->project_cell_center_sol_order1(hmesh->phhids0, fieldsC);
 
-  // transfer node fields : while crd is not purged from useless nodes, history is trivial : crd is just appended with new nodes
+  // TRANSFER FACE SOLUTION FIELDS
+  // todo : something very similar to above : intensive quantities mgt
+
+  // TRANSFER FACE FLAGS (e.g 'face CAD id')
+  // rule : agglo set to -1 (if different) , subdiv inherits parent value
+  std::vector<E_Int> src_ids;
+  K_CONNECT::IdTool::init_inc(src_ids, hmesh->pghids0.size()); //previous state is always a compressed view of the hmesh
+
+  std::vector<std::vector<E_Float>> new_fieldsF(fieldsF.size());
+  for (size_t f = 0; f < fieldsF.size(); ++f)
+    histo.transfer_pg_colors(src_ids, fieldsF[f], new_fieldsF[f]);
+  fieldsF = new_fieldsF;
+
+  // TRANSFER NODE FIELDS : while crd is not purged from useless nodes, history is trivial : crd is just appended with new nodes
   std::vector<std::vector<E_Float>> new_fieldsN = fieldsN;
   for (size_t f = 0; f < fieldsN.size(); ++f)
+  {
     new_fieldsN[f].resize(crdo->cols(), NUGA::FLOAT_MAX);
-
+  }
   fieldsN = new_fieldsN;
+
+
+  // update of the current enabling state
+  hmesh->pghids0 = pghids1;
+  hmesh->phhids0 = phhids1;
+
 }
 
 template <NUGA::eSUBDIV_TYPE STYPE>
@@ -578,16 +611,17 @@ void __conformizeHM(E_Int etype, const void* hmesh_ptr, K_FLD::FloatArray*& crdo
                     std::vector<std::vector<E_Int>>& jptlists,
                     std::vector<std::vector<E_Int>>& bcptlists,
                     std::vector<std::vector<E_Float>>& fieldsC,
-                    std::vector<std::vector<E_Float>>& fieldsN)
+                    std::vector<std::vector<E_Float>>& fieldsN,
+                    std::vector<std::vector<E_Float>>& fieldsF)
 {
   if (etype == elt_t::HEXA)
-    __conformizeHM<K_MESH::Hexahedron, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
+    __conformizeHM<K_MESH::Hexahedron, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
   else if (etype == (E_Int)elt_t::TETRA)
-    __conformizeHM<K_MESH::Tetrahedron, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
+    __conformizeHM<K_MESH::Tetrahedron, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
   else if (etype == (E_Int)elt_t::PRISM3)
-    __conformizeHM<K_MESH::Prism, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
+    __conformizeHM<K_MESH::Prism, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
   else if (etype == (E_Int)elt_t::BASIC)
-    __conformizeHM<K_MESH::Basic, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
+    __conformizeHM<K_MESH::Basic, STYPE>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
 }
 
 template <>
@@ -596,16 +630,17 @@ void __conformizeHM<NUGA::ISO_HEX>(E_Int etype/*dummy*/, const void* hmesh_ptr, 
                                    std::vector<E_Int>& jzids, std::vector<std::vector<E_Int>>& jptlists,
                                    std::vector<std::vector<E_Int>>& bcptlists,
                                    std::vector<std::vector<E_Float>>& fieldsC,
-                                   std::vector<std::vector<E_Float>>& fieldsN)
+                                   std::vector<std::vector<E_Float>>& fieldsN,
+                                   std::vector<std::vector<E_Float>>& fieldsF)
 {
-  __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
+  __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
 }
 
 //
 PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
 {
-  PyObject* hook, *pyfieldsC, *pyfieldsN;
-  if (!PyArg_ParseTuple(args, "OOO", &hook, &pyfieldsC, &pyfieldsN)) return nullptr;
+  PyObject* hook, *pyfieldsC, *pyfieldsN, *pyfieldsF;
+  if (!PyArg_ParseTuple(args, "OOOO", &hook, &pyfieldsC, &pyfieldsN, &pyfieldsF)) return nullptr;
 
   E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
   std::string* vString{ nullptr };
@@ -616,9 +651,10 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   // FIELDS
   bool has_fieldsC = (pyfieldsC != Py_None);
   bool has_fieldsN = (pyfieldsN != Py_None);
+  bool has_fieldsF = (pyfieldsF != Py_None);
   
   char* fvarStringsC, *fvarStringsN, *feltType;
-  std::vector<std::vector<E_Float>> fieldsC, fieldsN;
+  std::vector<std::vector<E_Float>> fieldsC, fieldsN, fieldsF;
   E_Int nfields{0};
 
   if (has_fieldsC)
@@ -673,6 +709,11 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
         fieldsN[j][i] = fldsN(j, i);
   }
 
+  if (has_fieldsF)
+  {
+    //todo : getNumpyArrays
+  }
+
   // CONFORMIZE, UPDATE POINTLISTS and TRANSFER FIELDS
 
   PyObject *l(PyList_New(0));
@@ -682,9 +723,9 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   K_FLD::FloatArray* crd(nullptr);
 
   if (*sub_type == 0) // ISO
-    __conformizeHM<NUGA::ISO>(*elt_type, hmesh, crd, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
+    __conformizeHM<NUGA::ISO>(*elt_type, hmesh, crd, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
   else if (*sub_type == 1) // ISO_HEX
-    __conformizeHM<NUGA::ISO_HEX>(*elt_type, hmesh, crd, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN);
+    __conformizeHM<NUGA::ISO_HEX>(*elt_type, hmesh, crd, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
 
   //  0 : pushing out the mesh
   PyObject *tpl = K_ARRAY::buildArray(*crd, vString->c_str(), cnto, -1, "NGON", false);
@@ -697,7 +738,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   std::cout << "nb bc ptlists : " << bcptlists.size() << std::endl;
   std::cout << "nb fields : " << fields.size() << std::endl;*/
 
-  E_Int ranges[] = {3,3,3,3,3};
+  E_Int ranges[] = {3,3,3,3,3,3};
   //ranges[0] = 3; // starting index in l for bcs
   if (jptlists.size()) ranges[1] = ranges[0] + jptlists.size(); //one-pas-the-end
   ranges[2] = ranges[1];
@@ -706,10 +747,12 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   if (fieldsC.size()) ranges[3] += 1/*compacted in one array*/; //one-pas-the-end
   ranges[4] = ranges[3];
   if (fieldsN.size()) ranges[4] += 1;
+  ranges[5] = ranges[4];
+  if (fieldsF.size()) ranges[5] += 1;
   //ranges[2] = 3+jptlists.size() + bcptlists.size() + 1; //one-pas-the-end
   //ranges[3] = 3+jptlists.size() + bcptlists.size() + fields.size() + 1; //one-pas-the-end
 
-  tpl = K_NUMPY::buildNumpyArray(&ranges[0], 5, 1, 0);
+  tpl = K_NUMPY::buildNumpyArray(&ranges[0], 6, 1, 0);
   PyList_Append(l, tpl);
   Py_DECREF(tpl);
 
@@ -774,6 +817,11 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     PyObject* tpl = K_ARRAY::buildArray(farr, fvarStringsN, cnto, -1, feltType, false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
+  }
+
+  if (has_fieldsF)
+  {
+    //todo
   }
 
   return l;
@@ -1961,10 +2009,10 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
   
   NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor);
 
-  //std::cout << "output leaves..." << std::endl;
-  std::vector<E_Int> oids;
+  //std::cout << "output leaves..." << std::endl
   ngon_type ngo;
-  hmesh.conformize(ngo, oids);
+  std::vector<E_Int> pghids1, phhids1, hmpgid_to_confpgid;
+  hmesh.conformize(ngo, hmpgid_to_confpgid, pghids1, phhids1);
 
   K_FLD::IntArray cnto;
   ngo.export_to_array(cnto);

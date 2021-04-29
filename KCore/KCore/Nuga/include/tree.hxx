@@ -214,6 +214,15 @@ class tree
 
     E_Int get_enabled_descendants(E_Int i, std::vector<E_Int>& ids) const;
 
+    void get_enabled_relatives(E_Int i, std::vector<E_Int>& ids) const;
+    
+    void get_enabling_histo
+    (
+      const std::vector<E_Int> & h_ids,
+      std::map<E_Int, std::vector<E_Int>>& hph_oids,
+      std::map<E_Int, std::vector<E_Int>>& hph_nids
+    );
+
     void __get_enabled_descendants(E_Int i, std::vector<E_Int>& ids) const;
 
 };
@@ -263,6 +272,70 @@ E_Int tree<children_array>::get_enabled_descendants(E_Int i, std::vector<E_Int>&
     __get_enabled_descendants(childr[c], ids);
 
   return 0;
+}
+
+/// For a given node in thhe tree, retrieves enabled ids (either itself, a parent or all enabled descendants)
+template <typename children_array>
+void tree<children_array>::get_enabled_relatives(E_Int i, std::vector<E_Int>& ids) const
+{
+  // rules : itself enabled, just return (leaving ids empty)
+  //       : returns enabled parent in ids. WARNNG : assume hmesh cannot have single child descendant
+  //       
+  ids.clear();
+  if (_enabled[i]) return;  // still enabled
+
+  get_enabled_descendants(i, ids);
+  if (!ids.empty()) return; // descendants are enabled
+
+  E_Int pid{ IDX_NONE };
+  get_enabled_parent(i, pid);
+  assert(pid != IDX_NONE);
+
+  ids.push_back(pid);
+}
+
+///
+template <typename children_array>
+void tree<children_array>::get_enabling_histo
+(
+  const std::vector<E_Int> & h_ids,
+  std::map<E_Int, std::vector<E_Int>>& hph_oids,
+  std::map<E_Int, std::vector<E_Int>>& hph_nids
+ )
+{
+  //
+  E_Int nb_phs = h_ids.size();
+
+  hph_oids.clear();
+  hph_nids.clear();
+  
+  Vector_t<E_Int> ids;
+  //
+  for (E_Int i = 0; i < nb_phs; ++i) // previous enabled hmesh ids
+  {
+    E_Int hphid = h_ids[i];
+
+    get_enabled_relatives(hphid, ids);
+
+    if (ids.empty()) // hphid is still enabled
+    {
+      hph_nids[hphid].push_back(hphid);
+      hph_oids[hphid].push_back(hphid);
+    }
+    else if (ids.size() == 1) // parent => agglom : store as neg val to distinguish from intact case
+    {
+      hph_oids[ids[0]].push_back(hphid); // will contain all the bits that have been agglom into ids[0]
+      hph_nids[hphid].push_back(-(ids[0] + 1)); // parent origin store as neg
+    }
+    else
+    {
+      for (size_t c = 0; c < ids.size(); ++c) // if one entry => parent id, otherwise descendants ids
+      {
+        hph_oids[ids[c]].push_back(-(hphid + 1)); // parent origin store as neg
+        hph_nids[hphid].push_back(ids[c]);
+      }
+    }
+  }
 }
 
 template <typename children_array>

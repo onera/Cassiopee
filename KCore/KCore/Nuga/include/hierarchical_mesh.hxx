@@ -36,6 +36,8 @@ using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #include "Nuga/include/communicator.hxx"
 #include "Nuga/include/join_t.hxx"
 
+#include "Nuga/include/history.h"
+
 
 namespace NUGA
 {
@@ -86,12 +88,12 @@ class hierarchical_mesh
     jsensor_t*       jsensor;
     communicator_t*  COM;
 
-    //hack
-    mutable std::vector<E_Int> _pgnids, _phnids;
-
     // for fields projetion
     E_Int                     _nb_phs0;         // intial nb of PHs
-    Vector_t<bool>            _enabledPHi;      // current PH enabling status
+    E_Int                     _nb_pgs0;         // intial nb of PGs
+
+    Vector_t<E_Int>  pghids0, phhids0;
+    NUGA::history_t  histo;
 
     ///
     hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(0) { init(); }
@@ -130,7 +132,7 @@ class hierarchical_mesh
     E_Int adapt(output_t& adap_incr, bool do_agglo);
   
     /// face-conformity
-    void conformize(ngo_t& ngo, Vector_t<E_Int>& pgoids) const;
+    void conformize(ngo_t& ngo, Vector_t<E_Int>& hmpgid_to_confpgid, Vector_t<E_Int>& pghids, Vector_t<E_Int>& phhids) const;
     /// Keep only enabled PHs
     void extract_enabled_phs(ngon_type& filtered_ng) const ;
     ///
@@ -154,7 +156,21 @@ class hierarchical_mesh
     bool is_initialised() const ;
 
     ///
+    E_Int build_histo_between_two_enabled_states
+    (
+      const std::vector<E_Int>& pghids0,
+      const std::vector<E_Int>& phhids0,
+      const std::vector<E_Int>& pghids1,
+      const std::vector<E_Int>& phhids1,
+      history_t& histo
+    );
+
+    ///
     E_Int project_cell_center_sol_order1(std::vector<std::vector<E_Float>>& fields);
+    E_Int project_cell_center_sol_order1(std::vector<E_Int>& phhids0, std::vector<std::vector<E_Float>>& cfields);
+    E_Int project_cell_center_sol_order1(const K_FLD::FloatArray& crd_don, const ngo_t& ng_don,
+                                         const history_t& histo,
+                                         const K_FLD::FloatArray& crd_rec, const ngo_t& ng_rec, std::vector<std::vector<E_Float>>& cfields);
 
 private:
     ///
@@ -279,6 +295,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
   if (_ng.PGs.size() == 0) return 1;
 
   _nb_phs0 = _ng.PHs.size();
+  _nb_pgs0 = _ng.PGs.size();
   
   E_Int err(0);
   
@@ -404,13 +421,15 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
   return 1;
 }
 
-
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_Int>& pgoids) const
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_Int>& hmpgid_to_confpgid, Vector_t<E_Int>& pghids, Vector_t<E_Int>& phhids) const
 {
   ngon_unit new_phs;
   Vector_t<E_Int> molec, ids;
+
+  pghids.clear();
+  phhids.clear();
 
   E_Int nb_phs = _ng.PHs.size();
   for (E_Int i = 0; i < nb_phs; ++i)
@@ -425,75 +444,47 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
     {
       E_Int PGi = *(pPGi + j) - 1;
 
-      if (_PGtree.is_enabled(PGi))
+      if (_PGtree.is_enabled(PGi)) {
         molec.push_back(PGi + 1);
+        pghids.push_back(PGi);
+      }
       else // get enabled descendants
       {
         _PGtree.get_enabled_descendants(PGi, ids);
+        assert(!ids.empty());
 
-#ifdef DEBUG_HIERARCHICAL_MESH
-        if (ids.empty())
-        {
-          E_Int pid = _PGtree.parent(PGi);
-          E_Int gpid = IDX_NONE;
-          E_Int nbc = _PGtree.nb_children(PGi);
-          bool pid_is_enabled = (pid != IDX_NONE) ? _PGtree.is_enabled(pid) : false;
-
-          bool gpid_is_enabled = false;
-          if (pid != IDX_NONE){
-            gpid = _PGtree.parent(pid);
-            gpid_is_enabled = (gpid != IDX_NONE) ? _PGtree.is_enabled(gpid) : false;
-          }
-
-          std::cout << "faulty PGi : " << PGi << std::endl;
-          std::cout << "PHi : " << i << std::endl;
-          std::cout << "F2E : " << _F2E(0,PGi) << "/" << _F2E(1,PGi) << std::endl;
-          std::cout << "parent ? : " << pid << " enabled ? : " << pid_is_enabled << std::endl;
-          std::cout << "grand parent ? : " << gpid << " enabled ? : " << gpid_is_enabled<< std::endl;
-          std::cout << "nbc ? : " << nbc << std::endl;
-          if (nbc != 0)
-          {
-            const E_Int* childz = _PGtree.children(PGi);
-            for (size_t i=0; i < nbc; ++i)
-              std::cout << "child : " << i << " : " << childz[i] << std::endl;
-          }
-
-          medith::write("faultyPG", _crd, _ng.PGs.get_facets_ptr(PGi), _ng.PGs.stride(PGi), 1);
-          medith::write("PH557", _crd, _ng, i);
-          medith::write("PH6", _crd, _ng, _F2E(0,PGi));
-        }
-#endif
-        assert (!ids.empty());
-
+        pghids.insert(pghids.end(), ALL(ids));
+        
         K_CONNECT::IdTool::shift(ids, 1);
         molec.insert(molec.end(), ALL(ids));
       }
     }
 
     new_phs.add(molec.size(), &molec[0]);  //alexis : set _type for children ??
+    phhids.push_back(i);
   }
 
   ngo.PGs = _ng.PGs; // on copie tous les polygones
-  ngo.PHs = new_phs;
+  ngo.PHs = new_phs; // compressed leaves only
   ngo.PHs.updateFacets();
 
-  _pgnids.clear();
-  _phnids.clear();
-  ngo.remove_unreferenced_pgs(_pgnids, _phnids);
+  std::vector<E_Int>  phnids;
+  ngo.remove_unreferenced_pgs(hmpgid_to_confpgid, phnids);
 
-  //for history (BC and Join preserving)
+  //// update hmesh ids after above filtering
+  //Vector_t<E_Int> new_pghids, new_phhids;
+  //new_phhids.resize(ngo.PHs.size(), IDX_NONE);
+  //new_pghids.resize(ngo.PGs.size(), IDX_NONE);
 
-  pgoids.clear();
-  K_CONNECT::IdTool::init_inc(pgoids, _ng.PGs.size());
+  //for (size_t i = 0; i < phnids.size(); ++i)
+  //  new_phhids[phnids[i]] = phhids[i];
+
+  //for (size_t i = 0; i < hmpgid_to_confpgid.size(); ++i)
+  //  new_pghids[hmpgid_to_confpgid[i]] = pghids[i];
+
+  //pghids = new_pghids;
+  //phhids = new_phhids;
   
-  Vector_t<E_Int> old_pgoids;
-  _PGtree.get_oids(old_pgoids);
-  
-  for (size_t i = 0; i < _pgnids.size(); ++i)
-  {
-    //old_pgoids cannot have IDX_NONE : new entities must be self referring
-    if (_pgnids[i] != IDX_NONE)pgoids[_pgnids[i]] = old_pgoids[i];
-  }
 }
 
 ///
@@ -742,17 +733,17 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
-(std::vector<std::vector<E_Float>>& cfields)
+(std::vector<E_Int>& phhids0, std::vector<std::vector<E_Float>>& cfields)
 {
   size_t nbf = cfields.size();
 
   if (nbf == 0) return 0;
 
   //check all fields have same size
-  size_t fsz{0};
-  for (size_t f=0; f < nbf; ++f)
+  size_t fsz{ 0 };
+  for (size_t f = 0; f < nbf; ++f)
   {
-    if (fsz==0)fsz = cfields[f].size();
+    if (fsz == 0)fsz = cfields[f].size();
     else if (fsz != cfields[f].size())
     {
       std::cout << "project_cell_center_sol_order1 : ERROR. input fields sizes are inconsistent between them." << std::endl;
@@ -760,38 +751,18 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
     }
   }
 
-  if (_enabledPHi.empty()) // one-shot adaption or first time in adaptCellsDyn
-    _enabledPHi.resize(_nb_phs0, true);
-  else
-  {
-    /*std::cout << "next pass !!!" << std::endl;
-    std::cout << "nb phs : " << _ng.PHs.size() << std::endl;
-    std::cout << "_enabledPHi sz : " << _enabledPHi.size() << std::endl;
-    std::cout << "fsz : " << fsz << std::endl;*/
-  }
-
-  size_t nb_enabledi = std::count(ALL(_enabledPHi), true);
-  
-  if (fsz != nb_enabledi)
+  if (fsz != phhids0.size())
   {
     std::cout << "project_cell_center_sol_order1 : ERROR. input fields sizes are inconsistent with hmesh." << std::endl;
     return 1;
   }
 
-  // compute indir field to PH in _enabledPHi
-  std::vector<E_Int> PHid1(fsz);
-  size_t c{0};
-  for (size_t i=0; i < _enabledPHi.size(); ++i)
-  {
-    if (_enabledPHi[i]) PHid1[c++]=i;
-  }
-
   // compute indir field to PH and reverse in current enabled vector
   std::vector<E_Int> nPHid, nfid(_ng.PHs.size(), IDX_NONE);
-  c=0;
-  for (E_Int i=0; i < _ng.PHs.size(); ++i)
+  //c = 0;
+  for (E_Int i = 0; i < _ng.PHs.size(); ++i)
   {
-    if (_PHtree.is_enabled(i)) 
+    if (_PHtree.is_enabled(i))
     {
       nfid[i] = nPHid.size();
       nPHid.push_back(i);
@@ -808,10 +779,9 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
   std::vector<bool> to_agglo(fsz2, false);
 
   // loop on old fields and apply to new
-  for (size_t i=0; i < PHid1.size(); ++i)
+  for (size_t i = 0; i < phhids0.size(); ++i)
   {
-    E_Int PHj = PHid1[i];
-    assert (_enabledPHi[PHj] == true); //by defininition
+    E_Int PHj = phhids0[i];
 
     if (_PHtree.is_enabled(PHj)) // still enabled, just pass the values
     {
@@ -824,7 +794,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
 
       if (!children.empty())
       {
-        for (size_t c=0; c < children.size(); ++c)
+        for (size_t c = 0; c < children.size(); ++c)
         {
           for (size_t f = 0; f < nbf; ++f)
             new_fields[f][nfid[children[c]]] = cfields[f][i];
@@ -832,9 +802,9 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
       }
       else //agglo : get the enabled ancestor
       {
-        E_Int pid{IDX_NONE};
+        E_Int pid{ IDX_NONE };
         _PHtree.get_enabled_parent(PHj, pid);
-        assert (pid != IDX_NONE);
+        assert(pid != IDX_NONE);
 
         //compute PHj volume
         E_Float v;
@@ -850,7 +820,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
   }
 
   // go back to density for agglomerated cells
-  for (size_t i=0; i < to_agglo.size(); ++i) // i is ith field value
+  for (size_t i = 0; i < to_agglo.size(); ++i) // i is ith field value
   {
     if (!to_agglo[i]) continue;
 
@@ -866,10 +836,188 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
   }
 
   cfields = new_fields;
-  _enabledPHi = _PHtree.get_enabled();
 
   return 0;
 }
+
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
+(const K_FLD::FloatArray& crd_don, const ngo_t& ng_don, 
+ const history_t& histo,
+ const K_FLD::FloatArray& crd_rec, const ngo_t& ng_rec, std::vector<std::vector<E_Float>>& cfields)
+{
+  size_t nbf = cfields.size();
+
+  if (nbf == 0) return 0;
+
+  // check consistency between donnor/receiver and histo;
+
+  bool consistent = (ng_don.PHs.size() == histo.phnids.xr.size() - 1);
+  consistent &= (ng_don.PGs.size() == histo.pgnids.xr.size() - 1);
+  consistent &= (ng_rec.PHs.size() == histo.phoids.xr.size() - 1);
+  consistent &= (ng_rec.PGs.size() == histo.pgoids.xr.size() - 1);
+
+  if (!consistent)
+  {
+    std::cout << "project_cell_center_sol_order1 : ERROR. input meshes and histo are not consistent." << std::endl;
+    return 1;
+  }
+
+  //check all fields have same size
+  size_t fsz{ 0 };
+  for (size_t f = 0; f < nbf; ++f)
+  {
+    if (fsz == 0)fsz = cfields[f].size();
+    else if (fsz != cfields[f].size())
+    {
+      std::cout << "project_cell_center_sol_order1 : ERROR. input fields sizes are inconsistent between them." << std::endl;
+      return 1;
+    }
+  }
+
+  if (fsz != ng_don.PHs.size())
+  {
+    std::cout << "project_cell_center_sol_order1 : ERROR. input fields sizes are inconsistent with input PHs." << std::endl;
+    return 1;
+  }
+
+  // initialize new fields
+  E_Int nb_target_phs = ng_rec.PHs.size();
+  std::vector<std::vector<E_Float>> new_fields(nbf);
+  for (size_t f = 0; f < nbf; ++f)
+    new_fields[f].resize(nb_target_phs, 0.);
+
+  //loop on new mesh and get fields val from previous state
+  for (size_t i = 0; i < nb_target_phs; ++i)
+  {
+    int nb_sources = histo.phoids.xr[i + 1] - histo.phoids.xr[i];
+    const int* source_start = &histo.phoids.data[histo.phoids.xr[i]];
+
+    if (nb_sources == 1)
+    {
+      assert(*source_start != IDX_NONE); // PH must have an origin
+
+      E_Int src = *source_start;
+      if (src < 0) // target is a child of source but order1 so no diff with intact case
+        src = -(src + 1);
+
+      for (size_t f = 0; f < nbf; ++f)
+        new_fields[f][i] = cfields[f][src];
+    }
+    else // target is an agglomeration of sources
+    {
+      for (size_t s = 0; s < nb_sources; ++s)
+      {
+        const E_Int& src = source_start[s];
+        //compute src volume
+        E_Float v;
+        K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(crd_don, ng_don.PGs, ng_don.PHs.get_facets_ptr(src), ng_don.PHs.stride(src), v, true);
+
+        for (size_t f = 0; f < nbf; ++f)
+          new_fields[f][i] += cfields[f][src] * ::fabs(v); // accumulate mass
+      }
+
+      // now divide by receiver volume
+      E_Float v;
+      K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(crd_rec, ng_rec.PGs, ng_rec.PHs.get_facets_ptr(i), _ng.PHs.stride(i), v, true);
+
+      if (::fabs(v) < ZERO_M) continue;
+
+      for (size_t f = 0; f < nbf; ++f)
+        new_fields[f][i] /= v;
+    }
+  }
+
+
+  cfields = new_fields;
+
+  return 0;
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::build_histo_between_two_enabled_states
+(
+  const std::vector<E_Int>& pghids0,
+  const std::vector<E_Int>& phhids0,
+  const std::vector<E_Int>& pghids1,
+  const std::vector<E_Int>& phhids1,
+  history_t& histo
+)
+{
+  std::map<E_Int, std::vector<E_Int>> hph_oids;
+  std::map<E_Int, std::vector<E_Int>> hph_nids;
+  _PHtree.get_enabling_histo(phhids0, hph_oids, hph_nids);
+
+  std::map<E_Int, std::vector<E_Int>> hpg_oids;
+  std::map<E_Int, std::vector<E_Int>> hpg_nids;
+  _PGtree.get_enabling_histo(pghids0, hpg_oids, hpg_nids);
+
+
+  //phnids
+  for (size_t i = 0; i < phhids0.size(); ++i)
+  {
+    E_Int hid = phhids0[i];
+    auto it = hph_nids.find(hid);
+    if (it == hph_nids.end()) // i is gone
+    {
+      histo.phnids.append(IDX_NONE);
+    }
+    else // intact, refined or agglom (parent stored as neg)
+    {
+      histo.phnids.append(it->second);
+    }
+  }
+
+  //pgnids
+  for (size_t i = 0; i < pghids0.size(); ++i)
+  {
+    E_Int hid = pghids0[i];
+    auto it = hpg_nids.find(hid);
+    if (it == hpg_nids.end()) // i is gone
+    {
+      histo.pgnids.append(IDX_NONE);
+    }
+    else // intact, refined or agglom (parent stored as neg)
+    {
+      histo.pgnids.append(it->second);
+    }
+  }
+
+  //phoids
+  for (size_t i = 0; i < phhids1.size(); ++i)
+  {
+    E_Int hid = phhids1[i];
+    auto it = hph_oids.find(hid);
+    if (it == hph_oids.end()) // i is new
+    {
+      histo.phoids.append(IDX_NONE);
+    }
+    else // intact, agglom or subdivided (parent stored as neg)
+    {
+      histo.phoids.append(it->second);
+    }
+  }
+
+  //pgoids
+  for (size_t i = 0; i < pghids1.size(); ++i)
+  {
+    E_Int hid = pghids1[i];
+    auto it = hpg_oids.find(hid);
+    if (it == hpg_oids.end()) // i is new
+    {
+      histo.pgoids.append(IDX_NONE);
+    }
+    else // intact, agglom or subdivided (parent stored as neg)
+    {
+      histo.pgoids.append(it->second);
+    }
+  }
+  return 0;
+}
+
 
 }
 

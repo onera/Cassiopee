@@ -1962,7 +1962,10 @@ def _conformizeHMesh(t, hooks):
         fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
         if fieldsN == [] : fieldsN = None
 
-        res = intersector.conformizeHMesh(hooks[i], fieldsC, fieldsN)
+        fieldsF = None
+        # todo : get fields from BCDataSets
+
+        res = intersector.conformizeHMesh(hooks[i], fieldsC, fieldsN, fieldsF)
 
         # res[0] : mesh
         # res[1] : ranges for what is in res from 3 to end in res
@@ -1999,10 +2002,14 @@ def _conformizeHMesh(t, hooks):
           C.setFields([f], z, 'centers', False)
 
         ## MAJ node fields
-        fieldz = res[ranges[3]:]
+        fieldz = res[ranges[3]:ranges[4]]
         #print (fieldz)
         for f in fieldz:
           C.setFields([f], z, 'nodes', False)
+
+        ## MAJ face fields 
+        fieldz = res[ranges[4]:]
+        # todo (in BCDataSets)
         
         i=i+1
 
