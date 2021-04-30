@@ -40,6 +40,7 @@ static PyMethodDef Pyintersector [] =
 
   {"XcellN", K_INTERSECTOR::XcellN, METH_VARARGS},
   
+  {"P1ConservativeInterpolation", K_INTERSECTOR::P1ConservativeInterpolation, METH_VARARGS},
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},
   
   {"selfX", K_INTERSECTOR::selfX, METH_VARARGS},

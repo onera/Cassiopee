@@ -123,6 +123,18 @@ def XcellN(coord, zwall_ids, basenum, masks, wall_ids, priorities, output_type=0
     return intersector.XcellN(coord, zwall_ids, basenum, masks, wall_ids, priorities, output_type, rtol)
 
 #==============================================================================
+# P1ConservativeInterpolation
+# IN: aR : receiver mesh
+# IN : aD : donnor mesh
+# IN : fldD : donnor center fields
+# OUT: returns aR with transferred center fields from aD in a conservative manner 
+#==============================================================================
+def P1ConservativeInterpolation(aR, aD, fldD):
+    """Does conservative interpolations from aD center fields (fldD) to aR
+    Usage : interpolate(aR, aD, fldD)"""
+    return intersector.P1ConservativeInterpolation(aR, aD, fldD)
+
+#==============================================================================
 # P1ConservativeChimeraCoeffs
 # IN: aR: receiver mesh
 # IN: cellnR: receiver cellN (only cells with value equal to 2 will be considered)

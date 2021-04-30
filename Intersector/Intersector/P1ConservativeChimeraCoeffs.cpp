@@ -20,18 +20,105 @@
 # include "intersector.h"
 #include "Nuga/include/conservative_chimera.h"
 #include <memory>
-//# include "Numpy/Numpy.h"
-//#include <sstream>
-//#include <fstream>
-//#include <iostream>
-//#include "chrono.h"
+#include "Nuga/include/mesh_t.hxx"
+
 
 using namespace std;
 using namespace K_FLD;
-
+using namespace NUGA;
 
 //============================================================================
-/* Blank cells defined in arrays by a Tetra mesh mask (as an input hook) */
+/* Conservative interpolator*/
+//============================================================================
+PyObject* K_INTERSECTOR::P1ConservativeInterpolation(PyObject* self, PyObject* args)
+{
+  PyObject *meshD, *meshR, *fldD;
+  
+  if (!PyArg_ParseTuple(args, "OOO", &meshR, &meshD, &fldD)) return NULL;
+  
+  using crd_t = K_FLD::FloatArray;
+  using cnt_t = K_FLD::IntArray;
+  using zmesh_t = ph_mesh_t; 
+  
+  crd_t crdR;
+  cnt_t cntR;
+  char* varStringR, *eltTypeR;
+  // Check array # 1
+  E_Int ni, nj, nk;
+  E_Int res = K_ARRAY::getFromArray(meshR, varStringR, crdR, ni, nj, nk, cntR, eltTypeR);
+
+  if (res != 2 || strcmp(eltTypeR, "NGON") != 0 )
+  {
+    PyErr_SetString(PyExc_ValueError,
+       "P1ConservativeChimeraCoeffs: the donnor zone must be NGON.");
+      return NULL;
+  }
+
+  //std::cout << "nb of fields : " << fR->getNfld() << std::endl;
+  //std::cout << "vars : " << varStringR << std::endl;
+
+  crd_t crdD;
+  cnt_t cntD;
+  char* varStringD, *eltTypeD;
+  res = K_ARRAY::getFromArray(meshD, varStringD, crdD, ni, nj, nk, cntD, eltTypeD);
+
+  if (res != 2 || strcmp(eltTypeR, "NGON") != 0 )
+  {
+    PyErr_SetString(PyExc_ValueError,
+       "P1ConservativeChimeraCoeffs: the donnor zone must be NGON.");
+      return NULL;
+  }
+
+  K_FLD::FldArrayF* fldsC;
+  K_FLD::FldArrayI* cn;
+  char* fvarStringsC, *feltType;
+  res = K_ARRAY::getFromArray(fldD, fvarStringsC, fldsC, ni, nj, nk, cn, feltType);
+
+  std::unique_ptr<K_FLD::FldArrayF> afldC(fldsC); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::FldArrayI> acn(cn); // to avoid to call explicit delete at several places in the code.
+
+  E_Int nfields = fldsC->getNfld();
+  E_Int nvals = fldsC->getSize();
+
+  std::vector<field> don_fields(nfields);
+
+  for (E_Int j = 0; j < nfields; ++j)
+    don_fields[j].f = fldsC->begin(j+1);
+  //fixme : get gradients 
+
+  /*std::cout << "res : " << res << std::endl;
+  std::cout << "var : " << fvarStringsC << std::endl;
+  std::cout << "field C : " << fldsC.rows() << "/" << fldsC.cols() << std::endl;
+  std::cout << "cn : " << cn.rows() << "/" << cn.cols() << std::endl;*/
+
+
+  zmesh_t mR(crdR, cntR), mD(crdD, cntD);
+  double RTOL{1.e-12};
+  
+  std::vector<std::vector<double>> rec_fields;
+  bool do_omp = true;
+
+  NUGA::interpolate(mR, mD, RTOL, don_fields, rec_fields, do_omp);
+
+  //  pushing out the received fields
+  K_FLD::FloatArray farr(nfields, rec_fields[0].size());
+  for (size_t i=0; i < rec_fields.size(); ++i)
+  {
+    std::vector<double>& fld = rec_fields[i];
+    for (size_t j = 0; j < fld.size(); ++j)farr(i, j) = fld[j];
+  }
+
+  PyObject* tpl = K_ARRAY::buildArray(farr, fvarStringsC, cntR, -1, feltType, false);
+  //PyList_Append(l, tpl);
+  //Py_DECREF(tpl);
+
+  
+  return tpl;
+
+}
+
+//============================================================================
+/* Computes chimera  coeefs in a conservative manner*/
 //============================================================================
 PyObject* K_INTERSECTOR::P1ConservativeChimeraCoeffs(PyObject* self, PyObject* args)
 {

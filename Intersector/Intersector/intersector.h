@@ -37,6 +37,7 @@ namespace K_INTERSECTOR
   PyObject* XcellN(PyObject* self, PyObject* args);
   PyObject* unify(PyObject* self, PyObject* args);
   
+  PyObject* P1ConservativeInterpolation(PyObject* self, PyObject* args);
   PyObject* P1ConservativeChimeraCoeffs(PyObject* self, PyObject* args);
 
   PyObject* selfX(PyObject* self, PyObject* args);

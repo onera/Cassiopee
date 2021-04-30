@@ -987,6 +987,28 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     
   return None
 
+def P1ConservativeInterpolation(tR, tD):
+     
+    tp = Internal.copyRef(tR)
+    _P1ConservativeInterpolation(tp, tD)
+    return tp
+
+def _P1ConservativeInterpolation(tR, tD):
+
+  zR = Internal.getZones(tR)
+  zD = Internal.getZones(tD)
+
+  for zr in zR:
+    mR = C.getFields(Internal.__GridCoordinates__, zr)[0]
+
+    for zd in zD:
+      mD = C.getFields(Internal.__GridCoordinates__, zd)[0]
+      fldD = C.getFields(Internal.__FlowSolutionCenters__, zd)[0]
+
+      fldR = intersector.P1ConservativeInterpolation(mR, mD, fldD)
+      C.setFields([fldR], zr, 'centers', False)
+
+
 
 #==============================================================================
 # triangulateExteriorFaces

@@ -16,7 +16,7 @@
 #include "Nuga/include/Triangulator.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/mesh_t.hxx"
-#include "Nuga/include/xmatch.hxx"
+#include "Nuga/include/supermesh.hxx"
 
 namespace NUGA
 {

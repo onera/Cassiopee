@@ -9,8 +9,8 @@
 */
 //Authors : Sâm Landier (sam.landier@onera.fr)
 
-#ifndef NUGA_XMATCH_HXX
-#define NUGA_XMATCH_HXX
+#ifndef NUGA_SUPERMESH_HXX
+#define NUGA_SUPERMESH_HXX
 
 //#define XMATCH_DBG
 
@@ -25,14 +25,14 @@
 namespace NUGA
 {
 
-  struct field
-  {
-    double* f;
-    double* gradf[3];
-    field() :f(nullptr) { gradf[0] = gradf[1] = gradf[2] = nullptr; }
-  };
+struct field
+{
+  double* f;
+  double* gradf[3];
+  field() :f(nullptr) { gradf[0] = gradf[1] = gradf[2] = nullptr; }
+};
 
-template <typename zmesh_t>
+template <typename zmesh_t> inline
 void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int>& anc0, std::vector<E_Int>& anc1, zmesh_t& xm)
 {
   using aelt_t = typename zmesh_t::aelt_t;
@@ -210,7 +210,7 @@ inline double transfer_mass(aPolyhedron<0>& pbit, aPolyhedron<0>& pdon, double V
   return m;
 }
 
-template <typename zmesh_t, typename bmesh_t>
+template <typename zmesh_t>
 int interpolate(
   const zmesh_t& mrec,
   const zmesh_t& mdon,
@@ -263,6 +263,7 @@ int interpolate(
     {
       i2 = cands[n] - 1;
       auto ae1 = mdon.aelement(i2);
+
 
 #ifdef SUPERMESH_DBG
       medith::write<>("ae1", ae1.m_crd, ae1.m_pgs);
@@ -347,4 +348,4 @@ int interpolate(
 
 }
 
-#endif // NUGA_XMATCH_HXX
+#endif // NUGA_SUPERMESHHXX
