@@ -1067,10 +1067,10 @@ E_Int NGON_BOOLEAN_CLASS::Union
     
     // fixme : not handle because anc_PH/PG structure is not appropriate :
     // here we should fill the first row of anc_PH/PG for wNG1 and the second for wNG2.
-    _ngoper = 0; 
+    _ngoper = nullptr; 
   }
 
-  if (ret != ERROR)
+  if (ret != ERROR && _ngoper != nullptr)
   {
     ngon_type::clean_connectivity(*_ngoper, coord);
     if(simplify_pgs) ngon_type::simplify_pgs(*_ngoper, coord);
@@ -3381,7 +3381,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
     boxes1.clear(); boxes2.clear();
     return EMPTY_X;
   }
-  #ifdef FLAG_STEP
+#ifdef FLAG_STEP
   std::cout << "__focus_on_intersection_zone : create boxes : " << c.elapsed() << std::endl;
   c.start();
 #endif
