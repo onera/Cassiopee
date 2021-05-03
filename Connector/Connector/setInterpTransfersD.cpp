@@ -119,20 +119,20 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
     }
 
     vector< PyArrayObject* > hook;
-    E_Int imdjmd, imd, jmd, kmd, cnNfldD, nvars, ndimdxD, meshtype;
+    E_Int imdjmd, imd, jmd, kmd, cnNfldD, nvars, ndimdxD=0, meshtype;
     E_Float * iptroD=NULL;
     E_Int poscd = -1;
     E_Int posvd, posvarcd=-1;
 
-#include "extract_interpD.h"
+    #include "extract_interpD.h"
 
     vector< E_Float* > fieldsD;
     vector< E_Int >    posvarsD;
     E_Int* ptrcnd;
-    char *eltTypeD, *varStringD;
+    char* eltTypeD, *varStringD;
     char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
     // codage general (lent ;-) )
-    if ( compact == 0 ) 
+    if (compact == 0) 
     {
         //---------------------------------------------/
         // Extraction des infos sur le domaine donneur /
@@ -166,7 +166,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
                         if (posvd != -1)
                         {
                             posvarsD.push_back(posvd);
-                            if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
+                            if (varStringOut[0] == '\0') strcpy(varStringOut, varname);
                             else 
                             {
                                 strcat(varStringOut, ",");
@@ -174,7 +174,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
                             }
                         }
                     }
-#if PY_VERSION_HEX >= 0x03000000
+                    #if PY_VERSION_HEX >= 0x03000000
                     else if (PyUnicode_Check(tpl0))
                     {
                         const char* varname = PyUnicode_AsUTF8(tpl0);
@@ -191,7 +191,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
                             }
                         }   
                     }
-#endif
+                    #endif
                     else
                         PyErr_Warn(PyExc_Warning, "_setInterpTransfersD: variable must be a string. Skipped."); 
                 }
@@ -229,7 +229,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
     }// fin compact = 0     
     else  // les variables a transferer sont compactees: on recupere uniquement la premiere et la taille
     {
-    #include "getfromzonecompactD.h"
+        #include "getfromzonecompactD.h"
     }
 
     // -- no check (perfo) --
@@ -272,7 +272,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
             { 
                 // adressage direct pour indR
                 indR = noind;
-            # include "commonCellNTransfersStrict.h"   
+                # include "commonCellNTransfersStrict.h"   
             }  
         }
     } 
@@ -283,12 +283,12 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
             vectOfRcvFields[eq] = fieldROut.begin(eq+1);
             vectOfDnrFields[eq] = iptroD + eq * ndimdxD;
         }
-    ///
-    ////
-    //  Interpolation parallele
-    ////
-    ////
-    #include "commonInterpTransfers_direct.h"  
+        ///
+        ////
+        //  Interpolation parallele
+        ////
+        ////
+        #include "commonInterpTransfers_direct.h"  
     }
 
     delete[] varStringOut;
@@ -365,8 +365,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     ipt_cnd      = new E_Int*[nidomD];
     ipt_roD      = new E_Float*[nidomD * 2];
     ipt_roD_vert = ipt_roD + nidomD;
-
-
 
     
   /*----------------------------------*/

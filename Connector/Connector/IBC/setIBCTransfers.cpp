@@ -864,13 +864,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       rgp = cv*gam1;
       newtonmax = 40;
       tolnewton = 1.e-6;
-      c4 = 5. / 6.;
-      c5 = 2. / 6.;
-      c6 = -1. / 6.;
-      c0 = 1./c6;
-      c1 =-(c4 + c5)*c0;
-      c2 =- c6*c0;
-      c3 = (2.- c5- c4)*c0;
+      //c4 = 5. / 6.;
+      //c5 = 2. / 6.;
+      //c6 = -1. / 6.;
+      //c0 = 1./c6;
+      //c1 =-(c4 + c5)*c0;
+      //c2 =- c6*c0;
+      //c3 = (2.- c5- c4)*c0;
 
       // Init newton
       roi = roOut[indR];
@@ -1378,13 +1378,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
 {
   /* lois de paroi */
   E_Float roext, uext, pext, text, muext, yext, yplus, yibc;
-  E_Float uscaln, un, vn, wn, ut, vt, wt, utau, utauv, utau0, umod;
-  E_Float aa, bb, dd, fp, tp, f1v;
+  E_Float uscaln, un, vn, wn, ut, vt, wt, utauv, utau0, umod;
+  E_Float bb, fp, tp;
   E_Float expy, denoml10,ax,l1,l2, l3;
-  E_Float ucible0, ucible, vcible, wcible, nutilde, signibc, twall, rowall, muwall;
+  E_Float ucible0, ucible, vcible, wcible, signibc, twall, rowall, muwall;
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
-  E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
+  //E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
   E_Float newtonepsprime = 1.e-12;// critere d arret pour la derivee  
   E_Float cvgaminv = 1./(cv*(gamma-1.));
   E_Float coefSuth = muS * (1.+Cs/Ts);
@@ -1394,7 +1394,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   E_Float cc = 5.2;//pour la loi log
   E_Float one_third = 1./3.; 
 
-  /* fin parametres loi de parois*/
+  /* fin parametres loi de parois */
 
   E_Int nvars = vectOfDnrFields.size();
 

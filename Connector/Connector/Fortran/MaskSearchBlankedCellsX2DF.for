@@ -25,7 +25,6 @@ C                                    critere de masquage cell intersect
      &     nz, z, isnot, cellNatureField, isMasked )
 
       IMPLICIT NONE
-
 #include "Def/DefFortranConst.h"
 C==============================================================================
 C_IN
@@ -62,9 +61,15 @@ C==============================================================================
       nicnjc = nic*(nj-1)
       isMasked = 0
 
+
+!$OMP PARALLEL PRIVATE(i, j, k, l, ip, jp, et, ind, indray, dx1, dy1,
+!$OMP&                  xp1, yp1, xp2, yp2, xp3, yp3, xp4, yp4,
+!$OMP&                  xmincell, ymincell, xmaxcell, ymaxcell,
+!$OMP&                  iray, ibeg, iend, iraymin, iraymax,
+!$OMP&                  npmin, npmax, cellN)
+
       IF ( isnot .EQ. 0 ) THEN
-!$OMP PARALLEL
-!$OMP DO
+!$OMP DO REDUCTION(MAX:isMasked)
       DO d = 0, nicnjc
           j = d/nic
           i = d - j*nic
@@ -76,11 +81,9 @@ C
 #include "../../Connector/Fortran/MaskCellIntersect2DF.for"
       ENDDO
 !$OMP END DO
-!$OMP END PARALLEL
 
       ELSE
-!$OMP PARALLEL
-!$OMP DO
+!$OMP DO REDUCTION(MAX:isMasked)
       DO d = 0, nicnjc
           j = d/nic
           i = d - j*nic
@@ -92,8 +95,8 @@ C
 #include "../../Connector/Fortran/MaskCellIntersectNot2DF.for"
       ENDDO
 !$OMP END DO
-!$OMP END PARALLEL
 
       ENDIF
+!$OMP END PARALLEL
       END
 C ===== XRay/MaskSearchBlankedCellsX2DF.for =====

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CLASSIFYER_HXX
 #define NUGA_CLASSIFYER_HXX
@@ -328,7 +328,7 @@ namespace NUGA
       DELAUNAY::Triangulator dt;
       ae2.triangulate(dt, ae2.m_crd);
       double omega = 0.;
-      for (size_t i = 0; i < ae2.nb_tris(); ++i)
+      for (E_Int i = 0; i < ae2.nb_tris(); ++i)
       {
         int T[3];
         ae2.triangle(i, T);
@@ -343,7 +343,7 @@ namespace NUGA
       const double* G2 = ae2.get_centroid();
       ae1.triangulate(dt, ae1.m_crd);
       omega = 0.;
-      for (size_t i = 0; i < ae1.nb_tris(); ++i)
+      for (E_Int i = 0; i < ae1.nb_tris(); ++i)
       {
         int T[3];
         ae1.triangle(i, T);

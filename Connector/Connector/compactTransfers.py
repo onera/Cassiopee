@@ -40,10 +40,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
         procDict=None; graphID=None; graphIBCD=None
 
     # if Cmpi is not None and rank == 0: 
-    #    print "GRAPH IBC IS : ",graph['graphIBCD']
-    #    print "graphID IS :",graph['graphID']
+    #    print("GRAPH IBC IS : ",graph['graphIBCD'])
+    #    print("graphID IS :",graph['graphID'])
     
-    # print "procDict IS : ",procDict    
+    # print("procDict is : ",procDict)    
     size_int  = 0
     size_real = 0
     listproc  = []
@@ -56,154 +56,168 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     nrac      = 0
 
     ordered_subRegions =[]
+    neq_subRegions =[]
     No_zoneD =[]
     MeshTypeD=[]
     inst = {}
     numero_max =-100000000
     numero_min = 100000000
 
-    zones_tc = Internal.getZones(tc)
-    c        = 0
-    for z in zones_tc:
-      #print z[0]
-      subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
-      meshtype   = 1
-      zonetype   = Internal.getNodeFromType1(z, 'ZoneType_t')
-      tmp        = Internal.getValue(zonetype)
-      dimPb      = Internal.getZoneDim(z)[4]
-      if tmp != "Structured": meshtype = 2
-      for s in subRegions:
-         zRname = Internal.getValue(s)
-         proc = 0
-         if procDict is not None: proc = procDict[zRname]
+    bases = Internal.getNodesFromType1(tc, 'CGNSBase_t')  # noeud
+    c     = 0
+    for base in bases:
+
+      model    = 'NSLaminar'
+      a        = Internal.getNodeFromName2(base, 'GoverningEquations')
+      if a is not None: model = Internal.getValue(a)
+
+      if model=="NSLaminar" or model=="Euler": neq_trans=5
+      elif model=="NSTurbulent": neq_trans=6
+      elif model=='LBMLaminar':
+           neq_trans = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][86]
+
+      zones_tc = Internal.getZones(base)
+      for z in zones_tc:
+        #print(z[0])
+        subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+        meshtype   = 1
+        zonetype   = Internal.getNodeFromType1(z, 'ZoneType_t')
+        tmp        = Internal.getValue(zonetype)
+        #dimPb      = Internal.getZoneDim(z)[4]
+        if tmp != "Structured": meshtype = 2
+        for s in subRegions:
+           zRname = Internal.getValue(s)
+           proc = 0
+           if procDict is not None: proc = procDict[zRname]
          
-         #tri des pas de temps instationnaire
-         #  1) les stationnaires
-         #  2) les instationnaires regroupes par pas de temps
-         if '#' not in s[0]:
-              ordered_subRegions.append(s)
-              No_zoneD.append(c)
-              MeshTypeD.append(meshtype)
-              #print('RANk=',rank, 'NODonneuse=', c, s[0], z[0])
-         else:
-            numero_iter = int( s[0].split('#')[1].split('_')[0] )
-            if numero_iter < numero_min : numero_min = numero_iter
-            if numero_iter > numero_max : numero_max = numero_iter
+           #tri des pas de temps instationnaire
+           #  1) les stationnaires
+           #  2) les instationnaires regroupes par pas de temps
+           if '#' not in s[0]:
+                ordered_subRegions.append(s)
+                neq_subRegions.append(neq_trans)
+                No_zoneD.append(c)
+                MeshTypeD.append(meshtype)
+                #print('RANk=',rank, 'NODonneuse=', c, s[0], z[0])
+           else:
+              numero_iter = int( s[0].split('#')[1].split('_')[0] )
+              if numero_iter < numero_min : numero_min = numero_iter
+              if numero_iter > numero_max : numero_max = numero_iter
 
-            if numero_iter in inst:
-                sub = inst[ numero_iter ][0]
-                sub = sub + [s]
-                Noz = inst[ numero_iter ][1]
-                Noz = Noz + [c]
-                mesh= inst[ numero_iter ][2]
-                mesh= mesh+ [meshtype]
-                dest= inst[ numero_iter ][3]
-                dest= dest+ [proc]
-                inst[ numero_iter ]=  [ sub , Noz , mesh, dest ]
-            else:
-                inst[ numero_iter ]= [ [s],[c],[meshtype], [proc] ]
+              if numero_iter in inst:
+                  sub = inst[ numero_iter ][0]
+                  sub = sub + [s]
+                  Noz = inst[ numero_iter ][1]
+                  Noz = Noz + [c]
+                  mesh= inst[ numero_iter ][2]
+                  mesh= mesh+ [meshtype]
+                  dest= inst[ numero_iter ][3]
+                  dest= dest+ [proc]
+                  neqtrans= inst[ numero_iter ][4]
+                  neqtrans= neqtrans+ [neq_trans]
+                  inst[ numero_iter ]=  [ sub , Noz , mesh, dest, neqtrans ]
+              else:
+                  inst[ numero_iter ]= [ [s],[c],[meshtype], [proc], [neq_trans] ]
 
-         TimeLevelNumber = len(inst)
+           TimeLevelNumber = len(inst)
 
-         if TimeLevelNumber != 1+numero_max-numero_min and len(inst)!= 0: 
-            raise ValueError("miseAPlatDonorTree__: missing timestep in tc : %d %d %d")%(numero_max,numero_min, TimeLevelNumber)
+           if TimeLevelNumber != 1+numero_max-numero_min and len(inst)!= 0: 
+              raise ValueError("miseAPlatDonorTree__: missing timestep in tc : %d %d %d")%(numero_max,numero_min, TimeLevelNumber)
 
 
-         count_ID  = 0
-         count_IBC = 0
-         # alloc memoire
-         pointlist     =  Internal.getNodeFromName1(s, 'PointList')
-         pointlistD    =  Internal.getNodeFromName1(s, 'PointListDonor')
-         InterpD       =  Internal.getNodeFromName1(s, 'InterpolantsDonor')
-         Interptype    =  Internal.getNodeFromName1(s, 'InterpolantsType')
-         RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
-         RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
-         prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
-         pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local 
-         direction     =  Internal.getNodeFromName1(s, 'DirReceveur')       # Besoin des directions pour l'explicite local
-         directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local 
-         transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local
-         pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
-         profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch) 
-         ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
-         levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
-         leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
-         #print 'prange= ',prange
+           count_ID  = 0
+           count_IBC = 0
+           # alloc memoire
+           pointlist     =  Internal.getNodeFromName1(s, 'PointList')
+           pointlistD    =  Internal.getNodeFromName1(s, 'PointListDonor')
+           InterpD       =  Internal.getNodeFromName1(s, 'InterpolantsDonor')
+           Interptype    =  Internal.getNodeFromName1(s, 'InterpolantsType')
+           RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
+           RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
+           prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
+           pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local 
+           direction     =  Internal.getNodeFromName1(s, 'DirReceveur')       # Besoin des directions pour l'explicite local
+           directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local 
+           transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local
+           pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
+           profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch) 
+           ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
+           levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
+           leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
+           
+           Nbpts        =  numpy.shape(pointlist[ 1])[0]
+           Nbpts_D      =  numpy.shape(pointlistD[1])[0]
+           Nbpts_InterpD=  numpy.shape(InterpD[ 1  ])[0]
 
-         Nbpts        =  numpy.shape(pointlist[ 1])[0]
-         Nbpts_D      =  numpy.shape(pointlistD[1])[0]
-         Nbpts_InterpD=  numpy.shape(InterpD[ 1  ])[0]
-
-         sname = s[0][0:2]
-         utau = Internal.getNodeFromName1(s, 'utau')
-         sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
+           sname = s[0][0:2]
+           utau = Internal.getNodeFromName1(s, 'utau')
+           sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
          
-         # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
-         if sname == 'IB':
-          vx = Internal.getNodeFromName1(s, 'VelocityX')
-          if vx is None:
-            density = Internal.getNodeFromName1(s, 'Density')
-            nIBC    = density[1].shape[0]
-            vxNP = numpy.zeros((nIBC),numpy.float64)
-            vyNP = numpy.zeros((nIBC),numpy.float64)
-            vzNP = numpy.zeros((nIBC),numpy.float64)
-            s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
-            s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
-            s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
+           # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
+           if sname == 'IB':
+            vx = Internal.getNodeFromName1(s, 'VelocityX')
+            if vx is None:
+              density = Internal.getNodeFromName1(s, 'Density')
+              nIBC    = density[1].shape[0]
+              vxNP = numpy.zeros((nIBC),numpy.float64)
+              vyNP = numpy.zeros((nIBC),numpy.float64)
+              vzNP = numpy.zeros((nIBC),numpy.float64)
+              s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
+              s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
+              s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
          
-         # DBX: supp utau en euler
-         #if utau is None:
-         #   utauNP  = numpy.zeros((Nbpts_D),numpy.float64)
-         #   yplusNP = numpy.zeros((Nbpts_D),numpy.float64)
-         #   Internal.createUniqueChild(s, 'utau'  , 'DataArray_t', utauNP )
-         #   Internal.createUniqueChild(s, 'yplus' , 'DataArray_t', yplusNP )
-         #   utau =  Internal.getNodeFromName1(s, 'utau')
+           # DBX: supp utau en euler
+           #if utau is None:
+           #   utauNP  = numpy.zeros((Nbpts_D),numpy.float64)
+           #   yplusNP = numpy.zeros((Nbpts_D),numpy.float64)
+           #   Internal.createUniqueChild(s, 'utau'  , 'DataArray_t', utauNP )
+           #   Internal.createUniqueChild(s, 'yplus' , 'DataArray_t', yplusNP )
+           #   utau =  Internal.getNodeFromName1(s, 'utau')
 
-         # on recupere le nombre de type different
-         #typecell = Interptype[1][0]
-         #Nbtype = [ typecell ]
-         #for i in range(Nbpts_D):
-         #  if Interptype[1][i] not in Nbtype: Nbtype.append(Interptype[1][i])
-         #print 'nb type',  len(Nbtype), s[0],z[0], Nbtype
-         nbType = numpy.unique(Interptype[1])
-         nbTypeSize = nbType.size
-         #print len(Nbtype), Nbtype2.size
+           # on recupere le nombre de type different
+           #typecell = Interptype[1][0]
+           #Nbtype = [ typecell ]
+           #for i in range(Nbpts_D):
+           #  if Interptype[1][i] not in Nbtype: Nbtype.append(Interptype[1][i])
+           #print('nb type',  len(Nbtype), s[0],z[0], Nbtype)
+           nbType = numpy.unique(Interptype[1])
+           nbTypeSize = nbType.size
+           
+           size_IBC =  0
+           ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
+           if utau is not None: ntab_IBC += 2
+           if sd1 is not None: ntab_IBC += 5
+           if sname == 'IB': 
+              size_IBC   = Nbpts_D*ntab_IBC
+              count_IBC += 1
+           else: 
+              count_ID  += 1
 
-         size_IBC =  0
-         ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
-         if utau is not None: ntab_IBC += 2
-         if sd1 is not None: ntab_IBC += 5
-         if sname == 'IB': 
-            size_IBC   = Nbpts_D*ntab_IBC
-            count_IBC += 1
-         else: 
-            count_ID  += 1
+           # periodicite azimutale
+           rotation = 0
+           if RotationAngle is not None: rotation +=3 
+           if RotationCenter is not None: rotation +=3 
 
-         # periodicite azimutale
-         rotation = 0
-         if RotationAngle is not None: rotation +=3 
-         if RotationCenter is not None: rotation +=3 
-
-         nrac  =  nrac + 1
-         if proc not in listproc:
-                listproc.append(proc)
-                rac.append(1)
-                if '#' in s[0]: rac_inst.append(1)
-                else          : rac_inst.append(0)
-                sizeI.append(    Nbpts_D*2     + Nbpts   + nbTypeSize+1 )
-                sizeR.append(    Nbpts_InterpD + size_IBC + rotation    )
-                sizeNbD.append(  Nbpts_D                                )
-                sizeType.append( Nbpts_D                 + nbTypeSize+1 )
-         else:
-                pos           = listproc.index(proc)
-                rac[pos]      = rac[pos] + 1
-                if '#' in s[0]: rac_inst[pos]= rac_inst[pos] + 1
-                sizeI[pos]    = sizeI[pos]     + Nbpts_D*2     + Nbpts   + nbTypeSize+1
-                sizeR[pos]    = sizeR[pos]     + Nbpts_InterpD + size_IBC + rotation
-                sizeNbD[pos]  = sizeNbD[pos]   + Nbpts_D
-                sizeType[pos] = sizeType[pos]  + Nbpts_D                 + nbTypeSize+1
+           nrac  =  nrac + 1
+           if proc not in listproc:
+                  listproc.append(proc)
+                  rac.append(1)
+                  if '#' in s[0]: rac_inst.append(1)
+                  else          : rac_inst.append(0)
+                  sizeI.append(    Nbpts_D*2     + Nbpts   + nbTypeSize+1 )
+                  sizeR.append(    Nbpts_InterpD + size_IBC + rotation    )
+                  sizeNbD.append(  Nbpts_D                                )
+                  sizeType.append( Nbpts_D                 + nbTypeSize+1 )
+           else:
+                  pos           = listproc.index(proc)
+                  rac[pos]      = rac[pos] + 1
+                  if '#' in s[0]: rac_inst[pos]= rac_inst[pos] + 1
+                  sizeI[pos]    = sizeI[pos]     + Nbpts_D*2     + Nbpts   + nbTypeSize+1
+                  sizeR[pos]    = sizeR[pos]     + Nbpts_InterpD + size_IBC + rotation
+                  sizeNbD[pos]  = sizeNbD[pos]   + Nbpts_D
+                  sizeType[pos] = sizeType[pos]  + Nbpts_D                 + nbTypeSize+1
     
-      c += 1
+        c += 1
 
     #for pos in range(len(rac)):
     #   print('RAC=', rac[pos], 'racInst', rac_inst[pos], pos,'rank=', rank, 'dest=',listproc[pos])
@@ -229,7 +243,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
     
      
-    if graphliste == False: # Si le graph n est pas une liste, on est pas en explicite local
+    if not graphliste: # Si le graph n est pas une liste, on n'est pas en explicite local
         graphIBCrcv=[]
         if graphIBCD is not None:
             for proc in graphIBCD.keys():
@@ -293,10 +307,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
         
     
     #graphIDrcv=[0,3]
-    #print "len graphIBCrcv is",len(graphIBCrcv)
-    #print "len graphIDrcv  is",len(graphIDrcv)
-    #print "pos_IBC is",pos_IBC
-    #print "pos_ID  is",pos_ID
+    #print("len graphIBCrcv is",len(graphIBCrcv))
+    #print("len graphIDrcv  is",len(graphIDrcv))
+    #print("pos_IBC is",pos_IBC)
+    #print("pos_ID  is",pos_ID)
 
     param_int  = numpy.empty(size_int + len(graphIDrcv) + len(graphIBCrcv) + 2, dtype=numpy.int32  )
     param_real = numpy.empty(size_real, dtype=numpy.float64)
@@ -314,7 +328,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     param_int[1                 :1+len(graphIBCrcv)+1] = _graphIBC
     param_int[2+len(graphIBCrcv):2+len(graphIBCrcv)+len(graphIDrcv)+1] = _graphID    
   
-    # print "param_int is ",param_int[0:2+len(graphIBCrcv)+len(graphIDrcv)+1]
+    # print("param_int is ",param_int[0:2+len(graphIBCrcv)+len(graphIDrcv)+1])
     # Dictionnaire pour optimisation
     znd = []
     for z in zones: znd.append(z[0])
@@ -331,7 +345,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     adr_coef    = []   # pour cibler debut de echange dans param_real
 
     shift_graph = len(graphIDrcv) + len(graphIBCrcv) + 2 
-    # print "shift_graph is ",shift_graph
+    # print("shift_graph is ",shift_graph)
     shift_coef  =0
     shift       = shift_graph # le shift prend en compte la postion des graphs (ID+IBC) entre la address contenant NbP2P et 
     for i in range(NbP2P):
@@ -351,6 +365,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
         ordered_subRegions =  ordered_subRegions + inst[ iter ][0]
         No_zoneD           =  No_zoneD           + inst[ iter ][1]
         MeshTypeD          =  MeshTypeD          + inst[ iter ][2]
+        neq_subRegions     =  neq_subRegions     + inst[ iter ][4]
 
     # loop sur les raccords tries
     c        = 0
@@ -360,12 +375,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
        NozoneD  = No_zoneD[c]
        meshtype = MeshTypeD[c]
+       neq_loc  = neq_subRegions[c]
 
        zRname = Internal.getValue(s)
        proc = 0
        if procDict is not None: proc = procDict[zRname]
        pos  = listproc.index(proc) 
-       #print 'pos= ',pos
        pt_ech = param_int[ pos + 1 + shift_graph]                 # adresse debut raccord pour l'echange pos
        pt_coef= adr_coef[pos] + size_coef[pos]     # adresse debut coef 
 
@@ -386,7 +401,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
        leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
 
-       #print zRname, nb_rac[pos]
+       #print(zRname, nb_rac[pos])
 
        Nbpts         =  numpy.shape(pointlist[ 1])[0]
        Nbpts_D       =  numpy.shape(pointlistD[1])[0]
@@ -438,12 +453,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
        zsrname = s[0]
        sname = zsrname[0:2]
-       xc=None;yc=None;zc=None; xi=None;yi=None;zi=None; xw=None;yw=None;zw=None;density=None;pressure=None;
-       vx=None; vy=None; vz=None;
-       utau=None;yplus=None;
-       ptxc=0;ptyc=0;ptzc=0;ptxi=0;ptyi=0;ptzi=0;ptxw=0;ptyw=0;ptzw=0;ptdensity=0;ptpressure=0; 
-       ptvx=0;ptvy=0;ptvz=0;
-       ptutau=0;ptyplus=0;
+       xc=None;yc=None;zc=None; xi=None;yi=None;zi=None; xw=None;yw=None;zw=None;density=None;pressure=None
+       vx=None; vy=None; vz=None
+       utau=None;yplus=None
+       ptxc=0;ptyc=0;ptzc=0;ptxi=0;ptyi=0;ptzi=0;ptxw=0;ptyw=0;ptzw=0;ptdensity=0;ptpressure=0
+       ptvx=0;ptvy=0;ptvz=0
+       ptutau=0;ptyplus=0
        sd1=None;sd2=None;sd3=None;sd4=None;sd5=None
        ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
        if sname == 'IB': 
@@ -458,7 +473,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                     param_int[iadr+rac[pos]*3]  = 3
            else: param_int[iadr+rac[pos]*3]  = int(zsrname[1]) # 'IBCD_type_zonename'
           
-           # print 'IBCType = ', IBCTypes[param_int[ iadr +rac[pos]*3 ]]
+           # print('IBCType = ', IBCTypes[param_int[ iadr +rac[pos]*3 ]])
            xc        = Internal.getNodeFromName1(s , 'CoordinateX_PC')
            yc        = Internal.getNodeFromName1(s , 'CoordinateY_PC')
            zc        = Internal.getNodeFromName1(s , 'CoordinateZ_PC')
@@ -580,7 +595,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        pointlistD[1] = param_int[ lstD            : lstD             + Nbpts_D       ]    # supression numpy initial pointlistDonor
        InterpD[   1] = param_real[ pt_coef        : pt_coef          + Nbpts_InterpD ]    # supression numpy initial interpDonor
 
-       #if (s[0] == 'ID_cart3' and z[0]=='cart1'): print 'verif',  InterpD[   1][0], pt_coef,numpy.shape(InterpD[ 1  ])
+       #if s[0] == 'ID_cart3' and z[0]=='cart1': print('verif',  InterpD[   1][0], pt_coef,numpy.shape(InterpD[ 1  ]))
 
        if sname == 'IB':
            xc[1]       = param_real[ ptxc: ptxc+ Nbpts_D ]
@@ -639,18 +654,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        #if a is not None: model = Internal.getValue(a)
 
        #print 'model=',model,'zoneR',zones_tc[param_int[ iadr +rac[pos]*11  ]][0], 'NoR=', param_int[ iadr +rac[pos]*11  ], 'NoD=', c
-       if model=='NSTurbulent':
-           neq_loc = 6
-       elif model=='LBMLaminar':
-           neq_loc = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][86]
-           print("Warning:", neq_loc, "variables LBM a transferer sur zone", zRname)
-       else: 
-           neq_loc = 5
-            
        tmp =  Internal.getNodeFromName1(s , 'RANSLES')
        if tmp is not None: param_int[ iadr +rac[pos]*13  ] = min (5, neq_loc)   # RANSLES
        else:               param_int[ iadr +rac[pos]*13  ] = neq_loc
        
+       #print('raccord',s[0], 'neq=',neq_loc)
+
        # raccord periodique avec rotation
        if RotationAngle is not None: 
              param_int[ iadr +rac[pos]*14  ] = 1
@@ -665,7 +674,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
              param_int[ iadr +rac[pos]*14  ] = 0
              shiftRotation                   = 0
 
-       #print 'rac*14= ',iadr +rac[pos]*14 
+       #print('rac*14= ',iadr +rac[pos]*14)
 
        # raccord instationnaire
        param_int[ iadr +rac[pos]*15  ] =-1
@@ -689,14 +698,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 25] = int(leveldnr[1])
            param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 26] = S
 
-           if (int(levelrcv[1]) != int(leveldnr[1])):
+           if int(levelrcv[1]) != int(leveldnr[1]):
                S=S + 3*5*(pranged[1][1]-pranged[1][0]+1)*(pranged[1][3]-pranged[1][2]+1)*(pranged[1][5]-pranged[1][4]+1)*(profondeur[1][0]+1)
-               #print S
            #print [int(levelrcv[1])], [int(leveldnr[1])],'--'
            #print int([1]
-       #print 'model=', model, 'tmp=', tmp, 'neq_loc=', neq_loc
+       #print('model=', model, 'tmp=', tmp, 'neq_loc=', neq_loc)
 
-       ### Verifier position et chois entre Nbpts et NbptsD 
+       ### Verifier position et choix entre Nbpts et NbptsD 
        size_ptlistD[pos] = size_ptlistD[pos] + Nbpts_D
        size_ptlist[pos]  = size_ptlist[pos]  + Nbpts
        size_ptType[pos]  = size_ptType[pos]  + Nbpts_D + len(Nbtype)+1
@@ -711,7 +719,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 #==============================================================================
 # tri multitype
 #==============================================================================
-def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
+def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                  Interptype, pointlist, pointlistD, param_int,
                  ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
                  ptdensity,ptpressure,
@@ -742,7 +750,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,p
          elif ltype == 4: sizecoef=4
 
        if ltype == ntype:
-            # recopieinterpolantType
+            # recopie interpolantType
             param_int[ ptTy + shift_typ + l + l0 ] = ltype
 
             # recopie pointlist
@@ -814,7 +822,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,p
 #==============================================================================
 # tri monotype
 #==============================================================================
-def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
+def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                 Interptype, pointlist, pointlistD, param_int,
                 ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
                 ptdensity,ptpressure,
@@ -919,10 +927,10 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             sname = rac[0][0:2]
             if sname == 'IB': 
                size_real = size_real +Nbpts_D*ntab_IBC
-               count_IBC = count_IBC +1;
+               count_IBC = count_IBC +1
             else: 
-               count_ID  = count_ID  +1;
-            #print 'nbpt, nbpt_donor', sname,Nbpts,Nbpts_InterpD
+               count_ID  = count_ID  +1
+            #print('nbpt, nbpt_donor', sname,Nbpts,Nbpts_InterpD)
 
         size_int = size_int + 2 + (count_IBC + count_ID)*2  # 2: nbr rac ID et IBC, stockage adresse debut raccord et coef
         param_int  = numpy.empty(size_int , dtype=numpy.int32  )
@@ -931,8 +939,8 @@ def miseAPlatDonorZone__(zones, tc, procDict):
         if size_real !=0 :
            Internal.createUniqueChild(z, 'Parameter_real', 'DataArray_t', param_real)# recopie pointlis
 
-        #print 'size int et real', size_int, size_real
-        #print 'ID et IBC', count_ID, count_IBC
+        #print('size int et real', size_int, size_real)
+        #print('ID et IBC', count_ID, count_IBC)
 
         param_int[0] = count_ID
         param_int[1] = count_IBC
@@ -973,10 +981,10 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             else                : param_int[ pt_rac +5 ] = 0           # location= Vertex
             
             zrcvname = Internal.getValue(rac)
-            no_zone =0
-            for z in zones:
-               if z[0] == zrcvname: param_int[ pt_rac +6 ]= no_zone  # No zone raccord                    
-               no_zone = no_zone +1
+            no_zone = 0
+            for z0 in zones:
+               if z0[0] == zrcvname: param_int[ pt_rac +6 ]= no_zone  # No zone raccord                    
+               no_zone += 1
 
             ideb =  pt_rac +7
             param_int[ ideb:ideb + Nbpts   ] = pointlist[ 1][0:Nbpts  ]           # recopie pointlist
