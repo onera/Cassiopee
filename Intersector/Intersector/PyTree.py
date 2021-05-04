@@ -714,11 +714,11 @@ def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     s = XOR.booleanMinus(s1, s2, tol, preserve_right, solid_right, agg_mode)
     return C.convertArrays2ZoneNode('minus', [s])
 
-def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, outward_surf=True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between a volume mesh and a surface mesh."""
     s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = XOR.diffSurf(s1, s2, tol, preserve_right, agg_mode,improve_qual)
+    s = XOR.diffSurf(s1, s2, tol, preserve_right, agg_mode,improve_qual, outward_surf)
     return C.convertArrays2ZoneNode('VmS', [s])
     
 def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)

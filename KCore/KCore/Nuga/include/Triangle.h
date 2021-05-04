@@ -204,7 +204,7 @@ namespace K_MESH
     static inline bool overlap (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL);
     static inline bool overlap2 (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL);
     
-    /// Implementation de l'algo rapide de test d'inetrsection T3-T3 en 3D (INRIA - Rapport de recherche NÂ° 4488)
+    /// Implementation de l'algo rapide de test d'inetrsection T3-T3 en 3D (INRIA - Rapport de recherche N° 4488)
     template <E_Int DIM>
     static inline bool fast_intersectT3 
       (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL);

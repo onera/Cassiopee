@@ -43,7 +43,7 @@ def intersection(a1, a2, tol=0.):
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
     except: pass
-    c = intersector.booleanIntersectionBorder(a1, a2, tol, 1, 1, 0, False) #last 4 args are dummy for now
+    c = intersector.booleanIntersectionBorder(a1, a2, tol, 1, 1, 0, False, True) #last 5 args are dummy for now
     return G.close(c)
 
 def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
@@ -57,7 +57,7 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
           a2 = Converter.convertArray2Tetra(a2)
           a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-    c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual)
+    c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True)# last is dummy (outward)
     return G.close(c)
 
 def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
@@ -94,19 +94,19 @@ def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-    c = intersector.booleanMinus(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual)
+    c = intersector.booleanMinus(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True)# last is dummy (outward)
     return G.close(c)
 
 def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the transformed input solid after solving the intersection of its skin with a2.
     Usage: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
-    c = intersector.booleanModifiedSolid(a2, solid, tol, 1, preserve_solid, agg_mode, improve_qual)
+    c = intersector.booleanModifiedSolid(a2, solid, tol, 1, preserve_solid, agg_mode, improve_qual, True)# last is dummy (outward)
     return G.close(c)
     
-def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, outward_surf=True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between a volume mesh and a surface mesh."""
     solid_right=1
-    c = intersector.DiffSurf(a1, a2, tol, solid_right, preserve_right, agg_mode, improve_qual)
+    c = intersector.DiffSurf(a1, a2, tol, solid_right, preserve_right, agg_mode, improve_qual, outward_surf)
     return G.close(c)
     
 #==============================================================================
