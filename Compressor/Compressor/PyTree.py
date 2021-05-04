@@ -329,7 +329,6 @@ def _unpackNode(node):
             node[1] = ret[0]
             Internal._rmNodesFromName1(node, 'ZData')
         elif ctype == 4: # Elements (NGONs)
-            print('shape', shape[0])
             ret = Compressor.compressor.uncompressNGonIndices((shape[0],node[1],iscorder))
             node[1] = ret[0]
             Internal._rmNodesFromName1(node, 'ZData')

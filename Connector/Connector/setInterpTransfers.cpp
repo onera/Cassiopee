@@ -971,8 +971,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
   FldArrayF  tmp(size*14*threadmax_sdm);
   E_Float* ipt_tmp = tmp.begin();
-
-    //# pragma omp parallel default(shared)  num_threads(1)
+  
+  //# pragma omp parallel default(shared)  num_threads(1)
     # pragma omp parallel default(shared)
     {
       
@@ -1235,6 +1235,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
        }// type 
       }// autorisation transfert
+     #pragma omp barrier
     }//irac
    }//pass_inst
   #pragma omp barrier

@@ -825,10 +825,10 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                     count_rac += 1;
 		    
 		   } // autorisation transfert
-
+		   #pragma omp barrier
                 }  // irac
             }      // pass_inst
-#pragma omp barrier
+          #pragma omp barrier
         }  // pass
     }      // omp
 

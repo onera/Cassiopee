@@ -950,9 +950,10 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   fid = H5Fopen(file, H5F_ACC_RDONLY, fapl);
   //printf("open Avant =%d\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
   // printf("open=%d\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
-  H5Pclose(fapl);
+  
   if (fid < 0)
   {
+    H5Pclose(fapl);
     printf("Warning: hdfcgnsread: can not open file %s.\n", file);
     return 1;
   }
@@ -1012,7 +1013,8 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   // END DBX
 
   H5Fclose(fid);
-
+  H5Pclose(fapl);
+  
   return 0;
 }
 
@@ -1496,10 +1498,10 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   //H5Pset_nlinks(lapl, ADF_MAXIMUM_LINK_DEPTH);
 
   fid = H5Fcreate(file, H5F_ACC_TRUNC, capl, fapl);
-  H5Pclose(fapl); H5Pclose(capl);
 
   if (fid < 0)
   {
+    H5Pclose(fapl); H5Pclose(capl);
     printf("Warning: hdfcgnswrite: can not open file %s.\n", file);
     return 1;
   }
@@ -1527,11 +1529,11 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     sprintf(format, "NATIVE_%d", (int)H5Tget_precision(type));
   H5Tclose(type);
   HDF.setArrayC1(gid, format, (char*)L3S_FORMAT);
-  unsigned maj, min, rel;
+  unsigned int maj, min, rel;
   H5get_libversion(&maj, &min, &rel);
   char version[CGNSMAXLABEL+1];
   memset(version, 0, CGNSMAXLABEL+1);
-  sprintf(version, "HDF5 Version %d.%d.%d", maj, min, rel);
+  sprintf(version, "HDF5 Version %u.%u.%u", maj, min, rel);
   HDF.setArrayC1(gid, version, (char*)L3S_VERSION);
 
   PyObject* o;
@@ -1671,6 +1673,7 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   // END DBX
 
   H5Fclose(fid);
+  H5Pclose(fapl); H5Pclose(capl);
   
   return 0;
 }
