@@ -485,7 +485,7 @@ def getBCPtList(z):
   #print (ptLists)
   return ptLists
 
-def getBCPtListOfType(z, typesList, families):
+def getBCPtListOfType(z, typesList, families = []):
     #
     nodes = []
     for btyp in typesList:
@@ -497,7 +497,7 @@ def getBCPtListOfType(z, typesList, families):
     for n in nodes:
         ptlnod = Internal.getNodesFromType(n, 'IndexArray_t')
         #print (ptlnod)
-        ptList.append(ptlnod[0][1][0])
+        ptList.append(ptlnod[0][1])#[0])
 
     if (ptList != []) : ptList = numpy.concatenate(ptList).ravel() # create a single list
 
@@ -2188,6 +2188,45 @@ def extractBiggestCell(t):
         zones.append(C.convertArrays2ZoneNode('neigh', [m[i+1]]))
 
     return zones
+
+#==============================================================================
+# extractBadVolCells : extract cells with bad volume / growth ratio
+# IN: a          : 3D NGON mesh
+# OUT: returns a single cell NGON mesh
+#==============================================================================
+def extractBadVolCells(t, ar=0.125, vmin=0., nneighs=0):
+    """ Extracts bad cells based on gowth ratio
+    Usage: extractBadVolCells(a)"""
+    import sys;
+    zones = Internal.getZones(t)
+    om = []
+    i=-1
+
+    for z in zones:
+      i+=1
+      GEl = Internal.getElementNodes(z)
+      NGON = 0; found = False
+      for c in GEl:
+        if c[1][0] == 22: found = True; break
+        NGON += 1
+      PE = None
+      if found:
+        node = GEl[NGON]
+        PE = Internal.getNodeFromName1(node, 'ParentElements')
+        if PE is None:
+          print ('skipping zone %d as it does not have ParentElement'%i)
+          continue
+      else:
+        print ('skipping zone %d as it does not have ParentElement'%i)
+        continue
+        
+      print('extracting bad cells for zone %d'%i)
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      res=XOR.extractBadVolCells(m, PE[1], ar, vmin, nneighs)
+      res = C.convertArrays2ZoneNode('badcells_z_'+str(i), [res])
+      om.append(res)
+
+    return om
 
 #==============================================================================
 # detectIdentitcalCells : detects (and optionally removes) geometrically identical cells 

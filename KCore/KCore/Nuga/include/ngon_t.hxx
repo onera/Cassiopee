@@ -2404,7 +2404,9 @@ static E_Int discard_by_box(const K_FLD::FloatArray& coord, ngon_t& ngi, bool ho
 
 ///
 template <typename TriangulatorType>
-static E_Int stats_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi, const ngon_unit& neighborsi, E_Float vmin, Vector_t<E_Float>& aspect_ratio)
+static E_Int stats_bad_volumes
+(const K_FLD::FloatArray& crd, const ngon_t& ngi, const ngon_unit& neighborsi, 
+ const std::vector<E_Float>&vols, E_Float vmin, Vector_t<E_Float>& aspect_ratio)
 {
   ngi.PGs.updateFacets();
   ngi.PHs.updateFacets();
@@ -2414,9 +2416,7 @@ static E_Int stats_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi, 
   aspect_ratio.clear();
   aspect_ratio.resize(nb_phs, 0.);
  
-  std::vector<E_Float> vols;
-  ngon_t::volumes<TriangulatorType>(crd, ngi, vols, false/*not all cvx*/, false/* ! new algo*/);
-
+  
   E_Float vi, vj;
   
   for (E_Int i=0; i < nb_phs; ++i)

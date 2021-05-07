@@ -497,6 +497,16 @@ def extractBiggestCell(a):
     return intersector.extractBiggestCell(a)
 
 #==============================================================================
+# extractBadVolCells : extract cells with bad volume / growth ratio
+# IN: a          : 3D NGON mesh
+# OUT: returns a single cell NGON mesh
+#==============================================================================
+def extractBadVolCells(a, PE, ar=0.125, vmin=0., nneighs=0):
+    """ Extracts bad cells based on gowth ratio
+    Usage: extractBadVolCells(a, PE, ar, vmin, nneighs)"""
+    return intersector.extractBadVolCells(a, PE, ar, vmin, nneighs)
+
+#==============================================================================
 # extractNthFace : Extracts the nth face in a NGON mesh
 # IN: a          : 3D NGON mesh
 # IN: nth        : face number
