@@ -2422,9 +2422,10 @@ static E_Int stats_bad_volumes
   for (E_Int i=0; i < nb_phs; ++i)
   {
     vi = vols[i];
-    if (vi < EPSILON) continue;
+    //if (vi < EPSILON) continue;
     if (vi < vmin) continue;  
-    
+    //std::cout << "vi : " << vi << std::endl;
+
     E_Int nb_neighs = neighborsi.stride(i);
     
     E_Float ar = NUGA::FLOAT_MAX;
@@ -2436,14 +2437,15 @@ static E_Int stats_bad_volumes
         continue;
       
       vj = vols[j];
-      if (vj < EPSILON)
+      //std::cout << "vj : " << vj << std::endl;
+      if (vj < vmin)
       {
         ar = 0.;
         break;
       }
       
       if (vj < vi) std::swap(vi, vj); //cast to [0; 1] : apply the same ratio to 2 adjacent neighbors : 0 is the worst, 1 is the best
-      
+      //std::cout << "vi/vj : " << vi << "//" << vj << std::endl;
       ar = std::min(vi/vj, ar);    
     }
     

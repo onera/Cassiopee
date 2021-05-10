@@ -595,7 +595,10 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntAr
 
   std::vector<std::vector<E_Float>> new_fieldsF(fieldsF.size());
   for (size_t f = 0; f < fieldsF.size(); ++f)
+  {
     histo.transfer_pg_colors(src_ids, fieldsF[f], new_fieldsF[f]);
+    new_fieldsF[f].resize(ngo.PGs.size(), -1);
+  }
   fieldsF = new_fieldsF;
 
   // TRANSFER NODE SOLUTION FIELDS == NODE FLAGS

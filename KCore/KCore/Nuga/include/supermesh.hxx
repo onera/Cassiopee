@@ -339,7 +339,8 @@ int interpolate(
   {
     for (f = 0; f < nfields; ++f)
     {
-      rec_fields[f][i] /= covered_vol[i];
+      if (covered_vol[i] != 0.) // discard non interpolated cells
+        rec_fields[f][i] /= covered_vol[i];
     }
   }
   return 0;

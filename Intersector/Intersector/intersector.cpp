@@ -108,6 +108,7 @@ static PyMethodDef Pyintersector [] =
   { "checkForBigCells", K_INTERSECTOR::checkForBigCells, METH_VARARGS },
   { "checkCellsFlux", K_INTERSECTOR::checkCellsFlux, METH_VARARGS },
   { "checkCellsVolume", K_INTERSECTOR::checkCellsVolume, METH_VARARGS },
+  { "checkCellsVolumeAndGrowthRatio", K_INTERSECTOR::checkCellsVolumeAndGrowthRatio, METH_VARARGS },
   { "detectIdenticalCells", K_INTERSECTOR::detectIdenticalCells, METH_VARARGS },
   { "detectOverConnectedFaces", K_INTERSECTOR::detectOverConnectedFaces, METH_VARARGS },
   { "edgeLengthExtrema", K_INTERSECTOR::edgeLengthExtrema, METH_VARARGS },

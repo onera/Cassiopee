@@ -1079,6 +1079,139 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
   return l;
 }
 
+PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *PE;
+  double aratio{0.125}, vmin{0.};
+  int nneighs{1};
+
+  if (!PyArg_ParseTuple(args, "OO", &arr, &PE)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  // Check numpy (parentElement)
+  FldArrayI* cFE;
+  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  if (ngi.PGs.size() != cFE->getSize())
+  {
+    std::cout << "le ParentElement ne correpsond pas au nb de pgs" << std::endl;
+    delete f; delete cn;
+    return nullptr;
+  }
+
+  E_Int nphs = ngi.PHs.size();
+
+  std::vector<E_Int> orient;
+  std::vector<double> vols(nphs, NUGA::FLOAT_MAX);
+  E_Int imin=-1;
+  
+  //compute volumes using input orientation 
+  for (E_Int i=0; i < ngi.PHs.size(); ++i)
+  {
+    orient.clear();
+
+    const E_Int* pF = ngi.PHs.get_facets_ptr(i);
+    E_Int nbf = ngi.PHs.stride(i);
+    orient.resize(nbf, 1);
+
+    for (E_Int f = 0; f < nbf; ++f)
+    {
+      E_Int PGi = *(pF+f) - 1;
+      //std::cout << "PGi bef wwong :" << PGi << std::endl;
+      if ((*cFE)(PGi, 1) != i+1) orient[f] = -1;
+      assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
+    }
+
+    //std::cout << "computing flux for PH : " << i << std::endl;
+    K_MESH::Polyhedron<0> PH(ngi, i);
+    double v;
+    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v);
+
+    if (!err)
+      vols[i] = v;
+  }
+
+  ngon_unit neighborsi;
+  ngi.build_ph_neighborhood(neighborsi);
+
+  Vector_t<E_Float> aspect_ratio;
+  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., aspect_ratio);
+
+  E_Int ivolmin,igrmin;
+  E_Float volmin{NUGA::FLOAT_MAX}, grmin{NUGA::FLOAT_MAX};
+
+  for (size_t i=0; i < vols.size(); ++i)
+  {
+    if (vols[i] < volmin)
+    {
+      volmin = vols[i];
+      ivolmin = i;
+    }
+  }
+
+  for (size_t i=0; i < aspect_ratio.size(); ++i)
+  {
+    if (aspect_ratio[i] < grmin)
+    {
+      grmin = aspect_ratio[i];
+      igrmin = i;
+    }
+  }
+ 
+  delete f; delete cn;
+ 
+  PyObject *l(PyList_New(0)), *tpl;
+
+#ifdef E_DOUBLEINT
+  tpl =  Py_BuildValue("l", long(ivolmin));
+   PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("i", ivolmin);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(volmin));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", float(volmin);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEINT
+  tpl =  Py_BuildValue("l", long(igrmin));
+   PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("i", igrmin);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(grmin));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", float(grmin);
+  PyList_Append(l, tpl);
+#endif
+  
+  return l;
+}
+
 PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
 {
   PyObject *arr, *PE;
@@ -1109,7 +1242,7 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
 
   if (ngi.PGs.size() != cFE->getSize())
   {
-    std::cout << "le ParentElment ne correpsond pas au nb de pgs" << std::endl;
+    std::cout << "le ParentElement ne correpsond pas au nb de pgs" << std::endl;
     delete f; delete cn;
     return nullptr;
   }

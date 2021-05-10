@@ -112,6 +112,7 @@ namespace K_INTERSECTOR
   PyObject* checkForBigCells(PyObject* self, PyObject* args);
   PyObject* checkCellsFlux(PyObject* self, PyObject* args);
   PyObject* checkCellsVolume(PyObject* self, PyObject* args);
+  PyObject* checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject* args);
   PyObject* detectIdenticalCells(PyObject* self, PyObject* args);
   PyObject* detectOverConnectedFaces(PyObject* self, PyObject* args);
   PyObject* edgeLengthExtrema(PyObject* self, PyObject* args);

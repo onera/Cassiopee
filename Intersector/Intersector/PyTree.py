@@ -497,7 +497,7 @@ def getBCPtListOfType(z, typesList, families = []):
     for n in nodes:
         ptlnod = Internal.getNodesFromType(n, 'IndexArray_t')
         #print (ptlnod)
-        ptList.append(ptlnod[0][1])#[0])
+        ptList.append(ptlnod[0][1][0])
 
     if (ptList != []) : ptList = numpy.concatenate(ptList).ravel() # create a single list
 
@@ -2610,8 +2610,9 @@ def checkCellsVolume(t):
     vmin=sys.float_info.max
     cellid = -1
     zoneid=-1
-    i=0
+    i=-1
     for z in zones:
+        i+=1
         GEl = Internal.getElementNodes(z)
         NGON = 0; found = False
         for c in GEl:
@@ -2635,9 +2636,54 @@ def checkCellsVolume(t):
           vmin=res[1]
           cellid=res[0]
           zoneid=i
-        i+=1
+
     return (vmin, cellid, zoneid)
 
+#==============================================================================
+# checkCellsVolumeAndGrowthRatio : Computes the cell fluxes using the ParentElement node
+#==============================================================================
+def checkCellsVolumeAndGrowthRatio(t):
+    """ XXX"""
+    import sys;
+    zones = Internal.getZones(t)
+    vmin=sys.float_info.max
+    ivmin = -1
+    vzoneid=-1
+    grmin=sys.float_info.max
+    igrmin = -1
+    grzoneid=-1
+    i=-1
+    for z in zones:
+        i+=1
+        GEl = Internal.getElementNodes(z)
+        NGON = 0; found = False
+        for c in GEl:
+            if c[1][0] == 22: found = True; break
+            NGON += 1
+        PE = None
+        if found:
+            node = GEl[NGON]
+            PE = Internal.getNodeFromName1(node, 'ParentElements')
+            if PE is None:
+                print ('skipping zone %d as it does not have ParentElement'%i)
+                continue
+        else:
+            print ('skipping zone %d as it does not have ParentElement'%i)
+            continue
+        
+        print('checking min vol and growth ratio for zone %d'%i)
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res=XOR.checkCellsVolumeAndGrowthRatio(m, PE[1])
+        if res[1] < vmin:
+          vmin=res[1]
+          ivmin=res[0]
+          vzoneid=i
+        if res[3] < grmin:
+          grmin=res[3]
+          igrmin=res[2]
+          grzoneid=i
+
+    return (vmin, ivmin, vzoneid, grmin, igrmin, grzoneid)
 #==============================================================================
 # checkForDegenCells : XXX
 #==============================================================================
@@ -2680,13 +2726,20 @@ def edgeLengthExtrema(t):
 # OUT: Returns the first cell id that is non-closed
 #==============================================================================
 def computeGrowthRatio(t, vmin=0.):
+    tp = Internal.copyRef(t)
+    _computeGrowthRatio(tp, vmin)
+    return tp
+
+def _computeGrowthRatio(t, vmin=0.):
     """ Returns a field of aspect ratio.
     Usage: computeGrowthRatio(t, vmin)"""
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    ar = XOR.computeGrowthRatio(m, vmin)
-    z = C.convertArrays2ZoneNode('w_aspect', [m])
-    C.setFields([ar], z, 'centers', False)
-    return z
+    zones = Internal.getZones(t)
+    i=-1
+    for z in zones:
+      i+=1
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      ar = XOR.computeGrowthRatio(m, vmin)
+      C.setFields([ar], z, 'centers', False)
 
 #==============================================================================
 # extrudeUserDefinedBC : XXX

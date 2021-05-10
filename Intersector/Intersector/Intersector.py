@@ -711,6 +711,17 @@ def checkCellsVolume(a, PE):
     return intersector.checkCellsVolume(a, PE)
 
 #==============================================================================
+# checkCellsVolumeAndGrowthRatio : Computes the minimum volume and growth ratio using the input orientation (ParentElement). 
+#              
+# IN: a:               : 3D NGON mesh
+# OUT: A message telling the cell id for which the volume is the smallest. 
+#==============================================================================
+def checkCellsVolumeAndGrowthRatio(a, PE):
+    """ Computes the minimum volume and growth ratio using the input orientation (ParentElement).
+    Usage: checkCellsVolumeAndGrowthRatio(a, PE)"""
+    return intersector.checkCellsVolumeAndGrowthRatio(a, PE)
+
+#==============================================================================
 # checkForDegenCells : check if there are any cell with less than 4 faces.
 #==============================================================================
 def checkForDegenCells(a):
