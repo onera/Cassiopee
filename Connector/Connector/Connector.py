@@ -2,15 +2,17 @@
 """
 __version__ = '3.3'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Luis Bernardos"
-#
-# Interface for connectivity checking
-#
+
 from . import connector
 
 try: range = xrange
 except: pass
 
-__all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'blankIntersectingCells', 'chimeraTransfer', 'connectMatch', 'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap', 'setDoublyDefinedBC', 'setHoleInterpolatedPoints', 'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers', 'setInterpTransfersD', 'writeCoefs','maskXRay__','_applyBCOverlapsStruct__','applyBCOverlapsStruct__','applyBCOverlapsNG__','getInterpolatedPoints__','getEXPoints__']
+__all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'blankIntersectingCells', 'chimeraTransfer', 'connectMatch', 
+    'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap', 'setDoublyDefinedBC', 'setHoleInterpolatedPoints', 
+    'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers', 'setInterpTransfersD', 'writeCoefs','maskXRay__',
+    '_applyBCOverlapsStruct__', 'applyBCOverlapsStruct__', 'applyBCOverlapsNG__',
+    'getInterpolatedPoints__', 'getEXPoints__', '_modCellN1', '_modCellN2']
 
 #===============================================================================
 def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):

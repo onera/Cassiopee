@@ -162,7 +162,7 @@ def refine():
 
         elif dim[3] == 'BAR' or dim[0] == 'Structured':
             if dim[3] == 'BAR': z = C.convertBAR2Struct(z)
-            z = G.refine(z, power, dir)
+            z = G.refine(z, power, zdir)
             CTK.replace(CTK.t, nob, noz, z)
 
     #C._fillMissingVariables(CTK.t)

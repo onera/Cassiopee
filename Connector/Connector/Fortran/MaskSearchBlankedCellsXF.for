@@ -69,7 +69,7 @@ C==============================================================================
       nicnjc = nic*(nj-1)
       isMasked = 0
 
-!$OMP PARALLEL PRIVATE(i, j, k, l, ip, jp, kp, et,
+!$OMP PARALLEL PRIVATE(d, i, j, k, l, ip, jp, kp, et,
 !$OMP&   ind, indray, dx1, dy1, dz1,
 !$OMP&   xp1, yp1, zp1, xp2, yp2, zp2, xp3, yp3, zp3, xp4, yp4, zp4,
 !$OMP&   xp5, yp5, zp5, xp6, yp6, zp6, xp7, yp7, zp7, xp8, yp8, zp8,

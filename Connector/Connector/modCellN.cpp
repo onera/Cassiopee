@@ -52,7 +52,7 @@ PyObject* K_CONNECTOR::_modCellN1(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "modCellN1: can't find coordinates in array.");
+                    "modCellN1: can't find cellN in array.");
     return NULL;
   }
   posCellN++;
@@ -68,7 +68,7 @@ PyObject* K_CONNECTOR::_modCellN1(PyObject* self, PyObject* args)
     {
       val = ft[ind];
       if (val == 0.) ft[ind] = -1.;
-      else if (val == 2.) ft[ind] = 1.;      
+      else if (val == 2.) ft[ind] = 1;  
     }
   }
 
@@ -98,7 +98,7 @@ PyObject* K_CONNECTOR::_modCellN2(PyObject* self, PyObject* args)
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "modCellN1: invalid array.");
+                    "modCellN2: invalid array.");
     return NULL;
   }
 
@@ -108,7 +108,7 @@ PyObject* K_CONNECTOR::_modCellN2(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "modCellN1: can't find coordinates in array.");
+                    "modCellN2: can't find cellN in array.");
     return NULL;
   }
   posCellN++;

@@ -39,9 +39,6 @@ __RAD2DEG__ = Internal.__RAD2DEG__
 def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None, periodic=0,
                         rotationCenter=None, rotationAngle=None, Translation=None, signT=0,signR=0,
                         unitAngle=None):
-    try: import Post.PyTree as P; import Transform.PyTree as T
-    except: raise ImportError("connectMatchNGON__: requires Post and Transform modules.")
-
     # -------------------------
     # Exterior faces + indices
     # -------------------------
@@ -133,9 +130,7 @@ def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None,
 # connectMatch between NGON zones
 #==============================================================================
 def _connectMatchHybrid__(a, tol, dim, glob):
-    try: import Post.PyTree as P; import Transform.PyTree as T
-    except: raise ImportError("connectMatchHybrid__ requires Post and Transform modules.")
-
+    
     # Tri des zones
     zones = []; indirZones = []
     noz = 0
@@ -350,9 +345,8 @@ def getEmptyWindowsInfoStruct__(t, dim=3):
         z = zones[noz]
         dimsZ = Internal.getZoneDim(z)
         if dimsZ[0] == 'Structured':
-            ni = dimsZ[1]; nj = dimsZ[2]; nk = dimsZ[3]; dimZone = dimsZ[4]
+            ni = dimsZ[1]; nj = dimsZ[2]; nk = dimsZ[3]
             nic = max(1,ni-1); njc = max(1,nj-1); nkc = max(1,nk-1)
-            nicnjc = nic*njc
             dimsI.append(ni); dimsJ.append(nj); dimsK.append(nk)
             ranges = C.getEmptyBC(z, dim=dim)
             if ranges != []:
@@ -1329,9 +1323,9 @@ def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
 
 # cellN modifications
 def _modCellN1(t, cellNName='cellN'):
-    return C.__TZC(t, Connector._modCellN1, 'centers', False, cellNName)
+    return C.__TZA2(t, Connector._modCellN1, 'centers', cellNName)
 def _modCellN2(t, cellNName='cellN'):
-    return C.__TZC(t, Connector._modCellN2, 'centers', False, cellNName)
+    return C.__TZA2(t, Connector._modCellN2, 'centers', cellNName)
 
 #=====================================================================================
 # returns the numpys of indices of cellN=2 cell centers and corresponding coordinates

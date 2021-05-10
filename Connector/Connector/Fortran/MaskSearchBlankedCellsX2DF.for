@@ -62,7 +62,7 @@ C==============================================================================
       isMasked = 0
 
 
-!$OMP PARALLEL PRIVATE(i, j, k, l, ip, jp, et, ind, indray, dx1, dy1,
+!$OMP PARALLEL PRIVATE(d, i, j, k, l, ip, jp, et, ind, indray, dx1, dy1,
 !$OMP&                  xp1, yp1, xp2, yp2, xp3, yp3, xp4, yp4,
 !$OMP&                  xmincell, ymincell, xmaxcell, ymaxcell,
 !$OMP&                  iray, ibeg, iend, iraymin, iraymax,
