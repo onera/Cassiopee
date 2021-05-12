@@ -1754,7 +1754,7 @@ def GIF(Function, functionName='myFunction', *args):
         try:
             a = Function(t[2][nob][2][noz], *args)
             replace(t, nob, noz, a)
-        except (Exception, e): fail = True; errors += [0, str(e)]
+        except Exception as e: fail = True; errors += [0, str(e)]
     if not fail: TXT.insert('START', functionName+' succeeds.\n')
     else:
         Panels.displayErrors(errors, header='Error: '+functionName)

@@ -2183,7 +2183,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                     else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
                     n[1] = (1-beta0)*n[1] + beta0 *np[1]           
         else: # algo=1 (nouvelle version)
-            if k1 == 0 and kappaType == 2: vol = G.getVolumeMap(surfu)
+            if k1 == 0 and kappaType == 2: vol = getVolumeMap(surf)
             if niter == 0:
                 n = getNormalMap(surf)
                 n = C.normalize(n, vect)

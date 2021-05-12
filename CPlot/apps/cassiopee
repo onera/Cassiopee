@@ -3,14 +3,26 @@ if [ "$PYTHONEXE" = "" ]; then
     export PYTHONEXE=python
 fi
 
-which vglrun &>/dev/null
+if ! command -v xdpyinfo &> /dev/null
+then
+    if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+	then
+    	$PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+	else
+    	$PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+	fi
+    exit
+fi
+
+xdpyinfo | grep VNC 2>&1 /dev/null
 if [ $? -eq 0 ]; then
 	if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
 	then
     	vglrun $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
 	else
     	vglrun $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
-	fi	
+	fi
+    exit
 else
 	if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
 	then
@@ -18,4 +30,5 @@ else
 	else
     	$PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
 	fi
+    exit
 fi

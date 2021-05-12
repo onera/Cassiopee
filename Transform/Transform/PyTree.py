@@ -916,11 +916,11 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                     winstarti2 = intersectWins__(winz2, winstart1, ret=1)
                     if winstarti1 is not None:
                         if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z1, winopp1, trirac)
-                        else: C._addBC2Zone(z1, 'match', 'BCMatch', winistarti1, z1, winopp1, trirac, 
+                        else: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z1, winopp1, trirac, 
                                         rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
                     if winstarti2 is not None:
                         if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z1, winopp1, trirac)
-                        else: C._addBC2Zone(z2, 'match', 'BCMatch', winistarti2, z1, winopp1, trirac, 
+                        else: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z1, winopp1, trirac, 
                                         rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
 
                     winopp2z = intersectWins__(winz2, winopp, ret=0)
@@ -934,11 +934,11 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                     winstarti2 = intersectWins__(winz2, winstart2, ret=1)
                     if winstarti1 is not None:
                         if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z2, winopp2, trirac)
-                        else: C._addBC2Zone(z1, 'match', 'BCMatch', winistarti1, z2, winopp2, trirac, 
+                        else: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z2, winopp2, trirac, 
                                         rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
                     if winstarti2 is not None:
                         if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z2, winopp2, trirac)
-                        else: C._addBC2Zone(z2, 'match', 'BCMatch', winistarti2, z2, winopp2, trirac, 
+                        else: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z2, winopp2, trirac, 
                                         rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
 
    
@@ -1025,11 +1025,11 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                     winstarti2 = intersectWins__(winz2, winstart1, ret=1)
                     if winstarti1 is not None:
                         if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z1, winopp1, trirac)
-                        else: C._addBC2Zone(z1, 'match', 'BCMatch', winistarti1, z1, winopp1, trirac, 
+                        else: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z1, winopp1, trirac, 
                                         rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
                     if winstarti2 is not None:
                         if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z1, winopp1, trirac)
-                        else: C._addBC2Zone(z2, 'match', 'BCMatch', winistarti2, z1, winopp1, trirac, 
+                        else: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z1, winopp1, trirac, 
                                         rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
 
                     winopp2z = intersectWins__(winz2, winopp, ret=0)
@@ -1050,11 +1050,11 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                     
                     if winstarti1 is not None:
                         if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z2, winopp2, trirac)
-                        else: C._addBC2Zone(z1, 'match', 'BCMatch', winistarti1, z2, winopp2, trirac, 
+                        else: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z2, winopp2, trirac, 
                                             rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
                     if winstarti2 is not None:
                         if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z2, winopp2, trirac)
-                        else: C._addBC2Zone(z2, 'match', 'BCMatch', winistarti2, z2, winopp2, trirac, 
+                        else: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z2, winopp2, trirac, 
                                             rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
 
 

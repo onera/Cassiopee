@@ -138,10 +138,10 @@ def superOptionMenu(F, var, itemList, command,
                     updateCommand1, updateCommand2):
     if ttk is None:
         B = TK.OptionMenu(F, var, *itemList,
-                          command=com)
+                          command=command)
         F.bind('<Enter>', updateCommand1)
     else:
-        B = ttk.Combobox(F, textvariable=VARS[0], 
+        B = ttk.Combobox(F, textvariable=var, 
                          values=itemList, 
                          state='readonly', width=10)
         B.bind('<<ComboboxSelected>>', command)

@@ -639,12 +639,13 @@ def newPyTree(args=[]):
   t = Internal.createRootNode()
   t[2].append(Internal.createCGNSVersionNode())
   l = len(args)
-  base = None; cellDim = 3
+  base = None; cellDim = 3; name = 'Base'
   for i in args:
     if isinstance(i, str): # a baseName
-      base = Internal.createBaseNode(i, cellDim); t[2].append(base)
+      name = i
+      base = Internal.createBaseNode(name, cellDim); t[2].append(base)
     elif isinstance(i, int): # base dim
-      base[1][0] = i
+      if base is not None: base[1][0] = i
     else:
       if len(i) == 4: # maybe a standard node
         if i[3] == 'Zone_t':
@@ -652,8 +653,8 @@ def newPyTree(args=[]):
             base = Internal.createBaseNode(name, cellDim); t[2].append(base)
           base[2].append(i)
         elif i[3] == 'CGNSBase_t':
-          base = i; t[2].append(base)
-        else:
+          base = i; name = i[0]; t[2].append(base)
+        else: # liste de zones
           for z in i:
             if isinstance(z, list):
               if len(z) == 4 and z[3] == 'Zone_t':
@@ -1143,7 +1144,12 @@ def checkLinks__(links, t):
     elif a[0] != '/': l[2] = '/'+a
     if len(b) > 8 and b[0:8] == 'CGNSTree': l[3] = b.replace('CGNSTree', '')
     elif b[0] != '/': l[3] = '/'+b
-    if Internal.getNodeFromPath(t, b) is not None: out.append(l)
+    # verifie que le noeud existe dans l'arbre (supprime)
+    #if Internal.getNodeFromPath(t, b) is not None:
+    # verifie que le noeud parent existe dans l'arbre
+    if Internal.getNodeFromPath(t, Internal.getPathAncestor(b)) is None:
+        print("Warning: link %s is skipped, path ancestor not found."%b)
+    else: out.append(l)
   #for c, i in enumerate(links): print(out[c], links[c])
   return out
 
@@ -3858,7 +3864,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
       if isinstance(elementList, numpy.ndarray): r = elementList
       else: r = numpy.array(elementList, dtype=numpy.int32)
       r = r.reshape((1,r.size), order='F')
-      Internal.createChild(info, INTERNAL.__ELEMENTLIST__, 'IndexArray_t', value=r)
+      Internal.createChild(info, Internal.__ELEMENTLIST__, 'IndexArray_t', value=r)
     elif elementRange != []:
       n = numpy.empty((1,2), numpy.int32, order='F')
       n[0,0] = elementRange[0]
@@ -5064,6 +5070,7 @@ def _mergeGCs(z):
 
 # Merge BCs on an unstructured zone
 def _mergeBCs(z):
+  import Transform.PyTree as T 
   bcs = getBCs(z)
   BCs=bcs[0]; BCNames=bcs[1]; BCTypes=bcs[2]
   # merge par type

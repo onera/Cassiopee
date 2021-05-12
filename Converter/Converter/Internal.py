@@ -3350,13 +3350,14 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
 
 # -- Remove rind cells
 def rmRindCells(t, d=-1, modified=[]):
-    tp = Internal.copyRef(t)
-    _rmRindCells(tp,d=d, modified=modified)
+    tp = copyRef(t)
+    _rmRindCells(tp, d=d, modified=modified)
     return tp
 
-def _rmRindCells(t,d=-1, modified=[]):
+def _rmRindCells(t, d=-1, modified=[]):
     from . import GhostCells
     return GhostCells._rmRindCells(t, d=d, modified=modified)
+
 #==============================================================================
 # -- Check --
 #==============================================================================
@@ -4411,7 +4412,7 @@ def convertIJKArray21DArray(*thetuple):
     size = a.shape[1]
     b = numpy.empty((1,size), numpy.int32)
     for l in range(size):
-      b[0][l] = a[0][l]-1; j = a[1][l]-1
+      i = a[0][l]-1; j = a[1][l]-1
       ind = adrNode2__(i,j,im,jm,0)
     return b
   elif len(thetuple) == 2:

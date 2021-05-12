@@ -614,14 +614,12 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                 'bin_stl', 'bin_gltf',
                 'fmt_xfig', 'fmt_svg', 'bin_3ds',
                 'fmt_obj', 'fmt_gts' , 'fmt_pov', 'bin_arc']
-                success = 0
                 for fmt in FORMATS:
                     try:
                         a = converter.convertFile2Arrays(fileName, fmt, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
-                        success = 1; break
-                    except: pass
-                    if success == 1: return a
-                    else: return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
+                        return a
+                    except: 
+                        return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
 
 def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ',

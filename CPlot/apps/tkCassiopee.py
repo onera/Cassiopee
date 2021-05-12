@@ -55,14 +55,6 @@ ALLAPPS = TREEAPPS + STATEAPPS + EDGEAPPS + SURFAPPS + MESHAPPS + \
 PERSOAPPS = []
 
 #==============================================================================
-# Application global preference settings
-#==============================================================================
-def preferences():
-    module = __import__('tkPrefs')
-    module.createApp(win)
-    module.activateApp()
-
-#==============================================================================
 # Add a personal app to pref file
 #==============================================================================
 def addPersonalApp():
@@ -86,11 +78,12 @@ def addPersonalApp():
         module = __import__(moduleName)
         CTK.TKMODULES[moduleName] = module
         sys.path = orig
-        tools.add_command(label=moduleName,
-                          command=module.showApp)
-        module.createApp(frames[0])
+        #tools.add_command(label=moduleName,
+        #                  command=module.showApp)
+        frame = CTK.TKMODULEFRAMES['tkTreeOps']
+        module.createApp(frame)
         PERSOAPPS.append(moduleName)
-        CTK.TXT.insert('START', 'Module %s added in tools menu\n'%moduleName)
+        CTK.TXT.insert('START', 'Module %s added in tools menu (next restart)\n'%moduleName)
     except:
         CTK.TXT.insert('START', 'Can not import '+moduleName+'.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
