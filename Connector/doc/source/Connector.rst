@@ -465,7 +465,8 @@ Overset connectivity
         Parameter depth is the number of layers of interpolated points to be set.
         If depth > 0 the fringe of interpolated points is set outside the blanked zones,
         whereas if depth < 0, the depth layers of blanked points are marked as to be interpolated.
-        If dir=0, uses a directional stencil of depth points, if dir=1, uses a full depth x depth x depth stencil:
+        If dir=0, uses a directional stencil of depth points, if dir=1, uses a star shape stencil,
+        if dir=2, uses a diamond stencil.
         Blanked points are identified by the variable 'cellN'; 'cellN' is set to 2 for the fringe of interpolated points.
         If cellN is located at cell centers, set loc parameter to 'centers', else loc='nodes'.
         
@@ -479,6 +480,8 @@ Overset connectivity
         Compute the fringe of interpolated points around a set of blanked points in a pyTree t.
         Parameter depth is the number of layers of interpolated points that are built; if depth > 0 the fringe of interpolated points is outside the blanked zones, and if depth < 0,
         it is built towards the inside.
+        If dir=0, uses a directional stencil of depth points, if dir=1, uses a star shape stencil,
+        if dir=2, uses a diamond stencil.
         Blanked points are identified by the variable 'cellN' located at mesh nodes or centers. 'cellN' is set to 2 for the fringe of interpolated points.
     
 

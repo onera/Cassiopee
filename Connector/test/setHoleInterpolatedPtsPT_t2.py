@@ -20,7 +20,7 @@ t = C.initVars(t,'cellN', sphere, ['CoordinateX','CoordinateY','CoordinateZ'])
 nod = 1
 for d in [-2,-1,0,1,2,5]:
     tp = Internal.copyTree(t)
-    t2 = X.setHoleInterpolatedPoints(tp,depth=d,loc='nodes')
+    t2 = X.setHoleInterpolatedPoints(tp, depth=d, loc='nodes')
     test.testT(t2,nod); nod+=1
 
 # Champ cellN en centres
@@ -31,5 +31,5 @@ t = C.initVars(t,'Density',1.)
 t = C.initVars(t,'centers:cellN', sphere, ['centers:CoordinateX','centers:CoordinateY','centers:CoordinateZ'])
 for d in [-2,-1,0,1,2,5]:
     tp = Internal.copyTree(t)
-    t2 = X.setHoleInterpolatedPoints(tp,depth=d,loc='centers')
+    t2 = X.setHoleInterpolatedPoints(tp, depth=d, loc='centers')
     test.testT(t2,nod); nod+=1

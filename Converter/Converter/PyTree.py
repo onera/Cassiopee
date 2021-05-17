@@ -752,7 +752,6 @@ def _deleteGridConnectivity__(a, type='None', kind='all'):
     else: _rmBCOfType(a, 'BCMatch')
   elif type == 'BCOverlap':
     if kind == 'other': _deleteBCOverlapWithDonorZone__(a, removeDnrZones=True, removeDnrFam=False)
-    elif kind == 'families': _deleteBCOverlapWithFamilyDonorZone__(removeDnrZones=False, removeDnrFam=True)
     elif kind == 'self': _deleteBCOverlapWithoutDonorZone__(a)
     else: _rmBCOfType(a, 'BCOverlap')
   return None
@@ -2893,20 +2892,58 @@ def _cpVars__(z1, var1, z2, var2):
   return None
 
 # -- extractVars
-def extractVars(t, vars):
+def extractVars(t, vars, keepOldNodes=True):
   """Only keep the given variables in t.
   Usage: extractVars(z, var)"""
-  tc = Internal.copyRef(t)
-  _extractVars(tc, vars)
-  return tc
+  tp = Internal.copyRef(t)
+  _extractVars(tp, vars, keepOldNodes)
+  return tp
+  
 
-def _extractVars(t, vars):
+def _extractVars(t, vars, keepOldNodes=True):
   if isinstance(vars, str): vars = [vars]
   zones = Internal.getZones(t)
-  for z in zones:
-    varNames = getVarNames(z)[0]
-    for v in varNames:
-      if v not in vars: _rmVars(z, v)
+
+  if keepOldNodes: # old legacy version
+    for z in zones: 
+        varNames = getVarNames(z)[0]
+        for v in varNames:
+            if v not in vars: _rmVars(z, v)
+  else:
+    # rebuild a new zone with only vars and coordinates
+    for z in zones:
+        zp = Internal.copyNode(z); zp[2] = []
+        n = Internal.getNodeFromName1(z, 'ZoneType')
+        if n is not None: zp[2].append(n)
+        n = Internal.getNodeFromName1(z, 'ZoneRind')
+        if n is not None: zp[2].append(n)
+        n = Internal.getNodeFromName1(z, 'GridCoordinates')
+        if n is not None: zp[2].append(n)
+        if vars is not None:
+            cont1 = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
+            if cont1 is not None:
+                np1 = Internal.copyNode(cont1); np1[2] = []
+                zp[2].append(np1)
+                n = Internal.getNodeFromName1(cont1, 'GridLocation')
+                if n is not None: np1[2].append(n)
+            else: np1 = None
+            cont2 = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
+            if cont2 is not None:
+                np2 = Internal.copyNode(cont2); np2[2] = []
+                zp[2].append(np2)
+                n = Internal.getNodeFromName1(cont2, 'GridLocation')
+                if n is not None: np2[2].append(n)
+            else: np2 = None
+            for v in vars:
+                v2 = v.split(':')
+                if len(v2) == 1: cont = cont2; np = np2
+                elif v2[0] == 'nodes': cont = cont2; v = v2[1]; np = np2
+                else: cont = cont1; v = v2[1]; np = np1
+                if cont is not None:
+                    n = Internal.getNodeFromName1(cont, v)
+                    if n is not None: np[2].append(n)
+        z[2] = zp[2]
+
   return None
 
 # -- rmVars

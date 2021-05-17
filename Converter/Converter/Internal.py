@@ -1893,7 +1893,7 @@ def getParentOfNode__(start, idNode):
     return (r, d)
 
 def getParentFromType(start, node, parentType, prev=None):
-    """Return thee first parent node matching type."""
+    """Return the first parent node matching type."""
     if id(start) == id(node): return prev
     if start[3] == parentType: prev = start
     for n in start[2]:

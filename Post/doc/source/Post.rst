@@ -661,8 +661,7 @@ Solution selection
 
 .. py:function:: Post.frontFaces(a, tag)
 
-    Select faces that are located at the boundary where a tag indicator
-    change from 0 to 1.
+    Select faces that are located at the boundary where a tag indicator change from 0 to 1.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -707,7 +706,7 @@ Solution selection
 
 .. py:function:: Post.silhouette(A, vector=[1.,0.,0.])
 
-    return silhouette arrays starting from surfaces or contours, according to a direction vector.
+    Return silhouette arrays starting from surfaces or contours, according to a direction vector.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]

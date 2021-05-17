@@ -370,7 +370,7 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
   E_Int imjmkmc = imjmc*kmc;
   E_Int nindices;
 
-  if (dir == 0) //directionnel
+  if (dir == 0) //stencil par direction
   {
     if (kmc == 1) // 2D croix
     {
@@ -490,7 +490,7 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
       }
     }//fin 3D dir = 0
   }//dir = 0
-  else //stencil etoile
+  else if (dir == 1)//stencil etoile
   {
     if (kmc == 1) // 2D etoile
     {
@@ -643,6 +643,291 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
       }
     }
   }//dir = 1
+  else //stencil losange (dir==2)
+  {
+    if (kmc == 1) // 2D losange
+    {
+      nindices = (depth+1)*(depth+1) + depth*depth -1;
+      #pragma omp parallel
+      {
+        // Def de variables privees sur les procs
+        vector<E_Int> indices(nindices);
+        E_Int i, j, ii, jj;
+        E_Int ind2, compteur, ncouche;
+
+        #pragma omp for schedule(static)
+        for (E_Int ind = 0; ind < imjmc; ind++)
+        {
+          if (K_FUNC::fEqual(cellN[ind],1.))
+          {
+            //indices de la maille
+            j = ind/imc;
+            i = ind-j*imc;
+
+            // Recherche des points du stencil
+            compteur = 0;
+            ncouche = 0;
+            for (E_Int d=depth; d>0; d--) //stencil au dessus de la maille
+            {
+              jj = j-d; if (jj<0) {jj=j;}
+              for (E_Int id=-ncouche; id<ncouche+1; id++)
+              {
+                ii = i+id ; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                indices[compteur] = ii + jj*imc; compteur++;
+              }
+              ncouche += 1;
+            }
+            for (E_Int d = -depth; d<depth+1; d++)
+            {
+              if (d!=0)
+              {
+                ii = i+d; if((ii<0)||(ii>imc-1)) {ii=i;}
+                indices[compteur] = ii + j*imc; compteur++;
+              }
+            }
+            ncouche=depth-1;
+            for (E_Int d=1; d<depth+1; d++) //stencil au dessous de la maille
+            {
+              jj = j+d; if (jj>jmc-1) {jj=j;}
+              for (E_Int id=-ncouche; id<ncouche+1; id++)
+              {
+                ii = i+id ; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                indices[compteur] = ii + jj*imc; compteur++;
+              }
+              ncouche -=1;
+            }
+
+            // Changement du cellN en fonction du stencil
+            for (E_Int noi = 0; noi < nindices; noi++)
+            {
+              ind2 = indices[noi];
+              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.; break;}
+            }
+          }
+        }
+      }
+    }// 2D dir = 1
+    else // 3D losange
+    {
+      // Nombre d'indices en fonction de la profondeur
+      if (depth==2) 
+      {
+        nindices = 33;
+      }
+      else if (depth==3) 
+      {
+        nindices = 87;
+      }
+      else 
+      {
+        nindices = 0;
+        printf("WARNING: searchMaskInterpolatedCellsStruct_opt: bad choice of depth for dir=2.\n");
+      }
+
+      #pragma omp parallel
+      {
+        // Def de variables privees sur les procs
+        vector<E_Int> indices(nindices);
+        E_Int i, j, k, ii, jj, kk, l;
+        E_Int ind2, im, compteur;
+
+        #pragma omp for schedule(guided)
+        for (E_Int ind = 0; ind < imjmkmc; ind++)
+        {
+          if (K_FUNC::fEqual(cellN[ind],1.))
+          {
+            //indices de la maille
+            k = ind/imjmc;
+            j = ( ind-k*imjmc )/imc;
+            i = ind-k*imjmc-j*imc;
+
+            compteur  = 0;
+            if (depth==2) { // Stencil de taille 2
+              // premiere couche du stencil
+              kk = k-2; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              ii = i ; jj = j ;
+              l = ii + jj*imc + kk*imjmc;
+              indices[compteur] = l; compteur++;
+
+              // deuxieme couche du stencil
+              kk = k-1; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              for (E_Int jd=-1; jd<2; jd++)
+              {
+                jj = j+jd; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+                for (E_Int id=-1; id<2; id++)
+                {
+                  ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                  l = ii + jj*imc + kk*imjmc;
+                  indices[compteur] = l; compteur++;
+                }
+              }
+
+              // troisieme couche du stencil
+              kk = k; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              im = 0;
+              for (E_Int jd=-depth; jd<depth+1; jd++)
+              {
+                jj = j+jd; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+                for (E_Int id=-im; id<im+1; id++)
+                {
+                  ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                  l = ii + jj*imc + kk*imjmc;
+                  indices[compteur] = l; compteur++;
+                }
+                if (jd<0) {im +=1;} // haut du stencil : augmente la taille de la ligne
+                else      {im -=1;} // cas du stencil : diminue la taille de la ligne
+              }
+
+              // quatrieme couche du stencil
+              kk = k+1; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              for (E_Int jd=-1; jd<2; jd++)
+              {
+                jj = j+jd; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+                for (E_Int id=-1; id<2; id++)
+                {
+                  ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                  l = ii + jj*imc + kk*imjmc;
+                  indices[compteur] = l; compteur++;
+                }
+              }
+
+              // derniere couche du stencil
+              kk = k+2; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              ii = i ; jj = j ;
+              l = ii + jj*imc + kk*imjmc;
+              indices[compteur] = l; compteur++;
+            } // fin depth = 2
+            else if (depth==3) { // stencil de taille 3
+              // premiere couche du stencil
+              kk = k-3; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              ii = i ; jj = j ;
+              l = ii + jj*imc + kk*imjmc;
+              indices[compteur] = l ; compteur++;
+
+              // deuxieme couche du stencil
+              kk = k-2; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              for (E_Int jd=-1; jd<2; jd++)
+              {
+                jj = j+jd; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+                for (E_Int id=-1; id<2; id++)
+                {
+                  ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                  l = ii + jj*imc + kk*imjmc;
+                  indices[compteur] = l; compteur++;
+                }
+              }
+
+              // troisieme couche du stencil
+              kk = k-1; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              // branche haute
+              jj = j-2; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+              for (E_Int id=-1; id<2; id++)
+              {
+                ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                l = ii + jj*imc + kk*imjmc;
+                indices[compteur] = l; compteur++;
+              }
+              // milieu
+              for (E_Int jd=-1; jd<2; jd++)
+              {
+                jj = j+jd; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+                for (E_Int id=-2; id<3; id++)
+                {
+                  ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                  l = ii + jj*imc + kk*imjmc;
+                  indices[compteur] = l; compteur++;
+                }
+              }
+              // branche basse
+              jj = j+2; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+              for (E_Int id=-1; id<2; id++)
+              {
+                ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                l = ii + jj*imc + kk*imjmc;
+                indices[compteur] = l; compteur++;
+              }
+
+              // quatrieme couche du stencil
+              kk = k; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              im = 0;
+              for (E_Int jd=-depth; jd<depth+1; jd++)
+              {
+                jj = j+jd; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+                for (E_Int id=-im; id<im+1; id++)
+                {
+                  ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                  l = ii + jj*imc + kk*imjmc;
+                  indices[compteur] = l; compteur++;
+                }
+                if (jd<0) {im +=1;} // haut du stencil : augmente la taille de la ligne
+                else      {im -=1;} // cas du stencil : diminue la taille de la ligne
+              }
+
+              // cinquieme couche du stencil
+              kk = k+1; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              // branche haute
+              jj = j-2; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+              for (E_Int id=-1; id<2; id++)
+              {
+                ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                l = ii + jj*imc + kk*imjmc;
+                indices[compteur] = l; compteur++;
+              }
+              // milieu
+              for (E_Int jd=-1; jd<2; jd++)
+              {
+                jj = j+jd; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+                for (E_Int id=-2; id<3; id++)
+                {
+                  ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                  l = ii + jj*imc + kk*imjmc;
+                  indices[compteur] = l; compteur++;
+                }
+              }
+              // branche basse
+              jj = j+2; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+              for (E_Int id=-1; id<2; id++)
+              {
+                ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                l = ii + jj*imc + kk*imjmc;
+                indices[compteur] = l; compteur++;
+              }
+
+              // sixieme couche du stencil
+              kk = k+2; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              for (E_Int jd=-1; jd<2; jd++)
+              {
+                jj = j+jd; if ((jj<0)||(jj>jmc-1)) {jj=j;}
+                for (E_Int id=-1; id<2; id++)
+                {
+                  ii = i+id; if ((ii<0)||(ii>imc-1)) {ii=i;}
+                  l = ii + jj*imc + kk*imjmc;
+                  indices[compteur] = l; compteur++;
+                }
+              }
+
+              // septieme couche du stencil
+              kk = k+3; if ((kk<0)||(kk>kmc-1)) {kk=k;}
+              ii = i ; jj = j ;
+              l = ii + jj*imc + kk*imjmc;
+              indices[compteur] = l; compteur++;
+            } // fin du stencil de taille 3
+            else 
+            {
+              printf("WARNING: searchMaskInterpolatedCellsStruct_opt: bad choice of depth for dir=2.\n");
+            }
+
+            // Changement du cellN en fonction du stencil
+            for (E_Int noi = 0; noi < nindices; noi++)
+            {
+              ind2 = indices[noi];
+              if (K_FUNC::fEqualZero(cellN[ind2])){ cellN_tmp[ind] = 2.; break;}
+            }
+          }
+        }
+      }
+    }
+  }//dir = 2
 }
 
 //=============================================================================
@@ -659,10 +944,10 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   {
       return NULL;
   }
-  if (dir != 0 && dir != 1)
+  if (dir != 0 && dir != 1 && dir != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOversetHolesInterpNodes: dir must be 0 or 1.");
+                    "getOversetHolesInterpNodes: dir must be 0, 1 or 2.");
     return NULL;
   }
   /*--------------------------------------------------*/
@@ -678,6 +963,12 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     PyErr_SetString(PyExc_TypeError,
                     "getOversetHolesInterpNodes: first argument is not recognized");
     return NULL;
+  }
+
+  if (( dir==2 && depth>3 && km>1) || (dir==2 && depth == 1))
+  {
+    printf("WARNING: getOversetHolesInterpNodes: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
+    dir = 1;
   }
 
   E_Int posc;
@@ -818,10 +1109,10 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
   {
       return NULL;
   }
-  if (dir != 0 && dir != 1)
+  if (dir != 0 && dir != 1 && dir != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "_getOversetHolesInterpNodes: dir must be 0 or 1.");
+                    "_getOversetHolesInterpNodes: dir must be 0, 1 or 2.");
     return NULL;
   }
   /*--------------------------------------------------*/
@@ -844,6 +1135,12 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
       PyErr_SetString(PyExc_TypeError,
                       "_getOversetHolesInterpNodes: first argument is not recognized");
     return NULL;
+  }
+
+  if (( dir==2 && depth>3 && km>1) || (dir==2 && depth == 1))
+  {
+    printf("WARNING: _getOversetHolesInterpNodes: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
+    dir=1;
   }
 
   E_Int posc;
@@ -947,10 +1244,10 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
       return NULL;
   }
 
-  if (dir != 0 && dir != 1)
+  if (dir != 0 && dir != 1 && dir != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOversetHolesInterpCellCenters: dir must be 0 or 1.");
+                    "getOversetHolesInterpCellCenters: dir must be 0, 1 or 2.");
     return NULL;
   }
   /*--------------------------------------------------*/
@@ -973,6 +1270,12 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
       PyErr_SetString(PyExc_TypeError,
                       "_getOversetHolesInterpCellCenters: first argument is not recognized");
     return NULL;
+  }
+
+  if (( dir==2 && depth>3 && km>1) || (dir==2 && depth == 1))
+  {
+    printf("WARNING: _getOversetHolesInterpCellCenters: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
+    dir=1;
   }
 
   E_Int posc;
@@ -1072,10 +1375,10 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       return NULL;
   }
 
-  if (dir != 0 && dir != 1)
+  if (dir != 0 && dir != 1 && dir != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOversetHolesInterpNodes: dir must be 0 or 1.");
+                    "getOversetHolesInterpNodes: dir must be 0, 1 or 2.");
     return NULL;
   }
   /*--------------------------------------------------*/
@@ -1091,6 +1394,12 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
     PyErr_SetString(PyExc_TypeError,
                     "getOversetHolesInterpCellCenters:  first argument is not recognized");
     return NULL;
+  }
+
+  if (( dir==2 && depth>3 && km>1) || (dir==2 && depth == 1))
+  {
+    printf("WARNING: getOversetHolesInterpCellCenters: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
+    dir=1;
   }
 
   E_Int posc;

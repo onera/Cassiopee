@@ -405,10 +405,7 @@ def BB(t, method='AABB', weighting=0):
     """Return the bounding box of a pyTree as a pyTree.
     Usage: b = BB(a, method, weighting)"""
     tp = Internal.copyRef(t)
-    C._deleteFlowSolutions__(tp)
-    C._deleteZoneBC__(tp)
-    C._deleteGridConnectivity__(tp)
-    C._TZGC(tp, 'nodes', Generator.BB, method, weighting)
+    _BB(tp, method, weighting)
     return tp
 
 def _BB(t, method='AABB', weighting=0):
@@ -417,6 +414,9 @@ def _BB(t, method='AABB', weighting=0):
     C._deleteFlowSolutions__(t)
     C._deleteZoneBC__(t)
     C._deleteGridConnectivity__(t)
+    C._rmNodes(t, 'GridCoordinates#Init')
+    C._rmNodes(t, 'Motion')
+    C._rmNodes(t, '.Solver#ownData')
     C._TZGC(t, 'nodes', Generator.BB, method, weighting)
     return None
 

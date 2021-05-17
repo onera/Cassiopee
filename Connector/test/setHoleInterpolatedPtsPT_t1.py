@@ -16,7 +16,7 @@ b = T.translate(a,(2,0,0)); b[0] = 'cart2'
 t = C.newPyTree(['Cart',a,b])
 t = X.connectMatch(t)
 t = C.fillEmptyBCWith(t,'nref','BCFarfield')
-C._initVars(t,'Density',1.)
+C._initVars(t,'Density', 1.)
 C._initVars(t,'cellN', sphere, ['CoordinateX','CoordinateY','CoordinateZ'])
 nod = 1
 for d in [-2,-1,0,1,2,5]:
