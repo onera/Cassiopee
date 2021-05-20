@@ -202,9 +202,9 @@ def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
         basename2 = b[0]
         if (sameBase == 1) or (sameBase == 0 and basename1 != basename2):
             [xmin2,ymin2,zmin2,xmax2,ymax2,zmax2] = G.bbox(b)
-            if (xmax1  > xmin2-tol and xmin1 < xmax2+tol and
-                ymax1  > ymin2-tol and ymin1 < ymax2+tol and
-                zmax1  > zmin2-tol and zmin1 < zmax2+tol):
+            if (xmax1 > xmin2-tol and xmin1 < xmax2+tol and
+                ymax1 > ymin2-tol and ymin1 < ymax2+tol and
+                zmax1 > zmin2-tol and zmin1 < zmax2+tol):
                 bases2.append(b)
 
     # recherche des zones intersectantes par base

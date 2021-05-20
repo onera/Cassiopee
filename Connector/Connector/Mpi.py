@@ -421,11 +421,13 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
 
                     # transfers avec coordonnees dans le repere relatif
-                    if interpInDnrFrame: # hack par CB
+                    if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
+                        # On suppose que le precond est dans init quand il y a un TimeMotion
+                        # Si il y en a pas, on suppose que le precond est construit dans courant
                         GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
                         GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
-                        TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP                    
-
+                        TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP
+                        
                     # Sortie DBX
                     #import Generator.PyTree as G
                     #dbx = G.cart( (0,0,0), (1,1,1), (XIRel.size,1,1) )
@@ -441,7 +443,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
 
                     # hack par CB
-                    if interpInDnrFrame: 
+                    if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None: 
                         TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP        
                     
                     if zname not in dictOfFields:
@@ -452,8 +454,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 
                 else:                    
                     #print(' ECHANGE GLOBAL entre recepteur %s du proc %d et donneur %s du proc %d '%(zname, Cmpi.rank, znamed, procD))
-                    if procD not in datas:
-                        datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
+                    if procD not in datas: datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                     else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
     
     #print(Cmpi.rank, 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' , datas.keys(), flush=True)
@@ -477,9 +478,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             if adt is None: interpDataType = 0
             else: interpDataType = 1
             [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+            
             # [XIRel,YIRel,ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
             # transferts avec coordonnees dans le repere relatif 
-            if interpInDnrFrame:
+            if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:    
                 GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
                 GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
                 TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP   
@@ -487,8 +489,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
 
             # hack par CB
-            if interpInDnrFrame:
-                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP            
+            if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
+                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP       
 
             procR = procDict[zrcvname]
             
