@@ -172,39 +172,54 @@ namespace NUGA
 
         double I[3]; // intersection of pt in computed dir on PG plane.
         double h = NUGA::project(m2.crd.col(P0), nPG, Pi, dirs[i].vec, I); // == PiP0.nPG
-        h = ::fabs(h); // if h < 0, already immersed
+        
+        if (h < 0.) continue; //already immersed
 
         double w = NUGA::dot<3>(nPG, dirs[i].vec);
         assert(w < 0.);
         w = 1. / w;
 
+        double dmax = ::sqrt(std::min(vertices[i].val2, PG.Lref2(m2.nodal_metric2)));
+
         double TOLi = ARTOL;
         if (ARTOL < 0.) // relative
+          TOLi *= -dmax;
+
+        TOLi = std::min(0.95*dmax, TOLi);
+        
+        if (::fabs(h) >= TOLi) 
         {
-          double PGLref2 = PG.Lref2(m2.nodal_metric2);
-          TOLi *= -::sqrt(std::min(vertices[i].val2, PGLref2));
+          continue;//too far
         }
 
-        double hmove = (1. + EPSILON) * TOLi;
-        double lambdaMove = w * (h - hmove);
+        double depth = 0.1*(dmax - TOLi);
+        double lambdaMove = -w * (h + depth);
 
         // following assert because dir must be well oriented : inward the surface if above, outward otherwise
         // so attractive if above, repulsive if below (to put it far enough to exit interference zone)
-        assert(lambdaMove > 0.);
-        //lambdaMove = w * (h + hmove);
+        
         dirs[i].val2 = std::max(lambdaMove*lambdaMove, dirs[i].val2);
       }
     }
 
     // apply displacements to m1
+#ifdef DEBUG_IMMERSION
+    auto crd10 = m1.crd;
+#endif
+    E_Int nb_disp{0};
     for (size_t i = 0; i < vertices.size(); ++i)
     {
       if (pt_to_faces[i].empty()) continue; // regular point
 
+      if (::sqrt(dirs[i].val2) > EPSILON) ++nb_disp;
+
       NUGA::sum<3>(::sqrt(dirs[i].val2), dirs[i].vec, 1., m1.crd.col(i), m1.crd.col(i));
     }
 
+    std::cout << "NB OF DISPLACED POINTS : " << nb_disp << std::endl;
 #ifdef DEBUG_IMMERSION
+    
+
     ngon_unit ngumoved;
     for (size_t i = 0; i < m1.cnt.PGs.size(); ++i)
     {
@@ -225,6 +240,7 @@ namespace NUGA
 
     ngumoved.updateFacets();
     medith::write("pgmoved", m1.crd, ngumoved);
+    medith::write("pgtomove", crd10, ngumoved);
 #endif
 
     // returns moved vertices and opposite displacements (for geometrically get back to original pos in boolean)

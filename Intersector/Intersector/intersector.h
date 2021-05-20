@@ -57,6 +57,7 @@ namespace K_INTERSECTOR
   PyObject* simplifyFaces(PyObject* self, PyObject* args);
 
   PyObject* agglomerateSmallCells(PyObject* self, PyObject* args);
+  PyObject* shellAgglomerateSmallCells(PyObject* self, PyObject* args);
   PyObject* agglomerateNonStarCells(PyObject* self, PyObject* args);
   //PyObject* agglomerateUncomputableCells(PyObject* self, PyObject* args);
   PyObject* agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args);

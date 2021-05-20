@@ -313,9 +313,9 @@ def checkAssemblyForlSolver(t, fullcheck=False, nb_comps=1):
   print("Check big cells (over 40) ...")
   N=40
   big = checkForBigCells(t, N)
-  ofile = infile[:-5] + '_big_'+str(N)+'.cgns'
+  ofile = 'big_'+str(N)+'.cgns'
   C.convertPyTree2File(big, ofile)
-  ofile = infile[:-5] + '_biggest.cgns'
+  ofile = 'biggest.cgns'
   z = extractBiggestCell(t)
   C.convertPyTree2File(z, ofile)
 
@@ -330,7 +330,7 @@ def checkAssemblyForlSolver(t, fullcheck=False, nb_comps=1):
   #VERIF 8
   print("extract pathos..")
   z=extractPathologicalCells(t)
-  ofile = infile[:-5] + '_pathos.cgns'
+  ofile = 'pathos.cgns'
   #C.convertPyTree2File(z, ofile)
 
   #VERIF 9
@@ -1417,7 +1417,7 @@ def simplifySurf(t, angular_threshold = 1.e-12):
 # IN: vratio : aspect ratio threshold
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
 #==============================================================================
-def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12):
+def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12, force=False):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(t, vmin, vratio)"""
 
@@ -1425,7 +1425,7 @@ def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12):
 
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
 
-    res = XOR.agglomerateSmallCells(m, vmin, vratio, angular_threshold)
+    res = XOR.agglomerateSmallCells(m, vmin, vratio, angular_threshold, force)
     #print("NB ZONES %d"%(len(res)))
 
     z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
@@ -1450,6 +1450,36 @@ def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12):
         zones.append(C.convertArrays2ZoneNode('agg', [res[i+1]]))
 
     C.convertPyTree2File(zones, 'agglo.cgns')
+
+    return z
+
+#==============================================================================
+# shellAgglomerateSmallCells : eradicate small cells by agglomerating all surrounding cells
+# IN: t: 3D NGON mesh
+# IN: vmin : volume threshold
+# IN: vratio : aspect ratio threshold
+# OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
+#==============================================================================
+def shellAgglomerateSmallCells(t, vmin=0., vratio=1000.):
+    """Agglomerates prescribed cells.
+    Usage: shellAgglomerateSmallCells(t, vmin, vratio)"""
+
+    nb_phs0  = nb_cells(t)
+
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+
+    res = XOR.shellAgglomerateSmallCells(m, vmin, vratio)
+
+    #print("NB ZONES %d"%(len(res)))
+
+    z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
+
+    nb_phs1  = nb_cells(z)
+    if nb_phs1 < nb_phs0:
+      nbc = int(nb_phs0 - nb_phs1)
+      print('shellAgglomerateSmallCells : Nb of small cells agglomerated : ' + str(nbc))
+    else:
+      print('shellAgglomerateSmallCells : None agglomeration.')
 
     return z
 
@@ -1594,6 +1624,24 @@ def collapseUncomputableFaces(t):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     m = XOR.collapseUncomputableFaces(m)
     return C.convertArrays2ZoneNode('agglomeratedCells', [m])
+
+#==============================================================================
+# collapseSmallCells : XXX
+#==============================================================================
+def collapseSmallCells(t, vmin, ar):
+    """Regularize the mesh to be cut (by boolean operations) by immersing its nodes lying on the cutter surface.
+    Usage: immerseNodes(t,s, TOL)"""
+    tp = Internal.copyRef(t)
+    _collapseSmallCells(tp, vmin, ar)
+    return tp
+
+def _collapseSmallCells(t, vmin, ar):
+    zones = Internal.getZones(t)
+    for z in zones:
+      coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+      if coords == []: continue
+      collapsed = intersector.collapseSmallCells(coords, vmin, ar)
+      C.setFields([collapsed], z, 'nodes')
 
 #==============================================================================
 # removeNonManifoldExternalCells : removes any outer cell that has a non manifold edge
@@ -2674,10 +2722,12 @@ def checkCellsVolumeAndGrowthRatio(t):
         print('checking min vol and growth ratio for zone %d'%i)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         res=XOR.checkCellsVolumeAndGrowthRatio(m, PE[1])
+        print('vmin for this zone : '+str(res[1]))
         if res[1] < vmin:
           vmin=res[1]
           ivmin=res[0]
           vzoneid=i
+        print('grmin for this zone : '+str(res[3]))
         if res[3] < grmin:
           grmin=res[3]
           igrmin=res[2]

@@ -303,10 +303,22 @@ def simplifySurf(a, angular_threshold = 1.e-12):
 # IN: vratio : growth ratio threshold
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother growth ratio
 #==============================================================================
-def agglomerateSmallCells(a, vmin=0., vratio=1000., angular_threshold = 1.e-12):
+def agglomerateSmallCells(a, vmin=0., vratio=1000., angular_threshold = 1.e-12, force=False):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(a, vmin, vratio)"""
-    return intersector.agglomerateSmallCells(a, vmin, vratio,angular_threshold)
+    return intersector.agglomerateSmallCells(a, vmin, vratio,angular_threshold, force)
+
+#==============================================================================
+# shellAgglomerateSmallCells : eradicate small cells by agglomerating all surrounding cells
+# IN: a: 3D NGON mesh
+# IN: vmin : volume threshold
+# IN: vratio : growth ratio threshold
+# OUT: returns a 3D NGON Mesh with less cells and with a smoother growth ratio
+#==============================================================================
+def shellAgglomerateSmallCells(a, vmin=0., vratio=1000.):
+    """eradicate small cells by agglomerating all surrounding cells.
+    Usage: shellAgglomerateSmallCells(a, vmin, vratio)"""
+    return intersector.shellAgglomerateSmallCells(a, vmin, vratio)
 
 #==============================================================================
 # agglomerateCellsWithSpecifiedFaces : Agglomerates cells sharing specified polygons

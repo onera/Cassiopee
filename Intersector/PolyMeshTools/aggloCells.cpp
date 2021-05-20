@@ -40,8 +40,8 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
   E_Float vmin(0.), vratio(1000.), angle_threshold{1.e-12};
   E_Int debug=0, force(0);
 
-  if (!PYPARSETUPLEF(args, "Oddd", "Offf",
-                     &arr, &vmin, &vratio, &angle_threshold)) return NULL;
+  if (!PYPARSETUPLE(args, "Odddl", "Odddi", "Offfl", "Offfi",
+                     &arr, &vmin, &vratio, &angle_threshold, &force)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -96,6 +96,53 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
         Py_DECREF(tpl);
       }
     }
+  }
+
+  delete f; delete cn;
+  return l;
+}
+
+//=============================================================================
+/* Eradicate by shell-agglomeration cells with a too high aspect ratio */
+//=============================================================================
+PyObject* K_INTERSECTOR::shellAgglomerateSmallCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Float vmin(0.), vratio(1000.);
+
+  if (!PYPARSETUPLEF(args, "Odd", "Off", &arr, &vmin, &vratio)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt), ngo;
+
+  E_Int nb_aggs(0);
+  NUGA::Agglomerator::shell_agglomerate_small_phs<DELAUNAY::Triangulator>(crd, ngi, vmin, vratio, ngo, nb_aggs);
+
+  PyObject *l(PyList_New(0)), *tpl;
+
+  {
+    // zone 1 : mesh
+    {
+      K_FLD::IntArray cnto;
+      ngo.export_to_array(cnto);
+      tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, "NGON", false);
+      PyList_Append(l, tpl);
+      Py_DECREF(tpl);
+    }
+
   }
 
   delete f; delete cn;

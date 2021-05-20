@@ -46,6 +46,10 @@ namespace NUGA
     ///
     template<typename TriangulatorType>
     inline static void agglomerate_non_star_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold = 1.e-12);
+
+    //
+    template<typename TriangulatorType>
+    inline static void shell_agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs);
   
 //    template<typename TriangulatorType>
 //    inline static void agglomerate_uncomputable_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo);
@@ -381,6 +385,8 @@ namespace NUGA
         E_Int res = K_MESH::Polyhedron<UNKNOWN>::is_pathological
                 (dt, crd, ngi.PGs, cur_agg.get_facets_ptr(0), cur_agg.stride(0), cur_ori.get_facets_ptr(0), reflex_edges, convex_edges, concave_threshold, convex_threshold);
         
+        if (res == dOPEN_PHS) continue; // just wrong
+
         E_Float Q0;
         if (res == dPATHO_PH_NONE) Q0 = 10.; //give more credit to non-patho result
         else Q0 = 0.;
@@ -587,6 +593,59 @@ namespace NUGA
 
     ngon_unit oriento;
     NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, false, angle_threshold); //we choose here to agglomerate non star iff it gets better,ie. non-star
+  }
+
+  ///
+  template<typename TriangulatorType>
+  void NUGA::Agglomerator::shell_agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs)
+  {
+    ngon_unit neighborsi;
+    ngi.build_ph_neighborhood(neighborsi);
+    
+    ngon_unit orienti;
+    ngon_type::build_orientation_ngu<TriangulatorType>(crd, ngi, orienti); //WARNING : ngi previous types are lost
+    
+    std::vector<E_Int> PHlist;
+    ngon_type::detect_bad_volumes<TriangulatorType>(crd, ngi, neighborsi, vmin, vratio, PHlist);
+    
+    ngo = ngi;
+
+    if (PHlist.empty())
+      return;
+
+    Vector_t<bool> in_shell(ngi.PGs.size(), false), wprocessed/*externalized to not reallocate it each time*/;
+    Vector_t<E_Int> to_remove;
+    ngon_unit aggs;
+
+    for (size_t i=0; i < PHlist.size(); ++i)
+    {
+      //std::cout << "compute shell for " << PHlist[i] << std::endl;
+      Vector_t<E_Int> shellPHs, boundPGs;
+      ngon_type::ph_shell(ngi, PHlist[i], neighborsi, shellPHs, boundPGs, wprocessed);
+
+      // ensure current shell is not colliding with another shell
+      bool valid=true;
+      for (size_t k=0; (k < shellPHs.size()) && valid; ++k)
+        valid &= (in_shell[shellPHs[k]] == false); //check if not involved in a shell
+
+      if (!valid) continue;
+
+      for (size_t k=0; (k < shellPHs.size()) && valid; ++k)
+      {
+        in_shell[shellPHs[k]] = true;
+
+      }
+
+      to_remove.insert(to_remove.end(), ALL(shellPHs));
+      aggs.add(boundPGs.size(), &boundPGs[0]);
+    }
+
+    aggs.updateFacets();
+ 
+    Vector_t<E_Int> phnids;
+    ngo.PHs.remove_entities(to_remove, phnids);
+    ngo.PHs.append(aggs);
+
   }
   
 //  ///

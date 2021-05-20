@@ -1917,7 +1917,14 @@ using pair_t = std::pair<E_Float, E_Int>;
 
 struct sort_func : std::binary_function<pair_t, pair_t, bool>
 {
-  bool operator()(pair_t a, pair_t b) { return (a.first < (b.first + 1.e-15)); }
+  bool operator()(pair_t a, pair_t b) { 
+
+    
+    double tol = (max(a.first, b.first) < 1.e-15) ? 1.e-30 : 1.e-15;
+
+    return (a.first < (b.first + tol)); 
+
+  }
 };
 
 
@@ -1929,6 +1936,9 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
   ngi.PHs.updateFacets();
   
   PHlist.clear();
+
+  //logic with varatio i [0,1]
+  if (vratio > 1.) vratio = 1./vratio;
   
   E_Int nb_phs = ngi.PHs.size();
  
@@ -1961,10 +1971,11 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
         if (j == IDX_NONE)
           continue;
         vj = vols[j];
-        if (vratio*vi < vj)
+
+        if (vi< vratio*vj) //OK because vration in [0.,1.]
         {
           found = true;
-          //std::cout << " cell " << i << " has volume " << vi << " which is " << vratio << " times smaller than cell " << j << std::endl;
+          //std::cout << " cell " << i << " has volume " << vi << " which is " << vratio << " times smaller than cell " << j << " with vol " << vj << std::endl;
         }
       }
       if (found)
@@ -4478,8 +4489,94 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
       }
     }
   }
+
+///
+static void ph_shell(const ngon_t& ng, E_Int PHi, const ngon_unit& neighbors, Vector_t<E_Int>& shellPHs, Vector_t<E_Int>&boundPGs, Vector_t<bool>& wprocess)
+{
+  wprocess.clear();
+  shellPHs.clear();
+  boundPGs.clear();
+
+  wprocess.resize(ng.PHs.size(), false);
+  std::set<E_Int> unodes;
+  std::vector<E_Int> uniqnodes;
   
-//
+  K_MESH::Polyhedron<0>::unique_nodes(ng.PGs, ng.PHs.get_facets_ptr(PHi), ng.PHs.stride(PHi), uniqnodes);
+  unodes.insert(ALL(uniqnodes));
+
+  std::vector<E_Int> pool;
+  std::set<E_Int> shell;
+  
+  // init : put PHi and it first neighborhood in the shell
+
+  pool.push_back(PHi);
+  shell.insert(PHi);
+  wprocess[PHi] = true;
+
+  const E_Int * neighs = neighbors.get_facets_ptr(PHi);
+  for (size_t n=0; n < neighbors.stride(PHi); ++n)
+  {
+    if (neighs[n] != IDX_NONE) 
+    {
+      pool.push_back(neighs[n]);
+      wprocess[neighs[n]] = true;
+      shell.insert(neighs[n]);
+    }
+  }
+
+  while(!pool.empty())
+  {
+    E_Int Ki = pool.back();
+    pool.pop_back();
+
+    E_Int nneighs = neighbors.stride(Ki);
+    const E_Int * neighs = neighbors.get_facets_ptr(Ki);
+    const E_Int* faces = ng.PHs.get_facets_ptr(Ki);
+
+    for (size_t n=0; n < nneighs; ++n)
+    {
+      E_Int Kn = neighs[n];
+
+      if (Kn == IDX_NONE) continue;
+      if (wprocess[Kn] == true) continue;
+
+      // check that shared PG has a node of PHi
+      const E_Int* PGnodes = ng.PGs.get_facets_ptr(faces[n]-1);
+      E_Int nnodes = ng.PGs.stride(faces[n]-1);
+
+      bool connected=false;
+      for (size_t u=0; (u < nnodes) && !connected; ++u)
+        connected = (unodes.find(PGnodes[u]) != unodes.end());
+      if (!connected) continue; 
+
+      wprocess[Kn]=true;
+      pool.push_back(Kn);
+      shell.insert(Kn);
+    }
+
+  }
+
+  shellPHs.insert(shellPHs.end(), ALL(shell));
+
+  // shell PGs are unicly referenced PGs in shell PHs
+  std::set<E_Int> sboundPGs;
+  for (size_t i=0; i < shellPHs.size(); ++i)
+  {
+    E_Int PHi = shellPHs[i];
+    const E_Int * faces = ng.PHs.get_facets_ptr(PHi);
+    E_Int nfaces = ng.PHs.stride(PHi);
+
+    for (size_t f=0; f < nfaces; ++f)
+      if (!sboundPGs.insert(faces[f]).second)//already in
+        sboundPGs.erase(faces[f]);
+  }
+
+  boundPGs.insert(boundPGs.end(), ALL(sboundPGs));
+  //K_CONNECT::IdTool::shift(boundPGs, -1); //0-based
+
+}
+  
+///
 static E_Int extrude_faces
 (K_FLD::FloatArray& coord, ngon_t& wNG, const Vector_t<E_Int>& PGlist, E_Float height_factor, bool build_cells, 
  eExtrudeStrategy strategy = CST_ABS, E_Int smooth_iters = 0, Vector_t<E_Int>* topPGlist = 0)
