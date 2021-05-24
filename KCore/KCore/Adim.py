@@ -17,7 +17,7 @@ import math
 # (pour k-w uniquement)
 #==============================================================================
 def adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
-          TurbLevelInf=1.e-4):
+          TurbLevelInf=1.e-4, Mtip=None):
     """Return a state corresponding to adimensioning by density, sound speed and temperature."""
     Gamma    = 1.4   # constante des gaz parfait (sans dimension)
     DRgp     = 287.053 # R gaz parfait (dimensionne)
@@ -50,6 +50,10 @@ def adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
     RoEInf  = PInf/(Gamma-1.) + 0.5*RoInf*UInf*UInf
     cvInf = (RoEInf/RoInf - 0.5*UInf*UInf)/TInf
     cpInf = Gamma*cvInf
+
+    # si Mtip existe, les grandeurs visqueuses et turbulentes
+    # sont prises par rapport a Mtip
+    if Mtip is not None: UInf = Mtip*AInf
 
     MuInf = RoInf*UInf / max(ReInf, 1.e-10)
     Mus = MuInf # identification
@@ -150,7 +154,7 @@ def adim2(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
 # (pour k-w uniquement)
 #==============================================================================
 def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
-          TurbLevelInf=1.e-4):
+          TurbLevelInf=1.e-4, Mtip=None):
     """Return a state corresponding to adimensioning by density, sound speed and temperature."""
     Gamma    = 1.4   # constante des gaz parfait (sans dimension)
     DRgp     = 287.053 # R gaz parfait (dimensionne)
@@ -184,6 +188,10 @@ def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
     cvInf = (RoEInf/RoInf - 0.5*UInf*UInf)/TInf
     cpInf = Gamma*cvInf
 
+    # si Mtip existe, les grandeurs visqueuses et turbulentes
+    # sont prises par rapport a Mtip
+    if Mtip is not None: UInf = Mtip*AInf
+
     MuInf = RoInf*UInf*LInf / max(ReInf, 1.e-10)
     Mus = MuInf # identification
 
@@ -212,7 +220,7 @@ def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
 #==============================================================================
 def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
          alphaZ=0., alphaY=0., MutSMuInf=0.2,
-         TurbLevelInf=1.e-4):
+         TurbLevelInf=1.e-4, Mtip=None):
     """Return a dimensioned state specifying velocity, temperature and pressure."""
     alz = alphaZ * math.pi / 180.
     aly = alphaY * math.pi / 180.
@@ -265,6 +273,11 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     cvInf = eInf/TInf
     cpInf = Gamma*cvInf
     #print('cpInf=', cpInf)
+
+    # si Mtip existe, les grandeurs visqueuses et turbulentes
+    # sont prises par rapport a Mtip
+    if Mtip is not None: UInf = Mtip*aInf
+    
     ReInf = UInf*LInf/NuInf
     #print('ReInf=', ReInf)
 
@@ -293,13 +306,13 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
 #==============================================================================
 def dim2(UInf=2.7777, TInf=298.15, RoInf=1.225, LInf=1.,
          alphaZ=0., alphaY=0., MutSMuInf=0.2,
-         TurbLevelInf=1.e-4):
+         TurbLevelInf=1.e-4, Mtip=None):
     """Return a dimensioned state specifying velocity, temperature and density."""
     Rgp = 287.053
     PInf = RoInf*Rgp*TInf
     return dim1(UInf=UInf, TInf=TInf, PInf=PInf, LInf=LInf,
                 alphaZ=alphaZ, alphaY=alphaY, MutSMuInf=MutSMuInf,
-                TurbLevelInf=TurbLevelInf)
+                TurbLevelInf=TurbLevelInf, Mtip=Mtip)
 
 #==============================================================================
 # [6] Retourne un etat de reference dimmensionne correspondant a
@@ -308,13 +321,13 @@ def dim2(UInf=2.7777, TInf=298.15, RoInf=1.225, LInf=1.,
 #==============================================================================
 def dim3(UInf=2.7777, PInf=101325., RoInf=1.2, LInf=1.,
          alphaZ=0., alphaY=0., MutSMuInf=0.2,
-         TurbLevelInf=1.e-4):
+         TurbLevelInf=1.e-4, Mtip=None):
     """Return a dimensioned state specifying velocity, pressure and density."""
     Rgp = 287.053
     TInf = PInf/(RoInf*Rgp)
     return dim1(UInf=UInf, TInf=TInf, PInf=PInf, LInf=LInf,
                 alphaZ=alphaZ, alphaY=alphaY, MutSMuInf=MutSMuInf,
-                TurbLevelInf=TurbLevelInf)
+                TurbLevelInf=TurbLevelInf, Mtip=Mtip)
 
 #==============================================================================
 # [7] Retourne un etat de reference dimensionne correspondant a
@@ -328,7 +341,7 @@ def dim3(UInf=2.7777, PInf=101325., RoInf=1.2, LInf=1.,
 #==============================================================================
 def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
          alphaZ=0., alphaY=0., Mus=1.78938e-5, MutSMuInf=0.2,
-         TurbLevelInf=1.e-4):
+         TurbLevelInf=1.e-4, Mtip=None):
     """Dimensional state 4."""
     alz = alphaZ * math.pi / 180.
     aly = alphaY * math.pi / 180.
@@ -381,6 +394,11 @@ def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     cvInf = eInf/TInf
     cpInf = Gamma*cvInf
     #print('cpInf=', cpInf)
+
+    # si Mtip existe, les grandeurs visqueuses et turbulentes
+    # sont prises par rapport a Mtip
+    if Mtip is not None: UInf = Mtip*aInf 
+
     ReInf = UInf*LInf/NuInf
     #print('ReInf=', ReInf)
 

@@ -1,4 +1,4 @@
-# - connectMatch 3D MPI (pyTree)-
+# - connectMatch 3D MPI (pyTree) -
 import Generator.PyTree    as G
 import Converter.PyTree    as C
 import Converter.Mpi       as Cmpi
@@ -6,7 +6,6 @@ import Connector.Mpi       as Xmpi
 import Distributor2.PyTree as Distributor2
 import Converter.Filter    as Filter
 import KCore.test          as test
-
 
 # Cree le fichier test
 if Cmpi.rank == 0:

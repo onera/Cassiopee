@@ -1146,9 +1146,10 @@ def checkLinks__(links, t):
     # verifie que le noeud existe dans l'arbre (supprime)
     #if Internal.getNodeFromPath(t, b) is not None:
     # verifie que le noeud parent existe dans l'arbre
-    if Internal.getNodeFromPath(t, Internal.getPathAncestor(b)) is None:
-        print("Warning: link %s is skipped, path ancestor not found."%b)
-    else: out.append(l)
+    #if Internal.getNodeFromPath(t, Internal.getPathAncestor(b)) is None:
+    #    print("Warning: link %s is skipped, path ancestor not found."%b)
+    #else: 
+    out.append(l)
   #for c, i in enumerate(links): print(out[c], links[c])
   return out
 
@@ -6090,6 +6091,7 @@ def _addState(t, state=None, value=None, adim='adim1',
               UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None,
               Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4,
               EquationDimension=None, GoverningEquations=None):
+  """Add single state value or a full reference state."""
   ntype = Internal.typeOfNode(t)
   if state is not None and value is not None: # single state value
     addState2Node2__(t, ntype, state, value); return None

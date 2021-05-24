@@ -22,6 +22,3 @@ BM = numpy.array([[1]])
 
 t = X.blankCellsTri(t, masks, BM, blankingType='node_in', tol=1.e-12)
 C.convertPyTree2File(t, 'out.cgns')
-
-
-
