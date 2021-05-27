@@ -454,7 +454,7 @@ def connectMatchPeriodic(t, rotationCenter=[0.,0.,0.],
     removeFSN = []
     zones = Internal.getZones(a)
     for z in zones:
-        if Internal.getNodeFromName(z,Internal.__FlowSolutionNodes__) is None: removeFSN.append(z[0])
+        if Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__) is None: removeFSN.append(z[0])
 
     a = C.tagDefinedBC(a)
     a = connectMatchPeriodicStruct__(a, rotationCenter, rotationAngle, translation, tol, dim, unitAngle)
@@ -1610,7 +1610,7 @@ def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN', a
     if loc == 'centers': var = 'centers:'+cellNName
 
     if addGC:
-        ghost = Internal.getNodeFromName3(t, 'ZoneRind')
+        ghost = Internal.getNodeFromName(t, 'ZoneRind')
         if ghost is None: Internal._addGhostCells(t, t, depth, modified=[var])
 
     cellN = C.getField(var, t)

@@ -6078,19 +6078,20 @@ def addState(t, state=None, value=None, adim='adim1',
              MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
              UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None,
              Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4, 
-             EquationDimension=None, GoverningEquations=None):
+             EquationDimension=None, GoverningEquations=None, Mtip=None):
   """Add single state value or a full reference state."""
   tp = Internal.copyRef(t)
   _addState(tp, state, value, adim,
             MInf, alphaZ, alphaY, ReInf, UInf, TInf, PInf, RoInf, LInf,
-            Mus, MutSMuInf, TurbLevelInf, EquationDimension, GoverningEquations)
+            Mus, MutSMuInf, TurbLevelInf, EquationDimension, 
+            GoverningEquations, Mtip)
   return tp
 
 def _addState(t, state=None, value=None, adim='adim1',
               MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8,
               UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None,
               Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4,
-              EquationDimension=None, GoverningEquations=None):
+              EquationDimension=None, GoverningEquations=None, Mtip=None):
   """Add single state value or a full reference state."""
   ntype = Internal.typeOfNode(t)
   if state is not None and value is not None: # single state value
@@ -6101,34 +6102,34 @@ def _addState(t, state=None, value=None, adim='adim1',
     if adim == 'adim1':
       if MInf is None: raise ValueError("addState: MInf is missing.")
       state = KCore.Adim.adim1(MInf, alphaZ, alphaY, ReInf,
-                               MutSMuInf, TurbLevelInf)
+                               MutSMuInf, TurbLevelInf, Mtip)
     elif adim == 'adim2' or adim == 'adim2funk':
       state = KCore.Adim.adim2(MInf, alphaZ, alphaY, ReInf,
                                MutSMuInf, TurbLevelInf)
     elif adim == 'adim3':
       state = KCore.Adim.adim3(MInf, alphaZ, alphaY, ReInf, LInf,
-                               MutSMuInf, TurbLevelInf)
+                               MutSMuInf, TurbLevelInf, Mtip)
     elif adim == 'dim1':
       if UInf is None: raise ValueError("addState: UInf is missing.")
       if TInf is None: raise ValueError("addState: TInf is missing.")
       if PInf is None: raise ValueError("addState: PInf is missing.")
       if LInf is None: raise ValueError("addState: LInf is missing.")
       state = KCore.Adim.dim1(UInf, TInf, PInf, LInf, alphaZ, alphaY,
-                              MutSMuInf, TurbLevelInf)
+                              MutSMuInf, TurbLevelInf, Mtip)
     elif adim == 'dim2':
       if UInf is None: raise ValueError("addState: UInf is missing.")
       if TInf is None: raise ValueError("addState: TInf is missing.")
       if RoInf is None: raise ValueError("addState: RoInf is missing.")
       if LInf is None: raise ValueError("addState: LInf is missing.")
       state = KCore.Adim.dim2(UInf, TInf, RoInf, LInf, alphaZ, alphaY,
-                              MutSMuInf, TurbLevelInf)
+                              MutSMuInf, TurbLevelInf, Mtip)
     elif adim == 'dim3':
       if UInf is None: raise ValueError("addState: UInf is missing.")
       if PInf is None: raise ValueError("addState: PInf is missing.")
       if RoInf is None: raise ValueError("addState: RoInf is missing.")
       if LInf is None: raise ValueError("addState: LInf is missing.")
       state = KCore.Adim.dim3(UInf, PInf, RoInf, LInf, alphaZ, alphaY,
-                              MutSMuInf, TurbLevelInf)
+                              MutSMuInf, TurbLevelInf, Mtip)
     elif adim == 'dim4':
       if UInf is None: raise ValueError("addState: UInf is missing.")
       if TInf is None: raise ValueError("addState: TInf is missing.")
@@ -6136,7 +6137,7 @@ def _addState(t, state=None, value=None, adim='adim1',
       if LInf is None: raise ValueError("addState: LInf is missing.")
       if Mus is None: raise ValueError("addState: Mus is missing.")
       state = KCore.Adim.dim4(UInf, TInf, PInf, LInf, alphaZ, alphaY,
-                              Mus, MutSMuInf, TurbLevelInf)
+                              Mus, MutSMuInf, TurbLevelInf, Mtip)
 
   UInf   = state[1] / state[0]
   VInf   = state[2] / state[0]
@@ -7153,7 +7154,7 @@ def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
   Converter.converter.convertPyTree2FFD(zone, RefStat, FlowEq, nd,
                                         Internal.__GridCoordinates__,
                                         Internal.__FlowSolutionNodes__,
-                                        Internal.__FlowSolutionCenters__ )
+                                        Internal.__FlowSolutionCenters__)
   return None
 
 # Convert to low order mesh

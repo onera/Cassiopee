@@ -14,6 +14,7 @@ import math
 # IN: MutSMuInf: ratio mut/mu a l'infini (0.2 pour les ecoulements externes)
 # jusqu'a 100 pour les ecoulements internes
 # IN: TurbLevelInf: niveau de turbulence a l'infini
+# IN: si Mtip est different de None, c'est Mtip qui sert a definir la turbulence
 # (pour k-w uniquement)
 #==============================================================================
 def adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
@@ -84,6 +85,7 @@ def adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
 # jusqu'a 100 pour les ecoulements internes)
 # IN: TurbLevelInf: taux de turbulence a l'infini en pourcentage de UInf
 # (pour k-w uniquement)
+# Cet adimensionnement ne doit pas etre utilise pour Minf=0.
 #==============================================================================
 def adim2(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
           TurbLevelInf=1.e-4):
@@ -152,6 +154,7 @@ def adim2(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
 # jusqu'a 100 pour les ecoulements internes
 # IN: TurbLevelInf: taux de turbulence a l'infini en pourcentage de Uinf
 # (pour k-w uniquement)
+# IN: Mtip: si Mtip different de None, il sert pour la definition de la turbulence
 #==============================================================================
 def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
           TurbLevelInf=1.e-4, Mtip=None):
@@ -217,6 +220,7 @@ def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
 # IN: TInf: temperature en K (0 degree=273.15K) (default 25 degres)
 # IN: PInf: pression en Pa (defaut 1 atm)
 # IN: LInf: longeur de reference (en m), sert seulement a calculer le Re
+# IN: Mtip: si Mtip different de None, il sert pour la definition de la turbulence
 #==============================================================================
 def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
          alphaZ=0., alphaY=0., MutSMuInf=0.2,
@@ -317,7 +321,7 @@ def dim2(UInf=2.7777, TInf=298.15, RoInf=1.225, LInf=1.,
 #==============================================================================
 # [6] Retourne un etat de reference dimmensionne correspondant a
 # l'air sec au niveau du sol, considere comme un gaz parfait
-# Difference input
+# Different input
 #==============================================================================
 def dim3(UInf=2.7777, PInf=101325., RoInf=1.2, LInf=1.,
          alphaZ=0., alphaY=0., MutSMuInf=0.2,

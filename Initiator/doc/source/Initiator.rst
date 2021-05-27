@@ -242,7 +242,7 @@ Adimensioning
 --------------
 
 
-.. py:function:: Initiator.Adim.adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2, TurbLevelInf=1.e-4)
+.. py:function:: Initiator.Adim.adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2, TurbLevelInf=1.e-4, Mtip=None)
 
     Return a reference state corresponding to an adimensioning by density, sound speed and temperature.
     Returned state is adimensioned. When using this state, the mesh must also be adimensioned.
@@ -258,6 +258,8 @@ Adimensioning
     :param MutSMuInf: ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity 
     :type MutSMuInf: float
     :param TurbLevelInf: turbulence level at infinity
+    :type Mtip: float or None
+    :param Mtip: if not None, used as speed definition for viscous and turbulent values
     :return: [RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
               ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
               Mus, Cs, Ts, Pr]
@@ -303,7 +305,7 @@ Adimensioning
 
 ---------------------------------------
 
-.. py:function:: Initiator.Adim.adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2, TurbLevelInf=1.e-4)
+.. py:function:: Initiator.Adim.adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2, TurbLevelInf=1.e-4, Mtip=None)
 
     Return a reference state corresponding to an adimensioning by density, sound speed and temperature.
     Returned state is adimensioned. When using this state, the mesh doesn't need to be adimensioned and
@@ -322,6 +324,8 @@ Adimensioning
     :param MutSMuInf: ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity 
     :type MutSMuInf: float
     :param TurbLevelInf: turbulence level at infinity
+    :type Mtip: float or None
+    :param Mtip: if not None, used as speed definition for viscous and turbulent values
     :rtype: [RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
             ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
             Mus, Cs, Ts, Pr]
@@ -336,7 +340,7 @@ Adimensioning
 
 ---------------------------------------
 
-.. py:function:: Initiator.Adim.dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1., alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4)
+.. py:function:: Initiator.Adim.dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1., alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4, Mtip=None)
 
     Return a dimensioned reference state corresponding to dry air, considered as a perfect gaz.
     Returned a dimensioned state (USI).
@@ -352,6 +356,8 @@ Adimensioning
     :param MutSMuInf: ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity 
     :type MutSMuInf: float
     :param TurbLevelInf: turbulence level at infinity
+    :type Mtip: float or None
+    :param Mtip: if not None, used as speed definition for viscous and turbulent values
     :rtype: [RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
             ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
             Mus, Cs, Ts, Pr]
@@ -366,7 +372,7 @@ Adimensioning
 
 ---------------------------------------
 
-.. py:function:: Initiator.Adim.dim2(UInf=2.7777, TInf=298.15, RoInf=1.225, LInf=1., alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4)
+.. py:function:: Initiator.Adim.dim2(UInf=2.7777, TInf=298.15, RoInf=1.225, LInf=1., alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4, Mtip=None)
 
     Return a dimensioned reference state corresponding to dry air, considered as a perfect gaz.
     Only the input is different from dim1.
@@ -383,6 +389,8 @@ Adimensioning
     :param MutSMuInf: ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity 
     :type MutSMuInf: float
     :param TurbLevelInf: turbulence level at infinity
+    :type Mtip: float or None
+    :param Mtip: if not None, used as speed definition for viscous and turbulent values
     :rtype: [RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
             ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
             Mus, Cs, Ts, Pr]
@@ -397,7 +405,7 @@ Adimensioning
 
 ---------------------------------------
 
-.. py:function:: Initiator.Adim.dim3(UInf=2.7777, PInf=101325., RoInf=1.225, LInf=1., alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4)
+.. py:function:: Initiator.Adim.dim3(UInf=2.7777, PInf=101325., RoInf=1.225, LInf=1., alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4, Mtip=None)
 
     Return a dimensioned reference state corresponding to dry air, considered as a perfect gaz.
     Only the input is different from dim1.
@@ -414,6 +422,8 @@ Adimensioning
     :param MutSMuInf: ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity 
     :type MutSMuInf: float
     :param TurbLevelInf: turbulence level at infinity
+    :type Mtip: float or None
+    :param Mtip: if not None, used as speed definition for viscous and turbulent values
     :rtype: [RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
             ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
             Mus, Cs, Ts, Pr]
