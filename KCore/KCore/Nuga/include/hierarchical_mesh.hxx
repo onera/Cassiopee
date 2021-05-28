@@ -57,7 +57,7 @@ class hierarchical_mesh
     using subdiv_t = subdiv_pol<ELT_t, STYPE>;
     using pg_arr_t = typename subdiv_t::pg_arr_t;
     using ph_arr_t = typename subdiv_t::ph_arr_t;
-    using output_t = typename sensor_output_data<STYPE>::type;
+    using output_t = incr_type<STYPE>;
     using pg_tree_t = tree<pg_arr_t>; 
     using ph_tree_t = tree<ph_arr_t>;
 
@@ -340,10 +340,12 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
         
     //std::cout << "update cell_adap_incr, enable the right PHs & their levels" << std::endl;
     adap_incr.cell_adap_incr.resize(_ng.PHs.size(),0);// resize to new size
+    adap_incr.face_adap_incr.clear();
+    adap_incr.face_adap_incr.resize(_ng.PGs.size(), 0);
 
     for (E_Int PHi = 0; PHi < nb_phs0; ++PHi)
     {
-      E_Int& adincrPHi = adap_incr.cell_adap_incr[PHi];
+      auto& adincrPHi = adap_incr.cell_adap_incr[PHi];
       if (adincrPHi == 0) continue;
 
       if (!_PHtree.is_enabled(PHi))
@@ -354,17 +356,21 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
 
       if (adincrPHi > 0) // refinement : activate the children, transfer the adapincr & set their level
       {
+        --adincrPHi;
+        adincrPHi = max(adincrPHi, 0); // to do same behaviour for DIR and ISO : if (adincrPHi > 0) = > adincrPHi - 1 >= 0
+
         E_Int nb_child = _PHtree.nb_children(PHi);
         const E_Int* children = _PHtree.children(PHi);
         for (E_Int j = 0; j < nb_child; ++j)
         {
           _PHtree.enable(*(children+j));
-          adap_incr.cell_adap_incr[*(children+j)] = adincrPHi - 1;
-
+          adap_incr.cell_adap_incr[*(children + j)] = adincrPHi;
+          
+          //
           E_Int lvl_p1 = _PHtree.get_level(PHi) + 1;
           _PHtree.set_level(*(children+j), lvl_p1); //fixme : do it somewhere else ?
         }
-        adincrPHi = 0;//reset incr
+        adincrPHi = 0;//reset incr for parents
       }
       else // agglomeration : activate the father, transfer that adap incr
       {
@@ -409,9 +415,19 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
 #endif
 
     // get the extrema values
-    cmax = *std::max_element(ALL(adap_incr.cell_adap_incr));
-    E_Int cmin = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr.cell_adap_incr));
-    fmax = *std::max_element(ALL(adap_incr.face_adap_incr));
+    cmax = 0;
+    for (size_t k=0; k < adap_incr.cell_adap_incr.size(); ++k)
+      cmax = std::max(cmax, adap_incr.cmax(k));
+    E_Int cmin = 0;
+    if (do_agglo)
+    {
+      for (size_t k = 0; k < adap_incr.cell_adap_incr.size(); ++k)
+        cmin = std::min(cmin, adap_incr.cmin(k));
+    }
+    
+    fmax = 0;
+    for (size_t k = 0; k < adap_incr.face_adap_incr.size(); ++k)
+      fmax = std::max(fmax, adap_incr.fmax(k));
     //E_Int fmin = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr.face_adap_incr));
 
     //std::cout << "fmin/fmax/cmin/cmax : " << fmin << "/" << fmax << "/" << cmin << "/" << cmax << std::endl;
@@ -469,23 +485,10 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
   ngo.PHs = new_phs; // compressed leaves only
   ngo.PHs.updateFacets();
 
-  std::vector<E_Int>  phnids;
-  ngo.remove_unreferenced_pgs(hmpgid_to_confpgid, phnids);
+  std::vector<E_Int>  dummy;//new_phs keeps intact
+  ngo.remove_unreferenced_pgs(hmpgid_to_confpgid, dummy);
 
-  //// update hmesh ids after above filtering
-  //Vector_t<E_Int> new_pghids, new_phhids;
-  //new_phhids.resize(ngo.PHs.size(), IDX_NONE);
-  //new_pghids.resize(ngo.PGs.size(), IDX_NONE);
-
-  //for (size_t i = 0; i < phnids.size(); ++i)
-  //  new_phhids[phnids[i]] = phhids[i];
-
-  //for (size_t i = 0; i < hmpgid_to_confpgid.size(); ++i)
-  //  new_pghids[hmpgid_to_confpgid[i]] = pghids[i];
-
-  //pghids = new_pghids;
-  //phhids = new_phhids;
-  
+  K_CONNECT::IdTool::reverse_indirection(hmpgid_to_confpgid, pghids);
 }
 
 ///
@@ -519,6 +522,8 @@ template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& ids)
 {
   ids.clear();
+  assert(PGi < _ng.PGs.size());
+
   if (_PGtree.is_enabled(PGi))
     return;
 

@@ -199,6 +199,24 @@ E_Int ngon_unit::get_facets_max_id() const
   return maxId;
 }
 
+E_Int ngon_unit::get_facets_min_id() const
+{
+  updateFacets();
+
+  E_Int nb_nodes, nb_pg(size()), id;
+  E_Int minId = IDX_NONE;
+  // Loop through the elements and increment face_count
+  for (E_Int i = 0; i < nb_pg; ++i)
+  {
+    nb_nodes = stride(i);
+    for (E_Int j = 0; j < nb_nodes; ++j)
+    {
+      id = get_facet(i, j);
+      minId = (id < minId) ? id : minId;
+    }
+  }
+  return minId;
+}
 ///
 void ngon_unit::append(const ngon_unit& cngon_in)
 {

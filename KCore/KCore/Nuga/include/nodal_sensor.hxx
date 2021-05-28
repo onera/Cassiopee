@@ -31,7 +31,7 @@ class nodal_sensor : public sensor<mesh_t, Vector_t<E_Int>> // Vector_t might be
 
     virtual E_Int assign_data(const sensor_input_t& data) override;
     
-    void fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
+    bool fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
     bool update() override;
 };
 
@@ -50,9 +50,10 @@ E_Int nodal_sensor<mesh_t>::assign_data(const sensor_input_t& data)
 
 ///
 template <typename mesh_t>
-void nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
+bool nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 {
   //
+  bool filled{ false };
   sensor_input_t& Ln = parent_t::_data;
   
   E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
@@ -63,7 +64,7 @@ void nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   adap_incr.face_adap_incr.clear();
   adap_incr.face_adap_incr.resize(nb_faces, 0);
 
-  if (Ln.empty()) return;
+  if (Ln.empty()) return false;
 
   for (int i=0; i< nb_elt; i++){
     if (parent_t::_hmesh._PHtree.is_enabled(i)){
@@ -79,6 +80,7 @@ void nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
           if (Ln[nodes_faces]>0){
             adap_incr.cell_adap_incr[i]= 1;
             flag=true;
+            filled = true;
             break;
           }
         }
@@ -87,6 +89,7 @@ void nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
     }
     flag=false;
   }
+  return filled;
 }
 
 ///

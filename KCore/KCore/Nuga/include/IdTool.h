@@ -130,9 +130,7 @@ public:
   {
     for (int i = 0; i < n; i++)
       if (vec[i] == val) return i;
-#ifdef DEBUG_HIERARCHICAL_MESH
-    assert(false);
-#endif
+
     return -1;
   }
 

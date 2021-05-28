@@ -40,7 +40,7 @@ class cell_sensor : public sensor<mesh_t, Vector_t<E_Int>>
 
     virtual E_Int assign_data(const sensor_input_t& data) override;
     
-    void fill_adap_incr(output_t& adap_incr, bool do_agglo) override ;
+    bool fill_adap_incr(output_t& adap_incr, bool do_agglo) override ;
 
     virtual bool stop() override { return _single_pass_done; }
 };
@@ -58,19 +58,21 @@ E_Int cell_sensor<mesh_t>::assign_data(const sensor_input_t& data)
   size_t pos{0};
   for (E_Int i = 0; i < nphs; ++i)
   {
-    if (pos >= data.size()) break; //input was too small (shoudl not happen)
+    if (pos >= data.size()) break; //input was too small (should not happen)
     if (!parent_t::_hmesh._PHtree.is_enabled(i)) continue;
 
     parent_t::_data[i] = data[pos++];
   }
 
+  _single_pass_done = false;//reinit to enable
+  
   return 0;
 }
 
 
 ///
 template <typename mesh_t>
-void cell_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
+bool cell_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 {
   // almost nothing to do, just pass the data as cell_adap_incr
   adap_incr.face_adap_incr.clear();
@@ -81,10 +83,17 @@ void cell_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 
   _single_pass_done = true; // to exit after first outer loop (based on sensor update)
 
-  //std::cout << "cell adapt incr sz : " << adap_incr.cell_adap_incr.size() << std::endl;
-  //E_Int minv = *std::min_element(ALL(adap_incr.cell_adap_incr));
-  //E_Int maxv = *std::max_element(ALL(adap_incr.cell_adap_incr));
-  //std::cout << "cell adapt incr min/max : " << minv << "/" << maxv << std::endl;
+  E_Int cmax = 0;
+  for (size_t k = 0; k < adap_incr.cell_adap_incr.size(); ++k)
+    cmax = std::max(cmax, adap_incr.cmax(k));
+
+  E_Int cmin = 1;
+  for (size_t k = 0; k < adap_incr.cell_adap_incr.size(); ++k)
+    cmin = std::min(cmin, adap_incr.cmin(k));
+
+  //std::cout << "cell adapt incr min/max : " << cmin << "/" << cmax << std::endl;
+
+  return (cmin != 0 || cmax != 0);
 }
 
 }

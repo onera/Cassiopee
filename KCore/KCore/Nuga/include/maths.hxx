@@ -457,6 +457,11 @@ inline void axial_rotate(K_FLD::FloatArray& crd, const double* axis_pt, const do
 
 }
 
+template <typename T> inline
+T abs(T a) { return ::abs(a); } //wrapper for l.64 V1_smoother.hxx
+template <typename T> inline
+T max(T a, T b) { return std::max(a, b); } //wrapper for l.361 hierarchical_mesh.hxx
+
 
 } // NUGA
 #endif

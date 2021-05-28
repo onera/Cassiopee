@@ -20,14 +20,13 @@ namespace NUGA
 template <typename mesh_t>
 struct shell_smoother : public smoother<mesh_t>
 {
-  using output_t = typename sensor_output_data<mesh_t::SUBTYPE>::type;
-  using cell_adap_incr_t = typename output_t::cell_output_type;
-
+  using output_t = incr_type<mesh_t::SUBTYPE>;
+  
   Vector_t<E_Int> _Ln;
 
   shell_smoother() = default;
 
-  void smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_incr);
+  void smooth(const mesh_t& hmesh, output_t& adap_incr);
 
   void __update_nodal_levels(const mesh_t& hmesh, E_Int PHi, E_Int aincr);
 
@@ -35,14 +34,14 @@ struct shell_smoother : public smoother<mesh_t>
 };
 
 template <typename mesh_t>
-void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_incr)
+void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)
 {
   E_Int n_nodes = hmesh._crd.cols();
   _Ln.resize(n_nodes, 0);
 
-  for (size_t i = 0; i<adap_incr.size(); i++)
+  for (size_t i = 0; i<adap_incr.cell_adap_incr.size(); i++)
   {
-    if (adap_incr[i] > 0) __update_nodal_levels(hmesh, i, adap_incr[i]);
+    if (adap_incr.cell_adap_incr[i] > 0) __update_nodal_levels(hmesh, i, adap_incr.cmax(i));// hack CLEF cell_adap_incr[i]);
   }
 
   // NODAL SMOOTHING LOOP
@@ -60,7 +59,7 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_
       if (!hmesh._PHtree.is_enabled(i)) continue;
 
       Lc = hmesh._PHtree.get_level(i);
-      E_Int Lcincr = Lc + adap_incr[i];
+      E_Int Lcincr = Lc + adap_incr.cmax(i);// cell_adap_incr[i];
 
       const E_Int* pPHi = hmesh._ng.PHs.get_facets_ptr(i);
 
@@ -113,8 +112,8 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_
         if (!admissible_elt)
           continue;
 
-        adap_incr[i] = Mnodes - 1 - Lc;
-        __update_nodal_levels(hmesh, i, adap_incr[i]);
+        adap_incr.cell_adap_incr[i] = Mnodes - 1 - Lc;
+        __update_nodal_levels(hmesh, i, adap_incr.cmax(i));// hack CLEF cell_adap_incr[i]);
         carry_on = true;
       }
     }

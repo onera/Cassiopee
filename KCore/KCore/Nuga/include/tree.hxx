@@ -266,6 +266,7 @@ E_Int tree<children_array>::get_enabled_descendants(E_Int i, std::vector<E_Int>&
   if (_enabled[i]) return 0;
 
   E_Int nbc = nb_children(i);
+  if (nbc == 0) return 0;
   const E_Int* childr = children(i);
 
   for (E_Int c=0; c <nbc; ++c)

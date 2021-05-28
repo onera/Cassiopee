@@ -55,7 +55,6 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_input_t& data)
   {      
     // get the edges
     Vector_t<K_MESH::NO_Edge> edges(ELT_t::NB_EDGES);
-    edges.clear();
     ELT_t::get_edges(data.cnt.col(i),edges);
     
     Vector_t<E_Float> lambdas;

@@ -57,7 +57,7 @@ class geom_sensor : public sensor<mesh_t, sensor_input_t>
     
     virtual E_Int assign_data(const sensor_input_t& data) override;
 
-    void fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
+    bool fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
 
     bool update() override;
 
@@ -113,8 +113,10 @@ E_Int geom_sensor<mesh_t, sensor_input_t>::assign_data(const sensor_input_t& dat
 
 ///
 template <typename mesh_t, typename sensor_input_t>
-void geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
+bool geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 {
+  bool filled{ false };
+
   E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
   E_Int nb_pts = _points_to_cell.size();
 
@@ -142,8 +144,10 @@ void geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
       const E_Int* faces = parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
       E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(i);
       bool admissible_elt = K_MESH::Polyhedron<0>::is_basic(parent_t::_hmesh._ng.PGs, faces, nb_faces);
-      if (admissible_elt && (nb_pts_per_cell[i] > _max_pts_per_cell) && (parent_t::_hmesh._PHtree.is_enabled(i))) // can be and has to be subdivided
+      if (admissible_elt && (nb_pts_per_cell[i] > _max_pts_per_cell) && (parent_t::_hmesh._PHtree.is_enabled(i))) {// can be and has to be subdivided
         adap_incr.cell_adap_incr[i] = 1;
+        filled = true;
+      }
     }
   }
 
@@ -168,12 +172,16 @@ void geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
         }
         if (sum <= _max_pts_per_cell) // number of source points in the father <= criteria chosen : might be agglomerated : -1 for every child
         {
-          for (int k = 0; k < nb_children; ++k)
+          for (int k = 0; k < nb_children; ++k) {
             adap_incr.cell_adap_incr[p[k]] = -1;
+            filled = true;
+          }
         }
       }
     }
   }
+  
+  return filled;
 }
 
 ///

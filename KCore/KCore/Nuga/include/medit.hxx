@@ -629,6 +629,15 @@ static E_Int read(const char* filename, phmesh_type& mesh)
 
     return 0;
   }
+
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_unit& PGs, E_Int i)
+  {
+    PGs.updateFacets();
+    
+    write(filename, crd, PGs.get_facets_ptr(i), PGs.stride(i), 1);  
+
+    return 0;
+  }
   
   static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start)
   {

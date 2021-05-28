@@ -32,15 +32,17 @@ class join_sensor : public sensor<mesh_t, std::map<E_Int, typename mesh_t::pg_ar
 
     join_sensor(mesh_t& mesh) : parent_t(mesh, new V1_smoother<mesh_t>()) {}
 
-    void fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
+    bool fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
     bool update() override;
     bool stop() override { return parent_t::_data.empty(); }
 };
 
 /// WARNING : only for ISO currently
 template <typename mesh_t>
-void join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
+bool join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 {
+  bool filled{ false };
+
   adap_incr.face_adap_incr.clear();
   adap_incr.cell_adap_incr.clear();
 
@@ -62,6 +64,7 @@ void join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
     if (parent_t::_hmesh._PGtree.nb_children(PGi) != 0) continue; // already subdivided
 
     adap_incr.face_adap_incr[PGi] = 1;
+    filled = true;
   }
 
   // 2. filling adap_incr.cell_adap_incr : select if face plan is going beyond next generation
@@ -83,8 +86,12 @@ void join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
       require = join_plan<pg_arr_t>::one_child_requires(plan);
     }
 
-    if (require) adap_incr.cell_adap_incr[i] = 1;
+    if (require) {
+      adap_incr.cell_adap_incr[i] = 1;
+      filled = true;
+    }
   }
+  return filled;
 }
 
 ///
