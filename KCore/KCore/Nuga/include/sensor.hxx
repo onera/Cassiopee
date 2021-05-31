@@ -62,7 +62,7 @@ class sensor
 template <typename mesh_t, typename adap_incr_t>
 static void discard_disabledand_unhandled(mesh_t& hmesh, adap_incr_t& adap_incr)
 {
-  E_Int nb_phs = hmesh._ng.PHs.size();
+  E_Int nb_phs = adap_incr.cell_adap_incr.size();// hmesh._ng.PHs.size();
   // prevent to adapt on unhandled elements
   for (E_Int i = 0; i < nb_phs; ++i)
   {
@@ -119,8 +119,8 @@ static void fix_adap_incr(mesh_t& hmesh, incr_type<DIR>& adap_incr)
 {
   discard_disabledand_unhandled(hmesh, adap_incr);
 
-  E_Int nb_phs = hmesh._ng.PHs.size();
-  E_Int nb_pgs = hmesh._ng.PGs.size();
+  E_Int nb_phs = adap_incr.cell_adap_incr.size();// hmesh._ng.PHs.size();
+  //E_Int nb_pgs = hmesh._ng.PGs.size();
 
   for (E_Int i = 0; i < nb_phs; ++i)
   {
@@ -216,12 +216,18 @@ bool sensor<mesh_t, sensor_input_t>::compute(output_t& adap_incr, bool do_agglo)
   std::cout << std::endl;*/
   //detect if at least one modification is required
   //bool carry_on(false);
-  E_Int nb_elts = _hmesh._ng.PHs.size();
-  for (int i = 0; i < nb_elts; ++i)
-    if (adap_incr.cell_adap_incr[i] != 0) return true;
-  E_Int nb_faces = _hmesh._ng.PGs.size();
-  for (int i = 0; i < nb_faces; ++i)
-    if (adap_incr.face_adap_incr[i] != 0) return true;
+
+  if (adap_incr.cell_adap_incr.size() != 0)
+  {
+    for (int i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
+      if (adap_incr.cell_adap_incr[i] != 0) return true;
+  }
+  if (adap_incr.face_adap_incr.size() != 0)
+  {
+    for (int i = 0; i < adap_incr.face_adap_incr.size(); ++i)
+      if (adap_incr.face_adap_incr[i] != 0) return true;
+  }
+  
   return false;
 }
 

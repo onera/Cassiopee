@@ -177,14 +177,29 @@ void* __createHM<NUGA::ISO_HEX>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArr
     return new hmesh_t(crd, cnt, 1/*idx start*/, bcptlists);
   else
   {
-    /*using hzone_t = NUGA::hierarchical_zone<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>;
-    using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>;
-    using exdata_t = typename NUGA::join_sensor<hmesh_t>::input_t;
-    using com_t = typename NUGA::communicator<NUGA::jsensor_com_agent<hmesh_t, exdata_t>>;*/
+    /*using exdata_t = typename NUGA::join_sensor<hmesh_t>::input_t;
+      using com_t = typename NUGA::communicator<NUGA::jsensor_com_agent<hmesh_t, exdata_t>>;
 
-    //com_t* com = (com_t*)pcom;
-    //return new hzone_t(zid, crd, cnt, joinlists, 1/*idx start*/, *com);
+      com_t* com = (com_t*)pcom;
+      return new hmesh_t(zid, crd, cnt, bcptlists, joinlists, 1, com);*/
     return nullptr;
+  }
+}
+
+// DIR strategy
+template<>
+void* __createHM<NUGA::DIR>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, std::vector<std::vector<E_Int>>& bcptlists, E_Int zid, std::vector<std::pair<E_Int, std::vector<E_Int>>>& joinlists, void* pcom)
+{
+  using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR>;
+  if (pcom == nullptr)
+    return new hmesh_t(crd, cnt, 1/*idx start*/, bcptlists);
+  else
+  {
+    using exdata_t = typename NUGA::join_sensor<hmesh_t>::input_t;
+    using com_t = typename NUGA::communicator<NUGA::jsensor_com_agent<hmesh_t, exdata_t>>;
+
+    com_t* com = (com_t*)pcom;
+    return new hmesh_t(zid, crd, cnt, bcptlists, joinlists, 1/*idx start*/, com);
   }
 }
 
@@ -251,7 +266,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
   *etyp = elt_t::UNKN;// Polyhedron
-  if (*subtype == 0) //ISO
+  if (*subtype == NUGA::ISO || *subtype == NUGA::DIR)
     *etyp = check_has_NGON_BASIC_ELEMENT(cnt);
 
   // BCs
@@ -312,10 +327,12 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
     com = unpackCOM(hookCom, hook_id, sub_type, elt_type, packet);
   }
 
-  if (*subtype == 0) //ISO
+  if (*subtype == NUGA::ISO)
     packet[1] = __createHM<NUGA::ISO>(*etyp, crd, cnt, bcptlists, zid, joinlists, com);
-  else if (*subtype == 1) //ISO_HEX
+  else if (*subtype == NUGA::ISO_HEX)
     packet[1] = __createHM<NUGA::ISO_HEX>(*etyp, crd, cnt, bcptlists, zid, joinlists, com);
+  else if (*subtype == NUGA::DIR)
+    packet[1] = __createHM<NUGA::DIR>(*etyp, crd, cnt, bcptlists, zid, joinlists, com);
 
   if (packet[1] == nullptr) return Py_None;// the input mesh does not have basic elts
 
@@ -451,6 +468,19 @@ void* __createCOM<NUGA::ISO_HEX>(E_Int typ, E_Int NBZ)
     return c;
 }
 
+template<>
+void* __createCOM<NUGA::DIR>(E_Int typ, E_Int NBZ)
+{
+    using elt_type = K_MESH::Hexahedron;
+    using hmesh_t = NUGA::hierarchical_mesh<elt_type, NUGA::DIR>;
+    using exdata_t = typename NUGA::join_sensor<hmesh_t>::input_t;
+    using com_t = typename NUGA::communicator<NUGA::jsensor_com_agent<hmesh_t, exdata_t>>;
+
+    com_t* c = new com_t;
+    c->agents.resize(NBZ, nullptr);
+    return c;
+}
+
 ///
 PyObject* K_INTERSECTOR::createCom(PyObject* self, PyObject* args)
 {
@@ -481,13 +511,15 @@ PyObject* K_INTERSECTOR::createCom(PyObject* self, PyObject* args)
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
   *etyp = elt_t::UNKN;// Polyhedron
-  if (*subtype == 0) //ISO
+  if (*subtype == NUGA::ISO || *subtype == NUGA::DIR)
     *etyp = check_has_NGON_BASIC_ELEMENT(cnt);
 
-  if (*subtype == 0) //ISO
+  if (*subtype == NUGA::ISO)
     packet[1] = __createCOM<NUGA::ISO>(*etyp, NBZ);
-  else if (*subtype == 1) //ISO_HEX
+  else if (*subtype == NUGA::ISO_HEX)
     packet[1] = __createCOM<NUGA::ISO_HEX>(*etyp, NBZ);
+  else if (*subtype == NUGA::DIR)
+    packet[1] = __createCOM<NUGA::DIR>(*etyp, NBZ);
 
   if (packet[1] == nullptr) return nullptr;
 
@@ -537,7 +569,6 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntAr
   hmesh->build_histo_between_two_enabled_states(hmesh->pghids0, hmesh->phhids0, pghids1, phhids1, histo);
   
   // EXPORT MESH
-  ngo.export_to_array(cnto);
 
   crdo = hmesh->_crd;
   //std::cout << "sz bfore : " << crdo.cols() << std::endl;
@@ -545,6 +576,7 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntAr
   ngo.compact_to_used_nodes(ngo.PGs, crdo, ptnids1);
   //std::cout << "sz after : " << crdo.cols() << std::endl;
 
+  ngo.export_to_array(cnto);
 
    // JOINS and BC POINTLIST updates
   
@@ -656,6 +688,18 @@ void __conformizeHM<NUGA::ISO_HEX>(E_Int etype/*dummy*/, const void* hmesh_ptr, 
   __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
 }
 
+template <>
+void __conformizeHM<NUGA::DIR>(E_Int etype/*dummy*/, const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto,
+                                   std::vector<E_Int>& oids/*for BC*/, 
+                                   std::vector<E_Int>& jzids, std::vector<std::vector<E_Int>>& jptlists,
+                                   std::vector<std::vector<E_Int>>& bcptlists,
+                                   std::vector<std::vector<E_Float>>& fieldsC,
+                                   std::vector<std::vector<E_Float>>& fieldsN,
+                                   std::vector<std::vector<E_Float>>& fieldsF)
+{
+  __conformizeHM<K_MESH::Hexahedron, NUGA::DIR>(hmesh_ptr, crdo, cnto, oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
+}
+
 //
 PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
 {
@@ -742,10 +786,12 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   std::vector<std::vector<E_Int>> jptlists, bcptlists;
   K_FLD::FloatArray crdo;
 
-  if (*sub_type == 0) // ISO
+  if (*sub_type == NUGA::ISO)
     __conformizeHM<NUGA::ISO>(*elt_type, hmesh, crdo, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
-  else if (*sub_type == 1) // ISO_HEX
+  else if (*sub_type == NUGA::ISO_HEX)
     __conformizeHM<NUGA::ISO_HEX>(*elt_type, hmesh, crdo, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
+  else if (*sub_type == NUGA::DIR)
+    __conformizeHM<NUGA::DIR>(*elt_type, hmesh, crdo, cnto, dummy_oids, jzids, jptlists, bcptlists, fieldsC, fieldsN, fieldsF);
 
   //  0 : pushing out the mesh
   PyObject *tpl = K_ARRAY::buildArray(crdo, vString->c_str(), cnto, -1, "NGON", false);
@@ -877,6 +923,12 @@ void __deleteHM<NUGA::ISO_HEX>(E_Int etype/*dummy*/, const void* hmesh_ptr)
   __deleteHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr);
 }
 
+template <>
+void __deleteHM<NUGA::DIR>(E_Int etype/*dummy*/, const void* hmesh_ptr)
+{
+  __deleteHM<K_MESH::Hexahedron, NUGA::DIR>(hmesh_ptr);
+}
+
 PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
 {
   PyObject* hook;
@@ -891,10 +943,12 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
   void** packet{ nullptr };
   void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, vString, packet);
   
-  if (*sub_type == 0) // ISO
+  if (*sub_type == NUGA::ISO)
     __deleteHM<NUGA::ISO>(*elt_type, hmesh);
-  else if (*sub_type == 1) // ISO_HEX
+  else if (*sub_type == NUGA::ISO_HEX)
     __deleteHM<NUGA::ISO_HEX>(*elt_type, hmesh);
+  else if (*sub_type == NUGA::DIR)
+    __deleteHM<NUGA::DIR>(*elt_type, hmesh);
 
   delete hook_id;
   delete vString;
@@ -993,6 +1047,41 @@ void* __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(void* hmesh, E_Int sm
   return nullptr;
 }
 
+template<>
+void* __createSensor<K_MESH::Hexahedron, NUGA::DIR>(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sensor_type)
+{
+  using ELT_t = K_MESH::Hexahedron;
+
+  if (sensor_type == 0)
+  {
+    using hmesh_t = NUGA::hierarchical_mesh<ELT_t, NUGA::DIR>;
+    using sensor_t = NUGA::geom_sensor<hmesh_t>;
+
+    hmesh_t* hm = (hmesh_t*)(hmesh);
+
+    return new sensor_t(*hm, NUGA::eSmoother(smoothing_type), 1/*max_pts_per_cell*/, itermax);
+  }
+  else if (sensor_type == 2)
+  {
+    using hmesh_t = NUGA::hierarchical_mesh<ELT_t, NUGA::DIR>;
+    using sensor_t = NUGA::nodal_sensor<hmesh_t>;
+
+    hmesh_t* hm = (hmesh_t*)(hmesh);
+
+    return new sensor_t(*hm);
+  }
+  else if (sensor_type == 3)
+  {
+    using hmesh_t = NUGA::hierarchical_mesh<ELT_t, NUGA::DIR>;
+    using sensor_t = NUGA::cell_sensor<hmesh_t>;
+
+    hmesh_t* hm = (hmesh_t*)(hmesh);
+
+    return new sensor_t(*hm, NUGA::eSmoother(smoothing_type));
+  }
+  return nullptr;
+}
+
 template<NUGA::eSUBDIV_TYPE STYPE>
 void* __createSensor(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax);
 
@@ -1019,6 +1108,13 @@ template<>
 void* __createSensor<NUGA::ISO_HEX>(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax)
 {
   return __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh, smoothing_type, itermax, sensor_type);
+}
+
+
+template<>
+void* __createSensor<NUGA::DIR>(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax)
+{
+  return __createSensor<K_MESH::Hexahedron, NUGA::DIR>(hmesh, smoothing_type, itermax, sensor_type);
 }
 
 //============================================================================
@@ -1077,12 +1173,21 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
     return nullptr;
   }
 
+  if (sensor_type != 3 && *sub_type == NUGA::DIR)
+  {
+    PyErr_SetString(PyExc_ValueError,
+       "adaptCells: DIR  only works with cell sensor currently.");
+    return nullptr;
+  }
+
   // HMESH PTR
   packet_ss[2] = nullptr;
-  if (*subtype_hm == 0) // ISO
+  if (*subtype_hm == NUGA::ISO)
     packet_ss[2] = __createSensor<NUGA::ISO>(*elt_type, hmesh, sensor_type, smoothing_type, itermax);
-  else if (*subtype_hm == 1) // ISO_HEX
+  else if (*subtype_hm == NUGA::ISO_HEX)
     packet_ss[2] = __createSensor<NUGA::ISO_HEX>(*elt_type, hmesh, sensor_type, smoothing_type, itermax);
+  else if (*subtype_hm == NUGA::DIR)
+    packet_ss[2] = __createSensor<NUGA::DIR>(*elt_type, hmesh, sensor_type, smoothing_type, itermax);
 
   // Create sensor hook 
   // ===================
@@ -1215,6 +1320,11 @@ void __deleteSensor<NUGA::ISO_HEX>(E_Int etype/*dummy*/, E_Int sensor_type, cons
   __deleteSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(sensor_type, sensor_ptr);
 }
 
+template <>
+void __deleteSensor<NUGA::DIR>(E_Int etype/*dummy*/, E_Int sensor_type,  const void* sensor_ptr)
+{
+  __deleteSensor<K_MESH::Hexahedron, NUGA::DIR>(sensor_type, sensor_ptr);
+}
 
 PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
 {
@@ -1230,10 +1340,12 @@ PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
   void** packet{ nullptr };
   void* sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type, elt_type, packet);  
 
-  if (*subdiv_type == 0) // ISO
+  if (*subdiv_type == NUGA::ISO)
     __deleteSensor<NUGA::ISO>(*elt_type, *sensor_type, sensor);
-  else if (*subdiv_type == 1) // ISO_HEX
+  else if (*subdiv_type == NUGA::ISO_HEX)
     __deleteSensor<NUGA::ISO_HEX>(*elt_type, *sensor_type, sensor);
+  else if (*subdiv_type == NUGA::DIR)
+    __deleteSensor<NUGA::DIR>(*elt_type, *sensor_type, sensor);
 
   delete hook_ss_id;
   delete sensor_type;
@@ -1346,6 +1458,13 @@ void __assign_sensor_data<NUGA::ISO_HEX>
   __assign_sensor_data<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
 }
 
+template <>
+void __assign_sensor_data<NUGA::DIR>
+(E_Int etype, E_Int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
+{
+  __assign_sensor_data<K_MESH::Hexahedron, NUGA::DIR>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
+}
+
 
 PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
 {
@@ -1388,10 +1507,12 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
      }
   }
 
-  if (*subdiv_type == 0) // ISO
+  if (*subdiv_type == NUGA::ISO)
     __assign_sensor_data<NUGA::ISO>(*elt_type, *sensor_type, sensor, fS, cnS, punctual_data);
-  else if (*subdiv_type == 1) // ISO_HEX
+  else if (*subdiv_type == NUGA::ISO_HEX)
     __assign_sensor_data<NUGA::ISO_HEX>(*elt_type, *sensor_type, sensor, fS, cnS, punctual_data);
+  else if (*subdiv_type == NUGA::DIR)
+    __assign_sensor_data<NUGA::DIR>(*elt_type, *sensor_type, sensor, fS, cnS, punctual_data);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -1422,6 +1543,17 @@ void __deleteCOM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(const void* com_ptr)
   delete com;
 }
 
+template <>
+void __deleteCOM<K_MESH::Hexahedron, NUGA::DIR>(const void* com_ptr)
+{
+  using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR>;
+  using exdata_t = typename NUGA::join_sensor<hmesh_t>::input_t;
+  using com_t = typename NUGA::communicator<NUGA::jsensor_com_agent<hmesh_t, exdata_t>>;
+  
+  com_t* com = (com_t*)(com_ptr);
+  delete com;
+}
+
 template <NUGA::eSUBDIV_TYPE STYPE>
 void __deleteCOM(E_Int etype, const void* com_ptr)
 {
@@ -1441,6 +1573,11 @@ void __deleteCOM<NUGA::ISO_HEX>(E_Int etype, const void* com_ptr)
   __deleteCOM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(com_ptr);
 }
 
+template <>
+void __deleteCOM<NUGA::DIR>(E_Int etype, const void* com_ptr)
+{
+  __deleteCOM<K_MESH::Hexahedron, NUGA::DIR>(com_ptr);
+}
 
 PyObject* K_INTERSECTOR::deleteCom(PyObject* self, PyObject* args)
 {
@@ -1455,10 +1592,12 @@ PyObject* K_INTERSECTOR::deleteCom(PyObject* self, PyObject* args)
   void** packet{ nullptr };
   void* com = unpackCOM(hook, hook_id, sub_type, elt_type, packet);
   
-  if (*sub_type == 0) // ISO
+  if (*sub_type == NUGA::ISO)
     __deleteCOM<NUGA::ISO>(*elt_type, com);
-  else if (*sub_type == 1) // ISO_HEX
+  else if (*sub_type == NUGA::ISO_HEX)
     __deleteCOM<NUGA::ISO_HEX>(*elt_type, com);
+  else if (*sub_type == NUGA::DIR)
+    __deleteCOM<NUGA::DIR>(*elt_type, com);
 
   delete hook_id;
   delete sub_type;
@@ -1831,6 +1970,68 @@ std::vector<void*>& hookhmes, std::vector<void*>& hooksensors)
   return err;
 }
 
+template <>
+E_Int __adapt_wrapper<NUGA::DIR>
+(E_Int elt_type/*dummy*/, E_Int sensor_type,
+const char* varString, PyObject *out,
+std::vector<void*>& hookhmes, std::vector<void*>& hooksensors)
+{
+  E_Int err(0);
+  size_t nb_meshes = hookhmes.size();
+  
+  using ELT_type = K_MESH::Hexahedron;
+  using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::DIR>;
+
+  std::vector<mesh_type*> hmeshes(nb_meshes);
+  for (size_t i=0; i < nb_meshes; ++i)
+    hmeshes[i] = (mesh_type*)(hookhmes[i]);
+
+  if (sensor_type == 0) // geom sensor
+  {
+    using sensor_t = NUGA::geom_sensor<mesh_type>;
+
+    std::vector<sensor_t*> sensors(nb_meshes);
+    for (size_t i=0; i < nb_meshes; ++i)
+      sensors[i] = (sensor_t*)(hooksensors[i]);
+
+    err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
+  }
+  else if (sensor_type == 1) // xsensor
+  {
+    using sensor_t = NUGA::xsensor<ELT_type, mesh_type>;
+    std::vector<sensor_t*> sensors(nb_meshes);
+    for (size_t i=0; i < nb_meshes; ++i)
+      sensors[i] = (sensor_t*)(hooksensors[i]);
+  
+     err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
+  }
+  else if (sensor_type == 2) //nodal sensor
+  {
+    using sensor_t = NUGA::nodal_sensor<mesh_type>;
+   std::vector<sensor_t*> sensors(nb_meshes);
+   for (size_t i=0; i < nb_meshes; ++i)
+     sensors[i] = (sensor_t*)(hooksensors[i]);
+
+   err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
+  }
+  else if (sensor_type == 3) //cell sensor
+  {
+    using sensor_t = NUGA::cell_sensor<mesh_type>;
+
+    std::vector<sensor_t*> sensors(nb_meshes);
+    for (size_t i=0; i < nb_meshes; ++i)
+      sensors[i] = (sensor_t*)(hooksensors[i]);
+
+    //std::cout << "before __adapt " << std::endl;
+
+    err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
+
+    //std::cout << "after __adapt " << std::endl;
+  }
+
+  return err;
+}
+
 //=============================================================================
 /* Hierarchical Mesh Adaptation */
 //=============================================================================
@@ -1950,6 +2151,8 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     err = __adapt_wrapper<ISO>(*elt_type, *sensor_type, vString->c_str(), l, hmeshes, sensors);
   else if (*subdiv_type == NUGA::ISO_HEX)
     err = __adapt_wrapper<ISO_HEX>(*elt_type, *sensor_type, vString->c_str(), l, hmeshes, sensors);
+  else if (*subdiv_type == NUGA::DIR)
+    err = __adapt_wrapper<DIR>(*elt_type, *sensor_type, vString->c_str(), l, hmeshes, sensors);
 
   //std::cout << "adaptCells : end" << std::endl;
 

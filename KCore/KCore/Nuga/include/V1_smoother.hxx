@@ -35,6 +35,8 @@ void V1_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)  {
 
   const auto& ng = hmesh._ng;
   const auto& PHtree = hmesh._PHtree;
+
+  if (adap_incr.cell_adap_incr.size() == 0) return;
   
   std::stack<E_Int> stck;
 
@@ -52,16 +54,16 @@ void V1_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)  {
     neighbours.clear();
     neighbours.resize(4*s);//fixme 4s
     E_Int nb_neighbours = 0;
-    
-    hmesh.get_enabled_neighbours(ind_PHi, neighbours.begin(), nb_neighbours); // get the effective neighbours (enabled ones) to assert the 2:1 rule
 
     auto incr = adap_incr.cell_adap_incr[ind_PHi] + PHtree.get_level(ind_PHi);
+    
+    hmesh.get_enabled_neighbours(ind_PHi, neighbours.begin(), nb_neighbours); // get the effective neighbours (enabled ones) to assert the 2:1 rule
 
     for (int i = 0; i < nb_neighbours; ++i)
     {
       auto incr_neigh = adap_incr.cell_adap_incr[neighbours[i]] + PHtree.get_level(neighbours[i]);
 
-      if (abs(incr - incr_neigh) <= 1) // 2:1 rule respected
+      if (NUGA::abs(incr - incr_neigh) <= 1) // 2:1 rule respected
         continue;
 
       // not respected : increase by 1 the adap incr of the lowest incr (ind_PHi or neighbours[i])

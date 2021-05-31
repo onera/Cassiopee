@@ -225,9 +225,9 @@ struct subdiv_pol<K_MESH::Quadrangle, DIR>
 
   static void reorder_children(E_Int* child, bool reverse, E_Int i0)
   {
-    K_CONNECT::IdTool::right_shift<2>(&child[0], i0);
-    if (reverse)
-      std::swap(child[0], child[1]);
+    //K_CONNECT::IdTool::right_shift<2>(&child[0], i0);
+    //if (reverse)
+      //std::swap(child[0], child[1]);
   }
 
   static E_Int nbc_list(const ngon_unit& PGs, const std::vector<E_Int>& PGlist, const std::vector<eDIR>& PG_directive, std::vector<E_Int>& pregnant)
@@ -310,7 +310,7 @@ struct dir_type
   }
   dir_type& operator+=(E_Int val) { n[0] = std::max(n[0]+val, 0); n[1] = std::max(n[1] + val, 0);; if (DIM == 3) n[2] = std::max(n[2] + val, 0); return *this; }
 
-  dir_type& operator-(const dir_type& d) { n[0] -= d.n[0]; n[1] -= d.n[1]; if (DIM == 3) n[2] -= d.n[2]; return *this; }
+  dir_type operator-(const dir_type& d) { dir_type res(0);  res.n[0] = n[0] - d.n[0]; res.n[1] = n[1] - d.n[1]; if (DIM == 3) res.n[2] = n[2]-d.n[2]; return res; }
   
   E_Int max() const { 
     if (DIM==3) return std::max(n[0], std::max(n[1], n[2])); 
@@ -324,7 +324,20 @@ struct dir_type
 };
 
 template <E_Int DIM> dir_type<DIM> max(dir_type<DIM>&d, E_Int v) { dir_type<DIM> res(0); res.n[0] = std::max(d.n[0], v); res.n[1] = std::max(d.n[1], v); if (DIM == 3) res.n[2] = std::max(d.n[2], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
-template <E_Int DIM> dir_type<DIM> abs(dir_type<DIM>& d) { dir_type<DIM> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); if (DIM == 3) res.n[2] = ::abs(d.n[2]); return res; }
+dir_type<3> abs(dir_type<3> d) { dir_type<3> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); res.n[2] = ::abs(d.n[2]); return res; }
+dir_type<3> max(dir_type<3> a, dir_type<3> b) { dir_type<3> res(0); res.n[0] = std::max(a.n[0], b.n[0]); res.n[1] = std::max(a.n[1], b.n[1]); res.n[2] = std::max(a.n[2], b.n[2]); return res; }
+
+
+template <E_Int DIM> inline std::ostream &operator<<(std::ostream& out, const dir_type<DIM>& d)
+{
+  out << d.n[0] << "/" << d.n[1];
+  
+  if (DIM == 3)
+    out << "/" << d.n[2];
+  out << std::endl;
+
+  return out;
+}
 
 template <E_Int DIM>
 struct dir_vector_incr
