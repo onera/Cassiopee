@@ -34,6 +34,13 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
     dimmm  = Internal.getNodeFromName2(bases[0], 'EquationDimension') 
     dimPb   = Internal.getValue(dimmm)
 
+    zones = Internal.getZones(aR)
+    niveaux_temps={}
+    for z in zones:
+        nodes = Internal.getNodesFromName(z, 'niveaux_temps')[0]
+        local_time_level = int(nodes[1][0][0][0])
+        niveaux_temps[z[0]] = local_time_level
+    
     """
     dxmax = 0.0 
 
@@ -84,7 +91,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
         else: return aD
 
     locCellND = 'nodes'
-    aD = addCellN__(aD, loc=locCellND)
+    aD = OversetData.addCellN__(aD, loc=locCellND)
     
     if method == 'conservative' and itype != 'abutting':  
         if loc != 'centers':
@@ -408,7 +415,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
 
 
     if storage != 'direct':
-        _adaptForRANSLES__(tR, aD)
+        OversetData._adaptForRANSLES__(tR, aD)
 
     # fin parcours des zones receveuses
     if storage == 'direct': return aR
@@ -434,6 +441,9 @@ def getTransfo(zdonor,zrcv):
     if (nk == 1): #2D
         i = ni/2; j = nj/2; k = nk/2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
+        i=int(i);ip1=int(ip1)
+        j=int(j);jp1=int(jp1)
+        k=int(k);kp1=int(kp1)
         ind = i + j*ni + k*ni*nj
         P0 = [ a[1][0][ind], a[1][1][ind],0.0 ]
         ind = ip1 + j*ni + k*ni*nj
@@ -455,6 +465,9 @@ def getTransfo(zdonor,zrcv):
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni/2; j = nj/2; k = nk/2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
+        i=int(i);ip1=int(ip1)
+        j=int(j);jp1=int(jp1)
+        k=int(k);kp1=int(kp1)
         #ip1=i+1;jp1=j+1
         ind = i + j*ni + k*ni*nj
         #print ind
@@ -499,6 +512,9 @@ def getTransfo(zdonor,zrcv):
 
         i = ni/2; j = nj/2; k = nk/2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
+        i=int(i);ip1=int(ip1)
+        j=int(j);jp1=int(jp1)
+        k=int(k);kp1=int(kp1)
         ind = i + j*ni + k*ni*nj
         P0 = [ a[1][0][ind], a[1][1][ind],a[1][2][ind] ]
         ind = ip1 + j*ni + k*ni*nj
@@ -529,6 +545,9 @@ def getTransfo(zdonor,zrcv):
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni/2; j = nj/2; k = nk/2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
+        i=int(i);ip1=int(ip1)
+        j=int(j);jp1=int(jp1)
+        k=int(k);kp1=int(kp1)
         ind = i + j*ni + k*ni*nj
         P0_  = [ a[1][0][ind], a[1][1][ind],a[1][2][ind] ]
         ind = ip1 + j*ni + k*ni*nj
