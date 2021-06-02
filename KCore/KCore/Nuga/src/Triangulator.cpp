@@ -107,8 +107,8 @@ E_Int Triangulator::run
   if (err)
   {
 #ifdef DEBUG_TRIANGULATOR
-      MIO::write("data0.mesh", coord, connectE2, "BAR");
-      MIO::write("dataT.mesh", Wpos, connectE2b, "BAR");
+      medith::write("data0", coord, connectE2, "BAR");
+      medith::write("dataT", Wpos, connectE2b, "BAR");
 #endif
       return err;
   }
@@ -121,10 +121,10 @@ E_Int Triangulator::run
     {
       K_FLD::FloatArray crd(*data.pos);
       crd.resize(3,crd.cols(), 0.);
-      MIO::write("before_swap.mesh", crd, data.connectM, "TRI");
+      medith::write("before_swap", crd, data.connectM, "TRI");
     }
 #endif
-    E_Float quality_tol = 1.e-6;// EPSILON;
+    E_Float quality_tol = 1.e-4;// EPSILON;
     E_Int railing = data.connectM.cols();
     while (--railing)
     {
@@ -145,7 +145,7 @@ E_Int Triangulator::run
       {
       K_FLD::FloatArray crd(*data.pos);
       crd.resize(3,crd.cols(), 0.);
-      MIO::write("after_swap.mesh", crd, data.connectM, "TRI");
+      medith::write("after_swap", crd, data.connectM, "TRI");
       }
     }
 #endif

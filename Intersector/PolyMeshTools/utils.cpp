@@ -755,15 +755,10 @@ PyObject* K_INTERSECTOR::detectOverConnectedFaces(PyObject* self, PyObject* args
 
   if (!error)
     std::cout << "OK : no multiple PGs" << std::endl;
-
-  std::cout << "detectMultipleCells : build array" << std::endl;
   
   K_FLD::IntArray cnto;
   ngi.export_to_array(cnto);
   PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
-
-
-  std::cout << "detectMultipleCells : end" << std::endl;
   
   delete f; delete cn;
   return tpl;

@@ -412,13 +412,20 @@ inline void GeomAlgo<K_MESH::Triangle>::get_swapE
     q12 = (ROWS == 3) ? K_MESH::Triangle::qualityG<3>(pos.col(Nj), pos.col(Nk), pos.col(Nl)) : K_MESH::Triangle::qualityG<2>(pos.col(Nj), pos.col(Nk), pos.col(Nl));
     q21 = (ROWS == 3) ? K_MESH::Triangle::qualityG<3>(pos.col(Ni), pos.col(Nj), pos.col(Nk)) : K_MESH::Triangle::qualityG<2>(pos.col(Ni), pos.col(Nj), pos.col(Nk));
     q22 = (ROWS == 3) ? K_MESH::Triangle::qualityG<3>(pos.col(Ni), pos.col(Nk), pos.col(Nl)) : K_MESH::Triangle::qualityG<2>(pos.col(Ni), pos.col(Nk), pos.col(Nl));
-        
+
+    double qmin0 = MIN2(q11,q12); 
+    double rmin = (qmin0 == 0.) ? NUGA::FLOAT_MAX : MIN2(q21, q22) / qmin0;
+
+    if (rmin < 1.) //worst cannot get even worst
+      continue;
+
+    double qmax0 = MAX(q11,q12); 
+    double rmax = (qmax0 == 0.) ? NUGA::FLOAT_MAX : MAX(q21, q22) / qmax0;
+
     // We want the quality improvement for the total
-    if (q21+q22 < q11+q12)
-      continue;
-    // and the min
-    if (MIN2(q21, q22) < MIN2(q11,q12))
-      continue;
+    // But if the worst improves much than the best deteriorates, it s OK
+    if ((q21+q22 < q11+q12) && rmin*rmax < 1.)
+      continue; 
 
     frozen[i]=frozen[Sn]=true;
     
