@@ -1581,7 +1581,7 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     }
     else if (tgt_file != NULL)
     {
-      E_Int size = strlen(dir_file)+1;
+      E_Int size = strlen(tgt_file)+1;
       tgt_file_all = new char [size];
       strcpy(tgt_file_all, tgt_file);
     }

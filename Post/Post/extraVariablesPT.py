@@ -335,9 +335,9 @@ def computeSkinFriction(t, centers=0, tangent=0):
             if pres2n > -1:
                 t2 = C.center2Node(t2, ['centers:SkinFrictionX','centers:SkinFrictionY','centers:SkinFrictionZ'])
             else:
-                t2=C.initVars(t2, '{SkinFrictionX}={ShearStressXX}*{sx}+{ShearStressXY}*{sy}+{ShearStressXZ}*{sz}')
-                t2=C.initVars(t2, '{SkinFrictionY}={ShearStressXY}*{sx}+{ShearStressYY}*{sy}+{ShearStressYZ}*{sz}')
-                t2=C.initVars(t2, '{SkinFrictionZ}={ShearStressXZ}*{sx}+{ShearStressYZ}*{sy}+{ShearStressZZ}*{sz}')
+                t2 = C.initVars(t2, '{SkinFrictionX}={ShearStressXX}*{sx}+{ShearStressXY}*{sy}+{ShearStressXZ}*{sz}')
+                t2 = C.initVars(t2, '{SkinFrictionY}={ShearStressXY}*{sx}+{ShearStressYY}*{sy}+{ShearStressYZ}*{sz}')
+                t2 = C.initVars(t2, '{SkinFrictionZ}={ShearStressXZ}*{sx}+{ShearStressYZ}*{sy}+{ShearStressZZ}*{sz}')
         
         if tangent == 1:
             t2 = C.initVars(t2, '{SkinFrictionTangentialX}={SkinFrictionX} - {sx}*({SkinFrictionX}*{sx}+{SkinFrictionY}*{sy}+{SkinFrictionZ}*{sz})')

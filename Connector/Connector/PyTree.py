@@ -659,11 +659,6 @@ def _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,signT,si
                 C._addPeriodicInfoInGC__(info, rotationCenter, rotationAngleS, translationS, unitAngle=unitAngle)
     return None
 
-#===============================================================================
-# Extraits les informations periodiques d'une zone
-def getPeriodicInfo(z,rotationCenter,rotationAngle,translation,signT,signR):
-    node = Internal.getNodeFromType(z, 'GridConnectivity1to1_t')
-
 #============================================================================================
 # duplique les zones par periodicite. En rotation, on suppose ici que l'angle est en degres
 #============================================================================================

@@ -425,6 +425,7 @@ def setNiso(event=None):
 def setIsoEdges(event=None):
     if CTK.t == []: return
     isoEdges = WIDGETS['edges'].get()/25.-0.001
+    VARS[32].set('Width of isolines [%g].'%isoEdges)
     CPlot.setState(isoEdges=isoEdges)
 
 #==============================================================================
@@ -952,7 +953,9 @@ def createApp(win):
     V = TK.StringVar(win); V.set('-1.7e308'); VARS.append(V)
     # -31- cutOffMax for iso values
     V = TK.StringVar(win); V.set('1.7e308'); VARS.append(V)
-    
+    # -32- isoEdge info bulle
+    V = TK.StringVar(win); V.set('Width if isolines.'); VARS.append(V)
+
     # - Dimension '2D ou 3D'
     B = TTK.OptionMenu(Frame, VARS[8], '3D', '2D',
                        command=setDim)
@@ -1062,7 +1065,7 @@ def createApp(win):
                   borderwidth=1, command=setIsoEdges, value=0)
     WIDGETS['edges'] = B
     B.grid(row=2, column=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Width of isolines.')
+    BB = CTK.infoBulle(parent=B, textVariable=VARS[32])
     
     B = TTK.Button(Scalar, text="Min", command=compIsoMin)
     B.grid(row=3, column=0, sticky=TK.EW)
