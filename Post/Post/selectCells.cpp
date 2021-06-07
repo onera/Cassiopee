@@ -81,14 +81,14 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   if (res2 != 1 && res2 != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "selectCells2: tag array is invalid.");
+                    "selectCells: tag array is invalid.");
     RELEASESHAREDB(res, arrayNodes, f, cnp); 
     return NULL;
   }
   if (res != res2)
   {  
     PyErr_SetString(PyExc_TypeError,
-                    "selectCells2: tag and array must represent the same grid.");
+                    "selectCells: tag and array must represent the same grid.");
     RELEASESHAREDB(res, arrayNodes, f, cnp);
     RELEASESHAREDB(res2, tag, f2, cnp2);
     return NULL;
@@ -98,7 +98,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, arrayNodes, f, cnp);
     RELEASESHAREDB(res2, tag, f2, cnp2);
     PyErr_SetString(PyExc_TypeError,
-                    "selectCells2: tag and array must represent the same grid.");
+                    "selectCells: tag and array must represent the same grid.");
     return NULL;
   }
 
@@ -108,7 +108,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     RELEASESHAREDU(arrayNodes, f, cnp); 
     RELEASESHAREDB(res2, tag, f2, cnp2);
     PyErr_SetString(PyExc_TypeError,
-                    "selectCells2: tag and array must represent the same grid.");
+                    "selectCells: tag and array must represent the same grid.");
     return NULL;  
   }
 
@@ -500,7 +500,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     if (posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
     tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
-    tplc = tpl ;// CW TEMPO !!!!!
+    tplc = tpl ;
     delete an; delete acn;
   }
   else // elements NGON
@@ -591,7 +591,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
       {
         for (E_Int i = 0; i < nbElements; i++)
         {
-	        new_ph_ids[i] = -1;
+	  new_ph_ids[i] = -1;
           nbfaces       = cnEFp[0];
           for (E_Int n = 1; n <= nbfaces; n++)
           {
@@ -601,7 +601,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
                 for (E_Int n = 1; n <= nbfaces; n++)
 		            {
 		              cn2p[n] = cnEFp[n];
-		              if (new_pg_ids[cnEFp[n]-1] == -1) keep_pg[cnEFp[n]-1] = +1;
+		              keep_pg[cnEFp[n]-1] = +1;
 		            }
                 size2 += nbfaces; cn2p += nbfaces+1; next++;
     	    
@@ -622,7 +622,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
           for (E_Int i = 0; i < nbElements; i++)
           {
             isSel         = 0;
-	          new_ph_ids[i] = -1;
+	    new_ph_ids[i] = -1;
             nbfaces       = cnEFp[0];
             for (E_Int n = 1; n <= nbfaces; n++)
             {
@@ -634,10 +634,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
               for (E_Int n = 1; n <= nbfaces; n++)
 	            {
 		            cn2p[n] = cnEFp[n];
-		            if (new_pg_ids[cnEFp[n]-1] == -1)
-		            {
-		              keep_pg[cnEFp[n]-1] = +1;
-		            }		
+		            keep_pg[cnEFp[n]-1] = +1;	
 	            }
               size2 += nbfaces; cn2p += nbfaces+1; next++;
     	  
@@ -923,6 +920,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   {
       return NULL;
   }
+  
   // Extract array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
@@ -1370,15 +1368,15 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     E_Int nbfaces, nbnodes;
     E_Int isSel;
     
-    FldArrayI new_pg_ids(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
-    FldArrayI keep_pg(nbFaces);       // Flag de conservation des faces 
-    FldArrayI new_ph_ids(nbElements); // Tableau d'indirection des elmts (pour maj PE)
+    E_Int newNumFace = 0;
+    FldArrayI new_pg_ids; // Tableau d'indirection des faces (pour maj PE)
+    FldArrayI keep_pg;    // Flag de conservation des faces 
+    FldArrayI new_ph_ids; // Tableau d'indirection des elmts (pour maj PE)
     E_Int ii = 0 ;
  
     new_pg_ids = -1 ;
     new_ph_ids = -1 ;
-    keep_pg    = -1 ; 
-    E_Int newNumFace = 0 ;    
+    keep_pg    = -1 ;   
 
     // Selection des faces valides
     E_Int fa = 0; E_Int numFace = 0; cnpp += 2;
@@ -1415,13 +1413,20 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
    // Si mise a jour du ParentElement, tab d'indirection des faces et des elmts
     // ------------------------------------------------------------------------
     if (PE != Py_None)
-    {         
+    {      
+        new_pg_ids.malloc(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
+        keep_pg.malloc(nbFaces);       // Flag de conservation des faces 
+        new_ph_ids.malloc(nbElements); // Tableau d'indirection des elmts (pour maj PE)
+
+        new_pg_ids = -1;
+        new_ph_ids = -1;
+        keep_pg    = -1;
+      
         // Selection des elements en fonction des faces valides
         if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
         {
           for (E_Int i = 0; i < nbElements; i++)
           {
-	    new_ph_ids[i] = -1;
             nbfaces       = cnEFp[0];
             for (E_Int n = 1; n <= nbfaces; n++)
             {
@@ -1431,10 +1436,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
                 for (E_Int n = 1; n <= nbfaces; n++)
 		{
 		  cn2p[n] = cnEFp[n];
-		  if (new_pg_ids[cnEFp[n]-1] == -1)
-		  {
-		    keep_pg[cnEFp[n]-1] = +1;
-		  }
+		  keep_pg[cnEFp[n]-1] = +1;
 		}
 		
                 size2 += nbfaces; cn2p += nbfaces+1; next++;
@@ -1465,10 +1467,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
               for (E_Int n = 1; n <= nbfaces; n++)
 	      {
 		cn2p[n] = cnEFp[n];
-		if (new_pg_ids[cnEFp[n]-1] == -1)
-		{
-		  keep_pg[cnEFp[n]-1] = +1;
-		}
+		keep_pg[cnEFp[n]-1] = +1;
 	      }
               size2 += nbfaces; cn2p += nbfaces+1; next++;
 	      

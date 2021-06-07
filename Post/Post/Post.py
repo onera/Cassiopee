@@ -730,7 +730,10 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
             sizetag = tag[i][1].shape[1]
             sizean  = an[i][1].shape[1]
             if sizetag != sizean or loc == 1: # centers
-                (retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i])
+                if F2E is not None:
+                    (PE2, retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i],F2E)
+                else:
+                    (retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i])
             else:
                 if ac == []:
                     if F2E is not None:
@@ -743,11 +746,17 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
                     else:
                         (retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, None)
 
-            if ac == []:      
-                b.append(retn) 
+            if ac == []:
+                if F2E is None:
+                    b.append(retn)
+                else:
+                    b.append(PE2, retn)
             else:
-                b.append((retn, retc))
-                
+                if F2E is None:
+                    b.append((retn, retc))
+                else:
+                    b.append((PE2,retn, retc))
+                    
         return b
     
     else:
@@ -755,26 +764,38 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
         sizean  = an[1].shape[1]
         if sizean != sizetag or loc == 1: # centers
             if ac == []:
-                retn         = post.selectCellCenters(an, tag)
+                if F2E is not None:
+                    (PE2, retn)  = post.selectCellCenters(an, tag, F2E)
+                else:
+                    retn         = post.selectCellCenters(an, tag, None)[0]
             else:
-                (retn, retc) = post.selectCellCentersBoth(an, ac, tag)
+                if F2E is not None:
+                    (PE2, retn, retc) = post.selectCellCentersBoth(an, ac, tag, F2E)
+                else:
+                    (retn, retc) = post.selectCellCentersBoth(an, ac, tag, None)
         else:
             if ac == []:
                 if F2E is not None:
-                    retn         = post.selectCells(an, tag, strict, F2E)
+                    (PE2, retn)  = post.selectCells(an, tag, strict, F2E)
                 else:
                     retn         = post.selectCells(an, tag, strict, None)[0]
                     
             else:
                 if F2E is not None:
-                    (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, F2E)
+                    (PE2, retn, retc) = post.selectCellsBoth(an, ac, tag, strict, F2E)
                 else:
                     (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, None)
 
         if ac != []:
-            return (retn,retc)
+            if F2E is None:
+                return (retn,retc)
+            else:
+                return (PE2, retn,retc)
         else:
-            return retn
+            if F2E is None:
+                return retn
+            else:
+                return (PE2, retn)
   
 
 #==============================================================================

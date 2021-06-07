@@ -1538,7 +1538,6 @@ def setFields(arrays, t, loc, writeDim=True):
     a = arrays[c]
     z = nodes[c] # zone
     info = z[2]
-
     if writeDim and loc == 'nodes' and a != []:
       d = Internal.array2PyTreeDim(a)
       cellDim = d.shape[0]
@@ -2661,6 +2660,7 @@ def _initBCDataSet(t, varNameString, val1=[], val2=[]):
         bcs = Internal.getNodesFromType2(z, 'BC_t')
         for b in bcs:
             datas = Internal.getBCDataSet(z, b)
+                        
             fields = []; connects = []
             for d in datas: # build array
               np = d[1].size; ne = np-1
@@ -4830,12 +4830,12 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
     # Get BCDataSet if any
     datas = Internal.getBCDataSet(z, i)
     if datas == [] and extrapFlow == False: 
-      Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-      Internal._rmNodesByName(zp, 'FlowSolution')
+      Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+      Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
     elif datas != []:
       if not extrapFlow:
-        Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-        Internal._rmNodesByName(zp, 'FlowSolution')
+        Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+        Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
       f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                      'FlowSolution_t')
       Internal.newGridLocation(value='CellCenter', parent=f)
@@ -5217,7 +5217,7 @@ def computeBCMatchField(z,allMatch,variables=None):
 
       for key in allMatch:
         if key.split("/")[0] == z[0]:
-          [indR1,fldD] = allMatch[key] 
+          [indR1,fldD] = allMatch[key]
  
           if fields != []:
               fld1 = Converter.converter.buildBCMatchFieldStruct(fields,indR1,fldD)
