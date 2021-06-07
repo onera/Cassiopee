@@ -2046,12 +2046,14 @@ def _conformizeHMesh(t, hooks):
         # res[3] -> end :  joins, bcs, fields
 
         mesh = res[0]
-        ranges = res[1]
-        jzids = res[2]
-        #print(ranges)
 
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
+
+        if len(res) < 2 : continue
+
+        ranges = res[1]
+        jzids = res[2]
         
         # MAJ Joins
         jptlists = res[ranges[0] : ranges[1]]
@@ -2063,6 +2065,8 @@ def _conformizeHMesh(t, hooks):
         #print(bcptlists)
         if bcptlists != [] :
           updateBCPointLists2(z, bcptlists)
+        else:
+          C._deleteZoneBC__(z)
 
         C._deleteFlowSolutions__(z)
 
@@ -2154,18 +2158,22 @@ def extractPathologicalCells(t, neigh_level=0):
 def extractOuterLayers(t, N, discard_external=0, output_remaining=False):
     """ Extracts prescribed outer cell layers.
     Usage: extractOuterLayers(t, N, discard_external)"""
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    res = XOR.extractOuterLayers(m, N, discard_external)
-    
+    zs = Internal.getZones(t)
+
     zones = []
-        
-    nb_zones = len(res)
-    if (nb_zones == 1 and output_remaining == True) :
-      zones.append(C.convertArrays2ZoneNode('remaining', [res[0]]))
-    else:
-      zones.append(C.convertArrays2ZoneNode('outers', [res[0]]))
-      if output_remaining == True:
-        zones.append(C.convertArrays2ZoneNode('remaining', [res[1]]))
+
+    i=-1
+    for z in zs:
+      i +=1
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      res = XOR.extractOuterLayers(m, N, discard_external)
+      nb_zones = len(res)
+      if (nb_zones == 1 and output_remaining == True) :
+        zones.append(C.convertArrays2ZoneNode('remaining_'+str(i), [res[0]]))
+      else:
+        zones.append(C.convertArrays2ZoneNode('outers_'+str(i), [res[0]]))
+        if output_remaining == True:
+          zones.append(C.convertArrays2ZoneNode('remaining_'+str(i), [res[1]]))
 
     return zones
 

@@ -801,8 +801,10 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   // 1 : pushing an array to tell next ouptuts are join, bc or field stuff
 
   /*std::cout << "nb j ptlists : " << jptlists.size() << std::endl;
-  std::cout << "nb bc ptlists : " << bcptlists.size() << std::endl;
-  std::cout << "nb fields : " << fields.size() << std::endl;*/
+  std::cout << "nb bc ptlists: " << bcptlists.size() << std::endl;
+  std::cout << "nb fields C:   " << fieldsC.size() << std::endl;
+  std::cout << "nb fields F:   " << fieldsF.size() << std::endl;
+  std::cout << "nb fields N:   " << fieldsN.size() << std::endl;*/
 
   E_Int ranges[] = {3,3,3,3,3,3};
   //ranges[0] = 3; // starting index in l for bcs
@@ -815,8 +817,6 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   if (fieldsN.size()) ranges[4] += 1;
   ranges[5] = ranges[4];
   if (fieldsF.size()) ranges[5] += 1;
-  //ranges[2] = 3+jptlists.size() + bcptlists.size() + 1; //one-pas-the-end
-  //ranges[3] = 3+jptlists.size() + bcptlists.size() + fields.size() + 1; //one-pas-the-end
 
   tpl = K_NUMPY::buildNumpyArray(&ranges[0], 6, 1, 0);
   PyList_Append(l, tpl);
@@ -825,13 +825,16 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   assert (jzids.size() == jptlists.size());
 
   // 2 : joined zone ids
-  tpl = K_NUMPY::buildNumpyArray(&jzids[0], jzids.size(), 1, 0);
+  tpl = Py_None;// append event if empty => to force to have l[3] as joins/bc pt list start
+  if (!jzids.empty())
+    tpl = K_NUMPY::buildNumpyArray(&jzids[0], jzids.size(), 1, 0);
+
   PyList_Append(l, tpl);
-  Py_DECREF(tpl);
+  Py_DECREF(tpl); 
 
   // then 
 
-  // JOINS  : l[3] -> l[ranges[1]-1]
+  // JOINS  : l[3]         -> l[ranges[1]-1]
   // BCs    : l[ranges[1]] -> l[ranges[2]-1]
   // FIELDS : l[ranges[2]] -> l[ranges[3]-1]
 
