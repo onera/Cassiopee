@@ -4856,12 +4856,12 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
     # Get BCDataSet if any
     datas = Internal.getBCDataSet(z, i)
     if datas == [] and extrapFlow == False: 
-      Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-      Internal._rmNodesByName(zp, 'FlowSolution')
+      Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+      Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
     elif datas != []:
       if extrapFlow == False:
-        Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-        Internal._rmNodesByName(zp, 'FlowSolution')
+        Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+        Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
       f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                      'FlowSolution_t')
       Internal.newGridLocation(value='CellCenter', parent=f)
@@ -4890,12 +4890,12 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
         # Get BCDataSet if any
         datas = Internal.getBCDataSet(z, i)
         if datas == [] and extrapFlow == False: 
-          Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-          Internal._rmNodesByName(zp, 'FlowSolution')
+          Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+          Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
         elif datas != []:
           if extrapFlow == False:
-            Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-            Internal._rmNodesByName(zp, 'FlowSolution')
+            Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+            Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
           f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                          'FlowSolution_t')
           Internal.newGridLocation(value='CellCenter', parent=f)
@@ -4911,12 +4911,12 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
         # Get BCDataSet if any
         datas = Internal.getBCDataSet(z, i)
         if datas == [] and extrapFlow == False: 
-          Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-          Internal._rmNodesByName(zp, 'FlowSolution')
+          Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+          Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
         elif datas != []:
           if extrapFlow == False:
-            Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-            Internal._rmNodesByName(zp, 'FlowSolution')
+            Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+            Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
           f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                          'FlowSolution_t')
           Internal.newGridLocation(value='Vertex', parent=f)
@@ -4937,12 +4937,12 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
       # Get BCDataSet if any
       datas = Internal.getBCDataSet(z, i)
       if datas == [] and extrapFlow == False: 
-        Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-        Internal._rmNodesByName(zp, 'FlowSolution')
+        Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+        Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
       elif datas != []:
         if extrapFlow == False:
-          Internal._rmNodesByName(zp, 'FlowSolution#Centers')
-          Internal._rmNodesByName(zp, 'FlowSolution')
+          Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
+          Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
         f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                        'FlowSolution_t')
         Internal.newGridLocation(value='CellCenter', parent=f)
