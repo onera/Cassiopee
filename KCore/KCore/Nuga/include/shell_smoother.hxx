@@ -36,6 +36,8 @@ struct shell_smoother : public smoother<mesh_t>
 template <typename mesh_t>
 void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)
 {
+  if (adap_incr.cell_adap_incr.size() == 0) return;
+
   E_Int n_nodes = hmesh._crd.cols();
   _Ln.resize(n_nodes, 0);
 

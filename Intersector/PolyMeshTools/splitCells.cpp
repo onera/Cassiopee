@@ -35,6 +35,7 @@
 #include "Nuga/include/tree.hxx"
 #include "Nuga/include/geom_sensor.hxx"
 #include "Nuga/include/xsensor.hxx"
+#include "Nuga/include/xsensor2.hxx"
 #include "Nuga/include/nodal_sensor.hxx"
 #include "Nuga/include/cell_sensor.hxx"
 #include "Nuga/include/adaptor.hxx"
@@ -993,6 +994,12 @@ void* __createSensor(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sen
     using sensor_t = NUGA::cell_sensor<hmesh_t>;
     return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type));
   }
+  else if (sensor_type == 4)
+  {
+    using hmesh_t = NUGA::hierarchical_mesh<ELT_t, STYPE>;
+    using sensor_t = NUGA::xsensor2<hmesh_t>;
+    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type));
+  }
   return nullptr;
 }
 
@@ -1023,6 +1030,12 @@ void* __createSensor<K_MESH::Hexahedron, NUGA::ISO>(void* hmesh, E_Int smoothing
     using sensor_t = NUGA::cell_sensor<hmesh_t>;
     return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type));
   }
+  else if (sensor_type == 4)
+  {
+    using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
+    using sensor_t = NUGA::xsensor2<hmesh_t>;
+    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), itermax);
+  }
   return nullptr;
 }
 
@@ -1046,6 +1059,12 @@ void* __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(void* hmesh, E_Int sm
     using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>;
     using sensor_t = NUGA::cell_sensor<hmesh_t>;
     return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type));
+  }
+  else if (sensor_type == 4)
+  {
+    using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>;
+    using sensor_t = NUGA::xsensor2<hmesh_t>;
+    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), itermax);
   }
   return nullptr;
 }
@@ -1081,6 +1100,15 @@ void* __createSensor<K_MESH::Hexahedron, NUGA::DIR>(void* hmesh, E_Int smoothing
     hmesh_t* hm = (hmesh_t*)(hmesh);
 
     return new sensor_t(*hm, NUGA::eSmoother(smoothing_type));
+  }
+  else if (sensor_type == 4)
+  {
+    using hmesh_t = NUGA::hierarchical_mesh<ELT_t, NUGA::DIR>;
+    using sensor_t = NUGA::xsensor2<hmesh_t>;
+
+    hmesh_t* hm = (hmesh_t*)(hmesh);
+
+    return new sensor_t(*hm, NUGA::eSmoother(smoothing_type), itermax);
   }
   return nullptr;
 }
@@ -1268,6 +1296,13 @@ void __deleteSensor(E_Int sensor_type, const void* sensor_ptrs)
     sensor_type* sensor = (sensor_type*)sensor_ptrs;
     delete sensor;    
   }
+  else if (sensor_type == 4) // xsensor2
+  {
+    using mesh_type     = NUGA::hierarchical_mesh<ELT_t, STYPE>;
+    using sensor_type   = NUGA::xsensor2<mesh_type>;
+    sensor_type* sensor = (sensor_type*)sensor_ptrs;
+    delete sensor;    
+  }
 }
 
 template <>
@@ -1300,7 +1335,14 @@ void __deleteSensor<K_MESH::Hexahedron, NUGA::ISO>(E_Int sensor_type, const void
     using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
     using sensor_type   = NUGA::cell_sensor<mesh_type>;
     sensor_type* sensor = (sensor_type*)sensor_ptrs;
-    delete sensor;    
+    delete sensor;
+  }
+  else if (sensor_type == 4) // xsensor2
+  {
+    using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
+    using sensor_type   = NUGA::xsensor2<mesh_type>;
+    sensor_type* sensor = (sensor_type*)sensor_ptrs;
+    delete sensor;
   }
 }
 
@@ -1393,6 +1435,52 @@ void __assign_sensor_data
 
     sensor->assign_data(punctual_data);
   }
+  else if (sensor_type == 4) // xsensor2
+  {
+    using mesh_type     = NUGA::hierarchical_mesh<ELT_t, STYPE>;
+    using sensor_t   = NUGA::xsensor2<mesh_type>;
+    sensor_t* sensor = (sensor_t*)psensor;
+   
+    ngon_type::eGEODIM geodim = ngon_type::get_ngon_geodim(cntS);
+    //std::cout << "geodim : " << geodim << std::endl;    
+
+    if (
+      (geodim != ngon_type::eGEODIM::SURFACIC_CASSIOPEE) &&
+      (geodim != ngon_type::eGEODIM::SURFACIC) &&
+      (geodim != ngon_type::eGEODIM::VOLUMIC)
+        )
+      {
+      //std::cout << "wrong type" << std::endl;
+      return;
+      }
+
+    // so either SURFACIC, SURFACIC_CASSIOPEE or VOLUMIC
+
+    if (geodim == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+    {
+      //std::cout << "surfacic cassiopee" << std::endl;
+      ngon_type ng(cntS);
+      // convert to SURFACIC (NUGA)
+      K_FLD::IntArray cnt1;
+      ng.export_surfacic_view(cnt1);
+      //std::cout << "exported" << std::endl;
+      geodim = ngon_type::eGEODIM::SURFACIC;
+      cntS=cnt1;
+    }
+
+    if (geodim == ngon_type::eGEODIM::VOLUMIC)
+    {
+      NUGA::ph_mesh_t mesh(crdS, cntS);
+      NUGA::pg_smesh_t data;
+      mesh.get_boundary<false>(data);
+      sensor->assign_data(data);
+    }
+    else
+    {
+      NUGA::pg_smesh_t data(crdS, cntS);
+      sensor->assign_data(data);
+    }
+  }
 }
 
 // xsensor is only available for HEXA/ISO 
@@ -1436,6 +1524,52 @@ void __assign_sensor_data<K_MESH::Hexahedron, NUGA::ISO>
     sensor_t* sensor = (sensor_t*)psensor;
 
     sensor->assign_data(punctual_data);
+  }
+  else if (sensor_type == 4) // xsensor2
+  {
+    using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
+    using sensor_t   = NUGA::xsensor2<mesh_type>;
+    sensor_t* sensor = (sensor_t*)psensor;
+   
+    ngon_type::eGEODIM geodim = ngon_type::get_ngon_geodim(cntS);
+    //std::cout << "geodim : " << geodim << std::endl;    
+
+    if (
+      (geodim != ngon_type::eGEODIM::SURFACIC_CASSIOPEE) &&
+      (geodim != ngon_type::eGEODIM::SURFACIC) &&
+      (geodim != ngon_type::eGEODIM::VOLUMIC)
+        )
+      {
+      //std::cout << "wrong type" << std::endl;
+      return;
+      }
+
+    // so either SURFACIC, SURFACIC_CASSIOPEE or VOLUMIC
+
+    if (geodim == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+    {
+      //std::cout << "surfacic cassiopee" << std::endl;
+      ngon_type ng(cntS);
+      // convert to SURFACIC (NUGA)
+      K_FLD::IntArray cnt1;
+      ng.export_surfacic_view(cnt1);
+      //std::cout << "exported" << std::endl;
+      geodim = ngon_type::eGEODIM::SURFACIC;
+      cntS=cnt1;
+    }
+
+    if (geodim == ngon_type::eGEODIM::VOLUMIC)
+    {
+      NUGA::ph_mesh_t mesh(crdS, cntS);
+      NUGA::pg_smesh_t data;
+      mesh.get_boundary<false>(data);
+      sensor->assign_data(data);
+    }
+    else
+    {
+      NUGA::pg_smesh_t data(crdS, cntS);
+      sensor->assign_data(data);
+    }
   }
 }
 
@@ -1777,6 +1911,15 @@ std::vector<void*>&hookhmes, std::vector<void*>&hooksensors)
 
       //std::cout << "after __adapt " << std::endl;
     }
+    else if (sensor_type == 4) // xsensor2
+    {
+      using sensor_t = NUGA::xsensor2<mesh_type>;
+
+      std::vector<sensor_t*> sensors(nb_meshes);
+      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
+
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
+    }
   }
   else if (elt_type==elt_t::TETRA)
   {
@@ -1821,6 +1964,15 @@ std::vector<void*>&hookhmes, std::vector<void*>&hooksensors)
       err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
 
       //std::cout << "after __adapt " << std::endl;
+    }
+    else if (sensor_type == 4) // xsensor2
+    {
+      using sensor_t = NUGA::xsensor2<mesh_type>;
+
+      std::vector<sensor_t*> sensors(nb_meshes);
+      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
+
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
     }
   }
   else if (elt_type==elt_t::PRISM3)
@@ -1867,6 +2019,15 @@ std::vector<void*>&hookhmes, std::vector<void*>&hooksensors)
 
       //std::cout << "after __adapt " << std::endl;
     }
+    else if (sensor_type == 4) // xsensor2
+    {
+      using sensor_t = NUGA::xsensor2<mesh_type>;
+
+      std::vector<sensor_t*> sensors(nb_meshes);
+      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
+
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
+    }
   }
   else if (elt_type==elt_t::BASIC)
   {    
@@ -1911,6 +2072,15 @@ std::vector<void*>&hookhmes, std::vector<void*>&hooksensors)
       err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
 
       //std::cout << "after __adapt " << std::endl;
+    }
+    else if (sensor_type == 4) // xsensor2
+    {
+      using sensor_t = NUGA::xsensor2<mesh_type>;
+
+      std::vector<sensor_t*> sensors(nb_meshes);
+      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
+
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
     }
   }
   return err;
@@ -1969,6 +2139,15 @@ std::vector<void*>& hookhmes, std::vector<void*>& hooksensors)
 
   //   //std::cout << "after __adapt " << std::endl;
   // }
+  else if (sensor_type == 4) // xsensor2
+    {
+      using sensor_t = NUGA::xsensor2<mesh_type>;
+
+      std::vector<sensor_t*> sensors(nb_meshes);
+      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
+
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
+    }
 
   return err;
 }
@@ -2030,6 +2209,15 @@ std::vector<void*>& hookhmes, std::vector<void*>& hooksensors)
     err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
 
     //std::cout << "after __adapt " << std::endl;
+  }
+  else if (sensor_type == 4) // xsensor2
+  {
+    using sensor_t = NUGA::xsensor2<mesh_type>;
+
+    std::vector<sensor_t*> sensors(nb_meshes);
+    for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
+
+    err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, varString, out);
   }
 
   return err;

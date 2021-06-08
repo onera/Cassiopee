@@ -1334,9 +1334,10 @@ public:
     return has_bfl;
   }
 
-  double Lref2(const K_FLD::FloatArray& crd) const
+  double Lref2(const K_FLD::FloatArray& crd, NUGA::eMetricType MTYPE=NUGA::ISO_MIN) const
   {
-    double val = NUGA::FLOAT_MAX;
+    double val = (MTYPE == NUGA::ISO_MIN) ? NUGA::FLOAT_MAX : 0.;
+
     for (E_Int i = 0; i < _nb_faces; ++i)
     {
       E_Int PGi = *(_faces + i) - 1;
@@ -1347,8 +1348,18 @@ public:
       E_Float Lmin2, Lmax2;
       PG.edge_length_extrema(crd, Lmin2, Lmax2);
 
-      val = std::min(val, Lmin2);
+      if (MTYPE == NUGA::ISO_MIN) val = std::min(val, Lmin2);
+      else if (MTYPE == NUGA::ISO_MAX) val = std::max(val, Lmax2);
+      else val += (::sqrt(Lmin2) + ::sqrt(Lmax2));
     }
+
+    if (MTYPE == NUGA::ISO_MEAN)
+    {
+      val *= 0.5;
+      val /= _nb_faces;
+      val *= val;
+    }
+
     return val;
   }
 
@@ -1662,6 +1673,25 @@ public:
 
     E_Int ntris = nb_tris();
     _triangles = new E_Int[ntris * 3];
+
+    if (ntris == _nb_faces) // triangulated PH (tets...)
+    {
+      E_Int j = 0;
+      for (E_Int i = 0; (i < _nb_faces); ++i)
+      {
+        E_Int PGi = *(_faces + i) - 1;
+        E_Int nb_nodes = _pgs->stride(PGi);
+        assert(nb_nodes == 3);
+
+        const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+
+        for (size_t k=0; k < 3; ++k)
+        {
+          _triangles[j++] = nodes[k] - 1;
+        }
+      }
+      return 0;
+    }
 
     K_FLD::IntArray cT3;
 

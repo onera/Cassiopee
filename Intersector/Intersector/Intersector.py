@@ -398,6 +398,10 @@ def adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1
         if hmesh == None : return [a] # no basic elt in a
         owesHMesh=1
     sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax)
+
+    if sensor_type == 4: #xsensor2 need an NGON
+        sensdata = C.convertArray2NGon(sensdata)
+
     assignData2Sensor(sensor, sensdata)
     am = intersector.adaptCells(hmesh, sensor)
     if owesHMesh == 1 :

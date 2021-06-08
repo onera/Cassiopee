@@ -21,6 +21,7 @@
 #include <deque>
 #include "Nuga/include/subdiv_defs.h"
 #include "Nuga/include/macros.h"
+#include "Nuga/include/metric.hxx"
 
 namespace K_MESH
 {
@@ -225,11 +226,14 @@ public:
     }
   }
 
-  double Lref2(const K_FLD::FloatArray& crd) const
+  double Lref2(const K_FLD::FloatArray& crd, NUGA::eMetricType MTYPE=NUGA::ISO_MIN) const
   {
     E_Float Lmin2, Lmax2;
     edge_length_extrema(crd, Lmin2, Lmax2);
-    return Lmin2;
+    if (MTYPE == NUGA::ISO_MIN) return Lmin2;
+    if (MTYPE == NUGA::ISO_MAX) return Lmax2;
+    double d = 0.5*(::sqrt(Lmin2) + ::sqrt(Lmax2));
+    return d * d;//ISO_MEAN
   }
 
   double Lref2(const std::vector<E_Float>& nodal_tol2) const
@@ -518,6 +522,14 @@ E_Int Polygon::cvx_triangulate (const acrd_t& crd) const
 
   E_Int ntris = _nb_nodes - 2;
   _triangles = new E_Int[ntris * 3];
+
+  if (ntris == 1) // T3
+  { 
+    _triangles[0] = _nodes[0] + _shift;
+    _triangles[1] = _nodes[1] + _shift;
+    _triangles[2] = _nodes[2] + _shift;
+    return 0;
+  }
 
   //E_Float n[3];
   //fixme

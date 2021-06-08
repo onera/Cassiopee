@@ -107,12 +107,12 @@ template <typename communicator_t>
 E_Int NUGA::adaptor<mesh_t, sensor_t>::run(std::vector<mesh_t*>& hzones, std::vector<sensor_t*>& sensors, bool do_agglo, ePara PARA, communicator_t* COM)
 {
   E_Int err(0);
-  size_t NBZ{ hzones.size() };
+  E_Int NBZ{ E_Int(hzones.size()) };
 
   assert ( NBZ == sensors.size() );
 
 #pragma omp parallel for if(PARA == COARSE_OMP)
-  for (size_t i = 0; i < NBZ; ++i)
+  for (E_Int i = 0; i < NBZ; ++i)
   {
     //std::cout << "running zone :" << i << std::endl;
     if (hzones[i] == nullptr || sensors[i] == nullptr) continue;

@@ -1743,7 +1743,7 @@ def _closeCells(t):
 # adaptCells : Adapts an unstructured mesh a with respect to a sensor
 # IN: t : 3D NGON mesh
 # IN: sensdata : sensor data (a bunch of vertices or a mesh for a geom sensor, a mesh for a xsensor, punctual values for a nodal or cell sensor)
-# IN: sensor_type : geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3)
+# IN: sensor_type : geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3), xsensor2(4)
 # IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
 # IN itermax : max number of level in the hierarchy
 # IN: subdiv_type : isotropic currently
@@ -1794,12 +1794,15 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
 
     err=0
     if sensdata is not None:
-    	#print("assignData2Sensor")
-    	err = assignData2Sensor(sensor, sensdata)
-    	if err == 1:
-    		print('INPUT ERROR : sensor data list must be sized as nb of sensors')
-    		return
+      #print("assignData2Sensor")
+      if sensor_type == 4:
+        sensdata = C.convertArray2NGon(sensdata)
+      err = assignData2Sensor(sensor, sensdata)
+      if err == 1:
+        print('INPUT ERROR : sensor data list must be sized as nb of sensors')
+        return
 
+    #print('adaptCells..')
     intersector.adaptCells(hmesh, sensor)
 
     if owesHmesh == 1 : #and owesSensor == 1 :

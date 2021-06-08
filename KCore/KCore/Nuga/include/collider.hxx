@@ -636,7 +636,7 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   // a. triangulate e1, check if any lmask point falls into the triangulation
   //DELAUNAY::Triangulator dt;
   //ae1.triangulate(dt);
-  ae1.cvx_triangulate(ae1.m_crd);
+  //ae1.cvx_triangulate(ae1.m_crd);
 
   double Lref21 = ae1.Lref2();
   
@@ -648,47 +648,38 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   E_Int ncands(cands.size());
   std::vector<bool> keep(ncands, false);
 
-  int T1[3];
-  for (E_Int i = 0; (i < ae1.nb_tris()); ++i)
+  for (int j = 0; (j<ncands); ++j)
   {
-    ae1.triangle(i, T1);
-    //const E_Float* P1 = ae1.m_crd.col(T1[0]);
-    //const E_Float* Q1 = ae1.m_crd.col(T1[1]);
-    //const E_Float* R1 = ae1.m_crd.col(T1[2]);
+    if (keep[j]) continue;
 
-    for (int j = 0; (j<ncands); ++j)
+    K_MESH::Polygon e2 = lmask.element(cands[j] - idx_start);
+
+    double Lref22 = e2.Lref2(lmask.crd);
+
+    double abstol = RTOL * ::sqrt(std::min(Lref21, Lref22));
+
+    //do not pass the tol as we use here a predicate
+    E_Int t1, t2;
+    using crd_t = K_FLD::FloatArray;
+    bool isx = simplicial_colliding<crd_t, 3>(ae1.m_crd, ae1, lmask.crd, e2, K_MESH::Triangle::fast_intersectT3<3>, abstol, t1, t2);
+
+    if (!isx) //deeper check
     {
-      if (keep[j]) continue;
-
-      K_MESH::Polygon e2 = lmask.element(cands[j] - idx_start);
-
-      double Lref22 = e2.Lref2(lmask.crd);
-
-      double abstol = RTOL * ::sqrt(std::min(Lref21, Lref22));
-
-      //do not pass the tol as we use here a predicate
-      E_Int t1, t2;
-      using crd_t = K_FLD::FloatArray;
-      bool isx = simplicial_colliding<crd_t, 3>(ae1.m_crd, ae1, lmask.crd, e2, K_MESH::Triangle::fast_intersectT3<3>, abstol, t1, t2);
-
-      if (!isx) //deeper check
-      {
-        //fixme : required ?
-      }
-      if (isx)
-      {
+      //fixme : required ?
+    }
+    if (isx)
+    {
 #ifdef CLASSIFYER_DBG
-        //medith::write("xe2", lmask.crd, e2.begin(), e2.nb_nodes(), 1);
+      //medith::write("xe2", lmask.crd, e2.begin(), e2.nb_nodes(), 1);
 #endif
-        if (first_found)
-        {
-          cands[0] = cands[j];
-          cands.resize(1);
-          return true;
-        }
-
-        hasX = keep[j] = true;
+      if (first_found)
+      {
+        cands[0] = cands[j];
+        cands.resize(1);
+        return true;
       }
+
+      hasX = keep[j] = true;
     }
   }
 

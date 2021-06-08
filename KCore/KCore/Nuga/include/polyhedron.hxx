@@ -62,6 +62,7 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
   double metrics() ; //same as extent : no normal computation as in surfacic
 
   using parent_type::triangulate; //to make it visible (!!)
+  using parent_type::Lref2;       //to make it visible (!!)
 
   template <typename TriangulatorType>
   E_Int triangulate(const TriangulatorType& dt) const;
