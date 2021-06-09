@@ -345,9 +345,9 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             dirR=numpy.zeros(1,dtype=numpy.int32)
                             leveldnr = niveaux_temps[zonesDnr[noz][0]]
 
-                            print('donneur= ', zonesDnr[noz][0],noz)
+                            #print('donneur= ', zonesDnr[noz][0],noz)
                             #print 'donneur= ', zonesRcv[noz][0],noz
-                            print('receveur= ', z[0]) 
+                            #print('receveur= ', z[0]) 
                             #connector.indiceToCoordbis(resInterp[0][noz],prange,dirR,resInterp[0][noz].size,resInterp[2][noz][0],dim_[1],dim_[2],dim_[3])
 
                             prange=numpy.reshape(prange,(3,2))
@@ -355,7 +355,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             #dirR = GhostCells.getDirBorderStruct__(prange,dimPb)
                             #print dirR
                             prangebis=numpy.reshape(prange,6)
-                            print(prange)
+                            #print(prange)
                             info = zonesDnr[noz][2][len(zonesDnr[noz][2])-1]
                             info[2].append(['PointRange', prangebis , [], 'IndexArray_t'])
 
@@ -368,7 +368,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             
                             connector.indiceToCoord2(resInterp[1][noz],prangedonor,transfo,profondeur,dirD,resInterp[2][noz],dirR,resInterp[2][noz].size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
 
-                            print('dirR= ',dirR)
+                            #print('dirR= ',dirR)
                             #print 'dimPb= ',dimPb
                             #print resInterp[3][noz]
 
@@ -405,7 +405,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             #print dim_[abs(transfo[2])], dim__[3]+1
                             #print profondeur
                             NMratio[abs(dirD)-1]=1
-                            print('NMratio= ',NMratio)
+                            #print('NMratio= ',NMratio)
 
                             info[2].append(['NMratio', NMratio , [], 'IndexArray_t'])
                             info[2].append(['DnrZoneName', zonesDnr[noz][0] , [], 'IndexArray_t'])                            
