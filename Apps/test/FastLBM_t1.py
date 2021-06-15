@@ -1,27 +1,31 @@
 # - PSEUDO ISENTROPIC VORTEX MULTIBLOCK (pyTree) -
-import Generator.PyTree as G
-import Converter.PyTree as C
+import Apps.Fast.LBM as App
+import Connector.PyTree as X
 import Converter.Internal as Internal
+import Converter.PyTree as C
 import FastC.PyTree as FastC
 import FastLBM.PyTree as FastLBM
-import Connector.PyTree as X
-import Transform.PyTree as T
+import Generator.PyTree as G
 import KCore.test as test
+import Transform.PyTree as T
 import math
 import numpy 
-import Apps.Fast.LBM as App
 
 myApp = App.LBM(format='single')
-nit = 1000
 VARSMACRO = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
 
 # Geometry and mesh
+nit   = 500
+NG    = 1
 x_min = -0.5
-dx = 0.01
-L = 1.
-Nx=101; Ny = Nx; Nz = 9
+dx    = 0.01
+L     = 1.
+Nx = 101;
+Ny = Nx;
+Nz = 9
 c0=343.2
 n = Nx-1
+
 tree=dict()
 tree['mach']=0.1
 tree['maille']=0.01                     
@@ -48,7 +52,7 @@ z_0 = C.getMeanValue(a1,'CoordinateZ')
 zmean = C.getMeanValue(a1,'CoordinateZ')
 a1 = T.splitNParts(a1,8)
 t = C.newPyTree(['Base',a1])
-t,tc = myApp.prepare(t, t_out=None, tc_out=None, NP=0, translation=[(Nx-1)*dx, (Ny-1)*dx,(Nz-1)*dx])
+t,tc = myApp.prepare(t, t_out=None, tc_out=None, NP=0, translation=[(Nx-1)*dx, (Ny-1)*dx,(Nz-1)*dx],NG=NG)
 
 #-------------------------
 # Initialization
@@ -70,40 +74,59 @@ C._initVars(t,'{centers:VelocityZ}=0.')
 #-------------------------
 C._initVars(t,'{centers:VelocityX}={centers:VelocityX}*%g'%v_adim)
 C._initVars(t,'{centers:VelocityY}={centers:VelocityY}*%g'%v_adim)
-
+C._initVars(t,"{centers:TurbulentDistance} =1.")
+C._initVars(t,"{centers:cellN_IBC_LBM_1} =0.")
+C._initVars(t,"{centers:cellN_IBC_LBM_2} =0.")
+C._initVars(t,"{centers:cellN_IBC_LBM_3} =0.")
 for v in VARSMACRO: C._cpVars(t,'centers:'+v,tc,v)
 X._setInterpTransfers(t,tc,variables=VARSMACRO)
 #-------------------------
 # Compute
 #-------------------------
 # Numerics
-numb = {'temporal_scheme':'explicit', 'ss_iteration':20,'omp_mode':1}
-numz = {'scheme':'ausmpred'}
+numb                    = {'temporal_scheme':'explicit', 'ss_iteration':20,'omp_mode':0}
+numz                    = {'scheme':'ausmpred'}
 numz['cache_blocking_I']=1000000
 numz['cache_blocking_J']=1000000
 numz['cache_blocking_K']=1000000
 numz['cache_blocking_I']=1000000
-numz["time_step"]=dt # pour l instant pas de viscosite
+colop_select     = 'BGK' 
+NQ_local         = 19
+nu_local         = 0
+numz["time_step"]           = 1 
+numz["lbm_neq"]             = NQ_local
+numz["lbm_c0"]              = math.sqrt(1./3.)
+numz["lbm_dif_coef"]        = nu_local
+
+numz["lbm_col_op"]     =colop_select
+numz["lbm_taug"]       =0.5
+
+
 myApp.set(numb=numb) 
 myApp.set(numz=numz)
 FastC._setNum2Zones(t, numz); FastC._setNum2Base(t, numb)
 
-(t, tc, metrics)  = FastLBM.warmup(t, tc)
+(t, tc, metrics)  = FastLBM.warmup(t, tc,nghost=NG,flag_initprecise=0)
 
 for it in range(1,nit+1):    
-    print("--------- iteration %d -------------"%it)
-    FastLBM._compute(t, metrics, it, tc,layer='Python')
+    if it%10==0:
+        print("--------- iteration %d -------------"%it)
+    FastLBM._compute(t, metrics, it, tc,layer='Python',nittotal=nit)
 
-tempVar=['Q'+str(i) for i in range(1,20)]
-C._rmVars(t,tempVar)
-for v in VARSMACRO: C._cpVars(t,'centers:'+v,tc,v)
-X._setInterpTransfers(t,tc,variables=VARSMACRO,storage=1)
+Internal._rmNodesByName(t, '.Solver#Param')
+Internal._rmNodesByName(t, '.Solver#ownData')
+# POST
+Internal._rmNodesByName(t,'*M1*')
+Internal._rmNodesByName(t,'*cell*')
+Internal._rmNodesByName(t,'*Qstar*')
+Internal._rmNodesByName(t,'*Qeq*')
+Internal._rmNodesByName(t,'*Qneq*')
+Internal._rmNodesByName(t,'*SpongeCoef')
 
 # reconstruction des variables macro
 v_adiminv = math.sqrt(3)*c0
 C._initVars(t,"{centers:VelocityX}={centers:VelocityX}*%g"%v_adiminv)
 C._initVars(t,'{centers:VelocityY}={centers:VelocityY}*%g'%v_adiminv)
-Internal._rmNodesByName(t, '.Solver#Param')
-Internal._rmNodesByName(t, '.Solver#ownData')
-#C.convertPyTree2File(t,"restart.cgns")
+
+C.convertPyTree2File(t,"restart.cgns")
 test.testT(t,1)

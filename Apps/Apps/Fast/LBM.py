@@ -105,10 +105,10 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
         C._rmBCOfType(t,"BCMatch")
 
     t = X.connectMatch(t)
-    Internal._addGhostCells(t,t,NG)
+    Internal._addGhostCells(t,t,NG,adaptBCs=1)
     C._rmBCOfType(t,"BCMatch")
     C._fillEmptyBCWith(t,'overlap','BCOverlap',dim=3)
-    X._applyBCOverlaps(t, depth=1, loc='centers')
+    X._applyBCOverlaps(t, depth=NG, loc='centers')
     tc = C.node2Center(t)
     #
     if isPerio: C._removeDuplicatedPeriodicZones__(t)

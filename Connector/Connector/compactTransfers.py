@@ -7,7 +7,10 @@ except: raise ImportError("Connector.compactTransfers requires Converter module.
 
 try: range = xrange
 except: pass
-
+ibm_lbm_variables_1 ='Q_'
+ibm_lbm_variables_2 ='Qstar_'
+ibm_lbm_variables_3 ='Qneq_'
+NEQ_LBM =  86
 #==============================================================================
 # Mise a plat (compactage) arbre donneur au niveau de la base
 # fonctionne avec ___setInterpTransfer
@@ -70,11 +73,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
       model    = 'NSLaminar'
       a        = Internal.getNodeFromName2(base, 'GoverningEquations')
       if a is not None: model = Internal.getValue(a)
-
       if model=="NSLaminar" or model=="Euler": neq_trans=5
       elif model=="NSTurbulent": neq_trans=6
       elif model=='LBMLaminar':
-           neq_trans = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][86]
+           neq_trans = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][NEQ_LBM]
 
       zones_tc = Internal.getZones(base)
       for z in zones_tc:
@@ -165,7 +167,27 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
               s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
               s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
               s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
-         
+            if model == "LBMLaminar":
+                 density = Internal.getNodeFromName1(s, 'Density')
+                 nIBC    = density[1].shape[0]
+                 
+                 qloc_1  = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))
+                 if qloc_1 is None:
+                     for f_i in range (1,neq_trans+1):
+                         s[2].append([ibm_lbm_variables_1 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
+                 qloc_1  = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))        
+                         
+                 qloc_2 = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
+                 if qloc_2 is None:
+                     for f_i in range (1,neq_trans+1):
+                         s[2].append([ibm_lbm_variables_2 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
+                 qloc_2 = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
+                 
+                 qloc_3 = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
+                 if qloc_3 is None:
+                     for f_i in range (1,neq_trans+1):
+                         s[2].append([ibm_lbm_variables_3 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
+                 qloc_3 = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
            # DBX: supp utau en euler
            #if utau is None:
            #   utauNP  = numpy.zeros((Nbpts_D),numpy.float64)
@@ -187,9 +209,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
            if utau is not None: ntab_IBC += 2
            if sd1 is not None: ntab_IBC += 5
+           if sname == 'IB' and model == "LBMLaminar":
+               if qloc_1 is not None: ntab_IBC += neq_trans
+               if qloc_2 is not None: ntab_IBC += neq_trans	
+               if qloc_3 is not None: ntab_IBC += neq_trans
            if sname == 'IB': 
               size_IBC   = Nbpts_D*ntab_IBC
-              count_IBC += 1
+              count_IBC += 1	      	
            else: 
               count_ID  += 1
 
@@ -461,6 +487,16 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        ptutau=0;ptyplus=0
        sd1=None;sd2=None;sd3=None;sd4=None;sd5=None
        ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
+
+       qloc_1=[None]*(neq_loc)
+       ptqloc_1=[0]*(neq_loc)
+       
+       qloc_2=[None]*(neq_loc)
+       ptqloc_2=[0]*(neq_loc)
+
+       qloc_3=[None]*(neq_loc)
+       ptqloc_3=[0]*(neq_loc)
+
        if sname == 'IB': 
            zsrname = zsrname.split('_')
            if len(zsrname) < 3: 
@@ -468,6 +504,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                 if model=='Euler': 
                     print('Assuming IBC type is wallslip.')
                     param_int[iadr+rac[pos]*3]  = 0
+                elif model=='LBMLaminar':
+                    print('Assuming IBC type is no-slip.')
+                    param_int[iadr+rac[pos]*3]  = 1
                 else: 
                     print('Assuming IBC type is Musker wall model.')
                     param_int[iadr+rac[pos]*3]  = 3
@@ -536,7 +575,34 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            if sd5 is not None:
                ptd5    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
                size_IBC += Nbpts_D; inc += 1
-
+           if model=="LBMLaminar":
+               qloc_1[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))
+               if qloc_1[0] is not None:
+                   ptqloc_1[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                   size_IBC += Nbpts_D; inc += 1
+                   for f_i in range(1,neq_loc):
+                       qloc_1[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(f_i+1))
+                       ptqloc_1[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                       size_IBC += Nbpts_D; inc += 1
+                   
+               qloc_2[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
+               if qloc_2[0] is not None:
+                   ptqloc_2[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                   size_IBC += Nbpts_D; inc += 1
+                   for f_i in range(1,neq_loc):
+                       qloc_2[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(f_i+1))
+                       ptqloc_2[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                       size_IBC += Nbpts_D; inc += 1
+                       
+               qloc_3[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
+               if qloc_3[0] is not None:
+                   ptqloc_3[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                   size_IBC += Nbpts_D; inc += 1
+                   for f_i in range(1,neq_loc):
+                       qloc_3[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(f_i+1))
+                       ptqloc_3[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                       size_IBC += Nbpts_D; inc += 1
+		       
        tmp = Internal.getNodeFromName1(s, 'ZoneRole')
        if tmp[1][0] == b'D': param_int[ iadr +rac[pos]*4 ] = 0   # role= Donor
        else                : param_int[ iadr +rac[pos]*4 ] = 1   # role= Receiver
@@ -574,7 +640,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                        vx, vy, vz,
                        utau,yplus,
                        sd1,sd2,sd3,sd4,sd5,
-                       InterpD,param_real)
+                       InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model)
        else:
            triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                         Interptype, pointlist, pointlistD, param_int,
@@ -588,7 +654,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                         vx, vy, vz,
                         utau,yplus,
                         sd1,sd2,sd3,sd4,sd5,
-                        InterpD,param_real)
+                        InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model)
 
        pointlist[ 1] = param_int[ lst             : lst              + Nbpts         ]    # supression numpy initial pointlist
        Interptype[1] = param_int[ ptTy + shift_typ: ptTy + shift_typ + Nbpts_D       ]    # supression numpy initial interpolantType
@@ -628,7 +694,16 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                sd4[1]  = param_real[ ptd4 : ptd4 + Nbpts_D ]
            if sd5 is not None:
                sd5[1]  = param_real[ ptd5 : ptd5 + Nbpts_D ]
-               
+           if model=="LBMLaminar":
+               if qloc_1[0] is not None:
+                   for f_i in range(0,neq_loc):
+                       qloc_1[f_i][1]   = param_real[ ptqloc_1[f_i] : ptqloc_1[f_i] + Nbpts_D ]
+               if qloc_2[0] is not None:
+                   for f_i in range(0,neq_loc):
+                       qloc_2[f_i][1]   = param_real[ ptqloc_2[f_i] : ptqloc_2[f_i] + Nbpts_D ]
+               if qloc_3[0] is not None:
+                   for f_i in range(0,neq_loc):
+                       qloc_3[f_i][1]   = param_real[ ptqloc_3[f_i] : ptqloc_3[f_i] + Nbpts_D ]      
        param_int[ iadr +rac[pos]*8 ] = adr_coef[pos] + size_coef[pos]          # PtcoefAdr
           
        iadr = iadr +1
@@ -731,7 +806,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  vx, vy, vz,
                  utau,yplus,
                  sd1,sd2,sd3,sd4,sd5,
-                 InterpD,param_real):
+                 InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model):
   for ntype in Nbtype:
     noi_old   = 0
     nocoef_old= 0
@@ -796,7 +871,16 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                    param_real[ ptd3   + l + l0 ]= sd3[1][i]
                    param_real[ ptd4   + l + l0 ]= sd4[1][i]
                    param_real[ ptd5   + l + l0 ]= sd5[1][i]
-                   
+               if model == 'LBMLaminar':    
+                   if qloc_1[0] is not None:
+                       for f_i in range (0, neq_loc):
+                           param_real[ ptqloc_1[f_i]   + l + l0 ]= qloc_1[f_i][1][i]
+                   if qloc_2[0] is not None:
+                       for f_i in range (0, neq_loc):
+                           param_real[ ptqloc_2[f_i]   + l + l0 ]= qloc_2[f_i][1][i]
+                   if qloc_3[0] is not None:
+                       for f_i in range (0, neq_loc):
+                           param_real[ ptqloc_3[f_i]   + l + l0 ]= qloc_3[f_i][1][i]     
             #recopie  InterpD
             param_real[ pt_coef + nocoef: pt_coef + nocoef+sizecoef] = InterpD[1][ nocoef_old: nocoef_old+sizecoef]
             nocoef     = nocoef     + sizecoef
@@ -834,7 +918,7 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
                 vx, vy, vz,
                 utau,yplus,
                 sd1,sd2,sd3,sd4,sd5,
-                InterpD, param_real):
+                InterpD, param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model):
 
   ntype     = Nbtype[0]
   noi_old   = 0
@@ -886,7 +970,16 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
            connector.initNuma(sd4[1] , param_real, ptd4 , Nbpts_D , 0, val)
        if sd5 is not None:
            connector.initNuma(sd5[1] , param_real, ptd5 , Nbpts_D , 0, val)
-           
+       if model=='LBMLaminar':
+           if qloc_1[0] is not None:
+               for f_i in range (0,neq_loc):
+                   connector.initNuma(qloc_1[f_i][1] , param_real, ptqloc_1[f_i] , Nbpts_D , 0, val)
+           if qloc_2[0] is not None:
+               for f_i in range (0,neq_loc):
+                   connector.initNuma(qloc_2[f_i][1] , param_real, ptqloc_2[f_i] , Nbpts_D , 0, val)
+           if qloc_3[0] is not None:
+               for f_i in range (0,neq_loc):
+                   connector.initNuma(qloc_3[f_i][1] , param_real, ptqloc_3[f_i] , Nbpts_D , 0, val)    
   # recopie  InterpD
   connector.initNuma(InterpD[1] , param_real, pt_coef , Nbpts_InterpD , 0, val)
 
@@ -900,6 +993,18 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
 #==============================================================================
 def miseAPlatDonorZone__(zones, tc, procDict):
     zones_tc = Internal.getZones(tc)
+    #[AJ]
+    base     = Internal.getNodeFromType1(tc, 'CGNSBase_t')  # noeud
+    model    = 'NSLaminar'
+    a        = Internal.getNodeFromName2(base, 'GoverningEquations')
+    if a is not None: model = Internal.getValue(a)
+
+    neq_loc = 5
+    if model=='NSTurbulent':
+        neq_loc = 6
+    elif model=='LBMLaminar':
+        neq_loc = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][NEQ_LBM]
+
     for z in zones_tc:
         racs      =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         size_int  = 0
@@ -913,10 +1018,12 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             InterpD      =  Internal.getNodeFromName1(rac, 'InterpolantsDonor')
             utau         =  Internal.getNodeFromName1(rac, 'utau')
             sd1          =  Internal.getNodeFromName1(rac, 'StagnationEnthalpy')
-
+            qloc_1       =  Internal.getNodeFromName1(rac, ibm_lbm_variables_1 + str(1))
+	    
             ntab_IBC   = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour le post
             if utau is not None: ntab_IBC += 2
             if sd1 is not None: ntab_IBC += 5
+            if qloc_1 is not None: ntab_IBC += neq_loc
 
             Nbpts        =  numpy.shape(pointlist[ 1])[0]
             Nbpts_D      =  numpy.shape(pointlistD[1])[0]
@@ -1068,3 +1175,6 @@ def ___setInterpTransfers(aR, topTreeD,
     param_real= Internal.getNodeFromName2(topTreeD, 'Parameter_real')[1]
     connector.___setInterpTransfers(zones, zonesD, variables, param_int, param_real, varType, bcType, Gamma, Cv, MuS, Cs, Ts )
     return None
+
+
+

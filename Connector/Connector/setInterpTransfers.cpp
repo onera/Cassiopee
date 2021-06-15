@@ -1161,11 +1161,11 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           }
           else if(nvars_loc==19)
           {
-#           include "commonInterpTransfers_reorder_19eq.h" 
+#           include "LBM/commonInterpTransfers_reorder_19eq.h" 
           }
           else
           {
-#           include "commonInterpTransfers_reorder_neq.h"
+#           include "LBM/commonInterpTransfers_reorder_neq.h"
           }
       
      

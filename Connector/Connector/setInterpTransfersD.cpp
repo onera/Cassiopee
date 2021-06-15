@@ -756,9 +756,9 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                         } else if ( nvars_loc == 6 ) {
 #include "commonInterpTransfersD_reorder_6eq.h"
                         } else if ( nvars_loc ==19 ) {
-#include "commonInterpTransfersD_reorder_19eq.h"
+#include "LBM/commonInterpTransfersD_reorder_19eq.h"
                         } else {
-#include "commonInterpTransfersD_reorder_neq.h"
+#include "LBM/commonInterpTransfersD_reorder_neq.h"
                         }
 
                         // Prise en compte de la periodicite par rotation

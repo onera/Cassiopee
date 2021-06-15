@@ -31,6 +31,9 @@ SHIFTF = 1.e-10
 EPSCART = 1.e-6
 TOLCELLN = 0.01
 
+##from param_solver.h
+LBM_IBC_NUM        = 113
+
 TypesOfIBC = XOD.TypesOfIBC
 
 # ?
@@ -721,11 +724,12 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
 # Calcul des points IBM a corriger, paroi et a interpoler
 # =============================================================================
 def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, 
-                    frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100.):
+                    frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100.,isLBM=False):
     if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected=1 # signe de la distance aux points corriges
 
     allCorrectedPts = []; allWallPts = []; allInterpPts = []
+    #allInterpPts_layer2 = []; # [AJ] Keep for now
     #-------------------------------------------
     # 1. Get the list of IBC corrected pts
     #-------------------------------------------
@@ -799,6 +803,9 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             else: # type of IBC not found: Euler -> slip, other : Musker            
                 if IBCType == -1: ibctype = 'slip' 
                 else: ibctype = 'Musker'
+	    #Over ride as LBM only supports no slip at the moment
+            if isLBM==True:
+                ibctype = 'noslip'
             famName = Internal.getNodeFromType1(s,'FamilyName_t')
             if famName is not None:
                famName = Internal.getValue(famName)
@@ -1110,7 +1117,7 @@ def gatherFront(front):
     
 #=============================================================================
 def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, 
-             frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100.):    
+             frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100.,isLBM=False):    
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
     if typeI == 'ID':
         # toutes les zones sont interpolables en Chimere
@@ -1157,7 +1164,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
         if zonesRIBC == []: return tc
 
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType, \
-                              cellNName='cellNIBC', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus)
+                              cellNName='cellNIBC', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus,isLBM=isLBM)
         nbZonesIBC = len(zonesRIBC)
         dictOfADT = {}
         dictOfCorrectedPtsByIBCType = res[0]
@@ -1789,7 +1796,7 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 # interpDataType = 0 : interpolation optimisees sur grilles cartesiennes
 # frontType 0, 1, 2
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., wallAdapt=None):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., wallAdapt=None,isLBM=False,LBMQ=False,isPrintDebug=False):
     tb =  Internal.copyRef(tbody)
 
     # tb: fournit model et dimension
@@ -1800,10 +1807,14 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     # type de traitement paroi: pts interieurs ou externes
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
     if model is None: raise ValueError('prepareIBMData: GoverningEquations is missing in input body tree.')
-    # model: Euler, NSLaminar, NSTurbulent
+    # model: Euler, NSLaminar, NSTurbulent, LBMLaminar
     model = Internal.getValue(model)
 
     if model == 'Euler': IBCType =-1
+    elif model == 'LBMLaminar':
+        IBCType =-1      
+        if LBMQ == True:
+            IBCType =1
     else: IBCType = 1 # Points cibles externes
     if loc == 'nodes':
         raise NotImplemented("prepareIBMData: prepareIBMData at nodes not yet implemented.")
@@ -2027,9 +2038,11 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     P._computeGrad2(t,'centers:TurbulentDistance')
     print('Building the IBM front.')
     front = getIBMFront(tc, 'cellNFront', dimPb, frontType)
+    if isPrintDebug:
+        C.convertPyTree2File(front, 'IB_front.cgns')
     C.convertPyTree2File(front, 'front.cgns')
     print('Interpolations IBM')
-    tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus)
+    tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus,isLBM=isLBM)
 
     # cleaning...
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
@@ -2043,7 +2056,6 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     # SORTIE
     #----------
     return t, tc
-
 
 #=============================================================================
 # Performs the full IBM preprocessing using overlapping Cartesian grids
@@ -2714,7 +2726,6 @@ def extractIBMInfo(tc):
     t[2][1][2] = corrected; t[2][2][2] = wall; t[2][3][2] = interp
     t = C.convertArray2Node(t)
     return t
-
 # --------------------------------------------------------------------------------
 # Creation des zones 1D de nom 'Zone#IBCD_*' pour pouvoir etre identifie en post
 # retourne tw avec une zone 1D par IBCD de depart
@@ -2751,3 +2762,31 @@ def createIBMWZones(tc,variables=[]):
             if proc != -1: Cmpi._setProc(zw,proc)
             tw[2][1][2].append(zw)
     return tw
+
+def _extractIBMInfo_param(t,tc):
+    XPC   ={}; 
+    Zones = []
+    for z in Internal.getZones(tc):
+        allIBCD = Internal.getNodesFromName(z, "IBCD_*")
+        for IBCD in allIBCD:
+            znames = Internal.getValue(IBCD)
+            Zones.append(znames)
+            xPC = Internal.getNodesFromName(IBCD,"CoordinateX_PC")[0][1]
+
+            if znames in XPC:
+                a = numpy.concatenate((XPC[znames][0],xPC))
+                XPC[znames] = [a]
+            else:
+                XPC[znames] = [xPC]
+    Zones = list(set(Zones))
+    for zname in Zones:
+        xPC = XPC[zname];
+        size = xPC[0].shape[0]
+        z          = Internal.getNodeFromName ( t, zname)
+        o          = Internal.getNodeFromName1( z, '.Solver#ownData')
+        param_int  = Internal.getNodeFromName1( o, 'Parameter_int')
+        param_real = Internal.getNodeFromName1( o, 'Parameter_real')
+        param_int[1][LBM_IBC_NUM] = size
+    return None
+
+

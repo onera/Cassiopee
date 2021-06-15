@@ -96,6 +96,8 @@ static PyMethodDef Pyconnector [] =
   {"_blankClosestTargetCells",K_CONNECTOR::_blankClosestTargetCells, METH_VARARGS},
   {"_modCellN1",K_CONNECTOR::_modCellN1, METH_VARARGS},
   {"_modCellN2",K_CONNECTOR::_modCellN2, METH_VARARGS},
+  {"___setQintersectionLBM", K_CONNECTOR::___setQintersectionLBM, METH_VARARGS},
+  {"___setInterpTransfersLBM", K_CONNECTOR::___setInterpTransfersLBM, METH_VARARGS},
   {NULL, NULL}
 };
 

@@ -128,14 +128,61 @@
 #define LU_MATCH     75
 #define IBC          76
 #define SRC          83
+#define MESHTYPE     84
+#define SENSORTYPE   85
+/*86 is defined below*/
+#define SCHEDULER    87
+#define WM_FUNCTION  88
+#define WM_SAMPLING  89
+
+
+/*LBM*/
+#define NEQ_LBM             86
+#define PT_LBM_Cs           90  
+#define PT_LBM_Ws           91 
+#define LBM_COL_OP          92 
+#define PT_LBM_Cminus       93 
+#define PT_LBM_BC           94 
+#define LBM_NQ_BC           95 
+#define PT_LBM_H2H3         96 
+#define PT_LBM_SPEC         97 
+#define LBM_FILTER          98 
+#define PT_LBM_FILTER_WGHT  99 
+#define LBM_FILTER_SZ       100 
+#define PT_LBM_FILTER_STNCL 101 
+#define LBM_SPONGE          102 
+#define LBM_SPONGE_SIZE     103 
+#define LBM_SPONGE_PREP     104 
+
+#define flag_streaming              105
+#define flag_macro                  106
+#define flag_collision_operator     107
+#define flag_collision              108
+#define LBM_isforce                 109
+#define LBM_BConQstar               110
+#define flag_BConQstar_switch       111
+
+/*LBM - IBM*/ 
+#define LBM_IBC             112
+#define LBM_IBC_NUM         113
+#define PT_LBM_IBC_LIST     114
+#define PT_LBM_IBC_DIST     115
+#define PT_LBM_IBC_DIR      116
+#define LBM_IBC_PREP        117
+#define LBM_IBC_CONNECTOR   118
+
+/*Sponge*/
+#define LBM_spng_xmin         119
+#define LBM_spng_xmax         120 
+#define LBM_spng_ymin         121
+#define LBM_spng_ymax         122 
+#define LBM_spng_zmin         123
+#define LBM_spng_zmax         124
 
 #define BC_TYPE	      0
 #define BC_IDIR       1
 #define BC_FEN        2
 #define BC_NBDATA     8
-
-   
-
 
 #define DTC          0
 #define STAREF       1
@@ -177,6 +224,17 @@
 #define HPC_CUPS    40  
 #define BC_DATA     41
 
+/*LBM*/
+#define LBM_c0                  42
+#define LBM_taug                43
+#define LBM_difcoef             44
+#define LBM_filter_sigma        45
+#define LBM_forcex              46
+#define LBM_adaptive_filter_chi 49
+#define LBM_chi_spongetypeII    50
+#define LBM_HRR_sigma           51
+#define LBM_gamma_precon        52
+#define LBM_zlim                53
 
 #define SA_CKARM    0.41 
 #define SA_CB1      0.1355
