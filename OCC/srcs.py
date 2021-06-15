@@ -40,6 +40,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/evalFace.cpp',
         'OCC/Atomic/projectOnFace.cpp',
         'OCC/Atomic/projectOnEdge.cpp',
+        'OCC/Atomic/linkNodes2CAD.cpp',
         'OCC/Atomic/trimesh.cpp']
 
 import KCore.Dist as Dist

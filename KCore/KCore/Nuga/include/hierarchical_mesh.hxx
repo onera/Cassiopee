@@ -162,6 +162,7 @@ class hierarchical_mesh
       const std::vector<E_Int>& phhids0,
       const std::vector<E_Int>& pghids1,
       const std::vector<E_Int>& phhids1,
+      const std::vector<E_Int>& hid2confid,
       history_t& histo
     );
 
@@ -471,7 +472,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
         assert(!ids.empty());
 
         pghids.insert(pghids.end(), ALL(ids));
-        
+       
         K_CONNECT::IdTool::shift(ids, 1);
         molec.insert(molec.end(), ALL(ids));
       }
@@ -952,6 +953,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::build_histo_between_two_enabled_st
   //const std::vector<E_Int>& pthids1,
   const std::vector<E_Int>& pghids1,
   const std::vector<E_Int>& phhids1,
+  const std::vector<E_Int>& hid2confid,
   history_t& histo
 )
 {
@@ -990,7 +992,15 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::build_histo_between_two_enabled_st
     }
     else // intact, refined or agglom (parent stored as neg)
     {
-      histo.pgnids.append(it->second);
+      std::vector<E_Int> temp = it->second;
+      if (temp.size() == 1 && temp[0] < 0) 
+        temp[0] = hid2confid[-(temp[0]-1)];
+      else
+      {
+        for (size_t k =0; k < temp.size(); ++k)
+          temp[k] = hid2confid[temp[k]];
+      }
+      histo.pgnids.append(temp);
     }
   }
 

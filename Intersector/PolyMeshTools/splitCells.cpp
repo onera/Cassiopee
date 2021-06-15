@@ -566,8 +566,11 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntAr
   hmesh->conformize(ngo, hmpgid_to_confpgid, pghids1, phhids1);
 
   // HISTORY BETWEEN PREVIOUS OUTPUT AND CUURENT ONE
+  if (hmpgid_to_confpgid.empty()) // hmesh==exported <=> no adaptation
+    K_CONNECT::IdTool::init_inc(hmpgid_to_confpgid, hmesh->_ng.PGs.size());
+
   NUGA::history_t histo;
-  hmesh->build_histo_between_two_enabled_states(hmesh->pghids0, hmesh->phhids0, pghids1, phhids1, histo);
+  hmesh->build_histo_between_two_enabled_states(hmesh->pghids0, hmesh->phhids0, pghids1, phhids1, hmpgid_to_confpgid, histo);
   
   // EXPORT MESH
 
@@ -649,7 +652,6 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntAr
 
   }
   fieldsN = new_fieldsN;
-
 
   // update of the current enabling state
   hmesh->pghids0 = pghids1;
@@ -776,7 +778,29 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
 
   if (has_fieldsF)
   {
-    //todo : getNumpyArrays
+
+    E_Int nfieldsF = PyList_Size(pyfieldsF);
+
+    std::vector<E_Float*> pFid(nfieldsF);
+
+    fieldsF.resize(nfieldsF);
+
+    for (E_Int j = 0; j < nfieldsF; ++j)
+    {
+      PyObject* fieldFi = PyList_GetItem(pyfieldsF, j);
+
+      FldArrayF* Fid;
+      E_Int res = K_NUMPY::getFromNumpyArray(fieldFi, Fid, true);
+      pFid[j] = Fid->begin(1);
+      fieldsF[j].resize(Fid->getSize());
+    }
+
+    for (E_Int j = 0; j < nfieldsF; ++j)
+      for (E_Int i = 0; i < fieldsF[j].size(); ++i)
+      {
+        fieldsF[j][i] = pFid[j][i];
+	//std::cout << "pFid[j][i] : " << pFid[j][i] << std::endl;
+      }
   }
 
   // CONFORMIZE, UPDATE POINTLISTS and TRANSFER FIELDS
@@ -831,14 +855,15 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     tpl = K_NUMPY::buildNumpyArray(&jzids[0], jzids.size(), 1, 0);
 
   PyList_Append(l, tpl);
-  Py_DECREF(tpl); 
+  Py_DECREF(tpl);
 
   // then 
 
-  // JOINS  : l[3]         -> l[ranges[1]-1]
-  // BCs    : l[ranges[1]] -> l[ranges[2]-1]
-  // FIELDS : l[ranges[2]] -> l[ranges[3]-1]
-
+  // JOINS    : l[3]         -> l[ranges[1]-1]
+  // BCs      : l[ranges[1]] -> l[ranges[2]-1]
+  // FIELDS C : l[ranges[2]] -> l[ranges[3]-1]
+  // FIELDS N : l[ranges[3]] -> l[ranges[4]-1]
+  // FIELDS F : l[ranges[4]] -> l[ranges[5]-1]
 
   // JOINS
   for (size_t i=0; i < jzids.size(); ++i)
@@ -889,9 +914,11 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     Py_DECREF(tpl);
   }
 
-  if (has_fieldsF)
+  if (has_fieldsF) // fcadid only for now
   {
-    //todo
+    PyObject* tpl = K_NUMPY::buildNumpyArray(&fieldsF[0][0], fieldsF[0].size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
   }
 
   return l;

@@ -107,7 +107,7 @@ bool xsensor2<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
       double Lref21 = ae1.Lref2(ae1.m_crd, MTYPE);
 
       cands.clear();
-      loc2->get_candidates(ae1, m1.crd, cands, 0, RTOL); //return as 0-based (fixme for volumic, was 1-based)
+      loc2->get_candidates(ae1, ae1.m_crd, cands, 0, RTOL); //return as 0-based (fixme for volumic, was 1-based)
       if (cands.empty()) continue;
 
       bool is_x = NUGA::COLLIDE::get_colliding(ae1, src_mesh, cands, 0, RTOL, false/*all of them*/);
@@ -176,7 +176,7 @@ bool xsensor2<mesh_t>::update()
       E_Int cphi = children[c];
 
       auto ae1 = m1.aelement(cphi);
-      double Lref21 = ae1.Lref2(m1.crd, MTYPE);
+      //double Lref21 = ae1.Lref2(m1.crd, MTYPE);
 
       cands.clear();
       loc2->get_candidates(ae1, m1.crd, cands, 0, RTOL); //return as 0-based (fixme for volumic, was 1-based)

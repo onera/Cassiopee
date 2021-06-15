@@ -496,8 +496,12 @@ def getBCPtListOfType(z, typesList, families = []):
     ptList = []
     for n in nodes:
         ptlnod = Internal.getNodesFromType(n, 'IndexArray_t')
-        #print (ptlnod)
-        ptList.append(ptlnod[0][1][0])
+        x = ptlnod[0][1]
+        #print(x)
+        if type(x[0]) is numpy.ndarray: # ptlnod[0][1] is a list with one ptlist : [ [...] ]
+          ptList.append(x[0])
+        else: # # ptlnod[0][1] is directly the ptlist : [...]
+          ptList.append(x)
 
     if (ptList != []) : ptList = numpy.concatenate(ptList).ravel() # create a single list
 
@@ -2034,9 +2038,15 @@ def _conformizeHMesh(t, hooks):
 
         fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
         if fieldsN == [] : fieldsN = None
-
-        fieldsF = None
-        # todo : get fields from BCDataSets
+        
+        try:
+          pfieldsF = Internal.getNodeFromName(z, 'CADData')
+          fieldsF = Internal.getChildFromName(pfieldsF, 'fcadid')
+          fieldsF = [fieldsF[1]]
+          if fieldsF == [] : fieldsF = None # Unnecessary ?
+          
+        except TypeError:
+          fieldsF = None
 
         res = intersector.conformizeHMesh(hooks[i], fieldsC, fieldsN, fieldsF)
 
@@ -2086,8 +2096,8 @@ def _conformizeHMesh(t, hooks):
 
         ## MAJ face fields 
         fieldz = res[ranges[4]:]
-        # todo (in BCDataSets)
-        
+        if fieldz != [] :
+          Internal.newDataArray('fcadid', value=fieldz, parent=Internal.getNodeFromName(z, 'CADData'))
         i=i+1
 
 #==============================================================================

@@ -54,8 +54,7 @@ namespace NUGA
         }
       }
 
-      target_flags.resize(target_sz, IDX_NONE);
-
+      target_flags.resize(target_sz + 1, IDX_NONE);
       for (size_t i=0; i < src_ids.size(); ++i)
       {
         E_Int srcid = src_ids[i];
