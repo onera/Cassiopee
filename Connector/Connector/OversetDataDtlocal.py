@@ -366,7 +366,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             profondeur=numpy.zeros(1,dtype=numpy.int32)
                             dirD=numpy.zeros(1,dtype=numpy.int32)
                             
-                            connector.indiceToCoord2(resInterp[1][noz],prangedonor,transfo,profondeur,dirD,resInterp[2][noz],dirR,resInterp[2][noz].size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
+                            connector.indiceToCoord2(resInterp[1][noz],prangedonor,transfo,profondeur,dirD,resInterp[2][noz],dirR[0],resInterp[2][noz].size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
 
                             #print('dirR= ',dirR)
                             #print 'dimPb= ',dimPb
