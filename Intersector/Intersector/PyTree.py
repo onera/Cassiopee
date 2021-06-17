@@ -375,6 +375,10 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
 
 # update BC and JOINS point lists given an indirection "new id to old id"
 def updatePointLists(z, zones, oids):
+    if len(oids) == 0 :
+      C._deleteZoneBC__(z)
+      C._deleteGridConnectivity__(z)
+      return
     #print('updateBCPointLists1')
     updateBCPointLists1(z, oids)
     #print('updateJoinsPointLists')
@@ -392,15 +396,28 @@ def updateBCPointLists1(z, oids):
     if ptLists == []: return
 
     # recalcul des pointlist
+    #print('recompute point lists')
     ptLists = XOR.updatePointLists(oids, ptLists)
 
     i=0
-    # update the BC pointlists 
+    bc_to_remove=[]
+    #print('update the BC pointlists') 
     for bb in bnds :
+      torem=False
+      if isinstance(ptLists[i], numpy.ndarray):
+        if len(ptLists[i]) == 0 : torem = True
+      elif ptLists[i] == None : torem=True
+
+      if torem == True :
+        bc_to_remove.append(Internal.getPath(z, bb))
+        continue
+      
       ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
       ptl[0][1] = ptLists[i]
       #print(ptl[0][1])
       i=i+1
+
+    for p in bc_to_remove: Internal._rmNodeFromPath(z, p)
 
 def updateJoinsPointLists1(z, zones, oids):
 
@@ -673,33 +690,71 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_qual, simplify_pgs)
 
     i=0
+    paths = []
     zs = []
     for z in z1s:
-        mesh = res[i]
-        pg_oids=res[i+1]
-
-        #print mesh
+      mesh = res[i]
+      pg_oids=res[i+1]
+      ph_oids=res[i+2]
+      
+      if mesh != []:  
 
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
 
         # MAJ POINT LISTS #
-        #updatePointLists(z, z1s, pg_oids)
-        i=i+2
+        updatePointLists(z, z1s, pg_oids)
+
+        # MAJ CHAMP CENTRE
+        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+
+        for f in fields:
+            pt = f[1].ravel('k')
+            f[1] = numpy.empty( (ph_oids.size), numpy.float64)
+            f[1][:] = pt[ph_oids[:]]
+
         zs.append(z)
+
+      else: # stocke le chemin des zones a supprimer
+        paths.append(Internal.getPath(t1, z))
+        
+      i += 3
+
+    for p in paths: Internal._rmNodeFromPath(t1, p)
+    paths = []
 
     for z in z2s:
-        mesh = res[i]
-        pg_oids=res[i+1]
+      mesh = res[i]
+      pg_oids=res[i+1]
+      ph_oids=res[i+2]
+      
+      if mesh != []:  
 
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
 
         # MAJ POINT LISTS #
-        #updatePointLists(z, z2s, pg_oids)
-        i=i+2
+        updatePointLists(z, z2s, pg_oids)
+
+        # MAJ CHAMP CENTRE
+        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+
+        for f in fields:
+            pt = f[1].ravel('k')
+            f[1] = numpy.empty( (ph_oids.size), numpy.float64)
+            f[1][:] = pt[ph_oids[:]]
+
         zs.append(z)
 
+      else: # stocke le chemin des zones a supprimer
+        paths.append(Internal.getPath(t2, z))
+
+      i += 3
+
+    for p in paths: Internal._rmNodeFromPath(t2, p)
+    
     t1_is_tree = Internal.isTopTree(t1)
     t2_is_tree = Internal.isTopTree(t2)
 

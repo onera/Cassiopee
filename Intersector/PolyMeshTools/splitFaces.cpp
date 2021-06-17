@@ -40,13 +40,18 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
 
   E_Int nb_bcs = PyList_Size(py_ptLists);
 
-  E_Int sz, r;
+  E_Int sz{0}, r;
   E_Int* oids;
   E_Int res = K_NUMPY::getFromNumpyArray(py_oids, oids, sz, r, true/*shared*/);
   if (res != 1) return NULL;
   
-  // WARNING : oids has no E_IDX_NONE (created entities are self referring) and is 0-based 
-  E_Int nb_pgs = *std::max_element(oids, oids+sz) + 1;
+  // WARNING : oids might have IDX_NONE (created entities) and is 0-based 
+  E_Int nb_pgs = 0;
+  for (size_t i=0; i < sz; ++i)
+  {
+    if (oids[i] == IDX_NONE) continue;
+    nb_pgs = std::max(nb_pgs, oids[i]+1);
+  }
 
   ngon_unit split_graph;
   K_CONNECT::IdTool::reverse_indirection(nb_pgs,  oids, sz, split_graph);
@@ -64,6 +69,8 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
     K_ARRAY::getFromList(o, out);
     ptl_sz = out.getSize();
 
+    if (split_graph.size() != 0)
+    {
     for (E_Int j=0; j < ptl_sz; ++j)
     {
       E_Int oid = out(j,1)-1;
@@ -71,14 +78,18 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
       E_Int nb_bits = split_graph.stride(oid);
       const E_Int* pbits = split_graph.get_facets_ptr(oid);
 
-      if (nb_bits == 1 && pbits[0] == E_IDX_NONE)  // untouched
-        new_ptl.push_back(oid+1);
+      if (nb_bits == 1 && pbits[0] == E_IDX_NONE)  // gone
+        continue;
       else
         for (E_Int u=0; u<nb_bits; ++u )
           new_ptl.push_back(pbits[u]+1);
     }
+    }
 
-    tpl = K_NUMPY::buildNumpyArray(&new_ptl[0], new_ptl.size(), 1, 0);
+    if (new_ptl.empty())
+      tpl = Py_None;
+    else
+      tpl = K_NUMPY::buildNumpyArray(&new_ptl[0], new_ptl.size(), 1, 0);
     
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

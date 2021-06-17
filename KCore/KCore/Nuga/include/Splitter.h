@@ -852,18 +852,30 @@ E_Int NUGA::Splitter::__split_pgs
   Vector_t<E_Int> oids;
   transFunc(ngi.PGs, crd, splitpgs, oids, params, to_process);
 
-  // create the split graph using the history.
   E_Int nb_pgs = ngi.PGs.size();
-  split_graph.clear();
-  K_CONNECT::IdTool::reverse_indirection(nb_pgs, &oids[0], oids.size(), split_graph);
-
   ngo = ngi; //init
-
   // append the split pgs and synchronize the graph.
   ngo.PGs.append(splitpgs);
-  split_graph.shift(nb_pgs + 1);// shift in order to be synch with appending split_pgs
 
   // now ngo contain both old and new pgs.
+
+  // update oids to have it for all the polygons
+  {
+    std::vector<E_Int> new_oids;
+    K_CONNECT::IdTool::init_inc(new_oids, ngo.PGs.size());
+    for (size_t k = 0; k < oids.size(); ++k) {
+      new_oids[k + nb_pgs] = oids[k];
+      //force oids to be NONE when an entity has been split
+      // so an entity cannot be self-referring anf having children referring to it
+      if (oids[k] < nb_pgs)new_oids[oids[k]] = IDX_NONE;
+    }
+
+    oids = new_oids;
+  }
+
+  // create the split graph using the history.
+  split_graph.clear();
+  K_CONNECT::IdTool::reverse_indirection(nb_pgs, &oids[0], oids.size(), split_graph);
 
   // apply the modifications at the PHs level.
   __apply_pgs_splits(ngo.PHs, split_graph);
@@ -906,10 +918,13 @@ void NUGA::Splitter::__apply_pgs_splits(ngon_unit& PHs, const ngon_unit& split_g
       E_Int nb_split = split_graph.stride(PGi);
       const E_Int* new_facets = split_graph.get_facets_ptr(PGi);
 
-      if (nb_split == 1 && *new_facets == IDX_NONE) //keep it as unchanged
-        molecPH.push_back(PGi + 1);
+      if (nb_split == 1 && *new_facets == IDX_NONE) // disappeared entity
+        continue;
       else
-        molecPH.insert(molecPH.end(), new_facets, new_facets + nb_split);
+      {
+        for (size_t k = 0; k < nb_split; ++k)
+          molecPH.push_back(new_facets[k] + 1);
+      }
     }
 
     E_Int sz = molecPH.size();

@@ -711,7 +711,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
   ngon_type ng1;
   K_FLD::FloatArray crd1;
-  for (size_t i=0; i < cnt1s.size(); ++i)
+  for (size_t i=0; i < nb_zones1; ++i)
   {
     ngon_type ng(*cnt1s[i]);
     ng.PGs.shift(crd1.cols());
@@ -722,7 +722,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
   ngon_type ng2;
   K_FLD::FloatArray crd2;
-  for (size_t i=0; i < cnt2s.size(); ++i)
+  for (size_t i=0; i < nb_zones2; ++i)
   {
     ngon_type ng(*cnt2s[i]);
     ng.PGs.shift(crd2.cols());
@@ -765,10 +765,14 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
   ngon_type & ngo = *BO._ngoper;
 
-  std::vector<K_FLD::FloatArray> crd1so(crd1s.size()), crd2so(crd2s.size());
-  std::vector<ngon_type> ng1so(cnt1s.size()), ng2so(cnt2s.size());
+  std::vector<K_FLD::FloatArray> crd1so(nb_zones1), crd2so(nb_zones2);
+  std::vector<ngon_type> ng1so(nb_zones1), ng2so(nb_zones2);
 
-  // Retrieve zones and pg oids
+  // PH history
+  std::vector<std::vector<E_Int>> phoids1(nb_zones1), phoids2(nb_zones2); // phoids[zid][i] = k <=> the i-th cell in zid-th zone either had k as id, or was a piece of k (in same zone) 
+  auto& F2E = BO._F2E;
+
+  // Retrieve zones and PH oids
   E_Int nb_phs = ngo.PHs.size();
   //std::cout << "bool status and nb phs : " << err << "/" << nb_phs << std::endl;
   for (E_Int i=0; i < nb_phs; ++i)
@@ -793,19 +797,21 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
       E_Int zid = zoneids1[ancPH1];
       ng1so[zid].PHs.add(nb_faces, faces);
+      phoids1[zid].push_back(ancPH1);
     }
     else  // comes from op2
     {
       //std::cout << ancPH2 << "/" << zoneids2.size() << std::endl;
-      if (ancPH2 >= (E_Int)zoneids2.size()){
+      //if (ancPH2 >= (E_Int)zoneids2.size()){
         // std::cout << "PHi : " << i << std::endl;
         // std::cout << "wrong ancPH2 or zoneids2 : " <<  ancPH2 << "/" << zoneids2.size() << std::endl;
         // std::cout << "zoneids1 : " << zoneids1.size() << std::endl;
         // std::cout << "ancPH1 : " << ancPH1 << std::endl;
-      } 
+      //} 
 
       E_Int zid = zoneids2[ancPH2];
       ng2so[zid].PHs.add(nb_faces, faces);
+      phoids2[zid].push_back(ancPH2);
     }
   }
 
@@ -829,9 +835,22 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
+    // computing PG histo
+    std::vector<E_Int> pgoids(ng1so[i].PGs.size(), IDX_NONE);
+    for (size_t k = 0; k < pgoids.size(); ++k)
+    {
+      E_Int ancPG1 = ng1so[i].PGs._ancEs(0,k);
+      //if (ancPG1 == IDX_NONE)continue; // it's a piece coming from another zone
+      pgoids[k]=ancPG1;
+    }
+
     // pushing out PG history
-    std::vector<E_Int> oids(ng1so[i].PHs.size(), E_IDX_NONE);//fixme
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    tpl = K_NUMPY::buildNumpyArray(&pgoids[0], pgoids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PH history
+    tpl = K_NUMPY::buildNumpyArray(&phoids1[i][0], phoids1[i].size(), 1, 0);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -856,9 +875,22 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
+    // computing PG histo
+    std::vector<E_Int> pgoids(ng2so[i].PGs.size(), IDX_NONE);
+    for (size_t k = 0; k < pgoids.size(); ++k)
+    {
+      E_Int ancPG2 = ng2so[i].PGs._ancEs(1,k);
+      //if (ancPG2 == IDX_NONE)continue; // it's a piece coming from another zone
+      pgoids[k]=ancPG2;
+    }
+
     // pushing out PG history
-    std::vector<E_Int> oids(ng2so[i].PHs.size(), E_IDX_NONE);//fixme
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    tpl = K_NUMPY::buildNumpyArray(&pgoids[0], pgoids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PH history
+    tpl = K_NUMPY::buildNumpyArray(&phoids2[i][0], phoids2[i].size(), 1, 0);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 

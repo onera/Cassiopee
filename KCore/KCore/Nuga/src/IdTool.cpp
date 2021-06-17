@@ -57,6 +57,7 @@ namespace K_CONNECT
     for (E_Int i = 0; i < sz; ++i)
     {
       E_Int id = oids[i]; //+ shift;
+      if (id == IDX_NONE) continue; //created entity
       molecules[id].push_back(i);
     
 #ifdef DEBUG_NGON_UNIT
