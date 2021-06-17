@@ -6071,7 +6071,6 @@ def isFinite(a, var=None):
 #==============================================================================
 # - add specific nodes -
 #==============================================================================
-
 # -- addState
 # Add a single state/value or a full reference state
 def addState(t, state=None, value=None, adim='adim1',

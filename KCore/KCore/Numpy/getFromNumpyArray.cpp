@@ -113,6 +113,7 @@ E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size,
   {
     f = new E_Float [size*nfld];
     E_Float* ptr = (E_Float*)PyArray_DATA(a);
+#pragma omp parallel for
     for (E_Int i = 0; i < size*nfld; i++) f[i] = ptr[i];
   }
   else // partage
@@ -147,6 +148,7 @@ E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size,
   {
     f = new E_Int [size*nfld];
     E_Int* ptr = (E_Int*)PyArray_DATA(a);
+#pragma omp parallel for
     for (E_Int i = 0; i < size*nfld; i++) f[i] = ptr[i];
   }
   else // partage
