@@ -703,7 +703,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
         C.setFields([mesh], z, 'nodes')
 
         # MAJ POINT LISTS #
-        updatePointLists(z, z1s, pg_oids)
+        #updatePointLists(z, z1s, pg_oids) # todo CW
 
         # MAJ CHAMP CENTRE
         cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
@@ -735,7 +735,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
         C.setFields([mesh], z, 'nodes')
 
         # MAJ POINT LISTS #
-        updatePointLists(z, z2s, pg_oids)
+        #updatePointLists(z, z2s, pg_oids) # todo CW
 
         # MAJ CHAMP CENTRE
         cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
@@ -1654,7 +1654,7 @@ def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=1, amax = 1.e-12, treat
       nids = res[1] # 0-based
 
       # update join ids
-      if jids != []:
+      if jids != [] and len(nids) != 0:
         for k in range(len(jids)):
           oj = jids[k]
           nj = nids[oj]
@@ -2156,25 +2156,19 @@ def _conformizeHMesh(t, hooks):
         i=i+1
 
 #==============================================================================
-# conformizeHMesh : Converts the basic element leaves of a hierarchical mesh (hooks is a list of hooks to hiearchical zones) to a conformal polyhedral mesh.
-#                   Each hiearchcial zone is referring to a zone in the original mesh t. So the mesh is replaced in the returned tree and the BCs/Joins/Fields are transferred.
-# IN: t : PyTree before adaptation
-# IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
-# OUT: Nothing 
+# interpolateHMeshNodalField : XXX
 #==============================================================================
-def interpolateHMeshNodalField(t, hooks):
-    """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
-    Usage: conformizeHMesh(t, hooks)"""
+def interpolateHMeshNodalField(t, hooks, fname):
+    """XXX"""
     tp = Internal.copyRef(t)
-    _interpolateHMeshNodalField(tp, hooks)
+    _interpolateHMeshNodalField(tp, hooks, fname)
     return tp
 
 #==============================================================================
 # _interpolateHMeshNodalField : XXX
 #==============================================================================
 def _interpolateHMeshNodalField(t, hooks, fname):
-    """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
-    Usage: _conformizeHMesh(t, hooks)"""
+    """XXX"""
     nb_hooks = len(hooks)
     zones = Internal.getZones(t)
     nb_zones = len(zones)
