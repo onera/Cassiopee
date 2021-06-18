@@ -21,11 +21,13 @@ import Transform
 #==============================================
 def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
             tbox=None, snearsf=None, expand=3, check=False, fileout='octree.cgns'):
-    recoverBC=True
+    recoverBC=False
     isHanging=False
     symmetry=0
     dfarDir=0
     IBCType=1
+    externalBCType = 'BCFarfield'
+
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -81,8 +83,8 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
                          to=to, tbox=tbox, snearsf=snearsf,
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank,
                          expand=expand, dfarDir=dfarDir)
-
     if rank==0 and check: C.convertPyTree2File(o, fileout)
+    bbo = G.bbox(o)
 
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
@@ -95,7 +97,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     bb = G.bbox(o)
     NPI = Cmpi.size
     if NPI == 1: p = Internal.copyRef(o) # keep reference
-    else: p = T.splitNParts(o, N=NPI, recoverBC=False)[rank]
+    else: p = T.splitNParts(o, N=NPI, recoverBC=recoverBC)[rank]
     del o
     test.printMem(">>> Octree unstruct split [end]")
     C.convertPyTree2File(p,"octree_%d.cgns"%rank)
@@ -104,6 +106,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     test.printMem(">>> Octree struct [start]")
     res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
     del p
+    
     if parento is not None:
         for po in parento: del po
     t = C.newPyTree(['CARTESIAN', res])
@@ -113,7 +116,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
         zname = zname+'X%d'%rank
         Internal.setName(z,zname)
     Cmpi._setProc(t, rank)
-
+ 
     C._addState(t, 'EquationDimension', dimPb)
     test.printMem(">>> Octree struct [end]")
 
@@ -202,11 +205,38 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     he = he*1.8 # distmax = sqrt(3)*dx => he min = distmax + dx + tol
     varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
     allip_pts=[]; allwall_pts=[]; allimage_pts=[]
+    _addExternalBCs(t, bbo, externalBCType, dimPb) 
+
+    extBCs=C.extractBCOfType(t,externalBCType)
+    extBCs=C.convertArray2Hexa(extBCs)
+
+    # join par niveau de resolution
+    dhMin = 1e10
+    dictOfExtBCs={}
+    for extBC in Internal.getZones(extBCs):
+        dxloc = abs(C.getValue(extBC,'CoordinateX',1)-C.getValue(extBC,'CoordinateX',0))
+        dyloc = abs(C.getValue(extBC,'CoordinateY',1)-C.getValue(extBC,'CoordinateY',0))
+        if dxloc > 0. and dhMin > dxloc: dhMin = dxloc
+        if dyloc > 0. and dhMin > dyloc: dhMin = dyloc
+
+    for extBC in Internal.getZones(extBCs):
+        dxloc = abs(C.getValue(extBC,'CoordinateX',1)-C.getValue(extBC,'CoordinateX',0))
+        dyloc = abs(C.getValue(extBC,'CoordinateY',1)-C.getValue(extBC,'CoordinateY',0))
+        dh = max(dxloc,dyloc)
+        lvl = int(dh/dhMin)
+        if lvl not in dictOfExtBCs:
+            dictOfExtBCs[lvl]=[extBC]
+        else: 
+            dictOfExtBCs[lvl].append(extBC)
+    extBCs=[]
+    for lvl in dictOfExtBCs:
+        extBCs.append(T.join(dictOfExtBCs[lvl]))
 
     for z in Internal.getZones(t):
         parentz,noz = Internal.getParentOfNode(t,z)
         ip_ptsZ = frontDict[z[0]]
         C._rmVars(z,varsn)
+        
         if ip_ptsZ != []:
             ip_ptsZC = C.node2Center(ip_ptsZ)
             C._rmVars(ip_ptsZ,varsn)
@@ -262,6 +292,9 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
         z = T.join([z,zones[noz]])
     z[0] = 'CART_P%d'%rank
 
+    # externalBCs:
+    for extBC in extBCs:
+        C._addBC2Zone(z,'externalBC',externalBCType,subzone=extBC)
     # recoverIBC familySpecified:IBMWall
     if front1 != []: # can be empty on a proc
         front1[0]='IBMWall'    
@@ -280,6 +313,27 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     if t_out is not None: Cmpi.convertPyTree2File(t, t_out)
 
     return t
+
+def get1To1Connect(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
+
+    b[0]='extFaces'; bopp[0] = 'extFacesOpp'
+    hookExtFaces=C.createHook(bopp,function='elementCenters')
+
+    # identify face centers 
+    idFaces = C.identifyElements(hookExtFaces,b)
+    
+    eltType = Internal.getZoneDim(b)[3]
+    if eltType == 'BAR': nfaces = 4
+    else: nfaces = 6
+    ELTG = []; ELTD = []
+    for noface in range(len(idFaces)):
+        if idFaces[noface] != -1:
+            nofaceopp = idFaces[noface]-1 # idFaces starts at 1
+            etg = int(indicesFacesOrig[noface]-1)//nfaces
+            etd = int(indicesFacesOrigOpp[nofaceopp]-1)//nfaces
+            ELTG.append(etg)
+            ELTD.append(etd)
+    return [ELTG, ELTD]
 
 # OUT: list [HN_C, HN_F1, HN_F2, HN_F3, HN_F4]: indices of coarse/fine1 to 4 elements, index starts at 0
 # indicesFacesOrig start at 1
@@ -530,26 +584,54 @@ def createIBMZones(tc,variables=[], typeOfPoint='Wall'):
             tw[2][1][2].append(zw)
     return tw
 
-#------------------------------------------
-# Creation of the subregions for IBM zones
-#-----------------------------------------
-#def _createIB_ZSR(z, facelist, correctedPts, wallPts, imagePts, bctype, loc='faces'):
-#    varsRM = ["Density","utau","yplus","Pressure","Velocity*"]
-#    zname = Internal.getName(z)
-#    nameSubRegion='IBCD_'+zname
-#    zsr = Internal.getNodesFromName1(z, nameSubRegion)
-#    # create new subregion for interpolations
-#    if zsr == []:
-#        dimZSR = numpy.zeros((1), numpy.int32)
-#        dimZSR[0] = correctedPts[1].shape[0]
-#        #v = numpy.fromstring(zname, 'c')
-#        z[2].append([nameSubRegion, dimZSR, [],'ZoneSubRegion_t'])
-#        info = z[2][len(z[2])-1]
-#        info[2].append(['PointList',facelist, [], 'IndexArray_t'])
-#        Internal.createChild(info,'GridLocation','GridLocation_t','FaceCenter')
-#
-#    XOD._addIBCCoords__(z, z[0], correctedPts, wallPts, imagePts, bctype)
-#    # remove some nodes created by addIBCCoord but not useful for CODA
-#    zsr=Internal.getNodesFromName1(z,nameSubRegion)[0]
-#    for vrm in varsRM: Internal._rmNodesFromName(zsr,vrm)
-#    return None
+def _addExternalBCs(t, bbox, externalBCType='BCFarfield', dimPb=3):
+    dirs = [0,1,2,3,4,5]
+    rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
+    if dimPb == 2: dirs = [0,1,3,4]
+    for zp in Internal.getZones(t):
+        dimZ = Internal.getZoneDim(zp)
+        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
+        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
+        x1 = C.getValue(zp,'CoordinateX',0)
+        y1 = C.getValue(zp,'CoordinateY',0)
+        z1 = C.getValue(zp,'CoordinateZ',0)
+        x2 = C.getValue(zp,'CoordinateX',indM)
+        y2 = C.getValue(zp,'CoordinateY',indM)
+        z2 = C.getValue(zp,'CoordinateZ',indM)
+        bbz=[x1,y1,z1,x2,y2,z2]
+        for idir in dirs:
+            if abs(bbz[idir]-bbox[idir])< 1.e-6:                    
+                C._addBC2Zone(zp, 'external', externalBCType, rangeDir[idir])
+    return None
+
+def _setSnear(z, value):
+    zones = Internal.getZones(z)
+    for z in zones:
+        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'snear', 'DataArray_t', value)
+    return None
+
+def _setDfar(z, value):
+    zones = Internal.getZones(z)
+    for z in zones:
+        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'dfar', 'DataArray_t', value)
+    return None
+
+def _setIBCType(z, value):
+    zones = Internal.getZones(z)
+    for z in zones:
+        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'ibctype', 'DataArray_t', value)
+    return None
+
+def _snearFactor(t, factor=1.):
+    zones = Internal.getZones(t)
+    for z in zones:
+        nodes = Internal.getNodesFromName2(z, 'snear')
+        for n in nodes:
+            Internal._setValue(n, factor*Internal.getValue(n))
+    return None

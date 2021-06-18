@@ -514,7 +514,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         ts = Cmpi.convertFile2SkeletonTree(t_out)
         D2._distribute(ts, Cmpi.size, algorithm='graph')
         t = Cmpi.readZones(ts, t_out, rank=rank)
-        t = Cmpi.convert2PartialTree(t)
+        Cmpi._convert2PartialTree(t)
         zones = Internal.getZones(t)
         for z in zones: z[0] = z[0] + 'X%d'%rank
         del ts

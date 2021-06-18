@@ -2720,6 +2720,98 @@ def _randomizeVar(t, var, deltaMin, deltaMax):
   _TZA(t, loc, loc, Converter.randomizeVar, Converter.randomizeVar, varname, deltaMin, deltaMax)
   return None
 
+def _orderVariables(t, varsn=[], varsc=[]):
+  nodes = Internal.getZones(t)
+  if varsn==[]:
+    for z in nodes:
+      vars = getVarNames(z, excludeXYZ=True, loc='nodes')[0]
+      for var in vars:
+        found = 0
+        for v in varsn:
+          if v == var: found = 1
+        if found == 0: varsn.append(var)
+  if varsc==[]:
+    for z in nodes:
+      vars = getVarNames(z, excludeXYZ=True, loc='centers')[0]
+      for var in vars:
+        found = 0
+        for v in varsc:
+          if v == var: found = 1
+        if found == 0: varsc.append(var)
+
+  #1/ Sort coordinates
+  #2/ Sort FlowSolution nodes
+  varx = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
+  for z in nodes:
+    cont = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+    if cont is not None:
+      children = cont[2]
+      childrenNames = []
+      for c in children: childrenNames.append(c[0])
+      new = []
+      for name in varx:
+        try:
+          s1 = childrenNames.index(name)
+          new.append(children[s1])
+        except: pass
+      cont[2] = new
+
+  for z in nodes:
+    cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
+    if cont is not None:
+      children = cont[2]
+      childrenNames = []
+      for c in children: childrenNames.append(c[0])
+      new = []
+      for name in varsn:
+        try:
+          s1 = childrenNames.index(name)
+          new.append(children[s1])
+        except: pass
+      pos = 0
+      for name in childrenNames:
+        try:
+          s1 = varsn.index(name)
+        except: new.append(children[pos])
+        pos += 1
+      cont[2] = new
+
+  #3. Sort flow solution centers
+  for z in nodes:
+    cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
+    if cont is not None:
+      children = cont[2]
+      childrenNames = []
+      for c in children: childrenNames.append('centers:'+c[0])
+      new = []
+      for name in varsc:
+        try:
+          s1 = childrenNames.index(name)
+          new.append(children[s1])
+        except: pass
+      pos = 0
+      for name in childrenNames:
+        try:
+          s1 = varsc.index(name)
+        except: new.append(children[pos])
+        pos += 1
+      cont[2] = new
+    return None
+
+#reorder containers: GC, then FSN, then FSC
+def _orderContainers(t):
+  for z in Internal.getZones(t):
+    c = 0; i0 = -1; i1 = -1; i2 = -1
+    for j in z[2]:
+      if j[0] == Internal.__GridCoordinates__: i0 = c
+      if j[0] == Internal.__FlowSolutionNodes__: i1 = c
+      if j[0] == Internal.__FlowSolutionCenters__: i2 = c
+      c += 1
+    if i0 > i1 and i1 != -1: tmp = z[2][i1]; z[2][i1] = z[2][i0]; z[2][i0] = tmp; tmp = i1; i1 = i0; i0 = tmp
+    if i0 > i2 and i2 != -1: tmp = z[2][i2]; z[2][i2] = z[2][i0]; z[2][i0] = tmp; tmp = i2; i2 = i0; i0 = tmp
+    if i1 > i2 and i2 != -1: tmp = z[2][i2]; z[2][i2] = z[2][i1]; z[2][i1] = tmp; tmp = i2; i2 = i1; i1 = tmp
+  return None
+
 # -- fillMissingVariables: remplit les variables manquantes pour que toutes
 # les zones aient les memes variables
 def fillMissingVariables(t):
@@ -2752,78 +2844,12 @@ def _fillMissingVariables(t):
   # add vars
   _addVars(t, varsn+varsc)
 
+  
   # Reorder vars for all zones
-  nodes = Internal.getZones(t)
+  _orderVariables(t, varsn, varsc)
 
-  varx = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
-  for z in nodes:
-    # Tri les coordonnees
-    cont = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
-    if cont is not None:
-      children = cont[2]
-      childrenNames = []
-      for c in children: childrenNames.append(c[0])
-      new = []
-      for name in varx:
-        try:
-          s1 = childrenNames.index(name)
-          new.append(children[s1])
-        except: pass
-      cont[2] = new
+  _orderContainers(t)
 
-  for z in nodes:
-    # Tri les variables en noeuds
-    cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
-    if cont is not None:
-      children = cont[2]
-      childrenNames = []
-      for c in children: childrenNames.append(c[0])
-      new = []
-      for name in varsn:
-        try:
-          s1 = childrenNames.index(name)
-          new.append(children[s1])
-        except: pass
-      pos = 0
-      for name in childrenNames:
-        try:
-          s1 = varsn.index(name)
-        except: new.append(children[pos])
-        pos += 1
-      cont[2] = new
-
-  for z in nodes:
-    # tri les variables en centres
-    cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
-    if cont is not None:
-      children = cont[2]
-      childrenNames = []
-      for c in children: childrenNames.append('centers:'+c[0])
-      new = []
-      for name in varsc:
-        try:
-          s1 = childrenNames.index(name)
-          new.append(children[s1])
-        except: pass
-      pos = 0
-      for name in childrenNames:
-        try:
-          s1 = varsc.index(name)
-        except: new.append(children[pos])
-        pos += 1
-      cont[2] = new
-
-    for z in nodes:
-      # reordonne les containers
-      c = 0; i0 = -1; i1 = -1; i2 = -1
-      for j in z[2]:
-        if j[0] == Internal.__GridCoordinates__: i0 = c
-        if j[0] == Internal.__FlowSolutionNodes__: i1 = c
-        if j[0] == Internal.__FlowSolutionCenters__: i2 = c
-        c += 1
-      if i0 > i1 and i1 != -1: tmp = z[2][i1]; z[2][i1] = z[2][i0]; z[2][i0] = tmp; tmp = i1; i1 = i0; i0 = tmp
-      if i0 > i2 and i2 != -1: tmp = z[2][i2]; z[2][i2] = z[2][i0]; z[2][i0] = tmp; tmp = i2; i2 = i0; i0 = tmp
-      if i1 > i2 and i2 != -1: tmp = z[2][i2]; z[2][i2] = z[2][i1]; z[2][i1] = tmp; tmp = i2; i2 = i1; i1 = tmp
   return None
 
 # -- cpVars
