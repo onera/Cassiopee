@@ -448,6 +448,9 @@ def conformizeHMesh(hmesh):
     Usage: conformizeHMesh(hooks)"""
     return intersector.conformizeHMesh(hmesh)
 
+def interpolateHMeshNodalField(hooks, fieldN):
+    return intersector.interpolateHMeshNodalField(hooks, fieldN)
+
 def createSensor(hmesh, sensor_type = 0, smoothing_type=0 , itermax = -1):
     return intersector.createSensor(hmesh, sensor_type, smoothing_type, itermax)
 

@@ -990,6 +990,83 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
   return Py_None;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//============================================================================
+/* Deletes a hmesh */
+//============================================================================
+template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
+void __interpolateHMeshNodalField(const void* hmesh_ptrs, std::vector<double>& fieldN)
+{
+  using mesh_type = NUGA::hierarchical_mesh<ELT_t, STYPE>;
+  mesh_type* hmesh = (mesh_type*)hmesh_ptrs;
+  //todo Pablo
+}
+
+template <NUGA::eSUBDIV_TYPE STYPE>
+void __interpolateHMeshNodalField(E_Int etype, const void* hmesh_ptr, std::vector<double>& fieldN)
+{
+  if (etype == elt_t::HEXA)
+    __interpolateHMeshNodalField<K_MESH::Hexahedron, STYPE>(hmesh_ptr, fieldN);
+  else if (etype == (E_Int)elt_t::TETRA)
+    __interpolateHMeshNodalField<K_MESH::Tetrahedron, STYPE>(hmesh_ptr, fieldN);
+  else if (etype == (E_Int)elt_t::PRISM3)
+    __interpolateHMeshNodalField<K_MESH::Prism, STYPE>(hmesh_ptr, fieldN);
+  else if (etype == (E_Int)elt_t::BASIC)
+    __interpolateHMeshNodalField<K_MESH::Basic, STYPE>(hmesh_ptr, fieldN);
+}
+
+template <>
+void __interpolateHMeshNodalField<NUGA::ISO_HEX>(E_Int etype/*dummy*/, const void* hmesh_ptr, std::vector<double>& fieldN)
+{
+  __interpolateHMeshNodalField<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr, fieldN);
+}
+
+template <>
+void __interpolateHMeshNodalField<NUGA::DIR>(E_Int etype/*dummy*/, const void* hmesh_ptr, std::vector<double>& fieldN)
+{
+  __interpolateHMeshNodalField<K_MESH::Hexahedron, NUGA::DIR>(hmesh_ptr, fieldN);
+}
+
+PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* args)
+{
+  PyObject *hook{nullptr}, *pyfieldN{nullptr};
+
+  if (!PyArg_ParseTuple(args, "O", &hook, &pyfieldN))
+  {
+      return NULL;
+  }
+
+  //todo Pablo : reupérer correctement les argument
+  //pyfieldN => fieldN
+  std::vector<double> fieldN;
+
+  // recupere le hook
+  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
+  std::string* vString{ nullptr };
+  void** packet{ nullptr };
+  void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, vString, packet);
+  
+  if (*sub_type == NUGA::ISO)
+    __interpolateHMeshNodalField<NUGA::ISO>(*elt_type, hmesh, fieldN);
+  else if (*sub_type == NUGA::ISO_HEX)
+    __interpolateHMeshNodalField<NUGA::ISO_HEX>(*elt_type, hmesh, fieldN);
+  else if (*sub_type == NUGA::DIR)
+    __interpolateHMeshNodalField<NUGA::DIR>(*elt_type, hmesh, fieldN);
+
+
+  //todo Pablo : retourner le champ mis à jour
+
+  delete hook_id;
+  delete vString;
+  delete sub_type;
+  delete elt_type;
+  delete [] packet;
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 //============================================================================
 /* Create a Geom sensor and returns a hook */
 //============================================================================

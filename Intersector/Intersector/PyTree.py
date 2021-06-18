@@ -2156,6 +2156,52 @@ def _conformizeHMesh(t, hooks):
         i=i+1
 
 #==============================================================================
+# conformizeHMesh : Converts the basic element leaves of a hierarchical mesh (hooks is a list of hooks to hiearchical zones) to a conformal polyhedral mesh.
+#                   Each hiearchcial zone is referring to a zone in the original mesh t. So the mesh is replaced in the returned tree and the BCs/Joins/Fields are transferred.
+# IN: t : PyTree before adaptation
+# IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
+# OUT: Nothing 
+#==============================================================================
+def interpolateHMeshNodalField(t, hooks):
+    """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
+    Usage: conformizeHMesh(t, hooks)"""
+    tp = Internal.copyRef(t)
+    _interpolateHMeshNodalField(tp, hooks)
+    return tp
+
+#==============================================================================
+# _interpolateHMeshNodalField : XXX
+#==============================================================================
+def _interpolateHMeshNodalField(t, hooks, fname):
+    """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
+    Usage: _conformizeHMesh(t, hooks)"""
+    nb_hooks = len(hooks)
+    zones = Internal.getZones(t)
+    nb_zones = len(zones)
+
+    if nb_zones != nb_hooks:
+        print('must give one hook per zone')
+        return
+    i=0
+    for z in zones:
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m == []: continue
+        if hooks[i] == None : continue
+
+        fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        if fieldsN == [] : fieldsN = None
+
+        #todo Pablo : recuperation du field ayant pour nom fname : u ou v
+        fieldN = None # fieldsN[toto]
+        
+        ofield = intersector.interpolateHMeshNodalField(hooks[i], fieldN)
+
+        ## MAJ node fields
+        #C.setFields([ofield], z, 'nodes', False)
+                
+        i=i+1
+
+#==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points
 #==============================================================================
 def adaptBox(t, box_ratio = 10., smoothing_type=0, itermax=-1):

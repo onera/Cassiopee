@@ -87,6 +87,7 @@ namespace K_INTERSECTOR
   PyObject* createCom(PyObject* self, PyObject* args);
   PyObject* deleteCom(PyObject* self, PyObject* args);
   PyObject* conformizeHMesh(PyObject* self, PyObject* args);
+  PyObject* interpolateHMeshNodalField(PyObject* self, PyObject* args);
   
   PyObject* extractUncomputables(PyObject* self, PyObject* args);
   PyObject* extractPathologicalCells(PyObject* self, PyObject* args);
