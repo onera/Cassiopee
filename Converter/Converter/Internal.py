@@ -246,17 +246,23 @@ def setValue(node, value=None):
                 node[1] = numpy.array(value, dtype=numpy.int32, order='F')
             elif isinstance(testValue, str):
                 if isinstance(value[0], str):
-                    v = numpy.empty( (32,len(value) ), dtype='c', order='F')
+                    size = 0
+                    for v in value: size = max(len(v), size)
+                    v = numpy.empty( (size,len(value) ), dtype='c', order='F')
                     for c, i in enumerate(value): 
-                        s = min(len(i),32)
+                        s = min(len(i),size)
                         v[:,c] = ' '
                         v[0:s,c] = i[0:s]
                     node[1] = v
                 else:
-                    v = numpy.empty( (32,len(value[0]),len(value) ), dtype='c', order='F')
+                    size = 0
+                    for v in value: 
+                        for d in v:
+                            size = max(len(d), size)
+                    v = numpy.empty( (size,len(value[0]),len(value) ), dtype='c', order='F')
                     for c in range(len(value)):
                         for d in range(len(value[c])):
-                            s = min(len(value[c][d]),32)
+                            s = min(len(value[c][d]),size)
                             v[:,d,c] = ' '
                             v[0:s,d,c] = value[c][d][0:s]
                     node[1] = v
@@ -269,13 +275,25 @@ def setValue(node, value=None):
                 node[1] = numpy.array(value, dtype=numpy.int32, order='F')
             elif isinstance(testValue, str):
                 if isinstance(value[0], str):
-                    v = numpy.empty( (32,len(value) ), dtype='c', order='F')
-                    for c, i in enumerate(value): v[:,c] = i[:]
+                    size = 0
+                    for v in value: size = max(len(v), size)
+                    v = numpy.empty( (size,len(value) ), dtype='c', order='F')
+                    for c, i in enumerate(value): 
+                        s = min(len(i),size)
+                        v[:,c] = ' '
+                        v[0:s,c] = i[0:s]
                     node[1] = v
                 else:
-                    v = numpy.empty( (32,len(value[0]),len(value) ), dtype='c', order='F')
+                    size = 0
+                    for v in value: 
+                        for d in v:
+                            size = max(len(d), size)
+                    v = numpy.empty( (size,len(value[0]),len(value) ), dtype='c', order='F')
                     for c in range(len(value)):
-                        for d in range(len(value[c])): v[:,d, c] = value[c][d][:]
+                        for d in range(len(value[c])):
+                            s = min(len(value[c][d]),size)
+                            v[:,d,c] = ' '
+                            v[0:s,d,c] = value[c][d][0:s]
                     node[1] = v
         else: node[1] = numpy.array([value])
     return None

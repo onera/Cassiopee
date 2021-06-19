@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SPLITTER_H
 #define NUGA_SPLITTER_H
@@ -922,7 +922,7 @@ void NUGA::Splitter::__apply_pgs_splits(ngon_unit& PHs, const ngon_unit& split_g
         continue;
       else
       {
-        for (size_t k = 0; k < nb_split; ++k)
+        for (E_Int k = 0; k < nb_split; ++k)
           molecPH.push_back(new_facets[k] + 1);
       }
     }

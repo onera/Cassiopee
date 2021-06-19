@@ -245,7 +245,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     E_Float imds2 = E_Int(imd/2);
     E_Float jmds2 = E_Int(jmd/2);
     E_Float kmds2 = E_Int(kmd/2);
-    if ( kmd == 1) kmds2 = 1;
+    if (kmd == 1) kmds2 = 1;
     E_Int inds2 = imds2-1 + (jmds2-1)*imd + (kmds2-1)*imd*jmd;
     E_Float hi = xt[inds2+1]-xt[inds2];
     E_Float hj = yt[inds2+imd]-yt[inds2];

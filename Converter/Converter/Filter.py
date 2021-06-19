@@ -408,6 +408,12 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
 
     # Level3 (FlowSolution_t/UserDefinedData_t/DataArray_t)
     for i in n[2]:
+      if i[0] == 'TimeMotion':
+        for j in i[2]:
+          if j[3] == 'TimeRigidMotion_t':
+            for k in j[2]:
+              if k[3] == 'DataArray_t' and k[1] is None: paths.append(p+'/'+i[0]+'/'+j[0]+'/'+k[0])
+
       if i[3] == 'FlowSolution_t':
         for j in i[2]:
           if j[3] == 'UserDefinedData_t':

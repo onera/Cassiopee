@@ -1111,7 +1111,7 @@ E_Int K_IO::GenIO::tpwriteText(char* file, FldArrayF& field, FldArrayI& number)
 }
 
 //==============================================================================
-// Converti une string an int.
+// Converti une string en int.
 // Retourne 0 si fail, sinon retourne l'entier
 // Vire le debut s'il commence par 0 ou autre chose.
 //==============================================================================

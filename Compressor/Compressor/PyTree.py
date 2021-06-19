@@ -151,18 +151,33 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True):
             if abs(xp[2] - xp[1] - hi) > 1.e-10: cartesian = False
             if abs(yp[1] - y0) > 1.e-10: cartesian = False
             if abs(zp[1] - z0) > 1.e-10: cartesian = False
-        if nj > 1: hj = yp[ni]-y0 
+        if ni > 3:
+            if abs(xp[3] - xp[2] - hi) > 1.e-10: cartesian = False
+            if abs(yp[3] - y0) > 1.e-10: cartesian = False
+            if abs(zp[3] - z0) > 1.e-10: cartesian = False
+
+        if nj > 1: hj = yp[ni]-y0
         else: hj = 1.
+
         if nj > 2:
             if abs(yp[2*ni] - yp[ni] - hj) > 1.e-10: cartesian = False
             if abs(xp[ni] - x0) > 1.e-10: cartesian = False
             if abs(zp[ni] - z0) > 1.e-10: cartesian = False
+        if nj > 3:
+            if abs(yp[3*ni] - yp[2*ni] - hj) > 1.e-10: cartesian = False
+            if abs(xp[2*ni] - x0) > 1.e-10: cartesian = False
+            if abs(zp[2*ni] - z0) > 1.e-10: cartesian = False
+            
         if nk > 1: hk = zp[ni*nj]-z0
         else: hk = 1.
         if nk > 2: 
             if abs(zp[2*ni*nj] - zp[ni*nj] - hk) > 1.e-10: cartesian = False
             if abs(xp[ni*nj] - x0) > 1.e-10: cartesian = False
             if abs(yp[ni*nj] - y0) > 1.e-10: cartesian = False
+        if nk > 3: 
+            if abs(zp[3*ni*nj] - zp[2*ni*nj] - hk) > 1.e-10: cartesian = False
+            if abs(xp[2*ni*nj] - x0) > 1.e-10: cartesian = False
+            if abs(yp[2*ni*nj] - y0) > 1.e-10: cartesian = False
 
         if cartesian and layers is not None:
             vars  = C.getVarNames(z, excludeXYZ=True)[0]

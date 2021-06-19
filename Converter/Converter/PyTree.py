@@ -2844,7 +2844,6 @@ def _fillMissingVariables(t):
   # add vars
   _addVars(t, varsn+varsc)
 
-  
   # Reorder vars for all zones
   _orderVariables(t, varsn, varsc)
 

@@ -42,7 +42,7 @@ int readLine(FILE* ptrFile, char* buf)
   }
   if (i > 0) buf[i-1] = '\0';
   else buf[0] = '\0';
-  printf("LINE: %s\n", buf);
+  //printf("LINE: %s\n", buf);
   return 0;
 }
 
@@ -58,35 +58,88 @@ void getFirstWord(char* buf, char* word, E_Int& length)
   printf("WORD:%s\n", word);
 }
 
-void readPoints(FILE* ptrFile, E_Boolean changeEndian, E_Int& npts, float*& b)
+//========================================================================
+// read POINTS
+void readPoints(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+                E_Int& npts, float*& bf, double*& bd)
 {
-  char buf[256];
+  bf = NULL; bd = NULL;
+  char buf[256]; char type[256];
   readLine(ptrFile, buf);
   E_Int l = strlen(buf);
   E_Int count = 0;
   while (buf[count] != ' ' && buf[count] != '\n') count++;
-  for (E_Int i = 0; i <= l-count; i++) buf[i] = buf[i+count];
+  for (E_Int i = 0; i <= l-count; i++) buf[i] = buf[i+count+1];
+  
+  count = 0;
+  while (buf[count] != ' ' && buf[count] != '\n') count++;
+  for (E_Int i = 0; i <= l-count; i++) type[i] = buf[i+count+1];
+  buf[count] = '\0';
+
   npts = 0;
   sscanf(buf, "%d", &npts);
-  printf("npts: %d\n", npts);
-  b = new float [npts*3];
-  fread(b, sizeof(float), 3*npts, ptrFile);
-  if (changeEndian)
+  printf("POINTS npts: %d, type=%s\n", npts, type);
+
+  if (strcmp(type, "double") == 0)
   {
-    for (E_Int i = 0; i < 3*npts; i++) b[i] = FBE(b[i]);
+    bd = new double [npts*3];
+    if (formated == false)
+    {
+        fread(bd, sizeof(double), 3*npts, ptrFile);
+        fgetc(ptrFile); // skip \n
+    }
+    else
+    {
+        for (E_Int i = 0; i < npts; i++) 
+            fscanf(ptrFile, "%lf %lf %lf\n", &bd[3*i], &bd[3*i+1], &bd[3*i+2]);
+    }
+    if (changeEndian)
+    {
+        for (E_Int i = 0; i < 3*npts; i++) bd[i] = DBE(bd[i]);
+    }
+    printf("point0 %lf %f %lf\n", bd[0], bd[1], bd[2]);
+    printf("point1 %lf %lf %lf\n", bd[3], bd[4], bd[5]);
   }
-  printf("point %f\n", b[0]);
-  fgetc(ptrFile); // avoid \n
+  else
+  {
+    bf = new float [npts*3];
+    if (formated == false)
+    {
+        fread(bf, sizeof(float), 3*npts, ptrFile);
+        fgetc(ptrFile); // avoid \n
+    }
+    else
+    {
+        for (E_Int i = 0; i < npts; i++) 
+            fscanf(ptrFile, "%f %f %f\n", &bf[3*i], &bf[3*i+1], &bf[3*i+2]);
+    }
+    if (changeEndian)
+    {
+        for (E_Int i = 0; i < 3*npts; i++) bf[i] = FBE(bf[i]);
+    }
+    printf("point0 %f %f %f\n", bf[0], bf[1], bf[2]);
+    printf("point1 %f %f %f\n", bf[3], bf[4], bf[5]);
+  }
+   
 }
 
-void readCells(FILE* ptrFile, E_Boolean changeEndian, E_Int& ncells, E_Int& size, int*& cells)
+//===========================================================================
+void readCells(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated, E_Int& ncells, E_Int& size, int*& cells)
 {
-  char buf[256]; char buf2[256];
+  char buf[256]; char buf2[256]; char cellType[256];
   readLine(ptrFile, buf);
+  
+  // recupere le cell type
+  E_Int i = 0;
+  while (buf[i] != '\0' && buf[i] != ' ') { cellType[i] = buf[i]; i++; }
+  cellType[i] = '\0';
+  E_Int prev = strlen(cellType)+1;
+  printf("cell Type=%s\n", cellType);
+
   // Recupere le nombre de cellules
-  E_Int i = 6;
-  while (buf[i] != '\0' && buf[i] != ' ') { buf2[i-6] = buf[i]; i++; }
-  buf2[i-6] = '\0';
+  i = prev;
+  while (buf[i] != '\0' && buf[i] != ' ') { buf2[i-prev] = buf[i]; i++; }
+  buf2[i-prev] = '\0';
   ncells = 0;
   sscanf(buf2, "%d", &ncells);
   printf("ncells: %d\n", ncells);
@@ -98,67 +151,263 @@ void readCells(FILE* ptrFile, E_Boolean changeEndian, E_Int& ncells, E_Int& size
   sscanf(buf2, "%d", &size);
   printf("size: %d\n", size);
   cells = new int [size];
-  fread(cells, sizeof(int), size, ptrFile);
+  if (formated == false)
+  {
+    fread(cells, sizeof(int), size, ptrFile);
+    fgetc(ptrFile); // avoid \n
+  }
+  else
+  {
+    // force to triangle for now
+    //E_Int npic;
+    //for (E_Int i = 0; i < size; i++) 
+    //{
+    //    fscanf(ptrFile, "%d %d %d %d\n", &npic, &cells);    
+    //}
+  }
   if (changeEndian)
   {
     for (E_Int i = 0; i < size; i++) cells[i] = IBE(cells[i]);
   }
   printf("cells=%d\n", cells[0]);
-  fgetc(ptrFile); // avoid \n
 }
 
-void readCellTypes(FILE* ptrFile, E_Boolean changeEndian, E_Int ncells, int*& cellTypes)
+//===========================================================================
+void readCellTypes(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated, 
+                   E_Int ncells, int*& cellTypes)
 {
   char buf[256];
   readLine(ptrFile, buf);
   cellTypes = new int [ncells];
-  fread(cellTypes, sizeof(int), ncells, ptrFile);
+  if (formated == false)
+  {
+    fread(cellTypes, sizeof(int), ncells, ptrFile);
+    fgetc(ptrFile); // avoid \n
+  }
+  else
+  {
+    for (E_Int i = 0; i < ncells; i++) fscanf(ptrFile, "%d", &cellTypes[i]);
+  }
   if (changeEndian)
   {
     for (E_Int i = 0; i < ncells; i++) cellTypes[i] = IBE(cellTypes[i]);
   } 
   printf("cellTypes=%d\n", cellTypes[0]);
-  fgetc(ptrFile); // avoid \n
 }
 
-void readScalar(FILE* ptrFile, E_Boolean changeEndian, E_Int npts, char* varName, float*& field)
-{ 
-  char buf[256];
+//=========================================================================
+void readType(FILE* ptrFile, char* rtype, E_Int& n1, E_Int& n2)
+{
+  char buf[256]; char buf2[256];
   readLine(ptrFile, buf);
-  // Recupere le nom du champ
-  E_Int i = 8;
-  while (buf[i] != '\0' && buf[i] != ' ') { varName[i-8] = buf[i]; i++; }
-  varName[i-8] = '\0';
-  printf("varname=%s\n", varName);
+  
+  // recupere le mot cle
+  E_Int i = 0;
+  while (buf[i] != '\0' && buf[i] != ' ') { rtype[i] = buf[i]; i++; }
+  rtype[i] = '\0';
+  E_Int prev = strlen(rtype)+1;
+  printf("rtype=%s\n", rtype);
+
+  // Recupere le nombre de cellules
+  i = prev;
+  while (buf[i] != '\0' && buf[i] != ' ') { buf2[i-prev] = buf[i]; i++; }
+  buf2[i-prev] = '\0';
+  n1 = 0;
+  sscanf(buf2, "%d", &n1);
+  printf("n1: %d\n", n1);
+
+  // recupere la taille totale de la connectivite
+  i += 1;
+  E_Int is = i;
+  while (buf[i] != '\0' && buf[i] != ' ') { buf2[i-is] = buf[i]; i++; }
+  buf2[i-is] = '\0';
+  sscanf(buf2, "%d", &n2);
+  printf("n2: %d\n", n2);
+}
+
+//===========================================================================
+void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+                  E_Int& ncells, E_Int& size, E_Int*& cells)
+{
+  char celltype[256];
+  readType(ptrFile, celltype, ncells, size);
+  printf("ncells = %d, size=%d\n", ncells, size);
+  cells = new E_Int [size];
+  E_Int num;
+
+  if (formated)
+  {
+      E_Int c = 0;
+      for (E_Int i = 0; i < ncells; i++) 
+      {
+        fscanf(ptrFile, "%d ", &num);
+        cells[c] = num; c++;
+        if (num == 2) fscanf(ptrFile, "%d %d\n", &cells[c], &cells[c+1]);
+        else if (num == 3) fscanf(ptrFile, "%d %d %d\n", &cells[c], &cells[c+1], &cells[c+2]);
+        else if (num == 4) fscanf(ptrFile, "%d %d %d %d\n", &cells[c], &cells[c+1], &cells[c+2], &cells[c+3]);
+        c += num;
+      }
+  }
+  else
+  {
+      fread(cells, sizeof(E_Int), size, ptrFile);
+  }
+  printf("cells[0]=%d %d %d\n", cells[0], cells[1], cells[2]);
+}
+
+//========================================================================
+void readScalar(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+                E_Int npts, char* varName, float*& fieldf, double*& fieldd)
+{ 
+  fieldf = NULL; fieldd = NULL;
+
+  char buf[256];
+
+  // recupere dataName, dataType, numComp
+  char dataType[256]; E_Int numComp;
+  fscanf(ptrFile, " %s %s %d\n", varName, dataType, &numComp);
+  printf("varName=%s, dataType=%s, numCom=%d\n", varName, dataType, numComp);
+
   // Passe lookup table
   readLine(ptrFile, buf);
-  field = new float [npts];
-  fread(field, sizeof(float), npts, ptrFile);
-  if (changeEndian)
+
+  if (strcmp(dataType, "float") == 0)
   {
-    for (E_Int i = 0; i < npts; i++) field[i] = FBE(field[i]);
+    fieldf = new float [npts];
+    if (formated == false)
+    {
+        fread(fieldf, sizeof(float), npts, ptrFile);
+        fgetc(ptrFile); // avoid \n
+    }
+    else
+    {
+        for (E_Int i = 0; i < npts; i++) fscanf(ptrFile, "%f", &fieldf[i]);
+    }
+    if (changeEndian)
+    {
+        for (E_Int i = 0; i < npts; i++) fieldf[i] = FBE(fieldf[i]);
+    }
   }
-  fgetc(ptrFile); // avoid \n
+  else if (strcmp(dataType, "double") == 0)
+  {
+    fieldd = new double [npts];
+    if (formated == false)
+    {
+        fread(fieldd, sizeof(double), npts, ptrFile);
+        fgetc(ptrFile); // avoid \n
+    }
+    else
+    {
+        for (E_Int i = 0; i < npts; i++) fscanf(ptrFile, "%lf", &fieldd[i]);
+    }
+    if (changeEndian)
+    {
+        for (E_Int i = 0; i < npts; i++) fieldd[i] = DBE(fieldd[i]);
+    }
+  }
 }
 
-void readVector(FILE* ptrFile, E_Boolean changeEndian, E_Int npts, char* varName, float*& field)
+//==========================================================================
+void readVector(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+                E_Int npts, char* varName, float*& fieldf, double*& fieldd)
 { 
-  char buf[256];
-  readLine(ptrFile, buf);
-  // Recupere le nom du champ
-  E_Int i = 8;
-  while (buf[i] != '\0' && buf[i] != ' ') { varName[i-8] = buf[i]; i++; }
-  varName[i-8] = '\0';
-  printf("varname=%s\n", varName);
-  field = new float [3*npts];
-  fread(field, sizeof(float), 3*npts, ptrFile);
-  if (changeEndian)
+  fieldf = NULL; fieldd = NULL;
+
+  // recupere dataName, dataType
+  char dataType[256];
+  fscanf(ptrFile, " %s %s\n", varName, dataType);
+  printf("varName=%s, dataType=%s\n", varName, dataType);
+
+  if (strcmp(dataType, "float") == 0)
   {
-    for (E_Int i = 0; i < 3*npts; i++) field[i] = FBE(field[i]);
+    fieldf = new float [3*npts];
+    if (formated == false)
+    {
+        fread(fieldf, sizeof(float), 3*npts, ptrFile);
+        fgetc(ptrFile); // avoid \n
+    }
+    else
+    {
+        for (E_Int i = 0; i < npts; i++) fscanf(ptrFile, "%f %f %f", &fieldf[3*i], &fieldf[3*i+1], &fieldf[3*i+2]);
+    }
+    if (changeEndian)
+    {
+        for (E_Int i = 0; i < 3*npts; i++) fieldf[i] = FBE(fieldf[i]);
+    }
   }
-  fgetc(ptrFile); // avoid \n
+  else if (strcmp(dataType, "double") == 0)
+  {
+    fieldd = new double [3*npts];
+    if (formated == false)
+    {
+        fread(fieldd, sizeof(double), 3*npts, ptrFile);
+        fgetc(ptrFile); // avoid \n
+    }
+    else
+    {
+        for (E_Int i = 0; i < npts; i++) fscanf(ptrFile, "%lf %lf %lf", &fieldd[3*i], &fieldd[3*i+1], &fieldd[3*i+2]);
+    }
+    if (changeEndian)
+    {
+        for (E_Int i = 0; i < 3*npts; i++) fieldd[i] = DBE(fieldd[i]);
+    }
+  }
 }
 
+//========================================================================
+void readField(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+               E_Int& npts, E_Int& nfields, char* varName, float*& fieldf, double*& fieldd)
+{ 
+  fieldf = NULL; fieldd = NULL;
+
+  // recupere dataName, numArrays
+  char dataName[256]; E_Int numArrays;
+  fscanf(ptrFile, " %s %d\n", dataName, &numArrays);
+  printf("dataName=%s, numArrays=%d\n", dataName, numArrays);
+  
+  // Lit uniquement la premiere variable
+  E_Int numComponents; E_Int numTuples; char dataType[256];
+  fscanf(ptrFile, "%s %d %d %s\n", varName, &numComponents, &numTuples, dataType);
+  npts = numTuples;
+  nfields = numComponents;
+  E_Int size = npts*nfields;
+  printf("varName=%s, dataType=%s, npts=%d\n", varName, dataType, npts);
+
+  if (strcmp(dataType, "float") == 0)
+  {
+    fieldf = new float [size];
+    if (formated == false)
+    {
+        fread(fieldf, sizeof(float), size, ptrFile);
+        fgetc(ptrFile); // avoid \n
+    }
+    else
+    {
+        for (E_Int i = 0; i < size; i++) fscanf(ptrFile, "%f", &fieldf[i]);
+    }
+    if (changeEndian)
+    {
+        for (E_Int i = 0; i < size; i++) fieldf[i] = FBE(fieldf[i]);
+    }
+  }
+  else if (strcmp(dataType, "double") == 0)
+  {
+    fieldd = new double [size];
+    if (formated == false)
+    {
+        fread(fieldd, sizeof(double), size, ptrFile);
+        fgetc(ptrFile); // avoid \n
+    }
+    else
+    {
+        for (E_Int i = 0; i < size; i++) fscanf(ptrFile, "%lf", &fieldd[i]);
+    }
+    if (changeEndian)
+    {
+        for (E_Int i = 0; i < size; i++) fieldd[i] = DBE(fieldd[i]);
+    }
+  }
+}
 
 //=============================================================================
 /* binvtkread
@@ -172,7 +421,6 @@ E_Int K_IO::GenIO::binvtkread(
   vector<FldArrayI*>& connect,
   vector<E_Int>& eltType, vector<char*>& zoneNames)
 {
-  E_Boolean changeEndian = true;
   
   /* File Opening */
   FILE* ptrFile;
@@ -187,141 +435,233 @@ E_Int K_IO::GenIO::binvtkread(
   E_Int i; char c;
 
   // Lecture de la version (jusqu'a newline)
-  char buf[256];
+  char buf[257];
   i = 0; c = '1';
   while (c != '\n') { c = fgetc(ptrFile); buf[i] = c; i++; }
   buf[i] = '\0';
-  buf[22] = '\0';
   printf("version: %s\n", buf);
+  buf[22] = '\0';
   if (strcmp(buf, "# vtk DataFile Version") != 0) { fclose(ptrFile); return 1; }
   
-  // Lecture de la description (jusqu'a newline)
+  // Lecture du header (jusqu'a newline)
   i = 0; c = '1';
   while (c != '\n') { c = fgetc(ptrFile); buf[i] = c; i++; }
   buf[i] = '\0';
-  printf("description: %s\n", buf);
+  printf("header: %s\n", buf);
   
   // Type de format BINARY or ASCII
   i = 0; c = '1';
   while (c != '\n') { c = fgetc(ptrFile); buf[i] = c; i++; }
   buf[i-1] = '\0';
-  printf("DATA: %s\n", buf);
-  if (strcmp(buf, "BINARY") != 0) { fclose(ptrFile); return 1; }
-  // must be binary here
+  printf("FORMAT: %s\n", buf);
+  E_Boolean formated = true;
+  E_Boolean changeEndian = false;
+
+  if (strcmp(buf, "BINARY") == 0) { formated = false; changeEndian = true; }
+  printf("isformated=%d, changeEndian=%d\n", formated, changeEndian);
   
   // Type de Data (STRUCTURED_POINTS, STRUCTURED_GRID, RECTILINEAR_GRID, POLYDATA, UNSTRUCTURED_GRID)
+  char dataSetType[256];
   i = 0; c = '1';
   while (c != '\n') { c = fgetc(ptrFile); buf[i] = c; i++; }
   buf[i-1] = '\0';
-  printf("TYPE: %s\n", buf);  
   E_Int l = strlen(buf);
-  for (E_Int i = 0; i <= l-8; i++) buf[i] = buf[i+8];
-  printf("TYPE: %s\n", buf);
+  for (E_Int i = 0; i <= l-8; i++) dataSetType[i] = buf[i+8];
+  dataSetType[i] = '\0';
+  printf("DATA SET TYPE: %s\n", dataSetType);
 
-  if (strcmp(buf, "FIELD") != 0)
+  E_Int npts; float* ptsf; double* ptsd;
+  int* cells; int* cellTypes; E_Int ncells; E_Int size;
+    
+  if (strcmp(dataSetType, "POLYDATA") == 0)
   {
     // Read POINTS
-    E_Int npts; float* pts;
-    readPoints(ptrFile, changeEndian, npts, pts);
+    readPoints(ptrFile, changeEndian, formated, npts, ptsf, ptsd);
+    
+    // READ ngon cells (only polygons for now)
+    readPolygons(ptrFile, changeEndian, formated, ncells, size, cells);
+  }
+  else if (strcmp(dataSetType, "UNSTRUCTURED_GRID") == 0)
+  {
+    // Read POINTS
+    readPoints(ptrFile, changeEndian, formated, npts, ptsf, ptsd);
     
     // READ CELLS
-    int* cells; int* cellTypes; E_Int ncells; E_Int size;
-    readCells(ptrFile, changeEndian, ncells, size, cells);
-    readCellTypes(ptrFile, changeEndian, ncells, cellTypes);
+    readCells(ptrFile, changeEndian, formated, ncells, size, cells);
+    readCellTypes(ptrFile, changeEndian, formated, ncells, cellTypes);
+  }
+  else 
+  {
+    printf("Warning: this kind of dataSet (%s) is not implemented.\n", dataSetType);
+  }
+
+  // READ POINT_DATA
+  E_Int ret = readLine(ptrFile, buf);
+  printf("keyword (POINT_DATA)=%s\n", buf);
+  
+  vector<float*> fieldsf;
+  vector<double*> fieldsd;
+  vector<E_Int> type; // 0: scalar, 1: vector
+  char varName[256]; 
+  varString = new char [1200];
+  strcpy(varString, "x,y,z");
     
-    // READ POINT_DATA
-    E_Int ret = readLine(ptrFile, buf);
-    
-    // READ SCALARS if ANY
-    vector<float*> fields;
-    vector<E_Int> type; // 0: scalar, 1: vector
-    char varName[256];
-    varString = new char [1200];
-    strcpy(varString, "x,y,z");
-    
-    ret = readLine(ptrFile, buf);
-    
-    if (ret == 0)
+  // READ SCALARS, VECTORS, FIELD if ANY
+  ret = fscanf(ptrFile, "%s", buf);  
+  while (ret != EOF)
+  {
+    printf("keyword=%s\n", buf);
+    if (strcmp(buf, "SCALARS") == 0)
     {
-      float* ff;
-      readScalar(ptrFile, changeEndian, npts, varName, ff);
-      strcat(varString, ",");
-      strcat(varString, varName);
-      fields.push_back(ff);
-      type.push_back(0);
+        float* ff; double* fd;
+        readScalar(ptrFile, changeEndian, formated, npts, varName, ff, fd);
+        strcat(varString, ",");
+        strcat(varString, varName);
+        if (ff != NULL) { fieldsf.push_back(ff); fieldsd.push_back(NULL); }
+        else { fieldsd.push_back(fd); fieldsf.push_back(NULL); }
+        type.push_back(1);
     }
-    
-    if (ret == 0)
+    else if (strcmp(buf, "VECTORS") == 0)
     {
-      float* ff;
-      readVector(ptrFile, changeEndian, npts, varName, ff);
-      strcat(varString, ",");
-      strcat(varString, varName);
-      strcat(varString, "X,");
-      strcat(varString, varName);
-      strcat(varString, "Y,");
-      strcat(varString, varName);
-      strcat(varString, "Z");
-      fields.push_back(ff);
-      type.push_back(1);
+        float* ff; double *fd;
+        readVector(ptrFile, changeEndian, formated, npts, varName, ff, fd);
+        strcat(varString, ",");
+        strcat(varString, varName);
+        strcat(varString, "X,");
+        strcat(varString, varName);
+        strcat(varString, "Y,");
+        strcat(varString, varName);
+        strcat(varString, "Z");
+        if (ff != NULL) { fieldsf.push_back(ff); fieldsd.push_back(NULL); }
+        else { fieldsd.push_back(fd); fieldsf.push_back(NULL); }
+        type.push_back(3);
     }
-    
-    if (ret == 0)
+    else if (strcmp(buf, "FIELD") == 0)
     {
-      float* ff;
-      readScalar(ptrFile, changeEndian, npts, varName, ff);
-      strcat(varString, ",");
-      strcat(varString, varName);
-      fields.push_back(ff);
-      type.push_back(0);
+        float* ff; double* fd; E_Int nfields;
+        readField(ptrFile, changeEndian, formated, npts, nfields, varName, ff, fd);
+        if (nfields == 1)
+        {
+            strcat(varString, ",");
+            strcat(varString, varName);
+        }
+        else if (nfields == 2)
+        {
+            for (E_Int k = 0; k < nfields; k++)
+            strcat(varString, ",");
+            strcat(varString, varName);
+            strcat(varString, "X,");
+            strcat(varString, varName);
+            strcat(varString, "Y");
+        }
+        else if (nfields == 3)
+        {
+            strcat(varString, ",");
+            strcat(varString, varName);
+            strcat(varString, "X,");
+            strcat(varString, varName);
+            strcat(varString, "Y,");
+            strcat(varString, varName);
+            strcat(varString, "Z");
+        }
+        if (ff != NULL) { fieldsf.push_back(ff); fieldsd.push_back(NULL); }
+        else { fieldsd.push_back(fd); fieldsf.push_back(NULL); }
+        type.push_back(nfields);
     }
-    
-    E_Int nvars = 0;
-    for (size_t i = 0; i < type.size(); i++)
-    {
-      if (type[i] == 0) nvars += 1;
-      else if (type[i] == 1) nvars += 3;
-    }
-    printf("nvars=%d\n", nvars);
-    // Concatenate arrays
-    FldArrayF* f = new FldArrayF(npts, 3+nvars);
-    E_Float* fx = f->begin(1);
-    E_Float* fy = f->begin(2);
-    E_Float* fz = f->begin(3);
-    
+    ret = fscanf(ptrFile, "%s", buf);
+  }
+
+  // remise en array
+  E_Int nvars = 0;
+  for (size_t i = 0; i < type.size(); i++)
+  {
+    nvars += type[i];
+  }
+  printf("total nvars=%d\n", nvars);
+
+  // Concatenate arrays (fields supposed to be POINT_DATA)
+  FldArrayF* f = new FldArrayF(npts, 3+nvars);
+  E_Float* fx = f->begin(1);
+  E_Float* fy = f->begin(2);
+  E_Float* fz = f->begin(3);
+
+  if (ptsf != NULL)
+  { 
     for (E_Int i = 0; i < npts; i++)
     {
-      fx[i] = pts[3*i];
-      fy[i] = pts[3*i+1];
-      fz[i] = pts[3*i+2];
+        fx[i] = ptsf[3*i]; // cast
+        fy[i] = ptsf[3*i+1];
+        fz[i] = ptsf[3*i+2];
     }
-    delete [] pts;
-    
-    E_Int np = 4;
-    for (size_t n = 0; n < type.size(); n++)
+    delete [] ptsf;
+  }
+  else
+  {
+    for (E_Int i = 0; i < npts; i++)
     {
-      if (type[n] == 0)
-      {
-        E_Float* fp = f->begin(np);
-        for (E_Int i = 0; i < npts; i++) fp[i] = fields[n][i];
-        np += 1;
-      }
-      else if (type[n] == 1)
-      {
-        E_Float* fx = f->begin(np);
-        E_Float* fy = f->begin(np+1);
-        E_Float* fz = f->begin(np+2);
-        
-        for (E_Int i = 0; i < npts; i++) fx[i] = fields[n][3*i];
-        for (E_Int i = 0; i < npts; i++) fy[i] = fields[n][3*i+1];
-        for (E_Int i = 0; i < npts; i++) fz[i] = fields[n][3*i+2];
-          
-        np += 3; 
-      }
+        fx[i] = ptsd[3*i];
+        fy[i] = ptsd[3*i+1];
+        fz[i] = ptsd[3*i+2];
     }
+    delete [] ptsd;
+  }
     
-    for (size_t n = 0; n < fields.size(); n++) delete [] fields[n];
+  E_Int np = 4;
+  for (size_t n = 0; n < type.size(); n++)
+  {
+    if (type[n] == 1)
+    {
+       E_Float* fp = f->begin(np);
+       if (fieldsf[n] != NULL)
+        for (E_Int i = 0; i < npts; i++) fp[i] = fieldsf[n][i];
+       else for (E_Int i = 0; i < npts; i++) fp[i] = fieldsd[n][i];
+       np += 1;
+    }
+    else if (type[n] == 2)
+    {
+       E_Float* fx = f->begin(np);
+       E_Float* fy = f->begin(np+1);
     
+       if (fieldsf[n] != NULL)
+       {
+        for (E_Int i = 0; i < npts; i++) fx[i] = fieldsf[n][2*i];
+        for (E_Int i = 0; i < npts; i++) fy[i] = fieldsf[n][2*i+1];
+       }
+       else
+       {
+        for (E_Int i = 0; i < npts; i++) fx[i] = fieldsd[n][2*i];
+        for (E_Int i = 0; i < npts; i++) fy[i] = fieldsd[n][2*i+1];
+       }  
+       np += 2; 
+    }
+    else if (type[n] == 3)
+    {
+       E_Float* fx = f->begin(np);
+       E_Float* fy = f->begin(np+1);
+       E_Float* fz = f->begin(np+2);
+    
+       if (fieldsf[n] != NULL)
+       {
+        for (E_Int i = 0; i < npts; i++) fx[i] = fieldsf[n][3*i];
+        for (E_Int i = 0; i < npts; i++) fy[i] = fieldsf[n][3*i+1];
+        for (E_Int i = 0; i < npts; i++) fz[i] = fieldsf[n][3*i+2];
+       }
+       else
+       {
+        for (E_Int i = 0; i < npts; i++) fx[i] = fieldsd[n][3*i];
+        for (E_Int i = 0; i < npts; i++) fy[i] = fieldsd[n][3*i+1];
+        for (E_Int i = 0; i < npts; i++) fz[i] = fieldsd[n][3*i+2];
+       }  
+       np += 3; 
+    }
+   }
+    
+   for (size_t n = 0; n < fieldsf.size(); n++) delete [] fieldsf[n];
+   for (size_t n = 0; n < fieldsd.size(); n++) delete [] fieldsd[n];
+    
+   // Export de la connectivite
+   if (strcmp(dataSetType, "UNSTRUCTURED_GRID") == 0)
+   {
     // tri suivant les elements types
     E_Int nNODE = 0; // 1
     E_Int nBAR = 0; // 3
@@ -355,6 +695,7 @@ E_Int K_IO::GenIO::binvtkread(
         default: ;
       }
     }
+
     // Allocate
     printf("Elements: BAR=%d TRI=%d QUAD=%d HEXA=%d TETRA=%d PENTA=%d PYRA=%d\n", nBAR, nTRI, nQUAD, nHEXA, nTETRA, nPENTA, nPYRA);
     
@@ -368,7 +709,7 @@ E_Int K_IO::GenIO::binvtkread(
       cn = new FldArrayI(nBAR, 2); cnBAR = cn->begin(); 
       unstructField.push_back(f); connect.push_back(cn); eltType.push_back(1);
     }
-    if (nTRI > 0) 
+    if (nTRI > 0)
     { 
       cn = new FldArrayI(nTRI, 3); cnTRI = cn->begin();
       unstructField.push_back(f); connect.push_back(cn); eltType.push_back(2); 
@@ -467,9 +808,65 @@ E_Int K_IO::GenIO::binvtkread(
     }
     
     delete [] cells;
-    delete [] cellTypes;  
-  }
-  
+    delete [] cellTypes;
+   }
+   else if (strcmp(dataSetType, "POLYDATA") == 0)
+   {
+       // export as a surface NGON
+       E_Int sizeFN = 0; E_Int nfaces = 0;
+       E_Int nelts = 0; E_Int sizeEF = 0;
+       E_Int* ptr = cells;
+       E_Int n;
+       for (E_Int i = 0; i < ncells; i++)
+       {
+           n = ptr[0];
+           nfaces += n;
+           sizeFN += 3*n;
+           nelts += 1;
+           sizeEF += n+1;
+           ptr += n+1;
+       }
+
+       E_Int sizeTot = 4+sizeFN+sizeEF;
+       FldArrayI* cn = new FldArrayI(sizeTot, 1); E_Int* cnp = cn->begin();
+       ptr = cells;
+       cnp[0] = nfaces;
+       cnp[1] = sizeFN;
+       cnp += 2;
+       E_Int* cn2 = cnp+sizeFN;
+       cn2[0] = nelts;
+       cn2[1] = sizeEF;
+       cn2 += 2;
+       E_Int count = 1;
+       for (E_Int i = 0; i < ncells; i++)
+       {
+           n = ptr[0];
+           for (E_Int k = 0; k < n-1; k++) 
+           {
+            cnp[0] = 2;
+            cnp[1] = ptr[k+1]+1;
+            cnp[2] = ptr[k+2]+1;
+            cnp += 3;
+           }
+           cnp[0] = 2;
+           cnp[1] = ptr[n]+1; // loop
+           cnp[2] = ptr[1]+1;
+           cnp += 3;
+           
+           cn2[0] = n;
+           for (E_Int k = 0; k < n; k++) 
+           {
+            cn2[k+1] = count+k;
+           }
+           count += n;
+           cn2 += n+1;
+
+           ptr += n+1;
+       }
+       unstructField.push_back(f); connect.push_back(cn); eltType.push_back(8);
+       delete [] cells;
+   }
+
   fclose(ptrFile);
 
   // Cree le nom de zone
