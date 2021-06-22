@@ -199,10 +199,13 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     print('Final number of points=%5.4f millions.'%(npts/1000000.))
     C._initVars(t,'{TurbulentDistance}=-1.*({cellN}<1.)*{TurbulentDistance}+({cellN}>0.)*{TurbulentDistance}')
     print('Minimum distance: %f.'%C.getMinValue(t,'TurbulentDistance'))
+    t = C.node2Center(t,['TurbulentDistance'])
     t = P.computeGrad(t, 'TurbulentDistance')
-    t = C.center2Node(t,["centers:gradxTurbulentDistance",'centers:gradyTurbulentDistance','centers:gradzTurbulentDistance'])
+    graddvars=["centers:gradxTurbulentDistance",'centers:gradyTurbulentDistance','centers:gradzTurbulentDistance']
+    t = C.center2Node(t,graddvars)
     #print("After computeGrad : Perform transfers of gradient correctly ????")
-    Internal._rmNodesFromName(t,Internal.__FlowSolutionCenters__)
+    #Internal._rmNodesFromName(t,Internal.__FlowSolutionCenters__)
+    C._rmVars(t,graddvars)
     #
     # Extract front faces 
     if IBCType == -1:
@@ -214,7 +217,6 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
         if C.getMaxValue(z,'cellN') < 0.5: 
             (parent,noz) = Internal.getParentOfNode(t, z)
             del parent[2][noz]
-
 
     print("Extract front faces of IBM target points...")
     # IBM target points
@@ -238,7 +240,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
 
     loc='FaceCenter'
     he = he*1.8 # distmax = sqrt(3)*dx => he min = distmax + dx + tol
-    varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
+    #varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
     allip_pts=[]; allwall_pts=[]; allimage_pts=[]
     _addExternalBCs(t, bbo, externalBCType, dimPb) 
 
@@ -271,7 +273,6 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
         parentz,noz = Internal.getParentOfNode(t,z)
         ip_ptsZ = frontDict[z[0]]
         C._rmVars(z,varsn)
-        
         if ip_ptsZ != []:
             ip_ptsZC = C.node2Center(ip_ptsZ)
             C._rmVars(ip_ptsZ,varsn)
@@ -335,10 +336,26 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     if front1 != []: # can be empty on a proc
         front1[0]='IBMWall'    
         C._addBC2Zone(z, 'IBMWall', 'FamilySpecified:IBMWall',subzone=front1)
-        allip_pts=Transform.join(allip_pts)
-        allwall_pts = Transform.join(allwall_pts)
-        allimage_pts = Transform.join(allimage_pts)
-        _addIBDataZSR(z,[allip_pts],[allwall_pts],[allimage_pts], prefix='IBCD_')
+        for bc in Internal.getNodesFromType(z,'BC_t'):
+            famName = Internal.getNodeFromName(bc,'FamilyName')
+            if famName is not None:
+                if Internal.getValue(famName)=='IBMWall':
+                    ibcdataset=Internal.createNode('BCDataSet','BCDataSet_t',parent=bc,value='Null')
+                    dnrPts = Internal.createNode("DonorPointCoordinates",'BCData_t',parent=ibcdataset)
+                    wallPts = Internal.createNode("WallPointCoordinates",'BCData_t',parent=ibcdataset)
+                    #allip_pts=Transform.join(allip_pts)
+                    allwall_pts = Transform.join(allwall_pts)
+                    allimage_pts = Transform.join(allimage_pts)
+                    coordsPI = Converter.extractVars(allimage_pts, ['CoordinateX','CoordinateY','CoordinateZ'])
+                    dnrPts[2].append(['CoordinateX',coordsPI[1][0,:], [], 'DataArray_t'])
+                    dnrPts[2].append(['CoordinateY',coordsPI[1][1,:], [], 'DataArray_t'])
+                    dnrPts[2].append(['CoordinateZ',coordsPI[1][2,:], [], 'DataArray_t'])
+                    coordsPW = Converter.extractVars(allwall_pts, ['CoordinateX','CoordinateY','CoordinateZ'])  
+                    wallPts[2].append(['CoordinateX',coordsPW[1][0,:], [], 'DataArray_t'])
+                    wallPts[2].append(['CoordinateY',coordsPW[1][1,:], [], 'DataArray_t'])
+                    wallPts[2].append(['CoordinateZ',coordsPW[1][2,:], [], 'DataArray_t'])
+
+        #_addIBDataZSR(z,[allip_pts],[allwall_pts],[allimage_pts], prefix='IBCD_')
 
     # Add abutting 1to1 on one side only-(smallest proc number chosen)
     datas={}
@@ -366,19 +383,17 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     rcvDataM = Cmpi.sendRecv(datas, graphM)
     if rcvDataM != {}:
         for origProc in rcvDataM:
-            print('proc=', origProc, Cmpi.rank)
-            print(rcvDataM[origProc])
-
             matchname=rcvDataM[origProc][0]
             PLD = rcvDataM[origProc][1]
             gcnode = Internal.getNodeFromName(z,matchname)
             gcnode[2].append(Internal.createNode('PointListDonor','IndexArray_t',value=PLD))
 
     # add2PyTree
-    Cmpi._setProc(z,rank)
+    #Cmpi._setProc(z,rank)
     t[2][1][2]=[z]
     
-
+    Internal._rmNodesFromName(t,".Solver#Param")
+    Internal._renameNode(t,'FlowSolution#Centers','FlisWallDistance')
     # identify elements per processor
     if t_out is not None: Cmpi.convertPyTree2File(t, t_out)
 
