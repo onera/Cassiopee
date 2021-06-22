@@ -6628,7 +6628,7 @@ def _createGlobalIndex(a, start=0):
     _initVars(a, 'globalIndex', 0)
     return __TZA2(a, Converter._createGlobalIndex, 'nodes', start)
 
-# Recver field from global index
+# Recover field from global index
 def recoverGlobalIndex(a, b):
     """Recover fields of b in a following the global index field."""
     fb = getFields(Internal.__FlowSolutionNodes__, b, api=2)[0]

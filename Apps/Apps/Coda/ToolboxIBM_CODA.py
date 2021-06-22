@@ -4,6 +4,7 @@ import Converter.Internal as Internal
 import Connector.ToolboxIBM as TIBM
 import Transform.PyTree as T
 import Converter
+import Converter.Distributed as CD
 import Generator.PyTree as G
 import Post.PyTree as P
 import Connector.OversetData as XOD
@@ -106,17 +107,51 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     test.printMem(">>> Octree struct [start]")
     res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
     del p
-    
     if parento is not None:
         for po in parento: del po
+
     t = C.newPyTree(['CARTESIAN', res])
-    zones = Internal.getZones(t)
-    for z in zones: 
-        zname = Internal.getName(z)
-        zname = zname+'X%d'%rank
+    for z in Internal.getZones(t): 
+        zname = Internal.getName(z)+'_X%d'%rank
         Internal.setName(z,zname)
     Cmpi._setProc(t, rank)
- 
+
+    # only inter-proc connectivity are stored
+    # PointList and PointListDonor are actually FaceList, start at 0, ordered as Cartesian !!!
+    prefzone ='CART_P' #zone names are eventually prefixed by this name
+    graphM={}
+    _create1To1Connectivity(t, dim=dimPb)
+
+    dictOfAbuttingSurfaces={}
+    for z in Internal.getZones(t):
+        for gc in Internal.getNodesFromType2(z,'GridConnectivity_t'):
+            indicesL = Internal.getNodeFromName2(gc,'PointList')
+            indicesL = Internal.getValue(indicesL)
+            zf=T.subzoneUnstruct__(z, indicesL, 'faces')
+            Internal._rmNodesFromType(zf,"ZoneGridConnectivity_t")
+            Internal._rmNodesFromType(zf,"ZoneBC_t")
+            zdname = Internal.getValue(gc)
+            zdname = zdname.split("_X")
+            norankopp = int(zdname[-1])
+            if norankopp in dictOfAbuttingSurfaces:
+                dictOfAbuttingSurfaces[norankopp]+=[zf]
+            else:
+                dictOfAbuttingSurfaces[norankopp]=[zf]
+                CD.updateGraph__(graphM, rank, norankopp, prefzone+'%d'%norankopp)
+
+    # Ensures that the graph is the same for all the processors
+    KCOMM=Cmpi.KCOMM
+    g = KCOMM.allgather(graphM)
+    graph = {}
+    for i in g:
+        for k in i:
+            if not k in graphM: graphM[k] = {}
+            for j in i[k]:
+                if not j in graphM[k]: graphM[k][j] = []
+                graphM[k][j] += i[k][j]
+                graphM[k][j] = list(set(graphM[k][j]))
+    #C.convertPyTree2File(t,"t_%d.cgns"%(Cmpi.rank))
+
     C._addState(t, 'EquationDimension', dimPb)
     test.printMem(">>> Octree struct [end]")
 
@@ -268,6 +303,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
             allimage_pts.append(imagepts)
             allwall_pts.append(wallpts)
         else:
+
             if C.getMinValue(z,'cellN')==0.:
                 z = P.selectCells(z,"{cellN}==1.",strict=1)
                 C._rmVars(z,['TurbulentDistance','cellN'])
@@ -277,23 +313,23 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
 
         parentz[2][noz] = z
 
-
     front1=[]
     for zname in frontDict:
         if frontDict[zname] != []:
             front1.append(frontDict[zname])
     if front1 != []: front1 = T.join(front1)
     if check:
-        C.convertPyTree2File(front1,'targetFaces_%d.cgns'%(Cmpi.rank))
+        C.convertPyTree2File(front1,'targetFaces_%d.cgns'%rank)
 
     zones = Internal.getZones(t)
     z = zones[0]
     for noz in range(1,len(zones)):
         z = T.join([z,zones[noz]])
-    z[0] = 'CART_P%d'%rank
+    z[0] = prefzone+'%d'%rank
 
     # externalBCs:
     for extBC in extBCs:
+        extBC[0]='ExtBC_Quad'
         C._addBC2Zone(z,'externalBC',externalBCType,subzone=extBC)
     # recoverIBC familySpecified:IBMWall
     if front1 != []: # can be empty on a proc
@@ -304,11 +340,45 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
         allimage_pts = Transform.join(allimage_pts)
         _addIBDataZSR(z,[allip_pts],[allwall_pts],[allimage_pts], prefix='IBCD_')
 
-    # add 2 PyTree
-    Cmpi._setProc(z,Cmpi.rank)
+    # Add abutting 1to1 on one side only-(smallest proc number chosen)
+    datas={}
+    for norankopp in dictOfAbuttingSurfaces:
+        zf = T.join(dictOfAbuttingSurfaces[norankopp])
+        hookVertex = C.createHook(zf,function='nodes')
+        idNodes = C.identifyNodes(hookVertex,z)
+        C.freeHook(hookVertex)
+        PL = idNodes[(idNodes>-1)!=0] 
+        # create GC
+        if PL != [] and rank < norankopp:
+            ZGC = Internal.getNodeFromType2(z,'ZoneGridConnectivity_t')
+            if ZGC is None:    
+                ZGC = Internal.createNode('ZoneGridConnectivity', 'ZoneGridConnectivity_t', parent=z)
+
+            matchname = 'match_%d_%d'%(rank,norankopp)
+            gcnode = Internal.createNode(matchname,'GridConnectivity_t', parent=ZGC)
+            gcnode[2].append(Internal.createNode('GridLocation','GridLocation_t',value='Vertex'))
+            gcnode[2].append(Internal.createNode('PointList','IndexArray_t',value=PL))
+        if PL != [] and rank > norankopp:
+            matchname = 'match_%d_%d'%(norankopp, rank)
+            datas[norankopp]=[matchname,PL]
+
+    #transfer PLD
+    rcvDataM = Cmpi.sendRecv(datas, graphM)
+    if rcvDataM != {}:
+        for origProc in rcvDataM:
+            print('proc=', origProc, Cmpi.rank)
+            print(rcvDataM[origProc])
+
+            matchname=rcvDataM[origProc][0]
+            PLD = rcvDataM[origProc][1]
+            gcnode = Internal.getNodeFromName(z,matchname)
+            gcnode[2].append(Internal.createNode('PointListDonor','IndexArray_t',value=PLD))
+
+    # add2PyTree
+    Cmpi._setProc(z,rank)
     t[2][1][2]=[z]
     
-    
+
     # identify elements per processor
     if t_out is not None: Cmpi.convertPyTree2File(t, t_out)
 
@@ -583,6 +653,76 @@ def createIBMZones(tc,variables=[], typeOfPoint='Wall'):
             zw[0]=z[0]+"#"+IBCD[0]+"_%s"%suff
             tw[2][1][2].append(zw)
     return tw
+
+# Create the 1to1 connectivity of two Cartesian zones
+# as a PointList/PointListDonor info
+# Connectivity is not dependent from the partitionning yet (re-partitioning done)
+def _create1To1Connectivity(t, dim=3):
+    Cmpi._addBXZones(t, depth=3)    
+    t = X.connectMatch(t, dim=dim)    
+
+    # dictionary of donor zone dimensions for each gc
+    dictOfDnrZoneDims={} 
+    for z in Internal.getZones(t):
+        for gc in Internal.getNodesFromType2(z,'GridConnectivity1to1_t'):
+            znamed = Internal.getValue(gc)
+            zd = Internal.getNodeFromName2(t,znamed)
+            SOD = Internal.getNodeFromName2(zd,'.Solver#ownData')
+            if SOD is not None:
+                l2g = Internal.getNodeFromName1(SOD,'loc2glob')
+                if l2g is not None:
+                    l2g = Internal.getValue(l2g)                
+                    dictOfDnrZoneDims[gc[0]]=[l2g[-3],l2g[-2],l2g[-1]]
+            else:
+                #dimZoneD = Internal.getZoneDim(zd)
+                #nid = dimZoneD[1]; njd = dimZoneD[2]; nkd = dimZoneD[3]
+                #dictOfDnrZoneDims[gc[0]]=[nid, njd, nkd]
+                Internal._rmNodesFromName(z,gc[0])
+    Cmpi._rmBXZones(t)
+
+    for z in Internal.getZones(t):
+        dimZ = Internal.getZoneDim(z)
+        ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]        
+        for gc in Internal.getNodesFromType2(z,'GridConnectivity1to1_t'):
+            PR = Internal.getNodeFromName1(gc,'PointRange')
+            PRD = Internal.getNodeFromName1(gc,'PointRangeDonor')
+            win = Internal.range2Window(PR[1]) 
+            imin = win[0]; imax = win[1]
+            jmin = win[2]; jmax = win[3]
+            kmin = win[4]; kmax = win[5] 
+            indicesL = Converter.converter.range2PointList(imin,imax,jmin,jmax,kmin,kmax, 
+                                    ni, nj, nk)
+            if isinstance(indicesL, numpy.ndarray): r = indicesL                                    
+            else:
+                r = numpy.array(indicesL, dtype=numpy.int32)
+            r = r.reshape((1,r.size), order='F')
+            gc[2].append(["PointList", r, [], "IndexArray_t"])
+            if gc[0] not in dictOfDnrZoneDims: 
+                if rank==0:  print("NOT FOUND", z[0], Internal.getValue(gc), gc[0])
+            else:
+                dimZd = dictOfDnrZoneDims[gc[0]]
+                nid = dimZd[0]; njd = dimZd[1]; nkd = dimZd[2]
+                win = Internal.range2Window(PRD[1]) 
+                imin = win[0]; imax = win[1]
+                jmin = win[2]; jmax = win[3]
+                kmin = win[4]; kmax = win[5] 
+                indicesOppL = Converter.converter.range2PointList(imin, imax, jmin, jmax, kmin, kmax, nid, njd, nkd)
+                
+                if isinstance(indicesOppL, numpy.ndarray): r = indicesOppL                                    
+                else:
+                    r = numpy.array(indicesOppL, dtype=numpy.int32)
+                r = r.reshape((1,r.size), order='F')
+                gc[2].append(["PointListDonor", r,[], "IndexArray_t"])
+                Internal._rmNodesFromName(gc,"PointRange")
+                Internal._rmNodesFromName(gc,"PointRangeDonor")
+                Internal._rmNodesFromName(gc,'Transform')
+                Internal.setType(gc,'GridConnectivity_t')
+                gc[2].append(['GridConnectivityType','Abutting1to1',[],'GridConnectivityType_t'])
+                v = numpy.fromstring('FaceCenter', 'c')
+                gc[2].append(['GridLocation', v, [], 'GridLocation_t'])
+        C._mergeGCs(z)     
+
+    return None
 
 def _addExternalBCs(t, bbox, externalBCType='BCFarfield', dimPb=3):
     dirs = [0,1,2,3,4,5]
