@@ -147,6 +147,9 @@ static PyMethodDef Pyconverter [] =
   {"buildBCMatchFieldNG", K_CONVERTER::buildBCMatchFieldNG, METH_VARARGS},
   {"extractBCFields", K_CONVERTER::extractBCFields, METH_VARARGS},
   {"extractFields", K_CONVERTER::extractFields, METH_VARARGS},
+  {"iSend", K_CONVERTER::iSend, METH_VARARGS},
+  {"recv", K_CONVERTER::recv, METH_VARARGS},
+  {"waitWall", K_CONVERTER::waitAll, METH_VARARGS},
   {NULL, NULL}
 };
 

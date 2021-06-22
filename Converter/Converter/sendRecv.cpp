@@ -1,0 +1,898 @@
+/*    
+    Copyright 2013-2021 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
+// send/recv C
+
+# include "converter.h"
+
+#ifdef _MPI
+# include "mpi.h"
+# include "mpi4py/mpi4py.h"
+#else
+#define MPI_Comm void
+#endif
+
+using namespace std;
+
+//==================================================
+//           GETNAME : PyObject -> string
+void getName(PyObject* obj, char* name)
+{
+    if (PyString_Check(obj)){
+        //printf("[i] str python2\n");
+        strcpy(name, PyString_AsString(obj));
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    if (PyUnicode_Check(obj)){
+        //printf("[i] str python3\n");
+        strcpy(name, PyBytes_AsString(PyUnicode_AsUTF8String(obj))); 
+    }
+#endif
+}
+//==================================================
+//==================================================
+
+//==================================================
+//                C LAYER iSend
+PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
+{    
+    // Récupération des données
+    PyObject* datas;
+    PyObject* mpi4pyCom;
+    E_Int oppNode;
+    E_Int rank;
+    if (!PYPARSETUPLEI(args, "OllO", "OiiO", &datas, &oppNode, &rank, &mpi4pyCom)) return NULL;
+
+
+    // Recuperation du communicateur
+#ifdef _MPI
+    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    MPI_Comm comm = *((MPI_Comm*) pt_comm);
+#endif
+    
+    // GESTION DU CAS ISEND(None)
+    Py_INCREF(Py_None);
+    if (datas==Py_None)
+    {
+        char* bufToSend = new char[1];
+        *bufToSend = 'n';
+
+        // Envoi du buf presque vide
+#ifdef _MPI
+        MPI_Request request;
+        MPI_Isend(bufToSend, 1, MPI_CHAR, oppNode, 0, comm, &request);
+        MPI_Request* crossRequest = new MPI_Request[1];
+        *crossRequest = request;
+#else
+        void* crossRequest = NULL;
+#endif
+        
+        PyObject* hook;
+        void** packet = new void* [2]; // 2 pour request, bufToSend 
+        packet[0] = crossRequest; // requete MPI
+        packet[1] = bufToSend;
+        #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+        hook = PyCObject_FromVoidPtr(packet, NULL);
+        #else
+        hook = PyCapsule_New(packet, NULL, NULL);
+        #endif
+
+        return hook;
+    }
+
+
+    // Type de la données : premier ou deuxieme sendRecv
+    E_Int dataType = 0;
+
+    E_Int sizeDatas = PyList_Size(datas);
+
+    // Pointeur de pointeurs
+    char** bigBuf = new char* [sizeDatas];
+
+    // Tableaux du nombre d'octets 
+    std::vector<E_Int> tabOctets(sizeDatas);
+
+    // Var des noms de zones
+    char zoneName[256];
+    char zoneDName[256];
+
+    for (E_Int nData=0; nData<sizeDatas; nData++) // parcourt les listes dans datas
+    {
+        // Recuperation de la liste des données
+        PyObject* listData = PyList_GetItem(datas, nData);
+        E_Int sizeList = PyList_Size(listData);
+
+        if (sizeList == 6) // premier sendRecv de transfers
+        {
+            // TYPE 1 de donnees : [[zname, znamed, indicesI, XI, YI, ZI]]
+            dataType = 1;
+
+            // Nom de la zone a interpoler
+            PyObject* zone = PyList_GetItem(listData, 0);
+            getName(zone, zoneName);
+            E_Int size_zoneName = strlen(zoneName);
+
+            // Nom de la zone donneuse
+            PyObject* zoneD = PyList_GetItem(listData, 1);
+            getName(zoneD, zoneDName);
+            E_Int size_zoneDName = strlen(zoneDName);
+
+            // Indices des points à interpoler
+            PyObject* PyIndices = PyList_GetItem(listData, 2);
+            E_Int* indices; E_Int nIndices; E_Int nfld;
+            K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld,true);
+
+            // XCoordinates des points à interpoler
+            PyObject* PyXCoord = PyList_GetItem(listData, 3);
+            E_Float* xCoords; E_Int nXCoords; E_Int nfldx;
+            K_NUMPY::getFromNumpyArray(PyXCoord, xCoords, nXCoords, nfldx,true);
+            // YCoordinates des points à interpoler
+            PyObject* PyYCoord = PyList_GetItem(listData, 4);
+            E_Float* yCoords; E_Int nYCoords; E_Int nfldy;
+            K_NUMPY::getFromNumpyArray(PyYCoord, yCoords, nYCoords, nfldy,true);
+            // ZCoordinates des points à interpoler
+            PyObject* PyZCoord = PyList_GetItem(listData, 5);
+            E_Float* zCoords; E_Int nZCoords; E_Int nfldz;
+            K_NUMPY::getFromNumpyArray(PyZCoord, zCoords, nZCoords, nfldz,true);
+
+            
+            // Calcul du nombre d'octets nécessaires :
+            //  - nom de la zone : type, taille, nom
+            //  - nom de la zone donneuse : type, taille, nom
+            //  - indices des pts a interpo : type, taille, indices
+            //  - coordonées X des points a interpo : type, taille, X
+            //  - coordonées Y des points a interpo : type, taille, Y
+            //  - coordonées Z des points a interpo : type, taille, Z
+            E_Int nOctets = 6*1 + 6*4 + size_zoneName + size_zoneDName + nIndices*4 + nXCoords*8*3;
+            tabOctets[nData] = nOctets;
+            // 6 char pour types + 6 entiers pour 6 tailles + n char nom x2 + nIndices entiers + nCoords floats *3 (3 coords) 
+
+            // Initialisation du buffer
+            char* buf = new char[nOctets];  
+
+            // Placement dans le bigBuf
+            bigBuf[nData] = buf; 
+
+            // Placement nom de la zone
+            (*buf) = 'c'                    ; buf+=1;
+            (*(E_Int*)buf) = size_zoneName  ; buf+=4;
+            for (E_Int i = 0; i < size_zoneDName; i++) buf[i] = zoneName[i];
+            buf += size_zoneName;
+
+            // Placement nom de la zoneD
+            (*buf) = 'c'                    ; buf+=1;
+            (*(E_Int*)buf) = size_zoneDName ; buf+=4;
+            for (E_Int i = 0; i < size_zoneDName; i++) buf[i] = zoneDName[i];
+            buf += size_zoneDName;
+
+            // Placement des indices
+            (*buf) = 'i'                    ; buf+=1;
+            (*(E_Int*)buf) = nIndices       ; buf+=4;
+            E_Int* buf_indices = (E_Int*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<nIndices; i++)
+            {
+                buf_indices[i] = indices[i];
+            }
+            buf += 4*nIndices;
+
+            // Placement des X
+            (*buf) = 'f'                    ; buf+=1;
+            (*(E_Int*)buf) = nXCoords       ; buf+=4;
+            E_Float* buf_X = (E_Float*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<nXCoords; i++)
+            {
+                buf_X[i] = xCoords[i];
+            }
+            buf += 8*nXCoords;
+
+            // Placement des Y
+            (*buf) = 'f'                    ; buf+=1;
+            (*(E_Int*)buf) = nYCoords       ; buf+=4;
+            E_Float* buf_Y = (E_Float*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<nYCoords; i++)
+            {
+                buf_Y[i] = yCoords[i];
+            }
+            buf += 8*nYCoords;
+
+            // Placement des Z
+            (*buf) = 'f'                    ; buf+=1;
+            (*(E_Int*)buf) = nZCoords       ; buf+=4;
+            E_Float* buf_Z = (E_Float*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<nZCoords; i++)
+            {
+                buf_Z[i] = zCoords[i];
+            }
+            buf += 8*nZCoords;
+
+            // DECREF
+            Py_DECREF(PyIndices);
+            Py_DECREF(PyXCoord);
+            Py_DECREF(PyYCoord);
+            Py_DECREF(PyZCoord);
+            
+        }
+        
+        else if (sizeList == 3) // deuxieme sendRecv de _transfer
+        {
+            //Verification si 2e sendRecv de transfer ou si sendRecv de setInterpData
+            if (PyString_Check(PyList_GetItem(listData, 0))){
+                dataType=2;
+            }
+#if PY_VERSION_HEX >= 0x03000000
+            if (PyUnicode_Check(PyList_GetItem(listData, 0))){
+                dataType=2;
+            }
+#endif
+            else {
+                dataType=3;
+            }
+
+
+            if (dataType==2)
+            {
+                // TYPE 2 de données : [[zrcvname,indicesR,fields]]
+                
+                // Nom de la zone recv
+                PyObject* zone = PyList_GetItem(listData, 0);
+                getName(zone, zoneName);
+                E_Int size_zoneName = strlen(zoneName);
+
+                // Indices des points à interpoler
+                PyObject* PyIndices = PyList_GetItem(listData, 1);
+                E_Int* indices; E_Int nIndices; E_Int nfld;
+                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld,true);
+
+                // Fields à interpoler
+                PyObject* PyFields = PyList_GetItem(listData, 2);
+                //E_Int nFields = PyList_Size(PyFields);
+
+                // Récupération des nom de variables
+                PyObject* PyFieldNames = PyList_GetItem(PyFields, 0);
+                char fieldNames[256];
+                getName(PyFieldNames, fieldNames);
+                E_Int size_fieldNames = strlen(fieldNames);
+
+                // Valeurs des fields
+                PyObject* PyFieldArrays = PyList_GetItem(PyFields, 1); //Numpy à 5 cases
+                //PyObject* PyField1 = PyList_GetItem(PyFieldsArrays, 0);
+                E_Float* fields; E_Int nPts; E_Int nFlds;
+                K_NUMPY::getFromNumpyArray(PyFieldArrays, fields, nPts, nFlds,true);
+                
+                // Calcul du nombre d'octets nécessaires :
+                //  - nom de la zone 
+                //  - indices des pts a interpo : type, taille, indices
+                //  - valeurs des fields : type, taille, 6 fields
+                E_Int nOctets = 4*1 + 5*4 + size_zoneName + size_fieldNames + nIndices*4 + nPts*nFlds*8;
+                tabOctets[nData] = nOctets;
+                // 4 char pour types + 4 entiers pour 4 tailles + n char nom + nIndices entiers + nCoords floats *3 (3 coords) 
+
+                // Initialisation du buffer
+                char* buf = new char[nOctets]; 
+
+                // Placement dans le bigBuf
+                bigBuf[nData] = buf;
+
+                // Placement nom de la zone
+                (*buf) = 'c'                    ; buf += 1;
+                (*(E_Int*)buf) = size_zoneName  ; buf += 4;
+                for (E_Int i = 0; i < size_zoneName; i++) buf[i] = zoneName[i];
+                buf += size_zoneName;
+
+                // Placement des indices
+                (*buf) = 'i'                    ; buf += 1;
+                (*(E_Int*)buf) = nIndices       ; buf += 4;
+                E_Int* buf_indices = (E_Int*) buf;
+                #pragma omp parallel for
+                for (E_Int i=0; i<nIndices; i++)
+                {
+                    buf_indices[i] = indices[i];
+                }
+                buf += 4*nIndices;
+
+                // Placement nom des fields
+                (*buf) = 'c'                     ; buf += 1;
+                (*(E_Int*)buf) = size_fieldNames ; buf += 4;
+                for (E_Int i = 0; i < size_fieldNames; i++) buf[i] = fieldNames[i];
+                buf += size_fieldNames;
+
+                // Placement des fields
+                (*buf) = 'f'                    ; buf += 1;
+                (*(E_Int*)buf) = nPts           ; buf += 4;
+                (*(E_Int*)buf) = nFlds          ; buf += 4;
+                E_Float* buf_flds = (E_Float*) buf;
+                #pragma omp parallel for
+                for (E_Int i=0; i<nPts*nFlds; i++)
+                {
+                    buf_flds[i] = fields[i];
+                }
+                buf += 8*nPts*nFlds;
+
+                // releaseshared
+                Py_DECREF(PyIndices);
+                Py_DECREF(PyFieldArrays);
+            }
+            else if (dataType==3)
+            {
+                // TYPE 3 de données : [[int,fields, indices]]
+                
+                // Nom de la zone recv
+                PyObject* PyVar = PyList_GetItem(listData, 0);
+                E_Int var = PyLong_AsLong(PyVar);
+
+                // Fields à interpoler
+                PyObject* PyFields = PyList_GetItem(listData, 1);
+                //E_Int nFields = PyList_Size(PyFields);
+
+                // Récupération des nom de variables
+                PyObject* PyFieldNames = PyList_GetItem(PyFields, 0);
+                char fieldNames[256];
+                getName(PyFieldNames, fieldNames);
+                E_Int size_fieldNames = strlen(fieldNames);
+
+                // Valeurs des fields
+                PyObject* PyFieldArrays = PyList_GetItem(PyFields, 1); //Numpy à 5 cases
+                //PyObject* PyField1 = PyList_GetItem(PyFieldsArrays, 0);
+                E_Float* fields; E_Int nPts; E_Int nFlds;
+                K_NUMPY::getFromNumpyArray(PyFieldArrays, fields, nPts, nFlds,true);
+
+                // Indices des points à interpoler
+                PyObject* PyIndices = PyList_GetItem(listData, 2);
+                E_Int* indices; E_Int nIndices; E_Int nfld;
+                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld,true);
+
+                // Calcul du nombre d'octets nécessaires :
+                //  - entier
+                //  - indices des pts a interpo : type, taille, indices
+                //  - valeurs des fields : type, taille, 6 fields
+                E_Int nOctets = 4*1 + 5*4 + size_fieldNames + nIndices*4 + nPts*nFlds*8;
+                tabOctets[nData] = nOctets;
+                // 4 char pour types + 4 entiers pour 4 tailles + n char nom + nIndices entiers + nCoords floats *3 (3 coords) 
+
+                // Initialisation du buffer
+                char* buf = new char[nOctets]; 
+
+                // Placement dans le bigBuf
+                bigBuf[nData] = buf;
+
+                // Placement de l'entier
+                (*buf) = 'i'          ; buf+=1;
+                (*(E_Int*)buf) = var  ; buf+=4;
+
+                // Placement nom des fields
+                (*buf) = 'c'                     ; buf+=1;
+                (*(E_Int*)buf) = size_fieldNames ; buf+=4;
+                for (E_Int i = 0; i < size_fieldNames; i++) buf[i] = fieldNames[i];
+                buf += size_fieldNames;
+
+                // Placement des fields
+                (*buf) = 'f'                    ; buf+=1;
+                (*(E_Int*)buf) = nPts           ; buf+=4;
+                (*(E_Int*)buf) = nFlds          ; buf+=4;
+                E_Float* buf_flds = (E_Float*) buf;
+                #pragma omp parallel for
+                for (E_Int i=0; i<nPts*nFlds; i++)
+                {
+                    buf_flds[i] = fields[i];
+                }
+                buf+=8*nPts*nFlds;
+
+                // Placement des indices
+                (*buf) = 'i'                    ; buf+=1;
+                (*(E_Int*)buf) = nIndices       ; buf+=4;
+                E_Int* buf_indices = (E_Int*) buf;
+                #pragma omp parallel for
+                for (E_Int i=0; i<nIndices; i++)
+                {
+                    buf_indices[i] = indices[i];
+                }
+                buf += 4*nIndices;
+                
+                // releaseshared
+                Py_DECREF(PyIndices);
+                Py_DECREF(PyFieldArrays);   
+            }
+            else
+            {
+                printf("[%d][ERROR] Mauvais dataType (=%d)(= 2 or 3 normally)\n", rank, dataType); fflush(stdout);
+                Py_INCREF(Py_None);
+            return Py_None;
+            }
+        }
+        
+        else 
+        {
+            printf("[%d][ERROR] Taille liste = %d (= 3 or 6 normally)\n", rank, sizeList); fflush(stdout);
+        } 
+    }
+
+    // Calcul de la taille du buffer final
+    E_Int nOctetsTot = 0;
+    for (E_Int i=0; i<sizeDatas; i++)
+    {
+        nOctetsTot += tabOctets[i];
+    }
+    // sizeData entiers en plus pour connaitre la taille des mini buffers
+    nOctetsTot += 4*sizeDatas;
+    // un entier en plus pour le nombre de data
+    nOctetsTot += 4;
+    // un entier en plus pour le dataType
+    nOctetsTot += 4;
+
+    // def du tableau a envoyer
+    char* bufToSend = new char[nOctetsTot];
+    char* initBufToSend = bufToSend;
+
+    (*(E_Int*)bufToSend) = sizeDatas; bufToSend += 4; // nombre de donnees
+    (*(E_Int*)bufToSend) = dataType; bufToSend += 4; // type de la donnees (1 ou 2)
+
+    for (E_Int i=0; i < sizeDatas; i++)
+    {
+        // Placement du nb d'octets avant le buf
+        (*(E_Int*)bufToSend) = tabOctets[i]; bufToSend += 4;
+
+        char* buf = bigBuf[i];
+        // Placemenet du buf
+        #pragma omp parallel for  
+        for (E_Int j=0; j<tabOctets[i]; j++)
+        {
+            bufToSend[j] = buf[j];
+        } 
+        bufToSend+=tabOctets[i];
+    }
+        
+    // Envoi des données
+#ifdef _MPI
+    MPI_Request request;
+    MPI_Isend(initBufToSend, nOctetsTot, MPI_CHAR, oppNode, 0, comm, &request);
+#endif
+
+    // Suppression des pointeurs (sauf celui de l'envoi)
+    for (E_Int i=0; i<sizeDatas; i++)
+    {
+        delete bigBuf[i];
+    }
+    delete bigBuf;
+
+#ifdef _MPI
+    MPI_Request* crossRequest = new MPI_Request[1];
+    *crossRequest = request;
+#else
+    void* crossRequest = NULL;
+#endif
+
+    PyObject* hook;
+    void** packet = new void* [3]; // 4 pour request, bigBuf, nombre ptr dans bigBuf, initBufToSend 
+    packet[0] = crossRequest; // requete MPI
+    packet[1] = initBufToSend;
+    #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+    hook = PyCObject_FromVoidPtr(packet, NULL);
+    #else
+    hook = PyCapsule_New(packet, NULL, NULL);
+    #endif
+
+    return hook;
+}
+//==================================================
+//==================================================
+
+
+
+//==================================================
+//                 C LAYER waitAll
+PyObject* K_CONVERTER::waitAll(PyObject* self, PyObject* args)
+{
+    // Recuperation des donnees
+    PyObject* reqs;
+    if (!PYPARSETUPLEI(args, "O", "O", &reqs)) return NULL;
+
+    E_Int nRequests = PyList_Size(reqs);
+    
+    for (E_Int n=0; n<nRequests; n++)
+    {
+        PyObject* hook = PyList_GetItem(reqs, n);
+
+        // recupere le hook
+        void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+        packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+        packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+        
+#ifdef _MPI
+        MPI_Request* request = (MPI_Request*)packet[0];
+        MPI_Wait(request, MPI_STATUS_IGNORE);
+        // Suppression du ptr de la requete
+        delete request;
+#endif
+
+        char* bufToSend = (char*)packet[1]; 
+
+        // Suppression du buffer d'envoi
+        delete bufToSend;
+        // suppresion du paquet
+        delete packet;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+//==================================================
+//==================================================
+
+
+
+
+//==================================================
+//                 C LAYER iRecv
+PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
+{
+    // Recuperation des donnees
+    PyObject* mpi4pyCom;
+    E_Int node;
+    E_Int rank;
+    if (!PYPARSETUPLEI(args, "llO", "iiO", &node, &rank, &mpi4pyCom)) return NULL;
+
+    // Recuperation du communicateur
+#ifdef _MPI
+    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    MPI_Comm comm = *((MPI_Comm*) pt_comm);
+#endif
+
+    // get MPI status
+#ifdef _MPI
+    MPI_Status status;
+    MPI_Probe(node, 0, comm, &status);
+#endif
+
+    // get number of elements
+    E_Int nOctetsTot=0;
+#ifdef _MPI
+    MPI_Get_count(&status, MPI_CHAR, &nOctetsTot);
+#endif
+
+    // Definition des pointeurs
+    char* recvBuf = new char[nOctetsTot];
+    char* initRecvBuf = recvBuf;
+
+    // reception du buffer
+#ifdef _MPI
+    MPI_Recv(recvBuf, nOctetsTot, MPI_CHAR, node, 0, comm, &status);
+#endif
+
+    // GESTION DU CAS ISEND(None)
+    if (nOctetsTot==1)
+    {
+        if (*recvBuf=='n')
+        {
+            Py_INCREF(Py_None);
+            return Py_None;  
+        }
+    }
+
+    E_Int nOctets = 0;
+    
+    // recuperation du nombre de data
+    E_Int* intRecvBuf = (E_Int*) initRecvBuf;
+    
+    E_Int sizeData = intRecvBuf[0]; recvBuf += 4;
+    // recuperation du type de donnees
+    E_Int dataType = intRecvBuf[1]; recvBuf += 4;
+
+    // def de la liste des datas
+    PyObject* datas = PyList_New(sizeData);
+
+    if ((dataType!=1) && (dataType!=2) && (dataType!=3))
+    {
+        printf("Error: recv: unknown data type (return None).\n"); fflush(stdout);
+        delete initRecvBuf;
+        Py_INCREF(Py_None);
+        return Py_None;
+    } 
+
+    for (E_Int nData=0; nData<sizeData; nData++)
+    {
+        intRecvBuf = (E_Int*) recvBuf;
+
+        nOctets = intRecvBuf[0] ; recvBuf+=4;
+
+        // def buffer pour une data
+        char* buf = new char[nOctets];
+        char* initBuf = buf;
+
+        // remplissage du buffer pour la data
+        #pragma omp parallel for
+        for (E_Int j=0; j<nOctets; j++)
+        {
+            buf[j] = recvBuf[j];
+        }
+
+        // Remplissage de la case nData de la liste selon dataType
+        if (dataType==1)
+        {
+            char typeData[1]; // type de ce qui vient dans buf
+            E_Int size = 0; // taille de ce qui vient dans buf
+
+            // Nom de la zone
+            (*typeData)      = *buf      ; buf+=1;
+            E_Int* intBuf    = (E_Int*) buf;
+            size             = intBuf[0] ; buf+=4;
+            char zoneName[size+1];
+            for (E_Int k=0; k<size; k++) { zoneName[k]   = buf[k]; }
+            zoneName[size]='\0'; buf+=size;
+            
+            // Nom de la zone donneuse
+            (*typeData)       = *buf      ; buf+=1;
+            intBuf            = (E_Int*) buf;
+            size              = intBuf[0] ; buf+=4;
+            char zoneDName[size+1];
+            for (E_Int k=0; k<size; k++) { zoneDName[k]   = buf[k]; }
+            zoneDName[size]='\0'; buf+=size;
+
+            // Tableau des indices
+            (*typeData)     = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            intBuf          = (E_Int*) buf;
+            size            = intBuf[0]; buf+=4;
+            E_Int* indices  = new E_Int[size];
+            intBuf          = (E_Int*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<size; i++)
+            {
+                indices[i] = intBuf[i];
+            }
+            E_Int npts = size;
+            buf+=size*4;
+
+            // Tableau des X
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
+            intBuf              = (E_Int*) buf;
+            size                = intBuf[0]; buf+=4;
+            E_Float* xCoords    = new E_Float[size];
+            E_Float* floatBuf   = (E_Float*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<size; i++)
+            {
+                xCoords[i] = floatBuf[i];
+            }
+            buf+=size*8;
+
+            // Tableau des Y
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour Y (!=float)\n", rank); fflush(stdout);};
+            intBuf              = (E_Int*) buf;
+            size                = intBuf[0]; buf+=4;
+            E_Float* yCoords    = new E_Float[size];
+            floatBuf            = (E_Float*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<size; i++)
+            {
+                yCoords[i] = floatBuf[i];
+            }
+            buf+=size*8;
+
+            // Tableau des Z
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour Z (!=float)\n", rank); fflush(stdout);};
+            intBuf              = (E_Int*) buf;
+            size                = intBuf[0]; buf+=4;
+            E_Float* zCoords    = new E_Float[size];
+            floatBuf            = (E_Float*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<size; i++)
+            {
+                zCoords[i] = floatBuf[i];
+            }
+            buf+=size*8;
+
+            
+            // Transformation des donnees C en donnees Python
+            PyObject* PyZoneName = Py_BuildValue("s", zoneName);
+            PyObject* PyZoneDName = Py_BuildValue("s", zoneDName);
+            PyObject* PyIndices =  K_NUMPY::buildNumpyArray(indices, npts, 1, 1);
+            PyObject* PyXCoords =  K_NUMPY::buildNumpyArray(xCoords, npts, 1, 1);
+            PyObject* PyYCoords =  K_NUMPY::buildNumpyArray(yCoords, npts, 1, 1);
+            PyObject* PyZCoords =  K_NUMPY::buildNumpyArray(zCoords, npts, 1, 1);
+            
+            // Liste finale
+            PyObject* dataToFill = PyList_New(6);
+            // passage des numpy dans la liste
+            PyList_SET_ITEM(dataToFill, 0, PyZoneName);
+            PyList_SET_ITEM(dataToFill, 1, PyZoneDName);
+            PyList_SET_ITEM(dataToFill, 2, PyIndices);
+            PyList_SET_ITEM(dataToFill, 3, PyXCoords);
+            PyList_SET_ITEM(dataToFill, 4, PyYCoords);
+            PyList_SET_ITEM(dataToFill, 5, PyZCoords);
+
+            // liste dans datas
+            PyList_SET_ITEM(datas, nData, dataToFill);
+
+            delete indices; delete xCoords; delete yCoords; delete zCoords;
+        }
+        else if (dataType==2)
+        {
+            char typeData[1]; // type de ce qui vient dans buf
+            E_Int size = 0; // taille de ce qui vient dans buf
+
+            // Nom de la zone
+            (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[%d][RECV] Probleme de type pour zoneName (!=char)\n", rank); fflush(stdout);};
+            E_Int* intBuf    = (E_Int*) buf;
+            size             = intBuf[0] ; buf+=4;
+            char zoneName[size+1];
+            for (E_Int k=0; k<size; k++) { zoneName[k]   = buf[k]; }
+            zoneName[size]='\0'; buf+=size;
+
+            // Tableau des indices
+            (*typeData)     = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            intBuf          = (E_Int*) buf;
+            size            = intBuf[0]; buf+=4;
+            E_Int* indices  = new E_Int[size];
+            intBuf          = (E_Int*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<size; i++)
+            {
+                indices[i] = intBuf[i];
+            }
+            E_Int npts = size;
+            PyObject* PyNpts = PyLong_FromLong(size);
+            buf+=size*4;
+
+            // Nom des fields
+            (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[%d][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
+            intBuf               = (E_Int*) buf;
+            size                 = intBuf[0] ; buf+=4;
+            char fieldNames[size+1];
+            for (E_Int k=0; k<size; k++) { fieldNames[k]   = buf[k]; }
+            fieldNames[size]='\0'; buf+=size;
+
+            // Tableau des fields
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
+            intBuf              = (E_Int*) buf;
+            size                = intBuf[0]; buf+=4;
+            E_Int nFlds         = intBuf[1]; buf+=4;
+            E_Float* fields     = new E_Float[size*nFlds];
+            E_Float* floatBuf   = (E_Float*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<size*nFlds; i++)
+            {
+                fields[i] = floatBuf[i];
+            }
+            buf+=size*nFlds*8;
+
+            // Transformation des données C en données Python
+            PyObject* PyZoneName = Py_BuildValue("s", zoneName);
+            PyObject* PyIndices =  K_NUMPY::buildNumpyArray(indices, npts, 1, 1);
+            PyObject* PyFieldNames = Py_BuildValue("s", fieldNames);
+            PyObject* PyFields =  K_NUMPY::buildNumpyArray(fields, npts, 6, 0);
+
+            // Liste finale
+            PyObject* dataToFill = PyList_New(3);
+            PyObject* dataToFill2 = PyList_New(5);
+
+            // passage des champs dans la liste
+            PyList_SET_ITEM(dataToFill2, 0, PyFieldNames);
+            PyList_SET_ITEM(dataToFill2, 1, PyFields);
+            PyList_SET_ITEM(dataToFill2, 2, PyNpts);
+            PyList_SET_ITEM(dataToFill2, 3, PyLong_FromLong(1));
+            PyList_SET_ITEM(dataToFill2, 4, PyLong_FromLong(1));
+
+            // passage des arguments dans la liste
+            PyList_SET_ITEM(dataToFill, 0, PyZoneName);
+            PyList_SET_ITEM(dataToFill, 1, PyIndices);
+            PyList_SET_ITEM(dataToFill, 2, dataToFill2);
+
+            // liste dans datas
+            PyList_SET_ITEM(datas, nData, dataToFill);
+
+
+            delete indices; delete fields;
+
+        }
+        else if (dataType==3)
+        {
+            char typeData[1]; // type de ce qui vient dans buf
+            E_Int size = 0; // taille de ce qui vient dans buf
+
+            // Entier
+            (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour l'entier (!=int)\n", rank); fflush(stdout);};
+            E_Int* intBuf    = (E_Int*) buf;
+            E_Int var        = intBuf[0] ; buf+=4;
+
+            // Nom des fields
+            (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[%d][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
+            intBuf               = (E_Int*) buf;
+            size                 = intBuf[0] ; buf+=4;
+            char fieldNames[size+1];
+            for (E_Int k=0; k<size; k++) { fieldNames[k]   = buf[k]; }
+            fieldNames[size]='\0'; buf+=size;
+
+            // Tableau des fields
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
+            intBuf              = (E_Int*) buf;
+            size                = intBuf[0]; buf+=4;
+            E_Int nFlds         = intBuf[1]; buf+=4;
+            E_Float* fields     = new E_Float[size*nFlds];
+            E_Float* floatBuf   = (E_Float*) buf;
+            #pragma omp parallel for
+            for (E_Int i=0; i<size*nFlds; i++)
+            {
+                fields[i] = floatBuf[i];
+            }
+            buf += size*nFlds*8;
+
+            // Tableau des indices
+            (*typeData)     = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            intBuf          = (E_Int*) buf;
+            size            = intBuf[0]; buf+=4;
+            E_Int* indices  = new E_Int[size];
+            intBuf          = (E_Int*) buf;
+            // #pragma omp parallel for
+            for (E_Int i=0; i<size; i++)
+            {
+                indices[i] = intBuf[i];
+            }
+            E_Int npts = size;
+            PyObject* PyNpts = PyLong_FromLong(size);
+            buf+=size*4;
+
+
+            // Transformation des données C en données Python
+            PyObject* PyVar = PyLong_FromLong(var);
+            PyObject* PyIndices =  K_NUMPY::buildNumpyArray(indices, npts, 1, 1);
+            PyObject* PyFieldNames = Py_BuildValue("s", fieldNames);
+            PyObject* PyFields =  K_NUMPY::buildNumpyArray(fields, npts, 6, 0);
+
+            // Liste finale
+            PyObject* dataToFill = PyList_New(3);
+            PyObject* dataToFill2 = PyList_New(5);
+
+            // passage des champs dans la liste
+            PyList_SET_ITEM(dataToFill2, 0, PyFieldNames);
+            PyList_SET_ITEM(dataToFill2, 1, PyFields);
+            PyList_SET_ITEM(dataToFill2, 2, PyNpts);
+            PyList_SET_ITEM(dataToFill2, 3, PyLong_FromLong(1));
+            PyList_SET_ITEM(dataToFill2, 4, PyLong_FromLong(1));
+
+            // passage des arguments dans la liste
+            PyList_SET_ITEM(dataToFill, 0, PyVar);
+            PyList_SET_ITEM(dataToFill, 1, dataToFill2);
+            PyList_SET_ITEM(dataToFill, 2, PyIndices);
+            
+            // liste dans datas
+            PyList_SET_ITEM(datas, nData, dataToFill);
+
+
+            delete indices; delete fields;
+
+        }
+
+        delete initBuf;
+
+        recvBuf+=nOctets; 
+    }
+
+    delete initRecvBuf;
+
+    
+    // Retour des datas
+    return datas;
+}
+//==================================================
+//==================================================

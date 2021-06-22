@@ -162,6 +162,10 @@ namespace K_CONVERTER
   PyObject* extractBCFields(PyObject* self, PyObject* args);
   PyObject* buildBCMatchFieldStruct(PyObject* self, PyObject* args);
   PyObject* buildBCMatchFieldNG(PyObject* self, PyObject* args);
+  // send/rev
+  PyObject* iSend(PyObject* self, PyObject* args);
+  PyObject* recv(PyObject* self, PyObject* args);
+  PyObject* waitAll(PyObject* self, PyObject* args);
   
   // addGhostCells NGON
   void addGhostCellsNGon2D(E_Int depth,
