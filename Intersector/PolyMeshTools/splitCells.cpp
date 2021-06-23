@@ -1308,18 +1308,23 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
   packet_ss[5]          = sub_type;
   *sub_type             = *subtype_hm;
 
-  if (sensor_type == 2 && *sub_type != NUGA::ISO)
+  if (*sub_type == NUGA::ISO_HEX)
   {
-    PyErr_SetString(PyExc_ValueError,
-       "adaptCells: nodal sensor only supports ISO subdivision currently.");
-    return nullptr;
+    if (sensor_type == 2)
+    {
+      PyErr_SetString(PyExc_ValueError,
+         "adaptCells: nodal sensor does not support ISO_HEX subdivision.");
+      return nullptr;
+    }
   }
-
-  if (sensor_type != 3 && *sub_type == NUGA::DIR)
+  else if (*sub_type == NUGA::DIR)
   {
-    PyErr_SetString(PyExc_ValueError,
-       "adaptCells: DIR  only works with cell sensor currently.");
-    return nullptr;
+    if (sensor_type != 2 && sensor_type != 3)
+    {
+      PyErr_SetString(PyExc_ValueError,
+       "adaptCells: DIR only works with cell/nodal sensor currently.");
+      return nullptr;
+    }
   }
 
   // HMESH PTR

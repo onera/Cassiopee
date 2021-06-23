@@ -39,10 +39,27 @@ class nodal_sensor : public sensor<mesh_t, Vector_t<E_Int>> // Vector_t might be
 template <typename mesh_t>
 E_Int nodal_sensor<mesh_t>::assign_data(const sensor_input_t& data)
 {
-  parent_t::assign_data(data);
-
   E_Int ncrd = parent_t::_hmesh._crd.cols();
-  parent_t::_data.resize(ncrd, 0.); // resize anyway to ensure same size as crd
+
+  if (data.size() <= parent_t::_hmesh.pthids0.size() && !parent_t::_hmesh.pthids0.empty())
+  {
+    //converts input data to hmesh data
+    sensor_input_t hmdat;
+    hmdat.resize(ncrd, 0);
+
+    for (size_t k=0; k < data.size(); ++k){
+      //std::cout << "id : " << k << " --> hmid : " << parent_t::_hmesh.pthids0[k] << " over " << ncrd << "points" << std::endl;
+      hmdat[parent_t::_hmesh.pthids0[k]] = data[k];
+    }
+
+    parent_t::assign_data(hmdat);
+
+  }
+  else
+  {
+    parent_t::assign_data(data);
+    parent_t::_data.resize(ncrd, 0.); // resize anyway to ensure same size as crd
+  }
 
   return 0;
 }
