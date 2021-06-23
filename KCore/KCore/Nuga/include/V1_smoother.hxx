@@ -49,19 +49,31 @@ void V1_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)  {
 
     E_Int ind_PHi = stck.top(); // index of ith PH
     stck.pop();
-    E_Int s = ng.PHs.stride(ind_PHi);
 
+    //fixme : dangerous : operator[] returns a ref
+    // so doing :
+    //     auto incr = adap_incr.cell_adap_incr[ind_PHi] + PHtree.get_level(ind_PHi);
+    // updates adap_incr.cell_adap_incr[ind_PHi] !!
+    // so do it now in 2 steps (next 2 lines) but other problems could occur elsewhere
+    auto incr = adap_incr.cell_adap_incr[ind_PHi];
+    incr += PHtree.get_level(ind_PHi);
+
+    E_Int s = ng.PHs.stride(ind_PHi);
     neighbours.clear();
     neighbours.resize(4*s);//fixme 4s
     E_Int nb_neighbours = 0;
-
-    auto incr = adap_incr.cell_adap_incr[ind_PHi] + PHtree.get_level(ind_PHi);
     
     hmesh.get_enabled_neighbours(ind_PHi, neighbours.begin(), nb_neighbours); // get the effective neighbours (enabled ones) to assert the 2:1 rule
 
     for (int i = 0; i < nb_neighbours; ++i)
     {
-      auto incr_neigh = adap_incr.cell_adap_incr[neighbours[i]] + PHtree.get_level(neighbours[i]);
+      //fixme : dangerous : operator[] returns a ref
+      // so doing :
+      //    auto incr_neigh = adap_incr.cell_adap_incr[neighbours[i]] + PHtree.get_level(neighbours[i])
+      // updates adap_incr.cell_adap_incr[neighbours[i]] !!
+      // so do it now in 2 steps (next 2 lines) but other problems could occur elsewhere
+      auto incr_neigh = adap_incr.cell_adap_incr[neighbours[i]];
+      incr_neigh += PHtree.get_level(neighbours[i]);
 
       if (NUGA::abs(incr - incr_neigh) <= 1) // 2:1 rule respected
         continue;

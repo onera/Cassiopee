@@ -891,7 +891,7 @@ E_Int NUGA::Splitter::__split_pgs
 void NUGA::Splitter::__apply_pgs_splits(ngon_unit& PHs, const ngon_unit& split_graph)
 {
   // split_graph is sized as PGs BEFORE APPENDING, iE. what is referenced in PHs, but not what is stored in PGs
-  // if nothing to change for a given PG, molec is (1,IDX_NONE).
+  // if a given PG is gone, molec is (1,IDX_NONE).
 #ifdef DEBUG_NGON_T
   assert(PHs.get_facets_max_id() == split_graph.size());
 #endif

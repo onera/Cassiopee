@@ -3454,7 +3454,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
 
   //std::cout << "before clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
 
-  ngon_type::clean_connectivity(ng, crd, -1, tol);
+  ngon_type::clean_connectivity(ng, crd, -1, tol, true/*remove dups*/);
 
   if (ng.PHs.size() == cnts.size()) // NUGA SURF
     ng = ngon_type(ng.PGs, true);

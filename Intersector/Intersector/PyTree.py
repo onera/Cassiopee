@@ -706,13 +706,13 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
         #updatePointLists(z, z1s, pg_oids) # todo CW
 
         # MAJ CHAMP CENTRE
-        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
-        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+        # cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+        # fields = Internal.getNodesFromType1(cont, 'DataArray_t')
 
-        for f in fields:
-            pt = f[1].ravel('k')
-            f[1] = numpy.empty( (ph_oids.size), numpy.float64)
-            f[1][:] = pt[ph_oids[:]]
+        # for f in fields:
+        #     pt = f[1].ravel('k')
+        #     f[1] = numpy.empty( (ph_oids.size), numpy.float64)
+        #     f[1][:] = pt[ph_oids[:]]
 
         zs.append(z)
 
@@ -737,14 +737,14 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
         # MAJ POINT LISTS #
         #updatePointLists(z, z2s, pg_oids) # todo CW
 
-        # MAJ CHAMP CENTRE
-        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
-        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+        # # MAJ CHAMP CENTRE
+        # cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+        # fields = Internal.getNodesFromType1(cont, 'DataArray_t')
 
-        for f in fields:
-            pt = f[1].ravel('k')
-            f[1] = numpy.empty( (ph_oids.size), numpy.float64)
-            f[1][:] = pt[ph_oids[:]]
+        # for f in fields:
+        #     pt = f[1].ravel('k')
+        #     f[1] = numpy.empty( (ph_oids.size), numpy.float64)
+        #     f[1][:] = pt[ph_oids[:]]
 
         zs.append(z)
 

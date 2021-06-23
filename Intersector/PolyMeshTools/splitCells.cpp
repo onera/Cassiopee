@@ -191,6 +191,13 @@ void* __createHM<NUGA::ISO_HEX>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArr
 template<>
 void* __createHM<NUGA::DIR>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, std::vector<std::vector<E_Int>>& bcptlists, E_Int zid, std::vector<std::pair<E_Int, std::vector<E_Int>>>& joinlists, void* pcom)
 {
+  if (typ != elt_t::HEXA)
+  {
+    PyErr_WarnEx(PyExc_Warning,
+      "createHMesh: directionnal policy is only supported with Hexahedral mesh currently.", 1);
+    return nullptr;
+  }
+
   using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR>;
   if (pcom == nullptr)
     return new hmesh_t(crd, cnt, 1/*idx start*/, bcptlists);

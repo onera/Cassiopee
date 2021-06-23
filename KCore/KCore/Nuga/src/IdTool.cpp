@@ -80,7 +80,7 @@ namespace K_CONNECT
     {
       it = molecules.find(i);
       if (it == molecules.end())
-        split_graph.add(1, &empty); //empty rather than the id because of the shift that follow this function call : to avoid corruption
+        split_graph.add(1, &empty); // has disappeared
       else
         split_graph.add(it->second.size(), &it->second[0]);
     }
