@@ -2,6 +2,7 @@
 from . import PyTree as C
 from . import Internal
 from . import Distributed
+from . import converter
 
 # Acces a Distributed
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
@@ -85,6 +86,37 @@ def sendRecv(datas, graph):
             rec = KCOMM.recv(source=node)
             if rec is not None: rcvDatas[node] = rec
     MPI.Request.Waitall(reqs)
+    return rcvDatas
+
+#==============================================================================
+# Send and receive with a graph - C version - no pickle
+# IN: datas: un dictionnaire des donnees a envoyer par proc de destination
+# OUT: un dictionnaire des donnees recues par proc d'origine
+# Attention: ne fonctionne que pour certaines datas (issues de transfer)
+#==============================================================================
+def sendRecvC(datas, graph):
+    if graph == {}: return {}
+    reqs = []
+    
+    if rank in graph:
+        g = graph[rank] # graph du proc courant
+        for oppNode in g:
+            # Envoie les datas necessaires au noeud oppose
+            #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
+            if oppNode in datas: 
+                s = converter.iSend(datas[oppNode], oppNode, rank, KCOMM)
+            else:
+                s = converter.iSend(None, oppNode, rank, KCOMM)
+            reqs.append(s)
+    rcvDatas={}
+    for node in graph:
+        #print(rank, graph[node].keys())
+        if rank in graph[node]:
+            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
+            rec = converter.recv(node, rank, KCOMM)
+            if rec is not None: rcvDatas[node] = rec
+
+    a = converter.waitAll(reqs)
     return rcvDatas
 
 #==============================================================================

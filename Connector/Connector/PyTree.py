@@ -801,7 +801,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                 if r is not None:
                     ranger = r[1]
                     w = Internal.range2Window(ranger)
-                    C._addBC2Zone(z1, 'dummy', 'BCWall', w)
+                    z1 = C.addBC2Zone(z1, 'dummy', 'BCWall', w)
 
             bcnearmatch = Internal.getNodesFromType2(z1, 'GridConnectivity_t')
             for i in bcnearmatch:
@@ -812,7 +812,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                         r = Internal.getNodeFromName1(i, 'PointRange')
                         ranger = r[1]
                         w = Internal.range2Window(ranger)
-                        C._addBC2Zone(z1, 'dummy', 'BCWall', w)
+                        z1 = C.addBC2Zone(z1, 'dummy', 'BCWall', w)
             # oneovern
             zones2.append(T.oneovern(z1,(ratios[0],ratios[1],ratios[2])))
 

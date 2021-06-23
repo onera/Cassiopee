@@ -155,7 +155,7 @@ short K_INTERP::getInterpolationCell(
   noDonorBlk = noblk;
 
   // check si tous les coefs sont nuls sauf 1 
-  if ( foundSav < 1 ) return foundSav;
+  if (foundSav < 1) return foundSav;
 
 # include "commonCheckCoefs.h"
 
@@ -167,7 +167,7 @@ short K_INTERP::getInterpolationCell(
    les images de (x,y,z) projete sur les parois des differents
    domaines donneurs dans xt,yt,zt.
    Les pts de coordonnees (xt[noz],yt[noz],zt[noz]) sont interpoles depuis 
-   l'InterpData InterpDatas[noz] uniquement. Ce cas est appliqué pour calculer
+   l'InterpData InterpDatas[noz] uniquement. Ce cas est appliquï¿½ pour calculer
    les coefficients d'interpolation dans le cas double wall.
    Attention: l'ordre de (xt,yt,zt) et de InterpDatas doit etre le meme */
 //=============================================================================
@@ -362,7 +362,7 @@ short K_INTERP::getExtrapolationCell(
   les images de (x,y,z) projete sur les parois des differents
   domaines donneurs dans xt,yt,zt.
   Les pts de coordonnees (xt[noz],yt[noz],zt[noz]) sont extrapoles depuis 
-  l'InterpData InterpDatas[noz] uniquement. Ce cas est appliqué pour calculer
+  l'InterpData InterpDatas[noz] uniquement. Ce cas est appliquï¿½ pour calculer
   les coefficients d extrapolation dans le cas double wall 
   Attention: l'ordre de (xt,yt,zt) et de InterpDatas doit etre le meme */
 //=============================================================================
@@ -468,8 +468,8 @@ short K_INTERP::getInterpolationCell(
   vector<E_Int> posct; posct.push_back(posc); 
   vector<FldArrayF*> fields; fields.push_back(field);
   vector<void*> a1t; vector<void*> a2t; vector<void*> a3t; vector<void*> a4t;
-  
-  a1t.push_back(a1); a2t.push_back(a2); a3t.push_back(a3);a4t.push_back(a4);
+
+  a1t.push_back(a1); a2t.push_back(a2); a3t.push_back(a3); a4t.push_back(a4);
   return K_INTERP::getInterpolationCell(
     x, y, z, InterpDatas, fields, a1t, a2t, a3t, a4t,
     posxt, posyt, poszt, posct, voli, donorIndices, donorCoefs, 
@@ -507,7 +507,7 @@ short K_INTERP::getExtrapolationCell(
        a2: cEV  si le donneur est non structure
    IN: f0: champ du bloc donneur pour l interpolation
    IN: indi: indice des pts de la molecule d interpolation selon le type 'type'
-             peut être defini par des sommets de la molécule donneuse
+             peut ï¿½tre defini par des sommets de la molï¿½cule donneuse
                               par l'indice de la cellule donneuse
    IN: cf: coefs d'interpolation associes 
    IN: type: permet de determiner la formule appliquee
@@ -669,11 +669,11 @@ short K_INTERP::compOneInterpolatedValue(
        -1, -1, -1 si le donneur est non structure
    IN: f0: champ du bloc donneur pour l'interpolation
    IN: indi: indices des pts de la molecule d interpolation
-             peut etre defini par des sommets de la molécule donneuse
+             peut etre defini par des sommets de la molï¿½cule donneuse
                               par l'indice de la cellule donneuse
              doit etre coherent avec f.
    IN: indiSize: taille de indi
-   IN: cf: coefs d'interpolation associés 
+   IN: cf: coefs d'interpolation associï¿½s 
    IN: ind: indice du pt a interpoler 
    IN: interpType: permet de determiner la formule appliquee
    OUT: f: champs interpoles au point ind 
@@ -692,7 +692,7 @@ short K_INTERP::compInterpolatedValues(
   switch (type) 
   {
     case 0: 
-      nocf = indi[0];// nb de pts pour la formule
+      nocf = indi[0]; // nb de pts pour la formule
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
         E_Float* fp = f.begin(eq);
@@ -892,6 +892,7 @@ short K_INTERP::compInterpolatedValues(
   E_Int ni, nj, ninj, nvert, noet, i, j, k, nocf;
   E_Float* cfp = cf.begin();
   E_Int posv;
+  E_Float* fp; E_Float* fp0;
 
   switch (type) 
   {
@@ -900,8 +901,8 @@ short K_INTERP::compInterpolatedValues(
       for (E_Int noeq = 0; noeq < nfld; noeq++)
       {
         posv = posvars[noeq];
-        E_Float* fp = f.begin(noeq+1);
-        E_Float* fp0 = f0.begin(posv);
+        fp = f.begin(noeq+1);
+        fp0 = f0.begin(posv);
         fp[ind] = 0.; 
         for (E_Int no = 1; no <= nocf; no++)
         {
@@ -916,8 +917,8 @@ short K_INTERP::compInterpolatedValues(
       for (E_Int noeq = 0; noeq < nfld; noeq++)
       {
         posv = posvars[noeq];
-        E_Float* fp = f.begin(noeq+1);
-        E_Float* fp0 = f0.begin(posv);
+        fp = f.begin(noeq+1);
+        fp0 = f0.begin(posv);
         fp[ind] = cfp[0] * fp0[ind0];
       }      
       break;
@@ -939,8 +940,8 @@ short K_INTERP::compInterpolatedValues(
         for (E_Int noeq = 0; noeq < nfld; noeq++)
         {
           posv = posvars[noeq];
-          E_Float* fp = f.begin(noeq+1);
-          E_Float* fp0 = f0.begin(posv);
+          fp = f.begin(noeq+1);
+          fp0 = f0.begin(posv);
           fp[ind] = 0.; nocf = 0;
           for (E_Int k0 = 0; k0 < 2; k0++)
             for (E_Int j0 = 0; j0 < 2; j0++)
@@ -965,8 +966,8 @@ short K_INTERP::compInterpolatedValues(
       for (E_Int noeq = 0; noeq < nfld; noeq++)
       {
         posv = posvars[noeq];
-        E_Float* fp = f.begin(noeq+1);
-        E_Float* fp0 = f0.begin(posv);
+        fp = f.begin(noeq+1);
+        fp0 = f0.begin(posv);
         fp[ind] = 0.; nocf = 0;
         for (E_Int j0 = 0; j0 < 2; j0++)
           for (E_Int i0 = 0; i0 < 2; i0++)
@@ -995,8 +996,8 @@ short K_INTERP::compInterpolatedValues(
         for (E_Int noeq = 0; noeq < nfld; noeq++)
         {
           posv = posvars[noeq];
-          E_Float* fp = f.begin(noeq+1);
-          E_Float* fp0 = f0.begin(posv);          
+          fp = f.begin(noeq+1);
+          fp0 = f0.begin(posv);          
           fp[ind] = 0.;
           for (E_Int i0 = 0; i0 < 3; i0++)
             for (E_Int j0 = 0; j0 < 3; j0++)
@@ -1030,8 +1031,8 @@ short K_INTERP::compInterpolatedValues(
         for (E_Int noeq = 0; noeq < nfld; noeq++)
         {
           posv = posvars[noeq];
-          E_Float* fp = f.begin(noeq+1);
-          E_Float* fp0 = f0.begin(posv);          
+          fp = f.begin(noeq+1);
+          fp0 = f0.begin(posv);          
           fp[ind] = 
           cfp[0]*fp0[ind0] + cfp[1]*fp0[ind1] + 
           cfp[2]*fp0[ind2] + cfp[3]*fp0[ind3] +
@@ -1047,8 +1048,8 @@ short K_INTERP::compInterpolatedValues(
         for (E_Int noeq = 0; noeq < nfld; noeq++)
         {
           posv = posvars[noeq];
-          E_Float* fp = f.begin(noeq+1);
-          E_Float* fp0 = f0.begin(posv);           
+          fp = f.begin(noeq+1);
+          fp0 = f0.begin(posv);           
           fp[ind] = 0.;
           for (E_Int nov = 1; nov <= nvert; nov++)
           {
@@ -1075,8 +1076,8 @@ short K_INTERP::compInterpolatedValues(
       for (E_Int noeq = 0; noeq < nfld; noeq++)
       {
         posv = posvars[noeq];
-        E_Float* fp = f.begin(noeq+1);
-        E_Float* fp0 = f0.begin(posv); 
+        fp = f.begin(noeq+1);
+        fp0 = f0.begin(posv); 
         fp[ind] = 0.;
         for (E_Int k0 = 0; k0 < 5; k0++)
           for (E_Int j0 = 0; j0 < 5; j0++)
@@ -1099,9 +1100,9 @@ short K_INTERP::compInterpolatedValues(
        -1, -1, -1 si le donneur est non structure
    IN: f0: champ du bloc donneur pour l'interpolation
    IN: indi: indices des pts de la molecule d interpolation
-             peut être defini par des sommets de la molécule donneuse
+             peut etre defini par des sommets de la molï¿½cule donneuse
                               par l'indice de la cellule donneuse
-             doit être cohérent avec f.
+             doit etre coherent avec f.
    IN: indiSize: taille de indi
    IN: cf: coefs d'interpolation associes 
    IN: f: tableau monodimensionnel des champs a interpoler

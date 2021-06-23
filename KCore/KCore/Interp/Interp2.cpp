@@ -147,7 +147,7 @@ E_Int K_INTERP::getExtrapolationData(
       found = InterpData->searchExtrapolationCellStruct(ni, nj, nk, xl, yl, zl, cellN, 
                                                        x, y, z, ic, jc, kc, cf, nature, extrapOrder, constraint);
       if (found < 1) return found;
-      ic = ic-1; jc = jc-1; kc = kc-1;// pour demarrer à 0        
+      ic = ic-1; jc = jc-1; kc = kc-1;// pour demarrer ï¿½ 0        
 
       if ( dim == 3 ) 
       {
@@ -199,6 +199,7 @@ E_Int K_INTERP::getInterpolationData(
   isBorder = 0;
   E_Float cellN0;
   E_Float val; E_Int d;
+  E_Int nij = ni*nj;
   //2D case : z must be equal to _zmin 
   if (dim == 2) 
   {
@@ -257,11 +258,11 @@ E_Int K_INTERP::getInterpolationData(
         if (found < 1) return found;
         
         ic = ic-1; jc = jc-1; kc = kc-1; // pour demarrer a 0   
-        if ( dim == 3 ) 
+        if (dim == 3)
         {
           if (ic == 0 || ic == ni-2 || jc == 0 || jc == nj-2 || kc == 0 || kc == nk-2) isBorder = 1;
 
-          type = 2; indi[0] = ic + jc*ni + kc*ni*nj;
+          type = 2; indi[0] = ic + jc*ni + kc*nij;
           
           if (cellN != NULL)
           {
@@ -272,7 +273,7 @@ E_Int K_INTERP::getInterpolationData(
                 for (E_Int jj = 0; jj < 2; jj++)
                   for (E_Int ii = 0; ii < 2; ii++)
                   {
-                    ind = (ic+ii) + (jc+jj)*ni + (kc+kk)*ni*nj;
+                    ind = (ic+ii) + (jc+jj)*ni + (kc+kk)*nij;
                     cellN0 = cellN[ind];
                     d = cf[ii+jj*2+kk*4] > 1.e-12;
                     val *= cellN0-d+1;
@@ -286,7 +287,7 @@ E_Int K_INTERP::getInterpolationData(
                 for (E_Int jj = 0; jj < 2; jj++)
                   for (E_Int ii = 0; ii < 2; ii++)
                   {
-                    ind = (ic+ii) + (jc+jj)*ni + (kc+kk)*ni*nj;
+                    ind = (ic+ii) + (jc+jj)*ni + (kc+kk)*nij;
                     cellN0 = cellN[ind];
                     val += K_FUNC::E_abs(cf[ii+jj*2+kk*4])*K_FUNC::E_abs(1.-cellN0);
                   }
@@ -347,7 +348,7 @@ E_Int K_INTERP::getInterpolationData(
         return -1;
       }
 
-      if ( InterpData->_topology == 1)//ADT sur maillage curviligne
+      if (InterpData->_topology == 1) //ADT sur maillage curviligne
       { 
         found = InterpData->searchInterpolationCellStruct(ni, nj, nk, xl, yl, zl, x, y, z, ic, jc, kc, cf); 
     
@@ -365,7 +366,7 @@ E_Int K_INTERP::getInterpolationData(
         if (ic == 0 || ic == ni-3 || jc == 0 || jc == nj-3 || kc == 0 || kc == nk-3) isBorder = 1;
         corr = compLagrangeCoefs(x, y, z, ics, jcs, kcs, ni, nj, nk, xl, yl, zl, 
                                  cf, interpType);
-        type = 3; indi[0] = ic + jc*ni + kc*ni*nj;
+        type = 3; indi[0] = ic + jc*ni + kc*nij;
         if (cellN != NULL) { CELLNO3; }
 
         if (corr == 1) // mauvaise approx de (x,y,z) -> ordre 2 type O2CF
@@ -375,7 +376,7 @@ E_Int K_INTERP::getInterpolationData(
           ic = ic-1; jc = jc-1; kc = kc-1;
           if (ic == 0 || ic == ni-2 || jc == 0 || jc == nj-2 || kc == 0 || kc == nk-2) isBorder = 1;
           else isBorder = 0;
-          type = 2; indi[0] = ic + jc*ni + kc*ni*nj;
+          type = 2; indi[0] = ic + jc*ni + kc*nij;
         }
       }
       else if (InterpData->_topology == 0) // CART sur maillage cartesien
@@ -384,7 +385,7 @@ E_Int K_INTERP::getInterpolationData(
         if (found < 1) return found;
 
         ic = ic-1; jc = jc-1; kc = kc-1;// indices demarrent a 0
-        type = 3; indi[0] = ic + jc*ni + kc*ni*nj;
+        type = 3; indi[0] = ic + jc*ni + kc*nij;
         if (ic == 0 || ic == ni-3 || jc == 0 || jc == nj-3 || kc == 0 || kc == nk-3) isBorder = 1;
         if (cellN != NULL) { CELLNO3; }
       }
@@ -392,13 +393,13 @@ E_Int K_INTERP::getInterpolationData(
       
     case K_INTERP::InterpData::O5ABC:
 
-      if ( InterpData->_topology == 2) return -1;
+      if (InterpData->_topology == 2) return -1;
       if (ni < 5 || nj < 5 || nk < 5)
       { 
         //printf("Error: getInterpolationData: 5th order interpolation requires at least 5 points per direction.\n");
         return -1;
       }
-      if ( InterpData->_topology == 1)
+      if (InterpData->_topology == 1)
       {
         found = InterpData->searchInterpolationCellStruct(ni, nj, nk, xl, yl, zl, x, y, z, ic, jc, kc, cf); 
       }
@@ -424,7 +425,7 @@ E_Int K_INTERP::getInterpolationData(
 
       ics = ic; jcs = jc; kcs = kc;//sauvegarde pour compLagrange pour qui les indices demarrent a 1
       ic = ic-1; jc = jc-1; kc = kc-1;
-      type = 5; indi[0] = ic + jc * ni + kc * ni*nj;
+      type = 5; indi[0] = ic + jc * ni + kc * nij;
 
       if (ic == 0 || ic == ni-5 || jc == 0 || jc == nj-5 || kc == 0 || kc == nk-5) isBorder = 1;
 
@@ -437,7 +438,7 @@ E_Int K_INTERP::getInterpolationData(
             for (E_Int jj = 0; jj < 5; jj++)
               for (E_Int ii = 0; ii < 5; ii++)
               {
-                ind = (ic + ii) + (jc + jj)*ni + (kc+kk)*ni*nj;
+                ind = (ic + ii) + (jc + jj)*ni + (kc+kk)*nij;
                 cellN0 = cellN[ind];
                 d = cf[ii]*cf[jj+5]*cf[kk+10] > 1.e-12;
                 val *= cellN0-d+1;
@@ -451,7 +452,7 @@ E_Int K_INTERP::getInterpolationData(
             for (E_Int jj = 0; jj < 5; jj++)
               for (E_Int ii = 0; ii < 5; ii++)
               {
-                ind = (ic+ii) + (jc+jj)*ni + (kc+kk)*ni*nj;
+                ind = (ic+ii) + (jc+jj)*ni + (kc+kk)*nij;
                 cellN0 = cellN[ind];
                 val += K_FUNC::E_abs(cf[ii]*cf[jj+5]*cf[kk+10])*K_FUNC::E_abs(1.-cellN0);
               }
@@ -468,7 +469,7 @@ E_Int K_INTERP::getInterpolationData(
         ic = ic-1; jc = jc-1; kc = kc-1;
         if (ic == 0 || ic == ni-2 || jc == 0 || jc == nj-2 || kc == 0 || kc == nk-2) isBorder = 1;
         else isBorder = 0;
-        type = 2; indi[0] = ic + jc*ni + kc*ni*nj;
+        type = 2; indi[0] = ic + jc*ni + kc*nij;
       }
       break;
 

@@ -1586,14 +1586,59 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
   if (zoneType == 1) nptsTot = ni*nj*nk;
   else nptsTot = ni;
   E_Float* cellNp = fields[posc];
-  FldArrayI indicesInterp(nptsTot);
-  FldArrayF coordX(nptsTot); FldArrayF coordY(nptsTot); FldArrayF coordZ(nptsTot);
-
-  E_Int noi = 0;
+  
   E_Float* xp = fields[posx];
   E_Float* yp = fields[posy];
   E_Float* zp = fields[posz];
 
+  // dimensionnement
+  E_Int nthreads = __NUMTHREADS__;
+  E_Int* sizeLoc = new E_Int [nthreads];
+
+#pragma omp parallel 
+ {
+    E_Int ithread = __CURRENT_THREAD__;
+    sizeLoc[ithread] = 0;
+#pragma omp for
+  for (E_Int i = 0; i < nptsTot; i++)
+  {
+    if ( cellNp[i] == 2. )
+    {
+        sizeLoc[ithread] += 1;
+    }
+  }
+ }
+
+  E_Int size = 0; E_Int tmp;
+  for (E_Int i = 0; i < nthreads; i++)
+  {  tmp = sizeLoc[i]; sizeLoc[i] = size; size += tmp; }
+
+  if (size == 0)
+  {
+    RELEASESHAREDZ(hook, varString, eltType);
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+
+  // allocation des numpy
+  PyObject* PyIndices = K_NUMPY::buildNumpyArray(size,1,1);
+  PyObject* PyCoordX = K_NUMPY::buildNumpyArray(size,1,0);
+  PyObject* PyCoordY = K_NUMPY::buildNumpyArray(size,1,0);
+  PyObject* PyCoordZ = K_NUMPY::buildNumpyArray(size,1,0);
+  E_Int* indicesInterp = K_NUMPY::getNumpyPtrI(PyIndices);
+  E_Float* coordX = K_NUMPY::getNumpyPtrF(PyCoordX);
+  E_Float* coordY = K_NUMPY::getNumpyPtrF(PyCoordY);
+  E_Float* coordZ = K_NUMPY::getNumpyPtrF(PyCoordZ);
+  
+  PyObject* tpl = Py_BuildValue("[OOOO]", PyIndices, PyCoordX, PyCoordY, PyCoordZ);
+  Py_DECREF(PyIndices); Py_DECREF(PyCoordX); Py_DECREF(PyCoordY); Py_DECREF(PyCoordZ);
+  
+  // remplissage des numpy
+#pragma omp parallel
+ {
+    E_Int ithread = __CURRENT_THREAD__;
+    E_Int noi = sizeLoc[ithread];
+#pragma omp for
   for (E_Int i = 0; i < nptsTot; i++)
   {
     if ( cellNp[i] == 2. )
@@ -1605,25 +1650,9 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
       noi += 1;
     }
   }
-  if (noi == 0)
-  {
-    RELEASESHAREDZ(hook, varString, eltType);
-    Py_INCREF(Py_None);
-    return Py_None;
-  }
-  indicesInterp.resize(noi);
-  coordX.resize(noi);
-  coordY.resize(noi);
-  coordZ.resize(noi);
+ }
+  delete [] sizeLoc;
   RELEASESHAREDZ(hook, varString, eltType);
-
-  PyObject* PyIndices = K_NUMPY::buildNumpyArray(indicesInterp,1);
-  PyObject* PyCoordX = K_NUMPY::buildNumpyArray(coordX,1);
-  PyObject* PyCoordY = K_NUMPY::buildNumpyArray(coordY,1);
-  PyObject* PyCoordZ = K_NUMPY::buildNumpyArray(coordZ,1);
-  PyObject* tpl = Py_BuildValue("[OOOO]", PyIndices, PyCoordX, PyCoordY, PyCoordZ);
-
-  Py_DECREF(PyIndices); Py_DECREF(PyCoordX); Py_DECREF(PyCoordY); Py_DECREF(PyCoordZ);
   return tpl;
 }
 //=============================================================================

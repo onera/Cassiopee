@@ -42,16 +42,16 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   //E_Float penaltyExtrap = 1.e6;
   E_Float penaltyOrphan = 1.e12;
 
-  E_Int locDnr = 0;//localisation des champs dans la zone donneuse - en noeuds
+  E_Int locDnr = 0; //localisation des champs dans la zone donneuse - en noeuds
 
   PyObject *interpPtsCoordX, *interpPtsCoordY, *interpPtsCoordZ; 
-  PyObject *zoneD;//donor zone
+  PyObject *zoneD; //donor zone
   PyObject* hookADT;
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   PyObject* pyVariables;
   E_Int interporder;
-  E_Int nature;// O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
-  E_Int penalty;//1 : penalite sur le volume des pts ou cellules frontieres
+  E_Int nature; // O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
+  E_Int penalty; //1 : penalite sur le volume des pts ou cellules frontieres
   E_Float constraint;
   //E_Int extrapOrder = 1;
   E_Int InterpDataType;// 0 : cart, 1 par ADT
@@ -348,27 +348,36 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Int nfldD = posvars0.size()+1;// variables a transferer + le volume donneur 
   PyObject* tpl = K_ARRAY::buildArray(nfldD, varStringOut, nbInterpPts, 1, 1);
   E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF interpolatedFields(nbInterpPts,nfldD, foutp, true);
+  FldArrayF interpolatedFields(nbInterpPts, nfldD, foutp, true);
   interpolatedFields.setAllValuesAtNull();
   E_Float* ptrVol = interpolatedFields.begin(nfldD);
 
 #pragma omp parallel default(shared)
 {
   E_Int noblk, type;
-  E_Float volD;
+  E_Float volD, x, y, z;
   FldArrayI indi(nindi); FldArrayF cf(ncfmax);
+
+  vector<K_INTERP::InterpData*> InterpDatas; InterpDatas.push_back(interpData);
+  vector<E_Int> posxt; posxt.push_back(posxd); 
+  vector<E_Int> posyt; posyt.push_back(posyd); 
+  vector<E_Int> poszt; poszt.push_back(poszd); 
+  vector<E_Int> posct; posct.push_back(poscd); 
+  vector<FldArrayF*> fields; fields.push_back(&donorFields);
+  vector<void*> a1t; vector<void*> a2t; vector<void*> a3t; vector<void*> a4t;
+  a1t.push_back(a2); a2t.push_back(a3); a3t.push_back(a4); a4t.push_back(a5);
+
 #pragma omp for
   for (E_Int noind = 0; noind < nbInterpPts; noind++)
   {
-    E_Float x = xr[noind];
-    E_Float y = yr[noind];
-    E_Float z = zr[noind];
+    x = xr[noind]; y = yr[noind]; z = zr[noind];
     volD = 0.;
-    short ok = K_INTERP::getInterpolationCell(x, y, z, interpData, &donorFields,
-                                              a2, a3, a4, a5, posxd, posyd, poszd, poscd,
-                                              volD, indi, cf, type, noblk, interpType, 
-                                              nature, penalty);   
-    
+
+    short ok = K_INTERP::getInterpolationCell(
+        x, y, z, InterpDatas, fields, a1t, a2t, a3t, a4t,
+        posxt, posyt, poszt, posct, volD, indi, cf, 
+        type, noblk, interpType, nature, penalty);
+
     // CB: essai pour enlever les extrapolations
     /* 
     if (ok != 1)
