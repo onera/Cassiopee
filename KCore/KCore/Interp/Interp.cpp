@@ -689,14 +689,16 @@ short K_INTERP::compInterpolatedValues(
   E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7, indcell; 
   E_Int ni, nj, ninj, nvert, noet, i, j, k, nocf;
   E_Float* cfp = cf.begin();
+  E_Float* fp0; E_Float* fp;
+
   switch (type) 
   {
     case 0: 
       nocf = indi[0]; // nb de pts pour la formule
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fp = f.begin(eq);
-        E_Float* fp0 = f0.begin(eq);
+        fp = f.begin(eq);
+        fp0 = f0.begin(eq);
         fp[ind] = 0.; 
         for (E_Int no = 1; no <= nocf; no++)
         {
@@ -710,8 +712,8 @@ short K_INTERP::compInterpolatedValues(
       ind0 = indi[0];
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fp = f.begin(eq);
-        E_Float* fp0 = f0.begin(eq);
+        fp = f.begin(eq);
+        fp0 = f0.begin(eq);
         fp[ind] = cfp[0] * fp0[ind0];
       }      
       break;
@@ -732,8 +734,8 @@ short K_INTERP::compInterpolatedValues(
         k = ind0/ninj;  j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);
         for (E_Int eq = 1; eq <= nfld; eq++)
         {
-          E_Float* fp = f.begin(eq);
-          E_Float* fp0 = f0.begin(eq);
+          fp = f.begin(eq);
+          fp0 = f0.begin(eq);
           fp[ind] = 0.; nocf = 0;
           for (E_Int k0 = 0; k0 < 2; k0++)
             for (E_Int j0 = 0; j0 < 2; j0++)
@@ -757,8 +759,8 @@ short K_INTERP::compInterpolatedValues(
      
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fp = f.begin(eq);
-        E_Float* fp0 = f0.begin(eq);
+        fp = f.begin(eq);
+        fp0 = f0.begin(eq);
         fp[ind] = 0.; nocf = 0;
         for (E_Int j0 = 0; j0 < 2; j0++)
           for (E_Int i0 = 0; i0 < 2; i0++)
@@ -786,8 +788,8 @@ short K_INTERP::compInterpolatedValues(
         k = ind0/ninj;  j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);
         for (E_Int eq = 1; eq <= nfld; eq++)
         {
-          E_Float* fp = f.begin(eq);
-          E_Float* fp0 = f0.begin(eq);
+          fp = f.begin(eq);
+          fp0 = f0.begin(eq);
           fp[ind] = 0.;
           for (E_Int i0 = 0; i0 < 3; i0++)
             for (E_Int j0 = 0; j0 < 3; j0++)
@@ -833,8 +835,8 @@ short K_INTERP::compInterpolatedValues(
         nvert = cn0.getNfld();
         for (E_Int eq = 1; eq <= nfld; eq++) 
         {
-          E_Float* fp = f.begin(eq);
-          E_Float* fp0 = f0.begin(eq);
+          fp = f.begin(eq);
+          fp0 = f0.begin(eq);
           fp[ind] = 0.;
           for (E_Int nov = 1; nov <= nvert; nov++)
           {
@@ -860,8 +862,8 @@ short K_INTERP::compInterpolatedValues(
       k = ind0/(ninj); j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);     
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fp = f.begin(eq);
-        E_Float* fp0 = f0.begin(eq);
+        fp = f.begin(eq);
+        fp0 = f0.begin(eq);
         fp[ind] = 0.;
         for (E_Int k0 = 0; k0 < 5; k0++)
           for (E_Int j0 = 0; j0 < 5; j0++)
@@ -1120,13 +1122,15 @@ short K_INTERP::compInterpolatedField(
   E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7, indcell; 
   E_Int ni, nj, ninj, nvert, noet, i, j, k, nocf;
   E_Float* cfp = cf.begin();
+  E_Float* fp0;
+
   switch (type) 
   {  
     case 0:
       nocf = indi[0];// nb de pts pour la formule
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fp0 = f0.begin(eq);
+        fp0 = f0.begin(eq);
         f[eq-1] = 0.; 
         for (E_Int no = 1; no <= nocf; no++)
         {
@@ -1140,7 +1144,7 @@ short K_INTERP::compInterpolatedField(
       ind0 = indi[0];
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fp0 = f0.begin(eq);
+        fp0 = f0.begin(eq);
         f[eq-1] = cfp[0] * fp0[ind0];
       }      
       break;
@@ -1162,7 +1166,7 @@ short K_INTERP::compInterpolatedField(
         k = ind0/(ninj);  j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);
         for (E_Int eq = 1; eq <= nfld; eq++)
         {
-          E_Float* fp0 = f0.begin(eq);
+          fp0 = f0.begin(eq);
           f[eq-1] = 0.; nocf = 0;
           for (E_Int k0 = 0; k0 < 2; k0++)
             for (E_Int j0 = 0; j0 < 2; j0++)
@@ -1183,7 +1187,7 @@ short K_INTERP::compInterpolatedField(
         j = ind0/ni; i = ind0-j*ni;
         for (E_Int eq = 1; eq <= nfld; eq++)
         {
-          E_Float* fp0 = f0.begin(eq);
+          fp0 = f0.begin(eq);
           f[eq-1] = 0.; nocf = 0;
           for (E_Int j0 = 0; j0 < 2; j0++)
             for (E_Int i0 = 0; i0 < 2; i0++)
@@ -1211,7 +1215,7 @@ short K_INTERP::compInterpolatedField(
 
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fp0 = f0.begin(eq);
+        fp0 = f0.begin(eq);
         f[eq-1] = 0.;nocf = 0;
           for (E_Int k0 = 0; k0 < 3; k0++)
             for (E_Int j0 = 0; j0 < 3; j0++)
@@ -1257,7 +1261,7 @@ short K_INTERP::compInterpolatedField(
         nvert = cn0.getNfld();
         for (E_Int eq = 1; eq <= nfld; eq++)
         {
-          E_Float* fp0 = f0.begin(eq);
+          fp0 = f0.begin(eq);
           f[eq-1] = 0.;
           for (E_Int nov = 1; nov <= nvert; nov++)
           {
@@ -1285,7 +1289,7 @@ short K_INTERP::compInterpolatedField(
         k = ind0/(ninj); j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);
         for (E_Int eq = 1; eq <= nfld; eq++)
         {
-          E_Float* fp0 = f0.begin(eq);
+          fp0 = f0.begin(eq);
           f[eq-1] = 0.;
           for (E_Int k0 = 0; k0 < 5; k0++)
             for (E_Int j0 = 0; j0 < 5; j0++)

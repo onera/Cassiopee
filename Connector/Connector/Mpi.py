@@ -342,7 +342,7 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
                   else: datas[rcvNode] += [n]
     
     # Envoie des numpys suivant le graph
-    rcvDatas = Cmpi.sendRecv2(datas, graph)
+    rcvDatas = Cmpi.sendRecvC(datas, graph)
 
     # Remise des champs interpoles dans l'arbre receveur
     for i in rcvDatas:
@@ -460,7 +460,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
     #print(Cmpi.rank, 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' , datas.keys(), flush=True)
     #print(Cmpi.rank, ' a partir du graphe ', graph, flush=True)
     # 1er envoi : envoi des numpys des donnees a interpoler suivant le graphe
-    interpDatas = Cmpi.sendRecv2(datas, graph)
+    interpDatas = Cmpi.sendRecvC(datas, graph)
     
     # recuperation par le proc donneur des donnees pour faire les transferts    
     transferedDatas={}
@@ -502,7 +502,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
     #print(Cmpi.rank, 'transferred data ', transferedDatas, flush=True)
 
     # 2nd envoi : envoi des numpys des donnees interpolees suivant le graphe
-    rcvDatas = Cmpi.sendRecv2(transferedDatas, graph)
+    rcvDatas = Cmpi.sendRecvC(transferedDatas, graph)
     #print(Cmpi.rank, 'rcvDatas ', rcvDatas, flush=True)
 
     # remise des donnees interpolees chez les zones receveuses

@@ -13,6 +13,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
        def send(a, dest=0, tag=0): return None
        def recv(source=0, tag=0): return None # pb here
        def sendRecv(a, source=0, dest=0): return []
+       def sendRecvC(a, source=0, dest=0): return []
        def seq(F, *args): F(*args)
        print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
  
@@ -26,6 +27,7 @@ else: # try import (may fail - core or hang)
         def send(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
         def sendRecv(a, source=0, dest=0): return []
+        def sendRecvC(a, source=0, dest=0): return []
         def seq(F, *args): F(*args)
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
