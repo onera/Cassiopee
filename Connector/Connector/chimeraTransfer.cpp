@@ -117,7 +117,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
     RELEASESHAREDN(pyIndDonor, donorPtsI);
     RELEASESHAREDN(pyArrayTypes, typesI);
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
-    if ( resr == 2 ) RELEASESHAREDB(resr, arrayR, fr, cnr); 
+    if (resr == 2) RELEASESHAREDB(resr, arrayR, fr, cnr); 
 
     PyErr_SetString(PyExc_TypeError,
                     "chimeraTransfer: 5th arg is not a valid array.");
@@ -140,7 +140,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
     RELEASESHAREDN(pyIndDonor, donorPtsI);
     RELEASESHAREDN(pyArrayTypes, typesI);
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
-    if ( resd == 2 ) RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    if (resd == 2) RELEASESHAREDB(resd, arrayD, fd, cnd); 
     return NULL; 
   }
   /*---------------------------------------------------*/

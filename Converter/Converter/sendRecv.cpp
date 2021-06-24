@@ -171,7 +171,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             // Placement nom de la zone
             (*buf) = 'c'                    ; buf+=1;
             (*(E_Int*)buf) = size_zoneName  ; buf+=4;
-            for (E_Int i = 0; i < size_zoneDName; i++) buf[i] = zoneName[i];
+            for (E_Int i = 0; i < size_zoneName; i++) buf[i] = zoneName[i];
             buf += size_zoneName;
 
             // Placement nom de la zoneD
@@ -184,45 +184,42 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             (*buf) = 'i'                    ; buf+=1;
             (*(E_Int*)buf) = nIndices       ; buf+=4;
             E_Int* buf_indices = (E_Int*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<nIndices; i++)
-            {
-                buf_indices[i] = indices[i];
-            }
             buf += 4*nIndices;
 
             // Placement des X
             (*buf) = 'f'                    ; buf+=1;
             (*(E_Int*)buf) = nXCoords       ; buf+=4;
             E_Float* buf_X = (E_Float*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<nXCoords; i++)
-            {
-                buf_X[i] = xCoords[i];
-            }
             buf += 8*nXCoords;
-
+            
             // Placement des Y
             (*buf) = 'f'                    ; buf+=1;
             (*(E_Int*)buf) = nYCoords       ; buf+=4;
             E_Float* buf_Y = (E_Float*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<nYCoords; i++)
-            {
-                buf_Y[i] = yCoords[i];
-            }
             buf += 8*nYCoords;
 
             // Placement des Z
             (*buf) = 'f'                    ; buf+=1;
             (*(E_Int*)buf) = nZCoords       ; buf+=4;
             E_Float* buf_Z = (E_Float*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<nZCoords; i++)
-            {
-                buf_Z[i] = zCoords[i];
-            }
             buf += 8*nZCoords;
+
+
+            // Placement parallele
+            #pragma omp parallel
+            {
+                #pragma omp for
+                for (E_Int i=0; i<nIndices; i++) { buf_indices[i] = indices[i];}
+
+                #pragma omp for
+                for (E_Int i=0; i<nXCoords; i++) { buf_X[i] = xCoords[i];}
+
+                #pragma omp for
+                for (E_Int i=0; i<nYCoords; i++) { buf_Y[i] = yCoords[i];}
+
+                #pragma omp for
+                for (E_Int i=0; i<nZCoords; i++) { buf_Z[i] = zCoords[i];}
+            }
 
             // DECREF
             Py_DECREF(PyIndices);
@@ -302,13 +299,8 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 (*buf) = 'i'                    ; buf += 1;
                 (*(E_Int*)buf) = nIndices       ; buf += 4;
                 E_Int* buf_indices = (E_Int*) buf;
-                #pragma omp parallel for
-                for (E_Int i=0; i<nIndices; i++)
-                {
-                    buf_indices[i] = indices[i];
-                }
                 buf += 4*nIndices;
-
+                
                 // Placement nom des fields
                 (*buf) = 'c'                     ; buf += 1;
                 (*(E_Int*)buf) = size_fieldNames ; buf += 4;
@@ -320,12 +312,17 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 (*(E_Int*)buf) = nPts           ; buf += 4;
                 (*(E_Int*)buf) = nFlds          ; buf += 4;
                 E_Float* buf_flds = (E_Float*) buf;
-                #pragma omp parallel for
-                for (E_Int i=0; i<nPts*nFlds; i++)
-                {
-                    buf_flds[i] = fields[i];
-                }
                 buf += 8*nPts*nFlds;
+                
+                // Placement parallele
+                #pragma omp parallel
+                {
+                    #pragma omp for
+                    for (E_Int i=0; i<nIndices;   i++) { buf_indices[i] = indices[i];}
+
+                    #pragma omp for
+                    for (E_Int i=0; i<nPts*nFlds; i++) { buf_flds[i] = fields[i];}
+                }
 
                 // releaseshared
                 Py_DECREF(PyIndices);
@@ -389,23 +386,24 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 (*(E_Int*)buf) = nPts           ; buf+=4;
                 (*(E_Int*)buf) = nFlds          ; buf+=4;
                 E_Float* buf_flds = (E_Float*) buf;
-                #pragma omp parallel for
-                for (E_Int i=0; i<nPts*nFlds; i++)
-                {
-                    buf_flds[i] = fields[i];
-                }
                 buf+=8*nPts*nFlds;
 
                 // Placement des indices
                 (*buf) = 'i'                    ; buf+=1;
                 (*(E_Int*)buf) = nIndices       ; buf+=4;
                 E_Int* buf_indices = (E_Int*) buf;
-                #pragma omp parallel for
-                for (E_Int i=0; i<nIndices; i++)
-                {
-                    buf_indices[i] = indices[i];
-                }
                 buf += 4*nIndices;
+
+
+                // Placement parallele
+                #pragma omp parallel
+                {
+                    #pragma omp for
+                    for (E_Int i=0; i<nPts*nFlds; i++) { buf_flds[i] = fields[i];}
+                    
+                    #pragma omp for
+                    for (E_Int i=0; i<nIndices;   i++) { buf_indices[i] = indices[i];}
+                }
                 
                 // releaseshared
                 Py_DECREF(PyIndices);
@@ -415,7 +413,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             {
                 printf("[%d][ERROR] Mauvais dataType (=%d)(= 2 or 3 normally)\n", rank, dataType); fflush(stdout);
                 Py_INCREF(Py_None);
-            return Py_None;
+                return Py_None;
             }
         }
         
@@ -445,21 +443,32 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     (*(E_Int*)bufToSend) = sizeDatas; bufToSend += 4; // nombre de donnees
     (*(E_Int*)bufToSend) = dataType; bufToSend += 4; // type de la donnees (1 ou 2)
 
-    for (E_Int i=0; i < sizeDatas; i++)
+    #pragma omp parallel
     {
-        // Placement du nb d'octets avant le buf
-        (*(E_Int*)bufToSend) = tabOctets[i]; bufToSend += 4;
-
-        char* buf = bigBuf[i];
-        // Placemenet du buf
-        #pragma omp parallel for  
-        for (E_Int j=0; j<tabOctets[i]; j++)
+        for (E_Int i=0; i < sizeDatas; i++)
         {
-            bufToSend[j] = buf[j];
-        } 
-        bufToSend+=tabOctets[i];
+            #pragma omp single
+            { 
+                // Placement du nb d'octets avant le buf
+                (*(E_Int*)bufToSend) = tabOctets[i]; bufToSend += 4;
+            }
+
+            char* buf = bigBuf[i];
+
+            // Placement du buf
+            #pragma omp for  
+            for (E_Int j=0; j<tabOctets[i]; j++)
+            {
+                bufToSend[j] = buf[j];
+            } 
+
+            #pragma omp single
+            {
+                bufToSend+=tabOctets[i];
+            } 
+        }
     }
-        
+
     // Envoi des données
 #ifdef _MPI
     MPI_Request request;
@@ -640,7 +649,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             char zoneName[size+1];
             for (E_Int k=0; k<size; k++) { zoneName[k]   = buf[k]; }
             zoneName[size]='\0'; buf+=size;
-            
+
             // Nom de la zone donneuse
             (*typeData)       = *buf      ; buf+=1;
             intBuf            = (E_Int*) buf;
@@ -650,16 +659,11 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             zoneDName[size]='\0'; buf+=size;
 
             // Tableau des indices
-            (*typeData)     = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
-            intBuf          = (E_Int*) buf;
-            size            = intBuf[0]; buf+=4;
-            E_Int* indices  = new E_Int[size];
-            intBuf          = (E_Int*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<size; i++)
-            {
-                indices[i] = intBuf[i];
-            }
+            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            intBuf              = (E_Int*) buf;
+            size                = intBuf[0]; buf+=4;
+            E_Int* indices      = new E_Int[size];
+            E_Int* indicesBuf   = (E_Int*) buf;
             E_Int npts = size;
             buf+=size*4;
 
@@ -668,12 +672,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Float* xCoords    = new E_Float[size];
-            E_Float* floatBuf   = (E_Float*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<size; i++)
-            {
-                xCoords[i] = floatBuf[i];
-            }
+            E_Float* xBuf       = (E_Float*) buf;
             buf+=size*8;
 
             // Tableau des Y
@@ -681,12 +680,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Float* yCoords    = new E_Float[size];
-            floatBuf            = (E_Float*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<size; i++)
-            {
-                yCoords[i] = floatBuf[i];
-            }
+            E_Float* yBuf       = (E_Float*) buf;
             buf+=size*8;
 
             // Tableau des Z
@@ -694,15 +688,25 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Float* zCoords    = new E_Float[size];
-            floatBuf            = (E_Float*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<size; i++)
-            {
-                zCoords[i] = floatBuf[i];
-            }
+            E_Float* zBuf       = (E_Float*) buf;
             buf+=size*8;
-
             
+            // Remplissage parallele
+            #pragma omp parallel
+            {
+                #pragma omp for
+                for (E_Int i=0; i<size; i++) { indices[i] = indicesBuf[i];}
+
+                #pragma omp for
+                for (E_Int i=0; i<size; i++) { xCoords[i] = xBuf[i];}
+
+                #pragma omp for
+                for (E_Int i=0; i<size; i++) { yCoords[i] = yBuf[i];}
+            
+                #pragma omp for
+                for (E_Int i=0; i<size; i++) { zCoords[i] = zBuf[i];}
+            }
+
             // Transformation des donnees C en donnees Python
             PyObject* PyZoneName = Py_BuildValue("s", zoneName);
             PyObject* PyZoneDName = Py_BuildValue("s", zoneDName);
@@ -740,16 +744,11 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             zoneName[size]='\0'; buf+=size;
 
             // Tableau des indices
-            (*typeData)     = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
-            intBuf          = (E_Int*) buf;
-            size            = intBuf[0]; buf+=4;
-            E_Int* indices  = new E_Int[size];
-            intBuf          = (E_Int*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<size; i++)
-            {
-                indices[i] = intBuf[i];
-            }
+            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            intBuf              = (E_Int*) buf;
+            size                = intBuf[0]; buf+=4;
+            E_Int* indices      = new E_Int[size];
+            E_Int* indicesBuf   = (E_Int*) buf;
             E_Int npts = size;
             PyObject* PyNpts = PyLong_FromLong(size);
             buf+=size*4;
@@ -769,12 +768,17 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             E_Int nFlds         = intBuf[1]; buf+=4;
             E_Float* fields     = new E_Float[size*nFlds];
             E_Float* floatBuf   = (E_Float*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<size*nFlds; i++)
-            {
-                fields[i] = floatBuf[i];
-            }
             buf+=size*nFlds*8;
+
+            // Remplissage parallele
+            #pragma omp parallel
+            {
+                #pragma omp for
+                for (E_Int i=0; i<npts; i++)        { indices[i] = indicesBuf[i];}
+                
+                #pragma omp for
+                for (E_Int i=0; i<size*nFlds; i++)  { fields[i] = floatBuf[i];}
+            }
 
             // Transformation des données C en données Python
             PyObject* PyZoneName = Py_BuildValue("s", zoneName);
@@ -830,28 +834,27 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             E_Int nFlds         = intBuf[1]; buf+=4;
             E_Float* fields     = new E_Float[size*nFlds];
             E_Float* floatBuf   = (E_Float*) buf;
-            #pragma omp parallel for
-            for (E_Int i=0; i<size*nFlds; i++)
-            {
-                fields[i] = floatBuf[i];
-            }
             buf += size*nFlds*8;
 
             // Tableau des indices
-            (*typeData)     = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
-            intBuf          = (E_Int*) buf;
-            size            = intBuf[0]; buf+=4;
-            E_Int* indices  = new E_Int[size];
-            intBuf          = (E_Int*) buf;
-            // #pragma omp parallel for
-            for (E_Int i=0; i<size; i++)
-            {
-                indices[i] = intBuf[i];
-            }
+            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            intBuf              = (E_Int*) buf;
+            size                = intBuf[0]; buf+=4;
+            E_Int* indices      = new E_Int[size];
+            E_Int* indicesBuf   = (E_Int*) buf;
             E_Int npts = size;
             PyObject* PyNpts = PyLong_FromLong(size);
             buf+=size*4;
-
+            
+            // Remplissage parallele
+            #pragma omp parallel
+            {
+                #pragma omp for
+                for (E_Int i=0; i<size*nFlds; i++)  { fields[i] = floatBuf[i];}
+                
+                #pragma omp for
+                for (E_Int i=0; i<npts; i++)        { indices[i] = indicesBuf[i];}
+            }
 
             // Transformation des données C en données Python
             PyObject* PyVar = PyLong_FromLong(var);
