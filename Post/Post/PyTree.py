@@ -1540,7 +1540,6 @@ def _computeDiv2(t, var,ghostCells=False):
         vol  = Internal.getNodeFromName1(cont, 'vol')
         if vol is not None: vol = vol[1]
         
-        
         sdirlist = ['X', 'Y', 'Z'] # The order is important!
         flist = list()
         for sdir in sdirlist:
@@ -1719,7 +1718,7 @@ def _computeDiv2(t, var,ghostCells=False):
                         else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
 
         if f != []:
-            centers = Post.computeDiv2(x, f, indices=indices, BCFieldX=BCFieldX,
+            centers = Post.computeDiv2(x, f, vol, indices=indices, BCFieldX=BCFieldX,
                                              BCFieldY=BCFieldY, BCFieldZ=BCFieldZ)
             C.setFields([centers], z, 'centers')
     return None
