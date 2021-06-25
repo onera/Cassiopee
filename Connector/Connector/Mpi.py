@@ -3,6 +3,7 @@ import Converter.Mpi as Cmpi
 from . import PyTree as X
 import Converter.Internal as Internal
 import Converter.PyTree as C
+import Converter.converter
 from . import connector
 import RigidMotion.PyTree as RM
 
@@ -528,3 +529,195 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
         C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol')
 
     return None
+
+#---------------------------------------------------------------------------------------------------------
+# Transferts instationnaires en parallele
+# avec prise en compte du mouvement
+# absFrame=True: les coordonnees de t sont deja dans le repere absolu en entree
+# interpInDnrFrame = True : interpolation avec les coordonnees des pts a interpoler dans le repere relatif au donneur
+# applicable en mouvement rigide; en mvt avec deformation : mettre False
+# #---------------------------------------------------------------------------------------------------------
+def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
+               dictOfNobOfRcvZones, dictOfNozOfRcvZones,
+               dictOfNobOfDnrZones, dictOfNozOfDnrZones,
+               dictOfNobOfRcvZonesC, dictOfNozOfRcvZonesC,
+               time=0., absFrame=True, procDict=None, cellNName='cellN',
+               interpInDnrFrame=True,
+               hook=None):
+
+    if procDict is None: procDict = Cmpi.getProcDict(tc)
+    if Cmpi.size == 1:
+        for name in procDict: procDict[name]=0
+    # dictionnaire des matrices de mouvement pour passer du repere relatif d'une zone au repere absolu
+    dictOfMotionMatR2A={}
+    dictOfMotionMatA2R={}
+    coordsD=[0.,0.,0.]; coordsC=[0.,0.,0.] # XAbs = coordsD + coordsC + Mat*(XRel-coordsC)
+    dictOfFields={}; dictOfIndices={}
+    
+    # 1. Formation data interpolation globale
+    datas={}; listOfLocalData = []; interpDatas={}
+    
+    if hook is not None and len(hook) == 1:
+        listOfLocalData = hook[0]; interpDatas = hook[1]
+    else: # empty hook
+        for z in Internal.getZones(t):
+            zname = Internal.getName(z)
+            if zname not in dictOfNobOfRcvZones: continue
+
+            # coordonnees dans le repere absolu de la zone receptrice
+            # on les recupere de zc pour eviter un node2center des coordonnees de z
+            nobc = dictOfNobOfRcvZonesC[zname]
+            nozc = dictOfNozOfRcvZonesC[zname]
+            zc = tc[2][nobc][2][nozc]
+            if zc[0] != zname: # check
+                raise ValueError("_transfer: t and tc skeletons must be identical.")
+
+            C._cpVars(z, 'centers:'+cellNName, zc, cellNName)
+            res = X.getInterpolatedPoints(zc, loc='nodes', cellNName=cellNName) 
+            if res is not None: 
+                indicesI, XI, YI, ZI = res
+                # passage des coordonnees du recepteur dans le repere absolu
+                # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
+                if not absFrame:
+                    if zname in dictOfMotionMatR2A:
+                        MatRel2AbsR = RM.getMotionMatrixForZone(z, time=time, F=None)
+                        dictOfMotionMatR2A[zname]=MatRel2AbsR
+                    else:
+                        MatRel2AbsR = dictOfMotionMatR2A[zname]
+                    RM._moveN([XI,YI,ZI],coordsD,coordsC,MatRel2AbsR)
+
+                procR = procDict[zname]
+                for znamed in intersectionDict[zname]:
+                    procD = procDict[znamed]
+                    if procD == Cmpi.rank: # local
+                        # local delayed
+                        listOfLocalData.append([zname, znamed, indicesI, XI, YI, ZI])
+                    else:                    
+                        if procD not in datas: datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
+                        else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
+    
+    # 2. envoie data interpolation globale en asynchrone
+        reqs = []
+        if graph != {}:
+            if Cmpi.rank in graph:
+                g = graph[Cmpi.rank] # graph du proc courant
+                for oppNode in g:
+                    # Envoie les datas necessaires au noeud oppose
+                    #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
+                    if oppNode in datas: 
+                        s = Converter.converter.iSend(datas[oppNode], oppNode, Cmpi.rank, Cmpi.KCOMM)
+                    else:
+                        s = Converter.converter.iSend(None, oppNode, Cmpi.rank, Cmpi.KCOMM)
+                    reqs.append(s)
+
+    # 3. interpolation locale
+    for z in listOfLocalData:
+        zname   = z[0]
+        znamed  = z[1]
+        indicesI= z[2]
+        XI      = z[3]
+        YI      = z[4]
+        ZI      = z[5]
+        nobc = dictOfNobOfDnrZones[znamed]
+        nozc = dictOfNozOfDnrZones[znamed]
+        zdnr = tc[2][nobc][2][nozc]
+        adt = dictOfADT[znamed]
+        if adt is None: interpDataType = 0
+        else: interpDataType = 1
+        [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+
+        # transfers avec coordonnees dans le repere relatif
+        if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
+            # On suppose que le precond est dans init quand il y a un TimeMotion
+            # Si il y en a pas, on suppose que le precond est construit dans courant
+            GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
+            GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
+            TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP
+    
+        fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
+
+        # hack par CB
+        if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None: 
+            TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP        
+
+        if zname not in dictOfFields:
+            dictOfFields[zname] = [fields]
+            dictOfIndices[zname] = indicesI
+        else:
+            dictOfFields[zname].append(fields)
+
+    # 4. reception des donnees d'interpolation globales
+    if hook is not None and len(hook) == 1:
+        if graph != {}:
+            for node in graph:
+                if Cmpi.rank in graph[node]:
+                    rec = Converter.converter.recv(node, Cmpi.rank, Cmpi.KCOMM)
+                    if rec is not None: interpDatas[node] = rec
+        a = Converter.converter.waitAll(reqs)
+
+    # hook
+    if hook is not None and len(hook) == 0: hook.append([listOfLocalData, interpDatas])
+
+    # 5. interpolation globales    
+    transferedDatas={}
+    for i in interpDatas:
+        for n in interpDatas[i]:
+            zdnrname = n[1]
+            zrcvname = n[0]
+            indicesR = n[2]
+            XI = n[3]; YI = n[4]; ZI = n[5]
+            nobc = dictOfNobOfDnrZones[zdnrname]
+            nozc = dictOfNozOfDnrZones[zdnrname]
+            zdnr = tc[2][nobc][2][nozc]
+            adt = dictOfADT[zdnrname]
+            if adt is None: interpDataType = 0
+            else: interpDataType = 1
+            [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+            
+            # [XIRel,YIRel,ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
+            # transferts avec coordonnees dans le repere relatif 
+            if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:    
+                GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
+                GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
+                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP   
+
+            fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
+
+            # hack par CB
+            if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
+                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP       
+
+            procR = procDict[zrcvname]
+            
+            if procR not in transferedDatas:
+                transferedDatas[procR]=[[zrcvname,indicesR,fields]]
+            else:
+                transferedDatas[procR].append([zrcvname,indicesR,fields])
+
+    # 6 envoi des numpys des donnees interpolees suivant le graphe
+    rcvDatas = Cmpi.sendRecvC(transferedDatas, graph)
+
+    # 7. remise des donnees interpolees chez les zones receveuses
+    # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
+    for i in rcvDatas:
+        for n in rcvDatas[i]:
+            zrcvname = n[0]
+            indicesI = n[1]
+            fields = n[2]
+            if zrcvname not in dictOfFields:
+                dictOfFields[zrcvname]=[fields]
+                dictOfIndices[zrcvname]=indicesI
+            else:
+                dictOfFields[zrcvname].append(fields)
+
+    for zrcvname in dictOfIndices:
+        nob = dictOfNobOfRcvZones[zrcvname]
+        noz = dictOfNozOfRcvZones[zrcvname]
+        z = t[2][nob][2][noz]
+        allInterpFields = dictOfFields[zrcvname]
+        indicesI = dictOfIndices[zrcvname]
+        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol')
+
+    return None
+
+    

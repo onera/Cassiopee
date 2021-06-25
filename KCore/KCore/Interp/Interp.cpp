@@ -999,7 +999,7 @@ short K_INTERP::compInterpolatedValues(
         {
           posv = posvars[noeq];
           fp = f.begin(noeq+1);
-          fp0 = f0.begin(posv);          
+          fp0 = f0.begin(posv);       
           fp[ind] = 0.;
           for (E_Int i0 = 0; i0 < 3; i0++)
             for (E_Int j0 = 0; j0 < 3; j0++)

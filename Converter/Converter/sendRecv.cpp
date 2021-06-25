@@ -784,7 +784,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             PyObject* PyZoneName = Py_BuildValue("s", zoneName);
             PyObject* PyIndices =  K_NUMPY::buildNumpyArray(indices, npts, 1, 1);
             PyObject* PyFieldNames = Py_BuildValue("s", fieldNames);
-            PyObject* PyFields =  K_NUMPY::buildNumpyArray(fields, npts, 6, 0);
+            PyObject* PyFields =  K_NUMPY::buildNumpyArray(fields, npts, nFlds, 0);
 
             // Liste finale
             PyObject* dataToFill = PyList_New(3);
@@ -844,7 +844,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             E_Int* indicesBuf   = (E_Int*) buf;
             E_Int npts = size;
             PyObject* PyNpts = PyLong_FromLong(size);
-            buf+=size*4;
+            buf += size*4;
             
             // Remplissage parallele
             #pragma omp parallel
@@ -860,7 +860,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             PyObject* PyVar = PyLong_FromLong(var);
             PyObject* PyIndices =  K_NUMPY::buildNumpyArray(indices, npts, 1, 1);
             PyObject* PyFieldNames = Py_BuildValue("s", fieldNames);
-            PyObject* PyFields =  K_NUMPY::buildNumpyArray(fields, npts, 6, 0);
+            PyObject* PyFields =  K_NUMPY::buildNumpyArray(fields, npts, nFlds, 0);
 
             // Liste finale
             PyObject* dataToFill = PyList_New(3);
@@ -881,14 +881,13 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
-
             delete indices; delete fields;
 
         }
 
         delete initBuf;
 
-        recvBuf+=nOctets; 
+        recvBuf += nOctets; 
     }
 
     delete initRecvBuf;

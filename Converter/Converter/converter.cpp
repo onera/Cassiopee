@@ -149,7 +149,7 @@ static PyMethodDef Pyconverter [] =
   {"extractFields", K_CONVERTER::extractFields, METH_VARARGS},
   {"iSend", K_CONVERTER::iSend, METH_VARARGS},
   {"recv", K_CONVERTER::recv, METH_VARARGS},
-  {"waitWall", K_CONVERTER::waitAll, METH_VARARGS},
+  {"waitAll", K_CONVERTER::waitAll, METH_VARARGS},
   {NULL, NULL}
 };
 
