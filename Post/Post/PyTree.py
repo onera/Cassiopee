@@ -1534,6 +1534,13 @@ def _computeDiv2(t, var,ghostCells=False):
     for z in zones:
         dims = Internal.getZoneDim(z)
         if dims[-1] == 1: raise ValueError("computeDiv2: not available for 1-dimensional elements.")
+
+        # Test if vol present
+        cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
+        vol  = Internal.getNodeFromName1(cont, 'vol')
+        if vol is not None: vol = vol[1]
+        
+        
         sdirlist = ['X', 'Y', 'Z'] # The order is important!
         flist = list()
         for sdir in sdirlist:

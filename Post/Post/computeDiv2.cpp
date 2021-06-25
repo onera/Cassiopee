@@ -40,8 +40,9 @@ extern "C"
 PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc;
+  PyObject* volc;
   PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
-  if (!PyArg_ParseTuple(args, "OOOOOO", &array, &arrayc,
+  if (!PyArg_ParseTuple(args, "OOOOOOO", &array, &arrayc, &volc,
                         &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
@@ -257,9 +258,20 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 
   FldArrayF vol(nelts);
   E_Float* volp = vol.begin(1);
-  K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
-                        f->begin(posz), *cn, volp);
 
+  
+  if ( volc == Py_None)
+  { 
+      K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
+                            f->begin(posz), *cn, volp);
+  }
+  else
+  {
+    FldArrayF* vols=NULL; 
+    K_NUMPY::getFromNumpyArray(volc, vols, true);
+    volp = vols->begin();
+  }
+  
   E_Float voli;
   for (E_Int n = 0; n < nfld; n++)
   {
