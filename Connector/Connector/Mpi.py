@@ -534,7 +534,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 # Transferts instationnaires en parallele
 # avec prise en compte du mouvement
 # absFrame=True: les coordonnees de t sont deja dans le repere absolu en entree
-# interpInDnrFrame = True : interpolation avec les coordonnees des pts a interpoler dans le repere relatif au donneur
+# interpInDnrFrame=True : interpolation avec les coordonnees des pts a interpoler dans le repere relatif au donneur
 # applicable en mouvement rigide; en mvt avec deformation : mettre False
 # #---------------------------------------------------------------------------------------------------------
 def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
@@ -556,8 +556,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     
     # 1. Formation data interpolation globale
     datas={}; listOfLocalData = []; interpDatas={}
-    
-    if hook is not None and len(hook) == 1:
+
+    if hook is not None and len(hook) == 2:
         listOfLocalData = hook[0]; interpDatas = hook[1]
     else: # empty hook
         for z in Internal.getZones(t):
@@ -647,7 +647,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             dictOfFields[zname].append(fields)
 
     # 4. reception des donnees d'interpolation globales
-    if hook is not None and len(hook) == 1:
+    if hook is not None and len(hook) == 0:
         if graph != {}:
             for node in graph:
                 if Cmpi.rank in graph[node]:
@@ -655,8 +655,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                     if rec is not None: interpDatas[node] = rec
         a = Converter.converter.waitAll(reqs)
 
-    # hook
-    if hook is not None and len(hook) == 0: hook.append([listOfLocalData, interpDatas])
+    # set hook
+    if hook is not None and len(hook) == 0: hook += [listOfLocalData, interpDatas]
 
     # 5. interpolation globales    
     transferedDatas={}
@@ -676,7 +676,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             
             # [XIRel,YIRel,ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
             # transferts avec coordonnees dans le repere relatif 
-            if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:    
+            if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
                 GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
                 GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
                 TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP   
@@ -688,15 +688,14 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                 TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP       
 
             procR = procDict[zrcvname]
-            
             if procR not in transferedDatas:
                 transferedDatas[procR]=[[zrcvname,indicesR,fields]]
             else:
                 transferedDatas[procR].append([zrcvname,indicesR,fields])
 
-    # 6 envoi des numpys des donnees interpolees suivant le graphe
+    # 6. envoie des numpys des donnees interpolees suivant le graphe
     rcvDatas = Cmpi.sendRecvC(transferedDatas, graph)
-
+    
     # 7. remise des donnees interpolees chez les zones receveuses
     # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
     for i in rcvDatas:
