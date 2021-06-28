@@ -27,12 +27,12 @@ namespace NUGA
     E_Int nodes[18];
 
     template <typename arr_t>
-    void reorder_as_XY(const ngon_type& ng, E_Int PHi, const tree<arr_t> & PGtree, std::vector<E_Int>& reord)
+    void reorder_as_XY(ngon_type& ng, E_Int PHi, const tree<arr_t> & PGtree, const K_FLD::IntArray& F2E)
     {
-      const E_Int* faces = ng.PHs.get_facets_ptr(PHi);
+      E_Int* faces = ng.PHs.get_facets_ptr(PHi);
       E_Int nfaces = ng.PHs.stride(PHi);
 
-      reord.clear();
+      std::vector<E_Int> reord;
       reord.reserve(6);
       reord.insert(reord.end(), faces, faces + nfaces);
 
@@ -40,7 +40,7 @@ namespace NUGA
       if (nbc == 4)
       {
         //swap enventually to be relevant with view regardin PH(0,0)
-        const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
+        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
         const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
         E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
         if (i0 == -1)
@@ -48,7 +48,7 @@ namespace NUGA
         p = ng.PGs.get_facets_ptr(reord[4] - 1);
         i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
         if (i0 == -1)
-          std::swap(reord[4], reord[5]);//front/back
+          std::swap(reord[4], reord[5]);//front/back*/
       }
 
       nbc = PGtree.nb_children(faces[2] - 1);
@@ -67,8 +67,11 @@ namespace NUGA
         reord[4] = faces[4];
         reord[5] = faces[5];
 
+        for (size_t k=0; k < 6; ++k)faces[k] = reord[k];
+        K_MESH::Hexahedron::reorder_pgs(ng, F2E, PHi);
+
         //swap enventually to be relevant with view regardin PH(0,0)
-        const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
+        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
         const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
         E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
         if (i0 == -1)
@@ -76,7 +79,7 @@ namespace NUGA
         p = ng.PGs.get_facets_ptr(reord[4] - 1);
         i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
         if (i0 == -1)
-          std::swap(reord[4], reord[5]);//front/back
+          std::swap(reord[4], reord[5]);//front/back*/
 
         return;
       }
@@ -97,8 +100,11 @@ namespace NUGA
         reord[2] = faces[2];
         reord[3] = faces[3];
 
+        for (size_t k = 0; k < 6; ++k)faces[k] = reord[k];
+        K_MESH::Hexahedron::reorder_pgs(ng, F2E, PHi);
+
         //swap enventually to be relevant with view regardin PH(0,0)
-        const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
+        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
         const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
         E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
         if (i0 == -1)
@@ -106,7 +112,7 @@ namespace NUGA
         p = ng.PGs.get_facets_ptr(reord[4] - 1);
         i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
         if (i0 == -1)
-          std::swap(reord[4], reord[5]);//front/back
+          std::swap(reord[4], reord[5]);//front/back*/
 
         return;
       }
@@ -114,8 +120,8 @@ namespace NUGA
 
     ///
     template <typename arr_t>
-    splitting_t(K_FLD::FloatArray& crd, const ngon_type& ng, E_Int PHi, E_Int centroidId, 
-        const K_FLD::IntArray & F2E, const tree<arr_t> & PGtree)
+    splitting_t(K_FLD::FloatArray& crd, ngon_type& ng, E_Int PHi, E_Int centroidId,
+      const K_FLD::IntArray & F2E, const tree<arr_t> & PGtree)
     {
 
       E_Int* BOT = FACES;        //ISO
@@ -125,8 +131,21 @@ namespace NUGA
       E_Int* FRONT = FACES + 12; //DIR
       E_Int* BACK = FACES + 14;  //DIR
 
-      std::vector<E_Int> pPGi;
-      reorder_as_XY(ng, PHi, PGtree, pPGi); // swap faces to have bot/top ISO, remaining DIR
+#ifdef DEBUG_HIERARCHICAL_MESH
+      if (PHi == 127)
+      {
+        const E_Int* faces = ng.PHs.get_facets_ptr(PHi);
+        medith::write("BOT_0", crd, ng.PGs, faces[0]-1);
+        medith::write("TOP_0", crd, ng.PGs, faces[1]-1);
+        medith::write("LEFT_0", crd, ng.PGs, faces[2]-1);
+        medith::write("RIGHT_0", crd, ng.PGs, faces[3]-1);
+        medith::write("FRONT_0", crd, ng.PGs, faces[4]-1);
+        medith::write("BACK_0", crd, ng.PGs, faces[5]-1);
+      }
+#endif
+
+      reorder_as_XY(ng, PHi, PGtree, F2E); // swap faces to have bot/top ISO, remaining DIR
+      const E_Int* pPGi = ng.PHs.get_facets_ptr(PHi);
 
       assert(PGtree.nb_children(pPGi[0] - 1) == 4);
       assert(PGtree.nb_children(pPGi[1] - 1) == 4);
@@ -136,30 +155,34 @@ namespace NUGA
       assert(PGtree.nb_children(pPGi[5] - 1) == 2);
 
 #ifdef DEBUG_HIERARCHICAL_MESH
-      medith::write("elt", crd, ng, PHi);
-      E_Int bot1 = PGtree.children(pPGi[0] - 1)[0];
-      medith::write("BOT1", crd, ng.PGs, bot1);
-      E_Int bot2 = PGtree.children(pPGi[0] - 1)[1];
-      medith::write("BOT2", crd, ng.PGs, bot2);
-      E_Int bot3 = PGtree.children(pPGi[0] - 1)[2];
-      medith::write("BOT3", crd, ng.PGs, bot3);
-      E_Int bot4 = PGtree.children(pPGi[0] - 1)[3];
-      medith::write("BOT4", crd, ng.PGs, bot4);
 
-      medith::write("TOP1", crd, ng.PGs, PGtree.children(pPGi[1] - 1)[0]);
-      medith::write("TOP2", crd, ng.PGs, PGtree.children(pPGi[1] - 1)[1]);
-      medith::write("TOP3", crd, ng.PGs, PGtree.children(pPGi[1] - 1)[2]);
-      medith::write("TOP4", crd, ng.PGs, PGtree.children(pPGi[1] - 1)[3]);
+      if (PHi == 127)
+      {
+        medith::write("elt", crd, ng, PHi);
+        E_Int bot1 = PGtree.children(pPGi[0] - 1)[0];
+        medith::write("BOT1", crd, ng.PGs, bot1);
+        E_Int bot2 = PGtree.children(pPGi[0] - 1)[1];
+        medith::write("BOT2", crd, ng.PGs, bot2);
+        E_Int bot3 = PGtree.children(pPGi[0] - 1)[2];
+        medith::write("BOT3", crd, ng.PGs, bot3);
+        E_Int bot4 = PGtree.children(pPGi[0] - 1)[3];
+        medith::write("BOT4", crd, ng.PGs, bot4);
 
-      medith::write("LEFT1", crd, ng.PGs, PGtree.children(pPGi[2] - 1)[0]);
-      medith::write("LEFT2", crd, ng.PGs, PGtree.children(pPGi[2] - 1)[1]);
-      medith::write("RIGHT1", crd, ng.PGs, PGtree.children(pPGi[3] - 1)[0]);
-      medith::write("RIGHT2", crd, ng.PGs, PGtree.children(pPGi[3] - 1)[1]);
+        medith::write("TOP1", crd, ng.PGs, PGtree.children(pPGi[1] - 1)[0]);
+        medith::write("TOP2", crd, ng.PGs, PGtree.children(pPGi[1] - 1)[1]);
+        medith::write("TOP3", crd, ng.PGs, PGtree.children(pPGi[1] - 1)[2]);
+        medith::write("TOP4", crd, ng.PGs, PGtree.children(pPGi[1] - 1)[3]);
 
-      medith::write("FRONT1", crd, ng.PGs, PGtree.children(pPGi[4] - 1)[0]);
-      medith::write("FRONT2", crd, ng.PGs, PGtree.children(pPGi[4] - 1)[1]);
-      medith::write("BACK1", crd, ng.PGs, PGtree.children(pPGi[5] - 1)[0]);
-      medith::write("BACK2", crd, ng.PGs, PGtree.children(pPGi[5] - 1)[1]);
+        medith::write("LEFT1", crd, ng.PGs, PGtree.children(pPGi[2] - 1)[0]);
+        medith::write("LEFT2", crd, ng.PGs, PGtree.children(pPGi[2] - 1)[1]);
+        medith::write("RIGHT1", crd, ng.PGs, PGtree.children(pPGi[3] - 1)[0]);
+        medith::write("RIGHT2", crd, ng.PGs, PGtree.children(pPGi[3] - 1)[1]);
+
+        medith::write("FRONT1", crd, ng.PGs, PGtree.children(pPGi[4] - 1)[0]);
+        medith::write("FRONT2", crd, ng.PGs, PGtree.children(pPGi[4] - 1)[1]);
+        medith::write("BACK1", crd, ng.PGs, PGtree.children(pPGi[5] - 1)[0]);
+        medith::write("BACK2", crd, ng.PGs, PGtree.children(pPGi[5] - 1)[1]);
+    }
 #endif
 
       E_Int PGi = pPGi[0]-1;
@@ -209,7 +232,9 @@ namespace NUGA
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
       assert(i0 != -1);
       pchild = PGtree.children(pPGi[2] - 1);
+      assert(PGtree.nb_children(pPGi[2] - 1) == 2);
       for (size_t k = 0; k < 2; ++k)LEFT[k] = *(pchild++);//init
+
       reorient = need_a_reorient(pPGi[2] - 1, PHi, true, F2E);
       Q6::retrieve_ordered_data(ng.PGs, pPGi[2] - 1, i0, reorient, LEFT, tmpQ6);
 
@@ -225,9 +250,11 @@ namespace NUGA
 
       // RIGHT
       p = ng.PGs.get_facets_ptr(pPGi[3] - 1);
+      //std::cout << p[0] << "/" << p[1] << "/" << p[2] << "/" << p[3] << std::endl;
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[1]);
       assert(i0 != -1);
       pchild = PGtree.children(pPGi[3] - 1);
+      assert(PGtree.nb_children(pPGi[3] - 1) == 2);
       for (size_t k = 0; k < 2; ++k)RIGHT[k] = *(pchild++);//init
 
       reorient = need_a_reorient(pPGi[3] - 1, PHi, false, F2E);
@@ -271,6 +298,7 @@ namespace NUGA
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[1]);
       assert(i0 != -1);
       pchild = PGtree.children(pPGi[4] - 1);
+      assert(PGtree.nb_children(pPGi[4] - 1) == 2);
       for (size_t k = 0; k < 2; ++k)FRONT[k] = *(pchild++);//init
 
       reorient = need_a_reorient(pPGi[4] - 1, PHi, true, F2E);
@@ -290,6 +318,7 @@ namespace NUGA
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[2]);
       assert(i0 != -1);
       pchild = PGtree.children(pPGi[5] - 1);
+      assert(PGtree.nb_children(pPGi[5] - 1) == 2);
       for (size_t k = 0; k < 2; ++k)BACK[k] = *(pchild++);//init
 
       reorient = need_a_reorient(pPGi[5] - 1, PHi, false, F2E);

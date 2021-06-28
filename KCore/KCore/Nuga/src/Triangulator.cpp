@@ -42,7 +42,7 @@ E_Int Triangulator::run
        K_FLD::IntArray& connectM, K_FLD::IntArray& neighbors, bool do_not_shuffle, bool improve_quality) const 
 {
    //OVERWRITE mesh upon exit.
-  #ifdef FLAG_STEP
+#ifdef FLAG_STEP
   NUGA::chrono c;
   c.start();
 #endif
