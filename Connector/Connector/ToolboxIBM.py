@@ -681,12 +681,23 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     boxes = []
     for b in Internal.getBases(tbox):
         boxes.append(Internal.getNodesFromType1(b, 'Zone_t'))
-        
-    if not isinstance(snearsf, list): snearsf = len(boxes)*[snearsf]
-    if len(boxes) != len(snearsf):
-        raise ValueError('addRefinementZones: Number of refinement bodies is not equal to the length of snearsf list.')
+    
+    if snearsf != []:
+        if not isinstance(snearsf, list): snearsf = len(boxes)*[snearsf]
+        if len(boxes) != len(snearsf):
+            raise ValueError('addRefinementZones: Number of refinement bodies is not equal to the length of snearsf list.')
+    else:
+        snearsf=[]
+        for sbox in boxes:
+            for s in Internal.getZones(sbox):
+                sdd = Internal.getNodeFromName1(s, ".Solver#define")
+                if sdd is not None:
+                    snearl = Internal.getNodeFromName1(sdd, "snear")
+                    if snearl is not None: 
+                        snearl = Internal.getValue(snearl)
+                        snearsf.append(snearl*(vmin-1)) 
+
     to = C.newPyTree(['Base', o])
-    BM = numpy.ones((1,1),numpy.int32)
     end = 0
     G._getVolumeMap(to)
     volmin0 = C.getMinValue(to, 'centers:vol')
@@ -700,10 +711,10 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
         nob = 0
         C._initVars(to, 'centers:indicator', 0.)
         for box in boxes:
-            volmin2 = 1.09*(snearsf[nob]*(vmin-1))**(dim)
+            volmin2 = 1.09*(snearsf[nob])**(dim)
             C._initVars(to,'centers:cellN',1.)
-            #to = X.blankCells(to, [box], BM, blankingType='center_in', dim=dim, delta=1.e-10, tol=1.e-8)
-            to = blankByIBCBodies(to, tbox, 'centers', dim)
+            tboxl = C.newPyTree(['BOXLOC']); tboxl[2][1][2] = box
+            to = blankByIBCBodies(to, tboxl, 'centers', dim)
             C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%f)'%volmin2)
             nob += 1
 
