@@ -4856,11 +4856,11 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True):
     datas = Internal.getBCDataSet(z, i)
     if datas == [] and extrapFlow == False: 
       Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-      Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
+      # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
     elif datas != []:
       if not extrapFlow:
         Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-        Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
+        # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
       f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                      'FlowSolution_t')
       Internal.newGridLocation(value='CellCenter', parent=f)
