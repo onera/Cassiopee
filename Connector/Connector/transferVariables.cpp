@@ -355,8 +355,9 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
 #pragma omp parallel default(shared)
 {
   E_Int noblk, type;
-  E_Float volD, x, y, z;
+  E_Float volD, x, y, z; short ok;
   FldArrayI indi(nindi); FldArrayF cf(ncfmax);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncfmax);
 
   vector<K_INTERP::InterpData*> InterpDatas; InterpDatas.push_back(interpData);
   vector<E_Int> posxt; posxt.push_back(posxd); 
@@ -367,15 +368,15 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   vector<void*> a1t; vector<void*> a2t; vector<void*> a3t; vector<void*> a4t;
   a1t.push_back(a2); a2t.push_back(a3); a3t.push_back(a4); a4t.push_back(a5);
 
-#pragma omp for
+#pragma omp for schedule(dynamic)
   for (E_Int noind = 0; noind < nbInterpPts; noind++)
   {
     x = xr[noind]; y = yr[noind]; z = zr[noind];
     volD = 0.;
 
-    short ok = K_INTERP::getInterpolationCell(
+    ok = K_INTERP::getInterpolationCell(
         x, y, z, InterpDatas, fields, a1t, a2t, a3t, a4t,
-        posxt, posyt, poszt, posct, volD, indi, cf, 
+        posxt, posyt, poszt, posct, volD, indi, cf, tmpIndi, tmpCf,
         type, noblk, interpType, nature, penalty);
 
     // CB: essai pour enlever les extrapolations

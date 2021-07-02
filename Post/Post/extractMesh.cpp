@@ -348,14 +348,17 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
 #pragma omp parallel default(shared) private(vol, noblk, type) if (nbI > 50)
     {
       FldArrayI indi(nindi*2); FldArrayF cf(ncf);
+      FldArrayI tmpIndi(nindi*2); FldArrayF tmpCf(ncf);
+      E_Float x,y,z; short ok;
+
 #pragma omp for
       for (E_Int ind = 0; ind < nbI; ind++)
       {
-        E_Float x = xt[ind]; E_Float y = yt[ind]; E_Float z = zt[ind];
-        short ok = K_INTERP::getInterpolationCell(
+        x = xt[ind]; y = yt[ind]; z = zt[ind];
+        ok = K_INTERP::getInterpolationCell(
           x, y, z, interpDatas, fields,
           a2, a3, a4, a5, posxa, posya, posza, posca,
-          vol, indi, cf, type, noblk, interpType, 0, 0);
+          vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, 0, 0);
         if (ok != 1)
         {
           ok = K_INTERP::getExtrapolationCell(
@@ -370,7 +373,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
           K_INTERP::compInterpolatedValues(indi.begin(), cf, *fields[noblk],
                                            a2[noblk], a3[noblk], a4[noblk], 
                                            ind, type, interp2);
-          vector<E_Int> posVarsLoc = posCommonVars[noblk];
+          vector<E_Int>& posVarsLoc = posCommonVars[noblk];
           for (E_Int novar = 0; novar < nvars; novar++)
           {
             E_Int novar2 = posVarsLoc[novar];
@@ -403,18 +406,22 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     E_Float* zi = interp->begin(poszo);
     FldArrayF interp2(nbI, nvars); //x,y,z + interpolated field
     interp2.setAllValuesAtNull();
+
 #pragma omp parallel default(shared) private(vol, noblk, type) if (nbI > 50)
     {
       FldArrayI indi(nindi*2); FldArrayF cf(ncf);
+      FldArrayI tmpIndi(nindi*2); FldArrayF tmpCf(ncf);
+      E_Float x,y,z; short ok;
+
 #pragma omp for
       for (E_Int ind = 0; ind < nbI; ind++)
       {
-        E_Float x = xt[ind]; E_Float y = yt[ind]; E_Float z = zt[ind];
-        short ok = K_INTERP::getInterpolationCell(
+        x = xt[ind]; y = yt[ind]; z = zt[ind];
+        ok = K_INTERP::getInterpolationCell(
           x, y, z,
           interpDatas, fields,
           a2, a3, a4, a5, posxa, posya, posza, posca,
-          vol, indi, cf, type, noblk, interpType, 0, 0); 
+          vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, 0, 0); 
   
         if (ok != 1)
           ok = K_INTERP::getExtrapolationCell(
@@ -430,7 +437,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
           K_INTERP::compInterpolatedValues(indi.begin(), cf, *fields[noblk],
                                            a2[noblk], a3[noblk], a4[noblk], 
                                            ind, type, interp2);
-          vector<E_Int> posVarsLoc = posCommonVars[noblk];
+          vector<E_Int>& posVarsLoc = posCommonVars[noblk];
           for (E_Int novar = 0; novar < nvars; novar++)
           {
             E_Int novar2 = posVarsLoc[novar];

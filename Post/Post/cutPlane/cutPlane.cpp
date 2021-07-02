@@ -150,6 +150,7 @@ void K_POST::selectPointsInOverlappingZones(
  
   FldArrayI indi(nindi);
   FldArrayF cf(ncf);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
   
   /* Compute sizeMax of selectedPts and allocate it */
   E_Float vol1, vol2;
@@ -246,7 +247,7 @@ void K_POST::selectPointsInOverlappingZones(
           found = K_INTERP::getInterpolationCell(x, y, z, allInterpDatas,
                                                  allFields, allA1, allA2, allA3, allA4,
                                                  posxt, posyt, poszt, posct, 
-                                                 vol2, indi, cf, type, noblk, interpType);
+                                                 vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
           if (found > 0) // interpolable 
           {          
             noblk = noblk-1;//no du bloc d interpolation             
@@ -372,6 +373,7 @@ void K_POST::removeTrianglesWithBlankedCenters(
     {ncf = 4; nindi = 1; } //order = 2;
   FldArrayI indi(nindi);
   FldArrayF cf(ncf);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
 
   E_Float inv = 1./3;
   E_Float* x = field.begin(1);
@@ -450,11 +452,11 @@ void K_POST::removeTrianglesWithBlankedCenters(
     short found = K_INTERP::getInterpolationCell(xc, yc, zc, allInterpDatas,
                                                  allFields, allA1, allA2, allA3, allA4,
                                                  posxt, posyt, poszt, posct, 
-                                                 vol2, indi, cf, type, noblk, interpType);
+                                                 vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
 //     short found = K_INTERP::getInterpolationCell(
 //       xc, yc, zc, structInterpDatas, structF, nis, njs, nks, 
 //       posxs, posys, poszs, poscs, unstrInterpDatas, unstrF,
-//       connectu, posxu, posyu, poszu, poscu, indi, cf, 
+//       connectu, posxu, posyu, poszu, poscu, indi, cf, tmpIndi, tmpCf,
 //       interpMeshType, interpType);
 
     cellN = 1.;

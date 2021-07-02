@@ -475,8 +475,8 @@ void K_POST::searchUnstrIntersectForSegment(
   // interpData non structure
   E_Int nindi = 5;
   E_Int ncf = 4;
-  FldArrayI indi(nindi);
-  FldArrayF cf(ncf);
+  FldArrayI indi(nindi); FldArrayF cf(ncf);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
   
   E_Float res = coefa * xA + coefb * yA + coefc * zA + coefd;  
   E_Float xAB = xp[indB] - xA;
@@ -545,7 +545,7 @@ void K_POST::searchUnstrIntersectForSegment(
         short found0 = K_INTERP::getInterpolationCell(xH, yH, zH, interpData,
                                                       &field, &connect, NULL, NULL, NULL,
                                                       posx, posy, posz, posc,
-                                                      voli, indi, cf, type, noblk, interpType);
+                                                      voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
         if (found0 > 0) 
         {
           K_INTERP::compInterpolatedValues(indi.begin(), cf, field, &connect, NULL, NULL,
@@ -638,9 +638,9 @@ void K_POST::searchStructIntersectForSegment(
        nindi = 1;
        interpType = K_INTERP::InterpData::O2CF;
   }
-  FldArrayI indi(nindi);
-  FldArrayF cf(ncf);
-  
+  FldArrayI indi(nindi); FldArrayF cf(ncf);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
+
   E_Float res = coefa * xA + coefb * yA + coefc * zA + coefd;  
 
   /* Recherche sur un des 3 voisins en i+1, j+1 et k+1 */
@@ -722,7 +722,7 @@ void K_POST::searchStructIntersectForSegment(
         short found0 = K_INTERP::getInterpolationCell(xH, yH, zH, interpData,
                                                       &field, &ni, &nj, &nk, NULL,
                                                       posx, posy, posz, posc,
-                                                      voli, indi, cf, type, noblk, interpType);             
+                                                      voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);             
         if (found0 > 0) 
         {          
           K_INTERP::compInterpolatedValues(indi.begin(), cf, field, &ni, &nj, &nk, cnt, type,intersectPts);

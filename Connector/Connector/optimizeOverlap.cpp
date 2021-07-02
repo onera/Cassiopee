@@ -328,9 +328,13 @@ void K_CONNECTOR::modifyCellNWithPriority(
   {
     FldArrayI indi(nindi);// indice de la cellule d'interp
     FldArrayF cf(ncf);// coefs d'interp
+    FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
+    
     short found;
     E_Float x, y, z;
-
+    E_Float voli; E_Int type; E_Int noblk;
+    FldArrayI indic(8);
+    
 #pragma omp for schedule(dynamic)
     for (E_Int ind1 = 0; ind1 < ncells1; ind1++)
     {
@@ -338,9 +342,9 @@ void K_CONNECTOR::modifyCellNWithPriority(
       {
         // Recherche de la cellule d'interpolation
         x = xc1[ind1]; y = yc1[ind1]; z = zc1[ind1];
-        E_Float voli = 0.; E_Int type = 0; E_Int noblk = 0;
+        voli = 0.; type = 0; noblk = 0;
         found = K_INTERP::getInterpolationCell(x, y, z, interpData2, extCenters2, &nie2, &nje2, &nke2, NULL,
-                                               1, 2, 3, 0, voli, indi, cf, type, noblk, interpType, nature, penalty);
+                                               1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, nature, penalty);
         if (found <= 0 && isDW == 1)
         {
           found = K_INTERP::getExtrapolationCell(x, y, z, interpData2, extCenters2, &nie2, &nje2, &nke2, NULL,
@@ -350,7 +354,6 @@ void K_CONNECTOR::modifyCellNWithPriority(
         {
           E_Int extrapB = 0;
           FldArrayI indTab;
-          FldArrayI indic(8);
           K_LOC::fromExtCenters2StdCenters(nie2, nje2, nke2, indi[0], type, indTab, extrapB);
           if ( type == 1 ) 
           {
@@ -394,8 +397,12 @@ void K_CONNECTOR::modifyCellNWithPriority(
   {
     FldArrayI indi(nindi);// indice de la cellule d'interp
     FldArrayF cf(ncf);// coefs d'interp
+    FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
+    
     short found;
     E_Float x, y, z;
+    E_Float voli; E_Int type; E_Int noblk;
+    FldArrayI indic(8);
 
 #pragma omp for schedule(dynamic)
     for (E_Int ind2 = 0; ind2 < ncells2; ind2++)
@@ -404,9 +411,9 @@ void K_CONNECTOR::modifyCellNWithPriority(
       {
         // Recherche de la cellule d'interpolation
         x = xc2[ind2]; y = yc2[ind2]; z = zc2[ind2];
-        E_Float voli = 0.; E_Int type = 0; E_Int noblk = 0;
+        voli = 0.; type = 0; noblk = 0;
         found = K_INTERP::getInterpolationCell(x, y, z, interpData1, extCenters1, &nie1, &nje1, &nke1, NULL,
-                                               1, 2, 3, 0, voli, indi, cf, type, noblk, interpType, nature, penalty);
+                                               1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, nature, penalty);
         if (found<=0 && isDW == 1)
         {
           found = K_INTERP::getExtrapolationCell(x, y, z, interpData1, extCenters1, &nie1, &nje1, &nke1, NULL,
@@ -416,7 +423,6 @@ void K_CONNECTOR::modifyCellNWithPriority(
         {  
           E_Int extrapB = 0;
           FldArrayI indTab;
-          FldArrayI indic(8);
           K_LOC::fromExtCenters2StdCenters(nie1, nje1, nke1, indi[0], type, indTab, extrapB);    
           if ( type == 1 ) 
           {
@@ -575,6 +581,7 @@ void K_CONNECTOR::compareInterpCells(
     short found;
     FldArrayI indi(nindi);// indice de la cellule d interp
     FldArrayF cf(ncf);// coefs d interp
+    FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
 
 #pragma omp for schedule(dynamic)
     for (E_Int ind1 = 0; ind1 < ncells1; ind1++)
@@ -587,7 +594,7 @@ void K_CONNECTOR::compareInterpCells(
         x = xc1[ind1]; y = yc1[ind1]; z = zc1[ind1];
         E_Float voli = 0.; E_Int type = 0; E_Int noblk = 0;
         found = K_INTERP::getInterpolationCell(x, y, z, interpData2, extCenters2, &nie2, &nje2, &nke2, NULL,
-                                               1, 2, 3, 0, voli, indi, cf, type, noblk);
+                                               1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk);
         if (found <= 0 && isDW == 1)
         {
           found = K_INTERP::getExtrapolationCell(x, y, z, interpData2, extCenters2, &nie2, &nje2, &nke2, NULL,
@@ -651,6 +658,7 @@ void K_CONNECTOR::compareInterpCells(
     short found;
     FldArrayI indi(nindi);// indice de la cellule d interp
     FldArrayF cf(ncf);// coefs d interp
+    FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
 
 #pragma omp for schedule(dynamic)
     for (E_Int ind2 = 0; ind2 < ncells2; ind2++)
@@ -663,7 +671,7 @@ void K_CONNECTOR::compareInterpCells(
         x = xc2[ind2]; y = yc2[ind2]; z = zc2[ind2];
         E_Float voli = 0.; E_Int type = 0; E_Int noblk = 0;
         found = K_INTERP::getInterpolationCell(x, y, z, interpData1, extCenters1, &nie1, &nje1, &nke1, NULL,
-                                               1, 2, 3, 0, voli, indi, cf, type, noblk);
+                                               1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk);
         if ( found <= 0 && isDW == 1)
         {
           found = K_INTERP::getExtrapolationCell(x, y, z, interpData1, extCenters1, &nie1, &nje1, &nke1, NULL,

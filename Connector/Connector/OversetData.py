@@ -2,6 +2,8 @@
 # Module for internal functions used for overset info
 from . import Connector
 from . import connector
+import KCore.Vector as Vector
+
 import numpy
 __version__ = Connector.__version__
 
@@ -2411,7 +2413,7 @@ def extractChimeraInfo(a,type='interpolated',loc='centers'):
     return allChimPts
     
 #==============================================================================
-# Cette fonction retourne la transformation vectorielle d'une zone à l'autre
+# Cette fonction retourne la transformation vectorielle d'une zone a l'autre
 #==============================================================================
 def getTransfo(zdonor, zrcv):
 

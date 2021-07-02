@@ -24,7 +24,7 @@ using namespace K_FLD;
 
 // ============================================================================
 /* Extrait la solution en un point de coordonnees (x,y,z). Si ce point est 
-   dans une zone ou des maillages se recouvrent, la solution est extraite à
+   dans une zone ou des maillages se recouvrent, la solution est extraite ï¿½
    partir du maillage ayant la plus petite cellule d interpolation */
 // ============================================================================
 PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
@@ -210,6 +210,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
   
   /* Interpolation de la liste des pts */
   FldArrayI indi(1); FldArrayF cf(ncf);
+  FldArrayI tmpIndi(1); FldArrayF tmpCf(ncf);
   E_Float* xt = coord.begin(1);
   E_Float* yt = coord.begin(2);
   E_Float* zt = coord.begin(3);
@@ -227,7 +228,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
       xt[i], yt[i], zt[i],
       interpDatas, fields,
       a2, a3, a4, a5, posxs, posys, poszs, poscs,
-      voli, indi, cf, type, noblk, interpType, 0, 0);    
+      voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, 0, 0);    
     if (ok < 1)
     {
       ok = K_INTERP::getExtrapolationCell(

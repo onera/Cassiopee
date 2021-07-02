@@ -25,20 +25,20 @@ using namespace K_FLD;
 //=============================================================================
 /* Calcule et stocke les coefficients d'interpolation 
    CAS SANS DOUBLE WALL 
-   IN: receiverArray: points a interpoler définis sous forme de maillage
+   IN: receiverArray: points a interpoler dï¿½finis sous forme de maillage
    IN: donorArrays: maillages donneurs. La localisation du donneur 
-        (noeuds/centres/centres étendus) doit être effectuee au prealable
+        (noeuds/centres/centres ï¿½tendus) doit ï¿½tre effectuee au prealable
    IN: Order: ordre des interpolations (2, 3, 5)
    IN: Nature: 0: produit des cellN=0 -> donneur invalide; 
                1: cellN=0 ou 2 -> donneur invalide
    IN: PenaliseBorders: 1: penalite sur le volume des pts ou cellules frontieres
-   IN: allHooks != Py_None: un hook par adt associé à un donor 
+   IN: allHooks != Py_None: un hook par adt associï¿½ ï¿½ un donor 
    OUT: [donorBlks,donorInd1D, donorType, coefs, extrapInd1D, orphanInd1D] 
-        donorBlks: no du blk donneur, démarre à 0
+        donorBlks: no du blk donneur, dï¿½marre ï¿½ 0
         donorInd1D: indice global (structure), de l elt (NS) du donneur
-        donorType: type d interpolation effectué localement
-        coefs: coefficients d interpolation, stockés selon le type
-        extrapInd1D: indices des pts extrapolés
+        donorType: type d interpolation effectuï¿½ localement
+        coefs: coefficients d interpolation, stockï¿½s selon le type
+        extrapInd1D: indices des pts extrapolï¿½s
         orphanInd1D: indices des pts orphelins
 */
 //=============================================================================
@@ -58,7 +58,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       return NULL;
   }
   
-  // Extraction du type d InterpData (0 : CART, 1 : ADT)
+  // Extraction du type d'InterpData (0 : CART, 1 : ADT)
   vector<E_Int> listOfInterpDataTypes;
   E_Int ninterptypes = PyList_Size(InterpDataType);
 
@@ -105,6 +105,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       break;
   } 
   FldArrayI indi(nindi); FldArrayF cf(ncfmax);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncfmax);
 
   /*--------------------------------------------------*/
   /* Extraction des infos sur le domaine a interpoler */
@@ -363,15 +364,15 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Float* EXdir0 = NULL;
   if (isEX == 1) EXdir0 = fr->begin(posdir);
   
-  E_Float x, y, z; E_Int noblk = 0;
+  E_Float x, y, z; E_Int noblk = 0; short ok;
 
   for (E_Int ind = 0; ind < nbI; ind++)
   {
     x = xr[ind]; y = yr[ind]; z = zr[ind];
-    short ok = K_INTERP::getInterpolationCell(
+    ok = K_INTERP::getInterpolationCell(
       x, y, z, interpDatas, fields,
       a2, a3, a4, a5, posxs, posys, poszs, poscs,
-      vol, indi, cf, type, noblk, interpType, nature, penalty);   
+      vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, nature, penalty);   
     isExtrapolated = 0;
     if (ok != 1)
     {
@@ -572,23 +573,23 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 //=============================================================================
 /* Calcule et stocke les coefficients d'interpolation 
    CAS AVEC DOUBLE WALL 
-   IN: receiverArrays: points à interpoler définis sous forme de maillage     
-                       chaque array correspond aux mêmes points mais modifiés par changeWall
+   IN: receiverArrays: points ï¿½ interpoler dï¿½finis sous forme de maillage     
+                       chaque array correspond aux mï¿½mes points mais modifiï¿½s par changeWall
                        en fonction des donneurs
    IN: donorArrays: maillages donneurs. La localisation du donneur 
-       (noeuds/centres/centres étendus) doit être effectuée au préalable
-   !!  receiverArrays et donorArrays doivent être ordonnés de la même manière
+       (noeuds/centres/centres ï¿½tendus) doit ï¿½tre effectuï¿½e au prï¿½alable
+   !!  receiverArrays et donorArrays doivent ï¿½tre ordonnï¿½s de la mï¿½me maniï¿½re
    IN: Order: ordre des interpolations (2, 3, 5)
    IN: Nature: 0: produit des cellN=0 -> donneur invalide; 
                1: cellN=0 ou 2 -> donneur invalide
-   IN: PenaliseBorders: 1: penalité sur le volume des pts ou cellules frontières
-   IN: hook != Py_None: hook sur les adt associés à donorArrays 
+   IN: PenaliseBorders: 1: penalitï¿½ sur le volume des pts ou cellules frontiï¿½res
+   IN: hook != Py_None: hook sur les adt associï¿½s ï¿½ donorArrays 
    OUT: [donorBlks,donorInd1D, donorType, coefs, extrapInd1D, orphanInd1D] 
-        donorBlks: no du blk donneur, démarre à 0
+        donorBlks: no du blk donneur, dï¿½marre ï¿½ 0
         donorInd1D: indice global (structure), de l elt (NS) du donneur
-        donorType: type d interpolation effectué localement
-        coefs: coefficients d interpolation, stockés selon le type
-        extrapInd1D: indices des pts extrapolés
+        donorType: type d interpolation effectuï¿½ localement
+        coefs: coefficients d interpolation, stockï¿½s selon le type
+        extrapInd1D: indices des pts extrapolï¿½s
         orphanInd1D: indices des pts orphelins */
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
@@ -610,7 +611,7 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   // ordre des interpolations
   E_Int interporder = Order;
   E_Int nature = Nature; // O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
-  E_Int penalty = PenalizeBorders;//1 : penalité sur le volume des pts ou cellules frontieres
+  E_Int penalty = PenalizeBorders;//1 : penalitï¿½ sur le volume des pts ou cellules frontieres
   // Interpolation type
   K_INTERP::InterpData::InterpolationType interpType;
   E_Int nindi, ncfmax;

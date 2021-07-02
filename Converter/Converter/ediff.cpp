@@ -530,7 +530,8 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   E_Int ncf = 8;
   FldArrayI indi(nindi);
   FldArrayF cf(ncf);
-  
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
+
   // Compare variables in strings : pos2 and pos3 yield the position of 
   // common variables of strings. varString is the common variable string
   char varString[K_ARRAY::VARSTRINGLENGTH];
@@ -591,7 +592,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
         E_Int nje = njet[iadt];
         E_Int nke = nket[iadt];
         short found = K_INTERP::getInterpolationCell(x, y, z, adt, vectOfExtCenters[iadt], &nie, &nje, &nke, NULL,
-                                                      1, 2, 3, 0, voli, indi, cf, type, noblk, interpType);
+                                                     1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
         
         FldArrayF& f2 = *fieldsr[no];
   

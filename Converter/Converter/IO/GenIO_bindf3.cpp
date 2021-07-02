@@ -107,6 +107,7 @@ E_Int K_IO::GenIO::df3write(
   //printf("xmax = %f %f %f %f %f %f \n", xmax, ymax, zmax, xmin, ymin, zmin);
   FldArrayI indi(1);
   FldArrayF cf(8);
+  FldArrayI tmpIndi(1); FldArrayF tmpCf(8);
   E_Int ind;
   E_Float voli = 0.;
   E_Int noblk = 0;
@@ -124,7 +125,7 @@ E_Int K_IO::GenIO::df3write(
           x, y, z, adts, structField, 
           a1, a2, a3, a4,
           posxt, posyt, poszt, posct,
-          voli, indi, cf, type, noblk); 
+          voli, indi, cf, tmpIndi, tmpCf, type, noblk);
         if (found > 0)
         {
           FldArrayF& field0 = *structField[noblk-1];

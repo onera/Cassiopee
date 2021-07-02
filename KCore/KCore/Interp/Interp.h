@@ -58,6 +58,7 @@ namespace K_INTERP
    OUT: voli: volume de la cellule d'interpolation
    OUT: donorIndices: indices de la cellule d'interpolation
    OUT: donorCoefs: coeff d'interpolation
+   TEMP: tmpIndi, tmpCf: stockage temporaire (idem donorIndices et donorCoefs)
    OUT: type: type d'interpolation reellement effectuee
         0: echec, 1: coincident, 2: O2CF, 3: O3ABC, 
         4: O2 avec indice de l'element pour la cellule d'interpolation, 
@@ -69,7 +70,9 @@ namespace K_INTERP
     FldArrayF* fields,
     void* a1, void* a2, void* a3, void* a4, 
     E_Int posxt, E_Int posyt, E_Int poszt, E_Int posct,
-    E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
+    E_Float& voli, 
+    FldArrayI& donorIndices, FldArrayF& donorCoefs,
+    FldArrayI& tmpIndi, FldArrayF& tmpCf,
     E_Int& type, E_Int& noDonorBlk,
     InterpData::InterpolationType interpType=InterpData::O2CF,
     E_Int nature=0, E_Int penalty=0);
@@ -94,7 +97,9 @@ namespace K_INTERP
     std::vector<void*>& a4, 
     std::vector<E_Int>& posxt, std::vector<E_Int>& posyt, 
     std::vector<E_Int>& poszt, std::vector<E_Int>& posct,
-    E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
+    E_Float& voli, 
+    FldArrayI& donorIndices, FldArrayF& donorCoefs,
+    FldArrayI& tmpIndi, FldArrayF& tmpCf,
     E_Int& type, E_Int& noDonorBlk,
     InterpData::InterpolationType interpType=InterpData::O2CF,
     E_Int nature=0, E_Int penalty=0);
@@ -117,7 +122,7 @@ namespace K_INTERP
    les images de (x,y,z) projete sur les parois des differents
    domaines donneurs dans xt,yt,zt.
    Les pts de coordonnees (xt[noz],yt[noz],zt[noz]) sont interpoles depuis 
-   l'interpData interpDatas[noz] uniquement. Ce cas est appliqué pour calculer
+   l'interpData interpDatas[noz] uniquement. Ce cas est appliquï¿½ pour calculer
    les coefficients d'interpolation dans le cas double wall.
    Attention: l'ordre de (xt,yt,zt) et de interpDatas doit etre le meme 
    donorIndices et donorCoefs sont redimensionnes */

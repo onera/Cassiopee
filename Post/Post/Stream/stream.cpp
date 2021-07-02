@@ -283,6 +283,8 @@ short K_POST::compRungeKutta4(
   {cf.malloc(4); indi.malloc(1);}
   else //ordre 2 structure
   {cf.malloc(8); indi.malloc(1);}
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
+
   FldArrayF up2(3);
   E_Float vol2 = 0.;
   // Si la surface n'est pas nulle, on projette le point sur cette surface
@@ -297,9 +299,9 @@ short K_POST::compRungeKutta4(
   short found = K_INTERP::getInterpolationCell(xp2, yp2, zp2, allInterpDatas,
                                                allFields, allA1, allA2, allA3, allA4,
                                                posxt, posyt, poszt, posct, 
-                                               vol2, indi, cf, type, noblk, interpType);
+                                               vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
   
-  if ( found == 0 ) return 0;// pas de pt d interpolation trouve
+  if ( found == 0 ) return 0;// pas de pt d'interpolation trouve
   //Calcul de Up2
   noblk0 = noblk-1;
   if ( noblk0 < ns )
@@ -336,7 +338,7 @@ short K_POST::compRungeKutta4(
   found = K_INTERP::getInterpolationCell( xp2, yp2, zp2, allInterpDatas,
                                           allFields, allA1, allA2, allA3, allA4,
                                           posxt, posyt, poszt, posct, 
-                                          vol2, indi, cf, type, noblk, interpType);
+                                          vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
 
 
   if ( found == 0 ) return 0;// pas de pt d'interpolation trouve
@@ -378,7 +380,7 @@ short K_POST::compRungeKutta4(
   found = K_INTERP::getInterpolationCell( xp2, yp2, zp2, allInterpDatas,
                                           allFields, allA1, allA2, allA3, allA4,
                                           posxt, posyt, poszt, posct, 
-                                          vol2, indi, cf, type, noblk, interpType);
+                                          vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
 
   if ( noblk == 0 ) return 0;// pas de pt d interpolation trouve
 
@@ -441,6 +443,7 @@ short K_POST::initStreamLine(
   FldArrayI& indi, FldArrayF& cf, FldArrayF& streamPts, 
   K_INTERP::InterpData::InterpolationType interpType)
 {
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
   E_Int noblkp0 = -1;
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
@@ -475,7 +478,7 @@ short K_POST::initStreamLine(
 
   for (E_Int noz = 0; noz < ns; noz++)
   {
-    allA1.push_back(&nis[noz]); 
+    allA1.push_back(&nis[noz]);
     allA2.push_back(&njs[noz]); 
     allA3.push_back(&nks[noz]); 
     allA4.push_back(NULL);
@@ -500,7 +503,7 @@ short K_POST::initStreamLine(
   short found = K_INTERP::getInterpolationCell( xp, yp, zp, allInterpDatas,
                                                 allFields, allA1, allA2, allA3, allA4,
                                                 posxt, posyt, poszt, posct, 
-                                                voli, indi, cf, type, noblkp, interpType);
+                                                voli, indi, cf, tmpIndi, tmpCf, type, noblkp, interpType);
 
   if ( found < 1 ) //pas de pt trouve
   {
@@ -704,6 +707,7 @@ void K_POST::initStreamSurf(
   FldArrayI& indi, FldArrayF& cf, FldArrayF& streamPts, 
   K_INTERP::InterpData::InterpolationType interpType)
 {
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());  
   E_Int ns = listOfStructFields.size();
   E_Int nu = listOfUnstrFields.size();
   vector<K_INTERP::InterpData*> allInterpDatas;
@@ -761,7 +765,7 @@ void K_POST::initStreamSurf(
     short found = K_INTERP::getInterpolationCell(xp, yp, zp, allInterpDatas,
                                                  allFields, allA1, allA2, allA3, allA4,
                                                  posxt, posyt, poszt, posct, 
-                                                 voli, indi, cf, type, noblkp[p], interpType);
+                                                 voli, indi, cf, tmpIndi, tmpCf, type, noblkp[p], interpType);
     if (found<1 ) //pas de pt trouve
     {
       streamPts.malloc(0);
@@ -790,7 +794,7 @@ void K_POST::initStreamSurf(
     }
     else// non structure 
     {
-      E_Int noblku =  noblkp0-ns;
+      E_Int noblku = noblkp0-ns;
       K_INTERP::compInterpolatedField(indi.begin(), cf, *listOfUnstrVelocities[noblku],
                                       connectu[noblku], NULL, NULL, type, u);
     }

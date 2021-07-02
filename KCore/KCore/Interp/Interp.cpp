@@ -41,7 +41,6 @@ extern "C"
                              const E_Float* zt, E_Float& vol);
 }
 
-
 E_Int K_INTERP::extractADTFromHooks(PyObject* allHooks, vector<K_INTERP::InterpData*>& interpDatas)
 {
   E_Int nHooks = PyList_Size(allHooks);
@@ -91,7 +90,9 @@ short K_INTERP::getInterpolationCell(
   vector<void*>& a4, 
   vector<E_Int>& posxt, vector<E_Int>& posyt, 
   vector<E_Int>& poszt, vector<E_Int>& posct,
-  E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
+  E_Float& voli, 
+  FldArrayI& donorIndices, FldArrayF& donorCoefs,
+  FldArrayI& tmpIndi, FldArrayF& tmpCf,
   E_Int& type, E_Int& noDonorBlk,
   K_INTERP::InterpData::InterpolationType interpType,
   E_Int nature, E_Int penalty)
@@ -109,16 +110,20 @@ short K_INTERP::getInterpolationCell(
   E_Int isBorder, tmpType, meshtype;// 1: structure , 2: non structure
   E_Int d = 0; E_Int nbNonZeroCf = 0; E_Int indNonZero=-1; E_Int indLoc; 
   E_Float coefLoc = 0.; E_Float coefNonZero=0.;
-  E_Int donorIndicesSize = donorIndices.getSize();
-  FldArrayI tmpIndi(donorIndicesSize); tmpIndi.setAllValuesAtNull();
-  FldArrayF tmpCf(donorCoefs.getSize()); tmpCf.setAllValuesAtNull();
+  //E_Int donorIndicesSize = donorIndices.getSize();
+  //FldArrayI tmpIndi(donorIndicesSize);
+  tmpIndi.setAllValuesAtNull();
+  //FldArrayF tmpCf(donorCoefs.getSize());
+  tmpCf.setAllValuesAtNull();
   FldArrayI* cnloc=NULL; //connectivite elts/vertex TETRA si non structure
   donorIndices.setAllValuesAtNull(); donorCoefs.setAllValuesAtNull();
   short foundSav = 0;
+  E_Int posx0, posy0, posz0, posc0;
+
   for (E_Int noz = 0; noz < nzones; noz++)
   {
-    E_Int posx0 = posxt[noz]; E_Int posy0 = posyt[noz]; 
-    E_Int posz0 = poszt[noz]; E_Int posc0 = posct[noz];
+    posx0 = posxt[noz]; posy0 = posyt[noz]; 
+    posz0 = poszt[noz]; posc0 = posct[noz];
     //if (a1[noz] == NULL && a2[noz] == NULL && a3[noz] == NULL)
     //{printf("Error: getInterpolationCell: not a valid donor zone.\n"); return -1;}
     
@@ -456,7 +461,9 @@ short K_INTERP::getInterpolationCell(
   E_Float x, E_Float y, E_Float z, K_INTERP::InterpData* InterpData, 
   FldArrayF* field, void* a1, void* a2, void* a3, void* a4, 
   E_Int posx, E_Int posy, E_Int posz, E_Int posc,
-  E_Float& voli,  FldArrayI& donorIndices, FldArrayF& donorCoefs,
+  E_Float& voli,  
+  FldArrayI& donorIndices, FldArrayF& donorCoefs,
+  FldArrayI& tmpIndi, FldArrayF& tmpCf,
   E_Int& type, E_Int& noDonorBlk,
   K_INTERP::InterpData::InterpolationType interpType,
   E_Int nature, E_Int penalty)
@@ -472,7 +479,8 @@ short K_INTERP::getInterpolationCell(
   a1t.push_back(a1); a2t.push_back(a2); a3t.push_back(a3); a4t.push_back(a4);
   return K_INTERP::getInterpolationCell(
     x, y, z, InterpDatas, fields, a1t, a2t, a3t, a4t,
-    posxt, posyt, poszt, posct, voli, donorIndices, donorCoefs, 
+    posxt, posyt, poszt, posct, voli, 
+    donorIndices, donorCoefs, tmpIndi, tmpCf,
     type, noDonorBlk, interpType, nature, penalty);
 }
 //=============================================================================
@@ -507,7 +515,7 @@ short K_INTERP::getExtrapolationCell(
        a2: cEV  si le donneur est non structure
    IN: f0: champ du bloc donneur pour l interpolation
    IN: indi: indice des pts de la molecule d interpolation selon le type 'type'
-             peut �tre defini par des sommets de la mol�cule donneuse
+             peut etre defini par des sommets de la molecule donneuse
                               par l'indice de la cellule donneuse
    IN: cf: coefs d'interpolation associes 
    IN: type: permet de determiner la formule appliquee

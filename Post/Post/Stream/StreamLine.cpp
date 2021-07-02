@@ -30,7 +30,7 @@ using namespace std;
 /* Cree une ligne de courant a  partir d'un point (x0,y0,z0) et d'une liste
    de grilles definies par des arrays. Les grilles d'interpolation sont celles
    qui sont structurees, contenant les infos sur la vitesse, et ayant toutes
-   les mêmes variables dans le même ordre.*/
+   les mï¿½mes variables dans le mï¿½me ordre.*/
 //=============================================================================
 PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
 {
@@ -600,8 +600,8 @@ short K_POST::updateStreamLinePoint(
 
   E_Float cosmin = cos(15.);
   E_Float xn, yn, zn;
-  FldArrayI indin(indip.getSize());
-  FldArrayF cfn(cfp.getSize());
+  FldArrayI indin(indip.getSize()); FldArrayF cfn(cfp.getSize());
+  FldArrayI tmpIndin(indip.getSize()); FldArrayF tmpCfn(cfp.getSize());
 
   E_Int noblkn=0;
   short isThetaValid = 0; //theta compris entre 2deg et 15deg : 1
@@ -610,6 +610,8 @@ short K_POST::updateStreamLinePoint(
   short cntmax=4;
   E_Int noblkn0;
   short found=0;
+  FldArrayF un(3);
+
   while (isThetaValid == 0 && cnt < cntmax)
   {
     // Si la surface n'est pas nulle, on projette le point sur cette surface
@@ -646,7 +648,7 @@ short K_POST::updateStreamLinePoint(
         xn, yn, zn, allInterpDatas,
         allFields, allA1, allA2, allA3, allA4,
         posxt, posyt, poszt, posct, 
-        voln, indin, cfn, type, noblkn, interpType);
+        voln, indin, cfn, tmpIndin, tmpCfn, type, noblkn, interpType);
 
       if (found < 1) {dt = 0.5 * dt; }
       else
@@ -661,7 +663,6 @@ short K_POST::updateStreamLinePoint(
         }
         noblkn0 = noblkn-1;
         // Calcul de Un
-        FldArrayF un(3);
         if (noblkn0 < ns)
         {
           K_INTERP::compInterpolatedField(

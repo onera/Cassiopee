@@ -481,7 +481,8 @@ E_Int K_POST::computeStreamRibbonElts(
   if (listOfStructVelocities.size() == 0) { cf.malloc(4); indi.malloc(1); }
   else //ordre 2 structure
   {cf.malloc(8); indi.malloc(1);}
-  
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
+
   // Calcul des premiers pts X0 et X0' et de dt, et du vecteur vitesse de X0
   // et des normales
   E_Int niter = 0;
@@ -516,7 +517,7 @@ E_Int K_POST::computeStreamRibbonElts(
     xp, yp, zp, allInterpDatas,
     allFields, allA1, allA2, allA3, allA4,
     posxt, posyt, poszt, posct, 
-    volp, indi, cf, type, noblkp, interpType);
+    volp, indi, cf, tmpIndi, tmpCf, type, noblkp, interpType);
 
   if ( found == 0 ) {printf("Warning: streamRibbon: initial point not interpolable.\n"); return 0;}
   // Recherche des points X(n+1), n > 0
@@ -686,6 +687,7 @@ short K_POST::compSecondPoint(
   if (listOfStructFields.size() == 0) { cf.malloc(4); indi.malloc(1); }
   else //ordre 2 structure
   { cf.malloc(8); indi.malloc(1); }
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
 
   // pt 0: no du blk d'interpolation dans interpDatas: demarre a 1 
   E_Int type = 0; E_Int noblkp2 = 0; E_Float volp2 = 0.;
@@ -693,7 +695,7 @@ short K_POST::compSecondPoint(
     xp2, yp2, zp2, allInterpDatas,
     allFields, allA1, allA2, allA3, allA4,
     posxt, posyt, poszt, posct, 
-    volp2, indi, cf, type, noblkp2, interpType);
+    volp2, indi, cf, tmpIndi, tmpCf, type, noblkp2, interpType);
   
   if (found < 1) return 0;
 
@@ -847,6 +849,8 @@ short K_POST::updateStreamRibbonPoints(
   E_Float xn, yn, zn, thetan;
   FldArrayI indin(indip.getSize());
   FldArrayF cfn(cfp.getSize());
+  FldArrayI tmpIndin(indip.getSize()); FldArrayF tmpCfn(cfp.getSize());
+  
   E_Float nxn, nyn, nzn;
 
   noblkn = 0;
@@ -880,7 +884,7 @@ short K_POST::updateStreamRibbonPoints(
           xn, yn, zn, allInterpDatas,
           allFields, allA1, allA2, allA3, allA4,
           posxt, posyt, poszt, posct, 
-          voln, indin, cfn, type, noblkn, interpType);
+          voln, indin, cfn, tmpIndin, tmpCfn, type, noblkn, interpType);
         if (found < 1) dt = 0.5 * dt;
         else 
         {
@@ -1039,6 +1043,9 @@ short K_POST::compRungeKutta4ForRibbon(
   //Cellule d interpolation pour calculer Up2
   FldArrayI indi(indip.getSize());
   FldArrayF cf(cfp.getSize());
+  FldArrayI tmpIndi(indip.getSize());
+  FldArrayF tmpCf(cfp.getSize());
+  
   E_Float voli = 0.;
   E_Int type = 0;
   E_Int noblk = 0;
@@ -1047,7 +1054,7 @@ short K_POST::compRungeKutta4ForRibbon(
     xp2, yp2, zp2, allInterpDatas,
     allFields, allA1, allA2, allA3, allA4,
     posxt, posyt, poszt, posct, 
-    voli, indi, cf, type, noblk, interpType);
+    voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
    
   if (found < 1) return 0; // pas de pt d'interpolation trouve
   //Calcul de Up,2
@@ -1090,7 +1097,7 @@ short K_POST::compRungeKutta4ForRibbon(
   found = K_INTERP::getInterpolationCell( xp2, yp2, zp2, allInterpDatas,
                                           allFields, allA1, allA2, allA3, allA4,
                                           posxt, posyt, poszt, posct, 
-                                          voli, indi, cf, type, noblk, interpType);
+                                          voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
   if (found < 1) return 0; // pas de pt d'interpolation trouve
   
   // Calcul de Up3
@@ -1134,7 +1141,7 @@ short K_POST::compRungeKutta4ForRibbon(
     xp2, yp2, zp2, allInterpDatas,
     allFields, allA1, allA2, allA3, allA4,
     posxt, posyt, poszt, posct, 
-    voli, indi, cf, type, noblk, interpType);
+    voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
 
   if (found < 1) return 0;// pas de pt d'interpolation trouve
 
