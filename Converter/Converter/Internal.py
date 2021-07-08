@@ -2228,6 +2228,36 @@ def moveNodeFromPaths(t, path1, path2):
     _moveNodeFromPaths(tp, path1, path2)
     return tp
 
+def _keepNodesByType(node, CGNSTypes):
+    """Only keep nodes of given types in node children."""
+    typesToRemove = numpy.unique([getType(n) for n in getChildren(node)])
+    for CGNSType in CGNSTypes:
+        typeIndex = numpy.where(typesToRemove == CGNSType)
+        typesToRemove = numpy.delete(typesToRemove, typeIndex)
+    for typeToRemove in typesToRemove:
+        _rmNodesByType1(node, typeToRemove)
+
+def keepNodesByType(node, CGNSTypes):
+    """Only keep nodes of given types in node children."""
+    nodep = copyRef(node)
+    _keepNodesByType(nodep, CGNSTypes)
+    return nodep
+
+def _keepNodesByName(node, CGNSNames):
+    """Only keep nodes of given names in node children."""
+    namesToRemove = numpy.unique([getName(n) for n in getChildren(node)])
+    for CGNSName in CGNSNames:
+        nameIndex = numpy.where(namesToRemove == CGNSName)
+        namesToRemove = numpy.delete(namesToRemove, nameIndex)
+    for nameToRemove in namesToRemove:
+        _rmNodesByName1(node, nameToRemove)
+
+def keepNodesByName(node, CGNSTypes):
+    """Only keep nodes of given names in node children."""
+    nodep = copyRef(node)
+    _keepNodesByName(nodep, CGNSTypes)
+    return nodep
+
 #==============================================================================
 # -- Node name modifications --
 #==============================================================================

@@ -8,7 +8,7 @@ from . import converter
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
-    'bcast', 'Bcast', 'bcastZone', 'allgatherZones',
+    'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 'createBBTree', 'intersect', 'allgatherDict', 'fillDict',
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
@@ -118,6 +118,89 @@ def sendRecvC(datas, graph):
 
     a = converter.waitAll(reqs)
     return rcvDatas
+
+#==============================================================================
+# Construction d'un arbre de recherche pour des BBox
+# IN : tBB arbre cgns de bbox
+# OUT : objet C BBtree (hook)
+#==============================================================================
+def createBBTree(t):
+    zones = Internal.getZones(t)
+    minBBoxes = [] ; maxBBoxes = []
+    for z in zones:
+        # BBox de la zone
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+        minBBoxes.append([numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)])
+        maxBBoxes.append([numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)])
+    
+    return converter.createBBTree(minBBoxes, maxBBoxes)
+
+#==============================================================================
+# Recherche des intersections entre une bbox de zone et un arbre de BBox
+# IN : Bbox d'une zone + arbre de recherche de BBox
+# OUT : tableau de taille de nombre des BBox avec True or False
+#==============================================================================
+def intersect(zone, BBTree):
+    gc = Internal.getNodeFromName1(zone, Internal.__GridCoordinates__)
+    xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+    yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+    zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+    minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
+    maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
+    return converter.intersect(minBBox, maxBBox, BBTree)
+
+def intersect2(t, BBTree):
+    zones = Internal.getZones(t)
+    inBB = []
+    for z in zones:
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+        minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
+        maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
+        inBB.append([minBBox, maxBBox])
+
+    return converter.intersect(inBB, BBTree)
+
+#==============================================================================
+# Recherche des zones fixes non intersectees et ajout dans le dict
+# IN : liste des zones fixes, dict des intersects
+# OUT : dict a jour (reference ou pas?)
+#==============================================================================
+#def fillDict(zones, dictIntersect):
+#    for zone in zones:
+#        if zone[0] not in dictIntersect: dictIntersect[zone[0]] = []
+#    return dictIntersect
+
+#==============================================================================
+# allGather dictionnaire (rejete les doublons de keys et values)
+#==============================================================================
+def allgatherDict(data):
+    ret = KCOMM.allgather(data)
+    if isinstance(data, dict):
+        out = {}
+        for r in ret:
+            for k in r:
+                # if rank==0: print('PROC%d : k=%s'%(rank, k), flush=True)
+                if k not in out:
+                    out[k] = []
+                    for data in r[k]:
+                        if data not in out[k]:
+                            # if rank==0: print('PROC%d : data=%s ; out[k] = '%(rank, k), out[k], flush=True)
+                            out[k].append(data)
+                            # if rank==0: print('PROC%d : out[k] = '%(rank), out[k], flush=True)
+
+                else:
+                    for data in r[k]:
+                        # if rank==0: print('PROC%d : data=%s ; out[k] = '%(rank, k), out[k], flush=True)
+                        if data not in out[k]: out[k].append(data)
+                        # if rank==0: print('PROC%d : out[k] = '%(rank), out[k], flush=True)
+        return out
+    else: return ret
 
 #==============================================================================
 # allgather

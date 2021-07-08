@@ -150,6 +150,10 @@ static PyMethodDef Pyconverter [] =
   {"iSend", K_CONVERTER::iSend, METH_VARARGS},
   {"recv", K_CONVERTER::recv, METH_VARARGS},
   {"waitAll", K_CONVERTER::waitAll, METH_VARARGS},
+  {"createBBTree", K_CONVERTER::createBBTree, METH_VARARGS},
+  {"intersect", K_CONVERTER::intersect, METH_VARARGS},
+  {"intersect2", K_CONVERTER::intersect2, METH_VARARGS},
+  {"deleteBBTree", K_CONVERTER::deleteBBTree, METH_VARARGS},
   {NULL, NULL}
 };
 

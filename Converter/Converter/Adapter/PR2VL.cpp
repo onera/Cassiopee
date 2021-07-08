@@ -81,8 +81,8 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
   printf("%d %d %d %d %d %d\n",imin,imax,jmin,jmax,kmin,kmax); fflush(stdout);
 
   E_Int size, ind;
-  E_Int dim = 3;
-  if (nk == 1) dim = 2; // 2D
+  //E_Int dim = 3;
+  //if (nk == 1) dim = 2; // 2D
 
   // Compute vertex indices corresponding to pointRange
   PyObject* o;

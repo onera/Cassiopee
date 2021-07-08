@@ -162,10 +162,15 @@ namespace K_CONVERTER
   PyObject* extractBCFields(PyObject* self, PyObject* args);
   PyObject* buildBCMatchFieldStruct(PyObject* self, PyObject* args);
   PyObject* buildBCMatchFieldNG(PyObject* self, PyObject* args);
-  // send/rev
+  // send/recv
   PyObject* iSend(PyObject* self, PyObject* args);
   PyObject* recv(PyObject* self, PyObject* args);
   PyObject* waitAll(PyObject* self, PyObject* args);
+  // BBTree
+  PyObject* createBBTree(PyObject* self, PyObject* args);
+  PyObject* intersect(PyObject* self, PyObject* args);
+  PyObject* intersect2(PyObject* self, PyObject* args);
+  PyObject* deleteBBTree(PyObject* self, PyObject* args);
   
   // addGhostCells NGON
   void addGhostCellsNGon2D(E_Int depth,
