@@ -8,7 +8,7 @@ from . import converter
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
-    'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 'createBBTree', 'intersect', 'allgatherDict', 'fillDict',
+    'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 'createBBTree', 'intersect', 'allgatherDict',
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',

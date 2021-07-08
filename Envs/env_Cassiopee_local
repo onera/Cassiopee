@@ -488,8 +488,7 @@ else if ($MAC == "sator_python3") then
         setenv OMP_NUM_THREADS 28
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        #setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/tmp_user/stelvio/benoit/sator/lib
-        setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "sator") then
@@ -498,10 +497,12 @@ else if ($MAC == "sator") then
         echo "ELSAPROD="$ELSAPROD
         echo "pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
 
-        module unload intel/11.1.073
+	module load intel/17.0.4
+        #module unload intel/11.1.073
         module load CFD/4.0-intel-17.impi
         #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-
+	#module load gcc/5.2
+	
         # HDF para (deja dans le socle)
         # module load hdf5/1.8.17-intel-17.impi
         
@@ -509,8 +510,7 @@ else if ($MAC == "sator") then
         setenv OMP_NUM_THREADS 28
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        #setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/tmp_user/stelvio/benoit/sator/lib
-        setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "sator_sky") then
@@ -527,9 +527,7 @@ else if ($MAC == "sator_sky") then
         setenv OMP_NUM_THREADS 28
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-
-        #setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/tmp_user/stelvio/benoit/sator/lib
-        setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 endif
 #---------------------------Common---------------------------------------------
