@@ -681,11 +681,13 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     boxes = []
     for b in Internal.getBases(tbox):
         boxes.append(Internal.getNodesFromType1(b, 'Zone_t'))
-    
+        
     if snearsf != []:
         if not isinstance(snearsf, list): snearsf = len(boxes)*[snearsf]
         if len(boxes) != len(snearsf):
             raise ValueError('addRefinementZones: Number of refinement bodies is not equal to the length of snearsf list.')
+        for i in range(len(snearsf)):
+            snearsf[i] = snearsf[i]*(vmin-1)
     else:
         snearsf=[]
         for sbox in boxes:
@@ -715,7 +717,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             C._initVars(to,'centers:cellN',1.)
             tboxl = C.newPyTree(['BOXLOC']); tboxl[2][1][2] = box
             to = blankByIBCBodies(to, tboxl, 'centers', dim)
-            C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%f)'%volmin2)
+            C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%g)'%volmin2)
             nob += 1
 
         end = 1
