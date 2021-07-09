@@ -176,7 +176,7 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
         strcmp(eltType, "PENTA") != 0) 
     {
       PyErr_SetString(PyExc_TypeError,
-                      "computeNormCurl: not a valid element type.");
+                      "computeCurl: not a valid element type.");
       RELEASESHAREDU(array,f, cn); return NULL;
     }
     

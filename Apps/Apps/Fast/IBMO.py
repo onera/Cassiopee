@@ -104,7 +104,7 @@ def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
                 baseov = Internal.newCGNSBase(b[0], parent=tbov)
                 zones = Internal.getZones(b)
                 for z in zones:
-                    TM=Internal.getNodeFromName(z,'TimeMotion')
+                    TM = Internal.getNodeFromName(z,'TimeMotion')
                     SD = Internal.getNodeFromName(z,'.Solver#define')
                     SP = Internal.getNodeFromName(z,'.Solver#Param')
 
@@ -232,11 +232,7 @@ def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
     Cmpi._rmXZones(t)
     coords = None; zones = None
     test.printMem(">>> extended cart grids (after rmXZones) [end]")
-    slx=P.isoSurfMC(t,"CoordinateX",0.5)
-    C.convertPyTree2File(slx,'sliceX.cgns')
-    slx=P.isoSurfMC(t,"CoordinateZ",0)
-    C.convertPyTree2File(slx,'sliceZ.cgns')
-    del slx
+
     TIBM._addBCOverlaps(t, bbox=bb)
     TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
     dz = 0.01
@@ -278,7 +274,7 @@ def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
     if dimPb == 2:
         ZMEAN = dz*0.5
         C._initVars(tball, 'CoordinateZ', ZMEAN)
-    # Distances a la paroi sur les grilles chimeres
+    # Distances a la paroi sur les grilles curvilignes chimere
     DTW._distance2Walls(t2, tbchim, loc='centers', type='ortho')
     test.printMem(">>> Wall distance on Chimera grids [end]")
 
@@ -287,7 +283,7 @@ def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
     C._addState(t, 'GoverningEquations', model)
     C._addState(t, 'EquationDimension', dimPb)
 
-    # Distance a la paroi psur les grilles cartesiennes
+    # Distance a la paroi pour les grilles cartesiennes
     test.printMem(">>> Wall distance for Cartesian grids [start]")
     DTW._distance2Walls(t, tbibm, type='ortho', signed=0, dim=dimPb, loc='centers')
     test.printMem(">>> Wall distance for Cartesian grids [end]")
@@ -581,8 +577,6 @@ def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
     if model == 'Euler': varsRM += ['centers:TurbulentDistance']
     C._rmVars(t, varsRM)
     Internal._rmNodesFromName(tc,'FlowSolution')
-    Internal._rmNodesFromName(tc,'GridCoordinates#Init')
-    R._copyGrid2GridInit(tc)
     
     # Sauvegarde des infos IBM
     if check:
@@ -636,7 +630,10 @@ def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
         Internal._rmNodesFromName(zone,'RANSLES')
     R._copyGrid2GridInit(tpc)
     Internal._rmNodesFromName(tpc,'ZoneRind')
-    if isinstance(tc_out, str): Cmpi.convertPyTree2File(tpc, tc_out, ignoreProcNodes=True)
+    if isinstance(tc_out, str): 
+        import Compressor.PyTree as Compressor
+        Compressor._compressCartesian(tpc[2][1])
+        Cmpi.convertPyTree2File(tpc, tc_out, ignoreProcNodes=True)
     
     # Initialisation
     if tinit is None: I._initConst(tp, loc='centers')
@@ -1268,7 +1265,7 @@ def prepare(t_case, t_out, tc_out,
     del tpc_cart
 
     Internal._rmNodesByName(tpc, Internal.__FlowSolutionNodes__)
-    Internal._rmNodesByName(tpc, Internal.__GridCoordinates__)
+    #Internal._rmNodesByName(tpc, Internal.__GridCoordinates__)
     destDatas = Cmpi.sendRecv(datas, graph)
     for i in destDatas:
         for n in destDatas[i]:
@@ -1340,7 +1337,10 @@ def prepare(t_case, t_out, tc_out,
         if len(zname)==2: Internal.setName(zone,zname[1])
     for zone in Internal.getZones(tpc[2][2]):
         Internal._rmNodesFromName(zone,'RANSLES')
-    if isinstance(tc_out, str): Cmpi.convertPyTree2File(tpc, tc_out, ignoreProcNodes=True)
+    if isinstance(tc_out, str): 
+        import Compressor.PyTree as Compressor
+        Compressor._compressCartesian(tpc[2][1])
+        Cmpi.convertPyTree2File(tpc, tc_out, ignoreProcNodes=True)
     
     # Initialisation
     if tinit is None: I._initConst(tp, loc='centers')

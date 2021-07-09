@@ -51,7 +51,7 @@ Cmpi.barrier()
 # Prepare
 t,tc = myApp.prepare(FILEB, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=Cmpi.size)
 Internal._rmNodesFromType(tc,'Rind_t')
-
+Internal._rmNodesFromName(tc,Internal.__GridCoordinates__)
 if Cmpi.rank == 0: test.testT(tc, 1)
 
 # Compute

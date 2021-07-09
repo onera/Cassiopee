@@ -20,6 +20,7 @@ myApp.set(numz={"time_step": 0.0007,
 
 # Prepare
 t, tc = myApp.prepare('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=Cmpi.size)
+Internal._rmNodesFromName(tc,Internal.__GridCoordinates__)
 Internal._rmNodesFromType(tc,'Rind_t')
 if Cmpi.rank == 0: test.testT(tc, 1)
 

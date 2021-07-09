@@ -19,6 +19,7 @@ myApp.set(numz={"time_step": 0.0007,
 # Prepare
 t, tc = App.prepare0('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', frontType=2, NP=1)
 Internal._rmNodesFromType(tc,'Rind_t')
+Internal._rmNodesFromName(tc,Internal.__GridCoordinates__)
 test.testT(tc, 1)
 
 # Compute

@@ -463,7 +463,6 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
         if dxmin < 0.65*dxmin0:
             snearso = [2.*i for i in snearso]
             o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing, dfarDir=dfarDir)
-        
         # Adaptation avant expandLayer (pour corriger eventuellement les sauts de maille)
         if tbox is not None and snearsf is not None:
             o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
@@ -538,7 +537,6 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)          
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
-            #C.convertPyTree2File(o, 'octree2.cgns')
             
             # passe 2
             to = C.newPyTree(['Base',o])
@@ -551,7 +549,6 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 4)                                                                          
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
-            #C.convertPyTree2File(o, 'octree3.cgns')
             # fin passe 2
 
             # Check
@@ -566,7 +563,6 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             # FIN CHECK
 
         elif expand == 4: # expand minimum + 2 couche propagee
-            #C.convertPyTree2File(o, 'octree1.cgns')
             corner = 0
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
@@ -578,7 +574,6 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)          
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
-            #C.convertPyTree2File(o, 'octree2.cgns')
             
             # passe 2
             to = C.newPyTree(['Base',o])
@@ -697,8 +692,8 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
                     snearl = Internal.getNodeFromName1(sdd, "snear")
                     if snearl is not None: 
                         snearl = Internal.getValue(snearl)
-                        snearsf.append(snearl*(vmin-1)) 
-
+                        snearsf.append(snearl) 
+ 
     to = C.newPyTree(['Base', o])
     end = 0
     G._getVolumeMap(to)
@@ -713,7 +708,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
         nob = 0
         C._initVars(to, 'centers:indicator', 0.)
         for box in boxes:
-            volmin2 = 1.09*(snearsf[nob])**(dim)
+            volmin2 = 1.09*(snearsf[nob]*(vmin-1))**(dim)
             C._initVars(to,'centers:cellN',1.)
             tboxl = C.newPyTree(['BOXLOC']); tboxl[2][1][2] = box
             to = blankByIBCBodies(to, tboxl, 'centers', dim)

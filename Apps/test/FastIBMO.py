@@ -19,7 +19,6 @@ myApp.set(numz={"time_step": 0.002,
                 "cfl":1.})
 
 t,tc = myApp.prepare(FILE, t_out='t.cgns', tc_out='tc.cgns', expand=3, vmin=11, check=False, NP=Cmpi.size, distrib=True)
-
 t,tc = myApp.compute('t.cgns','tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns', nit=NIT)
 
 t = T.subzone(t,(1,1,1),(-1,-1,1))

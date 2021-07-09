@@ -22,6 +22,7 @@ tb = C.convertFile2PyTree("naca1DEuler.cgns")
 App._snearFactor(tb, 0.1)
 t, tc = App.prepare1(tb, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns')
 Internal._rmNodesFromType(tc,'Rind_t')
+Internal._rmNodesFromName(tc,Internal.__GridCoordinates__)
 test.testT(tc,1)
 
 # Compute

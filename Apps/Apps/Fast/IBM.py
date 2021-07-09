@@ -975,7 +975,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     test.printMem(">>> Interpolating IBM [after rm XZones]")
 
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
-    Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
+    #Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
     destDatas = Cmpi.sendRecv(datas, graph)
     for i in destDatas:
         for n in destDatas[i]:
@@ -1042,7 +1042,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # distribution par defaut (sur NP)
     tbbc = Cmpi.createBBoxTree(tc)
 
-    # Perform the finale distribution
+    # Perform the final distribution
     if distrib:
         if NP == 0: NP = Cmpi.size
         stats = D2._distribute(tbbc, NP, algorithm='graph', useCom='ID')
@@ -1052,7 +1052,10 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     del tbbc
 
     # Save tc
-    if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out, ignoreProcNodes=True)
+    if isinstance(tc_out, str): 
+        import Compressor.PyTree as Compressor
+        Compressor._compressCartesian(tc)
+        Cmpi.convertPyTree2File(tc, tc_out, ignoreProcNodes=True)
 
     # Initialisation
     if tinit is None: I._initConst(t, loc='centers')
