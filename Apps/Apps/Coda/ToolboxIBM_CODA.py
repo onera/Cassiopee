@@ -372,8 +372,11 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
                 ZGC = Internal.createNode('ZoneGridConnectivity', 'ZoneGridConnectivity_t', parent=z)
 
             matchname = 'match_%d_%d'%(rank,norankopp)
-            gcnode = Internal.createNode(matchname,'GridConnectivity_t', parent=ZGC)
+
+            gcnode = Internal.createNode(matchname,'GridConnectivity_t', parent=ZGC, value='CART_P%d'%norankopp)
             gcnode[2].append(Internal.createNode('GridLocation','GridLocation_t',value='Vertex'))
+            lsize = len(PL.shape)
+            if lsize == 1: PL = numpy.reshape(PL,(1, PL.shape[0]), order='F')
             gcnode[2].append(Internal.createNode('PointList','IndexArray_t',value=PL))
         if PL != [] and rank > norankopp:
             matchname = 'match_%d_%d'%(norankopp, rank)
@@ -385,9 +388,12 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
         for origProc in rcvDataM:
             matchname=rcvDataM[origProc][0]
             PLD = rcvDataM[origProc][1]
+            lsize = len(PLD.shape)   
+            if lsize == 1: PLD = numpy.reshape(PLD,(1, PLD.shape[0]), order='F')
             gcnode = Internal.getNodeFromName(z,matchname)
             gcnode[2].append(Internal.createNode('PointListDonor','IndexArray_t',value=PLD))
-
+    mergeQuadConn(z)
+    EltRange2FaceCenter(z)
     # add2PyTree
     #Cmpi._setProc(z,rank)
     t[2][1][2]=[z]
@@ -398,6 +404,92 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     if t_out is not None: Cmpi.convertPyTree2File(t, t_out)
 
     return t
+
+def mergeQuadConn(z):
+    rangeMinT={}; rangeMaxT={}
+    rmaxall = -1; rminall = 100000000
+    
+    for elts_t in Internal.getNodesFromType(z,"Elements_t"):
+        typeEt = Internal.getValue(elts_t)[0]
+        if typeEt == 7:
+            name = Internal.getName(elts_t)
+            eltRange = Internal.getNodeFromName1(elts_t,"ElementRange")
+            rangeMinT[name] = Internal.getValue(eltRange)[0]
+            rangeMaxT[name] = Internal.getValue(eltRange)[1]
+            rmaxall = max(rangeMaxT[name]+1,rmaxall)
+            rminall = min(rangeMinT[name],rminall)
+
+    # init  
+    rmin = rminall; rmax= -1
+    newElts_t=[]; etype = 7
+    while rmin < rmaxall:
+        #start
+        for name in rangeMinT:
+            if rangeMinT[name]==rmin:
+                rmax = rangeMaxT[name]
+                EltsT = Internal.getNodeFromName1(z,name)
+                name1 = name
+                break        
+        # looking for following elts_t
+        found = 1
+        while found == 1:
+            found = 0
+            for name in rangeMinT:
+                if rangeMinT[name]==rmax+1:
+                    found = 1
+                    name2 = name
+                    EltsT2 = Internal.getNodeFromName1(z,name2)
+            if found == 0:
+                rmax2 = rmax
+                newElts_t.append(EltsT)
+            else:
+                rmin2 = rangeMinT[name1]
+                rmax2 = rangeMaxT[name2]
+                ER = Internal.getNodeFromType(EltsT, 'IndexRange_t')
+                ERVal = Internal.getValue(ER)
+                ERVal[0] = rmin; ERVal[1] = rmax2
+                Internal.setValue(ER,ERVal)
+                ec1 = Internal.getNodeFromName(EltsT, 'ElementConnectivity')
+                ec2 = Internal.getNodeFromName(EltsT2, 'ElementConnectivity')
+                ec1[1] = numpy.concatenate((ec1[1],ec2[1]))
+                rangeMinT[name2]=-1; rangeMaxT[name2]=-1
+                rangeMinT[name1]=-1; rangeMaxT[name1]=-1
+
+                rmax = rmax2
+                if rmax2+1==rmaxall:
+                    EltsT[0]='Quads'# a priori, unique name...
+                    newElts_t.append(EltsT)                
+                    found = 0
+            rmin = rmax2+1
+    
+    Internal._rmNodesFromType(z,'Elements_t')
+    z[2] += newElts_t                
+    return None
+
+# convert ZoneBC ElementRange to a PointList/FaceCenter according to QUAD connectivity
+def EltRange2FaceCenter(z):
+    connects = Internal.getNodesFromType(z,'Elements_t')
+    connectQUAD=None
+    
+    for conn in connects: 
+        eltType = Internal.getValue(conn)[0]
+        if eltType == 7:
+            connectQUAD = conn
+            break
+    ERQUAD = Internal.getValue(Internal.getNodeFromName(connectQUAD,'ElementRange'))
+    rminQUAD = ERQUAD[0]; rmaxQUAD = ERQUAD[1]
+    for zbc in Internal.getNodesFromType(z,"BC_t"):
+        ER = Internal.getNodeFromName(zbc, 'ElementRange')
+        ERVal = Internal.getValue(ER)[0]
+        rmin = ERVal[0]; rmax = ERVal[1]
+        PL = numpy.zeros((1,rmax-rmin+1), order='F')
+        for i in range(PL.shape[1]):
+            PL[0,i] = rmin+i-rminQUAD+1
+        zbc[2].append(['PointList', PL, [], 'IndexRange_t'])
+        gl = numpy.array([c for c in 'FaceCenter'],'c')
+        zbc[2].append(['GridLocation', gl, [], 'GridLocation_t'])
+        Internal._rmNodesFromName(zbc,"ElementRange")   
+    return None
 
 def get1To1Connect(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
 
