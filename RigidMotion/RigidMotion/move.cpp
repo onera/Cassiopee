@@ -21,6 +21,7 @@
 
 using namespace K_FLD;
 using namespace std;
+
 //=============================================================================
 // Move a mesh with a defined motion
 //=============================================================================
@@ -145,6 +146,89 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
 
   for (int i = 0; i < 3; i++)
     RELEASESHAREDN(l[i], coords[i]);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+//=============================================================================
+// Compute the grid velocity according to: se = s0-omgp ^ c + omgp ^ x 
+//=============================================================================
+PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
+{
+  E_Float s01, s02, s03; 
+  E_Float cx, cy, cz;
+  E_Float omg1, omg2, omg3; // vitesse de rotation
+  PyObject *pyCoordsN;
+  PyObject *pySeN;
+  if (!PYPARSETUPLEF(args, 
+                     "OO(ddd)(ddd)(ddd)", 
+                     "O(fff)(fff)(fff)",
+                     &pyCoordsN, &pySeN,
+                     &s01, &s02, &s03,
+                     &cx, &cy, &cz,
+                     &omg1, &omg2, &omg3)) return NULL;
+  if (PyList_Check(pyCoordsN) == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 1st arg must be a list.");
+    return NULL;
+  }
+  int size=PyList_Size(pyCoordsN);
+  if (size != 3)
+  {
+    PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 1st arg must be a list of 3 elements.");    
+    return NULL;
+  }
+  if (PyList_Check(pySeN) == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 2nd arg must be a list.");
+    return NULL;
+  }
+  int size2=PyList_Size(pySeN);
+  if (size2 != 3)
+  {
+    PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 2nd arg must be a list of 3 elements.");    
+    return NULL;
+  }
+  vector<FldArrayF*> coords(size);
+  vector<PyObject*> l(size);
+  vector<PyObject*> l2(size);
+  vector<FldArrayF*> se(size);
+  for (int i = 0; i < size; i++)
+  {
+    PyObject* tpl = PyList_GetItem(pyCoordsN,i);
+    K_NUMPY::getFromNumpyArray(tpl, coords[i], true);
+    l[i]=tpl;
+    tpl = PyList_GetItem(pySeN,i);
+    K_NUMPY::getFromNumpyArray(tpl, se[i], true);
+    l2[i]=tpl;
+  }
+
+  E_Float* xt = coords[0]->begin();
+  E_Float* yt = coords[1]->begin();
+  E_Float* zt = coords[2]->begin();
+  E_Int npts = coords[0]->getSize() * coords[0]->getNfld();
+  E_Float* se1 = se[0]->begin();
+  E_Float* se2 = se[1]->begin();
+  E_Float* se3 = se[2]->begin();
+
+  E_Float tx = s01 - (omg2 * cz - omg3 * cy);
+  E_Float ty = s02 - (omg3 * cx - omg1 * cz);
+  E_Float tz = s03 - (omg1 * cy - omg2 * cx);
+#pragma omp parallel default(shared) 
+  {
+  #pragma omp for 
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+      se1[ind] = tx + (omg2 * zt[ind] - omg3 * yt[ind]);
+      se2[ind] = ty + (omg3 * xt[ind] - omg1 * zt[ind]);
+      se3[ind] = tz + (omg1 * yt[ind] - omg2 * xt[ind]);
+    }
+  }
+
+  for (int i = 0; i < 3; i++)
+  { 
+    RELEASESHAREDN(l[i], coords[i]);   
+    RELEASESHAREDN(l2[i], se[i]);
+  }
   Py_INCREF(Py_None);
   return Py_None;
 }
