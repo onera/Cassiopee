@@ -992,13 +992,13 @@ def _adaptNearMatch(t):
   return None
 
 #=========================================================================================
-def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
+def createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False):
     """Create elsAHybrid node necessary for NGON zones."""
     tp = Internal.copyRef(t)
-    _createElsaHybrid(tp, method, axe2D, methodPE)
+    _createElsaHybrid(tp, method, axe2D, methodPE, newNGON)
     return tp
 
-def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
+def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False):
     from . import converter
     zones = Internal.getZones(t)
     for z in zones:
@@ -1017,11 +1017,13 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
              er = Internal.getNodeFromName1(node, 'ElementRange')
              nfaces = er[1][1]-er[1][0]+1
              child = Internal.createUniqueChild(z, ':elsA#Hybrid', 'UserDefinedData_t')
+             ESO = None
+             if newNGON: ESO = Internal.getNodeFromName1(node, 'ElementStartOffset')[1]
              # to be removed (only used by elsA for nothing)
              sct = numpy.arange((nfaces), dtype=numpy.int32)
              Internal.newDataArray('SortedCrossTable', value=sct, parent=child)
              inct = numpy.empty((nfaces), dtype=numpy.int32)
-             Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
+             if not newNGON: Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
              # OK
              ict = numpy.empty((nfaces), dtype=numpy.int32)
              bcct = numpy.empty((nfaces), dtype=numpy.int32)
@@ -1034,7 +1036,7 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
              else: x = None; y = None; z = None
              (iTRI, iQUADS, eTRI, eQUADS) = converter.createElsaHybrid(
                  CE[1], PE[1], ict, bcct, inct, method,
-                 axe2D, x, y, z)
+                 axe2D, x, y, z, ESO)
              if method == 0:
                  Internal.newDataArray('InternalTris', iTRI, parent=child)
                  Internal.newDataArray('InternalQuads', iQUADS, parent=child)

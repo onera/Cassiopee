@@ -4393,14 +4393,14 @@ def _sortNodesInZone(z):
 # method=0: avec tri TRI,QUAD+interior, exterior
 # method=1: avec tri interior, exterior
 #==============================================================================
-def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
+def createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False):
     from . import elsAProfile
-    tp = elsAProfile.createElsaHybrid(t, method, axe2D, methodPE)
+    tp = elsAProfile.createElsaHybrid(t, method, axe2D, methodPE, newNGON)
     return tp
 
-def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
+def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False):
     from . import elsAProfile
-    elsAProfile._createElsaHybrid(t, method, axe2D, methodPE)
+    elsAProfile._createElsaHybrid(t, method, axe2D, methodPE, newNGON)
     return None
 
 #==============================================================================

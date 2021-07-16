@@ -31,10 +31,12 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   PyObject* inct;
   PyObject* ox; PyObject* oy; PyObject* oz;
   E_Int axe2D, method;
-  if (!PYPARSETUPLEI(args, "OOOOOllOOO", "OOOOOiiOOO", 
+  PyObject* ESO;
+  if (!PYPARSETUPLEI(args, "OOOOOllOOOO", "OOOOOiiOOOO", 
                      &NGon, &PE, &ict, &bcct, &inct, 
-                     &method, &axe2D, &ox, &oy, &oz))
+                     &method, &axe2D, &ox, &oy, &oz, &ESO))
     return NULL;
+
   // Check numpy NGon
   FldArrayI* cNGon;
   E_Int res = K_NUMPY::getFromNumpyArray(NGon, cNGon, true);
@@ -44,7 +46,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
                     "createElsaHybrid: numpy is invalid.");
     return NULL;
   }
-
+ 
   // Check numpy PE (ParentElements)
   FldArrayI* cPE;
   res = K_NUMPY::getFromNumpyArray(PE, cPE, true);
@@ -97,7 +99,17 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   E_Int nfaces = cICT->getSize();
   E_Int* ptNGon = cNGon->begin();
   FldArrayI posFaces(nfaces);
-  K_CONNECT::getPosFacets(ptNGon, 0, nfaces, posFaces);
+
+  // Check numpy ESO (ElementStartOffSet)
+  FldArrayI* cESO;
+  if (ESO != Py_None)
+  {
+    res = K_NUMPY::getFromNumpyArray(ESO, cESO, true);
+    if (res == 1) posFaces = (*cESO);
+    else K_CONNECT::getPosFacets(ptNGon, 0, nfaces, posFaces);
+  }
+  else K_CONNECT::getPosFacets(ptNGon, 0, nfaces, posFaces);
+
   E_Int* posFacesp = posFaces.begin();
 
   //printf("here nfaces=%d\n", nfaces);
