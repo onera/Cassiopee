@@ -320,6 +320,7 @@ def _moveZone__(z, time):
                 if angle != 0:
                     angle = angle #*__RAD2DEG__
                     T._rotate2(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
+                    
             elif dtype == 2: # type 2: rotor_motion for helicopters in FF                
                 transl_speed=Internal.getValue(Internal.getNodeFromName(m,'transl_speed'))
                 psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
@@ -354,7 +355,7 @@ def _moveZone__(z, time):
                 pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
                 pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
                 pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
-                [r0,x0,rotMat,s0]=rigidMotion._computeRotorMotionInfo(
+                [r0,x0,rotMat,s0,omega]=rigidMotion._computeRotorMotionInfo(
                     time, transl_speed.tolist(), psi0, psi0_b,
                     alp_pnt.tolist(),alp_vct.tolist(),alp0,
                     rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
@@ -411,7 +412,6 @@ def _copyGridInit2Grid(t):
       ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')[1]
       zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')[1]
       rigidMotion.copyCoords(xcoord0, ycoord0, zcoord0, xcoord, ycoord, zcoord)
-      
   return None
 
 # Copy GridCoordinates dans GridCoordinates#Init
@@ -437,7 +437,10 @@ def _copyGrid2GridInit(t):
       if zcoord0 is None:
         zcoord0 = Internal.copyNode(zcoord); gridInit[2].append(zcoord0)
       rigidMotion.copyCoords(xcoord[1], ycoord[1], zcoord[1], xcoord0[1], ycoord0[1], zcoord0[1])
-      
+      # copie CartesiaData si il y en a
+      cd = Internal.getNodeFromName1(grid, 'CartesianData')
+      if cd is not None:
+          Internal._createUniqueChild(gridInit, 'CartesianData', value=Internal.getValue(cd))
   return None
 
 #==============================================================================
@@ -460,7 +463,9 @@ def evalPosition__(t, time):
     np = Internal.copyTree(n)
     #for c, p in enumerate(n[2]): n[2][c] = np[2][c]
     n[2][:] = np[2][:]
-  for z in zones: _moveZone__(z, time)
+  for z in zones: 
+      _copyGridInit2Grid(z)
+      _moveZone__(z, time)
   return a
 
 #==============================================================================
@@ -634,6 +639,7 @@ def _evalGridSpeed(a, time, out=0):
       for m in motions:
         mtype = Internal.getNodeFromName1(m, 'MotionType')
         dtype = mtype[1][0]
+
         if dtype == 1: # type 1: time string
           tx = getTimeString__(m, 'tx')
           ty = getTimeString__(m, 'ty')
@@ -692,7 +698,7 @@ def _evalGridSpeed(a, time, out=0):
             pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
             pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
             pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
-            [r0,x0,rotMat,s0]=rigidMotion._computeRotorMotionInfo(
+            [r0,x0,rotMat,s0,omega]=rigidMotion._computeRotorMotionInfo(
                 time, transl_speed.tolist(), psi0, psi0_b,
                 alp_pnt.tolist(),alp_vct.tolist(),alp0,
                 rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
@@ -702,7 +708,10 @@ def _evalGridSpeed(a, time, out=0):
                 span_vct.tolist(),
                 pre_lag_ang, pre_lag_pnt.tolist(), pre_lag_vct.tolist(),
                 pre_con_ang, pre_con_pnt.tolist(), pre_con_vct.tolist())
-            sx[1][:] = s0[0]; sy[1][:] = s0[1]; sz[1][:] = s0[2]
+            #print('omega', omega)
+            #print('s0', s0)
+            # sx = s0 - omega ^ x0 + omega ^ x
+            rigidMotion.evalGridMotionN([xcoord[1],ycoord[1],zcoord[1]],[sx[1],sy[1],sz[1]],(s0[0],s0[1],s0[2]),(x0[0],x0[1],x0[2]),(omega[0],omega[1],omega[2]))
 
         elif dtype == 3: # type 3: constant rotation / translation
           transl_speed = Internal.getNodeFromName1(m, 'transl_speed')
@@ -797,7 +806,7 @@ def evalPositionM1(coords, z, time):
                 pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
                 pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
                 pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
-                [r0,x0,rotMat,s0]=rigidMotion._computeRotorMotionInfo(
+                [r0,x0,rotMat,s0,omega]=rigidMotion._computeRotorMotionInfo(
                     time, transl_speed.tolist(), psi0, psi0_b,
                     alp_pnt.tolist(),alp_vct.tolist(),alp0,
                     rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
@@ -892,8 +901,8 @@ def _setRotorMotionCoordsAndGridVel(a, time):
   return None
 
 # Evaluation de la vitesse par differences finies
-# Il faut que les coordonnees dans a correpondent a time=0
-# si il n'y as pas de GridCoordinates#Init
+# Il faut que les coordonnees dans a correspondent a time=0
+# si il n'y a pas de GridCoordinates#Init
 # si out=1, sort aussi dans le FlowSolution
 def _evalGridSpeed2(a, time, dtime=1.e-6, out=0):
     zones = Internal.getZones(a)

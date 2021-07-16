@@ -77,7 +77,6 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
                      &pre_con_ang, &pre_con_pnt0, &pre_con_vct))
     return NULL;
 
-
   E_Int blade_span_axis=0, axis0=0, axis1=0, axis2=0, axis3=0, axis4=0, axis5=0, axis6=0;
   E_Float transl[3]; E_Float alp_pnt[3];E_Float rotor_pnt[3];
   E_Float pre_lag_pnt[3]; E_Float pre_con_pnt[3];
@@ -224,6 +223,9 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
   PyList_Append(l, tpl); Py_DECREF(tpl);
   tpl = K_NUMPY::buildNumpyArray(s0);
   PyList_Append(l, tpl); Py_DECREF(tpl);
+  tpl = K_NUMPY::buildNumpyArray(omega);
+  PyList_Append(l, tpl); Py_DECREF(tpl);
+  
   return l;
 }
 
@@ -376,14 +378,14 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     
     tpl0 =  PyList_GetItem(bet_vct,nov);
     val = PyFloat_AsDouble(tpl0);
-    if (K_FUNC::fEqualZero(val) == false) axis5= nov+1;
+    if (K_FUNC::fEqualZero(val) == false) axis5 = nov+1;
 
     tpl0 =  PyList_GetItem(tet_vct,nov);
     val = PyFloat_AsDouble(tpl0);
-    if (K_FUNC::fEqualZero(val) == false) axis6= nov+1;
+    if (K_FUNC::fEqualZero(val) == false) axis6 = nov+1;
   }
 
-  FldArrayF rotMat(3,3);//matrice du mouvement
+  FldArrayF rotMat(3,3); //matrice du mouvement
   FldArrayF r0(3);
   FldArrayF x0(3);
   FldArrayF s0(3);
@@ -426,7 +428,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   E_Float* zt = fields[posz];
 
   // coordinates of the origin of the relative frame in the abs frame
-  E_Float xa=r0[0]; E_Float ya = r0[1]; E_Float za = r0[2];
+  E_Float xa = r0[0]; E_Float ya = r0[1]; E_Float za = r0[2];
   // coordinates of the center of rotation in the relative frame
   E_Float xr = x0[0]; E_Float yr = x0[1]; E_Float zr = x0[2];
   //rotation matrix 
@@ -456,12 +458,26 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   K_NUMPY::getFromNumpyArray(szo, sz, size, nfld, true);
   size = size*nfld;
 
-  E_Float sx0 = s0[0]; E_Float sy0 = s0[1]; E_Float sz0 = s0[2];
+  E_Float s01 = s0[0]; E_Float s02 = s0[1]; E_Float s03 = s0[2];
+  E_Float omg1 = omega[0];
+  E_Float omg2 = omega[1];
+  E_Float omg3 = omega[2];
+
+
+  E_Float tx = s01 - (omg2 * zr - omg3 * yr);
+  E_Float ty = s02 - (omg3 * xr - omg1 * zr);
+  E_Float tz = s03 - (omg1 * yr - omg2 * xr);
+
 #pragma omp parallel
   {
 #pragma omp for
     for (E_Int i = 0; i < size; i++)
-    {sx[i]=sx0; sy[i]=sy0; sz[i]=sz0;}
+    {
+        sx[i] = tx + (omg2 * zt[i] - omg3 * yt[i]);
+        sy[i] = ty + (omg3 * xt[i] - omg1 * zt[i]); 
+        sz[i] = tz + (omg1 * yt[i] - omg2 * xt[i]);
+    }
+         // faux
   }
   
   if (res == 2) delete [] eltType;

@@ -1489,14 +1489,26 @@ c
 c Sortie de la vitesse d'entrainement dans le repere entraine:
 c ------------------------------------------------------------
 c
-      s0(1) = rotb(1,1)*v01+rotb(2,1)*v02+rotb(3,1)*v03
-      s0(2) = rotb(1,2)*v01+rotb(2,2)*v02+rotb(3,2)*v03
-      s0(3) = rotb(1,3)*v01+rotb(2,3)*v02+rotb(3,3)*v03
+c      s0(1) = rotb(1,1)*v01+rotb(2,1)*v02+rotb(3,1)*v03
+c      s0(2) = rotb(1,2)*v01+rotb(2,2)*v02+rotb(3,2)*v03
+c      s0(3) = rotb(1,3)*v01+rotb(2,3)*v02+rotb(3,3)*v03
+
 C
-      omeg(1) = omegb1
-      omeg(2) = omegb2
-      omeg(3) = omegb3
+c      omeg(1) = omegb1
+c      omeg(2) = omegb2
+c      omeg(3) = omegb3
 C
+
+C CB :sortie de s0 et omega dans le repere absolu
+      s0(1) = v01
+      s0(2) = v02
+      s0(3) = v03
+
+      omeg(1) = rotb(1,1)*omegb1+rotb(1,2)*omegb2+rotb(1,3)*omegb3
+      omeg(2) = rotb(2,1)*omegb1+rotb(2,2)*omegb2+rotb(2,3)*omegb3
+      omeg(3) = rotb(3,1)*omegb1+rotb(3,2)*omegb2+rotb(3,3)*omegb3
+C FIN CB
+
       xr(1) = x1
       xr(2) = y1
       xr(3) = z1

@@ -24,6 +24,7 @@ using namespace std;
 
 //=============================================================================
 // Move a mesh with a defined motion
+// Xp = R* (X-C) + d
 //=============================================================================
 PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
 {
@@ -87,8 +88,10 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
   Py_INCREF(Py_None);
   return Py_None; 
 }
+
 //=============================================================================
-// Move coordinates defined by 3 numpys 
+// Move coordinates defined by 3 numpys
+// Xp = R* (X-C) + d
 //=============================================================================
 PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
 {
@@ -144,13 +147,14 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
     }
   }
 
-  for (int i = 0; i < 3; i++)
-    RELEASESHAREDN(l[i], coords[i]);
+  for (int i = 0; i < 3; i++) RELEASESHAREDN(l[i], coords[i]);
   Py_INCREF(Py_None);
   return Py_None;
 }
+
 //=============================================================================
-// Compute the grid velocity according to: se = s0-omgp ^ c + omgp ^ x 
+// Compute the grid velocity : 
+// se = s0-omgp ^ c + omgp ^ x 
 //=============================================================================
 PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
 {
@@ -161,7 +165,7 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   PyObject *pySeN;
   if (!PYPARSETUPLEF(args, 
                      "OO(ddd)(ddd)(ddd)", 
-                     "O(fff)(fff)(fff)",
+                     "OO(fff)(fff)(fff)",
                      &pyCoordsN, &pySeN,
                      &s01, &s02, &s03,
                      &cx, &cy, &cz,
@@ -171,7 +175,7 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 1st arg must be a list.");
     return NULL;
   }
-  int size=PyList_Size(pyCoordsN);
+  int size = PyList_Size(pyCoordsN);
   if (size != 3)
   {
     PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 1st arg must be a list of 3 elements.");    
@@ -182,7 +186,7 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 2nd arg must be a list.");
     return NULL;
   }
-  int size2=PyList_Size(pySeN);
+  int size2 = PyList_Size(pySeN);
   if (size2 != 3)
   {
     PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 2nd arg must be a list of 3 elements.");    
@@ -196,10 +200,10 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   {
     PyObject* tpl = PyList_GetItem(pyCoordsN,i);
     K_NUMPY::getFromNumpyArray(tpl, coords[i], true);
-    l[i]=tpl;
-    tpl = PyList_GetItem(pySeN,i);
+    l[i] = tpl;
+    tpl = PyList_GetItem(pySeN, i);
     K_NUMPY::getFromNumpyArray(tpl, se[i], true);
-    l2[i]=tpl;
+    l2[i] = tpl;
   }
 
   E_Float* xt = coords[0]->begin();
@@ -213,6 +217,7 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   E_Float tx = s01 - (omg2 * cz - omg3 * cy);
   E_Float ty = s02 - (omg3 * cx - omg1 * cz);
   E_Float tz = s03 - (omg1 * cy - omg2 * cx);
+
 #pragma omp parallel default(shared) 
   {
   #pragma omp for 
