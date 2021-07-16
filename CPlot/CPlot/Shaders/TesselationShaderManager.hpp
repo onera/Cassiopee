@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2021 Onera.
 
     This file is part of Cassiopee.
 
