@@ -6,6 +6,7 @@ from . import Mpi as Cmpi
 from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, \
   _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, readNodesFromPaths, fixPaths__
 from . import Distributed
+import Compressor.PyTree as Compressor
 import numpy
 
 # Prend un fileName, si c'est toto/*, rend la liste des fichiers
@@ -305,9 +306,7 @@ def _loadVariables(a, fileName, znp, var, format, uncompress=True):
         zp = Internal.getNodeFromPath(a, p)
         fp = Internal.getNodeFromPath(a, paths[0])
         if uncompress:
-          try:
-            import Compressor.PyTree as Compressor
-            Compressor._uncompressAll(zp)
+          try: Compressor._uncompressAll(zp)
           except: pass
         if zp is not None and fp is not None:
             c = Internal.getNodeFromName1(zp, cont)
@@ -323,6 +322,8 @@ def _loadZones(a, fileName, znp, format=None):
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
   _readPyTreeFromPaths(a, fileName, znps, format)
+  # decompression cartesienne eventuelle
+  Compressor._uncompressCartesian(a)
 
 # Fully load zoneBC_t and GridConnectivity_t of znp
 def _loadZoneBCs(a, fileName, znp, format=None):
@@ -383,7 +384,7 @@ def _loadTreeExtras(a, fileName, format=None):
 
 # Load extra data of zones (cartesianData or solver#define)
 # decompresse eventuellement
-def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
+def _loadZoneExtras(a, fileName, znp, format=None):
   """Load extra data in zones."""
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
@@ -391,11 +392,13 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
   for p in znps:
     n = Internal.getNodeFromPath(a, p)
 
-    # Level1 (DataArray_t)
+    # Level1
+    # - DataArray_t)
     for i in n[2]:
       if i[3] == 'DataArray_t' and i[1] is None: paths.append(p+'/'+i[0])
   
-    # Level2 (UserDefinedData_t/DataArray_t)
+    # Level2 
+    # UserDefinedData_t/DataArray_t
     for i in n[2]:
       if i[3] == 'UserDefinedData_t':
         for j in i[2]:
@@ -406,7 +409,9 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
     #  for j in i[2]:
     #    if j[3] == 'DataArray_t' and j[1] is None: paths.append(p+'/'+i[0]+'/'+j[0])
 
-    # Level3 (FlowSolution_t/UserDefinedData_t/DataArray_t)
+    # Level3 
+    # - FlowSolution_t/UserDefinedData_t/DataArray_t
+    # - TimeMotion/TimeRigidMotion_t/DataArray_t
     for i in n[2]:
       if i[0] == 'TimeMotion':
         for j in i[2]:
@@ -427,20 +432,7 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
     #      if k[3] == 'DataArray_t' and k[1] is None: paths.append(p+'/'+i[0]+'/'+j[0]+'/'+k[0])
 
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format)
-  # Decompression eventuellement
-  if uncompress:
-    for p in znps:
-      n = Internal.getNodeFromPath(a, p)
-      for i in n[2]:
-        if i[0] == 'CartesianData':
-          try:
-            import Compressor.PyTree as Compressor
-            Compressor._uncompressCartesian(n)
-          except: pass
-      try:
-        import Compressor.PyTree as Compressor
-        Compressor._uncompressAll(n)
-      except: pass
+
   return None
 
 # get variables: return a list
@@ -769,7 +761,7 @@ class Handle:
     self._loadContainerPartial(a, variablesN=self.varsN, variablesC=self.varsC)
     return a
     
-  def loadFromProc(self, loadVariables=True, cartesian=False):
+  def loadFromProc(self, loadVariables=True):
     """Load and distribute zones from proc node."""
     if Cmpi.rank == 0:
       # Load le squelette niveau2 + les noeuds proc
@@ -797,16 +789,14 @@ class Handle:
     else: skipTypes=['FlowSolution_t']
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
     # Decompression cartesienne eventuelle
-    if cartesian: 
-      import Compressor.PyTree as Compressor
-      Compressor._uncompressCartesian(t)
+    Compressor._uncompressCartesian(t)
     return t
 
   # strategy=strategie pour la distribution (match)
   # algorithm=type d'algorithme pour la distribution
   # cartesian=si True, decompresse les blocs lus (supposes Cartesien)
   # loadVariables=True, charge toutes les variables sinon ne charge que les coords
-  def loadAndDistribute(self, strategy=None, algorithm='graph', loadVariables=True, cartesian=False):
+  def loadAndDistribute(self, strategy=None, algorithm='graph', loadVariables=True):
     """Load and distribute zones."""
     if Cmpi.rank == 0:
       if strategy == 'match':
@@ -855,9 +845,7 @@ class Handle:
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format, skipTypes=skipTypes)
     _enforceProcNode(t)
     # Decompression cartesienne eventuelle
-    if cartesian: 
-      import Compressor.PyTree as Compressor
-      Compressor._uncompressCartesian(t)
+    Compressor._uncompressCartesian(t)
     return t
 
   def distributedLoadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size):
@@ -1083,6 +1071,8 @@ class Handle:
           _loadZoneBCs(a, self.fileName, [zp], self.format)
           _loadZoneExtras(a, self.fileName, znp, self.format)
           _convert2PartialTree(Internal.getNodeFromPath(a, zp))
+    # decompression cartesienne eventuelle
+    Compressor._uncompressCartesian(a)
     return None
 
   # Charge toutes les BCs (avec BCDataSet) des zones de a  
@@ -1159,9 +1149,7 @@ class Handle:
   def save(self, a, fileName=None, cartesian=False):
     """Dave zone and fields in file."""
     a2 = Internal.copyRef(a)
-    if cartesian: 
-        import Compressor.PyTree as Compressor
-        Compressor._compressCartesian(a2)
+    if cartesian: Compressor._compressCartesian(a2)
     if fileName is not None:
       Cmpi.convertPyTree2File(a2, fileName, self.format, ignoreProcNodes=True)
     

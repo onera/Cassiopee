@@ -126,12 +126,19 @@ else
         # intelMpi
         mptrun $ARGS -omp $NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         set +x
+    elif [ $ELSAPROD == 'cob_r8' ] # cobalt
+    then
+        set -x
+        export OMP_NUM_THREADS=$NTHREADS
+        ccc_mprun -n $NPROCS $PYTHONEXE $SCRIPT
+        set +x
+
     elif [ $ELSAPROD == 'msys64' ] # MSYS 2 With Win64 production
     then
         set -x
 	# MSMPI
 	mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
-        set +x
+        set +x    
     elif [ $ELSAPROD == 'win64' ] # MSYS 2 With Win64 production
     then
         set -x

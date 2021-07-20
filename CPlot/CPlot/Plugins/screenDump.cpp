@@ -248,7 +248,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     
     // Reduce zNear and zFar
     MPI_Allreduce(&zNear, &zNear, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-    MPI_Allreduce(&zFar, &zFar, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&zFar, &zFar, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
     for (int i = 0; i < screenSize; i++)
     {
@@ -280,10 +280,10 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       float* localDepth = (float*)malloc(screenSize * sizeof(float));
       for (E_Int source = 1; source < size; source++)
       {
-       MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 0, 
-              MPI_COMM_WORLD, &mstatus);
-       MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 1, 
-             MPI_COMM_WORLD, &mstatus);
+        MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 0, 
+                 MPI_COMM_WORLD, &mstatus);
+        MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 1, 
+                 MPI_COMM_WORLD, &mstatus);
       
       // compose in buf
       for (E_Int i = 0; i < screenSize; i++)

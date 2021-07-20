@@ -13,4 +13,4 @@ val = P.extractPoint(a, (0.55, 0.38, 0.12), 2); print(val)
 
 # Utilisation avec un hook
 hook = C.createHook(a, function='extractMesh')
-val = P.extractPoint(a, (0.55, 0.38, 0.12), 2, hook=hook); print(val)
+val = P.extractPoint(a, (0.55, 0.38, 0.12), 2, hook=[hook]); print(val)

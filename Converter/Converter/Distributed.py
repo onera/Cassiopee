@@ -230,13 +230,13 @@ def _convert2PartialTree(t, rank=-1):
 # Note: si un noeud Proc existe dans la zone remplacee, il est recopie
 # dans la nouvelle zone
 #==============================================================================
-def readZones(t, fileName, format=None, rank=None, zoneNames=None, uncompress=True):
+def readZones(t, fileName, format=None, rank=None, zoneNames=None):
     """Read some zones in a skeleton tree (by rank or name)."""
     tp = Internal.copyRef(t)
-    _readZones(tp, fileName, format, rank, zoneNames, uncompress)
+    _readZones(tp, fileName, format, rank, zoneNames)
     return tp
 
-def _readZones(t, fileName, format=None, rank=None, zoneNames=None, uncompress=True):
+def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
   if zoneNames is None and rank is None: return None
   bases = Internal.getBases(t)
   if rank is not None: # load zones by rank
@@ -264,9 +264,8 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None, uncompress=T
 
   loadedZones = Converter.converter.readPyTreeFromPaths(fileName, paths, format, -1, -1, None, None, None)
 
-  if uncompress:
-    import Compressor.PyTree as Compressor
-    for z in loadedZones: Compressor._uncompressAll(z)
+  import Compressor.PyTree as Compressor
+  for z in loadedZones: Compressor._uncompressCartesian(z)
       
   # Replace/add now loaded zones
   m = 0

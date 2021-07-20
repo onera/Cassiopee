@@ -1054,8 +1054,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # Save tc
     if isinstance(tc_out, str): 
         import Compressor.PyTree as Compressor
-        Compressor._compressCartesian(tc)
-        Cmpi.convertPyTree2File(tc, tc_out, ignoreProcNodes=True)
+        tcp = Compressor.compressCartesian(tc)
+        Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
 
     # Initialisation
     if tinit is None: I._initConst(t, loc='centers')
@@ -1086,8 +1086,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # Save t
     if isinstance(t_out, str):
         import Compressor.PyTree as Compressor
-        Compressor._compressCartesian(t)
-        Cmpi.convertPyTree2File(t, t_out, ignoreProcNodes=True)
+        tp = Compressor.compressCartesian(t)
+        Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
 
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc

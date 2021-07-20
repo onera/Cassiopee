@@ -124,6 +124,60 @@ def compressCartesian(t, bbox=[], layers=None, subr=True):
     _compressCartesian(tp, bbox=bbox, layers=layers, subr=subr)
     return tp
 
+# compress a gridCorddinates container
+def _compressCartesian__(z, ztype, gc):
+    xp = Internal.getNodeFromName1(gc, 'CoordinateX')
+    yp = Internal.getNodeFromName1(gc, 'CoordinateY')
+    zp = Internal.getNodeFromName1(gc, 'CoordinateZ')
+    if xp is None: return False
+    if yp is None: return False
+    if zp is None: return False
+    xp = xp[1].ravel(order='K')
+    yp = yp[1].ravel(order='K')
+    zp = zp[1].ravel(order='K')
+    ni = ztype[1]; nj = ztype[2]; nk = ztype[3]
+    x0 = xp[0]; y0 = yp[0]; z0 = zp[0]
+    hi = xp[1]-x0
+    cartesian = True
+    if ni > 2:
+        if abs(xp[2] - xp[1] - hi) > 1.e-10: cartesian = False
+        if abs(yp[1] - y0) > 1.e-10: cartesian = False
+        if abs(zp[1] - z0) > 1.e-10: cartesian = False
+    if ni > 3:
+        if abs(xp[3] - xp[2] - hi) > 1.e-10: cartesian = False
+        if abs(yp[3] - y0) > 1.e-10: cartesian = False
+        if abs(zp[3] - z0) > 1.e-10: cartesian = False
+
+    if nj > 1: hj = yp[ni]-y0
+    else: hj = 1.
+    if nj > 2:
+        if abs(yp[2*ni] - yp[ni] - hj) > 1.e-10: cartesian = False
+        if abs(xp[ni] - x0) > 1.e-10: cartesian = False
+        if abs(zp[ni] - z0) > 1.e-10: cartesian = False
+    if nj > 3:
+        if abs(yp[3*ni] - yp[2*ni] - hj) > 1.e-10: cartesian = False
+        if abs(xp[2*ni] - x0) > 1.e-10: cartesian = False
+        if abs(zp[2*ni] - z0) > 1.e-10: cartesian = False
+        
+    if nk > 1: hk = zp[ni*nj]-z0
+    else: hk = 1.
+    if nk > 2: 
+        if abs(zp[2*ni*nj] - zp[ni*nj] - hk) > 1.e-10: cartesian = False
+        if abs(xp[ni*nj] - x0) > 1.e-10: cartesian = False
+        if abs(yp[ni*nj] - y0) > 1.e-10: cartesian = False
+    if nk > 3: 
+        if abs(zp[3*ni*nj] - zp[2*ni*nj] - hk) > 1.e-10: cartesian = False
+        if abs(xp[2*ni*nj] - x0) > 1.e-10: cartesian = False
+        if abs(yp[2*ni*nj] - y0) > 1.e-10: cartesian = False
+
+    if cartesian:
+        Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read
+        Internal.createUniqueChild(gc, 'CoordinateY', 'DataArray_t', value=[0.]*10)
+        Internal.createUniqueChild(gc, 'CoordinateZ', 'DataArray_t', value=[0.]*10)
+        Internal.createChild(gc, 'CartesianData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk])
+        
+    return cartesian
+
 # Si la zone est cartesienne :
 # Ajoute un noeud CartesianData a la zone
 # remplace Coordinates par des noeuds avec des champs de taille 10
@@ -134,52 +188,22 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True):
         if ztype[0] == 'Unstructured': continue
         gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
         if gc is None: continue
-        xp = Internal.getNodeFromName1(gc, 'CoordinateX')
-        yp = Internal.getNodeFromName1(gc, 'CoordinateY')
-        zp = Internal.getNodeFromName1(gc, 'CoordinateZ')
-        if xp is None: continue
-        if yp is None: continue
-        if zp is None: continue
-        xp = xp[1].ravel(order='K')
-        yp = yp[1].ravel(order='K')
-        zp = zp[1].ravel(order='K')
-        ni = ztype[1]; nj = ztype[2]; nk = ztype[3]
-        x0 = xp[0]; y0 = yp[0]; z0 = zp[0]
-        hi = xp[1]-x0
-        cartesian = True
-        if ni > 2:
-            if abs(xp[2] - xp[1] - hi) > 1.e-10: cartesian = False
-            if abs(yp[1] - y0) > 1.e-10: cartesian = False
-            if abs(zp[1] - z0) > 1.e-10: cartesian = False
-        if ni > 3:
-            if abs(xp[3] - xp[2] - hi) > 1.e-10: cartesian = False
-            if abs(yp[3] - y0) > 1.e-10: cartesian = False
-            if abs(zp[3] - z0) > 1.e-10: cartesian = False
+        cartesian = _compressCartesian__(z, ztype, gc)
+        #print('cartesian?=', cartesian)
 
-        if nj > 1: hj = yp[ni]-y0
-        else: hj = 1.
-
-        if nj > 2:
-            if abs(yp[2*ni] - yp[ni] - hj) > 1.e-10: cartesian = False
-            if abs(xp[ni] - x0) > 1.e-10: cartesian = False
-            if abs(zp[ni] - z0) > 1.e-10: cartesian = False
-        if nj > 3:
-            if abs(yp[3*ni] - yp[2*ni] - hj) > 1.e-10: cartesian = False
-            if abs(xp[2*ni] - x0) > 1.e-10: cartesian = False
-            if abs(zp[2*ni] - z0) > 1.e-10: cartesian = False
-            
-        if nk > 1: hk = zp[ni*nj]-z0
-        else: hk = 1.
-        if nk > 2: 
-            if abs(zp[2*ni*nj] - zp[ni*nj] - hk) > 1.e-10: cartesian = False
-            if abs(xp[ni*nj] - x0) > 1.e-10: cartesian = False
-            if abs(yp[ni*nj] - y0) > 1.e-10: cartesian = False
-        if nk > 3: 
-            if abs(zp[3*ni*nj] - zp[2*ni*nj] - hk) > 1.e-10: cartesian = False
-            if abs(xp[2*ni*nj] - x0) > 1.e-10: cartesian = False
-            if abs(yp[2*ni*nj] - y0) > 1.e-10: cartesian = False
-
+        # traitement layers
         if cartesian and layers is not None:
+            ni = ztype[1]; nj = ztype[2]; nk = ztype[3]
+            xp = Internal.getNodeFromName1(gc, 'CoordinateX')
+            yp = Internal.getNodeFromName1(gc, 'CoordinateY')
+            zp = Internal.getNodeFromName1(gc, 'CoordinateZ')
+            x0 = xp[0]; y0 = yp[0]; z0 = zp[0]
+            hi = xp[1]-x0
+            if nj > 1: hj = yp[ni]-y0
+            else: hj = 1.
+            if nk > 1: hk = zp[ni*nj]-z0
+            else: hk = 1.
+
             vars  = C.getVarNames(z, excludeXYZ=True)[0]
             # align bbox with the gridzone
             bbox[0] = numpy.round((bbox[0]-x0)/hi)*hi+x0
@@ -233,12 +257,11 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True):
             z[1][1,0] = ymax-ymin+1
             if nk > 1: z[1][2,0] = zmax-zmin+1
 
-        if cartesian:
-            Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read
-            Internal.createUniqueChild(gc, 'CoordinateY', 'DataArray_t', value=[0.]*10)
-            Internal.createUniqueChild(gc, 'CoordinateZ', 'DataArray_t', value=[0.]*10)
-            Internal.createChild(z, 'CartesianData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk])
             if not subr: Internal._rmNodesByType(z, 'ZoneSubRegion_t') # delete subregions (e.g. ID, IBCD in tc)
+
+        # Compress GridInit is present
+        gc = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
+        if gc is not None: _compressCartesian__(z, ztype, gc)
 
     return None
     
@@ -249,31 +272,39 @@ def uncompressCartesian(t):
     _uncompressCartesian(tp)
     return tp
 
+def _uncompressCartesian__(z, ztype, gc):
+    import Generator.PyTree as G
+    c = Internal.getNodeFromName1(gc, 'CartesianData')
+    if c is None: return None
+    c = Internal.getValue(c)
+    x0 = c[0]; y0 = c[1]; z0 = c[2]
+    hi = c[3]; hj = c[4]; hk = c[5]
+    tmp = G.cart((x0,y0,z0), (hi,hj,hk), (ztype[1], ztype[2], ztype[3]))
+    gct = Internal.getNodeFromName1(tmp, Internal.__GridCoordinates__)
+    if gc is not None:
+        gct[0] = gc[0]
+        cn = Internal.getNodeFromName1(gc, 'CoordinateX')
+        if cn is not None and cn[1] is None: return None # suppose skeleton zone
+    if gc is None: Internal._addChild(z, gct)
+    else:
+        Internal._rmNodesFromName1(z, gc[0])
+        Internal._addChild(z, gct)
+    # cartesianData is automatically removed
+    return None
+
 # Si la zone n'est pas skeleton et contient un noeud CartesianData :
 # Reconstruit CoordinateX, CoordinateY, CoordinateZ
 # Supprime CartesianData
 def _uncompressCartesian(t):
-    import Generator.PyTree as G
     zones = Internal.getZones(t)
     for z in zones:
         ztype = Internal.getZoneDim(z)
         if ztype[0] == 'Unstructured': continue
-        c = Internal.getNodeFromName1(z, 'CartesianData')
-        if c is None: continue
-        c = Internal.getValue(c)
-        x0 = c[0]; y0 = c[1]; z0 = c[2]
-        hi = c[3]; hj = c[4]; hk = c[5]
-        tmp = G.cart((x0,y0,z0), (hi,hj,hk), (ztype[1], ztype[2], ztype[3]))
         gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
-        if gc is not None:
-            cn = Internal.getNodeFromName1(gc, 'CoordinateX')
-            if cn is not None and cn[1] is None: continue # suppose skeleton zone
-        gct = Internal.getNodeFromName1(tmp, Internal.__GridCoordinates__)
-        if gc is None: Internal._addChild(z, gct)
-        else: 
-            Internal._rmNodesFromName1(z, Internal.__GridCoordinates__)
-            Internal._addChild(z, gct)
-        Internal._rmNodesFromName1(z, 'CartesianData')
+        if gc is not None: _uncompressCartesian__(z, ztype, gc)
+        gc = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
+        if gc is not None: _uncompressCartesian__(z, ztype, gc)
+    
     return None
 
 # ctype=0: compress with sz
