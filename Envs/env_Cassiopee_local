@@ -37,6 +37,7 @@ set MAC0=`echo $KC | grep 'westri'`; if ($%MAC0 != 0) set MAC="westri"
 set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator"
 set MAC0=`echo $KC | grep 'xdaap'`; if ($%MAC0 != 0) set MAC="xdaap"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro"
+set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
 set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
 set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 
@@ -369,6 +370,26 @@ else if ($MAC == "westri") then
         module load intel/18.0.0 impi/18
         module load hdf5/1.8.8-intel-16
         module load python/2.7.8
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+
+else if ($MAC == "cobalt") then
+#------------------------------- cobalt ---------------------------------------
+        setenv ELSAPROD cob_r8
+        # Nombre de threads
+        setenv OMP_NUM_THREADS 28
+        
+        # modules
+        module purge
+        module purge
+        module load intel/17.0.6.256
+        module load mpi/openmpi
+        module load python/2.7.14
+        module load hdf5/1.8.20
+        module load libosmesa/10.6.5
+        module load libpng/1.6.23
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib

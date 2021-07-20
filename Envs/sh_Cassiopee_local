@@ -318,18 +318,20 @@ elif [ "$MAC" = "cobalt" ]; then
     export ELSAPROD=cob_r8
     # Nbre de threads
     export OMP_NUM_THREADS=28
-    export OMP_PROC_BIND=False
-    export KMP_AFFINITY="verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],explicit"
-    export PROC_NAME="BDW"
+    
     # modules 
     module purge
-    module load intel/17.0.4.196 mpi/intelmpi/2017.0.4.196 python/2.7.14 hdf5/1.8.16
+    module load intel/17.0.6.256
+    module load mpi/openmpi
+    module load python/2.7.14
+    module load hdf5/1.8.20
+    module load libosmesa/10.6.5
+    module load libpng/1.6.23
 
     # Chemin de l'executable python
-    export PATH=$PATH
     export PATH=$PATH:$CASSIOPEE/Dist/bin
-    export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
-    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages   
 
 elif [ "$MAC" = "xdaap" ]; then
