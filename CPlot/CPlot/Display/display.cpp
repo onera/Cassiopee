@@ -375,6 +375,7 @@ void Data::display()
 
   // Rendering
   if (ptrState->render == 1) glutSwapBuffers();
+  else glFlush(); // Force flush (usefull with osmesa)
   
   glDisable(GL_MULTISAMPLE);
 }

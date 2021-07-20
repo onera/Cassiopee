@@ -101,7 +101,8 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 import KCore.installPath
 EXTRA = ['-D__SHADERS__']
 
-if OSMesa: EXTRA += ['-D__MESA__'] #['-DGLEW_OSMESA']
+if OSMesa: EXTRA += ['-D__MESA__'] 
+#if OSMesa: EXTRA += ['-DGLEW_OSMESA'] # pour que GLEW ne reference pas X11
 
 if mySystem == 'Darwin': EXTRA += ['-framework OpenGL']
 

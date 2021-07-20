@@ -202,7 +202,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       for ( int i = 0; i < exportHeight; ++i ) {
         for ( int j = 0; j < exportWidth; ++j ) {
           unsigned ind = i*exportWidth+j;
-          assert(ind<s);
+          assert(ind < s);
           if (depth[ind] < offscreenD[ind]) {
             offscreen[3*ind  ] = buffer[3*ind  ];
             offscreen[3*ind+1] = buffer[3*ind+1];
@@ -224,8 +224,6 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     E_Int screenSize = _view.w * _view.h; 
     
     // Recupere le depth buffer et l'adimensionne
-    //float* depth = (float*)malloc(screenSize * sizeof(float));
-
     void* depthl;
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;
@@ -247,6 +245,11 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     }    
     double zNear = _view.nearD; 
     double zFar  = _view.farD;
+    
+    // Reduce zNear and zFar
+    MPI_Allreduce(&zNear, &zNear, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&zFar, &zFar, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+
     for (int i = 0; i < screenSize; i++)
     {
       double z_n = 2.*double(depth[i])-1.0;
