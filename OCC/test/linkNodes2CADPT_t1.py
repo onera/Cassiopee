@@ -9,9 +9,9 @@ import Converter.Internal as Internal
 import Intersector.PyTree as XOR
 import numpy as np
 import sys
+import KCore.test as test
 
-
-import Ael.Quantum      as KDG
+#import Ael.Quantum      as KDG
 
 
 
@@ -137,60 +137,5 @@ t = C.setFields(hy,t, 'nodes')
 t = C.setFields(hz,t, 'nodes')
 t = C.setFields(ncadid,t, 'nodes')
 
+test.testT(t,1)
 #C.convertPyTree2File(t, 'out.cgns')
-
-
-#-------------------------------------------
-# QUANTUM
-#-------------------------------------------
-
-Internal.__FlowSolutionNodes__ = 'FlowSolution'
-
-tree = t
-
-z = Internal.getZones(tree)
-
-tree = C.setFields(hx,tree, 'nodes')
-tree = C.setFields(hy,tree, 'nodes')
-tree = C.setFields(hz,tree, 'nodes')
-
-wall = C.extractBCOfType(tree,'BCWall')
-
-C._initVars(wall, '{xn} = {hx} + {CoordinateX}')
-C._initVars(wall, '{yn} = {hy} + {CoordinateY}')
-C._initVars(wall, '{zn} = {hz} + {CoordinateZ}')
-
-C.convertPyTree2File(wall, 'deform.dat')
-
-
-#Parametres de la deformation de maillage
-DeformationArgs={"Approach"          :  "Quaternions",
-                 "Epsilon"           :  0.15,
-                 "Leafsize"          :  4,
-                 "OmpAllInOne"       :  True,
-                 "Ndivision"         :  100,
-                 "NullDisplacements" :  "Weighted",
-                 "Smoothing"         :  False }
-defTree = KDG.KeDefGrid(tree,**DeformationArgs)
-defTree.set_Amplitude(1.)
-defTree.setBndSurfTo("Zone#wall1.0","imposed",'deform.dat',Modenumber=0)
-defTree.makeSources()
-defTree.computeMeshDisplacement()
-
-Internal.__FlowSolutionNodes__='Displacement#0'
-C._initVars(tree,'{CoordinateX}={CoordinateX}+{DisplacementX}')
-C._initVars(tree,'{CoordinateY}={CoordinateY}+{DisplacementY}')
-C._initVars(tree,'{CoordinateZ}={CoordinateZ}+{DisplacementZ}')
-
-
-Internal.__FlowSolutionNodes__ = 'CADData'
-tree = C.initVars(tree, 'hx', 0)
-tree = C.initVars(tree, 'hy', 0)
-tree = C.initVars(tree, 'hz', 0)
-
-
-Internal.__FlowSolutionNodes__ = 'FlowSolution'
-tree = C.rmVars(tree, 'FlowSolution')
-
-
-C.convertPyTree2File(tree, 'out.cgns')

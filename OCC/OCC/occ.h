@@ -40,6 +40,7 @@ namespace K_OCC
   PyObject* linkNodes2CAD(PyObject* self, PyObject* args);
   PyObject* updateFcadidFromNcadid(PyObject* self, PyObject* args);
   PyObject* updateNcadidFromFcadid(PyObject* self, PyObject* args);
+  PyObject* getNodalParameters(PyObject* self, PyObject* args);
   PyObject* trimesh(PyObject* self, PyObject* args);
 }
 

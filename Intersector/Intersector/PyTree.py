@@ -2152,7 +2152,7 @@ def _conformizeHMesh(t, hooks):
         ## MAJ face fields 
         fieldz = res[ranges[4]:]
         if fieldz != [] :
-          Internal.newDataArray('fcadid', value=fieldz, parent=Internal.getNodeFromName(z, 'CADData'))
+          Internal.newDataArray('fcadid', value=fieldz[0], parent=Internal.getNodeFromName(z, 'CADData'))
         i=i+1
 
 #==============================================================================
@@ -2186,13 +2186,16 @@ def _interpolateHMeshNodalField(t, hooks, fname):
         if fieldsN == [] : fieldsN = None
 
         #todo Pablo : recuperation du field ayant pour nom fname : u ou v
-        fieldN = None # fieldsN[toto]
+        for j in range(len(fname)):
+          #print(fname[j])
+          fieldsN[j] = C.getFields(Internal.__FlowSolutionNodes__, C.extractVars(z, fname[j]))
         
-        ofield = intersector.interpolateHMeshNodalField(hooks[i], fieldN)
+          fieldN = fieldsN[j]
+          ofield = intersector.interpolateHMeshNodalField(hooks[i], fieldsN[j][0])
 
-        ## MAJ node fields
-        #C.setFields([ofield], z, 'nodes', False)
-                
+          ## MAJ node fields
+          C.setFields([ofield], z, 'nodes', False)
+           
         i=i+1
 
 #==============================================================================

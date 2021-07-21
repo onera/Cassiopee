@@ -379,7 +379,7 @@ void* unpackHMesh(PyObject* hook_hmesh, E_Int *&hook_hm_id, E_Int *&subdiv_type,
   hook_hm_id = (E_Int*)packet[0];        // type of hook
 
   //std::cout << "unpackHMesh : after type" << std::endl;
- 
+
   if (*hook_hm_id != HMESH_HOOK_ID)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -999,14 +999,116 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
 
 ///////////////////////////////////////////////////////////////////////////////
 //============================================================================
-/* Deletes a hmesh */
+/* getGreenParents */
+//============================================================================
+template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
+E_Int getGreenParents(NUGA::hierarchical_mesh<ELT_t, STYPE>& hmesh, std::vector<double>& fieldN, E_Int PG, std::vector<E_Int>& pth2a)
+{
+
+  E_Int PGparent = hmesh._PGtree.parent(PG) ; //combrobado que su coste es casi nada
+  E_Int nb_nodes = hmesh._ng.PGs.stride(PGparent);
+  E_Int* p_nodes = hmesh._ng.PGs.get_facets_ptr(PGparent);
+  
+  E_Int check_parent = 0;
+  for (E_Int n = 0; n < nb_nodes; ++n)
+  {
+    E_Int Ni = pth2a[p_nodes[n]-1]; //amesh
+    //if (PGparent == 0 || PGparent == 6) printf(" Ni (hmesh): %3i \n", Ni);
+    if (fieldN[Ni] > 1e99) ++check_parent;
+  }
+  
+  
+  if (check_parent == 0) return PGparent;
+  else return getGreenParents(hmesh, fieldN, PGparent, pth2a);
+
+
+}
+
+//============================================================================
+/* MAJenfants */
+//============================================================================
+template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
+void MAJenfants(NUGA::hierarchical_mesh<ELT_t, STYPE>& hmesh, std::vector<double>& fieldN, E_Int PG, std::vector<E_Int>& pth2a)
+{
+    
+// Father information:
+  E_Int nb_nodes = hmesh._ng.PGs.stride(PG);
+  E_Int* p_nodes = hmesh._ng.PGs.get_facets_ptr(PG);
+  
+  const E_Int* pchildren = hmesh._PGtree.children(PG);
+  
+  for (E_Int i = 0; i < nb_nodes; ++i)
+  {
+      E_Int Ni_parent = pth2a[p_nodes[i]-1]; //amesh
+      
+      //if (PG == 0) printf("Ni_parent: %3i,   fieldN[Ni_parent]: %3f \n", Ni_parent, fieldN[Ni_parent]);
+      
+      E_Int child = pchildren[i]; //obtengo el hijo
+      
+      E_Int nb_nodes_child = hmesh._ng.PGs.stride(child); //obtengo los puntos del hijo
+      E_Int* p_nodes_child = hmesh._ng.PGs.get_facets_ptr(child);
+      
+      for (E_Int j = 0; j < nb_nodes_child; ++j)
+      {
+          E_Int Nj_child = pth2a[p_nodes_child[j]-1]; //amesh
+          
+          if (Ni_parent != Nj_child)
+          {
+              if(i == 0 || (i == 1 && j == 2) ) fieldN[Nj_child] = fieldN[Ni_parent]/2;
+              else fieldN[Nj_child] += fieldN[Ni_parent]/2;
+          }
+          //if (PG == 0) printf("Nj_child: %3i,   fieldN[Nj_child]: %3f \n", Nj_child, fieldN[Nj_child]);
+      }
+      
+  }
+
+}
+
+//============================================================================
+/* InterpolateHMeshNodalField */
 //============================================================================
 template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
 void __interpolateHMeshNodalField(const void* hmesh_ptrs, std::vector<double>& fieldN)
 {
   using mesh_type = NUGA::hierarchical_mesh<ELT_t, STYPE>;
   mesh_type* hmesh = (mesh_type*)hmesh_ptrs;
-  //todo Pablo
+  
+
+
+  // hmesh2amesh
+  std::vector<E_Int> pth2a;
+  K_CONNECT::IdTool::reverse_indirection(hmesh->pthids0, pth2a);
+
+
+  std::vector<std::vector<E_Int>> bcptlists;
+  bcptlists = hmesh->BCptLists;
+
+  
+// PARTIE A
+  std::set<E_Int> donnorFaces;  
+  for(E_Int i = 0; i < bcptlists[0].size(); ++i)
+  {
+    E_Int PGi_hmesh = bcptlists[0][i] - 1;  
+    
+    E_Int PGparent = getGreenParents(*hmesh, fieldN, PGi_hmesh, pth2a); 
+    
+    donnorFaces.insert(PGparent); 
+    
+    //if( i < i_print) printf("PGi_hmesh: %3i,   PGparent: %3i \n", PGi_hmesh, PGparent);
+  }
+  
+
+// PARTIE B
+  for (auto it = donnorFaces.begin(); it != donnorFaces.end(); ++it) 
+  {
+    E_Int PGi_hmesh = *it;
+    MAJenfants(*hmesh, fieldN, PGi_hmesh, pth2a);
+  }  
+  
+  donnorFaces.clear();
+  pth2a.clear();
+  bcptlists.clear();
+  
 }
 
 template <NUGA::eSUBDIV_TYPE STYPE>
@@ -1038,14 +1140,30 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
 {
   PyObject *hook{nullptr}, *pyfieldN{nullptr};
 
-  if (!PyArg_ParseTuple(args, "O", &hook, &pyfieldN))
+  if (!PyArg_ParseTuple(args, "OO", &hook, &pyfieldN))
   {
       return NULL;
   }
 
-  //todo Pablo : reupérer correctement les argument
-  //pyfieldN => fieldN
-  std::vector<double> fieldN;
+  
+  FloatArray* fi; E_Int ni, nj, nk;
+  IntArray* c;
+  char* varString;  char* eltType;
+  E_Int ret = K_ARRAY::getFromArray(pyfieldN, varString, fi, ni, nj, nk, c, eltType);
+  if (ret != 1 && ret != 2)  {
+    PyErr_SetString(PyExc_TypeError, "getFromArray: invalid arrays input.");
+    return NULL;
+  }
+  
+  E_Float* pfieldN = fi->begin(0);
+  E_Int npts = fi->getSize();
+  
+  
+
+  std::vector<double> fieldN(npts);
+  
+  for(E_Int i=0; i<npts; ++i)
+      fieldN[i] = pfieldN[i];
 
   // recupere le hook
   E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
@@ -1061,15 +1179,18 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
     __interpolateHMeshNodalField<NUGA::DIR>(*elt_type, hmesh, fieldN);
 
 
-  //todo Pablo : retourner le champ mis à jour
+  //Retourner le champ mis à jour
+  K_FLD::FloatArray farr(1,fieldN.size());
+  
+  std::vector<double>& fld = fieldN;
+  for (size_t j = 0; j < fieldN.size(); ++j)farr(0, j) = fld[j];
 
-  delete hook_id;
-  delete vString;
-  delete sub_type;
-  delete elt_type;
-  delete [] packet;
-  Py_INCREF(Py_None);
-  return Py_None;
+  PyObject* tpl = K_ARRAY::buildArray(farr, varString, *c, -1, eltType, false);
+  
+  delete fi;
+  delete c;
+
+  return tpl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
