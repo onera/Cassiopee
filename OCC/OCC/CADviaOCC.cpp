@@ -569,7 +569,7 @@ E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& c
 E_Int K_OCC::CADviaOCC::mesh_faces
 (const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectBs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso)
 {
-  E_Int err(0), nb_faces(_surfs.Extent());
+  E_Int nb_faces{_surfs.Extent()};
   
   if (!nb_faces) return 0;
 
@@ -584,18 +584,18 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #ifdef DEBUG_CAD_READER
   E_Int faulty_id = 3;
 #endif
-  //size_t t;
+  E_Int t;
 
-#ifndef DEBUG_CAD_READER
-//#pragma omp parallel for private(nodes, nids, UVcontour, pos3D, err, mesher, t)
+#ifndef DEBUG_CAD_READER // omp still disabled because not good perf (mem concurrency?) BUT now result is multithread-independant
+//#pragma omp parallel default(none) shared(coords, connectBs, aniso, nb_faces, crds1, connectMs1) private (t, nodes, nids, pos3D, UVcontour, mesher)
 #endif
   for (E_Int i=1; i <= nb_faces; ++i)
   {
     std::cout << "Processing face: " << i << " / "<< nb_faces << std::endl;
 #ifdef DEBUG_CAD_READER
-    std::cout << " face nb : " << i << std::endl;
+    std::cout << "Processing face: " << i << " / "<< nb_faces << std::endl;
 #endif
-    
+
     const OCCSurface& F = *_faces[i];
     
     K_FLD::IntArray connectB = connectBs[i];
@@ -664,8 +664,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     }
     
     // Up to 2 tries : first by asking OCC for params, Second by "hand" (sampling)
-    err = 0;
-    for (size_t t=0; t<2; ++t) // supp. la parametrisation discrete
+    E_Int err = 0;
+    for (t=0; t<2; ++t) // supp. la parametrisation discrete
     {
       if (t==0)
         err = _faces[i]->parameters(pos3D, connectB, UVcontour);
@@ -677,8 +677,10 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       
       if (err)
       {
+#ifdef DEBUG_CAD_READER
         if (t==1)
           std::cout << "ERROR Face : " << i << " : cannot retrieve parametrization !" << std::endl;
+#endif
         continue;
       }
       
@@ -691,22 +693,6 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
     
       OCCSurface occ_surf(F);
-      /*
-      printf("UVContour\n");
-      printf("rows=%d cols=%d\n", UVcontour.rows(), UVcontour.cols());
-      for (E_Int j = 0; j < UVcontour.cols(); j++)
-      printf("%d = %f %f\n", j, UVcontour(0,j), UVcontour(1,j));
-
-      printf("pos3D\n");
-      printf("rows=%d cols=%d\n", pos3D.rows(), pos3D.cols());
-      for (E_Int j = 0; j < pos3D.cols(); j++)
-      printf("%d = %f %f %f\n", j, pos3D(0,j), pos3D(1,j), pos3D(2,j));
-
-      printf("connectB\n");
-      printf("rows=%d cols=%d\n", connectB.rows(), connectB.cols());
-      for (E_Int j = 0; j < connectB.cols(); j++)
-      printf("%d = %d %d\n", j, connectB(0,j), connectB(1,j));
-      */
       DELAUNAY::SurfaceMeshData<OCCSurface> data(UVcontour, pos3D, connectB, occ_surf);
     
 #ifdef DEBUG_CAD_READER
@@ -722,7 +708,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         mesher.dbg_flag=false;
 #endif
 #endif
-      DELAUNAY::SurfaceMesherMode mode;
+
+      auto& mode = mesher.mode;
       
       mode.chordal_error = _chordal_err;
       
@@ -769,17 +756,21 @@ E_Int K_OCC::CADviaOCC::mesh_faces
             mode.hmax = _h;
         }
       }
-      mesher.mode = mode;
-      
+
+      mesher.clear();
+      mesher.seed_random(1);
       err = mesher.run(data);
 
       if (err || (data.connectM.cols() == 0))
       {
-        if (t==0) continue; 
+        if (t==0) continue;
+
+#ifdef DEBUG_CAD_READER
         if (err)
           std::cout << "ERROR Face : " << i << " : Geometric Mesher failed." << std::endl;
         else
-          std::cout << "ERROR Face : " << i << " : Cannot retrieve parametrization (OCC Limitation) !" << std::endl;    
+          std::cout << "ERROR Face : " << i << " : Cannot retrieve parametrization (OCC Limitation) !" << std::endl; 
+#endif   
         continue;
       }
       
@@ -816,7 +807,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       
       if (!err) break; // done
       }
-    }
+
+    } // End face loop
 
     // Final cleaning and compacting
     {

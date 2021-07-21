@@ -50,6 +50,9 @@ public:
 
   /// Constructor.
   explicit Kernel(MeshData& data, const NUGA::MeshTool& tool);
+
+  void clear();
+  void set(MeshData& data, const NUGA::MeshTool& tool);
  
          
   ///
@@ -120,8 +123,8 @@ private:
 
 private:
 
-  MeshData& _data;
-  const NUGA::MeshTool& _tool;
+  MeshData* _data;
+  const NUGA::MeshTool* _tool;
   DelaunayCriterion<T>              _Ball_pred;
   unconstrained_predicate           _unconstrained_pred;
   constrained_predicate             *_constrained_pred;

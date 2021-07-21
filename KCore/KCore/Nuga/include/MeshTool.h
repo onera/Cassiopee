@@ -17,6 +17,7 @@
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/Polygon.h"
 #include "Nuga/include/ngon_unit.h"
+#include "Nuga/include/random.h"
 
 #include <deque>
 
@@ -45,6 +46,10 @@ class MeshTool
 
     ///
     MeshTool(const tree_type& tree, E_Float tolerance = EPSILON);
+
+    ///
+    void set(const tree_type& tree, E_Float tolerance = E_EPSILON);
+    void clear();
     ///
     ~MeshTool(void);
 
@@ -140,7 +145,7 @@ class MeshTool
     static void extractEdges(K_FLD::IntArray& connect, std::set<EdgeType>& edges);
 
     /** accessors*/
-    inline const tree_type& getTree() const {return _tree;} 
+    inline const tree_type& getTree() const {return *_tree;} 
 
     inline E_Float getTolerance() const { return _tolerance;}
 
@@ -194,11 +199,13 @@ private:
 
 private:
 
-  const tree_type&                  _tree;
+  const tree_type*                  _tree;
   E_Float                           _tolerance;
   mutable std::deque<size_type>     _pool;
+  mutable NUGA::random              _random;
 public://fixme
   mutable int_set_type              _inval;
+  
 };
 
 ///

@@ -47,7 +47,7 @@ namespace K_FLD
     /// Constuctors
 
 #ifndef NUGALIB
-    explicit ArrayAccessor(const array_type& arr, size_type posx, size_type posy, size_type posz = -1, E_Int shift = 0):_arr(arr), _shift(shift)
+    explicit ArrayAccessor(const array_type& arr, size_type posx, size_type posy, size_type posz = -1, E_Int shift = 0):_arr(&arr), _shift(shift)
     {
       _stride = (posz == -1) ? 2 : 3;
       _posX = new size_type[_stride];
@@ -56,13 +56,13 @@ namespace K_FLD
     }
 #endif
     
-    explicit ArrayAccessor(const array_type& arr, E_Int shift = 0):_arr(arr), _stride(arr.getNfld()), _shift(shift)
+    explicit ArrayAccessor(const array_type& arr, E_Int shift = 0):_arr(&arr), _stride(arr.getNfld()), _shift(shift)
     {
       _posX = new size_type[_stride];
       for (E_Int i = 0; i < _stride; ++i)_posX[i]=i;
     }
     
-    ArrayAccessor (const ArrayAccessor& aA):_arr(aA.array()), _stride(aA.stride()), _shift(aA.shift()){
+    ArrayAccessor (const ArrayAccessor& aA):_arr(&aA.array()), _stride(aA.stride()), _shift(aA.shift()){
       _posX = new size_type[_stride];
       for (E_Int i = 0; i < _stride; ++i)_posX[i]=aA._posX[i];
     }
@@ -72,7 +72,7 @@ namespace K_FLD
 
 
     /// Returns the total number of points.
-    inline E_Int size() const {return _arr.getSize();}
+    inline E_Int size() const {return _arr->getSize();}
 
     /// Returns the number of used rows
     inline E_Int stride() const {return _stride;}
@@ -80,10 +80,10 @@ namespace K_FLD
     inline E_Int stride(E_Int i) const {return _stride;}
     
     /// Returns the stride length
-    inline E_Int row_stride() const { return _arr._sizeMax;}
+    inline E_Int row_stride() const { return _arr->_sizeMax;}
     
     /// Returns the array in read-only
-    inline const ArrayType& array() const {return _arr;}
+    inline const ArrayType& array() const {return *_arr;}
 
     ///
     inline E_Int shift() const { return _shift;}
@@ -94,20 +94,20 @@ namespace K_FLD
 #endif
 
     /// Returns the i-th field of the j-th entry.
-    inline value_type getVal(const E_Int& j, const E_Int& i) const {return *((_arr._data+((_posX[i])*_arr._sizeMax)) + j) + _shift;}
+    inline value_type getVal(const E_Int& j, const E_Int& i) const {return *((_arr->_data+((_posX[i])*_arr->_sizeMax)) + j) + _shift;}
 
     /// Returns the j-th entry.
     inline void getEntry(const E_Int& j, value_type* entry) const
-    {for (E_Int k = 0; k < _stride; ++k)entry[k] =*((_arr._data+((_posX[k])*_arr._sizeMax)) + j) + _shift;}
+    {for (E_Int k = 0; k < _stride; ++k)entry[k] =*((_arr->_data+((_posX[k])*_arr->_sizeMax)) + j) + _shift;}
     /// Returns the j-th entry's pointer to the first field.
-    inline const value_type* getEntry(const E_Int& j) const { return _arr._data+j+(_posX[0])*_arr._sizeMax;}
+    inline const value_type* getEntry(const E_Int& j) const { return _arr->_data+j+(_posX[0])*_arr->_sizeMax;}
     
     /// Returns the j-th entry : MUST BE A FIXED STRIDE (i.e E2N element)
     template <typename ELT>
     inline void getEntry(const E_Int& j, ELT& PHj) const
     {
       E_Int* p = PHj.nodes();
-      for (E_Int k = 0; k < _stride; ++k)p[k] =*((_arr._data+((_posX[k])*_arr._sizeMax)) + j) + _shift;
+      for (E_Int k = 0; k < _stride; ++k)p[k] =*((_arr->_data+((_posX[k])*_arr->_sizeMax)) + j) + _shift;
     }
 
     pt_t col(E_Int j) const { 
@@ -117,7 +117,7 @@ namespace K_FLD
     }
 
     /// Checks whether the index is out of range or not.
-    inline bool isOutOfRange(const E_Int& j) const {return (j >= _arr.getSize());}
+    inline bool isOutOfRange(const E_Int& j) const {return (j >= _arr->getSize());}
 
     /// square of the distance between two nodes.
     inline E_Float dist2(E_Int n, E_Int m) const
@@ -125,7 +125,7 @@ namespace K_FLD
       E_Float d2 = 0.;
       for (E_Int k = 0; k < _stride; ++k)
       {
-        const E_Float* X = (_arr._data+((_posX[k])*_arr._sizeMax));
+        const E_Float* X = (_arr->_data+((_posX[k])*_arr->_sizeMax));
         d2 += (*(X+n) - *(X+m))*(*(X+n) - *(X+m));
       }
       return d2;
@@ -137,7 +137,7 @@ namespace K_FLD
       E_Float d2 = 0.;
       for (E_Int k = 0; k < _stride; ++k)
       {
-        const E_Float* X = (_arr._data+((_posX[k])*_arr._sizeMax))+j;
+        const E_Float* X = (_arr->_data+((_posX[k])*_arr->_sizeMax))+j;
         d2 += (*X - pt[k])*(*X - pt[k]);
       }
       return d2;
@@ -148,7 +148,7 @@ namespace K_FLD
 
   protected:
     /// Coordinates array.
-    const ArrayType&           _arr;
+    const ArrayType*           _arr;
     /// number of used fields (equal to _posX size)
     size_type                  _stride;
     /// fields positions
@@ -168,49 +168,53 @@ namespace K_FLD
     typedef           T const *           pt_t;//entry type
     
   public:
-    /// Constuctor
-    explicit ArrayAccessor(const array_type& arr, E_Int dummyshift = 0):_arr(arr), _stride(arr.rows())
+    /// Constuctors
+    explicit ArrayAccessor():_arr(nullptr), stride(0){}
+
+    explicit ArrayAccessor(const array_type& arr, E_Int dummyshift = 0):_arr(&arr), _stride(arr.rows())
     {}
 
     /// Destructor
     ~ArrayAccessor(){};
 
+    void set(const array_type& arr){_arr=&arr; _stride = arr.rows();}
+
     /// Returns the total number of entries (points/elements).
-    inline E_Int size() const {return _arr.cols();}
+    inline E_Int size() const {return _arr->cols();}
     /// Returns the number of used rows
     inline E_Int stride() const {return _stride;}
     /// Returns the number of used rows for the i-th element (NGON specific)
     inline E_Int stride(E_Int i) const {return _stride;}
     
     /// Returns the array in read-only
-    inline const K_FLD::DynArray<T>& array() const {return _arr;}
+    inline const K_FLD::DynArray<T>& array() const {return *_arr;}
         
     ///
     inline E_Int shift() { return 0;}
 
     /// Returns the (i,j) value. as a matrix pount of view "i" is the row, "j" the column.
-    inline T getVal(const E_Int& j, const E_Int& i) const {return *(_arr.begin() + _arr._rowsMax*j + i);}
+    inline T getVal(const E_Int& j, const E_Int& i) const {return *(_arr->begin() + _arr->_rowsMax*j + i);}
 
     /// Returns the j-th entry (j-th column).
     inline void getEntry(const E_Int& j, T* pE) const
     {
-      const typename array_type::value_type* p = (_arr.begin() + _arr._rowsMax*j);
+      const typename array_type::value_type* p = (_arr->begin() + _arr->_rowsMax*j);
       for (E_Int k = 0; k < _stride; ++k)
         pE[k] = p[k];
     }
 
-    inline const T* col(E_Int j) const { return _arr.col(j);}
+    inline const T* col(E_Int j) const { return _arr->col(j);}
     
     /// Returns the j-th entry's pointer to the first field.
-    inline const T* getEntry(const E_Int& j) const { return (_arr.begin() + _arr._rowsMax*j);}
+    inline const T* getEntry(const E_Int& j) const { return (_arr->begin() + _arr->_rowsMax*j);}
 
     /// Checks whether the index is out of range or not.
-    inline bool isOutOfRange(const E_Int& j) const {return (j >= _arr.cols());}
+    inline bool isOutOfRange(const E_Int& j) const {return (j >= _arr->cols());}
 
     /// square of the distance between two nodes.
     inline E_Float dist2(E_Int n, E_Int m) const
     {
-      const E_Float *pn(_arr.begin() + _arr._rowsMax*n), *pm(_arr.begin() + _arr._rowsMax*m);
+      const E_Float *pn(_arr->begin() + _arr->_rowsMax*n), *pm(_arr->begin() + _arr->_rowsMax*m);
       if (_stride == 3)
         return (pn[0] - pm[0])*(pn[0] - pm[0]) + (pn[1] - pm[1])*(pn[1] - pm[1]) + (pn[2] - pm[2])*(pn[2] - pm[2]);
       else
@@ -220,20 +224,16 @@ namespace K_FLD
     /// square of the distance between a point and a node.
     inline E_Float dist2(const E_Float* pt, E_Int j) const
     {
-      const E_Float *xj(_arr.begin() + _arr._rowsMax*j);
+      const E_Float *xj(_arr->begin() + _arr->_rowsMax*j);
       if (_stride == 3)
         return (pt[0] - xj[0])*(pt[0] - xj[0]) + (pt[1] - xj[1])*(pt[1] - xj[1]) + (pt[2] - xj[2])*(pt[2] - xj[2]);
       else
         return (pt[0] - xj[0])*(pt[0] - xj[0]) + (pt[1] - xj[1])*(pt[1] - xj[1]);
     }
-    
-
-  private:
-    ArrayAccessor();
 
   protected:
     /// Coordinates array.
-    const array_type& _arr;
+    const array_type* _arr;
     /// number of used fields (equal to _posX size)
     size_type         _stride;
   };

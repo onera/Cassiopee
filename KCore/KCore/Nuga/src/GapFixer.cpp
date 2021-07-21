@@ -120,7 +120,7 @@ GapFixer::run
   mode.growth_ratio = 1.2;
 
   DELAUNAY::SurfaceMesher<UBSSurface> mesher(mode);
-    
+  mesher.seed_random(1);
   E_Int err = mesher.run (data);
   if (err || (data.connectM.cols() == 0))
     return 1;

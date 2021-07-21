@@ -1483,11 +1483,10 @@ public:
 
   ///
   template<typename TriangulatorType>
-  E_Int volume(const K_FLD::FloatArray& crd, const E_Int* orient, double& v)
+  E_Int volume(const K_FLD::FloatArray& crd, const E_Int* orient, double& v, TriangulatorType& t)
   {
     v = {-NUGA::FLOAT_MAX};
 
-    TriangulatorType t;
     K_FLD::FloatArray aT3;
     std::vector<E_Int> colors;
     E_Int err = triangulate<TriangulatorType>(t, *_pgs, _faces, _nb_faces, crd, aT3, 

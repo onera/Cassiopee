@@ -68,6 +68,10 @@ class KdTree {
 
     /// Destructor.
     ~KdTree(){};
+
+    void build(std::vector<size_type>* indices = nullptr, E_Float tolerance = EPSILON);
+
+    void clear();
     
   public: /*Accessors */
     

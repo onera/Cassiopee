@@ -186,7 +186,8 @@ namespace NUGA
       mode.remove_holes = true;
       mode.silent_errors = true; // conformizer._silent_errors;
       DELAUNAY::T3Mesher<E_Float> mesher(mode);
-
+      
+      mesher.seed_random(1);
       err = mesher.run(data);
       if (err) return err;
 

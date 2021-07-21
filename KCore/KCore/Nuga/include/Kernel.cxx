@@ -23,15 +23,45 @@ namespace DELAUNAY
 /// Constructor
 template <typename T>
 Kernel<T>::Kernel(MeshData& data, const NUGA::MeshTool& tool)
-    : _data(data), _tool(tool), _Ball_pred(*data.pos, _data.connectM), _constrained_pred(0), _Nmatch(IDX_NONE)
+    : _data(&data), _tool(&tool), _Ball_pred(*data.pos, _data->connectM), _constrained_pred(0), _Nmatch(IDX_NONE)
 {
-  data.mask.resize(_data.connectM.cols(), true);
+  data.mask.resize(_data->connectM.cols(), true);
 
 #ifdef E_TIME
   inval_time = remesh_time = cavity_time = 0.;
   sorting_bound_time = fix_cavity_time = init_cavity_time = 0.;
   _append_time = _base_time = 0.;
 #endif
+}
+
+template <typename T>
+void Kernel<T>::set(MeshData& data, const NUGA::MeshTool& tool)
+{
+  clear();
+
+  _data = &data;
+  _tool = &tool;
+  _constrained_pred = nullptr;
+  _Nmatch = IDX_NONE;
+  // , _Ball_pred(*data.pos, _data->connectM), _constrained_pred(0)
+
+  _data->mask.resize(_data->connectM.cols(), true);
+
+}
+
+template <typename T>
+void Kernel<T>::clear()
+{
+  _cavity.clear();
+  _cboundary.clear();
+  _base.clear();
+  _sbound.clear();
+  _real_cboundary.clear();
+  _visited.clear();
+  inodes.clear();
+  Ancs.clear();
+  elements.clear();
+  _node_to_rightS.clear();
 }
 
 /// Destructor
@@ -53,7 +83,7 @@ Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy){
 #endif
 
   //
-  E_Int ret = __getCavity<ConstraintType> (N, m, *_data.pos, _data.neighbors, _data.ancestors, _cavity, _cboundary);
+  E_Int ret = __getCavity<ConstraintType> (N, m, *_data->pos, _data->neighbors, _data->ancestors, _cavity, _cboundary);
 
   if (ret == -1 || ret == 2)
     return ret;
@@ -64,7 +94,7 @@ Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy){
 #endif
 
  //
-  ret = __remeshCavity (N, _data.connectM, _data.neighbors, _data.ancestors, _cavity, _cboundary);
+  ret = __remeshCavity (N, _data->connectM, _data->neighbors, _data->ancestors, _cavity, _cboundary);
   if (ret)
     return ret;
 
@@ -74,7 +104,7 @@ Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy){
 #endif
 
   //
-  __invalidCavityElements (_cavity, _data.connectM, _data.mask);
+  __invalidCavityElements (_cavity, _data->connectM, _data->mask);
 
 #ifdef E_TIME
   inval_time += c.elapsed();
@@ -108,7 +138,7 @@ Kernel<T>::__getCavity
 
   _Ball_pred.setPoint(pos.col(N), m); // Set the cavity "center" and associated metric.
 
-  E_Int ret = __getInitialCavity<ConstraintType>(N, pos, _data.connectM, neighbors,
+  E_Int ret = __getInitialCavity<ConstraintType>(N, pos, _data->connectM, neighbors,
                                  ancestors, _base, cavity, _sbound);
 
 #ifdef E_TIME
@@ -122,10 +152,10 @@ Kernel<T>::__getCavity
     K_FLD::IntArray cc;
     for (int_set_type::const_iterator it = cavity.begin(); it != cavity.end(); ++it)
     {
-      K_FLD::IntArray::const_iterator pK = _data.connectM.col(*it);
+      K_FLD::IntArray::const_iterator pK = _data->connectM.col(*it);
       cc.pushBack(pK, pK+3);
     }
-    MIO::write ("init_cav.mesh", *_data.pos, cc, "TRI");
+    MIO::write ("init_cav.mesh", *_data->pos, cc, "TRI");
   }
 #endif
   
@@ -136,7 +166,7 @@ Kernel<T>::__getCavity
     return ret;;
 
   if ((_base.size() > 2) || (cavity.size() != _base.size()))
-    ret = __fixCavity(N, pos, _data.connectM, neighbors, ancestors, _base, cavity, _sbound);
+    ret = __fixCavity(N, pos, _data->connectM, neighbors, ancestors, _base, cavity, _sbound);
 
 
   if (ret == -1) // Error
@@ -148,11 +178,11 @@ Kernel<T>::__getCavity
   K_FLD::IntArray cc;
   for (int_set_type::const_iterator it = cavity.begin(); it != cavity.end(); ++it)
   {
-  K_FLD::IntArray::const_iterator pK = _data.connectM.col(*it);
+  K_FLD::IntArray::const_iterator pK = _data->connectM.col(*it);
   cc.pushBack(pK, pK+3);
   }
 
-  MIO::write ("fixed_cav.mesh", *_data.pos, cc, "TRI");  
+  MIO::write ("fixed_cav.mesh", *_data->pos, cc, "TRI");  
   }
 #endif
 
@@ -163,8 +193,8 @@ Kernel<T>::__getCavity
 
   cboundary.clear();
   //_visited.clear();
-  //__getSortedBoundary(_data.connectM, neighbors, *_base.begin(), 0, cavity, _sbound, _visited, cboundary);
-  ret = __getSortedBoundary2(_data.connectM, _sbound, cboundary);
+  //__getSortedBoundary(_data->connectM, neighbors, *_base.begin(), 0, cavity, _sbound, _visited, cboundary);
+  ret = __getSortedBoundary2(_data->connectM, _sbound, cboundary);
   _sbound.clear();
 
 #ifdef E_TIME
@@ -195,8 +225,8 @@ Kernel<T>::__getInitialCavity
   c.start();
 #endif
 
-  E_Int ret = _tool.getContainingElements (pos.col(N), pos, connect, neighbors, ancestors, _data.mask,
-                                           _tool.getTree(), std::back_inserter(ba), Nmatch);
+  E_Int ret = _tool->getContainingElements (pos.col(N), pos, connect, neighbors, ancestors, _data->mask,
+                                           _tool->getTree(), std::back_inserter(ba), Nmatch);
 
   size_type sz = (size_type)ba.size();
   for (size_type i = 0; i < sz; ++i)//fixme
@@ -267,8 +297,8 @@ Kernel<T>::__appendCavity
   assert(_constrained_pred);
   for (int_set_type::const_iterator it = base.begin(); it != base.end(); ++it)
   {
-    _tool._inval.clear();
-    _tool.getConnexSet1(*it, _data.connectM/*fixme*/, neighbors, cavity, 
+    _tool->_inval.clear();
+    _tool->getConnexSet1(*it, _data->connectM/*fixme*/, neighbors, cavity, 
                         cboundary, _Ball_pred, *_constrained_pred);
   }
 
@@ -285,8 +315,8 @@ Kernel<E_Float>::__appendCavity<UNCONSTRAINED>
 {
   for (int_set_type::const_iterator it = base.begin(); it != base.end(); ++it)
   {
-    _tool._inval.clear();
-    _tool.getConnexSet1(*it, _data.connectM/*fixme*/, neighbors, cavity, 
+    _tool->_inval.clear();
+    _tool->getConnexSet1(*it, _data->connectM/*fixme*/, neighbors, cavity, 
                         cboundary, _Ball_pred, _unconstrained_pred);
   }
 
@@ -303,8 +333,8 @@ Kernel<Aniso2D>::__appendCavity<UNCONSTRAINED>
 {
   for (int_set_type::const_iterator it = base.begin(); it != base.end(); ++it)
   {
-    _tool._inval.clear();
-    _tool.getConnexSet1(*it, _data.connectM/*fixme*/, neighbors, cavity, 
+    _tool->_inval.clear();
+    _tool->getConnexSet1(*it, _data->connectM/*fixme*/, neighbors, cavity, 
                         cboundary, _Ball_pred, _unconstrained_pred);
   }
 
@@ -332,11 +362,11 @@ E_Int
 
   triangle[2] = N;
 
-  bool set_color = !_data.colors.empty();
+  bool set_color = !_data->colors.empty();
 
   size_type color = -1;
   if (set_color)
-    color = _data.colors[*cavity.begin()];
+    color = _data->colors[*cavity.begin()];
 
   size_type bsize = (size_type)cboundary.size();
   for (size_type i = 0; i < bsize; ++i)
@@ -351,7 +381,7 @@ E_Int
 
     connect.pushBack (triangle, triangle + 3);
     if (color != -1)
-      _data.colors.push_back(color);
+      _data->colors.push_back(color);
 
     Kadj = neighbors(j, K0);
     neighbors.pushBack (newN, newN + 3);
@@ -536,7 +566,7 @@ E_Int
   while (!inodes.empty())
   {
     Ancs.clear();
-    _tool.getAncestors (*inodes.begin(), ancestors, neighbors, std::back_inserter(Ancs));
+    _tool->getAncestors (*inodes.begin(), ancestors, neighbors, std::back_inserter(Ancs));
 
     elements.clear();
     std::sort(ALL(Ancs));
@@ -606,7 +636,7 @@ E_Int
   while (!inodes.empty())
   {
     Ancs.clear();
-    _tool.getAncestors (*inodes.begin(), connectM, ancestors, neighbors, std::back_inserter(Ancs));
+    _tool->getAncestors (*inodes.begin(), connectM, ancestors, neighbors, std::back_inserter(Ancs));
 
     elements.clear();
     std::sort(ALL(Ancs));
@@ -643,7 +673,7 @@ E_Int
   bool carry_on;
   size_type S,b, Ni, Nj;
   K_FLD::IntArray::const_iterator pS;
-  E_Float tolerance(_tool.getTolerance()), q;
+  E_Float tolerance(_tool->getTolerance()), q;
 
   do 
   {

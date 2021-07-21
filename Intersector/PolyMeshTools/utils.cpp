@@ -979,7 +979,7 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   return l;
 }
 
-void comp_vol(const K_FLD::FloatArray& crd, const ngon_type& ngi, const FldArrayI* cFE, std::vector<E_Int>& orient, E_Int i, E_Int id, std::vector<E_Int>& im, std::vector<E_Float>& vm)
+void comp_vol(const K_FLD::FloatArray& crd, const ngon_type& ngi, const FldArrayI* cFE, std::vector<E_Int>& orient, E_Int i, E_Int id, DELAUNAY::Triangulator & dt, std::vector<E_Int>& im, std::vector<E_Float>& vm)
 {
   //std::cout << "PH : " << i << std::endl;
     orient.clear();
@@ -999,8 +999,7 @@ void comp_vol(const K_FLD::FloatArray& crd, const ngon_type& ngi, const FldArray
     //std::cout << "computing flux for PH : " << i << std::endl;
     K_MESH::Polyhedron<0> PH(ngi, i);
     double v;
-    //DELAUNAY::Triangulator dt;
-    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v);//, dt);
+    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v, dt);
 
     if (!err && v < vm[id]) // min for current thread
     {
@@ -1010,7 +1009,7 @@ void comp_vol(const K_FLD::FloatArray& crd, const ngon_type& ngi, const FldArray
     // if (err)
     // {
     //   //std::cout << "error to triangulate cell " << i << "at face : " << err-1 << std::endl;
-    //   //medith::write("badcell", crd, ngi, i);s
+    //   //medith::write("badcell", crd, ngi, i);
     //   //medith::write("faultyPG", crd, ngi.PGs.get_facets_ptr(err-1), ngi.PGs.stride(err-1), 1);
     // }
 }
@@ -1059,15 +1058,16 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
   std::vector<std::vector<E_Int>> orient(nb_max_threads);
 
   E_Int ith, id{0};
+  DELAUNAY::Triangulator dt;
 
-#pragma omp parallel shared(vm, im, ngi, crd, cFE, orient) private (ith, id) default(none)
+#pragma omp parallel shared(vm, im, ngi, crd, cFE, orient) private (ith, id, dt) default(none)
 {
   id = __CURRENT_THREAD__;
   //std::cout << "before loop thread : " << id  << std::endl;
 #pragma omp for //schedule(dynamic)
   for (ith=0; ith < ngi.PHs.size(); ++ith)
   {
-    comp_vol(crd, ngi, cFE, orient[id], ith, id, im, vm);
+    comp_vol(crd, ngi, cFE, orient[id], ith, id, dt, im, vm);
   }
 }
 
@@ -1166,8 +1166,8 @@ PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject
     //std::cout << "computing flux for PH : " << i << std::endl;
     K_MESH::Polyhedron<0> PH(ngi, i);
     double v;
-    //DELAUNAY::Triangulator dt;
-    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v);//, dt);
+    DELAUNAY::Triangulator dt;
+    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v, dt);
 
     if (!err)
       vols[i] = v;
@@ -1300,8 +1300,8 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
     //std::cout << "computing flux for PH : " << i << std::endl;
     K_MESH::Polyhedron<0> PH(ngi, i);
     double v;
-    //DELAUNAY::Triangulator dt;
-    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v);//, dt);
+    DELAUNAY::Triangulator dt;
+    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v, dt);
 
     if (!err)
       vols[i] = v;

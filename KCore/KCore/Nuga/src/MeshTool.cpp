@@ -25,8 +25,22 @@
 using namespace NUGA;
 
 NUGA::MeshTool::MeshTool(const tree_type& tree, E_Float tolerance):
-_tree(tree), _tolerance(tolerance)
+_tree(&tree), _tolerance(tolerance)
 {
+}
+
+void NUGA::MeshTool::clear()
+{
+  _pool.clear();
+  _inval.clear();
+}
+
+void NUGA::MeshTool::set(const tree_type& tree, E_Float tolerance)
+{
+  clear();
+
+  _tree = &tree;
+  _tolerance = tolerance;
 }
 
 NUGA::MeshTool::~MeshTool(void)
@@ -75,7 +89,10 @@ NUGA::MeshTool::__searchDirection
   K_FLD::IntArray::const_iterator    pK = connect.col(K);
 
   if (random) // Random value between 0,1 and 2.
-    b = std::rand() % K_MESH::Triangle::NB_NODES;//fixme : not a good random...
+  {
+    b = _random.rand() % K_MESH::Triangle::NB_NODES;
+    //std::cout << "MeshTool : rand : " << b << std::endl;
+  }
 
   // The right direction is the edge without any visbility on P.
   for (size_type i = 0; i < K_MESH::Triangle::NB_NODES; ++i)

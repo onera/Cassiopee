@@ -18,6 +18,7 @@
 #include "Nuga/include/selector.hxx"
 #include "Nuga/include/collider.hxx"
 #include "Nuga/include/displacement.hxx"
+#include "Nuga/include/random.h"
 
 #ifdef CLASSIFYER_DBG
 #include "Nuga/include/medit.hxx"
@@ -164,6 +165,7 @@ namespace NUGA
       const double* pt = ae1.get_centroid();
 
       E_Int sign(0);
+      NUGA::random rando;
 
       for (E_Int i = 0; i < front.ncells(); ++i)
       {
@@ -196,9 +198,9 @@ namespace NUGA
         if (!deep) return AMBIGUOUS;
 
         // pick randomly an edge, for the ray(GC) from its mid point to the centroid of ae1
-        int i = std::rand() % front.ncells();
+        unsigned int k = rando.rand() % front.ncells();
         double C[3], G[3], nrm[3];
-        NUGA::sum<3>(0.5, front.crd.col(front.cnt(0, i)), 0.5, front.crd.col(front.cnt(1, i)), C);
+        NUGA::sum<3>(0.5, front.crd.col(front.cnt(0, k)), 0.5, front.crd.col(front.cnt(1, k)), C);
         ae1.centroid<3>(G);
         ae1.normal<3>(nrm);
 
@@ -238,6 +240,7 @@ namespace NUGA
       const double* ae1G = ae1.get_centroid();
 
       E_Int sign(0);
+      NUGA::random rando;
 
       for (E_Int i = 0; i < front.ncells(); ++i)
       {
@@ -276,8 +279,8 @@ namespace NUGA
         if (!deep) return AMBIGUOUS;
 
         // pick randomly a front face, for the ray(GC) from its centroid to the centroid of ae1
-        int i = std::rand() % front.ncells();
-        K_MESH::Polygon PGi(front.cnt, i);
+        unsigned int k = rando.rand() % front.ncells();
+        K_MESH::Polygon PGi(front.cnt, k);
 
         double C[3];
         K_MESH::Polygon::centroid<3>(front.crd, PGi.begin(), PGi.nb_nodes(), front.index_start, C);

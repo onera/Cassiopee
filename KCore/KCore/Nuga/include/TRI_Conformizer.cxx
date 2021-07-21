@@ -309,7 +309,7 @@ TRI_Conformizer<DIM>::__split_Elements
 #endif
 #endif
       // iterative for robustness : try shuffling the input data, then try without forcing edges (hasardous)
-      
+      mesher.seed_random(3*i);
       err = __iterative_run (mesher, pi, ci2, hnodes, data, lnids, false/*i.e. try to force all edge*/, true/*i.e silent also last it*/);
       if (err != 0)
         err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, true/*i.e. ignore unforceable edges*/, mode.silent_errors/*i.e output last it error eventually*/);
@@ -483,25 +483,6 @@ TRI_Conformizer<DIM>::__split_Elements
   return 0;
 }
 
-inline void __random_shuffle (K_FLD::IntArray& connectB)
-{
-  E_Int sz = connectB.cols();
-  std::vector<E_Int> rank;
-  
-  K_CONNECT::IdTool::init_inc(rank, sz);
-  std::random_shuffle (ALL(rank));
-  
-  K_FLD::IntArray tmp(connectB);
-  
-  for (E_Int i=0; i < sz; ++i)
-  {
-    tmp(0,i) = connectB(0,rank[i]);
-    tmp(1,i) = connectB(1,rank[i]);
-  }
-  
-  connectB = tmp;
-}
-
 ///
 template <E_Int DIM>
 E_Int
@@ -512,11 +493,11 @@ TRI_Conformizer<DIM>::__iterative_run
 {
   E_Int err(0), nb_pts(crd.cols());
   
-  mesher._mode.silent_errors = silent_last_iter;
-  mesher._mode.ignore_unforceable_edges = ignore_unforceable_edge;
+  mesher.mode.silent_errors = silent_last_iter;
+  mesher.mode.ignore_unforceable_edges = ignore_unforceable_edge;
     
   lnids.clear();
-  if (mesher._mode.ignore_coincident_nodes) //and eventually unforceable edge
+  if (mesher.mode.ignore_coincident_nodes) //and eventually unforceable edge
     K_CONNECT::IdTool::init_inc(lnids, nb_pts);
  
   // Multiple attempts : do not shuffle first, and then do shuffle
@@ -532,12 +513,12 @@ TRI_Conformizer<DIM>::__iterative_run
     E_Float RTOL2 = ::pow(10., -k);
     
     data.clear(); //reset containers
-    mesher._edge_errors.clear();
+    mesher.clear();
     
-    mesher._mode.do_not_shuffle=(railing == 0); // i.e. shuffle every time but the first
+    mesher.mode.do_not_shuffle=(railing == 0); // i.e. shuffle every time but the first
 
 #ifdef DEBUG_TRI_CONFORMIZER
-    if (!silent_last_iter && (railing == nb_attemps)) mesher._mode.silent_errors = false; // only listen the last iter
+    if (!silent_last_iter && (railing == nb_attemps))mesher.mode.silent_errors = false; // only listen the last iter
 #endif
     
     data.pos = &crd;
@@ -549,7 +530,7 @@ TRI_Conformizer<DIM>::__iterative_run
     err = mesher.run(data);
     
     // process errors and update cB, hNodes and lnids
-    if (mesher._mode.ignore_unforceable_edges)
+    if (mesher.mode.ignore_unforceable_edges)
     {
       if (!mesher._edge_errors.empty())//has errors
       {
@@ -622,7 +603,7 @@ TRI_Conformizer<DIM>::__iterative_run
         err = 1;
       }
     }
-    if (mesher._mode.ignore_coincident_nodes)
+    if (mesher.mode.ignore_coincident_nodes)
     {
       for (E_Int i = 0; i < nb_pts; ++i)
       {

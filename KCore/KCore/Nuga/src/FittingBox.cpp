@@ -174,6 +174,7 @@ FittingBox::__computeOptimalViewFrame
     DELAUNAY::MeshData dataTmp(posFrame, connectE2);
     //DELAUNAY::iodata::write("out.dat", dataTmp);
     //data.hardNodes = hN;
+    mesher.seed_random(1);
     err = mesher.run(dataTmp);
 
     if (err || (dataTmp.connectM.cols() == 0))

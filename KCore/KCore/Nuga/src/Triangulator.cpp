@@ -33,6 +33,20 @@ using namespace NUGA;
 #define Vector_t std::vector
 namespace DELAUNAY
 {
+  Triangulator::Triangulator()
+  {
+#ifdef FLAG_STEP
+    tcreate = tconnect = trun = ttra = 0;
+#endif
+#ifdef DEBUG_TRIANGULATOR
+    dbg_enabled = false;
+#endif
+
+    auto& mode = _mesher.mode;
+    mode.mesh_mode = mode.TRIANGULATION_MODE;
+    mode.silent_errors = true;
+
+  }
   
 #ifdef NETBEANSZ
 inline 
@@ -47,7 +61,8 @@ E_Int Triangulator::run
   c.start();
 #endif
   
-  K_FLD::IntArray connectE2, connectE2b;
+  connectE2.clear();
+  connectE2b.clear();
   __set_connectE2(pNodes, nb_nodes, connectE2, index_start);
   
 #ifdef FLAG_STEP
@@ -55,16 +70,15 @@ E_Int Triangulator::run
   c.start();
 #endif
   
-  K_FLD::FloatArray Wpos;
-  Vector_t<E_Int> oldIds;
+  Wpos.clear();
+  oldIds.clear();
   NUGA::MeshTool::compact_to_mesh(coord, connectE2, Wpos, connectE2b, oldIds);
   
 #ifdef FLAG_STEP
   tcompact +=c.elapsed();
   c.start();
 #endif
-  
-  
+ 
   // Computes the fitting box coordinate system optimizing the view over the contour
   K_FLD::FloatArray P(3,3), iP(3,3);
   E_Float W[3];
@@ -81,13 +95,7 @@ E_Int Triangulator::run
   c.start();
 #endif
   
-  // Triangulate the projected contour.
-  DELAUNAY::MesherMode mode;
-  mode.mesh_mode = mode.TRIANGULATION_MODE;
-  mode.do_not_shuffle = do_not_shuffle; 
-  mode.silent_errors = true;
-  DELAUNAY::T3Mesher<E_Float> mesher(mode);
-  DELAUNAY::MeshData data(Wpos, connectE2b);
+  _data.set(Wpos, connectE2b);
   
 #ifdef FLAG_STEP
   tcreate +=c.elapsed();
@@ -98,10 +106,12 @@ E_Int Triangulator::run
   if (dbg_enabled)
     mesher.dbg_flag=true;
 #endif
-    
-  E_Int err = mesher.run(data);
+
+  _mesher.mode.do_not_shuffle = do_not_shuffle;
+  _mesher.seed_random(1);
+  E_Int err = _mesher.run(_data);
   
-  if (!err && (data.connectM.cols() == 0) && (data.connectB->cols() != 0))
+  if (!err && (_data.connectM.cols() == 0) && (_data.connectB->cols() != 0))
     err = 1;
 
   if (err)
@@ -125,16 +135,16 @@ E_Int Triangulator::run
     }
 #endif
     E_Float quality_tol = 1.e-4;// EPSILON;
-    E_Int railing = data.connectM.cols();
+    E_Int railing =_data.connectM.cols();
     while (--railing)
     {
       _swapE.clear();
       
       // also swap poor quality triangles
-      NUGA::GeomAlgo<K_MESH::Triangle>::get_swapE(*data.pos, data.connectM, data.neighbors, data.hardEdges, quality_tol, _swapE); //warning : quality<2> doesnt give the same result as quality<3>. need to convert to tolerance criterium.
+      NUGA::GeomAlgo<K_MESH::Triangle>::get_swapE(*_data.pos, _data.connectM, _data.neighbors, _data.hardEdges, quality_tol, _swapE); //warning : quality<2> doesnt give the same result as quality<3>. need to convert to tolerance criterium.
 
       if (!_swapE.empty())
-        NUGA::EltAlgo<K_MESH::Triangle>::fast_swap_edges(_swapE, data.connectM, data.neighbors);
+        NUGA::EltAlgo<K_MESH::Triangle>::fast_swap_edges(_swapE, _data.connectM, _data.neighbors);
       else
         break;
     }
@@ -156,10 +166,10 @@ E_Int Triangulator::run
   c.start();
 #endif
   
-  K_FLD::IntArray::changeIndices(data.connectM, oldIds);//Back to original ids
+  K_FLD::IntArray::changeIndices(_data.connectM, oldIds);//Back to original ids
   
-  connectM  = data.connectM;
-  neighbors = data.neighbors;
+  connectM  = _data.connectM;
+  neighbors = _data.neighbors;
 
   return 0;
 }

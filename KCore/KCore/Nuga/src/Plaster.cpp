@@ -137,6 +137,7 @@ Plaster::make
   //K_FLD::IntArray connectT3;
   DELAUNAY::MeshData dataTmp(pos2D, connectE2);
   //data.hardNodes = hN;
+  mesher.seed_random(1);
   err = mesher.run(dataTmp);
   if (err)
     return err;

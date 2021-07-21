@@ -20,14 +20,16 @@
 namespace DELAUNAY
 {
 template <typename SurfaceType>
-class SurfaceMesher
+class SurfaceMesher : public Mesher<Aniso2D, GeomMetric<Aniso2D, SurfaceType>>
 {
+public:
+  using parent_t = Mesher<Aniso2D, GeomMetric<Aniso2D, SurfaceType>>;
 public:
   typedef NUGA::size_type size_type;
 public:
   SurfaceMesher(){}
 
-  SurfaceMesher(const SurfaceMesherMode& mode):mode(mode)
+  SurfaceMesher(const SurfaceMesherMode& mod):mode(mod)
   {
 #ifdef DEBUG_MESHER
     dbg_flag = false;
@@ -62,14 +64,17 @@ SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
   //std::cout << "run 0" << std::endl;
   metric_aniso.init_metric(data.metrics, data.pos3D, *data.connectB, data.hardNodes);
   
-  MesherType mesher(metric_aniso, mode);
+  parent_t::clear(); // clear container attributes
+  parent_t::set(metric_aniso);
+
+  parent_t::mode = mode;
   //std::cout << "run 1" << std::endl;
   
 #ifdef DEBUG_MESHER
   mesher.dbg_flag = dbg_flag;
 #endif
 
-  E_Int err = mesher.run(data);
+  E_Int err = parent_t::run(data);
 
   //std::cout << "run 2" << std::endl;
 

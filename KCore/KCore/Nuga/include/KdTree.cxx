@@ -51,6 +51,50 @@ K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc,
   __insert(indices.begin(), indices.end(), 0/*depth*/);
 }
 
+// ============================================================================
+/// Reset.
+// ============================================================================
+template <typename CoordArrayType>
+void K_SEARCH::KdTree<CoordArrayType>::clear()
+{
+  _tree_sz   = 0;
+  _dim       = _posAcc.stride();
+  _pred.setAxis(0);
+
+  size_type none = IDX_NONE;
+  _tree.clear();
+}
+
+// ============================================================================
+/// Refill an existing tree
+// ============================================================================
+template <typename CoordArrayType>
+void K_SEARCH::KdTree<CoordArrayType>::build(std::vector<size_type>* indices, E_Float tolerance)
+{
+  _tolerance = tolerance*tolerance;
+
+  clear();
+
+  size_type none = IDX_NONE;
+
+  if (indices != nullptr)
+  {
+    _tree.resize(3, _tree_sz + indices->size(), &none);
+    __insert(indices->begin(), indices->end(), 0/*depth*/);
+  }
+  else
+  {
+    _tree.resize(3, _posAcc.size(), &none);
+    
+    std::vector<size_type> indices(_posAcc.size());
+    std::vector<size_type>::iterator it(indices.begin()), itEnd(indices.end());
+    size_type val = 0;
+    while (it != itEnd) *(it++) = val++;
+
+    __insert(indices.begin(), itEnd, 0/*depth*/);
+  }
+}
+
 //
 template <typename CoordArrayType>
 template <typename InputIterator>

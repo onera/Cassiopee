@@ -1125,7 +1125,7 @@ DynArray<T>::pushBack(const self_type& a){
   ///FldArrayF --> FloatArray
   template <> inline
     DynArray<E_Float>::DynArray(const FldArray<E_Float>& a, E_Int posx, E_Int posy, E_Int posz)
-    :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0),_data(0)
+    :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0),_data(0), _calloc(false)
   {
     E_Int npos = (posz != -1) ? 3 : 2;
     const E_Float* *p =  new const E_Float*[npos];

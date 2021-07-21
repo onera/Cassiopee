@@ -301,7 +301,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       mesher.mode = mode;
       
       //printf("before mesher\n"); fflush(stdout);
-      
+      mesher.seed_random(1);
       err = mesher.run(data);
       
       if (err || (data.connectM.cols() == 0))

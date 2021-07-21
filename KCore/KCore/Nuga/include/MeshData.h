@@ -29,6 +29,13 @@ namespace DELAUNAY
     {
       hnids.clear();
     }
+
+    void set(K_FLD::FloatArray& p, const K_FLD::IntArray& cB)
+    {
+      clear();
+      pos = &p;
+      connectB = &cB;
+    }
     
     void clear()
     {

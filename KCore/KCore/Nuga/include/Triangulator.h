@@ -15,6 +15,8 @@
 #include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/MeshData.h"
+#include "Nuga/include/MesherMode.h"
+#include "Nuga/include/T3Mesher.h"
 
 namespace DELAUNAY
 {
@@ -22,14 +24,7 @@ namespace DELAUNAY
 class Triangulator
 {
 public:
-  Triangulator(){
-#ifdef FLAG_STEP
-      tcreate=tconnect=trun=ttra=0;
-#endif
-#ifdef DEBUG_TRIANGULATOR
-      dbg_enabled = false;
-#endif
-  }
+  Triangulator();
   E_Int run(const K_FLD::FloatArray& coord, const E_Int* pNodes, E_Int nb_nodes, E_Int index_start, K_FLD::IntArray& connectM, K_FLD::IntArray& neighbors, bool do_not_shuffle, bool improve_quality) const ;
   E_Int run(const K_FLD::FloatArray& coord, const E_Int* pNodes, E_Int nb_nodes, E_Int index_start, K_FLD::IntArray& connectM, bool do_not_shuffle, bool improve_quality) const ;
   
@@ -43,6 +38,14 @@ private:
   Triangulator(const Triangulator&);
   
   mutable std::vector<std::pair<E_Int, E_Int> > _swapE;
+
+private:
+  mutable DELAUNAY::T3Mesher<E_Float> _mesher;
+  mutable DELAUNAY::MeshData _data;
+
+  mutable K_FLD::IntArray connectE2, connectE2b;
+  mutable K_FLD::FloatArray Wpos;
+  mutable Vector_t<E_Int> oldIds;
   
 #ifdef DEBUG_TRIANGULATOR
 public:

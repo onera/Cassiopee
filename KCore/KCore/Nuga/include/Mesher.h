@@ -30,6 +30,7 @@
 #include <list>
 #include <deque>
 #include <set>
+#include "Nuga/include/random.h"
 
 #if defined(DEBUG_METRIC)
 #include "iodata.h"
@@ -81,8 +82,13 @@ namespace DELAUNAY
 
 
   public:
-    Mesher(MetricType& metric, const MesherMode& mode);
+    Mesher();
+    Mesher(MetricType& metric);
     ~Mesher(void);
+
+    void set(MetricType& metric);
+    void clear();
+    void seed_random(long int s);
 
     E_Int run (MeshData& data);
 
@@ -120,15 +126,14 @@ namespace DELAUNAY
       int_vector_type& ancestors);    
 
     E_Int __store_edge_error(E_Int Ni, E_Int Nj, const K_FLD::IntArray& connect, const int_pair_vector_type& Xedges);
-  private:
+  
+  protected:
 
     MeshData*                   _data;
 
-    /*const*/ MesherMode            _mode;
+    MetricType*                 _metric;
 
-    MetricType&                 _metric;
-
-    NUGA::MeshTool*        _tool;
+    NUGA::MeshTool*             _tool;
 
     coord_access_type*          _posAcc;
     tree_type*                  _tree;
@@ -140,8 +145,13 @@ namespace DELAUNAY
     E_Int                       _err;
 
     E_Int                       _N0;
+
+    NUGA::random                _random;
+
   public:
+    MesherMode        mode;
     std::vector<edge_error_t>  _edge_errors;
+    
     
 #if defined(DEBUG_MESHER)
     public:
@@ -149,20 +159,49 @@ namespace DELAUNAY
 #endif
   };
 
+  //
+  template <typename T, typename MetricType>
+  Mesher<T, MetricType>::Mesher()
+    :_data(nullptr), _metric(nullptr), _tool(nullptr), _posAcc(nullptr), _tree(nullptr), _kernel(nullptr)
+#ifdef DEBUG_MESHER
+    , dbg_flag(false)
+#endif
+  {}
+
+
+  //
+  template <typename T, typename MetricType>
+  Mesher<T, MetricType>::Mesher(MetricType& metric)
+    :_data(nullptr), _metric(&metric), _tool(nullptr), _posAcc(nullptr), _tree(nullptr), _kernel(nullptr)
+#ifdef DEBUG_MESHER
+    , dbg_flag(false)
+#endif
+  {}
 
   template <typename T, typename MetricType>
-  Mesher<T, MetricType>::Mesher(MetricType& metric, const MesherMode& mode)
-    :_data(0), _mode(mode), _metric(metric),_tool(0), _posAcc(0), _tree(0)
-#ifdef DEBUG_MESHER
-  , dbg_flag(false)
-#endif
+  void Mesher<T, MetricType>::clear()
   {
-    std::srand(1);//to initialize std::rand and ensure repeatability
+    _box_nodes.clear();
+    _edge_errors.clear();
+  }
+
+  template <typename T, typename MetricType>
+  void Mesher<T, MetricType>::set(MetricType& metric)
+  {
+    _metric = &metric;// _metric is not freed as it is not owned
+  }
+
+  template <typename T, typename MetricType>
+  void Mesher<T, MetricType>::seed_random(long int s)
+  {
+    _random.srand(s);
   }
 
   template <typename T, typename MetricType>
   Mesher<T, MetricType>::~Mesher(void)
   {
+    // _metric is not freed as it is not owned
+
     if (_tool)
     {
       delete _tool;
@@ -188,6 +227,7 @@ namespace DELAUNAY
     }
   }
 
+  //
   template <typename T, typename MetricType>
   E_Int
     Mesher<T, MetricType>::run (MeshData& data)
@@ -196,7 +236,7 @@ namespace DELAUNAY
     _data = &data;
 
 #ifdef E_TIME
-    chrono c;
+    NUGA::chrono c;
     c.start();
 #endif
 
@@ -218,7 +258,7 @@ namespace DELAUNAY
 
     if (_err)
     {
-      if (!_mode.silent_errors) std::cout << "error triangulating" << std::endl;
+      if (!mode.silent_errors) std::cout << "error triangulating" << std::endl;
 #ifdef DEBUG_MESHER
       medith::write("err_tria.mesh", *_data->pos, *_data->connectB, "BAR");
 #endif
@@ -236,7 +276,7 @@ namespace DELAUNAY
     _err = restoreBoundaries(*data.pos, data.connectM, data.neighbors, data.ancestors);
     if (_err)
     {
-      if (!_mode.silent_errors) std::cout << "error restoring boundaries" << std::endl;
+      if (!mode.silent_errors) std::cout << "error restoring boundaries" << std::endl;
       return _err;
     }
     
@@ -259,11 +299,11 @@ namespace DELAUNAY
     _err = setColors(data.pos->cols()-1, data);//fixme : Nbox
     if (_err)
     {
-      if (!_mode.silent_errors) std::cout << "error setting colors" << std::endl;
+      if (!mode.silent_errors) std::cout << "error setting colors" << std::endl;
       return _err;
     }
 
-    if (_mode.mesh_mode == MesherMode::REFINE_MODE)
+    if (mode.mesh_mode == MesherMode::REFINE_MODE)
     {
 #ifdef E_TIME
     c.start();
@@ -289,7 +329,7 @@ namespace DELAUNAY
     c.start();
 #endif
 
-    if (_err && !_mode.silent_errors) std::cout << "error finalizing" << std::endl;
+    if (_err && !mode.silent_errors) std::cout << "error finalizing" << std::endl;
     
     return _err;
   }
@@ -336,9 +376,9 @@ namespace DELAUNAY
       idmax = std::max(idmax, *it);
     }
     
-    if (_mode.ignore_unforceable_edges) _mode.ignore_coincident_nodes=true;
+    if (mode.ignore_unforceable_edges) mode.ignore_coincident_nodes=true;
     // 
-    if (_mode.ignore_coincident_nodes == true)
+    if (mode.ignore_coincident_nodes == true)
       K_CONNECT::IdTool::init_inc(_data->hnids, idmax+1);
 
     // Build the initial mesh.
@@ -393,19 +433,25 @@ namespace DELAUNAY
     indices.push_back(C4);
 
     // KdTree initialisation
-    _posAcc = new K_FLD::ArrayAccessor<K_FLD::FloatArray>(*_data->pos);
-    _tree = new tree_type(*_posAcc, indices); //add the box nodes only.
+    if (_posAcc == nullptr)
+      _posAcc = new K_FLD::ArrayAccessor<K_FLD::FloatArray>(*_data->pos);
+    else
+      _posAcc->set(*_data->pos);
 
-    /*
-    _data->ancestors.reserve(10*pos.cols());
-    _data->connectM.reserve(3,10*pos.cols());
-    _data->neighbors.reserve(3,10*pos.cols());
-    _tree->reserve(10*pos.cols());// fixme : in triangulation mode (only har nodes)/ in refine mode (rough estimatio of the total)
-    */
+    if (_tree == nullptr)
+      _tree = new tree_type(*_posAcc, indices); //add the box nodes only.
+    else
+      _tree->build(&indices);
 
-    _tool = new NUGA::MeshTool(*_tree);
+    if (_tool == nullptr)
+      _tool = new NUGA::MeshTool(*_tree);
+    else
+      _tool->set(*_tree);
 
-    _kernel = new kernel_type(*_data, *_tool);
+    if (_kernel == nullptr)
+      _kernel = new kernel_type(*_data, *_tool);
+    else
+      _kernel->set(*_data, *_tool);
 
     //fixme
     return _err;
@@ -419,8 +465,8 @@ namespace DELAUNAY
     // Fast returns.
     if (_err) return _err;
 
-    if (!_mode.do_not_shuffle)
-      std::random_shuffle (ALL(_data->hardNodes));
+    if (!mode.do_not_shuffle)
+      std::shuffle (ALL(_data->hardNodes), _random.gen);
 
     size_type nb_nodes(_data->hardNodes.size()), Ni;
 
@@ -430,9 +476,9 @@ namespace DELAUNAY
     {
       Ni = _data->hardNodes[i];
 
-      _err = _kernel->insertNode(Ni, _metric[Ni], unconstrained);
+      _err = _kernel->insertNode(Ni, (*_metric)[Ni], unconstrained);
       if (_err == 0)_tree->insert(Ni);
-      if (_err == 2 && _mode.ignore_coincident_nodes)
+      if (_err == 2 && mode.ignore_coincident_nodes)
       {
         _data->unsync_nodes = true;
         _data->hnids[Ni]=_kernel->_Nmatch;
@@ -519,14 +565,14 @@ namespace DELAUNAY
       
       if (_err)
       {
-        if (_mode.ignore_unforceable_edges)
+        if (mode.ignore_unforceable_edges)
         {
           //store this edge and the faulty entities and carry on with other missing edges
           __store_edge_error(Ni,Nj, connect, Xedges);
           _err = 0;
           continue;
         }
-        else if (!_mode.silent_errors)
+        else if (!mode.silent_errors)
           std::cout << "error getting pipe : " << _err << std::endl;
       }
 
@@ -535,14 +581,14 @@ namespace DELAUNAY
       
       if (_err)
       {
-        if (_mode.ignore_unforceable_edges)
+        if (mode.ignore_unforceable_edges)
         {
           //store this edge and the faulty entities and carry on with other missing edges
           __store_edge_error(Ni,Nj, connect, Xedges);
           _err = 0;
           continue;
         }
-        else if (!_mode.silent_errors)
+        else if (!mode.silent_errors)
           std::cout << "error forcing edge" << std::endl;
       }
     }
@@ -649,7 +695,7 @@ namespace DELAUNAY
 
     data.mono_connex = (color == 2); // box-elts color + one color
 
-    if ((color > 2) && (_mode.remove_holes == true)) // detect eventual interior
+    if ((color > 2) && (mode.remove_holes == true)) // detect eventual interior
     {
       std::vector<K_FLD::IntArray> connects;
       connects.resize(color);
@@ -735,7 +781,7 @@ namespace DELAUNAY
 
     size_type Ni, nb_refine_nodes;
 
-    Refiner<MetricType> saturator(_metric, _mode.growth_ratio, _mode.nb_smooth_iter, _mode.symmetrize);
+    Refiner<MetricType> saturator(*_metric, mode.growth_ratio, mode.nb_smooth_iter, mode.symmetrize);
 
 #ifdef E_TIME
     chrono c;
@@ -785,14 +831,14 @@ namespace DELAUNAY
       nb_refine_nodes = refine_nodes.size();
       carry_on = (nb_refine_nodes != 0);
 
-      std::random_shuffle (ALL(refine_nodes));
+      std::shuffle (ALL(refine_nodes), _random.gen);
 
       _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
 
       for (size_type i = 0; (i < nb_refine_nodes) && !_err; ++i)
       {
         Ni = refine_nodes[i];
-        _err = _kernel->insertNode(Ni, _metric[Ni], contrained);
+        _err = _kernel->insertNode(Ni, (*_metric)[Ni], contrained);
         _tree->insert(Ni);
       }
 
@@ -1036,7 +1082,8 @@ namespace DELAUNAY
       // Choose randomly an intersecting edge.
 
       Xnb = (size_type)Xedges.size();
-      r   = std::rand() % Xnb;//fixme : not a good random...
+      r   = _random.rand() % Xnb;
+      //std::cout << "Mesher : rand : " << r << std::endl;
 
       int_pair_type& E = Xedges[r];
 
