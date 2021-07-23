@@ -222,7 +222,7 @@ void K_OCC::OCCSurface::dupBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connec
   K_FLD::IntArray& switcha, std::map< E_Int, E_Int >& mirror)
 {
   E_Int npts = pos3D.cols();
-  E_Int nelts = connectB.cols();
+  //E_Int nelts = connectB.cols();
   
   // Node2Elt
   E_Int ind0, ind1;
@@ -252,7 +252,7 @@ void K_OCC::OCCSurface::dupBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connec
       pos3D.pushBack(Pt, Pt+3);
       E_Int e0 = node2Elt[i][0];
       E_Int e1 = node2Elt[i][1];
-      E_Int e2 = node2Elt[i][2];
+      //E_Int e2 = node2Elt[i][2];
       E_Int imodif = 2;
       if (  (connectB2(0,e0) == connectB2(1,e1) && connectB2(1,e0) == connectB2(0,e1))
          || (connectB2(0,e0) == connectB2(0,e1) && connectB2(1,e0) == connectB2(1,e1)) )

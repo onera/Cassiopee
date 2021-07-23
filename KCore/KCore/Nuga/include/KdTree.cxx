@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __KCORE_SEARCH_KDTREE_CXX__
 #define __KCORE_SEARCH_KDTREE_CXX__
@@ -61,7 +61,7 @@ void K_SEARCH::KdTree<CoordArrayType>::clear()
   _dim       = _posAcc.stride();
   _pred.setAxis(0);
 
-  size_type none = IDX_NONE;
+  //size_type none = IDX_NONE;
   _tree.clear();
 }
 

@@ -242,13 +242,15 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     {
       unsigned int* d = (unsigned int*)depthl;
       for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)(d[i])/4294967295.; }
-    }    
+    } 
+    //glReadPixels(0, 0, _view.w, _view.h, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
+    
     double zNear = _view.nearD; 
     double zFar  = _view.farD;
     
-    // Reduce zNear and zFar
-    MPI_Allreduce(&zNear, &zNear, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-    MPI_Allreduce(&zFar, &zFar, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    // Reduce zNear and zFar - je crois qu'il ne faut pas finalement!
+    //MPI_Allreduce(&_view.nearD, &zNear, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    //MPI_Allreduce(&_view.farD, &zFar, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
     for (int i = 0; i < screenSize; i++)
     {
@@ -326,6 +328,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       unsigned int* d = (unsigned int*)depthl;
       for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)(d[i])/4294967295.; }
     }
+    //glReadPixels(0, 0, _view.w, _view.h, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
     
     double zNear = _view.nearD; 
     double zFar  = _view.farD;

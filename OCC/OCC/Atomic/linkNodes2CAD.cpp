@@ -208,7 +208,7 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
   std::set<E_Int> fPoints;
 
 // Unique points of the faces: 
-  for (E_Int f = 0; f < Flist.size(); ++f)
+  for (size_t f = 0; f < Flist.size(); ++f)
   {
     E_Int PGi = Flist[f];
     E_Int nb_nodes = ngi.PGs.stride(PGi);
@@ -276,7 +276,7 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
     
     E_Int k_size = 1;
     
-    bool bbtree = false; // Not needed?
+    //bool bbtree = false; // Not needed?
     
     
     if (phx[index] > 1e9){
@@ -426,7 +426,7 @@ PyObject* K_OCC::updateFcadidFromNcadid(PyObject* self, PyObject* args)
   E_Int* pFid = Fid->begin(1);
 
 // Update fcadid
-  for (E_Int f = 0; f < Flist.size(); ++f)
+  for (size_t f = 0; f < Flist.size(); ++f)
   {
     E_Int PGi = Flist[f];
     E_Int nb_nodes = ngi.PGs.stride(PGi);
@@ -502,7 +502,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
 // Update ncadid
   std::set<E_Int> fPoints;
 
- for (E_Int f = 0; f < Flist.size(); ++f)
+ for (size_t f = 0; f < Flist.size(); ++f)
   {
     E_Int PGi = Flist[f];
     E_Int nb_nodes = ngi.PGs.stride(PGi);
@@ -632,7 +632,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
 // array (nPoints of faces)
   std::set<E_Int> fPoints;
 // Unique points of the faces: 
-  for (E_Int f = 0; f < Flist.size(); ++f)
+  for (size_t f = 0; f < Flist.size(); ++f)
   {
     E_Int PGi = Flist[f];
     E_Int nb_nodes = ngi.PGs.stride(PGi);

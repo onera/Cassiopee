@@ -38,11 +38,13 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
   Data* d = Data::getInstance();
 
   // Finalize pour osmesa (delete le context)
-  if (finalizeType == 1 || finalizeType == 5 || finalizeType == 6 || finalizeType == 7)
+  if (finalizeType == 1 || finalizeType == 6 || finalizeType == 7)
   {
 #ifdef __MESA__
     free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
+    d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
     OSMesaDestroyContext(*(OSMesaContext*)(d->ptrState->ctx));
+    d->ptrState->ctx = NULL;
 #endif
     return Py_BuildValue("l", KSUCCESS);
   }

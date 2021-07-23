@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __T3_MESHER_H__
 #define __T3_MESHER_H__
@@ -52,7 +52,7 @@ E_Int
 T3Mesher<T>::run (MeshData& data)
 {
   typedef VarMetric<T>          MetricType;
-  typedef Mesher<T, MetricType> MesherType;
+  //typedef Mesher<T, MetricType> MesherType;
     
   typename MetricType::eInterpType interpol = (parent_t::mode.metric_interpol_type == parent_t::mode.LINEAR) ?
                                               MetricType::eInterpType::LINEAR : MetricType::eInterpType::GEOMETRIC;

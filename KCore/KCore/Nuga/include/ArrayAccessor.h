@@ -169,7 +169,7 @@ namespace K_FLD
     
   public:
     /// Constuctors
-    explicit ArrayAccessor():_arr(nullptr), stride(0){}
+    explicit ArrayAccessor():_arr(nullptr), _stride(0){}
 
     explicit ArrayAccessor(const array_type& arr, E_Int dummyshift = 0):_arr(&arr), _stride(arr.rows())
     {}

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __SURFACE_MESHER_H__
 #define __SURFACE_MESHER_H__
@@ -54,7 +54,7 @@ E_Int
 SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
 {
   typedef GeomMetric<Aniso2D, SurfaceType>  MetricType;
-  typedef Mesher<Aniso2D, MetricType>       MesherType;
+  //typedef Mesher<Aniso2D, MetricType>       MesherType;
 
   MetricType metric_aniso(*data.pos, data.surface, (typename MetricType::GMmode)mode.metric_mode,
                           mode.chordal_error, mode.hmin, mode.hmax, mode.growth_ratio);

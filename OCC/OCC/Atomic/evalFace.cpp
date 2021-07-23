@@ -70,7 +70,7 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   PyObject* o = NULL;
   if (ret == 1) o = K_ARRAY::buildArray2(3, "x,y,z", ni, nj, nk, 1);
   else o = K_ARRAY::buildArray2(3, "x,y,z", fi->getSize(), ci->getSize(), -1, eltType);
-  FldArrayF* fo; FldArrayI* co; E_Int npts;
+  FldArrayF* fo; FldArrayI* co;
   if (ret == 1) K_ARRAY::getFromArray2(o, fo);
   else 
   {
