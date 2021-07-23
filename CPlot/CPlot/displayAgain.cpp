@@ -175,7 +175,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   if (d->ptrState->ctx == NULL) 
   {
       d->ptrState->ctx = new OSMesaContext();
-      *d->ptrState->ctx= OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
+      *(OSMesaContext*)(d->ptrState->ctx) = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
   }
   OSMesaContext& ctx = *((OSMesaContext*)(d->ptrState->ctx));
   if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)

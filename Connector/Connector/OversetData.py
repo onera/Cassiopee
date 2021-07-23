@@ -669,7 +669,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                               method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
                               topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
 
-    # SP : pour l instant adaptForRANSLES est appele 2 fois : pour les ghost cells et pour le chimere
+    # SP : pour l'instant adaptForRANSLES est appele 2 fois : pour les ghost cells et pour le chimere
     # peut on ne le mettre qu ici ?
     #if storage=='inverse': _adaptForRANSLES__(aR, aD)
     return None
@@ -683,13 +683,12 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
     elif loc == 'centers': cellNPresent = C.isNamePresent(aR, 'centers:cellN')
-    else: 
-        raise ValueError("setInterpData: invalid loc provided.")
+    else: raise ValueError("setInterpData: invalid loc provided.")
     if cellNPresent == -1 or itype == 'abutting': return None
 
     locCellND = 'nodes'
 
-    # pour l enlever ensuite si addCellN le cree
+    # pour l'enlever ensuite si addCellN le cree
     dictIsCellNPresent={}
     for zd in Internal.getZones(aD):        
         dictIsCellNPresent[zd[0]]=C.isNamePresent(zd, 'cellN')
@@ -1129,8 +1128,7 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
     for zp in Internal.getZones(aR):
         zname = zp[0]
         zoneDimR = Internal.getZoneDim(zp)
-        if zoneDimR[0] == 'Unstructured':
-            continue
+        if zoneDimR[0] == 'Unstructured': continue
         else: # Structured
             dimPb = zoneDimR[4]
             rindnode = Internal.getNodeFromType1(zp, 'Rind_t')
@@ -1161,7 +1159,7 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
                         trirac[0] = transfo[1][0]
                         if dimPb != 1: trirac[1] = transfo[1][1]
                         if dimPb == 3: trirac[2] = transfo[1][2]
-                    Periodic = Internal.getNodeFromType2(join,'Periodic_t')
+                    Periodic = Internal.getNodeFromType2(join, 'Periodic_t')
                     RotationAngle=None; RotationCenter=None
                     if Periodic is not None:
                         RotationAngle = Internal.getNodeFromName1(Periodic,'RotationAngle')
@@ -1210,7 +1208,7 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
                             # definie par le prange dimensionnes dans le maillage ghost cells
                             shift = 0 # les indices sont ceux des pts en frontiere max GC
                             #arrayOfIndicesR = GhostCells.getBorderIndicesStruct__(prange,zoneDimR,dirR,0,locS,dimPb,shift)
-                            [arrayOfIndicesR, dim1, dim2]  = GhostCells.getBorderIndicesStruct__(prange,zoneDimR,dirR,0,locS,dimPb,shift)
+                            [arrayOfIndicesR, dim1, dim2] = GhostCells.getBorderIndicesStruct__(prange,zoneDimR,dirR,0,locS,dimPb,shift)
 
                             # listOfIndicesD : indices globaux des 1ers pts donneurs associes a ceux definis par
                             # arrayOfIndicesR
@@ -1253,7 +1251,7 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
                     else: depth = rinddnr[5]
 
                     res = connector.setInterpDataForGC(arrayOfIndicesR, listOfIndicesD, \
-                                                                     dimPb, locR, depth, incrR, incrD)
+                                                       dimPb, locR, depth, incrR, incrD)
                     # Stockage
                     prefix = 'ID_'
                     if RotationAngle is not None:
@@ -1324,7 +1322,7 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
                 else:
                     info[2].append(['FaceListExtC', pointlistdonorExtC , [], 'IndexArray_t'])
             info[2].append(['FaceDirection', EXDir, [], 'DataArray_t'])
-            info[2].append(['FaceInterpolantsDonor',interpCoef , [], 'DataArray_t'])
+            info[2].append(['FaceInterpolantsDonor', interpCoef , [], 'DataArray_t'])
             if interpVol.size > 0: info[2].append(['FaceInterpolantsVol',interpVol , [], 'DataArray_t'])
             info[2].append(['FaceInterpolantsType',interpType , [], 'DataArray_t'])
             if indicesOrphan.size>0: info[2].append(['OrphanFaceList',numpy.unique(indicesOrphan) , [], 'DataArray_t'])
