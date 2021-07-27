@@ -466,6 +466,9 @@ namespace K_POST
                       E_Float* xt, E_Float* yt, E_Float* zt,
                       E_Float* ux, E_Float* uy, E_Float* uz,
                       E_Float* rotx, E_Float* roty, E_Float* rotz);
+  E_Int computeCurlNGon(E_Float* xt, E_Float* yt, E_Float* zt, 
+                        E_Float* fxp, E_Float* fyp, E_Float* fzp, FldArrayI& cn,
+                        E_Float* curlx, E_Float* curly, E_Float* curlz);
 
   /* Convertit les noeuds en centres pour les array structures */
   E_Int node2centerStruct(FldArrayF& FNode,

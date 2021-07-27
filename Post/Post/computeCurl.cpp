@@ -169,31 +169,59 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
   }
   else // non structure
   {
-    if (strcmp(eltType, "TRI")   != 0 &&
-        strcmp(eltType, "QUAD")  != 0 &&
-        strcmp(eltType, "TETRA") != 0 &&
-        strcmp( eltType, "HEXA") != 0 &&
-        strcmp(eltType, "PENTA") != 0) 
+    if (strcmp(eltType,"NGON") == 0)
+    {
+      E_Int npts = f->getSize();
+      E_Int* cnp = cn->begin();
+      //E_Int nfaces = cnp[0]; // nombre total de faces
+      E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
+      E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
+      E_Int csize = cn->getSize();
+      tpl = K_ARRAY::buildArray(3, varStringOut, npts, nelts, -1, eltType, true, csize);
+      E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
+      FldArrayF fp(nelts, 3, fnp, true);
+      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
+      FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
+      E_Int err = computeCurlNGon(
+        f->begin(posx), f->begin(posy), f->begin(posz),
+        f->begin(posu), f->begin(posv), f->begin(posw), *cn, 
+        fp.begin(1), fp.begin(2), fp.begin(3));    
+
+      if (err == 1)
+      {
+        PyErr_SetString(PyExc_TypeError, 
+                        "computeCurl: curl can only be computed for 3D NGONs.");
+        RELEASESHAREDB(res,array,f,cn); return NULL;         
+      }      
+    }
+    else if (strcmp(eltType, "TRI") == 0 ||
+             strcmp(eltType, "QUAD")  == 0 ||
+             strcmp(eltType, "TETRA") == 0 ||
+             strcmp( eltType, "HEXA") == 0 ||
+             strcmp(eltType, "PENTA") == 0) 
+    {
+      E_Int npts = f->getSize();
+      tpl = K_ARRAY::buildArray(3, varStringOut, npts, cn->getSize(),-1,eltType,true,cn->getSize()*cn->getNfld());
+      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
+      K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
+      E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
+      E_Int nelts = cn->getSize();    
+      FldArrayF fp(nelts, 3, fnp, true);
+      
+      // calcul du rotationnel aux centres des elements
+      computeCurlNS(eltType, npts, *cn, 
+                    f->begin(posx), f->begin(posy), f->begin(posz),
+                    f->begin(posu), f->begin(posv), f->begin(posw),
+                    fp.begin(1), fp.begin(2), fp.begin(3));              
+    }
+    else
     {
       PyErr_SetString(PyExc_TypeError,
                       "computeCurl: not a valid element type.");
       RELEASESHAREDU(array,f, cn); return NULL;
-    }
-    
-    E_Int npts = f->getSize();
-    tpl = K_ARRAY::buildArray(3, varStringOut, npts, cn->getSize(), -1, eltType, true, cn->getSize()*cn->getNfld());
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    E_Int nelts = cn->getSize();    
-    FldArrayF fp(nelts, 3, fnp, true);
+    }    
+  }
   
-    // calcul du rotationnel aux centres des elements
-    computeCurlNS(eltType, npts, *cn, 
-                  f->begin(posx), f->begin(posy), f->begin(posz),
-                  f->begin(posu), f->begin(posv), f->begin(posw),
-                  fp.begin(1), fp.begin(2), fp.begin(3));              
-  } 
   RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
   return tpl;
@@ -312,4 +340,139 @@ E_Int K_POST::computeCurlNS(char* eltType, E_Int npts, FldArrayI& cn,
                      rotx, roty, rotz);
   }
   return 1;
+}
+//==============================================================================
+E_Int K_POST::computeCurlNGon(E_Float* xt, E_Float* yt, E_Float* zt, 
+                              E_Float* fxp, E_Float* fyp, E_Float* fzp, FldArrayI& cn,
+                              E_Float* curlx, E_Float* curly, E_Float* curlz)
+{
+  E_Int* cnp = cn.begin();
+  // Donnees liees a la connectivite
+  E_Int nfaces = cnp[0]; // nombre total de faces
+  E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
+  E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
+  E_Int* cEFp = cnp+4+sizeFN;// debut connectivite Elmt/Faces
+
+  // calcul de la metrique
+  E_Float* sxp = new E_Float [3*nfaces];
+  E_Float* syp = new E_Float [3*nfaces];
+  E_Float* szp = new E_Float [3*nfaces];
+  E_Float* snp = new E_Float [nfaces];
+  FldArrayI* cFE = new FldArrayI();
+  K_CONNECT::connectNG2FE(cn, *cFE);
+  K_METRIC::compNGonFacesSurf(xt, yt, zt, cn, sxp, syp, szp, snp, cFE);
+  delete cFE;
+  E_Float* volp = new E_Float [nelts];
+  K_METRIC::CompNGonVol(xt, yt, zt, cn, volp); 
+  // Connectivite Element/Noeuds
+  vector< vector<E_Int> > cnEV(nelts);
+  K_CONNECT::connectNG2EV(cn, cnEV); //deja calculee dans NGONVol
+
+  // sommets associes a l'element
+  vector<E_Int> vertices;
+
+  FldArrayI posFace(nfaces); // tableau de position des faces dans la connectivite
+  K_CONNECT::getPosFaces(cn, posFace);
+
+  E_Float fxpmeanface, fypmeanface, fzpmeanface, invvol;
+  E_Int dim, ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace, pos;
+  E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
+  E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
+  E_Float  sens, sx, sy, sz;
+  FldArrayI dimElt(nelts); // tableau de la dimension des elements
+  K_CONNECT::getDimElts(cn, posFace, dimElt);
+
+  // parcours des elements
+  for (E_Int et = 0; et < nelts; et++)
+  { 
+    dim = dimElt[et]; // dimension de l'element
+    switch (dim) 
+    {
+      case 1: // NGon 1D
+        printf("computCurl: not valid for 1D NGONs\n");
+        delete [] volp;
+        delete [] sxp; 
+        delete [] syp;
+        delete [] szp;
+        delete [] snp;
+        return 1;     
+
+      case 2: // NGon 2D
+        printf("computeCurl: not valid for 2D NGONs\n");
+        delete [] volp;
+        delete [] sxp; 
+        delete [] syp;
+        delete [] szp;
+        delete [] snp;
+        return 1;
+
+      case 3:
+        invvol = -1./volp[et];
+        curlx[et] = 0.; curly[et] = 0.; curlz[et] = 0.;
+        
+        // calcul du barycentre be (xbe, ybe, zbe) de l'element
+        vertices = cnEV[et];
+        nbNodes = vertices.size();
+        xbe = 0.; ybe = 0.; zbe = 0.;
+        for (E_Int n = 0; n < nbNodes; n++)
+        {
+          ind = vertices[n]-1;
+          xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+        }
+        xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
+
+        // parcours des faces de l element et
+        nbFaces = cEFp[0]; 
+        for (E_Int fa = 0; fa < nbFaces; fa++)
+        {
+          noface = cEFp[fa+1]-1;
+          pos = posFace[noface];
+          nbNodesPerFace = cnp[pos]; pos++;
+          //valeur moyenne de fp pour la face
+          fxpmeanface = 0.;fypmeanface = 0.;fzpmeanface = 0.;
+          // calcul du barycentre bf (xbf, ybf, zbf) de la face
+          xbf = 0.; ybf = 0.; zbf = 0.;
+          for (E_Int n = 0; n < nbNodesPerFace; n++)
+          {
+            indnode = cnp[pos+n]-1;
+            xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
+            fxpmeanface += fxp[indnode];
+            fypmeanface += fyp[indnode];
+            fzpmeanface += fzp[indnode];
+          }
+          xbf = xbf/nbNodesPerFace; ybf = ybf/nbNodesPerFace; zbf = zbf/nbNodesPerFace;            
+          fxpmeanface = fxpmeanface/nbNodesPerFace;           
+          fypmeanface = fypmeanface/nbNodesPerFace;           
+          fzpmeanface = fzpmeanface/nbNodesPerFace;           
+
+          // bilan
+          // verification du sens de la normale. Celle-ci doit etre exterieure
+          sx = sxp[noface]; sy = syp[noface]; sz = szp[noface];
+          sens = (xbe-xbf)*sx + (ybe-ybf)*sy + (zbe-zbf)*sz;
+          if (sens > 0.) {sx=-sx; sy=-sy; sz=-sz;}
+          curlx[et] += fypmeanface*sz - fzpmeanface*sy;
+          curly[et] += fzpmeanface*sx - fxpmeanface*sz;
+          curlz[et] += fxpmeanface*sy - fypmeanface*sx;
+        }
+        cEFp += nbFaces+1;
+        curlx[et] *= invvol;
+        curly[et] *= invvol;
+        curlz[et] *= invvol;
+        break;
+        
+      default: 
+        delete [] volp;
+        delete [] sxp; 
+        delete [] syp;
+        delete [] szp;
+        delete [] snp;
+        return 1;
+    }
+  }
+  delete [] volp;
+  delete [] sxp; 
+  delete [] syp;
+  delete [] szp;
+  delete [] snp;
+  return 0;
 }
