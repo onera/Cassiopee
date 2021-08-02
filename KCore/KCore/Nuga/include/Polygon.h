@@ -894,7 +894,8 @@ bool Polygon::intersect
   E_Float tol, E_Bool tol_is_absolute, E_Float& u0, E_Float& u1, E_Bool& overlap)
 {
   TriangulatorType dt;
-  this->triangulate(dt, crd);
+  E_Int err = this->triangulate(dt, crd);
+  if (err) return false;//fixme
   E_Int ntris = nb_tris();
 
   E_Int T[3];
@@ -1109,6 +1110,8 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
 
     E_Float det = NUGA::zzdet4(acrd.col(eim1), acrd.col(ei), acrd.col(eip1), Z);
 
+    det /= (NUGA::normalize<3>(Ei)*NUGA::normalize<3>(Ej)); //normalization to really have a angular-based test.
+
     if (det < det_min)
     {
       //std::cout << "det val : " << det << std::endl;
@@ -1116,8 +1119,6 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
       iworst = i%nb_nodes;
       det_min = det;
     }
-    
-    det /= (NUGA::normalize<3>(Ei)*NUGA::normalize<3>(Ej)); //normalization to really have a angular-based test.
     
     if (det > det_max)
     {

@@ -162,8 +162,28 @@ namespace NUGA
       
       // go to a triangle view 
       DELAUNAY::Triangulator dt;
-      subj.triangulate(dt, acrd1.array());
-      cutter.triangulate(dt, acrd2.array());
+      err = subj.triangulate(dt, acrd1.array());
+      if (err) 
+      {
+#ifdef DEBUG_CLIPPER
+        std::cout << "ph_clipper::isolated_clip : error triangulating subject" << std::endl;
+        return err;
+#endif
+      }
+
+      err = cutter.triangulate(dt, acrd2.array());
+      if (err) 
+      {
+#ifdef DEBUG_CLIPPER
+        std::cout << "ph_clipper::isolated_clip : error triangulating cutter" << std::endl;
+        /*
+        E_Int faultyPG = err-1;
+        std::vector<E_Int> toprocess;
+        toprocess.push_back(faultyPG);
+        medith::write("errorPG18", cutter.m_crd, cutter.m_pgs, &toprocess);*/
+        return err;
+#endif
+      }
 
       std::vector<E_Int> ancPG1, ancPG2;
       subj.get_triangle_oids(ancPG1);
@@ -195,12 +215,21 @@ namespace NUGA
       for (E_Int i=0; i < nb_tris2; ++i)
       {
         cutter.triangle(i, T); //watchme : base ?
+ 
+        assert (ancPG2[i] < cutter.m_pgs.size());
 
         //normals
+        //std::cout << "coord sz for cutter : " << acrd2.array().cols() << std::endl;
+        //std::cout << "triangle " << i << " : " << T[0] << "/" << T[1] << "/" << T[2] << std::endl;
+        assert (T[0] < acrd2.array().cols());
+        assert (T[1] < acrd2.array().cols());
+        assert (T[2] < acrd2.array().cols());
         K_MESH::Triangle::normal(acrd2.array(), T, nT3);
         E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
         if (::fabs(l2 - 1.) >= EPSILON) // DEGEN
           K_MESH::Polygon::normal<acrd_t, 3>(acrd2, cutter.m_pgs.get_facets_ptr(ancPG2[i]), cutter.m_pgs.stride(ancPG2[i]), 1, nT3);
+
+        assert ((i + nb_tris1) < normalsT3.cols());
         normalsT3(0, i + nb_tris1) = nT3[0];
         normalsT3(1, i + nb_tris1) = nT3[1];
         normalsT3(2, i + nb_tris1) = nT3[2];
@@ -224,9 +253,9 @@ namespace NUGA
       //medith::write("triangles.mesh", crd, cT3, "TRI");
 #ifdef DEBUG_CLIPPER
       if (dbg){
-        medith::write("triangles.mesh", crd, cT3, "TRI");
-        std::cout << crd << std::endl;
-        std::cout << cT3 << std::endl;
+        medith::write("triangles", crd, cT3, "TRI");
+        //std::cout << crd << std::endl;
+        //std::cout << cT3 << std::endl;
       }
 #endif
 
@@ -255,7 +284,12 @@ namespace NUGA
 //      std::cout << "iso : 9" << std::endl;
       err = conformizer.run(crd, cT3, ancT3, nullptr/*&priority*/, abstol, nb_tris1, 1 /*one iter only*/);
       if (err)
+      {
+#ifdef DEBUG_CLIPPER
+        std::cout << "ph_clipper::isolated_clip : error conformizer" << std::endl;
+#endif
         return err;
+      }
 
       if (cT3.cols() == nb_tris0) return 0 ;// no intersections => fully visible or hidden
 
@@ -359,7 +393,7 @@ namespace NUGA
 #ifdef DEBUG_CLIPPER
       if (dbg){
         K_CONNECT::IdTool::compress(ancT3, pred);
-        medith::write("reduced.mesh", crd, cT3, "TRI", 0, &ancT3);
+        medith::write("reduced", crd, cT3, "TRI", 0, &ancT3);
       }
 #endif
     
@@ -412,6 +446,7 @@ namespace NUGA
           if (*(pS+(i0+1)%3) == E1) // the side to consider is the opposite
             reversed[j]=true;
           
+          assert(Kj > -1 && Kj < normalsT3.cols());
           E_Float normj[] = {normalsT3(0, Kj), normalsT3(1, Kj), normalsT3(2,Kj)};
           
           if (reversed[j])
@@ -421,12 +456,13 @@ namespace NUGA
             normj[2] = -normj[2]; 
           }
           
+          assert(K0 > -1 && K0 < normalsT3.cols());
           E_Float q = NUGA::angle_measure(normalsT3.col(K0), normj, crd.col(E0), crd.col(E1));
           if (q == ERRORVAL)
           {
 #if defined (DEBUG_CLIPPER)
-            //std::cout << "ERROR at edge E0E1 : " << E0 << "/" << E1 << std::endl;
-            //std::cout << "The conformizer missed some intersections there." << std::endl;
+            std::cout << "ph_clipper::isolated_clip : ERROR at edge E0E1 : " << E0 << "/" << E1 << std::endl;
+            std::cout << "ph_clipper::isolated_clip : The conformizer missed some intersections there." << std::endl;
 #endif
             err = 1;
             break;

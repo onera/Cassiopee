@@ -67,6 +67,17 @@ namespace NUGA
           vcur += bits[b].extent();
 
         xcelln[i] = vcur / v0;
+
+#ifdef DEBUG_XCELLN
+        if (xcelln[i] >= 1.1)
+        {
+          std::cout << "valeur bizarre pour : " << i << std::endl;
+          std::cout << "v0 : " << v0 << std::endl;
+          std::cout << "vcur : " << vcur << std::endl;
+          std::ostringstream o; o << "bizarre_" << i;
+          medith::write(o.str().c_str(), z_mesh.crd, z_mesh.cnt, i);
+        }
+#endif
         assert(xcelln[i] < 1.1);
         xcelln[i] = std::min(1., xcelln[i]);
       }

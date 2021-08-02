@@ -378,6 +378,10 @@ namespace NUGA
 
       if (err || !true_clip)
       {
+#ifdef DEBUG_CLIPPER
+        if (err) std::cout << "error clipping => just IO test" << std::endl;
+        else if (!true_clip) std::cout << "singular config (contact..) => just IO test" << std::endl;
+#endif
         bits.clear();
         return false; // to classify with a I/O test (even in case of error => roughly good approx)
       }

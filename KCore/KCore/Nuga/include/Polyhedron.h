@@ -1655,8 +1655,16 @@ public:
       
       err = K_MESH::Polygon::triangulate_inplace(dt, crd, &lpgs[0], stride, 0/*index start*/, pstart, true/*do_not_shuffle*/, false/*improve_quality*/);
       if (err) return err;
-      E_Int pgntris = stride - 2;
-      for (E_Int k=0; k < pgntris * 3; ++k, ++pstart) *pstart = oids[*pstart]; //get back to global but starting at 0
+
+      E_Int pgntris = stride - 2;//fixme : assume delaunay
+      
+      for (E_Int k=0; k < pgntris * 3; ++k, ++pstart)
+      {
+
+        assert (*pstart < oids.size()) ;
+        *pstart = oids[*pstart]; //get back to global but 0-based
+        assert (*pstart < crdi.cols()) ;
+      }
     }
     
     return err;
@@ -1723,6 +1731,7 @@ public:
   inline void triangle(E_Int i, E_Int* target) const 
   {
     assert (_triangles != nullptr);
+    assert (i < nb_tris());
     const E_Int* p = &_triangles[i*3];
     target[0] = *(p++);
     target[1] = *(p++);

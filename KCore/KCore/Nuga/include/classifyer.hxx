@@ -38,7 +38,7 @@ namespace NUGA
     using wdata_t = std::vector<double>;
     using outdata_t = std::vector<double>;
   
-    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im, E_Int val) { data[i] = val; } // minus to mark as new X for __flag_hidden_subzones
+    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im, E_Int val) { assert (i < data.size()); data[i] = val; } // minus to mark as new X for __flag_hidden_subzones
   };
 
   struct color_t
@@ -71,6 +71,7 @@ namespace NUGA
     static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im, E_Int val)
     {
       // minus to mark as new X for __flag_hidden_subzones
+      assert (i < data.size());
       data[i].val = val;
       data[i].masks.push_back(im);
     }
@@ -238,6 +239,9 @@ namespace NUGA
     eClassify classify(NUGA::aPolyhedron<0> const& ae1, pg_smesh_t const& front, bool deep)
     {
       const double* ae1G = ae1.get_centroid();
+      E_Int nfronts = front.ncells();
+
+      assert (nfronts);
 
       E_Int sign(0);
       NUGA::random rando;
@@ -254,10 +258,10 @@ namespace NUGA
         assert(::fabs(l2 - 1.) < EPSILON); // NOT DEGEN
 #endif
 
-        E_Float ptG[3];
-        NUGA::diff<3>(ci, ae1G, ptG);
+        E_Float ray[3];
+        NUGA::diff<3>(ci, ae1G, ray);
 
-        double psi = NUGA::dot<3>(fni, ptG);
+        double psi = NUGA::dot<3>(fni, ray);
         E_Int sigpsi = zSIGN(psi, EPSILON);
 
         if (sigpsi == 0) //AMBIGUOUS
@@ -278,27 +282,49 @@ namespace NUGA
       {
         if (!deep) return AMBIGUOUS;
 
-        // pick randomly a front face, for the ray(GC) from its centroid to the centroid of ae1
-        unsigned int k = rando.rand() % front.ncells();
-        K_MESH::Polygon PGi(front.cnt, k);
+        // pick a front face, in a REGULAR position for the ray(GC) : from the centroid G of ae1 to face centroid C
+        double ray[3], C[3];
+        E_Int k{0};
+        for (; (k < front.ncells()) && (sign == 0.); ++k)
+        {
+          K_MESH::Polygon PGk(front.cnt, k);
 
-        double C[3];
-        K_MESH::Polygon::centroid<3>(front.crd, PGi.begin(), PGi.nb_nodes(), front.index_start, C);
+          double n[3];
+          K_MESH::Polygon::centroid<3>(front.crd, PGk.begin(), PGk.nb_nodes(), front.index_start, C);
+          K_MESH::Polygon::normal<K_FLD::FloatArray, 3>(front.crd, PGk.begin(), PGk.nb_nodes(), front.index_start, n);
+          
+          NUGA::diff<3>(C, ae1G, ray);
+          double ps = NUGA::dot<3>(ray, n);
 
-        // get the visible face 
-        double lambda_min(NUGA::FLOAT_MAX);
+          sign = zSIGN(ps, EPSILON); // >0 means under
+        }
+
+        assert (k != IDX_NONE); 
+        double lambda_min(1.);
+
+        // seek for closest-to-ae1G PG crossing the ray
         for (E_Int j = 0; j < front.ncells(); ++j)
         {
+          if (j == k) continue;
+
           K_MESH::Polygon PGj(front.cnt, j);
 
           double lambda(NUGA::FLOAT_MAX), u1;
           E_Bool overlap;
           bool isx = PGj.intersect<DELAUNAY::Triangulator>(front.crd, ae1G, C, EPSILON, true, lambda, u1, overlap);
 
+          /*{
+            std::ostringstream o;
+            o << "PG_j_" << j;
+            std::vector<E_Int> cont;
+            cont.push_back(j);
+            medith::write(o.str().c_str(), front.crd, front.cnt, &cont, 0);
+          }*/
+
           if (isx && lambda < lambda_min)
           {
             // is G above or under the plane ?
-            double nj[3], ray[3];
+            double nj[3];
             PGj.normal<K_FLD::FloatArray, 3>(front.crd, nj);
 
 #ifdef CLASSIFYER_DBG
@@ -480,7 +506,7 @@ namespace NUGA
         __flag_hidden_subzones(z_mesh, WNP, wdata, X, 2);// if there are at least 2 zones => mark as IN the hidden ones.
     }
 
-    // rearrange by decreasing mask box size (because a bigger mask potentially hides mor cells) 
+    // rearrange by decreasing mask box size (because a bigger mask potentially hides more cells) 
     STACK_ARRAY(int, nbits, maskidx);
     std::vector<std::pair<double, int>> palma;
 
@@ -733,6 +759,15 @@ namespace NUGA
       std::vector<bool> is_dw;
       NUGA::move_double_walls(bit, zbound, ARTOL, mtype, AMAX, mask_wall_ids[compi], is_dw);
 
+#ifdef CLASSIFYER_DBG
+      {
+        //std::cout << "ouput mask_1_ " << i << std::endl;
+        std::ostringstream o;
+        o << "mask_1_" << i;
+        medith::write<>(o.str().c_str(), bit->crd, bit->cnt);
+      }
+#endif
+
       //
       bound_mesh_t OVLP, WALL(*bit);
       
@@ -783,6 +818,14 @@ namespace NUGA
         {
           WALL.reverse_orient();
           WP.append(WALL);
+#ifdef CLASSIFYER_DBG
+          {
+            //std::cout << "ouput mask_1_ " << i << std::endl;
+            std::ostringstream o;
+            o << "wp_" << i;
+            //medith::write<>(o.str().c_str(), WALL.crd, WALL.cnt);
+          }
+#endif
         }
       }
 
@@ -804,7 +847,7 @@ namespace NUGA
       {
         //std::cout << "ouput mask_1_ " << i << std::endl;
         std::ostringstream o;
-        o << "mask_1_" << i;
+        o << "mask_2_" << i;
         medith::write<>(o.str().c_str(), bit->crd, bit->cnt);
       }
 #endif

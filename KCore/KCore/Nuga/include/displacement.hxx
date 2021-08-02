@@ -719,6 +719,54 @@ namespace NUGA
       }
     }
 
+    // reset degenerating displacements : fixme : use neighborhood instead of looping on the whole mesh
+    {
+      bool carry_on = true;
+      E_Int iter{0}, itermax{10};
+      while (carry_on)
+      {
+#ifdef DISPLACEMENT_DBG
+        std::cout << "reseting iter : " << iter << std::endl;
+#endif
+        DELAUNAY::Triangulator dt;
+        K_FLD::FloatArray crd = bit->crd;
+        E_Int bad{0};
+
+        // move singular nodes
+        for (size_t i = 0; i < all_nodes_disp.size(); ++i)
+        {
+          if (all_nodes_disp[i].val2 == FLOAT_MAX) continue;
+
+          E_Float * Pi = crd.col(i);
+          NUGA::sum<3>(1., Pi, ::sqrt(all_nodes_disp[i].val2), all_nodes_disp[i].vec, Pi);
+        }
+
+        std::vector<bool> validpt(crd.cols(), true);
+        for (E_Int i=0; i < bit->ncells(); ++i)
+        {
+          auto elt = bit->element(i);
+          //std::cout << "triangulating" << std::endl;
+          E_Int err = elt.triangulate(dt, crd);
+          if (err)
+          {
+#ifdef DISPLACEMENT_DBG
+            std::cout << "error for face : " << i << " : need to unmove" << std::endl;
+#endif
+            ++bad;
+            for (size_t n = 0; n < elt.nb_nodes(); ++n)
+            {
+              E_Int Ni = elt.node(n);
+              assert (Ni > -1 && Ni < all_nodes_disp.size());
+              //std::cout << "disabling node : " << Ni << std::endl;
+              all_nodes_disp[Ni].val2 = FLOAT_MAX;
+            }
+          }
+        }
+
+        carry_on = (bad > 0) && (iter++ < itermax);
+      }
+    }
+
     // move singular nodes
     for (size_t i = 0; i < all_nodes_disp.size(); ++i)
     {
