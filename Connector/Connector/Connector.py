@@ -180,16 +180,16 @@ def _setHoleInterpolatedPoints(cellN, depth=2, dir=0, cellNName='cellN'):
     
     if loc == 'nodes':
         if depth < 0:
-            Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+            Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
             _getOversetHolesInterpNodes__(cellN, -depth, dir, cellNName)
-            Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+            Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
         else: 
             _getOversetHolesInterpNodes__(cellN, depth, dir, cellNName)
     else: # non structure avec champ celln en centres
         if depth < 0:
-            Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+            Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
             _getOversetHolesInterpCellCenters__(cellN, -depth, dir, cellNName)
-            Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+            Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
         else: 
             _getOversetHolesInterpCellCenters__(cellN, depth, dir, cellNName)
     return None
@@ -205,18 +205,18 @@ def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN'):
     if loc == 'nodes':
         if depth < 0:
             celln = Converter.initVars(celln, 
-                                       '{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+                                       '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
             celln = getOversetHolesInterpNodes__(celln, -depth, dir, cellNName)
             celln = Converter.initVars(celln, 
-                                       '{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+                                       '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
         else: celln = getOversetHolesInterpNodes__(celln, depth, dir, cellNName)
     else: # non structure avec champ celln en centres
         if depth < 0:
             celln = Converter.initVars(celln, 
-                                       '{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+                                       '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
             celln = getOversetHolesInterpCellCenters__(celln, -depth, dir, cellNName)
             celln = Converter.initVars(celln, 
-                                       '{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+                                       '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
         else: celln = getOversetHolesInterpCellCenters__(celln, depth, dir, cellNName)
     return celln
 
