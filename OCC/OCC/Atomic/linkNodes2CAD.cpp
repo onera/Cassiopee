@@ -111,18 +111,6 @@ std::vector<int> getFacesVector (PyObject* arrf){
   return Flist;
 }
 
-gp_Pnt2d FaceParameters(const TopoDS_Face &face,const gp_Pnt &pt)
-{
-  // get face as surface
-  const Handle(Geom_Surface) &surface = BRep_Tool::Surface(face);
-  // create shape analysis object
-  ShapeAnalysis_Surface sas(surface);
-  // get UV of point on surface
-  gp_Pnt2d uv = sas.ValueOfUV(pt, 0.01);
-  // return parameters of point on face
-  return uv;
-}
-
 
 // ============================================================================
 
@@ -256,33 +244,14 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
   
   gp_Pnt Point;
   E_Float dx,dy,dz,d;
-  
-  E_Int nb_pro = 0; 
-  E_Int nb_point_pro = 0;
-   
-  E_Int nb_point_i1 = 0; 
-  E_Int nb_point_i2 = 0;
-  E_Int nb_point_i3 = 0;
-  
-  E_Int nb_pro_i1 = 0;
-  E_Int nb_pro_i2 = 0;
-  
-  chrono::steady_clock sc;
-  auto start = sc.now();
-  
 
   for (auto index : fPoints)
   {
-    
+
     E_Int k_size = 1;
-    
-    //bool bbtree = false; // Not needed?
-    
-    
+
     if (phx[index] > 1e9){
-        
-        nb_point_pro += 1; 
-        
+            
         
         // BBtree : andidate faces for point i
         Vector_t<E_Int> captured_boxes;
@@ -295,20 +264,8 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
           tree.getOverlappingBoxes(pA, pA, captured_boxes);
 
           k_size = (captured_boxes.size() != 0) ? captured_boxes.size() : nfaces;
-          //bbtree = true;
         }
         
-        if(pncad[index] == -1){
-            nb_point_i1 += 1; 
-            nb_pro_i1 += k_size;
-        }
-            
-        if(pncad[index] != -1){
-            nb_point_i2 += 1; 
-            nb_pro_i2 += k_size;
-        }
-        
-        nb_pro += k_size;
      
         // Projection on candidate faces
         for (E_Int k = 0; k < k_size; k++)
@@ -362,18 +319,8 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
           }
         }
     }
-    else nb_point_i3 += 1;
   }
-  auto end = sc.now(); 
-  auto time_span = static_cast<chrono::duration<double>>(end - start);
-  /*cout<<"Proyections took: "<<time_span.count()<<" seconds ! \n";
-  
-  printf("Nombre de points dans BC : %i \n", fPoints.size());
-  printf("Nombre de projections  : %i \n", nb_pro);
-  
-  printf("  nb_point_i1: %i , nb_pro_i1: %i \n", nb_point_i1, nb_pro_i1);
-  printf("  nb_point_i2: %i , nb_pro_i2: %i \n", nb_point_i2, nb_pro_i2);
-  printf("  nb_point_i3: %i \n", nb_point_i3);*/
+
 
   delete [] ptx; delete [] pty; delete [] ptz;
   boxes.clear();
@@ -442,11 +389,11 @@ PyObject* K_OCC::updateFcadidFromNcadid(PyObject* self, PyObject* args)
       E_Int nCADid = pncad[Ni];
       if ( n == 0 ) nCADid_0 = nCADid;
       if ( nCADid != nCADid_0 ) same_ncadid = false;
-      //printf("              n: %i,  Ni: %2i,  CADid(NI): %i\n",n, Ni, nCADid);
     }
     
     if ( same_ncadid ) pFid[Flist[f]] = nCADid_0;
-    //printf("              Face: %2i, id: %f \n", PGi, pFid[f]);
+    else pFid[Flist[f]] = -1;
+
   }
  
   
@@ -470,6 +417,17 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
   arr = PyList_GetItem(arr, 0);
   ncad = PyList_GetItem(ncad, 0);
 
+// array with coordinates
+  char* varStringA;  char* eltTypeA;
+  FldArrayF* fi; E_Int ni, nj, nk;
+  FldArrayI* c;
+  E_Int ret = K_ARRAY::getFromArray2(arr, varStringA, fi, ni, nj, nk, c, eltTypeA);
+  if (ret != 1 && ret != 2) return 0;
+  
+  E_Float* px = fi->begin(1); // fix
+  E_Float* py = fi->begin(2);
+  E_Float* pz = fi->begin(3);
+  
 // array (mesh)
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -735,17 +693,17 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
           if(pncad[index] != -1 && k_size == 1 && pu[index] < 1e99)
               UV.SetCoord(pu[index], pv[index]);
           else 
-              UV = allsas[j]->ValueOfUV(PointA, -1); 
+              UV = allsas[j]->ValueOfUV(PointA, 0); 
 
 
-        // Get distnaces
+        // Get distances
           gp_Pnt PointAeva = allsas[j]->Value(UV);
 
           dx = PointAeva.X() - PointA.X();
           dy = PointAeva.Y() - PointA.Y();
           dz = PointAeva.Z() - PointA.Z();
           d = dx*dx+dy*dy+dz*dz;
-          
+      
         
         // Keep the closest result
           if (d < dist[index])
@@ -761,7 +719,6 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
     }
   }
 
-  
   
   for (E_Int j=0; j < nfaces; j++) delete allsas[j];
   boxes.clear();

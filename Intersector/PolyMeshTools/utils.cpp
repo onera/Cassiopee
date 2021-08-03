@@ -1176,8 +1176,8 @@ PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject
   ngon_unit neighborsi;
   ngi.build_ph_neighborhood(neighborsi);
 
-  Vector_t<E_Float> aspect_ratio;
-  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., aspect_ratio);
+  Vector_t<E_Float> growth_ratio;
+  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., growth_ratio);
 
   E_Int ivolmin,igrmin;
   E_Float volmin{NUGA::FLOAT_MAX}, grmin{NUGA::FLOAT_MAX};
@@ -1191,11 +1191,11 @@ PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject
     }
   }
 
-  for (size_t i=0; i < aspect_ratio.size(); ++i)
+  for (size_t i=0; i < growth_ratio.size(); ++i)
   {
-    if (aspect_ratio[i] < grmin)
+    if (growth_ratio[i] < grmin)
     {
-      grmin = aspect_ratio[i];
+      grmin = growth_ratio[i];
       igrmin = i;
     }
   }
@@ -1316,14 +1316,14 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
   ngon_unit neighborsi;
   ngi.build_ph_neighborhood(neighborsi);
 
-  Vector_t<E_Float> aspect_ratio;
-  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., aspect_ratio);
+  Vector_t<E_Float> growth_ratio;
+  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., growth_ratio);
 
   std::vector<bool> keep(nphs, false);
   E_Int badcount=0;
   for (size_t i=0; i < nphs; ++i)
   {
-    if ( (aspect_ratio[i] < aratio) || (vols[i] < vmin) ) {
+    if ( (growth_ratio[i] < aratio) || (vols[i] < vmin) ) {
       ++badcount;
       keep[i]=true;
     }
@@ -1672,14 +1672,14 @@ PyObject* K_INTERSECTOR::computeGrowthRatio(PyObject* self, PyObject* args)
   ngon_type::volumes<DELAUNAY::Triangulator>(crd, ngi, vols, false/*not all cvx*/, false/* ! new algo*/);
 
 
-  Vector_t<E_Float> aspect_ratio;
-  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, vmin, aspect_ratio);
+  Vector_t<E_Float> growth_ratio;
+  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, vmin, growth_ratio);
   
-  size_t sz = aspect_ratio.size();
+  size_t sz = growth_ratio.size();
   FloatArray ar(1, sz);
-  for (size_t i = 0; i < sz; ++i) ar[i] = aspect_ratio[i];
+  for (size_t i = 0; i < sz; ++i) ar[i] = growth_ratio[i];
 
-  PyObject* tpl = K_ARRAY::buildArray(ar, "aspect_ratio", *cn, -1, "NGON", true);
+  PyObject* tpl = K_ARRAY::buildArray(ar, "growth_ratio", *cn, -1, "NGON", true);
   
   delete f; delete cn;
   return tpl;
@@ -3795,10 +3795,12 @@ PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
   if (err) return NULL;
 
   E_Int res=0;
-  E_Int* ids=NULL;
+  E_Int* ids{nullptr};
   E_Int size, nfld;
   if (arr2 != Py_None)
     res = K_NUMPY::getFromNumpyArray(arr2, ids, size, nfld, true/*shared*/, 0);
+
+    if (ids == nullptr) return NULL;
 
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;
@@ -3823,16 +3825,44 @@ PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
     for (size_t i=0; i < size; ++i) keep[ids[i]]=true;
   }
 
-  Vector_t<E_Int> nids;
-  ngon_type::select_phs(ng, keep, nids, ngo);
+  std::vector<E_Int> oids;
+  ngo.PGs = ng.PGs;
+  for (size_t i=0; i < keep.size(); ++i)
+  {
+    if (keep[i] == false) continue;
+    ngo.PHs.add(ng.PHs.stride(i), ng.PHs.get_facets_ptr(i));
+    oids.push_back(i+1);
+  }
+
+  ngo.PHs.updateFacets();
+  std::vector<E_Int> pgnids, phnids;
+  ngo.remove_unreferenced_pgs(pgnids, phnids);
 
   K_FLD::IntArray cnto;
   ngo.export_to_array(cnto);
+
+  PyObject *l(PyList_New(0));
   
   PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
 
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+
+  //std::cout << "oids sz : ?" << oids.size() << std::endl;
+  //std::cout << "ng PHs sz : ?" << ngo.PHs.size() << std::endl;
+  
+  FloatArray foids(1, oids.size());
+  for (size_t i = 0; i < oids.size(); ++i) foids[i] = oids[i];
+
+  //tpl = K_ARRAY::buildArray(foids, "oid", *cn, -1, "NGON*", true);
+  tpl = K_ARRAY::buildArray(foids, "oid", cnto, -1, "NGON", false);
+ 
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
   delete f; delete cn;
-  return tpl;
+  return l;
 
 }
 

@@ -2547,11 +2547,23 @@ def getCells(t1, ids, are_face_ids = True):
    zones1 = Internal.getZones(t1)
    cells = []
 
+   if len(ids) != len(zones1):
+      print('getCells Input error : specified ids list must be sized as nb of zones')
+      return None
+
    i=-1
    for z in zones1:
     i+=1
     m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    cells .append(C.convertArrays2ZoneNode('cell%s'%i, [XOR.getCells(m, ids[i], are_face_ids)]))
+    res = XOR.getCells(m, ids[i], are_face_ids)
+    narr = res[0] # mesh
+    oids = res[1] # old cell ids
+    #print(narr)
+    #print(oids)
+    newz = C.convertArrays2ZoneNode('cell%s'%i,[narr])
+    C.setFields([oids], newz, 'centers', False)
+
+    cells .append(newz)
 
    return cells
 

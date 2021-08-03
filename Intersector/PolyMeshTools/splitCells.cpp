@@ -999,29 +999,31 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
 
 ///////////////////////////////////////////////////////////////////////////////
 //============================================================================
-/* getGreenParents */
+/* getDonnorPG */
 //============================================================================
 template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
-E_Int getGreenParents(NUGA::hierarchical_mesh<ELT_t, STYPE>& hmesh, std::vector<double>& fieldN, E_Int PG, std::vector<E_Int>& pth2a)
+E_Int getDonnorPG(NUGA::hierarchical_mesh<ELT_t, STYPE>& hmesh, std::vector<double>& fieldN, E_Int PG, std::vector<E_Int>& pth2a)
 {
-
-  E_Int PGparent = hmesh._PGtree.parent(PG) ; //combrobado que su coste es casi nada
-  E_Int nb_nodes = hmesh._ng.PGs.stride(PGparent);
-  E_Int* p_nodes = hmesh._ng.PGs.get_facets_ptr(PGparent);
+  E_Int PGparent = hmesh._PGtree.parent(PG);
+  if (PGparent == IDX_NONE) return PG;
   
-  E_Int check_parent = 0;
+  E_Int nb_nodes = hmesh._ng.PGs.stride(PG);
+  E_Int* p_nodes = hmesh._ng.PGs.get_facets_ptr(PG);
+  
+  E_Int check_PG = 0;
   for (E_Int n = 0; n < nb_nodes; ++n)
   {
     E_Int Ni = pth2a[p_nodes[n]-1]; //amesh
     //if (PGparent == 0 || PGparent == 6) printf(" Ni (hmesh): %3i \n", Ni);
-    if (fieldN[Ni] > 1e99) ++check_parent;
+
+    if (fieldN[Ni] > 1e99) ++check_PG;
   }
   
   
-  if (check_parent == 0) return PGparent;
-  else return getGreenParents(hmesh, fieldN, PGparent, pth2a);
-
-
+  if (check_PG == 0)
+    return PG;
+  else
+    return getDonnorPG(hmesh, fieldN, PGparent, pth2a);
 }
 
 //============================================================================
@@ -1031,7 +1033,7 @@ template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
 void MAJenfants(NUGA::hierarchical_mesh<ELT_t, STYPE>& hmesh, std::vector<double>& fieldN, E_Int PG, std::vector<E_Int>& pth2a)
 {
     
-// Father information:
+  // Parent information:
   E_Int nb_nodes = hmesh._ng.PGs.stride(PG);
   E_Int* p_nodes = hmesh._ng.PGs.get_facets_ptr(PG);
   
@@ -1039,29 +1041,46 @@ void MAJenfants(NUGA::hierarchical_mesh<ELT_t, STYPE>& hmesh, std::vector<double
   
   for (E_Int i = 0; i < nb_nodes; ++i)
   {
-      E_Int Ni_parent = pth2a[p_nodes[i]-1]; //amesh
+      E_Int Ni_parent = pth2a[p_nodes[i]-1]; //amesh (index of fieldN)
       
-      //if (PG == 0) printf("Ni_parent: %3i,   fieldN[Ni_parent]: %3f \n", Ni_parent, fieldN[Ni_parent]);
+      //printf("Ni_parent: %3i,   fieldN[Ni_parent]: %3f \n", Ni_parent, fieldN[Ni_parent]);
       
-      E_Int child = pchildren[i]; //obtengo el hijo
-      
-      E_Int nb_nodes_child = hmesh._ng.PGs.stride(child); //obtengo los puntos del hijo
+      //PG child
+      E_Int child = pchildren[i]; 
+      E_Int nb_nodes_child = hmesh._ng.PGs.stride(child); 
       E_Int* p_nodes_child = hmesh._ng.PGs.get_facets_ptr(child);
       
       for (E_Int j = 0; j < nb_nodes_child; ++j)
       {
-          E_Int Nj_child = pth2a[p_nodes_child[j]-1]; //amesh
+          E_Int Nj_child = pth2a[p_nodes_child[j]-1]; //amesh (index of fieldN)
           
           if (Ni_parent != Nj_child)
           {
+            if (nb_nodes == 3) //TRI
+            {
               if(i == 0 || (i == 1 && j == 2) ) fieldN[Nj_child] = fieldN[Ni_parent]/2;
               else fieldN[Nj_child] += fieldN[Ni_parent]/2;
+            }
+            else if (nb_nodes == 4) //QUAD
+            {
+              if(i == 0 || (i == 1 && j == 2) || ( i== 2 && j==3)) fieldN[Nj_child] = fieldN[Ni_parent]/2;
+              else fieldN[Nj_child] += fieldN[Ni_parent]/2;
+              if (i == 3 && j == 1)  fieldN[Nj_child] = fieldN[Nj_child]/2;
+            }
           }
-          //if (PG == 0) printf("Nj_child: %3i,   fieldN[Nj_child]: %3f \n", Nj_child, fieldN[Nj_child]);
+          //printf("Nj_child: %3i,   fieldN[Nj_child]: %3f \n", Nj_child, fieldN[Nj_child]);
       }
-      
   }
-
+  
+  
+  // Check if each child has other child -> Part recursive
+  for (E_Int i = 0; i < hmesh._PGtree.nb_children(PG); ++i)
+  {
+    E_Int child = pchildren[i];
+    E_Int nb_child = hmesh._PGtree.nb_children(child);
+    if (nb_child > 0) MAJenfants(hmesh, fieldN, child, pth2a);
+  }
+  
 }
 
 //============================================================================
@@ -1079,26 +1098,25 @@ void __interpolateHMeshNodalField(const void* hmesh_ptrs, std::vector<double>& f
   std::vector<E_Int> pth2a;
   K_CONNECT::IdTool::reverse_indirection(hmesh->pthids0, pth2a);
 
-
+  //wall_face_ids
   std::vector<std::vector<E_Int>> bcptlists;
   bcptlists = hmesh->BCptLists;
-
   
+
 // PARTIE A
   std::set<E_Int> donnorFaces;  
   for(E_Int i = 0; i < bcptlists[0].size(); ++i)
   {
     E_Int PGi_hmesh = bcptlists[0][i] - 1;  
-    
-    E_Int PGparent = getGreenParents(*hmesh, fieldN, PGi_hmesh, pth2a); 
-    
-    donnorFaces.insert(PGparent); 
-    
-    //if( i < i_print) printf("PGi_hmesh: %3i,   PGparent: %3i \n", PGi_hmesh, PGparent);
-  }
-  
 
+    E_Int PGparent = getDonnorPG(*hmesh, fieldN, PGi_hmesh, pth2a); 
+    
+    if (PGi_hmesh != PGparent)donnorFaces.insert(PGparent); 
+
+  }
+ 
 // PARTIE B
+  
   for (auto it = donnorFaces.begin(); it != donnorFaces.end(); ++it) 
   {
     E_Int PGi_hmesh = *it;
@@ -1108,7 +1126,6 @@ void __interpolateHMeshNodalField(const void* hmesh_ptrs, std::vector<double>& f
   donnorFaces.clear();
   pth2a.clear();
   bcptlists.clear();
-  
 }
 
 template <NUGA::eSUBDIV_TYPE STYPE>
