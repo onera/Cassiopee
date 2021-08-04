@@ -13,7 +13,9 @@ t2 = C.convertArray2NGon(t2); t2 = G.close(t2)
 
 res = XOR.getCollidingCells(t1, t2, RTOL = 0.05)
 
-m = XOR.getCells(t1, res[0], are_face_ids=False)
+[ids_in1,ids_in2] = res[0]
+
+m = XOR.getCells(t1, [ids_in1], are_face_ids=False)
 
 C.convertPyTree2File(m, "out.cgns")
 C.convertPyTree2File(t1, "t1.cgns")
