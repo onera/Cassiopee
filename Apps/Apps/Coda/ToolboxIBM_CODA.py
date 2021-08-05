@@ -418,7 +418,8 @@ def mergeQuadConn(z):
             rangeMaxT[name] = Internal.getValue(eltRange)[1]
             rmaxall = max(rangeMaxT[name]+1,rmaxall)
             rminall = min(rangeMinT[name],rminall)
-
+        elif typeEt == 17:
+            elts_t[0]='Hexas'
     # init  
     rmin = rminall; rmax= -1
     newElts_t=[]; etype = 7
@@ -461,8 +462,11 @@ def mergeQuadConn(z):
                     newElts_t.append(EltsT)                
                     found = 0
             rmin = rmax2+1
-    
-    Internal._rmNodesFromType(z,'Elements_t')
+            
+    for elts_t in Internal.getNodesFromType(z,"Elements_t"):
+        typeEt = Internal.getValue(elts_t)[0]
+        if typeEt == 7:
+            Internal._rmNode(z,elts_t)
     z[2] += newElts_t                
     return None
 
@@ -512,103 +516,113 @@ def get1To1Connect(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
             ELTD.append(etd)
     return [ELTG, ELTD]
 
-# OUT: list [HN_C, HN_F1, HN_F2, HN_F3, HN_F4]: indices of coarse/fine1 to 4 elements, index starts at 0
-# indicesFacesOrig start at 1
-def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
+def buildQuad4QuadInfo(a, graph=None):
+    # quad4quad on same processor
+    extFaces = P.exteriorFaces(a)
+    Internal._rmNodesFromType(extFaces,'FlowSolution_t')
+    Internal._rmNodesFromType(extFaces,'ZoneBC_t')
+    Internal._rmNodesFromName(extFaces,'Quads')
+
+    extFaces = T.splitConnexity(extFaces)
+    res = []
+    for noext in range(len(extFaces)):
+        for noext2 in range(len(extFaces)):   
+            if noext != noext2:
+                res+=buildQuad4QuadInfoLocal(a, extFaces[noext], extFaces[noext2])
+            
+    # quad4quad global
+    if Cmpi.size > 1:# Send info to opposite procs
+        rank = Cmpi.rank
+        datas={}
+        for opprank in graph[rank]:
+            if opprank not in datas:
+                datas[opprank]=[extFaces]
+            else:
+                datas[opprank].append(extFaces)
+        
+        destDatas=Cmpi.sendRecv(datas,graph)
+
+        for i in destDatas:
+            for extFacesOpp in destDatas[i]:
+                for noext in range(len(extFaces)):
+                    for noext2 in range(len(extFacesOpp)):   
+                        res+=buildQuad4QuadInfoLocal(a, extFacesOpp[noext2], extFaces[noext])
+
+    erange = numpy.ones(2, dtype=numpy.int32)
+    maxRange=-1
+    for eltst in Internal.getNodesFromType(a,"Elements_t"):
+        ER = Internal.getNodeFromName(eltst,'ElementRange')
+        if ER is not None:
+            ER = Internal.getValue(ER)
+            maxRange = max(maxRange, ER[1]+1)
+    erange[0] = maxRange
+    erange[1] = maxRange-1 + len(res)//9
+   
+    if res == []: 
+        res = None
+        erange[1] = erange[0]-1
+    Internal.newElements(name='Quad4Quad', etype=1,
+                        econnectivity=res,
+                        erange=erange, eboundary=0, parent=a)
+    Q4Q = Internal.getNodeFromName(a,"Quad4Quad")
+    
+    Internal.createNode('ElementTypeName', 'Descriptor_t', value='Quad4Quad', children=None, parent=Q4Q)
+    return None
+
+def buildQuad4QuadInfoLocal(a, b, bopp):
     b[0]='extFaces'; bopp[0] = 'extFacesOpp'
-    hookExtFacesOpp=C.createHook(bopp,function='nodes')
+    shiftElt=4; nfaces = 6   
+    
     # identify face centers of coarse (local) zone matching with a vertex of bopp (fine)
-    HN = C.identifyElements(hookExtFacesOpp,b)
+    hookExtFacesOpp = C.createHook(bopp,function='nodes')
+    indicesVEFOpp = C.identifyElements(hookExtFacesOpp,b) #>0: vertex 9 found (= bopp is fine and b is coarse)
+    # identify indices of vertices in original zone a with vertices of exterior faces of bopp
+    hookA = C.createHook(a,function='nodes')
+    indicesVertexA = C.identifyNodes(hookA, bopp)    
+
     cnExtFaceOpp = Internal.getNodeFromType(bopp,'Elements_t')
     cnExtFaceOpp = Internal.getNodeFromName(cnExtFaceOpp,'ElementConnectivity')
     cnExtFaceOpp = Internal.getValue(cnExtFaceOpp)
     sizeCNExtFaceOpp = cnExtFaceOpp.shape[0]
-    eltType = Internal.getZoneDim(b)[3]
-    if eltType == 'BAR': shiftElt=2; nfaces = 4
-    else: shiftElt=4; nfaces = 6
 
-    # loop on face centers of coarse zone (local b zone)
-    HN_COARSE=[]; HN_FINE1=[]; HN_FINE2=[]; HN_FINE3=[]; HN_FINE4=[]
-    if eltType=='BAR':
-        for noEltEF in range(len(HN)):
-            indVertexEF = HN[noEltEF] # indice of vertex of bopp, starts at 1
-            if indVertexEF !=-1:
-                HN_COARSE.append(int(indicesFacesOrig[noEltEF]-1)//nfaces)
-                # looking for opp faces (fine side) with vertex indVertexEF
-                noptr = 0; noe = 0
-                found = 0; efd = -1; efg = -1
-                while noptr < sizeCNExtFaceOpp:
-                    indV1 = cnExtFaceOpp[noptr]
-                    indV2 = cnExtFaceOpp[noptr+1]
-                    if indV1 == indVertexEF: 
-                        efd = int(indicesFacesOrigOpp[noe]-1)//nfaces
-                        found +=1
-                    if indV2 == indVertexEF:
-                        efg = int(indicesFacesOrigOpp[noe]-1)//nfaces
-                        found += 1
+    Q4QArray=[]
+    for noEltEF in range(len(indicesVEFOpp)):
+        indVertexEF = indicesVEFOpp[noEltEF] # starts at 1
+        if indVertexEF !=-1:
+            noptr = 0
+            GVIndices=[-1]*9 #ghost vertex indices
+            # loop on ext faces elts
+            GVIndices[8] = indVertexEF
+            while noptr < sizeCNExtFaceOpp:
+                indV1 = cnExtFaceOpp[noptr]
+                indV2 = cnExtFaceOpp[noptr+1]
+                indV3 = cnExtFaceOpp[noptr+2]
+                indV4 = cnExtFaceOpp[noptr+3]
 
-                    if found == 2:
-                        if efd==efg: efd = -1
-                        HN_FINE2.append(efd)
-                        HN_FINE1.append(efg)
-                        break
-                    noptr+=shiftElt
-                    noe+=1
-        return [HN_COARSE, HN_FINE1, HN_FINE2] 
+                if indVertexEF == indV1: #P9P6P3P7
+                    GVIndices[5] = indV2 
+                    GVIndices[2] = indV3
+                    GVIndices[6] = indV4
+                elif indVertexEF == indV2:#P8P9P7P4
+                    GVIndices[7] = indV1
+                    GVIndices[6] = indV3 
+                    GVIndices[3] = indV4
 
-    else:
-        for noEltEF in range(len(HN)):
-            indVertexEF = HN[noEltEF] # starts at 1
-            if indVertexEF !=-1:
-                HN_COARSE.append(int(indicesFacesOrig[noEltEF]-1)//nfaces)
-                # looking for opp faces (fine side) with vertex indVertexEF
-                noptr = 0; noe = 0
-                found = 0
-                while noptr < sizeCNExtFaceOpp:
-                    indV1 = cnExtFaceOpp[noptr]
-                    indV2 = cnExtFaceOpp[noptr+1]
-                    indV3 = cnExtFaceOpp[noptr+2]
-                    indV4 = cnExtFaceOpp[noptr+3]
-                    ef1=-1; ef2=-1; ef3=-1; ef4=-1
-                    if indVertexEF == indV1: 
-                        ef4 = int(indicesFacesOrigOpp[noe]-1)//nfaces
-                        found +=1
+                elif indVertexEF == indV3:#P1P5P9P6
+                    GVIndices[0] = indV1
+                    GVIndices[4] = indV2
+                    GVIndices[5] = indV4
 
-                    elif indVertexEF == indV2:
-                        ef3 = int(indicesFacesOrigOpp[noe]-1)//nfaces
-                        found += 1
+                elif indVertexEF == indV4:#P5P2P7P9
+                    GVIndices[4] = indV1
+                    GVIndices[1] = indV2 
+                    GVIndices[6] = indV3
 
-                    elif indVertexEF == indV3:
-                        ef1 = int(indicesFacesOrigOpp[noe]-1)//nfaces
-                        found += 1
-
-                    elif indVertexEF == indV4:
-                        ef2 = int(indicesFacesOrigOpp[noe]-1)//nfaces
-                        found += 1
-
-                    if found == 4: 
-                        if ef2 == ef1: ef2 =-1
-                        if ef3 == ef1: ef3 =-1
-                        if ef4 == ef1: ef4 =-1
-                        if ef2 == ef3: ef3 =-1
-                        if ef3 == ef4: ef4 =-1
-                        if ef4 == ef2: ef4 =-1
-                        HN_FINE1.append(ef1)
-                        HN_FINE2.append(ef2)
-                        HN_FINE3.append(ef3)
-                        HN_FINE4.append(ef4)
-
-                        break
-                    noptr+=shiftElt
-                    noe+=1
-        return [HN_COARSE, HN_FINE1, HN_FINE2, HN_FINE3, HN_FINE4] 
+                noptr+=shiftElt
     
-def getHangingNodesInfoSeq(a):
-    indicesFacesOrig = []
-    b = P.exteriorFaces(a,indices=indicesFacesOrig)
-    indicesFacesOrig=indicesFacesOrig[0]# index starts at 0
-    b[0]='extfaces'
-    return getHangingNodesInfoPara(a, b, indicesFacesOrig, b, indicesFacesOrig)
+            for indv in GVIndices:
+                Q4QArray.append(indicesVertexA[indv-1])
+    return Q4QArray
 
 def _addIBCDataSet(bc,correctedPts, wallPts, imagePts):
     coordsPC = Converter.extractVars(correctedPts,['CoordinateX','CoordinateY','CoordinateZ'])[0]
@@ -882,3 +896,104 @@ def _snearFactor(t, factor=1.):
         for n in nodes:
             Internal._setValue(n, factor*Internal.getValue(n))
     return None
+
+####################################################
+# OBSOLETE
+####################################################
+# OUT: list [HN_C, HN_F1, HN_F2, HN_F3, HN_F4]: indices of coarse/fine1 to 4 elements, index starts at 0
+# indicesFacesOrig start at 1
+def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
+    b[0]='extFaces'; bopp[0] = 'extFacesOpp'
+    hookExtFacesOpp=C.createHook(bopp,function='nodes')
+    # identify face centers of coarse (local) zone matching with a vertex of bopp (fine)
+    HN = C.identifyElements(hookExtFacesOpp,b)
+    cnExtFaceOpp = Internal.getNodeFromType(bopp,'Elements_t')
+    cnExtFaceOpp = Internal.getNodeFromName(cnExtFaceOpp,'ElementConnectivity')
+    cnExtFaceOpp = Internal.getValue(cnExtFaceOpp)
+    sizeCNExtFaceOpp = cnExtFaceOpp.shape[0]
+    eltType = Internal.getZoneDim(b)[3]
+    if eltType == 'BAR': shiftElt=2; nfaces = 4
+    else: shiftElt=4; nfaces = 6
+
+    # loop on face centers of coarse zone (local b zone)
+    HN_COARSE=[]; HN_FINE1=[]; HN_FINE2=[]; HN_FINE3=[]; HN_FINE4=[]
+    if eltType=='BAR':
+        for noEltEF in range(len(HN)):
+            indVertexEF = HN[noEltEF] # indice of vertex of bopp, starts at 1
+            if indVertexEF !=-1:
+                HN_COARSE.append(int(indicesFacesOrig[noEltEF]-1)//nfaces)
+                # looking for opp faces (fine side) with vertex indVertexEF
+                noptr = 0; noe = 0
+                found = 0; efd = -1; efg = -1
+                while noptr < sizeCNExtFaceOpp:
+                    indV1 = cnExtFaceOpp[noptr]
+                    indV2 = cnExtFaceOpp[noptr+1]
+                    if indV1 == indVertexEF: 
+                        efd = int(indicesFacesOrigOpp[noe]-1)//nfaces
+                        found +=1
+                    if indV2 == indVertexEF:
+                        efg = int(indicesFacesOrigOpp[noe]-1)//nfaces
+                        found += 1
+
+                    if found == 2:
+                        if efd==efg: efd = -1
+                        HN_FINE2.append(efd)
+                        HN_FINE1.append(efg)
+                        break
+                    noptr+=shiftElt
+                    noe+=1
+        return [HN_COARSE, HN_FINE1, HN_FINE2] 
+
+    else:
+        for noEltEF in range(len(HN)):
+            indVertexEF = HN[noEltEF] # starts at 1
+            if indVertexEF !=-1:
+                HN_COARSE.append(int(indicesFacesOrig[noEltEF]-1)//nfaces)
+                # looking for opp faces (fine side) with vertex indVertexEF
+                noptr = 0; noe = 0
+                found = 0
+                while noptr < sizeCNExtFaceOpp:
+                    indV1 = cnExtFaceOpp[noptr]
+                    indV2 = cnExtFaceOpp[noptr+1]
+                    indV3 = cnExtFaceOpp[noptr+2]
+                    indV4 = cnExtFaceOpp[noptr+3]
+                    ef1=-1; ef2=-1; ef3=-1; ef4=-1
+                    if indVertexEF == indV1: 
+                        ef4 = int(indicesFacesOrigOpp[noe]-1)//nfaces
+                        found +=1
+
+                    elif indVertexEF == indV2:
+                        ef3 = int(indicesFacesOrigOpp[noe]-1)//nfaces
+                        found += 1
+
+                    elif indVertexEF == indV3:
+                        ef1 = int(indicesFacesOrigOpp[noe]-1)//nfaces
+                        found += 1
+
+                    elif indVertexEF == indV4:
+                        ef2 = int(indicesFacesOrigOpp[noe]-1)//nfaces
+                        found += 1
+
+                    if found == 4: 
+                        if ef2 == ef1: ef2 =-1
+                        if ef3 == ef1: ef3 =-1
+                        if ef4 == ef1: ef4 =-1
+                        if ef2 == ef3: ef3 =-1
+                        if ef3 == ef4: ef4 =-1
+                        if ef4 == ef2: ef4 =-1
+                        HN_FINE1.append(ef1)
+                        HN_FINE2.append(ef2)
+                        HN_FINE3.append(ef3)
+                        HN_FINE4.append(ef4)
+
+                        break
+                    noptr+=shiftElt
+                    noe+=1
+        return [HN_COARSE, HN_FINE1, HN_FINE2, HN_FINE3, HN_FINE4] 
+    
+def getHangingNodesInfoSeq(a):
+    indicesFacesOrig = []
+    b = P.exteriorFaces(a,indices=indicesFacesOrig)
+    indicesFacesOrig=indicesFacesOrig[0]# index starts at 0
+    b[0]='extfaces'
+    return getHangingNodesInfoPara(a, b, indicesFacesOrig, b, indicesFacesOrig)
