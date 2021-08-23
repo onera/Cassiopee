@@ -91,22 +91,24 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
     Usage: getIntersectingDomains(t, t2, method, taabb, tobb, taabb2, tobb2)"""
     try: import Generator.PyTree as G
     except: raise ImportError("getIntersectingDomains: requires Generator module.")
-    TotInter = 0
+    
+    #TotInter = 0
     zones = Internal.getZones(t)
-    # Gets all zones names and will iterate over them
+    
+    # Gets all zone names and will iterate over them
     zonesNames = []
     for z in zones: zonesNames.append(z[0])
     N = len(zonesNames)
     if not t2:
         zonesNames2 = zonesNames
         zones2 = zones
-        N2 = N
+        #N2 = N
     else:
         zones2 = Internal.getZones(t2)
         # Gets all zones names and will iterate over them
         zonesNames2 = []
         for z in zones2: zonesNames2.append(z[0])
-        N2 = len(zonesNames2)
+        #N2 = len(zonesNames2)
     # Preallocates Dictionnary
     IntDict = dict.fromkeys(zonesNames)
     
@@ -115,7 +117,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
         if not t2:
             # fast: t, taabb=t avec t bbox
             IntDict = getIntersectingDomainsAABB(taabb, tol=1.e-10)
-            TotInter = 0
+            #TotInter = 0
         else:
             if not taabb2: taabb2 = G.BB(t2)
             zones1 = Internal.getZones(taabb)
@@ -126,7 +128,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                     if z1[0] != z2[0]:
                         if G.bboxIntersection(z1, z2, tol=1.e-10, isBB=True, method='AABB') == 1:
                             IntDict[z1[0]].append(z2[0]) # saves the intersected zones names
-                            TotInter += 1
+                            #TotInter += 1
 
     elif method == 'OBB':
         if not tobb: tobb = G.BB(t, method='OBB')
@@ -142,7 +144,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                     obb2 = Internal.getNodeFromName(obb2,z2)
                     if G.bboxIntersection(obb1, obb2, isBB=True, method='OBB') == 1:
                         IntDict[z1].append(z2) # saves the intersected zones names
-                        TotInter += 1
+                        #TotInter += 1
 
     elif method == 'hybrid':
         if not taabb: taabb = G.BB(t)
@@ -174,9 +176,9 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                         continue
                     else:
                         IntDict[z1].append(z2) # saves the intersected zones names
-                        TotInter += 1
+                        #TotInter += 1
     else:
-        print('Warning getIntersectingDomains: method %s not implemented. Switched to AABB.'%method)
+        print('Warning: getIntersectingDomains: method %s not implemented. Switched to AABB.'%method)
         return getIntersectingDomains(t, method='AABB', taabb=taabb, tobb=tobb)
 
     #print('Total zone/zone intersections: %d.'%TotInter)
@@ -621,7 +623,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
 # IN: penalty=1: penalise une cellule donneuse en terme de volume si elle est au bord
 # IN: nature=0: aucun sommet de la cellule d'interpolation ne doit etre avec un cellN=0
 #     nature=1: toutes les sommets de la cellule d'interpolation doivent etre de cellN=1
-# IN : interpDataType : 1 for ADT, 0 if donor are cartesian (optimized)
+# IN: interpDataType: 1 for ADT, 0 if donor are cartesian (optimized)
 # IN: hook: hook sur l'adt (pas reconstruit dans setInterpData), l'ordre doit suivre celui de zonesD
 # IN: double_wall=1: activation de la technique double wall
 # IN: storage: type de stockage (direct: sur le bloc interpole, inverse: sur le bloc d'interpolation)
@@ -632,7 +634,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
 # IN: itype='both','chimera','abutting': calcule toutes les donnees de transferts, seules les chimere, seules les match/nearmatch
 # OUT: stockage direct: retourne tR avec les donnees d'interpolation
 # OUT: stockage indirect: retourne tD avec les donnees d'interpolation
-# RMQ : method='conservative' -> tout le domaine receveur est pour l instant considere a interpoler (maquette)
+# RMQ: method='conservative' -> tout le domaine receveur est pour l instant considere a interpoler (maquette)
 #==============================================================================
 def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                   method='lagrangian', loc='nodes', storage='direct',
@@ -683,7 +685,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
     elif loc == 'centers': cellNPresent = C.isNamePresent(aR, 'centers:cellN')
-    else: raise ValueError("setInterpData: invalid loc provided.")
+    else: raise ValueError("setInterpData: invalid loc.")
     if cellNPresent == -1 or itype == 'abutting': return None
 
     locCellND = 'nodes'
@@ -811,7 +813,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 an = C.getFields(Internal.__GridCoordinates__, z)[0]
                 cellN = C.getField('cellN',z)[0]
                 an = Converter.addVars([an,cellN])
-                if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d arrays
+                if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d'arrays
                     isdw = 1
                     for nozd in range(nzonesDnr):
                         an2 = Connector.changeWall__(an, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
@@ -824,14 +826,14 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 ac = Converter.node2Center(an)
                 cellN = C.getField('centers:cellN',z)[0]
                 ac = Converter.addVars([ac,cellN])
-                if double_wall == 1 and interpWallPts[nozr] != []:# dw : liste d arrays
+                if double_wall == 1 and interpWallPts[nozr] != []:# dw : liste d'arrays
                     isdw = 1
                     for nozd in range(nzonesDnr):
                         ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
                         interpPts.append(Connector.getInterpolatedPoints__(ac2))
                 else:  # pas de dw : un seul array
                     interpPts = Connector.getInterpolatedPoints__(ac)
-
+            
             #---------------------------------------------
             # Etape 2 : calcul des donnees d'interpolation
             #---------------------------------------------

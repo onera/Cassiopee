@@ -47,23 +47,23 @@ C==============================================================================
       ninj = ni*nj
 
 !$OMP PARALLEL PRIVATE(i, indc, ind0, ind1, ind2, ind3, ind4, ind5,
-!$OMP& ind6, ind7, n, k, j)
+!$OMP& ind6, ind7, n, k, j)      
       DO n = 1, nfld
-         DO k = 0, nk-2
-            DO j = 0, nj-2
 !$OMP DO
-               DO i = 0, ni-2
-                  indc = i+j*nic+k*nicnjc
-                  ind0 = i+j*ni+k*ninj
-                  ind1 = ind0+1
-                  ind2 = ind0+ni
-                  ind3 = ind2+1
-                  ind4 = ind0+ninj
-                  ind5 = ind4+1
-                  ind6 = ind4+ni
-                  ind7 = ind6+1
+        DO indc = 0, nicnjc*(nk-1)-1
+            k = indc / nicnjc
+            j = (indc-k*nicnjc)/nic
+            i = indc - j*nic - k*nicnjc
+            ind0 = i+j*ni+k*ninj
+            ind1 = ind0+1
+            ind2 = ind0+ni
+            ind3 = ind2+1
+            ind4 = ind0+ninj
+            ind5 = ind4+1
+            ind6 = ind4+ni
+            ind7 = ind6+1
               
-                  fieldcenter(indc,n) = a*(fieldnode(ind0,n)+
+            fieldcenter(indc,n) = a*(fieldnode(ind0,n)+
      &                 fieldnode(ind1,n)+
      &                 fieldnode(ind2,n)+
      &                 fieldnode(ind3,n)+
@@ -71,12 +71,11 @@ C==============================================================================
      &                 fieldnode(ind5,n)+
      &                 fieldnode(ind6,n)+
      &                 fieldnode(ind7,n))
-                ENDDO
+        ENDDO
 !$OMP ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
+      ENDDO
 !$OMP END PARALLEL
+
       END
 
 C  ============================================================================
@@ -107,30 +106,29 @@ C==============================================================================
       ninj = ni*nj
 !$OMP PARALLEL PRIVATE(i, j, indc, ind0, ind1, ind2, ind3, ind4, ind5,
 !$OMP& ind6, ind7, f, k)
-      DO k = 1, nk-2
 !$OMP DO
-         DO j = 1, nj-2
-            DO i = 1, ni-2
-               indc = i+j*nic+k*nicnjc
-               ind0 = i+j*ni+k*ninj
-               ind1 = ind0+1
-               ind2 = ind0+ni
-               ind3 = ind2+1
-               ind4 = ind0+ninj
-               ind5 = ind4+1
-               ind6 = ind4+ni
-               ind7 = ind6+1
-               f = MIN(fieldnode(ind0), fieldnode(ind1))
-               f = MIN(f, fieldnode(ind2))
-               f = MIN(f, fieldnode(ind3))
-               f = MIN(f, fieldnode(ind4))
-               f = MIN(f, fieldnode(ind5))
-               f = MIN(f, fieldnode(ind6))
-               fieldcenter(indc) = MIN(f, fieldnode(ind7))
-            ENDDO
-         ENDDO
-!$OMP ENDDO
+      DO indc = 0, nicnjc*(nk-1)-1
+        k = indc / nicnjc
+        j = (indc-k*nicnjc)/nic
+        i = indc - j*nic - k*nicnjc
+            
+        ind0 = i+j*ni+k*ninj
+        ind1 = ind0+1
+        ind2 = ind0+ni
+        ind3 = ind2+1
+        ind4 = ind0+ninj
+        ind5 = ind4+1
+        ind6 = ind4+ni
+        ind7 = ind6+1
+        f = MIN(fieldnode(ind0), fieldnode(ind1))
+        f = MIN(f, fieldnode(ind2))
+        f = MIN(f, fieldnode(ind3))
+        f = MIN(f, fieldnode(ind4))
+        f = MIN(f, fieldnode(ind5))
+        f = MIN(f, fieldnode(ind6))
+        fieldcenter(indc) = MIN(f, fieldnode(ind7))
       ENDDO
+!$OMP ENDDO
 !$OMP END PARALLEL
       END
 
@@ -158,7 +156,7 @@ C_LOCAL
       INTEGER_E i, j, k, indc
       INTEGER_E ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7
       INTEGER_E nic, njc, nicnjc, ninj
-      REAL_E f, somme, somme2
+      REAL_E somme, somme2
 C==============================================================================
       nic = ni-1
       njc = nj-1
@@ -166,27 +164,28 @@ C==============================================================================
       ninj = ni*nj
 !$OMP PARALLEL PRIVATE(i, j, indc, ind0, ind1, ind2, ind3, ind4, ind5,
 !$OMP& ind6, ind7, somme, somme2, k)
-      DO k = 1, nk-3
 !$OMP DO
-         DO j = 1, nj-3
-            DO i = 1, ni-3
-               indc = i+j*nic+k*nicnjc
-               ind0 = i+j*ni+k*ninj
-               ind1 = ind0+1
-               ind2 = ind0+ni
-               ind3 = ind2+1
-               ind4 = ind0+ninj
-               ind5 = ind4+1
-               ind6 = ind4+ni
-               ind7 = ind6+1
-               somme = fieldnode(ind0)+fieldnode(ind1)
+      DO indc = 0, nicnjc*(nk-1)-1
+        k = indc / nicnjc
+        j = (indc-k*nicnjc)/nic
+        i = indc - j*nic - k*nicnjc
+                
+        ind0 = i+j*ni+k*ninj
+        ind1 = ind0+1
+        ind2 = ind0+ni
+        ind3 = ind2+1
+        ind4 = ind0+ninj
+        ind5 = ind4+1
+        ind6 = ind4+ni
+        ind7 = ind6+1
+        somme = fieldnode(ind0)+fieldnode(ind1)
      &              +fieldnode(ind2)+fieldnode(ind3)
      &              +fieldnode(ind4)+fieldnode(ind5)
      &              +fieldnode(ind6)+fieldnode(ind7)
-               IF (somme .EQ. 0.) THEN
-                  fieldcenter(indc) = 0.D0
-               ELSE
-                  somme2 = MAX(fieldnode(ind0),1.)
+        IF (somme .EQ. 0.) THEN
+            fieldcenter(indc) = 0.D0
+        ELSE
+            somme2 = MAX(fieldnode(ind0),1.)
      &                 + MAX(fieldnode(ind1),1.)
      &                 + MAX(fieldnode(ind2),1.)
      &                 + MAX(fieldnode(ind3),1.)
@@ -194,16 +193,14 @@ C==============================================================================
      &                 + MAX(fieldnode(ind5),1.)
      &                 + MAX(fieldnode(ind6),1.)
      &                 + MAX(fieldnode(ind7),1.)
-                  IF (somme2 .GT. 8.5) THEN
-                     fieldcenter(indc) = 2.D0
-                  ELSE
-                     fieldcenter(indc) = 1.D0
-                  ENDIF
-               ENDIF
-            ENDDO
-         ENDDO
-!$OMP ENDDO
+            IF (somme2 .GT. 8.5) THEN
+                fieldcenter(indc) = 2.D0
+            ELSE
+                fieldcenter(indc) = 1.D0
+            ENDIF
+        ENDIF
       ENDDO
+!$OMP ENDDO
 !$OMP END PARALLEL
       
 C     Traitement des fontieres
@@ -236,7 +233,7 @@ C     i = 0
       ENDDO
 
 C     i = ni-2
-      IF( ni > 2) THEN
+      IF (ni > 2) THEN
          i = ni-2
          DO k = 0, nk-2
             DO j = 0, nj-2
@@ -294,7 +291,7 @@ C     j = 0
          ENDDO
       ENDDO
       
-      IF( nj > 2) THEN
+      IF (nj > 2) THEN
 C     j = nj-2
          j = nj-2
          DO k = 0, nk-2
@@ -353,7 +350,7 @@ C     k = 0
          ENDDO
       ENDDO
 
-      IF( nk > 2) THEN
+      IF (nk > 2) THEN
          
 C     k = nk-1
          k = nk-2

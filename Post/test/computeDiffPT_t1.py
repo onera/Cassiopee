@@ -69,7 +69,7 @@ m1 = C.initVars(m1, 'Density', F2, ['CoordinateX'])
 m2 = C.initVars(m2, 'Density', F2, ['CoordinateX'])
 m1 = C.node2Center(m1,'Density')
 m2 = C.node2Center(m2,'Density')
-t = C.newPyTree(['Base']);
+t = C.newPyTree(['Base'])
 t[2][1][2] += [m1,m2]
 t = C.rmVars(t,'Density')
 t = X.connectMatch(t, dim=3)

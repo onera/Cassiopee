@@ -16,7 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define SETINTERPDATA 0
+// 0: version sans openMP de setInterpData, 1: avec openMP
+#define SETINTERPDATA 1
 
 # include <stdio.h>
 # include "connector.h"
@@ -47,8 +48,8 @@ using namespace K_FLD;
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 {
-  PyObject *receiverArray; 
-  PyObject *donorArrays;// domaines d interpolation
+  PyObject *receiverArray;
+  PyObject *donorArrays;// domaines d'interpolation
   E_Int Order;
   E_Int Nature;
   E_Int PenalizeBorders;
@@ -577,7 +578,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 {
   PyObject *receiverArray; 
-  PyObject *donorArrays;// domaines d interpolation
+  PyObject *donorArrays;// domaines d'interpolation
   E_Int Order;
   E_Int Nature;
   E_Int PenalizeBorders;

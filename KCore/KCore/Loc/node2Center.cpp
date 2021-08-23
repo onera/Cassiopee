@@ -97,7 +97,7 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
       size = (ni-1)*(nj-1)*(nk-1); dim = 3; im = ni; jm = nj; km = nk;
     }
   }
-
+  
   // On alloue FCenter seulement s'il n'est pas deja alloue correctement
   if (FCenter.getSize() != size || FCenter.getNfld() != nv)
     FCenter.malloc(size, nv);

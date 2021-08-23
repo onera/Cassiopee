@@ -47,6 +47,63 @@ def cartNGon(Xo, H, N):
     a = generator.cartNGon(Xo, H, N, 2)
     return C.convertArrays2ZoneNode('cartNGon', [a])
 
+def cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False,
+           rank=None, size=None):
+    """Create a set of regular cartesian grids."""
+    out = []
+    for k in range(Nb[2]):
+        for j in range(Nb[1]):
+            for i in range(Nb[0]):
+                if rank is None or size is None or rank == (i+j*Nb[0]+k*Nb[0]*Nb[1])%size:
+                    Xp = [X0[0]+H[0]*(N[0]-1)*i,X0[1]+H[1]*(N[1]-1)*j,X0[2]+H[2]*(N[2]-1)*k]
+                    Np = [N[0],N[1],N[2]]
+                    if i > 0: Xp[0] -= depth*H[0]; Np[0] += depth
+                    if i < Nb[0]-1: Xp[0] += depth*H[0]; Np[0] += depth
+                    if j > 0: Xp[1] -= depth*H[1]; Np[1] += depth
+                    if j < Nb[1]-1: Xp[1] += depth*H[1]; Np[1] += depth
+                    if k > 0: Xp[2] -= depth*H[2]; Np[2] += depth
+                    if k < Nb[2]-1: Xp[2] += depth*H[2]; Np[2] += depth
+                    z = cart(Xp, H, Np); z[0] = 'cart%d.%d.%d'%(i,j,k)
+                    if rank is not None:
+                        import Converter.Mpi as Cmpi 
+                        Cmpi._setProc(z, rank)
+                    if addCellN:
+                        C._initVars(z, 'centers:cellN', 1)
+                        cellN = Internal.getNodeFromName2(z, 'cellN')[1]
+                        if i > 0: cellN[0:depth,:,:] = 2
+                        if i < Nb[0]-1: cellN[Np[0]-depth-1:Np[0]-1,:,:] = 2
+                        if j > 0: cellN[:,0:depth,:] = 2
+                        if j < Nb[1]-1: cellN[:,Np[1]-depth-1:Np[1]-1,:] = 2
+                        if k > 0: cellN[:,:,0:depth] = 2
+                        if k < Nb[2]-1: cellN[:,:,Np[2]-depth-1:Np[2]-1] = 2
+                    if addBCMatch and depth == 0:
+                        if i > 0:
+                            C._addBC2Zone(z, 'match', 'BCMatch', 'imin', z, 'imax', [1,2,3])
+                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i-1,j,k))
+                        if i < Nb[0]-1:
+                            C._addBC2Zone(z, 'match', 'BCMatch', 'imax', z, 'imin', [1,2,3])
+                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i+1,j,k))
+                        if j > 0:
+                            C._addBC2Zone(z, 'match', 'BCMatch', 'jmin', z, 'jmax', [1,2,3])
+                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j-1,k))
+                        if j < Nb[1]-1:
+                            C._addBC2Zone(z, 'match', 'BCMatch', 'jmax', z, 'jmin', [1,2,3])
+                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j+1,k))
+                        if k > 0:
+                            C._addBC2Zone(z, 'match', 'BCMatch', 'kmin', z, 'kmax', [1,2,3])
+                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j,k-1))
+                        if k < Nb[2]-1:
+                            C._addBC2Zone(z, 'match', 'BCMatch', 'kmax', z, 'kmin', [1,2,3])
+                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j,k+1))
+                    out.append(z)
+    return out
+
 #------------------------------------------------------------------------------
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste
 # de contours ou surfaces
@@ -203,12 +260,13 @@ def adaptOctree(a, indicator='indicator', balancing=1, ratio=2):
 
 def expandLayer(o, level=0, corners=0, balancing=0):
     """Expand layer of level l of an unstructured quadtree/octree.
-    Usage: expandLayer(o,level,corners,balancing)"""
+    Usage: expandLayer(o, level, corners, balancing)"""
     tp = Internal.copyRef(o)
     _expandLayer(tp, level=level, corners=corners, balancing=balancing)
     return tp
 
 def _expandLayer(o, level=0, corners=0, balancing=0):
+    """Expand layer of level l of an unstructured quadtree/octree."""
     zones = Internal.getZones(o)
     hexa = C.getFields(Internal.__GridCoordinates__,zones)
     for noz, z in enumerate(zones):
@@ -334,7 +392,7 @@ def gapsmanager(components, mode=0, refine=0, coplanar=0):
     return zones
 
 def front2Hexa(a, surf, h, hf, hext, density=50):
-    """Generates an hexa grid starting from a front a, a surface surf,
+    """Generate an hexa grid starting from a front a, a surface surf,
     and h, hf, hext the height of the mesh, of the first and last cells."""
     arrayFront = C.getFields(Internal.__GridCoordinates__, a)[0]
     arraySurf = C.getFields(Internal.__GridCoordinates__, surf)[0]
@@ -343,7 +401,7 @@ def front2Hexa(a, surf, h, hf, hext, density=50):
     return zone
 
 def front2Struct(front, surf, distrib, Vmin):
-    """Generates struct grids starting from a front, a surface surf,
+    """Generate struct grids starting from a front, a surface surf,
     and a point distribution."""
     arrayFront = C.getFields(Internal.__GridCoordinates__, front)[0]
     arraySurf = C.getFields(Internal.__GridCoordinates__, surf)[0]
@@ -385,13 +443,14 @@ def snapSharpEdges(t, surfs, step=None, angle=30.):
                  arrays, step, angle)
     
 def _snapSharpEdges(t, surfs, step=None, angle=30.):
+    """Adapt t to a given surface."""
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
     return C._TZA(t, 'nodes', 'nodes', Generator.snapSharpEdges, None, 
                   arrays, step, angle)
 
 def check(t):
     """Check a mesh for regularity, orthogonality...
-    Usage: check( t )"""
+    Usage: check(t)"""
     a = C.getFields(Internal.__GridCoordinates__, t)
     for i in a: Generator.check(i)
 
@@ -402,14 +461,14 @@ def bbox(t):
     return Generator.bbox(A)
 
 def BB(t, method='AABB', weighting=0):
-    """Return the bounding box of a pyTree as a pyTree.
+    """Return the bounding box of a pyTree as zones.
     Usage: b = BB(a, method, weighting)"""
     tp = Internal.copyRef(t)
     _BB(tp, method, weighting)
     return tp
 
 def _BB(t, method='AABB', weighting=0):
-    """Return the bounding box of a pyTree as a pyTree.
+    """Return the bounding box of a pyTree as zones.
     Usage: b = BB(a, method, weighting)"""
     C._deleteFlowSolutions__(t)
     C._deleteZoneBC__(t)
@@ -436,11 +495,9 @@ def CEBBIntersection(a1, a2, tol=1.e-10):
     if len(a1) != 1 or len(a2) != 1:
         print('Warning: CEBBIntersection applied on one zone.')
         return 0
-    
     m1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     m2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
     return Generator.CEBBIntersection(m1, m2, tol)
-
         
 def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       

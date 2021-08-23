@@ -593,7 +593,7 @@ def _modCellN2(a, cellNName='cellN'):
 #------------------------------------------------------------------------------
 # IN: x,y,z, cellN localises au meme endroit
 # OUT: array 'NODE' avec 'x,y,z,indcell' 
-#      avec indcell l indice du noeud correspondant de z tq cellN(indcell)=2
+#      avec indcell l'indice du noeud correspondant de z tq cellN(indcell)=2
 #-----------------------------------------------------------------------------
 def getInterpolatedPoints__(a):
     if isinstance(a[0], list): 

@@ -1656,7 +1656,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
   return tpl;
 }
 //=============================================================================
-/**/
+/* Recherche des pts cellN=2 */
 //=============================================================================
 PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
 {
@@ -1696,7 +1696,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   strcpy(varStringOut,varString); strcat(varStringOut,",indcell");
   E_Float* cellnp = f->begin(posc);
 
-  FldArrayF* fout = new FldArrayF(npts,nfldOut);
+  FldArrayF* fout = new FldArrayF(npts, nfldOut);
   E_Int c=0;
   for (E_Int ind=0; ind < npts; ind++)
   {

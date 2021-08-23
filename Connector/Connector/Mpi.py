@@ -297,7 +297,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
     return None
 
 #===============================================================================
-# __setInterpTransfers  version optimiser de _setInterpTransfers: arbre t et tc compact, moins de python + de C
+# __setInterpTransfers - version optimisee de _setInterpTransfers: arbre t et tc compact, moins de python + de C
 #
 # Warning: inverse storage!
 # IN: zones: list zones receveurs
@@ -343,8 +343,9 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
                   else: datas[rcvNode] += [n]
     
     # Envoie des numpys suivant le graph
-    rcvDatas = Cmpi.sendRecvC(datas, graph)
-
+    if graph is not None: rcvDatas = Cmpi.sendRecvC(datas, graph)
+    else: rcvDatas = {}
+    
     # Remise des champs interpoles dans l'arbre receveur
     for i in rcvDatas:
         #if Cmpi.rank==0: print(Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i]))
@@ -534,8 +535,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 # Transferts instationnaires en parallele
 # avec prise en compte du mouvement
 # absFrame=True: les coordonnees de t sont deja dans le repere absolu en entree
-# interpInDnrFrame=True : interpolation avec les coordonnees des pts a interpoler dans le repere relatif au donneur
-# applicable en mouvement rigide; en mvt avec deformation : mettre False
+# interpInDnrFrame=True: interpolation avec les coordonnees des pts a interpoler dans le repere relatif au donneur
+# applicable en mouvement rigide; en mvt avec deformation: mettre False
 # #---------------------------------------------------------------------------------------------------------
 def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                dictOfNobOfRcvZones, dictOfNozOfRcvZones,
@@ -719,4 +720,62 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 
     return None
 
+#=========================================================================
+# partie delicate :
+# IN: t, tc: arbres partiels locaux
+# IN: sameBase=1 (itype='chimera'): autorise l'interpolation dans la meme base
+# memes arguments que setInterpData
+def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
+                   method='lagrangian', loc='nodes', storage='direct',
+                   interpDataType=1, hook=None,
+                   topTreeRcv=None, topTreeDnr=None, sameName=1, sameBase=1, 
+                   dim=3, itype='both'):
+
+    # Le graph doit correspondre au probleme
+    if itype == 'abutting':
+        graph = Cmpi.computeGraph(aR, type='match', reduction=True) 
+    else: 
+        tbbc = Cmpi.createBBoxTree(aD)
+        interDict = X.getIntersectingDomains(tbbc)
+        if sameBase == 0:
+            # on ne conserve que les intersections inter base
+            baseNames = {}
+            for b in Internal.getBases(tbbc):
+                for z in Internal.getZones(b): baseNames[z[0]] = b[0]
+            for i in interDict:
+                bi = baseNames[i]
+                out = []
+                for z in interDict[i]: 
+                    if bi != baseNames[z]: out.append(z)
+                interDict[i] = out
+
+        graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
+
+    if Cmpi.rank == 0 and itype == 'chimera': print(interDict)
+    print("%d: setInterpData(min): itype=%s, Nblocs=%d, NPts(M)=%g"%(Cmpi.rank,itype,len(Internal.getZones(aR)), C.getNPts(aR)*1./1.e6), flush=True)
+    if Cmpi.rank == 0 and itype == 'chimera': print(graph)
     
+    # Pour abutting, pas besoin de coords
+    # Pour le chimere, il faut les coords et le cellN
+    if itype == 'abutting':
+        Cmpi._addXZones(aR, graph, variables=[], noCoordinates=True, 
+                        cartesian=False, zoneGC=True, keepOldNodes=False)
+        Cmpi._addXZones(aD, graph, variables=[], noCoordinates=True, 
+                        cartesian=False, zoneGC=True, keepOldNodes=False)
+    else:
+        # weakness : graph gros, zones grosses
+        Cmpi._addXZones(aR, graph, variables=['centers:cellN'], noCoordinates=False, 
+                        cartesian=False, zoneGC=False, keepOldNodes=False)
+        Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
+                        cartesian=False, zoneGC=False, keepOldNodes=False)
+        
+    print("%d: setInterpData(max): itype=%s, Nblocs=%d, NPts(M)=%g"%(Cmpi.rank,itype,len(Internal.getZones(aR)), C.getNPts(aR)*1./1.e6), flush=True)
+    if Cmpi.rank == 0 and itype == 'chimera': Internal.printTree(aR)
+
+    X._setInterpData(aR, aD, double_wall, order, penalty, nature, 
+                     method, loc, storage, interpDataType, hook, 
+                     topTreeRcv, topTreeDnr,
+                     sameName, dim, itype)
+    Cmpi._rmXZones(aR)
+    Cmpi._rmXZones(aD)
+    return None
