@@ -130,31 +130,44 @@ PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
     
     K_SEARCH::BbTree3D* BBTree = (K_SEARCH::BbTree3D*)packet[0]; 
 
-    E_Int size = PyList_GET_SIZE(inBB);
+    FldArrayF* f;
+    E_Int ret = K_NUMPY::getFromNumpyArray(inBB, f, true);
+    E_Int size = f->getSize()/6;
+    E_Float* fp = f->begin();
+
+    //E_Int size = PyList_GET_SIZE(inBB);
     std::vector< std::vector<E_Int> > out(size);
+    //printf("start %d\n", size); fflush(stdout);
 
 #pragma omp parallel
 {
     E_Float mBB[3];
     E_Float MBB[3];
-    PyObject* o;
-    PyObject* pymBB;
-    PyObject* pyMBB;
+    //PyObject* o;
+    //PyObject* pymBB;
+    //PyObject* pyMBB;
     std::vector<E_Int> BBintersected; // vecteur d'indice des BB intersectees
         
 #pragma omp for
-    for (E_Int i = 0; i < size; i++) 
+    for (E_Int i = 0; i < size; i++)
     {
-        o = PyList_GetItem(inBB, i);
-        pymBB = PyList_GetItem(o, 0);
-        pyMBB = PyList_GetItem(o, 1);
-        mBB[0] = PyFloat_AsDouble(PyList_GetItem(pymBB, 0));
-        mBB[1] = PyFloat_AsDouble(PyList_GetItem(pymBB, 1));
-        mBB[2] = PyFloat_AsDouble(PyList_GetItem(pymBB, 2));
-        MBB[0] = PyFloat_AsDouble(PyList_GetItem(pyMBB, 0));
-        MBB[1] = PyFloat_AsDouble(PyList_GetItem(pyMBB, 1));
-        MBB[2] = PyFloat_AsDouble(PyList_GetItem(pyMBB, 2));
+        //o = PyList_GetItem(inBB, i);
+        //pymBB = PyList_GetItem(o, 0);
+        //pyMBB = PyList_GetItem(o, 1);
+        //mBB[0] = PyFloat_AsDouble(PyList_GetItem(pymBB, 0));
+        //mBB[1] = PyFloat_AsDouble(PyList_GetItem(pymBB, 1));
+        //mBB[2] = PyFloat_AsDouble(PyList_GetItem(pymBB, 2));
+        //MBB[0] = PyFloat_AsDouble(PyList_GetItem(pyMBB, 0));
+        //MBB[1] = PyFloat_AsDouble(PyList_GetItem(pyMBB, 1));
+        //MBB[2] = PyFloat_AsDouble(PyList_GetItem(pyMBB, 2));
 
+        mBB[0] = fp[6*i+0];
+        mBB[1] = fp[6*i+1];
+        mBB[2] = fp[6*i+2];
+        MBB[0] = fp[6*i+3];
+        MBB[1] = fp[6*i+4];
+        MBB[2] = fp[6*i+5];
+        
         K_SEARCH::BBox3D BBoxZone(mBB, MBB);
         BBintersected.clear();
 
@@ -164,6 +177,7 @@ PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
         out[i] = BBintersected; // copy
     }
 }
+    //printf("end\n"); fflush(stdout);
     
     PyObject* listOfIntersection = PyList_New(size);
     E_Int nbIntersect;
@@ -178,6 +192,9 @@ PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
             PyList_SET_ITEM(l, j, PyLong_FromLong(out[i][j]));
         }
     }
+    //printf("fin build\n"); fflush(stdout);
+    RELEASESHAREDN(inBB, f);
+    
     return listOfIntersection;
 }
 

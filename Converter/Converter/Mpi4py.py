@@ -8,7 +8,7 @@ from . import converter
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
-    'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 'createBBTree', 'intersect', 'allgatherDict',
+    'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
@@ -154,18 +154,33 @@ def intersect(zone, BBTree):
 
 def intersect2(t, BBTree):
     zones = Internal.getZones(t)
-    inBB = []
-    for z in zones:
+    # inBB = []
+    # for z in zones:
+    #     gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+    #     xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+    #     yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+    #     zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+    #     #minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
+    #     #maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
+    #     minBBox = [xCoords[0,0,0], yCoords[0,0,0], zCoords[0,0,0]]
+    #     maxBBox = [xCoords[1,0,0], yCoords[0,1,0], zCoords[0,0,1]]
+    #     inBB.append([minBBox, maxBBox])
+    
+    inBB = numpy.empty((6*len(zones)), dtype=numpy.float64)
+    for c, z in enumerate(zones):
         gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
         xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
         yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
         zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
-        minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
-        maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
-        inBB.append([minBBox, maxBBox])
+        inBB[6*c  ] = xCoords[0,0,0]
+        inBB[6*c+1] = yCoords[0,0,0]
+        inBB[6*c+2] = zCoords[0,0,0]
+        inBB[6*c+3] = xCoords[1,0,0]
+        inBB[6*c+4] = yCoords[0,1,0]
+        inBB[6*c+5] = zCoords[0,0,1]
 
-    return converter.intersect(inBB, BBTree)
-
+    return converter.intersect2(inBB, BBTree)
+    
 #==============================================================================
 # Recherche des zones fixes non intersectees et ajout dans le dict
 # IN : liste des zones fixes, dict des intersects
@@ -514,15 +529,26 @@ def GetIntersectionBbox(bbox1, bbox2):
 
 #==============================================================================
 # Recupere les zones specifiees dans le graph, les ajoute a l'arbre local t
-# if subr=True, the ZoneSubRegions are kept during the exchange 
+# IN: variables: None (send all vars) ou ['Density', ...] ou []
+# IN: noCoordinates: False (Coordinates send), True (Coordinates not send)
+# IN: keepOldNodes: send all other nodes than Coordinates and variables
+# IN: cartesian: send compress coordinates for cartesian grids
+# if subr=True, the ZoneSubRegions are sent
+# if zoneGC=True, the ZoneGridConnectivity are sent
 #==============================================================================
-def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True):
+def addXZones(t, graph, variables=None, noCoordinates=False, 
+              cartesian=False, subr=True, 
+              keepOldNodes=True, zoneGC=True):
     """Add zones specified in graph on current proc."""
     tp = Internal.copyRef(t)
-    _addXZones(tp, graph, variables, noCoordinates, cartesian, subr)
+    _addXZones(tp, graph, variables, noCoordinates, cartesian, subr, 
+              keepOldNodes, zoneGC)
     return tp
 
-def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True):
+def _addXZones(t, graph, variables=None, noCoordinates=False, 
+               cartesian=False, subr=True, 
+               keepOldNodes=True, zoneGC=True):
+    """Add zones specified in graph on current proc."""
     if not graph: return t
     reqs = []
     if cartesian: import Compressor.PyTree as Compressor 
@@ -535,20 +561,29 @@ def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, s
             data = [] # data est une liste de zones
             for n in names:
                 zone = Internal.getNodeFromName2(t, n)
-                if variables is not None:
+                (base,c) = Internal.getParentOfNode2(t, zone)
+
+                if not keepOldNodes:
+                    if variables is None: vars = C.getVarNames(zone, excludeXYZ=True)[0]
+                    elif variables == []: vars = None
+                    else: vars = variables
+                    zonep = C.extractVars(zone, vars=variables, keepOldNodes=False)
+                    if noCoordinates: C._rmVars(zonep, ['CoordinateX', 'CoordinateY', 'CoordinateZ']) 
+                    if cartesian: Compressor._compressCartesian(zonep)
+                    if zoneGC: 
+                        zGC = Internal.getNodeFromType1(zone, 'ZoneGridConnectivity_t')
+                        if zGC is not None: zonep[2].append(zGC)
+                elif variables is not None: # all nodes but vars and coordinates
                     v = C.getVarNames(zone, excludeXYZ=True)[0]
                     for i in variables: v.remove(i)
                     if noCoordinates: v += ['CoordinateX', 'CoordinateY', 'CoordinateZ']
                     zonep = C.rmVars(zone, v)
-                    if cartesian:
-                        zonepc = Compressor.compressCartesian(zonep, subr=subr)
-                        data.append(zonepc)
-                    else: data.append(zonep)
-                else:
-                    if cartesian:
-                        zonep = Compressor.compressCartesian(zone)
-                        data.append(zonep)
-                    else: data.append(zone)
+                    if cartesian: Compressor._compressCartesian(zonep, subr=subr)    
+                else: # full zone
+                    zonep = Internal.copyRef(zone)
+                    if cartesian: Compressor._compressCartesian(zone)
+                if base is not None: zonep[0] = base[0]+'/'+zone[0]
+                data.append(zonep)
             s = KCOMM.isend(data, dest=oppNode)
             reqs.append(s)
 
@@ -562,18 +597,29 @@ def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, s
                 if cartesian:
                     import Compressor.PyTree as Compressor
                     Compressor._uncompressCartesian(z)
-                #print('%d: recoit la zone %s.'%(rank,z[0]))
                 Internal.createChild(z, 'XZone', 'UserDefinedData_t') 
-                # Existe deja? 
-                zone = Internal.getNodeFromName2(t, z[0])
-                if zone is not None: # replace
-                    bases = Internal.getBases(t)
-                    for b in bases:
-                        c = Internal.getNodePosition(zone, b)
-                        if c != -1: b[2][c] = z
-                else: # append to first base
-                    bases = Internal.getBases(t)
-                    bases[0][2].append(z)
+                
+                ret = z[0].split('/',1)
+                if len(ret) == 2:
+                    baseName = ret[0]; zoneName = ret[1]
+                    z[0] = zoneName
+                    base = Internal.getNodeFromName1(t, baseName)
+                    if base is None:
+                        if base is None: base = Internal.newCGNSBase(baseName, parent=t)
+                    base[2].append(z)
+                else:
+                    #print('%d: recoit la zone %s.'%(rank,z[0]))
+                    # Existe deja? 
+                    zone = Internal.getNodeFromName2(t, z[0])
+                    if zone is not None: # replace
+                        bases = Internal.getBases(t)
+                        for b in bases:
+                            c = Internal.getNodePosition(zone, b)
+                            if c != -1: b[2][c] = z
+                    else: # append to first base
+                        bases = Internal.getBases(t)
+                        bases[0][2].append(z)
+                 
     MPI.Request.Waitall(reqs)
     return t
 
@@ -707,7 +753,7 @@ def getMatchSubZones__(z, procDict, oppNode, depth):
                 Internal.createChild(oppZone, 'ZoneGridConnectivity_t', 'ZoneGridConnectivity_t')
                 gcXZone = Internal.createNode('ZoneGridConnectivity_t', 'ZoneGridConnectivity_t')
                 Internal._addChild(gcXZone, n)
-                Internal._addChild(oppZone,gcXZone)
+                Internal._addChild(oppZone, gcXZone)
                 
                 Internal.createChild(oppZone, 'XZone', 'UserDefinedData_t')
                 Internal._setLoc2Glob(oppZone, z[0], win=[imin,imax,jmin,jmax,kmin,kmax], sourceDim=[dim[1],dim[2],dim[3]])
@@ -748,11 +794,11 @@ def updateGridConnectivity(a):
                 zopp = Internal.getNodeFromName(a, oppName+'_MX_'+z[0]+'-'+suffix)
                 
                 if zopp is not None:
-                                           
+                    
                     Internal.setValue(n, zopp[0]) # renommage
-            
+                
                     src, loc2glob = Internal.getLoc2Glob(zopp)
-
+                    
                     # Update current zone
                     prd    = Internal.getNodeFromName1(n, 'PointRangeDonor')
                     p      = Internal.range2Window(prd[1])
@@ -767,7 +813,7 @@ def updateGridConnectivity(a):
                     pr     = Internal.getNodeFromName1(match, 'PointRange')
                     Internal.setValue(pr, p) 
                                   
-    return a 
+    return a
 
 def _revertMXGridConnectivity(a):
     # Restore grid connectivities with respect to real zone (after using addMXZones)
@@ -784,6 +830,7 @@ def _revertMXGridConnectivity(a):
             for n in nodes:
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
+                
                 zopp    = Internal.getNodeFromName(a, oppName)
                 xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
 
@@ -862,24 +909,46 @@ def _revertBXGridConnectivity(a):
     return None
     
 # Ajoute des sous-zones correspondant aux raccords sur un arbre distribue
-def _addMXZones(a, depth=2):
+def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=True):
 
     graph = computeGraph(a, type='match')
+    bases = Internal.getBases(a)
     procDict = getProcDict(a)
     reqs = []
-    bases = Internal.getBases(a)
-    for b in bases:
-        zones = Internal.getZones(b)
-        if rank in graph:
-            g = graph[rank] # graph du proc courant
-            for oppNode in g:
-                data = []
+    if rank in graph:
+        g = graph[rank] # graph du proc courant
+        for oppNode in g:
+            data = []
+            for b in bases:
+                zones = Internal.getZones(b)
                 for z in zones:
                     zs = getMatchSubZones__(z, procDict, oppNode, depth)
+                    if not keepOldNodes:
+                        if variables is None: vars = C.getVarNames(zs, excludeXYZ=True)[0]
+                        elif variables == []: vars = None
+                        else: vars = variables
+                        zsp = C.extractVars(zs, vars=variables, keepOldNodes=False)
+                        if noCoordinates: C._rmVars(zsp, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])       
+                        for c, z in enumerate(zsp):
+                            ns = Internal.getNodeFromName1(zs[c], 'XZone')
+                            if ns is not None: z[2].append(ns)
+                            ns = Internal.getNodeFromName1(zs[c], '.Solver#ownData')
+                            if  ns is not None: 
+                                if 'Parameter_int' in ns[2]: ns[2].remove('Parameter_int')
+                                if 'Parameter_real' in ns[2]: ns[2].remove('Parameter_real')
+                                z[2].append(ns)
+                            ns = Internal.getNodesFromType1(zs[c], 'ZoneGridConnectivity_t')
+                            z[2] += ns                               
+                        zs = zsp
+                    elif variables is not None:
+                        v = C.getVarNames(zs, excludeXYZ=True)[0]
+                        for i in variables: v.remove(i)
+                        if noCoordinates: v += ['CoordinateX', 'CoordinateY', 'CoordinateZ']
+                        C._rmVars(zs, v)
                     for zl in zs: zl[0] = b[0]+'/'+zl[0]
                     data += zs
-                s = KCOMM.isend(data, dest=oppNode)
-                reqs.append(s)
+            s = KCOMM.isend(data, dest=oppNode)
+            reqs.append(s)
     for node in graph:
         if rank in graph[node]:
             data = KCOMM.recv(source=node)
@@ -892,6 +961,7 @@ def _addMXZones(a, depth=2):
     MPI.Request.Waitall(reqs)
 
     a = updateGridConnectivity(a)
+
     return None
     
 # IN: bb0 et bb1: [xmin,ymin,zmin,xmax,ymax,zmax]

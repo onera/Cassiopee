@@ -902,6 +902,8 @@ Acess nodes
     If node is not found, then p is None.
     This in an expansive routine. Prefer top-down tree traversal, if
     possible.
+    Exists also as getParentOfNode1, getParentOfNode2, with search limited to one or two 
+    levels from t. In this case, t must be a standard pyTree node.
    
     :param t:  higher node
     :type  t:  pyTree node

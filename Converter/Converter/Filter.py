@@ -698,7 +698,7 @@ class Handle:
     return a
 
   # Charge le squelette, le split et conserve les infos de split
-  def loadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size):
+  def loadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size, splitByBase=False):
     """Load and split skeleton."""
     if Cmpi.rank == 0:
       a, self.znp = readZoneHeaders(self.fileName, self.format)
@@ -741,12 +741,21 @@ class Handle:
             break
       
       import Transform.PyTree as T
-      # split on skeleton
-      if NParts is not None: T._splitNParts(a, N=NParts)
-      else: T._splitNParts(a, N=NProc)
-      if NProc is not None:
-        import Distributor2.PyTree as D2   
-        D2._distribute(a, NProc)
+
+      if splitByBase: # split on skeleton par base
+        bases = Internal.getBases(a)
+        for b in bases:
+            if NParts is not None: T._splitNParts(b, N=NParts)
+            else: T._splitNParts(b, N=NProc)
+            if NProc is not None:
+                import Distributor2.PyTree as D2   
+                D2._distribute(b, NProc)
+      else: # split on full skeleton
+        if NParts is not None: T._splitNParts(a, N=NParts)
+        else: T._splitNParts(a, N=NProc)
+        if NProc is not None:
+            import Distributor2.PyTree as D2   
+            D2._distribute(a, NProc)
     else: 
       a = None; varsN = None; varsC = None
     a = Cmpi.bcast(a)
@@ -754,9 +763,9 @@ class Handle:
 
     return a
 
-  def loadAndSplit(self, NParts=None, NProc=Cmpi.size):
+  def loadAndSplit(self, NParts=None, NProc=Cmpi.size, splitByBase=False):
     """Load and split a file."""
-    a = self.loadAndSplitSkeleton(NParts, NProc)
+    a = self.loadAndSplitSkeleton(NParts, NProc, splitByBase)
     _convert2PartialTree(a, rank=Cmpi.rank)
     self._loadContainerPartial(a, variablesN=self.varsN, variablesC=self.varsC)
     return a

@@ -1885,7 +1885,7 @@ def getChildFromType(node, ntype):
 #                                              else: p[2][c] = node
 # Remarque: start doit etre au dessus de node
 def getParentOfNode(t, node):
-    """Return the parent of given node."""
+    """Return the parent of given node in t."""
     idNode = id(node)
     isStd = isStdNode(t)
     if isStd >= 0:
@@ -1909,6 +1909,28 @@ def getParentOfNode__(start, idNode):
             if r is not None: return (r, d)
         c += 1
     return (r, d)
+
+def getParentOfNode1(t, node):
+    """Get the parent of node with 1 level only in a standard node."""
+    idNode = id(node)
+    c = 0
+    for n in t[2]:
+        if id(n) == idNode: return (t, c)
+        c += 1
+    return (None,0)
+
+def getParentOfNode2(t, node):
+    """Get the parent of node with 2 levels only in a standard node."""
+    idNode = id(node)
+    c = 0
+    for n in t[2]:
+        if id(n) == idNode: return (t, c)
+        c += 1
+    for n in t[2]:
+        c = 0
+        for n2 in n[2]:
+            if id(n2) == idNode: return (n, c)
+    return (None,0)
 
 def getParentFromType(start, node, parentType, prev=None):
     """Return the first parent node matching type."""
@@ -4925,9 +4947,9 @@ def fixVarName(var):
 
 #===============================================================================
 # set Loc 2 Glob information in zone
-# A appeler pour la zone decoupee, source est la zone pere
+# A appeler pour la zone decoupee, source est la zone parent
 # Structured zones: zone source name, winLoc/glob, dim of source zone
-# IN: soit loc2glob : numpy de 9 entiers
+# IN: soit loc2glob: numpy de 9 entiers
 # IN: soit winloc2glob+sourceDim en listes 6 + 3 entiers
 # Unstructured zones: zone source name, index loc/glob
 def setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):

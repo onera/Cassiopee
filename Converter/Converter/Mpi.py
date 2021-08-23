@@ -33,6 +33,7 @@ else: # try import (may fail - core or hang)
 
 from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
 from . import PyTree
+from . import Internal
 
 #==============================================================================
 # IN: t: full/loaded skel/partial
@@ -48,3 +49,29 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     tl = PyTree.center2Node(tl, var, cellNType)
     tl = rmXZones(tl)
     return tl
+
+# addGhostCells parallel
+# si modified=[], transferts tous les champs
+# si modified=None, transfert aucun champ
+def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
+    
+    if modified == []: # all
+        variables = PyTree.getVarNames(t, excludeXYZ=True, loc='nodes')[0]
+        variables += PyTree.getVarNames(t, excludeXYZ=True, loc='centers')[0]
+    elif modified is None: variables = []; modified = []
+    else: variables = modified
+
+    _addMXZones(t, depth=2, variables=variables, noCoordinates=False, 
+                keepOldNodes=False)
+    print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), PyTree.getNPts(t)*1./1.e6), flush=True)
+    Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
+    _rmMXZones(t)
+
+    # ancienne version utilisant addXZones
+    #graph = computeGraph(t, type='match', reduction=True)
+    #_addXZones(t, graph, variables=variable, noCoordinates=False, 
+    #           zoneGC=False, keepOldNodes=False)
+    #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), PyTree.getNPts(t)*1./1.e6), flush=True)
+    #Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
+    #_rmXZones(t)
+    return None

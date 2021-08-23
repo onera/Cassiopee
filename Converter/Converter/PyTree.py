@@ -2925,8 +2925,8 @@ def extractVars(t, vars, keepOldNodes=True):
   _extractVars(tp, vars, keepOldNodes)
   return tp
   
-
 def _extractVars(t, vars, keepOldNodes=True):
+  """Only keep the given variables in t."""
   if isinstance(vars, str): vars = [vars]
   zones = Internal.getZones(t)
 
