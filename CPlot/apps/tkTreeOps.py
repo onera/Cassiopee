@@ -7,6 +7,7 @@ import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
+import Converter.Filter as Filter
 import numpy
 
 # local widgets list
@@ -152,7 +153,11 @@ def moveNodeDown():
         p[2][c+1] = p[2][c]
         p[2][c] = temp
         CTK.TKTREE.updateApp()
-        
+
+# format string pour ecriture
+def strFormat(value):
+    return "%g"%value
+
 #==============================================================================
 # Affiche la valeur de noeud et le type du noeud
 #==============================================================================
@@ -170,75 +175,83 @@ def showNodeValue(event=None):
     except: index = 0; VARS[1].set('0')
     if index < 0: index = 0; VARS[1].set(str(index))
     v = node[1]
-    if isinstance(v, float): v = str(v); index = 0
-    elif isinstance(v, int): v = str(v); index = 0
+    if isinstance(v, float): v = strFormat(v); index = 0
+    elif isinstance(v, int): v = strFormat(v); index = 0
     elif isinstance(v, numpy.ndarray):
         if v.dtype == 'c': v = Internal.getValue(node); index = 0
         else:
+            sh = v.shape
+            if len(sh) == 2:
+                dim = '('+str(sh[0])+';'+str(sh[1])+';'+str(sh[2])+'): '
+            elif len(sh) == 1:
+                dim = '('+str(sh[0])+'): '
+            else:
+                dim = str(sh)+': '
+            
             try: vf = v.ravel(order='F')
             except: vf = v.flat
             if index >= v.size: index = v.size-1; VARS[1].set(str(index))
             # Construit une chaine representant le tableau a plat
             if index > 3:
-                if v.size <= index+1: flatView = ']'
+                if v.size <= index+1: flatView = ''
                 elif v.size <= index+2:
-                    flatView = ' '+str(vf[index+1])+']'
+                    flatView = ' '+strFormat(vf[index+1])+''
                 elif v.size <= index+3:
-                    flatView = ' '+str(vf[index+1])+' '+str(vf[index+2])+']'
+                    flatView = ' '+strFormat(vf[index+1])+' '+strFormat(vf[index+2])+''
                 else:
-                    flatView = ' '+str(vf[index+1])+' '+str(vf[index+2])+'...'
+                    flatView = ' '+strFormat(vf[index+1])+' '+strFormat(vf[index+2])+'...'
                 flatView += '\n'
                 CTK.TXT.insert('START', flatView)
-                flatView = str(vf[index])
+                flatView = strFormat(vf[index])
                 CTK.TXT.insert('START', flatView, 'Warning')
-                flatView = '...'+str(vf[index-2])+' '+str(vf[index-1])+' '
+                flatView = dim+'...'+strFormat(vf[index-2])+' '+strFormat(vf[index-1])+' '
                 CTK.TXT.insert('START', flatView)
                 
             elif index == 2:
-                if v.size <= index+1: flatView = ']'
+                if v.size <= index+1: flatView = ''
                 elif v.size <= index+2:
-                    flatView = ' '+str(vf[index+1])+']'
+                    flatView = ' '+strFormat(vf[index+1])+''
                 elif v.size <= index+3:
-                    flatView = ' '+str(vf[index+1])+' '+str(vf[index+2])+']'
+                    flatView = ' '+strFormat(vf[index+1])+' '+strFormat(vf[index+2])+''
                 else:
-                    flatView = ' '+str(vf[index+1])+' '+str(vf[index+2])+'...'
+                    flatView = ' '+strFormat(vf[index+1])+' '+strFormat(vf[index+2])+'...'
                 flatView += '\n'
                 CTK.TXT.insert('START', flatView)
-                flatView = str(vf[index])
+                flatView = strFormat(vf[index])
                 CTK.TXT.insert('START', flatView, 'Warning')
-                flatView = '['+str(vf[index-2])+' '+str(vf[index-1])+' '
+                flatView = dim+strFormat(vf[index-2])+' '+strFormat(vf[index-1])+' '
                 CTK.TXT.insert('START', flatView)
                   
             elif index == 1:
-                if v.size <= index+1: flatView = ']'
+                if v.size <= index+1: flatView = ''
                 elif v.size <= index+2:
-                    flatView = ' '+str(vf[index+1])+']'
+                    flatView = ' '+strFormat(vf[index+1])+''
                 elif v.size <= index+3:
-                    flatView = ' '+str(vf[index+1])+' '+str(vf[index+2])+']'
+                    flatView = ' '+strFormat(vf[index+1])+' '+strFormat(vf[index+2])+''
                 else:
-                    flatView = ' '+str(vf[index+1])+' '+str(vf[index+2])+'...'
+                    flatView = ' '+strFormat(vf[index+1])+' '+strFormat(vf[index+2])+'...'
                 flatView += '\n'
                 CTK.TXT.insert('START', flatView)
-                flatView = str(vf[index])
+                flatView = strFormat(vf[index])
                 CTK.TXT.insert('START', flatView, 'Warning')
-                flatView = '['+str(vf[index-1])+' '
+                flatView = dim+strFormat(vf[index-1])+' '
                 CTK.TXT.insert('START', flatView)
                  
             elif index == 0:
-                if v.size <= index+1: flatView = ']'
+                if v.size <= index+1: flatView = ''
                 elif v.size <= index+2:
-                    flatView = ' '+str(vf[index+1])+']'
+                    flatView = ' '+strFormat(vf[index+1])+''
                 elif v.size <= index+3:
-                    flatView = ' '+str(vf[index+1])+' '+str(vf[index+2])+']'
+                    flatView = ' '+strFormat(vf[index+1])+' '+strFormat(vf[index+2])+''
                 else:
-                    flatView = ' '+str(vf[index+1])+' '+str(vf[index+2])+'...'
+                    flatView = ' '+strFormat(vf[index+1])+' '+strFormat(vf[index+2])+'...'
                 flatView += '\n'
                 CTK.TXT.insert('START', flatView)
-                flatView = str(vf[index])
+                flatView = strFormat(vf[index])
                 CTK.TXT.insert('START', flatView, 'Warning')
-                flatView = '['
+                flatView = dim
                 CTK.TXT.insert('START', flatView)                
-            v = str(vf[index])
+            v = strFormat(vf[index])
     VARS[1].set(str(index))
     VARS[2].set(v)
 
@@ -328,6 +341,53 @@ def updateNode(node):
 def rmNodes():
     if CTK.t == []: return
 
+def setByLevel(node1, node2, depth, maxDepth):
+    print("setting",node1[0])
+    node1[1] = node2[1]
+    if depth < maxDepth or maxDepth == -1:
+        for c, n in enumerate(node1[2]):
+            setByLevel(n, node2[2][c], depth+1, maxDepth)
+
+def freeByLevel(node1, depth, maxDepth):
+    print("freeing",node1[0])
+    node1[1] = None
+    if depth < maxDepth or maxDepth == -1:
+        for n in node1[2]:
+            freeByLevel(n, depth+1, maxDepth)
+
+#==============================================================================
+def loadNode():
+    if CTK.t == []: return
+    if CTK.HANDLE is None: fileName = CTK.FILE
+    else: fileName = CTK.HANDLE.fileName
+    node = CTK.TKTREE.getCurrentSelectedNode()
+    if node == []: return
+    path = Internal.getPath(CTK.t, node)
+    depth = VARS[7].get()
+    depth = int(depth)
+    nodes = Filter.readNodesFromPaths(fileName, [path], maxDepth=depth)
+    
+    # depth replace
+    if depth == 0: node[1] = nodes[0][1]
+    elif depth == -1: 
+        node[1] = nodes[0][1]
+        node[2] = nodes[0][2]
+    else: 
+        setByLevel(node, nodes[0], 0, depth)
+    CTK.TKTREE.updateApp()
+    updateNode(node)
+
+#==============================================================================
+def freeNode():
+    if CTK.t == []: return
+    node = CTK.TKTREE.getCurrentSelectedNode()
+    if node == []: return
+    depth = VARS[7].get()
+    depth = int(depth)
+    freeByLevel(node, 0, depth)
+    CTK.TKTREE.updateApp()
+    updateNode(node)
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -369,6 +429,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -6- Type of deletion
     V = TK.StringVar(win); V.set('Name'); VARS.append(V)
+    # -7- Maxdepth for load
+    V = TK.StringVar(win); V.set('0'); VARS.append(V)
 
     # - Move selection to base -
     B = TTK.Button(Frame, text="Move sel. to", command=moveSelection)
@@ -443,6 +505,17 @@ def createApp(win):
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Selected node value at given index.\nYou can change this by pressing <Enter>.')
     B.bind('<Return>', setNodeValue)
+
+    # - Load/free Nodes -
+    B = TTK.Button(Frame, text="Load node", command=loadNode)
+    BB = CTK.infoBulle(parent=B, text='Load node from file.')
+    B.grid(row=4, column=0, sticky=TK.EW)
+    B = TTK.Button(Frame, text="Free node", command=freeNode)
+    BB = CTK.infoBulle(parent=B, text='Free node.')
+    B.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[7], background='White', width=2)
+    B.grid(row=4, column=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Max depth for load and free (-1: full).')
 
 #==============================================================================
 # Called to display widgets

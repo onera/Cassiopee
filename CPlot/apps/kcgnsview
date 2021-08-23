@@ -1,0 +1,11 @@
+#! /bin/sh
+if [ "$PYTHONEXE" = "" ]; then
+    export PYTHONEXE=python
+fi
+
+if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkcgnsview.py"
+then
+    $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkcgnsview.py" "$@"
+else
+    $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkcgnsview.pyc" "$@"
+fi

@@ -60,6 +60,7 @@ cp apps/cassiopeeRunWin32.bat "$INSTALLPATH"
 cp apps/cassiopeeRunWin64.bat "$INSTALLPATH"
 cp apps/validCassiopee "$INSTALLPATH"
 cp apps/validCassiopee.bat "$INSTALLPATH"
+cp apps/kcgnsview "$INSTALLPATH"
 python installThemes.py
 
 # Test l'installation

@@ -19,6 +19,9 @@ except: pass
 STATUS = 0
 WIDGETS = {}; VARS = []
 
+def strFormat(v):
+    return "%g"%v
+
 #==============================================================================
 def report_callback_exception():
     """report exception on sys.stderr."""
@@ -655,7 +658,7 @@ class Node:
 
         if pid[3] == 'CGNSLibraryVersion_t':
             v = pid[1]
-            if isinstance(v, float): v = str(v)
+            if isinstance(v, float): v = strFormat(v)
             if isinstance(v, numpy.ndarray): v = str(v[0])
             CTK.TXT.insert('START', v+'\n')
             
@@ -763,12 +766,12 @@ class Node:
                 else:
                     pt = v.ravel('k'); size = pt.size
                     txt += str(v.shape)+': '
-                    if size > 0: txt += str(pt[0])
-                    if size > 1: txt += ',' + str(pt[1])
-                    if size > 2: txt += ',' + str(pt[2])
-                    if size > 3: txt += ',' + str(pt[3])
-                    if size > 4: txt += ',' + str(pt[4])
-                    if size > 5: txt += ',' + str(pt[5])
+                    if size > 0: txt += strFormat(pt[0])
+                    if size > 1: txt += ' ' + strFormat(pt[1])
+                    if size > 2: txt += ' ' + strFormat(pt[2])
+                    if size > 3: txt += ' ' + strFormat(pt[3])
+                    if size > 4: txt += ' ' + strFormat(pt[4])
+                    if size > 5: txt += ' ' + strFormat(pt[5])
                     if size > 6: txt += '...'
             else: txt += str(v)
             CTK.TXT.insert('START', txt+'\n')
@@ -827,9 +830,9 @@ class Node:
             txt = ''
             if isinstance(v, numpy.ndarray):
                 txt += str(v.shape)+': '
-                if v.shape[0] > 0: txt += str(v[0])
-                if v.shape[0] > 1: txt += ',' + str(v[1])
-                if v.shape[0] > 2: txt += ',' + str(v[2])
+                if v.shape[0] > 0: txt += strFormat(v[0])
+                if v.shape[0] > 1: txt += ' ' + strFormat(v[1])
+                if v.shape[0] > 2: txt += ' ' + strFormat(v[2])
                 if v.shape[0] > 3: txt += '...'
             else: txt += str(v)
             CTK.TXT.insert('START', txt+'\n')
