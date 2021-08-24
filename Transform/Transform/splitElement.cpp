@@ -95,7 +95,14 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   adj = adj1;
   
   E_Int ncon = 1;
-  E_Int objval = 0;
+  E_Int objval = 0; // retour
+  
+  //idx_t options[METIS_NOPTIONS];
+  //METIS_SetDefaultOptions(options);
+  //options[METIS_OPTION_CONTIG] = 1; // force contiguite
+  //options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_CUT; // METIS_OBJTYPE_VOL
+  //options[METIS_OPTION_MINCONN] = 1; // force min connectivite externe
+
   idx_t* parts = new idx_t [ne];
   //for (E_Int i = 0; i < ne; i++) parts[i] = 0; // dbx
   //METIS_PartGraphRecursive(&ne, &ncon, xadj, adj, NULL, NULL, NULL, 

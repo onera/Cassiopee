@@ -181,8 +181,10 @@ def showNodeValue(event=None):
         if v.dtype == 'c': v = Internal.getValue(node); index = 0
         else:
             sh = v.shape
-            if len(sh) == 2:
+            if len(sh) == 3:
                 dim = '('+str(sh[0])+';'+str(sh[1])+';'+str(sh[2])+'): '
+            elif len(sh) == 2:
+                dim = '('+str(sh[0])+';'+str(sh[1])+'): '
             elif len(sh) == 1:
                 dim = '('+str(sh[0])+'): '
             else:

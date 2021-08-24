@@ -10,10 +10,16 @@ from . import PyTree as D2
 #==============================================================================
 def redispatch(t, graph=None):
     """Redistribute tree from graph."""
+    tp = Internal.copyRef(t)
+    _redispatch(tp, graph)
+    return tp
+
+def _redispatch(t, graph=None):
+    """Redistribute tree from graph."""
     if graph is None:
         graph = Cmpi.computeGraph(t, type='proc')
     procs = D2.getProcDict(t)
-    t = Cmpi.addXZones(t, graph)
+    Cmpi._addXZones(t, graph)
     # Enleve les zones envoyees
     zones = Internal.getZones(t)
     for z in zones:
@@ -25,4 +31,4 @@ def redispatch(t, graph=None):
         else: # enleve le noeud tag XZone
             (p, c) = Internal.getParentOfNode(z, tag)
             del p[2][c]
-    return t
+    return None

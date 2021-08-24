@@ -32,9 +32,10 @@ a = Cmpi.readZones(a, 'in.cgns', rank=Cmpi.rank)
 # equilibrage 2 (a partir d'un squelette charge)
 (a, dic) = D2.distribute(a, NProc=Cmpi.size, algorithm='gradient1', 
                          useCom='match')
-
-a = D2mpi.redispatch(a)
+Cmpi._convert2PartialTree(a)
+D2mpi._redispatch(a)
 Internal._sortByName(a)
+
 if Cmpi.rank == 0: test.testT(a, 1)
 
 # force toutes les zones sur 0
@@ -43,6 +44,6 @@ for z in zones:
     node = Internal.getNodeFromName2(z, 'proc')
     Internal.setValue(node, 0)
 
-a = D2mpi.redispatch(a)
+D2mpi._redispatch(a)
 Internal._sortByName(a)
 if Cmpi.rank == 0: test.testT(a, 2)
