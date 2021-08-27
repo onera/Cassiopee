@@ -68,11 +68,11 @@ void K_DISTRIBUTOR2::graph(
   E_Float nbTot = 0;
   for (E_Int i = 0; i < nb; i++) nbTot += nbPts[i];
 
-  // Nb de noeuds moyens devant etre contenu par chaque processeur
+  // Nb de noeuds moyens devant etre contenus par chaque processeur
   meanPtsPerProc = nbTot*1./NProc;
 
   // Bloc le plus petit
-  E_Float nbPtsMin = 10000000;
+  E_Float nbPtsMin = K_CONST::E_MAX_FLOAT;
   for (E_Int i = 0; i < nb; i++) nbPtsMin = K_FUNC::E_min(nbPts[i], nbPtsMin);
   // Bloc le plus grand
   E_Float nbPtsMax = 0;
@@ -165,13 +165,16 @@ void K_DISTRIBUTOR2::graph(
   idx_t* adjweight = new idx_t [size];
   
   // remplissage des poids des blocs
+  //printf("weight=");
   for (E_Int i = 0; i < nb; i++)
   {
-    vweight[i] = nbPts[i];
+    vweight[i] = nbPts[i]; 
+    //printf("%d ", vweight[i]);
   }
+  //printf("\n");
 
   // com relative weight
-  // E_Float rel = 0.5;
+  E_Float rel = 1.;
 
   // remplissage adj + xadj a partir de com
   if (com != NULL)
@@ -188,7 +191,7 @@ void K_DISTRIBUTOR2::graph(
           //printf("%d %d\n",com[i+j*nb],com[j+i*nb]);
           //if (i < j) adjweight[size] = rel*com[i+j*nb];
           //else adjweight[size] = rel*com[j+i*nb]; // force symetrie
-          adjweight[size] = com[i+j*nb];
+          adjweight[size] = rel*com[i+j*nb]+1;
           size++;
         }
       }
@@ -212,13 +215,13 @@ void K_DISTRIBUTOR2::graph(
         if (b1 < b2 && b1 == i)
         {
           adj[size] = b2;
-          adjweight[size] = comd[2*n+1];
+          adjweight[size] = rel*comd[2*n+1]+1;
           size++;
         }
         else if (b1 < b2 && b2 == i)
         {
           adj[size] = b1;
-          adjweight[size] = comd[2*n+1];
+          adjweight[size] = rel*comd[2*n+1]+1;
           size++;
         }
       }
@@ -226,20 +229,35 @@ void K_DISTRIBUTOR2::graph(
     }
   }
 
+  //printf("xadj = ");
+  //for (E_Int i = 0; i < nb; i++) printf("%d ", xadj[i]); 
+  //printf("\n");
   //printf("size of adj %d\n", size);
-  //for (E_Int i = 0; i < size; i++) printf("adj=%d %d\n", adj[i], adjweight[i]);
+  //for (E_Int i = 0; i < size; i++) printf("%d adj=%d adjw=%d\n", i, adj[i], adjweight[i]);
 
-  E_Int objval = 0;
+  E_Int objval = 0; // retour
   E_Int ncon = 1;
+  
+  //idx_t options[METIS_NOPTIONS];
+  //METIS_SetDefaultOptions(options);
+  //options[METIS_OPTION_CONTIG] = 1; // force contiguite
+  //options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_CUT;
+  //options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_VOL;
+  //options[METIS_OPTION_MINCONN] = 1; // force min connectivite externe
+  //options[METIS_OPTION_UFACTOR] = 1.; // imbalance tol
+
   idx_t* parts = new idx_t [nb];
   METIS_PartGraphKway(&nb, &ncon, xadj, adj, vweight, NULL, adjweight, 
                       &NProc, NULL, NULL, NULL, &objval, parts);
+  //METIS_PartGraphKway(&nb, &ncon, xadj, adj, vweight, NULL, NULL, 
+  //                     &NProc, NULL, NULL, options, &objval, parts);
+  //METIS_PartGraphRecursive(&nb, &ncon, xadj, adj, vweight, NULL, adjweight,
+  //                         &NProc, NULL, NULL, options, &objval, parts);
   
   delete [] adj; delete [] xadj;
   delete [] vweight; delete [] adjweight;
 
   // Sortie
-  //printf("jbest=%d\n", jBest);
   for (E_Int i = 0; i < nb; i++) out[i] = parts[i];
   delete [] parts;
 

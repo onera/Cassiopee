@@ -901,9 +901,12 @@ def getNormalMap(array):
     else:
         return generator.getNormalMap(array)
   
+# IN: niter: nbre d'iterations de lissage
+# IN: eps: possible float ou numpy de taille des vertex: eps lissage
+# IN: cellN: si present, extrapole en cas de cellN=0
+# IN: algo: si 0: lisse n, si 1: lisse dn
 def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
-    """Return the map of smoothed and non-normalized surface normals in 
-    an array.
+    """Return the map of smoothed surface normals in an array.
     Usage: getSmoothNormalMap(array, niter, eps)"""
     try: import Converter as C
     except: raise ImportError("getSmoothNormalMap: requires Converter module.")
@@ -913,7 +916,6 @@ def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
 
     if cellN is not None:
         fake = ['cellN',cellN[1],n[2],n[3]]
-        print(cellN[1].shape, n[1].shape)
         n = C.addVars([n, fake])
         generator.extrapWithCellN(array, n)
         n = C.extractVars(n, ['sx','sy','sz'])
@@ -2086,7 +2088,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                     #print(cellNs[noz])
                 # modification du lissage pour les points masques
                 ni1 = ni-1
-                ni2 = max(ni-2,0) 
+                ni2 = max(ni-2,0)
                 nj2 = max(nj-2,0)
                 for ind in range(ninj):
                     indu = indicesU[ind]

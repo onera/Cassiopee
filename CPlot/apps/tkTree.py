@@ -1467,7 +1467,7 @@ def createApp(win):
 
     aw = 230; ah = 210
     if 'tkTreeWidth' in CTK.PREFS: aw = CTK.PREFS['tkTreeWidth']
-    if 'tkTreeHeight' in CTK.PREFS: aw = CTK.PREFS['tkTreeHeight']
+    if 'tkTreeHeight' in CTK.PREFS: ah = CTK.PREFS['tkTreeHeight']
 
     # - Tree -
     B = Tree(master=Frame2,

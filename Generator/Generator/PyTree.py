@@ -104,6 +104,56 @@ def cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False,
                     out.append(z)
     return out
 
+def _cartRxRefit(a):
+    """Refit a cartRx to cartesian after addGhostCells."""
+    zones = Internal.getZones(a)
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        ni = dim[1]; nj = dim[2]; nk = dim[3]
+        xp = Internal.getNodeFromName2(z, 'CoordinateX')[1]
+        if ni > 3:
+            dx1 = xp[1,0,0]-xp[0,0,0]
+            dx2 = xp[2,0,0]-xp[1,0,0]
+            dx3 = xp[3,0,0]-xp[2,0,0]
+            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
+                xp[0,:,:] = xp[2,:,:]-2*dx3
+                xp[1,:,:] = xp[2,:,:]-dx3
+            dx1 = xp[-1,0,0]-xp[-2,0,0]
+            dx2 = xp[-2,0,0]-xp[-3,0,0]
+            dx3 = xp[-3,0,0]-xp[-4,0,0]
+            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
+                xp[-1,:,:] = xp[-3,:,:]+2*dx3
+                xp[-2,:,:] = xp[-3,:,:]+dx3
+        xp = Internal.getNodeFromName2(z, 'CoordinateY')[1]
+        if nj > 3:
+            dx1 = xp[0,1,0]-xp[0,0,0]
+            dx2 = xp[0,2,0]-xp[0,1,0]
+            dx3 = xp[0,3,0]-xp[0,2,0]
+            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
+                xp[:,0,:] = xp[:,2,:]-2*dx3
+                xp[:,1,:] = xp[:,2,:]-dx3
+            dx1 = xp[0,-1,0]-xp[0,-2,0]
+            dx2 = xp[0,-2,0]-xp[0,-3,0]
+            dx3 = xp[0,-3,0]-xp[0,-4,0]
+            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
+                xp[:,-1,:] = xp[:,-3,:]+2*dx3
+                xp[:,-2,:] = xp[:,-3,:]+dx3
+        xp = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
+        if nk > 3:
+            dx1 = xp[0,0,1]-xp[0,0,0]
+            dx2 = xp[0,0,2]-xp[0,0,1]
+            dx3 = xp[0,0,3]-xp[0,0,2]
+            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
+                xp[:,:,0] = xp[:,:,2]-2*dx3
+                xp[:,:,1] = xp[:,:,2]-dx3
+            dx1 = xp[0,0,-1]-xp[0,0,-2]
+            dx2 = xp[0,0,-2]-xp[0,0,-3]
+            dx3 = xp[0,0,-3]-xp[0,0,-4]
+            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
+                xp[:,:,-1] = xp[:,:,-3]+2*dx3
+                xp[:,:,-2] = xp[:,:,-3]+dx3
+    return None
+
 #------------------------------------------------------------------------------
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste
 # de contours ou surfaces
@@ -1227,7 +1277,7 @@ def addNormalLayers(t, distrib, check=0, niterType=0, niter=0, niterK=[],
                     blanking=False, algo=0):
     """Generate N layers to a surface following normals. Distrib is the 
     height of each layer.
-    If niter = 0, the normal are not smoothed; else niter is the number of
+    If niter=0, the normal are not smoothed; else niter is the number of
     smoothing iterations applied to normals.
     Usage: addNormalLayers(surface, distrib, check, niter)"""
     d = C.getFields(Internal.__GridCoordinates__, distrib)[0]

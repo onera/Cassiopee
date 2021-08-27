@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __K_MESH_POLYHEDRON_H__
 #define __K_MESH_POLYHEDRON_H__
@@ -1687,8 +1687,8 @@ public:
       for (E_Int i = 0; (i < _nb_faces); ++i)
       {
         E_Int PGi = *(_faces + i) - 1;
-        E_Int nb_nodes = _pgs->stride(PGi);
-        assert(nb_nodes == 3);
+        //E_Int nb_nodes = _pgs->stride(PGi);
+        //assert(nb_nodes == 3);
 
         const E_Int* nodes = _pgs->get_facets_ptr(PGi);
 

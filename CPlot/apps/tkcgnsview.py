@@ -13,6 +13,10 @@ import os.path, sys
 # To be called when CTK.t is set
 def run():
     
+    # Passe la dimension par une pseudo pref
+    CTK.PREFS['tkTreeWidth'] = 380
+    CTK.PREFS['tkTreeHeight'] = 290
+
     # Main window
     (win, frames, menu, menus, file, tools) = CTK.minimal2('kcgnsview '+C.__version__,
                                                            show=False)
@@ -50,4 +54,4 @@ if __name__ == "__main__":
         CTK.HANDLE = Filter.Handle(files[0])
         CTK.t = CTK.HANDLE.loadSkeleton(maxDepth=-1)
         CTK.FILE = files[0]
-    run()    
+    run()

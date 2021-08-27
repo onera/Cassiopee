@@ -63,7 +63,7 @@ def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
 
     _addMXZones(t, depth=2, variables=variables, noCoordinates=False, 
                 keepOldNodes=False)
-    print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), PyTree.getNPts(t)*1./1.e6), flush=True)
+    #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), PyTree.getNPts(t)*1./1.e6), flush=True)
     Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
     _rmMXZones(t)
 

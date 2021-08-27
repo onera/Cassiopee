@@ -751,9 +751,9 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
 
-    if Cmpi.rank == 0 and itype == 'chimera': print(interDict)
-    print("%d: setInterpData(min): itype=%s, Nblocs=%d, NPts(M)=%g"%(Cmpi.rank,itype,len(Internal.getZones(aR)), C.getNPts(aR)*1./1.e6), flush=True)
-    if Cmpi.rank == 0 and itype == 'chimera': print(graph)
+    #if Cmpi.rank == 0 and itype == 'chimera': print(interDict)
+    #print("%d: setInterpData(min): itype=%s, Nblocs=%d, NPts(M)=%g"%(Cmpi.rank,itype,len(Internal.getZones(aR)), C.getNPts(aR)*1./1.e6), flush=True)
+    #if Cmpi.rank == 0 and itype == 'chimera': print(graph)
     
     # Pour abutting, pas besoin de coords
     # Pour le chimere, il faut les coords et le cellN
@@ -769,8 +769,8 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
                         cartesian=False, zoneGC=False, keepOldNodes=False)
         
-    print("%d: setInterpData(max): itype=%s, Nblocs=%d, NPts(M)=%g"%(Cmpi.rank,itype,len(Internal.getZones(aR)), C.getNPts(aR)*1./1.e6), flush=True)
-    if Cmpi.rank == 0 and itype == 'chimera': Internal.printTree(aR)
+    #print("%d: setInterpData(max): itype=%s, Nblocs=%d, NPts(M)=%g"%(Cmpi.rank,itype,len(Internal.getZones(aR)), C.getNPts(aR)*1./1.e6), flush=True)
+    #if Cmpi.rank == 0 and itype == 'chimera': Internal.printTree(aR)
 
     X._setInterpData(aR, aD, double_wall, order, penalty, nature, 
                      method, loc, storage, interpDataType, hook, 
