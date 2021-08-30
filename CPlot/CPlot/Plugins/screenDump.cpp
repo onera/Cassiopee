@@ -21,7 +21,7 @@
 #include "gl2ps.h"
 
 // if 0: getDepth with OSMESA, if 1: getDepth with openGL
-#define GETDEPTH 0
+#define GETDEPTH 1
 
 //=============================================================================
 // Screen dump plugins
@@ -228,7 +228,8 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     
     // Recupere le depth buffer et l'adimensionne
     void* depthl;
-
+    float* depth = (float*)malloc(screenSize * sizeof(float));
+    
 #if GETDEPTH == 0
     // depth buffer par OSMESA
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
@@ -238,7 +239,6 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     assert(h == _view.h);
     //printf("bpv=%d\n", bpv);
     //printf("size %d %d\n", s, screenSize);
-    float* depth = (float*)malloc(screenSize * sizeof(float));
     if (bpv == 2)
     {
       unsigned short* d = (unsigned short*)depthl;
@@ -322,13 +322,13 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     E_Int screenSize = _view.w * _view.h; 
     // Get the depth buffer partiel -> depth
     void* depthl;
-
+    float* depth = (float*)malloc(screenSize * sizeof(float));
+    
 #if GETDEPTH == 0
     // depth buffer par OSMESA
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;
     OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
-    float* depth = (float*)malloc(screenSize * sizeof(float));
     //printf("bpv=%d\n", bpv);
     if (bpv == 2)
     {
