@@ -341,7 +341,7 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
                   #print(Cmpi.rank, 'envoie a ',rcvNode, ' le paquet : ', n)
                   if rcvNode not in datas: datas[rcvNode] = [n]
                   else: datas[rcvNode] += [n]
-    
+
     # Envoie des numpys suivant le graph
     if graph is not None: rcvDatas = Cmpi.sendRecvC(datas, graph)
     else: rcvDatas = {}

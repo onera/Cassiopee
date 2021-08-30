@@ -96,7 +96,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     }
 
 
-    // Type de la données : premier ou deuxieme sendRecv
+    // Type de la donnees : premier ou deuxieme sendRecv
     E_Int dataType = 0;
 
     E_Int sizeDatas = PyList_Size(datas);
@@ -137,15 +137,15 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             E_Int* indices; E_Int nIndices; E_Int nfld;
             K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld,true);
 
-            // XCoordinates des points à interpoler
+            // XCoordinates des points a interpoler
             PyObject* PyXCoord = PyList_GetItem(listData, 3);
             E_Float* xCoords; E_Int nXCoords; E_Int nfldx;
             K_NUMPY::getFromNumpyArray(PyXCoord, xCoords, nXCoords, nfldx,true);
-            // YCoordinates des points à interpoler
+            // YCoordinates des points a interpoler
             PyObject* PyYCoord = PyList_GetItem(listData, 4);
             E_Float* yCoords; E_Int nYCoords; E_Int nfldy;
             K_NUMPY::getFromNumpyArray(PyYCoord, yCoords, nYCoords, nfldy,true);
-            // ZCoordinates des points à interpoler
+            // ZCoordinates des points a interpoler
             PyObject* PyZCoord = PyList_GetItem(listData, 5);
             E_Float* zCoords; E_Int nZCoords; E_Int nfldz;
             K_NUMPY::getFromNumpyArray(PyZCoord, zCoords, nZCoords, nfldz,true);
@@ -204,7 +204,6 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             E_Float* buf_Z = (E_Float*) buf;
             buf += 8*nZCoords;
 
-
             // Placement parallele
             #pragma omp parallel
             {
@@ -228,24 +227,22 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             Py_DECREF(PyZCoord);
             
         }
-        
         else if (sizeList == 3) // deuxieme sendRecv de _transfer
         {
-            //Verification si 2e sendRecv de transfer ou si sendRecv de setInterpData
-            if (PyString_Check(PyList_GetItem(listData, 0))){
+            // Verification si 2e sendRecv de transfer ou si sendRecv de setInterpData
+            if (PyString_Check(PyList_GetItem(listData, 0)))
+            {
                 dataType=2;
             }
 #if PY_VERSION_HEX >= 0x03000000
-            if (PyUnicode_Check(PyList_GetItem(listData, 0))){
+            if (PyUnicode_Check(PyList_GetItem(listData, 0)))
+            {
                 dataType=2;
             }
 #endif
-            else {
-                dataType=3;
-            }
+            else { dataType=3; }
 
-
-            if (dataType==2)
+            if (dataType == 2)
             {
                 // TYPE 2 de données : [[zrcvname,indicesR,fields]]
                 
@@ -328,9 +325,9 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 Py_DECREF(PyIndices);
                 Py_DECREF(PyFieldArrays);
             }
-            else if (dataType==3)
+            else if (dataType == 3)
             {
-                // TYPE 3 de données : [[int,fields, indices]]
+                // TYPE 3 de données : [[int, fields, indices]]
                 
                 // Nom de la zone recv
                 PyObject* PyVar = PyList_GetItem(listData, 0);
@@ -350,12 +347,12 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 PyObject* PyFieldArrays = PyList_GetItem(PyFields, 1); //Numpy à 5 cases
                 //PyObject* PyField1 = PyList_GetItem(PyFieldsArrays, 0);
                 E_Float* fields; E_Int nPts; E_Int nFlds;
-                K_NUMPY::getFromNumpyArray(PyFieldArrays, fields, nPts, nFlds,true);
+                K_NUMPY::getFromNumpyArray(PyFieldArrays, fields, nPts, nFlds, true);
 
                 // Indices des points à interpoler
                 PyObject* PyIndices = PyList_GetItem(listData, 2);
                 E_Int* indices; E_Int nIndices; E_Int nfld;
-                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld,true);
+                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld, true);
 
                 // Calcul du nombre d'octets nécessaires :
                 //  - entier
@@ -386,14 +383,13 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 (*(E_Int*)buf) = nPts           ; buf+=4;
                 (*(E_Int*)buf) = nFlds          ; buf+=4;
                 E_Float* buf_flds = (E_Float*) buf;
-                buf+=8*nPts*nFlds;
+                buf += 8*nPts*nFlds;
 
                 // Placement des indices
                 (*buf) = 'i'                    ; buf+=1;
                 (*(E_Int*)buf) = nIndices       ; buf+=4;
                 E_Int* buf_indices = (E_Int*) buf;
                 buf += 4*nIndices;
-
 
                 // Placement parallele
                 #pragma omp parallel
@@ -407,7 +403,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 
                 // releaseshared
                 Py_DECREF(PyIndices);
-                Py_DECREF(PyFieldArrays);   
+                Py_DECREF(PyFieldArrays);
             }
             else
             {
@@ -611,7 +607,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     // def de la liste des datas
     PyObject* datas = PyList_New(sizeData);
 
-    if ((dataType!=1) && (dataType!=2) && (dataType!=3))
+    if ((dataType != 1) && (dataType != 2) && (dataType != 3))
     {
         printf("Error: recv: unknown data type (return None).\n"); fflush(stdout);
         delete initRecvBuf;
@@ -637,7 +633,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
         }
 
         // Remplissage de la case nData de la liste selon dataType
-        if (dataType==1)
+        if (dataType == 1)
         {
             char typeData[1]; // type de ce qui vient dans buf
             E_Int size = 0; // taille de ce qui vient dans buf
@@ -730,7 +726,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
 
             delete indices; delete xCoords; delete yCoords; delete zCoords;
         }
-        else if (dataType==2)
+        else if (dataType == 2)
         {
             char typeData[1]; // type de ce qui vient dans buf
             E_Int size = 0; // taille de ce qui vient dans buf
@@ -805,11 +801,10 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
-
             delete indices; delete fields;
 
         }
-        else if (dataType==3)
+        else if (dataType == 3)
         {
             char typeData[1]; // type de ce qui vient dans buf
             E_Int size = 0; // taille de ce qui vient dans buf
@@ -839,11 +834,10 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // Tableau des indices
             (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
             intBuf              = (E_Int*) buf;
-            size                = intBuf[0]; buf+=4;
-            E_Int* indices      = new E_Int[size];
+            E_Int npts          = intBuf[0]; buf+=4;
+            E_Int* indices      = new E_Int[npts];
             E_Int* indicesBuf   = (E_Int*) buf;
-            E_Int npts = size;
-            PyObject* PyNpts = PyLong_FromLong(size);
+            PyObject* PyNpts = PyLong_FromLong(npts);
             buf += size*4;
             
             // Remplissage parallele
@@ -860,7 +854,8 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             PyObject* PyVar = PyLong_FromLong(var);
             PyObject* PyIndices =  K_NUMPY::buildNumpyArray(indices, npts, 1, 1);
             PyObject* PyFieldNames = Py_BuildValue("s", fieldNames);
-            PyObject* PyFields =  K_NUMPY::buildNumpyArray(fields, npts, nFlds, 0);
+            if (size != npts) { nFlds=size; size=npts; } // forced a cause des fields a 1 point
+            PyObject* PyFields =  K_NUMPY::buildNumpyArray(fields, size, nFlds, 0);
 
             // Liste finale
             PyObject* dataToFill = PyList_New(3);
@@ -882,7 +877,6 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             PyList_SET_ITEM(datas, nData, dataToFill);
 
             delete indices; delete fields;
-
         }
 
         delete initBuf;
