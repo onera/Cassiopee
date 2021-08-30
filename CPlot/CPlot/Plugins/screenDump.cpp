@@ -20,6 +20,9 @@
 #include <stdlib.h>
 #include "gl2ps.h"
 
+// if 0: getDepth with OSMESA, if 1: getDepth with openGL
+#define GETDEPTH 0
+
 //=============================================================================
 // Screen dump plugins
 //=============================================================================
@@ -225,14 +228,17 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     
     // Recupere le depth buffer et l'adimensionne
     void* depthl;
+
+#if GETDEPTH == 0
+    // depth buffer par OSMESA
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;
     OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
+    assert(w == _view.w);
+    assert(h == _view.h);
     //printf("bpv=%d\n", bpv);
     //printf("size %d %d\n", s, screenSize);
     float* depth = (float*)malloc(screenSize * sizeof(float));
-    assert(w == _view.w);
-    assert(h == _view.h);
     if (bpv == 2)
     {
       unsigned short* d = (unsigned short*)depthl;
@@ -242,9 +248,12 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     {
       unsigned int* d = (unsigned int*)depthl;
       for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)(d[i])/4294967295.; }
-    } 
-    //glReadPixels(0, 0, _view.w, _view.h, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
-    
+    }
+#else
+    // depth buffer par openGL
+    glReadPixels(0, 0, _view.w, _view.h, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
+#endif
+
     double zNear = _view.nearD; 
     double zFar  = _view.farD;
     
@@ -313,6 +322,9 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     E_Int screenSize = _view.w * _view.h; 
     // Get the depth buffer partiel -> depth
     void* depthl;
+
+#if GETDEPTH == 0
+    // depth buffer par OSMESA
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;
     OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
@@ -328,8 +340,11 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       unsigned int* d = (unsigned int*)depthl;
       for (E_Int i = 0; i < screenSize; i++) { depth[i] = (float)(d[i])/4294967295.; }
     }
-    //glReadPixels(0, 0, _view.w, _view.h, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
-    
+#else
+    // depth buffer par openGL
+    glReadPixels(0, 0, _view.w, _view.h, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
+#endif
+
     double zNear = _view.nearD; 
     double zFar  = _view.farD;
     for (int i = 0; i < screenSize; i++)

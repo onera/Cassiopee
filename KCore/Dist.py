@@ -1741,6 +1741,8 @@ def checkLibFile__(file, additionalLibPaths):
          if p1 is not None: p += p1.split(':')
          p1 = env.get('PATH', None)
          if p1 is not None: p += p1.split(';')
+    p1 = env.get('CMAKE_PREFIX_PATH', None)
+    if p1 is not None: p += [path+'/lib' for path in p1.split(':')]
     #p += ['/usr/local/lib', '/opt/lib', '/usr/lib', '/opt/local/lib']
     for i in p:
          a = glob.glob(i+'64/'+file)
@@ -1767,6 +1769,8 @@ def checkIncFile__(file, additionalIncludePaths):
         p1 = env.get('PATH', None)
         if p1 is not None: pp += p1.split(':')
     #p += ['/usr/local/include', '/opt/include', '/usr/include', '/opt/local/include']
+    p1 = env.get('CMAKE_PREFIX_PATH', None)
+    if p1 is not None: pp += [path+'/lib' for path in p1.split(':')]
     for i, v in enumerate(pp):
         s = v.split('/'); ls = len(s)
         if ls > 0 and s[-1] == 'lib': s[-1] = 'include'

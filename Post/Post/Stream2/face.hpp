@@ -22,6 +22,7 @@
 #include "Memory/vector_view.hpp"
 #include "point3d.hpp"
 #include "vector3d.hpp"
+#include <limits>
 
 namespace K_POST
 {
