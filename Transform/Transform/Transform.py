@@ -20,7 +20,7 @@ __all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', 
     'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 'rotate', '_rotate', '_scale', 'scale', 
     'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold', 
     'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches', 
-    'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround']
+    'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField']
 
 #========================================================================================
 # Merge a set of cart grids in A for each refinement level
@@ -351,6 +351,23 @@ def perturbate(a, radius, dim=3):
         return b
     else:
         return transform.perturbate(a, radius, dim)
+
+
+def smoothField(a, eps=0.1, niter=1, type=0, varNames=[]):
+    """Smooth given fields."""
+    b = Converter.copy(a)
+    _smoothField(b, eps, niter, type, varNames)
+    return b
+
+def _smoothField(a, eps=0.1, niter=1, type=0, varNames=[]):
+    """Smooth given fields."""
+    if not isinstance(varNames, list): varNames = [varNames]
+    if not isinstance(eps, float): epsv = 0.; epsf = eps
+    else: epsv = eps; epsf = None
+    if isinstance(a[0], list):
+        for i in a: transform._smoothField(i, epsv, epsf, niter, type, varNames)
+    else: transform._smoothField(a, epsv, epsf, niter, type, varNames)
+    return None
 
 def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[], 
            projConstraints=[], delta=1., point=(0,0,0), radius=-1.):

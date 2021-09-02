@@ -159,6 +159,14 @@ def _perturbate(a, radius, dim=3):
     Usage: perturbate(a, radius, dim)"""
     return C._TZANW(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
 
+def smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
+    """Smooth given fields."""
+    return C.TZA2(t, Transform.smoothField, 'nodes', 'nodes', eps, niter, type, varNames)
+
+def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
+    """Smooth given fields."""
+    return C.__TZA2(t, Transform._smoothField, 'nodes', eps, niter, type, varNames)
+
 def smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
            projConstraints=[], delta=1., point=(0,0,0), radius=-1.):
     """Smooth a mesh with a Laplacian.
