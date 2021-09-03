@@ -441,6 +441,12 @@ def setColormapLight(event=None):
     elif colormap == 'Diverging': style = 8
     elif colormap == 'TriColorRGB': style = 10
     elif colormap == 'TriColorHSV': style = 12
+    elif colormap == 'Black2White': style = 14
+    elif colormap == 'Viridis': style = 16
+    elif colormap == 'Inferno': style = 18
+    elif colormap == 'Magma': style = 20
+    elif colormap == 'Plasma': style = 22
+    elif colormap == 'NiceBlue': style = 24
     
     if light == 'IsoLight on': style += 1
     
@@ -1124,7 +1130,9 @@ def createApp(win):
     B = TTK.OptionMenu(Scalar, VARS[4], 'Blue2Red', 'Green2Red',
                        'BiColorRGB', 'BiColorHSV',
                        'TriColorRGB', 'TriColorHSV',
-                       'Diverging',
+                       'Diverging', 'Black2White',
+                       'Viridis', 'Inferno', 'Magma', 
+                       'Plasma', 'NiceBlue',
                        command=setColormapLight)
     B.grid(row=6, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Colormap type.')

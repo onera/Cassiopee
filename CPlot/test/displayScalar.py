@@ -10,3 +10,4 @@ a = C.initVars(a, '{f}={y}')
 
 CPlot.display([a], mode=3, scalarStyle=0); time.sleep(1.)
 CPlot.display([a], mode=3, scalarStyle=1); time.sleep(1.)
+CPlot.display([a], mode=3, scalarStyle=0, colormap=24); time.sleep(1.)

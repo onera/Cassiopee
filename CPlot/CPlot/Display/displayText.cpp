@@ -21,6 +21,11 @@
 
 #include "../Data.h"
 
+// Choix de la font bitmap.
+// 0: Fonts GLUT
+// 1: Fonts OpenGLText (non fonctionnel, a finaliser)
+#define FONTMETHOD 0
+
 //=============================================================================
 // Choix pour la fonction de render de texte :
 // renderBitmapString1 : avec les polices de glut
@@ -32,7 +37,11 @@ void Data::renderBitmapString(float x, float y, float z,
                               float nx, float ny, float nz,
                               float r)
 {
+#if FONTMETHOD == 0
   renderBitmapString1(x, y, z, fontSize, string, colorR, colorG, colorB, colorA, nx, ny, nz);
+#else
+  renderBitmapString2(x, y, z, fontSize, string, colorR, colorG, colorB, colorA, nx, ny, nz);
+#endif
 }
 //=============================================================================
 // Choix pour la fonction mesure de la largeur du texte :
@@ -41,7 +50,11 @@ void Data::renderBitmapString(float x, float y, float z,
 //=============================================================================
 int Data::textWidth(int fontSize, char* string)
 {
+#if FONTMETHOD == 0
   return textWidth1(fontSize, string);
+#else
+  return textWidth2(fontSize, string);
+#endif
 }
 
 //=============================================================================

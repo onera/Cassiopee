@@ -249,6 +249,35 @@ def resetKeyboard():
     Usage: resetKeyboard()"""
     return cplot.resetKeyboard()
 
+# Ajoute des colormaps cablees
+def filterColormap(values):
+    [colormap, colormapC1, colormapC2, colormapC3] = values
+    if colormap == 14 or colormap == 15: # Black2White
+        colormap=6; colormapC1='#000000'; colormapC2='#ffffff'
+        if colormap == 14: colormap = 6
+        elif colormap == 15: colormap = 7
+    elif colormap == 16 or colormap == 17: # viridis
+        colormapC2='#fde725'; colormapC3='#21918c'; colormapC1='#440154'
+        if colormap == 16: colormap = 10
+        elif colormap == 17: colormap = 11 
+    elif colormap == 18 or colormap == 19: # inferno
+        colormapC2='#fcffa4'; colormapC3='#bc3754'; colormapC1='#000004'
+        if colormap == 18: colormap = 10
+        elif colormap == 19: colormap = 11 
+    elif colormap == 20 or colormap == 21: # magma
+        colormapC2='#fcfdbf'; colormapC3='#b73779'; colormapC1='#000004'
+        if colormap == 20: colormap = 10
+        elif colormap == 21: colormap = 11 
+    elif colormap == 22 or colormap == 23: # plasma
+        colormapC2='#f0f921'; colormapC3='#cc4778'; colormapC1='#0d0887'
+        if colormap == 22: colormap = 10
+        elif colormap == 23: colormap = 11
+    elif colormap == 24 or colormap == 25: # nice blue
+        colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
+        if colormap == 24: colormap = 10
+        elif colormap == 25: colormap = 11
+    return [colormap, colormapC1, colormapC2, colormapC3]
+
 def setState(dim=-1,
              mode=-1,
              scalarField=-1,
@@ -306,6 +335,8 @@ def setState(dim=-1,
              offscreen=0):
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
+    if colormap != -1: 
+        [colormap, colormapC1, colormapC2, colormapC3] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3] )
     cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
                    vectorField3, displayBB, displayInfo, displayIsoLegend,
                    meshStyle, solidStyle, scalarStyle,
@@ -630,6 +661,8 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     global __slot__
     import threading
+    if colormap != -1: 
+        [colormap, colormapC1, colormapC2, colormapC3] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3] )
     a = threading.Thread(None, cplot.displayNew, None,
                          (arrays, dim, mode, scalarField, vectorField1,
                           vectorField2, vectorField3, displayBB, displayInfo,
@@ -657,6 +690,8 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                    shadow, dof, stereo, stereoDist,
                    export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
+    if colormap != -1: 
+        [colormap, colormapC1, colormapC2, colormapC3] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3] )
     cplot.displayAgain(arrays, dim, mode, scalarField, vectorField1,
                        vectorField2, vectorField3, displayBB, displayInfo,
                        displayIsoLegend,

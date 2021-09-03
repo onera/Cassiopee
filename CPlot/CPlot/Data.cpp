@@ -299,7 +299,7 @@ void Data::initState()
   ptrState->vector_projection = 0;
   ptrState->selectionStyle = 0;
   ptrState->colormap = 0;
-  ptrState->colormapR1 = 0.; 
+  ptrState->colormapR1 = 0.;
   ptrState->colormapG1 = 0.; 
   ptrState->colormapB1 = 0.; 
   ptrState->colormapR2 = 1.; 

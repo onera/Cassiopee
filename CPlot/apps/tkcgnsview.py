@@ -13,6 +13,9 @@ import os.path, sys
 # To be called when CTK.t is set
 def run():
     
+    # Set cassiopee prefs
+    CTK.loadPrefFile(); CTK.setPrefs()
+
     # Passe la dimension par une pseudo pref
     CTK.PREFS['tkTreeWidth'] = 380
     CTK.PREFS['tkTreeHeight'] = 290
@@ -23,9 +26,6 @@ def run():
     fileName = os.path.split(CTK.FILE)
     CTK.changeWindowTitle(fileName[1], fileName[0])
 
-    # Place win devant les autres fenetres
-    win.deiconify(); win.focus_set()
-
     # open tkTreeOps
     app = 'tkTreeOps'    
     CTK.TKMODULES[app] = None
@@ -33,6 +33,9 @@ def run():
     #name = app; name = '  '+name
     #menu[0].add_command(label=name, command=lambda x=app:CTK.openApp(x))
     CTK.openApp(app)
+
+    # Place win devant les autres fenetres
+    win.deiconify(); win.focus_set()
 
     # - Update apps -    
     CTK.TKTREE.updateApp()

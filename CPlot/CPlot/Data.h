@@ -175,30 +175,30 @@ public:
   
   // Init zone data
   virtual int initZoneData(std::vector<K_FLD::FldArrayF*>& structF,
-			    std::vector<char*>& structVarString,
-			    std::vector<E_Int>& nit,
-			    std::vector<E_Int>& njt, 
-			    std::vector<E_Int>& nkt,
-			    std::vector<K_FLD::FldArrayF*>& unstrF,
-			    std::vector<char*>& unstrVarString,
-			    std::vector<K_FLD::FldArrayI*>& cnt,
-			    std::vector<char*>& eltType,
-			    std::vector<char*>& zoneNames,
-			    std::vector<char*>& zoneTags,
-          E_Int referenceNfield=-1,
-          char** referenceVarNames=NULL);
+                std::vector<char*>& structVarString,
+                std::vector<E_Int>& nit,
+                std::vector<E_Int>& njt, 
+                std::vector<E_Int>& nkt,
+                std::vector<K_FLD::FldArrayF*>& unstrF,
+                std::vector<char*>& unstrVarString,
+                std::vector<K_FLD::FldArrayI*>& cnt,
+                std::vector<char*>& eltType,
+                std::vector<char*>& zoneNames,
+                std::vector<char*>& zoneTags,
+                E_Int referenceNfield=-1,
+                char** referenceVarNames=NULL);
   StructZone* createStructZone(K_FLD::FldArrayF* structF, char* varString,
-			       E_Int posx, E_Int posy, E_Int posz,
-			       E_Int ni, E_Int nj, E_Int nk,
-			       char* zoneName, char* zoneTags,
+             E_Int posx, E_Int posy, E_Int posz,
+             E_Int ni, E_Int nj, E_Int nk,
+             char* zoneName, char* zoneTags,
              E_Int referenceNfield=-1, char** referenceVarNames=NULL,
              E_Int mustComplete=0);
   UnstructZone* createUnstrZone(K_FLD::FldArrayF* unstrF, char* varString,
-				E_Int posx, E_Int posy, E_Int posz,
-				K_FLD::FldArrayI* cn, char* eltType,
-				char* zoneName, char* zoneTags, 
-        E_Int referenceNfield=-1, char** referenceVarNames=NULL,
-        E_Int mustComplete=0);
+                E_Int posx, E_Int posy, E_Int posz,
+                K_FLD::FldArrayI* cn, char* eltType,
+                char* zoneName, char* zoneTags, 
+                E_Int referenceNfield=-1, char** referenceVarNames=NULL,
+                E_Int mustComplete=0);
   void reallocNFieldArrays(int nfield);
   // Init _state
   virtual void initState();
@@ -210,32 +210,32 @@ public:
   void loadPrefs();
   // enforce data
   void enforceGivenData(int dim, int mode, int scalarField,
-			int vectorField1, int vectorField2, int vectorField3,
-			int displayBB, int displayInfo, 
-			int displayIsoLegend);
+            int vectorField1, int vectorField2, int vectorField3,
+            int displayBB, int displayInfo, 
+            int displayIsoLegend);
   void enforceGivenData2(float xcam, float ycam, float zcam,
-			 float xeye, float yeye, float zeye,
-			 float dirx, float diry, float dirz,
-			 float viewAngle,
-			 int meshStyle, int solidStyle, 
-			 int scalarStyle, int vectorStyle, 
-       float vectorScale, float vectorDensity, int vectorNormalize,
-       int vectorShowSurface, int vectorShape, int vector_projection,
-       int colormap, char* colormapC1, char* colormapC2, char* colormapC3,
-       int niso, float isoEdges, PyObject* isoScales,
-			 int bgColor, char* backgroundFile,
-       int ghostifyDeactivatedZones,
-			 int edgifyActivatedZones, 
-			 int edgifyDeactivatedZones,
-			 int shadow, int dof,
-			 char* exportFile, char* exportResolution);
+             float xeye, float yeye, float zeye,
+             float dirx, float diry, float dirz,
+             float viewAngle,
+             int meshStyle, int solidStyle, 
+             int scalarStyle, int vectorStyle, 
+             float vectorScale, float vectorDensity, int vectorNormalize,
+             int vectorShowSurface, int vectorShape, int vector_projection,
+             int colormap, char* colormapC1, char* colormapC2, char* colormapC3,
+             int niso, float isoEdges, PyObject* isoScales,
+             int bgColor, char* backgroundFile,
+             int ghostifyDeactivatedZones,
+             int edgifyActivatedZones, 
+             int edgifyDeactivatedZones,
+             int shadow, int dof,
+             char* exportFile, char* exportResolution);
   void rgb2hsv(double r, double g, double b, double& h, double& s, double& v);
   void hsv2rgb(double h, double s, double v, double& r, double& g, double& b);
   void colorString2RGB(char* color, double& colorR, double& colorG, double& colorB);
   void codeFromRenderTag(Zone& z, char* tag, 
-			 double& colorR, double& colorG, double& colorB,
-			 int& material, double& blending, int& meshOverlay,
-			 float& shaderParam1, float& shaderParam2);
+             double& colorR, double& colorG, double& colorB,
+             int& material, double& blending, int& meshOverlay,
+             float& shaderParam1, float& shaderParam2);
   void getAllVars(std::vector<char*>& structVarString,
                   std::vector<char*>& unstrVarString,
                   E_Int& referenceNfield,
@@ -384,7 +384,7 @@ public:
                                int nofield1, int nofield2, int nofield3);
     virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield) = 0;
     virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-				     int nofield2, int nofield3) = 0;
+                     int nofield2, int nofield3) = 0;
     virtual void renderUIsoSolidZone(UnstructZone* zonep, int zonet, int nofield) = 0;
     virtual void renderUIsoSolidZone(UnstructZone* zonep, int zonet, int nofield1,
                              int nofield2, int nofield3) = 0;
