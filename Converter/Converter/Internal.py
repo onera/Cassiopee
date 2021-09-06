@@ -1866,6 +1866,15 @@ def getChildFromName(node, name):
         if i[0] == name: return i
     return None
 
+# Pour un noeud node, retourne la liste des enfants
+# de nom donne (pas de widlcard)
+def getChildrenFromName(node, name):
+    """Return the children nodes of given name."""
+    out = []
+    for i in node[2]:
+        if i[0] == name: out.append(i)
+    return out
+
 # Pour un noeud node, retourne le premier enfant 
 # de type donne (pas de widcard)
 def getChildFromType(node, ntype):
@@ -1873,6 +1882,15 @@ def getChildFromType(node, ntype):
     for i in node[2]:
         if i[3] == ntype: return i
     return None
+
+# Pour un noeud node, retourne la liste des enfants
+# de type donne (pas de widlcard)
+def getChildrenFromType(node, ntype):
+    """Return the children nodes of given type."""
+    out = []
+    for i in node[2]:
+        if i[3] == ntype: out.append(i)
+    return out
     
 # -- (p, c) = getParentOfNode(start, node). Retourne :
 # Si start est un noeud standard, retourne le noeud parent de node et le no

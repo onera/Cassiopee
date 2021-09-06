@@ -161,7 +161,7 @@ def _perturbate(a, radius, dim=3):
 
 def smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
-    return C.TZA2(t, Transform.smoothField, 'nodes', 'nodes', eps, niter, type, varNames)
+    return C.TZA2(t, Transform.smoothField, 'nodes', 'nodes', False, eps, niter, type, varNames)
 
 def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""

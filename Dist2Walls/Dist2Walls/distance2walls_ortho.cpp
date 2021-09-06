@@ -360,13 +360,17 @@ void K_DIST2WALLS::computeOrthoDist(
       isFlagged=true;
     }
       
-#pragma omp parallel for default(shared) private(minB, maxB, pt, indicesBB, candidates) schedule(dynamic)
+#pragma omp parallel default(shared) private(minB, maxB, pt, indicesBB, candidates)
+    {
+    E_Int ret;
+    E_Float dist, dx, dy, dz, xp, yp, zp, rx, ry, rz, rad;
+    E_Float distmin, prod;
+    E_Int et, ind10, indw2;
+    E_Float A, rad2, alpha, R, xQ, yQ, zQ;
+
+    #pragma omp for schedule(dynamic)
     for (E_Int ind = 0; ind < npts; ind++)
     {
-      E_Int ret;
-      E_Float dist, dx, dy, dz, xp, yp, zp, rx, ry, rz, rad;
-      E_Float distmin, prod;
-      E_Int et, ind10;
       if (isFlagged==true && flagp[ind] == 0.) { ;}
       else
       {
@@ -375,20 +379,20 @@ void K_DIST2WALLS::computeOrthoDist(
 
       pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
       // recherche du sommet P' des parois le plus proche de P
-      E_Int indw2 = kdt.getClosest(pt);
+      indw2 = kdt.getClosest(pt);
       
       rx = xw2[indw2]-pt[0]; ry = yw2[indw2]-pt[1]; rz = zw2[indw2]-pt[2];
       dist = rx*rx + ry*ry + rz*rz;
 
       // calcul de la bounding box de la sphere de rayon PP'
       rad = sqrt(dist);
-      E_Float A = 1./(10.*lmaxp[indw2]);
-      E_Float rad2 = exp(-A*rad);
-      E_Float alpha = 1.-rad2;
-      E_Float R = rad*rad2;
-      E_Float xQ = pt[0] + alpha*(xw2[indw2]-pt[0]);
-      E_Float yQ = pt[1] + alpha*(yw2[indw2]-pt[1]);
-      E_Float zQ = pt[2] + alpha*(zw2[indw2]-pt[2]);
+      A = 1./(10.*lmaxp[indw2]);
+      rad2 = exp(-A*rad);
+      alpha = 1.-rad2;
+      R = rad*rad2;
+      xQ = pt[0] + alpha*(xw2[indw2]-pt[0]);
+      yQ = pt[1] + alpha*(yw2[indw2]-pt[1]);
+      zQ = pt[2] + alpha*(zw2[indw2]-pt[2]);
       minB[0] = xQ-R; minB[1] = yQ-R; minB[2] = zQ-R;
       maxB[0] = xQ+R; maxB[1] = yQ+R; maxB[2] = zQ+R;
       //if (fabs(pt[1])<1.e-10) { printf("%f %f R=%f, delta=%f\n",pt[0],pt[2],R,rad); }
@@ -433,13 +437,15 @@ void K_DIST2WALLS::computeOrthoDist(
       }
       }//flag
     } // fin boucle sur les centres sur lesquels la distance est calculee
+    } // omp
   }// fin boucle sur les zones ou la distance est a calculer
+  
   // Computes the distance (sqrt)
   for (E_Int v = 0; v < nzones; v++)
   {
     E_Float* distancep = distances[v]->begin();
     E_Int npts = distances[v]->getSize();
-#pragma omp parallel for shared(distancep, npts)
+#pragma omp parallel for
     for (E_Int ind = 0; ind < npts; ind++)
       distancep[ind] = sqrt(distancep[ind]);
   }

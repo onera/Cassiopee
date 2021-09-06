@@ -151,8 +151,9 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   delete [] ft;
 
   RELEASESHAREDB(res, array, f, cn);
-  if (epsl != Py_None) RELEASESHAREDN(epsl, epsf);
-
+  if (epsl != Py_None) { Py_DECREF(epsl); }
+  else { delete [] epsf; }
+  
   Py_INCREF(Py_None);
   return Py_None; 
 }
