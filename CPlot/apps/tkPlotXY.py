@@ -13087,7 +13087,7 @@ class DesktopFrameTK(TK.Frame):
             if val < len(self.graphWdwL):
                 # Save active graph
                 self.graphWdwL[val].save(filename)
-                print('Info: Wrote file %s.'%filename)
+                print('Info: Writing %s ...done.'%filename)
                 return True
         except ValueError: return False
 
@@ -13908,7 +13908,7 @@ class MatplotlibFigure():
 
     # --------------------------------------------------------------- saveFigure
     def saveFigure(self, path, format=None):
-        print("Writing file %s."%path)
+        print("Info: Writing %s ...done."%path)
         # self.instance.savefig(path,facecolor=self.instance.get_facecolor(),edgecolor='none',format=format)
         self.instance.savefig(path, format=format)
     # ------------------------------------------------------------------- getFig

@@ -895,8 +895,9 @@ Solution extraction
     If some blocks in A define surfaces, a tolerance 'tol' for interpolation cell search can be defined.
 
     A hook can be defined in order to keep in memory the ADT on the
-    interpolation cell search.
-    It can be built and deleted by createHook and freeHook functions in Converter module, using 'extractMesh' function.
+    interpolation cell search. The hook argument must be a list of hooks, 
+    each one being built for each donor zone using
+    the "createHook" function of Converter module with 'extractMesh' argument.
 
     *Example of use:*
 

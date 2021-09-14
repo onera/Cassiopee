@@ -48,19 +48,12 @@ def moveSelection():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     baseName = VARS[0].get()
-    if baseName == 'New Base':
-        C.registerBaseNames(CTK.t)
-        baseName = C.getBaseName('NewBase')
-        CTK.t = C.addBase2PyTree(CTK.t, baseName, 3)
-    
-    base = Internal.getNodesFromName1(CTK.t, baseName)
-    if base == []:
-        C.registerBaseNames(CTK.t)
-        baseName = C.getBaseName(baseName)
-        CTK.t = C.addBase2PyTree(CTK.t, baseName, 3)
-        base = Internal.getNodesFromName1(CTK.t, baseName)
 
-    base = base[0]
+    base = Internal.getNodeFromName1(CTK.t, baseName)
+    if base is None: # if base doesnt exist, create it
+        CTK.t = C.addBase2PyTree(CTK.t, baseName, 3)
+        base = Internal.getNodeFromName1(CTK.t, baseName)
+
     CTK.saveTree()
     Z = []
     deletedZoneNames = []
@@ -376,7 +369,6 @@ def loadNode():
         node[2] = nodes[0][2]
     else: 
         setByLevel(node, nodes[0], 0, depth)
-    CTK.TKTREE.updateApp()
     updateNode(node)
 
 #==============================================================================
@@ -387,7 +379,6 @@ def freeNode():
     depth = VARS[7].get()
     depth = int(depth)
     freeByLevel(node, 0, depth)
-    CTK.TKTREE.updateApp()
     updateNode(node)
 
 #==============================================================================

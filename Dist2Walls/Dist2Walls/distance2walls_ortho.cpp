@@ -254,7 +254,7 @@ void K_DIST2WALLS::computeOrthoDist(
   /* 1 - creation du kdtree et du bbtree */
   typedef K_SEARCH::BoundingBox<3> BBox3DType; 
   E_Float minB[3]; E_Float maxB[3];
-  vector< vector<BBox3DType*> > vectOfBoxes;// a detruire a la fin
+  vector< vector<BBox3DType*> > vectOfBoxes; // a detruire a la fin
   
   // allocate kdtree array: kdtree points are cell vertices
   E_Int nwalls = cntw.size(); E_Int nptsmax = 0; 
@@ -359,84 +359,38 @@ void K_DIST2WALLS::computeOrthoDist(
       flagp = fields[v]->begin(posflag[v]);
       isFlagged=true;
     }
-      
+    
 #pragma omp parallel default(shared) private(minB, maxB, pt, indicesBB, candidates)
     {
     E_Int ret;
     E_Float dist, dx, dy, dz, xp, yp, zp, rx, ry, rz, rad;
     E_Float distmin, prod;
-    E_Int et, ind10, indw2;
-    E_Float A, rad2, alpha, R, xQ, yQ, zQ;
+    E_Int et, ind10, indw2, nbb, nvert;
+    E_Int posxw, posyw, poszw, poscw;
+    E_Float A, rad2, alpha, R, xQ, yQ, zQ, rmax;
+    E_Float* xw; E_Float* yw; E_Float* zw; E_Float* cellnw;
 
-    #pragma omp for schedule(dynamic)
-    for (E_Int ind = 0; ind < npts; ind++)
+    if (isFlagged == true)
     {
-      if (isFlagged==true && flagp[ind] == 0.) { ;}
-      else
-      {
-      indicesBB.clear(); candidates.clear();
-      distmin = distancep[ind];
-
-      pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
-      // recherche du sommet P' des parois le plus proche de P
-      indw2 = kdt.getClosest(pt);
-      
-      rx = xw2[indw2]-pt[0]; ry = yw2[indw2]-pt[1]; rz = zw2[indw2]-pt[2];
-      dist = rx*rx + ry*ry + rz*rz;
-
-      // calcul de la bounding box de la sphere de rayon PP'
-      rad = sqrt(dist);
-      A = 1./(10.*lmaxp[indw2]);
-      rad2 = exp(-A*rad);
-      alpha = 1.-rad2;
-      R = rad*rad2;
-      xQ = pt[0] + alpha*(xw2[indw2]-pt[0]);
-      yQ = pt[1] + alpha*(yw2[indw2]-pt[1]);
-      zQ = pt[2] + alpha*(zw2[indw2]-pt[2]);
-      minB[0] = xQ-R; minB[1] = yQ-R; minB[2] = zQ-R;
-      maxB[0] = xQ+R; maxB[1] = yQ+R; maxB[2] = zQ+R;
-      //if (fabs(pt[1])<1.e-10) { printf("%f %f R=%f, delta=%f\n",pt[0],pt[2],R,rad); }
-
-      if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
-
-      // calcul des cellules intersectantes
-      for (E_Int now = 0; now < nwalls; now++)
-      {
-        indicesBB.clear(); candidates.clear();
-        K_SEARCH::BbTree3D* bbtree = vectOfBBTrees[now];
-        bbtree->getOverlappingBoxes(minB, maxB, indicesBB);
-        FldArrayF* fieldv = fieldsw[now];
-        E_Int posxw = posxv[now]; E_Int posyw = posyv[now]; E_Int poszw = poszv[now]; E_Int poscw = poscv[now];
-        E_Float* xw = fieldv->begin(posxw);
-        E_Float* yw = fieldv->begin(posyw);
-        E_Float* zw = fieldv->begin(poszw);
-        E_Float* cellnw = fieldv->begin(poscw);
-        FldArrayI& cnloc = *cntw[now];
-        E_Int nbb = indicesBB.size();
-        E_Int nvert = cnloc.getNfld();
-        E_Float prodCellN2 = pow(2.,nvert);
-        for (E_Int i = 0; i < nbb; i++)
+        #pragma omp for schedule(dynamic)
+        for (E_Int ind = 0; ind < npts; ind++)
         {
-          et = indicesBB[i];
-          prod = 1.;
-          for (E_Int novert = 1; novert <= nvert; novert++)
-          {
-            ind10 = cnloc(et, novert)-1;
-            prod = prod*cellnw[ind10];
-          }
-          if (prod != 0. && prod != prodCellN2) candidates.push_back(et);
-        }
-        ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
-                                              candidates, cnloc, xp, yp, zp);
-        if (ret != -1)
+            if (flagp[ind] == 0.) { ;}
+            else
+            {
+                #include "algoOrtho.h"
+            }
+        }   
+    }
+    else
+    {
+        #pragma omp for schedule(dynamic)
+        for (E_Int ind = 0; ind < npts; ind++)
         {
-          dx = xp-pt[0]; dy = yp-pt[1]; dz = zp-pt[2];
-          dist = dx*dx + dy*dy + dz*dz;    
-          if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
-        }
-      }
-      }//flag
-    } // fin boucle sur les centres sur lesquels la distance est calculee
+            #include "algoOrtho.h"
+        }  
+    }
+    
     } // omp
   }// fin boucle sur les zones ou la distance est a calculer
   
