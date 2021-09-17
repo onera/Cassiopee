@@ -941,7 +941,7 @@ def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
     dim_zone = dim[4]
     imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
     for name in modified:
-        containers = Internal.getBCDataSetContainers(name,z) 
+        containers = Internal.getBCDataSetContainers(name, z) 
         if containers is not None:
             for cont in containers:
                 varname = cont[0]
@@ -950,9 +950,10 @@ def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
                 if loc == 'CellCenter': locI = 1
                 dataSetInfo = cont[2]
                 bcranges = []; dataBC = []
-                for i in range(len(dataSetInfo)):
-                    bcranges.append(dataSetInfo[i][0])
-                    dataBC.append(dataSetInfo[i][1])
+                for e in dataSetInfo:
+                    if e[1] is not None: # firewall pour les mauvaises BCDataSet
+                        bcranges.append(e[0])
+                        dataBC.append(e[1])
                 Converter.converter._setBCDataInGhostCellsStruct(z, bcranges, dataBC, imz, jmz, kmz, d, locI, varname, 
                                                                  Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
     return None

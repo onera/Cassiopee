@@ -312,47 +312,44 @@ def computeVariables():
     nzs = CPlot.getSelectedZones()
     varname = VARS[0].get()
 
-    # Adimensionnement
-    adim = VARS[7].get()
-    nodes = Internal.getNodesFromName(CTK.t, 'ReferenceState')
-    if nodes != []: state = nodes[0]
-    else:
+    # Adimensionnement - RefState must exist (full)
+    state = Internal.getNodeFromName(CTK.t, 'ReferenceState')
+    if state is None:
         CTK.TXT.insert('START', 'ReferenceState is missing (tkState).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
         
-    nodes = Internal.getNodesFromName(state, 'Mach')
-    if nodes != []:
-        if isinstance(nodes[0][1], numpy.ndarray):
-            MInf = nodes[0][1][0]
-        else: MInf = nodes[0][1]
-    else:
-        CTK.TXT.insert('START', 'Mach is missing (tkState).\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
-
-    nodes = Internal.getNodesFromName(state, 'Reynolds')
-    if nodes != []:
-        if isinstance(nodes[0][1], numpy.ndarray):
-            ReInf = nodes[0][1][0]
-        else: ReInf = nodes[0][1]
-    else: ReInf = 1.
-
-    if adim == 'Adim1 (ro,a,T)':
-        adim = Adim.adim1(MInf, 0., 0., ReInf)
-    elif adim == 'Adim2 (ro,u,T)':
-        adim = Adim.adim2(MInf, 0., 0., ReInf)
-    else:
-        CTK.TXT.insert('START', 'Unknown adim type.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
-    gamma = adim[11]
-    cv = adim[7]
-    rgp = (gamma-1)*cv
-    TInf = adim[6]
-    muInf = 1./ReInf
-    Cs = adim[10]
-
-    loc = VARS[6].get()
+    # If gamma exists -> suppose full RefState, we take all from it
+    gamma = Internal.getNodeFromName(state, 'Gamma')
+    fail = False
+    if gamma is not None: gamma = Internal.getValue(gamma)
+    else: fail = True
     
+    Cv = Internal.getNodeFromName(state, 'Cv')
+    if Cv is not None: Cv = Internal.getValue(Cv)
+    else: fail = True
+            
+    TInf = Internal.getNodeFromName(state, 'Temperature')
+    if TInf is not None: TInf = Internal.getValue(TInf)
+    else: fail = True 
+        
+    Ts = Internal.getNodeFromName(state, 'Ts')
+    if Ts is not None: Ts = Internal.getValue(Ts)
+    else: fail = True
+
+    Cs = Internal.getNodeFromName(state, 'Cs')
+    if Cs is not None: Cs = Internal.getValue(Cs)
+    else: fail = True
+    
+    Mus = Internal.getNodeFromName(state, 'Mus')
+    if Mus is not None: Mus = Internal.getValue(Mus)
+    else: fail = True
+
+    if fail:
+        CTK.TXT.insert('START', 'Reference state is not full. Use tkState.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    rgp = (gamma-1)*Cv
+    loc = VARS[6].get()    
     CTK.saveTree()
     if (varname == 'Vorticity' or varname == 'VorticityMagnitude' or
         varname == 'QCriterion' or varname == 'ShearStress' or
@@ -361,8 +358,8 @@ def computeVariables():
         if CTK.__MAINTREE__ <= 0 or nzs == []:
             try:
                 CTK.t = P.computeExtraVariable(CTK.t, varloc, gamma=gamma,
-                                               rgp=rgp, Cs=Cs, mus=muInf,
-                                               Ts=TInf)
+                                               rgp=rgp, Cs=Cs, mus=Mus,
+                                               Ts=Ts)
                 CTK.TXT.insert('START', 'Variable %s computed.\n'%varloc)
             except Exception as e:
                 Panels.displayErrors([0,str(e)], header='Error: computeExtraVariables')
@@ -377,7 +374,7 @@ def computeVariables():
                     CTK.t[2][nob][2][noz] = \
                         P.computeExtraVariable(CTK.t[2][nob][2][noz], varloc,
                                                gamma=gamma, rgp=rgp, Cs=Cs,
-                                               mus=muInf, Ts=TInf)
+                                               mus=Mus, Ts=Ts)
                 except Exception as e:
                     fail = True; errors += [0,str(e)]
 
@@ -394,7 +391,7 @@ def computeVariables():
             try:
                 CTK.t = P.computeVariables(CTK.t, [varloc],
                                            gamma=gamma, rgp=rgp, Cs=Cs,
-                                           mus=muInf, Ts=TInf)
+                                           mus=Mus, Ts=Ts)
                 CTK.TXT.insert('START', 'Variable %s computed.\n'%varloc)
             except Exception as e:
                 Panels.displayErrors([0,str(e)], header='Error: computeVariables')
@@ -409,7 +406,7 @@ def computeVariables():
                     CTK.t[2][nob][2][noz] = \
                         P.computeVariables(CTK.t[2][nob][2][noz], [varloc],
                                            gamma=gamma, rgp=rgp, Cs=Cs,
-                                           mus=muInf, Ts=TInf)
+                                           mus=Mus, Ts=Ts)
                 except Exception as e:
                     fail = True; errors += [0,str(e)]
 
@@ -568,7 +565,7 @@ def createApp(win):
     # -5- Rm variable
     V = TK.StringVar(win); V.set('All'); VARS.append(V)
     # -6- Var location
-    V = TK.StringVar(win); V.set('nodes'); VARS.append(V)
+    V = TK.StringVar(win); V.set('centers'); VARS.append(V)
     if 'tkVariablesLoc' in CTK.PREFS: 
         V.set(CTK.PREFS['tkVariablesLoc'])
     # -7- adim type
@@ -759,10 +756,10 @@ def createApp(win):
     B.grid(row=norow, column=1, sticky=TK.EW)
     
     # - computeVariables -
-    norow+=1
-    B = TTK.OptionMenu(Frame, VARS[7], 'Adim1 (ro,a,T)', 'Adim2 (ro,u,T)')
-    B.grid(row=norow, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Use this adimensioning for variable computation.')
+    norow += 1
+    #B = TTK.OptionMenu(Frame, VARS[7], 'Adim1 (ro,a,T)', 'Adim2 (ro,u,T)', 'dim')
+    #B.grid(row=norow, column=0, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Use this adimensioning for variable computation.')
     B = TTK.OptionMenu(Frame, VARS[6], 'nodes', 'centers')
     B.grid(row=norow, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Computed variable will be localized here.')
@@ -809,7 +806,6 @@ def saveApp():
     CTK.PREFS['tkVariablesAddVar'] = VARS[1].get()
     CTK.PREFS['tkVariablesImportFile'] = VARS[4].get()
     CTK.PREFS['tkVariablesLoc'] = VARS[6].get()
-    CTK.PREFS['tkVariablesAdim'] = VARS[7].get()
     CTK.savePrefFile()
 
 #==============================================================================
@@ -817,13 +813,11 @@ def resetApp():
     VARS[0].set('Pressure')
     VARS[1].set('Density')
     VARS[4].set('output.plt')
-    VARS[6].set('nodes')
-    VARS[7].set('Adim1 (ro,a,T)')
+    VARS[6].set('centers')
     CTK.PREFS['tkVariablesName'] = VARS[0].get()
     CTK.PREFS['tkVariablesAddVar'] = VARS[1].get()
     CTK.PREFS['tkVariablesImportFile'] = VARS[4].get()
     CTK.PREFS['tkVariablesLoc'] = VARS[6].get()
-    CTK.PREFS['tkVariablesAdim'] = VARS[7].get()
     CTK.savePrefFile()
 
 #==============================================================================

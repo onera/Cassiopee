@@ -57,15 +57,15 @@ def getState():
          if referenceState == []:
              B, r = Internal.getParentOfNode(CTK.t, A)
              for n in B[2]:
-                 if (n[0] == 'ReferenceState'): referenceState = n; break
+                 if n[0] == 'ReferenceState': referenceState = n; break
 
     if flowEquationSet != []:
         # EquationDimension
         node = Internal.getNodeFromName1(flowEquationSet, 'EquationDimension')
         if node is not None:
             dim = Internal.getValue(node)
-            if (dim == 2): VARS[0].set('2D')
-            elif (dim == 3): VARS[0].set('3D')
+            if dim == 2: VARS[0].set('2D')
+            elif dim == 3: VARS[0].set('3D')
 
         # GoverningEquations
         node = Internal.getNodeFromName1(flowEquationSet, 'GoverningEquations')
@@ -82,53 +82,77 @@ def getState():
     if node is not None:
         mach = Internal.getValue(node)
         VARS[2].set(str(mach))
-    else: mach = 0.5
-
+    
     # Reynolds
     node = Internal.getNodeFromName1(state, 'Reynolds')
     if node is not None:
         reynolds = Internal.getValue(node) 
         VARS[3].set(str(reynolds))
-    else: reynolds = 1.e6
+    else: reynolds = None
 
-    # Incidences
+    # UInf
     node = Internal.getNodeFromName1(state, 'VelocityX')
     if node is not None: UInf = Internal.getValue(node)
-    else: UInf = 0.
+    else: UInf = None
     node = Internal.getNodeFromName1(state, 'VelocityY')
     if node is not None: VInf = Internal.getValue(node)
-    else: VInf = 0.
+    else: VInf = None
     node = Internal.getNodeFromName1(state, 'VelocityZ')
     if node is not None: WInf = Internal.getValue(node)
-    else: WInf = 0.
-    if abs(UInf) > 1.e-12:
+    else: WInf = None
+    if UInf is not None and VInf is not None and WInf is not None:
+        Vit = UInf*UInf+VInf*VInf+WInf*WInf
+        Vit = math.sqrt(Vit)
+        VARS[12].set(str(math.sqrt(Vit)))
+    else: Vit = None
+
+    # TInf
+    node = Internal.getNodeFromName1(state, 'Temperature')
+    if node is not None: 
+        TInf = Internal.getValue(node)
+        VARS[13].set(str(TInf))
+
+    # PInf
+    node = Internal.getNodeFromName1(state, 'Pressure')
+    if node is not None: 
+        PInf = Internal.getValue(node)
+        VARS[14].set(str(PInf))
+
+    # RoInf
+    node = Internal.getNodeFromName1(state, 'Density')
+    if node is not None: 
+        RoInf = Internal.getValue(node)
+        VARS[16].set(str(RoInf))
+
+    # Incidences
+    if UInf is not None and VInf is not None and WInf is not None and abs(UInf) > 1.e-12:
         aly = math.atan(WInf/UInf)
         alz = math.atan(math.cos(aly)*VInf/UInf)
-    else:
-        aly = 0.; alz = 0.
-    VARS[4].set(str(alz*180./math.pi))
-    VARS[5].set(str(aly*180./math.pi))
+        VARS[4].set(str(alz*180./math.pi))
+        VARS[5].set(str(aly*180./math.pi))
 
     # Modele de turbulence
     node = Internal.getNodeFromName(state, 'Density')
     if node is not None: Density = Internal.getValue(node)
-    else: Density = 1.
+    else: Density = None
     node = Internal.getNodeFromName(state, 'Rok')
     if node is not None: RokInf = Internal.getValue(node)
-    else: RokInf = 1.e-6
-    Vit = UInf*UInf+VInf*VInf+WInf*WInf
-    Vit = math.sqrt(Vit)
-    if Vit > 1.e-10: TurbLevel = math.sqrt(2*RokInf/(3*Vit*Vit*Density))
-    else: TurbLevel = 1.e-4
-    MuInf = Density*Vit / max(reynolds,1.e-10) # L=1
-    node = Internal.getNodeFromName(state, 'TurbulentSANuTildeDensity')
-    if node is not None: RoNuTilde = Internal.getValue(node)
-    else: RoNuTilde = 1.e-6
-    MutInf = RoNuTilde
-    MutSMu = MutInf / max(MuInf, 1.e-12)
-    VARS[9].set(str(MutSMu))
-    VARS[10].set(str(TurbLevel))
+    else: RokInf = None
 
+    if (reynolds is not None and Density is not None and
+        RokInf is not None and Vit is not None and Vit > 1.e-10): 
+        TurbLevel = math.sqrt(2*RokInf/(3*Vit*Vit*Density))
+        VARS[10].set(str(TurbLevel))
+
+        MuInf = Density*Vit / max(reynolds,1.e-10) # L=1
+    
+        node = Internal.getNodeFromName(state, 'TurbulentSANuTildeDensity')
+        if node is not None: 
+            RoNuTilde = Internal.getValue(node)
+            MutInf = RoNuTilde
+            MutSMu = MutInf / max(MuInf, 1.e-12)
+            VARS[9].set(str(MutSMu))
+    
     CTK.TXT.insert('START', 'State displayed.\n')
 
 #==============================================================================
@@ -234,6 +258,61 @@ def setState(event=None):
     elif fullBase > 0: CTK.TXT.insert('START', 'State set in selected base.\n')
     else: CTK.TXT.insert('START', 'State set in selected zones.\n')
     
+# Called when adim is switch -> change buttons
+def switchAdim(event=None):
+    adim = VARS[11].get()
+    if adim == 'adim1(Ro,A,T)' or adim == 'adim2(Ro,U,T)':
+        # switch UInf and Mach
+        for w in WIDGETS['UInf']: w.grid_forget()
+        for c, w in enumerate(WIDGETS['Mach']): 
+            w.grid(row=2, column=c, sticky=TK.EW)
+        # switch TInf or PInf to Reynolds
+        for w in WIDGETS['TInf']: w.grid_forget()
+        for w in WIDGETS['PInf']: w.grid_forget()
+        for w in WIDGETS['RoInf']: w.grid_forget()
+        for w in WIDGETS['LInf']: w.grid_forget()
+        for c, w in enumerate(WIDGETS['Reynolds']): 
+            w.grid(row=4, column=c, sticky=TK.EW)
+    elif adim == 'dim1(real UInf,TInf,PInf)':
+        # switch Mach and UInf
+        for w in WIDGETS['Mach']: w.grid_forget()
+        for c, w in enumerate(WIDGETS['UInf']): 
+            w.grid(row=2, column=c, sticky=TK.EW)
+        for w in WIDGETS['Reynolds']: w.grid_forget()
+        for w in WIDGETS['RoInf']: w.grid_forget()
+        for c, w in enumerate(WIDGETS['TInf']): 
+            w.grid(row=4, column=c, sticky=TK.EW)
+        for c, w in enumerate(WIDGETS['PInf']): 
+            w.grid(row=4, column=c+2, sticky=TK.EW)
+        for c, w in enumerate(WIDGETS['LInf']): 
+            w.grid(row=5, column=c, sticky=TK.EW)
+    elif adim == 'dim2(real UInf,TInf,RoInf)':
+        # switch Mach and UInf
+        for w in WIDGETS['Mach']: w.grid_forget()
+        for c, w in enumerate(WIDGETS['UInf']): 
+            w.grid(row=2, column=c, sticky=TK.EW)
+        for w in WIDGETS['Reynolds']: w.grid_forget()
+        for w in WIDGETS['PInf']: w.grid_forget()
+        for c, w in enumerate(WIDGETS['TInf']): 
+            w.grid(row=4, column=c, sticky=TK.EW)
+        for c, w in enumerate(WIDGETS['RoInf']): 
+            w.grid(row=4, column=c+2, sticky=TK.EW)
+        for c, w in enumerate(WIDGETS['LInf']):
+            w.grid(row=5, column=c, sticky=TK.EW)
+    elif adim == 'dim3(real UInf,PInf,RoInf)':
+        # switch Mach and UInf
+        for w in WIDGETS['Mach']: w.grid_forget()
+        for c, w in enumerate(WIDGETS['UInf']): 
+            w.grid(row=2, column=c, sticky=TK.EW)
+        for w in WIDGETS['Reynolds']: w.grid_forget()
+        for w in WIDGETS['TInf']: w.grid_forget()
+        for c, w in enumerate(WIDGETS['PInf']): 
+            w.grid(row=4, column=c, sticky=TK.EW)
+        for c, w in enumerate(WIDGETS['RoInf']): 
+            w.grid(row=4, column=c+2, sticky=TK.EW)
+        for c, w in enumerate(WIDGETS['LInf']): 
+            w.grid(row=5, column=c, sticky=TK.EW)
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -280,11 +359,24 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1.e-4'); VARS.append(V)
     # -11- Adim
     V = TK.StringVar(win); V.set('adim1(Ro,A,T)'); VARS.append(V)
+    # -12- UInf
+    V = TK.StringVar(win); V.set('2.8'); VARS.append(V)
+    # -13- TInf
+    V = TK.StringVar(win); V.set('298.'); VARS.append(V)
+    # -14- PInf
+    V = TK.StringVar(win); V.set('101325.'); VARS.append(V)
+    # -15- LInf
+    V = TK.StringVar(win); V.set('12.'); VARS.append(V)
+    # -16- RoInf
+    V = TK.StringVar(win); V.set('1.225'); VARS.append(V)
+    # -17- MachTip
+    V = TK.StringVar(win); V.set('None'); VARS.append(V)
 
     # - Pb dim -
     F = TTK.Frame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE)
     F.columnconfigure(0, weight=1)
     F.columnconfigure(1, weight=2)
+    
     B = TTK.Label(F, text="Pb dim")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Dimension of the problem.')
@@ -298,13 +390,15 @@ def createApp(win):
     F = TTK.Frame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE)
     F.columnconfigure(0, weight=1)
     F.columnconfigure(1, weight=4)
+    F.columnconfigure(2, weight=1)
+    F.columnconfigure(3, weight=4)
 
     # - Modele de fluide -
-    B = TTK.Label(F, text="GovEquations")
-    B.grid(row=1, column=0, sticky=TK.EW)
+    B = TTK.Label(F, text="Equations")
+    B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Governing equations to solve.')
     B = TTK.OptionMenu(F, VARS[1], 'Euler', 'NSLaminar', 'NSTurbulent')
-    B.grid(row=1, column=1, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=3, sticky=TK.EW)
 
     # - Jeu de grandeurs definissant l'etat de reference -
     #B = TK.Label(F, text="Variables")
@@ -317,66 +411,132 @@ def createApp(win):
     B = TTK.Label(F, text="Mach")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Reference (infinite) mach number.')
-    B = TTK.Entry(F, textvariable=VARS[2], background='White')
+    WIDGETS['Mach'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[2], background='White', width=6)
     B.grid(row=2, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) mach number.')
+    WIDGETS['Mach'] += [B]
+    
+    # - MachTip -
+    B = TTK.Label(F, text="MachTip")
+    B.grid(row=2, column=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='If this mach number is defined, it is used for turbulence definition.\nThis is the case of rotors.')
+    WIDGETS['MachTip'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[17], background='White', width=6)
+    B.grid(row=2, column=3, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='If this mach number is defined, it is used for turbulence definition.\nThis is the case of rotors.')
+    WIDGETS['MachTip'] += [B]
+
+    # - UInf -
+    B = TTK.Label(F, text="UInf (m/s)")
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) speed (m/s).')
+    WIDGETS['UInf'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[12], background='White', width=6)
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) speed (m/s).')
+    WIDGETS['UInf'] += [B]
+
+    # - Incidence/Z -
+    B = TTK.Label(F, text="Inc./Z")
+    BB = CTK.infoBulle(parent=B, text='Angle of incident flow around z axis (deg).')
+    B.grid(row=3, column=0, sticky=TK.EW)
+    WIDGETS['IncZ'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[4], background='White', width=6)
+    B.grid(row=3, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Angle of incident flow around z axis (deg).')
+    WIDGETS['IncZ'] += [B]
+
+    # - Incidence/Y -
+    B = TTK.Label(F, text="Inc./Y")
+    B.grid(row=3, column=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Angle of incident flow around y axis (deg).')
+    WIDGETS['IncY'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[5], background='White', width=6)
+    B.grid(row=3, column=3, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Angle of incident flow around y axis (deg).')
+    WIDGETS['IncY'] += [B]
 
     # - Reynolds -
     B = TTK.Label(F, text="Reynolds")
-    B.grid(row=3, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Reference (infinite) Reynolds number.')
-    B = TTK.Entry(F, textvariable=VARS[3], background='White')
-    B.grid(row=3, column=1, sticky=TK.EW)
-
-    # - Incidence/Z -
-    B = TTK.Label(F, text="Incidence/Z (deg)")
-    BB = CTK.infoBulle(parent=B, text='Angle of incident flow around z axis.')
     B.grid(row=4, column=0, sticky=TK.EW)
-    B = TTK.Entry(F, textvariable=VARS[4], background='White')
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) Reynolds number.')
+    WIDGETS['Reynolds'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[3], background='White', width=6)
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) Reynolds number.')
     B.grid(row=4, column=1, sticky=TK.EW)
+    WIDGETS['Reynolds'] += [B]
 
-    # - Incidence/Y -
-    B = TTK.Label(F, text="Incidence/Y (deg)")
-    B.grid(row=5, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Angle of incident flow around y axis.')
-    B = TTK.Entry(F, textvariable=VARS[5], background='White')
-    B.grid(row=5, column=1, sticky=TK.EW)
+    # - TInf -
+    B = TTK.Label(F, text="TInf (K)")
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) temperature (K).')
+    WIDGETS['TInf'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[13], background='White', width=6)
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) temperature (K).')
+    WIDGETS['TInf'] += [B]
 
+    # - PInf -
+    B = TTK.Label(F, text="PInf (Pa)")
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) pressure (Pa).')
+    WIDGETS['PInf'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[14], background='White', width=6)
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) pressure (Pa).')
+    WIDGETS['PInf'] += [B]
+
+    # - RoInf -
+    B = TTK.Label(F, text="RoInf (kg/m3)")
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) density (kg/m3).')
+    WIDGETS['RoInf'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[15], background='White', width=6)
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) density (kg/m3).')
+    WIDGETS['RoInf'] += [B]
+    
+    # - LInf -
+    B = TTK.Label(F, text="LInf (m)")
+    BB = CTK.infoBulle(parent=B, text='Reference length (m).')
+    WIDGETS['LInf'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[16], background='White', width=6)
+    BB = CTK.infoBulle(parent=B, text='Reference length (m).')
+    WIDGETS['LInf'] += [B]
+    
     # - Modele de turbulence -
-    B = TTK.Label(F, text="TubulenceModel")
+    B = TTK.Label(F, text="TurbModel")
     B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of turbulence model.')
     B = TTK.OptionMenu(F, VARS[6], 'SpalartAllmaras', 'JonesLaunder(k-eps)',
                       'Wilcox(k-w)', 'MenterSST(k-w)')
-    B.grid(row=6, column=1, sticky=TK.EW)
+    B.grid(row=6, column=1, columnspan=3, sticky=TK.EW)
 
     # - Valeurs des grandeurs turbulentes -
     B = TTK.Label(F, text="MutSMu")
     B.grid(row=7, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Ratio between turbulent viscosity and molecular viscosity.')
-    B = TTK.Entry(F, textvariable=VARS[9], background='White')
+    B = TTK.Entry(F, textvariable=VARS[9], background='White', width=5)
     B.grid(row=7, column=1, sticky=TK.EW)
 
     B = TTK.Label(F, text="TurbLevel")
-    B.grid(row=8, column=0, sticky=TK.EW)
+    B.grid(row=7, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Level of turbulence.')
-    B = TTK.Entry(F, textvariable=VARS[10], background='White')
-    B.grid(row=8, column=1, sticky=TK.EW)
+    B = TTK.Entry(F, textvariable=VARS[10], background='White', width=5)
+    B.grid(row=7, column=3, sticky=TK.EW)
     
     # - Adim -
     B = TTK.Label(F, text="Adim")
-    B.grid(row=9, column=0, sticky=TK.EW)
+    B.grid(row=8, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of adimensionalization.')
-    B = TTK.OptionMenu(F, VARS[11], 'adim1(Ro,A,T)','adim2(Ro,U,T)')#,'dim1(real UInf,TInf,PInf,Rgp=287.053)', 'dim2(real UInf,TInf,RoInf,Rgp=287.053)','dim3(real UInf,PInf,RoInf,Rgp=287.053)')
-    B.grid(row=9, column=1, sticky=TK.EW)
+    B = TTK.OptionMenu(F, VARS[11], 'adim1(Ro,A,T)','adim2(Ro,U,T)',
+                        'dim1(real UInf,TInf,PInf)', 
+                        'dim2(real UInf,TInf,RoInf)',
+                        'dim3(real UInf,PInf,RoInf)',
+                        command=switchAdim)
+    B.grid(row=8, column=1, columnspan=3, sticky=TK.EW)
     
     # - get state, inutile a mon avis -
     B = TTK.Button(F, text="Get state", command=getState)
-    B.grid(row=10, column=0, sticky=TK.EW)
+    B.grid(row=9, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Read state from pyTree.')
 
     # - set state -
     B = TTK.Button(F, text="Set state", command=setState)
-    B.grid(row=10, column=1, sticky=TK.EW)
+    B.grid(row=9, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Write state to pyTree.')
 
     F.grid(row=1, column=0, sticky=TK.EW)
@@ -404,9 +564,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)
