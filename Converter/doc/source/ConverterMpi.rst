@@ -240,7 +240,7 @@ Input/output
 Conversions
 ----------------
 
-.. py:function:: Converter.Mpi.convert2SkeletonTree(t)
+.. py:function:: Converter.Mpi.convert2SkeletonTree(t, maxSize=6)
 
     Convert a tree (**LS** or **P**) to a skeleton tree (S). In a skeleton tree,
     numpys in DataArray_t nodes are replaced by None.
@@ -250,11 +250,13 @@ Conversions
 
     :param t: input data
     :type t: [pyTree, base, zone, list of zones]
+    :param maxSize: numpy bigger than maxSize are remplace by None
+    :type maxSize: int
     :rtype: Identical to t
 
     *Example of use:*
 
-    * `Convert a tree to a skeleton tree (pyTree) <Examples/Initiator/convert2SkeletonTreePT.py>`_:
+    * `Convert a tree to a skeleton tree (pyTree) <Examples/Converter/convert2SkeletonTreePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/convert2SkeletonTreePT.py
 

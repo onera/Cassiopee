@@ -26,6 +26,13 @@
 #include <TopoDS.hxx>
 #include <StdFail_NotDone.hxx>
 
+#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepExtrema_DistShapeShape.hxx>
+
+#include "Nuga/include/BbTree.h"
+#include <Bnd_Box.hxx>
+#include <BRepBndLib.hxx>
+
 // Project coords on CAD face
 void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const TopoDS_Face& F)
 {
@@ -110,9 +117,14 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   E_Float* poz = new E_Float [npts];
   E_Float* dist = new E_Float [npts];
 
+  //printf("nfaces=%d, npts=%d\n", nfaces, npts); fflush(stdout);
+  //npts = 500;
+  
+
 #pragma omp parallel
   {
     gp_Pnt Point;
+    gp_Pnt Pj;
     E_Float dx,dy,dz,d;
 
 #pragma omp for
@@ -124,23 +136,41 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 #pragma omp for
     for (E_Int i = 0; i < npts; i++) dist[i] = K_CONST::E_MAX_FLOAT;
 
-#pragma omp for
-    for (E_Int i=0; i < npts; i++)
+    for (E_Int j = 0; j < nfaces; j++)
     {
-      for (E_Int j = 0; j < nfaces; j++)
-      {
         const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
         Handle(Geom_Surface) face = BRep_Tool::Surface(F);
+        GeomAPI_ProjectPointOnSurf o;
+        //BRepExtrema_DistShapeShape tool;
 
+#pragma omp for
+      for (E_Int i=0; i < npts; i++)
+      {      
         Point.SetCoord(pox[i], poy[i], poz[i]);
+        
+        //BRepBuilderAPI_MakeVertex v(Point);
+        //const TopoDS_Vertex& Vertex = v.Vertex();
+
         try
         {  
-          GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
-          gp_Pnt Pj = o.NearestPoint();
+          //GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
+          //GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Grad);
+          
+          //o.Init(Point, face, Extrema_ExtAlgo_Tree);
+          o.Init(Point, face, Extrema_ExtAlgo_Grad); 
+          Pj = o.NearestPoint();
+          //Pj = o.Point(1);
           //printf("projection %f %f %f -> %f %f %f\n",px[i],py[i],pz[i],Pj.X(),Pj.Y(),Pj.Z());
           ptx[i] = Pj.X(); pty[i] = Pj.Y(); ptz[i] = Pj.Z();
+
+          //tool.LoadS1(F); tool.LoadS2(Vertex);
+          //tool.Perform();
+          //E_Float dist = tool.Value();
+          //const gp_Pnt& Po = tool.PointOnShape1(1);
+          //ptx[i] = Po.X(); pty[i] = Po.Y(); ptz[i] = Po.Z();
+
         }
-        catch (StdFail_NotDone& e) 
+        catch (StdFail_NotDone& e)
         { 
           //printf("FAIL for point %g %g %g\n", px[i],py[i],pz[i]); 
           ptx[i] = K_CONST::E_MAX_FLOAT;

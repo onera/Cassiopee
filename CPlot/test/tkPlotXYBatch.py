@@ -32,4 +32,4 @@ graph0.addCurve('1:1', curve0)
 #graph0.updateGraph('1:1')
 
 graph0.save('fig.png')
-
+graph0.close()

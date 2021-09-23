@@ -4,6 +4,7 @@ import Converter.Mpi as Cmpi
 import Distributor2.PyTree as Distributor2
 import Generator.PyTree as G
 import KCore.test as test
+import Converter.Internal as Internal
 
 # Cree le fichier test
 if Cmpi.rank == 0:
@@ -17,10 +18,14 @@ Cmpi.barrier()
 t = Cmpi.convertFile2SkeletonTree('test.cgns')
 (t, dic) = Distributor2.distribute(t, NProc=Cmpi.size, algorithm='fast')
 t = Cmpi.readZones(t, 'test.cgns', rank=Cmpi.rank)
+Cmpi._convert2PartialTree(t)
+
 # Cree le bbox tree
 tb = Cmpi.createBBoxTree(t)
 # Cree le graph
 graph = Cmpi.computeGraph(tb)
 # Add X Zones
 t = Cmpi.addXZones(t, graph)
-if Cmpi.rank == 0: test.testT(t, 1)
+if Cmpi.rank == 0: 
+    Internal.printTree(t)
+    test.testT(t, 1)

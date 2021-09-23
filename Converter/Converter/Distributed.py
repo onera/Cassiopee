@@ -170,18 +170,20 @@ def isZoneSkeleton__(z, ntype=0):
 # Converti un arbre en arbre squelette
 # i.e supprime les noeuds DataArray_t et les remplace par None
 #==============================================================================
-def convert2SkeletonTree(t):
+def convert2SkeletonTree(t, maxSize=6):
     """Convert a tree to a skeleton tree."""
     tp = Internal.copyRef(t)
-    _convert2SkeletonTree(tp)
+    _convert2SkeletonTree(tp, maxSize=maxSize)
     return tp
 
-def _convert2SkeletonTree(t):
+def _convert2SkeletonTree(t, maxSize=6):
+    """Convert a tree to a skeleton tree."""
     zones = Internal.getZones(t)
     for z in zones:
         nodes = Internal.getNodesFromType(z, 'DataArray_t')
-        for n in nodes: 
-          if n[1].size > 6: n[1] = None
+        for n in nodes:
+          pt = n[1]
+          if pt is not None and pt.size > maxSize: n[1] = None
     return None
 
 #==============================================================================
@@ -197,6 +199,7 @@ def convert2PartialTree(t, rank=-1):
     return tp
 
 def _convert2PartialTree(t, rank=-1):
+    """Convert a tree to a partial tree."""
     zones = Internal.getZones(t)
     for z in zones:
         crit = False
@@ -237,6 +240,7 @@ def readZones(t, fileName, format=None, rank=None, zoneNames=None):
     return tp
 
 def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
+  """Read some zones in a skeleton tree (by rank or name)."""
   if zoneNames is None and rank is None: return None
   bases = Internal.getBases(t)
   if rank is not None: # load zones by rank

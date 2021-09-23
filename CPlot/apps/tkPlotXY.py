@@ -9894,7 +9894,6 @@ class GraphTK(TK.Toplevel):
     # -------------------------------------------------------- applyViewSettings
     def applyViewSettings(self):
         if self.subPlotParams.isActive:
-
 # Was aimed to turn off eventually the tight_layout, but seems useless ... and not working !
 #            try:
 #                self.fig.instance.tight_layout(False)
@@ -9923,6 +9922,10 @@ class GraphTK(TK.Toplevel):
             self.subgraph_background_color = value
         elif variable == 'subgraph_background_alpha':
             self.subgraph_background_alpha = value
+    # -----------------------------------------------------------------
+    def close(self):
+        plt.close(self.fig.getFig())
+
 # ==============================================================================
 # ==============================================================================
 
@@ -10118,6 +10121,9 @@ class Graph():
             self.subgraph_background_color = value
         elif variable == 'subgraph_background_alpha':
             self.subgraph_background_alpha = value
+    # -----------------------------------------------------------------
+    def close(self):
+        plt.close(self.fig.getFig())
 
 # ==============================================================================
 # ==============================================================================
