@@ -3450,26 +3450,51 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   std::vector<K_FLD::FloatArray*> crds(nb_zones, nullptr);
   std::vector<K_FLD::IntArray*>   cnts(nb_zones, nullptr);
   char* varString, *eltType;
-  
+
+  ngon_type::eGEODIM geodim = ngon_type::eGEODIM::UNSET;
+  E_Int err = 0;
+
   // get the zones
-  for (E_Int i=0; i < nb_zones; ++i)
+  for (E_Int i=0; (i < nb_zones) && !err; ++i)
   {
     //std::cout << "getting zone in list : " << i << std::endl;
     PyObject* py_zone = PyList_GetItem(arrs, i);
     
-    E_Int err = check_is_NGON(py_zone, crds[i], cnts[i], varString, eltType);
-    if (err)
-    {
-      for (E_Int i=0; i < nb_zones; ++i)
-      {
-        delete crds[i];
-        delete cnts[i];
-      }
-      return NULL;
-    }
+    err = check_is_NGON(py_zone, crds[i], cnts[i], varString, eltType);
+    if (err) break;
 
+    ngon_type::eGEODIM gd = ngon_type::get_ngon_geodim(*(cnts[i]));
+    //std::cout << "gd : " << gd << std::endl;
+
+    if (geodim == ngon_type::eGEODIM::UNSET)
+      geodim = gd;
+
+    if (geodim != gd)
+    {
+      //
+      PyErr_SetString(PyExc_TypeError, "concatenate : mixed type inputs not handled");
+      err = 1; break;
+    }
+    else if (geodim == ngon_type::eGEODIM::ERROR)
+    {
+      //
+      std::ostringstream o;
+      o << "concatenate : input << " << i << " is not handled";
+      PyErr_SetString(PyExc_TypeError, o.str().c_str());
+      err = 1; break;
+    }
     //std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
     //std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
+  }
+
+  if (err)
+  {
+    for (E_Int i=0; i < nb_zones; ++i)
+    {
+      delete crds[i];
+      delete cnts[i];
+    }
+    return NULL;
   }
 
   // join and close
@@ -3489,7 +3514,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
 
   ngon_type::clean_connectivity(ng, crd, -1, tol, true/*remove dups*/);
 
-  if (ng.PHs.size() == cnts.size()) // NUGA SURF
+  if (geodim == SURFACIC) // NUGA SURF
     ng = ngon_type(ng.PGs, true);
 
   //std::cout << "after clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;

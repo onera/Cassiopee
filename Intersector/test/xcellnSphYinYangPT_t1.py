@@ -15,5 +15,5 @@ priorities = []
 priorities.append((0,1))
 
 XOR._XcellN(t, priorities, output_type=0)
-
+#C.convertPyTree2File(t, "sphereYinYang1_0.cgns")
 test.testT(t, 1)

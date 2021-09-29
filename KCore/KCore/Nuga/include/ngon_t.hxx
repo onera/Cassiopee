@@ -55,7 +55,7 @@ struct ngon_t
                   ISO_BARY_NOT_STAR =dISO_BARY_NOT_STAR, OPEN_PHS = dOPEN_PHS, CONCAVITY_TO_SPLIT = dCONCAVITY_TO_SPLIT, PH_DELAUNAY_FAILURE = dDELAUNAY_FAILURE, PH_DEGEN = 999};
   enum eExtrudeStrategy { CST_ABS=0, CST_REL_MEAN, CST_REL_MIN, VAR_REL_MEAN, VAR_REL_MIN};
 
-  enum eGEODIM { ERROR=-2, MIXED = -1, LINEIC=0, SURFACIC_CASSIOPEE = 1, SURFACIC = 2, VOLUMIC = 3};
+  enum eGEODIM { ERROR=-3, UNSET = -2, MIXED = -1, LINEIC=0, SURFACIC_CASSIOPEE = 1, SURFACIC = 2, VOLUMIC = 3};
   
   using unit_type = ngon_unit;
  
@@ -188,7 +188,7 @@ struct ngon_t
     max_s = 0;
     for (E_Int i = 0; i < nb_phs; ++i)
     {
-      E_Int s = ng.PGs.stride(i);
+      E_Int s = ng.PHs.stride(i);
       max_s = std::max(max_s, s);
     }
 
