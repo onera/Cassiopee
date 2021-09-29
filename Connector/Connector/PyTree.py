@@ -523,7 +523,7 @@ def connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, to
         C.freeHook(hook)
         if id2 != []:
             allExtIndices.append(id2)
-            C._initVars(sel,'centers:tag1',-1.)# defines the opposite window
+            C._initVars(sel,'centers:tag1',-1.) # defines the opposite window
             C._initVars(sel,'centers:tag2',-1.) # defines the opp index in opp window
             allExtFaces0.append(sel)
         else:

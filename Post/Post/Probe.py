@@ -34,7 +34,7 @@ class Probe:
         self._filecur = 0
 
         # internal buffer
-        self._bsize = 100
+        self._bsize = 5000
         # current position in buffer
         self._icur = 0
 
@@ -46,35 +46,59 @@ class Probe:
         self._pZone = None
 
     # init from position
-    def __init__(self, t, X, fileName, fields=None, append=True):
+    def __init__(self, fileName, t=None, X=None, fields=None, append=True, bufferSize=5000):
         self.init0()
+        self._bsize = bufferSize
         self._fileName = fileName
         self._t = t
-        self._posX = X[0]
-        self._posY = X[1]
-        self._posZ = X[2]
-        self.locateProbe(t, X)
-        self.checkVariables(fields)
+        if X is not None:
+            self._posX = X[0]
+            self._posY = X[1]
+            self._posZ = X[2]
+        if fields is not None:
+            loc = self.getLoc(fields)
+        if t is not None and X is not None and loc is not None:
+            self.locateProbe(t, X, loc)
+        if fields is not None:
+            self.checkVariables(fields)
         self.createProbeZone()
+
         self.checkFile(append=append)
         
+    # examine la localisation des champs
+    def getLoc(self, fields):
+        loc = None
+        for v in fields:
+            vs = v.split(':')
+            if len(vs) == 2 and vs[1] == 'centers':
+                if loc is None: loc = 'centers'
+                elif loc != 'centers': raise ValueError("probe: fields must have the same loc.")
+            else:
+                if loc is None: loc = 'nodes'
+                elif loc != 'nodes': raise ValueError("probe: fields must have the same loc.")
+        return loc
+
     # locate probe in t from position X
+    # IN: t: pyTree
     # IN: posX, posY, posZ
+    # IN: loc: loc of all fields of probe
     # OUT: ind, blockName, dist
-    def locateProbe(self, t, X):
+    def locateProbe(self, t, X, loc):
         P = D.point(X)
         zones = Internal.getZones(t)
         dist = 1.e16; blockName = None; ind = 0
         
         for z in zones:
-            hook = C.createHook(z, function='nodes')
+            if loc == 'centers': zc = C.node2Center(z)
+            else: zc = z
+            hook = C.createHook(zc, function='nodes')
             (i, d) = C.nearestNodes(hook, P)
             if d[0] < dist: dist = d[0]; blockName = z[0]; ind = i[0]
             C.freeHook(hook)
+            if loc == 'centers': zc = None
 
         # parallel
         ret = Cmpi.allgather(dist)
-        
         dist = 1.e16
         for p, i in enumerate(ret):
             if i is not None and i < dist: 
@@ -146,7 +170,7 @@ class Probe:
         # load FS
         nodes = Distributed.readNodesFromPaths(self._fileName, ['CGNSTree/Base/probe/FlowSolution'])
         cont = Internal.getNodeFromName2(self._pZone, 'FlowSolution')
-        cont[2] = nodes[0][2]
+        if cont is not None: cont[2] = nodes[0][2]
         print('Info: filecur:', self._filecur)
         print('Info: icur:', self._icur)
         return None
@@ -214,3 +238,50 @@ class Probe:
             paths = ['CGNSTree/Base/probe/GridCoordinates', 'CGNSTree/Base/probe/FlowSolution']
             Distributed.writeNodesFromPaths(self._fileName, paths, nodes, mode=1)
         return None
+
+    # read all probe fields as a single zone
+    def read(self):
+        tl = Cmpi.convertFile2SkeletonTree(self._fileName)
+        # read time
+        nodes = Internal.getNodesFromName(tl, 'GridCoordinates#*')
+        # load GCs
+        paths = ['CGNSTree/Base/probe/GridCoordinates']
+        for n in nodes:
+            paths.append('CGNSTree/Base/probe/%s'%n[0])
+        nodes = Distributed.readNodesFromPaths(self._fileName, paths)
+        
+        px = Internal.getNodeFromName1(nodes[0], 'CoordinateX')[1]
+        a = px > -0.5
+        csize = numpy.count_nonzero(a) 
+        size = csize
+        for n in nodes[1:]: size += n[1].size
+        #print('size=',size,flush=True)
+
+        out = G.cart((0,0,0), (1,1,1), (size,1,1))
+        px2 = Internal.getNodeFromName2(out, 'CoordinateX')[1]
+        c = 0
+        for n in nodes[1:]:
+            pxn = Internal.getNodeFromName1(n, 'CoordinateX')[1]
+            px2[c:c+self._bsize] = pxn[1][0:self._bsize]
+            c += self._bsize
+        px2[c:c+csize] = px[0:csize]
+        
+        # load FS
+        nodes = Internal.getNodesFromName(tl, 'FlowSolution#*')
+        paths = ['CGNSTree/Base/probe/FlowSolution']
+        for n in nodes:
+            paths.append('CGNSTree/Base/probe/FlowSolution#'%n[0])
+        nodes = Distributed.readNodesFromPaths(self._fileName, paths)
+        pf = Internal.getNodesFromType(nodes[0], 'DataArray_t')
+        nfields = len(pf)
+        for p in pf:
+            C._initVars(out, '%s=0.'%p[0])
+            px2 = Internal.getNodeFromName2(out, p[0])[1]
+            c = 0
+            for n in nodes[1:]:
+                pxn = Internal.getNodeFromName1(n, p[0])[1]
+                px2[c:c+self._bsize] = pxn[0:self._bsize]
+                c += self._bsize
+            pxn = Internal.getNodeFromName1(nodes[0], p[0])[1]
+            px2[c:c+csize] = px[0:csize]
+        return out

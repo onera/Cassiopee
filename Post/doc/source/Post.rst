@@ -78,6 +78,10 @@ List of functions
     Post.zipper
     Post.usurp
 
+    Post.Probe.Probe
+    Post.Probe.extract
+    Post.Probe.flush
+
 **-- Streams/Isos**
 
 .. autosummary::
@@ -1046,6 +1050,51 @@ Solution extraction
     * `Ratio generation for the surface elements (pyTree) <Examples/Post/usurpPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/usurpPT.py
+
+
+
+---------------------------------------
+
+.. py:function:: Post.Probe.Probe(t, (x,y,z), fileName, fields=None, append=True, bufferSize=100)
+
+    Create a probe at position (x,y,z) extracting given fields from t.
+    Result is periodically flush to file.
+
+    :param t: pyTree containing solution
+    :type t: pyTree
+    :param (x,y,z): position of probe 
+    :type  (x,y,z): tuple of 3 floats
+    :param fileName: name of file to dump to
+    :type fileName: string
+    :param fields: list of field to extract
+    :type fields: list of strings or None 
+    :param append: if True, append result to existing file
+    :type append: Boolean
+    :param bufferSize: size of internal buffer
+    :type bufferSize: int
+    
+    :rtype: probe instance
+
+    *Example of use:*
+
+    * `Probe extraction (pyTree) <Examples/Post/probePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/probePT.py
+
+---------------------------------------
+
+.. py:function:: Post.Probe.extract(time=0.)
+
+    Extract probe at given time.
+
+    :param time: extraction time
+    :type time: float
+    
+---------------------------------------
+
+.. py:function:: Post.Probe.flush()
+
+    Force probe flush.
 
 ---------------------------------------
 

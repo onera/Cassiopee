@@ -12,14 +12,14 @@ t = C.newPyTree(['Base',a])
 #Cmpi.convertPyTree2File(t, 'out.cgns')
 
 # create a probe
-p1 = Probe.Probe(t, (10.,10.,10.), 'probe1.cgns', fields=['centers:F'], append=False)
+p1 = Probe.Probe('probe1.cgns', t, (10.,10.,10.), fields=['centers:F'], append=False)
 p1.print()
 for i in range(110):
     p1.extract(time=0.1*i)
 p1.flush()
 
 # test append
-p1 = Probe.Probe(t, (10.,10.,10.), 'probe1.cgns', fields=['centers:F'], append=True)
+p1 = Probe.Probe('probe1.cgns', t, (10.,10.,10.), fields=['centers:F'], append=True)
 for i in range(50):
     p1.extract(time=11.+0.1*i)
 p1.flush()

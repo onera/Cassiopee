@@ -281,11 +281,13 @@ def checkNode__(node, parent, errors):
             # si node[1] est une string -> strip
             if isinstance(node[1], str): node[1] = node[1].strip()
             if isinstance(node[1], numpy.ndarray) and (node[1].dtype.kind == 'S' or node[1].dtype.kind == 'a'):
-                val = node[1].tostring().decode(); val = val.strip()
-                node[1] = numpy.fromstring(val, 'c')
+                val = Internal.getValue(node)
+                if isinstance(val, str):
+                    val = val.strip()
+                    Internal.setValue(node, val)
             
-            # node[0] (nom) est un string ou None
-            if isinstance(node[0], str) == False and node[0] is None:
+            # node[0] (nom) est une string ou None
+            if not isinstance(node[0], str) and node[0] is None:
                 errors += [node, parent, "Node[0] of node %s must be a string designing node name."%node[0]]
                 
             # node[2] (liste des fils) doit etre une liste
@@ -293,7 +295,7 @@ def checkNode__(node, parent, errors):
                 errors += [node, parent, "Node[2] of node %s must be a list of sons."%node[0]]
             else: sons = node[2]
             
-            # node[3] doit etre un string se terminant par _t ...
+            # node[3] doit etre une string se terminant par _t ...
             if not isinstance(node[3], str):
                 errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
             #if node[3].find('_t') != len(node[3])-2:
