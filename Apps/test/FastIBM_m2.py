@@ -9,9 +9,9 @@ import Geom.PyTree as D
 import FastC.PyTree as FastC
 
 LOCAL = test.getLocal()
-FILEB = "case.cgns"
-FILEC = "tc_restart.cgns"
-FILED = "tcw.cgns"
+FILEB = LOCAL+"/case.cgns"
+FILEC = LOCAL+"/tc_restart.cgns"
+FILED = LOCAL+"/tcw.cgns"
 
 myApp = App.IBM(format='single')
 myApp.set(numb={"temporal_scheme": "implicit",
@@ -45,7 +45,7 @@ for z in Internal.getZones(tb):
     Cmpi._setProc(z,noz%(Cmpi.size))
     noz+=1
     
-if Cmpi.rank==0: C.convertPyTree2File(tb,FILEB)
+if Cmpi.rank==0: C.convertPyTree2File(tb, FILEB)
 Cmpi.barrier()
 
 # Prepare
@@ -85,8 +85,8 @@ graph = Cmpi.computeGraph(tcw, t2=tb, procDict=procDictD, procDict2=procDictR,ty
 C._initVars(tb,'Pressure',0.0)
 App._computeWallReconstruction(tb,tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph,
                                variables=['Pressure'])
-Cmpi.convertPyTree2File(tb,'wall.cgns')
+Cmpi.convertPyTree2File(tb, LOCAL+'/wall.cgns')
 Cmpi.barrier()
 if Cmpi.rank==0:
-    tb = C.convertFile2PyTree("wall.cgns")
+    tb = C.convertFile2PyTree(LOCAL+"/wall.cgns")
     test.testT(tb,3)

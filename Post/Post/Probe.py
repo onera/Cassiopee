@@ -254,15 +254,17 @@ class Probe:
         a = px > -0.5
         csize = numpy.count_nonzero(a) 
         size = csize
-        for n in nodes[1:]: size += n[1].size
-        #print('size=',size,flush=True)
+        for n in nodes[1:]:
+            pxn = Internal.getNodeFromName1(n, 'CoordinateX')
+            size += pxn[1].size
+        print('size=',size,flush=True)
 
         out = G.cart((0,0,0), (1,1,1), (size,1,1))
         px2 = Internal.getNodeFromName2(out, 'CoordinateX')[1]
         c = 0
         for n in nodes[1:]:
             pxn = Internal.getNodeFromName1(n, 'CoordinateX')[1]
-            px2[c:c+self._bsize] = pxn[1][0:self._bsize]
+            px2[c:c+self._bsize] = pxn[0:self._bsize]
             c += self._bsize
         px2[c:c+csize] = px[0:csize]
         
@@ -270,7 +272,7 @@ class Probe:
         nodes = Internal.getNodesFromName(tl, 'FlowSolution#*')
         paths = ['CGNSTree/Base/probe/FlowSolution']
         for n in nodes:
-            paths.append('CGNSTree/Base/probe/FlowSolution#'%n[0])
+            paths.append('CGNSTree/Base/probe/%s'%n[0])
         nodes = Distributed.readNodesFromPaths(self._fileName, paths)
         pf = Internal.getNodesFromType(nodes[0], 'DataArray_t')
         nfields = len(pf)

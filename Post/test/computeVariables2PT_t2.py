@@ -30,9 +30,9 @@ z1 = CP.initVars(z1, 'centers:EnergyStagnationDensity', 2.e5)
 
 # computeVariables2 sur une zone
 # ------------------------------
-CP.convertPyTree2File(z1,'z0.cgns')
+#CP.convertPyTree2File(z1,'z0.cgns')
 z1 = PT.computeVariables2(z1, vars)
-CP.convertPyTree2File(z1,'z1.cgns')
+#CP.convertPyTree2File(z1,'z1.cgns')
 test.testT(z1,1)
 
 # computeVariables2 sur un PyTree

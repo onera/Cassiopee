@@ -2313,12 +2313,15 @@ def sortByName(t, recursive=True):
 
 def _sortByName(t, recursive=True):
     names = [n[0] for n in t[2]]
-    names.sort()
-    for name in names:
-        node = getNodeFromName1(t, name)
-        _rmNode(t, node)
-        addChild(t, node, pos=names.index(node[0]))
-        if recursive: _sortByName(node, recursive)
+    nodes = t[2]
+    zipped = zip(names, nodes)
+    zipped = sorted(zipped, key=lambda x: x[0])
+    ret = []
+    for i in zip(*zipped): ret = i
+    t[2] = list(ret)
+    if recursive:
+        for node in ret:
+            _sortByName(node, recursive)
     return None
 
 # -- Rename node ou nodes
