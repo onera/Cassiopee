@@ -138,7 +138,7 @@ def printTree(t, file=None, stdOut=None, editor=False):
 # Retourne le nombre de pts dans t
 def getNPts(t):
   """Return the number of points in t.
-  Usage: getNpts(t)"""
+  Usage: getNPts(t)"""
   zones = Internal.getZones(t)
   npts = 0
   for z in zones:

@@ -7,9 +7,13 @@ import Converter.Internal as Internal
 import Connector.PyTree as X
 import Transform.PyTree as T
 
-# Maillage en O autour de la tour
+#=====================================================================
+# Maillage en O autour d'un batiment
 # IN: base: liste de 4 BARs decrivant la base du building
-# IN: height: la hauteur
+# IN: height: la hauteur du batiment
+# IN: h: la taille des mailles sur le batiment
+# IN: hp: la taille de maille paroi (y+=1)
+#=====================================================================
 def building(base, height, h, hp):
     if len(base) != 4: raise ValueError('building: the base must have 4 sides.')
     
@@ -45,30 +49,51 @@ def building(base, height, h, hp):
     h30 = D.line(Pz3,Pz0,N=C.getNPts(a30))
 
     b1 = G.TFI([h01,h12,h23,h30])
+    b1[0] = C.getZoneName('top')
     T._reorder(b1, (2,1,3))
     b2 = G.TFI([a01,a1z1,h01,a0z0])
+    b2[0] = C.getZoneName('front')
     #T._reorder(b2, (2,1,3))
     b3 = G.TFI([a12,a2z2,h12,a1z1])
+    b3[0] = C.getZoneName('right')
     #T._reorder(b3, (2,1,3))
     b4 = G.TFI([a23,a3z3,h23,a2z2])
+    b4[0] = C.getZoneName('back')
     T._reorder(b4, (2,1,3))
     b5 = G.TFI([a30,a0z0,h30,a3z3])
+    b5[0] = C.getZoneName('left')
     T._reorder(b5, (2,1,3))
 
     s = [b1,b2,b3,b4,b5]
-
     d = G.cart((0,0,0), (h,1,1), (9,1,1)) # hauteur = 9*h
     d = G.enforcePlusX(d, hp, 9, 40)
-    s = G.addNormalLayers(s, d, niter=50)
+    [b1,b2,b3,b4,b5] = G.addNormalLayers(s, d, niter=50)
 
+    # remap near wall
+    li = T.subzone(b2, (1,1,1), (-1,1,1))
+    L = D.getLength(li)
+    D._getCurvilinearAbscissa(li)
+    C._initVars(li, '{CoordinateX}={s}')
+    li = G.enforcePlusX(li, hp/L, 9, 20)
+    b2 = G.map(b2, li, 1)
+    b3 = G.map(b3, li, 1)
+    b4 = G.map(b4, li, 2)
+    b5 = G.map(b5, li, 2)
+    s = [b1,b2,b3,b4,b5]
+
+    # Boundary conditions
     C._addBC2Zone(s, 'wall', 'BCWall', 'kmin')
-    C._addBC2Zone(s, 'ov', 'BCOverlap', 'kmax')
-    tp = C.newPyTree(['TOWER',s])
+    C._addBC2Zone(s, 'overlap', 'BCOverlap', 'kmax')
+    tp = C.newPyTree(['TOWER', s])
     tp = X.connectMatch(tp)
-    C._fillEmptyBCWith(tp, 'wall', 'BCWall')
+    C._fillEmptyBCWith(tp, 'walls', 'BCWall')
+
     return Internal.getZones(tp)
 
-# Create domain - a mettre en cartRx
+#=====================================================================
+# Create computational domain
+# OUT: single block
+#=====================================================================
 def domain(base, height, h, hp):
     if len(base) != 4: raise ValueError('building: the base must have 4 sides.')
     # line 0 with h
@@ -118,7 +143,7 @@ def domain(base, height, h, hp):
     d = G.cart((0,0,0), (h,1,1), (npts,1,1))
     D._getCurvilinearAbscissa(d)
     C._initVars(d, '{CoordinateX} = {s}')
-    d = G.enforcePlusX(d, hp, npts//2, 40)
+    d = G.enforcePlusX(d, hp, min(npts//2,40), 40)
 
     vol = G.map(vol, d, dir=3)
 
@@ -132,7 +157,10 @@ def domain(base, height, h, hp):
 
     return [vol]
 
+#=====================================================================
 # Return a square from two points
+# OUT: list of lines
+#=====================================================================
 def square(P0, P1):
     (x0,y0,z0) = P0
     (x1,y1,z1) = P1
@@ -144,6 +172,7 @@ def square(P0, P1):
     l3 = D.line(P3,P0,N=2)
     return [l0,l1,l2,l3]
     
+#=====================================================================
 def map(P0, P1, fileName):
     s = square(P0,P1)
     #CPlot._addRender2Zone(a, material='texmat')

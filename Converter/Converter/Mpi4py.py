@@ -7,13 +7,19 @@ from . import converter
 # Acces a Distributed
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
-__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
-    'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
-    'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
+__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 
+    'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
+    'bcast', 'Bcast', 'reduce', 'allreduce', 'bcastZone', 'allgatherZones', 
+    'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
+    'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 
+    'convert2SkeletonTree',
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
-    'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
-    'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
-    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 'getProc', 'setProc', '_setProc', 'COMM_WORLD']
+    'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 
+    'convertPyTree2File', 'seq', 'print0', 'printA',
+    'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', 
+    '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
+    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 
+    'getProc', 'setProc', '_setProc', 'COMM_WORLD']
 
 from mpi4py import MPI
 import numpy
@@ -26,6 +32,10 @@ KCOMM = COMM_WORLD
 
 rank = KCOMM.rank
 size = KCOMM.size
+
+SUM = MPI.SUM
+MAX = MPI.MAX
+MIN = MPI.MIN
 
 # version collective
 def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
@@ -50,16 +60,28 @@ def barrier():
     KCOMM.barrier()
 
 #==============================================================================
-# Send
+# Send - send data from a proc to another proc
 #==============================================================================
 def send(obj, dest=None):
     KCOMM.send(obj, dest)
 
 #==============================================================================
-# Receive
+# Receive - receive data from a proc
 #==============================================================================
 def recv(source=None):
     return KCOMM.recv(source)
+
+#==============================================================================
+# Reduce to root (using pickle, small data)
+#==============================================================================
+def reduce(data, op=MPI.SUM, root=0):
+    return KCOMM.reduce(data, op=op, root=root)
+
+#==============================================================================
+# Reduce to all (using pickle, small data)
+#==============================================================================
+def allreduce(data, op=MPI.SUM):
+    return KCOMM.allreduce(data, op=op)
 
 #==============================================================================
 # Send and receive with a graph
@@ -327,15 +349,6 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
         lk = KCOMM.bcast(links)
         if rank > 0: links += lk
     return t
-    
-#==============================================================================
-# Only for hdf
-# Split a file on all processors
-#==============================================================================
-def convertFile2DistributedPyTree(fileName):
-  import etc.toolbox.internal as tgi
-  tmp = tgi.convertFile2DistributedPyTree(fileName)
-  return tmp.getLocalTree()
 
 #==============================================================================
 # Lecture complete d'un arbre dans un fichier
@@ -1151,6 +1164,7 @@ def setProc(t, rank):
     """Set the proc number to a zone or a set of zones."""
     tp = Internal.copyRef(t)
     Distributed._setProc(tp, rank)
+
     return tp
 
 def _setProc(t, rank):

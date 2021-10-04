@@ -10,7 +10,7 @@
   FldArrayI* typesI;
   E_Int res_type = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI, true);
   E_Int* types  = typesI->begin();
-  E_Int nbRcvPts= typesI->getSize();// taille du numpy = nb de pts a interpoler
+  E_Int nbRcvPts= typesI->getSize(); // taille du numpy = nb de pts a interpoler
   /*-----------------------*/
   /* Extraction des coefs  */
   /*-----------------------*/

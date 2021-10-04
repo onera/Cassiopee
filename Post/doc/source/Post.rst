@@ -81,6 +81,7 @@ List of functions
     Post.Probe.Probe
     Post.Probe.extract
     Post.Probe.flush
+    Post.probe.read
 
 **-- Streams/Isos**
 
@@ -1095,6 +1096,13 @@ Solution extraction
 .. py:function:: Post.Probe.flush()
 
     Force probe flush.
+
+---------------------------------------
+
+
+.. py:function:: Post.Probe.read()
+
+    Read all data stored in probe file and return a zone. 
 
 ---------------------------------------
 

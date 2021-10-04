@@ -9,6 +9,7 @@ import Geom.PyTree as D
 import FastC.PyTree as FastC
 
 LOCAL = test.getLocal()
+
 FILEB = LOCAL+"/case.cgns"
 FILEC = LOCAL+"/tc_restart.cgns"
 FILED = LOCAL+"/tcw.cgns"
@@ -55,7 +56,7 @@ Internal._rmNodesFromName(tc,Internal.__GridCoordinates__)
 if Cmpi.rank == 0: test.testT(tc, 1)
 
 # Compute
-t,tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/'+FILEC, nit=100)
+t,tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=FILEC, nit=100)
 Cmpi.barrier()
 
 if Cmpi.rank == 0:
@@ -81,12 +82,12 @@ Cmpi._convert2PartialTree(tcw, rank=Cmpi.rank)
 tb = FastC.loadFile(FILEB, mpirun=True)
 tc = FastC.loadFile(FILEC, mpirun=True)
 
-graph = Cmpi.computeGraph(tcw, t2=tb, procDict=procDictD, procDict2=procDictR,type='POST')
+graph = Cmpi.computeGraph(tcw, t2=tb, procDict=procDictD, procDict2=procDictR, type='POST')
 C._initVars(tb,'Pressure',0.0)
 App._computeWallReconstruction(tb,tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph,
                                variables=['Pressure'])
 Cmpi.convertPyTree2File(tb, LOCAL+'/wall.cgns')
 Cmpi.barrier()
 if Cmpi.rank==0:
-    tb = C.convertFile2PyTree(LOCAL+"/wall.cgns")
+    tb = C.convertFile2PyTree(LOCAL+'/wall.cgns')
     test.testT(tb,3)

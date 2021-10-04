@@ -14,6 +14,8 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
        def recv(source=0, tag=0): return None # pb here
        def sendRecv(a, source=0, dest=0): return []
        def sendRecvC(a, source=0, dest=0): return []
+       def reduce(a, op=None, root=0): return a
+       def allreduce(a, op=None): return a
        def seq(F, *args): F(*args)
        print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
  
@@ -28,11 +30,13 @@ else: # try import (may fail - core or hang)
         def recv(source=0, tag=0): return None # pb here
         def sendRecv(a, source=0, dest=0): return []
         def sendRecvC(a, source=0, dest=0): return []
+        def reduce(a, op=None, root=0): return a
+        def allreduce(a, op=None): return a
         def seq(F, *args): F(*args)
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
 from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
-from . import PyTree
+from . import PyTree as C
 from . import Internal
 
 #==============================================================================
@@ -46,7 +50,7 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     # print info
     #zones = Internal.getZones(tl)
     #print 'Rank %d has %d zones.'%(rank, len(zones))
-    tl = PyTree.center2Node(tl, var, cellNType)
+    tl = C.center2Node(tl, var, cellNType)
     tl = rmXZones(tl)
     return tl
 
@@ -56,14 +60,14 @@ def center2Node(t, var=None, cellNType=0, graph=None):
 def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
     
     if modified == []: # all
-        variables = PyTree.getVarNames(t, excludeXYZ=True, loc='nodes')[0]
-        variables += PyTree.getVarNames(t, excludeXYZ=True, loc='centers')[0]
+        variables = C.getVarNames(t, excludeXYZ=True, loc='nodes')[0]
+        variables += C.getVarNames(t, excludeXYZ=True, loc='centers')[0]
     elif modified is None: variables = []; modified = []
     else: variables = modified
 
     _addMXZones(t, depth=2, variables=variables, noCoordinates=False, 
                 keepOldNodes=False)
-    #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), PyTree.getNPts(t)*1./1.e6), flush=True)
+    #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), C.getNPts(t)*1./1.e6), flush=True)
     Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
     _rmMXZones(t)
 
@@ -71,7 +75,19 @@ def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
     #graph = computeGraph(t, type='match', reduction=True)
     #_addXZones(t, graph, variables=variable, noCoordinates=False, 
     #           zoneGC=False, keepOldNodes=False)
-    #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), PyTree.getNPts(t)*1./1.e6), flush=True)
+    #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), C.getNPts(t)*1./1.e6), flush=True)
     #Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
     #_rmXZones(t)
     return None
+
+def getNPts(a):
+    """Return the number of points in a."""
+    npts = C.getNPts(a)
+    npts = allreduce(npts, op=SUM)
+    return npts
+
+def getNCells(a):
+    """Return the number of cells in t."""
+    ncells = C.getNPts(a)
+    ncells = allreduce(ncells, op=SUM)
+    return ncells

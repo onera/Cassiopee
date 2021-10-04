@@ -8,8 +8,10 @@ import Converter.Filter as Filter
 import Converter.Distributed as Distributed
 import numpy
 
+# Probe class
 class Probe:
 
+    # defaullt initialization
     def init0(self):
         # probe Coordinates
         self._posX = None
@@ -18,9 +20,9 @@ class Probe:
     
         # probe center index in block
         self._ind = None
-        # bloc name containing probe
+        # block name containing probe
         self._blockName = None
-        # the proc bloc is on
+        # the proc block is on
         self._proc = 0
         # distance probe-node
         self._dist = None
@@ -33,13 +35,14 @@ class Probe:
         # current container in file to write to
         self._filecur = 0
 
-        # internal buffer
+        # internal buffer size
         self._bsize = 5000
         # current position in buffer
         self._icur = 0
 
-        # list of extracted field names and pointers
+        # list of extracted field names
         self._fields = []
+        # list of pointers to corresponding numpys in t
         self._pfields = []
 
         # zone storing probe data
@@ -125,12 +128,12 @@ class Probe:
     # print information on probe
     def print(self):
         if Cmpi.rank != self._proc: return
-        print('Info: Position: ', self._posX, self._posY, self._posZ)
-        print('Info: Block', self._blockName)
-        print('Info: Block global index:', self._ind)
-        print('Info: distance probe-node:', self._dist)
-        print('Info: filecur:', self._filecur)
-        print('Info: icur:', self._icur)
+        print('Info: probe: Position: ', self._posX, self._posY, self._posZ)
+        print('Info: probe: Block', self._blockName)
+        print('Info: probe: Block global index:', self._ind)
+        print('Info: probe: distance probe-node:', self._dist)
+        print('Info: probe: filecur:', self._filecur)
+        print('Info: probe: icur:', self._icur)
         return None
 
     # Create the probe zone with buffer size
@@ -171,8 +174,8 @@ class Probe:
         nodes = Distributed.readNodesFromPaths(self._fileName, ['CGNSTree/Base/probe/FlowSolution'])
         cont = Internal.getNodeFromName2(self._pZone, 'FlowSolution')
         if cont is not None: cont[2] = nodes[0][2]
-        print('Info: filecur:', self._filecur)
-        print('Info: icur:', self._icur)
+        print('Info: probe: filecur:', self._filecur)
+        print('Info: probe: icur:', self._icur)
         return None
 
     # verifie la var list dans t, conserve les pointeurs d'acces
@@ -225,7 +228,7 @@ class Probe:
             gc[0] = 'GridCoordinates#%d'%self._filecur
             fc = Internal.copyNode(fc)
             fc[0] = 'FlowSolution#%d'%self._filecur
-            print('Info: flush %d (full).'%self._filecur)
+            print('Info: probe: flush %d (full).'%self._filecur)
             paths = ['CGNSTree/Base/probe','CGNSTree/Base/probe']
             nodes = [gc,fc]
             Distributed.writeNodesFromPaths(self._fileName, paths, nodes, mode=0)

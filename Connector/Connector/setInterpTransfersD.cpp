@@ -26,7 +26,8 @@ using namespace K_FLD;
 //=============================================================================
 /* Transfert de champs sous forme de numpy */
 //=============================================================================
-PyObject* K_CONNECTOR::setInterpTransfersD( PyObject* self, PyObject* args ) {
+PyObject* K_CONNECTOR::setInterpTransfersD( PyObject* self, PyObject* args ) 
+{
     PyObject *arrayD, *pyIndDonor, *pyArrayTypes, *pyArrayCoefs;
     if ( !PyArg_ParseTuple( args, "OOOO", &arrayD, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs ) ) { return NULL; }
 
@@ -39,7 +40,8 @@ PyObject* K_CONNECTOR::setInterpTransfersD( PyObject* self, PyObject* args ) {
     char*      varStringD;
     char*      eltTypeD;
     E_Int      resd = K_ARRAY::getFromArray( arrayD, varStringD, fd, imd, jmd, kmd, cnd, eltTypeD, true );
-    if (resd != 2 && resd != 1) {
+    if (resd != 2 && resd != 1) 
+    {
         PyErr_SetString( PyExc_TypeError, "setInterpTransfersD: 1st arg is not a valid array." );
         return NULL;
     }
@@ -48,7 +50,8 @@ PyObject* K_CONNECTOR::setInterpTransfersD( PyObject* self, PyObject* args ) {
 
 #include "extract_interpD.h"
 
-    if ( res_donor * res_type * res_coef == 0 ) {
+    if ( res_donor * res_type * res_coef == 0 ) 
+    {
         RELEASESHAREDB( resd, arrayD, fd, cnd );
         if ( res_donor != 0 ) { RELEASESHAREDN( pyIndDonor, donorPtsI ); }
         if ( res_type != 0 ) { RELEASESHAREDN( pyArrayTypes, typesI ); }
@@ -76,7 +79,8 @@ PyObject* K_CONNECTOR::setInterpTransfersD( PyObject* self, PyObject* args ) {
     vector< E_Float* > vectOfRcvFields( nvars );
     vector< E_Float* > vectOfDnrFields( nvars );
 
-    for ( E_Int eq = 0; eq < nvars; eq++ ) {
+    for ( E_Int eq = 0; eq < nvars; eq++ ) 
+    {
         vectOfRcvFields[eq] = fieldROut.begin( eq + 1 );
         vectOfDnrFields[eq] = fd->begin( eq + 1 );
     }
