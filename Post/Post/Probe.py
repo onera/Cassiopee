@@ -50,6 +50,7 @@ class Probe:
 
     # init from position
     def __init__(self, fileName, t=None, X=None, fields=None, append=True, bufferSize=5000):
+        """Create a probe."""
         self.init0()
         self._bsize = bufferSize
         self._fileName = fileName
@@ -127,6 +128,7 @@ class Probe:
 
     # print information on probe
     def print(self):
+        """Print information on probe."""
         if Cmpi.rank != self._proc: return
         print('Info: probe: Position: ', self._posX, self._posY, self._posZ)
         print('Info: probe: Block', self._blockName)
@@ -202,6 +204,7 @@ class Probe:
 
     # trigger extraction on current t
     def extract(self, time):
+        """Extract fields from t."""
         if Cmpi.rank != self._proc: return None
         # set time in CoordinateX
         px = Internal.getNodeFromName2(self._pZone, 'CoordinateX')[1]
@@ -219,6 +222,7 @@ class Probe:
 
     # flush containers of probe
     def flush(self):
+        """Flush probe to file."""
         if Cmpi.rank != self._proc: return None
         # flush containers
         gc = Internal.getNodeFromName1(self._pZone, 'GridCoordinates')
@@ -244,6 +248,7 @@ class Probe:
 
     # read all probe fields as a single zone
     def read(self):
+        """Reread all data from probe file."""
         tl = Cmpi.convertFile2SkeletonTree(self._fileName)
         # read time
         nodes = Internal.getNodesFromName(tl, 'GridCoordinates#*')
@@ -255,7 +260,7 @@ class Probe:
         
         px = Internal.getNodeFromName1(nodes[0], 'CoordinateX')[1]
         a = px > -0.5
-        csize = numpy.count_nonzero(a) 
+        csize = numpy.count_nonzero(a)
         size = csize
         for n in nodes[1:]:
             pxn = Internal.getNodeFromName1(n, 'CoordinateX')
@@ -288,5 +293,5 @@ class Probe:
                 px2[c:c+self._bsize] = pxn[0:self._bsize]
                 c += self._bsize
             pxn = Internal.getNodeFromName1(nodes[0], p[0])[1]
-            px2[c:c+csize] = px[0:csize]
+            px2[c:c+csize] = pxn[0:csize]
         return out

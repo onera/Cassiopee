@@ -25,6 +25,7 @@
 # include "GenIO.h"
 # include <stdio.h>
 # include <string.h>
+# include <stdint.h>
 # include "Def/DefFunction.h"
 # include <math.h>
 # include "kcore.h"
@@ -541,10 +542,12 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   fread(&a, sizeof(float), 1, ptrFile); // 299.
 
   /* Type des variables */
+  vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); // variables type
     if (ib == 1) sizer = 4;
+    varType[i] = ib; // 1=Float, 2=Double, 3=LongInt, 4=ShortInt, 5=Byte, 6=Bit
   }
 
   /* Passive variables */
@@ -587,79 +590,150 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
 
   /* Read dump */
   E_Int size;
-  if (sizer == 4 && dataPacking == 0) // block R4
+  if (dataPacking == 0) // block all types
   {
-    float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
+      float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
+      int32_t* buf4=NULL; int8_t* buf5=NULL; 
+      if (varType[n] == 1) buf1 = new float[npts];
+      else if (varType[n] == 2) buf2 = new double[npts];
+      else if (varType[n] == 3) buf3 = new int64_t [npts];
+      else if (varType[n] == 4) buf4 = new int32_t [npts];
+      else if (varType[n] == 5) buf5 = new int8_t [npts];
+      else printf("Warning: unknow type of variable.\n");
+
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
       else { size = npts; fp = f->begin(beginNodes[n]); }
       if (passive[n] == 0)
       {
-        fread(buf, sizeof(float), size, ptrFile);
-        for (i = 0; i < size; i++) fp[i] = buf[i];
+        if (varType[n] == 1) 
+        {
+            fread(buf1, sizeof(float), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf1[i];
+            delete [] buf1;
+        }    
+        else if (varType[n] == 2) 
+        {
+            fread(buf2, sizeof(double), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf2[i];
+            delete [] buf2;
+        }
+        else if (varType[n] == 3) 
+        {
+            fread(buf3, sizeof(int64_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf3[i];
+            delete [] buf3;
+        }
+        else if (varType[n] == 4) 
+        {
+            fread(buf4, sizeof(int32_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf4[i];
+            delete [] buf4;
+        }
+        else if (varType[n] == 5) 
+        {
+            fread(buf5, sizeof(int8_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf5[i];
+            delete [] buf5;
+        }
       }
       else
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
+    }    
+  }
+  else if (dataPacking == 1) // point all types (forcement node)
+  {
+    FldArrayF& fp = *f;
+    
+    // rip passives
+    int nfieldLoc = 0;
+    vector<int> index(nfield); // index of non passive field
+    int bsize = 0; 
+    vector<int> pos(nfield+1); // pos of non passive field in buffer
+    for (i = 0; i < nfield; i++)
+    {
+        if (passive[i] == 0) 
+        {
+            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+            index[nfieldLoc] = i; nfieldLoc += 1;
+        }
+    }
+    char* buf = new char[bsize];
+
+    for (n = 0; n < npts; n++)
+    {
+       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+       fread(buf, sizeof(char), bsize, ptrFile);
+       for (i = 0; i < nfieldLoc; i++) 
+       {
+           switch (varType[index[i]])
+           {
+               case 1:
+               {
+                float* ptr = (float*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 2:
+               {
+                double* ptr = (double*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 3:
+               {
+                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 4:
+               {
+                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 5:
+               {
+                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+           }
+       }    
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 0) // block R8
-  {
-    for (n = 0; n < nfield; n++)
-    {
-      E_Float* fp;
-      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
-      else { size = npts; fp = f->begin(beginNodes[n]); }  
-      if (passive[n] == 0)
-      {
-        fread(fp, sizeof(E_Float), size, ptrFile);
-      }
-      else
-      {
-        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
-      }
-    }
-  }
-  else if (sizer == 4 && dataPacking == 1) // point (forcement node)
+  else if (dataPacking == 1 && sizer == 4) // point old code
   {
     float* buf = new float[nfield];
     FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      if (passive[n] == 0)
-      {
         fread(buf, sizeof(float), nfield, ptrFile);
         for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
-      }
-      else
-      {
-        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-      }  
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 1) // point (forcement node)
+  else if (dataPacking == 1 && sizer == 8) // point old code
   {
     FldArrayF& fp = *f;
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
-      if (passive[n] == 0)
-      {
         fread(buf, sizeof(E_Float), nfield, ptrFile);
         for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
-      }
-      else
-      {
-        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-      }  
     }
     delete [] buf;
   }
+
   delete [] passive;
   return 0;
 }
@@ -706,10 +780,12 @@ E_Int K_IO::GenIO::readData108(
   if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Type des variables */
+  vector<int> varType;
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); // variables type
     if (ib == 1) sizer = 4;
+    varType[i] = ib; // 1=Float, 2=Double, 3=LongInt, 4=ShortInt, 5=Byte, 6=Bit
   }
 
   /* Passive variables */
@@ -752,79 +828,150 @@ E_Int K_IO::GenIO::readData108(
 
   /* Read dump */
   E_Int size;
-  if (sizer == 4 && dataPacking == 0) // block R4
-  {
-    float* buf = new float[npts];
-    for (n = 0; n < nfield; n++)
-    {
-      E_Float* fp;
-      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
-      else { size = npts; fp = f->begin(beginNodes[n]); } 
-      if (passive[n] == 0)
-      {
-        fread(buf, sizeof(float), size, ptrFile);
-        for (i = 0; i < size; i++) fp[i] = buf[i];
-      }
-      else
-      {
-        for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
-      }
-    }
-    delete [] buf;
-  }
-  else if (sizer == 8 && dataPacking == 0) // block R8
+  if (dataPacking == 0) // block all types
   {
     for (n = 0; n < nfield; n++)
     {
+      float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
+      int32_t* buf4=NULL; int8_t* buf5=NULL; 
+      if (varType[n] == 1) buf1 = new float[npts];
+      else if (varType[n] == 2) buf2 = new double[npts];
+      else if (varType[n] == 3) buf3 = new int64_t [npts];
+      else if (varType[n] == 4) buf4 = new int32_t [npts];
+      else if (varType[n] == 5) buf5 = new int8_t [npts];
+      else printf("Warning: unknow type of variable.\n");
+
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
       else { size = npts; fp = f->begin(beginNodes[n]); }
       if (passive[n] == 0)
       {
-        fread(fp, sizeof(E_Float), size, ptrFile);
+        if (varType[n] == 1) 
+        {
+            fread(buf1, sizeof(float), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf1[i];
+            delete [] buf1;
+        }    
+        else if (varType[n] == 2) 
+        {
+            fread(buf2, sizeof(double), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf2[i];
+            delete [] buf2;
+        }
+        else if (varType[n] == 3) 
+        {
+            fread(buf3, sizeof(int64_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf3[i];
+            delete [] buf3;
+        }
+        else if (varType[n] == 4) 
+        {
+            fread(buf4, sizeof(int32_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf4[i];
+            delete [] buf4;
+        }
+        else if (varType[n] == 5) 
+        {
+            fread(buf5, sizeof(int8_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf5[i];
+            delete [] buf5;
+        }
       }
       else
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
-    }
+    }    
   }
-  else if (sizer == 4 && dataPacking == 1) // point R4
+  else if (dataPacking == 1) // point all types (forcement node)
+  {
+    FldArrayF& fp = *f;
+    
+    // rip passives
+    int nfieldLoc = 0;
+    vector<int> index(nfield); // index of non passive field
+    int bsize = 0; 
+    vector<int> pos(nfield+1); // pos of non passive field in buffer
+    for (i = 0; i < nfield; i++)
+    {
+        if (passive[i] == 0) 
+        {
+            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+            index[nfieldLoc] = i; nfieldLoc += 1;
+        }
+    }
+    char* buf = new char[bsize];
+
+    for (n = 0; n < npts; n++)
+    {
+       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+       fread(buf, sizeof(char), bsize, ptrFile);
+       for (i = 0; i < nfieldLoc; i++) 
+       {
+           switch (varType[index[i]])
+           {
+               case 1:
+               {
+                float* ptr = (float*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 2:
+               {
+                double* ptr = (double*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 3:
+               {
+                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 4:
+               {
+                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 5:
+               {
+                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+           }
+       }    
+    }
+    delete [] buf;
+  }
+  else if (dataPacking == 1 && sizer == 4) // point old code
   {
     float* buf = new float[nfield];
     FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      if (passive[n] == 0)
-      {
         fread(buf, sizeof(float), nfield, ptrFile);
         for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
-      }
-      else
-      {
-        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-      }
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 1) // point R8
+  else if (dataPacking == 1 && sizer == 8) // point old code
   {
     FldArrayF& fp = *f;
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
-      if (passive[n] == 0)
-      {
         fread(buf, sizeof(E_Float), nfield, ptrFile);
         for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
-      }
-      else
-      {
-        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-      }  
     }
     delete [] buf;
   }
+
   delete [] passive;
   
   // Connectivity
@@ -970,11 +1117,13 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   fread(&a, sizeof(float), 1, ptrFile); // 299.
 
   /* Type des variables */
+  vector<int> varType;
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); // variables type
     ib = IBE(ib);
     if (ib == 1) sizer = 4;
+    varType[i] = ib;
   }
 
   /* Passive variables */
@@ -1017,80 +1166,150 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
 
   /* Read dump */
   E_Int size;
-  if (sizer == 4 && dataPacking == 0)
+  if (dataPacking == 0) // block all types
   {
-    float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
+      float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
+      int32_t* buf4=NULL; int8_t* buf5=NULL; 
+      if (varType[n] == 1) buf1 = new float[npts];
+      else if (varType[n] == 2) buf2 = new double[npts];
+      else if (varType[n] == 3) buf3 = new int64_t [npts];
+      else if (varType[n] == 4) buf4 = new int32_t [npts];
+      else if (varType[n] == 5) buf5 = new int8_t [npts];
+      else printf("Warning: unknow type of variable.\n");
+
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
-      else { size = npts; fp = f->begin(beginNodes[n]); } 
+      else { size = npts; fp = f->begin(beginNodes[n]); }
       if (passive[n] == 0)
       {
-        fread(buf, sizeof(float), size, ptrFile);
-        for (i = 0; i < size; i++) fp[i] = FBE(buf[i]);
+        if (varType[n] == 1) 
+        {
+            fread(buf1, sizeof(float), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = FBE(buf1[i]);
+            delete [] buf1;
+        }    
+        else if (varType[n] == 2) 
+        {
+            fread(buf2, sizeof(double), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = DBE(buf2[i]);
+            delete [] buf2;
+        }
+        else if (varType[n] == 3)
+        {
+            fread(buf3, sizeof(int64_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = LBE(buf3[i]);
+            delete [] buf3;
+        }
+        else if (varType[n] == 4) 
+        {
+            fread(buf4, sizeof(int32_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = IBE(buf4[i]);
+            delete [] buf4;
+        }
+        else if (varType[n] == 5) 
+        {
+            fread(buf5, sizeof(int8_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = SBE(buf5[i]);
+            delete [] buf5;
+        }
       }
       else
       {
-        for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
+    }    
+  }
+  else if (dataPacking == 1) // point all types (forcement node)
+  {
+    FldArrayF& fp = *f;
+    
+    // rip passives
+    int nfieldLoc = 0;
+    vector<int> index(nfield); // index of non passive field
+    int bsize = 0; 
+    vector<int> pos(nfield+1); // pos of non passive field in buffer
+    for (i = 0; i < nfield; i++)
+    {
+        if (passive[i] == 0) 
+        {
+            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+            index[nfieldLoc] = i; nfieldLoc += 1;
+        }
+    }
+    char* buf = new char[bsize];
+
+    for (n = 0; n < npts; n++)
+    {
+       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+       fread(buf, sizeof(char), bsize, ptrFile);
+       for (i = 0; i < nfieldLoc; i++) 
+       {
+           switch (varType[index[i]])
+           {
+               case 1:
+               {
+                float* ptr = (float*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = FBE(ptr[0]);
+               }
+               break;
+               case 2:
+               {
+                double* ptr = (double*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = DBE(ptr[0]);
+               }
+               break;
+               case 3:
+               {
+                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = LBE(ptr[0]);
+               }
+               break;
+               case 4:
+               {
+                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = IBE(ptr[0]);
+               }
+               break;
+               case 5:
+               {
+                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = SBE(ptr[0]);
+               }
+               break;
+           }
+       }    
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 0)
-  {
-    for (n = 0; n < nfield; n++)
-    {
-      E_Float* fp;
-      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
-      else { size = npts; fp = f->begin(beginNodes[n]); } 
-      if (passive[n] == 0)
-      {
-        fread(fp, sizeof(E_Float), size, ptrFile);
-      }
-      else
-      {
-        for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
-      }
-    }
-  }
-  else if (sizer == 4 && dataPacking == 1)
+  else if (sizer == 4 && dataPacking == 1) // point old code
   {
     vector<float> buf(nfield);
     FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      if (passive[n] == 0)
-      {
         fread(&buf[0], sizeof(float), nfield, ptrFile);
         for (i = 0; i < nfield; i++) fp(n, i+1) = FBE(buf[i]);
-      }
-      else
-      {
-        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-      }
     }
   }
-  else if (sizer == 8 && dataPacking == 1)
+  else if (sizer == 8 && dataPacking == 1) // point old code
   {
     vector<double> buf(nfield);
     FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      if (passive[n] == 0)
-      {
         fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
         for (i = 0; i < nfield; i++) fp(n, i+1) = DBE(buf[i]);
-      }
-      else
-      {
-        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-      }
     }
   }
+
   delete [] passive;
   
-  if (sizer == 8 && dataPacking == 0) convertEndianField(*f);
   return 0;
 }
 //=============================================================================
@@ -1142,10 +1361,12 @@ E_Int K_IO::GenIO::readData108CE(
     return 1;
 
   /* Type des variables */
+  vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); ib = IBE(ib); // variables type
     if (ib == 1) sizer = 4;
+    varType[i] = ib;
   }
 
   /* Passive variables */
@@ -1188,57 +1409,136 @@ E_Int K_IO::GenIO::readData108CE(
 
   /* Read dump */
   E_Int size;
-  if (sizer == 4 && dataPacking == 0) // block R4
-  {
-    vector<float> buf(npts);
-    for (n = 0; n < nfield; n++)
-    {
-      E_Float* fp;
-      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
-      else { size = npts; fp = f->begin(beginNodes[n]); } 
-      if (passive[n] == 0)
-      {
-        fread(&buf[0], sizeof(float), size, ptrFile);
-        for (i = 0; i < size; i++) fp[i] = FBE(buf[i]);
-      }
-      else
-      {
-        for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
-      }
-    }
-  }
-  else if (sizer == 8 && dataPacking == 0) // block R8
+  if (dataPacking == 0) // block all types
   {
     for (n = 0; n < nfield; n++)
     {
+      float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
+      int32_t* buf4=NULL; int8_t* buf5=NULL; 
+      if (varType[n] == 1) buf1 = new float[npts];
+      else if (varType[n] == 2) buf2 = new double[npts];
+      else if (varType[n] == 3) buf3 = new int64_t [npts];
+      else if (varType[n] == 4) buf4 = new int32_t [npts];
+      else if (varType[n] == 5) buf5 = new int8_t [npts];
+      else printf("Warning: unknow type of variable.\n");
+
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
-      else { size = npts; fp = f->begin(beginNodes[n]); } 
+      else { size = npts; fp = f->begin(beginNodes[n]); }
       if (passive[n] == 0)
       {
-        fread(fp, sizeof(E_Float), size, ptrFile);
+        if (varType[n] == 1) 
+        {
+            fread(buf1, sizeof(float), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = FBE(buf1[i]);
+            delete [] buf1;
+        }    
+        else if (varType[n] == 2) 
+        {
+            fread(buf2, sizeof(double), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = DBE(buf2[i]);
+            delete [] buf2;
+        }
+        else if (varType[n] == 3)
+        {
+            fread(buf3, sizeof(int64_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = LBE(buf3[i]);
+            delete [] buf3;
+        }
+        else if (varType[n] == 4) 
+        {
+            fread(buf4, sizeof(int32_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = IBE(buf4[i]);
+            delete [] buf4;
+        }
+        else if (varType[n] == 5) 
+        {
+            fread(buf5, sizeof(int8_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = SBE(buf5[i]);
+            delete [] buf5;
+        }
       }
       else
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
-    }
+    }    
   }
-  else if (sizer == 4 && dataPacking == 1) // point
+  else if (dataPacking == 1) // point all types (forcement node)
+  {
+    FldArrayF& fp = *f;
+    
+    // rip passives
+    int nfieldLoc = 0;
+    vector<int> index(nfield); // index of non passive field
+    int bsize = 0; 
+    vector<int> pos(nfield+1); // pos of non passive field in buffer
+    for (i = 0; i < nfield; i++)
+    {
+        if (passive[i] == 0) 
+        {
+            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+            index[nfieldLoc] = i; nfieldLoc += 1;
+        }
+    }
+    char* buf = new char[bsize];
+
+    for (n = 0; n < npts; n++)
+    {
+       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+       fread(buf, sizeof(char), bsize, ptrFile);
+       for (i = 0; i < nfieldLoc; i++) 
+       {
+           switch (varType[index[i]])
+           {
+               case 1:
+               {
+                float* ptr = (float*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = FBE(ptr[0]);
+               }
+               break;
+               case 2:
+               {
+                double* ptr = (double*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = DBE(ptr[0]);
+               }
+               break;
+               case 3:
+               {
+                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = LBE(ptr[0]);
+               }
+               break;
+               case 4:
+               {
+                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = IBE(ptr[0]);
+               }
+               break;
+               case 5:
+               {
+                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = SBE(ptr[0]);
+               }
+               break;
+           }
+       }    
+    }
+    delete [] buf;
+  }
+
+  else if (sizer == 4 && dataPacking == 1) // old point code
   {
     vector<float> buf(nfield);
     FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      if (passive[n] == 0)
-      {
         fread(&buf[0], sizeof(float), nfield, ptrFile);
         for (i = 0; i < nfield; i++) fp(n, i+1) = FBE(buf[i]);
-      }
-      else
-      {
-        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-      }  
     }
   }
   else if (sizer == 8 && dataPacking == 1) // point
@@ -1247,17 +1547,11 @@ E_Int K_IO::GenIO::readData108CE(
     FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      if (passive[n] == 0)
-      {
         fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
         for (i = 0; i < nfield; i++) fp(n, i+1) = DBE(buf[i]);
-      }
-      else
-      {
-        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-      }  
     }
   }
+
   delete [] passive;
   
   // Connectivity

@@ -81,7 +81,7 @@ List of functions
     Post.Probe.Probe
     Post.Probe.extract
     Post.Probe.flush
-    Post.probe.read
+    Post.Probe.read
 
 **-- Streams/Isos**
 
@@ -103,7 +103,6 @@ List of functions
     Post.integNormProduct
     Post.integMoment
     Post.integMomentNorm
-
 
 
 Contents

@@ -1,4 +1,10 @@
 ==============================================================================
+Converter 3.3 [10/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.3
+Optional: Mpi requires mpi4py
+==============================================================================
 Converter 3.2 [02/2021]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
 Optional: libhdf5 > 1.8.6 (hdf file format)

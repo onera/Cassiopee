@@ -176,7 +176,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
     ZA.malloc(2*(nid-2));
     vol.malloc(nid*njd);
     
-    k6hyper2d_(nid, njd, 
+    k6hyper2d_(nid, njd,
                fd->begin(posyd),
                coord1.begin(1), coord1.begin(2), coord1.begin(3),
                type,

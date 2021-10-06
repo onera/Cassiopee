@@ -51,7 +51,7 @@ def moveSelection():
 
     base = Internal.getNodeFromName1(CTK.t, baseName)
     if base is None: # if base doesnt exist, create it
-        CTK.t = C.addBase2PyTree(CTK.t, baseName, 3)
+        C._addBase2PyTree(CTK.t, baseName, 3)
         base = Internal.getNodeFromName1(CTK.t, baseName)
 
     CTK.saveTree()

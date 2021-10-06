@@ -208,7 +208,7 @@ E_Int K_IO::GenIO::tecread(
   }
   else if (ret == 1) _convertEndian = true;
   else _convertEndian = false;
-
+  
   /* Opening */
   ptrFile = fopen(file, "rb");
 
@@ -438,6 +438,7 @@ E_Int K_IO::GenIO::tecread(
         case 108:
         case 111:
         case 112:
+        {
           if (_convertEndian == false)
             readData108(ptrFile, 
                         ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
@@ -446,7 +447,8 @@ E_Int K_IO::GenIO::tecread(
             readData108CE(ptrFile, 
                           ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
                           dataPacking, loc, f, fc);
-          break;
+        }
+        break;
           
         default:;
           break;
