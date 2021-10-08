@@ -3127,12 +3127,102 @@ def merge(tz, sz, tol = 1.e-15): #target zone, list source zones
 
 def concatenate(t, tol = 1.e-15):
   zones = Internal.getZones(t)
+    
+  
   ms = []
   for z in zones:
-    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    m  = C.getFields(Internal.__GridCoordinates__, z)[0]
     ms.append(m)
-  m = XOR.concatenate(ms, tol)
-  return C.convertArrays2ZoneNode('assembly', [m])
+      
+  res = XOR.concatenate(ms, tol) 
+  m   = res[0]
+
+  nzone    = len(zones)
+  z_pgnids = []
+  z_phnids = []
+  
+  for i in range(nzone):
+      z_pgnids.append(res[i+1])
+      
+  for i in range(nzone):
+      z_phnids.append(res[i+nzone+1])
+  
+  newz = C.convertArrays2ZoneNode('assembly', [m])
+
+  # Restore BCs
+  zoneBC = Internal.createUniqueChild(newz, "ZoneBC", 'ZoneBC_t')
+  i = 0 
+  for z in zones:
+      BCs  = Internal.getNodesFromType(z, "BC_t")
+      for bc in BCs:
+          pointList = Internal.getNodeFromName(bc, Internal.__FACELIST__)
+          pointList = pointList[1][0]
+          
+          for k in range(len(pointList)):
+              iface = pointList[k]-1 
+              nids  = z_pgnids[i][iface]
+              pointList[k] = nids+1
+
+          Internal._addChild(zoneBC, bc)
+      i = i+1
+
+  # Restore fields
+  # --------------
+  # 1/ Compute new elt size and varname list
+  i        = 0
+  new_size = 0
+  varnames = []
+  for z in zones:
+      size_z   = numpy.count_nonzero(z_phnids[i] != -1) # new connectivity size
+      new_size = new_size + size_z
+
+      cont     = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
+      if cont is not None:
+          flds     = Internal.getNodesFromType1(cont, 'DataArray_t')
+      
+          for fld in flds:
+              if fld[0] not in varnames:
+                  varnames.append(fld[0])         
+      i        = i+1
+
+  for varname in varnames:
+      # a. concatenate all old data for varname variable
+      varglob = None 
+      for z in zones:
+          ncells  = C.getNCells(z)
+          cont    = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
+          varnode = Internal.getNodeFromName(cont, varname)
+          # Put zero if variable does not exist 
+          if varnode is None:
+              varnode = numpy.zeros(ncells, numpy.float64)
+          else:
+              varnode = varnode[1]
+              
+          if varglob is None:
+              varglob = varnode.ravel('k')
+          else:
+              varglob = numpy.concatenate((varglob,varnode))              
+
+      # b. Create new variable
+      C._initVars(newz, 'centers:'+varname, 0)
+
+      # c. Extract and replace new data array
+      varnew = numpy.zeros(new_size, numpy.float64)
+      i      = 0
+      ik     = 0
+      for z in zones:
+          nelt = len(z_phnids[i])
+          for k in range(nelt):
+              if (z_phnids[i][k] != -1):
+                  varnew[ik] = varglob[z_phnids[i][k]]
+                  ik         = ik + 1
+          i = i+1 
+
+      contnew    = Internal.getNodeFromName(newz, Internal.__FlowSolutionCenters__)
+      varnode    = Internal.getNodeFromName(contnew, varname)
+      varnode[1] = varnew
+    
+  return newz
 
 def drawOrientation(t):
     zones = Internal.getZones(t)

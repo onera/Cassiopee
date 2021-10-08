@@ -1303,9 +1303,10 @@ struct ngon_t
    
   ///
   template <typename CoordAccType>
-  bool remove_duplicated_pgs (const CoordAccType& coord)
+  bool remove_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids) //todo CW : sortir un pgnids
   {
-    bool found = replace_duplicated_pgs(coord); //detect the matching and replace the ids with the first one found
+    //detect the matching and replace the ids with the first one found
+    bool found = replace_duplicated_pgs(coord,pgnids); 
     if (found)
       PHs.remove_duplicated(); //clean
     return found;
@@ -1392,12 +1393,15 @@ struct ngon_t
     return found;
   }
 
-  ///
+  ///<
   template <typename CoordAccType>
-  bool replace_duplicated_pgs (const CoordAccType& coord)
-  {
+  bool replace_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids)
+  { 
     if (PHs.size()*PGs.size() == 0)
       return false;
+
+    pgnids.clear(); 
+    pgnids.resize(PGs.size(), IDX_NONE);
     
     PHs.updateFacets();
     PGs.updateFacets();
@@ -1433,9 +1437,12 @@ struct ngon_t
     Vector_t<E_Int> nids;
     K_FLD::ArrayAccessor<K_FLD::FloatArray> cab(barys);
     E_Int nmerges = ::merge(cab, EPSILON, nids);
-    
+
     if (!nmerges) //no duplicated faces.
+    {
+      pgnids.clear(); // to get empty pgnids
       return false;
+    }
     
     // check if matching isoG means really identical PGs
     bool found = false;
@@ -1459,10 +1466,12 @@ struct ngon_t
     }
     
     if (!found)
+    {
+      pgnids.clear(); // to get empty pgnids
       return false;
+    }
     
     K_CONNECT::IdTool::propagate(nids, ISO);
-    
     
     for (E_Int i = 0; i < nb_phs; ++i)
     {
@@ -1470,7 +1479,9 @@ struct ngon_t
       for (E_Int j = 0; j < nb_pgs; ++j)
       {
         E_Int & pgi = PHs.get_facet(i, j); 
-        pgi = PGI[ISO[pgi-1]]+1;
+        E_Int npgid = PGI[ISO[pgi-1]]+1; 
+	pgnids[pgi-1]=npgid-1;
+        pgi = npgid;
       }
     }
     return true;
@@ -2770,9 +2781,21 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   }
   
   /// Warning : The coordinates are not cleaned, only the connectivity.
+  //todo CW : externaliser pgnids, phnids
   static E_Int clean_connectivity
-  (ngon_t& NG, const K_FLD::FloatArray& f, E_Int ngon_dim=-1, E_Float tolerance = EPSILON, bool remove_dup_phs=false)
-  {
+  (ngon_t& NG, const K_FLD::FloatArray& f, E_Int ngon_dim=-1,E_Float tolerance = EPSILON, bool remove_dup_phs=false,
+   std::vector<E_Int>* pgnids=nullptr, std::vector<E_Int>* phnids=nullptr)
+  {   
+    bool histo = false;
+    if (pgnids!=nullptr) histo = true;
+    
+    // Init pgnids and phnids 
+    if (histo)
+    {
+      K_CONNECT::IdTool::init_inc(*pgnids, NG.PGs.size()); 
+      K_CONNECT::IdTool::init_inc(*phnids, NG.PHs.size());
+    }
+    
     E_Int nb_phs0(NG.PHs.size()), nb_pgs0(NG.PGs.size());
     
     if (nb_pgs0 == 0) // fast return
@@ -2798,29 +2821,42 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     // si la tolerance est négative => pas de merge
     E_Int nb_merges = 0;
     if (tolerance >= 0.) nb_merges = NG.join_phs(f, tolerance);
-  
+      
     // 2- Elimination des faces degenerees
-    Vector_t<E_Int> pgnids, phnids; // required to update the history (PG/PH)
+    Vector_t<E_Int> pgnidstmp, phnidstmp; // required to update the history (PG/PH)
     if (ngon_dim != 1)
     {
       //E_Int nb_degen_faces = 
-      NG.remove_degenerated_pgs(ngon_dim, pgnids, phnids);
+      NG.remove_degenerated_pgs(ngon_dim, pgnidstmp, phnidstmp);
+     
+      //Propagation de pgnidstmp/phnidstmp
+      if ((histo) and (not pgnidstmp.empty())) K_CONNECT::IdTool::propagate(pgnidstmp, *pgnids);
+      if ((histo) and (not phnidstmp.empty())) K_CONNECT::IdTool::propagate(phnidstmp, *phnids);
+ 
       //E_Int nb_consec_changes = 
-      NG.PGs.remove_consecutive_duplicated(); //removing duplicated nodes : compact representation
+      NG.PGs.remove_consecutive_duplicated(); //removing duplicated facets : compact representation
     }
-
+    
     // 3- Faces confondues : identification et suppression des références.
     /*bool has_dups = false;*/
     if (ngon_dim == 3) //volumic
-      /*has_dups = */NG.remove_duplicated_pgs(fcA);
+    {
+      // /*has_dups = */NG.remove_duplicated_pgs(fcA, pgnidstmp);
+      bool has_dups = NG.remove_duplicated_pgs(fcA, pgnidstmp);
+      
+      //Propagation de pgnidstmp/phnidstmp
+      if ((histo) and (not pgnidstmp.empty())) K_CONNECT::IdTool::propagate(pgnidstmp, *pgnids);
+      if ((histo) and (not phnidstmp.empty())) K_CONNECT::IdTool::propagate(phnidstmp, *phnids);
+    }
+        
     else if (ngon_dim == 2) //surfacic
       /*has_dups = */NG.remove_duplicated_edges();
     else // lineic
       /*has_dups = */NG.remove_duplicated_nodes();
 
     // remove duplicated references to PGs within each elements
-    /*E_Int nb_phs_dups = */NG.PHs.remove_duplicated();
-
+    /*E_Int nb_phs_dups = */NG.PHs.remove_duplicated(); //fixme : redundant ?
+    
     // 4- Elimination des elts degeneres
     Vector_t<E_Int> toremove;
     E_Int min_nb_facets = ngon_dim + 1;
@@ -2837,22 +2873,27 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
           toremove.push_back(k);
       }
     }
-
-    /*E_Int nb_removed_phs = */NG.PHs.remove_entities(toremove, phnids);
-  
+      
+    /*E_Int nb_removed_phs = */NG.PHs.remove_entities(toremove, phnidstmp);
+    if ((histo) and (not phnidstmp.empty())) K_CONNECT::IdTool::propagate(phnidstmp, *phnids);
+ 
     // 6- Suppression des faces non referencees
-    /*E_Int nb_unrefs = */NG.remove_unreferenced_pgs(pgnids, phnids); //Important, sinon tecplot en ASCII (.tp) n'aime pas.
-
+    /*E_Int nb_unrefs = */NG.remove_unreferenced_pgs(pgnidstmp, phnidstmp); //Important, sinon tecplot en ASCII (.tp) n'aime pas.
+    
+    //Propagation de pgnidstmp/phnidstmp
+    if ((histo) and (not pgnidstmp.empty())) K_CONNECT::IdTool::propagate(pgnidstmp, *pgnids);
+    if ((histo) and (not phnidstmp.empty())) K_CONNECT::IdTool::propagate(phnidstmp, *phnids);
+      
     // 7- Compression du ngon aux seuls noeuds utilises
     //ngon_t::compact_to_used_nodes(NG.PGs, f);
-
+    
     E_Int nb_phs1 = NG.PHs.size();
     E_Int nb_pgs1 = NG.PGs.size();
 
 #ifdef DEBUG_NGON_T
   assert (NG.is_consistent(f.cols()));
 #endif
-
+    
     return nb_merges + (nb_phs0-nb_phs1) + (nb_pgs0-nb_pgs1);
   }
   

@@ -3483,8 +3483,8 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
       PyErr_SetString(PyExc_TypeError, o.str().c_str());
       err = 1; break;
     }
-    //std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
-    //std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
+    // std::cout << "zone sizes : " << crds[i]->cols() << " points" << std::endl;
+    // std::cout << "zone sizes : " << cnts[i]->cols() << " cells" << std::endl;
   }
 
   if (err)
@@ -3499,22 +3499,61 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
 
   // join and close
 
+
+  // Creation z_pgnids et z_phnids par zone
+  // z_pgnids[i][k] = j <=> la keme face de la zone i a pour indice j dans ng (concatenation) 
+  std::vector<std::vector<E_Int>> z_pgnids(nb_zones) ;
+  std::vector<std::vector<E_Int>> z_phnids(nb_zones) ;
+  
   ngon_type ng;
-  K_FLD::FloatArray crd;
+  K_FLD::FloatArray crd; 
   for (size_t i=0; i < cnts.size(); ++i)
   {
     //std::cout << "appending" << std::endl;
     ngon_type ngt(*cnts[i]);
     ngt.PGs.shift(crd.cols());
+    
+    K_CONNECT::IdTool::init_inc(z_pgnids[i], ngt.PGs.size()); 
+    K_CONNECT::IdTool::init_inc(z_phnids[i], ngt.PHs.size());
+
+    // Shift pour indir. dans tab. globaux  
+    for ( size_t j=0; j<ngt.PGs.size(); ++j){ z_pgnids[i][j] +=  ng.PGs.size(); } 
+    for ( size_t j=0; j<ngt.PHs.size(); ++j){ z_phnids[i][j] +=  ng.PHs.size(); }
+
     ng.append(ngt);
     crd.pushBack(*crds[i]);
+
   }
 
-  //std::cout << "before clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
+  // Creation z_pgnids et z_phnids global
+  std::vector<E_Int> glo_pgnids;
+  std::vector<E_Int> glo_phnids;
 
-  ngon_type::clean_connectivity(ng, crd, -1, tol, true/*remove dups*/);
+  // std::cout << "before clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
+
+  ngon_type::clean_connectivity(ng, crd, -1, tol, true/*remove dups*/ , &glo_pgnids, &glo_phnids ); 
+
+  //Propagation des nouveaux ids dans z_pgnids/z_phnids
+  for (size_t i=0; i < nb_zones; ++i)
+  {
+    // propagate pgnids
+    for ( size_t j=0; j< z_pgnids[i].size(); ++j) 
+    {
+      E_Int iids     = z_pgnids[i][j];
+      if ( glo_pgnids[iids] == E_IDX_NONE ){ glo_pgnids[iids] = -1 ;} //convert IDX_NONE value into -1
+      z_pgnids[i][j] = glo_pgnids[iids];
+    }
+    // propagate phnids
+    for ( size_t j=0; j< z_phnids[i].size(); ++j) 
+    {
+      E_Int iids     = z_phnids[i][j];
+      if ( glo_phnids[iids] == E_IDX_NONE ) { glo_phnids[iids] = -1 ;} //convert IDX_NONE value into -1
+      z_phnids[i][j] = glo_phnids[iids];
+    }
+  }
 
   if (geodim == SURFACIC) // NUGA SURF
+
     ng = ngon_type(ng.PGs, true);
 
   //std::cout << "after clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
@@ -3523,14 +3562,34 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   K_FLD::IntArray cnto;
   ng.export_to_array(cnto);
   
+  PyObject* l   = PyList_New(0);
+  
   PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  PyList_Append(l, tpl);
+ 
+  //Sortie indirection pgnids pour chaque zone
+  for (size_t i=0; i < nb_zones; ++i)
+  {
+    tpl = K_NUMPY::buildNumpyArray(&z_pgnids[i][0], z_pgnids[i].size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  //Sortie indirection phnids pour chaque zone
+  for (size_t i=0; i < nb_zones; ++i)
+  {
+    tpl = K_NUMPY::buildNumpyArray(&z_phnids[i][0], z_phnids[i].size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }  
+
   
   for (E_Int i=0; i < nb_zones; ++i)
   {
     delete crds[i];
     delete cnts[i];
   }
-  return tpl;
+  return l;
 }
 
 //=============================================================================

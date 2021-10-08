@@ -559,7 +559,10 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
    
   // 3- Elimination des faces confondues
   if (ngon_dim ==3) //volumic
-    NG.remove_duplicated_pgs(fcA);
+  {
+    Vector_t<E_Int> pgnidstmp;
+    NG.remove_duplicated_pgs(fcA,pgnidstmp);
+  }
   else if (ngon_dim == 2) //surfacic
     NG.remove_duplicated_edges();
   else // lineic

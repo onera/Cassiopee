@@ -45,7 +45,7 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
   E_Int res = K_NUMPY::getFromNumpyArray(py_oids, oids, sz, r, true/*shared*/);
   if (res != 1) return NULL;
   
-  // WARNING : oids might have IDX_NONE (created entities) and is 0-based 
+  // WARNING : oids might have IDX_NONE (created entities, e.g. internal faces with adaptCells) and is 0-based 
   E_Int nb_pgs = 0;
   for (size_t i=0; i < sz; ++i)
   {
