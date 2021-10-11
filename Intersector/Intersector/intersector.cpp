@@ -52,6 +52,7 @@ static PyMethodDef Pyintersector [] =
   {"simplifyCells", K_INTERSECTOR::simplifyCells, METH_VARARGS},
   {"simplifySurf", K_INTERSECTOR::simplifySurf, METH_VARARGS},
   {"simplifyFaces", K_INTERSECTOR::simplifyFaces, METH_VARARGS},
+  {"syncMacthPeriodicFaces", K_INTERSECTOR::syncMacthPeriodicFaces, METH_VARARGS},
   {"splitNonStarCells", K_INTERSECTOR::splitNonStarCells, METH_VARARGS},
   {"collapseUncomputableFaces", K_INTERSECTOR::collapseUncomputableFaces, METH_VARARGS},
   {"removeNonManifoldExternalCells", K_INTERSECTOR::removeNonManifoldExternalCells, METH_VARARGS},

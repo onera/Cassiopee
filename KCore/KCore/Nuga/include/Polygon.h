@@ -339,6 +339,9 @@ public:
   static bool is_hatty
   (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL=0.);
 
+  template <typename TriangulatorType>
+  inline bool fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P);
+
   // Polygon-Edge intersection
   template <typename TriangulatorType>
   bool intersect
@@ -1128,6 +1131,28 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
   }
 
   return convex;
+}
+
+template <typename TriangulatorType>
+inline bool Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P)
+{
+  bool pt_is_in = false;
+
+  this->triangulate(dt, crd);
+  int ntris = this->nb_tris();
+
+  for (size_t t = 0; (t < ntris) && !pt_is_in; ++t)
+  {
+    int T[3];
+    this->triangle(t, T);
+    const double* pt0 = crd.col(T[0]);
+    const double* pt1 = crd.col(T[1]);
+    const double* pt2 = crd.col(T[2]);
+
+    pt_is_in = K_MESH::Triangle::fast_is_in_pred(P, pt0, pt1, pt2);
+  }
+
+  return pt_is_in;
 }
 
 }

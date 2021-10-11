@@ -317,10 +317,11 @@ struct connect_trait<VOLUMIC, false>
   }
 
   ///
-  static void get_boundary(cnt_t& c, ngon_unit& bc, std::vector<E_Int>& ancestors)
+  static void get_boundary(cnt_t& c, ngon_unit& bc, std::vector<E_Int>& oids, std::vector<E_Int>& ancestors)
   {
+    oids.clear();
+
     c.flag_externals(INITIAL_SKIN);
-    Vector_t<E_Int> oids;
     c.PGs.extract_of_type(INITIAL_SKIN, bc, oids);
 
     ancestors.clear();
@@ -337,6 +338,13 @@ struct connect_trait<VOLUMIC, false>
     std::vector<E_Int> new_anc(bc.size(), IDX_NONE);
     for (size_t i = 0; i < new_anc.size(); ++i) new_anc[i] = ancestors[oids[i]];
     ancestors = new_anc;
+  }
+
+  ///
+  static void get_boundary(cnt_t& c, ngon_unit& bc, std::vector<E_Int>& ancestors)
+  {
+    std::vector<E_Int> oids;
+    get_boundary(c, bc, oids, ancestors);
   }
 
   ///
@@ -672,6 +680,18 @@ struct mesh_t
   void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<int>& ancestors) 
   {
     trait::get_boundary(cnt, bound_mesh.cnt, ancestors);
+    bound_mesh.crd = crd;
+    bound_mesh.oriented = oriented;
+    //compact crd to boundary only
+    std::vector<E_Int> nids;
+    bound_trait<BSTRIDE>::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
+  }
+
+  ///
+  template <bool BSTRIDE>
+  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<int>& oids, std::vector<int>& ancestors)
+  {
+    trait::get_boundary(cnt, bound_mesh.cnt, oids, ancestors);
     bound_mesh.crd = crd;
     bound_mesh.oriented = oriented;
     //compact crd to boundary only

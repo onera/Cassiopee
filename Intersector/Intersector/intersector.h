@@ -55,6 +55,7 @@ namespace K_INTERSECTOR
   PyObject* simplifyCells(PyObject* self, PyObject* args);
   PyObject* simplifySurf(PyObject* self, PyObject* args);
   PyObject* simplifyFaces(PyObject* self, PyObject* args);
+  PyObject* syncMacthPeriodicFaces(PyObject* self, PyObject* args);
 
   PyObject* agglomerateSmallCells(PyObject* self, PyObject* args);
   PyObject* shellAgglomerateSmallCells(PyObject* self, PyObject* args);

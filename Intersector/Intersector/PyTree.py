@@ -3256,6 +3256,28 @@ def volume(t, fieldname=None):
         v += XOR.volume(m, xcelln)
     return v
   
+def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
+                              rotationAngle=[0.,0.,0.],
+                              translation=[0.,0.,0.], tol=1.e-6,
+                              unitAngle=None):
+
+# WARNING : currently implemented by applying it individually by zone
+
+  if unitAngle in ['Radian', None]: rotationAngleR=rotationAngle
+  elif unitAngle == 'Degree': rotationAngleR=[v*Internal.__DEG2RAD__ for v in rotationAngle]
+  else: raise ValueError('syncMacthPeriodicFaces: value for unitAngle is not valid.')
+
+  zs = Internal.getZones(t)
+  for z in zs : 
+    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    res = XOR.syncMacthPeriodicFaces(m, rotationCenter, rotationAngleR,
+                                      translation, tol)
+    msh = res[0]
+    #print(msh)
+    C.setFields([msh], z, 'nodes')
+
+
+
 #~ def conservativeTransfer(a1, a2, tol=0., reconstruction_type=0):
     #~ 
     #~ s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]

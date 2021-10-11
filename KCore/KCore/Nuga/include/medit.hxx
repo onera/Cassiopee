@@ -525,6 +525,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     }
   }
 
+  #ifndef DEBUG_BOOLEAN //fixme
   template <typename crd3D_t, typename vngon_unit>
   static E_Int write(const char* filename, crd3D_t& crd3D, const vngon_unit& pgs)
   {
@@ -541,6 +542,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
 
     return 0;
   }
+  #endif
 
   template< typename color_t = E_Int>
   static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_type& ng, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start = 0, const std::vector<color_t>* colors = nullptr)

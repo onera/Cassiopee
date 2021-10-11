@@ -897,6 +897,12 @@ def drawOrientation(a):
     Usage: XXX"""
     return intersector.drawOrientation(a)
 
+def syncMacthPeriodicFaces(a, rotationCenter=[0.,0.,0.],
+                              rotationAngle=[0.,0.,0.],
+                              translation=[0.,0.,0.], tol=1.e-6):
+  return intersector.syncMacthPeriodicFaces(a, rotationCenter, rotationAngle,
+                                                translation, tol)
+
 #~ def conservativeTransfer(a1, flowsol, a2, tol=0., reconstruction_type=0):
     #~ c = intersector.conservative_transfer(a1, flowsol, a2, tol, reconstruction_type)
     #~ return c

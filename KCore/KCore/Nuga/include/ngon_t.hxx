@@ -914,7 +914,7 @@ struct ngon_t
   }
   
   /// Close PHs having free edges (GEOM algo).
-  static void close_phs(ngon_t& ngio, const K_FLD::FloatArray& crd)
+  static void close_phs(ngon_t& ngio, const K_FLD::FloatArray& crd, std::vector<E_Int>* phs_to_process = nullptr)
   {
     ngio.PGs.updateFacets();
     ngio.PHs.updateFacets();
@@ -933,7 +933,15 @@ struct ngon_t
     E_Int nb_pgs = ngio.PGs.size();
     E_Int nb_phs(ngio.PHs.size());
 
-    std::vector<bool> processPG, processPH(nb_phs, true); //test all at first iter
+    std::vector<bool> processPG, processPH;
+
+    processPH.resize(nb_phs, (phs_to_process == nullptr)); // process all if nothing upon entry
+    
+    if (phs_to_process) // just set true for them
+    {
+      for (size_t k = 0; k < phs_to_process->size(); ++k)
+        processPH[(*phs_to_process)[k]] = true;
+    }
 
     bool carry_on(true);
     while (carry_on)
@@ -1303,7 +1311,7 @@ struct ngon_t
    
   ///
   template <typename CoordAccType>
-  bool remove_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids) //todo CW : sortir un pgnids
+  bool remove_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids)
   {
     //detect the matching and replace the ids with the first one found
     bool found = replace_duplicated_pgs(coord,pgnids); 
@@ -1393,7 +1401,7 @@ struct ngon_t
     return found;
   }
 
-  ///<
+  ///
   template <typename CoordAccType>
   bool replace_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids)
   { 
@@ -2781,7 +2789,6 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   }
   
   /// Warning : The coordinates are not cleaned, only the connectivity.
-  //todo CW : externaliser pgnids, phnids
   static E_Int clean_connectivity
   (ngon_t& NG, const K_FLD::FloatArray& f, E_Int ngon_dim=-1,E_Float tolerance = EPSILON, bool remove_dup_phs=false,
    std::vector<E_Int>* pgnids=nullptr, std::vector<E_Int>* phnids=nullptr)
@@ -2821,7 +2828,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     // si la tolerance est négative => pas de merge
     E_Int nb_merges = 0;
     if (tolerance >= 0.) nb_merges = NG.join_phs(f, tolerance);
-      
+
     // 2- Elimination des faces degenerees
     Vector_t<E_Int> pgnidstmp, phnidstmp; // required to update the history (PG/PH)
     if (ngon_dim != 1)
