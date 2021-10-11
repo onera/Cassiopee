@@ -780,7 +780,7 @@ E_Int K_IO::GenIO::readData108(
   if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Type des variables */
-  vector<int> varType;
+  vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); // variables type
@@ -1117,7 +1117,7 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   fread(&a, sizeof(float), 1, ptrFile); // 299.
 
   /* Type des variables */
-  vector<int> varType;
+  vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); // variables type

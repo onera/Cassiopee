@@ -206,7 +206,7 @@ def _convert2PartialTree(t, rank=-1):
         if rank == -1: crit = isZoneSkeleton__(z, ntype=1)
         else:
             proc = Internal.getNodeFromName2(z, 'proc')
-            if proc is not None: 
+            if proc is not None:
                 proc = Internal.getValue(proc) 
                 crit = (rank != proc)
         if crit:

@@ -1248,11 +1248,15 @@ def TTM(a, niter=100):
     m = Generator.TTM(m, niter)
     return C.convertArrays2ZoneNode('ttm', [m])
 
-def hyper2D(t, distrib, type):
+def hyper2D(t, distrib, type, 
+            eta_start=10, eta_end=50, beta=0.1, 
+            eta_start2=3, eta_end2=50, beta2=0.):
     """Generate an hyperbolic mesh. 
     Usage: hyper2D(t, distrib, type)"""
     d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D, d, type)
+    return C.TZGC(t, 'nodes', Generator.hyper2D, d, type, 
+                  eta_start, eta_end, beta, 
+                  eta_start2, eta_end2, beta2)
 
 def hyper2D2(t, distrib, type, alpha):
     """Generate an hyperbolic mesh with a constant alpha angle.

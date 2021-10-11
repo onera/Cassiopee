@@ -44,7 +44,9 @@ extern "C"
                   const E_Int& type,
                   E_Float* xo, E_Float* yo, E_Float* zo,
                   E_Int* IP, E_Float* A, E_Float* B, E_Float* C,
-                  E_Float* RHS, E_Float* Z, E_Float* ZA, E_Float* vol);
+                  E_Float* RHS, E_Float* Z, E_Float* ZA, E_Float* vol,
+                  const E_Int& eta_start, const E_Int& eta_end, const E_Float& beta,
+                  const E_Int& eta_start2, const E_Int& eta_end2, const E_Float& beta2);
 
   void k6hyper2d2_(const E_Int& ni, const E_Int& nj,
                    const E_Float* distrib,
@@ -80,8 +82,13 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayd;
   char* meshType;
+  E_Int eta_start, eta_end, eta_start2, eta_end2;
+  E_Float beta, beta2;
 
-  if (!PyArg_ParseTuple(args, "OOs", &array, &arrayd, &meshType))
+  if (!PYPARSETUPLE(args, "OOslldlld", "OOsiidiid", "OOsllfllf", "OOsiifiif", 
+                    &array, &arrayd, &meshType, 
+                    &eta_start, &eta_end, &beta,
+                    &eta_start2, &eta_end2, &beta2))
     return NULL;
 
   E_Int type = 0;
@@ -182,7 +189,9 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
                type,
                coord.begin(1), coord.begin(2), coord.begin(3),
                IP.begin(), A.begin(), B.begin(), C.begin(),
-               RHS.begin(), Z.begin(), ZA.begin(), vol.begin());
+               RHS.begin(), Z.begin(), ZA.begin(), vol.begin(),
+               eta_start, eta_end, beta,
+               eta_start2, eta_end2, beta2);
     
     coord.reAllocMat(nid*njd, 3);
 
@@ -206,7 +215,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
   else 
   {
     PyErr_SetString(PyExc_TypeError,
-                    "hyper2d: unrecognised type of array.");
+                    "hyper2d: unknown type of array.");
     return NULL;
   }
 }

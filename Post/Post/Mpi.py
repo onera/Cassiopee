@@ -22,7 +22,7 @@ def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
     # print info
     nztl = len(Internal.getZones(tl))
     nzext = len(Internal.getZones(ext))
-    print ('Rank %d has %d source zones and %d destination zones.'%(Cmpi.rank, nztl, nzext))
+    print('Rank %d has %d source zones and %d destination zones.'%(Cmpi.rank, nztl, nzext))
     ext = P.extractMesh(tl, ext, order=order, extrapOrder=extrapOrder, constraint=constraint, tol=tol, mode=mode,
                         hook=hook)
     return ext
