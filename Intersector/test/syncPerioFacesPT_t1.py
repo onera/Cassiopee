@@ -17,7 +17,6 @@ a    = G.cartHexa((0.,0.,0.), (1.,1.,1.), (10,10,10))
 a    = C.convertArray2NGon(a)
 
 XOR._reorient(a)
-#C.convertPyTree2File(a, 'reoriented.tp')
 
 #C._initVars(a, '{centers:Density} = {centers:CoordinateZ} + {centers:CoordinateX}')
 

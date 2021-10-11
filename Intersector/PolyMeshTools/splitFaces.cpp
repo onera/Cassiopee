@@ -426,7 +426,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   E_Float Lmin, Lmax;
   E_Int imin, imax;
   ngon_type::edge_length_extrema(m.cnt, m.crd, Lmin, imin, Lmax, imax);
-  double TOL = 0.1*Lmin;
+  double TOL = 0.001*Lmin;
   //double TOL = EPSILON;
 
   E_Int npgs = m.cnt.size();
@@ -642,6 +642,17 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   // indirection to refer to volume mesh ids
   for (auto i : loc_face_to_bits)
   {
+    int lface = i.first;
+    int gface = 0;
+    if (lface < 0)
+    {
+      lface = -(lface + 1);
+      gface = oids[lface];
+      gface = -(gface + 1);
+    }
+    else
+      gface = oids[lface];
+
     auto gbits = i.second; //copy
     for (auto& k : gbits)
     {
@@ -653,7 +664,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
       else
         k = oids[k];
     }
-    glob_face_to_bits[oids[i.first]] = gbits;
+    glob_face_to_bits[gface] = gbits;
   }
 
   //make it reciprocal
