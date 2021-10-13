@@ -3166,6 +3166,10 @@ def concatenate(t, tol = 1.e-15):
           Internal._addChild(zoneBC, bc)
       i = i+1
 
+  famBC = Internal.getNodesFromType(t, "Family_t")
+  if famBC is not None:
+      Internal._addChild(newz, famBC)
+
   # Restore fields
   # --------------
   # 1/ Compute new elt size and varname list
@@ -3177,12 +3181,14 @@ def concatenate(t, tol = 1.e-15):
       new_size = new_size + size_z
 
       cont     = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
+     
       if cont is not None:
           flds     = Internal.getNodesFromType1(cont, 'DataArray_t')
       
           for fld in flds:
               if fld[0] not in varnames:
-                  varnames.append(fld[0])         
+                  varnames.append(fld[0])
+                  
       i        = i+1
 
   for varname in varnames:
@@ -3191,18 +3197,26 @@ def concatenate(t, tol = 1.e-15):
       for z in zones:
           ncells  = C.getNCells(z)
           cont    = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
-          varnode = Internal.getNodeFromName(cont, varname)
-          # Put zero if variable does not exist 
-          if varnode is None:
+
+          if cont is not None: 
+          
+              varnode = Internal.getNodeFromName(cont, varname)
+              # Put zero if variable does not exist 
+              if varnode is None:
+                  varnode = numpy.zeros(ncells, numpy.float64)
+              else:
+                  varnode = varnode[1]             
+
+          else: # no FlowSolution in z
               varnode = numpy.zeros(ncells, numpy.float64)
-          else:
-              varnode = varnode[1]
               
           if varglob is None:
               varglob = varnode.ravel('k')
           else:
-              varglob = numpy.concatenate((varglob,varnode))              
+              varglob = numpy.concatenate((varglob,varnode)) 
 
+              
+              
       # b. Create new variable
       C._initVars(newz, 'centers:'+varname, 0)
 
