@@ -413,7 +413,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
       FldArrayI tmpIndi(nindi*2); FldArrayF tmpCf(ncf);
       E_Float x,y,z; short ok;
 
-#pragma omp for
+#pragma omp for schedule(dynamic)
       for (E_Int ind = 0; ind < nbI; ind++)
       {
         x = xt[ind]; y = yt[ind]; z = zt[ind];

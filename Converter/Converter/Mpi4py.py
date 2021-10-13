@@ -770,7 +770,6 @@ def getMatchSubZones__(z, procDict, oppNode, depth):
                 
                 Internal.createChild(oppZone, 'XZone', 'UserDefinedData_t')
                 Internal._setLoc2Glob(oppZone, z[0], win=[imin,imax,jmin,jmax,kmin,kmax], sourceDim=[dim[1],dim[2],dim[3]])
-                
                 out.append(oppZone)
     return out
 

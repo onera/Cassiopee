@@ -26,6 +26,54 @@
 using namespace std;
 using namespace K_FLD;
 
+
+//========================================================================
+// Find empty proc
+//========================================================================
+E_Int findEmptyProc(E_Int NProc, FldArrayF& nbNodePerProc)
+{
+  for (E_Int i = 0; i < NProc; i++)
+  {
+    //printf("Proc %d: %g pts\n", i, nbNodePerProc[i]);
+    if (K_FUNC::E_abs(nbNodePerProc[i]) < 1.e-6) return i;
+  }
+  return -1;
+}
+
+//=======================================================================
+// Fill empty proc with another block
+//=======================================================================
+E_Int fillEmpty(E_Int iEmpty, E_Int NProc, E_Int nb, std::vector<E_Int>& out, 
+                FldArrayF& nbNodePerProc, FldArrayI& nbBlockPerProc,
+                std::vector<E_Float>& nbPts)
+{
+    // Find fullest proc
+    E_Float maxPts = 0; E_Int iMax = -1;
+    for (E_Int i = 0; i < NProc; i++)
+    {
+        if (nbNodePerProc[i] > maxPts && nbBlockPerProc[i] >= 2)
+        {
+            maxPts = nbNodePerProc[i];
+            iMax = i;
+        }
+    }
+    if (iMax == -1) return -1; // fail
+    // find first block on imax
+    for (E_Int i = 0; i < nb; i++)
+    {
+        if (out[i] == iMax)
+        {
+            out[i] = iEmpty;
+            nbNodePerProc[iMax] -= nbPts[i];
+            nbNodePerProc[iEmpty] += nbPts[i];
+            nbBlockPerProc[iMax] -= 1;
+            nbBlockPerProc[iEmpty] += 1;
+            return 1; // success
+        }
+    }
+    return -1; // fail
+}
+
 //=============================================================================
 // IN: nbPts: pour chaque bloc, son nombre de pts
 // IN: setBlocks: pour chaque bloc, -1 si ce bloc est a equilibrer,
@@ -168,7 +216,7 @@ void K_DISTRIBUTOR2::graph(
   //printf("weight=");
   for (E_Int i = 0; i < nb; i++)
   {
-    vweight[i] = nbPts[i]; 
+    vweight[i] = nbPts[i];
     //printf("%d ", vweight[i]);
   }
   //printf("\n");
@@ -268,12 +316,30 @@ void K_DISTRIBUTOR2::graph(
     proc = out[i];
     nbNodePerProc[proc] += nbPts[i];
   }
-  printf("Info: Nb de pts moyen par proc: %d\n", int(meanPtsPerProc));
+  //for (E_Int i = 0; i < NProc; i++) printf("%d %g\n",i,nbNodePerProc[i]);
+
+  FldArrayI nbBlockPerProc(NProc);
+  nbBlockPerProc.setAllValuesAtNull();
+  for (E_Int i = 0; i < nb; i++)
+  {
+    proc = out[i];
+    nbBlockPerProc[proc] += 1;
+  }
+  //printf("Info: Nb de pts moyen par proc: %d\n", int(meanPtsPerProc));
  
+  // Si processeur empty, prendre un bloc sur le plus charger iterativement
+  E_Int iEmpty;
+  iEmpty = findEmptyProc(NProc, nbNodePerProc);
+  while (iEmpty >= 0)
+  {
+    iEmpty = fillEmpty(iEmpty, NProc, nb, out, nbNodePerProc, nbBlockPerProc, nbPts);
+    if (iEmpty == -1) break;
+    iEmpty = findEmptyProc(NProc, nbNodePerProc);
+  }
+
   //printf("Nb de pts par proc:\n");
   for (E_Int i = 0; i < NProc; i++)
   {
-    //printf("Proc %d: %g pts\n", i, nbNodePerProc[i]);
     if (K_FUNC::E_abs(nbNodePerProc[i]) < 1.e-6)
       printf("Warning: processor %d is empty!\n", i);
   }
@@ -290,7 +356,7 @@ void K_DISTRIBUTOR2::graph(
   varMin = varMin / meanPtsPerProc;
   varMax = varMax / meanPtsPerProc;
   varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
-  //printf("varMin=%f, varMax=%f, varRMS=%f\n", varMin, varMax, varRMS);
+  printf("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%\n", 100*varMin, 100*varMax, 100*varRMS);
 
   nptsCom = 0; E_Int volTot = 0;
 
@@ -340,7 +406,8 @@ void K_DISTRIBUTOR2::graph(
   //printf("Volume de communication=%d\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
   else volRatio = 0.;
-  printf("Info: Volume de communication/volume total=%f\n", volRatio);
+  printf("Info: external com ratio=%f%%\n", volRatio*100);
+  fflush(stdout);
 
   bestAdapt = 1.;
   //printf("Adaptation: %f\n", bestAdapt);

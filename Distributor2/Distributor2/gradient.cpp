@@ -100,8 +100,10 @@ void K_DISTRIBUTOR2::gradient(
     if (setBlocks[j] < 0)
     {
       if (i < NProc)
-      { dis1[j] = i;
-        nbPtsPerProcsp[i] += nbPts[j]; }
+      { 
+        dis1[j] = i;
+        nbPtsPerProcsp[i] += nbPts[j]; 
+      }
       else
       {
         E_Int kless = 0; E_Float minProc = 1.e6;
@@ -288,7 +290,7 @@ void K_DISTRIBUTOR2::gradient(
     proc = out[i];
     nbNodePerProc[proc] += nbPts[i];
   }
-  //printf("Nb de pts moyen par proc: %d\n", meanPtsPerProc);
+  //printf("Nb de pts moyen par proc: %d\n", int(meanPtsPerProc));
  
   //printf("Nb de pts par proc:\n");
   for (E_Int i = 0; i < NProc; i++)
@@ -310,7 +312,7 @@ void K_DISTRIBUTOR2::gradient(
   varMin = varMin / meanPtsPerProc;
   varMax = varMax / meanPtsPerProc;
   varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
-  //printf("varMin=%f, varMax=%f, varRMS=%f\n", varMin, varMax, varRMS);
+  printf("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%\n", 100*varMin, 100*varMax, 100*varRMS);
 
   nptsCom = 0; E_Int volTot = 0;
   if (com != NULL)
@@ -357,7 +359,8 @@ void K_DISTRIBUTOR2::gradient(
   //printf("Volume de communication=%d\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
   else volRatio = 0.;
-  //printf("Volume de communication/volume total=%f\n", volRatio);
+  printf("Info: external com ratio=%f%%\n", volRatio*100);
+  fflush(stdout);
 
   bestAdapt = evalp;
   //printf("Adaptation: %f\n", bestAdapt);

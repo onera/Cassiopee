@@ -66,7 +66,7 @@ void K_DISTRIBUTOR2::genetic(
   E_Float nbTot = 0;
   for (E_Int i = 0; i < nb; i++) nbTot += nbPts[i];
 
-  // Nb de noeuds moyens devant etre contenu par chaque processeur
+  // Nb de noeuds moyens devant etre contenus par chaque processeur
   meanPtsPerProc = nbTot*1./NProc;
 
   // Bloc le plus petit
@@ -521,7 +521,8 @@ void K_DISTRIBUTOR2::genetic(
     proc = out[i];
     nbNodePerProc[proc] += nbPts[i];
   }
-  //printf("Nb de pts moyen par proc: %d\n", meanPtsPerProc);
+  //for (E_Int i = 0; i < NProc; i++) printf("%d %g\n",i,nbNodePerProc[i]);
+  //printf("Info: Nb de pts moyen par proc: %d\n", int(meanPtsPerProc));
  
   //printf("Nb de pts par proc:\n");
   for (E_Int i = 0; i < NProc; i++)
@@ -543,7 +544,7 @@ void K_DISTRIBUTOR2::genetic(
   varMin = varMin / meanPtsPerProc;
   varMax = varMax / meanPtsPerProc;
   varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
-  //printf("varMin=%f, varMax=%f, varRMS=%f\n", varMin, varMax, varRMS);
+  printf("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%\n", 100*varMin, 100*varMax, 100*varRMS);
 
   // volume total de com
   nptsCom = 0; E_Int volTot = 0;
@@ -588,10 +589,11 @@ void K_DISTRIBUTOR2::genetic(
     }
   }
 
-  printf("Volume de communication=%d\n", nptsCom);
+  //printf("Volume de communication=%d\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
   else volRatio = 0.;
-  printf("Volume de communication/volume total=%f\n", volRatio);
+  printf("Info: external com ratio=%f%%\n", volRatio*100);
+  fflush(stdout);
 
   bestAdapt = evalp[jBest-1];
   //printf("Adaptation: %f\n", bestAdapt);

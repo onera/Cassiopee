@@ -67,6 +67,7 @@ C==============================================================================
       pi = 4*atan(1.D0)
       deux = 2
 
+C A commenter pour prendre en compte les valeurs en parametre      
       IF (type.EQ.0) THEN
 C       Parametres de la dissipation pour les maillages en C
         eta_start = 15

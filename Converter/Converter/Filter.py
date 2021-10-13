@@ -698,7 +698,7 @@ class Handle:
     return a
 
   # Charge le squelette, le split et conserve les infos de split
-  def loadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size, splitByBase=False):
+  def loadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size, splitByBase=False, algorithm='graph'):
     """Load and split skeleton."""
     if Cmpi.rank == 0:
       a, self.znp = readZoneHeaders(self.fileName, self.format)
@@ -706,7 +706,7 @@ class Handle:
       for b in Internal.getBases(a):
         for z in Internal.getZones(b):
           dim = Internal.getZoneDim(z)
-          if dim[0]=='Structured':
+          if dim[0] == 'Structured':
             Internal._setLoc2Glob(z, z[0], win=[1,dim[1],1,dim[2],1,dim[3]], sourceDim=dim[1:])
       
       # Lecture ZoneBC + ZoneGC necessaire pour le split
@@ -749,13 +749,13 @@ class Handle:
             else: T._splitNParts(b, N=NProc)
             if NProc is not None:
                 import Distributor2.PyTree as D2   
-                D2._distribute(b, NProc)
+                D2._distribute(b, NProc, algorithm=algorithm)
       else: # split on full skeleton
         if NParts is not None: T._splitNParts(a, N=NParts)
         else: T._splitNParts(a, N=NProc)
         if NProc is not None:
             import Distributor2.PyTree as D2   
-            D2._distribute(a, NProc)
+            D2._distribute(a, NProc, algorithm=algorithm)
     else: 
       a = None; varsN = None; varsC = None
     a = Cmpi.bcast(a)
@@ -763,9 +763,9 @@ class Handle:
 
     return a
 
-  def loadAndSplit(self, NParts=None, NProc=Cmpi.size, splitByBase=False):
+  def loadAndSplit(self, NParts=None, NProc=Cmpi.size, splitByBase=False, algorithm='graph'):
     """Load and split a file."""
-    a = self.loadAndSplitSkeleton(NParts, NProc, splitByBase)
+    a = self.loadAndSplitSkeleton(NParts, NProc, splitByBase, algorithm)
     _convert2PartialTree(a, rank=Cmpi.rank)
     self._loadContainerPartial(a, variablesN=self.varsN, variablesC=self.varsC)
     return a

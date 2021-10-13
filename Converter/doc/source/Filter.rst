@@ -504,10 +504,18 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.loadAndSplit()
+.. py:function:: Converter.Filter.Handle.loadAndSplit(NParts=None, NProc=Cmpi.size, splitByBase=False, algorithm='graph')
 
     Load and split zones of file on the different processors (only for structured zones).
     
+    :param NParts: number of parts to split file into. If None, use NProc instead.
+    :type NParts: int
+    :param NProc: number of target processors.
+    :type NProc: int
+    :param splitByBase: if true, split each base in NParts.
+    :type splitByBase: boolean
+    :param algorithm: algorithm for distribution. Can be 'graph', 'fast', 'gradient'. See Distributor2 documentation.
+    :type algorithm: string
     :rtype: partial tree on each processor
 
     *Example of use:*

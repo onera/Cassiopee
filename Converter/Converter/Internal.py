@@ -234,15 +234,15 @@ def setValue(node, value=None):
         elif isinstance(value, numpy.ndarray): 
             if value.flags.f_contiguous: node[1] = value
             else: node[1] = numpy.asfortranarray(value)
-        elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64): node[1] = numpy.array([value],'i')
-        elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value],'d')
+        elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64) or isinstance(value,numpy.intc): node[1] = numpy.array([value], dtype=numpy.int32)
+        elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value], dtype=numpy.float64)
         elif isinstance(value, str): node[1] = numpy.array([c for c in value],'c')
         elif isinstance(value, list):
             testValue = value
             while isinstance(testValue, list): testValue = testValue[0]
             if isinstance(testValue, float) or isinstance(testValue, numpy.float32) or isinstance(testValue, numpy.float64):
                 node[1] = numpy.array(value, dtype=numpy.float64, order='F')
-            elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64):
+            elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64) or isinstance(testValue,numpy.intc):
                 node[1] = numpy.array(value, dtype=numpy.int32, order='F')
             elif isinstance(testValue, str):
                 if isinstance(value[0], str):
@@ -380,8 +380,8 @@ def createUniqueChild(node, name, ntype, value=None, children=None, pos=-1):
     for n in node[2]:
         if name == n[0]: e = i; break
         i += 1
-    if e == -1: child = createChild(node, name, ntype, value=value,
-                                      children=children, pos=pos)
+    if e == -1:
+        child = createChild(node, name, ntype, value=value, children=children, pos=pos)
     else: # replace value, ntype, children
         child = node[2][e]
         setValue(child, value)
