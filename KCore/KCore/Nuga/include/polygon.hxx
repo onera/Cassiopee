@@ -134,6 +134,68 @@ struct aPolygon : public K_MESH::Polygon
 
     return *this;
   }
+
+  bool operator==(const aPolygon& rhs)
+  {
+    int nnodes = nb_nodes();
+    if (nnodes != rhs.nb_nodes())     return false;
+    if (m_crd.cols() != rhs.m_crd.cols()) return false;
+
+    if ((m_normal[0] != NUGA::FLOAT_MAX) && (rhs.m_normal[0] != NUGA::FLOAT_MAX))
+    {
+      if (::fabs((m_normal[0] - rhs.m_normal[0])) > EPSILON) return false;
+      if (::fabs((m_normal[1] - rhs.m_normal[1])) > EPSILON) return false;
+      if (::fabs((m_normal[2] - rhs.m_normal[2])) > EPSILON) return false;
+    }
+
+    if ((m_centroid[0] != NUGA::FLOAT_MAX) && (rhs.m_centroid[0] != NUGA::FLOAT_MAX))
+    {
+      if (::fabs((m_centroid[0] - rhs.m_centroid[0])) > EPSILON) return false;
+      if (::fabs((m_centroid[1] - rhs.m_centroid[1])) > EPSILON) return false;
+      if (::fabs((m_centroid[2] - rhs.m_centroid[2])) > EPSILON) return false;
+    }
+
+    // check for vertices coincidence
+    const double* pt0 = m_crd.col(0);
+    int n0 = IDX_NONE;
+    double dmin2 = NUGA::FLOAT_MAX;
+    for (size_t n = 0; n < nnodes; ++n)
+    {
+      const double* rptn = rhs.m_crd.col(n);
+
+      double d2 = (pt0[0] - rptn[0])*(pt0[0] - rptn[0]) + (pt0[1] - rptn[1])*(pt0[1] - rptn[1]) + (pt0[2] - rptn[2])*(pt0[2] - rptn[2]);
+      if (d2 < dmin2)
+      {
+        n0 = n;
+        dmin2 = d2;
+      }
+    }
+
+    if (dmin2 > EPSILON*EPSILON) return false; // none coincident node
+
+    for (size_t n = 1; n < nnodes; ++n)
+    {
+      const double* pt  = m_crd.col(n);
+      const double* rpt = m_crd.col((n0 + n) % nnodes);
+
+      double d2 = (pt[0] - rpt[0])*(pt[0] - rpt[0]) + (pt[1] - rpt[1])*(pt[1] - rpt[1]) + (pt[2] - rpt[2])*(pt[2] - rpt[2]);
+      if (d2 > EPSILON*EPSILON) return false;
+    }
+
+    // each node has exactly one coincident node in rhs
+    return true;
+  }
+  
+  void reverse_orient()
+  {
+    std::reverse(ALL(m_nodes));
+    if (m_normal[0] != NUGA::FLOAT_MAX)
+    {
+      m_normal[0] *= -1.;
+      m_normal[1] *= -1.;
+      m_normal[2] *= -1.;
+    }
+  }
   
   template <short DIM> void normal(double* norm) const 
   {

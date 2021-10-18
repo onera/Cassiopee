@@ -14,7 +14,6 @@
 
 #include "Nuga/include/macros.h"
 #include <vector>
-#include "Fld/FldArray.h"
 #include "Nuga/include/ArrayWriter.h"
 #include "Nuga/include/Triangulator.h"
 #include "Nuga/include/Triangle.h"
@@ -76,7 +75,7 @@ namespace NUGA
           if (abstol > 0.) b2.enlarge(abstol);
 
           // FILTER 1 : faces 3D boxes
-          if (!K_SEARCH::BbTree3D::boxesAreOverlapping(&b1, &b2, E_EPSILON)) // face-box test worth it
+          if (!K_SEARCH::BbTree3D::boxesAreOverlapping(&b1, &b2, EPSILON)) // face-box test worth it
           {
             /*ngon_type ng1, ng2;
             K_FLD::FloatArray c1, c2;

@@ -77,6 +77,12 @@ namespace NUGA
       cnt2.shift(nb_pts1);
       cnt.pushBack(cnt2);
 
+#ifdef DEBUG_CLIPPER
+      {
+        medith::write("before_conf3D", crd, cnt, "BAR");
+      }
+#endif
+
       // got 2D (in sub ref frame)
       K_FLD::FloatArray P(3, 3), iP(3, 3);
       
@@ -156,7 +162,7 @@ namespace NUGA
       {
         K_FLD::FloatArray tcrd(crd);
         tcrd.resize(3, tcrd.cols(), 0.);
-        medith::write("before_conf", tcrd, cnt, "BAR");
+        medith::write("before_conf2D", tcrd, cnt, "BAR");
       }
 #endif
 
@@ -169,7 +175,7 @@ namespace NUGA
       {
         K_FLD::FloatArray tcrd(crd);
         tcrd.resize(3, tcrd.cols(), 0.);
-        medith::write("after_conf", tcrd, cnt, "BAR");
+        medith::write("after_conf2D", tcrd, cnt, "BAR");
       }
 #endif
 

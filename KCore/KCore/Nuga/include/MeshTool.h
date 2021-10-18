@@ -48,7 +48,7 @@ class MeshTool
     MeshTool(const tree_type& tree, E_Float tolerance = EPSILON);
 
     ///
-    void set(const tree_type& tree, E_Float tolerance = E_EPSILON);
+    void set(const tree_type& tree, E_Float tolerance = EPSILON);
     void clear();
     ///
     ~MeshTool(void);

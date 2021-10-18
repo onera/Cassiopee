@@ -2971,8 +2971,14 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
   // Get the skin nodes : among them are the free nodes of extrawPGs.
   Vector_t<E_Int> skin_nodes;
   connectT3.uniqueVals(skin_nodes); //zero based
+
+  Vector_t<E_Int> layer_nodes;
+  extrawPGs.unique_indices(layer_nodes);
+
   // Flag the extrawPGs free nodes
-  E_Int mN = 1+*std::max_element(skin_nodes.begin(), skin_nodes.end());
+  E_Int mN1 = 1+*std::max_element(ALL(skin_nodes));
+  E_Int mN2 = 1 + *std::max_element(ALL(layer_nodes));
+  E_Int mN = std::max(mN1, mN2);
   
   Vector_t<bool> is_skin_node(mN, false), free_nodes(mN, false);
   for (size_t i = 0; i < skin_nodes.size(); ++i)
@@ -2980,8 +2986,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
     is_skin_node[skin_nodes[i]] = true;
   }
   
-  Vector_t<E_Int> layer_nodes;
-  extrawPGs.unique_indices(layer_nodes);
+  
   
   for (size_t i = 0; i < layer_nodes.size(); ++i)
   {

@@ -692,7 +692,10 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     i=0
     paths = []
     zs = []
+    iz=-1
     for z in z1s:
+      iz +=1
+      z[0]='dom1_z_'+str(iz)
       mesh = res[i]
       pg_oids=res[i+1]
       ph_oids=res[i+2]
@@ -724,7 +727,10 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     for p in paths: Internal._rmNodeFromPath(t1, p)
     paths = []
 
+    iz = -1
     for z in z2s:
+      iz +=1
+      z[0]='dom2_z_'+str(iz)
       mesh = res[i]
       pg_oids=res[i+1]
       ph_oids=res[i+2]

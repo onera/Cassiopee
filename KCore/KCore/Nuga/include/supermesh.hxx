@@ -73,6 +73,9 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
     {
       auto ae0 = m0.aelement(i);
 
+      double surf0 = ae0.metrics();
+      const double *norm0 = ae0.get_normal();
+
       cands.clear();
       loc1->get_candidates(ae0, ae0.m_crd, cands, 1, RTOL); //return as 1-based
       if (cands.empty()) continue;
@@ -81,6 +84,29 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
       {
         i2 = cands[n] - 1;
         auto ae1 = m1.aelement(i2);
+
+        double surfc = ae1.metrics();
+        const double *normc = ae1.get_normal();
+
+        double ps = NUGA::dot<3>(norm0, normc);
+        if (::fabs(ps) < 0.7) continue; // must be nearly colinear
+
+        if (ps < 0.) // revert one to have both with same orient (for NUGA::INTERSECT::INTERSECTION logic)
+          ae1.reverse_orient();
+
+        bool check_for_equality = (::fabs(surf0 - surfc) < EPSILON) && (ps > 1. - EPSILON);
+
+        if (check_for_equality)
+        {
+          if (ae0 == ae1)
+          {
+            xmi[id].add(ae0);
+            anc0i[id].push_back(i);
+            anc1i[id].push_back(i2);
+            break; // pure match found on a conformal mesh => no more candidate to check
+          }
+        }
+
         bits.clear();
         bool true_clip = false;
         NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(ae0, ae1, NUGA::INTERSECT::INTERSECTION, RTOL, bits, true_clip);
