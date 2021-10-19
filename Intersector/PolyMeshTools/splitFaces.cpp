@@ -407,14 +407,15 @@ using ngon_type = ngon_t<K_FLD::IntArray>;
 using crd_t = K_FLD::FloatArray;
 using acrd_t = K_FLD::ArrayAccessor<crd_t>;
 
+///
 void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, const double * axis, double angle, const double* translation,
   std::map<int, std::vector<int>>& glob_face_to_bits)
-{ 
+{
   DELAUNAY::Triangulator dt;
 
   NUGA::pg_smesh_t m;
   std::vector<int> oids, ancestors;
-  
+
   vmesh.get_boundary(m, oids, ancestors);
 
   std::map<int, std::vector<int>> loc_face_to_bits;
@@ -444,12 +445,9 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
   // 2. apply transfo
   K_FLD::FloatArray CsR(Cs);
-  if (axis){
-    //std::cout << "axis" << std::endl;
+  if (axis)
     NUGA::axial_rotate(CsR, center, axis, angle);
-  }
   else if (translation){
-    //std::cout << "translation" << std::endl;
     for (size_t k = 0; k < CsR.cols(); ++k)
     {
       CsR(0, k) += translation[0];
@@ -489,13 +487,11 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
   K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(Cs_glog);
   E_Int nmerges = ::merge(ca, TOL, nids);
-  //std::cout << "nmerges : " << nmerges << std::endl;
 
   // check wrong auto_match
   for (size_t i = 0; i <npgs; ++i)
     assert(nids[i] == i);
 
-  
   std::vector<E_Int> left, right, remain;
   for (size_t i = npgs; i <nids.size(); ++i)
   {
@@ -546,9 +542,9 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   for (size_t i = 0; i < npgs; ++i)
   {
     if (nids[i] != i) continue; // exact match alreay found
-    
+
     auto face = m.element(i);
-    
+
     K_SEARCH::BBox3D b;
     face.bbox(crdR, b); // compute box in rotated frame
 
@@ -585,12 +581,12 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
       // if G is in faceC, face is a piece of faceC
       bool is_in1 = faceC.fast_is_in_pred<DELAUNAY::Triangulator>(dt, m.crd, G);
-      
+
       //reciprocal test
       double GC[3];
       faceC.iso_barycenter<acrd_t, 3>(acrd, GC);
       bool  is_in2 = face.fast_is_in_pred<DELAUNAY::Triangulator>(dt, crdR, GC);
-      
+
       if (!is_in1 && !is_in2) continue;
 
       if (is_in1 && !is_in2)
@@ -667,13 +663,27 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
     glob_face_to_bits[gface] = gbits;
   }
 
-  //make it reciprocal
+  //make it reciprocal (ONLY IF bits belong to the same cell)
   std::map<int, std::vector<int>> tmp1;
   for (auto i : glob_face_to_bits)
   {
     int master = i.first;
     auto& bits = i.second;
     tmp1[master] = bits;
+
+    bool ancPH = ancestors[bits[0]];
+    bool samePH = true;
+    for (size_t k = 0; (k < bits.size() - 1) && samePH; ++k)
+    {
+      int bk = bits[k];
+      int bkp1 = bits[k + 1];
+      bk = (bk < 0) ? -(bk + 1) : bk;
+      bkp1 = (bkp1 < 0) ? -(bkp1 + 1) : bkp1;
+
+      samePH = (ancestors[bk] == ancestors[bkp1]);
+    }
+    if (!samePH) continue;
+
     for (auto& b : bits)tmp1[b].push_back(master);
   }
   glob_face_to_bits = tmp1;
@@ -737,8 +747,8 @@ void duplicate_and_move_period_faces
     if (tgtid->second.size() != 1) continue; //split master
     pgsL._ancEs(0, k) = tgtid->second[0];
   }
- 
- 
+
+
   K_FLD::FloatArray crdL(m.crd);
   ngon_type::compact_to_used_nodes(pgsL, crdL);
 
@@ -827,7 +837,7 @@ void duplicate_and_move_period_faces
     return;
   }
 
- #ifdef DEBUG_MATCH_PERIO
+#ifdef DEBUG_MATCH_PERIO
   {
     ngon_type ngo(pgsR, false);
     K_FLD::IntArray cnto;
@@ -915,7 +925,12 @@ void sync_faces
   m.cnt.PHs.remove_duplicated(); //several occurence of the same face in each phs
 
   // 2. merge coincident nodes
-  E_Int nb_merges = m.cnt.join_phs(m.crd, EPSILON);
+  E_Float Lmin, Lmax;
+  E_Int imin, imax;
+  ngon_type::edge_length_extrema(m.cnt.PGs, m.crd, Lmin, imin, Lmax, imax);
+  double TOL = 0.01*Lmin;
+  E_Int nb_merges = m.cnt.join_phs(m.crd, TOL);
+  //std::cout << "nmerges : " << nb_merges << std::endl;
 
   //3. close_phs
   std::vector<E_Int> modPHs(ALL(modifiedPHs));

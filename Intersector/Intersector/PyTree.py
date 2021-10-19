@@ -156,30 +156,33 @@ def InputType(t): # fixme : based on first block only
 
 # OUT: returns the adapted feature
 #==============================================================================
-def NGONBlock(t, TOL, nb_comps, keep_BC=False):
+def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False):
 
-    if keep_BC == True:
-      (BCs,BCNames,BCTypes) = C.getBCs(t)
+    if keep_BC == False:
+      C._deleteGridConnectivity__(t)
+      C._deleteZoneBC__(t)
+    
+    if mixed_type == True:
+        t = C.breakConnectivity(t)
+        for zone in I.getZones(t):
+            if I.getZoneDim(zone)[3] in ['TRI','QUAD']: I.rmNode(t,zone)
 
-    t = C.convertArray2NGon(t); #t = G.close(t)
-    t = T.join(t, tol=TOL)
-    t = G.close(t, tol=TOL)
+    t = C.convertArray2NGon(t, recoverBC=keep_BC)
+    #C.convertPyTree2File(t, 'tNG.cgns')
+    # compute relevant tolerance : 1% of the minimum edge length
+    TOL = 0.01 * edgeLengthExtrema(t)
+    t = concatenate(t, tol = TOL)
 
-    # FIXME : commented because
     valid = isConformalNConnex(t, nb_comps)
     if valid == False:
-      C.convertPyTree2File(t, 'bad_oper.cgns')
-      print('Invalid operand. Might increase the tolerance')
+      #C.convertPyTree2File(t, 'bad_oper.cgns')
+      print('Invalid operand : concatenation failed to produce a single connex and conformal block.')
       import sys; sys.exit()
 
-    if keep_BC == True:
-      C._recoverBCs(t,(BCs,BCNames,BCTypes))
-
-    #C.convertPyTree2File(t, 't.cgns')
+    #I._correctPyTree(t) # to add families if required and missing    
     zs = Internal.getZones(t)
     z = zs[0]
     return z
-
 
 #==============================================================================
 # isConformalNConnex
@@ -2859,12 +2862,12 @@ def checkCellsVolumeAndGrowthRatio(t):
         print('checking min vol and growth ratio for zone %d'%i)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         res=XOR.checkCellsVolumeAndGrowthRatio(m, PE[1])
-        print('vmin for this zone : '+str(res[1]))
+        #print('vmin for this zone : '+str(res[1]))
         if res[1] < vmin:
           vmin=res[1]
           ivmin=res[0]
           vzoneid=i
-        print('grmin for this zone : '+str(res[3]))
+        #print('grmin for this zone : '+str(res[3]))
         if res[3] < grmin:
           grmin=res[3]
           igrmin=res[2]
@@ -3279,7 +3282,7 @@ def volume(t, fieldname=None):
 def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
                               rotationAngle=[0.,0.,0.],
                               translation=[0.,0.,0.], tol=1.e-6,
-                              unitAngle=None):
+                              unitAngle=None, reorient=True):
 
 # WARNING : currently implemented by applying it individually by zone
 
@@ -3288,7 +3291,8 @@ def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
   else: raise ValueError('syncMacthPeriodicFaces: value for unitAngle is not valid.')
 
   zs = Internal.getZones(t)
-  for z in zs : 
+  for z in zs :
+    if reorient == True : _reorient(z)
     m = C.getFields(Internal.__GridCoordinates__, z)[0]
     res = XOR.syncMacthPeriodicFaces(m, rotationCenter, rotationAngleR,
                                       translation, tol)

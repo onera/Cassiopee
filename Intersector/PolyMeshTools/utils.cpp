@@ -979,39 +979,29 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   return l;
 }
 
-void comp_vol(const K_FLD::FloatArray& crd, const ngon_type& ngi, const FldArrayI* cFE, std::vector<E_Int>& orient, E_Int i, E_Int id, DELAUNAY::Triangulator & dt, std::vector<E_Int>& im, std::vector<E_Float>& vm)
+int comp_vol(const K_FLD::FloatArray& crd, const ngon_type& ngi, const FldArrayI* cFE, std::vector<E_Int>& orient, E_Int i, DELAUNAY::Triangulator & dt, double &v)
 {
   //std::cout << "PH : " << i << std::endl;
-    orient.clear();
+  orient.clear();
 
-    const E_Int* pF = ngi.PHs.get_facets_ptr(i);
-    E_Int nbf = ngi.PHs.stride(i);
-    orient.resize(nbf, 1);
+  const E_Int* pF = ngi.PHs.get_facets_ptr(i);
+  E_Int nbf = ngi.PHs.stride(i);
+  orient.resize(nbf, 1);
 
-    for (E_Int j = 0; j < nbf; ++j)
-    {
-      E_Int PGi = *(pF+j) - 1;
-      //std::cout << "PGi bef wwong :" << PGi << std::endl;
-      if ((*cFE)(PGi, 1) != i+1) orient[j] = -1;
-      //assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
-    }
+  for (E_Int j = 0; j < nbf; ++j)
+  {
+    E_Int PGi = *(pF+j) - 1;
+    //std::cout << "PGi bef wwong :" << PGi << std::endl;
+    if ((*cFE)(PGi, 1) != i+1) orient[j] = -1;
+    //assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
+  }
 
-    //std::cout << "computing flux for PH : " << i << std::endl;
-    K_MESH::Polyhedron<0> PH(ngi, i);
-    double v;
-    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v, dt);
+  //std::cout << "computing flux for PH : " << i << std::endl;
+  K_MESH::Polyhedron<0> PH(ngi, i);
+  
+  E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v, dt);
 
-    if (!err && v < vm[id]) // min for current thread
-    {
-      im[id] = i;
-      vm[id] = v;
-    }
-    // if (err)
-    // {
-    //   //std::cout << "error to triangulate cell " << i << "at face : " << err-1 << std::endl;
-    //   //medith::write("badcell", crd, ngi, i);
-    //   //medith::write("faultyPG", crd, ngi.PGs.get_facets_ptr(err-1), ngi.PGs.stride(err-1), 1);
-    // }
+  return err;
 }
 
 PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
@@ -1057,17 +1047,23 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
   std::vector<E_Float> vm(nb_max_threads, NUGA::FLOAT_MAX);
   std::vector<std::vector<E_Int>> orient(nb_max_threads);
 
-  E_Int ith, id{0};
+  E_Int i, id{0};
   DELAUNAY::Triangulator dt;
 
-#pragma omp parallel shared(vm, im, ngi, crd, cFE, orient) private (ith, id, dt) default(none)
+#pragma omp parallel shared(vm, im, ngi, crd, cFE, orient) private (i, id, dt) default(none)
 {
   id = __CURRENT_THREAD__;
   //std::cout << "before loop thread : " << id  << std::endl;
 #pragma omp for //schedule(dynamic)
-  for (ith=0; ith < ngi.PHs.size(); ++ith)
+  for (i=0; i < ngi.PHs.size(); ++i)
   {
-    comp_vol(crd, ngi, cFE, orient[id], ith, id, dt, im, vm);
+    double v;
+    E_Int err = comp_vol(crd, ngi, cFE, orient[id], i, dt, v);
+    if (!err && v < vm[id]) // min for current thread
+    {
+      im[id] = i;
+      vm[id] = v;
+    }
   }
 }
 
@@ -1142,37 +1138,31 @@ PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject
 
   E_Int nphs = ngi.PHs.size();
 
-  std::vector<E_Int> orient;
   std::vector<double> vols(nphs, NUGA::FLOAT_MAX);
-  E_Int imin=-1;
-  
-  //compute volumes using input orientation 
-  for (E_Int i=0; i < ngi.PHs.size(); ++i)
+
+  E_Int nb_max_threads = __NUMTHREADS__;
+  //std::cout << "nb threads max : " << nb_max_threads << std::endl;
+    
+  std::vector<std::vector<E_Int>> orient(nb_max_threads);
+
+  E_Int i, id{0};
+  DELAUNAY::Triangulator dt;
+
+#pragma omp parallel shared(ngi, crd, cFE, orient, vols) private (i, id, dt) default(none)
   {
-    orient.clear();
-
-    const E_Int* pF = ngi.PHs.get_facets_ptr(i);
-    E_Int nbf = ngi.PHs.stride(i);
-    orient.resize(nbf, 1);
-
-    for (E_Int f = 0; f < nbf; ++f)
+    id = __CURRENT_THREAD__;
+    //std::cout << "before loop thread : " << id  << std::endl;
+#pragma omp for //schedule(dynamic)
+    for (i=0; i < ngi.PHs.size(); ++i)
     {
-      E_Int PGi = *(pF+f) - 1;
-      //std::cout << "PGi bef wwong :" << PGi << std::endl;
-      if ((*cFE)(PGi, 1) != i+1) orient[f] = -1;
-      assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
+      double v;
+      E_Int err = comp_vol(crd, ngi, cFE, orient[id], i, dt, v);
+      if (!err)
+        vols[i] = v;
     }
-
-    //std::cout << "computing flux for PH : " << i << std::endl;
-    K_MESH::Polyhedron<0> PH(ngi, i);
-    double v;
-    DELAUNAY::Triangulator dt;
-    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v, dt);
-
-    if (!err)
-      vols[i] = v;
   }
 
+  //
   ngon_unit neighborsi;
   ngi.build_ph_neighborhood(neighborsi);
 
