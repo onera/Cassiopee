@@ -127,7 +127,7 @@ class Probe:
         return None
 
     # print information on probe
-    def print(self):
+    def printInfo(self):
         """Print information on probe."""
         if Cmpi.rank != self._proc: return
         print('Info: probe: Position: ', self._posX, self._posY, self._posZ)
@@ -265,7 +265,6 @@ class Probe:
         for n in nodes[1:]:
             pxn = Internal.getNodeFromName1(n, 'CoordinateX')
             size += pxn[1].size
-        print('size=',size,flush=True)
 
         out = G.cart((0,0,0), (1,1,1), (size,1,1))
         px2 = Internal.getNodeFromName2(out, 'CoordinateX')[1]

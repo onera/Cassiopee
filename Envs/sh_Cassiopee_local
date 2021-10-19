@@ -413,7 +413,6 @@ elif [ "$MAC" = "spiro_python2" ]; then
 elif [ "$MAC" = "sator" ]; then
 #----------------------------- sator -----------------------------------------
     export ELSAPROD=sat_r8
-    echo "ELSAPROD=" $ELSAPROD
     echo "Pour compiler sur skylake, export MACHINE=sator_sky, puis sourcer sh_Cassiopee_r8" 
 
     # Nbre de threads

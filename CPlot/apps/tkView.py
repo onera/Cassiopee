@@ -604,6 +604,8 @@ def setXZ(event=None):
     CPlot.setState(posCam=posCam2, dirCam=dirCam2)
 
 #==============================================================================
+# Compute global min of current field
+#==============================================================================
 def compMin():
     global VARMIN
     if CTK.t == []: return
@@ -611,6 +613,13 @@ def compMin():
     var = VARS[18].get()
     if CTK.__MAINTREE__ == 1: VARMIN = C.getMinValue(CTK.t, var)
     else: VARMIN = C.getMinValue(CTK.dt, var)
+
+#==============================================================================
+def compIsoMinFull(event=None):
+    zones = CTK.getValidZones()
+    if zones == []: compMin()
+    if len(zones) == len(Internal.getZones(CTK.t)): compMin() 
+    compIsoMin()
 
 #==============================================================================
 def compIsoMin(event=None):
@@ -634,6 +643,8 @@ def compIsoMin(event=None):
     except: pass
 
 #==============================================================================
+# Compute global max of current field
+#==============================================================================
 def compMax():
     global VARMAX
     if CTK.t == []: return
@@ -641,6 +652,13 @@ def compMax():
     var = VARS[18].get()
     if CTK.__MAINTREE__ == 1: VARMAX = C.getMaxValue(CTK.t, var)
     else: VARMAX = C.getMaxValue(CTK.dt, var)
+
+#==============================================================================
+def compIsoMaxFull(event=None):
+    zones = CTK.getValidZones()
+    if zones == []: compMax()
+    if len(zones) == len(Internal.getZones(CTK.t)): compMax() 
+    compIsoMax()
 
 #==============================================================================
 def compIsoMax(event=None):
@@ -1073,7 +1091,7 @@ def createApp(win):
     B.grid(row=2, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[32])
     
-    B = TTK.Button(Scalar, text="Min", command=compIsoMin)
+    B = TTK.Button(Scalar, text="Min", command=compIsoMinFull)
     B.grid(row=3, column=0, sticky=TK.EW)
     B = TTK.Entry(Scalar, textvariable=VARS[9], width=4, background='White')
     B.bind('<Return>', setIsoMin)
@@ -1085,7 +1103,7 @@ def createApp(win):
     B.grid(row=3, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Min of isos for this field.')
     
-    B = TTK.Button(Scalar, text="Max", command=compIsoMax)
+    B = TTK.Button(Scalar, text="Max", command=compIsoMaxFull)
     B.grid(row=4, column=0, sticky=TK.EW)
     B = TTK.Entry(Scalar, textvariable=VARS[10], width=4, background='White')
     B.bind('<Return>', setIsoMax)

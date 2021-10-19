@@ -2936,7 +2936,7 @@ def _extractVars(t, vars, keepOldNodes=True):
         for v in varNames:
             if v not in vars: _rmVars(z, v)
   else:
-    # rebuild a new zone with only vars and coordinates
+    # rebuild a new zone with only vars and coordinates + ZoneBC + ZoneGridConnectivity
     for z in zones:
         zp = Internal.copyNode(z); zp[2] = []
         n = Internal.getNodeFromName1(z, 'ZoneType')
@@ -2968,6 +2968,10 @@ def _extractVars(t, vars, keepOldNodes=True):
                 if cont is not None:
                     n = Internal.getNodeFromName1(cont, v)
                     if n is not None: np[2].append(n)
+        n = Internal.getNodeFromName1(z, 'ZoneBC')
+        if n is not None: zp[2].append(n)
+        n = Internal.getNodeFromName1(z, 'ZoneGridConnectivity')
+        if n is not None: zp[2].append(n)
         z[2] = zp[2]
 
   return None
