@@ -992,13 +992,13 @@ def _adaptNearMatch(t):
   return None
 
 #=========================================================================================
-def createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False):
+def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     """Create elsAHybrid node necessary for NGON zones."""
     tp = Internal.copyRef(t)
-    _createElsaHybrid(tp, method, axe2D, methodPE, newNGON)
+    _createElsaHybrid(tp, method, axe2D, method)
     return tp
 
-def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False):
+def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     from . import converter
     zones = Internal.getZones(t)
     for z in zones:
@@ -1017,13 +1017,14 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False):
              er = Internal.getNodeFromName1(node, 'ElementRange')
              nfaces = er[1][1]-er[1][0]+1
              child = Internal.createUniqueChild(z, ':elsA#Hybrid', 'UserDefinedData_t')
-             ESO = None
-             if newNGON: ESO = Internal.getNodeFromName1(node, 'ElementStartOffset')[1]
+             ESO = Internal.getNodeFromName1(node, 'ElementStartOffset')
+             if ESO is not None: ESO = ESO[1]
+
              # to be removed (only used by elsA for nothing)
              sct = numpy.arange((nfaces), dtype=numpy.int32)
              Internal.newDataArray('SortedCrossTable', value=sct, parent=child)
              inct = numpy.empty((nfaces), dtype=numpy.int32)
-             if not newNGON: Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
+             if ESO is None: Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
              # OK
              ict = numpy.empty((nfaces), dtype=numpy.int32)
              bcct = numpy.empty((nfaces), dtype=numpy.int32)
@@ -1047,7 +1048,7 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False):
                  Internal.newDataArray('ExternalElts', eTRI, parent=child)
          else:
              pass
-             #print 'Warning: createElsaHybrid: no NGON node found for zone %s. No :elsAHybrid node created.'%z[0]
+             #print('Warning: createElsaHybrid: no NGON node found for zone %s. No :elsAHybrid node created.'%z[0])
     return None
 
 #==============================================================================
@@ -1061,7 +1062,7 @@ def prefixDnrInSubRegions(t):
 
 # in place version
 def _prefixDnrInSubRegions(t):
-  if Internal.getNodeFromType3(t,"ZoneSubRegion_t")==None: return None
+  if Internal.getNodeFromType3(t,"ZoneSubRegion_t") is None: return None
 
   baseDict={}
   for base in Internal.getBases(t):

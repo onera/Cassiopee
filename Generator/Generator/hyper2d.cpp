@@ -173,14 +173,26 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
                s.begin(), dx.begin(), dy.begin(), dz.begin());
 
     // Generate the mesh using hyperbolic grid generator
-    coord.malloc((nid+1)*(njd+1), 3);
-    IP.malloc(2*(nid-1));
-    A.malloc(2*2*nid);
-    B.malloc(2*2*nid);
-    C.malloc(2*2*nid);
-    RHS.malloc(2*nid);
-    Z.malloc(2*2*(nid-1));
-    ZA.malloc(2*(nid-2));
+    coord.malloc(nid*njd, 3);
+
+    if (type == 0)
+    {
+        IP.malloc(2*(nid-2));
+        A.malloc(2*2*(nid-2));
+        B.malloc(2*2*(nid-2));
+        C.malloc(2*2*(nid-2));
+        RHS.malloc(2*(nid-2));
+    }
+    else
+    {
+        IP.malloc(2*(nid-2));
+        A.malloc(2*2*(nid-1));
+        B.malloc(2*2*(nid-1));
+        C.malloc(2*2*(nid-1));
+        RHS.malloc(2*(nid-1));
+        Z.malloc(2*2*(nid-1));
+        ZA.malloc(2*(nid-2));
+    }
     vol.malloc(nid*njd);
     
     k6hyper2d_(nid, njd,
@@ -193,8 +205,6 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
                eta_start, eta_end, beta,
                eta_start2, eta_end2, beta2);
     
-    coord.reAllocMat(nid*njd, 3);
-
     // Array Creation 
     delete f; delete fd;
     PyObject* tpl = 
