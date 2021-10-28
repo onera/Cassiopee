@@ -164,8 +164,8 @@ def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False):
     
     if mixed_type == True:
         t = C.breakConnectivity(t)
-        for zone in I.getZones(t):
-            if I.getZoneDim(zone)[3] in ['TRI','QUAD']: I.rmNode(t,zone)
+        for zone in Internal.getZones(t):
+            if Internal.getZoneDim(zone)[3] in ['TRI','QUAD']: Internal.rmNode(t,zone)
 
     t = C.convertArray2NGon(t, recoverBC=keep_BC)
     #C.convertPyTree2File(t, 'tNG.cgns')
@@ -179,7 +179,7 @@ def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False):
       print('Invalid operand : concatenation failed to produce a single connex and conformal block.')
       import sys; sys.exit()
 
-    #I._correctPyTree(t) # to add families if required and missing    
+    #Internal._correctPyTree(t) # to add families if required and missing    
     zs = Internal.getZones(t)
     z = zs[0]
     return z
@@ -199,8 +199,10 @@ def isConformalNConnex(t, nb_comps):
     F = P.exteriorFaces(t)
     F = T.splitConnexity(F)
     zs = Internal.getZones(F)
-    #print('nb of surfs zones: ' + str(len(zs)))
-    if len(zs) != nb_comps : return False
+    if len(zs) != nb_comps :
+      print('nb of contours : '+str(len(zs)))
+      print ('expected to be : '+str(nb_comps))
+      return False
     F = P.exteriorFaces(F)
     zs = Internal.getZones(F)
     #print('nb of edge zones: ' + str(len(zs)))
@@ -251,6 +253,22 @@ def computeVmin(zones):
 
   return vmin
 
+def computeMetrics(NGzones):
+    import sys;
+    MEL=GRmin=Vmin=sys.float_info.max
+    
+    for z in NGzones:
+
+        zi = Internal.createElsaHybrid(z, method=1, methodPE=1)
+        (Vmini, ivmin, vzoneid, GRmini, igrmin, grzoneid) = checkCellsVolumeAndGrowthRatio(zi)
+
+        MELi=edgeLengthExtrema(zi)
+
+        MEL = min(MEL, MELi)
+        Vmin = min(Vmin, Vmini)
+        GRmin = min(GRmin, GRmini)
+
+    return (0.01*MEL, Vmin, GRmin)
 #==============================================================================
 # checkAssemblyForlSolver
 
@@ -516,6 +534,7 @@ def getBCPtListOfType(z, typesList, families = []):
     ptList = []
     for n in nodes:
         ptlnod = Internal.getNodesFromType(n, 'IndexArray_t')
+        if ptlnod == [] : continue
         x = ptlnod[0][1]
         #print(x)
         if type(x[0]) is numpy.ndarray: # ptlnod[0][1] is a list with one ptlist : [ [...] ]

@@ -1091,9 +1091,10 @@ E_Int NGON_BOOLEAN_CLASS::Union
     
    std::sort(palmares.begin(), palmares.end()); 
    
-   for (size_t i=0; i < 10; ++i)
+   size_t ntop = std::min((size_t)10, palmares.size());
+   for (size_t i=0; i <ntop; ++i)
    {
-     std::cout << "TOP 10 NB SURF : " << palmares[i].second << " with " << palmares[i].first << " faces" << std::endl;
+     std::cout << "TOP " << ntop << " NB SURF : " << palmares[i].second << " with " << palmares[i].first << " faces" << std::endl;
    }
     
   
@@ -2986,8 +2987,6 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
     is_skin_node[skin_nodes[i]] = true;
   }
   
-  
-  
   for (size_t i = 0; i < layer_nodes.size(); ++i)
   {
     const E_Int& Ni = layer_nodes[i];
@@ -3112,22 +3111,24 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
           K_CONNECT::IdTool::reverse_sorting(polyLine);
         
         E.setNodes(Nstart, Nend);//NO_Edge not necessary as we enure to have the first node smaller
+
+        auto it = edge_to_refined_edge.find(E);
         
-        if (edge_to_refined_edge.find(E) != edge_to_refined_edge.end())
+        if (it != edge_to_refined_edge.end()) // try to keep the right one : more straight/shorter
         {
-#ifndef DEBUG_BOOLEAN
-          continue;
-#endif
-          //keep the one with the smallest geom distance : WRONG. DOESNT GIVE CONSISTENT RESULTS SO USE DEVIATION INSTEAD
-          /*E_Float d22 = 0.;
-          size_t szd = edge_to_refined_edge[E].size();
-          for (size_t k = 0; k < szd; ++k)
-            d22 += NUGA::sqrDistance(_coord.col(edge_to_refined_edge[E][k]-1), _coord.col(edge_to_refined_edge[E][(k + 1) % szd]-1), 3);
-          
-          szd = polyLine.size();
-          E_Float d21 = 0.;
-          for (size_t k = 0; (k<szd) && (d21<d22); ++k)
-            d21 += NUGA::sqrDistance(_coord.col(polyLine[k]-1), _coord.col(polyLine[(k + 1) % szd]-1), 3);*/
+          // a path is already stored => identical ? otherwise keep best (the straightest)
+
+          if (it->second.size() == polyLine.size()) // check for equality (ON COPIES because need a sort)
+          {
+            auto stored_pL_cpy = it->second;
+            auto pL_cpy = polyLine;
+
+            std::sort(ALL(stored_pL_cpy));
+            std::sort(ALL(pL_cpy));
+
+            if (K_CONNECT::IdTool::equal_vec(pL_cpy, stored_pL_cpy))
+              continue;
+          }
 
 #ifdef DEBUG_BOOLEAN
           K_FLD::IntArray cnt1, cnt2;
@@ -3137,6 +3138,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
           size_t szd1 = edge_to_refined_edge[E].size();
           for (size_t k = 0; k < szd1; ++k){
             d22 = std::max(K_MESH::Edge::edgePointMinDistance2<3>(_coord.col(E.node(0)-1), _coord.col(E.node(1)-1), _coord.col(edge_to_refined_edge[E][k]-1), lambda), d22);
+
 #ifdef DEBUG_BOOLEAN            
             E_Int Ed[] = { edge_to_refined_edge[E][k]-1, edge_to_refined_edge[E][(k + 1) % szd1]-1 };
             cnt1.pushBack(Ed, Ed + 2);
@@ -3146,6 +3148,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
           E_Float d21 = 0.;
           for (size_t k = 0; (k < szd2); ++k){
             d21 = std::max(K_MESH::Edge::edgePointMinDistance2<3>(_coord.col(E.node(0)-1), _coord.col(E.node(1)-1), _coord.col(polyLine[k]-1), lambda), d21);
+
 #ifdef DEBUG_BOOLEAN
             E_Int Ed[] = { polyLine[k]-1, polyLine[(k + 1) % szd2]-1 };
             cnt2.pushBack(Ed, Ed + 2);

@@ -14,8 +14,9 @@
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_t.hxx"
+
 #ifdef DEBUG_AGGLOMERATOR
-#include "NGON_debug.h"
+#include "Nuga/include/medit.hxx"
 #endif
 
 #define NONEVAL -2
@@ -342,9 +343,12 @@ namespace NUGA
         continue;
 
       E_Int bestn = IDX_NONE;
+
+#ifdef DEBUG_AGGLOMERATOR 
       //size_t nbfmax=0;
       //E_Float smax=0.;
-      //E_Float worst_reflex_angle=0.;
+      E_Float worst_reflex_angle=0.;
+#endif
       E_Float qmax=0.;
       E_Int nb_reflex_edges_1(0);
       
@@ -513,7 +517,7 @@ namespace NUGA
         K_FLD::IntArray cnto;
         ngon_type ng(ngi.PGs, best_agg);
         ng.export_to_array(cnto);
-        MIO::write(o.str().c_str(), crd, cnto, "NGON");
+        medith::write(o.str().c_str(), crd, cnto, "NGON");
       }
 #endif
 
@@ -972,13 +976,14 @@ namespace NUGA
       
 #ifdef DEBUG_AGGLOMERATOR
       assert (lnids.size() == sz);
+      const E_Int& PHn = it->first;
       if (PHn == 31923)
       {
         std::vector<E_Int> tmppg = pgsi;
         K_CONNECT::IdTool::shift(tmppg, -1);
-        NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs(crd, ngi.PGs, tmppg);
-        NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH("PHi.tp", crd, ngi, PHi);
-        NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH("PHn.tp", crd, ngi, PHn);
+        medith::write("PGs", crd, ngi.PGs, &tmppg, 1);
+        medith::write("PHi", crd, ngi, PHi);
+        medith::write("PHn", crd, ngi, PHn);
       }
 #endif
 

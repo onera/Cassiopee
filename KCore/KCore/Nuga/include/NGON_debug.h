@@ -55,8 +55,7 @@ public:
   static void draw_PGs(const char* fname, const K_FLD::FloatArray& crd, const ngon_unit& PGs, const Vector_t<E_Int>& PGis, bool localid = false);
   static void draw_PGs(const char* fname, const K_FLD::FloatArray& crd, const ngon_unit& PGs, bool localid = false);
   static void draw_PG_to_T3(E_Int PGi, const Vector_t<E_Int>& nT3_to_PG, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3);
-  
-  static void draw_wired_PG(const char* fname, const K_FLD::FloatArray& coord, const ngon_unit& PGs, E_Int ith, E_Float *normal = nullptr);
+ 
   
   template <typename Triangulator_t>
   static void highlight_PH(const ngon_type& ng, const K_FLD::FloatArray& coord, E_Int PHi);
@@ -356,51 +355,7 @@ void NGON_DBG_CLASS::draw_wired_PH
   
 }
 
-///
-TEMPLATE_COORD_CONNECT
-void NGON_DBG_CLASS::draw_wired_PG(const char* fname, const K_FLD::FloatArray& coord, const ngon_unit& PGs, E_Int ith, E_Float *normal)
-{
-  typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
-  acrd_t acrd(coord);
-  K_FLD::IntArray connectE;
-  E_Int n0, n1;
-  E_Float P0[3], P1[3], Lmin(NUGA::FLOAT_MAX), L2;
-  
-  E_Int nb_nodes, E[2];
-  const E_Int* pNi = PGs.get_facets_ptr(ith);
-  nb_nodes = PGs.stride(ith);
-  
-  for (size_t j=0; j < nb_nodes; ++j)
-  {
-    E[0]=*(pNi+j)-1;
-    E[1]=*(pNi+(j+1)%nb_nodes)-1;
-    connectE.pushBack(E, E+2);
-    L2 = NUGA::sqrDistance(coord.col(E[0]), coord.col(E[1]), 3);
-    Lmin = (L2 < Lmin) ? L2 : Lmin;
-  }
-  
-  Lmin = 0.5*::sqrt(Lmin);
-  
-  K_MESH::Polygon::iso_barycenter<acrd_t, 3 >(acrd, pNi, nb_nodes, 1, P0);
-  
-  K_FLD::FloatArray crd(coord);
-  
-  E_Float Norm[3];
-  if (normal == nullptr)
-  {
-    K_MESH::Polygon::normal<acrd_t, 3>(acrd, pNi, nb_nodes, 1, Norm);
-    normal = Norm;
-  }
-  
-  NUGA::sum<3>(1., P0, Lmin, normal, P1);
-  crd.pushBack(P0, P0+3);
-  E[0]=crd.cols()-1;
-  crd.pushBack(P1, P1+3);
-  E[1]=crd.cols()-1;
-  connectE.pushBack(E, E+2);
-  
-  medith::write(fname, crd, connectE, "BAR");
-}
+
 
 ///
 TEMPLATE_COORD_CONNECT

@@ -29,7 +29,7 @@
 #define dDELAUNAY_FAILURE 7
 
 #ifdef DEBUG1_POLYHEDRON
-#include "Nuga/include/NGON_debug.h"
+#include "Nuga/include/medit.hxx"
 #endif
 
 namespace K_MESH
@@ -731,15 +731,15 @@ public:
 
 #ifdef DEBUG1_POLYHEDRON
           K_FLD::FloatArray crdt(crd);
-          NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PG(crdt, PGS, PGi);
-          NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PG(crdt, PGS, PGj);
+          medith::write("PGi", crdt, PGS, PGi);
+          medith::write("PGj", crdt, PGS, PGj);
           
           std::ostringstream o;
           o << "PG_" << PGi << ".mesh";
-          NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_wired_PG(o.str().c_str(), crd, PGS, PGi, ni);
+          medith::draw_wired_PG(o.str().c_str(), crd, PGS, PGi, ni);
           o.str("");
           o << "PG_" << PGj << ".mesh";
-          NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_wired_PG(o.str().c_str(), crd, PGS, PGj, nj);
+          medith::draw_wired_PG(o.str().c_str(), crd, PGS, PGj, nj);
 #endif
         }
         else if (alpha > angle_convex || er)

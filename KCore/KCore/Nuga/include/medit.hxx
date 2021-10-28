@@ -651,6 +651,51 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     }
     return write(filename, crd, cnt);
   }
+
+  ///
+  static void draw_wired_PG(const char* fname, const K_FLD::FloatArray& coord, const ngon_unit& PGs, E_Int ith, E_Float *normal)
+  {
+    typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
+    acrd_t acrd(coord);
+    K_FLD::IntArray connectE;
+    E_Int n0, n1;
+    E_Float P0[3], P1[3], Lmin(NUGA::FLOAT_MAX), L2;
+
+    E_Int nb_nodes, E[2];
+    const E_Int* pNi = PGs.get_facets_ptr(ith);
+    nb_nodes = PGs.stride(ith);
+
+    for (size_t j = 0; j < nb_nodes; ++j)
+    {
+      E[0] = *(pNi + j) - 1;
+      E[1] = *(pNi + (j + 1) % nb_nodes) - 1;
+      connectE.pushBack(E, E + 2);
+      L2 = NUGA::sqrDistance(coord.col(E[0]), coord.col(E[1]), 3);
+      Lmin = (L2 < Lmin) ? L2 : Lmin;
+    }
+
+    Lmin = 0.5*::sqrt(Lmin);
+
+    K_MESH::Polygon::iso_barycenter<acrd_t, 3 >(acrd, pNi, nb_nodes, 1, P0);
+
+    K_FLD::FloatArray crd(coord);
+
+    E_Float Norm[3];
+    if (normal == nullptr)
+    {
+      K_MESH::Polygon::normal<acrd_t, 3>(acrd, pNi, nb_nodes, 1, Norm);
+      normal = Norm;
+    }
+
+    NUGA::sum<3>(1., P0, Lmin, normal, P1);
+    crd.pushBack(P0, P0 + 3);
+    E[0] = crd.cols() - 1;
+    crd.pushBack(P1, P1 + 3);
+    E[1] = crd.cols() - 1;
+    connectE.pushBack(E, E + 2);
+
+    medith::write(fname, crd, connectE, "BAR");
+  }
   
   
   ///
@@ -770,7 +815,7 @@ private:
   medith(void){}
   ~medith(void){}
 };
-
+/*
 template <> inline
 E_Int medith::write<NUGA::aPolygon>(const char* filename, const NUGA::aPolygon& ae)
 {
@@ -783,6 +828,9 @@ E_Int medith::write<NUGA::aPolyhedron<0>>(const char* filename, const NUGA::aPol
   return write(filename, ae.m_crd, ae.m_pgs);
 
 }
+*/
+
+
 
 
 

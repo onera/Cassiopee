@@ -7,6 +7,7 @@ import Connector.PyTree as X
 from . import PyTree as XOR
 import time
 import numpy
+import sys
 
 #==============================================================================
 # buildPeriodicCanalOperand
@@ -34,6 +35,74 @@ def buildPeriodicCanalOperand(zv, angle, JTOL, rotationCenter=[0.,0.,0.], rotati
     #t2 = X.connectMatch(t2)
     #C.convertPyTree2File(t2, 'op2.cgns')
     return t2
+
+def transform(z, translation = [0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis = [0., 0., 0.]):
+    is_trans=False
+    if translation[0] != 0. or translation[1] != 0. or translation[2] != 0.:
+        is_trans = True;
+    is_rot = False
+    if rotationAxis[0] != 0. or rotationAxis[1] != 0. or rotationAxis[2] != 0.:
+        is_rot = True
+    
+    if is_trans == True and is_rot == True:
+        print('Input tranform error : translation and rotation are defined both')
+    if is_trans == False and is_rot == False:
+        print('Input tranform error : no translation nor rotation is defined')
+
+    if is_trans == True: 
+        zt = T.translate(z, translation)
+    if is_rot == True:
+        zt = T.rotate(z, rotationCenter, rotationAxis)
+    return zt
+
+# creates a tree with 3 zones : the main and one on each side of it
+def build_periodic_operand_2(zi, zone_name, translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis = [0., 0., 0.]):
+
+    z = I.copyRef(zi) # to avoid to modify input zone with connectMatch call
+
+    # 'left zone'
+    z2 = transform(z, translation, rotationCenter, rotationAxis)
+    
+    z = I.getZones(z)[0]
+    z2 = I.getZones(z2)[0]
+    
+    z[0]  = zone_name + str(1)
+    z2[0] = zone_name + str(2)
+    
+    t = C.newPyTree(['Base', z, z2])
+
+    mel_v = XOR.edgeLengthExtrema(z)
+    jtol = 0.01*mel_v
+    t = X.connectMatch(t, tol=jtol)
+    return t
+
+# creates a tree with 3 zones : the main and one on each side of it
+def build_periodic_operand_3(zi, zone_name, translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis = [0., 0., 0.]):
+
+    z = I.copyRef(zi) # to avoid to modify input zone with connectMatch call
+    # 'left zone'
+    z2 = transform(z, translation, rotationCenter, rotationAxis)
+    
+    # 'right zone'
+    translation[0] *= -1 ; translation[1] *= -1 ; translation[2] *= -1
+    rotationAxis[0] *= -1. ; rotationAxis[1] *= -1. ; rotationAxis[2] *=  -1.
+    
+    z3 = transform(z, translation, rotationCenter, rotationAxis)
+
+    z = I.getZones(z)[0]
+    z2 = I.getZones(z2)[0]
+    z3 = I.getZones(z3)[0]
+
+    z[0]  = zone_name + str(1)
+    z2[0] = zone_name + str(2)
+    z3[0] = zone_name + str(3)
+
+    t = C.newPyTree(['Base', z, z2, z3])
+
+    mel_v = XOR.edgeLengthExtrema(z)
+    jtol = 0.01*mel_v
+    t = X.connectMatch(t, tol=jtol)
+    return t
 
 #==============================================================================
 # buildPeriodicFeatureOperand
@@ -86,6 +155,23 @@ def prepareFeature(feature, canal, max_overlap_angle, max_simplify_angle, treat_
     #C.convertPyTree2File(ag_feature, 'ag_feature.cgns')
     return ag_feature
 
+def prepareFeature2(feature, canal, max_overlap_angle, max_simplify_angle):
+    vf = P.exteriorFaces(canal)
+    vf = XOR.convertNGON2DToNGON3D(vf)
+    #C.convertPyTree2File(vf, 'vf.cgns')
+    #import time
+    #t0 = time.time()
+    #print('get overlapping faces...')
+    res = XOR.getOverlappingFaces(feature, vf, RTOL = 0.15, amax = max_overlap_angle)# rad == 6 deg
+    # get pgids for t1 zones only : first par of each pairs
+    nb_zones = len(res)
+    t1zones_pgids = []
+    for i in range(nb_zones):
+      t1zones_pgids.append(res[i][0])
+    #print('agglomerateCellsWithSpecifiedFaces')
+    ag_feature = XOR.agglomerateCellsWithSpecifiedFaces(feature, t1zones_pgids, treat_externals=1, amax = max_simplify_angle)
+    #C.convertPyTree2File(ag_feature, 'ag_feature.cgns')
+    return ag_feature
 
 #==============================================================================
 # preparePeriodicFeature
@@ -151,6 +237,64 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
         C.setFields([m], z1s[0], 'nodes') # replace the mesh in the zone
     
     return feature
+
+def preparePeriodicFeature2(feature, canal, max_overlap_angle, max_simplify_angle,
+                            translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis = [0., 0., 0.],  unitAngle=None, reorient = True):
+
+    mel_v = XOR.edgeLengthExtrema(feature)
+    
+    jtol = 0.01*mel_v
+    tmp = XOR.concatenate(canal, tol=jtol)
+    s2 = P.exteriorFaces(tmp)
+    s2 = XOR.convertNGON2DToNGON3D(s2)
+
+    #C.convertPyTree2File(s2, 's2.cgns')
+    #print('get overlapping faces...')
+    res = XOR.getOverlappingFaces(feature, s2, RTOL = 0.15, amax = max_overlap_angle)
+
+
+    nb_zones = len(res)
+    #print('nb zone in feature :' +str(nb_zones))
+
+    #concatenate the id lists for feature : res[i][0] with i in [0,nb_zones-1]
+    idlist = []
+    for i in range(nb_zones):
+        idlist = numpy.concatenate((idlist, res[i][0]))
+    # get rid of duplicate ids
+    idlist = list(set(idlist))
+    #format
+    ids = numpy.empty(len(idlist), numpy.int32)
+    ids[:] = idlist[:]  
+    
+    # give this list to all zones
+    featurezones_pgids = []
+    for i in range(nb_zones):
+      featurezones_pgids.append(ids)
+
+    #print('agglomerateCellsWithSpecifiedFaces')
+    feature = XOR.agglomerateCellsWithSpecifiedFaces(feature, featurezones_pgids, treat_externals=1, amax = max_simplify_angle) 
+    
+    # # chose the most agglomerated zone and replace the less one
+    # z1s = I.getZones(feature)
+    # nf1 = XOR.nb_faces(z1s[0])
+    # nf2 = XOR.nb_faces(z1s[1])
+
+    # if nf1 < nf2 : # choose z11
+    #     zb = T.rotate(z1s[0], (0.,0.,0.), (rotation_angle, 0., 0.))
+    #     m = C.getFields(I.__GridCoordinates__, zb)[0]
+    #     C.setFields([m], z1s[1], 'nodes') # replace the mesh in the zone
+    # else:          # choose z12
+    #     zb = T.rotate(z1s[1], (0.,0.,0.), (-rotation_angle, 0., 0.))
+    #     m = C.getFields(I.__GridCoordinates__, zb)[0]
+    #     C.setFields([m], z1s[0], 'nodes') # replace the mesh in the zone
+
+
+    XOR._syncMacthPeriodicFaces(feature, 
+                                translation=translation, rotationCenter=rotationCenter, rotationAngle=rotationAxis, unitAngle=unitAngle, 
+                                reorient=reorient)
+    
+    return feature
+
 
 #==============================================================================
 # adaptFirstToSecond(
