@@ -66,6 +66,7 @@ namespace K_INTERSECTOR
   PyObject* immerseNodes(PyObject* self, PyObject* args);
 
   PyObject* getOverlappingFaces(PyObject* self, PyObject* args);
+  PyObject* getCollidingTopFaces(PyObject* self, PyObject* args);
   PyObject* getCollidingCells(PyObject* self, PyObject* args);
   PyObject* getAnisoInnerFaces(PyObject* self, PyObject* args);
 

@@ -84,8 +84,8 @@ def build_periodic_operand_3(zi, zone_name, translation=[0.,0.,0.], rotationCent
     z2 = transform(z, translation, rotationCenter, rotationAxis)
     
     # 'right zone'
-    translation[0] *= -1 ; translation[1] *= -1 ; translation[2] *= -1
-    rotationAxis[0] *= -1. ; rotationAxis[1] *= -1. ; rotationAxis[2] *=  -1.
+    translation[0]  *= -1 ; translation[1]   *= -1 ; translation[2]   *= -1
+    rotationAxis[0] *= -1. ; rotationAxis[1] *= -1. ; rotationAxis[2] *= -1.
     
     z3 = transform(z, translation, rotationCenter, rotationAxis)
 
@@ -155,24 +155,6 @@ def prepareFeature(feature, canal, max_overlap_angle, max_simplify_angle, treat_
     #C.convertPyTree2File(ag_feature, 'ag_feature.cgns')
     return ag_feature
 
-def prepareFeature2(feature, canal, max_overlap_angle, max_simplify_angle):
-    vf = P.exteriorFaces(canal)
-    vf = XOR.convertNGON2DToNGON3D(vf)
-    #C.convertPyTree2File(vf, 'vf.cgns')
-    #import time
-    #t0 = time.time()
-    #print('get overlapping faces...')
-    res = XOR.getOverlappingFaces(feature, vf, RTOL = 0.15, amax = max_overlap_angle)# rad == 6 deg
-    # get pgids for t1 zones only : first par of each pairs
-    nb_zones = len(res)
-    t1zones_pgids = []
-    for i in range(nb_zones):
-      t1zones_pgids.append(res[i][0])
-    #print('agglomerateCellsWithSpecifiedFaces')
-    ag_feature = XOR.agglomerateCellsWithSpecifiedFaces(feature, t1zones_pgids, treat_externals=1, amax = max_simplify_angle)
-    #C.convertPyTree2File(ag_feature, 'ag_feature.cgns')
-    return ag_feature
-
 #==============================================================================
 # preparePeriodicFeature
 
@@ -238,63 +220,52 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
     
     return feature
 
-def preparePeriodicFeature2(feature, canal, max_overlap_angle, max_simplify_angle,
-                            translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis = [0., 0., 0.],  unitAngle=None, reorient = True):
 
-    mel_v = XOR.edgeLengthExtrema(feature)
-    
-    jtol = 0.01*mel_v
-    tmp = XOR.concatenate(canal, tol=jtol)
-    s2 = P.exteriorFaces(tmp)
-    s2 = XOR.convertNGON2DToNGON3D(s2)
+#==============================================================================
+# regularizeFeature
 
-    #C.convertPyTree2File(s2, 's2.cgns')
-    #print('get overlapping faces...')
-    res = XOR.getOverlappingFaces(feature, s2, RTOL = 0.15, amax = max_overlap_angle)
+# GOAL : remove singularities on features (overlapping polygons) by agglomeration on the vicinity of the canal's skin to ease the assembly. 
 
+# ASSUMPTION : feature and canal have one main zone each. The remaining zones are duplicated and rotated (by rotation_angle) of the main one (for periodicity)
+# so we force the agglomeration to be the same for all zones by merging what we get on each zone with getOverlappingFaces 
+# and apply the result to all zones when calling agglomerateCellsWithSpecifiedFaces
+# this constraint ensure the boolean operation to give a periodic result.
 
-    nb_zones = len(res)
-    #print('nb zone in feature :' +str(nb_zones))
+# IN: feature             : 3D NGON mesh of the features to assemble (axisym features)
+# IN: canal               : 3D NGON mesh of the canal
 
-    #concatenate the id lists for feature : res[i][0] with i in [0,nb_zones-1]
-    idlist = []
-    for i in range(nb_zones):
-        idlist = numpy.concatenate((idlist, res[i][0]))
-    # get rid of duplicate ids
-    idlist = list(set(idlist))
-    #format
-    ids = numpy.empty(len(idlist), numpy.int32)
-    ids[:] = idlist[:]  
-    
-    # give this list to all zones
-    featurezones_pgids = []
-    for i in range(nb_zones):
-      featurezones_pgids.append(ids)
+# IN: max_overlap_angle   : max angle in radian between two polygons normals to consider them as overlapping
+# IN: max_simplify_angle  : sharp edge angle in radian. Under that value, Elligible poylgons will be agglomerated to simplify the cells
 
-    #print('agglomerateCellsWithSpecifiedFaces')
-    feature = XOR.agglomerateCellsWithSpecifiedFaces(feature, featurezones_pgids, treat_externals=1, amax = max_simplify_angle) 
-    
-    # # chose the most agglomerated zone and replace the less one
-    # z1s = I.getZones(feature)
-    # nf1 = XOR.nb_faces(z1s[0])
-    # nf2 = XOR.nb_faces(z1s[1])
+# OUT: returns the adapted feature
+#==============================================================================
+def regularizeFeature(feature, skin, max_overlap_angle, max_simplify_angle):
+    res1 = XOR.getOverlappingFaces(feature, skin, RTOL = 0.15, amax = max_overlap_angle)
+    res2 = XOR.getCollidingTopFaces(feature, skin, RTOL = 0.15)
 
-    # if nf1 < nf2 : # choose z11
-    #     zb = T.rotate(z1s[0], (0.,0.,0.), (rotation_angle, 0., 0.))
-    #     m = C.getFields(I.__GridCoordinates__, zb)[0]
-    #     C.setFields([m], z1s[1], 'nodes') # replace the mesh in the zone
-    # else:          # choose z12
-    #     zb = T.rotate(z1s[1], (0.,0.,0.), (-rotation_angle, 0., 0.))
-    #     m = C.getFields(I.__GridCoordinates__, zb)[0]
-    #     C.setFields([m], z1s[0], 'nodes') # replace the mesh in the zone
+    #f = XOR.getFaces(feature, [res2[0]])
+    #C.convertPyTree2File(f, 'tops.cgns')
 
+    #f = XOR.getFaces(feature, [res1[0][0]])
+    #C.convertPyTree2File(f, 'ovlp.cgns')
 
-    XOR._syncMacthPeriodicFaces(feature, 
-                                translation=translation, rotationCenter=rotationCenter, rotationAngle=rotationAxis, unitAngle=unitAngle, 
-                                reorient=reorient)
-    
-    return feature
+    nbz = len(res1) ## == len(res2)
+    print(nbz)
+    ids_per_z = []
+    for i in range(nbz):
+        idlist = []
+        idlist = numpy.concatenate((idlist, res1[i][0]))
+        idlist = numpy.concatenate((idlist, res2[i]))
+        idlist = list(set(idlist))# get rid of duplicate ids
+        ids = numpy.empty(len(idlist), numpy.int32) #format
+        ids[:] = idlist[:]
+        ids_per_z.append(ids)
+   
+    #f = XOR.getFaces(feature, ids_per_z)
+    #C.convertPyTree2File(f, 'allf.cgns')
 
+    azt = XOR.agglomerateCellsWithSpecifiedFaces(feature, ids_per_z, treat_externals=1, amax = max_simplify_angle)
+    return azt
 
 #==============================================================================
 # adaptFirstToSecond(

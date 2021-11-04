@@ -27,11 +27,7 @@
 
 #include "Nuga/include/Triangulator.h"
 #include "Nuga/include/ngon_t.hxx"
-#include "Nuga/include/polygon.hxx"
-#include "Nuga/include/polyhedron.hxx"
 #include "Nuga/include/cdatastruct.hxx"
-#include "Nuga/include/Tetrahedron.h"
-#include "Nuga/include/Hexahedron.h"
 
 using ngon_type = ngon_t<K_FLD::IntArray>;
 

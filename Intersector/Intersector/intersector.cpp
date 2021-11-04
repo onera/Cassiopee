@@ -88,6 +88,7 @@ static PyMethodDef Pyintersector [] =
   {"getNthNeighborhood", K_INTERSECTOR::getNthNeighborhood, METH_VARARGS},
 
   {"getOverlappingFaces", K_INTERSECTOR::getOverlappingFaces, METH_VARARGS},
+  {"getCollidingTopFaces", K_INTERSECTOR::getCollidingTopFaces, METH_VARARGS},
   {"getCollidingCells", K_INTERSECTOR::getCollidingCells, METH_VARARGS},
   {"getAnisoInnerFaces", K_INTERSECTOR::getAnisoInnerFaces, METH_VARARGS},
   {"estimateAdapReq", K_INTERSECTOR::estimateAdapReq, METH_VARARGS},

@@ -35,6 +35,21 @@ public:
     static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i);
 
     template <typename ngunit_t>
+    static int get_opposite(const ngunit_t & PGs, const E_Int* first_pg, E_Int k)
+    {
+      int PGk  = first_pg[k]-1;
+      if (PGs.stride(PGk) != 3) return IDX_NONE;//means something only for 
+
+      for (size_t i=0; i < 5; ++i)
+      {
+        if (i == k) continue;
+        int PGi  = first_pg[i]-1;
+        if (PGs.stride(PGi) == 3) return i;
+      }
+      return IDX_NONE;
+    }
+
+    template <typename ngunit_t>
     static bool is_of_type(const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs)
     {
       if (nb_pgs != 5) return false;

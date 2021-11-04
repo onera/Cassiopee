@@ -301,12 +301,14 @@ def simplifySurf(a, angular_threshold = 1.e-12):
 # IN: a: 3D NGON mesh
 # IN: vmin : volume threshold
 # IN: vratio : growth ratio threshold
+# IN: angular_threshold : for simplying cells by agglomerating adjacent polygons
+# IN: method = 0 (XXX)
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother growth ratio
 #==============================================================================
-def agglomerateSmallCells(a, vmin=0., vratio=1000., angular_threshold = 1.e-12, force=False):
+def agglomerateSmallCells(a, vmin=0., vratio=1000., angular_threshold = 1.e-12, method=0):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(a, vmin, vratio)"""
-    return intersector.agglomerateSmallCells(a, vmin, vratio,angular_threshold, force)
+    return intersector.agglomerateSmallCells(a, vmin, vratio,angular_threshold, method)
 
 #==============================================================================
 # shellAgglomerateSmallCells : eradicate small cells by agglomerating all surrounding cells
@@ -577,6 +579,19 @@ def getOverlappingFaces(a1, a2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
     """ Returns the list of polygons in a1 and a2 that are overlapping.
     Usage: getOverlappingFaces(a1, a2, RTOL, amax, dir2)"""
     return intersector.getOverlappingFaces(a1,a2, RTOL, amax, dir2)
+
+
+#==============================================================================
+# getCollidingTopFaces  : Returns the list of TRI/QUAD in a1 (HEXA and PRISM only) that collide a2.
+# IN : a1:              : NGON mesh.
+# IN : a2:              : NGON mesh.
+# IN : RTOL:            : Relative tolerance (in ]0., 1.[).
+# OUT: list of t1 involved faces
+#==============================================================================
+def getCollidingTopFaces(a1, a2, RTOL = 0.1):
+    """ Returns the list of TRI/QUAD in a1 (HEXA and PRISM only) that collide a2.
+    Usage: getCollidingTopFaces(a1, a2, RTOL)"""
+    return intersector.getCollidingTopFaces(a1,a2, RTOL)
 
 #==============================================================================
 # getCollidingCells     : returns the list of cells in a1 and a2 that are colliding.

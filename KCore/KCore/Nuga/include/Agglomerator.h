@@ -43,7 +43,7 @@ namespace NUGA
    
     ///
     template<typename TriangulatorType>
-    inline static void agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, bool force, double angle_threshold=1.e-12);
+    inline static void agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold=1.e-12, int method=0);
     ///
     template<typename TriangulatorType>
     inline static void agglomerate_non_star_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold = 1.e-12);
@@ -52,9 +52,6 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static void shell_agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs);
   
-//    template<typename TriangulatorType>
-//    inline static void agglomerate_uncomputable_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo);
-    
     ///
     inline static void agglomerate_phs_having_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, std::vector<E_Int>& pgnids);
     
@@ -70,15 +67,23 @@ namespace NUGA
       (const K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& orienti, const ngon_unit& phneighborsi, E_Float angular_max, bool process_externals,
        ngon_type& ngo, ngon_unit& oriento, ngon_unit& phneighborso, const Vector_t<E_Int>* PHlist = nullptr, const Vector_t<E_Int>* skipPGlist = nullptr);
 
-    ///
-//    template<typename TriangulatorType>
-//    inline static void agglomerate_phs(const K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& neighborsi, const Vector_t<E_Int>& PHlist, ngon_type& ngo);
+    /// DEPRECATED
+    template<typename TriangulatorType>
+    inline static void agglomerate_phs_OLD(const K_FLD::FloatArray& crd,
+                                           const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
+                                           ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, bool force, double angle_threshold);
 
     ///
     template<typename TriangulatorType>
     inline static void agglomerate_phs (const K_FLD::FloatArray& crd, 
                                         const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-                                        ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, bool force, double angle_threshold);
+                                        ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_mode);
+
+    /// TRYING TO FOCUSE MORE ON REFLEX SITUATION
+    template<typename TriangulatorType>
+    inline static void agglomerate_phs2(const K_FLD::FloatArray& crd,
+      const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
+      ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_mode);
   
   
   private:
@@ -136,6 +141,7 @@ namespace NUGA
 #ifdef DEBUG_AGGLOMERATOR   
     std::cout << "simplify_phs : initial nb of pgs : " << ngi.PGs.size() << std::endl;
 #endif
+
     if (PHlist)
     {
       size_t nb_phs = PHlist->size();
@@ -216,100 +222,505 @@ namespace NUGA
     ngon_type::simplify_pgs(ngo, crd, process_externals);
   }
 
-//  template<typename TriangulatorType>
-//  void NUGA::Agglomerator::agglomerate_phs
-//  (const K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& neighborsi, const Vector_t<E_Int>& PHlist, ngon_type& ngo)
-//  {
-//    ngo.clear();
-//    
-//    // Fast return
-//    if (PHlist.size() * ngi.PHs.size() * ngi.PGs.size() == 0) 
-//    {
-//      return;
-//    }
-//    
-//    //std::cout << "ngi : initial nb of phs : " << ngi.PHs.size() << std::endl;
-//    
-//    std::vector<bool> frozen(ngi.PHs.size(), false); //process one agglo at a time
-//    std::vector<E_Int> shared_pgs;
-//
-//    ngon_unit all_agg_phs, agg_phs;
-//
-//    E_Int nb_phs = PHlist.size();
-//    for (E_Int ii = 0; ii < nb_phs; ++ii)
-//    {
-//      E_Int i = PHlist[ii];
-//
-//      if (frozen[i])
-//        continue;
-//
-//      E_Int bestn = IDX_NONE;
-//      size_t maxf = 0;
-//
-//      E_Int nb_neighs = ngi.PHs.stride(i);
-//      const E_Int* neighs = neighborsi.get_facets_ptr(i);
-//
-//      // the best is the one sharing the most number of faces
-//      for (E_Int n = 0; (n < nb_neighs); ++n)
-//      {
-//        E_Int j = *(neighs + n);
-//        if (j == IDX_NONE)
-//          continue;
-//
-//        if (frozen[j])
-//          continue;
-//
-//        ngon_type::shared_faces_list(ngi, i, j, shared_pgs);
-//        size_t nbf = shared_pgs.size();
-//
-//        if (nbf < maxf)
-//          continue;
-//
-//        maxf = nbf;
-//        bestn = n;
-//      }
-//
-//      if (bestn == IDX_NONE) continue;
-//
-//      E_Int j = *(neighs + bestn);
-//      frozen[i] = frozen[j] = true;
-//
-//      K_MESH::Polyhedron<UNKNOWN>::merge_two_phs(crd, ngi.PGs, 
-//                                                 ngi.PHs.get_facets_ptr(i), ngi.PHs.stride(i),
-//                                                 ngi.PHs.get_facets_ptr(j), ngi.PHs.stride(j), 
-//                                                 agg_phs);
-//
-//      all_agg_phs.append(agg_phs);
-//
-//    }
-//
-//    ngo.PGs = ngi.PGs;
-//    ngo.PHs = all_agg_phs;
-//    
-//    //std::cout << ngo.PHs.size()/2 << " uncomputable cells have been agglomerated." << std::endl;
-//
-//    // now add untouched ones
-//    for (size_t i = 0; i < frozen.size(); ++i)
-//    {
-//      if (!frozen[i])
-//      {
-//        ngo.PHs.add(ngi.PHs.stride(i), ngi.PHs.get_facets_ptr(i));
-//        if (!ngi.PHs._type.empty()) ngo.PHs._type.push_back(ngi.PHs._type[i]);
-//      }
-//    }
-//    
-//    //std::cout << "effective nb of phs in agglomerated ngo : " << ngo.PHs.size() << std::endl;
-//
-//    std::vector<E_Int> pgnids, phnids;
-//    ngo.remove_unreferenced_pgs(pgnids, phnids);
-//
-//  }
+  ///
+  template<typename TriangulatorType>
+  void NUGA::Agglomerator::agglomerate_phs2
+  (const K_FLD::FloatArray& crd, 
+   const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
+   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria)
+  {
+    ngo.clear();
+    oriento.clear();
+    nb_aggs = 0;
+
+    double concave_threshold = angle_threshold;
+    double convex_threshold = angle_threshold;
+    
+    //std::cout << "ngi : initial nb of phs : " << ngi.PHs.size() << std::endl;
   
+    // Fast return
+    if (PHlist.size() * ngi.PHs.size() * ngi.PGs.size() == 0) return;
+  
+    TriangulatorType dt;
+  
+    std::vector<bool> frozen(ngi.PHs.size(), false); //process one agglo at a time
+    std::vector<bool> bad(ngi.PHs.size(), false);
+    for (size_t k = 0; k < PHlist.size(); ++k) bad[PHlist[k]] = true;
+    
+    std::vector<E_Int> shared_pgs;
+    std::map<K_MESH::NO_Edge, E_Float> reflex_edges;
+    std::set<K_MESH::NO_Edge> convex_edges;
+
+    ngon_unit all_agg, cur_agg, all_ori, cur_ori, best_agg, best_ori;
+
+    E_Int nb_phs = PHlist.size();
+    //std::cout << "NB OF BAD CELLS TO AGGLOMERATE : " << nb_phs << std::endl;
+    //E_Int agg_id(0);
+    for (E_Int ii = 0; ii < nb_phs; ++ii)
+    {
+      E_Int i = PHlist[ii];
+
+      if (frozen[i])
+        continue;
+
+      E_Int bestn = IDX_NONE;
+      E_Float worst_reflex_a = -1.;
+
+#ifdef DEBUG_AGGLOMERATOR 
+      //size_t nbfmax=0;
+      //E_Float smax=0.;
+#endif
+      E_Float qmax=0.;
+      E_Int nb_reflex_edges_1(0);
+      E_Int min_delta_reflex = 1000;
+      
+      E_Int nb_neighs = ngi.PHs.stride(i);
+      const E_Int* neighs = neighborsi.get_facets_ptr(i);
+      const E_Int* pgsi = ngi.PHs.get_facets_ptr(i);
+      
+      bool conc1;
+      K_MESH::Polyhedron<UNKNOWN>::is_concave
+                (crd, ngi.PGs, pgsi, nb_neighs, false/*deal with closed PH*/, orienti.get_facets_ptr(i), conc1, nb_reflex_edges_1, concave_threshold, convex_threshold);
+
+      E_Float vi;
+      K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(crd, ngi.PGs, ngi.PHs.get_facets_ptr(i), ngi.PHs.stride(i), vi, true);
+
+      // the best is the one sharing the most number of faces
+      for (E_Int n = 0; (n < nb_neighs); ++n)
+      {
+        E_Int j = *(neighs + n);
+        if (j == IDX_NONE)
+          continue;
+
+        if (bad[j]) continue;
+
+        if (frozen[j]) 
+        {
+          // continue; fixme : hack to have the targeted logic (but bad perfo) : 
+          // a cell has to be aggregated with its best mate, i.e the one with most surface in common, not the best available one.
+          bestn = IDX_NONE;
+          break;
+        }
+
+        const E_Int* pgsj = ngi.PHs.get_facets_ptr(j);
+        E_Int nb_pgsj = ngi.PHs.stride(j);
+
+        cur_agg.clear();
+        cur_ori.clear();
+
+        K_MESH::Polyhedron<UNKNOWN>::merge_two_phs(crd, ngi.PGs, pgsi, nb_neighs, pgsj, nb_pgsj, orienti.get_facets_ptr(i), orienti.get_facets_ptr(j), cur_agg, cur_ori);
+
+        reflex_edges.clear();
+        convex_edges.clear();
+
+        E_Int res = K_MESH::Polyhedron<UNKNOWN>::is_pathological
+                (dt, crd, ngi.PGs, cur_agg.get_facets_ptr(0), cur_agg.stride(0), cur_ori.get_facets_ptr(0), reflex_edges, convex_edges, concave_threshold, convex_threshold);
+        
+        //if (res == dOPEN_PHS) continue; // just wrong
+        if (res != dPATHO_PH_NONE) continue;
+
+        // IS IT BETTER ?
+        E_Float vj;
+        K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(crd, ngi.PGs, pgsj, nb_pgsj, vj, true);
+
+        // -1 number of reflex edges MUST not increase
+       
+        //compuTe now for j
+        bool conc2;
+        E_Int nb_reflex_edges_2(0);
+        K_MESH::Polyhedron<UNKNOWN>::is_concave
+                  (crd, ngi.PGs, pgsj, nb_pgsj, false/*deal with closed PH*/, orienti.get_facets_ptr(j), conc2, nb_reflex_edges_2, concave_threshold, convex_threshold);
+        
+        E_Int nb_reflex_new = (E_Int)reflex_edges.size();
+        
+        // -2 number of shared faces and shared surface SHOULD be max
+    
+        ngon_type::shared_faces_list(ngi, i, j, shared_pgs);
+        size_t nbf = shared_pgs.size();
+        // compute shared surface
+        E_Float s=0.;
+        for (size_t f = 0; f < nbf; ++f)
+        {
+          E_Int PGi = shared_pgs[f]-1;
+          s += K_MESH::Polygon::surface<K_FLD::FloatArray, 3>(crd, ngi.PGs.get_facets_ptr(PGi), ngi.PGs.stride(PGi), 1);
+        }
+        
+        //fixme proto : compute the total surface of PHi
+        E_Float stot=0.;
+        for (E_Int f = 0; f < nb_neighs; ++f)
+        {
+          E_Int PGi = *(pgsi+f)-1;
+          stot += K_MESH::Polygon::surface<K_FLD::FloatArray, 3>(crd, ngi.PGs.get_facets_ptr(PGi), ngi.PGs.stride(PGi), 1);
+        }
+        
+        E_Float face_ratio = E_Float(nbf) / E_Float (nb_neighs);
+        E_Float surface_ratio = s /stot;
+        E_Float reflex_ratio = (1. + E_Float(nb_reflex_edges_1 + nb_reflex_edges_2)) / (1. + E_Float(nb_reflex_new));
+        //E_Float volume_ratio = 1. / (1. + ::fabs(vi / vj));
+        E_Int delta_reflex = nb_reflex_new - (nb_reflex_edges_1 + nb_reflex_edges_2);
+        
+        // -3 worst reflex angle SHOULD decrease
+        
+        E_Float reflex_a = NUGA::PI;
+
+        if (!reflex_edges.empty())
+        {
+          for (std::map<K_MESH::NO_Edge, E_Float>::const_iterator it = reflex_edges.begin(); it != reflex_edges.end(); ++it) 
+            reflex_a = std::min(reflex_a, it->second);
+
+          //std::cout << "worst angle : " << reflex_a << std::endl;
+        }
+
+        reflex_a /= NUGA::PI;
+        E_Int N = 3;
+        if (enforce_reflex_criteria == 1)
+        {
+          // prioritize contributions
+          reflex_ratio *= 2;// ::sqrt(reflex_ratio); // increase impact
+          N++;
+          reflex_a *= 2;// ::sqrt(worst_reflex_a);   // increase impact
+          N++;
+          //volume_ratio *= volume_ratio;            // decrease impact
+          //N++
+        }
+
+        bool is_better = false;
+        E_Float q = (face_ratio + surface_ratio + reflex_a) /  (E_Float)N;// +reflex_ratio); // *volume_ratio;
+
+        if (delta_reflex < min_delta_reflex)
+          is_better = true;
+        else if (delta_reflex == min_delta_reflex)
+          is_better = (q > qmax);
+
+        if (is_better)
+        {
+          bestn = n;
+
+          //smax = s;
+          //nbfmax = nbf;
+          best_agg = cur_agg;
+          best_ori = cur_ori;
+          worst_reflex_a = reflex_a;
+          min_delta_reflex = delta_reflex;
+          qmax = q;
+          
+#ifdef DEBUG_AGGLOMERATOR
+         //if (ii == 5 || ii == 6)
+          /*{
+           std::ostringstream o;
+           o << "D://slandier//DATA//tmp//agglo//agg_" << ii << "_with_neigh_" << n << ".tp";
+           K_FLD::IntArray cnto;
+           ngon_type ng(ngi.PGs, best_agg);
+           ng.export_to_array(cnto);
+           //medith::write(o.str().c_str(), crd, cnto, "NGON");
+           tp::write(o.str().c_str(), crd, cnto, "NGON");
+         }*/
+#endif
+        } 
+      }
+
+      if (bestn == IDX_NONE) continue;
+      
+      E_Int j = *(neighs+bestn);
+      frozen[i] = frozen[j] = true;
+
+      //std::cout << " agglomerate " << agg_id++ << " was " << i << " and " << j << std::endl;
+      
+#ifdef DEBUG_AGGLOMERATOR
+      std::cout << "AGGLOMERATION : " << i << " with " << j << std::endl;
+      //if (ii==5 || ii ==6)
+      {
+        std::ostringstream o;
+        o << "/visu/slandier/ATOM/TURBINE_REFROIDIE/ROTOR2/RXXX/TEST_10/best_agg_" << ii << ".tp";//";//D://slandier//DATA//tmp//agglo//best_agg_" << i << ".tp";
+        K_FLD::IntArray cnto;
+        ngon_type ng(ngi.PGs, best_agg);
+        ng.export_to_array(cnto);
+        medith::write(o.str().c_str(), crd, cnto, "NGON");
+        //tp::write(o.str().c_str(), crd, cnto, "NGON");
+      }
+#endif
+
+      all_agg.append(best_agg);
+      all_ori.append(best_ori);
+    }
+
+    ngo.PGs = ngi.PGs;
+    ngo.PHs = all_agg;
+    
+    //std::cout << ngo.PHs.size() << " small cells have been agglomerated." << std::endl;
+
+    // now add untouched ones
+    for (size_t i = 0; i < frozen.size(); ++i)
+    {
+      if (!frozen[i])
+      {
+        ngo.PHs.add(ngi.PHs.stride(i), ngi.PHs.get_facets_ptr(i));
+        if (!ngi.PHs._type.empty()) ngo.PHs._type.push_back(ngi.PHs._type[i]);
+      }
+    }
+    
+    ngo.PGs.updateFacets();
+    ngo.PHs.updateFacets();
+    
+    //std::cout << "effective nb of phs in agglomerated ngo : " << ngo.PHs.size() << std::endl;
+
+    std::vector<E_Int> pgnids, phnids;
+    ngo.remove_unreferenced_pgs(pgnids, phnids);
+
+  }
+  
+  ///
   template<typename TriangulatorType>
   void NUGA::Agglomerator::agglomerate_phs
   (const K_FLD::FloatArray& crd, 
    const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, bool force, double angle_threshold)
+   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria)
+  {
+    ngo.clear();
+    oriento.clear();
+    nb_aggs = 0;
+
+    double concave_threshold = angle_threshold;
+    double convex_threshold = angle_threshold;
+    
+    //std::cout << "ngi : initial nb of phs : " << ngi.PHs.size() << std::endl;
+  
+    // Fast return
+    if (PHlist.size() * ngi.PHs.size() * ngi.PGs.size() == 0) return;
+  
+    TriangulatorType dt;
+  
+    std::vector<bool> frozen(ngi.PHs.size(), false); //process one agglo at a time
+    std::vector<bool> bad(ngi.PHs.size(), false);
+    for (size_t k = 0; k < PHlist.size(); ++k) bad[PHlist[k]] = true;
+    
+    std::vector<E_Int> shared_pgs;
+    std::map<K_MESH::NO_Edge, E_Float> reflex_edges;
+    std::set<K_MESH::NO_Edge> convex_edges;
+
+    ngon_unit all_agg, cur_agg, all_ori, cur_ori, best_agg, best_ori;
+
+    E_Int nb_phs = PHlist.size();
+    //std::cout << "NB OF BAD CELLS TO AGGLOMERATE : " << nb_phs << std::endl;
+    //E_Int agg_id(0);
+    for (E_Int ii = 0; ii < nb_phs; ++ii)
+    {
+      E_Int i = PHlist[ii];
+
+      if (frozen[i])
+        continue;
+
+      E_Int bestn = IDX_NONE;
+
+#ifdef DEBUG_AGGLOMERATOR 
+      //size_t nbfmax=0;
+      //E_Float smax=0.;
+#endif
+      E_Float qmax=0.;
+      E_Int nb_reflex_edges_1(0);
+      
+      E_Int nb_neighs = ngi.PHs.stride(i);
+      const E_Int* neighs = neighborsi.get_facets_ptr(i);
+      const E_Int* pgsi = ngi.PHs.get_facets_ptr(i);
+      
+      bool conc1;
+      K_MESH::Polyhedron<UNKNOWN>::is_concave
+                (crd, ngi.PGs, pgsi, nb_neighs, false/*deal with closed PH*/, orienti.get_facets_ptr(i), conc1, nb_reflex_edges_1, concave_threshold, convex_threshold);
+
+      E_Float vi;
+      K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(crd, ngi.PGs, ngi.PHs.get_facets_ptr(i), ngi.PHs.stride(i), vi, true);
+
+      // the best is the one sharing the most number of faces
+      for (E_Int n = 0; (n < nb_neighs); ++n)
+      {
+        E_Int j = *(neighs + n);
+        if (j == IDX_NONE)
+          continue;
+
+        if (bad[j]) continue;
+
+        if (frozen[j]) 
+        {
+          // continue; fixme : hack to have the targeted logic (but bad perfo) : 
+          // a cell has to be aggregated with its best mate, i.e the one with most surface in common, not the best available one.
+          bestn = IDX_NONE;
+          break;
+        }
+
+        const E_Int* pgsj = ngi.PHs.get_facets_ptr(j);
+        E_Int nb_pgsj = ngi.PHs.stride(j);
+
+        cur_agg.clear();
+        cur_ori.clear();
+
+        K_MESH::Polyhedron<UNKNOWN>::merge_two_phs(crd, ngi.PGs, pgsi, nb_neighs, pgsj, nb_pgsj, orienti.get_facets_ptr(i), orienti.get_facets_ptr(j), cur_agg, cur_ori);
+
+        reflex_edges.clear();
+        convex_edges.clear();
+
+        E_Int res = K_MESH::Polyhedron<UNKNOWN>::is_pathological
+                (dt, crd, ngi.PGs, cur_agg.get_facets_ptr(0), cur_agg.stride(0), cur_ori.get_facets_ptr(0), reflex_edges, convex_edges, concave_threshold, convex_threshold);
+        
+        //if (res == dOPEN_PHS) continue; // just wrong
+        if (res != dPATHO_PH_NONE) continue;
+
+        // IS IT BETTER ?
+        E_Float vj;
+        K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(crd, ngi.PGs, pgsj, nb_pgsj, vj, true);
+
+        // -1 number of reflex edges MUST not increase
+       
+        //compuTe now for j
+        bool conc2;
+        E_Int nb_reflex_edges_2(0);
+        K_MESH::Polyhedron<UNKNOWN>::is_concave
+                  (crd, ngi.PGs, pgsj, nb_pgsj, false/*deal with closed PH*/, orienti.get_facets_ptr(j), conc2, nb_reflex_edges_2, concave_threshold, convex_threshold);
+        
+        E_Int nb_reflex_new = (E_Int)reflex_edges.size();
+        
+        // -2 number of shared faces and shared surface SHOULD be max
+    
+        ngon_type::shared_faces_list(ngi, i, j, shared_pgs);
+        size_t nbf = shared_pgs.size();
+        // compute shared surface
+        E_Float s=0.;
+        for (size_t f = 0; f < nbf; ++f)
+        {
+          E_Int PGi = shared_pgs[f]-1;
+          s += K_MESH::Polygon::surface<K_FLD::FloatArray, 3>(crd, ngi.PGs.get_facets_ptr(PGi), ngi.PGs.stride(PGi), 1);
+        }
+        
+        //fixme proto : compute the total surface of PHi
+        E_Float stot=0.;
+        for (E_Int f = 0; f < nb_neighs; ++f)
+        {
+          E_Int PGi = *(pgsi+f)-1;
+          stot += K_MESH::Polygon::surface<K_FLD::FloatArray, 3>(crd, ngi.PGs.get_facets_ptr(PGi), ngi.PGs.stride(PGi), 1);
+        }
+        
+        E_Float face_ratio = E_Float(nbf) / E_Float (nb_neighs);
+        E_Float surface_ratio = s /stot;
+        E_Float reflex_ratio = (1. + E_Float(nb_reflex_edges_1 + nb_reflex_edges_2)) / (1. + E_Float(nb_reflex_new));
+        //E_Float volume_ratio = 1. / (1. + ::fabs(vi / vj));
+        
+        // -3 worst reflex angle SHOULD decrease
+        
+        E_Float worst_reflex_a = NUGA::PI;
+
+        if (!reflex_edges.empty())
+        {
+          for (std::map<K_MESH::NO_Edge, E_Float>::const_iterator it = reflex_edges.begin(); it != reflex_edges.end(); ++it) 
+            worst_reflex_a = std::min(worst_reflex_a, it->second);
+
+          //std::cout << "worst angle : " << worst_reflex_a << std::endl;
+        }
+
+        worst_reflex_a /= NUGA::PI;
+
+        E_Float q{ 0 };
+        
+        if (enforce_reflex_criteria == 1)
+        {
+          // prioritize contributions
+          reflex_ratio = ::sqrt(reflex_ratio);       // increase impact
+          worst_reflex_a = ::sqrt(worst_reflex_a);   // increase impact
+          //volume_ratio *= volume_ratio;            // decrease impact
+
+          q = face_ratio * surface_ratio * worst_reflex_a * reflex_ratio; // *volume_ratio;
+        }
+        else if ((enforce_reflex_criteria == 0) || (enforce_reflex_criteria == 2))
+        {
+          double F = 1.;
+          double N = 4.;
+          if (enforce_reflex_criteria == 2) {F = 2; N = 6;}
+
+          q = (face_ratio + surface_ratio + F * (worst_reflex_a + reflex_ratio) )  / N;
+        }
+
+      
+        //maximum surface is best. if equality, count the number of shared faces.
+        //bool is_better = (s > smax) || ((::fabs(s-smax) < EPSILON) && (nbf > nbfmax));
+        bool is_better = (q > qmax);
+      
+        if (is_better)
+        {
+          bestn = n;
+
+          //smax = s;
+          //nbfmax = nbf;
+          best_agg = cur_agg;
+          best_ori = cur_ori;
+          
+          qmax = q;
+          
+#ifdef DEBUG_AGGLOMERATOR
+         {
+           std::ostringstream o;
+           o << "D://slandier//DATA//tmp//agglo//agg_" << ii << "_with_neigh_" << n << ".tp";
+           K_FLD::IntArray cnto;
+           ngon_type ng(ngi.PGs, best_agg);
+           ng.export_to_array(cnto);
+           //medith::write(o.str().c_str(), crd, cnto, "NGON");
+           tp::write(o.str().c_str(), crd, cnto, "NGON");
+         }
+#endif
+        } 
+      }
+
+      if (bestn == IDX_NONE) continue;
+      
+      E_Int j = *(neighs+bestn);
+      frozen[i] = frozen[j] = true;
+
+      //std::cout << " agglomerate " << agg_id++ << " was " << i << " and " << j << std::endl;
+      
+#ifdef DEBUG_AGGLOMERATOR
+      //std::cout << "AGGLOMERATION : " << i << " with " << j << std::endl;
+      //if (ii==73)
+      {
+        std::ostringstream o;
+        o << "D://slandier//DATA//tmp//agglo//best_agg_" << ii << ".tp";
+        K_FLD::IntArray cnto;
+        ngon_type ng(ngi.PGs, best_agg);
+        ng.export_to_array(cnto);
+        //medith::write(o.str().c_str(), crd, cnto, "NGON");
+        tp::write(o.str().c_str(), crd, cnto, "NGON");
+      }
+#endif
+
+      all_agg.append(best_agg);
+      all_ori.append(best_ori);
+    }
+
+    ngo.PGs = ngi.PGs;
+    ngo.PHs = all_agg;
+    
+    //std::cout << ngo.PHs.size() << " small cells have been agglomerated." << std::endl;
+
+    // now add untouched ones
+    for (size_t i = 0; i < frozen.size(); ++i)
+    {
+      if (!frozen[i])
+      {
+        ngo.PHs.add(ngi.PHs.stride(i), ngi.PHs.get_facets_ptr(i));
+        if (!ngi.PHs._type.empty()) ngo.PHs._type.push_back(ngi.PHs._type[i]);
+      }
+    }
+    
+    ngo.PGs.updateFacets();
+    ngo.PHs.updateFacets();
+    
+    //std::cout << "effective nb of phs in agglomerated ngo : " << ngo.PHs.size() << std::endl;
+
+    std::vector<E_Int> pgnids, phnids;
+    ngo.remove_unreferenced_pgs(pgnids, phnids);
+
+  }
+
+  template<typename TriangulatorType>
+  void NUGA::Agglomerator::agglomerate_phs_OLD(const K_FLD::FloatArray& crd,
+    const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
+    ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, bool force, double angle_threshold)
   {
     ngo.clear();
     oriento.clear();
@@ -347,7 +758,6 @@ namespace NUGA
 #ifdef DEBUG_AGGLOMERATOR 
       //size_t nbfmax=0;
       //E_Float smax=0.;
-      E_Float worst_reflex_angle=0.;
 #endif
       E_Float qmax=0.;
       E_Int nb_reflex_edges_1(0);
@@ -463,12 +873,6 @@ namespace NUGA
           
           qmax = q;
           
-#ifdef DEBUG_AGGLOMERATOR 
-         if (worst_reflex_angle > worst_reflex_a)
-            std::cout << "better but generating more concavity !!" << std::endl;
-#endif          
-          //worst_reflex_angle = worst_reflex_a;
-          
 #ifdef DEBUG_AGGLOMERATOR
           //if (ii==73)
           /*{
@@ -547,12 +951,11 @@ namespace NUGA
 
     std::vector<E_Int> pgnids, phnids;
     ngo.remove_unreferenced_pgs(pgnids, phnids);
-
   }
   
   ///
   template<typename TriangulatorType>
-  void NUGA::Agglomerator::agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, bool force, double angle_threshold)
+  void NUGA::Agglomerator::agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold, int method)
   {
     ngon_unit neighborsi;
     ngi.build_ph_neighborhood(neighborsi);
@@ -570,7 +973,20 @@ namespace NUGA
     }
 
     ngon_unit oriento;
-    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, force, angle_threshold);
+    if (method == 0) // OLD METHOD : bad cells can agglomerate together / reflex edges CANNOT increase
+      NUGA::Agglomerator::agglomerate_phs_OLD<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, false/*force*/, angle_threshold);
+    else if (method == 1) // method 0 + force mode allows pathological aggregates
+      NUGA::Agglomerator::agglomerate_phs_OLD<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, true/*force*/, angle_threshold);
+    else if (method == 2) // NEW METHOD : bad cells CANNOT agglomerate together / reflex edges CAN increase => reflex criterion / volume criterion
+      NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 0/*enforce_reflex_criteria*/);
+    else if (method == 3) // method 2 + putting more weight to reflex criteria than volume criterion
+      NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 1/*enforce_reflex_criteria*/);
+    else if (method == 4) // method 2 + putting more weight to reflex criteria than volume criterion
+      NUGA::Agglomerator::agglomerate_phs2<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 0/*enforce_reflex_criteria*/);
+    else if (method == 5) // method 2 + putting more weight to reflex criteria than volume criterion
+      NUGA::Agglomerator::agglomerate_phs2<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 1/*enforce_reflex_criteria*/);
+    else if (method == 6) // method 2 + putting more weight to reflex criteria than volume criterion
+      NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 2/*enforce_reflex_criteria*/);
   }
   
   ///
@@ -596,7 +1012,7 @@ namespace NUGA
     ngi.build_ph_neighborhood(neighborsi);
 
     ngon_unit oriento;
-    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, false, angle_threshold); //we choose here to agglomerate non star iff it gets better,ie. non-star
+    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 1/*give more weight to reflex criteria*/); //we choose here to agglomerate non star iff it gets better,ie. non-star (any pathological aggragte is rejected)
   }
 
   ///
@@ -652,28 +1068,7 @@ namespace NUGA
 
   }
   
-//  ///
-//  template<typename TriangulatorType>
-//  void NUGA::Agglomerator::agglomerate_uncomputable_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo)
-//  {
-//    std::vector<E_Int> PHlist;
-//    ngon_type::detect_uncomputable_phs<TriangulatorType>(crd, ngi, PHlist);
-//    
-//    if (PHlist.empty()) 
-//    {
-//      std::cout << "OK : There are no uncomputable phs" << std::endl;
-//      ngo = ngi;
-//      return;
-//    }
-//    
-//    std::cout << PHlist.size() << " uncomputable phs were detected" << std::endl;
-//    
-//    ngon_unit neighborsi;
-//    ngi.build_ph_neighborhood(neighborsi);
-//
-//    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, PHlist, ngo);
-//  }
-  
+  ///  
   void NUGA::Agglomerator::agglomerate_phs_having_pgs
   (const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, std::vector<E_Int>& pgnids)
   {

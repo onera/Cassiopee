@@ -730,16 +730,17 @@ public:
           relex_edges.insert(std::make_pair(K_MESH::NO_Edge(e0,e1), alpha));
 
 #ifdef DEBUG1_POLYHEDRON
-          K_FLD::FloatArray crdt(crd);
-          medith::write("PGi", crdt, PGS, PGi);
-          medith::write("PGj", crdt, PGS, PGj);
-          
           std::ostringstream o;
           o << "PG_" << PGi << ".mesh";
-          medith::draw_wired_PG(o.str().c_str(), crd, PGS, PGi, ni);
+
+          K_FLD::FloatArray crdt(crd);
+          medith::write(o.str().c_str(), crdt, PGS, PGi);
+          //medith::draw_wired_PG(o.str().c_str(), crd, PGS, PGi, ni);
+         
           o.str("");
           o << "PG_" << PGj << ".mesh";
-          medith::draw_wired_PG(o.str().c_str(), crd, PGS, PGj, nj);
+          medith::write(o.str().c_str(), crdt, PGS, PGj);
+          //medith::draw_wired_PG(o.str().c_str(), crd, PGS, PGj, nj);
 #endif
         }
         else if (alpha > angle_convex || er)

@@ -2474,9 +2474,10 @@ static E_Int stats_bad_volumes
         break;
       }
       
-      if (vj < vi) std::swap(vi, vj); //cast to [0; 1] : apply the same ratio to 2 adjacent neighbors : 0 is the worst, 1 is the best
-      //std::cout << "vi/vj : " << vi << "//" << vj << std::endl;
-      ar = std::min(vi/vj, ar);    
+      if (vj < vi)
+        ar = std::min(vj / vi, ar);
+      else
+        ar = std::min(vi / vj, ar);   
     }
     
     aspect_ratio[i] = ar;

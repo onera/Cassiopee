@@ -1502,9 +1502,11 @@ def simplifySurf(t, angular_threshold = 1.e-12):
 # IN: t: 3D NGON mesh
 # IN: vmin : volume threshold
 # IN: vratio : aspect ratio threshold
+# IN: angular_threshold : for simplying cells by agglomerating adjacent polygons
+# IN: method = 0 (XXX)
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
 #==============================================================================
-def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12, force=False):
+def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12, method=0):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(t, vmin, vratio)"""
 
@@ -1512,7 +1514,7 @@ def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12, fo
 
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
 
-    res = XOR.agglomerateSmallCells(m, vmin, vratio, angular_threshold, force)
+    res = XOR.agglomerateSmallCells(m, vmin, vratio, angular_threshold, method)
     #print("NB ZONES %d"%(len(res)))
 
     z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
@@ -2475,6 +2477,37 @@ def getOverlappingFaces(t1, t2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
      if m1 == []: continue
 
      pgids.append(XOR.getOverlappingFaces(m1,m2, RTOL, amax, dir2))
+
+   return pgids
+
+#==============================================================================
+# getCollidingTopFaces  : Returns the list of top faces (HEXA and PRISM only) in t1 colliding t2.
+# IN : t1:              : NGON mesh (surface or volume).
+# IN : t2:              : NGON mesh (surface or volume).
+# IN : RTOL:            : Relative tolerance (in ]0., 1.[).
+# OUT: list of t1 involved faces
+#==============================================================================
+def getCollidingTopFaces(t1, t2, RTOL = 0.1):
+   """ Returns the list of top faces (HEXA and PRISM only) in t1 colliding t2.
+   Usage: getCollidingTopFaces(t1, t2, RTOL)"""
+
+   try: import Transform as T
+   except: raise ImportError("getCollidingTopFaces: requires Transform module.")
+   
+   zones2 = Internal.getZones(t2)
+   m2 = concatenate(zones2); m2 = G.close(m2)
+   m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
+
+   zones1 = Internal.getZones(t1)
+   pgids = []
+
+   i=-1
+   for z in zones1:
+     i+=1
+     m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+     if m1 == []: continue
+
+     pgids.append(XOR.getCollidingTopFaces(m1,m2, RTOL))
 
    return pgids
 

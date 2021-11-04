@@ -38,10 +38,10 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
 {
   PyObject *arr;
   E_Float vmin(0.), vratio(1000.), angle_threshold{1.e-12};
-  E_Int debug=0, force(0);
+  E_Int method(0);
 
   if (!PYPARSETUPLE(args, "Odddl", "Odddi", "Offfl", "Offfi",
-                     &arr, &vmin, &vratio, &angle_threshold, &force)) return NULL;
+                     &arr, &vmin, &vratio, &angle_threshold, &method)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -60,7 +60,7 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
   ngon_type ngi(cnt), ngo;
 
   E_Int nb_aggs(0);
-  NUGA::Agglomerator::agglomerate_small_phs<DELAUNAY::Triangulator>(crd, ngi, vmin, vratio, ngo, nb_aggs, (force==1), angle_threshold);
+  NUGA::Agglomerator::agglomerate_small_phs<DELAUNAY::Triangulator>(crd, ngi, vmin, vratio, ngo, nb_aggs, angle_threshold, method);
 
   PyObject *l(PyList_New(0)), *tpl;
 
@@ -74,6 +74,7 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
       Py_DECREF(tpl);
     }
 
+    E_Int debug=0;
     if (debug)
     {
       for (E_Int i=0; i < nb_aggs; ++i)

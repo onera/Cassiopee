@@ -37,7 +37,8 @@ E_Int chrono::verbose=1;
 #include "Nuga/include/mesh_t.hxx"
 #include "Nuga/include/displacement.hxx"
 #include "Nuga/include/estimator.hxx"
-
+#include "Nuga/include/Prism.h"
+#include "Nuga/include/Hexahedron.h"
 //#include <iostream>
 #include <memory>
 
@@ -2980,6 +2981,174 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+
+//=============================================================================
+PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *arr2;
+  E_Float RTOL(1.e-12);
+
+  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &RTOL)) return NULL;
+
+  K_FLD::FloatArray *f1(0), *f2(0);
+  K_FLD::IntArray *cn1(0), *cn2(0);
+  char *varString1, *varString2, *eltType1, *eltType2;
+
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f1, cn1, varString1, eltType1);
+  if (err) return NULL;
+
+  // Check array # 2
+  err = check_is_NGON(arr2, f2, cn2, varString2, eltType2);
+  if (err) return NULL;
+
+  std::unique_ptr<K_FLD::FloatArray> pf1(f1), pf2(f2);   //for memory cleaning
+  std::unique_ptr<K_FLD::IntArray> pcn1(cn1), pcn2(cn2); //for memory cleaning
+
+  K_FLD::FloatArray & crd1 = *f1;
+  K_FLD::IntArray & cnt1 = *cn1;
+  K_FLD::FloatArray & crd2 = *f2;
+  K_FLD::IntArray & cnt2 = *cn2;
+
+  ngon_type::eGEODIM dim1 = ngon_type::get_ngon_geodim(cnt1);
+  ngon_type::eGEODIM dim2 = ngon_type::get_ngon_geodim(cnt2);
+ 
+  if (dim1 != ngon_type::eGEODIM::VOLUMIC)
+  {
+    std::cout << "getCollidingTopFaces : INPUT ERROR : input mesh colidee mesh must be volumic" << std::endl;
+    return nullptr;
+  }
+  
+  if (dim2 == ngon_type::eGEODIM::SURFACIC_CASSIOPEE)
+  {
+    ngon_type ng(cnt2);
+    // convert to SURFACIC (NUGA)
+    K_FLD::IntArray cnttmp;
+    ng.export_surfacic_view(cnttmp);
+    //std::cout << "exported" << std::endl;
+    dim2 = ngon_type::eGEODIM::SURFACIC;
+    cnt2=cnttmp;
+  }
+
+  if (dim2 != ngon_type::eGEODIM::SURFACIC)
+  {
+    std::cout << "getCollidingTopFaces : INPUT ERROR : input mesh colider mesh must be surfacic" << std::endl;
+    return nullptr;
+  }
+
+  ph_mesh_t  m1(crd1, cnt1);
+  pg_smesh_t m2(crd2, cnt2);
+  
+  std::vector<bool> isx1, isx2;
+  NUGA::COLLIDE::compute(m1,m2, isx1, isx2, RTOL);
+
+  auto neighbors = m1.get_neighbors();
+
+  std::vector<int> freezePG(m1.cnt.PGs.size(), false);
+  for (size_t i = 0; i < isx1.size(); ++i)
+  {
+    if (!isx1[i]) continue;
+
+    bool is_hexa = K_MESH::Hexahedron::is_of_type(m1.cnt.PGs, m1.cnt.PHs.get_facets_ptr(i), m1.cnt.PHs.stride(i));
+    if (!is_hexa) continue;
+
+    int nneighs = neighbors->stride(i);
+
+    const int* pneighs = neighbors->get_facets_ptr(i);
+
+    int nfaces = m1.cnt.PHs.stride(i);
+    const int* pfaces = m1.cnt.PHs.get_facets_ptr(i);
+
+    //freeze top of boundary elements
+    int bot = IDX_NONE;
+    for (size_t k = 0; k< nneighs; ++k)
+    {
+      if (pneighs[k] != IDX_NONE) continue;
+
+      int top = K_MESH::Hexahedron::get_opposite(m1.cnt.PGs, pfaces, k);
+      assert (top != IDX_NONE);
+
+      freezePG[pfaces[top]-1]=true;
+      //std::cout << "freezing " << pfaces[top]-1 << std::endl;
+    }    
+  }
+
+  std::set<int> pgids;
+  for (size_t i = 0; i < isx1.size(); ++i)
+  {
+    if (!isx1[i]) continue;
+
+    bool is_prism{false}, is_hexa{false};
+    is_hexa = K_MESH::Hexahedron::is_of_type(m1.cnt.PGs, m1.cnt.PHs.get_facets_ptr(i), m1.cnt.PHs.stride(i));
+    if (!is_hexa)
+      is_prism = K_MESH::Prism::is_of_type(m1.cnt.PGs, m1.cnt.PHs.get_facets_ptr(i), m1.cnt.PHs.stride(i));
+
+    if (!is_prism && !is_hexa) continue;
+
+    int nneighs = neighbors->stride(i);
+
+    const int* pneighs = neighbors->get_facets_ptr(i);
+
+    int nfaces = m1.cnt.PHs.stride(i);
+    const int* pfaces = m1.cnt.PHs.get_facets_ptr(i);
+
+    int top=IDX_NONE, topOK=IDX_NONE;
+
+    // seek for colliging regions boundary
+    int bot = IDX_NONE;
+    for (size_t k = 0; k< nneighs; ++k)
+    {
+      if (pneighs[k] == IDX_NONE) continue;  // boundary
+      if (pneighs[k] != IDX_NONE && isx1[pneighs[k]]) continue; // inner face
+
+      int PGi = pfaces[k]-1;
+
+      if (freezePG[PGi]) continue;
+
+      if (is_prism && m1.cnt.PGs.stride(PGi) != 3) // bot must be triangle
+        continue;
+
+      //
+      if (is_hexa)
+        top = K_MESH::Hexahedron::get_opposite(m1.cnt.PGs, pfaces, k);
+      else // prism
+        top = K_MESH::Prism::get_opposite(m1.cnt.PGs, pfaces, k);
+
+      if (top == IDX_NONE) continue;
+      E_Int PGtop = pfaces[top]-1;
+      if (freezePG[PGtop]) continue;
+
+      if (pneighs[top] == IDX_NONE) continue;
+      if (!isx1[pneighs[top]]) continue;
+
+      if (topOK != IDX_NONE)
+      {
+        topOK = IDX_NONE;
+        break;
+      }
+
+      bot = k;
+      topOK=top;
+    }
+
+    if (topOK == IDX_NONE) continue;
+
+    pgids.insert(pfaces[topOK]-1);
+  }
+
+  //std::cout << "nb of tops : " << pgids.size() << std::endl;
+    
+  PyObject* tpl = nullptr;
+  if (!pgids.empty())
+  {
+    std::vector<int> tmp(ALL(pgids));
+    tpl = K_NUMPY::buildNumpyArray(&tmp[0], tmp.size(), 1, 0);
+  }
+  return tpl;
+
+}
+
+//=============================================================================
 /* retrieves any cells that are colliding */
 //=============================================================================
 PyObject* K_INTERSECTOR::getCollidingCells(PyObject* self, PyObject* args)
@@ -3965,9 +4134,11 @@ PyObject* K_INTERSECTOR::getFaces(PyObject* self, PyObject* args)
   ngon_type ng(cnt);
 
   ngon_unit nguo;
+  std::vector<int> tmp(size);
+  for (size_t i=0; i < size; ++i)tmp[i] = pgids[i];
 
   std::vector< E_Int> oids;
-  ng.PGs.extract(pgids, size, nguo, oids);
+  ng.PGs.extract(tmp, nguo, oids);
 
   ngon_type ngo(nguo, true);
 
