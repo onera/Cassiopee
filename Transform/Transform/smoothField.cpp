@@ -90,7 +90,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
 
   // nbre de vertex du maillage
   E_Int npts = f->getSize();
-  vector< vector<E_Int> > cVN(npts);// vertex/elt
+  vector< vector<E_Int> > cVN(npts); // vertex/elt
   if (strcmp(eltType, "NGON") == 0) K_CONNECT::connectNG2VNbrs(*cn, cVN);
   else K_CONNECT::connectEV2VNbrs(*cn, cVN);
 

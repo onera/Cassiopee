@@ -437,10 +437,10 @@ def _copyGrid2GridInit(t):
       if zcoord0 is None:
         zcoord0 = Internal.copyNode(zcoord); gridInit[2].append(zcoord0)
       rigidMotion.copyCoords(xcoord[1], ycoord[1], zcoord[1], xcoord0[1], ycoord0[1], zcoord0[1])
-      # copie CartesiaData si il y en a
+      # copie CartesianData si il y en a
       cd = Internal.getNodeFromName1(grid, 'CartesianData')
       if cd is not None:
-          Internal._createUniqueChild(gridInit, 'CartesianData', value=Internal.getValue(cd))
+          Internal._createUniqueChild(gridInit, 'CartesianData', 'DataArray_t', value=Internal.getValue(cd))
   return None
 
 #==============================================================================

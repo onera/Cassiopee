@@ -44,7 +44,7 @@ C_LOCAL
       REAL_E dydxi
       REAL_E dxdeta
       REAL_E dydeta
-      INTEGER_E IP(2,ni-1)	        !tableau de travail (reste de f77)
+      INTEGER_E IP(2,ni-1)	    !tableau de travail (reste de f77)
       REAL_E A(2,2,ni)	        !pour resolution du systeme
       REAL_E B(2,2,ni)	        !tridiagonal par blocs
       REAL_E C(2,2,ni)
@@ -52,13 +52,13 @@ C_LOCAL
       REAL_E Z(2,2,ni-1)
       REAL_E ZA(2,ni-2)
       REAL_E vol(ni*nj)
-      INTEGER_E i,j,k,IER,ni1,i1,nk ! prive
+      INTEGER_E i,j,k,IER,ni1,i1 ! prive
       REAL_E g11,b1,b2,ba1,ba2,beta
       REAL_E pi,sin_teta1,cos_teta1,norm,sin_teta2,cos_teta2
       INTEGER_E indice,ind,indp1,indm1,indp2,indm2,indb
       INTEGER_E eta_start,eta_end,indv
       INTEGER_E eta_start2,eta_end2
-      REAL_E betas,beta2s
+      REAL_E betas,beta2s,lambda
       REAL_E cca,ccb,cca2,ccb2,beta2
       INTEGER_E deux
 C==============================================================================
@@ -116,15 +116,6 @@ C calcul des constantes des rampes
 
       ccb  = -betas-cca*eta_end
       ccb2 = -beta2s-cca2*eta_end2
-
-      IF (type.EQ.0) THEN
-        nk = ni
-      ELSE IF (type.EQ.1) THEN
-        nk = ni
-      ELSE
-        WRITE(*,*) 'hg: unknown type of mesh.'
-        RETURN
-      ENDIF
 
 C*--------------------------------initialisations----------------------------*C
 C note: delta_xi=1 et delta_eta=1
@@ -187,6 +178,10 @@ C* dissipation variant lineairement
         ELSE
           beta2 = cca2*j+ccb2
         ENDIF
+
+C Forced auto dissipation
+        beta2 = 0.
+        beta = 0.
         
 C* Modification pour coupure non verticale
 C* teta=0 <=> coupure verticale
@@ -196,8 +191,12 @@ C* teta=0 <=> coupure verticale
             
         DO i = 3, ni-2
          indv = i+(j-1)*ni
+         ind = indice(i,j)
          indp1 = indice(i+1,j)
          indm1 = indice(i-1,j)
+         indp2 = indice(i+2,j)
+         indm2 = indice(i-2,j)
+
          dxdxi = (xd(indp1)-xd(indm1))*0.5D0
          dydxi = (yd(indp1)-yd(indm1))*0.5D0
          g11 = dxdxi*dxdxi+dydxi*dydxi
@@ -207,30 +206,27 @@ C* teta=0 <=> coupure verticale
          
          b1 = dxdxi/g11
          b2 = dydxi/g11
-         ba1 = b1*dxdeta
+         ba1 = (b1*dxdeta-b2*dydeta)*0.5D0
          ba2 = (b1*dydeta+b2*dxdeta)*0.5D0
-         i1 = i-1		
+         i1 = i-1
          
-         B(1,1,i1) = ba1+beta2
+         lambda = 4.D0*SQRT(ba1*ba1+ba2*ba2)
+         beta2 = -lambda
+
+         B(1,1,i1) = ba1+beta2*0.5D0
          B(2,1,i1) = ba2
          B(1,2,i1) = ba2
-         B(2,2,i1) = -ba1+beta2
+         B(2,2,i1) = -ba1+beta2*0.5D0
          
-         C(1,1,i1) = -ba1+beta2
+         C(1,1,i1) = -ba1+beta2*0.5D0
          C(2,1,i1) = -ba2
          C(1,2,i1) = -ba2
-         C(2,2,i1) = ba1+beta2
+         C(2,2,i1) = ba1+beta2*0.5D0
          
-         A(1,1,i1) = 1.D0-2*beta2
+         A(1,1,i1) = 1.D0-1.D0*beta2
          A(2,1,i1) = 0.D0
          A(1,2,i1) = 0.D0
-         A(2,2,i1) = 1.D0-2*beta2
-         
-         indp2 = indice(i+2,j)
-         indp1 = indice(i+1,j)
-         ind = indice(i,j)
-         indm1 = indice(i-1,j)
-         indm2 = indice(i-2,j)
+         A(2,2,i1) = 1.D0-1.D0*beta2
          
          RHS(1,i1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(xd(indm2)-
      &              4.D0*xd(indm1)+6.D0*xd(ind)-4.D0*xd(indp1)
@@ -242,21 +238,24 @@ C* teta=0 <=> coupure verticale
         ENDDO
         
 c i=2
+        indv = 2+(j-1)*ni
         indp1 = indice(3,j) 
         indm1 = indice(1,j)
         dxdxi = (xd(indp1)-xd(indm1))*0.5D0
         dydxi = (yd(indp1)-yd(indm1))*0.5D0
         g11 = dxdxi*dxdxi+dydxi*dydxi
-        indv = 2+(j-1)*ni
         vol(indv) = MODIFIED_VOLUME(vol(indv))
                 
         dxdeta = -vol(indv)*dydxi/g11
         dydeta = vol(indv)*dxdxi/g11
         b1 = dxdxi/g11		
         b2 = dydxi/g11
-        ba1 = b1*dxdeta
+        ba1 = (b1*dxdeta-b2*dydeta)*0.5D0
         ba2 = (b1*dydeta+b2*dxdeta)*0.5D0
         
+        lambda = 4.D0*SQRT(ba1*ba1+ba2*ba2)
+        beta2 = -lambda
+
         B(1,1,1)=ba1+(1.D0/3.D0)*sin_teta1*sin_teta1*ba1- 
      &		(1./3.)*sin_teta1*cos_teta1*ba2
         B(2,1,1)=ba2+(1.D0/3.D0)*sin_teta1*sin_teta1*ba2+ 
@@ -318,9 +317,12 @@ C i = ni-1
         
         b1 = dxdxi/g11
         b2 = dydxi/g11
-        ba1 = b1*dxdeta
+        ba1 = (b1*dxdeta-b2*dydeta)*0.5D0
         ba2 = (b1*dydeta+b2*dxdeta)*0.5D0
         
+        lambda = 4.D0*SQRT(ba1*ba1+ba2*ba2)
+        beta2 = -lambda
+
         B(1,1,ni1-1) = 0.D0
         B(2,1,ni1-1) = 0.D0
         B(1,2,ni1-1) = 0.D0
@@ -335,7 +337,7 @@ C i = ni-1
         C(2,2,ni1-1)= ba1+(1.D0/3.D0)*sin_teta2*cos_teta2*ba2+ 
      &		(1.D0/3.D0)*cos_teta2*cos_teta2*ba1
         
-        A(1,1,ni1-1)=1.+(4.D0/3.D0)*sin_teta2*sin_teta2*ba1- 
+        A(1,1,ni1-1)=1.D0+(4.D0/3.D0)*sin_teta2*sin_teta2*ba1- 
      &		(4.D0/3.D0)*sin_teta2*cos_teta2*ba2	
         A(2,1,ni1-1)=(4.D0/3.D0)*sin_teta2*sin_teta2*ba2+ 
      &		(4.D0/3.D0)*sin_teta2*cos_teta2*ba1
@@ -352,17 +354,17 @@ C i = ni-1
     
         RHS(1,ni1-1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(-xd(indp1)+ 
      &    	     3.D0*xd(ind)- 3.D0*xd(indm1)+xd(indm2))- 
-     &	             ba1*cos_teta2*cos_teta2*xd(indb)- 
+     &	         ba1*cos_teta2*cos_teta2*xd(indb)- 
      &		     ba2*sin_teta2*cos_teta2*xd(indb)- 
      &		     ba2*sin_teta2*sin_teta2*yd(indb)- 
      &		     ba1*cos_teta2*sin_teta2*yd(indb)		
         
         RHS(2,ni1-1)= 2.D0*vol(indv)*b1+yd(ind)+beta*(-yd(indp1)+ 
-     &	             3.D0*yd(ind)- 3.D0*yd(indm1)+yd(indm2))- 
-     &	             ba2*cos_teta2*cos_teta2*xd(indb)- 
-     &	             ba2*sin_teta2*cos_teta2*yd(indb)+ 
-     &	             ba1*sin_teta2*cos_teta2*xd(indb)+ 
-     &	             ba1*sin_teta2*sin_teta2*yd(indb)
+     &	         3.D0*yd(ind)- 3.D0*yd(indm1)+yd(indm2))- 
+     &	         ba2*cos_teta2*cos_teta2*xd(indb)- 
+     &	         ba2*sin_teta2*cos_teta2*yd(indb)+ 
+     &	         ba1*sin_teta2*cos_teta2*xd(indb)+ 
+     &	         ba1*sin_teta2*sin_teta2*yd(indb)
     
 C* Inversion
         
@@ -443,28 +445,31 @@ C*------*-------*-------*------------*-------------
           g11 = dxdxi*dxdxi+dydxi*dydxi
           vol(indv) = MODIFIED_VOLUME(vol(indv))
           dxdeta = -vol(indv)*dydxi/g11
-          dydeta = vol(indv)*dxdxi/g11
-                
+          dydeta =  vol(indv)*dxdxi/g11
+
           b1 = dxdxi/g11
           b2 = dydxi/g11
-          ba1 = b1*dxdeta
+          ba1 = (b1*dxdeta-b2*dydeta)*0.5D0
           ba2 = (b1*dydeta+b2*dxdeta)*0.5D0
           i1 = i-1
           
-          B(1,1,i1) = ba1+beta2
+          lambda = 4.D0*SQRT(ba1*ba1+ba2*ba2)
+          beta2 = -lambda
+
+          B(1,1,i1) = ba1+beta2*0.5D0
           B(2,1,i1) = ba2
           B(1,2,i1) = ba2
-          B(2,2,i1) = -ba1+beta2
+          B(2,2,i1) = -ba1+beta2*0.5D0
           
-          C(1,1,i1) = -ba1+beta2
+          C(1,1,i1) = -ba1+beta2*0.5D0
           C(2,1,i1) = -ba2
           C(1,2,i1) = -ba2
-          C(2,2,i1) = ba1+beta2
+          C(2,2,i1) = ba1+beta2*0.5D0
           
-          A(1,1,i1) = 1.D0-2*beta2
+          A(1,1,i1) = 1.D0-1.D0*beta2
           A(2,1,i1) = 0.D0
           A(1,2,i1) = 0.D0
-          A(2,2,i1) = 1.D0-2*beta2
+          A(2,2,i1) = 1.D0-1.D0*beta2
 
           indp2 = indice(i+2,j)
           indp1 = indice(i+1,j)
@@ -487,27 +492,30 @@ C* i=2
        g11 = dxdxi*dxdxi+dydxi*dydxi
        vol(indv) = MODIFIED_VOLUME(vol(indv))
        dxdeta = -vol(indv)*dydxi/g11
-       dydeta = vol(indv)*dxdxi/g11
+       dydeta =  vol(indv)*dxdxi/g11
                 
        b1 = dxdxi/g11
        b2 = dydxi/g11
-       ba1 = b1*dxdeta
+       ba1 = (b1*dxdeta-b2*dydeta)*0.5D0
        ba2 = (b1*dydeta+b2*dxdeta)*0.5D0
         
-       B(1,1,1) = ba1+beta2
+       lambda = 4.D0*SQRT(ba1*ba1+ba2*ba2)
+       beta2 = -lambda
+
+       B(1,1,1) = ba1+beta2*0.5D0
        B(2,1,1) = ba2
        B(1,2,1) = ba2
-       B(2,2,1) = -ba1+beta2
+       B(2,2,1) = -ba1+beta2*0.5D0
     
-       C(1,1,1) = -ba1+beta2
+       C(1,1,1) = -ba1+beta2*0.5D0
        C(2,1,1) = -ba2
        C(1,2,1) = -ba2
-       C(2,2,1) = ba1+beta2
+       C(2,2,1) = ba1+beta2*0.5D0
     
-       A(1,1,1) = 1.D0-2*beta2
+       A(1,1,1) = 1.D0-1.D0*beta2
        A(2,1,1) = 0.D0
        A(1,2,1) = 0.D0
-       A(2,2,1) = 1.D0-2*beta2	
+       A(2,2,1) = 1.D0-1.D0*beta2	
 
        indp2 = indice(4,j)
        indp1 = indice(3,j)
@@ -533,23 +541,26 @@ C* i = ni-1
     
        b1 = dxdxi/g11
        b2 = dydxi/g11
-       ba1 = b1*dxdeta
+       ba1 = (b1*dxdeta-b2*dydeta)*0.5D0
        ba2 = (b1*dydeta+b2*dxdeta)*0.5D0
     
-       B(1,1,ni-2) = ba1+beta2
+       lambda = 4.D0*SQRT(ba1*ba1+ba2*ba2)
+       beta2 = -lambda
+
+       B(1,1,ni-2) = ba1+beta2*0.5D0
        B(2,1,ni-2) = ba2
        B(1,2,ni-2) = ba2
-       B(2,2,ni-2) = -ba1+beta2
+       B(2,2,ni-2) = -ba1+beta2*0.5D0
        
-       C(1,1,ni-2) = -ba1+beta2
+       C(1,1,ni-2) = -ba1+beta2*0.5D0
        C(2,1,ni-2) = -ba2
        C(1,2,ni-2) = -ba2
-       C(2,2,ni-2) = ba1+beta2
+       C(2,2,ni-2) = ba1+beta2*0.5D0
        
-       A(1,1,ni-2) = 1.D0-2*beta2
+       A(1,1,ni-2) = 1.D0-1.D0*beta2
        A(2,1,ni-2) = 0.D0
        A(1,2,ni-2) = 0.D0
-       A(2,2,ni-2) = 1.D0-2*beta2
+       A(2,2,ni-2) = 1.D0-1.D0*beta2
 
        indp2 = indice(1,j)
        indp1 = indice(ni,j)
@@ -576,23 +587,26 @@ C* i = ni
     
        b1 = dxdxi/g11
        b2 = dydxi/g11
-       ba1 = b1*dxdeta
+       ba1 = (b1*dxdeta-b2*dydeta)*0.5D0
        ba2 = (b1*dydeta+b2*dxdeta)*0.5D0
     
-       B(1,1,ni-1) = ba1+beta2
+       lambda = 4.D0*SQRT(ba1*ba1+ba2*ba2)
+       beta2 = -lambda
+
+       B(1,1,ni-1) = ba1+beta2*0.5D0
        B(2,1,ni-1) = ba2
        B(1,2,ni-1) = ba2
-       B(2,2,ni-1) = -ba1+beta2
+       B(2,2,ni-1) = -ba1+beta2*0.5D0
        
-       C(1,1,ni-1) = -ba1+beta2
+       C(1,1,ni-1) = -ba1+beta2*0.5D0
        C(2,1,ni-1) = -ba2
        C(1,2,ni-1) = -ba2
-       C(2,2,ni-1) = ba1+beta2
+       C(2,2,ni-1) = ba1+beta2*0.5D0
        
-       A(1,1,ni-1) = 1.D0-2*beta2
+       A(1,1,ni-1) = 1.D0-1.D0*beta2
        A(2,1,ni-1) = 0.D0
        A(1,2,ni-1) = 0.D0
-       A(2,2,ni-1) = 1.D0-2*beta2
+       A(2,2,ni-1) = 1.D0-1.D0*beta2
 
        indp2 = indice(3,j)
        indp1 = indice(2,j)
