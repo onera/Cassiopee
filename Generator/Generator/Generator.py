@@ -715,11 +715,10 @@ def densify(array, h):
         return generator.densify(array, h)
 
 def hyper2D(array, arrayd, type, 
-            eta_start=10, eta_end=-1, beta=0.1, 
-            eta_start2=3, eta_end2=-1, beta2=0.):
+            eta_start=10, eta_end=-1, beta=0.0):
     """Generate an hyperbolic mesh. 
     Usage: hyper2D(array, arrayd, type)"""
-    return generator.hyper2D(array, arrayd, type, eta_start, eta_end, beta, eta_start2, eta_end2, beta2)
+    return generator.hyper2D(array, arrayd, type, eta_start, eta_end, beta)
 
 def hyper2D2(array, arrayd, type, alpha):
     """Generate an hyperbolic mesh with a constant alpha angle.

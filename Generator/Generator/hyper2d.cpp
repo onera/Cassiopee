@@ -45,8 +45,7 @@ extern "C"
                   E_Float* xo, E_Float* yo, E_Float* zo,
                   E_Int* IP, E_Float* A, E_Float* B, E_Float* C,
                   E_Float* RHS, E_Float* Z, E_Float* ZA, E_Float* vol,
-                  const E_Int& eta_start, const E_Int& eta_end, const E_Float& beta,
-                  const E_Int& eta_start2, const E_Int& eta_end2, const E_Float& beta2);
+                  const E_Int& eta_start, const E_Int& eta_end, const E_Float& beta);
 
   void k6hyper2d2_(const E_Int& ni, const E_Int& nj,
                    const E_Float* distrib,
@@ -82,13 +81,12 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayd;
   char* meshType;
-  E_Int eta_start, eta_end, eta_start2, eta_end2;
-  E_Float beta, beta2;
+  E_Int eta_start, eta_end;
+  E_Float beta;
 
-  if (!PYPARSETUPLE(args, "OOslldlld", "OOsiidiid", "OOsllfllf", "OOsiifiif", 
+  if (!PYPARSETUPLE(args, "OOslld", "OOsiid", "OOsllf", "OOsiif", 
                     &array, &arrayd, &meshType, 
-                    &eta_start, &eta_end, &beta,
-                    &eta_start2, &eta_end2, &beta2))
+                    &eta_start, &eta_end, &beta))
     return NULL;
 
   E_Int type = 0;
@@ -202,8 +200,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
                coord.begin(1), coord.begin(2), coord.begin(3),
                IP.begin(), A.begin(), B.begin(), C.begin(),
                RHS.begin(), Z.begin(), ZA.begin(), vol.begin(),
-               eta_start, eta_end, beta,
-               eta_start2, eta_end2, beta2);
+               eta_start, eta_end, beta);
     
     // Array Creation 
     delete f; delete fd;

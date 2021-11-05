@@ -131,7 +131,8 @@ PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
     K_SEARCH::BbTree3D* BBTree = (K_SEARCH::BbTree3D*)packet[0]; 
 
     FldArrayF* f;
-    E_Int ret = K_NUMPY::getFromNumpyArray(inBB, f, true);
+    //E_Int ret = 
+    K_NUMPY::getFromNumpyArray(inBB, f, true);
     E_Int size = f->getSize()/6;
     E_Float* fp = f->begin();
 

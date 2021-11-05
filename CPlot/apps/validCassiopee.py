@@ -38,10 +38,10 @@ regFailed = re.compile('FAILED')
 regError = re.compile('Error:')
 separator = ':'
 separatorl = separator+' '
-expTest1 = re.compile("_t") # normal tests
+expTest1 = re.compile("_t[0-9]+") # normal tests
 expTest2 = re.compile(".py")
 expTest3 = re.compile("\~")
-expTest4 = re.compile("_m") # distributed tests
+expTest4 = re.compile("_m[0-9]+") # distributed tests
 
 # Liste des tous les tests obtenue en listant les repertoires
 # Un element de la liste est une string comme affichee dans la listbox
@@ -253,10 +253,11 @@ def getModules():
     try: mods = os.listdir(path)
     except: mods = []
     for i in mods:
-        a = os.access('%s/%s/test'%(path,i), os.F_OK)
-        if a:
-            modules.append(i)
-            MODULESDIR[i] = 'PModules'
+        if i != 'Upmost' and i not in modules:
+            a = os.access('%s/%s/test'%(path,i), os.F_OK)
+            if a:
+                modules.append(i)
+                MODULESDIR[i] = 'PModules'
 
     path = CASSIOPEE+'/Apps/Modules'
     try: mods = os.listdir(path)

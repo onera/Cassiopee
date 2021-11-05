@@ -23,8 +23,7 @@ C  ===========================================================================
      &                   type, 
      &                   xd, yd, zd,
      &                   IP, A, B, C, RHS, Z, ZA, vol,
-     &                   eta_start, eta_end, betas,
-     &                   eta_start2, eta_end2, beta2s)
+     &                   eta_start, eta_end, betas)
 
 /* #define MODIFIED_VOLUME(x) x		*/
 #define MODIFIED_VOLUME(x) SQRT(g11)*x
@@ -57,8 +56,7 @@ C_LOCAL
       REAL_E pi,sin_teta1,cos_teta1,norm,sin_teta2,cos_teta2
       INTEGER_E indice,ind,indp1,indm1,indp2,indm2,indb
       INTEGER_E eta_start,eta_end,indv
-      INTEGER_E eta_start2,eta_end2
-      REAL_E betas,beta2s,lambda
+      REAL_E betas,lambda
       REAL_E cca,ccb,cca2,ccb2,beta2
       INTEGER_E deux
 C==============================================================================
@@ -67,39 +65,11 @@ C==============================================================================
       pi = 4*atan(1.D0)
       deux = 2
 
-C Anciens reglages par defaut     
-C      IF (type.EQ.0) THEN
-C       Parametres de la dissipation pour les maillages en C
-C        eta_start = 1
-C        eta_end = nj
-C        eta_start2 = 50
-C        eta_end2 = nj
-C       Dissipation d'ordre 4 (<0.125)
-C        betas = 0.1D0
-C        beta = -betas
-C       Dissipation d'ordre 2
-C        beta2s = 0.D0
-C        beta2 = -beta2s
-C      ELSE
-C       Parametres de la dissipation pour les maillages en O
-C        eta_start = 1
-C        eta_end = nj
-C        eta_start2 = 3
-C        eta_end2 = nj
-C       Dissipation d'ordre 4 (<0.125)
-C        betas = 0.D0
-C        beta = -betas
-C       Dissipation d'ordre 2
-C        beta2s = 0.D0
-C        beta2 = -beta2s
-C      ENDIF
+      betas = MIN(betas, 0.125)  ! max stabilite
 
 C gestion des bornes negatives
       IF (eta_end.LT.0) THEN
         eta_end = nj-eta_end+1
-      ENDIF
-      IF (eta_end2.LT.0) THEN
-        eta_end2 = nj-eta_end2+1
       ENDIF
 
 C calcul des constantes des rampes
@@ -108,14 +78,8 @@ C calcul des constantes des rampes
       ELSE
         cca = -betas/(eta_end-eta_start)
       ENDIF
-      IF (eta_end2.EQ.eta_start2) THEN
-        cca2 = 1.D0
-      ELSE
-        cca2 = -beta2s/(eta_end2-eta_start2)
-      ENDIF
 
       ccb  = -betas-cca*eta_end
-      ccb2 = -beta2s-cca2*eta_end2
 
 C*--------------------------------initialisations----------------------------*C
 C note: delta_xi=1 et delta_eta=1
@@ -171,17 +135,6 @@ C* dissipation variant lineairement
         ELSE
           beta = cca*j+ccb
         ENDIF
-        IF (j.LT.eta_start2) THEN
-          beta2 = 0.D0
-        ELSE IF (j.GT.eta_end2) THEN
-          beta2 = -beta2s
-        ELSE
-          beta2 = cca2*j+ccb2
-        ENDIF
-
-C Forced auto dissipation
-        beta2 = 0.
-        beta = 0.
         
 C* Modification pour coupure non verticale
 C* teta=0 <=> coupure verticale

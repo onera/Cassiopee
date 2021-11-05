@@ -84,8 +84,31 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
       else if (PyUnicode_Check(varname)) var = (char*)PyUnicode_AsUTF8(varname);
 #endif
       E_Int pos = K_ARRAY::isNamePresent(var, varString);
-      if (pos == -1) { printf("Warning: smoothField: var doesn't exists.\n"); posVars[i] = 0; }
-      else posVars[i] = pos;
+      if (pos == -1) 
+      { 
+          PyErr_SetString(PyExc_TypeError,
+                        "smoothField: var doesn't exist.");
+        return NULL;
+      }
+      posVars[i] = pos;
+  }
+
+  // Get coordinates si type=1
+  E_Float* cx = NULL; E_Float* cy = NULL; E_Float* cz = NULL;
+  if (type == 1)
+  {
+      E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+      E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+      E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+      if (posx == -1 || posy == -1 || posz == -1) 
+      { 
+        PyErr_SetString(PyExc_TypeError,
+                        "smoothField: requires coordinates for type=1.");
+        return NULL;
+      }
+      cx = f->begin(posx+1);
+      cy = f->begin(posy+1);
+      cz = f->begin(posz+1);
   }
 
   // nbre de vertex du maillage
@@ -146,7 +169,61 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   }
   else if (type == 1) // scaled
   {
-      /* a ajouter si type = 0 est ok */
+#pragma omp parallel
+  {
+    E_Int nbV, nov;
+    E_Float eps2, df;
+    E_Float dx,dy,dz,w,sum;
+    E_Float* fp; E_Float* tp;
+
+    for (E_Int it = 0; it < niter; it++)
+    {
+        for (E_Int nv = 0; nv < nvars; nv++)
+        {
+            fp = f->begin(posVars[nv]+1);
+            tp = ft+npts*nv;
+                
+            #pragma omp for
+            for (E_Int ind = 0; ind < npts; ind++)
+            {
+                vector<E_Int>& v = cVN[ind]; // vertex voisins
+                nbV = v.size();
+                sum = 0.;
+                for (E_Int vi = 0; vi < nbV; vi++)
+                {
+                    nov = v[vi]-1;
+                    dx = cx[nov]-cx[ind];
+                    dy = cy[nov]-cy[ind];
+                    dz = cz[nov]-cz[ind];
+                    w = sqrt(dx*dx+dy*dy+dz*dz);
+                    if (w > 1.e-10) w = 1./w;
+                    else w = 1.e10;
+                    sum += w;
+                }
+                eps2 = epsf[ind]/sum;
+            
+                df = 0.;
+                for (E_Int vi = 0; vi < nbV; vi++)
+                {
+                    nov = v[vi]-1;
+                    dx = cx[nov]-cx[ind];
+                    dy = cy[nov]-cy[ind];
+                    dz = cz[nov]-cz[ind];
+                    w = sqrt(dx*dx+dy*dy+dz*dz);
+                    df += w*(fp[nov]-fp[ind]);
+                }
+                tp[ind] = fp[ind] + eps2*df;
+            }
+
+            // end loop update
+            #pragma omp for
+            for (E_Int ind = 0; ind < npts; ind++)
+            {
+                fp[ind] = tp[ind];
+            }
+        }
+    }
+  }
   }
   delete [] ft;
 

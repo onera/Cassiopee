@@ -132,10 +132,6 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/Extract/extractFields.cpp']
 cpp_srcs += ['Converter/IO/GenIO_adfcgns.cpp']
 
-#import glob
-#h5files = glob.glob('Converter/HDF/*.c')
-#cpp_srcs += h5files
-
 if EXPRESSION:
    cpp_srcs += ['Converter/Expression/ast.cpp',
                 'Converter/Expression/function.cpp',
