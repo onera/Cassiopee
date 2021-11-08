@@ -60,13 +60,14 @@ List of functions
    Intersector.triangulateBC
    Intersector.triangulateExteriorFaces
    Intersector.reorient
-   Intersector.convexifyFaces  
+   Intersector.convexifyFaces
+   Intersector.syncMacthPeriodicFaces
    Intersector.prepareCellsSplit
    Intersector.splitNonStarCells
-   Intersector.simplifyCells
    Intersector.agglomerateSmallCells
    Intersector.agglomerateNonStarCells
    Intersector.agglomerateCellsWithSpecifiedFaces
+   Intersector.simplifyCells
    Intersector.closeCells
 
 **-- Adaptation Specific Functions**
@@ -550,6 +551,25 @@ Transformation Functions
 
 ---------------------------------------
 
+.. py:function:: Intersector.syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.], translation=[0.,0.,0.], tol=-0.01, unitAngle=None, reorient=True)
+
+    Force periodicity when some faces should be periodic but are not due to connectivity inconsistencies (tipically overdefined or splitted faces).
+    This function ensures that a following call to Connector.connectMatchPeriodic succeeds when the mesh has been procuced with the intersection strategy. 
+    Periodicity can be defined either by rotation or translation.
+
+    :param           t:  Input mesh
+    :type            t:  [pyTree, base, zone, list of zones]
+    :param           tol:  tolerance. Negative value (in [-1; 0]) specifies a relative value base on min edge length in the mesh.
+    :type            a:  float
+
+    *Example of use:*
+
+    * `Synchronize faces(pyTree) <Examples/Intersector/syncPerioFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/syncPerioFacesPT.py
+
+---------------------------------------
+
 
 .. py:function:: Intersector.prepareCellsSplit(a, PH_set = 1, split_policy = 0, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = 1.e-8)
 
@@ -585,7 +605,7 @@ Transformation Functions
 
 .. py:function:: Intersector.splitNonStarCells(a, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = 1.e-8)
 
-    First strategy to eradicate bad cells : Splits non-centroid-star-shaped (NCSS) cells into two cells. These cells might be NCSS as well so this function should be called several times to get rid off the pathologies. Some call agglomerateSmallCells should be done afterwards to balance the aspect ratio.
+    First strategy to eradicate bad cells : Splits non-centroid-star-shaped (NCSS) cells into two cells. These cells might be NCSS as well so this function should be called several times to get rid off the pathologies. Some call agglomerateSmallCells should be done afterwards to balance the growth ratio.
 
     :param           a:  Input mesh
     :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -622,7 +642,7 @@ Transformation Functions
     :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param      treat_externals:  Process outer polygons (1) or not (0).
     :type       treat_externals:  0 or 1
-    :param      angular_threshold:  Largest angular deviation admitted between polygons in order to allow the agglomeration for them.
+    :param      angular_threshold:  Largest angular deviation admitted between adjacent polygons in order to allow their agglomeration.
     :type       angular_threshold:  float
 
     *Example of use:*
@@ -638,21 +658,23 @@ Transformation Functions
 ---------------------------------------
 
 
-.. py:function:: Intersector.agglomerateSmallCells(a, vmin=0., vratio=1000.)
+.. py:function:: Intersector.agglomerateSmallCells(a, vmin=0., vratio=0.01, angular_threshold = 1.e-12)
 
-    Agglomerates cells that are too small (below vmin) or having a poor aspect ratio with a neighbor (below vratio) with the best neighbor available. The agglomeration process does not create non-star-shaped agglomerates.
+    Agglomerates cells that are too small (below vmin) or having a poor growth ratio with a neighbor (below vratio) with the best neighbor available. The agglomeration process does not create non-star-shaped agglomerates.
 
     :param           a:  Input mesh
     :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param      vmin:  volume threshold.
     :type       vmin:  float
-    :param      vratio: aspect ratio threshold.
+    :param      vratio: growth ratio threshold.
     :type       vratio:  float
+    :param      angular_threshold:  Largest angular deviation admitted between adjacent polygons in order to allow their agglomeration.
+    :type       angular_threshold:  float
 
 
     *Tips and Notes:*
 
-    * See :any:`computeGrowthRatio` to get the definition of the computed aspect ratio.
+    * See :any:`computeGrowthRatio` to get the definition of the computed growth ratio.
 
     *Example of use:*
 
@@ -910,7 +932,7 @@ Metric Functions
 
     The maximum over all the neighbors is chosen:
 
-    Aspect Ratio for Cell i  =  MAX_k ( MAX(vi, vk) / MIN(vi, vk) ) where k is a neighbor. 
+    Growth Ratio for Cell i  =  MAX_k ( MAX(vi, vk) / MIN(vi, vk) ) where k is a neighbor. 
 
     :param           a:  Input mesh
     :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]

@@ -36,7 +36,7 @@ using namespace NUGA;
 PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-  E_Float vmin(0.), vratio(1000.), angle_threshold{1.e-12};
+  E_Float vmin(0.), vratio(0.01), angle_threshold{1.e-12};
   E_Int method(0);
 
   if (!PYPARSETUPLE(args, "Odddl", "Odddi", "Offfl", "Offfi",

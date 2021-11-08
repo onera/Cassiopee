@@ -305,7 +305,7 @@ def simplifySurf(a, angular_threshold = 1.e-12):
 # IN: method = 0 (XXX)
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother growth ratio
 #==============================================================================
-def agglomerateSmallCells(a, vmin=0., vratio=1000., angular_threshold = 1.e-12, method=0):
+def agglomerateSmallCells(a, vmin=0., vratio=0.01, angular_threshold = 1.e-12, method=0):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(a, vmin, vratio)"""
     return intersector.agglomerateSmallCells(a, vmin, vratio,angular_threshold, method)
@@ -912,11 +912,22 @@ def drawOrientation(a):
     Usage: XXX"""
     return intersector.drawOrientation(a)
 
+#==============================================================================
+# syncMacthPeriodicFaces : force periodicity for faces that are supposed to be periodic
+# IN: a                 : 3D NGON mesh
+# IN: rotationCenter : coordinates of the center of rotation for the periodicity
+# IN: rotationAngle : rotation axis for the periodicity (its norm gives the angle of rotation)
+# IN : translation : translation vector for a translation periodicity
+# IN : TOL : tolerance. A negative value give a relative tolerance base on min edge length
+# OUT: returns a 3D NGON Mesh with synchronised faces
+#==============================================================================
 def syncMacthPeriodicFaces(a, rotationCenter=[0.,0.,0.],
                               rotationAngle=[0.,0.,0.],
-                              translation=[0.,0.,0.], TOL=-0.01):
+                              translation=[0.,0.,0.], tol=-0.01):
+  """ Force periodicity for faces that are supposed to be periodic.
+    Usage: syncMacthPeriodicFaces(a, rotationCenter, rotationAngle, translation, TOL)"""
   return intersector.syncMacthPeriodicFaces(a, rotationCenter, rotationAngle,
-                                                translation, TOL)
+                                                translation, tol)
 
 #~ def conservativeTransfer(a1, flowsol, a2, tol=0., reconstruction_type=0):
     #~ c = intersector.conservative_transfer(a1, flowsol, a2, tol, reconstruction_type)

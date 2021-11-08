@@ -1506,7 +1506,7 @@ def simplifySurf(t, angular_threshold = 1.e-12):
 # IN: method = 0 (XXX)
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother aspect ratio
 #==============================================================================
-def agglomerateSmallCells(t, vmin=0., vratio=1000., angular_threshold=1.e-12, method=0):
+def agglomerateSmallCells(t, vmin=0., vratio=0.01, angular_threshold=1.e-12, method=0):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(t, vmin, vratio)"""
 
@@ -3333,21 +3333,25 @@ def volume(t, fieldname=None):
 
 
 #==============================================================================
-# syncMacthPeriodicFaces : XXX
-# IN: t    : 3D NGON mesh
-# OUT: Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
+# syncMacthPeriodicFaces : force periodicity for faces that are supposed to be periodic
+# IN: a                 : 3D NGON mesh
+# IN: rotationCenter : coordinates of the center of rotation for the periodicity
+# IN: rotationAngle : rotation axis for the periodicity (its norm gives the angle of rotation)
+# IN : translation : translation vector for a translation periodicity
+# IN : TOL : tolerance. A negative value give a relative tolerance base on min edge length
+# OUT: returns a 3D NGON Mesh with synchronised faces
 #==============================================================================
 def syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
                               rotationAngle=[0.,0.,0.],
-                              translation=[0.,0.,0.], TOL=-0.01,
+                              translation=[0.,0.,0.], tol=-0.01,
                               unitAngle=None, reorient=True):
   tp = Internal.copyRef(t)
-  _syncMacthPeriodicFaces(tp, rotationCenter, rotationAngle, translation, TOL, unitAngle, reorient)
+  _syncMacthPeriodicFaces(tp, rotationCenter, rotationAngle, translation, tol, unitAngle, reorient)
   return tp
   
 def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
                               rotationAngle=[0.,0.,0.],
-                              translation=[0.,0.,0.], TOL=-0.01,
+                              translation=[0.,0.,0.], tol=-0.01,
                               unitAngle=None, reorient=True):
 
 # WARNING : currently implemented by applying it individually by zone
@@ -3361,7 +3365,7 @@ def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
     if reorient == True : _reorient(z)
     m = C.getFields(Internal.__GridCoordinates__, z)[0]
     res = XOR.syncMacthPeriodicFaces(m, rotationCenter, rotationAngleR,
-                                      translation, TOL)
+                                      translation, tol)
     msh = res[0]
     #print(msh)
     C.setFields([msh], z, 'nodes')
