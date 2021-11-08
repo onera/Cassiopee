@@ -31,6 +31,15 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* Eradicate by shell-agglomeration cells with a too high aspect ratio */
+//=============================================================================
+PyObject* K_INTERSECTOR::shellAgglomerateSmallCells(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
 /* Agglomerate cells with a too high aspect ratio */
 //=============================================================================
 PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)

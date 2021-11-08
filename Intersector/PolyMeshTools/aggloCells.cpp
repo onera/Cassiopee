@@ -25,7 +25,6 @@
 # include "Nuga/include/Triangulator.h"
 # include "Nuga/include/Agglomerator.h"
 
-//#include <iostream>
 
 using namespace std;
 using namespace NUGA;
@@ -72,30 +71,6 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
       tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, "NGON", false);
       PyList_Append(l, tpl);
       Py_DECREF(tpl);
-    }
-
-    E_Int debug=0;
-    if (debug)
-    {
-      for (E_Int i=0; i < nb_aggs; ++i)
-      {
-        ngon_unit ph;
-        ph.add(ngo.PHs.stride(i), ngo.PHs.get_facets_ptr(i));
-
-        ngon_type one_ph(ngo.PGs, ph);
-        std::vector<E_Int> pgnids, phnids;
-        one_ph.remove_unreferenced_pgs(pgnids, phnids);
-  
-        K_FLD::FloatArray cr(crd);
-        ngon_type::compact_to_used_nodes(one_ph.PGs, cr);
-
-        K_FLD::IntArray cnto;
-        one_ph.export_to_array(cnto);
-
-        tpl = K_ARRAY::buildArray(cr, varString, cnto, -1, "NGON", false);
-        PyList_Append(l, tpl);
-        Py_DECREF(tpl);
-      }
     }
   }
 
