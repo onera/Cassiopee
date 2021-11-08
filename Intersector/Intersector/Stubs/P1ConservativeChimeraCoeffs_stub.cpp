@@ -20,9 +20,17 @@
 # include "intersector.h"
 #include "stub.h"
 
+//============================================================================
+/* Conservative interpolator*/
+//============================================================================
+PyObject* K_INTERSECTOR::P1ConservativeInterpolation(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
 
 //============================================================================
-/* Blank cells defined in arrays by a Tetra mesh mask (as an input hook) */
+/* Computes chimera  coeefs in a conservative manner*/
 //============================================================================
 PyObject* K_INTERSECTOR::P1ConservativeChimeraCoeffs(PyObject* self, PyObject* args)
 {

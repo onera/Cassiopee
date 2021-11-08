@@ -734,15 +734,10 @@ PyObject* K_INTERSECTOR::detectOverConnectedFaces(PyObject* self, PyObject* args
 
   if (!error)
     std::cout << "OK : no multiple PGs" << std::endl;
-
-  std::cout << "detectMultipleCells : build array" << std::endl;
   
   K_FLD::IntArray cnto;
   ngi.export_to_array(cnto);
   PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
-
-
-  std::cout << "detectMultipleCells : end" << std::endl;
   
   delete f; delete cn;
   return tpl;
@@ -963,6 +958,31 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   return l;
 }
 
+int comp_vol(const K_FLD::FloatArray& crd, const ngon_type& ngi, const FldArrayI* cFE, std::vector<E_Int>& orient, E_Int i, DELAUNAY::Triangulator & dt, double &v)
+{
+  //std::cout << "PH : " << i << std::endl;
+  orient.clear();
+
+  const E_Int* pF = ngi.PHs.get_facets_ptr(i);
+  E_Int nbf = ngi.PHs.stride(i);
+  orient.resize(nbf, 1);
+
+  for (E_Int j = 0; j < nbf; ++j)
+  {
+    E_Int PGi = *(pF+j) - 1;
+    //std::cout << "PGi bef wwong :" << PGi << std::endl;
+    if ((*cFE)(PGi, 1) != i+1) orient[j] = -1;
+    //assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
+  }
+
+  //std::cout << "computing flux for PH : " << i << std::endl;
+  K_MESH::Polyhedron<0> PH(ngi, i);
+  
+  E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v, dt);
+
+  return err;
+}
+
 PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
 {
   PyObject *arr, *PE;
@@ -996,40 +1016,42 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
     return nullptr;
   }
 
-  std::vector<E_Int> orient;
   E_Int imin=-1;
   E_Float vmin = NUGA::FLOAT_MAX;
-  for (E_Int i=0; i < ngi.PHs.size(); ++i)
+
+  E_Int nb_max_threads = __NUMTHREADS__;
+  //std::cout << "nb threads max : " << nb_max_threads << std::endl;
+    
+  std::vector<E_Int> im(nb_max_threads, IDX_NONE);
+  std::vector<E_Float> vm(nb_max_threads, NUGA::FLOAT_MAX);
+  std::vector<std::vector<E_Int>> orient(nb_max_threads);
+
+  E_Int i, id{0};
+  DELAUNAY::Triangulator dt;
+
+#pragma omp parallel shared(vm, im, ngi, crd, cFE, orient) private (i, id, dt) default(none)
+{
+  id = __CURRENT_THREAD__;
+  //std::cout << "before loop thread : " << id  << std::endl;
+#pragma omp for //schedule(dynamic)
+  for (i=0; i < ngi.PHs.size(); ++i)
   {
-    orient.clear();
-
-    const E_Int* pF = ngi.PHs.get_facets_ptr(i);
-    E_Int nbf = ngi.PHs.stride(i);
-    orient.resize(nbf, 1);
-
-    for (E_Int f = 0; f < nbf; ++f)
-    {
-      E_Int PGi = *(pF+f) - 1;
-      //std::cout << "PGi bef wwong :" << PGi << std::endl;
-      if ((*cFE)(PGi, 1) != i+1) orient[f] = -1;
-      assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
-    }
-
-    //std::cout << "computing flux for PH : " << i << std::endl;
-    K_MESH::Polyhedron<0> PH(ngi, i);
     double v;
-    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v);
-
-    if (!err && v < vmin)
+    E_Int err = comp_vol(crd, ngi, cFE, orient[id], i, dt, v);
+    if (!err && v < vm[id]) // min for current thread
     {
-      imin = i;
-      vmin = v;
+      im[id] = i;
+      vm[id] = v;
     }
-    if (err)
+  }
+}
+
+  for (E_Int i=0; i < nb_max_threads; ++i)
+  {
+    if (vm[i] < vmin)
     {
-      std::cout << "error to triangulate cell " << i << "at face : " << err-1 << std::endl;
-      //medith::write("badcell", crd, ngi, i);
-      //medith::write("faultyPG", crd, ngi.PGs.get_facets_ptr(err-1), ngi.PGs.stride(err-1), 1);
+      imin = im[i];
+      vmin = vm[i];
     }
   }
 
@@ -1058,6 +1080,247 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
   return l;
 }
 
+PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *PE;
+  double aratio{0.125}, vmin{0.};
+  int nneighs{1};
+
+  if (!PyArg_ParseTuple(args, "OO", &arr, &PE)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  // Check numpy (parentElement)
+  FldArrayI* cFE;
+  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  if (ngi.PGs.size() != cFE->getSize())
+  {
+    std::cout << "le ParentElement ne correpsond pas au nb de pgs" << std::endl;
+    delete f; delete cn;
+    return nullptr;
+  }
+
+  E_Int nphs = ngi.PHs.size();
+
+  std::vector<double> vols(nphs, NUGA::FLOAT_MAX);
+
+  E_Int nb_max_threads = __NUMTHREADS__;
+  //std::cout << "nb threads max : " << nb_max_threads << std::endl;
+    
+  std::vector<std::vector<E_Int>> orient(nb_max_threads);
+
+  E_Int i, id{0};
+  DELAUNAY::Triangulator dt;
+
+#pragma omp parallel shared(ngi, crd, cFE, orient, vols) private (i, id, dt) default(none)
+  {
+    id = __CURRENT_THREAD__;
+    //std::cout << "before loop thread : " << id  << std::endl;
+#pragma omp for //schedule(dynamic)
+    for (i=0; i < ngi.PHs.size(); ++i)
+    {
+      double v;
+      E_Int err = comp_vol(crd, ngi, cFE, orient[id], i, dt, v);
+      if (!err)
+        vols[i] = v;
+    }
+  }
+
+  //
+  ngon_unit neighborsi;
+  ngi.build_ph_neighborhood(neighborsi);
+
+  Vector_t<E_Float> growth_ratio;
+  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., growth_ratio);
+
+  E_Int ivolmin,igrmin;
+  E_Float volmin{NUGA::FLOAT_MAX}, grmin{NUGA::FLOAT_MAX};
+
+  for (size_t i=0; i < vols.size(); ++i)
+  {
+    if (vols[i] < volmin)
+    {
+      volmin = vols[i];
+      ivolmin = i;
+    }
+  }
+
+  for (size_t i=0; i < growth_ratio.size(); ++i)
+  {
+    if (growth_ratio[i] < grmin)
+    {
+      grmin = growth_ratio[i];
+      igrmin = i;
+    }
+  }
+ 
+  delete f; delete cn;
+ 
+  PyObject *l(PyList_New(0)), *tpl;
+
+#ifdef E_DOUBLEINT
+  tpl =  Py_BuildValue("l", long(ivolmin));
+   PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("i", ivolmin);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(volmin));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", float(volmin);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEINT
+  tpl =  Py_BuildValue("l", long(igrmin));
+   PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("i", igrmin);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(grmin));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", float(grmin);
+  PyList_Append(l, tpl);
+#endif
+  
+  return l;
+}
+
+PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *PE;
+  double aratio{0.125}, vmin{0.};
+  int nneighs{1};
+
+  if (!PYPARSETUPLE(args, "OOddl", "OOddi", "OOffl", "OOffi", &arr, &PE, &aratio, &vmin, &nneighs)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  // Check numpy (parentElement)
+  FldArrayI* cFE;
+  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  if (ngi.PGs.size() != cFE->getSize())
+  {
+    std::cout << "le ParentElement ne correpsond pas au nb de pgs" << std::endl;
+    delete f; delete cn;
+    return nullptr;
+  }
+
+  E_Int nphs = ngi.PHs.size();
+
+  std::vector<E_Int> orient;
+  std::vector<double> vols(nphs, NUGA::FLOAT_MAX);
+  E_Int imin=-1;
+  
+  //compute volumes using input orientation 
+  for (E_Int i=0; i < ngi.PHs.size(); ++i)
+  {
+    orient.clear();
+
+    const E_Int* pF = ngi.PHs.get_facets_ptr(i);
+    E_Int nbf = ngi.PHs.stride(i);
+    orient.resize(nbf, 1);
+
+    for (E_Int f = 0; f < nbf; ++f)
+    {
+      E_Int PGi = *(pF+f) - 1;
+      //std::cout << "PGi bef wwong :" << PGi << std::endl;
+      if ((*cFE)(PGi, 1) != i+1) orient[f] = -1;
+      assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
+    }
+
+    //std::cout << "computing flux for PH : " << i << std::endl;
+    K_MESH::Polyhedron<0> PH(ngi, i);
+    double v;
+    DELAUNAY::Triangulator dt;
+    E_Int err = PH.volume<DELAUNAY::Triangulator>(crd, &orient[0], v, dt);
+
+    if (!err)
+      vols[i] = v;
+    else
+    {
+      //std::cout << "error to triangulate cell " << i << "at face : " << err-1 << std::endl;
+      //medith::write("badcell", crd, ngi, i);
+      //medith::write("faultyPG", crd, ngi.PGs.get_facets_ptr(err-1), ngi.PGs.stride(err-1), 1);
+    }
+  }
+
+  ngon_unit neighborsi;
+  ngi.build_ph_neighborhood(neighborsi);
+
+  Vector_t<E_Float> growth_ratio;
+  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., growth_ratio);
+
+  std::vector<bool> keep(nphs, false);
+  E_Int badcount=0;
+  for (size_t i=0; i < nphs; ++i)
+  {
+    if ( (growth_ratio[i] < aratio) || (vols[i] < vmin) ) {
+      ++badcount;
+      keep[i]=true;
+    }
+  }
+
+  //std::cout << "nb of bad cells found : " << badcount << " (over " << nphs << ")" << std::endl;
+
+  // extend with second neighborhood and separate from non-involved polyhedra
+  for (E_Int j=0; j< nneighs; ++j)
+    ngon_type::flag_neighbors(ngi, keep);
+    
+  ngon_type ngo;  
+  {
+    Vector_t<E_Int> ngpids;
+    ngi.select_phs(ngi, keep, ngpids, ngo);
+  }
+
+  ngon_type::compact_to_used_nodes(ngo.PGs, crd); //reduce points
+
+  K_FLD::IntArray cnto;
+  ngo.export_to_array(cnto);
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+///
 PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
 {
   PyObject *arr, *axcelln;
@@ -1163,8 +1426,8 @@ PyObject* K_INTERSECTOR::removeBaffles(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  E_Int nb_baffles = ngi.remove_baffles();
-  std::cout << "number of baffles removed : " << nb_baffles << std::endl;
+  E_Int nb_cells_w_baffles = ngi.remove_baffles();
+  if (nb_cells_w_baffles) std::cout << "number of cells with baffles found : " << nb_cells_w_baffles << std::endl;
 
   K_FLD::IntArray cnto;
   ngi.export_to_array(cnto);
@@ -1374,14 +1637,18 @@ PyObject* K_INTERSECTOR::computeGrowthRatio(PyObject* self, PyObject* args)
   ngon_unit neighborsi;
   ngi.build_ph_neighborhood(neighborsi);
 
-  Vector_t<E_Float> aspect_ratio;
-  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vmin, aspect_ratio);
-  
-  size_t sz = aspect_ratio.size();
-  FloatArray ar(1, sz);
-  for (size_t i = 0; i < sz; ++i) ar[i] = aspect_ratio[i];
+  std::vector<E_Float> vols;
+  ngon_type::volumes<DELAUNAY::Triangulator>(crd, ngi, vols, false/*not all cvx*/, false/* ! new algo*/);
 
-  PyObject* tpl = K_ARRAY::buildArray(ar, "aspect_ratio", *cn, -1, "NGON", true);
+
+  Vector_t<E_Float> growth_ratio;
+  ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, vmin, growth_ratio);
+  
+  size_t sz = growth_ratio.size();
+  FloatArray ar(1, sz);
+  for (size_t i = 0; i < sz; ++i) ar[i] = growth_ratio[i];
+
+  PyObject* tpl = K_ARRAY::buildArray(ar, "growth_ratio", *cn, -1, "NGON", true);
   
   delete f; delete cn;
   return tpl;
@@ -2462,9 +2729,25 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
 /* retrieves any cells that are colliding */
 //=============================================================================
 PyObject* K_INTERSECTOR::getCollidingCells(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* Computes cell sensor data from the metric in a mesh */
+//=============================================================================
+PyObject* K_INTERSECTOR::estimateAdapReq(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;

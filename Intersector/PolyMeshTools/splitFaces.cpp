@@ -409,7 +409,7 @@ using acrd_t = K_FLD::ArrayAccessor<crd_t>;
 
 ///
 void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, const double * axis, double angle, const double* translation,
-  std::map<int, std::vector<int>>& glob_face_to_bits)
+  double ARTOL, std::map<int, std::vector<int>>& glob_face_to_bits)
 {
   DELAUNAY::Triangulator dt;
 
@@ -424,11 +424,18 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
   // 0. TOL computation
   m.get_nodal_metric2();
-  E_Float Lmin, Lmax;
-  E_Int imin, imax;
-  ngon_type::edge_length_extrema(m.cnt, m.crd, Lmin, imin, Lmax, imax);
-  double TOL = 0.001*Lmin;
-  //double TOL = EPSILON;
+
+  if (ARTOL == 0.) ARTOL = -0.01;
+
+  double TOL = ARTOL;
+  if (ARTOL < 0.) // relative
+  {
+    E_Float Lmin, Lmax;
+    E_Int imin, imax;
+    ngon_type::edge_length_extrema(m.cnt, m.crd, Lmin, imin, Lmax, imax);
+    TOL = -ARTOL * Lmin;
+    assert(TOL > 0.); // no degen in m
+  }
 
   E_Int npgs = m.cnt.size();
 
@@ -487,6 +494,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
   K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(Cs_glog);
   E_Int nmerges = ::merge(ca, TOL, nids);
+  //std::cout << "nmerges : " << nmerges << std::endl;
 
   // check wrong auto_match
   for (size_t i = 0; i <npgs; ++i)
@@ -504,7 +512,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
     left.push_back(i - npgs);
     right.push_back(nids[i]);
     E_Int nid = nids[i];
-    nids[i-npgs] = nid;
+    nids[i - npgs] = nid;
     nids[nid] = i - npgs;
   }
 
@@ -541,7 +549,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
   for (size_t i = 0; i < npgs; ++i)
   {
-    if (nids[i] != i) continue; // exact match alreay found
+    if (nids[i] != i) continue; // exact match already found
 
     auto face = m.element(i);
 
@@ -884,7 +892,7 @@ void duplicate_and_move_period_faces
 
 ///
 void sync_faces
-(NUGA::ph_mesh_t& m, const std::map<int, std::vector<int>>& face_to_bits)
+(NUGA::ph_mesh_t& m, const std::map<int, std::vector<int>>& face_to_bits, double ARTOL)
 {
   // 
   std::vector<int> molecPH;
@@ -924,11 +932,20 @@ void sync_faces
   m.cnt.PHs.updateFacets();
   m.cnt.PHs.remove_duplicated(); //several occurence of the same face in each phs
 
-  // 2. merge coincident nodes
-  E_Float Lmin, Lmax;
-  E_Int imin, imax;
-  ngon_type::edge_length_extrema(m.cnt.PGs, m.crd, Lmin, imin, Lmax, imax);
-  double TOL = 0.01*Lmin;
+                                 // 2. merge coincident nodes
+  if (ARTOL == 0.) ARTOL = -0.01;
+
+  double TOL = ARTOL;
+  if (ARTOL < 0.) // relative
+  {
+    E_Float Lmin, Lmax;
+    E_Int imin, imax;
+    ngon_type::edge_length_extrema(m.cnt.PGs, m.crd, Lmin, imin, Lmax, imax);
+    TOL = -ARTOL * Lmin;
+    assert(TOL > 0.); // no degen in m
+  }
+
+  //std::cout << "TOL : " << TOL << std::endl;
   E_Int nb_merges = m.cnt.join_phs(m.crd, TOL);
   //std::cout << "nmerges : " << nb_merges << std::endl;
 
@@ -1001,12 +1018,12 @@ void sync_faces
 PyObject* K_INTERSECTOR::syncMacthPeriodicFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-  E_Float center[3], axis[3], trans[3], tol(EPSILON);
+  E_Float center[3], axis[3], trans[3], artol(-0.01);
 
   if (!PYPARSETUPLEF(args, "O(ddd)(ddd)(ddd)d", "O(fff)(fff)(fff)f", &arr, 
                                                                      &center[0], &center[1], &center[2],
                                                                      &axis[0], &axis[1], &axis[2],
-                                                                     &trans[0], &trans[1], &trans[2], &tol)) return nullptr;
+                                                                     &trans[0], &trans[1], &trans[2], &artol)) return nullptr;
   
   bool is_rot = false;
   double rot_angle = 0.;
@@ -1056,14 +1073,14 @@ PyObject* K_INTERSECTOR::syncMacthPeriodicFaces(PyObject* self, PyObject* args)
   do
   {
     std::map<int, std::vector<int>> glob_face_to_bits;
-    detect_async_modified_faces(m, center, paxis, rot_angle, ptrans, glob_face_to_bits);
+    detect_async_modified_faces(m, center, paxis, rot_angle, ptrans, artol, glob_face_to_bits);
 
     carry_on = !glob_face_to_bits.empty();
     if (!carry_on) break;
 
     duplicate_and_move_period_faces(m, center, paxis, rot_angle, ptrans, glob_face_to_bits);
 
-    sync_faces(m, glob_face_to_bits);
+    sync_faces(m, glob_face_to_bits, artol);
 
   } while (carry_on);
 

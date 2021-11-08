@@ -88,17 +88,17 @@ bool is_valid (char* eltType, eOperation oper)
 bool getArgs(PyObject* args, eOperation oper,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
-             E_Float& tolerance, E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual, char*& eltType, char*& varString)
+             E_Float& tolerance, E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual, bool& outward_surf, char*& eltType, char*& varString)
 {
   PyObject *arrS[2];
   E_Float tol = 0.;
-  E_Int preserv_r, solid_r, imp_qual(0);
+  E_Int preserv_r, solid_r, imp_qual(0), out_sur(0);
   std::ostringstream o;
   std::string opername = getName(oper);
 
   if (!PYPARSETUPLE(args, 
-                    "OOdllll", "OOdiiii", "OOfllll", "OOfiiii", 
-                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual))
+                    "OOdlllll", "OOdiiiii", "OOflllll", "OOfiiiii", 
+                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &out_sur))
   {
     o << opername << ": wrong arguments.";
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
@@ -106,6 +106,7 @@ bool getArgs(PyObject* args, eOperation oper,
   }
 
   improve_conformal_cloud_qual = bool(imp_qual);
+  outward_surf = bool(out_sur);
 
   E_Int ni, nj, nk, posx[2], posy[2], posz[2], err(0);
   K_FLD::FloatArray *fS[2];
@@ -333,10 +334,10 @@ PyObject* call_operation(PyObject* args, eOperation oper)
   char *eltType, *varString;
   std::vector<E_Int> colors;
   E_Int preserve_right, solid_right, agg_mode;
-  bool improve_conformal_cloud_qual(false);
+  bool improve_conformal_cloud_qual(false), outward_surf(true);
   
   bool ok = getArgs(args, oper, pos1, connect1, pos2, connect2, tolerance, 
-		    preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, eltType, varString);
+		    preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, outward_surf, eltType, varString);
   if (!ok) return NULL;
   PyObject* tpl = NULL;
   E_Int err(0), et=-1;

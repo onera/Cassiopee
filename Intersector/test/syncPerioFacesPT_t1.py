@@ -34,7 +34,7 @@ a = XOR.triangulateBC(a, 'BCWallViscous')
 C._deleteZoneBC__(a)
 #########################################
 
-XOR._syncMacthPeriodicFaces(a, translation=[0.,0.,9.])
+a = XOR.syncMacthPeriodicFaces(a, translation=[0.,0.,9.])
 
 a = X.connectMatchPeriodic(a, translation=[0.,0.,9.])
 

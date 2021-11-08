@@ -77,6 +77,12 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
   return NULL;
 }
 
+PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
 //============================================================================
 /* Creates a Geom Sensor */
 //============================================================================
@@ -124,7 +130,7 @@ PyObject* K_INTERSECTOR::deleteCom(PyObject* self, PyObject* args)
 
 
 //=============================================================================
-/* Agglomerate superfuous faces (overdefined polyhedra) */
+/* Split Non centroid-star-shaped cells */
 //=============================================================================
 PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
 {
@@ -133,7 +139,7 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* Agglomerate superfuous faces (overdefined polyhedra) */
+/* Hierarchical Mesh Adaptation */
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 {

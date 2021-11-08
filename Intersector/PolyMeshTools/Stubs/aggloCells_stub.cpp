@@ -47,5 +47,4 @@ PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyOb
     PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
 }
-
 //=======================  Intersector/PolyMeshTools/aggloFaces.cpp ====================

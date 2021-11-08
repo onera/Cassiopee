@@ -997,7 +997,6 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
   return Py_None;
 }
 
-///////////////////////////////////////////////////////////////////////////////
 //============================================================================
 /* getDonnorPG */
 //============================================================================
@@ -1209,8 +1208,6 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
 
   return tpl;
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 //============================================================================
 /* Create a Geom sensor and returns a hook */
@@ -1999,7 +1996,7 @@ PyObject* K_INTERSECTOR::deleteCom(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* Agglomerate superfuous faces (overdefined polyhedra) */
+/* Split Non centroid-star-shaped cells */
 //=============================================================================
 PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
 {

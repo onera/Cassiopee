@@ -3330,10 +3330,24 @@ def volume(t, fieldname=None):
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         v += XOR.volume(m, xcelln)
     return v
+
+
+#==============================================================================
+# syncMacthPeriodicFaces : XXX
+# IN: t    : 3D NGON mesh
+# OUT: Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
+#==============================================================================
+def syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
+                              rotationAngle=[0.,0.,0.],
+                              translation=[0.,0.,0.], TOL=-0.01,
+                              unitAngle=None, reorient=True):
+  tp = Internal.copyRef(t)
+  _syncMacthPeriodicFaces(tp, rotationCenter, rotationAngle, translation, TOL, unitAngle, reorient)
+  return tp
   
 def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
                               rotationAngle=[0.,0.,0.],
-                              translation=[0.,0.,0.], tol=1.e-6,
+                              translation=[0.,0.,0.], TOL=-0.01,
                               unitAngle=None, reorient=True):
 
 # WARNING : currently implemented by applying it individually by zone
@@ -3347,7 +3361,7 @@ def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
     if reorient == True : _reorient(z)
     m = C.getFields(Internal.__GridCoordinates__, z)[0]
     res = XOR.syncMacthPeriodicFaces(m, rotationCenter, rotationAngleR,
-                                      translation, tol)
+                                      translation, TOL)
     msh = res[0]
     #print(msh)
     C.setFields([msh], z, 'nodes')
