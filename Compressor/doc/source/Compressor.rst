@@ -118,7 +118,7 @@ Object serialize/compression
 .. py:function:: Compressor.PyTree.compressCartesian(a)
 
     Compress zones if they are regular Cartesian grids. Create a
-    CaresianData node containing the 6 floats
+    CartesianData node containing the 6 floats
     corresponding to first point and steps in 3 directions.
 
     Exists also as an in-place version (_compressCartesian) which modifies a and returns None.
@@ -142,7 +142,7 @@ Object serialize/compression
     :type a: [zone, list of zones, base, pyTree]
     :return: identical to input
 
-    * `Cartesian compression (pyTree) <Examples/Compressor/uncompressCartesianPT.py>`_:
+    * `Cartesian uncompression (pyTree) <Examples/Compressor/uncompressCartesianPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Compressor/uncompressCartesianPT.py
 

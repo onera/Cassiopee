@@ -74,6 +74,7 @@ fi
 cd ..
 
 # Build html
+touch source/*.rst
 sphinx-build -b html ./source ./build
 
 if ([ $PRODUCTION -eq 1 ])
@@ -82,11 +83,11 @@ then
     sphinx-build -b latex ./source ./build
     cd build
     sed -i 's/longtable}{LL}/longtable}{ll}/g' Internal.tex
-    pdflatex Internal
-    pdflatex Filter
-    pdflatex ConverterMpi
-    pdflatex elsAProfile
-    pdflatex Converter
+    pdflatex Internal >& /dev/null
+    pdflatex Filter >& /dev/null
+    pdflatex ConverterMpi >& /dev/null
+    pdflatex elsAProfile >& /dev/null
+    pdflatex Converter >& /dev/null
     cd ..
 fi
 

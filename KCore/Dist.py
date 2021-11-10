@@ -2,7 +2,7 @@
 import os, sys, distutils.sysconfig, platform, glob, subprocess
 
 # Toggle to True for compiling for debug (valgrind, inspector)
-DEBUG = False
+DEBUG = True
 
 #==============================================================================
 # Check module import

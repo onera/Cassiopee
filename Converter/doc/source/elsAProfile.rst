@@ -579,7 +579,7 @@ Addition of elsA nodes
     :param methodPE: 0 (for regular mesh), 1 otherwise
     :type  methodPE: 0 or 1
     :param newNGON: True (new NGON with ElementStartOffSet), False (old NGON)
-    :type Boolean
+    :type newNGon: Boolean
     :return: modified reference copy of t
     :rtype: identical to t
 

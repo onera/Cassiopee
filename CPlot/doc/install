@@ -74,15 +74,16 @@ fi
 cd ..
 
 # Build html
+touch source/*.rst
 sphinx-build -b html ./source ./build
 if ([ $PRODUCTION -eq 1 ])
 then
 # Build pdf
     sphinx-build -b latex ./source ./build
     cd build
-    pdflatex CPlot
-    pdflatex tkCassiopee
-    pdflatex tkPlotXY
+    pdflatex CPlot >& /dev/null
+    pdflatex tkCassiopee >& /dev/null
+    pdflatex tkPlotXY >& /dev/null
     cd ..
 fi
 

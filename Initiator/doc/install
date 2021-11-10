@@ -75,13 +75,14 @@ fi
 cd ..
 
 # Build html
+touch source/*.rst
 sphinx-build -b html ./source ./build
 if ([ $PRODUCTION -eq 1 ])
 then
 # Build pdf
     sphinx-build -b latex ./source ./build
     cd build
-    pdflatex Initiator
+    pdflatex Initiator >& /dev/null
     cd ..
 fi
 

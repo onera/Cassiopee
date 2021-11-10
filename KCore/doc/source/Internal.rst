@@ -99,6 +99,7 @@ List of functions
     Converter.Internal.getNodeFromType
     Converter.Internal.getByType
     Converter.Internal.getChildFromType
+    Converter.Internal.getChildrenFromType
     Converter.Internal.getNodesFromNameAndType
     Converter.Internal.getNodeFromNameAndType
     Converter.Internal.getNodesFromValue
@@ -729,7 +730,7 @@ Acess nodes
 
     *Example of use:*
 
-    * `Return first child of name (pyTree) <Examples/Converter/getChildFormNamePT.py>`_:
+    * `Return first child of name (pyTree) <Examples/Converter/getChildFromNamePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getChildFromNamePT.py
 
@@ -815,11 +816,31 @@ Acess nodes
 
     *Example of use:*
 
-    * `Return first child of type (pyTree) <Examples/Converter/getChildFormTypePT.py>`_:
+    * `Return first child of type (pyTree) <Examples/Converter/getChildFromTypePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getChildFromTypePT.py
 
     .. note:: new in version 3.2.
+
+---------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getChildrenFromType(node)
+
+    Return the list of children of node matching given type (one level search). 
+    If not found, return [].
+   
+    :param node:  input node
+    :type  node:  pyTree node
+    :return: list of found nodes
+    :rtype: lilst of pyTree nodes
+
+    *Example of use:*
+
+    * `Return children nodes of type (pyTree) <Examples/Converter/getChildrenFromTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getChildrenFromTypePT.py
+
+    .. note:: new in version 3.3.
 
 -----------------------------------------------------------------------------
 
@@ -902,6 +923,8 @@ Acess nodes
     If node is not found, then p is None.
     This in an expansive routine. Prefer top-down tree traversal, if
     possible.
+    Exists also as getParentOfNode1, getParentOfNode2, with search limited to one or two 
+    levels from t. In this case, t must be a standard pyTree node.
    
     :param t:  higher node
     :type  t:  pyTree node
@@ -1404,7 +1427,7 @@ Copy nodes
 
 .. py:function:: Converter.Internal.copyNode(node) 
 
-    Copy only this node (no recursion). Node value (in particular data numpys) is copied.
+    Copy only this node (no recursion). Node value (in particular data numpy) is copied.
 
     :param node:  input node
     :type  node:  pyTree node or list of pyTree nodes
