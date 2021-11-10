@@ -24,6 +24,7 @@ def collapse(a):
     return C.TZGC(a, 'nodes', Transform.collapse)
 
 def _collapse(a):
+    """Collapse the smallest edge of each element for TRI arrays. Return a BAR."""    
     return C._TZGC(a, 'nodes', Transform.collapse)
 
 def cart2Cyl(t, center, axis):
@@ -32,6 +33,7 @@ def cart2Cyl(t, center, axis):
     return C.TZGC(t, 'nodes', Transform.cart2Cyl, center, axis)
 
 def _cart2Cyl(t, center, axis):
+    """Transform a mesh in Cartesian coordinates to cylindrical coordinates."""
     for z in Internal.getZones(t):
         transform._cart2CylZ(z, center, axis, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__)
     return None
@@ -42,6 +44,7 @@ def cyl2Cart(t, center, axis):
     return C.TZGC(t, 'nodes', Transform.cyl2Cart, center, axis)
 
 def _cyl2Cart(t, center, axis):
+    """Transform a mesh in Cylindrical coordinates to Cartesian coordinates."""    
     for z in Internal.getZones(t):
         transform._cyl2CartZ(z, center, axis, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__)
     return None
@@ -52,6 +55,7 @@ def translate(t, transvect):
     return C.TZGC2(t, Transform.translate, 'nodes', False, transvect)
 
 def _translate(t, transvect):
+    """Translate a zone."""
     return C.__TZGC2(t, Transform._translate, transvect)
 
 def rotate(a, center, arg1, arg2=None,
@@ -80,6 +84,7 @@ def rotate(a, center, arg1, arg2=None,
 
 def _rotate(a, center, arg1, arg2=None,
             vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
+    """Rotate a mesh defined by an array around vector n of center Xc and of angle teta."""    
     vectorsN = []; vectorsC = []
     for vect in vectors:
         if len(vect) == 3:
@@ -100,6 +105,7 @@ def _rotate(a, center, arg1, arg2=None,
 
 # Really in place - on coordinates only
 def _rotate2(t, center, arg1, arg2=None):
+    """Rotate only coordinates."""
     return C.__TZGC2(t, Transform._rotate, center, arg1, arg2)
 
 def homothety(a, center, alpha):
@@ -109,6 +115,7 @@ def homothety(a, center, alpha):
     return C.TZGC2(a, Transform.homothety, 'nodes', False, center, alpha)
 
 def _homothety(a, center, alpha):
+    """Make for a mesh defined by an array an homothety of center Xc and of factor alpha."""    
     return C.__TZGC2(a, Transform._homothety, center, alpha)
 
 def contract(a, center, dir1, dir2, alpha):
@@ -165,7 +172,16 @@ def smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
 
 def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
-    return C.__TZA2(t, Transform._smoothField, 'nodes', eps, niter, type, varNames)
+    varNodes = []; varCenters = []
+    for v in varNames:
+        s = v.split(':')
+        if len(s) == 2:
+            if s[0] == 'centers': varCenters.append(s[1])
+            else: varNodes.append(s[0])
+        else: varNodes.append(v)
+    if varNodes != []: C.__TZA2(t, Transform._smoothField, 'nodes', eps, niter, type, varNodes)
+    if varCenters != []: C.__TZA2(t, Transform._smoothField, 'centers', eps, niter, type, varCenters)
+    return None
 
 def smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
            projConstraints=[], delta=1., point=(0,0,0), radius=-1.):
@@ -221,6 +237,7 @@ def deformNormals(t, alpha, niter=1):
     return tp
 
 def _deformNormals(t, alpha, niter=1):
+    """Deform a a surface of alpha times the surface normals."""
     alphat = C.getField(alpha, t)
     res = C.TLAGC(t, Transform.deformNormals, alphat, niter, None, None)
     C.setFields(res[0], t, 'nodes')
@@ -232,6 +249,7 @@ def deformPoint(a, xyz, dxdydz, depth, width):
     return C.TZGC(a, 'nodes', Transform.deformPoint, xyz, dxdydz, depth, width)
 
 def _deformPoint(a, xyz, dxdydz, depth, width):
+    """Deform mesh by moving point (x,y,z) of a vector (dx, dy, dz)."""
     return C._TZGC(a, 'nodes', Transform.deformPoint, xyz, dxdydz, depth, width)
 
 def deformMesh(a, surfDelta, beta=4.,type='nearest'):
@@ -241,6 +259,7 @@ def deformMesh(a, surfDelta, beta=4.,type='nearest'):
     return C.TZA(a, 'nodes', 'nodes', Transform.deformMesh, None, info, beta, type)
 
 def _deformMesh(a, surfDelta, beta=4.,type='nearest'):
+    """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it."""
     info = C.getAllFields(surfDelta, 'nodes')
     return C._TZA(a, 'nodes', 'nodes', Transform.deformMesh, None, info, beta, type)
 
@@ -313,6 +332,7 @@ def patch(t1, t2, position=None, nodes=None):
     return tp1
 
 def _patch(t1, t2, position=None, nodes=None):
+    """Patch mesh2 defined by t2 in mesh1 defined by t1 at position (i,j,k)."""
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(t2)
     for z1,z2 in zip(zones1, zones2):
@@ -391,6 +411,7 @@ def oneovern(t, N):
     return tp
 
 def _oneovern(t, N):
+    """Take one over N points from mesh."""
     C._TZA(t, 'both', 'both',
            Transform.oneovern, Transform.oneovern, N, 1, N, 0)
     #C._TZA2(t, Transform.oneovern, 'nodes', 'nodes',  1, N)
@@ -821,12 +842,14 @@ def _replaceZoneWithSplit(t, zname, z1, z2):
     return None
 
 def getWinSize(w):
+    """Return the size of a window."""
     s1 = w[1]-w[0]+1
     s2 = w[3]-w[2]+1
     s3 = w[5]-w[4]+1
     return s1*s2*s3
 
 def getWinDir(w):
+    """Return the direction of a window."""
     (oi1,oi2,oj1,oj2,ok1,ok2) = w
     dim = 3
     if oi1 != oi2 and ok1 == 1 and ok2 == 1: dim = 2
@@ -949,7 +972,6 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                         else: C._addBC2Zone(z2, 'match', 'BCMatch', winstarti2, z2, winopp2, trirac, 
                                         rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
 
-   
 
             #if wini is not None:
             #    if wins1 is None and wins2 is not None:
@@ -1160,6 +1182,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
 # Retourne deux zones avec les BCs + BCMatchs OK
 # Si t est donne, t est modifie
 def split(z, dir=1, index=1, t=None):
+    """Split a structured zone given index and direction."""
     dimz = Internal.getZoneDim(z)
     ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
     zoneName = z[0]
@@ -1252,6 +1275,7 @@ def getWinDir2__(win):
 # sur des faces pleines
 #=====================================================================
 def _splitFullMatch(t):
+    """Split all zones for matching on a full face."""
     zones = Internal.getZones(t)
     stack = []
     for z in zones:
@@ -1812,6 +1836,7 @@ def makeDirect(t):
     return tp
 
 def _makeDirect(t):
+    """Make a structured grid direct."""
     import KCore.Vector as Vector
     zones = Internal.getZones(t)
     for z in zones:
@@ -1857,6 +1882,7 @@ def addkplane(t, N=1):
     return tp
 
 def _addkplane(t, N=1):
+    """Add N k-plane(s) to a mesh."""
     zones = Internal.getZones(t)
     for z in zones:
         nodes = C.getFields(Internal.__GridCoordinates__, z)[0]
@@ -1887,8 +1913,9 @@ def projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
     return t
 
 def _projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
+    """Project points defined in arrays to surfaces according to the direction provided by vect."""
     zones = Internal.getZones(t1)
-    a1 = C.getAllFields(zones,loc='nodes')
+    a1 = C.getAllFields(zones, loc='nodes')
     a1 = Converter.extractVars(a1,['CoordinateX','CoordinateY','CoordinateZ']+vect)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
     res = Transform.projectAllDirs(a1, a2, vect, oriented)
@@ -1904,6 +1931,7 @@ def projectDir(t1, t2, dir, smooth=0, oriented=0):
     return t
 
 def _projectDir(t1, t2, dir, smooth=0, oriented=0): # t1 is modified
+    """Project a surface array onto surface arrays following dir."""
     zones = Internal.getZones(t1)
     a1 = C.getFields(Internal.__GridCoordinates__, zones)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
@@ -1920,6 +1948,7 @@ def projectOrtho(t1, t2):
     return t
 
 def _projectOrtho(t1, t2): # t1 is modified
+    """Project a surface t1 onto surface t2 orthogonally."""    
     zones = Internal.getZones(t1)
     a1 = C.getFields(Internal.__GridCoordinates__, zones)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
@@ -1936,6 +1965,7 @@ def projectOrthoSmooth(t1, t2, niter=1):
     return t
 
 def _projectOrthoSmooth(t1, t2, niter=1): # t1 is modified
+    """Project a surface array onto surface arrays following smoothed normals."""
     zones = Internal.getZones(t1)
     a1 = C.getFields(Internal.__GridCoordinates__, zones)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
@@ -1952,6 +1982,7 @@ def projectRay(t1, t2, Pt):
     return t
 
 def _projectRay(t1, t2, Pt): # t1 is modified
+    """Project a surface array onto surface arrays following rays."""
     zones = Internal.getZones(t1)
     a1 = C.getFields(Internal.__GridCoordinates__, zones)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
@@ -3288,5 +3319,3 @@ def _splitNGon(t, N, N2=-1, shift=1000):
         Transform.transform.splitNGon2(a1, a2, N, N2, shift)
         C.setFields([a2], z, 'centers', writeDim=False)
     return None
-
-

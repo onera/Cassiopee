@@ -515,7 +515,7 @@ E_Int K_POST::computeCompVars(const FldArrayF& f,  const E_Int posnew,
   else return 1;
 }
 // =================================================================================
-// Calcule les variables composées (à partir des variables ro, u, T)
+// Calcule les variables composees (a partir des variables ro, u, T)
 // =================================================================================
 E_Int K_POST::computeCompVars2(const FldArrayF& f,    const E_Int posnew,
 			             char* varnew,    const E_Int posro,

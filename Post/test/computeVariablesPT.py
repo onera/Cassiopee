@@ -12,4 +12,3 @@ for v in vars: m = C.addVars(m, v)
 # Pressure and Mach number extraction
 m = P.computeVariables(m, ['Mach', 'Pressure'])
 C.convertPyTree2File(m, 'out.cgns')
-

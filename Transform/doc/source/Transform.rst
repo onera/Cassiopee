@@ -61,6 +61,7 @@ List of functions
     Transform.symetrize
     Transform.perturbate
     Transform.smooth
+    Transform.smoothField
     Transform.dual
     Transform.breakElements
 
@@ -667,6 +668,33 @@ Mesh transformation
 
 ---------------------------------------
 
+.. py:function:: Transform.smoothField(a, eps=0.1, niter=1, type=0, varNames=[])
+
+    Perform a Laplacian smoothing on given fields.
+
+    Exists also as an in-place version (_smoothField) which modifies a and returns None.
+
+    :param a: input zone with fields
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param eps: smoother power
+    :type eps: float
+    :param niter: number of smoothing iterations
+    :type niter: integer
+    :param type: type of smoothing algorithm
+    :type type: integer
+    :param type: 0 (isotropic) or 1 (scale)
+
+    *Example of use:*
+
+    * `Smooth a mesh (array) <Examples/Transform/smoothField.py>`_:
+
+    .. literalinclude:: ../build/Examples/Transform/smoothField.py
+
+    * `Smooth a mesh (pyTree) <Examples/Transform/smoothFieldPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Transform/smoothFieldPT.py
+
+---------------------------------------
 
 .. py:function:: Transform.dual(a, extraPoints=1)
 

@@ -34,14 +34,14 @@ def _computeVorticityMagnitude2(t, ghostCells=False):
 def _computeQCriterion2(t, ghostCells=False):
     """Compute Q criterion for velocity in centers."""
     P._computeGrad2(t, 'centers:VelocityX', ghostCells)
-    C._initVars(t, '{centers:Qcriterion}=-0.5*{centers:gradxVelocityX}*{centers:gradxVelocityX}')
+    C._initVars(t, '{centers:QCriterion}=-0.5*{centers:gradxVelocityX}*{centers:gradxVelocityX}')
     C._rmVars(t, ['centers:gradxVelocityX'])
     P._computeGrad2(t, 'centers:VelocityY', ghostCells)
-    C._initVars(t, '{centers:Qcriterion}={centers:Qcriterion}-0.5*{centers:gradyVelocityY}*{centers:gradyVelocityY}-{centers:gradyVelocityX}*{centers:gradxVelocityY}')
+    C._initVars(t, '{centers:QCriterion}={centers:QCriterion}-0.5*{centers:gradyVelocityY}*{centers:gradyVelocityY}-{centers:gradyVelocityX}*{centers:gradxVelocityY}')
     C._rmVars(t, ['centers:gradyVelocityY', 'centers:gradyVelocityX', 'centers:gradxVelocityY'])
     P._computeGrad2(t, 'centers:VelocityZ', ghostCells)
-    C._initVars(t, '{centers:Qcriterion}={centers:Qcriterion}-0.5*{centers:gradzVelocityZ}*{centers:gradzVelocityZ}-{centers:gradzVelocityX}*{centers:gradxVelocityZ}-{centers:gradzVelocityY}*{centers:gradyVelocityZ}')
-    C._rmVars(t, ['centers:gradzVelocityZ', 'centers:gradzVelocityX', 'centers:gradzVelocityY', 'centers:gradzVelocityX', 'centers:gradyVelocityZ'])
+    C._initVars(t, '{centers:QCriterion}={centers:QCriterion}-0.5*{centers:gradzVelocityZ}*{centers:gradzVelocityZ}-{centers:gradzVelocityX}*{centers:gradxVelocityZ}-{centers:gradzVelocityY}*{centers:gradyVelocityZ}')
+    C._rmVars(t, ['centers:gradxVelocityZ', 'centers:gradzVelocityZ', 'centers:gradzVelocityX', 'centers:gradzVelocityY', 'centers:gradzVelocityX', 'centers:gradyVelocityZ'])
     return None
     
 #==============================================================================

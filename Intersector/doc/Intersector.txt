@@ -3,13 +3,15 @@ Intersector 3.3[10/2021]
 Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
 KCore 3.3
 Optional: pyTree interface requires Converter 3.3
+- syncMatchPerioFaces: force periodicity on intersected/adapted meshes.
+- agglomerateSmallCells: improved algorithm
 ===============================================================================
 Intersector 3.2[02/2021]
 Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
 KCore 3.2
 Optional: pyTree interface requires Converter 3.2
 Intersector : adaptCells : cell_sensor mode : to specify the isotropic nb of subdivisions required per cell
-- adaptCells: coarse-grain mutlithreading (parallelism per block)
+- adaptCells: coarse-grain multithreading (parallelism per block)
 - adaptCells: BC/Joins/Field preservation
 - adaptCells: Mesh & Sensor hooks for incremental adaptation  
 - TurboMachine.py: specific wrappers to use the intersection strategy for mesh generation for turbo machine applications
