@@ -11,9 +11,13 @@
     // Point P
     pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
     // recherche du sommet P' des parois le plus proche de P
-    indw2 = kdt.getClosest(pt);
+    //indw2 = kdt.getClosest(pt);
+    //rx = xw2[indw2]-pt[0]; ry = yw2[indw2]-pt[1]; rz = zw2[indw2]-pt[2];
+    //dist = rx*rx + ry*ry + rz*rz;
+    indw2 = kdt.getClosest(pt, dist);
+    if (indw2 == IDX_NONE) indw2 = 0;
     rx = xw2[indw2]-pt[0]; ry = yw2[indw2]-pt[1]; rz = zw2[indw2]-pt[2];
-    dist = rx*rx + ry*ry + rz*rz;
+
     rad = sqrt(dist);
     rmax = lmaxp[indw2];
     

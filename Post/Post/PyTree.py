@@ -222,13 +222,14 @@ def coarsen(t, indicName='indic', argqual=0.1, tol=1.e6):
 
 def refine(t, indicName='indic', w=-1):
     """Refine a surface TRI-type mesh given a refinement indicator for each
-    element, or refine with butterfly algorithm.
+    element or refine with butterfly algorithm.
     Usage: refine(t, indicName, w)"""
     tp = Internal.copyRef(t)
     _refine(tp, indicName, w)
     return tp
 
 def _refine(t, indicName='indic', w=-1):
+    """Refine a surface TRI-type mesh given a refinement indicator for each element."""
     C._deleteZoneBC__(t)
     C._deleteGridConnectivity__(t)
     if w < 0: # linear with indicator field
@@ -381,8 +382,6 @@ def selectCells(t, F, varStrings=[], strict=0):
         
         if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
         return tp
-
-
     
     elif ret == 1: # centers
         C._deleteZoneBC__(tp)
@@ -402,13 +401,11 @@ def selectCells(t, F, varStrings=[], strict=0):
         C.setFields(tags, tp, 'centers', False)
         tp = selectCells2(tp, 'centers:__tag__')
         
-        
         C._rmVars(tp, 'centers:__tag__')
         if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
         return tp
     else:
         raise ValueError("selectCells: variables are not co-localized.")
-
 
 
 def selectCells2(t, tagName, strict=0):
@@ -519,10 +516,6 @@ def selectCells2(t, tagName, strict=0):
                 NGON += 1
             if found: Internal.createUniqueChild(GEl[NGON], 'ParentElements', 'DataArray_t', value=PE2)
                    
-
-
-
-            
     if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
 
     return tp
@@ -624,6 +617,7 @@ def exteriorElts(t):
     return tp
 
 def _exteriorElts(t):
+    """Exterior (border) elts of a mesh."""
     C._deleteFlowSolutions__(t, 'centers')
     return C._TZA(t, 'nodes', 'nodes', Post.exteriorElts, None)
 
@@ -635,6 +629,7 @@ def exteriorEltsStructured(t, depth=1):
     return tp
 
 def _exteriorEltsStructured(t, depth=1):
+    """Exterior (border) elts of a mesh as a structured grid."""
     C._TZA2(t, Post.exteriorEltsStructured, 'nodes', 'nodes', 1, depth)
     C._TZA2(t, Post.exteriorEltsStructured, 'centers', 'centers', 0, depth)
     return None
@@ -849,6 +844,7 @@ def computeWallShearStress(t):
     return tp
 
 def _computeWallShearStress(t):
+    """Compute wall shear stress."""
     from . import extraVariablesPT
     return extraVariablesPT._computeWallShearStress(t)
 
@@ -1125,7 +1121,7 @@ def identifyZonesLoc__(z1, z2, method, eps):
             return 1
     # loc = centres ?
     else:
-        if (dim1[0] == 'Structured' and dim2[0] == 'Structured'):
+        if dim1[0] == 'Structured' and dim2[0] == 'Structured':
             # Pour les grilles non structurees, il n'est pas possible
             # de stocker les coord en centres actuellement
             ni1 = dim1[1]; nj1 = dim1[2]; nk1 = dim1[3]
@@ -1254,7 +1250,7 @@ def integ2(t, var=''):
     else: return []
 
 def integ(t, var=''):
-    """New version."""
+    """Integral of fields defined in t."""
     try: import Generator.PyTree as G
     except ImportError: raise ImportError("integ: requires Generator module.")
     zvars = var.split(':')
@@ -1511,11 +1507,12 @@ def computeDiv(t,var):
     return tp
 
 def computeDiv2(t,var,ghostCells=False):
+    """Compute the divergence of a variable defined in array."""
     tp = Internal.copyRef(t)
-    _computeDiv2(tp, var,ghostCells=False)
+    _computeDiv2(tp, var, ghostCells=False)
     return tp
 
-def _computeDiv2(t, var,ghostCells=False):
+def _computeDiv2(t, var, ghostCells=False):
     """Compute the divergence of a variable defined in array.
     Usage: computeDiv2(t, var)"""
     if isinstance(var, list):
@@ -1668,7 +1665,7 @@ def _computeDiv2(t, var,ghostCells=False):
                         else: BCFieldY = numpy.concatenate((BCFieldY, fldY))
 
                     # Config (XZ)
-                    if (foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Z'):
+                    if foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Z':
                         for fgc in fldFace:
                             fgcX = fgc[1][0]
                             fgcZ = fgc[1][1]
@@ -1693,7 +1690,7 @@ def _computeDiv2(t, var,ghostCells=False):
                         else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
 
                     # Config (YZ)
-                    if (foundVar[0][-1] == 'Y' and foundVar[1][-1] == 'Z'):
+                    if foundVar[0][-1] == 'Y' and foundVar[1][-1] == 'Z':
                         for fgc in fldFace:
                             fgcY = fgc[1][0]
                             fgcZ = fgc[1][1]

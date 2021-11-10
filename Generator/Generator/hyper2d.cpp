@@ -136,7 +136,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
                       "hyper2d: common variables list is empty.");
       return NULL;
     } 
-    else if (res0 == 0 )
+    else if (res0 == 0)
     {
       printf("Warning: hyper2d: some variables are different.");
       printf(" Only common variables are kept.\n");
@@ -159,16 +159,65 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
     posx++; posy++; posz++;
     posxd++; posyd++; poszd++;
 
+    // check forcing : si la distribution est a peu 
+    // pres celle de la grille fournie, on ne remaille pas le profil
+    E_Boolean forced = false;
+    if (nid == ni)
+    {
+        // abscisse curv
+        s.malloc(ni);
+        E_Float* fx = f->begin(posx);
+        E_Float* fy = f->begin(posy);
+        E_Float* fz = f->begin(posz);
+        E_Float* fdx = fd->begin(posx);
+        E_Float L = 0.;
+        E_Float l, lx, ly, lz;
+        s[0] = 0.;
+        for (E_Int i = 0; i < ni-1; i++)
+        {
+            lx = fx[i+1]-fx[i];
+            ly = fy[i+1]-fy[i];
+            lz = fz[i+1]-fz[i];
+            l = sqrt(lx*lx+ly*ly+lz*lz);
+            s[i+1] = s[i]+l;
+            L += l; 
+        }
+        for (E_Int i = 0; i < ni; i++)
+        {
+            s[i] = s[i]/L;
+        }
+        forced = true;
+        for (E_Int i = 0; i < ni; i++)
+        {
+            if (std::abs(s[i]-fdx[i])>1.e-10) forced = false;
+        }
+    }
+
     // Make the one D mapping
     coord1.malloc(nid, 3);
-    s.malloc(ni);
-    dx.malloc(ni);
-    dy.malloc(ni);
-    dz.malloc(ni);
-    k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-               nid, fd->begin(posxd),
-               coord1.begin(1), coord1.begin(2), coord1.begin(3),
-               s.begin(), dx.begin(), dy.begin(), dz.begin());
+    if (forced == false)
+    {
+        s.malloc(ni);
+        dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
+        k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
+                   nid, fd->begin(posxd),
+                   coord1.begin(1), coord1.begin(2), coord1.begin(3),
+                   s.begin(), dx.begin(), dy.begin(), dz.begin());
+    }
+    else
+    {
+        printf("forcing...\n");
+        E_Float* fx = f->begin(posx);
+        E_Float* fy = f->begin(posy);
+        E_Float* fz = f->begin(posz);
+        E_Float* c1x = coord1.begin(1);
+        E_Float* c1y = coord1.begin(2);
+        E_Float* c1z = coord1.begin(3);
+        for (E_Int i = 0; i < nid; i++)
+        {
+            c1x[i] = fx[i]; c1y[i] = fy[i]; c1z[i] = fz[i];
+        }
+    }
 
     // Generate the mesh using hyperbolic grid generator
     coord.malloc(nid*njd, 3);
@@ -325,10 +374,7 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
     // Make the one D mapping
     coord1.malloc(nid, 3);
     s.malloc(ni);
-    dx.malloc(ni);
-    dy.malloc(ni);
-    dz.malloc(ni);
-    
+    dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
     k6onedmap_( ni,  f->begin(posx), f->begin(posy), f->begin(posz),
                 nid, fd->begin(posxd),
                 coord1.begin(1), coord1.begin(2), coord1.begin(3),
