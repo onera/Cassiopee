@@ -250,7 +250,7 @@ def regularizeFeature(feature, skin, max_overlap_angle, max_simplify_angle):
     #C.convertPyTree2File(f, 'ovlp.cgns')
 
     nbz = len(res1) ## == len(res2)
-    print(nbz)
+    #print(nbz)
     ids_per_z = []
     for i in range(nbz):
         idlist = []
