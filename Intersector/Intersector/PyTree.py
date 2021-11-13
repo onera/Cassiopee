@@ -1260,7 +1260,7 @@ def convexifyFaces(t, convexity_TOL=1.e-8):
     """Convexifies any non-convex polygon in a mesh.
     Usage: convexifyFaces(t)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    m = XOR.convexifyFaces(m)
+    m = XOR.convexifyFaces(m, convexity_TOL)
     return C.convertArrays2ZoneNode('allPGconvex', [m])
 
 #==============================================================================
