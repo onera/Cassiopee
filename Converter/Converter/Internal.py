@@ -3415,14 +3415,14 @@ def getZoneType(zone):
 #             and edges can be wrong
 #         =0: neighbouring vectors are extrapolated to build edge cells, no
 #             flow field is filled
-def addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
+def addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
     """Add ghost cells to a pyTree.
-    Usage: addGhostCells(t, b, d, modified, fillCorner)"""
+    Usage: addGhostCells(t, b, d, adaptBCs, modified, fillCorner)"""
     from . import GhostCells
     return GhostCells.addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
-def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
+def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
     """Add ghost cells to a pyTree.
-    Usage: addGhostCells(t, b, d, modified, fillCorner)"""
+    Usage: addGhostCells(t, b, d, adaptBCs, modified, fillCorner)"""
     from . import GhostCells
     GhostCells._addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
     return None
@@ -3430,14 +3430,14 @@ def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
 # -- Remove ghost Cells on GridConnectivity and all fields of FlowSolution
 # and FlowSolution#Centers
 # Return a new zone
-def rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
+def rmGhostCells(t, b, d, adaptBCs=1, modified=[]):
     """Remove ghost cells to a pyTree.
-    Usage: rmGhostCells(t, b, d, modified)"""
+    Usage: rmGhostCells(t, b, d, adaptBCs, modified)"""
     from . import GhostCells
     return GhostCells.rmGhostCells(t, b, d, adaptBCs, modified)
-def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
+def _rmGhostCells(t, b, d, adaptBCs=1, modified=[]):
     """Remove ghost cells to a pyTree.
-    Usage: rmGhostCells(t, b, d, modified)"""
+    Usage: rmGhostCells(t, b, d, adaptBCs, modified)"""
     from . import GhostCells
     return GhostCells._rmGhostCells(t, b, d, adaptBCs, modified)
 

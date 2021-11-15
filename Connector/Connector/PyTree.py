@@ -1606,14 +1606,14 @@ def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN', a
 
     if addGC:
         ghost = Internal.getNodeFromName(t, 'ZoneRind')
-        if ghost is None: Internal._addGhostCells(t, t, depth, modified=[var])
+        if ghost is None: Internal._addGhostCells(t, t, depth, adaptBCs=0, modified=[var])
 
     cellN = C.getField(var, t)
     cellN = Connector.maximizeBlankedCells(cellN, depth, dir, cellNName=cellNName)
     C.setFields(cellN, t, loc, False)
 
     if addGC:
-        if ghost is None: Internal._rmGhostCells(t, t, depth, modified=[var])
+        if ghost is None: Internal._rmGhostCells(t, t, depth, adaptBCs=0, modified=[var])
     return None
 
 #==============================================================================
@@ -1805,9 +1805,9 @@ def setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
     if loc == 'centers': varcelln = 'centers:'+cellNName
     else: varcelln = cellNName
     if ghost is None:
-        a = Internal.addGhostCells(a, a, abs(depth), modified=[varcelln])
+        a = Internal.addGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
         a = setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-        a = Internal.rmGhostCells(a,a,abs(depth), modified=[varcelln])
+        a = Internal.rmGhostCells(a,a,abs(depth), adaptBCs=0, modified=[varcelln])
     return a
 
 def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
@@ -1851,9 +1851,9 @@ def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
         if ghost is None:
             if loc == 'centers': varcelln = 'centers:'+cellNName
             else: varcelln = cellNName
-            Internal._addGhostCells(a, a, abs(depth), modified=[varcelln])
+            Internal._addGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
             _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-            Internal._rmGhostCells(a, a, abs(depth), modified=[varcelln])
+            Internal._rmGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
     return None
 
 #=============================================================================

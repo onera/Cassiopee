@@ -12,5 +12,5 @@ t = C.newPyTree(['Base',a,b])
 t = C.addBC2Zone(t, 'wall', 'BCWall', 'imin')
 t = C.initVars(t, '{F}=3*{CoordinateX}+2*{CoordinateY}')
 
-t = Internal.addGhostCells(t, t, 2, adaptBCs=1)
+t = C.addGhostCells(t, t, 2, adaptBCs=1)
 C.convertPyTree2File(t, 'out.cgns')

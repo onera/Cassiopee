@@ -32,12 +32,12 @@ t = C.newPyTree(['Base',a,b,c])
 t = X.connectMatch(t)
 a = t[2][1][2][0]
 
-ag = Internal.addGhostCells(t, a, 2)
+ag = Internal.addGhostCells(t, a, 2, adaptBCs=0)
 t[2][1][2].append(ag)
 
-ag = Internal.rmGhostCells(t, ag, 1)
+ag = Internal.rmGhostCells(t, ag, 1, adaptBCs=0)
 t[2][1][2].append(ag)
-ag = Internal.rmGhostCells(t, ag, 1)
+ag = Internal.rmGhostCells(t, ag, 1, adaptBCs=0)
 t[2][1][2].append(ag)
 
 test.testT(t, 1)

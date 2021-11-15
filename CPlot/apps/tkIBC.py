@@ -274,7 +274,7 @@ def getIBCFront():
     nghostcells = int(VARS[7].get())
     locD = VARS[8].get()
 
-    if nghostcells > 0: td = Internal.addGhostCells(td,td,nghostcells)
+    if nghostcells > 0: td = Internal.addGhostCells(td, td, nghostcells, adaptBCs=0)
     if locD == 'centers': td = C.node2Center(td)
     elif locD == 'ext_centers': td = C.node2ExtCenter(td)       
     CTK.saveTree()

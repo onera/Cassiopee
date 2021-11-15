@@ -160,7 +160,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
         if len(varsC) != 0:
             if hook is not None:
                 print("Warning: _extractMesh: hook is not used in 'accurate' mode.")
-            tp = Internal.addGhostCells(t, t, 1)
+            tp = Internal.addGhostCells(t, t, 1, adaptBCs=0)
             an = C.getFields(Internal.__GridCoordinates__, zones)
             ac = Converter.node2Center(an)
             fc = C.getFields(Internal.__GridCoordinates__, tp)
@@ -188,7 +188,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                     raise ValueError("_extractMesh: invalid number of zones.")
                 nor = 0
                 for r in res:
-                    nozorig=orderedZones[nor]
+                    nozorig = orderedZones[nor]
                     z = Internal.getZones(extractionMesh)[nozorig]
                     C.setFields([r], z, 'centers', writeDim=False)
                     nor += 1
@@ -1779,11 +1779,11 @@ def computeDiff(t, var):
         if v[0] == 'centers':
             loc = 'centers'; var = v[1]
     tp = Internal.copyRef(t)
-    Internal._addGhostCells(tp, tp, 1)
+    Internal._addGhostCells(tp, tp, 1, adaptBCs=0)
     nodes = C.getAllFields(tp, loc)
     res = Post.computeDiff(nodes, var)
     C.setFields(res, tp, loc)
-    tp = Internal.rmGhostCells(tp, tp, 1)
+    tp = Internal.rmGhostCells(tp, tp, 1, adaptBCs=0)
     return tp
 
 def perlinNoise(t, alpha=2., beta=2., n=8):

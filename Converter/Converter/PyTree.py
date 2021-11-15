@@ -5906,7 +5906,7 @@ def center2Node(t, var=None, cellNType=0):
       if res != []:
         if Internal.getNodesFromType1(res[0], 'DataArray_t') != []:
           if ghost is None:
-            a = Internal.addGhostCells(t, t, 1, modified=[Internal.__FlowSolutionCenters__])
+            a = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[Internal.__FlowSolutionCenters__])
           else: a = Internal.copyRef(t)
           fieldc = getFields(Internal.__FlowSolutionCenters__, a)
           fieldn = []
@@ -5920,7 +5920,7 @@ def center2Node(t, var=None, cellNType=0):
           _patchArrayForCenter2NodeNK1__(fieldn, a)
           setFields(fieldn, a, 'nodes', writeDim=False)
           if ghost is None:
-            a = Internal.rmGhostCells(a, a, 1,
+            a = Internal.rmGhostCells(a, a, 1, adaptBCs=0, 
                                       modified=[listVar, Internal.__FlowSolutionCenters__])
           fieldsc = getFields(Internal.__FlowSolutionNodes__, a)
 
@@ -5935,7 +5935,7 @@ def center2Node(t, var=None, cellNType=0):
       if res == []: return t
       if Internal.getNodesFromType1(res[0], 'DataArray_t') == []: return t
       if ghost is None:
-        a = Internal.addGhostCells(t, t, 1,
+        a = Internal.addGhostCells(t, t, 1, adaptBCs=0,
                                    modified=[Internal.__FlowSolutionCenters__])
       else: a = Internal.copyRef(t)
       fieldc = getFields(Internal.__FlowSolutionCenters__, a)
@@ -5950,14 +5950,14 @@ def center2Node(t, var=None, cellNType=0):
       _patchArrayForCenter2NodeNK1__(fieldn, a)
       setFields(fieldn, a, 'nodes', writeDim=False)
       if ghost is None:
-        a = Internal.rmGhostCells(a, a, 1,
+        a = Internal.rmGhostCells(a, a, 1, adaptBCs=0, 
                                   modified=[listVar,Internal.__FlowSolutionCenters__])
       return a
     else:
       if isinstance(var, list): vars = var
       else: vars = [var]
       if ghost is None:
-        a = Internal.addGhostCells(t, t, 1, modified=vars)
+        a = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=vars)
       else: a = Internal.copyRef(t)
       for v in vars: _center2Node__(a, v, cellNType)
       # if there are center vars in the list, add equivalent node vars because
@@ -5969,7 +5969,7 @@ def center2Node(t, var=None, cellNType=0):
           variable = v.split(':')
           if len(variable) == 2 and variable[0] == 'centers':
             var2.append(variable[1])
-        a = Internal.rmGhostCells(a, a, 1, modified=var2)
+        a = Internal.rmGhostCells(a, a, 1, adaptBCs=0, modified=var2)
       return a
 
 # mauvais fonctionnement : modifie a et retourne a 
@@ -7196,6 +7196,25 @@ def convertLO2HO(t, mode=0, order=2):
     """Convert a LO element mesh to high order mesh.
     Usage: convertLO2HO(t, mode, order)"""
     return TZGC2(t, Converter.convertLO2HO, 'nodes', True, mode, order)
+
+# Ghost cells
+def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
+    """Add ghost cells to pyTree."""
+    Internal._addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
+    return None
+
+def addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
+    """Add ghost cells to pyTree."""
+    return  Internal.addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
+
+def rmGhostCells(t, b, d, adaptBCs=1, modified=[]):
+    """Remove ghost cells to a pyTree."""
+    return Internal.rmGhostCells(t, b, d, adaptBCs, modified)
+
+def _rmGhostCells(t, b, d, adaptBCs=1, modified=[]):
+    """Remove ghost cells to a pyTree."""
+    Internal._rmGhostCells(t, b, d, adaptBCs, modified)
+    return None
 
 #==============================================================================
 # - client/server -

@@ -57,8 +57,8 @@ def center2Node(t, var=None, cellNType=0, graph=None):
 # addGhostCells parallel
 # si modified=[], transferts tous les champs
 # si modified=None, transfert aucun champ
-def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
-    
+def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
+    """Add ghost cells to pyTree."""
     if modified == []: # all
         variables = C.getVarNames(t, excludeXYZ=True, loc='nodes')[0]
         variables += C.getVarNames(t, excludeXYZ=True, loc='centers')[0]

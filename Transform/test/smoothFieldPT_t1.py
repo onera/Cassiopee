@@ -13,10 +13,10 @@ eps = 0.1; niter = 1; type = 0
 T._smoothField(a, eps, niter, type, ['Density'])
 test.testT(a, 1)
 
-eps = 0.1; niter = 1; type = 0
-T._smoothField(a, eps, niter, type, ['centers:Density2'])
-C.convertPyTree2File(a, 'out.cgns')
-test.testT(a, 2)
+#eps = 0.1; niter = 1; type = 0
+#T._smoothField(a, eps, niter, type, ['centers:Density2'])
+#C.convertPyTree2File(a, 'out.cgns')
+#test.testT(a, 2)
 
 eps = numpy.empty((C.getNPts(a)), dtype=numpy.float64)
 eps[:] = 0.1

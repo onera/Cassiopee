@@ -274,8 +274,8 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     
     if (rank > 0)
     {
-      MPI_Send(buf, screenSize*4, MPI_BYTE, 0, 0, MPI_COMM_WORLD);
-      MPI_Send(depth, screenSize, MPI_FLOAT, 0, 1, MPI_COMM_WORLD);
+      MPI_Ssend(buf, screenSize*4, MPI_BYTE, 0, 100, MPI_COMM_WORLD);
+      MPI_Ssend(depth, screenSize, MPI_FLOAT, 0, 101, MPI_COMM_WORLD);
     }
     else
     {
@@ -291,9 +291,9 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       float* localDepth = (float*)malloc(screenSize * sizeof(float));
       for (E_Int source = 1; source < size; source++)
       {
-        MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 0, 
+        MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 100, 
                  MPI_COMM_WORLD, &mstatus);
-        MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 1, 
+        MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 101, 
                  MPI_COMM_WORLD, &mstatus);
       
       // compose in buf

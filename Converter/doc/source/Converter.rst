@@ -198,6 +198,8 @@ List of functions
     Converter.conformizeNGon
     Converter.node2Center
     Converter.center2Node
+    Converter.addGhostCells
+    Converter.rmGhostCells
 
 **-- Array / PyTree analysis**
 
@@ -1722,6 +1724,66 @@ Array / PyTree common manipulations
     * `Centers to nodes conversion (pyTree) <Examples/Converter/center2NodePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/center2NodePT.py
+
+
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter.addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1)
+
+    Add ghost cells to structured grids.
+    if modified is given, limit add ghost cells to given field containers. Otherwise, ghost cells
+    are added to all containers.
+    If adaptBCs=1, Zone BCs are adapted to fit grid with ghost cells.
+    If fillCorner=1, edges and corners are filled 
+    according to the grid connectivity (geometrically, the corners and edges can be wrong).
+    If fillCorner=0, neighbouring vectors are extrapolated to build edge cells, no filling with flow field.
+    Exists also as in place version (_addGhostCells) that modifies a and returns None.
+
+    :param t: top tree
+    :type t: pyTree
+    :param b: zones to modify
+    :type b: [pyTree, base, zone, list of zones]
+    :param d: number of layers of ghost cells to add
+    :type d: int
+    :param adaptBCs: if 1, zone BCs are modified to fit ghost grids.
+    :type adaptBCs: 0 or 1
+    :param modified: a list of containers to modify. If [], all containers are modified.
+    :type modified: list of container names
+    :param fillCorner: method used to fill corners
+    :type fillCorner: 0 or 1
+    :rtype: Identical to input b
+
+    *Example of use:*
+
+    * `Add ghost cells (pyTree) <Examples/Converter/addGhostCellsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/addGhostCellsPT.py
+
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter.rmGhostCells(t, b, d, adaptBCs=1, modified=[])
+
+    Remove ghost cells to structured grids. See addGhostCells.
+
+    Exists also as in place version (_rmGhostCells) that modifies a and returns None.
+
+    :param t: top tree
+    :type t: pyTree
+    :param b: zones to modify
+    :type b: [pyTree, base, zone, list of zones]
+    :param d: number of layers of ghost cells to add
+    :type d: int
+    :param adaptBCs: if 1, zone BCs are modified to fit ghost grids.
+    :type adaptBCs: 0 or 1
+    :param modified: a list of containers to modify. If [], all containers are modified.
+    :type modified: list of container names
+    :rtype: Identical to input b
+
+    *Example of use:*
+
+    * `Add ghost cells (pyTree) <Examples/Converter/rmGhostCellsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/rmGhostCellsPT.py
 
 
 Array / PyTree analysis

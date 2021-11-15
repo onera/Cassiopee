@@ -347,8 +347,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
     vector< PyArrayObject* > hook;
 
-
-
     // E_Int kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
     E_Int   kmd, cnNfldD, nvars, meshtype;
     //E_Float* iptroD;
@@ -541,7 +539,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                 continue;
             }
 
-            E_Int nvars_loc            = ipt_param_int[shift_rac + nrac * 13 + 1];  //nbre variable a transferer pour rans/LES
+            E_Int nvars_loc = ipt_param_int[shift_rac + nrac * 13 + 1];  //nbre variable a transferer pour rans/LES
 
             if ( strcmp( varname, "Density" ) == 0 ) {
                 if ( nvars_loc == 5 )
@@ -642,7 +640,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
                     // printf("ipass= %d, irac= %d, ibc=  %d, envoie vers: %d, size_rac= %d \n", ipass, irac, ibc,
                     // ipt_param_int[ ech ], ipt_param_int[ shift_rac + nrac*10 +1 ]);
-                    if ( 1-ibc!= ipass_typ ) continue;
+                    if ( 1-ibc != ipass_typ ) continue;
 
                     E_Int NoD       = ipt_param_int[shift_rac + nrac * 5     ];
                     E_Int loc       = ipt_param_int[shift_rac + nrac * 9  + 1];  //+1 a cause du nrac mpi
