@@ -582,6 +582,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             if np > 2: line = f[2]
             elif np > 1: line = f[1]
             elif np > 0: line = f[0]
+            else: line = ''
             line = line.split(' ')
             nv = len(line)
             # varstring
@@ -1354,7 +1355,7 @@ def identifySolutions(coordsRcv, solDnr, hookDnr, vars=[], tol=1.e6):
     and receptor points are distant from tol.
     Usage: identifySolutions(coordsRcv, solDnr, hookDnr, vars, tol)"""
     if vars != []: solDnr = extractVars(solDnr, vars)
-
+    res = None
     if isinstance(coordsRcv[0], list): # receptor is a list of zones
         if isinstance(solDnr[0], list):
             res = converter.identifySolutions(hookDnr, solDnr, coordsRcv, tol)
@@ -1637,9 +1638,8 @@ def checkFileType(fileName):
     if eol1 != 0:
         file = open(fileName, 'r')
         i = 0
-        ligne0=[]
-        ligne1=[]
-        ninjnk_size = 0
+        ligne0=[]; ligne1=[]
+        ninjnk_size = 0; npi = 0
         for line in file:
             if i == 0:
                 ligne0 = line.split()

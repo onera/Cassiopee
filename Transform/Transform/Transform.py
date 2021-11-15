@@ -880,7 +880,7 @@ def split(a, dir, index):
     elif dir == 2: # direction j
         a1 = subzone(a, (1,1,1), (ni,index,nk))
         a2 = subzone(a, (1,index,1), (ni,nj,nk))
-    elif dir == 3: # direction k
+    else: # direction k
         a1 = subzone(a, (1,1,1), (ni,nj,index))
         a2 = subzone(a, (1,1,index), (ni,nj,nk))
     return a1, a2

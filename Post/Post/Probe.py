@@ -10,7 +10,7 @@ import numpy
 
 # Probe class
 class Probe:
-
+    """Probe for extracting data from fields during computations."""
     # defaullt initialization
     def init0(self):
         # probe Coordinates
@@ -59,8 +59,8 @@ class Probe:
             self._posX = X[0]
             self._posY = X[1]
             self._posZ = X[2]
-        if fields is not None:
-            loc = self.getLoc(fields)
+        if fields is not None: loc = self.getLoc(fields)
+        else: loc = None
         if t is not None and X is not None and loc is not None:
             self.locateProbe(t, X, loc)
         if fields is not None:
@@ -103,7 +103,7 @@ class Probe:
 
         # parallel
         ret = Cmpi.allgather(dist)
-        dist = 1.e16
+        dist = 1.e16; proc = 0
         for p, i in enumerate(ret):
             if i is not None and i < dist: 
                 dist = i; proc = p

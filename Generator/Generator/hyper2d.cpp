@@ -189,7 +189,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
         forced = true;
         for (E_Int i = 0; i < ni; i++)
         {
-            if (std::abs(s[i]-fdx[i])>1.e-10) forced = false;
+            if (std::abs(s[i]-fdx[i])>1.e-6) forced = false;
         }
     }
 

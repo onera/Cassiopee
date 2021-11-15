@@ -427,7 +427,7 @@ def getPP():
     try: from config import Cppcompiler
     except: from KCore.config import Cppcompiler
     sizes = '-DINTEGER_E="INTEGER*4" -DREAL_E="REAL*8"'
-    if Cppcompiler == 'icl.exe': PP = 'fpp.exe '+sizes+' \I'
+    if Cppcompiler == 'icl.exe': PP = 'fpp.exe '+sizes+' \\I'
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
          PP = 'x86_64-w64-mingw32-cpp -P -traditional %s -I'%sizes
     else: PP = 'cpp -P -traditional %s -I'%sizes

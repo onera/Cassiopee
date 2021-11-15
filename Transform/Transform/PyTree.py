@@ -1234,7 +1234,7 @@ def split(z, dir=1, index=1, t=None):
         Internal._setLoc2Glob(z1, source, win=w1, sourceDim=dim)
         Internal._setLoc2Glob(z2, source, win=w2, sourceDim=dim)
 
-    elif dir == 3: # direction k
+    else: # direction k
         z1 = subzone(z, (1,1,1), (-1,-1,index))
         z1[0] = C.getZoneName(zoneName)
         z2 = subzone(z, (1,1,index), (-1,-1,-1))
@@ -1522,6 +1522,7 @@ def _reorderBCNearMatch__(a, order, zoneNames):
             for cn in connect:
                 type = Internal.getNodeFromName1(cn, 'GridConnectivityType')
                 if type is not None: val = Internal.getValue(type)
+                else: val = 'Unknown'
                 if val == 'Abutting':
                     # modif du PointRange si z dans la liste
                     for name in zoneNames:
@@ -2543,8 +2544,8 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
             if (dirl>=1)&(trynext==0):
                 test=[s for s in zsplit if a[0] in s]
 
-                dima1=a1[1]
-                dima2=a2[1]
+                dima1 = a1[1]
+                dima2 = a2[1]
 
                 if test != []:
 

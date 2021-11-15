@@ -54,7 +54,7 @@ def line(P1, P2, N=100):
 
 def spline(Pts, order=3, N=100, M=100, density=-1):
     """Create a spline of N points. 
-    Usage: a = spline(ctrlsPts, order, N)"""
+    Usage: a = spline(Pts, order, N, M, density)"""
     return geom.spline(Pts, order, N, order, M, density)
 
 def nurbs(Pts, weight='weight', order=3, N=100, M=100, density=-1):
@@ -643,7 +643,7 @@ def volumeFromCrossSections(contours):
     if len(sort) < 2:
         raise ValueError("volumeFromCrossSections: require at least two cross sections.")
 
-    l = 0
+    l = 0; vol = None
     for i in sort:
         if l == 0:
             vol = geom.volumeFromCrossSections(DT[l], DT[l+1], CT[l], CT[l+1])

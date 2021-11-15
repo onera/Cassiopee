@@ -54,16 +54,16 @@ def CPlotDisplay__(file):
         a = C.convertFile2Arrays(file, 'fmt_gts')
         CPlot.display(a); CPlot.setFileName__(file); infLoop();
     elif extension == '.cgns' or extension == '.CGNS':
-        import Converter.PyTree as C; import CPlot.PyTree
-        a = C.convertFile2PyTree(file, 'bin_cgns')
+        import Converter.PyTree as CP; import CPlot.PyTree
+        a = CP.convertFile2PyTree(file, 'bin_cgns')
         CPlot.PyTree.display(a); CPlot.setFileName__(file); infLoop();
     elif extension == '.adf' or extension == '.ADF':
-        import Converter.PyTree as C; import CPlot.PyTree
-        a = C.convertFile2PyTree(file, 'bin_cgns')
+        import Converter.PyTree as CP; import CPlot.PyTree
+        a = CP.convertFile2PyTree(file, 'bin_cgns')
         CPlot.PyTree.display(a); CPlot.setFileName__(file); infLoop();
     elif extension == '.hdf' or extension == '.HDF':
-        import Converter.PyTree as C; import CPlot.PyTree
-        a = C.convertFile2PyTree(file, 'bin_hdf')
+        import Converter.PyTree as CP; import CPlot.PyTree
+        a = CP.convertFile2PyTree(file, 'bin_hdf')
         CPlot.PyTree.display(a); CPlot.setFileName__(file); infLoop();
     elif extension == '.pickle' or extension == '.PICKLE' or extension[0:4] == '.ref' or extension[0:4] == '.REF':
         import Converter as C; import CPlot
