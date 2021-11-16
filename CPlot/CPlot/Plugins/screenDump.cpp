@@ -274,8 +274,10 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     
     if (rank > 0)
     {
+      //printf("sending from %d", rank);
       MPI_Ssend(buf, screenSize*4, MPI_BYTE, 0, 100, MPI_COMM_WORLD);
       MPI_Ssend(depth, screenSize, MPI_FLOAT, 0, 101, MPI_COMM_WORLD);
+      //printf("done.\n"); fflush(stdout);
     }
     else
     {
@@ -291,24 +293,32 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       float* localDepth = (float*)malloc(screenSize * sizeof(float));
       for (E_Int source = 1; source < size; source++)
       {
-        MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 100, 
+        //MPI_Recv(localBuf, screenSize*4, MPI_BYTE, source, 100, 
+        //         MPI_COMM_WORLD, &mstatus);
+        //MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 101, 
+        //         MPI_COMM_WORLD, &mstatus);
+	//printf("receiving from %d.\n", source); fflush(stdout);
+
+        MPI_Recv(localBuf, screenSize*4, MPI_BYTE, MPI_ANY_SOURCE, 100, 
                  MPI_COMM_WORLD, &mstatus);
-        MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 101, 
+        E_Int src = mstatus.MPI_SOURCE;
+        MPI_Recv(localDepth, screenSize, MPI_FLOAT, src, 101, 
                  MPI_COMM_WORLD, &mstatus);
+        //printf("receiving from %d.\n", src); fflush(stdout);
       
-      // compose in buf
-      for (E_Int i = 0; i < screenSize; i++)
-      {
-        if (localDepth[i] < depth[i])
+        // compose in buf
+        for (E_Int i = 0; i < screenSize; i++)
         {
-          buffer[3*i  ] = localBuf[4*i  ];
-          buffer[3*i+1] = localBuf[4*i+1];
-          buffer[3*i+2] = localBuf[4*i+2];
-          depth[i] = localDepth[i];
+          if (localDepth[i] < depth[i])
+          {
+            buffer[3*i  ] = localBuf[4*i  ];
+            buffer[3*i+1] = localBuf[4*i+1];
+            buffer[3*i+2] = localBuf[4*i+2];
+            depth[i] = localDepth[i];
+          }
         }
       }
-    }
-    free(localBuf); free(localDepth);
+      free(localBuf); free(localDepth);
   }
   free(depth);
 

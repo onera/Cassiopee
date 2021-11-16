@@ -747,21 +747,17 @@ def getMatchSubZones__(z, procDict, oppNode, depth):
                 prange = Internal.getNodeFromName1(n, 'PointRange')
                 prange = Internal.getValue(prange)
                 wrange = Internal.range2Window(prange)
-                imin = wrange[0]
-                imax = wrange[1]
-                jmin = wrange[2]
-                jmax = wrange[3]
-                kmin = wrange[4]
-                kmax = wrange[5]
-                if imin == imax and imin == 1: imax = 1+depth ; suffix = 'imin'
-                elif imin == imax: imin = imax-depth ; suffix = 'imax'
-                elif jmin == jmax and jmin == 1: jmax = 1+depth ; suffix = 'jmin'
-                elif jmin == jmax: jmin = jmax-depth ; suffix = 'jmax'
-                elif kmin == kmax and kmin == 1: kmax = 1+depth ; suffix = 'kmin'
-                elif kmin == kmax: kmin = kmax-depth ; suffix = 'kmax'              
+                imin = wrange[0] ; imax = wrange[1]
+                jmin = wrange[2] ; jmax = wrange[3]
+                kmin = wrange[4] ; kmax = wrange[5]
+                if imin == imax and imin == 1: imax = 1+depth ; suffix = 'imin'+str(jmin)+str(kmin)
+                elif imin == imax: imin = imax-depth ; suffix = 'imax'+str(jmin)+str(kmin)
+                elif jmin == jmax and jmin == 1: jmax = 1+depth ; suffix = 'jmin'+str(imin)+str(kmin)
+                elif jmin == jmax: jmin = jmax-depth ; suffix = 'jmax'+str(imin)+str(kmin)
+                elif kmin == kmax and kmin == 1: kmax = 1+depth ; suffix = 'kmin'+str(imin)+str(jmin)
+                elif kmin == kmax: kmin = kmax-depth ; suffix = 'kmax'+str(imin)+str(jmin)
                 oppZone = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
-                oppZone[0] = z[0]+'_MX_'+oppZoneName+'-'+suffix 
-                     
+                oppZone[0] = z[0]+'_MX_'+oppZoneName+'-'+suffix
                 z = Internal.rmNodesByName(z, 'ZoneGridConnectivity')
                 Internal.createChild(oppZone, 'ZoneGridConnectivity_t', 'ZoneGridConnectivity_t')
                 gcXZone = Internal.createNode('ZoneGridConnectivity_t', 'ZoneGridConnectivity_t')
@@ -796,15 +792,15 @@ def updateGridConnectivity(a):
                 imin = wrange[0] ; imax = wrange[1]
                 jmin = wrange[2] ; jmax = wrange[3]
                 kmin = wrange[4] ; kmax = wrange[5]
-                if imin == imax and imin == 1:   suffix = 'imin'
-                elif imin == imax: suffix = 'imax'
-                elif jmin == jmax and jmin == 1: suffix = 'jmin'
-                elif jmin == jmax: suffix = 'jmax'
-                elif kmin == kmax and kmin == 1: suffix = 'kmin'
-                elif kmin == kmax: suffix = 'kmax' 
+                if imin == imax and imin == 1: suffix = 'imin'+str(jmin)+str(kmin)
+                elif imin == imax: suffix = 'imax'+str(jmin)+str(kmin)
+                elif jmin == jmax and jmin == 1: suffix = 'jmin'+str(imin)+str(kmin)
+                elif jmin == jmax: suffix = 'jmax'+str(imin)+str(kmin)
+                elif kmin == kmax and kmin == 1: suffix = 'kmin'+str(imin)+str(jmin)
+                elif kmin == kmax: suffix = 'kmax'+str(imin)+str(jmin)
                 
                 zopp = Internal.getNodeFromName(a, oppName+'_MX_'+z[0]+'-'+suffix)
-                
+
                 if zopp is not None:
                     
                     Internal.setValue(n, zopp[0]) # renommage
@@ -935,6 +931,8 @@ def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=Tr
                 zones = Internal.getZones(b)
                 for z in zones:
                     zs = getMatchSubZones__(z, procDict, oppNode, depth)
+                    for zp in zs:
+                        print(z[0], 'found',zp[0])
                     if not keepOldNodes:
                         if variables is None: vars = C.getVarNames(zs, excludeXYZ=True)[0]
                         elif variables == []: vars = None

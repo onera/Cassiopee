@@ -19,9 +19,9 @@
 #ifndef _CPLOT_SHADERUTIL_HPP_
 #define _CPLOT_SHADERUTIL_HPP_
 
-//#define DEBUGSHADER
+//#define DEBUG_SHADER
 
-#ifdef DEBUGSHADER
+#ifdef DEBUG_SHADER
 
 /* for glu.h to work on win */
 #ifdef _WIN32

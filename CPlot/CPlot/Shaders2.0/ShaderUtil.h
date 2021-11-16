@@ -20,9 +20,10 @@
 #define _CPLOT_SHADERUTIL_HPP_
 #include <stdio.h>
 
-//#define DEBUG 
+//#define DEBUG_SHADER 
 
-#ifdef DEBUG
+#ifdef DEBUG_SHADER
+#include <GL/glu.h>
 static int checkGLError(char *file, int line)
 {
   GLenum glErr;
