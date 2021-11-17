@@ -1824,7 +1824,6 @@ def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
                 C.setFields([cellN], z, loc, False)
     return a
 
-
 def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
     if depth == 0: return None
     if loc == 'centers': varcelln = 'centers:'+cellNName

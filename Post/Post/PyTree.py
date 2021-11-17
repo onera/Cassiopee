@@ -6,6 +6,8 @@ __version__ = Post.__version__
 try: range = xrange
 except: pass
 
+import math
+
 try:
     import Converter
     import Converter.PyTree as C
@@ -751,33 +753,37 @@ def computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
 def _computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
                           Cs=-1., mus=-1., Ts=-1.):
     if gamma < 0:
-        try: gamma = C.getState(t,'gamma')
+        try: gamma = C.getState(t, 'Gamma')
         except: pass
+    if gamma < 0: gamma = 1.4
     if rgp < 0:
-        try: rgp   = C.getState(t,'rgp')
+        try: 
+            cv  = C.getState(t, 'Cv')
+            rgp = cv*(gamma-1.)
         except: pass
+    if rgp   < 0: rgp = 287.053
     if s0 < 0:
-        try: s0    = C.getState(t,'s0')
-        except: pass
+        try: s0 = C.getState(t, 's0')
+        except: pass    
     if betas < 0:
-        try: betas = C.getState(t,'betas')
+        try: betas = C.getState(t, 'betas')
         except: pass
+    if betas < 0: betas = 1.458e-6
     if Cs < 0:
-        try: Cs    = C.getState(t,'Cs')
+        try: Cs = C.getState(t, 'Cs')
         except: pass
     if mus < 0:
-        try: mus   = C.getState(t,'mus')
+        try: mus = C.getState(t, 'Mus')
         except: pass
     if Ts < 0:
-        try: Ts    = C.getState(t,'Ts')
+        try: Ts = C.getState(t, 'Ts')
         except: pass
+    if Cs >= 0. and mus >= 0. and Ts >= 0.:
+        betas = mus*(1.+Cs/Ts)/math.sqrt(Ts)
 
-    if gamma < 0: gamma =   1.4
-    if rgp   < 0: rgp   = 287.053
-    if betas < 0: betas =   1.458e-6
-    if Cs    < 0: Cs    = 110.4
-    if mus   < 0: mus   =   1.76e-5
-    if Ts    < 0: Ts    = 273.15
+    if Cs  < 0: Cs  = 110.4
+    if mus < 0: mus = 1.76e-5
+    if Ts  < 0: Ts  = 273.15
 
     varnamesn = [] # variables aux noeuds
     varnamesc = [] # variables aux centres

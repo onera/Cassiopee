@@ -163,7 +163,7 @@ def computeShearStress(t, gamma=1.4, rgp=287.053,
     
 
 #-------------------------------------------------------------------------------
-# INPUT : t : tree of skin/wall borders (velocity gradients must be defined yet)
+# INPUT: t: tree of skin/wall borders (velocity gradients must be defined yet)
 #-------------------------------------------------------------------------------
 def _computeWallShearStress(t):
     dimPb = Internal.getNodeFromName(t, 'EquationDimension')

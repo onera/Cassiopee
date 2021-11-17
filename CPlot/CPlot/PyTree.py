@@ -501,6 +501,7 @@ def getCPlotNumber(t, baseName, zoneName):
 # non structurees (nzu) qui sont avant zone dans l'arbre t (sans compter zone)
 #==============================================================================
 def getNzs(t, zone):
+    """Get the number of structured zones and untructured zones in t before zone."""
     nzs = 0; nzu = 0
     nodes = Internal.getZones(t)
     for z in nodes:
@@ -546,6 +547,7 @@ def deleteSelection(t, Nb, Nz, nzs):
 # Retourne -1 sinon
 #==============================================================================
 def isSelAFullBase(t, Nb, nzs):
+    """Return true if selection corresponds to a full base."""
     if nzs == []: return -1
     fullBase = 0
     for nz in nzs:

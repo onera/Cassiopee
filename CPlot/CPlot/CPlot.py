@@ -16,11 +16,8 @@ except: pass
 
 #==============================================================================
 def configure(useRender):
-    """
-    Configure CPlot for direct rendering (cplot.useDirect),
-    display Lists (cplot.useDL)
-    or VBO (cplot.useVBO)
-    """
+    """Configure CPlot for direct rendering (cplot.useDirect), display Lists (cplot.useDL)
+        or VBO (cplot.useVBO)"""
     cplot.configure(useRender)
 
 #==============================================================================

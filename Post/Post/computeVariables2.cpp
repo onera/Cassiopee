@@ -685,7 +685,7 @@ E_Int K_POST::computeCompVars2(const FldArrayF& f,    const E_Int posnew,
       }
   }
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Viscosité du fluide
+  // Viscosite du fluide
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   else if (K_STRING::cmp(varnew, "ViscosityMolecular") == 0) //viscosite du fluide 
   {
@@ -724,7 +724,7 @@ E_Int K_POST::computeCompVars2(const FldArrayF& f,    const E_Int posnew,
       }
   }
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Température d'arrêt 
+  // Temperature d'arret 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   else if (K_STRING::cmp(varnew, "TemperatureStagnation") == 0) //temperature d'arret
   {
