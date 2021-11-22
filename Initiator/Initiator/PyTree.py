@@ -3,6 +3,9 @@
 from . import Initiator
 __version__ = Initiator.__version__
 
+from Initiator.meshSize import meshSize
+from Initiator.Adim import adim1, adim2, adim3, dim1, dim2, dim3, dim4
+
 try: range = xrange
 except: pass
 
@@ -15,8 +18,7 @@ except ImportError:
 
 def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, 
               loc='nodes'):
-    """Init the pyTree by the reference state if it is defined in t, else by
-    input parameters.
+    """Init the pyTree by the reference state if it is defined in t, else by input parameters.
     Usage: initConst(t, adim, MInf, alphaZ, alphaY, ReInf, loc)"""
     tp = Internal.copyRef(t)
     _initConst(tp, adim, MInf, alphaZ, alphaY, ReInf, loc)
@@ -24,6 +26,7 @@ def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
 
 def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, 
                loc='nodes'):
+    """Init the pyTree by the reference state if it is defined in t, else by input parameters."""
     if MInf is None: # recuperation de reference state
         eq = Internal.getNodeFromName(t, 'GoverningEquations')
         state = Internal.getNodeFromName(t, 'ReferenceState')
@@ -79,14 +82,14 @@ def _initDist(t, adim='adim1', loc='nodes'):
     return None
 
 def initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
-    """Init the pyTree with a Lamb vortex of
-    intensity Gamma and position (x0,y0).
+    """Init the pyTree with a Lamb vortex of intensity Gamma and position (x0,y0).
     Usage: initLamb(t, (x0,y0), Gamma, MInf)"""
     tp = Internal.copyRef(t)
     _initLamb(tp, position, Gamma, MInf, loc)
     return tp
 
 def _initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
+    """Init the pyTree with a Lamb vortex of intensity Gamma and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
@@ -111,8 +114,7 @@ def _initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     return None
 
 def initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
-    """Init the array defining a grid with a Visbal vortex of
-    intensity Gamma and position (x0,y0).
+    """Init the array defining a grid with a Visbal vortex of intensity Gamma and position (x0,y0).
     Returns the array of the grid + cfd field in centers
     Usage: initVisbal(array, (x0,y0), Gamma, MInf)"""
     tp = Internal.copyRef(t)
@@ -120,6 +122,7 @@ def initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     return tp
 
 def _initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):    
+    """Init the array defining a grid with a Visbal vortex of intensity Gamma and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
@@ -144,8 +147,7 @@ def _initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     return None
 
 def initYee(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
-    """Init the array defining a grid with a Yee vortex of
-    intensity Gamma and position (x0,y0).
+    """Init the array defining a grid with a Yee vortex of intensity Gamma and position (x0,y0).
     Returns the array of the grid + cfd field in centers
     Usage: initYee(array, (x0,y0), Gamma, MInf)"""
     tp = Internal.copyRef(t)
@@ -153,6 +155,7 @@ def initYee(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     return tp
 
 def _initYee(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
+    """Init the array defining a grid with a Yee vortex of intensity Gamma and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
@@ -187,6 +190,8 @@ def initScully(t, position=(0.,0.), Gamma=2.,
 
 def _initScully(t, position=(0.,0.), Gamma=2.,
                 coreRadius=1., MInf=0.5, model=0, loc='nodes'):
+    """Init the array defining a block field with a Scully vortex
+    of intensity Gamma, core radius coreRadius and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
@@ -220,6 +225,7 @@ def overlayField(t1, t2, MInf=0.5, loc='nodes'):
     return tp
 
 def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
+    """Overlay the field of zone1 and zone2 in a unique zone."""
     nodes = Internal.getZones(t1)
     nodes2 = Internal.getZones(t2)
     for c in range(len(nodes)):

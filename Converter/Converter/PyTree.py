@@ -2986,7 +2986,6 @@ def rmVars(z, var):
 
 def _rmVars(z, var):
   zn = Internal.getZones(z)
-  if zn == []: return None
   for i in zn:
     if isinstance(var, list): # liste de vars
       for v in var:

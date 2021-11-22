@@ -562,7 +562,7 @@ Addition of elsA nodes
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.elsAProfile.createElsaHybrid(t, method=0, axe2D=0, methodPE=0, newNGON=False) 
+.. py:function:: Converter.elsAProfile.createElsaHybrid(t, method=0, axe2D=0, methodPE=0) 
 
     Add nodes required by elsA Hybrid solver for NGON zones.
     For elsA < 3.8.01, use method=0, for newer versions use method=1.
@@ -578,8 +578,6 @@ Addition of elsA nodes
     :type axe2D: int
     :param methodPE: 0 (for regular mesh), 1 otherwise
     :type  methodPE: 0 or 1
-    :param newNGON: True (new NGON with ElementStartOffSet), False (old NGON)
-    :type newNGon: Boolean
     :return: modified reference copy of t
     :rtype: identical to t
 
