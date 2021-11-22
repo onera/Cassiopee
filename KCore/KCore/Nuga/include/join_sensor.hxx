@@ -110,14 +110,17 @@ bool join_sensor<mesh_t>::update()
 
     if (plan.getSize() == 0) continue;                            // nothing planned
     //std::cout << plan << std::endl;
-    
-    // enable children : if they are in plan, it means they are enabled on the other join side
-    E_Int nbc{parent_t::_hmesh._PGtree.nb_children(PGi)};
-    if (nbc != 0)
+
+    if (parent_t::_hmesh._PGtree.is_enabled(PGi))
     {
-      const E_Int* children = parent_t::_hmesh._PGtree.children(PGi);
-      for (E_Int i=0; i < nbc; ++i)
-        parent_t::_hmesh._PGtree.enable(children[i]);
+      // enable its children instead : if they are in plan, it means they are enabled on the other join side
+      E_Int nbc{ parent_t::_hmesh._PGtree.nb_children(PGi) };
+      if (nbc != 0)
+      {
+        const E_Int* children = parent_t::_hmesh._PGtree.children(PGi);
+        for (E_Int i = 0; i < nbc; ++i)
+          parent_t::_hmesh._PGtree.enable(children[i]);
+      }
     }
 
     // get plans for children fort next adaptation pass

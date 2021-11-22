@@ -90,7 +90,7 @@ static void fix_adap_incr(mesh_t& hmesh, incr_type<ISO_HEX>& adap_incr)
   discard_disabledand_unhandled(hmesh, adap_incr);
 }
 
-NUGA::eDIR get_dir(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nnodes)
+inline NUGA::eDIR get_dir(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nnodes)
 {
   E_Float Z[] = { 0., 0., 1. };
   E_Float n[3];

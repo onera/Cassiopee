@@ -591,7 +591,11 @@ def getOverlappingFaces(a1, a2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
 def getCollidingTopFaces(a1, a2, RTOL = 0.1):
     """ Returns the list of TRI/QUAD in a1 (HEXA and PRISM only) that collide a2.
     Usage: getCollidingTopFaces(a1, a2, RTOL)"""
-    return intersector.getCollidingTopFaces(a1,a2, RTOL)
+    try :
+        res  = intersector.getCollidingTopFaces(a1,a2, RTOL)
+    except:
+        res = []
+    return res
 
 #==============================================================================
 # getCollidingCells     : returns the list of cells in a1 and a2 that are colliding.

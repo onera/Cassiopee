@@ -254,8 +254,10 @@ def regularizeFeature(feature, skin, max_overlap_angle, max_simplify_angle):
     ids_per_z = []
     for i in range(nbz):
         idlist = []
-        idlist = numpy.concatenate((idlist, res1[i][0]))
-        idlist = numpy.concatenate((idlist, res2[i]))
+        if len(res1) > i and len(res1[i]) > 0 : 
+            idlist = numpy.concatenate((idlist, res1[i][0]))
+        if len(res2) > i : 
+            idlist = numpy.concatenate((idlist, res2[i]))
         idlist = list(set(idlist))# get rid of duplicate ids
         ids = numpy.empty(len(idlist), numpy.int32) #format
         ids[:] = idlist[:]
