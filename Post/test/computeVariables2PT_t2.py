@@ -38,7 +38,7 @@ test.testT(z1,1)
 # computeVariables2 sur un PyTree
 # -------------------------------
 t1 = CP.newPyTree(['Base', z1])
-t1 = CP.addState(t1, 'gamma', 5.9)
+t1 = CP.addState(t1, 'Gamma', 5.9)
 t1 = PT.computeVariables2(t1, vars)
 
 test.testT(t1,2)
@@ -67,7 +67,7 @@ test.testT(z2,3)
 # # computeVariables2 sur un PyTree
 # # -------------------------------
 t2 = CP.newPyTree(['Base', z2])
-t2 = CP.addState(t2, 'rgp', 10.9)
+t2 = CP.addState(t2, 'Cv', 10.9/0.4)
 PT._computeVariables2(t2, vars)
 test.testT(t2,4)
 

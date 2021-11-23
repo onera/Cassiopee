@@ -65,7 +65,7 @@ void DataDL::displayUSolid()
                 }
             }
 
-            if (ptrState->mode == RENDER && zonep->colorR < -1.5)  // Iso
+            if (ptrState->mode == RENDER && zonep->colorR < -1.5 && zonep->material != 9)  // Iso
             {
 #ifdef __SHADERS__
 #include "isoShaders.h"

@@ -8,6 +8,8 @@ def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1):
     tauw = Cf*RoInf*(UInf**2)/2.
     utau = math.sqrt(tauw/RoInf)
     hp = yplus*MuInf/(utau*RoInf)
+    print('INFO: tauw: %20.16g'%tauw)
+    print('INFO: utau: %20.16g'%utau)
     return hp
 
 # a partir du Reynolds
@@ -24,6 +26,7 @@ def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1):
     Cf = 0.058*math.pow(ReInf*xsurL, -0.2) * correction
     utau = math.sqrt(RoInf*Cf*UInf*UInf*0.5)
     hp = MuInf * yplus / RoInf / utau
+    print('INFO: utau: %20.16g'%utau)
     return hp
 
 # Marco laminaire
@@ -34,8 +37,8 @@ def meshSize4(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1):
     Cf = 0.664/math.sqrt(ReInf*xsurL)* correction
     utau = math.sqrt(RoInf*Cf*UInf*UInf*0.5)
     hp = MuInf * yplus / RoInf / utau
+    print('INFO: utau: %20.16g'%utau)
     return hp
-
 
 def meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1, algo='Turbulent'):
     """Return the height of first wall cell to match a certain y+."""

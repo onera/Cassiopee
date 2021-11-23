@@ -61,7 +61,7 @@ void DataDL::displaySSolid()
         { /*glEnable(GL_CULL_FACE);*/ glDepthMask(GL_FALSE); }
       }
 
-      if (ptrState->mode == RENDER && zonep->colorR < -1.5) // Iso
+      if (ptrState->mode == RENDER && zonep->colorR < -1.5 && zonep->material != 9) // Iso
       {
 #ifdef __SHADERS__
 #include "isoShaders.h"

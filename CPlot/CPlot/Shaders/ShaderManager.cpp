@@ -489,7 +489,7 @@ int ShaderManager::load()
     strcat( frag, "streamline.frag" );
     addFromFile( geom, vert, frag );
 
-    // - 34 - Vector triangle shader ( geom + frag + vert (34) )
+    // - 34 - Vector triangle shader ( geom + frag + vert )
     strcpy( geom, path );
     strcat( geom, "streamarrow.geom" );
     strcpy( vert, path );
@@ -503,6 +503,13 @@ int ShaderManager::load()
     strcat( vert, "texmat.vert" );
     strcpy( frag, path );
     strcat( frag, "texmat.frag" );
+    addFromFile( vert, frag );
+
+    // - 36 - iso+sphere billboard
+    strcpy( vert, path );
+    strcat( vert, "isoSpheres.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoSpheres.frag" );
     addFromFile( vert, frag );
 
     return 1;

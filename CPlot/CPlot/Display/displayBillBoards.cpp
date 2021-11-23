@@ -88,11 +88,48 @@ void Data::displayBillBoards(Zone* zonep, int zone)
     glColor4f(color1[0], color1[1], color1[2], ptrState->alpha);
 
 #ifdef __SHADERS__
-  if (zonep->selected == 1 && zonep->active == 1) 
-    triggerShader(*zonep, zonep->material, 0., color2);
+  if (zonep->colorR < -1.5 && zonep->shaderParam2 < 0.1) // iso
+  {
+    E_Int shader = _shaders.shader_id(shader::iso_sphere_billboarding);
+    ptrState->billBoardNi = 1;
+    ptrState->billBoardNj = 1;
+    ptrState->billBoardWidth = 1;
+    ptrState->billBoardHeight = 1;
+    glActiveTexture(GL_TEXTURE1);
+    if (_texColormap == 0) createColormapTexture();
+    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    glBindTexture(GL_TEXTURE_1D, _texColormap);
+    if (_shaders.currentShader() != shader) _shaders.activate((short unsigned int)shader);
+    _shaders[shader]->setUniform("colormap", (int)1);
+    int nofield = -int(zonep->colorR)-2;
+    if (_niso[nofield] == -1)
+    {
+        _shaders[shader]->setUniform("niso", (float)ptrState->niso);
+        _shaders[shader]->setUniform("alpha", (float)1.);
+        _shaders[shader]->setUniform("beta", (float)0.);
+        _shaders[shader]->setUniform("amin", (float)0.);
+        _shaders[shader]->setUniform("amax", (float)1.);
+    }
+    else
+    {
+        float rmin, rmax, alpha, beta;
+        float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+        rmin = (_isoMin[nofield] -minf[nofield])/deltai;
+        rmax = (_isoMax[nofield] -minf[nofield])/deltai;
+        alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+        _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
+        _shaders[shader]->setUniform("alpha", (float)alpha);
+        _shaders[shader]->setUniform("beta", (float)beta);
+        float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+        float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+        _shaders[shader]->setUniform("amin", (float)amin);
+        _shaders[shader]->setUniform("amax", (float)amax);
+    }
+  }
+  else if (zonep->selected == 1 && zonep->active == 1) triggerShader(*zonep, zonep->material, 0., color2);
   else triggerShader(*zonep, zonep->material, 0., color1);
 #endif
-  
+
   srand(1); // init aleatoire
 
   // Scale base sur la bb globale
@@ -100,8 +137,7 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   dist = dx*dx + dy*dy + dz*dz;
   dx = xmax - xcam; dy = ymax - ycam; dz = zmax - zcam;
   dist = K_FUNC::E_max(dist, dx*dx + dy*dy + dz*dz);
-  if (ptrState->billBoardSize <= 1.e-6)
-    d = sqrt(dist)*dref;
+  if (ptrState->billBoardSize <= 1.e-6) d = sqrt(dist)*dref;
   else d = ptrState->billBoardSize*dref;
   //printf("%g %g\n", dref, ptrState->billBoardSize);
 
@@ -158,6 +194,16 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   int e1,e2;
   dmin = dmin-1.e-10;
 
+  // Field for iso (if needed)
+  int nofield=0; double* f=NULL; float deltai=1.; float fmin=0.;
+  if (zonep->colorR < -1.5) // iso 
+  {
+    nofield = -int(zonep->colorR)-2;
+    f = zonep->f[nofield];
+    deltai = 1./MAX(maxf[nofield]-minf[nofield], 1.e-6);
+    fmin = minf[nofield];
+  }
+
   // render
   for (int n = NSplit-1; n >= 0; n--)
   {
@@ -170,6 +216,11 @@ void Data::displayBillBoards(Zone* zonep, int zone)
       {
         if (di[i] > range && di[i] <= ranged)
         {
+          if (zonep->colorR < -1.5) // for iso color
+          { 
+            glColor4f((f[i]-fmin)*deltai,0.,0.,zonep->blending);
+          }
+
           xi = x[i]; yi = y[i]; zi = z[i];
           
           pt1[0] = xi - pru0;
@@ -195,7 +246,7 @@ void Data::displayBillBoards(Zone* zonep, int zone)
         }
       }
     }
-    else // billboard shader
+    else // billboard shader texture
     {
       for (int i = 0; i < npts; i++)
       {

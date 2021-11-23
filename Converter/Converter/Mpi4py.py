@@ -9,7 +9,8 @@ from .Distributed import readZones, _readZones, convert2PartialTree, _convert2Pa
 
 __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 
     'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
-    'bcast', 'Bcast', 'reduce', 'allreduce', 'bcastZone', 'allgatherZones', 
+    'bcast', 'Bcast', 'reduce', 'Reduce', 'allreduce', 'Allreduce', 
+    'bcastZone', 'allgatherZones', 
     'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 
     'convert2SkeletonTree',
@@ -60,7 +61,7 @@ def barrier():
     KCOMM.barrier()
 
 #==============================================================================
-# Send - send data from a proc to another proc
+# Send - send data from a proc to another proc (using pickle, small data)
 #==============================================================================
 def send(obj, dest=None):
     KCOMM.send(obj, dest)
@@ -78,10 +79,26 @@ def reduce(data, op=MPI.SUM, root=0):
     return KCOMM.reduce(data, op=op, root=root)
 
 #==============================================================================
+# Reduce to root (for numpy data)
+# dataIn and dataOut must be numpys of same size and type
+# or buffer specified [data,count,MPI_DOUBLE]
+#==============================================================================
+def Reduce(dataIn, dataOut, op=MPI.SUM):
+    return KCOMM.Reduce(dataIn, dataOut, op=op)
+
+#==============================================================================
 # Reduce to all (using pickle, small data)
 #==============================================================================
 def allreduce(data, op=MPI.SUM):
     return KCOMM.allreduce(data, op=op)
+
+#==============================================================================
+# Reduce to all (for numpy data)
+# dataIn and dataOut must be numpys of same size and type
+# or buffer specified [data,count,MPI_DOUBLE]
+#==============================================================================
+def Allreduce(dataIn, dataOut, op=MPI.SUM):
+    return KCOMM.Allreduce(dataIn, dataOut, op=op)
 
 #==============================================================================
 # Send and receive with a graph
