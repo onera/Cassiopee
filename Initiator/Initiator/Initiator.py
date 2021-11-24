@@ -5,8 +5,8 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 
 from . import initiator
 
-from Initiator.meshSize import meshSize
-from Initiator.Adim import adim1, adim2, adim3, dim1, dim2, dim3, dim4
+from .MeshSize import meshSize
+from .Adim import adim1, adim2, adim3, dim1, dim2, dim3, dim4
 
 def initConst(a, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8):
     """Init a by a constant field.

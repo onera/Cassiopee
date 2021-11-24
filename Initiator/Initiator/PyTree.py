@@ -3,8 +3,8 @@
 from . import Initiator
 __version__ = Initiator.__version__
 
-from Initiator.meshSize import meshSize
-from Initiator.Adim import adim1, adim2, adim3, dim1, dim2, dim3, dim4
+from .MeshSize import meshSize
+from .Adim import adim1, adim2, adim3, dim1, dim2, dim3, dim4
 
 try: range = xrange
 except: pass

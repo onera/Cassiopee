@@ -51,7 +51,7 @@ List of functions
 
 .. autosummary::
 
-    meshSize
+    MeshSize.meshSize
 
 Contents
 #########
@@ -446,7 +446,7 @@ Mesh size
 -----------
 
 
-.. py:function:: Initiator.meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1., algo='Turbulent'):
+.. py:function:: Initiator.MeshSize.meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1., algo='Turbulent'):
 
     Return the height of the first wall mesh cell that must be set to match a certain y+.
 
