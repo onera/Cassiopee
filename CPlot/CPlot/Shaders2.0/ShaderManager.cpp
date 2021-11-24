@@ -390,5 +390,12 @@ int ShaderManager::load()
   strcpy(frag,path);  strcat(frag, "texmat.frag");
   addFromFile(vert, frag);
 
+  // - 36 - iso+sphere billboard
+  strcpy( vert, path );
+  strcat( vert, "isoSpheres.vert" );
+  strcpy( frag, path );
+  strcat( frag, "isoSpheres.frag" );
+  addFromFile( vert, frag );
+  
   return 1;
 }

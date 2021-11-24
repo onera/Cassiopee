@@ -41,8 +41,9 @@ enum shaders_id
 	vector_line, // 33
 	vector_arrow, // 34
 	textured_material, // 35
-
-	end_of_shaders_id // 36 !
+	iso_sphere_billboarding, // 36
+	
+	end_of_shaders_id // 37 !
 };
 }
 #endif
