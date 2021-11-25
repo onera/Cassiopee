@@ -689,9 +689,13 @@ def getCArgs():
     if Cppcompiler == "None": return []
     options = getCppAdditionalOptions()[:]
     if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
+         v = getCppVersion() 
          if DEBUG: options += ['-g', '-O0', '-wd47', '-wd1224']
          else: options += ['-DNDEBUG', '-O2', '-wd47', '-wd1224']
-         v = getCppVersion()
+         
+         # hack pour intel 19
+         if v[0] == 19: options = options.replace('-O2', '-O1') 
+             
          if v[0] < 15:
             options += ['-fp-speculation=strict']
          else:

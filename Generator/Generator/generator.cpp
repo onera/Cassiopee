@@ -122,28 +122,12 @@ static PyMethodDef Pygenerator [] =
 };
 
 #if PY_MAJOR_VERSION >= 3
-#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-struct module_state {
-    PyObject *error;
-};
-static int myextension_traverse(PyObject *m, visitproc visit, void *arg) {
-    Py_VISIT(GETSTATE(m)->error);
-    return 0;
-}
-static int myextension_clear(PyObject *m) {
-    Py_CLEAR(GETSTATE(m)->error);
-    return 0;
-}
 static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
         "generator",
         NULL,
-        sizeof(struct module_state),
-        Pygenerator,
-        NULL,
-        myextension_traverse,
-        myextension_clear,
-        NULL
+        -1,
+        Pygenerator
 };
 #endif
 
@@ -161,12 +145,12 @@ extern "C"
 #endif
   {
     __activation__ = K_KCORE::activation("0");
+    import_array();
 #if PY_MAJOR_VERSION >= 3
     PyObject* module = PyModule_Create(&moduledef);
 #else
     Py_InitModule("generator", Pygenerator);
 #endif
-    import_array();
 #if PY_MAJOR_VERSION >= 3
     return module;
 #endif

@@ -199,7 +199,7 @@ struct CPlotState {
     volatile int    lock;
     pthread_mutex_t lock_mutex;
     pthread_cond_t  unlocked_display;
-    void            lockDisplay( ) {
+    void lockDisplay( ) {
         //printf("locking display\n");
         pthread_mutex_lock( &lock_mutex );
         lock = 1;

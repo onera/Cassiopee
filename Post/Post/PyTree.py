@@ -1945,28 +1945,67 @@ def isoSurfMC_opt(t, var, value, list=[]):
     if var not in coord: ret = C.rmVars(ret, var)
     return ret
 
+
+#def isoSurfMC(t, var, value, vars=None, split='simple'):
+#    """Compute an iso surface in volume zones using marching cubes.
+#    Usage: isoSurfMC(t, var, value, vars, split)"""
+#    if vars is None:
+#        t = C.center2Node(t, Internal.__FlowSolutionCenters__)
+#    else:
+#        for v in vars:
+#            vs = v.split(':')
+#            vc = []; vn = ['CoordinateX','CoordinateY','CoordinateY']
+#            if len(vs) == 2 and vs[0] == 'centers': vc.append(vs[1])
+#            elif len(vs) == 2 and vs[0] == 'nodes': vn.append(vs[1])
+#            else: vn.append(v)
+#        if vc != []: t = C.center2Node(t, vc)
+#
+#    zones = Internal.getZones(t)
+#    var, loc = Internal.fixVarName(var)
+#    ret = []
+#    for z in zones:
+#        if vars is None: array = C.getAllFields(z, 'nodes')[0]
+#        else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc)[0]
+#        try:
+#            a = Post.isoSurfMC(array, var, value, split)
+#            if a != []:
+#                zp = C.convertArrays2ZoneNode(z[0], a)
+#                zp[0] = z[0] # pour identification
+#                ret.append(zp)
+#        except: raise
+#    return ret
+
+
 def isoSurfMC(t, var, value, vars=None, split='simple'):
     """Compute an iso surface in volume zones using marching cubes.
     Usage: isoSurfMC(t, var, value, vars, split)"""
-    if vars is None:
-        t = C.center2Node(t, Internal.__FlowSolutionCenters__)
+    if vars is  None:
+      target_var = Internal.__FlowSolutionCenters__
     else:
-        for v in vars:
-            vs = v.split(':')
-            vc = []; vn = ['CoordinateX','CoordinateY','CoordinateY']
-            if len(vs) == 2 and vs[0] == 'centers': vc.append(vs[1])
-            elif len(vs) == 2 and vs[0] == 'nodes': vn.append(vs[1])
-            else: vn.append(v)
-        if vc != []: t = C.center2Node(t, vc)
+      target_var=[]; vc = []; vn = ['CoordinateX','CoordinateY','CoordinateZ'];
+      for v in vars:
+         vs = v.split(':')
+         if len(vs) == 2 and vs[0] == 'centers':
+             vc.append(vs[1])
+             target_var.append(v)
+         elif len(vs) == 2 and vs[0] == 'nodes': vn.append(vs[1])
+         else: vn.append(v)
 
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
     for z in zones:
-        if vars is None: array = C.getAllFields(z, 'nodes')[0]
-        else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc)[0]
+        purge = False
+        if Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__) is None: purge=True
+        if vars is  None or vc != []:
+            z = C.center2Node(z, target_var )
+        if vars is None: 
+              array = C.getAllFields(z, 'nodes')[0]
+        else: 
+              array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vars=vn+vc)[0]
         try:
             a = Post.isoSurfMC(array, var, value, split)
+            if purge: Internal._rmNodesByName1(z, Internal.__FlowSolutionNodes__)
             if a != []:
                 zp = C.convertArrays2ZoneNode(z[0], a)
                 zp[0] = z[0] # pour identification

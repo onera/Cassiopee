@@ -95,3 +95,24 @@ def getNCells(a):
     ncells = C.getNPts(a)
     ncells = allreduce(ncells, op=SUM)
     return ncells
+
+def getMinValue(t, varName):
+    """Get the minimum value of variable defined by var."""
+    val = C.getMinValue(t, varName)
+    val = allreduce(val, op=MIN)
+    return val
+
+def getMaxValue(t, varName):
+    """Get the maximum value of variable defined by var."""
+    val = C.getMaxValue(t, varName)
+    val = allreduce(val, op=MAX)
+    return val
+
+def getMeanValue(t, varName):
+    """Get the mean value of variable defined by var."""
+    val = C.getMeanValue(t, varName)
+    npts = C.getNPts(t)
+    val = val*npts
+    val = allreduce(val, op=SUM)
+    npts = allreduce(npts, op=SUM)
+    return val/npts

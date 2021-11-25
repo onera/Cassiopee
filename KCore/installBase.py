@@ -146,7 +146,7 @@ False, # static
 False, # CPlotOffScreen
 ['/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
 ['svml', 'irc', 'ifcore', 'iomp5'], # additionalLibs
-['/opt/soft/cdtng/tools/portage/1.11/composerxe/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib'],  # additionAllIbpaths
+['/opt/soft/cdtng/tools/portage/1.11/composerxe/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -162,7 +162,7 @@ False, # static
 True, # CPlotOffScreen
 ['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/include64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/include'], # additionalIncludePaths
 ['mpi'], # additionalLibs
-['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'],  # additionAllIbpaths
+['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -178,7 +178,7 @@ False, # static
 True, # CPlotOffScreen
 ['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/include64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/include'], # additionalIncludePaths
 ['mpi'], # additionalLibs
-['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'],  # additionAllIbpaths
+['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'],  # additionalLibpaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -194,7 +194,7 @@ False, # static
 False, # CPlotOffScreen
 ['/appl/APPLI_SNECMA/HDF5/oper/1.8.11/include'], # additionalIncludePaths
 ['ifcore', 'svml', 'irc'], # additionalLibs
-['/opt/intel/composer_xe_2013_sp1.0.080/lib/intel64', '/appl/APPLI_SNECMA/HDF5/oper/1.8.11/lib'],  # additionAllIbpaths
+['/opt/intel/composer_xe_2013_sp1.0.080/lib/intel64', '/appl/APPLI_SNECMA/HDF5/oper/1.8.11/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -226,7 +226,7 @@ False, # static
 True, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.7/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/hdf5-1.8.7/lib'],  # additionAllIbpaths
+['/usr/local/hdf5-1.8.7/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -258,7 +258,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -274,7 +274,7 @@ False, # static
 False, # CPlotOffScreen
 ['/stck1/benoit/include'], # additionalIncludePaths
 [], # additionalLibs
-['/stck1/benoit/lib'],  # additionAllIbpaths
+['/stck1/benoit/lib'],  # additionqlLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -290,7 +290,7 @@ False, # static
 False, # CPlotOffScreen
 ['/usr/local/hdf5-gnu-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/hdf5-gnu-1.8.8/lib'],  # additionAllIbpaths
+['/usr/local/hdf5-gnu-1.8.8/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -306,7 +306,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -322,7 +322,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -338,7 +338,7 @@ False, # static
 True, # CPlotOffScreen
 ['/home/benoit/x86_64t/include'], # additionalIncludePaths
 [], # additionalLibs
-['/home/benoit/x86_64t'],  # additionAllIbpaths
+['/home/benoit/x86_64t'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -354,7 +354,7 @@ False, # static
 True, # CPlotOffScreen
 ['/home/benoit/aus/include'], # additionalIncludePaths
 [], # additionalLibs
-['/home/benoit/aus/lib'],  # additionAllIbpaths
+['/home/benoit/aus/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -370,7 +370,7 @@ False, # static
 True, # CPlotOffScreen
 ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include'], # additionalIncludePaths
 [], # additionalLibs
-['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionAllIbpaths
+['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -386,7 +386,7 @@ False, # static
 True, # CPlotOffScreen
 ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include'], # additionalIncludePaths
 [], # additionalLibs
-['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionAllIbpaths
+['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -402,7 +402,7 @@ False, # static
 True, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.8-intel-16/include','/home/benoit/aus/include','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/include64/','/stck/nalferez/intel/parallel_studio_xe_2018/vtune_amplifier_2018/include/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/include/intel64'], # additionalIncludePaths
 [], # additionalLibs
-['/home/benoit/aus/lib','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/lib64/','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/lib64/','/usr/local/hdf5-1.8.8-intel-16/lib/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/lib64'],  # additionAllIbpaths
+['/home/benoit/aus/lib','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/lib64/','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/lib64/','/usr/local/hdf5-1.8.8-intel-16/lib/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/lib64'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -419,7 +419,7 @@ False, # CPlotOffScreen
 ["/tmp_opt/lib/hdf5-1.8.8-intel-16-impi/include",
 "/usr/local/intel/studio/2016/compilers_and_libraries_2016.0.109/linux/mpi/include64"], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -435,7 +435,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -451,7 +451,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -483,7 +483,7 @@ False, # static
 True, # CPlotOffScreen
 ['/home/tools/local/x86_64a/include'], # additionalIncludePaths
 [], # additionalLibs
-['/home/tools/local/x86_64a/lib'],  # additionAllIbpaths
+['/home/tools/local/x86_64a/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -499,7 +499,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-['/usr/lib/gcc/x86_64-redhat-linux/4.1.2'],  # additionAllIbpaths
+['/usr/lib/gcc/x86_64-redhat-linux/4.1.2'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -515,7 +515,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -531,7 +531,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ["pgf90","pgf902","pgc","pgmath","pgf90_rpm1","rt","pgf90rtl","pgftnrtl"], # additionalLibs
-["/d/juvigny/Logiciels/linux86-64/2018/lib"],  # additionAllIbpaths
+["/d/juvigny/Logiciels/linux86-64/2018/lib"],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -547,7 +547,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -563,7 +563,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -579,8 +579,7 @@ True, # static
 False, # CPlotOffScreen
 ['c:/TDM-GCC-64/include'], # additionalIncludePaths
 ['gfortran', 'gomp', 'quadmath'], # additionalLibs
-['c:/TDM-GCC-64/lib', 'c:/Python2.7/libs'],  # additionAllIbpaths
-#['c:/TDM-GCC-64/lib', 'c:/Users/Adminstrateur/Anaconda2/libs'],  # additionAllIbpaths
+['c:/TDM-GCC-64/lib', 'c:/Python2.7/libs'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -596,7 +595,7 @@ False, # static
 False, # CPlotOffScreen
 ['/usr/local/hdf5-intel-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/hdf5-intel-1.8.8/lib'],  # additionAllIbpaths
+['/usr/local/hdf5-intel-1.8.8/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -612,7 +611,7 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -628,7 +627,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ["pgf90","pgf902","pgc","pgmath","pgkomp",'omp',"pgf90_rpm1","rt","pgf90rtl"], # additionalLibs
-["/opt/pgi/linuxpower/18.4/lib/"],  # additionAllIbpaths
+["/opt/pgi/linuxpower/18.4/lib/"],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -644,7 +643,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -660,7 +659,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -676,7 +675,7 @@ False, # static
 False, # CPlotOffScreen
 ['/opt/soft/cdtng/tools/portage/1.9/usr/include', '/opt/hpmpi/include'], # additionalIncludePaths
 [], # additionalLibs
-['/opt/soft/cdtng/tools/portage/1.9/usr/lib', '/opt/hpmpi/lib', '/opt/soft/cdtng/tools/intelcompiler/11.0/lib/intel64'],  # additionAllIbpaths
+['/opt/soft/cdtng/tools/portage/1.9/usr/lib', '/opt/hpmpi/lib', '/opt/soft/cdtng/tools/intelcompiler/11.0/lib/intel64'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -692,7 +691,7 @@ False, # static
 False, # CPlotOffScreen
 ['/usr/local/hdf5/1.8.7/include'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/local/lib64', '/usr/local/hdf5/1.8.7/lib','/tmp_opt/Python/2.7.3/icc-mpt/lib'],  # additionAllIbpaths
+['/usr/local/lib64', '/usr/local/hdf5/1.8.7/lib','/tmp_opt/Python/2.7.3/icc-mpt/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -708,7 +707,7 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -723,7 +722,7 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -737,15 +736,14 @@ False, # useCuda
 True, # useOMP
 False, # static
 True, # CPlotOffScreen
-['/opt/tools/intel/studio/2017/compilers_and_libraries_2017.4.196/linux/mpi/intel64/include','/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/include/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/include/intel64'], # additionalIncludePaths
-['ittnotify','advisor'], # additionalLibs
-['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64','/opt/tools/lib/hdf5-1.8.17-intel-17/lib/'],  # additionAllIbpaths
-#['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64'],  # additionAllIbpaths
+[], # additionalIncludePaths
+[], # additionalLibs
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'sat_sky': [ 'Cluster de calcul Sator skylake(Onera)',
+'sat_sky': [ 'Cluster de calcul Sator skylake (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
@@ -754,10 +752,25 @@ False, # useCuda
 True, # useOMP
 False, # static
 True, # CPlotOffScreen
-['/opt/tools/intel/studio/2017/compilers_and_libraries_2017.4.196/linux/mpi/intel64/include','/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/include/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/include/intel64'], # additionalIncludePaths
-['ittnotify','advisor'], # additionalLibs
-['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64','/opt/tools/lib/hdf5-1.8.17-intel-17/lib/'],  # additionAllIbpaths
-#['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64'],  # additionAllIbpaths
+[], # additionalIncludePaths
+[], # additionalLibs
+[], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
+'sat_cas': [ 'Cluster de calcul Sator cascadelake (Onera)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=24','-Dvtune','-DSIMD=AVX512'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -773,7 +786,7 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -789,7 +802,7 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -805,7 +818,7 @@ False, # static
 True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -821,7 +834,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -839,7 +852,7 @@ False, # CPlotOffScreen
 ['/usr/include/hdf5/serial/'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/lib/gcc/x86_64-linux-gnu/7',
- '/usr/lib/x86_64-linux-gnu/'],  # additionAllIbpaths
+ '/usr/lib/x86_64-linux-gnu/'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -887,7 +900,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -903,7 +916,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -923,7 +936,7 @@ False, # CPlotOffScreen
 ['mpi'], # additionalLibs
 ['/tmp_opt/lib/hdf5-1.8.8-intel-15-impi/lib',
  '/tmp_opt/lib/hdf5/1.8.17/15/impi/lib',
- '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/lib'],  # additionAllIbpaths
+ '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/lib'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -939,7 +952,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
-[], # additionalLibPath
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -955,7 +968,7 @@ False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionAllIbpaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ]

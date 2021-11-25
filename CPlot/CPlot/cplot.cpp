@@ -72,28 +72,12 @@ static PyMethodDef Pycplot [] =
 };
 
 #if PY_MAJOR_VERSION >= 3
-#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-struct module_state {
-    PyObject *error;
-};
-static int myextension_traverse(PyObject *m, visitproc visit, void *arg) {
-    Py_VISIT(GETSTATE(m)->error);
-    return 0;
-}
-static int myextension_clear(PyObject *m) {
-    Py_CLEAR(GETSTATE(m)->error);
-    return 0;
-}
 static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
         "cplot",
         NULL,
-        sizeof(struct module_state),
-        Pycplot,
-        NULL,
-        myextension_traverse,
-        myextension_clear,
-        NULL
+        -1,
+        Pycplot
 };
 #endif
 
@@ -110,6 +94,7 @@ extern "C"
   PyMODINIT_FUNC initcplot()
 #endif
   {
+    import_array();
 #if PY_MAJOR_VERSION >= 3
     PyObject* m = PyModule_Create(&moduledef);
 #else
@@ -118,8 +103,6 @@ extern "C"
     PyModule_AddIntConstant(m, "useDirect", long(Data::Direct));
     PyModule_AddIntConstant(m, "useDL",     long(Data::DL));
     PyModule_AddIntConstant(m, "useVBO",    long(Data::VBO));
-    //PyModule_AddIntConstant(m, "useImg",    long(Data::Img));// Pour le rendu deporte sur image ?
-    import_array();
 #if PY_MAJOR_VERSION >= 3
     return m;
 #endif
