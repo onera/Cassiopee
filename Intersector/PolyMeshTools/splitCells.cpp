@@ -1244,7 +1244,7 @@ void* __createSensor(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sen
   {
     using hmesh_t = NUGA::hierarchical_mesh<ELT_t, STYPE>;
     using sensor_t = NUGA::xsensor2<hmesh_t>;
-    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type));
+    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), itermax);
   }
   return nullptr;
 }
@@ -2004,6 +2004,8 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
   E_Float PH_conc_threshold(1./3.);
   E_Float PH_cvx_threshold(0.05);
   E_Float PG_cvx_threshold(1.e-8);
+  E_Float GRmin = 1.e-6;
+  E_Float Fluxmax = 1.e-9;
 
   if (!PYPARSETUPLEF(args, "Oddd", "Offf", &arr, &PH_conc_threshold, &PH_cvx_threshold, &PG_cvx_threshold)) return NULL;
 
@@ -2023,7 +2025,7 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
   
   ngon_type ngi(cnt), ngo;
   
-  NUGA::Splitter::split_non_star_phs<DELAUNAY::Triangulator>(crd, ngi, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold, ngo);
+  NUGA::Splitter::split_non_star_phs<DELAUNAY::Triangulator>(crd, ngi, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold, GRmin, Fluxmax, ngo);
 
   K_FLD::IntArray cnto;
   ngo.export_to_array(cnto);

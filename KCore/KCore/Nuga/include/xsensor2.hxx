@@ -178,8 +178,10 @@ bool xsensor2<mesh_t>::update()
       auto ae1 = m1.aelement(cphi);
       //double Lref21 = ae1.Lref2(m1.crd, MTYPE);
 
+      //medith::write<ngon_type>("ae", m1.crd, m1.cnt, cphi);
+
       cands.clear();
-      loc2->get_candidates(ae1, m1.crd, cands, 0, RTOL); //return as 0-based (fixme for volumic, was 1-based)
+      loc2->get_candidates(ae1, ae1.m_crd, cands, 0, RTOL); //return as 0-based (fixme for volumic, was 1-based)
       if (cands.empty()) continue;
 
       bool is_x = NUGA::COLLIDE::get_colliding(ae1, src_mesh, cands, 0, RTOL, false/*all of them*/);
@@ -201,6 +203,7 @@ bool xsensor2<mesh_t>::update()
 template <typename mesh_t>
 bool xsensor2<mesh_t>::stop()
 {
+  //std::cout << "stop ? : " << _iter << "/" << _iter_max << std::endl;
   if (++_iter > _iter_max) return true;
   return _done;
 }

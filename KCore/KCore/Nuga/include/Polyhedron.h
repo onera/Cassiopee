@@ -421,7 +421,7 @@ public:
   /// 
   static E_Int min_max_angles
     (const K_FLD::FloatArray& crd, const ngon_unit& PGS, 
-     const E_Int* first_pg, E_Int nb_pgs, bool open, const E_Int* orient, E_Float &minA, E_Float& maxA, const E_Float** normals = 0)
+     const E_Int* first_pg, E_Int nb_pgs, bool open, const E_Int* orient, E_Float &minA, E_Float& maxA, E_Int & maxAPG1, E_Int& maxAPG2, const E_Float** normals = 0)
   {
         
     minA = 7.;// just a value more than 2Pi
@@ -439,7 +439,7 @@ public:
     for (E_Int i=0; i <nb_pgs; ++i)
     {
       E_Int PGi = *(first_pg + i) - 1;
-      //std::cout << PGi << std::endl;
+      //std::cout << "PGI : " << PGi << std::endl;
       const E_Int* pNi = PGS.get_facets_ptr(PGi);
       E_Int  nb_nodes = PGS.stride(PGi);
       E_Int* pKn = lneighbors.get_facets_ptr(i);//i because lneighbor is local : sized as nb_pgs
@@ -496,6 +496,7 @@ public:
         if (alpha < minA)
         {
           minA = alpha;
+          
 #ifdef DEBUG1_POLYHEDRON
           K_FLD::FloatArray crdt(crd);
           NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PG(crdt, PGS, PGi);
@@ -508,6 +509,8 @@ public:
         if (alpha > maxA)
         {
           maxA = alpha;
+          maxAPG1 = PGi;
+          maxAPG2 = PGj;
         }
       }
     }
@@ -1113,15 +1116,35 @@ public:
   static E_Int is_pathological(const Triangulator_t& dt,  const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient)
   {
     //CURRENT RULE :
-      // If OPEN => BUG !
+      // 
+      // If OPEN => WRONG !
+      // if PHT3 is open => WRONG (when splitting a PH, the interface can be really warped. So the triangulated version can catch wrongness)
       // If convex : OK
       // else      :              
       //     if (PHT3-)star-shaped for at least one of 2 points (centroid, iso-bary) ==> OK  
       //     else : need a split
       
+    E_Int err = 0;
+    K_FLD::IntArray cT3;
+    {
+      std::vector<int> colors;
+      err = triangulate(dt, PGS, first_pg, nb_pgs, crd, cT3, colors, true, false); // PH -> PHT3
+      if (err) return dDELAUNAY_FAILURE;
+    }
+
+    // PHT3 must be closed
+    K_FLD::IntArray neighbors;
+    NUGA::EltAlgo<K_MESH::Triangle>::getNeighbours(cT3, neighbors, true);
+    for (size_t i = 0; i < neighbors.cols(); ++i)
+    {
+      auto n = neighbors.col(i);
+      if (n[0] == IDX_NONE) return dOPEN_PHS;
+      if (n[1] == IDX_NONE) return dOPEN_PHS;
+      if (n[2] == IDX_NONE) return dOPEN_PHS;
+    }
     
     bool concave;
-    E_Int err = K_MESH::Polyhedron<UNKNOWN>::is_concave(crd, PGS, first_pg, nb_pgs, false /*i.e. logic for supposed close PHs*/, orient, concave, 0.1);
+    err = K_MESH::Polyhedron<UNKNOWN>::is_concave(crd, PGS, first_pg, nb_pgs, false /*i.e. logic for supposed close PHs*/, orient, concave, 0.1);
   
     if (err)
       return dOPEN_PHS;

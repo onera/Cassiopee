@@ -114,7 +114,7 @@ namespace NUGA
      //
     template<typename TriangulatorType>
     inline static E_Int split_non_star_phs
-    (K_FLD::FloatArray& crd, ngon_type& ngi, E_Float concave_threshold, E_Float convex_threshold, E_Float RTOL, ngon_type& ngo)
+    (K_FLD::FloatArray& crd, ngon_type& ngi, E_Float concave_threshold, E_Float convex_threshold, E_Float RTOL, E_Float GRmin, E_Float Fluxmax, ngon_type& ngo)
     {
       // Create orientation info
       ngon_unit orient;
@@ -128,13 +128,13 @@ namespace NUGA
       for (size_t i=0; i < PHtypes.size(); ++i)
         if (PHtypes[i] == ngon_type::CONCAVITY_TO_SPLIT) PHlist.push_back(i);
       
-      return split_phs<TriangulatorType>(crd, ngi, orient, concave_threshold, convex_threshold, RTOL, ngo, PHlist);
+      return split_phs<TriangulatorType>(crd, ngi, orient, concave_threshold, convex_threshold, RTOL, GRmin, Fluxmax, ngo, PHlist);
     }
     
     //
     template<typename TriangulatorType>
     inline static E_Int split_phs
-    (K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& orient, E_Float concave_threshold, E_Float convex_threshold, E_Float RTOL, ngon_type& ngo, const Vector_t<E_Int>& PHlist)
+    (K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& orient, E_Float concave_threshold, E_Float convex_threshold, E_Float RTOL, double GRmin, E_Float Fluxmax, ngon_type& ngo, const Vector_t<E_Int>& PHlist)
     {
       ngo.clear();//important
       
@@ -179,7 +179,7 @@ namespace NUGA
 
         E_Int err = NUGA::Splitter::single_concave_split<DELAUNAY::Triangulator>
                         (crd, 1/*index_start*/, ngi.PGs, ngi.PHs.get_facets_ptr(PHi), ngi.PHs.stride(PHi), orient.get_facets_ptr(PHi), 
-                         concave_threshold, convex_threshold, RTOL, ngsplit);
+                         concave_threshold, convex_threshold, RTOL, GRmin, Fluxmax, ngsplit);
 
         if (err == -1)
         {
@@ -215,6 +215,9 @@ namespace NUGA
           {
             for (size_t b = 0; b< ngsplit.PHs.size(); ++b)
             {
+              /*std::set<K_MESH::NO_Edge> free_edges;
+              bool ok = K_MESH::Polyhedron<0>::is_closed(ngsplit.PGs, ngsplit.PHs.get_facets_ptr(b), ngsplit.PHs.stride(b), free_edges);
+              assert(ok);*/
               std::ostringstream o;
               o << "bit_" << PHi << "_" << b << ".tp";
               NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH(o.str().c_str(), crd, ngsplit, b);
@@ -247,7 +250,7 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static E_Int single_concave_split(const K_FLD::FloatArray& crd, E_Int index_start,
                                              const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient,
-                                             E_Float alpha_conc, E_Float alpha_cvx, E_Float rtol, ngon_type& twoPHs,
+                                             E_Float alpha_conc, E_Float alpha_cvx, E_Float rtol, double GRmin, E_Float Fluxmax, ngon_type& twoPHs,
                                              const E_Float** normals = 0);
 
   private:
@@ -279,7 +282,7 @@ namespace NUGA
     //
     template <typename TriangulatorType>
     inline static bool __valid_split(const K_FLD::FloatArray& crd, const std::vector<E_Int>& chain, E_Int index_start,
-                              const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float v, E_Float VOL_THRESHOLD,
+                              const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float v, E_Float GRmin, E_Float Fluxmax,
                               const ivec_t& simple_colors, const eset_t& reflex_edges, E_Float angle_max, E_Float chain_angle, E_Float & angle, E_Float minA, E_Float maxA, ngon_type& twoPHs);
 
     inline static E_Float __get_abs_tol(const K_FLD::FloatArray& crd, E_Float rtol, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs);
@@ -648,7 +651,7 @@ E_Int NUGA::Splitter::prepareCellsSplit(const K_FLD::FloatArray& crd, ngon_type&
 template<typename TriangulatorType>
 E_Int NUGA::Splitter::single_concave_split
 (const K_FLD::FloatArray& crd, E_Int index_start, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient,
-E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& twoPHs, const E_Float** normals)
+E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, E_Float GRmin, E_Float Fluxmax, ngon_type& twoPHs, const E_Float** normals)
 {
 
   // 1. DETECT CONCAVITIES /////////////////////////////////////////////////////////////////
@@ -661,7 +664,8 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
     return err;
   
   E_Float minA, maxA;
-  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, PGS, first_pg, nb_pgs, false, orient, minA, maxA);
+  E_Int maxAPG1, maxAPG2;
+  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, PGS, first_pg, nb_pgs, false, orient, minA, maxA, maxAPG1, maxAPG2);
   
 
   // 2.  SIMPLIFIED VIEW : COLORS //////////////////////////////////////////////////
@@ -713,7 +717,6 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
   if (chains.empty()) // not handled with the current strategy
     return 1;
 
-  E_Float VOL_THRESHOLD = 1.e-6;
   E_Float abstol = __get_abs_tol(crd, rtol, PGS, first_pg, nb_pgs);
   E_Float angle_max = std::max/*min*/(concave_threshold, convex_threshold) * NUGA::PI;
 
@@ -752,7 +755,7 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
     
     E_Float angle;
     if (!__valid_split<TriangulatorType>(crd, chain, index_start,
-                       PGS, first_pg, nb_pgs, v, VOL_THRESHOLD, simple_colors, rflx_edges, angle_max, chain_angle[c], angle, minA, maxA, twoPHs))
+                       PGS, first_pg, nb_pgs, v, GRmin, Fluxmax, simple_colors, rflx_edges, angle_max, chain_angle[c], angle, minA, maxA, twoPHs))
       continue;
 
     if (angle < EPSILON) // perfectly planar cut
@@ -809,7 +812,7 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
       chain.insert(chain.end(), paths[p].begin(), paths[p].end());//using &a[0] whan a is a deque is coorupted
       
       if (!__valid_split<TriangulatorType>(crd, chain, index_start,
-                         PGS, first_pg, nb_pgs, v, VOL_THRESHOLD, simple_colors, rflx_edges, angle_max, chain_angle[c], angle, minA, maxA, twoPHs))
+                         PGS, first_pg, nb_pgs, v, GRmin, Fluxmax, simple_colors, rflx_edges, angle_max, chain_angle[c], angle, minA, maxA, twoPHs))
         continue;
 
       if (angle < EPSILON) // perfectly planar cut
@@ -1389,7 +1392,7 @@ E_Int NUGA::Splitter::__append_chain_nodes
 template <typename TriangulatorType>
 bool NUGA::Splitter::__valid_split
 (const K_FLD::FloatArray& crd, const std::vector<E_Int>& chain, E_Int index_start,
-const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float V, E_Float VOL_THRESHOLD,
+const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float V, E_Float GRmin, E_Float Fluxmax,
 const ivec_t& simple_colors, const eset_t& reflex_edges, E_Float angle_max, E_Float chain_angle, E_Float & angle, E_Float minA, E_Float maxA, ngon_type& twoPH)
 {
   angle = 0;
@@ -1515,6 +1518,34 @@ if (PHi == faultyPH)
   /*for (size_t k=0; k < twoPH.PGs._NGON.size(); ++k)
     std::cout << twoPH.PGs._NGON[k] << std::endl;*/
     
+#ifdef DEBUG_PHSPLITTER
+  /*static int count = 0;
+  ++count;
+  std::ostringstream o;
+  
+  {
+    o << "D:\\slandier\\DATA\\tmp\\split\\twoPH_" << count << "a.tp";
+    ngon_type ngo;
+    ngo.PHs.add(twoPH.PHs.stride(0), twoPH.PHs.get_facets_ptr(0));
+    ngo.PGs = twoPH.PGs;
+    ngo.PHs.updateFacets();
+    K_FLD::IntArray cnto;
+    ngo.export_to_array(cnto);
+    tp::write(o.str().c_str(), crd, cnto, "NGON");
+  }
+
+  {
+    o.str("");
+    o << "D:\\slandier\\DATA\\tmp\\split\\twoPH_" << count << "b.tp";
+    ngon_type ngo;
+    ngo.PHs.add(twoPH.PHs.stride(1), twoPH.PHs.get_facets_ptr(1));
+    ngo.PGs = twoPH.PGs;
+    ngo.PHs.updateFacets();
+    K_FLD::IntArray cnto;
+    ngo.export_to_array(cnto);
+    tp::write(o.str().c_str(), crd, cnto, "NGON");
+  }*/
+#endif
 
   // check the the 2 bits have non-null volume (relative to input)
   E_Float G[3], v1, v2;
@@ -1526,14 +1557,14 @@ if (PHi == faultyPH)
   K_MESH::Polyhedron<UNKNOWN>::metrics2(dt, crd, twoPH.PGs, pgs0, nb_pgs0, v1, G, false/*not all cvx*/);
   K_MESH::Polyhedron<UNKNOWN>::metrics2(dt, crd, twoPH.PGs, pgs1, nb_pgs1, v2, G, false/*not all cvx*/);
 
-  if (::fabs(v1) < V * VOL_THRESHOLD) //null or two small (doesn't worth a cut)
+  if (::fabs(v1) < V * GRmin) //null or two small (doesn't worth a cut)
     return false;
-  if (::fabs(v2) < V* VOL_THRESHOLD) //null or too small (doewnt worth a cut)
+  if (::fabs(v2) < V* GRmin) //null or too small (doewnt worth a cut)
     return false;
   
   // check also they are not patholical bits
   ngon_unit orient;
-  /*E_Int err = */ngon_type::build_orientation_ngu<TriangulatorType>(crd, twoPH, orient);//fixme hpc : should be deduced from the input PH orientation
+  E_Int err = ngon_type::build_orientation_ngu<TriangulatorType>(crd, twoPH, orient);//fixme hpc : should be deduced from the input PH orientation
   E_Int res = K_MESH::Polyhedron<UNKNOWN>::is_pathological(dt, crd, twoPH.PGs, pgs0, nb_pgs0, orient.get_facets_ptr(0));
   if (res != dCONCAVITY_TO_SPLIT && res != dPATHO_PH_NONE)
     return false;
@@ -1545,12 +1576,36 @@ if (PHi == faultyPH)
   //if (err || mA < minA || MA > maxA) return false; //get worst
   
   E_Float mA, MA;
-  /*err = */K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs0, nb_pgs0, false, orient.get_facets_ptr(0), mA, MA);
+  E_Int maxAPG1, maxAPG2;
+  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs0, nb_pgs0, false/*i.e open cell is error*/, orient.get_facets_ptr(0), mA, MA, maxAPG1, maxAPG2);
+  if (err) return false; //open cell
   if (::fabs(mA) < 1.e-2 || ::fabs(2.*NUGA::PI - MA) < 1.e-2) return false;
   //if (err || mA < minA || MA > maxA) return false; //get worst
-  /*err = */K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs1, nb_pgs1, false, orient.get_facets_ptr(1), mA, MA);
+  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs1, nb_pgs1, false/*i.e open cell is error*/, orient.get_facets_ptr(1), mA, MA, maxAPG1, maxAPG2);
   if (::fabs(mA) < 1.e-2 || ::fabs(2.*NUGA::PI - MA) < 1.e-2) return false;
   //if (err || mA < minA || MA > maxA) return false; //get worst
+  if (err) return false; //open cell
+
+  K_MESH::Polyhedron<0> PH0(twoPH, 0);
+  double fluxvec[3];
+  PH0.flux(crd, orient.get_facets_ptr(0), fluxvec);
+  E_Float f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+  E_Float s = PH0.surface(crd);
+  f /= s;
+  if (f > Fluxmax) {
+    std::cout << "rejected by flux" << std::endl;
+    return false;
+  }
+
+  K_MESH::Polyhedron<0> PH1(twoPH, 1);
+  PH1.flux(crd, orient.get_facets_ptr(1), fluxvec);
+  f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+  s = PH0.surface(crd);
+  f /= s;
+  if (f > Fluxmax) {
+    std::cout << "rejected by flux" << std::endl;
+    return false;
+  }
   
   
   // count edges sharing number

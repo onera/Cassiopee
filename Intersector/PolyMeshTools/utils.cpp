@@ -980,6 +980,121 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   return l;
 }
 
+PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *PE;
+
+  if (!PyArg_ParseTuple(args, "OO", &arr, &PE)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  // Check numpy (parentElement)
+  FldArrayI* cFE;
+  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  if (ngi.PGs.size() != cFE->getSize())
+  {
+    std::cout << "le ParentElment ne correpsond pas au nb de pgs" << std::endl;
+    delete f; delete cn;
+    return nullptr;
+  }
+
+  std::vector<E_Int> orient;
+  E_Int imax{-1}, imin{-1},PG1max, PG2max;
+  E_Float minA{7.}, maxA{-1.};
+  
+  //
+  for (E_Int i=0; i < ngi.PHs.size(); ++i)
+  {
+    orient.clear();
+
+    const E_Int* pF = ngi.PHs.get_facets_ptr(i);
+    E_Int nbf = ngi.PHs.stride(i);
+    orient.resize(nbf, 1);
+
+    for (E_Int f = 0; f < nbf; ++f)
+    {
+      E_Int PGi = *(pF+f) - 1;
+      //std::cout << "PGi bef wwong :" << PGi << std::endl;
+      if ((*cFE)(PGi, 1) != i+1) orient[f] = -1;
+      assert (((*cFE)(PGi, 1) == i+1) || ((*cFE)(PGi, 2) == i+1) );
+    }
+
+    E_Float mA, MA;
+    E_Int maxAPG1, maxAPG2;
+    err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, ngi.PGs, pF, nbf, false, &orient[0], mA, MA, maxAPG1, maxAPG2);
+
+    if (MA > maxA)
+    {
+      imax = i;
+      maxA = MA;
+      PG1max = maxAPG1;
+      PG2max = maxAPG2;
+    }
+    if (mA < minA)
+    {
+      imin = i;
+      minA = mA;
+    }
+  }
+
+  std::cout << "minimal dihedral angle : " << minA << " reached at cell : " << imin << std::endl;
+  std::cout << "maximal dihedral angle : " << maxA << " reached at cell : " << imax << std::endl;
+  std::cout << "maximal dihedral angle for PGs : " << PG1max << " and " << PG2max << std::endl;
+
+  delete f; delete cn;
+
+  PyObject *l(PyList_New(0)), *tpl;
+
+#ifdef E_DOUBLEINT
+  tpl =  Py_BuildValue("l", long(imax));
+   PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("i", imax);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(maxA));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", float(maxA);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEINT
+  tpl =  Py_BuildValue("l", long(imin));
+   PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("i", imin);
+  PyList_Append(l, tpl);
+#endif
+
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(minA));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", float(minA);
+  PyList_Append(l, tpl);
+#endif
+  
+  return l;
+}
+
 int comp_vol(const K_FLD::FloatArray& crd, const ngon_type& ngi, const FldArrayI* cFE, std::vector<E_Int>& orient, E_Int i, DELAUNAY::Triangulator & dt, double &v)
 {
   //std::cout << "PH : " << i << std::endl;

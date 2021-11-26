@@ -2840,6 +2840,53 @@ def checkCellsFlux(t):
         i+=1
     return (maxflux, cellid, zoneid)
 
+
+#==============================================================================
+# checkAngularExtrema : Computes the min/max dihedral angles in a mesh
+#==============================================================================
+def checkAngularExtrema(t):
+    """ Returns the cell id for which the Gauss flux is the greatest
+    Usage: checkCellsFlux(a, PE)"""
+    import sys;
+    zones = Internal.getZones(t)
+    maxA=-sys.float_info.max
+    minA = sys.float_info.max
+    mincellid = -1
+    minzoneid=-1
+    maxzoneid=-1
+    maxcellid=-1
+    i=0
+    for z in zones:
+        GEl = Internal.getElementNodes(z)
+        NGON = 0; found = False
+        for c in GEl:
+            if c[1][0] == 22: found = True; break
+            NGON += 1
+        PE = None
+        if found:
+            node = GEl[NGON]
+            PE = Internal.getNodeFromName1(node, 'ParentElements')
+            if PE is None:
+                print ('skipping zone %d as it does not have ParentElement'%i)
+                continue
+        else:
+            print ('skipping zone %d as it does not have ParentElement'%i)
+            continue
+        
+        print('checking nullity of fluxes for zone %d'%i)
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res=XOR.checkAngularExtrema(m, PE[1])
+        if res[1] > maxA:
+           maxA=res[1]
+           maxcellid=res[0]
+           maxzoneid=i
+        if res[3] < minA:
+           minA=res[3]
+           mincellid=res[2]
+           minzoneid=i
+        i+=1
+    return (minA, mincellid, minzoneid, maxA, maxcellid, maxzoneid)
+
 #==============================================================================
 # checkCellsVolume : Computes the cell fluxes using the ParentElement node
 #==============================================================================

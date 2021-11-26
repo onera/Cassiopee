@@ -738,6 +738,15 @@ def checkCellsFlux(a, PE):
     return intersector.checkCellsFlux(a, PE)
 
 #==============================================================================
+# checkAngularExtrema : Returns the min/max dihedral angles vals and associted cell ids.. 
+# IN: a:         : 3D NGON mesh
+# OUT: A message telling the cell id for which the Gauss flux is the greatest. 
+#==============================================================================
+def checkAngularExtrema(a, PE):
+    """ Returns the min/max dihedral angles vals and associted cell ids.
+    Usage: checkAngularExtrema(a, PE)"""
+    return intersector.checkAngularExtrema(a, PE)
+#==============================================================================
 # checkCellsVolume : Computes the minimum volume using the input orientation (ParentElement). 
 #              
 # IN: a:               : 3D NGON mesh

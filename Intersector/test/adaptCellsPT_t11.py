@@ -32,7 +32,7 @@ ta = XOR.adaptCells(t,cv, sensor_type=3, subdiv_type=3)## DIR
 ta = XOR.closeCells(ta)
 
 test.testT(ta,1)
-C.convertPyTree2File(ta, 'PT_t11.cgns')
+#C.convertPyTree2File(ta, 'PT_t11.cgns')
 
 
 
