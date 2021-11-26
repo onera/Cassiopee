@@ -57,3 +57,13 @@ m = C.initVars(m,'w',0.)
 m = C.initVars(m,'sol',DF,['y'])
 p = P.computeCurl(m,['u','v','w']) # defined on centers
 T.testA([p], 5)
+
+# cas 3D NGON
+ni = 30; nj = 40; nk = 3
+m = G.cartNGon((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
+m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'v',0.)
+m = C.initVars(m,'w',0.)
+m = C.initVars(m,'sol',DF,['y'])
+p = P.computeCurl(m,['u','v','w']) # defined on centers
+T.testA([p], 6)

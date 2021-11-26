@@ -31,7 +31,7 @@ using namespace std;
 /* Cree une nappe de courant a  partir d'une ligne (BAR) et d'une liste
    de grilles definies par des arrays. Les grilles d'interpolation sont celles
    qui sont structurees, contenant les infos sur la vitesse, et ayant toutes
-   les mêmes variables dans le même ordre.
+   les mï¿½mes variables dans le mï¿½me ordre.
 */
 //=============================================================================
 PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
@@ -216,22 +216,29 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   vector<char*> eltType2;
   for (E_Int no = 0; no < nzonesU; no++)
   {
-    E_Int posx = K_ARRAY::isCoordinateXPresent(unstrVarString[no]); posx++;
-    E_Int posy = K_ARRAY::isCoordinateYPresent(unstrVarString[no]); posy++;
-    E_Int posz = K_ARRAY::isCoordinateZPresent(unstrVarString[no]); posz++;
-    E_Int posc = K_ARRAY::isCellNatureField2Present(unstrVarString[no]); posc++;
-    posxu2.push_back(posx); posyu2.push_back(posy); poszu2.push_back(posz); poscu2.push_back(posc); 
-    K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(unstrF[no]->getSize(), 
-                                                       unstrF[no]->begin(posx),
-                                                       unstrF[no]->begin(posy),
-                                                       unstrF[no]->begin(posz),
-                                                       cnt[no], NULL, NULL, isBuilt);
-    unstrF2.push_back(unstrF[no]); cnt2.push_back(cnt[no]);
-    unstrInterpDatas2.push_back(adt);
-    unstrVarString2.push_back(unstrVarString[no]);
-    eltType2.push_back(eltType[no]);
-  }   
-
+    if (strcmp(eltType[no],"TETRA")==0)
+    {
+      E_Int posx = K_ARRAY::isCoordinateXPresent(unstrVarString[no]); posx++;
+      E_Int posy = K_ARRAY::isCoordinateYPresent(unstrVarString[no]); posy++;
+      E_Int posz = K_ARRAY::isCoordinateZPresent(unstrVarString[no]); posz++;
+      E_Int posc = K_ARRAY::isCellNatureField2Present(unstrVarString[no]); posc++;
+      posxu2.push_back(posx); posyu2.push_back(posy); poszu2.push_back(posz); poscu2.push_back(posc); 
+      K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(unstrF[no]->getSize(), 
+                                                         unstrF[no]->begin(posx),
+                                                         unstrF[no]->begin(posy),
+                                                         unstrF[no]->begin(posz),
+                                                         cnt[no], NULL, NULL, isBuilt);
+      unstrF2.push_back(unstrF[no]); cnt2.push_back(cnt[no]);
+      unstrInterpDatas2.push_back(adt);
+      unstrVarString2.push_back(unstrVarString[no]);
+      eltType2.push_back(eltType[no]);
+    }     
+    else 
+    {
+      printf("Warning: streamSurf: unstructured element type is %s (must be TETRA).\n", eltType[no]);
+      printf("Zone %d not taken into account to build the stream surface\n", no);
+    }
+  } 
   E_Int structSize =  structInterpDatas1.size();
   E_Int unstrSize = unstrInterpDatas2.size();
   E_Int interpDatasSize = structSize + unstrSize;

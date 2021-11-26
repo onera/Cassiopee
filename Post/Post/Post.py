@@ -613,6 +613,9 @@ def streamSurf(arrays, b, vector, N=2000, dir=1):
     b = Converter.convertArray2Hexa(b)
     if b[3] != 'BAR': raise TypeError("streamSurf: b must be a BAR.")
     coord = b[1]
+    for no in range(len(arrays)):
+        if len(arrays[no])!= 5: 
+            arrays[no] = Converter.convertArray2Tetra(arrays[no])
     return post.compStreamSurf(arrays, b, vector, dir, N)
 
 #------------------------------------------------------------------------------
