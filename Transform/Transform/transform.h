@@ -340,6 +340,7 @@ namespace K_TRANSFORM
   PyObject* projectOrthoSmooth(PyObject* self, PyObject* args);
   PyObject* projectRay(PyObject* self, PyObject* args);
   PyObject* projectSmoothDir(PyObject* self, PyObject* args);
+  PyObject* _alignVectorFieldWithRadialCylindricProjection(PyObject* self, PyObject* args);
 
   PyObject* splitCurvatureAngle(PyObject* self, PyObject* args);
   PyObject* splitCurvatureRadius(PyObject* self, PyObject* args);

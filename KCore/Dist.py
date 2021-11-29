@@ -694,7 +694,9 @@ def getCArgs():
          else: options += ['-DNDEBUG', '-O2', '-wd47', '-wd1224']
          
          # hack pour intel 19
-         if v[0] == 19: options = options.replace('-O2', '-O1') 
+         if v[0] == 19: 
+             for c, o in options:
+                 if o == '-O2': options[c] = '-O1'
              
          if v[0] < 15:
             options += ['-fp-speculation=strict']

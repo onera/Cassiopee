@@ -1992,6 +1992,14 @@ def _projectRay(t1, t2, Pt): # t1 is modified
         C.setFields([res[noz]], zones[noz], 'nodes')
     return None
 
+def alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), axisDirection=(1,0,0), vectorNames=[]):
+    """Perform a cylindric radial projection of a vector field."""
+    return C.TZA2(t, Transform.alignVectorFieldWithRadialCylindricProjection, 'nodes', 'nodes', False, axisPassingPoint, axisDirection, vectorNames)
+
+def _alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), axisDirection=(1,0,0), vectorNames=[]):
+    """Perform a cylindric radial projection of a vector field."""
+    C.__TZA2(t, Transform._alignVectorFieldWithRadialCylindricProjection, 'nodes', axisPassingPoint, axisDirection, vectorNames)
+
 # Split au milieu
 """
 def splitSize__(z, N, zoneName, multigrid, dirs):

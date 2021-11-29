@@ -20,7 +20,8 @@ __all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', 
     'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 'rotate', '_rotate', '_scale', 'scale', 
     'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold', 
     'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches', 
-    'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField']
+    'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField',
+    'alignVectorFieldWithRadialCylindricProjection', '_alignVectorFieldWithRadialCylindricProjection']
 
 #========================================================================================
 # Merge a set of cart grids in A for each refinement level
@@ -532,6 +533,18 @@ def projectRay(surfaces, arrays, P):
         return transform.projectRay(surfaces, b, P)
     else:
         return transform.projectRay([surfaces], b, P)[0]
+
+def alignVectorFieldWithRadialCylindricProjection(a, axisPassingPoint, axisDirection, vectorNames):
+    """Perform a cylindric radial projection of a vector field """
+    b = Converter.copy(a)
+    _alignVectorFieldWithRadialCylindricProjection(b, axisPassingPoint, axisDirection, vectorNames)
+    return b
+
+def _alignVectorFieldWithRadialCylindricProjection(a, axisPassingPoint, axisDirection, vectorNames):
+    """Perform a cylindric radial projection of a vector field """
+    if isinstance(a[0], list):
+        for i in a: transform._alignVectorFieldWithRadialCylindricProjection(i, axisPassingPoint, axisDirection, vectorNames)
+    else: transform._alignVectorFieldWithRadialCylindricProjection(a, axisPassingPoint, axisDirection, vectorNames)
 
 def deform(a, vector=['dx','dy','dz']):
     """Deform surface by moving surface of the vector dx, dy, dz. 
