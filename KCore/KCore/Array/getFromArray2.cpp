@@ -450,8 +450,8 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     f = new FldArrayF(s, nfld, (E_Float*)PyArray_DATA(a), true, true);
   }
   else if (PyList_Check(tpl) == true) // -- Array2 --
-  {
-    E_Int nfld = PyList_Size(tpl);
+  {  
+    E_Int nfld = PyList_Size(tpl);  
     E_Float** acu = new E_Float* [nfld];
     E_Int s = 0;
     for (E_Int i = 0; i < nfld; i++)
@@ -487,6 +487,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     tpl = PyList_GetItem(o, 2);
     //ref2 = tpl; Py_INCREF(ref2);
     Py_INCREF(tpl);
+
     if (PyArray_Check(tpl) == true) // -- Array1 --
     {
       ac = (PyArrayObject*)tpl;
@@ -507,6 +508,8 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     else if (PyList_Check(tpl) == true) // -- Array2 --
     {
       E_Int nc = PyList_Size(tpl);
+      if (nc == 1 && PyList_GetItem(tpl,0) == Py_None) nc = 0;
+
       if (nc == 0) // BE NODE
       {
         //c = NULL;

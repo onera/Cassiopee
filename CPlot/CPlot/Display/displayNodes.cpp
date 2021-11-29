@@ -42,7 +42,7 @@ void Data::displayNodes()
   
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-  glEnable(GL_TEXTURE_2D);
+  //glEnable(GL_TEXTURE_2D);
   glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
   
   double xcam = _view.xcam;
@@ -79,19 +79,19 @@ void Data::displayNodes()
       else // Display les noeuds sous forme de texture node
       {
 #ifdef __SHADERS__
-        if (_shaders.currentShader() != 0)
-        {
-          glActiveTexture(GL_TEXTURE0);
-          glBindTexture(GL_TEXTURE_2D, _texNodes);
-          _shaders.activate((short unsigned int)0);
-        }
+        //if (_shaders.currentShader() != 0)
+        //{
+        //  glActiveTexture(GL_TEXTURE0);
+        //  glBindTexture(GL_TEXTURE_2D, _texNodes);
+        //  _shaders.activate((short unsigned int)0);
+        //}
 #endif
         // Color
         switch (ptrState->meshStyle)
         {
           case 0:
             // Couleur uniforme blanche (defaut)
-            color1[0] = 0.95; color1[1] = 0.95; color1[2] = 1.;
+            color1[0] = 0.5; color1[1] = 0.5; color1[2] = 1.;
             color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1;
             break;
           
