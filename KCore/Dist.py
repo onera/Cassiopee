@@ -695,7 +695,7 @@ def getCArgs():
          
          # hack pour intel 19
          if v[0] == 19: 
-             for c, o in options:
+             for c, o in enumerate(options):
                  if o == '-O2': options[c] = '-O1'
              
          if v[0] < 15:
