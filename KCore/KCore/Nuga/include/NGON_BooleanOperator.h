@@ -399,10 +399,7 @@ private:
                 pgs.append(pgsi);
                 pgs._type.resize(pgs.size(), is_skin ? INITIAL_SKIN : INNER);//IMPORTANT : use flag to mark skin PGs (for soft)
 
-                E_Int hPG = _anc_PG[_nT3_to_oPG[key]];
-                E_Int I = (hPG < _nb_pgs1) ? 0 : 1;
-                E_Int anc[] = {IDX_NONE, IDX_NONE};
-                anc[I]=hPG;
+                const E_Int* anc = _anc_PG.col(_nT3_to_oPG2[key]);
                 for (E_Int kk = 0; kk < pgsi.size(); ++kk)
                   pgs._ancEs.pushBack(anc, anc+2);
 
@@ -642,7 +639,7 @@ private:
   eAggregation _AggPol;
   eOperation   _Op;
   bool _build_hard;
-  int _hardmode;
+  
   E_Float _tolerance;
   E_Float _convexity_tol;
   
@@ -666,6 +663,7 @@ public:
   
   bool _triangulator_do_not_shuffle, _triangulator_improve_qual_by_swap, _conformizer_split_swap_afterwards;
   bool simplify_pgs;
+  int  hard_mode;
   
   Vector_t<std::pair<E_Float, E_Int> > _palmares;
   std::set<E_Int> _tmp_set_int;
@@ -676,7 +674,7 @@ public:
   std::set<K_MESH::Edge> _tmp_set_oedge;
   std::map<E_Int, E_Int> _tmp_map_nn;
   
-  Vector_t<E_Int> _nT3_to_oPG;
+  Vector_t<E_Int> _nT3_to_oPG, _nT3_to_oPG2;
   E_Int _nb_pgs1;
   K_FLD::IntArray _F2E, _extraF2E;
   
@@ -757,7 +755,7 @@ NGON_BOOLEAN_CLASS::NGON_BooleanOperator
 (const K_FLD::FldArrayF& pos1, E_Int px, E_Int py, E_Int pz, const K_FLD::FldArrayI& cNGON1,
  const K_FLD::FldArrayF& pos2, E_Int px2, E_Int py2, E_Int pz2, const K_FLD::FldArrayI& cNGON2, E_Float tolerance, eAggregation aggtype)
 : _tolerance(tolerance), _convexity_tol(1.e-2), _AggPol(aggtype), _processed(false),
- _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1, px, py, pz), _crd2(pos2, px2, py2, pz2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true), _hardmode(0)
+ _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1, px, py, pz), _crd2(pos2, px2, py2, pz2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true), hard_mode(0)
 {}
 
 /// Constructor for DynArrays
@@ -766,7 +764,7 @@ NGON_BOOLEAN_CLASS::NGON_BooleanOperator
 (const K_FLD::FloatArray& pos1, const K_FLD::IntArray& cNGON1,
  const K_FLD::FloatArray& pos2, const K_FLD::IntArray& cNGON2, E_Float tolerance, eAggregation aggtype)
   : _AggPol(aggtype), _tolerance(tolerance),  _convexity_tol(1.e-2), _processed(false),
- _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1), _crd2(pos2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true), _hardmode(0)
+ _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1), _crd2(pos2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true), hard_mode(0)
 {
 #ifdef DEBUG_BOOLEAN
   std::cout << "pos1 " << pos1.cols() << "/" << pos1.rows() << std::endl;
@@ -2414,7 +2412,8 @@ NGON_BOOLEAN_CLASS::__compute()
     __remove_orientations(PHT3s, shift);
 
     // PHT3 -> PH (with aggregation).
-    err= __build_PHs(PHT3s, connectT3, is_skin, _nT3_to_oPG, _ngXs);
+    _nT3_to_oPG2 = _nT3_to_oPG;
+    err = __build_PHs(PHT3s, connectT3, is_skin, _nT3_to_oPG, _ngXs);
     if (err)
       return ERROR;
 
@@ -2427,7 +2426,7 @@ NGON_BOOLEAN_CLASS::__compute()
   medith::write("ngXs.mesh", _coord, _ngXs);
 #endif
 
-    if (_build_hard && _hardmode == 0)
+    if (_build_hard && hard_mode == 0)
     {
       mesh_oper = 1; // meaning hard
     
@@ -2480,7 +2479,7 @@ NGON_BOOLEAN_CLASS::__compute()
   #endif
     }
     
-  else if (_build_hard && _hardmode == 1)
+  else if (_build_hard && hard_mode == 1)
   {
     mesh_oper = 1; // meaning hard
 
@@ -2943,12 +2942,24 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   K_FLD::ArrayAccessor<K_FLD::IntArray> acT3o(cT3);
   NUGA::MeshTool::compute_or_transfer_normals(acrd, acT3o, extrawPGs, oT3_to_PG, extraNorms);
     
-  // append the hard skin to the open layer
+  // APPEND THE HARD SKIN TO THE OPEN LAYER
+  //normals
   extraNorms.pushBack(_normals);
   _normals = extraNorms;
+  // triangles
   cT3.pushBack(connectHard);
   connectHard=cT3;
+  // PG history
+  _nT3_to_oPG2 = oT3_to_PG;
+  _nT3_to_oPG2.insert(_nT3_to_oPG2.end(), nT3_to_PG.begin(), nT3_to_PG.end());
+  int shft = extrawPGs.size();
+  K_CONNECT::IdTool::shift(_nT3_to_oPG2, oT3_to_PG.size()/*from*/, shft);
   
+  K_FLD::IntArray new_ancPG = extrawPGs._ancEs; //transfer origin
+  new_ancPG.pushBack(_anc_PG);
+  _anc_PG = new_ancPG;
+  //std::cout << _anc_PG << std::endl;
+
   //shift soft_colors before appending
   E_Int shift = 1 + *std::max_element(oT3_to_PG.begin(), oT3_to_PG.end());//fixme : don't we already know this numer ? like nb_pgs...
   E_Int shift2 = 1 + *std::max_element(nT3_to_PG.begin(), nT3_to_PG.end());
@@ -2956,14 +2967,6 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
 
   K_CONNECT::IdTool::shift(soft_colors, shift);
   oT3_to_PG.insert(oT3_to_PG.end(), soft_colors.begin(), soft_colors.end());
-
-  E_Int max_id_new_pgs = 1 + *std::max_element(soft_colors.begin(), soft_colors.end());
-  
-  assert(max_id_new_pgs >= _anc_PG.cols()); //ensure not reducing _anc_PG
-  
-  _anc_PG.resize(2, max_id_new_pgs, IDX_NONE);
-  for (size_t i = 0; i < nT3_to_PG.size(); ++i)
-    _anc_PG(1, soft_colors[i]) = nT3_to_PG[i];
   
   assert ((E_Int)is_skin.size() == connectHard.cols());
     

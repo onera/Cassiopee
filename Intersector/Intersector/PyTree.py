@@ -644,7 +644,7 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
     s = XOR.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual)
     return C.convertArrays2ZoneNode('inter', [s])
 
-def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False, simplify_pgs=True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False, simplify_pgs=True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -663,7 +663,7 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
             jtol = 0.01*min(L1,L2)
             #print('jtol is : '+str(jtol))
 
-          return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_qual, simplify_pgs)
+          return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
 
     #multi_zone option is ignored from here
 
@@ -675,7 +675,7 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
     #print("nb of pgs to pass : %s" %(len(extrudepgs)))
 
-    res = XOR.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs, simplify_pgs)
+    res = XOR.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs, simplify_pgs, hard_mode)
     
     is_zone_list  = 0
     if (len(res) != 4) : is_zone_list = 1
@@ -691,13 +691,13 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
     
     return ozones
 
-def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, simplify_pgs = True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, simplify_pgs = True, hard_mode = 0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     tp1 = Internal.copyRef(t1)
     tp2 = Internal.copyRef(t2)
-    return _booleanUnionMZ(tp1, tp2, xtol, jtol, agg_mode, improve_qual, simplify_pgs)
+    return _booleanUnionMZ(tp1, tp2, xtol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
 
 
-def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, simplify_pgs = True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, simplify_pgs = True, hard_mode = 0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed volume meshes.
     Usage for volumes: booleanUnion2(a1, a2, tol, agg_mode)"""
     m1s = []
@@ -709,7 +709,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     for z in z2s:
       m2s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
 
-    res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_qual, simplify_pgs)
+    res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
 
     i=0
     paths = []

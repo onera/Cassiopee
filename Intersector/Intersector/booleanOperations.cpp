@@ -191,7 +191,7 @@ bool getUnionArgs(PyObject* args,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
              E_Float& tolerance, E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual,
-             std::vector<E_Int>& pgsList, E_Int& simplify_pgs,
+             std::vector<E_Int>& pgsList, E_Int& simplify_pgs, E_Int& hard_mode,
              char*& eltType, char*& varString)
 {
   PyObject *arrS[2], *pgs;
@@ -203,8 +203,8 @@ bool getUnionArgs(PyObject* args,
   pgsList.clear();
 
   if (!PYPARSETUPLE(args, 
-                    "OOdllllOl", "OOdiiiiOi", "OOfllllOl", "OOfiiiiOi", 
-                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &pgs, &simplify_pgs))
+                    "OOdllllOll", "OOdiiiiOii", "OOfllllOll", "OOfiiiiOii", 
+                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &pgs, &simplify_pgs, &hard_mode))
   {
     o << opername << ": wrong arguments.";
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
@@ -440,9 +440,10 @@ PyObject* call_union(PyObject* args)
   E_Int preserve_right, solid_right, agg_mode;
   bool improve_conformal_cloud_qual(false);
   E_Int simplify_pgs{1};
+  E_Int hard_mode{0};
   
   bool ok = getUnionArgs(args, pos1, connect1, pos2, connect2, tolerance, 
-        preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, ghost_pgs, simplify_pgs, eltType, varString);
+        preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, ghost_pgs, simplify_pgs, hard_mode, eltType, varString);
   if (!ok) return NULL;
   PyObject* tpl = NULL;
   E_Int err(0), et=-1;
@@ -504,6 +505,8 @@ PyObject* call_union(PyObject* args)
     if (improve_conformal_cloud_qual) BO.setTriangulatorParams(/*do not shuffle : */false, /*improve quality:*/true);
 
     BO.simplify_pgs = (simplify_pgs == 1);
+
+    BO.hard_mode = hard_mode;
 
     K_FLD::IntArray cnt;
     K_FLD::FloatArray crd;
@@ -647,12 +650,12 @@ PyObject* K_INTERSECTOR::booleanUnion(PyObject* self, PyObject* args)
 
 PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 {
-  E_Int agg_mode{2}, improve_qual{0}, simplify_pgs{1};
+  E_Int agg_mode{2}, improve_qual{0}, simplify_pgs{1}, hard_mode{0};
   E_Float xtol(0.), closetol(0.);
   PyObject* arr1s, *arr2s;
 
   if (!PYPARSETUPLE(args, 
-                    "OOddlll", "OOddiii", "OOfflll", "OOffiii", &arr1s, &arr2s, &xtol, &closetol, &agg_mode, &improve_qual, &simplify_pgs))
+                    "OOddllll", "OOddiiii", "OOffllll", "OOffiiii", &arr1s, &arr2s, &xtol, &closetol, &agg_mode, &improve_qual, &simplify_pgs, &hard_mode))
   {
     PyErr_SetString(PyExc_TypeError, "booleanUnion2 : wrong args");
     return NULL;
@@ -756,6 +759,8 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   }
 
   BO.simplify_pgs = (simplify_pgs == 1);
+
+  BO.hard_mode = hard_mode;
   
   K_FLD::IntArray cnt;
   K_FLD::FloatArray crd;

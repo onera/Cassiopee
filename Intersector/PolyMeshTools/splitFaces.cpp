@@ -588,12 +588,14 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
       if (ps > -0.99) continue;
 
       // if G is in faceC, face is a piece of faceC
-      bool is_in1 = faceC.fast_is_in_pred<DELAUNAY::Triangulator>(dt, m.crd, G);
+      bool is_in1;
+      int err = faceC.fast_is_in_pred<DELAUNAY::Triangulator>(dt, m.crd, G, is_in1);
 
       //reciprocal test
       double GC[3];
       faceC.iso_barycenter<acrd_t, 3>(acrd, GC);
-      bool  is_in2 = face.fast_is_in_pred<DELAUNAY::Triangulator>(dt, crdR, GC);
+      bool  is_in2;
+      err = face.fast_is_in_pred<DELAUNAY::Triangulator>(dt, crdR, GC, is_in2);
 
       if (!is_in1 && !is_in2) continue;
 
