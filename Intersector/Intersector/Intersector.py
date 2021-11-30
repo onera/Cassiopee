@@ -352,6 +352,12 @@ def collapseUncomputableFaces(a):
     return intersector.collapseUncomputableFaces(a)
 
 #==============================================================================
+# collapseSmallCells : XXX
+#==============================================================================
+def collapseSmallCells(a, vmin=0., grmin=-1.):
+    return intersector.collapseSmallCells(a, vmin, grmin)
+
+#==============================================================================
 # removeNonManifoldExternalCells : removes any outer cell that has a non manifold edge
 #==============================================================================
 def removeNonManifoldExternalCells(a):

@@ -920,8 +920,8 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   }
 
   std::vector<E_Int> orient;
-  E_Int imax=-1;
-  E_Float fluxmax = -1;
+  E_Int imax=-1, uimax=-1;
+  E_Float fluxmax = -1., ufluxmax=-1.;
   for (E_Int i=0; i < ngi.PHs.size(); ++i)
   {
     orient.clear();
@@ -946,6 +946,12 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
     E_Float flux = ::sqrt(K_FUNC::sqrNorm<3>(flxVec));
     E_Float s = PH.surface(crd);
 
+    if (flux > ufluxmax)
+    {
+      uimax = i;
+      ufluxmax = flux;
+    }
+
     flux /= s; // normalizing
 
     if (flux > fluxmax)
@@ -956,6 +962,7 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   }
 
   std::cout << "normalized max flux is : " << fluxmax << " reached at cell : " << imax << std::endl;
+  std::cout << "unormalized max flux is : " << ufluxmax << " reached at cell : " << uimax << std::endl;
 
   delete f; delete cn;
 
@@ -2672,7 +2679,7 @@ PyObject* K_INTERSECTOR::immerseNodes(PyObject* self, PyObject* args)
   bmesh_t s2(surf_crd, surf_cnt);
 
   // reorient outward
-  std::cout << " S2 ORIENT ? " << s2.oriented << std::endl;
+  //std::cout << " S2 ORIENT ? " << s2.oriented << std::endl;
   if (s2.oriented == 0)
   {
     ngon_type ng2(s2.cnt, true/*one ph for all*/);

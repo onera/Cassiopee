@@ -1717,19 +1717,18 @@ def collapseUncomputableFaces(t):
 #==============================================================================
 # collapseSmallCells : XXX
 #==============================================================================
-def collapseSmallCells(t, vmin, ar):
-    """Regularize the mesh to be cut (by boolean operations) by immersing its nodes lying on the cutter surface.
-    Usage: immerseNodes(t,s, TOL)"""
+def collapseSmallCells(t, vmin=0., grmin=-1.):
+    """XXX"""
     tp = Internal.copyRef(t)
-    _collapseSmallCells(tp, vmin, ar)
+    _collapseSmallCells(tp, vmin, grmin)
     return tp
 
-def _collapseSmallCells(t, vmin, ar):
+def _collapseSmallCells(t, vmin=0., grmin=-1.):
     zones = Internal.getZones(t)
     for z in zones:
       coords = C.getFields(Internal.__GridCoordinates__, z)[0]
       if coords == []: continue
-      collapsed = intersector.collapseSmallCells(coords, vmin, ar)
+      collapsed = XOR.collapseSmallCells(coords, vmin, grmin)
       C.setFields([collapsed], z, 'nodes')
 
 #==============================================================================

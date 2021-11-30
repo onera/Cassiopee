@@ -192,5 +192,42 @@ PyObject* K_INTERSECTOR::collapseUncomputableFaces(PyObject* self, PyObject* arg
   return tpl;
 }
 
+PyObject* K_INTERSECTOR::collapseSmallCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Float vmin{0.}, grmin{0.};
+
+  if (!PYPARSETUPLEF(args, "Odd", "Off", &arr, &vmin, &grmin)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngio(cnt);
+
+  //double vmin = 3.e-15;//itermax 3
+  //double vmin  = 1.e-16; //itermax 4
+  //double vratio = -1;
+  NUGA::Agglomerator::collapse_small_tetras<DELAUNAY::Triangulator>(crd, ngio, vmin, grmin);
+
+  K_FLD::IntArray cnto;
+  ngio.export_to_array(cnto);
+  
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, eltType, false);
+
+  delete f; delete cn;
+  return tpl;
+}
+
 
 //=======================  Intersector/PolyMeshTools/aggloFaces.cpp ====================

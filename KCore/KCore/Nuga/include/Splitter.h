@@ -27,7 +27,7 @@ namespace NUGA
   struct transfo_t
   {
     enum ePHset { CONCAVES = 0, NONSTARS };
-    enum eSplitPolicy {CONVEXIFY = 0, STARIFY_CONCAVES, STATIFY_FROM_CHAIN_ENDS};
+    enum eSplitPolicy {CONVEXIFY = 0, STARIFY_CONCAVES, STARIFY_FROM_CHAIN_ENDS};
 
     transfo_t() :convexity_tol(CONVEXITY_TOL){}
 
@@ -170,9 +170,9 @@ namespace NUGA
         }
 
 #ifdef DEBUG_SPLITTER
-        //std::ostringstream o;
-        //o << "PH_" << PHi << ".plt";
-        //NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH(o.str().c_str(), crd, ngi, PHi);
+        std::ostringstream o;
+        o << "PH_" << PHi << ".plt";
+        NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH(o.str().c_str(), crd, ngi, PHi);
 #endif
 
         ngon_type ngsplit;
@@ -639,7 +639,7 @@ E_Int NUGA::Splitter::prepareCellsSplit(const K_FLD::FloatArray& crd, ngon_type&
     err = split_pgs(convexify_pgs<TriangulatorType>, crd, ngi, PG_cvx_threshold, ngo, &PHlist);
   else if (policy == transfo_t::STARIFY_CONCAVES) //at any reflex node on PH set's concave polygons: the worst if more than 1
     err = split_pgs(starify_pgs_on_reflex<TriangulatorType>, crd, ngi, PG_cvx_threshold, ngo, &PHlist);
-  else if (policy == transfo_t::STATIFY_FROM_CHAIN_ENDS) // at concave-chain ending nodes over the PH set
+  else if (policy == transfo_t::STARIFY_FROM_CHAIN_ENDS) // at concave-chain ending nodes over the PH set
     err = starify_pgs_at_chain_nodes<TriangulatorType>(crd, ngi, orient, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold, ngo, &PHlist);
   
   if (err) return 3;
@@ -1377,6 +1377,7 @@ E_Int NUGA::Splitter::__append_chain_nodes
   eset_t rflx_edges;
   for (edge_angle_t::const_iterator ii = reflex_edges.begin(); ii != reflex_edges.end(); ++ii)
     rflx_edges.insert(ii->first);
+  
   __get_valid_concave_chains(rflx_edges, chains, chains_type);
 
   for (size_t c = 0; c < chains.size(); ++c)
@@ -1411,15 +1412,71 @@ if (PHi == faultyPH)
     cntE.pushBack(e, e + 2);
   }
   //std::cout << cntE << std::endl;
-  MIO::write("path.mesh", crd, cntE, "BAR");
+  medith::write("path.mesh", crd, cntE, "BAR");
 }
 #endif
+
+  // check chain validity using normal : 
+  // 3 consecutive nodes in the chain belonging to a same face should not make a normal aligned with that face
+  {
+    std::map<int, std::set<int>> node_to_faces;
+    for (size_t f = 0; f < nb_pgs; ++f)
+    {
+      E_Int PGi = first_pg[f] - 1;
+      const int* pn = PGS.get_facets_ptr(PGi);
+      int nnodes = PGS.stride(PGi);
+
+      for (size_t n = 0; n < nnodes; ++n)
+      {
+        int Ni = pn[n];
+        node_to_faces[Ni].insert(PGi);
+      }
+    }
+
+    size_t nc = chain.size();
+    std::vector<int> common_faces1, common_faces;
+    for (size_t n = 0; n < nc; ++n)
+    {
+      E_Int N1 = chain[n];
+      E_Int N2 = chain[(n + 1) % nc];
+      E_Int N3 = chain[(n + 2) % nc];
+
+      common_faces1.clear();
+      std::set_intersection(ALL(node_to_faces[N1]), ALL(node_to_faces[N2]), std::back_inserter(common_faces1));
+      if (common_faces1.empty()) continue;
+      std::sort(ALL(common_faces1));
+      common_faces.clear();
+      std::set_intersection(ALL(common_faces1), ALL(node_to_faces[N3]), std::back_inserter(common_faces));
+      if (common_faces.empty()) continue;
+
+      const double* P0 = crd.col(N1-1);
+      const double* P1 = crd.col(N2-1);
+      const double* P2 = crd.col(N3-1);
+
+      double N[3];
+      K_MESH::Triangle::normal(P0, P1, P2, N);
+
+      double nPGi[3];
+      for (auto PGi : common_faces)
+      {
+        const int* pn = PGS.get_facets_ptr(PGi);
+        int nnodes = PGS.stride(PGi);
+
+        K_MESH::Polygon::normal<K_FLD::FloatArray, 3>(crd, pn, nnodes, 1, nPGi);
+        double ps = ::fabs(NUGA::dot<3>(N, nPGi));
+        if (ps > 0.99) return false;
+      }
+
+    }
+
+  }
+
+  // try the cut
 
   eset_t split_edges;
   for (E_Int n = 0; n < nb_ch_nodes; ++n)
     split_edges.insert(K_MESH::NO_Edge(chain[n], chain[(n + 1) % nb_ch_nodes]));
 
-  // try the cut
   ngon_unit lneighbors;
   K_MESH::Polygon::build_pg_neighborhood(PGS, lneighbors, first_pg, nb_pgs, &split_edges);
   ivec_t bits_colors;
@@ -1518,8 +1575,8 @@ if (PHi == faultyPH)
   /*for (size_t k=0; k < twoPH.PGs._NGON.size(); ++k)
     std::cout << twoPH.PGs._NGON[k] << std::endl;*/
     
-#ifdef DEBUG_PHSPLITTER
-  /*static int count = 0;
+#ifdef DEBUG_SPLITTER
+  static int count = 0;
   ++count;
   std::ostringstream o;
   
@@ -1544,7 +1601,7 @@ if (PHi == faultyPH)
     K_FLD::IntArray cnto;
     ngo.export_to_array(cnto);
     tp::write(o.str().c_str(), crd, cnto, "NGON");
-  }*/
+  }
 #endif
 
   // check the the 2 bits have non-null volume (relative to input)
@@ -1572,19 +1629,22 @@ if (PHi == faultyPH)
   res = K_MESH::Polyhedron<UNKNOWN>::is_pathological(dt, crd, twoPH.PGs, pgs1, nb_pgs1, orient.get_facets_ptr(1));
   if (res != dCONCAVITY_TO_SPLIT && res != dPATHO_PH_NONE)
     return false;
+
+  double THRESHOLD = 5.e-2;
   
-  //if (err || mA < minA || MA > maxA) return false; //get worst
+  E_Float minA1, maxA1;
+  E_Int maxAPG11, maxAPG12;
+  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs0, nb_pgs0, false/*i.e open cell is error*/, orient.get_facets_ptr(0), minA1, maxA1, maxAPG11, maxAPG12);
+  if (err) return false; //open cell
+  if ((minA1 < minA) && ::fabs(minA1) < THRESHOLD) return false; // degen (first cond is there to allow splitting cells that have bad minA upon entry
+  if ((maxA1 > maxA) && ::fabs(2.*NUGA::PI - maxA1) < THRESHOLD) return false; // same comment
   
-  E_Float mA, MA;
-  E_Int maxAPG1, maxAPG2;
-  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs0, nb_pgs0, false/*i.e open cell is error*/, orient.get_facets_ptr(0), mA, MA, maxAPG1, maxAPG2);
+  E_Float minA2, maxA2;
+  E_Int maxAPG21, maxAPG22;
+  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs1, nb_pgs1, false/*i.e open cell is error*/, orient.get_facets_ptr(1), minA2, maxA2, maxAPG21, maxAPG22);
   if (err) return false; //open cell
-  if (::fabs(mA) < 1.e-2 || ::fabs(2.*NUGA::PI - MA) < 1.e-2) return false;
-  //if (err || mA < minA || MA > maxA) return false; //get worst
-  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs1, nb_pgs1, false/*i.e open cell is error*/, orient.get_facets_ptr(1), mA, MA, maxAPG1, maxAPG2);
-  if (::fabs(mA) < 1.e-2 || ::fabs(2.*NUGA::PI - MA) < 1.e-2) return false;
-  //if (err || mA < minA || MA > maxA) return false; //get worst
-  if (err) return false; //open cell
+  if ((minA2 < minA) && ::fabs(minA2) < THRESHOLD) return false; // degen (first cond is there to allow splitting cells that have bad minA upon entry
+  if ((maxA2 > maxA) && ::fabs(2.*NUGA::PI - maxA2) < THRESHOLD) return false; // same comment
 
   K_MESH::Polyhedron<0> PH0(twoPH, 0);
   double fluxvec[3];

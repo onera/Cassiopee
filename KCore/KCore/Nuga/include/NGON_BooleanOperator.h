@@ -237,6 +237,9 @@ private:
   ///
   E_Int __build_connect_hard(const K_FLD::FloatArray& coord, ngon_unit& extrawPGs, E_Int nb_pgs1, const K_FLD::IntArray& connectT3,
                             K_FLD::IntArray& connectHard, Vector_t<E_Int>& nT3_to_PG, Vector_t<E_Int>& is_skin);
+
+  E_Int __build_connect_hard2(const K_FLD::FloatArray& coord, ngon_unit& extrawPGs, E_Int nb_pgs1, const K_FLD::IntArray& connectT3,
+                              Vector_t<E_Int>& nT3_to_PG, ngon_type& ngXh);
   
   //// Zoning methods ////
   ///
@@ -639,6 +642,7 @@ private:
   eAggregation _AggPol;
   eOperation   _Op;
   bool _build_hard;
+  int _hardmode;
   E_Float _tolerance;
   E_Float _convexity_tol;
   
@@ -753,7 +757,7 @@ NGON_BOOLEAN_CLASS::NGON_BooleanOperator
 (const K_FLD::FldArrayF& pos1, E_Int px, E_Int py, E_Int pz, const K_FLD::FldArrayI& cNGON1,
  const K_FLD::FldArrayF& pos2, E_Int px2, E_Int py2, E_Int pz2, const K_FLD::FldArrayI& cNGON2, E_Float tolerance, eAggregation aggtype)
 : _tolerance(tolerance), _convexity_tol(1.e-2), _AggPol(aggtype), _processed(false),
- _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1, px, py, pz), _crd2(pos2, px2, py2, pz2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true)
+ _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1, px, py, pz), _crd2(pos2, px2, py2, pz2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true), _hardmode(0)
 {}
 
 /// Constructor for DynArrays
@@ -762,7 +766,7 @@ NGON_BOOLEAN_CLASS::NGON_BooleanOperator
 (const K_FLD::FloatArray& pos1, const K_FLD::IntArray& cNGON1,
  const K_FLD::FloatArray& pos2, const K_FLD::IntArray& cNGON2, E_Float tolerance, eAggregation aggtype)
   : _AggPol(aggtype), _tolerance(tolerance),  _convexity_tol(1.e-2), _processed(false),
- _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1), _crd2(pos2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true)
+ _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1), _crd2(pos2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true), _outward(true), _hardmode(0)
 {
 #ifdef DEBUG_BOOLEAN
   std::cout << "pos1 " << pos1.cols() << "/" << pos1.rows() << std::endl;
@@ -2320,26 +2324,26 @@ NGON_BOOLEAN_CLASS::__compute()
   E_Int nb_pgs1;
   K_FLD::IntArray connectT3;
   Vector_t<E_Int> priority;
-  
+
   //
   eRetCode er = __process_intersections(wPGs, nb_pgs1, extrawPGs, connectT3, _nT3_to_oPG, priority);
   if (er) return er;
-  
+
   //
   if (_Op != MODIFIED_SOLID)
   {
     mesh_oper = 0; // meaning soft
-    
+
 #ifdef FLAG_STEP
-    std::cout << "NGON Boolean : prepare is_skin"  << std::endl;
+    std::cout << "NGON Boolean : prepare is_skin" << std::endl;
 #endif
     Vector_t<E_Int> is_skin(connectT3.cols(), 0);
-    for (E_Int i=0; i < connectT3.cols(); ++i)
+    for (E_Int i = 0; i < connectT3.cols(); ++i)
     {
       const E_Int PGi = _nT3_to_oPG[i];
-      is_skin[i]=wPGs._type[PGi];
+      is_skin[i] = wPGs._type[PGi];
       if (is_skin[i] == INITIAL_SKIN && PGi >= nb_pgs1)
-        is_skin[i]=2;
+        is_skin[i] = 2;
     }
 
     for (size_t i = 0; i < priority.size(); ++i)
@@ -2350,11 +2354,11 @@ NGON_BOOLEAN_CLASS::__compute()
 
 #ifdef DEBUG_BOOLEAN
     {
-      Vector_t<E_Int> colors=is_skin;
+      Vector_t<E_Int> colors = is_skin;
       if (!priority.empty())
       {
         for (E_Int i = 0; i < priority.size(); ++i)
-          colors[priority[i]] = 4+::abs(is_skin[priority[i]]);
+          colors[priority[i]] = 4 + ::abs(is_skin[priority[i]]);
       }
       medith::write("all_skins.mesh", _coord, connectT3, "TRI", 0, &colors);
 
@@ -2367,7 +2371,7 @@ NGON_BOOLEAN_CLASS::__compute()
           colors.push_back(is_skin[i]);
         }
       medith::write("init_skins.mesh", _coord, cT3, "TRI", 0, &colors);
-    }    
+    }
 #endif
 
     // Duplicate the T3s to have both orientations
@@ -2375,29 +2379,29 @@ NGON_BOOLEAN_CLASS::__compute()
     __duplicate_orient(connectT3o);
 
 #ifdef FLAG_STEP
-    std::cout << "NGON Boolean : duplicate orient done"  << std::endl;
+    std::cout << "NGON Boolean : duplicate orient done" << std::endl;
 #endif
 
     // Build the PHT3s by constructing the right neighborhood for each oriented T3.
     std::map<E_Int, Vector_t<E_Int> > PHT3s;
     E_Int err = __build_PHT3s(_coord, connectT3, connectT3o, is_skin, PHT3s);
-    
+
 #ifdef DEBUG_BOOLEAN
     {
       std::vector<E_Int> colors(PHT3s.size(), 0);
       //NGON_DBG::draw_PHT3s("PHT3s.mesh", _coord, connectT3o, PHT3s, colors);
     }
 #endif
-    
+
     if (err)
     {
 #ifdef FLAG_STEP
-    std::cout << "NGON Boolean : ERROR in  : __build_PHT3s"  << std::endl;
+      std::cout << "NGON Boolean : ERROR in  : __build_PHT3s" << std::endl;
 #endif
       return ERROR;
     }
 #ifdef FLAG_STEP
-    std::cout << "NGON Boolean : nb PHT3s constructed : "  << PHT3s.size() << std::endl;
+    std::cout << "NGON Boolean : nb PHT3s constructed : " << PHT3s.size() << std::endl;
 #endif
 
     E_Int shift = connectT3.cols();
@@ -2415,7 +2419,7 @@ NGON_BOOLEAN_CLASS::__compute()
       return ERROR;
 
 #ifdef FLAG_STEP
-    std::cout << "NGON Boolean : nb PHs constructed : "  << _ngXs.PHs.size() << std::endl;
+    std::cout << "NGON Boolean : nb PHs constructed : " << _ngXs.PHs.size() << std::endl;
 #endif
   }
 
@@ -2423,96 +2427,103 @@ NGON_BOOLEAN_CLASS::__compute()
   medith::write("ngXs.mesh", _coord, _ngXs);
 #endif
 
-  if (_build_hard)
+    if (_build_hard && _hardmode == 0)
+    {
+      mesh_oper = 1; // meaning hard
+    
+      K_FLD::IntArray connectHard;
+      Vector_t<E_Int> is_skin;
+      E_Int err = __build_connect_hard(_coord, extrawPGs, nb_pgs1, connectT3, connectHard, _nT3_to_oPG, is_skin);
+      if (err)
+        return ERROR;
+  
+  #ifdef DEBUG_BOOLEAN
+      //is_skin[0] = 1;
+      medith::write("connectHard.mesh", _coord, connectHard, "TRI", 0, &is_skin);
+  #endif
+      
+      // Duplicate the T3s to have both orientations
+      K_FLD::IntArray connectT3o(connectHard);
+      __duplicate_orient(connectT3o);
+     
+      // Build the PHT3s by constructing the right neighborhood for each oriented T3.
+      std::map<E_Int, Vector_t<E_Int> > PHT3s;
+      err = __build_PHT3s(_coord, connectHard, connectT3o, is_skin, PHT3s);
+      if (err) return ERROR;
+  
+      E_Int shift = connectHard.cols();
+      err = __set_PH_history(PHT3s, is_skin, shift, -1, _extraF2E, _anc_PH_for_PHT3s[1], false /* is not soft*/, connectT3o);
+      
+      if (err) 
+      {
+        std::cout << "ERROR : history failure when building hard" << std::endl;
+        return ERROR;
+      }
+  
+      // remove duplicated T3s and associated normals.
+      __remove_orientations(PHT3s, connectHard.cols());
+        
+      // PHT3 -> PH (with aggregation).
+      err = __build_PHs(PHT3s, connectHard, is_skin, _nT3_to_oPG, _ngXh);
+      if (err)
+        return ERROR;
+      
+  #ifdef DEBUG_BOOLEAN
+      std::cout << "_ngXh just built" << std::endl;
+      nb_ghost(_ngXh);
+  #endif
+      
+  #ifdef DEBUG_BOOLEAN
+    medith::write("ngXh.mesh", _coord, _ngXh);
+    medith::write("_ng1.mesh", _coord, _ng1);
+    medith::write("_ngXsraw.mesh", _coord, _ngXs);
+  #endif
+    }
+    
+  else if (_build_hard && _hardmode == 1)
   {
     mesh_oper = 1; // meaning hard
-  
-    K_FLD::IntArray connectHard;
-    Vector_t<E_Int> is_skin;
-    E_Int err = __build_connect_hard(_coord, extrawPGs, nb_pgs1, connectT3, connectHard, _nT3_to_oPG, is_skin);
-    if (err)
-      return ERROR;
 
-#ifdef DEBUG_BOOLEAN
-    //is_skin[0] = 1;
-    medith::write("connectHard.mesh", _coord, connectHard, "TRI", 0, &is_skin);
-#endif
-    
-    // Duplicate the T3s to have both orientations
-    K_FLD::IntArray connectT3o(connectHard);
-    __duplicate_orient(connectT3o);
-   
-    // Build the PHT3s by constructing the right neighborhood for each oriented T3.
-    std::map<E_Int, Vector_t<E_Int> > PHT3s;
-    err = __build_PHT3s(_coord, connectHard, connectT3o, is_skin, PHT3s);
-    if (err) return ERROR;
-
-    E_Int shift = connectHard.cols();
-    err = __set_PH_history(PHT3s, is_skin, shift, -1, _extraF2E, _anc_PH_for_PHT3s[1], false /* is not soft*/, connectT3o);
-    
-    if (err) 
-    {
-      std::cout << "ERROR : history failure when building hard" << std::endl;
-      return ERROR;
-    }
-
-    // remove duplicated T3s and associated normals.
-    __remove_orientations(PHT3s, connectHard.cols());
-      
-    // PHT3 -> PH (with aggregation).
-    err = __build_PHs(PHT3s, connectHard, is_skin, _nT3_to_oPG, _ngXh);
-    if (err)
-      return ERROR;
-    
-#ifdef DEBUG_BOOLEAN
-    std::cout << "_ngXh just built" << std::endl;
-    nb_ghost(_ngXh);
-#endif
-    
-#ifdef DEBUG_BOOLEAN
-  medith::write("ngXh.mesh", _coord, _ngXh);
-  medith::write("_ng1.mesh", _coord, _ng1);
-  medith::write("_ngXsraw.mesh", _coord, _ngXs);
-#endif
+    E_Int err = __build_connect_hard2(_coord, extrawPGs, nb_pgs1, connectT3, _nT3_to_oPG, _ngXh);
   }
+  #ifdef FLAG_STEP
+    chrono c;
+    c.start();
+  #endif
   
-#ifdef FLAG_STEP
-  chrono c;
-  c.start();
-#endif
-
-#ifdef FLAG_STEP
-  std::cout << "NGON Boolean : aggregate the soft bits : " << c.elapsed() << std::endl;
-#endif
+  #ifdef FLAG_STEP
+    std::cout << "NGON Boolean : aggregate the soft bits : " << c.elapsed() << std::endl;
+  #endif
+    
+    // Aggregate the soft bits
+    _ng1.PHs._type.clear();
+    _ng1.PHs._type.resize(_ng1.PHs.size(), (E_Int)Z_NONE);
+    _ngXs.append(_ng1);//tocheck : append to ngX to avoid to have to modify _zones. but might be more efficient to append the smaller to the bigger..
+    _ng1.clear();
   
-  // Aggregate the soft bits
-  _ng1.PHs._type.clear();
-  _ng1.PHs._type.resize(_ng1.PHs.size(), (E_Int)Z_NONE);
-  _ngXs.append(_ng1);//tocheck : append to ngX to avoid to have to modify _zones. but might be more efficient to append the smaller to the bigger..
-  _ng1.clear();
-
-  if (_XPol == SOLID_NONE)
-    _ngXs.append(_ng2);
-  else if (_XPol == SOLID_RIGHT)
-    _ngXh.append(_ng2);
-
-  _ng2.clear();
-
-  // glue and clean (including handling PH duplicates) : required for classification. 
-  ngon_type::clean_connectivity(_ngXs, _coord, 3, EPSILON, true/*remove dups*/); // soft part
-  ngon_type::clean_connectivity(_ngXh, _coord, 3); // hard part : no need for duplicates removal
+    if (_XPol == SOLID_NONE)
+      _ngXs.append(_ng2);
+    else if (_XPol == SOLID_RIGHT)
+      _ngXh.append(_ng2);
   
-#ifdef DEBUG_BOOLEAN
-  medith::write("ngXs1.mesh", _coord, _ngXs);
-  medith::write("ngXh1.mesh", _coord, _ngXh);
-  medith::write("ngXsG_ex.mesh", _coord, _ngXs, INITIAL_SKIN);
-  std::vector<E_Int> toprocess;
-  for (size_t i=0; i < _ngXs.PHs.size(); ++i) if(_ngXs.PHs._type[i] != INITIAL_SKIN)toprocess.push_back(i);
-  medith::write("ngXsGin.mesh", _coord, _ngXs, &toprocess);
-#endif
+    _ng2.clear();
   
-  return OK;
-}
+    // glue and clean (including handling PH duplicates) : required for classification. 
+    ngon_type::clean_connectivity(_ngXs, _coord, 3, EPSILON, true/*remove dups*/); // soft part
+    ngon_type::clean_connectivity(_ngXh, _coord, 3); // hard part : no need for duplicates removal
+    
+  #ifdef DEBUG_BOOLEAN
+    medith::write("ngXs1.mesh", _coord, _ngXs);
+    medith::write("ngXh1.mesh", _coord, _ngXh);
+    medith::write("ngXsG_ex.mesh", _coord, _ngXs, INITIAL_SKIN);
+    std::vector<E_Int> toprocess;
+    for (size_t i=0; i < _ngXs.PHs.size(); ++i) if(_ngXs.PHs._type[i] != INITIAL_SKIN)toprocess.push_back(i);
+    medith::write("ngXsGin.mesh", _coord, _ngXs, &toprocess);
+  #endif
+    
+    return OK;
+  }
+
 
 #define NODE_TO_NEIGH(i) ((i==0) ? 2 : (i==1) ? 0 : 1)
 
@@ -2886,7 +2897,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
     NUGA::EltAlgo<K_MESH::Triangle>::coloring_pure(neighbors, soft_colors);
     
 #ifdef DEBUG_BOOLEAN
-    //medith::write("solid_skin_with_soft.mesh", _coord, connectHard, "TRI", 0, &soft_colors);
+    medith::write("solid_skin_with_soft.mesh", _coord, connectHard, "TRI", 0, &soft_colors);
 #endif
   }
   
@@ -2964,6 +2975,198 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   return 0;
 }
 
+///
+TEMPLATE_COORD_CONNECT
+E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
+(const K_FLD::FloatArray& coord, ngon_unit& extrawPGs, E_Int nb_pgs1, const K_FLD::IntArray& connectT3,
+ Vector_t<E_Int>& nT3_to_PG, ngon_type& ngXh)
+{
+  // Keep in connectT3 only solid skin T3s and flag hard_edges (to preserve soft impact AND original PG boundaries)
+  Vector_t<E_Int> soft_colors;
+ 
+  E_Int nT3nb = connectT3.cols();
+  Vector_t<bool> keep(nT3nb, false);
+
+  for (E_Int Ti = 0; Ti < nT3nb; ++Ti)
+  {
+    E_Int PGi = nT3_to_PG[Ti];
+    keep[Ti] = (PGi >= nb_pgs1);
+  }
+
+  // flag hard edges (soft impact)
+  std::set<K_MESH::NO_Edge> hedges;
+  K_MESH::NO_Edge noE;
+  K_FLD::IntArray::const_iterator pS;
+  for (E_Int Ti = 0; Ti < nT3nb; ++Ti)
+  {
+    if (keep[Ti] == false) // Soft operand
+    {
+      pS = connectT3.col(Ti);
+      for (size_t i = 0; i < 3; ++i)
+      {
+        noE.setNodes(*(pS + i), *(pS + (i + 1) % 3));
+        hedges.insert(noE);
+      }
+    }
+  }
+
+  Vector_t<E_Int> nids;
+  K_FLD::IntArray connectHard = connectT3;
+  K_FLD::IntArray::compact(connectHard, keep, nids);
+  K_CONNECT::IdTool::compact(nT3_to_PG, nids); // PGs are referring to wNG/F2E
+
+#ifdef DEBUG_BOOLEAN
+  medith::write("solid_skin.mesh", _coord, connectHard, "TRI", 0, &nT3_to_PG);
+  {
+    K_FLD::IntArray conedges;
+    Vector_t<E_Int> colors;
+    E_Int nT3nb = connectHard.cols();
+    for (size_t Ti = 0; Ti < nT3nb; ++Ti)
+    {
+      pS = connectHard.col(Ti);
+      for (size_t i = 0; i < 3; ++i)
+      {
+        noE.setNodes(*(pS + i), *(pS + (i + 1) % 3));
+        conedges.pushBack(noE.begin(), noE.end());
+        if (hedges.find(noE) != hedges.end())
+          colors.push_back(1);
+        else
+          colors.push_back(0);
+      }
+    }
+    medith::write("wired_soft.mesh", _coord, conedges, "BAR", 0, &colors);
+  }
+#endif
+
+  //Modify color to take into account soft impact
+  K_FLD::IntArray neighbors;
+  NUGA::EltAlgo<K_MESH::Triangle>::getManifoldNeighbours(connectHard, neighbors);
+
+  // update neighbors by taking into account hedges
+  nT3nb = connectHard.cols();
+  for (E_Int Ti = 0; Ti < nT3nb; ++Ti)
+  {
+    pS = connectHard.col(Ti);
+    for (size_t i = 0; i < 3; ++i)
+    {
+      noE.setNodes(*(pS + i), *(pS + (i + 1) % 3));
+      E_Int& Tneigh = neighbors(NODE_TO_NEIGH(i), Ti);
+      if (Tneigh == IDX_NONE)
+        continue;
+      if ((hedges.find(noE) != hedges.end()) || (nT3_to_PG[Tneigh] != nT3_to_PG[Ti])) // or if boundary between to old PGs
+        Tneigh = IDX_NONE;
+    }
+  }
+
+  //
+  NUGA::EltAlgo<K_MESH::Triangle>::coloring_pure(neighbors, soft_colors);
+
+#ifdef DEBUG_BOOLEAN
+  medith::write("solid_skin_with_soft.mesh", _coord, connectHard, "TRI", 0, &soft_colors);
+#endif
+
+  // Move extrawPGs after conformizing (node _history).
+  extrawPGs.change_indices(_nodes_history);
+  extrawPGs.remove_consecutive_duplicated();//consecutive version to preserve PGs topology
+
+  // Refine the open polygons of the solid layer
+  __refine_open_PGs(connectHard, nT3_to_PG, extrawPGs);
+
+  // gather connectHard by soft color
+  std::map<int, std::vector<int>> softcol_to_t3s;
+  {
+    for (size_t i = 0; i < connectHard.cols(); ++i)
+    {
+      softcol_to_t3s[soft_colors[i]].push_back(i);
+    }
+  }
+
+  // agglomerate t3s to PGs
+  ngon_unit tapPGs, pgsi;
+  K_FLD::IntArray totoF2E(2, 1);
+  totoF2E.clear();
+  {
+    for (auto i : softcol_to_t3s)
+    {
+      pgsi.clear();
+      __aggregate<FULL>(connectHard, i.second, pgsi);
+      tapPGs.append(pgsi);
+
+      tapPGs._type.resize(tapPGs.size(), INITIAL_SKIN);
+
+      int aPG = nT3_to_PG[i.second[0]];
+      for (size_t k = 1; k < i.second.size(); ++k)
+        assert(nT3_to_PG[i.second[k]] == aPG);
+
+      for (size_t k = 0; k < pgsi.size(); ++k)
+        totoF2E.pushBack(_F2E.col(aPG), _F2E.col(aPG) + 2);
+
+      assert(aPG > -1 && aPG < _anc_PG.cols());
+
+      const E_Int* anc = _anc_PG.col(aPG);
+      for (E_Int kk = 0; kk < pgsi.size(); ++kk)
+        tapPGs._ancEs.pushBack(anc, anc + 2);
+    }
+  }
+
+  //std::cout << tapPGs._ancEs << std::endl;
+
+  ngXh.clear();
+
+  ngXh.PGs = extrawPGs;
+  int shiftPG = extrawPGs.size();
+  ngXh.PGs.append(tapPGs);
+
+  // build ngXh.Phs
+  std::map<int, std::vector<int>> ph_to_faces;
+  for (size_t i = 0; i < shiftPG; ++i)
+  {
+    /*const int* anc = ngXh.PGs._ancEs.col(i);
+    assert(anc[0] == IDX_NONE);
+    assert(anc[1] != IDX_NONE);*/
+    int aPG = i;// anc[1];
+    assert(aPG < _extraF2E.cols());
+    int lPH = _extraF2E(0, aPG);
+    int rPH = _extraF2E(1, aPG);
+    
+    if (lPH != IDX_NONE) ph_to_faces[lPH].push_back(i);
+    if (rPH != IDX_NONE) ph_to_faces[rPH].push_back(i);
+  }
+
+  std::set<int> lpgs, rpgs, lphs, rphs;
+
+  for (size_t i = shiftPG; i < ngXh.PGs.size(); ++i)
+  {
+    //const int* anc = ngXh.PGs._ancEs.col(i);
+
+    const int* tutu = totoF2E.col(i - shiftPG);
+
+    /*lpgs.insert(anc[0]);
+    rpgs.insert(anc[1]);
+    assert(anc[0] == IDX_NONE);
+    assert(anc[1] != IDX_NONE);
+    int aPG = anc[1];
+    assert(aPG < _F2E.cols());
+    int lPH = _F2E(0, aPG);
+    //assert(lPH != IDX_NONE);
+    int rPH = _F2E(1, aPG);
+    //assert(rPH == IDX_NONE);*/
+    //lphs.insert(tutu[0]);
+    //rphs.insert(tutu[1]);
+    ph_to_faces[tutu[0]].push_back(i);
+  }
+
+  ngXh.PHs._ancEs.resize(2, ph_to_faces.size(), IDX_NONE);
+  int c{ 0 };
+  for (auto i : ph_to_faces)
+  {
+    ngXh.PHs.add(i.second.size(), &i.second[0], 1);
+    ngXh.PHs._ancEs(1, c++) = i.first;
+  }
+ 
+
+  return 0;
+}
 ///
 TEMPLATE_COORD_CONNECT
 void NGON_BOOLEAN_CLASS::__refine_open_PGs

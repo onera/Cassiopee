@@ -61,6 +61,10 @@ namespace NUGA
     inline static E_Int collapse_pgs(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& pgids);
     inline static E_Int collapse_pgs2(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& pgids);
 
+    // PROTO
+    template<typename TriangulatorType>
+    inline static E_Int collapse_small_tetras(K_FLD::FloatArray& crd, ngon_type& ngio, double vmin, double vratio);
+
   public:
     /// agglomerate superfluous polygons (multiply-shared by the same polyhedra. within the flatness tolerance only for area-computable polygons)
     inline static void simplify_phs
@@ -71,7 +75,7 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static void agglomerate_phs_NEW(const K_FLD::FloatArray& crd,
                                            const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-                                           ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria);
+                                           ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria_and_or_badagglo_allowance);
 
     /// 
     template<typename TriangulatorType>
@@ -728,8 +732,13 @@ namespace NUGA
   void NUGA::Agglomerator::agglomerate_phs_NEW
   (const K_FLD::FloatArray& crd,
     const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-    ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria)
+    ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria_and_or_badagglo_allowance)
   {
+    // enforce_reflex_criteria_and_or_badagglo_allowance == 0 => do not enforce + forbid bad agglo
+    // enforce_reflex_criteria_and_or_badagglo_allowance == 1 =>        enforce + forbid bad agglo
+    // enforce_reflex_criteria_and_or_badagglo_allowance == 2 => do not enforce + allow bad agglo
+    // enforce_reflex_criteria_and_or_badagglo_allowance == 3 =>        enforce + allow bad agglo
+
     ngo.clear();
     oriento.clear();
     nb_aggs = 0;
@@ -797,8 +806,9 @@ namespace NUGA
         if (j == IDX_NONE)
           continue;
 
-        if (bad[j]) continue;
-
+        if ((bad[j]) && (enforce_reflex_criteria_and_or_badagglo_allowance == 0 || enforce_reflex_criteria_and_or_badagglo_allowance == 1))
+          continue;
+       
         if (frozen[j])
         {
           // continue; fixme : hack to have the targeted logic (but bad perfo) : 
@@ -924,7 +934,7 @@ namespace NUGA
         worst_reflex_a /= NUGA::PI;
         E_Int N = 3;
        
-        if (enforce_reflex_criteria == 1)
+        if (enforce_reflex_criteria_and_or_badagglo_allowance == 1 || enforce_reflex_criteria_and_or_badagglo_allowance == 3)
         {
           // prioritize contributions
           reflex_ratio *= 2;// ::sqrt(reflex_ratio); // increase impact
@@ -1291,9 +1301,13 @@ namespace NUGA
     else if (method == 6) // method 2 + putting more weight to reflex criteria than volume criterion
       NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 2/*enforce_reflex_criteria*/);
     else if (method == 7) // NEW METHOD :
-      NUGA::Agglomerator::agglomerate_phs_NEW<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 0/*enforce_reflex_criteria*/);
+      NUGA::Agglomerator::agglomerate_phs_NEW<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 0/*do not enforce_reflex_criteria*/);
     else if (method == 8) // method 2 + putting more weight to reflex criteria than volume criterion
       NUGA::Agglomerator::agglomerate_phs_NEW<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 1/*enforce_reflex_criteria*/);
+    else if (method == 9) // method 2 + putting more weight to reflex criteria than volume criterion
+      NUGA::Agglomerator::agglomerate_phs_NEW<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 2/*do not enforce_reflex_criteria and allow between-bad agglo*/);
+    else if (method == 10) // method 2 + putting more weight to reflex criteria than volume criterion
+      NUGA::Agglomerator::agglomerate_phs_NEW<TriangulatorType>(crd, ngi, neighborsi, orienti, PHlist, ngo, oriento, nb_aggs, angle_threshold, 3/*enforce_reflex_criteria and allow between-bad agglo*/);
   }
   
   ///
@@ -1608,6 +1622,129 @@ namespace NUGA
   
   return 0;
 }
+
+  ///
+  template<typename TriangulatorType>
+  E_Int NUGA::Agglomerator::collapse_small_tetras(K_FLD::FloatArray& crd, ngon_type& ngio, double vmin, double vratio)
+  {
+    ngon_unit neighborsi;
+    ngio.build_ph_neighborhood(neighborsi);
+
+    ngon_unit orienti;
+    ngon_type::build_orientation_ngu<TriangulatorType>(crd, ngio, orienti); //WARNING : ngi previous types are lost
+
+    std::vector<E_Int> PHlist;
+    ngon_type::detect_bad_volumes<TriangulatorType>(crd, ngio, neighborsi, vmin, vratio, PHlist);
+
+    if (PHlist.empty())
+    {
+      return 0;
+    }
+
+    std::vector<int> nids;
+    K_CONNECT::IdTool::init_inc(nids, crd.cols());
+
+    acrd_t acrd(crd);
+    K_SEARCH::KdTree<> tree(acrd);
+
+    std::set<int> nodes;
+    std::vector<int> out;
+    for (size_t i = 0; i < PHlist.size(); ++i)
+    {
+      E_Int PHi = PHlist[i];
+
+      const int* pf = ngio.PHs.get_facets_ptr(PHi);
+      int npf = ngio.PHs.stride(PHi);
+      
+      if (!K_MESH::Polyhedron<0>::is_of_type<K_MESH::Tetrahedron>(ngio.PGs, pf, npf)) continue;
+
+      std::cout << "collapsing a tetra " << std::endl;
+      nodes.clear();
+
+      int pmin = IDX_NONE;
+      double lrefmin = NUGA::FLOAT_MAX;
+      for (size_t p = 0; p < 4; ++p)
+      {
+        K_MESH::Polygon pg(ngio.PGs, pf[p]-1);
+        double lref = ::sqrt(pg.Lref2(crd, ISO_MAX));
+
+        if (lref < lrefmin)
+        {
+          lrefmin = lref;
+          pmin = p;
+        }
+      }
+
+      K_MESH::Polygon t(ngio.PGs, pf[pmin] - 1);
+      //K_MESH::Polyhedron<0> t(ngio, PHi);
+      //double lref = ::sqrt(t.Lref2(crd, ISO_MAX));
+
+      K_SEARCH::BBox3D bbox;
+
+      t.bbox(crd, bbox);
+      double F = 5.;
+      double lref = lrefmin;
+      bbox.minB[0] -= F * lref;
+      bbox.minB[1] -= F * lref;
+      bbox.minB[2] -= F * lref;
+
+      bbox.maxB[0] += F * lref;
+      bbox.maxB[1] += F * lref;
+      bbox.maxB[2] += F * lref;
+      
+      out.clear();
+      tree.getInBox(bbox.minB, bbox.maxB, out);
+
+      int max_id = -1;
+      for (size_t n = 0; n < out.size(); ++n)
+      {
+        max_id = (out[n] > max_id) ? out[n] : max_id;
+      }
+
+      for (size_t n = 0; n < out.size(); ++n)
+      {
+        if (nids[i] != i) continue;
+        nids[out[n]] = max_id;
+      }
+
+
+      E_Int PGi0 = pf[0] - 1;
+      /*E_Int PGi1 = pf[1] - 1;
+      const int * nodes = ngio.PGs.get_facets_ptr(PGi0);
+      E_Int maxid = -1;
+      for (size_t n = 0; n < 4; ++n)
+      {
+        int Ni = nodes[n] - 1;
+        maxid = (maxid < Ni) ? Ni : maxid;
+      }
+      
+      nodes = ngio.PGs.get_facets_ptr(PGi1);
+      for (size_t n = 0; n < 4; ++n)
+      {
+        int Ni = nodes[n] - 1;
+        maxid = (maxid < Ni) ? Ni : maxid;
+      }
+
+      for (size_t k = 0; k < npf; ++k)
+      {
+        int PGi = pf[k] - 1;
+        int * nodes = ngio.PGs.get_facets_ptr(PGi);
+
+        for (size_t u = 0; u < 4; ++u) {
+          int Ni = nodes[u] - 1;
+          if (nids[Ni] == Ni)
+            nids[Ni] = maxid;
+        }
+      }*/
+    }
+
+    ngio.PGs.change_indices(nids);
+
+    ngon_type::clean_connectivity(ngio, crd);
+
+    return 0;
+
+  }
 
 /// PRIVATE ///
 

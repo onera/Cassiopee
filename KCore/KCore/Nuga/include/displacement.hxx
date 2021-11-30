@@ -28,13 +28,15 @@ namespace NUGA
   template <typename mesh_t1, typename mesh_t2>
   static std::vector<direction> immerse_nodes(mesh_t1& m1, const mesh_t2& m2, double ARTOL)
   {
+    eMetricType mtype = NUGA::ISO_MIN;
+
     if (m2.ARG1 == SURFACIC)
       assert(m2.oriented == 1);
 
     // get vertices from mesh1
     std::vector<NUGA::vertex> vertices;
 
-    auto sqrmetric1 = m1.get_nodal_metric2();
+    auto sqrmetric1 = m1.get_nodal_metric2(mtype);
 
     vertices.reserve(m1.crd.cols());
     for (size_t i = 0; i < m1.crd.cols(); ++i)
@@ -42,7 +44,7 @@ namespace NUGA
 
     // identify singular points
     std::vector<std::vector<E_Int>> pt_to_faces;
-    NUGA::COLLIDE::get_colliding(vertices, m2, ARTOL, NUGA::ISO_MIN, pt_to_faces);
+    NUGA::COLLIDE::get_colliding(vertices, m2, ARTOL, mtype, pt_to_faces);
 
     //std::cout << "compute displacements directions" << std::endl;
     std::vector<NUGA::direction> dirs;
@@ -150,7 +152,7 @@ namespace NUGA
 
     // compute displacements norms
 
-    m2.get_nodal_metric2();
+    m2.get_nodal_metric2(mtype);
 
     for (size_t i = 0; i < vertices.size(); ++i)
     {

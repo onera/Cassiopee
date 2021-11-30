@@ -29,6 +29,11 @@ _tree(&tree), _tolerance(tolerance)
 {
 }
 
+NUGA::MeshTool::MeshTool() :
+  _tree(nullptr), _tolerance(0.)
+{
+}
+
 void NUGA::MeshTool::clear()
 {
   _pool.clear();
