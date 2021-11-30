@@ -675,7 +675,7 @@ class GenIO
     E_Int hdfcgnsDeletePaths(char* file, PyObject* paths);
     void ripEndOfPath(char* path, char*& startPath);
     void getEndOfPath(char* path, char*& startPath);
-    ///-char* file, PyObject* tree,
+    ///-
 
     ///+ CPlot functions
     /* Create the socket for communications */

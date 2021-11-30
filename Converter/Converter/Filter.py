@@ -64,10 +64,12 @@ def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelD
     b = fixPaths__([i])[0]
     val = filter[i]
     filter2[b] = val
-  # serialise
-  Cmpi.seq(Converter.converter.convertPyTree2FilePartial, t, fileName, format, skelData, com, filter)
-  # ok si parallel HDF
-  #Converter.converter.convertPyTree2FilePartial(t, fileName, format, skelData, com, filter)
+  # serialise (pas de com pour forcer le hdf seq)
+  if com is None:
+    Cmpi.seq(Converter.converter.convertPyTree2FilePartial, t, fileName, format, skelData, None, filter)
+  # ok si parallel HDF (passer le com de mpi4py)
+  else:
+    Converter.converter.convertPyTree2FilePartial(t, fileName, format, skelData, com, filter)
   return None
 
 #============================================================================

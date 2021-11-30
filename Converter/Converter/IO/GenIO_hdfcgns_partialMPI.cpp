@@ -56,7 +56,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
 #else
   HDF._ismpi = 0;
 #endif
-
+  
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (HDF._ismpi == 1)
   {
@@ -384,9 +384,9 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
                                             DataSpace.List_Dst_Block);
    else 
     sid = createDataSpaceEntry(node, DataSpace.Dst_Offset,
-                                         DataSpace.Dst_Stride,
-                                         DataSpace.Dst_Count ,
-                                         DataSpace.Dst_Block);
+                                     DataSpace.Dst_Stride,
+                                     DataSpace.Dst_Count ,
+                                     DataSpace.Dst_Block);
 
   /* Prepare output DataSpace */
   hid_t mid = createDataSpaceOutput(node, _dims2, DataSpace.Src_Offset,
@@ -696,12 +696,12 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
   HDF._skeleton = skeleton;
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if (mpi4pyCom != Py_None && mpi4pyCom != NULL)
-  HDF._ismpi = 1;
+  if (mpi4pyCom != Py_None && mpi4pyCom != NULL) HDF._ismpi = 1;
+  else HDF._ismpi = 0;
 #else
   HDF._ismpi = 0;
 #endif
-
+  
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (HDF._ismpi == 1)
   {
@@ -721,7 +721,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
   }
   H5Pclose(fapl);
 
-  while(PyDict_Next(Filter, &pos, &key, &DataSpaceDIM))
+  while (PyDict_Next(Filter, &pos, &key, &DataSpaceDIM))
   {
     E_Int FilterSize = PyList_Size(DataSpaceDIM);
     /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
@@ -1024,8 +1024,6 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   /* ***************************************************** */
   /* > Begin */
   // printf("setArrayPartial\n");
-  /* TODO : */
-  /* A nettoyer idims et LocalDataSetDim datas'est pareil */
 
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
   for (E_Int i = 0; i < idim; i++) {dims[i] = idims[i];}
@@ -1054,9 +1052,30 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   if (sid < 0) {printf("Fail in setArrayPartial::H5Screate_simple (file)\n");}
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  /* Create a dataset collectively */
-  dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
+ //if (this->_ismpi == 1)
+ //{
+ //    // collective create
+ //    dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+ //    if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
+ //} 
+ //else
+ //{ 
+    if (_skeleton == 1)
+    {
+        // printf("setArrayPartial Sequential Skeleton \n");
+        dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
+        ret = H5Dclose(dataset);
+        H5Sclose(sid);
+        return node;
+    }
+    else /* No Skeleton */
+    {
+        /* Open DataSet previously created with Skeleton */
+        // printf("setArrayPartial Sequential Open \n");
+        dataset = H5Dopen2(node, L3S_DATA, H5P_DEFAULT);
+    }
+ //} 
 #else
   /* Create a dataset at skeleton write */
   if (_skeleton == 1)
@@ -1128,9 +1147,12 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   if (xfer_plist < 0) {printf("Fail in setArrayPartial::H5Pcreate\n");}
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
-  // ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
-  if (ret < 0) {printf("Fail in setArrayPartial::H5Pset_dxpl_mpio\n");}
+  if (this->_ismpi == 1)
+  { 
+    ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    // ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
+    if (ret < 0) {printf("Fail in setArrayPartial::H5Pset_dxpl_mpio\n");}
+  } 
 #endif
   /* -------------------------------------------------------------- */
 
@@ -1183,7 +1205,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
   fillArrayLongWithList(Filter, 8, DataSpace.GlobDataSetDim);
 
   /* Fill flags */
-  if(PyList_Size(Filter) > 9)
+  if (PyList_Size(Filter) > 9)
   {
     // printf("Fill additional ... \n");
     fillArrayLongWithList(Filter, 9, DataSpace.Flags);
@@ -1313,7 +1335,6 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         fillArrayLongWithList(Filter, 2, DataSpace.Dst_Stride);
         fillArrayLongWithList(Filter, 3, DataSpace.Dst_Count );
         fillArrayLongWithList(Filter, 4, DataSpace.Dst_Block );
-
 
       } 
       else if(i_list == 4)
