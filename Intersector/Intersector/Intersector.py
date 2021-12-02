@@ -1,6 +1,6 @@
 """Intersections module.
 """
-__version__ = '3.3'
+__version__ = '3.4'
 __author__ = "Sam Landier"
 # 
 # Python Interface to create arrays defining meshes

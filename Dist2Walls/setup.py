@@ -41,7 +41,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="Dist2Walls",
-    version="3.3",
+    version="3.4",
     description="Computation of distance to walls.",
     author="Onera",
     package_dir={"":"."},

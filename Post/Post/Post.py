@@ -1,5 +1,5 @@
 """Post-processing of solutions."""
-__version__ = '3.3'
+__version__ = '3.4'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Christelle Wervaecke, Xavier Juvigny"
 
 from . import post
@@ -315,7 +315,7 @@ def usurp(blkArrays, ibArrays=[]):
 
 def computeVariables(array, varname,
                      gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
-                     Cs=110.4, mus=1.76e-5, Ts=273.35):
+                     Cs=110.4, mus=1.76e-5, Ts=273.45):
     """Compute the variables defined in varname for array.
     Usage: computeVariables(array, varname, gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6, Cs=110.4, mus=0., Ts=0.)"""
     if varname == []:
@@ -333,7 +333,7 @@ def computeVariables(array, varname,
 
 def computeVariables2(array, varname,
                       gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
-                      Cs=110.4, mus=1.76e-5, Ts=273.35):
+                      Cs=110.4, mus=1.76e-5, Ts=273.45):
     """In place compute variable2"""
     b = Converter.copy(array)
     _computeVariables2(b, varname, gamma, rgp, s0, betas, Cs, mus, Ts)
@@ -341,7 +341,7 @@ def computeVariables2(array, varname,
 
 def _computeVariables2(array, varname,
                        gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
-                       Cs=110.4, mus=1.76e-5, Ts=273.35):
+                       Cs=110.4, mus=1.76e-5, Ts=273.45):
     if varname == []:
         #print('Warning: computeVariables: varname list is empty.')
         return array
@@ -355,7 +355,7 @@ def _computeVariables2(array, varname,
         return post.computeVariables2(array, varname, gamma, rgp, s0, betas, Cs, mus, Ts)
 
 def computeExtraVariable(array, varname, gamma=1.4, rgp=287.53,
-                         Cs=110.4, mus=1.76e-5, Ts=273.35):
+                         Cs=110.4, mus=1.76e-5, Ts=273.45):
     """Compute variables that require a change of location."""
     from . import extraVariables
     if varname == 'Vorticity':
