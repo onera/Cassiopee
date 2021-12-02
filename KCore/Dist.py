@@ -536,6 +536,28 @@ def getSimd():
                val = i[7:]; return val
      return 1
 
+# Retourne les options SIMD pour les compilateurs
+# Se base sur les options precedentes qui doivent contenir -DSIMD
+def getSimdOptions(options):
+    simd = ''
+    for i in options:
+        if i[0:6] == '-DSIMD':
+            simd = i[7:]; break
+    opts = []
+    if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
+        if   simd == 'SSE4.2': opts += ['-xSSE4.2']
+        elif simd == 'AVX2'  : opts += ['-xCORE-AVX2']
+        elif simd == 'AVX512': opts += ['-xCORE-AVX512 -qopt-zmm-usage=high']
+        elif simd == 'MIC'   : opts += ['-xMIC-AVX512']
+        else: opts += ['-xHost']
+    elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
+        if   simd == 'SSE4.2': opts += ['-msse4.2']
+        elif simd == 'AVX2'  : opts += ['-mavx2']
+        elif simd == 'AVX512': opts += ['-mavx512f']
+        elif simd == 'MIC'   : opts += ['-mavx512er']
+    #print('simd', opts)
+    return opts
+
 #=============================================================================
 # Retourne le nbre de socket du noeud
 # Se base sur l'option du compilateur C si elle contient -DNB_SOCKET=XX
@@ -707,6 +729,7 @@ def getCArgs():
             else: options += ['-qopenmp']
          if useStatic() == 1: options += ['-static']
          else: options += ['-fPIC']
+         options += getSimdOptions(options)
          return options
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
          if DEBUG: options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
@@ -717,6 +740,7 @@ def getCArgs():
          if mySystem[0] == 'mingw' and mySystem[1] == '32':
               options.remove('-fPIC')
               options += ['-large-address-aware']
+         options += getSimdOptions(options)
          return options
     elif Cppcompiler == "icl.exe":
          options += ['/EHsc', '/MT']
@@ -728,6 +752,7 @@ def getCArgs():
          if useOMP() == 1: options += []
          if useStatic() == 1: options += []
          else: options += []
+         options += getSimdOptions(options)
          return options
     elif Cppcompiler == "x86_64-w64-mingw32-gcc" or Cppcompiler == "x86_64-w64-mingw32-g++":
          options += ['-DMS_WIN64', '-fpermissive', '-D__USE_MINGW_ANSI_STDIO=1']
@@ -736,6 +761,7 @@ def getCArgs():
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
          else: options += ['-fPIC']
+         options += getSimdOptions(options)
          return options
     elif Cppcompiler.find("clang") == 0 or Cppcompiler.find("clang++") == 0:
          if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
@@ -743,6 +769,7 @@ def getCArgs():
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
          else: options += ['-fPIC']
+         options += getSimdOptions(options)
          return options
     else: return options
 
@@ -797,6 +824,7 @@ def getForArgs():
          if mySystem[0] == 'mingw' and mySystem[1] == '32':
               options.remove('-fPIC')
               options += ['-large-address-aware']
+         options += getSimdOptions(options)
          return options
     elif f77compiler.find("ifort") == 0:
          if DEBUG: options += ['-g', '-O0', '-fPIC']
@@ -812,12 +840,14 @@ def getForArgs():
             else: options += ['-qopenmp']
          if useStatic() == 1: options += ['-static']
          else: options += ['-fPIC']
+         options += getSimdOptions(options)
          return options
     elif f77compiler == "pgf90" or f77compiler == "pgf77":
          options += ['-fPIC']
          if DEBUG: options += ['-g', '-O0']
          else: options += ['-O3']
          if useOMP() == 1: options += ['-omp']
+         options += getSimdOptions(options)
          return options
     elif f77compiler == "x86_64-w64-mingw32-gfortran":
          if DEBUG: options += ['-g', '-O0']
@@ -825,6 +855,7 @@ def getForArgs():
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static']
          else: options += ['-fPIC']
+         options += getSimdOptions(options)
          return options
     elif f77compiler == "ifort.exe":
          if useOMP() == 1: return ['/names:lowercase', '/assume:underscore', '/Qopenmp']
@@ -2052,7 +2083,7 @@ def createFortranScanner(env):
 
 # Cree le scanner Cuda dans env
 def createCudaScanner(env):
-    import Scons
+    import SCons
     CudaScanner = SCons.Scanner.C.CScanner()
     SCons.Tool.SourceFileScanner.add_scanner(['.cu'], CudaScanner)
     return env

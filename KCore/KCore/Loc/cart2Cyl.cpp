@@ -70,7 +70,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
         dy = yl[ind]-y0;
         r = sqrt(dx*dx+dy*dy);
         theta = atan2(dy,dx);
-        rt[ind] = r; thetat[ind] = theta; 
+        rt[ind] = r; thetat[ind] = theta;
       }
     }
     return 0; // OK

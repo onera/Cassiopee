@@ -19,7 +19,7 @@
 # include <stack>
 # include "CompGeom/compGeom.h"
 # include "Interp/InterpAdt.h"
-
+#include "Loc/loc.h"
 
 using namespace std;
 using namespace K_FLD;
@@ -76,14 +76,17 @@ void K_INTERP::InterpAdt::destroy()
 }
 
 //=============================================================================
-/* Constructor */
+/* Constructor en coord cartesienne */
 //=============================================================================
 K_INTERP::InterpAdt::InterpAdt(E_Int npts, 
                                E_Float* xD, E_Float* yD, E_Float* zD,
                                void* a1, void* a2, void* a3, E_Int& built):
   InterpData()
 {
-  if (a1 != NULL && a2 != NULL && a3 != NULL)// structure
+  _centerX = 0; _centerY = 0; _centerZ = 0;
+  _axisX = -1; _axisY = -1; _axisZ = -1;
+
+  if (a1 != NULL && a2 != NULL && a3 != NULL) // structure
   {
     _topology = 1;
     E_Int ni = *(E_Int*)a1;
@@ -99,6 +102,86 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
   }
 }
 
+//=============================================================================
+/* Constructor en coord cartesienne */
+//=============================================================================
+K_INTERP::InterpAdt::InterpAdt(E_Int npts, 
+                               E_Float* xD, E_Float* yD, E_Float* zD,
+                               void* a1, void* a2, void* a3, 
+                               E_Float& centerX, E_Float& centerY, E_Float& centerZ,
+                               E_Float& axisX, E_Float& axisY, E_Float& axisZ, 
+                               E_Int& built)
+{
+    // keep data for cart2Cyl
+    _centerX = centerX; _centerY = centerY; _centerZ = centerZ;
+    _axisX = axisX; _axisY = axisY; _axisZ = axisZ;
+
+    E_Float* coordX = new E_Float[npts];
+    E_Float* coordY = new E_Float[npts];
+    E_Float* coordZ = new E_Float[npts];
+    
+    E_Float *rt, *thetat;
+    thetat = NULL; rt = NULL;
+    E_Float eps = 1.e-12;
+
+    if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
+    {
+      rt = coordY; thetat = coordZ;
+    }
+    else if (_axisY > eps && _axisX < eps && _axisZ < eps) // axe Y
+    {
+      rt = coordZ; thetat = coordX;
+    }
+    else if (_axisZ > eps && _axisY < eps && _axisX < eps) // axe Z
+    {
+      rt = coordX; thetat = coordY;
+    }
+    // cart2Cyl coordinates
+    K_LOC::cart2Cyl(npts, xD, yD, zD,
+                    _centerX, _centerY, _centerZ, 
+                    _axisX, _axisY, _axisZ, 
+                    rt, thetat);
+
+    InterpAdt(npts, coordX, coordY, coordZ, a1, a2,a3, built);
+
+    delete [] coordX; delete [] coordY; delete [] coordZ;
+}
+
+//=============================================================================
+// passe le vecteur de points en cylindrique
+void K_INTERP::InterpAdt::cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* z)
+{
+    E_Float* coordX = new E_Float[npts];
+    E_Float* coordY = new E_Float[npts];
+    E_Float* coordZ = new E_Float[npts];
+    
+    E_Float *rt, *thetat;
+    thetat = NULL; rt = NULL;
+    E_Float eps = 1.e-12;
+
+    if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
+    {
+      rt = coordY; thetat = coordZ;
+    }
+    else if (_axisY > eps && _axisX < eps && _axisZ < eps) // axe Y
+    {
+      rt = coordZ; thetat = coordX;
+    }
+    else if (_axisZ > eps && _axisY < eps && _axisX < eps) // axe Z
+    {
+      rt = coordX; thetat = coordY;
+    }
+    // cart2Cyl coordinates
+    K_LOC::cart2Cyl(npts, x, y, z,
+                    _centerX, _centerY, _centerZ, 
+                    _axisX, _axisY, _axisZ, 
+                    rt, thetat);
+    for (E_Int i = 0; i < npts; i++)
+    {
+        x[i] = coordX[i]; y[i] = coordY[i]; z[i] = coordZ[i];
+    }
+    delete [] coordX; delete [] coordY; delete [] coordZ;
+}
 //=============================================================================
 /* Construction de l'adt pour un maillage structure */
 //=============================================================================
