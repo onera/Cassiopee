@@ -258,6 +258,11 @@ def testO(objet, number=1):
                                 print("DIFF: object value differs from "+reference+'.')
                                 return False
                             return True
+                        elif isinstance(a[i][j], float):
+                            diff = abs(a[i][j]-objet[i][j])
+                            if diff > TOLERANCE:
+                                print("DIFF: object value differs from %s (%g)."%(reference, diff)) 
+                            return False
                         elif a[i][j] != objet[i][j]:  # liste de tuple/liste d'autres objets
                             print("DIFF: object differs from "+reference+'.')
                             return False

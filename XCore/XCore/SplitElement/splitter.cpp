@@ -92,7 +92,7 @@ struct type_element_connectivity {
     int type_element, nb_verts_per_elt, tag;
     KCore::Numpy::vector<PDM_g_num_t> elt2vertsglob;
     type_element_connectivity( int tp_elt, int nb_v_per_e, PDM_g_num_t *e2v_glob, int nb_elt, int num_zone )
-        : type_element( tp_elt ), nb_verts_per_elt( nb_v_per_e ), elt2vertsglob{nb_elt}, tag{num_zone}
+      : type_element( tp_elt ), nb_verts_per_elt( nb_v_per_e ), elt2vertsglob{(unsigned int)nb_elt}, tag{num_zone}
     {
         for ( int i = 0; i < nb_elt; ++i )
             elt2vertsglob[ i ] = e2v_glob[ i ];
@@ -276,7 +276,7 @@ build_splitted_zone( int hdl_part, int ipart )
     std::flush(std::cout);
 #   endif
     if ( vertex ) {
-        KCore::Numpy::vector<double> pVertex( {nVertex, 3} );
+      KCore::Numpy::vector<double> pVertex( {(unsigned long)nVertex, 3} );
         memcpy( pVertex.data(), vertex, 3 * nVertex * sizeof( double ) );
         PyDict_SetItem( splt_zone, CString2PyString( "vertex" ),
                         (PyObject *)KCore::Numpy::shared_with_python( pVertex ) );

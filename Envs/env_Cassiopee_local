@@ -488,7 +488,7 @@ else if ($MAC == "spiro_python2") then
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-else if ($MAC == "sator_python3") then
+else if ($MAC == "sator_17python3") then
 #------------------------------- sator --------------------------------------
         setenv ELSAPROD sat_r8
         echo "pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
@@ -548,6 +548,22 @@ else if ($MAC == "sator_sky") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+
+else if ($MAC == "sator_new") then
+#------------------------------- sator new ------------------------------------
+        setenv ELSAPROD sat_new_r8
+        module unload intel/19.0.5
+	module unload impi/19.0.5
+	module load socle-cfd/5.0-intel2120-impi
+	# Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        # Number of threads
+        setenv OMP_NUM_THREADS 28
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
 endif
 #---------------------------Common---------------------------------------------
 alias emake "make -f Makefile.$ELSAPROD"
