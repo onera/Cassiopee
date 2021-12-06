@@ -514,7 +514,7 @@ else if ($MAC == "sator_17python3") then
 else if ($MAC == "sator") then
 #------------------------------- sator --------------------------------------
         setenv ELSAPROD sat_r8
-        echo "pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
+        echo "Pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
 
 	module load intel/17.0.4
         #module unload intel/11.1.073
@@ -551,7 +551,7 @@ else if ($MAC == "sator_sky") then
 
 else if ($MAC == "sator_new") then
 #------------------------------- sator new ------------------------------------
-        setenv ELSAPROD sat_new_r8
+        setenv ELSAPROD sat_cas_r8
         module unload intel/19.0.5
 	module unload impi/19.0.5
 	module load socle-cfd/5.0-intel2120-impi

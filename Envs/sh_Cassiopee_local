@@ -463,8 +463,29 @@ elif [ "$MAC" = "sator_sky" ]; then
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
-fi
 
+elif [ "$MAC" = "sator_new" ]; then
+#----------------------------- sator new ---------------------------------------
+    export ELSAPROD=sat_cas_r8
+    # Nbre de threads
+    export OMP_NUM_THREADS=28
+    export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
+
+    # modules 
+    . /etc/profile.d/module.sh
+    module unload intel/19.0.5
+    module unload impi/19.0.5
+    module load socle-cfd/5.0-intel2120-impi
+    export PYTHONEXE=python3
+    alias python=python3
+    
+    # Chemin de l'executable python
+    export PATH=$PATH
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
+fi
 #---------------------------Common---------------------------------------------
 alias emake='make -f Makefile.$ELSAPROD'
 

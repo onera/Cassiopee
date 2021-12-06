@@ -34,7 +34,7 @@ libraries = ["GLU", "kcore", "Xi", "Xmu"]
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, '/usr/X11R6/lib64']
-includeDirs = [pythonIncDir, numpyIncDir, kcoreIncDir]
+includeDirs = [pythonIncDir, numpyIncDir, kcoreIncDir, kcoreLibDir+'/../include']
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 

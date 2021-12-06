@@ -548,7 +548,7 @@ def getSimdOptions():
     if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
         if   simd == 'SSE4.2': opts += ['-xSSE4.2']
         elif simd == 'AVX2'  : opts += ['-xCORE-AVX2']
-        elif simd == 'AVX512': opts += ['-xCORE-AVX512 -qopt-zmm-usage=high']
+        elif simd == 'AVX512': opts += ['-xCORE-AVX512']
         elif simd == 'MIC'   : opts += ['-xMIC-AVX512']
         else: opts += ['-xHost']
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
@@ -825,7 +825,7 @@ def getForArgs():
          if mySystem[0] == 'mingw' and mySystem[1] == '32':
               options.remove('-fPIC')
               options += ['-large-address-aware']
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     elif f77compiler.find("ifort") == 0:
          if DEBUG: options += ['-g', '-O0', '-fPIC']
@@ -841,14 +841,14 @@ def getForArgs():
             else: options += ['-qopenmp']
          if useStatic() == 1: options += ['-static']
          else: options += ['-fPIC']
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     elif f77compiler == "pgf90" or f77compiler == "pgf77":
          options += ['-fPIC']
          if DEBUG: options += ['-g', '-O0']
          else: options += ['-O3']
          if useOMP() == 1: options += ['-omp']
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     elif f77compiler == "x86_64-w64-mingw32-gfortran":
          if DEBUG: options += ['-g', '-O0']
@@ -856,7 +856,7 @@ def getForArgs():
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static']
          else: options += ['-fPIC']
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     elif f77compiler == "ifort.exe":
          if useOMP() == 1: return ['/names:lowercase', '/assume:underscore', '/Qopenmp']
