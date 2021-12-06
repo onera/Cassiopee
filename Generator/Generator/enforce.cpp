@@ -72,7 +72,7 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
     E_Int niout, njout, nkout;
     E_Int ret = enforceCommon( name, varString, ni, nj, nk, 
                                *f, P0, eh, supp, add, 
-                               *out, niout, njout, nkout );
+                               *out, niout, njout, nkout);
     delete f;
     if (ret != 0) return NULL;
     PyObject* tpl = K_ARRAY::buildArray(*out, "x,y,z", 

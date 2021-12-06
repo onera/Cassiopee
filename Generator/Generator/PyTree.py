@@ -693,7 +693,7 @@ def getMaxLength(t):
 def _getMaxLength(t):
     return C._TZGC(t,'centers', Generator.getMaxLength)
 
-def enforceX(a, x0, enforcedh, N, add=0):
+def enforceX(a, x0, enforcedh, N, add=0, verbose=True):
     """Enforce a x0-centered line in a distribution defined by an array.
     Usage: enforceX(a, x0, enforcedh, supp, add) -or-
     Usage: enforceX(a, x0, enforcedh, (supp,add))"""
@@ -701,12 +701,12 @@ def enforceX(a, x0, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceX, x0, enforcedh, N, add )
+    a = C.TZGC(a, 'nodes', Generator.enforceX, x0, enforcedh, N, add, verbose)
     rdir = 1
     a = modifyBC__(rdir, ni0, nj0, nk0, a)
     return a
 
-def enforceY(a, y0, enforcedh, N, add=0):
+def enforceY(a, y0, enforcedh, N, add=0, verbose=True):
     """Enforce a y0-centered line in a distribution defined by an array.
     Usage: enforceY(a, y0, enforcedh, supp, add) -or-
     Usage: enforceY(a, y0, enforcedh, (supp,add))"""
@@ -714,7 +714,7 @@ def enforceY(a, y0, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceY, y0, enforcedh, N, add )
+    a = C.TZGC(a, 'nodes', Generator.enforceY, y0, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -727,12 +727,12 @@ def enforceZ(a, z0, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceZ, z0, enforcedh, N, add )
+    a = C.TZGC(a, 'nodes', Generator.enforceZ, z0, enforcedh, N, add)
     dir = 3
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
 
-def enforcePlusX(a, enforcedh, N, add=0):
+def enforcePlusX(a, enforcedh, N, add=0, verbose=True):
     """Enforce the first X-line in a distribution defined by an array.
     (one sided distribution, right).
     Usage: enforcePlusX(array, enforcedh, supp, add) -or-
@@ -741,12 +741,12 @@ def enforcePlusX(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforcePlusX, enforcedh, N, add )
+    a = C.TZGC(a, 'nodes', Generator.enforcePlusX, enforcedh, N, add, verbose)
     dir = 1
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
 
-def enforcePlusY(a, enforcedh, N, add=0):
+def enforcePlusY(a, enforcedh, N, add=0, verbose=True):
     """Enforce the first Y-line in a distribution defined by an array.
     (one sided distribution, right).
     Usage: enforcePlusY(array, enforcedh, supp, add) -or-
@@ -755,7 +755,7 @@ def enforcePlusY(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforcePlusY, enforcedh, N, add )
+    a = C.TZGC(a, 'nodes', Generator.enforcePlusY, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -774,7 +774,7 @@ def enforcePlusZ(a, enforcedh, N, add=0):
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
 
-def enforceMoinsX(a, enforcedh, N, add=0):
+def enforceMoinsX(a, enforcedh, N, add=0, verbose=True):
     """Enforce the last X-line in a distribution (one sided, left).
     Usage: enforceMoinsX(array, enforcedh, supp, add) -or-
     Usage: enforceMoinsX(array, enforcedh, (supp,add))"""
@@ -782,12 +782,12 @@ def enforceMoinsX(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceMoinsX, enforcedh, N, add )
+    a = C.TZGC(a, 'nodes', Generator.enforceMoinsX, enforcedh, N, add, verbose)
     dir = 1
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
 
-def enforceMoinsY(a, enforcedh, N, add=0):
+def enforceMoinsY(a, enforcedh, N, add=0, verbose=True):
     """Enforce the last Y-line in a distribution (one sided, left).
     Usage: enforceMoinsY(array, enforcedh, supp, add) -or-
     Usage: enforceMoinsY(array, enforcedh, (supp,add))"""
@@ -795,7 +795,7 @@ def enforceMoinsY(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceMoinsY, enforcedh, N, add )
+    a = C.TZGC(a, 'nodes', Generator.enforceMoinsY, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a

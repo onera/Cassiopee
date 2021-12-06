@@ -248,21 +248,21 @@ def checkPointInCEBB(array, P):
     """Check if point P is in the Cartesian Elements Bounding Box of array."""
     return generator.checkPointInCEBB(array, P)
 
-def enforceX(array, x0, enforcedh, N, add=0):
+def enforceX(array, x0, enforcedh, N, add=0, verbose=True):
     """Enforce a x0-centered line in a distribution defined by an array.
     Usage: enforceX(array, x0, enforcedh, supp, add) -or-
     Usage: enforceX(array, x0, enforcedh, (supp,add))"""
     if isinstance(N, tuple):
-        return generator.enforceX(array, x0, enforcedh, N)
+        return generator.enforceX(array, x0, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforceX", x0, enforcedh, N, add)
     
-def enforceY(array, y0, enforcedh, N, add=0):
+def enforceY(array, y0, enforcedh, N, add=0, verbose=True):
     """Enforce a j line in a distribution defined by an array.
     Usage: enforceY(array, y0, enforcedh, supp, add) -or-
     Usage: enforceY(array, y0, enforcedh, (supp,add))"""
     if isinstance(N, tuple):
-        return generator.enforceY(array, y0, enforcedh, N)
+        return generator.enforceY(array, y0, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforceY", y0, enforcedh, N, add)
     
@@ -271,23 +271,23 @@ def enforceZ(array, z0, enforcedh, N, add=0):
     Usage: enforceZ(array, z0, enforcedh, supp, add)"""
     return generator.enforce(array, "enforceZ", z0, enforcedh, N, add)
     
-def enforcePlusX(array, enforcedh, N, add=0):
+def enforcePlusX(array, enforcedh, N, add=0, verbose=True):
     """Enforce the first X-line in a distribution defined by an array.
     (one sided distribution, right).
     Usage: enforcePlusX(array, enforcedh, supp, add) -or-
     Usage: enforcePlusX(array, enforcedh, (supp,add))"""
     if isinstance(N, tuple):
-        return generator.enforcePlusX(array, enforcedh, N)
+        return generator.enforcePlusX(array, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforcePlusX", 0., enforcedh, N, add)
     
-def enforcePlusY(array, enforcedh, N, add=0):
+def enforcePlusY(array, enforcedh, N, add=0, verbose=True):
     """Enforce a j line in a distribution  defined by an array.
     (one sided distribution, top).
     Usage: enforcePlusY(array, enforcedh, supp, add) -or-
     Usage: enforcePlusY(array, enforcedh, (supp,add))"""
     if isinstance(N, tuple):
-        return generator.enforcePlusY(array, enforcedh, N)
+        return generator.enforcePlusY(array, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforcePlusY", 0., enforcedh, N, add)
 
@@ -297,21 +297,21 @@ def enforcePlusZ(array, enforcedh, N, add=0):
     Usage: enforcePlusZ(array, enforcedh, supp, add)"""
     return generator.enforce(array, "enforcePlusZ", 0., enforcedh, N, add)
     
-def enforceMoinsX(array, enforcedh, N, add=0):
+def enforceMoinsX(array, enforcedh, N, add=0, verbose=True):
     """Enforce the last X-line in a distribution (one sided, left).
     Usage: enforceMoinsX(array, enforcedh, supp, add) -or-
     Usage: enforceMoinsX(array, enforcedh, (supp,add))"""
     if isinstance(N, tuple):
-        return generator.enforceMoinsX(array, enforcedh, N)
+        return generator.enforceMoinsX(array, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforceMoinsX", 0., enforcedh, N, add)
     
-def enforceMoinsY(array, enforcedh, N, add=0):
+def enforceMoinsY(array, enforcedh, N, add=0, verbose=True):
     """Enforce a j line in a distribution (one sided distribution, bottom).
     Usage: enforceMoinsY(array, enforcedh, supp, add) -or-
     Usage: enforceMoinsY(array, enforcedh, (supp,add))"""
     if isinstance(N, tuple):
-        return generator.enforceMoinsY(array, enforcedh, N)
+        return generator.enforceMoinsY(array, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforceMoinsY", 0., enforcedh, N, add)
 
