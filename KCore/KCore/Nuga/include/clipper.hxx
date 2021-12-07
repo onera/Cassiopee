@@ -382,6 +382,8 @@ namespace NUGA
         RTOL *= 10;
       }
 
+      // singularities/errors management
+
       if (err || !true_clip)
       {
 #ifdef DEBUG_CLIPPER
@@ -390,6 +392,15 @@ namespace NUGA
 #endif
         bits.clear();
         return false; // to classify with a I/O test (even in case of error => roughly good approx)
+      }
+      else if (true_clip && oper == NUGA::INTERSECT::INTERSECTION) //fixme
+      {
+        // singularity I : 2 faces side by side with one overlapping edge => should be empty intersection
+        if (bits.size() == 2)// singularity I is equivalent to that test IFF both faces are convex : cannot have 2 pieces. Real test should use surface : sum (surf(bits)) < min(surf(subj), surf(cutter))
+        {
+          bits.clear(); 
+          return false;
+        }
       }
  
       return true;// true_clip;

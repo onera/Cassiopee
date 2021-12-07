@@ -81,6 +81,10 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
       loc1->get_candidates(ae0, ae0.m_crd, cands, 1, RTOL); //return as 1-based
       if (cands.empty()) continue;
 
+#ifdef XMATCH_DBG
+      medith::write("cands", m1.crd, m1.cnt, &cands, 1);
+#endif
+
       for (n = 0; n < cands.size(); ++n)
       {
         i2 = cands[n] - 1;
