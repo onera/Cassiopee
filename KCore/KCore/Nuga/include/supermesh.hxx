@@ -67,8 +67,9 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
     int id = 0;
 #endif
     
+    DELAUNAY::Triangulator dt;
 
-#pragma omp for //if(do_omp)
+#pragma omp for private(dt)//if(do_omp)
     for (i = 0; i < nbcells0; ++i)
     {
       auto ae0 = m0.aelement(i);
@@ -108,14 +109,58 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
         }
 
         bits.clear();
-        bool true_clip = false;
-        NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(ae0, ae1, NUGA::INTERSECT::INTERSECTION, RTOL, bits, true_clip);
+        bool true_clip = NUGA::CLIP::compute<aelt_t, aelt_t>(ae0, ae1, NUGA::INTERSECT::INTERSECTION, bits);
 
-        for (k = 0; k < bits.size(); ++k)
+        if (true_clip)
         {
-          xmi[id].add(bits[k]);
+          for (k = 0; k < bits.size(); ++k)
+          {
+            xmi[id].add(bits[k]);
+            anc0i[id].push_back(i);
+            anc1i[id].push_back(i2);
+          }
+          continue;
+        }
+        
+        // check for fully-in case : is ae0 fully inside ae1 ?
+        bool is_in{ false };
+        for (size_t k = 0; k < ae0.m_crd.cols(); ++k)
+        {
+          const double * P = ae0.m_crd.col(k);
+          // if P is in ae1, ae0 is a piece of ae1
+          int err = ae1.fast_is_in_pred<DELAUNAY::Triangulator>(dt, ae1.m_crd, P, is_in);
+          assert(!err);
+          if (!is_in) break;
+        }
+        
+
+        if (is_in)
+        {
+          xmi[id].add(ae0);
           anc0i[id].push_back(i);
           anc1i[id].push_back(i2);
+          break; // ae0 cannot be in several PG
+        }
+
+        //reciprocal test : is ae1 fully inside ae0 ?
+        
+        // if P is in ae0, ae1 is a piece of ae0
+        is_in = false;
+        for (size_t k = 0; k < ae1.m_crd.cols(); ++k)
+        {
+          const double * P = ae1.m_crd.col(k);
+          // if P is in ae1, ae0 is a piece of ae1
+          int err = ae0.fast_is_in_pred<DELAUNAY::Triangulator>(dt, ae0.m_crd, P, is_in);
+          assert(!err);
+          if (!is_in) break;
+        }
+
+        if (is_in)
+        {
+          xmi[id].add(ae1);
+          anc0i[id].push_back(i);
+          anc1i[id].push_back(i2);
+          // continue : ae0 might contain other bits or need mode polyclip
         }
       }
     }

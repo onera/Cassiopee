@@ -15,6 +15,7 @@
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/IdTool.h"
+#include "Nuga/include/tree.hxx"
 
 #define NO_CHILDREN -1
 #define NO_GRAND_CHILDREN -2
