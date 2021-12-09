@@ -132,7 +132,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
         {
           const double * P = ae0.m_crd.col(k);
           // if P is in ae1, ae0 is a piece of ae1
-          int err = ae1.fast_is_in_pred<DELAUNAY::Triangulator>(dt, ae1.m_crd, P, is_in);
+          int err = ae1.fast_is_in_pred(dt, ae1.m_crd, P, is_in);
           assert(!err);
           if (!is_in) break;
         }
@@ -154,7 +154,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
         {
           const double * P = ae1.m_crd.col(k);
           // if P is in ae1, ae0 is a piece of ae1
-          int err = ae0.fast_is_in_pred<DELAUNAY::Triangulator>(dt, ae0.m_crd, P, is_in);
+          int err = ae0.fast_is_in_pred(dt, ae0.m_crd, P, is_in);
           assert(!err);
           if (!is_in) break;
         }
