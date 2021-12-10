@@ -459,6 +459,8 @@ PyObject* K_INTERSECTOR::syncMacthPeriodicFaces(PyObject* self, PyObject* args)
   K_CONNECT::IdTool::init_inc(m.cnt.PHs._ancEs, 0, m.cnt.PHs.size());
   
   bool carry_on = true;
+  int itermax=10;
+  int iter=0;
   do
   {
     std::map<int, std::vector<int>> glob_face_to_bits;
@@ -471,7 +473,7 @@ PyObject* K_INTERSECTOR::syncMacthPeriodicFaces(PyObject* self, PyObject* args)
 
     sync_faces(m, glob_face_to_bits, artol);
 
-  } while (carry_on);
+  } while (carry_on and iter++ < itermax);
 
   K_FLD::IntArray cnto;
   m.cnt.export_to_array(cnto);
