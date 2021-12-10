@@ -914,10 +914,12 @@ struct ngon_t
   }
   
   /// Close PHs having free edges (GEOM algo).
-  static void close_phs(ngon_t& ngio, const K_FLD::FloatArray& crd, std::vector<E_Int>* phs_to_process = nullptr)
+  static bool close_phs(ngon_t& ngio, const K_FLD::FloatArray& crd, std::vector<E_Int>* phs_to_process = nullptr)
   {
     ngio.PGs.updateFacets();
     ngio.PHs.updateFacets();
+
+    bool had_open_cells{ false };
 
     using dint_t = std::deque<E_Int>;
 
@@ -958,6 +960,7 @@ struct ngon_t
         if (K_MESH::Polyhedron<0>::is_closed(ngio.PGs, ngio.PHs.get_facets_ptr(i), ngio.PHs.stride(i), free_edges)) continue;
 
         carry_on = true;
+        had_open_cells = true;
 
 #ifdef DEBUG_NGON_T
         //if (i == 169804) medith::write("PH.mesh", crd, ngio, i);
@@ -1043,6 +1046,8 @@ struct ngon_t
       // build PH list for next iter
       ngio.flag_PHs_having_PGs(processPG, processPH);
     }
+
+    return had_open_cells;
   }
   
   /// Change the node indice to reference the same when duplicated exist

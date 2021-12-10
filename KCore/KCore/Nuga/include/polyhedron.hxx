@@ -14,6 +14,7 @@
 
 #include "Nuga/include/Polyhedron.h"
 #include "Nuga/include/Triangulator.h"
+#include "Nuga/include/KdTree.h"
 
 namespace NUGA
 {
@@ -71,7 +72,9 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
 
   const double* get_centroid() const; // WARNING : currently implemented as iso_bary
 
-  double Lref2() const { return (m_Lref2 > 0.) ? m_Lref2 : parent_type::Lref2(m_crd); } // if passed by mesh_t, return it, otherwise compute it first
+  double Lref2() const { return (m_Lref2 > 0. && m_Lref2 != NUGA::FLOAT_MAX) ? m_Lref2 : parent_type::Lref2(m_crd); } // if passed by mesh_t, return it, otherwise compute it first
+
+  bool join(double TOL, std::vector<int>& lnids);
 
   void plug() { parent_type::_pgs = &m_pgs; parent_type::_faces = &m_faces[0]; parent_type::_nb_faces = m_faces.size(); }
 };
@@ -318,6 +321,28 @@ double aPolyhedron<TopoShape>::metrics()
   return extent();
 }
 
+template <int TopoShape>
+bool aPolyhedron<TopoShape>::join(double TOL, std::vector<int>& lnids)
+{
+  bool has_join{ false };
+  lnids.clear();
+  K_CONNECT::IdTool::init_inc(lnids, m_crd.cols());
+  
+  using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray> ;
+  acrd_t acrd(m_crd);
+  K_SEARCH::KdTree<> kdt(acrd);
+  double TOL2{0.1*Lref2()};
+  for (int n = 0; n < m_crd.cols(); ++n)
+  {
+    double dij2{ TOL };
+    int Nj = kdt.getClosest(n, dij2);
+    if ((Nj != IDX_NONE) && (dij2 < TOL2)) {
+      lnids[std::max(n, Nj)] = std::min(n, Nj);
+      has_join = true;
+    }
+  }
+  return has_join;
+}
 
 // autonomous with history
 template <int TopoShape>

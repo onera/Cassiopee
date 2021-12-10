@@ -1139,7 +1139,7 @@ inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::Flo
   pt_is_in = false;
 
   int err = this->triangulate(dt, crd);
-  if (err == 1)
+  if (err != 0)
   {
     std::cout << "error triangulating" << std::endl;
     return err;

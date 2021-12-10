@@ -187,6 +187,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
     double G[3];
     face.iso_barycenter<acrd_t, 3>(acrdR, G);
+    double s1 = face.surface<3>(crdR);
 
     for (size_t c = 0; c< cands.size(); ++c)
     {
@@ -199,15 +200,28 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
       double ps = NUGA::dot<3>(n, nc);
       if (ps > -0.99) continue;
 
-      // if G is in faceC, face is a piece of faceC
-      bool is_in1;
-      int err = faceC.fast_is_in_pred<DELAUNAY::Triangulator>(dt, m.crd, G, is_in1);
+      
+      // check for fully-in case : is face fully inside faceC ?
+      bool is_in1{ false };
+      for (E_Int k = 0; k < face.nb_nodes(); ++k)
+      {
+        const double * P = crdR.col(face.node(k));
+        // if P is in ae1, ae0 is a piece of ae1
+        int err = faceC.fast_is_in_pred(dt, m.crd, P, is_in1);
+        assert(!err);
+        if (!is_in1) break;
+      }
 
-      //reciprocal test
-      double GC[3];
-      faceC.iso_barycenter<acrd_t, 3>(acrd, GC);
-      bool  is_in2;
-      err = face.fast_is_in_pred<DELAUNAY::Triangulator>(dt, crdR, GC, is_in2);
+      //reciprocal test : is faceC fully inside face ?
+      bool is_in2 {false };
+      for (E_Int k = 0; k < faceC.nb_nodes(); ++k)
+      {
+        const double * P = m.crd.col(faceC.node(k));
+        // if P is in ae1, ae0 is a piece of ae1
+        int err = face.fast_is_in_pred(dt, crdR, P, is_in2);
+        assert(!err);
+        if (!is_in2) break;
+      }
 
       if (!is_in1 && !is_in2) continue;
 
@@ -223,17 +237,23 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
         continue;
       }
 
-      // if mutual inclusion : surface test
-      double s1 = face.surface<3>(crdR);
+     
+
+      // one inside another => surface test
+      
       double s2 = faceC.surface<3>(m.crd);
 
       if (s1 < s2)
       {
+        //medith::write("face", crdR, m.cnt, i);
+        //medith::write("faceC", m.crd, m.cnt, cand);
         loc_face_to_bits[-(cand + 1)].push_back(i);
-        continue;
+        break;
       }
       else
       {
+        //medith::write("face", crdR, m.cnt, i);
+        //medith::write("faceC", m.crd, m.cnt, cand);
         loc_face_to_bits[i].push_back(-(cand + 1));
         continue;
       }
@@ -256,6 +276,33 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   }
 
   loc_face_to_bits = tmp;
+
+  
+
+  //make it reciprocal (ONLY IF bits belong to the same cell)
+  std::map<int, std::vector<int>> tmp1;
+  for (auto i : loc_face_to_bits)
+  {
+    int master = i.first;
+    auto& bits = i.second;
+    tmp1[master] = bits;
+
+    bool samePH = true;
+    for (size_t k = 0; (k < bits.size() - 1) && samePH; ++k)
+    {
+      int bk = bits[k];
+      int bkp1 = bits[k + 1];
+      bk = (bk < 0) ? -(bk + 1) : bk;
+      bkp1 = (bkp1 < 0) ? -(bkp1 + 1) : bkp1;
+
+      samePH = (ancestors[bk] == ancestors[bkp1]);
+    }
+    if (!samePH) continue;
+
+    for (auto& b : bits)tmp1[b].push_back(master);
+  }
+  loc_face_to_bits = tmp1;
+
 
   // indirection to refer to volume mesh ids
   for (auto i : loc_face_to_bits)
@@ -285,30 +332,6 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
     glob_face_to_bits[gface] = gbits;
   }
 
-  //make it reciprocal (ONLY IF bits belong to the same cell)
-  std::map<int, std::vector<int>> tmp1;
-  for (auto i : glob_face_to_bits)
-  {
-    int master = i.first;
-    auto& bits = i.second;
-    tmp1[master] = bits;
-
-    bool ancPH = ancestors[bits[0]];
-    bool samePH = true;
-    for (size_t k = 0; (k < bits.size() - 1) && samePH; ++k)
-    {
-      int bk = bits[k];
-      int bkp1 = bits[k + 1];
-      bk = (bk < 0) ? -(bk + 1) : bk;
-      bkp1 = (bkp1 < 0) ? -(bkp1 + 1) : bkp1;
-
-      samePH = (ancestors[bk] == ancestors[bkp1]);
-    }
-    if (!samePH) continue;
-
-    for (auto& b : bits)tmp1[b].push_back(master);
-  }
-  glob_face_to_bits = tmp1;
 }
 
 ///
@@ -505,9 +528,10 @@ void duplicate_and_move_period_faces
 }
 
 ///
-void sync_faces
+bool sync_faces
 (NUGA::ph_mesh_t& m, const std::map<int, std::vector<int>>& face_to_bits, double ARTOL)
 {
+  bool has_sync = false;
   // 
   std::vector<int> molecPH;
   ngon_unit new_phs;
@@ -546,7 +570,7 @@ void sync_faces
   m.cnt.PHs.updateFacets();
   m.cnt.PHs.remove_duplicated(); //several occurence of the same face in each phs
 
-                                 // 2. merge coincident nodes
+  // 2. merge coincident nodes
   if (ARTOL == 0.) ARTOL = -0.01;
 
   double TOL = ARTOL;
@@ -559,13 +583,34 @@ void sync_faces
     assert(TOL > 0.); // no degen in m
   }
 
-  //std::cout << "TOL : " << TOL << std::endl;
-  E_Int nb_merges = m.cnt.join_phs(m.crd, TOL);
+  {
+    std::vector<int> nids, lnids;
+    K_CONNECT::IdTool::init_inc(nids, m.crd.cols());
+    for (auto i : modifiedPHs)
+    {
+      K_MESH::Polyhedron<0> ph(m.cnt, i);
+      NUGA::haPolyhedron<0> hph;
+      hph.set(ph, m.crd);
+      lnids.clear();
+      hph.join(TOL, lnids);
+
+      for (size_t k = 0; k < lnids.size(); ++k)
+      {
+        if (lnids[k] == k) continue;
+        int id1 = hph.poids[k]-1;
+        int id2 = hph.poids[lnids[k]]-1;
+        if (id2 < id1) std::swap(id1, id2);
+        nids[id2] = id1;
+      }
+    }
+
+    m.cnt.PGs.change_indices(nids);
+  }
   //std::cout << "nmerges : " << nb_merges << std::endl;
 
   //3. close_phs
   std::vector<E_Int> modPHs(ALL(modifiedPHs));
-  ngon_type::close_phs(m.cnt, m.crd, &modPHs);
+  has_sync = ngon_type::close_phs(m.cnt, m.crd, &modPHs);
 
   //4. replace moved master by modified bits : i.e replace original bits by their modified version
   //4.a reverse face_to_bits
@@ -619,7 +664,32 @@ void sync_faces
     m.cnt.PHs = new_phs;
     m.cnt.PHs.updateFacets();
 
-    ngon_type::close_phs(m.cnt, m.crd, &modPHs);
+    {
+      std::vector<int> nids, lnids;
+      K_CONNECT::IdTool::init_inc(nids, m.crd.cols());
+      for (auto i : modPHs)
+      {
+        K_MESH::Polyhedron<0> ph(m.cnt, i);
+        NUGA::haPolyhedron<0> hph;
+        hph.set(ph, m.crd);
+        lnids.clear();
+        hph.join(TOL, lnids);
+
+        for (size_t k = 0; k < lnids.size(); ++k)
+        {
+          if (lnids[k] == k) continue;
+          int id1 = hph.poids[k] - 1;
+          int id2 = hph.poids[lnids[k]] - 1;
+          if (id2 < id1) std::swap(id1, id2);
+          nids[id2] = id1;
+        }
+      }
+
+      m.cnt.PGs.change_indices(nids);
+
+    }
+
+    has_sync |= ngon_type::close_phs(m.cnt, m.crd, &modPHs);
   }
 
   //5. clean
@@ -627,6 +697,8 @@ void sync_faces
   m.cnt.remove_unreferenced_pgs(pgnids, phnids);
 
   // assert closed
+
+  return has_sync;
 }
 
 #endif

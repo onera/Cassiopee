@@ -2484,6 +2484,7 @@ NGON_BOOLEAN_CLASS::__compute()
     mesh_oper = 1; // meaning hard
 
     E_Int err = __build_connect_hard2(_coord, extrawPGs, nb_pgs1, connectT3, _nT3_to_oPG, _ngXh);
+    if (err) return ERROR;
   }
   #ifdef FLAG_STEP
     chrono c;
@@ -3078,7 +3079,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
   // gather connectHard by soft color
   std::map<int, std::vector<int>> softcol_to_t3s;
   {
-    for (size_t i = 0; i < connectHard.cols(); ++i)
+    for (E_Int i = 0; i < connectHard.cols(); ++i)
     {
       softcol_to_t3s[soft_colors[i]].push_back(i);
     }
@@ -3101,7 +3102,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
       for (size_t k = 1; k < i.second.size(); ++k)
         assert(nT3_to_PG[i.second[k]] == aPG);
 
-      for (size_t k = 0; k < pgsi.size(); ++k)
+      for (E_Int k = 0; k < pgsi.size(); ++k)
         totoF2E.pushBack(_F2E.col(aPG), _F2E.col(aPG) + 2);
 
       assert(aPG > -1 && aPG < _anc_PG.cols());
@@ -3122,7 +3123,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
 
   // build ngXh.Phs
   std::map<int, std::vector<int>> ph_to_faces;
-  for (size_t i = 0; i < shiftPG; ++i)
+  for (int i = 0; i < shiftPG; ++i)
   {
     /*const int* anc = ngXh.PGs._ancEs.col(i);
     assert(anc[0] == IDX_NONE);
@@ -3138,7 +3139,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
 
   std::set<int> lpgs, rpgs, lphs, rphs;
 
-  for (size_t i = shiftPG; i < ngXh.PGs.size(); ++i)
+  for (int i = shiftPG; i < ngXh.PGs.size(); ++i)
   {
     //const int* anc = ngXh.PGs._ancEs.col(i);
 

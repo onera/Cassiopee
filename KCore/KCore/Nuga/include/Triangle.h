@@ -2134,20 +2134,30 @@ namespace K_MESH
     NUGA::diff<3>(P1, P, V2);
     NUGA::diff<3>(P2, P, V3);
 
-    double w0[3], w[3];
-    NUGA::crossProduct<3>(V1, V2, w0);
+    double n[3];
+    K_MESH::Triangle::normal(P0, P1, P2, n);
 
-    double s{ 0. };
+    /*std::cout << "pt 0 : " << P[0] << std::endl;
+    std::cout << "pt 1 : " << P[1] << std::endl;
+    std::cout << "pt 2 : " << P[2] << std::endl;*/
+
+    double w[3];
+
+    NUGA::crossProduct<3>(V1, V2, w);
+    double s12 = NUGA::dot<3>(n, w);
 
     NUGA::crossProduct<3>(V2, V3, w);
-    s = NUGA::dot<3>(w0, w);
-    if (s < 0.) return false;
+    double s23 = NUGA::dot<3>(n, w);
 
     NUGA::crossProduct<3>(V3, V1, w);
-    s = NUGA::dot<3>(w0, w);
-    if (s < 0.) return false;
+    double s31 = NUGA::dot<3>(n, w);
 
-    return true;
+
+    double smin = std::min(s12, std::min(s23, s31));
+    double smax = std::max(s12, std::max(s23, s31));
+
+    bool is_out = (smin*smax < 0.);
+    return !is_out;
   }
 
 } // End Namespace K_MESH
