@@ -56,6 +56,10 @@ Plaster::make
   E_Int                   nj, err, NIJMAX(1000);
   E_Float                 minB[3], maxB[3], z0;
 
+  // hack
+  bool refine = true;
+  if (ni ==-1) refine = false;
+
   ni = 0;
   plaster.clear();
 
@@ -101,14 +105,38 @@ Plaster::make
   z0 = maxB[2];
   std::vector<E_Float> zE2(*std::max_element(nodesE2.begin(), nodesE2.end())+1, 0.);
   pos2D = posE2;
-  pos2D.resize(2, pos2D.cols());           // pos2D is the projection on any plane normal to z.
-  for (E_Int i = 0; i < posE2.cols(); ++i) // Set the z for the contour nodes.
+  pos2D.resize(2, pos2D.cols());  
+  double devmin(NUGA::FLOAT_MAX);
+  double devmax(0.);        // pos2D is the projection on any plane normal to z.
+  for (E_Int i = 0; i < posE2.cols(); ++i){ // Set the z for the contour nodes.
     zE2[i] = z0 - posE2(2,i);
+    devmax = ( devmax < zE2[i] )? zE2[i] : devmax;
+    devmin = (zE2[i] < devmin) ? zE2[i] : devmin;
+  }
+
+  //std::cout << "devmin : " << devmin << std::endl;
+  //std::cout << "devmax : " << devmax << std::endl;
+  bool is_planar = (std::max(::fabs(devmin), ::fabs(devmax)) < EPSILON);
+  //std::cout << "is planar ? " << is_planar << std::endl;
 
   //std::cout << "plaster 8" << std::endl;
+
+  // if the contour is planar no need for a fine patch
+  E_Float dx = 0.2 *std::min((maxB[0] - minB[0]), (maxB[1] - minB[1]));
+  //std::cout << "refine : " << refine << std::endl;
+  //std::cout << "bump_factor : " << bump_factor << std::endl;
+  //std::cout << "is_planar : " << is_planar << std::endl;
+  if (refine || (bump_factor != 0.) || !is_planar)
+  {
+    dx = __computeCharacteristicLength(pos2D, connectE2);
+  }
+
+  /*std::cout << "dx : " << dx << std::endl;
+  std::cout << "dx0 : " << maxB[0] - minB[0] << std::endl;
+  std::cout << "dy0 : " << maxB[1] - minB[1] << std::endl;*/
   
   // Compute ni and nj;
-  E_Float dx = __computeCharacteristicLength(pos2D, connectE2);
+  //
   maxB[0] += 2. * dx; // Enlarge the plaster to ensure to have to rank of nodes outside the domain.
   maxB[1] += 2. * dx;
   minB[0] -= 2. * dx;
@@ -122,6 +150,9 @@ Plaster::make
   nj = E_Int(njf);
   ni = std::min(ni, NIJMAX);
   nj = std::min(nj, NIJMAX);
+
+  //std::cout << "ni : " << ni << std::endl;
+  //std::cout << "nj : " << nj << std::endl;
 
   // Generate the plaster (a cartesian mesh) on the top side 
   minB[2] = z0;

@@ -51,7 +51,7 @@ GapsManager::run
   K_FLD::IntArray connectFixed, OneSurface1, OneSurface2, zipped;
 
 #ifdef E_TIME
-  DELAUNAY::chrono c, glob;
+  NUGA::chrono c, glob;
   c.start();
   glob.start();
 #endif
@@ -131,6 +131,10 @@ GapsManager::run
 #ifdef DEBUG_GAPSMANAGER
     std::cout << "PATCH " << i << std::endl;
 #endif
+#ifdef E_TIME
+  NUGA::chrono c1;
+  c1.start();
+#endif
     // check closure roughly
     {
       std::vector<E_Int> unodes;
@@ -167,7 +171,11 @@ GapsManager::run
     nb_cols = connectBout[i].cols();
     for (E_Int c = 0; c < nb_cols; ++c)
       std::swap(connectBout[i](0,c), connectBout[i](1,c));
-   
+
+#ifdef E_TIME
+  c1.start();
+#endif
+    if (!refine) ni=-1; //fixme : hack to pass the non-refinement info
     err = p.make(pos, connectBout[i], /*_hard_nodes,*/ plaster, ni);
     
     if (err)
@@ -179,6 +187,11 @@ GapsManager::run
       K_CONVERTER::DynArrayIO::write(o.str().c_str(), pos, connectBout[i], "BAR");
 #endif
     }
+
+#ifdef E_TIME
+  std::cout << "p.make : " << c1.elapsed() << std::endl;
+  c1.start();
+#endif
     
     if (!err)
     {
@@ -203,6 +216,10 @@ GapsManager::run
         connectFixed.pushBack(connectG);
       }
     }
+#ifdef E_TIME
+  std::cout << "GapFixer::run : " << c1.elapsed() << std::endl;
+  c1.start();
+#endif
   }
 #ifdef E_TIME
   std::cout << "FIXING TIME : " << c.elapsed() << std::endl;
@@ -262,7 +279,7 @@ GapsManager::run
   std::cout << "aggregate the connectivities " << c.elapsed() << std::endl;
   std::cout << "TOTAL TIME : " << glob.elapsed() << std::endl;
   std::cout << "SUCCESS : " << col << "/" << connectBout.size() << std::endl;
-  std::cout << "FAILED  : " << errcol << "/" << connectBout.size() << std::endl;
+  //std::cout << "FAILED  : " << errcol << "/" << connectBout.size() << std::endl;
   //std::cout << "FREE    : " << freecol << "/" << connectBout.size() << std::endl;
 #endif
   //std::cout << "SUCCESS : " << col << "/" << connectBout.size() << std::endl;

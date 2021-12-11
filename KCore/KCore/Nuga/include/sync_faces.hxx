@@ -227,12 +227,24 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
       if (is_in1 && !is_in2)
       {
+        /*std::ostringstream o;
+        o << "face_" << i;
+        medith::write(o.str().c_str(), crdR, m.cnt, i);
+        o.str("");
+        o << "faceC_" << cand;
+        medith::write(o.str().c_str(), m.crd, m.cnt, cand);*/
         loc_face_to_bits[-(cand+1)].push_back(i); //neg storing to apply -Transfo
         continue;
       }
 
       if (is_in2 && !is_in1)
       {
+        /*std::ostringstream o;
+        o << "face_" << i;
+        medith::write(o.str().c_str(), crdR, m.cnt, i);
+        o.str("");
+        o << "faceC_" << cand;
+        medith::write(o.str().c_str(), m.crd, m.cnt, cand);*/
         loc_face_to_bits[i].push_back(-(cand + 1)); //pos storing for i to apply +Transfo
         continue;
       }
@@ -594,6 +606,10 @@ bool sync_faces
       lnids.clear();
       hph.join(TOL, lnids);
 
+      /*std::ostringstream o;
+      o << "ph_" << i;
+      medith::write(o.str().c_str(), m.crd, m.cnt, i);*/
+
       for (size_t k = 0; k < lnids.size(); ++k)
       {
         if (lnids[k] == k) continue;
@@ -605,12 +621,26 @@ bool sync_faces
     }
 
     m.cnt.PGs.change_indices(nids);
+
+    /*for (auto i : modifiedPHs)
+    {
+      std::ostringstream o;
+      o << "ph1_" << i;
+      medith::write(o.str().c_str(), m.crd, m.cnt, i);
+    }*/
   }
   //std::cout << "nmerges : " << nb_merges << std::endl;
 
   //3. close_phs
   std::vector<E_Int> modPHs(ALL(modifiedPHs));
   has_sync = ngon_type::close_phs(m.cnt, m.crd, &modPHs);
+
+  /*for (auto i : modifiedPHs)
+  {
+    std::ostringstream o;
+    o << "ph2_" << i;
+    medith::write(o.str().c_str(), m.crd, m.cnt, i);
+  }*/
 
   //4. replace moved master by modified bits : i.e replace original bits by their modified version
   //4.a reverse face_to_bits
@@ -674,6 +704,10 @@ bool sync_faces
         hph.set(ph, m.crd);
         lnids.clear();
         hph.join(TOL, lnids);
+
+        //std::ostringstream o;
+        //o << "ph3_" << i;
+        //medith::write(o.str().c_str(), m.crd, m.cnt, i);
 
         for (size_t k = 0; k < lnids.size(); ++k)
         {
