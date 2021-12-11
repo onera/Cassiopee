@@ -48,6 +48,9 @@
     Py_DECREF(PyList_GetItem(array,1));                                 \
     if (res == 2) {delete (FldArrayI*)a2; Py_DECREF(PyList_GetItem(array,2));}}
 
+// Formats I : l, i
+// Formats F : d, f
+// Formats A : ld, id, lf, if
 #if defined E_DOUBLEREAL && defined E_DOUBLEINT
 #define PYPARSETUPLE(args, format1, format2, format3, format4, ...) PyArg_ParseTuple(args, format1, __VA_ARGS__)
 #elif defined E_DOUBLEREAL && !defined E_DOUBLEINT

@@ -83,6 +83,7 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                                void* a1, void* a2, void* a3, E_Int& built):
   InterpData()
 {
+  _cylCoord = false; 
   _centerX = 0; _centerY = 0; _centerZ = 0;
   _axisX = -1; _axisY = -1; _axisZ = -1;
 
@@ -103,7 +104,7 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
 }
 
 //=============================================================================
-/* Constructor en coord cartesienne */
+/* Constructor en coord cylindrique */
 //=============================================================================
 K_INTERP::InterpAdt::InterpAdt(E_Int npts, 
                                E_Float* xD, E_Float* yD, E_Float* zD,
@@ -112,9 +113,7 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                                E_Float& axisX, E_Float& axisY, E_Float& axisZ, 
                                E_Int& built)
 {
-    // keep data for cart2Cyl
-    _centerX = centerX; _centerY = centerY; _centerZ = centerZ;
-    _axisX = axisX; _axisY = axisY; _axisZ = axisZ;
+    printf("constructeur adt cyl\n"); fflush(stdout);
 
     E_Float* coordX = new E_Float[npts];
     E_Float* coordY = new E_Float[npts];
@@ -124,31 +123,45 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
     thetat = NULL; rt = NULL;
     E_Float eps = 1.e-12;
 
-    if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
+    if (axisX > eps && axisY < eps && axisZ < eps) // axe X
     {
       rt = coordY; thetat = coordZ;
+      for (E_Int i = 0; i < npts; i++) coordX[i] = xD[i]; 
     }
-    else if (_axisY > eps && _axisX < eps && _axisZ < eps) // axe Y
+    else if (axisY > eps && axisX < eps && axisZ < eps) // axe Y
     {
       rt = coordZ; thetat = coordX;
+      for (E_Int i = 0; i < npts; i++) coordY[i] = yD[i];
     }
-    else if (_axisZ > eps && _axisY < eps && _axisX < eps) // axe Z
+    else if (axisZ > eps && axisY < eps && axisX < eps) // axe Z
     {
       rt = coordX; thetat = coordY;
+      for (E_Int i = 0; i < npts; i++) coordZ[i] = zD[i];
     }
+    
     // cart2Cyl coordinates
     K_LOC::cart2Cyl(npts, xD, yD, zD,
-                    _centerX, _centerY, _centerZ, 
-                    _axisX, _axisY, _axisZ, 
+                    centerX, centerY, centerZ, 
+                    axisX, axisY, axisZ, 
                     rt, thetat);
+    //for (E_Int i = 0; i < npts; i++) printf("%g %g %g\n", coordX[i], coordY[i], coordZ[i]);
+    //printf("axis = %g %g %g\n", axisX, axisY, axisZ);
+    InterpAdt(npts, coordX, coordY, coordZ, a1, a2, a3, built);
 
-    InterpAdt(npts, coordX, coordY, coordZ, a1, a2,a3, built);
+    //InterpAdt(npts, xD, yD, zD, a1, a2, a3, built);
+    //for (E_Int i = 0; i < npts; i++) printf("%g %g %g\n", xD[i], yD[i], zD[i]);
+    fflush(stdout);
+
+    // keep data for cart2Cyl
+    _cylCoord = true;
+    _centerX = centerX; _centerY = centerY; _centerZ = centerZ;
+    _axisX = axisX; _axisY = axisY; _axisZ = axisZ;
 
     delete [] coordX; delete [] coordY; delete [] coordZ;
 }
 
 //=============================================================================
-// passe le vecteur de points en cylindrique
+// passe le vecteur de points fourni en cylindrique
 void K_INTERP::InterpAdt::cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* z)
 {
     E_Float* coordX = new E_Float[npts];
@@ -182,6 +195,33 @@ void K_INTERP::InterpAdt::cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* 
     }
     delete [] coordX; delete [] coordY; delete [] coordZ;
 }
+// Passe le pt fourni en cylindrique
+void K_INTERP::InterpAdt::cart2Cyl(E_Float& x, E_Float& y, E_Float& z)
+{
+    E_Float eps = 1.e-12;
+    E_Float* rt=NULL; E_Float* thetat=NULL;
+    E_Float Xo, Yo, Zo;
+
+    if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
+    {
+      rt = &Yo; thetat = &Zo;
+    }
+    else if (_axisY > eps && _axisX < eps && _axisZ < eps) // axe Y
+    {
+      rt = &Zo; thetat = &Xo;
+    }
+    else if (_axisZ > eps && _axisY < eps && _axisX < eps) // axe Z
+    {
+      rt = &Xo; thetat = &Yo;
+    }
+    // cart2Cyl coordinates
+    K_LOC::cart2Cyl(1, &x, &y, &z,
+                    _centerX, _centerY, _centerZ, 
+                    _axisX, _axisY, _axisZ, 
+                    rt, thetat);
+    x = Xo; y = Yo; z = Zo;
+}
+
 //=============================================================================
 /* Construction de l'adt pour un maillage structure */
 //=============================================================================
@@ -839,6 +879,9 @@ K_INTERP::InterpAdt::searchExtrapolationCellUnstruct(E_Float* xt, E_Float* yt, E
                                                      E_Int& noelt, FldArrayF& cf,
                                                      E_Int nature, E_Int extrapOrder, E_Float constraint)
 {
+  // cylindrical coords modification
+  if (_cylCoord) cart2Cyl(x,y,z);
+  
   // datas for interpolation cell (tetrahedra)
   E_Float xp, yp, zp;
   E_Float xq, yq, zq;
@@ -1147,6 +1190,9 @@ short K_INTERP::InterpAdt::searchInterpolationCellStruct(
   E_Int& ic, E_Int& jc, E_Int& kc,
   FldArrayF& cf)
 {
+  // cylindrical coords modification
+  if (_cylCoord) cart2Cyl(x,y,z);
+
   // recherche de la liste des cellules candidates
   list<E_Int> listOfCandidateCells; 
   E_Int found = getListOfCandidateCells(x, y, z, listOfCandidateCells);

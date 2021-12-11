@@ -69,6 +69,8 @@ class InterpAdt  : public InterpData
 
     // Passe le vecteur de pts x,y,z en cylindrique
     void cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* z);
+    // Pas le point x,y,z en cylindrique
+    void cart2Cyl(E_Float& x, E_Float& y, E_Float& z);
 
     virtual
     short searchInterpolationCellUnstruct(
@@ -137,6 +139,7 @@ class InterpAdt  : public InterpData
     // E_Float _xmin;
     // E_Float _ymin;
     // E_Float _zmin;
+    E_Int _cylCoord; // true if cylindrical coordinates
     E_Float _centerX, _centerY, _centerZ; // centre pour les coord. cylindriques
     E_Float _axisX, _axisY, _axisZ; // axe pour les coord. cylindriques
     

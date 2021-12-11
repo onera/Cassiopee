@@ -62,34 +62,6 @@ namespace NUGA
   namespace INTERPOL
   {
     enum eMode { CLOSEST_CENTROID, CONSERVATIVE_O1 };
-    /**
-    * Computes donnor coefficients and indices for receiver cells
-    * crdR : coordinates accessor of the receiver mesh
-    * cntR : receiver surface NGON connectivity (Face to Node representation)
-    * crdD : accessor for coordinates of the receiver mesh
-    * cntD : donnor NGON connectivity (Face to Node representation)
-    * mode : type of interpolation (only CLOSEST_CENTROID is available right now)
-    * dindices : 0-based donnor indices per receiver cell (ranged with xr)
-    * dcoeffs : donnor coefficients per receiver cell (ranged with xr)
-    * xr : range delimiter in dindices and dcoefs : the i-th receiver cell has info between xr[i] and xr[i+1]
-    * do_omp : activate Open MP or not
-    */
-    template <typename acrd_t, typename cnt_t>
-    int compute_surf_coeffs(const acrd_t& crdR,
-      const cnt_t& cntR,
-      const acrd_t& crdD,
-      const cnt_t& cntD,
-      eMode mode,
-      std::vector<int>& dindices,
-      std::vector<double>& dcoeffs,
-      std::vector<int>& xr,
-      bool do_omp = false)
-    {
-      if (mode == CLOSEST_CENTROID)
-        return compute_surf_coeffs_basic(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
-      else if (mode == CONSERVATIVE_O1)
-        return compute_surf_coeffs_conservative_order1(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
-    }
 
     template <typename acrd_t, typename cnt_t>
     int compute_surf_coeffs_basic(const acrd_t& crdR,
@@ -139,49 +111,81 @@ namespace NUGA
 
       return ret;
     }
+
+    template <typename acrd_t, typename cnt_t>
+    int compute_surf_coeffs_conservative_order1(
+      const acrd_t& crdR,
+      const cnt_t& cntR,
+      const acrd_t& crdD,
+      const cnt_t& cntD,
+      std::vector<int>& dindices,
+      std::vector<double>& dcoeffs,
+      std::vector<int>& xr, bool do_omp = false)
+    {
+      dindices.clear();
+      dcoeffs.clear();
+      xr.clear();
+
+      int ret(0);
+      ngon_unit pgsR(cntR.begin()), pgsD(cntD.begin());
+
+      NUGA::pg_smesh_t m0, m1;
+
+      if (typeid(acrd_t) == typeid(K_FLD::ArrayAccessor<K_FLD::FldArrayF>))
+      {
+        // HACK CONVERSION OF THE FLD INTO DYNS
+        // TEMPORARY HACK COPY to pass to FloaArrays ///////
+        K_FLD::FloatArray crdR1(crdR.array(), crdR.posX(0), crdR.posX(1), crdR.posX(2));
+        K_FLD::FloatArray crdD1(crdD.array(), crdD.posX(0), crdD.posX(1), crdD.posX(2));
+        m0.crd = crdR1;
+        m1.crd = crdD1;
+      }
+      else if (typeid(acrd_t) == typeid(K_FLD::ArrayAccessor<K_FLD::FloatArray>))
+      {
+        m0.crd = crdR.array();
+        m1.crd = crdD.array();
+      }
+
+      m0.cnt = pgsR;
+      m1.cnt = pgsD;
+
+      NUGA::interpol_coeffs_for_first(m0, m1, 1.e-6, dindices, dcoeffs, xr, do_omp);
+
+      return ret;
+    }
+
+    /**
+    * Computes donnor coefficients and indices for receiver cells
+    * crdR : coordinates accessor of the receiver mesh
+    * cntR : receiver surface NGON connectivity (Face to Node representation)
+    * crdD : accessor for coordinates of the receiver mesh
+    * cntD : donnor NGON connectivity (Face to Node representation)
+    * mode : type of interpolation (only CLOSEST_CENTROID is available right now)
+    * dindices : 0-based donnor indices per receiver cell (ranged with xr)
+    * dcoeffs : donnor coefficients per receiver cell (ranged with xr)
+    * xr : range delimiter in dindices and dcoefs : the i-th receiver cell has info between xr[i] and xr[i+1]
+    * do_omp : activate Open MP or not
+    */
+    template <typename acrd_t, typename cnt_t>
+    int compute_surf_coeffs(const acrd_t& crdR,
+      const cnt_t& cntR,
+      const acrd_t& crdD,
+      const cnt_t& cntD,
+      eMode mode,
+      std::vector<int>& dindices,
+      std::vector<double>& dcoeffs,
+      std::vector<int>& xr,
+      bool do_omp = false)
+    {
+      if (mode == CLOSEST_CENTROID)
+        return compute_surf_coeffs_basic(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
+      else if (mode == CONSERVATIVE_O1)
+        return compute_surf_coeffs_conservative_order1(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
+    }
+
+
   }
 
-  template <typename acrd_t, typename cnt_t>
-  int compute_surf_coeffs_conservative_order1(
-    const acrd_t& crdR,
-    const cnt_t& cntR,
-    const acrd_t& crdD,
-    const cnt_t& cntD,
-    std::vector<int>& dindices,
-    std::vector<double>& dcoeffs,
-    std::vector<int>& xr, bool do_omp = false)
-  {
-    dindices.clear();
-    dcoeffs.clear();
-    xr.clear();
-
-    int ret(0);
-    ngon_unit pgsR(cntR.begin()), pgsD(cntD.begin());
-
-    NUGA::pg_smesh_t m0, m1;
-
-    if (typeid(acrd_t) == typeid(K_FLD::ArrayAccessor<K_FLD::FldArrayF>))
-    {
-      // HACK CONVERSION OF THE FLD INTO DYNS
-      // TEMPORARY HACK COPY to pass to FloaArrays ///////
-      K_FLD::FloatArray crdR1(crdR.array(), crdR.posX(0), crdR.posX(1), crdR.posX(2));
-      K_FLD::FloatArray crdD1(crdD.array(), crdD.posX(0), crdD.posX(1), crdD.posX(2));
-      m0.crd = crdR1;
-      m1.crd = crdD1;
-    }
-    else if (typeid(acrd_t) == typeid(K_FLD::ArrayAccessor<K_FLD::FloatArray>))
-    {
-      m0.crd = crdR.array();
-      m1.crd = crdD.array();
-    }
-
-    m0.cnt = pgsR;
-    m1.cnt = pgsD;
-
-    NUGA::interpol_coeffs_for_first(m0, m1, 1.e-6, dindices, dcoeffs, xr, do_omp);
-
-    return ret;
-  }
 }
 
 #endif

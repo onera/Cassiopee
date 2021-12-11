@@ -432,8 +432,11 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
 {
   PyObject* listFields;
-  if (!PyArg_ParseTuple(args, "O", &listFields)) return NULL;
-
+  PyObject* center; // si adt en cylindrique
+  PyObject* axis; // si adt en cylindrique
+  if (!PyArg_ParseTuple(args, "OOO", &listFields, 
+      &center, &axis)) return NULL;
+  
   if (PyList_Check(listFields) == false)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -449,8 +452,8 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objs;
-  E_Boolean skipNoCoord = true; E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false; E_Boolean skipDiffVars = true;
+  E_Boolean skipNoCoord=true; E_Boolean skipStructured=false;
+  E_Boolean skipUnstructured=false; E_Boolean skipDiffVars=true;
   E_Int isOk = K_ARRAY::getFromArrays(listFields, resl, varString, fields, 
                                       a2, a3, a4, objs, skipDiffVars, skipNoCoord, 
                                       skipStructured, skipUnstructured, true);
@@ -496,18 +499,18 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
     }
     posxs.push_back(posxi); posys.push_back(posyi); poszs.push_back(poszi); 
   }
-  // Verif des zones pour l adt
+  // Verif des zones pour l'adt
   for (E_Int no = 0; no < nzones; no++)
   {
     if (resl[no] == 2) 
     {
       char* eltType0 = (char*)a3[no];
-      if (K_STRING::cmp(eltType0,"TETRA")!= 0)
+      if (K_STRING::cmp(eltType0, "TETRA")!= 0)
       {
         for (E_Int noi = 0; noi < nzones; noi++)
           RELEASESHAREDA(resl[noi],objs[noi],fields[noi],a2[noi],a3[noi],a4[noi]); 
         PyErr_SetString(PyExc_TypeError,
-                        "setInterpData: unstructured zones must be TETRA.");
+                        "createHook: unstructured zones must be TETRA.");
         return NULL;
       }
     }
@@ -518,7 +521,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
         for (E_Int noi = 0; noi < nzones; noi++)
           RELEASESHAREDA(resl[noi],objs[noi],fields[noi],a2[noi],a3[noi],a4[noi]); 
         PyErr_SetString(PyExc_TypeError,
-                        "setInterpData: structured donor zones must be 3D or nk=1.");
+                        "createHook: structured donor zones must be 3D or nk=1.");
         return NULL;
       }
     }
@@ -528,15 +531,35 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   E_Int isBuilt;
   for (E_Int no = 0; no < nzones; no++)
   {
-    K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(
-      fields[no]->getSize(), 
-      fields[no]->begin(posxs[no]),
-      fields[no]->begin(posys[no]),
-      fields[no]->begin(poszs[no]),
-      a2[no], a3[no], a4[no], isBuilt);
-    if (isBuilt == 1) 
-      interpDatas.push_back(adt);
-    else 
+    K_INTERP::InterpAdt* adt=NULL;
+    if (center == Py_None || axis == Py_None)
+    {
+        adt = new K_INTERP::InterpAdt(
+        fields[no]->getSize(), 
+        fields[no]->begin(posxs[no]),
+        fields[no]->begin(posys[no]),
+        fields[no]->begin(poszs[no]),
+        a2[no], a3[no], a4[no], isBuilt);
+    }
+    else
+    {
+        E_Float centerX, centerY, centerZ;
+        E_Float axisX, axisY, axisZ;
+        PYPARSETUPLEF(center, "ddd", "fff", &centerX, &centerY, &centerZ);
+        PYPARSETUPLEF(axis, "ddd", "fff", &axisX, &axisY, &axisZ);
+        adt = new K_INTERP::InterpAdt(
+        fields[no]->getSize(), 
+        fields[no]->begin(posxs[no]),
+        fields[no]->begin(posys[no]),
+        fields[no]->begin(poszs[no]),
+        a2[no], a3[no], a4[no],
+        centerX, centerY, centerZ,
+        axisX, axisY, axisZ, 
+        isBuilt);
+    }
+
+    if (isBuilt == 1) interpDatas.push_back(adt);
+    else
     {
       for (E_Int noi = 0; noi < nzones; noi++)
         RELEASESHAREDA(resl[noi],objs[noi],fields[noi],a2[noi],a3[noi],a4[noi]); 

@@ -839,7 +839,7 @@ E_Int K_IO::GenIO::readData108(
       else if (varType[n] == 3) buf3 = new int64_t [npts];
       else if (varType[n] == 4) buf4 = new int32_t [npts];
       else if (varType[n] == 5) buf5 = new int8_t [npts];
-      else printf("Warning: unknow type of variable.\n");
+      else printf("Warning: unknown type of variable.\n");
 
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
@@ -1177,7 +1177,7 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
       else if (varType[n] == 3) buf3 = new int64_t [npts];
       else if (varType[n] == 4) buf4 = new int32_t [npts];
       else if (varType[n] == 5) buf5 = new int8_t [npts];
-      else printf("Warning: unknow type of variable.\n");
+      else printf("Warning: unknown type of variable.\n");
 
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
@@ -1420,7 +1420,7 @@ E_Int K_IO::GenIO::readData108CE(
       else if (varType[n] == 3) buf3 = new int64_t [npts];
       else if (varType[n] == 4) buf4 = new int32_t [npts];
       else if (varType[n] == 5) buf5 = new int8_t [npts];
-      else printf("Warning: unknow type of variable.\n");
+      else printf("Warning: unknown type of variable.\n");
 
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }

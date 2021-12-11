@@ -5,11 +5,11 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import Connector.PyTree as X
 import Geom.PyTree as D
+import KCore.Vector as Vector
 
 #=====================================================================
 # Helpers
 #=====================================================================
-
 
 #=====================================================================
 # IN: rac = 1,2,3,4,5,6,-1,-2,-3,-4,-5,-6
@@ -306,6 +306,7 @@ def _propagate(t, graph, stack, treated, linelet):
     if len(stack) > 0: _propagate(t, graph, stack, treated, linelet)
 
 # Construction de la distribution a remapper a partir de dir, h1, h2 et N
+# si h1,h2 < 0: conserve le h1,h2 original
 def buildDistrib(t, block, dir, h1, h2, N):
     z = Internal.getNodeFromName2(t, block)
     dim = Internal.getZoneDim(z)
@@ -322,8 +323,16 @@ def buildDistrib(t, block, dir, h1, h2, N):
         l = T.reorder(l, (2,3,1))
         ind1 = 0; ind2 = nk-1
     # Enforce
-    D.setH(l, ind1, h1)
-    D.setH(l, ind2, h2)
+    P0 = C.getValue(l, 'GridCoordinates', ind1)
+    P1 = C.getValue(l, 'GridCoordinates', ind1+1)
+    h1s = Vector.norm(Vector.sub(P1, P0))
+    P0 = C.getValue(l, 'GridCoordinates', ind2-1)
+    P1 = C.getValue(l, 'GridCoordinates', ind2)
+    h2s = Vector.norm(Vector.sub(P1, P0))
+    if h1 > 0: D.setH(l, ind1, h1)
+    else: D.setH(l, ind1, h1s)
+    if h2 > 0: D.setH(l, ind2, h2)
+    else: D.setH(l, ind2, h2s)
     l = D.enforceh(l, N=N)
     C.convertPyTree2File(l, 'linelet.cgns')
     # Converti en abscisse curviligne
@@ -331,7 +340,6 @@ def buildDistrib(t, block, dir, h1, h2, N):
     C._initVars(l, '{CoordinateX}={s}')
     C._initVars(l, '{CoordinateY}=0.')
     C._initVars(l, '{CoordinateZ}=0.')
-    #C._initVars(l,'{CoordinateX}')
     return l
 
 # Construction de la distribution a remapper pour un maillage loi
@@ -379,6 +387,18 @@ def buildDistribWallLaw(t, block, dir, h1, h2, N):
     C._initVars(l, '{CoordinateZ}=0.')
     return l
 
+# Return the first wall in t
+# Return zoneName, window and window direction
+def getAWallWindow(t):
+    for z in Internal.getZones(t):
+        BCs = Internal.getNodesFromName(z, 'BC_t')
+        for b in BCs:
+            if Internal.getValue(b) == 'BCWall':
+                pr = Internal.getNodeFromName(b, 'PointRange')
+                w = Internal.range2Window(pr[1])
+                dir = T.getWinDir(w)
+                return (z[0], w, dir)
+    return None
 
 #======================================================
 # Main

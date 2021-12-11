@@ -1265,14 +1265,18 @@ def createHook(a, function='None'):
         # Retourne un ADT pour les elements
         try: import Post as P
         except: inl = a
-        else:
-            inl, modified = P.growOfEps__(a, 1.e-6, nlayers=2, planarity=False)
-        return converter.registerCells(inl)
+        else: inl, modified = P.growOfEps__(a, 1.e-6, nlayers=2, planarity=False)
+        return converter.registerCells(inl, None, None)
 
     elif function == 'adt': # 1 ADT pour les interpolations
-        return converter.registerCells(a)
+        return converter.registerCells(a, None, None)
 
     else: raise ValueError("function %s is invalid."%function)
+
+def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1)):
+    """Create a hook for cylindrical adt."""
+    print("par ici", flush=True)
+    return converter.registerCells(a, center, axis)
 
 #===============================================================================
 # Fonctions de preconditionement (hook)
