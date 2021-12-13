@@ -676,16 +676,16 @@ def buildTag1__(array, F, varStrings):
     return out
 
 
-def selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E):
+def selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E, cleanConnectivity):
     if varStrings == []: tag = buildTag2__(arrayNodes, F)
     else: tag = buildTag1__(arrayNodes, F, varStrings)
     
     if arrayCenters != []:
-        return post.selectCellsBoth(arrayNodes, arrayCenters, tag, strict, F2E)
+        return post.selectCellsBoth(arrayNodes, arrayCenters, tag, strict, F2E, cleanConnectivity)
     else:
-        return post.selectCells(arrayNodes, tag, strict, F2E)
+        return post.selectCells(arrayNodes, tag, strict, F2E, cleanConnectivity)
 
-def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=None):
+def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=None, cleanConnectivity=True):
     """Select cells in a given array.
     Usage: selectCells(array, F, varStrings, strict)"""
     if isinstance(arrayNodes[0], list):
@@ -706,7 +706,7 @@ def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=Non
             
         return b
     else:
-        ret = selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E)
+        ret = selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E, cleanConnectivity)
 
         if F2E is None and arrayCenters == []:
             return ret[0]
@@ -720,7 +720,7 @@ def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=Non
 # selectCells preserving center flow field solutions
 # an : coordinates and fields in nodes
 # ac : fields in centers 
-def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
+def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None, cleanConnectivity=True):
     """Select cells in a given array following tag.
     Usage: selectCells2(arrayN, arrayC, tag, strict)"""
     if isinstance(an[0], list):
@@ -728,38 +728,34 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
         lenan = len(an)
         lenac = len(ac)
         if ac != []:
-            if lenan != lenac : raise ValueError("selectCells2: Nodes and Centers arrays have different size.")
+            if lenan != lenac: raise ValueError("selectCells2: Nodes and Centers arrays have different size.")
         for i in range(lenan):
             sizetag = tag[i][1].shape[1]
             sizean  = an[i][1].shape[1]
             if sizetag != sizean or loc == 1: # centers
                 if F2E is not None:
-                    (PE2, retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i],F2E)
+                    (PE2, retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i], F2E, cleanConnectivity)
                 else:
-                    (retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i])
+                    (retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i], cleanConnectivity)
             else:
                 if ac == []:
                     if F2E is not None:
-                        (PE2, retn) = post.selectCells(an[i], tag[i], strict, F2E)
+                        (PE2, retn) = post.selectCells(an[i], tag[i], strict, F2E, cleanConnectivity)
                     else:
-                        retn = post.selectCells(an[i], tag[i], strict, None)[0]
+                        retn = post.selectCells(an[i], tag[i], strict, None, cleanConnectivity)[0]
                 else:
                     if F2E is not None:
-                        (PE2, retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, F2E)
+                        (PE2, retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, F2E, cleanConnectivity)
                     else:
-                        (retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, None)
+                        (retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, None, cleanConnectivity)
 
             if ac == []:
-                if F2E is None:
-                    b.append(retn)
-                else:
-                    b.append(PE2, retn)
+                if F2E is None: b.append(retn)
+                else: b.append(PE2, retn)
             else:
-                if F2E is None:
-                    b.append((retn, retc))
-                else:
-                    b.append((PE2,retn, retc))
-                    
+                if F2E is None: b.append((retn, retc))
+                else: b.append((PE2,retn, retc))
+
         return b
     
     else:
@@ -768,38 +764,32 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None):
         if sizean != sizetag or loc == 1: # centers
             if ac == []:
                 if F2E is not None:
-                    (PE2, retn)  = post.selectCellCenters(an, tag, F2E)
+                    (PE2, retn)  = post.selectCellCenters(an, tag, F2E, cleanConnectivity)
                 else:
-                    retn         = post.selectCellCenters(an, tag, None)[0]
+                    retn         = post.selectCellCenters(an, tag, None, cleanConnectivity)[0]
             else:
                 if F2E is not None:
-                    (PE2, retn, retc) = post.selectCellCentersBoth(an, ac, tag, F2E)
+                    (PE2, retn, retc) = post.selectCellCentersBoth(an, ac, tag, F2E, cleanConnectivity)
                 else:
-                    (retn, retc) = post.selectCellCentersBoth(an, ac, tag, None)
+                    (retn, retc) = post.selectCellCentersBoth(an, ac, tag, None, cleanConnectivity)
         else:
             if ac == []:
                 if F2E is not None:
-                    (PE2, retn)  = post.selectCells(an, tag, strict, F2E)
+                    (PE2, retn)  = post.selectCells(an, tag, strict, F2E, cleanConnectivity)
                 else:
-                    retn         = post.selectCells(an, tag, strict, None)[0]
-                    
+                    retn         = post.selectCells(an, tag, strict, None, cleanConnectivity)[0]
             else:
                 if F2E is not None:
-                    (PE2, retn, retc) = post.selectCellsBoth(an, ac, tag, strict, F2E)
+                    (PE2, retn, retc) = post.selectCellsBoth(an, ac, tag, strict, F2E, cleanConnectivity)
                 else:
-                    (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, None)
+                    (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, None, cleanConnectivity)
 
         if ac != []:
-            if F2E is None:
-                return (retn,retc)
-            else:
-                return (PE2, retn,retc)
+            if F2E is None: return (retn,retc)
+            else: return (PE2, retn, retc)
         else:
-            if F2E is None:
-                return retn
-            else:
-                return (PE2, retn)
-  
+            if F2E is None: return retn
+            else: return (PE2, retn)
 
 #==============================================================================
 def selectCells3(a, tag):
@@ -1102,7 +1092,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
     diffmax = 1.e-8*nbTargetPts/max(Delta,1e-6); diff = diffmax+1.
     while count < 100 and Delta > 0.02*nbTargetPts and diff > diffmax:
         eps = 0.5*(epsInf+epsSup)
-        #print 'epsInf =', epsInf, ' | epsSup = ', epsSup
+        #print('epsInf =', epsInf, ' | epsSup = ', epsSup)
         indicator1 = computeIndicatorFieldForBounds(indicator, indicVal, eps/4., 4.*eps)
         res = G.adaptOctree(octreeHexa, indicator1)
         nptsfin = len(res[1][0])

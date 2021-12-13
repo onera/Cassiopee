@@ -1275,7 +1275,6 @@ def createHook(a, function='None'):
 
 def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1)):
     """Create a hook for cylindrical adt."""
-    print("par ici", flush=True)
     return converter.registerCells(a, center, axis)
 
 #===============================================================================

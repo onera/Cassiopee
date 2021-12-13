@@ -508,7 +508,7 @@ Modifying/creating variables
 Solution selection
 -------------------
 
-.. py:function:: Post.selectCells(a, F, ['var1', 'var2'], strict=0)
+.. py:function:: Post.selectCells(a, F, ['var1', 'var2'], strict=0, cleanConnectivity=True)
 
     Select cells with respect to a given criterion.
     If strict=0, the cell is selected if at least one of the cell vertices satisfies the criterion.
@@ -531,6 +531,8 @@ Solution selection
     :type var*: string
     :param strict: selection mode (0 or 1)
     :type strict: integer
+    :param cleanConnectivity: if True, connectivity is cleaned
+    :type cleanConnectivity: True or False
     :rtype: identical to input
 
     *Example of use:*
@@ -560,6 +562,9 @@ Solution selection
     :type tag: string
     :param strict: selection mode (0 or 1)
     :type strict: integer
+    :param cleanConnectivity: if True, connectivity is cleaned
+    :type cleanConnectivity: True or False
+
     :rtype: identical to input
 
     *Example of use:*

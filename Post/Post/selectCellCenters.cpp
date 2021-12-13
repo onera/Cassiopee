@@ -33,8 +33,8 @@ using namespace K_FUNC;
 PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* taga;
-  PyObject* PE;
-  if (!PyArg_ParseTuple(args, "OOO", &array, &taga, &PE)) return NULL;
+  PyObject* PE; E_Int cleanConnectivity;
+  if (!PYPARSETUPLEI(args, "OOOl", "OOOi", &array, &taga, &PE, &cleanConnectivity)) return NULL;
 
   // Extract array
   char* varString; char* eltType;
@@ -320,7 +320,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     if (nntot == 0) fout->reAllocMat(0, nfld);
     else 
     {
-      if (posx > 0 && posy > 0 && posz > 0)
+      if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
         K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, 
                                      *fout, *acn);
     }
@@ -494,7 +494,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     }
     
     // close
-    if (posx > 0 && posy > 0 && posz > 0)
+    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
 
     tpl = K_ARRAY::buildArray(*fout, varString, *cout, 8);
@@ -516,8 +516,8 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
 PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args) 
 {
   PyObject* arrayNodes; PyObject* arrayCenters; PyObject* taga;
-  PyObject* PE;
-  if (!PyArg_ParseTuple(args, "OOOO", &arrayNodes, &arrayCenters, &taga, &PE)) return NULL;
+  PyObject* PE; E_Int cleanConnectivity;
+  if (!PYPARSETUPLEI(args, "OOOOl", "OOOOi", &arrayNodes, &arrayCenters, &taga, &PE, &cleanConnectivity)) return NULL;
 
   // Extract arrayNodes 
   char* varString; char* eltType;
@@ -854,7 +854,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     if (nntot == 0) fout->reAllocMat(0, nfld);
     else 
     {
-      if (posx > 0 && posy > 0 && posz > 0)
+      if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
         K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, 
                                      *fout, *acn);
     }
@@ -1049,7 +1049,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
 
     
     // close
-    if (posx > 0 && posy > 0 && posz > 0)
+    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
     {
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
       

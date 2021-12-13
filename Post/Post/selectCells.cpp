@@ -33,11 +33,11 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 {
   PyObject* arrayNodes;  PyObject* arrayCenters; PyObject* tag;
   PyObject* PE;
-  E_Int strict;
+  E_Int strict; E_Int cleanConnectivity;
   
   if (!PYPARSETUPLEI(args,
-                    "OOOlO", "OOOiO",
-		     &arrayNodes, &arrayCenters, &tag, &strict, &PE))
+                    "OOOlOl", "OOOiOi",
+		     &arrayNodes, &arrayCenters, &tag, &strict, &PE, &cleanConnectivity))
   {
       return NULL;
   }
@@ -68,7 +68,6 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
                     "selectCells: arrayCenters is invalid.");
   	return NULL;
   }
-  
 
   // Extract tag
   char* varString2; char* eltType2;
@@ -447,7 +446,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     if (cprev == 0) an->reAllocMat(0,nfld);
     else 
     {
-      if (posx > 0 && posy > 0 && posz > 0)
+      if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
         K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
     }
     tpl  = K_ARRAY::buildArray(*an,    varString,  *acn, elt, eltType);
@@ -497,7 +496,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     FldArrayI& cn = *acn; cn.malloc(0, 1);
   
     RELEASESHAREDB(res2, tag, f2, cnp2);
-    if (posx > 0 && posy > 0 && posz > 0)
+    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
     tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
     tplc = tpl ;
@@ -791,7 +790,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 
    
     // close
-    if (posx > 0 && posy > 0 && posz > 0)
+    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
     
     tpl  = K_ARRAY::buildArray(*fout,   varString, *cout, 8);
@@ -912,11 +911,11 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* tag;
   PyObject* PE;
-  E_Int strict;
+  E_Int strict; E_Int cleanConnectivity;
   
   if (!PYPARSETUPLEI(args,
-                    "OOlO", "OOiO",
-                    &array, &tag, &strict, &PE))
+                    "OOlOl", "OOiOi",
+                    &array, &tag, &strict, &PE, &cleanConnectivity))
   {
       return NULL;
   }
@@ -1288,7 +1287,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     if (cprev == 0) an->reAllocMat(0,nfld);
     else 
     {
-      if (posx > 0 && posy > 0 && posz > 0)
+      if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
         K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
     }
     tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
@@ -1335,7 +1334,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     FldArrayI& cn = *acn; cn.malloc(0, 1);
   
     RELEASESHAREDB(res2, tag, f2, cnp2);
-    if (posx > 0 && posy > 0 && posz > 0)
+    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
     tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
     delete an; delete acn;
@@ -1610,7 +1609,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     }
 
     // close
-    if (posx > 0 && posy > 0 && posz > 0)
+    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
     tpl = K_ARRAY::buildArray(*fout, varString, *cout, 8);
     delete fout; delete cout;

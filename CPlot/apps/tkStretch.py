@@ -307,7 +307,7 @@ def enforce():
 #==============================================================================
 def setMeshWidth(event=None):
     val = WIDGETS['slider'].get()
-    VARS[6].set('Width of mesh concerned with remeshing (%.2f %% of points).'%(val / 100.))
+    VARS[6].set('Width of mesh concerned with remeshing (%.2f %% of points).'%val)
 
 #==============================================================================
 # Create app widgets

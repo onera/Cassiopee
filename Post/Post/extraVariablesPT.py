@@ -651,7 +651,7 @@ def _extractYPlus(zp, teff):
     utau = C.getValue(zeff, 'utau', n)
     mu = C.getValue(zeff, 'ViscosityMolecular', n)
     ro = C.getValue(zeff, 'Density2', n)
-    print('found', ro, utau, mu, n)
+    print('INFO: found wall point ro=%g, utau=%g, mu=%g, index=%d\n'%(ro, utau, mu, n))
     C._initVars(zp, '{yPlus}={yw} * %20.16g * %20.16g / %20.16g'%(ro,utau,mu))
     C._initVars(zp, '{yPlus}=log10({yPlus})')
     C._initVars(zp, '{uPlus}={VelocityMagnitude}/%20.16g'%utau)
