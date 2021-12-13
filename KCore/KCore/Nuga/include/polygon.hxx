@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sï¿½m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_POLYGON_HXX
 #define NUGA_POLYGON_HXX
@@ -173,7 +173,7 @@ struct aPolygon : public K_MESH::Polygon
 
     if (dmin2 > EPSILON*EPSILON) return false; // none coincident node
 
-    for (int n = 1; n < nnodes; ++n)
+    for (E_Int n = 1; n < nnodes; ++n)
     {
       const double* pt  = m_crd.col(n);
       const double* rpt = m_crd.col((n0 + n) % nnodes);

@@ -30,7 +30,7 @@ BAR_BooleanOperator::~BAR_BooleanOperator(void)
 BAR_BooleanOperator::BAR_BooleanOperator
 (const K_FLD::FloatArray& coord1, const K_FLD::IntArray& cB1,
  const K_FLD::FloatArray& coord2, const K_FLD::IntArray& cB2,
- E_Float tolerance):parent_type(coord1, cB1, coord2, cB2, tolerance, new BAR_Conformizer<2>()), _dT3(0)
+ E_Float tolerance):parent_type(coord1, cB1, coord2, cB2, tolerance, new BAR_Conformizer<3>()), _dT3(0)
 {
   _normal[0]=_normal[1]=_normal[2]=0.;
 }
