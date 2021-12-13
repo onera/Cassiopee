@@ -176,7 +176,7 @@ struct aPolygon : public K_MESH::Polygon
     for (E_Int n = 1; n < nnodes; ++n)
     {
       const double* pt  = m_crd.col(n);
-      const double* rpt = m_crd.col((n0 + n) % nnodes);
+      const double* rpt = rhs.m_crd.col((n0 + n) % nnodes);
 
       double d2 = (pt[0] - rpt[0])*(pt[0] - rpt[0]) + (pt[1] - rpt[1])*(pt[1] - rpt[1]) + (pt[2] - rpt[2])*(pt[2] - rpt[2]);
       if (d2 > EPSILON*EPSILON) return false;

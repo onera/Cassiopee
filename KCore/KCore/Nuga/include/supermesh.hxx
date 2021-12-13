@@ -81,8 +81,9 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
       loc1->get_candidates(ae0, ae0.m_crd, cands, 1, RTOL); //return as 1-based
       if (cands.empty()) continue;
 
-#ifdef XMATCH_DBG
-      medith::write("cands", m1.crd, m1.cnt, &cands, 1);
+#ifdef SUPERMESH_DBG
+      //medith::write("cands", m1.crd, m1.cnt, &cands, 1);
+      //medith::write("ae0", ae0.m_crd, &ae0.m_nodes[0], ae0.m_nodes.size(), ae0.shift());
 #endif
 
       for (n = 0; n < cands.size(); ++n)
@@ -108,6 +109,10 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double RTOL, std::vector<E_Int
             xmi[id].add(ae0);
             anc0i[id].push_back(i);
             anc1i[id].push_back(i2);
+
+#ifdef SUPERMESH_DBG
+            //medith::write("ae1", ae1.m_crd, &ae1.m_nodes[0], ae1.m_nodes.size(), ae1.shift());
+#endif
             break; // pure match found on a conformal mesh => no more candidate to check
           }
         }
