@@ -104,6 +104,16 @@ public:
   
   ///
   static bool equal(const E_Int* p, const E_Int* q, E_Int n, bool permut_accepted, bool strict_orient);
+
+  static bool check_in_range(const E_Int*p, E_Int sz, E_Int minval, E_Int maxval)
+  {
+    for (size_t k = 0; k < sz; ++k)
+    {
+      if (p[k] < minval) return false;
+      if (p[k] > maxval) return false;
+    }
+    return true;
+  }
   
   ///
   template<typename VecDec>

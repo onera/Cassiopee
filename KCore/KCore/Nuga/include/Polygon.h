@@ -498,6 +498,9 @@ E_Int Polygon::triangulate
    }*/
     default: err = t.run(coord, nodes, nb_nodes, shft, connectT3, neighbors, do_not_shuffle, improve_quality);break; //indexing to -1 is done inside
   }
+
+  if (! err) // check that the triangulation as really created valid triangles
+    err = !K_CONNECT::IdTool::check_in_range(connectT3.begin(), 3 * connectT3.cols(), 0, coord.cols() - 1);
   
   return err;
 }
@@ -513,6 +516,15 @@ E_Int Polygon::triangulate
   _triangles = new E_Int[ntris*3];
     
   E_Int err = K_MESH::Polygon::triangulate_inplace(dt, crd, _nodes, _nb_nodes, -_shift/*index start*/, _triangles, false/*do_not_shuffle*/, false/*improve_quality*/);
+
+  if (!err) // check that the triangulation as really created valid triangles
+    err = !K_CONNECT::IdTool::check_in_range(_triangles, ntris * 3, 0, crd.cols() - 1);
+
+  if (err)
+  {
+    delete _triangles;
+    _triangles = nullptr;
+  }
 
   return err;
   }

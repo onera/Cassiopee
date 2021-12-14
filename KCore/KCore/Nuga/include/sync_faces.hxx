@@ -200,6 +200,16 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
       double ps = NUGA::dot<3>(n, nc);
       if (ps > -0.99) continue;
 
+      /*if (i == 132460 || cand == 132460)
+      {
+        std::ostringstream o;
+        o << "face_" << i;
+        medith::write(o.str().c_str(), crdR, m.cnt, i);
+        o.str("");
+        o << "faceC_" << cand;
+        medith::write(o.str().c_str(), m.crd, m.cnt, cand);
+      }*/
+
       
       // check for fully-in case : is face fully inside faceC ?
       bool is_in1{ false };
@@ -249,8 +259,6 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
         continue;
       }
 
-     
-
       // one inside another => surface test
       
       double s2 = faceC.surface<3>(m.crd);
@@ -272,10 +280,37 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
     }
   }
 
-  // FILTER : ONLY ONE FACE PER PH PER ITER
+  // LIMITATION : the following is here to avoid mesh corruption
+  // It means that input is not processable by this algo (some agglomeration might have occured that breaks the pairing
+  // check that surfaces are matching
+
   std::map<int, std::vector<int>> tmp;
+
+  for (auto i : loc_face_to_bits)
+  {
+    int master = (i.first < 0) ? -(i.first+1) : i.first;
+
+    auto face = m.element(master);
+    double s1 = face.surface<3>(crdR);
+    double s2{ 0. };
+    for (size_t k = 0; k < i.second.size(); ++k)
+    {
+      int bitid = (i.second[k] < 0) ? -(i.second[k] + 1) : i.second[k];
+      auto fb = m.element(bitid);
+      s2 += fb.surface<3>(m.crd);
+    }
+
+    double err = ::fabs((s1 - s2) / s2);
+    if (err < 1.e-2)
+      tmp.insert(std::make_pair(i.first, i.second));
+  }
+
+  loc_face_to_bits = tmp;
+
+  // FILTER : ONLY ONE FACE PER PH PER ITER
   std::set<int> involved_phs;
 
+  tmp.clear();
   for (auto ii : loc_face_to_bits)
   {
     int id = ii.first;
@@ -288,8 +323,6 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   }
 
   loc_face_to_bits = tmp;
-
-  
 
   //make it reciprocal (ONLY IF bits belong to the same cell)
   std::map<int, std::vector<int>> tmp1;
