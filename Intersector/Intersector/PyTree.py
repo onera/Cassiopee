@@ -400,9 +400,7 @@ def updatePointLists(z, zones, oids):
       C._deleteZoneBC__(z)
       C._deleteGridConnectivity__(z)
       return
-    #print('updateBCPointLists1')
     updateBCPointLists1(z, oids)
-    #print('updateJoinsPointLists')
     updateJoinsPointLists1(z, zones, oids)
 
 def updateBCPointLists1(z, oids):
@@ -417,7 +415,6 @@ def updateBCPointLists1(z, oids):
     if ptLists == []: return
 
     # recalcul des pointlist
-    #print('recompute point lists')
     ptLists = XOR.updatePointLists(oids, ptLists)
 
     i=0
@@ -675,13 +672,127 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
     #print("nb of pgs to pass : %s" %(len(extrudepgs)))
 
-    res = XOR.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs, simplify_pgs, hard_mode)
-    
-    is_zone_list  = 0
-    if (len(res) != 4) : is_zone_list = 1
-    elif (res[3] != 'NGON' and res[3] != 'TRI' and res[3] != 'BAR') : is_zone_list = 1
+    res = XOR.booleanUnionWithHisto(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs, simplify_pgs, hard_mode)
 
-    if (is_zone_list == 0) : return C.convertArrays2ZoneNode('union', [res])
+    is_zone_list  = 0
+    if (len(res) != 5) : is_zone_list = 1  
+    elif (res[0][3] != 'NGON' and res[0][3] != 'TRI' and res[0][3] != 'BAR') : is_zone_list = 1
+    if (len(res) == 1) : is_zone_list = 2 # Not NGON and not DEBUG 
+    
+    if is_zone_list  == 0:
+        
+        phnids1 = res[1]
+        phnids2 = res[2]
+        pgoids1 = res[3] # warning pgoids (not pgnids)
+        pgoids2 = res[4] # warning pgoids (not pgnids)
+        
+        # Restore BCs
+        # ===========
+        newz    = C.convertArrays2ZoneNode('union', [res[0]])
+        
+        BC1s    = Internal.getNodesFromType(a1, "BC_t")
+        BC2s    = Internal.getNodesFromType(a2, "BC_t")
+
+        if (BC1s != []) or (BC2s != []):
+            zoneBC  = Internal.createUniqueChild(newz, "ZoneBC", 'ZoneBC_t')
+            zs      = Internal.getZones(newz)
+            zs      = zs[0]
+
+            # Check name to prevent collision 
+            name1s  = []
+            for bc1 in BC1s:
+                name1s.append(bc1[0])
+                
+            name2s  = []
+            for bc2 in BC2s:
+                name2s.append(bc2[0])
+
+            for name1 in name1s:
+                if name1 in name2s:
+                    BC1s = Internal.renameNode(BC1s, name1, name1+'b')
+                    
+            # Update pointList
+            for bc1 in BC1s:
+                # copy to avoid modif input tree
+                bc  = Internal.copyTree(bc1) 
+                Internal._addChild(zoneBC, bc)
+            
+            updatePointLists(zs, newz, pgoids1) 
+
+            newBC1s = Internal.getNodesFromType(newz, "BC_t")
+            
+            Internal.rmNode(newz, zoneBC)
+            
+            zoneBC  = Internal.createUniqueChild(newz, "ZoneBC", 'ZoneBC_t')
+            for bc2 in BC2s:
+                # copy to avoid modif input tree
+                bc = Internal.copyTree(bc2)
+                Internal._addChild(zoneBC, bc)
+            
+            updatePointLists(zs, newz, pgoids2)
+            
+            Internal._addChild(zoneBC, newBC1s)
+
+        # Restore fields
+        # ==============
+        # a. Build varnames list 
+        varnames = []
+        
+        cont1 = Internal.getNodeFromName(a1, Internal.__FlowSolutionCenters__)
+        cont2 = Internal.getNodeFromName(a2, Internal.__FlowSolutionCenters__)
+        cont  = [cont1,cont2]
+
+        flds = None
+
+        if cont1 is not None and cont2 is not None:
+            flds = Internal.getNodesFromType1(cont, 'DataArray_t')
+        elif cont1 is not None:
+            flds = Internal.getNodesFromType1(cont1, 'DataArray_t')
+        elif cont2 is not None:
+            flds = Internal.getNodesFromType1(cont2, 'DataArray_t')
+
+        if flds is not None:
+            for fld in flds:
+                if fld[0] not in varnames:
+                    varnames.append(fld[0])
+                      
+        # b. Build new var arrays 
+        ncells  = C.getNCells(newz)
+        nsize1  = len(phnids1) 
+        nsize2  = len(phnids2) 
+ 
+        for varname in varnames:
+            varnew  = numpy.zeros(ncells, numpy.float64)
+            # Operande 1
+            # ----------
+            if cont1 is not None:
+                varnode = Internal.getNodeFromName(cont1, varname)
+                if varnode is not None:
+                    for k in range(nsize1):
+                        ik = phnids1[k]
+                        if ik != -1:
+                            varnew[ik] = varnode[1][k]
+            # Operande 2
+            # ----------
+            if cont2 is not None:
+                varnode = Internal.getNodeFromName(cont2, varname)
+                if varnode is not None:
+                    for k in range(nsize2):
+                        ik = phnids2[k]
+                        if ik != -1:
+                            varnew[ik] = varnode[1][k]
+                            
+            # Create new var
+            # --------------
+            C._initVars(newz, 'centers:'+varname, 0)
+            contnew    = Internal.getNodeFromName(newz, Internal.__FlowSolutionCenters__)
+            varnode    = Internal.getNodeFromName(contnew, varname)
+            varnode[1] = varnew
+                      
+        return newz
+
+    if is_zone_list  == 2:
+        return( C.convertArrays2ZoneNode('union', [res[0]]) )
 
     # debug : mutli zones
     ozones = []

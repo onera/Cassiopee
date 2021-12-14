@@ -72,10 +72,32 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         a1 = G.close(a1); a2 = G.close(a2)
       except: pass
       c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0)
+      return G.close(c[0])
+    else: 
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode)
+      return c[0] #close is done inside
+
+def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+    """Computes the union between two closed-surface or two volume meshes.
+    Usage for surfaces or bars: booleanUnion(a1, a2, tol)
+    Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
+    if a1[3] != 'NGON' and a2[3] != 'NGON':
+      try:
+        import Converter
+        a1 = Converter.convertArray2Tetra(a1)
+        a2 = Converter.convertArray2Tetra(a2)
+        a1 = G.close(a1); a2 = G.close(a2)
+      except: pass
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0)
       return G.close(c)
     else: 
       c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode)
       return c #close is done inside
+
+
+
+
+  
 
 def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_qual=False, simplify_pgs = True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two volume meshes.

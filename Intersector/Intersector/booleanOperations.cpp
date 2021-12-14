@@ -19,9 +19,9 @@
 
 // Some boolean operations like intersection, union, minus...
 //#define FLAG_STEP
-//#define DEBUG_W_PYTHON_LAYER
+// #define DEBUG_W_PYTHON_LAYER
 //#define DEBUG_MESHER
-//#define DEBUG_BOOLEAN
+// #define DEBUG_BOOLEAN
 
 # include <string>
 # include <sstream> 
@@ -445,7 +445,9 @@ PyObject* call_union(PyObject* args)
   bool ok = getUnionArgs(args, pos1, connect1, pos2, connect2, tolerance, 
         preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, ghost_pgs, simplify_pgs, hard_mode, eltType, varString);
   if (!ok) return NULL;
-  PyObject* tpl = NULL;
+  PyObject* tpl  = NULL;
+  PyObject* tplph0 = NULL, *tplph1 = NULL;
+  PyObject* tplpg0 = NULL, *tplpg1 = NULL;
   E_Int err(0), et=-1;
 
 #ifdef DEBUG_W_PYTHON_LAYER
@@ -516,6 +518,120 @@ PyObject* call_union(PyObject* args)
 #ifndef DEBUG_W_PYTHON_LAYER
     crds.push_back(crd);
     cnts.push_back(cnt);
+
+    ngon_type & ngo = *BO._ngoper;
+       
+    E_Int nb_phs = ngo.PHs.size();
+    E_Int nb_pgs = ngo.PGs.size();
+
+    std::vector<E_Int> phoids0(nb_phs);
+    std::vector<E_Int> phoids1(nb_phs);
+    std::ostringstream o;
+    
+    for (E_Int i=0; i < nb_phs; ++i)
+    {
+	
+      E_Int ancPH1 = ngo.PHs._ancEs(0,i);
+      E_Int ancPH2 = ngo.PHs._ancEs(1,i);
+      
+      assert (i >=0 && i < ngo.PHs._ancEs.cols());
+      
+      phoids0[i] = ancPH1;
+      phoids1[i] = ancPH2;
+      
+      assert (i >=0 && i < phoids0.size());
+      assert (i >=0 && i < phoids1.size());
+      
+      
+      if (ancPH1 == E_IDX_NONE & ancPH2 == E_IDX_NONE)
+      {
+    	o << "Union. ERROR: Cell " << i << " without ancestor." << std::endl; 
+    	PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    	err = 1;
+      }
+      
+      if (ancPH1 != E_IDX_NONE & ancPH2 != E_IDX_NONE)
+      {
+    	o << "Union. Warning: 2 ancestors for one cell, not handled yet.";
+    	PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    	err = 1;
+      }
+      
+    }
+
+    // Reverse indirection
+    std::vector<E_Int> phnids0;
+    std::vector<E_Int> phnids1;
+    
+    K_CONNECT::IdTool::reverse_indirection(phoids0, phnids0);
+
+    for (E_Int i=0; i < phnids0.size(); ++i)
+    {
+      if (phnids0[i] == E_IDX_NONE){ phnids0[i] = -1 ;}
+    }
+    
+    K_CONNECT::IdTool::reverse_indirection(phoids1, phnids1);
+
+    for (E_Int i=0; i < phnids1.size(); ++i)
+    {
+      if (phnids1[i] == E_IDX_NONE){ phnids1[i] = -1 ;}
+    }
+    
+    tplph0 = K_NUMPY::buildNumpyArray(&phnids0[0], phnids0.size(), 1, 0);
+    tplph1 = K_NUMPY::buildNumpyArray(&phnids1[0], phnids1.size(), 1, 0);
+
+    
+    std::vector<E_Int> pgoids0(nb_pgs);
+    std::vector<E_Int> pgoids1(nb_pgs);
+
+    K_FLD::IntArray F2E ; 
+    ngo.build_noF2E(F2E);
+        
+    for (E_Int i=0; i < nb_pgs; ++i)
+    {      
+      assert (i >=0 && i < ngo.PGs._ancEs.cols());
+      
+      E_Int ancPG1 = ngo.PGs._ancEs(0,i);
+      E_Int ancPG2 = ngo.PGs._ancEs(1,i);
+      
+      assert (i >=0 && i < pgoids0.size());
+      assert (i >=0 && i < pgoids1.size());
+      
+      pgoids0[i] = ancPG1;
+      pgoids1[i] = ancPG2;
+
+      if (ancPG1 == E_IDX_NONE & ancPG2 == E_IDX_NONE)
+      {
+    	std::ostringstream o;
+    	o << "Union. ERROR: Face " << i << " without ancestor." << std::endl;
+    	PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    	return false;	  
+      }
+      
+      if (ancPG1 != E_IDX_NONE & ancPG2 != E_IDX_NONE)
+      {
+    	std::ostringstream o;
+    	o << "Union. Warning: Face " << i << " has 2 ancestors. ancPG1 = " << ancPG1 << " and ancPG2 =" <<  ancPG2 << std::endl;
+    	PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    	return false;
+      }
+
+      // Detect interior faces 
+      E_Int elt1 = F2E(0,i);
+      E_Int elt2 = F2E(1,i);
+      
+      if ( elt1 != E_IDX_NONE & elt2 != E_IDX_NONE )
+      {
+	pgoids0[i] = E_IDX_NONE ; 
+	pgoids1[i] = E_IDX_NONE ; 
+      }
+ 
+    }
+
+    tplpg0 = K_NUMPY::buildNumpyArray(&pgoids0[0], pgoids0.size(), 1, 0);
+    tplpg1 = K_NUMPY::buildNumpyArray(&pgoids1[0], pgoids1.size(), 1, 0);
+    
+
 #else //DEBUG_W_PYTHON_LAYER
     {
      
@@ -594,20 +710,42 @@ PyObject* call_union(PyObject* args)
     }
 #endif
 
-  }
+  } // strcmp(eltType, "NGON") == 0 
   
 #ifndef DEBUG_W_PYTHON_LAYER
   {
-  	if (err != 1)
-  	  tpl = K_ARRAY::buildArray(crds[0], varString, cnts[0], et, eltType2, false);
-  	else
+    if (err != 1)
+    {
+      tpl = K_ARRAY::buildArray(crds[0], varString, cnts[0], et, eltType2, false);
+    }
+    else
     {
       std::ostringstream o;
       o << "Union : failed to proceed.";
       PyErr_SetString(PyExc_TypeError, o.str().c_str());
     }
-  	
-  	return tpl;
+
+    PyObject* l   = PyList_New(0);
+
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    if (strcmp(eltType, "NGON") == 0)
+    {  
+      PyList_Append(l, tplph0);
+      Py_DECREF(tplph0);
+    
+      PyList_Append(l, tplph1);
+      Py_DECREF(tplph1);
+    
+      PyList_Append(l, tplpg0);
+      Py_DECREF(tplpg0);
+    
+      PyList_Append(l, tplpg1);
+      Py_DECREF(tplpg1);
+    }
+    
+    return l;
   }
 #else
   {
@@ -683,11 +821,12 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
         delete crd1s[i];
         delete cnt1s[i];
       }
+      PyErr_SetString(PyExc_TypeError, "booleanUnionMZ : not NGON elts.");
       return NULL;
     }
 
-    //std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
-    //std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
+    // std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
+    // std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
   }
   for (E_Int i=0; i < nb_zones2; ++i)
   {
@@ -702,11 +841,12 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
         delete crd2s[i];
         delete cnt2s[i];
       }
+      PyErr_SetString(PyExc_TypeError, "booleanUnionMZ : not NGON elts.");
       return NULL;
     }
 
-    //std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
-    //std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
+    // std::cout << "zone sizes : " << crd2s[i]->cols() << " points" << std::endl;
+    // std::cout << "zone sizes : " << cnt2s[i]->cols() << " cells" << std::endl;
   }
 
   // join and close as 2 operands but keeping track of zones
@@ -734,6 +874,14 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     crd2.pushBack(*crd2s[i]);
   }
 
+  // std::vector<E_Int> glo1_pgnids;
+  // std::vector<E_Int> glo2_pgnids;
+  // std::vector<E_Int> glo1_phnids;
+  // std::vector<E_Int> glo2_phnids;
+    
+  // ngon_type::clean_connectivity(ng1, crd1, -1, closetol, true, &glo1_pgnids, &glo1_phnids);
+  // ngon_type::clean_connectivity(ng2, crd2, -1, closetol, true, &glo2_pgnids, &glo2_phnids);
+  
   ngon_type::clean_connectivity(ng1, crd1, -1, closetol);
   ngon_type::clean_connectivity(ng2, crd2, -1, closetol);
 
@@ -765,7 +913,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   K_FLD::IntArray cnt;
   K_FLD::FloatArray crd;
   E_Int err=BO.Union(crd, cnt, bo_t::eInterPolicy::SOLID_RIGHT, bo_t::eMergePolicy::PRESERVE_RIGHT);
-  
+
   if (err) return NULL;
 
   ngon_type & ngo = *BO._ngoper;
@@ -912,7 +1060,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     delete crd2s[i];
     delete cnt2s[i];
   }
-
+ 
   return l;
 }
 

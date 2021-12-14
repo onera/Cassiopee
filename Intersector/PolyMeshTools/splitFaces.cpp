@@ -55,14 +55,14 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
   // WARNING : oids might have IDX_NONE (created entities, e.g. internal faces with adaptCells) and is 0-based 
   E_Int nb_pgs = 0;
   for (size_t i=0; i < sz; ++i)
-  {
+  {    
     if (oids[i] == IDX_NONE) continue;
     nb_pgs = std::max(nb_pgs, oids[i]+1);
   }
-
+  
   ngon_unit split_graph;
   K_CONNECT::IdTool::reverse_indirection(nb_pgs,  oids, sz, split_graph);
-
+  
   PyObject *l(PyList_New(0)), *tpl;
   std::vector<E_Int> new_ptl;
 
@@ -78,18 +78,28 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
 
     if (split_graph.size() != 0)
     {
+      
     for (E_Int j=0; j < ptl_sz; ++j)
     {
       E_Int oid = out(j,1)-1;
-            
-      E_Int nb_bits = split_graph.stride(oid);
-      const E_Int* pbits = split_graph.get_facets_ptr(oid);
 
-      if (nb_bits == 1 && pbits[0] == E_IDX_NONE)  // gone
-        continue;
-      else
-        for (E_Int u=0; u<nb_bits; ++u )
-          new_ptl.push_back(pbits[u]+1);
+      // need to check in case last face has disappeared
+      // and size of split_graph is smaller than number of faces
+      if ( oid < split_graph.size() )
+      {
+      
+	E_Int nb_bits = split_graph.stride(oid);
+	const E_Int* pbits = split_graph.get_facets_ptr(oid);
+	// printf("pbits : %d \n", pbits );
+
+	if (nb_bits == 1 && pbits[0] == E_IDX_NONE)  // gone
+	  continue;
+	else
+	  for (E_Int u=0; u<nb_bits; ++u )
+	  {
+	    new_ptl.push_back(pbits[u]+1);
+	  }
+      }
     }
     }
 
@@ -105,7 +115,6 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
    return l;
   
 }
-
 
 //=============================================================================
 /* Triangulates exterior faces (any Polygon). */
