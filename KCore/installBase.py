@@ -151,7 +151,7 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'papin': [ 'Cluster MBDA (MBDA)',
+'AA': [ 'Cluster AA',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
@@ -167,7 +167,7 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'eiffel': [ 'Machine MBDA2 (MBDA)',
+'AA2': [ 'Machine AA2',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
@@ -612,6 +612,22 @@ True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
+'topaze': [ 'CCRT machine Topaze',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=32'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionAllIbpaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],

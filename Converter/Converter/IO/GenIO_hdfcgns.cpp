@@ -85,7 +85,7 @@ hid_t K_IO::GenIOHdf::ADF_to_HDF_datatype(const char *tp)
 int HDF_Get_Attribute_As_Integer(hid_t nodeid, const char *name, int *value)
 {
   hid_t aid; herr_t status;
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   aid = H5Aopen_name(nodeid, name);
 #else
   aid = H5Aopen_by_name(nodeid, ".", name, H5P_DEFAULT, H5P_DEFAULT);
@@ -102,7 +102,7 @@ char *HDF_Get_Attribute_As_String(hid_t nodeid, const char *name, char *value)
 {
   hid_t aid, tid;
   value[0] = '\0';
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   aid = H5Aopen_name(nodeid, name);
 #else
   aid = H5Aopen_by_name(nodeid, ".", name, H5P_DEFAULT, H5P_DEFAULT);
@@ -124,7 +124,7 @@ char *HDF_Get_Attribute_As_String(hid_t nodeid, const char *name, char *value)
 int HDF_Set_Attribute_As_String(hid_t nodeid, const char *name, char *value)
 {
   hid_t aid, tid;
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   aid = H5Aopen_name(nodeid, name);
 #else
   aid = H5Aopen_by_name(nodeid, ".", name, H5P_DEFAULT, H5P_DEFAULT);
@@ -2214,7 +2214,7 @@ hid_t K_IO::GenIOHdf::setSingleR4(hid_t node, float data)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2237,7 +2237,7 @@ hid_t K_IO::GenIOHdf::setSingleR8(hid_t node, double data)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2260,7 +2260,7 @@ hid_t K_IO::GenIOHdf::setSingleI4(hid_t node, int data)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2283,7 +2283,7 @@ hid_t K_IO::GenIOHdf::setSingleI8(hid_t node, E_LONG data)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2309,7 +2309,7 @@ hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, char* label)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, label, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2332,7 +2332,7 @@ hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, int idim, int* idims)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2356,7 +2356,7 @@ hid_t K_IO::GenIOHdf::setArrayI1(hid_t node, char* data, int idim, int* idims)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2381,7 +2381,7 @@ hid_t K_IO::GenIOHdf::setArrayI4(hid_t node, int* data, int idim, int* idims)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2406,7 +2406,7 @@ hid_t K_IO::GenIOHdf::setArrayI8(hid_t node, E_LONG* data, int idim, int* idims)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2432,7 +2432,7 @@ hid_t K_IO::GenIOHdf::setArrayR4(hid_t node, float* data,
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -2458,7 +2458,7 @@ hid_t K_IO::GenIOHdf::setArrayR8(hid_t node, double* data,
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,8,0)
+#if H5_VERSION_LE(1,18,0)
   hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
