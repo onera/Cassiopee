@@ -235,7 +235,6 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
           ip = imin2 + m[0+3*0]*(i-imin)+m[0+3*1]*(j-jmin)+m[0+3*2]*(k-kmin);
           jp = jmin2 + m[1+3*0]*(i-imin)+m[1+3*1]*(j-jmin)+m[1+3*2]*(k-kmin);
           kp = kmin2 + m[2+3*0]*(i-imin)+m[2+3*1]*(j-jmin)+m[2+3*2]*(k-kmin);
-
           ind = ip + jp*ni2 + kp*ni2*nj2;
           p[ii] = ind; ii++;
         }
@@ -247,7 +246,7 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
       size = (kmax-kmin+1)*(imax-imin+1);
       q = K_NUMPY::buildNumpyArray(size, 1, 1);
       E_Int* p = K_NUMPY::getNumpyPtrI(q);
-      E_Int j = jmin-1;
+      //E_Int j = jmin-1;
       for (E_Int k = kmin-1; k < kmax; k++)
       {
         for (E_Int i = imin-1; i < imax; i++)

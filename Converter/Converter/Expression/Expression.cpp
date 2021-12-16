@@ -1,3 +1,22 @@
+/*    
+    Copyright 2013-2022 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -82,7 +101,7 @@ namespace {
         std::vector<double>                                  scal_variables;
         // Preparation de la table des symboles :
         // .......................................
-        auto &st          = Expression::symbol_table::get();
+        //auto &st          = Expression::symbol_table::get();
         auto  symbol_kwds = list_of_symbols();
 
         // Recherche du nombre d'arguments passes pour l'expression avec verification
@@ -322,7 +341,7 @@ namespace {
         std::vector<double>                                  scal_variables;
         // Preparation de la table des symboles :
         // .......................................
-        auto &st          = Expression::symbol_table::get();
+        //auto &st          = Expression::symbol_table::get();
         auto  symbol_kwds = list_of_symbols();
 
         // Recherche du nombre d'arguments passes pour l'expression avec verification
@@ -496,8 +515,8 @@ namespace {
             }
         }
         // On cherche tout d'abord si la variable demandee existe dans le array :
-        E_Int    posvar = K_ARRAY::isNamePresent((char*)outName, varString);
-        E_Int res2;
+        E_Int posvar = K_ARRAY::isNamePresent((char*)outName, varString);
+        E_Int res2=0;
         if (posvar == -1) // Ce nom n'existe pas, on rajoute le champs a l'array
         {
             // On va prendre le premier argument de args  comme modele
@@ -543,7 +562,7 @@ namespace {
         std::vector<double>                                  scal_variables;
         // Preparation de la table des symboles :
         // .......................................
-        auto &st          = Expression::symbol_table::get();
+        //auto &st          = Expression::symbol_table::get();
         auto  symbol_kwds = list_of_symbols();
 
         // Recherche du nombre d'arguments passes pour l'expression avec verification

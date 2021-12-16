@@ -324,8 +324,13 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
   HDF_Get_Attribute_As_String(node, L3S_DTYPE, _dtype);
   if (strcmp(_dtype, "LK") == 0)
   {
+#if H5_VERSION_LE(1,12,0) // CB2check
     H5G_stat_t sb; /* Object information */
     herr_t herr = H5Gget_objinfo(node, L3S_LINK, (hbool_t)0, &sb);
+#else
+    H5L_info_t sb; /* Object information */
+    herr_t herr = H5Lget_info(node, L3S_LINK, &sb, H5P_DEFAULT);
+#endif
     if (herr < 0)
     {
       printf("Error: hdfcgnsread: error opening link file.\n");
@@ -471,7 +476,6 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
 
   /* Hdf id */
   hid_t      tid;
-  H5G_stat_t sb; /* Object information */
   herr_t     herr;
   /* ***************************************************** */
 
@@ -484,7 +488,13 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
   // printf("K_IO::GenIOHdf::createNodePartialContigous lk=[%s] \n", _dtype);
   if (strcmp(_dtype, "LK") == 0)
   {
+#if H5_VERSION_LE(1,12,0) // CB2check
+    H5G_stat_t sb;
     herr = H5Gget_objinfo(node, L3S_LINK, (hbool_t)0, &sb);
+#else
+    H5L_info_t sb; 
+    herr = H5Lget_info(node, L3S_LINK, &sb, H5P_DEFAULT);
+#endif
     if (herr < 0)
     {
       printf("Error: hdfcgnsread: error opening link file.\n");
