@@ -138,16 +138,21 @@ E_Int K_OCC::CADviaOCC::compute_h_sizing(K_FLD::FloatArray& coords, std::vector<
   
   _Lmin = NUGA::FLOAT_MAX;
   _Lmean = _Lmax = 0.;
+  int nb_valid_edge{ 0 };
   
   for (E_Int i=1; i <= nb_edges; ++i)
   {
-    __h_sizing(TopoDS::Edge(_edges(i)), Ls[i]);
+    int er = __h_sizing(TopoDS::Edge(_edges(i)), Ls[i]);
+
+    if (er == 1) continue; // i-th edge is degen
+
     _Lmin = std::min(Ls[i], _Lmin);
     _Lmax = std::max(Ls[i], _Lmax);
     _Lmean += Ls[i];
+    ++nb_valid_edge;
   }
   
-  _Lmean /= nb_edges;
+  _Lmean /= nb_valid_edge;
   
 #ifdef DEBUG_CAD_READER
   std::cout << "Lmin/Lmean/Lmax : " << _Lmin << "/" << _Lmean << "/" << _Lmax << std::endl;
@@ -219,8 +224,7 @@ E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err
   E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geom_adap, u0, u1);
   
   E_Int nb_pts_defl = 0;
-  E_Float dmax = chordal_err * L;
-  __eval_nb_points(C0, u0, u1, dmax, nb_pts_defl);
+  __eval_nb_points(C0, u0, u1, chordal_err, nb_pts_defl);
   nb_pts_defl += 1; //give the number of split => +1 to have the nb of points
   nb_pts_defl = std::max(nb_pts_defl, 3); // at least 3 points
   nb_points = std::max(nb_pts_defl, nb_points); // max des nbre de pts
@@ -228,11 +232,15 @@ E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err
 }
 
 // Calcul le nbre de pts pour avoir la bonne erreur de corde sur la courbe C
-E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points)
+E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float chordal_err, E_Int& nb_points)
 {
+
+  GeomAdaptor_Curve geom_adap(C.Curve()); // Geometric Interface <=> access to discretizations tool
+  E_Float L = (E_Float)GCPnts_AbscissaPoint::Length(geom_adap, u0, u1);
+
   E_Float dm;
   __eval_chordal_error(C, u0, u1, dm);
-  if (dm <= dmax)
+  if (dm < chordal_err * L)
   {
     nb_points = 1; return 0;
   }
@@ -241,13 +249,14 @@ E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0,
   
   while (ns < 50)
   {
-    E_Float dml = 0.;
+    E_Float cm1 = 0.;
     for (E_Int i = 0; i <= ns; i++)
     {
       __eval_chordal_error(C, u0+i*du/(ns+1), u0+(i+1)*du/(ns+1), dm);
-      dml = std::max(dml, dm);
+      E_Float Li = (E_Float)GCPnts_AbscissaPoint::Length(geom_adap, u0 + i * du / (ns + 1), u0 + (i + 1)*du / (ns + 1));
+      cm1 = std::max(cm1, dm / Li);
     }
-    if (dml <= dmax) { nb_points = ns; return 0; }
+    if (cm1 < chordal_err) { nb_points = ns; return 0; }
     ns += 1;
   }
   nb_points = ns;
@@ -640,15 +649,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       medith::write("connectBcompacted.mesh", pos3D, connectB, "BAR");
 #endif
     
-#ifdef DEBUG_CAD_READER
-    if (i == faulty_id)
-    {
-      K_FLD::FloatArray surfc;
-      K_FLD::IntArray con;
-      _faces[i]->discretize(surfc, con, 30, 30);
-      medith::write("surface.plt", surfc, con, "QUAD");
-    }
-#endif
+
       
     // surface of revolution => duplicate, reverse and separate seams
     //bool is_of_revolution = ((E_Int)nodes.size() != connectB.cols());
@@ -683,13 +684,35 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
         continue;
       }
+
+#ifdef DEBUG_CAD_READER
+    //if (i == faulty_id)
+    {
+      E_Int nj = 50;//connectB.cols() /  2;
+      E_Int ni = 100;//2 * nj;
+      K_FLD::FloatArray surfc;
+      K_FLD::IntArray con;
+      _faces[i]->discretize(surfc, con, ni, nj);
+      
+      std::ostringstream o;
+      o << "patch_" << i ;
+      crds1[i-1] = surfc;
+      connectMs1[i-1] = con;
+      medith::write(o.str().c_str(), crds1[i-1], connectMs1[i-1], "QUAD");
+    }
+#endif
       
 #ifdef DEBUG_CAD_READER
-      if (i==faulty_id&& t==0)
-        medith::write("connectBUV1.mesh", UVcontour, connectB, "BAR");
-      if (i==faulty_id&& t==1)
-        medith::write("connectBUV2.mesh", UVcontour, connectB, "BAR");
+    {
+      std::ostringstream o;
+      o << "connectBUV";
+      if (t==0)
+        o << "1_";
+      else o << "2_";
+      o << i << ".mesh"; 
+      medith::write(o.str().c_str(), UVcontour, connectB, "BAR");
       //std::cout << UVcontour << std::endl;
+    }
 #endif
     
       OCCSurface occ_surf(F);
@@ -727,7 +750,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       else
       {
         mode.growth_ratio = std::max(_gr, 1.); //fixme : values in [1.; 1.25] might cause errors. Anyway do not allow bellow 1. since not useful
-        E_Int MIN_NB = 20;
+        E_Int MIN_NB = 50;
         if (_gr >= 1. && (connectB.cols() > (MIN_NB * 4))) // check if growth ratio is applicable to this patch, i.e. it is symmetrizable
         {
           // Count the minimum number of edges on a boundary of the param space per direction (U,V)
@@ -840,11 +863,11 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         maxid = *std::max_element(connectMs[i].begin(), connectMs[i].end());
         assert(maxid < crds[i].cols());
 #endif
-        K_FLD::ArrayAccessor<K_FLD::FloatArray > crdA(crds[i]);
+        /*K_FLD::ArrayAccessor<K_FLD::FloatArray > crdA(crds[i]);
         ::merge(crdA, _merge_tol, nids);
         K_FLD::IntArray::changeIndices(connectMs[i], nids);
         nids.clear();
-        NUGA::MeshTool::compact_to_mesh(crds[i], connectMs[i], nids);
+        NUGA::MeshTool::compact_to_mesh(crds[i], connectMs[i], nids);*/
       }
     }
   

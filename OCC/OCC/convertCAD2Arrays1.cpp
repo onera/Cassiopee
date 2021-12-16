@@ -138,7 +138,10 @@ E_Int K_OCC::CADread
      sprintf(zoneName, "Zone%d",i);
      zoneNames.push_back(zoneName);
     
-     eltType.push_back(2); //TRI
+     if (connectMs[i].rows() == 3)
+       eltType.push_back(2); //TRI
+     else if (connectMs[i].rows() == 4)
+      eltType.push_back(3);  //QUAD
    }
 
   varString = new char [8];
