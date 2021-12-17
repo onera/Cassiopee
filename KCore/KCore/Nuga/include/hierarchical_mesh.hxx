@@ -78,7 +78,7 @@ class hierarchical_mesh
     refiner<ELT_t, STYPE>     _refiner;         // refinement methods must stay static, so this object is here to store _ecenter (not relevant in hmesh)
 
     E_Int _idx_start;
-
+    E_Int rank,iter;
     // BCs
     bc_data_t BCptLists;
 
@@ -96,7 +96,7 @@ class hierarchical_mesh
     NUGA::history_t  histo;
 
     ///
-    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(0) { init(); }
+    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(); }
     ///
     hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
 
@@ -151,6 +151,7 @@ class hierarchical_mesh
     void enable_PGs();
 
     void update_BCs();
+    void update_pointlist(std::vector<int>& ptLists);
     
     ///
     bool is_initialised() const ;
@@ -694,47 +695,57 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
   // update pointlists
   for (size_t i=0; i < BCptLists.size(); ++i)
   {
-    std::vector<E_Int>& ptlist = BCptLists[i];
-    std::vector<E_Int> new_ptlist;
+    update_pointlist(BCptLists[i]);
+  }
+}
 
-    for (size_t i = 0; i < ptlist.size(); ++i)
+//
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<int>& ptlist)
+{
+  std::vector<E_Int> ids;
+  E_Int nb_pgs = _ng.PGs.size();
+
+  std::vector<E_Int> new_ptlist;
+
+  for (size_t i = 0; i < ptlist.size(); ++i)
+  {
+    E_Int PGi = ptlist[i] - _idx_start;
+    //if (rank == 0) std::cout << "PGi : " << PGi << std::endl;
+
+    if (PGi < 0 || PGi >= nb_pgs)
     {
-      E_Int PGi = ptlist[i] - _idx_start;
-      //std::cout << "PGi : " << PGi << std::endl;
-
-      if (PGi < 0 || PGi >= nb_pgs)
-      {
-        std::cout << "update_BCs : WARNING : wrong PG id : " << PGi << std::endl;
-        continue;
-      }
-      
-      if (_PGtree.is_enabled(PGi))
-        new_ptlist.push_back(PGi);
-      else // look in the genealogy where are the enabled
-      {
-        ids.clear();
-        extract_enabled_pgs_descendance(PGi, false/*reverse not required*/, ids);
-
-        if (!ids.empty()) //refinement
-          new_ptlist.insert(new_ptlist.end(), ALL(ids));
-        else //agglo : get the enabled ancestor
-        {
-          E_Int pid{IDX_NONE};
-          _PGtree.get_enabled_parent(PGi, pid);
-          assert (pid != IDX_NONE);
-          new_ptlist.push_back(pid);
-        }
-      }
+      std::cout << "update_BCs : WARNING : wrong PG id : " << PGi << std::endl;
+      continue;
     }
 
-    //std::cout << "old BC sz vs new : " << ptlist.size() << " vs " << new_ptlist.size() << std::endl;
+    if (_PGtree.is_enabled(PGi))
+      new_ptlist.push_back(PGi);
+    else // look in the genealogy where are the enabled
+    {
+      ids.clear();
+      extract_enabled_pgs_descendance(PGi, false/*reverse not required*/, ids);
 
-    ptlist = new_ptlist;
-    // remove duplicates due to agglo
-    K_CONNECT::IdTool::compress_unic(ptlist);
-    // for the outside world
-    K_CONNECT::IdTool::shift(ptlist, _idx_start);
+      if (!ids.empty()) //refinement
+        new_ptlist.insert(new_ptlist.end(), ALL(ids));
+      else //agglo : get the enabled ancestor
+      {
+        E_Int pid{ IDX_NONE };
+        _PGtree.get_enabled_parent(PGi, pid);
+        assert(pid != IDX_NONE);
+        new_ptlist.push_back(pid);
+      }
+    }
   }
+
+  //if (rank == 0) std::cout << "rank : " << rank << " : old BC sz vs new : " << ptlist.size() << " vs " << new_ptlist.size() << std::endl;
+
+  ptlist = new_ptlist;
+  // remove duplicates due to agglo
+  K_CONNECT::IdTool::compress_unic(ptlist);
+  // for the outside world
+  K_CONNECT::IdTool::shift(ptlist, _idx_start);
+
 }
 
 ///
