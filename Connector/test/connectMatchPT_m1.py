@@ -7,6 +7,8 @@ import Distributor2.PyTree as Distributor2
 import Converter.Filter    as Filter
 import KCore.test          as test
 
+LOCAL = test.getLocal()
+
 # Cree le fichier test
 if Cmpi.rank == 0:
     a = G.cart((0.,0.,0.), (0.1, 0.1, 0.1), (11, 21, 2))
@@ -23,11 +25,10 @@ if Cmpi.rank == 0:
     t = C.newPyTree(['Base',a,a2])
     # --- Equation state
     t[2][1] = C.addState(t[2][1], 'EquationDimension', 3)
-    C.convertPyTree2File(t, 'in.cgns')
+    C.convertPyTree2File(t, LOCAL+'/in.cgns')
 Cmpi.barrier()
 
-
-h  = Filter.Handle('in.cgns')
+h  = Filter.Handle(LOCAL+'/in.cgns')
 a  = h.loadAndDistribute()
 a  = Xmpi.connectMatch(a)
 

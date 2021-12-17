@@ -605,7 +605,7 @@ PyObject* call_union(PyObject* args)
     	std::ostringstream o;
     	o << "Union. ERROR: Face " << i << " without ancestor." << std::endl;
     	PyErr_SetString(PyExc_TypeError, o.str().c_str());
-    	return false;	  
+    	return NULL;	  
       }
       
       if (ancPG1 != E_IDX_NONE & ancPG2 != E_IDX_NONE)
@@ -613,7 +613,7 @@ PyObject* call_union(PyObject* args)
     	std::ostringstream o;
     	o << "Union. Warning: Face " << i << " has 2 ancestors. ancPG1 = " << ancPG1 << " and ancPG2 =" <<  ancPG2 << std::endl;
     	PyErr_SetString(PyExc_TypeError, o.str().c_str());
-    	return false;
+    	return NULL;
       }
 
       // Detect interior faces 

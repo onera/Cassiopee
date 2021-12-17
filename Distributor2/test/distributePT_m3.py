@@ -6,6 +6,9 @@ import Converter.PyTree as C
 import Connector.PyTree as X
 import KCore.test as test
 import Converter.Mpi as Cmpi
+from test.redispatchPT_m1 import LOCAL
+
+LOCAL = test.getLocal()
 
 N = 11
 
@@ -17,7 +20,7 @@ for i in range(N):
     off += 9+i
     t[2][1][2].append(a)
 t = X.connectMatch(t)
-if Cmpi.rank == 0: C.convertPyTree2File(t, 'in.cgns')
+if Cmpi.rank == 0: C.convertPyTree2File(t, LOCAL+'/in.cgns')
 Cmpi.barrier()
 
 # arbre complet 
@@ -28,9 +31,9 @@ if Cmpi.rank == 0:
     test.testT(t, 1)
 
 # arbre squelette charge (doit etre identique)
-t = Cmpi.convertFile2SkeletonTree('in.cgns')
+t = Cmpi.convertFile2SkeletonTree(LOCAL+'/in.cgns')
 t, stats = D2.distribute(t, NProc=Cmpi.size, algorithm='fast', useCom=0)
-t = Cmpi.readZones(t, 'in.cgns', rank=Cmpi.rank)
+t = Cmpi.readZones(t, LOCAL+'/in.cgns', rank=Cmpi.rank)
 t, stats = D2.distribute(t, NProc=Cmpi.size, algorithm='gradient', useCom='overlap')
 if Cmpi.rank == 0:
     print('loaded skel:', stats)

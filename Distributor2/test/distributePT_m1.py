@@ -38,7 +38,7 @@ if Cmpi.rank == 0:
 # distribution sur arbre squelette charge
 t = Cmpi.convertFile2SkeletonTree(LOCAL+'/in.cgns')
 t, stats = D2.distribute(t, NProc=Cmpi.size, algorithm='fast', useCom=0)
-t = Cmpi.readZones(t, 'in.cgns', rank=Cmpi.rank)
+t = Cmpi.readZones(t, LOCAL+'/in.cgns', rank=Cmpi.rank)
 t, stats = D2.distribute(t, NProc=Cmpi.size, algorithm='gradient', useCom='match')
 if Cmpi.rank == 0:
     print('loaded skel:', stats)

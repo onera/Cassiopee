@@ -8,6 +8,8 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 # Case
 N = 11
 t = C.newPyTree(['Base'])
@@ -17,17 +19,17 @@ for i in range(N):
     pos += 10 + i - 1
     t[2][1][2].append(a)
 t = X.connectMatch(t)
-if Cmpi.rank == 0: C.convertPyTree2File(t, 'in.cgns')
+if Cmpi.rank == 0: C.convertPyTree2File(t, LOCAL+'/in.cgns')
 Cmpi.barrier()
 
 # lecture du squelette
-a = Cmpi.convertFile2SkeletonTree('in.cgns')
+a = Cmpi.convertFile2SkeletonTree(LOCAL+'/in.cgns')
 
 # equilibrage 1
 (a, dic) = D2.distribute(a, NProc=Cmpi.size, algorithm='fast', useCom=0)
 
 # load des zones locales dans le squelette
-a = Cmpi.readZones(a, 'in.cgns', rank=Cmpi.rank)
+a = Cmpi.readZones(a, LOCAL+'/in.cgns', rank=Cmpi.rank)
 
 # equilibrage 2 (a partir d'un squelette charge)
 (a, dic) = D2.distribute(a, NProc=Cmpi.size, algorithm='gradient1', 

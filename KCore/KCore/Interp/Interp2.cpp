@@ -205,6 +205,7 @@ E_Int K_INTERP::getInterpolationData(
   {
     if (K_FUNC::E_abs(z-InterpData->_zmin)>geomCutOff) return 0;
   }
+  
   switch (interpType)
   {
     case K_INTERP::InterpData::O2CF:
@@ -217,7 +218,7 @@ E_Int K_INTERP::getInterpolationData(
         //{
         //  vector< vector<E_Int> > cEEN;
         //  cEEN = *(vector< vector<E_Int> >*)c2;
-        //  if (cEEN[noet].size() < 4) isBorder = 1; 
+        //  if (cEEN[noet].size() < 4) isBorder = 1;
         //}
         type = 4; indi[0] = noet;
         if (cellN != NULL) 

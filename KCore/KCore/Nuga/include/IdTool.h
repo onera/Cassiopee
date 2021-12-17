@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __K_CONNECT_IDTOOL_H__
 #define __K_CONNECT_IDTOOL_H__
@@ -107,7 +107,7 @@ public:
 
   static bool check_in_range(const E_Int*p, E_Int sz, E_Int minval, E_Int maxval)
   {
-    for (size_t k = 0; k < sz; ++k)
+    for (E_Int k = 0; k < sz; ++k)
     {
       if (p[k] < minval) return false;
       if (p[k] > maxval) return false;

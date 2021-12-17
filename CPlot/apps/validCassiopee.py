@@ -1008,7 +1008,7 @@ def notifyValidOK():
     except: return
     svnVersion = 'Unknown'
     try:
-        svnInfo = subprocess.check_output("svn info https://elsa-svn.onera.fr/CASSIOPEE/Trunk/Cassiopee/Apps/Modules")
+        svnInfo = subprocess.check_output("svn info https://elsa-svn.onera.fr/CASSIOPEE/Trunk/Cassiopee/Apps/Modules", shell=True)
         svnInfo = svnInfo.decode('utf-8', 'ignore')
         ss = svnInfo.split('\n')
         for s in ss:

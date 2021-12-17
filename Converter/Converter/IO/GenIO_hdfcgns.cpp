@@ -2288,6 +2288,8 @@ hid_t K_IO::GenIOHdf::setSingleI8(hid_t node, E_LONG data)
 #else
   hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 #endif
+  //hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, &data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);

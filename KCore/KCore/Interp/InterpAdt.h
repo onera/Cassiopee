@@ -133,16 +133,11 @@ class InterpAdt  : public InterpData
         E_Float alphaTol=1.e-10);
 
     public:
-    // E_Float _xmax;   // bounding box of mesh
-    // E_Float _ymax;
-    // E_Float _zmax;
-    // E_Float _xmin;
-    // E_Float _ymin;
-    // E_Float _zmin;
     E_Int _cylCoord; // true if cylindrical coordinates
     E_Float _centerX, _centerY, _centerZ; // centre pour les coord. cylindriques
     E_Float _axisX, _axisY, _axisZ; // axe pour les coord. cylindriques
-    
+    E_Float *_xlc, *_ylc, *_zlc; // coords cylindrique
+
     protected:
     IntTreeNode* _tree;
 };

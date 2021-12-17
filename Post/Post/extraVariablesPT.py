@@ -423,8 +423,8 @@ def _extractViscosityMolecular(t):
     """Extract Viscosity molecular."""
     P._computeVariables2(t, ['centers:ViscosityMolecular'])
 
-# mut from spallart
-# IN: centers:TurulentSANuTilde
+# mut from spalart
+# IN: centers:TurbulentSANuTilde
 # IN: centers:Density
 # OUT: centers:ViscosityEddy
 # kappa = ro * nutilde / mu
@@ -516,7 +516,7 @@ def _extractShearStress(teff):
 # OUT: centers:frictionX, centers:frictionY, centers:frictionZ
 # taut = (n. tau.n) n - tau.n
 def _extractFrictionVector(teff):
-    """Extract tangiential firction vector."""
+    """Extract tangential friction vector."""
     G._getNormalMap(teff)
     C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
     C._initVars(teff, '{centers:frictionX}={centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
@@ -637,7 +637,8 @@ def extractProfile(t, zonePath, i=-1, j=-1, k=-1):
     return zp
 
 # Calcul y+ et u+ sur le profil
-# IN: teff: with utau computed
+# IN: teff: with utau, ViscosityMolecular computed
+# IN: zp: with VelocityTangential, yw
 def _extractYPlus(zp, teff):
     """Extract y+ and u+."""
     # Extract point wall de zp
@@ -654,5 +655,31 @@ def _extractYPlus(zp, teff):
     print('INFO: found wall point ro=%g, utau=%g, mu=%g, index=%d\n'%(ro, utau, mu, n))
     C._initVars(zp, '{yPlus}={yw} * %20.16g * %20.16g / %20.16g'%(ro,utau,mu))
     C._initVars(zp, '{yPlus}=log10({yPlus})')
-    C._initVars(zp, '{uPlus}={VelocityMagnitude}/%20.16g'%utau)
+    C._initVars(zp, '{uPlus}={VelocityTangential}/%20.16g'%utau)
+    return None
+
+# Calcul la norme de la vitesse tangentielle
+# IN: zp: with VelocityX, VelocityY, VelocityZ
+# OUT: VelocityTangential: norm of tangential velocity
+def _extractVelocityTangential(zp, teff):
+    """Extract tangential speed."""
+    # calcul la normale sur teff
+    G._getNormalMap(teff)
+    teff = C.center2Node(teff, ['centers:sx','centers:sy','centers:sz'])
+    C._normalize(teff, ['sx', 'sy','sz'])
+    C._rmVars(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
+    # Extract point wall de zp
+    Pwall = T.subzone(zp, (1,1,1), (1,1,1))
+    # localise Pwall sur teff
+    zeff = Internal.getZones(teff)[0]
+    hook = C.createHook(zeff, function='nodes')
+    nodes, dist = C.nearestNodes(hook, Pwall)
+    n = nodes[0]
+    sx = C.getValue(zeff, 'sx', n) # must be normalized
+    sy = C.getValue(zeff, 'sy', n)
+    sz = C.getValue(zeff, 'sz', n)
+    print('INFO: found wall point sx=%g, sy=%g, sz=%g, index=%d\n'%(sx, sy, sz, n))
+    C._initVars(zp, '{VelocityTangential1}={VelocityX} * %20.16g+{VelocityY} * %20.16g +{VelocityZ} * %20.16g'%(sx,sy,sz))
+    C._initVars(zp, '{VelocityTangential}=sqrt(({VelocityX}-{VelocityTangential1}*%20.16g)**2+({VelocityY}-{VelocityTangential1}*%20.16g)**2+({VelocityZ}-{VelocityTangential1}*%20.16g)**2)'%(sx,sy,sz))
+    C._rmVars(zp, ['VelocityTangential1','sx','sy','sz'])
     return None

@@ -73,6 +73,8 @@ void K_INTERP::InterpAdt::destroy()
   }
    
   _tree = NULL;
+
+  if (_cylCoord) { delete [] _xlc; delete [] _ylc; delete [] _zlc; }
 }
 
 //=============================================================================
@@ -111,9 +113,15 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                                void* a1, void* a2, void* a3, 
                                E_Float& centerX, E_Float& centerY, E_Float& centerZ,
                                E_Float& axisX, E_Float& axisY, E_Float& axisZ, 
-                               E_Int& built)
+                               E_Int& built):
+    InterpData()
 {
-    printf("constructeur adt cyl\n"); fflush(stdout);
+    printf("Constructeur adt cyl\n"); fflush(stdout);
+
+    // keep data for cart2Cyl
+    _cylCoord = true;
+    _centerX = centerX; _centerY = centerY; _centerZ = centerZ;
+    _axisX = axisX; _axisY = axisY; _axisZ = axisZ;
 
     E_Float* coordX = new E_Float[npts];
     E_Float* coordY = new E_Float[npts];
@@ -144,20 +152,27 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                     centerX, centerY, centerZ, 
                     axisX, axisY, axisZ, 
                     rt, thetat);
+    //printf("ni=%d %d %d\n",*(E_Int*)a1,*(E_Int*)a2,*(E_Int*)a3);
     //for (E_Int i = 0; i < npts; i++) printf("%g %g %g\n", coordX[i], coordY[i], coordZ[i]);
     //printf("axis = %g %g %g\n", axisX, axisY, axisZ);
-    InterpAdt(npts, coordX, coordY, coordZ, a1, a2, a3, built);
+    //fflush(stdout);
 
-    //InterpAdt(npts, xD, yD, zD, a1, a2, a3, built);
-    //for (E_Int i = 0; i < npts; i++) printf("%g %g %g\n", xD[i], yD[i], zD[i]);
-    fflush(stdout);
-
-    // keep data for cart2Cyl
-    _cylCoord = true;
-    _centerX = centerX; _centerY = centerY; _centerZ = centerZ;
-    _axisX = axisX; _axisY = axisY; _axisZ = axisZ;
-
-    delete [] coordX; delete [] coordY; delete [] coordZ;
+    if (a1 != NULL && a2 != NULL && a3 != NULL) // structure
+    {
+        _topology = 1;
+        E_Int ni = *(E_Int*)a1;
+        E_Int nj = *(E_Int*)a2;
+        E_Int nk = *(E_Int*)a3;
+        built = buildStructAdt(ni, nj, nk, coordX, coordY, coordZ);
+    }
+    else //non structure
+    {
+        _topology = 2;
+        FldArrayI& cEV = *(FldArrayI*)a1;
+        built = buildUnstrAdt(npts, cEV, coordX, coordY, coordZ);
+    }
+    _xlc = coordX; _ylc = coordY; _zlc = coordZ;
+    //delete [] coordX; delete [] coordY; delete [] coordZ;
 }
 
 //=============================================================================
@@ -204,15 +219,15 @@ void K_INTERP::InterpAdt::cart2Cyl(E_Float& x, E_Float& y, E_Float& z)
 
     if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
     {
-      rt = &Yo; thetat = &Zo;
+      rt = &Yo; thetat = &Zo; Xo = x;
     }
     else if (_axisY > eps && _axisX < eps && _axisZ < eps) // axe Y
     {
-      rt = &Zo; thetat = &Xo;
+      rt = &Zo; thetat = &Xo; Yo = y;
     }
     else if (_axisZ > eps && _axisY < eps && _axisX < eps) // axe Z
     {
-      rt = &Xo; thetat = &Yo;
+      rt = &Xo; thetat = &Yo; Zo = z;
     }
     // cart2Cyl coordinates
     K_LOC::cart2Cyl(1, &x, &y, &z,
@@ -385,7 +400,7 @@ E_Int K_INTERP::InterpAdt::buildUnstrAdt(E_Int npts, FldArrayI& connect,
                           _xmax, _ymax, _zmax);
   /* Insert all points (cells) in the tree */
   E_Float xmax,ymax,zmax,xmin,ymin,zmin;
-    E_Int nelts = connect.getSize();
+  E_Int nelts = connect.getSize();
   E_Int ind, ind2;
   E_Int* c1 = connect.begin(1);
   E_Int* c2 = connect.begin(2);
@@ -586,7 +601,7 @@ void K_INTERP::InterpAdt::insert(E_Int ind,
 }
 //=============================================================================
 /* Recherche de la liste des cellules candidates. 
-   IN: x,y,z: coord du pt a interpoler ou a extrpoler
+   IN: x,y,z: coord du pt a interpoler ou a extrapoler
    IN: alphaTol: tolerance pour l'extrapolation en nbre de bbox.
    Si alphaTol=0., une cellule est candidate si sa bbox contient x,y,z
    Si alphaTol=1., une cellule est candidate si sa bbox doublee a gauche et 
@@ -1015,6 +1030,9 @@ short K_INTERP::InterpAdt::searchExtrapolationCellStruct(
   FldArrayF& cf,
   E_Int nature, E_Int extrapOrder, E_Float constraint)
 {
+  // cylindrical coords modification
+  if (_cylCoord) { cart2Cyl(x,y,z); xl = _xlc; yl = _ylc; zl = _zlc; }
+  
   //E_Int dim = 3;
   //if (nk == 1) dim = 2;
   E_Int i,j,k;
@@ -1127,6 +1145,9 @@ K_INTERP::InterpAdt::searchInterpolationCellUnstruct(E_Float* xt, E_Float* yt, E
                                                      E_Float x, E_Float y, E_Float z,
                                                      E_Int& noelt, FldArrayF& cf)
 { 
+  // cylindrical coords modification
+  if (_cylCoord) { cart2Cyl(x,y,z); xt = _xlc; yt = _ylc; zt = _zlc; }
+  
   cf.setAllValuesAtNull();
 
   // recherche de la liste des cellules candidates
@@ -1191,7 +1212,9 @@ short K_INTERP::InterpAdt::searchInterpolationCellStruct(
   FldArrayF& cf)
 {
   // cylindrical coords modification
-  if (_cylCoord) cart2Cyl(x,y,z);
+  //printf("1. %g %g %g\n",x,y,z); fflush(stdout);
+  if (_cylCoord) { cart2Cyl(x,y,z); xl = _xlc; yl = _ylc; zl = _zlc; }
+  //printf("2. %g %g %g\n",x,y,z); fflush(stdout);
 
   // recherche de la liste des cellules candidates
   list<E_Int> listOfCandidateCells; 

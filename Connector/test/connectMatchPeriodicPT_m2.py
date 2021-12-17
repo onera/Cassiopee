@@ -8,6 +8,7 @@ import Distributor2.PyTree as Distributor2
 import Converter.Filter    as Filter
 import KCore.test          as test
 
+LOCAL = test.getLocal()
 
 # Cree le fichier test
 if Cmpi.rank == 0:
@@ -21,15 +22,13 @@ if Cmpi.rank == 0:
     C._addBC2Zone(b,'overlap','BCOverlap','jmax')
     t = C.newPyTree(['Base']); t[2][1][2] += [a,b]
     C._addState(t[2][1], 'EquationDimension', 3)
-
     t = T.splitNParts(t, 4, multigrid=0, dirs=[1,2,3])
-
-    C.convertPyTree2File(t, 'in.cgns')
+    C.convertPyTree2File(t, LOCAL+'/in.cgns')
 
 Cmpi.barrier()
 
 
-h  = Filter.Handle('in.cgns')
+h  = Filter.Handle(LOCAL+'/in.cgns')
 a  = h.loadAndDistribute()
 a  = Xmpi.connectMatchPeriodic(a,translation=[0,0,5])
 
