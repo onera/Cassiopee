@@ -3,7 +3,7 @@ try: import Tkinter as TK
 except: import tkinter as TK
 try: import tkFont as Font
 except: import tkinter.font as Font
-import os, sys, re, signal
+import os, sys, re, signal, platform
 import subprocess 
 import threading
 import time
@@ -337,6 +337,22 @@ def writeTime(file, CPUtime, coverage):
     except: pass
 
 #==============================================================================
+# Ecrit un fichier contenant date, machine, nbre de threads
+#==============================================================================
+def writeFinal(file, svnVersion):
+    execTime = time.strftime('%d/%m/%y %Hh%M',time.localtime())
+    machine = platform.uname()
+    if len(machine) > 1: machine = machine[1]
+    else: machine = 'Unkwown'
+    nthreads = Threads.get()
+    f = open(file, 'w')
+    f.write(execTime+'\n')
+    f.write(machine+'\n')
+    f.write(nthreads+'\n')
+    f.write(svnVersion+'\n')
+    f.close()
+
+#==============================================================================
 # Update star dans un fichier star
 # Star est cense etre a la quatrieme et derniere ligne
 #==============================================================================
@@ -632,7 +648,7 @@ def runTests():
     displayStatus(0)
     THREAD=None
     if len(selection) == len(TESTS): notifyValidOK()
-
+    
 def runTestsInThread():
     global THREAD
     if THREAD is not None: return
@@ -985,17 +1001,20 @@ def export2Text():
 # Notify "Commit ready" 
 #=======================================
 def notifyValidOK():
-    try: 
+    try:
         import smtplib
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
     except: return
-    #try:
-    #    p = subprocess.Popen("svn info http://tiamat/svn/CASSIOPEE/Trunk/Cassiopee/Apps/Modules | grep \"vision\" | awk '{print $2}'", stdout=subprocess.PIPE, shell=True)
-    #    (svnVersion, err) = p.communicate()
-    #    svnVersion = svnVersion.split('\n'); svnVersion = svnVersion[0]
-    #except: svnVersion = 'Unknown'
     svnVersion = 'Unknown'
+    try:
+        svnInfo = subprocess.check_output("svn info https://elsa-svn.onera.fr/CASSIOPEE/Trunk/Cassiopee/Apps/Modules")
+        svnInfo = svnInfo.decode('utf-8', 'ignore')
+        ss = svnInfo.split('\n')
+        for s in ss:
+            t = s.split(':')
+            if 'vision' in t[0]: svnVersion = t[1]
+    except: pass
     try:
         me = os.getenv('USER')+'@onera.fr'
         if me is None: me = ''
@@ -1014,12 +1033,12 @@ def notifyValidOK():
         s = smtplib.SMTP('localhost')
         s.sendmail(me, to, msg.as_string())
         s.quit()
-    except: return
+    except: pass
     
     # Write time stamp dans ValidData/base.time
     if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
         os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
-    writeTime(CASSIOPEE+'/Apps/Modules/ValidData/base.time', '', svnVersion)
+    writeFinal(CASSIOPEE+'/Apps/Modules/ValidData/base.time', svnVersion)
 
 #==============================================================================
 def Quit(event=None):
@@ -1163,7 +1182,8 @@ tools.add_command(label='Untag selection', command=untagSelection)
 
 try:
     file = open(CASSIOPEE+'/Apps/Modules/ValidData/base.time')
-    d = file.read(); d = d.split('\n'); d = ' ['+d[0]+']'
+    d = file.read(); d = d.split('\n')
+    d = ' ['+d[0]+'/'+d[1]+'/'+d[2]+' threads]'
 except: d = ''
 
 tools.add_command(label='Switch to global data base'+d, command=setupGlobal)

@@ -23,7 +23,8 @@ SURFAPPS = ['tkBasicSurfs', 'tkText', '---',
             'tkFixer2', 'tkBoolean', 'tkSculpt', 'tkPaint', '---',
             'tkMMGs', 'tkMapSurfs', 'tkFilterSurfs', 'tkSurfaceWalk', '---',
             'tkProjection']
-MESHAPPS = ['tkCells', 'tkStretch', 'tkMirabelle', '---',
+MESHAPPS = ['tkCells', 'tkStretch', '---',
+            #tkMirabelle,
             'tkExtrusion', 'tkTetraMesher', 'tkTFI', 'tkSmooth', '---',
             'tkOctree', 'tkCollarMesh', 'tkBlader', '---',
             'tkMeshQual', 'tkMeshInfo']
@@ -60,8 +61,7 @@ PERSOAPPS = []
 def addPersonalApp():
     try: import tkFileDialog
     except: import tkinter.filedialog as tkFileDialog 
-    file = tkFileDialog.askopenfilename(
-        filetypes=[('python', '*.py')])
+    file = tkFileDialog.askopenfilename(filetypes=[('python', '*.py')])
     a = os.access(file, os.F_OK)
     if not a: return
     CTK.loadPrefFile()
