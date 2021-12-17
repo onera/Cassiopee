@@ -10,7 +10,6 @@ import Initiator.PyTree as I
 import Converter.Internal as Internal
 import Connector.ToolboxIBM as IBM
 import KCore.test as test
-import numpy , sys
 
 N = 41
 a = G.cart((0,0,0),(1./(N-1),1./(N-1),1./(N-1)),(N,N,N))
@@ -36,10 +35,10 @@ for base in Internal.getBases(tb):
 t = C.newPyTree(['Base', a])
 
 # Dist2Walls
-DTW._distance2Walls(t,tb,type='ortho',loc='centers')
+DTW._distance2Walls(t, tb, type='ortho', loc='centers')
 # Gradient de distance localise en centres => normales
 t = P.computeGrad(t, 'centers:TurbulentDistance')
-I._initConst(t,MInf=0.2,loc='centers')
-t,tc=IBM.prepareIBMData(t,tb, DEPTH=2,frontType=1)
+I._initConst(t, MInf=0.2, loc='centers')
+t,tc=IBM.prepareIBMData(t, tb, DEPTH=2, frontType=1)
 z = IBM.extractIBMWallFields(tc, tb=tb, famZones=[famNames[0]])
 test.testT(z,1)

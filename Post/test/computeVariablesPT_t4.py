@@ -21,4 +21,4 @@ P._computeVariables(a, ['centers:Entropy'], rgp=(1.4-1)*1.78571)
 P._computeVariables(a, ['centers:ViscosityMolecular'], rgp=(1.4-1)*1.78571, Ts=1, Cs=0.3831, mus=5.e-9)
 P._computeVariables(a, ['centers:PressureDynamic'], rgp=(1.4-1)*1.78571)
 
-C.convertPyTree2File(a, 'out.cgns')
+test.testT(a, 1)
