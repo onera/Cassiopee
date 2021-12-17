@@ -86,6 +86,15 @@ void Data::displayNodes()
         //  _shaders.activate((short unsigned int)0);
         //}
 #endif
+        // look for radius field (if any)
+        //char** v = zonep->varnames;
+        //int nf = zonep->nfield;
+        //int radiusField = -1;
+        //for (int i = 0; i < nf; i++)
+        //{
+        //    if (strcmp(v[i], "radius") == 0) radiusField = i;
+        //}
+      
         // Color
         switch (ptrState->meshStyle)
         {
@@ -153,11 +162,20 @@ void Data::displayNodes()
           double *z = zonep->z;
           for (int i = 0; i < zonep->np; i++)
           {
+
             xi = x[i]; yi = y[i]; zi = z[i];
             dx = xi - xcam; dy = yi - ycam; dz = zi - zcam;
             dist = dx*dx + dy*dy + dz*dz;
             d = sqrt(dist)*dref;
-          
+
+            //if (radiusField >= 0) d = zonep->f[radiusField][i];
+            //else
+            //{
+            //    xi = x[i]; yi = y[i]; zi = z[i];
+            //    dx = xi - xcam; dy = yi - ycam; dz = zi - zcam;
+            //    dist = dx*dx + dy*dy + dz*dz;
+            //    d = sqrt(dist)*dref;
+            //}
             pru0 = d*(right[0] + up[0]);
             pru1 = d*(right[1] + up[1]);
             pru2 = d*(right[2] + up[2]);
@@ -203,7 +221,15 @@ void Data::displayNodes()
             dx = xi - xcam; dy = yi - ycam; dz = zi - zcam;
             dist = dx*dx + dy*dy + dz*dz;
             d = sqrt(dist)*dref;
-          
+
+            //if (radiusField >= 0) d = zonep->f[radiusField][i];
+            //else
+            //{
+            //    xi = x[i]; yi = y[i]; zi = z[i];
+            //    dx = xi - xcam; dy = yi - ycam; dz = zi - zcam;
+            //    dist = dx*dx + dy*dy + dz*dz;
+            //    d = sqrt(dist)*dref;
+            //}
             pru0 = d*(right[0] + up[0]);
             pru1 = d*(right[1] + up[1]);
             pru2 = d*(right[2] + up[2]);
