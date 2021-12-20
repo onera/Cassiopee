@@ -85,11 +85,8 @@ hid_t K_IO::GenIOHdf::ADF_to_HDF_datatype(const char *tp)
 int HDF_Get_Attribute_As_Integer(hid_t nodeid, const char *name, int *value)
 {
   hid_t aid; herr_t status;
-#if H5_VERSION_LE(1,18,0)
-  aid = H5Aopen_name(nodeid, name);
-#else
   aid = H5Aopen_by_name(nodeid, ".", name, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+
   if (aid < 0) return 0;
   status = H5Aread(aid, H5T_NATIVE_INT, value);
   H5Aclose(aid);
@@ -102,11 +99,8 @@ char *HDF_Get_Attribute_As_String(hid_t nodeid, const char *name, char *value)
 {
   hid_t aid, tid;
   value[0] = '\0';
-#if H5_VERSION_LE(1,18,0)
-  aid = H5Aopen_name(nodeid, name);
-#else
   aid = H5Aopen_by_name(nodeid, ".", name, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+
   if (aid > 0)
   {
     tid = H5Aget_type(aid);
@@ -124,11 +118,8 @@ char *HDF_Get_Attribute_As_String(hid_t nodeid, const char *name, char *value)
 int HDF_Set_Attribute_As_String(hid_t nodeid, const char *name, char *value)
 {
   hid_t aid, tid;
-#if H5_VERSION_LE(1,18,0)
-  aid = H5Aopen_name(nodeid, name);
-#else
   aid = H5Aopen_by_name(nodeid, ".", name, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+
   if (aid > 0)
   {
     tid = H5Aget_type(aid);
@@ -166,7 +157,7 @@ char *HDF_Get_Attribute_As_Data(hid_t nodeid, const char *name, char *value)
 }
 
 /* ------------------------------------------------------------------------- */
-#if H5_VERSION_LE(1,12,0) // CB2check
+#if H5_VERSION_LE(1,11,9)
 static herr_t count_children(hid_t id, const char *name, void *count)
 #else
 static herr_t count_children(hid_t id, const char *name, const H5L_info_t* linfo, void *count)
@@ -185,13 +176,13 @@ static herr_t gfind_name(hid_t id, const char *nm, void *snm)
   if (!strcmp(nm,(char *)snm)) return 1;
   return 0;
 }
-#if H5_VERSION_LE(1,12,0) // CB2check
-#define has_child(ID,NAME) H5Giterate(ID,".",NULL,gfind_name,(void *)NAME)
+#if H5_VERSION_LE(1,11,9)
+#define has_child(ID,NAME) H5Giterate(ID, ".", NULL, gfind_name, (void *)NAME)
 #else
 #define has_child(ID,NAME) H5Lexists(ID, NAME, H5P_DEFAULT)
 #endif
 /* ------------------------------------------------------------------------- */
-#if H5_VERSION_LE(1,12,0) // CB2check
+#if H5_VERSION_LE(1,11,9)
 static herr_t delete_children(hid_t id, const char *name, void *data)
 #else
 static herr_t delete_children(hid_t id, const char *name, const H5L_info_t* linfo, void *data)
@@ -205,7 +196,7 @@ static herr_t delete_children(hid_t id, const char *name, const H5L_info_t* linf
   else 
   {
     /* should use H5Literate */
-#if H5_VERSION_LE(1,12,0) // CB2check
+#if H5_VERSION_LE(1,11,9)
     H5Giterate(id, name, NULL, delete_children, data);
 #else
     H5Literate_by_name2(id, name, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL, delete_children, data, H5P_DEFAULT);
@@ -275,7 +266,7 @@ hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
   unsigned order=0;
 
   nchildren = 0;
-#if H5_VERSION_LE(1,12,0)
+#if H5_VERSION_LE(1,11,9)
   H5Giterate(nodeid, ".", NULL, count_children, (void *)&nchildren);
 #else
   H5Literate2(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL, count_children, (void *)&nchildren);
@@ -286,7 +277,6 @@ hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
   /* use last -1 as sentinel */
   for (n = 0; n <= nchildren; n++) {idlist[n] = (hid_t)-1;}
 
-#if (ITERATE == 0)
   // le fichier a-t'il ete enregistre avec order?
   if (H5Iget_type(nodeid) == H5I_GROUP)
   {
@@ -299,34 +289,16 @@ hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
   if ((order & H5_INDEX_CRT_ORDER) == H5_INDEX_CRT_ORDER)
   {
     // avec order
-#if H5_VERSION_LE(1,12,0)
     H5Literate(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC,
                NULL, feed_children_ids, (void *)idlist);
-#else
-    H5Literate2(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC,
-                NULL, feed_children_ids, (void*)idlist);
-#endif
   }
   else
   {
     // sans order
-#if H5_VERSION_LE(1,12,0)
     H5Literate(nodeid, H5_INDEX_NAME, H5_ITER_INC,
                NULL, feed_children_ids, (void *)idlist);
-#else
-    H5Literate2(nodeid, H5_INDEX_NAME, H5_ITER_INC,
-                NULL, feed_children_ids, (void*)idlist);
-#endif
   }
-#else
-#if H5_VERSION_LE(1,12,0)
-  H5Literate(nodeid, H5_INDEX_NAME, H5_ITER_INC,
-             NULL, feed_children_ids, (void *)idlist);
-#else
-  H5Literate2(nodeid, H5_INDEX_NAME, H5_ITER_INC,
-             NULL, feed_children_ids, (void*)idlist);
-#endif
-#endif
+
   // Cette fonction ne marche que si les noeuds ont ete cree avec
   // la property creation_order
   //int status;
@@ -473,8 +445,8 @@ int HDF_Add_Attribute_As_Data(hid_t id, const char *name,
   {
     return 0;
   }
-  did = H5Dcreate2(id,name,H5T_NATIVE_CHAR,sid,
-     H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
+  did = H5Dcreate2(id, name, H5T_NATIVE_CHAR, sid,
+                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   if (did < 0)
   {
     H5Sclose(sid);
@@ -1097,13 +1069,9 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
         }
         else
         {
-#if H5_VERSION_LE(1,12,0) // CB2check
-          H5G_stat_t sb;
-          herr_t herr = H5Gget_objinfo(start, L3S_LINK, (hbool_t)0, &sb);
-#else
           H5L_info_t sb;
           herr_t herr = H5Lget_info(start, L3S_LINK, &sb, H5P_DEFAULT);
-#endif
+
           if (herr < 0)
           {
             printf("Error: hdfcgnsread: error opening link file.\n");
@@ -1138,13 +1106,9 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
     }
     else
     {
-#if H5_VERSION_LE(1,12,0) // CB2check
-      H5G_stat_t sb; 
-      herr_t herr = H5Gget_objinfo(start, L3S_LINK, (hbool_t)0, &sb);
-#else
       H5L_info_t sb; 
       herr_t herr = H5Lget_info(start, L3S_LINK, &sb, H5P_DEFAULT);
-#endif
+
       if (herr < 0)
       {
         printf("Error: hdfcgnsread: error opening link file.\n");
@@ -1402,13 +1366,9 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
     }
 
     // follow link
-#if H5_VERSION_GE(1,12,0)
-    H5G_stat_t sb; /* Object information */
-    herr_t herr = H5Gget_objinfo(node, L3S_LINK, (hbool_t)0, &sb);
-#else
-    H5L_info_t sb; /* Object information */
+    H5L_info_t sb;
     herr_t herr = H5Lget_info(node, L3S_LINK, &sb, H5P_DEFAULT);
-#endif
+
     if (herr < 0)
     {
       printf("Error: hdfcgnsread: error opening link file.\n");
@@ -1677,7 +1637,7 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     /* node existe deja */
     if (has_child(gidp, name))
     {
-#if H5_VERSION_LE(1,12,0) // CB2check
+#if H5_VERSION_LE(1,11,9)
       H5Giterate(gidp, name, NULL, delete_children, NULL);
       H5Gunlink(gidp, name);
 #else
@@ -1699,7 +1659,6 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     /** Make the link effective **/
     //HDF_Add_Attribute_As_Data(nid, L3S_PATH, cur_path, strlen(cur_path));
     HDF_Add_Attribute_As_Data(nid, L3S_PATH, tgt_path, strlen(tgt_path));
-    
     
     if (strcmp(tgt_file_all, "./") == 0 || strcmp(tgt_file_all, "/") == 0)
     {
@@ -2214,11 +2173,8 @@ hid_t K_IO::GenIOHdf::setSingleR4(hid_t node, float data)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, &data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2237,11 +2193,8 @@ hid_t K_IO::GenIOHdf::setSingleR8(hid_t node, double data)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, &data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2260,11 +2213,8 @@ hid_t K_IO::GenIOHdf::setSingleI4(hid_t node, int data)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, &data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2283,13 +2233,8 @@ hid_t K_IO::GenIOHdf::setSingleI8(hid_t node, E_LONG data)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
-  //hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, &data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2311,11 +2256,8 @@ hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, char* label)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, label, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, label, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2334,11 +2276,8 @@ hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, int idim, int* idims)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2358,11 +2297,8 @@ hid_t K_IO::GenIOHdf::setArrayI1(hid_t node, char* data, int idim, int* idims)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2383,11 +2319,8 @@ hid_t K_IO::GenIOHdf::setArrayI4(hid_t node, int* data, int idim, int* idims)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2408,11 +2341,8 @@ hid_t K_IO::GenIOHdf::setArrayI8(hid_t node, E_LONG* data, int idim, int* idims)
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2434,11 +2364,8 @@ hid_t K_IO::GenIOHdf::setArrayR4(hid_t node, float* data,
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
@@ -2460,11 +2387,8 @@ hid_t K_IO::GenIOHdf::setArrayR8(hid_t node, double* data,
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset
-#if H5_VERSION_LE(1,18,0)
-  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
-#else
-  hid_t did = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-#endif
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);

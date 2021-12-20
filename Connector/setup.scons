@@ -27,7 +27,7 @@ installPath = Dist.getInstallPath(prefix)
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
-includeDirs = ["Connector","Connector/CMP/include"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir]
+includeDirs = ["Connector", "Connector/CMP/include"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir]
 libraries = ["kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs

@@ -68,9 +68,6 @@
 #define L3T_R4 "R4"
 #define L3T_R8 "R8"
 
-// si 0 check la propriete order pour iterate, sinon prend l'ordre natif
-#define ITERATE 0
-
 // Usefull inline function
 #define L3M_CLEARDIMS(dims) \
   {int __nn; for (__nn=0; __nn < L3C_MAX_DIMS; __nn++){dims[__nn]=-1;};}
