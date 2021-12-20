@@ -179,15 +179,14 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   //ptrState->billBoardT = -1;
 
   // look for radius field (tell the size of billboards)
-  //v = zonep->varnames;
-  //nf = zonep->nfield;
-  //int radiusField = -1;
-  //for (int i = 0; i < nf; i++)
-  //{
-  //  if (strcmp(v[i], "radius") == 0) radiusField = i;
-  //}
-  //printf("radius field=%d\n", radiusField);
-
+  v = zonep->varnames;
+  nf = zonep->nfield;
+  int radiusField = -1;
+  for (int i = 0; i < nf; i++)
+  {
+    if (strcmp(v[i], "radius") == 0) { radiusField = i; break; }
+  }
+  
   // Compute ran field (choose image in billboard)
   // Compute di distance to camera field
   for (int i = 0; i < npts; i++)
@@ -235,16 +234,16 @@ void Data::displayBillBoards(Zone* zonep, int zone)
 
           xi = x[i]; yi = y[i]; zi = z[i];
           
-          //if (radiusField >= 0)
-          //{
-          //  d = zonep->f[radiusField][i];
-          //  pru0 = d*(right[0] + rt*up[0]);
-          //  pru1 = d*(right[1] + rt*up[1]);
-          //  pru2 = d*(right[2] + rt*up[2]);
-          //  mru0 = d*(right[0] - rt*up[0]);
-          //  mru1 = d*(right[1] - rt*up[1]);
-          //  mru2 = d*(right[2] - rt*up[2]);
-          //}
+          if (radiusField >= 0)
+          {
+            d = zonep->f[radiusField][i];
+            pru0 = d*(right[0] + rt*up[0]);
+            pru1 = d*(right[1] + rt*up[1]);
+            pru2 = d*(right[2] + rt*up[2]);
+            mru0 = d*(right[0] - rt*up[0]);
+            mru1 = d*(right[1] - rt*up[1]);
+            mru2 = d*(right[2] - rt*up[2]);
+          }
 
           pt1[0] = xi - pru0;
           pt1[1] = yi - pru1;
