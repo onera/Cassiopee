@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "connector.h"
+# include "param_solver.h"
 using namespace std;
 using namespace K_FLD;
 
@@ -237,6 +238,15 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
     FldArrayF  tmp(size*13*threadmax_sdm);
     E_Float* ipt_tmp=  tmp.begin();
 
+    E_Float param_real[30]; 
+    param_real[ GAMMA] = gamma;
+    param_real[ CVINF] = cv;
+    param_real[ XMUL0] = muS;
+    param_real[ CS] = Cs;
+    param_real[ TEMP0] = Ts;
+    param_real[ PRANDT] = 0.71;
+
+
 #pragma omp parallel default(shared)
  {
 
@@ -280,7 +290,8 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
             utau, yplus,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
-            gamma, cv, muS, Cs, Ts, 0.71,
+            param_real,
+            //gamma, cv, muS, Cs, Ts, 0.71,
             vectOfDnrFields, vectOfRcvFields);
 
    else if (varType == 3 || varType == 31)
@@ -464,6 +475,13 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
     FldArrayF  tmp(size*16*threadmax_sdm);
     E_Float* ipt_tmp = tmp.begin();
 
+    E_Float param_real[30]; 
+    param_real[ GAMMA] = gamma;
+    param_real[ CVINF] = cv;
+    param_real[ XMUL0] = muS;
+    param_real[ CS] = Cs;
+    param_real[ TEMP0] = Ts;
+    param_real[ PRANDT] = 0.71;
 
 #pragma omp parallel default(shared)
   {
@@ -509,7 +527,8 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
             utau, yplus,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
-            gamma, cv, muS, Cs, Ts, 0.71,
+            param_real,
+            //gamma, cv, muS, Cs, Ts, 0.71,
             vectOfDnrFields, vectOfRcvFields);
 
    else if (varType == 3 || varType == 31)

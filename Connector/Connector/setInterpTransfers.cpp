@@ -20,6 +20,8 @@
 # include "connector.h"
 # include "param_solver.h"
 
+#include <stdlib.h>
+
 using namespace std;
 using namespace K_FLD;
 
@@ -694,6 +696,15 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
       E_Float* xPI     = ptrCoefs + nbInterpD +3*nbRcvPts;
       E_Float* xPW     = ptrCoefs + nbInterpD +6*nbRcvPts;
       E_Float* densPtr = ptrCoefs + nbInterpD +9*nbRcvPts;
+
+      E_Float param_real[30]; 
+      param_real[ GAMMA] = gamma;
+      param_real[ CVINF] = cv;
+      param_real[ XMUL0] = muS;
+      param_real[ CS] = Cs;
+      param_real[ TEMP0] = Ts;
+      param_real[ PRANDT] = Pr;
+
 #     pragma omp parallel default(shared)
       {
         //indice loop pour paralelisation omp
@@ -737,7 +748,8 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
                                     densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, // utau + yplus
                                     densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
                                     ipt_tmp, size,
-                                    gamma, cv, muS, Cs, Ts, Pr,
+                                    param_real,
+                                    //gamma, cv, muS, Cs, Ts, Pr,
                                     vectOfDnrFields, vectOfRcvFields);
         }
         else if (varType == 3 || varType == 31)
@@ -1210,7 +1222,9 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                                         densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, // utau + yplus
                                         densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
                                         ipt_tmp, size,
-                                        gamma, cv, muS, Cs, Ts, Pr,
+                                        //ipt_param_realR + NoR,
+                                        ipt_param_realR[ NoR ],
+                                        //gamma, cv, muS, Cs, Ts, Pr,
                                         vectOfDnrFields, vectOfRcvFields);
             }
             else if (varType == 3 || varType == 31)

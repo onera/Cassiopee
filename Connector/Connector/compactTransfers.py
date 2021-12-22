@@ -510,8 +510,14 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                 else: 
                     print('Assuming IBC type is Musker wall model.')
                     param_int[iadr+rac[pos]*3]  = 3
-           else: param_int[iadr+rac[pos]*3]  = int(zsrname[1]) # 'IBCD_type_zonename'
+           else:
+             if "Mobile" in  zsrname[2]:
+                 param_int[iadr+rac[pos]*3]  = 7  # musker paroi en rotation
+             else:
+                 param_int[iadr+rac[pos]*3]  = int(zsrname[1]) # 'IBCD_type_zonename'
           
+           #print('len zsrname', len(zsrname),param_int[iadr+rac[pos]*3] )
+
            # print('IBCType = ', IBCTypes[param_int[ iadr +rac[pos]*3 ]])
            xc        = Internal.getNodeFromName1(s , 'CoordinateX_PC')
            yc        = Internal.getNodeFromName1(s , 'CoordinateY_PC')

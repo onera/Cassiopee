@@ -608,7 +608,8 @@ namespace K_CONNECTOR
                                   E_Float* utauPtr, E_Float* yplusPtr,
                                   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
                                   E_Float* tmp, E_Int&  size,
-                                  E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
+                                  //E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
+                                  E_Float* param_real,
                                   std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut,
                                   E_Int nbptslinelets=0, E_Float* linelets=NULL, E_Int* indexlinelets=NULL);
 

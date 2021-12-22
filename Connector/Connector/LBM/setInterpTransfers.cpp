@@ -626,6 +626,14 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
   E_Float meay       = 0;
   E_Float meaz       = 0;
   
+  E_Float param_realLoc[30]; 
+  param_realLoc[ GAMMA] = gamma;
+  param_realLoc[ CVINF] = cv;
+  param_realLoc[ XMUL0] = muS;
+  param_realLoc[ CS] = Cs;
+  param_realLoc[ TEMP0] = Ts;
+  param_realLoc[ PRANDT] = Pr;
+
 # pragma omp parallel default(shared) num_threads(1) reduction(+:meax,meay,meaz)
   {
 #ifdef _OPENMP
@@ -960,7 +968,8 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
  	      				    densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,
  					    densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
  	      				    ipt_tmp, size,
- 	      				    gamma, cv, muS, Cs, Ts, Pr,
+                                            param_realLoc,
+ 	      				    //gamma, cv, muS, Cs, Ts, Pr,
  	      				    vectOfDnrFields, vectOfRcvFields);
  	      	}
  	      	else if (varType == 3 || varType == 31){

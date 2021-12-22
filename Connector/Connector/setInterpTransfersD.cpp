@@ -315,15 +315,20 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     PyObject* pyVariables;
     PyObject *pyParam_int, *pyParam_real;
     E_Int     vartype, type_transfert, no_transfert, It_target;
-    E_Int     nstep, nitmax, rk, exploc, num_passage;
+    E_Int     nstep, nitmax, rk, exploc, num_passage, rank;
     E_Float   gamma, cv, muS, Cs, Ts, Pr;
 
-    if ( !PYPARSETUPLE( args, "OOOOOlllllllll", "OOOOOiiiiiiiii", "OOOOOlllllllll", "OOOOOiiiiiiiii", &zonesR,
+    if ( !PYPARSETUPLE( args, "OOOOOllllllllll", "OOOOOiiiiiiiiii", "OOOOOllllllllll", "OOOOOiiiiiiiiii", &zonesR,
                         &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, &type_transfert,
-                        &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage  ) ) {
+                        &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage ,&rank  ) ) {
         return NULL;
     }
 
+    //zoneR : zones arbre t
+    //zoneD : zones arbre tc
+    //param_int/real : arbre tc
+    
+    
     E_Int varType  = E_Int( vartype );
     E_Int it_target= E_Int(It_target);
 
@@ -743,11 +748,11 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                         noi     = shiftDonor;  // compteur sur le tableau d indices donneur
                         indCoef = ( pt_deb - ideb ) * sizecoefs + shiftCoef;
 
-                        //E_Int NoR = ipt_param_int[shift_rac + nrac * 11 + 1]; 
+                        E_Int NoR = ipt_param_int[shift_rac + nrac * 11 + 1]; 
 			
 
 
-                        //if (ipt_param_int[ech]==0) printf("No rac= %d , NoR= %d, NoD= %d, Ntype= %d, ptdeb= %d, ptfin= %d, NptD= %d, neq= %d, skip= %d, rank= %d, dest= %d,  thread= %d\n",
+                        //if ((rank==28 or rank==39) && pass_inst==1 && ithread ==1) printf("No rac= %d , NoR= %d, NoD= %d, Ntype= %d, ptdeb= %d, ptfin= %d, NptD= %d, neq= %d, skip= %d, rank= %d, dest= %d,  thread= %d\n",
                         //irac, NoR,NoD, ntype[ 1 + ndtyp],pt_deb,pt_fin , 
                         //ipt_param_int[ shift_rac + nrac*10+1  ], ipt_param_int[ shift_rac + nrac*13+1  ], ipt_param_int[ shift_rac + nrac*15+1  ], 
                         //rank, ipt_param_int[ ech  ], ithread );
@@ -803,8 +808,9 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                                                           densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
                                                           densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, // utau + yplus
                                                           densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11, 
-                                                          ipt_tmp, size, gamma, cv, muS, Cs,
-                                                          Ts, Pr, vectOfDnrFields, vectOfRcvFields );
+                                                          ipt_tmp, size,ipt_param_realD[NoD], 
+                                                          //gamma, cv, muS, Cs, Ts, Pr,
+                                                          vectOfDnrFields, vectOfRcvFields );
                             }
                             else if ( varType == 3 || varType == 31 )
                                 setIBCTransfersCommonVar3(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread, xPC,

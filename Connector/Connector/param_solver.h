@@ -56,7 +56,8 @@
 #define BCPERIODIC               15
 #define BCOUTPRES                16
 #define BCINJ1                   17
-
+#define BCWALLMODEL              30
+#define BCWALLEXCHANGE           31
 
 #if (CACHELINE == 64)
 #define VECLENGTH     8
@@ -105,7 +106,7 @@
 #define RK	     52
 #define LEVEL	     53
 #define EXPLOC       54
-#define ITEXPLOC     55
+#define EXPLOCTYPE   55
 #define LEVELG	     56
 #define LEVELD	     57
 #define NSSITER	     58
@@ -171,6 +172,7 @@
 #define LBM_IBC_PREP        117
 #define LBM_IBC_CONNECTOR   118
 
+
 /*Sponge*/
 #define LBM_spng_xmin         119
 #define LBM_spng_xmax         120 
@@ -179,10 +181,16 @@
 #define LBM_spng_zmin         123
 #define LBM_spng_zmax         124
 
+/*IBM*/ 
+#define IBC_PT_FLUX           125
+
 #define BC_TYPE	      0
 #define BC_IDIR       1
 #define BC_FEN        2
 #define BC_NBDATA     8
+
+   
+
 
 #define DTC          0
 #define STAREF       1

@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "connector.h"
+# include "param_solver.h"
 # include <math.h>
 using namespace std;
 using namespace K_FLD;
@@ -480,10 +481,18 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* utauPtr, E_Float* yplusPtr,
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
-  E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
+  //E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
+  E_Float*  param_real,
   vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields,
   E_Int nbptslinelets, E_Float* linelets, E_Int* indexlinelets)
 {
+  E_Float Pr    = param_real[ PRANDT ];
+  E_Float Ts    = param_real[ TEMP0 ];
+  E_Float Cs    = param_real[ CS ];
+  E_Float muS   = param_real[ XMUL0 ];
+  E_Float cv    = param_real[ CVINF ];
+  E_Float gamma = param_real[ GAMMA ];
+
   /* lois de paroi */
   E_Float roext, uext, pext, text, muext, yext, yplus, yibc;
   E_Float uscaln, un, vn, wn, ut, vt, wt, utau, utauv, utau0, umod;
@@ -1346,7 +1355,139 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       }
 
     } 
-  }       
+  }      
+  else if (bctype == 7) // loi de paroi Musker paroi rotation
+  {
+#   include "IBC/pointer.h" 
+
+    E_Int err  = 0;
+    E_Int skip = 0; 
+
+    E_Float teta_out = param_real[ROT_TETA];
+    E_Float tetap    = param_real[ROT_TETAP];
+    E_Float teta     = teta_out;
+
+
+    E_Float cay,caz,ctheta, stheta,vx,vy,vz;
+    stheta = sin(teta);
+    ctheta = cos(teta);
+    //initialisation parametre geometrique et utau
+#ifdef _OPENMP4
+    #pragma omp simd
+#endif 
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+     {
+        E_Int indR = rcvPts[noind+ideb];
+ 
+        roext = roOut[indR]; // densite du point interpole
+        text  = tOut[indR];  // pression du point interpole
+        pext  = text*roext*cvgam;
+
+        cay = -stheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]) + ctheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]);
+        caz =  stheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]) + ctheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]);
+
+        vx  =  0;
+        vy  = -tetap*caz;
+        vz  =  tetap*cay;
+
+        //printf("teta  %.12f %.12f %.12f %.12f %.12f %.12f \n", teta/6.3*360., vz ,yPI[noind+ideb], param_real[ROT_CENTER+1], tetap , ctheta);
+        //printf("teta  %f %f %f  \n", tetap, vy  vz);
+
+        // vitesse du pt ext
+        u = uOut[indR]-vx;
+        v = vOut[indR]-vy; 
+        w = wOut[indR]-vz;
+        //printf("IN WALL LAW: %f %f %f %f %f \n",roext, text, u,v,w);
+#       include "IBC/commonMuskerLaw_init.h"
+        // out= utau  et err
+     }  
+
+     // Newton pour utau
+#    include "IBC/commonMuskerLaw_Newton.h" 
+
+     //initialisation Newton SA  + vitesse cible
+#if NUTILDE_FERRARI == 0
+#    include "IBC/commonMuskerLaw_cible.h"
+#elif NUTILDE_FERRARI == 1
+#    include "IBC/nutilde_Ferrari.h"
+#else
+#    include "IBC/nutilde_Ferrari_adim.h"
+#endif
+    if (nvars == 6)
+      {
+        // Newton pour mut
+#if NUTILDE_FERRARI == 0
+#       include "IBC/nutildeSA_Newton.h" 
+#endif
+        // mise a jour des variables
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif 
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+          E_Int indR = rcvPts[noind+ideb];
+
+          // For Post (tOut temperature du point image en entree, pt corrige en sortie)
+          twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+          pressPtr[noind+ideb]= press_vec[noind ];
+
+          // Mise a jour pt corrige
+          cay = -stheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]) + ctheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]);
+          caz =  stheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]) + ctheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]);
+          vx  =  0;
+          vy  = -tetap*caz;
+          vz  =  tetap*cay;
+
+          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;       
+          uOut[indR]     = ucible_vec[noind]+vx;
+          vOut[indR]     = vcible_vec[noind]+vy;
+          wOut[indR]     = wcible_vec[noind]+vz;
+          tOut[indR]     = tcible_vec[noind];
+          varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
+
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
+
+          // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
+        }
+      }
+    else //5eq 
+      {
+        // mise a jour des variable
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif 
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+         E_Int indR = rcvPts[noind+ideb];
+
+         // For Post (tOut temperature du point image)
+         twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+         densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+         pressPtr[noind+ideb]= press_vec[noind ];
+
+         // Mise a jour pt corrige
+         cay = -stheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]) + ctheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]);
+         caz =  stheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]) + ctheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]);
+         vx  =  0;
+         vy  = -tetap*caz;
+         vz  =  tetap*cay;
+
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;       
+         uOut[indR]     = ucible_vec[noind]+vx;
+         vOut[indR]     = vcible_vec[noind]*0.+vy;
+         wOut[indR]     = wcible_vec[noind]*0.+vz;
+         tOut[indR]     = tcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+        }
+      }
+
+  }//bctype 
   else 
   {
     printf("Warning !!! setIBCTransfersCommonVar2: bcType %d not implemented.\n", bctype);
@@ -1943,6 +2084,14 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     return NULL;
   }
 
+    E_Float param_real[30]; 
+    param_real[ GAMMA] = gamma;
+    param_real[ CVINF] = cv;
+    param_real[ XMUL0] = muS;
+    param_real[ CS] = Cs;
+    param_real[ TEMP0] = Ts;
+    param_real[ PRANDT] = 0.71;
+
 ////
 ////
 //  Interpolation parallele
@@ -1997,7 +2146,8 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
             utau, yplus,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
-            gamma, cv, muS, Cs, Ts, 0.71,
+            param_real,
+            //gamma, cv, muS, Cs, Ts, 0.71,
             vectOfDnrFields, vectOfRcvFields);
 
    else if (varType == 3 || varType == 31)
@@ -2235,6 +2385,14 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
     FldArrayF  tmp(size*14*threadmax_sdm);
     E_Float* ipt_tmp = tmp.begin();
 
+    E_Float param_real[30]; 
+    param_real[ GAMMA] = gamma;
+    param_real[ CVINF] = cv;
+    param_real[ XMUL0] = muS;
+    param_real[ CS] = Cs;
+    param_real[ TEMP0] = Ts;
+    param_real[ PRANDT] = Pr;
+
 #    pragma omp parallel default(shared)
      {
 
@@ -2273,7 +2431,8 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
             utau, yplus,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
-            gamma, cv, muS, Cs, Ts, Pr,
+            param_real,
+            //gamma, cv, muS, Cs, Ts, Pr,
             vectOfDnrFields, vectOfRcvFields);
   else if (varType == 3 || varType == 31)
     setIBCTransfersCommonVar3(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,

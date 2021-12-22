@@ -6,7 +6,6 @@ import Converter.PyTree as C
 import Converter.converter
 from . import connector
 import RigidMotion.PyTree as RM
-
 try: range = xrange
 except: pass
 
@@ -333,8 +332,9 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
 
         else:
             #print('transfert global', type_transfert)
+            rank = Cmpi.rank
             infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType,
-                                                    type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage) 
+                                                    type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage, rank) 
             if infos != []:
                for n in infos:
                   rcvNode = dest
