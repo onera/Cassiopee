@@ -2,6 +2,7 @@
 import Apps.Fast.MB as App
 import KCore.test as test
 import Converter.PyTree as C
+import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 
 LOCAL = test.getLocal()
@@ -25,4 +26,7 @@ t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.c
 Cmpi.barrier()
 if Cmpi.rank == 0:
     t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
+    Internal._rmNodesByName(t, '.Solver#Param')
+    Internal._rmNodesByName(t, '.Solver#ownData')
+    Internal._rmNodesByName(t, '.Solver#dtloc')
     test.testT(t, 1)

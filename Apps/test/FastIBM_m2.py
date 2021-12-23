@@ -44,7 +44,7 @@ tb = C.convertArray2Tetra(tb)
 noz = 0
 for z in Internal.getZones(tb):
     Cmpi._setProc(z,noz%(Cmpi.size))
-    noz+=1
+    noz += 1
     
 if Cmpi.rank==0: C.convertPyTree2File(tb, FILEB)
 Cmpi.barrier()
@@ -61,7 +61,10 @@ Cmpi.barrier()
 
 if Cmpi.rank == 0:
     t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
-    Internal._rmNodesFromType(t,'Rind_t')
+    Internal._rmNodesFromType(t, 'Rind_t')
+    Internal._rmNodesByName(t, '.Solver#Param')
+    Internal._rmNodesByName(t, '.Solver#ownData')
+    Internal._rmNodesByName(t, '.Solver#dtloc')
     test.testT(t,2)
     
 procDictR = Cmpi.getProcDict(tb)

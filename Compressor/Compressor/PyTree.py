@@ -301,11 +301,10 @@ def _uncompressCartesian(t):
     for z in zones:
         ztype = Internal.getZoneDim(z)
         if ztype[0] == 'Unstructured': continue
-        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
-        if gc is not None: _uncompressCartesian__(z, ztype, gc)
         gc = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
         if gc is not None: _uncompressCartesian__(z, ztype, gc)
-    
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        if gc is not None: _uncompressCartesian__(z, ztype, gc)
     return None
 
 # ctype=0: compress with sz

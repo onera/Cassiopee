@@ -3,6 +3,7 @@ import Converter.Mpi as Cmpi
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import KCore.test as test
+
 test.TOLERANCE = 1.e-6
 
 LOCAL = test.getLocal()
@@ -23,6 +24,7 @@ t,tc = myApp.compute(LOCAL+'/t.cgns',LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgn
 if Cmpi.rank == 0:
     Internal._rmNodesByName(t, '.Solver#Param')
     Internal._rmNodesByName(t, '.Solver#ownData')
+    Internal._rmNodesByName(t, '.Solver#dtloc')
     test.testT(t,2)
         
 t = T.subzone(t,(1,1,1),(-1,-1,1))

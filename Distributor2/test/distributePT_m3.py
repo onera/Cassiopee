@@ -6,7 +6,6 @@ import Converter.PyTree as C
 import Connector.PyTree as X
 import KCore.test as test
 import Converter.Mpi as Cmpi
-from test.redispatchPT_m1 import LOCAL
 
 LOCAL = test.getLocal()
 
