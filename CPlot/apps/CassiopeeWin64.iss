@@ -3,12 +3,12 @@
 
 [Setup]
 AppName=Cassiopee
-AppVersion=3.3
+AppVersion=3.4
 DefaultDirName={code:DefDirRoot}\Cassiopee
 DefaultGroupName=Cassiopee
 Compression=lzma2
 SolidCompression=yes
-OutputBaseFilename=Cassiopee-3.3-win64
+OutputBaseFilename=Cassiopee-3.4-win64
 PrivilegesRequired=lowest
 AppPublisher=ONERA
 
@@ -47,6 +47,18 @@ begin
   lines[6] := 'set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%'
   SaveStringsToFile(filename,lines,false);
 
+  fileName := ExpandConstant('{app}\Dist\env_Cassiopee_win64.ps1');
+  CassiopeeVar := ExpandConstant('{app}');
+  SetArrayLength(lines, 7);
+  lines[0] := '$global:CASSIOPEE = "'+CassiopeeVar+'"';
+  lines[1] := '$Env:Path = "$CASSIOPEE\Dist\bin\win64\lib;$CASSIOPEE\Dist\bin\win64\bin;$CASSIOPEE\Dist\bin\win64;$Env:Path"';
+  lines[2] := '$global:PYTHONEXE = "python3.8"';
+  lines[3] := '$global:PYTHONHOME = "$CASSIOPEE\Dist\bin\win64"';
+  lines[4] := '$global:ELSAPROD = "win64"';
+  lines[5] := '$global:PYTHONPATH = "$CASSIOPEE\Dist\bin\win64\bin;$CASSIOPEE\Dist\bin\win64\lib\python3.8;$CASSIOPEE\Dist\bin\win64\lib\python3.8\site-packages"';
+  lines[6] := '$global:OMP_NUM_THREADS = $Env:NUMBER_OF_PROCESSORS'
+  SaveStringsToFile(filename,lines,false);
+
   fileName := ExpandConstant('{app}\Dist\bin\win64\cassiopeeRunWin64.bat');
   CassiopeeVar := ExpandConstant('{app}');
   SetArrayLength(lines, 8);
@@ -69,5 +81,6 @@ end;
 
 [Icons]
 Name: "{group}\Cassiopee"; Filename: "{app}\Dist\bin\win64\cassiopeeRunWin64.bat" ; Flags: runminimized ; WorkingDir: "%USERPROFILE%" ; IconFilename: "{app}\Dist\bin\win64\lib\python3.8\site-packages\CPlot\logoCassiopee32.ico"
-Name: "{group}\Command shell"; Filename: "cmd.exe" ; Parameters: "/k ""{app}\Dist\env_Cassiopee_win64.bat""" ; WorkingDir: "%USERPROFILE%" ; Flags: runmaximized
+Name: "{group}\Dos shell"; Filename: "cmd.exe" ; Parameters: "/k ""{app}\Dist\env_Cassiopee_win64.bat""" ; WorkingDir: "%USERPROFILE%" ; Flags: runmaximized
+Name: "{group}\Power shell"; Filename: "powershell.exe" ; Parameters: "-noexit ""{app}\Dist\env_Cassiopee_win64.ps1""" ; WorkingDir: "%USERPROFILE%" ; Flags: runmaximized
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"

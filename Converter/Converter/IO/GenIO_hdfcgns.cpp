@@ -969,10 +969,10 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   fid = H5Fopen(file, H5F_ACC_RDONLY, fapl);
   //printf("open Avant =%d\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
   // printf("open=%d\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
-  
+  H5Pclose(fapl);
+    
   if (fid < 0)
   {
-    H5Pclose(fapl);
     printf("Warning: hdfcgnsread: can not open file %s.\n", file);
     return 1;
   }
@@ -1031,9 +1031,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   */
   // END DBX
 
-  H5Fclose(fid);
-  H5Pclose(fapl);
-  
+  H5Fclose(fid);  
   return 0;
 }
 
@@ -1520,10 +1518,10 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   //H5Pset_nlinks(lapl, ADF_MAXIMUM_LINK_DEPTH);
 
   fid = H5Fcreate(file, H5F_ACC_TRUNC, capl, fapl);
+  H5Pclose(fapl); H5Pclose(capl);
 
   if (fid < 0)
   {
-    H5Pclose(fapl); H5Pclose(capl);
     printf("Warning: hdfcgnswrite: can not open file %s.\n", file);
     return 1;
   }
@@ -1570,6 +1568,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     HDF._stringStack.pop_front();
   }
   
+  //H5Gclose(gid);
+
   /** Manage links (a l'ecriture) */
   /* List of ['targetdirectory', 'targetfilename', 'targetpath', 'currentpath',0] */
   E_Int size;
@@ -1699,7 +1699,6 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   // END DBX
 
   H5Fclose(fid);
-  H5Pclose(fapl); H5Pclose(capl);
   
   return 0;
 }
@@ -2087,7 +2086,9 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
         {
           E_Int diml = PyArray_DIMS(ar)[0];
           char* buf = new char [diml+1];
-          strncpy(buf, (char*)PyArray_DATA(ar), diml);
+          //strncpy(buf, (char*)PyArray_DATA(ar), diml); // pb align
+          char* pt = (char*)PyArray_DATA(ar);
+          for (E_Int i = 0; i < diml; i++) buf[i] = pt[i];
           buf[diml] = '\0';
           setArrayC1(child, buf);
           HDF_Add_Attribute_As_String(child, L3S_DTYPE, L3T_C1);
@@ -2130,7 +2131,6 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
     }
     delete [] dims;
   }
-  //H5Pclose(gapl);
   return child;
 }
 

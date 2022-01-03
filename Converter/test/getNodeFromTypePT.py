@@ -11,3 +11,4 @@ node = Internal.getNodeFromType(t, 'Zone_t'); print(node)
 
 # Limit search to second level (faster)
 node = Internal.getNodeFromType2(t, 'Zone_t'); print(node)
+#>> ['cart', array([[10,  9,  0],...

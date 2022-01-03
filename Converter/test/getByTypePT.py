@@ -8,3 +8,4 @@ t = C.newPyTree(['Base',a])
 
 # Return a standard node containing nodes of type 'Zone_t' as children
 zones = Internal.getByType(t, 'Zone_t'); print(zones)
+#>> ['Zone_t', None, [['cart', array([[10,  9,  0],...

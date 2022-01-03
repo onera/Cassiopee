@@ -7,4 +7,3 @@ c = Internal.createChild(b, 'level2', 'DataArray_t', 2)
 
 p = Internal.getParentFromType(a, c, 'DataArray_t'); print(p[0])
 #>> level1
-

@@ -141,12 +141,12 @@ List of functions
 .. autosummary::
 
     Converter.PyTree.newPyTree
+    Converter.PyTree.addBase2PyTree
     Converter.PyTree.getNobOfBase
     Converter.PyTree.getNobNozOfZone
     Converter.PyTree.breakConnectivity
     Converter.PyTree.mergeConnectivity
     Converter.PyTree.deleteEmptyZones
-    Converter.PyTree.addBase2PyTree
     Converter.PyTree.addState
     Converter.PyTree.addChimera2Base
     Converter.PyTree.addBC2Zone
@@ -420,6 +420,30 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
+.. py:function:: Converter.PyTree.addBase2PyTree(a, baseName, cellDim=3)
+
+    Add a base named 'baseName' to a pyTree. Third argument specifies the cell 
+    dimension (cellDim=3 for volume meshes, cellDim=2 for surface meshes).
+
+    Exists also as in place version (_addBase2PyTree) that modifies a and 
+    returns None.
+
+    :param a: pyTree
+    :type a: CGNS pyTree node
+    :param baseName: name of created base
+    :type baseName: string
+    :param cellDim: cell dimension of zones in base
+    :type cellDim: int
+    :rtype: pyTree with new base added
+
+    *Example of use:*
+
+    * `Add base to pyTree (pyTree) <Examples/Converter/addBase2PyTree.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/addBase2PyTree.py
+
+---------------------------------------------------------------------------
+
 .. py:function:: Converter.PyTree.getNobOfBase(base, t)
 
     Get the number of a given base in tree base list, such that t[2][nob] = base.
@@ -515,30 +539,6 @@ pyTree creation and manipulation
     * `Delete empty zones (pyTree) <Examples/Converter/deleteEmptyZones.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/deleteEmptyZones.py
-
----------------------------------------------------------------------------
-
-.. py:function:: Converter.PyTree.addBase2PyTree(a, baseName, cellDim=3)
-
-    Add a base named 'baseName' to a pyTree. Third argument specifies the cell 
-    dimension (cellDim=3 for volume meshes, cellDim=2 for surface meshes).
-
-    Exists also as in place version (_addBase2PyTree) that modifies a and 
-    returns None.
-
-    :param a: pyTree
-    :type a: CGNS pyTree node
-    :param baseName: name of created base
-    :type baseName: string
-    :param cellDim: cell dimension of zones in base
-    :type cellDim: int
-    :rtype: pyTree with new base added
-
-    *Example of use:*
-
-    * `Add base to pyTree (pyTree) <Examples/Converter/addBase2PyTree.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/addBase2PyTree.py
 
 ---------------------------------------------------------------------------
 

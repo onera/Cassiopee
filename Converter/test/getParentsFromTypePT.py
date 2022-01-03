@@ -9,5 +9,3 @@ p = Internal.getParentsFromType(a, c, 'DataArray_t')
 for i in p: print(i[0])
 #>> level0
 #>> level1
-
-
