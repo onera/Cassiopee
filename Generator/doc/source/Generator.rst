@@ -1580,7 +1580,7 @@ Information on generated meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.BB(a, method='AABB', weighting=0)
+.. py:function:: Generator.BB(a, method='AABB', weighting=0, tol=0.)
 
     Return the bounding box of a as an array or a zone. If method is 'AABB', then it computes the Axis-Aligned Bounding-Box, if method is 'OBB' then it computes the Oriented Bounding-Box. The argument weighting may be 0, and the OBB is computed using a Cloud-Point approach, or 1, and it is computed using a Surface-Weighting approach. If weighting=1, then the provided array must be a surface composed of triangles. 
     
@@ -1592,6 +1592,8 @@ Information on generated meshes
     :type  method:  string
     :param weighting:  activation key for surface weighting approach
     :type  weighting:  integer
+    :param tol: extension of bounding box in all the directions
+    :type tol: float
     :return: modified reference copy of a
     :rtype: array or pyTree
 

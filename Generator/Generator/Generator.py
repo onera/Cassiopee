@@ -158,9 +158,9 @@ def bbox(arrays):
 
     return [xmin, ymin, zmin, xmax, ymax, zmax]
 
-def BB(array, method='AABB', weighting=0):
+def BB(array, method='AABB', weighting=0, tol=0.):
     """Return the axis-aligned or oriented bounding box of an array as an array.
-    Usage: b = BB(a, method='AABB', weighting=0)"""
+    Usage: b = BB(a, method='AABB', weighting=0, tol=0.)"""
     try: import Converter as C
     except ImportError:
         raise ImportError("BB: requires Converter module.")
@@ -170,14 +170,14 @@ def BB(array, method='AABB', weighting=0):
             if method == 'AABB':  # Computes AABB
                 sbb = bbox(a)
                 ar = C.array('x,y,z', 2, 2, 2)
-                C.setValue(ar, (1,1,1), [sbb[0], sbb[1], sbb[2]])
-                C.setValue(ar, (2,1,1), [sbb[3], sbb[1], sbb[2]])
-                C.setValue(ar, (1,2,1), [sbb[0], sbb[4], sbb[2]])
-                C.setValue(ar, (1,1,2), [sbb[0], sbb[1], sbb[5]])
-                C.setValue(ar, (2,2,1), [sbb[3], sbb[4], sbb[2]])
-                C.setValue(ar, (1,2,2), [sbb[0], sbb[4], sbb[5]])
-                C.setValue(ar, (2,1,2), [sbb[3], sbb[1], sbb[5]])
-                C.setValue(ar, (2,2,2), [sbb[3], sbb[4], sbb[5]])
+                C.setValue(ar, (1,1,1), [sbb[0]-tol, sbb[1]-tol, sbb[2]-tol])
+                C.setValue(ar, (2,1,1), [sbb[3]+tol, sbb[1]-tol, sbb[2]-tol])
+                C.setValue(ar, (1,2,1), [sbb[0]-tol, sbb[4]+tol, sbb[2]-tol])
+                C.setValue(ar, (1,1,2), [sbb[0]-tol, sbb[1]-tol, sbb[5]+tol])
+                C.setValue(ar, (2,2,1), [sbb[3]+tol, sbb[4]+tol, sbb[2]-tol])
+                C.setValue(ar, (1,2,2), [sbb[0]-tol, sbb[4]+tol, sbb[5]+tol])
+                C.setValue(ar, (2,1,2), [sbb[3]+tol, sbb[1]-tol, sbb[5]+tol])
+                C.setValue(ar, (2,2,2), [sbb[3]+tol, sbb[4]+tol, sbb[5]+tol])
                 out.append(ar)
             elif method == 'OBB':  # Computes OBB
                 out.append(generator.obbox(a,weighting))
@@ -189,14 +189,14 @@ def BB(array, method='AABB', weighting=0):
         if method == 'AABB':  # Computes AABB
             sbb = bbox(array)
             ar = C.array('x,y,z', 2, 2, 2)
-            C.setValue(ar, (1,1,1), [sbb[0], sbb[1], sbb[2]])
-            C.setValue(ar, (2,1,1), [sbb[3], sbb[1], sbb[2]])
-            C.setValue(ar, (1,2,1), [sbb[0], sbb[4], sbb[2]])
-            C.setValue(ar, (2,2,1), [sbb[3], sbb[4], sbb[2]])
-            C.setValue(ar, (1,1,2), [sbb[0], sbb[1], sbb[5]])
-            C.setValue(ar, (2,1,2), [sbb[3], sbb[1], sbb[5]])
-            C.setValue(ar, (1,2,2), [sbb[0], sbb[4], sbb[5]])
-            C.setValue(ar, (2,2,2), [sbb[3], sbb[4], sbb[5]])
+            C.setValue(ar, (1,1,1), [sbb[0]-tol, sbb[1]-tol, sbb[2]-tol])
+            C.setValue(ar, (2,1,1), [sbb[3]+tol, sbb[1]-tol, sbb[2]-tol])
+            C.setValue(ar, (1,2,1), [sbb[0]-tol, sbb[4]+tol, sbb[2]-tol])
+            C.setValue(ar, (1,1,2), [sbb[0]-tol, sbb[1]-tol, sbb[5]+tol])
+            C.setValue(ar, (2,2,1), [sbb[3]+tol, sbb[4]+tol, sbb[2]-tol])
+            C.setValue(ar, (1,2,2), [sbb[0]-tol, sbb[4]+tol, sbb[5]+tol])
+            C.setValue(ar, (2,1,2), [sbb[3]+tol, sbb[1]-tol, sbb[5]+tol])
+            C.setValue(ar, (2,2,2), [sbb[3]+tol, sbb[4]+tol, sbb[5]+tol])
         elif method == 'OBB':  # Computes OBB
             ar = generator.obbox(array,weighting)
         else:

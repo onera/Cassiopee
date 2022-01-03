@@ -151,7 +151,7 @@ def fixPaths__(paths, nodes=None):
 #==============================================================================
 def isZoneSkeleton__(z, ntype=0):
     if len(z[2]) == 0: return True
-    cx = Internal.getNodeFromType1(z, 'GridCoordinates_t')
+    cx = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
     if cx is not None:
       t1 = Internal.getNodesFromType1(cx, 'DataArray_t')
       for d in t1:

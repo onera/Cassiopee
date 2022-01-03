@@ -124,7 +124,7 @@ def compressCartesian(t, bbox=[], layers=None, subr=True):
     _compressCartesian(tp, bbox=bbox, layers=layers, subr=subr)
     return tp
 
-# compress a gridCorddinates container
+# compress a gridCoordinates container
 def _compressCartesian__(z, ztype, gc):
     xp = Internal.getNodeFromName1(gc, 'CoordinateX')
     yp = Internal.getNodeFromName1(gc, 'CoordinateY')
@@ -274,7 +274,7 @@ def uncompressCartesian(t):
 
 def _uncompressCartesian__(z, ztype, gc):
     import Generator.PyTree as G
-    c = Internal.getNodeFromName1(gc, 'CartesianData')
+    c = Internal.getNodeFromName(z, 'CartesianData')
     if c is None: return None # no CartesianData
     c = Internal.getValue(c)
     if c is None: return None # suppose skeleton zone

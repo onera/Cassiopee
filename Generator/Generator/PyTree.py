@@ -510,14 +510,14 @@ def bbox(t):
     A = C.getFields(Internal.__GridCoordinates__, t)
     return Generator.bbox(A)
 
-def BB(t, method='AABB', weighting=0):
+def BB(t, method='AABB', weighting=0, tol=0.):
     """Return the bounding box of a pyTree as zones.
-    Usage: b = BB(a, method, weighting)"""
+    Usage: b = BB(a, method, weighting, tol)"""
     tp = Internal.copyRef(t)
-    _BB(tp, method, weighting)
+    _BB(tp, method, weighting, tol)
     return tp
 
-def _BB(t, method='AABB', weighting=0):
+def _BB(t, method='AABB', weighting=0, tol=0.):
     """Return the bounding box of a pyTree as zones.
     Usage: b = BB(a, method, weighting)"""
     C._deleteFlowSolutions__(t)
@@ -526,7 +526,7 @@ def _BB(t, method='AABB', weighting=0):
     C._rmNodes(t, 'GridCoordinates#Init')
     C._rmNodes(t, 'Motion')
     C._rmNodes(t, '.Solver#ownData')
-    C._TZGC(t, 'nodes', Generator.BB, method, weighting)
+    C._TZGC(t, 'nodes', Generator.BB, method, weighting, tol)
     return None
 
 def barycenter(t, weight='None'):

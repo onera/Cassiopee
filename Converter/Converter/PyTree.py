@@ -1557,7 +1557,9 @@ def setFields(arrays, t, loc, writeDim=True):
     p = 0
     for v in vars:
       renamed = 0 # si le nom est change en nom CGNS = 1
-      if v in Internal.name2CGNS: renamed = 1; variable = Internal.name2CGNS[v]
+      if v in Internal.name2CGNS: 
+        variable = Internal.name2CGNS[v]
+        if variable != v: renamed = 1
       else: variable = v
       if (variable == 'CoordinateX' or variable == 'CoordinateY'
           or variable == 'CoordinateZ') and loc == 'nodes':

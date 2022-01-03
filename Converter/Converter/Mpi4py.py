@@ -470,7 +470,7 @@ def printA(A):
 # formees par des triangles. Pour cela, appliquer au prealable (par exemple):
 # createBBoxTree(C.convertArray2Tetra(P.exteriorFaces(t)),isOBB=1,weighting=1)
 #==============================================================================
-def createBBoxTree(t, method='AABB', weighting=0):
+def createBBoxTree(t, method='AABB', weighting=0, tol=0.):
     """Return a bbox tree of t."""
     try: import Generator.PyTree as G
     except: raise ImportError("createBBoxTree requires Generator module.")
@@ -481,7 +481,7 @@ def createBBoxTree(t, method='AABB', weighting=0):
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
             if not Distributed.isZoneSkeleton__(z):
-                zbb = G.BB(z, method, weighting)
+                zbb = G.BB(z, method, weighting,tol=tol)
                 # ajoute baseName/zoneName
                 zbb[0] = b[0]+'/'+zbb[0]
                 # Clean up (zoneSubRegion)

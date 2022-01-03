@@ -1,23 +1,35 @@
 # Class for FastS "IBM" prepare and compute
 import FastC.PyTree as FastC
 import Converter.PyTree as C
+import Geom.PyTree as D
 import Generator.PyTree as G
 import Transform.PyTree as T
+import Post.PyTree as P
 import Converter.Internal as Internal
 import Connector.PyTree as X
 import Connector.ToolboxIBM as TIBM
 import Dist2Walls.PyTree as DTW
 import Distributor2.PyTree as D2
 import Initiator.PyTree as I
+import Compressor.PyTree as Compressor
 import Converter.Mpi as Cmpi
+import Connector.Mpi as Xmpi
+import Post.Mpi as Pmpi
 import Converter.Filter as Filter
+import Converter.Distributed as Distributed
 from Apps.Fast.Common import Common
 import Connector.connector as connector
 import Connector.OversetData as XOD
+import Converter
+import KCore.test as test
+import Generator
 import math
 import numpy
 try: range = xrange
 except: pass
+from mpi4py import MPI
+COMM_WORLD = MPI.COMM_WORLD
+KCOMM = COMM_WORLD
 
 def compute_Cf(Re, Cf_law='ANSYS'):
     if Cf_law == 'ANSYS':
@@ -104,7 +116,6 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None, yplus=100.,
             vmin=21, check=False, NP=0, format='single',
             frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, recomputeDist=True):
-    import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
@@ -127,7 +138,6 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
              vmin=21, check=False, NP=0, format='single', frontType=1, recomputeDist=True,
              expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
-    import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -259,7 +269,6 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         I._initConst(t, loc='centers')
         if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
     else:
-       import Post.PyTree as P
        P._extractMesh(tinit, t, mode='accurate', constraint=40.)
        RefState = Internal.getNodeFromType(t, 'ReferenceState_t')
        ronutildeInf = Internal.getValue(Internal.getNodeFromName(RefState, 'TurbulentSANuTildeDensity'))
@@ -278,7 +287,6 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # Init with BBox
     if initWithBBox>0.:
         print('initialisation par bounding box')
-        import Geom.PyTree as D
         bodybb = C.newPyTree(['Base'])
         for base in Internal.getBases(tb):
             bbox = G.bbox(base)
@@ -297,33 +305,16 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     if isinstance(t_out, str): FastC.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
 
-#================================================================================
-# IBM prepare - para
-#
-# extrusion: make an extrusion from a 2D profile. ATTENTION, each zone of the profile must be joined in one single zone
-# smoothing : smooth the front during the front 2 specific treatment in the cases of local refinements
-# balancing ; balance the entire distribution after the octree generation, useful for symetries
-# distrib : new distribution at the end of prepare1
-#================================================================================
-def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
-             tbox=None, snearsf=None, yplus=100.,
-             vmin=21, check=False, NP=0, format='single',
-             frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
-             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
-
-    import Generator
-    import Connector.Mpi as Xmpi
-    import Converter.Distributed as Distributed
-    import Connector.OversetData as XOD
-    import KCore.test as test
-    import Post.PyTree as P
-    from mpi4py import MPI
-
-    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
-    else: tb = t_case
-
+def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None, snearsf=None, yplus=100.,
+                      vmin=21, check=False, expand=3, dfarDir=0):
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
+    refstate = C.getState(tb)
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError('GoverningEquations is missing in input tree.')
+    # model : Euler, NSLaminar, NSTurbulent
+    model = Internal.getValue(model)
+
 
     # list of dfars
     if dfarList == []:
@@ -336,7 +327,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # a mettre dans la classe ou en parametre de prepare1 ???
     to = None
 
-    # refinementSurfFile: surface meshes describing refinement zones
+     # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
         else: tbox = tbox
@@ -346,37 +337,10 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             for z in zones:
                 sn = Internal.getNodeFromName2(z, 'snear')
                 if sn is not None: snearsf.append(Internal.getValue(sn))
-                else: snearsf.append(1.)
-
+                else: snearsf.append(1.)   
     symmetry = 0
     fileout = None
     if check: fileout = 'octree.cgns'
-
-    DEPTH=2
-    IBCType=1
-
-    # reference state
-    refstate = C.getState(tb)
-    # dimension du pb
-    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    dimPb = Internal.getValue(dimPb)
-
-    model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError('GoverningEquations is missing in input tree.')
-    # model : Euler, NSLaminar, NSTurbulent
-    model = Internal.getValue(model)
-
-    # check Euler non consistant avec Musker
-    if model == 'Euler':
-        for z in Internal.getZones(tb):
-            ibctype = Internal.getNodeFromName2(z, 'ibctype')
-            if ibctype is not None:
-                ibctype = Internal.getValue(ibctype)
-                if ibctype == 'Musker' or ibctype == 'Log':
-                    raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
-
-    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
-
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
 
@@ -386,7 +350,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                          expand=expand, dfarDir=dfarDir)
 
     if rank==0 and check: C.convertPyTree2File(o, fileout)
-
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
@@ -426,7 +389,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-    coords, rinds = Generator.generator.extendCartGrids(coords, DEPTH+1, 1)
+    coords, rinds = Generator.generator.extendCartGrids(coords, ext, 1)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):
         Internal.newRind(value=rinds[noz], parent=zones[noz])
@@ -500,10 +463,61 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             C._addBC2Zone(t, 'period', 'BCautoperiod', 'kmax')
             if check: Cmpi.convertPyTree2File(t, '3Dmesh.cgns')
 
+
     # ReferenceState
     C._addState(t, state=refstate)
     C._addState(t, 'GoverningEquations', model)
-    C._addState(t, 'EquationDimension', dimPb)
+    C._addState(t, 'EquationDimension', dimPb)            
+    return t
+
+#================================================================================
+# IBM prepare - para
+#
+# extrusion: make an extrusion from a 2D profile. ATTENTION, each zone of the profile must be joined in one single zone
+# smoothing : smooth the front during the front 2 specific treatment in the cases of local refinements
+# balancing ; balance the entire distribution after the octree generation, useful for symetries
+# distrib : new distribution at the end of prepare1
+#===================================================================================================================
+def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[],
+             tbox=None, snearsf=None, yplus=100.,
+             vmin=21, check=False, NP=0, format='single',
+             frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
+             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
+    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    else: tb = t_case
+
+    rank = Cmpi.rank
+    comm = Cmpi.COMM_WORLD
+
+    DEPTH=2
+    IBCType=1
+
+    # reference state
+    refstate = C.getState(tb)
+    # dimension du pb
+    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
+    dimPb = Internal.getValue(dimPb)
+
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError('GoverningEquations is missing in input tree.')
+    # model : Euler, NSLaminar, NSTurbulent
+    model = Internal.getValue(model)
+
+    # check Euler non consistant avec Musker
+    if model == 'Euler':
+        for z in Internal.getZones(tb):
+            ibctype = Internal.getNodeFromName2(z, 'ibctype')
+            if ibctype is not None:
+                ibctype = Internal.getValue(ibctype)
+                if ibctype == 'Musker' or ibctype == 'Log':
+                    raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
+
+    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
+    if t_in is None:
+        t = generateCartesian(tb, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, 
+                              snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir)                    
+    else: 
+        t = t_in
 
     # Balancing
     if balancing:
@@ -522,15 +536,17 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     # Distance a la paroi
     test.printMem(">>> Wall distance [start]")
-    if dimPb == 2:
-        z0 = Internal.getNodeFromType2(t, "Zone_t")
-        bb0 = G.bbox(z0); dz = bb0[5]-bb0[2]
-        tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-        DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
-    else:
-        DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
+    FSC = Internal.getNodeFromType(t,"FlowSolution_t")
+    if FSC is None or Internal.getNodeFromName(FSC,'TurbulentDistance') is None:
+        if dimPb == 2:
+            z0 = Internal.getNodeFromType2(t, "Zone_t")
+            bb0 = G.bbox(z0); dz = bb0[5]-bb0[2]
+            tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+        else:
+            DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
     test.printMem(">>> Wall distance [end]")
-
+    
     X._applyBCOverlaps(t, depth=DEPTH, loc='centers', val=2, cellNName='cellN')
 
     # Blank des corps chimere
@@ -671,6 +687,15 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     test.printMem(">>> Interpdata [start]")
     tc = C.node2Center(t)
+
+    # abutting ? 
+    if Internal.getNodeFromType(t,"GridConnectivity1to1_t") is not None:
+        test.printMem("setInterpData abutting")
+        Xmpi._setInterpData(t, tc, 
+                            nature=1, loc='centers', storage='inverse', 
+                            sameName=1, dim=3, itype='abutting')
+        test.printMem("setInterpData abutting done.")
+
     # setInterpData parallel pour le chimere
     tbbc = Cmpi.createBBoxTree(tc)
     interDict = X.getIntersectingDomains(tbbc)
@@ -843,7 +868,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
     print('Minimum distance: %f.'%C.getMinValue(t,'centers:TurbulentDistance'))
-    P._computeGrad2(t, 'centers:TurbulentDistance')
+    P._computeGrad2(t, 'centers:TurbulentDistance',ghostCells=True)
 
     test.printMem(">>> Building IBM front [start]")
     front = TIBM.getIBMFront(tc, 'cellNFront', dim=dimPb, frontType=frontType)
@@ -1053,21 +1078,18 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     # Save tc
     if isinstance(tc_out, str): 
-        import Compressor.PyTree as Compressor
         tcp = Compressor.compressCartesian(tc)
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
 
     # Initialisation
     if tinit is None: I._initConst(t, loc='centers')
     else:
-        import Post.PyTree as Pmpi
         t = Pmpi.extractMesh(tinit, t, mode='accurate')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
 
     # Init with BBox
     if initWithBBox>0.:
         print('initialisation par bounding box')
-        import Geom.PyTree as D
         bodybb = C.newPyTree(['Base'])
         for base in Internal.getBases(tb):
             bbox = G.bbox(base)
@@ -1085,7 +1107,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     # Save t
     if isinstance(t_out, str):
-        import Compressor.PyTree as Compressor
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
 
@@ -1093,13 +1114,12 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     return t, tc
 
 def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
-    import Converter.Distributed as CD
     if isinstance(tc_in, str): tc = Cmpi.convertFile2PyTree(tc_in)
     else: tc = tc_in
 
     tibm = TIBM.extractIBMInfo(tc)
     rank = Cmpi.rank
-    CD._setProc(tibm,rank)
+    Distributed._setProc(tibm,rank)
     if isinstance(t_out, str): Cmpi.convertPyTree2File(tibm, t_out)
     return tibm
 
@@ -1112,8 +1132,6 @@ def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
 # OUT: wall_out ou None: fichier pour sortie du champ sur la paroi
 #==============================================================================
 def post(t_case, t_in, tc_in, t_out, wall_out):
-    import Post.PyTree as P
-
     if isinstance(t_in, str): t = C.convertFile2PyTree(t_in)
     else: t = t_in
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
@@ -1212,7 +1230,133 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     if isinstance(t_out, str): C.convertPyTree2File(t, t_out)
 
     return t, zw
+#===========================================================
+# return [Cl, Cd]
+# alpha, beta are angles in degrees
+#===========================================================
+def _loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
+    if Sref is None:
+        C._initVars(ts, '__ONE__',1.)
+        Sref = P.integ(ts, '__ONE__')[0]; 
+        C._rmVars(ts, ['__ONE__', 'centers:vol'])
 
+    RefState = Internal.getNodeFromType(ts,'ReferenceState_t')
+    PInf = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
+    RoInf = Internal.getValue(Internal.getNodeFromName(RefState,"Density"))
+    VxInf = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityX"))
+    VyInf = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityY"))
+    VzInf = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityZ"))
+    VInf2 = VxInf*VxInf+VyInf*VyInf+VzInf*VzInf
+    VInf  = math.sqrt(VInf2)
+    
+    q = 0.5*RoInf*VInf2
+    qinv = 1./q
+    alpha = math.radians(alpha)
+    beta = math.radians(beta)
+    calpha = math.cos(alpha); cbeta = math.cos(beta)
+    salpha = math.sin(alpha); sbeta = math.sin(beta)
+    #===========================
+    # Calcul efforts de pression
+    #===========================
+    zw = Internal.getZones(ts)
+    zw = T.join(zw)    
+    Internal._rmNodesFromType(ts,'Zone_t')
+    ts[2][1][2].append(zw)
+    FSN = Internal.getNodeFromName(ts,Internal.__FlowSolutionCenters__)
+    isPresent=False
+    if Internal.getNodeFromName(FSN,'Cp') is None:
+        C._initVars(ts, '{Cp}=-({Pressure}-%g)*%g'%(PInf,qinv))
+
+    res = P.integNorm(ts, 'Cp')[0]
+    res = [i/Sref for i in res]
+    calpha = math.cos(alpha); cbeta = math.cos(beta)
+    salpha = math.sin(alpha); sbeta = math.sin(beta)
+    if dimPb==3:
+        cd = res[0]*calpha*cbeta + res[2]*salpha*cbeta
+        cl = res[2]*calpha*cbeta - res[0]*salpha*cbeta
+    else:
+        cd = res[0]*calpha + res[1]*salpha
+        cl = res[1]*calpha - res[0]*salpha
+    if verbose:
+        print("Normalized pressure drag = %g and lift = %g"%(cd, cl))
+        print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(",res[0],res[1],res[2],")")
+    cd_press = cd ; cl_press = cl
+    #======================================
+    # Calcul frottement et efforts visqueux
+    #======================================
+    C._initVars(ts, '{tau_wall}=0.')
+    G._getNormalMap(ts)
+
+    variables = ['Density', 'Cp', 'tau_wall', 'Pressure','VelocityX','VelocityY','VelocityZ']
+    FSN = Internal.getNodeFromType(ts,'FlowSolution_t')
+    if Internal.getNodeFromName1(FSN,'utau') is not None: 
+        variables += ['utau','yplus','tau_wall']
+        C._initVars(ts, '{tau_wall}={Density}*{utau}*{utau}')
+            
+    if Internal.getNodeFromName1(FSN,'gradxPressure') is not None: 
+        variables += ['gradxPressure','gradyPressure','gradzPressure']
+
+    if Internal.getNodeFromName1(FSN,'yplus_i') is not None: 
+        variables += ['yplus_i']        
+                
+    ts = C.node2Center(ts, variables)
+    Internal._rmNodesFromName(ts,'FlowSolution')
+    C._normalize(ts, ['centers:sx','centers:sy','centers:sz'])
+    # calcul du vecteur tangent
+    C._initVars(ts, '{centers:tx}={centers:VelocityX}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sx}')
+    C._initVars(ts, '{centers:ty}={centers:VelocityY}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sy}')
+    C._initVars(ts, '{centers:tz}={centers:VelocityZ}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sz}')
+    C._normalize(ts, ['centers:tx','centers:ty','centers:tz'])
+
+    C._initVars(ts, '{centers:tauxx}=2*{centers:tau_wall}*{centers:tx}*{centers:sx}')
+    C._initVars(ts, '{centers:tauyy}=2*{centers:tau_wall}*{centers:ty}*{centers:sy}')
+    C._initVars(ts, '{centers:tauzz}=2*{centers:tau_wall}*{centers:tz}*{centers:sz}')
+    C._initVars(ts, '{centers:tauxy}={centers:tau_wall}*({centers:tx}*{centers:sy}+{centers:ty}*{centers:sx})')
+    C._initVars(ts, '{centers:tauxz}={centers:tau_wall}*({centers:tx}*{centers:sz}+{centers:tz}*{centers:sx})')
+    C._initVars(ts, '{centers:tauyz}={centers:tau_wall}*({centers:ty}*{centers:sz}+{centers:tz}*{centers:sy})')
+
+    # calcul forces de frottement
+    C._initVars(ts, '{centers:Fricx}={centers:tauxx}*{centers:sx}+{centers:tauxy}*{centers:sy}+{centers:tauxz}*{centers:sz}')
+    C._initVars(ts, '{centers:Fricy}={centers:tauxy}*{centers:sx}+{centers:tauyy}*{centers:sy}+{centers:tauyz}*{centers:sz}')
+    C._initVars(ts, '{centers:Fricz}={centers:tauxz}*{centers:sx}+{centers:tauyz}*{centers:sy}+{centers:tauzz}*{centers:sz}')
+
+    # calcul forces de pression
+    C._initVars(ts, '{centers:Fx_pressure}=-({centers:Pressure}-%g)*{centers:sx}'%PInf)
+    C._initVars(ts, '{centers:Fy_pressure}=-({centers:Pressure}-%g)*{centers:sy}'%PInf)
+    C._initVars(ts, '{centers:Fz_pressure}=-({centers:Pressure}-%g)*{centers:sz}'%PInf)
+
+    # calcul effort complet
+    C._initVars(ts, '{centers:Fx}={centers:Fricx}+{centers:Fx_pressure}')
+    C._initVars(ts, '{centers:Fy}={centers:Fricy}+{centers:Fy_pressure}')
+    C._initVars(ts, '{centers:Fz}={centers:Fricz}+{centers:Fz_pressure}')
+
+    # calcul coefficient de frottement
+    C._initVars(ts, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%g'%q)
+
+    G._getVolumeMap(ts)
+    effortX = P.integ(ts, 'centers:Fricx')[0]
+    effortY = P.integ(ts, 'centers:Fricy')[0]
+    effortZ = P.integ(ts, 'centers:Fricz')[0]
+
+    QADIMI = 1.*q*Sref
+    if dimPb==3:
+        cd = (effortX*calpha*cbeta + effortZ*salpha*cbeta)*QADIMI
+        cl = (effortZ*calpha*cbeta - effortX*salpha*cbeta)*QADIMI
+    else:
+        cd = (effortX*calpha*cbeta + effortY*salpha*cbeta)*QADIMI
+        cl = (effortY*calpha*cbeta - effortX*salpha*cbeta)*QADIMI
+   
+    if verbose: 
+        print("Normalized skin friction drag = %g and lift = %g"%(cd, cl))
+        print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(",effortX*QADIMI, effortY*QADIMI, effortZ*QADIMI,")")
+
+    ##################################################
+    if verbose:
+        print("****************************************")
+        print("Total Drag :", cd_press+cd)
+        print("Total Lift :", cl_press+cl)
+        print("****************************************")
+    return [cl_press+cl, cd_press+cd, Sref]
 #=============================================================================
 # Post efforts
 # IN: t_case: fichier ou arbre du cas
@@ -1223,11 +1367,6 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
 # IN: beta: angle pour les efforts
 #==============================================================================
 def loads(t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZones=[]):
-    import Post.PyTree as P
-    import Converter.Filter as Filter
-    import math
-    import numpy as numpy
-
     if tc_in is not None:
         if isinstance(tc_in, str): 
             tc = C.convertFile2PyTree(tc_in)
@@ -1244,22 +1383,6 @@ def loads(t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZo
 
     # Dans le cas du CRM version adimensionnee :
     # Sref = 2*191.8445/(7.00532**2)
-
-    #==============================
-    # Reference state
-    #==============================
-    [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
-          ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
-          Mus, Cs, Ts, Pr] = C.getState(tb)
-
-    alpha = math.radians(alpha)
-    beta = math.radians(beta)
-
-    dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
-
-    q = 0.5*RoInf*(MInf*math.sqrt(Gamma*PInf/RoInf))**2
-    RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
-    
     #====================================
     # Extraction des grandeurs a la paroi
     #====================================
@@ -1268,101 +1391,208 @@ def loads(t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZo
         zw = T.join(zw)
     else:
         zw = TIBM.extractIBMWallFields(tc, tb=tb, famZones=famZones)
+    dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
 
     if dimPb == 2: T._addkplane(zw)
 
     zw = C.convertArray2Tetra(zw)
     zw = T.reorderAll(zw, 1)
-    C._initVars(zw, 'Cp=-({Pressure}-%g)/%g'%(PInf,q))
 
-    #===========================
-    # Calcul efforts de pression
-    #===========================
-    res = P.integNorm(zw, 'Cp')[0]
-    res = [i/Sref for i in res]
-    calpha = math.cos(alpha); cbeta = math.cos(beta)
-    salpha = math.sin(alpha); sbeta = math.sin(beta)
-    if dimPb==3:
-        cd = res[0]*calpha*cbeta + res[2]*salpha*cbeta
-        cl = res[2]*calpha*cbeta - res[0]*salpha*cbeta
-    else:
-        cd = res[0]*calpha + res[1]*salpha
-        cl = res[1]*calpha - res[0]*salpha
-    print("Normalized pressure drag = %g and lift = %g"%(cd, cl))
-    print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(",res[0],res[1],res[2],")")
-    
-    #======================================
-    # Calcul frottement et efforts visqueux
-    #======================================
-    if C.isNamePresent(zw, 'utau') != -1:
-        C._initVars(zw, '{tau_wall}={Density}*{utau}**2')
-    else:
-        C._initVars(zw, '{tau_wall}=0.')
-
-    G._getNormalMap(zw)
-    zw = C.node2Center(zw, ['Cp', 'tau_wall', 'Pressure','VelocityX','VelocityY','VelocityZ'])
-    if C.isNamePresent(zw, 'utau') != -1:
-        zw = C.node2Center(zw, ['utau','yplus'])
-    C._rmVars(zw, 'FlowSolution')
-    C._normalize(zw, ['centers:sx','centers:sy','centers:sz'])
-
-    # calcul du vecteur tangent
-    C._initVars(zw, '{centers:tx}={centers:VelocityX}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sx}')
-    C._initVars(zw, '{centers:ty}={centers:VelocityY}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sy}')
-    C._initVars(zw, '{centers:tz}={centers:VelocityZ}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sz}')
-    C._normalize(zw, ['centers:tx','centers:ty','centers:tz'])
-
-    C._initVars(zw, '{centers:tauxx}=2*{centers:tau_wall}*{centers:tx}*{centers:sx}')
-    C._initVars(zw, '{centers:tauyy}=2*{centers:tau_wall}*{centers:ty}*{centers:sy}')
-    C._initVars(zw, '{centers:tauzz}=2*{centers:tau_wall}*{centers:tz}*{centers:sz}')
-    C._initVars(zw, '{centers:tauxy}={centers:tau_wall}*({centers:tx}*{centers:sy}+{centers:ty}*{centers:sx})')
-    C._initVars(zw, '{centers:tauxz}={centers:tau_wall}*({centers:tx}*{centers:sz}+{centers:tz}*{centers:sx})')
-    C._initVars(zw, '{centers:tauyz}={centers:tau_wall}*({centers:ty}*{centers:sz}+{centers:tz}*{centers:sy})')
-
-    # calcul forces de frottement
-    C._initVars(zw, '{centers:Fricx}={centers:tauxx}*{centers:sx}+{centers:tauxy}*{centers:sy}+{centers:tauxz}*{centers:sz}')
-    C._initVars(zw, '{centers:Fricy}={centers:tauxy}*{centers:sx}+{centers:tauyy}*{centers:sy}+{centers:tauyz}*{centers:sz}')
-    C._initVars(zw, '{centers:Fricz}={centers:tauxz}*{centers:sx}+{centers:tauyz}*{centers:sy}+{centers:tauzz}*{centers:sz}')
-    
-    # calcul forces de pression   
-    C._initVars(zw, '{centers:Fx_pressure}=-({centers:Pressure}-%f)*{centers:sx}'%PInf)
-    C._initVars(zw, '{centers:Fy_pressure}=-({centers:Pressure}-%f)*{centers:sy}'%PInf)
-    C._initVars(zw, '{centers:Fz_pressure}=-({centers:Pressure}-%f)*{centers:sz}'%PInf)
-    
-    # calcul effort complet
-    C._initVars(zw, '{centers:Fx}={centers:Fricx}+{centers:Fx_pressure}')
-    C._initVars(zw, '{centers:Fy}={centers:Fricy}+{centers:Fy_pressure}')
-    C._initVars(zw, '{centers:Fz}={centers:Fricz}+{centers:Fz_pressure}')
-
-    # calcul coefficient de frottement
-    C._initVars(zw, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%g'%q)
-
-    G._getVolumeMap(zw)
-    effortX = P.integ(zw, 'centers:Fricx')[0]
-    effortY = P.integ(zw, 'centers:Fricy')[0]
-    effortZ = P.integ(zw, 'centers:Fricz')[0]
-
-    QADIM = q*Sref
-    if dimPb==3:
-        cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/QADIM
-        cl = (effortZ*math.cos(alpha)*math.cos(beta) - effortX*math.sin(alpha)*math.cos(beta))/QADIM
-    else:
-        cd = (effortX*math.cos(alpha) + effortY*math.sin(alpha))/QADIM
-        cl = (effortY*math.cos(alpha) - effortX*math.sin(alpha))/QADIM
-    print("Normalized skin friction drag = %g and lift = %g"%(cd, cl))
-    print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(",effortX/QADIM, effortY/QADIM, effortZ/QADIM,")")
-    vars = ['centers:sx','centers:sy','centers:sz','centers:tx','centers:ty','centers:tz','centers:tauxx','centers:tauyy','centers:tauzz','centers:tauxy','centers:tauxz',
-'centers:tauyz']
-    C._rmVars(zw, vars)
+    ts = C.newPyTree(['SKIN']); ts[2][1][2]=[zw]
+    #==============================
+    # Reference state
+    #==============================
+    RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
+    ts[2][1][2].append(RefState)
+    _loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
+  
+    #C._rmVars(ts, vars)
     if dimPb == 2: # reextrait en 2D
-        zw = P.isoSurfMC(zw, "CoordinateZ", 0.)
-        nodes = Internal.getNodesFromName(zw, 'CoordinateX')
+        ts = P.isoSurfMC(ts, "CoordinateZ", 0.)
+        nodes = Internal.getNodesFromName(ts, 'CoordinateX')
         xmin = numpy.min(nodes[0][1])
         xmax = numpy.max(nodes[0][1])
-        C._initVars(zw, 'xc=({CoordinateX}-%f)/(%f-%f)'%(xmin, xmax, xmin))
+        dxi = 1./(xmax-xmin)
+        C._initVars(ts, 'xsc=({CoordinateX}-%g)*%g'%(xmin, dxi))
 
-    if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
-    return zw
+    if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
+    return ts
+
+#==========================================================================================
+# In: ts: skin (TRI zones) distributed already (partial tree here)
+# tc : transfer tree
+#out: tl, graphWPOST : NODE-type zones of IBM points to be projected locally on ts
+#out: graphWPOST: graph of coms between tc and tl 
+#==========================================================================================
+def _prepareSkinReconstruction(ts, tc):
+    tBBs=Cmpi.createBBoxTree(ts)
+    procDictBBs = Cmpi.getProcDict(tBBs)
+
+    basename=Internal.getName(Internal.getBases(ts)[0])
+    tl = C.newPyTree([basename])
+    utauPresent = 0; vxPresent=0; yplusPresent = 0
+    hmin = 0.
+    for zc in Internal.getZones(tc):
+        allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
+        allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")                  
+        GCnode = Internal.getNodeFromType(zc,"GridCoordinates_t")
+        XN = Internal.getNodeFromName(GCnode,'CoordinateX')
+
+        for IBCD in allIBCD:
+            if XN is not None:
+                if XN[1].shape[0]>1:
+                    hx = C.getValue(zc,'CoordinateX',1)-C.getValue(zc,'CoordinateX',0)
+                    hy = C.getValue(zc,'CoordinateY',1)-C.getValue(zc,'CoordinateY',0)
+                    hloc = max(abs(hx),abs(hy))
+                    hmin = max(hloc,hmin)
+
+            zname = Internal.getValue(IBCD)
+            XW = Internal.getNodeFromName(IBCD,'CoordinateX_PW')[1]
+            YW = Internal.getNodeFromName(IBCD,'CoordinateY_PW')[1]
+            ZW = Internal.getNodeFromName(IBCD,'CoordinateZ_PW')[1]
+
+            zsize = numpy.empty((1,3), numpy.int32, order='F')
+            zsize[0,0] = XW.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
+            z = Internal.newZone(name='IBW_Wall_%s_%s'%(zc[0],zname),zsize=zsize,
+                                 ztype='Unstructured')
+            gc = Internal.newGridCoordinates(parent=z)
+            coordx = ['CoordinateX',XW,[],'DataArray_t']
+            coordy = ['CoordinateY',YW,[],'DataArray_t']
+            coordz = ['CoordinateZ',ZW,[],'DataArray_t']
+            gc[2] = [coordx,coordy,coordz]
+            n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
+            Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
+            Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
+            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
+                                           gridLocation='Vertex', parent=z)
+            pressNP = []; utauNP = []; yplusNP = []; densNP = []
+            vxNP = []; vyNP = []; vzNP = []
+
+            PW = Internal.getNodeFromName1(IBCD,X.__PRESSURE__)
+            if PW is not None: pressNP.append(PW[1])
+            RHOW = Internal.getNodeFromName1(IBCD,X.__DENSITY__)
+            if RHOW is not None: densNP.append(RHOW[1])
+            UTAUW = Internal.getNodeFromName1(IBCD,X.__UTAU__)
+            if UTAUW is not None: utauNP.append(UTAUW[1])
+            YPLUSW = Internal.getNodeFromName1(IBCD, X.__YPLUS__)
+            if YPLUSW is not None: yplusNP.append(YPLUSW[1])
+
+            VXW = Internal.getNodeFromName1(IBCD, X.__VELOCITYX__)
+            if VXW is not None: vxNP.append(VXW[1])
+            VYW = Internal.getNodeFromName1(IBCD, X.__VELOCITYY__)
+            if VYW is not None: vyNP.append(VYW[1])
+            VZW = Internal.getNodeFromName1(IBCD, X.__VELOCITYZ__)
+            if VZW is not None: vzNP.append(VZW[1])
+
+            FSN[2].append([X.__PRESSURE__,pressNP[0], [],'DataArray_t'])
+            FSN[2].append([X.__DENSITY__,densNP[0], [],'DataArray_t'])
+            if utauNP != []:
+                utauPresent = 1
+                FSN[2].append([X.__UTAU__,utauNP[0], [],'DataArray_t'])
+            if yplusNP != []:
+                yplusPresent = 1
+                FSN[2].append([X.__YPLUS__,yplusNP[0], [],'DataArray_t'])
+
+            if vxNP != []:
+                vxPresent = 1
+                FSN[2].append([X.__VELOCITYX__,vxNP[0], [],'DataArray_t'])
+                FSN[2].append([X.__VELOCITYY__,vyNP[0], [],'DataArray_t'])
+                FSN[2].append([X.__VELOCITYZ__,vzNP[0], [],'DataArray_t'])
+
+            Cmpi._setProc(z,Cmpi.rank)          
+            tl[2][1][2].append(z)
+
+    tlBB=Cmpi.createBBoxTree(tl, tol=hmin)
+    procDictWPOST = Cmpi.getProcDict(tlBB)
+    interDictWPOST = X.getIntersectingDomains(tlBB, tBBs)
+    graphWPOST = Cmpi.computeGraph(tlBB, type='bbox3',intersectionsDict=interDictWPOST,
+                                   procDict=procDictWPOST, procDict2=procDictBBs, t2=tBBs)
+ 
+    RefStateNode = Internal.getNodeFromName(ts,'ReferenceState')
+    tl[2][1][2].append(RefStateNode)
+    FES =  Internal.getNodeFromName(ts,'FlowEquationSet')
+    tl[2][1][2].append(FES)
+
+    C._initVars(ts,X.__PRESSURE__,0.)
+    C._initVars(ts,X.__DENSITY__,0.)
+    C._initVars(ts,X.__VELOCITYX__,0.)
+    C._initVars(ts,X.__VELOCITYY__,0.)
+    C._initVars(ts,X.__VELOCITYZ__,0.)    
+    if Internal.getValue(Internal.getNodeFromType1(FES,'GoverningEquations_t'))!= 'Euler':
+        C._initVars(ts,X.__UTAU__,0.)
+        C._initVars(ts,X.__YPLUS__,0.)
+    
+    return tl, graphWPOST, interDictWPOST
+
+# Distributed skin reconstruction (unsteady)
+def _computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST):
+    for zc in Internal.getZones(tc):
+        allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
+        allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
+        for IBCD in allIBCD:
+            PW = Internal.getNodeFromName1(IBCD,X.__PRESSURE__)
+            RHOW = Internal.getNodeFromName1(IBCD,X.__DENSITY__)
+            UTAUW = Internal.getNodeFromName1(IBCD,X.__UTAU__)
+            YPLUSW = Internal.getNodeFromName1(IBCD, X.__YPLUS__)
+            VXW = Internal.getNodeFromName1(IBCD, X.__VELOCITYX__)
+            VYW = Internal.getNodeFromName1(IBCD, X.__VELOCITYY__)
+            VZW = Internal.getNodeFromName1(IBCD, X.__VELOCITYZ__)
+            
+            zname = Internal.getValue(IBCD)
+            znamepostw = 'IBW_Wall_%s_%s'%(zc[0],zname)
+            zpostw = Internal.getNodeFromName(tl,znamepostw)
+            FSP = Internal.getNodeFromType(zpostw,'FlowSolution_t')
+            PW2 = Internal.getNodeFromName1(FSP,X.__PRESSURE__)
+            RHOW2 = Internal.getNodeFromName1(FSP,X.__DENSITY__)
+            PW2[1]=PW[1]; RHOW2[1]=RHOW[1]
+
+            UTAUW2 = Internal.getNodeFromName1(FSP,X.__UTAU__)
+            if UTAUW2 is not None:
+                YPLUSW2 = Internal.getNodeFromName1(FSP, X.__YPLUS__)
+                UTAUW2[1]=UTAUW[1]; YPLUSW2[1]=YPLUSW[1]
+            VXW2 = Internal.getNodeFromName1(FSP, X.__VELOCITYX__)     
+            if VXW2 is not None:
+                VYW2 = Internal.getNodeFromName1(FSP, X.__VELOCITYY__)
+                VZW2 = Internal.getNodeFromName1(FSP, X.__VELOCITYZ__)
+                VXW2[1]=VXW[1]
+                VYW2[1]=VYW[1]
+                VZW2[1]=VZW[1]
+
+
+    tdl = Cmpi.addXZones(tl, graphWPOST)
+    tdl = Cmpi.convert2PartialTree(tdl)
+    for nobs in range(len(ts[2])):
+        if Internal.getType(ts[2][nobs])=='CGNSBase_t':
+            for nozs in range(len(ts[2][nobs][2])):
+                zs = ts[2][nobs][2][nozs]
+                if Internal.getType(zs)=='Zone_t':
+                    cloud = []
+                    for zl in Internal.getZones(tdl):
+                        if zl != [] and zl is not None and zs[0] in interDictWPOST[zl[0]]:
+                            zl = C.convertArray2Node(zl)
+                            cloud.append(zl)
+    
+                    if cloud != []:
+                        cloud = T.join(cloud)
+                        
+                        ts[2][nobs][2][nozs] = P.projectCloudSolution(cloud, zs, dim=3)
+                        
+    return None
+
+#=============================================================================
+# Post efforts
+# IN: t_case: fichier ou arbre du cas
+# IN: tc_in: fichier ou arbre de connectivite contenant les IBCD
+# si tc_in =None, t_case est la surface avec la solution deja projetee
+# OUT: wall_out ou None: fichier pour sortie des efforts sur la paroi aux centres
+# IN: alpha: angle pour les efforts
+# IN: beta: angle pour les efforts
+#==============================================================================
+def _unsteadyLoads(tb, Sref=None, alpha=0., beta=0.):
+    zones = KCOMM.allgather(Internal.getZones(tb))
+    ts = Distributed.setZonesInTree(tb, zones)
+    dimPb = Internal.getValue(Internal.getNodeFromName(ts, 'EquationDimension'))
+    return _loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose =False)
 
 #====================================================================================
 # Redistrib on NP processors
@@ -1414,9 +1644,6 @@ def _distribute(t_in, tc_in, NP, algorithm='graph'):
     return None
 
 def prepareWallReconstruction(tw, tc):
-    import Converter.Distributed as Distributed
-    import Converter
-
     # MLS interpolation order
     LSorder = 2
 

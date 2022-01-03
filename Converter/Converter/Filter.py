@@ -1064,7 +1064,7 @@ class Handle:
     if bbox is None:
       # Read paths as skeletons
       _readPyTreeFromPaths(a, self.fileName, znp, self.format, maxFloatSize=0)
-      _loadContainer(a, self.fileName, znp, 'GridCoordinates', self.format)
+      _loadContainer(a, self.fileName, znp, Internal.__GridCoordinates__, self.format)
       _loadConnectivity(a, self.fileName, znp, self.format)
       _loadZoneBCs(a, self.fileName, znp, self.format)
       _loadZoneExtras(a, self.fileName, znp, self.format)
@@ -1077,7 +1077,7 @@ class Handle:
         if zbb[3] >= bbox[0] and zbb[0] <= bbox[3] and zbb[4] >= bbox[1] and zbb[1] <= bbox[4] and zbb[5] >= bbox[2] and zbb[2] <= bbox[5]:
           print('loading: %s'%zp)
           _readPyTreeFromPaths(a, self.fileName, [zp], self.format, maxFloatSize=0)
-          _loadContainer(a, self.fileName, [zp], 'GridCoordinates', self.format)
+          _loadContainer(a, self.fileName, [zp], Internal.__GridCoordinates__, self.format)
           _loadConnectivity(a, self.fileName, [zp], self.format)
           _loadZoneBCs(a, self.fileName, [zp], self.format)
           _loadZoneExtras(a, self.fileName, znp, self.format)

@@ -21,19 +21,23 @@ using namespace K_FLD;
 
 #ifdef NPY_1_7_API_VERSION
 #define GETDIMS E_Int isFortran = PyArray_IS_F_CONTIGUOUS(a); \
+  E_Int isC = PyArray_IS_C_CONTIGUOUS(a); \
   if (dim == 1) { size = PyArray_DIMS(a)[0]; }                          \
-  else if (dim == 2) {                                                  \
+  else if (dim == 2) {       \
     if (isFortran == 0) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
-    else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; } \
+    else if (isFortran==1 and isC == 1) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
+    else if ( isFortran == 1 and isC == 0) { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; } \
     if (size == 1 && inverse==true) { size = nfld; nfld = 1; } }  \
   else { size = PyArray_SIZE(a); nfld = 1; } // vue a plat
   //else return 0;
 #else
 #define GETDIMS E_Int isFortran = PyArray_CHKFLAGS(a, NPY_F_CONTIGUOUS); \
+  E_Int isC = PyArray_CHKFLAGS(a, NPY_C_CONTIGUOUS); \
   if (dim == 1) { size = PyArray_DIMS(a)[0]; }                          \
   else if (dim == 2) {                                                  \
     if (isFortran == 0) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
-    else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; }      \
+    else if (isFortran==1 and isC == 1) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
+    else if ( isFortran == 1 and isC == 0) { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; } \    
     if (size == 1 && inverse==true) { size = nfld; nfld = 1; } \
   }
   else { size = PyArray_SIZE(a); nfld = 1; } // vue a plat
@@ -79,6 +83,7 @@ E_Int K_NUMPY::getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Boolean shared, E
   E_Int nfld = 1;
 
   GETDIMS;
+
   if (shared == false) // copy du numpy
     f = new FldArrayF(size, nfld, (E_Float*)PyArray_DATA(a), false);
   else // partage
@@ -109,6 +114,7 @@ E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size,
   nfld = 1;
 
   GETDIMS;
+
   if (shared == false) // copie du numpy
   {
     f = new E_Float [size*nfld];
