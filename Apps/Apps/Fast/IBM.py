@@ -305,8 +305,8 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     if isinstance(t_out, str): FastC.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
 
-def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None, snearsf=None, yplus=100.,
-                      vmin=21, check=False, expand=3, dfarDir=0):
+def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None, ext=3, snearsf=None, yplus=100.,
+                      vmin=21, check=False, expand=3, dfarDir=0, extrusion=False):
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
     refstate = C.getState(tb)
@@ -389,7 +389,7 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-    coords, rinds = Generator.generator.extendCartGrids(coords, ext, 1)
+    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=1, extBnd=0)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):
         Internal.newRind(value=rinds[noz], parent=zones[noz])
@@ -514,8 +514,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
     if t_in is None:
-        t = generateCartesian(tb, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, 
-                              snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir)                    
+        t = generateCartesian(tb, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, ext=DEPTH+1,
+                              snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir, extrusion=extrusion)                    
     else: 
         t = t_in
 

@@ -225,7 +225,7 @@ def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-    coords, rinds = Generator.generator.extendCartGrids(coords, 2+1, 1)
+    coords, rinds = Generator.extendCartGrids(coords, ext=DEPTH+1, optimized=1, extBnd=0)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):
         Internal.newRind(value=rinds[noz], parent=zones[noz])
@@ -835,7 +835,7 @@ def prepare(t_case, t_out, tc_out,
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-    coords, rinds = Generator.generator.extendCartGrids(coords, 2+1, 1)
+    coords, rinds = Generator.extendCartGrids(coords, ext=DEPTH+1, optimized=1, extBnd=0)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):
         Internal.newRind(value=rinds[noz], parent=zones[noz])

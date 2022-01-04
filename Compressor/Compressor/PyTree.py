@@ -274,7 +274,7 @@ def uncompressCartesian(t):
 
 def _uncompressCartesian__(z, ztype, gc):
     import Generator.PyTree as G
-    c = Internal.getNodeFromName(z, 'CartesianData')
+    c = Internal.getNodeFromName1(gc, 'CartesianData')
     if c is None: return None # no CartesianData
     c = Internal.getValue(c)
     if c is None: return None # suppose skeleton zone

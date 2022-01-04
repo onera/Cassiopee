@@ -29,11 +29,11 @@ using namespace K_CONST;
 PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
 {
   PyObject *arrays;
-  E_Int ext, optimized;
+  E_Int ext, optimized, extBnd;
 #ifdef E_DOUBLEINT 
-  if (!PyArg_ParseTuple(args, "Oll", &arrays, &ext, &optimized)) return NULL;
+  if (!PyArg_ParseTuple(args, "Olll", &arrays, &ext, &optimized, &extBnd)) return NULL;
 #else
-  if (!PyArg_ParseTuple(args, "Oii", &arrays, &ext, &optimized)) return NULL;
+  if (!PyArg_ParseTuple(args, "Oiii", &arrays, &ext, &optimized, & extBnd)) return NULL;
 #endif
   if (ext < 0) 
   {
@@ -1028,6 +1028,16 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     E_Float* zp = structF[v]->begin(poszt[v]);
     E_Int nfldo = structF[v]->getNfld();
     E_Float dh = xp[1]-xp[0];
+    if ( extBnd >0 ) 
+    {
+      if ( ext1[v] == 0 && extBnd>0) ext1[v]=extBnd;
+      if ( ext2[v] == 0 && extBnd>0) ext2[v]=extBnd;
+      if ( ext3[v] == 0 && extBnd>0) ext3[v]=extBnd;
+      if ( ext4[v] == 0 && extBnd>0) ext4[v]=extBnd;
+      if ( ext5[v] == 0 && extBnd>0) ext5[v]=extBnd;
+      if ( ext6[v] == 0 && extBnd>0) ext6[v]=extBnd;
+    }
+
     E_Float xxor = xp[0]-ext1[v]*dh;
     E_Float yyor = yp[0]-ext3[v]*dh;
     E_Float zzor = zp[0]-ext5[v]*dh;

@@ -280,7 +280,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
 
     if ext > 0:
         coords = C.getFields(Internal.__GridCoordinates__, zones,api=2)
-        coords,rinds = Generator.generator.extendCartGrids(coords, ext, optimized)
+        coords,rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=0)
         C.setFields(coords, zones, 'nodes')
         for noz in range(len(zones)):
             Internal.newRind(value=rinds[noz], parent=zones[noz])

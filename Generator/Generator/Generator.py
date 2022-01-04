@@ -25,7 +25,7 @@ __all__ = ['cart', 'cartHexa', 'cartTetra', 'cartPenta', 'cartPyra', 'cartNGon',
     'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct', 'cutOctant',
     'octree', 'conformOctree3', 'adaptOctree', 'expandLayer', 'forceMatch',
     '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap', 'getTriQualityMap',
-    'getTriQualityStat', 'quad2Pyra']
+           'getTriQualityStat', 'quad2Pyra', 'extendCartGrids']
 
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.
@@ -1633,7 +1633,7 @@ def octree2Struct(a, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
 
     if ext == 0: return cartzones
     elif ext > 0: return extendOctreeGrids__(cartzones,
-                                             ext=ext, optimized=optimized)
+                                             ext=ext, optimized=optimized, extBnd=0)
     else:
         print('Warning: octree2Struct: ext must be equal or greater than 0. Set to 0.')
     return cartzones
@@ -1688,10 +1688,14 @@ def conformOctree3(octree):
 def balanceOctree__(octree, ratio=2, corners=0):
     return generator.balanceOctree(octree, ratio, corners)
 
-def extendOctreeGrids__(A, ext, optimized):
+def extendCartGrids(A, ext=0, optimized=0, extBnd=0):
+    A, rinds = generator.extendCartGrids(A, ext, optimized, extBnd)
+    return A, rinds
+
+def extendOctreeGrids__(A, ext, optimized, extBnd=0):
     """Extend grids with ext cells. If optimized is ext, the minimum overlapping is ensured.
-    Usage: extendOctreeGrids__(cartGrids, ext, optimized)"""
-    A, rinds = generator.extendCartGrids(A, ext, optimized)
+    Usage: extendOctreeGrids__(cartGrids, ext, optimized, extBnd)"""
+    A, rinds = extendCartGrids(A, ext, optimized, extBnd)
     return A
 
 def adaptOctree(octreeHexa, indicField, balancing=1, ratio=2):
