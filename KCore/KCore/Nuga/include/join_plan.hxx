@@ -61,7 +61,7 @@ E_Int join_plan<K_FLD::IntArray>::__extract_compact_enabled_tree
 
   //std::cout << "before F : children.get/reverse/i0" << children.get() << "/" << reverse << "/" << i0 << std::endl;
   // to put in receiver ref frame
-  F(children.get(), reverse, i0);
+  F(children.get(), nbc, reverse, i0);
   //std::cout << "after F" << std::endl;
 
   //to compact : dont create empty columns for all-leaves children

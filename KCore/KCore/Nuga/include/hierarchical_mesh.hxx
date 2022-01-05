@@ -387,7 +387,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
       }
     }
 
-    //std::cout << "enable_PGs..." << std::endl;
+    //if (rank == 2) std::cout << "adapt iter : " << iter << " : enable_PGs..." << std::endl;
     enable_PGs();
     
     _ng.PGs.updateFacets();
@@ -398,20 +398,23 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
 #endif
     
 #ifdef OUTPUT_ITER_MESH
-    ngon_type filtered_ng;
-    extract_enabled_phs(filtered_ng);
+    if (rank == 2)
+    {
+      ngon_type filtered_ng;
+      extract_enabled_phs(filtered_ng);
 
-    std::ostringstream o;
- 
+      std::ostringstream o;
+
 #if defined (VISUAL) || defined(NETBEANSZ)
-    o << "NGON_it_" << iter; // we create a file at each iteration
-    medith::write(o.str().c_str(), _crd, filtered_ng);
+      o << "NGON_it_" << iter; // we create a file at each iteration
+      medith::write(o.str().c_str(), _crd, filtered_ng);
 #else
-    o << "NGON_it_" << iter << ".plt"; // we create a file at each iteration
-    K_FLD::IntArray cnto;
-    filtered_ng.export_to_array(cnto);
-    MIO::write(o.str().c_str(), _crd, cnto, "NGON");
+      o << "NGON_it_" << iter << ".plt"; // we create a file at each iteration
+      K_FLD::IntArray cnto;
+      filtered_ng.export_to_array(cnto);
+      MIO::write(o.str().c_str(), _crd, cnto, "NGON");
 #endif
+    }
 
     ++iter;
 #endif
@@ -540,9 +543,17 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_pgs_descendance(E_I
 
 ///
 template <> inline
-void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& pointlist)
+void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& ids)
 {
-  //todo
+  ids.clear();
+  assert(PGi < _ng.PGs.size());
+
+  if (_PGtree.is_enabled(PGi))
+    return;
+
+  reordering_func F = subdiv_pol<K_MESH::Polygon, NUGA::ISO_HEX>::reorder_children;
+    
+  __extract_enabled_pgs_descendance(PGi, F, reverse, ids);
 }
 
 ///
@@ -563,7 +574,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E
   for (E_Int i = 0; i < nbc; ++i) children[i] = pchild[i];
 
   // to put in asked ref frame
-  F(children.get(), reverse, 0);// 0 because shift_geom must have been called
+  F(children.get(), nbc, reverse, 0);// 0 because shift_geom must have been called
 
   //
   for (E_Int i = 0; i < nbc; ++i)

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : SÃ¢m Landier (sam.landier@onera.fr)
 
 #ifndef __K_MESH_POLYGON_H__
 #define __K_MESH_POLYGON_H__
@@ -566,12 +566,21 @@ E_Int Polygon::cvx_triangulate (const acrd_t& crd) const
   return 0;
 }
 
-  template<>
-  inline void Polygon::split<NUGA::ISO_HEX>(const E_Int* refE, E_Int n, ngon_unit& PGs, E_Int posChild)
+///
+template<>
+inline void Polygon::split<NUGA::ISO_HEX>(const E_Int* refE, E_Int n, ngon_unit& PGs, E_Int posChild)
+{
+  // refE => (n-1)/2 QUADS
+  // exemple : voir Q9::split dans Q9.hxx
+  E_Int* p =  PGs.get_facets_ptr(posChild);
+  p[0] = refE[0]  ;  p[1] = refE[1] ; p[2] = refE[n-1] ; p[3] = refE[n-2];
+
+  for (E_Int nf=1 ; nf <(n-1)/2 ; nf++)  
   {
-    //todo JP : refE => (n-1)/2 QUADS
-    // exemple : voir Q9::split dans Q9.hxx
+    p =  PGs.get_facets_ptr(posChild+nf);
+    p[0] = refE[2*nf]  ;  p[1] = refE[2*nf+1] ; p[2] = refE[n-1] ; p[3] = refE[2*nf-1];
   }
+}
 
 
 ///
@@ -597,6 +606,7 @@ void Polygon::iso_barycenter<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& coor
   
 }
 
+///
 template <typename CoordAcc, E_Int DIM> inline
 void Polygon::iso_barycenter(const CoordAcc& coord, E_Float* G)
 { 
@@ -619,6 +629,7 @@ void Polygon::iso_barycenter(const CoordAcc& coord, E_Float* G)
   
 }
 
+///
 template <typename CoordAcc, E_Int DIM> inline
 void Polygon::iso_barycenter(const CoordAcc& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G) 
 { 
@@ -640,9 +651,10 @@ void Polygon::iso_barycenter(const CoordAcc& coord, const E_Int* nodes, E_Int nb
   
 }
 
+///
 template <> inline
 void Polygon::iso_barycenter<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G) 
-{ 
+{
   //
   G[0]=G[1]=G[2]=0.;
   
@@ -661,6 +673,7 @@ void Polygon::iso_barycenter<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& coor
   G[2] *= k;
 }
 
+///
 void Polygon::iso_barycenter(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G)
 {
   K_MESH::Polygon::iso_barycenter<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, index_start, G);
