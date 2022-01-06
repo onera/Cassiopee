@@ -27,6 +27,7 @@
 
 using namespace std;
 using namespace K_FLD;
+
 //=============================================================================
 // Read an int on ptrFile
 // OUT: value: value to be read
@@ -194,7 +195,8 @@ E_Int K_IO::GenIO::v3dread(
       fclose(ptrFile);
       return 1;
     }
-    nvar = nrec;
+    nvar = std::min(nrec, 500);
+    //printf("read: nrec=%d %d\n", nvar, nrec);
 
     for (n = 0; n < nrec; n++)
     {
@@ -276,7 +278,7 @@ E_Int K_IO::GenIO::v3dread(
               ptrFile, _convertEndian, si, si2);
       readInt(kp, _intLength, 
               ptrFile, _convertEndian, si, si2);
-      //printf("%d - %d %d %d\n", ndom, ip,jp,kp);
+      //printf("read: %d - %d %d %d\n", ndom, ip,jp,kp);
 
       if (refdom == ndom && domain == 0)
       {
@@ -288,7 +290,7 @@ E_Int K_IO::GenIO::v3dread(
         }
       }
       if (ndom != refdom) nvar = K_ARRAY::getNumberOfVariables(varString);
-      //printf("dimensionned nvar (%s) %d\n", varString, nvar);
+      //printf("read: dimensionned nvar (%s) %d\n", varString, nvar);
 
       if (prevDom != ndom || n == 0)
       { 
@@ -364,7 +366,7 @@ E_Int K_IO::GenIO::v3dread(
     sprintf(zoneName, "zone%d", i);
     zoneNames.push_back(zoneName);
   }
-  //printf("nb domain 2 %d\n", field.size());
+  //printf("nb domain 2 %d\n", fieldSize); fflush(stdout);
   return 0;
 }
 
@@ -473,6 +475,7 @@ E_Int K_IO::GenIO::v3dwrite(
            ptrFile, convertEndian, si, si2);
 
   // Nombre d'enregistrements
+  //printf("nrec = %d\n", nvar*fieldSize);
   writeInt(nvar*fieldSize, isize,
            ptrFile, convertEndian, si, si2);
   

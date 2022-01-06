@@ -28,7 +28,7 @@ t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
 Internal._rmNodesByName(t, '.Solver#dtloc')
-Internal._rmNodesFromType(t,'Rind_t')
+Internal._rmNodesFromType(t, 'Rind_t')
 test.testT(t, 2)
 
 # Post

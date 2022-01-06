@@ -378,7 +378,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   }
   
   PyObject* l = PyList_New(0);
-  
+
   for (size_t i = 0; i < field.size(); i++)
   {
     if (field[i] != NULL)
@@ -397,7 +397,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
-  
+
   for (size_t i = 0; i < ufield.size(); i++)
   {
     char eltType[28]; E_Int d;
@@ -453,7 +453,6 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       Py_DECREF(tpl);
     }
     else delete ufieldc[i];
-    
   }
 
   // build zoneNames list. Les fonctions de lecture ont alloue un char* par
@@ -569,7 +568,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   vector<E_Int> elt;
   FldArrayF* f; FldArrayI* cn;
   E_Int res;
-  vector<FldArrayF*> fieldu; // non structuré
+  vector<FldArrayF*> fieldu; // non structure
   vector<FldArrayI*> connectu;
   for (int i = 0; i < n; i++)
   {
