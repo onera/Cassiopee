@@ -26,28 +26,28 @@ namespace NUGA
   enum ePara { SEQ, FINE_OMP, COARSE_OMP /*, DISTRIB*/ };
 
 ///
-template <typename mesh_t, typename sensor_t>
+template <typename hmesh_t, typename sensor_t>
 class adaptor
 {
   public:
 
-    static E_Int run(mesh_t& hmesh, sensor_t& sensor, bool do_agglo = false);
+    static E_Int run(hmesh_t& hmesh, sensor_t& sensor, bool do_agglo = false);
 
     template <typename communicator_t>
-    static E_Int run(std::vector<mesh_t*>& hzones, std::vector<sensor_t*>& sensors, bool do_agglo, ePara PARA, communicator_t* com);
+    static E_Int run(std::vector<hmesh_t*>& hzones, std::vector<sensor_t*>& sensors, bool do_agglo, ePara PARA, communicator_t* com);
   
 };
 
 }
 
 ///
-template <typename mesh_t, typename sensor_t>
-E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool do_agglo)
+template <typename hmesh_t, typename sensor_t>
+E_Int NUGA::adaptor<hmesh_t, sensor_t>::run(hmesh_t& hmesh, sensor_t& sensor, bool do_agglo)
 {
 
   E_Int err(0);
   
-  typename mesh_t::output_t adap_incr;
+  typename hmesh_t::output_t adap_incr;
 
   hmesh.init();  
 

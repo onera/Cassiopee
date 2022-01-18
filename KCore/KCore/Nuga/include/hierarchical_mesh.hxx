@@ -97,6 +97,7 @@ class hierarchical_mesh
 
     ///
     hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(); }
+    hierarchical_mesh(crd_t& crd, ngo_t && ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(); }
     ///
     hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
 

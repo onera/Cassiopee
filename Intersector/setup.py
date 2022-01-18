@@ -20,6 +20,12 @@ Dist.writeSetupCfg()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
+                                                        additionalIncludePaths)
     
 # Compilation des fortrans ===================================================
 from KCore.config import *
@@ -39,6 +45,14 @@ libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
+ADDITIONALCPPFLAGS = []
+if mpi:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+    ADDITIONALCPPFLAGS += ['-D_MPI']
+if mpi4py:
+    includeDirs.append(mpi4pyIncDir)
+
 # setup ======================================================================
 import srcs
 setup(
@@ -53,7 +67,7 @@ setup(
                            include_dirs=["Intersector"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
-                           extra_compile_args=Dist.getCppArgs(),
+                           extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
                            extra_link_args=Dist.getLinkArgs()
                            )]
     )

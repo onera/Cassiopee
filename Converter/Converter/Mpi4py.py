@@ -20,7 +20,7 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX',
     'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', 
     '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
     'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 
-    'getProc', 'setProc', '_setProc', 'COMM_WORLD']
+    'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty', 'COMM_WORLD']
 
 from mpi4py import MPI
 import numpy
@@ -1184,3 +1184,27 @@ def setProc(t, rank):
 def _setProc(t, rank):
     Distributed._setProc(t, rank)
     return None
+
+
+#==============================================================================
+# Retourne le dictionnaire proc pour chaque zoneName
+# IN: t: full/S/LS/Partial
+#==============================================================================
+def getPropertyDict(t, propName, reduction=True):
+    """Return the dictionary proc['zoneName']."""
+    d1 = Distributed.getPropertyDict(t, propName)
+    #d1 = allgatherDict(d1)
+    if reduction:
+        d = KCOMM.allgather(d1)
+        items = []
+        for i in d: items += i.items()
+        propDict = dict(items)
+    else: propDict = d1
+    return propDict
+
+#==============================================================================
+# IN: z: zone node
+#==============================================================================
+def getProperty(z, propName):
+    """Return the property value for zone z."""
+    return Distributed.getProperty(z, propName)

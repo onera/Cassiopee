@@ -333,9 +333,9 @@ namespace NUGA
     }
   };
 
-  template <E_Int DIM> dir_type<DIM> max(dir_type<DIM>&d, E_Int v) { dir_type<DIM> res(0); res.n[0] = std::max(d.n[0], v); res.n[1] = std::max(d.n[1], v); if (DIM == 3) res.n[2] = std::max(d.n[2], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
-  dir_type<3> abs(dir_type<3> d) { dir_type<3> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); res.n[2] = ::abs(d.n[2]); return res; }
-  dir_type<3> max(dir_type<3> a, dir_type<3> b) { dir_type<3> res(0); res.n[0] = std::max(a.n[0], b.n[0]); res.n[1] = std::max(a.n[1], b.n[1]); res.n[2] = std::max(a.n[2], b.n[2]); return res; }
+  template <E_Int DIM> inline dir_type<DIM> max(dir_type<DIM>&d, E_Int v) { dir_type<DIM> res(0); res.n[0] = std::max(d.n[0], v); res.n[1] = std::max(d.n[1], v); if (DIM == 3) res.n[2] = std::max(d.n[2], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
+  inline dir_type<3> abs(dir_type<3> d) { dir_type<3> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); res.n[2] = ::abs(d.n[2]); return res; }
+  inline dir_type<3> max(dir_type<3> a, dir_type<3> b) { dir_type<3> res(0); res.n[0] = std::max(a.n[0], b.n[0]); res.n[1] = std::max(a.n[1], b.n[1]); res.n[2] = std::max(a.n[2], b.n[2]); return res; }
 
 
   template <E_Int DIM> inline std::ostream &operator<<(std::ostream& out, const dir_type<DIM>& d)

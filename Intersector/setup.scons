@@ -26,9 +26,26 @@ installPath = Dist.getInstallPath(prefix)
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
+from KCore.config import *
+
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
+                                                        additionalIncludePaths)
+
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
+includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir]
 libraries = ["kcore"]
+ADDITIONALCPPFLAGS = []
+if mpi and mpi4py:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+    includeDirs.append(mpi4pyIncDir)
+    ADDITIONALCPPFLAGS = ['-D_MPI']
+if mpi: libraries += mpiLibs
+    
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
@@ -37,22 +54,22 @@ libraryDirs += paths; libraries += libs
 # Env =========================================================================
 import srcs
 if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
-else: tools = None
+else: tools = None; ADDITIONALCPPFLAGS += ['-DUSE_C_REGEX'] # for old gcc < 5.0
+
 AR = Dist.getAR()
 env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   FORTRAN=f77compiler,
                   LIBPATH=additionalLibPaths+libraryDirs,
                   LIBS=libraries+additionalLibs,
-                  CPPPATH=["Intersector"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons())
-env.Replace(CXXFLAGS=Dist.getCppArgs())
-env.Replace(CFLAGS=Dist.getCArgs())
 
 ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
 env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
-
+env.Replace(CPPPATH=["Intersector"]+additionalIncludePaths+includeDirs)
+env.Replace(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS)
+env.Replace(CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS)
 env = Dist.createFortranBuilder(env, [kcoreIncDir])
 ppf = Dist.createFortranFiles(env, srcs)
 

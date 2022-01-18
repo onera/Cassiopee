@@ -20,6 +20,10 @@
 #include "intersector.h"
 #include <sstream>
 
+#include "Nuga/include/Hexahedron.h"
+#include "Nuga/include/Prism.h"
+#include "Nuga/include/Pyramid.h"
+
 int __activation__;
 
 // ============================================================================
@@ -64,8 +68,10 @@ static PyMethodDef Pyintersector [] =
   {"immerseNodes", K_INTERSECTOR::immerseNodes, METH_VARARGS},
   {"agglomerateCellsWithSpecifiedFaces", K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces, METH_VARARGS},
   {"adaptCells", K_INTERSECTOR::adaptCells, METH_VARARGS},
+  {"adaptCells_mpi", K_INTERSECTOR::adaptCells_mpi, METH_VARARGS},
   {"adaptBox", K_INTERSECTOR::adaptBox, METH_VARARGS},
   {"createHMesh", K_INTERSECTOR::createHMesh, METH_VARARGS},
+  {"createHMesh2", K_INTERSECTOR::createHMesh2, METH_VARARGS},
   {"deleteHMesh", K_INTERSECTOR::deleteHMesh, METH_VARARGS},
   {"conformizeHMesh", K_INTERSECTOR::conformizeHMesh, METH_VARARGS},
   {"createSensor", K_INTERSECTOR::createSensor, METH_VARARGS},
@@ -332,4 +338,25 @@ E_Int K_INTERSECTOR::check_is_BASICF(PyObject* arr, K_FLD::FloatArray*& f1, K_FL
   types.push_back(std::string("QUAD"));
 
   return check_is_of_type(types, arr, f1, cn1, varString, eltType);
+}
+
+
+K_INTERSECTOR::eType K_INTERSECTOR::check_has_NGON_BASIC_ELEMENT(const K_FLD::IntArray & cnt)
+{
+  using ngon_type = ngon_t<K_FLD::IntArray>;
+  ngon_type ng(cnt); //fixme: temporary hack
+  E_Int s1(0), s2(0), s3(0), s4(0);  
+  //E_Int err = 0;
+  for (E_Int i = 0; (i < ng.PHs.size()); ++i){
+    if (K_MESH::Hexahedron::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s1;
+    else if (K_MESH::Tetrahedron::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s2;
+    else if (K_MESH::Pyramid::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s3;
+    else if (K_MESH::Prism::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s4;    
+  }
+
+  if (ng.PHs.size()==s1)      return eType::HEXA; 
+  else if (ng.PHs.size()==s2) return eType::TETRA;
+  else if (ng.PHs.size()==s4) return eType::PRISM3;
+  else if (s1+s2+s3+s4 > 0)   return eType::BASIC;
+  else return eType::UNKN;
 }

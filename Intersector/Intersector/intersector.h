@@ -81,8 +81,10 @@ namespace K_INTERSECTOR
   PyObject* estimateAdapReq(PyObject* self, PyObject* args);
 
   PyObject* adaptCells(PyObject* self, PyObject* args);
+  PyObject* adaptCells_mpi(PyObject* self, PyObject* args);
   PyObject* adaptBox(PyObject* self, PyObject* args);
   PyObject* createHMesh(PyObject* self, PyObject* args);
+  PyObject* createHMesh2(PyObject* self, PyObject* args);
   PyObject* deleteHMesh(PyObject* self, PyObject* args);
   PyObject* createSensor(PyObject* self, PyObject* args);
   PyObject* assignData2Sensor(PyObject* self, PyObject* args);
@@ -155,6 +157,10 @@ namespace K_INTERSECTOR
   E_Int check_is_BAR(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType);
   E_Int check_is_BASICF(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType);
   
+  enum eType { UNKN = -1, TETRA, PYRA, PRISM3, HEXA, /*PRISMN,*/ LAYER, BASIC };
+  
+  eType check_has_NGON_BASIC_ELEMENT(const K_FLD::IntArray & cnt);
+
   E_Int get_of_type(const std::vector<std::string>& types, PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType);
   E_Int getFromNGON(PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType);
   E_Int getFromBAR(PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType);

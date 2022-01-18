@@ -31,16 +31,13 @@ namespace NUGA
 
 
     template <typename T>
-    int Isend(const std::vector<T>& data, int target_rank_id, int TAG_1_BASED, MPI_Comm COM, MPI_Request* req1, MPI_Request* req2)
+    int Isend(const std::vector<T>& data, int target_rank_id, int TAG_1_BASED, MPI_Comm COM, MPI_Request* req)
     {
       int data_sz = data.size();
-      int err = MPI_Isend(&data_sz, 1, mpi_type_trait<T>::type, target_rank_id, TAG_1_BASED, COM, req1);
-      
-      MPI_Wait(req1, MPI_STATUS_IGNORE);
-        
+      int err = MPI_Send(&data_sz, 1, mpi_type_trait<T>::type, target_rank_id, TAG_1_BASED, COM);
       if (err) return 1;
 
-      err = MPI_Isend(&data[0], data_sz, mpi_type_trait<T>::type, target_rank_id, TAG_1_BASED+1, COM, req2);
+      err = MPI_Isend(&data[0], data_sz, mpi_type_trait<T>::type, target_rank_id, TAG_1_BASED+1, COM, req);
       return err;
     }
 

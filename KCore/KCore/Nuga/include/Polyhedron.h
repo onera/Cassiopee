@@ -47,7 +47,6 @@ namespace K_MESH
   class Polyhedron
   {
   public:
-    enum eType { UNKN = -1, TETRA, PYRA, PRISM3, HEXA, /*PRISMN,*/ LAYER, BASIC };
 
     using boundary_type = K_MESH::Polygon;
 

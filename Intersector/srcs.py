@@ -1,3 +1,10 @@
+import KCore.Dist as Dist
+from KCore.config import *
+
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
+
 #==============================================================================
 # Fichiers C++
 #==============================================================================
@@ -21,3 +28,9 @@ cpp_srcs = ["Intersector/conformUnstr.cpp",
             "Intersector/testm.cpp"
             
             ]
+
+if mpi:
+    cpp_srcs += ["PolyMeshTools/adaptCells_mpi.cpp"]
+else:
+    cpp_srcs += ["PolyMeshTools/Stubs/adaptCells_mpi_stub.cpp"]
+

@@ -810,3 +810,26 @@ def _setProc(t, nproc):
             param[2].append(a)
     return None
  
+
+#==============================================================================
+# Retourne le dictionnaire prop['blocName']
+# a partir d'un arbre distribue contenant des noeuds 'propname'
+#==============================================================================
+def getPropertyDict(t, propname):
+    """Return the dictionary proc['zoneName']."""
+    prop = {}
+    zones = Internal.getZones(t)
+    for z in zones:
+        nprop = getProperty(z, propname)
+        prop[z[0]] = nprop
+    return prop
+#==============================================================================
+# get property in zone (if exists), otherwise return -1
+# IN: a: zone node
+#==============================================================================
+def getProperty(a, propname):
+    """Return the proc of zone."""
+    nprop = Internal.getNodeFromName2(a, propname)
+    if nprop is not None: nprop = Internal.getValue(nprop)
+    else: nprop = -1
+    return nprop
