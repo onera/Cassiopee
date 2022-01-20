@@ -153,7 +153,6 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
 
-
   // offscreen rendering?
   if (offscreen > 0) { d->ptrState->offscreen = offscreen; d->ptrState->shootScreen = 1; }
   if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;
@@ -200,8 +199,6 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
     d->ptrState->farClip = 1;
     d->ptrState->render = 1;
   }
-
- 
 
   // Retourne le hook
   return Py_BuildValue("l", d);

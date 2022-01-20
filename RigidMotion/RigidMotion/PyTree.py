@@ -322,7 +322,7 @@ def _moveZone__(z, time):
                     T._rotate2(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
                     
             elif dtype == 2: # type 2: rotor_motion for helicopters in FF                
-                transl_speed=Internal.getValue(Internal.getNodeFromName(m,'transl_speed'))
+                transl_speed = Internal.getValue(Internal.getNodeFromName(m, 'transl_speed'))
                 psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
                 psi0_b = Internal.getValue(Internal.getNodeFromName(m, 'psi0_b'))
                 alp_pnt = Internal.getValue(Internal.getNodeFromName(m, 'alp_pnt'))

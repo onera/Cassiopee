@@ -921,7 +921,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
       if (isVerbose && pb == true)
       {
         MSGMOINSX;
-        printf("Non-decreasing step-size in distribution. TOTO\n");
+        printf("Non-decreasing step-size in distribution.\n");
         printf("   => Please change add=%d or eh=%f.\n", add, eh);
       }
     }

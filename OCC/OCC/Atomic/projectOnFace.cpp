@@ -65,6 +65,8 @@ void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const To
   IN: faceList: list of no of faces (starting 1)
 */
 // ============================================================================
+// 0: proj ortho, 1: par EXTREMA
+#define PROJMETHOD 1
 PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 {
   PyObject* hook; PyObject* array; PyObject* faceList;
@@ -140,35 +142,42 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
     {
         const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
         Handle(Geom_Surface) face = BRep_Tool::Surface(F);
+        
+#if PROJMETHOD == 0
         GeomAPI_ProjectPointOnSurf o;
-        //BRepExtrema_DistShapeShape tool;
+#else
+        BRepExtrema_DistShapeShape tool;
+#endif
 
 #pragma omp for
       for (E_Int i=0; i < npts; i++)
       {      
         Point.SetCoord(pox[i], poy[i], poz[i]);
-        
-        //BRepBuilderAPI_MakeVertex v(Point);
-        //const TopoDS_Vertex& Vertex = v.Vertex();
 
+#if PROJMETHOD == 1    
+        BRepBuilderAPI_MakeVertex v(Point);
+        const TopoDS_Vertex& Vertex = v.Vertex();
+#endif
         try
         {  
+#if PROJMETHOD == 0
           //GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
-          //GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Grad);
+          GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Grad);
           
           //o.Init(Point, face, Extrema_ExtAlgo_Tree);
           o.Init(Point, face, Extrema_ExtAlgo_Grad); 
           Pj = o.NearestPoint();
-          //Pj = o.Point(1);
+          
+          Pj = o.Point(1);
           //printf("projection %f %f %f -> %f %f %f\n",px[i],py[i],pz[i],Pj.X(),Pj.Y(),Pj.Z());
           ptx[i] = Pj.X(); pty[i] = Pj.Y(); ptz[i] = Pj.Z();
-
-          //tool.LoadS1(F); tool.LoadS2(Vertex);
-          //tool.Perform();
+#else
+          tool.LoadS1(F); tool.LoadS2(Vertex);
+          tool.Perform();
           //E_Float dist = tool.Value();
-          //const gp_Pnt& Po = tool.PointOnShape1(1);
-          //ptx[i] = Po.X(); pty[i] = Po.Y(); ptz[i] = Po.Z();
-
+          const gp_Pnt& Po = tool.PointOnShape1(1);
+          ptx[i] = Po.X(); pty[i] = Po.Y(); ptz[i] = Po.Z();
+#endif
         }
         catch (StdFail_NotDone& e)
         { 
