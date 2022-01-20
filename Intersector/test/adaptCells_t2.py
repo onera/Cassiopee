@@ -14,10 +14,10 @@ b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeCells(m[0])
 test.testA(m,1)
-#C.convertArrays2File([m], 't2_1.plt')
+C.convertArrays2File([m], 't2_1.plt')
 
 m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeCells(m[0])
 test.testA(m,2)
-#C.convertArrays2File([m], 't2_2.plt')
+C.convertArrays2File([m], 't2_2.plt')
 

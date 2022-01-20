@@ -99,7 +99,7 @@ class hierarchical_mesh
     hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(); }
     hierarchical_mesh(crd_t& crd, ngo_t && ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(); }
     ///
-    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
+    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(true/*reorient*/, true/*sync_match*/); }
 
     //multi-zone constructor
     hierarchical_mesh(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const bc_data_t& bcptlists, const join_data_t& jdata, E_Int idx_start, communicator_t* com);
@@ -113,7 +113,7 @@ class hierarchical_mesh
     }
 
     ///
-    E_Int init();
+    E_Int init(bool reorient = true, bool sync_match = true);
     ///
     /*E_Int relocate (crd_t& crd, ngo_t & ng) {
       _crd = &crd;
@@ -191,7 +191,7 @@ hierarchical_mesh<ELT_t, STYPE, ngo_t>::hierarchical_mesh
   _crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(id), join(nullptr), jsensor(nullptr), COM(com)
 {
   //std::cout << "hierarchical_mesh : begin " << std::endl;
-  init();
+  init(true/*reorient*/, false/*sync_match : done in join_t.hxx*/);
   //std::cout << "hierarchical_mesh : jdata sz" << jdata.size() << std::endl;
   join_data_t jmp = jdata;
   if (!jmp.empty()) // join is specified
@@ -291,7 +291,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init(bool reorient, bool sync_match)
 {
   if (_initialized) return 0;
 
@@ -305,17 +305,45 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
   
   // We reorient the PG of our NGON
   _ng.flag_externals(1);
-  DELAUNAY::Triangulator dt;
-  bool has_been_reversed;
-  err = ngon_type::reorient_skins(dt, _crd, _ng, has_been_reversed);
-  if (err)
-    return 1;
+
+  if (reorient)
+  {
+    DELAUNAY::Triangulator dt;
+    bool has_been_reversed;
+    err = ngon_type::reorient_skins(dt, _crd, _ng, has_been_reversed);
+    if (err)
+      return 1;
+  }
   
   //F2E
   ngon_unit neighbors;
   _ng.build_ph_neighborhood(neighbors);
   _ng.build_F2E(neighbors, _F2E);
-  
+
+  // shift nodes on boundaries for sync joins
+  if (sync_match)
+  {
+    auto * process = &_ng.PGs._type;
+    std::vector<int> tmp;
+    if (!BCptLists.empty())
+    {
+      tmp = _ng.PGs._type; //cpy to disable bcs
+      process = &tmp;
+      for (const auto & ptl : BCptLists)
+        for (size_t i = 0; i < ptl.size(); ++i) tmp[ptl[i] - _idx_start] = 0;
+    }
+
+    for (size_t i = 0; i < _nb_pgs0; ++i)
+    {
+      if ((*process)[i] != 1) continue; // not a boundary
+      int* nodes = _ng.PGs.get_facets_ptr(i);
+      int nnodes = _ng.PGs.stride(i);
+      K_MESH::Polygon::shift_geom(_crd, nodes, nnodes, _idx_start);
+    }
+    
+    
+  }
+
   __init(); // for pure type == reorder_pgs
 
   _initialized = true;

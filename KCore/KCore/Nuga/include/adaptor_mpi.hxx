@@ -195,7 +195,7 @@ namespace NUGA
 
       //separate MPI/OMP joins
       std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_zone2jlists_mpi, zone_to_zone2jlists_omp;
-      split_mpi_omp_joins(zone_to_zone2jlists, rank, zonerank, zone_to_zone2jlists_omp, zone_to_zone2jlists_mpi);
+      NUGA::split_mpi_omp_joins(zone_to_zone2jlists, rank, zonerank, zone_to_zone2jlists_omp, zone_to_zone2jlists_mpi);
 
       bool has_mpi_changes{ true };
 
@@ -247,37 +247,7 @@ namespace NUGA
       }
     }
 
-    ///
-    static void split_mpi_omp_joins
-    (
-      const std::map<int, std::map<int, std::vector<int>>>& zone_to_zone2jlists,
-      int rank, const std::vector<int>& zonerank,
-      std::map<int, std::map<int, std::vector<int>>>& zone_to_zone2jlists_omp,
-      std::map<int, std::map<int, std::vector<int>>>& zone_to_zone2jlists_mpi
 
-    )
-    {
-      zone_to_zone2jlists_omp.clear();
-      zone_to_zone2jlists_mpi.clear();
-
-      for (auto & it : zone_to_zone2jlists)
-      {
-        int zid = it.first;
-        auto & zones2jlist = it.second;
-        for (auto & it2 : zones2jlist)
-        {
-          int jzid = it2.first;
-          auto& ptlist = it2.second;
-          int rk = zonerank[jzid];
-          if (rk == rank) // local join
-            zone_to_zone2jlists_omp[zid][jzid] = ptlist;
-          else // distant
-            zone_to_zone2jlists_mpi[zid][jzid] = ptlist;
-        }
-      }
-    }
-
-  
 
     ///
     static bool exchange_status (bool local_changes, int rank, int nranks, MPI_Comm COM)
@@ -330,77 +300,6 @@ namespace NUGA
       }
 
       return has_changes;
-    }
-
-    ///
-    static void exchange_pointlists
-    (
-      const std::vector<hmesh_t>& hmeshes,
-      const std::vector<int>& zonerank,
-      MPI_Comm COM,
-      int rank, int nranks,
-      const std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
-      std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone_to_list_opp
-    )
-    {
-      zone_to_zone_to_list_opp.clear();
-
-      //separate MPI/OMP joins
-      std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_zone2jlists_mpi, zone_to_zone2jlists_omp;
-      split_mpi_omp_joins(zone_to_zone_to_list_owned, rank, zonerank, zone_to_zone2jlists_omp, zone_to_zone2jlists_mpi);
-
-      // OMP : just transpose
-      if (!zone_to_zone2jlists_omp.empty())
-      {
-        for (size_t z = 0; z < hmeshes.size(); ++z)
-        {
-          int zid = hmeshes[z].zid;
-          
-          auto it = zone_to_zone2jlists_omp.find(zid);
-          if (it == zone_to_zone2jlists_omp.end()) continue;
-
-          const auto& zone2jlists = it->second;
-
-          for (const auto & z2L : zone2jlists)
-          {
-            int jzid = z2L.first;
-            const auto & ptL = z2L.second;
-
-            zone_to_zone_to_list_opp[jzid][zid] = ptL;
-          }
-        }
-      }
-
-      // MPI
-      if (zone_to_zone2jlists_mpi.empty()) return;
-     
-      // prepare data to send : rank/zone/ptL
-      std::map<int, pointlist_msg_type> rank_to_mpi_data;
-      pointlist_msg_type::convert_to_MPI_exchange_format(zone_to_zone2jlists_mpi, zonerank, rank_to_mpi_data);
-
-      // Send MPI data   
-      pointlist_msg_type::send_data(rank, nranks, COM, rank_to_mpi_data);
-
-      // Receive MPI data and build sensor data by zone
-      pointlist_msg_type::receive_data(rank, nranks, COM, zone_to_zone2jlists_mpi, zone_to_zone_to_list_opp);
-
-      assert(zone_to_zone_to_list_owned.size() == zone_to_zone_to_list_opp.size());
-
-      /*for (auto i : zone_to_zone2jlists_mpi)
-      {
-        int zid = i.first;
-        auto & zone2jlists_mpi = i.second;
-        
-        for (auto j : zone2jlists_mpi)
-        {
-          int jzid = j.first;
-
-          std::cout << "rank : " << rank << " zid/jzid : " << zid << "/" << jzid << " :: " << j.second[0] << " vs " << zone_to_zone_to_list_opp[zid][jzid][0] << std::endl;
-
-        }
-
-      }*/
-
     }
 
   };

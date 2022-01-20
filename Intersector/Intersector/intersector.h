@@ -92,6 +92,7 @@ namespace K_INTERSECTOR
   PyObject* createCom(PyObject* self, PyObject* args);
   PyObject* deleteCom(PyObject* self, PyObject* args);
   PyObject* conformizeHMesh(PyObject* self, PyObject* args);
+  PyObject* conformizeHMesh2(PyObject* self, PyObject* args);
   PyObject* interpolateHMeshNodalField(PyObject* self, PyObject* args);
   
   PyObject* extractUncomputables(PyObject* self, PyObject* args);
@@ -147,6 +148,7 @@ namespace K_INTERSECTOR
 
   /////////// syncronizing the tree ///////////
   PyObject* updatePointLists(PyObject* self, PyObject* args);
+  PyObject* exchangePointLists(PyObject* self, PyObject* args);
   /////////////////////////////////////////////
 
   PyObject* merge(PyObject* self, PyObject* args);

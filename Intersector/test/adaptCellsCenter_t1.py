@@ -20,6 +20,7 @@ nodal_vals[:] = 2
 m = XOR.adaptCells(a, nodal_vals, sensor_type=3, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
+C.convertArrays2File([m], 'm1.plt')
 test.testA(m,1)
 
 ## TETRA static adaptation
@@ -30,4 +31,5 @@ nodal_vals[:] = 2
 m = XOR.adaptCells(aTH4, nodal_vals, sensor_type=3, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
+C.convertArrays2File([m], 'm2.plt')
 test.testA(m,2)

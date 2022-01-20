@@ -235,7 +235,7 @@ void join_plan<ngon_unit>::extract_sub_plans(const tree<ngon_unit>& PGtree, E_In
 }
 
 ///
-template <>
+template <> inline
 bool join_plan<ngon_unit>::one_child_requires(const ngon_unit& plan)
 {
   //todo

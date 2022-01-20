@@ -31,9 +31,28 @@ PyObject* K_INTERSECTOR::createHMesh2(PyObject* self, PyObject* args)
 
 
 //=============================================================================
-/* Hierarchical Mesh Adaptation */
+/* Hierarchical Mesh Adaptation : MPI version (has MPI calls) */
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return nullptr;
+}
+
+//=============================================================================
+/* Conformize and dump the enabled cells in a hierarchical mesh : (has MPI calls) */
+//=============================================================================
+PyObject* K_INTERSECTOR::conformizeHMesh2(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return nullptr;
+}
+
+
+//=============================================================================
+/* Exchange the owned PointLists : to update PointListDonor (has MPI calls) */
+//=============================================================================
+PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return nullptr;

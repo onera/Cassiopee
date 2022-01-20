@@ -627,7 +627,7 @@ const char* varString, PyObject *out)
 
 
 //=============================================================================
-/* Hierarchical Mesh Adaptation */
+/* Hierarchical Mesh Adaptation : MPI version (has MPI calls) */
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
 {
@@ -823,4 +823,526 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
   //std::cout << "adaptCells : end" << std::endl;
 
   return (err) ? nullptr : l;
+}
+
+//=============================================================================
+/* Conformize and dump the enabled cells in a hierarchical mesh : (has MPI calls) */
+//=============================================================================
+template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
+void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, 
+                    std::map<E_Int, std::vector<E_Int>>& jzone_to_ptlist,
+                    std::vector<std::vector<E_Int>>&     bcptlists,
+                    std::vector<std::vector<E_Float>>& fieldsC,
+                    std::vector<std::vector<E_Float>>& fieldsN,
+                    std::vector<std::vector<E_Float>>& fieldsF)
+{
+  using mesh_type = NUGA::hierarchical_mesh<ELT_t, STYPE>;
+
+  mesh_type* hmesh = (mesh_type*)hmesh_ptr;
+
+  // update the bc pointlists in hmesh
+  for (size_t b=0; b < bcptlists.size(); ++b)
+  {
+    hmesh->update_pointlist(bcptlists[b]);
+  }
+
+  for (auto& jz_to_ptl: jzone_to_ptlist)
+    hmesh->update_pointlist(jz_to_ptl.second);
+  
+  if (hmesh->pghids0.empty()) //the 3 are empty/full at the same time
+  {
+    K_CONNECT::IdTool::init_inc(hmesh->pthids0, hmesh->_nb_pts0);
+    K_CONNECT::IdTool::init_inc(hmesh->pghids0, hmesh->_nb_pgs0);
+    K_CONNECT::IdTool::init_inc(hmesh->phhids0, hmesh->_nb_phs0);
+  }
+
+  ngon_type ngo;
+  std::vector<E_Int> pghids1, phhids1, hmpgid_to_confpgid;
+  hmesh->conformize(ngo, hmpgid_to_confpgid, pghids1, phhids1);
+
+  // HISTORY BETWEEN PREVIOUS OUTPUT AND CUURENT ONE
+  if (hmpgid_to_confpgid.empty()) // hmesh==exported <=> no adaptation
+    K_CONNECT::IdTool::init_inc(hmpgid_to_confpgid, hmesh->_ng.PGs.size());
+
+  NUGA::history_t histo;
+  hmesh->build_histo_between_two_enabled_states(hmesh->pghids0, hmesh->phhids0, pghids1, phhids1, hmpgid_to_confpgid, histo);
+  
+  // EXPORT MESH
+
+  crdo = hmesh->_crd;
+  //std::cout << "sz bfore : " << crdo.cols() << std::endl;
+  std::vector<E_Int> ptnids1;
+  ngo.compact_to_used_nodes(ngo.PGs, crdo, ptnids1);
+  //std::cout << "sz after : " << crdo.cols() << std::endl;
+
+  ngo.export_to_array(cnto);
+
+   // JOINS and BC POINTLIST updates
+  
+  // convert ids to conformed view
+  if (!hmpgid_to_confpgid.empty())
+  {
+    for (size_t b=0; b < bcptlists.size(); ++b)
+      for (size_t j=0; j < bcptlists[b].size(); ++j)
+        bcptlists[b][j] = hmpgid_to_confpgid[bcptlists[b][j]-1]+1;
+
+    for (auto& jz_to_ptl: jzone_to_ptlist)
+    {
+      auto & ptl = jz_to_ptl.second;
+      for (size_t j=0; j < ptl.size(); ++j)
+        ptl[j] = hmpgid_to_confpgid[ptl[j]-1]+1;
+    }
+  }
+
+
+  // TRANSFER CENTER SOLUTION FIELDS
+  hmesh->project_cell_center_sol_order1(hmesh->phhids0, fieldsC);
+
+  // TRANSFER FACE SOLUTION FIELDS
+  // todo : something very similar to above : intensive quantities mgt
+  //hmesh->project_face_center_sol_order1(hmesh->pghids0, ...);
+
+  // TRANSFER FACE FLAGS (e.g 'face CAD id')
+  // rule : agglo set to -1 (if different) , subdiv inherits parent value
+  std::vector<E_Int> src_ids;
+  K_CONNECT::IdTool::init_inc(src_ids, hmesh->pghids0.size()); //previous state is always a compressed view of the hmesh
+
+  std::vector<std::vector<E_Float>> new_fieldsF(fieldsF.size());
+  for (size_t f = 0; f < fieldsF.size(); ++f)
+  {
+    histo.transfer_pg_colors(src_ids, fieldsF[f], new_fieldsF[f]);
+    new_fieldsF[f].resize(ngo.PGs.size(), -1);
+  }
+  fieldsF = new_fieldsF;
+
+  // TRANSFER NODE SOLUTION FIELDS == NODE FLAGS
+  std::vector<std::vector<E_Float>> new_fieldsN(fieldsN.size());
+  for (size_t f = 0; f < fieldsN.size(); ++f)
+  {
+    new_fieldsN[f].resize(crdo.cols(), NUGA::FLOAT_MAX);
+
+    for (size_t i=0; i < hmesh->pthids0.size(); ++i)
+    {
+      E_Int tgtid = ptnids1[hmesh->pthids0[i]];
+      if (tgtid == IDX_NONE) continue;
+      new_fieldsN[f][tgtid]=fieldsN[f][i];
+    }
+
+  }
+  fieldsN = new_fieldsN;
+
+  // update of the current enabling state
+  hmesh->pghids0 = pghids1;
+  hmesh->phhids0 = phhids1;
+  K_CONNECT::IdTool::reverse_indirection(ptnids1, hmesh->pthids0);
+
+}
+
+template <NUGA::eSUBDIV_TYPE STYPE>
+void __conformizeHM(E_Int etype, const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto,
+                    std::map<E_Int, std::vector<E_Int>>& jzone_to_ptlist,
+                    std::vector<std::vector<E_Int>>&     bcptlists,
+                    std::vector<std::vector<E_Float>>&   fieldsC,
+                    std::vector<std::vector<E_Float>>&   fieldsN,
+                    std::vector<std::vector<E_Float>>&   fieldsF)
+{
+  if (etype == elt_t::HEXA)
+    __conformizeHM<K_MESH::Hexahedron, STYPE>(hmesh_ptr, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+  else if (etype == (E_Int)elt_t::TETRA)
+    __conformizeHM<K_MESH::Tetrahedron, STYPE>(hmesh_ptr, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+  else if (etype == (E_Int)elt_t::PRISM3)
+    __conformizeHM<K_MESH::Prism, STYPE>(hmesh_ptr, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+  else if (etype == (E_Int)elt_t::BASIC)
+    __conformizeHM<K_MESH::Basic, STYPE>(hmesh_ptr, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+}
+
+template <>
+void __conformizeHM<NUGA::ISO_HEX>(E_Int etype, const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto,
+                                   std::map<E_Int, std::vector<E_Int>>& jzone_to_ptlist,
+                                   std::vector<std::vector<E_Int>>&     bcptlists,
+                                   std::vector<std::vector<E_Float>>&   fieldsC,
+                                   std::vector<std::vector<E_Float>>&   fieldsN,
+                                   std::vector<std::vector<E_Float>>&   fieldsF)
+{
+  __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+}
+
+template <>
+void __conformizeHM<NUGA::DIR>(E_Int etype, const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto,
+                                   std::map<E_Int, std::vector<E_Int>>& jzone_to_ptlist,
+                                   std::vector<std::vector<E_Int>>&     bcptlists,
+                                   std::vector<std::vector<E_Float>>&   fieldsC,
+                                   std::vector<std::vector<E_Float>>&   fieldsN,
+                                   std::vector<std::vector<E_Float>>&   fieldsF)
+{
+  __conformizeHM<K_MESH::Hexahedron, NUGA::DIR>(hmesh_ptr, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+}
+
+///
+PyObject* K_INTERSECTOR::conformizeHMesh2(PyObject* self, PyObject* args)
+{ 
+  //hooks[i], bcptlists, jzone_to_ptlist, fieldsC, fieldsN, fieldsF
+  PyObject* hook, *py_bcptlists, *py_jzone_to_ptlist;
+  PyObject* pyfieldsC, *pyfieldsN, *pyfieldsF;
+  
+  if (!PyArg_ParseTuple(args, "OOOOOO", &hook, &py_bcptlists, &py_jzone_to_ptlist, &pyfieldsC, &pyfieldsN, &pyfieldsF)) return nullptr;
+
+  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
+  std::string* vString{ nullptr };
+  void** packet{ nullptr };
+  void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, zid, vString, packet);
+
+  // BCs
+  std::vector<std::vector<E_Int>> bcptlists;
+  if (py_bcptlists != Py_None)
+  {
+    E_Int nb_ptl = PyList_Size(py_bcptlists);
+    bcptlists.resize(nb_ptl);
+
+    for (E_Int i=0; i < nb_ptl; ++i)
+    {
+      PyObject * pyBCptList = PyList_GetItem(py_bcptlists, i);
+      E_Int *ptL, size, nfld;
+      /*E_Int res2 = */K_NUMPY::getFromNumpyArray(pyBCptList, ptL, size, nfld, true/* shared*/, false/* inverse*/);
+      //std::cout << "res2/size/nfld : " << res2 << "/" << size << "/" << nfld << std::endl;
+
+      std::vector<E_Int> vPtL(ptL, ptL+size);
+      bcptlists[i] = vPtL;
+    }
+  }
+
+  // Joins
+  std::map<E_Int, std::vector<E_Int>> jzone_to_ptlist;
+  if (py_jzone_to_ptlist != Py_None && PyDict_Check(py_jzone_to_ptlist))
+  {
+    PyObject *py_jzid/*key*/, *py_ptlist /*value : ptlist*/;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(py_jzone_to_ptlist, &pos, &py_jzid, &py_ptlist))
+    {
+      int jzid = (int) PyInt_AsLong(py_jzid);
+
+      assert (PyArray_Check(py_ptlist) == 1) ; // it s a numpy
+      //std::cout << "est ce un numpy ??? " << isnumpy << std::endl;
+
+      PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist);
+
+      long ndims = PyArray_NDIM(pyarr);
+      assert (ndims == 1); // vector
+      long* dims = PyArray_SHAPE(pyarr);
+
+      E_Int ptl_sz = dims[0];
+      
+      //long* dataPtr = static_cast<long*>(PyArray_DATA(pyarr));
+      E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
+
+      std::vector<E_Int> ptl(ptl_sz);
+      for (size_t u=0; u < ptl_sz; ++u) ptl[u] = dataPtr[u];
+
+      //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
+
+      jzone_to_ptlist[jzid]=ptl;
+    }
+  }
+
+  // FIELDS
+  bool has_fieldsC = (pyfieldsC != Py_None);
+  bool has_fieldsN = (pyfieldsN != Py_None);
+  bool has_fieldsF = (pyfieldsF != Py_None);
+  
+  char* fvarStringsC, *fvarStringsN, *feltType;
+  std::vector<std::vector<E_Float>> fieldsC, fieldsN, fieldsF;
+  E_Int nfields{0};
+
+  if (has_fieldsC)
+  {
+    
+    E_Int ni, nj, nk;
+    K_FLD::FloatArray fldsC;
+    K_FLD::IntArray cn;
+
+    E_Int res = 
+      K_ARRAY::getFromArray(pyfieldsC, fvarStringsC, fldsC, ni, nj, nk, cn, feltType);
+
+    /*std::cout << "res : " << res << std::endl;
+    std::cout << "var : " << fvarStrings[0] << std::endl;
+    std::cout << "field C : " << fldsC.rows() << "/" << fldsC.cols() << std::endl;
+    std::cout << "cn : " << cn.rows() << "/" << cn.cols() << std::endl;*/
+
+    nfields = fldsC.rows();
+    E_Int nvals = fldsC.cols();
+    fieldsC.resize(nfields);
+    for (E_Int j = 0; j < nfields; ++j)
+      fieldsC[j].resize(nvals);
+
+    for (E_Int i = 0; i < nvals; ++i)
+      for (E_Int j = 0; j < nfields; ++j)
+        fieldsC[j][i] = fldsC(j, i);
+  }
+
+  if (has_fieldsN)
+  {
+    
+    E_Int ni, nj, nk;
+    K_FLD::FloatArray fldsN;
+    K_FLD::IntArray cn;
+
+    E_Int res = 
+      K_ARRAY::getFromArray(pyfieldsN, fvarStringsN, fldsN, ni, nj, nk, cn, feltType);
+
+    /*td::cout << "res : " << res << std::endl;
+    std::cout << "var : " << fvarStrings[0] << std::endl;
+    std::cout << "field N : " << fldsN.rows() << "/" << fldsN.cols() << std::endl;
+    std::cout << "cn : " << cn.rows() << "/" << cn.cols() << std::endl;*/
+
+    nfields = fldsN.rows();
+    E_Int nvals = fldsN.cols();
+    fieldsN.resize(nfields);
+    for (E_Int j = 0; j < nfields; ++j)
+      fieldsN[j].resize(nvals);
+
+    for (E_Int i = 0; i < nvals; ++i)
+      for (E_Int j = 0; j < nfields; ++j)
+        fieldsN[j][i] = fldsN(j, i);
+  }
+
+  if (has_fieldsF)
+  {
+
+    E_Int nfieldsF = PyList_Size(pyfieldsF);
+
+    std::vector<E_Float*> pFid(nfieldsF);
+
+    fieldsF.resize(nfieldsF);
+
+    for (E_Int j = 0; j < nfieldsF; ++j)
+    {
+      PyObject* fieldFi = PyList_GetItem(pyfieldsF, j);
+
+      FldArrayF* Fid;
+      E_Int res = K_NUMPY::getFromNumpyArray(fieldFi, Fid, true);
+      pFid[j] = Fid->begin(1);
+      fieldsF[j].resize(Fid->getSize());
+    }
+
+    for (E_Int j = 0; j < nfieldsF; ++j)
+      for (E_Int i = 0; i < fieldsF[j].size(); ++i)
+      {
+        fieldsF[j][i] = pFid[j][i];
+        //std::cout << "pFid[j][i] : " << pFid[j][i] << std::endl;
+      }
+  }
+
+  // CONFORMIZE, UPDATE POINTLISTS and TRANSFER FIELDS
+
+  PyObject *l(PyList_New(0));
+  K_FLD::IntArray cnto;
+  std::vector<E_Int> dummy_oids, jzids;
+  
+  K_FLD::FloatArray crdo;
+
+  if (*sub_type == NUGA::ISO)
+    __conformizeHM<NUGA::ISO>(*elt_type, hmesh, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+  else if (*sub_type == NUGA::ISO_HEX)
+    __conformizeHM<NUGA::ISO_HEX>(*elt_type, hmesh, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+  else if (*sub_type == NUGA::DIR)
+    __conformizeHM<NUGA::DIR>(*elt_type, hmesh, crdo, cnto, jzone_to_ptlist, bcptlists, fieldsC, fieldsN, fieldsF);
+
+  //  0 : pushing out the mesh
+  PyObject *tpl = K_ARRAY::buildArray(crdo, vString->c_str(), cnto, -1, "NGON", false);
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  // 1 : pushing out the pc pointlist List
+  PyObject* bc_ptlist_List = PyList_New(0);
+  for (size_t b = 0; b < bcptlists.size(); ++b)
+  {
+    PyObject* np = K_NUMPY::buildNumpyArray(&bcptlists[b][0], bcptlists[b].size(), 1, 0);
+    PyList_Append(bc_ptlist_List, np);
+    Py_DECREF(np);
+  }
+  PyList_Append(l, bc_ptlist_List);
+  Py_DECREF(bc_ptlist_List);
+
+  // 2 : pushing out joins pointlist map : jzid to ptlist
+  PyObject * jzone_to_ptlist_dict = PyDict_New();
+  for (auto& jz_to_ptl : jzone_to_ptlist)
+  {
+    E_Int jzid = jz_to_ptl.first;
+    auto& ptl = jz_to_ptl.second;
+
+    PyObject* key = Py_BuildValue("i", jzid);
+    PyObject* np = K_NUMPY::buildNumpyArray(&ptl[0], ptl.size(), 1, 0);
+
+    PyDict_SetItem(jzone_to_ptlist_dict, key, np);
+    Py_DECREF(np);
+  }
+  PyList_Append(l, jzone_to_ptlist_dict);
+  Py_DECREF(jzone_to_ptlist_dict);
+
+  // FIELDS
+
+  // center fields
+  {
+    PyObject* tpl = Py_None;
+    K_FLD::FloatArray farr;
+    if (has_fieldsC)
+    {
+      farr.resize(nfields, fieldsC[0].size());
+      for (size_t i=0; i < fieldsC.size(); ++i)
+      {
+        std::vector<double>& fld = fieldsC[i];
+        for (size_t j = 0; j < fld.size(); ++j)farr(i, j) = fld[j];
+      }
+      tpl = K_ARRAY::buildArray(farr, fvarStringsC, cnto, -1, feltType, false);
+    }
+    
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  // node fields
+  {
+    PyObject* tpl = Py_None;
+    K_FLD::FloatArray farr;
+    if (has_fieldsN)
+    {
+      farr.resize(nfields, fieldsN[0].size());
+      for (size_t i=0; i < fieldsN.size(); ++i)
+      {
+        std::vector<double>& fld = fieldsN[i];
+        for (size_t j = 0; j < fld.size(); ++j)farr(i, j) = fld[j];
+      }
+      tpl = K_ARRAY::buildArray(farr, fvarStringsN, cnto, -1, feltType, false);
+    }
+
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  // face fields (currently only fcadid)
+  {
+    PyObject* tpl = Py_None;
+    if (has_fieldsF) // fcadid only for now
+      tpl = K_NUMPY::buildNumpyArray(&fieldsF[0][0], fieldsF[0].size(), 1, 0);
+
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  return l;
+}
+
+
+//=============================================================================
+/* Exchange the owned PointLists : to update PointListDonor (has MPI calls) */
+//=============================================================================
+PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
+{
+  // zonerank, Cmpi.rank, Cmpi.size, zone_to_zone_to_list_owned
+  PyObject *py_zonerank(nullptr), *py_zone_to_zone_to_list_owned(nullptr);
+  MPI_Comm COM = MPI_COMM_WORLD;
+  E_Int rank{0}, nranks{1};
+
+  if (!PYPARSETUPLEI(args, "OllO", "OiiO", &py_zonerank, &rank, &nranks, &py_zone_to_zone_to_list_owned)) return nullptr;
+
+  // 1. GET ZONERANK
+
+  std::vector<int> zonerank;
+  if (PyDict_Check(py_zonerank))
+  {
+    E_Int nranks = PyDict_Size(py_zonerank);
+    for (E_Int r = 0; r < nranks; ++r)
+    {
+      PyObject* key = PyInt_FromLong ((long) r);
+      PyObject* py_rank = PyDict_GetItem(py_zonerank,key);
+      assert (py_rank);
+      int rank = (int) PyInt_AsLong(py_rank);
+      //std::cout << "key/item : " << r << "/" << my_val <<std::endl;//<< *item << std::endl;
+      zonerank.push_back(rank);
+    }
+  }
+
+  // 2. GET POINTLISTS MAP 
+
+  std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_owned;
+
+  if (PyDict_Check(py_zone_to_zone_to_list_owned))
+  {
+    E_Int nzid = PyDict_Size(py_zone_to_zone_to_list_owned);
+    assert (nzid == nb_meshes);
+
+    PyObject *py_zid/*key*/, *py_zone_to_list_owned /*value : map jzid to ptlist*/;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(py_zone_to_zone_to_list_owned, &pos, &py_zid, &py_zone_to_list_owned))
+    {
+      int zid = (int) PyInt_AsLong(py_zid);
+
+      assert (PyDict_Check(py_zone_to_list_owned) == 1); // it s a map
+
+      PyObject *py_jzid/*key*/, *py_ptlist_owned /*value : ptlist*/;
+      Py_ssize_t pos1 = 0;
+
+      while (PyDict_Next(py_zone_to_list_owned, &pos1, &py_jzid, &py_ptlist_owned))
+      {
+        int jzid = (int) PyInt_AsLong(py_jzid);
+
+        assert (PyArray_Check(py_ptlist_owned) == 1) ; // it s a numpy
+        //std::cout << "est ce un numpy ??? " << isnumpy << std::endl;
+
+        PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist_owned);
+
+        long ndims = PyArray_NDIM(pyarr);
+        assert (ndims == 1); // vector
+        long* dims = PyArray_SHAPE(pyarr);
+
+        E_Int ptl_sz = dims[0];
+        
+        //long* dataPtr = static_cast<long*>(PyArray_DATA(pyarr));
+        E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
+
+        std::vector<E_Int> ptl(ptl_sz);
+        for (size_t u=0; u < ptl_sz; ++u) ptl[u] = dataPtr[u];
+
+        //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
+
+        zone_to_zone_to_list_owned[zid][jzid]=ptl;
+
+      }
+    }
+  }
+
+  // 3. EXCHANGE
+  std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_opp;
+  NUGA::pointlist_msg_type::exchange_pointlists(zonerank, COM, rank, nranks, zone_to_zone_to_list_owned, zone_to_zone_to_list_opp);
+
+  // 4. pushing out joins pointlist map : 'zid to jzid to ptlist'
+  PyObject * zone_to_zone_to_list_opp_dict = PyDict_New();
+  for (auto& z_to_jz_to_ptl : zone_to_zone_to_list_opp)
+  {
+    E_Int zid = z_to_jz_to_ptl.first;
+    auto& zone_to_list_opp = z_to_jz_to_ptl.second;
+
+    PyObject* key_zid = Py_BuildValue("i", zid);
+
+    PyObject* zone_to_list_opp_dict = PyDict_New();
+
+    for (auto& jz_to_ptl : zone_to_list_opp)
+    {
+      E_Int jzid = jz_to_ptl.first;
+      auto & ptl = jz_to_ptl.second;
+      PyObject* key_jzid = Py_BuildValue("i", jzid);
+
+      PyObject* np = K_NUMPY::buildNumpyArray(&ptl[0], ptl.size(), 1, 0);
+      PyDict_SetItem(zone_to_list_opp_dict, key_jzid, np);
+      Py_DECREF(np);
+    }
+
+    PyDict_SetItem(zone_to_zone_to_list_opp_dict, key_zid, zone_to_list_opp_dict);
+    Py_DECREF(zone_to_list_opp_dict);
+  }
+
+  return zone_to_zone_to_list_opp_dict;
+
 }
