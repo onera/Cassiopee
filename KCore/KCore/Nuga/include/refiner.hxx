@@ -966,7 +966,7 @@ namespace NUGA
 #ifndef DEBUG_HIERARCHICAL_MESH
 //#pragma omp parallel for
 #endif
-    for (E_Int i = 0; i < PG_to_ref.size(); ++i)
+    for (size_t i = 0; i < PG_to_ref.size(); ++i)
     {
       E_Int PGi = PG_to_ref[i];
       E_Int firstChild = childpos[i];

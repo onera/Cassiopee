@@ -368,7 +368,7 @@ def TFIMono(a1, a2):
     m1 = G.TFI([a1,b1,b3,b2])
     return [m1]
 
-# Cree un ensemble de maillages TFI en étoilant les edges et en 
+# Cree un ensemble de maillages TFI en etoilant les edges et en 
 # faisant des TFIs par triangle
 def TFIStar(edges):
     """Make TFIs from edges."""
@@ -386,7 +386,7 @@ def TFIStar(edges):
         out += ret
     return out
 
-# Cree un ensemble de maillages TFI en étoilant les milieux des edges
+# Cree un ensemble de maillages TFI en etoilant les milieux des edges
 # Les edges doivent tous avoir le meme nombre de points impair
 def TFIStar2(edges):
     """Make TFIs from edges."""

@@ -47,7 +47,7 @@ void K_CONNECT::connectNG2VNbrs(FldArrayI& cNG, vector< vector<E_Int> >& cVN)
   FldArrayI posFaces(nfaces); // tableau de position des faces dans la connectivite
   K_CONNECT::getPosFaces(cNG, posFaces);
   E_Int* posFacesp = posFaces.begin(); // pointeur sur posFace
-  E_Int pos; // position d une face donnee dans la connectivite
+  E_Int pos; // position d'une face donnee dans la connectivite
 
   // 1- construction de la connectivite Face/Noeuds (les noeuds sont definis plusieurs fois)
   E_Int* ptr = cnp+sizeFN+4;//debut connectivite EF

@@ -535,13 +535,13 @@ def projectRay(surfaces, arrays, P):
         return transform.projectRay([surfaces], b, P)[0]
 
 def alignVectorFieldWithRadialCylindricProjection(a, axisPassingPoint, axisDirection, vectorNames):
-    """Perform a cylindric radial projection of a vector field """
+    """Perform a cylindric radial projection of a vector field."""
     b = Converter.copy(a)
     _alignVectorFieldWithRadialCylindricProjection(b, axisPassingPoint, axisDirection, vectorNames)
     return b
 
 def _alignVectorFieldWithRadialCylindricProjection(a, axisPassingPoint, axisDirection, vectorNames):
-    """Perform a cylindric radial projection of a vector field """
+    """Perform a cylindric radial projection of a vector field."""
     if isinstance(a[0], list):
         for i in a: transform._alignVectorFieldWithRadialCylindricProjection(i, axisPassingPoint, axisDirection, vectorNames)
     else: transform._alignVectorFieldWithRadialCylindricProjection(a, axisPassingPoint, axisDirection, vectorNames)

@@ -781,7 +781,7 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
 
         long ndims = PyArray_NDIM(pyarr);
         assert (ndims == 1); // vector
-        long* dims = PyArray_SHAPE(pyarr);
+        npy_intp* dims = PyArray_SHAPE(pyarr);
 
         E_Int ptl_sz = dims[0];
         
@@ -1029,7 +1029,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh2(PyObject* self, PyObject* args)
 
       long ndims = PyArray_NDIM(pyarr);
       assert (ndims == 1); // vector
-      long* dims = PyArray_SHAPE(pyarr);
+      npy_intp* dims = PyArray_SHAPE(pyarr);
 
       E_Int ptl_sz = dims[0];
       
@@ -1295,7 +1295,7 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
 
         long ndims = PyArray_NDIM(pyarr);
         assert (ndims == 1); // vector
-        long* dims = PyArray_SHAPE(pyarr);
+        npy_intp* dims = PyArray_SHAPE(pyarr);
 
         E_Int ptl_sz = dims[0];
         

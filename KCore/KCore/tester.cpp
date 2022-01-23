@@ -30,9 +30,10 @@
 #define  TEST2          0
 #define  TEST3          0
 #define  TESTARRAY2     0
+#define  TESTARRAY3     1
 #define  TESTFLD        0
 #define  TESTNUMPY      0
-#define  TESTHIGHORDER  2
+#define  TESTHIGHORDER  0
 
 #if EXTARITH == 1
 #include "ExtArith/quad_double.hpp"
@@ -204,30 +205,114 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   return o;
 #endif
 
+#if TESTARRAY3 == 1
+    PyObject* o=NULL;
+    // Structured array3 - nodes - build
+    {
+    E_Int ni=2, nj=2, nk=2; 
+    o = K_ARRAY::buildArray3(5, "x,y,z,F,G", ni,nj,nk, 3);
+    char* varString; K_FLD::FldArrayF* f; 
+    // structured array3 - nodes - get
+    K_ARRAY::getFromArray3(o, varString, f);
+    f->setAllValuesAt(1.);
+    // Getting information from Fld
+    E_Int nfld = f->getNfld(); // nbre de champs
+    E_Int npts = f->getSize(); // nbre de pts (ni x nj x nk)
+    E_Float* x = f->begin(1); // ptrs sur les champs
+    E_Float* y = f->begin(2);
+    for (E_Int i = 0; i < npts; i++) { x[i] = i; y[i] = -i; }
+    RELEASESHAREDS(o, f);
+    }
+
+    // NGON array3 - nodes - build
+    {
+    E_Int nvertex=5, nelts=8, nface=4, sizeNGon=9;
+    o = K_ARRAY::buildArray3(5, "x,y,z,F,G", nvertex, nelts, nface, 
+                             "NGON", sizeNGon, -1, false, 3);
+    K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+    K_ARRAY::getFromArray3(o, f, c);
+    f->setAllValuesAt(1.);
+    // safe
+    E_Int nfaces = c->getNFaces();
+    E_Int* ngonp = c->getNGon();
+    E_Int* ngonso = c->getIndPG();
+    // not safe
+    nelts = c->getNElts();
+    E_Int* pe = c->getPE();
+    E_Int* nfacep = c->getNFace();
+    E_Int* nfaceso = c->getIndPH();
+    RELEASESHAREDU(o, f, c);
+    }
+
+    // BE array3 - nodes - build
+    {
+    E_Int nvertex=5; E_Int nelts=3;
+    o = K_ARRAY::buildArray3(5, "x,y,z,F,G", nvertex, nelts, 
+                             "TRI", false, 3);
+    K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+    K_ARRAY::getFromArray3(o, f, c);
+    f->setAllValuesAt(1.);
+    E_Float* fx = f->begin(1);
+    for (E_Int i = 0; i < nvertex; i++) fx[i] = i;
+    FldArrayI& cm = *(c->getConnect(0));
+    for (E_Int i = 0; i < nelts; i++)
+    {
+        cm(i,1) = 1; cm(i,2) = 2; cm(i,3) = 3;
+    }
+    RELEASESHAREDU(o, f, c);
+    }
+
+    // ME array3 - NODE - build
+    {
+    E_Int nvertex=5;
+    std::vector<int> neltsPerType = {3, 4};
+    o = K_ARRAY::buildArray3(5, "x,y,z,F,G", nvertex, neltsPerType, 
+                             "TRI,QUAD", false, 3);
+    K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+    K_ARRAY::getFromArray3(o, f, c);
+    f->setAllValuesAt(1.);
+    FldArrayI& cm0 = *(c->getConnect(0)); // TRI
+    for (E_Int i = 0; i < cm0.getSize(); i++)
+    {
+        cm0(i,1) = 1; cm0(i,2) = 2; cm0(i,3) = 3;
+    }
+    FldArrayI& cm1 = *(c->getConnect(1)); // QUAD
+    for (E_Int i = 0; i < cm1.getSize(); i++)
+    {
+        cm1(i,1) = 1; cm1(i,2) = 2; cm1(i,3) = 3; cm1(i,4) = 4;
+    }
+    RELEASESHAREDU(o, f, c);
+    }
+
+    return o;
+
+
+#endif
+
 #if TESTHIGHORDER == 1
-  char eltType[128];
-  E_Int loc, nvpe, typeId;
-  K_ARRAY::eltString2TypeId((char*)"TETRA_20*", eltType, nvpe, loc, typeId);
-  printf("%s %d %d\n", eltType, nvpe, loc);
-  K_ARRAY::eltString2TypeId((char*)"TETRA", eltType, nvpe, loc, typeId);
-  printf("%s %d %d\n", eltType, nvpe, loc);
+    char eltType[128];
+    E_Int loc, nvpe, typeId;
+    K_ARRAY::eltString2TypeId((char*)"TETRA_20*", eltType, nvpe, loc, typeId);
+    printf("%s %d %d\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"TETRA", eltType, nvpe, loc, typeId);
+    printf("%s %d %d\n", eltType, nvpe, loc);
   
-  K_ARRAY::eltString2TypeId((char*)"NODE", eltType, nvpe, loc, typeId);
-  printf("%s %d %d\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"NODE", eltType, nvpe, loc, typeId);
+    printf("%s %d %d\n", eltType, nvpe, loc);
   
-  K_ARRAY::eltString2TypeId((char*)"QUAD_8", eltType, nvpe, loc, typeId);
-  printf("%s %d %d\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"QUAD_8", eltType, nvpe, loc, typeId);
+    printf("%s %d %d\n", eltType, nvpe, loc);
   
-  K_ARRAY::eltString2TypeId((char*)"QUAD", eltType, nvpe, loc, typeId);
-  printf("%s %d %d\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"QUAD", eltType, nvpe, loc, typeId);
+    printf("%s %d %d\n", eltType, nvpe, loc);
     
-  K_ARRAY::eltString2TypeId((char*)"BAR_3", eltType, nvpe, loc, typeId);
-  printf("%s %d %d\n", eltType, nvpe, loc);
-  K_ARRAY::eltString2TypeId((char*)"TRI_6", eltType, nvpe, loc, typeId);
-  printf("%s %d %d\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"BAR_3", eltType, nvpe, loc, typeId);
+    printf("%s %d %d\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"TRI_6", eltType, nvpe, loc, typeId);
+    printf("%s %d %d\n", eltType, nvpe, loc);
   
-  K_ARRAY::eltString2TypeId((char*)"NGON", eltType, nvpe, loc, typeId);
-  printf("%s %d %d\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"NGON", eltType, nvpe, loc, typeId);
+    printf("%s %d %d\n", eltType, nvpe, loc);
 #endif
 
 #if TESTHIGHORDER == 2

@@ -214,6 +214,25 @@ namespace K_ARRAY
                       FldArrayF*& f);
   E_Int getFromArray2(PyObject* o, FldArrayF*& f);
 
+  E_Int getFromArray3(PyObject* o,
+                      char*& varString,
+                      FldArrayF*& f,
+                      E_Int& ni, E_Int& nj, E_Int& nk,
+                      FldArrayI*& c,
+                      char*& eltType);
+  E_Int getFromArray3(PyObject* o,
+                      char*& varString,
+                      FldArrayF*& f,
+                      FldArrayI*& c,
+                      char*& eltType);
+  E_Int getFromArray3(PyObject* o,
+                      FldArrayF*& f,
+                      FldArrayI*& c);                   
+  E_Int getFromArray3(PyObject* o,
+                      char*& varString,
+                      FldArrayF*& f);
+  E_Int getFromArray3(PyObject* o, FldArrayF*& f);
+
   /* Extrait les donnees utiles d'un objet python struct array 
      defini par: [ 'vars', a, ni, nj, nk ]
      ou d'un objet python unstruct array
@@ -365,26 +384,26 @@ namespace K_ARRAY
      IN: field: Fld champ structure
      IN: varString: variable string
      IN: ni,nj,nk: nombre de points dans field
+     IN: api: 1 (array), 2 (array2)
      OUT: PyObject cree. */
-  PyObject* buildArray(FldArrayF& field, const char* varString,
+  PyObject* buildArray(FldArrayF& f, const char* varString,
                        E_Int ni, E_Int nj, E_Int nk);
-  /* Construit un array structure vide 
-     IN: nfld: nombre de champ dans varString
-     IN: varString: variable string
-     IN: ni,nj,nk: nombre de points dans le champ
-     OUT: PyObject cree. */
-  PyObject* buildArray(E_Int nfld, const char* varString,
-                       E_Int ni, E_Int nj, E_Int nk);
+  PyObject* buildArray2(FldArrayF& f, const char* varString,
+                         E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
+
   /* Construit un array structure vide suivant les differentes api
      IN: nfld: nombre de champ dans varString
      IN: varString: variable string
      IN: ni,nj,nk: nombre de points dans le champ
-     IN: api: 1 (array), 2 (array2)
+     IN: api: 1 (array), 2 (array2), 3 (array3)
      OUT: PyObject cree. */
+  PyObject* buildArray(E_Int nfld, const char* varString,
+                       E_Int ni, E_Int nj, E_Int nk);
   PyObject* buildArray2(E_Int nfld, const char* varString,
                         E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
-  PyObject* buildArray2(FldArrayF& f, const char* varString,
+  PyObject* buildArray3(E_Int nfld, const char* varString,
                         E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
+
   /* Construit un array non structure a partir d'un FldArray
      IN: field: Fld champ non structure
      IN: varString: variable string
@@ -395,10 +414,13 @@ namespace K_ARRAY
      IN: center: mis a true si field est localise sur les centres,
          sinon false.
      OUT: PyObject cree. */
-  PyObject* buildArray(FldArrayF& field, const char* varString,
+  PyObject* buildArray(FldArrayF& f, const char* varString,
                        FldArrayI& c, E_Int et, 
                        const char* etString=NULL, 
                        E_Boolean center=false);
+  PyObject* buildArray2(FldArrayF& f, const char* varString, 
+                        FldArrayI& cn, const char* eltType, E_Int api=1);
+
   /* Construit un array non structure vide 
      IN: nfld: nombre de champs dans varString
      IN: varString: variable string
@@ -417,14 +439,25 @@ namespace K_ARRAY
                        E_Int nvertex, E_Int nelt, 
                        E_Int et, const char* etString, 
                        E_Boolean center=false, E_Int sizeConnect=1); 
- PyObject* buildArray2(E_Int nfld, const char* varString,
+  PyObject* buildArray2(E_Int nfld, const char* varString,
                        E_Int nvertex, E_Int nelt, 
                        E_Int et, const char* etString, 
                        E_Boolean center=false, 
                        E_Int sizeNGon=1, E_Int sizeNFace=1,
                        E_Int nface=1, E_Int api=1);
- PyObject* buildArray2(FldArrayF& f, const char* varString, 
-                       FldArrayI& cn, const char* eltType, E_Int api=1);
+  PyObject* buildArray3(E_Int nfld, const char* varString,
+                        E_Int nvertex, E_Int nelt, E_Int nface, 
+                        const char* etString,
+                        E_Int sizeNGon=1, E_Int sizeNFace=-1,
+                        E_Boolean center=false, E_Int api=1);
+  PyObject* buildArray3(E_Int nfld, const char* varString,
+                        E_Int nvertex, E_Int nelts,
+                        const char* etString,
+                        E_Boolean center=false, E_Int api=1);
+  PyObject* buildArray3(E_Int nfld, const char* varString,
+                        E_Int nvertex, std::vector<E_Int>& neltsPerType,
+                        const char* etString,
+                        E_Boolean center=false, E_Int api=1);
 
   /* Construit un array structure a partir d'un DynArray
      IN: field: Dyn champ structure

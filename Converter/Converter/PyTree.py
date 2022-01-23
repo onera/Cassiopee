@@ -1397,7 +1397,8 @@ def getFields(containerName, t, api=1, vars=None):
 
     if out != []:
       if api==1: array = Internal.convertDataNodes2Array(out, dim, connects, loc)
-      else: array = Internal.convertDataNodes2Array2(out, dim, connects, loc)
+      elif api==2: array = Internal.convertDataNodes2Array2(out, dim, connects, loc)
+      else: array = Internal.convertDataNodes2Array3(out, dim, connects, loc)
     else: array = []
     arrays.append(array)
   return arrays

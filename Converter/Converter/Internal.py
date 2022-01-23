@@ -2486,10 +2486,12 @@ def repr__(t, Out=None, DEB='', LAST=False, code=['','','']):
         out += "'%s',["%t[1]
     elif isinstance(t[1], (int,float,list)):
         out += str(t[1])+",["
-    elif isinstance(t[1],numpy.ndarray):
+    elif isinstance(t[1], numpy.ndarray):
         if t[1].dtype==numpy.array('a').dtype and t[1].size < 32:
             out += "array('%s',dtype='%s'),["%(t[1].tostring(),t[1].dtype)
-        elif t[1].size == 1 :
+        elif t[1].dtype==numpy.array(b'a').dtype and t[1].size < 32:
+            out += "array('%s',dtype='%s'),["%(t[1].tostring(),t[1].dtype)
+        elif t[1].size == 1:
             out += "array(%s,dtype='%s'),["%(t[1].tolist(),t[1].dtype)
         else:
             Flag = 'C'
@@ -3104,6 +3106,88 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     array = [node[0], [ar], cr, ettype]
     return [locout, array]
 
+# Pour array3
+def convertDataNode2Array3(node, dim, connects, loc=-1):
+    gtype = dim[0]
+    array = None
+    ar = node[1]
+    if ar is None: return ['unknown', None]
+    if ar.dtype != numpy.float64: # mauvais type de noeud, copie
+        ar2 = numpy.empty(ar.shape, numpy.float64)
+        ar2[:] = ar
+        ar = ar2
+
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring().decode()
+    if gtype == 'Structured':
+        ni = dim[1]; nj = dim[2]; nk = dim[3]
+        ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
+        if ni*nj*nk == ar.size: # champ en noeuds
+            array = [node[0], [ar], ni, nj, nk]
+            return ['nodes', array]
+        elif ni1*nj1*nk1 == ar.size: # champ en centres
+            array = [node[0], [ar], ni1, nj1, nk1]
+            return ['centers', array]
+        else:
+            # Le tableau n'est pas coherent avec les noeuds ou les centres
+            # de la zone
+            size = ar.shape; lsize = len(size)
+            if lsize == 1: ni = size[0]; nj = 1; nk = 1
+            elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
+            elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
+            array = [node[0], [ar], ni, nj, nk]
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
+            return ['unknown', array]
+
+    # non structure
+    iBE = 0; isNGon = False
+    cr = [None,None,None,None,None]; et = []
+    for c in connects:
+        ctype = c[1][0]
+        if ctype == 22: # NGon 
+            isNGon = True
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            cr[0] = pt
+            pt = getNodeFromName1(c, 'StartElementOffset')
+            cr[1] = pt
+            pt = getNodeFromName1(c, 'ParentElement')
+            cr[2] = pt
+        elif ctype == 23: # NFace
+            isNGon = True
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            cr[3] = pt
+            pt = getNodeFromName1(c, 'StartElementOffset')
+            cr[4] = pt
+        else: # BE
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            if iBE < 5: cr[iBE] = pt
+            else: cr.append(pt)
+            eltType = c[1][0]; et.append(eltType)
+            iBE += 1
+
+        # Filter des connectivites (supp None et elements non volumiques)
+        eltString = ""
+        if not isNGon:
+            crOut = []; iBE = 0
+            for c in cr:
+                if c is not None: crOut.append(c)
+                ettype, stype = eltNo2EltName(eltType)
+                eltString += ettype+","
+            cr = crOut
+            eltString = eltString[:-2]
+        else: eltString = "NGON"
+    
+    locout = 'nodes'
+    s = ar.size
+    if dim[1] != dim[2]: # on peut decider
+        if s == dim[2]: ettype += '*'; locout = 'centers'
+        elif s != dim[1]:
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
+    else: # force + no check
+        if loc == 1: ettype += '*'; locout = 'centers'
+
+    array = [node[0], [ar], cr, eltString]
+    return [locout, array]
+
 # -- convert a data node list to an array
 # IN: nodes: liste de noeuds de l'arbre DataArray_t a transformer en array
 # IN: dim: comme issu de getZoneDim
@@ -3252,6 +3336,84 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     else: # force + no check
         if loc == 1: ettype += '*'
     return [vars, field, cr, ettype]
+
+# Pour array3
+def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
+    gtype = dim[0]
+    nfld = len(nodes)
+    if nfld == 0: return []
+    ar = nodes[0][1]
+    if ar is None: return []
+    s = ar.size
+
+    vars = nodes[0][0]
+    for n in nodes[1:]: vars += ','+n[0]
+    field = []
+    for n in nodes: field.append(n[1])
+
+    if gtype == 'Structured':
+        ni = dim[1]; nj = dim[2]; nk = dim[3]
+        ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
+        if ni*nj*nk == s:
+            return [vars, field, ni, nj, nk]
+        elif ni1*nj1*nk1 == s:
+            return [vars, field, ni1, nj1, nk1]
+        else:
+            # Le tableau n'est pas coherent avec les noeuds ou les centres
+            # de la zone
+            size = ar.shape; lsize = len(size)
+            if lsize == 1: ni = size[0]; nj = 1; nk = 1
+            elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
+            elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
+            print("Warning: convertDataNodes2Array: incoherency zone/array.")
+            return [vars, field, ni, nj, nk]
+
+    # unstructured
+    iBE = 0; isNGon = False
+    cr = [None,None,None,None,None]; et = []
+    for c in connects:
+        ctype = c[1][0]
+        if ctype == 22: # NGon 
+            isNGon = True
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            cr[0] = pt
+            pt = getNodeFromName1(c, 'StartElementOffset')
+            cr[1] = pt
+            pt = getNodeFromName1(c, 'ParentElement')
+            cr[2] = pt
+        elif ctype == 23: # NFace
+            isNGon = True
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            cr[3] = pt
+            pt = getNodeFromName1(c, 'StartElementOffset')
+            cr[4] = pt
+        else: # BE
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            if iBE < 5: cr[iBE] = pt
+            else: cr.append(pt)
+            eltType = c[1][0]; et.append(eltType)
+            iBE += 1
+
+        # Filter des connectivites (supp None et elements non volumiques)
+        eltString = ""
+        if not isNGon:
+            crOut = []; iBE = 0
+            for c in cr:
+                if c is not None: crOut.append(c)
+                ettype, stype = eltNo2EltName(eltType)
+                eltString += ettype+","
+            cr = crOut
+            eltString = eltString[:-2]
+        else: eltString = "NGON"
+
+    # tag *
+    if dim[1] != dim[2]: # on peut decider
+        if s == dim[2]: ettype += '*'
+        elif s != dim[1]:
+            print("Warning: convertDataNodes2Array: incoherency zone/array.")
+    else: # force + no check
+        if loc == 1: eltString += '*'
+    return [vars, field, cr, eltString]
 
 def _groupByFamily(t, familyChilds=None, unique=False):
     """Group all nodes of each base which have the same family name but not link to a family node."""
