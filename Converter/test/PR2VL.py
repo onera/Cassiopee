@@ -37,8 +37,8 @@ inds, donors = Converter.converter.PR2VL(n, 10, 10, 1, nd, trf, 10, 10, 1)
 print(inds)
 print(donors)
 
-array1 = C.getFields('nodes', a, api=2, vars=['ux'])[0]
-array2 = C.getFields('nodes', b, api=2, vars=['ux'])[0]
+array1 = C.getFields('nodes', a, vars=['ux'], api=2)[0]
+array2 = C.getFields('nodes', b, vars=['ux'], api=2)[0]
 
 # Recupere les champs correspondant aux indices
 sub1 = Converter.converter.extractFields(array1, inds)

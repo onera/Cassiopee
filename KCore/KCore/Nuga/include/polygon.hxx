@@ -159,7 +159,7 @@ struct aPolygon : public K_MESH::Polygon
     const double* pt0 = m_crd.col(0);
     int n0 = IDX_NONE;
     double dmin2 = NUGA::FLOAT_MAX;
-    for (size_t n = 0; n < nnodes; ++n)
+    for (E_Int n = 0; n < nnodes; ++n)
     {
       const double* rptn = rhs.m_crd.col(n);
 

@@ -80,7 +80,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Int ncells = ni1*nj1*nk1; // nb de cellules structurees
 
   E_Int nfaces = 0; E_Int sizeFN = 0; E_Int sizeEF = 0;
-  if (dim0 == 1) 
+  if (dim0 == 1)
   {nfaces = npts; sizeFN = nfaces*(1+1); sizeEF = ncells*(2+1);}
   else if (dim0 == 2) 
   {
@@ -95,12 +95,19 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
     sizeFN = (4+1)*nfaces; sizeEF = (6+1)*ncells;
   }
 
-  PyObject* tpl = K_ARRAY::buildArray2(3, "x,y,z", npts, ncells, -1, 
-                                       "NGON", false, sizeFN, sizeEF, nfaces, api);
+  E_Int shift = 1;
+  if (api == 3) { sizeFN -= nfaces; sizeEF -= ncells; shift = 0; }
+
+  //PyObject* tpl = K_ARRAY::buildArray2(3, "x,y,z", npts, ncells, -1, 
+  //                                     "NGON", false, sizeFN, sizeEF, nfaces, api);
+
+  PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, ncells, nfaces, "NGON", 
+                                       sizeFN, sizeEF, false, api);
 
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
-  char* varString; char* eltType;
-  K_ARRAY::getFromArray2(tpl, varString, f, ni, nj, nk, cn, eltType);
+  //char* varString; char* eltType;
+  //K_ARRAY::getFromArray2(tpl, varString, f, ni, nj, nk, cn, eltType);
+  K_ARRAY::getFromArray3(tpl, f, cn);
   
   E_Int* cFN = cn->getNGon();
   E_Int* cEF = cn->getNFace();
@@ -143,9 +150,9 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
       else nidim = nk; 
       for (E_Int i = 0; i < nidim; i++)
       {
-        cFN[c] = 1;// 1 noeud par face
-        cFN[c+1] = i+1;
-        c += 2;
+        cFN[c] = 1; // 1 noeud par face
+        cFN[c+shift] = i+1;
+        c += 1+shift;
       }
       // connectivite EF
       c = 0;
@@ -153,9 +160,9 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
       for (E_Int i = 0; i < nidim; i++)
       {
         cEF[c] = 2;
-        cEF[c+1] = i+1;
-        cEF[c+2] = i+2;
-        c += 3;
+        cEF[c+shift] = i+1;
+        cEF[c+shift+1] = i+2;
+        c += 2+shift;
       }
       break;
     
@@ -167,18 +174,18 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
           for (E_Int i = 0; i < ni; i++)
           {
             cFN[c] = 2;
-            ind1 = i+j*ni; cFN[c+1] = ind1+1;
-            ind2 = ind1+ni; cFN[c+2] = ind2+1;
-            c += 3;
+            ind1 = i+j*ni; cFN[c+shift] = ind1+1;
+            ind2 = ind1+ni; cFN[c+shift+1] = ind2+1;
+            c += 2+shift;
           }
         // Faces en j
         for (E_Int j = 0; j < nj; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
             cFN[c] = 2;
-            ind1 = i+j*ni; cFN[c+1] = ind1+1;
-            ind2 = ind1+1; cFN[c+2] = ind2+1;
-            c += 3;
+            ind1 = i+j*ni; cFN[c+shift] = ind1+1;
+            ind2 = ind1+1; cFN[c+shift+1] = ind2+1;
+            c += 2+shift;
           }
         // Connectivite EF
         c = 0;
@@ -190,11 +197,11 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
             ind2 = ind1+1;
             ind3 = ninti+i+j*ni1; // faces en j
             ind4 = ind3+ni1;
-            cEF[c+1] = ind1+1; // en 2D, la connectivite EF doit faire
-            cEF[c+2] = ind3+1; // un cycle de faces
-            cEF[c+3] = ind2+1;
-            cEF[c+4] = ind4+1;
-            c += 5;
+            cEF[c+shift] = ind1+1; // en 2D, la connectivite EF doit faire
+            cEF[c+shift+1] = ind3+1; // un cycle de faces
+            cEF[c+shift+2] = ind2+1;
+            cEF[c+shift+3] = ind4+1;
+            c += 4+shift;
           }
       }// fin nk = 1
       else if (nj == 1) 
@@ -204,35 +211,35 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
           for (E_Int i = 0; i < ni; i++)
           {
             cFN[c] = 2;
-            ind1 = i+k*ni; cFN[c+1] = ind1+1;
-            ind2 = ind1+ni; cFN[c+2] = ind2+1;
-            c += 3;
+            ind1 = i+k*ni; cFN[c+shift] = ind1+1;
+            ind2 = ind1+ni; cFN[c+shift+1] = ind2+1;
+            c += 2+shift;
           }
         // Faces en k
         for (E_Int k = 0; k < nk; k++)
           for (E_Int i = 0; i < ni1; i++)
           {
             cFN[c] = 2;
-            ind1 = i+k*ni; cFN[c+1] = ind1+1;
-            ind2 = ind1+1; cFN[c+2] = ind2+1;
-            c += 3;
+            ind1 = i+k*ni; cFN[c+shift] = ind1+1;
+            ind2 = ind1+1; cFN[c+shift+1] = ind2+1;
+            c += 2+shift;
           }
         // Connectivite EF
         c = 0;
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int i = 0; i < ni1; i++)
           {
-            cEF[c] = 4;
+            cEF[c] = 3+shift;
             ind1 = i+k*ni; // faces en i
             ind2 = ind1+1;
             ind3 = ninti+i+k*ni1; // faces en k
             ind4 = ind3+ni1;
 
-            cEF[c+1] = ind1+1;
-            cEF[c+2] = ind3+1;
-            cEF[c+3] = ind2+1;
-            cEF[c+4] = ind4+1;
-            c += 5;
+            cEF[c+shift] = ind1+1;
+            cEF[c+shift+1] = ind3+1;
+            cEF[c+shift+2] = ind2+1;
+            cEF[c+shift+3] = ind4+1;
+            c += 4+shift;
           }
       }
       else // ni = 1
@@ -242,9 +249,9 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
           for (E_Int j = 0; j < nj; j++)
           {
             cFN[c] = 2;
-            ind1 = j+k*nj;cFN[c+1] = ind1+1;
-            ind2 = ind1+nj;cFN[c+2] = ind2+1;
-            c += 3;
+            ind1 = j+k*nj;cFN[c+shift] = ind1+1;
+            ind2 = ind1+nj;cFN[c+shift+1] = ind2+1;
+            c += 2+shift;
           }
   
       // Faces en k
@@ -252,9 +259,9 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj1; j++)
           {
             cFN[c] = 2;
-            ind1 = j+k*nj; cFN[c+1] = ind1+1;
-            ind2 = ind1+1; cFN[c+2] = ind2+1;
-            c += 3;
+            ind1 = j+k*nj; cFN[c+shift] = ind1+1;
+            ind2 = ind1+1; cFN[c+shift+1] = ind2+1;
+            c += 2+shift;
           }
 
       // Connectivite EF
@@ -262,16 +269,16 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
       for (E_Int k = 0; k < nk1; k++)
         for (E_Int j = 0; j < nj1; j++)
           {
-            cEF[c] = 4;
+            cEF[c] = 3+shift;
             ind1 = j+k*nj; // faces en j
             ind2 = ind1+1;
             ind3 = nintj+j+k*nj1; // faces en k
             ind4 = ind3+nj1;
-            cEF[c+1] = ind1+1;
-            cEF[c+2] = ind3+1;
-            cEF[c+3] = ind2+1;
-            cEF[c+4] = ind4+1;
-            c += 5;
+            cEF[c+shift] = ind1+1;
+            cEF[c+shift+1] = ind3+1;
+            cEF[c+shift+2] = ind2+1;
+            cEF[c+shift+3] = ind4+1;
+            c += 4+shift;
           }
       }
       break;
@@ -282,16 +289,16 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni; i++)
           {
-            cFN[c] = 4;
+            cFN[c] = 3+shift;
             ind1 = i+j*ni+k*ninj;
             ind2 = ind1+ni;
             ind3 = ind2+ninj;
             ind4 = ind1+ninj;
-            cFN[c+1] = ind1+1;
-            cFN[c+2] = ind2+1;
-            cFN[c+3] = ind3+1;
-            cFN[c+4] = ind4+1;
-            c += 5;
+            cFN[c+shift] = ind1+1;
+            cFN[c+shift+1] = ind2+1;
+            cFN[c+shift+2] = ind3+1;
+            cFN[c+shift+3] = ind4+1;
+            c += 4+shift;
           }
   
       // Faces en j
@@ -299,16 +306,16 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
-            cFN[c] = 4;
+            cFN[c] = 3+shift;
             ind1 = i+j*ni+k*ninj;
             ind2 = ind1+1;
             ind3 = ind2+ninj;
             ind4 = ind1+ninj;
-            cFN[c+1] = ind1+1;
-            cFN[c+2] = ind2+1;
-            cFN[c+3] = ind3+1;
-            cFN[c+4] = ind4+1;
-            c += 5;
+            cFN[c+shift] = ind1+1;
+            cFN[c+shift+1] = ind2+1;
+            cFN[c+shift+2] = ind3+1;
+            cFN[c+shift+3] = ind4+1;
+            c += 4+shift;
           }
   
       // Faces en k
@@ -316,16 +323,16 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
-            cFN[c] = 4;
+            cFN[c] = 3+shift;
             ind1 = i+j*ni+k*ninj;
             ind2 = ind1+1;
             ind3 = ind2+ni;
             ind4 = ind1+ni;
-            cFN[c+1] = ind1+1;
-            cFN[c+2] = ind2+1;
-            cFN[c+3] = ind3+1;
-            cFN[c+4] = ind4+1;
-            c += 5;
+            cFN[c+shift] = ind1+1;
+            cFN[c+shift+1] = ind2+1;
+            cFN[c+shift+2] = ind3+1;
+            cFN[c+shift+3] = ind4+1;
+            c += 4+shift;
           }
 
       // Connectivite EF
@@ -334,36 +341,37 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
-            cEF[c] = 6;
+            cEF[c] = 5+shift;
             ind1 = i+j*ni+k*ni*nj1; // faces en i
             ind2 = ind1+1;
             ind3 = ninti+i+j*ni1+k*ni1*nj; // faces en j
             ind4 = ind3+ni1;
             ind5 = ninti+nintj+i+j*ni1+k*ni1*nj1; // faces en k
             ind6 = ind5+ni1*nj1;
-            cEF[c+1] = ind1+1;
-            cEF[c+2] = ind2+1;
-            cEF[c+3] = ind3+1;
-            cEF[c+4] = ind4+1;
-            cEF[c+5] = ind5+1;
-            cEF[c+6] = ind6+1;
-            c += 7;
+            cEF[c+shift] = ind1+1;
+            cEF[c+shift+1] = ind2+1;
+            cEF[c+shift+2] = ind3+1;
+            cEF[c+shift+3] = ind4+1;
+            cEF[c+shift+4] = ind5+1;
+            cEF[c+shift+5] = ind6+1;
+            c += 6+shift;
           }
       break;
   }
 
   // index
-  if (api == 2) // array2
+  if (api == 2 || api == 3) // array2 ou array3
   {
    E_Int* indPG = cn->getIndPG();
    E_Int* indPH = cn->getIndPH();
 #pragma omp parallel
   {
     #pragma omp for
-    for (E_Int i = 0; i < nfaces; i++) indPG[i] = 5*i;
+    for (E_Int i = 0; i < nfaces; i++) indPG[i] = (4+shift)*i;
     #pragma omp for
-    for (E_Int i = 0; i < ncells; i++) indPH[i] = 7*i;    
+    for (E_Int i = 0; i < ncells; i++) indPH[i] = (6+shift)*i;  
   }
+  if (api == 3) { indPG[nfaces] = 4*nfaces; indPH[ncells] = 6*ncells; }
   }
   //RELEASESHAREDU(tpl, f, cn);
   delete f; delete cn;

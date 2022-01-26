@@ -2487,9 +2487,9 @@ def repr__(t, Out=None, DEB='', LAST=False, code=['','','']):
     elif isinstance(t[1], (int,float,list)):
         out += str(t[1])+",["
     elif isinstance(t[1], numpy.ndarray):
-        if t[1].dtype==numpy.array('a').dtype and t[1].size < 32:
+        if t[1].dtype == numpy.array('a').dtype and t[1].size < 32:
             out += "array('%s',dtype='%s'),["%(t[1].tostring(),t[1].dtype)
-        elif t[1].dtype==numpy.array(b'a').dtype and t[1].size < 32:
+        elif t[1].dtype == numpy.array(b'a').dtype and t[1].size < 32:
             out += "array('%s',dtype='%s'),["%(t[1].tostring(),t[1].dtype)
         elif t[1].size == 1:
             out += "array(%s,dtype='%s'),["%(t[1].tolist(),t[1].dtype)
@@ -2803,9 +2803,10 @@ def array2PyTreeDim(a):
             d[0,1] = ni-1; d[1,1] = nj-1; d[2,1] = nk-1
             d[0,2] = 0;    d[1,2] = 0;    d[2,2] = 0
     elif len(a) == 4: # non structure
-        if isinstance(a[2], list): # Array2
+        if isinstance(a[2], list): # Array2/Array3
             if a[3] == 'NGON':
-                nelts = a[2][3].size
+                if a[2][3][-1] == a[2][1].size: nelts = a[2][3].size-1
+                else: nelts = a[2][3].size
                 d = numpy.empty((1,3), numpy.int32, order='F')
                 d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0
             else:
@@ -2906,7 +2907,7 @@ def createZoneNode(name, array, array2=[],
       etype,stype = eltName2EltNo(array[3])
       i = numpy.empty((2), numpy.int32); i[0] = etype; i[1] = 0
       if etype == 22: # Faces->Nodes and Elements->Faces connectivities (NGON array)
-          if isinstance(array[2], list): # Array2
+          if isinstance(array[2], list): # Array2 or array3
             setElementConnectivity2(zone, array)
           else: # Array1
             setElementConnectivity(zone, array)
@@ -3146,23 +3147,24 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
         if ctype == 22: # NGon 
             isNGon = True
             pt = getNodeFromName1(c, 'ElementConnectivity')
-            cr[0] = pt
-            pt = getNodeFromName1(c, 'StartElementOffset')
-            cr[1] = pt
+            if pt is not None: cr[0] = pt[1]
+            pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[2] = pt[1]
             pt = getNodeFromName1(c, 'ParentElement')
-            cr[2] = pt
+            if pt is not None: cr[4] = pt[1]
         elif ctype == 23: # NFace
             isNGon = True
             pt = getNodeFromName1(c, 'ElementConnectivity')
-            cr[3] = pt
-            pt = getNodeFromName1(c, 'StartElementOffset')
-            cr[4] = pt
+            if pt is not None: cr[1] = pt[1]
+            pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[3] = pt[1]
         else: # BE
             pt = getNodeFromName1(c, 'ElementConnectivity')
-            if iBE < 5: cr[iBE] = pt
-            else: cr.append(pt)
-            eltType = c[1][0]; et.append(eltType)
-            iBE += 1
+            if pt is not None:
+                if iBE < 5: cr[iBE] = pt[1]
+                else: cr.append(pt[1])
+                eltType = c[1][0]; et.append(eltType)
+                iBE += 1
 
         # Filter des connectivites (supp None et elements non volumiques)
         eltString = ""
@@ -3376,39 +3378,46 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
         if ctype == 22: # NGon 
             isNGon = True
             pt = getNodeFromName1(c, 'ElementConnectivity')
-            cr[0] = pt
-            pt = getNodeFromName1(c, 'StartElementOffset')
-            cr[1] = pt
+            if pt is not None: cr[0] = pt[1]
+            pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[2] = pt[1]
+            pt = getNodeFromName1(c, 'FaceIndex')
+            if pt is not None: cr[2] = pt[1]
             pt = getNodeFromName1(c, 'ParentElement')
-            cr[2] = pt
+            if pt is not None: cr[4] = pt[1]
         elif ctype == 23: # NFace
             isNGon = True
             pt = getNodeFromName1(c, 'ElementConnectivity')
-            cr[3] = pt
-            pt = getNodeFromName1(c, 'StartElementOffset')
-            cr[4] = pt
+            if pt is not None: cr[1] = pt[1]
+            pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[3] = pt[1]
+            pt = getNodeFromName1(c, 'ElementIndex')
+            if pt is not None: cr[3] = pt[1]
         else: # BE
             pt = getNodeFromName1(c, 'ElementConnectivity')
-            if iBE < 5: cr[iBE] = pt
-            else: cr.append(pt)
-            eltType = c[1][0]; et.append(eltType)
-            iBE += 1
+            if pt is not None:
+                if iBE < 5: cr[iBE] = pt[1]
+                else: cr.append(pt[1])
+                eltType = c[1][0]; et.append(eltType)
+                iBE += 1
 
-        # Filter des connectivites (supp None et elements non volumiques)
-        eltString = ""
-        if not isNGon:
-            crOut = []; iBE = 0
-            for c in cr:
-                if c is not None: crOut.append(c)
-                ettype, stype = eltNo2EltName(eltType)
+    # Filter des connectivites (supp None et elements non volumiques)
+    eltString = ""
+    if not isNGon:
+        crOut = []; iBE = 0
+        for c in cr:
+            if c is not None: 
+                crOut.append(c)
+                ettype, stype = eltNo2EltName(et[iBE])
                 eltString += ettype+","
-            cr = crOut
-            eltString = eltString[:-2]
-        else: eltString = "NGON"
+                iBE += 1
+        cr = crOut
+        eltString = eltString[:-1]
+    else: eltString = "NGON"
 
     # tag *
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: ettype += '*'
+        if s == dim[2]: eltString += '*'
         elif s != dim[1]:
             print("Warning: convertDataNodes2Array: incoherency zone/array.")
     else: # force + no check
@@ -3899,7 +3908,7 @@ def setElementConnectivity(z, array):
           info2.append(['ElementConnectivity', cEF, [], 'DataArray_t'])
           _updateElementRange(z)
 
-# Pour array - api2
+# Pour array - api2 ou 3
 def setElementConnectivity2(z, array):
   etype, stype = eltName2EltNo(array[3])
   GENodes = getElementNodes(z)
@@ -3918,13 +3927,17 @@ def setElementConnectivity2(z, array):
           info.append(['NGonElements', i, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange : nb de faces
-          nfaces = array[2][2].size
+          if array[2][2][-1] == array[2][0].size: nfaces = array[2][2].size-1
+          else: nfaces = array[2][2].size
           i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = nfaces
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Face/Noeuds
           info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
           # Tableau FaceIndex (PH)
-          info2.append(['FaceIndex', array[2][2], [], 'DataArray_t'])
+          if array[2][2][-1] == array[2][0].size:
+            info2.append(['ElementStartOffset', array[2][2], [], 'DataArray_t'])
+          else:
+            info2.append(['FaceIndex', array[2][2], [], 'DataArray_t'])
           _updateElementRange(z)
           # Creation du noeud NFACE_n: connectivite Elements->Faces
           etype,stype = eltName2EltNo('NFACE')
@@ -3932,14 +3945,18 @@ def setElementConnectivity2(z, array):
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
-          nelts = array[2][3].size
+          if array[2][3][-1] == array[2][1].size: nelts = array[2][3].size-1
+          else: nelts = array[2][3].size
           i = numpy.empty((2), numpy.int32)
           i[0] = nfaces+1; i[1] = nfaces+nelts
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Elements/Faces
           info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
           # Tableau ElementIndex (PH)
-          info2.append(['ElementIndex', array[2][3], [], 'DataArray_t'])
+          if array[2][3][-1] == array[2][1].size:
+            info2.append(['ElementStartOffset', array[2][3], [], 'DataArray_t'])
+          else:
+            info2.append(['ElementIndex', array[2][3], [], 'DataArray_t'])
           _updateElementRange(z)
   else: # la connectivite existe deja
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
@@ -3971,7 +3988,10 @@ def setElementConnectivity2(z, array):
           # Tableau de connectivite Face/Noeuds
           info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
           # Tableau FaceIndex (PG)
-          createUniqueChild(info2, 'FaceIndex', 'DataArray_t', array[2][2])
+          if nfaces+1 == array[2][2].size:
+            createUniqueChild(info2, 'ElementStartOffset', 'DataArray_t', array[2][2])
+          else:
+            createUniqueChild(info2, 'FaceIndex', 'DataArray_t', array[2][2])
           # Creation du noeud NFACE_n : connectivite Elements->Faces
           etype, stype = eltName2EltNo('NFACE')
           i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0
@@ -3985,7 +4005,10 @@ def setElementConnectivity2(z, array):
           # Tableau de connectivite Elements/Faces
           info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
           # Tableau ElementIndex (PH)
-          createUniqueChild(info2, 'ElementIndex', 'DataArray_t', array[2][3])
+          if nelts+1 == array[2][3].size:
+            createUniqueChild(info2, 'ElementStartOffset', 'DataArray_t', array[2][3])
+          else:
+            createUniqueChild(info2, 'ElementIndex', 'DataArray_t', array[2][3])
           _updateElementRange(z)
 
 # Met un nbre non nul dans les Elements_t presuppose frontieres

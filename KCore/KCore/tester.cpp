@@ -223,27 +223,38 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < npts; i++) { x[i] = i; y[i] = -i; }
     RELEASESHAREDS(o, f);
     }
-
+    
     // NGON array3 - nodes - build
     {
-    E_Int nvertex=5, nelts=8, nface=4, sizeNGon=9;
+    E_Int nvertex=8, nelts=1, nface=6, sizeNGon=4*6, sizeNFace=6;
     o = K_ARRAY::buildArray3(5, "x,y,z,F,G", nvertex, nelts, nface, 
-                             "NGON", sizeNGon, -1, false, 3);
+                             "NGON", sizeNGon, sizeNFace, false, 3);
     K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
     K_ARRAY::getFromArray3(o, f, c);
     f->setAllValuesAt(1.);
     // safe
     E_Int nfaces = c->getNFaces();
-    E_Int* ngonp = c->getNGon();
-    E_Int* ngonso = c->getIndPG();
-    // not safe
+    E_Int* ng = c->getNGon();
+    E_Int* ngso = c->getIndPG();
     nelts = c->getNElts();
-    E_Int* pe = c->getPE();
-    E_Int* nfacep = c->getNFace();
-    E_Int* nfaceso = c->getIndPH();
+    E_Int* nf = c->getNFace();
+    E_Int* nfso = c->getIndPH();
+    // il faut toujours utiliser les startoffsets
+    // faces
+    for (E_Int i = 0; i <= nfaces; i++) ngso[i] = i*4;
+    E_Int* pt = ng+ngso[0];
+    pt[0] = 1; pt[1] = 2; pt[2] = 3; pt[3] = 4;
+    pt = ng+ngso[1];
+    pt[0] = 5; pt[1] = 6; pt[2] = 7; pt[3] = 8;
+    pt = ng+ngso[2];
+    pt[0] = 1; pt[1] = 4; pt[2] = 8; pt[3] = 5;
+    // Elt
+    nfso[0] = 0; nfso[1] = 6;
+    pt = nf+nfso[0];
+    pt[0] = 1; pt[0] = 2; pt[0] = 3; pt[0] = 4; pt[0] = 5; pt[0] = 6;
     RELEASESHAREDU(o, f, c);
     }
-
+    
     // BE array3 - nodes - build
     {
     E_Int nvertex=5; E_Int nelts=3;

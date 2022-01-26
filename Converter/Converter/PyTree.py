@@ -1363,7 +1363,7 @@ def getField(name, t, api=1):
 # OUT: arrays: solution (un par zone)
 # OUT: peut contenir des arrays vides ([])
 # Attention: il faut envoyer que des containeurs homogenes en localisation
-def getFields(containerName, t, api=1, vars=None):
+def getFields(containerName, t, vars=None, api=1):
   zones = Internal.getZones(t)
   arrays = []
   if containerName == 'nodes': names = [Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__]
@@ -1379,7 +1379,7 @@ def getFields(containerName, t, api=1, vars=None):
     else:
       np = dim[1]
       connects = Internal.getElementNodes(z)
-
+    
     info = z[2]; out = []; loc = 0
     for i in info:
       if i[0] in names:
@@ -1394,7 +1394,7 @@ def getFields(containerName, t, api=1, vars=None):
             if vars is None: out.append(j)
             else:
               if j[0] in vars: out.append(j)
-
+    
     if out != []:
       if api==1: array = Internal.convertDataNodes2Array(out, dim, connects, loc)
       elif api==2: array = Internal.convertDataNodes2Array2(out, dim, connects, loc)
@@ -1414,9 +1414,9 @@ def getAllFields(t, loc, api=1):
   result = []
   for z in zones:
     if loc == 'nodes':
-        f = getFields([Internal.__GridCoordinates__,Internal.__FlowSolutionNodes__], z, api)[0]
+        f = getFields([Internal.__GridCoordinates__,Internal.__FlowSolutionNodes__], z, api=api)[0]
     else:
-        f = getFields(Internal.__FlowSolutionCenters__, z, api)[0]
+        f = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
     result.append(f)
   return result
 
@@ -1601,7 +1601,7 @@ def setFields(arrays, t, loc, writeDim=True):
           if renamed == 1: Internal._rmNodesByName(info, v)
 
       p += 1
-
+    
     # update les dimensions si necessaire
     if writeDim and loc == 'nodes' and vars != []:
       z[1] = Internal.array2PyTreeDim(a)
@@ -1627,7 +1627,7 @@ def setFields(arrays, t, loc, writeDim=True):
           else: # Array1
             Internal.setElementConnectivity(z, a)
         else:
-          if isinstance(a[2], list): # Array2
+          if isinstance(a[2], list): # Array2/Array3
             Internal.setElementConnectivity2(z, a)
           else: # Array1
             Internal.setElementConnectivity(z, a)
@@ -2007,8 +2007,7 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
         if posx == -1 or posy == -1 or posz == -1:
           f = Converter.node2Center(fc)
           Converter._addVars([f, fa])
-        else:
-          f = fa
+        else: f = fa
 
         fp = Fc(f, *args)
         st = fp[0].split(',')
@@ -2477,7 +2476,7 @@ def _initVars(t, varNameString, v1=[], v2=[]):
           if len(v) > 1: v2[c] = v[1]
           else: v2[c] = v[0]
           c += 1
-      _TZAGC(t, loc, loc, False, Converter.initVars, 
+      _TZAGC(t, loc, loc, False, Converter.initVars,
              Converter.initVars, var, v1, v2)
     else: # formule
       loc = 'nodes'

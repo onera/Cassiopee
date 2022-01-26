@@ -223,16 +223,18 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
       }
       else if (K_STRING::cmp(eltType, 4, "NGON") == 0) // NGON
       {
-        if (nc == 4) // NGON/NFACE/indPG/indPH Array2
+        if (nc == 4) // NGON/NFACE/indPG/indPH Array2 or Array3
         {
           PyArrayObject* ac1 = (PyArrayObject*)PyList_GetItem(tpl,0); // NGON
           PyArrayObject* ac2 = (PyArrayObject*)PyList_GetItem(tpl,1); // NFACE
-          PyArrayObject* ac3 = (PyArrayObject*)PyList_GetItem(tpl,2); // indPG
-          PyArrayObject* ac4 = (PyArrayObject*)PyList_GetItem(tpl,3); // indPH
+          PyArrayObject* ac3 = (PyArrayObject*)PyList_GetItem(tpl,2); // indPG / NGON Start offset
+          PyArrayObject* ac4 = (PyArrayObject*)PyList_GetItem(tpl,3); // indPH / NFace Start offset
           E_Int nfaces = PyArray_SIZE(ac3);
           E_Int nelts = PyArray_SIZE(ac4);
           E_Int sizeNGon = PyArray_SIZE(ac1);
           E_Int sizeNFace = PyArray_SIZE(ac2);
+          E_Int* pt = (E_Int*)PyArray_DATA(ac3);
+          if (pt[nfaces-1] == sizeNGon) { nfaces -= 1; nelts -= 1; }
           c = new FldArrayI(nfaces, nelts, (E_Int*)PyArray_DATA(ac1), (E_Int*)PyArray_DATA(ac2),
                             (E_Int*)PyArray_DATA(ac3), (E_Int*)PyArray_DATA(ac4), sizeNGon, sizeNFace);
         }

@@ -41,10 +41,10 @@ def cartPyra(Xo, H, N):
     a = generator.cartPyra(Xo, H, N, 2)
     return C.convertArrays2ZoneNode('cartPyra', [a])
 
-def cartNGon(Xo, H, N):
+def cartNGon(Xo, H, N, api=2):
     """Create a NGON cartesian mesh.
     Usage: cartNGon((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
-    a = generator.cartNGon(Xo, H, N, 2)
+    a = generator.cartNGon(Xo, H, N, api)
     return C.convertArrays2ZoneNode('cartNGon', [a])
 
 def cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False,

@@ -164,25 +164,22 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         dim[0] = sizeNGon;
         PyObject* ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
-        // NGON - StartOffset
-        dim[0] = nface;
+        // NFACE - sizeNFace
+        dim[0] = sizeNFace;
         ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
-        // PE
-        dim[0] = nface; dim[1] = 2;
-        ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+        // NGON - StartOffset
+        dim[0] = nface+1;
+        ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
-        if (sizeNFace > 0)
-        {
-            // NFACE - sizeNFace
-            dim[0] = sizeNFace;
-            ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
-            PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
-            // NFACE - startOffset
-            dim[0] = nelt;
-            ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
-            PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
-        }
+        // NFACE - startOffset
+        dim[0] = nelt+1;
+        ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
+        // Eventuellement PE - 2*nface
+        //dim[0] = nface; dim[1] = 2;
+        //PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+        //PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
   
     tpl = Py_BuildValue("[sOOs]", varString, a, ac, eltType);
