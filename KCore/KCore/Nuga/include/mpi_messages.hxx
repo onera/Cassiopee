@@ -17,7 +17,7 @@
 
 namespace NUGA
 {
-  enum eMPI_Tag { TAG_DATA_SZ = 2, TAG_DATA = 3, TAG_XRANGE_SZ = 4, TAG_XRANGE = 5, TAG_PGS_SZ = 6, TAG_PGS = 7, TAG_SZONE_SZ = 8, TAG_SZONERANGE_SZ = 10, TAG_JZONE_SZ = 12, TAG_JZONERANGE_SZ = 14, TAG_PTL_SZ = 16, TAG_MPI_EXCH_STATUS = 18, TAG_HASSENT = 99 };
+  enum eMPI_Tag { TAG_DATA_SZ = 2, TAG_XRANGE_SZ = 4, TAG_XRANGE = 5, TAG_PGS_SZ = 6, TAG_PGS = 7, TAG_SZONE_SZ = 8, TAG_SZONERANGE_SZ = 10, TAG_JZONE_SZ = 12, TAG_JZONERANGE_SZ = 14, TAG_PTL_SZ = 16, TAG_MPI_EXCH_STATUS = 18, TAG_HASSENT = 99 };
 
   ///
   inline
@@ -132,22 +132,17 @@ namespace NUGA
     }
 
     ///
-    static void send_data
+    static void isend_data
     (
       int rank, int nrank,
       MPI_Comm COM,
-      const std::map<int, plan_msg_type> & rank_to_data
+      const std::map<int, plan_msg_type> & rank_to_data,
+      bool* has_sent,
+      std::vector<MPI_Request>& sreqs
     )
     {
       //if (rank==3) std::cout << "send_data 1" << std::endl;
-      int nsranks = rank_to_data.size(); // nb of ranks to send to
-      int NB_TOT_REQS = 7 * nsranks;    // for 7 vectors : data/datarange/pgs/szone/szonerange/jzone/jzonerange.  2 req per vec. => 14
-
-      STACK_ARRAY(MPI_Request, NB_TOT_REQS, sreqs);
-
-      STACK_ARRAY(bool, nrank/*all ranks*/, has_sent);
-      for (size_t n = 0; n < nrank; ++n) has_sent[n] = false;
-
+      
       int count_req{ -1 };
       for (auto& d : rank_to_data) // WARNING : reference is manadatory ! otherwise ISend might not finish before iteration d copy is deleted
       {
@@ -171,28 +166,14 @@ namespace NUGA
         NUGA::MPI::Isend(data.jzonerange, rankid, TAG_JZONERANGE_SZ, COM, &sreqs[++count_req]);
       }
 
-      ++count_req;
-      if (count_req > 0)
-      {
-        STACK_ARRAY(MPI_Status, count_req, status);
-        MPI_Waitall(count_req, sreqs.get(), status.get());
-      }
-
-      //std::cout << "ALL SENT " << std::endl;
-
       // tell if sent or not to all ranks (to avoid deadlock when receiving)
-      STACK_ARRAY(MPI_Request, nrank, sreq);
-      count_req = -1;
+
       for (size_t r = 0; r < nrank; ++r) {
         if (r == rank) continue;
         //std::cout << "rank : " << rank  << " over (" << nrank << ") has sent to " << r << " ? : " << has_sent[r] << std::endl;
-        MPI_Isend(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreq[++count_req]);
+        MPI_Isend(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreqs[++count_req]);
       }
-
-      STACK_ARRAY(MPI_Status, nrank - 1, stats);
-      MPI_Waitall(nrank - 1, sreq.get(), stats.get());
     }
-
 
     ///
     template <typename data_t>
@@ -200,6 +181,7 @@ namespace NUGA
     (
       int rank, int nranks, MPI_Comm COM,
       const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone2jlists,
+      std::vector<MPI_Request>& sender_reqs,
       std::map<int, data_t>& zone_to_sensor_data
     )
     {
@@ -279,8 +261,7 @@ namespace NUGA
       if (NB_REQ_FOR_SIZES > 0)
       {
         //std::cout << "req count vs nranks vs NB_REQ_FOR_SIZES : " << req_count << "/" << nranks << "/" << NB_REQ_FOR_SIZES << std::endl;
-        STACK_ARRAY(MPI_Status, NB_REQ_FOR_SIZES, status);
-        MPI_Waitall(NB_REQ_FOR_SIZES, sreqs_sz.get(), status.get());
+        MPI_Waitall(NB_REQ_FOR_SIZES, sreqs_sz.get(), MPI_STATUS_IGNORE);
       }
 
 
@@ -337,12 +318,13 @@ namespace NUGA
           if (err) return 1;
         }
 
+        MPI_Waitall(sender_reqs.size(), &sender_reqs[0], MPI_STATUS_IGNORE);
+
         ++req_count;
         if (req_count > 0)
         {
           //std::cout << "req count vs nranks vs NB_REQ_FOR_SIZES : " << req_count << "/" << nranks << "/" << NB_REQ_FOR_SIZES << std::endl;
-          STACK_ARRAY(MPI_Status, req_count, status);
-          MPI_Waitall(req_count, sreqs_data.get(), status.get());
+          MPI_Waitall(req_count, sreqs_data.get(), MPI_STATUS_IGNORE);
         }
       }
 
@@ -485,7 +467,7 @@ namespace NUGA
       convert_to_MPI_exchange_format(zone_to_zone2jlists_mpi, zonerank, rank_to_mpi_data);
 
       // Send MPI data   
-      send_data(rank, nranks, COM, rank_to_mpi_data);
+      isend_data(rank, nranks, COM, rank_to_mpi_data);
 
       // Receive MPI data and build sensor data by zone
       receive_data(rank, nranks, COM, zone_to_zone2jlists_mpi, zone_to_zone_to_list_opp);
@@ -558,7 +540,7 @@ namespace NUGA
     }
 
     ///
-    static void send_data
+    static void isend_data
     (
       int rank, int nrank,
       MPI_Comm COM,

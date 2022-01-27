@@ -105,11 +105,19 @@ namespace NUGA
 
       // Send MPI data   
       //if (rank == 2) std::cout << "rank : " << rank << " send_data ..." << std::endl;
-      plan_msg_type::send_data(rank, nranks, COM, rank_to_mpi_data);
+
+      int nsranks = rank_to_mpi_data.size(); // nb of ranks to send to
+      int NB_TOT_REQS = nranks + (7 * nsranks);    // 'has_sent' to all ranks (nranks)= + 7 vectors for each connected rank : data/datarange/pgs/szone/szonerange/jzone/jzonerange.  2 req per vec. => 14
+
+      std::vector<MPI_Request> sreqs(NB_TOT_REQS);
+      STACK_ARRAY(bool, nranks, has_sent);
+      for (size_t n = 0; n < nranks; ++n) has_sent[n] = false;
+
+      plan_msg_type::isend_data(rank, nranks, COM, rank_to_mpi_data, has_sent.get(), sreqs);
 
       // Receive MPI data and build sensor data by zone
       //if (rank == 2) std::cout << "rank : " << rank << " receive_data ..." << std::endl;
-      plan_msg_type::receive_data(rank, nranks, COM, zone_to_zone2jlists, zone_to_sensor_data);
+      plan_msg_type::receive_data(rank, nranks, COM, zone_to_zone2jlists, sreqs, zone_to_sensor_data);
       //if (rank == 2) std::cout << "rank : " << rank << " DONE. exit exch mpi" << std::endl;
     }
 

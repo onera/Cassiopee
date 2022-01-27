@@ -362,8 +362,12 @@ def _exchangePointLists(t, hooks, zidDict=None, procDict=None, zonerank=None, zo
   # MPI exchange
   zone_to_zone_to_list_opp = intersector.exchangePointLists(zonerank, Cmpi.rank, Cmpi.size, zone_to_zone_to_list_owned)#, com)
 
+  if zone_to_zone_to_list_opp == {} : return # single block
   #
   for z in zones:
     zid = CD.getProperty(z, 'zid')
+    zone_to_list_opp = zone_to_zone_to_list_opp[zid]
+    if zone_to_list_opp == {} : continue
+
     updateJoinsPointLists3(z, zidDict, zone_to_zone_to_list_opp[zid], 'PointListDonor')
 
