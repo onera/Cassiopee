@@ -1270,7 +1270,7 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   if (PyDict_Check(py_zone_to_zone_to_list_owned))
   {
     E_Int nzid = PyDict_Size(py_zone_to_zone_to_list_owned);
-    assert (nzid == nb_meshes);
+    //assert (nzid == nb_meshes);
 
     PyObject *py_zid/*key*/, *py_zone_to_list_owned /*value : map jzid to ptlist*/;
     Py_ssize_t pos = 0;

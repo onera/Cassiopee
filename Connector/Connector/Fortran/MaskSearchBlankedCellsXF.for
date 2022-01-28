@@ -78,7 +78,7 @@ C==============================================================================
 !$OMP&   npmin, npmax, cellN)
       IF (isnot .EQ. 0) THEN
 !$OMP DO REDUCTION(MAX:isMasked)
-      DO d = 0, nicnjc*(nk-1)
+      DO d = 0, nicnjc*(nk-1)-1
           k = d/nicnjc
           j = (d - k*nicnjc)/nic
           i = d - k*nicnjc - j*nic

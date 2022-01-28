@@ -70,7 +70,7 @@ C==============================================================================
 
       IF ( isnot .EQ. 0 ) THEN
 !$OMP DO REDUCTION(MAX:isMasked)
-      DO d = 0, nicnjc
+      DO d = 0, nicnjc-1
           j = d/nic
           i = d - j*nic
           cellN = 0

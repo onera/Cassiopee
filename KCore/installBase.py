@@ -551,6 +551,22 @@ False, # CPlotOffScreen
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
+##############################################################################
+'visung': [ 'Machine de post gfx (Onera)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+False, # CPlotOffScreen
+[], # additionalIncludePaths
+['Xxf86vm'], # additionalLibs
+[], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
 ###############################################################################
 'elmer': [ 'Machine de gros post gfx (Onera)',
 'ifort', # f77compiler

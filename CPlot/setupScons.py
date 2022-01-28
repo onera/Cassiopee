@@ -60,6 +60,8 @@ else:
 
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
 
 # Test if PNG exists =========================================================
 (png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths,

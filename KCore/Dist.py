@@ -713,7 +713,9 @@ def getCArgs():
     options = getCppAdditionalOptions()[:]
     if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
          v = getCppVersion() 
-         if DEBUG: options += ['-g', '-O0', '-wd47', '-wd1224']
+         if DEBUG:
+             options += ['-g', '-O0', '-wd47', '-wd1224']
+             #options += ['-g', '-O0', '-wd47', '-wd1224', '-check-pointers=rw']
          else: options += ['-DNDEBUG', '-O2', '-wd47', '-wd1224']
          
          # hack pour intel 19
@@ -828,7 +830,9 @@ def getForArgs():
          options += getSimdOptions()
          return options
     elif f77compiler.find("ifort") == 0:
-         if DEBUG: options += ['-g', '-O0', '-fPIC']
+         if DEBUG:
+             #options += ['-g', '-O0', '-fPIC']
+             options += ['-g', '-O0', '-fPIC', '-CB']
          else: options += ['-O3']
          v = getForVersion()
          if v[0] < 15:
@@ -1745,7 +1749,11 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
                l = checkLibFile__('libstdc++.a', additionalLibPaths)
           if l is not None:
                libs += ['stdc++']; paths += [l]
-
+          #if DEBUG:
+          #    l = checkLibFile__('libchkpwrap.a', additionalLibPaths)
+          #    if l is not None:
+          #        libs += ['chkpwrap', 'chkp']; paths += [l]
+               
           if useOMP:
                l = checkLibFile__('libguide.so*', additionalLibPaths)
                if l is None:

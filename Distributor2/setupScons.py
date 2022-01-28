@@ -27,7 +27,9 @@ if prod is None: prod = 'xx'
 libraryDirs = ['build/'+prod, kcoreLibDir]
 libraries = ["distributor2", "kcore"]
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs 
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
 setup(

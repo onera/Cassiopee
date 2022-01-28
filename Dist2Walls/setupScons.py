@@ -28,6 +28,8 @@ libraries = ["dist2walls", "kcore"]
 from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
 extensions = [
