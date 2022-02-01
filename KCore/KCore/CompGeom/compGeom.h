@@ -396,8 +396,10 @@ typedef struct {
 
   /* Calcul du rayon du cercle circonscrit au triangle P1P2P3. 
      Retourne 0 si le triangle est degenere */
-  E_Float circumCircleRadius(E_Float* p1, E_Float* p2, E_Float* p3);
-
+  E_Float circumCircleRadius(E_Float& p1x, E_Float& p1y, E_Float& p1z,
+			     E_Float& p2x, E_Float& p2y, E_Float& p2z,
+			     E_Float& p3x, E_Float& p3y, E_Float& p3z);
+  
   /* Calcul du rayon du cercle inscrit au triangle P1P2P3. 
      Retourne 0 si triangle degenere */
   E_Float inscribedCircleRadius(E_Float* p1, E_Float* p2, E_Float* p3);
@@ -833,17 +835,17 @@ typedef struct {
                                  K_FLD::FldArrayI& cn, 
                                  K_FLD::FldArrayF& angle);
 
-  /* calcul de la hauteur liée à la courbure pour des i-arrays */
+  /* calcul de la hauteur liï¿½e ï¿½ la courbure pour des i-arrays */
   void compStructCurvatureHeight1D(E_Int im, E_Float* xt, E_Float* yt, E_Float* zt, 
                                    E_Float* hmaxt);
-  /* calcul de la hauteur liée à la courbure pour des (i,j)-arrays */
+  /* calcul de la hauteur liï¿½e ï¿½ la courbure pour des (i,j)-arrays */
   void compStructCurvatureHeight2D(E_Int im, E_Int jm, 
                                    E_Float* xt, E_Float* yt, E_Float* zt, 
                                    E_Float* hmaxt);
-  /* calcul de la hauteur liée à la courbure pour des BAR*/
+  /* calcul de la hauteur liï¿½e ï¿½ la courbure pour des BAR*/
   void compCurvatureHeightForBAR(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
                                  K_FLD::FldArrayI& cn, E_Float* hmaxt);
-  /* calcul de la hauteur liée à la courbure pour des surfaces TRI et QUAD */
+  /* calcul de la hauteur liï¿½e ï¿½ la courbure pour des surfaces TRI et QUAD */
   void compCurvatureHeightForTRIQUAD(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
                                      K_FLD::FldArrayI& cn,
                                      E_Float* hmaxt);

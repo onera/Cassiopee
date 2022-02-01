@@ -550,7 +550,7 @@ def getSimdOptions():
         elif simd == 'AVX2'  : opts += ['-xCORE-AVX2']
         elif simd == 'AVX512': opts += ['-xCORE-AVX512']
         elif simd == 'MIC'   : opts += ['-xMIC-AVX512']
-        else: opts += ['-xHost']
+        elif simd == 'XHOST' : opts += ['-xHost']
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
         if   simd == 'SSE4.2': opts += ['-msse4.2']
         elif simd == 'AVX2'  : opts += ['-mavx2']
@@ -831,8 +831,7 @@ def getForArgs():
          return options
     elif f77compiler.find("ifort") == 0:
          if DEBUG:
-             #options += ['-g', '-O0', '-fPIC']
-             options += ['-g', '-O0', '-fPIC', '-CB']
+             options += ['-g', '-O0', '-CB']
          else: options += ['-O3']
          v = getForVersion()
          if v[0] < 15:
@@ -2169,8 +2168,8 @@ def createCythonBuilder(env):
           if "PYTHONPATH" in env: SYSPATH=env['PYTHONPATH']
           cypath = env["CYTHONCOMPATH"]
           if cypath != "": cypath += "/"
-          pypath = "PYTHONPATH=%s:%s:%s "%(RESOURCELIBPATH,CYTHONLIBPATH,SYSPATH)
-          cypath = pypath+cypath
+          #pypath = "PYTHONPATH=%s:%s:%s "%(RESOURCELIBPATH,CYTHONLIBPATH,SYSPATH)
+          #cypath = pypath+cypath
      env["CYTHONCOM"] = cypath+"cython"+incs+" -o $TARGET $SOURCE"
      env["CYTHONCFILESUFFIX"] = ".cpp"
 

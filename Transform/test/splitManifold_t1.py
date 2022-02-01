@@ -1,5 +1,5 @@
 # - splitManifold (array) -
-# Conforming 1 or 2 TRI/BAR together (same type for both operands
+# Conforming 1 or 2 TRI/BAR together (same type for both operands)
 import Converter as C
 import Generator as G
 import Intersector as XOR

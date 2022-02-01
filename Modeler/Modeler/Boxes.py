@@ -134,6 +134,7 @@ def box2D(Pmin, Pmax, r=0.):
     a = C.convertArray2Tetra(a)
     a = T.join(a)
     a = G.close(a)
+    a = T.reorder(a, (1,))
     a = G.tetraMesher(a)
     return a
 

@@ -1,6 +1,8 @@
 """Testing module for Cassiopee validation."""
 # Systeme de validation des modules Cassiopee
-# (c) Onera
+# arrays: testA, [outA], stdTestA, [outTestA]
+# pyTrees: testT, [outT], stdTestT, [outTestT]
+# objects: testO
 from __future__ import print_function
 import numpy, sys, os
 try: range = xrange
@@ -15,6 +17,7 @@ TOLERANCE = 1.e-11
 # le resultat du test localement
 #=============================================================================
 def getLocal():
+    """Return the local directory name to write test data."""
     a = os.getenv('VALIDLOCAL')
     if a is None: a = '.'
     return a
@@ -62,11 +65,19 @@ def testA(arrays, number=1):
                     retour = False
         return retour
 
+# idem testA avec ecriture fichier
+def outA(arrays, number=1):
+    """Test and write arrays."""
+    import Converter as C
+    C.convertArrays2File(arrays, 'out%d.plt'%number)
+    testA(arrays)
+    
 #=============================================================================
 # Verifie que le pyTree est egal au pyTree de reference stocke dans un fichier
 # number est le no du test dans le script
 #=============================================================================
 def testT(t, number=1):
+    """Test pyTrees."""
     import Converter.PyTree as C
     import Converter.Internal as Internal
 
@@ -116,6 +127,12 @@ def testT(t, number=1):
                 retour = False
         return retour
 
+def outT(t, number=1):
+    """Test and write pyTrees."""
+    import Converter.PyTree as C
+    C.convertPyTree2File(t, 'out%d.cgns'%number)
+    testT(t, number)
+    
 #=============================================================================
 # Verifie que le fichier est identique au fichier de reference
 # Diff byte to byte
@@ -302,6 +319,7 @@ def testO(objet, number=1):
 # Retourne 0 si differents
 #=============================================================================
 def checkTree(t1, t2):
+    """Check that pyTree t1 and t2 are identical."""
     dict1 = {}
     buildDict__('.', dict1, t1)
     dict2 = {}
@@ -428,11 +446,14 @@ def stdTestA(F, *keywords):
     elif ntype == 'out': stdTest1__(1, 0, 0, F, *keywords)
     elif ntype == 'mem': stdTest1__(0, 10, 0, F, *keywords)
     elif ntype == 'heavy': stdTest1__(0, 0, 1, F, *keywords)
-    
+
+# Std tests avec ecriture de fichiers
 def outTestA(F, *keywords):
     stdTest1__(1, 0, 0, F, *keywords)
+# Std tests avec tests memoire
 def memTestA(loop, F, *keywords):
     stdTest1__(0, loop, 0, F, *keywords)
+# Std tests avec heavy memory load
 def heavyTestA(F, *keywords):
     stdTest1__(0, 0, 1, F, *keywords)
 
@@ -783,6 +804,7 @@ def stdTestT(F, *keywords):
     if type == 'std': stdTestT__(0, F, *keywords)
     elif type == 'out': stdTestT__(1, F, *keywords)
 
+# standard tests avec ecriture
 def outTestT(F, *keywords):
     stdTestT__(1, F, *keywords)
 
@@ -909,6 +931,7 @@ def checkCGNSlib(t, number=1):
 # Return the memory in kB
 #==============================================================================
 def printMem(msg, waitTime=0.1):
+    """Write process memory to stdout."""
     import os, time
     pid = os.getpid()
     time.sleep(waitTime)

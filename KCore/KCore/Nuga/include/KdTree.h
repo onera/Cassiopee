@@ -64,7 +64,7 @@ class KdTree {
     /// Builds a tree and inserts only the valid nodes from begin to end.
     KdTree(const coord_access_type& posAcc, 
            std::vector<size_type> indices/*passed by value to preserve input*/,
-            E_Float tolerance=EPSILON);
+	   E_Float tolerance=EPSILON);
 
     /// Destructor.
     ~KdTree(){};

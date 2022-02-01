@@ -177,7 +177,9 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
       dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
       ndir1 = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-      rad1 = K_COMPGEOM::circumCircleRadius(ptA, ptB, ptC);
+      rad1 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+                                            ptB[0], ptB[1], ptB[2],
+                                            ptC[0], ptC[1], ptC[2]);
 
       // DC ^ DB
       dir2[0] = (ptC[1]-ptD[1])*(ptB[2]-ptD[2])-(ptC[2]-ptD[2])*(ptB[1]-ptD[1]);
@@ -186,14 +188,18 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       ndir2 = sqrt(dir2[0]*dir2[0]+dir2[1]*dir2[1]+dir2[2]*dir2[2]);
       inverse1 = dir1[0]*dir2[0]+dir1[1]*dir2[1]+dir1[2]*dir2[2];
       if (ndir1 > 1.e-12 && ndir2 > 1.e-12) inverse1 = inverse1/(ndir1*ndir2);
-      rad2 = K_COMPGEOM::circumCircleRadius(ptB, ptC, ptD);
+      rad2 = K_COMPGEOM::circumCircleRadius(ptB[0], ptB[1], ptB[2],
+                                            ptC[0], ptC[1], ptC[2],
+                                            ptD[0], ptD[1], ptD[2]);
 
       // BD ^ BA
       dir3[0] = (ptD[1]-ptB[1])*(ptA[2]-ptB[2])-(ptD[2]-ptB[2])*(ptA[1]-ptB[1]);
       dir3[1] = (ptD[2]-ptB[2])*(ptA[0]-ptB[0])-(ptD[0]-ptB[0])*(ptA[2]-ptB[2]);
       dir3[2] = (ptD[0]-ptB[0])*(ptA[1]-ptB[1])-(ptD[1]-ptB[1])*(ptA[0]-ptB[0]);
       ndir3 = sqrt(dir3[0]*dir3[0]+dir3[1]*dir3[1]+dir3[2]*dir3[2]);
-      rad3 = K_COMPGEOM::circumCircleRadius(ptA, ptB, ptD);
+      rad3 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+                                            ptB[0], ptB[1], ptB[2],
+                                            ptD[0], ptD[1], ptD[2]);
 
       // CA ^ CD
       dir4[0] = (ptA[1]-ptC[1])*(ptD[2]-ptC[2])-(ptA[2]-ptC[2])*(ptD[1]-ptC[1]);
@@ -202,7 +208,9 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       ndir4 = sqrt(dir4[0]*dir4[0]+dir4[1]*dir4[1]+dir4[2]*dir4[2]);
       inverse2 = dir3[0]*dir4[0]+dir3[1]*dir4[1]+dir3[2]*dir4[2];
       if (ndir3 > 1.e-12 && ndir4 > 1.e-12) inverse2 = inverse2/(ndir3*ndir4);
-      rad4 = K_COMPGEOM::circumCircleRadius(ptA, ptC, ptD);
+      rad4 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+                                            ptC[0], ptC[1], ptC[2],
+                                            ptD[0], ptD[1], ptD[2]);
 
       if (indic != NULL)
       { 

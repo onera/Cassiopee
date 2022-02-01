@@ -619,15 +619,15 @@ def deformMesh(a, surfDelta, beta=4., type='nearest'):
     Usage: deformMesh(a, surfDelta, beta, type)"""
     if not isinstance(a[0], list):
         if len(a) == 5: 
-            if type=='nearest': return deformMeshStruct1__(a, surfDelta, beta)
-            elif type=='gridline': return deformMeshStruct2__(a, surfDelta, beta)
+            if type == 'nearest': return deformMeshStruct1__(a, surfDelta, beta)
+            elif type == 'gridline': return deformMeshStruct2__(a, surfDelta, beta)
             else: raise TypeError("deformMesh: type is invalid.")
         else: raise TypeError("deformMesh: not valid for unstructured arrays.")
     else:
         out = []
         for i in a:
             if len(i) == 5: 
-                if type=='nearest': out.append(deformMeshStruct1__(i, surfDelta, beta))
+                if type == 'nearest': out.append(deformMeshStruct1__(i, surfDelta, beta))
                 elif type =='gridline': out.append(deformMeshStruct2__(i, surfDelta, beta))
                 else: raise TypeError("deformMesh: type is invalid.")
             else: raise TypeError("deformMesh: not valid for unstructured arrays.")

@@ -63,7 +63,7 @@ PyObject* K_GENERATOR::getCircumCircleMap(PyObject* self, PyObject* args)
   E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
   K_KCORE::memcpy__(cnnp, cn->begin(), ncells*nnodes);
   E_Float* ccradp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF ccrad(ncells,1, ccradp, true);
+  FldArrayF ccrad(ncells, 1, ccradp, true);
 
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
@@ -72,14 +72,15 @@ PyObject* K_GENERATOR::getCircumCircleMap(PyObject* self, PyObject* args)
   E_Int* cn2 = cn->begin(2);
   E_Int* cn3 = cn->begin(3);
   
-  E_Float p1[3]; E_Float p2[3]; E_Float p3[3];
+  E_Int ind1, ind2, ind3;
+  E_Float p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z;
   for (E_Int et = 0; et < ncells; et++)
   {
-    E_Int ind1 = cn1[et]-1; E_Int ind2 = cn2[et]-1; E_Int ind3 = cn3[et]-1;
-    p1[0] = xt[ind1]; p1[1] = yt[ind1]; p1[2] = zt[ind1];  
-    p2[0] = xt[ind2]; p2[1] = yt[ind2]; p2[2] = zt[ind2];  
-    p3[0] = xt[ind3]; p3[1] = yt[ind3]; p3[2] = zt[ind3];
-    ccrad[et] = K_COMPGEOM::circumCircleRadius(p1, p2, p3);
+    ind1 = cn1[et]-1; ind2 = cn2[et]-1; ind3 = cn3[et]-1;
+    p1x = xt[ind1]; p1y = yt[ind1]; p1z = zt[ind1];  
+    p2x = xt[ind2]; p2y = yt[ind2]; p2z = zt[ind2];
+    p3x = xt[ind3]; p3y = yt[ind3]; p3z = zt[ind3];
+    ccrad[et] = K_COMPGEOM::circumCircleRadius(p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z);
   }
   
   RELEASESHAREDU(array, f, cn); 

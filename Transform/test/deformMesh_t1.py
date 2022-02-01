@@ -13,4 +13,4 @@ delta = C.extractVars(delta, ['dx','dy','dz'])
 delta[1][:,:] = a2[1][:,:]-a1[1][:,:]
 C._addVars([a1, delta])
 
-test.stdTestA(T.deformMesh,a1)
+test.stdTestA(T.deformMesh, a1)

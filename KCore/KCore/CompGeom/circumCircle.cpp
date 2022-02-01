@@ -24,14 +24,16 @@
 //=============================================================================
 /* Calcul le rayon du cercle circonscrit */
 //=============================================================================
-E_Float K_COMPGEOM::circumCircleRadius(E_Float* p1, E_Float* p2, E_Float* p3)
+E_Float K_COMPGEOM::circumCircleRadius(E_Float& p1x, E_Float& p1y, E_Float& p1z,
+				       E_Float& p2x, E_Float& p2y, E_Float& p2z,
+				       E_Float& p3x, E_Float& p3y, E_Float& p3z)
 {
   // AB
-  E_Float xa = p2[0]-p1[0]; E_Float ya = p2[1]-p1[1]; E_Float za = p2[2]-p1[2];
+  E_Float xa = p2x-p1x; E_Float ya = p2y-p1y; E_Float za = p2z-p1z;
   // AC
-  E_Float xb = p3[0]-p1[0]; E_Float yb = p3[1]-p1[1]; E_Float zb = p3[2]-p1[2];
+  E_Float xb = p3x-p1x; E_Float yb = p3y-p1y; E_Float zb = p3z-p1z;
   // BC
-  E_Float xc = p3[0]-p2[0]; E_Float yc = p3[1]-p2[1]; E_Float zc = p3[2]-p2[2];
+  E_Float xc = p3x-p2x; E_Float yc = p3y-p2y; E_Float zc = p3z-p2z;
   
   E_Float a2 = xa*xa + ya*ya + za*za;
   E_Float b2 = xb*xb + yb*yb + zb*zb;
@@ -39,10 +41,11 @@ E_Float K_COMPGEOM::circumCircleRadius(E_Float* p1, E_Float* p2, E_Float* p3)
 
   // Aire du triangle
   E_Float A = 2*b2*c2 + 2*c2*a2 + 2*a2*b2 - a2*a2 - b2*b2 - c2*c2;
-  if (K_FUNC::fEqualZero(A, 1.e-24) == true) return 0.;
+  if (K_FUNC::fEqualZero(A, 1.e-15) == true) return 0.;
   E_Float R = sqrt(a2*b2*c2 / A);
   return R;
 }
+
 //=============================================================================
 /* Calcul le rayon du cercle inscrit */
 //=============================================================================
@@ -82,7 +85,7 @@ E_Int K_COMPGEOM::circumCircle(E_Float* p1, E_Float* p2, E_Float* p3,
   E_Float c2 = xc*xc + yc*yc + zc*zc;
 
   E_Float A = 2*b2*c2 + 2*c2*a2 + 2*a2*b2 - a2*a2 - b2*b2 - c2*c2;
-  if ( K_FUNC::fEqualZero(A, 1.e-24) == true) 
+  if ( K_FUNC::fEqualZero(A, 1.e-15) == true) 
   { R = 0.; pc[0] = 0; pc[1] = 0; pc[2] = 0; return -1; }
 
   R = sqrt(a2*b2*c2 / A);

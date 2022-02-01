@@ -6,7 +6,7 @@ import Transform.PyTree as T
 import Converter.Internal as Internal
 import KCore.test as test
 def sphere(x,y,z):
-    if x*x+y*y+z*z < 0.5**2 : return 0.
+    if x*x+y*y+z*z < 0.48**2 : return 0.
     else: return 1.
 #
 # Champ en noeuds non structure TETRA
@@ -19,7 +19,7 @@ t = C.initVars(t,'cellN', sphere, ['CoordinateX','CoordinateY','CoordinateZ'])
 nod = 1
 for d in [-2,-1,0,1,2,5]:
     tp = Internal.copyTree(t)
-    t2 = X.setHoleInterpolatedPoints(tp,depth=d,loc='nodes')
+    t2 = X.setHoleInterpolatedPoints(tp, depth=d, loc='nodes')
     test.testT(t2,nod); nod+=1
 
 # Champ cellN en centres

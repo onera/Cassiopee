@@ -6,7 +6,7 @@ import Transform.PyTree as T
 import KCore.test as test
 import Converter.Internal as Internal
 def sphere(x,y,z):
-    if x*x+y*y+z*z < 0.5**2: return 0.
+    if x*x+y*y+z*z < 0.48**2: return 0.
     else: return 1.
 
 #

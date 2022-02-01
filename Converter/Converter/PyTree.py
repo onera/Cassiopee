@@ -1046,20 +1046,19 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       raise TypeError("convertFile2PyTree: file %s can not be read."%fileName)
     else: print('done.')
 
-    if Internal.isTopTree(a):
+    if Internal.isTopTree(a): # top tree
       registerAllNames(a)
       return a # OK
     ret = Internal.isStdNode(a)
-    if ret != -2:
+    if ret != -2: # standard node
       t, ntype = Internal.node2PyTree(a)
       registerAllNames(t)
       return t # OK
     # sinon, c'est un arrays (traite dans la suite)
 
-  zn = []; bcfaces = []
+  zn = []; bcfaces = []; centerArrays = []
   if format != 'bin_pickle': # autres formats
     if autoTry: format = None
-    centerArrays = []
     a = Converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine,
                                      density, zoneNames=zn, BCFaces=bcfaces,
                                      hmax=hmax, hausd=hausd, grow=grow, 
@@ -1124,7 +1123,8 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
         t[2][base3][2].append(z)
-    z[0] = zn[c]
+    
+    if len(zn) > c: z[0] = zn[c]
     c += 1
   Internal._correctPyTree(t, level=10) # force CGNS names
   Internal._correctPyTree(t, level=2) # force unique name
