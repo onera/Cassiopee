@@ -287,15 +287,23 @@ def isNamePresent(t, varname):
   zvars = getVarNames(t)
   if len(zvars) == 0: return -1
   one = 0
+  n = 0
   for z in zvars:
     found = 0
     for v in z:
-      if v == varname: found = 1; one = 1; break
+      if v == varname: found = 1; one = 1; n+= 1; break
     if found == 0:
       if one == 1: return 0
   if one == 0: return -1
+  elif n != len(zvars): return 0
   else: return 1
 
+
+
+
+
+
+  
 # -- getNobNozOfZone
 # IN: a: zone
 # IN: t: le top tree de a
