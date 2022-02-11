@@ -732,7 +732,7 @@ def getCArgs():
             else: options += ['-qopenmp']
          if useStatic() == 1: options += ['-static']
          else: options += ['-fPIC']
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
          if DEBUG: options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
@@ -743,7 +743,7 @@ def getCArgs():
          if mySystem[0] == 'mingw' and mySystem[1] == '32':
               options.remove('-fPIC')
               options += ['-large-address-aware']
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     elif Cppcompiler == "icl.exe":
          options += ['/EHsc', '/MT']
@@ -755,7 +755,7 @@ def getCArgs():
          if useOMP() == 1: options += []
          if useStatic() == 1: options += []
          else: options += []
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     elif Cppcompiler == "x86_64-w64-mingw32-gcc" or Cppcompiler == "x86_64-w64-mingw32-g++":
          options += ['-DMS_WIN64', '-fpermissive', '-D__USE_MINGW_ANSI_STDIO=1']
@@ -764,7 +764,7 @@ def getCArgs():
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
          else: options += ['-fPIC']
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     elif Cppcompiler.find("clang") == 0 or Cppcompiler.find("clang++") == 0:
          if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
@@ -772,7 +772,7 @@ def getCArgs():
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
          else: options += ['-fPIC']
-         #options += getSimdOptions()
+         options += getSimdOptions()
          return options
     else: return options
 

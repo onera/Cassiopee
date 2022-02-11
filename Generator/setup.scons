@@ -57,12 +57,10 @@ env = Dist.createFortranBuilder(env, [kcoreIncDir])
 ppf = Dist.createFortranFiles(env, srcs)
 
 #==============================================================================
-# Quarantaine
-# Modification pour compiler certains fichiers
-
-# modif optimisation
-files = ["Generator/Tetgen/predicates.cxx", "Generator/Tetgen/tetgen.cxx"]
 cppOpts = Dist.getCppArgs()
+
+# Optimisation en -O0 pour les fichiers de tetgen
+files = ["Generator/Tetgen/predicates.cxx", "Generator/Tetgen/tetgen.cxx"]
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     flags = ''
     for i in cppOpts:
@@ -83,15 +81,16 @@ if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler =
                 print('altering', f)
                 srcs.cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags+'-O0')
 
-files = ["Generator/T3Mesher2D.cpp"]
+# Suppression vectorisation pour T3mesher et gapfixer
+files = ["Generator/T3mesher2D.cpp", "Generator/gapfixer.cpp"]
 flags = ''
 for i in cppOpts: 
     if i[0:11] != '-xCORE-AVX2': flags += i+' '
 for i in range(len(srcs.cpp_srcs)):
     for f in files:
-        if srcs.cpp_srcs2[i] == f:
+        if srcs.cpp_srcs[i] == f:
             print('altering',f)
-            srcs.cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags)
+            srcs.cpp_srcs[i] = env.Object(f, CXXFLAGS=flags)
 
 #==============================================================================
 

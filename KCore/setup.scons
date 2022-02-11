@@ -58,6 +58,18 @@ env.Command('merge.l', 'merge.ar', "sed -e s/ELSAPROD/%s/g merge.ar > merge.l"%E
 env.Command('libkcore.a', ['libkcore1.a', 'libkcore2.a', 'merge.l'], "ar -M < merge.l")
 
 #==============================================================================
+# Suppression de la vectorisation pour les fichiers de Nuga
+cppOpts = Dist.getCppArgs()
+flags = ''
+for i in cppOpts: 
+    if i[0:7] != '-xCORE-' or i[0:5] != '-mavx' : flags += i+' '
+for i in range(len(cpp_srcs2)):
+    f = cpp_srcs2[i]   
+    if "KCore/Nuga" in f:
+        #print('altering',f)
+        cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags)
+
+#==============================================================================
 
 myMod1 = env.StaticLibrary('kcore1', source=cpp_srcs1)
 myMod2 = env.StaticLibrary('kcore2', source=cpp_srcs2+ppf)

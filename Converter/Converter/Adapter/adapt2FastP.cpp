@@ -76,7 +76,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_bc,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true);
     ipt_ptlist_bc[i]   = Ptlist->begin();
     size_ptlist_bc[i]  = Ptlist->getSize();
     //printf(" fen bc= %d %d %d \n", size_ptlist_bc[i], Ptlist->getSize(),  i);
