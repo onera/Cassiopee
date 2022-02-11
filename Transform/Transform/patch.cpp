@@ -130,8 +130,12 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
       }
     }
     E_Int nfld = pos1.size();
-    FldArrayF& coord1 = *f1;
-    FldArrayF& coord2 = *f2;
+    vector<E_Float*> fp1(nfld);
+    // pointeur sur les champs de array1
+    for (E_Int p = 0; p < nfld; p++) { fp1[p] = f1->begin(pos1[p]); }  
+    // pointeur sur les champs de array2
+    vector<E_Float*> fp2(nfld);
+    for (E_Int p = 0; p < nfld; p++) { fp2[p] = f2->begin(pos2[p]); }  
 
     for (E_Int k = kk-1; k < kk+km1-1; k++)
       for (E_Int j = jj-1; j < jj+jm1-1; j++)
@@ -139,8 +143,8 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
         {
           ind = i + j*im2 + k*im2*jm2;
           ind2 = (i-ii+1)+(j-jj+1)*im1+(k-kk+1)*im1*jm1;
-          for(E_Int n = 1; n <= nfld; n++)
-            coord2(ind,n) = coord1(ind2,n);
+          for (E_Int n = 0; n < nfld; n++)
+            fp2[n][ind] = fp1[n][ind2];
         }
   
     delete f1;
@@ -173,11 +177,9 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
 {
-  PyObject* array1;
-  PyObject* array2;
+  PyObject* array1; PyObject* array2;
   PyObject* nodesIndices;
-  IMPORTNUMPY;
-
+  
   if (!PyArg_ParseTuple(args, "OOO",
                         &array1, &array2, &nodesIndices))
   {
@@ -190,15 +192,13 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   FldArrayF* f2; // champ de array2
   FldArrayI* cn1; // connectivite de array1
   FldArrayI* cn2; // connectivite de array2
-  char *varString1; // liste des variables contenues dans array1
-  char *varString2; // liste des variables contenues dans array2
+  char* varString1; // liste des variables contenues dans array1
+  char* varString2; // liste des variables contenues dans array2
   char* eltType1; // type d'elements de array1
   char* eltType2; // type d'elements de array2
-  vector<E_Int> pos1;
-  vector<E_Int> pos2;
   E_Int res1 = 
     K_ARRAY::getFromArray(array1, varString1, f1, im1, jm1, km1, 
-                          cn1, eltType1); 
+                          cn1, eltType1);
   E_Int res2 = 
     K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2, 
                           cn2, eltType2);
@@ -216,57 +216,28 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  /*
-  PyArrayObject* nodes = (PyArrayObject*)PyArray_ContiguousFromObject(nodesIndices, NPY_INT, 1, 10000000);
-
-  if (nodes == NULL)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "patch: nodes must a int32 numpy array.");
-    return NULL;
-  }
-  if (PyArray_Check(nodes) == 0)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "patch: nodes must a numpy array.");
-    return NULL;
-  }
-
-  E_Int nbnodes = PyArray_DIMS(nodes)[0];
-  if (nbnodes == 0)
-  {
-    delete f1; delete f2;      
-    PyErr_SetString(PyExc_ValueError,
-                    "patch: array nodes is empty.");
-    return NULL;
-  }
-
-  E_Int* n0 = (E_Int*)PyArray_DATA(nodes); // indices des noeuds de nodes
-  */
   E_Int nbnodes, nf; E_Int* n0;
   K_NUMPY::getFromNumpyArray(nodesIndices, n0, nbnodes, nf, true);
-
+  
   if (nbnodes != f1->getSize())
-  {
-    delete f1; delete f2;      
+  {  
     PyErr_SetString(PyExc_ValueError,
                     "patch: array1 and nodes must have the same size.");
-    return NULL;      
+    return NULL;
   }
-
   E_Int ind2;
 
   // construction d'un nouveau varString a partir de varString1 et varString2
+  vector<E_Int> pos1; vector<E_Int> pos2;
   char* varString = new char [strlen(varString1) + strlen(varString2) + 4];
   E_Int res0 = 
     K_ARRAY::getPosition(varString1, varString2, pos1, pos2, varString);
   
   if (res0 == -1)
   {
-    delete f1; delete f2;      
     PyErr_SetString(PyExc_ValueError,
                     "patch: one array is empty.");
-    return NULL;      
+    return NULL;
   }
   else if (res0 == 0)
   {
@@ -275,39 +246,41 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   }
 
   E_Int nfld = pos1.size();
+
   vector<E_Float*> fp1(nfld);
   // pointeur sur les champs de array1
-  for (E_Int p = 0; p < nfld; p++) { fp1[p] = f1->begin(p+1); }  
+  for (E_Int p = 0; p < nfld; p++) { fp1[p] = f1->begin(pos1[p]); }  
   // pointeur sur les champs de array2
   vector<E_Float*> fp2(nfld);
-  for (E_Int p = 0; p < nfld;p++) { fp2[p] = f2->begin(p+1); }  
-   
+  for (E_Int p = 0; p < nfld; p++) { fp2[p] = f2->begin(pos2[p]); }  
+  
   // boucle sur les indices a patcher
   for (E_Int p = 0; p < nfld; p++) 
   {
     for (E_Int ind = 0; ind < nbnodes; ind++)
     {
       ind2 = n0[ind]-1;
+      //printf("%d %d\n ",ind2,f2->getSize());
       fp2[p][ind2] = fp1[p][ind];
     }
   }
-  
-  delete f1;
+
   // Build array 
   PyObject* tpl = NULL;
-
-  if (res2 == 1) 
+  if (res2 == 1)
   {
-    RELEASESHAREDN(nodesIndices, n0);
     tpl = K_ARRAY::buildArray(*f2, varString, im2, jm2, km2);
-    delete [] varString; delete f2;
   }
-  else if (res2 == 2) 
+  else if (res2 == 2)
   {
-    RELEASESHAREDN(nodesIndices, n0);
     tpl = K_ARRAY::buildArray(*f2, varString, *cn2, -1, eltType2);
-    delete [] varString; delete cn2; delete f2;
   }
-  RELEASESHAREDN(nodesIndices, n0);
+
+  Py_DECREF(nodesIndices);
+  delete f1; delete f2;
+  if (res1 == 2) delete cn1;
+  if (res2 == 2) delete cn2;
+
+  delete [] varString; 
   return tpl;
 }

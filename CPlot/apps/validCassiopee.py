@@ -35,7 +35,8 @@ except: isMpi = False
 # Regexprs
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
-regError = re.compile('Error:')
+regError = re.compile('Error')
+regAbort = re.compile('Aborted')
 separator = ':'
 separatorl = separator+' '
 expTest1 = re.compile("_t[0-9]+") # normal tests
@@ -480,6 +481,7 @@ def runSingleUnitaryTest(no, module, test):
         if regDiff.search(output) is not None: success = False
         if regFailed.search(output) is not None: success = False
         if regError.search(output) is not None: success = False
+        if regAbort.search(output) is not None: success = False
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -703,7 +705,6 @@ def rmFile(path, fileName):
         cmd = 'cd '+path+'; rm -f Data/'+fileName
     try:
         subprocess.call(cmd, shell=True, stderr=subprocess.STDOUT)
-        subprocess.call(cmd2, shell=True, stderr=subprocess.STDOUT)
     except: pass
 
 #==============================================================================

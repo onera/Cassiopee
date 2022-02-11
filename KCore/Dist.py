@@ -831,7 +831,7 @@ def getForArgs():
          return options
     elif f77compiler.find("ifort") == 0:
          if DEBUG:
-             options += ['-g', '-O0', '-CB']
+             options += ['-g', '-O0', '-CB', '-fpe0']
          else: options += ['-O3']
          v = getForVersion()
          if v[0] < 15:

@@ -35,8 +35,9 @@ for k in range(0,km1):
         for i in range(0,im1):
             nodes[c] = indp+k*im2*jm2+j*im2+i+1; c += 1
 a = T.patch(c1, c2, nodes=nodes)
-t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
-test.testT(t, 1)
+
+t = C.newPyTree(['Base',3, a])
+test.testT(a, 1)
 
 # cas 3D
 c1 = G.cart((0,0,0), (0.01,0.01,1), (201,101,20))
@@ -51,7 +52,7 @@ c2 = T.rotate(c2, (0,0,0),(0,0,1),0.2)
 c2 = C.addBC2Zone(c2,'wall1','BCWall','imin')
 c2 = C.addBC2Zone(c2,'overlap1','BCOverlap','imax')
 c2 = C.initVars(c2, 'centers:celln',1.)
-c2 = C.initVars(c2,'Density',dens,['CoordinateX','CoordinateY'])
+c2 = C.initVars(c2, 'Density', dens, ['CoordinateX','CoordinateY'])
 # indice a partir duquel la zone est patchee
 im1 = 51; jm1 = 81; km1 = 20   # dimensions de la zone patchee
 im2 = 201; jm2 = 101; km2 = 20 # dimensions de la zone a patcher
@@ -65,5 +66,5 @@ for k in range(0,km1):
         for i in range(0,im1):
             nodes[c] = indp+k*im2*jm2+j*im2+i+1; c += 1
 a = T.patch(c1, c2, nodes=nodes)
-t = C.newPyTree(['Base']); t[2][1][2].append(a)
+t = C.newPyTree(['Base', a])
 test.testT(t, 2)
