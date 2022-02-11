@@ -286,12 +286,11 @@ def isNamePresent(t, varname):
     varname = v[1]
   zvars = getVarNames(t)
   if len(zvars) == 0: return -1
-  one = 0
-  n = 0
+  one = 0; n = 0
   for z in zvars:
     found = 0
     for v in z:
-      if v == varname: found = 1; one = 1; n+= 1; break
+      if v == varname: found = 1; one = 1; n += 1; break
     if found == 0:
       if one == 1: return 0
   if one == 0: return -1
@@ -4128,6 +4127,7 @@ def _recoverBCs2(t, BCInfo, tol):
           if nfacesExt < nfacesDef:
               print('Warning: zone %s: number of faces defined by BCs is greater than the number of external faces. Try to reduce the matching tolerance.'%(z[0]))
           elif nfacesExt > nfacesDef:
+              indicesBC = indicesBC.reshape( (indicesBC.size) )
               indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
               undefBC = True
       else:
@@ -4818,6 +4818,7 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
     if nfacesExt < nfacesDef:
       print('Warning: zone %s: number of faces defined by BCs is greater than the number of external faces. Try to reduce the matching tolerance.'%(z[0]))
     elif nfacesExt > nfacesDef:
+      indicesBC = indicesBC.reshape( (indicesBC.size) )
       indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
       #indicesE = numpy.delete(indicesF,indicesBC[0,:])
       undefBC = True
@@ -5136,10 +5137,10 @@ def _mergeGCs(z):
       PL = dictOfGCs[zoppname][0]
       PLD = dictOfGCs[zoppname][1]
       gcname= dictOfGCs[zoppname][2]
-      gcnode = Internal.getNodeFromName(z,gcname)
-      PLNode = Internal.getNodeFromName(gcnode,'PointList')
-      PLDNode = Internal.getNodeFromName(gcnode,'PointListDonor')
-      PLNode[1]=PL
+      gcnode = Internal.getNodeFromName(z, gcname)
+      PLNode = Internal.getNodeFromName(gcnode, 'PointList')
+      PLDNode = Internal.getNodeFromName(gcnode, 'PointListDonor')
+      PLNode[1] = PL
       PLDNode[1] = PLD
   return None
 
@@ -5427,8 +5428,8 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
             else: 
               varL.append(spl[0]) 
 
-        indR = Internal.getNodeFromName1(gc,'PointList')  
-        indD = Internal.getNodeFromName1(gc,'PointListDonor')  
+        indR = Internal.getNodeFromName1(gc, 'PointList')  
+        indD = Internal.getNodeFromName1(gc, 'PointListDonor')  
         
         indR = indR[1][0]
         indD = indD[1][0]
@@ -5481,7 +5482,7 @@ def extractBCFields(z, varList=None):
 
     #1. extract face indices
     if zoneType == 2: 
-      indicesL = Internal.getNodeFromName1(bc,'PointList')
+      indicesL = Internal.getNodeFromName1(bc, 'PointList')
       indicesL = Internal.getValue(indicesL)[0]
     else:
       PR = Internal.getNodeFromName1(bc,'PointRange')

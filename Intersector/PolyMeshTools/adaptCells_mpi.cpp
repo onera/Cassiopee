@@ -1003,7 +1003,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh2(PyObject* self, PyObject* args)
     {
       PyObject * pyBCptList = PyList_GetItem(py_bcptlists, i);
       E_Int *ptL, size, nfld;
-      /*E_Int res2 = */K_NUMPY::getFromNumpyArray(pyBCptList, ptL, size, nfld, true/* shared*/, false/* inverse*/);
+      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld, true/* shared*/);
       //std::cout << "res2/size/nfld : " << res2 << "/" << size << "/" << nfld << std::endl;
 
       std::vector<E_Int> vPtL(ptL, ptL+size);

@@ -135,21 +135,20 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             // Indices des points à interpoler
             PyObject* PyIndices = PyList_GetItem(listData, 2);
             E_Int* indices; E_Int nIndices; E_Int nfld;
-            K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld,true);
+            K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld, true);
 
             // XCoordinates des points a interpoler
             PyObject* PyXCoord = PyList_GetItem(listData, 3);
             E_Float* xCoords; E_Int nXCoords; E_Int nfldx;
-            K_NUMPY::getFromNumpyArray(PyXCoord, xCoords, nXCoords, nfldx,true);
+            K_NUMPY::getFromNumpyArray(PyXCoord, xCoords, nXCoords, nfldx, true);
             // YCoordinates des points a interpoler
             PyObject* PyYCoord = PyList_GetItem(listData, 4);
             E_Float* yCoords; E_Int nYCoords; E_Int nfldy;
-            K_NUMPY::getFromNumpyArray(PyYCoord, yCoords, nYCoords, nfldy,true);
+            K_NUMPY::getFromNumpyArray(PyYCoord, yCoords, nYCoords, nfldy, true);
             // ZCoordinates des points a interpoler
             PyObject* PyZCoord = PyList_GetItem(listData, 5);
             E_Float* zCoords; E_Int nZCoords; E_Int nfldz;
-            K_NUMPY::getFromNumpyArray(PyZCoord, zCoords, nZCoords, nfldz,true);
-
+            K_NUMPY::getFromNumpyArray(PyZCoord, zCoords, nZCoords, nfldz, true);
             
             // Calcul du nombre d'octets nécessaires :
             //  - nom de la zone : type, taille, nom
@@ -254,7 +253,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 // Indices des points à interpoler
                 PyObject* PyIndices = PyList_GetItem(listData, 1);
                 E_Int* indices; E_Int nIndices; E_Int nfld;
-                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld,true);
+                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld, true);
 
                 // Fields à interpoler
                 PyObject* PyFields = PyList_GetItem(listData, 2);
@@ -267,12 +266,12 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 E_Int size_fieldNames = strlen(fieldNames);
 
                 // Valeurs des fields
-                PyObject* PyFieldArrays = PyList_GetItem(PyFields, 1); //Numpy à 5 cases
+                PyObject* PyFieldArrays = PyList_GetItem(PyFields, 1); //Numpy a 5 cases
                 //PyObject* PyField1 = PyList_GetItem(PyFieldsArrays, 0);
                 E_Float* fields; E_Int nPts; E_Int nFlds;
-                K_NUMPY::getFromNumpyArray(PyFieldArrays, fields, nPts, nFlds,true);
+                K_NUMPY::getFromNumpyArray(PyFieldArrays, fields, nPts, nFlds, true);
                 
-                // Calcul du nombre d'octets nécessaires :
+                // Calcul du nombre d'octets necessaires :
                 //  - nom de la zone 
                 //  - indices des pts a interpo : type, taille, indices
                 //  - valeurs des fields : type, taille, 6 fields
@@ -407,7 +406,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             }
             else
             {
-                printf("[%d][ERROR] Mauvais dataType (=%d)(= 2 or 3 normally)\n", rank, dataType); fflush(stdout);
+                printf("[%d][ERROR] Bad dataType (=%d)(= 2 or 3 normally)\n", rank, dataType); fflush(stdout);
                 Py_INCREF(Py_None);
                 return Py_None;
             }
@@ -415,7 +414,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
         
         else 
         {
-            printf("[%d][ERROR] Taille liste = %d (= 3 or 6 normally)\n", rank, sizeList); fflush(stdout);
+            printf("[%d][ERROR] size of list = %d (= 3 or 6 normally)\n", rank, sizeList); fflush(stdout);
         } 
     }
 
@@ -465,7 +464,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
         }
     }
 
-    // Envoi des données
+    // Envoi des donnees
 #ifdef _MPI
     MPI_Request request;
     MPI_Isend(initBufToSend, nOctetsTot, MPI_CHAR, oppNode, 0, comm, &request);

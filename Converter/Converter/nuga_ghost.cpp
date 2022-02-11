@@ -40,7 +40,6 @@ using zone_type = NUGA::zone_t<crd_t, ngon_type>;
 E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
 {
   E_Int ni, nj, nk;
-  
   E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk,
                                     cn1, eltType);
      
@@ -50,7 +49,7 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
   {
     //std::cout << "input error : err => " << err << std::endl;
     //std::cout << "input error : eltType => " << eltType << std::endl;
-    PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a unstructured NGON array.");//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
+    PyErr_SetString(PyExc_TypeError, "input error: invalid array, must be a unstructured NGON array.");//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
     delete f1; delete cn1;
     return 1;
   }
@@ -62,7 +61,7 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
 
   if ((posx == -1) || (posy == -1) || (posz == -1))
   {
-    PyErr_SetString(PyExc_TypeError, "input error : can't find coordinates in array.");//fixme  conformUnstr
+    PyErr_SetString(PyExc_TypeError, "input error: can't find coordinates in array.");//fixme  conformUnstr
     delete f1; delete cn1;
     return 1;
   }
@@ -285,7 +284,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
     }
      
     E_Int *ptL_sz;
-    ok = K_NUMPY::getFromNumpyArray(pyo_j_ptLs_sz, ptL_sz, c, r, true/*shared*/);
+    ok = K_NUMPY::getFromPointList(pyo_j_ptLs_sz, ptL_sz, c, r, true/*shared*/);
     if (!ok) 
     {
     	std::cout << "ERROR : could not get point list sizes" << std::endl; 
@@ -315,7 +314,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       {
         PyObject* pyo_j_ptL = PyList_GetItem(pyo_j_ptLs, j);	
         E_Int c,r;
-        ok = K_NUMPY::getFromNumpyArray(pyo_j_ptL, ptL, c, r, true/*shared*/);
+        ok = K_NUMPY::getFromPointList(pyo_j_ptL, ptL, c, r, true/*shared*/);
         
         if (!ok) 
         {
@@ -331,7 +330,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
         PyObject* pyo_ptL_D = PyList_GetItem(pyo_j_ptLs_D, j);	
         
         E_Int c,r;
-        ok = K_NUMPY::getFromNumpyArray(pyo_ptL_D, ptL_D, c, r, true/*shared*/);
+        ok = K_NUMPY::getFromPointList(pyo_ptL_D, ptL_D, c, r, true/*shared*/);
         
         if (!ok)
         {
@@ -358,8 +357,8 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 
       E_Int nb_ids,r;
       E_Int *ptL(nullptr);    
-      ok = K_NUMPY::getFromNumpyArray(pyo_bc_ptL, ptL, nb_ids, r, true/*shared*/);
-      if (!ok) 
+      ok = K_NUMPY::getFromPointList(pyo_bc_ptL, ptL, nb_ids, r, true/*shared*/);
+      if (!ok)
       {
         std::cout << "ERROR : could not get current point list" << std::endl; 
         break;

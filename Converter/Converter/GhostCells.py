@@ -1529,7 +1529,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                           NvtxD    = NG_EC_D[ ind_fD]
                           NvtxR    = NG_EC_R[ ind_fR]
                           #on elimine les faces non externes, celle du raccord ou celle possedant un nbr de vextex different
-                          if (no_faceR != faceR and e3R*e4R == 0 and NvtxD== NvtxR):
+                          if no_faceR != faceR and e3R*e4R == 0 and NvtxD== NvtxR:
                              
                              searchD    = True
                              bingo      = 0
@@ -1889,7 +1889,7 @@ def adapt2FastP2(t, nlayers=2):
         print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1, Nvtx, Nelts)
 
 
-    #creation nouvel arbre avec ghost
+    # creation nouvel arbre avec ghost
     t = addGhostCellsNG(t, nlayers)
     
     # 
@@ -1954,7 +1954,7 @@ def addGhostCellsNG(t, nlayers=2):
     zones = Internal.getZones(t)
     nbz = len(zones)
 
-    #merge des BC de meme type
+    # merge des BC de meme type
     for z in zones:
        bc_type={}
        bcs   = Internal.getNodesFromType2(z, 'BC_t')
@@ -1965,7 +1965,7 @@ def addGhostCellsNG(t, nlayers=2):
            else:
             bc_type[tmp]=[bc]
        for key in bc_type:
-           print(key, len(bc_type[key]) )
+           print(key, len(bc_type[key]))
            if len(bc_type[key]) != 1:
              size_fen = 0
              min_face= 10000000
@@ -1979,11 +1979,11 @@ def addGhostCellsNG(t, nlayers=2):
              #bc contigu
              if min_face + size_fen - 1 ==  max_face:
                ptlistNew = numpy.arange(min_face, min_face + size_fen, dtype=numpy.int32).reshape((1,size_fen))
-               #on supprime les noeuds merger et on gonfle le numpy du prelmier noeud
+               #on supprime les noeuds merger et on gonfle le numpy du premier noeud
                c=0
                for bc in bc_type[key]:
                  if c==0:
-                   Internal.getNodeFromName1(bc, 'PointList')[1]=ptlistNew
+                   Internal.getNodeFromName1(bc, 'PointList')[1] = ptlistNew
                  else:
                    Internal._rmNodesByName(z, bc[0])
                  c+=1
@@ -2043,7 +2043,6 @@ def addGhostCellsNG(t, nlayers=2):
       F2Esep = Internal.getNodeFromName2(z, 'ParentElements')
       if F2Esep is not None: F2Esep=F2Esep[1]
 
-      #print F2Esep
       F2Es.append(F2Esep)
 
       raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -2084,7 +2083,7 @@ def addGhostCellsNG(t, nlayers=2):
         j = j+1
 
       b = 0
-      for bc in bcs :
+      for bc in bcs:
         BCNames.append(bc[0])
         BCTypes.append(Internal.getValue(bc))
 

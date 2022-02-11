@@ -264,7 +264,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
     {
       PyObject * pyBCptList = PyList_GetItem(pyBCptlitsts, i);
       E_Int *ptL, size, nfld;
-      /*E_Int res2 = */K_NUMPY::getFromNumpyArray(pyBCptList, ptL, size, nfld, true/* shared*/, false/* inverse*/);
+      /*E_Int res2 = */K_NUMPY::getFromNumpyArray(pyBCptList, ptL, size, nfld, true/* shared*/);
       //std::cout << "res2/size/nfld : " << res2 << "/" << size << "/" << nfld << std::endl;
 
       std::vector<E_Int> vPtL(ptL, ptL+size);
@@ -295,7 +295,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
       
       PyObject*     pyJptList = PyList_GetItem(pyJptlists, i);
       E_Int *ptL, size, nfld;
-      /*E_Int res = */K_NUMPY::getFromNumpyArray(pyJptList, ptL, size, nfld, true/* shared*/, false/* inverse*/);
+      /*E_Int res = */K_NUMPY::getFromNumpyArray(pyJptList, ptL, size, nfld, true/* shared*/);
       //std::cout << "res2/size/nfld : " << res2 << "/" << size << "/" << nfld << std::endl;
 
       std::vector<E_Int> vPtL(ptL, ptL+size);
@@ -1788,7 +1788,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
   else // assuming numpy for nodal/cell
   {
      E_Int *nodv, size, nfld;
-     /*E_Int res2 = */K_NUMPY::getFromNumpyArray(dataSensor, nodv, size, nfld, true/* shared*/, false/* inverse*/);
+     /*E_Int res2 = */K_NUMPY::getFromNumpyArray(dataSensor, nodv, size, nfld, true/* shared*/);
      punctual_data.resize(size);  
      for (E_Int i=0; i < size; ++i)
      {

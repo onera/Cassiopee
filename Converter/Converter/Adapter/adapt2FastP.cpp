@@ -51,7 +51,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   // Check numpy  Nb face interne/extern (Ngon)
   FldArrayI* cNGon_intext;
   res = K_NUMPY::getFromNumpyArray(NGon_intext, cNGon_intext, true);
-  if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP:  Ngon IntExt is invalid."); return NULL; }
+  if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP:  NGon IntExt is invalid."); return NULL; }
 
   // Check numpy  Nb elts interne/extern (Nface)
   FldArrayI* cNFace_intext;
@@ -76,7 +76,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_bc,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromNumpyArray(ptlistArray, Ptlist, true); 
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
     ipt_ptlist_bc[i]   = Ptlist->begin();
     size_ptlist_bc[i]  = Ptlist->getSize();
     //printf(" fen bc= %d %d %d \n", size_ptlist_bc[i], Ptlist->getSize(),  i);
@@ -85,7 +85,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_rac,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromNumpyArray(ptlistArray, Ptlist, true); 
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
     ipt_ptlist_rac[i]          = Ptlist->begin();
 
     size_ptlist_rac[i]= Ptlist->getSize();
@@ -95,7 +95,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_racD,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromNumpyArray(ptlistArray, Ptlist, true); 
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
     ipt_ptlist_racD[i]         = Ptlist->begin();
 
     size_ptlist_racD[i]= Ptlist->getSize();

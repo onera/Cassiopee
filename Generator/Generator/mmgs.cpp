@@ -272,7 +272,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     {
       PyObject* o = PyList_GetItem(fixedNodes, l);
       E_Int* ptr; E_Int npts; E_Int nfld;
-      K_NUMPY::getFromNumpyArray(o, ptr, npts, nfld, true, false);
+      K_NUMPY::getFromNumpyArray(o, ptr, npts, nfld, true);
       for (E_Int i = 0; i < npts; i++) MMGS_Set_requiredVertex(mesh, ptr[i]); // +1?
     }
   }

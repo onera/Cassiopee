@@ -1893,7 +1893,7 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   E_Int* pgsList=NULL;
   E_Int size, nfld;
   if (py_pgs != Py_None)
-    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/, 0);
+    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/);
 
   //std::cout << "after numpy" << std::endl;
 
@@ -3175,7 +3175,7 @@ PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
   E_Int* ids=NULL;
   E_Int size, nfld;
   if (arr2 != Py_None)
-    res = K_NUMPY::getFromNumpyArray(arr2, ids, size, nfld, true/*shared*/, 0);
+    res = K_NUMPY::getFromNumpyArray(arr2, ids, size, nfld, true/*shared*/);
 
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;
@@ -3230,7 +3230,7 @@ PyObject* K_INTERSECTOR::getFaces(PyObject* self, PyObject* args)
   E_Int* pgids=NULL;
   E_Int size, nfld;
   if (arr2 != Py_None)
-    res = K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld, true/*shared*/, 0);
+    res = K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld, true/*shared*/);
 
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;

@@ -78,8 +78,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /*-----------------------*/
   FldArrayF* donorCoefsF;
   E_Boolean shared=true;
-  E_Boolean inverse = false;
-  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, shared, inverse);
+  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, shared);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);

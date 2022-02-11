@@ -56,7 +56,7 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
   {
     skipPGids = new std::vector<E_Int>;
     E_Int *ptL, size, nfld;
-    K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld, true/* shared*/, false/* inverse*/);
+    K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld, true/* shared*/);
     skipPGids->insert(skipPGids->end(), ptL, ptL + size);
   }
     
