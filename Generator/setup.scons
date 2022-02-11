@@ -57,7 +57,11 @@ env = Dist.createFortranBuilder(env, [kcoreIncDir])
 ppf = Dist.createFortranFiles(env, srcs)
 
 #==============================================================================
-# Modification pour compiler certains fichiers specifiquement
+# Quarantaine
+# Modification pour compiler certains fichiers
+
+# modif optimisation
+files = ["Generator/Tetgen/predicates.cxx", "Generator/Tetgen/tetgen.cxx"]
 cppOpts = Dist.getCppArgs()
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     flags = ''
@@ -65,19 +69,31 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
         if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
     flags += '-fp-model=strict -O2'
     for i in range(len(srcs.cpp_srcs2)):
-        if srcs.cpp_srcs2[i] == "Generator/Tetgen/predicates.cxx":
-            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/predicates.cxx", CXXFLAGS=flags)
-        if srcs.cpp_srcs2[i] == "Generator/Tetgen/tetgen.cxx": 
-            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/tetgen.cxx", CXXFLAGS=flags)
+        for f in files:
+            if srcs.cpp_srcs2[i] == f:
+                srcs.cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags)
+        
 if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler == 'x86_64-w64-mingw32-gcc':
     flags = ''
     for i in cppOpts: 
         if i[0:2] != '-O': flags += i+' '
     for i in range(len(srcs.cpp_srcs2)):
-        if srcs.cpp_srcs2[i] == "Generator/Tetgen/predicates.cxx":
-            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/predicates.cxx", CXXFLAGS=flags+'-O0')
-        if srcs.cpp_srcs2[i] == "Generator/Tetgen/tetgen.cxx": 
-            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/tetgen.cxx", CXXFLAGS=flags+'-O2')
+        for f in files:
+            if srcs.cpp_srcs2[i] == f:
+                print('altering', f)
+                srcs.cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags+'-O0')
+
+files = ["Generator/T3Mesher2D.cpp"]
+flags = ''
+for i in cppOpts: 
+    if i[0:11] != '-xCORE-AVX2': flags += i+' '
+for i in range(len(srcs.cpp_srcs)):
+    for f in files:
+        if srcs.cpp_srcs2[i] == f:
+            print('altering',f)
+            srcs.cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags)
+
+#==============================================================================
 
 myMod = env.StaticLibrary('generator', srcs.cpp_srcs)
 myMod2 = env.StaticLibrary('generator2', srcs.cpp_srcs2)

@@ -297,7 +297,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
         //         MPI_COMM_WORLD, &mstatus);
         //MPI_Recv(localDepth, screenSize, MPI_FLOAT, source, 101, 
         //         MPI_COMM_WORLD, &mstatus);
-	//printf("receiving from %d.\n", source); fflush(stdout);
+        //printf("receiving from %d.\n", source); fflush(stdout);
 
         MPI_Recv(localBuf, screenSize*4, MPI_BYTE, MPI_ANY_SOURCE, 100, 
                  MPI_COMM_WORLD, &mstatus);

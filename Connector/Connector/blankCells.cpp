@@ -1353,7 +1353,7 @@ void K_CONNECTOR::blankCellsStruct(
 
       if (isMasked == 1)
       {
-          k6adjustcellnaturefield_(blankedCells.getSize(),
+        k6adjustcellnaturefield_(blankedCells.getSize(),
                                     blankedCells.begin(),
                                     cellN.begin());
 

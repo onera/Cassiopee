@@ -660,7 +660,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             E_Int* indices      = new E_Int[size];
             E_Int* indicesBuf   = (E_Int*) buf;
             E_Int npts = size;
-            buf+=size*4;
+            buf += size*4;
 
             // Tableau des X
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
@@ -746,7 +746,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             E_Int* indicesBuf   = (E_Int*) buf;
             E_Int npts = size;
             PyObject* PyNpts = PyLong_FromLong(size);
-            buf+=size*4;
+            buf += size*4;
 
             // Nom des fields
             (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[%d][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};

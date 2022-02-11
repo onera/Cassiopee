@@ -51,7 +51,6 @@ PyObject* K_CONVERTER::createBBTree(PyObject* self, PyObject* args)
     }
 
     K_SEARCH::BbTree3D* BBTree = new K_SEARCH::BbTree3D(BBoxes);
-    
 
     PyObject* hook;
     void** packet = new void* [1];
@@ -69,14 +68,11 @@ PyObject* K_CONVERTER::createBBTree(PyObject* self, PyObject* args)
 // Return intersection of a box with hook stored bbtree
 PyObject* K_CONVERTER::intersect(PyObject* self, PyObject* args)
 {
-    PyObject* pymBB;
-    PyObject* pyMBB;
-    PyObject* hook;
+    PyObject* pymBB; PyObject* pyMBB; PyObject* hook;
     if (!PYPARSETUPLEI(args, "OOO", "OOO", &pymBB, &pyMBB, &hook)) return NULL;
 
     // Calcul de la BB de la zone
-    E_Float mBB[3];
-    E_Float MBB[3];
+    E_Float mBB[3]; E_Float MBB[3];
 
     mBB[0] = PyFloat_AsDouble(PyList_GetItem(pymBB, 0));
     mBB[1] = PyFloat_AsDouble(PyList_GetItem(pymBB, 1));
@@ -116,8 +112,7 @@ PyObject* K_CONVERTER::intersect(PyObject* self, PyObject* args)
 // Return intersection of a list of boxes with hook stored bbtree
 PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
 {
-    PyObject* hook;
-    PyObject* inBB;
+    PyObject* hook; PyObject* inBB;
     if (!PYPARSETUPLEI(args, "OO", "OO", &inBB, &hook)) return NULL;
 
     // recupere le hook
@@ -193,7 +188,6 @@ PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
             PyList_SET_ITEM(l, j, PyLong_FromLong(out[i][j]));
         }
     }
-    //printf("fin build\n"); fflush(stdout);
     RELEASESHAREDN(inBB, f);
     
     return listOfIntersection;
