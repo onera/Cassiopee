@@ -47,7 +47,7 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, cn, eltType); 
-  if ( res < 0 )
+  if (res < 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "move: 1st arg is an invalid array.");
@@ -74,7 +74,7 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
 #pragma omp parallel shared (npts, fx, fy, fz, cx, cy, cz, dx, dy, dz, r11, r12, r13, r21, r22, r23, r31, r32, r33) if (npts > 100)
   {
     E_Float x, y, z;
-  #pragma omp for nowait
+  #pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
       x = fx[ind]; y = fy[ind]; z = fz[ind];

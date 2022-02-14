@@ -31,34 +31,36 @@ PyObject* K_RIGIDMOTION::copyCoords(PyObject* self, PyObject* args)
     
     if (!PyArg_ParseTuple(args, "OOOOOO", &xin, &yin, &zin, &xout, &yout, &zout)) return NULL;
     
-    E_Int size; E_Int nfld;
+    E_Int size;
     E_Float *xi, *yi, *zi;
-    K_NUMPY::getFromNumpyArray(xin, xi, size, nfld, true);
-    K_NUMPY::getFromNumpyArray(yin, yi, size, nfld, true);
-    K_NUMPY::getFromNumpyArray(zin, zi, size, nfld, true);
+    K_NUMPY::getFromNumpyArray(xin, xi, size, true);
+    K_NUMPY::getFromNumpyArray(yin, yi, size, true);
+    K_NUMPY::getFromNumpyArray(zin, zi, size, true);
     E_Float *xo, *yo, *zo;
-    K_NUMPY::getFromNumpyArray(xout, xo, size, nfld, true);
-    K_NUMPY::getFromNumpyArray(yout, yo, size, nfld, true);
-    K_NUMPY::getFromNumpyArray(zout, zo, size, nfld, true);
-    
+    K_NUMPY::getFromNumpyArray(xout, xo, size, true);
+    K_NUMPY::getFromNumpyArray(yout, yo, size, true);
+    K_NUMPY::getFromNumpyArray(zout, zo, size, true);
+
 #pragma omp parallel
     {
 #pragma omp for
-        for (E_Int i = 0; i < size*nfld; i++)
+        for (E_Int i = 0; i < size; i++)
         {
             xo[i] = xi[i];
         }
 #pragma omp for
-        for (E_Int i = 0; i < size*nfld; i++)
+        for (E_Int i = 0; i < size; i++)
         {
             yo[i] = yi[i];
         }
 #pragma omp for
-        for (E_Int i = 0; i < size*nfld; i++)
+        for (E_Int i = 0; i < size; i++)
         {
             zo[i] = zi[i];
         }
     }
+    Py_DECREF(xin); Py_DECREF(yin); Py_DECREF(zin);
+    Py_DECREF(xout); Py_DECREF(yout); Py_DECREF(zout);
     Py_INCREF(Py_None);
     return Py_None;
 }

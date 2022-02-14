@@ -44,12 +44,14 @@ namespace K_NUMPY
      o est incrementee
      Si shared=false, le tableau est une copie du numpy.
      Retourne 0 (FAIL), 1 (SUCCESS) */
-  E_Int getFromNumpyArray(PyObject* o, FldArrayI*& f, E_Boolean shared=false);
-  E_Int getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Boolean shared=false);
-  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld, E_Boolean shared=false);
-  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Int& nfld, E_Boolean shared=false);
+  E_Int getFromNumpyArray(PyObject* o, FldArrayI*& f, E_Boolean shared);
+  E_Int getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Boolean shared);
+  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld, E_Boolean shared);
+  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Boolean shared);
+  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Int& nfld, E_Boolean shared);
+  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Boolean shared);
 
-  // identical to getFromNumpy but return a flat array in case if (1,nb) arrays
+  // identical to getFromNumpy but return a flat array in case of (1,nb) arrays
   E_Int getFromPointList(PyObject* o, FldArrayI*& f, E_Boolean shared=false);
   E_Int getFromPointList(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld, E_Boolean shared=false);
 
