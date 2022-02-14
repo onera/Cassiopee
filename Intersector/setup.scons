@@ -76,7 +76,18 @@ env = Dist.createFortranBuilder(env, [kcoreIncDir])
 ppf = Dist.createFortranFiles(env, srcs)
 
 #==============================================================================
-  
+cppOpts = Dist.getCppArgs()
+
+# Suppression vectorisation pour tous les fichiers
+flags = ''
+for i in cppOpts: 
+    if i[0:7] != '-xCORE-' and i[0:5] != '-mavx': flags += i+' '
+for i in range(len(srcs.cpp_srcs)):
+    print('altering',i,flags)
+    srcs.cpp_srcs[i] = env.Object(srcs.cpp_srcs[i], CXXFLAGS=flags)
+       
+#==============================================================================	
+
 myMod = env.StaticLibrary('intersector', srcs.cpp_srcs+ppf)
 modDir = installPath+'/Intersector/'
 dp1 = env.Install(modDir, myMod)
