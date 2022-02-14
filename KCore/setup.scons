@@ -62,11 +62,11 @@ env.Command('libkcore.a', ['libkcore1.a', 'libkcore2.a', 'merge.l'], "ar -M < me
 cppOpts = Dist.getCppArgs()
 flags = ''
 for i in cppOpts: 
-    if i[0:7] != '-xCORE-' or i[0:5] != '-mavx' : flags += i+' '
+    if i[0:7] != '-xCORE-' and i[0:5] != '-mavx' : flags += i+' '
 for i in range(len(cpp_srcs2)):
     f = cpp_srcs2[i]   
     if "KCore/Nuga" in f:
-        #print('altering',f)
+        #print('altering',f,flags)
         cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags)
 
 #==============================================================================

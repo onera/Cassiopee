@@ -69,6 +69,7 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     for i in range(len(srcs.cpp_srcs2)):
         for f in files:
             if srcs.cpp_srcs2[i] == f:
+	        #print('altering', f,flags)
                 srcs.cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags)
         
 if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler == 'x86_64-w64-mingw32-gcc':
@@ -78,18 +79,18 @@ if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler =
     for i in range(len(srcs.cpp_srcs2)):
         for f in files:
             if srcs.cpp_srcs2[i] == f:
-                print('altering', f)
+                #print('altering', f,flags)
                 srcs.cpp_srcs2[i] = env.Object(f, CXXFLAGS=flags+'-O0')
 
 # Suppression vectorisation pour T3mesher et gapfixer
 files = ["Generator/T3mesher2D.cpp", "Generator/gapfixer.cpp"]
 flags = ''
 for i in cppOpts: 
-    if i[0:11] != '-xCORE-AVX2': flags += i+' '
+    if i[0:7] != '-xCORE-' and i[0:5] != '-mavx': flags += i+' '
 for i in range(len(srcs.cpp_srcs)):
     for f in files:
         if srcs.cpp_srcs[i] == f:
-            print('altering',f)
+            #print('altering',f,flags)
             srcs.cpp_srcs[i] = env.Object(f, CXXFLAGS=flags)
 
 #==============================================================================
