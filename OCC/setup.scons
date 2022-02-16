@@ -35,7 +35,7 @@ installPath = Dist.getInstallPath(prefix)
                                                    additionalIncludePaths)
 
 if OCEPresent:
-        # Utilise la version installe dans le systeme
+        # Utilise la version installee dans le systeme
         OCCIncDir = OCEIncDir
 else:
         # Utilise la version installee dans OCC

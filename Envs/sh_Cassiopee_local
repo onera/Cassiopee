@@ -71,6 +71,27 @@ if [ "$MAC" = "ld" ]; then
     export LD_LIBRARY_PATHL=/stck/benoit/lib:/stck/benoit/opencascade/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
 
+elif [ "$MAC" = "ld_eos8" ]; then
+#------------------------------- ld centos 8 + python 3 -----------------------------------
+    export ELSAPROD=eos8_r8
+    #module unload $(module -t list 2>&1 | grep -i intel)
+    module load oce/7.5.0-gnu831
+    module load python/3.6.1-gnu831
+    # Set next two lines only if python is not python
+    export PYTHONEXE=python3
+    alias python=python3
+    module load intel/21.2.0
+    module load impi/21.2.0
+    module load hdf5/1.8.17-intel2120
+    # Nbre de threads
+    ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
+    ncpu=$((ncpu + 1 ))
+    export OMP_NUM_THREADS=$ncpu
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+    
 elif [ "$MAC" = "ld_python2" ]; then
 #------------------------------- ld centos 7 -----------------------------------
     export ELSAPROD=x86_r8
