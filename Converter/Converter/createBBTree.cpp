@@ -29,13 +29,12 @@ PyObject* K_CONVERTER::createBBTree(PyObject* self, PyObject* args)
     if (!PYPARSETUPLEI(args, "OO", "OO", &pymBB, &pyMBB)) return NULL;
 
     E_Int nBB = PyList_Size(pyMBB);
-
     E_Float mBB[3];
     E_Float MBB[3];
 
     std::vector<K_SEARCH::BBox3D*> BBoxes(nBB);
 
-    for (E_Int i=0; i<nBB; i++)
+    for (E_Int i = 0; i < nBB; i++)
     {
         PyObject* pyMin = PyList_GetItem(pymBB, i);
         PyObject* pyMax = PyList_GetItem(pyMBB, i);
@@ -101,7 +100,7 @@ PyObject* K_CONVERTER::intersect(PyObject* self, PyObject* args)
     E_Int nIntersect = BBintersected.size();
 
     PyObject* listOfIntersection = PyList_New(nIntersect);
-    for (E_Int i=0; i < nIntersect; i++)
+    for (E_Int i = 0; i < nIntersect; i++)
     {
         PyList_SET_ITEM(listOfIntersection, i, PyLong_FromLong(BBintersected[i]));
     }
@@ -126,7 +125,6 @@ PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
     K_SEARCH::BbTree3D* BBTree = (K_SEARCH::BbTree3D*)packet[0]; 
 
     FldArrayF* f;
-    //E_Int ret = 
     K_NUMPY::getFromNumpyArray(inBB, f, true);
     E_Int size = f->getSize()/6;
     E_Float* fp = f->begin();

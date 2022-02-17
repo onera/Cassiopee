@@ -185,7 +185,6 @@ PyObject* K_CONVERTER::nullifyVectorAtBCFaceStruct(PyObject* self, PyObject* arg
   RELEASESHAREDN(dataBCX, fXInt);
   RELEASESHAREDN(dataBCY, fYInt);
   RELEASESHAREDN(dataBCZ, fZInt);
-
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   Py_INCREF(Py_None);
   return Py_None;  

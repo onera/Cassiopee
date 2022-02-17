@@ -44,20 +44,18 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
                      &cx, &cy, &cz,
                      &kx, &ky, &kz)) return NULL;
   // Check numpys
-  E_Float* x; E_Int size; E_Int nfld;
-  K_NUMPY::getFromNumpyArray(xo, x, size, nfld, true);
+  E_Float* x; E_Int size;
+  K_NUMPY::getFromNumpyArray(xo, x, size, true);
   E_Float* y;
-  K_NUMPY::getFromNumpyArray(yo, y, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(yo, y, size, true);
   E_Float* z;
-  K_NUMPY::getFromNumpyArray(zo, z, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(zo, z, size, true);
   E_Float* sx;
-  K_NUMPY::getFromNumpyArray(sxo, sx, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(sxo, sx, size, true);
   E_Float* sy;
-  K_NUMPY::getFromNumpyArray(syo, sy, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(syo, sy, size, true);
   E_Float* sz;
-  K_NUMPY::getFromNumpyArray(szo, sz, size, nfld, true);
-
-  size = size*nfld;
+  K_NUMPY::getFromNumpyArray(szo, sz, size, true);
   
 #pragma omp parallel
   {
@@ -94,6 +92,8 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
       //printf("%f %f %f\n",sx[i],sy[i],sz[i]);
     }
   }
+  Py_DECREF(xo); Py_DECREF(yo); Py_DECREF(zo);
+  Py_DECREF(sxo); Py_DECREF(syo); Py_DECREF(szo);
   Py_INCREF(Py_None);
   return Py_None; 
 }

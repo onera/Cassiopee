@@ -44,7 +44,7 @@ else:
         #OCCIncDir = KCore.installPath.includePath
         #OCCIncDir = os.path.dirname(OCCIncDir)
         #OCCIncDir = os.path.join(OCCIncDir, 'OCC/OCC/occ_inc')
-        print("Warning: open cascade not found on your system. OCC not instaled.")
+        print("Warning: open cascade not found on your system. OCC not installed.")
         os._exit(0) # do not end compilation
 
 # Setting libraryDirs and libraries ===========================================

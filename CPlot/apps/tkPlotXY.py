@@ -41,6 +41,8 @@ except ImportError:
 try:
     from matplotlib.widgets import SubplotTool
     import matplotlib
+    import matplotlib.cbook
+    import matplotlib.lines as mlines
     # Fit matplotlib usage
     matplotlib.use('TkAgg') # avec Tk
     #matplotlib.use('Agg') # sans serveur X
@@ -417,8 +419,8 @@ def createFonts():
         plt.rcParams['font.family'] = init_rcparams
     else:
         import sys
-        import StringIO
-
+        try: import StringIO
+        except: from io import StringIO
         init_rcparams = plt.rcParams['font.family']
         # 1/- Make a copy of sys.stderr.
         stdout_store = sys.stdout
@@ -453,6 +455,78 @@ def createFonts():
         temp_err.close()
         plt.rcParams['font.family']=init_rcparams
     return font_dic
+
+# ==============================================================================
+class InteractiveLegend(object):
+    def __init__(self, legend):
+        self.legend = legend
+        self.fig = legend.axes.figure
+        self.lookup_artist, self.lookup_handle = self._build_lookups(legend)
+        self._setup_connections()
+        self.update()
+
+    def _setup_connections(self):
+        for artist in self.legend.texts + self.legend.legendHandles:
+            artist.set_picker(10) # 10 points tolerance
+        self.fig.canvas.mpl_connect('pick_event', self.on_pick)
+        print("set pick on ", self.fig.canvas)
+        #self.fig.canvas.mpl_connect('button_press_event', self.on_click) # a merger avec le deplacement
+
+    def _build_lookups(self, legend):
+        labels = [t.get_text() for t in legend.texts]
+        handles = legend.legendHandles
+        label2handle = dict(zip(labels, handles))
+        handle2text = dict(zip(handles, legend.texts))
+
+        lookup_artist = {}
+        lookup_handle = {}
+        for artist in legend.axes.get_children():
+            alabel = artist.get_label()
+            if isinstance(alabel, str) and '_line' in alabel:
+                no = alabel[5:]
+                no = int(no)
+                name = labels[no]
+                handle = label2handle[name]
+                lookup_handle[artist] = handle
+                lookup_artist[handle] = artist
+                lookup_artist[handle2text[handle]] = artist
+
+        lookup_handle.update(zip(handles, handles))
+        lookup_handle.update(zip(legend.texts, handles))
+
+        return lookup_artist, lookup_handle
+
+    def on_pick(self, event):
+        handle = event.artist
+        print('on pick toggle - lost')
+        if handle in self.lookup_artist:
+            print('toggle')
+            artist = self.lookup_artist[handle]
+            artist.set_visible(not artist.get_visible())
+            self.update()
+
+    def on_click(self, event):
+        if event.button == 3: visible = False
+        elif event.button == 2: visible = True
+        else: return
+        for artist in self.lookup_artist.values():
+            artist.set_visible(visible)
+        self.update()
+
+    def update(self):
+        for artist in self.lookup_artist.values():
+            handle = self.lookup_handle[artist]
+            if artist.get_visible(): handle.set_visible(True)
+            else: handle.set_visible(False)
+        self.fig.canvas.draw()
+
+    def show(self):
+        plt.show()
+
+def interactive_legend(ax=None):
+    if ax is None: ax = plt.gca()
+    if ax.legend_ is None: ax.legend()
+    return InteractiveLegend(ax.get_legend())
 
 # ==============================================================================
 class editTextWindow(TK.Toplevel):
@@ -7140,7 +7214,6 @@ class editLegendWindow(TK.Toplevel):
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.legend_title_sizeItem.append(B)
 
-
         ########################################################
         ## Legend label(s)
         lblframe = TTK.LabelFrame(self.frame,text='Legend Label(s)')
@@ -9489,7 +9562,6 @@ class GraphTK(TK.Toplevel):
 
         # Canvas
         self.canvas = FigureCanvasTkAgg(self.fig.instance,self.frame)
-        
         self.canvas.get_tk_widget().grid_columnconfigure(0,weight=1)
         self.canvas.get_tk_widget().grid_rowconfigure(0,weight=1)
         self.canvas.get_tk_widget().grid(row=0,column=0,sticky="NSEW")
@@ -9570,13 +9642,13 @@ class GraphTK(TK.Toplevel):
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        elif (shared == 'x') or (shared == 'X'):
+        elif shared == 'x' or shared == 'X':
             self.fig.subGraph[iCurSubGraph].addAxisTwinX(axis_to_twin)
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        elif (shared == 'y') or (shared == 'Y'):
+        elif shared == 'y' or shared == 'Y':
             self.fig.subGraph[iCurSubGraph].addAxisTwinY(axis_to_twin)
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
@@ -9649,6 +9721,7 @@ class GraphTK(TK.Toplevel):
         # End of update --
 
         # draw
+        print('draw on', self.canvas)
         self.canvas.draw()
     
     @staticmethod
@@ -10049,13 +10122,13 @@ class Graph():
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        elif (shared == 'x') or (shared == 'X'):
+        elif shared == 'x' or shared == 'X':
             self.fig.subGraph[iCurSubGraph].addAxisTwinX(axis_to_twin)
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        elif (shared == 'y') or (shared == 'Y'):
+        elif shared == 'y' or shared == 'Y':
             self.fig.subGraph[iCurSubGraph].addAxisTwinY(axis_to_twin)
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
@@ -12353,9 +12426,9 @@ class DesktopFrameTK(TK.Frame):
                             if not basename+'/'+zonename in self.data: self.data[basename+'/'+zonename]={}
                             self.data[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
     # ---------------------------------------------------------- addZoneWithDict
-    def addZoneWithDict(self,d,zoneName):
+    def addZoneWithDict(self, d, zoneName):
         if zoneName in d: self.data[zoneName] = d[zoneName]
-        else: print('''### Warning: Can not find zone %s in submitted data.'''%newZoneName)
+        else: print('''### Warning: Can not find zone %s in submitted data.'''%zoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         for k in self.data.copy():
@@ -13201,8 +13274,8 @@ class DesktopFrameTK(TK.Frame):
                 # Check contents of message and do what it says
                 # As a test, we simply print it
                 self.updateAllGraph()
-            except Queue.Empty:
-                pass
+            except: pass
+
     # ----------------------------------------------------------- updateAllGraph
     def updateAllGraph(self):
         for graph in self.graphWdwL:
@@ -13235,8 +13308,8 @@ class DesktopTK(TK.Tk):
     def replaceGroupZonesWithDict(self,d,oldZoneList):
         self.desktopFrameTK.replaceGroupZonesWithDict(d,oldZoneList)
     # -------------------------------------------------------------- replaceGroupZones
-    def replaceGroupZones(self,data,oldZoneList):
-        self.desktopFrameTK.replaceGroupZones(d,oldZoneList)
+    def replaceGroupZones(self, d, oldZoneList):
+        self.desktopFrameTK.replaceGroupZones(d, oldZoneList)
     # ------------------------------------------------------ replaceGroupZonesWithTree
     def replaceGroupZonesWithTree(self,d,oldZoneList):
         self.desktopFrameTK.replaceGroupZonesWithTree(d,oldZoneList)
@@ -13379,9 +13452,9 @@ class Desktop():
                                 self.data[basename+'/'+zonename]={}
                             self.data[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
     # ---------------------------------------------------------- addZoneWithDict
-    def addZoneWithDict(self,d,zoneName):
-        if zoneName in d: self.data[zoneName]=d[zoneName]
-        else: print('''### Warning: Can not find zone %s in submitted data.'''%newZoneName)
+    def addZoneWithDict(self, d, zoneName):
+        if zoneName in d: self.data[zoneName] = d[zoneName]
+        else: print('''### Warning: Can not find zone %s in submitted data.'''%zoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         """
@@ -13865,8 +13938,8 @@ class Desktop():
                 # Check contents of message and do what it says
                 # As a test, we simply print it
                 self.updateAllGraph()
-            except Queue.Empty:
-                pass
+            except: pass
+
     # ----------------------------------------------------------- updateAllGraph
     def updateAllGraph(self):
         for graph in self.graphWdwL:
@@ -14293,7 +14366,7 @@ class MatplotlibFigure():
                                 'style':self.subGraph[iCurSubGraph].legend_property.legend_label_style}
             legend = self.subGraph[iCurSubGraph].axis[iCurrentAxis].legend(legend_list,legend_text,loc=self.subGraph[iCurSubGraph].legend_property.legend_position,
                                         ncol=self.subGraph[iCurSubGraph].legend_property.legend_ncol,
-                                        prop = legend_label_prop) # Can add the frameon=True option to activate/desactivate the frame (border + background) for legend
+                                        prop = legend_label_prop) # Can add the frameon=True option to activate/desactivate the frame (border + background) for legend        
         ## ## LEGEND LABEL
             for text in legend.get_texts():
                 text.set_color(self.subGraph[iCurSubGraph].legend_property.legend_label_color)
@@ -14964,7 +15037,7 @@ class Text:
             lines += ''', text_color='%s' '''%(self.text_color)
         if self.font_type            != default_values['Text']['font_type']    :
             lines += ''', font_type='%s' '''%(self.font_type)
-        if self.police            != font_dico[default_values['Text']['font_type']][0]    :
+        if self.police            != font_dic[default_values['Text']['font_type']][0]    :
             lines += ''', police='%s' '''%(self.police)
         if self.font_style            != default_values['Text']['font_style']    :
             lines += ''', font_style='%s' '''%(self.font_style)
@@ -15011,7 +15084,7 @@ class Shape:
 
 
     # ------------------------------------------------------------------- setVal
-    def setValue(self,variable,value):
+    def setValue(self, variable, value):
         if variable == 'zone': self.zone = value
         elif variable == 'shape_type': self.shape_type = value
         elif variable == 'points': self.points = value

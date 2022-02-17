@@ -2032,12 +2032,11 @@ def createFortranBuilder(env, dirs=[]):
      fortran_builder = Builder(action='$FORTRANCOM',
                                suffix='.o', src_suffix='.f')
      env.Append(BUILDERS={'Fortran': fortran_builder})
-     env.Replace(FORTRANFLAGS=getForArgs())
      env.Replace(FORTRANCOM='$FORTRAN $FORTRANFLAGS -c -o $TARGET $SOURCE')
      env.Replace(FORTRANSUFFIXES=['.f', '.F', '.f90', '.F90'])
-
-     env.Replace(F90FLAGS=getForArgs())
-     env.Replace(F95FLAGS=getForArgs())
+     #env.Replace(FORTRANFLAGS=getForArgs())
+     #env.Replace(F90FLAGS=getForArgs())
+     #env.Replace(F95FLAGS=getForArgs())
      #env.Replace(SHF90=f90compiler)
      #env.Replace(SHF95=f90compiler)
      pref = getFortranModDirPrefix()

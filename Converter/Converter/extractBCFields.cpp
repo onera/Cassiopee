@@ -33,7 +33,7 @@ PyObject* K_CONVERTER::extractBCFields(PyObject* self, PyObject* args)
                      &locI, 
                      &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) 
     return NULL; 
-  if ( locI != 1 )
+  if (locI != 1)
   {
     PyErr_SetString(PyExc_TypeError, "extractBCFields: not yet implemented for fields located at nodes.");
     return NULL;

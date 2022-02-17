@@ -238,7 +238,8 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
     E_Int c, r;
     bool buildit = true;
       
-    if (oo != Py_None){
+    if (oo != Py_None)
+    {
       ok = K_NUMPY::getFromNumpyArray(oo, f2es[i], c, r, true/*shared*/);
       buildit = !ok;
     }

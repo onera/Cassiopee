@@ -59,7 +59,7 @@ True, # useCuda
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
-['-Wno-attributes'], # CppAdditionalOptions
+['-Wno-attributes', '-DSIMD=AVX2'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static

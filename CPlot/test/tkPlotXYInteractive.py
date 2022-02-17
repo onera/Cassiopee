@@ -32,4 +32,6 @@ graph0.addCurve('1:1', curve0)
 #graph0.updateGraph('1:1')
 
 #desktop.cmd_editCurves()
+#leg = tkPlotXY.interactive_legend()
+
 win.mainloop()
