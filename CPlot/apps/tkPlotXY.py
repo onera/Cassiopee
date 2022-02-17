@@ -61,7 +61,7 @@ try:
     #pltBottom = plt.rcParams.get('figure.subplot.bottom')
     pltWSpace = plt.rcParams.get('figure.subplot.wspace')
     pltHSpace = plt.rcParams.get('figure.subplot.hspace')
-    
+    pltFontSize = plt.rcParams.get('font.size')
     # subplot param en dur
     pltLeft = 0.15
     pltRight = 0.95
@@ -77,6 +77,7 @@ except:
     pltBottom = 0.1
     pltWSpace = 0.2
     pltHSpace = 0.2
+    pltFontSize = 14.
     class NavigationToolbar2Tk:
         def __init__(self): return
 
@@ -348,8 +349,8 @@ default_values = {
             'axis_y_position' : 'both',
             'axis_x_offset' : 0.,
             'axis_y_offset' : 0.,
-            'axis_x_label_fontsize' : plt.rcParams.get('font.size'),
-            'axis_y_label_fontsize' : plt.rcParams.get('font.size'),
+            'axis_x_label_fontsize' : pltFontSize,
+            'axis_y_label_fontsize' : pltFontSize,
             #'axis_x_label_format' : '{x:.2e}',
             #'axis_y_label_format' : '{x:.2e}',
             'axis_x_label_format' : '{x:.5g}',

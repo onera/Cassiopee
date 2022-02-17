@@ -20,6 +20,7 @@
 #define _CONVERTER_CONVERTER_H_
 
 # include "kcore.h"
+
 namespace K_CONVERTER
 {
   // # define QUADDOUBLE

@@ -14,6 +14,9 @@ import os
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
@@ -32,7 +35,7 @@ if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
-includeDirs = [kcoreIncDir, generatorIncDir]
+includeDirs = [numpyIncDir, kcoreIncDir, generatorIncDir]
 #libraries = ["occ_cassiopee", "generator", "converter", "kcore"]
 libraries = ["occ_cassiopee", "generator", "kcore"]
 

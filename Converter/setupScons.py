@@ -60,7 +60,7 @@ if mpi4py:
     includeDirs.append(mpi4pyIncDir)
 
 if hdf: 
-  for l in hdflibs : libraries.append(l)
+  for l in hdflibs: libraries.append(l)
 if png: libraries.append('png')
 if mpi: libraries += mpiLibs
 
