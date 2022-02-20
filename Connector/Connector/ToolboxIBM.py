@@ -692,7 +692,8 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
                     snearl = Internal.getNodeFromName1(sdd, "snear")
                     if snearl is not None: 
                         snearl = Internal.getValue(snearl)
-                        snearsf.append(snearl) 
+                        snearsf.append(snearl*(vmin-1))
+
  
     to = C.newPyTree(['Base', o])
     end = 0
@@ -708,7 +709,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
         nob = 0
         C._initVars(to, 'centers:indicator', 0.)
         for box in boxes:
-            volmin2 = 1.09*(snearsf[nob]*(vmin-1))**(dim)
+            volmin2 = 1.09*(snearsf[nob])**(dim)
             C._initVars(to,'centers:cellN',1.)
             tboxl = C.newPyTree(['BOXLOC']); tboxl[2][1][2] = box
             to = blankByIBCBodies(to, tboxl, 'centers', dim)
