@@ -91,19 +91,25 @@ ppf = Dist.createFortranFiles(env, srcs)
 #==============================================================================
 # Modification pour compiler certains fichiers specifiquement
 cppOpts = Dist.getCppArgs()
+files = ["Converter/hook.cpp", "Converter/identify.cpp", "Converter/nearest.cpp"]
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     flags = ''
     for i in cppOpts:
         if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
     flags += '-fp-model=strict -O2'
     for i, v in enumerate(srcs.cpp_srcs):
-        if v == "Converter/hook.cpp":
-            srcs.cpp_srcs[i] = env.Object("Converter/hook.cpp", CXXFLAGS=flags)
-        if v == "Converter/identify.cpp": 
-            srcs.cpp_srcs[i] = env.Object("Converter/identify.cpp", CXXFLAGS=flags)
-        if v == "Converter/nearest.cpp":
-            srcs.cpp_srcs[i] = env.Object("Converter/nearest.cpp", CXXFLAGS=flags)
-            
+        if v in files: srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
+
+# Suppression vectorisation pour certains fichiers
+files = ['Converter/cpyGhost2Real.cpp', 'Converter/fillCornerGhostCells.cpp',]
+flags = ''
+for i in cppOpts: 
+    if i[0:7] != '-xCORE-' and i[0:5] != '-mavx': flags += i+' '
+for i, v in enumerate(srcs.cpp_srcs):
+    if v in files:
+       #print('altering',v,flags)
+       srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
+
 myMod = env.StaticLibrary('converter', srcs.cpp_srcs+ppf)
 modDir = installPath+'/Converter/'
 dp1 = env.Install(modDir, myMod)

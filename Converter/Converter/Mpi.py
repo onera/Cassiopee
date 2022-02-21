@@ -53,7 +53,7 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     tl = convert2PartialTree(tl)
     # print info
     #zones = Internal.getZones(tl)
-    #print 'Rank %d has %d zones.'%(rank, len(zones))
+    #print('Rank %d has %d zones.'%(rank, len(zones)))
     tl = C.center2Node(tl, var, cellNType)
     tl = rmXZones(tl)
     return tl

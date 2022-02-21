@@ -1643,7 +1643,7 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                 #zp1= Internal.copyRef(z)
                 c1            = 0
                 nbElts_inf = dims_woghost[c][1]+1
-                print('Traitement zone',z[0],c)
+                #print('Traitement zone',z[0],c)
                 for g in gc:
                     faceListD= Internal.getNodeFromName1(g, 'PointListDonor')[1]
                     faceListR= Internal.getNodeFromName1(g, 'PointList')[1]
@@ -1696,13 +1696,13 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                 b[2][c] = zp
             c += 1
 
-    #on renome les nom de zones dans les connectivite
+    # on renome les nom de zones dans les connectivite
     zones = Internal.getZones(tpp)
     for z in zones:
        gc = Internal.getNodesFromType2(z, 'GridConnectivity_t')
        for g in gc:
            old_name = Internal.getValue(g)
-           #print 'oldname ',  old_name, 'et newname: ',znameD[ old_name ]
+           #print('oldname ',  old_name, 'et newname: ',znameD[ old_name ])
            Internal.setValue(g, znameD[ old_name ] )
 
     tp = Internal.pyTree2Node(tpp, ntype)
@@ -1738,7 +1738,7 @@ def adapt2FastP(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1)
+        #print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1)
 
         list_elts.append( elts )
         mask_elts.append( mask )
@@ -1768,7 +1768,7 @@ def adapt2FastP(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2)
+        #print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2)
 
         Nvtx  = z[1][0][0]
         Nelts = z[1][0][1]
@@ -1798,7 +1798,7 @@ def adapt2FastP(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NFaceElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_nf)
 
-        print('zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2])
+        #print('zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2])
         c +=1
 
     #print 'dim_wo final ', dims_woghost
@@ -1965,7 +1965,7 @@ def addGhostCellsNG(t, nlayers=2):
            else:
             bc_type[tmp]=[bc]
        for key in bc_type:
-           print(key, len(bc_type[key]))
+           #print(key, len(bc_type[key]))
            if len(bc_type[key]) != 1:
              size_fen = 0
              min_face= 10000000

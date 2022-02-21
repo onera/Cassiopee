@@ -948,8 +948,7 @@ def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=Tr
                 zones = Internal.getZones(b)
                 for z in zones:
                     zs = getMatchSubZones__(z, procDict, oppNode, depth)
-                    for zp in zs:
-                        print(z[0], 'found',zp[0])
+                    #for zp in zs: print(z[0], 'found',zp[0])
                     if not keepOldNodes:
                         if variables is None: vars = C.getVarNames(zs, excludeXYZ=True)[0]
                         elif variables == []: vars = None
