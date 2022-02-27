@@ -7,10 +7,12 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : SÃ¢m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_VNGON_UNIT_H
 #define NUGA_VNGON_UNIT_H
+
+#include "Nuga/include/allocator.hxx"
 
 namespace NUGA
 {

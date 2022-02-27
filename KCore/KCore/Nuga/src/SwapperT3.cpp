@@ -9,6 +9,8 @@
 */
 //Authors : Sâm Landier (sam.landier@onera.fr)
 
+//#define DEBUG_SWAPPER
+
 #include "Nuga/include/SwapperT3.h"
 #include <map>
 #include <set>
@@ -16,7 +18,8 @@
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/IdTool.h"
 #ifdef DEBUG_SWAPPER
-#include "IO/io.h"
+#include "Nuga/include/medit.hxx"
+std::string wdir = "";
 #endif
 
 //
@@ -278,10 +281,10 @@ E_Int SwapperT3::run (const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArr
   }
 
 #ifdef DEBUG_SWAPPER
-  if (connectSpike.cols()) MIO::write("spike_triangles.mesh", coord, connectSpike, "TRI");
-  if (connectHat.cols()) MIO::write("hat_triangles.mesh", coord, connectHat, "TRI");
-  if (connectSmall.cols()) MIO::write("small_triangles.mesh", coord, connectSmall, "TRI");
-  if (connectUncomp.cols()) MIO::write("uncomp_triangles.mesh", coord, connectUncomp, "TRI");
+  if (connectSpike.cols()) medith::write("spike_triangles.mesh", coord, connectSpike, "TRI");
+  if (connectHat.cols()) medith::write("hat_triangles.mesh", coord, connectHat, "TRI");
+  if (connectSmall.cols()) medith::write("small_triangles.mesh", coord, connectSmall, "TRI");
+  if (connectUncomp.cols()) medith::write("uncomp_triangles.mesh", coord, connectUncomp, "TRI");
 #endif
 
   if (E_to_Pts.empty())
@@ -356,8 +359,8 @@ E_Int SwapperT3::run (const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArr
     }
 
 #ifdef DEBUG_SWAPPER
-    MIO::write("split_triangles.mesh", coord, connectSplit, "TRI");
-    MIO::write("init_triangles.mesh", coord, connectInit, "TRI");
+    medith::write("split_triangles.mesh", coord, connectSplit, "TRI");
+    medith::write("init_triangles.mesh", coord, connectInit, "TRI");
 #endif
 
     keep.resize(new_connect.cols(), true);

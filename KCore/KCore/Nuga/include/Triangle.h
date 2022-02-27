@@ -153,7 +153,7 @@ namespace K_MESH
     static double trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
     static double oriented_trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
 
-    inline static bool fast_is_in_pred(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
+    inline static bool fast_is_in_pred(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2, double RTOL=EPSILON);
 
     /// Returns the rank of N in the storage pointed by pK.
     inline static size_type getLocalNodeId(const size_type* pK, size_type N);
@@ -2127,7 +2127,7 @@ namespace K_MESH
 
   
   inline bool
-    K_MESH::Triangle::fast_is_in_pred(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2)
+    K_MESH::Triangle::fast_is_in_pred(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2, double RTOL)
   {
     double V1[3], V2[3], V3[3];
     NUGA::diff<3>(P0, P, V1);
@@ -2143,15 +2143,19 @@ namespace K_MESH
 
     double w[3];
 
+    double srefm1 = 1. / surface<3>(P0, P1, P2);
+
     NUGA::crossProduct<3>(V1, V2, w);
-    double s12 = NUGA::dot<3>(n, w);
+    double s12 = NUGA::dot<3>(n, w) * srefm1;
+    s12 = (IS_ZERO(s12, RTOL)) ? 0. : s12;
 
     NUGA::crossProduct<3>(V2, V3, w);
-    double s23 = NUGA::dot<3>(n, w);
+    double s23 = NUGA::dot<3>(n, w) * srefm1;
+    s23 = (IS_ZERO(s23, RTOL)) ? 0. : s23;
 
     NUGA::crossProduct<3>(V3, V1, w);
-    double s31 = NUGA::dot<3>(n, w);
-
+    double s31 = NUGA::dot<3>(n, w) * srefm1;
+    s31 = (IS_ZERO(s31, RTOL)) ? 0. : s31;
 
     double smin = std::min(s12, std::min(s23, s31));
     double smax = std::max(s12, std::max(s23, s31));

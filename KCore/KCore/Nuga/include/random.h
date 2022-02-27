@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #include <random>
 

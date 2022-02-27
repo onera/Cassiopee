@@ -340,7 +340,7 @@ public:
   (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL=0.);
 
   template <typename TriangulatorType>
-  inline int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in);
+  inline int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in, double ATOL=EPSILON);
 
   // Polygon-Edge intersection
   template <typename TriangulatorType>
@@ -1159,7 +1159,7 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
 }
 
 template <typename TriangulatorType>
-inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in)
+inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in, double ATOL)
 {
   pt_is_in = false;
 
@@ -1184,7 +1184,7 @@ inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::Flo
     const double* pt1 = crd.col(T[1]);
     const double* pt2 = crd.col(T[2]);
 
-    pt_is_in = K_MESH::Triangle::fast_is_in_pred(P, pt0, pt1, pt2);
+    pt_is_in = K_MESH::Triangle::fast_is_in_pred(P, pt0, pt1, pt2, ATOL);
   }
 
   return 0;

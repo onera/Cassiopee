@@ -55,14 +55,14 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
   // WARNING : oids might have IDX_NONE (created entities, e.g. internal faces with adaptCells) and is 0-based 
   E_Int nb_pgs = 0;
   for (size_t i=0; i < sz; ++i)
-  {    
+  {
     if (oids[i] == IDX_NONE) continue;
     nb_pgs = std::max(nb_pgs, oids[i]+1);
   }
-  
+
   ngon_unit split_graph;
   K_CONNECT::IdTool::reverse_indirection(nb_pgs,  oids, sz, split_graph);
-  
+
   PyObject *l(PyList_New(0)), *tpl;
   std::vector<E_Int> new_ptl;
 

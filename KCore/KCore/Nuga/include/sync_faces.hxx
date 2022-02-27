@@ -112,17 +112,24 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   for (size_t i = 0; i <npgs; ++i)
     assert(nids[i] == i);
 
+#ifdef DEBUG_MATCH_PERIO
   std::vector<E_Int> left, right, remain;
+#endif
   for (size_t i = npgs; i <nids.size(); ++i)
   {
     if (nids[i] == i)
     {
-      //remain.push_back(i-npgs);
+#ifdef DEBUG_MATCH_PERIO
+      remain.push_back(i - npgs);
+#endif
       continue;
     }
 
+#ifdef DEBUG_MATCH_PERIO
     left.push_back(i - npgs);
     right.push_back(nids[i]);
+#endif
+
     E_Int nid = nids[i];
     nids[i - npgs] = nid;
     nids[nid] = i - npgs;
@@ -131,9 +138,9 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   nids.resize(npgs);
 
 #ifdef DEBUG_MATCH_PERIO
-  medith::write("left", m.crd, m.cnt, &left, 0);
-  medith::write("right", m.crd, m.cnt, &right, 0);
-  //medith::write("remain", crd, PGS, &remain, 0);
+  //medith::write("left", m.crd, m.cnt, &left, 0);
+  //medith::write("right", m.crd, m.cnt, &right, 0);
+  //medith::write("remain", m.crd, m.cnt, &remain, 0);
 #endif
 
   // 5. Filtrate non-perio by boxes
@@ -172,14 +179,14 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
     if (cands.empty()) continue;
 
     /*{
-      K_FLD::FloatArray cc;
-      K_FLD::IntArray ccnt;
-      ngon_type ng;
-      b.convert2NG(cc, ng);
-      ng.export_to_array(ccnt);
-      tp::write("D:\\slandier\\DATA\\tmp\\match_perio\\box.tp", cc, ccnt, "NGON");
+    K_FLD::FloatArray cc;
+    K_FLD::IntArray ccnt;
+    ngon_type ng;
+    b.convert2NG(cc, ng);
+    ng.export_to_array(ccnt);
+    tp::write("D:\\slandier\\DATA\\tmp\\match_perio\\box.tp", cc, ccnt, "NGON");
 
-      medith::write("face", crdR, m.cnt, i);
+    medith::write("face", crdR, m.cnt, i);
     }*/
 
     double n[3], nc[3];
@@ -200,37 +207,27 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
       double ps = NUGA::dot<3>(n, nc);
       if (ps > -0.99) continue;
 
-      /*if (i == 132460 || cand == 132460)
-      {
-        std::ostringstream o;
-        o << "face_" << i;
-        medith::write(o.str().c_str(), crdR, m.cnt, i);
-        o.str("");
-        o << "faceC_" << cand;
-        medith::write(o.str().c_str(), m.crd, m.cnt, cand);
-      }*/
-
-      
       // check for fully-in case : is face fully inside faceC ?
-      bool is_in1{ false };
+      bool is_in2{ false };
+      double RTOL = 1.e-6;
       for (E_Int k = 0; k < face.nb_nodes(); ++k)
       {
         const double * P = crdR.col(face.node(k));
         // if P is in ae1, ae0 is a piece of ae1
-        int err = faceC.fast_is_in_pred(dt, m.crd, P, is_in1);
+        int err = faceC.fast_is_in_pred(dt, m.crd, P, is_in2, RTOL);
         assert(!err);
-        if (!is_in1) break;
+        if (!is_in2) break;
       }
 
       //reciprocal test : is faceC fully inside face ?
-      bool is_in2 {false };
+      bool is_in1{ false };
       for (E_Int k = 0; k < faceC.nb_nodes(); ++k)
       {
         const double * P = m.crd.col(faceC.node(k));
         // if P is in ae1, ae0 is a piece of ae1
-        int err = face.fast_is_in_pred(dt, crdR, P, is_in2);
+        int err = face.fast_is_in_pred(dt, crdR, P, is_in1, RTOL);
         assert(!err);
-        if (!is_in2) break;
+        if (!is_in1) break;
       }
 
       if (!is_in1 && !is_in2) continue;
@@ -238,42 +235,53 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
       if (is_in1 && !is_in2)
       {
         /*std::ostringstream o;
-        o << "face_" << i;
+        o << i << "_master";
         medith::write(o.str().c_str(), crdR, m.cnt, i);
         o.str("");
-        o << "faceC_" << cand;
+        o << i << "_bit_" << cand;
         medith::write(o.str().c_str(), m.crd, m.cnt, cand);*/
-        loc_face_to_bits[-(cand+1)].push_back(i); //neg storing to apply -Transfo
-        continue;
-      }
 
-      if (is_in2 && !is_in1)
-      {
-        /*std::ostringstream o;
-        o << "face_" << i;
-        medith::write(o.str().c_str(), crdR, m.cnt, i);
-        o.str("");
-        o << "faceC_" << cand;
-        medith::write(o.str().c_str(), m.crd, m.cnt, cand);*/
         loc_face_to_bits[i].push_back(-(cand + 1)); //pos storing for i to apply +Transfo
         continue;
       }
+      else if (is_in2 && !is_in1)
+      {
+        /*std::ostringstream o;
+        o << cand << "_master";
+        medith::write(o.str().c_str(), crdR, m.cnt, cand);
+        o.str("");
+        o << cand << "_bit_" << i;
+        medith::write(o.str().c_str(), m.crd, m.cnt, i);*/
 
-      // one inside another => surface test
-      
+        loc_face_to_bits[-(cand + 1)].push_back(i); //neg storing to apply -Transfo
+        continue;
+      }
+
+      // if mutual inclusion : surface test
+
       double s2 = faceC.surface<3>(m.crd);
 
       if (s1 < s2)
       {
-        //medith::write("face", crdR, m.cnt, i);
-        //medith::write("faceC", m.crd, m.cnt, cand);
+        /*std::ostringstream o;
+        o << i << "_same";
+        medith::write(o.str().c_str(), crdR, m.cnt, i);
+        o.str("");
+        o << i << "_same2";
+        medith::write(o.str().c_str(), m.crd, m.cnt, cand);*/
+
         loc_face_to_bits[-(cand + 1)].push_back(i);
-        break;
+        continue;
       }
       else
       {
-        //medith::write("face", crdR, m.cnt, i);
-        //medith::write("faceC", m.crd, m.cnt, cand);
+        /*std::ostringstream o;
+        o << i << "_same";
+        medith::write(o.str().c_str(), crdR, m.cnt, i);
+        o.str("");
+        o << i << "_same2";
+        medith::write(o.str().c_str(), m.crd, m.cnt, cand);*/
+
         loc_face_to_bits[i].push_back(-(cand + 1));
         continue;
       }
