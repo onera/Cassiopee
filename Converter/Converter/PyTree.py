@@ -1498,29 +1498,25 @@ def _setPartialFields1(t, listFields, listIndices, loc='nodes', startFrom=0):
   if loc == 'nodes': locI = 0
   else: locI = 1
   zones = Internal.getZones(t)
-  nzones = len(zones)
-  for c in range(nzones):
-    Converter.converter._setPartialFields(zones[c], listFields[c], listIndices[c], locI,
+  for c, z in enumerate(zones):
+    Converter.converter._setPartialFields(z, listFields[c], listIndices[c], locI,
                                           Internal.__GridCoordinates__,
                                           Internal.__FlowSolutionNodes__,
                                           Internal.__FlowSolutionCenters__,
                                           startFrom)
   return None
 
-def _updatePartialFields(t, arrays, listIndices, loc='nodes',startFrom=0):
+def _updatePartialFields(t, arrays, listIndices, loc='nodes', startFrom=0):
   if loc == 'nodes': locI = 0
   else: locI = 1
-
-  nodes = Internal.getZones(t)
-  nzones = len(nodes)
-  for c in range(nzones):
+  zones = Internal.getZones(t)
+  for c, z in enumerate(zones):
     a = arrays[c]; indices = listIndices[c]
-    z = nodes[c] # zone
     Converter.converter.updatePartialFieldsPT(z, a, indices, locI,
-                                           Internal.__GridCoordinates__,
-                                           Internal.__FlowSolutionNodes__,
-                                           Internal.__FlowSolutionCenters__,
-                                           startFrom)
+                                              Internal.__GridCoordinates__,
+                                              Internal.__FlowSolutionNodes__,
+                                              Internal.__FlowSolutionCenters__,
+                                              startFrom)
   return None
 
 # -- setFields
@@ -1631,7 +1627,7 @@ def setFields(arrays, t, loc, writeDim=True):
         if val == 'Structured':
           v = numpy.fromstring('Unstructured', 'c')
           typeNodes[0][1] = v
-          if isinstance(a[2], list): # Array2
+          if isinstance(a[2], list): # Array2/Array3
             Internal.setElementConnectivity2(z, a)
           else: # Array1
             Internal.setElementConnectivity(z, a)
@@ -2252,12 +2248,12 @@ def __TZC(t, _F, locin, writeDim, *args):
 
 # Recupere les champs de locin en shared array2
 # applique _F
-def __TZA2(t, _F, locin, *args):
+def __TZA(api, t, _F, locin, *args):
   zones = Internal.getZones(t)
   for z in zones:
     if locin == 'nodes':
-      fc = getFields(Internal.__GridCoordinates__, z, api=2)[0]
-      fa = getFields(Internal.__FlowSolutionNodes__, z, api=2)[0]
+      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
       if fc != [] and fa != []:
          # fusionne les arrays2
          fc[0] = fc[0]+','+fa[0]
@@ -2266,11 +2262,11 @@ def __TZA2(t, _F, locin, *args):
       elif fc != []: _F(fc, *args)
       elif fa != []: _F(fa, *args)
     elif locin == 'centers':
-      fa = getFields(Internal.__FlowSolutionCenters__, z, api=2)[0]
+      fa = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
       if fa != []: _F(fa, *args)
     elif locin == 'both':
-      fc = getFields(Internal.__GridCoordinates__, z, api=2)[0]
-      fa = getFields(Internal.__FlowSolutionNodes__, z, api=2)[0]
+      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
       if fc != [] and fa != []:
          # fusionne les arrays2
          fc[0] = fc[0]+','+fa[0]
@@ -2278,9 +2274,15 @@ def __TZA2(t, _F, locin, *args):
          _F(fc, *args)
       elif fc != []: _F(fc, *args)
       elif fa != []: _F(fa, *args)
-      fa = getFields(Internal.__FlowSolutionCenters__, z, api=2)[0]
+      fa = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
       if fa != []: _F(fa, *args)
   return None
+
+def __TZA2(t, _F, locin, *args):
+    return __TZA(2, t, _F, locin, *args)
+
+def __TZA3(t, _F, locin, *args):
+    return __TZA(3, t, _F, locin, *args)
 
 # Recupere les champs locin en shared array2
 # Applique F qui rend une copie
@@ -2470,13 +2472,13 @@ def _initVars(t, varNameString, v1=[], v2=[]):
   if not centerCoordNeeded:
     if v1 == []:
       _addVars(t, var)
-      return __TZA2(t, Converter._initVars, loc, varNameString, v1, v2)
+      return __TZA3(t, Converter._initVars, loc, varNameString, v1, v2)
     elif callable(v1):
       _addVars(t, varNameString)
-      return __TZA2(t, Converter._initVars, loc, var, v1, v2)
+      return __TZA3(t, Converter._initVars, loc, var, v1, v2)
     else:
       _addVars(t, varNameString)
-      return __TZA2(t, Converter._initVars, loc, var, v1, v2)
+      return __TZA3(t, Converter._initVars, loc, var, v1, v2)
   else:
     s = varNameString.split('=')
     if len(s) == 1: # pas formule
@@ -3077,7 +3079,7 @@ def _normalize(t, vars):
       if len(s) == 2: vars2.append(s[1])
       else: vars2.append(s[0])
     else: raise ValueError("normalize: invalid vector component.")
-  __TZA2(t, Converter._normalize, loc, vars2)
+  __TZA3(t, Converter._normalize, loc, vars2)
   return None
 
 # -- magnitude: calcul la norme d'un jeu de variables
@@ -3114,7 +3116,7 @@ def normL0(t, var):
   """Get the L0 norm of the field defined by varName in t.
   If celln exists in the array, the norm for blanked points is not computed.
   Usage: normL0(t, varName)"""
-  A = getField(var, t, api=2)
+  A = getField(var, t, api=3)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.normL0(A, var)
@@ -3124,7 +3126,7 @@ def normL2(t, var):
   """Get the L2 norm of the field defined by varName in t.
   If celln exists in the array, the norm for blanked points is not computed.
   Usage: normL0(t, varName)"""
-  A = getField(var, t, api=2)
+  A = getField(var, t, api=3)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.normL2(A, var)
@@ -3139,9 +3141,9 @@ def getArgMin(t, var):
     var = v[1]
     if v[0] == 'centers': centers = True
   if centers:
-    A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
+    A = getFields([Internal.__FlowSolutionCenters__], t, api=3)
   else:
-    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
+    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=3)
   return Converter.getArgMin(A, var)
 
 # -- getArgMax (only on nodes or centers separately)
@@ -3154,9 +3156,9 @@ def getArgMax(t, var):
     var = v[1]
     if v[0] == 'centers': centers = True
   if centers:
-    A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
+    A = getFields([Internal.__FlowSolutionCenters__], t, api=3)
   else:
-    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
+    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=3)
   return Converter.getArgMax(A, var)
 
 # -- getMinValue
@@ -3188,7 +3190,7 @@ def getMaxValue(t, varName):
   out = []
   if varNames[0] == Internal.__GridCoordinates__: varNames = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
   for v in varNames:
-    A = getField(v, t, api=2)
+    A = getField(v, t, api=3)
     va = v.split(':')
     if len(va) > 1: v = va[1]
     maxValue = -1.e9
@@ -3203,7 +3205,7 @@ def getMaxValue(t, varName):
 def getMeanValue(t, var):
   """Get the mean value of variable defined by var.
   Usage: getMeanValue(t, var)"""
-  A = getField(var, t, api=2)
+  A = getField(var, t, api=3)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.getMeanValue(A, var)
@@ -3212,7 +3214,7 @@ def getMeanValue(t, var):
 def getMeanRangeValue(t, var, rmin, rmax):
   """Get the mean value of variable defined by var in the sorted range between rmin and rmax.
   Usage: getMeanRangeValue(t, var, rmin, rmax)"""
-  A = getField(var, t, api=2)
+  A = getField(var, t, api=3)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.getMeanRangeValue(A, var, rmin, rmax)
@@ -6019,7 +6021,7 @@ def node2ExtCenter(t, var=''):
       zones = Internal.getZones(la[i])
       for z in zones:
         (p, pos) = Internal.getParentOfNode(la[i], z)
-        fieldn = getAllFields(z,loc='nodes')
+        fieldn = getAllFields(z, loc='nodes')
         fieldc = getFields(Internal.__FlowSolutionCenters__, z)
         _deleteFlowSolutions__(z, 'centers')
         _deleteZoneBC__(z)

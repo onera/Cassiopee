@@ -4110,12 +4110,9 @@ def _adaptPE2NFace(t, remove=True):
         if parentElt is not None:
             cFE = parentElt[1]
             cNFace, nelts = converter.adaptPE2NFace(cFE)
-            p = createUniqueChild(z, 'NFaceElements', 'Elements_t',
-                                  value=[23,0])
-            createUniqueChild(p, 'ElementRange', 'IndexRange_t',
-                              value=[1,nelts])
-            createUniqueChild(p, 'ElementConnectivity',
-                              'DataArray_t', value=cNFace)
+            p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
+            createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
+            createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
             if remove: _rmNodesByName(z, 'ParentElements')
     return None
 

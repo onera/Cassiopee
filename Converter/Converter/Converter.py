@@ -805,7 +805,7 @@ def getMeanValue(array, varName):
         for i in array:
             pos2 = KCore.isNamePresent(i, varName)
             a = converter.getMeanValue(i, varName)
-            if isinstance(i[1], list): # array2
+            if isinstance(i[1], list): # array2/3
                 la = i[1][0].size * 1.
             else: la = i[1].shape[1] * 1.
             b = lb*b + la*a
@@ -825,7 +825,7 @@ def getMeanRangeValue(array, varName, rmin, rmax):
         for i in array:
             pos2 = KCore.isNamePresent(i, varName)
             a = converter.getMeanRangeValue(i, varName, rmin, rmax)
-            if isinstance(i[1], list): # array2
+            if isinstance(i[1], list): # array2/3
                 la = i[1][0].size*1.*(rmax-rmin)
             else: la = i[1].shape[1]*1.*(rmax-rmin)
             b = lb*b + la*a
@@ -841,11 +841,9 @@ def normL0(array, varName):
     Usage: normL0(array, varName)"""
     if isinstance(array[0], list):
         norm = 0
-        for i in array:
-            norm = max(converter.normL0(i, varName), norm)
+        for i in array: norm = max(converter.normL0(i, varName), norm)
         return norm
-    else:
-        return converter.normL0(array, varName)
+    else: return converter.normL0(array, varName)
 
 def normL2(array, varName):
     """Get the L2 norm of the field defined by varName in the array.
@@ -874,10 +872,8 @@ def normalize(a, vars):
 
 def _normalize(a, vars):
     if isinstance(a[0], list):
-        for i in a:
-            converter.normalize(i, vars)
-    else:
-        converter.normalize(a, vars)
+        for i in a: converter.normalize(i, vars)
+    else: converter.normalize(a, vars)
     return None
 
 def magnitude(array, vars):
