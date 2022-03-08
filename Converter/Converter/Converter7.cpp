@@ -37,9 +37,8 @@ PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
-
   E_Int posvar = -1;
   if (res == 1 || res == 2)
   {
@@ -78,8 +77,7 @@ PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
     FldArrayF field(1, f->getNfld());
     field.setAllValuesAtNull();
 
-    for (E_Int n = 1; n <= f->getNfld(); n++)
-      field(0, n) = (*f)(ind, n);
+    for (E_Int n = 1; n <= f->getNfld(); n++) field(0, n) = (*f)(ind, n);
 
     RELEASESHAREDB(res, array, f, cn);
 
@@ -121,14 +119,14 @@ PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
 
   E_Int posvar = -1;
   if (res == 1 || res == 2)
   {
     posvar = K_ARRAY::isNamePresent(varName, varString);
-    if (posvar == -1 )
+    if (posvar == -1)
     {
       RELEASESHAREDB(res, array, f, cn);
       char error[256];
@@ -162,8 +160,7 @@ PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
     FldArrayF field(1, f->getNfld());
     field.setAllValuesAtNull();
 
-    for (E_Int n = 1; n <= f->getNfld(); n++)
-      field(0, n) = (*f)(ind, n);
+    for (E_Int n = 1; n <= f->getNfld(); n++) field(0, n) = (*f)(ind, n);
 
     RELEASESHAREDB(res, array, f, cn);
 
@@ -204,7 +201,7 @@ PyObject* K_CONVERTER::getMeanValue(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
 
   E_Int posvar = -1;
@@ -260,7 +257,7 @@ PyObject* K_CONVERTER::getMeanRangeValue(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
 
   E_Int posvar = -1;

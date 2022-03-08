@@ -256,21 +256,22 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
                             (E_Int*)PyArray_DATA(ac2), NULL, 
                             sizeNGon, sizeNFace, (E_Int*)PyArray_DATA(ac3));
         }
-        else if (nc == 5) // NGON/SONGON/PE/NFACE/SONFACE Array3
+        else if (nc == 5) // NGON/NFACE/SONGON/SONFACE/PE Array2 ou 3
         {
           PyArrayObject* ac1 = (PyArrayObject*)PyList_GetItem(tpl,0); // NGON
-          PyArrayObject* ac2 = (PyArrayObject*)PyList_GetItem(tpl,1); // SONGON
-          PyArrayObject* ac3 = (PyArrayObject*)PyList_GetItem(tpl,2); // PE
-          PyArrayObject* ac4 = (PyArrayObject*)PyList_GetItem(tpl,3); // NFACE
-          PyArrayObject* ac5 = (PyArrayObject*)PyList_GetItem(tpl,4); // SONFACE
-          
-          E_Int nfaces = PyArray_SIZE(ac2);
-          E_Int nelts = PyArray_SIZE(ac5);
+          PyArrayObject* ac2 = (PyArrayObject*)PyList_GetItem(tpl,1); // NFACE
+          PyArrayObject* ac3 = (PyArrayObject*)PyList_GetItem(tpl,2); // SONGON
+          PyArrayObject* ac4 = (PyArrayObject*)PyList_GetItem(tpl,3); // SONFACE
+          PyArrayObject* ac5 = (PyArrayObject*)PyList_GetItem(tpl,4); // PE
+          E_Int nfaces = PyArray_SIZE(ac3);
+          E_Int nelts = PyArray_SIZE(ac4);
           E_Int sizeNGon = PyArray_SIZE(ac1);
-          E_Int sizeNFace = PyArray_SIZE(ac4);
+          E_Int sizeNFace = PyArray_SIZE(ac2);
+          E_Int* pt = (E_Int*)PyArray_DATA(ac3);
+          if (pt[nfaces-1] == sizeNGon) { nfaces -= 1; nelts -= 1; }
           c = new FldArrayI(nfaces, nelts, (E_Int*)PyArray_DATA(ac1), (E_Int*)PyArray_DATA(ac2),
                             (E_Int*)PyArray_DATA(ac3), (E_Int*)PyArray_DATA(ac4), 
-                            sizeNGon, sizeNFace, (E_Int*)PyArray_DATA(ac3));
+                            sizeNGon, sizeNFace, (E_Int*)PyArray_DATA(ac5));
         }
       }
       else // suppose BE => compact + stride (Array2 ou Array3)

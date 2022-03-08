@@ -39,15 +39,15 @@ PyObject* K_TRANSFORM::translate(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
                                      cn, eltType);
+  
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "translate: invalid array.");
     return NULL;
   }
-
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
@@ -60,12 +60,11 @@ PyObject* K_TRANSFORM::translate(PyObject* self, PyObject* args)
     return NULL;
   }
   posx++; posy++; posz++;
-    
   E_Int npts = f->getSize();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
-
+  
  #pragma omp parallel default(shared)
   {
 #pragma omp for 

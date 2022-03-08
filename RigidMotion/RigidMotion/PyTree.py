@@ -808,9 +808,9 @@ def evalPositionM1(coords, z, time):
                 pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
                 [r0,x0,rotMat,s0,omega]=rigidMotion._computeRotorMotionInfo(
                     time, transl_speed.tolist(), psi0, psi0_b,
-                    alp_pnt.tolist(),alp_vct.tolist(),alp0,
-                    rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
-                    del_pnt.tolist(),del_vct.tolist(),del0, delc.tolist(), dels.tolist(),
+                    alp_pnt.tolist(), alp_vct.tolist(), alp0,
+                    rot_pnt.tolist(), rot_vct.tolist(), rot_omg,
+                    del_pnt.tolist(), del_vct.tolist(), del0, delc.tolist(), dels.tolist(),
                     bet_pnt.tolist(), bet_vct.tolist(), bet0, betc.tolist(), bets.tolist(),
                     tet_pnt.tolist(), tet_vct.tolist(), tet0, tetc.tolist(), tets.tolist(),
                     span_vct.tolist(),

@@ -1339,7 +1339,8 @@ def getField(name, t, api=1):
           for j in info2:
             if j[0] == name and j[3] == 'DataArray_t':
               if api==1: r = Internal.convertDataNode2Array(j, dim, connects, 0)
-              else: r = Internal.convertDataNode2Array2(j, dim, connects, 0)
+              elif api==2: r = Internal.convertDataNode2Array2(j, dim, connects, 0)
+              else: r = Internal.convertDataNode2Array3(j, dim, connects, 0)
               a = r[1]
               if a is not None: break
 
@@ -1350,7 +1351,8 @@ def getField(name, t, api=1):
           for j in info2:
             if j[0] == name and j[3] == 'DataArray_t':
               if api==1: r = Internal.convertDataNode2Array(j, dim, connects, 1)
-              else: r = Internal.convertDataNode2Array2(j, dim, connects, 1)
+              elif api==2: r = Internal.convertDataNode2Array2(j, dim, connects, 1)
+              else: r = Internal.convertDataNode2Array3(j, dim, connects, 1)
               a = r[1]
               if a is not None: break
 
@@ -1838,6 +1840,35 @@ def _TZGC(t, locout, F, *args):
       setFields([coord], z, locout)
   return None
 
+# Recupere les coords, applique _F dessus sans changement topologique
+def __TZGC(api, t, _F, *args):
+  zones = Internal.getZones(t)
+  for z in zones:
+    fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+    if fc != []: _F(fc, *args)
+  return None
+
+def __TZGC2(t, _F, *args):
+    return __TZGC(2, t, _F, *args)
+
+def __TZGC3(t, _F, *args):
+    return __TZGC(3, t, _F, *args)
+
+# Recupere les coords, applique F qui renvoie une copie, fait un setFields
+def _TZGC2(t, F, locout, writeDim, *args):
+  zones = Internal.getZones(t)
+  for z in zones:
+    fc = getFields(Internal.__GridCoordinates__, z, api=2)[0]
+    if fc != []:
+      fcp = F(fc, *args) # copy
+      setFields([fcp], z, locout, writeDim)
+  return None
+
+def TZGC2(t, F, locout, writeDim, *args):
+  tp = Internal.copyRef(t)
+  _TZGC2(tp, F, locout, writeDim, *args)
+  return tp
+
 # -- TZGF
 # Traitement agissant sur le conteneur fieldName, effectue par zones.
 # Prend les champs definis dans le conteneur fieldName, applique F, met
@@ -2203,29 +2234,6 @@ def TLAGC(t, F, *args):
   elif allfa != []: return [allfa]
   elif allfb != []: return [allfb]
   else: return []
-
-# Recupere les coords, applique _F dessus sans changement topologique
-def __TZGC2(t, _F, *args):
-  zones = Internal.getZones(t)
-  for z in zones:
-    fc = getFields(Internal.__GridCoordinates__, z, api=2)[0]
-    if fc != []: _F(fc, *args)
-  return None
-
-# Recupere les coords, applique F qui renvoie une copie, fait un setFields
-def _TZGC2(t, F, locout, writeDim, *args):
-  zones = Internal.getZones(t)
-  for z in zones:
-    fc = getFields(Internal.__GridCoordinates__, z, api=2)[0]
-    if fc != []:
-      fcp = F(fc, *args) # copy
-      setFields([fcp], z, locout, writeDim)
-  return None
-
-def TZGC2(t, F, locout, writeDim, *args):
-  tp = Internal.copyRef(t)
-  _TZGC2(tp, F, locout, writeDim, *args)
-  return tp
 
 # TZC
 # Traitement uniquement sur les champs
@@ -3160,7 +3168,7 @@ def getMinValue(t, varName):
   out = []
   if varNames[0] == Internal.__GridCoordinates__: varNames = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
   for v in varNames:
-    A = getField(v, t, api=2)
+    A = getField(v, t, api=3)
     va = v.split(':')
     if len(va) > 1: v = va[1]
     minValue = 1.e9

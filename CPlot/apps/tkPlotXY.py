@@ -458,76 +458,10 @@ def createFonts():
     return font_dic
 
 # ==============================================================================
-class InteractiveLegend(object):
-    def __init__(self, legend):
-        self.legend = legend
-        self.fig = legend.axes.figure
-        self.lookup_artist, self.lookup_handle = self._build_lookups(legend)
-        self._setup_connections()
-        self.update()
-
-    def _setup_connections(self):
-        for artist in self.legend.texts + self.legend.legendHandles:
-            artist.set_picker(10) # 10 points tolerance
-        self.fig.canvas.mpl_connect('pick_event', self.on_pick)
-        print("set pick on ", self.fig.canvas)
-        #self.fig.canvas.mpl_connect('button_press_event', self.on_click) # a merger avec le deplacement
-
-    def _build_lookups(self, legend):
-        labels = [t.get_text() for t in legend.texts]
-        handles = legend.legendHandles
-        label2handle = dict(zip(labels, handles))
-        handle2text = dict(zip(handles, legend.texts))
-
-        lookup_artist = {}
-        lookup_handle = {}
-        for artist in legend.axes.get_children():
-            alabel = artist.get_label()
-            if isinstance(alabel, str) and '_line' in alabel:
-                no = alabel[5:]
-                no = int(no)
-                name = labels[no]
-                handle = label2handle[name]
-                lookup_handle[artist] = handle
-                lookup_artist[handle] = artist
-                lookup_artist[handle2text[handle]] = artist
-
-        lookup_handle.update(zip(handles, handles))
-        lookup_handle.update(zip(legend.texts, handles))
-
-        return lookup_artist, lookup_handle
-
-    def on_pick(self, event):
-        handle = event.artist
-        print('on pick toggle - lost')
-        if handle in self.lookup_artist:
-            print('toggle')
-            artist = self.lookup_artist[handle]
-            artist.set_visible(not artist.get_visible())
-            self.update()
-
-    def on_click(self, event):
-        if event.button == 3: visible = False
-        elif event.button == 2: visible = True
-        else: return
-        for artist in self.lookup_artist.values():
-            artist.set_visible(visible)
-        self.update()
-
-    def update(self):
-        for artist in self.lookup_artist.values():
-            handle = self.lookup_handle[artist]
-            if artist.get_visible(): handle.set_visible(True)
-            else: handle.set_visible(False)
-        self.fig.canvas.draw()
-
-    def show(self):
-        plt.show()
-
-def interactive_legend(ax=None):
-    if ax is None: ax = plt.gca()
-    if ax.legend_ is None: ax.legend()
-    return InteractiveLegend(ax.get_legend())
+# Interactive legend
+def setPickerInLegend(legend):
+    for artist in legend.texts + legend.legendHandles:
+        artist.set_picker(10) # 10 points tolerance
 
 # ==============================================================================
 class editTextWindow(TK.Toplevel):
@@ -536,25 +470,20 @@ class editTextWindow(TK.Toplevel):
         TK.Toplevel.__init__(self)
         self.title('Edit  texts')
         self.protocol("WM_DELETE_WINDOW",self.cmd_close)
-        #
         self.list_dialog = None
         self.input_dialog = None
-        #
         self.frameList = {}
     # --------------------------------------------------------------- initialize
     def initialize(self,parent):
         self.parent = parent
-        #
         self.graph = self.parent.activeGraph.val
 
         self.zone  = self.parent.position.val
         try: self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
         except TypeError: # Exit if no graph & zone available
             self.cmd_close(); return
-        #
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
-        #
         self.labelView = [True,True,False,False,False]
         self.frame = None
         self.createFrame()
@@ -9581,6 +9510,7 @@ class GraphTK(TK.Toplevel):
             self.canvas.mpl_connect('button_press_event', self._onMousePress)
             self.canvas.mpl_connect('button_release_event', self._onMouseRelease)
             self.canvas.mpl_connect('motion_notify_event', self._onMouseMotion)
+        self.canvas.mpl_connect('pick_event', self._onPick) # interactive legend
 
         # Toolbar
         toolbar_frame = TTK.Frame(self)
@@ -9722,7 +9652,6 @@ class GraphTK(TK.Toplevel):
         # End of update --
 
         # draw
-        print('draw on', self.canvas)
         self.canvas.draw()
     
     @staticmethod
@@ -9903,6 +9832,12 @@ class GraphTK(TK.Toplevel):
         if self._pressed_button == 1: self._pan(event)
         elif self._pressed_button == 3: self._zoomArea(event)
         
+    def _onPick(self, event): # Pick sur un artist de la legende
+        artist = event.artist
+        # Quel est cet artiste?
+        #print(artist.get_text())
+        # Il suffirait de desactiver la courbe, mais comment la reactiver ensuite?
+
     # ------------------------------------------------------------ clickOnCanvas
     def clickOnCanvas(self,event):
         try:
@@ -9922,8 +9857,7 @@ class GraphTK(TK.Toplevel):
             return name
         else:
             ind=0
-            while name+'.%s'%ind in graphNameList:
-                ind += 1
+            while name+'.%s'%ind in graphNameList: ind += 1
             return name+'.%s'%ind
 
     # ---------------------------------------------------------------- cmd_close
@@ -9933,7 +9867,6 @@ class GraphTK(TK.Toplevel):
             # Close all edit windows if we are closing the last graph:
             for w in [self.parent.editCurveWdw,self.parent.editGridWdw,self.parent.editLegendWdw,self.parent.editAxisWdw,self.parent.editGraphWdw]:
                 if w is not None: w.cmd_close()
-        #
         self.fig.closeMovie()
         del self.fig
         del self.parent.graphWdwL[self.index]
@@ -9968,13 +9901,6 @@ class GraphTK(TK.Toplevel):
     # -------------------------------------------------------- applyViewSettings
     def applyViewSettings(self):
         if self.subPlotParams.isActive:
-# Was aimed to turn off eventually the tight_layout, but seems useless ... and not working !
-#            try:
-#                self.fig.instance.tight_layout(False)
-#                print('STOP TIGHT LAYOUT')
-#            except AttributeError:
-#                pass
-
             self.fig.instance.subplots_adjust(left=self.subPlotParams.left,
                                               right=self.subPlotParams.right,
                                               top=self.subPlotParams.top,
@@ -14076,8 +14002,7 @@ class MatplotlibFigure():
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].name=self.subGraph[iCurSubGraph].name
     #        self.subGraph[iCurSubGraph].curves = curves
 
-            xaxis_label = ""
-            yaxis_label = ""
+            xaxis_label = ""; yaxis_label = ""
             for c in self.subGraph[iCurSubGraph].curves:
                 if c.axis == iCurrentAxis:
                     if c.marker_sampling_step == '':
@@ -14186,7 +14111,7 @@ class MatplotlibFigure():
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_inverted:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].invert_yaxis()
 
-            ##Set Ticks
+            ## Set Ticks
             xmin,xmax = self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_xlim()
             ymin,ymax = self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_ylim()
             #
@@ -14223,7 +14148,6 @@ class MatplotlibFigure():
             offset_x = float(self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_offset)
             spines['top'].set_position(('outward',offset_x))
             spines['bottom'].set_position(('outward',offset_x))
-            #
             offset_y = float(self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_offset)
             spines['left'].set_position(('outward',offset_y))
             spines['right'].set_position(('outward',offset_y))
@@ -14244,9 +14168,9 @@ class MatplotlibFigure():
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_position == 'both':
                 # Spine
                 spines['top'].set_visible(True)
-#                spines['top'].set_color('r')
+                #spines['top'].set_color('r')
                 spines['bottom'].set_visible(True)
-#                spines['bottom'].set_color('r')
+                #spines['bottom'].set_color('r')
                 # Tick
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_ticks_position('bottom')
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_ticks_position('both')
@@ -14256,7 +14180,7 @@ class MatplotlibFigure():
             elif self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_position == 'bottom':
                 # Spine
                 spines['bottom'].set_visible(True)
-#                spines['bottom'].set_color('r')
+                #spines['bottom'].set_color('r')
                 # Tick
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_ticks_position('bottom')
                 # Label
@@ -14265,7 +14189,7 @@ class MatplotlibFigure():
             elif self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_position == 'top':
                 # Spine
                 spines['top'].set_visible(True)
-#                spines['top'].set_color('r')
+                #spines['top'].set_color('r')
                 # Tick
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_ticks_position('top')
                 # Label
@@ -14275,9 +14199,9 @@ class MatplotlibFigure():
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_position == 'both':
                 # Spine
                 spines['left'].set_visible(True)
-#                spines['left'].set_color('r')
+                #spines['left'].set_color('r')
                 spines['right'].set_visible(True)
-#                spines['right'].set_color('r')
+                #spines['right'].set_color('r')
                 # Tick
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_ticks_position('left')
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_ticks_position('both')
@@ -14287,7 +14211,7 @@ class MatplotlibFigure():
             elif self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_position == 'left':
                 # Spine
                 spines['left'].set_visible(True)
-#                spines['left'].set_color('r')
+                #spines['left'].set_color('r')
                 # Tick
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_ticks_position('left')
                 # Label
@@ -14296,12 +14220,11 @@ class MatplotlibFigure():
             elif self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_position == 'right':
                 # Spine
                 spines['right'].set_visible(True)
-#                spines['right'].set_color('r')
+                #spines['right'].set_color('r')
                 # Tick
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_ticks_position('right')
                 # Label
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_label_position('right')
-
 
             ## Hide axis
             if not self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_visible:
@@ -14317,7 +14240,6 @@ class MatplotlibFigure():
             else:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_yaxis().set_visible(True)
 
-
             ## set label
             if len(xaxis_label) > 0: xaxis_label = xaxis_label[:-1]
             if len(yaxis_label) > 0: yaxis_label = yaxis_label[:-1]
@@ -14331,7 +14253,6 @@ class MatplotlibFigure():
                                                                         fontsize=self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label_fontsize)
 
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color='r', linestyle='-', linewidth=2)
-
 
             ### Set Grid
             ### ### major grid
@@ -14368,18 +14289,21 @@ class MatplotlibFigure():
             legend = self.subGraph[iCurSubGraph].axis[iCurrentAxis].legend(legend_list,legend_text,loc=self.subGraph[iCurSubGraph].legend_property.legend_position,
                                         ncol=self.subGraph[iCurSubGraph].legend_property.legend_ncol,
                                         prop = legend_label_prop) # Can add the frameon=True option to activate/desactivate the frame (border + background) for legend        
-        ## ## LEGEND LABEL
+            # Interactive legend
+            setPickerInLegend(legend)
+
+        #### LEGEND LABEL
             for text in legend.get_texts():
                 text.set_color(self.subGraph[iCurSubGraph].legend_property.legend_label_color)
-        ## ## LEGEND TITLE
+        #### LEGEND TITLE
             legend_title_prop = {'weight':self.subGraph[iCurSubGraph].legend_property.legend_title_weight,'size':self.subGraph[iCurSubGraph].legend_property.legend_title_size,
                              'style':self.subGraph[iCurSubGraph].legend_property.legend_title_style}
             legend.set_title(self.subGraph[iCurSubGraph].legend_property.legend_title, prop=legend_title_prop)
             legend.get_title().set_color(self.subGraph[iCurSubGraph].legend_property.legend_title_color)
-        ## ## LEGEND BORDER
+        #### LEGEND BORDER
             legend.get_frame().set_linewidth(self.subGraph[iCurSubGraph].legend_property.legend_border_width)
             legend.get_frame().set_edgecolor(self.subGraph[iCurSubGraph].legend_property.legend_border_color)
-        ## ## LEGEND BACKGROUND
+        #### LEGEND BACKGROUND
             if self.subGraph[iCurSubGraph].legend_property.legend_background_color_active:
                 legend.get_frame().set_facecolor(self.subGraph[iCurSubGraph].legend_property.legend_background_color)
             else: legend.get_frame().set_facecolor('none')
@@ -14415,7 +14339,6 @@ class MatplotlibFigure():
                 text.set_bbox(dict( facecolor=box_backgroundcolor,edgecolor=t.box_edgecolor,alpha=t.box_alpha,
                                     boxstyle=t.box_style,linewidth=t.box_linewidth))
 
-            #
             #### ADDITIONAL SHAPES
             for s in self.subGraph[iCurSubGraph].shapes:
                 points = []
@@ -14459,8 +14382,6 @@ class MatplotlibFigure():
                                     Path.CURVE3,
                                 ]
                         path = Path(points,codes)
-
-
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(mpatch.FancyArrowPatch(
                                                             path=path,
                                                             arrowstyle=dico_arrow[s.arrowstyle],
@@ -15526,6 +15447,7 @@ class CustomToolbar(NavigationToolbar2Tk):
             canvas.mpl_connect('button_press_event', graph._onMousePress)
             canvas.mpl_connect('button_release_event', graph._onMouseRelease)
             canvas.mpl_connect('motion_notify_event', graph._onMouseMotion)
+        canvas.mpl_connect('pick_event', graph._onPick) # interactive legend
 
 # ==============================================================================
 # ==============================================================================

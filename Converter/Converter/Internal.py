@@ -3150,6 +3150,8 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
             if pt is not None: cr[0] = pt[1]
             pt = getNodeFromName1(c, 'ElementStartOffset')
             if pt is not None: cr[2] = pt[1]
+            pt = getNodeFromName1(c, 'FaceIndex')
+            if pt is not None: cr[2] = pt[1]
             pt = getNodeFromName1(c, 'ParentElement')
             if pt is not None: cr[4] = pt[1]
         elif ctype == 23: # NFace
@@ -3157,6 +3159,8 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
             pt = getNodeFromName1(c, 'ElementConnectivity')
             if pt is not None: cr[1] = pt[1]
             pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[3] = pt[1]
+            pt = getNodeFromName1(c, 'ElementIndex')
             if pt is not None: cr[3] = pt[1]
         else: # BE
             pt = getNodeFromName1(c, 'ElementConnectivity')
@@ -3166,26 +3170,28 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
                 eltType = c[1][0]; et.append(eltType)
                 iBE += 1
 
-        # Filter des connectivites (supp None et elements non volumiques)
-        eltString = ""
-        if not isNGon:
-            crOut = []; iBE = 0
-            for c in cr:
-                if c is not None: crOut.append(c)
+    # Filter des connectivites (supp None et elements non volumiques)
+    eltString = ""
+    if not isNGon:
+        crOut = []; iBE = 0
+        for c in cr:
+            if c is not None: 
+                crOut.append(c)
                 ettype, stype = eltNo2EltName(eltType)
                 eltString += ettype+","
-            cr = crOut
-            eltString = eltString[:-2]
-        else: eltString = "NGON"
+                iBE += 1
+        cr = crOut
+        eltString = eltString[:-1]
+    else: eltString = "NGON"
     
     locout = 'nodes'
     s = ar.size
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: ettype += '*'; locout = 'centers'
+        if s == dim[2]: eltString += '*'; locout = 'centers'
         elif s != dim[1]:
             print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
     else: # force + no check
-        if loc == 1: ettype += '*'; locout = 'centers'
+        if loc == 1: eltString += '*'; locout = 'centers'
 
     array = [node[0], [ar], cr, eltString]
     return [locout, array]

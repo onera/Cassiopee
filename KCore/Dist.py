@@ -1033,6 +1033,7 @@ def checkFastLBM():
 
     except ImportError:
         raise SystemError("Error: fastlbm library is required for the compilation of this module.")
+
 #=============================================================================
 # Check for Connector module
 #=============================================================================
@@ -2095,7 +2096,7 @@ def createCudaScanner(env):
     SCons.Tool.SourceFileScanner.add_scanner(['.cu'], CudaScanner)
     return env
 
-def add_common_nvcc_variables(env):
+def addCommonNvccVariables(env):
     """
     Add underlying common "NVIDIA CUDA compiler" variables that
     are used by multiple builders.
@@ -2115,7 +2116,7 @@ def createCudaBuilders(env, dirs = []):
     # create a builder that makes PTX files from .cu files
     (ok, incCuda, libCude, libNameCuda, binCuda) = checkCuda()
     opts = getCppArgs()
-    add_common_nvcc_variables(env)
+    addCommonNvccVariables(env)
     path = ''
     for i in dirs: path += '-I"%s" '%i
     action_cuda = binCuda + ' -ptx '

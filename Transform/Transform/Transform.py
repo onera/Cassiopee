@@ -199,10 +199,8 @@ def translate(a, transvect):
 
 def _translate(a, transvect):
     if isinstance(a[0], list):
-        for i in a:
-            transform.translate(i, transvect)
-    else:
-        transform.translate(a, transvect)
+        for i in a: transform.translate(i, transvect)
+    else: transform.translate(a, transvect)
     return None
 
 def rotate(a, center, arg1, arg2=None, 

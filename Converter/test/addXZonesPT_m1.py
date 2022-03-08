@@ -29,5 +29,5 @@ graph = Cmpi.computeGraph(tb)
 # Add X Zones
 t = Cmpi.addXZones(t, graph)
 if Cmpi.rank == 0: 
-    Internal.printTree(t)
+    #Internal.printTree(t)
     test.testT(t, 1)

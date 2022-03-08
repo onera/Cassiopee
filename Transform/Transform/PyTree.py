@@ -56,7 +56,8 @@ def translate(t, transvect):
 
 def _translate(t, transvect):
     """Translate a zone."""
-    return C.__TZGC2(t, Transform._translate, transvect)
+    C.__TZGC3(t, Transform._translate, transvect)
+    return None
 
 def rotate(a, center, arg1, arg2=None,
            vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
