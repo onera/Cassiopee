@@ -27,6 +27,8 @@ int __activation__;
 static PyMethodDef Pygenerator [] =
 {
   {"cart", K_GENERATOR::cartStruct, METH_VARARGS},
+  {"cartr1", K_GENERATOR::cartr1, METH_VARARGS},
+  {"cartr2", K_GENERATOR::cartr2, METH_VARARGS},
   {"cartHexa", K_GENERATOR::cartHexa, METH_VARARGS},
   {"cartTetra", K_GENERATOR::cartTetra, METH_VARARGS},
   {"cartPenta", K_GENERATOR::cartPenta, METH_VARARGS},

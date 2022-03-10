@@ -34,6 +34,8 @@ namespace K_GENERATOR
   PyObject* cartPenta(PyObject* self, PyObject* args);
   PyObject* cartPyra(PyObject* self, PyObject* args);
   PyObject* cartNGon(PyObject* self, PyObject* args);
+  PyObject* cartr1(PyObject* self, PyObject* args);
+  PyObject* cartr2(PyObject* self, PyObject* args);
   PyObject* cylinderMesh(PyObject* self, PyObject* args);
   PyObject* cylinderMesh2(PyObject* self, PyObject* args);
   PyObject* cylinderMesh3(PyObject* self, PyObject* args);

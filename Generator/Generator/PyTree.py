@@ -17,6 +17,18 @@ def cart(Xo, H, N):
     a = generator.cart(Xo, H, N, 2)
     return C.convertArrays2ZoneNode('cart', [a])
 
+def cartr1(Xo, H, N, R):
+    """Create a structured cartesian mesh with expansion factor giving the number of cells.
+    Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk), (ri,rj,rk))"""
+    a = generator.cartr1(Xo, H, N, R, 2)
+    return C.convertArrays2ZoneNode('cart', [a])
+
+def cartr2(Xo, H, R, Xf):
+    """Create a structured cartesian mesh with expansion factor giving the last point position. Return a modified R if Xf can not be obtained
+    Usage: cart((xo,yo,zo), (hi,hj,hk), (ri ,rj,rk), (xf,yf,zf))"""
+    a = generator.cartr2(Xo, H, R, Xf, 2)
+    return C.convertArrays2ZoneNode('cart', [a])
+
 def cartHexa(Xo, H, N):
     """Create a hexahedral cartesian mesh.
     Usage: cartHexa((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
