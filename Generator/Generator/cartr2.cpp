@@ -28,7 +28,7 @@ using namespace K_FUNC;
 // ============================================================================
 /* Create a cartesian mesh of nixnjxnk points 
    IN: x0, y0, z0: origine de la grille
-   IN: hi, hj, hk: pas de la grille 
+   IN: hi, hj, hk: pas initial de la grille 
    IN: ri, rj, rk: facteur d'expansion dans chaque direction
    IN: xf, yf, zf: fin de la grille
 
@@ -50,7 +50,7 @@ float fderiv(float Xo, float Xf, float H, float N, float R)
 float NewtonApproche(float Xo, float Xf, float H, int N, float Rini)
 {
   E_Float res=Rini;
-  printf("%f \n ",res) ; fflush(stdout);
+  // printf("%f \n ",res) ; fflush(stdout);
   E_Int Nit=0;
   while( fabs(f(Xo,Xf,H,N,res)) >= 0.00001 && Nit<20)
   {
@@ -77,25 +77,40 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   {
     return NULL;
   }
+
   if ( ( (xf-xo) /hi ) * (riinput -1) +1 < 0 || ( (yf-yo) /hj ) * (rjinput -1) +1 < 0 ||( (zf-zo) /hk ) * (rkinput -1) +1 < 0 )
   {
     PyErr_SetString(PyExc_ValueError, 
                     "Maillage impossible, veuillez changer les paramètres d'entrée \n Conditon à respecter: (Xf-Xo) /H ) * (R -1) +1 < 0");
     return NULL;
   }
-  
+
+  if ( (riinput == 1.0) && (fmod(xf-xo,hi)  !=0)  )
+  {
+    riinput+=0.1;
+    printf("Condition sur r impossible à satisfaire, la valeur va être changé\n ");
+    printf("nouveau ri = %f\n", riinput);
+  }
+  if ( (rjinput == 1.0) && ( fmod(yf-yo,hj) !=0) )
+  {
+    rjinput+=0.1;
+    printf("Condition sur r impossible à satisfaire, la valeur va être changé\n");
+    printf("nouveau rj = %f\n", rjinput);
+  }
+  if ( (rkinput == 1.0) && ( fmod(zf-zo,hk) !=0) )
+  {
+    rkinput+=0.1;
+    printf("Condition sur r impossible à satisfaire, la valeur va être changé\n");
+    printf("nouveau rk = %f\n" , rkinput);
+  }
   E_Float niapp, njapp, nkapp;
-  if (riinput == 1.0)
+  if (riinput == 1.0 )
   {
     niapp = (xf - xo) / hi ;
-    // printf("ni est egal a 1 \n ") ; fflush(stdout);
-
   }
   else
   {
     niapp = log( ((xf - xo) / hi) * (riinput - 1) +1) / log(riinput) ;
-    // printf("ni n'est pas egal a 1 \n ") ; fflush(stdout);
-
   } 
 
   if (rjinput == 1.0)
@@ -125,6 +140,10 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   E_Int nj = floor(njapp) + 1 ;
   E_Int nk = floor(nkapp) + 1 ;
   
+  // printf("ni partie entiere = %i \n ",ni) ; fflush(stdout);
+  // printf("nj partie entiere= %i \n ",nj) ; fflush(stdout);
+  // printf("nk partie entiere= %i \n ",nk) ; fflush(stdout);
+
   E_Float ri = NewtonApproche(xo,xf,hi,ni,riinput);
   E_Float rj = NewtonApproche(yo,yf,hj,nj,rjinput);
   E_Float rk = NewtonApproche(zo,zf,hk,nk,rkinput);
@@ -147,9 +166,10 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   {
     nk+=1 ;
   } 
-  printf("ni = %i \n ",ni) ; fflush(stdout);
-  printf("nj = %i \n ",nj) ; fflush(stdout);
-  printf("nk = %i \n ",nk) ; fflush(stdout);
+
+  printf("nombre mailles en i = %i \n ",ni) ; fflush(stdout);
+  printf("nombre mailles en j = %i \n ",nj) ; fflush(stdout);
+  printf("nombre mailles en k = %i \n ",nk) ; fflush(stdout);
 
   E_Int i, j, k, ind;
   // Create cartesian mesh
@@ -168,7 +188,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   E_Float* zt = f->begin(3);
   
 
-  if (ri != 1.0)
+  if (ri != 1.0) 
   {
     #pragma omp parallel for default(shared) private(k,j,i,ind)
     for (ind = 0; ind < nijk; ind++)
