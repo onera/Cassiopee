@@ -221,6 +221,7 @@ class GenIOHdf
     std::list<hid_t> _fatherStack;
     std::list<std::string> _stringStack;
     std::map<std::string, bool> _skipTypes;
+    std::map<std::pair<std::string, std::string>, bool> _skipNameAndTypes;
     hid_t _NATIVE_FLOAT;
     hid_t _NATIVE_DOUBLE;
     hid_t _NATIVE_INT;

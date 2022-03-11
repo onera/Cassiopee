@@ -1041,10 +1041,10 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   // if (sid < 0) {printf("Fail in setArrayPartial::H5Screate_simple (file)\n");}
 
   // New manner in case of memory data space not the same
-  hsize_t dim_file = 0;
+  hsize_t dim_file = 0; hsize_t sentry = -1;
   for (int i = 0; i < L3C_MAX_DIMS; ++i ) 
   {
-    if (DataSpace.GlobDataSetDim[i] == -1)
+    if (DataSpace.GlobDataSetDim[i] == sentry)
     {
       dim_file = i; break;
     }
@@ -1222,14 +1222,15 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
   DataSpace_t DataSpaceSave = DataSpace;
 
   int i=0; int j=0;
+  hsize_t sentry = -1;
   for (int n=0; n<L3C_MAX_DIMS; n++)
   {
-    DataSpace.Src_Offset[n] = -1;
-    DataSpace.Src_Count[n]  = -1;
-    DataSpace.Src_Stride[n] = -1;
-    DataSpace.Src_Block[n]  = -1;
-    DataSpace.GlobDataSetDim[n] = -1;
-    if (DataSpaceSave.Src_Offset[L3C_MAX_DIMS-n-1] != -1)
+    DataSpace.Src_Offset[n] = sentry;
+    DataSpace.Src_Count[n]  = sentry;
+    DataSpace.Src_Stride[n] = sentry;
+    DataSpace.Src_Block[n]  = sentry;
+    DataSpace.GlobDataSetDim[n] = sentry;
+    if (DataSpaceSave.Src_Offset[L3C_MAX_DIMS-n-1] != sentry)
     {
       DataSpace.Src_Offset[i] = DataSpaceSave.Src_Offset[L3C_MAX_DIMS-n-1];
       DataSpace.Src_Count[i]  = DataSpaceSave.Src_Count[L3C_MAX_DIMS-n-1];
@@ -1238,7 +1239,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
       //DataSpace.GlobDataSetDim[i] = DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1];
       i++;
     }
-    if (DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1] != -1)
+    if (DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1] != sentry)
     {
       DataSpace.GlobDataSetDim[j] = DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1];
       j++;
@@ -1248,11 +1249,11 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
   i=0;
   for (int n=0; n<L3C_MAX_DIMS; n++)
   {
-    DataSpace.Dst_Offset[n] = -1;
-    DataSpace.Dst_Count[n]  = -1;
-    DataSpace.Dst_Stride[n] = -1;
-    DataSpace.Dst_Block[n]  = -1;
-    if (DataSpaceSave.Dst_Offset[L3C_MAX_DIMS-n-1] != -1)
+    DataSpace.Dst_Offset[n] = sentry;
+    DataSpace.Dst_Count[n]  = sentry;
+    DataSpace.Dst_Stride[n] = sentry;
+    DataSpace.Dst_Block[n]  = sentry;
+    if (DataSpaceSave.Dst_Offset[L3C_MAX_DIMS-n-1] != sentry)
     {
       DataSpace.Dst_Offset[i] = DataSpaceSave.Dst_Offset[L3C_MAX_DIMS-n-1];
       DataSpace.Dst_Count[i]  = DataSpaceSave.Dst_Count[L3C_MAX_DIMS-n-1];
@@ -1294,7 +1295,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
     bool is_multiple_data_space = false;
     // On doit recuperer seulement la list imbrique
     E_Int litem_size = PyList_Size(item);
-    for(int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list)
+    for (int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list)
     {
       PyObject* subitem = PyList_GetItem(item, i_sub_list);
       if (PyList_Check(subitem) == true)
@@ -1303,10 +1304,12 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
       }
     }
 
-    if (is_multiple_data_space == true ) {
+    if (is_multiple_data_space == true ) 
+    {
       assert(flags_src_or_dst == -1);
       n_data_space = PyList_Size(item)/4;
-      if(i_list == 0){
+      if (i_list == 0)
+      {
         flags_src_or_dst = 1; // Multiple data_space in source
 
         DataSpace.List_Src_Offset.resize(n_data_space);
@@ -1339,7 +1342,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         fillArrayLongWithList(Filter, 4, DataSpace.Dst_Block );
 
       } 
-      else if(i_list == 4)
+      else if (i_list == 4)
       { // Pour l'instant on a pas le cas ou l'entré et la sortie sont en multiple_data_space
         flags_src_or_dst = 2; // Multiple data_space in destination
         // printf("flags_src_or_dst ---> %i \n", flags_src_or_dst);
@@ -1350,7 +1353,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         fillArrayLongWithList(Filter, 2, DataSpace.Src_Count );
         fillArrayLongWithList(Filter, 3, DataSpace.Src_Block );
 
-        for(int il = 0; il < L3C_MAX_DIMS; ++il) 
+        for (int il = 0; il < L3C_MAX_DIMS; ++il) 
         {
           DataSpace.Dst_Offset[il] = -1;
           DataSpace.Dst_Stride[il] = -1;
@@ -1364,7 +1367,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         DataSpace.List_Dst_Block .resize(n_data_space);
 
         int shift = 0;
-        for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+        for (int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
         {
           fillArrayLongWithList(item, 0+shift, DataSpace.List_Dst_Offset[i_data_space].data());
           fillArrayLongWithList(item, 1+shift, DataSpace.List_Dst_Stride[i_data_space].data());
@@ -1396,14 +1399,15 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   DataSpace_t DataSpaceSave = DataSpace;
 
   int i=0; int j=0;
+  hsize_t sentry = -1;
   for (int n=0; n<L3C_MAX_DIMS; n++)
   {
-    DataSpace.Src_Offset[n] = -1;
-    DataSpace.Src_Count[n]  = -1;
-    DataSpace.Src_Stride[n] = -1;
-    DataSpace.Src_Block[n]  = -1;
-    DataSpace.GlobDataSetDim[n] = -1;
-    if (DataSpaceSave.Src_Offset[L3C_MAX_DIMS-n-1] != -1)
+    DataSpace.Src_Offset[n] = sentry;
+    DataSpace.Src_Count[n]  = sentry;
+    DataSpace.Src_Stride[n] = sentry;
+    DataSpace.Src_Block[n]  = sentry;
+    DataSpace.GlobDataSetDim[n] = sentry;
+    if (DataSpaceSave.Src_Offset[L3C_MAX_DIMS-n-1] != sentry)
     {
       DataSpace.Src_Offset[i] = DataSpaceSave.Src_Offset[L3C_MAX_DIMS-n-1];
       DataSpace.Src_Count[i]  = DataSpaceSave.Src_Count[L3C_MAX_DIMS-n-1];
@@ -1411,7 +1415,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
       DataSpace.Src_Block[i]  = DataSpaceSave.Src_Block[L3C_MAX_DIMS-n-1];
       i++;
     }
-    if (DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1] != -1)
+    if (DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1] != sentry)
     {
       DataSpace.GlobDataSetDim[j] = DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1];
       j++;
@@ -1421,11 +1425,11 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   i=0;
   for (int n=0; n<L3C_MAX_DIMS; n++)
   {
-    DataSpace.Dst_Offset[n] = -1;
-    DataSpace.Dst_Count[n]  = -1;
-    DataSpace.Dst_Stride[n] = -1;
-    DataSpace.Dst_Block[n]  = -1;
-    if (DataSpaceSave.Dst_Offset[L3C_MAX_DIMS-n-1] != -1)
+    DataSpace.Dst_Offset[n] = sentry;
+    DataSpace.Dst_Count[n]  = sentry;
+    DataSpace.Dst_Stride[n] = sentry;
+    DataSpace.Dst_Block[n]  = sentry;
+    if (DataSpaceSave.Dst_Offset[L3C_MAX_DIMS-n-1] != sentry)
     {
       DataSpace.Dst_Offset[i] = DataSpaceSave.Dst_Offset[L3C_MAX_DIMS-n-1];
       DataSpace.Dst_Count[i]  = DataSpaceSave.Dst_Count[L3C_MAX_DIMS-n-1];
@@ -1442,11 +1446,11 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
       i=0;
       for (int n=0; n<L3C_MAX_DIMS; n++)
       {
-        DataSpace.List_Src_Offset[i_data_space][n] = -1;
-        DataSpace.List_Src_Stride[i_data_space][n] = -1;
-        DataSpace.List_Src_Count [i_data_space][n] = -1;
-        DataSpace.List_Src_Block [i_data_space][n] = -1;
-        if (DataSpaceSave.List_Src_Offset[i_data_space][L3C_MAX_DIMS-n-1] != -1)
+        DataSpace.List_Src_Offset[i_data_space][n] = sentry;
+        DataSpace.List_Src_Stride[i_data_space][n] = sentry;
+        DataSpace.List_Src_Count [i_data_space][n] = sentry;
+        DataSpace.List_Src_Block [i_data_space][n] = sentry;
+        if (DataSpaceSave.List_Src_Offset[i_data_space][L3C_MAX_DIMS-n-1] != sentry)
         {
           DataSpace.List_Src_Offset[i_data_space][i] = DataSpaceSave.List_Src_Offset[i_data_space][L3C_MAX_DIMS-n-1];
           DataSpace.List_Src_Stride[i_data_space][i] = DataSpaceSave.List_Src_Stride[i_data_space][L3C_MAX_DIMS-n-1];
@@ -1465,11 +1469,11 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
       i=0;
       for (int n=0; n<L3C_MAX_DIMS; n++)
       {
-        DataSpace.List_Dst_Offset[i_data_space][n] = -1;
-        DataSpace.List_Dst_Stride[i_data_space][n] = -1;
-        DataSpace.List_Dst_Count [i_data_space][n] = -1;
-        DataSpace.List_Dst_Block [i_data_space][n] = -1;
-        if (DataSpaceSave.List_Dst_Offset[i_data_space][L3C_MAX_DIMS-n-1] != -1)
+        DataSpace.List_Dst_Offset[i_data_space][n] = sentry;
+        DataSpace.List_Dst_Stride[i_data_space][n] = sentry;
+        DataSpace.List_Dst_Count [i_data_space][n] = sentry;
+        DataSpace.List_Dst_Block [i_data_space][n] = sentry;
+        if (DataSpaceSave.List_Dst_Offset[i_data_space][L3C_MAX_DIMS-n-1] != sentry)
         {
           DataSpace.List_Dst_Offset[i_data_space][i] = DataSpaceSave.List_Dst_Offset[i_data_space][L3C_MAX_DIMS-n-1];
           DataSpace.List_Dst_Stride[i_data_space][i] = DataSpaceSave.List_Dst_Stride[i_data_space][L3C_MAX_DIMS-n-1];
@@ -1545,8 +1549,9 @@ int HDF_Get_DataDimensionsPartial(hid_t nid, int *dims,
   int n;
   int ndims;
   L3M_CLEARDIMS(dims);
+  hsize_t sentry = -1;
   ndims = 0;
-  for (n = 0; dst_count[n] != -1; n++)
+  for (n = 0; dst_count[n] != sentry; n++)
   {
     ndims += 1;
     dims[n] = dst_count[n]*dst_block[n];

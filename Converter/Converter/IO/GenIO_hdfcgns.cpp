@@ -986,12 +986,31 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
     for (E_Int i = 0; i < skipSize; i++)
     {
       char* typeToSkip = NULL;
+      char* nameToSkip = NULL;
       PyObject* l = PyList_GetItem(skipTypes, i);
       if (PyString_Check(l)) typeToSkip = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(l)) typeToSkip = (char*)PyUnicode_AsUTF8(l); 
 #endif
-      HDF._skipTypes[string(typeToSkip)] = true;
+      else if (PyTuple_Check(l)) 
+      {
+        /* Get name */
+        PyObject* m1 = PyTuple_GetItem(l, 0);
+        if (PyString_Check(m1)) nameToSkip = PyString_AsString(m1);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(m1)) nameToSkip = (char*)PyUnicode_AsUTF8(m1);
+#endif
+        /* Get type */
+        PyObject* m2 = PyTuple_GetItem(l, 1);
+        if (PyString_Check(m2)) typeToSkip = PyString_AsString(m2);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(m2)) typeToSkip = (char*)PyUnicode_AsUTF8(m2);
+#endif
+      }
+      /* Create map to skip */
+      if (nameToSkip != NULL) 
+        HDF._skipNameAndTypes[make_pair(string(nameToSkip), string(typeToSkip))] = true;
+      else HDF._skipTypes[string(typeToSkip)] = true;
     }
   }
 
@@ -1155,12 +1174,31 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
     for (E_Int i = 0; i < skipSize; i++)
     {
       char* typeToSkip = NULL;
+      char* nameToSkip = NULL;
       PyObject* l = PyList_GetItem(skipTypes, i);
       if (PyString_Check(l)) typeToSkip = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(l)) typeToSkip = (char*)PyUnicode_AsUTF8(l); 
 #endif
-      HDF._skipTypes[string(typeToSkip)] = true;
+      else if (PyTuple_Check(l))
+      {
+        /* Get name */
+        PyObject* m1 = PyTuple_GetItem(l, 0);
+        if (PyString_Check(m1)) nameToSkip = PyString_AsString(m1);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(m1)) nameToSkip = (char*)PyUnicode_AsUTF8(m1);
+#endif
+        /* Get type */
+        PyObject* m2 = PyTuple_GetItem(l, 1);
+        if (PyString_Check(m2)) typeToSkip = PyString_AsString(m2);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(m2)) typeToSkip = (char*)PyUnicode_AsUTF8(m2);
+#endif
+      }
+      /* Create map to skip */
+      if (nameToSkip != NULL)
+        HDF._skipNameAndTypes[make_pair(string(nameToSkip), string(typeToSkip))] = true;
+      else HDF._skipTypes[string(typeToSkip)] = true;
     }
   }
 
@@ -1264,7 +1302,7 @@ PyObject* K_IO::GenIOHdf::loadOne(PyObject* tree, int depth,
   if (depth >= _maxDepth) {H5Gclose(father); return tree;}
   sonList = getChildren(father);
   int c = 0;
-  if (_skipTypes.size() == 0)
+  if (_skipTypes.size() == 0  && _skipNameAndTypes.size() == 0)
   {
     while (sonList != NULL && sonList[c] != (hid_t)-1)
     {
@@ -1309,7 +1347,12 @@ PyObject* K_IO::GenIOHdf::loadOne(PyObject* tree, int depth,
 //=============================================================================
 bool K_IO::GenIOHdf::isAnodeToSkip()
 {
-  return (_skipTypes.find(_type) != _skipTypes.end());
+  //return (_skipTypes.find(_type) != _skipTypes.end());
+  bool result = false;
+  if (_skipTypes.size() != 0) result = (_skipTypes.find(_type) != _skipTypes.end());
+  if (_skipNameAndTypes.size() != 0)
+    result = (_skipNameAndTypes.find(make_pair(_name, _type)) != _skipNameAndTypes.end());
+  return result;
 }
 
 //=============================================================================
