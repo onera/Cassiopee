@@ -279,7 +279,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < nelts; i++)
     {
       //printf("vol=%f\n", volp[i]);
-      voli = 1./K_FUNC::E_max(volp[i], 1.e-12);
+      voli = 1./K_FUNC::E_max(volp[i], K_CONST::E_MIN_VOL);
       gpdv[i] *= voli;
     }
   }
@@ -659,7 +659,7 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
     E_Float* gpdv = gp.begin(n+1);
     for (E_Int i = 0; i < ncells; i++)
     {
-      voli = 1./K_FUNC::E_max(volp[i], 1.e-12);
+      voli = 1./K_FUNC::E_max(volp[i], K_CONST::E_MIN_VOL);
       gpdv[i] *= voli;
     }
   }
@@ -944,7 +944,7 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     for (E_Int indcell = 0; indcell < ncells; indcell++)
     {
       voli =  K_METRIC::compVolOfStructCell2D(ni, nj, xt, yt, zt, indcell, -1);
-      voli = 1./K_FUNC::E_max(voli, 1.e-12);
+      voli = 1./K_FUNC::E_max(voli, K_CONST::E_MIN_VOL);
       gpdv[indcell] *= voli;
     }
   }

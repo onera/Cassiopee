@@ -20,7 +20,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iomanip>
-#include "linear_algebra.hpp"
+#include "linear_algebra.hpp" 
 
 double K_POST::det(const matrix_2x2_type& A)
 {

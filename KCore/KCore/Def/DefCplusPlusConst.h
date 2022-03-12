@@ -91,7 +91,10 @@ namespace K_CONST
   extern const E_Float E_GEOM_CUTOFF;          // 1.E-8
 
 /** */
-  extern const E_Float E_MIN_SURFACE;
+  extern const E_Float E_MIN_SURFACE;          // 1.E-30
+
+/** */
+  extern const E_Float E_MIN_VOL;              // 1.E-30
 
 /** big (infinite) positive value       */
   extern const E_Float E_INFINITE;             //  1.E20

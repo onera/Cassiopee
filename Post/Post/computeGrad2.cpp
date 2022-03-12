@@ -255,7 +255,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < nelts; i++)
     {
       //printf("vol=%f\n", volp[i]);
-      voli = 1./K_FUNC::E_max(volp[i], 1.e-12);
+      voli = 1./K_FUNC::E_max(volp[i], K_CONST::E_MIN_VOL);
       gpx[i] = gpx[i] * voli;
       gpy[i] = gpy[i] * voli;
       gpz[i] = gpz[i] * voli;
@@ -556,7 +556,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
     }
     for (E_Int i = 0; i < ncells; i++)
     {
-      voli = 1./K_FUNC::E_max(volp[i], 1.e-12);
+      voli = 1./K_FUNC::E_max(volp[i], K_CONST::E_MIN_VOL);
       gpx[i] *= voli; gpy[i] *= voli; gpz[i] *= voli;
     }
   }
@@ -734,7 +734,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     for (E_Int iicell = 0; iicell < ncells; iicell++)
     {
       voli =  K_METRIC::compVolOfStructCell2D(ni, nj, xt, yt, zt, iicell, -1);
-      voli = 1./K_FUNC::E_max(voli, 1.e-12);
+      voli = 1./K_FUNC::E_max(voli, K_CONST::E_MIN_VOL);
       gpx[iicell] *= voli; gpy[iicell] *= voli; gpz[iicell] *= voli;
     }
   }

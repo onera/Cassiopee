@@ -64,12 +64,12 @@ C     ----------------------
 C     Useful 
       PARAMETER (E_CUTOFF     = 1.0D-11)
       PARAMETER (E_MIN_SURFACE= 1.0D-30)
-      PARAMETER (E_MIN_SURFACE= 1.0D-30)
+      PARAMETER (E_MIN_VOL    = 1.0D-30)
       PARAMETER (E_PI         = 3.14159265359)
 C     Avoid exponential overflow
       PARAMETER (E_MAXEXP     = 50.D0)
       PARAMETER (INFTYS       = 1.0D-30 )
-      PARAMETER (MAXFLOAT     =  1.0E+30 )
+      PARAMETER (MAXFLOAT     = 1.0E+30 )
 #else
       PARAMETER (ZERO         = 0.0E0  )
       PARAMETER (ONE_EIGHT    = 0.125E0 )
@@ -81,6 +81,7 @@ C     Avoid exponential overflow
       PARAMETER (FOUR         = 4.0E0  )
       PARAMETER (E_CUTOFF     = 1.0E-06)
       PARAMETER (E_MIN_SURFACE= 1.0E-30)
+      PARAMETER (E_MIN_VOL    = 1.0D-30)
       PARAMETER (E_PI         = 3.14159265359)
       PARAMETER (E_MAXEXP     = 50.E0)
       PARAMETER (INFTYS       =  1.0E-30 )
