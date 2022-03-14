@@ -49,6 +49,7 @@ endif
 
 unset KC
 
+echo 'MAHCINE',$MAC
 # ----------------------------- Common ----------------------------------------
 
 # Si la variable ELSA est dans l'environnement, on cree des chemins compatibles
@@ -73,6 +74,7 @@ if ($MAC == "ld_pgi") then
 else if ($MAC == "ld_eos8") then
 #-------------------------- ld centos 8 + python 3 -----------------------------
         setenv ELSAPROD eos8_r8
+        module purge
         # Modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x

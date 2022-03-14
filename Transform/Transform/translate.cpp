@@ -39,7 +39,7 @@ PyObject* K_TRANSFORM::translate(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+  E_Int res = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
                                      cn, eltType);
   
   if (res != 1 && res != 2)

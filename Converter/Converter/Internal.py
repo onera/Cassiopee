@@ -3140,12 +3140,12 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
             return ['unknown', array]
 
     # non structure
-    iBE = 0; isNGon = False
+    iBE = 0; isNGon = False; iNGon = 0; iNFace = 0
     cr = [None,None,None,None,None]; et = []
     for c in connects:
         ctype = c[1][0]
         if ctype == 22: # NGon 
-            isNGon = True
+            isNGon = True; iNGon = c
             pt = getNodeFromName1(c, 'ElementConnectivity')
             if pt is not None: cr[0] = pt[1]
             pt = getNodeFromName1(c, 'ElementStartOffset')
@@ -3155,7 +3155,7 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
             pt = getNodeFromName1(c, 'ParentElement')
             if pt is not None: cr[4] = pt[1]
         elif ctype == 23: # NFace
-            isNGon = True
+            isNGon = True; iNFace = c
             pt = getNodeFromName1(c, 'ElementConnectivity')
             if pt is not None: cr[1] = pt[1]
             pt = getNodeFromName1(c, 'ElementStartOffset')
@@ -3175,15 +3175,38 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
     if not isNGon:
         crOut = []; iBE = 0
         for c in cr:
-            if c is not None: 
-                crOut.append(c)
+            if c is not None:
                 ettype, stype = eltNo2EltName(eltType)
                 eltString += ettype+","
+                size = c.size//stype
+                b = c.reshape((size,stype)) # reshape needed
+                crOut.append(b)
                 iBE += 1
         cr = crOut
         eltString = eltString[:-1]
-    else: eltString = "NGON"
-    
+        #if cr == []: # patch empty connect
+        #    c = numpy.empty((1,0), dtype=numpy.int32)
+        #    eltString='NODE'
+        #    crOut.append(c)
+    else:
+        eltString = "NGON"
+        if cr[0] is None: print('Warning: getField: empty NGON connectivity.')
+        if cr[1] is None: print('Warning: getField: empty NFACE connectivity.')
+        if cr[2] is None:
+            # forcement Array2 old ngon
+            no = getNodeFromName1(iNGon, 'ElementRange')[1]
+            nfaces = no[1]-no[0]+1
+            n = converter.adaptNGon2Index(cr[0], nfaces)
+            g = createUniqueChild(connects[0], 'FaceIndex', 'DataArray_t', value=n)
+            cr[2] = g
+        if cr[3] is None:
+            # forcement Array2 old ngon
+            no = getNodeFromName1(iNFace, 'ElementRange')[1]
+            nelts = no[1]-no[0]+1
+            n = converter.adaptNGon2Index(cr[1], nelts)
+            g = createUniqueChild(connects[0], 'ElementIndex', 'DataArray_t', value=n)
+            cr[3] = g
+                
     locout = 'nodes'
     s = ar.size
     if dim[1] != dim[2]: # on peut decider
@@ -3377,12 +3400,12 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
             return [vars, field, ni, nj, nk]
 
     # unstructured
-    iBE = 0; isNGon = False
+    iBE = 0; isNGon = False; iNGon = 0; iNFace = 0
     cr = [None,None,None,None,None]; et = []
     for c in connects:
         ctype = c[1][0]
         if ctype == 22: # NGon 
-            isNGon = True
+            isNGon = True; iNGon = c
             pt = getNodeFromName1(c, 'ElementConnectivity')
             if pt is not None: cr[0] = pt[1]
             pt = getNodeFromName1(c, 'ElementStartOffset')
@@ -3392,7 +3415,7 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
             pt = getNodeFromName1(c, 'ParentElement')
             if pt is not None: cr[4] = pt[1]
         elif ctype == 23: # NFace
-            isNGon = True
+            isNGon = True; iNFace = c
             pt = getNodeFromName1(c, 'ElementConnectivity')
             if pt is not None: cr[1] = pt[1]
             pt = getNodeFromName1(c, 'ElementStartOffset')
@@ -3413,13 +3436,32 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
         crOut = []; iBE = 0
         for c in cr:
             if c is not None: 
-                crOut.append(c)
                 ettype, stype = eltNo2EltName(et[iBE])
                 eltString += ettype+","
+                size = c.size//stype
+                b = c.reshape((size,stype)) # reshape needed
+                crOut.append(b)
                 iBE += 1
         cr = crOut
         eltString = eltString[:-1]
-    else: eltString = "NGON"
+    else: 
+        eltString = "NGON"
+        if cr[0] is None: print('Warning: getField: empty NGON connectivity.')
+        if cr[1] is None: print('Warning: getField: empty NFACE connectivity.')
+        if cr[2] is None:
+            # forcement Array2 old ngon
+            no = getNodeFromName1(iNGon, 'ElementRange')[1]
+            nfaces = no[1]-no[0]+1
+            n = converter.adaptNGon2Index(cr[0], nfaces)
+            g = createUniqueChild(connects[0], 'FaceIndex', 'DataArray_t', value=n)
+            cr[2] = g
+        if cr[3] is None:
+            # forcement Array2 old ngon
+            no = getNodeFromName1(iNFace, 'ElementRange')[1]
+            nelts = no[1]-no[0]+1
+            n = converter.adaptNGon2Index(cr[1], nelts)
+            g = createUniqueChild(connects[0], 'ElementIndex', 'DataArray_t', value=n)
+            cr[3] = g
 
     # tag *
     if dim[1] != dim[2]: # on peut decider

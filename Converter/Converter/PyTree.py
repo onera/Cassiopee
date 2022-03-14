@@ -2472,13 +2472,13 @@ def _initVars(t, varNameString, v1=[], v2=[]):
   if not centerCoordNeeded:
     if v1 == []:
       _addVars(t, var)
-      return __TZA3(t, Converter._initVars, loc, varNameString, v1, v2)
+      return __TZA2(t, Converter._initVars, loc, varNameString, v1, v2)
     elif callable(v1):
       _addVars(t, varNameString)
-      return __TZA3(t, Converter._initVars, loc, var, v1, v2)
+      return __TZA2(t, Converter._initVars, loc, var, v1, v2)
     else:
       _addVars(t, varNameString)
-      return __TZA3(t, Converter._initVars, loc, var, v1, v2)
+      return __TZA2(t, Converter._initVars, loc, var, v1, v2)
   else:
     s = varNameString.split('=')
     if len(s) == 1: # pas formule
@@ -3079,7 +3079,7 @@ def _normalize(t, vars):
       if len(s) == 2: vars2.append(s[1])
       else: vars2.append(s[0])
     else: raise ValueError("normalize: invalid vector component.")
-  __TZA3(t, Converter._normalize, loc, vars2)
+  __TZA2(t, Converter._normalize, loc, vars2)
   return None
 
 # -- magnitude: calcul la norme d'un jeu de variables
@@ -3116,7 +3116,7 @@ def normL0(t, var):
   """Get the L0 norm of the field defined by varName in t.
   If celln exists in the array, the norm for blanked points is not computed.
   Usage: normL0(t, varName)"""
-  A = getField(var, t, api=3)
+  A = getField(var, t, api=2)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.normL0(A, var)
@@ -3126,7 +3126,7 @@ def normL2(t, var):
   """Get the L2 norm of the field defined by varName in t.
   If celln exists in the array, the norm for blanked points is not computed.
   Usage: normL0(t, varName)"""
-  A = getField(var, t, api=3)
+  A = getField(var, t, api=2)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.normL2(A, var)
@@ -3141,9 +3141,9 @@ def getArgMin(t, var):
     var = v[1]
     if v[0] == 'centers': centers = True
   if centers:
-    A = getFields([Internal.__FlowSolutionCenters__], t, api=3)
+    A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
   else:
-    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=3)
+    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
   return Converter.getArgMin(A, var)
 
 # -- getArgMax (only on nodes or centers separately)
@@ -3156,9 +3156,9 @@ def getArgMax(t, var):
     var = v[1]
     if v[0] == 'centers': centers = True
   if centers:
-    A = getFields([Internal.__FlowSolutionCenters__], t, api=3)
+    A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
   else:
-    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=3)
+    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
   return Converter.getArgMax(A, var)
 
 # -- getMinValue
@@ -3170,7 +3170,7 @@ def getMinValue(t, varName):
   out = []
   if varNames[0] == Internal.__GridCoordinates__: varNames = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
   for v in varNames:
-    A = getField(v, t, api=3)
+    A = getField(v, t, api=2)
     va = v.split(':')
     if len(va) > 1: v = va[1]
     minValue = 1.e9
@@ -3190,7 +3190,7 @@ def getMaxValue(t, varName):
   out = []
   if varNames[0] == Internal.__GridCoordinates__: varNames = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
   for v in varNames:
-    A = getField(v, t, api=3)
+    A = getField(v, t, api=2)
     va = v.split(':')
     if len(va) > 1: v = va[1]
     maxValue = -1.e9
@@ -3205,7 +3205,7 @@ def getMaxValue(t, varName):
 def getMeanValue(t, var):
   """Get the mean value of variable defined by var.
   Usage: getMeanValue(t, var)"""
-  A = getField(var, t, api=3)
+  A = getField(var, t, api=2)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.getMeanValue(A, var)
@@ -3214,7 +3214,7 @@ def getMeanValue(t, var):
 def getMeanRangeValue(t, var, rmin, rmax):
   """Get the mean value of variable defined by var in the sorted range between rmin and rmax.
   Usage: getMeanRangeValue(t, var, rmin, rmax)"""
-  A = getField(var, t, api=3)
+  A = getField(var, t, api=2)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.getMeanRangeValue(A, var, rmin, rmax)
