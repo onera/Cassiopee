@@ -29,8 +29,9 @@
 #define  TEST1          0
 #define  TEST2          0
 #define  TEST3          0
+#define  TEST4          1
 #define  TESTARRAY2     0
-#define  TESTARRAY3     1
+#define  TESTARRAY3     0
 #define  TESTFLD        0
 #define  TESTNUMPY      0
 #define  TESTHIGHORDER  0
@@ -110,6 +111,49 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   E_Float* x = f->begin();
   x[0] = -0.05;
   if (ret == 2) c->print();
+  RELEASESHAREDB(ret, o, f, c);
+  Py_INCREF(Py_None);
+  return Py_None;
+#endif
+
+#if TEST4 == 1
+  PyObject* o;
+  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  E_Int ni, nj, nk;
+  K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+  char* varString; char* eltType;
+  E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, c, eltType);
+  Py_INCREF(Py_None);
+  return Py_None;
+
+  // Acces universel sur f (begin)
+  //f->print();
+  E_Int nfld = f->getNfld(); // nbre de champs
+  E_Int npts = f->getSize(); // nbre de pts
+  printf("npts=%d, nfld=%d\n", npts, nfld);
+  E_Float* x = f->begin(1); x[0] = -0.05;
+
+  if (ret == 2 && strcmp(eltType, "NGON") == 0)
+  {
+    // Acces universel sur NGON
+
+  }
+  else if (ret == 2)
+  {
+    // Acces universel sur BE/ME
+    E_Int nc = c->getNConnect();
+    printf("nombre de connectivites=%d\n", nc); // may be 0
+    FldArrayI& cm = *(c->getConnect(0));
+    E_Int nelts = cm.getSize();
+    E_Int nvpe = cm.getNfld();
+    printf("first connect, nelts=%d, nvpe=%d\n", nelts, nvpe);
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      cm(i,1) = -1; cm(i,2) = -2; cm(i,3) = -3; // pas de begin sur les connects
+    }
+  }
+
+  //if (ret == 2) c->print();
   RELEASESHAREDB(ret, o, f, c);
   Py_INCREF(Py_None);
   return Py_None;

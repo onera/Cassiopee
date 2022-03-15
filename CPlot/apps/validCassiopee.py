@@ -36,6 +36,7 @@ except: isMpi = False
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
 regError = re.compile('Error')
+regErreur = re.compile('Erreur') # a cause des systeme en francais
 regAbort = re.compile('Aborted')
 separator = ':'
 separatorl = separator+' '
@@ -481,6 +482,7 @@ def runSingleUnitaryTest(no, module, test):
         if regDiff.search(output) is not None: success = False
         if regFailed.search(output) is not None: success = False
         if regError.search(output) is not None: success = False
+        if regErreur.search(output) is not None: success = False
         if regAbort.search(output) is not None: success = False
 
         # Recupere le CPU time
@@ -571,6 +573,9 @@ def runSingleCFDTest(no, module, test):
         if regDiff.search(output) is not None: success = False
         if regFailed.search(output) is not None: success = False
         if regError.search(output) is not None: success = False
+        if regErreur.search(output) is not None: success = False
+        if regAbort.search(output) is not None: success = False
+        
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
             CPUtime = extractCPUTime(output1, output2)

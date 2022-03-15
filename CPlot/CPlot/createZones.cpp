@@ -349,7 +349,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   {
     char* v = varsT[i];
     if (K_STRING::cmp(v, "x") != 0 && K_STRING::cmp(v, "y") != 0 && K_STRING::cmp(v, "z") != 0 &&
-        K_STRING::cmp(v, "CoordinateX") != 0 && K_STRING::cmp(v, "CoordinatY") != 0 && K_STRING::cmp(v, "CoordinateZ") != 0)
+        K_STRING::cmp(v, "CoordinateX") != 0 && K_STRING::cmp(v, "CoordinateY") != 0 && K_STRING::cmp(v, "CoordinateZ") != 0)
     {
       vars.push_back(v);
     }
@@ -569,7 +569,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     z.eltSize = 1;
     z.dim = 3;
   }
-  else if ( not z._is_high_order )
+  else if (not z._is_high_order)
   {
     printf("Warning: element type is unknown. Set to TRI.\n");
     z.eltType = 2;

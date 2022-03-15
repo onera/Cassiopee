@@ -375,10 +375,10 @@ namespace K_ARRAY
    Si type=2, nvertex, nelt, sizeConnect et eltType sont renseignes.
    Cette routine ne fait pas de verification.
   */
-  E_Int getInfoFromArray(PyObject* o,  char*& varString,
+  E_Int getInfoFromArray(PyObject* o, char*& varString,
                          E_Int& ni, E_Int& nj, E_Int& nk,
                          E_Int& nvertex, E_Int& nelt, 
-                         E_Int& sizeConect, char*& eltType);
+                         E_Int& sizeConnect, char*& eltType);
 
   /* Construit un array structure a partir d'un FldArray
      IN: field: Fld champ structure

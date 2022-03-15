@@ -85,6 +85,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
+
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = false;
@@ -108,6 +109,36 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
       RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
     return NULL;
   }
+
+  // Read from arrays using Array2/3
+  /*
+  char* varStringl; char* eltTypel;
+  E_Int nil, njl, nkl, resl;
+  FldArrayF* fl; FldArrayI* cnl;
+  PyObject* o;
+  E_Int nz = PyList_Size(arrays);
+  for (E_Int i = 0; i < nz; i++)
+  {
+    o = PyList_GetItem(arrays, i);
+    resl = K_ARRAY::getFromArray3(o, varStringl, fl, 
+                                  nil, njl, nkl, cnl, eltTypel);
+    if (resl == 1)
+    {
+        structVarString.push_back(varStringl);
+        structF.push_back(fl);
+        nit.push_back(nil); njt.push_back(njl), nkt.push_back(nkl);
+        objs.push_back(o);
+    }
+    else if (resl == 2)
+    {
+        unstrVarString.push_back(varStringl);
+        unstrF.push_back(fl);
+        eltType.push_back(eltTypel); cnt.push_back(cnl);
+        obju.push_back(o);
+    }
+    else printf("Warning: display: array %d is invalid.\n", i);
+  }
+  */
 
   Data* d = Data::getInstance();
 
@@ -162,8 +193,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < structFSize; i++) RELEASESHAREDS(objs[i], structF[i]);
 
   E_Int unstrFSize = unstrF.size();
-  for (E_Int i = 0; i < unstrFSize; i++)
-    RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
+  for (E_Int i = 0; i < unstrFSize; i++) RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
 
   if (d->ptrState->offscreen == 1 ||
       d->ptrState->offscreen == 5 ||

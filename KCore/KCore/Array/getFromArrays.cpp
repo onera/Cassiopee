@@ -254,7 +254,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
                      sizeConnect, eltT);
     size += strlen(varStringl)+4;
   }
-  char* varStringCommon = new char [size]; 
+  char* varStringCommon = new char [size];
   varStringCommon[0] = '\0';
 
   for (int i = 0; i < n; i++)
