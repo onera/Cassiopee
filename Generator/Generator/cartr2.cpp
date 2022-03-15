@@ -37,27 +37,25 @@ using namespace K_FUNC;
 // ============================================================================
 float f(float Xo, float Xf, float H, float N, float R)
 {
-  return pow(R,N) - R * ( (Xf-Xo) / H ) + ( (Xf-Xo) / H ) -1 ;
+  return pow(R,N) - R * ( fabs(Xf-Xo) / H ) + ( fabs(Xf-Xo) / H ) - 1.;
 }
 
 float fderiv(float Xo, float Xf, float H, float N, float R)
 {
-  return N * pow(R,N-1) - ( (Xf-Xo) / H ) ;
+  return N * pow(R,N-1) - ( fabs(Xf-Xo) / H );
 }
-
-
 
 float NewtonApproche(float Xo, float Xf, float H, int N, float Rini)
 {
   E_Float res=Rini;
-  // printf("%f \n ",res) ; fflush(stdout);
+  //printf("%f \n ",res); fflush(stdout);
   E_Int Nit=0;
-  while( fabs(f(Xo,Xf,H,N,res)) >= 0.00001 && Nit<20)
+  while (fabs(f(Xo,Xf,H,N,res)) >= 0.000001 && Nit<30)
   {
-    res -=  f(Xo,Xf,H,N,res) / fderiv(Xo,Xf,H,N,res) ;
+    res -= f(Xo,Xf,H,N,res) / fderiv(Xo,Xf,H,N,res);
     // printf("%f \n ",res) ; fflush(stdout);
     // printf("%f \n ", f(Xo,Xf,H,N,res) ) ; fflush(stdout);
-    Nit+=1;
+    Nit += 1;
   } 
   // printf("r final methode = %f \n ",res) ; fflush(stdout);
   return res;
@@ -78,64 +76,74 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  if ( ( (xf-xo) /hi ) * (riinput -1) +1 < 0 || ( (yf-yo) /hj ) * (rjinput -1) +1 < 0 ||( (zf-zo) /hk ) * (rkinput -1) +1 < 0 )
+  if ( ( (fabs(xf-xo) /hi ) * (riinput -1) + 1 < 0) || ( (fabs(yf-yo) /hj ) * (rjinput -1) +1 < 0 ) ||( (fabs(zf-zo) /hk ) * (rkinput -1) +1 < 0 ) )
   {
     PyErr_SetString(PyExc_ValueError, 
-                    "Maillage impossible, veuillez changer les paramètres d'entrée \n Conditon à respecter: (Xf-Xo) /H ) * (R -1) +1 < 0");
+                    "Can not generate mesh.\n Condition not met: (Xf-Xo) /H ) * (R-1) +1 < 0.");
     return NULL;
   }
 
-  if ( (riinput == 1.0) && (fmod(xf-xo,hi)  !=0)  )
+  if ((K_FUNC::fEqual(riinput, 1.0) == true) && (K_FUNC::fEqual( fmod((xf-xo), hi),0) == false) )
   {
-    riinput+=0.1;
-    printf("Condition sur r impossible à satisfaire, la valeur va être changé\n ");
-    printf("nouveau ri = %f\n", riinput);
-  }
-  if ( (rjinput == 1.0) && ( fmod(yf-yo,hj) !=0) )
-  {
-    rjinput+=0.1;
-    printf("Condition sur r impossible à satisfaire, la valeur va être changé\n");
-    printf("nouveau rj = %f\n", rjinput);
-  }
-  if ( (rkinput == 1.0) && ( fmod(zf-zo,hk) !=0) )
-  {
-    rkinput+=0.1;
-    printf("Condition sur r impossible à satisfaire, la valeur va être changé\n");
-    printf("nouveau rk = %f\n" , rkinput);
-  }
-  E_Float niapp, njapp, nkapp;
-  if (riinput == 1.0 )
-  {
-    niapp = (xf - xo) / hi ;
-  }
-  else
-  {
-    niapp = log( ((xf - xo) / hi) * (riinput - 1) +1) / log(riinput) ;
-  } 
-
-  if (rjinput == 1.0)
-  {
-    njapp = (yf - yo) / hj ;
-  }
-  else
-  {
-    njapp = log( ((yf - yo) / hj) * (rjinput - 1) +1) / log(rjinput) ;
+    //printf("Remainder of %f / %f is %f\n", xf-xo, hi, fmod((xf-xo),hi));
+    riinput += 0.001;
+    //printf("Warning: condition on r not met.\n ");
+    //printf("Warning: ri set to %f\n", riinput);
   }
   
-  if (rkinput == 1.0)
+  if ((K_FUNC::fEqual(rjinput,1.0) == true) && (K_FUNC::fEqual( fmod(yf-yo,hj), 0)==false) )
   {
-    nkapp = (zf - zo) / hk ;
+    rjinput += 0.001;
+    //printf("Warning: condition on r not met.\n");
+    //printf("Warning: rj set to %f\n", rjinput);
+  }
+
+  if ((K_FUNC::fEqual(rkinput,1.0) == true) && (K_FUNC::fEqual(fmod(zf-zo,hk), 0)==false) )
+  {
+    rkinput += 0.001;
+    //printf("Warning: condition on r not met.\n");
+    //printf("Warning: rk set to %f.\n" , rkinput);
+  }
+  E_Float niapp, njapp, nkapp;
+  if (K_FUNC::fEqual(riinput, 1.0) == true)
+  {
+    niapp = fabs(xf - xo) / hi;
+  }
+  else
+  {
+    niapp = log( (fabs(xf - xo) / hi) * (riinput - 1) +1) / log(riinput);
+  } 
+
+  if (K_FUNC::fEqual(rjinput, 1.) == true)
+  {
+    njapp = fabs(yf - yo) / hj;
+  }
+  else
+  {
+    njapp = log( (fabs(yf - yo) / hj) * (rjinput - 1) +1) / log(rjinput);
+  }
+  
+  if (K_FUNC::fEqual(rkinput, 1.0) == true)
+  {
+    nkapp = fabs(zf - zo) / hk;
   }
   else
   {  
-    nkapp = log( ((zf - zo) / hk) * (rkinput - 1) +1) / log(rkinput) ;
+    nkapp = log( (fabs(zf - zo) / hk) * (rkinput - 1) +1) / log(rkinput);
   }
 
-  // printf(" ni approche = %f \n ",niapp) ; fflush(stdout);
-  // printf(" nj approche = %f \n ",njapp) ; fflush(stdout);
-  // printf(" nk approche = %f \n ",nkapp) ; fflush(stdout);
-
-  
+  if (K_FUNC::fEqual(xo,xf)==true)
+  {
+    niapp=0;
+  }
+  if (K_FUNC::fEqual(yo,yf)==true)
+  {
+    njapp=0;
+  }
+  if (K_FUNC::fEqual(zo,zf)==true)
+  {
+    nkapp=0;
+  }
   E_Int ni = floor(niapp) + 1 ;
   E_Int nj = floor(njapp) + 1 ;
   E_Int nk = floor(nkapp) + 1 ;
@@ -148,28 +156,26 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   E_Float rj = NewtonApproche(yo,yf,hj,nj,rjinput);
   E_Float rk = NewtonApproche(zo,zf,hk,nk,rkinput);
   
-  printf("ri Final =%f \n ",ri) ; fflush(stdout);
-  printf("rj Final =%f \n ",rj) ; fflush(stdout);
-  printf("rk Final =%f \n ",rk) ; fflush(stdout);
+  //printf("Info: final ri=%f\n ",ri) ; fflush(stdout);
+  //printf("Info: final rj=%f\n ",rj) ; fflush(stdout);
+  //printf("Info: final rk=%f\n ",rk) ; fflush(stdout);
   
-  if (ri != 1.)
+  if (fEqual(ri, 1.) == false)
   {
-    ni+=1 ;
-  } 
+    ni += 1;
+  }
   
-  if (rj != 1.)
+  if (fEqual(rj, 1.) == false)
   {
-    nj+=1 ;
+    nj += 1;
   } 
 
-  if (rk != 1.)
+  if (fEqual(rk, 1.) == false)
   {
-    nk+=1 ;
+    nk += 1;
   } 
 
-  printf("nombre mailles en i = %i \n ",ni) ; fflush(stdout);
-  printf("nombre mailles en j = %i \n ",nj) ; fflush(stdout);
-  printf("nombre mailles en k = %i \n ",nk) ; fflush(stdout);
+  //printf("Info: number of mesh cell = %i (i), %i (j), %i (k)\n ",ni,nj,nk); fflush(stdout);
 
   E_Int i, j, k, ind;
   // Create cartesian mesh
@@ -186,9 +192,8 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   E_Float* xt = f->begin(1);
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
-  
 
-  if (ri != 1.0) 
+  if (K_FUNC::fEqual(ri, 1.0) == false)
   {
     #pragma omp parallel for default(shared) private(k,j,i,ind)
     for (ind = 0; ind < nijk; ind++)
@@ -196,8 +201,15 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      xt[ind] = xo + hi * ( ( -1 + pow(ri ,i) ) / (-1 + ri) );
-    } 
+      if (xf<xo)
+      {
+        xt[ind] = xo - hi * ( ( -1. + pow(ri ,i) ) / (-1. + ri) );
+      }
+      else
+      {
+        xt[ind] = xo + hi * ( ( -1. + pow(ri ,i) ) / (-1. + ri) );
+      } 
+    }
   }
   else
   {
@@ -207,60 +219,91 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      xt[ind] = xo + hi * i ;
-    } 
-        
-    }   
+      if (xf<xo)
+      {
+        xt[ind] = xo - hi * i;
+      } 
+      else
+      {
+        xt[ind] = xo + hi * i;
+      } 
+    }    
+  }   
     
-  if (rj != 1.0)
+  if (fEqual(rj, 1.0) == false)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
     {
-      #pragma omp parallel for default(shared) private(k,j,i,ind)
-      for (ind = 0; ind < nijk; ind++)
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (yf<yo)
       {
-        k = ind/nij;
-        j = (ind-k*nij)/ni;
-        i = ind-j*ni-k*nij;
-        yt[ind] = yo + hj * ( ( -1 + pow(rj ,j) ) / (-1 + rj) );
+        yt[ind] = yo - hj * ( ( -1. + pow(rj, j) ) / (-1. + rj) );
+      } 
+      else
+      {
+        yt[ind] = yo + hj * ( ( -1. + pow(rj, j) ) / (-1. + rj) );
       }
-        
     }
-    else
+  }
+  else
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
     {
-      #pragma omp parallel for default(shared) private(k,j,i,ind)
-      for (ind = 0; ind < nijk; ind++)
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (yf<yo)
       {
-        k = ind/nij;
-        j = (ind-k*nij)/ni;
-        i = ind-j*ni-k*nij;
-        yt[ind] = yo + hj * j ;
+        yt[ind] = yo - hj * j;
       }
-        
+      else
+      {
+        yt[ind] = yo + hj * j;
+      }      
     } 
+  } 
 
-    if (rk != 1.0)
-    { 
-      #pragma omp parallel for default(shared) private(k,j,i,ind)
-      for (ind = 0; ind < nijk; ind++)
-      {
-        k = ind/nij;
-        j = (ind-k*nij)/ni;
-        i = ind-j*ni-k*nij;
-        zt[ind] = zo + hk * ( ( -1 + pow(rk ,k) ) / (-1 + rk) );
-      }
-        
-    }
-    else
+  if (fEqual(rk, 1.0) == false)
+  { 
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
     {
-      #pragma omp parallel for default(shared) private(k,j,i,ind)
-      for (ind = 0; ind < nijk; ind++)
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (zf<zo)
       {
-        k = ind/nij;
-        j = (ind-k*nij)/ni;
-        i = ind-j*ni-k*nij;
-        zt[ind] = zo + hk * k ;
+        zt[ind] = zo - hk * ( ( -1. + pow(rk ,k) ) / (-1. + rk) );
       }
-        
-    }
+      else
+      {
+        zt[ind] = zo + hk * ( ( -1. + pow(rk ,k) ) / (-1. + rk) );
+      }  
+    }    
+  }
+  else
+
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (zf < zo)
+      {
+        zt[ind] = zo - hk * k;
+      } 
+      else
+      {
+        zt[ind] = zo + hk * k;
+      }
+    }   
+  }
 
   // Return array
   RELEASESHAREDS(tpl, f);

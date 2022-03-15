@@ -26,9 +26,9 @@ using namespace K_FLD;
 using namespace K_FUNC; 
 
 // ============================================================================
-/* Create a cartesian mesh of nixnjxnk points 
+/* Create a cartesian mesh of nixnjxnk points with expension factors
    IN: x0, y0, z0: origine de la grille
-   IN: hi, hj, hk: pas de la grille 
+   IN: hi, hj, hk: pas de la grille. Enter negative values for extrusion in -x,-y or -z direction
    IN: ni, nj, nk: nombre de points
    IN: ri, rj, rk: facteur d'expansion dans chaque direction
    OUT: array definissant le maillage cree. */
@@ -70,8 +70,7 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
   
-
-  if (ri != 1.0)
+  if (K_FUNC::fEqual(ri, 1.0) == false)
   {
     #pragma omp parallel for default(shared) private(k,j,i,ind)
     for (ind = 0; ind < nijk; ind++)
@@ -79,8 +78,8 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      xt[ind] = xo + hi * ( ( -1 + pow(ri ,i) ) / (-1 + ri) );
-    } 
+      xt[ind] = xo + hi * ( ( -1. + pow(ri, i) ) / (-1. + ri) ); 
+    }
   }
   else
   {
@@ -90,60 +89,55 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      xt[ind] = xo + hi * i ;
-    } 
-        
+      xt[ind] = xo + hi * i; 
     }   
+  }   
     
-  if (rj != 1.0)
+  if (fEqual(rj, 1.0) == false)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
     {
-      #pragma omp parallel for default(shared) private(k,j,i,ind)
-      for (ind = 0; ind < nijk; ind++)
-      {
-        k = ind/nij;
-        j = (ind-k*nij)/ni;
-        i = ind-j*ni-k*nij;
-        yt[ind] = yo + hj * ( ( -1 + pow(rj ,j) ) / (-1 + rj) );
-      }
-        
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      yt[ind] = yo + hj * ( ( -1. + pow(rj, j) ) / (-1. + rj) );
     }
-    else
+  }
+  else
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
     {
-      #pragma omp parallel for default(shared) private(k,j,i,ind)
-      for (ind = 0; ind < nijk; ind++)
-      {
-        k = ind/nij;
-        j = (ind-k*nij)/ni;
-        i = ind-j*ni-k*nij;
-        yt[ind] = yo + hj * j ;
-      }
-        
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      yt[ind] = yo + hj * j;     
     } 
+  } 
 
-    if (rk != 1.0)
-    { 
-      #pragma omp parallel for default(shared) private(k,j,i,ind)
-      for (ind = 0; ind < nijk; ind++)
-      {
-        k = ind/nij;
-        j = (ind-k*nij)/ni;
-        i = ind-j*ni-k*nij;
-        zt[ind] = zo + hk * ( ( -1 + pow(rk ,k) ) / (-1 + rk) );
-      }
-        
-    }
-    else
+  if (fEqual(rk, 1.0) == false)
+  { 
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
     {
-      #pragma omp parallel for default(shared) private(k,j,i,ind)
-      for (ind = 0; ind < nijk; ind++)
-      {
-        k = ind/nij;
-        j = (ind-k*nij)/ni;
-        i = ind-j*ni-k*nij;
-        zt[ind] = zo + hk * k ;
-      }
-        
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      zt[ind] = zo + hk * ( ( -1. + pow(rk ,k) ) / (-1. + rk) );
     }
+  }
+  else
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      zt[ind] = zo + hk * k;
+    }  
+  }
 
   // Return array
   RELEASESHAREDS(tpl, f);
