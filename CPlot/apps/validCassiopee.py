@@ -26,6 +26,10 @@ CFDBASEPATH = '/Validation/Cases'
 # Systeme
 mySystem = Dist.getSystem()[0]
 
+# Machine name
+import socket
+machine = socket.gethostname()
+
 # Support MPI?
 try: 
     import mpi4py
@@ -36,8 +40,9 @@ except: isMpi = False
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
 regError = re.compile('Error')
-regErreur = re.compile('Erreur') # a cause des systeme en francais
+regErreur = re.compile('Erreur') # because of french system
 regAbort = re.compile('Aborted')
+regSegmentation = re.compile('Segmentation')
 separator = ':'
 separatorl = separator+' '
 expTest1 = re.compile("_t[0-9]+") # normal tests
@@ -148,6 +153,8 @@ def check_output(cmd, shell, stderr):
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
         stdout, stderr = PROCESS.communicate(None, timeout=None)
+        if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
+        PROCESS = None # fini!
         return stdout+stderr
 
 # retourne une chaine justifiee en fonction de la font et
@@ -248,14 +255,15 @@ def buildString(module, test, CPUtime, coverage, status):
 #==============================================================================
 def getModules():
     # Tests unitaires des modules
-    print('Getting tests in:%s.'%CASSIOPEE)
+    print('Info: Getting tests in:%s.'%CASSIOPEE)
     modules = []
 
     path = CASSIOPEE+'/Apps/PModules'
     try: mods = os.listdir(path)
     except: mods = []
+    notTested = ['Upmost', 'FastP']
     for i in mods:
-        if i != 'Upmost' and i not in modules:
+        if i not in notTested and i not in modules:
             a = os.access('%s/%s/test'%(path,i), os.F_OK)
             if a:
                 modules.append(i)
@@ -484,6 +492,7 @@ def runSingleUnitaryTest(no, module, test):
         if regError.search(output) is not None: success = False
         if regErreur.search(output) is not None: success = False
         if regAbort.search(output) is not None: success = False
+        if regSegmentation.search(output) is not None: success = False
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -538,7 +547,7 @@ def runSingleUnitaryTest(no, module, test):
 #==============================================================================
 def runSingleCFDTest(no, module, test):
 
-    print('Running CFD test %s.'%test)
+    print('Info: Running CFD test %s.'%test)
     path = CASSIOPEE+CFDBASEPATH+'/'+test
 
     m1 = None # si None=seq
@@ -575,7 +584,8 @@ def runSingleCFDTest(no, module, test):
         if regError.search(output) is not None: success = False
         if regErreur.search(output) is not None: success = False
         if regAbort.search(output) is not None: success = False
-        
+        if regSegmentation.search(output) is not None: success = False
+
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
             CPUtime = extractCPUTime(output1, output2)
@@ -943,7 +953,7 @@ def stopTests():
         PROCESS = None
 
     if THREAD is not None:
-        print("Stopping thread...")
+        print("Info: Stopping thread...")
         #THREAD._stop() # kill?
         #THREAD.join() # wait
         #THREAD.terminate()
@@ -977,9 +987,9 @@ def setThreads(event=None):
     try:
         nti = int(nt)
         KCore.kcore.setOmpMaxThreads(nti)
-        print('Num threads set to %d.\n'%nti)
+        print('Info: Num threads set to %d.\n'%nti)
     except:
-        print('Bad thread number.\n')
+        print('Info: Bad thread number.\n')
 
 #==============================================================================
 # Recupere le nbre de threads (OMP_NUM_THREADS)
@@ -1143,7 +1153,7 @@ def setupLocal():
 
 # Main window
 master = TK.Tk()
-master.title('*Cassiopee* valid')
+master.title('*Cassiopee* valid @ '+machine)
 master.columnconfigure(0, weight=1)
 master.rowconfigure(0, weight=1)
 #GENERALFONT = ('Courier', 9)

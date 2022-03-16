@@ -533,15 +533,16 @@ E_Int FldArray<T>::getNElts()
   {
     return _nelts;
   }
-  else if (_ngon == 1) // Array1
+  else // Array1
   {
     E_Int sizeNGon = _rake[0][1];
     return _rake[0][sizeNGon+2]; 
   }
+  /*
   else // suppose a BE connectivity
   {
       return _sizeLoc;
-  }
+  }*/
 }
 
 //==============================================================================
