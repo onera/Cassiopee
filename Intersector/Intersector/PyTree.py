@@ -444,9 +444,9 @@ def updateJoinsPointLists1(z, zones, oids):
 
     ptLists = []
     for j in joins:
-      ptl = Internal.getNodeFromName1(j, 'PointList')
-      ptLists.append(ptl[1])#ptl[0][1][0]
-
+        ptl = Internal.getNodeFromName1(j, 'PointList')
+        ptLists.append(ptl[1])#ptl[0][1][0]
+    
     if ptLists == []: return
 
     # recalcul des pointlist
@@ -455,26 +455,32 @@ def updateJoinsPointLists1(z, zones, oids):
     i=0
     # update the Join pointlist and synchronize with other zones (their pointListDonnor)
     for j in joins:
-      #donnorName = "".join(j[1])
       donnorName = "".join(Internal.getValue(j))
+
+      # Match has disappeared > remove from tree
+      if not isinstance(ptLists[i], numpy.ndarray):
+          Internal._rmNode(z, j)
+          i=i+1 
+          continue
+      
       ptl = Internal.getNodeFromName1(j, 'PointList')
-      #print(donnorName)
+      # print("donnorName:", donnorName)
       dz = Internal.getNodeFromName(zones, donnorName)
       joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
       for jd in joinsD:
         #dname = "".join(jd[1])
         dname = "".join(Internal.getValue(jd))
-        #print(dname)
+        # print("dname / zname : ", dname, zname)
         if (dname != zname) : continue
         ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
         
         PG0 = ptl[1][0][0] # first polygon in the point list 
         PG0D = ptlD[1][0][0] # first polygon in the point list
         if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
-        
+                          
         ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i]))) #checkme : seems to be useless 
 
-        ptl[1]= ptLists[i]
+        ptl[1]  = ptLists[i]
         ptlD[1] = ptLists[i]
 
         break
@@ -825,30 +831,50 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     i=0
     paths = []
     zs = []
+
+    iz=-1
+    # New name dictionary and zone name updating
+    newname = {}
+    for z in z1s:
+        iz += 1
+        newname[z[0]] = 'dom1_z_'+str(iz)
+        z[0]          = newname[z[0]]
+
+    # Matches updating (for zone names)
+    for z in z1s:
+      # Update joins names
+      joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+      for j in joins:
+          oldname = Internal.getValue(j)
+          Internal.setValue(j,newname[oldname])
+    
     iz=-1
     for z in z1s:
       iz +=1
-      z[0]='dom1_z_'+str(iz)
+
       mesh = res[i]
       pg_oids=res[i+1]
       ph_oids=res[i+2]
+      
+      # print(" ")
+      # print("OP1 - pgoids: ", pg_oids)
       
       if mesh != []:  
 
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
 
-        # MAJ POINT LISTS #
-        #updatePointLists(z, z1s, pg_oids) # todo CW
+        # MAJ BCs
+        updatePointLists(z, z1s, pg_oids)
 
         # MAJ CHAMP CENTRE
-        # cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
-        # fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
 
-        # for f in fields:
-        #     pt = f[1].ravel('k')
-        #     f[1] = numpy.empty( (ph_oids.size), numpy.float64)
-        #     f[1][:] = pt[ph_oids[:]]
+        for f in fields:
+            pt = f[1].ravel('k')
+            f[1] = numpy.empty( (ph_oids.size), numpy.float64)
+            f[1][:] = pt[ph_oids[:]]
 
         zs.append(z)
 
@@ -860,30 +886,48 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     for p in paths: Internal._rmNodeFromPath(t1, p)
     paths = []
 
+    iz=-1
+    # New name dictionary and zone name updating
+    newname2 = {}
+    for z in z2s:
+        iz += 1
+        newname2[z[0]] = 'dom2_z_'+str(iz)
+        z[0]           = newname2[z[0]]
+
+    # Matches updating (for zone names)
+    for z in z2s:
+      # Update joins names
+      joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+      for j in joins:
+          oldname = Internal.getValue(j)
+          Internal.setValue(j,newname2[oldname])
+        
     iz = -1
     for z in z2s:
       iz +=1
-      z[0]='dom2_z_'+str(iz)
+          
       mesh = res[i]
       pg_oids=res[i+1]
       ph_oids=res[i+2]
-      
+
+      # print(" ")
+      # print("OP2 - pgoids: ", pg_oids)
       if mesh != []:  
 
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
 
-        # MAJ POINT LISTS #
-        #updatePointLists(z, z2s, pg_oids) # todo CW
+        # MAJ BCs
+        updatePointLists(z, z2s, pg_oids)
 
         # # MAJ CHAMP CENTRE
-        # cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
-        # fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
 
-        # for f in fields:
-        #     pt = f[1].ravel('k')
-        #     f[1] = numpy.empty( (ph_oids.size), numpy.float64)
-        #     f[1][:] = pt[ph_oids[:]]
+        for f in fields:
+            pt = f[1].ravel('k')
+            f[1] = numpy.empty( (ph_oids.size), numpy.float64)
+            f[1][:] = pt[ph_oids[:]]
 
         zs.append(z)
 
@@ -893,14 +937,76 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
       i += 3
 
     for p in paths: Internal._rmNodeFromPath(t2, p)
+
+
+    # Create new matches
+    dict1_ptl = res[i]
+    dict2_ptl = res[i+1]
+
+    joins = Internal.getNodesFromType(zs, 'GridConnectivity_t')
+    zones = Internal.getZones(zs)
+    
+    if joins == []:
+        glob = 0
+        
+        for zoneR in dict1_ptl.keys():
+            dict1_zR = dict1_ptl[zoneR]
+            for zoneD in dict1_zR:
+                faceListR = dict1_zR[zoneD]
+                dict2_zD  = dict2_ptl[zoneD]
+                faceListD = dict2_zD[zoneR]
+                
+                z1OppName = zones[zoneD][0]
+                z2OppName = zones[zoneR][0]
+                
+                name1     = 'match%d_%d'%(zoneR+1,glob); glob += 1
+                name2     = 'match%d_%d'%(zoneD+1,glob); glob += 1
+            
+                C._addBC2Zone(zones[zoneR],name1,'BCMatch',faceList=faceListR+1,\
+                                  zoneDonor=z1OppName, faceListDonor=faceListD+1)
+        
+                C._addBC2Zone(zones[zoneD],name2,'BCMatch',faceList=faceListD+1,\
+                                  zoneDonor=z2OppName, faceListDonor=faceListR+1)
+    else:
+        matchName = []
+        for j in joins:
+            matchName.append(j[0])
+
+        glob = 0
+
+        for zoneR in dict1_ptl.keys():
+            dict1_zR = dict1_ptl[zoneR]
+            for zoneD in dict1_zR:
+                faceListR = dict1_zR[zoneD]
+                dict2_zD  = dict2_ptl[zoneD]
+                faceListD = dict2_zD[zoneR]
+                
+                z1OppName = zones[zoneD][0]
+                z2OppName = zones[zoneR][0]
+                
+                name1     = 'match%d_%d'%(zoneR+1,glob); glob += 1
+                name2     = 'match%d_%d'%(zoneD+1,glob); glob += 1
+
+                # Assure unique match name 
+                while (name1 in matchName):
+                    name1 = 'match%d_%d'%(zoneR+1,glob); glob += 1
+                    
+                while (name2 in matchName):
+                    name2 = 'match%d_%d'%(zoneD+1,glob); glob += 1
+
+                C._addBC2Zone(zones[zoneR],name1,'BCMatch',faceList=faceListR+1,\
+                                  zoneDonor=z1OppName, faceListDonor=faceListD+1)
+        
+                C._addBC2Zone(zones[zoneD],name2,'BCMatch',faceList=faceListD+1,\
+                                  zoneDonor=z2OppName, faceListDonor=faceListR+1)
     
     t1_is_tree = Internal.isTopTree(t1)
     t2_is_tree = Internal.isTopTree(t2)
 
     if t1_is_tree == True and t2_is_tree == True:
-      return Internal.merge([t1, t2])
+        return Internal.merge([t1, t2])
     else:
-      return zs
+        return zs
       
 
 def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
@@ -2634,7 +2740,7 @@ def getCollidingCells(t1, t2, RTOL = 1.e-12, only_externals = False):
 
    try: import Transform as T
    except: raise ImportError("getCollidingCells: requires Transform module.")
-   
+
    zones2 = Internal.getZones(t2)
    m2 = concatenate(zones2); m2 = G.close(m2)
    m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
@@ -3375,7 +3481,6 @@ def concatenate(t, tol = 1.e-15):
       for bc in BCs:
           pointList = Internal.getNodeFromName(bc, Internal.__FACELIST__)
           pointList = pointList[1][0]
-          
           for k in range(len(pointList)):
               iface = pointList[k]-1 
               nids  = z_pgnids[i][iface]

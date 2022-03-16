@@ -810,7 +810,6 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   // get the zones
   for (E_Int i=0; i < nb_zones1; ++i)
   {
-    //std::cout << "getting zone in list : " << i << std::endl;
     PyObject* py_zone = PyList_GetItem(arr1s, i);
     
     E_Int err = check_is_NGON(py_zone, crd1s[i], cnt1s[i], varString, eltType);
@@ -824,13 +823,9 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
       PyErr_SetString(PyExc_TypeError, "booleanUnionMZ : not NGON elts.");
       return NULL;
     }
-
-    // std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
-    // std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
   }
   for (E_Int i=0; i < nb_zones2; ++i)
   {
-    //std::cout << "getting zone in list : " << i << std::endl;
     PyObject* py_zone = PyList_GetItem(arr2s, i);
     
     E_Int err = check_is_NGON(py_zone, crd2s[i], cnt2s[i], varString, eltType);
@@ -844,14 +839,13 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
       PyErr_SetString(PyExc_TypeError, "booleanUnionMZ : not NGON elts.");
       return NULL;
     }
-
-    // std::cout << "zone sizes : " << crd2s[i]->cols() << " points" << std::endl;
-    // std::cout << "zone sizes : " << cnt2s[i]->cols() << " cells" << std::endl;
   }
 
   // join and close as 2 operands but keeping track of zones
-  std::vector<E_Int> zoneids1, zoneids2;
-
+  std::vector<E_Int> zonePHids1, zonePHids2;
+  std::vector<E_Int> zoneshiftPH1(nb_zones1), zoneshiftPH2(nb_zones2); 
+  std::vector<E_Int> zoneshiftPG1(nb_zones1), zoneshiftPG2(nb_zones2);
+  
   ngon_type ng1;
   K_FLD::FloatArray crd1;
   for (size_t i=0; i < nb_zones1; ++i)
@@ -859,10 +853,12 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     ngon_type ng(*cnt1s[i]);
     ng.PGs.shift(crd1.cols());
     ng1.append(ng);
-    zoneids1.resize(ng1.PHs.size(),i);
+    zoneshiftPH1[i] = ng1.PHs.size();
+    zoneshiftPG1[i] = ng1.PGs.size();
+    zonePHids1.resize(ng1.PHs.size(),i);
     crd1.pushBack(*crd1s[i]);
   }
-
+  
   ngon_type ng2;
   K_FLD::FloatArray crd2;
   for (size_t i=0; i < nb_zones2; ++i)
@@ -870,21 +866,38 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     ngon_type ng(*cnt2s[i]);
     ng.PGs.shift(crd2.cols());
     ng2.append(ng);
-    zoneids2.resize(ng2.PHs.size(),i);
+    zoneshiftPH2[i] = ng2.PHs.size();
+    zoneshiftPG2[i] = ng2.PGs.size();
+    zonePHids2.resize(ng2.PHs.size(),i);
     crd2.pushBack(*crd2s[i]);
   }
 
-  // std::vector<E_Int> glo1_pgnids;
-  // std::vector<E_Int> glo2_pgnids;
-  // std::vector<E_Int> glo1_phnids;
-  // std::vector<E_Int> glo2_phnids;
+  // Clean connectivity and keeping track of histories 
+  std::vector<E_Int> clean_pgnids1;
+  std::vector<E_Int> clean_pgnids2;
+  std::vector<E_Int> clean_phnids1;
+  std::vector<E_Int> clean_phnids2;
     
-  // ngon_type::clean_connectivity(ng1, crd1, -1, closetol, true, &glo1_pgnids, &glo1_phnids);
-  // ngon_type::clean_connectivity(ng2, crd2, -1, closetol, true, &glo2_pgnids, &glo2_phnids);
-  
-  ngon_type::clean_connectivity(ng1, crd1, -1, closetol);
-  ngon_type::clean_connectivity(ng2, crd2, -1, closetol);
+  ngon_type::clean_connectivity(ng1, crd1, -1, closetol, true, &clean_pgnids1, &clean_phnids1);
+  ngon_type::clean_connectivity(ng2, crd2, -1, closetol, true, &clean_pgnids2, &clean_phnids2);
 
+  // Reverse indirection (preserving information when 2 ancestors exist) 
+  map<E_Int,std::vector<E_Int>> vect_pgoids1 ;
+  map<E_Int,std::vector<E_Int>> vect_pgoids2 ;
+
+  for (size_t i=0; i < clean_pgnids1.size(); ++i )
+  {
+    E_Int nids         = clean_pgnids1[i] ; 
+    vect_pgoids1[nids].push_back(i); 
+  }
+  
+  for (size_t i=0; i < clean_pgnids2.size(); ++i )
+  {
+    E_Int nids         = clean_pgnids2[i] ; 
+    vect_pgoids2[nids].push_back(i); 
+  }
+
+  // Union
   K_FLD::IntArray cnt1, cnt2;
   ng1.export_to_array(cnt1);
   ng2.export_to_array(cnt2);
@@ -923,18 +936,22 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
   // PH history
   std::vector<std::vector<E_Int>> phoids1(nb_zones1), phoids2(nb_zones2); // phoids[zid][i] = k <=> the i-th cell in zid-th zone either had k as id, or was a piece of k (in same zone) 
-  auto& F2E = BO._F2E;
+
+  // Structure for keeping new matches information 
+   std::map<E_Int, std::map<E_Int, std::set<E_Int>>> z1_jz_to_ptl1, z2_jz_to_ptl2;
+   
+  //
+  K_FLD::IntArray F2E ; 
+  ngo.build_noF2E(F2E);
+  //
 
   // Retrieve zones and PH oids
   E_Int nb_phs = ngo.PHs.size();
-  //std::cout << "bool status and nb phs : " << err << "/" << nb_phs << std::endl;
+  
   for (E_Int i=0; i < nb_phs; ++i)
   {
-    //std::cout << "ngoper : i" << i << std::endl;
-    //if (i >= ngo.PHs._ancEs.cols() ) std::cout << "wrong abc size !!!!!!!!!!!!!!!!!!" << std::endl;
     E_Int ancPH1 = ngo.PHs._ancEs(0,i);
     E_Int ancPH2 = ngo.PHs._ancEs(1,i);
-    //if (ancPH1 < 0 || ancPH2 < 0) std::cout << "neg val !!!!!!!!!!!!!!!!!!" << std::endl;
 
     // exclusive OR : coming from op1 OR op2
     assert ((ancPH1 != E_IDX_NONE) || (ancPH2 != E_IDX_NONE));
@@ -944,41 +961,132 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     E_Int nb_faces = ngo.PHs.stride(i);
 
     if (ancPH2 == E_IDX_NONE) // comes from op1
-    {
+    {	
+      E_Int zid = zonePHids1[ancPH1];
 
-      // if (ancPH1 >= zoneids1.size()) std::cout << "wrong ancPH1 or zoneids1 : " <<  ancPH1 << "/" << zoneids1.size() << std::endl;
+      if (zid > 0) ancPH1 = ancPH1 - zoneshiftPH1[zid-1]; // Shift to get index local to zone 
 
-      E_Int zid = zoneids1[ancPH1];
       ng1so[zid].PHs.add(nb_faces, faces);
       phoids1[zid].push_back(ancPH1);
+
+      // on cherche les nouveaux raccords : entre op1 et op2 (uniquement)
+      for (E_Int f = 0; f < nb_faces; ++f)
+      {
+        E_Int PGi = faces[f]-1;
+        E_Int PHleft = F2E(0, PGi);
+        E_Int PHright = F2E(1, PGi);
+        assert (PHleft == i || PHright == i);
+        
+        E_Int PHother    = (PHleft == i) ? PHright : PHleft;
+	E_Int ancPHother = E_IDX_NONE ;
+	if (PHother != E_IDX_NONE)  ancPHother = ngo.PHs._ancEs(1,PHother);
+	  
+        if (ancPHother == IDX_NONE) continue;// provient de op1 => pgoids en sortie permettra de mettre à jour le ptlist
+        E_Int zidother = zonePHids2[ancPHother] + nb_zones1 ; // zid dans op2 + shift (pour num. globale)
+
+        z1_jz_to_ptl1[zid][zidother].insert(PGi);
+      }
+      
     }
     else  // comes from op2
     {
-      //std::cout << ancPH2 << "/" << zoneids2.size() << std::endl;
-      //if (ancPH2 >= (E_Int)zoneids2.size()){
-        // std::cout << "PHi : " << i << std::endl;
-        // std::cout << "wrong ancPH2 or zoneids2 : " <<  ancPH2 << "/" << zoneids2.size() << std::endl;
-        // std::cout << "zoneids1 : " << zoneids1.size() << std::endl;
-        // std::cout << "ancPH1 : " << ancPH1 << std::endl;
-      //} 
-
-      E_Int zid = zoneids2[ancPH2];
+      E_Int zid = zonePHids2[ancPH2];
+      
+      if (zid > 0) ancPH2 = ancPH2 - zoneshiftPH2[zid-1]; // Shift to get index local to zone
+      
       ng2so[zid].PHs.add(nb_faces, faces);
       phoids2[zid].push_back(ancPH2);
+      
+      // on cherche les nouveaux raccords : entre op1 et op2 (uniquement)
+      for (E_Int f = 0; f < nb_faces; ++f)
+      {
+        E_Int PGi = faces[f]-1;
+        E_Int PHleft = F2E(0, PGi);
+        E_Int PHright = F2E(1, PGi);
+        assert (PHleft == i || PHright == i);
+        
+        E_Int PHother = (PHleft == i) ? PHright : PHleft;
+	E_Int ancPHother = E_IDX_NONE ;
+	if (PHother != E_IDX_NONE)  ancPHother = ngo.PHs._ancEs(0,PHother);
+        
+        if (ancPHother == IDX_NONE) continue;// provient de op2 => pgoids en sortie permettra de mettre à jour le ptlist
+        E_Int zidother = zonePHids1[ancPHother]; // dans op1
+
+        z2_jz_to_ptl2[zid+nb_zones1][zidother].insert(PGi);
+      }
+      
     }
   }
+  
+  // Construction d'un historique pgoids pour l'union global (toutes les zones)
+  Vector_t<E_Int> glo_pgoids;
+  
+  // On change de container parce qu'il ne faut plus de set ici 
+  std::map<E_Int, std::map<E_Int, std::vector<E_Int>>> z1loc_jz_to_ptl1;  
 
+  E_Int shift = 0 ;
+  std::vector<std::vector<E_Int>> idx_to_remove1(nb_zones1);
+  
   for (size_t i=0; i < ng1so.size(); ++i)
   {
-
+    if (i>0) shift = zoneshiftPG1[i-1] ;
     crd1so[i] = crd;
     ng1so[i].PGs = ngo.PGs;
     Vector_t<E_Int> pgnids, phnids;
     ng1so[i].remove_unreferenced_pgs(pgnids, phnids);
 
+    // indice global => local
+    for (auto& i : z1_jz_to_ptl1)
+    {
+      E_Int zid = i.first;
+      for (auto& j : i.second)
+      {
+	E_Int jzid = j.first;
+	auto & ptl = j.second;
+	for (auto & pg : ptl)
+	{
+	  if (pgnids[pg] !=  E_IDX_NONE)
+	  {
+	    z1loc_jz_to_ptl1[zid][jzid].push_back(pgnids[pg]);
+	  }
+	}
+      }
+    }
+    
     ngon_type::compact_to_used_nodes(ng1so[i].PGs, crd1so[i]);
 
-    // std::cout << " what is in ouput zone 1 : " << i << " ? : " << ng1so[i].PHs.size() << " elts" << std::endl;
+    K_FLD::IntArray F2E_loc ; 
+    ng1so[i].build_noF2E(F2E_loc);
+
+    for (size_t k = 0; k < ng1so[i].PGs.size(); ++k)
+    {
+      E_Int ancPG1 = ng1so[i].PGs._ancEs(0,k);
+      glo_pgoids.push_back(ancPG1);
+    }
+
+  }
+  
+    // Remove faces already belonging to matches
+    for (auto& ii : z1loc_jz_to_ptl1)
+    {
+      E_Int zid = ii.first;
+      for (auto& j : ii.second)
+      {
+    	E_Int jzid = j.first;
+    	auto & ptl = j.second;
+    	for (auto & pg : ptl)
+    	{
+    	  if (pg !=  E_IDX_NONE)
+	    idx_to_remove1[zid].push_back(pg); 
+    	}
+      }
+    }
+  
+  E_Int prev = 0 ;
+  
+  for (size_t i=0; i < ng1so.size(); ++i)
+  {
+    Vector_t<E_Int> pgnids, phnids;
 
     K_FLD::IntArray cnto;
     ng1so[i].export_to_array(cnto);
@@ -990,12 +1098,33 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
     // computing PG histo
     std::vector<E_Int> pgoids(ng1so[i].PGs.size(), IDX_NONE);
-    for (size_t k = 0; k < pgoids.size(); ++k)
+    E_Int shift = 0 ;
+      
+    for (size_t k = prev; k < prev+pgoids.size(); ++k)
     {
-      E_Int ancPG1 = ng1so[i].PGs._ancEs(0,k);
-      //if (ancPG1 == IDX_NONE)continue; // it's a piece coming from another zone
-      pgoids[k]=ancPG1;
+      if (i>0) shift = zoneshiftPG1[i-1] ;
+      
+      E_Int ids_u = glo_pgoids[k];
+
+      if (ids_u != E_IDX_NONE)
+      {
+	pgoids[k-prev] = vect_pgoids1[ids_u][0]-shift ;
+	
+	if ( vect_pgoids1[ids_u].size() > 1)
+	  vect_pgoids1[ids_u].erase(vect_pgoids1[ids_u].begin());
+      }
+      else
+	pgoids[k-prev] = -1 ; 
     }
+
+    // Remove pg already flagged as match
+    for (size_t kk = 0 ; kk < idx_to_remove1[i].size(); ++kk )
+    {
+      E_Int id_rm   = idx_to_remove1[i][kk];
+      pgoids[id_rm] = -1 ;
+    }
+
+    prev = prev + pgoids.size();
 
     // pushing out PG history
     tpl = K_NUMPY::buildNumpyArray(&pgoids[0], pgoids.size(), 1, 0);
@@ -1009,6 +1138,13 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
   }
 
+  // Construction d'un historique pgoids pour l'union global (toutes les zones)
+  Vector_t<E_Int> glo_pgoids2;
+  std::vector<std::vector<E_Int>> idx_to_remove2(nb_zones2);
+  
+  // On change de container parce qu'il ne faut plus de set ici 
+  std::map<E_Int, std::map<E_Int, std::vector<E_Int>>> z2loc_jz_to_ptl2;
+  
   for (size_t i=0; i < ng2so.size(); ++i)
   {
     crd2so[i] = crd;
@@ -1016,9 +1152,54 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     Vector_t<E_Int> pgnids, phnids;
     ng2so[i].remove_unreferenced_pgs(pgnids, phnids);
 
+    // indice global => local
+    for (auto& i : z2_jz_to_ptl2)  
+    {
+        E_Int zid = i.first;
+        for (auto& j : i.second)
+        {
+          E_Int jzid = j.first;
+          auto & ptl = j.second;
+          for (auto & pg : ptl)
+	  {
+	    if (pgnids[pg] !=  E_IDX_NONE)
+	      z2loc_jz_to_ptl2[zid][jzid].push_back(pgnids[pg]);
+	  }
+        }
+    }
+   
     ngon_type::compact_to_used_nodes(ng2so[i].PGs, crd2so[i]);
-
-    // std::cout << " what is in ouput zone 2 : " << i << " ? : " << ng2so[i].PHs.size() << " elts" << std::endl;
+    
+    for (size_t k = 0; k < ng2so[i].PGs.size(); ++k)
+    {
+      E_Int ancPG2 = ng2so[i].PGs._ancEs(1,k);
+ 
+      glo_pgoids2.push_back(ancPG2);
+    }
+    
+  }
+  
+  // // Remove faces belonging to matches
+  for (auto& ii : z2loc_jz_to_ptl2)
+    {
+      E_Int zid = ii.first;
+      for (auto& j : ii.second)
+      {
+  	E_Int jzid = j.first;
+  	auto & ptl = j.second;
+  	for (auto & pg : ptl)
+  	{
+    	  if (pg !=  E_IDX_NONE)
+	    idx_to_remove2[zid-nb_zones1].push_back(pg);
+  	}
+      }
+    }
+   
+  prev = 0 ;
+  
+  for (size_t i=0; i < ng2so.size(); ++i)
+  {
+    Vector_t<E_Int> pgnids, phnids;
 
     K_FLD::IntArray cnto;
     ng2so[i].export_to_array(cnto);
@@ -1030,12 +1211,34 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
     // computing PG histo
     std::vector<E_Int> pgoids(ng2so[i].PGs.size(), IDX_NONE);
-    for (size_t k = 0; k < pgoids.size(); ++k)
+    E_Int shift = 0 ;
+    
+    for (size_t k = prev; k < prev+pgoids.size(); ++k)
     {
-      E_Int ancPG2 = ng2so[i].PGs._ancEs(1,k);
-      //if (ancPG2 == IDX_NONE)continue; // it's a piece coming from another zone
-      pgoids[k]=ancPG2;
+      if (i>0) shift = zoneshiftPG2[i-1] ;
+
+      E_Int ids_u = glo_pgoids2[k];
+
+      if (ids_u != E_IDX_NONE)
+      {
+	pgoids[k-prev] = vect_pgoids2[ids_u][0]-shift ;
+	
+	if ( vect_pgoids2[ids_u].size() > 1)
+	  vect_pgoids2[ids_u].erase(vect_pgoids2[ids_u].begin());
+      }
+      else
+	pgoids[k-prev] = -1 ;
     }
+
+    
+    // Remove pg already flagged as match
+    for (size_t kk = 0 ; kk < idx_to_remove2[i].size(); ++kk )
+    {
+      E_Int id_rm   = idx_to_remove2[i][kk];
+      pgoids[id_rm] = -1 ;
+    }
+    
+    prev = prev + pgoids.size();
 
     // pushing out PG history
     tpl = K_NUMPY::buildNumpyArray(&pgoids[0], pgoids.size(), 1, 0);
@@ -1046,8 +1249,81 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     tpl = K_NUMPY::buildNumpyArray(&phoids2[i][0], phoids2[i].size(), 1, 0);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
-
   }
+
+  // pushing out map z1loc_jz_to_ptl1 (>> Python dictionary)
+  PyObject * pointList1_dict = PyDict_New();
+  for (auto& i : z1loc_jz_to_ptl1)
+  {
+
+    E_Int zid = i.first;
+    auto& jz_to_ptl = i.second;
+    
+    PyObject * titi_dict = PyDict_New();
+      
+    for (auto& j : jz_to_ptl)
+    {
+      E_Int jzid = j.first;
+      auto& ptl = j.second;
+	
+      PyObject* key = Py_BuildValue("i", jzid);
+      PyObject* np = K_NUMPY::buildNumpyArray(&ptl[0], ptl.size(), 1, 0);
+
+      PyDict_SetItem(titi_dict, key, np);
+      Py_DECREF(np);
+    }
+
+    PyObject* key = Py_BuildValue("i", zid);
+    PyDict_SetItem(pointList1_dict, key, titi_dict);
+    
+  }
+  PyList_Append(l, pointList1_dict);
+  Py_DECREF(pointList1_dict);
+
+
+
+  // pushing out map z2loc_jz_to_ptl2 (>> Python dictionary)
+  PyObject * pointList2_dict = PyDict_New();
+  for (auto& i : z2loc_jz_to_ptl2)
+  {
+
+    E_Int zid = i.first;
+    auto& jz_to_ptl = i.second;
+    
+    PyObject * titi_dict = PyDict_New();
+      
+    for (auto& j : jz_to_ptl)
+    {
+      E_Int jzid = j.first;
+      auto& ptl = j.second;
+	
+      PyObject* key = Py_BuildValue("i", jzid);
+      PyObject* np = K_NUMPY::buildNumpyArray(&ptl[0], ptl.size(), 1, 0);
+
+      PyDict_SetItem(titi_dict, key, np);
+      Py_DECREF(np);
+    }
+
+    PyObject* key = Py_BuildValue("i", zid);
+    PyDict_SetItem(pointList2_dict, key, titi_dict);
+    
+  }
+  PyList_Append(l, pointList2_dict);
+  Py_DECREF(pointList2_dict);
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
   for (E_Int i=0; i < nb_zones1; ++i)
   {

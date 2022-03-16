@@ -19,16 +19,15 @@ zones = I.getZones(t)
 p1 = zones[0]
 p1 = C.convertArray2Tetra(p1, split='withBarycenters')
 p1 = C.convertArray2NGon(p1)
-#C.convertPyTree2File(p1, 'p1.cgns')
+# C.convertPyTree2File(p1, 'p1.cgns')
 
 p2 = C.convertArray2NGon(zones[1])
-#C.convertPyTree2File(p2, 'p2.cgns')
+# C.convertPyTree2File(p2, 'p2.cgns')
 
 x = XOR.booleanUnion(p1,p2, multi_zone=True) #conformize the join
 #C.convertPyTree2File(x, 'u.cgns')
 
 # compute the join
-x = XC.connectMatch(x, tol=1.e-6, dim=3)
+# x = XC.connectMatch(x, tol=1.e-6, dim=3)
 
 test.testT(x,1)
-#C.convertPyTree2File(x, 'out.cgns')
