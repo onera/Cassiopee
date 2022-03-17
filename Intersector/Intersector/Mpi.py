@@ -11,6 +11,7 @@ from . import intersector
 from collections import OrderedDict
 
 import numpy
+#import time as time
 
 #==============================================================================
 # adaptCells : Adapts an unstructured mesh a with respect to a sensor
@@ -24,14 +25,14 @@ import numpy
 # IN: sensor : sensor hook
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD):
+def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD, procDict=None, zidDict=None):
   """Adapts an unstructured mesh a with respect to a sensor.
   Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
   tp = Internal.copyRef(t)
-  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor, com)
+  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor, com, procDict, zidDict)
   return tp
 
-def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD):
+def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD, procDict=None, zidDict=None):
     """Adapts an unstructured mesh a with respect to a sensor.
     Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
 
@@ -43,18 +44,24 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       print ('INPUT ERROR : you must also give as an argument the hmesh targeted by the sensor')
       return
 
-    NBZ = len(Internal.getZones(t))
-    #print('NBZ : '+str(NBZ))
-
-    procDict = Cmpi.getProcDict(t)
-    zidDict = Cmpi.getPropertyDict(t, 'zid')
-    if zidDict == {} :
-      print ('error : zone id is not set on zones')
+    if procDict is None or procDict == {}:
+      print ('INPUT ERROR : you must also give as an argument the processors dictionary')
       return
+
+    if zidDict is None or zidDict == {}:
+      print ('INPUT ERROR : you must also give as an argument the zone id dictionary')
+      return
+
+    #tt0 = time.time()
     
     # FIXME : verifying both dicts have same keys ###############################################
 
+    NBZ = len(Internal.getZones(t))
+    #print('NBZ : '+str(NBZ))
+    
     owesHmesh=0
+
+    #tt0 = time.time()
 
     if hmesh is None :
       #print("create hm : ", NBZ)
@@ -69,6 +76,9 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       sensor = XOR.createSensor(hmesh, sensor_type, smoothing_type, itermax)
       owesSensor=1
 
+    #if Cmpi.rank == 0 :
+    #print('rank :' + str(Cmpi.rank)+' python : create HMesh and Sensor ' + str(time.time()-tt0))
+
     err=0
     if sensdata is not None:
       #print("assignData2Sensor")
@@ -80,32 +90,42 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
         return
 
     #
+    #tt0 = time.time()
     zone_to_zone_to_list_owned = getJoinsPtLists(t, zidDict, 'PointList')
+    #if Cmpi.rank == 0 :
+    #print('rank :' + str(Cmpi.rank)+' python : getJoinsPtLists ' + str(time.time()-tt0))
 
+    #tt0 = time.time()
     zonerank = getZonesRanks(zidDict, procDict)
+    #if Cmpi.rank == 0 :
+    #print('rank :' + str(Cmpi.rank)+' python : getZonesRanks ' + str(time.time()-tt0))
     #print(zonerank)
 
     #print('adaptCells..')
+    #tt0 = time.time()
     intersector.adaptCells_mpi(hmesh, sensor, zone_to_zone_to_list_owned, zonerank)#, com) #fxme agglo
+    #if Cmpi.rank == 0 :
+    #print('rank :' + str(Cmpi.rank)+' python : adaptCells_mpi ' + str(time.time()-tt0))
 
+    #tt0 = time.time()
     if owesHmesh == 1 : #and owesSensor == 1 :
     	#print("_conformizeHMesh")
     	_conformizeHMesh(t, hmesh, zidDict, procDict, zonerank, zone_to_zone_to_list_owned, com)
+    #if Cmpi.rank == 0 :
+    #print('rank :' + str(Cmpi.rank)+' python : _conformizeHMesh ' + str(time.time()-tt0))
 
+    #tt0 = time.time()
     if owesHmesh == 1 :
     # 	#print('delete owned hmesh')
      	XOR.deleteHMesh(hmesh)
     if owesSensor == 1 : 
     	#print('delete owned sensor')
     	XOR.deleteSensor(sensor)
+    #if Cmpi.rank == 0 :
+    #print('rank :' + str(Cmpi.rank)+' python : destroy ' + str(time.time()-tt0))
 
-def getZonesRanks(zidDict = None, procDict = None):
+def getZonesRanks(zidDict, procDict):
   zonerank = {}
-  if zidDict == None : 
-    zidDict = Cmpi.getPropertyDict(t, 'zid')
-  if procDict == None:
-    procDict = Cmpi.getProcDict(t)
-
   sorted_keys = sorted(zidDict, key=zidDict.get)
   #print(sorted_keys)
   for w in sorted_keys:
@@ -203,7 +223,7 @@ def getBCsPtLists(t):
 # IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
 # OUT: Nothing 
 #==============================================================================
-def _conformizeHMesh(t, hooks, zidDict = None, procDict = None, zonerank = None, zone_to_zone_to_list_owned = None, com = MPI.COMM_WORLD):
+def _conformizeHMesh(t, hooks, zidDict, procDict, zonerank = None, zone_to_zone_to_list_owned = None, com = MPI.COMM_WORLD):
     """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
     Usage: _conformizeHMesh(t, hooks)"""
     nb_hooks = len(hooks)
@@ -214,19 +234,33 @@ def _conformizeHMesh(t, hooks, zidDict = None, procDict = None, zonerank = None,
         print('must give one hook per zone')
         return
 
-    if zidDict == None : 
-      zidDict = Cmpi.getPropertyDict(t, 'zid')
-    if procDict == None:
-      procDict = Cmpi.getProcDict(t)
+    #tt = time.time()
+    
     if zonerank == None:
       zonerank = getZonesRanks(zidDict, procDict)
       #print(zonerank)
+
+    # if Cmpi.rank == 0:
+    #   print('_conformizeHMesh CPU get Dicts : ' + str(time.time() -tt))
+
+    #tt = time.time()
 
     ### 1. UPDATE BC & JOIN POINTLISTS WITH CURRENT ENABLING STATUS AND MPI EXCHANGES
     if zone_to_zone_to_list_owned == None :
       zone_to_zone_to_list_owned = getJoinsPtLists(t, zidDict, 'PointList')
 
+    # if Cmpi.rank == 0:
+    #   print('_conformizeHMesh CPU get Joins PTLists : ' + str(time.time() -tt))
+
+    #tt = time.time()
+
     zone_to_bcptlists = getBCsPtLists(t)
+
+    # if Cmpi.rank == 0:
+    #   print('_conformizeHMesh CPU get BC PTLists : ' + str(time.time() -tt))
+    
+    #dtconf=0
+    #dtfield = 0
 
     i=-1
     for z in zones:
@@ -257,7 +291,9 @@ def _conformizeHMesh(t, hooks, zidDict = None, procDict = None, zonerank = None,
         except TypeError:
           fieldsF = None
 
+        #tconf=time.time()
         res = intersector.conformizeHMesh2(hooks[i], bcptlists, jzone_to_ptlist, fieldsC, fieldsN, fieldsF)
+        #dtconf += time.time() - tconf
 
         # res[0] : mesh
         # res[1] : List : updated bc pointlist
@@ -265,6 +301,8 @@ def _conformizeHMesh(t, hooks, zidDict = None, procDict = None, zonerank = None,
         # res[3] : List : center fields
         # res[4] : List : node fields
         # res[5] : List : face fields
+
+        #tfield = time.time()
 
         mesh = res[0]
 
@@ -314,7 +352,16 @@ def _conformizeHMesh(t, hooks, zidDict = None, procDict = None, zonerank = None,
         if fieldz != [None] :
           Internal.newDataArray('fcadid', value=fieldz[0], parent=Internal.getNodeFromName(z, 'CADData'))
 
+        #dtfield += time.time() - tfield
+
+    #texch = time.time()
     _exchangePointLists(t, hooks, zidDict, procDict, zonerank, zone_to_bcptlists, zone_to_zone_to_list_owned, com)
+    #dtexch = time.time() - texch
+
+    #if Cmpi.rank == 0:
+    #print('_conformizeHMesh CPU conformization : ' + str(dtconf))
+    #print('_conformizeHMesh CPU MAJ Fields : ' + str(dtfield))
+    #print('_conformizeHMesh CPU MPI Exch PtLists : ' + str(dtexch))
 
 
 #------------------------------------------------------------------------------
@@ -338,7 +385,7 @@ def updateJoinsPointLists3(z, zidDict, jzone_to_ptlist, ptlname): # 'PointList',
     ptl[1]= L1
 
 
-def _exchangePointLists(t, hooks, zidDict=None, procDict=None, zonerank=None, zone_to_bcptlists=None, zone_to_zone_to_list_owned=None, com = MPI.COMM_WORLD):
+def _exchangePointLists(t, hooks, zidDict, procDict, zonerank=None, zone_to_bcptlists=None, zone_to_zone_to_list_owned=None, com = MPI.COMM_WORLD):
 
   nb_hooks = len(hooks)
   zones = Internal.getZones(t)
@@ -348,10 +395,6 @@ def _exchangePointLists(t, hooks, zidDict=None, procDict=None, zonerank=None, zo
       print('must give one hook per zone')
       return
 
-  if zidDict == None : 
-    zidDict = Cmpi.getPropertyDict(t, 'zid')
-  if procDict == None:
-    procDict = Cmpi.getProcDict(t)
   if zonerank == None:
     zonerank = getZonesRanks(zidDict, procDict)
     #print(zonerank)

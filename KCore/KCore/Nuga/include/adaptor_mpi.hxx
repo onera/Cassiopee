@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : SÃ¢m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_ADAPTOR_MPI_HXX
 #define NUGA_ADAPTOR_MPI_HXX
@@ -17,6 +17,9 @@
 #include "Nuga/include/adaptor.hxx"
 #include "Nuga/include/join_sensor.hxx"
 
+#ifdef ADAPT_TIMER
+#include "Nuga/include/chrono.h"
+#endif
 
 namespace NUGA
 {
@@ -76,8 +79,9 @@ namespace NUGA
     {
       if (zone_to_zone2jlists.empty()) return;
       if (hmeshes.empty()) return;
+      if (nranks == 1) return;
 
-      // Each zone builds its MPI-data-to-send by zone
+      // Each zone builds its MPI-data-to-send by sending zone
       std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>> sz_to_jz_to_PG_to_plan;
       bool has_packs{ false };
       for (size_t i = 0; i < hmeshes.size(); ++i)
@@ -180,11 +184,24 @@ namespace NUGA
       E_Int err(0);
       E_Int NBZ{ E_Int(hmeshes.size()) };
 
+      int nranks{ 0 };
+      MPI_Comm_size(COM, &nranks);
+      int rank{ 0 };
+      MPI_Comm_rank(COM, &rank);
+
+      for (E_Int i = 0; i < NBZ; ++i)
+        assert(rank == zonerank[hmeshes[i]->zid]);
+
       assert(NBZ == sensors.size());
 
       using adaptor_t = NUGA::adaptor<hmesh_t, sensor_t>;
       using join_sensor_t = NUGA::join_sensor<hmesh_t>;
       using data_t = typename join_sensor_t::input_t;// std::map<int, K_FLD::IntArray>;
+
+#ifdef ADAPT_TIMER
+      NUGA::chrono c;
+      c.start();
+#endif
 
       ePara PARA = COARSE_OMP;
 #pragma omp parallel for if(PARA == COARSE_OMP)
@@ -193,13 +210,10 @@ namespace NUGA
         adaptor_t::run(*hmeshes[i], *sensors[i], do_agglo);
       }
 
-      int nranks{ 0 };
-      MPI_Comm_size(COM, &nranks);
-      int rank{ 0 };
-      MPI_Comm_rank(COM, &rank);
-
-      for (E_Int i = 0; i < NBZ; ++i)
-        assert(rank == zonerank[hmeshes[i]->zid]);
+#ifdef ADAPT_TIMER
+      //if (rank == 0)
+      //std::cout << "rank : " << rank << " : C : time independant adapt : " << c.elapsed()<< std::endl;
+#endif
 
       //separate MPI/OMP joins
       std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_zone2jlists_mpi, zone_to_zone2jlists_omp;
@@ -217,41 +231,115 @@ namespace NUGA
         has_mpi_changes = false;
 
         std::map<int, data_t> zone_to_sensor_data;
-        ///*if (rank ==2)*/ std::cout << "rank : " << rank << " before exch mpi" << std::endl;
+
+#ifdef ADAPT_TIMER
+        //c.start();
+#endif
         exchange_mpi_data(hmeshes, zone_to_zone2jlists_mpi, zonerank, COM, rank, nranks, zone_to_sensor_data);
         
+#ifdef ADAPT_TIMER
+        //if (rank == 0)
+        //std::cout << "rank : " << rank << " : C : time exchange_mpi_data : " << c.elapsed() << std::endl;
+#endif
+
         bool has_omp_changes{ true }, has_local_changes{ false };
         int omp_iter = -1;
+
+#ifdef ADAPT_TIMER
+        /*c.start();
+        NUGA::chrono c2;
+        double dexch=0.;
+        double dadapt=0.;
+        double dsensor=0.;*/
+#endif
 
         while (has_omp_changes)
         {
           ++omp_iter;
-          //std::cout << "rank : " << rank << " omp iter : " << mpi_iter << std::endl;
+          //std::cout << "rank : " << rank << " : C : omp iter : " << omp_iter << std::endl;
 
           has_omp_changes = false;
-          
-          exchange_omp_data(hmeshes, zone_to_zone2jlists_omp, zone_to_sensor_data);
 
+#ifdef ADAPT_TIMER
+          //c2.start();
+#endif
+
+          exchange_omp_data(hmeshes, zone_to_zone2jlists_omp, zone_to_sensor_data);
+          
+#ifdef ADAPT_TIMER
+          //dexch += c2.elapsed();
           // Adapt each zone
           //std::cout << "rank : " << rank << " : adapt omp loop" << mpi_iter << std::endl;
+#endif
+
+
+//no reduction mode  STACK_ARRAY(bool, NBZ, has_local_changes);
+//no reduction mode  for (size_t kkk = 0; kkk < NBZ; ++kkk)has_local_changes[kkk]=false;
+
 #pragma omp parallel for reduction ( || : has_omp_changes, has_local_changes) if(PARA == COARSE_OMP)
+//no reduction mode #pragma omp parallel for if(PARA == COARSE_OMP)          
           for (E_Int i = 0; i < NBZ; ++i)
           {
+
+#ifdef ADAPT_TIMER
+            //c2.start();
+#endif
             join_sensor_t jsensor(*hmeshes[i]);
             jsensor.assign_data(zone_to_sensor_data[hmeshes[i]->zid]);
+            
+#ifdef ADAPT_TIMER
+            //dsensor += c2.elapsed();
+#endif
 
             E_Int npgs0 = hmeshes[i]->_ng.PGs.size();
             E_Int nphs0 = hmeshes[i]->_ng.PHs.size();
 
+#ifdef ADAPT_TIMER
+            //c2.start();
+#endif
+
             NUGA::adaptor<hmesh_t, join_sensor_t>::run(*hmeshes[i], jsensor, false/*do_agglo*/); //fixme : agglo
+
+#ifdef ADAPT_TIMER
+            //dadapt += c2.elapsed();
+#endif
 
             has_omp_changes |= (hmeshes[i]->_ng.PGs.size() != npgs0) || (hmeshes[i]->_ng.PHs.size() != nphs0);
             has_local_changes |= has_omp_changes;
+
+//no reduction mode            has_local_changes[i] = (hmeshes[i]->_ng.PGs.size() != npgs0) || (hmeshes[i]->_ng.PHs.size() != nphs0);
           }
+
+ //no reduction mode         for (size_t kkk=0; kkk < NBZ; ++kkk)
+ //no reduction mode           has_omp_changes |= has_local_changes[kkk];
+
+          //zone_to_sensor_data.clear();
+
         }
+
+#ifdef ADAPT_TIMER
+        //if (rank == 0)
+        /*{
+          //std::cout << "rank : " << rank << " : C : OMP LOOP : time creation data sensor : " << dexch << std::endl;
+          std::cout << "rank : " << rank << " : C : OMP LOOP : time adapt sync : " << dadapt << std::endl;
+
+          //std::cout << "rank : " << rank << " : C : OMP LOOP : time TOTAL : " << c.elapsed() << std::endl;
+        }*/
+#endif
+        
         MPI_Barrier(COM);
+
+#ifdef ADAPT_TIMER
+        //c.start();
+#endif
+
         //if (rank == 0) std::cout << "rank : " << rank << " MPI_Barrier " << std::endl;
         has_mpi_changes = exchange_status(has_local_changes, rank, nranks, COM);
+
+#ifdef ADAPT_TIMER
+        //if (rank == 0)
+        //std::cout << "rank : " << rank << " : C : OMP LOOP : time exchange_status : " << c.elapsed() << std::endl;
+#endif
       }
     }
 
@@ -261,6 +349,7 @@ namespace NUGA
     static bool exchange_status (bool local_changes, int rank, int nranks, MPI_Comm COM)
     {
       bool has_changes{ false };
+      if (nranks==1) return false;
 
       STACK_ARRAY(bool, nranks, all_status);
       MPI_Request req;
@@ -274,7 +363,7 @@ namespace NUGA
         MPI_Status status;
         for (size_t r = 1; r < nranks; ++r) {
           MPI_Recv(&all_status[r], 1, MPI_C_BOOL, r, TAG_MPI_EXCH_STATUS, COM, &status);
-          //std::cout << "rank 0 has received status from rank " << r << std::endl;
+          //std::cout << " has received status from rank " << r << std::endl;
         }
       }
 
@@ -290,7 +379,7 @@ namespace NUGA
         for (size_t k = 0; (k < nranks) && !has_changes; ++k)
           has_changes |= all_status[k];
 
-        //std::cout << "rank : 0 check the change status among received: " << has_changes << std::endl;
+        //std::cout << " check the change status among received: " << has_changes << std::endl;
 
         STACK_ARRAY(MPI_Request, nranks - 1, req);
         STACK_ARRAY(MPI_Status, nranks - 1, status);
