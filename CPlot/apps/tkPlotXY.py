@@ -1,9 +1,8 @@
 # coding: utf-8
-#from __future__ import unicode_literals
 
 # --- Import Section
 # Import python
-import copy as cpy
+import copy
 import numpy as np
 import os
 import re
@@ -140,7 +139,28 @@ marker_dic = {
     'pentagon': 'p',
     'square': 's',
     'triangle_down': 'v',
-    'x': 'x'
+    'x': 'x',
+    'None': 'None',
+    '+': '+',
+    '*': '*',
+    ',': ',',
+    '.': '.',
+    '1': '1',
+    '2': '2',
+    '3': '3',
+    '4': '4',
+    '<': '<',
+    '>': '>',
+    'D': 'D',
+    'H': 'H',
+    '^': '^',
+    '_': '_',
+    'd': 'd',
+    'h': 'h',
+    'o': 'o',
+    'p': 'p',
+    's': 's',
+    'v': 'v'
 }
 markername = sorted(marker_dic.keys())
 
@@ -2556,7 +2576,7 @@ class editTextWindow(TK.Toplevel):
         else:
             # if indSelected == 0, can not move up beacause it is already at the top !
             if indSelected!= 0:
-                t = cpy.deepcopy(self.subGraph.texts[indSelected])
+                t = copy.deepcopy(self.subGraph.texts[indSelected])
                 self.subGraph.texts[indSelected]=self.subGraph.texts[indSelected-1]
                 self.subGraph.texts[indSelected-1]=t
                 self.switchText(indSelected,-1)
@@ -2586,7 +2606,7 @@ class editTextWindow(TK.Toplevel):
             # if indSelected == len(self.frame.selectionItem)-2, can not move down beacause it is already at the bottom !
             # Rmk : it is "-2" because there is the line for the "curve to add" that counts for one that is at the end
             if indSelected!= len(self.frame.selectionItem)-2:
-                t = cpy.deepcopy(self.subGraph.texts[indSelected])
+                t = copy.deepcopy(self.subGraph.texts[indSelected])
                 self.subGraph.texts[indSelected]=self.subGraph.texts[indSelected+1]
                 self.subGraph.texts[indSelected+1]=t
                 self.switchText(indSelected,1)
@@ -3956,7 +3976,7 @@ class editShapeWindow(TK.Toplevel):
         else:
             # if indSelected == 0, can not move up beacause it is already at the top !
             if indSelected!= 0:
-                t = cpy.deepcopy(self.subGraph.shapes[indSelected])
+                t = copy.deepcopy(self.subGraph.shapes[indSelected])
                 self.subGraph.shapes[indSelected]=self.subGraph.shapes[indSelected-1]
                 self.subGraph.shapes[indSelected-1]=t
                 self.switchShape(indSelected,-1)
@@ -3986,7 +4006,7 @@ class editShapeWindow(TK.Toplevel):
             # if indSelected == len(self.frame.selectionItem)-2, can not move down beacause it is already at the bottom !
             # Rmk : it is "-2" because there is the line for the "curve to add" that counts for one that is at the end
             if indSelected!= len(self.frame.selectionItem)-2:
-                t = cpy.deepcopy(self.subGraph.shapes[indSelected])
+                t = copy.deepcopy(self.subGraph.shapes[indSelected])
                 self.subGraph.shapes[indSelected]=self.subGraph.shapes[indSelected+1]
                 self.subGraph.shapes[indSelected+1]=t
                 self.switchShape(indSelected,1)
@@ -11792,7 +11812,7 @@ class editCurvesWindow(TK.Toplevel):
         else:
             # if indSelected == 0, can not move up beacause it is already at the top !
             if indSelected!= 0:
-                c = cpy.deepcopy(self.subGraph.curves[indSelected])
+                c = copy.deepcopy(self.subGraph.curves[indSelected])
                 self.subGraph.curves[indSelected]=self.subGraph.curves[indSelected-1]
                 self.subGraph.curves[indSelected-1]=c
                 self.switchCurve(indSelected,-1)
@@ -11869,7 +11889,7 @@ class editCurvesWindow(TK.Toplevel):
             # if indSelected == len(self.frame.selectionItem)-2, can not move down beacause it is already at the bottom !
             # Rmk : it is "-2" because there is the line for the "curve to add" that counts for one that is at the end
             if indSelected!= len(self.frame.selectionItem)-2:
-                c = cpy.deepcopy(self.subGraph.curves[indSelected])
+                c = copy.deepcopy(self.subGraph.curves[indSelected])
                 self.subGraph.curves[indSelected]=self.subGraph.curves[indSelected+1]
                 self.subGraph.curves[indSelected+1]=c
                 self.switchCurve(indSelected,1)
@@ -12420,26 +12440,6 @@ class DesktopFrameTK(TK.Frame):
         if self.editCurveWdw is not None: self.editCurveWdw.updateData()
         ##### Redraw all
         self.updateAllGraph()
-#    # ------------------------------------------------------------------ setData
-#    def setData(self,data):
-#        print("self data...")
-#        self.data = {}
-#        if isinstance(data,list):
-#            # set data according to a tree
-#            self.setDataWithTree(data)
-#        elif isinstance(data,dict):
-#            # set data according to a dict data
-#            self.setDataWithDict(data)
-#        print('-'*50)
-#        for k in self.data.keys():
-#            print(k)
-#            for kk in self.data[k].keys():
-#                print('-> ',kk)
-#        print('-'*50)
-#        if self.editCurveWdw  is not None:
-#            print('/'*50)
-#            self.editCurveWdw.reloadWindow()
-#            print('='*50)
     # ---------------------------------------------------------- setDataWithDict
     def setDataWithDict(self,d):
         tmp = {}
@@ -15309,7 +15309,6 @@ class Movie(object):
         self.p.stdin.write(self.fig.canvas.tostring_argb())
 #        self.fig.savefig(self.p.stdin, format='png')
 
-#    def exit(self, type, value, traceback):
     def exit(self):
         print("Finalize(exit) Movie %s."%self.filename)
         self.p.communicate()
@@ -15716,6 +15715,57 @@ IMAGE_DICT = {
 #'filesave':'''UDYKMjQgMjQKMjU1Cv///////////////////////////////////////////////////////////////////////////////////////////////////wxcfQxcfQtcfAxcfQtcfQtcfQtbfQtbfAtbfAtbfAtbfAtbfAtbfAtbfAtbfAtbfAtbfAtbfAxbfAtaewtaewxcff///wxcfQtbfApYegtYeXpMOKZzQ6VyQ6RxQ6RxQ6RxQ6NwQaJvQqJuQaFuQaFuQaFtQKBsQJ9sP59rP2hKPQNLbgRLbglXeAxcfQxcfTpnf197jwpTdIRWRrSCXbOBXbKAXLGBXbGAXLGAXbCAXK9/XK5/XK5+XK5+W619XK1+XKx8W3BQRx9RbmyGmSBScQtZegxbfGWCldXY3AtQcHejtLzP17nL1LTH0bDDzay/yam7xqS4w6G0v52yvZuvu5ituJaqtpOntJClsDx0jjBZdd3g5DNcdwpZegtbfBhWdChYdAhTdHmjtbrM1bbI0bHEzo2quHOWqHKVp3GUpXGSom+Ro26PoW2OoWyNnmuMnYOcqT51jQJDZwRBYwNFaApZegtbfAhUdgdTdQlUdnqitLbJ07LG0K7Cy092iylHXyhHXyhGXydGXydGXidFXidFXiZFXSZFXVx/kkB2jQFFaQBEaAFHagpZegtaewdSdQdRdAhTdnujtbPG0K/DzKy/yaS5xZ+1wJuwvZauupSrt5KptY+ms42kr4qirYifrImfq0F2jwFGaQBEaAFHagpZegtaewZRcwZQcgdSdHyis7DDzKzAyam9xkpxhyBBWyBBWyBBWx9BWx9BWx9BWh9AWh9AWh9AWlh8jkN3jgFGagBEaAFHagpZegtZewZPcgVOcQdSdHyjta3Ayam9xqa5w42ntHybqXqZqXiYp3eVpXWUo3SSoXORn3GPnXCNnX6WokV3jgFGawBEaAFHagpZegpZegVOcQRNcAZRdHKcrpu0wZewvZWtupGqt42ms4ulsomjsIagrYOeq4Gdqn+ap32YpXuVo3iToEF1jQFGagBEaAFHagpZegpZegRMbwRLbgRMcBlefhldfRdcfBdcexVaehVaeRRZeRRZeRRZeRNZeRNYeBNYeBJXeBJXdxJWdxBWdgFFaQBEaAFHagpZegpYegNLbgNKbQNJbAJIawFHawFGaQBEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaAFHagpZegpYeQNJbAJIbAJIawFHagFFaQBEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaAFHagpYegpXeQJIawFHawFGagFFaQBEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaABEaAFHagpYeglXeQFGagFFaQBFaABEaABEaANCZQRAYwRAYwRAYwRAYwRAYwRAYwRAYwRAYwRAYwRAYwRBYwBEaABEaABEaABEaAFHawpYeglWeABEaABEaABEaABEaABEaChDXV90hldsf1NleVJmeVZqfVVpfFNnelFleE9jdk1hdCk+VgBEaABEaABEaABEaAFHawpYeglWeABEaABEaABEaABEaABEaC9KY6u+yFRjdh0qQh0qQnqMmZWps5Gkro2gqomcpoSXoTdPZABEaABEaABEaABEaAJHawpYeglWeABEaABEaABEaABEaABEaC9KY6e7xVNhdB0qQh0qQnaIlpKlr46hq4mcp4WYooGUnjdOYwBEaABEaABEaABEaAJHawpYeglWeABEaABEaABEaABEaABEaC9KY6S3wVFgcx0qQh0qQnOFk46hrIqdp4aZo4GUn32QmjdNYwBEaABEaABEaABEaAJHawpYeglWeABEaABEaABEaABEaABEaDBLY6CzvVBech0qQh0qQnCBkIueqIaZpIKVn36Rm3mNlzZNYgBEaABEaABEaABEaAJHawpYegpYeQBEaABEaABEaABEaABEaDBLY52wuk5dcB0qQh0qQm1+jYeapIOWoH6SnHqNl3aJkzZMYgBEaABEaABEaABEaANJbQpZegtaewhTdQBEaABEaABEaABEaDBKY5mstmh5iEpZbUtbbXaIlYOXoX+SnHuOmHeKlHKFkDdMYQBEZwBEaABEaANJbQpZegxcff///wtZewpXeQlWeAlWeAlWeCJIYzBOZi5NZS1MZC1LYyxKYitJYSpIYClHXyhGXidFXSE+VwlWdwlXeAlXeApZegxcff///w=='''
 #}
 
+#==============================================================================
+# single line plot (bloquant)
+# plot toutes les zones 1d de a sur le meme graphe
+#==============================================================================
+def plot(a, varx='CoordinateX', vary='F', rangex=None, rangey=None, export=None,
+         lineWidth=1.5, lineColor=None,
+         markerStyle='none', markerSize=6.5, 
+         markerFaceColor=None, markerEdgeColor=None):
+    if export is not None: setBatch()
+
+    s = varx.split(':')
+    if len(s) == 2: varx = s[1]+'@'+Internal.__FlowSolutionNodes__
+    elif varx[0:10] != 'Coordinate': varx = varx+'@'+Internal.__FlowSolutionNodes__
+    s = vary.split(':')
+    if len(s) == 2: vary = s[1]+'@'+Internal.__FlowSolutionNodes__
+    elif vary[0:10] != 'Coordinate': vary = vary+'@'+Internal.__FlowSolutionNodes__
+
+    if export is None: desktop, win = createTkDesktop()
+    else: desktop = Desktop()
+    
+    desktop.setData(a)
+    graph = desktop.createGraph('graph', '1:1')
+    for z in desktop.data:
+        curve = Curve(zone=[z], varx=varx, vary=vary,
+                      line_color=lineColor,
+                      line_width=lineWidth,
+                      marker_style=markerStyle,
+                      marker_face_color=markerFaceColor, 
+                      marker_edge_color=markerEdgeColor,
+                      marker_size=markerSize,
+                      legend_label=z)
+        graph.addCurve('1:1', curve)
+    
+    if rangex is not None:
+        axis = graph.getAxis('1:1')
+        axis.x.setValue('axis_autoscale', False)
+        axis.x.setValue('axis_min', rangex[0])
+        axis.x.setValue('axis_max', rangex[1])
+    if rangey is not None:
+        axis.y.setValue('axis_autoscale', False)
+        axis.y.setValue('axis_min', rangey[0])
+        axis.y.setValue('axis_max', rangey[1])
+    
+    if rangex is not None or rangey is not None:
+        graph.updateGraph('1:1')
+
+    if export is None: win.mainloop()
+    else: 
+        graph.save(export)
+        graph.close()
+    
 #==============================================================================
 if __name__ == "__main__":
     if False:

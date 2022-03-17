@@ -7,9 +7,8 @@ Preamble
 ########
 
 tkPlotXY is a 2D plotting library based on Matplotlib. The aim of tkPlotXY is to provide
-to users an easier scriptable interface and a useful graphical interface in the mean time.
-This documentation focuses only on the scriptable interface. To know more about its graphical interface,
-some tutos will soon be available.
+to users an easier scriptable interface and a useful graphical interface for plotting data in 
+arrays or pyTrees.
 
 tkPlotXY uses preferentially 1D-data from pyTrees but in the scriptable interface, some other ways to
 define datas are available and will be exposed in this document.
@@ -21,6 +20,66 @@ For use in a python script, you have to import tkPlotXY module::
    import tkPlotXY
 
 .. py:module:: tkPlotXY
+
+
+One line plot function
+######################
+tkPlotXY can be used with a single function.
+
+.. py:function:: tkPlotXY.plot(a, varx, vary, rangex=None, rangey=None, export=None, ...)
+
+    Plot 1D zones of a.
+
+    :param a: input data
+    :type a: [pyTree, base, zone, list of zones]
+    :param varx: name of variable to plot in X
+    :type varx: string
+    :param vary: name of variable to plot in y
+    :type vary: string
+    :param rangex: if not None, range for x variable. If None, automatic setting.
+    :type rangex: None or list of two floats
+    :param rangey: if not None, range for y variable. If None, automatic setting.
+    :type rangey: None or list of two floats
+    :param export: if None, interactive plot, otherwise name of export file.
+    :type export: None or name of export file
+    :param lineWidth: width of plot lines
+    :type lineWidth: float (default: 1.5)
+    :param lineColor: color of plot lines. Html string (#FFFFFF) or color name ('black).
+    :type lineColor: string
+    :param markerStyle: style of marker, 'none', '+', 'o', ...
+    :type markerStyle: string
+    :param markerWidth: width of markers
+    :type markerWidth: float (default: 6.5)
+    :param markerFaceColor: face color of markers. Html string (#FFFFFF) or color name ('black).
+    :type markerFaceColor: string
+    :param markerEdgeColor: edge color of markers. Html string (#FFFFFF) or color name ('black).
+    :type markerEdgeColor: string
+
+
+    *Example of use:*
+
+    * `Plot 1d zones (pyTree) <Examples/CPlot/tkPlotXYSingleLine.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/tkPlotXYSingleLine.py
+
+
+Usage with classes
+###################
+
+In case of the previous function doesnt provide enough flexibility, you can use 
+tkPlotXY with classes that provide access to a full customization. The list of class
+is in the next chapter. Here goes two simple examples, an interactive one and a batch one.
+
+    *Example of use:*
+
+    * `Interactive tkPlotXY classes usage (pyTree) <Examples/CPlot/tkPlotXYInteractive.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/tkPlotXYInteractive.py
+
+    * `Batch tkPlotXY classes usage (pyTree) <Examples/CPlot/tkPlotXYBatch.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/tkPlotXYBatch.py
+
 
 List of classes
 ##################
