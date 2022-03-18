@@ -424,27 +424,26 @@ def updateCPlotNumbering(t):
     """Update the CPlot numbering."""
     Nz = []; Nb = []
     nodes = Internal.getZones(t)
-    nstr = 0
+    nstrf = 0
     for z in nodes:
         Nz.append(1); Nb.append(1)
         ztype = Internal.getZoneType(z)
-        if ztype == 1: nstr += 1
+        if ztype == 1: nstrf += 1
 
-    bases = t[2][1:]
+    bases = Internal.getBases(t)
     nstr = 0; nunstr = 0
     nb = 0
     for b in bases:
-        nodes = b[2]
         nz = 0
-        for z in nodes:
+        for z in b[2]:
             if z[3] == 'Zone_t':
                 ztype = Internal.getZoneType(z)
                 if ztype == 1:
                     Nz[nstr] = nz
                     Nb[nstr] = nb; nstr += 1
                 else:
-                    Nz[nunstr+nstr] = nz
-                    Nb[nunstr+nstr] = nb; nunstr += 1
+                    Nz[nunstr+nstrf] = nz
+                    Nb[nunstr+nstrf] = nb; nunstr += 1
             nz += 1
         nb += 1
     return (Nb, Nz)

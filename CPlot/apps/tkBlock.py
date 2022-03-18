@@ -151,7 +151,7 @@ def convert2Hexa():
         z = CTK.t[2][nob][2][noz]
         dim = Internal.getZoneDim(z)
         try:
-            if (dim[0] == 'Unstructured' and dim[3] == 'TRI'):
+            if dim[0] == 'Unstructured' and dim[3] == 'TRI':
                 a, b = C.convertTri2Quad(z)
                 CTK.replace(CTK.t, nob, noz, a)
                 CTK.add(CTK.t, nob, -1, b)
