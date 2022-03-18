@@ -270,27 +270,31 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     
      
     if not graphliste: # Si le graph n est pas une liste, on n'est pas en explicite local
+        #on determine la liste des processus pour lequel rank  est Receveur
         graphIBCrcv=[]
         if graphIBCD is not None:
             for proc in graphIBCD.keys():
-                for n in graphIBCD[proc].keys():
-                    if n == rank: graphIBCrcv.append(proc)
+              if rank == proc:
+                 for n in graphIBCD[rank].keys():
+                    graphIBCrcv.append( n )
+            #for proc in graphIBCD.keys():
+            #    for n in graphIBCD[proc].keys():
+            #        if n == rank: graphIBCrcv.append(proc)
 
         graphIDrcv=[]
         if graphID is not None:
             for proc in graphID.keys():
-                for n in graphID[proc].keys():
-                    if n == rank: graphIDrcv.append(proc)
+              if rank == proc:
+                for n in graphID[rank]:
+                   graphIDrcv.append( n )
+            #for proc in graphID.keys():
+            #    #for n in graphID[proc].keys():
+            #    #    if n == rank: graphIDrcv.append(proc)
     
     else:  # le graph est une liste, on est en explicite local, 1 graphe par ss ite
 
-                
-        graphIBCrcv_=[]
-        graphIDrcv_=[]
-        pos_ID=[]
-        pos_IBC=[]
-        S_IBC=0
-        S_ID=0
+        graphIBCrcv_=[]; graphIDrcv_=[]; pos_ID=[]; pos_IBC=[];
+        S_IBC=0; S_ID=0
 
         for nstep in range(0,len(graph)):
 
@@ -309,8 +313,6 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
             S_IBC += k_IBC+1
             for proc in stokproc:
                 graphIBCrcv_.append(proc)
-
-
 
 
             pos_ID.append(len(graph)+S_ID)            
@@ -351,7 +353,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
     _graphID   = numpy.asarray([len(graphIDrcv)] +graphIDrcv ,dtype=numpy.int32)
 
-    param_int[1                 :1+len(graphIBCrcv)+1] = _graphIBC
+    param_int[1                 :1+len(graphIBCrcv)+1                ] = _graphIBC
     param_int[2+len(graphIBCrcv):2+len(graphIBCrcv)+len(graphIDrcv)+1] = _graphID    
   
     # print("param_int is ",param_int[0:2+len(graphIBCrcv)+len(graphIDrcv)+1])
@@ -472,9 +474,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        #Si le type zero existe, on le place a la fin: sinon adressage openmp=boom dans donorPts
        if 0 in Nbtype: Nbtype += [Nbtype.pop( Nbtype.index( 0 ) )]
 
-       param_int[ iadr +rac[pos]*2 ] = len(Nbtype)
+       param_int[ iadr+rac[pos]*2 ] = len(Nbtype)
 
-       param_int[ iadr +rac[pos]*3 ] = -1
+       param_int[ iadr+rac[pos]*3 ] = -1
        size_IBC = 0
 
        zsrname = s[0]

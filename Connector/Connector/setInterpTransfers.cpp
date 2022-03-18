@@ -787,15 +787,15 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 {
   PyObject *zonesR, *zonesD;
 
-  PyObject *pyVariables;
+  PyObject *pyVariables, *pydtloc;
   PyObject *pyParam_int, *pyParam_real;
   E_Int vartype, type_transfert, no_transfert, It_target, nstep, nitmax;
   E_Int rk, exploc, num_passage;
   
   if (!PYPARSETUPLE(args,
-                    "OOOOOlllllllll", "OOOOOiiiiiiiii",
-                    "OOOOOlllllllll", "OOOOOiiiiiiiii",
-                    &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
+                    "OOOOOOlllllllll", "OOOOOOiiiiiiiii",
+                    "OOOOOOlllllllll", "OOOOOOiiiiiiiii",
+                    &zonesR, &zonesD, &pyVariables, &pydtloc, &pyParam_int,  &pyParam_real, &It_target, &vartype,
                     &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage))
   {
     return NULL;
@@ -853,11 +853,14 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   vector<PyArrayObject*> hook;
 
 
+  FldArrayI* dtloc;
+  E_Int res_donor = K_NUMPY::getFromNumpyArray(pydtloc, dtloc, true);
+  E_Int* iptdtloc = dtloc->begin();
   /*-------------------------------------*/
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
   FldArrayI* param_int;
-  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
+  res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
   res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real, true);
@@ -904,9 +907,24 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   E_Int pass_inst_fin=1;
   if (nrac_inst > 0) pass_inst_fin=2;
 
+  //on optimise les transfert pour implicit local
+  E_Int impli_local[nidomR];
+  E_Int nssiter = iptdtloc[0];
+  E_Int* ipt_omp = iptdtloc +9 + nssiter;
+  E_Int nbtask = ipt_omp[nstep-1]; 
+  E_Int ptiter = ipt_omp[nssiter+ nstep-1];
+
+  for (E_Int nd = 0; nd < nidomR; nd++) {impli_local[nd]=0;}
+  for (E_Int ntask = 0; ntask < nbtask; ntask++)
+    {
+       E_Int pttask = ptiter + ntask*(6+threadmax_sdm*7);
+       E_Int nd = ipt_omp[ pttask ];
+       impli_local[nd]=1;
+    }
+
+
   E_Int size_autorisation = nrac_steady+1;
   size_autorisation = K_FUNC::E_max(size_autorisation , nrac_inst+1);
-
   E_Int autorisation_transferts[pass_inst_fin][size_autorisation];
 
   // printf("nrac = %d, nrac_inst = %d, level= %d, it_target= %d , nitrun= %d \n",  nrac, nrac_inst, timelevel,it_target, NitRun);
@@ -915,8 +933,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   for  (E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
   {
       E_Int irac_deb= 0; E_Int irac_fin= nrac_steady;
-      if (pass_inst == 1) { irac_deb = ipt_param_int[ ech + 4 + it_target ];
-	   irac_fin = ipt_param_int[ ech + 4 + it_target + timelevel ];}
+      if (pass_inst == 1) { irac_deb = ipt_param_int[ ech + 4 + it_target ]; irac_fin = ipt_param_int[ ech + 4 + it_target + timelevel ];}
 
 
       for  (E_Int irac=irac_deb; irac< irac_fin; irac++)
@@ -969,8 +986,12 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 		  }
 		else {continue;} 
 	    }
-           // Sinon, on autorise les transferts entre ttes les zones a ttes les ss-ite
-	   else { autorisation_transferts[pass_inst][irac_auto]=1; }
+           // Sinon, on autorise les transferts  si la zone donneuse a ete modifiee a l'iteration nstep
+	   else {
+                   E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
+                   if (impli_local[NoD]==1) autorisation_transferts[pass_inst][irac_auto]=1;
+                   //autorisation_transferts[pass_inst][irac_auto]=1;
+                }
 	    
 	}
     }
@@ -1248,8 +1269,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
           shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
        }// type 
-      }// autorisation transfert
      #pragma omp barrier
+      }// autorisation transfert
     }//irac
    }//pass_inst
   #pragma omp barrier
@@ -1260,6 +1281,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   delete [] ipt_param_intR; delete [] ipt_roR; delete [] ipt_ndimdxD; delete [] ipt_roD; delete [] ipt_cnd;
 
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL); 
+  RELEASESHAREDN(pydtloc        , dtloc        );
   RELEASESHAREDN(pyParam_int    , param_int    );
   RELEASESHAREDN(pyParam_real   , param_real   );
 

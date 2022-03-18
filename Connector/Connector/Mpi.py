@@ -309,7 +309,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 # IN: varType=1,2,3: variablesIBC define (ro,rou,rov,row,roE(,ronutilde)),(ro,u,v,w,t(,nutilde)),(ro,u,v,w,p(,nutilde))
 # Adim: KCore.adim1 for Minf=0.1
 #===============================================================================
-def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transfert, nitrun,
+def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type_transfert, nitrun,
                          nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
                          graph=None, procDict=None):
 
@@ -327,13 +327,13 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
             #print('transfert local', type_transfert)
-            connector.___setInterpTransfers(zones, zonesD, vars, param_int, param_real, nitrun, varType,
+            connector.___setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, nitrun, varType,
                                             type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage)
 
         else:
             #print('transfert global', type_transfert)
             rank = Cmpi.rank
-            infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType,
+            infos = connector.__setInterpTransfersD(zones, zonesD, vars, dtloc, param_int, param_real, nitrun, varType,
                                                     type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage, rank) 
             if infos != []:
                for n in infos:
@@ -348,12 +348,12 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
     
     # Remise des champs interpoles dans l'arbre receveur
     for i in rcvDatas:
-        #if Cmpi.rank==0: print(Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i]))
+        #if Cmpi.rank==0: print(Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i]), 'nstep=',nstep,flush=True)
         for n in rcvDatas[i]:
             rcvName = n[0]
-            #if Cmpi.rank==0: print('reception', Cmpi.rank, 'no zone', zones[ rcvName ][0])
             field = n[1]
-            if field != []:
+            #if Cmpi.rank==0: print('reception', Cmpi.rank, 'no zone', zones[ rcvName ][0], field[0])
+            if field != [] and field[0] !='Nada':
                 listIndices = n[2]
                 z = zones[rcvName]
                 C._setPartialFields(z, [field], [listIndices], loc='centers')
