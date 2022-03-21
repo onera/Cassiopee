@@ -172,7 +172,7 @@ short K_INTERP::getInterpolationCell(
    les images de (x,y,z) projete sur les parois des differents
    domaines donneurs dans xt,yt,zt.
    Les pts de coordonnees (xt[noz],yt[noz],zt[noz]) sont interpoles depuis 
-   l'InterpData InterpDatas[noz] uniquement. Ce cas est appliqu� pour calculer
+   l'InterpData InterpDatas[noz] uniquement. Ce cas est applique pour calculer
    les coefficients d'interpolation dans le cas double wall.
    Attention: l'ordre de (xt,yt,zt) et de InterpDatas doit etre le meme */
 //=============================================================================
@@ -367,7 +367,7 @@ short K_INTERP::getExtrapolationCell(
   les images de (x,y,z) projete sur les parois des differents
   domaines donneurs dans xt,yt,zt.
   Les pts de coordonnees (xt[noz],yt[noz],zt[noz]) sont extrapoles depuis 
-  l'InterpData InterpDatas[noz] uniquement. Ce cas est appliqu� pour calculer
+  l'InterpData InterpDatas[noz] uniquement. Ce cas est applique pour calculer
   les coefficients d extrapolation dans le cas double wall 
   Attention: l'ordre de (xt,yt,zt) et de InterpDatas doit etre le meme */
 //=============================================================================
@@ -677,11 +677,11 @@ short K_INTERP::compOneInterpolatedValue(
        -1, -1, -1 si le donneur est non structure
    IN: f0: champ du bloc donneur pour l'interpolation
    IN: indi: indices des pts de la molecule d interpolation
-             peut etre defini par des sommets de la mol�cule donneuse
+             peut etre defini par des sommets de la molecule donneuse
                               par l'indice de la cellule donneuse
              doit etre coherent avec f.
    IN: indiSize: taille de indi
-   IN: cf: coefs d'interpolation associ�s 
+   IN: cf: coefs d'interpolation associes 
    IN: ind: indice du pt a interpoler 
    IN: interpType: permet de determiner la formule appliquee
    OUT: f: champs interpoles au point ind 
@@ -1110,7 +1110,7 @@ short K_INTERP::compInterpolatedValues(
        -1, -1, -1 si le donneur est non structure
    IN: f0: champ du bloc donneur pour l'interpolation
    IN: indi: indices des pts de la molecule d interpolation
-             peut etre defini par des sommets de la mol�cule donneuse
+             peut etre defini par des sommets de la molecule donneuse
                               par l'indice de la cellule donneuse
              doit etre coherent avec f.
    IN: indiSize: taille de indi

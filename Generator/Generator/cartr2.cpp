@@ -67,10 +67,11 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   E_Float hi, hj, hk;
   E_Float riinput, rjinput, rkinput;
   E_Float xf, yf, zf;
+  E_Int skeleton = 0;
   E_Int api = 1;
   if (!PYPARSETUPLE(args, 
-                    "(ddd)(ddd)(ddd)(ddd)l", "(ddd)(ddd)(ddd)(ddd)i", 
-                    "(fff)(fff)(fff)(fff)l", "(fff)(fff)(fff)(fff)i",
+                    "(ddd)(ddd)(ddd)(ddd)ll", "(ddd)(ddd)(ddd)(ddd)ii", 
+                    "(fff)(fff)(fff)(fff)ll", "(fff)(fff)(fff)(fff)ii",
                     &xo, &yo, &zo, &hi, &hj, &hk, &riinput, &rjinput, &rkinput, &xf, &yf, &zf, &api))
   {
     return NULL;
@@ -144,9 +145,9 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   {
     nkapp=0;
   }
-  E_Int ni = floor(niapp) + 1 ;
-  E_Int nj = floor(njapp) + 1 ;
-  E_Int nk = floor(nkapp) + 1 ;
+  E_Int ni = floor(niapp) + 1;
+  E_Int nj = floor(njapp) + 1;
+  E_Int nk = floor(nkapp) + 1;
   
   // printf("ni partie entiere = %i \n ",ni) ; fflush(stdout);
   // printf("nj partie entiere= %i \n ",nj) ; fflush(stdout);
@@ -176,6 +177,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   } 
 
   //printf("Info: number of mesh cell = %i (i), %i (j), %i (k)\n ",ni,nj,nk); fflush(stdout);
+  if (skeleton == 1) return Py_BuildValue("lll", ni, nj, nk);
 
   E_Int i, j, k, ind;
   // Create cartesian mesh
