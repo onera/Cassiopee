@@ -831,7 +831,7 @@ Set rendering informations in pyTree
     :param meshOverlay: if 1 then overlay the mesh
     :type meshOverlay: 0 or 1
     :param shaderParameters: two float that parametrize shaders
-    :type shaderParameters: list of two floats
+    :type shaderParameters: list of two floats in [0.,2.]
 
     *Example of use:*
 

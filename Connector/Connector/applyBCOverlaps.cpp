@@ -170,7 +170,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   
   // Get list of face indices defined as a numpy array
   FldArrayI* indicesF;
-  E_Int ret = K_NUMPY::getFromNumpyArray(faceList, indicesF, true);
+  E_Int ret = K_NUMPY::getFromPointList(faceList, indicesF, true);
   if (ret != 1)
   {
     PyErr_SetString(PyExc_TypeError,

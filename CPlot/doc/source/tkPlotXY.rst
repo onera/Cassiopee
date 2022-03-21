@@ -34,7 +34,7 @@ tkPlotXY can be used with a single function.
     :type a: [pyTree, base, zone, list of zones]
     :param varx: name of variable to plot in X
     :type varx: string
-    :param vary: name of variable to plot in y
+    :param vary: name of variable to plot in Y
     :type vary: string
     :param rangex: if not None, range for x variable. If None, automatic setting.
     :type rangex: None or list of two floats
