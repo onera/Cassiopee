@@ -274,23 +274,16 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
         graphIBCrcv=[]
         if graphIBCD is not None:
             for proc in graphIBCD.keys():
-              if rank == proc:
-                 for n in graphIBCD[rank].keys():
-                    graphIBCrcv.append( n )
-            #for proc in graphIBCD.keys():
-            #    for n in graphIBCD[proc].keys():
-            #        if n == rank: graphIBCrcv.append(proc)
+                for n in graphIBCD[proc].keys():
+                    if n == rank: graphIBCrcv.append(proc)
 
         graphIDrcv=[]
         if graphID is not None:
             for proc in graphID.keys():
-              if rank == proc:
-                for n in graphID[rank]:
-                   graphIDrcv.append( n )
-            #for proc in graphID.keys():
-            #    #for n in graphID[proc].keys():
-            #    #    if n == rank: graphIDrcv.append(proc)
+                for n in graphID[proc].keys():
+                    if n == rank: graphIDrcv.append(proc)
     
+
     else:  # le graph est une liste, on est en explicite local, 1 graphe par ss ite
 
         graphIBCrcv_=[]; graphIDrcv_=[]; pos_ID=[]; pos_IBC=[];
