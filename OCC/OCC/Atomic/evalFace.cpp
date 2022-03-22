@@ -18,6 +18,7 @@
 */
 
 #include "occ.h"
+#include <gp_Pnt.hxx>
 #include "TopoDS_Face.hxx"
 #include "Geom_Surface.hxx"
 #include "BRep_Tool.hxx"

@@ -142,14 +142,14 @@ else
     elif [ $ELSAPROD == 'msys64' ] # MSYS 2 With Win64 production
     then
         set -x
-	# MSMPI
-	mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+	    # MSMPI
+	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         set +x    
     elif [ $ELSAPROD == 'win64' ] # MSYS 2 With Win64 production
     then
         set -x
-	# MSMPI
-	mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+	    # MSMPI
+	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         set +x
     else
         set -x

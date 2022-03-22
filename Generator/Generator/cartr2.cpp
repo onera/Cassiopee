@@ -72,7 +72,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE(args, 
                     "(ddd)(ddd)(ddd)(ddd)ll", "(ddd)(ddd)(ddd)(ddd)ii", 
                     "(fff)(fff)(fff)(fff)ll", "(fff)(fff)(fff)(fff)ii",
-                    &xo, &yo, &zo, &hi, &hj, &hk, &riinput, &rjinput, &rkinput, &xf, &yf, &zf, &api))
+                    &xo, &yo, &zo, &hi, &hj, &hk, &riinput, &rjinput, &rkinput, &xf, &yf, &zf, &api, &skeleton))
   {
     return NULL;
   }
@@ -177,7 +177,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   } 
 
   //printf("Info: number of mesh cell = %i (i), %i (j), %i (k)\n ",ni,nj,nk); fflush(stdout);
-  if (skeleton == 1) return Py_BuildValue("lll", ni, nj, nk);
+  if (skeleton == 1) return Py_BuildValue("llldddddd", ni, nj, nk, ri, rj, rk, hi, hj, hk);
 
   E_Int i, j, k, ind;
   // Create cartesian mesh

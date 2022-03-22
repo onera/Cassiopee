@@ -153,7 +153,7 @@ def check_output(cmd, shell, stderr):
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
         stdout, stderr = PROCESS.communicate(None, timeout=None)
-        if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
+        if PROCESS is not None and PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
         return stdout+stderr
 
@@ -460,18 +460,19 @@ def runSingleUnitaryTest(no, module, test):
     #if sys.version_info[0] == 3: pythonExec = 'python3'
     #else: pythonExec = 'python'
     pythonExec = os.getenv('PYTHONEXE', 'python')
+    nthreads = KCore.kcore.getOmpMaxThreads()
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
         path = path.replace('/', '\\')
         if m1 is not None: cmd = 'cd %s && %s %s'%(path, pythonExec, test)
-        else: cmd = 'cd %s && set OMP_NUM_THREADS=4 && mpiexec -np 2 %s %s'%(path, pythonExec, test)
+        else: cmd = 'cd %s && set OMP_NUM_THREADS=%d && mpiexec -np 2 %s %s'%(path, nthreads//2, pythonExec, test)
         cmd2 = 'echo %time%'
     else:
         # Unix - le shell doit avoir l'environnement cassiopee
         #sformat = r'"real\t%E\nuser\t%U\nsys\t%S"'
         if m1 is not None: cmd = 'cd %s; time %s %s'%(path, pythonExec, test)
-        else: cmd = 'cd %s; time kpython -n 2 %s'%(path, test)
+        else: cmd = 'cd %s; time kpython -n 2 -t %d %s'%(path, nthreads//2, test)
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
@@ -1136,7 +1137,7 @@ def setupGlobal():
     if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
         os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
     os.environ['VALIDLOCAL'] = CASSIOPEE+'/Apps/Modules/ValidData'
-    CASSIOPEE = '/home/benoit/Cassiopee'
+    CASSIOPEE = '/stck/benoit/Cassiopee'
     WIDGETS['updateButton'].configure(state=TK.DISABLED)
     buildTestList()
 

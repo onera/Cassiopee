@@ -44,8 +44,37 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/trimesh.cpp']
 
 import KCore.Dist as Dist
-if Dist.getSystem()[0] == 'mingw':
-    allMods = ["TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
+
+allMods6 = ["FWOSPlugin", "TKPLCAF", "PTKernel", "TKPrim",
+    "TKAdvTools", "TKPShape", "TKBinL", "TKService",
+    "TKBin", "TKShapeSchema", "TKBinTObj", "TKShHealing",
+    "TKBinXCAF", "TKStdLSchema", "TKBool", "TKStdSchema",
+    "TKBO", "TKSTEP209", "TKBRep", "TKSTEPAttr",
+    "TKCAF", "TKSTEPBase", "TKCDF", "TKSTEP",
+    "TKernel", "TKSTL", "TKFeat", "TKTObj",
+    "TKFillet", "TKTopAlgo", "TKG2d", "TKV3d",
+    "TKG3d", "TKVoxel", "TKGeomAlgo", "TKVRML",
+    "TKGeomBase", "TKXCAFSchema", "TKHLR", "TKXCAF",
+    "TKIGES", "TKXDEIGES", "TKLCAF", "TKXDESTEP",
+    "TKMath", "TKXMesh", "TKMesh", "TKXmlL",
+    "TKMeshVS", "TKXml", "TKNIS", "TKXmlTObj",
+    "TKOffset", "TKXmlXCAF", "TKOpenGl", "TKXSBase",
+    "TKPCAF"]
+
+allMods75 = ["TKBinL", "TKBin", "TKBinTObj",
+    "TKBinXCAF", "TKBool", "TKBO", "TKBRep",
+    "TKCAF", "TKCDF", "TKDCAF", "TKDraw", "TKernel",
+    "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
+    "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
+    "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl", "TKPrim",
+    "TKQADraw", "TKRWMesh", "TKService", "TKShHealing", "TKStdL",
+    "TKStd", "TKSTEP209", "TKSTEPAttr", "TKSTEPBase", "TKSTEP",
+    "TKSTL", "TKTObjDRAW", "TKTObj", "TKTopAlgo", "TKTopTest",
+    "TKV3d", "TKVCAF", "TKViewerTest", "TKVRML", "TKXCAF", "TKXDEDRAW",
+    "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXmlL", "TKXml", "TKXmlTObj",
+    "TKXmlXCAF", "TKXSBase", "TKXSDRAW"]
+
+allMods75W = ["TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
     "TKBool", "TKBRep", "TKCAF", "TKCDF", "TKernel",
     "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
     "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
@@ -58,19 +87,10 @@ if Dist.getSystem()[0] == 'mingw':
     "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXml",
     "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKXSBase",
     "TKPCAF", "TKPLCAF", "TKNIS", "TKPShape", "TKShapeSchema"]
-else:
-    allMods = ["TKBinL", "TKBin", "TKBinTObj",
-    "TKBinXCAF", "TKBool", "TKBO", "TKBRep",
-    "TKCAF", "TKCDF", "TKDCAF", "TKDraw", "TKernel",
-    "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
-    "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
-    "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl", "TKPrim",
-    "TKQADraw", "TKRWMesh", "TKService", "TKShHealing", "TKStdL",
-    "TKStd", "TKSTEP209", "TKSTEPAttr", "TKSTEPBase", "TKSTEP",
-    "TKSTL", "TKTObjDRAW", "TKTObj", "TKTopAlgo", "TKTopTest",
-    "TKV3d", "TKVCAF", "TKViewerTest", "TKVRML", "TKXCAF", "TKXDEDRAW",
-    "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXmlL", "TKXml", "TKXmlTObj",
-    "TKXmlXCAF", "TKXSBase", "TKXSDRAW"]
+
+
+if Dist.getSystem()[0] == 'mingw': allMods = allMods75W
+else: allMods = allMods75
 
 mod_srcs = {}
 for m in allMods:

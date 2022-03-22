@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../Data.h"
+#include "Data.h"
 
 #define PLOTNODE xi = x[i]; yi = y[i]; zi = z[i];               \
   dx = xi - xcam; dy = yi - ycam; dz = zi - zcam;               \

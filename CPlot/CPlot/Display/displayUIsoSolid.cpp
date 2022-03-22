@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../DataDL.h"
-#include "../ZoneImplDL.h"
+#include "DataDL.h"
+#include "ZoneImplDL.h"
 
 //============================================================================
 /*

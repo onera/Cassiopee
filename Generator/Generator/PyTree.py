@@ -27,6 +27,7 @@ def cartr2(Xo, H, R, Xf, skeleton=False):
     """Create a structured cartesian mesh with expansion factor giving the last point position. Return a modified R if Xf can not be obtained
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ri ,rj,rk), (xf,yf,zf))"""
     a = generator.cartr2(Xo, H, R, Xf, 2, skeleton)
+    if skeleton: return a
     return C.convertArrays2ZoneNode('cart', [a])
 
 def cartHexa(Xo, H, N):

@@ -19,7 +19,7 @@
 
 // Routines pour afficher des textes sur l'ecran
 
-#include "../Data.h"
+#include "Data.h"
 
 // Choix de la font bitmap.
 // 0: Fonts GLUT

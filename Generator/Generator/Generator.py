@@ -25,7 +25,7 @@ __all__ = ['cart', 'cartHexa', 'cartTetra', 'cartPenta', 'cartPyra', 'cartNGon',
     'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct', 'cutOctant',
     'octree', 'conformOctree3', 'adaptOctree', 'expandLayer', 'forceMatch',
     '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap', 'getTriQualityMap',
-           'getTriQualityStat', 'quad2Pyra', 'extendCartGrids']
+    'getTriQualityStat', 'quad2Pyra', 'extendCartGrids']
 
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.

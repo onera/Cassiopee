@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../Data.h"
+#include "Data.h"
 
 //=============================================================================
 // Display the axis bottom/right

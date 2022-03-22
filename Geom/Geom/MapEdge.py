@@ -191,11 +191,12 @@ def setF(a, ind, f):
         imin = imin-1; jmin = jmin-1; kmin = kmin-1
         b[kmin:kmax,jmin:jmax,imin:imax] = f
 
-# Build a distrib between 0. and 1. with h1 left, h2 right
+# Build a distrib between 0. and 1. with h1 left, h2 right with N-1 points
 def buildDistrib(h1, h2, N):
     Ni = int(T.kround(1./h2))+1
     a = G.cart((0,0,0), (h2,1,1), (Ni,1,1))
     a[1][0,Ni-2] = 1.-h2
+    a[1][0,Ni-1] = 1.
     b = G.enforcePlusX(a, h1, (Ni-2,N-Ni-1))
     return b
 
@@ -354,10 +355,10 @@ def enforce(a, h, ind, supp, add):
     """Enforce h in distribution."""
     c = D.getDistribution(a)
     L = D.getLength(a)
-    if ind == 0: b = G.enforceMoinsX(b, h/L, supp, add)
-    elif ind == a[2]-1: b = G.enforcePlusX(b, h/L, supp, add)
-    else: b = G.enforceX(b, c[1][0,ind], h/L, supp, add)
-    a = G.map(a, b)
+    if ind == 0: b = G.enforceMoinsX(c, h/L, supp, add)
+    elif ind == a[2]-1: b = G.enforcePlusX(c, h/L, supp, add)
+    else: b = G.enforceX(c, c[1][0,ind], h/L, supp, add)
+    a = G.map(a, c)
     return a
 
 # Super smooth - OK
