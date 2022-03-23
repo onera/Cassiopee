@@ -1250,7 +1250,7 @@ def getNodeFromPath(t, path):
     if path[0] == '/': path = path[1:]
     if path[-1] == '/': path = path[:-1]
     if t[0] == path: return t
-    if t[3] == 'CGNSTree_t': p = path.replace(t[0]+'/','')
+    if len(t) > 3 and  t[3] == 'CGNSTree_t': p = path.replace(t[0]+'/','')
     else: p = path
     p = p.split('/')
     if p[0] == '.' or p[0] == t[0]: p = p[1:] # full path=normal mode

@@ -636,7 +636,7 @@ Transformation Functions
 .. py:function:: Intersector.simplifyCells(a, treat_externals, angular_threshold = 1.e-12)
 
     Agglomerates superfluous polygons that over-defines cells. After agglomerating (e.g. after calling :any:`agglomerateSmallCells`) , we end up with cells that are multiply-connected, i.e. they share more than one polygon.
-    If 2 cells share 2 polygons that are connected (sharing an edge) and their dihedral angle is below the angular_threshold, then the 2 polygon are agglomerated upon exit.
+    If 2 cells share 2 polygons that are connected (sharing an edge) and their dihedral angle is below the angular_threshold, then the polygons are agglomerated upon exit. The angular threshold (expressed in radian) is the maximum aboslute deviation around the planar position.
 
     :param           a:  Input mesh
     :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
