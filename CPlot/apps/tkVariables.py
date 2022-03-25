@@ -238,7 +238,7 @@ def node2CenterVar():
 #==============================================================================
 def chooseImportFile(event=None):
     try: import tkFileDialog
-    except: import tkinter.tkfiledialog as tkFileDialog 
+    except: import tkinter.filedialog as tkFileDialog 
     init = VARS[4].get()
     init = init.split(';')[0]
     files = tkFileDialog.askopenfilenames(
@@ -537,7 +537,7 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)

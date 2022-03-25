@@ -14,7 +14,7 @@ WIDGETS = {}; VARS = []
 #==============================================================================
 def inCore():
     if CTK.t == []: return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
@@ -26,7 +26,7 @@ def inCore():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         ooc = Internal.getNodesFromName1(z, 'OutOfCore')
-        if (len(ooc) != 0):
+        if len(ooc) != 0:
             # Read zone
             base = CTK.t[2][nob]
             name = '.'+base[0]+'#'+z[0]+'.cgns'

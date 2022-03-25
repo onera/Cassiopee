@@ -1311,59 +1311,72 @@ def toolBar(win):
     # Change l'icone de la fenetre
     win.tk.call('wm', 'iconphoto', win._w, iconics.PHOTO[13])
     frame = TTK.Frame(win)
-    frame.grid(sticky=TK.W, columnspan=2)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[0],
-                  borderwidth=0, command=quickSaveFile)
+    
+    #frame.columnconfigure(0, weight=0)
+    #frame.columnconfigure(1, weight=0)
+    #frame.columnconfigure(2, weight=0)
+    #frame.columnconfigure(3, weight=0)
+    #frame.columnconfigure(4, weight=0)
+    #frame.columnconfigure(5, weight=0)
+    #frame.columnconfigure(6, weight=0)
+    #frame.columnconfigure(7, weight=0)
+    #frame.columnconfigure(8, weight=0)
+    #frame.columnconfigure(9, weight=0)
+
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20, 
+                  image=iconics.PHOTO[0], borderwidth=0,
+                  command=quickSaveFile)
     BB = infoBulle(parent=B, text='Save.')
     B.grid(row=0, column=0)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[11],
-                  borderwidth=0, command=quickReloadFile)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                  image=iconics.PHOTO[11], borderwidth=0,
+                  command=quickReloadFile)
     BB = infoBulle(parent=B, text='Reload current file.')
     B.grid(row=0, column=1)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[1],
-                  borderwidth=0, command=undo)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[1], borderwidth=0,
+                   command=undo)
     BB = infoBulle(parent=B, text='Undo.')
     B.grid(row=0, column=2)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[2],
-                  borderwidth=0, command=rmBlock)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[2], borderwidth=0,
+                   command=rmBlock)
     BB = infoBulle(parent=B, text='Rm block.')
     B.grid(row=0, column=3)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[3],
-                   borderwidth=0, command=copyBlock)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[3], borderwidth=0,
+                   command=copyBlock)
     BB = infoBulle(parent=B, text='Copy block.')
     B.grid(row=0, column=4)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[4],
-                   borderwidth=0, command=lookFor)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[4], borderwidth=0,
+                   command=lookFor)
     BB = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
     B.grid(row=0, column=5)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[5],
-                   borderwidth=0, command=unselectAll)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[5], borderwidth=0,
+                   command=unselectAll)
     BB = infoBulle(parent=B, text='Unselect all blocks.')
     B.grid(row=0, column=6)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[6],
-                   borderwidth=0, command=viewDeactivatedZones)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[6], borderwidth=0, 
+                   command=viewDeactivatedZones)
     BB = infoBulle(parent=B, text='View deactivated zones.')
     B.grid(row=0, column=7)
     
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[12],
-                   borderwidth=0, command=revertActivated)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[12], borderwidth=0, 
+                   command=revertActivated)
     BB = infoBulle(parent=B, text='Toggle active zones.')
     B.grid(row=0, column=8)
     
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[7],
-                   borderwidth=0, command=displayMainTree)
+    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[7], borderwidth=0, 
+                   command=displayMainTree)
     BB = infoBulle(parent=B, text='Display main tree.')
     B.grid(row=0, column=9)
+
+    frame.grid(sticky=TK.EW, columnspan=2)
 
 #==============================================================================
 # Minimum application: win, menu, txt
@@ -1376,6 +1389,11 @@ def minimal(title, show=True):
     WIDGETS['masterWin'] = win
     if not show: win.withdraw()
     win.title(title)
+
+    # ttk style
+    TTK.installLocalThemes(win)
+    TTK.setTheme(PREFS.get('guitheme', 'None'))
+
     win.protocol("WM_DELETE_WINDOW", Quit)
     win.bind('<Control-Key-s>', quickSaveFile)
     win.bind('<Control-Key-o>', loadFile)
@@ -1395,9 +1413,9 @@ def minimal(title, show=True):
     #win.grid_columnconfigure(2, weight=1)
     win.resizable(0,0)
 
-    menu = TK.Menu(win)
+    menu = TK.Menu(win, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     # menu file
-    file = TK.Menu(menu, tearoff=0)
+    file = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     menu.add_cascade(label='File', menu=file)
     file.add_command(label='Open', accelerator='Ctrl+o', command=loadFile)
     file.add_command(label='Add', command=addFile)
@@ -1410,7 +1428,7 @@ def minimal(title, show=True):
     file.add_command(label='Quit', command=Quit)
 
     # menu CPlot
-    cplot = TK.Menu(menu, tearoff=0)
+    cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     WIDGETS['cplotMenu'] = cplot
     menu.add_cascade(label='CPlot', menu=cplot)
     cplot.add_command(label='Display Nodes*', command=setLocNodes)
@@ -1431,7 +1449,7 @@ def minimal(title, show=True):
                       command=undo)
 
     # Menu specific tools
-    tools = TK.Menu(menu, tearoff=0)
+    tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     menu.add_cascade(label='Tools', menu=tools)
     tools.add_command(label='Save prefs', command=savePrefFile)
     tools.add_separator()
@@ -1439,7 +1457,7 @@ def minimal(title, show=True):
     tools.add_separator()
 
     # Menu Help
-    help = TK.Menu(menu, tearoff=0)
+    help = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     menu.add_cascade(label='Help', menu=help)
     help.add_command(label='Online User doc',
                      command=getOnlineDoc)
@@ -1461,14 +1479,10 @@ def minimal(title, show=True):
     #TXT.mark_gravity('START', TK.LEFT)
     #TXT.grid(sticky=TK.EW, columnspan=2)
 
-    # ttk style
-    TTK.installLocalThemes(win)
-    TTK.setTheme(PREFS.get('guitheme', 'None'))
-
     # Text + search entry pour Cortano
     F = TTK.Frame(win, width=30, height=1, takefocus=1)
     F.columnconfigure(0, weight=1)
-    TXT = TK.Text(F, width=30, height=1, background='White', font=TEXTFONT)
+    TXT = TTK.Text(F, width=30, height=1, background='White', font=TEXTFONT)
     TXT.tag_config("Error", foreground="red")
     TXT.tag_config("Warning", foreground="green")
     TXT.mark_set('START', TK.INSERT)
@@ -1620,6 +1634,8 @@ class noteBook:
                             variable=self.choice, value=self.count, \
                             command=lambda: self.display(fr, menu_fr))
         b.bind('<ButtonRelease-3>', lambda event: self.displayMenu(event, fr, menu_fr, b))
+        menu_fr.config(bg=TTK.BACKGROUNDCOLOR)
+        menu_fr.config(fg=TTK.FOREGROUNDCOLOR)
         b.grid(sticky=TK.EW)
 
         # ensures the first frame will be the first selected/enabled

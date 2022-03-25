@@ -47,7 +47,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
 
-    FrameMenu = TK.Menu(Frame, tearoff=0)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkLogFile')
     WIDGETS['frameMenu'] = FrameMenu

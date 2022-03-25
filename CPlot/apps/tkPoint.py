@@ -94,7 +94,7 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkPoint')
     WIDGETS['frameMenu'] = FrameMenu

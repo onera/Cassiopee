@@ -11,6 +11,10 @@ except:
 #Uncomment that for a pure Tk interface
 #ttk = None
 
+# Couleur du fond (theme)
+BACKGROUNDCOLOR = '#FFFFFF'
+FOREGROUNDCOLOR = '#000000'
+
 #=================================================================
 # Installe des themes livres avec CPlot
 #=================================================================
@@ -50,9 +54,22 @@ def setTheme(myTheme):
 # Create specific styles
 def createStyles():
     if ttk is not None:
+        
         style = ttk.Style()
-        # All fonts
-        style.configure('.', font=CTK.GENERALFONT)
+        # Get theme colors
+        global BACKGROUNDCOLOR, FOREGROUNDCOLOR
+        ret = style.lookup('TFrame', 'background')
+        if ret != "": BACKGROUNDCOLOR = ret
+        ret = style.lookup('TFrame', 'foreground')
+        if ret != "": FOREGROUNDCOLOR = ret
+        ret = style.lookup('TFrame', 'font')
+        if ret != "": CTK.GENERALFONT = ret
+
+        # Set all fonts
+        #style.configure('.', font=CTK.GENERALFONT)
+        # Set all frame backgrounds
+        #style.configure('TFrame', bgColor=BACKGROUNDCOLOR)
+
         # K1 LabelFrameStyle
         style.configure("K1.TLabelframe.Label", font=CTK.FRAMEFONT)
         # K1 Scale Style
@@ -62,7 +79,7 @@ def createStyles():
         # Raised Button Style
         style.configure("RAISED.TButton", relief=TK.RAISED)
         # Iconic button
-        style.configure("ICONIC.TButton", borderwidth=0)
+        style.configure("ICONIC.TButton", borderwidth=0, relief=TK.FLAT)
         # Radiobutton of left menu
         style.configure("MENU.TRadiobutton", relief=TK.GROOVE)
         # ScrollBar with width
@@ -110,9 +127,16 @@ def Button(*args, **kwargs):
             kwargs.pop('padx', None)
             kwargs.pop('pady', None)
             style = 1
+        if 'borderwidth' in kwargs:
+            kwargs.pop('borderwidth', None)
+            style = 1
         b = ttk.Button(*args, **kwargs)
         if style == 1: b.configure(style="ICONIC.TButton")
         return b
+
+# TK button avec background du theme
+def Button2(*args, **kwargs):
+    return TK.Button(*args, **kwargs, bg=BACKGROUNDCOLOR)
 
 def configButton(B, color):
     if ttk is None:
@@ -124,7 +148,9 @@ def OptionMenu(*args, **kwargs):
     else:
         # add default arg
         largs = (args[0],args[1],None)+args[2:] 
-        return ttk.OptionMenu(*largs, **kwargs)
+        o = ttk.OptionMenu(*largs, **kwargs)
+        o["menu"].config(bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
+        return o
 
 # Si ttk, renvoie une combobox avec accelerateur clavier
 def Combobox(*args, **kwargs):
@@ -132,7 +158,6 @@ def Combobox(*args, **kwargs):
         raise ValueError('No comboxbox.')
     else:
         return ComboboxAuto(*args, **kwargs)
-        #return ttk.Combobox(*args, **kwargs)
 
 def superOptionMenu(F, var, itemList, command, 
                     updateCommand1, updateCommand2):
@@ -175,12 +200,19 @@ def Entry(*args, **kwargs):
     if ttk is None: return TK.Entry(*args, **kwargs)
     else: return ttk.Entry(*args, **kwargs)
 
+# Pas de menu specifique en ttk
 def Menu(*args, **kwargs):
-    return TK.Menu(*args, **kwargs)
+    if ttk is None: return TK.Menu(*args, **kwargs) 
+    else: return TK.Menu(*args, **kwargs, bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
     
+def Menubutton(*args, **kwargs):
+    if ttk is None: return TK.Menubutton(*args, **kwargs) 
+    else: return ttk.Menubutton(*args, **kwargs)    
+
+# Pas de texte specifique en ttk
 def Text(*args, **kwargs):
     if ttk is None: return TK.Text(*args, **kwargs) 
-    else: return ttk.Text(*args, **kwargs)
+    else: return TK.Text(*args, **kwargs)
 
 def Radiobutton(*args, **kwargs):
     if ttk is None: TK.Radiobutton(*args, **kwargs) 
@@ -306,7 +338,7 @@ if ttk is not None:
     # Listbox avec accelerateur clavier
     class ListboxAuto(TK.Listbox):
         def __init__(self, *args, **kwargs):
-            TK.Listbox.__init__(self, *args, **kwargs)
+            TK.Listbox.__init__(self, *args, **kwargs, bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
             self.bind('<KeyRelease>', self.keyRelease)
             self.bind('<Enter>', self.onEnter)
             self.bind('<Leave>', self.onLeave)

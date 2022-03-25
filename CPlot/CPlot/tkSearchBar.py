@@ -214,7 +214,7 @@ lista = applet.keys()
 # Class entry avec auto-completion
 class AutocompleteEntry(TK.Entry):
     def __init__(self, lista, *args, **kwargs):
-        TK.Entry.__init__(self, *args, **kwargs)
+        TK.Entry.__init__(self, *args, **kwargs, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
         self.lista = lista
         self.var = self["textvariable"]        
         if self.var == '':
@@ -239,13 +239,13 @@ class AutocompleteEntry(TK.Entry):
             words = self.comparison()
             if words:            
                 if not self.lb_up: # listbox exists
-                    self.lb = TK.Listbox(width=self.winfo_width())
+                    self.lb = TTK.Listbox(width=self.winfo_width())
                     self.lb.bind("<Double-Button-1>", self.selection)
                     self.lb.bind("<Right>", self.selection)
                     self.lb.bind("<Return>", self.selection)
                     self.lb.place(x=self.winfo_x(), y=self.winfo_y()+2*self.winfo_height())
                     self.lb_up = True
-                    #self.sb = TK.Scrollbar()
+                    #self.sb = TTK.Scrollbar()
                     #self.lb.config(yscrollcommand=self.sb.set)
                     #self.sb.config(command=self.lb.yview)
                     #self.sb.place(x=self.winfo_x()-10, y=self.winfo_y()+self.winfo_height())
@@ -307,7 +307,7 @@ class AutocompleteEntry(TK.Entry):
             lr = len(ret); ls = len(s)
             if lr < 8: 
                 if lr + ls < 8: ret += s
-                else: ret += s[0:8-lr]   
+                else: ret += s[0:8-lr]
         #ret = [w for w in self.lista if re.match(pattern, w)]
         #import difflib
         #word =  self.var.get()
