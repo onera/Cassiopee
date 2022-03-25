@@ -13,4 +13,5 @@ from .Leaves import *
 from .Glasses import *
 from .Tables import *
 from .Spirographs import *
+from .Hubs import *
 #from .Wings import *

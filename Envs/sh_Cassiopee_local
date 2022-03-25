@@ -215,7 +215,7 @@ elif [ "$MAC" = "visio" ]; then
 
 elif [ "$MAC" = "visung" ]; then
 #----------------------------- visung -----------------------------------------
-    export ELSAPROD=visu_r8
+    export ELSAPROD=visung_r8
     . /etc/profile.d/modules-dri.sh
     module load subversion
     module load python/3.6.1

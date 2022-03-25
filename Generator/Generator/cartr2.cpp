@@ -84,31 +84,32 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  if ((K_FUNC::fEqual(riinput, 1.0) == true) && (K_FUNC::fEqual( fmod((xf-xo), hi),0) == false) )
-  {
-    //printf("Remainder of %f / %f is %f\n", xf-xo, hi, fmod((xf-xo),hi));
-    riinput += 0.001;
-    //printf("Warning: condition on r not met.\n ");
-    //printf("Warning: ri set to %f\n", riinput);
-  }
+  //if ((K_FUNC::fEqual(riinput, 1.0) == true) && (K_FUNC::fEqual( fmod((xf-xo), hi),0) == false) )
+  //{
+  //printf("Remainder of %f / %f is %f\n", xf-xo, hi, fmod((xf-xo),hi));
+  //riinput += 0.001;
+  //printf("Warning: condition on r not met.\n ");
+  //printf("Warning: ri set to %f\n", riinput);
+  //}
   
-  if ((K_FUNC::fEqual(rjinput,1.0) == true) && (K_FUNC::fEqual( fmod(yf-yo,hj), 0)==false) )
-  {
-    rjinput += 0.001;
-    //printf("Warning: condition on r not met.\n");
-    //printf("Warning: rj set to %f\n", rjinput);
-  }
+  //if ((K_FUNC::fEqual(rjinput,1.0) == true) && (K_FUNC::fEqual( fmod(yf-yo,hj), 0)==false) )
+  //{
+  //  rjinput += 0.001;
+  //printf("Warning: condition on r not met.\n");
+  //printf("Warning: rj set to %f\n", rjinput);
+  //}
 
-  if ((K_FUNC::fEqual(rkinput,1.0) == true) && (K_FUNC::fEqual(fmod(zf-zo,hk), 0)==false) )
-  {
-    rkinput += 0.001;
-    //printf("Warning: condition on r not met.\n");
-    //printf("Warning: rk set to %f.\n" , rkinput);
-  }
+  //if ((K_FUNC::fEqual(rkinput,1.0) == true) && (K_FUNC::fEqual(fmod(zf-zo,hk), 0)==false) )
+  //{
+  //  rkinput += 0.001;
+  //printf("Warning: condition on r not met.\n");
+  //printf("Warning: rk set to %f.\n" , rkinput);
+  //}
+
   E_Float niapp, njapp, nkapp;
   if (K_FUNC::fEqual(riinput, 1.0) == true)
   {
-    niapp = fabs(xf - xo) / hi;
+    niapp = int(fabs(xf - xo) / hi)+1;
   }
   else
   {
@@ -117,7 +118,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
 
   if (K_FUNC::fEqual(rjinput, 1.) == true)
   {
-    njapp = fabs(yf - yo) / hj;
+    njapp = int(fabs(yf - yo) / hj)+1;
   }
   else
   {
@@ -126,7 +127,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   
   if (K_FUNC::fEqual(rkinput, 1.0) == true)
   {
-    nkapp = fabs(zf - zo) / hk;
+    nkapp = int(fabs(zf - zo) / hk)+1;
   }
   else
   {  
@@ -145,9 +146,9 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   {
     nkapp=0;
   }
-  E_Int ni = floor(niapp) + 1;
-  E_Int nj = floor(njapp) + 1;
-  E_Int nk = floor(nkapp) + 1;
+  E_Int ni = floor(niapp);
+  E_Int nj = floor(njapp);
+  E_Int nk = floor(nkapp);
   
   // printf("ni partie entiere = %i \n ",ni) ; fflush(stdout);
   // printf("nj partie entiere= %i \n ",nj) ; fflush(stdout);

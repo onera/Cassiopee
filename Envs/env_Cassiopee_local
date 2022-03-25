@@ -282,7 +282,7 @@ else if ($MAC == "visio") then
 
 else if ($MAC == "visung") then
 #------------------------------- visung ---------------------------------------
-        setenv ELSAPROD visu_r8
+        setenv ELSAPROD visung_r8
         module load subversion
         module load python/3.6.1
         foreach x (`(echo "" ; module -t list) | & grep intel`)
