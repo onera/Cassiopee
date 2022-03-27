@@ -109,29 +109,29 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   E_Float niapp, njapp, nkapp;
   if (K_FUNC::fEqual(riinput, 1.0) == true)
   {
-    niapp = int(fabs(xf - xo) / hi)+1;
+    niapp = int(std::abs(xf - xo) / hi)+1;
   }
   else
   {
-    niapp = log( (fabs(xf - xo) / hi) * (riinput - 1) +1) / log(riinput);
+    niapp = log( (std::abs(xf - xo) / hi) * (riinput - 1) +1) / log(riinput);
   } 
 
   if (K_FUNC::fEqual(rjinput, 1.) == true)
   {
-    njapp = int(fabs(yf - yo) / hj)+1;
+    njapp = int(std::abs(yf - yo) / hj)+1;
   }
   else
   {
-    njapp = log( (fabs(yf - yo) / hj) * (rjinput - 1) +1) / log(rjinput);
+    njapp = log( (std::abs(yf - yo) / hj) * (rjinput - 1) +1) / log(rjinput);
   }
   
   if (K_FUNC::fEqual(rkinput, 1.0) == true)
   {
-    nkapp = int(fabs(zf - zo) / hk)+1;
+    nkapp = int(std::abs(zf - zo) / hk)+1;
   }
   else
   {  
-    nkapp = log( (fabs(zf - zo) / hk) * (rkinput - 1) +1) / log(rkinput);
+    nkapp = log( (std::abs(zf - zo) / hk) * (rkinput - 1) +1) / log(rkinput);
   }
 
   if (K_FUNC::fEqual(xo,xf)==true)

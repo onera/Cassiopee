@@ -6,7 +6,8 @@ __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre
 from . import generator
 import numpy
 
-__all__ = ['cart', 'cartHexa', 'cartTetra', 'cartPenta', 'cartPyra', 'cartNGon',
+__all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 
+    'cartPenta', 'cartPyra', 'cartNGon',
     'cylinder', 'cylinder2', 'cylinder3', 'delaunay', 'checkDelaunay', 
     'constrainedDelaunay', 'check', 'bbox', 'BB', 'barycenter', 'CEBBIntersection',
     'bboxIntersection', 'checkPointInCEBB', 'enforceX', 'enforceY', 'enforceZ',
@@ -32,14 +33,14 @@ def cart(Xo, H, N, api=1):
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
     return generator.cart(Xo, H, N, api)
 
-def cartr1(Xo, H, N, R, api=1):
-    """Create a structured cartesian mesh with expansion factor giving the number of cells.
-    Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk), (ri,rj,rk))"""
+def cartr1(Xo, H, R, N, api=1):
+    """Create a structured cartesian mesh with geometric distribution.
+    Usage: cartt1((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (ni,nj,nk))"""
     return generator.cartr1(Xo, H, N, R, api)
 
 def cartr2(Xo, H, R, Xf, api=1, skeleton=False):
-    """Create a structured cartesian mesh with expansion factor giving the last point position. Return a modified R if Xf can not be obtained
-    Usage: cart((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (xf,yf,zf))"""
+    """Create a structured cartesian mesh with geometric distribution fixing last point.
+    Usage: cartr2((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (xf,yf,zf))"""
     return generator.cartr2(Xo, H, R, Xf, api, skeleton)
 
 def cartHexa(Xo, H, N, api=1):

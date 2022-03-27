@@ -11,24 +11,26 @@ try:
 except ImportError:
     raise ImportError("Generator.PyTree: requires Converter.PyTree module.")
 
+from .CartGen import cartRx, cartRx2, _cartRxRefit
+
 def cart(Xo, H, N):
     """Create a structured cartesian mesh.
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
     a = generator.cart(Xo, H, N, 2)
     return C.convertArrays2ZoneNode('cart', [a])
 
-def cartr1(Xo, H, N, R):
-    """Create a structured cartesian mesh with expansion factor giving the number of cells.
-    Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk), (ri,rj,rk))"""
+def cartr1(Xo, H, R, N):
+    """Create a structured cartesian mesh with geometric distribution.
+    Usage: cartr1((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (ni,nj,nk))"""
     a = generator.cartr1(Xo, H, N, R, 2)
-    return C.convertArrays2ZoneNode('cart', [a])
+    return C.convertArrays2ZoneNode('cartr1', [a])
 
 def cartr2(Xo, H, R, Xf, skeleton=False):
-    """Create a structured cartesian mesh with expansion factor giving the last point position. Return a modified R if Xf can not be obtained
-    Usage: cart((xo,yo,zo), (hi,hj,hk), (ri ,rj,rk), (xf,yf,zf))"""
+    """Create a structured cartesian mesh with geometric distribution fixing last point. 
+    Usage: cartr2((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (xf,yf,zf))"""
     a = generator.cartr2(Xo, H, R, Xf, 2, skeleton)
     if skeleton: return a
-    return C.convertArrays2ZoneNode('cart', [a])
+    return C.convertArrays2ZoneNode('cartr2', [a])
 
 def cartHexa(Xo, H, N):
     """Create a hexahedral cartesian mesh.
@@ -60,113 +62,6 @@ def cartNGon(Xo, H, N, api=2):
     a = generator.cartNGon(Xo, H, N, api)
     return C.convertArrays2ZoneNode('cartNGon', [a])
 
-def cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False,
-           rank=None, size=None):
-    """Create a set of regular cartesian grids."""
-    out = []
-    for k in range(Nb[2]):
-        for j in range(Nb[1]):
-            for i in range(Nb[0]):
-                if rank is None or size is None or rank == (i+j*Nb[0]+k*Nb[0]*Nb[1])%size:
-                    Xp = [X0[0]+H[0]*(N[0]-1)*i,X0[1]+H[1]*(N[1]-1)*j,X0[2]+H[2]*(N[2]-1)*k]
-                    Np = [N[0],N[1],N[2]]
-                    if i > 0: Xp[0] -= depth*H[0]; Np[0] += depth
-                    if i < Nb[0]-1: Xp[0] += depth*H[0]; Np[0] += depth
-                    if j > 0: Xp[1] -= depth*H[1]; Np[1] += depth
-                    if j < Nb[1]-1: Xp[1] += depth*H[1]; Np[1] += depth
-                    if k > 0: Xp[2] -= depth*H[2]; Np[2] += depth
-                    if k < Nb[2]-1: Xp[2] += depth*H[2]; Np[2] += depth
-                    z = cart(Xp, H, Np); z[0] = 'cart%d.%d.%d'%(i,j,k)
-                    if rank is not None:
-                        import Converter.Mpi as Cmpi 
-                        Cmpi._setProc(z, rank)
-                    if addCellN:
-                        C._initVars(z, 'centers:cellN', 1)
-                        cellN = Internal.getNodeFromName2(z, 'cellN')[1]
-                        if i > 0: cellN[0:depth,:,:] = 2
-                        if i < Nb[0]-1: cellN[Np[0]-depth-1:Np[0]-1,:,:] = 2
-                        if j > 0: cellN[:,0:depth,:] = 2
-                        if j < Nb[1]-1: cellN[:,Np[1]-depth-1:Np[1]-1,:] = 2
-                        if k > 0: cellN[:,:,0:depth] = 2
-                        if k < Nb[2]-1: cellN[:,:,Np[2]-depth-1:Np[2]-1] = 2
-                    if addBCMatch and depth == 0:
-                        if i > 0:
-                            C._addBC2Zone(z, 'match', 'BCMatch', 'imin', z, 'imax', [1,2,3])
-                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i-1,j,k))
-                        if i < Nb[0]-1:
-                            C._addBC2Zone(z, 'match', 'BCMatch', 'imax', z, 'imin', [1,2,3])
-                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i+1,j,k))
-                        if j > 0:
-                            C._addBC2Zone(z, 'match', 'BCMatch', 'jmin', z, 'jmax', [1,2,3])
-                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j-1,k))
-                        if j < Nb[1]-1:
-                            C._addBC2Zone(z, 'match', 'BCMatch', 'jmax', z, 'jmin', [1,2,3])
-                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j+1,k))
-                        if k > 0:
-                            C._addBC2Zone(z, 'match', 'BCMatch', 'kmin', z, 'kmax', [1,2,3])
-                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j,k-1))
-                        if k < Nb[2]-1:
-                            C._addBC2Zone(z, 'match', 'BCMatch', 'kmax', z, 'kmin', [1,2,3])
-                            bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j,k+1))
-                    out.append(z)
-    return out
-
-def _cartRxRefit(a):
-    """Refit a cartRx to cartesian after addGhostCells."""
-    zones = Internal.getZones(a)
-    for z in zones:
-        dim = Internal.getZoneDim(z)
-        ni = dim[1]; nj = dim[2]; nk = dim[3]
-        xp = Internal.getNodeFromName2(z, 'CoordinateX')[1]
-        if ni > 3:
-            dx1 = xp[1,0,0]-xp[0,0,0]
-            dx2 = xp[2,0,0]-xp[1,0,0]
-            dx3 = xp[3,0,0]-xp[2,0,0]
-            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
-                xp[0,:,:] = xp[2,:,:]-2*dx3
-                xp[1,:,:] = xp[2,:,:]-dx3
-            dx1 = xp[-1,0,0]-xp[-2,0,0]
-            dx2 = xp[-2,0,0]-xp[-3,0,0]
-            dx3 = xp[-3,0,0]-xp[-4,0,0]
-            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
-                xp[-1,:,:] = xp[-3,:,:]+2*dx3
-                xp[-2,:,:] = xp[-3,:,:]+dx3
-        xp = Internal.getNodeFromName2(z, 'CoordinateY')[1]
-        if nj > 3:
-            dx1 = xp[0,1,0]-xp[0,0,0]
-            dx2 = xp[0,2,0]-xp[0,1,0]
-            dx3 = xp[0,3,0]-xp[0,2,0]
-            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
-                xp[:,0,:] = xp[:,2,:]-2*dx3
-                xp[:,1,:] = xp[:,2,:]-dx3
-            dx1 = xp[0,-1,0]-xp[0,-2,0]
-            dx2 = xp[0,-2,0]-xp[0,-3,0]
-            dx3 = xp[0,-3,0]-xp[0,-4,0]
-            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
-                xp[:,-1,:] = xp[:,-3,:]+2*dx3
-                xp[:,-2,:] = xp[:,-3,:]+dx3
-        xp = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
-        if nk > 3:
-            dx1 = xp[0,0,1]-xp[0,0,0]
-            dx2 = xp[0,0,2]-xp[0,0,1]
-            dx3 = xp[0,0,3]-xp[0,0,2]
-            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
-                xp[:,:,0] = xp[:,:,2]-2*dx3
-                xp[:,:,1] = xp[:,:,2]-dx3
-            dx1 = xp[0,0,-1]-xp[0,0,-2]
-            dx2 = xp[0,0,-2]-xp[0,0,-3]
-            dx3 = xp[0,0,-3]-xp[0,0,-4]
-            if abs(dx1) < 1.e-12 and abs(dx2) < 1.e-12:
-                xp[:,:,-1] = xp[:,:,-3]+2*dx3
-                xp[:,:,-2] = xp[:,:,-3]+dx3
-    return None
-
 #------------------------------------------------------------------------------
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste
 # de contours ou surfaces
@@ -182,7 +77,7 @@ def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=
     a = Generator.octree(stlArrays, snearList, dfarList, dfar, balancing, levelMax, ratio, octant, dfarDir)
     return C.convertArrays2ZoneNode('octree', [a])
 
-#==============================================================================
+#------------------------------------------------------------------------------
 def conformOctree3(o):
     """Conformize an octree3.
     Usage: conformOctree3(octree)"""
@@ -689,7 +584,7 @@ def _getInCircleMap(t):
     return C._TZGC(t, 'centers', Generator.getInCircleMap)
 
 def getEdgeRatio(t):
-    """Computes the ratio between the max and min lengths of all the edges of
+    """Compute the ratio between the max and min lengths of all the edges of
     cells in an array.
     Usage: getEdgeRatio(t)"""
     return C.TZGC(t,'centers', Generator.getEdgeRatio)
@@ -697,9 +592,8 @@ def getEdgeRatio(t):
 def _getEdgeRatio(t):
     return C._TZGC(t,'centers', Generator.getEdgeRatio)
 
-
 def getMaxLength(t):
-    """Computes the max length of all the edges of cells in a zone.
+    """Compute the max length of all the edges of cells in a zone.
     Usage: getMaxLength(t)"""
     return C.TZGC(t,'centers', Generator.getMaxLength)
 

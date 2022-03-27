@@ -30,6 +30,8 @@ List of functions
 .. autosummary::
 
    Generator.cart
+   Generator.cartr1
+   Generator.cartr2
    Generator.cartHexa
    Generator.cartTetra
    Generator.cartPenta
@@ -165,6 +167,65 @@ Basic grid generation
     * `Cartesian mesh generation (pyTree) <Examples/Generator/cartPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/cartPT.py
+
+---------------------------------------
+
+.. py:function:: Generator.cartr1((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (ni,nj,nk))
+
+    Create a structured Cartesian mesh with geometric distribution of factors r.
+    (hi,hj,hk) are the steps of first cell.
+
+    :param (xo,yo,zo):  coordinates of the starting point
+    :type  (xo,yo,zo):  3-tuple of floats
+    :param (hi,hj,hk):  Step of first cell in the three directions
+    :type  (hi,hj,hk):  3-tuple of floats
+    :param (ri,rj,rk):  geometric factors in the three directions
+    :type  (ri,rj,rk):  3-tuple of floats
+    :param (ni,nj,nk):  number of points in each direction
+    :type  (ni,nj,nk):  3-tuple of integers
+    :return: a 1D, 2D or 3D structured mesh
+    :rtype: array or pyTree zone
+
+    *Example of use:*
+
+    * `Geometric Cartesian mesh generation (array) <Examples/Generator/cartr1.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/cartr1.py
+
+    * `Geometric Cartesian mesh generation (pyTree) <Examples/Generator/cartr1PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/cartr1PT.py
+
+
+---------------------------------------
+
+.. py:function:: Generator.cartr2((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (xf,yf,zf))
+
+    Create a structured Cartesian mesh with geometric distribution of factors r.
+    (hi,hj,hk) are the steps of first cell.
+    (xf,yf,zf) are coordinates of last point.
+    (hi,hj,hk) or (ri,rj,rk) can be slightly modified to match (xf,yf,zf).
+
+    :param (xo,yo,zo):  coordinates of the starting point
+    :type  (xo,yo,zo):  3-tuple of floats
+    :param (hi,hj,hk):  Step of first cell in the three directions
+    :type  (hi,hj,hk):  3-tuple of floats
+    :param (ri,rj,rk):  geometric factors in the three directions
+    :type  (ri,rj,rk):  3-tuple of floats
+    :param (ni,nj,nk):  number of points in each direction
+    :type  (ni,nj,nk):  3-tuple of integers
+    :return: a 1D, 2D or 3D structured mesh
+    :rtype: array or pyTree zone
+
+    *Example of use:*
+
+    * `Geometric Cartesian mesh with fixed last point (array) <Examples/Generator/cartr2.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/cartr2.py
+
+    * `Geometric Cartesian mesh with fixed last point (pyTree) <Examples/Generator/cartr2PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/cartr2PT.py
 
 ---------------------------------------
 

@@ -123,15 +123,16 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType;
   E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, c, eltType);
-  Py_INCREF(Py_None);
-  return Py_None;
 
   // Acces universel sur f (begin)
   //f->print();
   E_Int nfld = f->getNfld(); // nbre de champs
   E_Int npts = f->getSize(); // nbre de pts
-  printf("npts=%d, nfld=%d\n", npts, nfld);
+  printf("field: npts=%d, nfld=%d\n", npts, nfld);
+  // Acces par begin
   E_Float* x = f->begin(1); x[0] = -0.05;
+  // Acces direct
+  FldArrayF& fr = (*f); fr(1, 1) = +0.05;
 
   if (ret == 2 && strcmp(eltType, "NGON") == 0)
   {
