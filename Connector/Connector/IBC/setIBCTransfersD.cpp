@@ -32,20 +32,20 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
   PyObject *pyArrayDens, *pyArrayPressure;
   PyObject *pyArrayVx, *pyArrayVy, *pyArrayVz; 
-  PyObject *pyArrayUtau, *pyArrayYplus;
+  PyObject *pyArrayUtau, *pyArrayYplus, *pyArrayKCurv;
   E_Int bctype, vartype;
   E_Float gamma, cv, muS, Cs, Ts;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOOOOiiddddd",
-                    "OOOOOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOOOOiifffff",
+                    "OOOOOOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOOOOOiiddddd",
+                    "OOOOOOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOOOOOiifffff",
                     &arrayD, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
                     &pyArrayXPI, &pyArrayYPI, &pyArrayZPI,
                     &pyArrayDens, &pyArrayPressure, 
                     &pyArrayVx, &pyArrayVy, &pyArrayVz, 
-                    &pyArrayUtau, &pyArrayYplus,
+                    &pyArrayUtau, &pyArrayYplus, &pyArrayKCurv,
                     &bctype, &vartype, &gamma, &cv, &muS, &Cs, &Ts))
   {
       return NULL;
@@ -194,6 +194,8 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
     if (okVz != 0) { RELEASESHAREDN(pyArrayVz      , vzF     );}
     if (okU != 0) { RELEASESHAREDN(pyArrayUtau    , utauF   );}
     if (okY != 0) { RELEASESHAREDN(pyArrayYplus   , yplusF  );}
+    if (okKC != 0) { RELEASESHAREDN(pyArrayKCurv, kcurvF  );}
+
     PyErr_SetString(PyExc_TypeError, 
                     "setIBCTransfersD: Post array are invalid.");
     return NULL;
@@ -276,7 +278,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, 0.71,
@@ -287,7 +289,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             param_real,
@@ -299,7 +301,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
     			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
                 density, pressure, 
                 vx, vy, vz, 
-                utau, yplus,
+                utau, yplus, kcurv,
                 NULL, NULL, NULL, NULL, NULL,
                 ipt_tmp, size,
                 gamma, cv, muS, Cs, Ts, 0.71,
@@ -326,7 +328,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
   PyObject *pyArrayDens, *pyArrayPressure;
   PyObject *pyArrayVx, *pyArrayVy, *pyArrayVz;
-  PyObject *pyArrayUtau, *pyArrayYplus;
+  PyObject *pyArrayUtau, *pyArrayYplus, *pyArrayKCurv;
   PyObject* pyVariables;
   E_Int bctype, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts;
@@ -341,7 +343,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
                     &pyArrayXPI, &pyArrayYPI, &pyArrayZPI,
                     &pyArrayDens, &pyArrayPressure, 
                     &pyArrayVx, &pyArrayVy, &pyArrayVz, 
-                    &pyArrayUtau, &pyArrayYplus,
+                    &pyArrayUtau, &pyArrayYplus, &pyArrayKCurv,
                     &bctype, &vartype, &compact, &gamma, &cv, &muS, &Cs, &Ts,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
   {
@@ -513,7 +515,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, 0.71,
@@ -524,7 +526,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             param_real,
@@ -536,7 +538,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
     			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
                 density, pressure, 
                 vx, vy, vz, 
-                utau, yplus,
+                utau, yplus, kcurv,
                 NULL, NULL, NULL, NULL, NULL,
                 ipt_tmp, size,
                 gamma, cv, muS, Cs, Ts, 0.71,

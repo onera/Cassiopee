@@ -39,7 +39,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
   E_Float* densPtr, E_Float* pressPtr, 
   E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr,
-  E_Float* utauPtr, E_Float* yplusPtr, 
+  E_Float* utauPtr, E_Float* yplusPtr, E_Float* kcurvPtr,
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
   E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
@@ -478,7 +478,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
   E_Float* densPtr, E_Float* pressPtr, 
   E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr, 
-  E_Float* utauPtr, E_Float* yplusPtr,
+  E_Float* utauPtr, E_Float* yplusPtr, E_Float* kcurvPtr,
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
   //E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
@@ -570,7 +570,34 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   //   printf("Warning: setIBCTransfersCommonVar2: number of variables (<6) inconsistent with bctype.\n"); 
   //   return 0;
   // }
-  if (bctype == 0) // wallslip
+  if (bctype == 100)//wallslip + curvature radius
+  {
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif 
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+         E_Int indR = rcvPts[noind+ideb];
+
+         // vitesse
+         u = uOut[indR];
+         v = vOut[indR];
+         w = wOut[indR];
+# include "IBC/commonBCType0.h"
+         uOut[indR] = ucible; 
+         vOut[indR] = vcible; 
+         wOut[indR] = wcible;
+         if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
+
+         pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam; 
+         densPtr[ noind + ideb] = roOut[indR];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+        }
+  }
+  else if (bctype == 0) // wallslip
   { 
 #ifdef _OPENMP4
        #pragma omp simd
@@ -1511,7 +1538,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
   E_Float* densPtr, E_Float* pressPtr, 
   E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr, 
-  E_Float* utauPtr, E_Float* yplusPtr,
+  E_Float* utauPtr, E_Float* yplusPtr, E_Float* kcurvPtr,
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
   E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
@@ -1817,14 +1844,14 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
   PyObject *pyArrayDens, *pyArrayPressure;
   PyObject *pyArrayVx, *pyArrayVy, *pyArrayVz;
-  PyObject *pyArrayUtau, *pyArrayYplus;
+  PyObject *pyArrayUtau, *pyArrayYplus, *pyArrayKCurv;
   E_Int bctype;
   E_Int vartype;
   E_Float gamma, cv, muS, Cs, Ts;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOOOOOOOiiddddd",
-                    "OOOOOOOOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOOOOOOOiifffff",
+                    "OOOOOOOOOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOOOOOOOOiiddddd",
+                    "OOOOOOOOOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOOOOOOOOiifffff",
                     &arrayR, &arrayD,  &pyVariables,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
@@ -1832,7 +1859,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
                     &pyArrayXPI, &pyArrayYPI, &pyArrayZPI,
                     &pyArrayPressure, &pyArrayUtau, &pyArrayYplus, &pyArrayDens, 
                     &pyArrayVx, &pyArrayVy, &pyArrayVz, 
-                    &pyArrayYplus, &pyArrayDens, 
+                    &pyArrayYplus, &pyArrayDens, &pyArrayKCurv,
                     &bctype, &vartype, &gamma, &cv, &muS, &Cs, &Ts))
   {
       return NULL;
@@ -2003,6 +2030,8 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     if (okVz != 0) { RELEASESHAREDN(pyArrayVz      , vzF     );}
     if (okU != 0) { RELEASESHAREDN(pyArrayUtau    , utauF   );}
     if (okY != 0) { RELEASESHAREDN(pyArrayYplus   , yplusF  );}
+    if (okKC != 0) { RELEASESHAREDN(pyArrayKCurv   , kcurvF  );}
+
     PyErr_SetString(PyExc_TypeError, 
                     "setIBCTransfersD: Post array are invalid.");
     return NULL;
@@ -2132,7 +2161,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv, 
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, 0.71,
@@ -2143,7 +2172,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus,  kcurv, 
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             param_real,
@@ -2155,7 +2184,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv, 
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, 0.71,
@@ -2187,20 +2216,20 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
   PyObject *pyArrayDens, *pyArrayPressure;
   PyObject *pyArrayVx, *pyArrayVy, *pyArrayVz;
-  PyObject *pyArrayUtau, *pyArrayYplus;
+  PyObject *pyArrayUtau, *pyArrayYplus, *pyArrayKCurv;
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOOOOlllldddddsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiidddddsss",
-                    "OOOOOOOOOOOOOOOOOOOOOOOllllfffffsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiifffffsss",
+                    "OOOOOOOOOOOOOOOOOOOOOOOOlllldddddsss", "OOOOOOOOOOOOOOOOOOOOOOOOiiiidddddsss",
+                    "OOOOOOOOOOOOOOOOOOOOOOOOllllfffffsss", "OOOOOOOOOOOOOOOOOOOOOOOOiiiifffffsss",
                     &zoneR, &zoneD, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
                     &pyArrayXPI, &pyArrayYPI, &pyArrayZPI, &pyArrayDens, &pyArrayPressure, 
                     &pyArrayVx,  &pyArrayVy,  &pyArrayVz, 
-                    &pyArrayUtau, &pyArrayYplus,
+                    &pyArrayUtau, &pyArrayYplus, &pyArrayKCurv,
                     &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
   {
@@ -2418,7 +2447,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, Pr,
@@ -2428,7 +2457,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
      	      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             param_real,
@@ -2439,7 +2468,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, pressure, 
             vx, vy, vz, 
-            utau, yplus,
+            utau, yplus, kcurv,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, Pr,

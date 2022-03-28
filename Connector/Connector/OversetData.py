@@ -3,7 +3,6 @@
 from . import Connector
 from . import connector
 import KCore.Vector as Vector
-
 import numpy
 __version__ = Connector.__version__
 
@@ -19,6 +18,7 @@ except:
     raise ImportError("Connector.OversetData requires Converter module.")
 
 TypesOfIBC={}
+TypesOfIBC["slip_cr"]=100 # slip + curvature radius
 TypesOfIBC["slip"]=0
 TypesOfIBC["noslip"]=1
 TypesOfIBC["Log"]=2
@@ -26,6 +26,16 @@ TypesOfIBC["Musker"]=3
 TypesOfIBC["outpress"]=4
 TypesOfIBC["inj"]=5
 TypesOfIBC["TBLE"]=6
+
+# Variables IBM pour le post traitement
+__PRESSURE__= 'Pressure'
+__UTAU__    = 'utau'
+__YPLUS__   = 'yplus'
+__DENSITY__ = 'Density'
+__VELOCITYX__ = 'VelocityX'
+__VELOCITYY__ = 'VelocityY'
+__VELOCITYZ__ = 'VelocityZ'
+__KCURV__ = 'KCurv' # curvature radius for IBCs
 
 # Revert dict
 IBCTypes = {}
@@ -586,7 +596,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
     zsr[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
     zsr[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
     
-    if bcType != 0:
+    if bcType != 0 and bcType != 100:
         utauNP  = numpy.zeros((nIBC),numpy.float64)
         yplusNP = numpy.zeros((nIBC),numpy.float64)
         zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
@@ -603,6 +613,9 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
       Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
       dirz = numpy.zeros((nIBC),numpy.float64)
       Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
+    elif bcType == 100: #slip + curvature radius
+        KCurvNP = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append([__KCURV__ , KCurvNP , [], 'DataArray_t'])
 
     if bcName is not None:
         Internal._createUniqueChild(zsr, 'FamilyName', 'FamilyName_t', value=bcName)
@@ -1593,12 +1606,16 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                yplus = Internal.getNodeFromName1(s, 'yplus')
                                if yplus is not None: yplus = yplus[1]
                                else: yplus = None
+                               kcurv = Internal.getNodeFromName1(s,__KCURV__)
+                               if kcurv is not None: kcurv = kcurv[1]
+                               else: kcurv = None
+
                                # Transferts
                                #print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
                                connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
                                                           xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, density, pressure, 
                                                           vx, vy, vz, 
-                                                          utau, yplus,
+                                                          utau, yplus, kcurv,
                                                           bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
                                                           Internal.__GridCoordinates__, 
                                                           Internal.__FlowSolutionNodes__, 
@@ -1665,17 +1682,21 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                     vx = Internal.getNodeFromName1(s,'VelocityX')[1]
                                     vy = Internal.getNodeFromName1(s,'VelocityY')[1]
                                     vz = Internal.getNodeFromName1(s,'VelocityZ')[1]
+
                                     utau = Internal.getNodeFromName1(s, 'utau')
                                     if utau is not None: utau = utau[1]
                                     else: utau = None
                                     yplus = Internal.getNodeFromName1(s, 'yplus')
                                     if yplus is not None: yplus = yplus[1]
                                     else: yplus = None
+                                    kcurv = Internal.getNodeFromName1(s,__KCURV__)
+                                    if kcurv is not None: kcurv = kcurv[1]
+                                    else: kcurv = None                                    
                                     #  print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0] 
                                     connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
                                                                xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure, 
                                                                vx, vy, vz, 
-                                                               utau, yplus,
+                                                               utau, yplus, kcurv,
                                                                bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
                                                                Internal.__GridCoordinates__, 
                                                                Internal.__FlowSolutionNodes__, 
@@ -1813,11 +1834,14 @@ def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         yplus = Internal.getNodeFromName1(s,'yplus')
                         if yplus is not None: yplus = yplus[1]
                         else: yplus = None
+                        kcurv = Internal.getNodeFromName1(s, __KCURV__)
+                        if kcurv is not None: kcurv = kcurv[1]
+                        else: kcurv = None
                         #print 'transfert IBC : zd ', zd[0]
                         arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs, 
                                                              xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure,
                                                              vx, vy, vz, 
-                                                             utau, yplus,
+                                                             utau, yplus, kcurv,
                                                              bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts,                                                             
                                                              Internal.__GridCoordinates__, 
                                                              Internal.__FlowSolutionNodes__, 

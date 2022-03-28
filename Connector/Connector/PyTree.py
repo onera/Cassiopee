@@ -21,15 +21,6 @@ try:
     import Converter.Internal as Internal
 except: raise ImportError("Connector.PyTree: requires Converter module.")
 
-# Variables IBM pour le post traitement
-__PRESSURE__= 'Pressure'
-__UTAU__    = 'utau'
-__YPLUS__   = 'yplus'
-__DENSITY__ = 'Density'
-__VELOCITYX__ = 'VelocityX'
-__VELOCITYY__ = 'VelocityY'
-__VELOCITYZ__ = 'VelocityZ'
-
 __DEG2RAD__ = Internal.__DEG2RAD__
 __RAD2DEG__ = Internal.__RAD2DEG__
 
@@ -206,8 +197,14 @@ def _connectMatchHybrid__(a, tol, dim, glob):
 #==============================================================================
 def _connectMatchStruct__(a, tol, dim, glob):
     zones = []
+    dimPb = -1
     for z in Internal.getZones(a):
-        if Internal.getZoneType(z)==1: zones.append(z)
+        if Internal.getZoneType(z)==1: 
+            zones.append(z)
+            if dimPb == -1: dimPb=Internal.getZoneDim(z)[4]
+            else:
+                if dimPb != Internal.getZoneDim(z)[4]: 
+                    print('Warning: some structured zones in connectMatch are not of same dimension. Function might fail...')
     # extract empty windows
     structTags,structWins,structIndirBlkOfWins,typeOfWins,dimsI,dimsJ,dimsK = \
         getEmptyWindowsInfoStruct__(zones, dim)

@@ -826,7 +826,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             else: dictOfBodiesByIBCType[ibctype2]+=[s]
 
         # Regroupement des corps par type de BC - optimise les projections ensuite 
-        bodies = []; listOfIBCTypes=[];
+        bodies = []; listOfIBCTypes=[]
         for itype in dictOfBodiesByIBCType:
             s = dictOfBodiesByIBCType.get(itype)
             body = C.getFields(Internal.__GridCoordinates__,s)
@@ -1075,8 +1075,8 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
             Lyref = bb[4]-bb[1]
             XRAYDIM1 = max(XRAYDIM1,int(Lxref/(0.15*dh_min)))
             XRAYDIM2 = max(XRAYDIM2,int(Lyref/(0.15*dh_min)))
-        if DIM == 2:  XRAYDIM2 = 2
-
+        if DIM == 2:  XRAYDIM1 = max(XRAYDIM1,10000); XRAYDIM2 = 2
+      
         if loc == 'centers':
             tc = C.node2Center(t)
             for body in bodiesInv:
@@ -1334,8 +1334,6 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
 
 
             levelrcv = niveaux_temps[zrcv[0]]
-
-            print('ZRCV= ', zrcv[0])
             
 
             for nod in range(len(dnrZones)):
@@ -2425,7 +2423,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[]):
     xcNP = []; ycNP = []; zcNP = []
     pressNP = []; utauNP = []; yplusNP = []; densNP = []
     vxNP = []; vyNP = []; vzNP = []
-
+    KCurvNP = []
     dictOfFamilies={}
     if famZones != []:
         out = []
@@ -2482,22 +2480,25 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[]):
                 zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
                 xcNP.append(xPC); ycNP.append(yPC); zcNP.append(zPC)
                                 
-                PW = Internal.getNodeFromName1(IBCD,X.__PRESSURE__)
+                PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
                 if PW is not None: pressNP.append(PW[1])
-                RHOW = Internal.getNodeFromName1(IBCD,X.__DENSITY__)
+                RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
                 if RHOW is not None: densNP.append(RHOW[1])
-                UTAUW = Internal.getNodeFromName1(IBCD,X.__UTAU__)
+                UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
                 if UTAUW is not None: utauNP.append(UTAUW[1])
-                YPLUSW = Internal.getNodeFromName1(IBCD, X.__YPLUS__)
+                YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
                 if YPLUSW is not None: yplusNP.append(YPLUSW[1])
                 
-                VXW = Internal.getNodeFromName1(IBCD, X.__VELOCITYX__)
+                VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
                 if VXW is not None: vxNP.append(VXW[1])
-                VYW = Internal.getNodeFromName1(IBCD, X.__VELOCITYY__)
+                VYW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
                 if VYW is not None: vyNP.append(VYW[1])
-                VZW = Internal.getNodeFromName1(IBCD, X.__VELOCITYZ__)
+                VZW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
                 if VZW is not None: vzNP.append(VZW[1])
-                
+
+                KCURVW = Internal.getNodeFromName1(IBCD, XOD.__KCURV__)
+                if KCURVW is not None: KCurvNP.append(KCURVW[1])
+
     if pressNP == []: return None
     else:
         pressNP = numpy.concatenate(pressNP)
@@ -2507,6 +2508,8 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[]):
         if vxNP != []: vxNP = numpy.concatenate(vxNP)
         if vyNP != []: vyNP = numpy.concatenate(vyNP)
         if vzNP != []: vzNP = numpy.concatenate(vzNP)
+        if KCurvNP != []: KCurvNP = numpy.concatenate(KCurvNP)
+
         xwNP = numpy.concatenate(xwNP)
         ywNP = numpy.concatenate(ywNP)
         zwNP = numpy.concatenate(zwNP)
@@ -2542,8 +2545,8 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[]):
     Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
     FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
                                    gridLocation='Vertex', parent=z)
-    FSN[2].append([X.__PRESSURE__,pressNP, [],'DataArray_t'])
-    FSN[2].append([X.__DENSITY__,densNP, [],'DataArray_t'])
+    FSN[2].append([XOD.__PRESSURE__,pressNP, [],'DataArray_t'])
+    FSN[2].append([XOD.__DENSITY__,densNP, [],'DataArray_t'])
 
     FSN[2].append(["CoordinateX_PW",xwNP, [],'DataArray_t'])
     FSN[2].append(["CoordinateY_PW",ywNP, [],'DataArray_t'])
@@ -2560,16 +2563,22 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[]):
     utauPresent = 0; yplusPresent = 0
     if utauNP != []:
         utauPresent = 1
-        FSN[2].append([X.__UTAU__,utauNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__UTAU__,utauNP, [],'DataArray_t'])
     if yplusNP != []:
         yplusPresent = 1
-        FSN[2].append([X.__YPLUS__,yplusNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__YPLUS__,yplusNP, [],'DataArray_t'])
     vxPresent = 0
     if vxNP != []:
         vxPresent = 1
-        FSN[2].append([X.__VELOCITYX__,vxNP, [],'DataArray_t'])
-        FSN[2].append([X.__VELOCITYY__,vyNP, [],'DataArray_t'])
-        FSN[2].append([X.__VELOCITYZ__,vzNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__VELOCITYX__,vxNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__VELOCITYY__,vyNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__VELOCITYZ__,vzNP, [],'DataArray_t'])
+
+    kcurvPresent = 0
+    if KCurvNP != []:
+        kcurvPresent = 1
+        FSN[2].append([XOD.__KCURV__,KCurvNP, [],'DataArray_t'])
+
     if tb is None: return z
     else:
         dimPb = Internal.getNodeFromName(tb,'EquationDimension')
@@ -2601,14 +2610,16 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[]):
         C._initVars(td,"CoordinateY_PC",0.)     
         C._initVars(td,"CoordinateZ_PC",0.)     
         
-        C._initVars(td,X.__PRESSURE__,0.)
-        C._initVars(td,X.__DENSITY__,0.)
-        if utauPresent==1: C._initVars(td,X.__UTAU__,0.)
-        if yplusPresent==1: C._initVars(td,X.__YPLUS__,0.)
+        C._initVars(td,XOD.__PRESSURE__,0.)
+        C._initVars(td,XOD.__DENSITY__,0.)
+        if utauPresent==1: C._initVars(td,XOD.__UTAU__,0.)
+        if yplusPresent==1: C._initVars(td,XOD.__YPLUS__,0.)
         if vxPresent==1: 
-            C._initVars(td,X.__VELOCITYX__,0.)
-            C._initVars(td,X.__VELOCITYY__,0.)
-            C._initVars(td,X.__VELOCITYZ__,0.)
+            C._initVars(td,XOD.__VELOCITYX__,0.)
+            C._initVars(td,XOD.__VELOCITYY__,0.)
+            C._initVars(td,XOD.__VELOCITYZ__,0.)
+        if kcurvPresent==1:
+            C._initVars(td,XOD.__KCURV__,0.)
         td = P.projectCloudSolution(z, td, dim=dimPb)
         return td
 
@@ -2799,3 +2810,137 @@ def _extractIBMInfo_param(t,tc):
     return None
 
 
+#=============================================================================
+# Compute curvature parameter "K" from geom in 2D
+#=============================================================================
+def _computeKcurvParameter(tc, tb):
+
+    ################################
+    ## EXTRADOS ##
+    ################################
+
+    tb_extrados = P.selectCells(tb, '{CoordinateY}>0.')
+    x_extrados  = Internal.getNodeFromName(tb_extrados, 'CoordinateX')[1]
+    y_extrados  = Internal.getNodeFromName(tb_extrados, 'CoordinateY')[1]
+
+    inds_extrados = x_extrados.argsort()
+    x_extrados    = x_extrados[inds_extrados]
+    y_extrados    = y_extrados[inds_extrados]
+
+    # evite les divisions par 0
+    nPts = len(x_extrados)
+    listOfPos = []
+    for i in range(1,nPts):
+        if x_extrados[i] == x_extrados[i-1]:
+            listOfPos.append(i)
+
+    for pos in listOfPos:
+        x_extrados = numpy.delete(x_extrados, pos)
+        y_extrados = numpy.delete(y_extrados, pos)
+
+    nPts = len(x_extrados)
+    y1_extrados = numpy.zeros(nPts)
+    y2_extrados = numpy.zeros(nPts)
+
+    # derivee premiere y1
+    # schema decentre pour CL
+    y1_extrados[0] = (y_extrados[1]-y_extrados[0])/((x_extrados[1]-x_extrados[0]))
+    y1_extrados[-1] = (y_extrados[-2]-y_extrados[-1])/((x_extrados[-2]-x_extrados[-1]))
+
+    # schema centre
+    for i in range(1, nPts-1):
+        y1_extrados[i] = (y_extrados[i+1]-y_extrados[i-1])/((x_extrados[i+1]-x_extrados[i-1]))
+
+    # derivee seconde y2
+    # schema decentre pour CL
+    y2_extrados[0] = (y1_extrados[1]-y1_extrados[0])/((x_extrados[1]-x_extrados[0]))
+    y2_extrados[-1] = (y1_extrados[-2]-y1_extrados[-1])/((x_extrados[-2]-x_extrados[-1]))
+
+    # schema centre
+    for i in range(1, nPts-1):
+        y2_extrados[i] = (y1_extrados[i+1]-y1_extrados[i-1])/((x_extrados[i+1]-x_extrados[i-1]))
+
+    k_extrados = y2_extrados/(numpy.power(1 + numpy.power(y1_extrados, 2), 1.5))
+    ka_extrados = numpy.abs(y2_extrados)/(numpy.power(1 + numpy.power(y1_extrados, 2), 1.5))
+
+    ################################
+    ## INTRADOS ##
+    ################################
+
+    tb_intrados = P.selectCells(tb, '{CoordinateY}<0.')
+    x_intrados = Internal.getNodeFromName(tb_intrados, 'CoordinateX')[1]
+    y_intrados = numpy.abs(Internal.getNodeFromName(tb_intrados, 'CoordinateY')[1]) # abs pour avoir vraie valeur k
+
+    inds_intrados = x_intrados.argsort()
+    x_intrados = x_intrados[inds_intrados]
+    y_intrados = y_intrados[inds_intrados]
+
+    # evite les divisions par 0
+    nPts = len(x_intrados)
+    listOfPos = []
+    for i in range(1,nPts):
+        if x_intrados[i] == x_intrados[i-1]:
+            listOfPos.append(i)
+
+    for pos in listOfPos:
+        x_intrados = numpy.delete(x_intrados, pos)
+        y_intrados = numpy.delete(y_intrados, pos)
+
+    nPts = len(x_intrados)
+    y1_intrados = numpy.zeros(nPts)
+    y2_intrados = numpy.zeros(nPts)
+
+    # derivee premiere y1
+    # schema decentre pour CL
+    y1_intrados[0] = (y_intrados[1]-y_intrados[0])/((x_intrados[1]-x_intrados[0]))
+    y1_intrados[-1] = (y_intrados[-2]-y_intrados[-1])/((x_intrados[-2]-x_intrados[-1]))
+
+    # schema centre
+    for i in range(1, nPts-1):
+        y1_intrados[i] = (y_intrados[i]-y_intrados[i-1])/((x_intrados[i]-x_intrados[i-1]))
+
+    # derivee seconde y2
+    # schema decentre pour CL
+    y2_intrados[0] = (y1_intrados[1]-y1_intrados[0])/((x_intrados[1]-x_intrados[0]))
+    y2_intrados[-1] = (y1_intrados[-2]-y1_intrados[-1])/((x_intrados[-2]-x_intrados[-1]))
+
+    # schema centre
+    for i in range(1, nPts-1):
+        y2_intrados[i] = (y1_intrados[i]-y1_intrados[i-1])/((x_intrados[i]-x_intrados[i-1]))
+
+    k_intrados = y2_intrados/(numpy.power(1 + numpy.power(y1_intrados, 2), 1.5))
+    ka_intrados = numpy.abs(y2_intrados)/(numpy.power(1 + numpy.power(y1_intrados, 2), 1.5))
+
+    ################################
+    ## MaJ tc ##
+    ################################
+    for z in Internal.getZones(tc):
+        for zsr in Internal.getNodesFromType1(z, 'ZoneSubRegion_t'):
+            nameSubRegion = zsr[0]
+            if nameSubRegion[0:4]=='IBCD':
+                ibctypeCR = nameSubRegion.split('_')[1]
+                print("ibcTypeCR ", ibctypeCR)
+                if ibctypeCR=='100':
+                    print("coucou", XOD.__KCURV__)
+                    KCurv = Internal.getNodeFromName(zsr, XOD.__KCURV__)[1]
+                    coordX = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
+                    coordY = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
+                    nIBC = numpy.shape(coordX)[0]
+
+                    for i in range(nIBC):
+                        if coordY[i] > 0:
+                            j = 0
+                            while(coordX[i] > x_extrados[j] and j < numpy.shape(x_extrados)[0]-1):
+                                j += 1
+                            KCurv[i] = k_extrados[j]
+                        else:
+                            j = 0
+                            while(coordX[i] > x_intrados[j] and j < numpy.shape(x_intrados)[0]-1):
+                                j += 1
+                            KCurv[i] = k_intrados[j]
+                        KCurv[i] = min(KCurv[i], 100.)
+                        KCurv[i] = max(KCurv[i], -100.)
+
+                    Internal.getNodeFromName(zsr, XOD.__KCURV__)[1] = KCurv
+
+    return None

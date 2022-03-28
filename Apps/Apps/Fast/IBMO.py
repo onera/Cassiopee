@@ -31,7 +31,7 @@ def isZoneChimera(z):
     if Internal.getValue(n) == 'Overset': return True
     return False
 
-def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
+def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
                   frontType=1, tbox=None, snearsf=None,
                   expand=3, distrib=False, tinit=None, initWithBBox=-1., dfarDir=0):
     import RigidMotion.PyTree as R
@@ -170,28 +170,35 @@ def prepareMotion(t_case, t_out, tc_out, vmin=21, check=False, NP=0,
 
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
+    if to is not None:
+        if isinstance(to, str):
+            o = C.convertFile2PyTree(to)
+            o = Internal.getZones(o)[0]
+        else:
+            o = Internal.getZones(to)[0]
+        parento = None
+    else:
+        # construction de l'arbre des corps pour l'octree : tbo
+        tbo = C.newPyTree(['Surf_octree'])
+        R._evalPosition(tbov, 0.)
+        tbo[2][1][2] = Internal.getZones(tbibm)+Internal.getZones(tbov)
+        # Extraction de la liste des dfars de tb
+        zones = Internal.getZones(tbo)
+        dfarList = [10.]*len(zones)
+        for c, z in enumerate(zones): 
+            n = Internal.getNodeFromName2(z, 'dfar')
+            if n is not None: dfarList[c] = Internal.getValue(n)*1.
 
-    # construction de l'arbre des corps pour l'octree : tbo
-    tbo = C.newPyTree(['Surf_octree'])
-    R._evalPosition(tbov, 0.)
-    tbo[2][1][2] = Internal.getZones(tbibm)+Internal.getZones(tbov)
-    # Extraction de la liste des dfars de tb
-    zones = Internal.getZones(tbo)
-    dfarList = [10.]*len(zones)
-    for c, z in enumerate(zones): 
-        n = Internal.getNodeFromName2(z, 'dfar')
-        if n is not None: dfarList[c] = Internal.getValue(n)*1.
+        o = TIBM.buildOctree(tbo, snearFactor=1., dfarList=dfarList, 
+                             tbox=tbox, snearsf=snearsf,
+                             dimPb=dimPb, vmin=vmin, rank=rank,
+                             expand=expand, dfarDir=dfarDir)
 
-    o = TIBM.buildOctree(tbo, snearFactor=1., dfarList=dfarList, 
-                         tbox=tbox, snearsf=snearsf,
-                         dimPb=dimPb, vmin=vmin, rank=rank,
-                         expand=expand, dfarDir=dfarDir)
-
-    # build parent octree 3 levels higher
-    # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = TIBM.buildParentOctrees__(o, tbo, snearFactor=4., dfarList=dfarList,
-                                        tbox=tbox, snearsf=snearsf,
-                                        dimPb=dimPb, vmin=vmin, rank=rank)
+        # build parent octree 3 levels higher
+        # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
+        parento = TIBM.buildParentOctrees__(o, tbo, snearFactor=4., dfarList=dfarList,
+                                            tbox=tbox, snearsf=snearsf,
+                                            dimPb=dimPb, vmin=vmin, rank=rank)
 
     test.printMem(">>> Octree unstruct [end]")
     # Split octree

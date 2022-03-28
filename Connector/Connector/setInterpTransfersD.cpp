@@ -820,8 +820,9 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                                                           xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
                                                           densPtr, densPtr+nbRcvPts, // dens + press
                                                           densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                                          densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, // utau + yplus
-                                                          densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11, 
+                                                          densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12, // utau + yplus
+                                                          densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, 
+                                                          densPtr+nbRcvPts*10, densPtr+nbRcvPts*11, 
                                                           ipt_tmp, size, gamma, cv, muS, Cs,
                                                           Ts, Pr, vectOfDnrFields, vectOfRcvFields );
                             else if ( varType == 2 || varType == 21 )
@@ -831,7 +832,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                                                           xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
                                                           densPtr, densPtr+nbRcvPts, // dens + press
                                                           densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                                          densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, // utau + yplus
+                                                          densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12, // utau + yplus
                                                           densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11, 
                                                           ipt_tmp, size,ipt_param_realD[NoD], 
                                                           //gamma, cv, muS, Cs, Ts, Pr,
@@ -843,7 +844,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                                                           xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
                                                           densPtr, densPtr+nbRcvPts, // dens + press
                                                           densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                                          densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, // utau + yplus
+                                                          densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12, // utau + yplus
                                                           densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,  
                                                           ipt_tmp, size, gamma, cv, muS, Cs,
                                                           Ts, Pr, vectOfDnrFields, vectOfRcvFields );                            

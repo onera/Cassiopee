@@ -51,7 +51,7 @@ void getName(PyObject* obj, char* name)
 //                C LAYER iSend
 PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 {    
-    // Récupération des données
+    // Recuperation des donnees
     PyObject* datas;
     PyObject* mpi4pyCom;
     E_Int oppNode;

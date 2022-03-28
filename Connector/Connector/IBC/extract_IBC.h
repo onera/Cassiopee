@@ -37,7 +37,7 @@
   /* Extraction des var posttraitememnt */
   /*--------------------------------------------*/
   FldArrayF* densF; FldArrayF* pressF; FldArrayF* utauF; FldArrayF* yplusF;
-  FldArrayF* vxF; FldArrayF* vyF; FldArrayF* vzF;
+  FldArrayF* vxF; FldArrayF* vyF; FldArrayF* vzF; FldArrayF* kcurvF;
 
   E_Int okD = K_NUMPY::getFromNumpyArray( pyArrayDens    , densF , true);
   E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
@@ -60,7 +60,7 @@
   if (okY == 1) yplus = yplusF->begin();
   else yplus = NULL;
 
-
-
-  
-    
+  E_Float* kcurv; 
+  E_Int okKC = K_NUMPY::getFromNumpyArray(pyArrayKCurv, kcurvF, true);
+  if ( okKC == 1) kcurv = kcurvF->begin();
+  else kcurv = NULL;   

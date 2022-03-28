@@ -8,4 +8,4 @@ tb = C.convertFile2PyTree("naca1DRANS.cgns")
 for z in Internal.getZones(tb):
     AppIBM._snearFactor(z,1.)
 
-AppIBM.prepare(tb, t_out='t.cgns',check=True, vmin=5)
+AppIBM.prepareOctree(tb, t_out='t.cgns',check=True, vmin=5)
