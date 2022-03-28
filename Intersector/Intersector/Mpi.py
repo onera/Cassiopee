@@ -203,14 +203,12 @@ def getJoinsPtLists(t, zidDict):
 
     zone_to_list_owned = {}
 
-    for rac in raccords:
-      #rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
-      
+    for rac in raccords: 
       donnorName = "".join(Internal.getValue(rac))
       #print(donnorName)
       jzid = zidDict[donnorName] #todo VD : se baser sur le rid
       #print('id is ' + str(jzid))
-      ptList = Internal.getNodeFromName1(rac, ptlname)[1][0]
+      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
       #print ('PTLSZ : ' + str(len(ptList)))
       #print ('MMAXVAL : ' + str(max(ptList)))
 
