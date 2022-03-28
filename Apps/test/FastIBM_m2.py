@@ -8,6 +8,7 @@ import Converter.Internal as Internal
 import Geom.PyTree as D
 import FastC.PyTree as FastC
 
+test.TOLERANCE = 1.e-8
 LOCAL = test.getLocal()
 
 FILEB = LOCAL+"/case.cgns"

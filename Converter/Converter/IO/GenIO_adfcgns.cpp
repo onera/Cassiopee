@@ -752,21 +752,7 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
     {
       if (typeNum == NPY_DOUBLE)
       {
-        // patch pour la norme ADF
-        if (strcmp(name, "RotationCenter") == 0 ||
-            strcmp(name, "RotationAngle") == 0 ||
-            strcmp(name, "RotationRateVector") == 0 ||
-            strcmp(name, "Translation") == 0)
-        {
-          E_Int s = PyArray_Size(v);
-          float* buf = new float [s];
-          double* ptr = (double*)PyArray_DATA(ar);
-          for (int i = 0; i < s; i++) buf[i] = ptr[i];
-          setArrayR4(child, buf, dim, dims);
-          delete [] buf;
-        }
-        else
-          setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+        setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
       }
       else if (typeNum == NPY_INT)
       {
