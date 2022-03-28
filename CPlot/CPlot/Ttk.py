@@ -62,11 +62,11 @@ def createStyles():
         if ret != "": BACKGROUNDCOLOR = ret
         ret = style.lookup('TFrame', 'foreground')
         if ret != "": FOREGROUNDCOLOR = ret
-        ret = style.lookup('TFrame', 'font')
-        if ret != "": CTK.GENERALFONT = ret
+        #ret = style.lookup('TFrame', 'font')
+        #if ret != "": CTK.GENERALFONT = ret
 
         # Set all fonts
-        #style.configure('.', font=CTK.GENERALFONT)
+        style.configure('.', font=CTK.GENERALFONT)
         # Set all frame backgrounds
         #style.configure('TFrame', bgColor=BACKGROUNDCOLOR)
 

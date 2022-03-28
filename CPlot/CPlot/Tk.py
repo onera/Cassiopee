@@ -84,7 +84,7 @@ def defineFonts(FONTTYPE, FONTSIZE):
             TEXTFONT, MSGDFONT, FIXEDFONT)
 
 FONTTYPE = 'Helvetica'
-FONTSIZE = 9
+FONTSIZE = 10
 (GENERALFONT, FRAMEFONT, LABELFONT, MENUFONT, BUTTONFONT, TEXTFONT, MSGDFONT, FIXEDFONT) = defineFonts(FONTTYPE, FONTSIZE)
 
 #==============================================================================

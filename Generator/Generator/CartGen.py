@@ -160,6 +160,8 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                 Qx = X1x[i]; Qy = X1y[j]; Qz = X1z[k]
                 (ni,nj,nk,rio,rjo,rko,hio,hjo,hko) = G.cartr2((Px,Py,Pz), HC, (Rx[i],Ry[j],Rz[k]), (Qx,Qy,Qz), skeleton=True)
                 z = Internal.newZone('Zone', zsize=[[ni,ni-1,0], [nj,nj-1,0], [nk,nk-1,0]], ztype='Structured')
+                n = Internal.newGridCoordinates(parent=z)
+                Internal.newDataArray('CoordinateX', value=None, parent=n)
                 z[0] = 'cart%d-%d-%d'%(i,j,k)
                 
                 if i > 0:
@@ -212,7 +214,7 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
     D2._distribute(t2, NProc=size, algorithm='fast')
 
     t = Internal.merge([t1,t2])
-
+    
     # Generation reelle
     bases = Internal.getBases(t)
     for b in bases:
@@ -254,16 +256,6 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     Pz = P[2] + ratioz*H[2]
                     Rx = R[0]; Ry = R[1]; Rz = R[2]
                     N = (i2-i1+1,j2-j1+1,k2-k1+1)
-
-                    #if R[0] == 1.: ratiox = i2
-                    #else: ratiox = (R[0]**i2-1.)/(R[0]-1.)
-                    #if R[1] == 1.: ratioy = j1
-                    #else: ratioy = (R[1]**j2-1.)/(R[1]-1.)
-                    #if R[2] == 1.: ratioz = k2
-                    #else: ratioz = (R[2]**k2-1.)/(R[2]-1.)
-                    #Qx = P[0] + ratiox*H[0]
-                    #Qy = P[1] + ratioy*H[1]
-                    #Qz = P[2] + ratioz*H[2]
                     
                     zn = G.cartr1((Px,Py,Pz), (Hx,Hy,Hz), (Rx,Ry,Rz), N)
             

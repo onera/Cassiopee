@@ -146,8 +146,10 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     TopLoc_Location loc;
     Handle(Poly_Triangulation) tri = BRep_Tool::Triangulation(face, loc);
     if (tri.IsNull()) continue;
-
+    
     const TColgp_Array1OfPnt &nodes = tri->Nodes();
+    //Handle(TColgp_Array1OfPnt) nodesH = tri->MapNodeArray();
+    //TColgp_Array1OfPnt& nodes = *nodesH;
     for (Standard_Integer iCount = nodes.Lower(); iCount <= nodes.Upper(); iCount++)
     {
       nbNodes++;  
@@ -160,8 +162,8 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     }
   }
   
-  printf("Nbre total de noeuds: %d\n", nbNodes);
-  printf("Nbre total de tris: %d\n", nbTris);
+  printf("Info: total number of nodes: %d\n", nbNodes);
+  printf("Info:  total number of triangles: %d\n", nbTris);
   
   // buildArray
   PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbNodes, nbTris, -1, "TRI", false, 0, 0, 0, 1);
@@ -189,11 +191,13 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     gp_Trsf xloc = loc;
 
     const TColgp_Array1OfPnt &nodes = tri->Nodes();
+    
     // get the nodes
     for (Standard_Integer iCount = nodes.Lower(); iCount <= nodes.Upper(); iCount++)
     {
       Standard_Real x,y,z;
       nodes(iCount).Coord(x,y,z);
+      //tri->Node(iCount);
       xloc.Transforms(x,y,z);
       fx[cNodes+iCount-1] = x;
       fy[cNodes+iCount-1] = y;
@@ -208,8 +212,8 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     for (Standard_Integer iCount = tris.Lower(); iCount <= tris.Upper(); iCount++)
     {
       // get the node indexes for this triangle
-      Poly_Triangle tri = tris(iCount);
-      tri.Get(i1, i2, i3);
+      Poly_Triangle tril = tris(iCount);
+      tril.Get(i1, i2, i3);
       c1[stride*(cTris+iCount-1)] = i1+cNodes;
       c2[stride*(cTris+iCount-1)] = i2+cNodes;
       c3[stride*(cTris+iCount-1)] = i3+cNodes;
