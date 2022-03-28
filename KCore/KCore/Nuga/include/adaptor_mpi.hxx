@@ -162,10 +162,39 @@ namespace NUGA
           
           auto & PG_to_plan = j.second;
 
-          for (auto & k : PG_to_plan)
+          if (jzid != hmeshes[i]->zid)
           {
-            E_Int PGi = ptlist[k.first] - 1;
-            sensor_data[jzid][PGi] = k.second;
+            for (auto & k : PG_to_plan)
+            {
+              E_Int PGi = ptlist[k.first] -1;
+              sensor_data[jzid][PGi] = k.second;
+            }
+          }
+          
+          else // auto-join
+          {
+            int sz = ptlist.size() / 2; // outside of the loop to earn some calculation time
+            int stock_Plan_size = PG_to_plan.size();
+            
+            for (auto & k : PG_to_plan) // copy refinement plan to apply it to adequate face
+            {
+              // keys we work with, each associated to a Plan
+              int key1 =  k.first; // 1st Plan (can be Left or Right, doesn't matter)
+              int key2 = (k.first + sz) % ptlist.size(); // 2nd Plan // modulo as k.first may begin on List Right side (namely above ptlist.size()/2)
+              
+              // Plan 1
+              E_Int PGi = ptlist[key1] -1; // Face on which we test plan 1
+              
+              // ------------------------------------- //
+              
+              // Plan 2
+              int PGj = ptlist[key2] -1;
+              sensor_data[jzid][PGj] = k.second;       // zone to refine - Plan 1
+
+              const auto Plan2 = PG_to_plan.find(key2);
+              if (Plan2 == PG_to_plan.end()) continue;
+              sensor_data[jzid][PGi] = Plan2->second;  // zone to refine - Plan 2         
+            }
           }
         }
       }

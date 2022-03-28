@@ -91,7 +91,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
 
     #
     #tt0 = time.time()
-    zone_to_zone_to_list_owned = getJoinsPtLists(t, zidDict, 'PointList')
+    zone_to_zone_to_list_owned = getJoinsPtLists(t, zidDict)
     #if Cmpi.rank == 0 :
     #print('rank :' + str(Cmpi.rank)+' python : getJoinsPtLists ' + str(time.time()-tt0))
 
@@ -135,6 +135,23 @@ def getZonesRanks(zidDict, procDict):
   #print(zonerank)
   return zonerank
 
+def setZonesAndJoinsUId(t):
+
+  zs = I.getZones(t)
+  iz=-1
+  ir = -1
+  # todo VD : dico : {z, {zdD, {min(ptL[0], ptlD[0]), ir} } } 
+  for z in zs :
+    iz +=1
+    
+    n = I.newIntegralData(name='zid', parent=z)
+    n[1]=iz
+
+    joins = I.getNodesFromType2(z, 'GridConnectivity_t')
+
+    #todo VD : parcourir les raccords et consulter (ou ajouter si inexistant)
+
+
 #==============================================================================
 # createHMesh : Returns a hierarchical mesh hook per zone
 # IN: t : 3D NGON PyTree
@@ -150,6 +167,13 @@ def createHMesh(t, subdiv_type= 0):
     hmeshs = []
     for z in zones:
 
+      #todo VD : 
+      #1. faire un disctionnaire 'rotation to ptllist' en parcourant les raccords
+      #   un raccord periodique possede le noeud 'GridConnectivityProperty' qui possede un noued 'Periodic'
+      #   consulter les valeurs, prendre l'axe et l'angle de rotation, mettre (0,0,0,0) si raccord en translation ou match
+
+      # intersector.initForAdaptCells(z, dico) <= fonction a creer dans adaptCells_mpi.cpp
+
       m = C.getFields(Internal.__GridCoordinates__, z)[0]
       zid = CD.getProperty(z, 'zid')
       hm = intersector.createHMesh2(m, subdiv_type, zid)
@@ -161,10 +185,10 @@ def createHMesh(t, subdiv_type= 0):
 #==============================================================================
 # getJoinsPtList : XXX
 # IN: t : 3D NGON PyTree
-# IN: subdiv_type : isotropic currently
-# OUT: Returns a hierarchical zone hook 
+# IN: XXX
+# OUT: XXX
 #==============================================================================
-def getJoinsPtLists(t, zidDict, ptlname): # 'PointList' or 'PointListDonor'
+def getJoinsPtLists(t, zidDict):
 
   zone_to_zone_to_list_owned = {}
 
@@ -180,11 +204,11 @@ def getJoinsPtLists(t, zidDict, ptlname): # 'PointList' or 'PointListDonor'
     zone_to_list_owned = {}
 
     for rac in raccords:
-      rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
+      #rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
       
       donnorName = "".join(Internal.getValue(rac))
       #print(donnorName)
-      jzid = zidDict[donnorName]
+      jzid = zidDict[donnorName] #todo VD : se baser sur le rid
       #print('id is ' + str(jzid))
       ptList = Internal.getNodeFromName1(rac, ptlname)[1][0]
       #print ('PTLSZ : ' + str(len(ptList)))
@@ -247,7 +271,7 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, zonerank = None, zone_to_zone_
 
     ### 1. UPDATE BC & JOIN POINTLISTS WITH CURRENT ENABLING STATUS AND MPI EXCHANGES
     if zone_to_zone_to_list_owned == None :
-      zone_to_zone_to_list_owned = getJoinsPtLists(t, zidDict, 'PointList')
+      zone_to_zone_to_list_owned = getJoinsPtLists(t, zidDict)
 
     # if Cmpi.rank == 0:
     #   print('_conformizeHMesh CPU get Joins PTLists : ' + str(time.time() -tt))
@@ -371,16 +395,17 @@ def updateJoinsPointLists3(z, zidDict, jzone_to_ptlist, ptlname): # 'PointList',
 
   joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
   #zname=z[0]
+  #zid = zidDict[zname]
   #print(jzone_to_ptlist)
 
   # update the Join pointlist and synchronize with other zones (their PointListDonor)
 
   for j in joins:
     donnorName = "".join(Internal.getValue(j))
-    donnor_zid = zidDict[donnorName]
-    #print(donnorName + ' - ' + str(donnor_zid))
+    jzid = zidDict[donnorName] #todo VD : se baser sur le rid
+    #print(donnorName + ' - ' + str(jzid))
     ptl = Internal.getNodeFromName1(j, ptlname)
-    L1 = jzone_to_ptlist[donnor_zid]
+    L1 = jzone_to_ptlist[jzid]
     L1 = numpy.reshape(L1, (1,len(L1)))
     ptl[1]= L1
 
@@ -400,7 +425,7 @@ def _exchangePointLists(t, hooks, zidDict, procDict, zonerank=None, zone_to_bcpt
     #print(zonerank)
 
   if zone_to_zone_to_list_owned == None :
-    zone_to_zone_to_list_owned = getJoinsPtLists(t, zidDict, 'PointList') #already up-to-date if conformizeHMesh is the caller or has been called
+    zone_to_zone_to_list_owned = getJoinsPtLists(t, zidDict) #already up-to-date if conformizeHMesh is the caller or has been called
 
   # MPI exchange
   zone_to_zone_to_list_opp = intersector.exchangePointLists(zonerank, Cmpi.rank, Cmpi.size, zone_to_zone_to_list_owned)#, com)
