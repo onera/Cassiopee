@@ -37,8 +37,10 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Float gamma, cv, muS, Cs, Ts;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOOOOOiiddddd",
-                    "OOOOOOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOOOOOiifffff",
+                    "OOOOOOOOOOOOOOOOOOOOOOllddddd", 
+                    "OOOOOOOOOOOOOOOOOOOOOOiiddddd",
+                    "OOOOOOOOOOOOOOOOOOOOOOllfffff", 
+                    "OOOOOOOOOOOOOOOOOOOOOOiifffff",
                     &arrayD, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
@@ -335,8 +337,10 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOOllldddddsss", "OOOOOOOOOOOOOOOOOOOOOiiidddddsss",
-                    "OOOOOOOOOOOOOOOOOOOOOlllfffffsss", "OOOOOOOOOOOOOOOOOOOOOiiifffffsss",
+                    "OOOOOOOOOOOOOOOOOOOOOOllldddddsss", 
+                    "OOOOOOOOOOOOOOOOOOOOOOiiidddddsss",
+                    "OOOOOOOOOOOOOOOOOOOOOOlllfffffsss", 
+                    "OOOOOOOOOOOOOOOOOOOOOOiiifffffsss",
                     &zoneD, &pyVariables, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,

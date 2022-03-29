@@ -1890,7 +1890,6 @@ def _addkplane(t, N=1):
         nodes = C.getFields(Internal.__GridCoordinates__, z)[0]
         fn = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
         fc = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
-
         # Coordinates + fields located at nodes
         if fn != []:
             if nodes == []: nodes = fn
@@ -2002,55 +2001,6 @@ def _alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), 
     C.__TZA2(t, Transform._alignVectorFieldWithRadialCylindricProjection, 'nodes', axisPassingPoint, axisDirection, vectorNames)
 
 # Split au milieu
-"""
-def splitSize__(z, N, zoneName, multigrid, dirs):
-    dim = Internal.getZoneDim(z)
-    if dim[0] == 'Unstructured':
-        print('Warning: splitSize: unstructured zone not treated.')
-        return [z]
-    if dim[0] == 'Structured':
-        ni = dim[1]; nj = dim[2]; nk = dim[3]
-        if ni*nj*nk > N:
-            dirl = Transform.getSplitDir__(ni, nj, nk, dirs)
-            if dirl == 1:
-                ns = Transform.findMGSplit__(ni, level=multigrid)
-                if ns > 0:
-                    z[0] = C.getZoneName(zoneName)
-                    z1 = subzone(z, (1,1,1), (ns,nj,nk))
-                    z[0] = C.getZoneName(zoneName)
-                    z2 = subzone(z, (ns,1,1), (ni,nj,nk))
-                else: return [z]
-            elif dirl == 2:
-                ns = Transform.findMGSplit__(nj, level=multigrid)
-                if ns > 0:
-                    z[0] = C.getZoneName(zoneName)
-                    z1 = subzone(z, (1,1,1), (ni,ns,nk))
-                    z[0] = C.getZoneName(zoneName)
-                    z2 = subzone(z, (1,ns,1), (ni,nj,nk))
-                else: return [z]
-            elif dirl == 3:
-                ns = Transform.findMGSplit__(nk, level=multigrid)
-                if ns > 0:
-                    z[0] = C.getZoneName(zoneName)
-                    z1 = subzone(z, (1,1,1), (ni,nj,ns))
-                    z[0] = C.getZoneName(zoneName)
-                    z2 = subzone(z, (1,1,ns), (ni,nj,nk))
-                else: return [z]
-            else:
-                ns = Transform.findMGSplit__(ni, level=multigrid)
-                if ns > 0:
-                    z[0] = C.getZoneName(zoneName)
-                    z1 = subzone(z, (1,1,1), (ns,nj,nk))
-                    z[0] = C.getZoneName(zoneName)
-                    z2 = subzone(z, (ns,1,1), (ni,nj,nk))
-                else: return [z]
-            l1 = splitSize__(z1, N, zoneName, multigrid, dirs)
-            l2 = splitSize__(z2, N, zoneName, multigrid, dirs)
-            return l1+l2
-        else: return [z]
-"""
-
-# Split au milieu
 def _splitSize__(z, N, multigrid, dirs, t, stack):
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Unstructured':
@@ -2112,194 +2062,15 @@ def _splitSizeUp__(z, N, multigrid, dirs, t, stack):
                 z1, z2 = split(z, 1, ns, t)
                 stack.append(z1); stack.append(z2)
 
-# Split decentre
-"""
-def splitSizeUp__(z, N, zoneName, multigrid, dirs):
-    dim = Internal.getZoneDim(z)
-    if dim[0] == 'Unstructured':
-        print('Warning: splitSize: unstructured zone not treated.')
-        return [z]
-    if dim[0] == 'Structured':
-        ni = dim[1]; nj = dim[2]; nk = dim[3]
-        nij = ni*nj; nik = ni*nk; njk = nj*nk
-        if ni*nj*nk > N:
-            dirl = Transform.getSplitDir__(ni, nj, nk, dirs)
-
-            if dirl == 1:
-                ns = Transform.findMGSplitUp__(ni, int(N/njk), level=multigrid)
-                if ns > 0:
-                    z[0] = C.getZoneName(zoneName)
-                    z1 = subzone(z, (1,1,1), (ns,nj,nk))
-                    z[0] = C.getZoneName(zoneName)
-                    z2 = subzone(z, (ns,1,1), (ni,nj,nk))
-                else: return [z]
-            elif dirl == 2:
-                ns = Transform.findMGSplitUp__(nj, int(N/nik), level=multigrid)
-                if ns > 0:
-                    z[0] = C.getZoneName(zoneName)
-                    z1 = subzone(z, (1,1,1), (ni,ns,nk))
-                    z[0] = C.getZoneName(zoneName)
-                    z2 = subzone(z, (1,ns,1), (ni,nj,nk))
-                else: return [z]
-            elif dirl == 3:
-                ns = Transform.findMGSplitUp__(nk, int(N/nij), level=multigrid)
-                if ns > 0:
-                    z[0] = C.getZoneName(zoneName)
-                    z1 = subzone(z, (1,1,1), (ni,nj,ns))
-                    z[0] = C.getZoneName(zoneName)
-                    z2 = subzone(z, (1,1,ns), (ni,nj,nk))
-                else: return [z]
-            else:
-                ns = Transform.findMGSplitUp__(ni, int(N/njk), level=multigrid)
-                if ns > 0:
-                    z[0] = C.getZoneName(zoneName)
-                    z1 = subzone(z, (1,1,1), (ns,nj,nk))
-                    z[0] = C.getZoneName(zoneName)
-                    z2 = subzone(z, (ns,1,1), (ni,nj,nk))
-                else: return [z]
-            l1 = splitSizeUp__(z1, N, zoneName, multigrid, dirs)
-            l2 = splitSizeUp__(z2, N, zoneName, multigrid, dirs)
-            return l1+l2
-        else: return [z]
-"""
-
 # Return the number of cells in zone
 def getNCells(z):
+    """Return the number of cells in zone."""
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Unstructured': return dim[2]
     else:
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
         return ni1*nj1*nk1
-
-# Split size decentre avec ressources
-"""
-def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
-    bases = Internal.getBases(t)
-    SP = []; Nl = 0
-    for b in bases:
-        zones = Internal.getNodesFromType1(b, 'Zone_t')
-        for z in zones:
-            dim = Internal.getZoneDim(z)
-            if dim[0] == 'Unstructured':
-                print('Warning: splitSize: unstructured zone not treated.')
-            if dim[0] == 'Structured':
-                ni = dim[1]; nj = dim[2]; nk = dim[3]
-                ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
-                SP.append((ni1*nj1*nk1,z,b)); Nl += ni1*nj1*nk1
-    if N == 0: N = Nl*1. / R
-    from operator import itemgetter
-
-    # Init le vecteur des ressources
-    Rs = [0]*R
-    mins = minPtsPerDir-1 # nbre de cellules mini des blocs par direction
-
-    out = []
-    while len(SP) > 0:
-        SP = sorted(SP, key=itemgetter(0), reverse=True)
-        Rs = sorted(Rs)
-        #print('ress', Rs[0], C.getNCells(SP[0][1]))
-        a = SP[0][1] # le plus gros
-        base = SP[0][2]
-        dim = Internal.getZoneDim(a)
-        ni = dim[1]; nj = dim[2]; nk = dim[3]
-        ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
-        nik = ni1*nk1; njk = nj1*nk1; nij = ni1*nj1
-        Nr = min(N, N-Rs[0])
-        ncells = ni1*nj1*nk1
-        if ncells > Nr:
-            # Calcul le meilleur split
-            nc = int(round(Nr*1./njk,0))+1
-            ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
-            if ns-1 < mins: ns = 5
-            delta1 = ns-1
-            delta2 = ni-ns
-            if delta2 < mins: delta2 -= 1.e6
-            delta3 = abs((ns-1)*njk - Nr)/njk
-            deltai = delta3-delta1-delta2
-            nc = int(round(Nr*1./nik,0))+1
-            ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
-            if ns-1 < mins: ns = 5
-            delta1 = ns-1
-            delta2 = nj-ns
-            if delta2 < mins: delta2 -= 1.e6
-            delta3 = abs(ni1*(ns-1)*nk1 - Nr)/nik
-            deltaj = delta3-delta1-delta2
-            nc = int(round(Nr*1./nij,0))+1
-            ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
-            if ns-1 < mins: ns = 5
-            delta1 = ns-1
-            delta2 = nk-ns
-            if delta2 < mins: delta2 -= 1.e6
-            delta3 = abs(ni1*nj1*(ns-1) - Nr)/nij
-            deltak = delta3-delta1-delta2
-            dirl = 1
-            if deltai <= deltaj  and deltai <= deltak:
-                if (1 in dirs): dirl = 1
-                elif (deltaj <= deltak and 2 in dirs): dirl = 2
-                elif (3 in dirs): dirl = 3
-            elif deltaj <= deltai and deltaj <= deltak:
-                if (2 in dirs): dirl = 2
-                elif (deltai <= deltak and 1 in dirs): dirl = 1
-                elif (3 in dirs): dirl = 3
-            elif deltak <= deltai and deltak <= deltaj:
-                if (3 in dirs): dirl = 3
-                elif (deltai <= deltaj and 1 in dirs): dirl = 1
-                elif (2 in dirs): dirl = 2
-
-            trynext = 1
-            if dirl == 1:
-                nc = int(round(Nr*1./njk,0))+1
-                ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
-                if ns-1 >= mins and ni-ns >= mins:
-                    a1 = subzone(a, (1,1,1), (ns,nj,nk))
-                    a2 = subzone(a, (ns,1,1), (ni,nj,nk))
-                    SP[0] = (getNCells(a2), a2, base)
-                    out += [a1, base]; Rs[0] += getNCells(a1)
-                    trynext = 0
-            elif dirl == 2:
-                nc = int(round(Nr*1./nik,0))+1
-                ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
-                if ns-1 >= mins and nj-ns >= mins:
-                    a1 = subzone(a, (1,1,1), (ni,ns,nk))
-                    a2 = subzone(a, (1,ns,1), (ni,nj,nk))
-                    SP[0] = (getNCells(a2), a2, base)
-                    out += [a1, base]; Rs[0] += getNCells(a1)
-                    trynext = 0
-            elif dirl == 3:
-                nc = int(round(Nr*1./nij,0))+1
-                ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
-                if ns-1 >= mins and nk-ns >= mins:
-                    a1 = subzone(a, (1,1,1), (ni,nj,ns))
-                    a2 = subzone(a, (1,1,ns), (ni,nj,nk))
-                    SP[0] = (getNCells(a2), a2, base)
-                    out += [a1, base]; Rs[0] += getNCells(a1)
-                    trynext = 0
-            if trynext == 1:
-                out += [a, base]; Rs[0] += getNCells(a); del SP[0]
-        else:
-            out += [a, base]; Rs[0] += getNCells(a); del SP[0]
-
-    # Suppression des zones des bases
-    for b in bases:
-        rem = []
-        for i in b[2]:
-            if i[3] != 'Zone_t': rem.append(i)
-        b[2] = rem
-
-    # Remises dans les bonnes bases
-    l = len(out)//2
-    for i in range(l):
-        zone = out[2*i]
-        base = out[2*i+1]
-        base[2] += [zone]
-
-    #print('ress:', Rs)
-    #Tot = 0
-    #for i in Rs: Tot += i
-    #print('Tot', Tot)
-    return t
-"""
 
 # Split size decentre avec ressources
 def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
@@ -2643,73 +2414,6 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     print("Imbalance",min(Rs)/(max(Rs)*1.0))
     return t
 
-"""
-def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
-    # Fait des paquets de zones structurees et non structurees
-    zonesS = []; zonesN = []
-    NpS = []; NpN = [] # nbre de points
-    NeS = []; NeN = [] # nbre de cellules
-    outO = []
-    for z in zones:
-        dim = Internal.getZoneDim(z)
-        if dim[0] == 'Structured':
-            zonesS.append(z)
-            NpS.append(dim[1]*dim[2]*dim[3])
-            NeS.append(max(dim[1]-1,1)*max(dim[2]-1,1)*max(dim[3]-1,1))
-        else:
-            zonesN.append(z)
-            NpN.append(dim[1])
-            NeN.append(dim[2])
-
-    SumS = 0.; SumN = 0.
-    for i in NeS: SumS += i
-    for i in NeN: SumN += i
-    if SumS+SumN < 0.01: return outO
-    alpha = N*1./(SumS+SumN)
-    NbN = len(NeN) # nbre de grilles non structurees
-    NPart = [0]*(NbN+1); Nt = 0
-    for i in range(NbN): NPart[i] = max(int(alpha*NeN[i]),1); Nt += NPart[i]
-    if SumS != 0: NPart[NbN] = max(N-Nt,1)
-    else: NPart[NbN-1] = max(N-Nt+NPart[NbN-1], 1)
-
-    # Blocs non structures
-    outN = []
-    for i in range(len(zonesN)):
-        outL = []
-        z = zonesN[i]
-        a = C.getFields(Internal.__GridCoordinates__, z)[0]
-        if NPart[i] > 1:
-            if recoverBC: bcs = C.getBCs(z)
-            if dim[3] == 'NGON':
-                elts = transform.splitNGon(a, NPart[i])
-            else: elts = transform.splitElement(a, NPart[i])
-            for e in elts:
-                zL = subzone(z, e, type='elements')
-                if recoverBC: C._recoverBCs(zL, bcs)
-                outL.append(zL)
-        else: outL.append(z)
-        outN.append(outL)
-
-    # Blocs structures
-    l = len(zonesS)
-    if l == 0: return outN+outO
-    NPa = NPart[NbN]
-    Ns = Transform.findNsi__(l, NPa, NpS)
-
-    outS = []
-    for i in range(l):
-        outL = []
-        a = zonesS[i]
-        dimL = Internal.getZoneDim(a)
-        ni = dimL[1]; nj = dimL[2]; nk = dimL[3]
-        splits = Transform.findSplits__(ni, nj, nk, Ns[i], dirs, multigrid)
-        for j in splits:
-            a1 = subzone(a, (j[0],j[2],j[4]), (j[1],j[3],j[5]))
-            splitDict[a1[0]] = [a[0], j[0], j[1], j[2], j[3], j[4], j[5]]
-            outL.append(a1)
-        outS.append(outL)
-    return outS+outN+outO
-"""
 def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
     zones = Internal.getZones(t)
     # Fait des paquets de zones structurees et non structurees
@@ -2769,9 +2473,6 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
         splits = Transform.findSplits__(ni, nj, nk, Ns[i], dirs, multigrid)
         # Find split direction in splits
         size = len(splits)
-        # DBX - par etape
-        #size = 2 
-        # ENDDBX
         nks = []
         k = 0
         while k < size-1:
@@ -2858,38 +2559,6 @@ def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
     tp = Internal.pyTree2Node(tpp, typen)
     return tp
 
-"""
-def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, splitDict={}):
-    tp = Internal.copyRef(t)
-    if recoverBC:
-        C._deleteGridConnectivity__(tp, type='BCMatch')
-        C._deleteGridConnectivity__(tp, type='BCNearMatch')
-        C._deleteGridConnectivity__(tp, type='BCOverlap', kind='other') # enleve BCOverlap non autoattach
-    else:
-        C._deleteZoneBC__(tp)
-        C._deleteGridConnectivity__(tp, kind='all')
-
-    tpp, typen = Internal.node2PyTree(tp)
-    zones = Internal.getZones(tpp)
-    allZones = splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict)
-    bases = Internal.getBases(tpp)
-    noc = 0
-    for b in bases:
-        nzonesL = len(Internal.getNodesFromType1(b, 'Zone_t'))
-        c = len(b[2])-1
-        c2 = nzonesL-1
-        for z in b[2][::-1]:
-            if z[3] == 'Zone_t':
-                if allZones[noc+c2] != []:
-                    b[2] += allZones[noc+c2]
-                    del b[2][c]
-                c2 -= 1
-            c -= 1
-        noc += nzonesL
-    tp = Internal.pyTree2Node(tpp, typen)
-    return tp
-"""
-
 def splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
               minPtsPerDir=5):
     """Split zones following size."""
@@ -2898,41 +2567,6 @@ def splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
     _splitSize(tpp, N, multigrid, dirs, type, R, minPtsPerDir)
     tp = Internal.pyTree2Node(tpp, typen)
     return tp
-
-"""
-def splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
-              minPtsPerDir=5):
-    minPtsPerDir = max(minPtsPerDir, 2**(multigrid+1)+1)
-    tp = Internal.copyRef(t)
-    C._deleteGridConnectivity__(tp, type='BCMatch')
-    C._deleteGridConnectivity__(tp, type='BCNearMatch')
-    C._deleteGridConnectivity__(tp, type='BCOverlap', kind='other') # enleve BCOverlap non autoattach
-    if R is not None: type = 2
-
-    if type == 0 or type == 1:
-        tpp, typen = Internal.node2PyTree(tp)
-        bases = Internal.getBases(tpp)
-        for b in bases:
-            c = len(b[2])-1
-            for z in b[2][::-1]:
-                if z[3] == 'Zone_t':
-                    zoneName = z[0]
-                    if type == 0:
-                        l = splitSize__(z, N, zoneName, multigrid, dirs)
-                    elif type == 1:
-                        l = splitSizeUp__(z, N, zoneName, multigrid, dirs)
-                    b[2] += l
-                    del b[2][c]
-                c -= 1
-        tp = Internal.pyTree2Node(tpp, typen)
-        if Internal.typeOfNode(tp) == 1: tp = [tp]
-    else:
-        tpp, typen = Internal.node2PyTree(tp)
-        tpp = splitSizeUpR__(tpp, N, R, multigrid, dirs, minPtsPerDir)
-        tp = Internal.pyTree2Node(tpp, typen)
-        if Internal.typeOfNode(tp) == 1: tp = [tp]
-    return tp
-"""
 
 def _splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
                minPtsPerDir=5):

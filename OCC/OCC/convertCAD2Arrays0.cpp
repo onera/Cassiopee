@@ -43,6 +43,10 @@
 #include "TopoDS.hxx"
 #include "Poly_Triangulation.hxx"
 
+#include "Standard_Version.hxx"
+#include "ShapeFix_Shape.hxx"
+#include "ShapeFix_Wireframe.hxx"
+
 // ============================================================================
 /* Essai avec utilisation de BrepMesh d'open cascade */
 // ============================================================================
@@ -106,7 +110,8 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     if (aMesh.isModified()) boxWithHole = aMesh.Shape();
   }
   */
-  
+
+  // Read CAD
   TopoDS_Shape shape;
   if (strcmp(inFileFormat, "fmt_step") == 0)
   {
@@ -128,8 +133,38 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     shape = reader.OneShape();
     printf("done reading %s.\n", inFileName); 
   }
+
+  /*
+  E_Float precision = deflection*1.e-2;
+  E_Float maxTol = deflection*100;
+  E_Float minTol = deflection*10;
+  printf("%f %f %f\n", precision, maxTol, minTol);
+  */
+
+  // FIX cad
+  /*
+  Handle(ShapeFix_Shape) aFixShape = new ShapeFix_Shape(shape);
+  aFixShape->SetPrecision(precision);
+  aFixShape->SetMaxTolerance(maxTol);
+  aFixShape->SetMinTolerance(minTol);
+  aFixShape->Perform();
+  shape = aFixShape->Shape();
+  */
+
+  // Fix Cad wire
+  /*
+  Handle(ShapeFix_Wireframe) aFixWire = new ShapeFix_Wireframe(shape);
+  aFixWire->SetPrecision(precision);
+  aFixWire->SetMaxTolerance(maxTol);
+  //aFixWire->DropSmallEdgesMode() = true;
+  aFixWire->FixSmallEdges();
+  aFixWire->FixWireGaps();
+  shape = aFixWire->Shape();
+  */
+ 
   // Triangulate
-  BRepMesh_IncrementalMesh Mesh(shape, deflection);
+  E_Float angularDeflection = 10.; // en degres
+  BRepMesh_IncrementalMesh Mesh(shape, deflection, Standard_False, angularDeflection, Standard_True);
   Mesh.Perform(); 
 
   PyObject* out = PyList_New(0);
@@ -147,10 +182,12 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     Handle(Poly_Triangulation) tri = BRep_Tool::Triangulation(face, loc);
     if (tri.IsNull()) continue;
     
-    const TColgp_Array1OfPnt &nodes = tri->Nodes();
-    //Handle(TColgp_Array1OfPnt) nodesH = tri->MapNodeArray();
-    //TColgp_Array1OfPnt& nodes = *nodesH;
-    for (Standard_Integer iCount = nodes.Lower(); iCount <= nodes.Upper(); iCount++)
+#if OCC_VERSION_MAJOR >= 7 && OCC_VERSION_MINOR >= 6
+    Handle(TColgp_HArray1OfPnt) nodes = tri->MapNodeArray();
+#else
+    const TColgp_Array1OfPnt* nodes = &(tri->Nodes());
+#endif
+    for (Standard_Integer iCount = nodes->Lower(); iCount <= nodes->Upper(); iCount++)
     {
       nbNodes++;  
     }
@@ -190,13 +227,16 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     // create a transformation from the location
     gp_Trsf xloc = loc;
 
-    const TColgp_Array1OfPnt &nodes = tri->Nodes();
-    
+#if OCC_VERSION_MAJOR >= 7 && OCC_VERSION_MINOR >= 6
+    Handle(TColgp_HArray1OfPnt) nodes = tri->MapNodeArray();
+#else
+    const TColgp_Array1OfPnt* nodes = &(tri->Nodes());
+#endif    
     // get the nodes
-    for (Standard_Integer iCount = nodes.Lower(); iCount <= nodes.Upper(); iCount++)
+    for (Standard_Integer iCount = nodes->Lower(); iCount <= nodes->Upper(); iCount++)
     {
       Standard_Real x,y,z;
-      nodes(iCount).Coord(x,y,z);
+      (*nodes)(iCount).Coord(x,y,z);
       //tri->Node(iCount);
       xloc.Transforms(x,y,z);
       fx[cNodes+iCount-1] = x;
@@ -223,7 +263,7 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
       //if (i3 > nbNodes) printf("danger3 %d %d\n",i3,nbNodes);
       //printf("TRI %d: %d %d %d\n", iCount, i1,i2,i3);
     }
-    cNodes += nodes.Upper()-nodes.Lower()+1;
+    cNodes += nodes->Upper()-nodes->Lower()+1;
     cTris += tris.Upper()-tris.Lower()+1;
   }
   

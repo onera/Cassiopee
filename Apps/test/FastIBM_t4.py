@@ -6,6 +6,7 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import KCore.test as test
 
+test.TOLERANCE = 1.e-8
 LOCAL = test.getLocal()
 
 myApp = App.IBM(format='single')

@@ -214,7 +214,8 @@ lista = applet.keys()
 # Class entry avec auto-completion
 class AutocompleteEntry(TK.Entry):
     def __init__(self, lista, *args, **kwargs):
-        TK.Entry.__init__(self, *args, **kwargs, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        TK.Entry.__init__(self, *args, **kwargs)
+        TK.Entry.config(self, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
         self.lista = lista
         self.var = self["textvariable"]        
         if self.var == '':

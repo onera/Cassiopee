@@ -11,8 +11,6 @@ try:
 except ImportError:
     raise ImportError("Generator.PyTree: requires Converter.PyTree module.")
 
-from .CartGen import cartRx, cartRx2, _cartRxRefit
-
 def cart(Xo, H, N):
     """Create a structured cartesian mesh.
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
@@ -61,6 +59,21 @@ def cartNGon(Xo, H, N, api=2):
     Usage: cartNGon((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
     a = generator.cartNGon(Xo, H, N, api)
     return C.convertArrays2ZoneNode('cartNGon', [a])
+
+def cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False, rank=None, size=None):
+    """Create a set of regular cartesian grids."""
+    from . import CartGen
+    return CartGen.cartRx(X0, H, N, Nb, depth, addCellN, addBCMatch, rank, size)
+
+def _cartRxRefit(a):
+    """Refit a cartRx to cartesian after addGhostCells."""
+    from . import CartGen
+    return CartGen._cartRxRefit(a)
+
+def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
+    """Create a set of regular and geometric cartesian grids."""
+    from . import CartGen
+    return CartGen.cartRx2(XC0, XC1, HC, XF0, XF1, R, rank, size)
 
 #------------------------------------------------------------------------------
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste

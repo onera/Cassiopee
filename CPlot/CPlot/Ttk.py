@@ -136,7 +136,9 @@ def Button(*args, **kwargs):
 
 # TK button avec background du theme
 def Button2(*args, **kwargs):
-    return TK.Button(*args, **kwargs, bg=BACKGROUNDCOLOR)
+    B = TK.Button(*args, **kwargs)
+    B.config(bg=BACKGROUNDCOLOR)
+    return B
 
 def configButton(B, color):
     if ttk is None:
@@ -203,8 +205,11 @@ def Entry(*args, **kwargs):
 # Pas de menu specifique en ttk
 def Menu(*args, **kwargs):
     if ttk is None: return TK.Menu(*args, **kwargs) 
-    else: return TK.Menu(*args, **kwargs, bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
-    
+    else: 
+        M = TK.Menu(*args, **kwargs)
+        M.config(bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
+        return M
+
 def Menubutton(*args, **kwargs):
     if ttk is None: return TK.Menubutton(*args, **kwargs) 
     else: return ttk.Menubutton(*args, **kwargs)    
@@ -338,7 +343,8 @@ if ttk is not None:
     # Listbox avec accelerateur clavier
     class ListboxAuto(TK.Listbox):
         def __init__(self, *args, **kwargs):
-            TK.Listbox.__init__(self, *args, **kwargs, bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
+            TK.Listbox.__init__(self, *args, **kwargs)
+            TK.Listbox.config(self, bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
             self.bind('<KeyRelease>', self.keyRelease)
             self.bind('<Enter>', self.onEnter)
             self.bind('<Leave>', self.onLeave)
