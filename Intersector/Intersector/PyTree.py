@@ -431,7 +431,9 @@ def updateBCPointLists1(z, oids):
         continue
       
       ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
+      ptLists[i] = ptLists[i].reshape(1, ptLists[i].size)
       ptl[0][1] = ptLists[i]
+      #print('shape dans updateBCPointLists1 : '+str(numpy.shape(ptl[0][1])))
       #print(ptl[0][1])
       i=i+1
 
@@ -478,7 +480,7 @@ def updateJoinsPointLists1(z, zones, oids):
         PG0D = ptlD[1][0][0] # first polygon in the point list
         if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
                           
-        ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i]))) #checkme : seems to be useless 
+        ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
 
         ptl[1]  = ptLists[i]
         ptlD[1] = ptLists[i]
