@@ -94,44 +94,6 @@ def notImplemented():
     CTK.TXT.insert('START', 'Error: ', 'Error')
 
 #==============================================================================
-# IN: app: nom d'applet (tkChose ou --- ou Sub/tkChose)
-# si app=---, un separateur est affiche
-# si app=Sub/tkChose, un sous-menu Sub est ajoute
-# IN: menu: menu ou on ajoute l'app
-# IN: frame: la frame de l'app
-# IN: submenus: dict to keep trace of allready created submenus
-# OUT: TKMODULES: le dictionnaire des modules importes
-#==============================================================================
-def addMenuItem(app, menu, frame, submenus, auto):
-    app = app.split('/')
-    if len(app) == 2: submenu = app[0]; app = app[1]
-    else: submenu = None; app = app[0]
-
-    if submenu is None:
-        if app == '---': menu.add_separator()
-        else:
-            CTK.TKMODULES[app] = None
-            CTK.TKMODULEFRAMES[app] = frame
-            name = app; name = '  '+name
-            menu.add_command(label=name, command=lambda x=app:CTK.openApp(x))
-            if auto[app] == 1: CTK.openApp(app)
-
-    else: # submenu
-        if submenu in submenus:
-            myMenu = submenus[submenu]
-        else:
-            myMenu = TK.Menu(menu, tearoff=0)
-            submenus[submenu] = myMenu
-            menu.add_cascade(label=submenu, menu=myMenu)
-        if app == '---': myMenu.add_separator()
-        else:
-            CTK.MODULES[app] = None
-            CTK.MODULEFRAMES[app] = frame
-            name = app; name = '  '+name
-            myMenu.add_command(label=name, command=lambda x=app:CTK.openApp(x))
-            if auto[app] == 1: CTK.openApp(app)
-
-#==============================================================================
 # To be called when CTK.t is set
 def run(t=None):
     if t is not None:
@@ -173,29 +135,29 @@ def run(t=None):
 
     # - Apps -
     submenus = {}
-    for app in TREEAPPS: addMenuItem(app, menus[0], frames[0], submenus, auto)
+    for app in TREEAPPS: CTK.addMenuItem(app, menus[0], frames[0], submenus, auto)
     submenus = {}
-    for app in STATEAPPS: addMenuItem(app, menus[1], frames[1], submenus, auto)
+    for app in STATEAPPS: CTK.addMenuItem(app, menus[1], frames[1], submenus, auto)
     submenus = {}
-    for app in EDGEAPPS: addMenuItem(app, menus[2], frames[2], submenus, auto)
+    for app in EDGEAPPS: CTK.addMenuItem(app, menus[2], frames[2], submenus, auto)
     submenus = {}
-    for app in SURFAPPS: addMenuItem(app, menus[3], frames[3], submenus, auto)
+    for app in SURFAPPS: CTK.addMenuItem(app, menus[3], frames[3], submenus, auto)
     submenus = {}
-    for app in MESHAPPS: addMenuItem(app, menus[4], frames[4], submenus, auto)
+    for app in MESHAPPS: CTK.addMenuItem(app, menus[4], frames[4], submenus, auto)
     submenus = {}
-    for app in BLOCKAPPS: addMenuItem(app, menus[5], frames[5], submenus, auto)
+    for app in BLOCKAPPS: CTK.addMenuItem(app, menus[5], frames[5], submenus, auto)
     submenus = {}
-    for app in BCAPPS: addMenuItem(app, menus[6], frames[6], submenus, auto)
+    for app in BCAPPS: CTK.addMenuItem(app, menus[6], frames[6], submenus, auto)
     submenus = {}
-    for app in MOTIONAPPS: addMenuItem(app, menus[7], frames[7], submenus, auto)
+    for app in MOTIONAPPS: CTK.addMenuItem(app, menus[7], frames[7], submenus, auto)
     submenus = {}
-    for app in SOLVERAPPS: addMenuItem(app, menus[8], frames[8], submenus, auto)
+    for app in SOLVERAPPS: CTK.addMenuItem(app, menus[8], frames[8], submenus, auto)
     submenus = {}
-    for app in POSTAPPS: addMenuItem(app, menus[9], frames[9], submenus, auto)
+    for app in POSTAPPS: CTK.addMenuItem(app, menus[9], frames[9], submenus, auto)
     submenus = {}
-    for app in VISUAPPS: addMenuItem(app, menus[10], frames[10], submenus, auto)
+    for app in VISUAPPS: CTK.addMenuItem(app, menus[10], frames[10], submenus, auto)
     submenus = {}
-    for app in RENDERAPPS: addMenuItem(app, menus[11], frames[11], submenus, auto)
+    for app in RENDERAPPS: CTK.addMenuItem(app, menus[11], frames[11], submenus, auto)
 
     # Updated Apps from tree (containers from tree containers)
     module = CTK.getModule('tkContainers'); module.updateApp()

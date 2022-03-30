@@ -171,7 +171,8 @@ E_Int K_IO::GenIO::cedreread(
       readInt(ptrFile, value); //printf("no=%d\n", value); // no face
       readInt(ptrFile, value);  //printf("nv=%d\n", value); // nbre de faces valides (1 ou 2)
       ret = readInt(ptrFile, value); cn2[2*i] = value;
-      ret = readInt(ptrFile, value); cn2[2*i+1] = value;
+      if (ret == 1) { ret = readInt(ptrFile, value); cn2[2*i+1] = value; }
+      else cn2[2*i+1] = 0;
       //printf("%d %d\n", cn2[2*i], cn2[2*i+1]);
     }
     if (ret == 1) skipLine(ptrFile);
@@ -249,7 +250,7 @@ E_Int K_IO::GenIO::cedreread(
 
     for (E_Int i = 0; i < nboundaryfaces; i++)
     {
-      ret = readInt(ptrFile, value); // numerotation (skip) 
+      ret = readInt(ptrFile, value); // numerotation (skip)
       ret = readInt(ptrFile, value); // no de la face
       facesp[i] = value;
       ret = readWord(ptrFile, buf); // nom de la BC

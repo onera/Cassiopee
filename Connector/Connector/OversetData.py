@@ -1608,10 +1608,8 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                else: yplus = None
                                kcurv = Internal.getNodeFromName1(s,__KCURV__)
                                if kcurv is not None: kcurv = kcurv[1]
-                               else: kcurv = None
-
+                               
                                # Transferts
-                               #print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
                                connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
                                                           xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, density, pressure, 
                                                           vx, vy, vz, 
@@ -1691,8 +1689,6 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                     else: yplus = None
                                     kcurv = Internal.getNodeFromName1(s,__KCURV__)
                                     if kcurv is not None: kcurv = kcurv[1]
-                                    else: kcurv = None                                    
-                                    #  print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0] 
                                     connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
                                                                xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure, 
                                                                vx, vy, vz, 
@@ -1836,8 +1832,6 @@ def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         else: yplus = None
                         kcurv = Internal.getNodeFromName1(s, __KCURV__)
                         if kcurv is not None: kcurv = kcurv[1]
-                        else: kcurv = None
-                        #print 'transfert IBC : zd ', zd[0]
                         arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs, 
                                                              xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure,
                                                              vx, vy, vz, 

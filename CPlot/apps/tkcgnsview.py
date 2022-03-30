@@ -26,14 +26,15 @@ def run():
     fileName = os.path.split(CTK.FILE)
     CTK.changeWindowTitle(fileName[1], fileName[0])
 
-    # open tkTreeOps
-    app = 'tkTreeOps'    
-    CTK.TKMODULES[app] = None
-    CTK.TKMODULEFRAMES[app] = frames[0]
-    #name = app; name = '  '+name
-    #menu[0].add_command(label=name, command=lambda x=app:CTK.openApp(x))
-    CTK.openApp(app)
-
+    # Add some apps
+    auto = {}
+    auto['tkTreeOps'] = True
+    auto['tkMeshInfo'] = False
+    submenus = {}
+    for app in ['tkTreeOps']: CTK.addMenuItem(app, menus[0], frames[0], submenus, auto)
+    submenus = {}
+    for app in ['tkMeshInfo']: CTK.addMenuItem(app, menus[4], frames[4], submenus, auto)
+    
     # Place win devant les autres fenetres
     win.deiconify(); win.focus_set()
 

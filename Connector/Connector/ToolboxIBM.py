@@ -1075,7 +1075,7 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
             Lyref = bb[4]-bb[1]
             XRAYDIM1 = max(XRAYDIM1,int(Lxref/(0.15*dh_min)))
             XRAYDIM2 = max(XRAYDIM2,int(Lyref/(0.15*dh_min)))
-        if DIM == 2:  XRAYDIM1 = max(XRAYDIM1,10000); XRAYDIM2 = 2
+        if DIM == 2: XRAYDIM2 = 2
       
         if loc == 'centers':
             tc = C.node2Center(t)

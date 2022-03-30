@@ -1312,17 +1312,6 @@ def toolBar(win):
     win.tk.call('wm', 'iconphoto', win._w, iconics.PHOTO[13])
     frame = TTK.Frame(win)
     
-    #frame.columnconfigure(0, weight=0)
-    #frame.columnconfigure(1, weight=0)
-    #frame.columnconfigure(2, weight=0)
-    #frame.columnconfigure(3, weight=0)
-    #frame.columnconfigure(4, weight=0)
-    #frame.columnconfigure(5, weight=0)
-    #frame.columnconfigure(6, weight=0)
-    #frame.columnconfigure(7, weight=0)
-    #frame.columnconfigure(8, weight=0)
-    #frame.columnconfigure(9, weight=0)
-
     B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20, 
                   image=iconics.PHOTO[0], borderwidth=0,
                   command=quickSaveFile)
@@ -1599,6 +1588,45 @@ def minimal2(title, show=True):
     WIDGETS['noteBookButtons'] = buttons # boutons du noteBook
 
     return (win, frames, menu, menus, file, tools)
+
+#==============================================================================
+# IN: app: nom d'applet (tkChose ou --- ou Sub/tkChose)
+# si app=---, un separateur est affiche
+# si app=Sub/tkChose, un sous-menu Sub est ajoute
+# IN: menu: menu ou on ajoute l'app
+# IN: frame: la frame de l'app
+# IN: submenus: dict to keep trace of allready created submenus
+# OUT: TKMODULES: le dictionnaire des modules importes
+#==============================================================================
+def addMenuItem(app, menu, frame, submenus, auto):
+    global MODULES, MODULEFRAMES
+    app = app.split('/')
+    if len(app) == 2: submenu = app[0]; app = app[1]
+    else: submenu = None; app = app[0]
+
+    if submenu is None:
+        if app == '---': menu.add_separator()
+        else:
+            TKMODULES[app] = None
+            TKMODULEFRAMES[app] = frame
+            name = app; name = '  '+name
+            menu.add_command(label=name, command=lambda x=app:openApp(x))
+            if auto[app] == 1: openApp(app)
+
+    else: # submenu
+        if submenu in submenus:
+            myMenu = submenus[submenu]
+        else:
+            myMenu = TK.Menu(menu, tearoff=0)
+            submenus[submenu] = myMenu
+            menu.add_cascade(label=submenu, menu=myMenu)
+        if app == '---': myMenu.add_separator()
+        else:
+            TKMODULES[app] = None
+            TKMODULEFRAMES[app] = frame
+            name = app; name = '  '+name
+            myMenu.add_command(label=name, command=lambda x=app:openApp(x))
+            if auto[app] == 1: openApp(app)
 
 #==============================================================================
 class noteBook:
