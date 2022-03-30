@@ -463,7 +463,7 @@ def getProcGlobal__(zoneName, t, procDict=None):
 # attend ensuite les zones graph[opp][rank] pour tout opp.
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
-                 intersectionsDict=None, exploc=False, procDict2=None, it=0):
+                 intersectionsDict=None, exploc=False, procDict2=None, it=None):
     """Return the communication graph for different block relation types."""
     zones = Internal.getZones(t)
     graph = {}
@@ -569,26 +569,24 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
       if not exploc:
         for z in zones:
             proc = getProcLocal__(z, procDict)
-            subRegions2 = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
-            subRegions = []
-            for s in subRegions2:
-                sname = s[0][0:2]
-                if sname=='ID': subRegions.append(s)
+            subRegions = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
             for s in subRegions:
-                if '#' in s[0]:
-                   numero_iter = int( s[0].split('#')[1].split('_')[0] )
-                   if numero_iter == it:
+                sname = s[0][0:2]
+                if sname=='ID':
+                   if '#' in s[0] and it is not None:
+                      numero_iter = int( s[0].split('#')[1].split('_')[0] )
+                      if numero_iter == it:
+                         donor = Internal.getValue(s)
+                         idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
+                         if idn != []: # la subRegion decrit des interpolations
+                            popp = getProcGlobal__(donor, t, procDict)
+                            updateGraph__(graph, proc, popp, z[0])
+                   else:
                       donor = Internal.getValue(s)
                       idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
                       if idn != []: # la subRegion decrit des interpolations
-                         popp = getProcGlobal__(donor, t, procDict)
-                         updateGraph__(graph, proc, popp, z[0])
-                else:
-                     donor = Internal.getValue(s)
-                     idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
-                     if idn != []: # la subRegion decrit des interpolations
-                         popp = getProcGlobal__(donor, t, procDict)
-                         updateGraph__(graph, proc, popp, z[0])
+                          popp = getProcGlobal__(donor, t, procDict)
+                          updateGraph__(graph, proc, popp, z[0])
 
       else:
         maxlevel=1
