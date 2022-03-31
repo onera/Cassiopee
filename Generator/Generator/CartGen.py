@@ -202,16 +202,18 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
 
     t = C.newPyTree(['Base',a])
 
-    # SplitNParts on skeleton tree
+    # SplitNParts on core
     core = Internal.getNodeFromName2(t, 'cart1-1-1')
     t1 = C.newPyTree(['CARTESIAN',core])
     t1 = T.splitNParts(t1, N=size)
     D2._distribute(t1, NProc=size, algorithm='fast')
 
+    # SplitSize + ressource
     a.remove(core)
     t2 = C.newPyTree(['FLEX',a])
     t2 = T.splitSize(t2, R=size)
-    D2._distribute(t2, NProc=size, algorithm='fast')
+    #D2._distribute(t2, NProc=size, algorithm='fast') # deja fait par splitSize
+    D2.printStats(t2)
 
     t = Internal.merge([t1,t2])
     
@@ -232,10 +234,7 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     d = data[source]
                     #print('source', source, flush=True)
                     #print('dest', dest, flush=True)
-                    P = d[0]
-                    H = d[1]
-                    R = d[2]
-                    N = d[3]
+                    P = d[0]; H = d[1]; R = d[2] ; N = d[3]
                     i1 = dest[0]-1; j1 = dest[2]-1; k1 = dest[4]-1
                     i2 = dest[1]-1; j2 = dest[3]-1; k2 = dest[5]-1
 

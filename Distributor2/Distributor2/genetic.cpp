@@ -514,87 +514,12 @@ void K_DISTRIBUTOR2::genetic(
   //printf("jbest=%d\n", jBest);
   for (E_Int i = 0; i < nb; i++) out[i] = popp[i+(jBest-1)*nb];
 
-  // Calcul du nombre de pts par processeurs
-  nbNodePerProc.setAllValuesAtNull();
-  for (E_Int i = 0; i < nb; i++)
-  {
-    proc = out[i];
-    nbNodePerProc[proc] += nbPts[i];
-  }
-  //for (E_Int i = 0; i < NProc; i++) printf("%d %g\n",i,nbNodePerProc[i]);
-  //printf("Info: Nb de pts moyen par proc: %d\n", int(meanPtsPerProc));
- 
-  //printf("Nb de pts par proc:\n");
-  for (E_Int i = 0; i < NProc; i++)
-  {
-    //printf("Proc %d: %g pts\n", i, nbNodePerProc[i]);
-    if (K_FUNC::E_abs(nbNodePerProc[i]) < 1.e-6)
-      printf("Warning: processor %d is empty!\n", i);
-  }
-
-  // Variance
-  varMin = 1.e6; varMax = 0.; varRMS = 0.;
-  for (E_Int i = 0; i < NProc; i++)
-  {
-    E_Float v = K_FUNC::E_abs(nbNodePerProc[i] - meanPtsPerProc);
-    varMin = K_FUNC::E_min(varMin, v);
-    varMax = K_FUNC::E_max(varMax, v);
-    varRMS = varRMS + v*v;
-  }
-  varMin = varMin / meanPtsPerProc;
-  varMax = varMax / meanPtsPerProc;
-  varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
-  printf("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%\n", 100*varMin, 100*varMax, 100*varRMS);
-
-  // volume total de com
-  nptsCom = 0; E_Int volTot = 0;
-  if (com != NULL)
-  {
-    for (E_Int i = 0; i < nb; i++)
-    {
-      E_Int proci = popp[i+(jBest-1)*nb];
-      for (E_Int k = 0; k < nb; k++)
-      {
-        if (com[k + i*nb] > 0)
-        {
-          E_Int prock = popp[k+(jBest-1)*nb];
-          volTot += com[k + i*nb];
-          // le voisin est-il sur le meme processeur?
-          if (proci != prock) 
-          {
-            nptsCom += com[k + i*nb];
-          }
-        }
-      }
-    }
-  }
-  
-  // volume total de com avec comd
-  if (comd != NULL)
-  {
-    E_Int v1, volcom, i, k, proci, prock;
-    for (E_Int v = 0; v < sizeComd/2; v++)
-    {
-      v1 = comd[2*v]; volcom = comd[2*v+1];
-      k = E_Int(v1/nb);
-      i = v1-k*nb;
-      proci = popp[i+(jBest-1)*nb];
-      prock = popp[k+(jBest-1)*nb];
-      volTot += volcom;
-      // le voisin est-il sur le meme processeur?
-      if (proci != prock) 
-      {
-        nptsCom += volcom;
-      }
-    }
-  }
-
-  //printf("Volume de communication=%d\n", nptsCom);
-  if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
-  else volRatio = 0.;
-  printf("Info: external com ratio=%f%%\n", volRatio*100);
-  fflush(stdout);
-
   bestAdapt = evalp[jBest-1];
   //printf("Adaptation: %f\n", bestAdapt);
+
+  // external stats
+  E_Int empty;
+  stats(nbPts, NProc, com, comd, sizeComd, out, empty, 
+        varMin, varMax, varRMS, volRatio);
+
 }

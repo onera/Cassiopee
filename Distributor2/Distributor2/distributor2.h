@@ -54,6 +54,12 @@ void gradient(std::vector<E_Float>& nbPts, std::vector<E_Int>& setBlocks,
               E_Float& meanPtsPerProc, E_Float& varMin,
               E_Float& varMax, E_Float& varRMS, E_Int& nptsCom, 
               E_Float& volRatio, E_Float& bestAdapt);
+void stats(std::vector<E_Float>& nbPts, E_Int NProc, 
+           int* com, int* comd, E_Int sizeComd, 
+           std::vector<E_Int>& out,
+           E_Int& empty, E_Float& varMin, E_Float& varMax, E_Float& varRMS,
+           E_Float& volRatio);
+
 PyObject* distribute(PyObject* self, PyObject* args);
 }
 #endif

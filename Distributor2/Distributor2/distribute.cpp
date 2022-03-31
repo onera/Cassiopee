@@ -163,30 +163,30 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   }
   
   // Recupere le vecteur des poids du solveur pour les blocs
-  vector<E_Float> lweight;
+  vector<E_Float> lweight(nb);
   E_Float val;
   for (E_Int i = 0; i < nb; i++)
   {
     val = PyFloat_AsDouble(PyList_GetItem(weight, i));
-    lweight.push_back(val);
+    lweight[i] = val;
   }
 
   // Recupere le vecteur du nombre de pts de chaque blocs dans une liste c++
-  vector<E_Float> lnbPts;
+  vector<E_Float> lnbPts(nb);
   E_Int ival;
   for (E_Int i = 0; i < nb; i++)
   {
     ival = PyLong_AsLong(PyList_GetItem(nbPts, i));
     val = lweight[i] * double(ival);
-    lnbPts.push_back(val);
+    lnbPts[i] = val;
   }
 
   // Recupere le vecteur des blocs imposes
-  vector<E_Int> lsetBlocks;
+  vector<E_Int> lsetBlocks(nb);
   for (E_Int i = 0; i < nb; i++)
   {
     ival = PyLong_AsLong(PyList_GetItem(setBlocks, i));
-    lsetBlocks.push_back(ival);
+    lsetBlocks[i] = ival;
   }
 
   // Algo genetique ou gradient

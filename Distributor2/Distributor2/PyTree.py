@@ -74,8 +74,38 @@ def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='matc
                 algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
     Usage: _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
+    
+    (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, prescribed, weight, useCom, mode, tbb)
+
+    # Equilibrage
+    out = Distributor2.distribute(nbPts, NProc, prescribed=aset, 
+                                  com=com, comd=comd,
+                                  perfo=perfo, weight=weightlist, 
+                                  algorithm=algorithm, mode=mode, nghost=nghost)
+
+    # Sortie
     zones = Internal.getZones(t)
-    # Formation des arrays (seulement pour useCom=overlap ou bbox, sinon on met directement le nbre de pts)
+    procs = out['distrib']
+    i = 0
+    for z in zones:
+        node = Internal.getNodeFromName1(z, '.Solver#Param')
+        if node is not None: param = node
+        else:
+            param = ['.Solver#Param', None, [], 'UserDefinedData_t']
+            z[2].append(param)
+        v = numpy.zeros((1,1), numpy.int32); v[0,0] = procs[i]
+        node = Internal.getNodeFromName1(param, 'proc')
+        if node is not None:
+            a = node; a[1] = v
+        else:
+            a = ['proc', v, [], 'DataArray_t']
+            param[2].append(a)
+        i += 1
+    return out
+
+# Internal: get data from tree
+def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='nodes', tbb=None):
+    zones = Internal.getZones(t)
     nbPts = []; arrays = []; zoneNames = []; aset = []; weightlist = [] # weight for all zones
     for z in zones:
         zname = z[0]
@@ -240,32 +270,7 @@ def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='matc
                 else:
                     #com[mdict[zname],dict[oppname]] = 1.
                     addCom__(comd, mdict[zname], mdict[oppname], Nb, 1)
-
-    # Equilibrage
-    out = Distributor2.distribute(nbPts, NProc, prescribed=aset, 
-                                  com=com, comd=comd,
-                                  perfo=perfo, weight=weightlist, 
-                                  algorithm=algorithm, mode=mode, nghost=nghost)
-
-    # Sortie
-    zones = Internal.getZones(t)
-    procs = out['distrib']
-    i = 0
-    for z in zones:
-        node = Internal.getNodeFromName1(z, '.Solver#Param')
-        if node is not None: param = node
-        else:
-            param = ['.Solver#Param', None, [], 'UserDefinedData_t']
-            z[2].append(param)
-        v = numpy.zeros((1,1), numpy.int32); v[0,0] = procs[i]
-        node = Internal.getNodeFromName1(param, 'proc')
-        if node is not None:
-            a = node; a[1] = v
-        else:
-            a = ['proc', v, [], 'DataArray_t']
-            param[2].append(a)
-        i += 1
-    return out
+    return (nbPts, aset, com, comd, weightlist)
 
 #==============================================================================
 # Retourne le dictionnaire proc['blocName']
@@ -318,7 +323,7 @@ def getProcList(t, NProc=None, sort=False):
            size_zone =[]
            for z in zones:
               dim = Internal.getZoneDim(z)
-              if dim[0]=='Structured':
+              if dim[0] == 'Structured':
                 if dim[3] == 1: kfic = 0
                 else          : kfic = 2
                 ndimdx = (dim[1]-4)*(dim[2]-4)*(dim[3]-kfic) 
@@ -326,7 +331,7 @@ def getProcList(t, NProc=None, sort=False):
               size_zone.append(ndimdx)
 
            # Tri les zone par taille decroissante
-           new_zones =[]
+           new_zones = []
            for z in range(len(size_zone)):
              vmax    = max(size_zone)
              pos_max = size_zone.index(vmax)
@@ -406,7 +411,9 @@ def getProc(t):
     if len(procs) == 1: return procs[0]
     else: return procs
 
-
+#==============================================================================
+# print infos from stats dictionary
+#==============================================================================
 def printProcStats(t, stats=None, NProc=None):
     """Print stats dictionary."""
     if stats is not None:
@@ -414,7 +421,6 @@ def printProcStats(t, stats=None, NProc=None):
         if NProc is None: NProc = max(dist)+1
         if len(list(set(dist))) != NProc:
             print ('Warning: some processors are empty!')
-            import sys; sys.exit()
 
         zones = Internal.getZones(t)
         for proc in range(NProc):
@@ -441,5 +447,81 @@ def printProcStats(t, stats=None, NProc=None):
                 if dim[0] == 'Structured': npts += dim[1]*dim[2]*dim[3]
                 else: npts += dim[1]
             print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
-
     return None
+
+#================================================================================
+# Get stats from tree with proc nodes (redone here from stats.cpp)
+#================================================================================
+def stats(t, prescribed=None, weight=None, useCom='match', mode='nodes'):
+    NProc = 0; nbTot = 0
+    zones = Internal.getZones(t)
+    nzones = len(zones)
+    nbPts = numpy.empty( (nzones), dtype=numpy.int32 )
+    out = numpy.empty( (nzones), dtype=numpy.int32 )
+
+    for c, z in enumerate(zones):
+        if mode == 'nodes': np = C.getNPts(z)
+        else: np = C.getNCells(z)
+        nbTot += np
+        p = getProc(z)
+        NProc = max(NProc, p)
+        out[c] = p
+        nbPts[c] = np
+    NProc += 1
+
+    # meanPtsPerProc, nbNodePerProc
+    meanPtsPerProc = nbTot*1./NProc
+    nbNodePerProc = numpy.empty( (NProc), dtype=numpy.float64 )
+    for c, p in enumerate(out):
+        nbNodePerProc[p] += nbPts[c]
+
+    # empty
+    empty = 0
+    for i in range(NProc):
+        if nbNodePerProc[i] == 0: empty = 1
+
+    varMin = 1.e6; varMax = 0.; varRMS = 0.
+    for i in range(NProc):
+        v = abs(nbNodePerProc[i] - meanPtsPerProc)
+        varMin = min(varMin, v)
+        varMax = max(varMax, v)
+        varRMS = varRMS + v*v
+
+    varMin = varMin / meanPtsPerProc;
+    varMax = varMax / meanPtsPerProc;
+    varRMS = numpy.sqrt(varRMS) / (NProc*meanPtsPerProc);
+    volRatio = 0.
+
+    (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, prescribed, weight, useCom, mode)
+
+    if comd is not None:    
+        allkeys = comd.keys()
+        size = len(allkeys)
+        volComd = numpy.empty((2*size), numpy.int32)
+        for i, k in enumerate(allkeys):
+            volComd[2*i] = k
+            volComd[2*i+1] = comd[k]
+    
+        volTot = 0.; nptsCom = 0.
+        for v in range(size):
+            v1 = volComd[2*v]; volcom = volComd[2*v+1];
+            k = int(v1/nzones)
+            i = v1-k*nzones
+            proci = out[i]
+            prock = out[k]
+            volTot += volcom
+            if proci != prock: nptsCom += volcom
+
+    volRatio = nptsCom / volTot
+    
+    return (varMin, varMax, varRMS, volRatio, empty)
+
+#==================================================================================
+# print stats from tree
+#==================================================================================
+def printStats(t, prescribed=None, weight=None, useCom='match', mode='nodes'):
+    (varMin, varMax, varRMS, volRatio, empty) = stats(t, prescribed, weight, useCom, mode)
+    print("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%"%(100*varMin, 100*varMax, 100*varRMS))
+    print("Info: external com ratio=%f%%"%(volRatio*100))
+    if empty == 1: print("Warning: at least one processor is empty!")
+    return (varMin, varMax, varRMS, volRatio, empty)

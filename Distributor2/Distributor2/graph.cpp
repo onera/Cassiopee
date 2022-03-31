@@ -327,7 +327,7 @@ void K_DISTRIBUTOR2::graph(
   }
   //printf("Info: Nb de pts moyen par proc: %d\n", int(meanPtsPerProc));
  
-  // Si processeur empty, prendre un bloc sur le plus charger iterativement
+  // Si processeur empty, prendre un bloc sur le plus chargé iterativement
   E_Int iEmpty;
   iEmpty = findEmptyProc(NProc, nbNodePerProc);
   while (iEmpty >= 0)
@@ -337,78 +337,12 @@ void K_DISTRIBUTOR2::graph(
     iEmpty = findEmptyProc(NProc, nbNodePerProc);
   }
 
-  //printf("Nb de pts par proc:\n");
-  for (E_Int i = 0; i < NProc; i++)
-  {
-    if (K_FUNC::E_abs(nbNodePerProc[i]) < 1.e-6)
-      printf("Warning: processor %d is empty!\n", i);
-  }
-
-  // Variance
-  varMin = 1.e6; varMax = 0.; varRMS = 0.;
-  for (E_Int i = 0; i < NProc; i++)
-  {
-    E_Float v = K_FUNC::E_abs(nbNodePerProc[i] - meanPtsPerProc);
-    varMin = K_FUNC::E_min(varMin, v);
-    varMax = K_FUNC::E_max(varMax, v);
-    varRMS = varRMS + v*v;
-  }
-  varMin = varMin / meanPtsPerProc;
-  varMax = varMax / meanPtsPerProc;
-  varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
-  printf("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%\n", 100*varMin, 100*varMax, 100*varRMS);
-
-  nptsCom = 0; E_Int volTot = 0;
-
-  // avec com
-  if (com != NULL)
-  {
-    for (E_Int i = 0; i < nb; i++)
-    {
-      E_Int proci = out[i];
-      for (E_Int k = 0; k < nb; k++)
-      {
-        if (com[k + i*nb] > 0)
-        {
-          E_Int prock = out[k];
-          volTot += com[k + i*nb];
-          // le voisin est-il sur le meme processeur?
-          if (proci != prock)
-          {
-            nptsCom += com[k + i*nb];
-          }
-        }
-      }
-    }
-  }
-   
-  // avec comd
-  if (comd != NULL)
-  {
-    E_Int v1, volCom;
-    E_Int i,k,proci,prock;
-    for (E_Int v = 0; v < sizeComd/2; v++)
-    {
-      v1 = comd[2*v]; volCom = comd[2*v+1];
-      k = E_Int(v1/nb);
-      i = v1-k*nb;
-      proci = out[i];
-      prock = out[k];
-      // le voisin est-il sur le meme processeur?
-      if (i < k) volTot += 2*volCom;
-      if (proci != prock && i < k)
-      {
-        nptsCom += 2*volCom;
-      }
-    }
-  }
-  
-  //printf("Volume de communication=%d\n", nptsCom);
-  if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
-  else volRatio = 0.;
-  printf("Info: external com ratio=%f%%\n", volRatio*100);
-  fflush(stdout);
-
   bestAdapt = 1.;
   //printf("Adaptation: %f\n", bestAdapt);
+
+  // external stats
+  E_Int empty;
+  stats(nbPts, NProc, com, comd, sizeComd, out, empty, 
+        varMin, varMax, varRMS, volRatio);
+
 }

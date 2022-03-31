@@ -262,15 +262,15 @@ SplDistributor::split()
       }
     FldArrayI uglyPeople(nicePeople);
     // Croisement de la population de nice people
-    for ( E_Int j = 1; j <= sizeOfPopulation; j++ )
+    for (E_Int j = 1; j <= sizeOfPopulation; j++)
     {
       if ( j != jBest )
       {
         // tirage au hasard de papa et de maman
-	E_Int indPapa  =
-          survivorsp[E_Int((1.*nbSurvivors*lrand48())/(MAXRAND+1.0))];
-	E_Int indMaman =
-          survivorsp[E_Int((1.*nbSurvivors*lrand48())/(MAXRAND+1.0))];
+        E_Int indPapa  =
+        survivorsp[E_Int((1.*nbSurvivors*lrand48())/(MAXRAND+1.0))];
+        E_Int indMaman =
+        survivorsp[E_Int((1.*nbSurvivors*lrand48())/(MAXRAND+1.0))];
 	for ( E_Int i = 0; i < glbMeshes.size(); i++ )
 	  if ( drand48() >= 0.5 )
 	  {

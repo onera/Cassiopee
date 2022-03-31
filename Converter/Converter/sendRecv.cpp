@@ -415,7 +415,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
         else 
         {
             printf("[%d][ERROR] size of list = %d (= 3 or 6 normally)\n", rank, sizeList); fflush(stdout);
-        } 
+        }
     }
 
     // Calcul de la taille du buffer final

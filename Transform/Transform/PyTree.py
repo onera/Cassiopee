@@ -2081,7 +2081,7 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
         for z in zones:
             dim = Internal.getZoneDim(z)
             if dim[0] == 'Unstructured':
-                print('Warning: splitSize: unstructured zone not treated.')
+                print('Warning: splitSize: unstructured zone skipped.')
             if dim[0] == 'Structured':
                 ni = dim[1]; nj = dim[2]; nk = dim[3]
                 ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
@@ -2091,12 +2091,14 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
     from operator import itemgetter
 
     # Init le vecteur des ressources
-    Rs = [0]*R
+    Rs = [0 for i in range(R)]
+    procs = [ [0,[]] for i in range(R)]
     mins = minPtsPerDir-1 # nbre de cellules mini des blocs par direction
 
     while len(SP) > 0:
         SP = sorted(SP, key=itemgetter(0), reverse=True)
         Rs = sorted(Rs)
+        procs = sorted(procs, key=itemgetter(0))
         #print('ress', Rs[0], C.getNCells(SP[0][1]))
         a = SP[0][1] # le plus gros
         base = SP[0][2]
@@ -2154,6 +2156,8 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
                     a1, a2 = split(a, 1, ns, t)
                     SP[0] = (getNCells(a2), a2, base)
                     Rs[0] += getNCells(a1)
+                    procs[0][1].append(a1[0])
+                    procs[0][0] = Rs[0]
                     trynext = 0
             elif dirl == 2:
                 nc = int(round(Nr*1./nik,0))+1
@@ -2162,6 +2166,8 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
                     a1, a2 = split(a, 2, ns, t)
                     SP[0] = (getNCells(a2), a2, base)
                     Rs[0] += getNCells(a1)
+                    procs[0][1].append(a1[0])
+                    procs[0][0] = Rs[0]
                     trynext = 0
             elif dirl == 3:
                 nc = int(round(Nr*1./nij,0))+1
@@ -2170,11 +2176,26 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
                     a1, a2 = split(a, 3, ns, t) 
                     SP[0] = (getNCells(a2), a2, base)
                     Rs[0] += getNCells(a1)
+                    procs[0][1].append(a1[0])
+                    procs[0][0] = Rs[0]
                     trynext = 0
             if trynext == 1:
                 Rs[0] += getNCells(a); del SP[0]
+                procs[0][1].append(a[0])
+                procs[0][0] = Rs[0]
         else:
             Rs[0] += getNCells(a); del SP[0]
+            procs[0][1].append(a[0])
+            procs[0][0] = Rs[0]
+                    
+    # Affectation des procs
+    try: 
+        import Distributor2.PyTree as D2
+        for np, p in enumerate(procs):
+            for zname in p[1]:
+                z = Internal.getNodeFromName(t, zname)
+                D2._addProcNode(z, np)
+    except: pass
     return None
 
 # Split size decentre avec ressources
