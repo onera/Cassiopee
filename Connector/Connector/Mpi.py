@@ -525,8 +525,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                 transferedDatas[procR].append([zrcvname,indicesR,fields])
 
     # 6. envoie des numpys des donnees interpolees suivant le graphe
-    #rcvDatas = Cmpi.sendRecvC(transferedDatas, graph)
-    rcvDatas = Cmpi.sendRecv(transferedDatas, graph)
+    rcvDatas = Cmpi.sendRecvC(transferedDatas, graph)
+    #rcvDatas = Cmpi.sendRecv(transferedDatas, graph)
 
     # 7. remise des donnees interpolees chez les zones receveuses
     # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees

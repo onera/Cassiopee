@@ -2919,9 +2919,7 @@ def _computeKcurvParameter(tc, tb):
             nameSubRegion = zsr[0]
             if nameSubRegion[0:4]=='IBCD':
                 ibctypeCR = nameSubRegion.split('_')[1]
-                print("ibcTypeCR ", ibctypeCR)
                 if ibctypeCR=='100':
-                    print("coucou", XOD.__KCURV__)
                     KCurv = Internal.getNodeFromName(zsr, XOD.__KCURV__)[1]
                     coordX = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
                     coordY = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]

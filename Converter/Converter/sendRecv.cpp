@@ -96,7 +96,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     }
 
 
-    // Type de la donnees : premier ou deuxieme sendRecv
+    // Type de la donnee : premier ou deuxieme sendRecv
     E_Int dataType = 0;
 
     E_Int sizeDatas = PyList_Size(datas);
@@ -111,12 +111,11 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     char zoneName[256];
     char zoneDName[256];
 
-    for (E_Int nData=0; nData<sizeDatas; nData++) // parcourt les listes dans datas
+    for (E_Int nData=0; nData<sizeDatas; nData++) // parcours des listes dans datas
     {
-        // Recuperation de la liste des données
+        // Recuperation de la liste des donnees
         PyObject* listData = PyList_GetItem(datas, nData);
         E_Int sizeList = PyList_Size(listData);
-
         if (sizeList == 6) // premier sendRecv de transfers
         {
             // TYPE 1 de donnees : [[zname, znamed, indicesI, XI, YI, ZI]]
@@ -240,37 +239,29 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             }
 #endif
             else { dataType=3; }
-
+      
             if (dataType == 2)
             {
-                // TYPE 2 de données : [[zrcvname,indicesR,fields]]
+                // TYPE 2 de donnees : [[zrcvname,indicesR,fields]]
                 
                 // Nom de la zone recv
                 PyObject* zone = PyList_GetItem(listData, 0);
                 getName(zone, zoneName);
                 E_Int size_zoneName = strlen(zoneName);
-
-                // Indices des points à interpoler
+                // Indices des points a interpoler
                 PyObject* PyIndices = PyList_GetItem(listData, 1);
                 E_Int* indices; E_Int nIndices; E_Int nfld;
                 K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld, true);
 
-                // Fields à interpoler
+                // Fields a interpoler
                 PyObject* PyFields = PyList_GetItem(listData, 2);
-                //E_Int nFields = PyList_Size(PyFields);
-
-                // Récupération des nom de variables
-                PyObject* PyFieldNames = PyList_GetItem(PyFields, 0);
-                char fieldNames[256];
-                getName(PyFieldNames, fieldNames);
+                char* fieldNames; FldArrayF* interpFields; E_Int nPts; E_Int nj, nk;
+                FldArrayI* cn; char* eltType; E_Boolean shared=true;
+                E_Int oka = K_ARRAY::getFromArray(PyFields, fieldNames, 
+                                                 interpFields, nPts, nj, nk, cn, eltType, shared);
+                E_Int nFlds = interpFields->getNfld();
+                E_Float* fields = interpFields->begin();
                 E_Int size_fieldNames = strlen(fieldNames);
-
-                // Valeurs des fields
-                PyObject* PyFieldArrays = PyList_GetItem(PyFields, 1); //Numpy a 5 cases
-                //PyObject* PyField1 = PyList_GetItem(PyFieldsArrays, 0);
-                E_Float* fields; E_Int nPts; E_Int nFlds;
-                K_NUMPY::getFromNumpyArray(PyFieldArrays, fields, nPts, nFlds, true);
-                
                 // Calcul du nombre d'octets necessaires :
                 //  - nom de la zone 
                 //  - indices des pts a interpo : type, taille, indices
@@ -322,38 +313,32 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
                 // releaseshared
                 Py_DECREF(PyIndices);
-                Py_DECREF(PyFieldArrays);
+                RELEASESHAREDB(oka, PyFields, interpFields,cn);
             }
             else if (dataType == 3)
             {
-                // TYPE 3 de données : [[int, fields, indices]]
+                // TYPE 3 de donnees : [[int, fields, indices]]
                 
                 // Nom de la zone recv
                 PyObject* PyVar = PyList_GetItem(listData, 0);
                 E_Int var = PyLong_AsLong(PyVar);
 
-                // Fields à interpoler
+                // Fields a interpoler
                 PyObject* PyFields = PyList_GetItem(listData, 1);
-                //E_Int nFields = PyList_Size(PyFields);
-
-                // Récupération des nom de variables
-                PyObject* PyFieldNames = PyList_GetItem(PyFields, 0);
-                char fieldNames[256];
-                getName(PyFieldNames, fieldNames);
+                char* fieldNames; FldArrayF* interpFields; E_Int nPts; E_Int nj, nk;
+                FldArrayI* cn; char* eltType; E_Boolean shared=true;
+                E_Int oka = K_ARRAY::getFromArray(PyFields, fieldNames, 
+                                                 interpFields, nPts, nj, nk, cn, eltType, shared);
+                E_Int nFlds = interpFields->getNfld();
+                E_Float* fields = interpFields->begin();
                 E_Int size_fieldNames = strlen(fieldNames);
 
-                // Valeurs des fields
-                PyObject* PyFieldArrays = PyList_GetItem(PyFields, 1); //Numpy à 5 cases
-                //PyObject* PyField1 = PyList_GetItem(PyFieldsArrays, 0);
-                E_Float* fields; E_Int nPts; E_Int nFlds;
-                K_NUMPY::getFromNumpyArray(PyFieldArrays, fields, nPts, nFlds, true);
-
-                // Indices des points à interpoler
+                // Indices des points a interpoler
                 PyObject* PyIndices = PyList_GetItem(listData, 2);
                 E_Int* indices; E_Int nIndices; E_Int nfld;
                 K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld, true);
 
-                // Calcul du nombre d'octets nécessaires :
+                // Calcul du nombre d'octets necessaires :
                 //  - entier
                 //  - indices des pts a interpo : type, taille, indices
                 //  - valeurs des fields : type, taille, 6 fields
@@ -402,7 +387,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 
                 // releaseshared
                 Py_DECREF(PyIndices);
-                Py_DECREF(PyFieldArrays);
+                RELEASESHAREDB(oka, PyFields, interpFields, cn);
             }
             else
             {
