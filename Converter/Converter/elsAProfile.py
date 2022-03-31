@@ -9,17 +9,17 @@ from . import Converter
 import numpy
 import math
 
-__CONSERVATIVE__=["Density", "MomentumX", "MomentumY", "MomentumZ", "EnergyStagnationDensity"]
-__TURBULENT__=["TurbulentEnergyKineticDensity", "TurbulentDissipationDensity", "TurbulentSANuTildeDensity"]
-__COMMONS__=["Pressure", "Mach", "Temperature"]
-__COMMONSNS__=["Viscosity_EddyMolecularRatio"]
-__WALLDISTANCE__= ["TurbulentDistance","TurbulentDistanceIndex"]
-__XYZ__=['CoordinateX', 'CoordinateY', 'CoordinateZ']
+__CONSERVATIVE__ = ["Density", "MomentumX", "MomentumY", "MomentumZ", "EnergyStagnationDensity"]
+__TURBULENT__ = ["TurbulentEnergyKineticDensity", "TurbulentDissipationDensity", "TurbulentSANuTildeDensity"]
+__COMMONS__ = ["Pressure", "Mach", "Temperature"]
+__COMMONSNS__ = ["Viscosity_EddyMolecularRatio"]
+__WALLDISTANCE__ = ["TurbulentDistance","TurbulentDistanceIndex"]
+__XYZ__ = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
 
-__FAMOVERLAPBC__='F_OV_'
-__FAMOVERLAPDDBC__='F_OVDD_'
-__CHIMGROUPNAME__='ChimGroup_' # reference to donors for suffixed base name
-__CHIMGROUPNAMEDD__='ChimGroupDD_' # reference to donors for suffixed base name
+__FAMOVERLAPBC__ = 'F_OV_'
+__FAMOVERLAPDDBC__ = 'F_OVDD_'
+__CHIMGROUPNAME__ = 'ChimGroup_' # reference to donors for suffixed base name
+__CHIMGROUPNAMEDD__ = 'ChimGroupDD_' # reference to donors for suffixed base name
 
 ##############################################################################
 
@@ -532,11 +532,14 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
                      governingEquations=None, writingMode=None,
                      writingFrame='relative', period=None, output=None,
                      addBCExtract=False, protocol="end"):
+  """Add a node to extract the flow solution."""
   if governingEquations is not None: gE0 = governingEquations
   else: 
     gE0 = None
     GE = Internal.getNodeFromType2(t,'GoverningEquations_t')
     if GE is not None: gE0 = Internal.getValue(GE)
+  if variables is not None:
+    for c, v in enumerate(variables): variables[c] = Internal.getCGNSName(v)
   if output is None: outputDict={}
   else: outputDict=output
   if loc == 'cellfict': outputDict["loc"]=2
@@ -567,10 +570,10 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
           if variables is None: variables = [] 
 
         else:
-          variables=__CONSERVATIVE__+__COMMONS__
+          variables = __CONSERVATIVE__+__COMMONS__
           if gE0 != 'Euler': variables+=__COMMONSNS__
-          if gE0 =='NSTurbulent': variables+= __TURBULENT__+__WALLDISTANCE__
-          #print 'addFlowSolution: extracted variables are: ',variables
+          if gE0 == 'NSTurbulent': variables += __TURBULENT__+__WALLDISTANCE__
+          #print('addFlowSolution: extracted variables are: ',variables)
       else:
         if isinstance(variables,str): variables = variables.split()
         if "xyz" in variables: 

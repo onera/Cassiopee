@@ -208,7 +208,7 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
     t1 = T.splitNParts(t1, N=size)
     D2._distribute(t1, NProc=size, algorithm='fast')
 
-    # SplitSize + ressource
+    # SplitSize + ressource : distribue en meme temps
     a.remove(core)
     t2 = C.newPyTree(['FLEX',a])
     t2 = T.splitSize(t2, R=size)

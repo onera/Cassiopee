@@ -2827,7 +2827,6 @@ def array2PyTreeDim(a):
 # -- Cree un noeud de donnees (DataArray_t) a partir d'un array field nfld --
 # cellDim = zone cell dimension
 def createDataNode(name, array, nfld, cellDim=3):
-  name = getCGNSName(name)
   if len(array) == 5: # structure
       ni = array[2]; nj = array[3]; nk = array[4]
       if isinstance(array[1], list): a = array[1][nfld] # array 2

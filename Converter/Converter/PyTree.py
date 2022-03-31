@@ -2334,48 +2334,46 @@ def _addVars(t, vars):
       loc = 'nodes'; v = var.split(':')
       if len(v) > 1: var = v[1]; loc = v[0]
       for z in zones:
-        variable = Internal.getCGNSName(var)
         found = 0
         if loc == 'centers':
           node = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
           if node is not None:
-            nodeofname = Internal.getNodeFromName1(node, variable)
+            nodeofname = Internal.getNodeFromName1(node, var)
             if nodeofname is not None: found = 1
         if loc == 'nodes':
           node = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
           if node is not None:
-            nodeofname = Internal.getNodeFromName1(node, variable)
+            nodeofname = Internal.getNodeFromName1(node, var)
             if nodeofname is not None: found = 1
           node = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
           if node is not None:
-            nodeofname = Internal.getNodeFromName1(node, variable)
+            nodeofname = Internal.getNodeFromName1(node, var)
             if nodeofname is not None: found = 1
         if found == 0:
           dim = Internal.getZoneDim(z)
-          _addAVar__(z, dim, '%s:%s'%(loc,variable))
+          _addAVar__(z, dim, '%s:%s'%(loc,var))
   else:
     loc = 'nodes'; v = vars.split(':')
     if len(v) > 1: vars = v[1]; loc = v[0]
-    variable = Internal.getCGNSName(vars)
     for z in zones:
       found = 0
       if loc == 'centers':
         node = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         if node is not None:
-          nodeofname = Internal.getNodeFromName1(node, variable)
+          nodeofname = Internal.getNodeFromName1(node, vars)
           if nodeofname is not None: found = 1
       if loc == 'nodes':
         node = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
         if node is not None:
-          nodeofname = Internal.getNodeFromName1(node, variable)
+          nodeofname = Internal.getNodeFromName1(node, vars)
           if nodeofname is not None: found = 1
         node = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
         if node is not None:
-          nodeofname = Internal.getNodeFromName1(node, variable)
+          nodeofname = Internal.getNodeFromName1(node, vars)
           if nodeofname is not None: found = 1
       if found == 0:
         dim = Internal.getZoneDim(z)
-        _addAVar__(z, dim, '%s:%s'%(loc,variable))
+        _addAVar__(z, dim, '%s:%s'%(loc,vars))
   return None
 
 def _addAVar__(z, dim, var):
