@@ -1,6 +1,6 @@
 # - paint app -
-try: import Tkinter as TK
-except: import tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot

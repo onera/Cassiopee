@@ -1,6 +1,6 @@
 """Tkinter interface for CPlot"""
-try: import Tkinter as TK
-except ImportError: import tkinter as TK
+try: import tkinter as TK
+except ImportError: import Tkinter as TK
 from . import Ttk as TTK
 import Converter.PyTree as C
 import Converter
@@ -215,7 +215,6 @@ def getModule(app):
   return TKMODULES[app]
 
 def openApp(app):
-  global TKMODULES
   module = getModule(app)
   if module is not None: module.showApp()
 
@@ -539,8 +538,8 @@ def fixFileString2__(file):
 #==============================================================================
 def loadFile(event=None):
     global FILE; global t; global Nb; global Nz; global __FIELD__
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     files = tkFileDialog.askopenfilenames(
         filetypes=fileTypes, initialfile=FILE, multiple=1)
     if files == '' or files is None or files == (): # user cancel
@@ -578,8 +577,8 @@ def loadFile(event=None):
 #==============================================================================
 def addFile():
     global t; global Nb; global Nz
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     files = tkFileDialog.askopenfilenames(
         filetypes=fileTypes, initialfile=FILE, multiple=1)
     if files == '' or files is None or files == (): # user cancel
@@ -614,8 +613,8 @@ def addFile():
 #==============================================================================
 def saveFile():
     global FILE
-    try: import tkFileDialog
-    except ImportError: import tkinter.filedialog as tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except ImportError: import tkFileDialog
     ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes, initialfile=FILE)
     if ret == '' or ret is None or ret == (): # user cancel
         return
@@ -634,8 +633,8 @@ def saveFile():
 #==============================================================================
 def quickSaveFile(event=None):
     global FILE
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     if FILE == '':
         ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
         if ret == '' or ret is None or ret == (): # user cancel
@@ -680,8 +679,8 @@ def saveSelFile():
     if nzs == []:
         TXT.insert('START', 'Selection is empty.\n')
         TXT.insert('START', 'Error: ', 'Error'); return
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
     if ret == '' or ret is None or ret == (): # user cancel
         return
@@ -750,9 +749,9 @@ def loadPrefFile():
 # Essai d'importer ttk
 #==============================================================================
 def importTtk():
-    try: import ttk
+    try: import tkinter.ttk as ttk
     except ImportError:
-      try: import tkinter.ttk as ttk
+      try: import ttk 
       except ImportError: ttk = None
     return ttk
 
@@ -995,8 +994,8 @@ def changeCPlotBlanking():
 #==============================================================================
 def cplotExport():
     global EXPORTFILE
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     ret = tkFileDialog.asksaveasfilename(
         title='Export as...',
         initialfile=EXPORTFILE,

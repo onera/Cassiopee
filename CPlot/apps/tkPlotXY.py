@@ -40,7 +40,6 @@ except ImportError:
 try:
     from matplotlib.widgets import SubplotTool
     import matplotlib
-    import matplotlib.cbook
     import matplotlib.lines as mlines
     # Fit matplotlib usage
     matplotlib.use('TkAgg') # avec Tk
@@ -85,7 +84,7 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Transform.PyTree as T
-    import CPlot.PyTree as CPlot
+    #import CPlot.PyTree as CPlot
     import CPlot.Tk as CTK
     import CPlot.Ttk as TTK
     import CPlot.ColorControler as ColorControler

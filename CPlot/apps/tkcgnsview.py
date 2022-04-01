@@ -1,11 +1,6 @@
 # -- cassiopee cgnsview main app --
-try: import Tkinter as TK
-except: import tkinter as TK
 import Converter.PyTree as C
-import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import CPlot.Panels as Panels
-import Converter.Internal as Internal
 import os
 import os.path, sys
 

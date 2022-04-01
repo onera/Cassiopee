@@ -1,7 +1,7 @@
 # - tkView - 
 """Set the view in plotter."""
-try: import Tkinter as TK
-except ImportError: import tkinter as TK
+try: import tkinter as TK
+except ImportError: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot

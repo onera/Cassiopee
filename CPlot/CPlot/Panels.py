@@ -1,7 +1,7 @@
 """Panels for tkCassiopee."""
 
-try: import Tkinter as TK
-except ImportError: import tkinter as TK
+try: import tkinter as TK
+except ImportError: import Tkinter as TK
 try: import Tk as CTK
 except ImportError: from . import Tk as CTK
 import Converter

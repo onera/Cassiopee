@@ -1,7 +1,7 @@
 # - tkChimera -
 """Chimera setup app."""
-try: import Tkinter as TK
-except: import tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK

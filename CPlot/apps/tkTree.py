@@ -1,15 +1,15 @@
 # - tkTree -
 """View a pyTree in a tree widget."""
-try: import Tkinter as TK
-except: import tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import tkTreeOps # for node inspector
 import Converter.Internal as Internal
-try: import Tkdnd # drag and drop
-except: import tkinter.dnd as Tkdnd
+try: import tkinter.dnd as Tkdnd # drag and drop
+except: import Tkdnd
 import numpy
 
 try: range = xrange

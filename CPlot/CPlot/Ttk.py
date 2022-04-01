@@ -1,12 +1,12 @@
-try: import Tkinter as TK
-except: import tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 try: import Tk as CTK 
 except: from . import Tk as CTK
 
 ttk = None
-try: import ttk
+try: import tkinter.ttk as ttk
 except: 
-    try: import tkinter.ttk as ttk
+    try: import ttk
     except: ttk = None
 #Uncomment that for a pure Tk interface
 #ttk = None
@@ -44,7 +44,7 @@ def setTheme(myTheme):
         available = ttk.Style().theme_names()
         if myTheme in available:
             ttk.Style().theme_use(myTheme); createStyles(); return
-        tryThemes = ["xpnative", "clearlooks", "plastik",
+        tryThemes = ["xpnative", "clearlooks",
                      "black", "aquativa", "classic", "default"]
         for t in tryThemes:
             if t in available:

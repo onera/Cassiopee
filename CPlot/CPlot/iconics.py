@@ -1,6 +1,6 @@
 # iconics Photos
-try: import Tkinter as TK
-except: import tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 PHOTO = []
 
 saveImg = TK.PhotoImage(data="""
@@ -242,7 +242,6 @@ G4YjAH8UJoNPMoMVEX8pKn8sloNDJRoLf5YeAoIShEs8NS49OoUJpYJFR1FSTjQNDoIohS84Nz5K
 Nh0BghkFhC2WEw9CDB+HhBgATCIHhxwWBH8rgjOEP4QDgheuQIJTRIQwgwiCSEZJOYQxEAaFguwg
 oa3goEAAOw==
 """)
-
 
 PHOTO += [saveImg, undoImg, deleteImg, copyImg, fitImg, selectallImg, eyeImg,
           mainImg, getImg, pinImg, pin2Img, refreshIconImg, invertSelectionImg,

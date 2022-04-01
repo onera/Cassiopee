@@ -1,6 +1,4 @@
 # -- Cassiopee main app --
-try: import Tkinter as TK
-except: import tkinter as TK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
@@ -204,7 +202,7 @@ def run(t=None):
     
     # - Update apps -    
     CTK.TKTREE.updateApp()
-    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+    if CTK.TKMODULES['tkContainers'] is not None: CTK.TKMODULES['tkContainers'].updateApp()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
         
     # - open load panel if partial load -
