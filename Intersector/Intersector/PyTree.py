@@ -3016,8 +3016,16 @@ def selfX(t):
 def checkCellsClosure(t):
     """ Returns the first cell id that is open
     Usage: checkCellsClosure(a)"""
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    return XOR.checkCellsClosure(m)
+    zones = Internal.getZones(t)
+    iz=-1
+    for z in zones:
+        iz +=1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        err = XOR.checkCellsClosure(m)
+        if err == 1 :
+          print('checkCellsClosure found an open cell in ' + str(iz) + '-th zone')
+          return 1
+    return 0
 
 #==============================================================================
 # checkCellsFlux : Computes the cell fluxes using the ParentElement node

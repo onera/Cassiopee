@@ -60,6 +60,126 @@ using ngon_type = ngon_t<K_FLD::IntArray>;
 using subdiv_t = NUGA::eSUBDIV_TYPE;
 using elt_t = K_INTERSECTOR::eType;
 
+//// DICO / MAP utils //////////////////////////
+ 
+void convert_dico_to_map___int_int_vecint
+(
+  PyObject *py_zone_to_zone_to_list_owned,
+  std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned)
+{
+  if (PyDict_Check(py_zone_to_zone_to_list_owned))
+  {
+    //E_Int nzid = PyDict_Size(py_zone_to_zone_to_list_owned);
+
+    PyObject *py_zid/*key*/, *py_zone_to_list_owned /*value : map jzid to ptlist*/;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(py_zone_to_zone_to_list_owned, &pos, &py_zid, &py_zone_to_list_owned))
+    {
+      int zid = (int) PyInt_AsLong(py_zid);
+
+      assert (PyDict_Check(py_zone_to_list_owned) == 1); // it s a map
+
+      PyObject *py_jzid/*key*/, *py_ptlist_owned /*value : ptlist*/;
+      Py_ssize_t pos1 = 0;
+
+      while (PyDict_Next(py_zone_to_list_owned, &pos1, &py_jzid, &py_ptlist_owned))
+      {
+        int jzid = (int) PyInt_AsLong(py_jzid);
+
+        assert (PyArray_Check(py_ptlist_owned) == 1) ; // it s a numpy
+        //std::cout << "est ce un numpy ??? " << isnumpy << std::endl;
+
+        PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist_owned);
+
+        long ndims = PyArray_NDIM(pyarr);
+        assert (ndims == 1); // vector
+        npy_intp* dims = PyArray_SHAPE(pyarr);
+
+        E_Int ptl_sz = dims[0];
+        
+        //long* dataPtr = static_cast<long*>(PyArray_DATA(pyarr));
+        E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
+
+        std::vector<E_Int> ptl(ptl_sz);
+        for (size_t u=0; u < ptl_sz; ++u) ptl[u] = dataPtr[u];
+
+        //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
+
+        zone_to_zone_to_list_owned[zid][jzid]=ptl;
+
+      }
+    }
+  }
+}
+
+struct transf_t {
+  double t[4];
+  bool operator==(const transf_t& r) const
+  {
+    for (size_t k=0; k < 4; ++k)
+      if (t[k] != r.t[k]) return false;
+    return true;
+  }
+  bool operator<(const transf_t& r) const
+  {
+    if (*this == r) return false;
+    for (size_t k=0; k < 4; ++k)
+      if (t[k] <r.t[k]) return true;
+    return false;
+  }
+};
+
+int convert_dico_to_map___transfo_to_vecint
+(
+  PyObject *py_transfo_to_list,
+  std::map<transf_t, std::vector<int>>& transfo_to_list
+)
+{
+  if (PyDict_Check(py_transfo_to_list) == 0) return 1;
+  
+  //E_Int nzid = PyDict_Size(transfo_to_list);
+
+  PyObject *py_transfo/*key*/, *py_vecint /*value : vector<int>*/;
+  Py_ssize_t pos = 0;
+
+  transf_t t;
+
+  while (PyDict_Next(py_transfo_to_list, &pos, &py_transfo, &py_vecint))
+  {
+    // key
+    assert (PyTuple_Check(py_transfo) == 1) ; // it s a tuple (Xx, Yc, Zc, R)
+    PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_transfo);    
+    Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
+
+    assert (nb == 4);
+    for (size_t i=0; i < 4; ++i)
+    {
+      PyObject * p PyTuple_GET_ITEM(pytup, i);
+      t.t[i] = (double) PyFloat_AsDouble(p);
+      //std::cout << "transfo " << i << " : " << t.t[i] << std::endl;
+    }
+
+    // val
+    assert (PyArray_Check(py_vecint) == 1) ; // it s a numpy
+    PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_vecint);
+
+    long ndims = PyArray_NDIM(pyarr);
+    assert (ndims == 1); // vector
+    npy_intp* dims = PyArray_SHAPE(pyarr);
+
+    E_Int sz = dims[0];
+    
+    //long* dataPtr = static_cast<long*>(PyArray_DATA(pyarr));
+    E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
+
+    transfo_to_list[t].resize(sz);
+    for (size_t u=0; u < sz; ++u) transfo_to_list[t][u] = dataPtr[u];
+  }
+}
+
+////////////////////////////////////////////////
+
 
 ///
 template <NUGA::eSUBDIV_TYPE STYPE>
@@ -625,6 +745,45 @@ const char* varString, PyObject *out)
   return err;
 }
 
+//=============================================================================
+/* Initialize the mesh (shift_gem, roerient..) */
+//=============================================================================
+PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
+{
+  //todo VD
+
+  PyObject *arr, *py_transfo_to_list;
+  if (!PyArg_ParseTuple(args, "OO", &arr, &py_transfo_to_list)) return nullptr;
+
+  // 1. Get mesh and check is NGON
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check mesh is NGON
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return nullptr;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  //2. dico to map
+  std::map<transf_t, std::vector<int>> transfo_to_list;
+  err = convert_dico_to_map___transfo_to_vecint(py_transfo_to_list, transfo_to_list);
+  if (err)
+  {
+    std::cout << "adaptCells_mpi : input is not a dictionary" << std::endl;
+    return nullptr;
+  }
+
+  return nullptr;
+}
+
 
 //=============================================================================
 /* Hierarchical Mesh Adaptation : MPI version (has MPI calls) */
@@ -752,52 +911,8 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
   // 3. GET zone_to_zone_to_list_owned
 
   std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_owned;
-
-  if (PyDict_Check(py_zone_to_zone_to_list_owned))
-  {
-    E_Int nzid = PyDict_Size(py_zone_to_zone_to_list_owned);
-    assert (nzid == nb_meshes);
-
-    PyObject *py_zid/*key*/, *py_zone_to_list_owned /*value : map jzid to ptlist*/;
-    Py_ssize_t pos = 0;
-
-    while (PyDict_Next(py_zone_to_zone_to_list_owned, &pos, &py_zid, &py_zone_to_list_owned))
-    {
-      int zid = (int) PyInt_AsLong(py_zid);
-
-      assert (PyDict_Check(py_zone_to_list_owned) == 1); // it s a map
-
-      PyObject *py_jzid/*key*/, *py_ptlist_owned /*value : ptlist*/;
-      Py_ssize_t pos1 = 0;
-
-      while (PyDict_Next(py_zone_to_list_owned, &pos1, &py_jzid, &py_ptlist_owned))
-      {
-        int jzid = (int) PyInt_AsLong(py_jzid);
-
-        assert (PyArray_Check(py_ptlist_owned) == 1) ; // it s a numpy
-        //std::cout << "est ce un numpy ??? " << isnumpy << std::endl;
-
-        PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist_owned);
-
-        long ndims = PyArray_NDIM(pyarr);
-        assert (ndims == 1); // vector
-        npy_intp* dims = PyArray_SHAPE(pyarr);
-
-        E_Int ptl_sz = dims[0];
-        
-        //long* dataPtr = static_cast<long*>(PyArray_DATA(pyarr));
-        E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
-
-        std::vector<E_Int> ptl(ptl_sz);
-        for (size_t u=0; u < ptl_sz; ++u) ptl[u] = dataPtr[u];
-
-        //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
-
-        zone_to_zone_to_list_owned[zid][jzid]=ptl;
-
-      }
-    }
-  }
+  convert_dico_to_map___int_int_vecint(py_zone_to_zone_to_list_owned, zone_to_zone_to_list_owned);
+  assert (zone_to_zone_to_list_owned == nb_meshes);
 
   /*std::cout << "adaptCells : before __adapt_wrapper" << std::endl;
   std::cout << "sub type : " << *subdiv_type << std::endl;
@@ -1264,54 +1379,10 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   }
 
   // 2. GET POINTLISTS MAP 
-
   std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_owned;
-
-  if (PyDict_Check(py_zone_to_zone_to_list_owned))
-  {
-    E_Int nzid = PyDict_Size(py_zone_to_zone_to_list_owned);
-    //assert (nzid == nb_meshes);
-
-    PyObject *py_zid/*key*/, *py_zone_to_list_owned /*value : map jzid to ptlist*/;
-    Py_ssize_t pos = 0;
-
-    while (PyDict_Next(py_zone_to_zone_to_list_owned, &pos, &py_zid, &py_zone_to_list_owned))
-    {
-      int zid = (int) PyInt_AsLong(py_zid);
-
-      assert (PyDict_Check(py_zone_to_list_owned) == 1); // it s a map
-
-      PyObject *py_jzid/*key*/, *py_ptlist_owned /*value : ptlist*/;
-      Py_ssize_t pos1 = 0;
-
-      while (PyDict_Next(py_zone_to_list_owned, &pos1, &py_jzid, &py_ptlist_owned))
-      {
-        int jzid = (int) PyInt_AsLong(py_jzid);
-
-        assert (PyArray_Check(py_ptlist_owned) == 1) ; // it s a numpy
-        //std::cout << "est ce un numpy ??? " << isnumpy << std::endl;
-
-        PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist_owned);
-
-        long ndims = PyArray_NDIM(pyarr);
-        assert (ndims == 1); // vector
-        npy_intp* dims = PyArray_SHAPE(pyarr);
-
-        E_Int ptl_sz = dims[0];
-        
-        //long* dataPtr = static_cast<long*>(PyArray_DATA(pyarr));
-        E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
-
-        std::vector<E_Int> ptl(ptl_sz);
-        for (size_t u=0; u < ptl_sz; ++u) ptl[u] = dataPtr[u];
-
-        //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
-
-        zone_to_zone_to_list_owned[zid][jzid]=ptl;
-
-      }
-    }
-  }
+  convert_dico_to_map___int_int_vecint(py_zone_to_zone_to_list_owned, zone_to_zone_to_list_owned);
+  assert (zone_to_zone_to_list_owned.size() == nb_meshes);
+  
 
   // 3. EXCHANGE
   std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_opp;

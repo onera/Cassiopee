@@ -69,6 +69,7 @@ static PyMethodDef Pyintersector [] =
   {"agglomerateCellsWithSpecifiedFaces", K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces, METH_VARARGS},
   {"adaptCells", K_INTERSECTOR::adaptCells, METH_VARARGS},
   {"adaptCells_mpi", K_INTERSECTOR::adaptCells_mpi, METH_VARARGS},
+  {"initForAdaptCells", K_INTERSECTOR::initForAdaptCells, METH_VARARGS},
   {"adaptBox", K_INTERSECTOR::adaptBox, METH_VARARGS},
   {"createHMesh", K_INTERSECTOR::createHMesh, METH_VARARGS},
   {"createHMesh2", K_INTERSECTOR::createHMesh2, METH_VARARGS},

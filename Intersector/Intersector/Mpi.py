@@ -170,11 +170,17 @@ def createHMesh(t, subdiv_type= 0):
       #todo VD : 
       #1. faire un disctionnaire 'rotation to ptllist' en parcourant les raccords
       #   un raccord periodique possede le noeud 'GridConnectivityProperty' qui possede un noued 'Periodic'
-      #   consulter les valeurs, prendre l'axe et l'angle de rotation, mettre (0,0,0,0) si raccord en translation ou match
-
-      # intersector.initForAdaptCells(z, dico) <= fonction a creer dans adaptCells_mpi.cpp
+      #   consulter les valeurs, prendre l'axe et l'angle de rotation, mettre (0,0,0,0) si :
+      # - raccord en translation 
+      # - raccord match
+      # - raccord periodique mais valeur négative de rotation (on ne deplace qu'un demi-raccord)
 
       m = C.getFields(Internal.__GridCoordinates__, z)[0]
+
+      #dico = {}
+      #dico[(0.4,1.5, 2.6, 3.7)]=[2,3,4, 5, 6]
+      #m = intersector.initForAdaptCells(m, dico) #todo VD : <= fonction dans adaptCells_mpi.cpp
+      
       zid = CD.getProperty(z, 'zid')
       hm = intersector.createHMesh2(m, subdiv_type, zid)
       hmeshs.append(hm)
