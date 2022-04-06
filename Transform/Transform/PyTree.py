@@ -2073,7 +2073,7 @@ def getNCells(z):
         return ni1*nj1*nk1
 
 # Split size decentre avec ressources
-def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
+def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir, topTree):
     bases = Internal.getBases(t)
     SP = []; Nl = 0
     for b in bases:
@@ -2153,7 +2153,7 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
                 nc = int(round(Nr*1./njk,0))+1
                 ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
                 if ns-1 >= mins and ni-ns >= mins:
-                    a1, a2 = split(a, 1, ns, t)
+                    a1, a2 = split(a, 1, ns, topTree)
                     SP[0] = (getNCells(a2), a2, base)
                     Rs[0] += getNCells(a1)
                     procs[0][1].append(a1[0])
@@ -2163,7 +2163,7 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
                 nc = int(round(Nr*1./nik,0))+1
                 ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
                 if ns-1 >= mins and nj-ns >= mins:
-                    a1, a2 = split(a, 2, ns, t)
+                    a1, a2 = split(a, 2, ns, topTree)
                     SP[0] = (getNCells(a2), a2, base)
                     Rs[0] += getNCells(a1)
                     procs[0][1].append(a1[0])
@@ -2173,7 +2173,7 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
                 nc = int(round(Nr*1./nij,0))+1
                 ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
                 if ns-1 >= mins and nk-ns >= mins:
-                    a1, a2 = split(a, 3, ns, t) 
+                    a1, a2 = split(a, 3, ns, topTree) 
                     SP[0] = (getNCells(a2), a2, base)
                     Rs[0] += getNCells(a1)
                     procs[0][1].append(a1[0])
@@ -2435,7 +2435,8 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     print("Imbalance",min(Rs)/(max(Rs)*1.0))
     return t
 
-def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
+def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, topTree=None):
+    if topTree is None: topTree = t
     zones = Internal.getZones(t)
     # Fait des paquets de zones structurees et non structurees
     zonesS = []; zonesN = []
@@ -2550,7 +2551,7 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
         ap = a
 
         for e, i in enumerate(nis):
-            a1,a2 = split(ap, 1, i, t)
+            a1,a2 = split(ap, 1, i, topTree)
             store.append(a1)
             if e == len(nis)-1: store.append(a2)
             ap = a2
@@ -2559,54 +2560,54 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
         store2 = []
         for ap in store:
             for e, j in enumerate(njs):
-                a1,a2 = split(ap, 2, j, t)
+                a1,a2 = split(ap, 2, j, topTree)
                 store2.append(a1)
                 if e == len(njs)-1: store2.append(a2)
                 ap = a2
         if len(njs) == 0: store2 = store
         for ap in store2:
             for e, k in enumerate(nks):
-                a1,a2 = split(ap, 3, k, t)
+                a1,a2 = split(ap, 3, k, topTree)
                 ap = a2
-        
     return None
 
-def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
+def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, topTree=None):
     """Split zones in t in N parts. 
     Usage: splitNParts(t, N, multigrid, dirs, recoverBC)"""
     tp = Internal.copyRef(t)
     tpp, typen = Internal.node2PyTree(tp)
-    _splitNParts(tpp, N, multigrid, dirs, recoverBC)
+    _splitNParts(tpp, N, multigrid, dirs, recoverBC, topTree)
     tp = Internal.pyTree2Node(tpp, typen)
     return tp
 
 def splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
-              minPtsPerDir=5):
+              minPtsPerDir=5, topTree=None):
     """Split zones following size."""
     tp = Internal.copyRef(t)
     tpp, typen = Internal.node2PyTree(tp)
-    _splitSize(tpp, N, multigrid, dirs, type, R, minPtsPerDir)
+    _splitSize(tpp, N, multigrid, dirs, type, R, minPtsPerDir, topTree)
     tp = Internal.pyTree2Node(tpp, typen)
     return tp
 
 def _splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
-               minPtsPerDir=5):
+               minPtsPerDir=5, topTree=None):
     minPtsPerDir = max(minPtsPerDir, 2**(multigrid+1)+1)
     if R is not None: type = 2
-    
+    if topTree is None: topTree = t
     if type == 0:
        stack = []
        for z in Internal.getZones(t): stack.append(z)
        while len(stack)>0:
         z = stack.pop()
-        _splitSize__(z, N, multigrid, dirs, t, stack)
+        _splitSize__(z, N, multigrid, dirs, topTree, stack)
     elif type == 1:
        stack = []
        for z in Internal.getZones(t): stack.append(z)
        while len(stack)>0:
         z = stack.pop()
-        _splitSizeUp__(z, N, multigrid, dirs, t, stack)
-    elif type == 2: _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir)
+        _splitSizeUp__(z, N, multigrid, dirs, topTree, stack)
+    elif type == 2: 
+        _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir, topTree)
     return None
 
 def splitCurvatureAngle(t, sensibility):
@@ -2983,4 +2984,16 @@ def _splitNGon(t, N, N2=-1, shift=1000):
         a2 = C.getAllFields(z, 'centers')[0] # must contain "part" field
         Transform.transform.splitNGon2(a1, a2, N, N2, shift)
         C.setFields([a2], z, 'centers', writeDim=False)
+    return None
+
+def stick(t, psurf, stickBCName='FamilySpecified:stick'):
+    """Stick a mesh on a surface."""
+    tp = Internal.copyRef(t)
+    _stick(tp, psurf, stickBCName)
+    return tp
+
+def _stick(t, psurf, stickBCName='FamilySpecified:stick'):
+    """Stick a mesh on a surface."""
+    from . import Stick
+    Stick._stick(t, psurf, stickBCName)
     return None

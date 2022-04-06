@@ -106,76 +106,67 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   //printf("Warning: rk set to %f.\n" , rkinput);
   //}
 
-  E_Float niapp, njapp, nkapp;
+  E_Float ri, rj, rk;
+  E_Int ni, nj, nk;
   if (K_FUNC::fEqual(riinput, 1.0) == true)
   {
-    niapp = int(std::abs(xf - xo) / hi)+1;
+    ni = int(std::abs(xf - xo) / hi)+1;
+    hi = std::abs(xf - xo)/(ni-1);
+    ri = 1.;
+    //if (xf > xo) printf("end: %f %f\n", xf, xo+hi*(ni-1));
+    //else printf("end: %f %f\n", xf, xo-hi*(ni-1));
+    //printf("h %f -> %f\n", hio, hi);
   }
   else
   {
-    niapp = log( (std::abs(xf - xo) / hi) * (riinput - 1) +1) / log(riinput);
+    ni = log( (std::abs(xf - xo) / hi) * (riinput - 1) +1) / log(riinput);
+    ni = floor(ni);
+    ri = NewtonApproche(xo,xf,hi,ni,riinput);
+    if (fEqual(ri, 1.) == false) ni += 1;
+    //if (xf > xo) printf("end: %f %f\n", xf, xo+hi*((-1. + pow(ri ,ni-1) ) / (-1. + ri)));
+    //else printf("end: %f %f\n", xf, xo-hi*((-1. + pow(ri ,ni-1) ) / (-1. + ri)));
+    //printf("r %f -> %f\n", riinput, ri);
   } 
 
   if (K_FUNC::fEqual(rjinput, 1.) == true)
   {
-    njapp = int(std::abs(yf - yo) / hj)+1;
+    nj = int(std::abs(yf - yo) / hj)+1;
+    hj = std::abs(yf - yo)/(nj-1);
+    rj = 1.;
   }
   else
   {
-    njapp = log( (std::abs(yf - yo) / hj) * (rjinput - 1) +1) / log(rjinput);
+    nj = log( (std::abs(yf - yo) / hj) * (rjinput - 1) +1) / log(rjinput);
+    nj = floor(nj);
+    rj = NewtonApproche(yo,yf,hj,nj,rjinput);
+    if (fEqual(rj, 1.) == false) nj += 1;
   }
   
   if (K_FUNC::fEqual(rkinput, 1.0) == true)
   {
-    nkapp = int(std::abs(zf - zo) / hk)+1;
+    nk = int(std::abs(zf - zo) / hk)+1;
+    hk = std::abs(zf - zo)/(nk-1);
+    rk = 1.;
   }
   else
   {  
-    nkapp = log( (std::abs(zf - zo) / hk) * (rkinput - 1) +1) / log(rkinput);
+    nk = log( (std::abs(zf - zo) / hk) * (rkinput - 1) +1) / log(rkinput);
+    rk = NewtonApproche(zo,zf,hk,nk,rkinput);
+    if (fEqual(rk, 1.) == false) nk += 1;
   }
 
   if (K_FUNC::fEqual(xo,xf)==true)
   {
-    niapp=0;
+    ni=1;
   }
   if (K_FUNC::fEqual(yo,yf)==true)
   {
-    njapp=0;
+    nj=1;
   }
   if (K_FUNC::fEqual(zo,zf)==true)
   {
-    nkapp=0;
+    nk=1;
   }
-  E_Int ni = floor(niapp);
-  E_Int nj = floor(njapp);
-  E_Int nk = floor(nkapp);
-  
-  // printf("ni partie entiere = %i \n ",ni) ; fflush(stdout);
-  // printf("nj partie entiere= %i \n ",nj) ; fflush(stdout);
-  // printf("nk partie entiere= %i \n ",nk) ; fflush(stdout);
-
-  E_Float ri = NewtonApproche(xo,xf,hi,ni,riinput);
-  E_Float rj = NewtonApproche(yo,yf,hj,nj,rjinput);
-  E_Float rk = NewtonApproche(zo,zf,hk,nk,rkinput);
-  
-  //printf("Info: final ri=%f\n ",ri) ; fflush(stdout);
-  //printf("Info: final rj=%f\n ",rj) ; fflush(stdout);
-  //printf("Info: final rk=%f\n ",rk) ; fflush(stdout);
-  
-  if (fEqual(ri, 1.) == false)
-  {
-    ni += 1;
-  }
-  
-  if (fEqual(rj, 1.) == false)
-  {
-    nj += 1;
-  } 
-
-  if (fEqual(rk, 1.) == false)
-  {
-    nk += 1;
-  } 
 
   //printf("Info: number of mesh cell = %i (i), %i (j), %i (k)\n ",ni,nj,nk); fflush(stdout);
   if (skeleton == 1) return Py_BuildValue("llldddddd", ni, nj, nk, ri, rj, rk, hi, hj, hk);
@@ -204,14 +195,14 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      if (xf<xo)
+      if (xf < xo)
       {
         xt[ind] = xo - hi * ( ( -1. + pow(ri ,i) ) / (-1. + ri) );
       }
       else
       {
         xt[ind] = xo + hi * ( ( -1. + pow(ri ,i) ) / (-1. + ri) );
-      } 
+      }
     }
   }
   else
@@ -222,7 +213,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      if (xf<xo)
+      if (xf < xo)
       {
         xt[ind] = xo - hi * i;
       } 
@@ -241,7 +232,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      if (yf<yo)
+      if (yf < yo)
       {
         yt[ind] = yo - hj * ( ( -1. + pow(rj, j) ) / (-1. + rj) );
       } 
@@ -259,7 +250,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      if (yf<yo)
+      if (yf < yo)
       {
         yt[ind] = yo - hj * j;
       }
@@ -278,7 +269,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      if (zf<zo)
+      if (zf < zo)
       {
         zt[ind] = zo - hk * ( ( -1. + pow(rk ,k) ) / (-1. + rk) );
       }

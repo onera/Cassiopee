@@ -452,7 +452,7 @@ def printProcStats(t, stats=None, NProc=None):
 #================================================================================
 # Get stats from tree with proc nodes (redone here from stats.cpp)
 #================================================================================
-def stats(t, prescribed=None, weight=None, useCom='match', mode='nodes'):
+def stats(t, useCom='match', mode='nodes'):
     NProc = 0; nbTot = 0
     zones = Internal.getZones(t)
     nzones = len(zones)
@@ -471,7 +471,7 @@ def stats(t, prescribed=None, weight=None, useCom='match', mode='nodes'):
 
     # meanPtsPerProc, nbNodePerProc
     meanPtsPerProc = nbTot*1./NProc
-    nbNodePerProc = numpy.empty( (NProc), dtype=numpy.float64 )
+    nbNodePerProc = numpy.zeros( (NProc), dtype=numpy.float64 )
     for c, p in enumerate(out):
         nbNodePerProc[p] += nbPts[c]
 
@@ -492,7 +492,7 @@ def stats(t, prescribed=None, weight=None, useCom='match', mode='nodes'):
     varRMS = numpy.sqrt(varRMS) / (NProc*meanPtsPerProc);
     volRatio = 0.
 
-    (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, prescribed, weight, useCom, mode)
+    (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, None, None, useCom, mode)
 
     if comd is not None:    
         allkeys = comd.keys()
@@ -519,8 +519,8 @@ def stats(t, prescribed=None, weight=None, useCom='match', mode='nodes'):
 #==================================================================================
 # print stats from tree
 #==================================================================================
-def printStats(t, prescribed=None, weight=None, useCom='match', mode='nodes'):
-    (varMin, varMax, varRMS, volRatio, empty) = stats(t, prescribed, weight, useCom, mode)
+def printStats(t, useCom='match', mode='nodes'):
+    (varMin, varMax, varRMS, volRatio, empty) = stats(t, useCom, mode)
     print("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%"%(100*varMin, 100*varMax, 100*varRMS))
     print("Info: external com ratio=%f%%"%(volRatio*100))
     if empty == 1: print("Warning: at least one processor is empty!")

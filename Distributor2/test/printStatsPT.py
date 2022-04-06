@@ -16,4 +16,5 @@ t = X.connectMatch(t)
 t, stats = D2.distribute(t, 3)
 
 D2.printStats(t)
-C.convertPyTree2File(t, 'out.cgns')
+#>> Info: varMin=3.636364%, varMax=12.727273%, varRMS=5.352582%
+#>> Info: external com ratio=20.000000%

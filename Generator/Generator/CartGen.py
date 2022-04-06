@@ -44,27 +44,27 @@ def cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False,
                         if i > 0:
                             C._addBC2Zone(z, 'match', 'BCMatch', 'imin', z, 'imax', [1,2,3])
                             bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i-1,j,k))
+                            Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i-1,j,k))
                         if i < Nb[0]-1:
                             C._addBC2Zone(z, 'match', 'BCMatch', 'imax', z, 'imin', [1,2,3])
                             bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i+1,j,k))
+                            Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i+1,j,k))
                         if j > 0:
                             C._addBC2Zone(z, 'match', 'BCMatch', 'jmin', z, 'jmax', [1,2,3])
                             bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j-1,k))
+                            Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j-1,k))
                         if j < Nb[1]-1:
                             C._addBC2Zone(z, 'match', 'BCMatch', 'jmax', z, 'jmin', [1,2,3])
                             bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j+1,k))
+                            Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j+1,k))
                         if k > 0:
                             C._addBC2Zone(z, 'match', 'BCMatch', 'kmin', z, 'kmax', [1,2,3])
                             bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j,k-1))
+                            Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j,k-1))
                         if k < Nb[2]-1:
                             C._addBC2Zone(z, 'match', 'BCMatch', 'kmax', z, 'kmin', [1,2,3])
                             bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-                            Internal._setValue(bcs[-1], 'cart%d.%d.%d'%(i,j,k+1))
+                            Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j,k+1))
                     out.append(z)
     return out
 
@@ -121,15 +121,6 @@ def _cartRxRefit(a):
 def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
     """Create a set of regular and geometric cartesian grids."""
 
-    # Ajuste HC pour core match
-    Nx = int((XC1[0]-XC0[0])/HC[0])+1
-    Ny = int((XC1[1]-XC0[1])/HC[1])+1
-    Nz = int((XC1[2]-XC0[2])/HC[2])+1
-    HCx = (XC1[0]-XC0[0])/(Nx-1.)
-    HCy = (XC1[1]-XC0[1])/(Ny-1.)
-    HCz = (XC1[2]-XC0[2])/(Nz-1.)
-    HC = (HCx,HCy,HCz)
-
     L0x = XC0[0]-XF0[0]
     L1x = XC1[0]-XC0[0]
     L2x = XF1[0]-XC1[0]
@@ -163,9 +154,12 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                 n = Internal.newGridCoordinates(parent=z)
                 Internal.newDataArray('CoordinateX', value=None, parent=n)
                 z[0] = 'cart%d-%d-%d'%(i,j,k)
-                
+                if z[0] == 'cart1-1-1' or z[0] == 'cart1-2-1':
+                    print(z[0],ni,nj,nk)
+                    print(z[0],Qx,Px+hio*(ni-1),hio,HC[0])
+
                 if i > 0:
-                    C._addBC2Zone(z,'match','BCMatch','imin',z,'imin',[1,2,3])
+                    C._addBC2Zone(z, 'match', 'BCMatch', 'imin', z, 'imax', [1,2,3])
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i-1,j,k))
                 if i < 2:
@@ -173,7 +167,7 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i+1,j,k))
                 if j > 0:
-                    C._addBC2Zone(z,'match','BCMatch','jmin',z,'jmin',[1,2,3])
+                    C._addBC2Zone(z, 'match', 'BCMatch', 'jmin', z,'jmax', [1,2,3])
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j-1,k))
                 if j < 2:
@@ -181,7 +175,7 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j+1,k))
                 if k > 0:
-                    C._addBC2Zone(z,'match','BCMatch','kmin',z,'kmin',[1,2,3])
+                    C._addBC2Zone(z, 'match', 'BCMatch', 'kmin', z, 'kmax', [1,2,3])
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j,k-1))
                 if k < 2:
@@ -189,33 +183,50 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j,k+1))
            
-                if i == 0: iv = 1; hio = -hio
-                else: iv = 0
-                if j == 0: jv = 1; hjo = -hjo
-                else: jv = 0
-                if k == 0: kv = 1; hko = -hko
-                else: kv = 0
+                if i == 0: hio=hio*rio**(ni-2); rio=1./rio; Px=Qx
+                if j == 0: hjo=hjo*rjo**(nj-2); rjo=1./rjo; Py=Qy
+                if k == 0: hko=hko*rko**(nk-2); rko=1./rko; Pz=Qz
 
-                data[z[0]] = [(Px,Py,Pz), (hio,hjo,hko), (rio,rjo,rko), (ni,nj,nk), (iv,jv,kv)]
+                data[z[0]] = [(Px,Py,Pz), (hio,hjo,hko), (rio,rjo,rko), (ni,nj,nk)]
 
                 a[i+3*j+9*k] = z
 
-    t = C.newPyTree(['Base',a])
+    t = C.newPyTree(['CARTESIAN','FLEX'])
+    for z in a:
+        if z[0] == 'cart1-1-1': core = z; break
+    t[2][1][2].append(core)
+    a.remove(core)
+    t[2][2][2] += a
+
+    # correction des fenetres max des BCs
+    for z in Internal.getZones(t):
+        bcs = Internal.getNodesByType(z, 'GridConnectivity1to1_t')
+        for BC in bcs:
+            PtRangeDonor = Internal.getNodeFromName1(BC, 'PointRangeDonor')[1]
+            donorName = Internal.getValue(BC)
+            zd = Internal.getNodeFromName2(t, donorName)
+            dimz = Internal.getZoneDim(zd)
+            imaxDonor = dimz[1]; jmaxDonor = dimz[2]; kmaxDonor = dimz[3]
+            if PtRangeDonor[0,0]>1 and PtRangeDonor[0,0]==PtRangeDonor[0,1]:
+                PtRangeDonor[0,0] = imaxDonor
+                PtRangeDonor[0,1] = imaxDonor
+            if PtRangeDonor[1,0]>1 and PtRangeDonor[1,0]==PtRangeDonor[1,1]:
+                PtRangeDonor[1,0] = jmaxDonor
+                PtRangeDonor[1,1] = jmaxDonor
+            if PtRangeDonor[2,0]>1 and PtRangeDonor[2,0]==PtRangeDonor[2,1]:
+                PtRangeDonor[2,0] = kmaxDonor
+                PtRangeDonor[2,1] = kmaxDonor
 
     # SplitNParts on core
-    core = Internal.getNodeFromName2(t, 'cart1-1-1')
-    t1 = C.newPyTree(['CARTESIAN',core])
-    t1 = T.splitNParts(t1, N=size)
-    D2._distribute(t1, NProc=size, algorithm='fast')
+    b = Internal.getNodeFromName(t, 'CARTESIAN')
+    T._splitNParts(b, N=size, topTree=t)
+    D2._distribute(b, NProc=size, algorithm='fast')
 
     # SplitSize + ressource : distribue en meme temps
-    a.remove(core)
-    t2 = C.newPyTree(['FLEX',a])
-    t2 = T.splitSize(t2, R=size)
+    b = Internal.getNodeFromName(t, 'FLEX')
+    T._splitSize(b, R=size, topTree=t)
     #D2._distribute(t2, NProc=size, algorithm='fast') # deja fait par splitSize
-    D2.printStats(t2)
-
-    t = Internal.merge([t1,t2])
+    D2.printStats(b)
     
     # Generation reelle
     bases = Internal.getBases(t)
@@ -228,6 +239,8 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     #print(z[0],'bloc non splite', flush=True)
                     d = data[z[0]]
                     zn = G.cartr1(d[0], d[1], d[2], d[3])
+                    if z[0] == 'cart1-1-1' or z[0] == 'cart1-2-1':
+                        print(z[0], d[3], Internal.getZoneDim(z)[1:])
                 else:
                     #print(z[0],'bloc splitte', flush=True)
                     source, dest = Internal.getLoc2Glob(z)
@@ -255,13 +268,8 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     Pz = P[2] + ratioz*H[2]
                     Rx = R[0]; Ry = R[1]; Rz = R[2]
                     N = (i2-i1+1,j2-j1+1,k2-k1+1)
-                    
                     zn = G.cartr1((Px,Py,Pz), (Hx,Hy,Hz), (Rx,Ry,Rz), N)
             
-                (iv,jv,kv) = d[4]
-                if iv == 1: T._reorder(zn, (-1,2,3))
-                if jv == 1: T._reorder(zn, (1,-2,3))
-                if kv == 1: T._reorder(zn, (1,2,-3))
                 zn[0] = z[0]
                 D2._addProcNode(zn, rank)
                 n = Internal.getNodesFromName(z, 'ZoneBC')

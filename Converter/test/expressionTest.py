@@ -16,7 +16,7 @@ def test_function(formule, func) :
 	y = coords[1][1,:]
 	z = coords[1][2,:]
 	r = coords[1][3,:]
-	for i in range(N) :
+	for i in range(N):
 		v = func(x[i],y[i],z[i])
 		if abs(r[i] - v ) > 1.E-14 * abs(v):
 			print("Erreur calcul : resultat trouve avec expression : ", r[i], " et avec formule : ", v)
