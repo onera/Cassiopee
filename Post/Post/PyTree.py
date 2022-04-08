@@ -1394,9 +1394,16 @@ def _computeGrad2(t, var, ghostCells=False):
     vare = var.split(':')
     if len(vare) > 1: vare = vare[1]
 
+    # Test if field exist
+    solc = C.getFields(Internal.__FlowSolutionCenters__, t)[0]
+    if solc == []:
+        raise ValueError("_computeGrad2: no field detected (check container).")
+
     # Compute fields on BCMatch (for all match connectivities)
-    if not ghostCells: allMatch = C.extractAllBCMatch(t,vare)
-    else: allMatch = {}
+    if not ghostCells:
+        allMatch = C.extractAllBCMatch(t,vare)
+    else:
+        allMatch = {}
 
     zones = Internal.getZones(t)
     for z in zones:
@@ -1405,12 +1412,12 @@ def _computeGrad2(t, var, ghostCells=False):
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         vol  = Internal.getNodeFromName1(cont, 'vol')
         if vol is not None: vol = vol[1]
-        
+            
         f = C.getField(var, z)[0]
         x = C.getFields(Internal.__GridCoordinates__, z)[0]
         # Get BCDataSet if any
         indices=None; BCField=None
-
+        
         isghost = Internal.getNodeFromType1(z,'Rind_t')
         if isghost is None or not ghostCells: # not a ghost cells zone : add BCDataSet
             zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
@@ -1430,7 +1437,7 @@ def _computeGrad2(t, var, ghostCells=False):
                             else: indices = numpy.concatenate((indices, indsp))
                             if BCField is None: BCField = bcfp
                             else: BCField = numpy.concatenate((BCField, bcfp))
-
+        
         # compute field on BCMatch for current zone
         if allMatch != {}:
             indFace, fldFace = C.computeBCMatchField(z,allMatch,vare)

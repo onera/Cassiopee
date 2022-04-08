@@ -30,14 +30,14 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
 {
   // Return index of boundary faces in receiver zone and associated fields 
   // extracted from donor zone
-
+  
   PyObject *zone, *pyIndices, *pyVariables ; 
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
-
+  
   if (!PYPARSETUPLEI(args, "OOOsss", "OOOsss", &zone, &pyIndices, &pyVariables, 
                &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters )) 
      return NULL;
-
+  
   // Zone 
   // ~~~~
   E_Int ni, nj, nk, cnSize, cnNfld ; 
@@ -50,6 +50,15 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
                                          cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
                                          FlowSolutionNodes, FlowSolutionCenters);
 
+  E_Int nfld0 = fields.size();
+  if (nfld0 == 0) 
+  {
+    RELEASESHAREDZ(hook, varString, eltType);
+    PyErr_SetString(PyExc_TypeError,
+                    "extractBCMatchNG: no field to perform computation.");
+    return NULL;
+  }
+    
   if (zoneType == 0) 
   {
     PyErr_SetString(PyExc_TypeError, "extractBCMatchNG: not a valid zone.");
@@ -68,16 +77,19 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
       RELEASESHAREDZ(hook, varString, eltType);
       return NULL;  
     }
-    else PE = cn[2];
+    else
+    {
+      PE = cn[2];
+    }
   }
-
+  
   // Positions des variables a extraire 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   vector<E_Int> posvars;
   E_Int posvar;   
   char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
   varStringOut[0] = '\0';
-
+    
   if (PyList_Check(pyVariables) != 0)
   {
     int nvariables = PyList_Size(pyVariables);
@@ -100,13 +112,13 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(tpl0))
         {
-          const char* varname = PyUnicode_AsUTF8(tpl0); 
+          const char* varname = PyUnicode_AsUTF8(tpl0);
           if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
           else
           {
              strcat(varStringOut, ","); strcat(varStringOut, varname);
           }
-          posvar = K_ARRAY::isNamePresent(varname, varString);  
+          posvar = K_ARRAY::isNamePresent(varname, varString);
           if (posvar != -1 ) posvars.push_back(posvar);
         }
 #endif
@@ -117,7 +129,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
       }
     }
   }
-
+  
   // Indices des faces 
   // ~~~~~~~~~~~~~~~~~
   FldArrayI* ind;
