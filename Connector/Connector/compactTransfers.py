@@ -4,7 +4,7 @@ import numpy
 
 try: import Converter.Internal as Internal
 except: raise ImportError("Connector.compactTransfers requires Converter module.")
-
+import Connector.OversetData as XOD
 try: range = xrange
 except: pass
 ibm_lbm_variables_1 ='Q_'
@@ -154,7 +154,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            sname = s[0][0:2]
            utau = Internal.getNodeFromName1(s, 'utau')
            sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
-         
+           kcurv = Internal.getNodeFromName1(s,XOD.__KCURV__)
            # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
            if sname == 'IB':
             vx = Internal.getNodeFromName1(s, 'VelocityX')
@@ -209,6 +209,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
            if utau is not None: ntab_IBC += 2
            if sd1 is not None: ntab_IBC += 5
+           if kcurv is not None: ntab_IBC +=1
            if sname == 'IB' and model == "LBMLaminar":
                if qloc_1 is not None: ntab_IBC += neq_trans
                if qloc_2 is not None: ntab_IBC += neq_trans	
@@ -510,10 +511,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                  param_int[iadr+rac[pos]*3]  = 7  # musker paroi en rotation
              else:
                  param_int[iadr+rac[pos]*3]  = int(zsrname[1]) # 'IBCD_type_zonename'
-          
+           
+           IBCType = param_int[iadr+rac[pos]*3]
            #print('len zsrname', len(zsrname),param_int[iadr+rac[pos]*3] )
 
-           # print('IBCType = ', IBCTypes[param_int[ iadr +rac[pos]*3 ]])
+#           print('IBCType = ', IBCType)
            xc        = Internal.getNodeFromName1(s , 'CoordinateX_PC')
            yc        = Internal.getNodeFromName1(s , 'CoordinateY_PC')
            zc        = Internal.getNodeFromName1(s , 'CoordinateZ_PC')
@@ -548,34 +550,36 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            ptvy = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
            ptvz = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
            size_IBC +=3*Nbpts_D; inc += 3
+           
+           if IBCType==2 or IBCType==3 : #Log/ Musker wall law
+                utau   = Internal.getNodeFromName1(s , 'utau')
+                ptutau    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                yplus   = Internal.getNodeFromName1(s , 'yplus')
+                ptyplus   = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                size_IBC += 2*Nbpts_D; inc += 2
 
-           utau = Internal.getNodeFromName1(s, 'utau')
-           yplus = Internal.getNodeFromName1(s, 'yplus')
-           if utau is not None:
-               ptutau    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               ptyplus   = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               size_IBC += 2*Nbpts_D; inc += 2
+           elif IBCType == 100 : 
+                kcurv   = Internal.getNodeFromName1(s, XOD.__KCURV__)
+                ptkcurv = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                sizeIBC += Nbpts_D; inc += 1
 
-           sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
-           if sd1 is not None:
-               ptd1    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
-           sd2 = Internal.getNodeFromName1(s, 'StagnationPressure')
-           if sd2 is not None:
-               ptd2    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
-           sd3 = Internal.getNodeFromName1(s, 'dirx')
-           if sd3 is not None:
-               ptd3    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
-           sd4 = Internal.getNodeFromName1(s, 'diry')
-           if sd4 is not None:
-               ptd4    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
-           sd5 = Internal.getNodeFromName1(s, 'dirz')
-           if sd5 is not None:
-               ptd5    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
+           elif IBCType == 5: #injection
+                sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
+                ptd1    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+                sd2 = Internal.getNodeFromName1(s, 'StagnationPressure')
+                ptd2    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+                sd3 = Internal.getNodeFromName1(s, 'dirx')
+                ptd3    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+                sd4 = Internal.getNodeFromName1(s, 'diry')
+                ptd4    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+                sd5 = Internal.getNodeFromName1(s, 'dirz')
+                ptd5    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+
            if model=="LBMLaminar":
                qloc_1[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))
                if qloc_1[0] is not None:
@@ -637,7 +641,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                        ptutau,ptyplus,
                        ptd1,ptd2,ptd3,ptd4,ptd5,
                        xc,yc,zc,xi,yi,zi,xw,yw,zw, 
-                       density,pressure,
+                       density,pressure, kcurv,
                        vx, vy, vz,
                        utau,yplus,
                        sd1,sd2,sd3,sd4,sd5,
@@ -651,7 +655,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                         ptutau,ptyplus,
                         ptd1,ptd2,ptd3,ptd4,ptd5, 
                         xc,yc,zc,xi,yi,zi,xw,yw,zw, 
-                        density,pressure,
+                        density,pressure, kcurv,
                         vx, vy, vz,
                         utau,yplus,
                         sd1,sd2,sd3,sd4,sd5,
@@ -665,37 +669,34 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        #if s[0] == 'ID_cart3' and z[0]=='cart1': print('verif',  InterpD[   1][0], pt_coef,numpy.shape(InterpD[ 1  ]))
 
        if sname == 'IB':
-           xc[1]       = param_real[ ptxc: ptxc+ Nbpts_D ]
-           yc[1]       = param_real[ ptyc: ptyc+ Nbpts_D ]
-           zc[1]       = param_real[ ptzc: ptzc+ Nbpts_D ]
-           xi[1]       = param_real[ ptxi: ptxi+ Nbpts_D ]
-           yi[1]       = param_real[ ptyi: ptyi+ Nbpts_D ]
-           zi[1]       = param_real[ ptzi: ptzi+ Nbpts_D ]                                      # supression numpy initial IBC
-           xw[1]       = param_real[ ptxw: ptxw+ Nbpts_D ]
-           yw[1]       = param_real[ ptyw: ptyw+ Nbpts_D ]
-           zw[1]       = param_real[ ptzw: ptzw+ Nbpts_D ]
-           density[1]  = param_real[ ptdensity : ptdensity + Nbpts_D ]
-           pressure[1] = param_real[ ptpressure: ptpressure+ Nbpts_D ]
+            xc[1]       = param_real[ ptxc: ptxc+ Nbpts_D ]
+            yc[1]       = param_real[ ptyc: ptyc+ Nbpts_D ]
+            zc[1]       = param_real[ ptzc: ptzc+ Nbpts_D ]
+            xi[1]       = param_real[ ptxi: ptxi+ Nbpts_D ]
+            yi[1]       = param_real[ ptyi: ptyi+ Nbpts_D ]
+            zi[1]       = param_real[ ptzi: ptzi+ Nbpts_D ]                                      # supression numpy initial IBC
+            xw[1]       = param_real[ ptxw: ptxw+ Nbpts_D ]
+            yw[1]       = param_real[ ptyw: ptyw+ Nbpts_D ]
+            zw[1]       = param_real[ ptzw: ptzw+ Nbpts_D ]
+            density[1]  = param_real[ ptdensity : ptdensity + Nbpts_D ]
+            pressure[1] = param_real[ ptpressure: ptpressure+ Nbpts_D ]
 
-           vx[1]       = param_real[ ptvx: ptvx+ Nbpts_D ]
-           vy[1]       = param_real[ ptvy: ptvy+ Nbpts_D ]
-           vz[1]       = param_real[ ptvz: ptvz+ Nbpts_D ]
+            vx[1]       = param_real[ ptvx: ptvx+ Nbpts_D ]
+            vy[1]       = param_real[ ptvy: ptvy+ Nbpts_D ]
+            vz[1]       = param_real[ ptvz: ptvz+ Nbpts_D ]
 
-           if utau is not None:
-               utau[1]  = param_real[ ptutau : ptutau + Nbpts_D ]
-               yplus[1] = param_real[ ptyplus: ptyplus + Nbpts_D ]
-
-           if sd1 is not None:
-               sd1[1]  = param_real[ ptd1 : ptd1 + Nbpts_D ]
-           if sd2 is not None:
-               sd2[1]  = param_real[ ptd2 : ptd2 + Nbpts_D ]
-           if sd3 is not None:
-               sd3[1]  = param_real[ ptd3 : ptd3 + Nbpts_D ]
-           if sd4 is not None:
-               sd4[1]  = param_real[ ptd4 : ptd4 + Nbpts_D ]
-           if sd5 is not None:
-               sd5[1]  = param_real[ ptd5 : ptd5 + Nbpts_D ]
-           if model=="LBMLaminar":
+            if IBCType==2 or IBCType==3: # wall law
+                utau[1]  = param_real[ ptutau : ptutau + Nbpts_D ]
+                yplus[1] = param_real[ ptyplus: ptyplus + Nbpts_D ]
+            elif IBCType == 5:
+                sd1[1]  = param_real[ ptd1 : ptd1 + Nbpts_D ]
+                sd2[1]  = param_real[ ptd2 : ptd2 + Nbpts_D ]
+                sd3[1]  = param_real[ ptd3 : ptd3 + Nbpts_D ]
+                sd4[1]  = param_real[ ptd4 : ptd4 + Nbpts_D ]
+                sd5[1]  = param_real[ ptd5 : ptd5 + Nbpts_D ]
+            elif IBCType==100: # wall slip + curvature
+                kcurv[1] = param_real[ ptkcurv : ptkcurv + Nbpts_D ]
+            if model=="LBMLaminar":
                if qloc_1[0] is not None:
                    for f_i in range(0,neq_loc):
                        qloc_1[f_i][1]   = param_real[ ptqloc_1[f_i] : ptqloc_1[f_i] + Nbpts_D ]
@@ -724,10 +725,6 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
          param_int[ iadr +rac[pos]*11  ]= procList[proc].index( zRname )  # No zone raccord
 
        #print( 'rac', s[0], 'zoneR=', zRname, 'NoR=', param_int[ iadr +rac[pos]*11 ],  'adr=',iadr +rac[pos]*11, 'NoD=',  param_int[ iadr-1 +rac[pos]*5 ], 'adr=',iadr-1 +rac[pos]*5,'rank=', rank, 'dest=', proc)
-
-       # ATTENTION STEPHANIE A TOUT COMMENTE
-       #a = Internal.getNodeFromName2(zones_tc[ param_int[ iadr +rac[pos]*11  ]  ], 'GoverningEquations')
-       #if a is not None: model = Internal.getValue(a)
 
        #print 'model=',model,'zoneR',zones_tc[param_int[ iadr +rac[pos]*11  ]][0], 'NoR=', param_int[ iadr +rac[pos]*11  ], 'NoD=', c
        tmp =  Internal.getNodeFromName1(s , 'RANSLES')
@@ -803,7 +800,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  ptutau,ptyplus,
                  ptd1,ptd2,ptd3,ptd4,ptd5,
                  xc,yc,zc,xi,yi,zi,xw,yw,zw, 
-                 density,pressure,
+                 density,pressure, kcurv,
                  vx, vy, vz,
                  utau,yplus,
                  sd1,sd2,sd3,sd4,sd5,
@@ -872,6 +869,9 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                    param_real[ ptd3   + l + l0 ]= sd3[1][i]
                    param_real[ ptd4   + l + l0 ]= sd4[1][i]
                    param_real[ ptd5   + l + l0 ]= sd5[1][i]
+               if kcurv is not None:
+                    param_real[ ptkcurv   + l + l0 ]= kcurv[1][i]
+
                if model == 'LBMLaminar':    
                    if qloc_1[0] is not None:
                        for f_i in range (0, neq_loc):
@@ -915,7 +915,7 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
                 ptutau,ptyplus,
                 ptd1,ptd2,ptd3,ptd4,ptd5,
                 xc,yc,zc,xi,yi,zi,xw,yw,zw, 
-                density,pressure,
+                density,pressure,kcurv,
                 vx, vy, vz,
                 utau,yplus,
                 sd1,sd2,sd3,sd4,sd5,
@@ -971,6 +971,10 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
            connector.initNuma(sd4[1] , param_real, ptd4 , Nbpts_D , 0, val)
        if sd5 is not None:
            connector.initNuma(sd5[1] , param_real, ptd5 , Nbpts_D , 0, val)
+
+       if kcurv is not None:
+           connector.initNuma(kcurv[1], param_real, ptkcurv, Nbpts_D, 0, val)
+    
        if model=='LBMLaminar':
            if qloc_1[0] is not None:
                for f_i in range (0,neq_loc):

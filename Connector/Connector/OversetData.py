@@ -327,23 +327,39 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
                interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0):
     """Compute Immersed Boundary data."""
+    aR = Internal.copyRef(tR)
+    aD = Internal.copyRef(tD) 
+    _setIBCData(aR, aD, order=order, penalty=penalty, nature=nature, method=method, loc=loc, storage=storage, interpDataType=interpDataType,
+                hook=hook, sameName=sameName, he=he, hi=hi, tfront=tfront, dim=dim, bcType=bcType)
+
+    if storage == 'direct': return aR
+    else: return aD
+
+def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
+               method='lagrangian', loc='nodes', storage='direct',
+               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0):
+    """Compute Immersed Boundary data."""
     try: from . import ToolboxIBM as IBM
     except: raise ImportError("setIBCData: requires ToolboxIBM module.")
 
     locR = loc
-    aR = Internal.copyRef(tR)
-    aD = Internal.copyRef(tD)
-
-    ReferenceState = Internal.getNodeFromType2(tR,'ReferenceState_t')
+    ReferenceState = Internal.getNodeFromType2(aR,'ReferenceState_t')
 
     # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
     else: cellNPresent = C.isNamePresent(aR, 'centers:cellN')
     if cellNPresent == -1:
-        if storage == 'direct': return aR
-        else: return aD
+        if storage == 'direct': return None
+        else: return None
 
-    aD = addCellN__(aD, loc='nodes')
+
+    locCellND = 'nodes'
+    # pour l'enlever ensuite si addCellN le cree
+    dictIsCellNPresent={}
+    for zd in Internal.getZones(aD):        
+        dictIsCellNPresent[zd[0]]=C.isNamePresent(zd, 'cellN')
+    _addCellN__(aD, loc=locCellND)
+    
     zonesRcv = Internal.getZones(aR); nzonesRcv = len(zonesRcv)
     zonesDnr = Internal.getZones(aD); nzonesDnr = len(zonesDnr)
 
@@ -388,14 +404,9 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                                  storage=storage,interpDataType=interpDataType,hook=hook,dim=dim, ReferenceState=ReferenceState, bcType=bcType)
 
     # fin parcours des zones receveuses
-    if storage == 'direct': return aR
-    else:
-        ztD = Internal.getZones(tD)
-        zaD = Internal.getZones(aD)
-        for i in range(len(ztD)): # enleve le cellN si interpData l'a ajoute
-            ret = C.isNamePresent(ztD[i], 'cellN')
-            if ret == -1: C._rmVars(zaD[i],['cellN'])
-        return aD
+    for zd in Internal.getZones(aD):
+        if dictIsCellNPresent[zd[0]]==-1: C._rmVars(zd,['cellN'])
+    return None
 
 def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nodes', \
                          order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
@@ -570,8 +581,8 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
     # Creation des numpy d'extraction
     nIBC = coordsPC[1].shape[1]
     if ReferenceState is None:
+        densNP = numpy.zeros((nIBC),numpy.float64)
         pressNP = numpy.zeros((nIBC),numpy.float64)
-        densNP  = numpy.zeros((nIBC),numpy.float64)
     else:
         Pinf = Internal.getNodeFromName1(ReferenceState,'Pressure')        
         if Pinf is not None: 
@@ -579,11 +590,12 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
             pressNP = Pinf*numpy.ones((nIBC),numpy.float64)
         else: 
             pressNP = numpy.zeros((nIBC),numpy.float64)
+
         roinf = Internal.getNodeFromName1(ReferenceState,'Density')
         if roinf is not None: 
             roinf = Internal.getValue(roinf)
             densNP = roinf*numpy.ones((nIBC),numpy.float64)
-        else: 
+        else:
             densNP = numpy.zeros((nIBC),numpy.float64)
 
     zsr[2].append(['Pressure', pressNP, [], 'DataArray_t'])
@@ -596,13 +608,13 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
     zsr[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
     zsr[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
     
-    if bcType != 0 and bcType != 100:
+    if bcType == 2 or bcType ==3 or bcType == 6:
         utauNP  = numpy.zeros((nIBC),numpy.float64)
         yplusNP = numpy.zeros((nIBC),numpy.float64)
         zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
         zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
 
-    if bcType == 5: # inj
+    elif bcType == 5:
       stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
       Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
       stagnationPressure = numpy.zeros((nIBC),numpy.float64)
@@ -613,7 +625,8 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
       Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
       dirz = numpy.zeros((nIBC),numpy.float64)
       Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
-    elif bcType == 100: #slip + curvature radius
+
+    elif bcType == 100:
         KCurvNP = numpy.zeros((nIBC),numpy.float64)
         zsr[2].append([__KCURV__ , KCurvNP , [], 'DataArray_t'])
 
@@ -932,11 +945,8 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         _adaptForRANSLES__(aR, aD)
 
     # fin parcours des zones receveuses
-    if storage == 'direct': return None
-    else:
-        for zd in Internal.getZones(aD):
-            if dictIsCellNPresent[zd[0]]==-1: C._rmVars(zd,['cellN'])
-        return None
+    for zd in Internal.getZones(aD):
+        if dictIsCellNPresent[zd[0]]==-1: C._rmVars(zd,['cellN'])
     return None
 
 #-------------------------------------------------------------------------
@@ -1473,24 +1483,18 @@ def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0
 # IN: variablesID=['var1','var2',...]: variables to be used in Chimera transfers
 #                =[] : the whole FlowSolutionNodes variables in topTreeD are transferred
 # IN: variablesIBC=['var1','var2',...,'var5']: variables used in IBC transfers
-# IN: bcType (IBC only)  0: glissement
-#                        1: adherence
-#                        2: loi de paroi log
-#                        3: loi de paroi Musker
+# IN: bcType (IBC only)  see TypesOfIBC dictionary at top of this file
 # IN: varType: defines the meaning of the variables IBC
-#     varType = 1 : (ro,rou,rov,row,roE)
-#     varType = 11: (ro,rou,rov,row,roE(,ronultideSA))
 #     varType = 2 : (ro,u,v,w,t)
 #     varType = 21: (ro,u,v,w,t(,nutildeSA))
-#     varType = 3 : (ro,u,v,w,p)
-#     varType = 31: (ro,u,v,w,p(,nutildeSA))
+# CAUTION !!!!! for IBC transfers, compact=1 is mandatory : numpys in IBCD must be aligned (Density, Pressure, utau etc)
 # IN: storage=-1/0/1: unknown/direct/inverse
 # IN: loc = 'nodes' or 'centers': location of receiver zone field
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
 #===============================================================================
 def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
-                       variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
-                       bcType=0, varType=1, storage=-1, 
+                       variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
+                       bcType=0, varType=2, storage=-1, 
                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                        Cs=0.3831337844872463, Ts=1.0):
     """Transfer variables once interpolation data has been computed."""
@@ -1517,23 +1521,17 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
 #                =[]: the whole FlowSolutionNodes variables in topTreeD are transferred
 # IN: variablesIBC=['var1','var2',...,'var5']: variables used in IBC transfers
 # NB : if variables and/or variablesIBC are None, then no transfer (interp or IBC) is done
-# IN: bcType (IBC only) 0: glissement
-#                       1: adherence
-#                       2: loi de paroi log
-#                       3: loi de paroi Musker
+# IN: bcType (IBC only)  see TypesOfIBC dictionary at top of this file
 # IN: varType: defines the meaning of the variables IBC
-#     varType = 1 : (ro,rou,rov,row,roE)
-#     varType = 11: (ro,rou,rov,row,roE)+ronultideSA
 #     varType = 2 : (ro,u,v,w,t)
-#     varType = 21: (ro,u,v,w,t)+nutildeSA
-#     varType = 3 : (ro,u,v,w,p)
-#     varType = 31: (ro,u,v,w,p)+nutildeSA
+#     varType = 21: (ro,u,v,w,t(,nutildeSA))
+# CAUTION !!!!! for IBC transfers, compact=1 is mandatory : numpys in IBCD must be aligned (Density, Pressure, utau etc)
 # IN: storage=-1/0/1: unknown/direct/inverse
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
 #===============================================================================
 def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
-                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
-                        bcType=0, varType=1, storage=-1, compact=0,
+                        variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
+                        bcType=0, varType=2, storage=-1, compact=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0):
 
     # Recup des donnees a partir des zones receveuses
@@ -1596,29 +1594,16 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                yPI = Internal.getNodeFromName1(s,'CoordinateY_PI')[1]
                                zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                                density = Internal.getNodeFromName1(s,'Density')[1]
-                               pressure = Internal.getNodeFromName1(s,'Pressure')[1]
-                               vx = Internal.getNodeFromName1(s,'VelocityX')[1]
-                               vy = Internal.getNodeFromName1(s,'VelocityY')[1]
-                               vz = Internal.getNodeFromName1(s,'VelocityZ')[1]
-                               utau = Internal.getNodeFromName1(s, 'utau')
-                               if utau is not None: utau = utau[1]
-                               else: utau = None
-                               yplus = Internal.getNodeFromName1(s, 'yplus')
-                               if yplus is not None: yplus = yplus[1]
-                               else: yplus = None
-                               kcurv = Internal.getNodeFromName1(s,__KCURV__)
-                               if kcurv is not None: kcurv = kcurv[1]
-                               
                                # Transferts
-                               connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
-                                                          xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, density, pressure, 
-                                                          vx, vy, vz, 
-                                                          utau, yplus, kcurv,
+                               if compact==1:
+                                 connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
+                                                          xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
+                                                          density, 
                                                           bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
                                                           Internal.__GridCoordinates__, 
                                                           Internal.__FlowSolutionNodes__, 
                                                           Internal.__FlowSolutionCenters__)
-                            
+                               else: print("_setInterpTransfers: IBC transfers only performed if compact=1 (tc).")                             
     # Recup des donnees a partir des zones donneuses
     if storage != 0:
         # Dictionnaire pour optimisation
@@ -1676,23 +1661,10 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                     yPI = Internal.getNodeFromName1(s,'CoordinateY_PI')[1]
                                     zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                                     Density = Internal.getNodeFromName1(s,'Density')[1]
-                                    Pressure= Internal.getNodeFromName1(s,'Pressure')[1]
-                                    vx = Internal.getNodeFromName1(s,'VelocityX')[1]
-                                    vy = Internal.getNodeFromName1(s,'VelocityY')[1]
-                                    vz = Internal.getNodeFromName1(s,'VelocityZ')[1]
-
-                                    utau = Internal.getNodeFromName1(s, 'utau')
-                                    if utau is not None: utau = utau[1]
-                                    else: utau = None
-                                    yplus = Internal.getNodeFromName1(s, 'yplus')
-                                    if yplus is not None: yplus = yplus[1]
-                                    else: yplus = None
-                                    kcurv = Internal.getNodeFromName1(s,__KCURV__)
-                                    if kcurv is not None: kcurv = kcurv[1]
-                                    connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
-                                                               xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure, 
-                                                               vx, vy, vz, 
-                                                               utau, yplus, kcurv,
+                                    if compact<10:
+                                        connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
+                                                               xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
+                                                               Density, 
                                                                bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
                                                                Internal.__GridCoordinates__, 
                                                                Internal.__FlowSolutionNodes__, 
@@ -1758,22 +1730,28 @@ def __setInterpTransfers(aR, topTreeD,
 # IN: variables=['var1','var2',...]: variables to be used in Chimera transfers
 #              =[]: the whole FlowSolutionNodes variables in topTreeD are transferred
 # IN: variablesIBC=['var1','var2',...,'var5']:
-# IN: bcType  0: glissement    (IBC only) p
-#             1: adherence
-#             2: loi de paroi log
-#             3: loi de paroi Musker
+# IN: bcType (IBC only)  see TypesOfIBC dictionary at top of this file
 # IN: varType: defines the meaning of the variables IBC
-#     varType = 1 : (ro,rou,rov,row,roE)
-#     varType = 11: (ro,rou,rov,row,roE(,ronultideSA))
 #     varType = 2 : (ro,u,v,w,t)
 #     varType = 21: (ro,u,v,w,t(,nutildeSA))
-#     varType = 3 : (ro,u,v,w,p)
-#     varType = 31: (ro,u,v,w,p(,nutildeSA))
+# CAUTION !!!!! for IBC transfers, compact=1 is mandatory : numpys in IBCD must be aligned (Density, Pressure, utau etc)
 # Adim: KCore.adim1 for Minf=0.1 (IBC only)
 #===============================================================================
 def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
-                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
-                        bcType=0, varType=1, compact=0, 
+                        variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
+                        bcType=0, varType=2, compact=0, 
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
+                        Cs=0.3831337844872463, Ts=1.0, extract=0):
+    tD = Internal.copyRef(topTreeD)
+    return _setInterpTransfersD(tD, variables=variables, cellNVariable=cellNVariable,
+                        variablesIBC=variablesIBC,
+                        bcType=bcType, varType=varType, compact=compact, 
+                        Gamma=Gamma, Cv=Cv, MuS=MuS,
+                        Cs=Cs, Ts=Ts, extract=extract)
+                        
+def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
+                        variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
+                        bcType=0, varType=2, compact=0, 
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                         Cs=0.3831337844872463, Ts=1.0, extract=0):
 
@@ -1820,27 +1798,17 @@ def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         yPI = Internal.getNodeFromName1(s,'CoordinateY_PI')[1]
                         zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                         Density = Internal.getNodeFromName1(s,'Density')[1]
-                        Pressure= Internal.getNodeFromName1(s,'Pressure')[1]
-                        vx = Internal.getNodeFromName1(s,'VelocityX')[1]
-                        vy = Internal.getNodeFromName1(s,'VelocityY')[1]
-                        vz = Internal.getNodeFromName1(s,'VelocityZ')[1]
-                        utau = Internal.getNodeFromName1(s, 'utau')
-                        if utau is not None: utau = utau[1]
-                        else: utau = None
-                        yplus = Internal.getNodeFromName1(s,'yplus')
-                        if yplus is not None: yplus = yplus[1]
-                        else: yplus = None
-                        kcurv = Internal.getNodeFromName1(s, __KCURV__)
-                        if kcurv is not None: kcurv = kcurv[1]
-                        arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs, 
-                                                             xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure,
-                                                             vx, vy, vz, 
-                                                             utau, yplus, kcurv,
-                                                             bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts,                                                             
-                                                             Internal.__GridCoordinates__, 
-                                                             Internal.__FlowSolutionNodes__, 
-                                                             Internal.__FlowSolutionCenters__)
-                        infos.append([dname,arrayT,ListRcv,loc])
+                        if compact==1:
+                            arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs, 
+                                                                 xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
+                                                                 Density, 
+                                                                 bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts,                                                             
+                                                                 Internal.__GridCoordinates__, 
+                                                                 Internal.__FlowSolutionNodes__, 
+                                                                 Internal.__FlowSolutionCenters__)
+                            infos.append([dname,arrayT,ListRcv,loc])
+                        else: print("_setInterpTransfers: IBC transfers only performed if compact=1 (tc).")                             
+
     # Sortie
     return infos
 

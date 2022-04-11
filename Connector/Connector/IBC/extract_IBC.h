@@ -34,33 +34,16 @@
   E_Float* zPI = coordzPI->begin();
 
   /*--------------------------------------------*/
-  /* Extraction des var posttraitememnt */
+  /* Extraction des var post traitement */
   /*--------------------------------------------*/
-  FldArrayF* densF; FldArrayF* pressF; FldArrayF* utauF; FldArrayF* yplusF;
-  FldArrayF* vxF; FldArrayF* vyF; FldArrayF* vzF; FldArrayF* kcurvF;
+  FldArrayF* densF; 
+  // FldArrayF* pressF; FldArrayF* utauF; FldArrayF* yplusF;
+  // FldArrayF* vxF; FldArrayF* vyF; FldArrayF* vzF; FldArrayF* kcurvF;
 
-  E_Int okD = K_NUMPY::getFromNumpyArray( pyArrayDens    , densF , true);
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
-  E_Int okVx = K_NUMPY::getFromNumpyArray(pyArrayVx,       vxF, true);
-  E_Int okVy = K_NUMPY::getFromNumpyArray(pyArrayVy,       vyF, true);
-  E_Int okVz = K_NUMPY::getFromNumpyArray(pyArrayVz,       vzF, true);
+  E_Int okD = K_NUMPY::getFromNumpyArray(pyArrayDens, densF, true);
 
   E_Float* density  = densF->begin();
-  E_Float* pressure = pressF->begin();
-  E_Float* vx       = vxF->begin();
-  E_Float* vy       = vyF->begin();
-  E_Float* vz       = vzF->begin();
-
-  E_Int okU, okY; E_Float* utau; E_Float* yplus;
-
-  okU = K_NUMPY::getFromNumpyArray(pyArrayUtau , utauF , true);
-  okY = K_NUMPY::getFromNumpyArray(pyArrayYplus, yplusF, true);
-  if (okU == 1) utau = utauF->begin();
-  else utau = NULL;
-  if (okY == 1) yplus = yplusF->begin();
-  else yplus = NULL;
-
-  E_Float* kcurv; 
-  E_Int okKC = K_NUMPY::getFromNumpyArray(pyArrayKCurv, kcurvF, true);
-  if ( okKC == 1) kcurv = kcurvF->begin();
-  else kcurv = NULL;   
+  // E_Float* pressure = densF->begin()+nbRcvPts;
+  // E_Float* vx = densF->begin()+nbRcvPts*2;
+  // E_Float* vy = densF->begin()+nbRcvPts*3;
+  // E_Float* vz = densF->begin()+nbRcvPts*4;

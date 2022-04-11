@@ -24,6 +24,7 @@ using namespace K_FLD;
 //# include "IBC/commonLaws.h"
 //# define NUTILDE_FERRARI 2
 
+// on suppose les variables compactees densPtr, pressPtr, 
 E_Int K_CONNECTOR::setIBCTransfersCommonVar2LBM(E_Int bctype    , E_Int* rcvPts    , E_Int& nbRcvPts,
 						E_Int& ideb     , E_Int& ifin      , E_Int& ithread ,
 						E_Float* xPC    , E_Float* yPC     , E_Float* zPC   ,
@@ -176,7 +177,9 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2LBM(E_Int bctype    , E_Int* rcvPts 
   return 1;
 }
 
+//==================================================================================
 // Regular LBM - determine Q at ghost cell
+//==================================================================================
 E_Int K_CONNECTOR::setIBCTransfersCommonVar5(E_Int bctype    , E_Int* rcvPts, E_Int& nbRcvPts,
 					     E_Int& ideb     , E_Int& ifin  , E_Int& ithread ,
 					     E_Int* ca       , E_Float* w   , E_Float cs     , E_Float nu     ,

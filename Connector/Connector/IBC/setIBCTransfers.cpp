@@ -476,12 +476,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* xPC, E_Float* yPC, E_Float* zPC,
   E_Float* xPW, E_Float* yPW, E_Float* zPW,
   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
-  E_Float* densPtr, E_Float* pressPtr, 
-  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr, 
-  E_Float* utauPtr, E_Float* yplusPtr, E_Float* kcurvPtr,
-  E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
+  E_Float* densPtr, 
   E_Float* tmp, E_Int& size,
-  //E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
   E_Float*  param_real,
   vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields,
   E_Int nbptslinelets, E_Float* linelets, E_Int* indexlinelets)
@@ -492,6 +488,45 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float muS   = param_real[ XMUL0 ];
   E_Float cv    = param_real[ CVINF ];
   E_Float gamma = param_real[ GAMMA ];
+
+
+  E_Float* pressPtr = densPtr +  nbRcvPts;
+  E_Float* vxPtr    = densPtr +2*nbRcvPts;
+  E_Float* vyPtr    = densPtr +3*nbRcvPts; 
+  E_Float* vzPtr    = densPtr +4*nbRcvPts;
+  E_Float* utauPtr = NULL;
+  E_Float* yplusPtr = NULL;
+  E_Float* kcurvPtr = NULL;
+  E_Float* d1 = NULL;
+  E_Float* d2 = NULL;
+  E_Float* d3 = NULL;
+  E_Float* d4 = NULL;
+  E_Float* d5 = NULL;
+
+  if ( bctype == 0 || bctype == 1)
+  {;}
+  else if (bctype==100)//slip + curvature radius
+  {
+    kcurvPtr = densPtr+5*nbRcvPts;
+  }
+  else if (bctype == 3 ||bctype == 2 ||bctype == 6)// Musker, log, TBLE
+  {
+    utauPtr  = densPtr+5*nbRcvPts;
+    yplusPtr = densPtr+6*nbRcvPts;
+  }
+  else if (bctype==5)// injection
+  {
+    d1       = densPtr+5*nbRcvPts;
+    d2       = densPtr+6*nbRcvPts;
+    d3       = densPtr+7*nbRcvPts;
+    d4       = densPtr+8*nbRcvPts;
+    d5       = densPtr+9*nbRcvPts;
+  }
+  else 
+  {
+    printf("Warning !!! setIBCTransfersCommonVar2: bcType %d not implemented.\n", bctype);
+    return 0;
+  }
 
   /* lois de paroi */
   E_Float roext, uext, pext, text, muext, yext, yplus, yibc;
@@ -626,7 +661,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          // vxPtr[noind+ideb] = ucible;
          // vyPtr[noind+ideb] = vcible;
          // vzPtr[noind+ideb] = wcible;
-
         }
   }
   else if (bctype == 1) // adherence (lineaire)
@@ -1635,7 +1669,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          vxPtr[noind+ideb] = uOut[indR];
          vyPtr[noind+ideb] = vOut[indR];
          vzPtr[noind+ideb] = wOut[indR];
-
         }
   }
   else if (bctype == 2) // loi de paroi en log
@@ -1842,24 +1875,20 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   PyObject *pyArrayXPC, *pyArrayXPI, *pyArrayXPW;
   PyObject *pyArrayYPC, *pyArrayYPI, *pyArrayYPW;
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
-  PyObject *pyArrayDens, *pyArrayPressure;
-  PyObject *pyArrayVx, *pyArrayVy, *pyArrayVz;
-  PyObject *pyArrayUtau, *pyArrayYplus, *pyArrayKCurv;
+  PyObject *pyArrayDens;
   E_Int bctype;
   E_Int vartype;
   E_Float gamma, cv, muS, Cs, Ts;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOOOOOOOOiiddddd",
-                    "OOOOOOOOOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOOOOOOOOiifffff",
+                    "OOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOiiddddd",
+                    "OOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOiifffff",
                     &arrayR, &arrayD,  &pyVariables,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
                     &pyArrayXPI, &pyArrayYPI, &pyArrayZPI,
-                    &pyArrayPressure, &pyArrayUtau, &pyArrayYplus, &pyArrayDens, 
-                    &pyArrayVx, &pyArrayVy, &pyArrayVz, 
-                    &pyArrayYplus, &pyArrayDens, &pyArrayKCurv,
+                    &pyArrayDens, 
                     &bctype, &vartype, &gamma, &cv, &muS, &Cs, &Ts))
   {
       return NULL;
@@ -2008,7 +2037,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
                     "setIBCTransfersD: coordinates of interpolated points are invalid.");
     return NULL;
   }
-  if (okD*okP*okVx*okVy*okVz*okU*okY == 0 )
+  if (okD == 0 )
   {
     RELEASESHAREDB(resd, arrayD, fd, cnd); 
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
@@ -2023,15 +2052,6 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     RELEASESHAREDN(pyArrayXPI  , coordxPI  );
     RELEASESHAREDN(pyArrayYPI  , coordyPI  );
     RELEASESHAREDN(pyArrayZPI  , coordzPI  );
-    if (okD != 0) { RELEASESHAREDN(pyArrayDens    , densF   );}
-    if (okP != 0) { RELEASESHAREDN(pyArrayPressure, pressF  );}
-    if (okVx != 0) { RELEASESHAREDN(pyArrayVx      , vxF     );}
-    if (okVy != 0) { RELEASESHAREDN(pyArrayVy      , vyF     );}
-    if (okVz != 0) { RELEASESHAREDN(pyArrayVz      , vzF     );}
-    if (okU != 0) { RELEASESHAREDN(pyArrayUtau    , utauF   );}
-    if (okY != 0) { RELEASESHAREDN(pyArrayYplus   , yplusF  );}
-    if (okKC != 0) { RELEASESHAREDN(pyArrayKCurv   , kcurvF  );}
-
     PyErr_SetString(PyExc_TypeError, 
                     "setIBCTransfersD: Post array are invalid.");
     return NULL;
@@ -2156,39 +2176,14 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
         { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }  
    else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
-   if (varType == 1 || varType == 11) 
-     setIBCTransfersCommonVar1(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread, 
-			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, 
-            vx, vy, vz, 
-            utau, yplus, kcurv, 
-            NULL, NULL, NULL, NULL, NULL,
-            ipt_tmp, size,
-            gamma, cv, muS, Cs, Ts, 0.71,
-	      	  vectOfDnrFields, vectOfRcvFields);
-  
-   else if (varType == 2 || varType == 21) 
+  if (varType == 2 || varType == 21) 
      setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, 
-            vx, vy, vz, 
-            utau, yplus,  kcurv, 
-            NULL, NULL, NULL, NULL, NULL,
+            density, 
             ipt_tmp, size,
             param_real,
-            //gamma, cv, muS, Cs, Ts, 0.71,
             vectOfDnrFields, vectOfRcvFields);
-
-   else if (varType == 3 || varType == 31)
-     setIBCTransfersCommonVar3(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
-			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, 
-            vx, vy, vz, 
-            utau, yplus, kcurv, 
-            NULL, NULL, NULL, NULL, NULL,
-            ipt_tmp, size,
-            gamma, cv, muS, Cs, Ts, 0.71,
-            vectOfDnrFields, vectOfRcvFields);
+  else {printf(" setIBCTransfers: only valid for vartype=2 or 21 \n");}
  
   } // Fin zone // omp
 
@@ -2201,7 +2196,9 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   return tpl;
 }
 //=============================================================================
-/* Effectue les transfers IBC en in-place */
+/* Effectue les transfers IBC en in-place - 
+!!!Warning !!! densPtr doit etre compacte et contient les autres variables IBC
+selon le bcType */
 //=============================================================================
 PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
 {
@@ -2214,23 +2211,22 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
   PyObject *pyArrayXPC, *pyArrayXPI, *pyArrayXPW;
   PyObject *pyArrayYPC, *pyArrayYPI, *pyArrayYPW;
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
-  PyObject *pyArrayDens, *pyArrayPressure;
-  PyObject *pyArrayVx, *pyArrayVy, *pyArrayVz;
-  PyObject *pyArrayUtau, *pyArrayYplus, *pyArrayKCurv;
+  PyObject *pyArrayDens;
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOOOOOlllldddddsss", "OOOOOOOOOOOOOOOOOOOOOOOOiiiidddddsss",
-                    "OOOOOOOOOOOOOOOOOOOOOOOOllllfffffsss", "OOOOOOOOOOOOOOOOOOOOOOOOiiiifffffsss",
+                    "OOOOOOOOOOOOOOOOOlllldddddsss", 
+                    "OOOOOOOOOOOOOOOOOiiiidddddsss",
+                    "OOOOOOOOOOOOOOOOOllllfffffsss", 
+                    "OOOOOOOOOOOOOOOOOiiiifffffsss",
                     &zoneR, &zoneD, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
-                    &pyArrayXPI, &pyArrayYPI, &pyArrayZPI, &pyArrayDens, &pyArrayPressure, 
-                    &pyArrayVx,  &pyArrayVy,  &pyArrayVz, 
-                    &pyArrayUtau, &pyArrayYplus, &pyArrayKCurv,
-                    &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts,
+                    &pyArrayXPI, &pyArrayYPI, &pyArrayZPI, 
+                    &pyArrayDens, 
+                    &bctype, &loc, &vartype, &compact, &gamma, &cv, &muS, &Cs, &Ts,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
   {
       return NULL;
@@ -2261,7 +2257,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
      31 : (ro,u,v,w,p) + ronutildeSA   */
   E_Int nvars;
   E_Int varType = E_Int(vartype);
-  if      (varType ==  1 || varType ==  2 || varType ==  3) 
+  if (varType ==  1 || varType ==  2 || varType ==  3) 
     nvars = 5;
   else if (varType == 11 || varType == 21 || varType == 31)
     nvars = 6;
@@ -2383,7 +2379,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
       }
     }  
 
-  // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille 
+  // les variables a transferer sont compactees: on recupere uniquement la premiere et la taille 
   else
     {
 # include "getfromzonecompact.h"
@@ -2442,39 +2438,18 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
         { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }  
    else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
-  if (varType == 1 || varType == 11)
-    setIBCTransfersCommonVar1(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
-			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, 
-            vx, vy, vz, 
-            utau, yplus, kcurv,
-            NULL, NULL, NULL, NULL, NULL,
-            ipt_tmp, size,
-            gamma, cv, muS, Cs, Ts, Pr,
-            vectOfDnrFields, vectOfRcvFields);
-  else if (varType == 2 || varType == 21)
+  if (varType == 2 || varType == 21){
     setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
      	      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, 
-            vx, vy, vz, 
-            utau, yplus, kcurv,
-            NULL, NULL, NULL, NULL, NULL,
+            density, 
             ipt_tmp, size,
             param_real,
-            //gamma, cv, muS, Cs, Ts, Pr,
-            vectOfDnrFields, vectOfRcvFields);
-  else if (varType == 3 || varType == 31)
-    setIBCTransfersCommonVar3(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
-			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, 
-            vx, vy, vz, 
-            utau, yplus, kcurv,
-            NULL, NULL, NULL, NULL, NULL,
-            ipt_tmp, size,
-            gamma, cv, muS, Cs, Ts, Pr,
-			      vectOfDnrFields, vectOfRcvFields);
+            vectOfDnrFields, vectOfRcvFields); 
 
-     } // Fin zone // omp
+     }
+  else 
+  {printf("Warning: _setIBCTransfers only valid for vartype=2 or 21 \n");}
+  } // Fin zone // omp
   // sortie
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   BLOCKRELEASEMEM;

@@ -725,46 +725,18 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
              { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
         else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; } 
         //  creer 2 zone  para pour threder au Max les loi de paroi
-        if (varType == 1 || varType == 11)
-          setIBCTransfersCommonVar1(ibcType, rcvPts, nbRcvPts, ideb, ifin, ithread, 
-                                    xPC, xPC+nbRcvPts, xPC+nbRcvPts*2,
-                                    xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
-                                    xPI, xPI+nbRcvPts, xPI+nbRcvPts*2, 
-                                    densPtr, densPtr+nbRcvPts, //dens + press
-                                    densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                    densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12,// utau + yplus + kcurv
-                                    densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, 
-                                    densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
-                                    ipt_tmp, size,
-                                    gamma, cv, muS, Cs, Ts, Pr,
-                                    vectOfDnrFields, vectOfRcvFields);
-        else if (varType == 2 || varType == 21)
+        if (varType == 2 || varType == 21)
         { 
           setIBCTransfersCommonVar2(ibcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
                                     xPC, xPC+nbRcvPts, xPC+nbRcvPts*2,
                                     xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
                                     xPI, xPI+nbRcvPts, xPI+nbRcvPts*2, 
-                                    densPtr, densPtr+nbRcvPts, //dens + press
-                                    densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                    densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12, // utau + yplus
-                                    densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
+                                    densPtr,
                                     ipt_tmp, size,
                                     param_real,
-                                    //gamma, cv, muS, Cs, Ts, Pr,
                                     vectOfDnrFields, vectOfRcvFields);
         }
-        else if (varType == 3 || varType == 31)
-          setIBCTransfersCommonVar3(ibcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
-                                    xPC, xPC+nbRcvPts, xPC+nbRcvPts*2,
-                                    xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
-                                    xPI, xPI+nbRcvPts, xPI+nbRcvPts*2, 
-                                    densPtr, densPtr+nbRcvPts, //dens + press
-                                    densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                    densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12, // utau + yplus
-                                    densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
-                                    ipt_tmp, size,
-                                    gamma, cv, muS, Cs, Ts, Pr,
-                                    vectOfDnrFields, vectOfRcvFields);
+        else {printf("Warning: setInterpTransfers: varType must be 2 or 21 \n");}
 
       } // Fin zone // omp
     } //ibc
@@ -794,10 +766,14 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   E_Int rk, exploc, num_passage;
   
   if (!PYPARSETUPLE(args,
-                    "OOOOOOlllllllll", "OOOOOOiiiiiiiii",
-                    "OOOOOOlllllllll", "OOOOOOiiiiiiiii",
-                    &zonesR, &zonesD, &pyVariables, &pydtloc, &pyParam_int,  &pyParam_real, &It_target, &vartype,
-                    &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage))
+                    "OOOOOOlllllllll", 
+                    "OOOOOOiiiiiiiii",
+                    "OOOOOOlllllllll", 
+                    "OOOOOOiiiiiiiii",
+                    &zonesR, &zonesD, &pyVariables, &pydtloc, &pyParam_int,  
+                    &pyParam_real, &It_target, &vartype,
+                    &type_transfert, &no_transfert, &nstep, &nitmax, &rk, 
+                    &exploc, &num_passage))
   {
     return NULL;
   }
@@ -1221,46 +1197,23 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
             cv    = ipt_param_realR[ NoR ][ CVINF ];
             gamma = ipt_param_realR[ NoR ][ GAMMA ];
 
-            if (varType == 1 || varType == 11)
-              setIBCTransfersCommonVar1(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
-                                        xPC, xPC+nbRcvPts, xPC+nbRcvPts*2,
-                                        xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
-                                        xPI, xPI+nbRcvPts, xPI+nbRcvPts*2, 
-                                        densPtr, densPtr+nbRcvPts, //dens + press
-                                        densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                        densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12, // utau + yplus
-                                        densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
-                                        ipt_tmp, size,
-                                        gamma, cv, muS, Cs, Ts, Pr,
-                                        vectOfDnrFields, vectOfRcvFields);
-            else if (varType == 2 || varType == 21)
+            if (varType == 2 || varType == 21)
             {
               setIBCTransfersCommonVar2(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
                                         xPC    , xPC     +nbRcvPts, xPC     +nbRcvPts*2,
                                         xPW    , xPW     +nbRcvPts, xPW     +nbRcvPts*2,
                                         xPI    , xPI     +nbRcvPts, xPI     +nbRcvPts*2, 
-                                        densPtr, densPtr+nbRcvPts, //dens + press
-                                        densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                        densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12, // utau + yplus + curvradius
-                                        densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
+                                        densPtr, 
                                         ipt_tmp, size,
                                         //ipt_param_realR + NoR,
                                         ipt_param_realR[ NoR ],
                                         //gamma, cv, muS, Cs, Ts, Pr,
                                         vectOfDnrFields, vectOfRcvFields);
             }
-            else if (varType == 3 || varType == 31)
-              setIBCTransfersCommonVar3(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
-                                        xPC    , xPC     +nbRcvPts, xPC     +nbRcvPts*2,
-                                        xPW    , xPW     +nbRcvPts, xPW     +nbRcvPts*2,
-                                        xPI    , xPI     +nbRcvPts, xPI     +nbRcvPts*2, 
-                                        densPtr, densPtr+nbRcvPts, //dens + press
-                                        densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, densPtr+nbRcvPts*4, // vx + vy + vz 
-                                        densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*12, // utau + yplus
-                                        densPtr+nbRcvPts*7, densPtr+nbRcvPts*8, densPtr+nbRcvPts*9, densPtr+nbRcvPts*10, densPtr+nbRcvPts*11,
-                                        ipt_tmp, size,
-                                        gamma, cv, muS, Cs, Ts, Pr,
-                                        vectOfDnrFields, vectOfRcvFields);
+            else 
+            {
+              printf("Warning: setInterpTransfers: only valid for vartype=2 or 21 \n");
+            }
           }//ibc   
   //*
   //        } //chunk

@@ -986,7 +986,6 @@ def cartRxLoc(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False, rank=None
 
 #suppose que les connectivites quad sont contigues
 def mergeQuadConn(z):
-    C.convertPyTree2File(z,"z_%d.cgns"%rank)
     NBVERTQ = 4
     BCs = Internal.getNodesFromType(z, "BC_t")
 
@@ -1012,11 +1011,16 @@ def mergeQuadConn(z):
             rmaxnext = rangeMaxT[name]+1
             EltsT = Internal.getNodeFromName(allElts_t,name)
             rangeMinT[name]=-1; rangeMaxT[name]=-1
+            bc2 = Internal.getNodeFromName(BCs, name)
+            if bc2 is not None:
+                PL = Internal.getNodeFromName(bc2,'PointList')[1]
+                nfaces = PL.shape[1]
+                for indf in range(nfaces): PL[0,indf] += rminglob
+            
             break
         
     # searching for next elts
     found = True
-
     while found:
         found = False
         for name in rangeMinT:
@@ -1034,7 +1038,7 @@ def mergeQuadConn(z):
                 if bc2 is not None:
                     PL = Internal.getNodeFromName(bc2,'PointList')[1]
                     nfaces = PL.shape[1]
-                    for indf in range(nfaces): PL[0,indf] += eshift
+                    for indf in range(nfaces): PL[0,indf] += eshift+rminglob
                     ec1[1] = numpy.concatenate((ec1[1],ec2[1]))
                     ER = Internal.getNodeFromType(EltsT, 'IndexRange_t')
                     ERVal = Internal.getValue(ER)
