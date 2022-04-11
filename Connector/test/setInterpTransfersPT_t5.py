@@ -38,7 +38,7 @@ zones = Internal.getNodesFromType2(t, 'Zone_t')
 X.miseAPlatDonorTree__(zones, tc, graph=None)
 # attention compact=0 car t n est pas compacte
 vars=['Density','VelocityX','VelocityY','VelocityZ','Temperature']
-X._setInterpTransfers(t,tc, bcType=0,varType=2,variablesIBC=vars,compact=0)
+X._setInterpTransfers(t,tc, bcType=0,varType=2,variablesIBC=vars,compact=0,compactD=1)
 test.testT(t,1)
 #
 # variable turbulente SA
@@ -48,7 +48,7 @@ C._initVars(tc,'TurbulentSANuTilde',15.)
 vars+=['TurbulentSANuTilde']
 zones = Internal.getNodesFromType2(t, 'Zone_t')
 X.miseAPlatDonorTree__(zones, tc, graph=None)
-t2 = X.setInterpTransfers(t, tc, bcType=0,varType=21,variablesIBC=vars)
+t2 = X.setInterpTransfers(t, tc, bcType=0,varType=21,variablesIBC=vars,compactD=1)
 test.testT(t2,3)
-t2 = X.setInterpTransfers(t, tc, bcType=1,varType=21,variablesIBC=vars)
+t2 = X.setInterpTransfers(t, tc, bcType=1,varType=21,variablesIBC=vars,compact=0,compactD=1)
 test.testT(t2,4)

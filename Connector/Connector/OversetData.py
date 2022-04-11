@@ -1491,10 +1491,11 @@ def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0
 # IN: storage=-1/0/1: unknown/direct/inverse
 # IN: loc = 'nodes' or 'centers': location of receiver zone field
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
+# compactD : 1 for IBC transfers. In that case, fields in IBCD zonesubregions must be aligned with density 
 #===============================================================================
 def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
                        variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
-                       bcType=0, varType=2, storage=-1, 
+                       bcType=0, varType=2, storage=-1, compact=0, compactD=0,
                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                        Cs=0.3831337844872463, Ts=1.0):
     """Transfer variables once interpolation data has been computed."""
@@ -1504,9 +1505,8 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
             raise ValueError("setInterpTransfers: length of variablesIBC must be equal to 5.")
 
     tR = Internal.copyRef(aR)
-    compact = 0
     _setInterpTransfers(tR, topTreeD, variables=variables, variablesIBC=variablesIBC, 
-                        bcType=bcType, varType=varType, storage=storage, compact=compact, 
+                        bcType=bcType, varType=varType, storage=storage, compact=compact, compactD=compactD,
                         cellNVariable=cellNVariable, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts)
     return tR
 
@@ -1525,13 +1525,14 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
 # IN: varType: defines the meaning of the variables IBC
 #     varType = 2 : (ro,u,v,w,t)
 #     varType = 21: (ro,u,v,w,t(,nutildeSA))
-# CAUTION !!!!! for IBC transfers, compact=1 is mandatory : numpys in IBCD must be aligned (Density, Pressure, utau etc)
 # IN: storage=-1/0/1: unknown/direct/inverse
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
+# compact : 1 if fields in t are compacted
+# compactD : 1 for IBC transfers. In that case, fields in IBCD zonesubregions must be aligned with density 
 #===============================================================================
 def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
-                        bcType=0, varType=2, storage=-1, compact=0,
+                        bcType=0, varType=2, storage=-1, compact=0, compactD=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0):
 
     # Recup des donnees a partir des zones receveuses
@@ -1583,7 +1584,7 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                                               Internal.__FlowSolutionCenters__, 
                                                               RotAngleX, RotAngleY, RotAngleZ)
 
-                           elif sname == 'IB':
+                           elif sname == 'IB' and compactD:
                                xPC = Internal.getNodeFromName1(s,'CoordinateX_PC')[1]                              
                                yPC = Internal.getNodeFromName1(s,'CoordinateY_PC')[1]
                                zPC = Internal.getNodeFromName1(s,'CoordinateZ_PC')[1]
@@ -1595,15 +1596,14 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                                density = Internal.getNodeFromName1(s,'Density')[1]
                                # Transferts
-                               if compact==1:
-                                 connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
+                               connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
                                                           xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
                                                           density, 
-                                                          bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
+                                                          bcType, loc, varType, compactT, Gamma, Cv, MuS, Cs, Ts,
                                                           Internal.__GridCoordinates__, 
                                                           Internal.__FlowSolutionNodes__, 
                                                           Internal.__FlowSolutionCenters__)
-                               else: print("_setInterpTransfers: IBC transfers only performed if compact=1 (tc).")                             
+                                                         
     # Recup des donnees a partir des zones donneuses
     if storage != 0:
         # Dictionnaire pour optimisation
@@ -1650,7 +1650,7 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                                                   Internal.__FlowSolutionNodes__, 
                                                                   Internal.__FlowSolutionCenters__,
                                                                   RotAngleX, RotAngleY, RotAngleZ)
-                                elif sname == 'IB':
+                                elif sname == 'IB' and compactD:
                                     xPC = Internal.getNodeFromName1(s,'CoordinateX_PC')[1]
                                     yPC = Internal.getNodeFromName1(s,'CoordinateY_PC')[1]
                                     zPC = Internal.getNodeFromName1(s,'CoordinateZ_PC')[1]
@@ -1660,9 +1660,8 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                     xPI = Internal.getNodeFromName1(s,'CoordinateX_PI')[1]
                                     yPI = Internal.getNodeFromName1(s,'CoordinateY_PI')[1]
                                     zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
-                                    Density = Internal.getNodeFromName1(s,'Density')[1]
-                                    if compact<10:
-                                        connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
+                                    Density = Internal.getNodeFromName1(s,'Density')[1]                                      
+                                    connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
                                                                xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
                                                                Density, 
                                                                bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
@@ -1739,19 +1738,19 @@ def __setInterpTransfers(aR, topTreeD,
 #===============================================================================
 def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
-                        bcType=0, varType=2, compact=0, 
+                        bcType=0, varType=2, compact=0, compactD=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                         Cs=0.3831337844872463, Ts=1.0, extract=0):
     tD = Internal.copyRef(topTreeD)
     return _setInterpTransfersD(tD, variables=variables, cellNVariable=cellNVariable,
                         variablesIBC=variablesIBC,
-                        bcType=bcType, varType=varType, compact=compact, 
+                        bcType=bcType, varType=varType, compact=compact, compactD=compactD,
                         Gamma=Gamma, Cv=Cv, MuS=MuS,
                         Cs=Cs, Ts=Ts, extract=extract)
                         
 def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
-                        bcType=0, varType=2, compact=0, 
+                        bcType=0, varType=2, compact=0, compactD=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                         Cs=0.3831337844872463, Ts=1.0, extract=0):
 
@@ -1787,7 +1786,7 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                                                                 Internal.__FlowSolutionCenters__)    
                         infos.append([dname,arrayT,ListRcv,loc])
 
-                    elif sname == 'IB':
+                    elif sname == 'IB' and compactD:
                         xPC = Internal.getNodeFromName1(s,'CoordinateX_PC')[1]
                         yPC = Internal.getNodeFromName1(s,'CoordinateY_PC')[1]
                         zPC = Internal.getNodeFromName1(s,'CoordinateZ_PC')[1]
@@ -1798,16 +1797,15 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         yPI = Internal.getNodeFromName1(s,'CoordinateY_PI')[1]
                         zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                         Density = Internal.getNodeFromName1(s,'Density')[1]
-                        if compact==1:
-                            arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs, 
+                        arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs, 
                                                                  xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
                                                                  Density, 
                                                                  bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts,                                                             
                                                                  Internal.__GridCoordinates__, 
                                                                  Internal.__FlowSolutionNodes__, 
                                                                  Internal.__FlowSolutionCenters__)
-                            infos.append([dname,arrayT,ListRcv,loc])
-                        else: print("_setInterpTransfers: IBC transfers only performed if compact=1 (tc).")                             
+                        infos.append([dname,arrayT,ListRcv,loc])
+                                             
 
     # Sortie
     return infos

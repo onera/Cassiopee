@@ -477,7 +477,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        sname = zsrname[0:2]
        xc=None;yc=None;zc=None; xi=None;yi=None;zi=None; xw=None;yw=None;zw=None;density=None;pressure=None
        vx=None; vy=None; vz=None
-       utau=None;yplus=None
+       utau=None;yplus=None; ptkcurv=None
        ptxc=0;ptyc=0;ptzc=0;ptxi=0;ptyi=0;ptzi=0;ptxw=0;ptyw=0;ptzw=0;ptdensity=0;ptpressure=0
        ptvx=0;ptvy=0;ptvz=0
        ptutau=0;ptyplus=0
@@ -561,7 +561,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            elif IBCType == 100 : 
                 kcurv   = Internal.getNodeFromName1(s, XOD.__KCURV__)
                 ptkcurv = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-                sizeIBC += Nbpts_D; inc += 1
+                size_IBC += Nbpts_D; inc += 1
 
            elif IBCType == 5: #injection
                 sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
@@ -636,7 +636,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            triMonoType(Nbpts_D, Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                        Interptype, pointlist, pointlistD, param_int,
                        ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
-                       ptdensity,ptpressure,
+                       ptdensity,ptpressure, ptkcurv,
                        ptvx, ptvy, ptvz,
                        ptutau,ptyplus,
                        ptd1,ptd2,ptd3,ptd4,ptd5,
@@ -650,7 +650,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                         Interptype, pointlist, pointlistD, param_int,
                         ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
-                        ptdensity,ptpressure,
+                        ptdensity,ptpressure, ptkcurv,
                         ptvx, ptvy, ptvz,
                         ptutau,ptyplus,
                         ptd1,ptd2,ptd3,ptd4,ptd5, 
@@ -795,7 +795,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                  Interptype, pointlist, pointlistD, param_int,
                  ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
-                 ptdensity,ptpressure,
+                 ptdensity,ptpressure, ptkcurv,
                  ptvx, ptvy, ptvz,
                  ptutau,ptyplus,
                  ptd1,ptd2,ptd3,ptd4,ptd5,
@@ -910,7 +910,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
 def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                 Interptype, pointlist, pointlistD, param_int,
                 ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
-                ptdensity,ptpressure,
+                ptdensity,ptpressure, ptkcurv,
                 ptvx, ptvy, ptvz,
                 ptutau,ptyplus,
                 ptd1,ptd2,ptd3,ptd4,ptd5,

@@ -38,7 +38,7 @@ vars = ['Density', 'VelocityX', 'VelocityY', 'VelocityZ', 'Temperature']
 tc2 = Internal.copyRef(tc)
 zones = Internal.getNodesFromType2(t, 'Zone_t')
 X.miseAPlatDonorTree__(zones, tc2, graph=None)
-info = X.setInterpTransfersD(tc2, bcType=0, varType=2,variablesIBC=vars,compact=1)
+info = X.setInterpTransfersD(tc2, bcType=0, varType=2,variablesIBC=vars,compact=0, compactD=1)
 test.testO(info)
 test.testA([info[0][1]],2)
 #
@@ -49,12 +49,11 @@ C._initVars(tc,'TurbulentSANuTilde',15.)
 C._initVars(t,"centers:TurbulentSANuTilde",15.)
 zones = Internal.getNodesFromType2(t, 'Zone_t')
 X.miseAPlatDonorTree__(zones, tc, graph=None)
-info = X.setInterpTransfersD(tc, bcType=0,varType=21,variablesIBC=vars, compact=1)
-
+info = X.setInterpTransfersD(tc, bcType=0,varType=21,variablesIBC=vars, compact=0, compactD=1)
 test.testO(info,3)
 test.testA([info[0][1]],4)
 C._initVars(tc,'TurbulentSANuTilde',15.)
 
-info = X.setInterpTransfersD(tc, bcType=1,varType=21,variablesIBC=vars, compact=1)
+info = X.setInterpTransfersD(tc, bcType=1,varType=21,variablesIBC=vars, compact=0, compactD=1)
 test.testO(info,5)
 test.testA([info[0][1]],6)

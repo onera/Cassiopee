@@ -1186,11 +1186,10 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     for z in Internal.getNodesFromType2(t, "Zone_t"):
         zc = Internal.getNodeFromName(tc, z[0])
         for v in varsIBC: C._cpVars(z, 'centers:'+v, zc, v)
-
     X._setInterpTransfers(t, tc, variables=vars,
                           variablesIBC=varsIBC, bcType=bcType,
                           varType=varType, storage=1,
-                          Gamma=Gamma, Cv=cvInf, MuS=Mus,
+                          Gamma=Gamma, Cv=cvInf, MuS=Mus, 
                           Cs=Cs, Ts=Ts)
     zw = TIBM.extractIBMWallFields(tc, tb=tb)
     RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
