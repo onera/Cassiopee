@@ -61,8 +61,8 @@ env.Command('libkcore.a', ['libkcore1.a', 'libkcore2.a', 'merge.l'], "ar -M < me
 # Suppression de la vectorisation pour les fichiers de Nuga
 cppOpts = Dist.getCppArgs()
 flags = ''
-for i in cppOpts: 
-    if i[0:7] != '-xCORE-' and i[0:5] != '-mavx' : flags += i+' '
+for i in cppOpts:
+    if not Dist.isSimd(i): flags += i+' '
 for i in range(len(cpp_srcs2)):
     f = cpp_srcs2[i]   
     if "KCore/Nuga" in f:

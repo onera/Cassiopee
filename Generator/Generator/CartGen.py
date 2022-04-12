@@ -118,7 +118,7 @@ def _cartRxRefit(a):
                 xp[:,:,-2] = xp[:,:,-3]+dx3
     return None
 
-def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
+def cartRx2(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
     """Create a set of regular and geometric cartesian grids."""
 
     L0x = XC0[0]-XF0[0]
@@ -131,7 +131,6 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
     L1z = XC1[2]-XC0[2]
     L2z = XF1[2]-XC1[2]
 
-    a = [0]* (3*3*3)
     X0x = [XC0[0], XC0[0], XC0[0]+L1x]
     X0y = [XC0[1], XC0[1], XC0[1]+L1y]
     X0z = [XC0[2], XC0[2], XC0[2]+L1z]
@@ -142,11 +141,15 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
     Ry = [R[1],1.,R[1]]
     Rz = [R[2],1.,R[2]]
 
+    a = [0]* (3*3*3)
+    dimj = 3; dimk1 = 0; dimk2 = 3
+    if dim == 2: dimk1 = 1; dimk2 = 2
+
     # squelette
     data = {}
-    for i in range(3):
-        for j in range(3):
-            for k in range(3):
+    for i in range(0, 3):
+        for j in range(0, 3):
+            for k in range(dimk1, dimk2):
                 Px = X0x[i]; Py = X0y[j]; Pz = X0z[k]
                 Qx = X1x[i]; Qy = X1y[j]; Qz = X1z[k]
                 (ni,nj,nk,rio,rjo,rko,hio,hjo,hko) = G.cartr2((Px,Py,Pz), HC, (Rx[i],Ry[j],Rz[k]), (Qx,Qy,Qz), skeleton=True)
@@ -154,10 +157,7 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                 n = Internal.newGridCoordinates(parent=z)
                 Internal.newDataArray('CoordinateX', value=None, parent=n)
                 z[0] = 'cart%d-%d-%d'%(i,j,k)
-                if z[0] == 'cart1-1-1' or z[0] == 'cart1-2-1':
-                    print(z[0],ni,nj,nk)
-                    print(z[0],Qx,Px+hio*(ni-1),hio,HC[0])
-
+                
                 if i > 0:
                     C._addBC2Zone(z, 'match', 'BCMatch', 'imin', z, 'imax', [1,2,3])
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
@@ -174,11 +174,11 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     C._addBC2Zone(z, 'match', 'BCMatch', 'jmax', z, 'jmin', [1,2,3])
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j+1,k))
-                if k > 0:
+                if k > 0 and dim == 3:
                     C._addBC2Zone(z, 'match', 'BCMatch', 'kmin', z, 'kmax', [1,2,3])
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j,k-1))
-                if k < 2:
+                if k < 2 and dim == 3:
                     C._addBC2Zone(z, 'match', 'BCMatch', 'kmax', z, 'kmin', [1,2,3])
                     bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                     Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j,k+1))
@@ -190,6 +190,12 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                 data[z[0]] = [(Px,Py,Pz), (hio,hjo,hko), (rio,rjo,rko), (ni,nj,nk)]
 
                 a[i+3*j+9*k] = z
+
+    if dim == 2: # clean list for 2D case
+        out = []
+        for i in a:
+            if i != 0: out.append(i)
+        a = out
 
     t = C.newPyTree(['CARTESIAN','FLEX'])
     for z in a:
@@ -239,8 +245,6 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
                     #print(z[0],'bloc non splite', flush=True)
                     d = data[z[0]]
                     zn = G.cartr1(d[0], d[1], d[2], d[3])
-                    if z[0] == 'cart1-1-1' or z[0] == 'cart1-2-1':
-                        print(z[0], d[3], Internal.getZoneDim(z)[1:])
                 else:
                     #print(z[0],'bloc splitte', flush=True)
                     source, dest = Internal.getLoc2Glob(z)

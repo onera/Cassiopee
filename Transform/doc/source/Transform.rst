@@ -79,6 +79,7 @@ List of functions
     Transform.splitCurvatureRadius
     Transform.splitConnexity
     Transform.splitMultiplePts
+    Transform.PyTree.splitFullMatch
     Transform.splitSharpEdges
     Transform.splitTBranches
     Transform.splitManifold
@@ -686,11 +687,11 @@ Mesh transformation
 
     *Example of use:*
 
-    * `Smooth a mesh (array) <Examples/Transform/smoothField.py>`_:
+    * `Smooth field (array) <Examples/Transform/smoothField.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/smoothField.py
 
-    * `Smooth a mesh (pyTree) <Examples/Transform/smoothFieldPT.py>`_:
+    * `Smooth field (pyTree) <Examples/Transform/smoothFieldPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/smoothFieldPT.py
 
@@ -896,7 +897,7 @@ Mesh splitting and merging
 
 
 
-.. py:function:: Transform.splitNParts(a, N, multigrid=0, dirs=[1,2,3],recoverBC=True)
+.. py:function:: Transform.splitNParts(a, N, multigrid=0, dirs=[1,2,3], recoverBC=True, topTree=None)
 
     .. A1.O0.D0
     
@@ -918,6 +919,8 @@ Mesh splitting and merging
     :type dirs: list of integers (possible values:1,2,3 or a combination of them)
     :param recoverBC: BCs are recovered after split (True) or not (False)
     :type recoverBC: Boolean (True or False)
+    :param topTree: if a is not the top tree, provides full tree for match updates
+    :type topTree: CGNS Tree
     :return: list of splitted grids
     :rtype: [list of arrays] or [list of zones]
 
@@ -933,7 +936,7 @@ Mesh splitting and merging
 
 ---------------------------------------
 
-.. py:function:: Transform.splitSize(a, N, multigrid=0, dirs=[1,2,3], type=0, R=None, minPtsPerDir=5)
+.. py:function:: Transform.splitSize(a, N, multigrid=0, dirs=[1,2,3], type=0, R=None, minPtsPerDir=5, topTree=None)
 
     .. A1.O0.D0
     
@@ -961,6 +964,8 @@ Mesh splitting and merging
     :type R: integer
     :param minPtsPerDir: minimum number of points per direction
     :type minPtsPerDir: integer
+    :param topTree: if a is not the top tree, provides full tree for match updates
+    :type topTree: CGNS Tree
     :return: list of splitted grids
     :rtype: [list of arrays] or [list of zones]
 
@@ -977,7 +982,7 @@ Mesh splitting and merging
 ---------------------------------------
 
 
-.. py:function:: Transform.splitCurvatureAngle(a,sensibility)
+.. py:function:: Transform.splitCurvatureAngle(a, sensibility)
 
     .. A1.O0.D0
     
@@ -1056,7 +1061,7 @@ Mesh splitting and merging
 ---------------------------------------
 
 
-.. py:function:: Transform.splitMultiplePts(a,dim=3)
+.. py:function:: Transform.splitMultiplePts(a, dim=3)
 
     .. A1.O0.D0
 
@@ -1081,7 +1086,27 @@ Mesh splitting and merging
 ---------------------------------------
 
 
-.. py:function:: Transform.splitSharpEdges(a,alphaRef=30.)
+.. py:function:: Transform.PyTree.splitFullMatch(a)
+
+    Split a structured mesh such that all match boundaries are full block faces.
+    
+    Exists also as in place version (_splitFullMatch) that modifies a and returns None. In this case, a must be a pyTree.
+
+    :param a: input set of structured grids
+    :type  a: [pyTree, base or list of zones]
+    :return: split zones
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Split a mesh for matching on full faces (pyTree) <Examples/Transform/splitFullMatchPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Transform/splitFullMatchPT.py
+
+---------------------------------------
+
+
+.. py:function:: Transform.splitSharpEdges(a, alphaRef=30.)
 
     .. A1.O0.D0
 
@@ -1107,7 +1132,7 @@ Mesh splitting and merging
 
 ---------------------------------------
 
-.. py:function:: Transform.splitTBranches(a,tol=1.e-13)
+.. py:function:: Transform.splitTBranches(a, tol=1.e-13)
 
     .. A1.O0.D0
     
@@ -1305,7 +1330,7 @@ Mesh deformation
 
 ---------------------------------------
 
-.. py:function:: Transform.deformMesh(a, surfDelta, beta=4.,type='nearest')
+.. py:function:: Transform.deformMesh(a, surfDelta, beta=4., type='nearest')
 
     .. A1.O0.D0
     

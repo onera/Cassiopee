@@ -517,6 +517,7 @@ elif [ "$MAC" = "sator_new" ]; then
     module unload intel/19.0.5
     module unload impi/19.0.5
     module load socle-cfd/5.0-intel2120-impi
+    module load subversion/1.14.1-gnu831
     export PYTHONEXE=python3
     alias python=python3
     

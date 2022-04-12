@@ -1275,8 +1275,14 @@ def getWinDir2__(win):
 # Casse les zones structurees pour que les raccords soient
 # sur des faces pleines
 #=====================================================================
+def splitFullMatch(t):
+    """Split all zones for matching on full faces."""
+    tp = Internal.copyRef(t)
+    _splitFullMatch(tp)
+    return tp
+
 def _splitFullMatch(t):
-    """Split all zones for matching on a full face."""
+    """Split all zones for matching on full faces."""
     zones = Internal.getZones(t)
     stack = []
     for z in zones:

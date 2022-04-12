@@ -546,18 +546,29 @@ def getSimdOptions():
             simd = i[7:]; break
     opts = []
     if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
-        if   simd == 'SSE4.2': opts += ['-xSSE4.2']
-        elif simd == 'AVX2'  : opts += ['-xCORE-AVX2']
-        elif simd == 'AVX512': opts += ['-xCORE-AVX512']
-        elif simd == 'MIC'   : opts += ['-xMIC-AVX512']
-        elif simd == 'XHOST' : opts += ['-xHost']
+        if   simd == 'SSE4.2'  : opts += ['-xSSE4.2']
+        elif simd == 'AVX2'    : opts += ['-xCORE-AVX2']
+        elif simd == 'AVX512'  : opts += ['-xCORE-AVX512']
+        elif simd == 'MIC'     : opts += ['-xMIC-AVX512']
+        elif simd == 'AVX2P512': opts += ['-axCORE-AVX2,CORE-AVX512']
+        elif simd == 'XHOST'   : opts += ['-xHost']
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
-        if   simd == 'SSE4.2': opts += ['-msse4.2']
-        elif simd == 'AVX2'  : opts += ['-mavx2']
-        elif simd == 'AVX512': opts += ['-mavx512f']
-        elif simd == 'MIC'   : opts += ['-mavx512er']
+        if   simd == 'SSE4.2'  : opts += ['-msse4.2']
+        elif simd == 'AVX2'    : opts += ['-mavx2']
+        elif simd == 'AVX512'  : opts += ['-mavx512f']
+        elif simd == 'MIC'     : opts += ['-mavx512er']
+        elif simd == 'AVX2P512': opts += ['-mavx512f']
     #print('simd', opts)
     return opts
+
+# Retourne True si opt est une option Simd
+def isSimd(opt):
+    if opt[0:7] == '-xCORE-': return True
+    if opt[0:7] == '-axCORE': return True
+    if opt[0:6] == '-xMIC-' : return True
+    if opt[0:6] == '-xHost' : return True
+    if opt[0:5] == '-mavx'  : return True
+    return False
 
 #=============================================================================
 # Retourne le nbre de socket du noeud

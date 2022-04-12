@@ -70,10 +70,10 @@ def _cartRxRefit(a):
     from . import CartGen
     return CartGen._cartRxRefit(a)
 
-def cartRx2(XC0, XC1, HC, XF0, XF1, R, rank=None, size=None):
+def cartRx2(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
     """Create a set of regular and geometric cartesian grids."""
     from . import CartGen
-    return CartGen.cartRx2(XC0, XC1, HC, XF0, XF1, R, rank, size)
+    return CartGen.cartRx2(XC0, XC1, HC, XF0, XF1, R, dim, rank, size)
 
 #------------------------------------------------------------------------------
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste

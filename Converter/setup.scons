@@ -103,8 +103,8 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
 # Suppression vectorisation pour certains fichiers
 files = ['Converter/cpyGhost2Real.cpp', 'Converter/fillCornerGhostCells.cpp',]
 flags = ''
-for i in cppOpts: 
-    if i[0:7] != '-xCORE-' and i[0:5] != '-mavx': flags += i+' '
+for i in cppOpts:
+    if not Dist.isSimd(i): flags += i+' '
 for i, v in enumerate(srcs.cpp_srcs):
     if v in files:
        #print('altering',v,flags)

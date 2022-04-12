@@ -111,7 +111,8 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   if (K_FUNC::fEqual(riinput, 1.0) == true)
   {
     ni = int(std::abs(xf - xo) / hi)+1;
-    hi = std::abs(xf - xo)/(ni-1);
+    if (ni > 1) hi = std::abs(xf - xo)/(ni-1);
+    else hi = 1.;
     ri = 1.;
     //if (xf > xo) printf("end: %f %f\n", xf, xo+hi*(ni-1));
     //else printf("end: %f %f\n", xf, xo-hi*(ni-1));
@@ -131,7 +132,8 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   if (K_FUNC::fEqual(rjinput, 1.) == true)
   {
     nj = int(std::abs(yf - yo) / hj)+1;
-    hj = std::abs(yf - yo)/(nj-1);
+    if (nj > 1) hj = std::abs(yf - yo)/(nj-1);
+    else hj = 1.;
     rj = 1.;
   }
   else
@@ -145,7 +147,8 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   if (K_FUNC::fEqual(rkinput, 1.0) == true)
   {
     nk = int(std::abs(zf - zo) / hk)+1;
-    hk = std::abs(zf - zo)/(nk-1);
+    if (nk > 1) hk = std::abs(zf - zo)/(nk-1);
+    else hk = 1;
     rk = 1.;
   }
   else
@@ -157,15 +160,15 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
 
   if (K_FUNC::fEqual(xo,xf)==true)
   {
-    ni=1;
+    ni = 1; hi = 1.;
   }
   if (K_FUNC::fEqual(yo,yf)==true)
   {
-    nj=1;
+    nj = 1; hj = 1.;
   }
   if (K_FUNC::fEqual(zo,zf)==true)
   {
-    nk=1;
+    nk = 1; hk = 1.;
   }
 
   //printf("Info: number of mesh cell = %i (i), %i (j), %i (k)\n ",ni,nj,nk); fflush(stdout);

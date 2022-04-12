@@ -83,8 +83,8 @@ if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler =
 # Suppression vectorisation pour T3mesher et gapfixer
 files = ["Generator/T3mesher2D.cpp", "Generator/gapfixer.cpp"]
 flags = ''
-for i in cppOpts: 
-    if i[0:7] != '-xCORE-' and i[0:5] != '-mavx': flags += i+' '
+for i in cppOpts:
+    if not Dist.isSimd(i): flags += i+' '
 for i, v in enumerate(srcs.cpp_srcs):
     if v in files:
        #print('altering',v,flags)
