@@ -12,4 +12,7 @@ C._initVars(b, '{F}={CoordinateX}*{CoordinateX}')
 C._initVars(b, '{centers:G}={centers:CoordinateX}')
 
 tkPlotXY.plot([a,b], varx='CoordinateX', vary='centers:G', 
-              rangex=[0,30], export='fig.png')
+              xlabel='x',
+              xformat='03.1f', yformat='03.1f',
+              legends=['courbe1', 'courbe2'],
+              export='fig.png')

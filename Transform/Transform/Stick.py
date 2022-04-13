@@ -13,7 +13,7 @@ import numpy
 # Projection can introduce artifacts
 # modifies t 
 #=======================================================================================
-def _stick(t, tp, stickBCName='FamilySpecified:stick'):
+def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
 
     # merge tp in a single projection surface
     zones = Internal.getZones(tp)
@@ -33,8 +33,8 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick'):
         C._initVars(walls, '{hz} = 0.')
     
         for w in walls:
-            #wp = T.projectOrtho(w, surf)
-            wp = T.projectOrthoSmooth(w, surf, niter=10)
+            if nitSmooth == 0: wp = T.projectOrtho(w, surf)
+            else: wp = T.projectOrthoSmooth(w, surf, niter=nitSmooth)
             #wp = T.projectDir(w, surf, (0,1,0))
             hp = Internal.getNodeFromName2(w, 'hx')
             cp = Internal.getNodeFromName2(w, 'CoordinateX')

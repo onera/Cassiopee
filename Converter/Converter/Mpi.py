@@ -10,6 +10,9 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
        from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
        def barrier(): return
        def bcast(a, root=0): return a
+       def Bcast(a, root=0): return a
+       def gather(a, root=0): return a
+       def Gather(a, root=0): return a
        def send(a, dest=0, tag=0): return None
        def recv(source=0, tag=0): return None # pb here
        def sendRecv(a, source=0, dest=0): return []
@@ -28,6 +31,9 @@ else: # try import (may fail - core or hang)
         from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
         def barrier(): return
         def bcast(a, root=0): return a
+        def Bcast(a, root=0): return a
+        def gather(a, root=0): return a
+        def Gather(a, root=0): return a
         def send(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
         def sendRecv(a, source=0, dest=0): return []

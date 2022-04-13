@@ -306,25 +306,25 @@ default_values = {
             #'my_grid_tick_size':10.
             # reglages de CB
             'Mx_display' : True,
-            'Mx_grid_color' : '#e3c7c7',
+            'Mx_grid_color' : '#95a5a6',
             'Mx_grid_style' : 'solid',
             'Mx_grid_width' : 1.,
             'Mx_grid_tick_number':5,
             'Mx_grid_tick_size':10.,
             'My_display' : True,
-            'My_grid_color' : '#e3c7c7',
+            'My_grid_color' : '#95a5a6',
             'My_grid_style' : 'solid',
             'My_grid_width' : 1.,
             'My_grid_tick_number':5,
             'My_grid_tick_size':10.,
             'mx_display' : True,
-            'mx_grid_color' : '#f4e1e1',
+            'mx_grid_color' : '#bfc9ca',
             'mx_grid_style' : 'solid',
             'mx_grid_width' : 1.,
             'mx_grid_tick_number':5,
             'mx_grid_tick_size':10.,
             'my_display' : True,
-            'my_grid_color' : '#f4e1e1',
+            'my_grid_color' : '#bfc9ca',
             'my_grid_style' : 'solid',
             'my_grid_width' : 1.,
             'my_grid_tick_number':5,
@@ -15718,12 +15718,27 @@ IMAGE_DICT = {
 # single line plot (bloquant)
 # plot toutes les zones 1d de a sur le meme graphe
 #==============================================================================
-def plot(a, varx='CoordinateX', vary='F', rangex=None, rangey=None, export=None,
+def plot(a, varx='CoordinateX', vary='F', export=None, 
+         rangex=None, rangey=None, 
+         xlabel=None, ylabel=None,
+         xformat=None, yformat=None,
+         xFontSize=None, yFontSize=None,
+         legends=None,
+         legendFontSize=10,
          lineWidth=1.5, lineColor=None,
          markerStyle='none', markerSize=6.5, 
          markerFaceColor=None, markerEdgeColor=None):
+
     if export is not None: setBatch()
 
+    import Converter.Mpi as Cmpi
+    zones = Internal.getZones(a)
+    A = Cmpi.gather(zones, root=0)
+    if Cmpi.rank > 0: return None
+    a = []
+    for i in A: a += i
+    
+    # Analyse des variables
     s = varx.split(':')
     if len(s) == 2: varx = s[1]+'@'+Internal.__FlowSolutionNodes__
     elif varx[0:10] != 'Coordinate': varx = varx+'@'+Internal.__FlowSolutionNodes__
@@ -15731,24 +15746,65 @@ def plot(a, varx='CoordinateX', vary='F', rangex=None, rangey=None, export=None,
     if len(s) == 2: vary = s[1]+'@'+Internal.__FlowSolutionNodes__
     elif vary[0:10] != 'Coordinate': vary = vary+'@'+Internal.__FlowSolutionNodes__
 
+    # Set data
     if export is None: desktop, win = createTkDesktop()
     else: desktop = Desktop()
-    
     desktop.setData(a)
+
+    size = len(desktop.data)
+
+    # Analyse legends
+    if legends is None: legendLabels = [z for z in desktop.data]
+    elif isinstance(legends, list) and len(legends) == size: legendLabels = legends
+    else: legendLabels = [z for z in desktop.data]
+
+    # Analyse lineWidth
+    if isinstance(lineWidth, float): lineWidths=[lineWidth]*size
+    elif isinstance(lineWidth, int): lineWidths=[lineWidth]*size
+    elif isinstance(lineWidth, list) and len(lineWidth) == size: lineWidths = lineWidth
+    else: lineWidths=[1.5]*size
+
+    # Analyse lineColor
+    if lineColor is None: lineColors = [None]*size
+    elif isinstance(lineColor, str): lineColorss=[lineColor]*size
+    elif isinstance(lineColor, list) and len(lineWidth) == size: lineColors = lineColor
+    else: lineColors=[None]*size
+
+    # Analyse marker styles
+    if isinstance(markerStyle, str): markerStyles=[markerStyle]*size
+    elif isinstance(markerStyle, list) and len(markerStyle) == size: markerStyles = markerStyle
+    else: markerStyles=['none']*size
+
+    # Analyse marker sizes
+    if isinstance(markerSize, float): markerSizes=[markerSize]*size
+    elif isinstance(markerSize, int): markerSizes=[markerSize]*size
+    elif isinstance(markerSize, list) and len(markerSize) == size: markerSizes = markerSize
+    else: markerSizes=[6.5]*size
+
+    # Analyse marker face colors
+    if markerFaceColor is None: markerFaceColors = [None]*size
+    elif isinstance(markerFaceColor, str): markerfaceColors=[markerFaceColor]*size
+    elif isinstance(markerFaceColor, list) and len(markerFaceColor) == size: markerFaceColors = markerFaceColor
+    else: markerFaceColors=[None]*size
+
     graph = desktop.createGraph('graph', '1:1')
+    c = 0
     for z in desktop.data:
         curve = Curve(zone=[z], varx=varx, vary=vary,
-                      line_color=lineColor,
-                      line_width=lineWidth,
-                      marker_style=markerStyle,
-                      marker_face_color=markerFaceColor, 
+                      line_color=lineColors[c],
+                      line_width=lineWidths[c],
+                      marker_style=markerStyles[c],
+                      marker_face_color=markerFaceColors[c], 
                       marker_edge_color=markerEdgeColor,
-                      marker_size=markerSize,
-                      legend_label=z)
+                      marker_size=markerSizes[c],
+                      legend_label=legendLabels[c],
+                      legend_label_size=legendFontSize)
         graph.addCurve('1:1', curve)
-    
+        c += 1
+
+    # Modification axis
+    axis = graph.getAxis('1:1')
     if rangex is not None:
-        axis = graph.getAxis('1:1')
         axis.x.setValue('axis_autoscale', False)
         axis.x.setValue('axis_min', rangex[0])
         axis.x.setValue('axis_max', rangex[1])
@@ -15756,9 +15812,20 @@ def plot(a, varx='CoordinateX', vary='F', rangex=None, rangey=None, export=None,
         axis.y.setValue('axis_autoscale', False)
         axis.y.setValue('axis_min', rangey[0])
         axis.y.setValue('axis_max', rangey[1])
-    
-    if rangex is not None or rangey is not None:
-        graph.updateGraph('1:1')
+    if xlabel is not None:
+        axis.x.setValue('axis_label', xlabel)
+    if ylabel is not None:
+        axis.y.setValue('axis_label', ylabel)
+    if xformat is not None:
+        axis.x.setValue('axis_label_format', '{x:'+xformat+'}')
+    if yformat is not None:
+        axis.y.setValue('axis_label_format', '{x:'+yformat+'}')
+    if xFontSize is not None:
+        axis.x.setValue('axis_label_fontsize', xFontSize)
+    if yFontSize is not None:
+        axis.y.setValue('axis_label_fontsize', yFontSize)     
+
+    graph.updateGraph('1:1')
 
     if export is None: win.mainloop()
     else: 

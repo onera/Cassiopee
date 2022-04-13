@@ -23,26 +23,41 @@ t = C.newPyTree(['Base', a])
 bodies = [[s]]
 BM = numpy.array([[1]],numpy.int32)
 t = X.blankCells(t,bodies,BM,blankingType='center_in')
-t = X.setHoleInterpolatedPoints(t,depth=-2)
+X._setHoleInterpolatedPoints(t,depth=-2)
 # Dist2Walls
 DTW._distance2Walls(t,[s],type='ortho',loc='centers',signed=1)
 t = C.center2Node(t,'centers:TurbulentDistance')
 # Gradient de distance localise en centres => normales
 t = P.computeGrad(t, 'TurbulentDistance')
-I._initConst(t,MInf=0.2,loc='centers')
+C._initVars(t,"centers:Density",1.)
+C._initVars(t,"centers:VelocityX",0.2)
+C._initVars(t,"centers:VelocityY",0.)
+C._initVars(t,"centers:VelocityZ",0.)
+C._initVars(t,"centers:Temperature",1.)
 tc = C.node2Center(t)
 
 tb = C.newPyTree(['Base', s])
 C._addState(tb, 'EquationDimension',3)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 
-tp = X.setIBCData(t, tc, loc='centers', storage='direct', bcType=0)
-t2 = X.setInterpTransfers(tp, tc, bcType=0, varType=1)
-z = IBM.extractIBMWallFields(t2, tb=tb)
-test.testT(z,1)
+X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=0)
 
+#test avec arbre tc compact
+vars=['Density','VelocityX','VelocityY','VelocityZ','Temperature']
+
+zones = Internal.getNodesFromType2(t, 'Zone_t')
+X.miseAPlatDonorTree__(zones, tc, graph=None)
+# attention compact=0 car t n est pas compacte
+X._setInterpTransfers(t,tc, bcType=0,varType=2,variablesIBC=vars,compact=0,compactD=1)
+z = IBM.extractIBMWallFields(tc, tb=tb)
+test.testT(z,1)
 #
-tp = X.setIBCData(t, tc, loc='centers', storage='direct', bcType=3)
-t2 = X.setInterpTransfers(tp, tc, bcType=3, varType=1)
-z = IBM.extractIBMWallFields(t2, tb=tb)
-test.testT(z,2)
+Internal._rmNodesFromName(t,"Parameter_int")
+Internal._rmNodesFromName(t,"Parameter_real")
+tc = C.node2Center(t)
+X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=3)
+zones = Internal.getNodesFromType2(t, 'Zone_t')
+X.miseAPlatDonorTree__(zones, tc, graph=None)
+X._setInterpTransfers(t, tc, bcType=3, varType=2,variablesIBC=vars,compact=0,compactD=1)
+tb_out = IBM.extractIBMWallFields(tc, tb=tb)
+test.testT(tb_out,2)

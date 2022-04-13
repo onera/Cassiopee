@@ -40,21 +40,30 @@ tkPlotXY can be used with a single function.
     :type rangex: None or list of two floats
     :param rangey: if not None, range for y variable. If None, automatic setting.
     :type rangey: None or list of two floats
+    :param xlabel: if not None, name to display on x axis.
+    :type xlabel: None or string
+    :param ylabel: if not None, name to display on y axis.
+    :type ylabel: None or string
+    :param xformat: if not None, format for x axis values.
+    :type xformat: None or string like '9.3f'
+    :param yformat: if not None, format for y axis values.
+    :type yformat: None or string like '9.3f'
+    :param legends: if not None, the name of curves to be displayed in legend.
+    :type legends: None or list of strings
     :param export: if None, interactive plot, otherwise name of export file.
     :type export: None or name of export file
     :param lineWidth: width of plot lines
-    :type lineWidth: float (default: 1.5)
+    :type lineWidth: float (default: 1.5) or list of floats for each zone
     :param lineColor: color of plot lines. Html string (#FFFFFF) or color name ('black).
-    :type lineColor: string
+    :type lineColor: string or list of strings for each zone
     :param markerStyle: style of marker, 'none', '+', 'o', ...
-    :type markerStyle: string
+    :type markerStyle: string or list of strings for each zone
     :param markerWidth: width of markers
-    :type markerWidth: float (default: 6.5)
+    :type markerWidth: float (default: 6.5) or list of floats for each zone
     :param markerFaceColor: face color of markers. Html string (#FFFFFF) or color name ('black).
-    :type markerFaceColor: string
+    :type markerFaceColor: string or list of string for each zone
     :param markerEdgeColor: edge color of markers. Html string (#FFFFFF) or color name ('black).
     :type markerEdgeColor: string
-
 
     *Example of use:*
 

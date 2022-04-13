@@ -9,7 +9,8 @@ from .Distributed import readZones, _readZones, convert2PartialTree, _convert2Pa
 
 __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 
     'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
-    'bcast', 'Bcast', 'reduce', 'Reduce', 'allreduce', 'Allreduce', 
+    'bcast', 'Bcast', 'gather', 'Gather', 
+    'reduce', 'Reduce', 'allreduce', 'Allreduce', 
     'bcastZone', 'allgatherZones', 
     'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 
@@ -278,9 +279,20 @@ def allgatherTree(t):
     """Gather a distributed tree on all processors."""
     d = KCOMM.allgather(t)
     return Internal.merge(d)
-    
+
 #==============================================================================
-# bcast from root
+# gather to root from all procs
+#==============================================================================
+# data=All with pickle
+def gather(data, root=0):
+    return KCOMM.gather(data, root)
+
+# data=numpy
+def Gather(data, root=0):
+    return KCOMM.Gather(data, root)
+
+#==============================================================================
+# bcast from root to all procs
 #==============================================================================
 # data=All with pickle
 def bcast(data, root=0):
