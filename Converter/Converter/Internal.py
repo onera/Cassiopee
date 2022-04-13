@@ -2413,22 +2413,48 @@ def copyRef(node):
     else: return node
 
 # -- Copie un arbre ou un sous-arbre en copiant aussi les numpy.array
-def copyTree(node, parent=None, order='F'):
+def copyTree(node, order='F'):
     """Fully copy a tree."""
+    ret = isStdNode(node)
+    if ret == -1: 
+        d = copyTree__(node, order=order)
+        return d
+    elif ret == 0:
+        d = []
+        for n in node:
+            o = copyTree__(n, order=order)
+            d.append(d)
+        return d
+    else: return node
+
+def copyTree__(node, parent=None, order='F'):
     if node[1] is not None and isinstance(node[1], numpy.ndarray):
         d = [node[0], node[1].copy(order), [], node[3]]
     else: d = [node[0], node[1], [], node[3]]
     if parent is not None and len(parent) == 4: parent[2].append(d)
-    for i in node[2]: copyTree(i, d, order=order)
+    for i in node[2]: copyTree__(i, d, order=order)
     return d
 
 # -- Copie un noeud (pas de recursivite)
 def copyNode(node):
     """Copy only this node (no recursion)."""
-    if node[1] is not None and isinstance(node[1], numpy.ndarray):
-        d = [node[0], node[1].copy('F'), node[2], node[3]]
-    else: d = [node[0], node[1], node[2], node[3]]
-    return d    
+    ret = isStdNode(node)
+    if ret == -1:
+        if node[1] is not None and isinstance(node[1], numpy.ndarray):
+            d = [node[0], node[1].copy('F'), node[2], node[3]]
+        else: d = [node[0], node[1], [], node[3]]
+        return d
+    elif ret == 0:
+        d = []
+        for n in node:
+            if n[1] is not None and isinstance(n[1], numpy.ndarray):
+                o = [n[0], n[1].copy('F'), n[2], n[3]]
+                d.append(o)
+            else:
+                o = [n[0], n[1], n[2], n[3]]
+                d.append(o)
+        return d
+    else: return node
 
 # -- copyOnly(node) --
 # Copie recursivement les noms (si names=True), les types (si types=True)

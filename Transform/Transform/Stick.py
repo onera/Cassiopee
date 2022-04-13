@@ -69,8 +69,17 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
 
     defTree = KDG.KeDefGrid(t, **DeformationArgs)
     defTree.set_Amplitude(1.)
+
+    # Imposed boundaries
     for k in defo:
-        defTree.setBndSurfTo(k, "imposed", defo[k], Modenumber=0)    
+        defTree.setBndSurfTo(k, "imposed", defo[k], Modenumber=0)
+    
+    # Free boundaries
+    free = C.extractBCOfName(t, 'FamilySpecified:free')
+    for f in free:
+        name = f[0].replace('/', '#')
+        defTree.setBndSurfTo(name, "free")
+
     defTree.makeSources()
     defTree.computeMeshDisplacement()
 

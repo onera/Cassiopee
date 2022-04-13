@@ -121,6 +121,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
   }
   else if (K_FUNC::fEqualZero(a - 899.) == true)
   {
+    // 899 means Variable Aux data : discarded
     ib = fread(&ib, si, 1, ptrFile);
     while (ib != 0) fread(&ib, si, 1, ptrFile);
     ib = fread(&ib, si, 1, ptrFile);
@@ -132,9 +133,38 @@ E_Int K_IO::GenIO::readZoneHeader108(
   }
   else if (K_FUNC::fEqualZero(a - 399.) == true)
   {
+    // Geometry
     FldArrayF* field;
     E_Int ret = readGeom108(ptrFile, field);
     if (ret == 1) geom.push_back(field);
+    goto zonemarker;
+  }
+  else if (K_FUNC::fEqualZero(a - 499.) == true)
+  {
+    // Text : discarded
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    while (ib != 0) fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    while (ib != 0) fread(&ib, si, 1, ptrFile);
     goto zonemarker;
   }
   else if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
@@ -343,6 +373,7 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   }
   else if (K_FUNC::fEqualZero(a - 899.) == true)
   {
+    // 899 means Variable Aux data : discarded
     ib = fread(&ib, si, 1, ptrFile);
     while (ib != 0) fread(&ib, si, 1, ptrFile);
     ib = fread(&ib, si, 1, ptrFile);
@@ -354,9 +385,38 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   }
   else if (K_FUNC::fEqualZero(a - 399.) == true)
   {
+    // Geometry
     FldArrayF* field;
     E_Int ret = readGeom108CE(ptrFile, field);
     if (ret == 1) geom.push_back(field);
+    goto zonemarker;
+  }
+  else if (K_FUNC::fEqualZero(a - 499.) == true)
+  {
+    // Text : discarded
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    while (ib != 0) fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    while (ib != 0) fread(&ib, si, 1, ptrFile);
     goto zonemarker;
   }
   else if (K_FUNC::fEqualZero(a - 299.) == false)

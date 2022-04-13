@@ -13,6 +13,7 @@ a = T.rotate(a, (0,0,0), (1,0,0), 90.)
 d = D.line((0,0,0),(0.1,0,0),3)
 a = G.addNormalLayers(a, d)
 C._addBC2Zone(a, 'stick', 'FamilySpecified:stick', 'jmin')
+C._fillEmptyBCWith(a, 'free', 'FamilySpecified:free')
 t = C.newPyTree(['Base', a])
 C.convertPyTree2File(t, 'pale.cgns')
 
