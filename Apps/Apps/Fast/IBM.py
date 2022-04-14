@@ -1467,36 +1467,36 @@ def _prepareSkinReconstruction(ts, tc):
             pressNP = []; utauNP = []; yplusNP = []; densNP = []
             vxNP = []; vyNP = []; vzNP = []
 
-            PW = Internal.getNodeFromName1(IBCD,X.__PRESSURE__)
+            PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
             if PW is not None: pressNP.append(PW[1])
-            RHOW = Internal.getNodeFromName1(IBCD,X.__DENSITY__)
+            RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
             if RHOW is not None: densNP.append(RHOW[1])
-            UTAUW = Internal.getNodeFromName1(IBCD,X.__UTAU__)
+            UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
             if UTAUW is not None: utauNP.append(UTAUW[1])
-            YPLUSW = Internal.getNodeFromName1(IBCD, X.__YPLUS__)
+            YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
             if YPLUSW is not None: yplusNP.append(YPLUSW[1])
 
-            VXW = Internal.getNodeFromName1(IBCD, X.__VELOCITYX__)
+            VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
             if VXW is not None: vxNP.append(VXW[1])
-            VYW = Internal.getNodeFromName1(IBCD, X.__VELOCITYY__)
+            VYW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
             if VYW is not None: vyNP.append(VYW[1])
-            VZW = Internal.getNodeFromName1(IBCD, X.__VELOCITYZ__)
+            VZW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
             if VZW is not None: vzNP.append(VZW[1])
 
-            FSN[2].append([X.__PRESSURE__,pressNP[0], [],'DataArray_t'])
-            FSN[2].append([X.__DENSITY__,densNP[0], [],'DataArray_t'])
+            FSN[2].append([XOD.__PRESSURE__,pressNP[0], [],'DataArray_t'])
+            FSN[2].append([XOD.__DENSITY__,densNP[0], [],'DataArray_t'])
             if utauNP != []:
                 utauPresent = 1
-                FSN[2].append([X.__UTAU__,utauNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__UTAU__,utauNP[0], [],'DataArray_t'])
             if yplusNP != []:
                 yplusPresent = 1
-                FSN[2].append([X.__YPLUS__,yplusNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__YPLUS__,yplusNP[0], [],'DataArray_t'])
 
             if vxNP != []:
                 vxPresent = 1
-                FSN[2].append([X.__VELOCITYX__,vxNP[0], [],'DataArray_t'])
-                FSN[2].append([X.__VELOCITYY__,vyNP[0], [],'DataArray_t'])
-                FSN[2].append([X.__VELOCITYZ__,vzNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__VELOCITYX__,vxNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__VELOCITYY__,vyNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__VELOCITYZ__,vzNP[0], [],'DataArray_t'])
 
             Cmpi._setProc(z,Cmpi.rank)          
             tl[2][1][2].append(z)
@@ -1512,14 +1512,14 @@ def _prepareSkinReconstruction(ts, tc):
     FES =  Internal.getNodeFromName(ts,'FlowEquationSet')
     tl[2][1][2].append(FES)
 
-    C._initVars(ts,X.__PRESSURE__,0.)
-    C._initVars(ts,X.__DENSITY__,0.)
-    C._initVars(ts,X.__VELOCITYX__,0.)
-    C._initVars(ts,X.__VELOCITYY__,0.)
-    C._initVars(ts,X.__VELOCITYZ__,0.)    
+    C._initVars(ts,XOD.__PRESSURE__,0.)
+    C._initVars(ts,XOD.__DENSITY__,0.)
+    C._initVars(ts,XOD.__VELOCITYX__,0.)
+    C._initVars(ts,XOD.__VELOCITYY__,0.)
+    C._initVars(ts,XOD.__VELOCITYZ__,0.)    
     if Internal.getValue(Internal.getNodeFromType1(FES,'GoverningEquations_t'))!= 'Euler':
-        C._initVars(ts,X.__UTAU__,0.)
-        C._initVars(ts,X.__YPLUS__,0.)
+        C._initVars(ts,XOD.__UTAU__,0.)
+        C._initVars(ts,XOD.__YPLUS__,0.)
     
     return tl, graphWPOST, interDictWPOST
 
@@ -1529,30 +1529,30 @@ def _computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST):
         allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
         allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
         for IBCD in allIBCD:
-            PW = Internal.getNodeFromName1(IBCD,X.__PRESSURE__)
-            RHOW = Internal.getNodeFromName1(IBCD,X.__DENSITY__)
-            UTAUW = Internal.getNodeFromName1(IBCD,X.__UTAU__)
-            YPLUSW = Internal.getNodeFromName1(IBCD, X.__YPLUS__)
-            VXW = Internal.getNodeFromName1(IBCD, X.__VELOCITYX__)
-            VYW = Internal.getNodeFromName1(IBCD, X.__VELOCITYY__)
-            VZW = Internal.getNodeFromName1(IBCD, X.__VELOCITYZ__)
+            PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
+            RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
+            UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
+            YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
+            VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
+            VYW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
+            VZW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
             
             zname = Internal.getValue(IBCD)
             znamepostw = 'IBW_Wall_%s_%s'%(zc[0],zname)
             zpostw = Internal.getNodeFromName(tl,znamepostw)
             FSP = Internal.getNodeFromType(zpostw,'FlowSolution_t')
-            PW2 = Internal.getNodeFromName1(FSP,X.__PRESSURE__)
-            RHOW2 = Internal.getNodeFromName1(FSP,X.__DENSITY__)
+            PW2 = Internal.getNodeFromName1(FSP,XOD.__PRESSURE__)
+            RHOW2 = Internal.getNodeFromName1(FSP,XOD.__DENSITY__)
             PW2[1]=PW[1]; RHOW2[1]=RHOW[1]
 
-            UTAUW2 = Internal.getNodeFromName1(FSP,X.__UTAU__)
+            UTAUW2 = Internal.getNodeFromName1(FSP,XOD.__UTAU__)
             if UTAUW2 is not None:
-                YPLUSW2 = Internal.getNodeFromName1(FSP, X.__YPLUS__)
+                YPLUSW2 = Internal.getNodeFromName1(FSP, XOD.__YPLUS__)
                 UTAUW2[1]=UTAUW[1]; YPLUSW2[1]=YPLUSW[1]
-            VXW2 = Internal.getNodeFromName1(FSP, X.__VELOCITYX__)     
+            VXW2 = Internal.getNodeFromName1(FSP, XOD.__VELOCITYX__)     
             if VXW2 is not None:
-                VYW2 = Internal.getNodeFromName1(FSP, X.__VELOCITYY__)
-                VZW2 = Internal.getNodeFromName1(FSP, X.__VELOCITYZ__)
+                VYW2 = Internal.getNodeFromName1(FSP, XOD.__VELOCITYY__)
+                VZW2 = Internal.getNodeFromName1(FSP, XOD.__VELOCITYZ__)
                 VXW2[1]=VXW[1]
                 VYW2[1]=VYW[1]
                 VZW2[1]=VZW[1]

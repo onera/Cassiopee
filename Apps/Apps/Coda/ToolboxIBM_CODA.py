@@ -316,13 +316,13 @@ def prepare(t_case, t, tskel, check=False):
     indicesF=[]; f = P.exteriorFaces(z, indices=indicesF)
     indicesF=indicesF[0]
     hook = C.createHook(f, 'elementCenters')
-    for zbc in zbcs:
+    for nobc, zbc in enumerate(zbcs):
         ids = C.identifyElements(hook, zbc, tol=TOL)
         ids = ids[ids[:] > -1]
         ids = ids.tolist()
         ids = [ids[i]-1 for i in range(len(ids))] 
         zf = T.subzone(f,ids, type='elements')
-        _addBC2ZoneLoc(z, zf[0], bctype, zf)
+        _addBC2ZoneLoc(z, zf[0], bctypes[nobc], zf)
 
     # recoverIBC familySpecified:IBMWall
     if front1 != []: # can be empty on a proc
@@ -336,7 +336,6 @@ def prepare(t_case, t, tskel, check=False):
                     ibcdataset=Internal.createNode('BCDataSet','BCDataSet_t',parent=bc,value='Null')
                     dnrPts = Internal.createNode("DonorPointCoordinates",'BCData_t',parent=ibcdataset)
                     wallPts = Internal.createNode("WallPointCoordinates",'BCData_t',parent=ibcdataset)
-                    #allip_pts=Transform.join(allip_pts)
                     allwall_pts = Transform.join(allwall_pts)
                     allimage_pts = Transform.join(allimage_pts)
                     coordsPI = Converter.extractVars(allimage_pts, ['CoordinateX','CoordinateY','CoordinateZ'])
@@ -865,7 +864,13 @@ def _addBC2ZoneLoc(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
     Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
 
     zoneBC = Internal.createUniqueChild(z, 'ZoneBC', 'ZoneBC_t')
-    info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType)
+    if len(s)==1:
+        info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType)
+    else: # familyspecified
+        info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType1)
+        Internal.createUniqueChild(info, 'FamilyName', 'FamilyName_t',
+                                   value=bndType2)
+        
     Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t',
                                 value='FaceCenter')
     if isinstance(faceList, numpy.ndarray): r = faceList
