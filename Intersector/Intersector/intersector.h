@@ -49,6 +49,8 @@ namespace K_INTERSECTOR
   
   PyObject* collapseUncomputableFaces(PyObject* self, PyObject* args);
   PyObject* collapseSmallCells(PyObject* self, PyObject* args);
+  PyObject* collapseSmallEdges(PyObject* self, PyObject* args);
+
   PyObject* removeNonManifoldExternalCells(PyObject* self, PyObject* args);
   
   PyObject* prepareCellsSplit(PyObject* self, PyObject* args);

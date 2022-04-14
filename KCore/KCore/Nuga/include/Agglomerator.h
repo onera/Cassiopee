@@ -1658,84 +1658,37 @@ namespace NUGA
       
       if (!K_MESH::Polyhedron<0>::is_of_type<K_MESH::Tetrahedron>(ngio.PGs, pf, npf)) continue;
 
-      std::cout << "collapsing a tetra " << std::endl;
+      //std::cout << "collapsing a tetra " << std::endl;
       nodes.clear();
 
-      int pmin = IDX_NONE;
-      double lrefmin = NUGA::FLOAT_MAX;
-      for (size_t p = 0; p < 4; ++p)
+      //find tha max id : more chances to be an X point, so more chance to lie on the X interface :
+      // it it better if entities crash on the interface to not deform it
+      int Ntarget=-1; 
+      for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
       {
-        K_MESH::Polygon pg(ngio.PGs, pf[p]-1);
-        double lref = ::sqrt(pg.Lref2(crd, ISO_MAX));
-
-        if (lref < lrefmin)
+        int* pnodes = ngio.PGs.get_facets_ptr(pf[p]-1);
+        for (size_t k=0; k < 3; ++k)
         {
-          lrefmin = lref;
-          pmin = p;
+          int Ni = pnodes[k]-1;
+          Ntarget = (Ntarget < Ni) ? Ni : Ntarget;
         }
       }
 
-      K_MESH::Polygon t(ngio.PGs, pf[pmin] - 1);
-      //K_MESH::Polyhedron<0> t(ngio, PHi);
-      //double lref = ::sqrt(t.Lref2(crd, ISO_MAX));
-
-      K_SEARCH::BBox3D bbox;
-
-      t.bbox(crd, bbox);
-      double F = 5.;
-      double lref = lrefmin;
-      bbox.minB[0] -= F * lref;
-      bbox.minB[1] -= F * lref;
-      bbox.minB[2] -= F * lref;
-
-      bbox.maxB[0] += F * lref;
-      bbox.maxB[1] += F * lref;
-      bbox.maxB[2] += F * lref;
-      
-      out.clear();
-      tree.getInBox(bbox.minB, bbox.maxB, out);
-
-      int max_id = -1;
-      for (size_t n = 0; n < out.size(); ++n)
+      // now collapse the tetra on Ntrget
+      for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
       {
-        max_id = (out[n] > max_id) ? out[n] : max_id;
+        int* pnodes = ngio.PGs.get_facets_ptr(pf[p]-1);
+        for (size_t k=0; k < 3; ++k)
+          nids[pnodes[k]-1]=Ntarget;
       }
+    }
 
-      for (size_t n = 0; n < out.size(); ++n)
-      {
-        if (nids[i] != i) continue;
-        nids[out[n]] = max_id;
-      }
-
-
-      E_Int PGi0 = pf[0] - 1;
-      /*E_Int PGi1 = pf[1] - 1;
-      const int * nodes = ngio.PGs.get_facets_ptr(PGi0);
-      E_Int maxid = -1;
-      for (size_t n = 0; n < 4; ++n)
-      {
-        int Ni = nodes[n] - 1;
-        maxid = (maxid < Ni) ? Ni : maxid;
-      }
-      
-      nodes = ngio.PGs.get_facets_ptr(PGi1);
-      for (size_t n = 0; n < 4; ++n)
-      {
-        int Ni = nodes[n] - 1;
-        maxid = (maxid < Ni) ? Ni : maxid;
-      }
-
-      for (size_t k = 0; k < npf; ++k)
-      {
-        int PGi = pf[k] - 1;
-        int * nodes = ngio.PGs.get_facets_ptr(PGi);
-
-        for (size_t u = 0; u < 4; ++u) {
-          int Ni = nodes[u] - 1;
-          if (nids[Ni] == Ni)
-            nids[Ni] = maxid;
-        }
-      }*/
+    // update the pointers to point to the leaves
+    for (size_t i =0; i < nids.size(); ++i)
+    {
+      int Fi=nids[i];
+      while (Fi != nids[Fi])Fi=nids[Fi];
+      nids[i]=Fi;
     }
 
     ngio.PGs.change_indices(nids);

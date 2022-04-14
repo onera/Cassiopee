@@ -927,7 +927,16 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   K_FLD::FloatArray crd;
   E_Int err=BO.Union(crd, cnt, bo_t::eInterPolicy::SOLID_RIGHT, bo_t::eMergePolicy::PRESERVE_RIGHT);
 
-  if (err) return NULL;
+  if (err == 1) return NULL;
+
+  if (err == -7) // empty X
+  {
+#ifdef E_DOUBLEINT
+   return Py_BuildValue("l", long(err));
+#else
+  return Py_BuildValue("i", err);
+#endif 
+  }
 
   ngon_type & ngo = *BO._ngoper;
 

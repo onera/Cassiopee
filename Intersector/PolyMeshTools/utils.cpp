@@ -768,6 +768,69 @@ PyObject* K_INTERSECTOR::detectOverConnectedFaces(PyObject* self, PyObject* args
 //=============================================================================
 /* XXX */
 //=============================================================================
+PyObject* K_INTERSECTOR::collapseSmallEdges(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Float edge_ratio(-1.), Lmax(-1.);
+
+  if (!PYPARSETUPLEF(args, "Odd", "Off", &arr, &edge_ratio, &Lmax)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+  ngon_unit pgso;
+
+  std::vector<int> nids;
+  bool carry_on{false};
+  int iter{0};
+
+  //
+  do
+  {
+    //double npgs0 = ngi.PGs.size();
+    //std::cout << "iter : " << iter++ << std::endl;
+    carry_on = ngi.collapse_micro_edge(crd, edge_ratio, Lmax, nids);
+    ngi.PGs.change_indices(nids);
+    ngon_type::clean_connectivity(ngi, crd, 3, 0., true/*remove dups*/); 
+    //std::cout << "nb pgs : " << ngi.PGs.size() << std::endl;
+    
+    // //if (carry_on)
+    // {
+      
+    //   carry_on = (ngi.PGs.size() < npgs0);
+    //   if (carry_on)npgs0 = ngi.PGs.size();
+    // }
+    //std::cout << "carry on ? : " << carry_on << std::endl;
+
+  } while (carry_on);  
+
+  //std::cout << "collapseMicroRegions : build array" << std::endl;
+  ngon_type ngo = ngi;//(pgso, true);
+  K_FLD::IntArray cnto;
+  ngo.export_to_array(cnto);
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+
+  //std::cout << "collapseMicroRegions : end" << std::endl;
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
 PyObject* K_INTERSECTOR::extractNthFace(PyObject* self, PyObject* args)
 {
 

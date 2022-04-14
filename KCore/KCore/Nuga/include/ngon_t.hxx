@@ -1407,6 +1407,74 @@ struct ngon_t
   }
 
   ///
+  bool collapse_micro_edge(const K_FLD::FloatArray& crd, double edge_ratio, double Lmax, std::vector<int>& nids)
+  {
+    bool has_changed=false;
+
+    if (edge_ratio > 1.) edge_ratio = 1./edge_ratio;
+    if (edge_ratio <= 0.) return false;
+
+    double edge_ratio2 = edge_ratio*edge_ratio;
+
+    nids.clear();
+    K_CONNECT::IdTool::init_inc(nids, crd.cols()); 
+
+    K_FLD::FloatArray L;
+    NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, PGs, L);
+
+    int npgs = PGs.size();
+    int n_bad_nodes;
+
+    // rule : collapse an edge iff this edge is small compared to some surrounding edges attached at both ends
+    for (int i=0; i < npgs; ++i)
+    {
+      n_bad_nodes = 0;
+      const int* pnodes = PGs.get_facets_ptr(i);
+      int nnodes = PGs.stride(i);
+
+      for (int n=0; n < nnodes; ++n)
+      {
+        int Ni   = pnodes[n]-1;
+        int Nip1 = pnodes[(n+1) % nnodes]-1;
+
+        double NiNj[3];
+        NUGA::diff<3>(crd.col(Ni), crd.col(Nip1), NiNj);
+        double Lref = ::sqrt(NUGA::sqrNorm<3>(NiNj));
+
+        const double& emin2 = L(0, Ni);
+        const double& emax2 = L(1, Ni);
+        if (emin2 < edge_ratio2*emax2) ++n_bad_nodes;
+
+        const double& emin21 = L(0, Nip1);
+        const double& emax21 = L(1, Nip1);
+        if (emin21 < edge_ratio2*emax21) ++n_bad_nodes;
+
+        double emin = ::sqrt(std::min(emin2, emin21));
+        if (Lmax > 0. && emin > Lmax) continue; // consider only edges under Lmax (if valid value)
+
+        bool small_edge = ::fabs(emin - Lref) < 1.e-6 * emin ; // NiNj is (or very near) the smallest incident edge
+
+        if (n_bad_nodes == 2 && small_edge)
+        {
+          nids[std::min(Ni, Nip1)] = std::max(Ni, Nip1); //X-interface preserving policy : assign max, most chances to be an X point 
+          has_changed = true;
+        }
+      }
+    }
+
+    // update the pointers to point to the leaves
+    for (size_t i =0; i < nids.size(); ++i)
+    {
+      int Fi=nids[i];
+      while (Fi != nids[Fi])Fi=nids[Fi];
+      nids[i]=Fi;
+    }
+
+    return has_changed;
+
+  }
+
+  ///
   template <typename CoordAccType>
   bool replace_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids)
   { 

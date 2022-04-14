@@ -594,6 +594,14 @@ def detectOverConnectedFaces(a):
     return intersector.detectOverConnectedFaces(a)
 
 #==============================================================================
+# collapseSmallEdges : XXX
+#======================================================================
+def collapseSmallEdges(a, eratio, lmax=-1):
+    """XXX"""
+    return intersector.collapseSmallEdges(a, eratio, lmax)
+
+
+#==============================================================================
 # getOverlappingFaces   : returns the list of polygons in a1 and a2 that are overlapping.
 # IN : a1:              : NGON mesh (surface or volume).
 # IN : a2:              : NGON mesh (surface or volume).

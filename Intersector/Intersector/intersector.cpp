@@ -60,6 +60,7 @@ static PyMethodDef Pyintersector [] =
   {"splitNonStarCells", K_INTERSECTOR::splitNonStarCells, METH_VARARGS},
   {"collapseUncomputableFaces", K_INTERSECTOR::collapseUncomputableFaces, METH_VARARGS},
   {"collapseSmallCells", K_INTERSECTOR::collapseSmallCells, METH_VARARGS},
+  {"collapseSmallEdges", K_INTERSECTOR::collapseSmallEdges, METH_VARARGS },
   {"removeNonManifoldExternalCells", K_INTERSECTOR::removeNonManifoldExternalCells, METH_VARARGS},
   {"agglomerateSmallCells", K_INTERSECTOR::agglomerateSmallCells, METH_VARARGS},
   {"shellAgglomerateSmallCells", K_INTERSECTOR::shellAgglomerateSmallCells, METH_VARARGS},

@@ -173,7 +173,9 @@ def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False):
     TOL = 0.01 * edgeLengthExtrema(t)
     t = concatenate(t, tol = TOL)
 
-    valid = isConformalNConnex(t, nb_comps)
+    valid = True
+    if nb_comps > 0:
+      valid = isConformalNConnex(t, nb_comps)
     if valid == False:
       #C.convertPyTree2File(t, 'bad_oper.cgns')
       print('Invalid operand : concatenation failed to produce a single connex and conformal block.')
@@ -819,6 +821,9 @@ def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, s
 def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, simplify_pgs = True, hard_mode = 0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed volume meshes.
     Usage for volumes: booleanUnion2(a1, a2, tol, agg_mode)"""
+    t1_is_tree = Internal.isTopTree(t1)
+    t2_is_tree = Internal.isTopTree(t2)
+
     m1s = []
     z1s = Internal.getZones(t1)
     for z in z1s:
@@ -829,6 +834,14 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
       m2s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
 
     res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
+
+    #if t1 and t2 does not overlap, merge
+    if res == -7:
+      if t1_is_tree == True and t2_is_tree == True:
+        return Internal.merge([t1, t2])
+      else:
+        return z1s+z2s
+
 
     i=0
     paths = []
@@ -1002,9 +1015,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
                 C._addBC2Zone(zones[zoneD],name2,'BCMatch',faceList=faceListD+1,\
                                   zoneDonor=z2OppName, faceListDonor=faceListR+1)
     
-    t1_is_tree = Internal.isTopTree(t1)
-    t2_is_tree = Internal.isTopTree(t2)
-
+    
     if t1_is_tree == True and t2_is_tree == True:
         return Internal.merge([t1, t2])
     else:
@@ -2665,6 +2676,17 @@ def _detectOverConnectedFaces(t, TOL=1.e-15, clean=0):
     return C._TZA(t, 'nodes', 'nodes', XOR.detectOverConnectedFaces, t, TOL, clean)
 
 #==============================================================================
+# collapseMicroRegions : XXX
+#======================================================================
+def collapseSmallEdges(t, eratio, lmax=-1.):
+    """XXX."""
+    return C.TZA(t, 'nodes', 'nodes', XOR.collapseSmallEdges, t, eratio, lmax)
+
+
+def _collapseSmallEdges(t, eratio, lmax=-1.):
+    return C._TZA(t, 'nodes', 'nodes', XOR.collapseSmallEdges, t, eratio, lmax)
+
+#==============================================================================
 # getOverlappingFaces   : returns the list of polygons in a1 and a2 that are overlapping.
 # IN : t1:              : NGON mesh (surface or volume).
 # IN : t2:              : NGON mesh (surface or volume).
@@ -3313,9 +3335,14 @@ def statsSize(t, compute_metrics=1):
 # removeBaffles : XXX
 #==============================================================================
 def removeBaffles(t):
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    m = XOR.removeBaffles(m)
-    return C.convertArrays2ZoneNode('wobaffle', [m])
+  return C.TZA(t, 'nodes', 'nodes', XOR.removeBaffles, t)
+
+#==============================================================================
+# removeBaffles : XXX
+#==============================================================================
+def _removeBaffles(t):
+  return C._TZA(t, 'nodes', 'nodes', XOR.removeBaffles, t)
+    
 
 #==============================================================================
 # convert2Polyhedron : XXX
