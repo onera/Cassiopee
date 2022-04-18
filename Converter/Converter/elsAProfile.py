@@ -1029,8 +1029,8 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
              inct = numpy.empty((nfaces), dtype=numpy.int32)
              if ESO is None: Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
              # OK
-             ict = numpy.empty((nfaces), dtype=numpy.int32)
-             bcct = numpy.empty((nfaces), dtype=numpy.int32)
+             ict = -1*numpy.ones((nfaces), dtype=numpy.int32)
+             bcct = -1*numpy.ones((nfaces), dtype=numpy.int32)
              Internal.newDataArray('InversedCrossTable', value=ict, parent=child)
              Internal.newDataArray('BCCrossTable', value=bcct, parent=child)
              if axe2D > 0:

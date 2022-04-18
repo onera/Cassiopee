@@ -605,6 +605,7 @@ else if ($MAC == "sator_new") then
         module unload impi/19.0.5
         module load socle-cfd/5.0-intel2120-impi
         module load subversion/1.14.1-gnu831
+        module load inspector-21.2.0
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3

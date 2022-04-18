@@ -213,6 +213,7 @@ def getCurvatureHeight(t):
     return C.TZGC(t, 'nodes', Geom.getCurvatureHeight)
 
 def _getCurvatureHeight(t):
+    """Return the curvature height for each point."""
     return C._TZGC(t, 'nodes', Geom.getCurvatureHeight)
 
 def getCurvatureRadius(t):
@@ -221,14 +222,16 @@ def getCurvatureRadius(t):
     return C.TZGC(t, 'nodes', Geom.getCurvatureRadius)
     
 def _getCurvatureRadius(t):
+    """Return the curvature radius for each point.""" 
     return C._TZGC(t, 'nodes', Geom.getCurvatureRadius)
 
 def getCurvatureAngle(t):
-    """Return the curvature angle for each point...
+    """Return the curvature angle for each point.
     Usage: getCurvatureAngle(t)"""
     return C.TZGC(t, 'nodes', Geom.getCurvatureAngle)
 
 def _getCurvatureAngle(t):
+    """Return the curvature angle for each point."""
     return C._TZGC(t, 'nodes', Geom.getCurvatureAngle)
 
 def getSharpestAngle(t):
@@ -238,6 +241,7 @@ def getSharpestAngle(t):
     return C.TZGC(t, 'nodes', Geom.getSharpestAngle)
 
 def _getSharpestAngle(t):
+    """Return the sharpest angle for each point of a surface based on the sharpest angle."""
     return C._TZGC(t, 'nodes', Geom.getSharpestAngle)
 
 def getCurvilinearAbscissa(t):
@@ -254,7 +258,6 @@ def getDistribution(t):
     """Return the curvilinear abscissa for each point as coordinates
     Usage: getDistribution(t)"""
     return C.TZGC(t, 'nodes', Geom.getDistribution)    
-
 
 def getTangent(t):
     """

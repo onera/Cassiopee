@@ -256,9 +256,9 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 // Fields a interpoler
                 PyObject* PyFields = PyList_GetItem(listData, 2);
                 char* fieldNames; FldArrayF* interpFields; E_Int nPts; E_Int nj, nk;
-                FldArrayI* cn; char* eltType; E_Boolean shared=true;
+                FldArrayI* cn; char* eltType;
                 E_Int oka = K_ARRAY::getFromArray(PyFields, fieldNames, 
-                                                 interpFields, nPts, nj, nk, cn, eltType, shared);
+                                                 interpFields, nPts, nj, nk, cn, eltType, true);
                 E_Int nFlds = interpFields->getNfld();
                 E_Float* fields = interpFields->begin();
                 E_Int size_fieldNames = strlen(fieldNames);
@@ -313,7 +313,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
                 // releaseshared
                 Py_DECREF(PyIndices);
-                RELEASESHAREDB(oka, PyFields, interpFields,cn);
+                RELEASESHAREDB(oka, PyFields, interpFields, cn);
             }
             else if (dataType == 3)
             {
@@ -326,9 +326,9 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 // Fields a interpoler
                 PyObject* PyFields = PyList_GetItem(listData, 1);
                 char* fieldNames; FldArrayF* interpFields; E_Int nPts; E_Int nj, nk;
-                FldArrayI* cn; char* eltType; E_Boolean shared=true;
+                FldArrayI* cn; char* eltType;
                 E_Int oka = K_ARRAY::getFromArray(PyFields, fieldNames, 
-                                                 interpFields, nPts, nj, nk, cn, eltType, shared);
+                                                 interpFields, nPts, nj, nk, cn, eltType, true);
                 E_Int nFlds = interpFields->getNfld();
                 E_Float* fields = interpFields->begin();
                 E_Int size_fieldNames = strlen(fieldNames);

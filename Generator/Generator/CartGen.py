@@ -28,9 +28,8 @@ def cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False,
                     if j < Nb[1]-1: Xp[1] += depth*H[1]; Np[1] += depth
                     if k > 0: Xp[2] -= depth*H[2]; Np[2] += depth
                     if k < Nb[2]-1: Xp[2] += depth*H[2]; Np[2] += depth
-                    z = G.cart(Xp, H, Np); z[0] = 'cart%d.%d.%d'%(i,j,k)
-                    if rank is not None:
-                        Cmpi._setProc(z, rank)
+                    z = G.cart(Xp, H, Np); z[0] = 'cart%d-%d-%d'%(i,j,k)
+                    if rank is not None: Cmpi._setProc(z, rank)
                     if addCellN:
                         C._initVars(z, 'centers:cellN', 1)
                         cellN = Internal.getNodeFromName2(z, 'cellN')[1]

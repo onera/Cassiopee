@@ -1749,11 +1749,10 @@ def splitCurvatureAngle(array, sensibility):
         if ispl == 0 or ispl == im:
             try:
                 f = join(array3, out[0])
-                ispl = transform.splitCurvatureAngle( f, sensibility )
+                ispl = transform.splitCurvatureAngle(f, sensibility)
                 if ispl == 0 or ispl == f[2]: out[0] = f
                 else: out.append(array3)
-            except:
-                out.append(array3)
+            except: out.append(array3)
             break
         arrayL = subzone(array3, (1, 1, 1), (ispl, jm, km))
         out.append(arrayL)

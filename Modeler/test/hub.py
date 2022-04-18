@@ -3,7 +3,10 @@ import Converter as C
 import Transform as T
 import Modeler.Models as Models
 
-# Hub1
-a = Models.hub1(1.,1.,0.5)
+h1 = Models.hub1(0.1, -2.e-3, 2.e-3, 5.e-3, 51)
 
-C.convertArrays2File(a, 'out.plt')
+h2 = Models.hub1(0.1, -2.e-3, 2.e-3, 7.e-3, 71)
+
+h3 = Models.hub1(0.1, -2.e-3, 12.e-3, 30.e-3, 151)
+
+C.convertArrays2File(h3, 'out.plt')

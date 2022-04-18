@@ -1046,6 +1046,8 @@ all the points of the geometry.
   
     Return the curvature radius of a curve a. 
 
+    Exists also as in place version (_getCurvatureRadius) that modifies a and returns None.
+
     :param a: 1D mesh 
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :return: the curvature radius named 'radius'.
@@ -1067,6 +1069,8 @@ all the points of the geometry.
   
     Return the curvature angle of a curve a. 
     
+    Exists also as in place version (_getCurvatureAngle) that modifies a and returns None.
+
     :param a: 1D mesh 
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :return: the curvature angle named 'angle'.
@@ -1088,6 +1092,8 @@ all the points of the geometry.
   
     Return the curvature height of a curve a. 
     
+    Exists also as in place version (_getCurvatureHeight) that modifies a and returns None.
+
     :param a: 1D mesh 
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :return: the curvature height named 'hmax' as an array or as a flow solution at nodes.
@@ -1108,8 +1114,10 @@ all the points of the geometry.
 .. py:function:: Geom.getSharpestAngle(a)
   
     Return the sharpest angle (in degrees) of a curve. Sharpest angle is defined
-    at each node of input curve. 
-    
+    at each node of input curve.
+
+    Exists also as in place version (_getSharpestAngle) that modifies a and returns None.
+
     :param a: 1D mesh 
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones] 
     :return: the sharpest angle named 'alpha' as an array or as a flow solution at nodes.

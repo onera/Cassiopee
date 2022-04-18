@@ -201,7 +201,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   // inverse CT
   E_Int* pICT = cICT->begin();
   E_Int* pCT = CT.begin();
-  for (E_Int i = 0; i < nfaces; i++)
+  for (E_Int i = 0; i < ints+exts; i++)
   {
     //if (pCT[i]-1 <= 0 || pCT[i]-1 > cICT->getSize())
     //{ printf("%d %d %d\n",i,pCT[i],cICT->getSize());}
@@ -296,5 +296,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   RELEASESHAREDN(PE, cPE);
   RELEASESHAREDN(ict, cICT);
   RELEASESHAREDN(bcct, cBCCT);
+  RELEASESHAREDN(inct, cINCT);
+  if (ESO != Py_None) RELEASESHAREDN(ESO, cESO);
   return Py_BuildValue("(llll)", iTRI, iQUAD, eTRI, eQUAD);
 }

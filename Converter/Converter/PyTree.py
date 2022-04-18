@@ -5045,15 +5045,22 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True, extrapFlow=True):
         if bndType == 'BCWall':
           families1 = getFamilyBCNamesOfType(topTree, 'BCWallInviscid')
           families2 = getFamilyBCNamesOfType(topTree, 'BCWallViscous*')
+
         for z in zones:
-            nodes = Internal.getNodesFromValue(z, bndType)
-            nodes += getFamilyBCs(z, families)
-            if bndType == 'BCWall':
-              nodes += Internal.getNodesFromValue(z, 'BCWallInviscid')
-              nodes += Internal.getNodesFromValue(z, 'BCWallViscous*')
-              nodes += getFamilyBCs(z, families1)
-              nodes += getFamilyBCs(z, families2)
-            for i in nodes: getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
+          nodes = []
+          zbcs = Internal.getNodesFromType1(z, 'ZoneBC_t')
+          for zbc in zbcs:
+            for i in zbc[2]:
+              if Internal.isValue(i, bndType) and i[3] == 'BC_t': nodes.append(i)
+          nodes += getFamilyBCs(z, families)
+          if bndType == 'BCWall':
+            for zbc in zbcs:
+              for i in zbc[2]:
+                if (Internal.isValue(i, 'BCWallInviscid') or Internal.isValue(i, 'BCWallViscous*')) and i[3] == 'BC_t': 
+                  nodes.append(i)
+            nodes += getFamilyBCs(z, families1)
+            nodes += getFamilyBCs(z, families2)
+          for i in nodes: getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow)
     return res
 
 # -- extractBCOfName
