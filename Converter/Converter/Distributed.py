@@ -407,6 +407,26 @@ def updateGraph__(graph, proc, popp, zoneName):
                     graph[proc][popp].append(zoneName)
     return graph
 
+#==============================================================================
+# merge deux graph
+#==============================================================================
+def mergeGraph(graph1, graph2):
+    import copy
+    graph = copy.deepcopy(graph1)
+    for proc in graph2.keys():
+        if proc in graph.keys():
+           for popp in graph2[proc]:
+             if popp in graph[proc]:
+               for zname in graph2[proc][popp]:
+                  if zname not in graph[proc][popp]:  graph[proc][popp].append(zname)
+             else:
+                graph[proc][popp] =  graph2[proc][popp]
+        else: 
+          graph[proc] =  graph2[proc]
+
+    return graph
+#==============================================================================
+
 def updateGraphSet__(graph, proc, popp, zoneName):
     if popp != proc:
         if proc not in graph: graph[proc] = {popp:set()}
@@ -564,6 +584,32 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     rcvname = Internal.getValue(zsr)
                     popp = getProcGlobal__(rcvname, t2, procDict2)
                     updateGraph__(graph, proc, popp, z[0])
+
+    elif type == 'ID_Unsteady': # base sur les interpolations data
+       graph_steady={}; graph_unsteady={}
+       for z in zones:
+            proc = getProcLocal__(z, procDict)
+            subRegions = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
+            for s in subRegions:
+                sname = s[0][0:2]
+                if sname=='ID':
+                   if '#' in s[0]:
+                      numero_iter = int( s[0].split('#')[1].split('_')[0] )
+                      donor = Internal.getValue(s)
+                      idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
+                      if idn != []: # la subRegion decrit des interpolations
+                          popp = getProcGlobal__(donor, t, procDict)
+                          if numero_iter not in graph_unsteady: graph_unsteady[numero_iter] = {}
+                          #if(numero_iter==55):  print("subregion", s[0], z[0], donor, proc, popp)
+                          updateGraph__(graph_unsteady[numero_iter], proc, popp, z[0])
+                   else:
+                      donor = Internal.getValue(s)
+                      idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
+                      if idn != []: # la subRegion decrit des interpolations
+                          popp = getProcGlobal__(donor, t, procDict)
+                          updateGraph__(graph_steady, proc, popp, z[0])
+
+       return graph_steady, graph_unsteady
 
     elif type == 'ID': # base sur les interpolations data
       if not exploc:
