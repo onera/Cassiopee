@@ -317,21 +317,21 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
     # Calcul des solutions interpolees par arbre donneur
     # On envoie aussi les indices receveurs pour l'instant
     datas = {}
-    nbcomIBC    = param_int[1]
-    shift_graph = nbcomIBC + param_int[2+nbcomIBC] + 2
+    nbcomIBC    = param_int[2]
+    shift_graph = nbcomIBC + param_int[3+nbcomIBC] + 3
 
-    for comm_P2P in range(1,param_int[0]+1):
+    for comm_P2P in range(1,param_int[1]+1):
         pt_ech = param_int[comm_P2P + shift_graph]
         dest   = param_int[pt_ech]
 
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
-            #print('transfert local', type_transfert)
+            #print('transfert local', type_transfert, dest, flush=True)
             connector.___setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, nitrun, varType,
                                             type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage)
 
         else:
-            #print('transfert global', type_transfert)
+            #print('transfert global', type_transfert, dest, flush=True)
             rank = Cmpi.rank
             infos = connector.__setInterpTransfersD(zones, zonesD, vars, dtloc, param_int, param_real, nitrun, varType,
                                                     type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage, rank) 

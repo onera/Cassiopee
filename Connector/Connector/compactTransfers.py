@@ -25,22 +25,27 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     else:
         graphliste=False
     
+    import Converter.Mpi as Cmpi
+    rank = Cmpi.rank
+
     if graph is not None and graphliste==False:
         procDict  = graph['procDict']
         procList  = graph['procList']
         graphID   = graph['graphID']
         graphIBCD = graph['graphIBCD']
-        import Converter.Mpi as Cmpi
-        rank = Cmpi.rank
+        if 'graphID_Unsteady' in graph:
+           graphID_U = graph['graphID_Unsteady']
+           graphID_S = graph['graphID_Steady']
+        else: 
+           graphID_U = None; graphID_S = None
     elif graph is not None and graphliste==True:
         procDict  = graph[0]['procDict']
         procList  = graph[0]['procList']
         graphID   = graph[0]['graphID']
         graphIBCD = graph[0]['graphIBCD']
-        import Converter.Mpi as Cmpi
-        rank = Cmpi.rank
+        graphID_U = None; graphID_S = None
     else: 
-        procDict=None; graphID=None; graphIBCD=None
+        procDict=None; graphID=None; graphIBCD=None; graphID_U = None; graphID_S = None
 
     # if Cmpi is not None and rank == 0: 
     #    print("GRAPH IBC IS : ",graph['graphIBCD'])
@@ -265,70 +270,55 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
     for i in range(NbP2P): sizeproc.append(5 + TimeLevelNumber*2 + ntab_int*rac[i] + sizeI[i])
            
-    size_int  =  1 + NbP2P + sum(sizeproc)
+    size_int  =  2 + NbP2P + sum(sizeproc)
     size_real =  sum(sizeR)
 
     
-     
     if not graphliste: # Si le graph n est pas une liste, on n'est pas en explicite local
-        #on determine la liste des processus pour lequel rank  est Receveur
-        graphIBCrcv=[]
+                       #on determine la liste des processus pour lequel rank  est Receveur
+        graphIBCrcv=[];graphIDrcv=[]
         if graphIBCD is not None:
-            for proc in graphIBCD.keys():
-                for n in graphIBCD[proc].keys():
-                    if n == rank: graphIBCrcv.append(proc)
+            #on recupere les infos Steady 
+            graphIBCrcv_=[]; pos_IBC=[]; S_IBC= 1; graphloc=[]
+            S_IBC = _procSource(rank, S_IBC,  pos_IBC, graphIBCD, graphloc, graphIBCrcv_) 
 
-        graphIDrcv=[]
-        if graphID is not None:
-            for proc in graphID.keys():
-                for n in graphID[proc].keys():
-                    if n == rank: graphIDrcv.append(proc)
-    
+            graphIBCrcv  = pos_IBC + graphIBCrcv_    
+
+        if graphID_U is not None:
+            #on recupere les infos Steady 
+            graphIDrcv_=[];graphrcv_S=[]; pos_ID=[]; S_ID=TimeLevelNumber + 1
+            S_ID = _procSource(rank, S_ID, pos_ID, graphID_S, graphrcv_S, graphIDrcv_) 
+            #on ajoute les infos UNsteady 
+            for nstep in range(numero_min,numero_max+1): 
+               graphloc=[]
+               S_ID = _procSource(rank, S_ID, pos_ID, graphID_U[nstep], graphloc, graphIDrcv_, filterGraph= graphrcv_S) 
+
+            graphIDrcv   = pos_ID  + graphIDrcv_
+
+        else:
+          #on recupere les infos ID Steady 
+          graphIDrcv_=[];graphloc=[]; pos_ID=[]; S_ID=1
+          if graphID is not None:
+            S_ID = _procSource(rank, S_ID, pos_ID, graphID, graphloc, graphIDrcv_) 
+           
+            graphIDrcv = pos_ID + graphIDrcv_
 
     else:  # le graph est une liste, on est en explicite local, 1 graphe par ss ite
 
-        graphIBCrcv_=[]; graphIDrcv_=[]; pos_ID=[]; pos_IBC=[];
-        S_IBC=0; S_ID=0
-
+        graphIBCrcv_=[]; graphIDrcv_=[]; pos_ID=[]; pos_IBC=[]; S_IBC=len(graph); S_ID=len(graph)
         for nstep in range(0,len(graph)):
 
-            graphID_   = graph[nstep]['graphID']
-            graphIBCD_ = graph[nstep]['graphIBCD']
+            graphIBCD_= graph[nstep]['graphIBCD']
+            stokproc  =[]
+            S_IBC     = _procSource(rank, S_IBC, pos_IBC, graphIBCD_, stokproc, graphIBCrcv_) 
 
-            pos_IBC.append(len(graph)+S_IBC)
-            k_IBC=0
-            stokproc=[]
-            for proc in graphIBCD_.keys():
-               for n in graphIBCD_[proc].keys():
-                     if n == rank:
-                         k_IBC+=1
-                         stokproc.append(proc)
-            graphIBCrcv_.append(k_IBC)
-            S_IBC += k_IBC+1
-            for proc in stokproc:
-                graphIBCrcv_.append(proc)
-
-
-            pos_ID.append(len(graph)+S_ID)            
-            k_ID=0
-            stokproc=[]
-            for proc in graphID_.keys():
-                for n in graphID_[proc].keys():
-                     if n == rank:
-                         k_ID+=1
-                         stokproc.append(proc)
-            graphIDrcv_.append(k_ID)
-            S_ID += k_ID+1
-            for proc in stokproc:
-                graphIDrcv_.append(proc)
+            graphID_  = graph[nstep]['graphID']
+            stokproc  =[]
+            S_ID      = _procSource(rank, S_ID, pos_ID, graphID_, stokproc, graphIDrcv_) 
 
         graphIBCrcv  = pos_IBC + graphIBCrcv_    
         graphIDrcv   = pos_ID  + graphIDrcv_
 
-
-        
-    
-    #graphIDrcv=[0,3]
     #print("len graphIBCrcv is",len(graphIBCrcv))
     #print("len graphIDrcv  is",len(graphIDrcv))
     #print("pos_IBC is",pos_IBC)
@@ -347,8 +337,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
     _graphID   = numpy.asarray([len(graphIDrcv)] +graphIDrcv ,dtype=numpy.int32)
 
-    param_int[1                 :1+len(graphIBCrcv)+1                ] = _graphIBC
-    param_int[2+len(graphIBCrcv):2+len(graphIBCrcv)+len(graphIDrcv)+1] = _graphID    
+    param_int[2                 :3+len(graphIBCrcv)                ] = _graphIBC
+    param_int[3+len(graphIBCrcv):4+len(graphIBCrcv)+len(graphIDrcv)] = _graphID    
   
     # print("param_int is ",param_int[0:2+len(graphIBCrcv)+len(graphIDrcv)+1])
     # Dictionnaire pour optimisation
@@ -358,7 +348,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     #
     #initialisation numpy
     #
-    param_int[0] = NbP2P
+    param_int[0] = 0  #flag pour init transfert couche C (X. Juvigny)
+    param_int[1] = NbP2P
     size_ptlist = []
     size_ptlistD= []
     size_ptType = []
@@ -366,7 +357,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     size_coef   = []
     adr_coef    = []   # pour cibler debut de echange dans param_real
 
-    shift_graph = len(graphIDrcv) + len(graphIBCrcv) + 2 
+    shift_graph = len(graphIDrcv) + len(graphIBCrcv) + 4 
     # print("shift_graph is ",shift_graph)
     shift_coef  =0
     shift       = shift_graph # le shift prend en compte la postion des graphs (ID+IBC) entre la address contenant NbP2P et 
@@ -374,8 +365,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        adr_coef.append(shift_coef)                    #adresse echange dans param_real
        shift_coef = shift_coef + sizeR[i]
 
-       #param_int[i+1] = 1 + NbP2P + shift
-       param_int[i+shift_graph+1] = 1 + NbP2P + shift              #adresse echange
+       param_int[i+shift_graph] = NbP2P + shift              #adresse echange
        shift          =  shift  + sizeproc[i]
        size_ptlist.append(0)
        size_ptlistD.append(0)
@@ -403,7 +393,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        proc = 0
        if procDict is not None: proc = procDict[zRname]
        pos  = listproc.index(proc) 
-       pt_ech = param_int[ pos + 1 + shift_graph]                 # adresse debut raccord pour l'echange pos
+       pt_ech = param_int[ pos + shift_graph]                 # adresse debut raccord pour l'echange pos
        pt_coef= adr_coef[pos] + size_coef[pos]     # adresse debut coef 
 
        pointlist     =  Internal.getNodeFromName1(s, 'PointList')
@@ -1181,5 +1171,28 @@ def ___setInterpTransfers(aR, topTreeD,
     connector.___setInterpTransfers(zones, zonesD, variables, param_int, param_real, varType, bcType, Gamma, Cv, MuS, Cs, Ts )
     return None
 
+#===============================================================================
+# calcul les processus source pour rank ( graphrcv_) et la position dans param_int (pos_list)
+# filterGraph:: pour les cas unsteady, permet de ne pas ajouter les sources fournies par raccord steady
+#
+def _procSource(rank, S_pos, pos_list, graph, graphloc, graphrcv_, filterGraph=None): 
 
+    pos_list.append(S_pos)
+    k_pos= 0
+    for proc in graph.keys():
+      for n in graph[proc].keys():
+         if n == rank:
+           if filterGraph is None:
+             graphloc.append(proc)
+             k_pos  +=1
+           elif n not in filterGraph:
+             graphloc.append(proc)
+             k_pos  +=1
+
+    graphrcv_.append(k_pos)
+    S_pos += k_pos +1
+    for proc in graphloc: graphrcv_.append(proc)
+    #print("Spos=", S_pos,graphrcv_ )
+
+    return S_pos
 

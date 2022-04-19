@@ -415,10 +415,9 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 #include "getfromzoneDcompact_all.h"
     }
 
-    E_Int nbcomIBC = ipt_param_int[1];
-    E_Int nbcomID  = ipt_param_int[2+nbcomIBC];
-    
-    E_Int shift_graph = nbcomIBC + nbcomID + 2;
+    E_Int sizecomIBC = ipt_param_int[2];
+    E_Int sizecomID  = ipt_param_int[3+sizecomIBC];
+    E_Int shift_graph = sizecomIBC + sizecomID + 3;
 
     E_Int threadmax_sdm = __NUMTHREADS__;
     E_Int ech           = ipt_param_int[NoTransfert + shift_graph];
