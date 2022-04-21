@@ -2992,14 +2992,14 @@ def _splitNGon(t, N, N2=-1, shift=1000):
         C.setFields([a2], z, 'centers', writeDim=False)
     return None
 
-def stick(t, psurf, stickBCName='FamilySpecified:stick'):
+def stick(t, psurf, stickBCName='FamilySpecified:stick', nitSmooth=0):
     """Stick a mesh on a surface."""
     tp = Internal.copyRef(t)
-    _stick(tp, psurf, stickBCName)
+    _stick(tp, psurf, stickBCName, nitSmooth)
     return tp
 
-def _stick(t, psurf, stickBCName='FamilySpecified:stick'):
+def _stick(t, psurf, stickBCName='FamilySpecified:stick', nitSmooth=0):
     """Stick a mesh on a surface."""
     from . import Stick
-    Stick._stick(t, psurf, stickBCName)
+    Stick._stick(t, psurf, stickBCName, nitSmooth)
     return None

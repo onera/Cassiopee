@@ -33,15 +33,15 @@ def cart(Xo, H, N, api=1):
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
     return generator.cart(Xo, H, N, api)
 
-def cartr1(Xo, H, R, N, api=1):
+def cartr1(Xo, H, R, N, doubleLeft=(0,0,0), doubleRight=(0,0,0), api=1):
     """Create a structured cartesian mesh with geometric distribution.
     Usage: cartt1((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (ni,nj,nk))"""
-    return generator.cartr1(Xo, H, N, R, api)
+    return generator.cartr1(Xo, H, N, R, doubleLeft, doubleRight, api)
 
-def cartr2(Xo, H, R, Xf, api=1, skeleton=False):
+def cartr2(Xo, H, R, Xf, doubleLeft=(0,0,0), doubleRight=(0,0,0), api=1, skeleton=False):
     """Create a structured cartesian mesh with geometric distribution fixing last point.
     Usage: cartr2((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (xf,yf,zf))"""
-    return generator.cartr2(Xo, H, R, Xf, api, skeleton)
+    return generator.cartr2(Xo, H, R, Xf, doubleLeft, doubleRight, api, skeleton)
 
 def cartHexa(Xo, H, N, api=1):
     """Create a cartesian mesh defined by an hexaedrical array.

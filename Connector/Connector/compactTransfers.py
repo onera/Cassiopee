@@ -2,15 +2,18 @@
 from . import connector
 import numpy
 
-try: import Converter.Internal as Internal
-except: raise ImportError("Connector.compactTransfers requires Converter module.")
-import Connector.OversetData as XOD
+import Converter.Internal as Internal
+
+from . import OversetData as XOD
+
 try: range = xrange
 except: pass
+
 ibm_lbm_variables_1 ='Q_'
 ibm_lbm_variables_2 ='Qstar_'
 ibm_lbm_variables_3 ='Qneq_'
 NEQ_LBM =  86
+
 #==============================================================================
 # Mise a plat (compactage) arbre donneur au niveau de la base
 # fonctionne avec ___setInterpTransfer
@@ -159,7 +162,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            sname = s[0][0:2]
            utau = Internal.getNodeFromName1(s, 'utau')
            sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
-           kcurv = Internal.getNodeFromName1(s,XOD.__KCURV__)
+           kcurv = Internal.getNodeFromName1(s, XOD.__KCURV__)
            # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
            if sname == 'IB':
             vx = Internal.getNodeFromName1(s, 'VelocityX')

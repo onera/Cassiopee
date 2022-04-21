@@ -27,7 +27,7 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
     defo = {}
     zones = Internal.getZones(t)
     for z in zones:
-        walls = C.extractBCOfName(t, stickBCName)
+        walls = C.extractBCOfName(t, stickBCName, reorder=False)
         C._initVars(walls, '{hx} = 0.')
         C._initVars(walls, '{hy} = 0.')
         C._initVars(walls, '{hz} = 0.')
@@ -72,10 +72,10 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
 
     # Imposed boundaries
     for k in defo:
-        defTree.setBndSurfTo(k, "imposed", defo[k], Modenumber=0)
+        defTree.setBndSurfTo(k, "imposed", defo[k])
     
     # Free boundaries
-    free = C.extractBCOfName(t, 'FamilySpecified:free')
+    free = C.extractBCOfName(t, 'FamilySpecified:free', reorder=False)
     for f in free:
         name = f[0].replace('/', '#')
         defTree.setBndSurfTo(name, "free")
@@ -87,4 +87,6 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
     C._initVars(t, '{CoordinateX}={CoordinateX}+{DisplacementX}')
     C._initVars(t, '{CoordinateY}={CoordinateY}+{DisplacementY}')
     C._initVars(t, '{CoordinateZ}={CoordinateZ}+{DisplacementZ}')
+    Internal.__FlowSolutionNodes__ = 'FlowSolution'
+    
     return None

@@ -17,16 +17,16 @@ def cart(Xo, H, N):
     a = generator.cart(Xo, H, N, 2)
     return C.convertArrays2ZoneNode('cart', [a])
 
-def cartr1(Xo, H, R, N):
+def cartr1(Xo, H, R, N, doubleLeft=(0,0,0), doubleRight=(0,0,0)):
     """Create a structured cartesian mesh with geometric distribution.
     Usage: cartr1((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (ni,nj,nk))"""
-    a = generator.cartr1(Xo, H, N, R, 2)
+    a = generator.cartr1(Xo, H, N, R, doubleLeft, doubleRight, 2)
     return C.convertArrays2ZoneNode('cartr1', [a])
 
-def cartr2(Xo, H, R, Xf, skeleton=False):
+def cartr2(Xo, H, R, Xf, doubleLeft=(0,0,0), doubleRight=(0,0,0), skeleton=False):
     """Create a structured cartesian mesh with geometric distribution fixing last point. 
     Usage: cartr2((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (xf,yf,zf))"""
-    a = generator.cartr2(Xo, H, R, Xf, 2, skeleton)
+    a = generator.cartr2(Xo, H, R, Xf, doubleLeft, doubleRight, 2, skeleton)
     if skeleton: return a
     return C.convertArrays2ZoneNode('cartr2', [a])
 

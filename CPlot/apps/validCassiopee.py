@@ -668,8 +668,9 @@ def runTests():
     if len(selection) == len(TESTS): notifyValidOK()
     
 def runTestsInThread():
-    global THREAD
+    global THREAD, STOP
     if THREAD is not None: return
+    STOP = 0
     THREAD = threading.Thread(target=runTests)
     THREAD.start()
 
@@ -959,7 +960,8 @@ def stopTests():
         #THREAD.join() # wait
         #THREAD.terminate()
         THREAD = None
-    
+        displayStatus(0)
+
 #==============================================================================
 # Affiche le status: running/stopped
 #==============================================================================

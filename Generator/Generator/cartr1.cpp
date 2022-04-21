@@ -31,6 +31,8 @@ using namespace K_FUNC;
    IN: hi, hj, hk: pas de la grille. Enter negative values for extrusion in -x,-y or -z direction
    IN: ni, nj, nk: nombre de points
    IN: ri, rj, rk: facteur d'expansion dans chaque direction
+   IN: doubleLeft=(1,1,1), force un double pas h a gauche
+   IN: doubleRigh=(1,1,1), force un double pas h a droite
    OUT: array definissant le maillage cree. */
 // ============================================================================
 PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
@@ -39,11 +41,14 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
   E_Float xo, yo, zo;
   E_Float hi, hj, hk;
   E_Float ri, rj, rk;
+  E_Int doubleLefti, doubleRighti, doubleLeftj, doubleRightj, doubleLeftk, doubleRightk; 
   E_Int api = 1;
   if (!PYPARSETUPLE(args, 
-                    "(ddd)(ddd)(lll)(ddd)l", "(ddd)(ddd)(iii)(ddd)i", 
-                    "(fff)(fff)(lll)(fff)l", "(fff)(fff)(iii)(fff)i",
-                    &xo, &yo, &zo, &hi, &hj, &hk, &ni, &nj, &nk, &ri, &rj, &rk, &api))
+                    "(ddd)(ddd)(lll)(ddd)(lll)(lll)l", "(ddd)(ddd)(iii)(ddd)(iii)(iii)i", 
+                    "(fff)(fff)(lll)(fff)(lll)(lll)l", "(fff)(fff)(iii)(fff)(iii)(iii)i",
+                    &xo, &yo, &zo, &hi, &hj, &hk, &ni, &nj, &nk, &ri, &rj, &rk, 
+                    &doubleLefti, &doubleLeftj, &doubleLeftk, &doubleRighti, 
+                    &doubleRightj, &doubleRightk, &api))
   {
     return NULL;
   }
@@ -70,18 +75,7 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
   
-  if (K_FUNC::fEqual(ri, 1.0) == false)
-  {
-    #pragma omp parallel for default(shared) private(k,j,i,ind)
-    for (ind = 0; ind < nijk; ind++)
-    {
-      k = ind/nij;
-      j = (ind-k*nij)/ni;
-      i = ind-j*ni-k*nij;
-      xt[ind] = xo + hi * ( ( -1. + pow(ri, i) ) / (-1. + ri) ); 
-    }
-  }
-  else
+  if (K_FUNC::fEqual(ri, 1.0) == true)
   {
     #pragma omp parallel for default(shared) private(k,j,i,ind)
     for (ind = 0; ind < nijk; ind++)
@@ -92,8 +86,7 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
       xt[ind] = xo + hi * i; 
     }   
   }   
-    
-  if (fEqual(rj, 1.0) == false)
+  else if (doubleLefti == 0 && doubleRighti == 0)
   {
     #pragma omp parallel for default(shared) private(k,j,i,ind)
     for (ind = 0; ind < nijk; ind++)
@@ -101,10 +94,10 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      yt[ind] = yo + hj * ( ( -1. + pow(rj, j) ) / (-1. + rj) );
+      xt[ind] = xo + hi * ( ( -1. + pow(ri, i) ) / (-1. + ri) ); 
     }
   }
-  else
+  else if (doubleLefti == 1 && doubleRighti == 0)
   {
     #pragma omp parallel for default(shared) private(k,j,i,ind)
     for (ind = 0; ind < nijk; ind++)
@@ -112,22 +105,37 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      yt[ind] = yo + hj * j;     
+      if (i == 0) xt[ind] = xo;
+      else xt[ind] = xo + hi + hi * ((-1. + pow(ri, (i-1))) / (-1. + ri));
+    }
+  }
+  else if (doubleLefti == 0 && doubleRighti == 1)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (i == ni-1) xt[ind] = xo + hi*pow(ri,ni-3) + hi*((-1.+pow(ri,ni-2))/(-1.+ri));
+      else xt[ind] = xo + hi*((-1.+pow(ri,i)) / (-1.+ri));
+    }
+  }
+  else // all double 
+  {
+     #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (i == 0) xt[ind] = xo;
+      else if (i == ni-1) xt[ind] = xo + hi + hi*pow(ri,ni-4) + hi*((-1.+pow(ri,ni-3))/(-1.+ri));
+      else xt[ind] = xo + hi + hi*((-1.+pow(ri,(i-1))) / (-1.+ri));
     } 
-  } 
-
-  if (fEqual(rk, 1.0) == false)
-  { 
-    #pragma omp parallel for default(shared) private(k,j,i,ind)
-    for (ind = 0; ind < nijk; ind++)
-    {
-      k = ind/nij;
-      j = (ind-k*nij)/ni;
-      i = ind-j*ni-k*nij;
-      zt[ind] = zo + hk * ( ( -1. + pow(rk ,k) ) / (-1. + rk) );
-    }
   }
-  else
+
+  if (K_FUNC::fEqual(rj, 1.0) == true)
   {
     #pragma omp parallel for default(shared) private(k,j,i,ind)
     for (ind = 0; ind < nijk; ind++)
@@ -135,8 +143,116 @@ PyObject* K_GENERATOR::cartr1(PyObject* self, PyObject* args)
       k = ind/nij;
       j = (ind-k*nij)/ni;
       i = ind-j*ni-k*nij;
-      zt[ind] = zo + hk * k;
-    }  
+      yt[ind] = yo + hj * j; 
+    }   
+  }   
+  else if (doubleLeftj == 0 && doubleRightj == 0)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      yt[ind] = yo + hj * ( ( -1. + pow(rj, j) ) / (-1. + rj) ); 
+    }
+  }
+  else if (doubleLeftj == 1 && doubleRightj == 0)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (j == 0) yt[ind] = yo;
+      else yt[ind] = yo + hj + hj * ((-1. + pow(rj, (j-1))) / (-1. + rj));
+    }
+  }
+  else if (doubleLeftj == 0 && doubleRightj == 1)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (j == nj-1) yt[ind] = yo + hj*pow(rj,nj-3) + hj*((-1.+pow(rj,nj-2))/(-1.+rj));
+      else yt[ind] = yo + hj*((-1.+pow(rj,j)) / (-1.+rj));
+    }
+  }
+  else // all double 
+  {
+     #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (j == 0) yt[ind] = yo;
+      else if (j == nj-1) yt[ind] = yo + hj + hj*pow(rj,nj-4) + hj*((-1.+pow(rj,nj-3))/(-1.+rj));
+      else yt[ind] = yo + hj + hj*((-1.+pow(rj,(j-1))) / (-1.+rj));
+    } 
+  }
+
+  if (K_FUNC::fEqual(rk, 1.0) == true)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      zt[ind] = zo + hk * k; 
+    }   
+  }   
+  else if (doubleLeftk == 0 && doubleRightk == 0)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      zt[ind] = zo + hk * ( ( -1. + pow(rk, k) ) / (-1. + rk) ); 
+    }
+  }
+  else if (doubleLeftk == 1 && doubleRightk == 0)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (k == 0) zt[ind] = zo;
+      else zt[ind] = zo + hk + hk * ((-1. + pow(rk, (k-1))) / (-1. + rk));
+    }
+  }
+  else if (doubleLeftk == 0 && doubleRightk == 1)
+  {
+    #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (k == nk-1) zt[ind] = zo + hk*pow(rk,nk-3) + hk*((-1.+pow(rk,nk-2))/(-1.+rk));
+      else zt[ind] = zo + hk*((-1.+pow(rk,k)) / (-1.+rk));
+    }
+  }
+  else // all double 
+  {
+     #pragma omp parallel for default(shared) private(k,j,i,ind)
+    for (ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      if (k == 0) zt[ind] = zo;
+      else if (k == nk-1) zt[ind] = zo + hk + hk*pow(rk,nk-4) + hk*((-1.+pow(rk,nk-3))/(-1.+rk));
+      else zt[ind] = zo + hk + hk*((-1.+pow(rk,(k-1))) / (-1.+rk));
+    } 
   }
 
   // Return array
