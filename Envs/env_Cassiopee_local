@@ -498,12 +498,13 @@ else if ($MAC == "spiro") then
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
-	module unload impi/17
+	    module unload impi/17
         module load intel/17.0.4
         module load impi/17
         module load hdf5/1.8.17-intel-17
         module load python/3.6.1
-	module unload hdf5/1.8.8
+	    module unload hdf5/1.8.8
+        mdoule load subversion/1.14.1-gnu830
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3

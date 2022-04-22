@@ -10,6 +10,7 @@ import subprocess
 import shlex
 from collections import OrderedDict
 import imp
+import math
 
 try: range = xrange
 except: pass
@@ -84,6 +85,7 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Transform.PyTree as T
+    import Generator.PyTree as G
     #import CPlot.PyTree as CPlot
     import CPlot.Tk as CTK
     import CPlot.Ttk as TTK
@@ -399,6 +401,20 @@ def setBatch(batch=True):
         matplotlib.use('Agg') # sans serveur X
     else:
         matplotlib.use('TkAgg') # avec serveur X
+#==========================================================
+def pround(dx):
+    """Return alpha and power."""
+    if dx > 0: n = -math.ceil(-math.log(dx)/math.log(10.))
+    elif dx < 0: n = -math.ceil(-math.log(-dx)/math.log(10.))
+    else: return dx
+    alpha = dx*10**(-n)
+    #alpha = math.ceil(alpha)
+    alpha = round(alpha)
+    if alpha == 0.: alpha = 1
+    #print(dx, alpha*10**n)
+    #return n, alpha, alpha*10**n
+    return alpha*10**n
+
 #==========================================================
 
 font_dic = {}
@@ -13995,11 +14011,7 @@ class MatplotlibFigure():
         ###
         for iCurrentAxis in range(len(self.subGraph[iCurSubGraph].axis)):
             plt.sca(self.subGraph[iCurSubGraph].axis[iCurrentAxis])
-    #        self.subGraph[iCurSubGraph].axis[iCurrentAxis].clear()
-#            plt.cla()
-#            self.subGraph[iCurSubGraph].axis[iCurrentAxis].clear()
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].name=self.subGraph[iCurSubGraph].name
-    #        self.subGraph[iCurSubGraph].curves = curves
 
             xaxis_label = ""; yaxis_label = ""
             for c in self.subGraph[iCurSubGraph].curves:
@@ -14068,6 +14080,7 @@ class MatplotlibFigure():
 
             ## Set Axis
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].relim()
+
             ## formatter des labels
             val = self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label_format
             try: self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter(val))
@@ -14099,7 +14112,7 @@ class MatplotlibFigure():
             if count == 0:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].autoscale(enable=False)
             else:
-                self.subGraph[iCurSubGraph].axis[iCurrentAxis].autoscale(enable=True, axis=conversion[count])
+                self.subGraph[iCurSubGraph].axis[iCurrentAxis].autoscale(enable=True, axis=conversion[count], tight=False)
 #            # set label
 #            self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xlabel(r'%s'%self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label)
 #            self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_ylabel(r'%s'%self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label)
@@ -14113,12 +14126,22 @@ class MatplotlibFigure():
             ## Set Ticks
             xmin,xmax = self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_xlim()
             ymin,ymax = self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_ylim()
-            #
+            
             ntickMx = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_tick_number
             ntickMy = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_tick_number
             ntickmx = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_number
             ntickmy = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_number
 
+            # CB rounder
+            dx = (xmax-xmin)/(float(ntickMx))
+            dx = pround(dx)
+            xmin = round(xmin/dx)*dx
+            xmax = xmin+ntickMx*dx
+            dy = (ymax-ymin)/(float(ntickMy))
+            dy = pround(dy)
+            ymin = round(ymin/dy)*dy
+            ymax = ymin+ntickMy*dy
+            
             stepx = (xmax-xmin)/(float(ntickMx))
             majorx = np.arange(xmin,xmax,stepx)
             # minorx = np.arange(xmin,xmax,(xmax-xmin)/(float(ntickmx)))
@@ -14130,7 +14153,6 @@ class MatplotlibFigure():
 
             # Get the ticks position for debug
             # locs = self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.get_ticklocs()
-            #
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(majorx)
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(minorx,minor=True)
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_yticks(majory)
@@ -14140,7 +14162,6 @@ class MatplotlibFigure():
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_size,minor=True)
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_tick_size)
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_size,minor=True)
-
 
             ## Spine position
             spines = self.subGraph[iCurSubGraph].axis[iCurrentAxis].spines
@@ -14153,12 +14174,12 @@ class MatplotlibFigure():
 
             ## make patch and spine invisible
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_frame_on(True)
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_visible(True)# BLABLA
+            self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_visible(True)
             if iCurrentAxis==0:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_facecolor(self.graph.subgraph_background_color)# BLABLA
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_alpha(self.graph.subgraph_background_alpha)# BLABLA
             else:
-                self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_facecolor("none")# BLABLA
+                self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_facecolor("none")
 
             for sp in self.subGraph[iCurSubGraph].axis[iCurrentAxis].spines.values():
                 sp.set_visible(False)
@@ -14254,27 +14275,27 @@ class MatplotlibFigure():
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color='r', linestyle='-', linewidth=2)
 
             ### Set Grid
-            ### ### major grid
-            ### ### ---> X
+            ### major grid
+            ### ---> X
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_color,
                                                 linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_style,
                                                 linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_width, which='major', axis='x')
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(TrueFalseDic[self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.display], which='major', axis='x')
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.display, which='major', axis='x')
-            ### ### ---> Y
+            ### ---> Y
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_color,
                                  linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_style,
                                  linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_width, which='major', axis='y')
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(TrueFalseDic[self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.display], which='major', axis='y')
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.display, which='major', axis='y')
-            ### ### minor grid
-            ### ### ---> X
+            ### minor grid
+            ### ---> X
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_color,
                                                  linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_style,
                                                  linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_width, which='minor', axis='x')
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(TrueFalseDic[self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.display], which='minor', axis='x')
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.display, which='minor', axis='x')
-            ### ### ---> Y
+            ### ---> Y
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_color,
                                                  linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_style,
                                                  linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_width, which='minor', axis='y')
@@ -15731,13 +15752,31 @@ def plot(a, varx='CoordinateX', vary='F', export=None,
 
     if export is not None: setBatch()
 
+    # traitement parallele : on concatene les zones
+    # chaque proc doit envoyer le meme nbre de zones ([] est accepte)
     import Converter.Mpi as Cmpi
     zones = Internal.getZones(a)
     A = Cmpi.gather(zones, root=0)
     if Cmpi.rank > 0: return None
+
+    count = -1
+    for zones in A: count = max(count, len(zones))
+    conc = [[] for x in range(count)]
+    for zones in A:
+        for c, z in enumerate(zones): conc[c].append(z)
     a = []
-    for i in A: a += i
-    
+    for zs in conc:
+        try: 
+            za = T.join(zs)
+        except:
+            zs = C.convertArray2Hexa(zs)
+            za = T.join(zs)
+            za = C.convertBAR2Struct(za)
+        a.append(za)
+
+    #a = []
+    #for i in A: a += i
+
     # Analyse des variables
     s = varx.split(':')
     if len(s) == 2: varx = s[1]+'@'+Internal.__FlowSolutionNodes__

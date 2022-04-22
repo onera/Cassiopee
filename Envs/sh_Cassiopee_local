@@ -407,6 +407,7 @@ elif [ "$MAC" = "spiro" ]; then
     module load hdf5/1.8.17-intel-17
     module load python/3.6.1
     module unload hdf5/1.8.8
+    module load subversion/1.14.1-gnu830
     export PYTHONEXE=python3
     alias python=python3
     # Chemin de l'executable python

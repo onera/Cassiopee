@@ -3,7 +3,7 @@ import Converter.PyTree as C
 import Generator.PyTree as G
 import tkPlotXY
 
-a = G.cart((0,0,0), (1,1,1), (100,1,1))
+a = G.cart((0,0,0), (1.e-3,1,1), (100,1,1))
 C._initVars(a, '{F}={CoordinateX}*{CoordinateX}')
 C._initVars(a, '{centers:G}={centers:CoordinateX}*{centers:CoordinateX}')
 

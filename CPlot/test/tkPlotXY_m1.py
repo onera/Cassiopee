@@ -6,7 +6,7 @@ import tkPlotXY
 
 # Cas test
 if Cmpi.rank == 0:
-    a = G.cart((0,0,0), (1,1,1), (100,1,1)); a[0] = 'cart0'
+    a = G.cart((0,0,0), (1,1,1), (101,1,1)); a[0] = 'cart0'
     C._initVars(a, '{F}={CoordinateX}*{CoordinateX}')
     C._initVars(a, '{centers:G}={centers:CoordinateX}')
 elif Cmpi.rank == 1:

@@ -264,13 +264,14 @@ def _deformMesh(a, surfDelta, beta=4.,type='nearest'):
     info = C.getAllFields(surfDelta, 'nodes')
     return C._TZA(a, 'nodes', 'nodes', Transform.deformMesh, None, info, beta, type)
 
-def join(t, t2=0, tol=1.e-10):
+def join(t, t2=None, tol=1.e-10):
     """Join two zones in one or join a list of zones in one.
     Usage: join(t,t2) or join(t)"""
     nodes = Internal.getZones(t)
+    if len(nodes) == 0: return []
     allBCInfos = C.extractBCInfo(t)
 
-    if t2 != 0:
+    if t2 is not None:
         nodes += Internal.getZones(t2)
         allBCInfos += C.extractBCInfo(t2)
     Internal._orderFlowSolution(nodes, loc='both')  

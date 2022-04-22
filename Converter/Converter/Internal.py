@@ -95,8 +95,8 @@ def isStdNode(node):
     if (isinstance(node0, str) and len(node) == 4 and
         isinstance(node[2], list)): return -1
     if not isinstance(node0, list): return -2
-    if (isinstance(node0[0], str) and len(node0) == 4
-        and isinstance(node0[2], list)): return 0
+    if (len(node0) == 4 and isinstance(node0[0], str) and 
+        isinstance(node0[2], list)): return 0
     return -2
 
 # -- typeOfNode
@@ -1596,7 +1596,7 @@ def getZones(t):
     isStd = isStdNode(t)
     if isStd >= 0:
         for c in t[isStd:]: getNodesFromType2__(c, ntype, result)
-    else: getNodesFromType2__(t, ntype, result)
+    elif isStd == -1: getNodesFromType2__(t, ntype, result)
     return result
 
 # -- getZonesPerIteration --
