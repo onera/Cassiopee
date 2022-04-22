@@ -35,15 +35,15 @@ namespace NUGA
     static bool prepare_data_to_send
     (
       const hmesh_t & mesh,
-      const std::map<E_Int, std::vector<E_Int>>& zone2jlist,
-      std::map<E_Int, data_t> & raczone_to_PG_to_plan
+      const std::map<E_Int, std::vector<E_Int>>& rid_to_list,
+      std::map<E_Int, data_t> & rid_to_PG_to_plan
     )
     {
       bool has_packs{ false };
       //std::cout << "pack : loop on joins : " << join << std::endl;
-      for (auto& it : zone2jlist)
+      for (auto& it : rid_to_list)
       {
-        E_Int jzid = it.first;
+        E_Int rid = it.first;
         auto& ptlist = it.second;
 
         for (size_t i = 0; i < ptlist.size(); ++i)
@@ -55,7 +55,7 @@ namespace NUGA
           //std::cout << "after extract_plan" << std::endl;
           if (p.getSize())
           {
-            raczone_to_PG_to_plan[jzid][i/*PGi*/] = p;
+            rid_to_PG_to_plan[rid][i/*PGi*/] = p;
             has_packs = true;
           }
         }
@@ -70,42 +70,43 @@ namespace NUGA
     static void exchange_mpi_data
     (
       const std::vector<hmesh_t*>& hmeshes,
-      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone2jlists,
+      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
+      const std::map<int, std::pair<int, int>>& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM,
       int rank, int nranks,
       std::map<int, data_t>& zone_to_sensor_data
     )
     {
-      if (zone_to_zone2jlists.empty()) return;
+      if (zone_to_rid_to_list.empty()) return;
       if (hmeshes.empty()) return;
       if (nranks == 1) return;
 
       // Each zone builds its MPI-data-to-send by sending zone
-      std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>> sz_to_jz_to_PG_to_plan;
+      std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>> sz_to_rid_to_PG_to_plan;
       bool has_packs{ false };
       for (size_t i = 0; i < hmeshes.size(); ++i)
       {
         //if (rank == 2) std::cout << "rank : " << rank << " : hmeshes[" << i << "] : " << hmeshes[i] << std::endl;
-        const auto it = zone_to_zone2jlists.find(hmeshes[i]->zid);
+        const auto it = zone_to_rid_to_list.find(hmeshes[i]->zid);
         
-        if (it == zone_to_zone2jlists.end()) continue; // current zone has no MPI joins
+        if (it == zone_to_rid_to_list.end()) continue; // current zone has no MPI joins
 
         //if (rank == 2) std::cout << "rank : " << rank << " found zid : " << hmeshes[i]->zid << std::endl;
 
-        const auto & zone2jlists = it->second;
+        const auto & rid_to_list = it->second;
         
-        std::map<int, std::map<int, K_FLD::IntArray>> jz_to_PG_to_plan;
-        has_packs |= prepare_data_to_send(*hmeshes[i], zone2jlists, jz_to_PG_to_plan);
+        std::map<int, std::map<int, K_FLD::IntArray>> rid_to_PG_to_plan;
+        has_packs |= prepare_data_to_send(*hmeshes[i], rid_to_list, rid_to_PG_to_plan);
 
-        sz_to_jz_to_PG_to_plan[hmeshes[i]->zid] = jz_to_PG_to_plan;
+        sz_to_rid_to_PG_to_plan[hmeshes[i]->zid] = rid_to_PG_to_plan;
 
       }
 
       // Convert for sending and gather by rank : rank/zone/face/plan
       //if (rank == 2) std::cout << "rank : " << rank << " convert_to_MPI_exchange_format ..." << std::endl;
       std::map<int, plan_msg_type> rank_to_mpi_data;
-      plan_msg_type::convert_to_MPI_exchange_format(sz_to_jz_to_PG_to_plan, zonerank, rank_to_mpi_data);
+      plan_msg_type::convert_to_MPI_exchange_format(sz_to_rid_to_PG_to_plan, rid_to_zones, zonerank, rank_to_mpi_data);
 
       // Send MPI data   
       //if (rank == 2) std::cout << "rank : " << rank << " send_data ..." << std::endl;
@@ -121,7 +122,7 @@ namespace NUGA
 
       // Receive MPI data and build sensor data by zone
       //if (rank == 2) std::cout << "rank : " << rank << " receive_data ..." << std::endl;
-      plan_msg_type::receive_data(rank, nranks, COM, zone_to_zone2jlists, sreqs, zone_to_sensor_data);
+      plan_msg_type::receive_data(rank, nranks, COM, zone_to_rid_to_list, sreqs, zone_to_sensor_data);
       //if (rank == 2) std::cout << "rank : " << rank << " DONE. exit exch mpi" << std::endl;
     }
 
@@ -130,7 +131,8 @@ namespace NUGA
     static void exchange_omp_data
     (
       const std::vector<hmesh_t*>& hmeshes,
-      const std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone2jlists,
+      const std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
+      const std::map<int, std::pair<int,int>> & rid_to_zones,
       std::map<int, data_t>& sensor_data
     )
     {
@@ -138,29 +140,31 @@ namespace NUGA
       bool has_packs{ false };
       for (size_t i = 0; i < hmeshes.size(); ++i)
       {
-        const auto it = zone_to_zone2jlists.find(hmeshes[i]->zid);
+        int zid = hmeshes[i]->zid;
+        const auto it = zone_to_rid_to_list.find(zid);
 
-        if (it == zone_to_zone2jlists.end()) continue; // current zone has no OMP joins
+        if (it == zone_to_rid_to_list.end()) continue; // current zone has no OMP joins
 
-        const auto & zone2jlists = it->second;
+        const auto & rid_to_list = it->second;
 
-        std::map<int, data_t> jz_to_PG_to_plan;
-        has_packs |= prepare_data_to_send(*hmeshes[i], zone2jlists, jz_to_PG_to_plan);
+        std::map<int, data_t> rid_to_PG_to_plan;
+        has_packs |= prepare_data_to_send(*hmeshes[i], rid_to_list, rid_to_PG_to_plan);
 
         // convert to sensor data
-        for (auto& j : jz_to_PG_to_plan)
+        for (auto& r : rid_to_PG_to_plan)
         {
-          int jzid = j.first;
+          int rid = r.first;
+          int jzid = get_opp_zone(rid_to_zones, rid, zid);
 
-          //get the ptlist
-          const auto it2 = zone_to_zone2jlists.find(jzid);
-          if (it2 == zone_to_zone2jlists.end()) continue;
-          const auto & zone2jlists2 = it2->second;
-          const auto& itPtList = zone2jlists2.find(hmeshes[i]->zid);
-          assert(itPtList != zone2jlists2.end());
-          const auto& ptlist = itPtList->second;
+          //get the OPP ptlist
+          const auto itopp = zone_to_rid_to_list.find(jzid);
+          assert(itopp != zone_to_rid_to_list.end());
+
+          const auto itptl = itopp->second.find(rid);
+          assert(itptl != itopp->second.end());
+          const auto& ptlist = itptl->second;
           
-          auto & PG_to_plan = j.second;
+          auto & PG_to_plan = r.second;
 
           if (jzid != hmeshes[i]->zid)
           {
@@ -204,7 +208,8 @@ namespace NUGA
     static void run
     (
       std::vector<hmesh_t*>& hmeshes, std::vector<sensor_t*>& sensors,
-      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone2jlists,
+      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
+      const std::map<E_Int, std::pair<int, int>>& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM,
       bool do_agglo
@@ -245,8 +250,8 @@ namespace NUGA
 #endif
 
       //separate MPI/OMP joins
-      std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_zone2jlists_mpi, zone_to_zone2jlists_omp;
-      NUGA::split_mpi_omp_joins(zone_to_zone2jlists, rank, zonerank, zone_to_zone2jlists_omp, zone_to_zone2jlists_mpi);
+      std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_rid_to_list_mpi, zone_to_rid_to_list_omp;
+      NUGA::split_mpi_omp_joins(zone_to_rid_to_list, rank, rid_to_zones, zonerank, zone_to_rid_to_list_omp, zone_to_rid_to_list_mpi);
 
       bool has_mpi_changes{ true };
 
@@ -264,7 +269,7 @@ namespace NUGA
 #ifdef ADAPT_TIMER
         //c.start();
 #endif
-        exchange_mpi_data(hmeshes, zone_to_zone2jlists_mpi, zonerank, COM, rank, nranks, zone_to_sensor_data);
+        exchange_mpi_data(hmeshes, zone_to_rid_to_list_mpi, rid_to_zones, zonerank, COM, rank, nranks, zone_to_sensor_data);
         
 #ifdef ADAPT_TIMER
         //if (rank == 0)
@@ -293,7 +298,7 @@ namespace NUGA
           //c2.start();
 #endif
 
-          exchange_omp_data(hmeshes, zone_to_zone2jlists_omp, zone_to_sensor_data);
+          exchange_omp_data(hmeshes, zone_to_rid_to_list_omp, rid_to_zones, zone_to_sensor_data);
           
 #ifdef ADAPT_TIMER
           //dexch += c2.elapsed();

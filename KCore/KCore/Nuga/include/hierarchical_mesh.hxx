@@ -143,6 +143,8 @@ class hierarchical_mesh
     ///
     inline void extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const;
     ///
+    inline void extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const; //todo VD : à implémenter
+    ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
     template <typename InputIterator> void get_enabled_neighbours(E_Int PHi, InputIterator neighbours, E_Int& nb_neighbours) const ;
@@ -691,6 +693,32 @@ void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract
 {
   //todo
 }
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const
+{
+  //todo VD
+
+  plan.clear(); // plan est un IntArray (DynArray<E_Int>) : une 'matrice' 4x1
+
+  /*E_Int ret{ 0 };*/
+
+  if (_ng.PGs.stride(PGi) == 3)
+  {
+  }
+  else if (_ng.PGs.stride(PGi) == 4) 
+  { 
+  }
+
+  // if reverse, utiliser std::reverse sur la colonne
+}
+
+//template <> inline
+//void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const
+//{
+//  //
+//}
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>

@@ -19,33 +19,44 @@ namespace NUGA
 {
   enum eMPI_Tag { TAG_DATA_SZ = 2, TAG_XRANGE_SZ = 4, TAG_XRANGE = 5, TAG_PGS_SZ = 6, TAG_PGS = 7, TAG_SZONE_SZ = 8, TAG_SZONERANGE_SZ = 10, TAG_JZONE_SZ = 12, TAG_JZONERANGE_SZ = 14, TAG_PTL_SZ = 16, TAG_MPI_EXCH_STATUS = 18, TAG_HASSENT = 99 };
 
+  inline
+  static int get_opp_zone(const std::map<int, std::pair<int,int>>& rid_to_zones, int rid, int zid)
+  {
+    const auto itjz = rid_to_zones.find(rid); assert(itjz != rid_to_zones.end());
+    int jzid = (itjz->second.first == zid) ? itjz->second.second : itjz->second.first;
+
+    return jzid;
+  }
   ///
   inline
   static void split_mpi_omp_joins
   (
-      const std::map<int, std::map<int, std::vector<int>>>& zone_to_zone2jlists,
-      int rank, const std::vector<int>& zonerank,
-      std::map<int, std::map<int, std::vector<int>>>& zone_to_zone2jlists_omp,
-      std::map<int, std::map<int, std::vector<int>>>& zone_to_zone2jlists_mpi
+      const std::map<int, std::map<int, std::vector<int>>>& zone_to_rid_to_list,
+      int rank, 
+      const std::map<int, std::pair<int, int>>& rid_to_zones,
+      const std::vector<int>& zonerank,
+      std::map<int, std::map<int, std::vector<int>>>& zone_to_rid_to_list_omp,
+      std::map<int, std::map<int, std::vector<int>>>& zone_to_rid_to_list_mpi
 
    )
   {
-    zone_to_zone2jlists_omp.clear();
-    zone_to_zone2jlists_mpi.clear();
+    zone_to_rid_to_list_omp.clear();
+    zone_to_rid_to_list_mpi.clear();
 
-    for (auto & it : zone_to_zone2jlists)
+    for (auto & it : zone_to_rid_to_list)
     {
       int zid = it.first;
-      auto & zones2jlist = it.second;
-      for (auto & it2 : zones2jlist)
+      auto & rid_to_list = it.second;
+      for (auto & it2 : rid_to_list)
       {
-        int jzid = it2.first;
+        int rid = it2.first;
+        int jzid = get_opp_zone(rid_to_zones, rid, zid);
         auto& ptlist = it2.second;
         int rk = zonerank[jzid];
         if (rk == rank) // local join
-          zone_to_zone2jlists_omp[zid][jzid] = ptlist;
+          zone_to_rid_to_list_omp[zid][rid] = ptlist;
         else // distant
-          zone_to_zone2jlists_mpi[zid][jzid] = ptlist;
+          zone_to_rid_to_list_mpi[zid][rid] = ptlist;
       }
     }
   }
@@ -60,6 +71,7 @@ namespace NUGA
     static void convert_to_MPI_exchange_format
     (
       const std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>> & sz_to_jz_to_PG_to_plan,
+      const std::map<int, std::pair<int,int>> & rid_to_zones,
       const std::vector<int>& zonerank,
       std::map<int, plan_msg_type> & rank_to_data
     )
@@ -429,57 +441,60 @@ namespace NUGA
     ///
     static void exchange_pointlists
     (
+      const std::map<int, std::pair<int,int>>& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM,
       int rank, int nranks,
-      const std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
-      std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone_to_list_opp
+      const std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list_owned,
+      std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list_opp
     )
     {
-      zone_to_zone_to_list_opp.clear();
+      zone_to_rid_to_list_opp.clear();
 
       //separate MPI/OMP joins
-      std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_zone2jlists_mpi, zone_to_zone2jlists_omp;
-      split_mpi_omp_joins(zone_to_zone_to_list_owned, rank, zonerank, zone_to_zone2jlists_omp, zone_to_zone2jlists_mpi);
+      std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_rid_to_list_mpi, zone_to_rid_to_list_omp;
+      split_mpi_omp_joins(zone_to_rid_to_list_owned, rank, rid_to_zones, zonerank, zone_to_rid_to_list_omp, zone_to_rid_to_list_mpi);
 
       // OMP : just transpose
-      if (!zone_to_zone2jlists_omp.empty())
+      if (!zone_to_rid_to_list_omp.empty())
       {
-        for (const auto& it : zone_to_zone2jlists_omp)
+        for (const auto& it : zone_to_rid_to_list_omp)
         {
           int zid = it.first;
-          const auto& zone2jlists = it.second;
-          for (const auto & z2L : zone2jlists)
+          const auto& rid_to_list = it.second;
+          for (const auto & z2L : rid_to_list)
           {
-            int jzid = z2L.first;
+            int rid = z2L.first;
+            int jzid = get_opp_zone(rid_to_zones, rid, zid);
             const auto & ptL = z2L.second;
 
-            zone_to_zone_to_list_opp[jzid][zid] = ptL;
+            zone_to_rid_to_list_opp[jzid][rid] = ptL;
           }
         }
       }
 
       // MPI
-      if (zone_to_zone2jlists_mpi.empty()) return;
+      if (zone_to_rid_to_list_mpi.empty()) return;
 
       // prepare data to send : rank/zone/ptL
       std::map<int, pointlist_msg_type> rank_to_mpi_data;
-      convert_to_MPI_exchange_format(zone_to_zone2jlists_mpi, zonerank, rank_to_mpi_data);
+      convert_to_MPI_exchange_format(zone_to_rid_to_list_mpi, rid_to_zones, zonerank, rank_to_mpi_data);
 
       // Send MPI data   
       isend_data(rank, nranks, COM, rank_to_mpi_data);
 
       // Receive MPI data and build sensor data by zone
-      receive_data(rank, nranks, COM, zone_to_zone2jlists_mpi, zone_to_zone_to_list_opp);
+      receive_data(rank, nranks, COM, zone_to_rid_to_list_mpi, zone_to_rid_to_list_opp);
 
-      assert(zone_to_zone_to_list_owned.size() == zone_to_zone_to_list_opp.size());
+      assert(zone_to_rid_to_list_owned.size() == zone_to_rid_to_list_opp.size());
     }
 
     
     ///
     static void convert_to_MPI_exchange_format
     (
-      const std::map<int, std::map<E_Int, std::vector<E_Int>>> & zone_to_zone2jlists_mpi,
+      const std::map<int, std::map<E_Int, std::vector<E_Int>>> & zone_to_rid_to_list_mpi,
+      const std::map<int, std::pair<int,int>>& rid_to_zones,
       const std::vector<int>& zonerank,
       std::map<int, pointlist_msg_type> & rank_to_data
     )
@@ -487,47 +502,48 @@ namespace NUGA
       rank_to_data.clear();
 
       // Gather data by rank
-      std::map<int, std::map<int, std::map<E_Int, std::vector<E_Int>>>> rank_to_sz_to_jz_to_PTL;
-      for (auto & it : zone_to_zone2jlists_mpi)
+      std::map<int, std::map<int, std::map<E_Int, std::vector<E_Int>>>> rank_to_sz_to_rid_to_PTL;
+      for (auto & it : zone_to_rid_to_list_mpi)
       {
         int szid = it.first;
-        const auto& jz_to_PTL = it.second;
+        const auto& rid_to_PTL = it.second;
 
-        for (auto& it2 : jz_to_PTL)
+        for (auto& it2 : rid_to_PTL)
         {
-          int jzid = it2.first;
+          int rid = it2.first;
           auto& PTL = it2.second;
 
-          assert(jzid > -1 && jzid < zonerank.size());
+          assert(rid > -1 && rid < rid_to_zones.size());
+          int jzid = get_opp_zone(rid_to_zones, rid, szid);
           int jrk = zonerank[jzid];
 
-          rank_to_sz_to_jz_to_PTL[jrk][szid][jzid] = PTL;
+          rank_to_sz_to_rid_to_PTL[jrk][szid][jzid] = PTL;
         }
       }
 
       //
-      for (auto& i : rank_to_sz_to_jz_to_PTL)
+      for (auto& i : rank_to_sz_to_rid_to_PTL)
       {
         int rank = i.first;
-        auto & sz_to_jz_to_PTL = i.second;
+        auto & sz_to_rid_to_PTL = i.second;
 
         auto & rankdata = rank_to_data[rank];
 
-        for (auto & kk : sz_to_jz_to_PTL)
+        for (auto & kk : sz_to_rid_to_PTL)
         {
           int szid = kk.first;
-          auto & jz_to_PTL = kk.second;
+          auto & rid_to_PTL = kk.second;
 
           rankdata.szonerange.push_back(rankdata.jzone.size());
           rankdata.szone.push_back(szid);
 
-          for (auto& j : jz_to_PTL)
+          for (auto& r : rid_to_PTL)
           {
-            int jzid = j.first;
-            auto& PTL = j.second;
+            int rid = r.first;
+            auto& PTL = r.second;
 
             rankdata.jzonerange.push_back(rankdata.ptList.size());
-            rankdata.jzone.push_back(jzid);
+            rankdata.jzone.push_back(rid);
 
             rankdata.ptList.insert(rankdata.ptList.end(), ALL(PTL));
           }

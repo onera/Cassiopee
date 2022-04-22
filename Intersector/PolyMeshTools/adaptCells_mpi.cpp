@@ -88,8 +88,7 @@ void convert_dico_to_map___int_int_vecint
         int jzid = (int) PyInt_AsLong(py_jzid);
 
         assert (PyArray_Check(py_ptlist_owned) == 1) ; // it s a numpy
-        //std::cout << "est ce un numpy ??? " << isnumpy << std::endl;
-
+        
         PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist_owned);
 
         long ndims = PyArray_NDIM(pyarr);
@@ -109,6 +108,50 @@ void convert_dico_to_map___int_int_vecint
         zone_to_zone_to_list_owned[zid][jzid]=ptl;
 
       }
+    }
+  }
+}
+
+void convert_dico_to_map__int_pairint
+(
+  PyObject *py_rid_to_zones,
+  std::map<int, std::pair<int,int>>& rid_to_zones)
+{
+  if (PyDict_Check(py_rid_to_zones))
+  {
+    // E_Int nzid = PyDict_Size(py_rid_to_zones);
+
+    PyObject *py_rid/*key*/, *py_pair_owned /*value : map zid to ptlist*/;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(py_rid_to_zones, &pos, &py_rid, &py_pair_owned))
+    {
+      int rid = (int) PyInt_AsLong(py_rid);
+      // std::cout << rid << std::endl;
+
+      assert (PyTuple_Check(py_pair_owned) == 1); // is it a tuple ?
+
+      // PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_pair_owned);
+      PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_pair_owned);    
+      Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
+      // std::cout << "size pytub : " << nb << std::endl;
+
+      // -----
+
+      std::pair<int,int> pair_zid;
+
+      PyObject * z1 PyTuple_GET_ITEM(pytup, 0);
+      PyObject * z2 PyTuple_GET_ITEM(pytup, 1);
+
+      pair_zid.first  = (double) PyFloat_AsDouble(z1);
+      pair_zid.second = (double) PyFloat_AsDouble(z2);
+
+      // E_Int *p = (E_Int *)pytup;
+      // std::cout << pair_zid.first << std::endl;
+      // std::cout << pair_zid.second << std::endl;
+
+      rid_to_zones[rid] = pair_zid;
+
     }
   }
 }
@@ -326,8 +369,9 @@ PyObject* K_INTERSECTOR::createHMesh2(PyObject* self, PyObject* args)
 template <typename hmesh_t, typename sensor_t>
 E_Int __adapt
 (std::vector<hmesh_t*>& hmeshes, std::vector<sensor_t*>& sensors,
+std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
-std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned,
+std::map<int, std::map<int, std::vector<int>>>& zone_to_rid_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
@@ -339,7 +383,8 @@ const char* varString, PyObject *out)
 
   using adaptor_t = NUGA::adaptor_mpi<hmesh_t, sensor_t>;
 
-  adaptor_t::run(hmeshes, sensors, zone_to_zone_to_list_owned, zonerank, COM, false/*do_agglo*/);
+  adaptor_t a;
+  a.run(hmeshes, sensors, zone_to_rid_to_list_owned, rid_to_zones, zonerank, COM, false/*do_agglo*/);
 
   for (size_t i=0; i < nb_meshes; ++i)
   {
@@ -364,6 +409,7 @@ template <subdiv_t STYPE>
 E_Int __adapt_wrapper
 (E_Int elt_type, E_Int sensor_type,
 std::vector<void*>&hookhmes, std::vector<void*>&hooksensors,
+std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
 std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
@@ -390,7 +436,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 1) // xsensor
     {
@@ -399,7 +445,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 2) //nodal sensor
     {
@@ -410,7 +456,7 @@ const char* varString, PyObject *out)
 
       //std::cout << "before __adapt " << std::endl;
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
 
       //std::cout << "after __adapt " << std::endl;
     }
@@ -423,7 +469,7 @@ const char* varString, PyObject *out)
 
       //std::cout << "before __adapt " << std::endl;
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
 
       //std::cout << "after __adapt " << std::endl;
     }
@@ -434,7 +480,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
   }
   else if (elt_type==elt_t::TETRA)
@@ -454,7 +500,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     // else if (sensor_type == 1) //xsensor
     // {
@@ -466,7 +512,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 3) //cell sensor
     {
@@ -477,7 +523,7 @@ const char* varString, PyObject *out)
 
       //std::cout << "before __adapt " << std::endl;
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
 
       //std::cout << "after __adapt " << std::endl;
     }
@@ -488,7 +534,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
   }
   else if (elt_type==elt_t::PRISM3)
@@ -508,7 +554,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     // else if (sensor_type == 1) //xsensor
     // {
@@ -520,7 +566,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 3) //cell sensor
     {
@@ -531,7 +577,7 @@ const char* varString, PyObject *out)
 
       //std::cout << "before __adapt " << std::endl;
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
 
       //std::cout << "after __adapt " << std::endl;
     }
@@ -542,7 +588,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
   }
   else if (elt_type==elt_t::BASIC)
@@ -562,7 +608,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     // else if (sensor_type == 1) //xsensor
     // {
@@ -574,7 +620,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 3) //cell sensor
     {
@@ -585,7 +631,7 @@ const char* varString, PyObject *out)
 
       //std::cout << "before __adapt " << std::endl;
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
 
       //std::cout << "after __adapt " << std::endl;
     }
@@ -596,7 +642,7 @@ const char* varString, PyObject *out)
       std::vector<sensor_t*> sensors(nb_meshes);
       for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
   }
   return err;
@@ -606,6 +652,7 @@ template <>
 E_Int __adapt_wrapper<NUGA::ISO_HEX>
 (E_Int elt_type/*dummy*/, E_Int sensor_type,
 std::vector<void*>& hookhmes, std::vector<void*>& hooksensors,
+std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
 std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
@@ -675,6 +722,7 @@ template <>
 E_Int __adapt_wrapper<NUGA::DIR>
 (E_Int elt_type/*dummy*/, E_Int sensor_type,
 std::vector<void*>& hookhmes, std::vector<void*>& hooksensors,
+std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
 std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
@@ -792,11 +840,11 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
 {
 
   //std::cout << "adaptCells : begin" << std::endl;
-  PyObject *hook_hmeshes(nullptr), *hook_sensors(nullptr), *py_zone_to_zone_to_list_owned(nullptr);
-  PyObject *py_zonerank(nullptr);
+  PyObject *hook_hmeshes(nullptr), *hook_sensors(nullptr), *py_zone_to_rid_to_list_owned(nullptr);
+  PyObject *py_zonerank(nullptr), *py_rid_to_zones(nullptr);
   MPI_Comm COM = MPI_COMM_WORLD;
 
-  if (!PyArg_ParseTuple(args, "OOOO", &hook_hmeshes, &hook_sensors, &py_zone_to_zone_to_list_owned, &py_zonerank)) return NULL;
+  if (!PyArg_ParseTuple(args, "OOOOO", &hook_hmeshes, &hook_sensors, &py_zone_to_rid_to_list_owned, &py_zonerank, &py_rid_to_zones)) return NULL;
   //std::cout << "adaptCells : after parse tuple" << std::endl;
 
   // 1. GET MESHES AND SENSORS
@@ -908,10 +956,9 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
     }
   }
 
-  // 3. GET zone_to_zone_to_list_owned
-
-  std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_owned;
-  convert_dico_to_map___int_int_vecint(py_zone_to_zone_to_list_owned, zone_to_zone_to_list_owned);
+  // 3. GET zone_to_rid_to_list_owned
+  std::map<int, std::map<int, std::vector<int>>> zone_to_rid_to_list_owned;
+  convert_dico_to_map___int_int_vecint(py_zone_to_rid_to_list_owned, zone_to_rid_to_list_owned);
   assert (zone_to_zone_to_list_owned == nb_meshes);
 
   /*std::cout << "adaptCells : before __adapt_wrapper" << std::endl;
@@ -922,6 +969,12 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
   std::cout << "hmeshes : " << hmeshes.size() << std::endl;
   std::cout << "sensors : " << sensors.size() << std::endl;*/
 
+  // 4. py_rid_to_zones => rid_to_zones
+  //todo VD
+  std::map<int, std::pair<int,int>> rid_to_zones;
+  convert_dico_to_map__int_pairint(py_rid_to_zones, rid_to_zones);
+  // assert (zone_to_zone_to_list_owned == nb_meshes);
+
   // Adaptation
   // ==========
   PyObject *l(PyList_New(0));
@@ -929,11 +982,11 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
 
   E_Int err(0);
   if (*subdiv_type == NUGA::ISO)
-    err = __adapt_wrapper<ISO>(*elt_type, *sensor_type, hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, vString->c_str(), l);
+    err = __adapt_wrapper<ISO>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zonerank, zone_to_rid_to_list_owned, COM, vString->c_str(), l);
   /*else if (*subdiv_type == NUGA::ISO_HEX)
-    err = __adapt_wrapper<ISO_HEX>(*elt_type, *sensor_type, hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, vString->c_str(), l);
+    err = __adapt_wrapper<ISO_HEX>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, vString->c_str(), l);
   else if (*subdiv_type == NUGA::DIR)
-    err = __adapt_wrapper<DIR>(*elt_type, *sensor_type, hmeshes, sensors, zonerank, zone_to_zone_to_list_owned, COM, vString->c_str(), l);
+    err = __adapt_wrapper<DIR>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, vString->c_str(), l);
 */
   //std::cout << "adaptCells : end" << std::endl;
 
@@ -1355,14 +1408,13 @@ PyObject* K_INTERSECTOR::conformizeHMesh2(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
 {
   // zonerank, Cmpi.rank, Cmpi.size, zone_to_zone_to_list_owned
-  PyObject *py_zonerank(nullptr), *py_zone_to_zone_to_list_owned(nullptr);
+  PyObject *py_rid_to_zones(nullptr), *py_zonerank(nullptr), *py_zone_to_zone_to_list_owned(nullptr);
   MPI_Comm COM = MPI_COMM_WORLD;
   E_Int rank{0}, nranks{1};
 
-  if (!PYPARSETUPLEI(args, "OllO", "OiiO", &py_zonerank, &rank, &nranks, &py_zone_to_zone_to_list_owned)) return nullptr;
+  if (!PYPARSETUPLEI(args, "OOllO", "OOiiO", &py_rid_to_zones, &py_zonerank, &rank, &nranks, &py_zone_to_zone_to_list_owned)) return nullptr;
 
   // 1. GET ZONERANK
-
   std::vector<int> zonerank;
   if (PyDict_Check(py_zonerank))
   {
@@ -1382,11 +1434,15 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_owned;
   convert_dico_to_map___int_int_vecint(py_zone_to_zone_to_list_owned, zone_to_zone_to_list_owned);
   assert (zone_to_zone_to_list_owned.size() == nb_meshes);
-  
+
+  // 3. GET RID_TO_ZONES MAP 
+  //todo VD : py_rid_to_zones => rid_to_zones
+  std::map<int, std::pair<int,int>> rid_to_zones;
+  convert_dico_to_map__int_pairint(py_rid_to_zones, rid_to_zones);
 
   // 3. EXCHANGE
   std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_opp;
-  NUGA::pointlist_msg_type::exchange_pointlists(zonerank, COM, rank, nranks, zone_to_zone_to_list_owned, zone_to_zone_to_list_opp);
+  NUGA::pointlist_msg_type::exchange_pointlists(rid_to_zones, zonerank, COM, rank, nranks, zone_to_zone_to_list_owned, zone_to_zone_to_list_opp);
 
   // 4. pushing out joins pointlist map : 'zid to jzid to ptlist'
   PyObject * zone_to_zone_to_list_opp_dict = PyDict_New();
@@ -1401,12 +1457,12 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
 
     for (auto& jz_to_ptl : zone_to_list_opp)
     {
-      E_Int jzid = jz_to_ptl.first;
+      E_Int rid = jz_to_ptl.first;
       auto & ptl = jz_to_ptl.second;
-      PyObject* key_jzid = Py_BuildValue("i", jzid);
+      PyObject* key_rid = Py_BuildValue("i", rid);
 
       PyObject* np = K_NUMPY::buildNumpyArray(&ptl[0], ptl.size(), 1, 0);
-      PyDict_SetItem(zone_to_list_opp_dict, key_jzid, np);
+      PyDict_SetItem(zone_to_list_opp_dict, key_rid, np);
       Py_DECREF(np);
     }
 
