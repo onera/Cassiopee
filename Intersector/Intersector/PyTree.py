@@ -634,12 +634,12 @@ def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0, itermax=10):
     s = XOR.conformUnstr(s1, s2, tol, left_or_right, itermax)
     return C.convertArrays2ZoneNode('conformized', [s])
 
-def intersection(surface1, surface2, tol=0.):
+def intersection(surface1, surface2, tol=0., itermax=10):
     """Computes the intersection between two closed-surface or two volume meshes.
     Usage: intersection(s1, s2, tol)"""
     s1 = C.getFields(Internal.__GridCoordinates__, surface1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, surface2)[0]
-    s = XOR.intersection(s1, s2, tol)
+    s = XOR.intersection(s1, s2, tol, itermax)
     return C.convertArrays2ZoneNode('inter', [s])
 
 def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)

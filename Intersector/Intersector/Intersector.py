@@ -34,7 +34,7 @@ def conformUnstr(a1, a2=None, tol=0., left_or_right=0, itermax=10):
     c = intersector.conformUnstr(a1, a2, tol, left_or_right, itermax)
     return G.close(c)
 
-def intersection(a1, a2, tol=0.):
+def intersection(a1, a2, tol=0., itermax=10):
     """Computes the intersection trace (a polyline) between two input closed surfaces.
     Usage: intersection(a1, a2, tol)"""
     try:
@@ -43,7 +43,7 @@ def intersection(a1, a2, tol=0.):
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
     except: pass
-    c = intersector.booleanIntersectionBorder(a1, a2, tol, 1, 1, 0, False, True) #last 5 args are dummy for now
+    c = intersector.booleanIntersectionBorder(a1, a2, tol, itermax)
     return G.close(c)
 
 def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)

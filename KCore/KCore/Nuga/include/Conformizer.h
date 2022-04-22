@@ -104,6 +104,8 @@ public:
   const std::vector<E_Int>& get_node_history(){return _node_history;}
   ///
   virtual ~Conformizer(){}
+
+  E_Int _itermax;
   
 public://fixme
   bool _split_swap_afterwards; // TRI specific
@@ -240,7 +242,7 @@ public:
   E_Int _N0;
   K_FLD::IntArray _connect0;
   E_Int _X0; // start testing from that id (when 2 valid input mesh, avoid self-X tests)
-  E_Int _itermax;
+  
   bool _needs_another_iter;
   bool _one_pass_mode;
   

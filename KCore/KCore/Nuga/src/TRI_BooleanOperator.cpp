@@ -45,7 +45,7 @@ E_Int NUGA::ConformizerRoot::degen_counter = 0;
 TRI_BooleanOperator::TRI_BooleanOperator
 (const K_FLD::FloatArray& coord1, const K_FLD::IntArray& connect1,
  const K_FLD::FloatArray& coord2, const K_FLD::IntArray& connect2,
- E_Float tolerance):parent_type(coord1, connect1, coord2, connect2, tolerance, new TRI_Conformizer<3>())
+ E_Float tolerance, int itermax):parent_type(coord1, connect1, coord2, connect2, tolerance, new TRI_Conformizer<3>(), itermax)
 {
   ++case_nb;
   //std::cout << "CASE " << case_nb << std::endl;

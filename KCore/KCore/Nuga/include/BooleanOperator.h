@@ -42,7 +42,7 @@ protected:
   /// Constructor with the 2 input surfaces S1 & S2.
   BooleanOperator(const K_FLD::FloatArray& pos1, const K_FLD::IntArray& connect1,
                   const K_FLD::FloatArray& pos2, const K_FLD::IntArray& connect2,
-                  E_Float tolerance, ConformizerRoot* c);
+                  E_Float tolerance, ConformizerRoot* c, int itermax=10);
   ///
   E_Int initialized();
   

@@ -98,7 +98,8 @@ bool is_valid (char* eltType, eOperation oper)
 bool getArgs(PyObject* args, eOperation oper,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
-             E_Float& tolerance, E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual, bool& outward_surf, char*& eltType, char*& varString)
+             E_Float& tolerance,
+             E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual, bool& outward_surf, char*& eltType, char*& varString)
 {
   PyObject *arrS[2];
   E_Float tol = 0.;
@@ -177,6 +178,91 @@ bool getArgs(PyObject* args, eOperation oper,
     tolerance = tol;
     preserve_right = preserv_r;
     solid_right=solid_r;
+  }
+  
+  // Final cleaning.
+  for (E_Int n = 0; n < 2; n++)
+  {
+    delete fS[n]; delete cn[n];
+  }
+  return (err == 0);
+}
+
+//==============================================================================
+bool getBorderArgs(PyObject* args,
+             K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
+             K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
+             E_Float& tolerance, int& itermax,
+             char*& eltType, char*& varString)
+{
+  PyObject *arrS[2];
+  tolerance = 0.;
+  std::ostringstream o;
+
+  if (!PYPARSETUPLE(args, 
+                    "OOdl", "OOdi", "OOfl", "OOfi", &arrS[0], &arrS[1], &tolerance, &itermax))
+  {
+    o << "booleanIntersectionBorder" << ": wrong arguments.";
+    PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    return false;
+  }
+
+  E_Int ni, nj, nk, posx[2], posy[2], posz[2], err(0);
+  K_FLD::FloatArray *fS[2];
+  K_FLD::IntArray* cn[2];
+
+  // Check the Arguments.
+  for (E_Int n = 0; n < 2; n++)
+  {
+    // The input surface must be a unstructured triangles surface.
+    E_Int res = K_ARRAY::getFromArray(arrS[n], varString, fS[n], ni, nj, nk, cn[n], eltType);
+    
+    if ((res != 2) || (!is_valid(eltType, INTERSECTION_BORDER)))
+    {
+      o << "booleanIntersectionBorder" << ": invalid array.";
+      PyErr_SetString(PyExc_TypeError, o.str().c_str());
+      err = 1;
+    }
+
+    // Check coordinates.
+    posx[n] = K_ARRAY::isCoordinateXPresent(varString);
+    posy[n] = K_ARRAY::isCoordinateYPresent(varString);
+    posz[n] = K_ARRAY::isCoordinateZPresent(varString);
+
+    if ((posx[n] == -1) || (posy[n] == -1) || (posz[n] == -1))
+    {
+      o << "booleanIntersectionBorder" << ": can't find coordinates in array.";
+      PyErr_SetString(PyExc_TypeError, o.str().c_str());
+      err = 1;
+    }
+  }
+  
+  if (!err)
+  {
+    pos1 = *fS[0];
+    if (posx[0] !=0 || posy[0] != 1 || posz[0] != 2)
+    {
+      for (E_Int i=0; i < pos1.cols(); ++i)
+      {
+        pos1(0,i) = (*fS[0])(posx[0],i);
+        pos1(1,i) = (*fS[0])(posy[0],i);
+        pos1(2,i) = (*fS[0])(posz[0],i);    
+      }
+    }
+
+    pos2 = *fS[1];
+    if (posx[1] !=0 || posy[1] != 1 || posz[1] != 2)
+    {
+      for (E_Int i=0; i < pos2.cols(); ++i)
+      {
+        pos2(0,i) = (*fS[1])(posx[1],i);
+        pos2(1,i) = (*fS[1])(posy[1],i);
+        pos2(2,i) = (*fS[1])(posz[1],i);    
+      }
+    }
+    
+    connect1 = *cn[0];
+    connect2 = *cn[1];
   }
   
   // Final cleaning.
@@ -346,7 +432,7 @@ PyObject* call_operation(PyObject* args, eOperation oper)
   E_Int preserve_right, solid_right, agg_mode;
   bool improve_conformal_cloud_qual(false), outward_surf(true);
   
-  bool ok = getArgs(args, oper, pos1, connect1, pos2, connect2, tolerance, 
+  bool ok = getArgs(args, oper, pos1, connect1, pos2, connect2, tolerance,
 		    preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, outward_surf, eltType, varString);
   if (!ok) return NULL;
   PyObject* tpl = NULL;
@@ -362,7 +448,7 @@ PyObject* call_operation(PyObject* args, eOperation oper)
     
     if (strcmp(eltType, "TRI") == 0)
     {
-      BO = new TRI_BooleanOperator (pos1, connect1, pos2, connect2, tolerance);
+      BO = new TRI_BooleanOperator (pos1, connect1, pos2, connect2, tolerance, 10/*itermax*/);
       op = getOperation<TRI_BooleanOperator>(oper);
     }
     else if (strcmp(eltType, "BAR") == 0)
@@ -425,6 +511,51 @@ PyObject* call_operation(PyObject* args, eOperation oper)
   {
     std::ostringstream o;
     o << getName(oper) << ": failed to proceed.";
+    PyErr_SetString(PyExc_TypeError, o.str().c_str());
+  }
+  return tpl;
+}
+
+PyObject* call_xborder(PyObject* args)
+{
+  K_FLD::FloatArray pos1, pos2, pos;
+  K_FLD::IntArray connect1, connect2, connect;
+  E_Float tolerance;
+  char *eltType, *varString;
+  std::vector<E_Int> colors;
+  int itermax=10;
+  
+  bool ok = getBorderArgs(args, pos1, connect1, pos2, connect2, tolerance, itermax, eltType, varString);
+  if (!ok) return NULL;
+  PyObject* tpl = NULL;
+  E_Int err(0), et=-1;
+
+  char eltType2[20];
+  strcpy(eltType2, eltType);
+
+  if ((strcmp(eltType, "TRI") == 0) || (strcmp(eltType, "BAR") == 0))
+  {
+    BooleanOperator* BO = NULL;
+           
+    if (strcmp(eltType, "TRI") == 0)
+      BO = new TRI_BooleanOperator (pos1, connect1, pos2, connect2, tolerance, itermax);
+    else if (strcmp(eltType, "BAR") == 0)
+      BO = new BAR_BooleanOperator (pos1, connect1, pos2, connect2, tolerance);
+    
+    err = BO->getIntersectionBorder(pos, connect);
+    if (strcmp(eltType, "TRI") == 0) strcpy(eltType2, "BAR");
+    else if (strcmp(eltType, "BAR") == 0) strcpy(eltType2, "NODE");
+    
+    delete BO;
+    et=-1;
+  }
+  
+  if (err != 1)
+    tpl = K_ARRAY::buildArray(pos, varString, connect, et, eltType2, false);
+  else
+  {
+    std::ostringstream o;
+    o << "getIntersectionBorder" << ": failed to proceed.";
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
   }
   return tpl;
@@ -1321,19 +1452,6 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   Py_DECREF(pointList2_dict);
 
 
-
-
-
-
-
-
-
-
-
-
-
-  
-
   for (E_Int i=0; i < nb_zones1; ++i)
   {
     delete crd1s[i];
@@ -1362,7 +1480,7 @@ PyObject* K_INTERSECTOR::booleanMinus(PyObject* self, PyObject* args)
 //=============================================================================
 PyObject* K_INTERSECTOR::booleanIntersectionBorder(PyObject* self, PyObject* args)
 {
-  return call_operation(args, INTERSECTION_BORDER);
+  return call_xborder(args);
 }
 
 //=============================================================================

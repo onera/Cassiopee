@@ -23,7 +23,7 @@ namespace NUGA
 BooleanOperator::BooleanOperator
 (const K_FLD::FloatArray& coord1, const K_FLD::IntArray& connect1,
  const K_FLD::FloatArray& coord2, const K_FLD::IntArray& connect2, E_Float tolerance,
- ConformizerRoot* c):_conformizer(c), _initialized(false)
+ ConformizerRoot* c, int itermax):_conformizer(c), _initialized(false)
 {
   E_Int                             ret(1), ROWS(connect1.rows());
   std::vector<E_Int>                ancestors;
@@ -81,7 +81,7 @@ BooleanOperator::BooleanOperator
   }
 #endif
  
-  ret = _conformizer->run(coord, connect, ancestors, 0, tolerance, connect1.cols()/*X0*/);
+  ret = _conformizer->run(coord, connect, ancestors, 0, tolerance, connect1.cols()/*X0*/, itermax);
   if (ret) return;
   
 #ifdef DEBUG_BOOLEAN
