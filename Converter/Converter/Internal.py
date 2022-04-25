@@ -2755,16 +2755,6 @@ def window2Range(win):
     r[2,0] = win[4]; r[2,1] = win[5]
     return r
 
-# -- PointList (face) to range (struct zones)
-#def pointList2Windows(PL, ni, nj, nk):
-    # find face
-    #ind = PL[0]
-    # find i,j
-    # regrouper dans des vector[j]
-    # pour chaque j, trouve imin, imax
-    # Regroupe en j si meme imin, imax
-
-
 # -- ClearList: supprime les [] d'une liste
 def clearList(list):
   t = []

@@ -104,7 +104,7 @@ PyObject* K_GENERATOR::stitchedHat(PyObject* self, PyObject* args)
   normals(npts, x0, y0, z0, nx, ny, nz);
 
   for (E_Int i = 0; i < npts; i++)
-  { found[i] = 0; hanging[i] = 0;}
+  { found[i] = 0; hanging[i] = 0; }
 
   // Calcul de l'axe median
   for (E_Int i = 0; i < npts; i++)

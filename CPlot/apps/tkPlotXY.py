@@ -15771,7 +15771,8 @@ def plot(a, varx='CoordinateX', vary='F', export=None,
         except:
             zs = C.convertArray2Hexa(zs)
             za = T.join(zs)
-            za = C.convertBAR2Struct(za)
+            #za = T.splitConnexity(za)
+            za = C.convertBAR2Struct(za) # ne conserve qu'une zone si non connexe
         a.append(za)
 
     #a = []

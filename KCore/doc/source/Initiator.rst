@@ -47,6 +47,11 @@ List of functions
    Adim.dim2
    Adim.dim3
 
+**-- Mesh size**
+
+.. autosummary::
+
+    MeshSize.meshSize
 
 Contents
 #########
@@ -416,8 +421,8 @@ Adimensioning
     :param PInf:   Pressure in Pa
     :type  PInf:   float
     :param RoInf:  Input density (kg/m3)
-    :type  RoInf:   float
-    :param LInf:    Reference length (m). Usefull to compute Reynolds.
+    :type  RoInf:  float
+    :param LInf:   Reference length (m). Usefull to compute Reynolds.
     :type  LInf:   float
     :param MutSMuInf: ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity 
     :type MutSMuInf: float
@@ -435,6 +440,40 @@ Adimensioning
     .. literalinclude:: ../build/Examples/Initiator/dim3.py
 
     .. note:: New in version 2.5 
+
+
+Mesh size
+-----------
+
+
+.. py:function:: Initiator.MeshSize.meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1., algo='Turbulent'):
+
+    Return the height of the first wall mesh cell that must be set to match a certain y+.
+
+    :param UInf:   Inflow reference speed
+    :type  UInf:   float
+    :param RoInf:  Inflow reference density
+    :type  RoInf:   float
+    :param ReInf:  Inflow reference Reynolds
+    :type  ReInf:   float
+    :param LInf:  Reference length for Reynolds
+    :type  LInf:   float
+    :param esurc:  profile thickness over chord (used only in Corr algorithms)
+    :type  esurC:   float
+    :param yplus: target y+ to match
+    :type yplus: float
+    :param algo: type of algorithm in 'Turbulent', 'TurbulentCorr', 'LaminarCorr'
+    :type algo: string
+
+    *Example of use:*
+
+    * `Get the first mesh cell height <Examples/Initiator/meshSizePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Initiator/meshSizePT.py
+
+    .. note:: New in version 3.4
+
+
 
 .. toctree::
    :maxdepth: 2   

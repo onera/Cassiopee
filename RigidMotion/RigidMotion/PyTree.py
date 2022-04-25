@@ -451,10 +451,8 @@ def _switchGridAndGridInit(t):
     gc1 = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
     gc2 = Internal.getNodeFromName1(z, 'GridCoordinates')
     if gc1 is not None and gc2 is not None:
-      for c, i in enumerate(z[2]):
-        print(c, i[0])
-        if i[0] == 'GridCoordinates': z[2][c] = gc1
-        if i[0] == 'GridCoordinates#Init': z[2][c] = gc2
+      gc1[0] = 'GridCoordinates'
+      gc2[0] = 'GridCoordinates#Init'
   return None
 
 #==============================================================================

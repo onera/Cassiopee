@@ -220,7 +220,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
     //if (fEqual(ri, 1.) == false) ni += 1;
     //if (xf > xo) printf("end: %f %f\n", xf, xo+hi*((-1. + pow(ri ,ni-1) ) / (-1. + ri)));
     //else printf("end: %f %f\n", xf, xo-hi*((-1. + pow(ri ,ni-1) ) / (-1. + ri)));
-    printf("r %f -> %f\n", riinput, ri);
+    //printf("r %f -> %f\n", riinput, ri);
   } 
 
   if (K_FUNC::fEqual(rjinput, 1.) == true)
