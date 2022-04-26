@@ -30,7 +30,8 @@ class PendingMsgContainer {
  public:
   typedef shared_ptr<MsgBuffer> pointer_message_buffer;
   struct pending_message {
-    pointer_message_buffer message_buffer;
+    pointer_message_buffer message_buffer = nullptr;
+    pending_message() = default;
     pending_message(pointer_message_buffer pt_msg) : message_buffer(pt_msg) {}
     pending_message(const pending_message& ) = default;
     MsgBuffer& get_message_buffer() { return *message_buffer; }
@@ -45,13 +46,18 @@ class PendingMsgContainer {
     m_pending_message.reserve(maxSize);
   }
   PendingMsgContainer(const PendingMsgContainer&) = default;
+  PendingMsgContainer(      PendingMsgContainer&&) = default;
   ~PendingMsgContainer() {}
+
+  PendingMsgContainer& operator = ( const PendingMsgContainer& ) = default;
+  PendingMsgContainer& operator = ( PendingMsgContainer     && ) = default;
 
   template <typename... Args>
   void emplace_back(Args const&... args);
   void push_back(pointer_message_buffer& pt_buff);
   void pop(const iterator& it);
 
+  void resize( std::size_t n ) { m_pending_message.resize(n); }
   bool empty() const { return m_pending_message.empty(); }
   std::size_t size() const { return m_pending_message.size(); }
   void clear() { for ( auto& pm : m_pending_message ) pm.message_buffer->clear(); }
