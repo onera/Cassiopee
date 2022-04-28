@@ -6,6 +6,7 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Geom.PyTree as D
+from . import Mpi as Pmpi
 
 #==============================================================================
 # Vorticite en centres
@@ -511,6 +512,40 @@ def _extractShearStress(teff):
     C._rmVars(teff, 'centers:divu')
     return None
 
+# Extract tau.n
+# IN: centers:ShearStress
+# taun = tau.n
+def _extractTaun(teff):
+    G._getNormalMap(teff)
+    C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
+    C._initVars(teff, '{centers:taunx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
+    C._initVars(teff, '{centers:tauny} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}')
+    C._initVars(teff, '{centers:taunz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}')
+    return None
+
+# Extract tau.n
+# IN: centers:Pressure
+# pn = p.n
+def _extractPn(teff):
+    G._getNormalMap(teff)
+    C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
+    C._initVars(teff, '{centers:pnx} = {centers:Pressure}*{centers:sx}')
+    C._initVars(teff, '{centers:pny} = {centers:Pressure}*{centers:sy}')
+    C._initVars(teff, '{centers:pnz} = {centers:Pressure}*{centers:sz}')
+    return None
+
+# Extract Force
+# IN: centers:Pressure
+# IN: centers:ShearStress
+# F = p.n + tau.n
+def _extractForce(teff):
+    G._getNormalMap(teff)
+    C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
+    C._initVars(teff, '{centers:Fx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}+{centers:Pressure}*{centers:sx}')
+    C._initVars(teff, '{centers:Fy} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}+{centers:Pressure}*{centers:sy}')
+    C._initVars(teff, '{centers:Fz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}+{centers:Pressure}*{centers:sz}')
+    return None
+
 # Extract tangential friction vector
 # IN: centers:shearStressXX,...
 # OUT: centers:frictionX, centers:frictionY, centers:frictionZ
@@ -570,13 +605,14 @@ def _extractCp(teff, pinf, norm):
 # IN: centers:Pressure
 def integPressure(teff):
     """Integ p.n.ds"""
-    ret = P.integNorm(teff, 'centers:Pressure')
+    ret = Pmpi.integNorm(teff, 'centers:Pressure')
     return ret[0]
 
 # integration coefficient de pression Integ( Cp.n ds )
+# IN: centers:Cp
 def integCp(teff):
     """Integ Cp.n.ds"""
-    ret = P.integNorm(teff, 'centers:Cp')
+    ret = Pmpi.integNorm(teff, 'centers:Cp')
     return ret[0]
 
 # integration Integ ( tau.n ds )
@@ -588,16 +624,17 @@ def integTaun(teff):
     C._initVars(teff, '{centers:taunx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
     C._initVars(teff, '{centers:tauny} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}')
     C._initVars(teff, '{centers:taunz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}')
-    retx = P.integ(teff, 'centers:taunx')
-    rety = P.integ(teff, 'centers:tauny')
-    retz = P.integ(teff, 'centers:taunz')
+    retx = Pmpi.integ(teff, 'centers:taunx')
+    rety = Pmpi.integ(teff, 'centers:tauny')
+    retz = Pmpi.integ(teff, 'centers:taunz')
     C._rmVars(teff, ['centers:sx', 'centers:sy', 'centers:sz', 'centers:taunx', 'centers:tauny', 'centers:taunz'])
     return [-retx[0],-rety[0],-retz[0]]
 
 # Integration des Cf Integ( Cf. ds )
+# IN: centers:Cf
 def integCf(teff):
     """Integ Cf.ds"""
-    ret = P.integ(teff, 'centers:Cf')
+    ret = Pmpi.integ(teff, 'centers:Cf')
     return ret[0]
 
 # Attention : deja -pinf dans les Fx,Fy,Fz
@@ -605,9 +642,9 @@ def integCf(teff):
 # retourne donc des charges adimensionnees
 def integLoads(teff):
     """Integ F.ds"""
-    retx = P.integ(teff, 'centers:Fx')
-    rety = P.integ(teff, 'centers:Fy')
-    retz = P.integ(teff, 'centers:Fz')
+    retx = Pmpi.integ(teff, 'centers:Fx')
+    rety = Pmpi.integ(teff, 'centers:Fy')
+    retz = Pmpi.integ(teff, 'centers:Fz')
     return [retx[0],rety[0],retz[0]]
 
 #=============================================================

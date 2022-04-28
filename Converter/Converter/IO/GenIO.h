@@ -269,6 +269,28 @@ class GenIO
       PyObject* BCFaces);
     ///-
 
+    ///+ fmt foam file functions
+    /** Read */
+    E_Int foamread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
+      std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames);
+    /** Write */
+    E_Int foamwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames,
+      PyObject* BCFaces);
+    ///-
+
     ///+ Povray functions
     /** Mesh2 Read */
     E_Int povread(

@@ -472,6 +472,7 @@ elif [ "$MAC" = "sator" ]; then
     #module load gcc/5.2 intel/17.0.4 impi/17 python/2.7.13-intel-17
     # HDF para (deja dans le socle)
     #module load hdf5/1.8.17-intel-17.impi
+    module load subversion/1.8.4
 
     # Chemin de l'executable python
     export PATH=$PATH

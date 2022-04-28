@@ -566,12 +566,12 @@ else if ($MAC == "sator") then
         setenv ELSAPROD sat_r8
         echo "Pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
 
-	module load intel/17.0.4
+        module load intel/17.0.4
         #module unload intel/11.1.073
         module load CFD/4.0-intel-17.impi
         #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-	#module load gcc/5.2
-	
+	    #module load gcc/5.2
+        module load subversion/1.8.4
         # HDF para (deja dans le socle)
         # module load hdf5/1.8.17-intel-17.impi
         

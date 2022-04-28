@@ -254,8 +254,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     
         c += 1
 
-    for pos in range(len(rac)):
-       print('RAC=', rac[pos], 'racInst', rac_inst[pos], pos,'rank=', rank, 'dest=',listproc[pos])
+    #for pos in range(len(rac)):
+    #   print('RAC=', rac[pos], 'racInst', rac_inst[pos], pos,'rank=', rank, 'dest=',listproc[pos])
 
     base     = Internal.getNodeFromType1(tc, 'CGNSBase_t')  # noeud
     model    = 'NSLaminar'

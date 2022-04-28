@@ -20,7 +20,7 @@ def cart(Xo, H, N):
 def cartr1(Xo, H, R, N, doubleLeft=(0,0,0), doubleRight=(0,0,0)):
     """Create a structured cartesian mesh with geometric distribution.
     Usage: cartr1((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (ni,nj,nk))"""
-    a = generator.cartr1(Xo, H, N, R, doubleLeft, doubleRight, 2)
+    a = generator.cartr1(Xo, H, R, N, doubleLeft, doubleRight, 2)
     return C.convertArrays2ZoneNode('cartr1', [a])
 
 def cartr2(Xo, H, R, Xf, doubleLeft=(0,0,0), doubleRight=(0,0,0), skeleton=False):
@@ -74,6 +74,11 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
     """Create a set of regular and geometric cartesian grids."""
     from . import CartGen
     return CartGen.cartRx2(XC0, XC1, HC, XF0, XF1, R, dim, rank, size)
+
+def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
+    """Create a set of regular and geometric cartesian grids with double steps."""
+    from . import CartGen
+    return CartGen.cartRx3(XC0, XC1, HC, XF0, XF1, R, dim, rank, size)
 
 #------------------------------------------------------------------------------
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste

@@ -213,13 +213,13 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
             zd = Internal.getNodeFromName2(t, donorName)
             dimz = Internal.getZoneDim(zd)
             imaxDonor = dimz[1]; jmaxDonor = dimz[2]; kmaxDonor = dimz[3]
-            if PtRangeDonor[0,0]>1 and PtRangeDonor[0,0]==PtRangeDonor[0,1]:
+            if PtRangeDonor[0,0] > 1 and PtRangeDonor[0,0] == PtRangeDonor[0,1]:
                 PtRangeDonor[0,0] = imaxDonor
                 PtRangeDonor[0,1] = imaxDonor
-            if PtRangeDonor[1,0]>1 and PtRangeDonor[1,0]==PtRangeDonor[1,1]:
+            if PtRangeDonor[1,0] > 1 and PtRangeDonor[1,0] == PtRangeDonor[1,1]:
                 PtRangeDonor[1,0] = jmaxDonor
                 PtRangeDonor[1,1] = jmaxDonor
-            if PtRangeDonor[2,0]>1 and PtRangeDonor[2,0]==PtRangeDonor[2,1]:
+            if PtRangeDonor[2,0] > 1 and PtRangeDonor[2,0] == PtRangeDonor[2,1]:
                 PtRangeDonor[2,0] = kmaxDonor
                 PtRangeDonor[2,1] = kmaxDonor
 
@@ -328,9 +328,9 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                 if k == 0: dlk = 1 ; drk = 0
                 elif k == 1: dlk = 1 ; drk = 1
                 elif k == 2: dlk = 1 ; drk = 0
-                doubleLeft=[dli,dlj,dlk]
-                doubleRight=[dri,drj,drk]
-                (ni,nj,nk,rio,rjo,rko,hio,hjo,hko) = G.cartr2((Px,Py,Pz), HC, (Rx[i],Ry[j],Rz[k]), (Qx,Qy,Qz),doubleLeft,doubleRight,skeleton=True)
+                doubleLeft = [dli,dlj,dlk]
+                doubleRight = [dri,drj,drk]
+                (ni,nj,nk,rio,rjo,rko,hio,hjo,hko) = G.cartr2((Px,Py,Pz), HC, (Rx[i],Ry[j],Rz[k]), (Qx,Qy,Qz), doubleLeft, doubleRight, skeleton=True)
                 z = Internal.newZone('Zone', zsize=[[ni,ni-1,0], [nj,nj-1,0], [nk,nk-1,0]], ztype='Structured')
                 n = Internal.newGridCoordinates(parent=z)
                 Internal.newDataArray('CoordinateX', value=None, parent=n)
@@ -365,7 +365,7 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                 if j == 0: hjo=hjo*rjo**(nj-3); rjo=1./rjo; Py=Qy; doubleLeft[1] = 0; doubleRight[1] = 1
                 if k == 0: hko=hko*rko**(nk-3); rko=1./rko; Pz=Qz; doubleLeft[2] = 0; doubleRight[2] = 1
 
-                data[z[0]] = [(Px,Py,Pz), (hio,hjo,hko), (ni,nj,nk),(rio,rjo,rko), doubleLeft, doubleRight]
+                data[z[0]] = [(Px,Py,Pz), (hio,hjo,hko), (rio,rjo,rko), (ni,nj,nk), doubleLeft, doubleRight]
 
                 a[i+3*j+9*k] = z
 
@@ -391,13 +391,13 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
             zd = Internal.getNodeFromName2(t, donorName)
             dimz = Internal.getZoneDim(zd)
             imaxDonor = dimz[1]; jmaxDonor = dimz[2]; kmaxDonor = dimz[3]
-            if PtRangeDonor[0,0]>1 and PtRangeDonor[0,0]==PtRangeDonor[0,1]:
+            if PtRangeDonor[0,0] > 1 and PtRangeDonor[0,0] == PtRangeDonor[0,1]:
                 PtRangeDonor[0,0] = imaxDonor
                 PtRangeDonor[0,1] = imaxDonor
-            if PtRangeDonor[1,0]>1 and PtRangeDonor[1,0]==PtRangeDonor[1,1]:
+            if PtRangeDonor[1,0] > 1 and PtRangeDonor[1,0] == PtRangeDonor[1,1]:
                 PtRangeDonor[1,0] = jmaxDonor
                 PtRangeDonor[1,1] = jmaxDonor
-            if PtRangeDonor[2,0]>1 and PtRangeDonor[2,0]==PtRangeDonor[2,1]:
+            if PtRangeDonor[2,0] > 1 and PtRangeDonor[2,0] == PtRangeDonor[2,1]:
                 PtRangeDonor[2,0] = kmaxDonor
                 PtRangeDonor[2,1] = kmaxDonor
 
@@ -420,7 +420,7 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
         
             if z[3] == 'Zone_t' and Cmpi.getProc(z) == rank:
                 if z[0] in data: # bloc non splitte
-                    #print(z[0],'bloc non splite', flush=True)
+                    #print(z[0], 'bloc non splite', flush=True)
                     d = data[z[0]]
                     zn = G.cartr1(d[0], d[1], d[2], d[3], d[4], d[5])
                 else:
@@ -429,7 +429,7 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                     d = data[source]
                     #print('source', source, flush=True)
                     # print('dest', dest, flush=True)
-                    P = d[0]; H = d[1]; N = d[2] ; R = d[3] ; dL = d[4] ; dR = d[5]
+                    P = d[0]; H = d[1]; R = d[2] ; N = d[3] ; dL = d[4] ; dR = d[5]
                     i1 = dest[0]-1; j1 = dest[2]-1; k1 = dest[4]-1
                     i2 = dest[1]-1; j2 = dest[3]-1; k2 = dest[5]-1
                     doubleLeft=[0,0,0]; doubleRight=[0,0,0]
@@ -505,7 +505,7 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                     Pz = P[2] + ratioz*H[2]
                     Rx = R[0]; Ry = R[1]; Rz = R[2]
                     N = (i2-i1+1,j2-j1+1,k2-k1+1)
-                    zn = G.cartr1((Px,Py,Pz), (Hx,Hy,Hz), N,(Rx,Ry,Rz),  doubleLeft , doubleRight)
+                    zn = G.cartr1((Px,Py,Pz), (Hx,Hy,Hz), (Rx,Ry,Rz), N, doubleLeft, doubleRight)
             
                 zn[0] = z[0]
                 D2._addProcNode(zn, rank)
