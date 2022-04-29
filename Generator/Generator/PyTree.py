@@ -1216,8 +1216,7 @@ def addNormalLayers(t, distrib, check=0, niterType=0, niter=0, niterK=[],
     coords = C.getAllFields(tp, 'nodes')
     coords = Generator.addNormalLayers(coords, d, check, niterType, niter, niterK, smoothType, eps, nitLocal, kappaType, kappaS, blanking, cellNs, algo)
     C.setFields(coords, tp, 'nodes')
-    if blanking:
-        C.setFields(cellNs, tp, 'centers', writeDim=False)
+    if blanking: C.setFields(cellNs, tp, 'centers', writeDim=False)
     return tp
 
 #===============================================================================

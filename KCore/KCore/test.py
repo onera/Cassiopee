@@ -11,6 +11,10 @@ except: pass
 # global tolerance on float fields
 TOLERANCE = 1.e-11
 
+# Data directory to store references
+if sys.version_info[0] == 2: DATA = 'Data2'
+else: DATA = 'Data'
+
 #=============================================================================
 # Retourne la variable VALIDLOCAL si elle existe dans l'environnement
 # Cette variable est utilisee dans les cas tests pour ecrire
@@ -32,18 +36,18 @@ def testA(arrays, number=1):
     if not isinstance(arrays[0], list): arrays = [arrays]
 
     # Check Data directory
-    a = os.access('Data', os.F_OK)
+    a = os.access(DATA, os.F_OK)
     if not a:
         print("Data directory doesn't exist. Created.")
-        os.mkdir('Data')
+        os.mkdir(DATA)
 
     # Construit le nom du fichier de reference
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    if dirName == '': reference = 'Data/%s.ref%d'%(fileName, number)
-    else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
+    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
     if not a:
         print("Warning: reference file %s has been created."%reference)
@@ -91,18 +95,18 @@ def testT(t, number=1):
     C._ownNumpyArrays(t)
 
     # Check Data directory
-    a = os.access('Data', os.F_OK)
+    a = os.access(DATA, os.F_OK)
     if not a:
         print("Data directory doesn't exist. Created.")
-        os.mkdir('Data')
+        os.mkdir(DATA)
 
     # Construit le nom du fichier de reference
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    if dirName == '': reference = 'Data/%s.ref%d'%(fileName, number)
-    else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
+    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
 
     if not a:
@@ -139,17 +143,17 @@ def outT(t, number=1):
 #=============================================================================
 def testF(infile, number=1):
     # Check Data directory
-    a = os.access('Data', os.F_OK)
+    a = os.access(DATA, os.F_OK)
     if not a:
         print("Data directory doesn't exist. Created.")
-        os.mkdir('Data')
+        os.mkdir(DATA)
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
 
-    if dirName == '': reference = 'Data/%s.ref%d'%(fileName, number)
-    else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
+    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
     if not a:
         print("Can not open file %s for reading."%reference)
@@ -197,16 +201,16 @@ def testO(objet, number=1):
         objet = OrderedDict(sorted(objet.items(), key=lambda t: t[0]))
 
     # Check Data directory
-    a = os.access('Data', os.F_OK)
+    a = os.access(DATA, os.F_OK)
     if not a:
         print("Data directory doesn't exist. Created.")
-        os.mkdir('Data')
+        os.mkdir(DATA)
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    if dirName == '': reference = 'Data/%s.ref%d'%(fileName, number)
-    else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
+    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
 
     # OWNDATA check / copy

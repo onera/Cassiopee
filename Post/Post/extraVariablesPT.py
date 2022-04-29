@@ -499,7 +499,7 @@ def _extractForceLoads(teff):
 # OUT: centers:ShearStressXX,YY,ZZ,XY,XZ,YZ (tenseur symetrique)
 # tau = -2/3 mu div u I + 2 mu D
 # Attention : dans teff, c'est ViscosityMolecular+ViscosityEddy qui est dans la variable ViscosityMolecular
-# ce qui est correct ici
+# ce qui est correct ici car sur les parois, viscosityEddy = 0
 def _extractShearStress(teff):
     """Extract shearStress."""
     C._initVars(teff,'{centers:divu}={centers:gradxVelocityX}+{centers:gradyVelocityY}+{centers:gradzVelocityZ}') # du/dx+dv/dy+dw/dz
@@ -517,7 +517,7 @@ def _extractShearStress(teff):
 # taun = tau.n
 def _extractTaun(teff):
     G._getNormalMap(teff)
-    C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
+    C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
     C._initVars(teff, '{centers:taunx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
     C._initVars(teff, '{centers:tauny} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}')
     C._initVars(teff, '{centers:taunz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}')
@@ -528,7 +528,7 @@ def _extractTaun(teff):
 # pn = p.n
 def _extractPn(teff):
     G._getNormalMap(teff)
-    C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
+    C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
     C._initVars(teff, '{centers:pnx} = {centers:Pressure}*{centers:sx}')
     C._initVars(teff, '{centers:pny} = {centers:Pressure}*{centers:sy}')
     C._initVars(teff, '{centers:pnz} = {centers:Pressure}*{centers:sz}')
@@ -540,7 +540,7 @@ def _extractPn(teff):
 # F = p.n + tau.n
 def _extractForce(teff):
     G._getNormalMap(teff)
-    C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
+    C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
     C._initVars(teff, '{centers:Fx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}+{centers:Pressure}*{centers:sx}')
     C._initVars(teff, '{centers:Fy} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}+{centers:Pressure}*{centers:sy}')
     C._initVars(teff, '{centers:Fz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}+{centers:Pressure}*{centers:sz}')
@@ -553,7 +553,7 @@ def _extractForce(teff):
 def _extractFrictionVector(teff):
     """Extract tangential friction vector."""
     G._getNormalMap(teff)
-    C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
+    C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
     C._initVars(teff, '{centers:frictionX}={centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
     C._initVars(teff, '{centers:frictionY}={centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}')
     C._initVars(teff, '{centers:frictionZ}={centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}')
@@ -620,7 +620,7 @@ def integCp(teff):
 def integTaun(teff):
     """Integ tau.n.ds"""
     G._getNormalMap(teff)
-    C._normalize(teff, ['centers:sx', 'centers:sy','centers:sz'])
+    C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
     C._initVars(teff, '{centers:taunx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
     C._initVars(teff, '{centers:tauny} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}')
     C._initVars(teff, '{centers:taunz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}')

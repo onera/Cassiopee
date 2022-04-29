@@ -163,7 +163,8 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
             shape_arrays[i].reserve(dimshape);
             for (Py_ssize_t j = 0; j < dimshape; ++j) {
                 PyObject *py_dim = PyTuple_GetItem(shp, j);
-                if (!PyLong_Check(py_dim)) {
+                if (PyLong_Check(py_dim) == false && PyInt_Check(py_dim) == false) 
+                {
                     PyErr_SetString(PyExc_TypeError, "Values in shape must be integers");
                     return NULL;
                 }

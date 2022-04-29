@@ -775,11 +775,11 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'sator': [ 'Cluster de calcul Sator (Onera)',
+'sator': [ 'Cluster de calcul Sator Broadwell (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
-['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=14','-Dvtune','-DSIMD=AVX2P512'], # CppAdditionalOptions
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=14','-Dvtune','-DSIMD=AVX2'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
@@ -791,7 +791,7 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'sat_sky': [ 'Cluster de calcul Sator skylake (Onera)',
+'sat_sky': [ 'Cluster de calcul Sator Skylake (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
@@ -807,7 +807,7 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'sat_cas': [ 'Cluster de calcul Sator cascadelake (Onera)',
+'sat_cas': [ 'Cluster de calcul Sator Cascadelake (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
@@ -840,6 +840,22 @@ False, # useCuda
 ],
 ###############################################################################
 'spiro_amd': [ 'Machine dev Spiro (proc amd)',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+['-DCACHELINE=32'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
+'spiro_arm': [ 'Machine dev Spiro (proc arm)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler

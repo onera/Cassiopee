@@ -4465,7 +4465,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                     cFE = parentElt[1]
                     sh = cFE.shape
                     if len(sh) == 1: # Bug elsA
-                        cFE = cFE.reshape((sh[0]/2,2), order='F'); parentElt[1] = cFE
+                        cFE = cFE.reshape((sh[0]//2,2), order='F'); parentElt[1] = cFE
                     cNFace, nelts = converter.adaptPE2NFace(cFE)
                     p = createUniqueChild(z, 'NFaceElements', 'Elements_t',
                                           value=[23,0])

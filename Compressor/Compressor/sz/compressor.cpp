@@ -649,7 +649,8 @@ py_decompress(PyObject *self, PyObject *args)
             PyObject *py_is_c_order = PyTuple_GetItem(tuple, 2);
             for (Py_ssize_t j = 0; j < dimshape; ++j) {
                 PyObject *py_dim = PyTuple_GetItem(shp, j);
-                if (!PyLong_Check(py_dim)) {
+                if (PyLong_Check(py_dim) == false && PyInt_Check(py_dim) == false) 
+                {
                     PyErr_SetString(PyExc_TypeError, "Values in shape must be integers");
                     return NULL;
                 }
@@ -695,7 +696,8 @@ py_decompress(PyObject *self, PyObject *args)
         PyObject *py_is_c_order = PyTuple_GetItem(cpr_arrays, 2);
         for (Py_ssize_t j = 0; j < dimshape; ++j) {
             PyObject *py_dim = PyTuple_GetItem(shape, j);
-            if (!PyLong_Check(py_dim)) {
+            if (PyLong_Check(py_dim) == false && PyInt_Check(py_dim) == false) 
+            {
                 PyErr_SetString(PyExc_TypeError, "Values in shape must be integers");
                 return NULL;
             }

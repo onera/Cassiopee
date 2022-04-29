@@ -36,7 +36,7 @@ def cart(Xo, H, N, api=1):
 def cartr1(Xo, H, R, N, doubleLeft=(0,0,0), doubleRight=(0,0,0), api=1):
     """Create a structured cartesian mesh with geometric distribution.
     Usage: cartt1((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (ni,nj,nk))"""
-    return generator.cartr1(Xo, H, N, R, doubleLeft, doubleRight, api)
+    return generator.cartr1(Xo, H, R, N, doubleLeft, doubleRight, api)
 
 def cartr2(Xo, H, R, Xf, doubleLeft=(0,0,0), doubleRight=(0,0,0), api=1, skeleton=False):
     """Create a structured cartesian mesh with geometric distribution fixing last point.
@@ -1107,11 +1107,9 @@ def getInCircleMap(array):
     Usage: getInCircleMap(array)"""
     if isinstance(array[0], list): 
         b = []
-        for i in array:
-            b.append(generator.getInCircleMap(i))
+        for i in array: b.append(generator.getInCircleMap(i))
         return b
-    else:
-        return generator.getInCircleMap(array)
+    else: return generator.getInCircleMap(array)
 
 # -- Add normal layers to a surface --
 def addNormalLayers(surface, distrib, check=0, 
@@ -1981,7 +1979,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
     for i in range(nzones): cellNs.append(None) # Champ complet de blanking
     cellNu = None # champ de cellN defini sur surfu
     if blanking:
-        cellNu = C.array('cellN',surfu[1].shape[1],1,1)
+        cellNu = C.array('cellN', surfu[1].shape[1], 1, 1)
         cellNu = C.initVars(cellNu, 'cellN', 1.)
 
     while k1 < kmax-1 and stop == 0:

@@ -283,11 +283,12 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
         for ( Py_ssize_t j = 0; j < ndim; ++j )
         {
             PyObject *py_dim = PyTuple_GetItem(shape, j);
-            if (!PyLong_Check(py_dim)) {
+            if (PyLong_Check(py_dim) == false && PyInt_Check(py_dim) == false) 
+            {
                 PyErr_SetString(PyExc_TypeError, "Values in shape must be integers");
                 return NULL;
             }
-            long dim                            = PyLong_AsLong(py_dim);
+            long dim = PyLong_AsLong(py_dim);
             dims[j] = dim;
         }
         bool is_c = (is_c_order[i]==1);
