@@ -14141,15 +14141,18 @@ class MatplotlibFigure():
             dy = pround(dy)
             ymin = round(ymin/dy)*dy
             ymax = ymin+ntickMy*dy
-            
+            print(xmin, xmax, ntickMx)
+
             stepx = (xmax-xmin)/(float(ntickMx))
-            majorx = np.arange(xmin,xmax,stepx)
+            dstepx = stepx*1.e-6
+            majorx = np.arange(xmin,xmax+dstepx,stepx)
             # minorx = np.arange(xmin,xmax,(xmax-xmin)/(float(ntickmx)))
-            minorx = np.arange(xmin,xmax,stepx/(float(ntickmx)))
+            minorx = np.arange(xmin,xmax+dstepx,stepx/(float(ntickmx)))
             stepy = (ymax-ymin)/(float(ntickMy))
-            majory = np.arange(ymin,ymax,stepy)
+            dstepy = stepy*1.e-6
+            majory = np.arange(ymin,ymax+dstepy,stepy)
             # minory = np.arange(ymin,ymax,(ymax-ymin)/(float(ntickmy)))
-            minory = np.arange(ymin,ymax,stepy/(float(ntickmy)))
+            minory = np.arange(ymin,ymax+dstepy,stepy/(float(ntickmy)))
 
             # Get the ticks position for debug
             # locs = self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.get_ticklocs()

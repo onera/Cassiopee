@@ -79,6 +79,13 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
     for f in free:
         name = f[0].replace('/', '#')
         defTree.setBndSurfTo(name, "free")
+    
+    # Fixed boundaries
+    fixed = C.extractBCOfName(t, 'FamilySpecified:fixed', reorder=False)
+    for f in fixed:
+        name = f[0].replace('/', '#')
+        defTree.setBndSurfTo(name, "null")
+    
 
     defTree.makeSources()
     defTree.computeMeshDisplacement()

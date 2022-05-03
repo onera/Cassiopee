@@ -21,11 +21,16 @@
 
 # include <string.h>
 # include <stdio.h>
+# include <stdlib.h>
 # include "GenIO.h"
 # include "Array/Array.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
+
+#if defined(_WIN32)
+# include <direct.h>
+#endif
 
 using namespace K_FLD;
 using namespace std;
@@ -84,6 +89,7 @@ E_Int createSimpleFoamStructure(char* path)
   // system
   // system/fvScheme
   // system/fvSolution...
+  return 0;
 }
 
 //=============================================================================
@@ -637,6 +643,7 @@ E_Int foamWritePoints(FldArrayF& f)
     fprintf(ptrFile, "(%g %g %g)\n", x[i], y[i], z[i]);
   }
   fprintf(ptrFile, ")\n");
+  return 0;
 }
 //=============================================================================
 // Write to open foam format

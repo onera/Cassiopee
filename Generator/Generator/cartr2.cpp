@@ -247,7 +247,6 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
     else if (doubleLeftj == 0 && doubleRightj == 1) 
     {
       nj = getN3(yo, yf, hj, rjinput);
-      printf("n %f \n", ni);
       f = &f3;
       fprime = &f3prime;
     }
@@ -286,7 +285,6 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
     else if (doubleLeftk == 0 && doubleRightk == 1) 
     {
       nk = getN3(zo, zf, hk, rkinput);
-      printf("n %f \n", ni);
       f = &f3;
       fprime = &f3prime;
     }
