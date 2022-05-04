@@ -1408,11 +1408,11 @@ PyObject* K_INTERSECTOR::conformizeHMesh2(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
 {
   // zonerank, Cmpi.rank, Cmpi.size, zone_to_zone_to_list_owned
-  PyObject *py_rid_to_zones(nullptr), *py_zonerank(nullptr), *py_zone_to_zone_to_list_owned(nullptr);
+  PyObject *py_rid_to_zones(nullptr), *py_zonerank(nullptr), *py_zone_to_rid_to_list_owned(nullptr);
   MPI_Comm COM = MPI_COMM_WORLD;
   E_Int rank{0}, nranks{1};
 
-  if (!PYPARSETUPLEI(args, "OOllO", "OOiiO", &py_rid_to_zones, &py_zonerank, &rank, &nranks, &py_zone_to_zone_to_list_owned)) return nullptr;
+  if (!PYPARSETUPLEI(args, "OOllO", "OOiiO", &py_rid_to_zones, &py_zonerank, &rank, &nranks, &py_zone_to_rid_to_list_owned)) return nullptr;
 
   // 1. GET ZONERANK
   std::vector<int> zonerank;
@@ -1431,8 +1431,8 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   }
 
   // 2. GET POINTLISTS MAP 
-  std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_owned;
-  convert_dico_to_map___int_int_vecint(py_zone_to_zone_to_list_owned, zone_to_zone_to_list_owned);
+  std::map<int, std::map<int, std::vector<int>>> zone_to_rid_to_list_owned;
+  convert_dico_to_map___int_int_vecint(py_zone_to_rid_to_list_owned, zone_to_rid_to_list_owned);
   assert (zone_to_zone_to_list_owned.size() == nb_meshes);
 
   // 3. GET RID_TO_ZONES MAP 
@@ -1441,35 +1441,35 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   convert_dico_to_map__int_pairint(py_rid_to_zones, rid_to_zones);
 
   // 3. EXCHANGE
-  std::map<int, std::map<int, std::vector<int>>> zone_to_zone_to_list_opp;
-  NUGA::pointlist_msg_type::exchange_pointlists(rid_to_zones, zonerank, COM, rank, nranks, zone_to_zone_to_list_owned, zone_to_zone_to_list_opp);
+  std::map<int, std::map<int, std::vector<int>>> zone_to_rid_to_list_opp;
+  NUGA::pointlist_msg_type::exchange_pointlists(rid_to_zones, zonerank, COM, rank, nranks, zone_to_rid_to_list_owned, zone_to_rid_to_list_opp);
 
   // 4. pushing out joins pointlist map : 'zid to jzid to ptlist'
-  PyObject * zone_to_zone_to_list_opp_dict = PyDict_New();
-  for (auto& z_to_jz_to_ptl : zone_to_zone_to_list_opp)
+  PyObject * zone_to_rid_to_list_opp_dict = PyDict_New();
+  for (auto& z_to_rid_to_ptl : zone_to_rid_to_list_opp)
   {
-    E_Int zid = z_to_jz_to_ptl.first;
-    auto& zone_to_list_opp = z_to_jz_to_ptl.second;
+    E_Int zid = z_to_rid_to_ptl.first;
+    auto& rid_to_list_opp = z_to_rid_to_ptl.second;
 
     PyObject* key_zid = Py_BuildValue("i", zid);
 
-    PyObject* zone_to_list_opp_dict = PyDict_New();
+    PyObject* rid_to_list_opp_dict = PyDict_New();
 
-    for (auto& jz_to_ptl : zone_to_list_opp)
+    for (auto& rid_to_ptl : rid_to_list_opp)
     {
-      E_Int rid = jz_to_ptl.first;
-      auto & ptl = jz_to_ptl.second;
+      E_Int rid = rid_to_ptl.first;
+      auto & ptl = rid_to_ptl.second;
       PyObject* key_rid = Py_BuildValue("i", rid);
 
       PyObject* np = K_NUMPY::buildNumpyArray(&ptl[0], ptl.size(), 1, 0);
-      PyDict_SetItem(zone_to_list_opp_dict, key_rid, np);
+      PyDict_SetItem(rid_to_list_opp_dict, key_rid, np);
       Py_DECREF(np);
     }
 
-    PyDict_SetItem(zone_to_zone_to_list_opp_dict, key_zid, zone_to_list_opp_dict);
-    Py_DECREF(zone_to_list_opp_dict);
+    PyDict_SetItem(zone_to_rid_to_list_opp_dict, key_zid, rid_to_list_opp_dict);
+    Py_DECREF(rid_to_list_opp_dict);
   }
 
-  return zone_to_zone_to_list_opp_dict;
+  return zone_to_rid_to_list_opp_dict;
 
 }

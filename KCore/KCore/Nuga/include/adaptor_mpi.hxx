@@ -122,7 +122,7 @@ namespace NUGA
 
       // Receive MPI data and build sensor data by zone
       //if (rank == 2) std::cout << "rank : " << rank << " receive_data ..." << std::endl;
-      plan_msg_type::receive_data(rank, nranks, COM, zone_to_rid_to_list, sreqs, zone_to_sensor_data);
+      plan_msg_type::receive_data(rank, nranks, COM, rid_to_zones, zone_to_rid_to_list, sreqs, zone_to_sensor_data);
       //if (rank == 2) std::cout << "rank : " << rank << " DONE. exit exch mpi" << std::endl;
     }
 

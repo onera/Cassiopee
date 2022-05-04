@@ -63,14 +63,14 @@ namespace NUGA
   
   struct plan_msg_type
   {
-    std::vector<int> data, datarange, pgs, szone, szonerange, jzone, jzonerange;
+    std::vector<int> data, datarange, pgs, szone, szonerange, rac, racrange;
 
-    void clear() { data.clear(); datarange.clear(); pgs.clear(); szone.clear(); szonerange.clear(); jzone.clear(); jzonerange.clear(); }
+    void clear() { data.clear(); datarange.clear(); pgs.clear(); szone.clear(); szonerange.clear(); rac.clear(); racrange.clear(); }
 
     ///
     static void convert_to_MPI_exchange_format
     (
-      const std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>> & sz_to_jz_to_PG_to_plan,
+      const std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>> & sz_to_rid_to_PG_to_plan,
       const std::map<int, std::pair<int,int>> & rid_to_zones,
       const std::vector<int>& zonerank,
       std::map<int, plan_msg_type> & rank_to_data
@@ -79,47 +79,51 @@ namespace NUGA
       rank_to_data.clear();
 
       // Gather data by rank
-      std::map<int, std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>>> rank_to_sz_to_jz_to_PG_to_plan;
-      for (auto & it : sz_to_jz_to_PG_to_plan)
+      std::map<int, std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>>> rank_to_sz_to_rid_to_PG_to_plan;
+      for (auto & it : sz_to_rid_to_PG_to_plan)
       {
         int szid = it.first;
-        const auto& jz_to_PG_to_plan = it.second;
+        const auto& rid_to_PG_to_plan = it.second;
 
-        for (auto& it2 : jz_to_PG_to_plan)
+        for (auto& it2 : rid_to_PG_to_plan)
         {
 
-          int jzid = it2.first;
+          int rid = it2.first;
+          int jzid = get_opp_zone(rid_to_zones, rid, szid);
+
           auto& PG_to_plan = it2.second;
           assert(jzid > -1 && jzid < zonerank.size());
           int jrk = zonerank[jzid];
 
-          rank_to_sz_to_jz_to_PG_to_plan[jrk][szid][jzid] = PG_to_plan;
+          rank_to_sz_to_rid_to_PG_to_plan[jrk][szid][rid] = PG_to_plan;
         }
       }
 
       //
-      for (auto& i : rank_to_sz_to_jz_to_PG_to_plan)
+      for (auto& i : rank_to_sz_to_rid_to_PG_to_plan)
       {
         int rank = i.first;
-        auto & sz_to_jz_to_PG_to_plan_PG_to_plan = i.second;
+        auto & sz_to_rid_to_PG_to_plan_PG_to_plan = i.second;
 
-        auto & rankdata = rank_to_data[rank];
+        auto & rankdata = rank_to_data[rank]; //creation et referencement
 
-        for (auto & kk : sz_to_jz_to_PG_to_plan_PG_to_plan)
+        for (auto & kk : sz_to_rid_to_PG_to_plan_PG_to_plan)
         {
           int szid = kk.first;
-          auto & jz_to_PG_to_plan = kk.second;
+          auto & rid_to_PG_to_plan = kk.second;
 
-          rankdata.szonerange.push_back(rankdata.jzone.size());
+          rankdata.szonerange.push_back(rankdata.rac.size());
           rankdata.szone.push_back(szid);
 
-          for (auto& j : jz_to_PG_to_plan)
+          for (auto& r : rid_to_PG_to_plan)
           {
-            int jzid = j.first;
-            auto& PG_to_plan = j.second;
+            int rid = r.first;
+            //int jzid = get_opp_zone(rid_to_zones, rid, szid);
 
-            rankdata.jzonerange.push_back(rankdata.pgs.size());
-            rankdata.jzone.push_back(jzid);
+            auto& PG_to_plan = r.second;
+
+            rankdata.racrange.push_back(rankdata.pgs.size());
+            rankdata.rac.push_back(rid);
 
             for (auto& k : PG_to_plan)
             {
@@ -138,8 +142,8 @@ namespace NUGA
 
         //one-pass-the-end
         rankdata.datarange.push_back(rankdata.data.size());
-        rankdata.jzonerange.push_back(rankdata.pgs.size());
-        rankdata.szonerange.push_back(rankdata.jzone.size());
+        rankdata.racrange.push_back(rankdata.pgs.size());
+        rankdata.szonerange.push_back(rankdata.rac.size());
       }
     }
 
@@ -173,9 +177,9 @@ namespace NUGA
 
         NUGA::MPI::Isend(data.szonerange, rankid, TAG_SZONERANGE_SZ, COM, &sreqs[++count_req]);
 
-        NUGA::MPI::Isend(data.jzone, rankid, TAG_JZONE_SZ, COM, &sreqs[++count_req]);
+        NUGA::MPI::Isend(data.rac, rankid, TAG_JZONE_SZ, COM, &sreqs[++count_req]);
 
-        NUGA::MPI::Isend(data.jzonerange, rankid, TAG_JZONERANGE_SZ, COM, &sreqs[++count_req]);
+        NUGA::MPI::Isend(data.racrange, rankid, TAG_JZONERANGE_SZ, COM, &sreqs[++count_req]);
       }
 
       // tell if sent or not to all ranks (to avoid deadlock when receiving)
@@ -192,7 +196,8 @@ namespace NUGA
     static int receive_data
     (
       int rank, int nranks, MPI_Comm COM,
-      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone2jlists,
+      const std::map<int, std::pair<int,int>> & rid_to_zones,
+      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
       std::vector<MPI_Request>& sender_reqs,
       std::map<int, data_t>& zone_to_sensor_data
     )
@@ -236,9 +241,9 @@ namespace NUGA
       // 1.5. szonerange
       STACK_ARRAY(int, NB_SENT, szonerange_sz);
       // 1.4. szone
-      STACK_ARRAY(int, NB_SENT, jzone_sz);
+      STACK_ARRAY(int, NB_SENT, rac_sz);
       // 1.5. szonerange
-      STACK_ARRAY(int, NB_SENT, jzonerange_sz);
+      STACK_ARRAY(int, NB_SENT, racrange_sz);
 
       int req_count = -1;
       int rcount = -1;
@@ -262,10 +267,10 @@ namespace NUGA
         err = MPI_Irecv(&szonerange_sz[rcount], 1, MPI_INT, r, int(TAG_SZONERANGE_SZ), COM, &sreqs_sz[++req_count]);
         if (err) return err;
 
-        err = MPI_Irecv(&jzone_sz[rcount], 1, MPI_INT, r, int(TAG_JZONE_SZ), COM, &sreqs_sz[++req_count]);
+        err = MPI_Irecv(&rac_sz[rcount], 1, MPI_INT, r, int(TAG_JZONE_SZ), COM, &sreqs_sz[++req_count]);
         if (err) return err;
 
-        err = MPI_Irecv(&jzonerange_sz[rcount], 1, MPI_INT, r, int(TAG_JZONERANGE_SZ), COM, &sreqs_sz[++req_count]);
+        err = MPI_Irecv(&racrange_sz[rcount], 1, MPI_INT, r, int(TAG_JZONERANGE_SZ), COM, &sreqs_sz[++req_count]);
         if (err) return err;
       }
 
@@ -291,8 +296,8 @@ namespace NUGA
         assert(pgs_sz[rcount] != 0);
         assert(szone_sz[rcount] != 0);
         assert(szonerange_sz[rcount] != 0);
-        assert(jzone_sz[rcount] != 0);
-        assert(jzonerange_sz[rcount] != 0);
+        assert(rac_sz[rcount] != 0);
+        assert(racrange_sz[rcount] != 0);
       }
 
       // 2. get data
@@ -323,10 +328,10 @@ namespace NUGA
           err = NUGA::MPI::Irecv(szonerange_sz[rcount], r, int(TAG_SZONERANGE_SZ) + 1, COM, rank_to_data[r].szonerange, &sreqs_data[++req_count]);
           if (err) return 1;
 
-          err = NUGA::MPI::Irecv(jzone_sz[rcount], r, int(TAG_JZONE_SZ) + 1, COM, rank_to_data[r].jzone, &sreqs_data[++req_count]);
+          err = NUGA::MPI::Irecv(rac_sz[rcount], r, int(TAG_JZONE_SZ) + 1, COM, rank_to_data[r].rac, &sreqs_data[++req_count]);
           if (err) return 1;
 
-          err = NUGA::MPI::Irecv(jzonerange_sz[rcount], r, int(TAG_JZONERANGE_SZ) + 1, COM, rank_to_data[r].jzonerange, &sreqs_data[++req_count]);
+          err = NUGA::MPI::Irecv(racrange_sz[rcount], r, int(TAG_JZONERANGE_SZ) + 1, COM, rank_to_data[r].racrange, &sreqs_data[++req_count]);
           if (err) return 1;
         }
 
@@ -349,15 +354,15 @@ namespace NUGA
 
         const auto& szonerange = msg.szonerange;
         const auto& szone = msg.szone;
-        const auto& jzonerange = msg.jzonerange;
-        const auto& jzone = msg.jzone;
+        const auto& racrange = msg.racrange;
+        const auto& rac = msg.rac;
         const auto& datarange = msg.datarange;
         const auto& data = msg.data;
         const auto & pgs = msg.pgs;
 
         assert(pgs.size() == datarange.size() - 1);
         assert(szone.size() == szonerange.size() - 1);
-        assert(jzone.size() == jzonerange.size() - 1);
+        assert(rac.size() == racrange.size() - 1);
 
         for (size_t u = 0; u < szone.size(); ++u)
         {
@@ -365,30 +370,31 @@ namespace NUGA
           int szid = szone[u];
           //if (rank == 1) std::cout << "szid : " << szid << std::endl;
 
-          int jzonerange_beg = szonerange[u];
-          int jzonerange_end = szonerange[u + 1];
+          int racrange_beg = szonerange[u];
+          int racrange_end = szonerange[u + 1];
 
-          // if (rank == 2) std::cout << "jzonerange_beg : " << jzonerange_beg << std::endl;
-          // if (rank == 2) std::cout << "jzonerange_end : " << jzonerange_end << std::endl;
+          // if (rank == 2) std::cout << "racrange_beg : " << racrange_beg << std::endl;
+          // if (rank == 2) std::cout << "racrange_end : " << racrange_end << std::endl;
           // if (rank == 2) std::cout << "receive_data : 10 c 3" << std::endl;
 
-          for (size_t v = jzonerange_beg; v < jzonerange_end; ++v)
+          for (size_t v = racrange_beg; v < racrange_end; ++v)
           {
-            assert(v >= 0 && v < jzone.size());
-            int jzid = jzone[v];
+            assert(v >= 0 && v < rac.size());
+            int rid = rac[v];
+            int jzid = get_opp_zone(rid_to_zones, rid, szid);
 
-            int n_beg = jzonerange[v];
-            int n_end = jzonerange[v + 1];
+            int n_beg = racrange[v];
+            int n_end = racrange[v + 1];
 
             // if (rank == 2) std::cout << "n_beg : " << n_beg << std::endl;
             // if (rank == 2) std::cout << "n_end : " << n_end << std::endl;
 
-            const auto it = zone_to_zone2jlists.find(jzid);
-            assert(it != zone_to_zone2jlists.end());
-            const auto & zone2jlists = it->second;
+            const auto it = zone_to_rid_to_list.find(jzid);
+            assert(it != zone_to_rid_to_list.end());
+            const auto & rid_to_list = it->second;
 
-            const auto& itPtList = zone2jlists.find(szid);
-            assert(itPtList != zone2jlists.end());
+            const auto& itPtList = rid_to_list.find(rid);
+            assert(itPtList != rid_to_list.end());
             const auto& ptlist = itPtList->second;
 
             for (size_t n = n_beg; n < n_end; ++n)
@@ -434,9 +440,9 @@ namespace NUGA
 
   struct pointlist_msg_type
   {
-    std::vector<int> ptList, szone, szonerange, jzone, jzonerange;
+    std::vector<int> ptList, szone, szonerange, rac, racrange;
 
-    void clear() { ptList.clear(); szone.clear(); szonerange.clear(); jzone.clear(); jzonerange.clear(); }
+    void clear() { ptList.clear(); szone.clear(); szonerange.clear(); rac.clear(); racrange.clear(); }
 
     ///
     static void exchange_pointlists
@@ -484,7 +490,7 @@ namespace NUGA
       isend_data(rank, nranks, COM, rank_to_mpi_data);
 
       // Receive MPI data and build sensor data by zone
-      receive_data(rank, nranks, COM, zone_to_rid_to_list_mpi, zone_to_rid_to_list_opp);
+      receive_data(rank, nranks, COM, rid_to_zones, zone_to_rid_to_list_opp);
 
       assert(zone_to_rid_to_list_owned.size() == zone_to_rid_to_list_opp.size());
     }
@@ -534,7 +540,7 @@ namespace NUGA
           int szid = kk.first;
           auto & rid_to_PTL = kk.second;
 
-          rankdata.szonerange.push_back(rankdata.jzone.size());
+          rankdata.szonerange.push_back(rankdata.rac.size());
           rankdata.szone.push_back(szid);
 
           for (auto& r : rid_to_PTL)
@@ -542,16 +548,16 @@ namespace NUGA
             int rid = r.first;
             auto& PTL = r.second;
 
-            rankdata.jzonerange.push_back(rankdata.ptList.size());
-            rankdata.jzone.push_back(rid);
+            rankdata.racrange.push_back(rankdata.ptList.size());
+            rankdata.rac.push_back(rid);
 
             rankdata.ptList.insert(rankdata.ptList.end(), ALL(PTL));
           }
         }
 
         //one-pass-the-end
-        rankdata.jzonerange.push_back(rankdata.ptList.size());
-        rankdata.szonerange.push_back(rankdata.jzone.size());
+        rankdata.racrange.push_back(rankdata.ptList.size());
+        rankdata.szonerange.push_back(rankdata.rac.size());
       }
     }
 
@@ -564,7 +570,7 @@ namespace NUGA
     )
     {
       int nsranks = rank_to_data.size(); // nb of ranks to send to
-      int NB_TOT_REQS = 5 * nsranks;    // for 5 vectors : ptL/szone/szonerange/jzone/jzonerange. 
+      int NB_TOT_REQS = 5 * nsranks;    // for 5 vectors : ptL/szone/szonerange/rac/racrange. 
 
       STACK_ARRAY(MPI_Request, NB_TOT_REQS, sreqs);
 
@@ -585,9 +591,9 @@ namespace NUGA
 
         NUGA::MPI::Isend(data.szonerange, rankid, TAG_SZONERANGE_SZ, COM, &sreqs[++count_req]);
 
-        NUGA::MPI::Isend(data.jzone, rankid, TAG_JZONE_SZ, COM, &sreqs[++count_req]);
+        NUGA::MPI::Isend(data.rac, rankid, TAG_JZONE_SZ, COM, &sreqs[++count_req]);
 
-        NUGA::MPI::Isend(data.jzonerange, rankid, TAG_JZONERANGE_SZ, COM, &sreqs[++count_req]);
+        NUGA::MPI::Isend(data.racrange, rankid, TAG_JZONERANGE_SZ, COM, &sreqs[++count_req]);
       }
       
       ++count_req;
@@ -616,8 +622,8 @@ namespace NUGA
     static int receive_data
     (
       int rank, int nranks, MPI_Comm COM,
-      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone2jlists,
-      std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_zone_to_list_opp
+      const std::map<int, std::pair<int,int>>& rid_to_zones,
+      std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list_opp
     )
     {
       STACK_ARRAY(bool, nranks, has_sent);
@@ -653,9 +659,9 @@ namespace NUGA
       // 1.5. szonerange
       STACK_ARRAY(int, NB_SENT, szonerange_sz);
       // 1.4. szone
-      STACK_ARRAY(int, NB_SENT, jzone_sz);
+      STACK_ARRAY(int, NB_SENT, rac_sz);
       // 1.5. szonerange
-      STACK_ARRAY(int, NB_SENT, jzonerange_sz);
+      STACK_ARRAY(int, NB_SENT, racrange_sz);
 
       int req_count = -1;
       int rcount = -1;
@@ -673,10 +679,10 @@ namespace NUGA
         err = MPI_Irecv(&szonerange_sz[rcount], 1, MPI_INT, r, int(TAG_SZONERANGE_SZ), COM, &sreqs_sz[++req_count]);
         if (err) return err;
 
-        err = MPI_Irecv(&jzone_sz[rcount], 1, MPI_INT, r, int(TAG_JZONE_SZ), COM, &sreqs_sz[++req_count]);
+        err = MPI_Irecv(&rac_sz[rcount], 1, MPI_INT, r, int(TAG_JZONE_SZ), COM, &sreqs_sz[++req_count]);
         if (err) return err;
 
-        err = MPI_Irecv(&jzonerange_sz[rcount], 1, MPI_INT, r, int(TAG_JZONERANGE_SZ), COM, &sreqs_sz[++req_count]);
+        err = MPI_Irecv(&racrange_sz[rcount], 1, MPI_INT, r, int(TAG_JZONERANGE_SZ), COM, &sreqs_sz[++req_count]);
         if (err) return err;
       }
 
@@ -700,8 +706,8 @@ namespace NUGA
         assert(ptList_sz[rcount] != 0);
         assert(szone_sz[rcount] != 0);
         assert(szonerange_sz[rcount] != 0);
-        assert(jzone_sz[rcount] != 0);
-        assert(jzonerange_sz[rcount] != 0);
+        assert(rac_sz[rcount] != 0);
+        assert(racrange_sz[rcount] != 0);
       }
 
       // 2. get data
@@ -726,10 +732,10 @@ namespace NUGA
           err = NUGA::MPI::Irecv(szonerange_sz[rcount], r, int(TAG_SZONERANGE_SZ) + 1, COM, rank_to_data[r].szonerange, &sreqs_data[++req_count]);
           if (err) return 1;
 
-          err = NUGA::MPI::Irecv(jzone_sz[rcount], r, int(TAG_JZONE_SZ) + 1, COM, rank_to_data[r].jzone, &sreqs_data[++req_count]);
+          err = NUGA::MPI::Irecv(rac_sz[rcount], r, int(TAG_JZONE_SZ) + 1, COM, rank_to_data[r].rac, &sreqs_data[++req_count]);
           if (err) return 1;
 
-          err = NUGA::MPI::Irecv(jzonerange_sz[rcount], r, int(TAG_JZONERANGE_SZ) + 1, COM, rank_to_data[r].jzonerange, &sreqs_data[++req_count]);
+          err = NUGA::MPI::Irecv(racrange_sz[rcount], r, int(TAG_JZONERANGE_SZ) + 1, COM, rank_to_data[r].racrange, &sreqs_data[++req_count]);
           if (err) return 1;
         }
 
@@ -750,12 +756,12 @@ namespace NUGA
 
         const auto& szonerange = msg.szonerange;
         const auto& szone = msg.szone;
-        const auto& jzonerange = msg.jzonerange;
-        const auto& jzone = msg.jzone;
+        const auto& racrange = msg.racrange;
+        const auto& rac = msg.rac;
         const auto& ptList = msg.ptList;
 
         assert(szone.size() == szonerange.size() - 1);
-        assert(jzone.size() == jzonerange.size() - 1);
+        assert(rac.size() == racrange.size() - 1);
 
         for (size_t u = 0; u < szone.size(); ++u)
         {
@@ -763,21 +769,22 @@ namespace NUGA
           int szid = szone[u];
           //if (rank == 1) std::cout << "szid : " << szid << std::endl;
 
-          int jzonerange_beg = szonerange[u];
-          int jzonerange_end = szonerange[u + 1];
+          int racrange_beg = szonerange[u];
+          int racrange_end = szonerange[u + 1];
 
-          //if (rank == 1) std::cout << "jzonerange_beg : " << jzonerange_beg << std::endl;
-          //if (rank == 1) std::cout << "jzonerange_end : " << jzonerange_end << std::endl;
+          //if (rank == 1) std::cout << "racrange_beg : " << racrange_beg << std::endl;
+          //if (rank == 1) std::cout << "racrange_end : " << racrange_end << std::endl;
 
-          for (size_t v = jzonerange_beg; v < jzonerange_end; ++v)
+          for (size_t v = racrange_beg; v < racrange_end; ++v)
           {
-            assert(v >= 0 && v < jzone.size());
-            int jzid = jzone[v];
+            assert(v >= 0 && v < rac.size());
+            int rid = rac[v];
+            int jzid = get_opp_zone(rid_to_zones, rid, szid);
 
-            int n_beg = jzonerange[v];
-            int n_end = jzonerange[v + 1];
+            int n_beg = racrange[v];
+            int n_end = racrange[v + 1];
 
-            zone_to_zone_to_list_opp[jzid][szid].insert(zone_to_zone_to_list_opp[jzid][szid].end(), &ptList[n_beg], &ptList[n_beg] + n_end);
+            zone_to_rid_to_list_opp[jzid][rid].insert(zone_to_rid_to_list_opp[jzid][rid].end(), &ptList[n_beg], &ptList[n_beg] + n_end);
           }
 
         }
