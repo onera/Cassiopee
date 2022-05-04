@@ -2065,20 +2065,21 @@ def _closeCells(t):
 # IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
 # IN itermax : max number of level in the hierarchy
 # IN: subdiv_type : isotropic currently
+# IN: sensor_metric_policy (specific for xsensor2) : which reference cell size (edge length) to use ? min (0), mean (1), max(2) or min_or_max(3) 
 # IN: hmesh : hierarchical mesh hook
 # IN: sensor : sensor hook
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
+def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None):
   """Adapts an unstructured mesh a with respect to a sensor.
-  Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
+  Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None)"""
   tp = Internal.copyRef(t)
-  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor)
+  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, sensor_metric_policy, hmesh, sensor)
   return tp
 
-def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
+def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None):
     """Adapts an unstructured mesh a with respect to a sensor.
-    Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
+    Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None)"""
 
     if sensdata is None and sensor is None:
       print('INPUT ERROR : no source data to initialize a sensor')
@@ -2107,7 +2108,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     owesSensor=0
     if sensor is None : 
       #print("create sensor")
-      sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax)
+      sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
       owesSensor=1
 
     err=0
@@ -2148,7 +2149,7 @@ def adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=N
     """Adapts an unstructured mesh a with respect to a sensor (DEPRECATED : use adaptCells with a sensor of type 2 instead.)
     Usage: adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=None, sensor=None)"""
     tp = Internal.copyRef(t)
-    _adaptCells(tp, sensdata, 2, smoothing_type, -1, subdiv_type, hmesh, sensor)
+    _adaptCells(tp, sensdata, 2, smoothing_type, -1, 0, subdiv_type, hmesh, sensor)
     return tp
 
 #==============================================================================
@@ -2227,7 +2228,7 @@ def deleteHMesh(hooks):
 # IN: subdiv_type : isotropic currently
 # OUT: Returns a hierarchical PyTree hook 
 #==============================================================================
-def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1):
+def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1, sensor_metric_policy = 0):
     """Returns a sensor hook.
     Usage: createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1)"""
     sensors = []
@@ -2235,7 +2236,7 @@ def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1):
       if hmesh == None : 
         sensors.append(None)
       else :
-        sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax))
+        sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax,sensor_metric_policy))
     return sensors
 
 #==============================================================================

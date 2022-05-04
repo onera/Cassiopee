@@ -1146,7 +1146,7 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
 //============================================================================
 
 template<typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
-void* __createSensor(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sensor_type)
+void* __createSensor(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int metric_policy, E_Int sensor_type)
 {
   if (sensor_type == 0)
   {
@@ -1176,13 +1176,14 @@ void* __createSensor(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sen
   {
     using hmesh_t = NUGA::hierarchical_mesh<ELT_t, STYPE>;
     using sensor_t = NUGA::xsensor2<hmesh_t>;
-    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), itermax);
+    NUGA::eMetricPolicy policy = (NUGA::eMetricPolicy)metric_policy;
+    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), policy, itermax);
   }
   return nullptr;
 }
 
 template<>
-void* __createSensor<K_MESH::Hexahedron, NUGA::ISO>(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sensor_type)
+void* __createSensor<K_MESH::Hexahedron, NUGA::ISO>(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int metric_policy, E_Int sensor_type)
 {
   if (sensor_type == 0)
   {
@@ -1212,13 +1213,14 @@ void* __createSensor<K_MESH::Hexahedron, NUGA::ISO>(void* hmesh, E_Int smoothing
   {
     using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
     using sensor_t = NUGA::xsensor2<hmesh_t>;
-    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), itermax);
+    NUGA::eMetricPolicy policy = (NUGA::eMetricPolicy)metric_policy;
+    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), policy, itermax);
   }
   return nullptr;
 }
 
 template<>
-void* __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sensor_type)
+void* __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int metric_policy, E_Int sensor_type)
 {
   if (sensor_type == 0)
   {
@@ -1242,13 +1244,14 @@ void* __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(void* hmesh, E_Int sm
   {
     using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>;
     using sensor_t = NUGA::xsensor2<hmesh_t>;
-    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), itermax);
+    NUGA::eMetricPolicy policy = (NUGA::eMetricPolicy)metric_policy;
+    return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), policy, itermax);
   }
   return nullptr;
 }
 
 template<>
-void* __createSensor<K_MESH::Hexahedron, NUGA::DIR>(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sensor_type)
+void* __createSensor<K_MESH::Hexahedron, NUGA::DIR>(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int metric_policy, E_Int sensor_type)
 {
   using ELT_t = K_MESH::Hexahedron;
 
@@ -1285,26 +1288,27 @@ void* __createSensor<K_MESH::Hexahedron, NUGA::DIR>(void* hmesh, E_Int smoothing
     using sensor_t = NUGA::xsensor2<hmesh_t>;
 
     hmesh_t* hm = (hmesh_t*)(hmesh);
+    NUGA::eMetricPolicy policy = (NUGA::eMetricPolicy)metric_policy;
 
-    return new sensor_t(*hm, NUGA::eSmoother(smoothing_type), itermax);
+    return new sensor_t(*hm, NUGA::eSmoother(smoothing_type), policy, itermax);
   }
   return nullptr;
 }
 
 template<NUGA::eSUBDIV_TYPE STYPE>
-void* __createSensor(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax);
+void* __createSensor(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax, E_Int metric_policy);
 
 template<>
-void* __createSensor<NUGA::ISO>(E_Int elt_type, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax)
+void* __createSensor<NUGA::ISO>(E_Int elt_type, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax, E_Int metric_policy)
 {
   if (elt_type == elt_t::HEXA)
-    return __createSensor<K_MESH::Hexahedron, NUGA::ISO>(hmesh, smoothing_type, itermax, sensor_type);
+    return __createSensor<K_MESH::Hexahedron, NUGA::ISO>(hmesh, smoothing_type, itermax, metric_policy, sensor_type);
   else if (elt_type == elt_t::TETRA)
-    return __createSensor<K_MESH::Tetrahedron, NUGA::ISO>(hmesh, smoothing_type, itermax, sensor_type);
+    return __createSensor<K_MESH::Tetrahedron, NUGA::ISO>(hmesh, smoothing_type, itermax, metric_policy, sensor_type);
   else if (elt_type == elt_t::PRISM3)
-    return __createSensor<K_MESH::Prism, NUGA::ISO>(hmesh, smoothing_type, itermax, sensor_type);
+    return __createSensor<K_MESH::Prism, NUGA::ISO>(hmesh, smoothing_type, itermax, metric_policy, sensor_type);
   else if (elt_type == elt_t::BASIC)
-    return __createSensor<K_MESH::Basic, NUGA::ISO>(hmesh, smoothing_type, itermax, sensor_type);
+    return __createSensor<K_MESH::Basic, NUGA::ISO>(hmesh, smoothing_type, itermax, metric_policy, sensor_type);
   else 
   {
     PyErr_SetString(PyExc_ValueError, "createSensor: wrong element type in hmesh for ISO strategy.");
@@ -1314,16 +1318,16 @@ void* __createSensor<NUGA::ISO>(E_Int elt_type, void* hmesh, E_Int sensor_type, 
 
 //
 template<>
-void* __createSensor<NUGA::ISO_HEX>(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax)
+void* __createSensor<NUGA::ISO_HEX>(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax, E_Int metric_policy)
 {
-  return __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh, smoothing_type, itermax, sensor_type);
+  return __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh, smoothing_type, itermax, metric_policy, sensor_type);
 }
 
 
 template<>
-void* __createSensor<NUGA::DIR>(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax)
+void* __createSensor<NUGA::DIR>(E_Int etype, void* hmesh, E_Int sensor_type, E_Int smoothing_type, E_Int itermax, E_Int metric_policy)
 {
-  return __createSensor<K_MESH::Hexahedron, NUGA::DIR>(hmesh, smoothing_type, itermax, sensor_type);
+  return __createSensor<K_MESH::Hexahedron, NUGA::DIR>(hmesh, smoothing_type, itermax, metric_policy, sensor_type);
 }
 
 //============================================================================
@@ -1335,8 +1339,9 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
 
   PyObject *hook_hmesh(nullptr);
   E_Int smoothing_type(0), sensor_type(0), itermax(0); // sensor_type = 0(geom_sensor) or 1 (xsensor) 
+  E_Int metric_policy(0); // O:ISO_MIN, 1:ISO_MEAN, 2:ISO_MAX, 3:ISO_MIN OR ISO_MAX 
 
-  if (!PYPARSETUPLEI(args, "Olll", "Oiii", &hook_hmesh, &sensor_type, &smoothing_type, &itermax)) return NULL;
+  if (!PYPARSETUPLEI(args, "Ollll", "Oiiii", &hook_hmesh, &sensor_type, &smoothing_type, &itermax, &metric_policy)) return NULL;
 
 
   // // Unpack hmesh hook
@@ -1397,11 +1402,11 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
   // HMESH PTR
   packet_ss[2] = nullptr;
   if (*subtype_hm == NUGA::ISO)
-    packet_ss[2] = __createSensor<NUGA::ISO>(*elt_type, hmesh, sensor_type, smoothing_type, itermax);
+    packet_ss[2] = __createSensor<NUGA::ISO>(*elt_type, hmesh, sensor_type, smoothing_type, itermax, metric_policy);
   else if (*subtype_hm == NUGA::ISO_HEX)
-    packet_ss[2] = __createSensor<NUGA::ISO_HEX>(*elt_type, hmesh, sensor_type, smoothing_type, itermax);
+    packet_ss[2] = __createSensor<NUGA::ISO_HEX>(*elt_type, hmesh, sensor_type, smoothing_type, itermax, metric_policy);
   else if (*subtype_hm == NUGA::DIR)
-    packet_ss[2] = __createSensor<NUGA::DIR>(*elt_type, hmesh, sensor_type, smoothing_type, itermax);
+    packet_ss[2] = __createSensor<NUGA::DIR>(*elt_type, hmesh, sensor_type, smoothing_type, itermax, metric_policy);
 
   // Create sensor hook 
   // ===================

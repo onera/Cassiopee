@@ -693,7 +693,7 @@ bool sync_faces
     for (auto k : bits)
       face_to_bits_rev[k].push_back(f);
   }
-  //4.b keep only releavnt
+  //4.b keep only relevant
   for (auto i : face_to_bits_rev)
   {
     if (i.second.size() == 1) continue;

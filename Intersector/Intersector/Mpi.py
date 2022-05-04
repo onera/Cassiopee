@@ -25,14 +25,14 @@ import numpy
 # IN: sensor : sensor hook
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD, procDict=None, zidDict=None):
+def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, sensor_metric_policy = 0, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD, procDict=None, zidDict=None):
   """Adapts an unstructured mesh a with respect to a sensor.
   Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
   tp = Internal.copyRef(t)
-  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor, com, procDict, zidDict)
+  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, sensor_metric_policy, subdiv_type, hmesh, sensor, com, procDict, zidDict)
   return tp
 
-def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD, procDict=None, zidDict=None):
+def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, sensor_metric_policy = 0, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD, procDict=None, zidDict=None):
     """Adapts an unstructured mesh a with respect to a sensor.
     Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
 
@@ -73,7 +73,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     owesSensor=0
     if sensor is None : 
       #print("create sensor")
-      sensor = XOR.createSensor(hmesh, sensor_type, smoothing_type, itermax)
+      sensor = XOR.createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
       owesSensor=1
 
     #if Cmpi.rank == 0 :

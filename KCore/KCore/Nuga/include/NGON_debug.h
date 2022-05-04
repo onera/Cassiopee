@@ -309,6 +309,12 @@ TEMPLATE_COORD_CONNECT
 void NGON_DBG_CLASS::draw_PH
 (const char* fname, const K_FLD::FloatArray& coord, const ngon_type& ng, E_Int i)
 {
+  if (i >= ng.PHs.size())
+  {
+    std::cout << "draw_PH : " << i << " is out of range for input NGON" << std::endl;
+    return;
+  }
+
   ng.PGs.updateFacets();
   ng.PHs.updateFacets();
   

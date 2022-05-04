@@ -22,6 +22,8 @@
 namespace NUGA
 {
 
+  enum eMetricPolicy {MIN=0, MEAN=1, MAX=2, MIN_OR_MAX=3};
+
 /// X geometric sensor 2 : recursive-collision test with surrounding metric
 template <typename mesh_t> //ngu for surfacic (PGs) or ngon_t for volumic
 class xsensor2 : public sensor<mesh_t, pg_smesh_t>
@@ -32,8 +34,8 @@ class xsensor2 : public sensor<mesh_t, pg_smesh_t>
     using output_t = typename mesh_t::output_t;
     
     //
-    xsensor2(mesh_t& mesh, eSmoother smoo_type, E_Int itermax = -1) : 
-      parent_t(mesh, nullptr), _iter_max((itermax <= 0) ? INT_MAX : itermax), _iter(0), _done(false)
+    xsensor2(mesh_t& mesh, eSmoother smoo_type, eMetricPolicy metric_policy, E_Int itermax = -1) :
+      parent_t(mesh, nullptr), _metric_policy(metric_policy), _iter_max((itermax <= 0) ? INT_MAX : itermax), _iter(0), _done(false)
     {
       // smoother
       if (smoo_type == eSmoother::V1_NEIGH)
@@ -53,11 +55,12 @@ class xsensor2 : public sensor<mesh_t, pg_smesh_t>
     virtual ~xsensor2() {}
 
 private:
+  eMetricPolicy _metric_policy;
   E_Int _iter_max, _iter;
   bool _done;
   std::map<E_Int, std::vector<E_Int>> _candidates;
   static constexpr double RTOL = 1.e-15;
-  static constexpr NUGA::eMetricType MTYPE = NUGA::ISO_MIN;
+  //static constexpr NUGA::eMetricType MTYPE = NUGA::ISO_MIN;
 };
 
 ///
@@ -90,7 +93,8 @@ bool xsensor2<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   ph_mesh_t m1;//fixme
   m1.crd = parent_t::_hmesh._crd;
   m1.cnt = parent_t::_hmesh._ng;
-  m1.get_nodal_metric2(MTYPE);//fixme : just here to construct ae
+  m1.get_nodal_metric2(NUGA::ISO_MAX);//fixme : just here to construct ae. ISO_MAX to avoid useless KdTree construc in build_nodal_metric2
+
 
   if (_candidates.empty()) // first time with this parent_t::_data
   { 
@@ -104,7 +108,7 @@ bool xsensor2<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
       if (!parent_t::_hmesh._PHtree.is_enabled(i)) continue;
 
       auto ae1 = m1.aelement(i);
-      double Lref21 = ae1.Lref2(ae1.m_crd, MTYPE);
+      //double Lref21 = ae1.Lref2(ae1.m_crd, MTYPE);
 
       cands.clear();
       loc2->get_candidates(ae1, ae1.m_crd, cands, 0, RTOL); //return as 0-based (fixme for volumic, was 1-based)
@@ -128,22 +132,60 @@ bool xsensor2<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
     const auto& cands = it.second;
 
     auto ph = m1.element(PHi);
-    double phlr2 = ph.Lref2(m1.crd, MTYPE); //evaluated on this element
 
-    // ISO MIN
-    double clr2 = NUGA::FLOAT_MAX;
-    for (auto c : cands)
+    // criterion based on ISO MIN
+    if ( (_metric_policy == NUGA::MIN) || (_metric_policy == NUGA::MIN_OR_MAX) )
     {
-      auto pg = src_mesh.element(c);
-      double lr2 = pg.Lref2(src_mesh.crd, MTYPE); //evaluated on this element
-      clr2 = std::min(clr2, lr2);
+      double phlr2 = ph.Lref2(m1.crd, NUGA::ISO_MIN); //evaluated on this element
+      double LREF2_AMBIANT = NUGA::FLOAT_MAX;
+      for (auto c : cands)
+      {
+        auto pg = src_mesh.element(c);
+        double lr2 = pg.Lref2(src_mesh.crd, NUGA::ISO_MIN); //evaluated on this element
+        LREF2_AMBIANT = std::min(LREF2_AMBIANT, lr2);
+      }
+      if (phlr2 > K* LREF2_AMBIANT)
+      {
+        filled = true;
+        adap_incr.cell_adap_incr[PHi] = 1;
+        continue;
+      }
     }
-    // ISO MEAN
-    // ISO MAX
 
-    if (phlr2 > K* clr2) {
-      filled = true;
-      adap_incr.cell_adap_incr[PHi] = 1;
+    // criterion based on ISO MAX
+    if ((_metric_policy == NUGA::MAX) || (_metric_policy == NUGA::MIN_OR_MAX))
+    {
+      double phlr2 = ph.Lref2(m1.crd, NUGA::ISO_MAX); //evaluated on this element
+      double LREF2_AMBIANT = -1.;
+      for (auto c : cands)
+      {
+        auto pg = src_mesh.element(c);
+        double lr2 = pg.Lref2(src_mesh.crd, NUGA::ISO_MAX); //evaluated on this element
+        LREF2_AMBIANT = std::max(LREF2_AMBIANT, lr2);
+      }
+      if (phlr2 > K* LREF2_AMBIANT) {
+        filled = true;
+        adap_incr.cell_adap_incr[PHi] = 1;
+        continue;
+      }
+    }
+    
+    // criterion based on ISO MEAN
+    if (_metric_policy == NUGA::MEAN)
+    {
+      double phlr2 = ph.Lref2(m1.crd, NUGA::ISO_MEAN); //evaluated on this element
+      double LREF2_AMBIANT = -1.;
+      for (auto c : cands)
+      {
+        auto pg = src_mesh.element(c);
+        double lr2 = pg.Lref2(src_mesh.crd, NUGA::ISO_MEAN); //evaluated on this element
+        LREF2_AMBIANT = std::max(LREF2_AMBIANT, lr2);
+      }
+      if (phlr2 > K* LREF2_AMBIANT) {
+        filled = true;
+        adap_incr.cell_adap_incr[PHi] = 1;
+        continue;
+      }
     }
   }
 
@@ -159,7 +201,7 @@ bool xsensor2<mesh_t>::update()
   ph_mesh_t m1;//fixme
   m1.crd = parent_t::_hmesh._crd;
   m1.cnt = parent_t::_hmesh._ng;
-  m1.get_nodal_metric2(MTYPE);//fixme : just here to construct ae
+  m1.get_nodal_metric2(NUGA::ISO_MAX);//fixme : just here to construct ae. ISO_MAX to avoid useless KdTree construc in build_nodal_metric2
   
   pg_smesh_t& src_mesh = parent_t::_data;
   auto loc2 = src_mesh.get_localizer();
