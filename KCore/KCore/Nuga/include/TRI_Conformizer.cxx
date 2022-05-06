@@ -244,6 +244,7 @@ TRI_Conformizer<DIM>::__split_Elements
       {
         x[0] = (*it).node(0);
         x[1] = (*it).node(1);
+        if (x[0] == x[1]) continue;
         ci.pushBack(x, x+2);
       }
       
@@ -311,6 +312,36 @@ TRI_Conformizer<DIM>::__split_Elements
       // iterative for robustness : try shuffling the input data, then try without forcing edges (hasardous)
       mesher.seed_random(3*i);
       err = __iterative_run (mesher, pi, ci2, hnodes, data, lnids, false/*i.e. try to force all edge*/, true/*i.e silent also last it*/);
+      if (err != 0)
+      {
+        //try again with a normalized contour
+        K_SEARCH::BBox2D box;
+        box.compute(pi);
+        double dX = box.maxB[0] - box.minB[0];
+        double dY = box.maxB[1] - box.minB[1];
+
+        /*{
+          K_FLD::FloatArray tmp(pi);
+          tmp.resize(3, tmp.cols(), 0.);
+          MIO::write("contour_init.mesh", tmp, ci2, "BAR");
+        }*/
+
+        for (size_t u = 0; u < pi.cols(); ++u)
+        {
+          pi(0, u) = (pi(0, u) - box.minB[0]) / dX;
+          pi(1, u) = (pi(1, u) - box.minB[1]) / dY;
+        }
+
+        /*{
+          K_FLD::FloatArray tmp(pi);
+          tmp.resize(3, tmp.cols(), 0.);
+          MIO::write("contour_norma.mesh", tmp, ci2, "BAR");
+        }*/
+
+        err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, false/*i.e. try to force all edge*/, true/*i.e silent also last it*/);
+        //if (err == 0)
+        //  std::cout << " found " << std::endl;
+      }
       if (err != 0)
         err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, true/*i.e. ignore unforceable edges*/, mode.silent_errors/*i.e output last it error eventually*/);
       
@@ -528,6 +559,8 @@ TRI_Conformizer<DIM>::__iterative_run
 #endif
     
     err = mesher.run(data);
+
+    crd.resize(2, nb_pts);//discard box nodes
     
     // process errors and update cB, hNodes and lnids
     if (mesher.mode.ignore_unforceable_edges)
@@ -1889,10 +1922,13 @@ TRI_Conformizer<DIM>::__compact_to_mesh
   revIDs.clear();
   posOut.clear();
   connectOut.clear();
-
-  connectIn.uniqueVals(revIDs);
+  
+  std::set<E_Int> uids;
+  connectIn.uniqueVals(uids);
   if (hard_nodes)
-    revIDs.insert(revIDs.end(), hard_nodes->begin(), hard_nodes->end());
+    uids.insert(hard_nodes->begin(), hard_nodes->end());
+
+  revIDs.insert(revIDs.end(), ALL(uids));
 
   nb_nodes = revIDs.size();
   posOut.reserve(3, nb_nodes);  

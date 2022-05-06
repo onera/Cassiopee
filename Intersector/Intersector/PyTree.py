@@ -1657,7 +1657,7 @@ def splitNonStarCells(t, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_
 # IN: discard_joins : when set to True, faces at joins are not modified
 # OUT: returns a 3D NGON Mesh with less polygons (but same shape)
 #==============================================================================
-def simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins=True):
+def _simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins=True):
     """Simplifies over-defined polyhedral cells (agglomerate some elligible polygons).
     Usage: simplifyCells(t, treat_externals, angular_threshold, discard_joins)"""
 
@@ -1687,11 +1687,15 @@ def simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins=
             ids=None
     
       m = XOR.simplifyCells(m, treat_externals, angular_threshold, discarded_ids=ids)
+      C.setFields([m], z, 'nodes') # replace the mesh in the zone
 
-      ozones.append(C.convertArrays2ZoneNode(z[0], [m]))
 
-    return ozones
-
+def simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins=True):
+    """Simplifies over-defined polyhedral cells (agglomerate some elligible polygons).
+    Usage: simplifyCells(t, treat_externals, angular_threshold, discard_joins)"""
+    tp = Internal.copyRef(t)
+    _simplifyCells(tp, treat_externals, angular_threshold, discard_joins)
+    return tp
 #==============================================================================
 # simplifyFaces : remove superfluous nodes
 # IN: mesh: 3D NGON mesh

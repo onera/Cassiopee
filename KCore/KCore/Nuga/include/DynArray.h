@@ -253,6 +253,8 @@ Design
     template <typename Vector>
     void uniqueVals(Vector& vals) const;
 
+    inline void uniqueVals(std::set<E_Int>& vals) const;
+
     void shift(value_type val, size_type istart=0);
 
   private:
@@ -936,6 +938,24 @@ DynArray<T>::pushBack(const self_type& a){
         v = *(_data + i*_rowsMax + j);
         if (pool.insert(v).second)
           vals.push_back(v);
+      }
+    }
+  }
+
+  ///
+  template <>
+  void
+  DynArray<E_Int>::uniqueVals(std::set<E_Int>& vals) const
+  {
+    vals.clear();
+    E_Int v;
+
+    for (size_type i = 0; i<_cols; ++i)
+    {
+      for (size_type j = 0; j<_rows; ++j)
+      {
+        v = *(_data + i * _rowsMax + j);
+        if (v != IDX_NONE) vals.insert(v);
       }
     }
   }
