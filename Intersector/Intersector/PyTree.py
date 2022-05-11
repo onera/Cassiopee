@@ -743,6 +743,17 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
             
             Internal._addChild(zoneBC, newBC1s)
 
+            # Search for BC families
+            fam1_nodes = Internal.getNodesFromType(a1, 'Family_t')
+            fam2_nodes = Internal.getNodesFromType(a2, 'Family_t')
+            
+            for node in fam1_nodes:
+                Internal._addChild(newz, node)
+                
+            for node in fam2_nodes:
+                Internal._addChild(newz, node)
+            
+
         # Restore fields
         # ==============
         # a. Build varnames list 
@@ -901,6 +912,12 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     for p in paths: Internal._rmNodeFromPath(t1, p)
     paths = []
 
+    # Search for BC family nodes
+    fam_nodes = Internal.getNodesFromType(t2, 'Family_t')
+    
+    for node in fam_nodes:
+        Internal._addChild(zs, node)
+
     iz=-1
     # New name dictionary and zone name updating
     newname2 = {}
@@ -952,6 +969,12 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
       i += 3
 
     for p in paths: Internal._rmNodeFromPath(t2, p)
+
+    # Search for BC family nodes
+    fam_nodes = Internal.getNodesFromType(t1, 'Family_t')
+    
+    for node in fam_nodes:
+        Internal._addChild(zs, node)
 
 
     # Create new matches
