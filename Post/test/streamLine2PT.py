@@ -15,5 +15,5 @@ t = C.initVars(t, 'vx', 1.)
 t = C.initVars(t, 'vy', F, ['CoordinateX'])
 t = C.initVars(t, 'vz', 0.)
 x0=0.1; y0=5.; z0=0.5
-s = P.streamLine2(t, (x0,y0,z0),['vx','vy','vz'])
+s = P.streamLine2(t, (x0,y0,z0), ['vx','vy','vz'])
 C.convertPyTree2File(s, 'out.cgns')

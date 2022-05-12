@@ -14141,7 +14141,7 @@ class MatplotlibFigure():
             dy = pround(dy)
             ymin = round(ymin/dy)*dy
             ymax = ymin+ntickMy*dy
-            print(xmin, xmax, ntickMx)
+            #print(xmin, xmax, ntickMx)
 
             stepx = (xmax-xmin)/(float(ntickMx))
             dstepx = stepx*1.e-6

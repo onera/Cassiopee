@@ -1810,14 +1810,14 @@ def streamLine(t, X0, vector, N=2000, dir=2):
     return C.convertArrays2ZoneNode('streamLine', [a])
 
 # Retourne une liste de zones
-def streamLine2(t, X0, vector, N=2000, dir=2):
+def streamLine2(t, X0, vector, N=2000, dir=2, eps=1.e-2):
     """Compute a streamline starting from (x0,y0,z0) given
     a list of arrays containing 'vector' information.
     Usage: streamLine2(t, (x0,y0,z0), (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
     arrays = C.getAllFields(t, 'nodes')
     for c, v in enumerate(vector): vector[c] = v.replace('centers:', '')
-    a = Post.streamLine2(arrays, X0, vector, N, dir)
+    a = Post.streamLine2(arrays, X0, vector, N, dir, eps)
     out = []
     for i in a:
         out.append(C.convertArrays2ZoneNode('streamLine', [i]))

@@ -11,7 +11,7 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX',
     'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
     'bcast', 'Bcast', 'gather', 'Gather', 
     'reduce', 'Reduce', 'allreduce', 'Allreduce', 
-    'bcastZone', 'allgatherZones', 
+    'bcastZone', 'gatherZones', 'allgatherZones', 
     'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 
     'convert2SkeletonTree',
@@ -363,6 +363,15 @@ def allgatherZones(zones):
             else: zp = bcastZone(None, root=i)
             allZones.append(zp)
     return allZones
+
+# Envoie les zones de chaque proc au proc root dans une liste a plat des zones
+def gatherZones(zones, root=0):
+    zones = Internal.getZones(zones)
+    ret = KCOMM.gather(zones, root)
+    out = []
+    if ret is not None:
+        for i in ret: out += i
+    return out
 
 #==============================================================================
 # Lecture du squelette d'un arbre dans un fichier

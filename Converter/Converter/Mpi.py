@@ -6,23 +6,25 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         try: from .Mpi4py import *
         except: raise ImportError("Converter:Mpi: requires mpi4py module.")
     else:
-       rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
-       from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, mergeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
-       def barrier(): return
-       def bcast(a, root=0): return a
-       def Bcast(a, root=0): return a
-       def gather(a, root=0): return a
-       def Gather(a, root=0): return a
-       def send(a, dest=0, tag=0): return None
-       def recv(source=0, tag=0): return None # pb here
-       def sendRecv(a, source=0, dest=0): return []
-       def sendRecvC(a, source=0, dest=0): return []
-       def reduce(a, op=None, root=0): return a
-       def Reduce(a, b, op=None, root=0): return a
-       def allreduce(a, op=None): return a
-       def Allreduce(a, b, op=None): return a
-       def seq(F, *args): F(*args)
-       print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
+        rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
+        from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, mergeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        def barrier(): return
+        def bcast(a, root=0): return a
+        def Bcast(a, root=0): return a
+        def gather(a, root=0): return a
+        def Gather(a, root=0): return a
+        def gatherZones(a, root=0): return a
+        def allgatherZones(a, root=0): return a
+        def send(a, dest=0, tag=0): return None
+        def recv(source=0, tag=0): return None # pb here
+        def sendRecv(a, source=0, dest=0): return []
+        def sendRecvC(a, source=0, dest=0): return []
+        def reduce(a, op=None, root=0): return a
+        def Reduce(a, b, op=None, root=0): return a
+        def allreduce(a, op=None): return a
+        def Allreduce(a, b, op=None): return a
+        def seq(F, *args): F(*args)
+        print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
  
 else: # try import (may fail - core or hang)
     try: from .Mpi4py import *
@@ -34,6 +36,8 @@ else: # try import (may fail - core or hang)
         def Bcast(a, root=0): return a
         def gather(a, root=0): return a
         def Gather(a, root=0): return a
+        def gatherZones(a, root=0): return a
+        def allgatherZones(a, root=0): return a
         def send(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
         def sendRecv(a, source=0, dest=0): return []
