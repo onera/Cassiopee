@@ -36,7 +36,7 @@ def measure():
                     (l[1]-prev[1])*(l[1]-prev[1])+\
                     (l[2]-prev[2])*(l[2]-prev[2])
                     dist = math.sqrt(dist)
-                    CTK.TXT.insert('START', 'dist= '+str(dist)+'\n')
+                    CTK.TXT.insert('START', 'dist= %.4e\n'%dist)
                     time.sleep(CPlot.__timeStep__)
                     prev = []
         CTK.__BUSY__ = False

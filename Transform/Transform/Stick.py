@@ -86,6 +86,11 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
         name = f[0].replace('/', '#')
         defTree.setBndSurfTo(name, "null")
     
+    # Sliding boundaries
+    sliding = C.extractBCOfName(t, 'FamilySpecified:sliding', reorder=False)
+    for f in sliding:
+        name = f[0].replace('/', '#')
+        defTree.setBndSurfTo(name, "slidingonsurface")
 
     defTree.makeSources()
     defTree.computeMeshDisplacement()

@@ -1285,14 +1285,22 @@ def splitFullMatch(t):
 def _splitFullMatch(t):
     """Split all zones for matching on full faces."""
     zones = Internal.getZones(t)
-    stack = []
-    for z in zones:
-        dim = Internal.getZoneDim(z)
-        if dim[0] == 'Structured': stack.append(z)
+    reflen = len(zones)
+    newlen = reflen
+    while reflen < newlen:
+        reflen = newlen
+        stack = []
+        for z in zones:
+            dim = Internal.getZoneDim(z)
+            if dim[0] == 'Structured': stack.append(z)
 
-    while len(stack) > 0:
-        z = stack.pop(0)
-        splitFullMatch__(z, stack, t)
+        while len(stack) > 0:
+            z = stack.pop(0)
+            splitFullMatch__(z, stack, t)
+        
+        zones = Internal.getZones(t)
+        newlen = len(zones)
+        
     return None
 
 def splitFullMatch__(z, stack, t):

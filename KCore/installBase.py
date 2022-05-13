@@ -871,6 +871,22 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'spiro_acda': [ 'Machine dev Spiro (proc amd)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=32'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'spiro': [ 'Machine dev Spiro (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler

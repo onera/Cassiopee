@@ -540,7 +540,7 @@ else if ($MAC == "spiro_python2") then
 
 else if ($MAC == "spiro_anaconda") then
 #------------------------------- spiro --------------------------------------
-	setenv ELSAPROD spiro_r8
+	setenv ELSAPROD spiro_acda
         # Number of threads
         setenv OMP_NUM_THREADS 24
         # Set next two lines only if python is not python
@@ -559,8 +559,8 @@ else if ($MAC == "spiro_anaconda") then
         
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/tools/hdf5-1.10.5-intel-19-impi-19/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
+        setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 else if ($MAC == "sator_17python3") then
 #------------------------------- sator --------------------------------------

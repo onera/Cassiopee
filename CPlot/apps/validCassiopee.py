@@ -416,6 +416,7 @@ def extractCPUTime(output1, output2):
 def extractCPUTime2(output):
     i1 = output.find('real')
     output = output[i1+4:]
+    output = output.replace(',', '.')
     output = output.lstrip()
     i2 = output.find(' ')
     if i2 != -1: output = output[:i2]
