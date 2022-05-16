@@ -872,7 +872,8 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
       joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
       for j in joins:
           oldname = Internal.getValue(j)
-          Internal.setValue(j,newname[oldname])
+          if oldname in newname:
+              Internal.setValue(j,newname[oldname])
     
     iz=-1
     for z in z1s:
@@ -932,7 +933,8 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
       joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
       for j in joins:
           oldname = Internal.getValue(j)
-          Internal.setValue(j,newname2[oldname])
+          if oldname in newname:
+              Internal.setValue(j,newname2[oldname])
         
     iz = -1
     for z in z2s:
@@ -3551,7 +3553,20 @@ def concatenate(t, tol = 1.e-15):
               nids  = z_pgnids[i][iface]
               pointList[k] = nids+1
 
+          # Restore BCDATASET
+          BCDataSets = Internal.getNodesFromType(bc, "BCDataSet_t")
+
+          for BCDataSet in BCDataSets:
+              # Check size
+              for BCData in Internal.getNodesFromType(BCDataSet, "BCData_t"):
+                  for data in Internal.getNodesFromType(BCData, "DataArray_t"):
+                      if ( len(Internal.getValue(data)) != len(pointList)):
+                          raise ValueError('Concatenate. BC size differs for BCDataSet.')
+              
+              Internal._addChild(bc,BCDataSet)   
+          
           Internal._addChild(zoneBC, bc)
+                       
       i = i+1
 
   famBC = Internal.getNodesFromType(t, "Family_t")
