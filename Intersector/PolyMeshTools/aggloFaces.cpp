@@ -218,7 +218,7 @@ PyObject* K_INTERSECTOR::collapseSmallCells(PyObject* self, PyObject* args)
   //double vmin = 3.e-15;//itermax 3
   //double vmin  = 1.e-16; //itermax 4
   //double vratio = -1;
-  NUGA::Agglomerator::collapse_small_tetras<DELAUNAY::Triangulator>(crd, ngio, vmin, grmin);
+  NUGA::Agglomerator::collapse_small_tetras2<DELAUNAY::Triangulator>(crd, ngio, vmin, grmin);
 
   K_FLD::IntArray cnto;
   ngio.export_to_array(cnto);

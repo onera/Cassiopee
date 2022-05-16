@@ -424,13 +424,24 @@ PyObject* K_INTERSECTOR::extractNthCell(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
-  // Exract also its neighbors
+  // Exract also its shell
   {
-    std::vector<bool> keepPG(ngi.PGs.size(), false), keepPH;
     E_Int nb_pgs = ngi.PHs.stride(nth);
     E_Int* pgs = ngi.PHs.get_facets_ptr(nth);
-    for (E_Int p=0; p < nb_pgs; ++p) keepPG[*(pgs+p)-1] = true;
-    ngi.flag_PHs_having_PGs(keepPG, keepPH);
+    std::vector<bool> wprocessed/*externalized to not reallocate it each time*/;
+    std::vector<int> shellPHs, boundPGs;
+    std::vector<bool> keepPH;
+    keepPH.resize(ngi.PHs.size(), false);
+
+    ngon_unit neighborsi;
+    ngi.build_ph_neighborhood(neighborsi);
+
+    ngon_type::ph_shell(ngi, nth, neighborsi, shellPHs, boundPGs, wprocessed);
+
+
+    // extract shell
+    
+    for (size_t u = 0; u < shellPHs.size(); ++u)keepPH[shellPHs[u]] = true;
 
     keepPH[nth] = false;
     for (size_t i=0; i < keepPH.size(); ++i)
@@ -801,10 +812,21 @@ PyObject* K_INTERSECTOR::collapseSmallEdges(PyObject* self, PyObject* args)
   {
     //double npgs0 = ngi.PGs.size();
     //std::cout << "iter : " << iter++ << std::endl;
-    carry_on = ngi.collapse_micro_edge(crd, edge_ratio, Lmax, nids);
+     ngi.collapse_micro_edge(crd, edge_ratio, Lmax, nids);
+
+    //validate/invalidate moves by flux
+    ngon_unit neighborsi;
+    ngi.build_ph_neighborhood(neighborsi);
+    std::vector<int> PHlist;
+    K_CONNECT::IdTool::init_inc(PHlist, ngi.PHs.size());
+    int nb_valid_moves = ngon_type::validate_moves_by_fluxes<DELAUNAY::Triangulator>(nids, crd, ngi, neighborsi, PHlist);
+    //std::cout << "nb valid moves : " << nb_valid_moves << std::endl;
+    carry_on=(nb_valid_moves > 0);
     ngi.PGs.change_indices(nids);
     ngon_type::clean_connectivity(ngi, crd, 3, 0., true/*remove dups*/); 
     //std::cout << "nb pgs : " << ngi.PGs.size() << std::endl;
+    //std::cout << "nb pts : " << crd.cols() << std::endl;
+    //std::cout << "nb phs : " << ngi.PHs.size() << std::endl;
     
     // //if (carry_on)
     // {

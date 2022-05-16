@@ -11,6 +11,7 @@
 
 #include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/IdTool.h"
+#include "Nuga/include/Edge.h"
 #include <assert.h>
 #include <algorithm>
 #include <map>
@@ -726,6 +727,7 @@ void ngon_unit::get_degenerated(E_Int min_nb_facets, Vector_t<E_Int>& indices)
 {
   updateFacets();
   
+  E_Int ngon_dim = min_nb_facets - 1;
   E_Int s, nb_elts(size());
   std::set<E_Int> unic;
   indices.clear();
@@ -739,13 +741,31 @@ void ngon_unit::get_degenerated(E_Int min_nb_facets, Vector_t<E_Int>& indices)
       indices.push_back(i);
       continue;
     }
+
+    int* facets = get_facets_ptr(i);
+    
     // remove duplicates
     unic.clear();
     unic.insert(get_facets_ptr(i), get_facets_ptr(i)+s);
-    s=unic.size();
+    E_Int news=unic.size();
 
-    if (s < min_nb_facets)
+    if (news < min_nb_facets)
       indices.push_back(i);
+    else if ( (ngon_dim == 2) && (news < s) ) //has some duplicates : just some pinches or has some duplicated egdes ?
+    {
+      std::set<K_MESH::NO_Edge> sedges;
+      
+      for (size_t n = 0; n < s; ++n)
+      {
+        int Fi     = facets[n];
+        int Fip1   = facets[(n + 1) % s];
+
+        sedges.insert(K_MESH::NO_Edge(Fi, Fip1));
+      }
+
+      if (sedges.size() < 3)
+        indices.push_back(i);
+    }
   }
 }
 

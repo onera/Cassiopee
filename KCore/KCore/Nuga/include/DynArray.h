@@ -943,7 +943,7 @@ DynArray<T>::pushBack(const self_type& a){
   }
 
   ///
-  template <>
+  template <> inline
   void
   DynArray<E_Int>::uniqueVals(std::set<E_Int>& vals) const
   {

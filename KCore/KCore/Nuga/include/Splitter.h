@@ -253,10 +253,16 @@ namespace NUGA
                                              E_Float alpha_conc, E_Float alpha_cvx, E_Float rtol, double GRmin, E_Float Fluxmax, ngon_type& twoPHs,
                                              const E_Float** normals = 0);
 
-  private:
+  
     ///
     inline static E_Int __split_pgs
       (const K_FLD::FloatArray& crd, const ngon_type& ngi, ngon_type& ngo, ngon_unit& split_graph, transfo_func transFunc, const transfo_t& params, Vector_t<bool>* to_process = 0);
+    
+    ///
+    inline static E_Int __split_pgs
+      (const K_FLD::FloatArray& crd, ngon_type& ngio, const ngon_unit& splitpgs, const Vector_t<E_Int>& oids);
+
+   private:
     ///
     inline static void __apply_pgs_splits(ngon_unit& PHs, const ngon_unit& split_graph);
     ///
@@ -886,6 +892,42 @@ E_Int NUGA::Splitter::__split_pgs
   // remove unreferenced (among olds) pgs.
   Vector_t<E_Int> pgnids, phnids;
   ngo.remove_unreferenced_pgs(pgnids, phnids);
+
+  return 0;
+}
+
+/// same as above with specified pgs to replace (splitpgs + oids)
+E_Int NUGA::Splitter::__split_pgs
+(const K_FLD::FloatArray& crd, ngon_type& ngio, const ngon_unit& splitpgs, const Vector_t<E_Int>& oids)
+{
+  E_Int nb_pgs = ngio.PGs.size();
+  
+  ngio.PGs.append(splitpgs);
+
+  // now ngo contain both old and new pgs.
+
+  // update oids to have it for all the polygons
+  std::vector<E_Int> new_oids;
+  {
+    K_CONNECT::IdTool::init_inc(new_oids, ngio.PGs.size());
+    for (size_t k = 0; k < oids.size(); ++k) {
+      new_oids[k + nb_pgs] = oids[k];
+      //force oids to be NONE when an entity has been split
+      // so an entity cannot be self-referring anf having children referring to it
+      if (oids[k] < nb_pgs)new_oids[oids[k]] = IDX_NONE;
+    }
+  }
+
+  // create the split graph using the history.
+  ngon_unit split_graph;
+  K_CONNECT::IdTool::reverse_indirection(nb_pgs, &new_oids[0], new_oids.size(), split_graph);
+
+  // apply the modifications at the PHs level.
+  __apply_pgs_splits(ngio.PHs, split_graph);
+
+  // remove unreferenced (among olds) pgs.
+  Vector_t<E_Int> pgnids, phnids;
+  ngio.remove_unreferenced_pgs(pgnids, phnids);
 
   return 0;
 }

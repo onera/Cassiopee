@@ -998,7 +998,7 @@ def _adaptNearMatch(t):
 def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     """Create elsAHybrid node necessary for NGON zones."""
     tp = Internal.copyRef(t)
-    _createElsaHybrid(tp, method, axe2D, method)
+    _createElsaHybrid(tp, method, axe2D, methodPE)
     return tp
 
 def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):

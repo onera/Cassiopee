@@ -14,6 +14,7 @@
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_t.hxx"
+#include "Nuga/include/Splitter.h"
 
 #ifdef DEBUG_AGGLOMERATOR
 #include "Nuga/include/medit.hxx"
@@ -64,6 +65,8 @@ namespace NUGA
     // PROTO
     template<typename TriangulatorType>
     inline static E_Int collapse_small_tetras(K_FLD::FloatArray& crd, ngon_type& ngio, double vmin, double vratio);
+    template<typename TriangulatorType>
+    inline static E_Int collapse_small_tetras2(K_FLD::FloatArray& crd, ngon_type& ngio, double vmin, double vratio);
 
   public:
     /// agglomerate superfluous polygons (multiply-shared by the same polyhedra. within the flatness tolerance only for area-computable polygons)
@@ -1618,7 +1621,7 @@ namespace NUGA
   
     ng.PGs.change_indices(nids);
   
-    ngon_type::clean_connectivity(ng, crd);
+    ngon_type::clean_connectivity(ng, crd, 3, 0.);
   
   return 0;
 }
@@ -1644,11 +1647,6 @@ namespace NUGA
     std::vector<int> nids;
     K_CONNECT::IdTool::init_inc(nids, crd.cols());
 
-    acrd_t acrd(crd);
-    K_SEARCH::KdTree<> tree(acrd);
-
-    std::set<int> nodes;
-    std::vector<int> out;
     for (size_t i = 0; i < PHlist.size(); ++i)
     {
       E_Int PHi = PHlist[i];
@@ -1659,7 +1657,6 @@ namespace NUGA
       if (!K_MESH::Polyhedron<0>::is_of_type<K_MESH::Tetrahedron>(ngio.PGs, pf, npf)) continue;
 
       //std::cout << "collapsing a tetra " << std::endl;
-      nodes.clear();
 
       //find tha max id : more chances to be an X point, so more chance to lie on the X interface :
       // it it better if entities crash on the interface to not deform it
@@ -1694,6 +1691,288 @@ namespace NUGA
     ngio.PGs.change_indices(nids);
 
     ngon_type::clean_connectivity(ngio, crd);
+
+    return 0;
+
+  }
+
+  ///
+  template<typename TriangulatorType>
+  E_Int NUGA::Agglomerator::collapse_small_tetras2(K_FLD::FloatArray& crd, ngon_type& ngio, double vmin, double vratio)
+  {
+    ngon_unit neighborsi;
+    ngio.build_ph_neighborhood(neighborsi);
+
+    ngon_unit orienti;
+    ngon_type::build_orientation_ngu<TriangulatorType>(crd, ngio, orienti); //WARNING : ngi previous types are lost
+
+    std::vector<E_Int> PHlist;
+    ngon_type::detect_bad_volumes<TriangulatorType>(crd, ngio, neighborsi, vmin, vratio, PHlist);
+    //K_CONNECT::IdTool::init_inc(PHlist, 38);
+
+    if (PHlist.empty())
+    {
+      return 0;
+    }
+
+    std::vector<int> nids;
+    K_CONNECT::IdTool::init_inc(nids, crd.cols());
+
+    std::map<K_MESH::NO_Edge, std::deque<int> > edge_to_refine_nodes;
+    ngon_unit splitpgs;
+    std::vector<int> splitoids;
+    ///
+    for (size_t i = 0; i < PHlist.size(); ++i)
+    {
+      E_Int PHi = PHlist[i];
+
+      const int* pf = ngio.PHs.get_facets_ptr(PHi);
+      int npf = ngio.PHs.stride(PHi);
+
+      if (!K_MESH::Polyhedron<0>::is_of_type<K_MESH::Tetrahedron>(ngio.PGs, pf, npf)) continue;
+
+      K_MESH::Tetrahedron th4(ngio.PGs, pf);
+      K_MESH::Tetrahedron::eShapeType shape = th4.shape_type(crd);
+
+#ifdef DEBUG_AGGLOMERATOR
+      std::ostringstream o;
+      o << "shape_" << PHi;
+      if (shape == K_MESH::Tetrahedron::eShapeType::REGULAR) o << "_REG.mesh";
+      else if (shape == K_MESH::Tetrahedron::eShapeType::SLICE1) o << "_SLICE1.mesh";
+      else if (shape == K_MESH::Tetrahedron::eShapeType::SLICE2) o << "_SLICE2.mesh";
+      else if (shape == K_MESH::Tetrahedron::eShapeType::SPIKE) o << "_SPIKE.mesh";
+      else if (shape == K_MESH::Tetrahedron::eShapeType::DELTA) o << "_DELTA.mesh";
+      else if (shape == K_MESH::Tetrahedron::eShapeType::KNIFE1) o << "_KNIFE1.mesh";
+      else if (shape == K_MESH::Tetrahedron::eShapeType::KNIFE2) o << "_KNIFE2.mesh";
+      
+      medith::write(o.str().c_str(), crd, ngio, PHi);
+      medith::write("check.mesh",crd, th4.nodes(), 4, 0);
+#endif
+
+      if (shape == K_MESH::Tetrahedron::REGULAR)
+      {
+        //break;
+        //find tha max id : more chances to be an X point, so more chance to lie on the X interface :
+        // it it better if entities crash on the interface to not deform it
+        int Ntarget = -1;
+        /*for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
+        {
+          int* pnodes = ngio.PGs.get_facets_ptr(pf[p] - 1);
+          for (size_t k = 0; k < 3; ++k)
+          {
+            int Ni = pnodes[k] - 1;
+            Ntarget = (Ntarget < Ni) ? Ni : Ntarget;
+          }
+        }
+
+        // now collapse the tetra on Ntrget
+        for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
+        {
+          int* pnodes = ngio.PGs.get_facets_ptr(pf[p] - 1);
+          for (size_t k = 0; k < 3; ++k)
+            nids[pnodes[k] - 1] = Ntarget;
+        }*/
+        double Lmin2=NUGA::FLOAT_MAX;
+        int* pf = ngio.PHs.get_facets_ptr(PHi);
+        E_Int Nmin,Nmax;
+        for (size_t f = 0; f < 4; ++f)
+        {
+          int* pnodes = ngio.PGs.get_facets_ptr(pf[f] - 1);
+
+          for (size_t n = 0; n < 3; ++n)
+          {
+            int Ni = pnodes[n] - 1;
+            int Nj = pnodes[(n+1)%3] - 1;
+
+            E_Float d2 = NUGA::sqrDistance(crd.col(Ni), crd.col(Nj), 3);
+
+            if (d2 < Lmin2)
+            {
+              Nmin = Ni;
+              Nmax = Nj;
+              Lmin2 = d2;
+            }
+          }
+        }
+
+        if (Nmin > Nmax) std::swap(Nmin, Nmax);
+        nids[Nmin] = Nmax;
+
+      }
+      else if (shape == K_MESH::Tetrahedron::SPIKE)
+      {
+        // collapse the smallest side (first 3 nodes)
+        E_Int Nmax = std::max(th4.node(0), th4.node(1));
+        Nmax = std::max(Nmax, th4.node(2));
+
+        nids[th4.node(0)] = Nmax;
+        nids[th4.node(1)] = Nmax;
+        nids[th4.node(2)] = Nmax;
+      }
+      else if (shape == K_MESH::Tetrahedron::SLICE1)
+      {
+        // collapse the smallest side (first 2 nodes)
+        E_Int Nmax = std::max(th4.node(0), th4.node(1));
+     
+        nids[th4.node(0)] = Nmax;
+        nids[th4.node(1)] = Nmax;
+      }
+      else if (shape == K_MESH::Tetrahedron::SLICE2)
+      {
+        // collapse separately each pair of smmalest edge
+        E_Int Nmax = std::max(th4.node(0), th4.node(1));
+
+        nids[th4.node(0)] = Nmax;
+        nids[th4.node(1)] = Nmax;
+
+        Nmax = std::max(th4.node(2), th4.node(3));
+
+        nids[th4.node(2)] = Nmax;
+        nids[th4.node(3)] = Nmax;
+      }
+      else if (shape == K_MESH::Tetrahedron::DELTA)
+      {
+        // create N1's sibling on edge to split [N2, N3]
+        E_Int N1 = th4.node(0);
+        E_Int N2 = th4.node(1);
+        E_Int N3 = th4.node(2);
+        E_Int N4 = th4.node(3);
+
+#ifdef DEBUG_AGGLOMERATOR
+        medith::write("delta0.mesh", crd, ngio, PHi);
+        medith::write("check0.mesh", crd, th4.nodes(), 4, 0);
+#endif
+
+        double lambda;
+        K_MESH::Edge::edgePointMinDistance2<3>(crd.col(N2), crd.col(N3), crd.col(N1), lambda);
+        assert(lambda > 0. && lambda < 1.);
+        double N2N3[3], Psibling[3];
+        NUGA::diff<3>(crd.col(N3), crd.col(N2), N2N3);
+        NUGA::sum<3>(lambda, N2N3, crd.col(N2), Psibling);
+        crd.pushBack(Psibling, Psibling + 3);
+        int Nsibling = crd.cols() - 1;
+
+        edge_to_refine_nodes[K_MESH::NO_Edge(N2+1, N3+1)].push_back(Nsibling+1);
+        nids.push_back(N1);
+
+        // append splitpgs : N2N3N4 has to be replaced by N2NsiblingN4 & NsiblingN3N4
+        
+        // find the face id in ngon to split
+        int Fopp = K_MESH::Tetrahedron::get_opposite_face_to_node(ngio.PGs, pf, N1);
+        assert(Fopp != IDX_NONE);
+
+        int molecule[3];
+        molecule[0] = N2 + 1;
+        molecule[1] = Nsibling + 1;
+        molecule[2] = N4 + 1;
+        splitpgs.add(3, molecule);
+        splitoids.push_back(Fopp);
+        splitpgs._type.push_back(ngio.PGs._type[Fopp]);
+
+        molecule[0] = Nsibling + 1;
+        molecule[1] = N3 + 1;
+        molecule[2] = N4 + 1;
+        splitpgs.add(3, molecule);
+        splitoids.push_back(Fopp);
+        splitpgs._type.push_back(ngio.PGs._type[Fopp]);
+      }
+      else if (shape == K_MESH::Tetrahedron::KNIFE1)
+      {
+      }
+      else if (shape == K_MESH::Tetrahedron::KNIFE2)
+      {
+        E_Int Nmax = std::max(th4.node(0), th4.node(1));
+        nids[th4.node(0)] = Nmax;
+        nids[th4.node(1)] = Nmax;
+
+        //create Nmax's sibling on edge to split [node(2), node(3)]
+        // and ling Nsibling to Nmax (this way is easier to revert back in case of error
+        E_Int N2 = th4.node(2);
+        E_Int N3 = th4.node(3);
+        double lambda;
+        K_MESH::Edge::edgePointMinDistance2<3>(crd.col(N2), crd.col(N3), crd.col(Nmax), lambda);
+        
+        assert(lambda > 0. && lambda < 1.);
+        
+        double N2N3[3], Psibling[3];
+        NUGA::diff<3>(crd.col(N3), crd.col(N2), N2N3);
+        NUGA::sum<3>(lambda, N2N3, crd.col(N2), Psibling);
+        crd.pushBack(Psibling, Psibling + 3);
+        int Nsibling = crd.cols() - 1;
+        
+        edge_to_refine_nodes[K_MESH::NO_Edge(th4.node(2)+1, th4.node(3)+1)].push_back(Nsibling+1);
+        nids.push_back(Nmax) ; // nids[Nsibling]=Nmax;
+      }
+    }
+
+    // update the pointers to point to the leaves
+    for (size_t i = 0; i < nids.size(); ++i)
+    {
+      int Fi = nids[i];
+      while (Fi != nids[Fi])Fi = nids[Fi];
+      nids[i] = Fi;
+    }
+
+    //medith::write<ngon_type>("before", crd, ngio, 1);*/
+
+    //////////////// SPLIT EDGE STAGE /////////////////////////////////
+    if (true)
+    {
+      // propagate new ids and 1-start => NOT NEEDED BECAUSE change_indices is now called after moves validation
+      /*std::map<K_MESH::NO_Edge, std::deque<int> > new_edge_to_refine_nodes;
+      for (auto it : edge_to_refine_nodes)
+      {
+        auto & ie = it.first;
+
+        K_MESH::NO_Edge e(nids[ie.node(0)]+1, nids[ie.node(1)]+1);
+
+        for (size_t u = 0; u < it.second.size(); ++u)
+          new_edge_to_refine_nodes[e].push_back(nids[it.second[u]] + 1);
+      }
+      edge_to_refine_nodes = new_edge_to_refine_nodes;*/
+
+      // complete refinement with ends and eventually sort in between if more than 1 point
+      std::vector < std::pair<E_Float, E_Int>> sorter;
+      for (auto& e : edge_to_refine_nodes)
+      {
+        e.second.push_front(e.first.node(0));
+        if (e.second.size() > 2)
+          NUGA::MeshTool::reorder_nodes_on_edge<std::deque<E_Int>, 3>(crd, e.second, 1, sorter);
+        e.second.push_back(e.first.node(1));
+      }
+
+      // Refine the PGs
+      Vector_t<E_Int> pg_molec;
+      ngon_unit refinedPGs;
+
+      for (E_Int PGi = 0; PGi < ngio.PGs.size(); ++PGi)
+      {
+        ngon_type::refine_pg(ngio.PGs.get_facets_ptr(PGi), ngio.PGs.stride(PGi), edge_to_refine_nodes, pg_molec);
+        refinedPGs.add(pg_molec);
+      }
+
+      // update PGs ngon unit
+      refinedPGs._type = ngio.PGs._type;  // hack to preserve flags (externality)
+      refinedPGs._ancEs = ngio.PGs._ancEs;// hack
+      ngio.PGs = refinedPGs;
+      ngio.PGs.updateFacets();
+    }
+
+    //////////////// REPLACE FACE STAGE (DELTA) /////////////////////////////////
+    if (splitpgs.size() > 0)
+    {
+      //medith::write("delta1.mesh", crd, ngio, PHlist[0]);
+      E_Int err = NUGA::Splitter::__split_pgs(crd, ngio, splitpgs, splitoids);
+      //medith::write("delta2.mesh", crd, ngio, PHlist[0]);
+      //medith::write("splitpgs.mesh", crd, splitpgs);
+    }
+
+    // NIDS VALIDATION : now validate/invalidates mooves by group for each cell : looking at the ph shell flux evolution
+    ngon_type::validate_moves_by_fluxes<DELAUNAY::Triangulator>(nids, crd, ngio, neighborsi, PHlist);
+
+    // now apply the validated moves globally
+    ngio.PGs.change_indices(nids);
+    ngon_type::clean_connectivity(ngio, crd, 3, 0., true);
 
     return 0;
 

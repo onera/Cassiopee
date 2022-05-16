@@ -269,6 +269,7 @@ namespace K_MESH
     }   
     
     static eDegenType degen_type(const K_FLD::FloatArray& crd, E_Int N0, E_Int N1, E_Int N2, E_Float tol2, E_Float lambdac, E_Int& ns);
+    static eDegenType degen_type_angular(const K_FLD::FloatArray& crd, E_Int N0, E_Int N1, E_Int N2, E_Float FACTOR, E_Int& ns);
 
    public: /* Operators */ // relevant only for sub class for which nodes are sorted.
 

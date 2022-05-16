@@ -2564,8 +2564,9 @@ static E_Int stats_bad_volumes
 E_Int remove_degenerated_pgs(E_Int ngon_dim, Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
 {
   Vector_t<E_Int> pgindices;
-  E_Int min_nb_facets = ngon_dim;
-  PGs.get_degenerated(min_nb_facets, pgindices); // Degenrated edge(<2) or Polygons (<3)
+  
+  PGs.get_degenerated(ngon_dim, pgindices); // Degenrated edge(<2) or Polygons (<3) => topological test
+
   remove_pgs(pgindices, pgnids, phnids); //sync the PHs accordingly
   PGs.updateFacets();//fixme : required ?
   return pgindices.size();
@@ -2909,11 +2910,11 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     {
       //E_Int nb_degen_faces = 
       NG.remove_degenerated_pgs(ngon_dim, pgnidstmp, phnidstmp);
-     
+
       //Propagation de pgnidstmp/phnidstmp
       if ((histo) and (not pgnidstmp.empty())) K_CONNECT::IdTool::propagate(pgnidstmp, *pgnids);
       if ((histo) and (not phnidstmp.empty())) K_CONNECT::IdTool::propagate(phnidstmp, *phnids);
- 
+
       //E_Int nb_consec_changes = 
       NG.PGs.remove_consecutive_duplicated(); //removing duplicated facets : compact representation
     }
@@ -4612,6 +4613,59 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
     }
   }
 
+  static void node_shell(const ngon_t& ng, E_Int N0, E_Int PHseed, const ngon_unit& neighbors, Vector_t<E_Int>& PHlist)
+  {
+    PHlist.clear();
+
+    Vector_t<E_Int> pool;
+    std::map<E_Int, bool> processed;
+
+    pool.push_back(PHseed);
+
+    while (!pool.empty())
+    {
+      E_Int PH = pool.back();
+      pool.pop_back();
+
+      processed[PH] = true;
+      PHlist.push_back(PH);
+
+      E_Int nb_pgs = ng.PHs.stride(PH);
+      const E_Int* pgs = ng.PHs.get_facets_ptr(PH);
+      const E_Int* neighs = neighbors.get_facets_ptr(PH);
+
+      for (E_Int i = 0; i < nb_pgs; ++i)
+      {
+        E_Int PGi = *(pgs + i) - 1;
+        E_Int nb_nodes = ng.PGs.stride(PGi);
+        const E_Int* nodes = ng.PGs.get_facets_ptr(PGi);
+
+
+        // does PGi contain N0 ?
+        bool is_in = false;
+        for (E_Int n = 0; n < nb_nodes; ++n)
+        {
+          if (*(nodes + n) == N0)
+          {
+            is_in = true;
+            break;
+          }
+        }
+        if (!is_in)
+          continue;
+
+        // is the neighbor unprocesed ?
+        E_Int PHn = *(neighs + i);// neighbors.get_facet(PH, i);
+        if (PHn == IDX_NONE)
+          continue;
+        if (processed.find(PHn) != processed.end())
+          continue;
+
+        pool.push_back(PHn);
+      }
+    }
+  }
+
 ///
 static void ph_shell(const ngon_t& ng, E_Int PHi, const ngon_unit& neighbors, Vector_t<E_Int>& shellPHs, Vector_t<E_Int>&boundPGs, Vector_t<bool>& wprocess)
 {
@@ -5356,6 +5410,174 @@ static E_Int discard_holes_by_box(const K_FLD::FloatArray& coord, ngon_t& wNG)
   wNG.flag_external_phs(INITIAL_SKIN);//update consistently PHs flags
 
   return 0;
+}
+
+template <typename TriangulatorType>
+static int validate_moves_by_fluxes
+(
+  std::vector<int>& nids,
+  const K_FLD::FloatArray& crd,
+  ngon_t& ngio,
+  const ngon_unit& neighborsi,
+  const std::vector<int>& PHlist
+)
+{
+  bool has_moves = false;
+  // identify moves as neg vals, then validate by setting them positive
+  for (size_t n = 0; n < nids.size(); ++n)
+  {
+    if (nids[n] != n)
+    {
+      nids[n] = -nids[n] - 1;
+      has_moves=true;
+    }
+  }
+
+  if (!has_moves) return 0;
+
+  ngon_unit orient;
+  E_Int err = build_orientation_ngu<TriangulatorType>(crd, ngio, orient);//fixme hpc : should be deduced from the input PH orientation
+
+                                                                                    //computes initial flux at cells
+  std::vector<double> fluxes0(ngio.PHs.size());
+
+  for (size_t i = 0; i < PHlist.size(); ++i)
+  {
+    E_Int PHi = PHlist[i];
+    K_MESH::Polyhedron<0> PH0(ngio, PHi);
+    double fluxvec[3];
+    PH0.flux(crd, orient.get_facets_ptr(PHi), fluxvec);
+
+    E_Float f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+    E_Float s = PH0.surface(crd);
+    f /= s;
+
+    fluxes0[PHi] = f;
+  }
+
+  // volumes
+  std::vector<double> vols0;
+  err = volumes<TriangulatorType>(crd, ngio, vols0, false, true);//fixme : hpc
+
+  Vector_t<bool> keep, wprocessed/*externalized to not reallocate it each time*/;
+  Vector_t<E_Int> to_remove;
+  Vector_t<E_Int> shellPHs, boundPGs, pgnids, nidsshell;
+  ngon_t ngshell;
+  K_CONNECT::IdTool::init_inc(nidsshell, crd.cols());
+
+  for (size_t i = 0; i < PHlist.size(); ++i) //fixme : shell might contain more than one bad ph => process by group of bads ?
+  {
+    E_Int PHi = PHlist[i];
+    //std::cout << "PHi : " << PHi << std::endl;
+    
+
+    // apply all node moves for PHi (fixme : shell might contain more than one bad ph => process by group of bads ?)
+    const int* faces = ngio.PHs.get_facets_ptr(PHi);
+    int nfaces = ngio.PHs.stride(PHi);
+
+    has_moves = false;
+
+    for (size_t f = 0; f < nfaces; ++f)
+    {
+      E_Int Fi = faces[f] - 1;
+      const int* nodes = ngio.PGs.get_facets_ptr(Fi);
+      int nnodes = ngio.PGs.stride(Fi);
+
+      for (size_t n = 0; n < nnodes; ++n)
+      {
+        E_Int Ni = nodes[n] - 1;
+        if (nids[Ni] >= 0) nidsshell[Ni] = nids[Ni];
+        else {
+          nidsshell[Ni] = -nids[Ni] - 1;
+          has_moves = true;
+        }
+      }
+    }
+
+    if (!has_moves) continue; //static shell
+
+    //std::cout << "compute shell for " << PHlist[i] << std::endl;
+    shellPHs.clear();
+    boundPGs.clear();
+    keep.clear();
+    keep.resize(ngio.PHs.size(), false);
+
+    ph_shell(ngio, PHi, neighborsi, shellPHs, boundPGs, wprocessed);
+
+    double maxflux = fluxes0[PHi];
+    double minvol = vols0[PHi];
+    for (size_t u = 0; u < shellPHs.size(); ++u) {
+      maxflux = std::max(maxflux, fluxes0[shellPHs[u]]);
+      minvol = std::min(minvol, vols0[shellPHs[u]]);
+    }
+
+    // extract shell
+    keep[PHi] = true;
+    for (size_t u = 0; u < shellPHs.size(); ++u)keep[shellPHs[u]] = true;
+
+    select_phs(ngio, keep, pgnids, ngshell);
+
+    ngshell.PGs.change_indices(nidsshell);
+    clean_connectivity(ngshell, crd);
+
+    ngon_unit orientshell;
+    E_Int err = build_orientation_ngu<TriangulatorType>(crd, ngshell, orientshell);
+
+    // compute new max flux : must decrease to validate
+    double newmaxflux = -1.;
+    double newminvol = NUGA::FLOAT_MAX;
+    TriangulatorType dt;
+    for (size_t u = 0; u < ngshell.PHs.size(); ++u)
+    {
+      K_MESH::Polyhedron<0> PH0(ngshell, u);
+      double fluxvec[3];
+      PH0.flux(crd, orientshell.get_facets_ptr(u), fluxvec);
+
+      E_Float f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+      E_Float s = PH0.surface(crd);
+      f /= s;
+
+      newmaxflux = std::max(newmaxflux, f);
+      double v;
+      PH0.volume<TriangulatorType>(crd, orientshell.get_facets_ptr(u), v, dt);
+      if (v < newminvol) newminvol = v;
+    }
+
+    if ( (newmaxflux <= maxflux) || (newmaxflux < ZERO_M && newminvol > minvol) )
+    {
+      // improvement => validate moves
+      for (size_t f = 0; f < nfaces; ++f)
+      {
+        E_Int Fi = faces[f] - 1;
+        const int* nodes = ngio.PGs.get_facets_ptr(Fi);
+        int nnodes = ngio.PGs.stride(Fi);
+
+        for (size_t n = 0; n < nnodes; ++n)
+        {
+          E_Int Ni = nodes[n] - 1;
+          if (nids[Ni] >= 0) continue;
+          nids[Ni] = -nids[Ni] - 1;
+        }
+      }
+    }
+    else
+    {
+      //std::cout << "current collapse strategy not good for PH : " << PHi << " => skipped" << std::endl;
+    }
+  }
+
+  // discard non-valids
+  for (size_t n = 0; n < nids.size(); ++n) if (nids[n] < 0)nids[n] = n;
+
+  int nb_valid_moves = 0;
+  for (size_t n = 0; n < nids.size(); ++n)
+  {
+    if (nids[n] != n)
+    {
+      ++nb_valid_moves;
+    }
+  }
+  return nb_valid_moves;
 }
     
   ngon_unit PGs;

@@ -15,6 +15,8 @@
 #include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/Triangle.h"
+#include "Nuga/include/IdTool.h"
+
 #define Vector_t std::vector
 
 
@@ -33,6 +35,8 @@ class Tetrahedron {
     static constexpr E_Int NB_EDGES = 6;
 
     typedef K_MESH::Triangle       boundary_type;
+
+    enum eShapeType { REGULAR, SPIKE, SLICE1, SLICE2, KNIFE1, KNIFE2, DELTA, UMBRELLA};
   
   public:
     Tetrahedron():_shift(0){}
@@ -82,6 +86,254 @@ class Tetrahedron {
         if (PGs.stride(*(first_pg + i) - 1) != 3) return false;
 
       return true;
+    }
+
+    eShapeType shape_type(const K_FLD::FloatArray& crd)
+    {
+      E_Int ns[4], nods[4][4];
+      K_MESH::Triangle::eDegenType ftype[4];
+      double FACTOR = 3;
+      
+      nods[0][0] = _nodes[0];
+      nods[0][1] = _nodes[1];
+      nods[0][2] = _nodes[2];
+      nods[0][3] = _nodes[3];
+      ftype[0] = K_MESH::Triangle::degen_type_angular(crd, nods[0][0], nods[0][1], nods[0][2], FACTOR, ns[0]);
+
+      nods[1][0] = _nodes[0];
+      nods[1][1] = _nodes[1];
+      nods[1][2] = _nodes[3];
+      nods[1][3] = _nodes[2];
+      ftype[1] = K_MESH::Triangle::degen_type_angular(crd, nods[1][0], nods[1][1], nods[1][2], FACTOR, ns[1]);
+
+      nods[2][0] = _nodes[1];
+      nods[2][1] = _nodes[2];
+      nods[2][2] = _nodes[3];
+      nods[2][3] = _nodes[0];
+      ftype[2] = K_MESH::Triangle::degen_type_angular(crd, nods[2][0], nods[2][1], nods[2][2], FACTOR, ns[2]);
+
+      nods[3][0] = _nodes[2];
+      nods[3][1] = _nodes[0];
+      nods[3][2] = _nodes[3];
+      nods[3][3] = _nodes[1];
+      ftype[3] = K_MESH::Triangle::degen_type_angular(crd, nods[3][0], nods[3][1], nods[3][2], FACTOR, ns[3]);
+
+      E_Int NB_OK{ 0 }, NB_SPIKES{ 0 }, NB_HATS{ 0 };
+
+      for (size_t k = 0; k < 4; ++k)
+      {
+        if (ftype[k] == K_MESH::Triangle::eDegenType::OK)
+          ++NB_OK;
+        else if (ftype[k] == K_MESH::Triangle::eDegenType::SPIKE)
+          ++NB_SPIKES;
+        else if (ftype[k] == K_MESH::Triangle::eDegenType::HAT)
+          ++NB_HATS;
+      }
+
+      if (NB_OK == 4)                           return REGULAR;
+      if (NB_HATS == 2 && NB_SPIKES == 2)
+      {
+        // reorder _nodes to have the first two with the mel => WARNING : UNORIENTED
+        E_Int n[4], count(0);
+        if (ftype[0] == K_MESH::Triangle::eDegenType::HAT)
+        {
+          n[count++] = nods[0][ns[0]];
+        }
+        if (ftype[1] == K_MESH::Triangle::eDegenType::HAT)
+        {
+          n[count++] = nods[1][ns[1]];
+        }
+        if (ftype[2] == K_MESH::Triangle::eDegenType::HAT)
+        {
+          n[count++] = nods[2][ns[2]]; 
+        }
+        if (ftype[3] == K_MESH::Triangle::eDegenType::HAT)
+        {
+          n[count++] = nods[3][ns[3]];
+        }
+        assert(count == 2);
+
+        // fills remaining
+        for (size_t k = 0; k < 4; ++k)
+          if (_nodes[k] != n[0] && _nodes[k] != n[1])
+            n[count++] = _nodes[k];
+
+        assert(count == 4);
+
+        for (size_t k = 0; k < 4; ++k)
+          _nodes[k] = n[k];
+
+        return KNIFE2;
+      }
+      if (NB_HATS == 1 /*&& NB_SPIKES == 0*/)
+      {
+        if (ftype[0] == K_MESH::Triangle::eDegenType::HAT)
+        {
+          _nodes[0] = nods[0][ns[0]];           // reflex node
+          _nodes[1] = nods[0][(ns[0] + 1) % 3]; // first node of opposite edge to split
+          _nodes[2] = nods[0][(ns[0] + 2) % 3]; // second node of opposite edge to split
+          _nodes[3] = nods[0][3];               // last tet node
+        }
+        else if (ftype[1] == K_MESH::Triangle::eDegenType::HAT)
+        {
+          _nodes[0] = nods[1][ns[1]];           // reflex node
+          _nodes[1] = nods[1][(ns[1] + 1) % 3]; // first node of opposite edge to split
+          _nodes[2] = nods[1][(ns[1] + 2) % 3]; // second node of opposite edge to split
+          _nodes[3] = nods[1][3];               // last tet node
+        }
+        else if (ftype[2] == K_MESH::Triangle::eDegenType::HAT)
+        {
+          _nodes[0] = nods[2][ns[2]];           // reflex node
+          _nodes[1] = nods[2][(ns[2] + 1) % 3]; // first node of opposite edge to split
+          _nodes[2] = nods[2][(ns[2] + 2) % 3]; // second node of opposite edge to split
+          _nodes[3] = nods[2][3];               // last tet node
+        }
+        else if (ftype[3] == K_MESH::Triangle::eDegenType::HAT)
+        {
+          _nodes[0] = nods[3][ns[3]];           // reflex node
+          _nodes[1] = nods[3][(ns[3] + 1) % 3]; // first node of opposite edge to split
+          _nodes[2] = nods[3][(ns[3] + 2) % 3]; // second node of opposite edge to split
+          _nodes[3] = nods[3][3];               // last tet node
+        }
+
+        return DELTA;
+      }
+      if (NB_HATS >= 3)
+      {
+        //todo
+
+        return KNIFE1;
+      }
+
+      if (NB_SPIKES >= 2) // SLICE1, SLICE2 or SPIKE ?
+      {
+        const double * P0 = crd.col(_nodes[0]);
+        const double * P1 = crd.col(_nodes[1]);
+        const double * P2 = crd.col(_nodes[2]);
+        const double * P3 = crd.col(_nodes[3]);
+
+        std::pair<double, int> palma[4];
+
+        palma[0] = std::make_pair(K_MESH::Triangle::surface<3>(P0, P1, P2), 1);
+        palma[1] = std::make_pair(K_MESH::Triangle::surface<3>(P0, P1, P3), 2);
+        palma[2] = std::make_pair(K_MESH::Triangle::surface<3>(P2, P0, P3), 4);
+        palma[3] = std::make_pair(K_MESH::Triangle::surface<3>(P1, P2, P3), 8);
+
+        std::sort(palma, palma + 4);
+
+        if (FACTOR * palma[0].first < palma[1].first) // smin << 3 others
+        {
+          // reorder _nodes to have the first three to collapse => WARNING : UNORIENTED
+          if (palma[0].second == 2) std::swap(_nodes[2], _nodes[3]);
+          else if (palma[0].second == 4) std::swap(_nodes[1], _nodes[3]);
+          else if (palma[0].second == 8) std::swap(_nodes[0], _nodes[3]);
+
+          return SPIKE;
+        }
+
+        bool is_slice1 = (NB_OK == 2 && NB_SPIKES == 2) || (FACTOR * palma[1].first < palma[2].first); // smin1 & smin2 << 2 others
+
+        if (is_slice1) 
+        {
+          // reorder _nodes to have the first two to collapse => WARNING : UNORIENTED
+
+          if (palma[0].second + palma[1].second == 5) // N0 & N2 to collapse
+          {
+            std::swap(_nodes[1], _nodes[2]);
+          }
+          else if (palma[0].second + palma[1].second == 9) // N1 & N2 to collapse
+          {
+            std::swap(_nodes[0], _nodes[2]);
+          }
+          else if (palma[0].second + palma[1].second == 6) // N0 & N3 to collapse
+          {
+            std::swap(_nodes[1], _nodes[3]);
+          }
+          else if (palma[0].second + palma[1].second == 10) // N1 & N3 to collapse
+          {
+            std::swap(_nodes[0], _nodes[3]);
+          }
+          else if (palma[0].second + palma[1].second == 12) // N2 & N3 to collapse
+          {
+            K_CONNECT::IdTool::right_shift<4>(_nodes, 2);
+          }
+
+          return SLICE1;
+        }
+
+        // SLICE 2
+        // reorder _nodes to have the first two to collapse , the third and fourth to collapse too => WARNING : UNORIENTED
+        if (NB_SPIKES != 4)
+          std::cout << "LOGIC ERROR" << std::endl;
+
+        int count = 0; //fist 2 spike should be enough
+        int pairs[2][2];
+        if (ftype[0] == K_MESH::Triangle::eDegenType::SPIKE)
+        {
+          pairs[count][0] = nods[0][(ns[0] + 1) % 3]; // the two nodes but ns[0]
+          pairs[count++][1] = nods[0][(ns[0] + 2) % 3];
+        }
+        if (ftype[1] == K_MESH::Triangle::eDegenType::SPIKE)
+        {
+          pairs[count][0] = nods[1][(ns[1] + 1) % 3]; // the two nodes but ns[0]
+          pairs[count++][1] = nods[1][(ns[1] + 2) % 3];
+        }
+        if (ftype[2] == K_MESH::Triangle::eDegenType::SPIKE && count < 2)
+        {
+          pairs[count][0] = nods[2][(ns[2] + 1) % 3]; // the two nodes but ns[0]
+          pairs[count++][1] = nods[2][(ns[2] + 2) % 3];
+        }
+        if (ftype[3] == K_MESH::Triangle::eDegenType::SPIKE && count < 2)
+        {
+          pairs[count][0] = nods[3][(ns[3] + 1) % 3]; // the two nodes but ns[0]
+          pairs[count++][1] = nods[3][(ns[3] + 2) % 3];
+        }
+
+        assert(count == 2);
+        assert(pairs[0][0] != pairs[1][0]);
+        assert(pairs[0][0] != pairs[1][1]);
+        assert(pairs[0][1] != pairs[1][0]);
+        assert(pairs[0][1] != pairs[1][1]);
+
+        _nodes[0] = pairs[0][0];
+        _nodes[1] = pairs[0][1];
+        _nodes[2] = pairs[1][0];
+        _nodes[3] = pairs[1][1];
+
+        return SLICE2;
+      }
+
+      //if (NB_SPIKES == 4) return SLICE2;
+      //if (NB_SPIKES >= 3) return SPIKE;
+      //if (NB_SPIKES == 2) return SLICE1;
+      
+      return REGULAR;
+    }
+
+    template <typename ngunit_t>
+    inline static int get_opposite_face_to_node(const ngunit_t & PGs, const E_Int* first_pg, E_Int N)
+    {
+      // Fopp is the face not having N
+
+      for (size_t f = 0; f < 4; ++f)
+      {
+        E_Int Fi = first_pg[f] - 1;
+        const E_Int* nodes = PGs.get_facets_ptr(Fi);
+        int nnodes = PGs.stride(Fi);
+        bool hasN = false;
+        for (size_t n = 0; n < 3; ++n)
+        {
+          if (N == (nodes[n] - 1))
+          {
+            hasN = true;
+            break;
+          }
+        }
+
+        if (!hasN) return Fi;
+      }
+
+      return IDX_NONE;
     }
     
     inline E_Int node(E_Int i){return _nodes[i]+_shift;}

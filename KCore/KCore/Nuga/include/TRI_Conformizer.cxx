@@ -326,7 +326,7 @@ TRI_Conformizer<DIM>::__split_Elements
           MIO::write("contour_init.mesh", tmp, ci2, "BAR");
         }*/
 
-        for (size_t u = 0; u < pi.cols(); ++u)
+        for (int u = 0; u < pi.cols(); ++u)
         {
           pi(0, u) = (pi(0, u) - box.minB[0]) / dX;
           pi(1, u) = (pi(1, u) - box.minB[1]) / dY;
