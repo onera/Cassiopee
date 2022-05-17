@@ -933,9 +933,9 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
       joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
       for j in joins:
           oldname = Internal.getValue(j)
-          if oldname in newname:
+          if oldname in newname2:
               Internal.setValue(j,newname2[oldname])
-        
+              
     iz = -1
     for z in z2s:
       iz +=1
