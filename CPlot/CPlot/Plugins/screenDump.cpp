@@ -322,6 +322,8 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   }
   free(depth);
 
+  MPI_Barrier(MPI_COMM_WORLD); // seems needed
+
 #else
   printf("Error: CPlot: mesa offscreen or MPI unavailable.\n");
 #endif

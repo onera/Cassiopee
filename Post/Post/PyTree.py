@@ -349,9 +349,9 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
                     C.setFields([fq], z, 'centers')
                 else:
                     if PE is not None:
-                        (PE2,fp) = Post.selectCells(ft, F, fb, varStrings, strict, PE[1], cleanConnectivity) 
+                        (PE2,fp) = Post.selectCells(fa, F, fb, varStrings, strict, PE[1], cleanConnectivity) 
                     else:
-                        fp = Post.selectCells(ft, F, fb, varStrings, strict, None, cleanConnectivity)      
+                        fp = Post.selectCells(fa, F, fb, varStrings, strict, None, cleanConnectivity)      
                         
                 C.setFields([fp], z, 'nodes')
                 

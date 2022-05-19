@@ -73,6 +73,9 @@ List of functions
    Generator.octree2Struct
    Generator.adaptOctree
    Generator.expandLayer
+   Generator.PyTree.cartRx
+   Generator.PyTree.cartRx2
+   Generator.PyTree.cartRx3
 
 **-- Operations on meshes**
 
@@ -1103,6 +1106,81 @@ Cartesian grid generators
     * `Expansion of user-specified level in an octree grid (pyTree) <Examples/Generator/expandLayerPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/expandLayerPT.py
+
+---------------------------------------
+
+.. py:function:: Generator.cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False, rank=None, size=None)
+
+    Create a set of regular cartesian grids.
+    If depth > 0, an overlap of depth cells is added between grids.
+    When used in parallel, the set of grids is distributed. 
+
+    :param X0: first point coordinates
+    :type  X0: tuple of 3 floats
+    :param H: steps of grids
+    :type  H: tuple of 3 floats
+    :param N: number of points in each direction for each block
+    :type  N: tuple of 3 integers
+    :param Nb: number of blocks in each direction
+    :type  Nb: tuple of 3 floats
+    :param depth: number of overlap cells between cartesian grids
+    :type  depth: integer
+    :param addCellN: if True and depth > 0, add cellN field
+    :type  addCellN: boolean
+    :param addBCMatch: if True and depth=0, create BCMatch
+    :type  addBCMatch: boolean
+    :param rank: current rank when running in parallel
+    :type  rank: integer
+    :param size: current number of procs when running in parallel
+    :type  size: integer
+    
+    :return: regular cartesian set of grids
+    :rtype: list of zones
+
+    *Example of use:*
+
+    * `Generation of a set of regular cartesian grids (pyTree) <Examples/Generator/cartRxPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/cartRxPT.py
+
+---------------------------------------
+
+.. py:function:: Generator.cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None)
+
+    Create a set of regular and geometric cartesian grids with double steps.
+    The mesh is made of a regular cartesian core and border grids are geometric cartesian grids.
+    When used in parallel, the set of grids is distributed. 
+
+    :param XC0: first point of cartesian core
+    :type  XC0: tuple of 3 floats
+    :param XC1: last of of cartesian core
+    :type  XC1: tuple of 3 floats
+    :param HC: core cartesian steps
+    :type  HC: tuple of 3 floats
+    :param XF0: first point of geometric region
+    :type  XF0: tuple of 3 floats
+    :param XF1: last point of geometric region
+    :type  XF1: tuple of 3 floats
+    :param R: geometric factor in each direction
+    :type  R: tuple of 3 floats
+    :param dim: space dimension
+    :type  dim: 2 or 3
+    :param rank: current rank when running in parallel
+    :type  rank: integer
+    :param size: current number of procs when running in parallel
+    :type  size: integer
+    
+    :return: cartesian set of grids
+    :rtype: list of zones
+
+    *Example of use:*
+
+    * `Generation of a set of regular and geometric cartesian grids (pyTree) <Examples/Generator/cartRx2PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/cartRx2PT.py
+
+
+
 
 Operations on meshes
 ---------------------------------------

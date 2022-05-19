@@ -537,13 +537,22 @@ def _extractPn(teff):
 # Extract Force
 # IN: centers:Pressure
 # IN: centers:ShearStress
-# F = -p.n + tau.n
-def _extractForce(teff):
+# IN: si withPinf = None: F = -p.n + tau.n
+#     sinon F = -(p-pinf).n + tau.n
+def _extractForce(teff, withPInf=None):
     G._getNormalMap(teff)
     C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
-    C._initVars(teff, '{centers:Fx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}-{centers:Pressure}*{centers:sx}')
-    C._initVars(teff, '{centers:Fy} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}-{centers:Pressure}*{centers:sy}')
-    C._initVars(teff, '{centers:Fz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}-{centers:Pressure}*{centers:sz}')
+    if withPInf is None:
+        C._initVars(teff, '{centers:Fx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}-{centers:Pressure}*{centers:sx}')
+        C._initVars(teff, '{centers:Fy} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}-{centers:Pressure}*{centers:sy}')
+        C._initVars(teff, '{centers:Fz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}-{centers:Pressure}*{centers:sz}')
+    else:
+        C._initVars(teff, f'{{centers:Fx}} = ({{centers:Pressure}}-{withPInf})*{{centers:sx}}')
+        C._initVars(teff, f'{{centers:Fy}} = ({{centers:Pressure}}-{withPInf})*{{centers:sy}}')
+        C._initVars(teff, f'{{centers:Fz}} = ({{centers:Pressure}}-{withPInf})*{{centers:sz}}')
+        C._initVars(teff, '{centers:Fx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}-{centers:Fx}')
+        C._initVars(teff, '{centers:Fy} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}-{centers:Fy}')
+        C._initVars(teff, '{centers:Fz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}-{centers:Fz}')
     return None
 
 # Extract tangential friction vector

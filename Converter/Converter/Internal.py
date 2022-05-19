@@ -4456,6 +4456,17 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                 c = getNodeFromName1(sons[NFACE], 'ElementConnectivity')
                 if c is not None and c[1] is not None: c[1] = numpy.absolute(c[1])
 
+            # Si ParentElement, regarde si il adresse les elements decales du nbre de faces de NGON
+            #if NGON >= 0:
+            #    ngon = sons[NGON]
+            #    parentElt = getNodeFromName1(ngon, 'ParentElements')
+            #    if parentElt is not None and parentElt[1] is not None: # parent element est present
+            #        cFE = parentElt[1]
+            #        shift = numpy.min(cFE[numpy.nonzero(cFE)])
+            #        if shift > 1:
+            #            cFE = cFE+(1-shift)*(cFE>0)
+            #            parentElt[1] = cFE
+
             # Si NGON, ajoute NFace si manquant
             if addNFace == True and NFACE == -1 and NGON >= 0:
                 # Essaie de transformer la connectivite ParentElements en NFACE

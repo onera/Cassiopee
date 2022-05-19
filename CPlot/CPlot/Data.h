@@ -31,6 +31,9 @@
 #define SCALARFIELD 3
 #define VECTORFIELD 4
 
+// cutoff pour les isos
+#define ISOCUTOFF 1.e-12
+
 #ifdef __SHADERS__
 #include "GL/glew.h"
 #include "ShaderManager.h"

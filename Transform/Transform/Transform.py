@@ -828,9 +828,9 @@ def joins__(array1, array2, tol):
             return transform.join(a, array2, tol)
         else: return transform.join(array1, array2, tol)
 
-def patch(a1, a2, position=None, nodes=None):
+def patch(a1, a2, position=None, nodes=None, order=None):
     """Patch mesh2 defined by a2 in mesh1 defined by a1 at position (i,j,k).
-    Usage: patch(a1, a2, (i,j,k))"""
+    Usage: patch(a1, a2, (i,j,k))"""    
     import numpy
     if (isinstance(a1[0], list) or isinstance(a2[0], list)):
         raise TypeError("patch: not for a list of arrays.")
@@ -838,6 +838,7 @@ def patch(a1, a2, position=None, nodes=None):
         raise TypeError("patch: either position or nodes must be defined.")
     if position is not None and nodes is not None:
         raise TypeError("patch: position and nodes can not be both defined.")
+    if order is not None: a2 = reorder(a2, order)
     if position is not None:
         return transform.patch(a2, a1, position)
     elif nodes is not None:

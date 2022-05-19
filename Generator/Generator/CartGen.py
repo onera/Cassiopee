@@ -224,6 +224,8 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                 PtRangeDonor[2,1] = kmaxDonor
 
     # SplitNParts on core
+    if size is None: size = 1
+    if rank is None: rank = 0    
     b = Internal.getNodeFromName(t, 'CARTESIAN')
     T._splitNParts(b, N=size, topTree=t)
     D2._distribute(b, NProc=size, algorithm='fast')
@@ -402,6 +404,8 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                 PtRangeDonor[2,1] = kmaxDonor
 
     # SplitNParts on core
+    if size is None: size = 1
+    if rank is None: rank = 0    
     b = Internal.getNodeFromName(t, 'CARTESIAN')
     T._splitNParts(b, N=size, topTree=t)
     D2._distribute(b, NProc=size, algorithm='fast')

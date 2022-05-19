@@ -63,16 +63,16 @@ switch (zonep->material)
     }
     else 
     { 
-      float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      double rmin, rmax, alpha, beta;
+      double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
-      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
-      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      double amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      double amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax); 
     }
@@ -119,16 +119,16 @@ switch (zonep->material)
     }
     else 
     { 
-      float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      double rmin, rmax, alpha, beta;
+      double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
-      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
-      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      double amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      double amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
@@ -170,16 +170,16 @@ switch (zonep->material)
     }
     else 
     { 
-      float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      double rmin, rmax, alpha, beta;
+      double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
-      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
-      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      double amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      double amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
@@ -214,16 +214,16 @@ switch (zonep->material)
     }
     else 
     { 
-      float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      double rmin, rmax, alpha, beta;
+      double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
-      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
-      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      double amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      double amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
@@ -257,10 +257,10 @@ switch (zonep->material)
     else 
     { 
       float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      float deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
@@ -299,16 +299,16 @@ switch (zonep->material)
     }
     else 
     { 
-      float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      double rmin, rmax, alpha, beta;
+      double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
-      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
-      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      double amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      double amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
@@ -340,16 +340,16 @@ switch (zonep->material)
     }
     else 
     { 
-      float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      double rmin, rmax, alpha, beta;
+      double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
-      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
-      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      double amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      double amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
@@ -386,16 +386,16 @@ switch (zonep->material)
     }
     else 
     { 
-      float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      double rmin, rmax, alpha, beta;
+      double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
-      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
-      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      double amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      double amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
@@ -428,16 +428,16 @@ switch (zonep->material)
     }
     else 
     { 
-      float rmin, rmax, alpha, beta;
-      float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
+      double rmin, rmax, alpha, beta;
+      double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
+      alpha = 1./MAX(rmax-rmin, ISOCUTOFF); beta = -rmin*alpha;
       _shaders[shader]->setUniform("niso", (float)_niso[nofield]);
       _shaders[shader]->setUniform("alpha", (float)alpha);
       _shaders[shader]->setUniform("beta", (float)beta);
-      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
-      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      double amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      double amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax); 
     }

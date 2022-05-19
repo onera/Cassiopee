@@ -325,21 +325,21 @@ def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
     A = C.identifyBC(A, allBCInfos, tol)
     return A
 
-def patch(t1, t2, position=None, nodes=None):
+def patch(t1, t2, position=None, nodes=None, order=None):
     """Patch mesh2 defined by t2 in mesh1 defined by t1
     at position (i,j,k).
     Usage: patch(t1, t2, (i,j,k))"""
     tp1 = Internal.copyRef(t1)
-    _patch(tp1, t2, position=position, nodes=nodes)
+    _patch(tp1, t2, position=position, nodes=nodes, order=order)
     return tp1
 
-def _patch(t1, t2, position=None, nodes=None):
+def _patch(t1, t2, position=None, nodes=None, order=None):
     """Patch mesh2 defined by t2 in mesh1 defined by t1 at position (i,j,k)."""
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(t2)
     for z1,z2 in zip(zones1, zones2):
       a2 = C.getAllFields(z2, 'nodes')[0]
-      C._TZA(z1, 'nodes', 'nodes', Transform.patch, None, a2, position, nodes)
+      C._TZA(z1, 'nodes', 'nodes', Transform.patch, None, a2, position, nodes, order)
     return None
 
 #===============

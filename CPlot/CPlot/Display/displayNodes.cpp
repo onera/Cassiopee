@@ -42,7 +42,7 @@
     pt3[2] = zi + pru2; \    
     pt4[0] = xi - mru0; \
     pt4[1] = yi - mru1; \
-    pt4[2] = zi - mru2; \                
+    pt4[2] = zi - mru2; \          
     glTexCoord2f(0.0, 0.0); glVertex3dv(pt1); \
     glTexCoord2f(1.0, 0.0); glVertex3dv(pt2); \
     glTexCoord2f(1.0, 1.0); glVertex3dv(pt3); \
