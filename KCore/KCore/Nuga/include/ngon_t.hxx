@@ -5438,9 +5438,10 @@ static int validate_moves_by_fluxes
   ngon_unit orient;
   E_Int err = build_orientation_ngu<TriangulatorType>(crd, ngio, orient);//fixme hpc : should be deduced from the input PH orientation
 
-                                                                                    //computes initial flux at cells
-  std::vector<double> fluxes0(ngio.PHs.size());
+  std::vector<double> fluxes0(ngio.PHs.size(), NUGA::FLOAT_MAX);
+  std::vector<double> vols0  (ngio.PHs.size(), NUGA::FLOAT_MAX);
 
+  //computes initial flux at cells
   for (size_t i = 0; i < PHlist.size(); ++i)
   {
     E_Int PHi = PHlist[i];
@@ -5455,15 +5456,13 @@ static int validate_moves_by_fluxes
     fluxes0[PHi] = f;
   }
 
-  // volumes
-  std::vector<double> vols0;
-  err = volumes<TriangulatorType>(crd, ngio, vols0, false, true);//fixme : hpc
 
   Vector_t<bool> keep, wprocessed/*externalized to not reallocate it each time*/;
   Vector_t<E_Int> to_remove;
   Vector_t<E_Int> shellPHs, boundPGs, pgnids, nidsshell;
   ngon_t ngshell;
   K_CONNECT::IdTool::init_inc(nidsshell, crd.cols());
+  TriangulatorType dt;
 
   for (size_t i = 0; i < PHlist.size(); ++i) //fixme : shell might contain more than one bad ph => process by group of bads ?
   {
@@ -5505,10 +5504,21 @@ static int validate_moves_by_fluxes
     ph_shell(ngio, PHi, neighborsi, shellPHs, boundPGs, wprocessed);
 
     double maxflux = fluxes0[PHi];
-    double minvol = vols0[PHi];
-    for (size_t u = 0; u < shellPHs.size(); ++u) {
-      maxflux = std::max(maxflux, fluxes0[shellPHs[u]]);
-      minvol = std::min(minvol, vols0[shellPHs[u]]);
+    double minvol  = NUGA::FLOAT_MAX;
+
+    for (size_t u = 0; u < shellPHs.size(); ++u)
+    {
+      E_Int PHn = shellPHs[u];
+      maxflux = std::max(maxflux, fluxes0[PHn]);
+
+      auto & v = vols0[PHn];
+      if (v == NUGA::FLOAT_MAX)  //compite it
+      {
+        K_MESH::Polyhedron<0> PH0(ngio, PHn);
+        PH0.volume<TriangulatorType>(crd, orient.get_facets_ptr(PHn), v, dt);
+      }
+
+      minvol = std::min(minvol, v);
     }
 
     // extract shell
@@ -5518,7 +5528,7 @@ static int validate_moves_by_fluxes
     select_phs(ngio, keep, pgnids, ngshell);
 
     ngshell.PGs.change_indices(nidsshell);
-    clean_connectivity(ngshell, crd);
+    clean_connectivity(ngshell, crd, 3, 0.);
 
     ngon_unit orientshell;
     E_Int err = build_orientation_ngu<TriangulatorType>(crd, ngshell, orientshell);

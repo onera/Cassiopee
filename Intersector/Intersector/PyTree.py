@@ -156,7 +156,7 @@ def InputType(t): # fixme : based on first block only
 
 # OUT: returns the adapted feature
 #==============================================================================
-def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False):
+def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False, tol = 0.):
 
     if keep_BC == False:
       C._deleteGridConnectivity__(t)
@@ -170,7 +170,10 @@ def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False):
     t = C.convertArray2NGon(t, recoverBC=keep_BC)
     #C.convertPyTree2File(t, 'tNG.cgns')
     # compute relevant tolerance : 1% of the minimum edge length
-    TOL = 0.01 * edgeLengthExtrema(t)
+    TOL = tol
+    if TOL == 0. :
+      TOL = 0.1 * edgeLengthExtrema(t)
+    
     t = concatenate(t, tol = TOL)
 
     valid = True
@@ -935,7 +938,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
           oldname = Internal.getValue(j)
           if oldname in newname2:
               Internal.setValue(j,newname2[oldname])
-              
+        
     iz = -1
     for z in z2s:
       iz +=1

@@ -811,17 +811,21 @@ PyObject* K_INTERSECTOR::collapseSmallEdges(PyObject* self, PyObject* args)
   do
   {
     //double npgs0 = ngi.PGs.size();
-    //std::cout << "iter : " << iter++ << std::endl;
-     ngi.collapse_micro_edge(crd, edge_ratio, Lmax, nids);
+    //std::cout << "collapse iter : " << iter++ << std::endl;
+
+    //std::cout << "collapse_micro_edge" << std::endl;
+    ngi.collapse_micro_edge(crd, edge_ratio, Lmax, nids);
 
     //validate/invalidate moves by flux
     ngon_unit neighborsi;
     ngi.build_ph_neighborhood(neighborsi);
     std::vector<int> PHlist;
     K_CONNECT::IdTool::init_inc(PHlist, ngi.PHs.size());
+    //std::cout << "validate_moves_by_fluxes" << std::endl;
     int nb_valid_moves = ngon_type::validate_moves_by_fluxes<DELAUNAY::Triangulator>(nids, crd, ngi, neighborsi, PHlist);
     //std::cout << "nb valid moves : " << nb_valid_moves << std::endl;
     carry_on=(nb_valid_moves > 0);
+    //std::cout << "clean_connectivity" << std::endl;
     ngi.PGs.change_indices(nids);
     ngon_type::clean_connectivity(ngi, crd, 3, 0., true/*remove dups*/); 
     //std::cout << "nb pgs : " << ngi.PGs.size() << std::endl;
