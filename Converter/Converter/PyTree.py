@@ -5333,8 +5333,9 @@ def computeBCMatchField(z,allMatch,variables=None):
 def extractBCMatch(zdonor,gc,dimzR,variables=None):
     # On verifie que gc donne le raccord dans zdonor 
     # ==============================================
+    # print("================================================")
     # print("zdonor :", zdonor[0])
-    # print("gc : ", gc)
+    # print("gc : ", gc[0])
     # if Internal.getValue(gc) != zdonor[0]:
         # raise ValueError("extractBCMatch: GridConnectivity doesn't match zdonor.")
 
@@ -5406,10 +5407,15 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
             jminR = wr[2] ; jmaxR = wr[3]
             kminR = wr[4] ; kmaxR = wr[5]
 
-
             iminD = wd[0] ; imaxD = wd[1]
             jminD = wd[2] ; jmaxD = wd[3]
             kminD = wd[4] ; kmaxD = wd[5]
+
+            sizeR = (imaxR-iminR+1)*(jmaxR-jminR+1)*(kmaxR-kminR+1)
+            sizeD = (imaxD-iminD+1)*(jmaxD-jminD+1)*(kmaxD-kminD+1)
+
+            if (sizeR != sizeD):
+              raise ValueError("extractBCMatch. Not a coincident match: ", gc[0])
 
             niR   = dimzR[1]-1 
             njR   = dimzR[2]-1
@@ -5457,6 +5463,10 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
                                                      Internal.__FlowSolutionNodes__,
                                                      Internal.__FlowSolutionCenters__)
 
+    # print("len(indR): ", len(indR))
+    # print("len(fldD): ", len(fldD[1][0]) )
+
+    
     return [indR,fldD]
 
 # ===================================================================================
