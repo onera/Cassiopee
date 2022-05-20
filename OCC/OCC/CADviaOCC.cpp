@@ -735,7 +735,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       auto& mode = mesher.mode;
       
       mode.chordal_error = _chordal_err;
-      
+      mode.symmetrize = false; //reset 
+
       if (aniso) mode.metric_mode = mode.ANISO;
 
 #ifndef DEBUG_CAD_READER
@@ -743,7 +744,6 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
       if (_gr <= 0.) // unspecified == OLD MODE
       {
-        mode.symmetrize = false;
         mode.hmax = _h;
         mode.growth_ratio = 0.;
       }

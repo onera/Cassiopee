@@ -94,6 +94,7 @@ static PyMethodDef Pyintersector [] =
   {"extractBiggestCell", K_INTERSECTOR::extractBiggestCell, METH_VARARGS},
   {"removeNthCell", K_INTERSECTOR::removeNthCell, METH_VARARGS},
   {"extractBadVolCells", K_INTERSECTOR::extractBadVolCells, METH_VARARGS},
+  {"extractOverConnectedCells", K_INTERSECTOR::extractOverConnectedCells, METH_VARARGS},
 
   {"getNthNeighborhood", K_INTERSECTOR::getNthNeighborhood, METH_VARARGS},
 

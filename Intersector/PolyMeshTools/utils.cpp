@@ -740,20 +740,8 @@ PyObject* K_INTERSECTOR::detectOverConnectedFaces(PyObject* self, PyObject* args
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  E_Int nb_phs = ngi.PHs.size();
-
-  std::vector<E_Int> pgs_occurrences(ngi.PGs.size(), 0);
-  for (E_Int i=0; i < nb_phs; ++i)
-  {
-    const E_Int * faces = ngi.PHs.get_facets_ptr(i);
-    E_Int stride = ngi.PHs.stride(i);
-
-    for(E_Int n=0; n < stride; ++n)
-    {
-      E_Int PGi = *(faces+n)-1;
-      ++pgs_occurrences[PGi];
-    }
-  }
+  std::vector<E_Int> pgs_occurrences;
+  ngi.get_facets_connexion_nb(pgs_occurrences);
 
   bool error = false;
   for (size_t i=0; i < pgs_occurrences.size(); ++i)
@@ -1532,6 +1520,70 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
   }
 
   //std::cout << "nb of bad cells found : " << badcount << " (over " << nphs << ")" << std::endl;
+
+  // extend with second neighborhood and separate from non-involved polyhedra
+  for (E_Int j=0; j< nneighs; ++j)
+    ngon_type::flag_neighbors(ngi, keep);
+    
+  ngon_type ngo;  
+  {
+    Vector_t<E_Int> ngpids;
+    ngi.select_phs(ngi, keep, ngpids, ngo);
+  }
+
+  ngon_type::compact_to_used_nodes(ngo.PGs, crd); //reduce points
+
+  K_FLD::IntArray cnto;
+  ngo.export_to_array(cnto);
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+PyObject* K_INTERSECTOR::extractOverConnectedCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  int nneighs{1};
+
+  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &nneighs)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  std::vector<E_Int> nfconnects;
+  ngi.get_facets_connexion_nb(nfconnects);
+
+  std::vector<bool> keep(ngi.PHs.size(), false);
+
+  for (size_t k = 0; k < ngi.PHs.size(); ++k)
+  {
+    int nf = ngi.PHs.stride(k);
+    const int* faces = ngi.PHs.get_facets_ptr(k);
+    int nb_overcon = 0;
+    for (size_t f = 0; f < nf; ++f)
+    {
+      int PGi = faces[f] - 1;
+      if (nfconnects[PGi] > 2) ++nb_overcon;
+    }
+    if (nb_overcon == nf) // => fully over connected
+    {
+      keep[k]= true;
+    }
+  }
 
   // extend with second neighborhood and separate from non-involved polyhedra
   for (E_Int j=0; j< nneighs; ++j)

@@ -2862,6 +2862,28 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     
     return nb_cells_w_baffles;
   }
+
+  ///
+  void get_facets_connexion_nb(Vector_t<E_Int>& nfconnects)
+  {
+    nfconnects.clear();
+    E_Int nb_facets = PGs.size();
+    E_Int nb_elts = PHs.size();
+
+    nfconnects.resize(nb_facets, 0);
+
+    for (E_Int i = 0; i < nb_elts; ++i)
+    {
+      const E_Int * faces = PHs.get_facets_ptr(i);
+      E_Int strid = PHs.stride(i);
+
+      for (E_Int n = 0; n < strid; ++n)
+      {
+        E_Int PGi = *(faces + n) - 1;
+        ++nfconnects[PGi];
+      }
+    }
+  }
   
   /// Warning : The coordinates are not cleaned, only the connectivity.
   static E_Int clean_connectivity

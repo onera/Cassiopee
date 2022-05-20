@@ -2688,6 +2688,28 @@ def extractBadVolCells(t, ar=0.125, vmin=0., nneighs=0):
     return om
 
 #==============================================================================
+# extractOverConnectedCells : XXX
+#==============================================================================
+def extractOverConnectedCells(t, nneighs=0):
+    """ XXX"""
+    import sys;
+    zones = Internal.getZones(t)
+    om = []
+    i=-1
+
+    for z in zones:
+      i+=1
+        
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      res=XOR.extractOverConnectedCells(m, nneighs)
+      res = C.convertArrays2ZoneNode('overcon_cells_z_'+str(i), [res])
+      if nb_cells(res) > 0:
+        print('extracting fully-over-connected cells for zone %d'%i)
+        om.append(res)
+
+    return om
+
+#==============================================================================
 # detectIdentitcalCells : detects (and optionally removes) geometrically identical cells 
 #======================================================================
 def detectIdenticalCells(t, TOL=1.e-15, clean=0):

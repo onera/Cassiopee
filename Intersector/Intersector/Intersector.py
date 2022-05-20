@@ -556,6 +556,16 @@ def extractBadVolCells(a, PE, ar=0.125, vmin=0., nneighs=0):
     return intersector.extractBadVolCells(a, PE, ar, vmin, nneighs)
 
 #==============================================================================
+# extractOverConnectedCells : XXX
+# IN: a          : 3D NGON mesh
+# OUT: rXXX
+#==============================================================================
+def extractOverConnectedCells(a, nneighs=0):
+    """ XXX
+    Usage: extractOverConnectedCells(a, nneighs)"""
+    return intersector.extractOverConnectedCells(a, nneighs)
+
+#==============================================================================
 # extractNthFace : Extracts the nth face in a NGON mesh
 # IN: a          : 3D NGON mesh
 # IN: nth        : face number
