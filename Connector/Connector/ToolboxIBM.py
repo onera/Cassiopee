@@ -2048,7 +2048,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
     if Reynolds is not None: Reynolds = Internal.getValue(Reynolds)
     else: Reynolds = 6.e6
-    if Reynolds < 1.e6: frontType = 1
+    if Reynolds < 1.e5: frontType = 1
     if frontType != 42:
         if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
         elif IBCType == 1:
@@ -2071,24 +2071,12 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
         X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
 
         for z in Internal.getZones(t):
-            # h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
             if yplus > 0.:
                 height = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
             else:
-                snears = Internal.getNodesFromName(tb, 'snear')
-                h = max(snears, key=lambda x: x[1])[1]
-                height, yplus = TIBM.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur approximation entre le snear et la hauteur de modelisation
-                yplus = int(yplus)
-                print('hmod = {}, yplus = {}'.format(height, yplus))
-            # Securite pour ne pas tomber en dehors de la sous-couche log
-            if yplus < 100:
-                print('WARNING, IB points laying in the buffer zone (yplus < 100), yplus set to 100')
-                yplus = 100
-                height = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
-            # Securite pour eviter de modeliser une trop grosse partie du domaine...
-            if height > 0.1:
-                print('WARNING, modeling height too important (hmod > 0.1), Hmod set to 0.1')
-                height = 0.1
+                height = TIBM.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+                yplus  = TIBM.computeYplus(Re=Reynolds, height=height, L=Lref)
             C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
 
         # Si wallAdapt, utilisation de la solution precedente pour ne garder que les pts cibles tq y+PC <= y+ref : rapproche le front de la paroi (utile proche bord d'attaque)
@@ -2096,33 +2084,31 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
         if wallAdapt is not None:
             C._initVars(t,'{centers:yplus}=100000.')
             w = C.convertFile2PyTree(wallAdapt)
-            yplus_w = Internal.getNodesFromName(w, 'yplus')[1]
             total = len(Internal.getZones(t))
             cpt = 1
             for z in Internal.getZones(t):
                 print("{} / {}".format(cpt, total))
                 cellN = Internal.getNodeFromName(z,'cellN')[1]
                 if 2 in cellN:
-                    yplus_z = Internal.getNodeFromName(z, 'yplus')[1]
-                    original_shape = numpy.shape(yplus_z)
-                    yplus_z = yplus_z.ravel(order='K')
-                    hook = C.createHook(z, function='elementCenters')
-                    nodes = C.identifyNodes(hook, w)
-                    for pos, node in enumerate(nodes):
-                        if node != -1:
-                            yplus_z[node-1]=yplus_w[pos]
-                    yplus_z = numpy.reshape(yplus_z, original_shape)
-                cpt += 1
+                    zname = z[0]
+                    zd = Internal.getNodeFromName(w, zname)
+                    if zd is not None:
+                        yplus_w = Internal.getNodeFromName(zd, 'yplus')[1]
+                        listIndices = Internal.getNodeFromName(zd, 'PointListDonor')[1]
+                        
+                        n = numpy.shape(yplus_w)[0]
+                        yplusA = Converter.array('yplus', n, 1, 1)
+                        yplusA[1][:] = yplus_w
 
+                        C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
+
+                cpt += 1
+             
             C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
 
         # Securite finale, on aura au min deux rangees de points cibles
-        # def maximum(x1, x2): return max(x1,x2)
-        # C._initVars(t,'centers:cellN', maximum, ['centers:cellN','centers:cellNMin'])
-        # del maximum
         C._initVars(t, '{centers:cellN} = maximum({centers:cellN}, {centers:cellNMin})')
         C._rmVars(t,['centers:yplus', 'centers:cellNMin'])
-
 
         # permet de ne garder que les deux rangees superieures (prises en compte par le solveur), mais complique l'adaptation suivante et la visualisation
         if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)

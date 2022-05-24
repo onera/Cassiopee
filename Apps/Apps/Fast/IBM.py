@@ -663,7 +663,6 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
         for z in Internal.getZones(t):
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-            C._initVars(z,'{centers:cellNMin}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(2.5*h,2.5*h))
             if yplus > 0.:
                 height = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
             else:
@@ -1295,6 +1294,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
 
         if twoFronts:
+            tc2 = transformTc2(tc2)
             Cmpi.convertPyTree2File(tc2, 'tc2.cgns', ignoreProcNodes=True)
             del tc2
 
@@ -2656,13 +2656,13 @@ def transformTc2(tc2):
 
                 Internal._rmNodesByName(zsr, 'KCurv')
 
-                if newBCType in [2, 3, 6, 10, 11]:
+                if ibctype in [2, 3, 6, 10, 11]:
                     utauNP  = numpy.zeros((nIBC),numpy.float64)
                     yplusNP = numpy.zeros((nIBC),numpy.float64)
                     zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
                     zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
 
-                if newBCType == 5:
+                if ibctype == 5:
                   stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
                   Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
                   stagnationPressure = numpy.zeros((nIBC),numpy.float64)
@@ -2674,11 +2674,11 @@ def transformTc2(tc2):
                   dirz = numpy.zeros((nIBC),numpy.float64)
                   Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
 
-                if newBCType == 100:
+                if ibctype == 100:
                     KCurvNP = numpy.zeros((nIBC),numpy.float64)
                     zsr[2].append(["KCurv" , KCurvNP , [], 'DataArray_t'])
 
-                if newBCType == 10 or newBCType == 11:
+                if ibctype == 10 or ibctype == 11:
                     gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
                     zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
                     gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
@@ -2686,7 +2686,7 @@ def transformTc2(tc2):
                     gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
                     zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
 
-                if newBCType == 11:
+                if ibctype == 11:
                     gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
                     zsr[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
                     gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
