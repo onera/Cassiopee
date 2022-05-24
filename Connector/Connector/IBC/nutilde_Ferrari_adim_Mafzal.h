@@ -1,23 +1,82 @@
 //initialisation Newton SA  + vitesse cible
-
 #ifdef _OPENM4
 #pragma omp simd
-#endif 
+#endif
 
 E_Float tol = 1.e-12;
 E_Float Cv1 = 7.1;
 
 for (E_Int noind = 0; noind < ifin-ideb; noind++)
 {
-  // printf(" noind = %d | utau = %g \n", noind, utau_vec[noind]);
-  yibc             = mu_vec[noind]*yplus_vec[noind]/ro_vec[noind];
-  yplus            = utau_vec[noind]*yplus_vec[noind];
-  yplus_vec[noind] = yplus;
-  
-  denoml10 = yplus*yplus-8.15*yplus+86.;
-  denoml10 = denoml10*denoml10;
-  
-  umod = utau_vec[noind]*(5.424*atan((2.*yplus-8.15)/16.7) + log10(pow(yplus+10.6,9.6)/denoml10) - 3.52);
+
+  utau_vec[noind] = std::max(utau_vec[noind], 1.e-12);
+
+  if (gradP_vec[noind] == 0.) {
+      gradP_vec[noind] = 0.;
+      utau_vec[noind] = utauOri_vec[noind];
+
+      yplus            = utau_vec[noind]*yplus_vec[noind];
+      yplus_vec[noind] = yplus;
+
+      denoml10 = yplus*yplus-8.15*yplus+86.;
+      denoml10 = denoml10*denoml10;
+
+      px  = gradP_vec[noind]/pow(utau_vec[noind],3);
+      
+      l11 = pow(yplus+10.6,9.6);
+      l12 = yplus*(yplus-8.15) + 86.;
+      l13 = (2.*yplus-8.15)/16.7;
+
+      l1 = 5.424*atan(l13) + log10(l11/(l12*l12)) - 3.52;
+      l2 = -2.*kappainv*log((sqrt(1.+px*yplus)+1.)/2.);
+      l3 = 2.*kappainv*(sqrt(1.+px*yplus)-1.);
+
+      umod = utau_vec[noind]*(l1 + l2 + l3);
+  }
+
+  else { 
+    //Mafzal s'applique - FULL VERSION
+    yplus = utau_vec[noind]*yplus_vec[noind];
+    yplus_vec[noind] = yplus;
+
+    denoml10 = yplus*yplus-8.15*yplus+86.;
+    denoml10 = denoml10*denoml10;
+
+    px  = gradP_vec[noind]/pow(utau_vec[noind],3);
+    
+    l11 = pow(yplus+10.6,9.6);
+    l12 = yplus*(yplus-8.15) + 86.;
+    l13 = (2.*yplus-8.15)/16.7;
+
+    l1 = 5.424*atan(l13) + log10(l11/(l12*l12)) - 3.52;
+    l2 = 0.;
+    l3 = 0.;
+
+    if (px > 0.){
+      if (MafzalMode == 1){
+        l2 = -2.*kappainv*log((sqrt(1.+px*yplus)+1.)/2.); //PRESSURE
+        l3 = 2.*kappainv*(sqrt(1.+px*yplus)-1.); //PRESSURE
+      }
+      else{
+        l2 = 2.*kappainv*log((sqrt(1.+px*yplus)+1.)/2.); //PRESSURE
+        l3 = 0.; //PRESSURE
+      }
+    }
+    else{
+      if (MafzalMode == 3){
+        px = -px;
+        l2 = -2.*kappainv*log((sqrt(1.+px*yplus)+1.)/2.); //PRESSURE
+        l3 = 0.; //PRESSURE
+      }
+      else{
+        l2 = 0.; //PRESSURE
+        l3 = 0.; //PRESSURE
+      }
+    }
+
+    umod = utau_vec[noind]*(l1 + l2 + l3);
+  }
+ 
   umod = K_FUNC::E_abs(umod);
 
   ucible0 = sign_vec[noind] * umod;
@@ -29,9 +88,8 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   uext = sqrt(ut_vec[noind]*ut_vec[noind]+vt_vec[noind]*vt_vec[noind]+wt_vec[noind]*wt_vec[noind]);
   uext = std::max(uext, 1.e-12);
 
-  // tcible_vec[noind] = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext - umod*umod); // Crocco-Busemann
-  twall = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext);
-  tcible_vec[noind] =  twall + (tcible_vec[noind] + 0.5*(uext*uext)/(cv*gamma) - twall)*(umod/uext) - 0.5*(umod*umod)/(cv*gamma); // Equations de Crocco, plus precises pour ecoulements compressibles (Benjamin's formula)
+
+  tcible_vec[noind] = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext - umod*umod); // Crocco-Busemann
 
   // van driest pour nut
   expy                = 1.-exp(-yplus/19.);// ranges 17 a 26
@@ -70,11 +128,11 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   E_Float superdelta = -27.*ap*ap*delta;
 
   //printf("delta %g superdelta>0 = %g\n", delta, superdelta);
-  
-  
+
+
   E_Float y1 = -1.;
   E_Float y2 = -1.;
-  if (fabs(delta) < tol && fabs(delta0) < tol) 
+  if (fabs(delta) < tol && fabs(delta0) < tol)
   {
     y1 = -bp/(3*ap);  //printf("racine y1=%g\n", y1);
   }
@@ -85,7 +143,7 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
     //printf("racine y1=%g y2=%g\n", y1, y2);
   }
   else
-  { 
+  {
     /* version super delta */
     E_Float C1 = -1.; E_Float C2 = -1.;
     if (superdelta >= 0.)
@@ -100,13 +158,13 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
       else
         C2 = -pow( -(delta1 +root) /2., 1./3. );
     }
-  
+
     //printf("C1=%g, C2=%g\n", C1, C2);
     y1 = -1./(3*ap)*(bp + C1 + delta0/C1 );
     y2 = -1./(3*ap)*(bp + C2 + delta0/C2 );
     //printf("racine y1=%g y2=%g\n", y1, y2);
   }
- 
+
 
   // racine de l equation du 4eme degre
   E_Float c1 = 2*y1-p;
@@ -133,7 +191,7 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   if (c1 <= tol && z1 == -123456)
   {
     E_Float b0 = y1*y1-r;
-    if (b0 >= tol) 
+    if (b0 >= tol)
     {
       E_Float p1 = -2*y1-p+4.*sqrt(b0);
       E_Float p2 = -2*y1-p-4.*sqrt(b0);
@@ -145,7 +203,7 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   if (c2 <= tol && z1 == -123456)
   {
     E_Float b0 = y2*y2-r;
-    if (b0 >= tol) 
+    if (b0 >= tol)
     {
       E_Float p1 = -2*y2-p+4.*sqrt(b0);
       E_Float p2 = -2*y2-p-4.*sqrt(b0);
@@ -158,7 +216,6 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   // nutile final
   E_Float nutilde1 = (z1 + a/4.)*nu;
   aa_vec[noind] = nutilde1;
-  // aa_vec[noind] = kappa*utau_vec[noind]*yibc;
   // printf("nutilde final pour l'indice %d = %g\n", noind, nutilde1);
 
 }

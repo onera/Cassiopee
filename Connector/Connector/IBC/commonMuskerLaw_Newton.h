@@ -31,8 +31,9 @@ while (err == 0 && count < 50)
 //for (E_Int noind = 0; noind < ifin-ideb; noind++)
 //  printf("newton %d %d %f\n", count, noind, utau_vec[noind]);
 
-if (count == 50) // blindage si au moins un pt newton ne converge pas: utau = utau0
+if (count == 300) // blindage si au moins un pt newton ne converge pas: utau = utau0
 {
+  std::cout << "Newton has not converged" << std::endl;
 #ifdef _OPENMP4
 #pragma omp simd
 #endif 

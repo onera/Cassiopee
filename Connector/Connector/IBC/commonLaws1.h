@@ -34,3 +34,8 @@ uext = std::max(uext, 1.e-12);
 // Calcul du frottement: loi "lineaire" (par defaut)
 utau0 = sqrt(muext*uext/(yext*roext));
 // if ( noind == 0 ) printf(" muext = %5.10f | uext = %5.10f \n", muext, uext); 
+
+// printf("IN WALL: %f %f %f %f %f \n",text, muext, ut,vt,wt);
+
+// std::cout << "TOTO " << text << std::endl;
+

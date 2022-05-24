@@ -497,7 +497,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
     else: p = T.splitNParts(o, N=NPI, recoverBC=recoverBC)[rank]
     del o
     test.printMem(">>> Octree unstruct split [end]")
-    C.convertPyTree2File(p,"octree_%d.cgns"%rank)
+    # C.convertPyTree2File(p,"octree_%d.cgns"%rank)
 
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")

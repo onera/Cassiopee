@@ -479,10 +479,11 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
 # distrib : new distribution at the end of prepare1
 #===================================================================================================================
 def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[],
-             tbox=None, snearsf=None, yplus=100.,
+             tbox=None, snearsf=None, yplus=100., Lref=1.,
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
-             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
+             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
+             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False):
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -545,6 +546,68 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
         else:
             DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
+
+
+    # Compute turbulentdistance wrt each body that is not a sym plan
+    if correctionMultiCorpsF42 and frontType==42:
+        test.printMem(">>> Individual wall distance [start]")
+        # Keep track of the general turbulentDistance
+        C._initVars(t,'{centers:TurbulentDistance_ori}={centers:TurbulentDistance}')
+
+        Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
+        if Reynolds is not None: 
+            Reynolds = Internal.getValue(Reynolds)
+        else: 
+            Reynolds = 6.e6
+
+        if yplus > 0.:
+            shiftDist = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+        else:
+            snears = Internal.getNodesFromName(tb, 'snear')
+            h = max(snears, key=lambda x: x[1])[1]
+            shiftDist = TIBM.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+
+        for z in Internal.getZones(t):
+            cptBody = 1
+            if dimPb == 3: tb2 = tb
+            for body in Internal.getNodesFromType(tb2,'Zone_t'):
+                if body[0] != "sym" and ("closure" not in body[0]):
+                    # Create extanded BBox around each body
+                    bboxBody = G.BB(body)
+                    coordX = Internal.getNodeFromName(bboxBody, 'CoordinateX')[1]
+                    coordX[0] = coordX[0] - shiftDist
+                    coordX[1] = coordX[1] + shiftDist
+                    Internal.getNodeFromName(bboxBody, 'CoordinateX')[1] = coordX
+                    coordY = Internal.getNodeFromName(bboxBody, 'CoordinateY')[1]
+                    coordY[0][0] = coordY[0][0] - shiftDist
+                    coordY[1][0] = coordY[1][0] - shiftDist
+                    coordY[0][1] = coordY[0][1] + shiftDist
+                    coordY[1][1] = coordY[1][1] + shiftDist
+                    Internal.getNodeFromName(bboxBody, 'CoordinateY')[1] = coordY
+                    coordZ = Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1] 
+                    coordZ[0][0][0] = coordZ[0][0][0] - shiftDist
+                    coordZ[0][1][0] = coordZ[0][1][0] - shiftDist
+                    coordZ[1][0][0] = coordZ[1][0][0] - shiftDist
+                    coordZ[1][1][0] = coordZ[1][1][0] - shiftDist
+                    coordZ[0][0][1] = coordZ[0][0][1] + shiftDist
+                    coordZ[0][1][1] = coordZ[0][1][1] + shiftDist
+                    coordZ[1][0][1] = coordZ[1][0][1] + shiftDist
+                    coordZ[1][1][1] = coordZ[1][1][1] + shiftDist
+                    Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1] = coordZ
+                    bboxZone = G.BB(z)
+
+                    # Compute new individual turbulentDistance when blocks are close enough
+                    if G.bboxIntersection(bboxBody, bboxZone, isBB=True):
+                        DTW._distance2Walls(z, body, type='ortho', signed=0, dim=dimPb, loc='centers')
+                        C._initVars(z,'{centers:TurbulentDistance_body%i={centers:TurbulentDistance}'%cptBody)
+                    else:
+                        C._initVars(z,'{centers:TurbulentDistance_body%i=1000'%cptBody)
+                    cptBody += 1
+            if dimPb == 3: del tb2
+
+        C._initVars(t,'{centers:TurbulentDistance}={centers:TurbulentDistance_ori}')
+        C._rmVars(t,['centers:TurbulentDistance_ori'])
+
     test.printMem(">>> Wall distance [end]")
     
     X._applyBCOverlaps(t, depth=DEPTH, loc='centers', val=2, cellNName='cellN')
@@ -576,8 +639,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     # determination des pts IBC
     Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
     if Reynolds is not None: Reynolds = Internal.getValue(Reynolds)
-    else: Reynolds = 6.e6
-    if Reynolds < 1.e6: frontType = 1
+    if Reynolds < 1.e5: frontType = 1
     if frontType != 42:
         if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
         elif IBCType == 1:
@@ -592,8 +654,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
         else:
             raise ValueError('prepareIBMData: not valid IBCType. Check model.')
     else:
-        # determination des pts IBC en fonction de la distance a la paroi
-        # cree d'abord un front de type 1 pour assurer que l'adaptation ne descende pas en dessous de la limite...
+        # F42: tracking of IB points using distance information
+        # the classical algorithm (front 1) is first used to ensure a minimum of two rows of target points around the geometry
         C._initVars(t,'{centers:cellNMin}={centers:cellNIBC}')
         if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
         elif IBCType == 1: X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
@@ -601,47 +663,81 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
         for z in Internal.getZones(t):
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            C._initVars(z,'{centers:cellNMin}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(2.5*h,2.5*h))
             if yplus > 0.:
-                height = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus)
+                height = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
             else:
                 height = TIBM.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+                yplus  = TIBM.computeYplus(Re=Reynolds, height=height, L=Lref)
             C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
 
-        # Si wallAdapt, utilisation de la solution precedente pour ne garder que les pts cibles tq y+PC <= y+ref : rapproche le front de la paroi (utile proche bord d'attaque)
-        # Attention, le fichier d'adaptation doit etre un nuage de points dont les coordonnees correspondent aux points cibles (Cf modification dans extractIBMWallFields avec tb=None)
+            if correctionMultiCorpsF42:
+                # Prevent different body modeling from overlapping -> good projection of image points in the wall normal direction
+
+                epsilon_dist = 2*(abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0)))
+                max_dist = 2*0.1*Lref
+
+                # Try to find the best route between two adjacent bodies by finding optimal iso distances
+                def correctionMultiCorps(cellN, cellNF):
+                    if cellN == 2 and cellNF == 2:
+                        return 1
+                    return cellN
+
+                def findIsoFront(cellNFront, Dist_1, Dist_2):
+                    if Dist_1 < max_dist and Dist_2 < max_dist:
+                        if abs(Dist_1-Dist_2) < epsilon_dist:
+                            return 2
+                    return max(cellNFront,1)
+
+                for i in range(1, cptBody):
+                    for j in range(1, cptBody):
+                        if j != i:
+                            C._initVars(z,'centers:cellNFrontIso', findIsoFront, ['centers:cellNFrontIso', 'centers:TurbulentDistance_body%i'%i, 'centers:TurbulentDistance_body%i'%j])
+
+                C._initVars(z,'centers:cellN', correctionMultiCorps, ['centers:cellN', 'centers:cellNFrontIso'])
+
+                for i in range(1,cptBody):
+                     C._rmVars(z,['centers:cellN_body%i'%i, 'centers:TurbulentDistance_body%i'%i])
+
         if wallAdapt is not None:
+            # Use previous computation to adapt the positioning of IB points around the geometry (impose y+PC <= y+ref)
+            # Warning: the wallAdapt file has to be obtained with TIBM.createWallAdapt(tc)
             C._initVars(t,'{centers:yplus}=100000.')
             w = C.convertFile2PyTree(wallAdapt)
-            yplus_w = Internal.getNodeFromName(w, 'yplus')[1]
             total = len(Internal.getZones(t))
             cpt = 1
             for z in Internal.getZones(t):
                 print("{} / {}".format(cpt, total))
                 cellN = Internal.getNodeFromName(z,'cellN')[1]
                 if 2 in cellN:
-                    yplus_z = Internal.getNodeFromName(z, 'yplus')[1]
-                    original_shape = numpy.shape(yplus_z)
-                    yplus_z = yplus_z.ravel(order='K')
-                    hook = C.createHook(z, function='elementCenters')
-                    nodes = C.identifyNodes(hook, w)
-                    for pos, node in enumerate(nodes):
-                        if node != -1:
-                            yplus_z[node-1]=yplus_w[pos]
-                    yplus_z = numpy.reshape(yplus_z, original_shape)
-                cpt += 1
+                    zname = z[0]
+                    zd = Internal.getNodeFromName(w, zname)
+                    if zd is not None:
+                        yplus_w = Internal.getNodeFromName(zd, 'yplus')[1]
+                        listIndices = Internal.getNodeFromName(zd, 'PointListDonor')[1]
+                        
+                        n = numpy.shape(yplus_w)[0]
+                        yplusA = Converter.array('yplus', n, 1, 1)
+                        yplusA[1][:] = yplus_w
 
+                        C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
+
+                cpt += 1
+             
             C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
             
-        # Securite finale, on aura au min deux rangees de points cibles
-        # def maximum(x1, x2): return max(x1,x2)
-        # C._initVars(t,'centers:cellN', maximum, ['centers:cellN','centers:cellNMin'])
-        # del maximum 
+        # final security gate, we ensure that we have at least to layers of target points
         C._initVars(t, '{centers:cellN} = maximum({centers:cellN}, {centers:cellNMin})')
         C._rmVars(t,['centers:yplus', 'centers:cellNMin'])
 
+        # propagate max yplus between procs
+        yplus = numpy.array([float(yplus)])
+        yplus_max = numpy.zeros(1)
+        comm.Allreduce(yplus, yplus_max, MPI.MAX)
+        yplus = int(yplus_max[0])
 
-        # permet de ne garder que les deux rangees superieures (prises en compte par le solveur), mais complique l'adaptation suivante et la visualisation
-        # X._maximizeBlankedCells(t, depth=2, addGC=False)
+        # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
+        if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)
 
     TIBM._removeBlankedGrids(t, loc='centers')
     test.printMem(">>> Blanking [end]")
@@ -669,6 +765,15 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     else:
         C._initVars(t,'{centers:cellNFront}=logical_and({centers:cellNIBC}>0.5, {centers:cellNIBC}<1.5)')
         for z in Internal.getZones(t):
+            if twoFronts:
+                epsilon_dist = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
+                dmin = math.sqrt(3)*4*epsilon_dist
+                if frontType == 42:
+                    SHIFTB = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+                    dmin = max(dmin, SHIFTB+math.sqrt(3)*2*epsilon_dist) # where shiftb = hmod
+                C._initVars(z,'{centers:cellNIBC_2}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(dmin,dmin))
+                C._initVars(z,'{centers:cellNFront_2}=logical_and({centers:cellNIBC_2}>0.5, {centers:cellNIBC_2}<1.5)')
+
             connector._updateNatureForIBM(z, IBCType,
                                           Internal.__GridCoordinates__,
                                           Internal.__FlowSolutionNodes__,
@@ -761,6 +866,10 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
     # propager cellNVariable='cellNFront'
     Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
+
+    if twoFronts:
+        C._cpVars(t,'centers:cellNFront_2',tc,'cellNFront_2')
+        Xmpi._setInterpTransfers(t,tc,variables=['cellNFront_2'], cellNVariable='cellNFront_2', compact=0)
 
     ############################################################
     # Specific treatment for front 2
@@ -865,6 +974,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     ############################################################
 
     C._rmVars(t,['centers:cellNFront'])
+    if twoFronts:
+        C._rmVars(t,['centers:cellNFront_2', 'centers:cellNIBC_2'])
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
     print('Minimum distance: %f.'%C.getMinValue(t,'centers:TurbulentDistance'))
@@ -874,7 +985,13 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     front = TIBM.getIBMFront(tc, 'cellNFront', dim=dimPb, frontType=frontType)
     front = TIBM.gatherFront(front)
 
-    if check and rank == 0: C.convertPyTree2File(front, 'front.cgns')
+    if twoFronts:
+        front2 = TIBM.getIBMFront(tc, 'cellNFront_2', dim=dimPb, frontType=frontType)
+        front2 = TIBM.gatherFront(front2)
+
+    if check and rank == 0:
+        C.convertPyTree2File(front, 'front.cgns')
+        if twoFronts: C.convertPyTree2File(front2, 'front2.cgns')
 
     zonesRIBC = []
     for zrcv in Internal.getZones(t):
@@ -884,9 +1001,13 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     nbZonesIBC = len(zonesRIBC)
     if nbZonesIBC == 0:
         res = [{},{},{}]
+        if twoFronts: res2 = [{},{},{}]
     else:
         res = TIBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
-                                   cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus)
+                                   cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
+        if twoFronts:
+            res2 = TIBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
+                                        cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
 
     # cleaning
     C._rmVars(tc,['cellNChim','cellNIBC','TurbulentDistance','cellNFront'])
@@ -894,6 +1015,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     varsRM = ['centers:gradxTurbulentDistance','centers:gradyTurbulentDistance','centers:gradzTurbulentDistance','centers:cellNFront','centers:cellNIBC']
     C._rmVars(t, varsRM)
     front = None
+    if twoFronts: front2 = None
     test.printMem(">>> Building IBM front [end]")
 
     # Interpolation IBC (front, tbbc)
@@ -905,6 +1027,16 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     dictOfWallPtsByIBCType = res[1]
     dictOfInterpPtsByIBCType = res[2]
     interDictIBM={}
+    if twoFronts:
+        dictOfCorrectedPtsByIBCType2 = res2[0]
+        dictOfWallPtsByIBCType2 = res2[1]
+        dictOfInterpPtsByIBCType2 = res2[2]
+        interDictIBM2={}
+    else:
+        dictOfCorrectedPtsByIBCType2={}
+        dictOfWallPtsByIBCType2={}
+        dictOfInterpPtsByIBCType2={}
+        interDictIBM2={}
     if dictOfCorrectedPtsByIBCType!={}:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
@@ -923,6 +1055,24 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
                             if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
                             else:
                                 if zname not in interDictIBM[zrname]: interDictIBM[zrname].append(zname)
+        if twoFronts:
+            for ibcTypeL in dictOfCorrectedPtsByIBCType2:
+                    allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
+                    allWallPts2 = dictOfWallPtsByIBCType2[ibcTypeL]
+                    allInterpPts2 = dictOfInterpPtsByIBCType2[ibcTypeL]
+                    for nozr in range(nbZonesIBC):
+                        if allCorrectedPts2[nozr] != []:
+                            zrname = zonesRIBC[nozr][0]
+                            interpPtsBB2 = Generator.BB(allInterpPts2[nozr])
+                            for z in zones:
+                                bba = C.getFields('GridCoordinates', z)[0]
+                                if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
+                                    zname = z[0]
+                                    popp = Cmpi.getProc(z)
+                                    Distributed.updateGraph__(graph, popp, rank, zname)
+                                    if zrname not in interDictIBM2: interDictIBM2[zrname]=[zname]
+                                    else:
+                                        if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
     else: graph={}
     del tbbc
     allGraph = Cmpi.KCOMM.allgather(graph)
@@ -991,12 +1141,56 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
                         else:
                             if destProc not in datas: datas[destProc] = []
 
+    if dictOfCorrectedPtsByIBCType2!={}:
+                for ibcTypeL in dictOfCorrectedPtsByIBCType2:
+                    allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
+                    allWallPts2 = dictOfWallPtsByIBCType2[ibcTypeL]
+                    allInterpPts2 = dictOfInterpPtsByIBCType2[ibcTypeL]
+                    for nozr in range(nbZonesIBC):
+                        if allCorrectedPts2[nozr] != []:
+                            zrcv = zonesRIBC[nozr]
+                            zrname = zrcv[0]
+                            dnrZones = []
+                            for zdname in interDictIBM2[zrname]:
+                                zd = Internal.getNodeFromName2(tc, zdname)
+                                #if zd is not None: dnrZones.append(zd)
+                                if zd is None: print('!!!Zone None', zrname, zdname)
+                                else: dnrZones.append(zd)
+                            XOD._setIBCDataForZone2__(zrcv, dnrZones, allCorrectedPts2[nozr], allWallPts2[nozr], None, allInterpPts2[nozr],
+                                                     nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
+                                                     interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL)
+
+                            nozr += 1
+                            for zd in dnrZones:
+                                zdname = zd[0]
+                                destProc = procDict[zdname]
+
+                                IDs = []
+                                for i in zd[2]:
+                                    if i[0][0:6] == '2_IBCD':
+                                        if Internal.getValue(i)==zrname: IDs.append(i)
+
+                                if IDs != []:
+                                    if destProc == rank:
+                                        zD = Internal.getNodeFromName2(tc,zdname)
+                                        zD[2] += IDs
+                                    else:
+                                        if destProc not in datas: datas[destProc]=[[zdname,IDs]]
+                                        else: datas[destProc].append([zdname,IDs])
+                                else:
+                                    if destProc not in datas: datas[destProc] = []
+
     test.printMem(">>> Interpolating IBM [end]")
     Cmpi._rmXZones(tc)
     dictOfCorrectedPtsByIBCType = None
     dictOfWallPtsByIBCType = None
     dictOfInterpPtsByIBCType = None
     interDictIBM = None
+    if twoFronts:
+        dictOfCorrectedPtsByIBCType2 = None
+        dictOfWallPtsByIBCType2 = None
+        dictOfInterpPtsByIBCType2 = None
+        interDictIBM2 = None
     test.printMem(">>> Interpolating IBM [after rm XZones]")
 
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
@@ -1061,8 +1255,22 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
               z[0] = z[0]+"%{}".format(rank)
 
         Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
+
+
+        if twoFronts:
+            tibm2 = TIBM.extractIBMInfo2(tc)
+
+            # Avoid that two procs write the same information
+            for z in Internal.getZones(tibm2):
+               if int(z[0][-1]) != rank:
+                  # Internal._rmNodesByName(tibm, z[0])
+                  z[0] = z[0]+"%{}".format(rank)
+
+            Cmpi.convertPyTree2File(tibm2, 'IBMInfo2.cgns')
+
         test.printMem(">>> Saving IBM infos [end]")
         del tibm
+        if twoFronts: del tibm2
 
     # distribution par defaut (sur NP)
     tbbc = Cmpi.createBBoxTree(tc)
@@ -1077,9 +1285,18 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     del tbbc
 
     # Save tc
+    if twoFronts:
+        tc2 = Internal.copyTree(tc)
+        tc2 = Internal.rmNodesByName(tc2, 'IBCD*')
+        tc  = Internal.rmNodesByName(tc, '2_IBCD*')
+
     if isinstance(tc_out, str): 
         tcp = Compressor.compressCartesian(tc)
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
+
+        if twoFronts:
+            Cmpi.convertPyTree2File(tc2, 'tc2.cgns', ignoreProcNodes=True)
+            del tc2
 
     # Initialisation
     if tinit is None: I._initConst(t, loc='centers')
@@ -1229,39 +1446,41 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     if isinstance(t_out, str): C.convertPyTree2File(t, t_out)
 
     return t, zw
+
 #===========================================================
-# return [Cl, Cd]
+# compute [Cl, Cd]
+# return wall pytree with Cp/Cf and gradtP/gradnP
 # alpha, beta are angles in degrees
 #===========================================================
-def _loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
+def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     if Sref is None:
         C._initVars(ts, '__ONE__',1.)
-        Sref = P.integ(ts, '__ONE__')[0]; 
+        Sref = P.integ(ts, '__ONE__')[0];
         C._rmVars(ts, ['__ONE__', 'centers:vol'])
 
     RefState = Internal.getNodeFromType(ts,'ReferenceState_t')
-    PInf = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
+    PInf  = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
     RoInf = Internal.getValue(Internal.getNodeFromName(RefState,"Density"))
     VxInf = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityX"))
     VyInf = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityY"))
     VzInf = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityZ"))
     VInf2 = VxInf*VxInf+VyInf*VyInf+VzInf*VzInf
     VInf  = math.sqrt(VInf2)
-    
+
     q = 0.5*RoInf*VInf2
     qinv = 1./q
-    alpha = math.radians(alpha)
-    beta = math.radians(beta)
+    alpha  = math.radians(alpha)
+    beta   = math.radians(beta)
     calpha = math.cos(alpha); cbeta = math.cos(beta)
     salpha = math.sin(alpha); sbeta = math.sin(beta)
     #===========================
     # Calcul efforts de pression
     #===========================
     zw = Internal.getZones(ts)
-    zw = T.join(zw)    
+    zw = T.join(zw)
     Internal._rmNodesFromType(ts,'Zone_t')
     ts[2][1][2].append(zw)
-    FSN = Internal.getNodeFromName(ts,Internal.__FlowSolutionCenters__)
+    FSN = Internal.getNodeFromName(ts,Internal.__FlowSolutionNodes__)
     isPresent=False
     if Internal.getNodeFromName(FSN,'Cp') is None:
         C._initVars(ts, '{Cp}=-({Pressure}-%g)*%g'%(PInf,qinv))
@@ -1271,8 +1490,8 @@ def _loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     calpha = math.cos(alpha); cbeta = math.cos(beta)
     salpha = math.sin(alpha); sbeta = math.sin(beta)
     if dimPb==3:
-        cd = res[0]*calpha*cbeta + res[2]*salpha*cbeta
-        cl = res[2]*calpha*cbeta - res[0]*salpha*cbeta
+        cd = res[0]*calpha*cbeta + res[1]*salpha*cbeta - res[2]*sbeta
+        cl = res[1]*calpha       - res[0]*salpha
     else:
         cd = res[0]*calpha + res[1]*salpha
         cl = res[1]*calpha - res[0]*salpha
@@ -1286,18 +1505,25 @@ def _loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     C._initVars(ts, '{tau_wall}=0.')
     G._getNormalMap(ts)
 
+    # Calcul de yplus au point image
+    C._initVars(ts, '{dist_cw}=sqrt(({CoordinateX_PW}-{CoordinateX_PC})**2 + ({CoordinateY_PW}-{CoordinateY_PC})**2 + ({CoordinateZ_PW}-{CoordinateZ_PC})**2)')
+    C._initVars(ts, '{dist_iw}=sqrt(({CoordinateX_PW}-{CoordinateX_PI})**2 + ({CoordinateY_PW}-{CoordinateY_PI})**2 + ({CoordinateZ_PW}-{CoordinateZ_PI})**2)')
+    C._initVars(ts, '{yplus_i}=({yplus}/{dist_cw})*{dist_iw}')
+
     variables = ['Density', 'Cp', 'tau_wall', 'Pressure','VelocityX','VelocityY','VelocityZ']
     FSN = Internal.getNodeFromType(ts,'FlowSolution_t')
-    if Internal.getNodeFromName1(FSN,'utau') is not None: 
+    if Internal.getNodeFromName1(FSN,'utau') is not None:
         variables += ['utau','yplus','tau_wall']
         C._initVars(ts, '{tau_wall}={Density}*{utau}*{utau}')
-            
-    if Internal.getNodeFromName1(FSN,'gradxPressure') is not None: 
-        variables += ['gradxPressure','gradyPressure','gradzPressure']
 
-    if Internal.getNodeFromName1(FSN,'yplus_i') is not None: 
-        variables += ['yplus_i']        
-                
+    isGradP = False
+    if Internal.getNodeFromName1(FSN,'gradxPressure') is not None:
+        variables += ['gradxPressure','gradyPressure','gradzPressure']
+        isGradP = True
+
+    if Internal.getNodeFromName1(FSN,'yplus_i') is not None:
+        variables += ['yplus_i']
+
     ts = C.node2Center(ts, variables)
     Internal._rmNodesFromName(ts,'FlowSolution')
     C._normalize(ts, ['centers:sx','centers:sy','centers:sz'])
@@ -1319,33 +1545,35 @@ def _loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     C._initVars(ts, '{centers:Fricy}={centers:tauxy}*{centers:sx}+{centers:tauyy}*{centers:sy}+{centers:tauyz}*{centers:sz}')
     C._initVars(ts, '{centers:Fricz}={centers:tauxz}*{centers:sx}+{centers:tauyz}*{centers:sy}+{centers:tauzz}*{centers:sz}')
 
-    # calcul forces de pression
-    C._initVars(ts, '{centers:Fx_pressure}=-({centers:Pressure}-%g)*{centers:sx}'%PInf)
-    C._initVars(ts, '{centers:Fy_pressure}=-({centers:Pressure}-%g)*{centers:sy}'%PInf)
-    C._initVars(ts, '{centers:Fz_pressure}=-({centers:Pressure}-%g)*{centers:sz}'%PInf)
-
-    # calcul effort complet
-    C._initVars(ts, '{centers:Fx}={centers:Fricx}+{centers:Fx_pressure}')
-    C._initVars(ts, '{centers:Fy}={centers:Fricy}+{centers:Fy_pressure}')
-    C._initVars(ts, '{centers:Fz}={centers:Fricz}+{centers:Fz_pressure}')
-
     # calcul coefficient de frottement
     C._initVars(ts, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%g'%q)
+
+    # maj des gradients de pression (norm/tang)
+    if isGradP:
+        C._initVars(ts, '{centers:gradnP}={centers:gradxPressure}*{centers:sx}+{centers:gradyPressure}*{centers:sy}+{centers:gradzPressure}*{centers:sz}')
+        C._initVars(ts, '{centers:gradtP}={centers:gradxPressure}*{centers:tx}+{centers:gradyPressure}*{centers:ty}+{centers:gradzPressure}*{centers:tz}')
 
     G._getVolumeMap(ts)
     effortX = P.integ(ts, 'centers:Fricx')[0]
     effortY = P.integ(ts, 'centers:Fricy')[0]
     effortZ = P.integ(ts, 'centers:Fricz')[0]
 
-    QADIMI = 1.*q*Sref
+    QADIMI = 1./(q*Sref)
     if dimPb==3:
-        cd = (effortX*calpha*cbeta + effortZ*salpha*cbeta)*QADIMI
-        cl = (effortZ*calpha*cbeta - effortX*salpha*cbeta)*QADIMI
+        cd = (effortX*calpha*cbeta + effortY*salpha*cbeta - effortZ*sbeta)*QADIMI
+        cl = (effortY*calpha       - effortX*salpha)*QADIMI
     else:
-        cd = (effortX*calpha*cbeta + effortY*salpha*cbeta)*QADIMI
-        cl = (effortY*calpha*cbeta - effortX*salpha*cbeta)*QADIMI
-   
-    if verbose: 
+        cd = (effortX*calpha + effortY*salpha)*QADIMI
+        cl = (effortY*calpha - effortX*salpha)*QADIMI
+
+    vars = ['centers:sx'   , 'centers:sy'   , 'centers:sz',
+            'centers:tx'   , 'centers:ty'   , 'centers:tz',
+            'centers:tauxx', 'centers:tauyy', 'centers:tauzz',
+            'centers:tauxy', 'centers:tauxz', 'centers:tauyz',
+            'centers:Fricx', 'centers:Fricy', 'centers:Fricz']
+    C._rmVars(ts, vars)
+
+    if verbose:
         print("Normalized skin friction drag = %g and lift = %g"%(cd, cl))
         print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(",effortX*QADIMI, effortY*QADIMI, effortZ*QADIMI,")")
 
@@ -1355,7 +1583,8 @@ def _loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
         print("Total Drag :", cd_press+cd)
         print("Total Lift :", cl_press+cl)
         print("****************************************")
-    return [cl_press+cl, cd_press+cd, Sref]
+
+    return ts
 #=============================================================================
 # Post efforts
 # IN: t_case: fichier ou arbre du cas
@@ -1365,12 +1594,18 @@ def _loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
 # IN: alpha: angle pour les efforts
 # IN: beta: angle pour les efforts
 #==============================================================================
-def loads(t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZones=[]):
+def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[]):
     if tc_in is not None:
-        if isinstance(tc_in, str): 
+        if isinstance(tc_in, str):
             tc = C.convertFile2PyTree(tc_in)
         else: tc = tc_in
     else: tc = None
+
+    if tc2_in is not None:
+        if isinstance(tc2_in, str):
+            tc2 = C.convertFile2PyTree(tc2_in)
+        else: tc2 = tc2_in
+    else: tc2 = None
 
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -1380,8 +1615,41 @@ def loads(t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZo
         Sref = P.integ(tb, '__ONE__')[0]; print(Sref)
         C._rmVars(tb, ['__ONE__', 'centers:vol'])
 
-    # Dans le cas du CRM version adimensionnee :
-    # Sref = 2*191.8445/(7.00532**2)
+    #====================================
+    # Wall pressure correction
+    #====================================
+    if gradP:
+        # add gradP fields in tc if necessary
+        for z in Internal.getZones(tc):
+            subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+            for zsr in subRegions:
+                nameSubRegion = zsr[0]
+                if nameSubRegion[:4] == "IBCD":
+                    pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
+                    gradxP   = Internal.getNodeFromName(zsr, 'gradxPressure')
+                    gradyP   = Internal.getNodeFromName(zsr, 'gradyPressure')
+                    gradzP   = Internal.getNodeFromName(zsr, 'gradzPressure')
+                    nIBC = pressure.shape[0]
+
+                    if gradxP is  None:
+                        gradxPressureNP = numpy.zeros((nIBC),numpy.float64)
+                        gradyPressureNP = numpy.zeros((nIBC),numpy.float64)
+                        gradzPressureNP = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                        zsr[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                        zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+
+        if tc2 is not None: 
+            if order < 2:
+                tc2 = extractPressureHO(tc2)
+            else:
+                tc2 = extractPressureHO2(tc2)
+        else: 
+            if order < 2:
+                tc = extractPressureHO(tc)
+            else:
+                tc = extractPressureHO2(tc)
+
     #====================================
     # Extraction des grandeurs a la paroi
     #====================================
@@ -1390,6 +1658,36 @@ def loads(t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZo
         zw = T.join(zw)
     else:
         zw = TIBM.extractIBMWallFields(tc, tb=tb, famZones=famZones)
+
+    #====================================
+    # Extract pressure info from tc2 to tc
+    #====================================
+    if tc2 is not None:
+        zw2 = TIBM.extractIBMWallFields(tc2, tb=tb, famZones=famZones, front=1)
+
+        zones_zw = []
+        zones_zw2 = []
+        for zone in Internal.getZones(zw): zones_zw.append(zone[0])
+        for zone in Internal.getZones(zw2): zones_zw2.append(zone[0])
+        nbZones = len(zones_zw)
+
+        for i in range(nbZones): # for multi corps
+            szw = Internal.getNodeFromName(zw, zones_zw[i])
+            szw2 = Internal.getNodeFromName(zw2, zones_zw2[i])
+
+            Pressure2 = Internal.getNodeFromName(szw2, 'Pressure')[1]
+            Internal.getNodeFromName(szw, 'Pressure')[1] = Pressure2
+
+            Density2 = Internal.getNodeFromName(szw2, 'Density')[1]
+            Internal.getNodeFromName(szw, 'Density')[1] = Density2
+
+            gradxPressure2 = Internal.getNodeFromName(szw2, 'gradxPressure')[1]
+            Internal.getNodeFromName(szw, 'gradxPressure')[1] = gradxPressure2
+            gradyPressure2 = Internal.getNodeFromName(szw2, 'gradyPressure')[1]
+            Internal.getNodeFromName(szw, 'gradyPressure')[1] = gradyPressure2
+            gradzPressure2 = Internal.getNodeFromName(szw2, 'gradzPressure')[1]
+            Internal.getNodeFromName(szw, 'gradzPressure')[1] = gradzPressure2
+
     dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
 
     if dimPb == 2: T._addkplane(zw)
@@ -1397,15 +1695,15 @@ def loads(t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZo
     zw = C.convertArray2Tetra(zw)
     zw = T.reorderAll(zw, 1)
 
-    ts = C.newPyTree(['SKIN']); ts[2][1][2]=[zw]
+    ts = C.newPyTree(['SKIN']); ts[2][1][2]=zw[2][1][2]
+
     #==============================
     # Reference state
     #==============================
     RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
     ts[2][1][2].append(RefState)
-    _loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
-  
-    #C._rmVars(ts, vars)
+    ts = loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
+
     if dimPb == 2: # reextrait en 2D
         ts = P.isoSurfMC(ts, "CoordinateZ", 0.)
         nodes = Internal.getNodesFromName(ts, 'CoordinateX')
@@ -1593,10 +1891,223 @@ def _unsteadyLoads(tb, Sref=None, alpha=0., beta=0.):
     dimPb = Internal.getValue(Internal.getNodeFromName(ts, 'EquationDimension'))
     return _loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose =False)
 
+#=============================================================================
+# Correction de la pression en post-traitement
+#=============================================================================
+def extractPressureHO(tc):
+
+    for z in Internal.getZones(tc):
+        subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+        for zsr in subRegions:
+            nameSubRegion = zsr[0]
+            if (nameSubRegion[:4] == 'IBCD' or nameSubRegion[:4] == '2_IB'):
+                gradxPressure = Internal.getNodeFromName(zsr, 'gradxPressure')[1]
+                gradyPressure = Internal.getNodeFromName(zsr, 'gradyPressure')[1]
+                gradzPressure = Internal.getNodeFromName(zsr, 'gradzPressure')[1]
+
+                CoordinateX = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
+                CoordinateY = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
+                CoordinateZ = Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
+
+                CoordinateX_PC = Internal.getNodeFromName(zsr, 'CoordinateX_PC')[1]
+                CoordinateY_PC = Internal.getNodeFromName(zsr, 'CoordinateY_PC')[1]
+                CoordinateZ_PC = Internal.getNodeFromName(zsr, 'CoordinateZ_PC')[1]
+
+                CoordinateX_PI = Internal.getNodeFromName(zsr, 'CoordinateX_PI')[1]
+                CoordinateY_PI = Internal.getNodeFromName(zsr, 'CoordinateY_PI')[1]
+                CoordinateZ_PI = Internal.getNodeFromName(zsr, 'CoordinateZ_PI')[1]
+
+                Pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
+                Density = Internal.getNodeFromName(zsr, 'Density')[1]
+
+                nIBC = numpy.shape(CoordinateX)[0]
+                for i in range(nIBC):
+                    nx = CoordinateX_PC[i] - CoordinateX[i]
+                    ny = CoordinateY_PC[i] - CoordinateY[i]
+                    nz = CoordinateZ_PC[i] - CoordinateZ[i]
+                    norm = math.sqrt(nx*nx + ny*ny + nz*nz)
+                    nx = nx/norm
+                    ny = ny/norm
+                    nz = nz/norm
+
+                    nGradP = nx*gradxPressure[i] + ny*gradyPressure[i] + nz*gradzPressure[i]
+
+                    bx = CoordinateX_PI[i] - CoordinateX[i]
+                    by = CoordinateY_PI[i] - CoordinateY[i]
+                    bz = CoordinateZ_PI[i] - CoordinateZ[i]
+                    beta = math.sqrt(bx*bx + by*by + bz*bz)
+
+                    Density[i] = Density[i]/Pressure[i]*(Pressure[i] - nGradP*beta)
+                    Pressure[i] = Pressure[i] - nGradP*beta
+
+                Internal.getNodeFromName(zsr, 'Pressure')[1] = Pressure
+                Internal.getNodeFromName(zsr, 'Density')[1]  = Density
+
+    return tc
+
+#=============================================================================
+# Correction de la pression en post-traitement
+#=============================================================================    
+def extractPressureHO2(tc):
+
+    for z in Internal.getZones(tc):
+        subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+        for zsr in subRegions:
+            nameSubRegion = zsr[0]
+            if (nameSubRegion[:4] == 'IBCD' or nameSubRegion[:4] == '2_IB'):
+
+                CoordinateX = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
+                CoordinateY = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
+                CoordinateZ = Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
+
+                CoordinateX_PC = Internal.getNodeFromName(zsr, 'CoordinateX_PC')[1]
+                CoordinateY_PC = Internal.getNodeFromName(zsr, 'CoordinateY_PC')[1]
+                CoordinateZ_PC = Internal.getNodeFromName(zsr, 'CoordinateZ_PC')[1]
+
+                CoordinateX_PI = Internal.getNodeFromName(zsr, 'CoordinateX_PI')[1]
+                CoordinateY_PI = Internal.getNodeFromName(zsr, 'CoordinateY_PI')[1]
+                CoordinateZ_PI = Internal.getNodeFromName(zsr, 'CoordinateZ_PI')[1]
+
+                gradxPressure  = Internal.getNodeFromName(zsr, 'gradxPressure')[1]
+                gradyPressure  = Internal.getNodeFromName(zsr, 'gradyPressure')[1]
+                gradzPressure  = Internal.getNodeFromName(zsr, 'gradzPressure')[1]
+
+                gradxxPressure = Internal.getNodeFromName(zsr, 'gradxxPressure')[1]
+                gradxyPressure = Internal.getNodeFromName(zsr, 'gradxyPressure')[1]
+                gradxzPressure = Internal.getNodeFromName(zsr, 'gradxzPressure')[1]
+
+                gradyxPressure = Internal.getNodeFromName(zsr, 'gradyxPressure')[1]
+                gradyyPressure = Internal.getNodeFromName(zsr, 'gradyyPressure')[1]
+                gradyzPressure = Internal.getNodeFromName(zsr, 'gradyzPressure')[1]
+
+                gradzxPressure = Internal.getNodeFromName(zsr, 'gradzxPressure')[1]
+                gradzyPressure = Internal.getNodeFromName(zsr, 'gradzyPressure')[1]
+                gradzzPressure = Internal.getNodeFromName(zsr, 'gradzzPressure')[1]
+
+                Pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
+                Density = Internal.getNodeFromName(zsr, 'Density')[1]
+
+                nIBC = numpy.shape(CoordinateX)[0]
+                for i in range(nIBC):
+                    nx = CoordinateX_PC[i] - CoordinateX[i]
+                    ny = CoordinateY_PC[i] - CoordinateY[i]
+                    nz = CoordinateZ_PC[i] - CoordinateZ[i]
+                    norm = math.sqrt(nx*nx + ny*ny + nz*nz)
+                    nx = nx/norm
+                    ny = ny/norm
+                    nz = nz/norm
+
+                    nGradP   = nx*gradxPressure[i] + ny*gradyPressure[i] + nz*gradzPressure[i]
+
+                    nnxGradP = nx*gradxxPressure[i] + ny*gradxyPressure[i] + nz*gradxzPressure[i]
+                    nnyGradP = nx*gradyxPressure[i] + ny*gradyyPressure[i] + nz*gradyzPressure[i]
+                    nnzGradP = nx*gradzxPressure[i] + ny*gradzyPressure[i] + nz*gradzzPressure[i]
+                    nnGradP  = nx*nnxGradP + ny*nnyGradP + nz*nnzGradP
+
+                    bx = CoordinateX_PI[i] - CoordinateX[i]
+                    by = CoordinateY_PI[i] - CoordinateY[i]
+                    bz = CoordinateZ_PI[i] - CoordinateZ[i]
+                    beta = math.sqrt(bx*bx + by*by + bz*bz)
+
+                    Density[i] = Density[i]/Pressure[i]*(Pressure[i] - nGradP*beta + 0.5*nnGradP*beta**2)
+                    Pressure[i] = Pressure[i] - nGradP*beta + 0.5*nnGradP*beta**2
+
+                Internal.getNodeFromName(zsr, 'Pressure')[1] = Pressure
+                Internal.getNodeFromName(zsr, 'Density')[1]  = Density
+
+    return tc
+
+#=============================================================================
+# Calcul des termes convectifs (TBLE FULL)
+#=============================================================================
+def extractConvectiveTerms(tc):
+
+    for z in Internal.getZones(tc):
+        subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+        for zsr in subRegions:
+            nameSubRegion = zsr[0]
+            if (nameSubRegion[:4] == 'IBCD' or nameSubRegion[:4] == '2_IB'):
+
+                CoordinateX    = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
+                CoordinateY    = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
+                CoordinateZ    = Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
+
+                CoordinateX_PC = Internal.getNodeFromName(zsr, 'CoordinateX_PC')[1]
+                CoordinateY_PC = Internal.getNodeFromName(zsr, 'CoordinateY_PC')[1]
+                CoordinateZ_PC = Internal.getNodeFromName(zsr, 'CoordinateZ_PC')[1]
+
+                CoordinateX_PI = Internal.getNodeFromName(zsr, 'CoordinateX_PI')[1]
+                CoordinateY_PI = Internal.getNodeFromName(zsr, 'CoordinateY_PI')[1]
+                CoordinateZ_PI = Internal.getNodeFromName(zsr, 'CoordinateZ_PI')[1]
+
+                Pressure       = Internal.getNodeFromName(zsr, 'Pressure')[1]
+                Density        = Internal.getNodeFromName(zsr, 'Density')[1]
+
+                gradxPressure  = Internal.getNodeFromName(zsr, 'gradxPressure')[1]
+                gradyPressure  = Internal.getNodeFromName(zsr, 'gradyPressure')[1]
+                gradzPressure  = Internal.getNodeFromName(zsr, 'gradzPressure')[1]
+
+                gradxVelocityX = Internal.getNodeFromName(zsr, 'gradxVelocityX')[1]
+                gradyVelocityX = Internal.getNodeFromName(zsr, 'gradyVelocityX')[1]
+                gradzVelocityX = Internal.getNodeFromName(zsr, 'gradzVelocityX')[1]
+
+                gradxVelocityY = Internal.getNodeFromName(zsr, 'gradxVelocityY')[1]
+                gradyVelocityY = Internal.getNodeFromName(zsr, 'gradyVelocityY')[1]
+                gradzVelocityY = Internal.getNodeFromName(zsr, 'gradzVelocityY')[1]
+
+                gradxVelocityZ = Internal.getNodeFromName(zsr, 'gradxVelocityZ')[1]
+                gradyVelocityZ = Internal.getNodeFromName(zsr, 'gradyVelocityZ')[1]
+                gradzVelocityZ = Internal.getNodeFromName(zsr, 'gradzVelocityZ')[1]
+
+                VelocityX      = Internal.getNodeFromName(zsr, 'VelocityX')[1]
+                VelocityY      = Internal.getNodeFromName(zsr, 'VelocityY')[1]
+                VelocityZ      = Internal.getNodeFromName(zsr, 'VelocityZ')[1]
+
+                nIBC = numpy.shape(CoordinateX)[0]
+                conv1  = numpy.zeros((nIBC),numpy.float64)
+                conv2  = numpy.zeros((nIBC),numpy.float64)
+
+                for i in range(nIBC):
+                    nx = CoordinateX_PC[i] - CoordinateX[i]
+                    ny = CoordinateY_PC[i] - CoordinateY[i]
+                    nz = CoordinateZ_PC[i] - CoordinateZ[i]
+                    norm_n = math.sqrt(nx*nx + ny*ny + nz*nz)
+                    nx = nx/norm_n
+                    ny = ny/norm_n
+                    nz = nz/norm_n
+
+                    uscaln = (VelocityX[i]*nx + VelocityY[i]*ny + VelocityZ[i]*nz)
+
+                    tx = VelocityX[i] - uscaln*nx
+                    ty = VelocityY[i] - uscaln*ny
+                    tz = VelocityZ[i] - uscaln*nz
+                    norm_t = math.sqrt(tx*tx + ty*ty + tz*tz)
+                    tx = tx/norm_t
+                    ty = ty/norm_t
+                    tz = tz/norm_t
+
+                    tgradU =  (tx*gradxVelocityX[i] + ty*gradyVelocityX[i] + tz*gradzVelocityX[i])*tx
+                    tgradU += (tx*gradxVelocityY[i] + ty*gradyVelocityY[i] + tz*gradzVelocityY[i])*ty
+                    tgradU += (tx*gradxVelocityZ[i] + ty*gradyVelocityZ[i] + tz*gradzVelocityZ[i])*tz
+
+                    ngradU =  (nx*gradxVelocityX[i] + ny*gradyVelocityX[i] + nz*gradzVelocityX[i])*tx
+                    ngradU += (nx*gradxVelocityY[i] + ny*gradyVelocityY[i] + nz*gradzVelocityY[i])*ty
+                    ngradU += (nx*gradxVelocityZ[i] + ny*gradyVelocityZ[i] + nz*gradzVelocityZ[i])*tz
+
+                    norm_n = math.sqrt((uscaln*nx)**2 + (uscaln*ny)**2 + (uscaln*nz)**2)
+
+                    conv1[i] = norm_t*tgradU
+                    conv2[i] = norm_n*ngradU
+
+                zsr[2].append(['conv1'  , conv1  , [], 'DataArray_t'])
+                zsr[2].append(['conv2'  , conv2  , [], 'DataArray_t'])
+
+    return tc
+
 #====================================================================================
 # Redistrib on NP processors
 #====================================================================================
-def _distribute(t_in, tc_in, NP, algorithm='graph'):
+def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
     if isinstance(tc_in, str):
         tcs = Cmpi.convertFile2SkeletonTree(tc_in, maxDepth=3)
     else: tcs = tc_in
@@ -1630,6 +2141,24 @@ def _distribute(t_in, tc_in, NP, algorithm='graph'):
                     p = 'CGNSTree/%s/%s/.Solver#Param/proc'%(b[0],z[0])
                     paths.append(p); ns.append(n)
         Filter.writeNodesFromPaths(t_in, paths, ns, maxDepth=0, mode=1)
+
+    if tc2_in is not None:
+        if isinstance(tc2_in, str):
+            tc2s = Cmpi.convertFile2SkeletonTree(tc2_in, maxDepth=3)
+        else: tc2s = tc2_in
+        D2._copyDistribution(tc2s, tcs)
+
+        if isinstance(tc2_in, str):
+            paths = []; ns = []
+            bases = Internal.getBases(tc2s)
+            for b in bases:
+                zones = Internal.getZones(b)
+                for z in zones:
+                    nodes = Internal.getNodesFromName2(z, 'proc')
+                    for n in nodes:
+                        p = 'CGNSTree/%s/%s/.Solver#Param/proc'%(b[0],z[0])
+                        paths.append(p); ns.append(n)
+            Filter.writeNodesFromPaths(tc2_in, paths, ns, maxDepth=0, mode=1)
 
     # Affichage du nombre de points par proc - equilibrage ou pas
     NptsTot = 0
@@ -1993,6 +2522,194 @@ def _initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
                         Internal.setValue(dirzNode, numpy.zeros(sizeIBC)) 
                     
     return None
+
+def changeBCType(tc, oldBCType, newBCType):
+    for z in Internal.getZones(tc):
+        subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+        for zsr in subRegions:
+            nameSubRegion = zsr[0]
+            if nameSubRegion[:4] == "IBCD":
+                bcType = int(nameSubRegion.split("_")[1])
+                if bcType == oldBCType:
+                    zsr[0] = "IBCD_{}_".format(newBCType)+"_".join(nameSubRegion.split("_")[2:])
+
+                    pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
+                    nIBC = pressure.shape[0]
+
+                    Internal._rmNodesByName(zsr, 'utau')
+                    Internal._rmNodesByName(zsr, 'yplus')
+
+                    Internal._rmNodesByName(zsr, 'StagnationEnthalpy')
+                    Internal._rmNodesByName(zsr, 'StagnationPressure')
+                    Internal._rmNodesByName(zsr, 'dirx')
+                    Internal._rmNodesByName(zsr, 'diry')
+                    Internal._rmNodesByName(zsr, 'dirz')
+
+                    Internal._rmNodesByName(zsr, 'gradxPressure')
+                    Internal._rmNodesByName(zsr, 'gradyPressure')
+                    Internal._rmNodesByName(zsr, 'gradzPressure')
+
+                    Internal._rmNodesByName(zsr, 'gradxVelocityX')
+                    Internal._rmNodesByName(zsr, 'gradyVelocityX')
+                    Internal._rmNodesByName(zsr, 'gradzVelocityX')
+
+                    Internal._rmNodesByName(zsr, 'gradxVelocityY')
+                    Internal._rmNodesByName(zsr, 'gradyVelocityY')
+                    Internal._rmNodesByName(zsr, 'gradzVelocityY')
+
+                    Internal._rmNodesByName(zsr, 'gradxVelocityZ')
+                    Internal._rmNodesByName(zsr, 'gradyVelocityZ')
+                    Internal._rmNodesByName(zsr, 'gradzVelocityZ')
+
+                    Internal._rmNodesByName(zsr, 'KCurv')
+
+                    if newBCType in [2, 3, 6, 10, 11]:
+                        utauNP  = numpy.zeros((nIBC),numpy.float64)
+                        yplusNP = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
+                        zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
+
+                    if newBCType == 5:
+                      stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
+                      Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
+                      stagnationPressure = numpy.zeros((nIBC),numpy.float64)
+                      Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=stagnationPressure)
+                      dirx = numpy.zeros((nIBC),numpy.float64)
+                      Internal._createChild(zsr, 'dirx', 'DataArray_t', value=dirx)
+                      diry = numpy.zeros((nIBC),numpy.float64)
+                      Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
+                      dirz = numpy.zeros((nIBC),numpy.float64)
+                      Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
+
+                    if newBCType == 100:
+                        KCurvNP = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(["KCurv" , KCurvNP , [], 'DataArray_t'])
+
+                    if newBCType == 10 or newBCType == 11:
+                        gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                        gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                        gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+
+                    if newBCType == 11:
+                        gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
+                        gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
+                        gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
+
+                        gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
+                        gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
+                        gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
+
+                        gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
+                        gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
+                        gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                        zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
+
+    return tc
+
+def transformTc2(tc2):
+    for z in Internal.getZones(tc2):
+        subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+        for zsr in subRegions:
+            nameSubRegion = zsr[0]
+            if nameSubRegion[:6] == "2_IBCD":
+                ibctype = nameSubRegion.split("_")[2]
+                zsr[0] = "IBCD_{}_".format(ibctype)+"_".join(nameSubRegion.split("_")[3:])
+
+                pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
+                nIBC = pressure.shape[0]
+
+                Internal._rmNodesByName(zsr, 'utau')
+                Internal._rmNodesByName(zsr, 'yplus')
+
+                Internal._rmNodesByName(zsr, 'StagnationEnthalpy')
+                Internal._rmNodesByName(zsr, 'StagnationPressure')
+                Internal._rmNodesByName(zsr, 'dirx')
+                Internal._rmNodesByName(zsr, 'diry')
+                Internal._rmNodesByName(zsr, 'dirz')
+
+                Internal._rmNodesByName(zsr, 'gradxPressure')
+                Internal._rmNodesByName(zsr, 'gradyPressure')
+                Internal._rmNodesByName(zsr, 'gradzPressure')
+
+                Internal._rmNodesByName(zsr, 'gradxVelocityX')
+                Internal._rmNodesByName(zsr, 'gradyVelocityX')
+                Internal._rmNodesByName(zsr, 'gradzVelocityX')
+
+                Internal._rmNodesByName(zsr, 'gradxVelocityY')
+                Internal._rmNodesByName(zsr, 'gradyVelocityY')
+                Internal._rmNodesByName(zsr, 'gradzVelocityY')
+
+                Internal._rmNodesByName(zsr, 'gradxVelocityZ')
+                Internal._rmNodesByName(zsr, 'gradyVelocityZ')
+                Internal._rmNodesByName(zsr, 'gradzVelocityZ')
+
+                Internal._rmNodesByName(zsr, 'KCurv')
+
+                if newBCType in [2, 3, 6, 10, 11]:
+                    utauNP  = numpy.zeros((nIBC),numpy.float64)
+                    yplusNP = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
+                    zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
+
+                if newBCType == 5:
+                  stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
+                  Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
+                  stagnationPressure = numpy.zeros((nIBC),numpy.float64)
+                  Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=stagnationPressure)
+                  dirx = numpy.zeros((nIBC),numpy.float64)
+                  Internal._createChild(zsr, 'dirx', 'DataArray_t', value=dirx)
+                  diry = numpy.zeros((nIBC),numpy.float64)
+                  Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
+                  dirz = numpy.zeros((nIBC),numpy.float64)
+                  Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
+
+                if newBCType == 100:
+                    KCurvNP = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(["KCurv" , KCurvNP , [], 'DataArray_t'])
+
+                if newBCType == 10 or newBCType == 11:
+                    gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                    gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                    gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+
+                if newBCType == 11:
+                    gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
+                    gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
+                    gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
+
+                    gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
+                    gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
+                    gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
+
+                    gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
+                    gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
+                    gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                    zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
+
+    return tc2
+
 #====================================================================================
 class IBM(Common):
     """Preparation et calculs IBM avec le module FastS."""

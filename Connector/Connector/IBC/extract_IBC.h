@@ -8,7 +8,7 @@
   E_Float* xPC = coordxPC->begin();
   E_Float* yPC = coordyPC->begin();
   E_Float* zPC = coordzPC->begin();
-  
+
   /*----------------------------------------*/
   /* Extraction des coordonnees du pt paroi */
   /*----------------------------------------*/

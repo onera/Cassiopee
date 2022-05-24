@@ -307,6 +307,40 @@ def _uncompressCartesian(t):
         if gc is not None: _uncompressCartesian__(z, ztype, gc)
     return None
 
+# uncompress Cartesian
+def uncompressCartesian_old(t):
+    """For Cartesian grids, recreate Grid Coordinates from compressed zones."""
+    tp = Internal.copyRef(t)
+    _uncompressCartesian(tp)
+    return tp
+
+# Si la zone n'est pas skeleton et contient un noeud CartesianData :
+# Reconstruit CoordinateX, CoordinateY, CoordinateZ
+# Supprime CartesianData
+def _uncompressCartesian_old(t):
+    import Generator.PyTree as G
+    zones = Internal.getZones(t)
+    for z in zones:
+        ztype = Internal.getZoneDim(z)
+        if ztype[0] == 'Unstructured': continue
+        c = Internal.getNodeFromName1(z, 'CartesianData')
+        if c is None: continue
+        c = Internal.getValue(c)
+        x0 = c[0]; y0 = c[1]; z0 = c[2]
+        hi = c[3]; hj = c[4]; hk = c[5]
+        tmp = G.cart((x0,y0,z0), (hi,hj,hk), (ztype[1], ztype[2], ztype[3]))
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        if gc is not None:
+            cn = Internal.getNodeFromName1(gc, 'CoordinateX')
+            if cn is not None and cn[1] is None: continue # suppose skeleton zone
+        gct = Internal.getNodeFromName1(tmp, Internal.__GridCoordinates__)
+        if gc is None: Internal._addChild(z, gct)
+        else:
+            Internal._rmNodesFromName1(z, Internal.__GridCoordinates__)
+            Internal._addChild(z, gct)
+        Internal._rmNodesFromName1(z, 'CartesianData')
+    return None
+
 # ctype=0: compress with sz
 # ctype=1: compress with zfp
 # ctype=2: compress cellN

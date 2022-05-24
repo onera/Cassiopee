@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2022 Onera.
 
     This file is part of Cassiopee.
@@ -29,6 +29,7 @@ static PyMethodDef Pyconnector [] =
 {
   {"getIBMPtsBasic", K_CONNECTOR::getIBMPtsBasic, METH_VARARGS},
   {"getIBMPtsWithFront", K_CONNECTOR::getIBMPtsWithFront, METH_VARARGS},
+  {"getIBMPtsWithTwoFronts", K_CONNECTOR::getIBMPtsWithTwoFronts, METH_VARARGS},
   {"getIBMPtsWithoutFront", K_CONNECTOR::getIBMPtsWithoutFront, METH_VARARGS},
   {"optimizeOverlap", K_CONNECTOR::optimizeOverlap, METH_VARARGS},
   {"maximizeBlankedCells", K_CONNECTOR::maximizeBlankedCells, METH_VARARGS},
@@ -62,9 +63,11 @@ static PyMethodDef Pyconnector [] =
   {"_setInterpTransfers", K_CONNECTOR::_setInterpTransfers, METH_VARARGS},
   {"__setInterpTransfers", K_CONNECTOR::__setInterpTransfers, METH_VARARGS},
   {"___setInterpTransfers", K_CONNECTOR::___setInterpTransfers, METH_VARARGS},
+  {"___setInterpTransfers4GradP", K_CONNECTOR::___setInterpTransfers4GradP, METH_VARARGS},
   {"setInterpTransfersD", K_CONNECTOR::setInterpTransfersD, METH_VARARGS},
   {"_setInterpTransfersD", K_CONNECTOR::_setInterpTransfersD, METH_VARARGS},
   {"__setInterpTransfersD", K_CONNECTOR::__setInterpTransfersD, METH_VARARGS},
+  {"__setInterpTransfersD4GradP", K_CONNECTOR::__setInterpTransfersD4GradP, METH_VARARGS},
   {"writeCoefs", K_CONNECTOR::writeCoefs, METH_VARARGS},
   {"chimeraTransfer", K_CONNECTOR::chimeraTransfer, METH_VARARGS},
   {"transferFields", K_CONNECTOR::transferFields, METH_VARARGS},
@@ -84,6 +87,12 @@ static PyMethodDef Pyconnector [] =
   {"setIBCTransfers", K_CONNECTOR::setIBCTransfers, METH_VARARGS},
   {"setIBCTransfersD", K_CONNECTOR::setIBCTransfersD, METH_VARARGS},
   {"_setIBCTransfers", K_CONNECTOR::_setIBCTransfers, METH_VARARGS},
+  {"_setIBCTransfers4GradP", K_CONNECTOR::_setIBCTransfers4GradP, METH_VARARGS},
+  {"_setIBCTransfers4GradP2", K_CONNECTOR::_setIBCTransfers4GradP2, METH_VARARGS},
+  {"_setIBCTransfers4GradP3", K_CONNECTOR::_setIBCTransfers4GradP3, METH_VARARGS},
+  {"_setIBCTransfers4GradP4", K_CONNECTOR::_setIBCTransfers4GradP4, METH_VARARGS},
+  {"_setIBCTransfers4FULLTBLE", K_CONNECTOR::_setIBCTransfers4FULLTBLE, METH_VARARGS},
+  {"_setIBCTransfers4FULLTBLE2", K_CONNECTOR::_setIBCTransfers4FULLTBLE2, METH_VARARGS},
   {"_setIBCTransfersD", K_CONNECTOR::_setIBCTransfersD, METH_VARARGS},
   {"modifyBorders", K_CONNECTOR::modifyBorders, METH_VARARGS},
   {"applyBCOverlapsNG", K_CONNECTOR::applyBCOverlapsNG, METH_VARARGS},

@@ -356,6 +356,82 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
             field = n[1]
             #if Cmpi.rank==0: print('reception', Cmpi.rank, 'no zone', zones[ rcvName ][0], field[0])
             if field != [] and field[0] !='Nada':
+                # print(field[0])
+                listIndices = n[2]
+                z = zones[rcvName]
+                C._setPartialFields(z, [field], [listIndices], loc='centers')
+    return None
+
+#===============================================================================
+# Copie de __setInterpTransfers() pour la maj des info de gradient de pression
+# transfert de ['Density', 'VelocityX', 'VelocityY', 'VelocityZ', 'Temperature', 'nuSA'] -> 6 vars
+# transfert de ['gradx/y/zDensity', 'gradx/y/zTemperature'] -> 6 varsGrad
+# varType 22 : tc2/tc -> RCV ZONES
+# varType 23 : RCV ZONES -> tc 
+#===============================================================================
+def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_transfert, nitrun,
+                         nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
+                         graph=None, procDict=None):
+
+    # Transferts locaux/globaux
+    # Calcul des solutions interpolees par arbre donneur
+    # On envoie aussi les indices receveurs pour l'instant
+    datas = {}
+    datasGradP = {}
+    nbcomIBC    = param_int[2]
+    shift_graph = nbcomIBC + param_int[3+nbcomIBC] + 3
+
+    for comm_P2P in range(1,param_int[1]+1):
+        pt_ech = param_int[comm_P2P + shift_graph]
+        dest   = param_int[pt_ech]
+
+        no_transfert = comm_P2P
+        if dest == Cmpi.rank: #transfert intra_processus
+            connector.___setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, nitrun, varType,
+                                            type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage)
+
+        else:
+            if varType != 24: 
+                allInfos = connector.__setInterpTransfersD4GradP(zones, zonesD, vars, param_int, param_real, nitrun, varType,
+                                                        type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage) 
+                infos = allInfos[0]
+                infosGrad = allInfos[1]
+
+                if infos != []:
+                   for n in infos:
+                      rcvNode = dest
+                      if rcvNode not in datas: datas[rcvNode] = [n]
+                      else: datas[rcvNode] += [n]
+
+
+                if infosGrad != []:
+                   for n in infosGrad:
+                      rcvNode = dest
+                      if rcvNode not in datasGradP: datasGradP[rcvNode] = [n]
+                      else: datasGradP[rcvNode] += [n]
+    
+    # Envoie des numpys suivant le graph
+    rcvDatas = Cmpi.sendRecv(datas, graph)
+
+    # Remise des champs interpoles dans l'arbre receveur
+    for i in rcvDatas:
+        for n in rcvDatas[i]:
+            rcvName = n[0]
+            field = n[1]
+            if field != []:
+                listIndices = n[2]
+                z = zones[rcvName]
+                C._setPartialFields(z, [field], [listIndices], loc='centers')
+
+    # Envoie des numpys suivant le graph
+    rcvDatas = Cmpi.sendRecv(datasGradP, graph)
+
+    # Remise des champs interpoles dans l'arbre receveur
+    for i in rcvDatas:
+        for n in rcvDatas[i]:
+            rcvName = n[0]
+            field = n[1]
+            if field != []:
                 listIndices = n[2]
                 z = zones[rcvName]
                 C._setPartialFields(z, [field], [listIndices], loc='centers')

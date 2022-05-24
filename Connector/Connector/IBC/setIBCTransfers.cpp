@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2022 Onera.
 
     This file is part of Cassiopee.
@@ -29,15 +29,15 @@ using namespace K_FLD;
 //Retourne -2: incoherence entre meshtype et le type d interpolation
 //         -1: type invalide
 //          1: ok
-// Entree/Sortie: des variables conservatives ( + ronutildeSA ) 
+// Entree/Sortie: des variables conservatives ( + ronutildeSA )
 //=============================================================================
 E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   E_Int bctype,
   E_Int* rcvPts, E_Int& nbRcvPts, E_Int& ideb, E_Int& ifin, E_Int& ithread,
   E_Float* xPC, E_Float* yPC, E_Float* zPC,
   E_Float* xPW, E_Float* yPW, E_Float* zPW,
-  E_Float* xPI, E_Float* yPI, E_Float* zPI, 
-  E_Float* densPtr, E_Float* pressPtr, 
+  E_Float* xPI, E_Float* yPI, E_Float* zPI,
+  E_Float* densPtr, E_Float* pressPtr,
   E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr,
   E_Float* utauPtr, E_Float* yplusPtr, E_Float* kcurvPtr,
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
@@ -55,14 +55,14 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
   //E_Float newtonepsnutilde = 1.e-10; // critere d'arret pour nutilde
-  E_Float newtonepsprime = 1.e-12;// critere d'arret pour la derivee  
+  E_Float newtonepsprime = 1.e-12;// critere d'arret pour la derivee
   E_Float cvgaminv = 1./(cv*gam1);
   E_Float coefSuth = muS * (1.+Cs/Ts);
   E_Float Tsinv = 1./Ts;
   E_Float kappa = 0.4; // Constante de Von Karman
   E_Float kappainv = 1./kappa;
   E_Float cc = 5.2;//pour la loi log
-  E_Float one_third = 1./3.; 
+  E_Float one_third = 1./3.;
 
   /* fin parametres loi de parois */
 
@@ -83,14 +83,14 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   //E_Int* rcvPts = rcvPtsI.begin();
   // if ( (bctype==2 || (bctype==3)) && nvars < 6)
   // {
-  //   printf("Warning: setIBCTransfersCommonVar1: number of variables (<6) inconsistent with bctype.\n"); 
+  //   printf("Warning: setIBCTransfersCommonVar1: number of variables (<6) inconsistent with bctype.\n");
   //   return 0;
   // }
   if (bctype == 0) // wallslip
-  { 
+  {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
            E_Int indR = rcvPts[noind+ideb];
@@ -102,12 +102,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
             u = rouOut[indR]*roinv; v = rovOut[indR]*roinv; w = rowOut[indR]*roinv;
 
 # include "IBC/commonBCType0.h"
-      
-           rouOut[indR] = ucible*roext; rovOut[indR] = vcible*roext; rowOut[indR] = wcible*roext;      
+
+           rouOut[indR] = ucible*roext; rovOut[indR] = vcible*roext; rowOut[indR] = wcible*roext;
            // pression
            pext            = gam1*(roE-0.5*roext*(u*u+v*v+w*w));//PI
            roEOut[indR]    = pext/gam1+0.5*roext*(ucible*ucible+vcible*vcible+wcible*wcible);
-           pressPtr[noind +ideb] = pext; 
+           pressPtr[noind +ideb] = pext;
            densPtr[ noind +ideb] = roext;
 
            vxPtr[noind+ideb] = ucible;
@@ -121,7 +121,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
            E_Int indR = rcvPts[noind+ideb];
@@ -133,13 +133,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
             u = rouOut[indR]*roinv; v = rovOut[indR]*roinv; w = rowOut[indR]*roinv;
 
 # include "IBC/commonBCType1.h"
-      
-           rouOut[indR] = ucible*roext; rovOut[indR] = vcible*roext; rowOut[indR] = wcible*roext;      
+
+           rouOut[indR] = ucible*roext; rovOut[indR] = vcible*roext; rowOut[indR] = wcible*roext;
            // pression
            pext         = gam1*(roE-0.5*roext*(u*u+v*v+w*w));//PI
            roEOut[indR] = pext/gam1+0.5*roext*(ucible*ucible+vcible*vcible+wcible*wcible);
 
-           pressPtr[noind +ideb] = pext; 
+           pressPtr[noind +ideb] = pext;
            densPtr[ noind +ideb] = roext;
 
            vxPtr[noind+ideb] = ucible;
@@ -153,19 +153,19 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   }
   else if (bctype == 2) // loi de paroi en log
   {
-#     include "IBC/pointer.h" 
+#     include "IBC/pointer.h"
 
       E_Int err  = 0;
-      E_Int skip = 0; 
+      E_Int skip = 0;
       //initilisation parametre geometrique et utau
 #ifdef _OPENMP4
       #pragma omp simd
-#endif 
+#endif
       for (E_Int noind = 0; noind < ifin-ideb; noind++)
        {
           //E_Int indR = rcvPts[noind];
           E_Int indR = rcvPts[noind+ideb];
- 
+
           roext = roOut[indR]; // densite du point interpole
           roE   = roEOut[indR];    //roE
 
@@ -178,12 +178,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
           pext = gam1*(roE-0.5*roext*(u*u+v*v+w*w));//PI
           text = pext / roext * cvgaminv;
 
-#         include "IBC/commonLogLaw_init.h" 
-          // out= utau  et err 
+#         include "IBC/commonLogLaw_init.h"
+          // out= utau  et err
        }
 
       // Newton pour utau
-#     include "IBC/commonLogLaw_Newton.h" 
+#     include "IBC/commonLogLaw_Newton.h"
 
       //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
@@ -195,70 +195,70 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
       {
           // Newton pour nut
 #if NUTILDE_FERRARI == 0
-#         include "IBC/nutildeSA_Newton.h" 
+#         include "IBC/nutildeSA_Newton.h"
 #endif
 
           // mise a jour des variable
 #ifdef _OPENMP4
          #pragma omp simd
-#endif 
+#endif
           for (E_Int noind = 0; noind < ifin-ideb; noind++)
           {
            E_Int indR = rcvPts[noind+ideb];
 
            // For Post (temperature du point image text, densite et pression du point de paroi: densPtr,pressPtr)
            text = press_vec[noind]/ ro_vec[noind]* cvgaminv;
-           
+
            twall = text  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
            densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
            pressPtr[noind+ideb]= press_vec[noind ];
 
-           roE   = roEOut[indR];//roE                     
+           roE   = roEOut[indR];//roE
 
            E_Float roinv = 1./ro_vec[noind];
            // vitesse du pt ext
            u = rouOut[indR]*roinv;
            v = rovOut[indR]*roinv;
-           w = rowOut[indR]*roinv;           
+           w = rowOut[indR]*roinv;
 
            // Densite corrigee (CC-Busemann)
-           roOut[indR]  = press_vec[noind ]/tcible_vec[noind]*cvgaminv;                     
+           roOut[indR]  = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
 
-           rouOut[indR] = ucible_vec[noind]*roOut[indR]; 
+           rouOut[indR] = ucible_vec[noind]*roOut[indR];
            rovOut[indR] = vcible_vec[noind]*roOut[indR];
-           rowOut[indR] = wcible_vec[noind]*roOut[indR];      
+           rowOut[indR] = wcible_vec[noind]*roOut[indR];
 
            // roEOut[indR] = roE + 0.5*ro_vec[noind]*( ucible_vec[noind]*ucible_vec[noind] - u*u
            //                                         +vcible_vec[noind]*vcible_vec[noind] - v*v
            //                                         +wcible_vec[noind]*wcible_vec[noind] - w*w );
 
-           roEOut[indR] = roE +   0.5*roOut[indR]*( ucible_vec[noind]*ucible_vec[noind] 
-                                                   +vcible_vec[noind]*vcible_vec[noind] 
+           roEOut[indR] = roE +   0.5*roOut[indR]*( ucible_vec[noind]*ucible_vec[noind]
+                                                   +vcible_vec[noind]*vcible_vec[noind]
                                                    +wcible_vec[noind]*wcible_vec[noind]  )
                               - 0.5*ro_vec[noind]*( u*u
                                                    +v*v
                                                    +w*w );
 
-           varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind]*ro_vec[noind];                                    //nutilde*signibc    
+           varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind]*ro_vec[noind];                                    //nutilde*signibc
 
            vxPtr[noind+ideb] = ucible_vec[noind];
            vyPtr[noind+ideb] = vcible_vec[noind];
            vzPtr[noind+ideb] = wcible_vec[noind];
           }
       }
-      else //5eq 
+      else //5eq
       {
         // mise a jour des variables
 #ifdef _OPENMP4
          #pragma omp simd
-#endif 
+#endif
           for (E_Int noind = 0; noind < ifin-ideb; noind++)
           {
            E_Int indR = rcvPts[noind+ideb];
 
            // For Post (temperature du point image text, densite et pression du point de paroi: densPtr,pressPtr)
            text = press_vec[noind]/ ro_vec[noind]* cvgaminv;
-           
+
            twall = text  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
            densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
            pressPtr[noind+ideb]= press_vec[noind ];
@@ -270,15 +270,15 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
            w = rowOut[indR]*roinv;
 
            // Densite corrigee (CC-Busemann)
-           roOut[indR]  = press_vec[noind ]/tcible_vec[noind]*cvgaminv;           
+           roOut[indR]  = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
 
-           rouOut[indR] = ucible_vec[noind]*roOut[indR]; 
-           rovOut[indR] = vcible_vec[noind]*roOut[indR]; 
+           rouOut[indR] = ucible_vec[noind]*roOut[indR];
+           rovOut[indR] = vcible_vec[noind]*roOut[indR];
            rowOut[indR] = wcible_vec[noind]*roOut[indR];
 
            roE          = roEOut[indR];//roE
-           roEOut[indR] = roE +   0.5*roOut[indR]*( ucible_vec[noind]*ucible_vec[noind] 
-                                                   +vcible_vec[noind]*vcible_vec[noind] 
+           roEOut[indR] = roE +   0.5*roOut[indR]*( ucible_vec[noind]*ucible_vec[noind]
+                                                   +vcible_vec[noind]*vcible_vec[noind]
                                                    +wcible_vec[noind]*wcible_vec[noind]  )
                               - 0.5*ro_vec[noind]*( u*u
                                                    +v*v
@@ -290,25 +290,25 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
 
            vxPtr[noind+ideb] = ucible_vec[noind];
            vyPtr[noind+ideb] = vcible_vec[noind];
-           vzPtr[noind+ideb] = wcible_vec[noind];                   
+           vzPtr[noind+ideb] = wcible_vec[noind];
           }
       }
   }
   else if (bctype == 3)// loi de paroi Musker
   {
-#   include "IBC/pointer.h" 
+#   include "IBC/pointer.h"
 
     E_Int err  = 0;
-    E_Int skip = 0; 
+    E_Int skip = 0;
     //initialisation parametre geometrique et utau
 #ifdef _OPENMP4
     #pragma omp simd
-#endif 
+#endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
     {
         //E_Int indR = rcvPts[noind];
         E_Int indR = rcvPts[noind+ideb];
- 
+
         roext = roOut[indR]; // densite du point interpole
         roE   = roEOut[indR];    //roE
 
@@ -317,16 +317,16 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
         u = rouOut[indR]*roinv;
         v = rovOut[indR]*roinv;
         w = rowOut[indR]*roinv;
-        
+
         pext = gam1*(roE-0.5*roext*(u*u+v*v+w*w));//PI
         text = pext / roext * cvgaminv;
 
-#       include "IBC/commonMuskerLaw_init.h" 
-        // out= utau  et err 
+#       include "IBC/commonMuskerLaw_init.h"
+        // out= utau  et err
     }
 
     // Newton pour utau
-#   include "IBC/commonMuskerLaw_Newton.h" 
+#   include "IBC/commonMuskerLaw_Newton.h"
 
     //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
@@ -335,24 +335,24 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
 #   include "IBC/nutilde_Ferrari.h"
 #endif
     if (nvars == 6)
-    { 
+    {
       err  = 0; skip = 0;
 // Newton pour nut
 #if NUTILDE_FERRARI == 0
-#     include "IBC/nutildeSA_Newton.h" 
+#     include "IBC/nutildeSA_Newton.h"
 #endif
 
       // mise a jour des variable
 #ifdef _OPENMP4
       #pragma omp simd
-#endif 
+#endif
       for (E_Int noind = 0; noind < ifin-ideb; noind++)
       {
          E_Int indR = rcvPts[noind+ideb];
 
          // For Post (temperature du point image text, densite et pression du point de paroi: densPtr,pressPtr)
          text = press_vec[noind]/ ro_vec[noind]* cvgaminv;
-           
+
          twall = text  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
          pressPtr[noind+ideb]= press_vec[noind ];
@@ -366,41 +366,41 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
          w = rowOut[indR]*roinv;
 
          // Densite corrigee (CC-Busemann)
-         roOut[indR]  = press_vec[noind ]/tcible_vec[noind]*cvgaminv;   
+         roOut[indR]  = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
 
-         rouOut[indR] = ucible_vec[noind]*roOut[indR]; 
+         rouOut[indR] = ucible_vec[noind]*roOut[indR];
          rovOut[indR] = vcible_vec[noind]*roOut[indR];
-         rowOut[indR] = wcible_vec[noind]*roOut[indR];      
+         rowOut[indR] = wcible_vec[noind]*roOut[indR];
 
          // roEOut[indR] = roE + 0.5*ro_vec[noind]*( ucible_vec[noind]*ucible_vec[noind] - u*u
          //                                         +vcible_vec[noind]*vcible_vec[noind] - v*v
          //                                         +wcible_vec[noind]*wcible_vec[noind] - w*w );
-         roEOut[indR] = roE +   0.5*roOut[indR]*( ucible_vec[noind]*ucible_vec[noind] 
-                                                  +vcible_vec[noind]*vcible_vec[noind] 
+         roEOut[indR] = roE +   0.5*roOut[indR]*( ucible_vec[noind]*ucible_vec[noind]
+                                                  +vcible_vec[noind]*vcible_vec[noind]
                                                   +wcible_vec[noind]*wcible_vec[noind]  )
                               - 0.5*ro_vec[noind]*( u*u
                                                    +v*v
                                                    +w*w );
 
-         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind]*ro_vec[noind];                                    //nutilde*signibc    
+         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind]*ro_vec[noind];                                    //nutilde*signibc
 
          vxPtr[noind+ideb] = ucible_vec[noind];
          vyPtr[noind+ideb] = vcible_vec[noind];
          vzPtr[noind+ideb] = wcible_vec[noind];
       }
     }
-    else //5eq 
+    else //5eq
     { // mise a jour des variables
 #ifdef _OPENMP4
       #pragma omp simd
-#endif 
+#endif
       for (E_Int noind = 0; noind < ifin-ideb; noind++)
       {
          E_Int indR = rcvPts[noind+ideb];
 
          // For Post (temperature du point image text, densite et pression du point de paroi: densPtr,pressPtr)
          text = press_vec[noind]/ ro_vec[noind]* cvgaminv;
-           
+
          twall = text  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
          pressPtr[noind+ideb]= press_vec[noind ];
@@ -409,19 +409,19 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
 
          E_Float roinv = 1./ro_vec[noind];
          // vitesse du pt ext
-         u = rouOut[indR]*roinv; 
+         u = rouOut[indR]*roinv;
          v = rovOut[indR]*roinv;
          w = rowOut[indR]*roinv;
 
          // Densite corrigee (CC-Busemann)
-         roOut[indR]  = press_vec[noind ]/tcible_vec[noind]*cvgaminv;   
+         roOut[indR]  = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
 
-         rouOut[indR] = ucible_vec[noind]*roOut[indR]; 
-         rovOut[indR] = vcible_vec[noind]*roOut[indR]; 
-         rowOut[indR] = wcible_vec[noind]*roOut[indR];      
+         rouOut[indR] = ucible_vec[noind]*roOut[indR];
+         rovOut[indR] = vcible_vec[noind]*roOut[indR];
+         rowOut[indR] = wcible_vec[noind]*roOut[indR];
 
-         roEOut[indR] = roE +   0.5*roOut[indR]*( ucible_vec[noind]*ucible_vec[noind] 
-                                                  +vcible_vec[noind]*vcible_vec[noind] 
+         roEOut[indR] = roE +   0.5*roOut[indR]*( ucible_vec[noind]*ucible_vec[noind]
+                                                  +vcible_vec[noind]*vcible_vec[noind]
                                                   +wcible_vec[noind]*wcible_vec[noind]  )
                               - 0.5*ro_vec[noind]*( u*u
                                                    +v*v
@@ -437,11 +437,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
       }
     }
   }
-  else if (bctype == 4) // outpres 
-  { 
+  else if (bctype == 4) // outpres
+  {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
           E_Int indR = rcvPts[noind+ideb];
@@ -457,7 +457,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
           vzPtr[noind+ideb] = w;
         }
   }
-  else 
+  else
   {
     printf("Warning !!! setIBCTransfersCommonVar1: bcType %d not implemented.\n", bctype);
     return 0;
@@ -468,7 +468,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
 //Retourne -2: incoherence entre meshtype et le type d'interpolation
 //         -1: type invalide
 //          1: ok
-// Entree/Sortie:  (ro,u,v,w,t) ( + nutildeSA ) 
+// Entree/Sortie:  (ro,u,v,w,t) ( + nutildeSA )
 //=============================================================================
 E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Int bctype,
@@ -490,18 +490,56 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float gamma = param_real[ GAMMA ];
 
 
-  E_Float* pressPtr = densPtr +  nbRcvPts;
-  E_Float* vxPtr    = densPtr +2*nbRcvPts;
-  E_Float* vyPtr    = densPtr +3*nbRcvPts; 
-  E_Float* vzPtr    = densPtr +4*nbRcvPts;
+  E_Float* pressPtr = densPtr + 1*nbRcvPts;
+  E_Float* vxPtr    = densPtr + 2*nbRcvPts;
+  E_Float* vyPtr    = densPtr + 3*nbRcvPts; 
+  E_Float* vzPtr    = densPtr + 4*nbRcvPts;
+
   E_Float* utauPtr = NULL;
   E_Float* yplusPtr = NULL;
   E_Float* kcurvPtr = NULL;
+
   E_Float* d1 = NULL;
   E_Float* d2 = NULL;
   E_Float* d3 = NULL;
   E_Float* d4 = NULL;
   E_Float* d5 = NULL;
+
+  E_Float* gradxPressPtr = NULL;
+  E_Float* gradyPressPtr = NULL;
+  E_Float* gradzPressPtr = NULL;
+
+  E_Float* gradxUPtr = NULL;
+  E_Float* gradyUPtr = NULL;
+  E_Float* gradzUPtr = NULL;
+
+  E_Float* gradxVPtr = NULL;
+  E_Float* gradyVPtr = NULL;
+  E_Float* gradzVPtr = NULL;
+
+  E_Float* gradxWPtr = NULL;
+  E_Float* gradyWPtr = NULL;
+  E_Float* gradzWPtr = NULL;
+
+  E_Float* y_linePtr = NULL;
+  E_Float* u_linePtr = NULL;
+  E_Float* nutilde_linePtr = NULL;
+  E_Float* psi_linePtr = NULL;
+  E_Float* matm_linePtr = NULL;
+  E_Float* mat_linePtr = NULL;
+  E_Float* matp_linePtr = NULL;
+  E_Float* alphasbeta_linePtr = NULL;
+  E_Float* index_linePtr = NULL;
+
+  if (bctype == 11)
+  {
+    nbptslinelets = param_real[ NBPTS_LINELETS ];
+  }
+
+  if (nbptslinelets == 0 && bctype == 11) //TBLE_FULL -> Musker
+  {
+    bctype = 3; //Musker
+  }
 
   if ( bctype == 0 || bctype == 1)
   {;}
@@ -509,18 +547,64 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   {
     kcurvPtr = densPtr+5*nbRcvPts;
   }
-  else if (bctype == 3 ||bctype == 2 ||bctype == 6)// Musker, log, TBLE
+  else if (bctype == 2 || bctype == 3 || bctype == 6 || bctype == 7 || bctype == 8 || bctype == 9)// log, Musker, TBLE, MuskerMob, Pohlhausen, Thwaites
   {
     utauPtr  = densPtr+5*nbRcvPts;
     yplusPtr = densPtr+6*nbRcvPts;
   }
-  else if (bctype==5)// injection
+  else if (bctype == 5)// injection
   {
-    d1       = densPtr+5*nbRcvPts;
-    d2       = densPtr+6*nbRcvPts;
-    d3       = densPtr+7*nbRcvPts;
-    d4       = densPtr+8*nbRcvPts;
-    d5       = densPtr+9*nbRcvPts;
+    d1 = densPtr+5*nbRcvPts;
+    d2 = densPtr+6*nbRcvPts;
+    d3 = densPtr+7*nbRcvPts;
+    d4 = densPtr+8*nbRcvPts;
+    d5 = densPtr+9*nbRcvPts;
+  }
+  else if (bctype == 10) // Mafzal
+  {
+    utauPtr       = densPtr+5*nbRcvPts;
+    yplusPtr      = densPtr+6*nbRcvPts;
+
+    gradxPressPtr = densPtr+7*nbRcvPts;
+    gradyPressPtr = densPtr+8*nbRcvPts;
+    gradzPressPtr = densPtr+9*nbRcvPts;
+
+    E_Int   mafzalMode    = param_real[ MAFZAL_MODE ];
+    E_Float alphaGradP    = param_real[ ALPHAGRADP ];
+    nbptslinelets         = param_real[ NBPTS_LINELETS ];
+
+    // std::cout << "mafzalMode = " << mafzalMode << " alpha = " << alphaGradP << " nbpts linelets = " << nbptslinelets << std::endl;
+  }
+  else if (bctype == 11) // TBLE-FULL
+  {
+    utauPtr       = densPtr+5*nbRcvPts;
+    yplusPtr      = densPtr+6*nbRcvPts;
+
+    gradxPressPtr = densPtr+7*nbRcvPts;
+    gradyPressPtr = densPtr+8*nbRcvPts;
+    gradzPressPtr = densPtr+9*nbRcvPts;
+
+    gradxUPtr = densPtr+10*nbRcvPts;
+    gradyUPtr = densPtr+11*nbRcvPts;
+    gradzUPtr = densPtr+12*nbRcvPts;
+
+    gradxVPtr = densPtr+13*nbRcvPts;
+    gradyVPtr = densPtr+14*nbRcvPts;
+    gradzVPtr = densPtr+15*nbRcvPts;
+
+    gradxWPtr = densPtr+16*nbRcvPts;
+    gradyWPtr = densPtr+17*nbRcvPts;
+    gradzWPtr = densPtr+18*nbRcvPts;
+
+    y_linePtr          = densPtr+nbRcvPts*(19+nbptslinelets*0);
+    u_linePtr          = densPtr+nbRcvPts*(19+nbptslinelets*1);
+    nutilde_linePtr    = densPtr+nbRcvPts*(19+nbptslinelets*2);
+    psi_linePtr        = densPtr+nbRcvPts*(19+nbptslinelets*3);
+    matm_linePtr       = densPtr+nbRcvPts*(19+nbptslinelets*4);
+    mat_linePtr        = densPtr+nbRcvPts*(19+nbptslinelets*5);
+    matp_linePtr       = densPtr+nbRcvPts*(19+nbptslinelets*6);
+    alphasbeta_linePtr = densPtr+nbRcvPts*(19+nbptslinelets*7);
+    index_linePtr      = densPtr+nbRcvPts*(19+nbptslinelets*7+1);
   }
   else 
   {
@@ -529,16 +613,26 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   }
 
   /* lois de paroi */
-  E_Float roext, uext, pext, text, muext, yext, yplus, yibc;
+  E_Float roext, uext, pext, text, muext, yext, yplus, yibc, eta, delta;
+  E_Float gradxPext, gradyPext, gradzPext;
+  E_Float gradxUext, gradyUext, gradzUext;
+  E_Float gradxVext, gradyVext, gradzVext;
+  E_Float gradxWext, gradyWext, gradzWext;
   E_Float uscaln, un, vn, wn, ut, vt, wt, utau, utauv, utau0, umod;
+  E_Float utinf, vtinf, wtinf;
+  E_Float t_thwaites, a_thwaites, b_thwaites, c_thwaites, lambda_thwaites, m_thwaites;
+  E_Float ut_thwaites, vt_thwaites, wt_thwaites, utau_thwaites, x_T, alpha_T;
+  E_Float ut_transition, vt_transition, wt_transition;
   E_Float aa, bb, dd, fp, tp, f1v;
-  E_Float expy, denoml10,ax,l1,l2, l3;
+  E_Float expy, denoml10, ax, px, kx, y1, y2, l1, l2, l3, l4, l5, l11, l12, l13;
+  E_Float ag11, ag12, ag13, bg10, bg11, bg12, bg13, bg14, cg10, cg11, cg12, cg13, cg14;
+  E_Float ag22, ag23, bg20, bg21, bg22, bg23, bg24, cg20, cg21, cg22, cg23, cg24;
   E_Float ucible0, ucible, vcible, wcible, nutilde, signibc, twall, rowall, muwall;
   E_Int npass;
   // Lois de paroi: criteres d'arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d'arret pour u+
   E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
-  E_Float newtonepsprime = 1.e-12;// critere d'arret pour la derivee  
+  E_Float newtonepsprime = 1.e-12;// critere d'arret pour la derivee
   E_Float cvgam = cv*(gamma-1.);
   E_Float cvgaminv = 1./(cvgam);
   E_Float coefSuth = muS * (1.+Cs/Ts);
@@ -546,7 +640,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float kappa = 0.4; // Constante de Von Karman
   E_Float kappainv = 1./kappa;
   E_Float cc = 5.2; //pour la loi log
-  E_Float one_third = 1./3.; 
+  E_Float one_third = 1./3.;
   /* fin parametres loi de parois*/
 
   E_Int nvars = vectOfDnrFields.size();
@@ -560,34 +654,34 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* wOut  = vectOfRcvFields[3];// w
   E_Float* tOut  = vectOfRcvFields[4];// temperature
   E_Float* varSAOut = NULL;
-
+  
+  //---------------------------------
   // ODE-based wall model
-
+  //---------------------------------
   E_Float Cv1cube = pow(7.1,3);
   E_Int nmax = 20;
 
-  E_Float L2norm ; 
-  E_Float L2norm0;  
-  
+  E_Float L2norm ;
+  E_Float L2norm0;
+
   E_Float ynm,ynp,dy,dym,dyp,nutm,nutp;
   E_Float xim,xi,xip,m;
   E_Float nutrm,nutrp,nutr;
 
-  E_Float* ipt_u1dold = NULL;
-  E_Float* yline        = NULL;
-  E_Float* u_line       = NULL;
-  E_Float* nutilde_line = NULL;
-  E_Float* matm_line    = NULL;
-  E_Float* mat_line     = NULL;
-  E_Float* matp_line    = NULL;
+  E_Float* ipt_u1dold      = NULL;
+  E_Float* yline           = NULL;
+  E_Float* u_line          = NULL;
+  E_Float* nutilde_line    = NULL;
+  E_Float* matm_line       = NULL;
+  E_Float* mat_line        = NULL;
+  E_Float* matp_line       = NULL;
   E_Float* alphasbeta_line = NULL;
 
   FldArrayF u1dold(nbptslinelets);
   ipt_u1dold = u1dold.begin();
 
-  if (nbptslinelets != 0)
+  if (nbptslinelets != 0 && (bctype == 6))
   {
-
     yline           = linelets;
     u_line          = linelets + nbRcvPts*nbptslinelets;
     nutilde_line    = linelets + nbRcvPts*nbptslinelets*2;
@@ -595,16 +689,17 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
     mat_line        = linelets + nbRcvPts*nbptslinelets*4;
     matp_line       = linelets + nbRcvPts*nbptslinelets*5;
     alphasbeta_line = linelets + nbRcvPts*nbptslinelets*6;
-    
   }
+  //---------------------------------
 
   if (nvars == 6) varSAOut = vectOfRcvFields[5]; // nutildeSA
 
   // if ( (bctype==2 || (bctype==3)) && nvars < 6)
   // {
-  //   printf("Warning: setIBCTransfersCommonVar2: number of variables (<6) inconsistent with bctype.\n"); 
+  //   printf("Warning: setIBCTransfersCommonVar2: number of variables (<6) inconsistent with bctype.\n");
   //   return 0;
   // }
+
   if (bctype == 100)//wallslip + curvature radius
   {
 #ifdef _OPENMP4
@@ -633,10 +728,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         }
   }
   else if (bctype == 0) // wallslip
-  { 
+  {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
@@ -646,12 +741,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          v = vOut[indR];
          w = wOut[indR];
 # include "IBC/commonBCType0.h"
-         uOut[indR] = ucible; 
-         vOut[indR] = vcible; 
+         uOut[indR] = ucible;
+         vOut[indR] = vcible;
          wOut[indR] = wcible;
          if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
-         pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam; 
+         pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam;
          densPtr[ noind + ideb] = roOut[indR];
 
          vxPtr[noind+ideb] = uOut[indR];
@@ -667,22 +762,22 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
 
          // vitesse
-         u = uOut[indR]; 
+         u = uOut[indR];
          v = vOut[indR];
          w = wOut[indR];
 # include "IBC/commonBCType1.h"
-         uOut[indR] = ucible; 
-         vOut[indR] = vcible; 
-         wOut[indR] = wcible;      
+         uOut[indR] = ucible;
+         vOut[indR] = vcible;
+         wOut[indR] = wcible;
          if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
-         pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam; 
+         pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam;
          densPtr[ noind + ideb] = roOut[indR];
 
          vxPtr[noind+ideb] = uOut[indR];
@@ -693,19 +788,19 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   }
   else if (bctype == 2) // loi de paroi log
   {
-#   include "IBC/pointer.h" 
+#   include "IBC/pointer.h"
 
     E_Int err  = 0;
-    E_Int skip = 0; 
+    E_Int skip = 0;
     //initialisation parametre geometrique et utau
 #ifdef _OPENMP4
     #pragma omp simd
-#endif 
+#endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
      {
         //E_Int indR = rcvPts[noind];
         E_Int indR = rcvPts[noind+ideb];
- 
+
         roext = roOut[indR]; // densite du point interpole
         text  = tOut[indR];  // pression du point interpole
         pext  = text*roext*cvgam;
@@ -715,12 +810,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         v = vOut[indR];
         w = wOut[indR];
 
-#       include "IBC/commonLogLaw_init.h" 
-        // out= utau  et err 
+#       include "IBC/commonLogLaw_init.h"
+        // out= utau  et err
      }
 
      // Newton pour utau
-#    include "IBC/commonLogLaw_Newton.h" 
+#    include "IBC/commonLogLaw_Newton.h"
 
      //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
@@ -735,12 +830,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       {
         // Newton pour mut
 #if NUTILDE_FERRARI == 0
-#       include "IBC/nutildeSA_Newton.h" 
+#       include "IBC/nutildeSA_Newton.h"
 #endif
         // mise a jour des variable
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
@@ -752,27 +847,27 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
         pressPtr[noind+ideb]= press_vec[noind ];
 
-         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
          uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR]  = wcible_vec[noind];
-         tOut[indR]     = tcible_vec[noind];        
-         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc   
+         tOut[indR]     = tcible_vec[noind];
+         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc
 
          vxPtr[noind+ideb] = uOut[indR];
          vyPtr[noind+ideb] = vOut[indR];
          vzPtr[noind+ideb] = wOut[indR];
         }
       }
-    else //5eq 
+    else //5eq
       {
         // mise a jour des variables
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
-         
-         roOut[indR]= press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
+
+         roOut[indR]= press_vec[noind ]/tcible_vec[noind]*cvgaminv;
 
          uOut[indR] = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
          tOut[indR] = tcible_vec[noind];
@@ -884,17 +979,27 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       }
 
   }//bctype
-  else if (bctype == 4) // outpres 
-  { 
+  else if (bctype == 4) // outpres
+  {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
-         tOut[indR] = pressPtr[noind+ideb]/(roOut[indR]*cvgam);//pext/(roext*cvgam)
-         densPtr[noind+ideb] = roOut[indR];
+
+         if (densPtr[noind+ideb] > 0.) {
+            roOut[indR] = densPtr[noind+ideb];
+         }
+
+         if (pressPtr[noind+ideb] > 0.) {
+            tOut[indR] = pressPtr[noind+ideb]/(roOut[indR]*cvgam);//pext/(roext*cvgam)
+         }
+
+         // tOut[indR] = pressPtr[noind+ideb]/(roOut[indR]*cvgam);//pext/(roext*cvgam)
+         // densPtr[noind+ideb] = roOut[indR];
          // printf(" press = %g \n", pressPtr[noind+ideb]);
+
          vxPtr[noind+ideb] = uOut[indR];
          vyPtr[noind+ideb] = vOut[indR];
          vzPtr[noind+ideb] = wOut[indR];
@@ -903,7 +1008,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   else if (bctype == 5) // inj
   {
     //printf("injection\n");
-    if (d1 == NULL) 
+    if (d1 == NULL)
     {
       printf("Warning: IBC inj with no data.\n"); return 0; // no data
     }
@@ -949,7 +1054,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       wi  = wOut[indR];
       Ti  = tOut[indR];
       pi  = roi*rgp*Ti;
-        
+
       ro0 = roOut[indR];
       u0  = uOut[indR];
       v0  = vOut[indR];
@@ -970,23 +1075,23 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
       vni  = ui*tnx + vi*tny + wi*tnz;
       roc0 = sqrt(ro0*gam*p0); // rho*c
-        
+
       // sans dimension: produit scalaire direction vitesse . normale
       usd0n  = 1./(d0x*tnx + d0y*tny + d0z*tnz);
       usd0n2 = usd0n*usd0n;
-        
+
       qen = 0.; // a ajouter en ALE
 
       // ...   Inner caracteristic variable
       // ...   Relative normal velocity
       wni = vni - qen;
       ri  = pi + roc0*wni;
-        
-      // ...   Newton Initialization for the relative normal velocity 
+
+      // ...   Newton Initialization for the relative normal velocity
       wn0  = u0*tnx + v0*tny + w0*tnz  - qen;
       wng  = wn0;
 
-      // resolution Newton             
+      // resolution Newton
       residug  = 1.e+20;
       nitnwt   = 0;
 
@@ -1001,7 +1106,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         b = K_FUNC::E_max(0.2,b); //cutoff robustesse
         // p = Pi (1 -U^2/(2CpTi))^(gamma/(gamma-1))
         pg  = pa*pow(b,gam2);
- 
+
         //      nan = isnan(pg)
         //      if(nan)   write(*,*)'fuck Nan inflow_newton',pa(li),b,gam2
 
@@ -1009,10 +1114,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
         f    = pg + roc0*wng - ri;
         df   = roc0 - rog*(wng+qen)*usd0n2;
- 
-        dwng = -f/df; 
+
+        dwng = -f/df;
         wng = wng + dwng;
-          
+
         residug = K_FUNC::E_max(residug, K_FUNC::E_abs(dwng/wng));
       }
 
@@ -1020,13 +1125,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       vng = (wng+qen);
       //...      Absolute velocity module
       vg  = vng*usd0n;
-          
+
       b = 1. - (vng*vng)*usd0n2/(2.*ha);
       b = K_FUNC::E_max(0.2,b); //cutoff robustesse
 
       pg   = pa* pow(b,gam2);
       rog  = gam2*pg/(ha*b);
-          
+
       Tg   = pg/(rog*rgp);
 
       roOut[indR] = rog;
@@ -1048,20 +1153,20 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
     if (nbptslinelets != 0)
     {
 
-#   include "IBC/pointer.h" 
+#   include "IBC/pointer.h"
 
     E_Int err  = 0;
-    E_Int skip = 0; 
+    E_Int skip = 0;
     E_Int init = 1;
 
-    if( (alphasbeta_line[ ideb ] != 0.0) || ideb == ifin)   {init=0;} 
+    if( (alphasbeta_line[ ideb ] != 0.0) || ideb == ifin)   {init=0;}
 
     if(init)
-    {      
+    {
 
        for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
-          
+
          E_Float* yline1d   = yline + (noind + ideb)*nbptslinelets;
 
          a0 = xPC[noind+ideb]-xPW[noind+ideb];
@@ -1071,14 +1176,14 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          E_Float dist = sqrt(a0*a0 + a1*a1 + a2*a2);
 
          E_Int imin  = 0;
-         E_Int imax  = nbptslinelets;         
+         E_Int imax  = nbptslinelets;
          E_Int isearch    = nbptslinelets/2;
 
          while ( (imax - imin) > 1  )
             {
               if ( dist <= yline1d[isearch])
               {
-               imax = isearch;             
+               imax = isearch;
                isearch = imin + (imax-imin)/2;
               }
               else
@@ -1087,78 +1192,78 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
                isearch = imin + (imax-imin)/2;
               }
             }
-                 
-   
-         alphasbeta_line[noind + ideb] = (dist-yline1d[imin] )/(yline1d[imax] -yline1d[imin]);         
+
+
+         alphasbeta_line[noind + ideb] = (dist-yline1d[imin] )/(yline1d[imax] -yline1d[imin]);
          indexlinelets[ noind + ideb ] = imax;
         }
 
-    
+
     // }
     // Fill nutilde in linelets
 
-    // Test Mixing-length  
+    // Test Mixing-length
     for ( E_Int iline = 0 ; iline < nbptslinelets; iline++)
-      {      
+      {
 
        for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
-       
-  
-        E_Int   indl   = (noind + ideb)*nbptslinelets   + iline;   
+
+
+        E_Int   indl   = (noind + ideb)*nbptslinelets   + iline;
         E_Int   indR   = rcvPts[noind+ideb];
- 
+
         roext = roOut[indR]; // densite du point interpole
         text  = tOut[indR];  // pression du point interpole
         pext  = text*roext*cvgam;
 
          // vitesse du pt ext
         u = uOut[indR];
-        v = vOut[indR]; 
+        v = vOut[indR];
         w = wOut[indR];
 
-#       include "IBC/commonMuskerLaw_init_tble.h"      
+#       include "IBC/commonMuskerLaw_init_tble.h"
         }
 
         // Newton pour utau
-#       include "IBC/commonMuskerLaw_Newton.h"       
+#       include "IBC/commonMuskerLaw_Newton.h"
 
      // //initialisation Newton SA  + vitesse cible
 #       include "IBC/commonMuskerLaw_cible_tble.h"
 
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
-        
+
           E_Int   indl   = (noind + ideb)*nbptslinelets   + iline;//*nbptslinelets;
-          E_Int   indR   = rcvPts[noind+ideb];         
+          E_Int   indR   = rcvPts[noind+ideb];
 
 
 
-          // Initialisation linelets    
+          // Initialisation linelets
           // u_line[indl]     =  uOut[indR]*abs(yline[indl]/yline[nbptslinelets-1]);
 
-          u_line[indl]     =  sqrt(ucible_vec[noind]*ucible_vec[noind] + 
+          u_line[indl]     =  sqrt(ucible_vec[noind]*ucible_vec[noind] +
                                    vcible_vec[noind]*vcible_vec[noind] +
                                    wcible_vec[noind]*wcible_vec[noind] );//(uOut[indR] )*abs(alphasbeta) ;//ucible_vec[noind];
 
           // nutilde_line[indl] = 0.0;//aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nu
           nutilde_line[indl] = (varSAOut[indR] )*K_FUNC::E_abs(yline[indl]/yline[nbptslinelets-1]) ;
-        }        
-  
+        }
+
       }
     } // END INIT
 
 
-    // 1D TBLE for u (no grad p nor convective terms... for now)  NEED TO CORRECT V and W 
+    // 1D TBLE for u (no grad p nor convective terms... for now)  NEED TO CORRECT V and W
 
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
-     
+
 
          // for (E_Int loop = 0; loop < 400; ++loop)
          // {
-   
-         E_Int indR = rcvPts[noind+ideb];         
+
+         E_Int indR = rcvPts[noind+ideb];
 
          E_Float* yline1d   = yline        + (noind + ideb)*nbptslinelets;
          E_Float* nutilde1d = nutilde_line + (noind + ideb)*nbptslinelets;
@@ -1175,20 +1280,20 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
          // vitesse du pt ext
          u = uOut[indR];
-         v = vOut[indR]; 
+         v = vOut[indR];
          w = wOut[indR];
 
 //          // Loi de Sutherland -> viscosite au point interpole
          mu_vec[noind] = coefSuth * sqrt(K_FUNC::E_abs(text)*Tsinv) / (1.+Cs/text);
-         
+
 //          // uscaln: u au point interpole scalaire la normale au pt interpole
          uscaln = u*n0 + v*n1 + w*n2;
-           
+
          //composante normale de la vitesse
          un = uscaln*n0;
          vn = uscaln*n1;
          wn = uscaln*n2;
-         
+
          //composante tangentielle de la vitesse au pt interpole
          ut = u-un;
          vt = v-vn;
@@ -1198,10 +1303,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          uext_vec[noind] = std::max(uext, 1.e-12);
 
 
-         E_Float nu = mu_vec[noind]/roOut[indR];     
+         E_Float nu = mu_vec[noind]/roOut[indR];
 
          u1d[0] = 0.0;
-         u1d[nbptslinelets-1] = uext_vec[noind];  
+         u1d[nbptslinelets-1] = uext_vec[noind];
 
          npass = 0;
          L2norm = 1.0;
@@ -1213,13 +1318,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          for (E_Int j = 0; j < nbptslinelets; ++j)
          {
            ipt_u1dold[j] = 0.0;//u1d[j];
-         }      
+         }
 
 
          // while ( (L2norm/L2norm0 >= 0.01) && (npass < nmax))
-         while ( (L2norm >= 1.0e-1) && (npass < nmax)) 
-         {     
-         
+         while ( (L2norm >= 1.0e-1) && (npass < nmax))
+         {
+
 #        include "IBC/tble_1d.h"
 
          // if ((npass == nmax) && (ithread==1))
@@ -1232,13 +1337,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          // {
          //   std::cout << "Residual utble = " << L2norm << " utble :" << u1d[j_cvg] << " j_cvg :" << j_cvg <<  std::endl;
          // }
-         utau_vec[noind ] = sqrt(K_FUNC::E_abs(nu*u1d[1])/yline1d[1]);        
+         utau_vec[noind ] = sqrt(K_FUNC::E_abs(nu*u1d[1])/yline1d[1]);
 
-        // ODE 1D SA for nutilde    
+        // ODE 1D SA for nutilde
 
          spalart_1d_(ithread,yline1d, matm,mat,matp, nutilde1d ,u1d,kappa,
                      nu,varSAOut[indR],nbptslinelets,kappa);
-         
+
 
          }
 
@@ -1255,7 +1360,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         // mise a jour des variables
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
 
@@ -1267,10 +1372,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
           // vitesse du pt ext
           u = uOut[indR];
-          v = vOut[indR]; 
+          v = vOut[indR];
           w = wOut[indR];
-         
-       
+
+
           pext  = tOut[indR]*roOut[indR]*cvgam;
 
 # include "IBC/commonLaws1.h"
@@ -1291,58 +1396,58 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext); // Crocco-Busemann()
           densPtr[noind+ideb] = pext/twall*cvgaminv;
           pressPtr[noind+ideb]= pext;
-      
+
           tcible_vec[noind] = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext - umod*umod); // Crocco-Busemann
 
           // Mise a jour pt corrige
-          roOut[indR]    = pext/tcible_vec[noind]*cvgaminv;       
+          roOut[indR]    = pext/tcible_vec[noind]*cvgaminv;
           uOut[indR]     = ucible_vec[noind];
           vOut[indR]     = vcible_vec[noind];
           wOut[indR]     = wcible_vec[noind];
           tOut[indR]     = tcible_vec[noind];
           varSAOut[indR] = (nutilde1d[indexlinelets[noind + ideb]] - nutilde1d[indexlinelets[noind + ideb]-1])*alphasbeta_line[noind + ideb] + nutilde1d[indexlinelets[noind + ideb]-1]; //aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
-          
+
           vxPtr[noind+ideb] = uOut[indR];
           vyPtr[noind+ideb] = vOut[indR];
           vzPtr[noind+ideb] = wOut[indR];
 
         }
 
-        
-    } // nbptslinelets 
+
+    } // nbptslinelets
 
     else  // premier call effectue par fillGhostCell (pas de TBLE +SA ) --> on renseigne les PC par du Musker + Mix Length
 
     {
 
-#   include "IBC/pointer.h" 
+#   include "IBC/pointer.h"
 
     E_Int err  = 0;
-    E_Int skip = 0; 
+    E_Int skip = 0;
     //initialisation parametre geometrique et utau
 #ifdef _OPENMP4
     #pragma omp simd
-#endif 
+#endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
      {
         //E_Int indR = rcvPts[noind];
         E_Int indR = rcvPts[noind+ideb];
- 
+
         roext = roOut[indR]; // densite du point interpole
         text  = tOut[indR];  // pression du point interpole
         pext  = text*roext*cvgam;
 
         // vitesse du pt ext
         u = uOut[indR];
-        v = vOut[indR]; 
+        v = vOut[indR];
         w = wOut[indR];
         //printf("IN WALL LAW: %f %f %f %f %f \n",roext, text, u,v,w);
 #       include "IBC/commonMuskerLaw_init.h"
         // out= utau  et err
-     }  
+     }
 
      // Newton pour utau
-#    include "IBC/commonMuskerLaw_Newton.h" 
+#    include "IBC/commonMuskerLaw_Newton.h"
 
      //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
@@ -1356,12 +1461,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       {
         // Newton pour mut
 #if NUTILDE_FERRARI == 0
-#       include "IBC/nutildeSA_Newton.h" 
+#       include "IBC/nutildeSA_Newton.h"
 #endif
         // mise a jour des variable
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
           E_Int indR = rcvPts[noind+ideb];
@@ -1373,7 +1478,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           pressPtr[noind+ideb]= press_vec[noind ];
 
           // Mise a jour pt corrige
-          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;       
+          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
           uOut[indR]     = ucible_vec[noind];
           vOut[indR]     = vcible_vec[noind];
           wOut[indR]     = wcible_vec[noind];
@@ -1387,12 +1492,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
         }
       }
-    else //5eq 
+    else //5eq
       {
         // mise a jour des variables
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
@@ -1402,7 +1507,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
          pressPtr[noind+ideb]= press_vec[noind ];
 
-         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;   
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
          uOut[indR]     = ucible_vec[noind];
          vOut[indR]     = vcible_vec[noind];
          wOut[indR]     = wcible_vec[noind];
@@ -1549,7 +1654,559 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       }
 
   }//bctype 
-  else 
+  else if (bctype == 8) // loi de paroi Pohlhausen
+  {
+#   include "IBC/pointer.h"
+
+    E_Int err  = 0;
+    E_Int skip = 0;
+    //initialisation parametre geometrique et utau
+#ifdef _OPENMP4
+    #pragma omp simd
+#endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+     {
+        //E_Int indR = rcvPts[noind];
+        E_Int indR = rcvPts[noind+ideb];
+
+        roext = roOut[indR]; // densite du point interpole
+        text  = tOut[indR];  // pression du point interpole
+        pext  = text*roext*cvgam;
+
+        // vitesse du pt ext
+        u = uOut[indR];
+        v = vOut[indR];
+        w = wOut[indR];
+#       include "IBC/commonPohlhausenLaw_init.h"
+     }
+
+#    include "IBC/commonPohlhausenLaw_cible.h"
+
+    if (nvars == 6)
+      {
+        // mise a jour des variables
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+          E_Int indR = rcvPts[noind+ideb];
+
+          // For Post (tOut temperature du point image en entree, pt corrige en sortie)
+          twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+          pressPtr[noind+ideb]= press_vec[noind ];
+
+          // Mise a jour pt corrige
+          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+          uOut[indR]     = ucible_vec[noind];
+          vOut[indR]     = vcible_vec[noind];
+          wOut[indR]     = wcible_vec[noind];
+          tOut[indR]     = tcible_vec[noind];
+          varSAOut[indR] = 0.; // laminar
+
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
+
+        }
+      }
+    else //5eq
+      {
+        // mise a jour des variable
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+         E_Int indR = rcvPts[noind+ideb];
+
+         // For Post (tOut temperature du point image)
+         twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+         densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+         pressPtr[noind+ideb]= press_vec[noind ];
+
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+         uOut[indR]     = ucible_vec[noind];
+         vOut[indR]     = vcible_vec[noind];
+         wOut[indR]     = wcible_vec[noind];
+         tOut[indR]     = tcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+        }
+      }
+
+  }//bctype
+    else if (bctype == 9) // loi de paroi Thwaites
+  {
+  #   include "IBC/pointer.h"
+
+    E_Int err  = 0;
+    E_Int skip = 0;
+    E_Float* matp;
+
+    //initialisation parametre geometrique et utau
+  #ifdef _OPENMP4
+    #pragma omp simd
+  #endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+     {
+        //E_Int indR = rcvPts[noind];
+        E_Int indR = rcvPts[noind+ideb];
+
+        roext = roOut[indR]; // densite du point interpole
+        text  = tOut[indR];  // pression du point interpole
+        pext  = text*roext*cvgam;
+
+        // vitesse du pt ext
+        u = uOut[indR];
+        v = vOut[indR];
+        w = wOut[indR];
+  #       include "IBC/commonThwaitesLaw_init.h"
+        // out= utau  et err
+     }
+
+  #    include "IBC/commonThwaitesLaw_cible.h"
+
+    if (nvars == 6)
+      {
+        // mise a jour des variables
+  #ifdef _OPENMP4
+       #pragma omp simd
+  #endif
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+          E_Int indR = rcvPts[noind+ideb];
+
+          // For Post (tOut temperature du point image en entree, pt corrige en sortie)
+          twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+          pressPtr[noind+ideb]= press_vec[noind ];
+
+          // Mise a jour pt corrige
+          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+          uOut[indR]     = ucible_vec[noind];
+          vOut[indR]     = vcible_vec[noind];
+          wOut[indR]     = wcible_vec[noind];
+          tOut[indR]     = tcible_vec[noind];
+          varSAOut[indR] = 0.;
+
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
+
+        }
+      }
+    else //5eq
+      {
+        // mise a jour des variable
+  #ifdef _OPENMP4
+       #pragma omp simd
+  #endif
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+         E_Int indR = rcvPts[noind+ideb];
+
+         // For Post (tOut temperature du point image)
+         twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+         densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+         pressPtr[noind+ideb]= press_vec[noind ];
+
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+         uOut[indR]     = ucible_vec[noind];
+         vOut[indR]     = vcible_vec[noind];
+         wOut[indR]     = wcible_vec[noind];
+         tOut[indR]     = tcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+
+        }
+      }
+  }//bctype
+
+  else if (bctype == 10) // loi de paroi Mafzal
+  {
+#   include "IBC/pointer.h"
+
+    E_Float MafzalMode = 3; // param_real[ MAFZAL_MODE ];
+
+    E_Int err  = 0;
+    E_Int skip = 0;
+    E_Float tgradU = 0.;
+    E_Float ngradU = 0.;
+    E_Float unext = 0.;
+    //initialisation parametre geometrique et utau
+#ifdef _OPENMP4
+    #pragma omp simd
+#endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+     {
+        //E_Int indR = rcvPts[noind];
+        E_Int indR = rcvPts[noind+ideb];
+
+        roext = roOut[indR]; // densite du point interpole
+        text  = tOut[indR];  // pression du point interpole
+        pext  = text*roext*cvgam;
+
+        // vitesse du pt ext
+        u = uOut[indR];
+        v = vOut[indR];
+        w = wOut[indR];
+
+        // gradient de pression au point ext
+        gradxPext = gradxPressPtr[noind+ideb];
+        gradyPext = gradyPressPtr[noind+ideb];
+        gradzPext = gradzPressPtr[noind+ideb];
+
+#       include "IBC/commonMafzalLaw_init.h"
+     }
+
+// PREMIERE PASSE MUSKER POUR UTAU_ORI #####################################
+#    include "IBC/commonMuskerLaw_Newton.h"
+err  = 0;
+skip = 0;
+E_Float alphaMafMus;
+
+#ifdef _OPENMP4
+    #pragma omp simd
+#endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+     {
+       utau0 = utauOri_vec[noind];
+       utauOri_vec[noind] = utau_vec[noind];
+       utau_vec[noind] = utau0;
+
+       #  include "IBC/mafzal_vec.h"
+     }
+// #########################################################################
+
+// Newton pour utau -> Mafzal
+#    include "IBC/commonMafzalLaw_Newton.h"
+
+//initialisation Newton SA  + vitesse cible
+#if NUTILDE_FERRARI == 0
+#    include "IBC/commonMafzalLaw_cible.h"
+#elif NUTILDE_FERRARI == 1
+#    include "IBC/nutilde_Ferrari_Mafzal.h"
+#else
+#    include "IBC/nutilde_Ferrari_adim_Mafzal.h"
+#endif
+    if (nvars == 6)
+      {
+        // Newton pour mut
+#if NUTILDE_FERRARI == 0
+#       include "IBC/nutildeSA_Newton.h"
+#endif
+        // mise a jour des variables
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+          E_Int indR = rcvPts[noind+ideb];
+
+          // For Post (tOut temperature du point image en entree, pt corrige en sortie)
+          twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+          densPtr[noind+ideb]  = press_vec[noind]/twall*cvgaminv;
+          pressPtr[noind+ideb] = press_vec[noind];
+
+          // Mise a jour pt corrige
+          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+          uOut[indR]     = ucible_vec[noind];
+          vOut[indR]     = vcible_vec[noind];
+          wOut[indR]     = wcible_vec[noind];
+          tOut[indR]     = tcible_vec[noind];
+          varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
+
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
+        }
+      }
+    else //5eq
+      {
+        // mise a jour des variable
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+         E_Int indR = rcvPts[noind+ideb];
+
+         // For Post (tOut temperature du point image)
+         twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+         densPtr[noind+ideb]  = press_vec[noind]/twall*cvgaminv;
+         pressPtr[noind+ideb] = press_vec[noind];
+
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+         uOut[indR]     = ucible_vec[noind];
+         vOut[indR]     = vcible_vec[noind];
+         wOut[indR]     = wcible_vec[noind];
+         tOut[indR]     = tcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+        }
+      }
+
+  }//bctype
+
+  else if (bctype == 11) // TBLE_FULL
+  {
+
+#   include "IBC/pointer.h"
+
+    E_Int err  = 0;
+    E_Int skip = 0;
+    E_Int init = 1;
+    E_Int index_int = 0;
+    E_Float index_float = 0.;
+
+    E_Float tgradU = 0.;
+    E_Float ngradU = 0.;
+    E_Float unext = 0.;
+
+#ifdef _OPENMP4
+    #pragma omp simd
+#endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+    {
+      E_Int indR = rcvPts[noind+ideb];
+
+      roext = roOut[indR]; 
+      text  = tOut[indR];  
+      pext  = text*roext*cvgam;
+
+      u = uOut[indR];
+      v = vOut[indR];
+      w = wOut[indR];
+
+      // gradient de pression au point ext
+      gradxPext = gradxPressPtr[noind+ideb];
+      gradyPext = gradyPressPtr[noind+ideb];
+      gradzPext = gradzPressPtr[noind+ideb];
+
+      // gradients de vitesse au point ext
+      gradxUext = gradxUPtr[noind+ideb];
+      gradyUext = gradyUPtr[noind+ideb];
+      gradzUext = gradzUPtr[noind+ideb];
+
+      gradxVext = gradxVPtr[noind+ideb];
+      gradyVext = gradyVPtr[noind+ideb];
+      gradzVext = gradzVPtr[noind+ideb];
+
+      gradxWext = gradxWPtr[noind+ideb];
+      gradyWext = gradyWPtr[noind+ideb];
+      gradzWext = gradzWPtr[noind+ideb];
+
+#     include "IBC/commonTbleFull_init.h"
+    }
+
+    // Newton pour utau
+#   include "IBC/commonMuskerLaw_Newton.h"
+
+    if( (alphasbeta_linePtr[ ideb ] != 0.0) || ideb == ifin)   {init=0;}
+
+    if(init)
+    {
+
+       for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+
+         E_Float* yline1d   = y_linePtr + (noind + ideb)*nbptslinelets;
+
+         a0 = xPC[noind+ideb]-xPW[noind+ideb];
+         a1 = yPC[noind+ideb]-yPW[noind+ideb];
+         a2 = zPC[noind+ideb]-zPW[noind+ideb];
+
+         E_Float dist = sqrt(a0*a0 + a1*a1 + a2*a2);
+
+         E_Int imin  = 0;
+         E_Int imax  = nbptslinelets;
+         E_Int isearch    = nbptslinelets/2;
+
+         while ( (imax - imin) > 1  )
+            {
+              if ( dist <= yline1d[isearch])
+              {
+               imax = isearch;
+               isearch = imin + (imax-imin)/2;
+              }
+              else
+              {
+               imin = isearch;
+               isearch = imin + (imax-imin)/2;
+              }
+            }
+
+         alphasbeta_linePtr[noind + ideb] = (dist-yline1d[imin])/(yline1d[imax]-yline1d[imin]);
+         index_float = imax;
+         index_linePtr[noind + ideb] = index_float;
+        }
+
+        for ( E_Int iline = 0 ; iline < nbptslinelets; iline++)
+          {
+           for (E_Int noind = 0; noind < ifin-ideb; noind++)
+            {
+
+              E_Int   indl   = (noind + ideb)*nbptslinelets + iline;
+              E_Int   indR   = rcvPts[noind+ideb];
+
+              #     include "IBC/commonLaws1.h" 
+              yplus = utau_vec[noind]*yplus_vec[noind]/yibc*y_linePtr[indl];
+
+              denoml10 = yplus*yplus-8.15*yplus+86.;
+              denoml10 = denoml10*denoml10;
+              
+              umod = utau_vec[noind]*(5.424*atan((2.*yplus-8.15)/16.7) + log10(pow(yplus+10.6,9.6)/denoml10) - 3.52);
+              umod = K_FUNC::E_abs(umod);
+
+              u_linePtr[indl] = umod;
+              psi_linePtr[indl] = umod/uext_vec[noind]; // Berger's law
+              // psi_linePtr[indl] = pow(umod/uext_vec[noind], 2); // Marc's law
+              nutilde_linePtr[indl] = (varSAOut[indR] )*K_FUNC::E_abs(y_linePtr[indl]/y_linePtr[nbptslinelets-1]);
+
+            }
+
+          }
+    }
+
+    else{
+      for ( E_Int iline = 0 ; iline < nbptslinelets; iline++)
+        {
+         for (E_Int noind = 0; noind < ifin-ideb; noind++)
+          {
+
+            E_Int   indl   = (noind + ideb)*nbptslinelets + iline;
+            E_Int   indR   = rcvPts[noind+ideb];
+
+            #     include "IBC/commonLaws1.h" 
+            yplus = utau_vec[noind]*yplus_vec[noind]/yibc*y_linePtr[indl];
+
+            denoml10 = yplus*yplus-8.15*yplus+86.;
+            denoml10 = denoml10*denoml10;
+            
+            umod = utau_vec[noind]*(5.424*atan((2.*yplus-8.15)/16.7) + log10(pow(yplus+10.6,9.6)/denoml10) - 3.52);
+            umod = K_FUNC::E_abs(umod);
+
+            psi_linePtr[indl] = umod/uext_vec[noind]; // Berger's law
+            // psi_linePtr[indl] = pow(umod/uext_vec[noind], 2); // Marc's law
+          }
+
+        }
+    } // END INIT
+
+
+    // TBLE FULL + ODE 1D SA for nutilde
+
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+
+         E_Int indR = rcvPts[noind+ideb];
+
+         E_Float* yline1d   = y_linePtr        + (noind + ideb)*nbptslinelets;
+         E_Float* u1d       = u_linePtr        + (noind + ideb)*nbptslinelets;
+         E_Float* nutilde1d = nutilde_linePtr  + (noind + ideb)*nbptslinelets;
+         E_Float* psild     = psi_linePtr      + (noind + ideb)*nbptslinelets;
+         E_Float* mat       = mat_linePtr      + (noind + ideb)*nbptslinelets;
+         E_Float* matm      = matm_linePtr     + (noind + ideb)*nbptslinelets;
+         E_Float* matp      = matp_linePtr     + (noind + ideb)*nbptslinelets;
+
+         E_Float nu = mu_vec[noind]/ro_vec[noind];
+
+         utauOri_vec[noind] = utau_vec[noind];
+
+         u1d[0] = 0.0;
+         u1d[nbptslinelets-1] = uext_vec[noind];
+
+         psild[0] = 0.0;
+         psild[nbptslinelets-1] = 1.;
+
+         npass = 0;
+         L2norm = 1.0;
+         L2norm0= 1.0;
+
+         nmax = 30;
+
+
+         for (E_Int j = 0; j < nbptslinelets; ++j)
+         {
+           ipt_u1dold[j] = 0.0;
+         }
+
+         while ( (L2norm >= 1.e-1) && (npass < nmax))
+         {
+
+#           include "IBC/tble_1d_full.h"
+
+            utau_vec[noind ] = sqrt(K_FUNC::E_abs(nu*u1d[1])/yline1d[1]);
+
+            spalart_1d_(ithread,yline1d,matm,mat,matp,nutilde1d,u1d,kappa,
+                     nu,varSAOut[indR],nbptslinelets,kappa);
+         }
+
+         if ((npass == nmax) && (ithread==1))
+         {
+           std::cout << "FULL TBLE doesn't converge ! " << L2norm << std::endl;
+         }
+
+        }
+
+        // mise a jour des variables
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+
+          E_Int indR = rcvPts[noind+ideb];
+
+          E_Float* u1d       = u_linePtr        + (noind + ideb)*nbptslinelets;
+          E_Float* nutilde1d = nutilde_linePtr  + (noind + ideb)*nbptslinelets;
+
+          index_int = index_linePtr[noind + ideb];
+          umod = (u1d[index_int] - u1d[index_int-1])*alphasbeta_linePtr[noind + ideb] + u1d[index_int-1];
+
+          yplus            = utau_vec[noind]*yplus_vec[noind];
+          yplus_vec[noind] = yplus;
+
+          ucible0 = sign_vec[noind] * umod;
+          ucible_vec[noind] += ucible0 * ut_vec[noind]; 
+          vcible_vec[noind] += ucible0 * vt_vec[noind];
+          wcible_vec[noind] += ucible0 * wt_vec[noind];
+
+          // uext: norme de la composante tangentielle de la vitesse externe
+          uext = sqrt(ut_vec[noind]*ut_vec[noind]+vt_vec[noind]*vt_vec[noind]+wt_vec[noind]*wt_vec[noind]);
+          uext = std::max(uext, 1.e-12);
+
+          // For Post (tOut temperature du point image en entree, pt corrige en sortie)
+          twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+          densPtr[noind+ideb] = press_vec[noind]/twall*cvgaminv;
+          pressPtr[noind+ideb]= press_vec[noind];
+
+          // Mise a jour pt corrige
+          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+          uOut[indR]     = ucible_vec[noind];
+          vOut[indR]     = vcible_vec[noind];
+          wOut[indR]     = wcible_vec[noind];
+          tOut[indR]     = tcible_vec[noind];
+
+          index_int = index_linePtr[noind + ideb];
+          varSAOut[indR] = (nutilde1d[index_int] - nutilde1d[index_int-1])*alphasbeta_linePtr[noind + ideb] + nutilde1d[index_int-1]; 
+
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
+
+        }
+  }
+  
+  else
   {
     printf("Warning !!! setIBCTransfersCommonVar2: bcType %d not implemented.\n", bctype);
     return 0;
@@ -1562,16 +2219,16 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 //Retourne -2 : incoherence entre meshtype et le type d interpolation
 //         -1 : type invalide
 //          1 : ok
-// Entree/Sortie :  (ro,u,v,w,p) ( + ronutildeSA ) 
+// Entree/Sortie :  (ro,u,v,w,p) ( + ronutildeSA )
 //=============================================================================
 E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   E_Int bctype,
   E_Int* rcvPts, E_Int& nbRcvPts, E_Int& ideb, E_Int& ifin,  E_Int& ithread,
   E_Float* xPC, E_Float* yPC, E_Float* zPC,
   E_Float* xPW, E_Float* yPW, E_Float* zPW,
-  E_Float* xPI, E_Float* yPI, E_Float* zPI, 
-  E_Float* densPtr, E_Float* pressPtr, 
-  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr, 
+  E_Float* xPI, E_Float* yPI, E_Float* zPI,
+  E_Float* densPtr, E_Float* pressPtr,
+  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr,
   E_Float* utauPtr, E_Float* yplusPtr, E_Float* kcurvPtr,
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
@@ -1587,14 +2244,14 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
   //E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
-  E_Float newtonepsprime = 1.e-12;// critere d arret pour la derivee  
+  E_Float newtonepsprime = 1.e-12;// critere d arret pour la derivee
   E_Float cvgaminv = 1./(cv*(gamma-1.));
   E_Float coefSuth = muS * (1.+Cs/Ts);
   E_Float Tsinv = 1./Ts;
   E_Float kappa = 0.4; // Constante de Von Karman
   E_Float kappainv = 1./kappa;
   E_Float cc = 5.2;//pour la loi log
-  E_Float one_third = 1./3.; 
+  E_Float one_third = 1./3.;
 
   /* fin parametres loi de parois */
 
@@ -1613,14 +2270,14 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   if ( nvars == 6 ) varSAOut = vectOfRcvFields[5];//ronutildeSA
   // if ( (bctype==2 || (bctype==3)) && nvars < 6)
   // {
-  //   printf("Warning: setIBCTransfersCommonVar3: number of variables (<6) inconsistent with bctype.\n"); 
+  //   printf("Warning: setIBCTransfersCommonVar3: number of variables (<6) inconsistent with bctype.\n");
   //   return 0;
   // }
   if (bctype == 0) // wallslip
   {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
@@ -1630,12 +2287,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          v = vOut[indR];
          w = wOut[indR];
 # include "IBC/commonBCType0.h"
-         uOut[indR] = ucible; 
-         vOut[indR] = vcible; 
-         wOut[indR] = wcible;      
+         uOut[indR] = ucible;
+         vOut[indR] = vcible;
+         wOut[indR] = wcible;
          if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
-         pressPtr[noind +ideb] = pOut[indR]; 
+         pressPtr[noind +ideb] = pOut[indR];
          densPtr[ noind +ideb] = roOut[indR];
 
          vxPtr[noind+ideb] = uOut[indR];
@@ -1648,7 +2305,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
@@ -1658,12 +2315,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          v = vOut[indR];
          w = wOut[indR];
 # include "IBC/commonBCType1.h"
-         uOut[indR] = ucible; 
-         vOut[indR] = vcible; 
-         wOut[indR] = wcible;      
+         uOut[indR] = ucible;
+         vOut[indR] = vcible;
+         wOut[indR] = wcible;
          if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
-         pressPtr[noind +ideb] = pOut[indR]; 
+         pressPtr[noind +ideb] = pOut[indR];
          densPtr[ noind +ideb] = roOut[indR];
 
          vxPtr[noind+ideb] = uOut[indR];
@@ -1673,18 +2330,18 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   }
   else if (bctype == 2) // loi de paroi en log
   {
-#   include "IBC/pointer.h" 
+#   include "IBC/pointer.h"
 
     E_Int err  = 0;
-    E_Int skip = 0; 
+    E_Int skip = 0;
     //initilisation parametre geometrique et utau
 #ifdef _OPENMP4
     #pragma omp simd
-#endif 
+#endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
     {
         E_Int indR = rcvPts[noind+ideb];
- 
+
         roext= roOut[indR]; // densite du point interpole
         pext = pOut[indR];  // pression du point interpole
         text = pext / roext * cvgaminv;
@@ -1694,16 +2351,16 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
         v = vOut[indR];
         w = wOut[indR];
 
-#       include "IBC/commonLogLaw_init.h" 
-        // out= utau  et err 
+#       include "IBC/commonLogLaw_init.h"
+        // out= utau  et err
     }
 
     // Newton pour utau
-#   include "IBC/commonLogLaw_Newton.h" 
+#   include "IBC/commonLogLaw_Newton.h"
 
     //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
-#   include "IBC/commonLogLaw_cible.h" 
+#   include "IBC/commonLogLaw_cible.h"
 #else
 #   include "IBC/nutilde_Ferrari.h"
 #endif
@@ -1711,12 +2368,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
     {
         // Newton pour mut
 #if NUTILDE_FERRARI == 0
-#       include "IBC/nutildeSA_Newton.h" 
+#       include "IBC/nutildeSA_Newton.h"
 #endif
         // mise a jour des variable
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
@@ -1727,21 +2384,21 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
          pressPtr[noind+ideb]= press_vec[noind ];
 
-         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;   
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
          uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
-         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc    
+         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc
 
          vxPtr[noind+ideb] = uOut[indR];
          vyPtr[noind+ideb] = vOut[indR];
          vzPtr[noind+ideb] = wOut[indR];
         }
     }
-    else //5eq 
+    else //5eq
     {
         // mise a jour des variable
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
@@ -1752,7 +2409,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
          pressPtr[noind+ideb]= press_vec[noind ];
 
-         roOut[indR] = press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
+         roOut[indR] = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
          uOut[indR] = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
 
          vxPtr[noind+ideb] = uOut[indR];
@@ -1763,18 +2420,18 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   }
   else if (bctype == 3)// loi de paroi de Musker
   {
-#   include "IBC/pointer.h" 
+#   include "IBC/pointer.h"
 
     E_Int err  = 0;
-    E_Int skip = 0; 
+    E_Int skip = 0;
     //initilisation parametre geometrique et utau
 #ifdef _OPENMP4
     #pragma omp simd
-#endif 
+#endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
     {
         E_Int indR = rcvPts[noind+ideb];
- 
+
         roext= roOut[indR]; // densite du point interpole
         pext = pOut[indR];  // pression du point interpole
         text = pext / roext * cvgaminv;
@@ -1784,12 +2441,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
         v = vOut[indR];
         w = wOut[indR];
 
-#       include "IBC/commonMuskerLaw_init.h" 
-        // out= utau  et err 
+#       include "IBC/commonMuskerLaw_init.h"
+        // out= utau  et err
     }
 
     // Newton pour utau
-#   include "IBC/commonMuskerLaw_Newton.h" 
+#   include "IBC/commonMuskerLaw_Newton.h"
 
     //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
@@ -1802,25 +2459,25 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
         // Newton pour mut
 #if NUTILDE_FERRARI == 0
 #       include "IBC/nutildeSA_Newton.h"
-#endif 
+#endif
        // mise a jour des variable
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
 
          uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
-         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc    
+         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc
         }
     }
-    else //5eq 
+    else //5eq
     {
         // mise a jour des variable
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
          E_Int indR = rcvPts[noind+ideb];
@@ -1830,8 +2487,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          twall = text  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
          pressPtr[noind+ideb]= press_vec[noind ];
-         
-         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
+
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
          uOut[indR] = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
 
          vxPtr[noind+ideb] = uOut[indR];
@@ -1840,11 +2497,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
         }
     }
   }
-  else if (bctype == 4) // outpres 
-  { 
+  else if (bctype == 4) // outpres
+  {
 #ifdef _OPENMP4
        #pragma omp simd
-#endif 
+#endif
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
           E_Int indR = rcvPts[noind+ideb];
@@ -1854,7 +2511,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
           vzPtr[noind+ideb] = wOut[indR];
         }
   }
-  else 
+  else
   {
     printf("Warning !!! setIBCTransfersCommonVar3: bcType %d not implemented.\n", bctype);
     return 0;
@@ -1868,7 +2525,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
 PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 {
   PyObject *arrayR, *arrayD;
-  PyObject *pyVariables; 
+  PyObject *pyVariables;
   PyObject *pyIndRcv, *pyIndDonor;
   PyObject *pyArrayTypes;
   PyObject *pyArrayCoefs;
@@ -1884,7 +2541,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
                     "OOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOiiddddd",
                     "OOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOiifffff",
                     &arrayR, &arrayD,  &pyVariables,
-                    &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
+                    &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
                     &pyArrayXPI, &pyArrayYPI, &pyArrayZPI,
@@ -1894,16 +2551,16 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
       return NULL;
   }
 
-    
+
   E_Int bcType = E_Int(bctype); // 0 : wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
-  /* varType : 
-     1  : conservatives, 
-     11 : conservatives + ronutildeSA 
+  /* varType :
+     1  : conservatives,
+     11 : conservatives + ronutildeSA
      2  : (ro,u,v,w,t)
-     21 : (ro,u,v,w,t) + ronutildeSA 
-     3  : (ro,u,v,w,p)     
+     21 : (ro,u,v,w,t) + ronutildeSA
+     3  : (ro,u,v,w,p)
      31 : (ro,u,v,w,p) + ronutildeSA */
-  E_Int varType = E_Int(vartype); 
+  E_Int varType = E_Int(vartype);
 
   /*--------------------------------------------------*/
   /* Extraction des infos sur le domaine a interpoler */
@@ -1911,13 +2568,13 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringR; char* eltTypeR;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringR, fr, 
-                                     imr, jmr, kmr, cnr, eltTypeR, true); 
-  if (resr != 2 && resr != 1) 
+  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringR, fr,
+                                     imr, jmr, kmr, cnr, eltTypeR, true);
+  if (resr != 2 && resr != 1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfers: 1st arg is not a valid array.");
-    return NULL; 
+    return NULL;
   }
   /*---------------------------------------------*/
   /* Extraction des infos sur le domaine donneur */
@@ -1925,16 +2582,16 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd, imdjmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringD; char* eltTypeD;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd, 
-                                     imd, jmd, kmd, cnd, eltTypeD, true); 
+  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd,
+                                     imd, jmd, kmd, cnd, eltTypeD, true);
   E_Int* ptrcnd = NULL;
   E_Int cndSize = 0; E_Int cnNfldD = 0;
-  if (resd != 2 && resd != 1) 
+  if (resd != 2 && resd != 1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfers: 2nd arg is not a valid array.");
-    RELEASESHAREDB(resr, arrayR, fr, cnr); 
-    return NULL; 
+    RELEASESHAREDB(resr, arrayR, fr, cnr);
+    return NULL;
   }
   E_Int meshtype = resd;// 1 : structure, 2 non structure
   if (resd == 2)
@@ -1943,9 +2600,9 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "setIBCTransfers: donor array must be a TETRA if unstructured.");
-      RELEASESHAREDB(resr, arrayR, fr, cnr); 
-      RELEASESHAREDB(resd, arrayD, fd, cnd); 
-      return NULL; 
+      RELEASESHAREDB(resr, arrayR, fr, cnr);
+      RELEASESHAREDB(resd, arrayD, fd, cnd);
+      return NULL;
     }
     ptrcnd  = cnd->begin();
     cndSize = cnd->getSize();
@@ -1953,15 +2610,15 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   }
 
   E_Int nvars;
-  if ( varType == 1 || varType == 2 || varType == 3 ) 
+  if ( varType == 1 || varType == 2 || varType == 3 )
     nvars = 5;
   else if ( varType == 11 || varType == 21 || varType == 31 )
     nvars = 6;
-  else 
+  else
   {
-    RELEASESHAREDB(resr, arrayR, fr, cnr); 
+    RELEASESHAREDB(resr, arrayR, fr, cnr);
     RELEASESHAREDB(resd, arrayD, fd, cnd);
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfers: varType value is not valid.");
     return NULL;
   }
@@ -1975,10 +2632,10 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   nbRcvPts      = rcvPtsI->getSize();
   E_Int* rcvPts = rcvPtsI->begin();
 
-  if (res_donor*res_type*res_coef*res_rcv ==0) 
+  if (res_donor*res_type*res_coef*res_rcv ==0)
   {
-    RELEASESHAREDB(resr, arrayR, fr, cnr); 
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resr, arrayR, fr, cnr);
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     if (res_donor != 0) { RELEASESHAREDN(pyIndDonor  , donorPtsI  );}
     if (res_type  != 0) { RELEASESHAREDN(pyArrayTypes, typesI     );}
     if (res_coef  != 0) { RELEASESHAREDN(pyArrayCoefs, donorCoefsF);}
@@ -1991,20 +2648,20 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 
   if (okc1*okc2*okc3 == 0 )
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
     RELEASESHAREDN(pyArrayTypes, typesI     );
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
     if (okc1 != 0) { RELEASESHAREDN(pyArrayXPC  , coordxPC  );}
     if (okc2 != 0) { RELEASESHAREDN(pyArrayYPC  , coordyPC  );}
     if (okc3 != 0) { RELEASESHAREDN(pyArrayZPC  , coordzPC  );}
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: coordinates of corrected points are invalid.");
     return NULL;
   }
   if (okw1*okw2*okw3 == 0 )
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
     RELEASESHAREDN(pyArrayTypes, typesI     );
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
@@ -2014,13 +2671,13 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     if (okw1 != 0) { RELEASESHAREDN(pyArrayXPW  , coordxPW  );}
     if (okw2 != 0) { RELEASESHAREDN(pyArrayYPW  , coordyPW  );}
     if (okw3 != 0) { RELEASESHAREDN(pyArrayZPW  , coordzPW  );}
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: coordinates of wall points are invalid.");
     return NULL;
   }
   if (oki1*oki2*oki3 == 0 )
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
     RELEASESHAREDN(pyArrayTypes, typesI     );
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
@@ -2033,13 +2690,13 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     if (oki1 != 0) { RELEASESHAREDN(pyArrayXPI  , coordxPI  );}
     if (oki2 != 0) { RELEASESHAREDN(pyArrayYPI  , coordyPI  );}
     if (oki3 != 0) { RELEASESHAREDN(pyArrayZPI  , coordzPI  );}
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: coordinates of interpolated points are invalid.");
     return NULL;
   }
   if (okD == 0 )
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
     RELEASESHAREDN(pyArrayTypes, typesI     );
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
@@ -2057,17 +2714,17 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  
-  // Transferts 
-  // Types valides: 2, 3, 4, 5 
+
+  // Transferts
+  // Types valides: 2, 3, 4, 5
   PyObject* tpl;
-  if (resr == 1) 
+  if (resr == 1)
   {
     tpl = K_ARRAY::buildArray(fr->getNfld(), varStringR, imr, jmr, kmr);
   }
-  else // unstructured 
+  else // unstructured
   {
-    E_Int crsize = cnr->getSize()*cnr->getNfld(); 
+    E_Int crsize = cnr->getSize()*cnr->getNfld();
     tpl = K_ARRAY::buildArray(fr->getNfld(), varStringR,
                               fr->getSize(), cnr->getSize(),
                               -1, eltTypeR, false, crsize);
@@ -2076,9 +2733,9 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   }
   E_Float* ptrFieldOut = K_ARRAY::getFieldPtr(tpl);
   FldArrayF fieldROut(fr->getSize(), fr->getNfld(), ptrFieldOut, true);
-  fieldROut = *fr; 
+  fieldROut = *fr;
 
-  vector<E_Float*> vectOfDnrFields;  
+  vector<E_Float*> vectOfDnrFields;
   vector<E_Float*> vectOfRcvFields;
   E_Int posvr, posvd;
   // Extrait les positions des variables a transferer
@@ -2093,10 +2750,10 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
         if (PyString_Check(tpl0))
         {
-          char* varname = PyString_AsString(tpl0);        
-          posvd = K_ARRAY::isNamePresent(varname, varStringD);      
-          posvr = K_ARRAY::isNamePresent(varname, varStringR);      
-          if (posvd != -1 && posvr != -1) 
+          char* varname = PyString_AsString(tpl0);
+          posvd = K_ARRAY::isNamePresent(varname, varStringD);
+          posvr = K_ARRAY::isNamePresent(varname, varStringR);
+          if (posvd != -1 && posvr != -1)
           {
             vectOfDnrFields.push_back(fd->begin(posvd+1));
             vectOfRcvFields.push_back(fieldROut.begin(posvr+1));
@@ -2104,12 +2761,12 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
           }
         }
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(tpl0)) 
+        else if (PyUnicode_Check(tpl0))
         {
           const char* varname = PyUnicode_AsUTF8(tpl0);
-          posvd = K_ARRAY::isNamePresent(varname, varStringD);      
-          posvr = K_ARRAY::isNamePresent(varname, varStringR);      
-          if (posvd != -1 && posvr != -1) 
+          posvd = K_ARRAY::isNamePresent(varname, varStringD);
+          posvr = K_ARRAY::isNamePresent(varname, varStringR);
+          if (posvd != -1 && posvr != -1)
           {
             vectOfDnrFields.push_back(fd->begin(posvd+1));
             vectOfRcvFields.push_back(fieldROut.begin(posvr+1));
@@ -2117,18 +2774,18 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
           }
         }
 #endif
-        else  
+        else
           PyErr_Warn(PyExc_Warning, "setIBCTransfers: variable must be a string. Skipped.");
       }
     }// nvariables > 0
   }
   if (nfoundvar != nvars)
   {
-    RELEASESHAREDB(resr, arrayR, fr, cnr); 
+    RELEASESHAREDB(resr, arrayR, fr, cnr);
     RELEASESHAREDB(resd, arrayD, fd, cnd);
     BLOCKRELEASEMEM;
     BLOCKRELEASEMEM2;
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfers: number of variables is inconsistent with varType.");
     return NULL;
   }
@@ -2144,8 +2801,8 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 ////
 ////
 //  Interpolation parallele
-////  
-////  
+////
+////
 # include "commonInterpTransfers_indirect.h"
 
 
@@ -2155,7 +2812,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     E_Int    r =  size % 8;
           size = size + r;                  // on rajoute du bas pour alignememnt 64bits
 
-    FldArrayF  tmp(size*14*threadmax_sdm);
+    FldArrayF  tmp(size*17*threadmax_sdm);
     E_Float* ipt_tmp=  tmp.begin();
 
   {
@@ -2172,8 +2829,8 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
    E_Int chunk = nbRcvPts/Nbre_thread_actif;
    E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
    // pts traitees par thread
-   if (ithread <= r) 
-        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }  
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
    else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
   if (varType == 2 || varType == 21) 
@@ -2407,7 +3064,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
     //printf("size %d %d \n", size, r);
     if (bctype <=1 ) size = 0;               // tableau inutile
 
-    FldArrayF  tmp(size*14*threadmax_sdm);
+    FldArrayF  tmp(size*17*threadmax_sdm);
     E_Float* ipt_tmp = tmp.begin();
 
     E_Float param_real[30]; 
@@ -2454,6 +3111,1404 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   BLOCKRELEASEMEM;
   BLOCKRELEASEMEM2;
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
+// Copy of _setIBCTransfers for gradP info
+// tc/tc2 -> RCV ZONES
+// Called by XOD._setIBCTransfers4GradP()
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
+{
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+  PyObject *zoneR, *zoneD;
+  PyObject *pyVariables;
+  PyObject *pyIndRcv, *pyIndDonor;
+  PyObject *pyArrayTypes;
+  PyObject *pyArrayCoefs;
+  PyObject *pyArrayPressure;
+  PyObject *pyArrayGradxP, *pyArrayGradyP, *pyArrayGradzP;
+  E_Int bctype, loc, vartype, compact;
+  E_Float gamma, cv, muS, Cs, Ts, alpha;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOOOOOOOllllddddddsss", "OOOOOOOOOOOiiiiddddddsss",
+                    "OOOOOOOOOOOllllffffffsss", "OOOOOOOOOOOiiiiffffffsss",
+                    &zoneR, &zoneD, &pyVariables,
+                    &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
+                    &pyArrayPressure,
+                    &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,
+                    &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+  {
+      return NULL;
+  }
+
+  vector<PyArrayObject*> hook;
+
+  E_Int bcType = E_Int(bctype);
+
+  E_Int nvars;
+  E_Int varType = E_Int(vartype);
+
+  nvars = 8;
+
+  // recupere les champs du donneur (nodes)
+  E_Int imdjmd, imd, jmd, kmd, cnNfldD, ndimdxR, ndimdxD, meshtype;;
+  E_Float* iptroD; E_Float* iptroR;
+
+# include "extract_interpD.h"
+
+  // std::cout << "COUCOU 3171" << std::endl;
+
+  /*--------------------------------------*/
+  /* Extraction des indices des receveurs */
+  /*--------------------------------------*/
+  FldArrayI* rcvPtsI;
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int* rcvPts  = rcvPtsI->begin();
+  nbRcvPts       = rcvPtsI->getSize();
+
+  // # include "IBC/extract_IBC.h"
+
+  FldArrayF* pressF;
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Float* pressure = pressF->begin();
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  // std::cout << "COUCOU 3188" << std::endl;
+
+  vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
+  vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
+  E_Int* ptrcnd;
+  char* eltTypeR; char* eltTypeD;
+  //codage general (lent ;-) )
+  if (compact == 0)
+    {// recupere les champs du donneur (nodes)
+      // std::cout << "coucou PAS COMPACT" << std::endl;
+      E_Int cnSizeD;
+      char* varStringD;
+      vector<E_Int> locsD;
+      vector<E_Int*> cnd;
+      E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                         fieldsD, locsD, imd, jmd, kmd,
+                                         cnd, cnSizeD, cnNfldD,
+                                         eltTypeD, hook,
+                                         GridCoordinates,
+                                         FlowSolutionNodes, FlowSolutionCenters);
+
+      // printf("%s\n", varStringD);
+
+      if (cnd.size() > 0) ptrcnd = cnd[0];
+
+      meshtype = resd; // 1: structure, 2: non structure
+      // recupere les champs du receveur
+      E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
+      char* varStringR; vector<E_Int> locsR;
+      vector<E_Int*> cnr;
+      K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
+                            fieldsR, locsR, imr, jmr, kmr,
+                            cnr, cnSizeR, cnNfldR, eltTypeR, hook,
+                            GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
+
+      // printf("%s\n", varStringR);
+
+
+      // -- no check (perfo) --
+      // Transferts
+      // Types valides: 2, 3, 4, 5
+      E_Int posvr, posvd;
+
+      // Extrait les positions des variables a transferer
+      E_Int nfoundvar = 0;
+      if (PyList_Check(pyVariables) != 0)
+      {
+        int nvariables = PyList_Size(pyVariables);
+        if (nvariables > 0)
+        {
+          for (int i = 0; i < nvariables; i++)
+          {
+            PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+            if (PyString_Check(tpl0))
+            {
+              char* varname = PyString_AsString(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              posvr = K_ARRAY::isNamePresent(varname, varStringR);
+              if (posvr != -1)
+              {
+                vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+                vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+                nfoundvar += 1;
+              }
+            }
+#if PY_VERSION_HEX >= 0x03000000
+            else if (PyUnicode_Check(tpl0))
+            {
+              const char* varname = PyUnicode_AsUTF8(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              posvr = K_ARRAY::isNamePresent(varname, varStringR);
+              if (posvr != -1)
+              {
+                vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+                vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+                nfoundvar += 1;
+              }
+            }
+#endif
+            else
+            {
+              PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
+            }
+
+          }
+        }
+      }
+
+      delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
+
+    }
+
+  // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
+  else
+    {
+      // std::cout << "coucou COMPACT" << std::endl;
+# include "getfromzonecompact.h"
+      for (E_Int eq = 0; eq < nvars; eq++)
+         {
+            vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+            vectOfDnrFields[eq]= iptroD + eq*ndimdxD;
+         }
+    }
+
+# include "commonInterpTransfers_indirect.h"
+
+#    pragma omp parallel default(shared)
+     {
+
+   //indice loop pour paralelisation omp
+   E_Int ideb, ifin;
+#ifdef _OPENMP
+   E_Int  ithread           = omp_get_thread_num()+1;
+   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+   E_Int ithread = 1;
+   E_Int Nbre_thread_actif = 1;
+#endif
+   // Calcul du nombre de champs a traiter par chaque thread
+   E_Int chunk = nbRcvPts/Nbre_thread_actif;
+   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+   // pts traitees par thread
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+   E_Float cvgam = cv*(gamma-1.);
+
+  //0 : Density
+  //1 : Temperature
+  //2 / 3 / 4 : gradxDensity / gradyDensity / gradzDensity
+  //5 / 6 / 7 : gradxTemperature / gradyTemperature / gradzTemperature
+
+#ifdef _OPENMP4
+   #pragma omp simd
+#endif
+   for (E_Int noind = 0; noind < ifin-ideb; noind++)
+   {
+     E_Int indR = rcvPts[noind+ideb];
+     
+     pressure[noind+ideb] = vectOfRcvFields[0][indR]*vectOfRcvFields[1][indR]*cvgam;
+
+     gradxP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[5][indR])*cvgam)/alpha + gradxP[noind+ideb]*(alpha-1.)/alpha;
+     gradyP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[3][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[6][indR])*cvgam)/alpha + gradyP[noind+ideb]*(alpha-1.)/alpha;
+     gradzP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[4][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[7][indR])*cvgam)/alpha + gradzP[noind+ideb]*(alpha-1.)/alpha;
+   }
+
+     } // Fin zone // omp
+  // sortie
+  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+
+  RELEASESHAREDN(pyIndRcv, rcvPtsI);
+  RELEASESHAREDN(pyIndDonor, donorPtsI);
+  RELEASESHAREDN(pyArrayTypes, typesI);
+  RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
+  // BLOCKRELEASEMEM;
+
+  RELEASESHAREDN(pyArrayPressure, pressF);
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+  // BLOCKRELEASEMEM2;
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
+// Copy of _setIBCTransfers for gradP HO info
+// tc/tc2 -> RCV ZONES
+// Called by XOD._setIBCTransfers4GradP2()
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfers4GradP2(PyObject* self, PyObject* args)
+{
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+  PyObject *zoneR, *zoneD;
+  PyObject *pyVariables;
+  PyObject *pyIndRcv, *pyIndDonor;
+  PyObject *pyArrayTypes;
+  PyObject *pyArrayCoefs;
+  PyObject *pyArrayPressure;
+  PyObject *pyArrayGradxP,  *pyArrayGradyP,  *pyArrayGradzP;
+  PyObject *pyArrayGradxxP, *pyArrayGradxyP, *pyArrayGradxzP;
+  PyObject *pyArrayGradyxP, *pyArrayGradyyP, *pyArrayGradyzP;
+  PyObject *pyArrayGradzxP, *pyArrayGradzyP, *pyArrayGradzzP;
+  E_Int bctype, loc, vartype, compact;
+  E_Float gamma, cv, muS, Cs, Ts, alpha;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOOOOOOOOOOOOOOOOllllddddddsss", "OOOOOOOOOOOOOOOOOOOOiiiiddddddsss",
+                    "OOOOOOOOOOOOOOOOOOOOllllffffffsss", "OOOOOOOOOOOOOOOOOOOOiiiiffffffsss",
+                    &zoneR, &zoneD, &pyVariables,
+                    &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
+                    &pyArrayPressure,
+                    &pyArrayGradxP,  &pyArrayGradyP,  &pyArrayGradzP,
+                    &pyArrayGradxxP, &pyArrayGradxyP, &pyArrayGradxzP,
+                    &pyArrayGradyxP, &pyArrayGradyyP, &pyArrayGradyzP,
+                    &pyArrayGradzxP, &pyArrayGradzyP, &pyArrayGradzzP,
+                    &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+  {
+      return NULL;
+  }
+
+  vector<PyArrayObject*> hook;
+
+  E_Int bcType = E_Int(bctype);
+
+  E_Int nvars;
+  E_Int varType = E_Int(vartype);
+
+  nvars = 13;
+
+  // recupere les champs du donneur (nodes)
+  E_Int imdjmd, imd, jmd, kmd, cnNfldD, ndimdxR, ndimdxD, meshtype;;
+  E_Float* iptroD; E_Float* iptroR;
+
+# include "extract_interpD.h"
+
+  /*--------------------------------------*/
+  /* Extraction des indices des receveurs */
+  /*--------------------------------------*/
+  FldArrayI* rcvPtsI;
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int* rcvPts  = rcvPtsI->begin();
+  nbRcvPts       = rcvPtsI->getSize();
+
+  FldArrayF* pressF;
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Float* pressure = pressF->begin();
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  FldArrayF* gradxxPressF; FldArrayF* gradxyPressF; FldArrayF* gradxzPressF;
+  E_Int okGxxP = K_NUMPY::getFromNumpyArray(pyArrayGradxxP , gradxxPressF , true);
+  E_Int okGxyP = K_NUMPY::getFromNumpyArray(pyArrayGradxyP , gradxyPressF , true);
+  E_Int okGxzP = K_NUMPY::getFromNumpyArray(pyArrayGradxzP , gradxzPressF , true);
+  E_Float* gradxxP = gradxxPressF->begin();
+  E_Float* gradxyP = gradxyPressF->begin();
+  E_Float* gradxzP = gradxzPressF->begin();
+
+  FldArrayF* gradyxPressF; FldArrayF* gradyyPressF; FldArrayF* gradyzPressF;
+  E_Int okGyxP = K_NUMPY::getFromNumpyArray(pyArrayGradyxP , gradyxPressF , true);
+  E_Int okGyyP = K_NUMPY::getFromNumpyArray(pyArrayGradyyP , gradyyPressF , true);
+  E_Int okGyzP = K_NUMPY::getFromNumpyArray(pyArrayGradyzP , gradyzPressF , true);
+  E_Float* gradyxP = gradyxPressF->begin();
+  E_Float* gradyyP = gradyyPressF->begin();
+  E_Float* gradyzP = gradyzPressF->begin();
+
+  FldArrayF* gradzxPressF; FldArrayF* gradzyPressF; FldArrayF* gradzzPressF;
+  E_Int okGzxP = K_NUMPY::getFromNumpyArray(pyArrayGradzxP , gradzxPressF , true);
+  E_Int okGzyP = K_NUMPY::getFromNumpyArray(pyArrayGradzyP , gradzyPressF , true);
+  E_Int okGzzP = K_NUMPY::getFromNumpyArray(pyArrayGradzzP , gradzzPressF , true);
+  E_Float* gradzxP = gradzxPressF->begin();
+  E_Float* gradzyP = gradzyPressF->begin();
+  E_Float* gradzzP = gradzzPressF->begin();
+
+  vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
+  vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
+  E_Int* ptrcnd;
+  char* eltTypeR; char* eltTypeD;
+  //codage general (lent ;-) )
+  if (compact == 0)
+    {// recupere les champs du donneur (nodes)
+      // std::cout << "coucou PAS COMPACT" << std::endl;
+      E_Int cnSizeD;
+      char* varStringD;
+      vector<E_Int> locsD;
+      vector<E_Int*> cnd;
+      E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                         fieldsD, locsD, imd, jmd, kmd,
+                                         cnd, cnSizeD, cnNfldD,
+                                         eltTypeD, hook,
+                                         GridCoordinates,
+                                         FlowSolutionNodes, FlowSolutionCenters);
+
+      if (cnd.size() > 0) ptrcnd = cnd[0];
+
+      meshtype = resd; // 1: structure, 2: non structure
+      // recupere les champs du receveur
+      E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
+      char* varStringR; vector<E_Int> locsR;
+      vector<E_Int*> cnr;
+      K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
+                            fieldsR, locsR, imr, jmr, kmr,
+                            cnr, cnSizeR, cnNfldR, eltTypeR, hook,
+                            GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
+
+      // -- no check (perfo) --
+      // Transferts
+      // Types valides: 2, 3, 4, 5
+      E_Int posvr, posvd;
+
+      // Extrait les positions des variables a transferer
+      E_Int nfoundvar = 0;
+      if (PyList_Check(pyVariables) != 0)
+      {
+        int nvariables = PyList_Size(pyVariables);
+        if (nvariables > 0)
+        {
+          for (int i = 0; i < nvariables; i++)
+          {
+            PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+            if (PyString_Check(tpl0))
+            {
+              char* varname = PyString_AsString(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              posvr = K_ARRAY::isNamePresent(varname, varStringR);
+              if (posvr != -1)
+              {
+                vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+                vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+                nfoundvar += 1;
+              }
+            }
+#if PY_VERSION_HEX >= 0x03000000
+            else if (PyUnicode_Check(tpl0))
+            {
+              const char* varname = PyUnicode_AsUTF8(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              posvr = K_ARRAY::isNamePresent(varname, varStringR);
+              if (posvr != -1)
+              {
+                vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+                vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+                nfoundvar += 1;
+              }
+            }
+#endif
+            else
+            {
+              PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
+            }
+
+          }
+        }
+      }
+
+      delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
+
+    }
+
+  // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
+  else
+    {
+      // std::cout << "coucou COMPACT" << std::endl;
+# include "getfromzonecompact.h"
+      for (E_Int eq = 0; eq < nvars; eq++)
+         {
+            vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+            vectOfDnrFields[eq]= iptroD + eq*ndimdxD;
+         }
+    }
+
+# include "commonInterpTransfers_indirect.h"
+
+#    pragma omp parallel default(shared)
+     {
+
+   //indice loop pour paralelisation omp
+   E_Int ideb, ifin;
+#ifdef _OPENMP
+   E_Int  ithread           = omp_get_thread_num()+1;
+   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+   E_Int ithread = 1;
+   E_Int Nbre_thread_actif = 1;
+#endif
+   // Calcul du nombre de champs a traiter par chaque thread
+   E_Int chunk = nbRcvPts/Nbre_thread_actif;
+   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+   // pts traitees par thread
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+   E_Float cvgam = cv*(gamma-1.);
+
+  // 0 : Pressure
+  // 1 / 2 / 3 : gradxPressure  / gradyPressure  / gradzPressure
+  // 4 / 5 / 6 : gradxxPressure / gradyxPressure / gradzxPressure
+  // 7 / 8 / 9 : gradxyPressure / gradyyPressure / gradyyPressure
+  // 10/11 /12 : gradxzPressure / gradyzPressure / gradzzPressure
+
+#ifdef _OPENMP4
+   #pragma omp simd
+#endif
+   for (E_Int noind = 0; noind < ifin-ideb; noind++)
+   {
+     E_Int indR = rcvPts[noind+ideb];
+     
+     pressure[noind+ideb] = vectOfRcvFields[0][indR];
+
+     gradxP[noind+ideb] = vectOfRcvFields[1][indR];
+     gradyP[noind+ideb] = vectOfRcvFields[2][indR];
+     gradzP[noind+ideb] = vectOfRcvFields[3][indR];
+
+     gradxxP[noind+ideb] = vectOfRcvFields[4][indR];
+     gradxyP[noind+ideb] = vectOfRcvFields[7][indR];
+     gradxzP[noind+ideb] = vectOfRcvFields[10][indR];
+
+     gradyxP[noind+ideb] = vectOfRcvFields[5][indR];
+     gradyyP[noind+ideb] = vectOfRcvFields[8][indR];
+     gradyzP[noind+ideb] = vectOfRcvFields[11][indR];
+
+     gradzxP[noind+ideb] = vectOfRcvFields[6][indR];
+     gradzyP[noind+ideb] = vectOfRcvFields[9][indR];
+     gradzzP[noind+ideb] = vectOfRcvFields[12][indR];
+   }
+
+     } // Fin zone // omp
+  // sortie
+  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+
+  RELEASESHAREDN(pyIndRcv, rcvPtsI);
+  RELEASESHAREDN(pyIndDonor, donorPtsI);
+  RELEASESHAREDN(pyArrayTypes, typesI);
+  RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
+
+  RELEASESHAREDN(pyArrayPressure, pressF);
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+
+  RELEASESHAREDN(pyArrayGradxxP, gradxxPressF);
+  RELEASESHAREDN(pyArrayGradxyP, gradxyPressF);
+  RELEASESHAREDN(pyArrayGradxzP, gradxzPressF);
+
+  RELEASESHAREDN(pyArrayGradyxP, gradyxPressF);
+  RELEASESHAREDN(pyArrayGradyyP, gradyyPressF);
+  RELEASESHAREDN(pyArrayGradyzP, gradyzPressF);
+
+  RELEASESHAREDN(pyArrayGradzxP, gradzxPressF);
+  RELEASESHAREDN(pyArrayGradzyP, gradzyPressF);
+  RELEASESHAREDN(pyArrayGradzzP, gradzzPressF);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
+// Copy of _setIBCTransfers for gradP info - OPTI + COMPACT 
+// RCV ZONES -> tc
+// transfers of ['Density', 'VelocityX', 'VelocityY', 'VelocityZ', 'Temperature', 'nuSA'] -> 6 vars
+// transfers of ['gradx/y/zDensity', 'gradx/y/zTemperature'] -> 6 varsGrad
+// Called by XOD._setIBCTransfers4GradP3()
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfers4GradP3(PyObject* self, PyObject* args)
+{
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+  PyObject *zoneR;
+  PyObject *pyVariables;
+  PyObject *pyIndRcv, *pyIndDonor;
+  PyObject *pyArrayTypes;
+  PyObject *pyArrayCoefs;
+  PyObject *pyArrayGradxP, *pyArrayGradyP, *pyArrayGradzP;
+  E_Int bctype, loc, vartype, compact;
+  E_Float gamma, cv, muS, Cs, Ts, alpha;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOOOOOllllddddddsss", "OOOOOOOOOiiiiddddddsss",
+                    "OOOOOOOOOllllffffffsss", "OOOOOOOOOiiiiffffffsss",
+                    &zoneR, &pyVariables,
+                    &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
+                    &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,
+                    &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+  {
+      return NULL;
+  }
+
+  vector<PyArrayObject*> hook;
+
+  E_Int bcType = E_Int(bctype);
+
+  E_Int nvars, nvars_grad;
+  E_Int varType = E_Int(vartype);
+
+  nvars = 6;
+  nvars_grad = 6;
+
+  // recupere les champs du donneur (nodes)
+  E_Int imdjmd, imd, jmd, kmd, ndimdxR, meshtype;
+  E_Float* iptroR;
+  E_Float* iptgradR;
+
+# include "extract_interpD.h"
+
+  /*--------------------------------------*/
+  /* Extraction des indices des receveurs */
+  /*--------------------------------------*/
+  FldArrayI* rcvPtsI;
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int* rcvPts  = rcvPtsI->begin();
+  nbRcvPts       = rcvPtsI->getSize();
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  vector<E_Float*> vectOfRcvFields(nvars);
+  vector<E_Float*> vectOfGradRcvFields(nvars_grad);
+
+  // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
+  //##############################
+  PyObject* solR;
+  PyObject* t;
+  char* type; E_Int s, s0, s1;  E_Int* d;
+
+  PyObject* tpl0= PyList_GetItem(pyVariables, 0);
+  char* varname = NULL;
+  if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(tpl0)) varname = (char*)PyUnicode_AsUTF8(tpl0);
+#endif
+
+  if  (loc==0) { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution"        ); }
+  else  { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution#Centers"); }
+  t = K_PYTREE::getNodeFromName1(solR, varname);
+  iptroR = K_PYTREE::getValueAF(t, hook);
+
+  if  (loc==0) { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution"        ); }
+  else  { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution#Centers"); }
+  t = K_PYTREE::getNodeFromName1(solR, "gradxDensity");
+  iptgradR = K_PYTREE::getValueAF(t, hook);
+
+  // get type
+  t =  K_PYTREE::getNodeFromName1(zoneR, "ZoneType");
+  type =  K_PYTREE::getValueS(t, s, hook);
+  // get dims zone receveuse
+  d  =  K_PYTREE::getValueAI(zoneR, s0, s1, hook);
+
+  if  (K_STRING::cmp(type, s, "Structured") == 0)
+   {
+    E_Int shift = 0; if(loc == 1) shift = 3;
+    if (s0 == 1) { ndimdxR= d[0+shift]; }
+    else if (s0 == 2) { ndimdxR= d[0+shift]*d[1+shift]; } 
+    else if (s0 == 3) { ndimdxR= d[0+shift]*d[1+shift]*d[2+shift]; } 
+   }
+  else // non structure
+   {
+       ndimdxR= d[0]* d[1]; // npoint, nelements
+   }
+  //##############################
+
+  for (E_Int eq = 0; eq < nvars; eq++)
+     {
+        vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+     }
+
+  for (E_Int eq = 0; eq < nvars_grad; eq++)
+     {
+        vectOfGradRcvFields[eq]= iptgradR + eq*ndimdxR;
+     }
+
+// # include "commonInterpTransfers_indirect.h"
+
+#    pragma omp parallel default(shared)
+     {
+
+   //indice loop pour paralelisation omp
+   E_Int ideb, ifin;
+#ifdef _OPENMP
+   E_Int  ithread           = omp_get_thread_num()+1;
+   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+   E_Int ithread = 1;
+   E_Int Nbre_thread_actif = 1;
+#endif
+   // Calcul du nombre de champs a traiter par chaque thread
+   E_Int chunk = nbRcvPts/Nbre_thread_actif;
+   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+   // pts traitees par thread
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+   E_Float cvgam = cv*(gamma-1.);
+
+#ifdef _OPENMP4
+   #pragma omp simd
+#endif
+   for (E_Int noind = 0; noind < ifin-ideb; noind++)
+   {
+      E_Int indR = rcvPts[noind+ideb];
+
+      gradxP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[0][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[3][indR])*cvgam)/alpha + gradxP[noind+ideb]*(alpha-1.)/alpha;
+      gradyP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[1][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[4][indR])*cvgam)/alpha + gradyP[noind+ideb]*(alpha-1.)/alpha;
+      gradzP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[5][indR])*cvgam)/alpha + gradzP[noind+ideb]*(alpha-1.)/alpha;
+   }
+
+     } // Fin zone // omp
+  // sortie
+  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+
+  RELEASESHAREDN(pyIndRcv, rcvPtsI);
+  RELEASESHAREDN(pyIndDonor, donorPtsI);
+  RELEASESHAREDN(pyArrayTypes, typesI);
+  RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
+  // BLOCKRELEASEMEM;
+
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+  // BLOCKRELEASEMEM2;
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
+// Update gradP info in IBCD zones given three numpy gradx/y/zP_new
+// Called by XOD._setIBCTransfers4GradP3()
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfers4GradP4(PyObject* self, PyObject* args)
+{
+  PyObject *pyArrayGradxP_new, *pyArrayGradyP_new, *pyArrayGradzP_new;
+  PyObject *pyArrayGradxP, *pyArrayGradyP, *pyArrayGradzP;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOO", "OOOOOO",
+                    "OOOOOO", "OOOOOO",
+                    &pyArrayGradxP_new, &pyArrayGradyP_new, &pyArrayGradzP_new,
+                    &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP))
+  {
+      return NULL;
+  }
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  FldArrayF* gradxPress_newF; FldArrayF* gradyPress_newF; FldArrayF* gradzPress_newF;
+  E_Int okGxP_new = K_NUMPY::getFromNumpyArray(pyArrayGradxP_new , gradxPress_newF , true);
+  E_Int okGyP_new = K_NUMPY::getFromNumpyArray(pyArrayGradyP_new , gradyPress_newF , true);
+  E_Int okGzP_new = K_NUMPY::getFromNumpyArray(pyArrayGradzP_new , gradzPress_newF , true);
+  E_Float* gradxP_new = gradxPress_newF->begin();
+  E_Float* gradyP_new = gradyPress_newF->begin();
+  E_Float* gradzP_new = gradzPress_newF->begin();
+
+  E_Int nbRcvPts = gradzPress_newF->getSize();
+
+#    pragma omp parallel default(shared)
+     {
+
+   //indice loop pour paralelisation omp
+   E_Int ideb, ifin;
+#ifdef _OPENMP
+   E_Int  ithread           = omp_get_thread_num()+1;
+   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+   E_Int ithread = 1;
+   E_Int Nbre_thread_actif = 1;
+#endif
+   // Calcul du nombre de champs a traiter par chaque thread
+   E_Int chunk = nbRcvPts/Nbre_thread_actif;
+   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+   // pts traitees par thread
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+#ifdef _OPENMP4
+   #pragma omp simd
+#endif
+   for (E_Int noind = 0; noind < ifin-ideb; noind++)
+   {
+      gradxP[noind+ideb] = gradxP_new[noind+ideb];
+      gradyP[noind+ideb] = gradyP_new[noind+ideb];
+      gradzP[noind+ideb] = gradzP_new[noind+ideb];
+   }
+
+     } // Fin zone // omp
+  // sortie
+
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+  RELEASESHAREDN(pyArrayGradxP_new, gradxPress_newF);
+  RELEASESHAREDN(pyArrayGradyP_new, gradyPress_newF);
+  RELEASESHAREDN(pyArrayGradzP_new, gradzPress_newF);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
+// Copy of _setIBCTransfers for gradP + gradVelocity info
+// tc/tc2 -> RCV ZONES
+// Called by XOD._setIBCTransfers4FULLTBLE()
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE(PyObject* self, PyObject* args)
+{
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+  PyObject *zoneR, *zoneD;
+  PyObject *pyVariables;
+  PyObject *pyIndRcv, *pyIndDonor;
+  PyObject *pyArrayTypes;
+  PyObject *pyArrayCoefs;
+  PyObject *pyArrayPressure;
+  PyObject *pyArrayU, *pyArrayV, *pyArrayW;
+  PyObject *pyArrayGradxP, *pyArrayGradyP, *pyArrayGradzP;
+  PyObject *pyArrayGradxU, *pyArrayGradyU, *pyArrayGradzU;
+  PyObject *pyArrayGradxV, *pyArrayGradyV, *pyArrayGradzV;
+  PyObject *pyArrayGradxW, *pyArrayGradyW, *pyArrayGradzW;
+  E_Int bctype, loc, vartype, compact;
+  E_Float gamma, cv, muS, Cs, Ts, alpha;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOOOOOOOOOOOOOOOOOOOllllddddddsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiiddddddsss",
+                    "OOOOOOOOOOOOOOOOOOOOOOOllllffffffsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiiffffffsss",
+                    &zoneR, &zoneD, &pyVariables,
+                    &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
+                    &pyArrayPressure,
+                    &pyArrayU, &pyArrayV, &pyArrayW,
+                    &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,
+                    &pyArrayGradxU, &pyArrayGradyU, &pyArrayGradzU,
+                    &pyArrayGradxV, &pyArrayGradyV, &pyArrayGradzV,
+                    &pyArrayGradxW, &pyArrayGradyW, &pyArrayGradzW,
+                    &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+  {
+      return NULL;
+  }
+
+  vector<PyArrayObject*> hook;
+
+  E_Int bcType = E_Int(bctype);
+
+  E_Int nvars;
+  E_Int varType = E_Int(vartype);
+
+  nvars = 20;
+
+  // recupere les champs du donneur (nodes)
+  E_Int imdjmd, imd, jmd, kmd, cnNfldD, ndimdxR, ndimdxD, meshtype;;
+  E_Float* iptroD; E_Float* iptroR;
+
+# include "extract_interpD.h"
+
+  /*--------------------------------------*/
+  /* Extraction des indices des receveurs */
+  /*--------------------------------------*/
+  FldArrayI* rcvPtsI;
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int* rcvPts  = rcvPtsI->begin();
+  nbRcvPts       = rcvPtsI->getSize();
+
+  // # include "IBC/extract_IBC.h"
+
+  FldArrayF* pressF;
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Float* pressure = pressF->begin();
+
+  FldArrayF* UF; FldArrayF* VF; FldArrayF* WF;
+  E_Int okU = K_NUMPY::getFromNumpyArray(pyArrayU , UF , true);
+  E_Int okV = K_NUMPY::getFromNumpyArray(pyArrayV , VF , true);
+  E_Int okW = K_NUMPY::getFromNumpyArray(pyArrayW , WF , true);
+  E_Float* U = UF->begin();
+  E_Float* V = VF->begin();
+  E_Float* W = WF->begin();
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  FldArrayF* gradxVelocityXF; FldArrayF* gradyVelocityXF; FldArrayF* gradzVelocityXF;
+  E_Int okGxU = K_NUMPY::getFromNumpyArray(pyArrayGradxU , gradxVelocityXF , true);
+  E_Int okGyU = K_NUMPY::getFromNumpyArray(pyArrayGradyU , gradyVelocityXF , true);
+  E_Int okGzU = K_NUMPY::getFromNumpyArray(pyArrayGradzU , gradzVelocityXF , true);
+  E_Float* gradxU = gradxVelocityXF->begin();
+  E_Float* gradyU = gradyVelocityXF->begin();
+  E_Float* gradzU = gradzVelocityXF->begin();
+
+  FldArrayF* gradxVelocityYF; FldArrayF* gradyVelocityYF; FldArrayF* gradzVelocityYF;
+  E_Int okGxV = K_NUMPY::getFromNumpyArray(pyArrayGradxV , gradxVelocityYF , true);
+  E_Int okGyV = K_NUMPY::getFromNumpyArray(pyArrayGradyV , gradyVelocityYF , true);
+  E_Int okGzV = K_NUMPY::getFromNumpyArray(pyArrayGradzV , gradzVelocityYF , true);
+  E_Float* gradxV = gradxVelocityYF->begin();
+  E_Float* gradyV = gradyVelocityYF->begin();
+  E_Float* gradzV = gradzVelocityYF->begin();
+
+  FldArrayF* gradxVelocityZF; FldArrayF* gradyVelocityZF; FldArrayF* gradzVelocityZF;
+  E_Int okGxW = K_NUMPY::getFromNumpyArray(pyArrayGradxW , gradxVelocityZF , true);
+  E_Int okGyW = K_NUMPY::getFromNumpyArray(pyArrayGradyW , gradyVelocityZF , true);
+  E_Int okGzW = K_NUMPY::getFromNumpyArray(pyArrayGradzW , gradzVelocityZF , true);
+  E_Float* gradxW = gradxVelocityZF->begin();
+  E_Float* gradyW = gradyVelocityZF->begin();
+  E_Float* gradzW = gradzVelocityZF->begin();
+
+  // std::cout << "COUCOU 3188" << std::endl;
+
+  vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
+  vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
+  E_Int* ptrcnd;
+  char* eltTypeR; char* eltTypeD;
+  //codage general (lent ;-) )
+  if (compact == 0)
+    {// recupere les champs du donneur (nodes)
+      E_Int cnSizeD;
+      char* varStringD;
+      vector<E_Int> locsD;
+      vector<E_Int*> cnd;
+      E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                         fieldsD, locsD, imd, jmd, kmd,
+                                         cnd, cnSizeD, cnNfldD,
+                                         eltTypeD, hook,
+                                         GridCoordinates,
+                                         FlowSolutionNodes, FlowSolutionCenters);
+
+      // printf("%s\n", varStringD);
+
+      if (cnd.size() > 0) ptrcnd = cnd[0];
+
+      meshtype = resd; // 1: structure, 2: non structure
+      // recupere les champs du receveur
+      E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
+      char* varStringR; vector<E_Int> locsR;
+      vector<E_Int*> cnr;
+      K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
+                            fieldsR, locsR, imr, jmr, kmr,
+                            cnr, cnSizeR, cnNfldR, eltTypeR, hook,
+                            GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
+
+      // printf("%s\n", varStringR);
+
+
+      // -- no check (perfo) --
+      // Transferts
+      // Types valides: 2, 3, 4, 5
+      E_Int posvr, posvd;
+
+      // Extrait les positions des variables a transferer
+      E_Int nfoundvar = 0;
+      if (PyList_Check(pyVariables) != 0)
+      {
+        int nvariables = PyList_Size(pyVariables);
+        if (nvariables > 0)
+        {
+          for (int i = 0; i < nvariables; i++)
+          {
+            PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+            if (PyString_Check(tpl0))
+            {
+              char* varname = PyString_AsString(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              posvr = K_ARRAY::isNamePresent(varname, varStringR);
+              if (posvr != -1)
+              {
+                vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+                vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+                nfoundvar += 1;
+              }
+            }
+#if PY_VERSION_HEX >= 0x03000000
+            else if (PyUnicode_Check(tpl0))
+            {
+              const char* varname = PyUnicode_AsUTF8(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              posvr = K_ARRAY::isNamePresent(varname, varStringR);
+              if (posvr != -1)
+              {
+                vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+                vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+                nfoundvar += 1;
+              }
+            }
+#endif
+            else
+            {
+              PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
+            }
+
+          }
+        }
+      }
+
+      delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
+
+    }
+
+  // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
+  else
+    {
+# include "getfromzonecompact.h"
+      for (E_Int eq = 0; eq < nvars; eq++)
+         {
+            vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+            vectOfDnrFields[eq]= iptroD + eq*ndimdxD;
+         }
+    }
+
+# include "commonInterpTransfers_indirect.h"
+
+#    pragma omp parallel default(shared)
+     {
+
+   //indice loop pour paralelisation omp
+   E_Int ideb, ifin;
+#ifdef _OPENMP
+   E_Int  ithread           = omp_get_thread_num()+1;
+   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+   E_Int ithread = 1;
+   E_Int Nbre_thread_actif = 1;
+#endif
+   // Calcul du nombre de champs a traiter par chaque thread
+   E_Int chunk = nbRcvPts/Nbre_thread_actif;
+   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+   // pts traitees par thread
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+   E_Float cvgam = cv*(gamma-1.);
+
+  //0 : Density
+  //1 : Temperature
+  //2 / 3 / 4 : gradxDensity / gradyDensity / gradzDensity
+  //5 / 6 / 7 : gradxTemperature / gradyTemperature / gradzTemperature
+  //8 / 9 / 10 : gradxVelocityX / ...
+  //11 / 12 / 13 : gradxVelocityY / ...
+  //14 / 15 / 16 : gradxVelocityZ / ...
+  //17 / 18 / 19 : VelocityX / ...
+
+// #ifdef _OPENMP4
+//    #pragma omp simd
+// #endif
+   for (E_Int noind = 0; noind < ifin-ideb; noind++)
+   {
+     E_Int indR = rcvPts[noind+ideb];
+
+     pressure[noind+ideb] = vectOfRcvFields[0][indR]*vectOfRcvFields[1][indR]*cvgam;
+
+     U[noind+ideb] = vectOfRcvFields[17][indR];
+     V[noind+ideb] = vectOfRcvFields[18][indR];
+     W[noind+ideb] = vectOfRcvFields[19][indR];
+
+     if (alpha <= 1.){
+       gradxP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[5][indR])*cvgam)*alpha;
+       gradyP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[3][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[6][indR])*cvgam)*alpha;
+       gradzP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[4][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[7][indR])*cvgam)*alpha;
+
+       gradxU[noind+ideb] = (vectOfRcvFields[8][indR])*alpha;  gradyU[noind+ideb] = (vectOfRcvFields[9][indR])*alpha;  gradzU[noind+ideb] = (vectOfRcvFields[10][indR])*alpha;
+       gradxV[noind+ideb] = (vectOfRcvFields[11][indR])*alpha; gradyV[noind+ideb] = (vectOfRcvFields[12][indR])*alpha; gradzV[noind+ideb] = (vectOfRcvFields[13][indR])*alpha;
+       gradxW[noind+ideb] = (vectOfRcvFields[14][indR])*alpha; gradyW[noind+ideb] = (vectOfRcvFields[15][indR])*alpha; gradzW[noind+ideb] = (vectOfRcvFields[16][indR])*alpha;
+     }
+
+     else{
+       gradxP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[5][indR])*cvgam)/alpha + gradxP[noind+ideb]*(alpha-1.)/alpha;
+       gradyP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[3][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[6][indR])*cvgam)/alpha + gradyP[noind+ideb]*(alpha-1.)/alpha;
+       gradzP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[4][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[7][indR])*cvgam)/alpha + gradzP[noind+ideb]*(alpha-1.)/alpha;
+
+       gradxU[noind+ideb] = (vectOfRcvFields[8][indR])/alpha  + gradxU[noind+ideb]*(alpha-1.)/alpha;  
+       gradyU[noind+ideb] = (vectOfRcvFields[9][indR])/alpha  + gradyU[noind+ideb]*(alpha-1.)/alpha;    
+       gradzU[noind+ideb] = (vectOfRcvFields[10][indR])/alpha + gradzU[noind+ideb]*(alpha-1.)/alpha;  
+
+       gradxV[noind+ideb] = (vectOfRcvFields[11][indR])/alpha + gradxV[noind+ideb]*(alpha-1.)/alpha;  
+       gradyV[noind+ideb] = (vectOfRcvFields[12][indR])/alpha + gradyV[noind+ideb]*(alpha-1.)/alpha;    
+       gradzV[noind+ideb] = (vectOfRcvFields[13][indR])/alpha + gradzV[noind+ideb]*(alpha-1.)/alpha;  
+
+       gradxW[noind+ideb] = (vectOfRcvFields[14][indR])/alpha + gradxW[noind+ideb]*(alpha-1.)/alpha;  
+       gradyW[noind+ideb] = (vectOfRcvFields[15][indR])/alpha + gradyW[noind+ideb]*(alpha-1.)/alpha;    
+       gradzW[noind+ideb] = (vectOfRcvFields[16][indR])/alpha + gradzW[noind+ideb]*(alpha-1.)/alpha;  
+     }
+
+     // for (E_Int toto = 2; toto < 17; toto++){
+     //   vectOfRcvFields[toto][indR] = toto;
+     // }
+
+     // vectOfRcvFields[16][indR] = 2.;
+
+   }
+
+     } // Fin zone // omp
+  // sortie
+  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+
+  RELEASESHAREDN(pyIndRcv, rcvPtsI);
+  RELEASESHAREDN(pyIndDonor, donorPtsI);
+  RELEASESHAREDN(pyArrayTypes, typesI);
+  RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
+  // BLOCKRELEASEMEM;
+
+  RELEASESHAREDN(pyArrayPressure, pressF);
+  RELEASESHAREDN(pyArrayU, UF);
+  RELEASESHAREDN(pyArrayV, VF);
+  RELEASESHAREDN(pyArrayW, WF);
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+  RELEASESHAREDN(pyArrayGradxU, gradxVelocityXF);
+  RELEASESHAREDN(pyArrayGradyU, gradyVelocityXF);
+  RELEASESHAREDN(pyArrayGradzU, gradzVelocityXF);
+  RELEASESHAREDN(pyArrayGradxV, gradxVelocityYF);
+  RELEASESHAREDN(pyArrayGradyV, gradyVelocityYF);
+  RELEASESHAREDN(pyArrayGradzV, gradzVelocityYF);
+  RELEASESHAREDN(pyArrayGradxW, gradxVelocityZF);
+  RELEASESHAREDN(pyArrayGradyW, gradyVelocityZF);
+  RELEASESHAREDN(pyArrayGradzW, gradzVelocityZF);
+  // BLOCKRELEASEMEM2;
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
+// Copy of _setIBCTransfers for gradP + gradVelocity info
+// RCV ZONES -> tc
+// Called by XOD._setIBCTransfers4FULLTBLE2()
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE2(PyObject* self, PyObject* args)
+{
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+  PyObject *zoneR, *zoneD;
+  PyObject *pyVariables;
+  PyObject *pyIndRcv, *pyIndDonor;
+  PyObject *pyArrayTypes;
+  PyObject *pyArrayCoefs;
+  PyObject *pyArrayPressure;
+  PyObject *pyArrayU, *pyArrayV, *pyArrayW;
+  PyObject *pyArrayGradxP, *pyArrayGradyP, *pyArrayGradzP;
+  PyObject *pyArrayGradxU, *pyArrayGradyU, *pyArrayGradzU;
+  PyObject *pyArrayGradxV, *pyArrayGradyV, *pyArrayGradzV;
+  PyObject *pyArrayGradxW, *pyArrayGradyW, *pyArrayGradzW;
+  E_Int bctype, loc, vartype, compact;
+  E_Float gamma, cv, muS, Cs, Ts, alpha;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOOOOOOOOOOOOOOOOOOOllllddddddsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiiddddddsss",
+                    "OOOOOOOOOOOOOOOOOOOOOOOllllffffffsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiiffffffsss",
+                    &zoneR, &zoneD, &pyVariables,
+                    &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
+                    &pyArrayPressure,
+                    &pyArrayU, &pyArrayV, &pyArrayW,
+                    &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,
+                    &pyArrayGradxU, &pyArrayGradyU, &pyArrayGradzU,
+                    &pyArrayGradxV, &pyArrayGradyV, &pyArrayGradzV,
+                    &pyArrayGradxW, &pyArrayGradyW, &pyArrayGradzW,
+                    &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+  {
+      return NULL;
+  }
+
+  vector<PyArrayObject*> hook;
+
+  E_Int bcType = E_Int(bctype);
+
+  E_Int nvars;
+  E_Int varType = E_Int(vartype);
+
+  nvars = 20;
+
+  // recupere les champs du donneur (nodes)
+  E_Int imdjmd, imd, jmd, kmd, cnNfldD, ndimdxR, ndimdxD, meshtype;;
+  E_Float* iptroD; E_Float* iptroR;
+
+# include "extract_interpD.h"
+
+  /*--------------------------------------*/
+  /* Extraction des indices des receveurs */
+  /*--------------------------------------*/
+  FldArrayI* rcvPtsI;
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int* rcvPts  = rcvPtsI->begin();
+  nbRcvPts       = rcvPtsI->getSize();
+
+  // # include "IBC/extract_IBC.h"
+
+  FldArrayF* pressF;
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Float* pressure = pressF->begin();
+
+  FldArrayF* UF; FldArrayF* VF; FldArrayF* WF;
+  E_Int okU = K_NUMPY::getFromNumpyArray(pyArrayU , UF , true);
+  E_Int okV = K_NUMPY::getFromNumpyArray(pyArrayV , VF , true);
+  E_Int okW = K_NUMPY::getFromNumpyArray(pyArrayW , WF , true);
+  E_Float* U = UF->begin();
+  E_Float* V = VF->begin();
+  E_Float* W = WF->begin();
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  FldArrayF* gradxVelocityXF; FldArrayF* gradyVelocityXF; FldArrayF* gradzVelocityXF;
+  E_Int okGxU = K_NUMPY::getFromNumpyArray(pyArrayGradxU , gradxVelocityXF , true);
+  E_Int okGyU = K_NUMPY::getFromNumpyArray(pyArrayGradyU , gradyVelocityXF , true);
+  E_Int okGzU = K_NUMPY::getFromNumpyArray(pyArrayGradzU , gradzVelocityXF , true);
+  E_Float* gradxU = gradxVelocityXF->begin();
+  E_Float* gradyU = gradyVelocityXF->begin();
+  E_Float* gradzU = gradzVelocityXF->begin();
+
+  FldArrayF* gradxVelocityYF; FldArrayF* gradyVelocityYF; FldArrayF* gradzVelocityYF;
+  E_Int okGxV = K_NUMPY::getFromNumpyArray(pyArrayGradxV , gradxVelocityYF , true);
+  E_Int okGyV = K_NUMPY::getFromNumpyArray(pyArrayGradyV , gradyVelocityYF , true);
+  E_Int okGzV = K_NUMPY::getFromNumpyArray(pyArrayGradzV , gradzVelocityYF , true);
+  E_Float* gradxV = gradxVelocityYF->begin();
+  E_Float* gradyV = gradyVelocityYF->begin();
+  E_Float* gradzV = gradzVelocityYF->begin();
+
+  FldArrayF* gradxVelocityZF; FldArrayF* gradyVelocityZF; FldArrayF* gradzVelocityZF;
+  E_Int okGxW = K_NUMPY::getFromNumpyArray(pyArrayGradxW , gradxVelocityZF , true);
+  E_Int okGyW = K_NUMPY::getFromNumpyArray(pyArrayGradyW , gradyVelocityZF , true);
+  E_Int okGzW = K_NUMPY::getFromNumpyArray(pyArrayGradzW , gradzVelocityZF , true);
+  E_Float* gradxW = gradxVelocityZF->begin();
+  E_Float* gradyW = gradyVelocityZF->begin();
+  E_Float* gradzW = gradzVelocityZF->begin();
+
+  // std::cout << "COUCOU 5693" << std::endl;
+
+  vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
+  vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
+  E_Int* ptrcnd;
+  char* eltTypeR; char* eltTypeD;
+  //codage general (lent ;-) )
+  if (compact == 0)
+    {// recupere les champs du donneur (nodes)
+      // std::cout << "COUCOU 5702" << std::endl;
+      E_Int cnSizeD;
+      char* varStringD;
+      vector<E_Int> locsD;
+      vector<E_Int*> cnd;
+      E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                         fieldsD, locsD, imd, jmd, kmd,
+                                         cnd, cnSizeD, cnNfldD,
+                                         eltTypeD, hook,
+                                         GridCoordinates,
+                                         FlowSolutionNodes, FlowSolutionCenters);
+
+      // printf("%s\n", varStringD);
+
+      if (cnd.size() > 0) ptrcnd = cnd[0];
+
+      meshtype = resd; // 1: structure, 2: non structure
+      // recupere les champs du receveur
+      E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
+      char* varStringR; vector<E_Int> locsR;
+      vector<E_Int*> cnr;
+      K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
+                            fieldsR, locsR, imr, jmr, kmr,
+                            cnr, cnSizeR, cnNfldR, eltTypeR, hook,
+                            GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
+
+      // printf("%s\n", varStringR);
+
+
+      // -- no check (perfo) --
+      // Transferts
+      // Types valides: 2, 3, 4, 5
+      E_Int posvr, posvd;
+
+      // Extrait les positions des variables a transferer
+      E_Int nfoundvar = 0;
+      if (PyList_Check(pyVariables) != 0)
+      {
+        int nvariables = PyList_Size(pyVariables);
+        if (nvariables > 0)
+        {
+          for (int i = 0; i < nvariables; i++)
+          {
+            PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+            if (PyString_Check(tpl0))
+            {
+              char* varname = PyString_AsString(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              posvr = K_ARRAY::isNamePresent(varname, varStringR);
+              if (posvr != -1)
+              {
+                vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+                vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+                nfoundvar += 1;
+              }
+            }
+#if PY_VERSION_HEX >= 0x03000000
+            else if (PyUnicode_Check(tpl0))
+            {
+              const char* varname = PyUnicode_AsUTF8(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              posvr = K_ARRAY::isNamePresent(varname, varStringR);
+              if (posvr != -1)
+              {
+                vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+                vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+                nfoundvar += 1;
+              }
+            }
+#endif
+            else
+            {
+              PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
+            }
+
+          }
+        }
+      }
+
+      delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
+
+    }
+
+  // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
+  else
+    {
+      // std::cout << "COUCOU 5788" << std::endl;
+# include "getfromzonecompact.h"
+      for (E_Int eq = 0; eq < nvars; eq++)
+         {
+            vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+            vectOfDnrFields[eq]= iptroD + eq*ndimdxD;
+         }
+    }
+
+// # include "commonInterpTransfers_indirect.h"
+    // std::cout << "COUCOU 5796" << std::endl;
+
+#    pragma omp parallel default(shared)
+     {
+
+   //indice loop pour paralelisation omp
+   E_Int ideb, ifin;
+#ifdef _OPENMP
+   E_Int  ithread           = omp_get_thread_num()+1;
+   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+   E_Int ithread = 1;
+   E_Int Nbre_thread_actif = 1;
+#endif
+   // Calcul du nombre de champs a traiter par chaque thread
+   E_Int chunk = nbRcvPts/Nbre_thread_actif;
+   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+   // pts traitees par thread
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+   E_Float cvgam = cv*(gamma-1.);
+
+  //0 : Density
+  //1 : Temperature
+  //2 / 3 / 4 : gradxDensity / gradyDensity / gradzDensity
+  //5 / 6 / 7 : gradxTemperature / gradyTemperature / gradzTemperature
+  //8 / 9 / 10 : gradxVelocityX / ...
+  //11 / 12 / 13 : gradxVelocityY / ...
+  //14 / 15 / 16 : gradxVelocityZ / ...
+  //17 / 18 / 19 : VelocityX / ...
+
+// #ifdef _OPENMP4
+//    #pragma omp simd
+// #endif
+
+   for (E_Int noind = 0; noind < ifin-ideb; noind++)
+   {
+     E_Int indR = rcvPts[noind+ideb];
+
+     // pressure[noind+ideb] = vectOfRcvFields[0][indR]*vectOfRcvFields[1][indR]*cvgam;
+
+     //gradxP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[5][indR])*cvgam);
+     //gradyP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[3][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[6][indR])*cvgam);
+     //gradzP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[4][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[7][indR])*cvgam);
+     
+     gradxP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[5][indR])*cvgam)/alpha + gradxP[noind+ideb]*(alpha-1.)/alpha;
+     gradyP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[3][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[6][indR])*cvgam)/alpha + gradyP[noind+ideb]*(alpha-1.)/alpha;
+     gradzP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[4][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[7][indR])*cvgam)/alpha + gradzP[noind+ideb]*(alpha-1.)/alpha;
+
+     // gradxU[noind+ideb] = (vectOfRcvFields[8][indR]);  gradyU[noind+ideb] = (vectOfRcvFields[9][indR]);  gradzU[noind+ideb] = (vectOfRcvFields[10][indR]);
+     // gradxV[noind+ideb] = (vectOfRcvFields[11][indR]); gradyV[noind+ideb] = (vectOfRcvFields[12][indR]); gradzV[noind+ideb] = (vectOfRcvFields[13][indR]);
+     // gradxW[noind+ideb] = (vectOfRcvFields[14][indR]); gradyW[noind+ideb] = (vectOfRcvFields[15][indR]); gradzW[noind+ideb] = (vectOfRcvFields[16][indR]);
+     
+   }
+
+     } // Fin zone // omp
+
+  // # include "commonInterpTransfers_indirect.h"
+  // sortie
+  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+
+  RELEASESHAREDN(pyIndRcv, rcvPtsI);
+  RELEASESHAREDN(pyIndDonor, donorPtsI);
+  RELEASESHAREDN(pyArrayTypes, typesI);
+  RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
+  // BLOCKRELEASEMEM;
+
+  RELEASESHAREDN(pyArrayPressure, pressF);
+  RELEASESHAREDN(pyArrayU, UF);
+  RELEASESHAREDN(pyArrayV, VF);
+  RELEASESHAREDN(pyArrayW, WF);
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+  RELEASESHAREDN(pyArrayGradxU, gradxVelocityXF);
+  RELEASESHAREDN(pyArrayGradyU, gradyVelocityXF);
+  RELEASESHAREDN(pyArrayGradzU, gradzVelocityXF);
+  RELEASESHAREDN(pyArrayGradxV, gradxVelocityYF);
+  RELEASESHAREDN(pyArrayGradyV, gradyVelocityYF);
+  RELEASESHAREDN(pyArrayGradzV, gradzVelocityYF);
+  RELEASESHAREDN(pyArrayGradxW, gradxVelocityZF);
+  RELEASESHAREDN(pyArrayGradyW, gradyVelocityZF);
+  RELEASESHAREDN(pyArrayGradzW, gradzVelocityZF);
+  // BLOCKRELEASEMEM2;
+
   Py_INCREF(Py_None);
   return Py_None;
 }

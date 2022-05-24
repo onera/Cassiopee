@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2022 Onera.
+    Copyright 2013-2020 Onera.
 
     This file is part of Cassiopee.
 
@@ -43,21 +43,27 @@ using namespace K_SEARCH;
     for (E_Int nos = 0; nos < nfronts; nos++)\
         RELEASESHAREDU(objuf[nos], unstrfF[nos], cnf[nos]);
 
+#define RELEASEFRONT2\
+    for (E_Int nos = 0; nos < nfront2S; nos++)\
+        RELEASESHAREDS(objsf2[nos], structf2F[nos]);\
+    for (E_Int nos = 0; nos < nfront2s; nos++)\
+        RELEASESHAREDU(objuf2[nos], unstrf2F[nos], cnf2[nos]);
+
 
 // ============================================================================
     /* Get the wall and image points if front is provided 
     wall pts are obtained by projDir (projOrtho, closest pt if impossible)
     image pts are also obtained by projections*/
 // ============================================================================
-PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
+PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
 {
-    PyObject *allCorrectedPts, *bodySurfaces, *frontSurfaces, *normalNames;
+    PyObject *allCorrectedPts, *bodySurfaces, *frontSurfaces, *front2Surfaces, *normalNames;
     PyObject *ListOfSnearsLoc;
     PyObject *ListOfModelisationHeightsLoc;
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1
     E_Int depth;//nb of layers of ghost cells
-    if (!PYPARSETUPLEI(args,"OOOOOOll","OOOOOOii", 
-                       &allCorrectedPts, &ListOfSnearsLoc, &ListOfModelisationHeightsLoc, &bodySurfaces, &frontSurfaces, 
+    if (!PYPARSETUPLEI(args,"OOOOOOOll","OOOOOOOii", 
+                       &allCorrectedPts, &ListOfSnearsLoc, &ListOfModelisationHeightsLoc, &bodySurfaces, &frontSurfaces, &front2Surfaces, 
                        &normalNames, &signOfDist, &depth)) return NULL;
 
     // extract list of snearsloc
@@ -284,7 +290,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         if (K_STRING::cmp(eltTypef[no], "TRI") != 0) 
         {
             PyErr_SetString(PyExc_TypeError,"getIBMPts: 3rd arg must be a TRI type zone.");
-            RELEASEZONES; RELEASEBODIES; RELEASEFRONT;
+            RELEASEZONES; RELEASEBODIES; RELEASEFRONT; 
             return NULL;
         }
     }
@@ -296,6 +302,46 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         posy1 = K_ARRAY::isCoordinateYPresent(unstrVarStringf[no]); posy1++;
         posz1 = K_ARRAY::isCoordinateZPresent(unstrVarStringf[no]); posz1++;
         posxf.push_back(posx1); posyf.push_back(posy1); poszf.push_back(posz1); 
+    }
+
+    // extract front2 surfaces
+    vector<E_Int> resf2;
+    vector<char*> structVarStringf2; vector<char*> unstrVarStringf2;
+    vector<FldArrayF*> structf2F; vector<FldArrayF*> unstrf2F;
+    vector<E_Int> nif2; vector<E_Int> njf2; vector<E_Int> nkf2;
+    vector<FldArrayI*> cnf2; vector<char*> eltTypef2;
+    vector<PyObject*> objsf2, objuf2;
+    skipNoCoord = true;
+    skipStructured = true;
+    skipUnstructured = false;
+    skipDiffVars = false;
+    isOk = K_ARRAY::getFromArrays(front2Surfaces, resf2, structVarStringf2, unstrVarStringf2,
+                                  structf2F, unstrf2F, nif2, njf2, nkf2, cnf2, eltTypef2, objsf2, objuf2, 
+                                  skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
+    E_Int nfront2s = objuf2.size(); E_Int nfront2S = objsf2.size();
+    if (isOk == -1)   
+    {
+        PyErr_SetString(PyExc_TypeError,"getIBMPts: 4th arg is not valid.");
+        RELEASEZONES; RELEASEBODIES; RELEASEFRONT; RELEASEFRONT2;
+        return NULL;
+    }    
+    for (E_Int no = 0; no < nfront2s; no++)
+    {
+        if (K_STRING::cmp(eltTypef2[no], "TRI") != 0) 
+        {
+            PyErr_SetString(PyExc_TypeError,"getIBMPts: 4th arg must be a TRI type zone.");
+            RELEASEZONES; RELEASEBODIES; RELEASEFRONT; RELEASEFRONT2;
+            return NULL;
+        }
+    }
+
+    vector<E_Int> posxf2; vector<E_Int> posyf2; vector<E_Int> poszf2;
+    for (E_Int no = 0; no < nfront2s; no++)
+    {
+        posx1 = K_ARRAY::isCoordinateXPresent(unstrVarStringf2[no]); posx1++;
+        posy1 = K_ARRAY::isCoordinateYPresent(unstrVarStringf2[no]); posy1++;
+        posz1 = K_ARRAY::isCoordinateZPresent(unstrVarStringf2[no]); posz1++;
+        posxf2.push_back(posx1); posyf2.push_back(posy1); poszf2.push_back(posz1); 
     }
 
     // Checks completed...build arrays
@@ -383,6 +429,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
 
     ArrayAccessor<FldArrayF> coordAcc(*bodySurfacesPts, 1,2,3);
     KdTree<FldArrayF> kdt(coordAcc, E_EPSILON);
+
     // Creation of BBTrees for front surfaces 
     vector<K_SEARCH::BbTree3D*> vectOfFrontBBTrees;
     vector< vector<BBox3DType*> > vectOfFrontBoxes;// to be deleted at the end
@@ -428,12 +475,57 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     ArrayAccessor<FldArrayF> coordAccF(*frontSurfacesPts, 1,2,3);
     KdTree<FldArrayF> kdtf(coordAccF, E_EPSILON);
 
+    // Creation of BBTrees for front2 surfaces 
+    vector<K_SEARCH::BbTree3D*> vectOfFront2BBTrees;
+    vector< vector<BBox3DType*> > vectOfFront2Boxes;// to be deleted at the end
+    E_Int nptsFront2Max=0;
+    for (E_Int v = 0; v < nfront2s; v++)
+        nptsFront2Max += unstrf2F[v]->getSize();
+    FldArrayF* front2SurfacesPts = new FldArrayF(nptsFront2Max,3);
+    E_Float* x2f2 = front2SurfacesPts->begin(1);
+    E_Float* y2f2 = front2SurfacesPts->begin(2);
+    E_Float* z2f2 = front2SurfacesPts->begin(3);
+    E_Int noptf2=0;
+    for (E_Int v = 0; v < nfront2s; v++)
+    {
+        E_Float* x2f = unstrf2F[v]->begin(posxf2[v]);
+        E_Float* y2f = unstrf2F[v]->begin(posyf2[v]);
+        E_Float* z2f = unstrf2F[v]->begin(poszf2[v]);
+        for (E_Int ind = 0; ind < unstrf2F[v]->getSize(); ind++)
+        {
+          x2f2[noptf2] = x2f[ind]; y2f2[noptf2] = y2f[ind]; z2f2[noptf2] = z2f[ind];
+          noptf2++;
+        }
+        E_Int neltsf2 = cnf2[v]->getSize();
+        vector<BBox3DType*> boxes(neltsf2);// list of bboxes of all triangles
+        FldArrayF bbox(neltsf2,6);// xmin, ymin, zmin, xmax, ymax, zmax 
+        K_COMPGEOM::boundingBoxOfUnstrCells(*cnf2[v], x2f, y2f, z2f, bbox);
+
+        E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
+        E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
+        E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
+        for (E_Int et = 0; et < neltsf2; et++)
+        {
+          minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
+          maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
+          boxes[et] = new BBox3DType(minB, maxB);
+        }
+        vectOfFront2Boxes.push_back(boxes);
+
+        // Build the box tree.
+        K_SEARCH::BbTree3D* bbtree = new K_SEARCH::BbTree3D(boxes);
+        vectOfFront2BBTrees.push_back(bbtree);
+    }
+
+    ArrayAccessor<FldArrayF> coordAccF2(*front2SurfacesPts, 1,2,3);
+    KdTree<FldArrayF> kdtf2(coordAccF2, E_EPSILON);
+
     /*--------------------------------------------------------*/
     // projectDir of all the points onto the bodies-> wall pts
     // projectDir of all the points onto the front -> image pts
     /*--------------------------------------------------------*/    
     E_Float tol = K_CONST::E_GEOM_CUTOFF;
-    E_Float dirx0, diry0, dirz0, xsf, ysf, zsf, xsb, ysb, zsb;
+    E_Float dirx0, diry0, dirz0, xsf, ysf, zsf, xsf2, ysf2, zsf2, xsb, ysb, zsb;
     E_Float xc0, yc0, zc0, xw0, yw0, zw0, xi0, yi0, zi0;
     E_Float dist2, distl;
     vector<E_Int> indicesBB; 
@@ -443,13 +535,14 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     E_Float rx, ry, rz, rad;
 
     //distance of corrected pts to wall pts and image pts 
-    //E_Float delta1, delta2;
+    E_Float delta1, delta2;
     //Corresponding directions
     E_Float nxp, nyp, nzp, nxs, nys, nzs;
     E_Int *cnVert1, *cnVert2, *cnVert3;
     E_Float edgeLen1, edgeLen2;
     PyObject* PyListIndicesByIBCType = PyList_New(0);
-    E_Float xf_ortho, yf_ortho, zf_ortho, xb_ortho, yb_ortho, zb_ortho;
+    E_Float xf_ortho, yf_ortho, zf_ortho, xf2_ortho, yf2_ortho, zf2_ortho, xb_ortho, yb_ortho, zb_ortho;
+
     for (E_Int noz = 0; noz < nzones; noz++)
     {   
         FldArrayF* correctedPts = unstrF[noz];
@@ -469,17 +562,13 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         E_Float snearloc = vectOfSnearsLoc[noz];
         E_Float heightloc = vectOfModelisationHeightsLoc[noz];
         //distance max for image pt to its corrected pt : height*sqrt(3)
-
         // heightloc = heightloc + 2*snearloc; // for 2nd image point
-        // heightloc = (heightloc*1.1)*(heightloc*1.1)*3;     
-        // snearloc = snearloc*snearloc;
-
-        // heightloc = heightloc*1.1 + 4*snearloc*snearloc*3; // for 2nd image point
-        // snearloc = snearloc*snearloc + 4*snearloc*snearloc*3; // for 2nd image point
-
-        heightloc = heightloc*1.1 + 2*snearloc*snearloc*3; // for 2nd image point
-        snearloc = snearloc*snearloc + 2*snearloc*snearloc*3; // for 2nd image point
-
+        // heightloc = (heightloc*1.1)*(heightloc*1.1)*3;   
+        // heightloc = 0.007986005752066268;
+        // heightloc = heightloc*1.1*sqrt(3.);     
+        heightloc = heightloc + 2*snearloc*snearloc*toldistFactorImage; // for 2nd image point
+        // heightloc = (heightloc*1.1)*(heightloc*1.1);  
+        snearloc = 6*snearloc*snearloc; // for 2nd image point
         E_Float distMaxF2 = max(toldistFactorImage*snearloc, heightloc);// distance au carre maximale des pts cibles au front via depth ou modelisationHeight
         E_Float distMaxB2 = max(toldistFactorWall*snearloc, heightloc);// distance au carre maximale des pts cibles au projete paroi via depth ou modelisationHeight
 
@@ -495,6 +584,10 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         E_Int nType1=0, nType2=0, nType3=0,nType4=0;
         for (E_Int ind = 0; ind < npts; ind++)
         {
+
+            /*-----------------------------------------------------------------------------------------------------*/
+            /* FIRST TRY: projection onto the front1 and bodies 
+            /*-----------------------------------------------------------------------------------------------------*/
             E_Int noibctype = -1;
             xc0 = ptrXC[ind]; yc0 = ptrYC[ind]; zc0 = ptrZC[ind];
             E_Int okf1=0, okf2=0, okf3=0, okb1=0, okb2=0, okb3=0;
@@ -536,6 +629,50 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 }
             }
 
+            /*-----------------------------------------------------------------------------------------------------*/
+            /* SECOND TRY: projection onto the front2 and bodies 
+            /*-----------------------------------------------------------------------------------------------------*/
+            noibctype = -1;
+            xc0 = ptrXC[ind]; yc0 = ptrYC[ind]; zc0 = ptrZC[ind];
+            okf1=0; okf2=0; okf3=0; okb1=0; okb2=0; okb3=0;
+            distF1 = -1.; distB1 = -1.;
+            distF2 = -1.; distB2 = -1.;
+            distF3 = -1.; distB3 = -1.;
+            /*-----------------------------------------------------------------------------------------------------*/
+            /* Step 1: projection  onto the front and bodies following normals -> snearloc resolution for the front*/
+            /*-----------------------------------------------------------------------------------------------------*/
+            found = 0;
+
+            dirx0 = ptrNX[ind]; diry0 = ptrNY[ind]; dirz0 = ptrNZ[ind];
+#  include "IBC/getIBMPts_projectDirFront2.h"
+            if ( ok > -1) // projection found
+            {
+                okf1 = 1; 
+                distF1 = (xsf2-xc0)*(xsf2-xc0)+(ysf2-yc0)*(ysf2-yc0)+(zsf2-zc0)*(zsf2-zc0);            
+
+                // projectDir for pt onto the bodies
+                dirx0 = sign*dirx0; 
+                diry0 = sign*diry0; 
+                dirz0 = sign*dirz0;
+
+                # include "IBC/getIBMPts_projectDirBodies.h"
+                if ( ok > -1) 
+                {
+                    okb1 = 1; 
+                    distB1 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
+
+                    //check distance
+                    if (distB1 <= distMaxB2 && distF1 <= distMaxF2)
+                    {
+                        found = 1;
+                        ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
+                        ptrXI[ind] = xsf2; ptrYI[ind] = ysf2; ptrZI[ind] = zsf2;
+                        typeProj[ind]=1; nType1+=1;
+                        goto end;
+                    }
+                }
+            }
+
             // found = 1 : image and wall IBM points have been found and set 
             if (found == 0)
             {
@@ -545,7 +682,6 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 // ortho projection of target pt onto bodies
                 pt[0] = xc0; pt[1] = yc0; pt[2] = zc0;
                 indp = kdt.getClosest(pt);
-                // std::cout << "found = 0" << std::endl;
                 # include "IBC/getIBMPts_projectOrthoBodies.h"
 
                 if ( ok == 1 )
@@ -560,16 +696,16 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                     diry0 = sign*(ysb-yc0); //sign=-1 (external): follows vector WC
                     dirz0 = sign*(zsb-zc0);
                     nxp = dirx0; nyp = diry0; nzp = dirz0; //normale orientee vers l'exterieur
-                    #  include "IBC/getIBMPts_projectDirFront.h"
+                    #  include "IBC/getIBMPts_projectDirFront2.h"
 
                     if ( ok == 1 )
                     {
-                        distF2 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);
+                        distF2 = (xsf2-xc0)*(xsf2-xc0)+(ysf2-yc0)*(ysf2-yc0)+(zsf2-zc0)*(zsf2-zc0);
                         okf2 = 1;
                         if ( distF2  <= distMaxF2 && distB2 <= distMaxB2) 
                         {
                             ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
-                            ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
+                            ptrXI[ind] = xsf2; ptrYI[ind] = ysf2; ptrZI[ind] = zsf2;
                             typeProj[ind]=2; nType2+=1;
                             goto end;
                         }
@@ -579,18 +715,17 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 /*---------------------------------------------------------------------------------------------*/
                 /* Step 3: ortho projection onto the front + dir onto the obstacle using the ortho direction  */
                 /*---------------------------------------------------------------------------------------------*/
-                // std::cout << "step 2 failed" << std::endl;
                 pt[0] = xc0; pt[1] = yc0; pt[2] = zc0;
                 indp = kdtf.getClosest(pt);
-                # include "IBC/getIBMPts_projectOrthoFront.h"
+                # include "IBC/getIBMPts_projectOrthoFront2.h"
                 if ( ok == 1 )
                 {
                     okf3 = 1;
-                    distF3 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);
-                    xf_ortho=xsf; yf_ortho=ysf; zf_ortho=zsf;
+                    distF3 = (xsf2-xc0)*(xsf2-xc0)+(ysf2-yc0)*(ysf2-yc0)+(zsf2-zc0)*(zsf2-zc0);
+                    xf2_ortho=xsf2; yf2_ortho=ysf2; zf2_ortho=zsf2;
 
                     //projectDir to get wall pt
-                    dirx0 = xc0-xsf; diry0 = yc0-ysf; dirz0 = zc0-zsf;
+                    dirx0 = xc0-xsf2; diry0 = yc0-ysf2; dirz0 = zc0-zsf2;
                     nxs = -dirx0; nys = -diry0; nzs = -dirz0; //normale orientee vers l'exterieur
                     # include "IBC/getIBMPts_projectDirBodies.h"
                     if ( ok == 1)
@@ -600,7 +735,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                         if ( distF3  <= distMaxF2 && distB3 <= distMaxB2) 
                         {
                             ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
-                            ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
+                            ptrXI[ind] = xsf2; ptrYI[ind] = ysf2; ptrZI[ind] = zsf2;
                             typeProj[ind]=3; nType3+=1;
                             goto end;
                         }
@@ -619,8 +754,10 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 typeProj[ind]=4; nType4+=1;
 
                 ptrXW[ind] = xb_ortho; ptrYW[ind] = yb_ortho; ptrZW[ind] = zb_ortho;
-                ptrXI[ind] = xf_ortho; ptrYI[ind] = yf_ortho; ptrZI[ind] = zf_ortho;
-            }// found CAS 1 = 0         
+                ptrXI[ind] = xf2_ortho; ptrYI[ind] = yf2_ortho; ptrZI[ind] = zf2_ortho;
+            }// found CAS 1 = 0
+
+
             end:;
 
             E_Int& nptsByType = nPtsPerIBCType[noibctype];
@@ -644,7 +781,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         PyList_Append(PyListIndicesByIBCType, PyListIndicesByIBCTypeForZone); 
         Py_DECREF(PyListIndicesByIBCTypeForZone);
     }
-    delete frontSurfacesPts; delete bodySurfacesPts;
+    delete frontSurfacesPts; delete front2SurfacesPts; delete bodySurfacesPts;
 
     // Cleaning
     E_Int nboxes = vectOfBodyBoxes.size();
@@ -665,12 +802,21 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             delete vectOfFrontBBTrees[v0];
     }
     vectOfFrontBoxes.clear(); vectOfFrontBBTrees.clear();
+    nboxes = vectOfFront2Boxes.size();
+    for (E_Int v0 = 0; v0 < nboxes; v0++)
+    {
+        vector<BBox3DType*>& boxes = vectOfFront2Boxes[v0];
+        E_Int size = boxes.size();
+        for (E_Int v = 0; v < size; v++) delete boxes[v];
+            delete vectOfFront2BBTrees[v0];
+    }
+    vectOfFront2Boxes.clear(); vectOfFront2BBTrees.clear();
 
     // Sortie
     PyObject* tpl = Py_BuildValue("[OOO]", PyListOfWallPts, PyListOfImagePts, PyListIndicesByIBCType);
     Py_DECREF(PyListOfWallPts);
     Py_DECREF(PyListOfImagePts);
     Py_DECREF(PyListIndicesByIBCType);
-    RELEASEZONES; RELEASEBODIES; RELEASEFRONT;
+    RELEASEZONES; RELEASEBODIES; RELEASEFRONT; RELEASEFRONT2;
     return tpl;
 }

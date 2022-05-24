@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2022 Onera.
 
     This file is part of Cassiopee.
@@ -49,12 +49,12 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
       return NULL;
   }
   E_Int bcType = E_Int(bctype); // 0: wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
-  /* varType : 
-     1  : conservatives, 
-     11 : conservatives + ronutildeSA 
+  /* varType :
+     1  : conservatives,
+     11 : conservatives + ronutildeSA
      2  : (ro,u,v,w,t)
-     21 : (ro,u,v,w,t) + ronutildeSA 
-     3  : (ro,u,v,w,p)     
+     21 : (ro,u,v,w,t) + ronutildeSA
+     3  : (ro,u,v,w,p)
      31 : (ro,u,v,w,p) + ronutildeSA */
   E_Int varType = E_Int(vartype);
 
@@ -64,16 +64,16 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd, imdjmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringD; char* eltTypeD;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd, 
-                                     imd, jmd, kmd, cnd, eltTypeD, true); 
+  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd,
+                                     imd, jmd, kmd, cnd, eltTypeD, true);
   E_Int* ptrcnd = NULL;
-  E_Int cndSize = 0; 
+  E_Int cndSize = 0;
   E_Int cnNfldD = 0;
-  if (resd != 2 && resd != 1) 
+  if (resd != 2 && resd != 1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: 1st arg is not a valid array.");
-    return NULL; 
+    return NULL;
   }
   E_Int meshtype = resd;// 1 : structure, 2 non structure
   if (resd == 2)
@@ -82,8 +82,8 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "setIBCTransfersD: donor array must be a TETRA if unstructured.");
-      RELEASESHAREDB(resd, arrayD, fd, cnd); 
-      return NULL; 
+      RELEASESHAREDB(resd, arrayD, fd, cnd);
+      return NULL;
     }
     ptrcnd  = cnd->begin();
     cndSize = cnd->getSize();
@@ -92,27 +92,27 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int nvars;
   if      ( varType ==  1 || varType ==  2 || varType == 3 )  nvars = 5;
   else if ( varType == 11 || varType == 21 || varType == 31 ) nvars = 6;
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: varType value is not valid.");
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
-    return NULL; 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
+    return NULL;
   }
-  if (fd->getNfld() != nvars) 
+  if (fd->getNfld() != nvars)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: number of donor variables is not consistent with varType.");
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
-    return NULL; 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
+    return NULL;
   }
 
 
 # include "extract_interpD.h"
 
-  if (res_donor*res_type*res_coef == 0) 
+  if (res_donor*res_type*res_coef == 0)
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     if (res_donor != 0) { RELEASESHAREDN(pyIndDonor  , donorPtsI  );}
     if (res_type  != 0) { RELEASESHAREDN(pyArrayTypes, typesI     );}
     if (res_coef  != 0) { RELEASESHAREDN(pyArrayCoefs, donorCoefsF);}
@@ -124,20 +124,20 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
 
   if (okc1*okc2*okc3 == 0)
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
     RELEASESHAREDN(pyArrayTypes, typesI     );
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
     if (okc1 != 0) { RELEASESHAREDN(pyArrayXPC  , coordxPC  );}
     if (okc2 != 0) { RELEASESHAREDN(pyArrayYPC  , coordyPC  );}
     if (okc3 != 0) { RELEASESHAREDN(pyArrayZPC  , coordzPC  );}
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: coordinates of corrected points are invalid.");
     return NULL;
   }
   if (okw1*okw2*okw3 == 0 )
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
     RELEASESHAREDN(pyArrayTypes, typesI     );
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
@@ -147,13 +147,13 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
     if (okw1 != 0) { RELEASESHAREDN(pyArrayXPW  , coordxPW  );}
     if (okw2 != 0) { RELEASESHAREDN(pyArrayYPW  , coordyPW  );}
     if (okw3 != 0) { RELEASESHAREDN(pyArrayZPW  , coordzPW  );}
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: coordinates of wall points are invalid.");
     return NULL;
   }
   if (oki1*oki2*oki3 == 0 )
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
     RELEASESHAREDN(pyArrayTypes, typesI     );
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
@@ -166,13 +166,13 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
     if (oki1 != 0) { RELEASESHAREDN(pyArrayXPI  , coordxPI  );}
     if (oki2 != 0) { RELEASESHAREDN(pyArrayYPI  , coordyPI  );}
     if (oki3 != 0) { RELEASESHAREDN(pyArrayZPI  , coordzPI  );}
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "setIBCTransfersD: coordinates of interpolated points are invalid.");
     return NULL;
   }
   if (okD == 0 )
   {
-    RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
     RELEASESHAREDN(pyArrayTypes, typesI     );
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
@@ -199,7 +199,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   //
   fieldROut.setAllValuesAtNull();
 
-  // Transferts 
+  // Transferts
   // Types valides: 2, 3, 4, 5
 
 
@@ -208,7 +208,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   for (E_Int eq = 0; eq < nvars; eq++)
    {
     vectOfRcvFields[eq] = fieldROut.begin(eq+1);
-    vectOfDnrFields[eq] = fd->begin(eq+1); 
+    vectOfDnrFields[eq] = fd->begin(eq+1);
    }
 
 
@@ -218,16 +218,16 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
 ////
 ////
 //  Interpolation parallele
-////  
-////  
-# include "commonInterpTransfers_direct.h" 
+////
+////
+# include "commonInterpTransfers_direct.h"
 
     E_Int threadmax_sdm  = __NUMTHREADS__;
 
     E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
           size = size + size % 8;                  // on rajoute du bas pour alignememnt 64bits
 
-    FldArrayF  tmp(size*13*threadmax_sdm);
+    FldArrayF  tmp(size*17*threadmax_sdm);
     E_Float* ipt_tmp=  tmp.begin();
 
     E_Float param_real[30]; 
@@ -259,8 +259,8 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
    E_Int chunk = nbRcvPts/Nbre_thread_actif;
    E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
    // pts traitees par thread
-   if (ithread <= r) 
-        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }  
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
    else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
    if (varType == 2 ||varType == 21) 
@@ -277,14 +277,14 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
  }//fin omp
 
   // sortie
-  RELEASESHAREDB(resd, arrayD, fd, cnd); 
+  RELEASESHAREDB(resd, arrayD, fd, cnd);
   BLOCKRELEASEMEMD;
   BLOCKRELEASEMEM2;
   return tpl;
 }
 //=============================================================================
-/* Transfert de champs conservatifs sous forme de numpy 
-   From zone- 
+/* Transfert de champs conservatifs sous forme de numpy
+   From zone-
    Retourne une liste de numpy directement de champs interpoles */
 //=============================================================================
 PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
@@ -294,7 +294,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   PyObject *pyArrayYPC, *pyArrayYPI, *pyArrayYPW;
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
   PyObject *pyArrayDens;
-  PyObject* pyVariables;
+  PyObject *pyVariables;
   E_Int bctype, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts;
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
@@ -319,19 +319,19 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
 
   vector<PyArrayObject*> hook;
   E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype, ndimdxD=1;
-  E_Float* iptroD=NULL; 
+  E_Float* iptroD=NULL;
 
 # include "extract_interpD.h"
 # include "IBC/extract_IBC.h"
 
-  vector<E_Float*> fieldsD; vector<E_Int> posvarsD; 
+  vector<E_Float*> fieldsD; vector<E_Int> posvarsD;
   E_Int* ptrcnd=NULL;
   char* eltTypeD=NULL; char* varStringD=NULL;
   char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
 
   //codage general (lent ;-) )
   if (compact==0)
-  {   
+  {
      /*---------------------------------------------*/
      /* Extraction des infos sur le domaine donneur */
      /*---------------------------------------------*/
@@ -340,9 +340,9 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
      vector<E_Int*> cnd;
      E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
                                         fieldsD, locsD, imd, jmd, kmd,
-                                        cnd, cnSizeD, cnNfldD, 
+                                        cnd, cnSizeD, cnNfldD,
                                         eltTypeD, hook,
-                                        GridCoordinates, 
+                                        GridCoordinates,
                                         FlowSolutionNodes, FlowSolutionCenters);
      if (cnd.size() > 0) ptrcnd = cnd[0];
      meshtype = resd; // 1: structure, 2: non structure
@@ -361,29 +361,29 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
            PyObject* tpl0 = PyList_GetItem(pyVariables, i);
            if (PyString_Check(tpl0))
            {
-             char* varname = PyString_AsString(tpl0);        
-             posvd = K_ARRAY::isNamePresent(varname, varStringD);      
-             if (posvd != -1) 
-             { 
+             char* varname = PyString_AsString(tpl0);
+             posvd = K_ARRAY::isNamePresent(varname, varStringD);
+             if (posvd != -1)
+             {
                posvarsD.push_back(posvd);
                if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
                else {strcat(varStringOut,","); strcat(varStringOut,varname);}
              }
            }
 #if PY_VERSION_HEX >= 0x03000000
-           else if (PyUnicode_Check(tpl0)) 
+           else if (PyUnicode_Check(tpl0))
            {
               const char* varname = PyUnicode_AsUTF8(tpl0);
-              posvd = K_ARRAY::isNamePresent(varname, varStringD);      
-              if (posvd != -1) 
-              { 
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              if (posvd != -1)
+              {
                  posvarsD.push_back(posvd);
                 if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
                 else {strcat(varStringOut,","); strcat(varStringOut,varname);}
               }
            }
 #endif
-           else 
+           else
              PyErr_Warn(PyExc_Warning, "_setIBCTransfersD: variable must be a string. Skipped.");
          }
        }
@@ -406,7 +406,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   vector<E_Float*> vectOfRcvFields(nvars);
   vector<E_Float*> vectOfDnrFields(nvars);
 
-  if (compact==0) 
+  if (compact==0)
   {
     for (E_Int eq = 0; eq < nvars; eq++)
       {
@@ -426,20 +426,20 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
 ////
 ////
 //  Interpolation parallele
-////  
-////  
+////
+////
 
      // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
      FldArrayI rcvPtsI(nbRcvPts); E_Int* rcvPts = rcvPtsI.begin();
 #    include "commonInterpTransfers_direct.h"
-  
+
     E_Int threadmax_sdm  = __NUMTHREADS__;
 
     E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
           size = size + size % 8;            // on rajoute du bas pour alignememnt 64bits
     if (bctype <= 1) size = 0;               // tableau inutile
 
-    FldArrayF  tmp(size*16*threadmax_sdm);
+    FldArrayF  tmp(size*18*threadmax_sdm);
     E_Float* ipt_tmp = tmp.begin();
 
     E_Float param_real[30]; 
@@ -471,8 +471,8 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
    E_Int chunk = nbRcvPts/Nbre_thread_actif;
    E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
    // pts traitees par thread
-   if (ithread <= r) 
-        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }  
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
    else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
   if (varType == 2 || varType == 21) 

@@ -936,7 +936,7 @@ def _rmNodes(z, name):
   return None
 
 # Upgrade tree (applique apres lecture)
-def _upgradeTree(t, uncompress=True):
+def _upgradeTree(t, uncompress=True, oldcompress=False):
   #Internal._adaptTypes(t)
   Internal._correctPyTree(t, level=10) # force CGNS names
   Internal._correctPyTree(t, level=2) # force unique name
@@ -945,8 +945,12 @@ def _upgradeTree(t, uncompress=True):
   if uncompress:
     try:
       import Compressor.PyTree as Compressor
-      Compressor._uncompressCartesian(t)
-      Compressor._uncompressAll(t)
+      if oldcompress:
+        Compressor._uncompressCartesian_old(t)
+        Compressor._uncompressAll_old(t)
+      else:
+        Compressor._uncompressCartesian(t)
+        Compressor._uncompressAll(t)
     except: pass
   return None
 
@@ -991,7 +995,7 @@ def hackCenters(a):
 def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., skeletonData=None, dataShape=None, 
                        links=None, skipTypes=None, uncompress=True, 
-                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0):
+                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0, oldcompress=False):
   """Read a file and return a pyTree containing file data.
   Usage: convertFile2PyTree(fileName, format, options)"""
   if format is None:
@@ -1008,14 +1012,14 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     try:
       t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes)
       t = Internal.createRootNode(children=t[2])
-      _upgradeTree(t, uncompress)
+      _upgradeTree(t, uncompress, oldcompress)
       return t
     except:
       if format == 'bin_cgns' or format == 'bin_adf':
         try:
           t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes)
           t = Internal.createRootNode(children=t[2])
-          _upgradeTree(t, uncompress)
+          _upgradeTree(t, uncompress, oldcompress)
           return t
         except: pass
       else: # adf par defaut

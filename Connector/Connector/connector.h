@@ -106,7 +106,49 @@
   if ( pyArrayUtau != Py_None)                          \
     RELEASESHAREDN(pyArrayUtau, utauF);                 \
   if ( pyArrayYplus != Py_None)                         \
-    RELEASESHAREDN(pyArrayYplus, yplusF);
+    RELEASESHAREDN(pyArrayYplus, yplusF);               \
+  if ( pyArrayGradxP != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradxP, gradxPressF);         \
+  if ( pyArrayGradyP != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradyP, gradyPressF);         \
+  if ( pyArrayGradzP != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradzP, gradzPressF);         \
+  if ( pyArrayGradxU != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradxU, gradxUF);             \
+  if ( pyArrayGradyU != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradyU, gradyUF);             \
+  if ( pyArrayGradzU != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradzU, gradzUF);             \
+  if ( pyArrayGradxV != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradxV, gradxVF);             \
+  if ( pyArrayGradyV != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradyV, gradyVF);             \
+  if ( pyArrayGradzV != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradzV, gradzVF);             \
+  if ( pyArrayGradxW != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradxW, gradxWF);             \
+  if ( pyArrayGradyW != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradyW, gradyWF);             \
+  if ( pyArrayGradzW != Py_None)                        \
+    RELEASESHAREDN(pyArrayGradzW, gradzWF);             \
+  if ( pyArrayYline != Py_None)                         \
+    RELEASESHAREDN(pyArrayYline, ylineF);               \
+  if ( pyArrayUline != Py_None)                         \
+    RELEASESHAREDN(pyArrayUline, ulineF);               \
+  if ( pyArrayNutildeline != Py_None)                   \
+    RELEASESHAREDN(pyArrayNutildeline, nutildelineF);   \
+  if ( pyArrayPsiline != Py_None)                       \
+    RELEASESHAREDN(pyArrayPsiline, psilineF);           \
+  if ( pyArrayMatmline != Py_None)                      \
+    RELEASESHAREDN(pyArrayMatmline, matmlineF);         \
+  if ( pyArrayMatline != Py_None)                       \
+    RELEASESHAREDN(pyArrayMatline, matlineF);           \
+  if ( pyArrayMatpline != Py_None)                      \
+    RELEASESHAREDN(pyArrayMatpline, matplineF);         \
+  if ( pyArrayAlphasbetaline != Py_None)                \
+    RELEASESHAREDN(pyArrayAlphasbetaline, alphasbetalineF); \
+  if ( pyArrayIndexline != Py_None)                     \
+    RELEASESHAREDN(pyArrayIndexline, indexlineF);               
 extern "C"
 {
   void spalart_1d_(E_Int& ithread, E_Float* y, E_Float* matm,E_Float* mat,E_Float* matp,E_Float* nutilde, E_Float* utble, E_Float& pdtc, E_Float& nu, E_Float& nutildeext, E_Int& jmax, E_Float& kappa);
@@ -756,6 +798,7 @@ namespace K_CONNECTOR
   /*---------------------------------------------------*/
   PyObject* getIBMPtsBasic(PyObject* self, PyObject* args);
   PyObject* getIBMPtsWithFront(PyObject* self, PyObject* args);
+  PyObject* getIBMPtsWithTwoFronts(PyObject* self, PyObject* args);
   PyObject* getIBMPtsWithoutFront(PyObject* self, PyObject* args);
   PyObject* optimizeOverlap(PyObject* self, PyObject* args);
   PyObject* maximizeBlankedCells( PyObject* self, PyObject* args );
@@ -792,9 +835,11 @@ namespace K_CONNECTOR
   PyObject* _setInterpTransfers(PyObject* self, PyObject* args);
   PyObject* __setInterpTransfers(PyObject* self, PyObject* args);
   PyObject* ___setInterpTransfers(PyObject* self, PyObject* args);
+  PyObject* ___setInterpTransfers4GradP(PyObject* self, PyObject* args);
   PyObject* setInterpTransfersD(PyObject* self, PyObject* args);// en pratique non appelee de PyTree
   PyObject* _setInterpTransfersD(PyObject* self, PyObject* args);
   PyObject* __setInterpTransfersD(PyObject* self, PyObject* args);
+  PyObject* __setInterpTransfersD4GradP(PyObject* self, PyObject* args);
   PyObject* getInterpolatedPoints(PyObject* self, PyObject* args);
   PyObject* getInterpolatedPointsZ(PyObject* self, PyObject* args);
   PyObject* changeWall(PyObject* self, PyObject* args);
@@ -814,6 +859,12 @@ namespace K_CONNECTOR
   PyObject* gatherDegenerated(PyObject* self, PyObject* args);
   PyObject* setIBCTransfers(PyObject* self, PyObject* args);
   PyObject* _setIBCTransfers(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfers4GradP(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfers4GradP2(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfers4GradP3(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfers4GradP4(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfers4FULLTBLE(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfers4FULLTBLE2(PyObject* self, PyObject* args);
   PyObject* setIBCTransfersD(PyObject* self, PyObject* args);
   PyObject* _setIBCTransfersD(PyObject* self, PyObject* args);
   PyObject* getExtrapAbsCoefs(PyObject* self, PyObject* args);

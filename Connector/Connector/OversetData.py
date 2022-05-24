@@ -26,6 +26,11 @@ TypesOfIBC["Musker"]=3
 TypesOfIBC["outpress"]=4
 TypesOfIBC["inj"]=5
 TypesOfIBC["TBLE"]=6
+TypesOfIBC["MuskerMob"]=7 #Ivan
+TypesOfIBC["Pohlhausen"]=8 #Lam fp
+TypesOfIBC["Thwaites"]=9 #Lam fp inclined
+TypesOfIBC["Mafzal"]=10 #Musker+gradP
+TypesOfIBC["TBLE_FULL"]=11 #TBLE+gradP+conv+SA
 
 # Variables IBM pour le post traitement
 __PRESSURE__= 'Pressure'
@@ -36,6 +41,11 @@ __VELOCITYX__ = 'VelocityX'
 __VELOCITYY__ = 'VelocityY'
 __VELOCITYZ__ = 'VelocityZ'
 __KCURV__ = 'KCurv' # curvature radius for IBCs
+__GRADXPRESSURE__ = 'gradxPressure'
+__GRADYPRESSURE__ = 'gradyPressure'
+__GRADZPRESSURE__ = 'gradzPressure'
+__CONV1__ = 'conv1' # convective terms for TBLE FULL
+__CONV2__ = 'conv2'
 
 # Revert dict
 IBCTypes = {}
@@ -196,7 +206,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
 
 #------------------------------------------------------------------------------
 def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
-    """Return the list of interpolation domains defined in bases for any zone in basis. 
+    """Return the list of interpolation domains defined in bases for any zone in basis.
     Usage: getCEBBIntersectingDomains(basis, bases, sameBase)"""
     try: import Generator.PyTree as G
     except: raise ImportError("getCEBBIntersectingDomains: requires Generator module.")
@@ -300,7 +310,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 
 #=============================================================================
 #=============================================================================
-# 2. CALCUL DES DONNEES D INTERPOLATIONS 
+# 2. CALCUL DES DONNEES D INTERPOLATIONS
 #=============================================================================
 #=============================================================================
 #=============================================================================
@@ -325,19 +335,21 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 #=============================================================================
 def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
-               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0):
+               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0, 
+               Reynolds=6.e6, yplus=100., Lref=1., frontType=0, tb=None):
     """Compute Immersed Boundary data."""
     aR = Internal.copyRef(tR)
     aD = Internal.copyRef(tD) 
     _setIBCData(aR, aD, order=order, penalty=penalty, nature=nature, method=method, loc=loc, storage=storage, interpDataType=interpDataType,
-                hook=hook, sameName=sameName, he=he, hi=hi, tfront=tfront, dim=dim, bcType=bcType)
+                hook=hook, sameName=sameName, he=he, hi=hi, tfront=tfront, dim=dim, bcType=bcType, Reynolds=Reynolds, yplus=yplus, tb=tb, frontType=frontType)
 
     if storage == 'direct': return aR
     else: return aD
 
 def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
-               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0):
+               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0,
+               Reynolds=6.e6, yplus=100., Lref=1., frontType=0, tb=None):
     """Compute Immersed Boundary data."""
     try: from . import ToolboxIBM as IBM
     except: raise ImportError("setIBCData: requires ToolboxIBM module.")
@@ -376,10 +388,11 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
     #-------------------------------------------
     # 1. Get the list of IBC pts
     #-------------------------------------------
-    res = IBM.getAllIBMPoints(zonesRcv, loc=locR, hi=hi, he=he, tfront=tfront)
-    #correctedPts=list(res[0].values())[0]; wallPts=list(res[1].values())[0]; interpPts=list(res[2].values())[0]
-    correctedPts=res[0][3]; wallPts=res[1][3]; interpPts=res[2][3]
-    
+    res = IBM.getAllIBMPoints(zonesRcv, loc=locR, hi=hi, he=he, tfront=tfront, Reynolds=Reynolds, yplus=yplus, Lref=Lref, frontType=frontType, tb=tb)
+    if tfront is None:
+        correctedPts=res[0][3]; wallPts=res[1][3]; interpPts=res[2][3]
+    else:
+        correctedPts=list(res[0].values())[0]; wallPts=list(res[1].values())[0]; interpPts=list(res[2].values())[0]
     #-------------------------------------------
     # 2. Interpolation of IBC interp pts
     #-------------------------------------------
@@ -400,8 +413,9 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
                 if found == 1:
                     if hook is not None: allHooks.pop(cL)
                     zonesDnr.pop(cL); nzonesDnr = nzonesDnr-1
-            _setIBCDataForZone__(z, zonesDnr, correctedPts[nozr], wallPts[nozr], interpPts[nozr], loc=locR, order=order, penalty=penalty,nature=nature,method=method,\
-                                 storage=storage,interpDataType=interpDataType,hook=hook,dim=dim, ReferenceState=ReferenceState, bcType=bcType)
+            if  correctedPts[nozr] != []:
+                _setIBCDataForZone__(z, zonesDnr, correctedPts[nozr], wallPts[nozr], interpPts[nozr], loc=locR, order=order, penalty=penalty,nature=nature,method=method,\
+                   storage=storage,interpDataType=interpDataType,hook=hook,dim=dim, ReferenceState=ReferenceState, bcType=bcType)
 
     # fin parcours des zones receveuses
     for zd in Internal.getZones(aD):
@@ -414,7 +428,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
 
     prefixIBCD ='IBCD_'
     bcName = None
-    if isinstance(bcType,int):        
+    if isinstance(bcType,int):
         if bcType != -1:
             prefixIBCD += str(bcType)+'_'
 
@@ -517,7 +531,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
         # 7. Stockage dans l'arbre
         # direct: on stocke dans aR
         # inverse: on stocke dans aD
-        #----------------------------------   
+        #----------------------------------
         PL = numpy.array([],numpy.int32)
         PLD = numpy.array([],numpy.int32)
         EXTRAP = numpy.array([],numpy.int32)
@@ -545,7 +559,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
-                    
+
             elif nborphan==nbinterpolated0: # Only orphan pts: orphan pt list is stored in any candidate donor zone
                 if storage == 'direct':
                     _createInterpRegion__(z, zonesDnr[noz][0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
@@ -558,8 +572,295 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                                          tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], correctedPts, wallPts, interpPts, bcType, \
-                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)    
-      
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
+
+    return None
+
+# 2nd PI
+def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpPts2=None, loc='nodes', \
+                         order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                         interpDataType=1,hook=None, dim=3, bcType=-1, ReferenceState=None):
+
+    prefixIBCD ='IBCD_'
+    prefixIBC2D ='2_IBCD_'
+    bcName = None
+    if isinstance(bcType,int):
+        if bcType != -1:
+            prefixIBCD += str(bcType)+'_'
+            prefixIBC2D += str(bcType)+'_'
+
+    else:
+        bcType0 = bcType
+        ibcType = bcType.split("#")
+        bcType = int(ibcType[0])
+        prefixIBCD += ibcType[0]+'_'
+        prefixIBC2D += ibcType[0]+'_'
+
+        if len(ibcType)>1:
+            bcName=ibcType[1]
+            prefixIBCD += bcName+'_'
+            prefixIBC2D += bcName+'_'
+
+    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
+    cellND  = C.getField('cellN', zonesDnr); arraysD = Converter.addVars([arraysD,cellND])
+    model = "Euler"
+    a = Internal.getNodeFromName2(zonesDnr[0], 'model')
+    if a is not None: model = Internal.getValue(a)
+    if model != "Euler" and bcType == -1: bcType = 3
+
+    nzonesDnr = len(arraysD)
+    #-------------------------------------------
+    # 3. Interpolation of IBC interp pts
+    #-------------------------------------------
+    # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
+    if interpPts is not None:
+        resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, \
+                                              nature=nature, method=method, interpDataType=interpDataType,\
+                                              hook=hook, dim=dim)
+    else:
+        resInterp = None
+
+    if interpPts2 is not None:
+        resInterp2 = Connector.setInterpData__(interpPts2, arraysD, order=order, penalty=penalty, \
+                                          nature=nature, method=method, interpDataType=interpDataType,\
+                                          hook=hook, dim=dim)
+    else:
+        resInterp2 = None
+
+    if resInterp is not None:
+        # Bilan
+        nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
+        nbinterpolated0 = interpPts[1].shape[1]
+        if len(resInterp[4]) > 0:
+            for r in resInterp[4]: nbextrapolated += r.shape[0]
+        nborphan = resInterp[5].size
+        nbinterpolated = nbinterpolated0-nbextrapolated-nborphan
+
+        if bcType != -1:
+            print('IBC zone %s: interpolated=%d; extrapolated=%d; orphan=%d for IBC type: %s'%(z[0],nbinterpolated,nbextrapolated,nborphan, IBCTypes[bcType]))
+        else:
+            print('IBC zone %s: interpolated=%d; extrapolated=%d; orphan=%d '%(z[0],nbinterpolated,nbextrapolated,nborphan))
+
+        if  nborphan>0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
+
+        #-------------------------------------------------------------------------
+        # 4. Update the indices of interpolated pts -> indices of corrected points
+        #-------------------------------------------------------------------------
+        posindcell = KCore.isNamePresent(interpPts, 'indcell')
+        indcells = interpPts[1][posindcell,:]
+        #-------------------------------------------------------------------------
+        # 5. Sort IBC coordinates wrt donor zones
+        #-------------------------------------------------------------------------
+        allCorrectedPts=[[]]*nzonesDnr; allWallPts=[[]]*nzonesDnr; allMirrorPts=[[]]*nzonesDnr
+        xPC0 = correctedPts[1][0,:]; yPC0 = correctedPts[1][1,:]; zPC0 = correctedPts[1][2,:]
+        xPW0 = wallPts[1][0,:]; yPW0 = wallPts[1][1,:]; zPW0 = wallPts[1][2,:]
+        xPI0 = interpPts[1][0,:]; yPI0 = interpPts[1][1,:]; zPI0 = interpPts[1][2,:]
+
+        #-------------------------------------------------------------------------
+        # 6. Set the original indices of corrected pts in receptor zones
+        #-------------------------------------------------------------------------
+        # Orphan
+        if nborphan>0:
+            for noi in range(nborphan):
+                noind = resInterp[5][noi]
+                resInterp[5][noi] = indcells[noind]
+
+        # Interpolated/Extrapolated
+        for noz in range(nzonesDnr):
+            ninterploc = resInterp[0][noz].size
+            if ninterploc>0: # domaine d'interpolation
+                correctedPtsL = Converter.array("CoordinateX,CoordinateY,CoordinateZ",ninterploc,1,1)
+                xPC = correctedPtsL[1][0,:]; yPC = correctedPtsL[1][1,:]; zPC = correctedPtsL[1][2,:]
+                wallPtsL = Converter.array("CoordinateX,CoordinateY,CoordinateZ",ninterploc,1,1)
+                xPW = wallPtsL[1][0,:]; yPW = wallPtsL[1][1,:]; zPW = wallPtsL[1][2,:]
+                mirrorPtsL = Converter.array("CoordinateX,CoordinateY,CoordinateZ",ninterploc,1,1)
+                xPI = mirrorPtsL[1][0,:]; yPI = mirrorPtsL[1][1,:]; zPI = mirrorPtsL[1][2,:]
+
+                for noi in range(ninterploc):
+                    index = resInterp[0][noz][noi]
+                    # Indices of receptor pts
+                    resInterp[0][noz][noi] = indcells[index]
+                    # coordinates of receptor/wall/mirror pts
+                    xPC[noi] = xPC0[index]; yPC[noi] = yPC0[index]; zPC[noi] = zPC0[index]
+                    xPW[noi] = xPW0[index]; yPW[noi] = yPW0[index]; zPW[noi] = zPW0[index]
+                    xPI[noi] = xPI0[index]; yPI[noi] = yPI0[index]; zPI[noi] = zPI0[index]
+
+                allCorrectedPts[noz] = correctedPtsL
+                allWallPts[noz] = wallPtsL
+                allMirrorPts[noz] = mirrorPtsL
+
+        if len(resInterp[4]) > 0: # Sort extrapolated points wrt donor zones
+            for noz in range(nzonesDnr):
+                nextraploc = resInterp[4][noz].size
+                if nextraploc > 0: # Extrapoles
+                    for noi in range(nextraploc):
+                        index = resInterp[4][noz][noi]
+                        resInterp[4][noz][noi] = indcells[index]
+
+        #----------------------------------
+        # 7. Stockage dans l'arbre
+        # direct: on stocke dans aR
+        # inverse: on stocke dans aD
+        #----------------------------------
+        PL = numpy.array([],numpy.int32)
+        PLD = numpy.array([],numpy.int32)
+        EXTRAP = numpy.array([],numpy.int32)
+        INTERPTYPE = numpy.array([],numpy.int32)
+        CFS = numpy.array([],numpy.float64)
+        VOL = numpy.array([],numpy.float64)
+        ORPHAN = resInterp[5]
+        for noz in range(nzonesDnr):
+            # ajout des donnees d'interpolation
+            ninterploc = resInterp[0][noz].size
+            if ninterploc>0:# est un domaine donneur
+                if resInterp[4][noz].size > 0:  EXTRAP = resInterp[4][noz]
+
+                if storage == 'direct':
+                    _createInterpRegion__(z, zonesDnr[noz][0],resInterp[0][noz],resInterp[1][noz],resInterp[3][noz],\
+                                             resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
+                                             tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
+                    # add coordinates of corrected point, wall point, interpolated point
+                    _addIBCCoords__(z, zonesDnr[noz][0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
+                else: # inverse
+                    _createInterpRegion__(zonesDnr[noz],z[0],resInterp[1][noz],resInterp[0][noz],resInterp[3][noz],\
+                                         resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
+                                         tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
+                    # add coordinates of corrected point, wall point, interpolated point
+                    _addIBCCoords__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
+
+            elif nborphan==nbinterpolated0: # Only orphan pts: orphan pt list is stored in any candidate donor zone
+                if storage == 'direct':
+                    _createInterpRegion__(z, zonesDnr[noz][0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
+                                         tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
+                    # add coordinates of corrected point, wall point, interpolated point
+                    _addIBCCoords__(z, zonesDnr[noz][0], correctedPts, wallPts, interpPts, bcType, \
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
+                else: # inverse
+                    _createInterpRegion__(zonesDnr[noz],z[0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
+                                         tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
+                    # add coordinates of corrected point, wall point, interpolated point
+                    _addIBCCoords__(zonesDnr[noz], z[0], correctedPts, wallPts, interpPts, bcType, \
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
+
+    if resInterp2 is not None:
+        # Bilan
+        nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
+        nbinterpolated0 = interpPts2[1].shape[1]
+        if len(resInterp2[4]) > 0:
+            for r in resInterp2[4]: nbextrapolated += r.shape[0]
+        nborphan = resInterp2[5].size
+        nbinterpolated = nbinterpolated0-nbextrapolated-nborphan
+
+        if bcType != -1:
+            print('2nd Front : IBC zone %s: interpolated=%d; extrapolated=%d; orphan=%d for IBC type: %s'%(z[0],nbinterpolated,nbextrapolated,nborphan, IBCTypes[bcType]))
+        else:
+            print('2nd Front : IBC zone %s: interpolated=%d; extrapolated=%d; orphan=%d '%(z[0],nbinterpolated,nbextrapolated,nborphan))
+
+        if  nborphan>0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
+
+        #-------------------------------------------------------------------------
+        # 4. Update the indices of interpolated pts -> indices of corrected points
+        #-------------------------------------------------------------------------
+        posindcell = KCore.isNamePresent(interpPts2, 'indcell')
+        indcells = interpPts2[1][posindcell,:]
+        #-------------------------------------------------------------------------
+        # 5. Sort IBC coordinates wrt donor zones
+        #-------------------------------------------------------------------------
+        allCorrectedPts=[[]]*nzonesDnr; allWallPts=[[]]*nzonesDnr; allMirrorPts=[[]]*nzonesDnr
+        xPC0 = correctedPts[1][0,:]; yPC0 = correctedPts[1][1,:]; zPC0 = correctedPts[1][2,:]
+        xPW0 = wallPts[1][0,:]; yPW0 = wallPts[1][1,:]; zPW0 = wallPts[1][2,:]
+        xPI0 = interpPts2[1][0,:]; yPI0 = interpPts2[1][1,:]; zPI0 = interpPts2[1][2,:]
+
+        #-------------------------------------------------------------------------
+        # 6. Set the original indices of corrected pts in receptor zones
+        #-------------------------------------------------------------------------
+        # Orphan
+        if nborphan>0:
+            for noi in range(nborphan):
+                noind = resInterp2[5][noi]
+                resInterp2[5][noi] = indcells[noind]
+
+        # Interpolated/Extrapolated
+        for noz in range(nzonesDnr):
+            ninterploc = resInterp2[0][noz].size
+            if ninterploc>0: # domaine d'interpolation
+                correctedPtsL = Converter.array("CoordinateX,CoordinateY,CoordinateZ",ninterploc,1,1)
+                xPC = correctedPtsL[1][0,:]; yPC = correctedPtsL[1][1,:]; zPC = correctedPtsL[1][2,:]
+                wallPtsL = Converter.array("CoordinateX,CoordinateY,CoordinateZ",ninterploc,1,1)
+                xPW = wallPtsL[1][0,:]; yPW = wallPtsL[1][1,:]; zPW = wallPtsL[1][2,:]
+                mirrorPtsL = Converter.array("CoordinateX,CoordinateY,CoordinateZ",ninterploc,1,1)
+                xPI = mirrorPtsL[1][0,:]; yPI = mirrorPtsL[1][1,:]; zPI = mirrorPtsL[1][2,:]
+
+                for noi in range(ninterploc):
+                    index = resInterp2[0][noz][noi]
+                    # Indices of receptor pts
+                    resInterp2[0][noz][noi] = indcells[index]
+                    # coordinates of receptor/wall/mirror pts
+                    xPC[noi] = xPC0[index]; yPC[noi] = yPC0[index]; zPC[noi] = zPC0[index]
+                    xPW[noi] = xPW0[index]; yPW[noi] = yPW0[index]; zPW[noi] = zPW0[index]
+                    xPI[noi] = xPI0[index]; yPI[noi] = yPI0[index]; zPI[noi] = zPI0[index]
+
+                allCorrectedPts[noz] = correctedPtsL
+                allWallPts[noz] = wallPtsL
+                allMirrorPts[noz] = mirrorPtsL
+
+        if len(resInterp2[4]) > 0: # Sort extrapolated points wrt donor zones
+            for noz in range(nzonesDnr):
+                nextraploc = resInterp2[4][noz].size
+                if nextraploc > 0: # Extrapoles
+                    for noi in range(nextraploc):
+                        index = resInterp2[4][noz][noi]
+                        resInterp2[4][noz][noi] = indcells[index]
+
+        #----------------------------------
+        # 7. Stockage dans l'arbre
+        # direct: on stocke dans aR
+        # inverse: on stocke dans aD
+        #----------------------------------
+        PL = numpy.array([],numpy.int32)
+        PLD = numpy.array([],numpy.int32)
+        EXTRAP = numpy.array([],numpy.int32)
+        INTERPTYPE = numpy.array([],numpy.int32)
+        CFS = numpy.array([],numpy.float64)
+        VOL = numpy.array([],numpy.float64)
+        ORPHAN = resInterp2[5]
+        for noz in range(nzonesDnr):
+            # ajout des donnees d'interpolation
+            ninterploc = resInterp2[0][noz].size
+            if ninterploc>0:# est un domaine donneur
+                if resInterp2[4][noz].size > 0:  EXTRAP = resInterp2[4][noz]
+
+                if storage == 'direct':
+                    _createInterpRegion__(z, zonesDnr[noz][0],resInterp2[0][noz],resInterp2[1][noz],resInterp2[3][noz],\
+                                             resInterp2[2][noz], VOL, EXTRAP, ORPHAN, \
+                                             tag='Receiver', loc=loc,itype='ibc2', prefix=prefixIBC2D)
+                    # add coordinates of corrected point, wall point, interpolated point
+                    _addIBCCoords2__(z, zonesDnr[noz][0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
+                else: # inverse
+                    _createInterpRegion__(zonesDnr[noz],z[0],resInterp2[1][noz],resInterp2[0][noz],resInterp2[3][noz],\
+                                         resInterp2[2][noz], VOL, EXTRAP, ORPHAN, \
+                                         tag='Donor', loc=loc,itype='ibc2', prefix=prefixIBC2D)
+                    # add coordinates of corrected point, wall point, interpolated point
+                    _addIBCCoords2__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
+
+            elif nborphan==nbinterpolated0: # Only orphan pts: orphan pt list is stored in any candidate donor zone
+                if storage == 'direct':
+                    _createInterpRegion__(z, zonesDnr[noz][0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
+                                         tag='Receiver', loc=loc,itype='ibc2', prefix=prefixIBC2D)
+                    # add coordinates of corrected point, wall point, interpolated point
+                    _addIBCCoords2__(z, zonesDnr[noz][0], correctedPts, wallPts, interpPts2, bcType, \
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
+                else: # inverse
+                    _createInterpRegion__(zonesDnr[noz],z[0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
+                                         tag='Donor', loc=loc,itype='ibc2', prefix=prefixIBC2D)
+                    # add coordinates of corrected point, wall point, interpolated point
+                    _addIBCCoords2__(zonesDnr[noz], z[0], correctedPts, wallPts, interpPts2, bcType, \
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
+
     return None
 
 def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bcName=None, ReferenceState=None, prefix='IBCD_'):
@@ -584,15 +885,15 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
         densNP = numpy.zeros((nIBC),numpy.float64)
         pressNP = numpy.zeros((nIBC),numpy.float64)
     else:
-        Pinf = Internal.getNodeFromName1(ReferenceState,'Pressure')        
-        if Pinf is not None: 
+        Pinf = Internal.getNodeFromName1(ReferenceState,'Pressure')
+        if Pinf is not None:
             Pinf = Internal.getValue(Pinf)
             pressNP = Pinf*numpy.ones((nIBC),numpy.float64)
-        else: 
+        else:
             pressNP = numpy.zeros((nIBC),numpy.float64)
 
         roinf = Internal.getNodeFromName1(ReferenceState,'Density')
-        if roinf is not None: 
+        if roinf is not None:
             roinf = Internal.getValue(roinf)
             densNP = roinf*numpy.ones((nIBC),numpy.float64)
         else:
@@ -607,14 +908,14 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
     zsr[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
     zsr[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
     zsr[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
-    
-    if bcType == 2 or bcType ==3 or bcType == 6:
+
+    if bcType in [2, 3, 6, 7, 8, 9, 10, 11]:
         utauNP  = numpy.zeros((nIBC),numpy.float64)
         yplusNP = numpy.zeros((nIBC),numpy.float64)
         zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
         zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
 
-    elif bcType == 5:
+    if bcType == 5:
       stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
       Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
       stagnationPressure = numpy.zeros((nIBC),numpy.float64)
@@ -626,12 +927,92 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
       dirz = numpy.zeros((nIBC),numpy.float64)
       Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
 
-    elif bcType == 100:
+    if bcType == 100:
         KCurvNP = numpy.zeros((nIBC),numpy.float64)
         zsr[2].append([__KCURV__ , KCurvNP , [], 'DataArray_t'])
 
+    if bcType == 10 or bcType == 11:
+        gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+        gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+        gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+
+    if bcType == 11:
+        gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
+        gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
+        gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
+
+        gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
+        gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
+        gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
+
+        gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
+        gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
+        gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+        zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
+       
     if bcName is not None:
         Internal._createUniqueChild(zsr, 'FamilyName', 'FamilyName_t', value=bcName)
+    return None
+
+# 2nd PI
+def _addIBCCoords2__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bcName=None, ReferenceState=None, prefix='2_IBCD_'):
+    nameSubRegion = prefix+zname
+    zsr = Internal.getNodeFromName1(z, nameSubRegion)
+    coordsPC = Converter.extractVars(correctedPts,['CoordinateX','CoordinateY','CoordinateZ'])
+    coordsPW = Converter.extractVars(wallPts, ['CoordinateX','CoordinateY','CoordinateZ'])
+    coordsPI = Converter.extractVars(interpolatedPts, ['CoordinateX','CoordinateY','CoordinateZ'])
+    zsr[2].append(['CoordinateX_PC',coordsPC[1][0,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateY_PC',coordsPC[1][1,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateZ_PC',coordsPC[1][2,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateX_PI',coordsPI[1][0,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateY_PI',coordsPI[1][1,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateZ_PI',coordsPI[1][2,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateX_PW',coordsPW[1][0,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateY_PW',coordsPW[1][1,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateZ_PW',coordsPW[1][2,:], [], 'DataArray_t'])
+
+    # Creation des numpy d'extraction
+    nIBC = coordsPC[1].shape[1]
+    if ReferenceState is None:
+        pressNP = numpy.zeros((nIBC),numpy.float64)
+        densNP  = numpy.zeros((nIBC),numpy.float64)
+    else:
+        Pinf = Internal.getNodeFromName1(ReferenceState,'Pressure')
+        if Pinf is not None:
+            Pinf = Internal.getValue(Pinf)
+            pressNP = Pinf*numpy.ones((nIBC),numpy.float64)
+        else:
+            pressNP = numpy.zeros((nIBC),numpy.float64)
+        roinf = Internal.getNodeFromName1(ReferenceState,'Density')
+        if roinf is not None:
+            roinf = Internal.getValue(roinf)
+            densNP = roinf*numpy.ones((nIBC),numpy.float64)
+        else:
+            densNP = numpy.zeros((nIBC),numpy.float64)
+
+    zsr[2].append(['Pressure', pressNP, [], 'DataArray_t'])
+
+    gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+    zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+    gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+    zsr[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+    gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+    zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+
+    if bcName is not None:
+        Internal._createUniqueChild(zsr, 'FamilyName', 'FamilyName_t', value=bcName)
+
     return None
 
 #==============================================================================
@@ -679,12 +1060,12 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
-    
+
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
     if itype != 'chimera':
-        if storage == 'direct': 
+        if storage == 'direct':
             _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
-        else: 
+        else:
             _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
             _setInterpDataForGhostCellsNGon__(aR,aD,storage,loc)
 
@@ -718,12 +1099,12 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
     # pour l'enlever ensuite si addCellN le cree
     dictIsCellNPresent={}
-    for zd in Internal.getZones(aD):        
+    for zd in Internal.getZones(aD):
         dictIsCellNPresent[zd[0]]=C.isNamePresent(zd, 'cellN')
 
     _addCellN__(aD, loc=locCellND)
 
-    if method == 'conservative' and itype != 'abutting':  
+    if method == 'conservative' and itype != 'abutting':
         if loc != 'centers':
             raise ValueError("setInterpData: conservative type is available only for loc='centers'.")
         else: return _setInterpDataConservative__(aR, aD, storage=storage)
@@ -786,7 +1167,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         #         else: interpWallPts.append(DoubleWall.getFirstPointsInfo__(zr, wallRanges,loc='centers'))
         #     else: interpWallPts.append([])
 
-    if noWallsInDnr == 1 or noWallsInRcv == 1: double_wall = 0 # on desactive le double wall    
+    if noWallsInDnr == 1 or noWallsInRcv == 1: double_wall = 0 # on desactive le double wall
     arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
     cellND = C.getField('cellN', zonesDnr)
     arraysD = Converter.addVars([arraysD,cellND])
@@ -975,7 +1356,7 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
 
         allDnrCells[zd[0]]=zdnr; allDnrZones[zd[0]]=zd
         indicesDnrOrig = C.identifyElements(hookD,zdnr)
-        allIndicesDnrOrig[zd[0]]=indicesDnrOrig 
+        allIndicesDnrOrig[zd[0]]=indicesDnrOrig
         C.freeHook(hookD)
 
     for zr in Internal.getZones(aR):
@@ -988,7 +1369,7 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
             hookR = C.createHook(zr,'elementCenters')
             indicesRcvOrig = C.identifyElements(hookR,interpPts)
             C.freeHook(hookR)
-        
+
             #2. calcul des donnees d interpolation
             # SP : pour optimiser on pourra prendre le dictionnaire d intersection des pts interpoles uniquement
             arraysD=[];  donorZoneNames=[]; listOfIndicesDnrOrig=[]
@@ -1020,9 +1401,9 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
                 else: orphanPts = numpy.array([],numpy.int32)
 
                 extrapPts = numpy.array([],numpy.int32)
-                EXdir = numpy.array([],numpy.int32)                   
+                EXdir = numpy.array([],numpy.int32)
 
-                # 3. stockage dans l'arbre                            
+                # 3. stockage dans l'arbre
                 # on recupere les bons indices de pts interpoles (indcell ds interpPts)
                 for noz in range(nzonesDnr):
                     dnrname=donorZoneNames[noz]
@@ -1072,13 +1453,13 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
     for zp in Internal.getZones(aR):
         zname = zp[0]
         zoneDimR = Internal.getZoneDim(zp)
-        if zoneDimR[0] == 'Structured': 
+        if zoneDimR[0] == 'Structured':
             continue
-        
+
         rind = -1
         nodes = Internal.getNodesFromType1(zp, 'Elements_t')
         for n in nodes:
-            if n[1][0] == 23: 
+            if n[1][0] == 23:
                 p = Internal.getNodeFromName1(n, 'IntExt')[1]
                 rind = p[0]
                 break
@@ -1126,11 +1507,11 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
                             pd = Internal.getNodeFromName1(n, 'IntExt')[1]
                             rindd = pd[0]
                             break
-                            
+
                     ret = connector.setInterpDataForGCNGon(FL, FLd, p, pd, a1, a2, PE, PEd )
-                    # Stockage    
+                    # Stockage
                     _createInterpRegion__(zdonorp, zp[0], ret[1], ret[0], ret[3], ret[2], vols, indicesExtrap,\
-                                          indicesOrphan, tag = 'Donor',loc='centers', EXDir=EXdir, 
+                                          indicesOrphan, tag = 'Donor',loc='centers', EXDir=EXdir,
                                           itype='abutting', prefix=prefix,\
                                           RotationAngle=RotationAngle, RotationCenter=RotationCenter)
 
@@ -1282,7 +1663,7 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
                     if RotationAngle is not None:
                         val = Internal.getValue(RotationAngle)
                         if val[0]>0. or val[1]>0. or val[2]>0.: prefix='IDPERP'
-                        else: prefix = 'IDPERM' 
+                        else: prefix = 'IDPERM'
                     if storage == 'direct':
                         _createInterpRegion__(zp, zdonorname,res[0],res[1],res[3],res[2],vols,indicesExtrap,\
                                               indicesOrphan,tag = 'Receiver',loc=loc,EXDir=EXdir,itype='abutting',\
@@ -1293,7 +1674,7 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
                                               indicesOrphan, tag = 'Donor',loc=loc,EXDir=EXdir,itype='abutting',\
                                               prefix=prefix,RotationAngle=RotationAngle, RotationCenter=RotationCenter)
     return None
-    
+
 # Adapt aD pour RANS/LES
 def _adaptForRANSLES__(tR, tD):
     zrdict = {}
@@ -1313,7 +1694,7 @@ def _adaptForRANSLES__(tR, tD):
                 a = Internal.getNodeFromName2(zd, 'GoverningEquations')
                 if a is not None: model_z2 = Internal.getValue(a)
 
-                if (model_z2=='NSTurbulent' or model_z1=='NSTurbulent') and  model_z1 != model_z2:
+                if (model_z2=='NSturbulent' or model_z1=='NSturbulent') and  model_z1 != model_z2:
                    datap = numpy.ones(1, numpy.int32)
                    Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
             except: pass
@@ -1327,6 +1708,7 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
         if itype == 'chimera': nameSubRegion = 'ID_'+zname
         elif itype == 'abutting': nameSubRegion = 'ID_'+zname
         elif itype == 'ibc': nameSubRegion='IBCD_'+zname
+        elif itype == 'ibc2': nameSubRegion='2_IBCD_'+zname
     else: nameSubRegion=prefix+zname
 
     if RotationAngle is not None: RotationAngle[2]=[] # remove DimensionalUnits child node
@@ -1466,12 +1848,12 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
 def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0,
                    constraint=30., hook=None, variables=[], interpDataType=1):
     """Transfer given fields once interpolation data has been computed."""
-    return connector.transferFields(z, interpXN, interpYN, interpZN, 
+    return connector.transferFields(z, interpXN, interpYN, interpZN,
                                     order, nature, penalty, constraint,
                                     hook, variables, interpDataType,
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
-                                    Internal.__FlowSolutionCenters__)                                      
+                                    Internal.__FlowSolutionCenters__)
 
 #===============================================================================
 # General transfers: Match + Chimera + IBC
@@ -1672,14 +2054,14 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
 
 #===============================================================================
 # General transfers: Chimera + IBC - inplace version optimiser par arbre tc compacte par zone donneuse
-# Interpolation is applied to aR 
-# Beware: variables must be defined in topTreeD at nodes in order to be 
-# consistent with the computation of connectivity by setInterpData and 
-# setIBCData 
+# Interpolation is applied to aR
+# Beware: variables must be defined in topTreeD at nodes in order to be
+# consistent with the computation of connectivity by setInterpData and
+# setIBCData
 # loc='nodes','centers' defines the location in aR of transferred values
 # IN: variablesI =['var1','var2',...]: variables to be used in Chimera transfers
-#                = None: the whole FlowSolutionNodes variables in topTreeD are transferred 
-# IN: variablesIBC=['var1','var2',...,'var5']: variables used in IBC transfers 
+#                = None: the whole FlowSolutionNodes variables in topTreeD are transferred
+# IN: variablesIBC=['var1','var2',...,'var5']: variables used in IBC transfers
 # IN: bcType (IBC only) 0: glissement
 #                       1: adherence
 #                       2: loi de paroi log
@@ -1694,14 +2076,14 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
 # IN: storage=-1/0/1: unknown/direct/inverse
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
 #===============================================================================
-def __setInterpTransfers(aR, topTreeD, 
-                         variables=[], 
-                         variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
+def __setInterpTransfers(aR, topTreeD,
+                         variables=[],
+                         variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
                          bcType=0, varType=1, storage=-1, compact=0,
-                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, 
+                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                          Cs=0.3831337844872463, Ts=1.0):
 
-    # Recup des donnees a partir des zones receveuses    
+    # Recup des donnees a partir des zones receveuses
     if storage != 1 or compact == 0:
         raise ValueError("__setInterpTransfers: stockage chez le receveur non code. Mode compact obligatoire: compact=1 a imposer dans Fast.warmup.")
 
@@ -1779,11 +2161,11 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                     ListRcv   = Internal.getNodeFromName1(s,'PointListDonor')[1]
                     if sname == 'ID':
                         # print 'transfert ID: zd ', zd[0]
-                        arrayT = connector._setInterpTransfersD(zd, variables, ListDonor, DonorType, Coefs, varType, compact,                                                                
+                        arrayT = connector._setInterpTransfersD(zd, variables, ListDonor, DonorType, Coefs, varType, compact,
                                                                 cellNVariable,
                                                                 Internal.__GridCoordinates__, 
                                                                 Internal.__FlowSolutionNodes__, 
-                                                                Internal.__FlowSolutionCenters__)    
+                                                                Internal.__FlowSolutionCenters__)
                         infos.append([dname,arrayT,ListRcv,loc])
 
                     elif sname == 'IB' and compactD:
@@ -1827,7 +2209,7 @@ def getUnsteadyConnectInfos(t):
       subRegions  =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
       for s in subRegions:
          #tri des pas de temps instationnaire
-         if '#' in s[0]: 
+         if '#' in s[0]:
             numero_iter = int( s[0].split('#')[1].split('_')[0] )
             if numero_iter < numero_min : numero_min = numero_iter
             if numero_iter > numero_max : numero_max = numero_iter
@@ -1900,12 +2282,12 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
         subRegions = []
         for s in subRegions2:
             sname = s[0][0:2]
-            if sname == 'ID': 
+            if sname == 'ID':
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
         subRegions2 = []
-        for s in subRegions:                
+        for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
             if zoneRole == 'Receiver': # direct storage ok
@@ -1913,9 +2295,9 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
                 if location != []: location = Internal.getValue(location[0])
                 locr = 'nodes'
                 if location == 'CellCenter': locr = 'centers'
-                
+
                 if nature == 'interpolated':
-                    ListRcv = Internal.getNodesFromName1(s, 'PointList')[0][1]                
+                    ListRcv = Internal.getNodesFromName1(s, 'PointList')[0][1]
                     if ListRcv.size > 0:
                         field = Converter.array('interpolated', ListRcv.size,1,1)
                         field = Converter.initVars(field,'interpolated',1.)
@@ -1926,18 +2308,18 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
                     if ListExtrap != []:
                         ListRcv = Internal.getNodesFromName1(s, 'PointList')[0][1]
                         ListExtrap = ListExtrap[0][1]
-                        DonorTypes = Internal.getNodesFromName1(s,'InterpolantsType')[0][1] 
+                        DonorTypes = Internal.getNodesFromName1(s,'InterpolantsType')[0][1]
                         Coefs = Internal.getNodesFromName1(s,'InterpolantsDonor')[0][1]
                         # Somme des |coefs| : necessite ListRcv, ListExtrap, Coefs, DonorType
                         field = connector.getExtrapAbsCoefs(ListRcv, ListExtrap, DonorTypes, Coefs)
-                        zr = C.setPartialFields(zr, [field], [ListExtrap], loc=locr)       
+                        zr = C.setPartialFields(zr, [field], [ListExtrap], loc=locr)
                 elif nature == 'orphan':
                     orphans = Internal.getNodesFromName(zr, 'OrphanPointList')
                     if orphans != []:
                         ListOrphan = orphans[0][1]
                         field = Converter.array('orphan', ListOrphan.size,1,1)
                         field = Converter.initVars(field, 'orphan', 1.)
-                        zr = C.setPartialFields(zr, [field], [ListOrphan],loc=locr)          
+                        zr = C.setPartialFields(zr, [field], [ListOrphan],loc=locr)
 
     # 2nd pass: storage in donor zones
     zones = Internal.getZones(topTreeD)
@@ -1946,12 +2328,12 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
         subRegions = []
         for s in subRegions2:
             sname = s[0][0:2]
-            if sname == 'ID': 
+            if sname == 'ID':
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
         subRegions2 = []
-        for s in subRegions:                
+        for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
             if zoneRole == 'Donor': # inverse storage ok
@@ -1963,31 +2345,31 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
                 zrcvname = Internal.getValue(s)
                 zreceivers = Internal.getNodesFromName2(tR,zrcvname)
                 zr = Internal.getNodesFromType1(zreceivers,'Zone_t')
-                if zr != []: 
-                    zr = zr[0]                    
+                if zr != []:
+                    zr = zr[0]
                     if nature == 'interpolated':
                         ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
                         if ListRcv.size > 0:
                             field = Converter.array('interpolated',ListRcv.size,1,1)
                             field = Converter.initVars(field,'interpolated',1.)
-                            zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)                        
+                            zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)
                     elif nature == 'extrapolated':
                         ListExtrap = Internal.getNodesFromName1(s,'ExtrapPointList')
                         if ListExtrap != []:
                             ListExtrap = ListExtrap[0][1]
-                            DonorTypes = Internal.getNodesFromName1(s,'InterpolantsType')[0][1] 
+                            DonorTypes = Internal.getNodesFromName1(s,'InterpolantsType')[0][1]
                             Coefs = Internal.getNodesFromName1(s,'InterpolantsDonor')[0][1]
                             ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
                             # Somme des |coefs| : necessite ListRcv, ListExtrap, Coefs, DonorType
                             field = connector.getExtrapAbsCoefs(ListRcv, ListExtrap, DonorTypes, Coefs)
-                            zr = C.setPartialFields(zr, [field], [ListExtrap],loc=locr)       
+                            zr = C.setPartialFields(zr, [field], [ListExtrap],loc=locr)
                     elif nature == 'orphan':
                         orphans = Internal.getNodesFromName(zd, 'OrphanPointList')
                         if orphans != []:
                             ListOrphan = orphans[0][1]
                             field = Converter.array('orphan',ListOrphan.size,1,1)
                             field = Converter.initVars(field,'orphan',1.)
-                            zr = C.setPartialFields(zr, [field], [ListOrphan], loc=locr)           
+                            zr = C.setPartialFields(zr, [field], [ListOrphan], loc=locr)
     return tR
 
 #===============================================================================
@@ -1999,14 +2381,14 @@ def oversetCellRatio__(aR, topTreeD):
     except: raise ImportError("oversetInfo: requires Generator module.")
 
     tR = Internal.copyRef(aR)
-    G._getVolumeMap(tR)    
+    G._getVolumeMap(tR)
     tR = C.center2Node(tR,'centers:vol')
 
     tD = Internal.copyRef(topTreeD)
-    G._getVolumeMap(tD)    
+    G._getVolumeMap(tD)
     tD = C.center2Node(tD,'centers:vol')
     C._rmVars(tD,['centers:vol'])
-    
+
     # First pass : direct storage
     zones = Internal.getZones(tR)
     for zr in zones:
@@ -2014,7 +2396,7 @@ def oversetCellRatio__(aR, topTreeD):
         subRegions = []
         for s in subRegions2:
             sname = s[0][0:2]
-            if sname=='ID': 
+            if sname=='ID':
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
@@ -2022,26 +2404,26 @@ def oversetCellRatio__(aR, topTreeD):
         # parentr,dr = Internal.getParentOfNode(tR,zr)
         volNR = C.getField('vol',zr)[0][1]
         volCR = C.getField('centers:vol',zr)[0][1]
-        for s in subRegions:                
+        for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
-            if zoneRole == 'Receiver': # direct storage ok      
+            if zoneRole == 'Receiver': # direct storage ok
                 # interpolated node or cell ?
                 location = Internal.getNodesFromName1(s, 'GridLocation')
                 if location != []: location = Internal.getValue(location[0])
                 locr = 'nodes'; volRcv = []
                 if location == 'CellCenter': locr = 'centers'; volRcv = volCR
                 else: volRcv = volNR
-                ListRcv = Internal.getNodesFromName1(s,'PointList')[0][1]       
+                ListRcv = Internal.getNodesFromName1(s,'PointList')[0][1]
                 # donor zone
                 zdnrname = Internal.getValue(s)
                 zdonors = Internal.getNodesFromName2(tD,zdnrname)
                 zd = Internal.getNodesFromType1(zdonors,'Zone_t')
                 if zd == []: raise ValueError("oversetInfo: donor zone %s not found."%zdnrname)
-                else: zd = zd[0]                
+                else: zd = zd[0]
                 volDnr = C.getField('vol',zd)[0][1]
                 ListDnr = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
-  
+
                 nindI = ListDnr.size
                 if nindI > 0:
                     field = Converter.array('cellRatio',nindI,1,1)
@@ -2052,20 +2434,20 @@ def oversetCellRatio__(aR, topTreeD):
                         field[1][0,noind] = cr
                     zr = C.setPartialFields(zr, [field], [ListRcv], loc=locr)
 
-    # 2nd pass : inverse storage 
+    # 2nd pass : inverse storage
     zones = Internal.getZones(tD)
     for zd in zones:
         subRegions2 = Internal.getNodesFromType1(zd,'ZoneSubRegion_t')
         subRegions = []
         for s in subRegions2:
             sname = s[0][0:2]
-            if sname=='ID': 
+            if sname=='ID':
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
         subRegions2 = []
         volDnr = C.getField('vol',zd)[0][1]
-        for s in subRegions:                
+        for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
             if zoneRole == 'Donor': # inverse storage ok
@@ -2073,15 +2455,15 @@ def oversetCellRatio__(aR, topTreeD):
                 zreceivers = Internal.getNodesFromName2(tR,zrcvname)
                 zr = Internal.getNodesFromType1(zreceivers,'Zone_t')
                 if zr != []:
-                    zr = zr[0]                   
-                    # parentr,dr = Internal.getParentOfNode(tR,zr) 
+                    zr = zr[0]
+                    # parentr,dr = Internal.getParentOfNode(tR,zr)
                     # interpolated node or cell ?
                     location = Internal.getNodesFromName1(s, 'GridLocation')
                     if location != []: location = Internal.getValue(location[0])
                     locr = 'nodes'; volRcv = []
                     if location == 'CellCenter': locr = 'centers'; volRcv = C.getField('centers:vol',zr)[0][1]
                     else: volRcv = C.getField('vol',zr)[0][1]
-                    ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]       
+                    ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
                     ListDnr = Internal.getNodesFromName1(s,'PointList')[0][1]
                     #
                     nindI = ListDnr.size
@@ -2092,7 +2474,7 @@ def oversetCellRatio__(aR, topTreeD):
                             volrl = volRcv[0,ListRcv[noind]]
                             cr = max(voldl/volrl,volrl/voldl)
                             field[1][0,noind] = cr
-                        zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)  
+                        zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)
                         # parentr[2][dr] = zr
     #
     C._rmVars(tR,'centers:vol') # faut il la detruire ou non ? pas de test leger pour savoir si c etait ds l arbre avant
@@ -2109,7 +2491,7 @@ def oversetDonorAspect__(aR, topTreeD):
     except: raise ImportError("oversetInfo: requires Generator module.")
     tR = Internal.copyRef(aR)
     tD = Internal.copyRef(topTreeD)
-    G._getEdgeRatio(tD)    
+    G._getEdgeRatio(tD)
     tD = C.center2Node(tD,'centers:EdgeRatio')
     C._rmVars(tD,['centers:EdgeRatio'])
     # First pass : direct storage
@@ -2125,29 +2507,29 @@ def oversetDonorAspect__(aR, topTreeD):
                     subRegions.append(s)
         subRegions2 = []
         # parentr,dr = Internal.getParentOfNode(tR,zr)
-        for s in subRegions:                
+        for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
-            if zoneRole == 'Receiver': # direct storage ok      
+            if zoneRole == 'Receiver': # direct storage ok
                 # interpolated node or cell ?
                 location = Internal.getNodesFromName1(s, 'GridLocation')
                 if location != []: location = Internal.getValue(location[0])
                 locr = 'nodes'
-                if location == 'CellCenter': locr = 'centers'; 
-              
+                if location == 'CellCenter': locr = 'centers';
+
                 # donor zone
                 zdnrname = Internal.getValue(s)
                 zdonors = Internal.getNodesFromName2(tD,zdnrname)
                 zd = Internal.getNodesFromType1(zdonors,'Zone_t')
-                if zd == []: raise ValueError("oversetInfo: donor zone %s not found."%zdnrname)      
-                else: zd = zd[0]                
+                if zd == []: raise ValueError("oversetInfo: donor zone %s not found."%zdnrname)
+                else: zd = zd[0]
                 ER = C.getField('EdgeRatio', zd)[0][1]
                 ListDnr = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
-                ListRcv = Internal.getNodesFromName1(s,'PointList')[0][1]         
+                ListRcv = Internal.getNodesFromName1(s,'PointList')[0][1]
                 nindI = ListDnr.size
                 if nindI > 0:
                     field = Converter.array('donorAspect',nindI,1,1)
-                    for noind in range(nindI):             
+                    for noind in range(nindI):
                         field[1][0,noind] = ER[0,ListDnr[noind]]
                     zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)
         # parentr[2][dr] = zr
@@ -2165,22 +2547,22 @@ def oversetDonorAspect__(aR, topTreeD):
                     subRegions.append(s)
         subRegions2 = []
         ER = C.getField('EdgeRatio',zd)[0][1]
-        for s in subRegions:                
+        for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
             if zoneRole == 'Donor': # inverse storage ok
                 zrcvname = Internal.getValue(s)
                 zreceivers = Internal.getNodesFromName2(tR,zrcvname)
                 zr = Internal.getNodesFromType1(zreceivers,'Zone_t')
-                if zr != []: 
-                    zr = zr[0]                   
-                    # parentr,dr = Internal.getParentOfNode(tR,zr) 
+                if zr != []:
+                    zr = zr[0]
+                    # parentr,dr = Internal.getParentOfNode(tR,zr)
                     # interpolated node or cell ?
                     location = Internal.getNodesFromName1(s, 'GridLocation')
                     if location != []: location = Internal.getValue(location[0])
                     locr = 'nodes'
                     if location == 'CellCenter': locr = 'centers'
-                    ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]       
+                    ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
                     ListDnr = Internal.getNodesFromName1(s,'PointList')[0][1]
 
                     nindI = ListDnr.size
@@ -2188,7 +2570,7 @@ def oversetDonorAspect__(aR, topTreeD):
                         field = Converter.array('donorAspect',nindI,1,1)
                         for noind in range(nindI):
                             field[1][0,noind] = ER[0,ListDnr[noind]]
-                        zr = C.setPartialFields(zr, [field], [ListRcv], loc=locr)  
+                        zr = C.setPartialFields(zr, [field], [ListRcv], loc=locr)
                         # parentr[2][dr] = zr
 
     C._rmVars(tD,'EdgeRatio')
@@ -2356,24 +2738,24 @@ def extractChimeraInfo(a,type='interpolated',loc='centers'):
     FSCont = Internal.__FlowSolutionCenters__
     if loc == 'nodes': FSCont = Internal.__FlowSolutionNodes__
     try: import Post.PyTree as P
-    except: raise ImportError("extractChimeraInfo requires Post.PyTree module.") 
+    except: raise ImportError("extractChimeraInfo requires Post.PyTree module.")
 
     typel = type.split('>')
     if len(typel) == 1:
         typel = type
-        if typel == 'extrapolated': 
+        if typel == 'extrapolated':
             var = typel; prefix='ExtrapPts'
-        elif typel == 'interpolated': 
+        elif typel == 'interpolated':
             var = typel; prefix='InterpPts'
-        elif typel == 'orphan': 
+        elif typel == 'orphan':
             var = typel; prefix='OrphanPts'
         else: raise AttributeError("extractChimeraInfo: not a valid type.")
         if loc == 'nodes': formula='{%s}>0.'%var
         else: formula='{centers:%s}>0.'%var
 
-    elif len(typel)==2: 
+    elif len(typel)==2:
         val = float(typel[1])
-        var='extrapolated'; prefix ='ExtrapCfPts'    
+        var='extrapolated'; prefix ='ExtrapCfPts'
         if loc == 'nodes': formula='{extrapolated}>%g'%val
         else: formula='{centers:extrapolated}>%g'%val
     else: raise AttributeError("extractChimeraInfo: not a valid type.")
@@ -2385,17 +2767,908 @@ def extractChimeraInfo(a,type='interpolated',loc='centers'):
             chiminfo = Internal.getNodeFromName1(FS,var)
             if chiminfo is None:
                 print('WARNING: extractChimeraInfo: chimera info %s cannot be extract for zone %s.'%(type,z[0]))
-                print('You must apply oversetInfo or chimeraInfo to create the information in tree.')                
+                print('You must apply oversetInfo or chimeraInfo to create the information in tree.')
             else:
                 chimPts = P.selectCells(z,formula,strict=0)
                 Internal._rmNodesByType(chimPts,"ZoneSubRegion_t")
                 DIMS=Internal.getZoneDim(chimPts)
-                if DIMS[1] > 0: 
+                if DIMS[1] > 0:
                     chimPts[0] = prefix+'_'+z[0]
                     allChimPts.append(chimPts)
 
     return allChimPts
-    
+
+#==============================================================================
+# Copy of _setIBCTransfers for gradP info
+# tc/tc2 -> RCV ZONES
+#==============================================================================
+def _setIBCTransfers4GradP(aR, topTreeD, variables=[], cellNVariable='',
+                        variablesIBC=["Density", "Temperature", "gradxDensity", "gradyDensity", "gradzDensity", "gradxTemperature", "gradyTemperature", "gradzTemperature"],
+                        bcType=3, varType=1, compact=0,
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+
+    # Recup des donnees a partir des zones donneuses
+    # Dictionnaire pour optimisation
+    znr = {}
+    zones = Internal.getZones(aR)
+    for z in zones: znr[z[0]] = z
+    zonesD = Internal.getZones(topTreeD)
+    for zd in zonesD:
+        subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+        for s in subRegions:
+            sname = s[0][0:4]
+            # test pour eviter parcours arbre inutile
+            if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+               idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
+               if idn is not None:
+                   zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
+                   zoneRole = Internal.getValue(zoneRole)
+                   if zoneRole == 'Donor':
+                       location = Internal.getNodeFromName1(s, 'GridLocation') #localisation des donnees des rcvr
+                       if location is not None: location = Internal.getValue(location)
+                       Coefs = idn[1]
+                       DonorType = Internal.getNodeFromName1(s,'InterpolantsType')[1]
+                       ListDonor = Internal.getNodeFromName1(s,'PointList')[1]
+                       ListRcv   = Internal.getNodeFromName1(s,'PointListDonor')[1]
+                       # Recup des champs du receveur
+                       zrcvname = Internal.getValue(s)
+                       ##zr = Internal.getNodesFromName2(aR, zrcvname)
+                       zr = znr.get(zrcvname, None)
+                       if zr is not None:
+                            if location == 'CellCenter': loc = 1
+                            else: loc = 0
+
+                            Pressure = Internal.getNodeFromName1(s,'Pressure')[1]
+                            gradxP   = Internal.getNodeFromName1(s, 'gradxPressure')
+                            gradyP   = Internal.getNodeFromName1(s, 'gradyPressure')
+                            gradzP   = Internal.getNodeFromName1(s, 'gradzPressure')
+
+                            if gradxP is not None:
+                                gradxP = gradxP[1]
+                                gradyP = gradyP[1]
+                                gradzP = gradzP[1]
+                            else:
+                                nIBC = Pressure.shape[0]
+                                gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                s[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+                                gradxP = Internal.getNodeFromName1(s, 'gradxPressure')[1]
+                                gradyP = Internal.getNodeFromName1(s, 'gradyPressure')[1]
+                                gradzP = Internal.getNodeFromName1(s, 'gradzPressure')[1]
+
+                            connector._setIBCTransfers4GradP(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                       Pressure,
+                                                       gradxP, gradyP, gradzP,
+                                                       bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                       Internal.__GridCoordinates__,
+                                                       Internal.__FlowSolutionNodes__,
+                                                       Internal.__FlowSolutionCenters__)
+    return None
+
+#==============================================================================
+# Copy of _setIBCTransfers for gradP HO info
+# tc/tc2 -> RCV ZONES
+#==============================================================================
+def _setIBCTransfers4GradP2(aR, topTreeD, variables=[], cellNVariable='',
+                        variablesIBC=["Density", "Temperature", "gradxDensity", "gradyDensity", "gradzDensity", "gradxTemperature", "gradyTemperature", "gradzTemperature"],
+                        bcType=3, varType=1, compact=0,
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+
+    # Recup des donnees a partir des zones donneuses
+    # Dictionnaire pour optimisation
+    znr = {}
+    zones = Internal.getZones(aR)
+    for z in zones: znr[z[0]] = z
+    zonesD = Internal.getZones(topTreeD)
+    for zd in zonesD:
+        subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+        for s in subRegions:
+            sname = s[0][0:4]
+            # test pour eviter parcours arbre inutile
+            if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+               idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
+               if idn is not None:
+                   zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
+                   zoneRole = Internal.getValue(zoneRole)
+                   if zoneRole == 'Donor':
+                       location = Internal.getNodeFromName1(s, 'GridLocation') #localisation des donnees des rcvr
+                       if location is not None: location = Internal.getValue(location)
+                       Coefs = idn[1]
+                       DonorType = Internal.getNodeFromName1(s,'InterpolantsType')[1]
+                       ListDonor = Internal.getNodeFromName1(s,'PointList')[1]
+                       ListRcv   = Internal.getNodeFromName1(s,'PointListDonor')[1]
+                       # Recup des champs du receveur
+                       zrcvname = Internal.getValue(s)
+                       ##zr = Internal.getNodesFromName2(aR, zrcvname)
+                       zr = znr.get(zrcvname, None)
+                       if zr is not None:
+                            if location == 'CellCenter': loc = 1
+                            else: loc = 0
+
+                            Pressure = Internal.getNodeFromName1(s,'Pressure')[1]
+
+                            gradxP   = Internal.getNodeFromName1(s, 'gradxPressure')
+                            gradyP   = Internal.getNodeFromName1(s, 'gradyPressure')
+                            gradzP   = Internal.getNodeFromName1(s, 'gradzPressure')
+
+                            gradxxP   = Internal.getNodeFromName1(s, 'gradxgradxPressure')
+                            gradxyP   = Internal.getNodeFromName1(s, 'gradxgradyPressure')
+                            gradxzP   = Internal.getNodeFromName1(s, 'gradxgradzPressure')
+
+                            gradyxP   = Internal.getNodeFromName1(s, 'gradygradxPressure')
+                            gradyyP   = Internal.getNodeFromName1(s, 'gradygradyPressure')
+                            gradyzP   = Internal.getNodeFromName1(s, 'gradygradzPressure')
+
+                            gradzxP   = Internal.getNodeFromName1(s, 'gradzgradxPressure')
+                            gradzyP   = Internal.getNodeFromName1(s, 'gradzgradyPressure')
+                            gradzzP   = Internal.getNodeFromName1(s, 'gradzgradzPressure')
+
+                            if gradxP is not None:
+                                gradxP = gradxP[1]
+                                gradyP = gradyP[1]
+                                gradzP = gradzP[1]
+                            else:
+                                nIBC = Pressure.shape[0]
+                                gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                s[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+                                gradxP = Internal.getNodeFromName1(s, 'gradxPressure')[1]
+                                gradyP = Internal.getNodeFromName1(s, 'gradyPressure')[1]
+                                gradzP = Internal.getNodeFromName1(s, 'gradzPressure')[1]
+
+                            if gradxxP is not None:
+                                gradxxP = gradxxP[1]
+                                gradxyP = gradxyP[1]
+                                gradxzP = gradxzP[1]
+                            else:
+                                nIBC = Pressure.shape[0]
+                                gradxxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradxyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradxzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                s[2].append(['gradxxPressure' , gradxxPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradxyPressure' , gradxyPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradxzPressure' , gradxzPressureNP , [], 'DataArray_t'])
+                                gradxxP = Internal.getNodeFromName1(s, 'gradxxPressure')[1]
+                                gradxyP = Internal.getNodeFromName1(s, 'gradxyPressure')[1]
+                                gradxzP = Internal.getNodeFromName1(s, 'gradxzPressure')[1]
+
+                            if gradyxP is not None:
+                                gradyxP = gradyxP[1]
+                                gradyyP = gradyyP[1]
+                                gradyzP = gradyzP[1]
+                            else:
+                                nIBC = Pressure.shape[0]
+                                gradyxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradyyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradyzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                s[2].append(['gradyxPressure' , gradyxPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradyyPressure' , gradyyPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradyzPressure' , gradyzPressureNP , [], 'DataArray_t'])
+                                gradyxP = Internal.getNodeFromName1(s, 'gradyxPressure')[1]
+                                gradyyP = Internal.getNodeFromName1(s, 'gradyyPressure')[1]
+                                gradyzP = Internal.getNodeFromName1(s, 'gradyzPressure')[1]
+
+                            if gradzxP is not None:
+                                gradzxP = gradzxP[1]
+                                gradzyP = gradzyP[1]
+                                gradzzP = gradzzP[1]
+                            else:
+                                nIBC = Pressure.shape[0]
+                                gradzxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradzyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                gradzzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                s[2].append(['gradzxPressure' , gradzxPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradzyPressure' , gradzyPressureNP , [], 'DataArray_t'])
+                                s[2].append(['gradzzPressure' , gradzzPressureNP , [], 'DataArray_t'])
+                                gradzxP = Internal.getNodeFromName1(s, 'gradzxPressure')[1]
+                                gradzyP = Internal.getNodeFromName1(s, 'gradzyPressure')[1]
+                                gradzzP = Internal.getNodeFromName1(s, 'gradzzPressure')[1]
+
+                            connector._setIBCTransfers4GradP2(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                       Pressure,
+                                                       gradxP, gradyP, gradzP,
+                                                       gradxxP, gradxyP, gradxzP,
+                                                       gradyxP, gradyyP, gradyzP,
+                                                       gradzxP, gradzyP, gradzzP,
+                                                       bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                       Internal.__GridCoordinates__,
+                                                       Internal.__FlowSolutionNodes__,
+                                                       Internal.__FlowSolutionCenters__)
+    return None
+
+#==============================================================================
+# Copy of _setIBCTransfers for gradP info
+# RCV ZONES -> tc
+# Parallel version + compact
+#==============================================================================
+def _setIBCTransfers4GradP3(zones, zonesD, graphInvIBCD, graphIBCD, procDict,
+                        variablesIBC=['Density', 'Temperature', 'gradxDensity', 'gradyDensity', 'gradzDensity', 'gradxTemperature', 'gradyTemperature', 'gradzTemperature'],
+                        bcType=0, varType=1, compact=1,
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+
+    import Converter.Mpi as Cmpi
+
+    rank=Cmpi.rank
+    datas = {}
+    znr = {}
+    for z in zones: 
+        znr[z[0]] = z
+
+    for zd in zonesD:
+        subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+        for s in subRegions:
+            sname = s[0][0:4]
+            zname = s[0].split('_')[-1]
+            dest = procDict[zname]
+            if sname == 'IBCD' and dest != rank:
+                Coefs     = numpy.copy(Internal.getNodeFromName1(s, 'InterpolantsDonor')[1])
+                DonorType = numpy.copy(Internal.getNodeFromName1(s, 'InterpolantsType')[1])
+                ListDonor = numpy.copy(Internal.getNodeFromName1(s, 'PointList')[1])
+                ListRcv   = numpy.copy(Internal.getNodeFromName1(s, 'PointListDonor')[1])
+                gradxP    = numpy.copy(Internal.getNodeFromName1(s, 'gradxPressure')[1])
+                gradyP    = numpy.copy(Internal.getNodeFromName1(s, 'gradyPressure')[1])
+                gradzP    = numpy.copy(Internal.getNodeFromName1(s, 'gradzPressure')[1])
+                infos = [zd[0], zname, Coefs, DonorType, ListDonor, ListRcv, gradxP, gradyP, gradzP]
+                rcvNode = dest
+                if rcvNode not in datas: datas[rcvNode] = [infos]
+                else: datas[rcvNode] += [infos]
+
+    rcvDatas = Cmpi.sendRecv(datas, graphIBCD)
+
+    datas = {}
+    for dest in rcvDatas:
+        for [name, zname, Coefs, DonorType, ListDonor, ListRcv, gradxP, gradyP, gradzP] in rcvDatas[dest]:
+            zr = znr[zname]
+            connector._setIBCTransfers4GradP3(zr, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                gradxP, gradyP, gradzP,
+                                                bcType, 1, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                Internal.__GridCoordinates__,
+                                                Internal.__FlowSolutionNodes__,
+                                                Internal.__FlowSolutionCenters__)
+            rcvNode = dest
+            infos = [name, zname, gradxP, gradyP, gradzP]
+            if rcvNode not in datas: datas[rcvNode] = [infos]
+            else: datas[rcvNode] += [infos]
+
+    rcvDatas = Cmpi.sendRecv(datas, graphInvIBCD)
+
+    for dest in rcvDatas:
+        for [name, zname, gradxP_new, gradyP_new, gradzP_new] in rcvDatas[dest]:
+            for zd in zonesD:
+                if zd[0] == name:
+                    subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+                    for s in subRegions:
+                        sname = s[0][0:4]
+                        znameD = s[0].split('_')[-1]
+                        if sname == 'IBCD' and znameD == zname:
+                            ListRcv   = Internal.getNodeFromName1(s, 'PointListDonor')[1]
+                            gradxP    = Internal.getNodeFromName1(s, 'gradxPressure')[1]
+                            gradyP    = Internal.getNodeFromName1(s, 'gradyPressure')[1]
+                            gradzP    = Internal.getNodeFromName1(s, 'gradzPressure')[1]
+                            connector._setIBCTransfers4GradP4( 
+                                                    gradxP_new, gradyP_new, gradzP_new,
+                                                    gradxP, gradyP, gradzP)
+
+    return None
+
+#==============================================================================
+# Copy of _setIBCTransfers for gradP + gradVelocity info
+# tc/tc2 -> RCV ZONES
+#==============================================================================
+
+def _setIBCTransfers4FULLTBLE(aR, topTreeD, variables=[], cellNVariable='',
+                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
+                        bcType=0, varType=1, storage=-1, compact=0,
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+
+    # Recup des donnees a partir des zones receveuses
+    if storage < 1:
+        # Dictionnaire pour optimisation
+        znd = {}
+        zones = Internal.getZones(topTreeD)
+        for z in zones: znd[z[0]] = z
+
+        zonesR = Internal.getZones(aR)
+        for zr in zonesR:
+            subRegions = Internal.getNodesFromType1(zr, 'ZoneSubRegion_t')
+            for s in subRegions:
+                sname = s[0][0:4]
+                # test pour eviter parcours arbre inutile
+                if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+                   idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
+                   if idn is not None: # la subRegion decrit des interpolations
+                       zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
+                       zoneRole = Internal.getValue(zoneRole)
+                       if zoneRole == 'Receiver':
+                           location = Internal.getNodeFromName1(s, 'GridLocation')
+                           if location is not None: location = Internal.getValue(location)
+                           Coefs = idn[1]
+                           DonorType = Internal.getNodeFromName1(s,'InterpolantsType')[1]
+                           ListRcv   = Internal.getNodeFromName1(s,'PointList')[1]
+                           ListDonor = Internal.getNodeFromName1(s,'PointListDonor')[1]
+                           # Recup des champs du receveur
+                           zdnrname = Internal.getValue(s)
+                           zd = znd[zdnrname]
+
+                           if location == 'CellCenter': loc = 1
+                           else: loc = 0
+
+                           pressure  = Internal.getNodeFromName1(s,'Pressure')[1]
+                           vx = Internal.getNodeFromName1(s,'VelocityX')
+                           vy = Internal.getNodeFromName1(s,'VelocityY')
+                           vz = Internal.getNodeFromName1(s,'VelocityZ')
+
+                           gradxP   = Internal.getNodeFromName1(s, 'gradxPressure')
+                           gradyP   = Internal.getNodeFromName1(s, 'gradyPressure')
+                           gradzP   = Internal.getNodeFromName1(s, 'gradzPressure')
+
+                           gradxU   = Internal.getNodeFromName1(s, 'gradxVelocityX')
+                           gradyU   = Internal.getNodeFromName1(s, 'gradyVelocityX')
+                           gradzU   = Internal.getNodeFromName1(s, 'gradzVelocityX')
+
+                           gradxV   = Internal.getNodeFromName1(s, 'gradxVelocityY')
+                           gradyV   = Internal.getNodeFromName1(s, 'gradyVelocityY')
+                           gradzV   = Internal.getNodeFromName1(s, 'gradzVelocityY')
+
+                           gradxW   = Internal.getNodeFromName1(s, 'gradxVelocityZ')
+                           gradyW   = Internal.getNodeFromName1(s, 'gradyVelocityZ')
+                           gradzW   = Internal.getNodeFromName1(s, 'gradzVelocityZ')
+
+
+                           if vx is not None:
+                               vx = vx[1]
+                               vy = vy[1]
+                               vz = vz[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               vxNP  = numpy.zeros((nIBC),numpy.float64)
+                               vyNP  = numpy.zeros((nIBC),numpy.float64)
+                               vzNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
+                               s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
+                               s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
+                               vx = Internal.getNodeFromName1(s, 'VelocityX')[1]
+                               vy = Internal.getNodeFromName1(s, 'VelocityY')[1]
+                               vz = Internal.getNodeFromName1(s, 'VelocityZ')[1]
+
+                           if gradxP is not None:
+                               gradxP = gradxP[1]
+                               gradyP = gradyP[1]
+                               gradzP = gradzP[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                               s[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                               s[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+                               gradxP = Internal.getNodeFromName1(s, 'gradxPressure')[1]
+                               gradyP = Internal.getNodeFromName1(s, 'gradyPressure')[1]
+                               gradzP = Internal.getNodeFromName1(s, 'gradzPressure')[1]
+
+                           if gradxU is not None:
+                               gradxU = gradxU[1]
+                               gradyU = gradyU[1]
+                               gradzU = gradzU[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
+                               s[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
+                               s[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
+                               gradxU = Internal.getNodeFromName1(s, 'gradxVelocityX')[1]
+                               gradyU = Internal.getNodeFromName1(s, 'gradyVelocityX')[1]
+                               gradzU = Internal.getNodeFromName1(s, 'gradzVelocityX')[1]
+
+                           if gradxV is not None:
+                               gradxV = gradxV[1]
+                               gradyV = gradyV[1]
+                               gradzV = gradzV[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
+                               s[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
+                               s[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
+                               gradxV = Internal.getNodeFromName1(s, 'gradxVelocityY')[1]
+                               gradyV = Internal.getNodeFromName1(s, 'gradyVelocityY')[1]
+                               gradzV = Internal.getNodeFromName1(s, 'gradzVelocityY')[1]
+
+                           if gradxW is not None:
+                               gradxW = gradxW[1]
+                               gradyW = gradyW[1]
+                               gradzW = gradzW[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
+                               s[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
+                               s[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
+                               gradxW = Internal.getNodeFromName1(s, 'gradxVelocityZ')[1]
+                               gradyW = Internal.getNodeFromName1(s, 'gradyVelocityZ')[1]
+                               gradzW = Internal.getNodeFromName1(s, 'gradzVelocityZ')[1]
+
+
+                           #print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
+                           connector._setIBCTransfers4FULLTBLE(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                      pressure,
+                                                      vx, vy, vz,
+                                                      gradxP, gradyP, gradzP,
+                                                      gradxU, gradyU, gradzU,
+                                                      gradxV, gradyV, gradzV,
+                                                      gradxW, gradyW, gradzW,
+                                                      bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                      Internal.__GridCoordinates__,
+                                                      Internal.__FlowSolutionNodes__,
+                                                      Internal.__FlowSolutionCenters__)
+
+    # Recup des donnees a partir des zones donneuses
+    if storage != 0:
+        # Dictionnaire pour optimisation
+        znr = {}
+        zones = Internal.getZones(aR)
+        for z in zones: znr[z[0]] = z
+        zonesD = Internal.getZones(topTreeD)
+        for zd in zonesD:
+            subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+            for s in subRegions:
+                sname = s[0][0:4]
+                # test pour eviter parcours arbre inutile
+                if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+                   idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
+                   if idn is not None:
+                       zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
+                       zoneRole = Internal.getValue(zoneRole)
+                       if zoneRole == 'Donor':
+                           location = Internal.getNodeFromName1(s, 'GridLocation') #localisation des donnees des rcvr
+                           if location is not None: location = Internal.getValue(location)
+                           Coefs = idn[1]
+                           DonorType = Internal.getNodeFromName1(s,'InterpolantsType')[1]
+                           ListDonor = Internal.getNodeFromName1(s,'PointList')[1]
+                           ListRcv   = Internal.getNodeFromName1(s,'PointListDonor')[1]
+                           # Recup des champs du receveur
+                           zrcvname = Internal.getValue(s)
+                           ##zr = Internal.getNodesFromName2(aR, zrcvname)
+                           zr = znr.get(zrcvname, None)
+                           if zr is not None:
+                                if location == 'CellCenter': loc = 1
+                                else: loc = 0
+
+                                pressure  = Internal.getNodeFromName1(s,'Pressure')[1]
+                                vx = Internal.getNodeFromName1(s,'VelocityX')
+                                vy = Internal.getNodeFromName1(s,'VelocityY')
+                                vz = Internal.getNodeFromName1(s,'VelocityZ')
+
+                                gradxP   = Internal.getNodeFromName1(s, 'gradxPressure')
+                                gradyP   = Internal.getNodeFromName1(s, 'gradyPressure')
+                                gradzP   = Internal.getNodeFromName1(s, 'gradzPressure')
+
+                                gradxU   = Internal.getNodeFromName1(s, 'gradxVelocityX')
+                                gradyU   = Internal.getNodeFromName1(s, 'gradyVelocityX')
+                                gradzU   = Internal.getNodeFromName1(s, 'gradzVelocityX')
+
+                                gradxV   = Internal.getNodeFromName1(s, 'gradxVelocityY')
+                                gradyV   = Internal.getNodeFromName1(s, 'gradyVelocityY')
+                                gradzV   = Internal.getNodeFromName1(s, 'gradzVelocityY')
+
+                                gradxW   = Internal.getNodeFromName1(s, 'gradxVelocityZ')
+                                gradyW   = Internal.getNodeFromName1(s, 'gradyVelocityZ')
+                                gradzW   = Internal.getNodeFromName1(s, 'gradzVelocityZ')
+
+                                if vx is not None:
+                                    vx = vx[1]
+                                    vy = vy[1]
+                                    vz = vz[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    vxNP  = numpy.zeros((nIBC),numpy.float64)
+                                    vyNP  = numpy.zeros((nIBC),numpy.float64)
+                                    vzNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
+                                    s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
+                                    s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
+                                    vx = Internal.getNodeFromName1(s, 'VelocityX')[1]
+                                    vy = Internal.getNodeFromName1(s, 'VelocityY')[1]
+                                    vz = Internal.getNodeFromName1(s, 'VelocityZ')[1]
+
+                                if gradxP is not None:
+                                    gradxP = gradxP[1]
+                                    gradyP = gradyP[1]
+                                    gradzP = gradzP[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                                    s[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                                    s[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+                                    gradxP = Internal.getNodeFromName1(s, 'gradxPressure')[1]
+                                    gradyP = Internal.getNodeFromName1(s, 'gradyPressure')[1]
+                                    gradzP = Internal.getNodeFromName1(s, 'gradzPressure')[1]
+
+                                if gradxU is not None:
+                                    gradxU = gradxU[1]
+                                    gradyU = gradyU[1]
+                                    gradzU = gradzU[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
+                                    s[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
+                                    s[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
+                                    gradxU = Internal.getNodeFromName1(s, 'gradxVelocityX')[1]
+                                    gradyU = Internal.getNodeFromName1(s, 'gradyVelocityX')[1]
+                                    gradzU = Internal.getNodeFromName1(s, 'gradzVelocityX')[1]
+
+                                if gradxV is not None:
+                                    gradxV = gradxV[1]
+                                    gradyV = gradyV[1]
+                                    gradzV = gradzV[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
+                                    s[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
+                                    s[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
+                                    gradxV = Internal.getNodeFromName1(s, 'gradxVelocityY')[1]
+                                    gradyV = Internal.getNodeFromName1(s, 'gradyVelocityY')[1]
+                                    gradzV = Internal.getNodeFromName1(s, 'gradzVelocityY')[1]
+
+                                if gradxW is not None:
+                                    gradxW = gradxW[1]
+                                    gradyW = gradyW[1]
+                                    gradzW = gradzW[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
+                                    s[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
+                                    s[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
+                                    gradxW = Internal.getNodeFromName1(s, 'gradxVelocityZ')[1]
+                                    gradyW = Internal.getNodeFromName1(s, 'gradyVelocityZ')[1]
+                                    gradzW = Internal.getNodeFromName1(s, 'gradzVelocityZ')[1]
+
+
+                                # print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
+                                connector._setIBCTransfers4FULLTBLE(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                           pressure,
+                                                           vx, vy, vz,
+                                                           gradxP, gradyP, gradzP,
+                                                           gradxU, gradyU, gradzU,
+                                                           gradxV, gradyV, gradzV,
+                                                           gradxW, gradyW, gradzW,
+                                                           bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                           Internal.__GridCoordinates__,
+                                                           Internal.__FlowSolutionNodes__,
+                                                           Internal.__FlowSolutionCenters__)
+    return None
+
+#==============================================================================
+# Copy of _setIBCTransfers for gradP + gradVelocity info
+# RCV ZONES -> tc
+#==============================================================================
+
+def _setIBCTransfers4FULLTBLE2(aR, topTreeD, variables=[], cellNVariable='',
+                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
+                        bcType=0, varType=1, storage=-1, compact=0,
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+
+    # Recup des donnees a partir des zones receveuses
+    if storage < 1:
+        # Dictionnaire pour optimisation
+        znd = {}
+        zones = Internal.getZones(topTreeD)
+        for z in zones: znd[z[0]] = z
+
+        zonesR = Internal.getZones(aR)
+        for zr in zonesR:
+            subRegions = Internal.getNodesFromType1(zr, 'ZoneSubRegion_t')
+            for s in subRegions:
+                sname = s[0][0:4]
+                # test pour eviter parcours arbre inutile
+                if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+                   idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
+                   if idn is not None: # la subRegion decrit des interpolations
+                       zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
+                       zoneRole = Internal.getValue(zoneRole)
+                       if zoneRole == 'Receiver':
+                           location = Internal.getNodeFromName1(s, 'GridLocation')
+                           if location is not None: location = Internal.getValue(location)
+                           Coefs = idn[1]
+                           DonorType = Internal.getNodeFromName1(s,'InterpolantsType')[1]
+                           ListRcv   = Internal.getNodeFromName1(s,'PointList')[1]
+                           ListDonor = Internal.getNodeFromName1(s,'PointListDonor')[1]
+                           # Recup des champs du receveur
+                           zdnrname = Internal.getValue(s)
+                           zd = znd[zdnrname]
+
+                           if location == 'CellCenter': loc = 1
+                           else: loc = 0
+
+                           pressure  = Internal.getNodeFromName1(s,'Pressure')[1]
+                           vx = Internal.getNodeFromName1(s,'VelocityX')
+                           vy = Internal.getNodeFromName1(s,'VelocityY')
+                           vz = Internal.getNodeFromName1(s,'VelocityZ')
+
+                           gradxP   = Internal.getNodeFromName1(s, 'gradxPressure')
+                           gradyP   = Internal.getNodeFromName1(s, 'gradyPressure')
+                           gradzP   = Internal.getNodeFromName1(s, 'gradzPressure')
+
+                           gradxU   = Internal.getNodeFromName1(s, 'gradxVelocityX')
+                           gradyU   = Internal.getNodeFromName1(s, 'gradyVelocityX')
+                           gradzU   = Internal.getNodeFromName1(s, 'gradzVelocityX')
+
+                           gradxV   = Internal.getNodeFromName1(s, 'gradxVelocityY')
+                           gradyV   = Internal.getNodeFromName1(s, 'gradyVelocityY')
+                           gradzV   = Internal.getNodeFromName1(s, 'gradzVelocityY')
+
+                           gradxW   = Internal.getNodeFromName1(s, 'gradxVelocityZ')
+                           gradyW   = Internal.getNodeFromName1(s, 'gradyVelocityZ')
+                           gradzW   = Internal.getNodeFromName1(s, 'gradzVelocityZ')
+
+
+                           if vx is not None:
+                               vx = vx[1]
+                               vy = vy[1]
+                               vz = vz[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               vxNP  = numpy.zeros((nIBC),numpy.float64)
+                               vyNP  = numpy.zeros((nIBC),numpy.float64)
+                               vzNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
+                               s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
+                               s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
+                               vx = Internal.getNodeFromName1(s, 'VelocityX')[1]
+                               vy = Internal.getNodeFromName1(s, 'VelocityY')[1]
+                               vz = Internal.getNodeFromName1(s, 'VelocityZ')[1]
+
+                           if gradxP is not None:
+                               gradxP = gradxP[1]
+                               gradyP = gradyP[1]
+                               gradzP = gradzP[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                               s[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                               s[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+                               gradxP = Internal.getNodeFromName1(s, 'gradxPressure')[1]
+                               gradyP = Internal.getNodeFromName1(s, 'gradyPressure')[1]
+                               gradzP = Internal.getNodeFromName1(s, 'gradzPressure')[1]
+
+                           if gradxU is not None:
+                               gradxU = gradxU[1]
+                               gradyU = gradyU[1]
+                               gradzU = gradzU[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
+                               s[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
+                               s[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
+                               gradxU = Internal.getNodeFromName1(s, 'gradxVelocityX')[1]
+                               gradyU = Internal.getNodeFromName1(s, 'gradyVelocityX')[1]
+                               gradzU = Internal.getNodeFromName1(s, 'gradzVelocityX')[1]
+
+                           if gradxV is not None:
+                               gradxV = gradxV[1]
+                               gradyV = gradyV[1]
+                               gradzV = gradzV[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
+                               s[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
+                               s[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
+                               gradxV = Internal.getNodeFromName1(s, 'gradxVelocityY')[1]
+                               gradyV = Internal.getNodeFromName1(s, 'gradyVelocityY')[1]
+                               gradzV = Internal.getNodeFromName1(s, 'gradzVelocityY')[1]
+
+                           if gradxW is not None:
+                               gradxW = gradxW[1]
+                               gradyW = gradyW[1]
+                               gradzW = gradzW[1]
+                           else:
+                               nIBC = pressure.shape[0]
+                               gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                               gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                               s[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
+                               s[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
+                               s[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
+                               gradxW = Internal.getNodeFromName1(s, 'gradxVelocityZ')[1]
+                               gradyW = Internal.getNodeFromName1(s, 'gradyVelocityZ')[1]
+                               gradzW = Internal.getNodeFromName1(s, 'gradzVelocityZ')[1]
+
+
+                           #print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
+                           connector._setIBCTransfers4FULLTBLE2(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                      pressure,
+                                                      vx, vy, vz,
+                                                      gradxP, gradyP, gradzP,
+                                                      gradxU, gradyU, gradzU,
+                                                      gradxV, gradyV, gradzV,
+                                                      gradxW, gradyW, gradzW,
+                                                      bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                      Internal.__GridCoordinates__,
+                                                      Internal.__FlowSolutionNodes__,
+                                                      Internal.__FlowSolutionCenters__)
+
+    # Recup des donnees a partir des zones donneuses
+    if storage != 0:
+        # Dictionnaire pour optimisation
+        znr = {}
+        zones = Internal.getZones(aR)
+        for z in zones: znr[z[0]] = z
+        zonesD = Internal.getZones(topTreeD)
+        for zd in zonesD:
+            subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+            for s in subRegions:
+                sname = s[0][0:4]
+                # test pour eviter parcours arbre inutile
+                if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+                   idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
+                   if idn is not None:
+                       zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
+                       zoneRole = Internal.getValue(zoneRole)
+                       if zoneRole == 'Donor':
+                           location = Internal.getNodeFromName1(s, 'GridLocation') #localisation des donnees des rcvr
+                           if location is not None: location = Internal.getValue(location)
+                           Coefs = idn[1]
+                           DonorType = Internal.getNodeFromName1(s,'InterpolantsType')[1]
+                           ListDonor = Internal.getNodeFromName1(s,'PointList')[1]
+                           ListRcv   = Internal.getNodeFromName1(s,'PointListDonor')[1]
+                           # Recup des champs du receveur
+                           zrcvname = Internal.getValue(s)
+                           ##zr = Internal.getNodesFromName2(aR, zrcvname)
+                           zr = znr.get(zrcvname, None)
+                           if zr is not None:
+                                if location == 'CellCenter': loc = 1
+                                else: loc = 0
+
+                                pressure  = Internal.getNodeFromName1(s,'Pressure')[1]
+                                vx = Internal.getNodeFromName1(s,'VelocityX')
+                                vy = Internal.getNodeFromName1(s,'VelocityY')
+                                vz = Internal.getNodeFromName1(s,'VelocityZ')
+
+                                gradxP   = Internal.getNodeFromName1(s, 'gradxPressure')
+                                gradyP   = Internal.getNodeFromName1(s, 'gradyPressure')
+                                gradzP   = Internal.getNodeFromName1(s, 'gradzPressure')
+
+                                gradxU   = Internal.getNodeFromName1(s, 'gradxVelocityX')
+                                gradyU   = Internal.getNodeFromName1(s, 'gradyVelocityX')
+                                gradzU   = Internal.getNodeFromName1(s, 'gradzVelocityX')
+
+                                gradxV   = Internal.getNodeFromName1(s, 'gradxVelocityY')
+                                gradyV   = Internal.getNodeFromName1(s, 'gradyVelocityY')
+                                gradzV   = Internal.getNodeFromName1(s, 'gradzVelocityY')
+
+                                gradxW   = Internal.getNodeFromName1(s, 'gradxVelocityZ')
+                                gradyW   = Internal.getNodeFromName1(s, 'gradyVelocityZ')
+                                gradzW   = Internal.getNodeFromName1(s, 'gradzVelocityZ')
+
+                                if vx is not None:
+                                    vx = vx[1]
+                                    vy = vy[1]
+                                    vz = vz[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    vxNP  = numpy.zeros((nIBC),numpy.float64)
+                                    vyNP  = numpy.zeros((nIBC),numpy.float64)
+                                    vzNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
+                                    s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
+                                    s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
+                                    vx = Internal.getNodeFromName1(s, 'VelocityX')[1]
+                                    vy = Internal.getNodeFromName1(s, 'VelocityY')[1]
+                                    vz = Internal.getNodeFromName1(s, 'VelocityZ')[1]
+
+                                if gradxP is not None:
+                                    gradxP = gradxP[1]
+                                    gradyP = gradyP[1]
+                                    gradzP = gradzP[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                                    s[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                                    s[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+                                    gradxP = Internal.getNodeFromName1(s, 'gradxPressure')[1]
+                                    gradyP = Internal.getNodeFromName1(s, 'gradyPressure')[1]
+                                    gradzP = Internal.getNodeFromName1(s, 'gradzPressure')[1]
+
+                                if gradxU is not None:
+                                    gradxU = gradxU[1]
+                                    gradyU = gradyU[1]
+                                    gradzU = gradzU[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
+                                    s[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
+                                    s[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
+                                    gradxU = Internal.getNodeFromName1(s, 'gradxVelocityX')[1]
+                                    gradyU = Internal.getNodeFromName1(s, 'gradyVelocityX')[1]
+                                    gradzU = Internal.getNodeFromName1(s, 'gradzVelocityX')[1]
+
+                                if gradxV is not None:
+                                    gradxV = gradxV[1]
+                                    gradyV = gradyV[1]
+                                    gradzV = gradzV[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
+                                    s[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
+                                    s[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
+                                    gradxV = Internal.getNodeFromName1(s, 'gradxVelocityY')[1]
+                                    gradyV = Internal.getNodeFromName1(s, 'gradyVelocityY')[1]
+                                    gradzV = Internal.getNodeFromName1(s, 'gradzVelocityY')[1]
+
+                                if gradxW is not None:
+                                    gradxW = gradxW[1]
+                                    gradyW = gradyW[1]
+                                    gradzW = gradzW[1]
+                                else:
+                                    nIBC = pressure.shape[0]
+                                    gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                                    gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
+                                    s[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
+                                    s[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
+                                    s[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
+                                    gradxW = Internal.getNodeFromName1(s, 'gradxVelocityZ')[1]
+                                    gradyW = Internal.getNodeFromName1(s, 'gradyVelocityZ')[1]
+                                    gradzW = Internal.getNodeFromName1(s, 'gradzVelocityZ')[1]
+
+
+                                # print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
+                                connector._setIBCTransfers4FULLTBLE2(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                           pressure,
+                                                           vx, vy, vz,
+                                                           gradxP, gradyP, gradzP,
+                                                           gradxU, gradyU, gradzU,
+                                                           gradxV, gradyV, gradzV,
+                                                           gradxW, gradyW, gradzW,
+                                                           bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                           Internal.__GridCoordinates__,
+                                                           Internal.__FlowSolutionNodes__,
+                                                           Internal.__FlowSolutionCenters__)
+    return None
+
 #==============================================================================
 # Cette fonction retourne la transformation vectorielle d'une zone a l'autre
 #==============================================================================
@@ -2422,9 +3695,9 @@ def getTransfo(zdonor, zrcv):
         y=[0.0,1.0,0.0]
         a=Vector.dot(l1,x);b=Vector.dot(l1,y)
         c=Vector.dot(l2,x);d=Vector.dot(l2,y)
-        mat_ = numpy.array([[a,b], 
+        mat_ = numpy.array([[a,b],
                             [c,d]])
-        
+
         a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni//2; j = nj//2; k = nk//2
@@ -2447,16 +3720,16 @@ def getTransfo(zdonor, zrcv):
         mat = numpy.array([[a,b],
                           [c,d]])
         mat=mat.T
-        a=mat_[0,0]*mat[0,0] + mat_[0,1]*mat[1,0] 
+        a=mat_[0,0]*mat[0,0] + mat_[0,1]*mat[1,0]
         b=mat_[0,0]*mat[0,1] + mat_[0,1]*mat[1,1]
-        c=mat_[1,0]*mat[0,0] + mat_[1,1]*mat[1,0] 
+        c=mat_[1,0]*mat[0,0] + mat_[1,1]*mat[1,0]
         d=mat_[1,0]*mat[0,1] + mat_[1,1]*mat[1,1]
         mat__ = numpy.array([[a,b],
                              [c,d]])
         transfo[0]=(numpy.nonzero(mat__[0,:])[0][0]+1)*numpy.sign(mat__[0,numpy.nonzero(mat__[0,:])[0][0]])
         transfo[1]=(numpy.nonzero(mat__[1,:])[0][0]+1)*numpy.sign(mat__[1,numpy.nonzero(mat__[1,:])[0][0]])
         transfo[2]=3
-        
+
         return transfo
 
     else: #3D
@@ -2486,7 +3759,7 @@ def getTransfo(zdonor, zrcv):
         mat_ = numpy.array([[a,b,c],
                             [d,e,f],
                             [g,h,i]])
-        
+
         a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni//2; j = nj//2; k = nk//2
@@ -2524,12 +3797,12 @@ def getTransfo(zdonor, zrcv):
         g=mat_[2,0]*mat[0,0] + mat_[2,1]*mat[1,0] + mat_[2,2]*mat[2,0]
         h=mat_[2,0]*mat[0,1] + mat_[2,1]*mat[1,1] + mat_[2,2]*mat[2,1]
         i=mat_[2,0]*mat[0,2] + mat_[2,1]*mat[1,2] + mat_[2,2]*mat[2,2]
- 
+
         mat__ = numpy.array([[a,b,c],
                              [d,e,f],
                              [g,h,i]])
         transfo[0]=(numpy.nonzero(mat__[0,:])[0][0]+1)*numpy.sign(mat__[0,numpy.nonzero(mat__[0,:])[0][0]])
         transfo[1]=(numpy.nonzero(mat__[1,:])[0][0]+1)*numpy.sign(mat__[1,numpy.nonzero(mat__[1,:])[0][0]])
         transfo[2]=(numpy.nonzero(mat__[2,:])[0][0]+1)*numpy.sign(mat__[2,numpy.nonzero(mat__[2,:])[0][0]])
-        
-        return transfo        
+
+        return transfo

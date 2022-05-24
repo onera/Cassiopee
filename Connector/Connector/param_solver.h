@@ -244,6 +244,11 @@
 #define LBM_gamma_precon        52
 #define LBM_zlim                53
 
+/*IBM WL*/
+#define MAFZAL_MODE    56
+#define ALPHAGRADP     57
+#define NBPTS_LINELETS 58
+
 #define SA_CKARM    0.41 
 #define SA_CB1      0.1355
 #define SA_CB2      0.622

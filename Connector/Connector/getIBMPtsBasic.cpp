@@ -243,6 +243,7 @@ PyObject* K_CONNECTOR::getIBMPtsBasic(PyObject* self, PyObject* args)
                 if ( hit[ind] <= K_CONST::E_GEOM_CUTOFF) delta = -dist0;//symmetrical if hi=0
                 else delta = hit[ind];
             }
+
             ptrXI[ind] = ptrXW[ind] + delta * dirx;
             ptrYI[ind] = ptrYW[ind] + delta * diry;
             ptrZI[ind] = ptrZW[ind] + delta * dirz;
