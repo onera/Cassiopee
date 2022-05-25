@@ -163,7 +163,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
            utau         = Internal.getNodeFromName1(s, 'utau')
            gradxP       = Internal.getNodeFromName1(s, 'gradxPressure')
            gradxU       = Internal.getNodeFromName1(s, 'gradxVelocityX')
-           kcurv        = Internal.getNodeFromName1(s, 'XOD.__KCURV__')
+           kcurv        = Internal.getNodeFromName1(s, XOD.__KCURV__)
            sd1          = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
            yline        = Internal.getNodeFromName1(s, 'CoordinateN_ODE')
 
@@ -931,7 +931,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                  Interptype, pointlist, pointlistD, param_int,
                  ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
-                 ptdensity,ptpressure, tkcurv,
+                 ptdensity,ptpressure, ptkcurv,
                  ptvx, ptvy, ptvz,
                  ptutau,ptyplus,
                  ptgradxP, ptgradyP, ptgradzP,
