@@ -1,7 +1,8 @@
 # - meshGlobalEdges (array) -
 import OCC
 import Converter as C
+import KCore.test as test
 
 hook = OCC.occ.readCAD("cube.step", "fmt_step")
 edges = OCC.occ.meshGlobalEdges(hook, 10.)
-C.convertArrays2File(edges, 'out.plt')
+test.testA(edges, 1)

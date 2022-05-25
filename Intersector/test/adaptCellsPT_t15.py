@@ -26,7 +26,7 @@ cv.append(cv0)
 
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
-C.convertPyTree2File(a, 'out0.cgns')
+#C.convertPyTree2File(a, 'out0.cgns')
 
 m1 = XOR.adaptCells(a, cv, sensor_type=3, subdiv_type=1) # ISO_HEX
 m1 = XOR.closeCells(m1)

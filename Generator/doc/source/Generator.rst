@@ -74,7 +74,6 @@ List of functions
    Generator.adaptOctree
    Generator.expandLayer
    Generator.PyTree.cartRx
-   Generator.PyTree.cartRx2
    Generator.PyTree.cartRx3
 
 **-- Operations on meshes**
@@ -1109,7 +1108,7 @@ Cartesian grid generators
 
 ---------------------------------------
 
-.. py:function:: Generator.cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False, rank=None, size=None)
+.. py:function:: Generator.PyTree.cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False, rank=None, size=None)
 
     Create a set of regular cartesian grids.
     If depth > 0, an overlap of depth cells is added between grids.
@@ -1145,7 +1144,7 @@ Cartesian grid generators
 
 ---------------------------------------
 
-.. py:function:: Generator.cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None)
+.. py:function:: Generator.PyTree.cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None)
 
     Create a set of regular and geometric cartesian grids with double steps.
     The mesh is made of a regular cartesian core and border grids are geometric cartesian grids.

@@ -6,6 +6,8 @@ import Converter.Filter as Filter
 import Converter.Mpi    as Cmpi
 import KCore.test       as test
 
+LOCAL = test.getLocal()
+
 # Create case
 if Cmpi.rank == 0:
     ni = 50 ; nj = 50 ; nk = 50
@@ -17,10 +19,10 @@ if Cmpi.rank == 0:
     t = C.newPyTree(['Base',a,b])
     t = T.splitNParts(t, 5, multigrid=0, dirs=[1,2,3])
 
-    C.convertPyTree2File(t, 'case.cgns')
+    C.convertPyTree2File(t, LOCAL+'/case.cgns')
 
 # Load 
-h = Filter.Handle('case.cgns')
+h = Filter.Handle(LOCAL+'/case.cgns')
 a = h.loadAndDistribute()
 
 # Ajout XZones

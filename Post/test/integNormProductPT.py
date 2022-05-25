@@ -9,3 +9,4 @@ m = C.initVars(m,'MomentumX',1.)
 m = C.initVars(m,'MomentumY',1.)
 m = C.initVars(m,'MomentumZ',1.)
 res = P.integNormProduct(m,['MomentumX','MomentumY','MomentumZ']); print(res)
+#>> 100.0

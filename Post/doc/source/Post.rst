@@ -1060,10 +1060,11 @@ Solution extraction
 
 ---------------------------------------
 
-.. py:function:: Post.Probe.Probe(t, (x,y,z), fileName, fields=None, append=True, bufferSize=100)
+.. py:function:: Post.Probe.Probe(fileName, t, X=(x,y,z), fields=None, append=True, bufferSize=100)
 
     Create a probe at position (x,y,z) extracting given fields from t.
     Result is periodically flush to file.
+    Instead of giving (x,y,z), you can provide ind, blockName, proc.
 
     :param t: pyTree containing solution
     :type t: pyTree
@@ -1233,12 +1234,12 @@ Isos
 
     .. A1.O0.D0
 
-    Compute an isosurface correponding to value val of field (using marching
+    Compute an isosurface corresponding to value val of field (using marching
     cubes). Resulting solution is always located in nodes.
     If vars (for ex: ['centers:F', 'G']) is given, extract only given variables.
 
-    :param a:  input data
-    :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param a: input data
+    :type  a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param field: field name used in iso computation
     :type field: string
     :param val: value of field for extraction
@@ -1247,6 +1248,9 @@ Isos
     :type vars: list of strings
     :param split: 'simple' or 'withBarycenters', used in decomposing a in tetra (if needed)
     :type split: string
+    :return: a list of isosurface (one per original zones)
+    :rtype: list of arrays or list of zones
+
     
     *Example of use:*
 
@@ -1269,12 +1273,12 @@ Solution integration
     must be input separately, for pyTree, they must be defined in
     each zone.
 
-.. py:function:: Post.integ(A, var='')
+.. py:function:: Post.integ(A, var='F')
 
-    compute the integral of a scalar field (whose name is varString) over
-    the geometry defined
-    by arrays containing the coordinates + field ( + an optional ratio ).
+    Compute the integral :math:`\int F.dS` of a scalar field (whose name is in var string) over
+    the geometry defined by arrays containing the coordinates + field ( + an optional ratio ).
     Solution and ratio can be located at nodes or at centers.
+
     For array interface:
     ::
 
@@ -1284,7 +1288,14 @@ Solution integration
     is specified, all the fields located at nodes and centers are integrated:
     ::
 
-        res = P.integ(A, var='')
+        res = P.integ(A, var='F')
+
+    :param A: input data
+    :type  A: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param var: field name
+    :type var: string
+    :return: the result of integration
+    :rtype: a list of 1 float
 
     *Example of use:*
 
@@ -1299,9 +1310,9 @@ Solution integration
 
 ---------------------------------------
 
-.. py:function:: Post.integNorm(A, var='')
+.. py:function:: Post.integNorm(A, var='F')
 
-    Compute the integral of each scalar field times the surface normal
+    Compute the integral :math:`\int F.\vec n.dS` of a scalar field times the surface normal
     over the geometry defined by coord. For array interface:
     ::
 
@@ -1311,8 +1322,14 @@ Solution integration
     is specified, all the fields located at nodes and centers are integrated:
     ::
 
-        P.integNorm(A, var='')
+        P.integNorm(A, var='F')
 
+    :param A: input data
+    :type  A: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param var: field name
+    :type var: string
+    :return: the result of integration
+    :rtype: a list of 3 floats
 
     *Example of use:*
 
@@ -1327,9 +1344,9 @@ Solution integration
 
 ---------------------------------------
 
-.. py:function:: Post.integNormProduct(A, vector=[])
+.. py:function:: Post.integNormProduct(A, vector=['vx','vy','vz'])
 
-    Compute the integral of a vector field times the surface normal
+    Compute the integral :math:`\int \vec V \times \vec n.dS` of a vector field times the surface normal
     over the geometry defined by coord. The input field must have 3
     variables. For array interface, field must be a vector field:
     ::
@@ -1339,7 +1356,7 @@ Solution integration
     For pyTree interface, the vector field to be integrated must be specified:
     ::
 
-        res = P.integNormProduct(A, vector=[])
+        res = P.integNormProduct(A, vector=['vx','vy','vz'])
 
 
     *Example of use:*
@@ -1355,11 +1372,12 @@ Solution integration
 
 ---------------------------------------
 
-.. py:function:: Post.integMoment(A, center=(0.,0.,0.), vector=[])
+.. py:function:: Post.integMoment(A, center=(0.,0.,0.), vector=['vx','vy','vz'])
 
-    Compute the integral of a moment over the geometry defined by coord.
-    The input field must have 3
-    variables. (cx,cy,cz) are the center coordinates. For array interface:
+    Compute the integral :math:`\int \vec{CM} \times \vec V.dS` of a moment over the geometry defined by coord.
+    The input field must have 3 variables. center=(cx,cy,cz) are the center coordinates. 
+    
+    For array interface:
     ::
 
        res = P.integMoment([coord], [field], [ratio]=[], center=(0.,0.,0.))
@@ -1367,7 +1385,14 @@ Solution integration
     For pyTree interface, the vector of variables to be integrated must be specified:
     ::
 
-       res = P.integMoment(A, center=(0.,0.,0.), vector=[])
+       res = P.integMoment(A, center=(0.,0.,0.), vector=['vx','vy','vz'])
+
+    :param A: input data
+    :type  A: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param vector: list of vector field names
+    :type vector: list of 3 strings
+    :return: the result of integration
+    :rtype: a list of 3 floats
 
     *Example of use:*
 
@@ -1382,9 +1407,12 @@ Solution integration
 
 ---------------------------------------
 
-.. py:function:: Post.integMomentNorm(A, center=(cx,cy,cz), var='')
+.. py:function:: Post.integMomentNorm(A, center=(cx,cy,cz), var='F')
 
-    Compute the integral of a moment over the geometry defined by coord, taking into account the surface normal. The input field is a scalar. For array interface:
+    Compute the integral :math:`\int \vec{CM} \times F.\vec n. dS` of a moment over the geometry 
+    defined by coord, taking into account the surface normal. The input field is a scalar. 
+    
+    For array interface:
     ::
 
       res = P.integMomentNorm([coord], [field], [ratio]=[], center=(cx,cy,cz))
@@ -1393,7 +1421,14 @@ Solution integration
     is specified, all the fields located at nodes and centers are integrated:
     ::
 
-     res = P.integMomentNorm(A, center=(cx,cy,cz), var='')
+     res = P.integMomentNorm(A, center=(cx,cy,cz), var='F')
+
+    :param A: input data
+    :type  A: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param var: field name
+    :type var: string
+    :return: the result of integration
+    :rtype: a list of 3 floats
 
     *Example of use:*
 

@@ -11,10 +11,12 @@ C._initVars(a, '{centers:F} = {centers:CoordinateX}')
 t = C.newPyTree(['Base', a])
 
 # create a probe
-p1 = Probe.Probe('probe1.cgns', t, (10.,10.,10.), fields=['centers:F'], append=False)
-p1.print()
+p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=False)
+p1.printInfo()
 for i in range(110):
-    p1.extract(time=0.1*i)
+    time = 0.1*i
+    C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
+    p1.extract(time=time)
 p1.flush()
 
 # reread probe from file

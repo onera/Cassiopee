@@ -14,20 +14,20 @@ WIDGETS = {}; VARS = []
 def measure():
     if CTK.t == []: return
     prev = []
-    w = WIDGETS['button']
-    if CTK.__BUSY__ == False:
+    w = WIDGETS['measure']
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
         while CTK.__BUSY__:
             CPlot.unselectAllZones()
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if CTK.__BUSY__ == False: break
-            if CTK.__BUSY__ == True:
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
                 if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click second point...\n')
@@ -36,7 +36,7 @@ def measure():
                     (l[1]-prev[1])*(l[1]-prev[1])+\
                     (l[2]-prev[2])*(l[2]-prev[2])
                     dist = math.sqrt(dist)
-                    CTK.TXT.insert('START', 'dist= %.4e\n'%dist)
+                    CTK.TXT.insert('START', 'd= %.4e\n'%dist)
                     time.sleep(CPlot.__timeStep__)
                     prev = []
         CTK.__BUSY__ = False
@@ -46,7 +46,43 @@ def measure():
        CTK.__BUSY__ = False
        TTK.raiseButton(w)
        CPlot.setState(cursor=0)
-    
+
+#==============================================================================
+def vector():
+    if CTK.t == []: return
+    prev = []
+    w = WIDGETS['vector']
+    if not CTK.__BUSY__:
+        CTK.__BUSY__ = True
+        TTK.sunkButton(w)
+        CPlot.setState(cursor=1)
+        while CTK.__BUSY__:
+            CPlot.unselectAllZones()
+            l = []
+            while l == []:
+                l = CPlot.getActivePoint()
+                time.sleep(CPlot.__timeStep__)
+                w.update()
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
+                if prev == []:
+                    prev = l
+                    CTK.TXT.insert('START', 'Click second point...\n')
+                elif prev != l:
+                    dx = l[0]-prev[0]
+                    dy = l[1]-prev[1]
+                    dz = l[2]-prev[2]
+                    CTK.TXT.insert('START', 'v=( %.4e, %.4e, %.4e )\n'%(dx,dy,dz))
+                    time.sleep(CPlot.__timeStep__)
+                    prev = []
+        CTK.__BUSY__ = False
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
+    else:
+       CTK.__BUSY__ = False
+       TTK.raiseButton(w)
+       CPlot.setState(cursor=0)
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -76,7 +112,12 @@ def createApp(win):
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='Click on two points to obtain the distance.')
-    WIDGETS['button'] = B
+    WIDGETS['measure'] = B
+    B = TTK.Button(Frame, text="Vector mode", command=vector)
+    B.grid(row=1, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='Click on two points to obtain the vector coordinates.')
+    WIDGETS['vector'] = B
     
 #==============================================================================
 # Called to display widgets

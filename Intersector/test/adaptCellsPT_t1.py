@@ -18,7 +18,7 @@ a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeCells(m)
 test.testT(m,1)
-C.convertPyTree2File(m, 'PT_t1_1.cgns')
+#C.convertPyTree2File(m, 'PT_t1_1.cgns')
 
 m = XOR.adaptCells(a,b, sensor_type=1)
 m = XOR.closeCells(m)

@@ -12,7 +12,6 @@ C._initVars(a1, 'F', 2); C._initVars(a1, 'centers:G', 1); C._initVars(a1, 'cente
 C._initVars(a2, 'F', 3); C._initVars(a2, 'centers:G2', 10); C._initVars(a2, 'centers:G', 3)
 t = C.newPyTree(['Base',3])
 a = T.join(a1, a2); t[2][1][2].append(a)
-C.convertPyTree2File(t,"out1.cgns")
 test.testT(t, 1)
 
 # mix struct 3D + HEXA

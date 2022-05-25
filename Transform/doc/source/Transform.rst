@@ -311,7 +311,7 @@ Basic operations
 
 ---------------------------------------
 
-.. py:function:: Transform.patch(a, b, position=None, nodes=None)
+.. py:function:: Transform.patch(a, b, position=None, nodes=None, order=None)
 
     .. A1.O0.D1. Cette fonction devrait etre optimum pour patcher des solutions.
     
@@ -330,6 +330,8 @@ Basic operations
     :type position: 3-tuple of integers 
     :param nodes: list of nodes of the unstructured mesh a to be replaced
     :type nodes: numpy array of integers (starting from 1)
+    :param order: 3-tuple of integers indicating order of b relative to a (see reorder)
+    :type order: None or 3-tuple of integers
     :return: a modified zone
     :rtype: an array or a zone
 

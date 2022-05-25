@@ -8,3 +8,4 @@ m = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
 m = C.initVars(m, 'Density', 1.)
 t = C.newPyTree(['Base',2,m])
 res = P.integNorm(t, 'Density'); print(res)
+#>> [[0.0, 0.0, 0.8099999999999997]]

@@ -51,7 +51,6 @@ a    = C.convertArray2NGon(a)
 
 # BCs 
 subz = G.cartNGon( (0,0,0), (1,1,1), (11,7,1) )
-C.convertPyTree2File(subz,'sub.cgns')
 hook = C.createHook(a, function='faceCenters')
 ids  = C.identifyElements(hook, subz)
 a    = C.addBC2Zone(a, 'wall', 'BCWall', faceList=ids)
