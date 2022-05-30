@@ -51,7 +51,7 @@ class Probe:
     # init from position X or index
     def __init__(self, fileName, t=None, 
                  X=None, 
-                 ind=None, blockName=None, proc=None,  
+                 ind=None, blockName=None,  
                  fields=None, append=True, bufferSize=5000):
         """Create a probe."""
         self.init0()
@@ -62,19 +62,18 @@ class Probe:
         if fields is not None: loc = self.getFieldLoc(fields)
         else: loc = None
         
-        # Localication a partir de X
+        # Localisation a partir de X
         if X is not None:
             self._posX = X[0]
             self._posY = X[1]
             self._posZ = X[2]
         
             if t is not None and loc is not None:
-                self.locateProbe(t, X, loc)
+                self.locateProbeXYZ(t, X, loc)
 
-        # Localisation a partir de ind,blockName,proc
+        # Localisation a partir de ind,blockName
         if ind is not None and blockName is not None:
-            if proc is None: proc = 0
-            self.locateProbe2(t, ind, blockName, proc)
+            self.locateProbeInd(t, ind, blockName)
 
         if fields is not None: self.checkVariables(fields)
         
@@ -102,7 +101,7 @@ class Probe:
     # IN: posX, posY, posZ
     # IN: loc: loc of all fields of probe
     # OUT: ind, blockName, dist
-    def locateProbe(self, t, X, loc):
+    def locateProbeXYZ(self, t, X, loc):
         P = D.point(X)
         zones = Internal.getZones(t)
         dist = 1.e16; blockName = None; ind = 0
@@ -134,7 +133,13 @@ class Probe:
         return None
         
     # locate probe from ind and blockName
-    def locateProbe2(self, t, ind, blockName, proc=0):
+    def locateProbeInd(self, t, ind, blockName):
+        p = Internal.getNodeFromName1(t, blockName)
+        if p is not None and Cmpi.isZoneSkeleton__(blockName):
+            proc = Cmpi.rank
+        else: proc = 0
+        print('Info: probe found on proc:', proc)
+            
         if isinstance(ind, tuple):
             b = Internal.getNodeFromName(t, blockName)
             if b is not None and Cmpi.rank == proc:
@@ -251,7 +256,7 @@ class Probe:
     # IN: _pfields: numpys des champs de la zone de probe
     # IN: _fields: nom des champs a extraire
     def extract(self, time):
-        """Extract fields from t."""
+        """Extract XYZ or Ind fields from t."""
         if Cmpi.rank != self._proc: return None
         # set time in CoordinateX
         px = Internal.getNodeFromName2(self._pZone, 'CoordinateX')[1]
@@ -263,10 +268,17 @@ class Probe:
             pf = Internal.getNodeFromName2(self._pZone, v)[1]
             pf = pf.ravel('k')
             pf[self._icur] = f[self._ind]
-            #print(f[self._ind])
+            #print('value=',f[self._ind])
         self._icur += 1
         if self._icur >= self._bsize: self.flush()
         return None
+
+    def extractFromZones(zones, time):
+        """Accumulate zone."""
+        # keep only fields from zones
+        zones = C.extractVars()
+
+        # Add time stamp
 
     # flush containers of probe
     # IN: _proc: proc du bloc contenant la probe
@@ -283,7 +295,7 @@ class Probe:
             gc[0] = 'GridCoordinates#%d'%self._filecur
             fc = Internal.copyNode(fc)
             fc[0] = 'FlowSolution#%d'%self._filecur
-            print('Info: probe: flush %d (full).'%self._filecur)
+            print('Info: probe: flush #%d (full).'%self._filecur)
             paths = ['CGNSTree/Base/probe','CGNSTree/Base/probe']
             nodes = [gc,fc]
             Distributed.writeNodesFromPaths(self._fileName, paths, nodes, mode=0)

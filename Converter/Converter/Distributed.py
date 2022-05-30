@@ -876,7 +876,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 popp = getProcGlobal__(donor, t, procDict)
                 updateGraph__(graph, proc, popp, z[0])
 
-    elif type=='nmatch':# base sur les nearmatchs
+    elif type == 'nmatch': # base sur les nearmatchs
         for z in zones:
             proc = getProcLocal__(z, procDict)
             GC = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -946,26 +946,26 @@ def _setProc(t, nproc):
             a = ['proc', v, [], 'DataArray_t']
             param[2].append(a)
     return None
- 
 
 #==============================================================================
 # Retourne le dictionnaire prop['blocName']
 # a partir d'un arbre distribue contenant des noeuds 'propname'
 #==============================================================================
 def getPropertyDict(t, propname):
-    """Return the dictionary proc['zoneName']."""
+    """Return the dictionary prop['zoneName']."""
     prop = {}
     zones = Internal.getZones(t)
     for z in zones:
         nprop = getProperty(z, propname)
         prop[z[0]] = nprop
     return prop
+
 #==============================================================================
 # get property in zone (if exists), otherwise return -1
 # IN: a: zone node
 #==============================================================================
 def getProperty(a, propname):
-    """Return the proc of zone."""
+    """Return the property of zone."""
     nprop = Internal.getNodeFromName2(a, propname)
     if nprop is not None: nprop = Internal.getValue(nprop)
     else: nprop = -1

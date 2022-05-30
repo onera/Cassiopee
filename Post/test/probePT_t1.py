@@ -12,7 +12,7 @@ C._initVars(a, '{centers:F} = {centers:CoordinateX}')
 t = C.newPyTree(['Base',a])
 
 # create a probe
-p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=False)
+p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=False, bufferSize=15)
 for i in range(20):
     time = 0.1*i
     C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
@@ -20,7 +20,7 @@ for i in range(20):
 p1.flush()
 
 # test append
-p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=True)
+p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=True, bufferSize=15)
 for i in range(20):
     time = 2.+0.1*i
     C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
@@ -29,6 +29,6 @@ p1.flush()
 test.testT(p1._pZone, 1)
 
 # reread probe
-p1 = Probe.Probe('probe1.cgns')
+p1 = Probe.Probe('probe1.cgns', bufferSize=15)
 out = p1.read()
 test.testT(out, 2)

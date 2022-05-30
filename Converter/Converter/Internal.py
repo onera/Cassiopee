@@ -2442,7 +2442,7 @@ def copyNode(node):
     if ret == -1:
         if node[1] is not None and isinstance(node[1], numpy.ndarray):
             d = [node[0], node[1].copy('F'), node[2], node[3]]
-        else: d = [node[0], node[1], [], node[3]]
+        else: d = [node[0], node[1], node[2], node[3]]
         return d
     elif ret == 0:
         d = []
@@ -4912,7 +4912,7 @@ def _mergeEltsTPerType(t):
 
         # init 
         rmin = 1; rmax= -1
-        newElts_t=[]; etype = -1
+        newElts_t = []; etype = -1
    
         while rmin < rmaxall:
             name1 = -1; name2 = -1
@@ -4958,7 +4958,7 @@ def _mergeEltsTPerType(t):
                         newElts_t.append(EltsT)
             rmin = rmax2+1
      
-        _rmNodesFromType(z,'Elements_t')
+        _rmNodesFromType(z, 'Elements_t')
         z[2] += newElts_t
 
     return None
@@ -4988,7 +4988,7 @@ def _mergeBCDataSets__(z, bcNode):
         elif dname==dataSetByPathName and dataSetByPathName is not None: nod = no; break
         elif dname=='FFD72SurfaceSolution': nod = no; break
         no += 1
-    if nod == -1: nod = 0# other cases : first bc data set is kept
+    if nod == -1: nod = 0 # other cases: first bc data set is kept
 
     no = 0; locd = dataSetLocs[nod]
     bcdatas = getNodeFromType2(dataSets[nod], 'DataArray_t')
@@ -5114,7 +5114,7 @@ def getBCDataSetContainers(name, z):
     nbcdataset = len(allRanges)
 
     # Case 1: get all the fields at a given location
-    if (name  == __FlowSolutionNodes__) or (name == __FlowSolutionCenters__):
+    if name  == __FlowSolutionNodes__ or name == __FlowSolutionCenters__:
         loc = 'Vertex'
         f = getNodeFromName2(z, name)
         if f is not None:

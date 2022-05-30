@@ -30,7 +30,7 @@ p1.flush()
 if Cmpi.rank == 0: test.testT(p1._pZone, 1)
 
 # create a probe
-p2 = Probe.Probe('probe2.cgns', t, ind=(2,2,2), blockName='cart0-0-0', proc=0, fields=['centers:F'], append=False)
+p2 = Probe.Probe('probe2.cgns', t, ind=(2,2,2), blockName='cart0-0-0', fields=['centers:F'], append=False)
 for i in range(20):
     time = 0.1*i
     C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
