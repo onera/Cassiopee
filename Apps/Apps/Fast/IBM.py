@@ -1295,7 +1295,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
         if twoFronts:
             tc2 = transformTc2(tc2)
-            Cmpi.convertPyTree2File(tc2, 'tc2.cgns', ignoreProcNodes=True)
+            tcp2 = Compressor.compressCartesian(tc2)
+            Cmpi.convertPyTree2File(tcp2, 'tc2.cgns', ignoreProcNodes=True)
             del tc2
 
     # Initialisation
@@ -2623,11 +2624,17 @@ def transformTc2(tc2):
         for zsr in subRegions:
             nameSubRegion = zsr[0]
             if nameSubRegion[:6] == "2_IBCD":
-                ibctype = nameSubRegion.split("_")[2]
+                ibctype = int(nameSubRegion.split("_")[2])
                 zsr[0] = "IBCD_{}_".format(ibctype)+"_".join(nameSubRegion.split("_")[3:])
 
                 pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
                 nIBC = pressure.shape[0]
+
+                Internal._rmNodesByName(zsr, 'Density')
+
+                Internal._rmNodesByName(zsr, 'VelocityX')
+                Internal._rmNodesByName(zsr, 'VelocityY')
+                Internal._rmNodesByName(zsr, 'VelocityZ')
 
                 Internal._rmNodesByName(zsr, 'utau')
                 Internal._rmNodesByName(zsr, 'yplus')
@@ -2655,6 +2662,16 @@ def transformTc2(tc2):
                 Internal._rmNodesByName(zsr, 'gradzVelocityZ')
 
                 Internal._rmNodesByName(zsr, 'KCurv')
+
+                DensityNP = numpy.zeros((nIBC),numpy.float64)
+                zsr[2].append(['Density' , DensityNP , [], 'DataArray_t'])
+
+                VelocityXNP = numpy.zeros((nIBC),numpy.float64)
+                zsr[2].append(['VeloicityX' , VelocityXNP , [], 'DataArray_t'])
+                VelocityYNP= numpy.zeros((nIBC),numpy.float64)
+                zsr[2].append(['VeloicityY' , VelocityYNP , [], 'DataArray_t'])
+                VelocityZNP = numpy.zeros((nIBC),numpy.float64)
+                zsr[2].append(['VeloicityZ' , VelocityZNP , [], 'DataArray_t'])
 
                 if ibctype in [2, 3, 6, 10, 11]:
                     utauNP  = numpy.zeros((nIBC),numpy.float64)
