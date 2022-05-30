@@ -1641,6 +1641,27 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
                         zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
 
         if tc2 is not None: 
+            # add gradP fields in tc2 if necessary
+            for z in Internal.getZones(tc2):
+                subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+                for zsr in subRegions:
+                    nameSubRegion = zsr[0]
+                    if nameSubRegion[:4] == "IBCD":
+                        pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
+                        gradxP   = Internal.getNodeFromName(zsr, 'gradxPressure')
+                        gradyP   = Internal.getNodeFromName(zsr, 'gradyPressure')
+                        gradzP   = Internal.getNodeFromName(zsr, 'gradzPressure')
+                        nIBC = pressure.shape[0]
+
+                        if gradxP is  None:
+                            gradxPressureNP = numpy.zeros((nIBC),numpy.float64)
+                            gradyPressureNP = numpy.zeros((nIBC),numpy.float64)
+                            gradzPressureNP = numpy.zeros((nIBC),numpy.float64)
+                            zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                            zsr[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                            zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+
+        if tc2 is not None: 
             if order < 2:
                 tc2 = extractPressureHO(tc2)
             else:

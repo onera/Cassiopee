@@ -2798,7 +2798,8 @@ def _setIBCTransfers4GradP(aR, topTreeD, variables=[], cellNVariable='',
         for s in subRegions:
             sname = s[0][0:4]
             # test pour eviter parcours arbre inutile
-            if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+            # if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+            if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None):
                idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
                if idn is not None:
                    zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
@@ -2868,7 +2869,8 @@ def _setIBCTransfers4GradP2(aR, topTreeD, variables=[], cellNVariable='',
         for s in subRegions:
             sname = s[0][0:4]
             # test pour eviter parcours arbre inutile
-            if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+            # if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None and not any(extension in s[0] for extension in ["_0_", "_1_", "_4_", "_5_"])):
+            if ((sname == 'IBCD' or sname == '2_IB') and variablesIBC is not None):
                idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
                if idn is not None:
                    zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
