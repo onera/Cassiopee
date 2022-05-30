@@ -117,7 +117,7 @@ class GenIOHdf
     hid_t* getChildren(hid_t);
     char*  getName(double node);
     char*  getLabel(double node);
-    void   getType(double node, char* type, int dim, int* dims);
+    void   getType(double node, char* type, int dim, hsize_t* dims);
     bool   isAnodeToSkip();
 
     /* Create HDF Method */
@@ -138,25 +138,25 @@ class GenIOHdf
     double getSingleR8(hid_t node, hid_t tid);
 
     /* Method to getArray in HDF */
-    PyObject* getArrayR8Skel(hid_t node, hid_t tid, int dim, int* dims);
-    PyObject* getArrayR4Skel(hid_t node, hid_t tid, int dim, int* dims);
-    PyObject* getArrayI1Skel(hid_t node, hid_t tid, int dim, int* dims);
-    PyObject* getArrayI8Skel(hid_t node, hid_t tid, int dim, int* dims);
-    PyObject* getArrayI4Skel(hid_t node, hid_t tid, int dim, int* dims);
+    PyObject* getArrayR8Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    PyObject* getArrayR4Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    PyObject* getArrayI1Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    PyObject* getArrayI8Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    PyObject* getArrayI4Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
     
-    PyObject* getArrayR8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayR42R8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayR4Raw(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayR8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayR42R8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayR4Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     #define getArrayR4 getArrayR42R8
-    PyObject* getArrayI1(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayI4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayI82I4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayI8Raw(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI1(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI82I4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI8Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     #define getArrayI8 getArrayI82I4
-    char* getArrayC1(hid_t node, hid_t tid, int dim, int* dims);
+    char* getArrayC1(hid_t node, hid_t tid, int dim, hsize_t* dims);
 
     /* Method for contiguous array **/
-    PyObject* getArrayContigous(hid_t node, hid_t tid, int dim, int* dims, int NPYtype, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL, PyObject* r = NULL);
+    PyObject* getArrayContigous(hid_t node, hid_t tid, int dim, hsize_t* dims, int NPYtype, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL, PyObject* r = NULL);
 
     /* Method to setSingle in HDF */
     hid_t setSingleR4(hid_t node, float  data);
@@ -165,16 +165,16 @@ class GenIOHdf
     hid_t setSingleI8(hid_t node, E_LONG data);
 
     /* Method to setArray in HDF */
-    hid_t setArrayR4(hid_t node, float*  data, int dim, int *dims);
-    hid_t setArrayR8(hid_t node, double* data, int dim, int *dims);
-    hid_t setArrayI1(hid_t node, char*   data, int dim, int *dims);
-    hid_t setArrayI4(hid_t node, int*    data, int dim, int *dims);
-    hid_t setArrayI8(hid_t node, E_LONG* data, int dim, int *dims);
+    hid_t setArrayR4(hid_t node, float*  data, int dim, hsize_t *dims);
+    hid_t setArrayR8(hid_t node, double* data, int dim, hsize_t *dims);
+    hid_t setArrayI1(hid_t node, char*   data, int dim, hsize_t *dims);
+    hid_t setArrayI4(hid_t node, int*    data, int dim, hsize_t *dims);
+    hid_t setArrayI8(hid_t node, E_LONG* data, int dim, hsize_t *dims);
     hid_t setArrayC1(hid_t node, char*   data, char* label=(char*)L3S_DATA);
-    hid_t setArrayC1(hid_t node, char*   data, int dim, int *dims);
+    hid_t setArrayC1(hid_t node, char*   data, int dim, hsize_t *dims);
 
     /* Method to setPartialArray in HDF */
-    hid_t setArrayPartial(hid_t node, void* data, int idim, int* idims,
+    hid_t setArrayPartial(hid_t node, void* data, int idim, hsize_t* idims,
                           hid_t DataType, char *CGNSType);
 
     /* DataSpace Fill */
@@ -233,8 +233,8 @@ class GenIOHdf
     char  _type[CGNSMAXLABEL+1];
     char  _name[CGNSMAXLABEL+1];
     char  _dtype[CGNSMAXLABEL+1];
-    int   _dims[CGNSMAXDIM];
-    int   _dims2[CGNSMAXDIM];
+    hsize_t _dims[CGNSMAXDIM];
+    hsize_t _dims2[CGNSMAXDIM];
     int   _tmp[CGNSMAXDIM];  /* Just use to swap dims and dims2 */
     /* Store CGNS Path */
     char  *_path;
@@ -255,7 +255,7 @@ void fillArrayLongWithList( PyObject* obj, int item, hsize_t *val);
 bool haveMultipleDataSpace(PyObject* Filter);
 // void fillDataSpaceWithList( PyObject* obj, DataSpace_t *DataSpace);
 
-int HDF_Get_DataDimensionsPartial(hid_t nid, int     *dims,
+int HDF_Get_DataDimensionsPartial(hid_t nid, hsize_t *dims,
                                              hsize_t *dst_offset,
                                              hsize_t *dst_stride,
                                              hsize_t *dst_count,
@@ -266,7 +266,7 @@ hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
                                       hsize_t *src_count,
                                       hsize_t *src_block);
 
-hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
+hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
                                        hsize_t *dst_offset,
                                        hsize_t *dst_stride,
                                        hsize_t *dst_count,

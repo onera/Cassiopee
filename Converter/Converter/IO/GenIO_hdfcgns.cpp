@@ -341,7 +341,7 @@ hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
 }
 
 //=============================================================================
-int HDF_Get_DataDimensions(hid_t nid, int *dims)
+int HDF_Get_DataDimensions(hid_t nid, hsize_t *dims)
 {
   int n, ndims;
   hsize_t int_dim_vals[CGNSMAXDIM];
@@ -353,7 +353,8 @@ int HDF_Get_DataDimensions(hid_t nid, int *dims)
   ndims = H5Sget_simple_extent_ndims(sid);
   H5Sget_simple_extent_dims(sid, int_dim_vals, NULL);
 
-  for (n = 0; n < ndims; n++){ dims[n] = (int)(int_dim_vals[n]); }
+  for (n = 0; n < ndims; n++){ dims[n] = int_dim_vals[n]; }
+
   H5Dclose(did); H5Sclose(sid);
 
   return 1;
@@ -512,7 +513,7 @@ double K_IO::GenIOHdf::getSingleR8(hid_t node, hid_t tid)
 
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayI1(hid_t node, hid_t tid,
-                                     int dim, int* dims,
+                                     int dim, hsize_t* dims,
                                      hid_t mid,            /* mem_space_id */
                                      hid_t sid)
 {
@@ -549,7 +550,7 @@ PyObject* K_IO::GenIOHdf::getArrayI1(hid_t node, hid_t tid,
 
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayI4(hid_t node, hid_t tid,
-                                     int dim, int* dims,
+                                     int dim, hsize_t* dims,
                                      hid_t mid,            /* mem_space_id */
                                      hid_t sid)
 {
@@ -587,7 +588,7 @@ PyObject* K_IO::GenIOHdf::getArrayI4(hid_t node, hid_t tid,
 //=============================================================================
 // Get arrayi8, le convertit en i4
 PyObject* K_IO::GenIOHdf::getArrayI82I4(hid_t node, hid_t tid,
-                                        int dim, int* dims,
+                                        int dim, hsize_t* dims,
                                         hid_t mid,
                                         hid_t sid)
 {
@@ -643,7 +644,7 @@ PyObject* K_IO::GenIOHdf::getArrayI82I4(hid_t node, hid_t tid,
 
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayI8Raw(hid_t node, hid_t tid,
-                                       int dim, int* dims,
+                                       int dim, hsize_t* dims,
                                        hid_t mid,  /* mem_space_id */
                                        hid_t sid)
 {
@@ -679,7 +680,7 @@ PyObject* K_IO::GenIOHdf::getArrayI8Raw(hid_t node, hid_t tid,
 
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayR4Skel(hid_t node, hid_t tid,
-                                         int dim, int* dims)
+                                         int dim, hsize_t* dims)
 {
   if (_maxFloatSize == 0) { Py_INCREF(Py_None); return Py_None; }
   int  s, sizem;
@@ -692,7 +693,7 @@ PyObject* K_IO::GenIOHdf::getArrayR4Skel(hid_t node, hid_t tid,
 //=============================================================================
 // avec conversion des R4 en R8
 PyObject* K_IO::GenIOHdf::getArrayR42R8(hid_t node, hid_t tid,
-                                        int dim, int* dims,
+                                        int dim, hsize_t* dims,
                                         hid_t mid,
                                         hid_t sid)
 {
@@ -745,7 +746,7 @@ PyObject* K_IO::GenIOHdf::getArrayR42R8(hid_t node, hid_t tid,
   return (PyObject*)r;
 }
 //=============================================================================
-PyObject* K_IO::GenIOHdf::getArrayR4Raw(hid_t node, hid_t tid, int dim, int* dims,
+PyObject* K_IO::GenIOHdf::getArrayR4Raw(hid_t node, hid_t tid, int dim, hsize_t* dims,
                                         hid_t mid,  /* mem_space_id */
                                         hid_t sid)
 {
@@ -781,10 +782,11 @@ PyObject* K_IO::GenIOHdf::getArrayR4Raw(hid_t node, hid_t tid, int dim, int* dim
 
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayR8Skel(hid_t node, hid_t tid,
-                                         int dim, int* dims)
+                                         int dim, hsize_t* dims)
 {
   if (_maxFloatSize == 0) { Py_INCREF(Py_None); return Py_None; }
-  int  s, sizem;
+  int  s;
+  hsize_t sizem;
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
   if (sizem < _maxFloatSize) return getArrayR8(node, tid, dim, dims);
@@ -793,10 +795,11 @@ PyObject* K_IO::GenIOHdf::getArrayR8Skel(hid_t node, hid_t tid,
 
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayI1Skel(hid_t node, hid_t tid,
-                                         int dim, int* dims)
+                                         int dim, hsize_t* dims)
 {
   if (_maxFloatSize == 0) { Py_INCREF(Py_None); return Py_None; }
-  int  s, sizem;
+  int  s;
+  hsize_t sizem;
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
   if (sizem < _maxFloatSize) return getArrayI1(node, tid, dim, dims);
@@ -805,10 +808,11 @@ PyObject* K_IO::GenIOHdf::getArrayI1Skel(hid_t node, hid_t tid,
 
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayI8Skel(hid_t node, hid_t tid,
-                                         int dim, int* dims)
+                                         int dim, hsize_t* dims)
 {
   if (_maxFloatSize == 0) { Py_INCREF(Py_None); return Py_None; }
-  int  s, sizem;
+  int  s;
+  hsize_t sizem;
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
   if (sizem < _maxFloatSize) return getArrayI8(node, tid, dim, dims);
@@ -817,10 +821,11 @@ PyObject* K_IO::GenIOHdf::getArrayI8Skel(hid_t node, hid_t tid,
 
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayI4Skel(hid_t node, hid_t tid,
-                                         int dim, int* dims)
+                                         int dim, hsize_t* dims)
 {
   if (_maxFloatSize == 0) { Py_INCREF(Py_None); return Py_None; }
-  int  s, sizem;
+  int  s;
+  hsize_t sizem;
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
   if (sizem < _maxFloatSize) return getArrayI4(node, tid, dim, dims);
@@ -828,7 +833,7 @@ PyObject* K_IO::GenIOHdf::getArrayI4Skel(hid_t node, hid_t tid,
 }
 
 //=============================================================================
-PyObject* K_IO::GenIOHdf::getArrayR8(hid_t node, hid_t tid, int dim, int* dims,
+PyObject* K_IO::GenIOHdf::getArrayR8(hid_t node, hid_t tid, int dim, hsize_t* dims,
                                      hid_t mid,  /* mem_space_id */
                                      hid_t sid)
 {
@@ -866,7 +871,7 @@ PyObject* K_IO::GenIOHdf::getArrayR8(hid_t node, hid_t tid, int dim, int* dims,
 }
 
 //=============================================================================
-char* K_IO::GenIOHdf::getArrayC1(hid_t node, hid_t tid, int dim, int* dims)
+char* K_IO::GenIOHdf::getArrayC1(hid_t node, hid_t tid, int dim, hsize_t* dims)
 {
   IMPORTNUMPY;
   int s, sizem;
@@ -904,7 +909,7 @@ char* K_IO::GenIOHdf::getArrayC1(hid_t node, hid_t tid, int dim, int* dims)
 PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node, 
                                             hid_t     tid, 
                                             int       dim,
-                                            int*      dims, 
+                                            hsize_t*  dims,
                                             int       NPYtype,
                                             hid_t     mid,  /* mem_space_id */
                                             hid_t     sid, 
@@ -2006,7 +2011,7 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
   {
     PyArrayObject* ar = (PyArrayObject*)v;
     int dim = PyArray_NDIM(ar);
-    int* dims = new int [dim];
+    hsize_t* dims = new hsize_t [dim];
     //int typeNum = ar->descr->type_num;
     //int elSize = ar->descr->elsize;
     int typeNum = PyArray_TYPE(ar);
@@ -2292,7 +2297,7 @@ hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, char* label)
 }
 
 //=============================================================================
-hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, int idim, int* idims)
+hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, int idim, hsize_t* idims)
 {
   hsize_t dim; hsize_t* dims;
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
@@ -2314,7 +2319,7 @@ hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, int idim, int* idims)
 }
 
 //=============================================================================
-hid_t K_IO::GenIOHdf::setArrayI1(hid_t node, char* data, int idim, int* idims)
+hid_t K_IO::GenIOHdf::setArrayI1(hid_t node, char* data, int idim, hsize_t* idims)
 {
   hsize_t dim; hsize_t* dims;
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
@@ -2335,7 +2340,7 @@ hid_t K_IO::GenIOHdf::setArrayI1(hid_t node, char* data, int idim, int* idims)
 }
 
 //=============================================================================
-hid_t K_IO::GenIOHdf::setArrayI4(hid_t node, int* data, int idim, int* idims)
+hid_t K_IO::GenIOHdf::setArrayI4(hid_t node, int* data, int idim, hsize_t* idims)
 {
   hsize_t dim; hsize_t* dims;
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
@@ -2357,7 +2362,7 @@ hid_t K_IO::GenIOHdf::setArrayI4(hid_t node, int* data, int idim, int* idims)
 }
 
 //=============================================================================
-hid_t K_IO::GenIOHdf::setArrayI8(hid_t node, E_LONG* data, int idim, int* idims)
+hid_t K_IO::GenIOHdf::setArrayI8(hid_t node, E_LONG* data, int idim, hsize_t* idims)
 {
   hsize_t dim; hsize_t* dims;
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
@@ -2380,7 +2385,7 @@ hid_t K_IO::GenIOHdf::setArrayI8(hid_t node, E_LONG* data, int idim, int* idims)
 
 //=============================================================================
 hid_t K_IO::GenIOHdf::setArrayR4(hid_t node, float* data,
-                                 int idim, int* idims)
+                                 int idim, hsize_t* idims)
 {
   hsize_t dim; hsize_t* dims;
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
@@ -2403,7 +2408,7 @@ hid_t K_IO::GenIOHdf::setArrayR4(hid_t node, float* data,
 
 //=============================================================================
 hid_t K_IO::GenIOHdf::setArrayR8(hid_t node, double* data,
-                                 int idim, int* idims)
+                                 int idim, hsize_t* idims)
 {
   hsize_t dim; hsize_t* dims;
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);

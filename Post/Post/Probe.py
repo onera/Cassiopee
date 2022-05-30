@@ -121,7 +121,7 @@ class Probe:
         for p, i in enumerate(ret):
             if i is not None and i < dist: 
                 dist = i; proc = p
-        print('Info: probe found on proc:', proc)
+        print('Info: probe found on proc: %d on block: %s.'%(proc,blockName))
         
         [ind,blockName,dist,proc] = Cmpi.bcast([ind,blockName,dist,proc], root=proc)
 
@@ -134,12 +134,14 @@ class Probe:
         
     # locate probe from ind and blockName
     def locateProbeInd(self, t, ind, blockName):
-        p = Internal.getNodeFromName1(t, blockName)
-        if p is not None and Cmpi.isZoneSkeleton__(blockName):
+        p = Internal.getNodeFromName2(t, blockName)
+        if p is not None and Cmpi.isZoneSkeleton__(p):
             proc = Cmpi.rank
-        else: proc = 0
-        print('Info: probe found on proc:', proc)
-            
+            print('Info: probe found on proc: %d on block %s.'%(proc,blockName))
+        else: 
+            proc = 0
+            print('Warning: probe not found on block %s.'%blockName)
+
         if isinstance(ind, tuple):
             b = Internal.getNodeFromName(t, blockName)
             if b is not None and Cmpi.rank == proc:
@@ -164,9 +166,9 @@ class Probe:
     def printInfo(self):
         """Print information on probe."""
         if Cmpi.rank != self._proc: return
-        print('Info: probe: Position X: ', self._posX, self._posY, self._posZ)
-        print('Info: probe: Block:', self._blockName)
-        print('Info: probe: Block global index:', self._ind)
+        print('Info: probe: position X: ', self._posX, self._posY, self._posZ)
+        print('Info: probe: block:', self._blockName)
+        print('Info: probe: block global index:', self._ind)
         print('Info: probe: distance probe-node:', self._dist)
         print('Info: probe: extracted vars:', self._fields)
         print('Info: probe: filecur:', self._filecur)

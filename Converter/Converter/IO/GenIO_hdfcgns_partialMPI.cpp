@@ -104,7 +104,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
       }
       if (FilterSize < 9 && have_multiple_data_space == false)  /** Dans le cas particulier Contiguous with only one path **/
       {
-        printf("FilterSize: %d \n", FilterSize);
+        //printf("FilterSize: %d \n", FilterSize);
         PyErr_SetString(PyExc_TypeError, "hdfread: FilterSize must be a list of 9 numbers.");
         return NULL;
       }
@@ -853,7 +853,7 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
   {
     PyArrayObject* ar = (PyArrayObject*)v;
     int dim = PyArray_NDIM(ar);
-    int* dims = new int [dim];
+    hsize_t* dims = new hsize_t [dim];
     //int typeNum = ar->descr->type_num;
     //int elSize = ar->descr->elsize;
     int typeNum = PyArray_TYPE(ar);
@@ -1011,7 +1011,7 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
 
 
 //=============================================================================
-hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idims,
+hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t* idims,
                                       hid_t DataType, char *CGNSType)
 {
   //hid_t    acc_tpl1;              /* File access templates */
@@ -1540,7 +1540,7 @@ void fillArrayLongWithList(PyObject* obj, int item, hsize_t *val)
 
 /* ------------------------------------------------------------------------- */
 // Retourne la dimension du tableau partiel dans dims
-int HDF_Get_DataDimensionsPartial(hid_t nid, int *dims,
+int HDF_Get_DataDimensionsPartial(hid_t nid, hsize_t *dims,
                                   hsize_t *dst_offset,
                                   hsize_t *dst_stride,
                                   hsize_t *dst_count,
@@ -1594,7 +1594,7 @@ hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
 //=============================================================================
 // Cree un dataspace HDF - Output
 //=============================================================================
-hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
+hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
                                        hsize_t *dst_offset,
                                        hsize_t *dst_stride,
                                        hsize_t *dst_count,

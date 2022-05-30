@@ -49,7 +49,7 @@ else: # try import (may fail - core or hang)
         def seq(F, *args): F(*args)
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
-from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph
+from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph,  isZoneSkeleton__
 from . import PyTree as C
 from . import Internal
 
