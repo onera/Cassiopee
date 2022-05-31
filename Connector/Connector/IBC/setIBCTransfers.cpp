@@ -541,7 +541,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
     bctype = 3; //Musker
   }
 
-  if ( bctype == 0 || bctype == 1)
+  if ( bctype == 0 || bctype == 1 || bctype == 4)
   {;}
   else if (bctype==100)//slip + curvature radius
   {
