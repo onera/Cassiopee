@@ -191,8 +191,9 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         ptrState->billBoardNj = 1;
         ptrState->billBoardWidth = 1;
         ptrState->billBoardHeight = 1;
-        
         if (_shaders.currentShader() != shader) _shaders.activate(shader);
+        _shaders[shader]->setUniform("specularFactor", (float)1.);
+        _shaders[shader]->setUniform("diffuseFactor", (float)1.);
       }
       else if (z.shaderParam2 >= 0.1) // texture billboards
       {

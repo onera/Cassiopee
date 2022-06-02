@@ -666,7 +666,7 @@ def _addRender2Zone(a, material=None, color=None, blending=None,
 # -- addRender2PyTree
 def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
-                     isoEdges=None, isoLight=None,
+                     isoEdges=None, isoLight=None, isoLegend=None,
                      colormap=None, colormapC1=None, colormapC2=None, colormapC3=None,
                      materials=None, bumpMaps=None, billBoards=None):
   """Add a renderInfo node to a tree.
@@ -674,14 +674,14 @@ def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
   a = Internal.copyRef(t)
   _addRender2PyTree(a, slot, posCam, posEye, dirCam,
                     mode, scalarField, niso, isoScales,
-                    isoEdges, isoLight, 
+                    isoEdges, isoLight, isoLegend,
                     colormap, colormapC1, colormapC2, colormapC3, 
                     materials, bumpMaps, billBoards)
   return a
 
 def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
-                     isoEdges=None, isoLight=None,
+                     isoEdges=None, isoLight=None, isoLegend=None,
                      colormap=None, colormapC1=None, colormapC2=None, colormapC3=None,
                      materials=None, bumpMaps=None, billBoards=None):
   """Add a renderInfo node to a tree.
@@ -735,6 +735,9 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
 
   if isoLight is not None:
     rt = Internal.createUniqueChild(sl, 'isoLight', 'DataArray_t', value=isoLight)
+
+  if isoLegend is not None:
+    rt = Internal.createUniqueChild(sl, 'isoLegend', 'DataArray_t', value=isoLegend)
 
   if colormap is not None:
     rt = Internal.createUniqueChild(sl, 'colormap', 'DataArray_t', value=colormap)
@@ -822,9 +825,11 @@ def loadView(t, slot=0):
     if pos is not None:
         edge = Internal.getValue(pos); CPlot.setState(isoEdges=edge)
     pos = Internal.getNodeFromName1(slot, 'isoLight')
-    if pos is not None:
-        light = Internal.getValue(pos)
+    if pos is not None: light = Internal.getValue(pos)
     else: light = 1
+    pos = Internal.getNodeFromName1(slot, 'isoLegend')
+    if pos is not None: legend = Internal.getValue(pos)
+    else: legend = 0
     pos = Internal.getNodeFromName1(slot, 'colormap')
     if pos is not None: colormap = Internal.getValue(pos)
     else: colormap = 'Blue2Red'
@@ -848,6 +853,8 @@ def loadView(t, slot=0):
     elif colormap == 'TriColorHSV': style = 12
     
     if light == 1: style += 1
+    if legend == 1: CPlot.setState(displayIsoLegend=legend)
+
     CPlot.setState(colormap=style)
     pos = Internal.getNodesFromName1(slot, 'isoScales*')
     scales = []
@@ -855,8 +862,8 @@ def loadView(t, slot=0):
       name = p[0]
       name = name.replace('isoScales[', '')
       name = name[0:-2]
-      try: name = int(name)
-      except: pass
+      #try: name = int(name)
+      #except: pass
       out = [name]+p[1].tolist()
       scales.append(out)
     if scales != []: CPlot.setState(isoScales=scales)

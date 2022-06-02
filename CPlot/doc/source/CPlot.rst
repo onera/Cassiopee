@@ -841,7 +841,7 @@ Set rendering informations in pyTree
     
 -----------------------------------------------
 
-.. py:function:: CPlot.PyTree.addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None, mode=None, scalarField=None, niso=None, isoScales=None, isoEdges=None, isoLight=None, colormap=None, materials=None, bumpMaps=None, billBoards=None)
+.. py:function:: CPlot.PyTree.addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None, mode=None, scalarField=None, niso=None, isoScales=None, isoEdges=None, isoLight=None, isoLegend=None, colormap=None, materials=None, bumpMaps=None, billBoards=None)
 
     Add rendering info to a tree. Info are added in a .RenderInfo user
     defined node. To load the settings to the view, call explicitely CPlot.loadView.
@@ -858,8 +858,22 @@ Set rendering informations in pyTree
     :type posEye: list of 3 floats
     :param dirCam: camera direction
     :type dirCam: list of 3 floats
+    :param mode: displayed mode ('Mesh', 'Solid', 'Scalar', 'Vector', 'Render') 
+    :type mode: string
+    :param scalarField: scalar field to display in Scalar mode
+    :type scalarField: string
+    :param niso: number of isos to display in Scalar mode
+    :type niso: int
     :param isoScales: list of min and max of a variable ([varName, niso, min, max] or [varName, niso, min, max, cutmin, cutmax])(default: [])
     :type isoScales: list of [string, int, float, float] or [string, int, float, float, float, float]
+    :param isoEdges: size of edges in Scalar mode
+    :type isoEdges: float
+    :param isoLight: set to 1 if light is used in Scalar mode
+    :type isoLight: 0 or 1
+    :param isoLegend: set to 1 if legend is displayed in Scalar mode
+    :type isoLegend: 0 or 1
+    :param colormap: name of the colormap for Scalar mode ('Blue2Red', 'Green2Red', ...)
+    :type colormap: string
     :type materials: list of image file names used for texture mapping
     :param materials: list of strings
     :type bumpMaps: list of image file names used for bump mapping

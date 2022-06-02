@@ -68,7 +68,7 @@ bool Shader::start()
     }
     glLinkProgramARB(_programId);
     CHECK_GL_ERROR();
-    glGetObjectParameterivARB(_programId, GL_OBJECT_LINK_STATUS_ARB,&linked);
+    glGetObjectParameterivARB(_programId, GL_OBJECT_LINK_STATUS_ARB, &linked);
     CHECK_GL_ERROR();
   }
   if (linked)
@@ -77,6 +77,7 @@ bool Shader::start()
     _isLinked = true;
     _isModified = false;
   }
+  //if (linked != 1) printf("%s\n", getLinkerLog().c_str()); 
   return (linked==1);
 }
 //==============================================================================
@@ -87,28 +88,27 @@ std::string Shader::getLinkerLog(void) const
   glGetObjectParameterivARB(_programId, GL_OBJECT_LINK_STATUS_ARB, &status);  
   CHECK_GL_ERROR();
 
-  char* linker_log = 0;
+  char* linker_log = NULL;
   if (status != 1)
   {
     int infoLgth;
-    glGetObjectParameterivARB(_programId, GL_OBJECT_INFO_LOG_LENGTH_ARB,&infoLgth);
+    glGetObjectParameterivARB(_programId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &infoLgth);
     CHECK_GL_ERROR();
     linker_log = new char[infoLgth];
-    if (linker_log != 0)
+    if (linker_log == NULL)
     {
-      printf("ERROR: Could not allocate linker_log buffer\n");
-      return std::string("Out of memory");
+      printf("ERROR: Could not allocate linker_log buffer.\n");
+      return std::string("Out of memory.");
     }
    
     int msgLgth;
     glGetInfoLogARB(_programId, infoLgth, &msgLgth, linker_log);
     CHECK_GL_ERROR();
-    
   }
 
-  std::string errMsg("Unknown linker error");
-  if (linker_log != 0) errMsg = std::string(linker_log);
-  else errMsg = std::string("Linker log is not available !");
+  std::string errMsg("Unknown linker error.");
+  if (linker_log != NULL) errMsg = std::string(linker_log);
+  else errMsg = std::string("Linker log is not available.");
   delete [] linker_log;
   return errMsg;
 }

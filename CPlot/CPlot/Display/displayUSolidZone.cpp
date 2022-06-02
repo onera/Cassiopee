@@ -40,7 +40,8 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
 #include "solidStyles.h"
 
     // Ecrasement si renderTag
-    if ( zonep->colorR > -0.5 ) {
+    if ( zonep->colorR > -0.5 ) 
+    {
         color1[ 0 ] = zonep->colorR;
         color1[ 1 ] = zonep->colorG;
         color1[ 2 ] = zonep->colorB;
@@ -85,12 +86,15 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
     }
     // END Textured rendering ============================================
 #ifdef __SHADERS__
-    if ( ptrState->mode == RENDER ) {
+    if ( ptrState->mode == RENDER ) 
+    {
         if ( zonep->selected == 1 && zonep->active == 1 )
             triggerShader( *zonep, zonep->material, s, color2 );
         else
             triggerShader( *zonep, zonep->material, s, color1 );
-    } else {
+    } 
+    else 
+    {
         if ( zonep->selected == 1 && zonep->active == 1 )
             triggerShader( *zonep, 0, s, color2 );
         else

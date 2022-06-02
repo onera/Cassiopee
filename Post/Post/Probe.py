@@ -48,6 +48,9 @@ class Probe:
         # zone storing probe data
         self._pZone = None
 
+        # tree to accumulate zones
+        self._accuTree = None
+
     # init from position X or index
     def __init__(self, fileName, t=None, 
                  X=None, 
@@ -135,12 +138,12 @@ class Probe:
     # locate probe from ind and blockName
     def locateProbeInd(self, t, ind, blockName):
         p = Internal.getNodeFromName2(t, blockName)
-        if p is not None and Cmpi.isZoneSkeleton__(p):
+        if p is not None and not Cmpi.isZoneSkeleton__(p):
             proc = Cmpi.rank
             print('Info: probe found on proc: %d on block %s.'%(proc,blockName))
         else: 
-            proc = 0
-            print('Warning: probe not found on block %s.'%blockName)
+            proc = -1
+            #print('Warning: probe not found on block %s.'%blockName)
 
         if isinstance(ind, tuple):
             b = Internal.getNodeFromName(t, blockName)
@@ -153,7 +156,7 @@ class Probe:
                     else: 
                         ind = (ind[0]-1)+(ind[1]-1)*(dim[1]-1)+(ind[2]-1)*(dim[2]-1)
                 else: ind = ind[0]
-            ind = Cmpi.bcast(ind, root=proc)
+            else: ind = -1
 
         self._ind = ind
         self._blockName = blockName
@@ -275,10 +278,23 @@ class Probe:
         if self._icur >= self._bsize: self.flush()
         return None
 
-    def extractFromZones(zones, time):
-        """Accumulate zone."""
+    # IN: a: zones a accumuler
+    # IN: time: temps d'extraction
+    def extractFromZones(self, a, time):
+        """Accumulate zones."""
+        # create accu tree if needed
+        if self._accuTree is None:
+            self._accuTree = C.newPyTree(['Base'])
+        ab = Internal.getNodeFromName1(self._accuTree, 'Base')
+        azones = Internal.getZones(ab)
+        azoneNames = [z[0] for z in azones]
+
         # keep only fields from zones
-        zones = C.extractVars()
+        zs = Internal.getZones(a)
+        zsp = C.extractVars(zs, self._fields, keepOldNodes=False)
+        
+        #for z in zsp:
+        #    if z[0] in azoneNames:
 
         # Add time stamp
 

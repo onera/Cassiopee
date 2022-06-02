@@ -326,11 +326,17 @@ def saveSlot():
     light = VARS[5].get()
     if light == 'IsoLight on': light = 1
     else: light = 0
+    legend = VARS[7].get()
+    if legend == '1': legend = 1
+    else: legend = 0
     colormap = VARS[4].get()
+    fmin = float(VARS[9].get())
+    fmax = float(VARS[10].get())    
+    isoScales = [field, niso, fmin, fmax]
     CPlot._addRender2PyTree(CTK.t, slot=int(slot), posCam=posCam,
                             posEye=posEye, dirCam=dirCam,
-                            mode=mode, scalarField=field, niso=niso,
-                            isoEdges=isoEdges, isoLight=light,
+                            mode=mode, scalarField=field, niso=niso, isoScales=isoScales,
+                            isoEdges=isoEdges, isoLight=light, isoLegend=legend,
                             colormap=colormap)
     CTK.TKTREE.updateApp()
     CTK.TXT.insert('START', 'Slot saved.\n')
@@ -347,42 +353,49 @@ def loadSlot():
     if pos is not None:
         n = pos[1] 
         CPlot.setState(posCam=(n[0], n[1], n[2]))
-    pos = Internal.getNodeFromName(slot, 'posEye')
+    pos = Internal.getNodeFromName1(slot, 'posEye')
     if pos is not None:
         n = pos[1]; CPlot.setState(posEye=(n[0], n[1], n[2]))
-    pos = Internal.getNodeFromName(slot, 'dirCam')
+    pos = Internal.getNodeFromName1(slot, 'dirCam')
     if pos is not None:
         n = pos[1]; CPlot.setState(dirCam=(n[0], n[1], n[2]))
-    pos = Internal.getNodeFromName(slot, 'scalarField')
+    pos = Internal.getNodeFromName1(slot, 'scalarField')
     if pos is not None:
         n = pos[1]
         VARS[18].set(n.tostring().decode())
-    pos = Internal.getNodeFromName(slot, 'mode')
+    pos = Internal.getNodeFromName1(slot, 'mode')
     if pos is not None:
         n = pos[1]
         VARS[6].set(n.tostring().decode())
         setMode()
-    pos = Internal.getNodeFromName(slot, 'niso')
+    pos = Internal.getNodeFromName1(slot, 'niso')
     if pos is not None:
         n = pos[1]; niso = int(n[0])
         CPlot.setState(niso=niso)
         VARS[2].set(str(niso))
-    pos = Internal.getNodeFromName(slot, 'isoEdges')
+    pos = Internal.getNodeFromName1(slot, 'isoEdges')
     if pos is not None:
         n = pos[1]; CPlot.setState(isoEdges=n[0])
-        WIDGETS['edges'].set( (n[0]+0.01)*50 )
-    pos = Internal.getNodeFromName(slot, 'isoLight')
+        WIDGETS['edges'].set( (n[0]+0.001)*25 )
+    pos = Internal.getNodeFromName1(slot, 'isoLight')
     if pos is not None:
         n = pos[1]
         if n[0] == 0: VARS[5].set('IsoLight off')
         else: VARS[5].set('IsoLight on')
-    pos = Internal.getNodeFromName(slot, 'colormap')
+    pos = Internal.getNodeFromName1(slot, 'isoLegend')
+    if pos is not None:
+        n = Internal.getValue(pos)
+        if n == 1: VARS[7].set('1')
+        else: VARS[7].set('0')
+        CPlot.setState(displayIsoLegend=n)
+
+    pos = Internal.getNodeFromName1(slot, 'colormap')
     if pos is not None:
         n = pos[1]
         VARS[4].set(n.tostring().decode())
     setColormapLight()
     displayField()
-    pos = Internal.getNodesFromName(slot, 'isoScales*')
+    pos = Internal.getNodesFromName1(slot, 'isoScales*')
     if pos != []:
         updateIsoWidgets(); updateIsoPyTree()
 
@@ -391,7 +404,6 @@ def loadSlot():
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
         CPlot.setState(materials=out)
-
     pos = Internal.getNodeFromName1(renderInfo, 'bumpMaps')
     if pos is not None:
         out = []
@@ -749,7 +761,8 @@ def updateIsoWidgets():
     if sl is None:
         compIsoMin(); compIsoMax(); return
 
-    pos = Internal.getNodeFromName(sl, 'isoScales[%d]'%VARNO)
+    field = VARS[18].get()
+    pos = Internal.getNodeFromName1(sl, 'isoScales[%s]'%field)
     if pos is not None and pos[1] is not None:
         n = pos[1]
         VARS[2].set(str(int(n[0])))
@@ -767,6 +780,7 @@ def updateIsoWidgets():
         n = pos[1]; l = n.shape[0]
         list = []; c = 0
         while c < l:
+            print(n[c], VARNO)
             if n[c] == VARNO:
                 VARS[2].set(str(int(n[c+1])))
                 VARS[9].set(str(n[c+2]))
@@ -792,7 +806,7 @@ def updateIsoPyTree():
         fmax = float(VARS[10].get())
         cutMin = float(VARS[30].get())
         cutMax = float(VARS[31].get())
-        list = [[VARNO, niso, fmin, fmax, cutMin, cutMax]]
+        list = [[VARS[18].get(), niso, fmin, fmax, cutMin, cutMax]]
         CPlot.setState(isoScales=list)
         slot = int(VARS[0].get())
         CPlot._addRender2PyTree(CTK.t, slot=slot, isoScales=list)

@@ -74,7 +74,7 @@ namespace CPlot
     // void add(const ComputeShader& cshad);
 
 
-    // Remove a shader from the program ( VERTEX, TESSELATION and so.)
+    // Remove a shader from the program (VERTEX, TESSELATION and so.)
     void remove(stage st);
     // Renvoie vrai si contient le proglet passe en parametre...
     bool contain( const ShaderObject& proglet ) const;
@@ -85,7 +85,7 @@ namespace CPlot
 
     bool start(); // Activate the shader. If not linked, link this shader before
     std::string getLinkerLog() const; // Return error log of the linker.
-    void end(); // Desactivate the shader. OpenGL calls with the standard pipeline.
+    void end(); // Deactivate the shader. OpenGL calls with the standard pipeline.
 
     unsigned int getAttributeLocation(const char* attributeName) const;
     unsigned int getUniformLocation  (const char* uniformName  ) const;

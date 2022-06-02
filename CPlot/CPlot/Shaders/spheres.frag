@@ -3,6 +3,8 @@
 
 varying vec4 initColor;
 varying vec3 P;
+uniform float specularFactor;
+uniform float diffuseFactor;
 
 void main()
 {
@@ -25,8 +27,8 @@ void main()
 
     vec3 R = normalize(-reflect(L,N));
     vec4 Iamb = gl_LightSource[0].ambient; 
-    vec4 Idiff = gl_LightSource[0].diffuse*max(dotNL, 0.0);
-    vec4 Ispec = gl_LightSource[0].specular * pow(max(dot(R,E),0.0),0.25 * gl_FrontMaterial.shininess);
+    vec4 Idiff = diffuseFactor * gl_LightSource[0].diffuse*max(dotNL, 0.0);
+    vec4 Ispec = (specularFactor*specularFactor)*gl_LightSource[0].specular * pow(max(dot(R,E),0.0),0.25 * gl_FrontMaterial.shininess);
     vec4 col = Iamb + initColor * Idiff + Ispec;
 
     // depth modification
