@@ -1,12 +1,13 @@
 """Compute other complex variables than computeVariables."""
 
 from . import PyTree as P
+from . import Mpi as Pmpi
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Geom.PyTree as D
-from . import Mpi as Pmpi
+import numpy
 
 #==============================================================================
 # Vorticite en centres
@@ -386,6 +387,60 @@ def _computeQCriterion2(t, ghostCells=False):
     C._rmVars(t, ['centers:gradxVelocityZ', 'centers:gradzVelocityZ', 'centers:gradzVelocityX', 'centers:gradzVelocityY', 'centers:gradzVelocityX', 'centers:gradyVelocityZ'])
     return None
     
+def _computeLambda2(t, ghostCells=False):
+    """Compute lambda2 criterion for velocity in centers."""
+    P._computeGrad2(t, 'centers:VelocityX', ghostCells)
+    P._computeGrad2(t, 'centers:VelocityY', ghostCells)
+    P._computeGrad2(t, 'centers:VelocityZ', ghostCells)
+    C._initVars(t, 'centers:a11 = {centers:gradxVelocityX}**2')
+    C._initVars(t, 'centers:a22 = {centers:gradyVelocityY}**2')
+    C._initVars(t, 'centers:a33 = {centers:gradzVelocityZ}**2')
+    C._initVars(t, 'centers:a12 = 0.25*({centers:gradyVelocityX}+{centers:gradxVelocityY})**2 - ({centers:gradyVelocityX}-{centers:gradxVelocityY})**2')
+    C._initVars(t, 'centers:a13 = 0.25*({centers:gradzVelocityX}+{centers:gradxVelocityZ})**2 - ({centers:gradzVelocityX}-{centers:gradxVelocityZ})**2')
+    C._initVars(t, 'centers:a23 = 0.25*({centers:gradzVelocityY}+{centers:gradyVelocityZ})**2 - ({centers:gradzVelocityY}-{centers:gradyVelocityZ})**2')
+    C._initVars(t, 'centers:lambda2 = 0.')
+    zones = Internal.getZones(t)
+    for z in zones:
+        nc = C.getNCells(z)
+        AAA = numpy.empty( (nc,3,3), dtype=numpy.float64)
+        p = Internal.getNodeFromName(z, 'a11')[1].ravel('k')
+        AAA[:,0,0] = p[:]
+        p = Internal.getNodeFromName(z, 'a22')[1].ravel('k')
+        AAA[:,1,1] = p[:]
+        p = Internal.getNodeFromName(z, 'a33')[1].ravel('k')
+        AAA[:,2,2] = p[:]
+        p = Internal.getNodeFromName(z, 'a12')[1].ravel('k')
+        AAA[:,0,1] = p[:]
+        AAA[:,1,0] = p[:]
+        p = Internal.getNodeFromName(z, 'a13')[1].ravel('k')
+        AAA[:,0,2] = p[:]
+        AAA[:,2,0] = p[:]
+        p = Internal.getNodeFromName(z, 'a23')[1].ravel('k')
+        AAA[:,1,2] = p[:]
+        AAA[:,2,1] = p[:]
+        #print('AAA', AAA)
+        # AAA : array(...,3,3)
+        # return : w(...,3)
+        lambda2 = numpy.linalg.eigvals(AAA)
+        lambda2 = numpy.real(lambda2) # real part puis la plus faible...? la plus negative?
+        #print('l2', lambda2.shape)
+        #print('l0', lambda2[:,0])
+        #print('l1', lambda2[:,1])
+        #print('l2', lambda2[:,2])
+        lambda2 = lambda2[lambda2[:, 1].argsort()]
+        #print(lambda2[:,0])
+        #print(lambda2[:,1])
+        #print(lambda2[:,2])
+        s = Internal.getNodeFromName2(z, 'a13')[1].shape
+        lambda2 = lambda2[:,1].reshape(s)
+        p = Internal.getNodeFromName2(z, 'lambda2')
+        p[1] = lambda2
+    C._rmVars(t, ['centers:gradxVelocityX', 'centers:gradyVelocityX', 'centers:gradzVelocityX'])
+    C._rmVars(t, ['centers:gradxVelocityY', 'centers:gradyVelocityY', 'centers:gradzVelocityY'])
+    C._rmVars(t, ['centers:gradxVelocityZ', 'centers:gradyVelocityZ', 'centers:gradzVelocityZ'])
+    C._rmVars(t, ['centers:a11', 'centers:a22', 'centers:a33', 'centers:a12', 'centers:a13', 'centers:a23'])
+    return None
+
 # Calcul de la pression dans le volume
 # IN: centers:Density
 # IN: centers:Temperature

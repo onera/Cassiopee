@@ -363,11 +363,6 @@ def loadSlot():
     if pos is not None:
         n = pos[1]
         VARS[18].set(n.tostring().decode())
-    pos = Internal.getNodeFromName1(slot, 'mode')
-    if pos is not None:
-        n = pos[1]
-        VARS[6].set(n.tostring().decode())
-        setMode()
     pos = Internal.getNodeFromName1(slot, 'niso')
     if pos is not None:
         n = pos[1]; niso = int(n[0])
@@ -399,6 +394,12 @@ def loadSlot():
     if pos != []:
         updateIsoWidgets(); updateIsoPyTree()
 
+    pos = Internal.getNodeFromName1(slot, 'mode')
+    if pos is not None:
+        n = pos[1]
+        VARS[6].set(n.tostring().decode())
+        setMode()
+    
     pos = Internal.getNodeFromName1(renderInfo, 'materials')
     if pos is not None:
         out = []

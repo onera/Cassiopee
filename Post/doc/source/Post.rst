@@ -1329,7 +1329,7 @@ Solution integration
     :param var: field name
     :type var: string
     :return: the result of integration
-    :rtype: a list of 3 floats
+    :rtype: double list of 3 floats
 
     *Example of use:*
 

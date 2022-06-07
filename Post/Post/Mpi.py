@@ -42,7 +42,7 @@ def integNorm(t, var=''):
     ret = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)
-    return ret1.tolist()
+    return [ret1.tolist()]
 
 def integNormProduct(t, vector=[]):
     ret = P.integNormProduct(t, vector)

@@ -914,20 +914,20 @@ Shader settings
 
     Here are the meaning of each parameters for each shader:
 
-    - Solid: [1] SpecularFactor; [2] diffuseFactor
+    - Solid: [1] specularFactor; [2] diffuseFactor
     - Flat: [1] None; [2] None
     - Glass: [1] mix; [2] mix2
     - Chrome: [1] mix color/envmap; [2] base color intensity
     - Metal: [1] reflection intensity; [2] bump size
     - Wood: [1] ray size, [2] bump height
     - Marble: [1] ray size, [2] None
-    - Granite: [1] bump size; [2] Bump height
+    - Granite: [1] bump size; [2] bump height
     - Brick: [1] brick size; [2] color width
     - XRay: [1] fall off; [2] color modifier
-    - Cloud: [1] Size; [2] None
-    - Gooch : [1] width; [2] shinyness
+    - Cloud: [1] size; [2] None
+    - Gooch : [1] width; [2] shininess
     - Sphere: [1] size of sphere; [2] type of billboard
-    - TexMat: [1] SpecularFactor; [2] texture number
+    - TexMat: [1] specularFactor; [2] texture number
 
 .. toctree::
    :maxdepth: 2

@@ -1160,20 +1160,20 @@ def extractArraysForScalarInteg__(t, var=''):
     if len(zvars) == 2: loc = 'centers'
     else: loc = 'nodes'
 
-    coords = C.getFields(Internal.__GridCoordinates__,zones)
+    coords = C.getFields(Internal.__GridCoordinates__, zones)
     fields = []; fieldsc = []
     if var == '':
-        fields = C.getFields(Internal.__FlowSolutionNodes__,zones)
+        fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
         fields = Converter.addVars([coords,fields])
-        fieldsc = C.getFields(Internal.__FlowSolutionCenters__,zones)
+        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
     elif var == Internal.__GridCoordinates__:
         fields = coords
     elif var == Internal.__FlowSolutionNodes__:
-        fields = C.getFields(Internal.__FlowSolutionNodes__,zones)
+        fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
     elif var == Internal.__FlowSolutionCenters__:
-        fieldsc = C.getFields(Internal.__FlowSolutionCenters__,zones)
+        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
     else: # un champ specifique
-        if loc == 'nodes': fields = C.getField(var,zones)
+        if loc == 'nodes': fields = C.getField(var, zones)
         else: fieldsc = C.getField(var,zones)
 
     # mise a jour de fields [[],[],[],..,[]] -> []
@@ -1197,16 +1197,16 @@ def extractArraysForVectorInteg__(t, vector):
         elif len(v)  > 1 and loc != 'nodes': loc = 'centers'; zvars.append(v[1])
         else: raise ValueError("extractArraysForVectorInteg: all the components of the vector must have the same location.")
 
-    coords = C.getFields(Internal.__GridCoordinates__,zones)
+    coords = C.getFields(Internal.__GridCoordinates__, zones)
     fields = []; fieldsc = []
     if vector == ['CoordinateX','CoordinateY','CoordinateZ']: fields = coords
     else:
         if loc == 'nodes':
-            fields = C.getFields(Internal.__FlowSolutionNodes__,zones)
-            fields = Converter.extractVars(fields, zvars)
+            fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
+            if fields != []: fields = Converter.extractVars(fields, zvars)
         else:
-            fieldsc = C.getFields(Internal.__FlowSolutionCenters__,zones)
-            fieldsc = Converter.extractVars(fieldsc, zvars)
+            fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
+            if fieldsc != []: fieldsc = Converter.extractVars(fieldsc, zvars)
 
     # mise a jour de fields [[],[],[],..,[]] -> []
     foundn = 0; foundc = 0
@@ -1295,7 +1295,7 @@ def integNorm(t, var=''):
     if resn != [] and resc != []: return resn+resc
     elif resn != []: return resn
     elif resc != []: return resc
-    return []
+    return [[0.,0.,0.]]
 
 def integNormProduct(t, vector=[]):
     """Integral of scalar product fields times normal.
@@ -1326,7 +1326,7 @@ def integMoment(t, center=(0.,0.,0.), vector=[]):
     if resn != [] and resc != []: return resn+resc
     elif resn != []: return resn
     elif resc != []: return resc
-    return []
+    return [0.,0.,0.]
 
 def integMomentNorm(t, center=(0.,0.,0.), var=''):
     """Integral of moments (OM^f.vect(n)).
@@ -1342,7 +1342,7 @@ def integMomentNorm(t, center=(0.,0.,0.), var=''):
     if resn != [] and resc != []: return resn+resc
     elif resn != []: return resn
     elif resc != []: return resc
-    return []
+    return [0.,0.,0.]
 
 def usurp(t):
     """Extract unique surfaces using ranked polygons.
