@@ -424,12 +424,12 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         E_Int i = 0;
         indint = i+j*ni+k*ninjc;
         indcelld = i + j*nic+k*nicnjc;
-        fintp[indint] = fcn[indcelld];//extrapolation de l interieur
+        fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
         cellG[indint] = -1; cellD[indint] = indcelld;
         i = nic;
         indint = i+j*ni+k*ninjc;
         indcellg = (i-1) + j*nic+k*nicnjc;
-        fintp[indint] = fcn[indcellg];//extrapolation de l interieur
+        fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
         cellG[indint] = indcellg; cellD[indint] = -1;
       }
     //faces en j

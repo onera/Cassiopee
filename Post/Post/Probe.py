@@ -387,39 +387,85 @@ class Probe:
     # IN: _fileName: nom du fichier
     # IN: time: instant a extraire -> all points
     # IN: index: point a extraire -> all times
+    # PAS OPERATIONEL
     def read(self, time=None, ind=None):
         """Reread all data from probe file."""
+        if time is not None:
+            return self.readTime(time)
+        elif ind is not None:
+            return self.readInd(ind)
+        else:
+            return self.readInd(0)
+
+    # Retourne tous les indices d'un seul instant
+    def readTime(self, time):
+        return None
+
+    # Retourne tous les temps d'un seul indice
+    def readInd(self, ind):
         tl = Cmpi.convertFile2SkeletonTree(self._fileName)
 
-        # load sentinelle
-        
+        # recupere le sizeTime
+        nodes = Internal.getNodesFromName(tl, 'FlowSolution#*')
+        ncont = len(nodes) # nbre de containers pleins
+        paths = ['CGNSTree/Base/probe/FlowSolution']
+        nodesTime = Distributed.readNodesFromPaths(self._fileName, paths)
+        pt = Internal.getNodeFromName1(nodesTime[0], 'time')[1]
+        a = pt > -0.5
+        csize = numpy.count_nonzero(a)
+        sizeTimeCont = pt.shape[0]
+        sizeTime = csize + ncont*sizeTimeCont
+        print('sizeTime', sizeTime)
 
+        # Get all vars
+
+        # Rebuild full zone
+        out = G.cart((0,0,0), (1,1,1), (sizeTime,1,1))
+        px = Internal.getNodeFromName2(out, 'CoordinateX')
+        py = Internal.getNodeFromName2(out, 'CoordinateY')
+        pz = Internal.getNodeFromName2(out, 'CoordinateZ')
+        
         # load GCs
         nodes = Internal.getNodesFromName(tl, 'GridCoordinates#*')
-        paths = ['CGNSTree/Base/probe/GridCoordinates']
+        cur = 0
         for n in nodes:
-            paths.append('CGNSTree/Base/probe/%s'%n[0])
+            paths = ['CGNSTree/Base/probe/%s'%n[0]]
+            nodesX = Distributed.readNodesFromPaths(self._fileName, paths)[0]
+            px2 = Internal.getNodeFromName2(nodesX, 'CoordinateX')
+            py2 = Internal.getNodeFromName2(nodesX, 'CoordinateY')
+            pz2 = Internal.getNodeFromName2(nodesX, 'CoordinateZ')
+            px[cur:cur+sizeTimeCont] = px2[ind,0:sizeTimeCont]
+            cur += sizeTimeCont
+
+        paths = ['CGNSTree/Base/probe/GridCoordinates']
         nodesX = Distributed.readNodesFromPaths(self._fileName, paths)
-        
+        px2 = Internal.getNodeFromName2(nodesX, 'CoordinateX')
+        py2 = Internal.getNodeFromName2(nodesX, 'CoordinateY')
+        pz2 = Internal.getNodeFromName2(nodesX, 'CoordinateZ')
+        px[cur:cur+csize] = px2[ind,0:csize]
+
         # load FS
         nodes = Internal.getNodesFromName(tl, 'FlowSolution#*')
-        paths = ['CGNSTree/Base/probe/FlowSolution']
         for n in nodes:
-            paths.append('CGNSTree/Base/probe/%s'%n[0])
-        nodesF = Distributed.readNodesFromPaths(self._fileName, paths)
+            paths = ['CGNSTree/Base/probe/%s'%n[0]]
+            nodesF = Distributed.readNodesFromPaths(self._fileName, paths)[0]
+            
+        paths = ['CGNSTree/Base/probe/FlowSolution']
         
+        # Enleve la partie sentinelle
         pt = Internal.getNodeFromName1(nodesF[0], 'time')[1]
         a = pt > -0.5
         csize = numpy.count_nonzero(a)
         size = csize
-        for n in nodes[1:]:
+        for n in nodesF[1:]:
             ptn = Internal.getNodeFromName1(n, 'time')
             size += ptn[1].size
 
+        # Rebuild full zone
         out = G.cart((0,0,0), (1,1,1), (size,1,1))
         pt2 = Internal.getNodeFromName2(out, 'time')[1]
         c = 0
-        for n in nodes[1:]:
+        for n in nodesF[1:]:
             ptn = Internal.getNodeFromName1(n, 'time')[1]
             pt2[c:c+self._bsize] = ptn[0:self._bsize]
             c += self._bsize

@@ -395,9 +395,9 @@ def _computeLambda2(t, ghostCells=False):
     C._initVars(t, 'centers:a11 = {centers:gradxVelocityX}**2')
     C._initVars(t, 'centers:a22 = {centers:gradyVelocityY}**2')
     C._initVars(t, 'centers:a33 = {centers:gradzVelocityZ}**2')
-    C._initVars(t, 'centers:a12 = 0.25*({centers:gradyVelocityX}+{centers:gradxVelocityY})**2 - ({centers:gradyVelocityX}-{centers:gradxVelocityY})**2')
-    C._initVars(t, 'centers:a13 = 0.25*({centers:gradzVelocityX}+{centers:gradxVelocityZ})**2 - ({centers:gradzVelocityX}-{centers:gradxVelocityZ})**2')
-    C._initVars(t, 'centers:a23 = 0.25*({centers:gradzVelocityY}+{centers:gradyVelocityZ})**2 - ({centers:gradzVelocityY}-{centers:gradyVelocityZ})**2')
+    C._initVars(t, 'centers:a12 = 0.25*(({centers:gradyVelocityX}+{centers:gradxVelocityY})**2 - ({centers:gradyVelocityX}-{centers:gradxVelocityY})**2)')
+    C._initVars(t, 'centers:a13 = 0.25*(({centers:gradzVelocityX}+{centers:gradxVelocityZ})**2 - ({centers:gradzVelocityX}-{centers:gradxVelocityZ})**2)')
+    C._initVars(t, 'centers:a23 = 0.25*(({centers:gradzVelocityY}+{centers:gradyVelocityZ})**2 - ({centers:gradzVelocityY}-{centers:gradyVelocityZ})**2)')
     C._initVars(t, 'centers:lambda2 = 0.')
     zones = Internal.getZones(t)
     for z in zones:
@@ -427,7 +427,8 @@ def _computeLambda2(t, ghostCells=False):
         #print('l0', lambda2[:,0])
         #print('l1', lambda2[:,1])
         #print('l2', lambda2[:,2])
-        lambda2 = lambda2[lambda2[:, 1].argsort()]
+        #lambda2 = lambda2[lambda2[:, 1].argsort()]
+        lambda2 = lambda2.sort(axis=1)
         #print(lambda2[:,0])
         #print(lambda2[:,1])
         #print(lambda2[:,2])

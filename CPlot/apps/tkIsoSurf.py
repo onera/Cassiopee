@@ -70,8 +70,10 @@ def extractIsoSurf(event=None):
 
     isos = []
     try:
+        CPlot.setState(cursor=2)
         iso = P.isoSurfMC(z, field, value)
         isos += iso
+        CPlot.setState(cursor=0)
     except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: isoSurf')
     if isos == []:
@@ -85,6 +87,7 @@ def extractIsoSurf(event=None):
     base = Internal.getNodeFromName1(CTK.t, 'SURFACES')
     nob = C.getNobOfBase(base, CTK.t)
     for i in isos: CTK.add(CTK.t, nob, -1, i)
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -114,7 +117,7 @@ def getValueFromMouse():
         c = c-3 # a cause des coord
         values = CPlot.getActivePointF()
         if values != []: val = values[c]
-    if val != None: VARS[1].set(str(val))
+    if val is not None: VARS[1].set(str(val))
 
 #==============================================================================
 # Create app widgets
