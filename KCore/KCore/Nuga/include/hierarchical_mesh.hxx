@@ -96,8 +96,8 @@ class hierarchical_mesh
     NUGA::history_t  histo;
 
     ///
-    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(); }
-    hierarchical_mesh(crd_t& crd, ngo_t && ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(); }
+    hierarchical_mesh(crd_t& crd, ngo_t & ng, bool reorient, bool sync_match):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(reorient, sync_match); }
+    hierarchical_mesh(crd_t& crd, ngo_t && ng, bool reorient, bool sync_match):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(reorient, sync_match); }
     ///
     hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(true/*reorient*/, true/*sync_match*/); }
 
@@ -268,15 +268,15 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
       if (_ng.PHs._type[PHcur] == K_MESH::Polyhedron<0>::eType::LAYER) //already set
         break;
       
-      // alexis :mettre la paire de i en premier, i en premier dans la pair
+      // alexis : mettre la paire de i en premier, i en premier dans la pair
       
       // alexis : verifier l'anisotropie
       
       // alexis : si pas anisotrope => break
       
       // alexis : faire Basecur := 2nd de la pair (top)
-      // alexis :marquer ng.PHs.type[PHcur] := LAYER 
-      // alexis :faire PHcur = le voisin qui partage le top
+      // alexis : marquer ng.PHs.type[PHcur] := LAYER 
+      // alexis : faire PHcur = le voisin qui partage le top
     }; 
   }
   
@@ -342,8 +342,6 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init(bool reorient, bool sync_matc
       int nnodes = _ng.PGs.stride(i);
       K_MESH::Polygon::shift_geom(_crd, nodes, nnodes, _idx_start);
     }
-    
-    
   }
 
   __init(); // for pure type == reorder_pgs

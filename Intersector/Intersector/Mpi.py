@@ -253,73 +253,64 @@ def setZonesAndJoinsUId(t):
 # OUT: Returns a hierarchical zone hook 
 #==============================================================================
 def createHMesh(t, subdiv_type= 0):
-    """Returns a hierarchical mesh hook per zone.
-    Usage: createHMesh(t, subdiv_type= 0)"""
+  """Returns a hierarchical mesh hook per zone.
+  Usage: createHMesh(t, subdiv_type= 0)"""
 
-    zones = Internal.getZones(t)
+  zones = Internal.getZones(t)
+  
+  hmeshs = []
+  for z in zones:
+
+    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+
+    # ----- 
+
+    dico_rotation_to_ptList = {}
+
+    key1 = [0.]*6
+    key1 = tuple(key1)
+
+    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+
+    for rac in raccords:
+      rac_match_perio = Internal.getNodesFromType2(rac, 'GridConnectivityProperty_t')
+
+      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+
+      if rac_match_perio: #perio BC
+        center_rotat  = Internal.getNodesFromName3(rac, 'RotationCenter')[0][1]
+        angle_rotat   = Internal.getNodesFromName3(rac, 'RotationAngle' )[0][1]
+
+        # Condition to set negative angle as a translation like dict
+
+        key2 = numpy.concatenate((center_rotat, angle_rotat))
+        key2 = tuple(key2)
+
+        if numpy.sum(angle_rotat) < 0: #negative rotation
+          if key1 in dico_rotation_to_ptList:
+            dico_rotation_to_ptList[key1] = numpy.concatenate((dico_rotation_to_ptList[key1], ptList))
+          else:
+            dico_rotation_to_ptList[key1] = ptList
+        else: #translation or positive rotation
+          if key2 in dico_rotation_to_ptList:
+            dico_rotation_to_ptList[key2] = numpy.concatenate((dico_rotation_to_ptList[key2], ptList))
+          else:
+            dico_rotation_to_ptList[key2] = ptList
+      else: #match BC
+        if key1 in dico_rotation_to_ptList: #following match BC
+          dico_rotation_to_ptList[key1] = numpy.concatenate((dico_rotation_to_ptList[key1], ptList))
+        else: #first match BC
+          dico_rotation_to_ptList[key1] = ptList
+
+    # --- 
     
-    hmeshs = []
-    for z in zones:
+    m = intersector.initForAdaptCells(m, dico_rotation_to_ptList)
 
-      #todo VD : 
-      #1. faire un disctionnaire 'rotation to ptllist' en parcourant les raccords
-      #   un raccord periodique possede le noeud 'GridConnectivityProperty' qui possede un noued 'Periodic'
-      #   consulter les valeurs, prendre l'axe et l'angle de rotation, mettre (0,0,0,0) si :
-      # - raccord en translation 
-      # - raccord match
-      # - raccord periodique mais valeur négative de rotation (on ne deplace qu'un demi-raccord)
+    zid = CD.getProperty(z, 'zid')
+    hm = intersector.createHMesh2(m, subdiv_type, zid)
+    hmeshs.append(hm)
 
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-
-      # ----- 
-
-      # dico_rotation_to_ptList = {}
-
-      # key1 = [0.]*6
-      # str_key1 = str(key1)
-
-      # raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-      # for rac in raccords:
-      #   rid = CD.getProperty(rac, 'rid')
-      #   rac_match_perio = Internal.getNodesFromType2(rac, 'GridConnectivityProperty_t')
-
-      #   if rac_match_perio: #perio BC
-      #     center_rotat    = Internal.getNodesFromName3(rac, 'RotationCenter')[0][1]
-      #     angle_rotat     = Internal.getNodesFromName3(rac, 'RotationAngle' )[0][1]
-
-      #     # Condition to set negative angle as a translation like dict
-
-      #     if numpy.sum(angle_rotat) > 0:
-      #       key2 = numpy.concatenate((center_rotat, angle_rotat)).tolist()
-      #       str_key2 = str(key2)
-
-      #       if str_key2 in dico_rotation_to_ptList:
-      #         dico_rotation_to_ptList[str_key2].append(key2)
-      #       else:
-      #         dico_rotation_to_ptList[str_key2] = [key2]
-      #     else:
-      #       dico_rotation_to_ptList[str_key1].append(key1)
-
-      #   else:
-      #     if str_key1 in dico_rotation_to_ptList: #following match BC
-      #       dico_rotation_to_ptList[str_key1].append(key1)
-      #     else: #first match BC
-      #       dico_rotation_to_ptList[str_key1] = [key1]
-
-      #   # --- 
-
-      #   # print(dico_rotation_to_ptList)
-      #   # print(eps)       
-         
-      #   #dico[(0.4, 1.5, 2.6, 3.7)]=[2, 3, 4, 5, 6]
-
-      #   m = intersector.initForAdaptCells(m, dico_rotation_to_ptList) #todo VD : <= fonction dans adaptCells_mpi.cpp
-      
-      zid = CD.getProperty(z, 'zid')
-      hm = intersector.createHMesh2(m, subdiv_type, zid)
-      hmeshs.append(hm)
-
-    return hmeshs
+  return hmeshs
 
 #==============================================================================
 # getRidToZones : Computes a dictionary rid <-> (zid1,zid2)
@@ -590,17 +581,17 @@ def updateJoinsPointLists3(z, zidDict, rid_to_ptlist, ptlname): # 'PointList', '
       half   = int(len(rid_to_ptlist[rid]) / 2)
 
       if ptlname == 'PointList':        # appel apres conformisation
-        if rid in processed_rid :       ## deuxieme passe (i.e deuxime demi-raccord)
+        if rid in processed_rid:        ## deuxieme passe (i.e deuxime demi-raccord)
           L1 = L1[half:]
         else:                           ## premiere passe
-        	processed_rid.add(rid)
-        	L1 = L1[:half]
+          processed_rid.add(rid)
+          L1 = L1[:half]
       elif ptlname == 'PointListDonor': # appel apres echange de pointlist
-        if rid in processed_rid :       ## deuxieme passe (i.e deuxime demi-raccord)
+        if rid in processed_rid:        ## deuxieme passe (i.e deuxime demi-raccord)
           L1 = L1[:half]
         else:                           ## premiere passe
-        	processed_rid.add(rid)
-        	L1 = L1[half:]
+          processed_rid.add(rid)
+          L1 = L1[half:]
   
     L1     = numpy.reshape(L1, (1,len(L1)))
     ptl[1] = L1

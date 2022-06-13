@@ -419,8 +419,8 @@ void computeNodeRadiusAndAngles
 
     radius[i] = ::sqrt(((pt[0] - x0)*(pt[0] - x0)) + ((pt[1] - y0)*(pt[1] - y0)));
 
-    E_Float c = pt[0] / radius[i];
-    E_Float s = pt[1] / radius[i];
+    E_Float c = (pt[0] - x0) / radius[i];
+    E_Float s = (pt[1] - y0) / radius[i];
 
     angles[i] = ::atan2(s, c);
   }
@@ -441,16 +441,10 @@ inline void axial_rotate(K_FLD::FloatArray& crd, const double* axis_pt, const do
   for (E_Int i = 0; i < crd.cols(); ++i)
   {
     double* pt = crd.col(i);
-    double radius = ::sqrt(((pt[0] - axi_pt[0])*(pt[0] - axi_pt[0])) + ((pt[1] - axi_pt[1])*(pt[1] - axi_pt[1])));
-    
-    if (radius == 0.) continue;
-    E_Float c = pt[0] / radius;
-    E_Float s = pt[1] / radius;
-
-    double a0 = ::atan2(s, c);
-
-    pt[0] = radius * ::cos(a0 + angle);
-    pt[1] = radius * ::sin(a0 + angle);
+    double X = pt[0] - axi_pt[0];
+    double Y = pt[1] - axi_pt[1];
+    pt[0] = ::cos(angle) * X - ::sin(angle) * Y + axi_pt[0];
+    pt[1] = ::sin(angle) * X + ::cos(angle) * Y + axi_pt[1];
   }
 
   NUGA::transform(crd, P); // back to original ref frame  

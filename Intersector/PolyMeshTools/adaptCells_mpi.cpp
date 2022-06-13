@@ -127,14 +127,11 @@ void convert_dico_to_map__int_pairint
     while (PyDict_Next(py_rid_to_zones, &pos, &py_rid, &py_pair_owned))
     {
       int rid = (int) PyInt_AsLong(py_rid);
-      // std::cout << rid << std::endl;
 
       assert (PyTuple_Check(py_pair_owned) == 1); // is it a tuple ?
 
-      // PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_pair_owned);
       PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_pair_owned);    
       Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
-      // std::cout << "size pytub : " << nb << std::endl;
 
       // -----
 
@@ -146,28 +143,23 @@ void convert_dico_to_map__int_pairint
       pair_zid.first  = (double) PyFloat_AsDouble(z1);
       pair_zid.second = (double) PyFloat_AsDouble(z2);
 
-      // E_Int *p = (E_Int *)pytup;
-      // std::cout << pair_zid.first << std::endl;
-      // std::cout << pair_zid.second << std::endl;
-
       rid_to_zones[rid] = pair_zid;
-
     }
   }
 }
 
 struct transf_t {
-  double t[4];
+  double t[6];
   bool operator==(const transf_t& r) const
   {
-    for (size_t k=0; k < 4; ++k)
+    for (size_t k=0; k < 6; ++k)
       if (t[k] != r.t[k]) return false;
     return true;
   }
   bool operator<(const transf_t& r) const
   {
     if (*this == r) return false;
-    for (size_t k=0; k < 4; ++k)
+    for (size_t k=0; k < 6; ++k)
       if (t[k] <r.t[k]) return true;
     return false;
   }
@@ -192,11 +184,11 @@ int convert_dico_to_map___transfo_to_vecint
   {
     // key
     assert (PyTuple_Check(py_transfo) == 1) ; // it s a tuple (Xx, Yc, Zc, R)
-    PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_transfo);    
+    PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_transfo);
     Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
 
-    assert (nb == 4);
-    for (size_t i=0; i < 4; ++i)
+    assert (nb == 6);
+    for (size_t i=0; i < 6; ++i)
     {
       PyObject * p PyTuple_GET_ITEM(pytup, i);
       t.t[i] = (double) PyFloat_AsDouble(p);
@@ -232,6 +224,9 @@ void* __createHM(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int 
 template<>
 void* __createHM<NUGA::ISO>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int zid)
 {
+  bool reorient =false;
+  bool sync_match=false;
+
   if (typ == elt_t::UNKN)
   {
     PyErr_WarnEx(PyExc_Warning,
@@ -243,7 +238,7 @@ void* __createHM<NUGA::ISO>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
     using elt_type = K_MESH::Hexahedron;
     using hmesh_t = NUGA::hierarchical_mesh<elt_type, NUGA::ISO>;
 
-    hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt));
+    hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt), reorient, sync_match);
     hm->zid = zid;
     return hm;
   }
@@ -252,7 +247,7 @@ void* __createHM<NUGA::ISO>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
     using elt_type = K_MESH::Tetrahedron;
     using hmesh_t = NUGA::hierarchical_mesh<elt_type, NUGA::ISO>;
 
-    hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt));
+    hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt), reorient, sync_match);
     hm->zid = zid;
     return hm;
   }
@@ -261,7 +256,7 @@ void* __createHM<NUGA::ISO>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
     using elt_type = K_MESH::Prism;
     using hmesh_t = NUGA::hierarchical_mesh<elt_type, NUGA::ISO>;
 
-    hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt));
+    hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt), reorient, sync_match);
     hm->zid = zid;
     return hm;
   }
@@ -270,7 +265,7 @@ void* __createHM<NUGA::ISO>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
     using elt_type = K_MESH::Basic;
     using hmesh_t = NUGA::hierarchical_mesh<elt_type, NUGA::ISO>;
 
-    hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt));
+    hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt), reorient, sync_match);
     hm->zid = zid;
     return hm;
   }
@@ -281,9 +276,12 @@ void* __createHM<NUGA::ISO>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
 template<>
 void* __createHM<NUGA::ISO_HEX>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int zid)
 {
+  bool reorient =false;
+  bool sync_match=false;
+
   using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>;
 
-  hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt));
+  hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt), reorient, sync_match);
   hm->zid = zid;
   return hm;
 }
@@ -292,6 +290,9 @@ void* __createHM<NUGA::ISO_HEX>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArr
 template<>
 void* __createHM<NUGA::DIR>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int zid)
 {
+  bool reorient =false;
+  bool sync_match=false;
+
   if (typ != elt_t::HEXA)
   {
     PyErr_WarnEx(PyExc_Warning,
@@ -301,7 +302,7 @@ void* __createHM<NUGA::DIR>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
 
   using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR>;
   
-  hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt));
+  hmesh_t* hm = new hmesh_t(crd, ngon_type(cnt), reorient, sync_match);
   hm->zid = zid;
   return hm;
 }
@@ -592,7 +593,7 @@ const char* varString, PyObject *out)
     }
   }
   else if (elt_type==elt_t::BASIC)
-  {    
+  {
     using ELT_type = K_MESH::Basic;
     using mesh_type = NUGA::hierarchical_mesh<ELT_type, STYPE>;
 
@@ -800,8 +801,9 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
 {
   //todo VD
 
-  PyObject *arr, *py_transfo_to_list;
-  if (!PyArg_ParseTuple(args, "OO", &arr, &py_transfo_to_list)) return nullptr;
+  PyObject *arr, *py_dict_transfo_to_list;
+
+  if (!PyArg_ParseTuple(args, "OO", &arr, &py_dict_transfo_to_list)) return nullptr;
 
   // 1. Get mesh and check is NGON
   K_FLD::FloatArray* f(0);
@@ -810,26 +812,89 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
   // Check mesh is NGON
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return nullptr;
-    
+  
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
   
-  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
-  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
-  
+  // std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  // std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
   //2. dico to map
   std::map<transf_t, std::vector<int>> transfo_to_list;
-  err = convert_dico_to_map___transfo_to_vecint(py_transfo_to_list, transfo_to_list);
+  err = convert_dico_to_map___transfo_to_vecint(py_dict_transfo_to_list, transfo_to_list);
   if (err)
   {
     std::cout << "adaptCells_mpi : input is not a dictionary" << std::endl;
     return nullptr;
   }
 
-  return nullptr;
+
+  // We reorient the PG of our NGON
+  ngi.flag_externals(1);
+
+  DELAUNAY::Triangulator dt;
+  bool has_been_reversed;
+  err = ngon_type::reorient_skins(dt, crd, ngi, has_been_reversed); //orientate normal outwards
+  if (err) return nullptr;
+
+  for (auto& transfo_map : transfo_to_list) //loop over each transformation (match, transla, rota, etc)
+  {
+    auto & transfo = transfo_map.first.t;
+    auto & ptlist  = transfo_map.second;
+
+    int sz = ptlist.size();
+
+    E_Float center_rota[3];
+    E_Float axis_rota[3];
+    for (E_Int i = 0; i < 3; ++i)
+    {
+      center_rota[i] = transfo[i];
+      axis_rota[i] = transfo[i+3];
+    }
+
+    E_Float angle = NUGA::normalize<3>(axis_rota);
+    angle *= NUGA::PI / 180; //degree --> radian
+
+    if (angle != 0.) //positive rotation periodicity
+    {
+      auto crd_tmp = crd;
+
+      NUGA::axial_rotate(crd_tmp, center_rota, axis_rota, -angle);
+
+      for (E_Int i=0; i < sz; i++)
+      {
+        int pti = ptlist[i] -1;
+
+        int* nodes = ngi.PGs.get_facets_ptr(pti);
+        int nnodes = ngi.PGs.stride(pti);
+
+        K_MESH::Polygon::shift_geom(crd_tmp, nodes, nnodes, 1);
+      }
+    }
+
+    else //translation, match, negative rotation periodicity
+    {
+      for (E_Int i=0; i < sz; i++)
+      {
+        int pti = ptlist[i] -1;
+
+        int* nodes = ngi.PGs.get_facets_ptr(pti);
+        int nnodes = ngi.PGs.stride(pti);
+
+        K_MESH::Polygon::shift_geom(crd, nodes, nnodes, 1);
+      }
+    }
+  }
+
+  K_FLD::IntArray ng_arr;
+  ngi.export_to_array(ng_arr);
+  
+  PyObject* m = K_ARRAY::buildArray(crd, varString, ng_arr, 8, "NGON", false);
+
+  return m;
 }
 
 
@@ -839,7 +904,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
 {
 
-  //std::cout << "adaptCells : begin" << std::endl;
+  // std::cout << "adaptCells : begin" << std::endl;
   PyObject *hook_hmeshes(nullptr), *hook_sensors(nullptr), *py_zone_to_rid_to_list_owned(nullptr);
   PyObject *py_zonerank(nullptr), *py_rid_to_zones(nullptr);
   MPI_Comm COM = MPI_COMM_WORLD;
@@ -987,8 +1052,7 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
     err = __adapt_wrapper<ISO_HEX>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, vString->c_str(), l);
   else if (*subdiv_type == NUGA::DIR)
     err = __adapt_wrapper<DIR>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, vString->c_str(), l);
-*/
-  //std::cout << "adaptCells : end" << std::endl;
+  */
 
   return (err) ? nullptr : l;
 }
@@ -1061,7 +1125,6 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntAr
         ptl[j] = hmpgid_to_confpgid[ptl[j]-1]+1;
     }
   }
-
 
   // TRANSFER CENTER SOLUTION FIELDS
   hmesh->project_cell_center_sol_order1(hmesh->phhids0, fieldsC);
