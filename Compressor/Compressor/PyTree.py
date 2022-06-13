@@ -147,6 +147,10 @@ def _compressCartesian__(z, ztype, gc):
         if abs(xp[3] - xp[2] - hi) > 1.e-10: cartesian = False
         if abs(yp[3] - y0) > 1.e-10: cartesian = False
         if abs(zp[3] - z0) > 1.e-10: cartesian = False
+    if ni > 4:
+        if abs(xp[4] - xp[3] - hi) > 1.e-10: cartesian = False
+        if abs(yp[4] - y0) > 1.e-10: cartesian = False
+        if abs(zp[4] - z0) > 1.e-10: cartesian = False
 
     if nj > 1: hj = yp[ni]-y0
     else: hj = 1.
@@ -158,7 +162,11 @@ def _compressCartesian__(z, ztype, gc):
         if abs(yp[3*ni] - yp[2*ni] - hj) > 1.e-10: cartesian = False
         if abs(xp[2*ni] - x0) > 1.e-10: cartesian = False
         if abs(zp[2*ni] - z0) > 1.e-10: cartesian = False
-        
+    if nj > 4:
+        if abs(yp[4*ni] - yp[3*ni] - hj) > 1.e-10: cartesian = False
+        if abs(xp[3*ni] - x0) > 1.e-10: cartesian = False
+        if abs(zp[3*ni] - z0) > 1.e-10: cartesian = False
+
     if nk > 1: hk = zp[ni*nj]-z0
     else: hk = 1.
     if nk > 2: 
@@ -169,6 +177,10 @@ def _compressCartesian__(z, ztype, gc):
         if abs(zp[3*ni*nj] - zp[2*ni*nj] - hk) > 1.e-10: cartesian = False
         if abs(xp[2*ni*nj] - x0) > 1.e-10: cartesian = False
         if abs(yp[2*ni*nj] - y0) > 1.e-10: cartesian = False
+    if nk > 4: 
+        if abs(zp[4*ni*nj] - zp[3*ni*nj] - hk) > 1.e-10: cartesian = False
+        if abs(xp[3*ni*nj] - x0) > 1.e-10: cartesian = False
+        if abs(yp[3*ni*nj] - y0) > 1.e-10: cartesian = False
 
     if cartesian:
         Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read

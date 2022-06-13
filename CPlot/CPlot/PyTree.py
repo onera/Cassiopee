@@ -430,21 +430,21 @@ def updateCPlotNumbering(t):
         ztype = Internal.getZoneType(z)
         if ztype == 1: nstrf += 1
 
-    bases = Internal.getBases(t)
     nstr = 0; nunstr = 0
-    nb = 0
-    for b in bases:
-        nz = 0
-        for z in b[2]:
-            if z[3] == 'Zone_t':
-                ztype = Internal.getZoneType(z)
-                if ztype == 1:
-                    Nz[nstr] = nz
-                    Nb[nstr] = nb; nstr += 1
-                else:
-                    Nz[nunstr+nstrf] = nz
-                    Nb[nunstr+nstrf] = nb; nunstr += 1
-            nz += 1
+    nb = -1
+    for b in t[2]:
+        if b[3] == 'CGNSBase_t':
+            nz = 0
+            for z in b[2]:
+                if z[3] == 'Zone_t':
+                    ztype = Internal.getZoneType(z)
+                    if ztype == 1:
+                        Nz[nstr] = nz
+                        Nb[nstr] = nb; nstr += 1
+                    else:
+                        Nz[nunstr+nstrf] = nz
+                        Nb[nunstr+nstrf] = nb; nunstr += 1
+                nz += 1
         nb += 1
     return (Nb, Nz)
 

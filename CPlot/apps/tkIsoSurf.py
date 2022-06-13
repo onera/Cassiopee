@@ -69,11 +69,10 @@ def extractIsoSurf(event=None):
             z.append(CTK.t[2][nob][2][noz])
 
     isos = []
+    CTK.setCursor(2, WIDGETS['frame'])
     try:
-        CPlot.setState(cursor=2)
         iso = P.isoSurfMC(z, field, value)
         isos += iso
-        CPlot.setState(cursor=0)
     except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: isoSurf')
     if isos == []:
@@ -82,6 +81,7 @@ def extractIsoSurf(event=None):
     else:
         CTK.TXT.insert('START', 'isoSurf of '+field+'='
                        +str(value)+' computed.\n')
+    CTK.setCursor(0, WIDGETS['frame'])
     for i in isos: i[0] = C.getZoneName(i[0]) # unique name
     CTK.t = C.addBase2PyTree(CTK.t, 'SURFACES', 2)
     base = Internal.getNodeFromName1(CTK.t, 'SURFACES')

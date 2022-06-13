@@ -464,13 +464,13 @@ def setColormapLight(event=None):
     if light == 'IsoLight on': style += 1
     
     if colormap == 'BiColorRGB' or colormap == 'BiColorHSV':
-        WIDGETS['colormapC1'].grid(row=6, column=1, sticky=TK.EW)
-        WIDGETS['colormapC2'].grid(row=6, column=2, sticky=TK.EW)
+        WIDGETS['colormapC1'].grid(row=7, column=1, sticky=TK.EW)
+        WIDGETS['colormapC2'].grid(row=7, column=2, sticky=TK.EW)
         WIDGETS['colormapC3'].grid_forget()
     elif colormap == 'TriColorRGB' or colormap == 'TriColorHSV':
-        WIDGETS['colormapC1'].grid(row=6, column=0, sticky=TK.EW)
-        WIDGETS['colormapC2'].grid(row=6, column=2, sticky=TK.EW)
-        WIDGETS['colormapC3'].grid(row=6, column=1, sticky=TK.EW)
+        WIDGETS['colormapC1'].grid(row=7, column=0, sticky=TK.EW)
+        WIDGETS['colormapC2'].grid(row=7, column=2, sticky=TK.EW)
+        WIDGETS['colormapC3'].grid(row=7, column=1, sticky=TK.EW)
     else: 
         WIDGETS['colormapC1'].grid_forget()
         WIDGETS['colormapC2'].grid_forget()
