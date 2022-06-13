@@ -392,13 +392,29 @@ def _computeLambda2(t, ghostCells=False):
     P._computeGrad2(t, 'centers:VelocityX', ghostCells)
     P._computeGrad2(t, 'centers:VelocityY', ghostCells)
     P._computeGrad2(t, 'centers:VelocityZ', ghostCells)
-    C._initVars(t, 'centers:a11 = {centers:gradxVelocityX}**2')
-    C._initVars(t, 'centers:a22 = {centers:gradyVelocityY}**2')
-    C._initVars(t, 'centers:a33 = {centers:gradzVelocityZ}**2')
-    C._initVars(t, 'centers:a12 = 0.25*(({centers:gradyVelocityX}+{centers:gradxVelocityY})**2 - ({centers:gradyVelocityX}-{centers:gradxVelocityY})**2)')
-    C._initVars(t, 'centers:a13 = 0.25*(({centers:gradzVelocityX}+{centers:gradxVelocityZ})**2 - ({centers:gradzVelocityX}-{centers:gradxVelocityZ})**2)')
-    C._initVars(t, 'centers:a23 = 0.25*(({centers:gradzVelocityY}+{centers:gradyVelocityZ})**2 - ({centers:gradzVelocityY}-{centers:gradyVelocityZ})**2)')
+
+    # Rate of strain tensor
+    C._initVars(t, 'centers:s11 = {centers:gradxVelocityX}')   
+    C._initVars(t, 'centers:s12 = 0.5*({centers:gradyVelocityX}+{centers:gradxVelocityY})')
+    C._initVars(t, 'centers:s13 = 0.5*({centers:gradzVelocityX}+{centers:gradxVelocityZ})')
+    C._initVars(t, 'centers:s22 = {centers:gradyVelocityY}')
+    C._initVars(t, 'centers:s23 = 0.5*({centers:gradzVelocityY}+{centers:gradyVelocityZ})')
+    C._initVars(t, 'centers:s33 = {centers:gradzVelocityZ}')
+
+    # Vorticity tensor
+    C._initVars(t, 'centers:o12 = 0.5*({centers:gradyVelocityX}-{centers:gradxVelocityY})')
+    C._initVars(t, 'centers:o13 = 0.5*({centers:gradzVelocityX}-{centers:gradxVelocityZ})')
+    C._initVars(t, 'centers:o23 = 0.5*({centers:gradzVelocityY}-{centers:gradyVelocityZ})')
+
+    # SikSkj + OikOkj
+    C._initVars(t, 'centers:a11 = {centers:s11}**2+{centers:s12}**2+{centers:s13}**2 - ({centers:o12}**2+{centers:o13}**2)')
+    C._initVars(t, 'centers:a22 = {centers:s12}**2+{centers:s22}**2+{centers:s23}**2 - ({centers:o12}**2+{centers:o23}**2)')
+    C._initVars(t, 'centers:a33 = {centers:s13}**2+{centers:s23}**2+{centers:s33}**2 - ({centers:o13}**2+{centers:o23}**2)')
+    C._initVars(t, 'centers:a12 = {centers:s11}*{centers:s12}+{centers:s12}*{centers:s22}+{centers:s13}*{centers:s23} - {centers:o13}*{centers:o23}')
+    C._initVars(t, 'centers:a13 = {centers:s11}*{centers:s13}+{centers:s12}*{centers:s23}+{centers:s13}*{centers:s33} - {centers:o12}*{centers:o23}')
+    C._initVars(t, 'centers:a23 = {centers:s12}*{centers:s13}+{centers:s22}*{centers:s23}+{centers:s23}*{centers:s33} - {centers:o12}*{centers:o13}')
     C._initVars(t, 'centers:lambda2 = 0.')
+    
     zones = Internal.getZones(t)
     for z in zones:
         nc = C.getNCells(z)
@@ -418,28 +434,26 @@ def _computeLambda2(t, ghostCells=False):
         p = Internal.getNodeFromName(z, 'a23')[1].ravel('k')
         AAA[:,1,2] = p[:]
         AAA[:,2,1] = p[:]
-        #print('AAA', AAA)
-        # AAA : array(...,3,3)
-        # return : w(...,3)
+        
+        # Criterion : second eigenvalue (real and sorted) < 0
         lambda2 = numpy.linalg.eigvals(AAA)
-        lambda2 = numpy.real(lambda2) # real part puis la plus faible...? la plus negative?
-        #print('l2', lambda2.shape)
-        #print('l0', lambda2[:,0])
-        #print('l1', lambda2[:,1])
-        #print('l2', lambda2[:,2])
-        #lambda2 = lambda2[lambda2[:, 1].argsort()]
-        lambda2 = lambda2.sort(axis=1)
-        #print(lambda2[:,0])
-        #print(lambda2[:,1])
-        #print(lambda2[:,2])
+        AAA = None
+        lambda2 = numpy.real(lambda2)
+        lambda2 = numpy.sort(lambda2, axis=1)
+
         s = Internal.getNodeFromName2(z, 'a13')[1].shape
-        lambda2 = lambda2[:,1].reshape(s)
+        lambda2out = numpy.empty( (s), dtype=numpy.float64, order='F')
+        lambda2out.ravel('k')[:] = lambda2[:,1]
         p = Internal.getNodeFromName2(z, 'lambda2')
-        p[1] = lambda2
+        p[1] = lambda2out
+
     C._rmVars(t, ['centers:gradxVelocityX', 'centers:gradyVelocityX', 'centers:gradzVelocityX'])
     C._rmVars(t, ['centers:gradxVelocityY', 'centers:gradyVelocityY', 'centers:gradzVelocityY'])
     C._rmVars(t, ['centers:gradxVelocityZ', 'centers:gradyVelocityZ', 'centers:gradzVelocityZ'])
     C._rmVars(t, ['centers:a11', 'centers:a22', 'centers:a33', 'centers:a12', 'centers:a13', 'centers:a23'])
+    C._rmVars(t, ['centers:a11', 'centers:a22', 'centers:a33', 'centers:a12', 'centers:a13', 'centers:a23'])
+    C._rmVars(t, ['centers:s11', 'centers:s22', 'centers:s33', 'centers:s12', 'centers:s13', 'centers:s23'])
+    C._rmVars(t, ['centers:o12', 'centers:o13', 'centers:o23'])
     return None
 
 # Calcul de la pression dans le volume

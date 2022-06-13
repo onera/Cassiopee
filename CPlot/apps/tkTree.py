@@ -1271,7 +1271,7 @@ tcuom2foARAAyKRSmQAAOw==
     def pageup(self, event=None):
         """Previous page"""
         n = self.pos
-        j = self.winfo_height()/self.dist_y
+        j = self.winfo_height()//self.dist_y
         for i in range(j-3):
             n = n.prev_visible()
         self.yview('scroll', -1, 'pages')
@@ -1280,7 +1280,7 @@ tcuom2foARAAyKRSmQAAOw==
     def pagedown(self, event=None):
         """Next page"""
         n = self.pos
-        j = self.winfo_height()/self.dist_y
+        j = self.winfo_height()//self.dist_y
         for i in range(j-3):
             n = n.next_visible()
         self.yview('scroll', 1, 'pages')
