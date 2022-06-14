@@ -1,6 +1,6 @@
 # - Rotor/propeller specific post-processing -
 import Converter.PyTree as C
-from . import extraVariablesPT as PE
+from . import ExtraVariables2 as PE
 import Converter.Internal as Internal
 import Transform.PyTree as T
 import Generator.PyTree as G
@@ -111,6 +111,7 @@ def computeVelocityRelated(t, VorticityMagnitude=False, QCriterion=False, Veloci
     tp = C.node2Center(tp)
     return tp
 
+#====================================================================
 # Export a (psi,rad) accumulator storing vars to a zone
 def exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2']):
     """Export accumulator (psi,rad) in a zone for a given psi."""
@@ -136,6 +137,7 @@ def exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2']):
             q[r] = acu[c]
     return z
 
+#====================================================================
 # Export a (psi,rad) accumulator storing vars to a zone
 def exportAccumulatorPerRadius(accumulator, rad=0., vars=['F1','F2']):
     """Export accumulator (psi,rad) in a zone for a given radius."""

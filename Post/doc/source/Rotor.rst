@@ -23,6 +23,14 @@ List of functions
     Post.Rotor.computeZb
     Post.Rotor.computeThrustAndTorque
 
+**-- Accumulator export**
+
+.. autosummary::
+
+    Post.Rotor.exportAccumulatorPerPsi
+    Post.Rotor.exportAccumulatorPerRadius
+    Post.Rotor.exportAccumulatorMap
+
 
 Contents
 #########
@@ -137,3 +145,66 @@ Force extractions
     * `Compute thrust and torque (pyTree) <Examples/Post/computeThrustAndTorquePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/computeThrustAndTorquePT.py
+
+Accumulator export
+-------------------
+
+.. py:function:: Post.Rotor.exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2'])
+
+    Export a given psi of an accumulator (psi,rad) in a 1D zone.
+
+    :param accumulator: (psi,rad) accumulator
+    :type  accumulator: dictionary
+    :param psi: angular angle to be extracted (in degree)
+    :type psi: float
+    :param vars: the name of variables stored in accumulator
+    :type vars: list of strings
+    :return: a single Zone with vars corresponding to psi
+    :rtype: Zone
+
+    *Example of use:*
+
+    * `Export accumulator for given psi (pyTree) <Examples/Post/exportAccumulatorPerPsiPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/exportAccumulatorPerPsiPT.py
+
+---------------------------------------
+
+.. py:function:: Post.Rotor.exportAccumulatorPerRadius(accumulator, rad=0., vars=['F1','F2'])
+
+    Export a given radius of an accumulator (psi,rad) in a 1D zone.
+
+    :param accumulator: (psi,rad) accumulator
+    :type  accumulator: dictionary
+    :param rad: radius to be extracted
+    :type rad: float
+    :param vars: the name of variables stored in accumulator
+    :type vars: list of strings
+    :return: a single Zone with vars corresponding to rad
+    :rtype: Zone
+
+    *Example of use:*
+
+    * `Export accumulator for given rad (pyTree) <Examples/Post/exportAccumulatorPerRadiusPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/exportAccumulatorPerRadiusPT.py
+
+
+---------------------------------------
+
+.. py:function:: Post.Rotor.exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz'])
+
+    Export accumulator (psi,rad) to a 2D zone.
+
+    :param accumulator: (psi,rad) accumulator
+    :type  accumulator: dictionary
+    :param vars: the name of variables stored in accumulator
+    :type vars: list of strings
+    :return: a single Zone with fields
+    :rtype: Zone
+
+    *Example of use:*
+
+    * `Export accumulator to a map (pyTree) <Examples/Post/exportAccumulatorMapPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/exportAccumulatorMapPT.py

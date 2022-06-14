@@ -29,8 +29,14 @@ def extractTree(t, vars=['centers:Density', 'centers:VelocityX','centers:Velocit
 # IN: centers:Velocity
 # OUT: centers:Vorticity
 # Set ghostCells to True if t has ghost cells
+def computeVorticity2(t, ghostCells=False):
+    """Compute vorticity from velocity in centers."""
+    tp = Internal.copyRef(t)
+    _computeVorticity2(tp, ghostCells=ghostCells)
+    return tp
+
 def _computeVorticity2(t, ghostCells=False):
-    """Compute vorticity for velocity in centers."""
+    """Compute vorticity from velocity in centers."""
     P._computeGrad2(t, 'centers:VelocityX', ghostCells)
     C._initVars(t, '{centers:VorticityX}=0.')
     C._initVars(t, '{centers:VorticityY}={centers:gradzVelocityX}')
@@ -48,8 +54,14 @@ def _computeVorticity2(t, ghostCells=False):
 
 # IN: centers:Velocity 
 # OUT: centers:VorticityMagnitude
+def computeVorticityMagnitude2(t, ghostCells=False):
+    """Compute vorticity magnitude from velocity in centers."""
+    tp = Internal.copyRef(t)
+    _computeVorticityMagnitude2(tp, ghostCells=ghostCells)
+    return tp
+
 def _computeVorticityMagnitude2(t, ghostCells=False):
-    """Compute vorticity magnitude for velocity in centers."""    
+    """Compute vorticity magnitude from velocity in centers."""    
     _computeVorticity2(t, ghostCells)
     C._magnitude(t, ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ'])
     C._rmVars(t, ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ'])
@@ -58,8 +70,14 @@ def _computeVorticityMagnitude2(t, ghostCells=False):
 
 # IN: centers:Velocity 
 # OUT: centers:QCriterion
+def computeQCriterion2(t, ghostCells=False):
+    """Compute Q criterion from velocity in centers."""
+    tp = Internal.copyRef(t)
+    _computeQCriterion2(tp, ghostCells=ghostCells)
+    return tp
+
 def _computeQCriterion2(t, ghostCells=False):
-    """Compute Q criterion for velocity in centers."""
+    """Compute Q criterion from velocity in centers."""
     P._computeGrad2(t, 'centers:VelocityX', ghostCells)
     C._initVars(t, '{centers:QCriterion}=-0.5*{centers:gradxVelocityX}*{centers:gradxVelocityX}')
     C._rmVars(t, ['centers:gradxVelocityX'])
@@ -73,6 +91,12 @@ def _computeQCriterion2(t, ghostCells=False):
 
 # IN: centers:Velocity 
 # OUT: centers:lambda2
+def computeLambda2(t, ghostCells=False):
+    """Compute lambda2 criterion from velocity in centers."""
+    tp = Internal.copyRef(t)
+    _computeLambda2(tp, ghostCells=ghostCells)
+    return tp
+
 def _computeLambda2(t, ghostCells=False):
     """Compute lambda2 criterion for velocity in centers."""
     P._computeGrad2(t, 'centers:VelocityX', ghostCells)
@@ -148,6 +172,12 @@ def _computeLambda2(t, ghostCells=False):
 # IN: cv: refState (r a partir de cv)
 # OUT: centers:Pressure
 # P = ro r T
+def extractPressure(t):
+    """Extract Pressure."""
+    tp = Internal.copyRef(t)
+    _extractPressure(tp)
+    return tp
+
 def _extractPressure(t):
     """Extract Pressure."""
     P._computeVariables2(t, ['centers:Pressure'])
@@ -157,9 +187,16 @@ def _extractPressure(t):
 # IN: centers:VelocityX, centers:VelocityY, centers:VelocityZ
 # OUT: centers:VelocityMagnitude
 # v = sqrt(vx**2+vy**2+vz**2)
+def extractVelocityMagnitude(t):
+    """Extract velocity magnitude."""
+    tp = Internal.copyRef(t)
+    _extractVelocityMagnitude(tp)
+    return tp
+
 def _extractVelocityMagnitude(t):
     """Extract velocity magnitude."""
     P._computeVariables2(t, ['centers:VelocityMagnitude'])
+    return None
 
 # Mach volumique
 # IN: centers:Temperature
@@ -167,18 +204,31 @@ def _extractVelocityMagnitude(t):
 # IN: cv: refState (r a partir de cv)
 # OUT: centers:Mach
 # M = u/sqrt(gamma p/ro) - p = ro r T
+def extractMach(t):
+    tp = Internal.copyRef(t)
+    _extractMach(tp)
+    return tp
+
 def _extractMach(t):
     """Extract Mach."""
     P._computeVariables2(t, ['centers:Mach'])
+    return None
 
 # Mu volumique
 # mu = sutherland(T)
 # IN: centers:Temperature
 # IN: Cs, Mus, Ts from refstate
 # OUT: centers:ViscosityMolecular
+def extractViscosityMolecular(t):
+    """Extract Viscosity molecular."""
+    tp = Internal.copyRef(t)
+    _extractViscosityMolecular(tp)
+    return tp
+
 def _extractViscosityMolecular(t):
     """Extract Viscosity molecular."""
     P._computeVariables2(t, ['centers:ViscosityMolecular'])
+    return None
 
 # mut from spalart
 # IN: centers:TurbulentSANuTilde
@@ -186,6 +236,12 @@ def _extractViscosityMolecular(t):
 # OUT: centers:ViscosityEddy
 # kappa = ro * nutilde / mu
 # mut = ro * nutilde * kappa^3 / (kappa^3 + 7.1^3)
+def extractViscosityEddy(t):
+    """Extract eddy viscosity."""
+    tp = Internal.copyRef(t)
+    _extractViscosityEddy(tp)
+    return tp
+
 def _extractViscosityEddy(t):
     """Extract eddy viscosity."""
     C._initVars(t, '{centers:Kappa} = {centers:Density} * {centers:TurbulentSANuTilde} / {centers:ViscosityMolecular}')
@@ -198,9 +254,16 @@ def _extractViscosityEddy(t):
 # IN: centers:ViscosityMolecular (mu)
 # OUT: centers:MutSurMu
 # mutSurmu = mut / mu
+def extractMutSurMu(t):
+    """Extract Mut over mu."""
+    tp = Internal.copyRef(t)
+    _extractMutSurMu(tp)
+    return tp
+
 def _extractMutSurMu(t):
     """Extract Mut over mu."""
     C._initVars(t, '{centers:MutSurMu} = {centers:ViscosityEddy}/{centers:ViscosityMolecular}')
+    return None
 
 #======================================================
 # Volumic extractions with gradient
@@ -258,6 +321,12 @@ def _extractForceLoads(teff):
 # ce qui est correct ici car sur les parois, viscosityEddy = 0
 def _extractShearStress(teff):
     """Extract shearStress."""
+    tp = Internal.copyRef(teff)
+    _extractShearStress(tp)
+    return tp
+
+def _extractShearStress(teff):
+    """Extract shearStress."""
     C._initVars(teff,'{centers:divu}={centers:gradxVelocityX}+{centers:gradyVelocityY}+{centers:gradzVelocityZ}') # du/dx+dv/dy+dw/dz
     C._initVars(teff, '{centers:ShearStressXX}={centers:ViscosityMolecular}*(-2./3.*{centers:divu}+2.*{centers:gradxVelocityX})')
     C._initVars(teff, '{centers:ShearStressYY}={centers:ViscosityMolecular}*(-2./3.*{centers:divu}+2.*{centers:gradyVelocityY})')
@@ -271,7 +340,14 @@ def _extractShearStress(teff):
 # Extract tau.n
 # IN: centers:ShearStress
 # taun = tau.n
+def extractTaun(teff):
+    """Extract tau.n."""
+    tp = Internal.copyRef(teff)
+    _extractTaun(tp)
+    return tp
+
 def _extractTaun(teff):
+    """Extract tau.n."""
     G._getNormalMap(teff)
     C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
     C._initVars(teff, '{centers:taunx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
@@ -283,6 +359,13 @@ def _extractTaun(teff):
 # IN: centers:Pressure
 # pn = p.n
 def _extractPn(teff):
+    """Extract p.n."""
+    tp = Internal.copyRef(teff)
+    _extractPn(tp)
+    return tp
+
+def _extractPn(teff):
+    """Extract p.n."""
     G._getNormalMap(teff)
     C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
     C._initVars(teff, '{centers:pnx} = {centers:Pressure}*{centers:sx}')
@@ -295,7 +378,14 @@ def _extractPn(teff):
 # IN: centers:ShearStress
 # IN: si withPInf = None: F = -p.n + tau.n
 #     sinon F = -(p-pinf).n + tau.n
+def extractForce(teff, withPInf=None):
+    """Extract forces."""
+    tp = Internal.copyRef(teff)
+    _extractForce(tp, withPInf=withPInf)
+    return tp
+
 def _extractForce(teff, withPInf=None):
+    """Extract forces."""
     G._getNormalMap(teff)
     C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
     if withPInf is None:
@@ -315,6 +405,12 @@ def _extractForce(teff, withPInf=None):
 # IN: centers:shearStressXX,...
 # OUT: centers:frictionX, centers:frictionY, centers:frictionZ
 # taut = tau.n - (n. tau.n) n
+def extractFrictionVector(teff):
+    """Extract tangential friction vector."""
+    tp = Internal.copyRef(teff)
+    _extractFrictionVector(tp)
+    return tp
+
 def _extractFrictionVector(teff):
     """Extract tangential friction vector."""
     G._getNormalMap(teff)
@@ -333,6 +429,12 @@ def _extractFrictionVector(teff):
 # IN: centers:frictionX, centers:frictionY, centers:frictionZ
 # OUT: centers: frictionMagnitude
 # tauw = ||taut||
+def extractFrictionMagnitude(teff):
+    """Extract friction magnitude."""
+    tp = Internal.copyRef(teff)
+    _extractFrictionMagnitude(tp)
+    return tp
+
 def _extractFrictionMagnitude(teff):
     """Extract friction magnitude."""
     C._magnitude(teff, ['centers:frictionX', 'centers:frictionY', 'centers:frictionZ'])
@@ -342,6 +444,12 @@ def _extractFrictionMagnitude(teff):
 # IN: centers:Density2 - density
 # OUT: centers:utau
 # utau = sqrt(tauw/ro)
+def extractUTau(teff):
+    """Extract utau."""
+    tp = Internal.copyRef(teff)
+    _extractUTau(tp)
+    return tp
+
 def _extractUTau(teff):
     """Extract utau."""
     C._initVars(teff, '{centers:utau}=sqrt({centers:frictionMagnitude}/{centers:Density2})')
@@ -351,8 +459,14 @@ def _extractUTau(teff):
 # IN: norm : (1/2*roinf*uinf**2)
 # OUT: centers:Cf
 # cf = tauw / (1/2*roinf*uinf**2)
+def extractCf(teff, pinf, norm):
+    """Extract friction coefficient."""
+    tp = Internal.copyref(teff)
+    _extractCf(tp, pinf, norm)
+    return tp
+
 def _extractCf(teff, norm):
-    """Extract Cf."""
+    """Extract friction coefficient."""
     C._initVars(teff, '{centers:Cf} = {centers:frictionMagnitude} / %20.16g'%norm)
     return None
 
@@ -361,8 +475,14 @@ def _extractCf(teff, norm):
 # IN: norm : (1/2*roinf*uinf**2)
 # OUT: centers:Cp
 # cp = (p-pinf) / (1/2*roinf*uinf**2)
+def extractCp(teff, pinf, norm):
+    """Extract pressure coefficient."""
+    tp = Internal.copyref(teff)
+    _extractCp(tp, pinf, norm)
+    return tp
+
 def _extractCp(teff, pinf, norm):
-    """Extract Cp."""
+    """Extract pressure coefficient."""
     C._initVars(teff, '{centers:Cp} = ({centers:Pressure}-%20.16g) / %20.16g'%(pinf,norm))
     return None
 

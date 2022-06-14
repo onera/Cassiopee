@@ -13,6 +13,6 @@ thrust,torque = PR.computeThrustAndTorque(teff, 419., PInf, center=(0,0,0), rela
 #> thrust [368.952736931205, -39.172151751517326, 3543.2002154791667] torque [226.5518638611441, 950.9479780913017, -935.2791149345967]
 
 accu = {}
-zb = PR.computeThrustAndTorque(teff, 419., PInf, center=(0,0,0), relativeShaft=0., accumulatorThrust=accu)
+thrust, torque = PR.computeThrustAndTorque(teff, 419., PInf, center=(0,0,0), relativeShaft=0., accumulatorThrust=accu)
 ret = PR.exportAccumulatorPerRadius(accu, vars=['ThrustX','ThrustY','ThrustZ','TorqueX','TorqueY','TorqueZ'])
 C.convertPyTree2File(ret, 'Thrust.cgns')
