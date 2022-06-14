@@ -1,4 +1,4 @@
-# - Rotor specific post-processing -
+# - Rotor/propeller specific post-processing -
 import Converter.PyTree as C
 from . import extraVariablesPT as PE
 import Converter.Internal as Internal
@@ -113,7 +113,7 @@ def computeVelocityRelated(t, VorticityMagnitude=False, QCriterion=False, Veloci
 
 # Export a (psi,rad) accumulator storing vars to a zone
 def exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2']):
-
+    """Export accumulator (psi,rad) in a zone for a given psi."""
     accumulator = Cmpi.allgatherDict(accumulator)
 
     radius = []
@@ -138,6 +138,7 @@ def exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2']):
 
 # Export a (psi,rad) accumulator storing vars to a zone
 def exportAccumulatorPerRadius(accumulator, rad=0., vars=['F1','F2']):
+    """Export accumulator (psi,rad) in a zone for a given radius."""
 
     accumulator = Cmpi.allgatherDict(accumulator)
 
@@ -166,7 +167,7 @@ def exportAccumulatorPerRadius(accumulator, rad=0., vars=['F1','F2']):
 # IN: vars: the variables stored in accumulator
 #====================================================================
 def exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz']):
-
+    """Export accumulator (psi,rad) in a map zone."""
     accumulator = Cmpi.allgatherDict(accumulator)
 
     psis = []; radius = []
@@ -215,25 +216,26 @@ def exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz']):
 #========================================================================
 # Zb: dans le repere vent
 # IN: teff
-# IN: ROINF: far field density (kg/m3)
-# IN: ASOUND: sound speed (OMEGA * R = MTIP * ASOUND)
-# IN: MTIP: tip mach number
+# IN: RoInf: far field density (kg/m3)
+# IN: ASOUND: sound speed (OMEGA * R = Mtip * ASOUND)
+# IN: Mtip: tip mach number
 # IN: AR: rotor radius (m)
 # IN: SIGMA: rotor solidity = (Nb*c) / (pi*AR)
 # IN: relativeShaft: si le repere du maillage n'est pas le repere vent
 # OUT: rotor traction
 #========================================================================
-def computeZb(teff, psi, ROINF, ASOUND, MTIP, AR, SIGMA, 
+def computeZb(teff, psi, RoInf, ASOUND, Mtip, AR, SIGMA, 
               relativeShaft=0., accumulatorZb=None):
+    """Compute Zb."""
     PE._extractShearStress(teff)
-    PE._extractForce(teff, withPInf=ROINF*ASOUND**2/1.4)
+    PE._extractForce(teff, withPInf=RoInf*ASOUND**2/1.4)
     if relativeShaft != 0.:
         teff = T.rotate(teff, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:Fx','centers:Fy','centers:Fz']])
     xb = Pmpi.integ(teff, 'centers:Fx')[0]
     yb = Pmpi.integ(teff, 'centers:Fy')[0]
     zb = Pmpi.integ(teff, 'centers:Fz')[0]
     S = math.pi * AR**2
-    adim = 0.5*ROINF*S*SIGMA*(MTIP*ASOUND)**2
+    adim = 0.5*RoInf*S*SIGMA*(Mtip*ASOUND)**2
     xb = 100. * xb / adim
     yb = 100. * yb / adim
     zb = 100. * zb / adim
@@ -247,9 +249,10 @@ def computeZb(teff, psi, ROINF, ASOUND, MTIP, AR, SIGMA,
 # IN: relativeShaft: si le repere du maillage n'est pas le repere shaft (ortho rotor)
 # OUT: Thrust en Newton et Torque en N.m
 #========================================================================
-def computeThrustAndTorque(teff, psi, PINF, center=(0,0,0), relativeShaft=0., accumulatorThrust=None):
+def computeThrustAndTorque(teff, psi, PInf, center=(0,0,0), relativeShaft=0., accumulatorThrust=None):
+    """Compute thrust."""
     PE._extractShearStress(teff)
-    PE._extractForce(teff, withPInf=PINF)
+    PE._extractForce(teff, withPInf=PInf)
     if relativeShaft != 0.:
         teff = T.rotate(teff, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:Fx','centers:Fy','centers:Fz']])
     thrustx = Pmpi.integ(teff, 'centers:Fx')[0]
@@ -264,6 +267,7 @@ def computeThrustAndTorque(teff, psi, PINF, center=(0,0,0), relativeShaft=0., ac
 # OUT: streamlines sur la surface
 #========================================================================
 def frictionLines(teff):
+    """Compute friction lines on a surface."""
     b = Internal.getNodeFromName1(teff, 'Blade7A_00')
 
     # Points de depart des streamLines
@@ -292,17 +296,18 @@ def frictionLines(teff):
 # OUT: accumule les valeurs de CnM2 dans un dictionnaire (psi,rad)
 #========================================================================
 def extractSlices(teff, bladeName, psi, radius, 
-                  ROINF, PINF, ASOUND, MTIP, AR, CHORD, MU,
+                  RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU,
                   accumulatorSlices=None,
                   accumulatorCnM2=None, accumulatorCmM2=None, 
                   relativeShaft=0., localFrame=True, delta=0.05):
+    """Extract slices on blade and compute Kp,Cf,CnM2,CmM2."""
     b = Internal.getNodeFromName1(teff, bladeName)
     if b is not None:
         # Complete blade
         PE._extractShearStress(b)
         PE._extractFrictionVector(b)
         PE._extractFrictionMagnitude(b)
-        PE._extractForce(b, withPInf=PINF)
+        PE._extractForce(b, withPInf=PInf)
         G._getNormalMap(b)
         C._normalize(b, ['centers:sx','centers:sy','centers:sz'])
         if relativeShaft != 0.:
@@ -375,6 +380,7 @@ def extractSlices(teff, bladeName, psi, radius,
             slice = P.isoSurfMC(bandes, 'CoordinateX', rad)
             slices[rad] = slice[0]
 
+    CnM2All = []; CmM2All = []
     for rad in slices:
         iso = slices[rad]
 
@@ -388,8 +394,8 @@ def extractSlices(teff, bladeName, psi, radius,
         C._initVars(iso, '{xc}= 1.-({CoordinateY}-%20.16g)/(%20.16g-%20.16g)'%(ymin,ymax,ymin))
         
         # Kp
-        adimKp = 0.5*ROINF*(rad*MTIP*ASOUND/AR+MU*MTIP*ASOUND*math.sin(psi/180.*math.pi))**2
-        C._initVars(iso, '{Kp}= ({Pressure}-%20.16g)/ %20.16g'%(PINF,adimKp))
+        adimKp = 0.5*RoInf*(rad*Mtip*ASOUND/AR+MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
+        C._initVars(iso, '{Kp}= ({Pressure}-%20.16g)/ %20.16g'%(PInf,adimKp))
         # Cf
         C._initVars(iso, '{Cf}= {frictionMagnitude}/ %20.16g'%adimKp)
 
@@ -402,7 +408,7 @@ def extractSlices(teff, bladeName, psi, radius,
         (PLE,PTE,PF,Glob2Loc) = detect_BA_BF_QC(iso, rad)
 
         # CnM2
-        adimCnM2 = 0.5*ROINF*ASOUND**2*CHORD
+        adimCnM2 = 0.5*RoInf*ASOUND**2*CHORD
         CnM2x = P.integ(iso, var='Fx')[0]
         CnM2y = P.integ(iso, var='Fy')[0]
         CnM2z = P.integ(iso, var='Fz')[0]
@@ -413,9 +419,10 @@ def extractSlices(teff, bladeName, psi, radius,
         if localFrame: Cn = numpy.dot(Glob2Loc, Cn)
 
         if accumulatorCnM2 is not None: accumulatorCnM2[(psi,rad)] = [Cn[0],Cn[1],Cn[2]]
-    
+        CnM2All.append([Cn[0],Cn[1],Cn[2]])
+
         # CmM2
-        adimCmM2 = 0.5*ROINF*ASOUND**2*CHORD
+        adimCmM2 = 0.5*RoInf*ASOUND**2*CHORD
         (CmM2x,CmM2y,CmM2z) = P.integMoment(iso, center=PF, vector=['Fx','Fy','Fz'])
         CmM2x = CmM2x/adimCmM2
         CmM2y = CmM2y/adimCmM2
@@ -424,13 +431,14 @@ def extractSlices(teff, bladeName, psi, radius,
         if localFrame: Cm = numpy.dot(Glob2Loc, Cm)
         
         if accumulatorCmM2 is not None: accumulatorCmM2[(psi,rad)] = [Cm[0],Cm[1],Cm[2]]
+        CmM2All.append([Cm[0],Cm[1],Cm[2]])
 
     if accumulatorSlices is not None:
         for rad in radius: accumulatorSlices[(psi,rad)] = slices[rad]
 
-    out = []
-    for rad in radius: out += [slices[rad]]
-    return out
+    slicesAll = []
+    for rad in radius: slicesAll += [slices[rad]]
+    return slicesAll, CnM2All, CmM2All
 
 #============================================================
 # extract the files for H2T RotorLoads

@@ -79,9 +79,9 @@ List of functions
     Post.usurp
 
     Post.Probe.Probe
-    Post.Probe.extract
-    Post.Probe.flush
-    Post.Probe.read
+    Post.Probe.Probe.extract
+    Post.Probe.Probe.flush
+    Post.Probe.Probe.read
 
 **-- Streams/Isos**
 
@@ -1089,7 +1089,7 @@ Solution extraction
 
 ---------------------------------------
 
-.. py:function:: Post.Probe.extract(time=0.)
+.. py:function:: Post.Probe.Probe.extract(time=0.)
 
     Extract probe at given time.
 
@@ -1098,14 +1098,14 @@ Solution extraction
     
 ---------------------------------------
 
-.. py:function:: Post.Probe.flush()
+.. py:function:: Post.Probe.Probe.flush()
 
     Force probe flush.
 
 ---------------------------------------
 
 
-.. py:function:: Post.Probe.read()
+.. py:function:: Post.Probe.Probe.read()
 
     Read all data stored in probe file and return a zone. 
 

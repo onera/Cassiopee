@@ -6,7 +6,7 @@ Rotor: rotor specific post-processing
 
 Specific post-processing for rotors or propellers.
 
-Those function work with a solution tree "t" or a blade surface tree "teff".
+Those functions work with a solution tree "t" or a blade surface tree "teff".
 
 
 .. py:module:: Post.Rotor
@@ -31,7 +31,7 @@ Force extractions
 ------------------
 
 
-.. py:function:: Post.Rotor.extractSlices(teff, bladeName, psi, radius, ROINF, PINF, ASOUND, MTIP, AR, CHORD, MU, relativeShaft=0., localFrame=True, delta=0.05, accumulatorSlices=None, accumulatorCnM2=None, accumulatorCmM2=None)
+.. py:function:: Post.Rotor.extractSlices(teff, bladeName, psi, radius, RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU, relativeShaft=0., localFrame=True, delta=0.05, accumulatorSlices=None, accumulatorCnM2=None, accumulatorCmM2=None)
 
     Extract slices on blades. Export Cp, Cf on those slices. 
     Compute CnM2 and CmM2 on those slices.
@@ -44,15 +44,15 @@ Force extractions
     :type psi: float
     :param radius: list of radius to extract
     :type radius: list of floats
-    :param ROINF: infinite flow density
-    :type ROINF: float
-    :param PINF: infinite flow pressure
-    :type PINF: float
+    :param RoInf: infinite flow density
+    :type RoInf: float
+    :param PInf: infinite flow pressure
+    :type PInf: float
     :param ASOUND: infinite flow sound speed
     :type ASOUND: float
-    :param MTIP: blade mach tip
-    :type MTIP: float
-    :param AR: blade length in m
+    :param Mtip: blade mach tip
+    :type Mtip: float
+    :param AR: blade length
     :type AR: float
     :param CHORD: blade chord
     :type CHORD: float
@@ -66,10 +66,10 @@ Force extractions
     :type accumulatorSlices: dictionary
     :param accumulatorCnM2: if not None, accumulate CnM2
     :type accumulatorCnM2: dictionary
-    :param accumulatorCmM2: if not None, accumulate CnM2
+    :param accumulatorCmM2: if not None, accumulate CmM2
     :type accumulatorCmM2: dictionary
-    :return: list of slices (one for each radius)
-    :rtype: list of zones
+    :return: list of slices, list of CnM2, list of CmM2 (one for each radius)
+    :rtype: list of zones, list of 3 floats, list of 3 floats
 
     *Example of use:*
 
@@ -79,7 +79,7 @@ Force extractions
 
 ---------------------------------------
 
-.. py:function:: Post.Rotor.computeZb(teff, psi, ROINF, ASOUND, MTIP, AR, SIGMA, relativeShaft=0., accumulatorZb=None)
+.. py:function:: Post.Rotor.computeZb(teff, psi, RoInf, ASOUND, Mtip, AR, SIGMA, relativeShaft=0., accumulatorZb=None)
 
     Compute Zb in the wind frame.
     
@@ -87,12 +87,12 @@ Force extractions
     :type  teff: [zone, list of zones, base, tree]
     :param psi: angular angle of blade in teff (in degree)
     :type psi: float
-    :param ROINF: infinite flow density
-    :type ROINF: float
+    :param RoInf: infinite flow density
+    :type RoInf: float
     :param ASOUND: infinite flow sound speed
     :type ASOUND: float
-    :param MTIP: blade mach tip
-    :type MTIP: float
+    :param Mtip: blade mach tip
+    :type Mtip: float
     :param AR: blade length in m
     :type AR: float
     :param SIGMA: rotor solidity (= Nb*c / pi*AR)
@@ -113,7 +113,7 @@ Force extractions
 
 ---------------------------------------
 
-.. py:function:: Post.Rotor.computeThrustAndTorque(teff, psi, PINF, center=(0,0,0), relativeShaft=0., accumulatorThrust=None)
+.. py:function:: Post.Rotor.computeThrustAndTorque(teff, psi, PInf, center=(0,0,0), relativeShaft=0., accumulatorThrust=None)
 
     Compute Thrust in the rotor frame (that is orthogonal to rotor).
 
@@ -121,8 +121,8 @@ Force extractions
     :type  teff: [zone, list of zones, base, tree]
     :param psi: angular angle of blade in teff (in degree)
     :type psi: float
-    :param PINF: infinite flow pressure
-    :type PINF: float
+    :param PInf: infinite flow pressure
+    :type PInf: float
     :param center: center for momentum computations
     :type center: list of 3 floats
     :param relativeShaft: relative shaft angle if the mesh is not in the rotor frame

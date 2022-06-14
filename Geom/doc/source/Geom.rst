@@ -840,11 +840,11 @@ Geometry modification
 
     *Example of use:*
 
-    * `Extrusion of a NACA0012 (array) <Examples/Geom/lineDrive.py>`_:
+    * `Extrusion with driving curve of a NACA0012 (array) <Examples/Geom/lineDrive.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/lineDrive.py
 
-    * `Extrusion of a NACA0012 (pyTree) <Examples/Geom/lineDrivePT.py>`_:
+    * `Extrusion with driving curve of a NACA0012 (pyTree) <Examples/Geom/lineDrivePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/lineDrivePT.py
 
@@ -865,11 +865,11 @@ Geometry modification
 
     *Example of use:*
 
-    * `Extrusion of a NACA0012 (array) <Examples/Geom/orthoDrive.py>`_:
+    * `Orthogonal extrusion of a NACA0012 (array) <Examples/Geom/orthoDrive.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/orthoDrive.py
 
-    * `Extrusion of a NACA0012 (pyTree) <Examples/Geom/orthoDrivePT.py>`_:
+    * `Orthogonal extrusion of a NACA0012 (pyTree) <Examples/Geom/orthoDrivePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/orthoDrivePT.py
 

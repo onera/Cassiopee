@@ -83,6 +83,8 @@ then
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex Post >& /dev/null
+    pdflatex Rotor >& /dev/null
+    pdflatex ExtraVariables2 >& /dev/null
     cd ..
 fi
 
@@ -92,8 +94,17 @@ then
     taghtml build/Post.html
     sed -i 's/Post.Post/Post/g' build/Post.html
     cp build/Post.html $DEST
-
     cp build/Post.pdf $DEST
+    taghtml build/Rotor.html
+    sed -i 's/Post.Rotor.Post.Rotor/Post.Rotor/g' build/Rotor.html
+    sed -i 's/Post\.pdf/Rotor\.pdf/g' build/Rotor.html
+    cp build/Rotor.html $DEST
+    cp build/Rotor.pdf $DEST
+    taghtml build/ExtraVariables2.html
+    sed -i 's/Post.ExtraVariables2.Post.ExtraVariables2/Post.ExtraVariables2/g' build/ExtraVariables2.html
+    sed -i 's/Post\.pdf/ExtraVariables2\.pdf/g' build/ExtraVariables2.html
+    cp build/ExtraVariables2.html $DEST
+    cp build/ExtraVariables2.pdf $DEST
 fi
 
 # Copie des release Notes

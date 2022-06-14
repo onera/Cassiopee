@@ -198,8 +198,8 @@ List of functions
     Converter.conformizeNGon
     Converter.node2Center
     Converter.center2Node
-    Converter.addGhostCells
-    Converter.rmGhostCells
+    Converter.PyTree.addGhostCells
+    Converter.PyTree.rmGhostCells
 
 **-- Array / PyTree analysis**
 
@@ -1728,7 +1728,7 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1)
+.. py:function:: Converter.PyTree.addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1)
 
     Add ghost cells to structured grids.
     if modified is given, limit add ghost cells to given field containers. Otherwise, ghost cells
@@ -1761,7 +1761,7 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.rmGhostCells(t, b, d, adaptBCs=1, modified=[])
+.. py:function:: Converter.PyTree.rmGhostCells(t, b, d, adaptBCs=1, modified=[])
 
     Remove ghost cells to structured grids. See addGhostCells.
 
@@ -1781,7 +1781,7 @@ Array / PyTree common manipulations
 
     *Example of use:*
 
-    * `Add ghost cells (pyTree) <Examples/Converter/rmGhostCellsPT.py>`_:
+    * `Remove ghost cells (pyTree) <Examples/Converter/rmGhostCellsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/rmGhostCellsPT.py
 
