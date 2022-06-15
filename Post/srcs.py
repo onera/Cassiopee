@@ -1,4 +1,7 @@
-from KCore.config import *
+try:
+  from KCore.config import *
+except ModuleNotFoundError:
+  pass
 import os
 USURP = False
 STREAMLINE2 = True

@@ -436,10 +436,10 @@ def extractSlices(teff, bladeName, psi, radius,
         CmM2All.append([Cm[0],Cm[1],Cm[2]])
 
     if accumulatorSlices is not None:
-        for rad in radius: accumulatorSlices[(psi,rad)] = slices[rad]
+        for rad in slices: accumulatorSlices[(psi,rad)] = slices[rad]
 
     slicesAll = []
-    for rad in radius: slicesAll += [slices[rad]]
+    for rad in slices: slicesAll += [slices[rad]]
     return slicesAll, CnM2All, CmM2All
 
 #============================================================

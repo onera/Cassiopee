@@ -1,11 +1,16 @@
-import KCore.Dist as Dist
-from KCore.config import *
 EXPRESSION = True
 
-(hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
-                                                     additionalIncludePaths)
-(png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
-                                            additionalIncludePaths)
+try:
+  import KCore.Dist as Dist
+  from KCore.config import *
+  (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                       additionalIncludePaths)
+  (png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
+                                              additionalIncludePaths)
+except ModuleNotFoundError:
+  hdf = True
+  png = True
+
 #==============================================================================
 # Fichiers c++
 #==============================================================================

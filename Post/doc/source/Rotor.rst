@@ -70,6 +70,8 @@ Force extractions
     :type relativeShaft: float
     :param localFrame: if True, return CnM2 and CmM2 in relative (blade section) frame
     :type localFrame: boolean
+    :param delta: mean mesh step on blade in the span wise direction
+    :type delta: float
     :param accumulatorSlices: if not None, accumulate slices
     :type accumulatorSlices: dictionary
     :param accumulatorCnM2: if not None, accumulate CnM2

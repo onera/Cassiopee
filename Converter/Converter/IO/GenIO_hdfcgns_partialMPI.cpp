@@ -1054,14 +1054,14 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
   if (sid < 0) {printf("Fail in setArrayPartial::H5Screate_simple (file)\n");}
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
- //if (this->_ismpi == 1)
- //{
- //    // collective create
- //    dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
- //    if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
- //} 
- //else
- //{ 
+ if (this->_ismpi == 1)
+ {
+     // collective create
+     dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+     if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
+ } 
+ else
+ { 
     if (_skeleton == 1)
     {
         // printf("setArrayPartial Sequential Skeleton \n");
@@ -1073,11 +1073,12 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
     }
     else /* No Skeleton */
     {
+        //dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        //if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
         /* Open DataSet previously created with Skeleton */
-        // printf("setArrayPartial Sequential Open \n");
         dataset = H5Dopen2(node, L3S_DATA, H5P_DEFAULT);
     }
- //} 
+ } 
 #else
   /* Create a dataset at skeleton write */
   if (_skeleton == 1)

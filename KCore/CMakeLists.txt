@@ -4,20 +4,14 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 cmake_policy(SET CMP0074 NEW) # force find_package to take <PackageName>_ROOT variables into account
 
-if(NOT DEFINED PROJECT_ROOT)
-  set(PROJECT_ROOT ${CMAKE_SOURCE_DIR} CACHE PATH "Root directory, where the submodules are populated")
+if (NOT DEFINED PROJECT_ROOT)
+  if (DEFINED CASSIOPEE_ROOT)
+    set(PROJECT_ROOT ${CASSIOPEE_ROOT} CACHE PATH)
+  else()
+    set(PROJECT_ROOT ${PROJECT_SOURCE_DIR} CACHE PATH)
+  endif()
 endif()
 
-# Bootstrap project_utils
-set(sub_repo_path "${PROJECT_ROOT}/ThirdParty/project_utils")
-file(GLOB sub_repo_files ${sub_repo_path}/*)
-list(LENGTH sub_repo_files sub_repo_nb_files)
-if(sub_repo_nb_files EQUAL 0)
-  message(FATAL_ERROR
-    "${sub_repo_path} is empty.
-    Maybe you forgot to initialize it with \"git submodule update --init\""
-  )
-endif()
 set(PROJECT_UTILS_DIR ${PROJECT_ROOT}/ThirdParty/project_utils)
 set(PROJECT_UTILS_CMAKE_DIR ${PROJECT_UTILS_DIR}/cmake)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_UTILS_CMAKE_DIR}/find_package") # for custom Find*.cmake files
@@ -53,11 +47,7 @@ endif()
 # ------------------------------------------------------------------------------
 
 ## Dependencies installed in the environment ##
-if(CMAKE_VERSION VERSION_LESS 3.14)
-  project_find_package(Python REQUIRED COMPONENTS Interpreter Development)
-else()
-  project_find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
-endif()
+project_find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
 
 # ------------------------------------------------------------------------------
 # Compilation
@@ -89,6 +79,7 @@ target_compile_definitions(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     Python::Python
+    Python::NumPy
 )
 
 # ------------------------------------------------------------------------------

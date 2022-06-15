@@ -4,20 +4,14 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 cmake_policy(SET CMP0074 NEW) # force find_package to take <PackageName>_ROOT variables into account
 
-if(NOT DEFINED PROJECT_ROOT)
-  set(PROJECT_ROOT ${CMAKE_SOURCE_DIR} CACHE PATH "Root directory, where the submodules are populated")
+if (NOT DEFINED PROJECT_ROOT)
+  if (DEFINED CASSIOPEE_ROOT)
+    set(PROJECT_ROOT ${CASSIOPEE_ROOT} CACHE PATH)
+  else()
+    set(PROJECT_ROOT ${PROJECT_SOURCE_DIR} CACHE PATH)
+  endif()
 endif()
 
-# Bootstrap project_utils
-set(sub_repo_path "${PROJECT_ROOT}/ThirdParty/project_utils")
-file(GLOB sub_repo_files ${sub_repo_path}/*)
-list(LENGTH sub_repo_files sub_repo_nb_files)
-if(sub_repo_nb_files EQUAL 0)
-  message(FATAL_ERROR
-    "${sub_repo_path} is empty.
-    Maybe you forgot to initialize it with \"git submodule update --init\""
-  )
-endif()
 set(PROJECT_UTILS_DIR ${PROJECT_ROOT}/ThirdParty/project_utils)
 set(PROJECT_UTILS_CMAKE_DIR ${PROJECT_UTILS_DIR}/cmake)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_UTILS_CMAKE_DIR}/find_package") # for custom Find*.cmake files
@@ -26,6 +20,7 @@ include(${PROJECT_UTILS_CMAKE_DIR}/dependency_management.cmake) # project_add_su
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_Fortran_PREPROCESS ON)
+
 
 # ------------------------------------------------------------------------------
 # Project
@@ -51,13 +46,20 @@ endif()
 # ------------------------------------------------------------------------------
 # Dependencies
 # ------------------------------------------------------------------------------
-project_find_package(KCore CONFIG REQUIRED)
+project_find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
 project_find_package(HDF5 REQUIRED)
-option(CONVERTER_ENABLE_MPI "Enable MPI" ON )
+project_find_package(OpenMP REQUIRED)
+project_find_package(PNG REQUIRED)
+option(CONVERTER_ENABLE_MPI "Enable MPI" ON)
 if (CONVERTER_ENABLE_MPI)
   project_find_package(MPI REQUIRED)
   project_find_package(Mpi4Py REQUIRED)
+  if (NOT ${HDF5_IS_PARALLEL})
+    message(FATAL_ERROR "You need a parallel version of HDF5 if you use Cassiopee with MPI")
+  endif()
+else()
 endif()
+project_add_subdirectory(KCore)
 
 # ------------------------------------------------------------------------------
 # Compilation
@@ -84,6 +86,8 @@ target_link_libraries(${PROJECT_NAME}
     Python::Python
     KCore::KCore
     hdf5::hdf5
+    PNG::PNG
+    OpenMP::OpenMP_CXX
 )
 if (CONVERTER_ENABLE_MPI)
   target_link_libraries(${PROJECT_NAME}
@@ -92,7 +96,7 @@ if (CONVERTER_ENABLE_MPI)
       Mpi4Py::Mpi4Py
   )
   target_compile_definitions(${PROJECT_NAME}
-    PUBLIC 
+    PUBLIC
       _MPI
   )
 endif()

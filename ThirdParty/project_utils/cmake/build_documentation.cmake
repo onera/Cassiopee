@@ -34,7 +34,7 @@ macro(build_documentation)
   # replace @PROJECT_NAME@ and @PROJECT_SOURCE_DIR@ values in SPHINX_CONF_IN and output it to SPHINX_CONF_OUT
   configure_file(${SPHINX_CONF_IN} ${SPHINX_CONF_OUT} @ONLY)
 
-  file(GLOB_RECURSE doc_files ${CMAKE_CURRENT_SOURCE_DIR}/doc/*)
+  file(GLOB_RECURSE doc_files ${CMAKE_CURRENT_SOURCE_DIR}/doc/*.rst)
   add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
                      COMMAND ${SPHINX_EXECUTABLE} -b html -c ${CMAKE_CURRENT_BINARY_DIR}/doc
                      -Dbreathe_projects.${PROJECT_NAME}=${DOXYGEN_OUTPUT_DIR}/xml # Tell Breathe where to find the Doxygen output
@@ -51,5 +51,5 @@ macro(build_documentation)
 
 # 2. Install
   install(DIRECTORY ${SPHINX_BUILD}
-          DESTINATION doc/${PROJECT_NAME})
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/${PROJECT_NAME})
 endmacro()

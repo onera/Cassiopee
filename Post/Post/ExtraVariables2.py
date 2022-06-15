@@ -236,7 +236,7 @@ def _extractViscosityMolecular(t):
 # OUT: centers:ViscosityEddy
 # kappa = ro * nutilde / mu
 # mut = ro * nutilde * kappa^3 / (kappa^3 + 7.1^3)
-def extractViscosityEddy(t):
+def extractViscosityMolecular(t):
     """Extract eddy viscosity."""
     tp = Internal.copyRef(t)
     _extractViscosityEddy(tp)
@@ -319,7 +319,7 @@ def _extractForceLoads(teff):
 # tau = -2/3 mu div u I + 2 mu D
 # Attention : dans teff, c'est ViscosityMolecular+ViscosityEddy qui est dans la variable ViscosityMolecular
 # ce qui est correct ici car sur les parois, viscosityEddy = 0
-def _extractShearStress(teff):
+def extractShearStress(teff):
     """Extract shearStress."""
     tp = Internal.copyRef(teff)
     _extractShearStress(tp)

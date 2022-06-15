@@ -27,14 +27,18 @@ endmacro()
 # --------------------------------------------------------------------------------------------------
 # project_add_subdirectory
 # --------------------------------------------------------------------------------------------------
-# add the subdirectory ${dependency} located in ${project_root}/external/
+# add the subdirectory ${dependency} located in ${project_root}/external/ or ${project_root}/
 # the string ${target}_DEPENDENCIES_FIND_PACKAGE_STRING is appended the corresponding find_package() command
 #   the idea is that we will be able to use this string
 #   when adding dependencies to the ${target}Config.cmake file further down the installation process
 macro(project_add_subdirectory dependency)
   _append_to_target_dependency_list(${PROJECT_NAME} ${dependency})
   if (NOT TARGET ${dependency}) # if not already included
-    add_subdirectory(${PROJECT_ROOT}/external/${dependency} ${CMAKE_BINARY_DIR}/external/${dependency})
+    if (${dependency}_found_in_external)
+      add_subdirectory(${PROJECT_ROOT}/external/${dependency} ${CMAKE_BINARY_DIR}/external/${dependency})
+    else()
+      add_subdirectory(${PROJECT_ROOT}/${dependency} ${CMAKE_BINARY_DIR}/external/${dependency})
+    endif()
   endif()
 endmacro()
 

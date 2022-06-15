@@ -41,25 +41,25 @@ The project structure of `My_project` given in the dependency graph above would 
 
 ```
 My_project/
-|-- README.md
-|-- LICENSE.md
-|-- CMakeLists.txt        # Top-level CMakeLists.txt for compiled project.
-|                         # If non-compiled, an installation script should still be there.
-|
-|-- My_project/            # Code of the library. No include/src separation (not useful). Contains unit tests.
-|-- external/             # Library dependencies. They are submodules.
-|   |-- Maia/
-|   |-- Tasky/
-|   |-- std_e/
-|   |-- project_utils/
-|
-|-- doc/
-|-- examples/
-|
-|-- scripts/              # Additional scripts (building, building tests,
-|                         #                deployement machine-specific instructions...)
-|-- tests/                # Functionnality/acceptance/performance/deployment tests
-|-- ...                   # other sub-folders
+├── README.md
+├── LICENSE.md
+├── CMakeLists.txt        # Top-level CMakeLists.txt for compiled project.
+│
+│
+├── My_project/           # Code of the library. No include/src separation (not useful). Contains unit tests.
+├── external/             # Library dependencies. They are submodules.
+│   ├── Maia/
+│   ├── Tasky/
+│   ├── std_e/
+│   └── project_utils/
+│
+├── doc/
+├── examples/
+│
+├── scripts/              # Additional scripts (building, building tests,
+│                         #                deployment machine-specific instructions...)
+├── test/                 # Functionnality/acceptance/performance/deployment tests
+└── ...                   # other sub-folders
 ```
 
 The important part is that all the libraries that `My_project` depends upon are git submodules placed in the sub-folder `external`.
@@ -98,7 +98,7 @@ The latter two are taken care of through CMake (or other build system tools if n
 * If you made a **change to a submodule** `std_e` (located in `<main-repo-path>/external/std_e`) then
     * You should see it with e.g. `cd <main-repo-path>; git status`.
     * You can commit the change in the submodule by going into its folder (`cd <main-repo-path>/external/std_e`)
-    * When in the submodule folder, git does as if it were a regular git repository. 
+    * When in the submodule folder, git does as if it were a regular git repository.
     * Be aware that, by default, submodules are on a "detached head" state (see `git status`) which mean you are not on a branch (not even master).
         * If you are to make commits, you should go on a branch.
         * You can ask git for the branch of the current commit with `git rev-parse HEAD | xargs git name-rev`.
@@ -106,7 +106,7 @@ The latter two are taken care of through CMake (or other build system tools if n
     * You can then commit your change (`git add ...; git commit ...`).
     * If `std_e` is also a dependency of another submodule `Maia`, then changes to `std_e` will also be reported as changes to `Maia`. After having commited the changes to the `std_e`, you can commit the update of `std_e` into `Maia`, and then the update of `std_e` and `Maia` into the main repository.
 * When you are **pushing** a repository, if you changed one of its submodules (new commits), then make sure to also push it (`git spush` will do it for you).
-* TODO create git alias to automate commits of just submodule dependency updates 
+* TODO create git alias to automate commits of just submodule dependency updates
 
 ## Common cases ##
 
@@ -114,7 +114,7 @@ The example repository names still refer to the dependency graph above.
 
 ### Updating submodules ###
 * Say that we are working on `My_project`. If submodule `std_e` has been changed outside of `My_project` (e.g. through developpers working on `Project_B`):
-    * **Most of the time, it doesn't matter**. Don't do anything special regarding `std_e`. Use `git spull` on `My_project` to get a coherent, new version of `My_project`. It will **not** pull the latest `std_e` changes created by the unrelated `Project_B`. This is the correct behavior, because it ensures that a particular commit of `My_project` is not silently affected by new versions of its dependencies (here, by a new version of `std_e` developped in a different context than `My_project`). 
+    * **Most of the time, it doesn't matter**. Don't do anything special regarding `std_e`. Use `git spull` on `My_project` to get a coherent, new version of `My_project`. It will **not** pull the latest `std_e` changes created by the unrelated `Project_B`. This is the correct behavior, because it ensures that a particular commit of `My_project` is not silently affected by new versions of its dependencies (here, by a new version of `std_e` developped in a different context than `My_project`).
     * If you want to update `std_e`, go to `external/std_e` and pull. Then when you come back to the main folder project, you should see that `std_e` has an updated version. Commit the change. You may have to commit changes to other submodules that depend on `std_e` (e.g. `Maia`) before that.
 
 ### Modifying a submodule ###
@@ -142,7 +142,7 @@ Note: actually `git status` does not tell you that you are on commit `master~10`
     * `echo "gitdir: Path/To/Tasky/.git/modules/external/project_utils" > .git`
 
 
-## Provided Git aliases ##
+## Provided commands and Git aliases ##
 ### sclone ###
 `git sclone` should be used instead of `git clone` when working with this framework. It will download and configure submodules as expected by the framework.
 
@@ -153,3 +153,10 @@ We need `git sclone` in order to handle "diamond-shaped dependencies". For examp
  * we modify `std_e`, submodule of `My_project`, then commit the change. The git working tree of `std_e` is now at v1.
 
 Now for both `Maia` and `My_project`, the dependency `std_e` needs to be seen has changed to v1. For `My project`, this works out-of-the box since `std_e` is located at `My_project/external/std_e`. But for Maia, we would expect a kind of symbolic link from `My_project/external/Maia/external/std_e` to `My_project/external/std_e` to be informed, when inside `My_project/external/Maia`, that `std_e` has been modified. This is actually exactly what is put in place by `git sclone` (the git equivalent of a symbolic link actually being that `My_project/external/Maia/external/std_e/.git` contains the line `gitdir: My_project/.git/modules/std_e`).
+
+### git\_config\_submodules ###
+`git sclone` is in reality mostly a chaining of:
+* `git clone`
+* `cd $cloned_repo`
+* `git submodule update --init`
+* `git_config_submodules`

@@ -1,4 +1,4 @@
-# __git_sclone: clones a repository with submodules
+# git_config_submodules and __git_sclone: clones a repository with submodules
 # Precondition: if the submodules have submodules,
 #               they must also be direct submodules of the repository # TODO: check it is the case
 #               and everybody must point to the same commit of the submodules # TODO: check it is the case
@@ -19,7 +19,7 @@ __git_config_submod_wd() {
     echo "Warning: commit ${commit} of submodule ${sm_path} isn't associated to a branch"
   elif [[ ${branch_name} =~ (.*)~ ]]; then
     branch_name_base=${BASH_REMATCH[1]}
-    echo "Warning : submodule ${sm_path} is not up-to-date with ${branch_name_base} (it is at position ${branch_name}). Leaving ${sm_path} in a \"detached head\" state"
+    echo "Warning: submodule ${sm_path} is not up-to-date with ${branch_name_base} (it is at position ${branch_name}). Leaving ${sm_path} in a \"detached head\" state"
   elif [[ ${branch_name} =~ .*/(.*) ]]; then # if the branch is not master, `git name-rev` returns a remote branch name...
     local_branch_name=${BASH_REMATCH[1]}
     git checkout ${local_branch_name} # ... just checkout the local branch name
@@ -36,7 +36,28 @@ __git_config_submod_wd() {
   for subsubmod_conf_path in ${subsubmod_conf_paths}; do
     if [[ ${subsubmod_conf_path} =~ submodule\.(.*)\.path ]]; then
       submod_path=${BASH_REMATCH[1]}
-      echo gitdir: ${main_repo_path}/.git/modules/${submod_path} > ${submod_path}/.git
+
+      # If subsubmodule is shared with main project, create a git link
+      if [ -d $main_repo_path/.git/modules/$submod_path ]; then
+        echo gitdir: $main_repo_path/.git/modules/$submod_path > $submod_path/.git
+      # Otherwise, subsubmodule must be ckecked out by the submodule. If the subsubmodule is an
+      # "external" (i.e. required) submodule, update is not allowed to fail. Otherwise, just ignore the
+      # missing submodule.
+      else
+        trap : SIGINT # catch signal SIGINT (used by Ctrl-C) and do nothing
+        git submodule update $submod_path
+        status=$?
+        trap - SIGINT # reset
+        if (($status != 0)); then
+          echo
+          if [[ $subsubmod_conf_path == *"external/"* ]]; then
+            echo "Error: could not fetch external subsubmodule $submod_path; aborting"; exit 1
+          else
+            echo "Warning: could not fetch submodule extension $submod_path"
+          fi
+        fi
+      fi
+
     else
       echo "Error trying to parse .gitmodules of submodule ${sm_path} (main repository: ${main_repo_path})"; exit 1
     fi
@@ -44,18 +65,25 @@ __git_config_submod_wd() {
 }
 export -f __git_config_submod_wd
 
-__git_config_submodules() {
-  git submodule foreach '__git_config_submod_wd $toplevel $sm_path'
+git_config_submodules() {
+  toplevel=$(git rev-parse --show-toplevel)
+  sm_paths=$(grep path .gitmodules | sed 's/.*= //')
+  for sm_path in ${sm_paths}; do
+    echo
+    echo "Configuring submodule ${sm_path}..."
+    (cd ${sm_path} && __git_config_submod_wd ${toplevel} ${sm_path})
+  done
   status=$?
+  echo
   if (($status != 0)); then
     echo "Configuring submodules failed"; exit 1
   else
     echo "Successfully configured submodules"
   fi
 }
-export -f __git_config_submodules
+export -f git_config_submodules
 
-__git_sclone() { 
+__git_sclone() {
   # clone without submodules
   clone_text="$(LANG=en_US git clone $@ 2>&1)"
   status=$?
@@ -88,7 +116,7 @@ __git_sclone() {
       echo "Successfully cloned submodules"
     fi
 
-    __git_config_submodules
+    git_config_submodules
   )
 }
 export -f __git_sclone
@@ -97,13 +125,6 @@ __git_scheckout() {
   git checkout "$@" && git submodule update --init;
 }
 export -f __git_scheckout
-
-
-__git_spull() {
-  git pull "$@" && git submodule update --init;
-}
-export -f __git_spull
-
 
 # see https://stackoverflow.com/a/56236629/1583122
 __git_spush() {
@@ -117,7 +138,5 @@ git config --global status.submoduleSummary true
 git config --global diff.submodule log
 
 git config --global alias.sclone '! __git_sclone'
-git config --global alias.conf-submod '! __git_config_submodules'
 git config --global alias.scheckout '! __git_scheckout'
-git config --global alias.spull '! __git_spull'
 git config --global alias.spush '! __git_spush'
