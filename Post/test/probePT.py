@@ -16,10 +16,10 @@ p1.printInfo()
 for i in range(110):
     time = 0.1*i
     C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
-    p1.extract(time=time)
+    p1.extract(t, time=time)
 p1.flush()
 
 # reread probe from file
-p1 = Probe.Probe('probe1.cgns')
-out = p1.read()
-C.convertPyTree2File(out, 'out.cgns')
+#p1 = Probe.Probe('probe1.cgns')
+#out = p1.read()
+#C.convertPyTree2File(out, 'out.cgns')

@@ -402,8 +402,8 @@ def extractSlices(teff, bladeName, psi, radius,
         C._initVars(iso, '{Cf}= {frictionMagnitude}/ %20.16g'%adimKp)
 
         # Passage struct
+        iso[0] = '%f'%rad
         iso = C.convertBAR2Struct(iso)
-        iso[0] = '%f'%rad        
         #C.convertPyTree2File(iso, 'slice%f.cgns'%rad)
 
         # Detection et repere local
@@ -434,6 +434,15 @@ def extractSlices(teff, bladeName, psi, radius,
         
         if accumulatorCmM2 is not None: accumulatorCmM2[(psi,rad)] = [Cm[0],Cm[1],Cm[2]]
         CmM2All.append([Cm[0],Cm[1],Cm[2]])
+
+        # Rename Xabs en Xref
+        nx = Internal.getNodeFromName2(iso, 'Xabs')
+        nx[0] = 'Xref'
+        ny = Internal.getNodeFromName2(iso, 'Yabs')
+        ny[0] = 'Yref'
+        nz = Internal.getNodeFromName2(iso, 'Zabs')
+        nz[0] = 'Zref'
+        slices[rad] = iso
 
     if accumulatorSlices is not None:
         for rad in slices: accumulatorSlices[(psi,rad)] = slices[rad]

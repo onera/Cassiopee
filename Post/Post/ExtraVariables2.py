@@ -205,6 +205,7 @@ def _extractVelocityMagnitude(t):
 # OUT: centers:Mach
 # M = u/sqrt(gamma p/ro) - p = ro r T
 def extractMach(t):
+    """Extract Mach."""
     tp = Internal.copyRef(t)
     _extractMach(tp)
     return tp
@@ -233,10 +234,11 @@ def _extractViscosityMolecular(t):
 # mut from spalart
 # IN: centers:TurbulentSANuTilde
 # IN: centers:Density
+# IN: centers:ViscosityMolecular
 # OUT: centers:ViscosityEddy
 # kappa = ro * nutilde / mu
 # mut = ro * nutilde * kappa^3 / (kappa^3 + 7.1^3)
-def extractViscosityMolecular(t):
+def extractViscosityEddy(t):
     """Extract eddy viscosity."""
     tp = Internal.copyRef(t)
     _extractViscosityEddy(tp)
@@ -358,7 +360,7 @@ def _extractTaun(teff):
 # Extract p.n
 # IN: centers:Pressure
 # pn = p.n
-def _extractPn(teff):
+def extractPn(teff):
     """Extract p.n."""
     tp = Internal.copyRef(teff)
     _extractPn(tp)

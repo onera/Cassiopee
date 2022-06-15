@@ -1089,10 +1089,12 @@ Solution extraction
 
 ---------------------------------------
 
-.. py:function:: Post.Probe.Probe.extract(time=0.)
+.. py:function:: Post.Probe.Probe.extract(t, time=0.)
 
     Extract probe at given time.
 
+    :param t: pyTree containing solution
+    :type t: pyTree
     :param time: extraction time
     :type time: float
     
