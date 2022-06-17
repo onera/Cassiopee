@@ -511,6 +511,10 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
         else: dc = Geom.spline(p, 3, N)
     else: dc = None
 
+    posCam = getState('posCam')
+    posEye = getState('posEye')
+    dirCam = getState('dirCam')
+      
     if pos == -1:
       i = 0
       while i < N-1:
@@ -547,6 +551,8 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
         posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
         setState(posCam=posCam, posEye=posEye)
       else: setState(posCam=posCam)
+    
+    return posCam, posEye, dirCam
 
 def travelRight(xr=0.1, N=100):
     """Travel camera right."""
@@ -566,7 +572,7 @@ def travelRight(xr=0.1, N=100):
     d4 = Vector.mul(L,d4)
     P3 = Vector.sub(P2, d4)
     checkPoints = [posCam,tuple(P2),tuple(P3)]
-    moveCamera(checkPoints, N=N)
+    return moveCamera(checkPoints, N=N)
 
 def travelLeft(xr=0.1, N=100):
     """Travel camera left."""
@@ -586,7 +592,7 @@ def travelLeft(xr=0.1, N=100):
     d4 = Vector.mul(L,d4)
     P3 = Vector.add(P2, d4)
     checkPoints = [posCam,tuple(P2),tuple(P3)]
-    moveCamera(checkPoints, N=N)
+    return moveCamera(checkPoints, N=N)
 
 def travelUp(xr=0.1, N=100):
     """Travel camera up."""
@@ -600,7 +606,7 @@ def travelUp(xr=0.1, N=100):
     d2 = Vector.mul(L,d2)
     P2 = Vector.add(posCam, d2)
     checkPoints = [posCam,tuple(P2)]
-    moveCamera(checkPoints, N=N)
+    return moveCamera(checkPoints, N=N)
 
 def travelDown(xr=0.1, N=100):
     """Travel camera down."""
@@ -614,7 +620,7 @@ def travelDown(xr=0.1, N=100):
     d2 = Vector.mul(L,d2)
     P2 = Vector.sub(posCam, d2)
     checkPoints = [posCam,tuple(P2)]
-    moveCamera(checkPoints, N=N)
+    return moveCamera(checkPoints, N=N)
 
 def travelIn(xr=0.1, N=100):
     """Zoom camera in."""
@@ -626,7 +632,7 @@ def travelIn(xr=0.1, N=100):
     d2 = Vector.mul(L,d1)
     P2 = Vector.add(posCam, d2)
     checkPoints = [posCam,tuple(P2)]
-    moveCamera(checkPoints, N=N)
+    return moveCamera(checkPoints, N=N)
 
 def travelOut(xr=0.1, N=100):
     """Zoom camera out."""
@@ -638,7 +644,7 @@ def travelOut(xr=0.1, N=100):
     d2 = Vector.mul(L,d1)
     P2 = Vector.sub(posCam, d2)
     checkPoints = [posCam,tuple(P2)]
-    moveCamera(checkPoints, N=N)
+    return moveCamera(checkPoints, N=N)
 
 #==============================================================================
 

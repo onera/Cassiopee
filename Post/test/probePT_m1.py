@@ -27,7 +27,7 @@ for i in range(20):
     p1.extract(t, time=time)
 p1.flush()
 
-if Cmpi.rank == 0: test.testT(p1._probeZone, 1)
+if Cmpi.rank == 0: test.testT(p1._probeZones, 1)
 
 # create a probe
 p2 = Probe.Probe('probe2.cgns', t, ind=(2,2,2), blockName='cart0-0-0', fields=['centers:F'], append=False)
@@ -37,5 +37,5 @@ for i in range(20):
     p2.extract(t, time=time)
 p2.flush()
 
-if Cmpi.rank == 0: test.testT(p2._probeZone, 2)
+if Cmpi.rank == 0: test.testT(p2._probeZones, 2)
 

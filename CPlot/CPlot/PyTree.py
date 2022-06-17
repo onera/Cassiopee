@@ -388,31 +388,38 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
         posEyes = C.getAllFields(posEyes, 'nodes')
     if dirCams is not None and isinstance(dirCams[0], str): # zone
         dirCams = C.getAllFields(dirCams, 'nodes')
-    CPlot.moveCamera(posCams, posEyes, dirCams, moveEye, N, speed, pos)
+    ret = CPlot.moveCamera(posCams, posEyes, dirCams, moveEye, N, speed, pos)
+    return ret
 
 def travelRight(xr=0.1, N=100):
     """Travel camera right."""
-    CPlot.travelRight(xr, N)
+    ret = CPlot.travelRight(xr, N)
+    return ret
 
 def travelLeft(xr=0.1, N=100):
     """Travel camera left."""
-    CPlot.travelLeft(xr, N)
+    ret = CPlot.travelLeft(xr, N)
+    return ret
 
 def travelUp(xr=0.1, N=100):
     """Travel camera up."""
-    CPlot.travelUp(xr, N)
+    ret = CPlot.travelUp(xr, N)
+    return ret
 
 def travelDown(xr=0.1, N=100):
     """Travel camera down."""
-    CPlot.travelDown(xr, N)
+    ret = CPlot.travelDown(xr, N)
+    return ret
 
 def travelIn(xr=0.1, N=100):
     """Zoom camera in."""
-    CPlot.travelIn(xr, N)
+    ret = CPlot.travelIn(xr, N)
+    return ret
 
 def travelOut(xr=0.1, N=100):
     """Zoom camera out."""
-    CPlot.travelOut(xr, N)
+    ret = CPlot.travelOut(xr, N)
+    return ret
 
 #==============================================================================
 # -- Numbering functions --

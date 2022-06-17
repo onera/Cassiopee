@@ -154,6 +154,7 @@ Accumulator export
 .. py:function:: Post.Rotor.exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2'])
 
     Export a given psi of an accumulator (psi,rad) in a 1D zone.
+    For distributed computations, the exported zone is identical on all processors.
 
     :param accumulator: (psi,rad) accumulator
     :type  accumulator: dictionary
@@ -175,6 +176,7 @@ Accumulator export
 .. py:function:: Post.Rotor.exportAccumulatorPerRadius(accumulator, rad=0., vars=['F1','F2'])
 
     Export a given radius of an accumulator (psi,rad) in a 1D zone.
+    For distributed computations, the exported zone is identical on all processors.
 
     :param accumulator: (psi,rad) accumulator
     :type  accumulator: dictionary
@@ -197,6 +199,7 @@ Accumulator export
 .. py:function:: Post.Rotor.exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz'])
 
     Export accumulator (psi,rad) to a 2D zone.
+    For distributed computations, the exported zone is identical on all processors.
 
     :param accumulator: (psi,rad) accumulator
     :type  accumulator: dictionary

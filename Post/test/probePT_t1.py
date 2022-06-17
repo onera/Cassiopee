@@ -11,11 +11,11 @@ a = G.cartRx((0,0,0), (1,1,1), (20,20,20), (3,3,3), depth=0, addCellN=False)
 C._initVars(a, '{centers:F} = {centers:CoordinateX}')
 t = C.newPyTree(['Base',a])
 
-# create a probe
+# create a probe with X
 p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=False, bufferSize=15)
 for i in range(20):
     time = 0.1*i
-    C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
+    C._initVars(t, '{centers:F} = {centers:CoordinateX}+10.*sin(%20.16g)'%time)
     p1.extract(t, time=time)
 p1.flush()
 
@@ -23,12 +23,47 @@ p1.flush()
 p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=True, bufferSize=15)
 for i in range(20):
     time = 2.+0.1*i
-    C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
+    C._initVars(t, '{centers:F} = {centers:CoordinateX}+10.*sin(%20.16g)'%time)
     p1.extract(t, time=time)
 p1.flush()
-test.testT(p1._probeZone, 1)
+test.testT(p1._probeZones, 1)
+
+# create a probe with index
+p1 = Probe.Probe('probe2.cgns', t, ind=(10,10,10), blockName='cart1-1-1', fields=['centers:F'], append=False, bufferSize=15)
+for i in range(20):
+    time = 0.1*i
+    C._initVars(t, '{centers:F} = {centers:CoordinateX}+10.*sin(%20.16g)'%time)
+    p1.extract(t, time=time)
+p1.flush()
+test.testT(p1._probeZones, 2)
+
+# create probe from zones
+p1 = Probe.Probe('probe3.cgns', fields=['centers:F'], append=False, bufferSize=15)
+for i in range(20):
+    time = 0.1*i
+    a = G.cart((0,0,0), (1,1,1), (5,5,5))
+    C._initVars(a, '{centers:F} = %20.16g'%time)
+    p1.extract(a, time=time)
+p1.flush()
+
+p1 = Probe.Probe('probe3.cgns', fields=['centers:F'], append=True, bufferSize=15)
+for i in range(20):
+    time = 2+0.1*i
+    a = G.cart((0,0,0), (1,1,1), (5,5,5))
+    C._initVars(a, '{centers:F} = %20.16g'%time)
+    p1.extract(a, time=time)
+p1.flush()
 
 # reread probe
-#p1 = Probe.Probe('probe1.cgns', bufferSize=15)
-#out = p1.read()
+p1 = Probe.Probe('probe1.cgns')
+out = p1.read()
+C.convertPyTree2File(out, 'out1.cgns')
 #test.testT(out, 2)
+
+p1 = Probe.Probe('probe2.cgns')
+out = p1.read()
+C.convertPyTree2File(out, 'out2.cgns')
+
+p1 = Probe.Probe('probe3.cgns')
+out = p1.read()
+C.convertPyTree2File(out, 'out3.cgns')

@@ -1072,7 +1072,7 @@ Solution extraction
     :type  (x,y,z): tuple of 3 floats
     :param fileName: name of file to dump to
     :type fileName: string
-    :param fields: list of field to extract
+    :param fields: list of fields to extract
     :type fields: list of strings or None 
     :param append: if True, append result to existing file
     :type append: Boolean

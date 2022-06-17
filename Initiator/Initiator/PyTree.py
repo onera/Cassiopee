@@ -74,8 +74,7 @@ def _initDist(t, adim='adim1', loc='nodes'):
             C._initVars(t, loc+':'+v, val)
     maxd = C.getMaxValue(t, '%s:TurbulentDistance'%loc)
     mind = C.getMinValue(t, '%s:TurbulentDistance'%loc)
-    print(mind,maxd)
-
+    
     C._initVars(t, '{%s:MomentumX}={%s:MomentumX}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))
     C._initVars(t, '{%s:MomentumY}={%s:MomentumY}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))
     C._initVars(t, '{%s:MomentumZ}={%s:MomentumZ}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))
@@ -249,3 +248,7 @@ def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
             ret = Initiator.overlayField(a1, a2, MInf)
             C.setFields([ret], z1, 'nodes')
     return None
+
+# passage variables conservatives en variables primitives (ro,u,T)
+def _cons2Prim(t):
+    """Compute conservative variables """

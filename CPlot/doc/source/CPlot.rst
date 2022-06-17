@@ -774,8 +774,12 @@ Camera setting and motion
     :type moveEye: Boolean
     :param speed: speed of camera motion
     :type speed: float
+    :param N: number of camera positions
+    :type N: int
     :param pos: position in posCams (in 0,N)
-    :param pos: int
+    :type pos: int
+    :return: current posCam, posEye, dirCam
+    :rtype: 3 lists of 3 floats
 
     *Example of use:*
 
@@ -787,6 +791,10 @@ Camera setting and motion
 
     .. literalinclude:: ../build/Examples/CPlot/moveCameraPT.py
 
+    * `Move camera along check points in offscreen mode (pyTree) <Examples/CPlot/moveCameraOffScreenPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/moveCameraOffScreenPT.py
+
 -----------------------------------------------
 
 
@@ -797,6 +805,9 @@ Camera setting and motion
     Travel camera left/Right/Up/Down/In/Out. 
     Xr is the range (in 0.,1.). 
     N is the number of check points.
+
+    :return: final posCam, posEye, dirCam
+    :rtype: 3 lists of 3 floats
 
     *Example of use:*
 
