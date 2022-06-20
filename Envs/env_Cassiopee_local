@@ -80,7 +80,6 @@ else if ($MAC == "ld_eos8") then
         #end
         module unload intel/19.0.5
         module unload impi/19.0.5
-        unsetenv I_MPI_PMI_LIBRARY
         #module load gcc/10.2.0
         #module load oce/7.5.0-gnu831
         module load occt/7.6.1-gnu831
@@ -88,6 +87,7 @@ else if ($MAC == "ld_eos8") then
         module load intel/21.2.0
         #module load impi/21.2.0
         module load hdf5/1.8.17-intel2120
+        unsetenv I_MPI_PMI_LIBRARY
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3

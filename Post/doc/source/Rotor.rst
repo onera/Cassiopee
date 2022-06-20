@@ -62,7 +62,7 @@ Force extractions
     :type Mtip: float
     :param AR: blade length
     :type AR: float
-    :param CHORD: blade chord
+    :param CHORD: blade mean chord
     :type CHORD: float
     :param MU: advance ratio
     :type MU: float

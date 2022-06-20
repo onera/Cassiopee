@@ -11,31 +11,51 @@ a = G.cartRx((0,0,0), (1,1,1), (20,20,20), (3,3,3), depth=0, addCellN=False, ran
 C._initVars(a, '{centers:F} = {centers:CoordinateX}')
 t = C.newPyTree(['Base', a])
 
-# create a probe
-p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=False)
+# create a probe from X
+p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], bufferSize=15, append=False)
 for i in range(20):
     time = 0.1*i
-    C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
+    C._initVars(t, '{centers:F} = {centers:CoordinateX}+10.*sin(%20.16g)'%time)
     p1.extract(t, time=time)
 p1.flush()
 
 # test append
-p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], append=True)
+p1 = Probe.Probe('probe1.cgns', t, X=(10.,10.,10.), fields=['centers:F'], bufferSize=15, append=True)
 for i in range(20):
     time = 2.+0.1*i
-    C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
+    C._initVars(t, '{centers:F} = {centers:CoordinateX}+10.*sin(%20.16g)'%time)
     p1.extract(t, time=time)
 p1.flush()
 
 if Cmpi.rank == 0: test.testT(p1._probeZones, 1)
 
-# create a probe
-p2 = Probe.Probe('probe2.cgns', t, ind=(2,2,2), blockName='cart0-0-0', fields=['centers:F'], append=False)
+# create a probe from ind
+p2 = Probe.Probe('probe2.cgns', t, ind=(2,2,2), blockName='cart0-0-0', fields=['centers:F'], bufferSize=15, append=False)
 for i in range(20):
     time = 0.1*i
-    C._initVars(t, f'{{centers:F}} = {{centers:CoordinateX}}+10.*sin({time})')
+    C._initVars(t, '{centers:F} = {centers:CoordinateX}+10.*sin(%20.16g)'%time)
     p2.extract(t, time=time)
 p2.flush()
 
 if Cmpi.rank == 0: test.testT(p2._probeZones, 2)
 
+# create a probe from zones
+p3 = Probe.Probe('probe3.cgns', fields=['centers:F'], append=False, bufferSize=15)
+for i in range(20):
+    time = 0.1*i
+    a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,11))
+    a[0] = 'cart%d'%Cmpi.rank
+    C._initVars(a, '{centers:F} = %20.16g'%time)
+    p3.extract(a, time=time)
+p3.flush()
+
+p3 = Probe.Probe('probe3.cgns', fields=['centers:F'], append=True, bufferSize=15)
+for i in range(20):
+    time = 2+0.1*i
+    a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,11))
+    a[0] = 'cart%d'%Cmpi.rank
+    C._initVars(a, '{centers:F} = %20.16g'%time)
+    p3.extract(a, time=time)
+p3.flush()
+
+if Cmpi.rank == 0: test.testT(p3._probeZones, 3)

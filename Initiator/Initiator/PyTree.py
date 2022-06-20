@@ -250,5 +250,32 @@ def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
     return None
 
 # passage variables conservatives en variables primitives (ro,u,T)
-def _cons2Prim(t):
-    """Compute conservative variables """
+def cons2Prim(t, Gamma=1.4, Rgas=287.053, loc='centers'):
+    """Compute primitive variables from conservative variables"""
+    tp = Internal.copyRef(t)
+    _cons2Prim(t, Gamma=Gamma, Rgas = Rgas, loc=loc)
+    return tp
+
+def _cons2Prim(t, Gamma=1.4, Rgas=287.053, loc='centers'):
+    """Compute primitive variables from conservative variables"""
+    if loc == 'centers':
+        C._initVars(t, '{centers:VelocityX} = {centers:MomentumX}/{centers:Density}')
+        C._rmVars(t, 'centers:MomentumX')
+        C._initVars(t, '{centers:VelocityY} = {centers:MomentumY}/{centers:Density}')
+        C._rmVars(t, 'centers:MomentumY')
+        C._initVars(t, '{centers:VelocityZ} = {centers:MomentumZ}/{centers:Density}')
+        C._rmVars(t, 'centers:MomentumZ')
+        K = (Gamma - 1.)/Rgas
+        C._initVars(t, '{centers:Temperature} = ({centers:EnergyStagnationDensity}/{centers:Density} - 0.5*({centers:VelocityX}**2+{centers:VelocityY}**2+{centers:VelocityZ}**2))*%20.16g'%(K))
+        C._rmVars(t, 'centers:EnergyStagnationDensity')
+    else:
+        C._initVars(t, '{VelocityX} = {MomentumX}/{Density}')
+        C._rmVars(t, 'MomentumX')
+        C._initVars(t, '{VelocityY} = {MomentumY}/{Density}')
+        C._rmVars(t, 'MomentumY')
+        C._initVars(t, '{VelocityZ} = {MomentumZ}/{Density}')
+        C._rmVars(t, 'MomentumZ')
+        K = (Gamma - 1.)/Rgas
+        C._initVars(t, '{Temperature} = ({EnergyStagnationDensity}/{Density} - 0.5*({VelocityX}**2+{VelocityY}**2+{VelocityZ}**2))*%20.16g'%(K))
+        C._rmVars(t, 'centers:EnergyStagnationDensity')
+    return None

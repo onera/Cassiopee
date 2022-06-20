@@ -89,3 +89,12 @@ def overlayField(a1, a2, MInf=0.5):
         return b
     else:
         return initiator.overlayField(a1, a2, MInf)
+
+def cons2Prim(a, Gamma=1.4, Rgas=287.053):
+    """Compute primitive variables from conservative variables"""
+    a = C.initVars(t, '{VelocityX} = {MomentumX}/{Density}')
+    a = C.initVars(t, '{VelocityY} = {MomentumY}/{Density}')
+    a = C.initVars(t, '{VelocityZ} = {MomentumZ}/{Density}')
+    K = (Gamma - 1.)/Rgas
+    a = C.initVars(t, '{Temperature} = ({EnergyStagnationDensity}/{Density} - 0.5*({VelocityX}**2+{VelocityY}**2+{VelocityZ}**2))*%20.16g'%(K))
+    return a

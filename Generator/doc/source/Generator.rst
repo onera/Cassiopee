@@ -1174,9 +1174,9 @@ Cartesian grid generators
 
     *Example of use:*
 
-    * `Generation of a set of regular and geometric cartesian grids (pyTree) <Examples/Generator/cartRx2PT.py>`_:
+    * `Generation of a set of regular and geometric cartesian grids (pyTree) <Examples/Generator/cartRx3PT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/cartRx2PT.py
+    .. literalinclude:: ../build/Examples/Generator/cartRx3PT.py
 
 
 
