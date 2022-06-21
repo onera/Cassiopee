@@ -1,4 +1,4 @@
-# - line (pyTree) -
+# - setDfar (pyTree) -
 import Geom.IBM as IBM
 import Geom.PyTree as D
 import Converter.PyTree as C

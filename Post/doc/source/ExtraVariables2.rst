@@ -38,11 +38,14 @@ List of functions
     Post.ExtraVariables2.extractTaun
     Post.ExtraVariables2.extractPn
     Post.ExtraVariables2.extractForce
-    Post.ExtraVariables2.extractFrictionVector(
+    Post.ExtraVariables2.extractFrictionVector
     Post.ExtraVariables2.extractFrictionMagnitude
     Post.ExtraVariables2.extractUTau
 
 **-- 1D profiles**
+    Post.ExtraVariables2.extractProfile
+
+    Post.ExtraVariables2.extractyplus
 
 
 Contents
@@ -337,7 +340,7 @@ Surface fields
 
 ---------------------------
 
-.. py:function:: Post.ExtraVariables2.Force(teff, withPInf=None)
+.. py:function:: Post.ExtraVariables2.extractForce(teff, withPInf=None)
 
     Compute the force field on teff from Pressure and ShearStress in centers. 
     If withPinf is None: F = -p.n + tau.n
@@ -356,4 +359,25 @@ Surface fields
     * `Extract Force (pyTree) <Examples/Post/extractForcePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/extractForcePT.py
+
+---------------------------
+
+.. py:function:: Post.ExtraVariables2.extractFrictionVector(teff)
+
+    Compute the friciton vector on teff from ShearStress in centers
+    with taut = tau.n - (n. tau.n) n.
+    Exists also as in place function (_extractFrictionVector) that modifies t and returns None.
+
+    :param teff: input tree
+    :type  teff: [zone, list of zones, base, tree]
+    :return: tree with "FrictionX,FrictionY,FrictionZ" in centers
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Extract Force (pyTree) <Examples/Post/extractFrictionVectorPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/extractFrictionVectorPT.py
+
+
 

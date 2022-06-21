@@ -1,4 +1,4 @@
-# - line (pyTree) -
+# - initInj (pyTree) -
 import Geom.IBM as IBM
 import Geom.PyTree as D
 import Generator.PyTree as G

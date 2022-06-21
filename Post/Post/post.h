@@ -681,7 +681,7 @@ namespace K_POST
                                  E_Int* cellG, E_Int* cellD,
                                  PyObject* indices, PyObject* field);
   PyObject* computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
-                                E_Int ixyz, const char* varStringOut,
+                                E_Int ixyz, const char* varStringOut, E_Int posCellN,
                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                 FldArrayF& fc, FldArrayF& faceField,
                                 E_Int* cellG, E_Int* cellD,
@@ -689,7 +689,7 @@ namespace K_POST
                                 PyObject* fieldY, PyObject* fieldZ);
   PyObject* computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
                                 E_Int nic, E_Int njc, E_Int nkc,
-                                const char* varStringOut,
+                                const char* varStringOut, E_Int posCellN,
                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                 FldArrayF& fc, FldArrayF& faceField,
                                 E_Int* cellG, E_Int* cellD,

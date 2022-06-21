@@ -223,7 +223,7 @@ latex_elements = {
 latex_documents = [
   ('Geom', 'Geom.tex', u'Geom Documentation',
    u'/ELSA/MU-09021/V'+__version__, 'manual'),
-  ('Rotor', 'Rotor.tex', u'Post.Rotor Documentation',
+  ('IBM', 'IBM.tex', u'Post.IBM Documentation',
    u'/ELSA/MU-09021/V'+__version__, 'manual'),
 ]
 

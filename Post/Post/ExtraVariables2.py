@@ -563,6 +563,12 @@ def extractProfile(t, zonePath, i=-1, j=-1, k=-1):
 # Calcul y+ et u+ sur le profil
 # IN: teff: with utau, ViscosityMolecular computed
 # IN: zp: with VelocityTangential, yw
+def extractYPlus(zp, teff):
+    """Extract y+ and u+."""
+    zpp = Internal.copyRef(zp)
+    _extractYPlus(zpp, teff)
+    return zpp
+
 def _extractYPlus(zp, teff):
     """Extract y+ and u+."""
     # Extract point wall de zp
@@ -585,6 +591,12 @@ def _extractYPlus(zp, teff):
 # Calcul la norme de la vitesse tangentielle
 # IN: zp: with VelocityX, VelocityY, VelocityZ
 # OUT: VelocityTangential: norm of tangential velocity
+def extractVelocityTangential(zp, teff):
+    """Extract tangential speed."""
+    zpp = Internal.copyRef(zp)
+    _extractVelocityTangential(zpp, teff)
+    return zpp
+
 def _extractVelocityTangential(zp, teff):
     """Extract tangential speed."""
     # calcul la normale sur teff
