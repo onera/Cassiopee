@@ -259,8 +259,13 @@ class Probe:
     def checkFile(self, append=False):
         if append:
             create = False
-            exists = os.path.exists(self._fileName)
-            if exists:
+            if Cmpi.rank == 0: isFilePresent = os.path.exists(self._fileName)
+            else: isFilePresent = None
+            #isFilePresent = Cmpi.bcast(isFilePresent, root=0)
+            isFilePresent = True
+            isFilePresent = True
+            
+            if isFilePresent:
                 if self._mode == 0 or self._mode == 1:
                     tl = Distributed.convertFile2SkeletonTree(self._fileName)
                 else: 
@@ -522,13 +527,19 @@ class Probe:
 
         # Recupere la probe a recuperer
         zones = Internal.getZones(tl)
-        if probeName is not None: pz = Internal.getNodeFromName2(tl, probeName)
+        if probeName is not None:
+            if isinstance(probeName, int): pz = zones[probeName]
+            else: pz = Internal.getNodeFromName2(tl, probeName)
         else: pz = zones[0]
         dim = Internal.getZoneDim(pz)
         sizeNPts = dim[2]
 
+        if ind is not None:
+            if isinstance(ind, int): ind = [ind]
+            sizeNPts = min(len(ind), sizeNPts)
+
         # recupere le sizeTime (nbre d'instants dans le fichier)
-        nodes = Internal.getNodesFromName(tl, 'FlowSolution#*')
+        nodes = Internal.getNodesFromName(pz, 'FlowSolution#*')
         ncont = len(nodes) # nbre de containers pleins
         paths = ['CGNSTree/Base/%s/FlowSolution'%pz[0]]
         nodesTime = Distributed.readNodesFromPaths(self._fileName, paths)
@@ -542,8 +553,8 @@ class Probe:
         #print('sizeTime', sizeTime)
         #print('sizeNPts', sizeNPts)
         #print('sizeTimeCont', sizeTimeCont)
-
-        # Get all vars
+        #print('ncont', ncont)
+        #print('csize', csize)
 
         # Rebuild full 1D zone (time only)
 
@@ -565,8 +576,12 @@ class Probe:
             sh = ptx2.shape
             if len(sh) == 1:
                 ptx[cur:cur+sizeTimeCont] = ptx2[0:sizeTimeCont]
-            else:
+            elif ind is None:
                 ptx[cur:cur+sizeTimeCont,:] = ptx2[0:sizeTimeCont,:]
+            elif sizeNPts == 1:
+                ptx[cur:cur+sizeTimeCont] = ptx2[0:sizeTimeCont,ind[0]]
+            else:
+                for i in ind: ptx[cur:cur+sizeTimeCont,i] = ptx2[0:sizeTimeCont,i]
             cur += sizeTimeCont
 
         paths = ['CGNSTree/Base/%s/GridCoordinates'%pz[0]]
@@ -577,12 +592,16 @@ class Probe:
         sh = ptx2.shape
         if len(sh) == 1:
             ptx[cur:cur+csize] = ptx2[0:csize]
-        else:
+        elif ind is None:
             ptx[cur:cur+csize,:] = ptx2[0:csize,:]
+        elif sizeNPts == 1:
+            ptx[cur:cur+csize] = ptx2[0:csize,ind[0]]
+        else:
+            for i in ind: ptx[cur:cur+csize,i] = ptx2[0:csize,i]
 
         # load FS
         cur = 0
-        nodes = Internal.getNodesFromName(tl, 'FlowSolution#*')
+        nodes = Internal.getNodesFromName(pz, 'FlowSolution#*')
         for n in nodes:
             paths = ['CGNSTree/Base/%s/%s'%(pz[0],n[0])]
             nodesF = Distributed.readNodesFromPaths(self._fileName, paths)[0]
@@ -595,11 +614,15 @@ class Probe:
                         else:
                             pf = Internal.newDataArray(i[0], value=numpy.zeros( (sizeTime,sizeNPts), dtype=numpy.float64, order='F'), parent=fcont)
                     pf = pf[1]
-                    sh = pf.shape
+                    sh = i[1].shape
                     if len(sh) == 1:
                         pf[cur:cur+sizeTimeCont] = i[1][0:sizeTimeCont]
-                    else:
+                    elif ind is None:
                         pf[cur:cur+sizeTimeCont,:] = i[1][0:sizeTimeCont,:]
+                    elif sizeNPts == 1:
+                        pf[cur:cur+sizeTimeCont] = i[1][0:sizeTimeCont,ind[0]]
+                    else:
+                        for i in ind: pf[cur:cur+sizeTimeCont,i] = i[1][0:sizeTimeCont,i]
             cur += sizeTimeCont
 
         paths = ['CGNSTree/Base/%s/FlowSolution'%pz[0]]
@@ -607,9 +630,13 @@ class Probe:
         for i in nodesF[2]:
             if i[3] == 'DataArray_t':
                 pf = Internal.getNodeFromName2(fcont, i[0])[1]
-                sh = pf.shape
+                sh = i[1].shape
                 if len(sh) == 1:
                     pf[cur:cur+csize] = i[1][0:csize]
-                else:
+                elif ind is None:
                     pf[cur:cur+csize,:] = i[1][0:csize,:]
+                elif sizeNPts == 1:
+                    pf[cur:cur+csize] = i[1][0:csize,ind[0]]
+                else:
+                    for i in ind: pf[cur:cur+csize,i] = i[1][0:csize,i]
         return out

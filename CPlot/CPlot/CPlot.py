@@ -453,8 +453,7 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
       for i in range(1,Np):
         P1 = posCams[i]
         sub = Vector.sub(P1,P0)
-        if Vector.norm(sub)>1.e-10:
-            pOut.append(P1)
+        if Vector.norm(sub)>1.e-10: pOut.append(P1)
         P0 = P1
       if len(pOut) == 1:
         d = Geom.polyline(pOut*N)
@@ -483,8 +482,7 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
         for i in range(1,Np):
             P1 = posEyes[i]
             sub = Vector.sub(P1,P0)
-            if Vector.norm(sub)>1.e-10:
-                pOut.append(P1)
+            if Vector.norm(sub)>1.e-10: pOut.append(P1)
             P0 = P1
         if len(pOut) == 1:
             e = Geom.polyline(pOut*N)
@@ -506,15 +504,29 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
           dirCams = Generator.map(dirCams, dis, 1)
         dc = dirCams
       else: # list
-        p = Geom.polyline(dirCams)
-        if len(dirCams) == 2: dc = Geom.spline(p, 2, N)
-        else: dc = Geom.spline(p, 3, N)
+        Np = len(dirCams)
+        pOut = []
+        P0 = dirCams[0]
+        pOut.append(P0)
+        for i in range(1,Np):
+            P1 = dirCams[i]
+            sub = Vector.sub(P1,P0)
+            if Vector.norm(sub)>1.e-10: pOut.append(P1)
+            P0 = P1
+        if len(pOut) == 1:
+            dc = Geom.polyline(pOut*N)
+        elif len(pOut) == 2:
+            p = Geom.polyline(pOut)
+            dc = Geom.spline(p, 2, N)
+        else:
+            p = Geom.polyline(pOut)
+            dc = Geom.spline(p, 3, N)
     else: dc = None
 
     posCam = getState('posCam')
     posEye = getState('posEye')
     dirCam = getState('dirCam')
-      
+
     if pos == -1:
       i = 0
       while i < N-1:

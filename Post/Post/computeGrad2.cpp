@@ -34,7 +34,7 @@ extern "C"
 }
 
 //=============================================================================
-/* Calcul du gradient d un ensemble de champs en centres
+/* Calcul du gradient d'un ensemble de champs en centres
    Le gradient est fourni aux centres des cellules */
 //=============================================================================
 PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
@@ -77,6 +77,9 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     RELEASESHAREDB(res,array,f,cn); return NULL;
   }
   posx++; posy++; posz++;
+
+  E_Int posCellN = K_ARRAY::isCellNatureField2Present(varString);
+  posCellN++;
 
   // Check arrayc
   char* varStringc; char* eltTypec;
@@ -133,22 +136,50 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   //printf("nelts=%d\n", nelts);
   FldArrayF faceField(nfaces, nfld);
   E_Int i1, i2;
-  for (E_Int n = 1; n <= nfld; n++)
+  if (posCellN == 0)
   {
-    E_Float* fp = faceField.begin(n);
-    E_Float* s = fc->begin(n);
-    for (E_Int i = 0; i < nfaces; i++)
+    for (E_Int n = 1; n <= nfld; n++)
     {
-      i1 = cFE1[i]-1; i2 = cFE2[i]-1;
-      if (i1 != -1 && i2 != -1) fp[i] = 0.5*(s[i1]+s[i2]);
-      else if (i1 == -1) fp[i] = s[i2];
-      else if (i2 == -1) fp[i] = s[i1];
-      else fp[i] = 0.;
+      E_Float* fp = faceField.begin(n);
+      E_Float* s = fc->begin(n);
+      for (E_Int i = 0; i < nfaces; i++)
+      {
+        i1 = cFE1[i]-1; i2 = cFE2[i]-1;
+        if (i1 != -1 && i2 != -1) fp[i] = 0.5*(s[i1]+s[i2]);
+        else if (i1 == -1) fp[i] = s[i2];
+        else if (i2 == -1) fp[i] = s[i1];
+        else fp[i] = 0.;
+      }
+    }
+  }
+  else // cellN
+  {
+    E_Float* cellNp = fc->begin(posCellN);
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = faceField.begin(n);
+      E_Float* s = fc->begin(n);
+      for (E_Int i = 0; i < nfaces; i++)
+      {
+        i1 = cFE1[i]-1; i2 = cFE2[i]-1;
+        if (i2 != -1)
+        {
+          if (i1 == -1) fp[i] = s[i2];
+          else if (cellNp[i1] == 0) fp[i] = s[i2];
+          else  fp[i] = 0.5*(s[i1]+s[i2]);
+        }
+        else if (i1 != -1)
+        {
+          if (i2 == -1) fp[i] = s[i1];
+          else if (cellNp[i2] == 0) fp[i] = s[i1];
+          else fp[i] = 0.5*(s[i1]+s[i2]);
+        }
+        else fp[i] = 0.;
+      }
     }
   }
 
   // Replace DataSet
-
   FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
   if (indices != Py_None && field != Py_None)
   {
@@ -224,7 +255,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   FldArrayF vol(nelts);
   E_Float* volp = vol.begin(1);
   
-  if ( volc == Py_None)
+  if (volc == Py_None)
   {  
     K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
   			  f->begin(posz), *cn, volp);
@@ -243,8 +274,6 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   // K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
   // 			f->begin(posz), *cn, volp);
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  
 
   E_Float voli;
   for (E_Int n = 0; n < nfld; n++)
@@ -270,7 +299,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* Calcul du gradient d un ensemble de champs en centres
+/* Calcul du gradient d'un ensemble de champs en centres
    Le gradient est fourni aux centres des cellules */
 //=============================================================================
 PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
@@ -289,7 +318,7 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
                                     eltType, true);
   if (res != 1)
   {
-    if ( res == 2) RELEASESHAREDB(res,array,f,cn);
+    if (res == 2) RELEASESHAREDB(res,array,f,cn);
     PyErr_SetString(PyExc_TypeError,
                     "computeGrad2: invalid array.");
     return NULL;
@@ -315,6 +344,9 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
     RELEASESHAREDS(array,f); return NULL;
   }
   posx++; posy++; posz++;
+
+  E_Int posCellN = K_ARRAY::isCellNatureField2Present(varString);
+  posCellN++;
 
   // Check arrayc
   char* varStringc; char* eltTypec;
@@ -371,10 +403,12 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
   E_Int* cellD = voisins.begin(2);
   PyObject* tpl;
   if (dimPb == 2)
-    tpl = computeGrad2Struct2D(ni, nj, nic, njc, varStringOut, f->begin(posx),  f->begin(posy), f->begin(posz),
+    tpl = computeGrad2Struct2D(ni, nj, nic, njc, varStringOut, posCellN, 
+                               f->begin(posx), f->begin(posy), f->begin(posz),
                                *fc, faceField, cellG, cellD, indices, field);
   else if (dimPb == 3)
-    tpl = computeGrad2Struct3D(ni, nj, nk, nic, njc, nkc, varStringOut, f->begin(posx), f->begin(posy), f->begin(posz),
+    tpl = computeGrad2Struct3D(ni, nj, nk, nic, njc, nkc, varStringOut, posCellN, 
+                               f->begin(posx), f->begin(posy), f->begin(posz),
                                *fc, faceField, cellG, cellD, indices, field);
   delete [] varStringOut;
   RELEASESHAREDS(array,f);
@@ -385,7 +419,7 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
 //=============================================================================
 PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
                                        E_Int nic, E_Int njc, E_Int nkc,
-                                       const char* varStringOut,
+                                       const char* varStringOut, E_Int posCellN,
                                        E_Float* xt, E_Float* yt, E_Float* zt,
                                        FldArrayF& fc, FldArrayF& faceField,
                                        E_Int* cellG, E_Int* cellD,
@@ -402,91 +436,191 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   E_Int nbIntTot = nbIntIJ+nbIntK;
   E_Int nfld = fc.getNfld(); E_Int nfldg = nfld*3;
   E_Int ncells = nicnjc*nkc;
-  for (E_Int eq = 0; eq < nfld; eq++)
+
+  if (posCellN == 0)
   {
-    E_Float* fcn = fc.begin(eq+1);
-    E_Float* fintp = faceField.begin(eq+1);
-    //faces en i
-    for (E_Int k = 0; k < nkc; k++)
-      for (E_Int j = 0; j < njc; j++)
-        for (E_Int i = 1; i < nic; i++)
+    for (E_Int eq = 0; eq < nfld; eq++)
+    {
+      E_Float* fcn = fc.begin(eq+1);
+      E_Float* fintp = faceField.begin(eq+1);
+      //faces en i
+      for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+          for (E_Int i = 1; i < nic; i++)
+          {
+            indint = i+j*ni+k*ninjc;
+            indcellg = (i-1)+j*nic+k*nicnjc;
+            indcelld = indcellg+1;
+            cellG[indint] = indcellg; cellD[indint] = indcelld;
+            fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          }
+      //bords des faces en i
+      for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
         {
+          E_Int i = 0;
           indint = i+j*ni+k*ninjc;
-          indcellg = (i-1)+j*nic+k*nicnjc;
-          indcelld = indcellg+1;
-          cellG[indint] = indcellg; cellD[indint] = indcelld;
-          fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          indcelld = i + j*nic+k*nicnjc;
+          fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+          cellG[indint] = -1; cellD[indint] = indcelld;
+          i = nic;
+          indint = i+j*ni+k*ninjc;
+          indcellg = (i-1) + j*nic+k*nicnjc;
+          fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
+          cellG[indint] = indcellg; cellD[indint] = -1;
         }
-    //bords des faces en i
-    for (E_Int k = 0; k < nkc; k++)
-      for (E_Int j = 0; j < njc; j++)
-      {
-        E_Int i = 0;
-        indint = i+j*ni+k*ninjc;
-        indcelld = i + j*nic+k*nicnjc;
-        fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
-        cellG[indint] = -1; cellD[indint] = indcelld;
-        i = nic;
-        indint = i+j*ni+k*ninjc;
-        indcellg = (i-1) + j*nic+k*nicnjc;
-        fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
-        cellG[indint] = indcellg; cellD[indint] = -1;
-      }
-    //faces en j
-    for (E_Int k = 0; k < nkc; k++)
-      for (E_Int j = 1; j < njc; j++)
+      //faces en j
+      for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 1; j < njc; j++)
+          for (E_Int i = 0; i < nic; i++)
+          {
+            indint = i+j*nic+k*nicnj + nbIntI;
+            indcellg = i+(j-1)*nic+k*nicnjc;
+            indcelld = indcellg+nic;
+            cellG[indint] = indcellg; cellD[indint] = indcelld;
+            fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          }
+      // bords des faces en j
+      for (E_Int k = 0; k < nkc; k++)
         for (E_Int i = 0; i < nic; i++)
         {
-          indint = i+j*nic+k*nicnj + nbIntI;
+          E_Int j = 0;
+          indint = i+j*nic+k*nicnj+nbIntI;
+          indcelld = i+j*nic+k*nicnjc;
+          cellG[indint] = -1; cellD[indint] = indcelld;
+          fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+
+          j = njc;
+          indint = i+j*nic+k*nicnj+nbIntI;
           indcellg = i+(j-1)*nic+k*nicnjc;
-          indcelld = indcellg+nic;
-          cellG[indint] = indcellg; cellD[indint] = indcelld;
-          fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          cellG[indint] = indcellg; cellD[indint] = -1;
+          fintp[indint] = fcn[indcellg]; //extrapolation de l'interieur
         }
-    // bords des faces en j
-    for (E_Int k = 0; k < nkc; k++)
-      for (E_Int i = 0; i < nic; i++)
-      {
-        E_Int j = 0;
-        indint = i+j*nic+k*nicnj+nbIntI;
-        indcelld = i+j*nic+k*nicnjc;
-        cellG[indint] = -1; cellD[indint] = indcelld;
-        fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
 
-        j = njc;
-        indint = i+j*nic+k*nicnj+nbIntI;
-        indcellg = i+(j-1)*nic+k*nicnjc;
-        cellG[indint] = indcellg; cellD[indint] = -1;
-        fintp[indint] = fcn[indcellg]; //extrapolation de l'interieur
-      }
-
-    //faces en k
-    for (E_Int k = 1; k < nkc; k++)
+      //faces en k
+      for (E_Int k = 1; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+          for (E_Int i = 0; i < nic; i++)
+          {
+            indint = i+j*nic+k*nicnjc + nbIntIJ;
+            indcellg = i+j*nic+(k-1)*nicnjc;
+            indcelld = indcellg + nicnjc;
+            cellG[indint] = indcellg; cellD[indint] = indcelld;
+            fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          }
       for (E_Int j = 0; j < njc; j++)
         for (E_Int i = 0; i < nic; i++)
         {
+          E_Int k = 0;
+          indint = i+j*nic+k*nicnjc + nbIntIJ;
+          indcelld = i+j*nic+k*nicnjc;;
+          cellG[indint] = -1; cellD[indint] = indcelld;
+          fintp[indint] = fcn[indcelld];
+
+          k = nkc;
           indint = i+j*nic+k*nicnjc + nbIntIJ;
           indcellg = i+j*nic+(k-1)*nicnjc;
-          indcelld = indcellg + nicnjc;
-          cellG[indint] = indcellg; cellD[indint] = indcelld;
-          fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          cellG[indint] = indcellg; cellD[indint] = -1;
+          fintp[indint] = fcn[indcellg];
         }
-    for (E_Int j = 0; j < njc; j++)
-      for (E_Int i = 0; i < nic; i++)
-      {
-        E_Int k = 0;
-        indint = i+j*nic+k*nicnjc + nbIntIJ;
-        indcelld = i+j*nic+k*nicnjc;;
-        cellG[indint] = -1; cellD[indint] = indcelld;
-        fintp[indint] = fcn[indcelld];
-
-        k = nkc;
-        indint = i+j*nic+k*nicnjc + nbIntIJ;
-        indcellg = i+j*nic+(k-1)*nicnjc;
-        cellG[indint] = indcellg; cellD[indint] = -1;
-        fintp[indint] = fcn[indcellg];
-      }
+    }
   }
+  else // avec cellN
+  {
+    E_Float* cellNp = fc.begin(posCellN);
+    for (E_Int eq = 0; eq < nfld; eq++)
+    {
+      E_Float* fcn = fc.begin(eq+1);
+      E_Float* fintp = faceField.begin(eq+1);
+      //faces en i
+      for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+          for (E_Int i = 1; i < nic; i++)
+          {
+            indint = i+j*ni+k*ninjc;
+            indcellg = (i-1)+j*nic+k*nicnjc;
+            indcelld = indcellg+1;
+            cellG[indint] = indcellg; cellD[indint] = indcelld;
+            if (cellNp[indcellg] == 0) fintp[indint] = fcn[indcelld];
+            else if (cellNp[indcelld] == 0) fintp[indint] = fcn[indcellg];
+            else fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          }
+      //bords des faces en i
+      for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        {
+          E_Int i = 0;
+          indint = i+j*ni+k*ninjc;
+          indcelld = i + j*nic+k*nicnjc;
+          fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+          cellG[indint] = -1; cellD[indint] = indcelld;
+          i = nic;
+          indint = i+j*ni+k*ninjc;
+          indcellg = (i-1) + j*nic+k*nicnjc;
+          fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
+          cellG[indint] = indcellg; cellD[indint] = -1;
+        }
+      //faces en j
+      for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 1; j < njc; j++)
+          for (E_Int i = 0; i < nic; i++)
+          {
+            indint = i+j*nic+k*nicnj + nbIntI;
+            indcellg = i+(j-1)*nic+k*nicnjc;
+            indcelld = indcellg+nic;
+            cellG[indint] = indcellg; cellD[indint] = indcelld;
+            if (cellNp[indcellg] == 0) fintp[indint] = fcn[indcelld];
+            else if (cellNp[indcelld] == 0) fintp[indint] = fcn[indcellg];
+            else fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          }
+      // bords des faces en j
+      for (E_Int k = 0; k < nkc; k++)
+        for (E_Int i = 0; i < nic; i++)
+        {
+          E_Int j = 0;
+          indint = i+j*nic+k*nicnj+nbIntI;
+          indcelld = i+j*nic+k*nicnjc;
+          cellG[indint] = -1; cellD[indint] = indcelld;
+          fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+
+          j = njc;
+          indint = i+j*nic+k*nicnj+nbIntI;
+          indcellg = i+(j-1)*nic+k*nicnjc;
+          cellG[indint] = indcellg; cellD[indint] = -1;
+          fintp[indint] = fcn[indcellg]; //extrapolation de l'interieur
+        }
+
+      //faces en k
+      for (E_Int k = 1; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+          for (E_Int i = 0; i < nic; i++)
+          {
+            indint = i+j*nic+k*nicnjc + nbIntIJ;
+            indcellg = i+j*nic+(k-1)*nicnjc;
+            indcelld = indcellg + nicnjc;
+            cellG[indint] = indcellg; cellD[indint] = indcelld;
+            if (cellNp[indcellg] == 0) fintp[indint] = fcn[indcelld];
+            else if (cellNp[indcelld] == 0) fintp[indint] = fcn[indcellg];
+            else fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+          }
+      for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
+        {
+          E_Int k = 0;
+          indint = i+j*nic+k*nicnjc + nbIntIJ;
+          indcelld = i+j*nic+k*nicnjc;;
+          cellG[indint] = -1; cellD[indint] = indcelld;
+          fintp[indint] = fcn[indcelld];
+
+          k = nkc;
+          indint = i+j*nic+k*nicnjc + nbIntIJ;
+          indcellg = i+j*nic+(k-1)*nicnjc;
+          cellG[indint] = indcellg; cellD[indint] = -1;
+          fintp[indint] = fcn[indcellg];
+        }
+    }
+  }
+
   // Replace DataSet
   if (indices != Py_None && field != Py_None)
   {
@@ -531,15 +665,17 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
 
   // gradient
   E_Float ff, voli;
+
   for (E_Int n = 0; n < nfld; n++)
   {
     E_Float* gpx = gp.begin(3*n+1);
     E_Float* gpy = gp.begin(3*n+2);
     E_Float* gpz = gp.begin(3*n+3);
     E_Float* fp = faceField.begin(n+1);
+
     for (E_Int indint = 0; indint < nbIntTot; indint++)
     {
-      E_Int indcellg = cellG[indint]; E_Int indcelld = cellD[indint];
+      indcellg = cellG[indint]; indcelld = cellD[indint];
       ff = fp[indint];
       if (indcellg != -1)
       {
@@ -564,7 +700,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
 }
 //=============================================================================
 PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
-                                       const char* varStringOut,
+                                       const char* varStringOut, E_Int posCellN,
                                        E_Float* xt, E_Float* yt, E_Float* zt,
                                        FldArrayF& fc, FldArrayF& faceField,
                                        E_Int* cellG, E_Int* cellD,
@@ -603,7 +739,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       sxint[indint] = 0.5*(d13y*d24z-d13z*d24y);
       syint[indint] = 0.5*(d13z*d24x-d13x*d24z);
       szint[indint] = 0.5*(d13x*d24y-d13y*d24x);
-      indint+=1;
+      indint += 1;
     }
   for (E_Int j = 0; j < nj; j++)
     for (E_Int i = 0; i < nic; i++)
@@ -619,64 +755,131 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       sxint[indint] = 0.5*(d13y*d24z-d13z*d24y);
       syint[indint] = 0.5*(d13z*d24x-d13x*d24z);
       szint[indint] = 0.5*(d13x*d24y-d13y*d24x);
-      indint+=1;
+      indint += 1;
     }
 
-  for (E_Int eq = 0; eq < nfld; eq++)
+  if (posCellN == 0)
   {
-    E_Float* fcn = fc.begin(eq+1);
-    E_Float* fintp = faceField.begin(eq+1);
-    //faces en i internes
-    for (E_Int j = 0; j < njc; j++)
-      for (E_Int i = 1; i < nic; i++)
-      {
-        indint = i+j*ni;
-        indcellg = (i-1)+j*nic;
-        indcelld = indcellg+1;
-        cellG[indint] = indcellg; cellD[indint] = indcelld;
-        fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
-
-      }
-    //bords des faces en i
-    for (E_Int j = 0; j < njc; j++)
+    for (E_Int eq = 0; eq < nfld; eq++)
     {
-      //faces i = 0
-      indint = j*ni;
-      indcelld = j*nic;
-      fintp[indint] = fcn[indcelld];//extrapolation de l interieur
-      cellG[indint] = -1; cellD[indint] = indcelld;
+      E_Float* fcn = fc.begin(eq+1);
+      E_Float* fintp = faceField.begin(eq+1);
+      //faces en i internes
+      for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
+        {
+          indint = i+j*ni;
+          indcellg = (i-1)+j*nic;
+          indcelld = indcellg+1;
+          cellG[indint] = indcellg; cellD[indint] = indcelld;
+          fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
 
-      //faces i=ni
-      indint = (ni-1)+j*ni;
-      indcellg = (nic-1) + j*nic;
-      fintp[indint] = fcn[indcellg];//extrapolation de l interieur
-      cellG[indint] = indcellg; cellD[indint] = -1;
-    }
+        }
+      //bords des faces en i
+      for (E_Int j = 0; j < njc; j++)
+      {
+        //faces i = 0
+        indint = j*ni;
+        indcelld = j*nic;
+        fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+        cellG[indint] = -1; cellD[indint] = indcelld;
 
-    //faces en j interieures
-    for (E_Int j = 1; j < njc; j++)
+        //faces i=ni
+        indint = (ni-1)+j*ni;
+        indcellg = (nic-1) + j*nic;
+        fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
+        cellG[indint] = indcellg; cellD[indint] = -1;
+      }
+
+      //faces en j interieures
+      for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
+        {
+          indint = i+j*nic+nbIntI;
+          indcellg = i+(j-1)*nic;
+          indcelld = indcellg+nic;
+          cellG[indint] = indcellg; cellD[indint] = indcelld;
+          fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+        }
+      //bords des faces en j
       for (E_Int i = 0; i < nic; i++)
       {
-        indint = i+j*nic+nbIntI;
-        indcellg = i+(j-1)*nic;
-        indcelld = indcellg+nic;
-        cellG[indint] = indcellg; cellD[indint] = indcelld;
-        fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
-      }
-    //bords des faces en j
-    for (E_Int i = 0; i < nic; i++)
-    {
-      //faces j=0
-      indint = i+nbIntI;
-      indcelld = i;
-      cellG[indint] = -1; cellD[indint] = indcelld;
-      fintp[indint] = fcn[indcelld];//extrapolation de l interieur
+        //faces j=0
+        indint = i+nbIntI;
+        indcelld = i;
+        cellG[indint] = -1; cellD[indint] = indcelld;
+        fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
 
-      //faces j=jmax
-      indint = i+njc*nic+nbIntI;
-      indcellg = i+(njc-1)*nic;
-      cellG[indint] = indcellg; cellD[indint] = -1;
-      fintp[indint] = fcn[indcellg];//extrapolation de l interieur
+        //faces j=jmax
+        indint = i+njc*nic+nbIntI;
+        indcellg = i+(njc-1)*nic;
+        cellG[indint] = indcellg; cellD[indint] = -1;
+        fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
+      }
+    }
+  }
+  else // cellN
+  {
+    E_Float* cellNp = fc.begin(posCellN);
+    for (E_Int eq = 0; eq < nfld; eq++)
+    {
+      E_Float* fcn = fc.begin(eq+1);
+      E_Float* fintp = faceField.begin(eq+1);
+      //faces en i internes
+      for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
+        {
+          indint = i+j*ni;
+          indcellg = (i-1)+j*nic;
+          indcelld = indcellg+1;
+          cellG[indint] = indcellg; cellD[indint] = indcelld;
+          if (cellNp[indcellg] == 0) fintp[indint] = fcn[indcelld];
+          else if (cellNp[indcelld] == 0) fintp[indint] = fcn[indcellg];
+          else fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+        }
+      //bords des faces en i
+      for (E_Int j = 0; j < njc; j++)
+      {
+        //faces i = 0
+        indint = j*ni;
+        indcelld = j*nic;
+        fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+        cellG[indint] = -1; cellD[indint] = indcelld;
+
+        //faces i=ni
+        indint = (ni-1)+j*ni;
+        indcellg = (nic-1) + j*nic;
+        fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
+        cellG[indint] = indcellg; cellD[indint] = -1;
+      }
+
+      //faces en j interieures
+      for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
+        {
+          indint = i+j*nic+nbIntI;
+          indcellg = i+(j-1)*nic;
+          indcelld = indcellg+nic;
+          cellG[indint] = indcellg; cellD[indint] = indcelld;
+          if (cellNp[indcellg] == 0) fintp[indint] = fcn[indcelld];
+          else if (cellNp[indcelld] == 0) fintp[indint] = fcn[indcellg];
+          else fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+        }
+      //bords des faces en j
+      for (E_Int i = 0; i < nic; i++)
+      {
+        //faces j=0
+        indint = i+nbIntI;
+        indcelld = i;
+        cellG[indint] = -1; cellD[indint] = indcelld;
+        fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+
+        //faces j=jmax
+        indint = i+njc*nic+nbIntI;
+        indcellg = i+(njc-1)*nic;
+        cellG[indint] = indcellg; cellD[indint] = -1;
+        fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
+      }
     }
   }
   // Replace DataSet

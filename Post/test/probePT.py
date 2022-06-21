@@ -18,6 +18,6 @@ for i in range(110):
 p1.flush()
 
 # reread probe from file
-#p1 = Probe.Probe('probe1.cgns')
-#out = p1.read()
-#C.convertPyTree2File(out, 'out.cgns')
+p1 = Probe.Probe('probe1.cgns')
+out = p1.read()
+C.convertPyTree2File(out, 'out.cgns')

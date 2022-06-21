@@ -417,7 +417,7 @@ namespace K_POST
                    FldArrayF& velo, FldArrayF& press,
                    FldArrayF& mach);
 
-/* Zip: lecture des options et retourne les valeurs associées:
+/* Zip: lecture des options et retourne les valeurs associï¿½es:
    overlapTol: tolerance geometrique de recouvrement
    matchTol: tolerance geometrique pour les raccords coincidents */
   void readZipperOptions(PyObject* optionList,
@@ -571,7 +571,7 @@ namespace K_POST
                       FldArrayI& extNodes);
 
 /* Determine si les pts ind1 et ind2 sont a fusionner
-   IN: et: element à fusionner
+   IN: et: element ï¿½ fusionner
    IN: ind1: pt candidat a la fusion (source)
    IN: ind2: pt candidat a la fusion (destination)
    IN: xt, yt, zt: coordonnees des pts
@@ -668,14 +668,14 @@ namespace K_POST
   short buildFaceInfo(E_Int et, FldArrayI& cn, FldArrayI& face);
 
   PyObject* computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
-                                 const char* varStringOut,
+                                 const char* varStringOut, E_Int posCellN,
                                  E_Float* xt, E_Float* yt, E_Float* zt,
                                  FldArrayF& fc, FldArrayF& faceField,
                                  E_Int* cellG, E_Int* cellD,
                                  PyObject* indices, PyObject* field);
   PyObject* computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
                                  E_Int nic, E_Int njc, E_Int nkc,
-                                 const char* varStringOut,
+                                 const char* varStringOut, E_Int posCellN,
                                  E_Float* xt, E_Float* yt, E_Float* zt,
                                  FldArrayF& fc, FldArrayF& faceField,
                                  E_Int* cellG, E_Int* cellD,

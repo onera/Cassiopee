@@ -19,7 +19,7 @@
 #include "Data.h"
 
 #define PLOTBILLBOARD \
-    xi = x[i]; yi = y[i]; zi = z[i]; \        
+    xi = x[i]; yi = y[i]; zi = z[i]; \
     if (radiusField >= 0) d = zonep->f[radiusField][i]; \
     else { \
     dx = xi - xcam; dy = yi - ycam; dz = zi - zcam; \
@@ -33,16 +33,16 @@
     mru2 = d*(right[2] - up[2]); \
     pt1[0] = xi - pru0; \
     pt1[1] = yi - pru1; \
-    pt1[2] = zi - pru2; \    
+    pt1[2] = zi - pru2; \
     pt2[0] = xi + mru0; \
     pt2[1] = yi + mru1; \
     pt2[2] = zi + mru2; \
     pt3[0] = xi + pru0; \
     pt3[1] = yi + pru1; \
-    pt3[2] = zi + pru2; \    
+    pt3[2] = zi + pru2; \
     pt4[0] = xi - mru0; \
     pt4[1] = yi - mru1; \
-    pt4[2] = zi - mru2; \          
+    pt4[2] = zi - mru2; \
     glTexCoord2f(0.0, 0.0); glVertex3dv(pt1); \
     glTexCoord2f(1.0, 0.0); glVertex3dv(pt2); \
     glTexCoord2f(1.0, 1.0); glVertex3dv(pt3); \
