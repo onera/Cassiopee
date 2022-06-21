@@ -2,6 +2,7 @@
 import FastC.PyTree as FastC
 import Converter.PyTree as C
 import Geom.PyTree as D
+import Geom.IBM as D_IBM
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Post.PyTree as P
@@ -304,6 +305,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     if isinstance(t_out, str): FastC.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
+
 
 def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None, ext=3, snearsf=None, yplus=100.,
                       vmin=21, check=False, expand=3, dfarDir=0, extrusion=False):
@@ -1331,6 +1333,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
 
+
 def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
     if isinstance(tc_in, str): tc = Cmpi.convertFile2PyTree(tc_in)
     else: tc = tc_in
@@ -2193,6 +2196,7 @@ def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
     print('All points: {} million points'.format(NptsTot/1.e6))
     return None
 
+
 def prepareWallReconstruction(tw, tc):
     # MLS interpolation order
     LSorder = 2
@@ -2441,314 +2445,6 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
 
 
 #====================================================================================
-# Prend les snears dans t, les multiplie par factor
-def snearFactor(t, factor=1.):
-    tp = Internal.copyRef(t)
-    _snearFactor(t, factor)
-    return tp
-
-def _snearFactor(t, factor=1.):
-    zones = Internal.getZones(t)
-    for z in zones:
-        nodes = Internal.getNodesFromName2(z, 'snear')
-        for n in nodes:
-            Internal._setValue(n, factor*Internal.getValue(n))
-    return None
-
-# Set IBC type in zones
-def setIBCType(t, value):
-    tp = Internal.copyRef(t)
-    _setIBCType(t, value)
-    return tp
-
-def _setIBCType(z, value):
-    zones = Internal.getZones(z)
-    for z in zones:
-        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
-        n = Internal.getNodeFromName1(z, '.Solver#define')
-        Internal._createUniqueChild(n, 'ibctype', 'DataArray_t', value)
-    return None
-
-# Set snear in zones
-def setSnear(t, value):
-    tp = Internal.copyRef(t)
-    _setSnear(t, value)
-    return tp
-
-def _setSnear(z, value):
-    zones = Internal.getZones(z)
-    for z in zones:
-        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
-        n = Internal.getNodeFromName1(z, '.Solver#define')
-        Internal._createUniqueChild(n, 'snear', 'DataArray_t', value)
-    return None
-
-# Set dfar in zones
-def setDfar(t, value):
-    tp = Internal.copyRef(t)
-    _setDfar(t, value)
-    return tp
-
-def _setDfar(z, value):
-    zones = Internal.getZones(z)
-    for z in zones:
-        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
-        n = Internal.getNodeFromName1(z, '.Solver#define')
-        Internal._createUniqueChild(n, 'dfar', 'DataArray_t', value)
-    return None
-
-def _modifIBCD(tc):
-    raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
-
-# set Pressure to P_tot for a IBC of type outpress of family name FamilyName
-def _initOutflow(tc, familyNameOutflow, P_tot):
-    for zc in Internal.getZones(tc):
-        for zsr in Internal.getNodesFromName(zc,'IBCD_4_*'):
-            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
-            if FamNode is not None:
-                FamName = Internal.getValue(FamNode)
-                if FamName==familyNameOutflow:
-                    stagPNode =  Internal.getNodeFromName(zsr,'Pressure')    
-                    sizeIBC = numpy.shape(stagPNode[1])
-                    Internal.setValue(stagPNode,P_tot*numpy.ones(sizeIBC))
-    return None
-
-def _initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
-    for zc in Internal.getZones(tc):
-        for zsr in Internal.getNodesFromName(zc,'IBCD_5_*'):
-            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
-            if FamNode is not None:
-                FamName = Internal.getValue(FamNode)
-                if FamName==familyNameInj:
-                    stagPNode =  Internal.getNodeFromName(zsr,'StagnationPressure')
-                    stagHNode =  Internal.getNodeFromName(zsr,'StagnationEnthalpy')
-                    dirxNode = Internal.getNodeFromName(zsr,'dirx')
-                    diryNode = Internal.getNodeFromName(zsr,'diry')
-                    dirzNode = Internal.getNodeFromName(zsr,'dirz')
-                    sizeIBC = numpy.shape(stagHNode[1])
-                    Internal.setValue(stagHNode,H_tot*numpy.ones(sizeIBC))
-                    Internal.setValue(stagPNode,P_tot*numpy.ones(sizeIBC))
-                    if injDir[0] != 0.: 
-                        Internal.setValue(dirxNode, injDir[0]*numpy.ones(sizeIBC))
-                    else:
-                        Internal.setValue(dirxNode, numpy.zeros(sizeIBC)) 
-
-                    if injDir[1] != 0.: 
-                        Internal.setValue(diryNode, injDir[1]*numpy.ones(sizeIBC))
-                    else:
-                        Internal.setValue(diryNode, numpy.zeros(sizeIBC))
-
-                    if injDir[2] != 0.: 
-                        Internal.setValue(dirzNode, injDir[2]*numpy.ones(sizeIBC))
-                    else:
-                        Internal.setValue(dirzNode, numpy.zeros(sizeIBC)) 
-                    
-    return None
-
-def changeBCType(tc, oldBCType, newBCType):
-    for z in Internal.getZones(tc):
-        subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
-        for zsr in subRegions:
-            nameSubRegion = zsr[0]
-            if nameSubRegion[:4] == "IBCD":
-                bcType = int(nameSubRegion.split("_")[1])
-                if bcType == oldBCType:
-                    zsr[0] = "IBCD_{}_".format(newBCType)+"_".join(nameSubRegion.split("_")[2:])
-
-                    pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
-                    nIBC = pressure.shape[0]
-
-                    Internal._rmNodesByName(zsr, 'utau')
-                    Internal._rmNodesByName(zsr, 'yplus')
-
-                    Internal._rmNodesByName(zsr, 'StagnationEnthalpy')
-                    Internal._rmNodesByName(zsr, 'StagnationPressure')
-                    Internal._rmNodesByName(zsr, 'dirx')
-                    Internal._rmNodesByName(zsr, 'diry')
-                    Internal._rmNodesByName(zsr, 'dirz')
-
-                    Internal._rmNodesByName(zsr, 'gradxPressure')
-                    Internal._rmNodesByName(zsr, 'gradyPressure')
-                    Internal._rmNodesByName(zsr, 'gradzPressure')
-
-                    Internal._rmNodesByName(zsr, 'gradxVelocityX')
-                    Internal._rmNodesByName(zsr, 'gradyVelocityX')
-                    Internal._rmNodesByName(zsr, 'gradzVelocityX')
-
-                    Internal._rmNodesByName(zsr, 'gradxVelocityY')
-                    Internal._rmNodesByName(zsr, 'gradyVelocityY')
-                    Internal._rmNodesByName(zsr, 'gradzVelocityY')
-
-                    Internal._rmNodesByName(zsr, 'gradxVelocityZ')
-                    Internal._rmNodesByName(zsr, 'gradyVelocityZ')
-                    Internal._rmNodesByName(zsr, 'gradzVelocityZ')
-
-                    Internal._rmNodesByName(zsr, 'KCurv')
-
-                    if newBCType in [2, 3, 6, 10, 11]:
-                        utauNP  = numpy.zeros((nIBC),numpy.float64)
-                        yplusNP = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
-                        zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
-
-                    if newBCType == 5:
-                      stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
-                      Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
-                      stagnationPressure = numpy.zeros((nIBC),numpy.float64)
-                      Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=stagnationPressure)
-                      dirx = numpy.zeros((nIBC),numpy.float64)
-                      Internal._createChild(zsr, 'dirx', 'DataArray_t', value=dirx)
-                      diry = numpy.zeros((nIBC),numpy.float64)
-                      Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
-                      dirz = numpy.zeros((nIBC),numpy.float64)
-                      Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
-
-                    if newBCType == 100:
-                        KCurvNP = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(["KCurv" , KCurvNP , [], 'DataArray_t'])
-
-                    if newBCType == 10 or newBCType == 11:
-                        gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
-                        gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
-                        gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
-
-                    if newBCType == 11:
-                        gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
-                        gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
-                        gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
-
-                        gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
-                        gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
-                        gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
-
-                        gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
-                        gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
-                        gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
-                        zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
-
-    return tc
-
-def transformTc2(tc2):
-    for z in Internal.getZones(tc2):
-        subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
-        for zsr in subRegions:
-            nameSubRegion = zsr[0]
-            if nameSubRegion[:6] == "2_IBCD":
-                ibctype = int(nameSubRegion.split("_")[2])
-                zsr[0] = "IBCD_{}_".format(ibctype)+"_".join(nameSubRegion.split("_")[3:])
-
-                pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
-                nIBC = pressure.shape[0]
-
-                Internal._rmNodesByName(zsr, 'Density')
-
-                Internal._rmNodesByName(zsr, 'VelocityX')
-                Internal._rmNodesByName(zsr, 'VelocityY')
-                Internal._rmNodesByName(zsr, 'VelocityZ')
-
-                Internal._rmNodesByName(zsr, 'utau')
-                Internal._rmNodesByName(zsr, 'yplus')
-
-                Internal._rmNodesByName(zsr, 'StagnationEnthalpy')
-                Internal._rmNodesByName(zsr, 'StagnationPressure')
-                Internal._rmNodesByName(zsr, 'dirx')
-                Internal._rmNodesByName(zsr, 'diry')
-                Internal._rmNodesByName(zsr, 'dirz')
-
-                Internal._rmNodesByName(zsr, 'gradxPressure')
-                Internal._rmNodesByName(zsr, 'gradyPressure')
-                Internal._rmNodesByName(zsr, 'gradzPressure')
-
-                Internal._rmNodesByName(zsr, 'gradxVelocityX')
-                Internal._rmNodesByName(zsr, 'gradyVelocityX')
-                Internal._rmNodesByName(zsr, 'gradzVelocityX')
-
-                Internal._rmNodesByName(zsr, 'gradxVelocityY')
-                Internal._rmNodesByName(zsr, 'gradyVelocityY')
-                Internal._rmNodesByName(zsr, 'gradzVelocityY')
-
-                Internal._rmNodesByName(zsr, 'gradxVelocityZ')
-                Internal._rmNodesByName(zsr, 'gradyVelocityZ')
-                Internal._rmNodesByName(zsr, 'gradzVelocityZ')
-
-                Internal._rmNodesByName(zsr, 'KCurv')
-
-                DensityNP = numpy.zeros((nIBC),numpy.float64)
-                zsr[2].append(['Density' , DensityNP , [], 'DataArray_t'])
-
-                VelocityXNP = numpy.zeros((nIBC),numpy.float64)
-                zsr[2].append(['VeloicityX' , VelocityXNP , [], 'DataArray_t'])
-                VelocityYNP= numpy.zeros((nIBC),numpy.float64)
-                zsr[2].append(['VeloicityY' , VelocityYNP , [], 'DataArray_t'])
-                VelocityZNP = numpy.zeros((nIBC),numpy.float64)
-                zsr[2].append(['VeloicityZ' , VelocityZNP , [], 'DataArray_t'])
-
-                if ibctype in [2, 3, 6, 10, 11]:
-                    utauNP  = numpy.zeros((nIBC),numpy.float64)
-                    yplusNP = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
-                    zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
-
-                if ibctype == 5:
-                  stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
-                  Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
-                  stagnationPressure = numpy.zeros((nIBC),numpy.float64)
-                  Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=stagnationPressure)
-                  dirx = numpy.zeros((nIBC),numpy.float64)
-                  Internal._createChild(zsr, 'dirx', 'DataArray_t', value=dirx)
-                  diry = numpy.zeros((nIBC),numpy.float64)
-                  Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
-                  dirz = numpy.zeros((nIBC),numpy.float64)
-                  Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
-
-                if ibctype == 100:
-                    KCurvNP = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(["KCurv" , KCurvNP , [], 'DataArray_t'])
-
-                if ibctype == 10 or ibctype == 11:
-                    gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
-                    gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
-                    gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
-
-                if ibctype == 11:
-                    gradxVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradxVelocityX' , gradxVelocityXNP , [], 'DataArray_t'])
-                    gradyVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradyVelocityX' , gradyVelocityXNP , [], 'DataArray_t'])
-                    gradzVelocityXNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradzVelocityX' , gradzVelocityXNP , [], 'DataArray_t'])
-
-                    gradxVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradxVelocityY' , gradxVelocityYNP , [], 'DataArray_t'])
-                    gradyVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradyVelocityY' , gradyVelocityYNP , [], 'DataArray_t'])
-                    gradzVelocityYNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradzVelocityY' , gradzVelocityYNP , [], 'DataArray_t'])
-
-                    gradxVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradxVelocityZ' , gradxVelocityZNP , [], 'DataArray_t'])
-                    gradyVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
-                    gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
-                    zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
-
-    return tc2
-
-#====================================================================================
 class IBM(Common):
     """Preparation et calculs IBM avec le module FastS."""
     def __init__(self, format=None, numb=None, numz=None):
@@ -2778,3 +2474,62 @@ class IBM(Common):
     # post-processing: extrait les efforts sur les surfaces
     def loads(self, t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZones=[]):
         return loads(t_case, tc_in=tc_in, wall_out=wall_out, alpha=alpha, beta=beta, Sref=Sref, famZones=famZones)
+
+
+
+## IMPORTANT NOTE !!
+## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Geom/Geom/IBM.py
+## The functions below will become decrepit after Jan. 1 2023
+#====================================================================================
+def setSnear(t, value):
+    tp=D_IBM.setSnear(t, value)
+    return tp
+
+def _setSnear(t, value):
+    D_IBM._setSnear(t, value)
+    return None
+
+def setDfar(t, value):
+    tp=D_IBM.setDfar(t, value)
+    return tp
+
+def _setDfar(t, value):
+    D_IBM._setDfar(t, value)
+    return None
+
+def snearFactor(t, factor):
+    tp=D_IBM.snearFactor(t, factor)
+    return tp
+
+def _snearFactor(t, factor):
+    D_IBM._snearFactor(t, factor)
+    return None
+
+def setIBCType(t, value):
+    tp=D_IBM.setIBCType(t, value)
+    return tp
+
+def _setIBCType(t, value):
+    D_IBM._setIBCType(t, value)
+    return None
+
+def changeBCType(tc, oldBCType, newBCType):
+    tc=D_IBM.changeIBCType(tc, oldBCType, newBCType)
+    return tc
+
+def initOutflow(tc, familyNameOutflow, P_tot):
+    tc=D_IBM.initOutflow(tc, familyNameOutflow, P_tot)
+    return tc
+
+def initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
+    tc=D_IBM.initInj(tc, familyNameInj, P_tot, H_tot, injDir)                    
+    return tc
+
+def transformTc2(tc2):
+    tc2=D_IBM.transformTc2(tc2)
+    return tc2
+
+def _modifIBCD(tc):
+    raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
+
+#====================================================================================    
