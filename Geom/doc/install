@@ -82,6 +82,7 @@ then
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex Geom >& /dev/null
+    pdflatex IBM >& /dev/null
     cd ..
 fi
 
@@ -92,6 +93,12 @@ then
     sed -i 's/Geom.Geom/Geom/g' build/Geom.html
     cp build/Geom.html $DEST
     cp build/Geom.pdf $DEST
+
+    taghtml build/IBM.html
+    sed -i 's/Post.IBMM.Post.IBM/Post.IBM/g' build/IBM.html
+    sed -i 's/Post\.pdf/IBM\.pdf/g' build/IBM.html
+    cp build/IBM.html $DEST
+    cp build/IBM.pdf $DEST
 fi
 
 # Copie des release Notes

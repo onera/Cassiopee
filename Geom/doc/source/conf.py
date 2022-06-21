@@ -223,6 +223,8 @@ latex_elements = {
 latex_documents = [
   ('Geom', 'Geom.tex', u'Geom Documentation',
    u'/ELSA/MU-09021/V'+__version__, 'manual'),
+  ('Rotor', 'Rotor.tex', u'Post.Rotor Documentation',
+   u'/ELSA/MU-09021/V'+__version__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
