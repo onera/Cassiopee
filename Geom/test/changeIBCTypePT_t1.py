@@ -1,11 +1,11 @@
-# - line (pyTree) -
-import Geom.IBM as IBM
-import Geom.PyTree as D
-import Generator.PyTree as G
-import Converter.PyTree as C
+# - changeIBCType (pyTree) -
 import Converter.Internal as Internal
-import numpy 
+import Converter.PyTree as C
+import Generator.PyTree as G
+import Geom.IBM as D_IBM
+import Geom.PyTree as D
 import KCore.test as test
+import numpy 
 
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,11,12))
 a = C.node2Center(a)
@@ -23,5 +23,5 @@ for z in Internal.getZones(a):
         zsr[2].append(['VelocityX', Nlength, [], 'DataArray_t'])
         zsr[2].append(['VelocityY', Nlength, [], 'DataArray_t'])
         zsr[2].append(['VelocityZ', Nlength, [], 'DataArray_t'])
-a = IBM.changeIBCType(a,2,3)
+a = D_IBM.changeIBCType(a,2,3)
 test.testT(a, 1)

@@ -1,11 +1,11 @@
 # - initInj (pyTree) -
-import Geom.IBM as IBM
-import Geom.PyTree as D
-import Generator.PyTree as G
-import Converter.PyTree as C
 import Converter.Internal as Internal
-import numpy 
+import Converter.PyTree as C
+import Generator.PyTree as G
+import Geom.IBM as D_IBM
+import Geom.PyTree as D
 import KCore.test as test
+import numpy 
 
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,11,12))
 a = C.node2Center(a)
@@ -30,5 +30,5 @@ for z in Internal.getZones(a):
         
         Internal._createChild(zsr, 'FamilyName', 'FamilyName_t', value='CART_LOCAL')
 
-a=IBM.initInj(a,'CART_LOCAL',10,20,injDir=[0.5,0.5,0.])
+a=D_IBM.initInj(a,'CART_LOCAL',10,20,injDir=[0.5,0.5,0.])
 test.testT(a, 1)

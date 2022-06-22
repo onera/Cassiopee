@@ -1,9 +1,9 @@
 # - initOutflow (pyTree) -
-import Geom.IBM as IBM
-import Geom.PyTree as D
-import Generator.PyTree as G
-import Converter.PyTree as C
 import Converter.Internal as Internal
+import Converter.PyTree as C
+import Generator.PyTree as G
+import Geom.IBM as D_IBM
+import Geom.PyTree as D
 import numpy
 
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,11,12))
@@ -21,6 +21,6 @@ for z in Internal.getZones(a):
         zsr[2].append(['Pressure', Nlength, [], 'DataArray_t'])
         Internal._createChild(zsr, 'FamilyName', 'FamilyName_t', value='CART_LOCAL')
 
-a=IBM.initOutflow(a,'CART_LOCAL',101325)
+a=D_IBM.initOutflow(a,'CART_LOCAL',101325)
 
 C.convertPyTree2File(a, 'out.cgns')

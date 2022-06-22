@@ -4,6 +4,7 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import Converter
 import numpy
+import copy
 
 vars_delete_ibm=['utau','StagnationEnthalpy','StagnationPressure',
                  'dirx'          ,'diry'          ,'dirz',
@@ -155,36 +156,36 @@ def _initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.]):
 def add_variables_tc_ibc(zsr,ibctype,nIBC):
     Nlength = numpy.zeros((nIBC),numpy.float64)
     if ibctype in [2, 3, 6, 10, 11]:
-        zsr[2].append(['utau' , Nlength, [], 'DataArray_t'])
-        zsr[2].append(['yplus', Nlength, [], 'DataArray_t'])
+        zsr[2].append(['utau' , copy.copy(Nlength), [], 'DataArray_t'])
+        zsr[2].append(['yplus', copy.copy(Nlength), [], 'DataArray_t'])
 
     if ibctype == 5:
-        Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=Nlength)
-        Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=Nlength)
-        Internal._createChild(zsr, 'dirx'              , 'DataArray_t', value=Nlength)
-        Internal._createChild(zsr, 'diry'              , 'DataArray_t', value=Nlength)
-        Internal._createChild(zsr, 'dirz'              , 'DataArray_t', value=Nlength)
+        Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=copy.copy(Nlength))
+        Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=copy.copy(Nlength))
+        Internal._createChild(zsr, 'dirx'              , 'DataArray_t', value=copy.copy(Nlength))
+        Internal._createChild(zsr, 'diry'              , 'DataArray_t', value=copy.copy(Nlength))
+        Internal._createChild(zsr, 'dirz'              , 'DataArray_t', value=copy.copy(Nlength))
 
     if ibctype == 10 or ibctype == 11:
-        zsr[2].append(['gradxPressure' , Nlength , [], 'DataArray_t'])
-        zsr[2].append(['gradyPressure' , Nlength , [], 'DataArray_t'])
-        zsr[2].append(['gradzPressure' , Nlength , [], 'DataArray_t'])
+        zsr[2].append(['gradxPressure' , copy.copy(Nlength) , [], 'DataArray_t'])
+        zsr[2].append(['gradyPressure' , copy.copy(Nlength) , [], 'DataArray_t'])
+        zsr[2].append(['gradzPressure' , copy.copy(Nlength) , [], 'DataArray_t'])
 
         if ibctype == 11:
-            zsr[2].append(['gradxVelocityX' , Nlength , [], 'DataArray_t'])
-            zsr[2].append(['gradyVelocityX' , Nlength , [], 'DataArray_t'])
-            zsr[2].append(['gradzVelocityX' , Nlength , [], 'DataArray_t'])
+            zsr[2].append(['gradxVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
+            zsr[2].append(['gradyVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
+            zsr[2].append(['gradzVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
             
-            zsr[2].append(['gradxVelocityY' , Nlength , [], 'DataArray_t'])
-            zsr[2].append(['gradyVelocityY' , Nlength , [], 'DataArray_t'])
-            zsr[2].append(['gradzVelocityY' , Nlength , [], 'DataArray_t'])
+            zsr[2].append(['gradxVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
+            zsr[2].append(['gradyVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
+            zsr[2].append(['gradzVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
             
-            zsr[2].append(['gradxVelocityZ' , Nlength , [], 'DataArray_t'])
-            zsr[2].append(['gradyVelocityZ' , Nlength , [], 'DataArray_t'])
-            zsr[2].append(['gradzVelocityZ' , Nlength , [], 'DataArray_t'])
+            zsr[2].append(['gradxVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
+            zsr[2].append(['gradyVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
+            zsr[2].append(['gradzVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
         
     if ibctype == 100:
-        zsr[2].append(["KCurv" , Nlength , [], 'DataArray_t'])
+        zsr[2].append(["KCurv" , copy.copy(Nlength) , [], 'DataArray_t'])
         
     return zsr
 
@@ -230,10 +231,10 @@ def transformTc2(tc2):
                     Internal._rmNodesByName(zsr,vars_delete)
 
                 Nlength = numpy.zeros((nIBC),numpy.float64)
-                zsr[2].append(['Density'    , Nlength , [], 'DataArray_t'])
-                zsr[2].append(['VeloicityX' , Nlength , [], 'DataArray_t'])
-                zsr[2].append(['VeloicityY' , Nlength , [], 'DataArray_t'])
-                zsr[2].append(['VeloicityZ' , Nlength , [], 'DataArray_t'])
+                zsr[2].append(['Density'    , copy.copy(Nlength) , [], 'DataArray_t'])
+                zsr[2].append(['VeloicityX' , copy.copy(Nlength) , [], 'DataArray_t'])
+                zsr[2].append(['VeloicityY' , copy.copy(Nlength) , [], 'DataArray_t'])
+                zsr[2].append(['VeloicityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
 
                 zsr=add_variables_tc_ibc(zsr,ibctype,nIBC)
                 
