@@ -128,5 +128,5 @@ v_adiminv = math.sqrt(3)*c0
 C._initVars(t,"{centers:VelocityX}={centers:VelocityX}*%g"%v_adiminv)
 C._initVars(t,'{centers:VelocityY}={centers:VelocityY}*%g'%v_adiminv)
 
-C.convertPyTree2File(t,"restart.cgns")
+#C.convertPyTree2File(t,"restart.cgns")
 test.testT(t,1)
