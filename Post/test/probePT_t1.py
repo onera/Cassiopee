@@ -57,7 +57,7 @@ for i in range(20):
 p1.flush()
 
 # reread probe
-p1 = Probe.Probe(LOCAL+/'probe1.cgns')
+p1 = Probe.Probe(LOCAL+'/probe1.cgns')
 out = p1.read()
 C.convertPyTree2File(out, LOCAL+'/out1.cgns')
 #test.testT(out, 2)

@@ -213,6 +213,8 @@ latex_documents = [
    u'/ELSA/MU-10019/V'+__version__, 'manual'),
   ('Rotor', 'Rotor.tex', u'Post.Rotor Documentation',
    u'/ELSA/MU-10019/V'+__version__, 'manual'),
+  ('Post_IBM', 'Post_IBM.tex', u'Post.Post_IBM Documentation',
+   u'/ELSA/MU-10019/V'+__version__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
