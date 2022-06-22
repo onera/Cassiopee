@@ -38,6 +38,8 @@ def _add_gradxi_P(z):
 
 
 def extractIBMInfo(tc_in, filename_out='IBMInfo.cgns'):
+    """Extracts the geometrical information required for the IBM (i.e. wall points, target points, and image points).
+    Usage: extractIBMInfo (tc_in, filename_out)"""
     if isinstance(tc_in, str): tc = Cmpi.convertFile2PyTree(tc_in)
     else: tc = tc_in
 
@@ -210,6 +212,8 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
 # NOTE: if tc_in = None, t_case is the geometry tree with the projected solution
 #==============================================================================
 def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[]):
+    """Computes the viscous and pressure forces on the IB. If tc_in=None, t_case must also contain the projection of the flow field solution onto the IB.
+    Usage: loads(t_case, tc_in, tc2_in, wall_out, alpha, beta, gradP, order, Sref, famZones)"""
     if tc_in is not None:
         if isinstance(tc_in, str):
             tc = C.convertFile2PyTree(tc_in)
@@ -324,12 +328,16 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
 # IN: beta: angle pour les efforts
 #==============================================================================
 def unsteadyLoads(tb, Sref=None, alpha=0., beta=0.):
+    """Computes the viscous and pressure forces on the IB during the computation of the solution. 
+    Usage: unsteadyLoads(tb, Sref, alpha, beta)"""
     tp = Internal.copyRef(tb)
     _unsteadyLoads(tp, Sref=Sref, alpha=alpha, beta=beta)
     return tp
  
 
 def _unsteadyLoads(tb, Sref=None, alpha=0., beta=0.):
+    """Computes the viscous and pressure forces on the IB during the computation of the solution. 
+    Usage: _unsteadyLoads(tb, Sref, alpha, beta)"""
     zones = KCOMM.allgather(Internal.getZones(tb))
     ts    = Distributed.setZonesInTree(tb, zones)
     dimPb = Internal.getValue(Internal.getNodeFromName(ts, 'EquationDimension'))
@@ -453,12 +461,16 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
 # OUT: same as input
 #=============================================================================
 def extractPressureHO(tc):
+    """1st order extrapolation of the pressure at the immersed boundary (IB).
+    Usage: extractPressureHO(tc)"""
     tp = Internal.copyRef(tc)
     _extractPressureHO(tp)
     return tp
 
 
 def _extractPressureHO(tc):
+    """1st order extrapolation of the pressure at the immersed boundary (IB).
+    Usage: _extractPressureHO(tc)"""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -510,12 +522,16 @@ def _extractPressureHO(tc):
 # OUT: same as input
 #=============================================================================    
 def extractPressureHO2(tc):
+    """2nd order extrapolation of the pressure at the immersed boundary (IB).
+    Usage: extractPressureHO2(tc)"""
     tp = Internal.copyRef(tc)
     _extractPressureHO2(tp)
     return tp
 
 
 def _extractPressureHO2(tc):
+    """2nd order extrapolation of the pressure at the immersed boundary (IB).
+    Usage: _extractPressureHO2(tc)"""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -584,12 +600,16 @@ def _extractPressureHO2(tc):
 # Compute convective terms (TBLE FULL)
 #=============================================================================
 def extractConvectiveTerms(tc):
+    """Computes the convective terms required for the thin boundary layers equations (TBLE) and stores them in the tc.
+    Usage: extractConvectiveTerms(tc)"""
     tp = Internal.copyRef(tc)
     _extractConvectiveTerms(tp)
     return tp
 
 
 def _extractConvectiveTerms(tc):
+    """Computes the convective terms required for the thin boundary layers equations (TBLE) and stores them in the tc.
+    Usage: _extractConvectiveTerms(tc)"""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:

@@ -121,15 +121,15 @@ def _initOutflow(tc, familyName, P_static):
 # Set the IBC type inj for zones in familyName
 def initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.]):
     """Set the total pressure P_tot, total enthalpy H_tot, and direction of the flow injDir for the injection IBC with family name familyName.
-    Usave: initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.])"""
+    Usave: initInj(tc, familyName, P_tot, H_tot, injDir)"""
     tc2 = Internal.copyRef(tc)
     _initInj(tc2, familyName, P_tot, H_tot, injDir)
     return tc2
                  
 
 def _initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.]):
-    """Set the stagnation pressure P_tot, stagnation enthalpy H_tot, and direction of the flow injDir for the injection IBC with family name familyName)
-    Usave: initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.])"""
+    """Set the total pressure P_tot, total enthalpy H_tot, and direction of the flow injDir for the injection IBC with family name familyName.
+    Usage: _initInj(tc, familyName, P_tot, H_tot, injDir)"""
     for zc in Internal.getZones(tc):
         for zsr in Internal.getNodesFromName(zc,'IBCD_5_*'):
             FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
@@ -215,6 +215,8 @@ def changeIBCType(tc, oldIBCType, newIBCType):
 
 
 def transformTc2(tc2):
+    """Change the name of the IBM nodes for the second image point.
+    Usage: transformTc2(tc2)"""
     for z in Internal.getZones(tc2):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
