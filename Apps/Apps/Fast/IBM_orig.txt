@@ -1495,7 +1495,6 @@ def _modifIBCD(tc):
     raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
 
 #====================================================================================    
-<<<<<<< .mine
 
 ## IMPORTANT NOTE !!
 ## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Post/Post/IBM.py
@@ -1556,66 +1555,3 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
 
 
 #====================================================================================
-||||||| .r4137
-=======
-
-## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Post/Post/IBM.py
-## The functions below will become decrepit after Jan. 1 2023
-#====================================================================================
-def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
-    tibm=P_IBM.extractIBMInfo(tc_in, t_out=t_out)
-    return tibm
-
-
-def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
-    ts=P_IBM.loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=verbose)
-    return ts
-
-def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[]):
-    ts = P_IBM.loads(t_case, tc_in=tc_in, tc2_in=tc2_in,
-                     wall_out=wall_out, alpha=alpha, beta=beta,
-                     gradP=gradP, order=order, Sref=Sref, famZones=famZones)
-    return ts
-
-
-def post(t_case, t_in, tc_in, t_out, wall_out):
-    t,zw = P_IBM.post(t_case,t_in, tc_in, t_out, wall_out)
-    return t,zw
-
-def extractPressureHO(tc):
-    tp=P_IBM.extractPressureHO(tc)
-    return tp
-
-def extractPressureHO2(tc):
-    tp=P_IBM.extractPressureHO2(tc)
-    return tp
-
-def _unsteadyLoads(tb, Sref=None, alpha=0., beta=0.):
-    tp = Internal.copyRef(tb)
-    P_IBM._unsteadyLoads(tp, Sref=Sref, alpha=alpha, beta=beta)
-    return tp
-
-def extractConvectiveTerms(tc):
-    tp=P_IBM.extractConvectiveTerms(tc)
-    return tp
-
-def _prepareSkinReconstruction(ts, tc):
-    tl, graphWPOST, interDictWPOST = P_IBM._prepareSkinReconstruction(ts,tc)
-    return tl, graphWPOST, interDictWPOST
-
-def _computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST):
-    P_IBM._computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST)
-    return None
-
-def prepareWallReconstruction(tw, tc):
-    tw=P_IBM.prepareWallReconstruction(tw, tc)
-    return tcw 
-
-def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None, variables=['Pressure','Density','utau','yplus']):
-    P_IBM._computeWallReconstruction(tw, tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph, variables=variables):
-    return None
-
-
-#====================================================================================
->>>>>>> .r4139

@@ -398,7 +398,8 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
 
     varType = 2 # IBM updated variables (rho,u,t)
     varsIBC = ['Density', 'VelocityX', 'VelocityY', 'VelocityZ', 'Temperature']
-    vars    = varsIBC
+    vars    = ['Density', 'VelocityX', 'VelocityY', 'VelocityZ', 'Temperature']
+    
 
     if model != 'Euler':
         vars += ['ViscosityEddy']
@@ -428,7 +429,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
 
     if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
 
-    #===============================
+    #================================
     # For 2D, extract a single k plane
     #================================
     if dimPb == 2:
@@ -443,10 +444,12 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
         C._initVars(t,'{centers:ViscosityMolecular} = %20.16g*sqrt({centers:Temperature})/(1.+%20.16g/{centers:Temperature})'%(betas,Cs))
         C._initVars(t,'{centers:mutsmu}=({centers:ViscosityEddy})/({centers:ViscosityMolecular})-1.')
 
-    #==============================
+    #======================================
     # Output of flow solution at cell nodes
-    #==============================
+    #======================================
     vars = ['centers:Density','centers:VelocityX', 'centers:VelocityY', 'centers:VelocityZ', 'centers:Temperature','centers:ViscosityEddy',
+            'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
+    vars = ['centers:Density','centers:VelocityX', 'centers:Temperature','centers:ViscosityEddy',
             'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
     t = C.center2Node(t, vars)
     Internal._rmNodesByName(t, 'FlowSolution#Centers')
@@ -455,8 +458,13 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     return t, zw
 
 
+
+
+
+
+
 #=============================================================================
-# Post-processing pressure interpolation (at wall) 1st order
+# Post-processing pressure extrapolation (at wall) 1st order
 # IN: connectivity tree
 # OUT: same as input
 #=============================================================================
@@ -517,7 +525,7 @@ def _extractPressureHO(tc):
     return None
 
 #=============================================================================
-# Post-processing pressure interpolation (at wall) 2nd order
+# Post-processing pressure extrapolation (at wall) 2nd order
 # IN: connectivity tree
 # OUT: same as input
 #=============================================================================    
