@@ -634,7 +634,7 @@ def _buildMaskFiles(t, keepOversetHoles=True, fileDir='.', prefixBase=False):
         Converter.convertArrays2File([array], fileName+z[0]+'.v3d',
                                      "bin_v3d", dataFormat=dataFormat)
 
-    if not keepOversetHoles: Internal._rmNodesByName(t,'OversetHoles')
+    if not keepOversetHoles: Internal._rmNodesByName(t, 'OversetHoles')
   return None
 
 #==============================================================================
@@ -1112,11 +1112,11 @@ def _convert2elsAxdt(t, sameBase=0, fileDir='.'):
   print('1. addTurbulentDistance index')
   _addTurbulentDistanceIndex(t)
   print('2. buildMaskFiles')
-  _buildMaskFiles(t)
+  _buildMaskFiles(t, fileDir=fileDir)
   print('3. adaptNearMatch')
   _adaptNearMatch(t)
   print('4. adaptPeriodicMatch')
-  _adaptPeriodicMatch(t,clean=True)
+  _adaptPeriodicMatch(t, clean=True)
   print('5. overlapGC2BC')
   _overlapGC2BC(t)
   print('6. rmGCOverlap')
@@ -1241,7 +1241,7 @@ def addFamilyBCNode__(t):
                 ud = numpy.fromstring('UserDefined', 'c')
                 f[2].append(['FamilyBC', ud, [], 'FamilyBC_t'])
             else:
-                fbc[0][0]='FamilyBC'
+                fbc[0][0] = 'FamilyBC'
             bases[i][2][numFamily] = f
 
     cgnsv = Internal.getNodesFromType1(tp, 'CGNSLibraryVersion_t')

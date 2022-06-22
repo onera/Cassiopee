@@ -4,6 +4,7 @@ import Generator.PyTree as G
 import Connector.PyTree as X
 import Converter.elsAProfile as CE
 import KCore.test as test
+
 LOCAL=test.getLocal()
 
 a = G.cylinder((0,0,0),1.,3.,360,0,1,(200,30,2)); a[0] = 'cylindre1'
@@ -21,9 +22,9 @@ t = X.connectNearMatch(t, dim=2)
 t = X.applyBCOverlaps(t, depth=1)
 # blanking
 C._initVars(t[2][3],'{centers:cellN}={centers:cellN}*(1.-({centers:CoordinateX}<2)*({centers:CoordinateX}>-2)*({centers:CoordinateY}<2)*({centers:CoordinateY}>-2))')
-t = X.setInterpolations(t, loc='cell',storage='inverse')
+t = X.setInterpolations(t, loc='cell', storage='inverse')
 t = X.cellN2OversetHoles(t)
-#C._initVars(t,"centers:TurbulentDistance",1.)
+#C._initVars(t, "centers:TurbulentDistance",1.)
 CE._convert2elsAxdt(t, fileDir=LOCAL)
 test.testT(t, 1)
 
