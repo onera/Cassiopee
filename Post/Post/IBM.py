@@ -16,7 +16,6 @@ import copy
 import math
 import numpy
 
-
 def _add_gradxi_P(z):
     subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
     for zsr in subRegions:
@@ -98,7 +97,7 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     res = [i/Sref for i in res]
     calpha = math.cos(alpha); cbeta = math.cos(beta)
     salpha = math.sin(alpha); sbeta = math.sin(beta)
-    if dimPb==3:
+    if dimPb == 3:
         cd = res[0]*calpha*cbeta + res[1]*salpha*cbeta - res[2]*sbeta
         cl = res[1]*calpha       - res[0]*salpha
     else:
@@ -169,7 +168,7 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     effortZ = P.integ(ts, 'centers:Fricz')[0]
 
     QADIMI = 1./(q*Sref)
-    if dimPb==3:
+    if dimPb == 3:
         cd = (effortX*calpha*cbeta + effortY*salpha*cbeta - effortZ*sbeta)*QADIMI
         cl = (effortY*calpha       - effortX*salpha)*QADIMI
     else:
@@ -441,8 +440,8 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     #=================================
     if model != 'Euler':
         betas = Mus*(Ts+Cs)/(Ts**(3./2.))
-        C._initVars(t,'{centers:ViscosityMolecular} = %20.16g*sqrt({centers:Temperature})/(1.+%20.16g/{centers:Temperature})'%(betas,Cs))
-        C._initVars(t,'{centers:mutsmu}=({centers:ViscosityEddy})/({centers:ViscosityMolecular})-1.')
+        C._initVars(t, '{centers:ViscosityMolecular} = %20.16g*sqrt({centers:Temperature})/(1.+%20.16g/{centers:Temperature})'%(betas,Cs))
+        C._initVars(t, '{centers:mutsmu}=({centers:ViscosityEddy})/({centers:ViscosityMolecular})-1.')
 
     #======================================
     # Output of flow solution at cell nodes
@@ -456,8 +455,6 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     if isinstance(t_out, str): C.convertPyTree2File(t, t_out)
 
     return t, zw
-
-
 
 
 

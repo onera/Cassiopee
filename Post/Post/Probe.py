@@ -261,9 +261,8 @@ class Probe:
             create = False
             if Cmpi.rank == 0: isFilePresent = os.path.exists(self._fileName)
             else: isFilePresent = None
-            #isFilePresent = Cmpi.bcast(isFilePresent, root=0)
-            isFilePresent = True
-            isFilePresent = True
+            isFilePresent = Cmpi.bcast(isFilePresent, root=0)
+            #isFilePresent = True
             
             if isFilePresent:
                 if self._mode == 0 or self._mode == 1:
@@ -274,6 +273,7 @@ class Probe:
                 if len(zones) > 0:
                     nodes = Internal.getNodesFromName(zones[0], 'GridCoordinates#*')
                     self._filecur = len(nodes)
+                self._filecur = Cmpi.allreduce(self._filecur, op=Cmpi.MAX)
             else: create = True
         else: create = True
         if create:
@@ -296,6 +296,7 @@ class Probe:
                 Internal._rmNodesByName(z, 'FlowSolution#*')
                 Internal._rmNodesByName(z, 'FlowSolution#Centers#*')
                 if D2.getProc(z) == Cmpi.rank: bl[2].append(z)
+        
         tl = to
         self._probeZones = Internal.getZones(tl)
 
@@ -340,8 +341,10 @@ class Probe:
             else: self._icur = 0
         else: self._icur = 0
 
-        #print('Info: probe: filecur:', self._filecur)
-        #print('Info: probe: icur:', self._icur)
+        self._icur = Cmpi.allreduce(self._icur, op=Cmpi.MAX)
+
+        #print('Info: probe: filecur:', self._filecur, flush=True)
+        #print('Info: probe: icur:', self._icur, flush=True)
 
         return None
 
@@ -376,7 +379,7 @@ class Probe:
 
     # trigger extraction on current t
     # IN: _proc: proc du bloc contenant la probe
-    # IN: _probeZone: zone de stockage
+    # IN: _probeZones: zone de stockage
     # IN: _ind: index of probe (static)
     # IN: _fields: nom des champs a extraire
     def extract(self, t, time):
@@ -415,7 +418,8 @@ class Probe:
             if self._probeZones is None: 
                 self.createProbeZones(t)
                 self.checkFile(append=self._append)
-            
+            Cmpi.barrier()
+
             # time is in "time" of probe zones
             source = Internal.getZones(t)
             for c, pz in enumerate(self._probeZones):
@@ -461,7 +465,7 @@ class Probe:
 
     # flush containers of probe
     # IN: _proc: proc du bloc contenant la probe
-    # IN: _probeZone: zone de la probe
+    # IN: _probeZones: zone de la probe
     # IN: _fileName: nom du fichier
     def flush(self):
         """Flush probe to file."""

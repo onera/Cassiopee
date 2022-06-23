@@ -396,17 +396,17 @@ def computeGrad(array, varname):
     else:
         return post.computeGrad(array, varname)
 
-def computeGrad2(array, arrayc, vol=None, indices=None, BCField=None):
+def computeGrad2(array, arrayc, vol=None, cellN=None, indices=None, BCField=None):
     """Compute the gradient of a field defined on centers."""
     if isinstance(array[0], list):
         raise ValueError("computeGrad2: input must be a single zone.")
     if len(array) == 4:
         if array[3] == 'NGON' and arrayc[3] == 'NGON*':
-            return post.computeGrad2NGon(array, arrayc, vol, indices, BCField)
+            return post.computeGrad2NGon(array, arrayc, vol, cellN, indices, BCField)
         else:
             raise ValueError("computeGrad2: only valid for NGon unstructured zones.")
     else:
-        return post.computeGrad2Struct(array, arrayc, indices, BCField)
+        return post.computeGrad2Struct(array, arrayc, cellN, indices, BCField)
 
 def computeNormGrad(array, varname):
     """Compute the norm of gradient of field varname defined in array.
@@ -431,7 +431,7 @@ def computeDiv(array, vector):
     else:
         return post.computeDiv(array, vector)
 
-def computeDiv2(array, arrayc, vol=None, indices=None, BCFieldX=None, BCFieldY=None, BCFieldZ=None):
+def computeDiv2(array, arrayc, vol=None, cellN=None, indices=None, BCFieldX=None, BCFieldY=None, BCFieldZ=None):
     """Compute the divergence of the field varname, whose components are defined in array
     using the computeGrad2 method for gradients.
     Usage: computeDiv2(array, arrayc, indices, BCFieldX, BCFieldY, BCFieldZ) """
@@ -439,11 +439,11 @@ def computeDiv2(array, arrayc, vol=None, indices=None, BCFieldX=None, BCFieldY=N
         raise ValueError("computeDiv2: input must be a single zone.")
     if len(array) == 4:
         if array[3] == 'NGON' and arrayc[3] == 'NGON*':
-            return post.computeDiv2NGon(array, arrayc, vol, indices, BCFieldX, BCFieldY, BCFieldZ)
+            return post.computeDiv2NGon(array, arrayc, vol, cellN, indices, BCFieldX, BCFieldY, BCFieldZ)
         else:
             raise ValueError("computeDiv2: only valid for NGon unstructured zones.")
     else:
-        return post.computeDiv2Struct(array, arrayc, indices, BCFieldX, BCFieldY, BCFieldZ)
+        return post.computeDiv2Struct(array, arrayc, cellN, indices, BCFieldX, BCFieldY, BCFieldZ)
 
 def computeCurl(array, vector):
     """Compute the curl of the 3D-field defined in array.

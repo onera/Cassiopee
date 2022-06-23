@@ -40,9 +40,9 @@ extern "C"
 PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc;
-  PyObject* volc;
+  PyObject* volc; PyObject* cellNc;
   PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
-  if (!PyArg_ParseTuple(args, "OOOOOOO", &array, &arrayc, &volc,
+  if (!PyArg_ParseTuple(args, "OOOOOOOO", &array, &arrayc, &volc, &cellNc,
                         &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
@@ -79,15 +79,17 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
-  E_Int posCellN = K_ARRAY::isCellNatureField2Present(varString);
-  posCellN++;
-
   // Check arrayc
   char* varStringc; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
   E_Int nic, njc, nkc; // number of points of array
   res = K_ARRAY::getFromArray(arrayc, varStringc, fc, nic, njc, nkc, cnc,
                               eltTypec, true);
+
+  // Extract cellN if any
+  E_Float* cellNp = NULL;
+  E_Int ncells = fc->getSize();
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
 
   E_Int npts = f->getSize();
 
@@ -168,7 +170,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 
   FldArrayF faceField(nfaces, dimPb*nfld);
   E_Int i1, i2;
-  if (posCellN == 0)
+  if (cellNp == NULL)
   {
     for (E_Int n = 1; n <= dimPb*nfld; n++)
     {
@@ -186,7 +188,6 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   }
   else // cellN
   {
-    E_Float* cellNp = fc->begin(posCellN);
     for (E_Int n = 1; n <= nfld; n++)
     {
       E_Float* fp = faceField.begin(n);
@@ -292,7 +293,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   E_Float* volp = vol.begin(1);
 
   
-  if ( volc == Py_None)
+  if (volc == Py_None)
   { 
       K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
                             f->begin(posz), *cn, volp);
@@ -326,6 +327,9 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 
   RELEASESHAREDB(res,array,f,cn);
   RELEASESHAREDB(res,arrayc,fc,cnc);
+
+  if (cellNc != Py_None) Py_DECREF(cellNc);
+
   delete [] varStringOut;
   return tpl;
 }
@@ -336,9 +340,9 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 //=============================================================================
 PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
 {
-  PyObject* array; PyObject* arrayc;
+  PyObject* array; PyObject* arrayc; PyObject* cellNc;
   PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
-  if (!PyArg_ParseTuple(args, "OOOOOO", &array, &arrayc,
+  if (!PyArg_ParseTuple(args, "OOOOOOO", &array, &arrayc, &cellNc,
                         &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
@@ -377,15 +381,17 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
-  E_Int posCellN = K_ARRAY::isCellNatureField2Present(varString);
-  posCellN++;
-
   // Check arrayc
   char* varStringc; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
   E_Int nic, njc, nkc; // number of points of array
   res = K_ARRAY::getFromArray(arrayc, varStringc, fc, nic, njc, nkc, cnc,
                               eltTypec, true);
+
+  // Extract cellN if any
+  E_Float* cellNp = NULL;
+  E_Int ncells = fc->getSize();
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
 
   // Number of vector fields whose divergence to compute (dimPb components for each)
   E_Int nfld = fc->getNfld(); // total number of scalar fields
@@ -487,23 +493,24 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   E_Int* cellD = voisins.begin(2);
   PyObject* tpl;
   if (dimPb == 2)
-    tpl = computeDiv2Struct2D(ni, nj, nic, njc, ixyz, varStringOut, posCellN, 
+    tpl = computeDiv2Struct2D(ni, nj, nic, njc, ixyz, varStringOut, cellNp, 
                               f->begin(posx), f->begin(posy), f->begin(posz),
                               *fc, faceField, cellG, cellD, indices, fieldX, fieldY, fieldZ); // ATTENTION !!!!!
   else if (dimPb == 3)
-    tpl = computeDiv2Struct3D(ni, nj, nk, nic, njc, nkc, varStringOut, posCellN, 
+    tpl = computeDiv2Struct3D(ni, nj, nk, nic, njc, nkc, varStringOut, cellNp, 
                               f->begin(posx), f->begin(posy), f->begin(posz),
                               *fc, faceField, cellG, cellD, indices, fieldX, fieldY, fieldZ);
   delete [] varStringOut;
   RELEASESHAREDS(array,f);
-  RELEASESHAREDS(arrayc,fc);
+  RELEASESHAREDS(arrayc, fc);
+  if (cellNc != Py_None) Py_DECREF(cellNc);
   return tpl;
 }
 
 //=============================================================================
 PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
                                       E_Int nic, E_Int njc, E_Int nkc,
-                                      const char* varStringOut, E_Int posCellN,
+                                      const char* varStringOut, E_Float* cellNp,
                                       E_Float* xt, E_Float* yt, E_Float* zt,
                                       FldArrayF& fc, FldArrayF& faceField,
                                       E_Int* cellG, E_Int* cellD,
@@ -524,7 +531,7 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   E_Int nfldg = nfld*3; // nfldg: num of scalar components
   E_Int ncells = nicnjc*nkc;
 
-  if (posCellN == 0)
+  if (cellNp == NULL)
   {
 
     for (E_Int eq = 0; eq < nfldg; eq++)
@@ -615,7 +622,6 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   }
   else // cellN
   {
-    E_Float* cellNp = fc.begin(posCellN);
     for (E_Int eq = 0; eq < nfldg; eq++)
     {
       E_Float* fcn = fc.begin(eq+1);
@@ -805,7 +811,7 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
 }
 //=============================================================================
 PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
-                                      E_Int ixyz, const char* varStringOut, E_Int posCellN, 
+                                      E_Int ixyz, const char* varStringOut, E_Float* cellNp, 
                                       E_Float* xt, E_Float* yt, E_Float* zt,
                                       FldArrayF& fc, FldArrayF& faceField,
                                       E_Int* cellG, E_Int* cellD,
@@ -867,7 +873,7 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       indint+=1;
     }
 
-  if (posCellN == 0)
+  if (cellNp == NULL)
   {
     for (E_Int eq = 0; eq < nfldg; eq++)
     {
@@ -928,7 +934,6 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
   }
   else // cellN
   {
-    E_Float* cellNp = fc.begin(posCellN);
     for (E_Int eq = 0; eq < nfldg; eq++)
     {
       E_Float* fcn = fc.begin(eq+1);

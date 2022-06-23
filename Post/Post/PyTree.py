@@ -1400,10 +1400,8 @@ def _computeGrad2(t, var, ghostCells=False):
         raise ValueError("_computeGrad2: no field detected (check container).")
 
     # Compute fields on BCMatch (for all match connectivities)
-    if not ghostCells:
-        allMatch = C.extractAllBCMatch(t,vare)
-    else:
-        allMatch = {}
+    if not ghostCells: allMatch = C.extractAllBCMatch(t,vare)
+    else: allMatch = {}
 
     zones = Internal.getZones(t)
     for z in zones:
@@ -1412,13 +1410,17 @@ def _computeGrad2(t, var, ghostCells=False):
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         vol  = Internal.getNodeFromName1(cont, 'vol')
         if vol is not None: vol = vol[1]
+
+        # Test if cellN present
+        cellN  = Internal.getNodeFromName1(cont, 'cellN')
+        if cellN is not None: cellN = cellN[1]
             
         f = C.getField(var, z)[0]
         x = C.getFields(Internal.__GridCoordinates__, z)[0]
         # Get BCDataSet if any
         indices=None; BCField=None
         
-        isghost = Internal.getNodeFromType1(z,'Rind_t')
+        isghost = Internal.getNodeFromType1(z, 'Rind_t')
         if isghost is None or not ghostCells: # not a ghost cells zone : add BCDataSet
             zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
             if zoneBC is not None:
@@ -1440,18 +1442,15 @@ def _computeGrad2(t, var, ghostCells=False):
         
         # compute field on BCMatch for current zone
         if allMatch != {}:
-            indFace, fldFace = C.computeBCMatchField(z,allMatch,vare)
+            indFace, fldFace = C.computeBCMatchField(z, allMatch, vare)
 
             if fldFace is not None:
 
                 fldp = None
-
                 for fgc in fldFace:
                     fgc   = fgc[1][0]
-                    if fldp is None:
-                        fldp = fgc
-                    else:
-                        fldp = numpy.concatenate((fldp,fgc))
+                    if fldp is None: fldp = fgc
+                    else: fldp = numpy.concatenate((fldp,fgc))
 
                 indp    = indFace.ravel(order='K')
                 fldp    = fldp.ravel(order='K')
@@ -1463,7 +1462,7 @@ def _computeGrad2(t, var, ghostCells=False):
                 else: BCField = numpy.concatenate((BCField, fldp))
 
         if f != []:
-            centers = Post.computeGrad2(x, f, vol, indices=indices, BCField=BCField)
+            centers = Post.computeGrad2(x, f, vol, cellN, indices=indices, BCField=BCField)
             C.setFields([centers], z, 'centers')
 
     return None
@@ -1513,7 +1512,7 @@ def computeDiv(t,var):
     C.setFields(tc, tp, 'centers')
     return tp
 
-def computeDiv2(t,var,ghostCells=False):
+def computeDiv2(t, var, ghostCells=False):
     """Compute the divergence of a variable defined in array."""
     tp = Internal.copyRef(t)
     _computeDiv2(tp, var, ghostCells=False)
@@ -1544,6 +1543,9 @@ def _computeDiv2(t, var, ghostCells=False):
         vol  = Internal.getNodeFromName1(cont, 'vol')
         if vol is not None: vol = vol[1]
         
+        cellN  = Internal.getNodeFromName1(cont, 'cellN')
+        if cellN is not None: cellN = cellN[1]
+        
         sdirlist = ['X', 'Y', 'Z'] # The order is important!
         flist = list()
         for sdir in sdirlist:
@@ -1558,11 +1560,9 @@ def _computeDiv2(t, var, ghostCells=False):
         x = C.getFields(Internal.__GridCoordinates__, z)[0]
         # Get BCDataSet if any
         indices  = None
-        BCFieldX = None
-        BCFieldY = None
-        BCFieldZ = None
+        BCFieldX = None; BCFieldY = None; BCFieldZ = None
 
-        isghost = Internal.getNodeFromType1(z,'Rind_t')
+        isghost = Internal.getNodeFromType1(z, 'Rind_t')
         if isghost is None: # not a ghost cells zone : add BCDataSet
             zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
             if zoneBC is not None:
@@ -1607,10 +1607,7 @@ def _computeDiv2(t, var, ghostCells=False):
 
             if fldFace is not None:
 
-                fldX = None
-                fldY = None
-                fldZ = None
-
+                fldX = None; fldY = None; fldZ = None
                 foundVar = fldFace[0][0].split(',')
 
                 if len(foundVar)==3: # 3D
@@ -1647,7 +1644,7 @@ def _computeDiv2(t, var, ghostCells=False):
 
                 elif len(foundVar)==2: # 2D
                     # Config (XY)
-                    if (foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Y'):
+                    if foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Y':
                         for fgc in fldFace:
                             fgcX = fgc[1][0]
                             fgcY = fgc[1][1]
@@ -1722,8 +1719,8 @@ def _computeDiv2(t, var, ghostCells=False):
                         else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
 
         if f != []:
-            centers = Post.computeDiv2(x, f, vol, indices=indices, BCFieldX=BCFieldX,
-                                             BCFieldY=BCFieldY, BCFieldZ=BCFieldZ)
+            centers = Post.computeDiv2(x, f, vol, cellN, indices=indices, BCFieldX=BCFieldX,
+                                       BCFieldY=BCFieldY, BCFieldZ=BCFieldZ)
             C.setFields([centers], z, 'centers')
     return None
 
