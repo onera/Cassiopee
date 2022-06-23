@@ -439,7 +439,7 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
     print('Minimum distance: %f.'%C.getMinValue(t,'centers:TurbulentDistance'))
-    P._computeGrad2(t, 'centers:TurbulentDistance')
+    P._computeGrad2(t, 'centers:TurbulentDistance', withCellN=False)
 
     test.printMem(">>> Building IBM front [start]")
     front = TIBM.getIBMFront(tc, 'cellNFront', dim=dimPb, frontType=frontType)
@@ -1135,7 +1135,7 @@ def prepare(t_case, t_out, tc_out,
     C._cpVars(tp_cart,'centers:TurbulentDistance',tpc_cart,'TurbulentDistance')
 
     print('Minimum distance: %f.'%C.getMinValue(tp[2][1],'centers:TurbulentDistance'))
-    P._computeGrad2(tp_cart, 'centers:TurbulentDistance')
+    P._computeGrad2(tp_cart, 'centers:TurbulentDistance', withCellN=False)
     
     test.printMem(">>> Building IBM front [start]")
     front = TIBM.getIBMFront(tpc_cart, 'cellNFront', dim=dimPb, frontType=frontType)

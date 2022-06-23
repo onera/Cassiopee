@@ -6453,6 +6453,7 @@ def mergeTrees(t1, t2):
   bases = Internal.getBases(t1)
   for b in bases: t1BaseNames.append(b[0])
 
+  # traitement par base
   bases = Internal.getBases(t2)
   for b in bases:
     ret = checkNameInList(b[0], t1BaseNames)
@@ -6464,6 +6465,13 @@ def mergeTrees(t1, t2):
         c += 1
       b[0] = '%s.%d'%(b[0],c-1)
       t1p[2].append(b)
+
+  # noeud extra base
+  nodes = []
+  for n in t2[2]:
+    if n[3] != 'CGNSBase_t': nodes.append(n)
+  t1p[2] += nodes
+
   return t1p
 
 #==============================================================================

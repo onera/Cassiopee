@@ -9592,8 +9592,8 @@ class GraphTK(TK.Toplevel):
         # We do nothing, but the function needs to exist for interface compatibility with the without TK interface
         return
     # --------------------------------------------------------------------- save
-    def save(self,path,format=None):
-        self.fig.saveFigure(path,format=format)
+    def save(self, path, format=None):
+        self.fig.saveFigure(path, format=format)
     # ------------------------------------------------------------------ addGrid
     def getGrid(self,iCurSubGraph,ind=0,axis=None):
         if axis: ind = axis.getInd()
@@ -10047,8 +10047,8 @@ class Graph():
         # Update Figure
         self.applyViewSettings()
     # --------------------------------------------------------------------- save
-    def save(self,path,format=None):
-        self.fig.saveFigure(path,format=format)
+    def save(self, path, format=None):
+        self.fig.saveFigure(path, format=format)
     # ------------------------------------------------------------------ setName
     def setName(self,name):
         (self.getFig()).canvas.set_window_title(name)
@@ -13095,9 +13095,8 @@ class DesktopFrameTK(TK.Frame):
     def cmd_export(self):
         # Get path to save
         global EXPORTFILE
-        # Works only with python 2, for python 3, it seems that the module name has changed to "filedialog"
         filename = tkFileDialog.asksaveasfilename(parent=self, initialdir=os.getcwd(), initialfile=EXPORTFILE, filetypes=[('png', ".png"), ('pdf', ".pdf")])
-        if filename=='' or filename is None: return
+        if filename == '' or filename is None: return
         EXPORTFILE = filename
         self.export(filename)
 
@@ -14133,23 +14132,26 @@ class MatplotlibFigure():
             ntickmy = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_number
 
             # CB rounder
+            print("init",xmin,xmax,ntickMx)
+            ixmin = xmin; ixmax = xmax
             dx = (xmax-xmin)/(float(ntickMx))
             dx = pround(dx)
             xmin = round(xmin/dx)*dx
             xmax = xmin+ntickMx*dx
+            print(xmin-ixmin, xmax-ixmax)
+
             dy = (ymax-ymin)/(float(ntickMy))
             dy = pround(dy)
             ymin = round(ymin/dy)*dy
             ymax = ymin+ntickMy*dy
-            #print(xmin, xmax, ntickMx)
-
+            
             stepx = (xmax-xmin)/(float(ntickMx))
-            dstepx = stepx*1.e-6
+            dstepx = stepx*1.e-3
             majorx = np.arange(xmin,xmax+dstepx,stepx)
             # minorx = np.arange(xmin,xmax,(xmax-xmin)/(float(ntickmx)))
             minorx = np.arange(xmin,xmax+dstepx,stepx/(float(ntickmx)))
             stepy = (ymax-ymin)/(float(ntickMy))
-            dstepy = stepy*1.e-6
+            dstepy = stepy*1.e-3
             majory = np.arange(ymin,ymax+dstepy,stepy)
             # minory = np.arange(ymin,ymax,(ymax-ymin)/(float(ntickmy)))
             minory = np.arange(ymin,ymax+dstepy,stepy/(float(ntickmy)))

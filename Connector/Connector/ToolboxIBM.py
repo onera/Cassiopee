@@ -2220,7 +2220,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
     print('Minimum distance: %f.'%C.getMinValue(t,'centers:TurbulentDistance'))
-    P._computeGrad2(t,'centers:TurbulentDistance')
+    P._computeGrad2(t, 'centers:TurbulentDistance', withCellN=False)
     print('Building the IBM front.')
     front = getIBMFront(tc, 'cellNFront', dimPb, frontType)
     if isPrintDebug:
@@ -2416,7 +2416,7 @@ def prepareIBMData2(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, in
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
     print('Minimum distance: %f.'%C.getMinValue(t,'centers:TurbulentDistance'))
-    P._computeGrad2(t,'centers:TurbulentDistance')
+    P._computeGrad2(t, 'centers:TurbulentDistance', withCellN=False)
     print('Building the IBM front.')
     front = getIBMFront(tc, 'cellNFront', dimPb, frontType)
     print('Interpolations IBM')

@@ -5,5 +5,5 @@ import Geom.PyTree as D
 import KCore.test as test
 
 a = D.circle((0,0,0), 1. , 0., 360.)
-a = D_IBM.setIBCType(a,"Musker")
+a = D_IBM.setIBCType(a, "Musker")
 test.testT(a, 1)

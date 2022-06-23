@@ -1379,14 +1379,14 @@ def computeGrad(t, var):
     C.setFields(centers, tp, 'centers')
     return tp
 
-def computeGrad2(t, var, ghostCells=False):
+def computeGrad2(t, var, ghostCells=False, withCellN=True):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t, var)"""
     tp = Internal.copyRef(t)
-    _computeGrad2(tp, var, ghostCells=False)
+    _computeGrad2(tp, var, ghostCells=False, withCellN=True)
     return tp
 
-def _computeGrad2(t, var, ghostCells=False):
+def _computeGrad2(t, var, ghostCells=False, withCellN=True):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t, var)"""
     if type(var) == list:
@@ -1400,7 +1400,7 @@ def _computeGrad2(t, var, ghostCells=False):
         raise ValueError("_computeGrad2: no field detected (check container).")
 
     # Compute fields on BCMatch (for all match connectivities)
-    if not ghostCells: allMatch = C.extractAllBCMatch(t,vare)
+    if not ghostCells: allMatch = C.extractAllBCMatch(t, vare)
     else: allMatch = {}
 
     zones = Internal.getZones(t)
@@ -1412,9 +1412,11 @@ def _computeGrad2(t, var, ghostCells=False):
         if vol is not None: vol = vol[1]
 
         # Test if cellN present
-        cellN  = Internal.getNodeFromName1(cont, 'cellN')
-        if cellN is not None: cellN = cellN[1]
-            
+        if withCellN:
+            cellN  = Internal.getNodeFromName1(cont, 'cellN')
+            if cellN is not None: cellN = cellN[1]
+        else: cellN = None
+        
         f = C.getField(var, z)[0]
         x = C.getFields(Internal.__GridCoordinates__, z)[0]
         # Get BCDataSet if any

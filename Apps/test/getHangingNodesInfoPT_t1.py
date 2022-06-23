@@ -50,6 +50,6 @@ if NP>1:
             extFacesOpp=res[0]; indicesFacesOrigOpp=res[1]
             res = TBX.getHangingNodesInfoPara(a, extFaces, indicesFacesOrig, extFacesOpp, indicesFacesOrigOpp)
             if res[0] != []: dictOfHangingNodes[i]=res
-print("Hanging node on coarse mpi rank:", rank, ": ", dictOfHangingNodes)
 
-test.testO(dictOfHangingNodes,rank)
+#print("Hanging node on coarse mpi rank:", rank, ": ", dictOfHangingNodes)
+test.testO(dictOfHangingNodes, rank)

@@ -671,7 +671,7 @@ def quickReloadFile(event=None):
       TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
 
 #==============================================================================
-# Save selected zones to as file. Open a dialog.
+# Save selected zones to a file. Open a dialog.
 #==============================================================================
 def saveSelFile():
     if t == []: return
@@ -713,6 +713,37 @@ def saveSelFile():
         TXT.insert('START', 'Selected zones saved to '+fileName+'.\n')
     except:
         TXT.insert('START', 'Can not save file '+os.path.split(ret)[1]+'.\n')
+
+#==============================================================================
+# Save selected node to a file. Open a dialog.
+#==============================================================================
+def saveNodeFile():
+    if t == []: return
+
+    # Get selected node from tkTree    
+    if TKTREE is None: return
+
+    node = TKTREE.getCurrentSelectedNode()
+    if node is None:
+        TXT.insert('START', 'No selected node.\n')
+        return
+
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
+    ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
+    if ret == '' or ret is None or ret == (): # user cancel
+        return
+
+    #try:
+    print(node[0],node[3],flush=True)
+    tp = C.newPyTree([])
+    tp[2].append(node)
+    Internal.printTree(tp)
+    C.convertPyTree2File(tp, ret)
+    fileName = os.path.split(ret)[1]
+    TXT.insert('START', 'Selected node saved to '+fileName+'.\n')
+    #except:
+    #    TXT.insert('START', 'Can not save file '+os.path.split(ret)[1]+'.\n')
 
 #==============================================================================
 # Load file that stores *Cassiopee* preferences
@@ -1412,6 +1443,7 @@ def minimal(title, show=True):
     file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
     file.add_command(label='Save as...', command=saveFile)
     file.add_command(label='Save selected zones', command=saveSelFile)
+    file.add_command(label='Save selected node', command=saveNodeFile)
     file.add_separator()
     file.add_command(label='Quit', command=Quit)
 
