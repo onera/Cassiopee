@@ -1495,7 +1495,6 @@ def _modifIBCD(tc):
     raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
 
 #====================================================================================    
-<<<<<<< .mine
 
 ## IMPORTANT NOTE !!
 ## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Post/Post/IBM.py
@@ -1554,10 +1553,7 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
     P_IBM._computeWallReconstruction(tw, tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph, variables=variables)
     return None
 
-
 #====================================================================================
-||||||| .r4137
-=======
 
 ## IMPORTANT NOTE !!
 ## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Post/Post/IBM.py
@@ -1610,12 +1606,10 @@ def _computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST):
 
 def prepareWallReconstruction(tw, tc):
     tw=P_IBM.prepareWallReconstruction(tw, tc)
-    return tcw 
+    return tw 
 
 def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None, variables=['Pressure','Density','utau','yplus']):
-    P_IBM._computeWallReconstruction(tw, tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph, variables=variables):
+    P_IBM._computeWallReconstruction(tw, tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph, variables=variables)
     return None
 
-
 #====================================================================================
->>>>>>> .r4139

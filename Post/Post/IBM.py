@@ -448,8 +448,8 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     #======================================
     vars = ['centers:Density','centers:VelocityX', 'centers:VelocityY', 'centers:VelocityZ', 'centers:Temperature','centers:ViscosityEddy',
             'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
-    vars = ['centers:Density','centers:VelocityX', 'centers:Temperature','centers:ViscosityEddy',
-            'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
+    #vars = ['centers:Density','centers:VelocityX', 'centers:Temperature','centers:ViscosityEddy',
+    #        'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
     t = C.center2Node(t, vars)
     Internal._rmNodesByName(t, 'FlowSolution#Centers')
     if isinstance(t_out, str): C.convertPyTree2File(t, t_out)

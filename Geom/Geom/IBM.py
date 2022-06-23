@@ -16,7 +16,7 @@ vars_delete_ibm=['utau','StagnationEnthalpy','StagnationPressure',
 
 # Set snear in zones
 def setSnear(t, value):
-    """Set the value of snear in a geometry pyTree.
+    """Set the value of snear in a geometry tree.
     Usage: setSnear(t,value=X)"""
     tp = Internal.copyRef(t)
     _setSnear(tp, value)
@@ -24,7 +24,7 @@ def setSnear(t, value):
 
 
 def _setSnear(z, value):
-    """Set the value of snear in a geometry pyTree.
+    """Set the value of snear in a geometry tree.
     Usage: _setSnear(t,value=X)"""
     zones = Internal.getZones(z)
     for z in zones:
@@ -36,7 +36,7 @@ def _setSnear(z, value):
 
 # Set dfar in zones
 def setDfar(t, value):
-    """Set the value of dfar in a geometry pytree.
+    """Set the value of dfar in a geometry tree.
     Usage: setDfar(t,value=X)"""
     tp = Internal.copyRef(t)
     _setDfar(tp, value)
@@ -44,7 +44,7 @@ def setDfar(t, value):
 
 
 def _setDfar(z, value):
-    """Set the value of dfar in a geometry pytree.
+    """Set the value of dfar in a geometry tree.
         Usage: _setDfar(t,value=X)"""
     zones = Internal.getZones(z)
     for z in zones:
@@ -56,7 +56,7 @@ def _setDfar(z, value):
 
 # Multiply the snear by factors XX in zones
 def snearFactor(t, sfactor):
-    """Mulitply the value of snear in a geometry pyTree by a sfactor.
+    """Mulitply the value of snear in a geometry tree by a sfactor.
     Usage: snearFactor(t,sfactor)"""
     tp = Internal.copyRef(t)
     _snearFactor(tp, sfactor)
@@ -64,7 +64,7 @@ def snearFactor(t, sfactor):
 
 
 def _snearFactor(t, sfactor):
-    """Mulitply the value of snear in a geometry pyTree by a sfactor.
+    """Mulitply the value of snear in a geometry tree by a sfactor.
     Usage: _snearFactor(t,sfactor)"""
     zones = Internal.getZones(t)
     for z in zones:
@@ -76,7 +76,7 @@ def _snearFactor(t, sfactor):
 
 # Set the IBC type in zones
 def setIBCType(t, value):
-    """Set the IBC type in a geometry pyTree.
+    """Set the IBC type in a geometry tree.
     Usage: setIBCType(t,value=X)"""
     tp = Internal.copyRef(t)
     _setIBCType(tp, value)
@@ -84,7 +84,7 @@ def setIBCType(t, value):
 
 
 def _setIBCType(z, value):
-    """Set the IBC type in a geometry pyTree.
+    """Set the IBC type in a geometry tree.
     Usage: _setIBCType(t,value=X)"""
     zones = Internal.getZones(z)
     for z in zones:

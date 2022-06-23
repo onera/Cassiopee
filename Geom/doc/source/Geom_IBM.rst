@@ -79,10 +79,10 @@ Setting Snear & Dfar
 
     Set the snear for a geometry defined by tb. Exists also in-place (_setSnear). Snear is the length of the edge of the Cartesian cells intersected by the immersed boundary.
 
-    :param tb: geometry 
+    :param tb: geometry tree
     :type  tb: [zone, list of zones, tree]
     :param snear: snear value
-    :type snear: real	    
+    :type snear: float	    
     :return: same as input
 
     *Example of use:*
@@ -96,12 +96,12 @@ Setting Snear & Dfar
 
 .. py:function:: Geom.IBM.setDfar(tb,dfar)
 
-    Set the dfar for a geometry defined by tb. Exists also in place (_setDfar). Dfar is the distance from the center of the bounding box of the immersed boundary to the edge of the domain.
+    Set the dfar for a geometry defined by tb. Exists also as in-place (_setDfar). Dfar is the distance from the center of the bounding box of the immersed boundary to the edge of the domain.
 
-    :param tb: geometry
+    :param tb: geometry tree
     :type  tb: [zone, list of zones, tree]
     :param dfar: dfar value
-    :type dfar: real	    
+    :type dfar: float    
     :return: same as input
 
     *Example of use:*
@@ -115,12 +115,12 @@ Setting Snear & Dfar
 
 .. py:function:: Geom.IBM.snearFactor(tb,sfactor)
 
-    Multiply the snears in the geometry defined by tree tb by a factor. Exists also in place (_snearFactor).
+    Multiply the snears in the geometry defined by tb by a factor. Exists also as in-place (_snearFactor).
 
-    :param tb: geometry
+    :param tb: geometry tree
     :type  tb: [zone, list of zones, tree]
     :param sfactor: multiplying factor
-    :type sfactor: real	    
+    :type sfactor: float	    
     :return: same as input
 
     *Example of use:*
@@ -136,7 +136,7 @@ Setting IBC Type
 
 .. py:function:: Geom.IBM.setIBCType(tb,ibctype)
 
-    Set the type of IBC for the geometry defined by tree tb. Exists also in place (_setIBCType). See the table in "Notes on IBCTypes" for the IBCs currently supported.
+    Set the type of IBC for the geometry defined by tb. Exists also as in-place (_setIBCType). See the table in "Notes on IBCTypes" for the IBCs currently supported.
 
     :param tb: geometry tree
     :type  tb: [zone, list of zones, tree]
@@ -154,7 +154,7 @@ Setting IBC Type
 
 .. py:function:: Geom.IBM.changeIBCType(tc,oldBCType,newBCType)
 
-    Change the IBC type in a connectivity tree. Please refer to the table in "Notes on IBCTypes" for detailes on the integer indentifies for the various IBC types.
+    Change the IBC type in a connectivity tree. Please refer to the table in "Notes on IBCTypes" for details on the integer indentifies for the various IBC types.
 
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, tree]
@@ -182,7 +182,7 @@ Setting IBC Type
     :param familyName: familyName
     :type familyName: string
     :param P_static: static pressure
-    :type P_static: real	
+    :type P_static: float	
     :return: same as input
 
     *Example of use:*
@@ -203,11 +203,11 @@ Setting IBC Type
     :param familyName: familyName
     :type familyName: string
     :param P_tot: total pressure
-    :type P_tot: real
+    :type P_tot: float
     :param H_tot: total enthalpy
-    :type H_tot: real
+    :type H_tot: float
     :param injDir: direction of the injection w.r.t to the reference coordinate axis
-    :type injDir: real list
+    :type injDir: float list
     :return: same as input
 
     *Example of use:*

@@ -4,7 +4,7 @@
 IBM: Immersed boundary method specific post-processing 
 =======================================================
 
-Specific post-processing for immersed boundaries.
+Specific post-processing for immersed boundaries (IB).
 
 These functions work with a solution tree "t", a geometry tree "tb", and/or a connectivity tree "tc".
 
@@ -38,6 +38,7 @@ Contents
     
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, base, tree]
+    :return: same as input
 
     *Example of use:*
 
@@ -54,7 +55,7 @@ Contents
     
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, base, tree]
-
+    :return: tree with geometrical information required for the IBM
     *Example of use:*
 
     * `Extract the IBM geometrical information (pyTree) <Examples/Post/extractIBMInfoPT.py>`_:
@@ -66,11 +67,11 @@ Contents
 
 .. py:function:: Post.IBM.extractPressureHO(tc)
 
-    1st order extrapolation of the pressure at the immersed boundary (IB).
+    1st order extrapolation of the pressure at the IB.
     
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, base, tree]
-
+    :return: same as input
     *Example of use:*
 
     * `1st order extrapolation of the pressure at the IB (pyTree) <Examples/Post/extractPressureHOPT.py>`_:
@@ -82,11 +83,12 @@ Contents
 
 .. py:function:: Post.IBM.extractPressureHO2(tc)
 
-    2nd order extrapolation of the pressure at the immersed boundary (IB).
+    2nd order extrapolation of the pressure at the IB.
     
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, base, tree]
-
+    :return: same as input
+	     
     *Example of use:*
 
     * `2nd order extrapolation of the pressure at the IB (pyTree) <Examples/Post/extractPressureHO2PT.py>`_:
@@ -120,7 +122,8 @@ Contents
     :type Sref: float or None
     :param famZones: name of familys for which IBM data is extracted
     :type famZones: list of strings or None
-
+    :return: tree with the solution at the IB and the viscous and pressure loads
+       
     *Example of use:*
 
     * `Computes the viscous and pressure forces on an IB (pyTree) <Examples/Post/loadsPT.py>`_:
@@ -142,7 +145,8 @@ Contents
     :type alpha: float
     :param beta: Angle with respect to (0,Y) axe (in degrees)
     :type beta: float
-
+    :return: tree with the solution at the IB and the viscous and pressure loads
+	     
     *Example of use:*
 
     * `Computes the viscous and pressure forces on an IB during the computation of the solution (pyTree) <Examples/Post/unsteadyloadsPT.py>`_:
