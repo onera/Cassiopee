@@ -75,14 +75,16 @@ Setting Snear & Dfar
 --------------------
 
 
-.. py:function:: Geom.IBM.setSnear(tb,snear)
+.. py:function:: Geom.IBM.setSnear(tb,snear,familyName=[])
 
     Set the snear for a geometry defined by tb. Exists also in-place (_setSnear). Snear is the length of the edge of the Cartesian cells intersected by the immersed boundary.
 
     :param tb: geometry tree
     :type  tb: [zone, list of zones, tree]
     :param snear: snear value
-    :type snear: float	    
+    :type snear: float
+    :param familyName: family name 
+    :type familyName: [string,list of strings]
     :return: same as input
 
     *Example of use:*
@@ -113,14 +115,16 @@ Setting Snear & Dfar
 ---------------------------------------
 
 
-.. py:function:: Geom.IBM.snearFactor(tb,sfactor)
+.. py:function:: Geom.IBM.snearFactor(tb,sfactor,familyName=[])
 
     Multiply the snears in the geometry defined by tb by a factor. Exists also as in-place (_snearFactor).
 
     :param tb: geometry tree
     :type  tb: [zone, list of zones, tree]
     :param sfactor: multiplying factor
-    :type sfactor: float	    
+    :type sfactor: float
+    :param familyName: family name 
+    :type familyName: [string,list of strings]
     :return: same as input
 
     *Example of use:*
@@ -134,14 +138,16 @@ Setting Snear & Dfar
 Setting IBC Type
 ----------------
 
-.. py:function:: Geom.IBM.setIBCType(tb,ibctype)
+.. py:function:: Geom.IBM.setIBCType(tb,ibctype,familyName=[])
 
     Set the type of IBC for the geometry defined by tb. Exists also as in-place (_setIBCType). See the table in "Notes on IBCTypes" for the IBCs currently supported.
 
     :param tb: geometry tree
     :type  tb: [zone, list of zones, tree]
     :param ibctype: name of the type of IBC
-    :type ibctype: string	    
+    :type ibctype: string
+    :param familyName: family name 
+    :type familyName: [string,list of strings]
     :return: same as input
 
     *Example of use:*
@@ -161,7 +167,7 @@ Setting IBC Type
     :param oldBCType: type of ibc
     :type oldBCType: integer
     :param newBCType: type of ibc
-    :type newBCType: integer	
+    :type newBCType: integer
     :return: same as input
 
     *Example of use:*
