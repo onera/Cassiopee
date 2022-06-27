@@ -24,7 +24,7 @@ def check_input_familyName(t,familyName=[]):
         
 
 # Set snear in zones
-def setSnear(t, value,familyName=[]):
+def setSnear(t, value, familyName=[]):
     """Set the value of snear in a geometry tree.
     Usage: setSnear(t,value=X,familyName=[])"""
     tp = Internal.copyRef(t)
@@ -67,7 +67,7 @@ def _setDfar(t, value):
 
 # Multiply the snear by factors XX in zones
 def snearFactor(t, sfactor,familyName=[]):
-    """Mulitply the value of snear in a geometry tree by a sfactor.
+    """Multiply the value of snear in a geometry tree by a sfactor.
     Usage: snearFactor(t,sfactor,familyName=[])"""
     tp = Internal.copyRef(t)
     _snearFactor(tp, sfactor,familyName=familyName)
@@ -75,7 +75,7 @@ def snearFactor(t, sfactor,familyName=[]):
 
 
 def _snearFactor(t, sfactor, familyName=[]):
-    """Mulitply the value of snear in a geometry tree by a sfactor.
+    """Multiply the value of snear in a geometry tree by a sfactor.
     Usage: _snearFactor(t,sfactor,familyName=[])"""
     check_input_familyName(t,familyName)
     zones = Internal.getZones(t)

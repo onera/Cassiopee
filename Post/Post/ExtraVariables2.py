@@ -123,7 +123,7 @@ def _computeLambda2(t, ghostCells=False):
     C._initVars(t, 'centers:a12 = {centers:s11}*{centers:s12}+{centers:s12}*{centers:s22}+{centers:s13}*{centers:s23} - {centers:o13}*{centers:o23}')
     C._initVars(t, 'centers:a13 = {centers:s11}*{centers:s13}+{centers:s12}*{centers:s23}+{centers:s13}*{centers:s33} - {centers:o12}*{centers:o23}')
     C._initVars(t, 'centers:a23 = {centers:s12}*{centers:s13}+{centers:s22}*{centers:s23}+{centers:s23}*{centers:s33} - {centers:o12}*{centers:o13}')
-    C._initVars(t, 'centers:lambda2 = 0.')
+    C._initVars(t, 'centers:Lambda2 = 0.')
     
     zones = Internal.getZones(t)
     for z in zones:
@@ -154,7 +154,7 @@ def _computeLambda2(t, ghostCells=False):
         s = Internal.getNodeFromName2(z, 'a13')[1].shape
         lambda2out = numpy.empty( (s), dtype=numpy.float64, order='F')
         lambda2out.ravel('k')[:] = lambda2[:,1]
-        p = Internal.getNodeFromName2(z, 'lambda2')
+        p = Internal.getNodeFromName2(z, 'Lambda2')
         p[1] = lambda2out
 
     C._rmVars(t, ['centers:gradxVelocityX', 'centers:gradyVelocityX', 'centers:gradzVelocityX'])

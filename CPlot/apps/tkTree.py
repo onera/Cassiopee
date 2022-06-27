@@ -19,6 +19,9 @@ except: pass
 STATUS = 0
 WIDGETS = {}; VARS = []
 
+# buffer for copy/paste
+BUFFER = None
+
 def strFormat(v):
     return "%g"%v
 
@@ -1479,6 +1482,9 @@ def createApp(win):
     B.bind('<MouseWheel>', onMouseWheel)
     B.bind('<Button-4>', onMouseWheel)
     B.bind('<Button-5>', onMouseWheel)
+    B.bind('<Control-c>', onCopy)
+    B.bind('<Control-x>', onCut)
+    B.bind('<Control-v>', onPaste)
     B.grid(row=0, column=0, sticky=TK.NSEW)
     WIDGETS['tree'] = B
     sb = TTK.Scrollbar(Frame, width=10)
@@ -1502,6 +1508,40 @@ def onMouseWheel(event):
     elif event.num == 4 or event.delta == 120:
         tree.yview('scroll', -1, 'units')
 
+#==============================================================================
+def onCopy(event):
+    global BUFFER
+    node = getCurrentSelectedNode()
+    BUFFER = node
+    
+#==============================================================================
+def onCut(event):
+    CTK.saveTree()
+    global BUFFER
+    CTK.saveTree()
+    node = getCurrentSelectedNode()
+    sw = WIDGETS['tree'].cursor_node()
+    sw.widget.move_cursor(sw.parent_node)
+    BUFFER = node
+    (p, c) = Internal.getParentOfNode(CTK.t, node)
+    del p[2][c]
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.display(CTK.t)
+    updateApp()
+
+#==============================================================================
+def onPaste(event):
+    CTK.saveTree()
+    nodep = Internal.copyTree(BUFFER)
+    node = getCurrentSelectedNode()
+    node[2].append(nodep)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.display(CTK.t)
+    updateApp()
+    sw = WIDGETS['tree'].cursor_node()
+    for n in sw.children():
+        if n.id[0] == nodep[0]: n.widget.move_cursor(n)
+    
 #==============================================================================
 def showApp():
     WIDGETS['frame'].grid(sticky=TK.EW, column=1); updateApp()

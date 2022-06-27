@@ -591,7 +591,12 @@ def addFile():
             t2 = C.convertFile2PyTree(f, density=1.)
             # Fusion des bases de t et t2
             if t == []: t = t2
-            else: t = C.mergeTrees(t, t2)
+            else:
+                if Internal.getBases(t2) != []: # merge trees 
+                    t = C.mergeTrees(t, t2)
+                else: # ajoute le noeeuds sous la selection de tkTree
+                    node = TKTREE.getCurrentSelectedNode()
+                    node[2] += t2[2][1:]
         t = upgradeTree(t)
         (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
         if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
@@ -673,7 +678,7 @@ def quickReloadFile(event=None):
 #==============================================================================
 # Save selected zones to a file. Open a dialog.
 #==============================================================================
-def saveSelFile():
+def saveSelZones2File():
     if t == []: return
     nzs = CPlot.getSelectedZones()
     if nzs == []:
@@ -717,7 +722,7 @@ def saveSelFile():
 #==============================================================================
 # Save selected node to a file. Open a dialog.
 #==============================================================================
-def saveNodeFile():
+def saveNode2File():
     if t == []: return
 
     # Get selected node from tkTree    
@@ -734,16 +739,14 @@ def saveNodeFile():
     if ret == '' or ret is None or ret == (): # user cancel
         return
 
-    #try:
-    print(node[0],node[3],flush=True)
-    tp = C.newPyTree([])
-    tp[2].append(node)
-    Internal.printTree(tp)
-    C.convertPyTree2File(tp, ret)
-    fileName = os.path.split(ret)[1]
-    TXT.insert('START', 'Selected node saved to '+fileName+'.\n')
-    #except:
-    #    TXT.insert('START', 'Can not save file '+os.path.split(ret)[1]+'.\n')
+    try:
+        tp = C.newPyTree([])
+        tp[2].append(node)
+        C.convertPyTree2File(tp, ret)
+        fileName = os.path.split(ret)[1]
+        TXT.insert('START', 'Selected node saved to '+fileName+'.\n')
+    except:
+        TXT.insert('START', 'Can not save file '+os.path.split(ret)[1]+'.\n')
 
 #==============================================================================
 # Load file that stores *Cassiopee* preferences
@@ -1442,8 +1445,8 @@ def minimal(title, show=True):
     file.add_separator()
     file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
     file.add_command(label='Save as...', command=saveFile)
-    file.add_command(label='Save selected zones', command=saveSelFile)
-    file.add_command(label='Save selected node', command=saveNodeFile)
+    file.add_command(label='Save selected zones', command=saveSelZones2File)
+    file.add_command(label='Save selected node', command=saveNode2File)
     file.add_separator()
     file.add_command(label='Quit', command=Quit)
 

@@ -336,15 +336,17 @@ def updateNode(node):
 def rmNodes():
     if CTK.t == []: return
 
+#==============================================================================
 def setByLevel(node1, node2, depth, maxDepth):
-    print("setting",node1[0])
+    #print("setting", node1[0])
     node1[1] = node2[1]
     if depth < maxDepth or maxDepth == -1:
         for c, n in enumerate(node1[2]):
             setByLevel(n, node2[2][c], depth+1, maxDepth)
 
+#==============================================================================
 def freeByLevel(node1, depth, maxDepth):
-    print("freeing",node1[0])
+    #print("freeing", node1[0])
     node1[1] = None
     if depth < maxDepth or maxDepth == -1:
         for n in node1[2]:
@@ -382,6 +384,18 @@ def freeNode():
     updateNode(node)
 
 #==============================================================================
+def saveNode():
+    if CTK.t == []: return
+    if CTK.HANDLE is None: fileName = CTK.FILE
+    else: fileName = CTK.HANDLE.fileName
+    node = CTK.TKTREE.getCurrentSelectedNode()
+    if node == []: return
+    path = Internal.getPath(CTK.t, node)
+    depth = VARS[7].get()
+    depth = int(depth)
+    Filter.writeNodesFromPaths(fileName, [path], [node], maxDepth=depth, mode=1)
+
+#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
@@ -399,6 +413,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
+    Frame.columnconfigure(3, weight=0)
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
@@ -442,7 +457,7 @@ def createApp(win):
                          values=[], state='normal')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateBaseNameList2)
-    F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
+    F.grid(row=0, column=1, columnspan=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Destination Base name.')
     WIDGETS['base'] = B
 
@@ -452,7 +467,7 @@ def createApp(win):
     B.grid(row=1, column=0, sticky=TK.EW)
     B = TTK.Button(Frame, text="Node Down", command=moveNodeDown)
     BB = CTK.infoBulle(parent=B, text='Move selected node in tkTree down.')
-    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=3, sticky=TK.EW)
 
     # - Rm Nodes -
     #B = TK.Button(Frame, text="Rm node(s)", command=rmNodes)
@@ -469,14 +484,14 @@ def createApp(win):
                        text='Edit node', takefocus=1)
     F.columnconfigure(0, weight=1)
     F.columnconfigure(1, weight=4)
-    F.grid(row=3, column=0, columnspan=3, sticky=TK.EW)
+    F.grid(row=3, column=0, columnspan=4, sticky=TK.EW)
     B = TTK.Entry(F, textvariable=VARS[4], background='White', width=5)
-    B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Selected node name.\nYou can change this by pressing <Enter>.')
     B.bind('<Return>', setNodeName)
 
     B = TTK.Entry(F, textvariable=VARS[3], background='White', width=5)
-    B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Selected node type.\nYou can change this by pressing <Enter>.')
     B.bind('<Return>', setNodeType)
     
@@ -501,14 +516,17 @@ def createApp(win):
 
     # - Load/free Nodes -
     B = TTK.Button(Frame, text="Load node", command=loadNode)
-    BB = CTK.infoBulle(parent=B, text='Load node from file.')
+    BB = CTK.infoBulle(parent=B, text='Load selected node from file.')
     B.grid(row=4, column=0, sticky=TK.EW)
-    B = TTK.Button(Frame, text="Free node", command=freeNode)
-    BB = CTK.infoBulle(parent=B, text='Free node.')
+    #B = TTK.Button(Frame, text="Save node", command=saveNode)
+    #BB = CTK.infoBulle(parent=B, text='Save selected node.')
+    #B.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
+    B = TTK.Button(Frame, text="Free", command=freeNode)
+    BB = CTK.infoBulle(parent=B, text='Free selected node.')
     B.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[7], background='White', width=2)
-    B.grid(row=4, column=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Max depth for load and free (-1: full).')
+    B.grid(row=4, column=2, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Max depth for load, save and free (-1: full).')
 
 #==============================================================================
 # Called to display widgets

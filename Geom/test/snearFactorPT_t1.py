@@ -4,6 +4,7 @@ import Geom.IBM as D_IBM
 import Geom.PyTree as D
 import Transform.PyTree as T
 import Converter.Internal as Internal
+import KCore.test as test
 
 #Prepare Base
 t=Internal.newCGNSBase('Base')
