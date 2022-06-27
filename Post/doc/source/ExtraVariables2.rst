@@ -27,7 +27,7 @@ List of functions
     Post.ExtraVariables2.extractVelocityMagnitude
     Post.ExtraVariables2.extractMach
     Post.ExtraVariables2.extractViscosityMolecular
-    Post.ExtraVariables2.extractViscosityMolecular
+    Post.ExtraVariables2.extractViscosityEddy
     Post.ExtraVariables2.extractMutSurMu
 
 **-- Surface fields**

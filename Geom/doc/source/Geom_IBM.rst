@@ -75,7 +75,7 @@ Setting Snear & Dfar
 --------------------
 
 
-.. py:function:: Geom.IBM.setSnear(tb,snear,familyName=[])
+.. py:function:: Geom.IBM.setSnear(tb, snear)
 
     Set the snear for a geometry defined by tb. Exists also in-place (_setSnear). Snear is the length of the edge of the Cartesian cells intersected by the immersed boundary.
 
@@ -83,8 +83,6 @@ Setting Snear & Dfar
     :type  tb: [zone, list of zones, tree]
     :param snear: snear value
     :type snear: float
-    :param familyName: family name 
-    :type familyName: [string,list of strings]
     :return: same as input
 
     *Example of use:*
@@ -96,7 +94,7 @@ Setting Snear & Dfar
 ---------------------------------------
 
 
-.. py:function:: Geom.IBM.setDfar(tb,dfar)
+.. py:function:: Geom.IBM.setDfar(tb, dfar)
 
     Set the dfar for a geometry defined by tb. Exists also as in-place (_setDfar). Dfar is the distance from the center of the bounding box of the immersed boundary to the edge of the domain.
 
@@ -115,7 +113,7 @@ Setting Snear & Dfar
 ---------------------------------------
 
 
-.. py:function:: Geom.IBM.snearFactor(tb,sfactor,familyName=[])
+.. py:function:: Geom.IBM.snearFactor(tb, sfactor)
 
     Multiply the snears in the geometry defined by tb by a factor. Exists also as in-place (_snearFactor).
 
@@ -123,8 +121,6 @@ Setting Snear & Dfar
     :type  tb: [zone, list of zones, tree]
     :param sfactor: multiplying factor
     :type sfactor: float
-    :param familyName: family name 
-    :type familyName: [string,list of strings]
     :return: same as input
 
     *Example of use:*
@@ -138,7 +134,7 @@ Setting Snear & Dfar
 Setting IBC Type
 ----------------
 
-.. py:function:: Geom.IBM.setIBCType(tb,ibctype,familyName=[])
+.. py:function:: Geom.IBM.setIBCType(tb, ibctype)
 
     Set the type of IBC for the geometry defined by tb. Exists also as in-place (_setIBCType). See the table in "Notes on IBCTypes" for the IBCs currently supported.
 
@@ -146,8 +142,6 @@ Setting IBC Type
     :type  tb: [zone, list of zones, tree]
     :param ibctype: name of the type of IBC
     :type ibctype: string
-    :param familyName: family name 
-    :type familyName: [string,list of strings]
     :return: same as input
 
     *Example of use:*

@@ -12,33 +12,21 @@ vars_delete_ibm=['utau','StagnationEnthalpy','StagnationPressure',
                  'gradxVelocityX','gradyVelocityX','gradzVelocityX',
                  'gradxVelocityY','gradyVelocityY','gradzVelocityY',
                  'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
-                 'KCurv','yplus']
-
-
-def check_input_familyName(t,familyName=[]):
-    names = C.getFamilyZoneNames(t)
-    for x in (x for x in familyName if x not in names):
-        print('ERROR::FamilyName not in tree. FamilyNames in tree are: %s. Currently selected familyNames: %s'%(names,familyName))
-        exit()
-    return None
-        
+                 'KCurv','yplus']        
 
 # Set snear in zones
-def setSnear(t, value, familyName=[]):
+def setSnear(t, value):
     """Set the value of snear in a geometry tree.
-    Usage: setSnear(t,value=X,familyName=[])"""
+    Usage: setSnear(t, value=X)"""
     tp = Internal.copyRef(t)
-    _setSnear(tp, value,familyName=familyName)
+    _setSnear(tp, value)
     return tp
 
 
-def _setSnear(t, value, familyName=[]):
+def _setSnear(t, value):
     """Set the value of snear in a geometry tree.
-    Usage: _setSnear(t,value=X,familyName=[])"""
-    check_input_familyName(t,familyName)
+    Usage: _setSnear(t,value=X)"""
     zones = Internal.getZones(t)
-    if familyName:
-        zones    = C.getFamilyZones(t, familyName)
     for z in zones:
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(z, '.Solver#define')
@@ -66,21 +54,18 @@ def _setDfar(t, value):
 
 
 # Multiply the snear by factors XX in zones
-def snearFactor(t, sfactor,familyName=[]):
+def snearFactor(t, sfactor):
     """Multiply the value of snear in a geometry tree by a sfactor.
-    Usage: snearFactor(t,sfactor,familyName=[])"""
+    Usage: snearFactor(t, sfactor)"""
     tp = Internal.copyRef(t)
-    _snearFactor(tp, sfactor,familyName=familyName)
+    _snearFactor(tp, sfactor)
     return tp
 
 
-def _snearFactor(t, sfactor, familyName=[]):
+def _snearFactor(t, sfactor):
     """Multiply the value of snear in a geometry tree by a sfactor.
-    Usage: _snearFactor(t,sfactor,familyName=[])"""
-    check_input_familyName(t,familyName)
+    Usage: _snearFactor(t, sfactor)"""
     zones = Internal.getZones(t)
-    if familyName:
-        zones    = C.getFamilyZones(t, familyName)
     for z in zones:
         nodes = Internal.getNodesFromName2(z, 'snear')
         for n in nodes:
@@ -89,21 +74,17 @@ def _snearFactor(t, sfactor, familyName=[]):
 
 
 # Set the IBC type in zones
-def setIBCType(t, value,familyName=[]):
+def setIBCType(t, value):
     """Set the IBC type in a geometry tree.
-    Usage: setIBCType(t,value=X,familyName=[])"""
+    Usage: setIBCType(t, value=X)"""
     tp = Internal.copyRef(t)
-    _setIBCType(tp, value,familyName=familyName)
+    _setIBCType(tp, value)
     return tp
 
-
-def _setIBCType(t, value,familyName=[]):
+def _setIBCType(t, value):
     """Set the IBC type in a geometry tree.
-    Usage: _setIBCType(t,value=X,familyName=[])"""
-    check_input_familyName(t,familyName)
+    Usage: _setIBCType(t,value=X)"""
     zones = Internal.getZones(t)
-    if familyName:
-        zones    = C.getFamilyZones(t, familyName)
     for z in zones:         
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(z, '.Solver#define')
@@ -118,7 +99,7 @@ def initOutflow(tc, familyName, P_static):
     tc2 = Internal.copyRef(tc)
     _initOutflow(tc2, familyName, P_static)
     return tc2
-                 
+
 
 def _initOutflow(tc, familyName, P_static):
     """Set the value of the pressure P_static for the outflow pressure IBC with family name familyName.

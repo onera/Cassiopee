@@ -9,6 +9,7 @@ import CPlot.Tk as CTK
 import Converter.Internal as Internal
 import Fast.PyTree as Fast
 import CPlot.iconics as iconics
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -60,11 +61,6 @@ def setData():
     ss_iteration = int(VARS[1].get())
     scheme = VARS[4].get()
     time_step = VARS[5].get()
-    snear = VARS[6].get()
-    ibctype = VARS[7].get()
-    dfar = VARS[8].get()
-    if VARS[12].get() == 'out': inv = 0
-    else: inv = 1
     
     numb = {'temporal_scheme':temporal_scheme,
             'ss_iteration':ss_iteration}
@@ -75,14 +71,6 @@ def setData():
     if nzs == []:
         Fast._setNum2Base(CTK.t, numb)
         Fast._setNum2Zones(CTK.t, numz)
-        zones = Internal.getZones(CTK.t)
-        for z in zones:
-            n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
-            Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
-            Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
-            Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
-            Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
-
     else:
         for nz in nzs:
             nob = CTK.Nb[nz]+1
@@ -91,12 +79,7 @@ def setData():
             b, c = Internal.getParentOfNode(CTK.t, z)
             Fast._setNum2Base(b, numb)
             Fast._setNum2Zones(z, numz)
-            n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
-            Internal.createUniqueChild(n, 'snear', 'DataArray_t', snear)
-            Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', ibctype)
-            Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
-            Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
-
+            
     CTK.TXT.insert('START', 'Solver data set.\n')
 
 #=============================================================================
@@ -150,24 +133,6 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[5].set(val)
-        n = Internal.getNodeFromPath(zone, '.Solver#define/snear')
-        if n is not None:
-            val = Internal.getValue(n)
-            VARS[6].set(val)
-        n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
-        if n is not None:
-            val = Internal.getValue(n)
-            VARS[7].set(val)
-        n = Internal.getNodeFromPath(zone, '.Solver#define/dfar')
-        if n is not None:
-            val = Internal.getValue(n)
-            VARS[8].set(val)
-        n = Internal.getNodeFromPath(zone, '.Solver#define/inv')
-        if n is not None:
-            val = Internal.getValue(n)
-            if val == 0: VARS[12].set('out')
-            else: VARS[12].set('in')
-
         d, c = Internal.getParentOfNode(CTK.t, zone)
         n = Internal.getNodeFromPath(d, '.Solver#define/temporal_scheme')
         if n is not None:
@@ -504,48 +469,12 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[10], 'Body', 'Main', 'PrevStep', command=changeMode)
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
 
-    #- Snear settings  -
-    B = TTK.Label(Frame, text="snear")
-    B.grid(row=1, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='The generated grid spacing for selected curve.')
-    B = TTK.Entry(Frame, textvariable=VARS[6], width=4, background="White")
-    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
-    
-    #- dfar settings  -
-    B = TTK.Label(Frame, text="dfar")
-    B.grid(row=2, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='The distance from the center of object to the far boundary.\nIf set to -1, not taken into account.')
-    B = TTK.Entry(Frame, textvariable=VARS[8], width=4, background="White")
-    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
-
-    # - IBC type -
-    B = TTK.Label(Frame, text="IBC type")
-    B.grid(row=3, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Type of Immersed boundary condition.')
-    B = TTK.OptionMenu(Frame, VARS[7], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE','slip_cr')
-    B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
-
-    #- Mask settings (in or out)  -
-    B = TTK.Label(Frame, text="Fluid")
-    B.grid(row=4, column=0, sticky=TK.EW)
-    B = TTK.OptionMenu(Frame, VARS[12], 'out', 'in')
-    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
-
-    # - Set data -
-    B = TTK.Button(Frame, text="Set data", command=setData)
-    BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
-    B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
-    B = TTK.Button(Frame, command=getData,
-                   image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
-    BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
-    B.grid(row=5, column=2, sticky=TK.EW)
-
     # - temporal scheme -
     B = TTK.Label(Frame, text="time_scheme")
-    B.grid(row=7, column=0, sticky=TK.EW)
+    B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time integration.')
     B = TTK.OptionMenu(Frame, VARS[0], 'explicit', 'implicit', 'implicit_local')
-    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
 
     # - ss_iteration -
     #B = TTK.Label(Frame, text="ss_iteration")
@@ -556,38 +485,47 @@ def createApp(win):
 
     # - scheme -
     B = TTK.Label(Frame, text="scheme")
-    B.grid(row=8, column=0, sticky=TK.EW)
+    B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Numerical scheme.')
     B = TTK.OptionMenu(Frame, VARS[4], 'roe_min', 'ausmpred', 'senseur')
-    B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
     # - time_step -
     B = TTK.OptionMenu(Frame, VARS[11], "time_step", "cfl", command=changeCflTimeStep)
-    B.grid(row=9, column=0, sticky=TK.EW)
+    B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time step.')
     B = TTK.Entry(Frame, textvariable=VARS[5], background='White')
-    B.grid(row=9, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Set data -
+    B = TTK.Button(Frame, text="Set data", command=setData)
+    BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
+    B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
+    B = TTK.Button(Frame, text="Get data", command=getData,
+                   image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
+    BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
+    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
 
     # - compute -
     B = TTK.Button(Frame, text="Compute", command=run)
     BB = CTK.infoBulle(parent=B, text='Launch computation.')
-    B.grid(row=10, column=0, sticky=TK.EW)
+    B.grid(row=5, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[9], width=5, background='White')
-    B.grid(row=10, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=5, column=1, columnspan=1, sticky=TK.EW)
     B = TTK.Button(Frame, text="Files", command=writeFiles)
     BB = CTK.infoBulle(parent=B, text='Write files to run elsewhere.')
-    B.grid(row=10, column=2, sticky=TK.EW)
+    B.grid(row=5, column=2, sticky=TK.EW)
 
     # - Body time -
     B = TTK.Button(Frame, text="Step", command=updateBodyAndPrepare)
     BB = CTK.infoBulle(parent=B, text='Apply one motion step to body.')
-    B.grid(row=11, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[13], width=4, background="White")
-    B.grid(row=11, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=6, column=1, columnspan=1, sticky=TK.EW)
     B.bind('<Return>', updateBodyAndPrepare)
     BB = CTK.infoBulle(parent=B, text='Current body time.')
     B = TTK.Entry(Frame, textvariable=VARS[14], width=4, background="White")
-    B.grid(row=11, column=2, columnspan=1, sticky=TK.EW)
+    B.grid(row=6, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of steps to reach body time 1.')
 
 #==============================================================================

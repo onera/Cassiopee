@@ -164,7 +164,11 @@ def extract(event=None):
             zp = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
             zp[0] = C.getZoneName(z[0])
             base[2].append(zp)
-        except: pass    
+        except: pass
+
+    CTK.display(CTK.t)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
     CTK.TXT.insert('START', 'Zone extracted in base EXTRACT.\n')
     
 #==============================================================================
