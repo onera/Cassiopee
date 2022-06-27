@@ -1,4 +1,16 @@
 ===============================================================================
+Generator 3.4 [07/2022]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+Optional: pyTree interface requires Converter 3.4
+Optional: bbox requires Converter 3.4
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.4
+Optional: stitchedHat requires Transform 3.4
+Optional: mapSplit requires Converter, Transform, Geom 3.4
+- G.cartRx : cartesian grids in parallel
+- G.cartRx3: cartesian and geometric grids in parallel
+- cartr1 : geometric cartesian grid
+- cartr2 : geometric cartesian grid
+===============================================================================
 Generator 3.3 [10/2021]
 Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
 Optional: pyTree interface requires Converter 3.3
@@ -47,7 +59,7 @@ Optional: bbox requires Converter 2.8
 Optional: addNormalLayers, gencartmb, map require Converter, Transform 2.8
 Optional: stitchedHat requires Transform 2.8
 Optional: mapSplit requires Converter, Transform, Geom 2.8
-- Generator: T3Mesher2D: 2 nouvelles options pour contrôler la gradation du maillage.
+- Generator: T3Mesher2D: 2 nouvelles options pour contrï¿½ler la gradation du maillage.
 ===============================================================================
 Generator 2.7 [07/2018]
 Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7

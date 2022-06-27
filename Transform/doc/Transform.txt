@@ -1,4 +1,10 @@
 ===============================================================================
+Transform 3.4 [07/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+Optional: pyTree interface requires Converter 3.4
+Optional: splitMultiplePts function requires Connector 3.4
+- splitFullMatch : split to have full face match
+===============================================================================
 Transform 3.3 [10/2021]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
 Optional: pyTree interface requires Converter 3.3

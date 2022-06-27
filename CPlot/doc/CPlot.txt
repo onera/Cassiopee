@@ -1,4 +1,14 @@
 ===============================================================================
+CPlot 3.4 [07/2022]
+Require: C++ compiler, python > 2.4, numpy > 1.0, 3.1 > GL > 1.1, GLU > 1.3, KCore 3.2
+Optional: png output requires libpng > 3.0
+Optional: mpeg output requires ffmpeg > 1.0
+Optional: offscreen rendering requires OSMesa > 7.0
+Optional: tkCassiopee (Tk interface) requires Tkinter in python install
+Optional: pyTree interface requires Converter 3.3
+- tkTree: cut and paste nodes
+- Tk: save selected node
+===============================================================================
 CPlot 3.3 [10/2021]
 Require: C++ compiler, python > 2.4, numpy > 1.0, 3.1 > GL > 1.1, GLU > 1.3, KCore 3.2
 Optional: png output requires libpng > 3.0
