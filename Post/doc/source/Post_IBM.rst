@@ -122,7 +122,7 @@ Contents
     :type order: integer
     :param Sref: reference surface area
     :type Sref: float or None
-    :param famZones: name of familys for which IBM data is extracted
+    :param famZones: name of families of immersed boundaries on whih loads are computed
     :type famZones: list of strings or None
     :return: tree with the solution at the IB and the viscous and pressure loads
        
@@ -154,3 +154,25 @@ Contents
     * `Computes the viscous and pressure forces on an IB during the computation of the solution (pyTree) <Examples/Post/unsteadyloadsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/unsteadyloadsPT.py
+
+
+---------------------------------------
+
+.. py:function:: Post.IBM.extractMassFlowThroughSurface(tb, t, famZones=[])
+
+    Returns massflow through a surface defined by tb and returns tb. If famZones is a list of families, then only the
+    zones of tb where the
+    Currently: only sequential mode!
+
+    :param tb: geometry tree
+    :type  tb: [zone, list of zones, base, tree]
+    :param t: solution tree with (Density,VelocityX, VelocityY, VelocityZ) stored at cell centers.
+    :type t: pyTree 
+    :param famZones: list of names of families of zones of tb where the massflow must be computed.
+    :type famZones: list of strings
+	     
+    *Example of use:*
+
+    * `Computes the massflow through an inlet surface (pyTree) <Examples/Post/extractMassFlowThroughSurfacePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/extractMassFlowThroughSurfacePT.py

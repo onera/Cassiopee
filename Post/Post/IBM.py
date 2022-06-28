@@ -207,7 +207,7 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
 # IN: gradP: calculate the pressure gradient
 # IN: order: order of the extrapolation of pressure
 # IN: Sref: reference area
-
+# IN : famZones : list of family names of surface zones on which the solution is projected
 # NOTE: if tc_in = None, t_case is the geometry tree with the projected solution
 #==============================================================================
 def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[]):
@@ -342,6 +342,24 @@ def _unsteadyLoads(tb, Sref=None, alpha=0., beta=0.):
     dimPb = Internal.getValue(Internal.getNodeFromName(ts, 'EquationDimension'))
     return _loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose =False)
 
+
+# Return ts, massflow 
+def extractMassFlowThroughSurface(tb, t, famZones=[]):
+    ts = Internal.copyRef(tb)
+    if famZones !=[]:
+        for zone in Internal.getZones(ts):
+            familyNode = Internal.getNodeFromName(zone, "FamilyName")
+            if familyNode is None or Internal.getValue(familyNode) not in famZones:
+                Internal._rmNodesByName(ts, zone[0])
+
+    C._initVars(t,'{centers:cellN}=minimum({centers:cellN},1.)')
+    P._extractMesh(t, ts, mode='robust')
+    C._rmVars(ts, 'cellN')
+    C._initVars(ts, '{MomentumX}={Density}*{VelocityX}')
+    C._initVars(ts, '{MomentumY}={Density}*{VelocityY}')
+    C._initVars(ts, '{MomentumZ}={Density}*{VelocityZ}')
+    massflow = P.integNormProduct(ts, vector=['MomentumX', 'MomentumY', 'MomentumZ'])
+    return massflow, ts
 
 #=============================================================================
 # Post - General
