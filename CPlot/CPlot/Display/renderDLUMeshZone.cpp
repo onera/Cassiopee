@@ -132,10 +132,14 @@ DataDL::renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
     // For BARS, NODE, 1D NGONS: display node
     if (eltType == 1 || eltType == 0 || (eltType == 10 && zonep->nelts1D > 0)) {
         glBegin(GL_QUADS);
-        if (zonep->blank == 0) {
+        if (zonep->blank == 0) 
+        {
             for (i = 0; i < zonep->np; i++) { PLOTNODE; }
-        } else {
-            for (i = 0; i < zonep->np; i++) {
+        } 
+        else 
+        {
+            for (i = 0; i < zonep->np; i++) 
+            {
                 ret = _pref.blanking->f(this, i, zonep->blank, zone);
                 if (ret != 0) { PLOTNODE; }
             }

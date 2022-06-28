@@ -1060,11 +1060,18 @@ Solution extraction
 
 ---------------------------------------
 
-.. py:function:: Post.Probe.Probe(fileName, t, X=(x,y,z), fields=None, append=True, bufferSize=100)
+.. py:function:: Post.Probe.Probe(fileName, t=None, X=(x,y,z), fields=None, append=True, bufferSize=100)
 
-    Create a probe at position (x,y,z) extracting given fields from t.
-    Result is periodically flush to file.
-    Instead of giving (x,y,z), you can provide ind, blockName, proc.
+    Create a probe.
+    
+    If t and (x,y,z) are provided, the probe will extract given fields from t at position (x,y,z).
+    
+    If t and ind, blockName are provided, the probe will extract given fields from block of t at index ind.
+
+    If t, (x,y,z) and ind are not provided, the probe will store the zones given at extract.
+
+    Result is periodically flush to file when buffer size exceeds bufferSize.
+
 
     :param t: pyTree containing solution
     :type t: pyTree

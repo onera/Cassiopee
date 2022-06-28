@@ -32,17 +32,17 @@ List of functions
     OCC.convertCAD2Arrays
     OCC.PyTree.convertCAD2PyTree
 
-**-- CAD functions**
+.. **-- CAD functions**
 
-.. autosummary::
+.. .. autosummary::
 
-    OCC.PyTree.CAD
-    OCC.PyTree.Edge
-    OCC.PyTree.Face    
-    OCC.PyTree.Face.valueAt
-    OCC.PyTree.Face.project
-    OCC.PyTree.Edge.valueAt
-    OCC.PyTree.Edge.project
+..    OCC.PyTree.CAD
+..    OCC.PyTree.Edge
+..    OCC.PyTree.Face    
+..    OCC.PyTree.Face.valueAt
+..    OCC.PyTree.Face._projectOn
+..    OCC.PyTree.Edge.valueAt
+..    OCC.PyTree.Edge._projectOn
 
 
 Contents
@@ -57,7 +57,6 @@ CAD/mesh conversion
 
     Read a CAD and return arrays.
 
-       
     :param fileName: CAD file name
     :type fileName: string
     :param format: file format ('fmt_iges' or 'fmt_step')
@@ -104,10 +103,10 @@ CAD/mesh conversion
 
     .. literalinclude:: ../build/Examples/OCC/convertCAD2PyTreePT.py
 
-CAD functions
-----------------------------
+.. CAD functions
+.. ----------------------------
 
-.. py:function:: OCC.PyTree.CAD(fileName, format='fmt_iges')
+.. .. py:function:: OCC.PyTree.CAD(fileName, format='fmt_iges')
 
     Read a CAD and return a CAD object correponding to the CAD top tree.
 
@@ -118,7 +117,7 @@ CAD functions
     
     *Example of use:*
 
-.. py:function:: OCC.PyTree.project(a)
+.. .. py:function:: OCC.PyTree._projectOn(a)
 
     Project a on all CAD faces.
 

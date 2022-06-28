@@ -28,7 +28,7 @@ List of functions
     Post.ExtraVariables2.extractMach
     Post.ExtraVariables2.extractViscosityMolecular
     Post.ExtraVariables2.extractViscosityEddy
-    Post.ExtraVariables2.extractMutSurMu
+    .. Post.ExtraVariables2.extractMutSurMu
 
 **-- Surface fields**
 
@@ -40,11 +40,11 @@ List of functions
     Post.ExtraVariables2.extractForce
     Post.ExtraVariables2.extractFrictionVector
     Post.ExtraVariables2.extractFrictionMagnitude
-    Post.ExtraVariables2.extractUTau
+    .. Post.ExtraVariables2.extractUTau
 
 **-- 1D profiles**
-    Post.ExtraVariables2.extractProfile
-    Post.ExtraVariables2.extractyplus
+    .. Post.ExtraVariables2.extractProfile
+    .. Post.ExtraVariables2.extractyplus
 
 
 Contents
@@ -258,7 +258,7 @@ Volume fields
 
 --------------------
 
-.. py:function:: Post.ExtraVariables2.extractMutSurMu(t)
+.. .. py:function:: Post.ExtraVariables2.extractMutSurMu(t)
 
     Compute ViscosityEddy divided by ViscosityMolecular on t 
     from ViscosityEddy and ViscosityMolecular in centers. 
@@ -374,9 +374,28 @@ Surface fields
 
     *Example of use:*
 
-    * `Extract Force (pyTree) <Examples/Post/extractFrictionVectorPT.py>`_:
+    * `Extract friction vector (pyTree) <Examples/Post/extractFrictionVectorPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/extractFrictionVectorPT.py
 
+
+---------------------------
+
+.. py:function:: Post.ExtraVariables2.extractFrictionMagnitude(teff)
+
+    Compute the friciton vector magnitude on teff from ShearStress in centers
+    with norm of taut = tau.n - (n. tau.n) n.
+    Exists also as in place function (_extractFrictionMagnitude) that modifies t and returns None.
+
+    :param teff: input tree
+    :type  teff: [zone, list of zones, base, tree]
+    :return: tree with "FrictionMagnitude" in centers
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Extract friction magnitude (pyTree) <Examples/Post/extractFrictionMagnitudePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/extractFrictionMagnitudePT.py
 
 

@@ -18,6 +18,8 @@
 */
 #include "../Data.h"
 
+#define EPSBLANKING 1.e-2
+
 //=============================================================================
 // Blanking plugins
 //=============================================================================
@@ -40,7 +42,7 @@ int blankCellN(Data* d, int p1, int blank, int zone)
   Zone* z = d->_zones[zone];
   double* cellN = z->f[blank-1]; 
   double val = cellN[p1];
-  if (val >= 0 && val < 1) return 0; // blanked
+  if (val >= -EPSBLANKING && val < 1.-EPSBLANKING) return 0; // blanked
   else return 1;
 }
 
@@ -57,7 +59,7 @@ int blankCellNF(Data* d, int p1, int blank, int zone)
   Zone* z = d->_zones[zone];
   double* cellN = z->f[blank-1];
   double val = cellN[p1];
-  if (val == 0) return 0; // blanked
+  if (val >= -EPSBLANKING && val <= EPSBLANKING) return 0; // blanked
   else return 1;
 }
 

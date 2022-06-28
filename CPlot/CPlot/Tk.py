@@ -592,9 +592,10 @@ def addFile():
             # Fusion des bases de t et t2
             if t == []: t = t2
             else:
+                #t = C.mergeTrees(t, t2)
                 if Internal.getBases(t2) != []: # merge trees 
                     t = C.mergeTrees(t, t2)
-                else: # ajoute le noeeuds sous la selection de tkTree
+                else: # ajoute le noeud sous la selection de tkTree
                     node = TKTREE.getCurrentSelectedNode()
                     node[2] += t2[2][1:]
         t = upgradeTree(t)

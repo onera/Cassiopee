@@ -56,6 +56,7 @@ Contents
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, base, tree]
     :return: tree with geometrical information required for the IBM
+
     *Example of use:*
 
     * `Extract the IBM geometrical information (pyTree) <Examples/Post/extractIBMInfoPT.py>`_:
@@ -72,6 +73,7 @@ Contents
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, base, tree]
     :return: same as input
+    
     *Example of use:*
 
     * `1st order extrapolation of the pressure at the IB (pyTree) <Examples/Post/extractPressureHOPT.py>`_:

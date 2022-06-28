@@ -124,20 +124,14 @@ void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
     glBegin(GL_QUADS);
     if (zonep->blank == 0)
     {
-      for (i = 0; i < zonep->np; i++)
-      {
-        PLOTNODE;
-      }
+      for (i = 0; i < zonep->np; i++) { PLOTNODE; }
     }
     else
     {
       for (i = 0; i < zonep->np; i++)
       {
         ret = _pref.blanking->f(this, i, zonep->blank, zone);
-        if (ret != 0)
-        {
-          PLOTNODE;
-        }
+        if (ret != 0) { PLOTNODE; }
       }
     }
     glEnd();

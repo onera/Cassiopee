@@ -439,6 +439,7 @@ def extractFrictionMagnitude(teff):
 
 def _extractFrictionMagnitude(teff):
     """Extract friction magnitude."""
+    _extractFrictionVector(teff)
     C._magnitude(teff, ['centers:frictionX', 'centers:frictionY', 'centers:frictionZ'])
     return None
 
