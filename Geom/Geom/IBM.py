@@ -91,6 +91,23 @@ def _setIBCType(t, value):
         Internal._createUniqueChild(n, 'ibctype', 'DataArray_t', value)
     return None
 
+# Set the fluid inside the geometry
+def setFluidInside(t):
+    """Set fluid inside a geometry tree.
+    Usage: setFluidInside(t)"""
+    tp = Internal.copyRef(t)
+    _setFluidInside(tp)
+    return tp
+
+def _setFluidInside(t):
+    """Set fluid inside a geometry tree.
+    Usage: _setFluidInside(t)"""
+    zones = Internal.getZones(t)
+    for z in zones:
+        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'inv', 'DataArray_t', value=1)
+    return None
 
 # Set the IBC type outpress for zones in familyName
 def initOutflow(tc, familyName, P_static):
@@ -99,7 +116,6 @@ def initOutflow(tc, familyName, P_static):
     tc2 = Internal.copyRef(tc)
     _initOutflow(tc2, familyName, P_static)
     return tc2
-
 
 def _initOutflow(tc, familyName, P_static):
     """Set the value of the pressure P_static for the outflow pressure IBC with family name familyName.
@@ -151,7 +167,7 @@ def _initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.]):
 
 
 # Change IBC Types
-def add_variables_tc_ibc(zsr,ibctype,nIBC):
+def _add_variables_tc_ibc(zsr,ibctype,nIBC):
     Nlength = numpy.zeros((nIBC),numpy.float64)
     if ibctype in [2, 3, 6, 10, 11]:
         zsr[2].append(['utau' , copy.copy(Nlength), [], 'DataArray_t'])
@@ -164,7 +180,7 @@ def add_variables_tc_ibc(zsr,ibctype,nIBC):
         Internal._createChild(zsr, 'diry'              , 'DataArray_t', value=copy.copy(Nlength))
         Internal._createChild(zsr, 'dirz'              , 'DataArray_t', value=copy.copy(Nlength))
 
-    if ibctype == 10 or ibctype == 11:
+    elif ibctype == 10 or ibctype == 11:
         zsr[2].append(['gradxPressure' , copy.copy(Nlength) , [], 'DataArray_t'])
         zsr[2].append(['gradyPressure' , copy.copy(Nlength) , [], 'DataArray_t'])
         zsr[2].append(['gradzPressure' , copy.copy(Nlength) , [], 'DataArray_t'])
@@ -182,15 +198,22 @@ def add_variables_tc_ibc(zsr,ibctype,nIBC):
             zsr[2].append(['gradyVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradzVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
         
-    if ibctype == 100:
+    elif ibctype == 100:
         zsr[2].append(["KCurv" , copy.copy(Nlength) , [], 'DataArray_t'])
         
-    return zsr
+    return None
 
 
 def changeIBCType(tc, oldIBCType, newIBCType):
     """Change the IBC type in a connectivity tree from oldIBCType to newIBCType.
-    Usave: changeIBCType(tc, oldIBCType, newIBCType)"""
+    Usage: changeIBCType(tc, oldIBCType, newIBCType)"""
+    tcp = Internal.copyRef(tc)
+    _changeIBCType(tc, oldIBCType, newIBCType)
+    return tcp
+
+def _changeIBCType(tc, oldIBCType, newIBCType):
+    """Change the IBC type in a connectivity tree from oldIBCType to newIBCType.
+    Usage: changeIBCType(tc, oldIBCType, newIBCType)"""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -206,15 +229,18 @@ def changeIBCType(tc, oldIBCType, newIBCType):
                     for var_local in vars_delete_ibm:
                         Internal._rmNodesByName(zsr,var_local)
                     
+                    _add_variables_tc_ibc(zsr,newIBCType,nIBC)
 
-                    zsr=add_variables_tc_ibc(zsr,newIBCType,nIBC)
-
-    return tc
-
+    return None
 
 def transformTc2(tc2):
     """Change the name of the IBM nodes for the second image point.
     Usage: transformTc2(tc2)"""
+    tcp = Internal.copyRef(tc2)
+    _transformTc2(tcp)
+    return tcp
+
+def _transformTc2(tc2):
     for z in Internal.getZones(tc2):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -231,13 +257,12 @@ def transformTc2(tc2):
                     Internal._rmNodesByName(zsr,vars_delete)
 
                 Nlength = numpy.zeros((nIBC),numpy.float64)
-                zsr[2].append(['Density'    , copy.copy(Nlength) , [], 'DataArray_t'])
-                zsr[2].append(['VeloicityX' , copy.copy(Nlength) , [], 'DataArray_t'])
-                zsr[2].append(['VeloicityY' , copy.copy(Nlength) , [], 'DataArray_t'])
-                zsr[2].append(['VeloicityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
-
-                zsr=add_variables_tc_ibc(zsr,ibctype,nIBC)
+                zsr[2].append(['Density'   , copy.copy(Nlength) , [], 'DataArray_t'])
+                zsr[2].append(['VelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
+                zsr[2].append(['VelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
+                zsr[2].append(['VelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
+                _add_variables_tc_ibc(zsr,ibctype,nIBC)
                 
-    return tc2
+    return None
 
 

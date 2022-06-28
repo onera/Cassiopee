@@ -29,7 +29,6 @@ def setFilter(event=None):
     # Get filter type
     filterType = VARS[1].get()
     actionType = VARS[2].get()
-
     # Filter by name
     if filterType == 'By name':
         rexp = VARS[0].get()
@@ -54,8 +53,45 @@ def setFilter(event=None):
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by name.\n')
 
+    # Filter by family name of zones
+    elif filterType == 'By family of zones':
+        familyName = VARS[0].get()
+        bases = CTK.t[2][1:]
+        active = []
+
+        for b in bases:
+            baseName = b[0]
+            familyNodes = Internal.getNodesFromType1(b,'Family_t')
+            foundBase = False
+
+            if familyNodes is not None:
+                for familyNode in familyNodes:
+                    familyLoc = Internal.getName(familyNode)
+                    if familyLoc==familyName:
+                        foundBase = True
+                        break
+                if foundBase:
+                    for z in b[2]:
+                        if z[3] == 'Zone_t':
+                            zoneName = baseName + '/' + z[0]
+                            i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                            foundFam = False
+                            fnamenodes=Internal.getNodesFromType1(z, 'FamilyName_t')
+                            for fname in fnamenodes:
+                                if Internal.getValue(fname)==familyName: foundFam=True
+                            if foundFam: active.append((i,1))
+                            else: active.append((i,0))
+                    
+        if actionType == 'Activate': CPlot.setActiveZones(active)
+        elif actionType == 'Deactivate':
+            inactive = []
+            for i in active:
+                if i[1] == 1: inactive.append((i[0],0))
+            CPlot.setActiveZones(inactive)
+        else: CPlot.setSelectedZones(active)
+        CTK.TXT.insert('START', 'Filtered by name.\n')
     # Filter by number
-    if filterType == 'By number':
+    elif filterType == 'By number':
         no = VARS[0].get()
         try: no = int(no)
         except:
@@ -373,7 +409,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Action to be performed on filtered zones.')
     B.grid(row=0, column=0, sticky=TK.EW)
     
-    B = TTK.OptionMenu(Frame, VARS[1], 'By name', 'By size >',
+    B = TTK.OptionMenu(Frame, VARS[1], 'By name', 'By family of zones', 'By size >',
                        'By size <', 'By MG lvl =', 'By MG lvl !=',
                        'By proc', 'By priority', 'By number', 
                        'By formula (or)', 'By formula (and)')

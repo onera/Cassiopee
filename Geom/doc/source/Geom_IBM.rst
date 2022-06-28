@@ -65,11 +65,14 @@ List of functions
     Geom.IBM.changeIBCType
     Geom.IBM.initOutflow
     Geom.IBM.initInj
-
+    Geom.IBM.setFluidInside
 
 
 Contents
 ########
+
+Note that all the functions have an in-place version, modifying directly the data without copy.
+The function names must be prefixed by an '_' (e.g. _setSnear for the in-place version of setSnear)
 
 Setting Snear & Dfar
 --------------------
@@ -77,7 +80,7 @@ Setting Snear & Dfar
 
 .. py:function:: Geom.IBM.setSnear(tb, snear)
 
-    Set the snear for a geometry defined by tb. Exists also in-place (_setSnear). Snear is the length of the edge of the Cartesian cells intersected by the immersed boundary.
+    Set the snear for a geometry defined by tb. Exists also as in-place (_setSnear). Snear is the local Cartesian spacing close to  cells intersected by the immersed boundary.
 
     :param tb: geometry tree
     :type  tb: [zone, list of zones, tree]
@@ -154,7 +157,7 @@ Setting IBC Type
 
 .. py:function:: Geom.IBM.changeIBCType(tc,oldBCType,newBCType)
 
-    Change the IBC type in a connectivity tree. Please refer to the table in "Notes on IBCTypes" for details on the integer indentifies for the various IBC types.
+    Change the IBC type in a connectivity tree. Exists also as in-place (_changeIBCType). Please refer to the table in "Notes on IBCTypes" for details on the integer identifies for the various IBC types.
 
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, tree]
@@ -170,13 +173,30 @@ Setting IBC Type
     
     .. literalinclude:: ../build/Examples/Geom/changeIBCTypePT.py
 
+---------------------------------------
 
+.. py:function:: Geom.IBM.setFluidInside(tb)
+
+    Define the fluid inside a surface defined by tb. In that case, the IBM mesh will be defined inside tb. Exists also as in-place (_setFluidInside).
+
+    :param tb: geometry tree 
+    :type  tb: [zone, list of zones, tree]
+    :return: same as input
+
+    *Example of use:*
+    
+    * `Change the type of IBC (pyTree) <Examples/Geom/setFluidInsidePT.py>`_:
+    
+    .. literalinclude:: ../build/Examples/Geom/setFluidInsidePT.py
+
+                        
 ---------------------------------------
 
 .. py:function:: Geom.IBM.initOutflow(tc, familyName, P_static)
 
     Set the value of the static pressure P_static for the outflow pressure IBC with family name familyName.
-
+    Exists also as in-place (_initOutflow).
+    
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, tree]
     :param familyName: familyName
@@ -196,7 +216,8 @@ Setting IBC Type
 
 .. py:function:: Geom.IBM.initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.])
 
-    Set the total pressure P_tot, total enthalpy H_tot, and direction of the flow injDir for the injection IBC with family name familyName.
+    Set the total pressure P_tot, total enthalpy H_tot, and direction of the flow injDir for the injection IBC with family name familyName. Exists also as in-place (_initInj).
+
 
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, tree]

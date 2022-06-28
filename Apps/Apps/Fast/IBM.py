@@ -35,6 +35,15 @@ from mpi4py import MPI
 COMM_WORLD = MPI.COMM_WORLD
 KCOMM = COMM_WORLD
 
+RENAMEIBCNODES=False # renommage des ibcd*
+
+__IBCNameServer__={}
+
+def getIBCDName(proposedName):
+    global __IBCNameServer__
+    (ibcname,__IBCNameServer__)=C.getUniqueName(proposedName, __IBCNameServer__)
+    return ibcname
+
 def compute_Cf(Re, Cf_law='ANSYS'):
     if Cf_law == 'ANSYS':
         return 0.058*Re**(-0.2)
@@ -1294,6 +1303,18 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
         tc2 = Internal.rmNodesByName(tc2, 'IBCD*')
         tc  = Internal.rmNodesByName(tc, '2_IBCD*')
 
+    if RENAMEIBCNODES:
+        for zc in Internal.getZones(tc):
+            for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):            
+                proposedName = Internal.getName(ibcd)[0:6]+'_X%d'%(rank)
+                ibcd[0]=getIBCDName(proposedName)
+
+        if twoFronts:
+            for zc in Internal.getZones(tc2):
+                for ibcd in Internal.getNodesFromName1(zc,'2_IBCD_*'):            
+                    proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(rank)
+                    ibcd[0]=getIBCDName(proposedName)
+
     if isinstance(tc_out, str): 
         tcp = Compressor.compressCartesian(tc)
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
@@ -1467,6 +1488,12 @@ def _snearFactor(t, factor):
     D_IBM._snearFactor(t, factor)
     return None
 
+def setFluidInside(t):
+    return D_IBM.setFluidInside(t)
+
+def _setFluidInside(t):
+    return D_IBM._setFluidInside(t)
+
 def setIBCType(t, value):
     tp=D_IBM.setIBCType(t, value)
     return tp
@@ -1487,12 +1514,15 @@ def initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
     tc=D_IBM.initInj(tc, familyNameInj, P_tot, H_tot, injDir)                    
     return tc
 
+def _initOutflow(tc, familyNameOutflow, P_tot):
+    return D_IBM._initOutflow(tc, familyNameOutflow, P_tot)
+
+def _initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
+    return D_IBM._initInj(tc, familyNameInj, P_tot, H_tot, injDir)       
+
 def transformTc2(tc2):
     tc2=D_IBM.transformTc2(tc2)
     return tc2
-
-def _modifIBCD(tc):
-    raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
 
 #====================================================================================    
 
@@ -1611,5 +1641,8 @@ def prepareWallReconstruction(tw, tc):
 def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None, variables=['Pressure','Density','utau','yplus']):
     P_IBM._computeWallReconstruction(tw, tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph, variables=variables)
     return None
+
+def _modifIBCD(tc):
+    raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
 
 #====================================================================================
