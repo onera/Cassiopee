@@ -40,7 +40,7 @@
 int blankCellN(Data* d, int p1, int blank, int zone)
 {
   Zone* z = d->_zones[zone];
-  double* cellN = z->f[blank-1]; 
+  double* cellN = z->f[blank-1];
   double val = cellN[p1];
   if (val >= -EPSBLANKING && val < 1.-EPSBLANKING) return 0; // blanked
   else return 1;

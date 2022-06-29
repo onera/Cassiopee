@@ -179,7 +179,7 @@ int Data::initZoneData(
         z.selected = zp.selected;
       }
     }
-  }  
+  }
 
   // mise a jour des pointeurs + BB pour les grilles unstruct
   for (E_Int i = 0; i < uSize; i++)

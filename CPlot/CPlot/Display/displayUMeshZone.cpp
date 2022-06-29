@@ -130,7 +130,7 @@ void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
     {
       for (i = 0; i < zonep->np; i++)
       {
-        ret = _pref.blanking->f(this, i, zonep->blank, zone);
+        ret = _pref.blanking->f(this, i, zonep->blank, zonet);
         if (ret != 0) { PLOTNODE; }
       }
     }
