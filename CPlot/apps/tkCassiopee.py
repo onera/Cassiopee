@@ -4,8 +4,7 @@ import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import CPlot.Panels as Panels
 import Converter.Internal as Internal
-import os
-import os.path, sys
+import os, os.path, sys
 
 # Liste des apps par sous menu et perso
 TREEAPPS = ['tkTreeOps', 'tkCheckPyTree', '---',

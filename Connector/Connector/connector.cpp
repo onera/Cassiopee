@@ -20,8 +20,6 @@
 #define K_ARRAY_UNIQUE_SYMBOL
 #include "connector.h"
 
-int __activation__;
-
 // ============================================================================
 /* Dictionnary of all functions of the python module */
 // ============================================================================
@@ -133,7 +131,6 @@ extern "C"
   PyMODINIT_FUNC initconnector()
 #endif
   {
-    __activation__ = K_KCORE::activation("0");
     import_array();
 #if PY_MAJOR_VERSION >= 3
     PyObject* module = PyModule_Create(&moduledef);

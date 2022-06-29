@@ -31,8 +31,6 @@ extern "C"
     const E_Int& indcell, const E_Int& indnode, 
     const E_Float* xt, const E_Float* yt, const E_Float* zc, E_Float& vol);
 }
-# include "stub.h"
-extern int __activation__;
 //=============================================================================
 /* Calcul et stocke les coefficients d'interpolation pour les centres des 
    cellules
@@ -47,10 +45,6 @@ extern int __activation__;
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
 {
-  if (__activation__ == 0)
-  {
-    PyErr_SetString(PyExc_NotImplementedError, STUBMSG); return NULL;
-  }
   PyObject *coordArrays; // pts a interpoler: vecteur par domaine d'interpolation pour le double wall
   PyObject *interpArrays, *interpCellN;// domaines d'interpolations
   E_Int Nir, Njr;
@@ -982,7 +976,7 @@ void K_CONNECTOR::compAndStoreEXInterpCoefs(
   } 
   delete [] indirection;
 
-  //recuperation des points interpolés par un bloc periodique
+  //recuperation des points interpolï¿½s par un bloc periodique
   E_Int sizeP = thetaPEx.size();
   E_Int sizeM = thetaMEx.size();
   FldArrayI periodicEXPtsP(sizeP);
@@ -1435,7 +1429,7 @@ void K_CONNECTOR::compAndStoreInterpCoefs(
   }
   delete [] indirection;
 
-  //recuperation des points interpolés par un bloc periodique
+  //recuperation des points interpolï¿½s par un bloc periodique
   E_Int sizeP = thetaPPoints.size();
   E_Int sizeM = thetaMPoints.size();
   FldArrayI periodicPtsP(sizeP);

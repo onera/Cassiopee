@@ -97,7 +97,6 @@ class Probe:
         
             if self._proc is not None and self._probeZones is not None:
                 self.checkFile(append=self._append)
-        
             #if t is not None and fields is not None: 
             #    self.checkVariables(t, fields)
         
@@ -259,11 +258,13 @@ class Probe:
     def checkFile(self, append=False):
         if append:
             create = False
-            if Cmpi.rank == 0: isFilePresent = os.path.exists(self._fileName)
-            else: isFilePresent = None
-            isFilePresent = Cmpi.bcast(isFilePresent, root=0)
-            #isFilePresent = True
-            
+            if self._mode == 0 or self._mode == 1:
+                isFilePresent = os.path.exists(self._fileName)
+            else:
+                if Cmpi.rank == 0: isFilePresent = os.path.exists(self._fileName)
+                else: isFilePresent = None
+                isFilePresent = Cmpi.bcast(isFilePresent, root=0)
+    
             if isFilePresent:
                 if self._mode == 0 or self._mode == 1:
                     tl = Distributed.convertFile2SkeletonTree(self._fileName)
@@ -273,7 +274,8 @@ class Probe:
                 if len(zones) > 0:
                     nodes = Internal.getNodesFromName(zones[0], 'GridCoordinates#*')
                     self._filecur = len(nodes)
-                self._filecur = Cmpi.allreduce(self._filecur, op=Cmpi.MAX)
+                if self._mode == 2:
+                    self._filecur = Cmpi.allreduce(self._filecur, op=Cmpi.MAX)
             else: create = True
         else: create = True
         if create:
@@ -285,6 +287,7 @@ class Probe:
             self._filecur = 0
             return None
 
+        
         #  Nettoyage + ne conserve que les zones du proc
         to = C.newPyTree()
         bases = Internal.getBases(tl)
@@ -329,7 +332,7 @@ class Probe:
         #    for c, z in enumerate(self._probeZones):
         #        cont = Internal.getNodeFromName2(z, 'FlowSolution#Centers')
         #        if cont is not None: cont[2] = nodes[c][2]
-        
+
         if len(self._probeZones) > 0:
             cont = Internal.getNodeFromName2(self._probeZones[0], 'FlowSolution')
             if cont is not None: 
@@ -341,7 +344,8 @@ class Probe:
             else: self._icur = 0
         else: self._icur = 0
 
-        self._icur = Cmpi.allreduce(self._icur, op=Cmpi.MAX)
+        if self._mode == 2:
+            self._icur = Cmpi.allreduce(self._icur, op=Cmpi.MAX)
 
         #print('Info: probe: filecur:', self._filecur, flush=True)
         #print('Info: probe: icur:', self._icur, flush=True)

@@ -1,8 +1,7 @@
 # -- cassiopee cgnsview main app --
 import Converter.PyTree as C
 import CPlot.Tk as CTK
-import os
-import os.path, sys
+import os, os.path, sys
 
 #==============================================================================
 # To be called when CTK.t is set
