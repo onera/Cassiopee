@@ -208,7 +208,7 @@ def changeIBCType(tc, oldIBCType, newIBCType):
     """Change the IBC type in a connectivity tree from oldIBCType to newIBCType.
     Usage: changeIBCType(tc, oldIBCType, newIBCType)"""
     tcp = Internal.copyRef(tc)
-    _changeIBCType(tc, oldIBCType, newIBCType)
+    _changeIBCType(tcp, oldIBCType, newIBCType)
     return tcp
 
 def _changeIBCType(tc, oldIBCType, newIBCType):
@@ -222,7 +222,6 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
                 ibcType = int(nameSubRegion.split("_")[1])
                 if ibcType == oldIBCType:
                     zsr[0] = "IBCD_{}_".format(newIBCType)+"_".join(nameSubRegion.split("_")[2:])
-
                     pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
                     nIBC = pressure.shape[0]
 
