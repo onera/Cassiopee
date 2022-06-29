@@ -493,3 +493,242 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   BLOCKRELEASEMEM2;
   return tpl;
 }
+
+//=============================================================================
+// Copy of _setIBCTransfersD for gradP info
+// tc/tc2 -> RCV ZONES
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
+{
+  PyObject *zoneD, *pyIndDonor, *pyArrayTypes, *pyArrayCoefs;
+  PyObject *pyArrayPressure;
+  PyObject *pyArrayGradxP, *pyArrayGradyP, *pyArrayGradzP;
+  PyObject *pyVariables;
+  E_Int bctype, vartype, compact;
+  E_Float gamma, cv, muS, Cs, Ts, alpha;
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOOOOOlllddddddsss", "OOOOOOOOOiiiddddddsss",
+                    "OOOOOOOOOlllffffffsss", "OOOOOOOOOiiiffffffsss",
+                    &zoneD, &pyVariables, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
+                    &pyArrayPressure,
+                    &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,
+                    &bctype, &vartype, &compact, &gamma, &cv, &muS, &Cs, &Ts, &alpha, 
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+  {
+      return NULL;
+  }
+  E_Int bcType  = E_Int(bctype);  // 0: wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
+  E_Int varType = E_Int(vartype); // 1:conservatives, 2:(ro,u,v,w,t), 3:(ro,u,v,w,p)
+
+  // E_Float alpha = 1.;
+  E_Float cvgam = cv*(gamma-1.);
+
+  vector<PyArrayObject*> hook;
+  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype, ndimdxD=1;
+  E_Float* iptroD=NULL;
+
+# include "extract_interpD.h"
+// # include "IBC/extract_IBC.h"
+
+  FldArrayF* pressF;
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Float* pressure = pressF->begin();
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  vector<E_Float*> fieldsD; vector<E_Int> posvarsD;
+  E_Int* ptrcnd=NULL;
+  char* eltTypeD=NULL; char* varStringD=NULL;
+  char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
+
+  //codage general (lent ;-) )
+  if (compact==0)
+  {
+     /*---------------------------------------------*/
+     /* Extraction des infos sur le domaine donneur */
+     /*---------------------------------------------*/
+     E_Int cnSizeD;
+     vector<E_Int> locsD;
+     vector<E_Int*> cnd;
+     E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                        fieldsD, locsD, imd, jmd, kmd,
+                                        cnd, cnSizeD, cnNfldD,
+                                        eltTypeD, hook,
+                                        GridCoordinates,
+                                        FlowSolutionNodes, FlowSolutionCenters);
+     if (cnd.size() > 0) ptrcnd = cnd[0];
+     meshtype = resd; // 1: structure, 2: non structure
+
+     // Extrait les positions des variables a transferer
+     E_Int posvd;
+     varStringOut[0] = '\0';
+
+     if (PyList_Check(pyVariables) != 0)
+      {
+       int nvariables = PyList_Size(pyVariables);
+       if (nvariables > 0)
+       {
+         for (int i = 0; i < nvariables; i++)
+         {
+           PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+           if (PyString_Check(tpl0))
+           {
+             char* varname = PyString_AsString(tpl0);
+             posvd = K_ARRAY::isNamePresent(varname, varStringD);
+             if (posvd != -1)
+             {
+               posvarsD.push_back(posvd);
+               if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
+               else {strcat(varStringOut,","); strcat(varStringOut,varname);}
+             }
+           }
+#if PY_VERSION_HEX >= 0x03000000
+           else if (PyUnicode_Check(tpl0))
+           {
+              const char* varname = PyUnicode_AsUTF8(tpl0);
+              posvd = K_ARRAY::isNamePresent(varname, varStringD);
+              if (posvd != -1)
+              {
+                 posvarsD.push_back(posvd);
+                if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
+                else {strcat(varStringOut,","); strcat(varStringOut,varname);}
+              }
+           }
+#endif
+           else
+             PyErr_Warn(PyExc_Warning, "_setIBCTransfersD: variable must be a string. Skipped.");
+         }
+       }
+      }
+     nvars = posvarsD.size();
+  }
+  else // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
+  {
+# include "getfromzonecompactD.h"
+  }
+
+  PyObject* tpl = K_ARRAY::buildArray(nvars, varStringOut, nbRcvPts, 1, 1);
+  E_Float*  frp = K_ARRAY::getFieldPtr(tpl);
+  FldArrayF fieldROut(nbRcvPts, nvars, frp, true);
+  //
+  //utile la mise a zero???
+  //
+  fieldROut.setAllValuesAtNull();
+
+  vector<E_Float*> vectOfRcvFields(nvars);
+  vector<E_Float*> vectOfDnrFields(nvars);
+
+  if (compact==0)
+  {
+    for (E_Int eq = 0; eq < nvars; eq++)
+      {
+       vectOfRcvFields[eq] = fieldROut.begin(eq+1);
+       vectOfDnrFields[eq] = fieldsD[ posvarsD[eq] ];
+      }
+  }
+  else
+  {
+    for (E_Int eq = 0; eq < nvars; eq++)
+      {
+       vectOfRcvFields[eq] = fieldROut.begin(eq+1);
+       vectOfDnrFields[eq] = iptroD + eq*ndimdxD;
+      }
+  }
+
+////
+////
+//  Interpolation parallele
+////
+////
+
+     // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
+     FldArrayI rcvPtsI(nbRcvPts); E_Int* rcvPts = rcvPtsI.begin();
+#    include "commonInterpTransfers_direct.h"
+
+    E_Int threadmax_sdm  = __NUMTHREADS__;
+
+    E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
+          size = size + size % 8;            // on rajoute du bas pour alignememnt 64bits
+    if (bctype <= 1) size = 0;               // tableau inutile
+
+    FldArrayF  tmp(size*18*threadmax_sdm);
+    E_Float* ipt_tmp = tmp.begin();
+
+
+#pragma omp parallel default(shared)
+  {
+
+//     #pragma omp barrier
+// barriere inutile car synchro implicit a la prochaine loop parallel
+  #pragma omp for
+  for (E_Int noind = 0; noind < nbRcvPts; noind++) rcvPts[noind] = noind;
+
+   //indice loop pour paralelisation omp
+   E_Int ideb, ifin;
+#ifdef _OPENMP
+   E_Int  ithread           = omp_get_thread_num()+1;
+   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+   E_Int ithread = 1;
+   E_Int Nbre_thread_actif = 1;
+#endif
+   // Calcul du nombre de champs a traiter par chaque thread
+   E_Int chunk = nbRcvPts/Nbre_thread_actif;
+   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+   // pts traitees par thread
+   if (ithread <= r)
+        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+   
+#ifdef _OPENMP4
+   #pragma omp simd
+#endif
+   for (E_Int noind = 0; noind < ifin-ideb; noind++)
+   {
+     E_Int indR = rcvPts[noind+ideb];
+     
+     pressure[noind+ideb] = vectOfRcvFields[0][indR]*vectOfRcvFields[1][indR]*cvgam;
+
+     gradxP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[5][indR])*cvgam)/alpha + gradxP[noind+ideb]*(alpha-1.)/alpha;
+     gradyP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[3][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[6][indR])*cvgam)/alpha + gradyP[noind+ideb]*(alpha-1.)/alpha;
+     gradzP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[4][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[7][indR])*cvgam)/alpha + gradzP[noind+ideb]*(alpha-1.)/alpha;
+
+     // vectOfRcvFields[0][indR] = 0.;
+     // vectOfRcvFields[1][indR] = 1.;
+     // vectOfRcvFields[2][indR] = 2.;
+     // vectOfRcvFields[3][indR] = 3.;
+     // vectOfRcvFields[4][indR] = 4.;
+     // vectOfRcvFields[5][indR] = 5.;
+     // vectOfRcvFields[6][indR] = 6.;
+     // vectOfRcvFields[7][indR] = 7.;
+
+   }
+
+
+
+  } // Fin zone // omp
+
+  // sortie
+  delete [] varStringOut;
+  RELEASESHAREDZ(hook, varStringD, eltTypeD);
+  RELEASESHAREDN(pyIndDonor, donorPtsI);
+  RELEASESHAREDN(pyArrayTypes, typesI);
+  RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
+
+  RELEASESHAREDN(pyArrayPressure, pressF);
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+  // BLOCKRELEASEMEMD;
+  // BLOCKRELEASEMEM2;
+  return tpl;
+}

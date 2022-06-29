@@ -237,7 +237,7 @@ def setInterpTransfers(aR, aD, variables=[], cellNVariable='',
                        bcType=0, varType=1, graph=None, 
                        procDict=None, type='ALLD', 
                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, 
-                       Cs=0.3831337844872463, Ts=1.0):
+                       Cs=0.3831337844872463, Ts=1.0, alpha=1.):
     tp = Internal.copyRef(aR)
     compact = 0
     _setInterpTransfers(tp, aD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC, 
@@ -250,7 +250,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
                         bcType=0, varType=1, compact=0, graph=None, 
                         procDict=None, type='ALLD',
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, 
-                        Cs=0.3831337844872463, Ts=1.0):
+                        Cs=0.3831337844872463, Ts=1.0, alpha=1.):
 
     if procDict is None: procDict = Cmpi.getProcDict(aD)
     if graph is None: graph = Cmpi.computeGraph(aD, type=type)
@@ -262,7 +262,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
     zonesD = Internal.getZones(aD)
     for zD in zonesD:
         infos = X.setInterpTransfersD(zD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC, 
-                                      bcType=bcType, varType=varType, compact=compact, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts)
+                                      bcType=bcType, varType=varType, compact=compact, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts, alpha=alpha)
         for n in infos:
             rcvName = n[0]
             proc = procDict[rcvName]

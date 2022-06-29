@@ -2122,7 +2122,7 @@ def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
                         bcType=0, varType=2, compact=0, compactD=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
-                        Cs=0.3831337844872463, Ts=1.0, extract=0):
+                        Cs=0.3831337844872463, Ts=1.0, extract=0, alpha=1.):
     tD = Internal.copyRef(topTreeD)
     return _setInterpTransfersD(tD, variables=variables, cellNVariable=cellNVariable,
                         variablesIBC=variablesIBC,
@@ -2134,7 +2134,7 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
                         bcType=0, varType=2, compact=0, compactD=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
-                        Cs=0.3831337844872463, Ts=1.0, extract=0):
+                        Cs=0.3831337844872463, Ts=1.0, extract=0, alpha=1.):
 
     # Recup des donnees a partir des zones donneuses
     zonesD = Internal.getZones(topTreeD)
@@ -2168,7 +2168,7 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                                                                 Internal.__FlowSolutionCenters__)
                         infos.append([dname,arrayT,ListRcv,loc])
 
-                    elif sname == 'IB' and compactD:
+                    elif sname == 'IB' and compactD and "gradxDensity" not in variablesIBC:
                         xPC = Internal.getNodeFromName1(s,'CoordinateX_PC')[1]
                         yPC = Internal.getNodeFromName1(s,'CoordinateY_PC')[1]
                         zPC = Internal.getNodeFromName1(s,'CoordinateZ_PC')[1]
@@ -2187,6 +2187,39 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                                                                  Internal.__FlowSolutionNodes__, 
                                                                  Internal.__FlowSolutionCenters__)
                         infos.append([dname,arrayT,ListRcv,loc])
+
+                    elif sname == 'IB' and "gradxDensity" in variablesIBC:
+                        pressure = Internal.getNodeFromName1(s,'Pressure')[1]
+                        gradxP   = Internal.getNodeFromName1(s, 'gradxPressure')
+                        gradyP   = Internal.getNodeFromName1(s, 'gradyPressure')
+                        gradzP   = Internal.getNodeFromName1(s, 'gradzPressure')
+
+                        if gradxP is not None:
+                           gradxP = gradxP[1]
+                           gradyP = gradyP[1]
+                           gradzP = gradzP[1]
+                        else:
+                           nIBC = pressure.shape[0]
+                           gradxPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                           gradyPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                           gradzPressureNP  = numpy.zeros((nIBC),numpy.float64)
+                           s[2].append(['gradxPressure' , gradxPressureNP , [], 'DataArray_t'])
+                           s[2].append(['gradyPressure' , gradyPressureNP , [], 'DataArray_t'])
+                           s[2].append(['gradzPressure' , gradzPressureNP , [], 'DataArray_t'])
+                           gradxP = Internal.getNodeFromName1(s, 'gradxPressure')[1]
+                           gradyP = Internal.getNodeFromName1(s, 'gradyPressure')[1]
+                           gradzP = Internal.getNodeFromName1(s, 'gradzPressure')[1]
+
+                        #print 'transfert IBC : zd ', zd[0]
+                        arrayT = connector._setIBCTransfersD4GradP(zd, variablesIBC, ListDonor, DonorType, Coefs,
+                                                             pressure,
+                                                             gradxP, gradyP, gradzP,
+                                                             bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                             Internal.__GridCoordinates__,
+                                                             Internal.__FlowSolutionNodes__,
+                                                             Internal.__FlowSolutionCenters__)
+                        infos.append([dname,arrayT,ListRcv,loc])
+
                                              
 
     # Sortie

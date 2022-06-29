@@ -33,8 +33,10 @@ unext               = std::max(unext, 1.e-12);
 
 gradP_vec[noind]    = (gradxPext*ut/uext+gradyPext*vt/uext+gradzPext*wt/uext)*(muwall/(rowall*rowall));
 
-if (MafzalMode == 1){
-	gradP_vec[noind] = 0.;
+if (MafzalMode < 3){
+	if (gradP_vec[noind] < 0.){
+		gradP_vec[noind] = 0.;
+	}
 }
 
 mu_vec[noind]       = muwall;

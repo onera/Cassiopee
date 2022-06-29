@@ -92,6 +92,7 @@ static PyMethodDef Pyconnector [] =
   {"_setIBCTransfers4FULLTBLE", K_CONNECTOR::_setIBCTransfers4FULLTBLE, METH_VARARGS},
   {"_setIBCTransfers4FULLTBLE2", K_CONNECTOR::_setIBCTransfers4FULLTBLE2, METH_VARARGS},
   {"_setIBCTransfersD", K_CONNECTOR::_setIBCTransfersD, METH_VARARGS},
+  {"_setIBCTransfersD4GradP", K_CONNECTOR::_setIBCTransfersD4GradP, METH_VARARGS},
   {"modifyBorders", K_CONNECTOR::modifyBorders, METH_VARARGS},
   {"applyBCOverlapsNG", K_CONNECTOR::applyBCOverlapsNG, METH_VARARGS},
   {"applyBCOverlapStruct", K_CONNECTOR::applyBCOverlapStruct, METH_VARARGS},

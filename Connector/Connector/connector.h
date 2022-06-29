@@ -867,6 +867,7 @@ namespace K_CONNECTOR
   PyObject* _setIBCTransfers4FULLTBLE2(PyObject* self, PyObject* args);
   PyObject* setIBCTransfersD(PyObject* self, PyObject* args);
   PyObject* _setIBCTransfersD(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfersD4GradP(PyObject* self, PyObject* args);
   PyObject* getExtrapAbsCoefs(PyObject* self, PyObject* args);
   PyObject* _updateNatureForIBM(PyObject* self, PyObject* args);//on a zone, in place
   PyObject* indiceToCoord2(PyObject* self, PyObject* args);//on a zone, in place
