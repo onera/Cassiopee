@@ -23,5 +23,6 @@ for z in Internal.getZones(a):
         zsr[2].append(['VelocityX', Nlength, [], 'DataArray_t'])
         zsr[2].append(['VelocityY', Nlength, [], 'DataArray_t'])
         zsr[2].append(['VelocityZ', Nlength, [], 'DataArray_t'])
-a = D_IBM.changeIBCType(a,2,3)
+
+D_IBM._changeIBCType(a,2,3)
 test.testT(a, 1)

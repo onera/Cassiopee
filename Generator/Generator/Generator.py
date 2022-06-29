@@ -998,9 +998,9 @@ def collarMesh(s1, s2, distribj,distribk, niterj=100, niterk=100, ext=10,
     if isinstance(s2[0], list): surfaces2 = s2
     else: surfaces2 = [s2]
 
-    infos = Collar.createCollarMesh__(surfaces1,surfaces2,distribj,distribk,\
+    infos = Collar.createCollarMesh__(surfaces1, surfaces2, distribj, distribk,\
                                       niterj, niterk, ext, alphaRef, type,\
-                                      contour, constraints1, constraints2,toldist)
+                                      contour, constraints1, constraints2, toldist)
     A = []
     for info in infos: A+=[info[0]]
     return A

@@ -25,8 +25,8 @@ List of functions
     Post.IBM.extractPressureHO
     Post.IBM.extractPressureHO2
     Post.IBM.loads
-    #Post.IBM.prepareSkinReconstruction
-    #Post.IBM.unsteadyLoads
+    .. Post.IBM.prepareSkinReconstruction
+    .. Post.IBM.unsteadyLoads
 
 
 Contents
@@ -135,7 +135,7 @@ Contents
 
 ---------------------------------------
 
-.. py:function:: Post.IBM.unsteadyloads(tb, Sref=None, alpha=0., beta=0.)
+.. .. py:function:: Post.IBM.unsteadyloads(tb, Sref=None, alpha=0., beta=0.)
 
     Computes the viscous and pressure forces on the IB during the computation of the solution. 
 
