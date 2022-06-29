@@ -409,7 +409,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Action to be performed on filtered zones.')
     B.grid(row=0, column=0, sticky=TK.EW)
     
-    B = TTK.OptionMenu(Frame, VARS[1], 'By name', 'By family of zones', 'By size >',
+    B = TTK.OptionMenu(Frame, VARS[1], 'By name', 'By zone family', 'By size >',
                        'By size <', 'By MG lvl =', 'By MG lvl !=',
                        'By proc', 'By priority', 'By number', 
                        'By formula (or)', 'By formula (and)')

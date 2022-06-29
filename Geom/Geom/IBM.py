@@ -167,7 +167,7 @@ def _initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.]):
 
 
 # Change IBC Types
-def _add_variables_tc_ibc(zsr,ibctype,nIBC):
+def _add_variables_tc_ibc(zsr, ibctype, nIBC):
     Nlength = numpy.zeros((nIBC),numpy.float64)
     if ibctype in [2, 3, 6, 10, 11]:
         zsr[2].append(['utau' , copy.copy(Nlength), [], 'DataArray_t'])
@@ -226,9 +226,9 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
                     nIBC = pressure.shape[0]
 
                     for var_local in vars_delete_ibm:
-                        Internal._rmNodesByName(zsr,var_local)
+                        Internal._rmNodesByName(zsr, var_local)
                     
-                    _add_variables_tc_ibc(zsr,newIBCType,nIBC)
+                    _add_variables_tc_ibc(zsr, newIBCType, nIBC)
 
     return None
 

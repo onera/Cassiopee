@@ -659,17 +659,20 @@ def _removeBlankedGrids(t, loc='centers'):
         flag = 'centers:'+flag
     poschim=C.isNamePresent(t,loc+varc)
     posibc =C.isNamePresent(t,loc+vari)
-    if poschim != -1 and posibc != -1: C._initVars(t,'{%s}=abs(1.-{%s}*{%s})<0.5'%(flag,vari,varc))
-    elif poschim != -1 and posibc==-1: flag=varc
-    elif poschim == -1 and posibc!=-1: flag=vari        
-    else: return None
+
+    C._initVars(t,'{%s}=abs(1.-{%s}*{%s})<0.5'%(flag,vari,varc))
+    #if poschim != -1 and posibc != -1: C._initVars(t,'{%s}=abs(1.-{%s}*{%s})<0.5'%(flag,vari,varc))
+    #elif poschim != -1 and posibc==-1: flag=varc
+    #elif poschim == -1 and posibc!=-1: flag=vari        
+    #else: return None
 
     for z in Internal.getZones(t):
         if C.getMaxValue(z,flag) < 0.5:
             (parent,noz) = Internal.getParentOfNode(t, z)
             del parent[2][noz]
         else:
-            if poschim != -1 and posibc != -1: C._rmVars(z,[flag])
+            #if poschim != -1 and posibc != -1: C._rmVars(z,[flag])
+            C._rmVars(z,[flag])
     return None
 
 # =============================================================================
