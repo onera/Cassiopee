@@ -799,8 +799,6 @@ const char* varString, PyObject *out)
 //=============================================================================
 PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
 {
-  //todo VD
-
   PyObject *arr, *py_dict_transfo_to_list;
 
   if (!PyArg_ParseTuple(args, "OO", &arr, &py_dict_transfo_to_list)) return nullptr;

@@ -212,27 +212,26 @@ def setZonesAndJoinsUId(t):
           # if 'idx_min' in dict_VD[z1][z2]:
           if idx_perio in dict_VD[z1][z2]:
             if idx_min in dict_VD[z1][z2][idx_perio]:
-              idx_line = dict_VD[z1][z2][idx_perio][0].index(idx_min)
-
               r    = Internal.newIntegralData(name='rid', parent=rac)
-              r[1] = dict_VD[z1][z2][idx_perio][1][idx_line]
+              r[1] = dict_VD[z1][z2][idx_perio][idx_min]
             else:
               ir += 1
-              dict_VD[z1][z2][idx_perio][0].append(idx_min)
-              dict_VD[z1][z2][idx_perio][1].append(ir)
-
+              dict_VD[z1][z2][idx_perio][idx_min]=ir
+              
               r    = Internal.newIntegralData(name='rid', parent=rac) 
               r[1] = ir
           else:
             ir += 1
-            dict_VD[z1][z2][idx_perio] = [[idx_min], [ir]]
+            dict_VD[z1][z2][idx_perio] = {}
+            dict_VD[z1][z2][idx_perio][idx_min]=ir
 
             r    = Internal.newIntegralData(name='rid', parent=rac) 
             r[1] = ir
         else:
           ir += 1
           dict_VD[z1][z2] = {}
-          dict_VD[z1][z2][idx_perio] = [[idx_min], [ir]]
+          dict_VD[z1][z2][idx_perio] = {}
+          dict_VD[z1][z2][idx_perio][idx_min]=ir
 
           r    = Internal.newIntegralData(name='rid', parent=rac) 
           r[1] = ir
@@ -240,7 +239,8 @@ def setZonesAndJoinsUId(t):
         ir += 1
         dict_VD[z1] = {}
         dict_VD[z1][z2] = {}
-        dict_VD[z1][z2][idx_perio] = [[idx_min], [ir]]
+        dict_VD[z1][z2][idx_perio] = {}
+        dict_VD[z1][z2][idx_perio][idx_min]=ir
 
         r    = Internal.newIntegralData(name='rid', parent=rac) 
         r[1] = ir
