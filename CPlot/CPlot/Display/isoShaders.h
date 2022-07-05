@@ -76,7 +76,8 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax); 
     }
-    _shaders[shader]->setUniform("edgeStyle", (float)ptrState->isoEdges);
+    double resf = std::max(_view.w / 1080., 1.);
+    _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
   }
   // mix couleur de base
   _shaders[shader]->setUniform("MixRatio", (float)0.6*zonep->shaderParam1);
@@ -132,7 +133,8 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
-    _shaders[shader]->setUniform("edgeStyle", (float)ptrState->isoEdges);
+    double resf = std::max(_view.w / 1080., 1.);
+    _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
   }
   _shaders[shader]->setUniform("MixRatio", (float)0.9*zonep->shaderParam1);
   _shaders[shader]->setUniform("EnvMap", (int)2);
@@ -183,7 +185,8 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
-    _shaders[shader]->setUniform("edgeStyle", (float)ptrState->isoEdges);
+    double resf = std::max(_view.w / 1080., 1.);
+    _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
     if (ptrState->isoLight == 1 && ptrState->dim == 3)
       _shaders[shader]->setUniform("lightOn", (int)1);
     else _shaders[shader]->setUniform("lightOn", (int)0);
@@ -312,7 +315,8 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
-    _shaders[shader]->setUniform("edgeStyle", (float)ptrState->isoEdges);
+    double resf = std::max(_view.w / 1080., 1.);
+    _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
     _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
     _shaders[shader]->setUniform("ShadowMap", (int)0);
   }
@@ -353,7 +357,8 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
-    _shaders[shader]->setUniform("edgeStyle", (float)ptrState->isoEdges);
+    double resf = std::max(_view.w / 1080., 1.);
+    _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
     _shaders[shader]->setUniform("EdgeFalloff", (float)0.9*zonep->shaderParam1);
     //_shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
     //_shaders[shader]->setUniform("ShadowMap", (int)0);
@@ -399,7 +404,8 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax);
     }
-    _shaders[shader]->setUniform("edgeStyle", (float)ptrState->isoEdges);
+    double resf = std::max(_view.w / 1080., 1.);
+    _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
     _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
     _shaders[shader]->setUniform("ShadowMap", (int)0);
   }
@@ -441,7 +447,8 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amin", (float)amin);
       _shaders[shader]->setUniform("amax", (float)amax); 
     }
-    _shaders[shader]->setUniform("edgeStyle", (float)ptrState->isoEdges);
+    double resf = std::max(_view.w / 1080., 1.);
+    _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
     if (ptrState->isoLight == 1 && ptrState->dim == 3)
       _shaders[shader]->setUniform("lightOn", (int)1);
     else _shaders[shader]->setUniform("lightOn", (int)0);

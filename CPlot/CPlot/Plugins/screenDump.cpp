@@ -32,7 +32,8 @@
 //=============================================================================
 void Data::exportFile()
 {
-  if ((ptrState==NULL) || (ptrState->_isExporting==1)) {
+  if ((ptrState==NULL) || (ptrState->_isExporting==1)) 
+  {
     pthread_mutex_lock(&ptrState->export_mutex);
     //if (d->ptrState->shootScreen == 1)
     pthread_cond_wait (&ptrState->unlocked_export, &ptrState->export_mutex); 
@@ -464,7 +465,7 @@ void Data::dumpWindow()
     double r = _view.h * 1. / _view.w;
     if (ptrState->exportWidth != -1 && ptrState->exportHeight != -1)
     {
-      exportWidth = ptrState->exportWidth; 
+      exportWidth = ptrState->exportWidth;
       exportHeight = int(exportWidth * r);
     }
     else if (ptrState->exportWidth != -1 && ptrState->exportHeight == -1)
@@ -477,6 +478,7 @@ void Data::dumpWindow()
       exportHeight = ptrState->exportHeight;
       exportWidth = int(exportHeight * (1./r));
     }
+
     exportWidth = (exportWidth/2)*2;
     exportHeight = (exportHeight/2)*2; // doit etre pair
     
@@ -530,7 +532,7 @@ void Data::dumpWindow()
         _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
     }
 #endif
-						  
+    
     free(buffer);
   }
 }

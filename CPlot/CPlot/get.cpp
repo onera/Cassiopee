@@ -473,7 +473,7 @@ PyObject* K_CPLOT::getKeyboard(PyObject* self, PyObject* args)
 /*
   Return mouse position (coordinates in 3D space) and the mouse button
   state while dragging (GLUT_MIDDLE_BUTTON(1), GLUT_LEFT_BUTTON (0), 
-  GLUT_RIGHT_BUTTON (2), RELEASED (5)
+  GLUT_RIGHT_BUTTON (2), RELEASED (5))
 */
 //=============================================================================
 PyObject* K_CPLOT::getMouseState(PyObject* self, PyObject* args)

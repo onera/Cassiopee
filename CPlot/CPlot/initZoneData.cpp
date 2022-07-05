@@ -376,7 +376,6 @@ void Data::replaceVolumetricZones()
 
         delete _zones[i]; _szones[i] = znp;
         _zones[i] = znp;
-
       }
       else
       {

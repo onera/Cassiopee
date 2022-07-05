@@ -17,6 +17,9 @@ __timeStep__ = CPlot.__timeStep__
 # CPlot display fields localized in __LOCATION__ ('nodes' or 'centers')
 __LOCATION__ = 'nodes'
 
+# FILE name for default decorator output
+decorator = '.decorator.png'
+
 try:
     import Converter.PyTree as C
     import Converter.Internal as Internal

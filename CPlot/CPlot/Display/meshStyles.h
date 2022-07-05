@@ -1,4 +1,5 @@
   void complementColor(float r, float g, float b, float& ro, float& go, float& bo);
+  double resf = std::max(_view.w / 1080., 1.);
 
   switch (ptrState->meshStyle)
   {
@@ -9,7 +10,7 @@
       // Ecrasement si render tag
       if (zonep->colorR != -1.)
       { complementColor(zonep->colorR,zonep->colorG,zonep->colorB, color1[0],color1[1],color1[2]); }
-      glLineWidth(1.);
+      glLineWidth(1.*resf);
       break;
 
     case 1:
@@ -22,7 +23,7 @@
       // Ecrasement si render tag
       if (zonep->colorR != -1.)
       { color1[0] = zonep->colorR; color1[1] = zonep->colorG; color1[2] = zonep->colorB; }
-      glLineWidth(1.);
+      glLineWidth(1.*resf);
       break;
 
     case 2:
@@ -36,7 +37,7 @@
       // Ecrasement si render tag
       if (zonep->colorR != -1.)
       { complementColor(zonep->colorR,zonep->colorG,zonep->colorB, color1[0],color1[1],color1[2]); }  
-      glLineWidth(1.);
+      glLineWidth(1.*resf);
       break;
 
    case 3:
@@ -46,7 +47,7 @@
       // Ecrasement si render tag
       if (zonep->colorR != -1.)
       { complementColor(zonep->colorR,zonep->colorG,zonep->colorB, color1[0],color1[1],color1[2]); }  
-      glLineWidth(2.);
+      glLineWidth(2.*resf);
       break;
 
     case 4:
@@ -61,12 +62,12 @@
       // Ecrasement si render tag
       if (zonep->colorR != -1.)
       { complementColor(zonep->colorR,zonep->colorG,zonep->colorB, color1[0],color1[1],color1[2]); }  
-      glLineWidth(1.5);
+      glLineWidth(1.5*resf);
       break;
 
     default:
       color1[0] = 0.95; color1[1] = 0.95; color1[2] = 1.;
       color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.;
-      glLineWidth(1.);
+      glLineWidth(1.*resf);
       break;
   }

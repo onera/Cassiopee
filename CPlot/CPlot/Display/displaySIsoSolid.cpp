@@ -75,7 +75,8 @@ void DataDL::displaySIsoSolid()
       _shaders[s]->setUniform("amin", (float)amin);
       _shaders[s]->setUniform("amax", (float)amax); 
     }
-    _shaders[s]->setUniform("edgeStyle", (float)ptrState->isoEdges);
+    double resf = std::max(_view.w / 1080., 1.);
+    _shaders[s]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
     _shaders[s]->setUniform("lightOn", (int)0);
     _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
     _shaders[s]->setUniform("ShadowMap", (int)0);

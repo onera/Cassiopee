@@ -214,6 +214,12 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   // Assure la taille de la fenetre
   if (winx != -1) d->_view.w = winx;
   if (winy != -1) d->_view.h = winy;
+  if (offscreen > 0)
+  {
+    if (d->ptrState->exportWidth == -1) d->ptrState->exportWidth = 1920;
+    if (d->ptrState->exportHeight == -1) d->ptrState->exportHeight = 1080;
+    d->_view.w = d->ptrState->exportWidth; d->_view.h = d->ptrState->exportHeight;
+  }
   d->ptrState->render = 1;
 
   // Free the input arrays

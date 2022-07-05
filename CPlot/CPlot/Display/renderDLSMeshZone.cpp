@@ -90,7 +90,6 @@ void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
   E_Float nz = 1./_numberOfStructZones;
 #include "meshStyles.h"  
 
-    
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
@@ -127,20 +126,14 @@ void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
     if (zonep->blank == 0)
     {
       // No blanking
-      for (i = 0; i < ni*nj*nk; i++)
-      {
-        PLOTNODE;
-      }
+      for (i = 0; i < ni*nj*nk; i++) { PLOTNODE; }
     }
     else
     {
       for (i = 0; i < ni*nj*nk; i++)
       {
         ret = _pref.blanking->f(this, i, zonep->blank, zone);
-        if (ret != 0)
-        {
-          PLOTNODE;
-        }
+        if (ret != 0) { PLOTNODE; }
       }
     }
     glEnd();

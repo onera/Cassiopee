@@ -45,10 +45,11 @@ void DataDL::displayUSolid()
         ZoneImplDL *zoneImpl = static_cast<ZoneImplDL *>(zonep->ptr_impl);
 
         // if zone is active and in frustum
-        if (( zonep->active == 1 ||
-               ( zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1)) &&
+        if ((zonep->active == 1 ||
+               (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1)) &&
              isInFrustum( zonep, _view ) == 1 ) {
-            if ( ptrState->mode == RENDER && zonep->meshOverlay == 1 ) {
+            if (ptrState->mode == RENDER && zonep->meshOverlay == 1)
+            {
                 noLight();
                 _shaders.activate((short unsigned int)0);
                 displayUMeshZone(zonep, zone, zonet);
@@ -61,7 +62,7 @@ void DataDL::displayUSolid()
                 ptrState->alpha = zonep->blending;
                 if (ptrState->alpha < 0.9999) 
                 { 
-                    /*glEnable(GL_CULL_FACE);*/ glDepthMask( GL_FALSE );
+                    /*glEnable(GL_CULL_FACE);*/ glDepthMask(GL_FALSE);
                 }
             }
 
