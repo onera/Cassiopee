@@ -184,6 +184,24 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
     return Py_BuildValue("f", d->ptrState->isoEdges);
   else if (K_STRING::cmp(mode, "blanking") == 0) // automatic blanking with cellN
     return Py_BuildValue("i", d->ptrState->autoblank);
+  else if (K_STRING::cmp(mode, "isoScale") == 0) // iso scale of current field
+  {
+    int nofield = d->ptrState->scalarField;
+    if (nofield >= 0 && nofield < d->_nfield)
+    {
+      int niso = d->_niso[nofield];
+      double isoMin = d->_isoMin[nofield];
+      double isoMax = d->_isoMax[nofield];
+      return Py_BuildValue("[idd]",niso,isoMin,isoMax);
+    }
+    else return Py_BuildValue("[idd]",0,0.,0.);
+  }
+  else if (K_STRING::cmp(mode, "colormap1") == 0) // colormap-color1
+    return Py_BuildValue("(ddd)", d->ptrState->colormapR1, d->ptrState->colormapG1, d->ptrState->colormapB1);
+  else if (K_STRING::cmp(mode, "colormap2") == 0) // colormap-color2
+    return Py_BuildValue("(ddd)", d->ptrState->colormapR2, d->ptrState->colormapG2, d->ptrState->colormapB2);
+  else if (K_STRING::cmp(mode, "colormap3") == 0) // colormap-color3
+    return Py_BuildValue("(ddd)", d->ptrState->colormapR3, d->ptrState->colormapG3, d->ptrState->colormapB3);
   else
   {
     PyErr_SetString(PyExc_TypeError,

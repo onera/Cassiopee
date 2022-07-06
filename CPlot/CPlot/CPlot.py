@@ -253,23 +253,23 @@ def filterColormap(values):
         colormap=6; colormapC1='#000000'; colormapC2='#ffffff'
         if colormap == 14: colormap = 6
         elif colormap == 15: colormap = 7
-    elif colormap == 16 or colormap == 17: # viridis
+    elif colormap == 16 or colormap == 17: # Viridis
         colormapC2='#fde725'; colormapC3='#21918c'; colormapC1='#440154'
         if colormap == 16: colormap = 10
         elif colormap == 17: colormap = 11 
-    elif colormap == 18 or colormap == 19: # inferno
+    elif colormap == 18 or colormap == 19: # Inferno
         colormapC2='#fcffa4'; colormapC3='#bc3754'; colormapC1='#000004'
         if colormap == 18: colormap = 10
         elif colormap == 19: colormap = 11 
-    elif colormap == 20 or colormap == 21: # magma
+    elif colormap == 20 or colormap == 21: # Magma
         colormapC2='#fcfdbf'; colormapC3='#b73779'; colormapC1='#000004'
         if colormap == 20: colormap = 10
         elif colormap == 21: colormap = 11 
-    elif colormap == 22 or colormap == 23: # plasma
+    elif colormap == 22 or colormap == 23: # Plasma
         colormapC2='#f0f921'; colormapC3='#cc4778'; colormapC1='#0d0887'
         if colormap == 22: colormap = 10
         elif colormap == 23: colormap = 11
-    elif colormap == 24 or colormap == 25: # nice blue
+    elif colormap == 24 or colormap == 25: # NiceBlue
         colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
         if colormap == 24: colormap = 10
         elif colormap == 25: colormap = 11

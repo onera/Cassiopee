@@ -84,6 +84,7 @@ then
     pdflatex CPlot >& /dev/null
     pdflatex tkCassiopee >& /dev/null
     pdflatex tkPlotXY >& /dev/null
+    pdflatex Decorator >& /dev/null
     cd ..
 fi
 
@@ -102,9 +103,14 @@ then
     sed -i 's/CPlot.pdf/tkPlotXY.pdf/g' build/tkPlotXY.html
     cp build/tkPlotXY.html $DEST
 
+    taghtml build/Decorator.html
+    sed -i 's/CPlot.pdf/Decorator.pdf/g' build/Decorator.html
+    cp build/Decorator.html $DEST
+    
     cp build/CPlot.pdf $DEST
     cp build/tkCassiopee.pdf $DEST
     cp build/tkPlotXY.pdf $DEST
+    cp build/Decorator.pdf $DEST
 fi
 
 # Copie des release Notes

@@ -32,5 +32,5 @@ cpp_srcs = ["Intersector/conformUnstr.cpp",
 if mpi:
     cpp_srcs += ["PolyMeshTools/adaptCells_mpi.cpp"]
 else:
-    cpp_srcs += ["PolyMeshTools/Stubs/adaptCells_mpi_stub.cpp"]
+    cpp_srcs += ["PolyMeshTools/adaptCells_mpi_stub.cpp"]
 

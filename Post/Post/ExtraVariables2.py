@@ -68,7 +68,7 @@ def _computeVorticityMagnitude2(t, ghostCells=False):
     Internal._renameNode(t, 'magnitudeVorticityXVorticityYVorticityZ', 'VorticityMagnitude')
     return None
 
-# IN: centers:Velocity 
+# IN: centers:Velocity
 # OUT: centers:QCriterion
 def computeQCriterion2(t, ghostCells=False):
     """Compute Q criterion from velocity in centers."""
