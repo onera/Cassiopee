@@ -497,7 +497,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
-             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False):
+             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False,redistribute=False):
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -1297,6 +1297,27 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
     del tbbc
 
+    if redistribute:
+        ##Distribute over NP procs
+        if rank==0:print("REDISTRIBUTE - Final")
+        tmp_filename='tmp_tc_IBM_prep'
+        tcp = Compressor.compressCartesian(tc)
+        local_user= getpass.getuser()
+        local_pc  = socket.gethostname().split('-')
+
+        if 'sator' not in local_pc:
+            path2writetmp='/stck/'+local_user+'/'
+        else:
+            path2writetmp='/tmp_user/sator/'+local_user+'/'
+        tmp_filename = path2writetmp+tmp_filename+'.cgns'
+        Cmpi.convertPyTree2File(tcp, tmp_filename, ignoreProcNodes=True)
+        del tcp
+
+        tc    = Cmpi.convertFile2PyTree(tmp_filename)
+        stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
+        D2._copyDistribution(t, tc)    
+        if rank==0 and os.path.exists(tmp_filename):os.remove(tmp_filename)
+
     # Save tc
     if twoFronts:
         tc2 = Internal.copyTree(tc)
@@ -1350,6 +1371,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
     # Save t
+    checkNcellsNptsPerProc(tc,NP,isAtCenter=True)
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
@@ -1414,18 +1436,38 @@ def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
                         paths.append(p); ns.append(n)
             Filter.writeNodesFromPaths(tc2_in, paths, ns, maxDepth=0, mode=1)
 
-    # Affichage du nombre de points par proc - equilibrage ou pas
-    NptsTot = 0
-    for i in range(NP):
-        NPTS = 0
-        for z in Internal.getZones(ts):
-            if Cmpi.getProc(z) == i: NPTS += C.getNPts(z)
-        NptsTot += NPTS
-        print('Rank {} has {} points'.format(i,NPTS))
-    print('All points: {} million points'.format(NptsTot/1.e6))
+    checkNcellsNptsPerProc(ts,NP)
     return None
 
+def checkNcellsNptsPerProc(ts,NP,isAtCenter=False):
+    # Affichage du nombre de points par proc - equilibrage ou pas
+    NptsTot = 0
+    NcellsTot = 0
+    ncellslocal=[]
+    nptslocal  =[]
+    for i in range(NP):
+        NPTS = 0
+        NCELLS = 0
+        for z in Internal.getZones(ts):
+            if Cmpi.getProc(z) == i:
+                NPTS += C.getNPts(z)
+                if isAtCenter:
+                    NCELLS += C.getNCells(z)
+                else:
+                    NCELLS=NPTS
+        ncellslocal.append(NCELLS)
+        nptslocal.append(NPTS)
+                           
+        NptsTot   += NPTS
+        NcellsTot += NCELLS
+        print('Rank {} has {} points & {} cells'.format(i,NPTS,NCELLS))
+    print('All points: {} million points & {} million cells'.format(NptsTot/1.e6,NcellsTot/1.e6))
 
+    for i in range(NP):
+        ncellslocal[i] = ncellslocal[i]/NcellsTot
+        print('Rank {} :: {} % of cells'.format(i,ncellslocal[i]))
+    print('Range of % of cells: {} - {}'.format(min(ncellslocal),max(ncellslocal)))
+    return None
 
 
 class IBM(Common):
