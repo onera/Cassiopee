@@ -53,34 +53,24 @@ def setFilter(event=None):
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by name.\n')
 
-    # Filter by family name of zones
-    elif filterType == 'By family of zones':
-        familyName = VARS[0].get()
+    # Filter by family
+    if filterType == 'By zone family':
+        rexp = VARS[0].get()
+        exp = re.compile(rexp)
         bases = CTK.t[2][1:]
         active = []
-
+        family_select = C.getFamilyZones(bases, rexp)
+        list_fmly_slct=[]
+        for i in family_select:list_fmly_slct.append(i[0])
+        del family_select
         for b in bases:
-            baseName = b[0]
-            familyNodes = Internal.getNodesFromType1(b,'Family_t')
-            foundBase = False
-
-            if familyNodes is not None:
-                for familyNode in familyNodes:
-                    familyLoc = Internal.getName(familyNode)
-                    if familyLoc==familyName:
-                        foundBase = True
-                        break
-                if foundBase:
-                    for z in b[2]:
-                        if z[3] == 'Zone_t':
-                            zoneName = baseName + '/' + z[0]
-                            i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                            foundFam = False
-                            fnamenodes=Internal.getNodesFromType1(z, 'FamilyName_t')
-                            for fname in fnamenodes:
-                                if Internal.getValue(fname)==familyName: foundFam=True
-                            if foundFam: active.append((i,1))
-                            else: active.append((i,0))
+            baseName = b[0]            
+            for z in b[2]:
+                if z[3] == 'Zone_t':
+                    zoneName = baseName + '/' + z[0]
+                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    if z[0] in list_fmly_slct:active.append((i,1))
+                    else: active.append((i,0))
                     
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':
@@ -89,7 +79,8 @@ def setFilter(event=None):
                 if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
-        CTK.TXT.insert('START', 'Filtered by name.\n')
+        CTK.TXT.insert('START', 'Filtered by Family Name.\n')
+
     # Filter by number
     elif filterType == 'By number':
         no = VARS[0].get()
@@ -409,7 +400,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Action to be performed on filtered zones.')
     B.grid(row=0, column=0, sticky=TK.EW)
     
-    B = TTK.OptionMenu(Frame, VARS[1], 'By name', 'By zone family', 'By size >',
+    B = TTK.OptionMenu(Frame, VARS[1], 'By name', 'By zone family' ,'By size >',
                        'By size <', 'By MG lvl =', 'By MG lvl !=',
                        'By proc', 'By priority', 'By number', 
                        'By formula (or)', 'By formula (and)')
