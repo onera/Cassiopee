@@ -1136,6 +1136,7 @@ def untagSelection(event=None):
 #===================================
 def setupGlobal():
     global CASSIOPEE
+    CASSIOPEE = os.getenv('CASSIOPEE')
     # Create Local directory for valid products
     if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
         os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')

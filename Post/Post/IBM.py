@@ -2,7 +2,7 @@
 from . import PyTree as P
 import Connector.OversetData as XOD
 import Connector.PyTree as X
-import Connector.ToolboxIBM as TIBM
+import Connector.IBM as X_IBM
 import Connector.connector as connector
 import Converter
 import Converter.Distributed as Distributed
@@ -36,18 +36,285 @@ def _add_gradxi_P(z):
     return None
 
 
+#=============================================================================
+# Extraction des infos pour le post traitement
+# if td=None: return the cloud of points
+# else interpolate on td
+# input famZones: family of subregions to extract as a list ['FAM1','FAM2,...]
+#=============================================================================
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
+    xwNP = []; ywNP = []; zwNP = []
+    xiNP = []; yiNP = []; ziNP = []
+    xcNP = []; ycNP = []; zcNP = []
+    pressNP = []; utauNP = []; yplusNP = []; densNP = []
+    vxNP = []; vyNP = []; vzNP = []
+    KCurvNP = []
+    gradxPressureNP = []; gradyPressureNP = []; gradzPressureNP = []
+    conv1NP = []; conv2NP = []
+
+    dictOfFamilies={}
+    if famZones != []:
+        out = []
+        if front == 1:
+            allIBCD = Internal.getNodesFromName(tc,"IBCD_*")
+        else:
+            allIBCD = Internal.getNodesFromName(tc,"2_IBCD_*")
+        for zsr in allIBCD:
+            fam = Internal.getNodeFromType(zsr,'FamilyName_t')
+            if fam is not None:
+                famName=Internal.getValue(fam)
+                if famName in famZones:
+                    if famName not in dictOfFamilies: dictOfFamilies[famName]=[zsr]
+                    else: dictOfFamilies[famName]+=[zsr]
+
+
+        # Creation of a single zone
+        zsize = numpy.empty((1,3), numpy.int32, order='F')
+        zsize[0,0] = 1; zsize[0,1] = 0; zsize[0,2] = 0
+        dictOfZoneFamilies={}
+        for z in Internal.getZones(tb):
+            famName = Internal.getNodeFromType(z,'FamilyName_t')
+            if famName is not None:
+                famName = Internal.getValue(famName)
+                if famName in famZones:
+                    if famName not in dictOfZoneFamilies: dictOfZoneFamilies[famName]=[z]
+                    else: dictOfZoneFamilies[famName]+=[z]
+        for famName in dictOfFamilies:
+            zd = Internal.newZone(name='ZIBC_%s'%famName,zsize=zsize,ztype='Unstructured')
+            zd[2] += dictOfFamilies[famName]
+            tb2 = None
+            if tb is not None:
+                zones = dictOfZoneFamilies[famName]
+                if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
+
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[])
+            out+=Internal.getZones(zd)
+        return out
+
+    else:
+        allZSR = Internal.getNodesFromType(tc,'ZoneSubRegion_t')
+        if allZSR != []:
+            # allIBCD = Internal.getNodesFromName(allZSR,"IBCD_*")
+            if front == 1:
+                allIBCD = Internal.getNodesFromName(allZSR,"IBCD_*")
+            else:
+                allIBCD = Internal.getNodesFromName(allZSR,"2_IBCD_*")
+            for IBCD in allIBCD:
+                xPW = Internal.getNodeFromName1(IBCD,"CoordinateX_PW")[1]
+                yPW = Internal.getNodeFromName1(IBCD,"CoordinateY_PW")[1]
+                zPW = Internal.getNodeFromName1(IBCD,"CoordinateZ_PW")[1]
+                xwNP.append(xPW); ywNP.append(yPW); zwNP.append(zPW)
+
+                xPI = Internal.getNodeFromName1(IBCD,"CoordinateX_PI")[1]
+                yPI = Internal.getNodeFromName1(IBCD,"CoordinateY_PI")[1]
+                zPI = Internal.getNodeFromName1(IBCD,"CoordinateZ_PI")[1]
+                xiNP.append(xPI); yiNP.append(yPI); ziNP.append(zPI)
+
+                xPC = Internal.getNodeFromName1(IBCD,"CoordinateX_PC")[1]
+                yPC = Internal.getNodeFromName1(IBCD,"CoordinateY_PC")[1]
+                zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
+                xcNP.append(xPC); ycNP.append(yPC); zcNP.append(zPC)
+
+                PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
+                if PW is not None: pressNP.append(PW[1])
+                RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
+                if RHOW is not None: densNP.append(RHOW[1])
+                UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
+                if UTAUW is not None: utauNP.append(UTAUW[1])
+                YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
+                if YPLUSW is not None: yplusNP.append(YPLUSW[1])
+
+                VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
+                if VXW is not None: vxNP.append(VXW[1])
+                VYW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
+                if VYW is not None: vyNP.append(VYW[1])
+                VZW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
+                if VZW is not None: vzNP.append(VZW[1])
+
+                KCURVW = Internal.getNodeFromName1(IBCD, XOD.__KCURV__)
+                if KCURVW is not None: KCurvNP.append(KCURVW[1])
+
+                GRADXPW = Internal.getNodeFromName1(IBCD, XOD.__GRADXPRESSURE__)
+                if GRADXPW is not None: gradxPressureNP.append(GRADXPW[1])
+                GRADYPW = Internal.getNodeFromName1(IBCD, XOD.__GRADYPRESSURE__)
+                if GRADYPW is not None: gradyPressureNP.append(GRADYPW[1])
+                GRADZPW = Internal.getNodeFromName1(IBCD, XOD.__GRADZPRESSURE__)
+                if GRADZPW is not None: gradzPressureNP.append(GRADZPW[1])
+
+                CONV1PW = Internal.getNodeFromName1(IBCD, XOD.__CONV1__)
+                if CONV1PW is not None: conv1NP.append(CONV1PW[1])
+                CONV2PW = Internal.getNodeFromName1(IBCD, XOD.__CONV2__)
+                if CONV2PW is not None: conv2NP.append(CONV2PW[1])
+                
+    if pressNP == []: return None
+    else:
+        pressNP = numpy.concatenate(pressNP)
+        if densNP != []: densNP = numpy.concatenate(densNP)
+        if utauNP != []: utauNP = numpy.concatenate(utauNP)
+        if yplusNP != []: yplusNP = numpy.concatenate(yplusNP)
+        if vxNP != []: vxNP = numpy.concatenate(vxNP)
+        if vyNP != []: vyNP = numpy.concatenate(vyNP)
+        if vzNP != []: vzNP = numpy.concatenate(vzNP)
+
+        if KCurvNP != []: KCurvNP = numpy.concatenate(KCurvNP)
+
+        if gradxPressureNP != []: gradxPressureNP = numpy.concatenate(gradxPressureNP)
+        if gradyPressureNP != []: gradyPressureNP = numpy.concatenate(gradyPressureNP)
+        if gradzPressureNP != []: gradzPressureNP = numpy.concatenate(gradzPressureNP)
+
+        if conv1NP != []: conv1NP = numpy.concatenate(conv1NP)
+        if conv2NP != []: conv2NP = numpy.concatenate(conv2NP)
+
+        xwNP = numpy.concatenate(xwNP)
+        ywNP = numpy.concatenate(ywNP)
+        zwNP = numpy.concatenate(zwNP)
+
+        xiNP = numpy.concatenate(xiNP)
+        yiNP = numpy.concatenate(yiNP)
+        ziNP = numpy.concatenate(ziNP)
+
+        xcNP = numpy.concatenate(xcNP)
+        ycNP = numpy.concatenate(ycNP)
+        zcNP = numpy.concatenate(zcNP)
+
+    # Creation d une seule zone
+    zsize = numpy.empty((1,3), numpy.int32, order='F')
+    zsize[0,0] = xwNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
+    z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
+    gc = Internal.newGridCoordinates(parent=z)
+    if coordRef == 'cible':
+        coordx = ['CoordinateX',xcNP,[],'DataArray_t']
+        coordy = ['CoordinateY',ycNP,[],'DataArray_t']
+        coordz = ['CoordinateZ',zcNP,[],'DataArray_t']
+    elif coordRef == 'wall':
+        coordx = ['CoordinateX',xwNP,[],'DataArray_t']
+        coordy = ['CoordinateY',ywNP,[],'DataArray_t']
+        coordz = ['CoordinateZ',zwNP,[],'DataArray_t']
+    elif coordRef == 'image':
+        coordx = ['CoordinateX',xiNP,[],'DataArray_t']
+        coordy = ['CoordinateY',yiNP,[],'DataArray_t']
+        coordz = ['CoordinateZ',ziNP,[],'DataArray_t']
+    else:
+        coordx = ['CoordinateX',xwNP,[],'DataArray_t']
+        coordy = ['CoordinateY',ywNP,[],'DataArray_t']
+        coordz = ['CoordinateZ',zwNP,[],'DataArray_t']
+    gc[2] = [coordx,coordy,coordz]
+    n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
+    Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
+    Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
+    FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
+                                   gridLocation='Vertex', parent=z)
+    FSN[2].append([XOD.__PRESSURE__,pressNP, [],'DataArray_t'])
+    FSN[2].append([XOD.__DENSITY__,densNP, [],'DataArray_t'])
+
+    FSN[2].append(["CoordinateX_PW",xwNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateY_PW",ywNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateZ_PW",zwNP, [],'DataArray_t'])
+
+    FSN[2].append(["CoordinateX_PI",xiNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateY_PI",yiNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateZ_PI",ziNP, [],'DataArray_t'])
+
+    FSN[2].append(["CoordinateX_PC",xcNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateY_PC",ycNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateZ_PC",zcNP, [],'DataArray_t'])
+
+    utauPresent = 0; yplusPresent = 0
+    if utauNP != []:
+        utauPresent = 1
+        FSN[2].append([XOD.__UTAU__,utauNP, [],'DataArray_t'])
+    if yplusNP != []:
+        yplusPresent = 1
+        FSN[2].append([XOD.__YPLUS__,yplusNP, [],'DataArray_t'])
+    vxPresent = 0
+    if vxNP != []:
+        vxPresent = 1
+        FSN[2].append([XOD.__VELOCITYX__,vxNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__VELOCITYY__,vyNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__VELOCITYZ__,vzNP, [],'DataArray_t'])
+
+    kcurvPresent = 0
+    if KCurvNP != []:
+        kcurvPresent = 1
+        FSN[2].append([XOD.__KCURV__,KCurvNP, [],'DataArray_t'])
+
+    gradxPressurePresent = 0
+    if gradxPressureNP != []:
+        gradxPressurePresent = 1
+        FSN[2].append([XOD.__GRADXPRESSURE__,gradxPressureNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__GRADYPRESSURE__,gradyPressureNP, [],'DataArray_t'])
+        FSN[2].append([XOD.__GRADZPRESSURE__,gradzPressureNP, [],'DataArray_t'])
+
+    conv1Present = 0
+    if conv1NP != []:
+        conv1Present = 1
+        FSN[2].append([XOD.__CONV1__,conv1NP, [],'DataArray_t'])
+        FSN[2].append([XOD.__CONV2__,conv2NP, [],'DataArray_t'])
+
+    if tb is None: return z
+    else:
+        dimPb = Internal.getNodeFromName(tb,'EquationDimension')
+        if dimPb is None:
+            print('Warning: extractIBMWallFields: pb dimension is set to 3.')
+            dimPb = 3
+        else:
+            dimPb = Internal.getValue(dimPb)
+        td = Internal.copyRef(tb)
+        # Force toutes les zones dans une seule base
+        #td = C.newPyTree(['Wall',Internal.getZones(tb)])
+        for nob in range(len(td[2])):
+            b = td[2][nob]
+            if b[3] == 'CGNSBase_t':
+                zones = Internal.getNodesFromType1(b, 'Zone_t')
+                if zones != []:
+                    zones = C.convertArray2Tetra(zones)
+                    zones = T.join(zones); zones = G.close(zones)
+                    b[2] = [zones]
+        C._initVars(td,"CoordinateX_PW",0.)
+        C._initVars(td,"CoordinateY_PW",0.)
+        C._initVars(td,"CoordinateZ_PW",0.)
+
+        C._initVars(td,"CoordinateX_PI",0.)
+        C._initVars(td,"CoordinateY_PI",0.)
+        C._initVars(td,"CoordinateZ_PI",0.)
+
+        C._initVars(td,"CoordinateX_PC",0.)
+        C._initVars(td,"CoordinateY_PC",0.)
+        C._initVars(td,"CoordinateZ_PC",0.)
+
+        C._initVars(td,XOD.__PRESSURE__,0.)
+        C._initVars(td,XOD.__DENSITY__,0.)
+        if utauPresent==1: C._initVars(td,XOD.__UTAU__,0.)
+        if yplusPresent==1: C._initVars(td,XOD.__YPLUS__,0.)
+        if vxPresent==1:
+            C._initVars(td,XOD.__VELOCITYX__,0.)
+            C._initVars(td,XOD.__VELOCITYY__,0.)
+            C._initVars(td,XOD.__VELOCITYZ__,0.)
+        if kcurvPresent==1:
+            C._initVars(td,XOD.__KCURV__,0.)
+        if gradxPressurePresent==1:
+            C._initVars(td,XOD.__GRADXPRESSURE__,0.)
+            C._initVars(td,XOD.__GRADYPRESSURE__,0.)
+            C._initVars(td,XOD.__GRADZPRESSURE__,0.)
+        if conv1Present==1:
+            C._initVars(td,XOD.__CONV1__,0.)
+            C._initVars(td,XOD.__CONV2__,0.)
+        print("projectCloudSolution for dim {}".format(dimPb))
+        td = P.projectCloudSolution(z, td, dim=dimPb)
+        return td
+
+
 def extractIBMInfo(tc_in, filename_out='IBMInfo.cgns'):
     """Extracts the geometrical information required for the IBM (i.e. wall points, target points, and image points).
     Usage: extractIBMInfo (tc_in, filename_out)"""
     if isinstance(tc_in, str): tc = Cmpi.convertFile2PyTree(tc_in)
     else: tc = tc_in
 
-    tibm = TIBM.extractIBMInfo(tc)
+    tibm = X_IBM.extractIBMInfo(tc)
     rank = Cmpi.rank
     Distributed._setProc(tibm,rank)
     if isinstance(filename_out, str): Cmpi.convertPyTree2File(tibm, filename_out)
     return tibm
-
 
 #===========================================================
 # IN: ts: geometry tree with solution
@@ -242,10 +509,11 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
             for z in Internal.getZones(tc):
                 _add_gradxi_P(z)
 
-            if order < 2:
-                tc = extractPressureHO(tc)
-            else:
-                tc = extractPressureHO2(tc)
+            if tc2 is None:
+                if order < 2:
+                    tc = extractPressureHO(tc)
+                else:
+                    tc = extractPressureHO2(tc)
 
         # add gradP fields in tc2 if necessary
         if tc2 is not None: 
@@ -266,13 +534,13 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
         zw = Internal.getZones(tb)
         zw = T.join(zw)
     else:
-        zw = TIBM.extractIBMWallFields(tc, tb=tb, famZones=famZones)
+        zw = extractIBMWallFields(tc, tb=tb, famZones=famZones)
 
     #====================================
     # Extract pressure info from tc2 to tc
     #====================================
     if tc2 is not None:
-        zw2 = TIBM.extractIBMWallFields(tc2, tb=tb, famZones=famZones, front=1)
+        zw2 = extractIBMWallFields(tc2, tb=tb, famZones=famZones, front=1)
         zones_zw  = []
         zones_zw2 = []
         for zone in Internal.getZones(zw): zones_zw.append(zone[0])
@@ -435,7 +703,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
                           Gamma=Gamma, Cv=cvInf, MuS=Mus, 
                           Cs=Cs, Ts=Ts)
     
-    zw = TIBM.extractIBMWallFields(tc, tb=tb)
+    zw = extractIBMWallFields(tc, tb=tb)
     RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
     C._initVars(zw,'{Cp}=2*%f*({Pressure}-%f)*%f'%(RoInf,PInf,RoUInf2I))
     if model != 'Euler':
@@ -473,9 +741,6 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     if isinstance(t_out, str): C.convertPyTree2File(t, t_out)
 
     return t, zw
-
-
-
 
 
 #=============================================================================
@@ -892,7 +1157,7 @@ def prepareWallReconstruction(tw, tc):
         snearval = Internal.getValue(snear)
         tolBB = max(tolBB,2*snearval)
 
-    tcw = TIBM.createIBMWZones(tc,variables=[])
+    tcw = X_IBM.createIBMWZones(tc,variables=[])
 
     nzones = len(Internal.getZones(tcw))
 

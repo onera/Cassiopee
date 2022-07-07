@@ -83,6 +83,7 @@ then
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex Generator >& /dev/null
+    pdflatex Generator_IBM 
     cd ..
 fi
 
@@ -93,6 +94,12 @@ then
     sed -i 's/Generator.Generator/Generator/g' build/Generator.html
     cp build/Generator.html $DEST
     cp build/Generator.pdf $DEST
+
+    taghtml build/Generator_IBM.html
+    sed -i 's/Generator.Generator_IBM.Generator.Generator_IBM/Generator.Generator_IBM/g' build/Generator_IBM.html
+    sed -i 's/Generator\.pdf/Generator_IBM\.pdf/g' build/Generator_IBM.html
+    cp build/Generator_IBM.html $DEST
+    cp build/Generator_IBM.pdf $DEST
 fi
 
 # Copie des release Notes
