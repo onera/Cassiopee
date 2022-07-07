@@ -30,7 +30,8 @@ using namespace K_SEARCH;
 PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
 {
   PyObject *blks, *bodiesC;
-  if (!PyArg_ParseTuple(args, "OO", &blks, &bodiesC)) return NULL;
+  E_Int isminortho;
+  if (!PyArg_ParseTuple(args, "OOi", &blks, &bodiesC, &isminortho)) return NULL;
   
   if (PyList_Check(blks) == 0)
   {
@@ -138,7 +139,6 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     structF, unstrF, nit, njt, nkt, cnt, eltTypeb, objs, obju, 
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nwalls = unstrF.size();
-
   if (nwalls == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -151,7 +151,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
       RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
     return NULL;
   }
-  
+
   // verification de posxv, posyv, poszv dans bodiesC  
   vector<E_Int> posxv;  vector<E_Int> posyv;  vector<E_Int> poszv;
   vector<E_Int> poscv;
@@ -179,7 +179,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   if (structF0.size() > 0) 
     computeMininterf(ncellss, posx, posy, posz, 
                      structF0, posxv, posyv, poszv, poscv, unstrF, 
-                     distances);
+                     distances,cnt,isminortho);
   vector<FldArrayF*> distancesu;
   for (E_Int i = 0; i < nu0; i++)
   {
@@ -191,7 +191,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   if (unstrF0.size() > 0)
     computeMininterf(ncellsu, posx, posy, posz,
                      unstrF0, posxv, posyv, poszv, poscv, unstrF, 
-                     distancesu);
+                     distancesu,cnt,isminortho);
 
   for (E_Int nos = 0; nos < nwalls; nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
@@ -227,24 +227,27 @@ void K_DIST2WALLS::computeMininterf(
   vector<FldArrayF*>& fields, 
   vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv, 
   vector<E_Int>& poscv, vector<FldArrayF*>& fieldsw, 
-  vector<FldArrayF*>& distances)
+  vector<FldArrayF*>& distances,vector<FldArrayI*>& cntw,E_Int isminortho)
 {
-  /* 1 - creation du kdtree */
-  E_Int nwalls = fieldsw.size();
-  E_Int nptsmax = 0;
-  for (E_Int v = 0; v < nwalls; v++)
-  {
-    FldArrayF* fieldv = fieldsw[v];
-    nptsmax += fieldv->getSize();
-  }
 
+  /* 1 - creation du kdtree */
+  E_Int nwalls = fieldsw.size(); // number of zones
+  E_Int nptsmax = 0;
+  E_Int npts_local = 0;
+  vector<vector< vector<E_Int>  > >cVE_all;
+  vector<E_Int> npts_walls_limit;
+  for (E_Int v = 0; v < nwalls; v++)
+    {
+      nptsmax += fieldsw[v]->getSize();
+#include "mininterf_ortho_npts_limit.h"
+    }
   FldArrayF* wallpts = new FldArrayF(nptsmax,3);
   E_Float* xw2 = wallpts->begin(1);
   E_Float* yw2 = wallpts->begin(2);
   E_Float* zw2 = wallpts->begin(3);
   E_Int c = 0;
   E_Int nzones = fields.size();
-
+  
   for (E_Int v = 0; v < nwalls; v++)
   {
     FldArrayF* fieldv = fieldsw[v];
@@ -263,7 +266,7 @@ void K_DIST2WALLS::computeMininterf(
     }
   } // fin kdtree
   if (c != wallpts->getSize()) wallpts->reAllocMat(c, 3);
-
+  
   if (c == 0)
   {
     for (E_Int v = 0; v < nzones; v++) 
@@ -282,7 +285,7 @@ void K_DIST2WALLS::computeMininterf(
   
   ArrayAccessor<FldArrayF> coordAcc(*wallpts, 1,2,3);
   KdTree<FldArrayF> kdt(coordAcc, E_EPSILON);
-
+  
   /* Detection de la paroi la plus proche */
   E_Float pt[3];
   for (E_Int v = 0; v < nzones; v++)
@@ -292,20 +295,36 @@ void K_DIST2WALLS::computeMininterf(
     E_Float* yt = fields[v]->begin(posy);
     E_Float* zt = fields[v]->begin(posz);
     E_Float* distancep = distances[v]->begin();
-
+    if (isminortho==1){
 #pragma omp parallel for default(shared) private(pt) schedule(dynamic)
-    for (E_Int ind = 0; ind < ncells; ind++)
-    {
-      E_Int indw2;
-      E_Float dist, dx, dy, dz;
-      pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
-      indw2 = kdt.getClosest(pt);
-      dx = xw2[indw2]-pt[0];
-      dy = yw2[indw2]-pt[1];
-      dz = zw2[indw2]-pt[2];
-      dist = dx*dx + dy*dy + dz*dz;
-      distancep[ind] = sqrt(dist);
-    } // fin boucle
+      for (E_Int ind = 0; ind < ncells; ind++)
+	{
+	  E_Int ret, vw;
+	  E_Int indw2,indw3;
+	  E_Float dist, distmin, dx, dy, dz;
+	  pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
+	  indw2 = kdt.getClosest(pt);
+#include "mininterf.h"
+#include "mininterf_ortho.h"
+	  if (ret != -1){
+	    dx = xp_local-pt[0]; dy = yp_local-pt[1]; dz = zp_local-pt[2];
+	    dist = dx*dx + dy*dy + dz*dz;
+	    if (dist < distmin) { distancep[ind] = sqrt(dist); distmin = dist; }
+	  }
+	} // fin boucle
+    }
+    else{
+#pragma omp parallel for default(shared) private(pt) schedule(dynamic)
+      for (E_Int ind = 0; ind < ncells; ind++)
+	{
+	  E_Int ret, vw;
+	  E_Int indw2;
+	  E_Float dist, distmin, dx, dy, dz;
+	  pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
+	  indw2 = kdt.getClosest(pt);
+#include "mininterf.h"
+	} // fin boucle
+    }
   }
   delete wallpts;
 }

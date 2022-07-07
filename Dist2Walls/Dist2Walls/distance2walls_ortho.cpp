@@ -34,7 +34,10 @@ using namespace K_SEARCH;
 PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
 {
   PyObject *centers, *bodiesC;
-  if (!PyArg_ParseTuple(args, "OO", &centers, &bodiesC)) return NULL;
+  E_Int isminortho;
+  E_Int isIBM_F1;
+  E_Float dTarget;
+  if (!PyArg_ParseTuple(args, "OOiid", &centers, &bodiesC, &isminortho, &isIBM_F1, &dTarget)) return NULL;
   
   if (PyList_Check(centers) == 0)
   {
@@ -49,6 +52,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
                     "distance2Walls: 2nd argument must be a list.");
     return NULL;
   }
+  
   // Maillage en noeuds
   // les coordonnees doivent etre en premier
   vector<PyObject*> objsn, objun;
@@ -206,11 +210,11 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   if (structFn.size() > 0)
     computeOrthoDist(ncellss, posx, posy, posz, posflags, 
                      structFn, posxv, posyv, poszv, poscv, unstrF, cnt,
-                     distances);
+                     distances,isminortho,isIBM_F1,dTarget);
   if (unstrFn.size() > 0)
     computeOrthoDist(ncellsu, posx, posy, posz, posflagu,
                      unstrFn, posxv, posyv, poszv, poscv, unstrF, cnt, 
-                     distancesu);
+                     distancesu,isminortho,isIBM_F1,dTarget);
 
   for (E_Int nos = 0; nos < nwalls; nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
@@ -248,17 +252,24 @@ void K_DIST2WALLS::computeOrthoDist(
   vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv, 
   vector<E_Int>& poscv,
   vector<FldArrayF*>& fieldsw, vector<FldArrayI*>& cntw,
-  vector<FldArrayF*>& distances)
+  vector<FldArrayF*>& distances,E_Int isminortho, E_Int isIBM_F1,E_Float dTarget)
 {
   E_Int nzones = fields.size();
   /* 1 - creation du kdtree et du bbtree */
   typedef K_SEARCH::BoundingBox<3> BBox3DType; 
   E_Float minB[3]; E_Float maxB[3];
   vector< vector<BBox3DType*> > vectOfBoxes; // a detruire a la fin
-  
   // allocate kdtree array: kdtree points are cell vertices
-  E_Int nwalls = cntw.size(); E_Int nptsmax = 0; 
-  for (E_Int v = 0; v < nwalls; v++) nptsmax += fieldsw[v]->getSize();
+  E_Int nwalls = cntw.size();
+  E_Int nptsmax = 0;
+  E_Int npts_local = 0;
+  vector<vector< vector<E_Int>  > >cVE_all;
+  vector<E_Int> npts_walls_limit;
+  for (E_Int v = 0; v < nwalls; v++)
+    {
+      nptsmax += fieldsw[v]->getSize();
+#include "mininterf_ortho_npts_limit.h"
+    }
   FldArrayF* wallpts = new FldArrayF(nptsmax, 3);
   FldArrayF* lmax = new FldArrayF(nptsmax);
 
@@ -362,7 +373,7 @@ void K_DIST2WALLS::computeOrthoDist(
     
 #pragma omp parallel default(shared) private(minB, maxB, pt, indicesBB, candidates)
     {
-    E_Int ret;
+    E_Int ret,vw;
     E_Float dist, dx, dy, dz, xp, yp, zp, rx, ry, rz, rad;
     E_Float distmin, prod;
     E_Int et, ind10, indw2, nbb, nvert;

@@ -18,15 +18,15 @@ fim_old = 2
 #==============================================================================
 # Calcul de la distance a la paroi pour a (tree, base, zone)
 #==============================================================================
-def distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3):
+def distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isIBM_F1=False, dTarget=1000.):
     """Compute distance field.
     Usage: distance2Walls(a, bodies, type, loc, signed, dim)"""
     tp = Internal.copyRef(t)
-    _distance2Walls(tp, bodies, type, loc, signed, dim)
+    _distance2Walls(tp, bodies, type, loc, signed, dim, isIBM_F1=isIBM_F1, dTarget=dTarget)
     return tp
 
 #==============================================================================
-def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3):
+def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isIBM_F1=False, dTarget=1000.):
     """Compute distance field.
     Usage: distance2Walls(a, bodies, type, loc, signed, dim)"""
     if loc != 'centers': loc = 'nodes'
@@ -57,7 +57,7 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3):
 
     distances = Dist2Walls.distance2Walls(
         coords, bodiesa, flags=flag, cellnbodies=cellnba, type=type,
-        loc=loc, signed=signed, dim=dim)
+        loc=loc, signed=signed, dim=dim, isIBM_F1=isIBM_F1,dTarget=dTarget)
     
     for nz in range(len(distances)):
         nozorig = orderedZones[nz]
@@ -75,6 +75,7 @@ def eikonal(t,tc=None,loc='nodes',nitmax=10, err=0.01,algo=fim_old):
     tp = Internal.copyRef(t)
     _eikonal(tp,tc=tc,loc=loc, nitmax=nitmax, err=err, algo=algo)
     return tp
+
 
 def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
     MB = 1
@@ -318,3 +319,6 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
         C._initVars(t,'{centers:TurbulentDistance}={centers:sign}*{centers:Phi}')
         C._rmVars(t,['centers:flag','centers:PhiM','centers:DPhi','centers:speed','centers:Phi']) # pour l instant on detruit tout
     return t
+
+
+

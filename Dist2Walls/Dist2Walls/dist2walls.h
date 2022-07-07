@@ -30,7 +30,8 @@ namespace K_DIST2WALLS
     std::vector<K_FLD::FldArrayF*>& fields, 
     std::vector<E_Int>& posxv, std::vector<E_Int>& posyv, std::vector<E_Int>& poszv, 
     std::vector<E_Int>& poscv, std::vector<K_FLD::FldArrayF*>& fieldsw, 
-    std::vector<K_FLD::FldArrayF*>& distances);
+    std::vector<K_FLD::FldArrayF*>& distances,
+    std::vector<K_FLD::FldArrayI*>& cntw,E_Int isminortho);
   void computeMininterfSigned(
     std::vector<E_Int>& ncellst,
     E_Int posx, E_Int posy, E_Int posz, 
@@ -47,7 +48,7 @@ namespace K_DIST2WALLS
     std::vector<E_Int>& poscv, 
     std::vector<K_FLD::FldArrayF*>& fieldsw, 
     std::vector<K_FLD::FldArrayI*>& cntw,
-    std::vector<K_FLD::FldArrayF*>& distances);
+    std::vector<K_FLD::FldArrayF*>& distances,E_Int isminortho,E_Int isIBM_F1,E_Float dTarget);
   void computeSignedOrthoDist(
     std::vector<E_Int>& ncellst,
     E_Int posx, E_Int posy, E_Int posz, 
