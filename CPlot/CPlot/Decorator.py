@@ -32,6 +32,25 @@ def createColormap(type='Blue2Red'):
         c2 = CPlot.getState('colormap2')
         colors = [(0.00,[c1[0],c1[1],c1[2]]),
                   (1.00,[c2[0],c2[1],c2[2]])]
+    elif type == 'BiColorHSV':
+        c1 = CPlot.getState('colormap1')
+        c2 = CPlot.getState('colormap2')
+        colors = [(0.00,[c1[0],c1[1],c1[2]]),
+                  (1.00,[c2[0],c2[1],c2[2]])]
+    elif type == 'TriColorRGB':
+        c1 = CPlot.getState('colormap1')
+        c2 = CPlot.getState('colormap2')
+        c3 = CPlot.getState('colormap3')
+        colors = [(0.00,[c1[0],c1[1],c1[2]]),
+                  (0.50,[c3[0],c3[1],c3[2]]),
+                  (1.00,[c2[0],c2[1],c2[2]])]
+    elif type == 'TriColorHSV':
+        c1 = CPlot.getState('colormap1')
+        c2 = CPlot.getState('colormap2')
+        c3 = CPlot.getState('colormap3')
+        colors = [(0.00,[c1[0],c1[1],c1[2]]),
+                  (0.50,[c3[0],c3[1],c3[2]]),
+                  (1.00,[c2[0],c2[1],c2[2]])]
     elif type == 'Black2White':
         colors = [(0.00,[0.,0.,0.]),
                   (1.00,[1.,1.,1.])]

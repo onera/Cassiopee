@@ -57,7 +57,7 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isI
 
     distances = Dist2Walls.distance2Walls(
         coords, bodiesa, flags=flag, cellnbodies=cellnba, type=type,
-        loc=loc, signed=signed, dim=dim, isIBM_F1=isIBM_F1,dTarget=dTarget)
+        loc=loc, signed=signed, dim=dim, isIBM_F1=isIBM_F1, dTarget=dTarget)
     
     for nz in range(len(distances)):
         nozorig = orderedZones[nz]

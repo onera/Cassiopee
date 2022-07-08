@@ -210,11 +210,11 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   if (structFn.size() > 0)
     computeOrthoDist(ncellss, posx, posy, posz, posflags, 
                      structFn, posxv, posyv, poszv, poscv, unstrF, cnt,
-                     distances,isminortho,isIBM_F1,dTarget);
+                     distances, isminortho, isIBM_F1, dTarget);
   if (unstrFn.size() > 0)
     computeOrthoDist(ncellsu, posx, posy, posz, posflagu,
                      unstrFn, posxv, posyv, poszv, poscv, unstrF, cnt, 
-                     distancesu,isminortho,isIBM_F1,dTarget);
+                     distancesu, isminortho, isIBM_F1, dTarget);
 
   for (E_Int nos = 0; nos < nwalls; nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
@@ -252,7 +252,7 @@ void K_DIST2WALLS::computeOrthoDist(
   vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv, 
   vector<E_Int>& poscv,
   vector<FldArrayF*>& fieldsw, vector<FldArrayI*>& cntw,
-  vector<FldArrayF*>& distances,E_Int isminortho, E_Int isIBM_F1,E_Float dTarget)
+  vector<FldArrayF*>& distances,E_Int isminortho, E_Int isIBM_F1, E_Float dTarget)
 {
   E_Int nzones = fields.size();
   /* 1 - creation du kdtree et du bbtree */
@@ -266,10 +266,10 @@ void K_DIST2WALLS::computeOrthoDist(
   vector<vector< vector<E_Int>  > >cVE_all;
   vector<E_Int> npts_walls_limit;
   for (E_Int v = 0; v < nwalls; v++)
-    {
-      nptsmax += fieldsw[v]->getSize();
+  {
+    nptsmax += fieldsw[v]->getSize();
 #include "mininterf_ortho_npts_limit.h"
-    }
+  }
   FldArrayF* wallpts = new FldArrayF(nptsmax, 3);
   FldArrayF* lmax = new FldArrayF(nptsmax);
 
@@ -383,23 +383,23 @@ void K_DIST2WALLS::computeOrthoDist(
 
     if (isFlagged == true)
     {
-        #pragma omp for schedule(dynamic)
-        for (E_Int ind = 0; ind < npts; ind++)
+      #pragma omp for schedule(dynamic)
+      for (E_Int ind = 0; ind < npts; ind++)
+      {
+        if (flagp[ind] == 0.) { ; }
+        else
         {
-            if (flagp[ind] == 0.) { ;}
-            else
-            {
-                #include "algoOrtho.h"
-            }
-        }   
+          #include "algoOrtho.h"
+        }
+      }   
     }
     else
     {
-        #pragma omp for schedule(dynamic)
-        for (E_Int ind = 0; ind < npts; ind++)
-        {
-            #include "algoOrtho.h"
-        }  
+      #pragma omp for schedule(dynamic)
+      for (E_Int ind = 0; ind < npts; ind++)
+      {  
+        #include "algoOrtho.h"
+      }  
     }
     
     } // omp

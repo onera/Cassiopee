@@ -793,6 +793,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   if (solidStyle != -1) ptrState->solidStyle = solidStyle;
   if (colormap != -1)
   {
+    ptrState->colormap = colormap;
     ptrState->isoLight = 0;
     _pref.colorMap = _plugins.colorMap;
     for (int i = 0; i < colormap/2; i++)

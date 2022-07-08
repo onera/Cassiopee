@@ -39,7 +39,7 @@ def signDistance__(zones, distances, bodies, loc, dimPb):
 # liste de surfaces (bodies) et d'une liste de champs celln associee a bodies
 # ==============================================================================
 def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
-                   loc='centers', signed=0, dim=3, isIBM_F1=False,dTarget=1000.):
+                   loc='centers', signed=0, dim=3, isIBM_F1=False, dTarget=1000.):
     """Compute distance to walls.
        Usage: distance2Walls(zones, bodies, cellnbodies, type, loc, signed, dim)"""
       
@@ -54,7 +54,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
     if loc != 'centers' and loc != 'nodes':
         raise ValueError("distance2Walls: loc must be centers or nodes.")
     if type != 'ortho' and type != 'mininterf' and type != 'mininterf_ortho' and type != 'ortho_local':
-        raise ValueError("distance2Walls: type must be ortho, mininterf, mininterf_ortho, or ortho_local.")
+        raise ValueError("distance2Walls: type must be ortho, mininterf, mininterf_ortho or ortho_local.")
 
     # Recuperation du cellN en noeuds ou centres selon loc
     bodies0 = []  # argument dans la fonction c associe a bodies et cellN
@@ -86,12 +86,12 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
                     if flags[noz] != []:
                         zones[noz] = C.addVars([zones[noz], flags[noz]])
             isminortho = 0
-            if type=="ortho_local":isminortho=1
-            dist = dist2walls.distance2WallsOrtho(zones, bodies0,isminortho,int(isIBM_F1),dTarget)
+            if type == "ortho_local": isminortho = 1
+            dist = dist2walls.distance2WallsOrtho(zones, bodies0, isminortho, int(isIBM_F1), dTarget)
         else:
             isminortho = 0
-            if type == 'mininterf_ortho':isminortho=1
-            dist = dist2walls.distance2Walls(zones, bodies0,isminortho)
+            if type == 'mininterf_ortho': isminortho = 1
+            dist = dist2walls.distance2Walls(zones, bodies0, isminortho)
 
     elif loc == 'centers':
         zonesc = C.node2Center(zones)
@@ -101,21 +101,19 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
                     if flags[noz] != []:
                         zonesc[noz] = C.addVars([zonesc[noz], flags[noz]])
             isminortho = 0
-            if type=="ortho_local":isminortho=1
+            if type == "ortho_local": isminortho = 1
             dist = dist2walls.distance2WallsOrtho(zonesc, bodies0,isminortho,int(isIBM_F1),dTarget)
         else:
             isminortho = 0
-            if type == 'mininterf_ortho':isminortho=1
+            if type == 'mininterf_ortho': isminortho = 1
             dist = dist2walls.distance2Walls(zonesc, bodies0,isminortho)
 
     # distance signee
     if signed == 1:
         dist = signDistance__(zones, dist, bodies0, loc, dim)
 
-    if onezone == 1:
-        return dist[0]
-    else:
-        return dist
+    if onezone == 1: return dist[0]
+    else: return dist
 
 
 # ========================================================================================

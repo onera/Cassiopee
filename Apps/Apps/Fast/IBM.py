@@ -436,7 +436,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
-             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False,redistribute=False):
+             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False):
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -1237,25 +1237,25 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     del tbbc
 
     if redistribute:
-        ##Distribute over NP procs
-        if rank==0:print("REDISTRIBUTE - Final")
-        tmp_filename='tmp_tc_IBM_prep'
+        # Distribute over NP procs
+        if rank == 0: print("REDISTRIBUTE - Final")
+        tmpFilename = 'tmp_tc_IBM_prep'
         tcp = Compressor.compressCartesian(tc)
-        local_user= getpass.getuser()
-        local_pc  = socket.gethostname().split('-')
+        localUser= getpass.getuser()
+        localPc  = socket.gethostname().split('-')
 
-        if 'sator' not in local_pc:
-            path2writetmp='/stck/'+local_user+'/'
+        if 'sator' not in localPc:
+            path2writetmp='/stck/'+localUser+'/'
         else:
-            path2writetmp='/tmp_user/sator/'+local_user+'/'
-        tmp_filename = path2writetmp+tmp_filename+'.cgns'
-        Cmpi.convertPyTree2File(tcp, tmp_filename, ignoreProcNodes=True)
+            path2writetmp='/tmp_user/sator/'+localUser+'/'
+        tmpFilename = path2writetmp+tmpFilename+'.cgns'
+        Cmpi.convertPyTree2File(tcp, tmpFilename, ignoreProcNodes=True)
         del tcp
 
-        tc    = Cmpi.convertFile2PyTree(tmp_filename)
+        tc    = Cmpi.convertFile2PyTree(tmpFilename)
         stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
         D2._copyDistribution(t, tc)    
-        if rank==0 and os.path.exists(tmp_filename):os.remove(tmp_filename)
+        if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
 
     # Save tc
     if twoFronts:

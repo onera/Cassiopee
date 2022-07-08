@@ -216,6 +216,8 @@ latex_documents = [
    u'/ELSA/MU-10020/V'+__version__, 'manual'),
   ('tkPlotXY', 'tkPlotXY.tex', u'tkPlotXY Documentation',
    u'/ELSA/MU-10020/V'+__version__, 'manual'),
+  ('Decorator', 'Decorator.tex', u'Decorator Documentation',
+   u'/ELSA/MU-10020/V'+__version__, 'manual'), 
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

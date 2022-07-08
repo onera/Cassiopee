@@ -30,7 +30,7 @@ def setFilter(event=None):
     filterType = VARS[1].get()
     actionType = VARS[2].get()
     # Filter by name
-    if filterType == 'By name':
+    if filterType == 'By Zone name':
         rexp = VARS[0].get()
         exp = re.compile(rexp)
         bases = CTK.t[2][1:]
@@ -53,23 +53,23 @@ def setFilter(event=None):
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by name.\n')
 
-    # Filter by family
-    if filterType == 'By zone family':
+    # Filter by Zone family
+    if filterType == 'By Zone family':
         rexp = VARS[0].get()
         exp = re.compile(rexp)
         bases = CTK.t[2][1:]
         active = []
-        family_select = C.getFamilyZones(bases, rexp)
-        list_fmly_slct=[]
-        for i in family_select:list_fmly_slct.append(i[0])
-        del family_select
+        familySelect = C.getFamilyZones(bases, rexp)
+        listFmlySlct=[]
+        for i in familySelect: listFmlySlct.append(i[0])
+        del familySelect
         for b in bases:
             baseName = b[0]            
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     zoneName = baseName + '/' + z[0]
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                    if z[0] in list_fmly_slct:active.append((i,1))
+                    if z[0] in listFmlySlct: active.append((i,1))
                     else: active.append((i,0))
                     
         if actionType == 'Activate': CPlot.setActiveZones(active)
@@ -79,7 +79,7 @@ def setFilter(event=None):
                 if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
-        CTK.TXT.insert('START', 'Filtered by Family Name.\n')
+        CTK.TXT.insert('START', 'Filtered by Zone Family Name.\n')
 
     # Filter by number
     elif filterType == 'By number':
@@ -389,7 +389,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     if 'tkFilterValue' in CTK.PREFS: V.set(CTK.PREFS['tkFilterValue'])
     # -1- filter type
-    V = TK.StringVar(win); V.set('By name'); VARS.append(V)
+    V = TK.StringVar(win); V.set('By Zone name'); VARS.append(V)
     if 'tkFilterName' in CTK.PREFS: V.set(CTK.PREFS['tkFilterName'])
     # -2- action
     V = TK.StringVar(win); V.set('Activate'); VARS.append(V)
@@ -400,7 +400,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Action to be performed on filtered zones.')
     B.grid(row=0, column=0, sticky=TK.EW)
     
-    B = TTK.OptionMenu(Frame, VARS[1], 'By name', 'By zone family' ,'By size >',
+    B = TTK.OptionMenu(Frame, VARS[1], 'By Zone name', 'By Zone family' ,'By size >',
                        'By size <', 'By MG lvl =', 'By MG lvl !=',
                        'By proc', 'By priority', 'By number', 
                        'By formula (or)', 'By formula (and)')

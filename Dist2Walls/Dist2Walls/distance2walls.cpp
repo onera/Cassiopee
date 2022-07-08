@@ -191,7 +191,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   if (unstrF0.size() > 0)
     computeMininterf(ncellsu, posx, posy, posz,
                      unstrF0, posxv, posyv, poszv, poscv, unstrF, 
-                     distancesu,cnt,isminortho);
+                     distancesu, cnt, isminortho);
 
   for (E_Int nos = 0; nos < nwalls; nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);

@@ -24,9 +24,10 @@
 
 
     E_Int isDoOrtho=1;
-    if (isminortho==1){
-        if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
-        E_Float h_target;
+    if (isminortho==1)
+    {
+    if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
+    E_Float h_target;
 	E_Float d_target=dTarget;
 	E_Float dhx =abs(xt[ind+1]-xt[ind]);
 	E_Float dhx2=abs(xt[ind-1]-xt[ind]);
@@ -34,22 +35,13 @@
 	E_Float dhy2=abs(yt[ind-1]-yt[ind]);
 	E_Float dhz =abs(zt[ind+1]-zt[ind]);
 	E_Float dhz2=abs(zt[ind-1]-zt[ind]);
-	if (ind==npts-1){
-	  h_target= max({dhx2,dhy2,dhz2});
-	}
-	else if(ind==0){
-	  h_target= max({dhx,dhy,dhz});
-	}
-	else{
-	  h_target= max({min(dhx,dhx2),min(dhy,dhy2),min(dhz,dhz2)});
-	}
-	if (isIBM_F1==1){
-	  d_target = sqrt(3)*4*h_target;
-	}
-	else{
-	  if (d_target>999){
-	    d_target = sqrt(3)*10*h_target;
-	  }
+	if (ind==npts-1) { h_target= max({dhx2,dhy2,dhz2}); }
+	else if (ind==0) { h_target= max({dhx,dhy,dhz}); }
+	else { h_target= max({min(dhx,dhx2),min(dhy,dhy2),min(dhz,dhz2)}); }
+	if (isIBM_F1 == 1) { d_target = sqrt(3)*4*h_target; }
+	else
+    {
+	  if (d_target>999) { d_target = sqrt(3)*10*h_target; }
 	}	
 #include "mininterf_ortho.h"
         if (ret != -1){
@@ -57,7 +49,7 @@
           dist = dx*dx + dy*dy + dz*dz;
           if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
         }
-	if (sqrt(distmin)> d_target ) isDoOrtho=0;
+	if (sqrt(distmin)> d_target) isDoOrtho=0;
     }
     
 

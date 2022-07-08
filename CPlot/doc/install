@@ -84,7 +84,8 @@ then
     pdflatex CPlot >& /dev/null
     pdflatex tkCassiopee >& /dev/null
     pdflatex tkPlotXY >& /dev/null
-    pdflatex Decorator >& /dev/null
+    pdflatex Decorator
+    #pdflatex Decorator >& /dev/null
     cd ..
 fi
 

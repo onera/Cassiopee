@@ -10,14 +10,12 @@ Decorator.setBatch(True)
 a = G.cart((0,0,0), (1,1,1), (10,10,1))
 C._initVars(a, '{F} = {CoordinateX}')
 
-# control win and res
 CPlot.display(a, mode='Scalar',
               scalarField='F', isoScales=['F',12,0.,10.],
               export=CPlot.decorator, exportResolution='3840x2160', offscreen=2,
-              isoEdges=1., colormap=0, bgColor=1)
+              isoEdges=1., colormap=24, bgColor=1)
 CPlot.finalizeExport()
 
-# read by default .decoratorpng
 fig, ax = Decorator.createSubPlot()
 ax.set_title('Computation of the year', size=40)
 Decorator.createText(ax, 0.02, 0.9, "Fast LES", size=40, box=True)
