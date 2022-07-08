@@ -531,8 +531,10 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         adt = dictOfADT[znamed]
         if adt is None: interpDataType = 0
         else: interpDataType = 1
-        [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
-
+        if interpInDnrFrame:
+            [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+        else: [XIRel,YIRel,ZIRel] = [XI,YI,ZI]
+        
         # transfers avec coordonnees dans le repere relatif
         if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
             # On suppose que le precond est dans init quand il y a un TimeMotion
@@ -579,8 +581,10 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             adt = dictOfADT[zdnrname]
             if adt is None: interpDataType = 0
             else: interpDataType = 1
-            [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
-            
+            if interpInDnrFrame:
+                [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+            else: [XIRel,YIRel,ZIRel] = [XI,YI,ZI]
+
             # [XIRel,YIRel,ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
             # transferts avec coordonnees dans le repere relatif 
             if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
