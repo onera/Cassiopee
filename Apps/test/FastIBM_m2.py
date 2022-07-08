@@ -71,25 +71,8 @@ if Cmpi.rank == 0:
 procDictR = Cmpi.getProcDict(tb)
 Cmpi._convert2PartialTree(tb,rank=Cmpi.rank)
 
-tcw = App.prepareWallReconstruction(tb,tc)
-Cmpi.convertPyTree2File(tcw,FILED)
-Cmpi.barrier()
-
-# Interpolation
-tb = Cmpi.convertFile2SkeletonTree(FILEB)
-procDictR = Cmpi.getProcDict(tb)
-
-tcw = Cmpi.convertFile2SkeletonTree(FILED)
-procDictD = Cmpi.getProcDict(tcw)
-Cmpi._readZones(tcw, FILED, rank=Cmpi.rank)
-Cmpi._convert2PartialTree(tcw, rank=Cmpi.rank)
-tb = FastC.loadFile(FILEB, mpirun=True)
-tc = FastC.loadFile(FILEC, mpirun=True)
-
-graph = Cmpi.computeGraph(tcw, t2=tb, procDict=procDictD, procDict2=procDictR, type='POST')
-C._initVars(tb,'Pressure',0.0)
-App._computeWallReconstruction(tb,tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph,
-                               variables=['Pressure'])
+tcw ,graphP= App._prepareSkinReconstruction(tb,tc)
+App._computeSkinVariables(tb,tc, tcw, graphP)
 Cmpi.convertPyTree2File(tb, LOCAL+'/wall.cgns')
 Cmpi.barrier()
 if Cmpi.rank==0:

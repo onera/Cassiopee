@@ -31,9 +31,12 @@ def isZoneChimera(z):
     if Internal.getValue(n) == 'Overset': return True
     return False
 
-def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
+def prepareMotion(t_case, t_out, tc_out, to=None, 
+                  vmin=21, check=False, NP=0,
                   frontType=1, tbox=None, snearsf=None,
-                  expand=3, distrib=False, tinit=None, initWithBBox=-1., dfarDir=0):
+                  expand=3, distrib=False, tinit=None, initWithBBox=-1., 
+                  dfarDir=0, 
+                  yplus=100., Lref=1., blankingF42=False, twoFronts=False):
     import RigidMotion.PyTree as R
     
     rank = Cmpi.rank
@@ -54,6 +57,8 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
 
         #tb = Cmpi.convertFile2SkeletonTree(t_case)
     else: tb = t_case
+
+    Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
 
     # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
@@ -204,6 +209,7 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
     # Split octree
     test.printMem(">>> Octree unstruct split [start]")
     bb = G.bbox(o)
+
     NPI = Cmpi.size
     if NPI == 1: p = Internal.copyRef(o) # keep reference
     else: p = T.splitNParts(o, N=NPI, recoverBC=False)[rank]
@@ -339,15 +345,41 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
 
     # Signe la distance en fonction de cellNIBC et cellNChim
     TIBM._signDistance(t)
-
+ 
     # Points interpoles autour des points masques
     X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=1,loc='centers',cellNName='cellNChim',addGC=False)
     # determination des pts IBC
-    X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNIBC',addGC=False) # pour les gradients
-    if frontType < 2:
-        X._setHoleInterpolatedPoints(t,depth=2,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)
-    else:
-        X._setHoleInterpolatedPoints(t,depth=3,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)         
+    if frontType < 42:
+        X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNIBC',addGC=False) # pour les gradients
+        if frontType < 2:
+            X._setHoleInterpolatedPoints(t,depth=2,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)
+        else:
+            X._setHoleInterpolatedPoints(t,depth=3,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)    
+    else:# frontType==42
+        C._initVars(t,'{centers:cellNMin}={centers:cellNIBC}')
+        X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
+        X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
+        for z in Internal.getZones(t):
+            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            if yplus > 0.:
+                height = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+            else:
+                height = TIBM.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+                yplus  = TIBM.computeYplus(Re=Reynolds, height=height, L=Lref)
+            C._initVars(z,'{centers:cellNIBC}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
+        # final security gate, we ensure that we have at least to layers of target points
+        C._initVars(t, '{centers:cellNIBC} = maximum({centers:cellNIBC}, {centers:cellNMin})')
+        C._rmVars(t,['centers:yplus', 'centers:cellNMin'])
+        # propagate max yplus between procs
+        yplus = numpy.array([float(yplus)])
+        yplus_max = numpy.zeros(1)
+        comm.Allreduce(yplus, yplus_max, MPI.MAX)
+        yplus = int(yplus_max[0])
+
+        # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
+        if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False, cellNName='cellNIBC')
+
+    # Fin front
     TIBM._removeBlankedGrids(t, loc='centers')
     test.printMem(">>> Blanking [end]")
     print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
@@ -358,8 +390,18 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
     print('Final number of points=%5.4f millions.'%(npts/1000000.))
 
     C._initVars(t,'{centers:cellNFront}=logical_and({centers:cellNIBC}>0.5, {centers:cellNIBC}<1.5)')
+    IBCType = 1
     for z in Internal.getZones(t):
-        connector._updateNatureForIBM(z, 1,
+        if twoFronts:
+            epsilon_dist = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
+            dmin = math.sqrt(3)*4*epsilon_dist
+            if frontType == 42:
+                SHIFTB = TIBM.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+                dmin = max(dmin, SHIFTB+math.sqrt(3)*2*epsilon_dist) # where shiftb = hmod
+            C._initVars(z,'{centers:cellNIBC_2}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(dmin,dmin))
+            C._initVars(z,'{centers:cellNFront_2}=logical_and({centers:cellNIBC_2}>0.5, {centers:cellNIBC_2}<1.5)')
+
+        connector._updateNatureForIBM(z, IBCType,
                                       Internal.__GridCoordinates__,
                                       Internal.__FlowSolutionNodes__,
                                       Internal.__FlowSolutionCenters__)
@@ -435,6 +477,10 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
     # propager cellNVariable='cellNFront'
     Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
 
+    if twoFronts:
+        C._cpVars(t,'centers:cellNFront_2',tc,'cellNFront_2')
+        Xmpi._setInterpTransfers(t,tc,variables=['cellNFront_2'], cellNVariable='cellNFront_2', compact=0)
+
     C._rmVars(t,['centers:cellNFront'])
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
@@ -444,7 +490,11 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
     test.printMem(">>> Building IBM front [start]")
     front = TIBM.getIBMFront(tc, 'cellNFront', dim=dimPb, frontType=frontType)
     front = TIBM.gatherFront(front)
-    
+ 
+    if twoFronts:
+        front2 = TIBM.getIBMFront(tc, 'cellNFront_2', dim=dimPb, frontType=frontType)
+        front2 = TIBM.gatherFront(front2)
+
     if check and rank == 0: C.convertPyTree2File(front, 'front.cgns')
     zonesRIBC = []
     for zrcv in Internal.getZones(t):
@@ -454,15 +504,21 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
     nbZonesIBC = len(zonesRIBC)
     if nbZonesIBC == 0:
         res = [{},{},{}]
+        if twoFronts: res2 = [{},{},{}]        
     else:
         res = TIBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tbibm, tfront=front, frontType=frontType,
                                    cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType)
+        if twoFronts:
+            res2 = TIBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
+                                        cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
+
     # cleaning
     C._rmVars(tc,['cellNChim','cellNIBC','TurbulentDistance','cellNFront'])
     # dans t, il faut cellNChim et cellNIBCDnr pour recalculer le cellN a la fin
     varsRM = ['centers:gradxTurbulentDistance','centers:gradyTurbulentDistance','centers:gradzTurbulentDistance','centers:cellNFront','centers:cellNIBC']
     C._rmVars(t, varsRM)
     front = None
+    if twoFronts: front2 = None    
     test.printMem(">>> Building IBM front [end]")
 
     # Interpolation IBC (front, tbbc)
@@ -473,6 +529,18 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
     dictOfWallPtsByIBCType = res[1]
     dictOfInterpPtsByIBCType = res[2]
     interDictIBM={}
+
+    if twoFronts:
+        dictOfCorrectedPtsByIBCType2 = res2[0]
+        dictOfWallPtsByIBCType2 = res2[1]
+        dictOfInterpPtsByIBCType2 = res2[2]
+        interDictIBM2={}
+    else:
+        dictOfCorrectedPtsByIBCType2={}
+        dictOfWallPtsByIBCType2={}
+        dictOfInterpPtsByIBCType2={}
+        interDictIBM2={}
+
     if dictOfCorrectedPtsByIBCType!={}:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
@@ -491,6 +559,26 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
                             if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
                             else:
                                 if zname not in interDictIBM[zrname]: interDictIBM[zrname].append(zname)
+        if twoFronts:
+            for ibcTypeL in dictOfCorrectedPtsByIBCType2:
+                    allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
+                    allWallPts2 = dictOfWallPtsByIBCType2[ibcTypeL]
+                    allInterpPts2 = dictOfInterpPtsByIBCType2[ibcTypeL]
+                    for nozr in range(nbZonesIBC):
+                        if allCorrectedPts2[nozr] != []:
+                            zrname = zonesRIBC[nozr][0]
+                            interpPtsBB2 = Generator.BB(allInterpPts2[nozr])
+                            for z in zones:
+                                bba = C.getFields('GridCoordinates', z)[0]
+                                if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
+                                    zname = z[0]
+                                    popp = Cmpi.getProc(z)
+                                    Distributed.updateGraph__(graph, popp, rank, zname)
+                                    if zrname not in interDictIBM2: interDictIBM2[zrname]=[zname]
+                                    else:
+                                        if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
+
+
     else: graph={}
     del tbbc
     allGraph = Cmpi.KCOMM.allgather(graph)
@@ -559,12 +647,57 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
                         else:
                             if destProc not in datas: datas[destProc] = []
 
+    if dictOfCorrectedPtsByIBCType2!={}:
+                for ibcTypeL in dictOfCorrectedPtsByIBCType2:
+                    allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
+                    allWallPts2 = dictOfWallPtsByIBCType2[ibcTypeL]
+                    allInterpPts2 = dictOfInterpPtsByIBCType2[ibcTypeL]
+                    for nozr in range(nbZonesIBC):
+                        if allCorrectedPts2[nozr] != []:
+                            zrcv = zonesRIBC[nozr]
+                            zrname = zrcv[0]
+                            dnrZones = []
+                            for zdname in interDictIBM2[zrname]:
+                                zd = Internal.getNodeFromName2(tc, zdname)
+                                #if zd is not None: dnrZones.append(zd)
+                                if zd is None: print('!!!Zone None', zrname, zdname)
+                                else: dnrZones.append(zd)
+                            XOD._setIBCDataForZone2__(zrcv, dnrZones, allCorrectedPts2[nozr], allWallPts2[nozr], None, allInterpPts2[nozr],
+                                                     nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
+                                                     interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL)
+
+                            nozr += 1
+                            for zd in dnrZones:
+                                zdname = zd[0]
+                                destProc = procDict[zdname]
+
+                                IDs = []
+                                for i in zd[2]:
+                                    if i[0][0:6] == '2_IBCD':
+                                        if Internal.getValue(i)==zrname: IDs.append(i)
+
+                                if IDs != []:
+                                    if destProc == rank:
+                                        zD = Internal.getNodeFromName2(tc,zdname)
+                                        zD[2] += IDs
+                                    else:
+                                        if destProc not in datas: datas[destProc]=[[zdname,IDs]]
+                                        else: datas[destProc].append([zdname,IDs])
+                                else:
+                                    if destProc not in datas: datas[destProc] = []
+
     test.printMem(">>> Interpolating IBM [end]")
     Cmpi._rmXZones(tc)
     dictOfCorrectedPtsByIBCType = None
     dictOfWallPtsByIBCType = None
     dictOfInterpPtsByIBCType = None
     interDictIBM = None
+    if twoFronts:
+        dictOfCorrectedPtsByIBCType2 = None
+        dictOfWallPtsByIBCType2 = None
+        dictOfInterpPtsByIBCType2 = None
+        interDictIBM2 = None
+
     test.printMem(">>> Interpolating IBM [after rm XZones]")
 
     Internal._rmNodesFromType(tc, 'FlowSolution_t')
@@ -597,8 +730,26 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
               z[0] = z[0]+"%{}".format(rank)
 
         Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
-        test.printMem(">>> Saving IBM infos [end]")
         del tibm
+
+        if twoFronts:
+            tibm2 = TIBM.extractIBMInfo2(tc)
+
+            # Avoid that two procs write the same information
+            for z in Internal.getZones(tibm2):
+               if int(z[0][-1]) != rank:
+                  # Internal._rmNodesByName(tibm, z[0])
+                  z[0] = z[0]+"%{}".format(rank)
+
+            Cmpi.convertPyTree2File(tibm2, 'IBMInfo2.cgns')
+            del tibm2
+
+        test.printMem(">>> Saving IBM infos [end]")
+
+    if twoFronts:
+        tc2 = Internal.copyTree(tc)
+        tc2 = Internal.rmNodesByName(tc2, 'IBCD*')
+        tc  = Internal.rmNodesByName(tc, '2_IBCD*')
 
     # merge trees
     tp1 = Internal.copyRef(t)
@@ -691,10 +842,11 @@ def prepareMotion(t_case, t_out, tc_out, to=None, vmin=21, check=False, NP=0,
 # IBMO prepare
 #
 #================================================================================
-def prepare(t_case, t_out, tc_out,   
+def prepare(t_case, t_out, tc_out, to=None,   
             vmin=21, check=False, NP=0,
-            frontType=1, 
-            expand=3, distrib=False, tinit=None, initWithBBox=-1., dfarDir=0):
+            frontType=1,  tbox=None, snearsf=None,
+            expand=3, distrib=False, tinit=None, initWithBBox=-1., 
+            dfarDir=0):
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
     tolMatch = 1.e-6
@@ -714,6 +866,18 @@ def prepare(t_case, t_out, tc_out,
         #tb = Cmpi.convertFile2SkeletonTree(t_case)
     else: tb = t_case
 
+    # refinementSurfFile: surface meshes describing refinement zones
+    if tbox is not None:
+        if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
+        else: tbox = tbox
+        if snearsf is None:
+            snearsf = []
+            zones = Internal.getZones(tbox)
+            for z in zones:
+                sn = Internal.getNodeFromName2(z, 'snear')
+                if sn is not None: snearsf.append(Internal.getValue(sn))
+                else: snearsf.append(1.)
+
     # dimension du pb
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)
@@ -721,6 +885,7 @@ def prepare(t_case, t_out, tc_out,
     # tbchim : arbre des corps chimeres 
     tbchim = C.newPyTree()
     tbov = C.newPyTree()
+    tbblank= C.newPyTree()
     # tbibm : arbre des corps ibms en z = 0
     tbibm = C.newPyTree()    
     # chargement des zones Chimere par proc 
@@ -788,26 +953,33 @@ def prepare(t_case, t_out, tc_out,
 
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
+    if to is not None:
+        if isinstance(to, str):
+            o = C.convertFile2PyTree(to)
+            o = Internal.getZones(o)[0]
+        else:
+            o = Internal.getZones(to)[0]
+        parento = None
+    else:
+        # construction de l'arbre des corps pour l'octree : tbo
+        tbo = C.newPyTree(['Surf_octree'])
+        tbo[2][1][2] = Internal.getZones(tbibm)+Internal.getZones(tbov)
 
-    # construction de l'arbre des corps pour l'octree : tbo
-    tbo = C.newPyTree(['Surf_octree'])
-    tbo[2][1][2] = Internal.getZones(tbibm)+Internal.getZones(tbov)
+        # Extraction de la liste des dfars de tb
+        zones = Internal.getZones(tbo)
+        dfarList = [10.]*len(zones)
+        for c, z in enumerate(zones): 
+            n = Internal.getNodeFromName2(z, 'dfar')
+            if n is not None: dfarList[c] = Internal.getValue(n)*1.
 
-    # Extraction de la liste des dfars de tb
-    zones = Internal.getZones(tbo)
-    dfarList = [10.]*len(zones)
-    for c, z in enumerate(zones): 
-        n = Internal.getNodeFromName2(z, 'dfar')
-        if n is not None: dfarList[c] = Internal.getValue(n)*1.
+        o = TIBM.buildOctree(tbo, snearFactor=1., dfarList=dfarList, 
+                             dimPb=dimPb, vmin=vmin, rank=rank,
+                             expand=expand, dfarDir=dfarDir)
 
-    o = TIBM.buildOctree(tbo, snearFactor=1., dfarList=dfarList, 
-                         dimPb=dimPb, vmin=vmin, rank=rank,
-                         expand=expand, dfarDir=dfarDir)
-
-    # build parent octree 3 levels higher
-    # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = TIBM.buildParentOctrees__(o, tbo, snearFactor=4., dfarList=dfarList,
-                                        dimPb=dimPb, vmin=vmin, rank=rank)
+        # build parent octree 3 levels higher
+        # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
+        parento = TIBM.buildParentOctrees__(o, tbo, snearFactor=4., dfarList=dfarList,
+                                            dimPb=dimPb, vmin=vmin, rank=rank)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree

@@ -1506,6 +1506,243 @@ def transformTc2(tc2):
     tc2=D_IBM.transformTc2(tc2)
     return tc2
 
+
+#=============================================================================
+# Post - General
+# IN: t_case: geometry file name or tree
+# IN: t_in: result file name or tree
+# IN: tc_in: connectivity file name or tree
+# OUT: t_out ou None: output file name - values at nodes
+# OUT: wall_out ou None: output file name - wall values
+#==============================================================================
+def post(t_case, t_in, tc_in, t_out, wall_out):
+    if isinstance(t_in, str): t = C.convertFile2PyTree(t_in)
+    else: t = t_in
+    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    else: tb = t_case
+
+    #=============================
+    # Deleting unnecessary fields
+    #=============================
+    vars =['centers:TurbulentDistance',
+           'centers:Density_M1'       , 'centers:Temperature_M1',
+           'centers:VelocityX_M1'     , 'centers:VelocityY_M1'  , 'centers:VelocityZ_M1',
+           'centers:Density_P1'       , 'centers:Temperature_P1',
+           'centers:VelocityX_P1'     , 'centers:VelocityY_P1'  , 'centers:VelocityZ_P1']
+    C._rmVars(t, vars)
+
+    #=============================
+    # Connectivity tree
+    #=============================
+    if isinstance(tc_in, str): tc = C.convertFile2PyTree(tc_in)
+    else: tc = tc_in
+    Internal._rmNodesByName(tc, 'GridCoordinates')
+
+    #==========================================================
+    # Compute Cp, Cf, ... on the geometry surface (interpolation)
+    #==========================================================
+    tb = C.convertArray2Tetra(tb)
+
+    #--------------------------------------------------------
+    # Get Reference State and model from body pyTree
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError('GoverningEquations is missing in input cgns.')
+    model = Internal.getValue(model)
+
+    if model == 'Euler': bcType = 0 # slip
+    elif model =='NSLaminar': bcType = 1 # noslip
+    else: bcType = 3 # Musker
+
+    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
+    dimPb = Internal.getValue(dimPb)
+
+    [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
+     ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,Mus, Cs, Ts, Pr] = C.getState(tb)
+
+    varType = 2 # IBM updated variables (rho,u,t)
+    varsIBC = ['Density', 'VelocityX', 'VelocityY', 'VelocityZ', 'Temperature']
+    vars    = ['Density', 'VelocityX', 'VelocityY', 'VelocityZ', 'Temperature']
+    
+
+    if model != 'Euler':
+        vars += ['ViscosityEddy']
+        if model == 'NSTurbulent':
+            vars += ['TurbulentSANuTilde']
+            varsIBC += ['TurbulentSANuTilde']
+            varType = 21
+
+    for z in Internal.getNodesFromType2(t, "Zone_t"):
+        zc = Internal.getNodeFromName(tc, z[0])
+        for v in varsIBC: C._cpVars(z, 'centers:'+v, zc, v)
+        
+    X._setInterpTransfers(t, tc, variables=vars,
+                          variablesIBC=varsIBC, bcType=bcType,
+                          varType=varType, storage=1,
+                          Gamma=Gamma, Cv=cvInf, MuS=Mus, 
+                          Cs=Cs, Ts=Ts)
+    
+    zw = P_IBM.extractIBMWallFields(tc, tb=tb)
+    RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
+    C._initVars(zw,'{Cp}=2*%f*({Pressure}-%f)*%f'%(RoInf,PInf,RoUInf2I))
+    if model != 'Euler':
+        C._initVars(zw,'{Cf}=2*%f*{Density}*{utau}**2*%f'%(RoInf,RoUInf2I))
+
+    Internal._rmNodesByName(zw, '.Solver#Param')
+    Internal._rmNodesByName(zw, '.Solver#ownData')
+
+    if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
+
+    #================================
+    # For 2D, extract a single k plane
+    #================================
+    if dimPb == 2:
+        t = T.subzone(t, (1,1,1), (-1,-1,1))
+        C._initVars(t, 'CoordinateZ', 0.) # forced
+
+    #=================================
+    # Calc. mu_t/mu in the flow field
+    #=================================
+    if model != 'Euler':
+        betas = Mus*(Ts+Cs)/(Ts**(3./2.))
+        C._initVars(t, '{centers:ViscosityMolecular} = %20.16g*sqrt({centers:Temperature})/(1.+%20.16g/{centers:Temperature})'%(betas,Cs))
+        C._initVars(t, '{centers:mutsmu}=({centers:ViscosityEddy})/({centers:ViscosityMolecular})-1.')
+
+    #======================================
+    # Output of flow solution at cell nodes
+    #======================================
+    vars = ['centers:Density','centers:VelocityX', 'centers:VelocityY', 'centers:VelocityZ', 'centers:Temperature','centers:ViscosityEddy',
+            'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
+    #vars = ['centers:Density','centers:VelocityX', 'centers:Temperature','centers:ViscosityEddy',
+    #        'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
+    t = C.center2Node(t, vars)
+    Internal._rmNodesByName(t, 'FlowSolution#Centers')
+    if isinstance(t_out, str): C.convertPyTree2File(t, t_out)
+
+    return t, zw
+
+
+#=============================================================================
+# Post efforts
+# IN: t_case: geometry tree
+# IN: tc_in: connectivity tree
+# IN: tc2_in: second connectivity tree (when using 2 image points)
+# OUT: wall_out or None: file for the output of the forces on the wall at the centers
+# IN: alpha: angle for the computation of the forces
+# IN: beta: angle for the computation of the forces
+# IN: gradP: calculate the pressure gradient
+# IN: order: order of the extrapolation of pressure
+# IN: Sref: reference area
+# IN : famZones : list of family names of surface zones on which the solution is projected
+# NOTE: if tc_in = None, t_case is the geometry tree with the projected solution
+#==============================================================================
+def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[]):
+    """Computes the viscous and pressure forces on the IB. If tc_in=None, t_case must also contain the projection of the flow field solution onto the IB.
+    Usage: loads(t_case, tc_in, tc2_in, wall_out, alpha, beta, gradP, order, Sref, famZones)"""
+    if tc_in is not None:
+        if isinstance(tc_in, str):
+            tc = C.convertFile2PyTree(tc_in)
+        else: tc = tc_in
+    else: tc = None
+
+    if tc2_in is not None:
+        if isinstance(tc2_in, str):
+            tc2 = C.convertFile2PyTree(tc2_in)
+        else: tc2 = tc2_in
+    else: tc2 = None
+
+    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    else: tb = t_case
+
+    if Sref is None:
+        C._initVars(tb, '__ONE__',1.)
+        Sref = P.integ(tb, '__ONE__')[0]; print(Sref)
+        C._rmVars(tb, ['__ONE__', 'centers:vol'])
+
+    #====================================
+    # Wall pressure correction
+    #====================================
+    if gradP:
+        # add gradP fields in tc if necessary
+        if tc is not None:
+            for z in Internal.getZones(tc):
+                P_IBM._add_gradxi_P(z)
+
+            if tc2 is None:
+                if order < 2:
+                    tc = P_IBM.extractPressureHO(tc)
+                else:
+                    tc = P_IBM.extractPressureHO2(tc)
+
+        # add gradP fields in tc2 if necessary
+        if tc2 is not None: 
+            
+            for z in Internal.getZones(tc2):
+                P_IBM._add_gradxi_P(z)
+                
+            if order < 2:
+                tc2 = P_IBM.extractPressureHO(tc2)
+            else:
+                tc2 = P_IBM.extractPressureHO2(tc2)
+            
+
+    #====================================
+    # Extraction des grandeurs a la paroi
+    #====================================
+    if tc is None: 
+        zw = Internal.getZones(tb)
+        zw = T.join(zw)
+    else:
+        zw = P_IBM.extractIBMWallFields(tc, tb=tb, famZones=famZones)
+
+    #====================================
+    # Extract pressure info from tc2 to tc
+    #====================================
+    if tc2 is not None:
+        zw2 = P_IBM.extractIBMWallFields(tc2, tb=tb, famZones=famZones, front=1)
+        zones_zw  = []
+        zones_zw2 = []
+        for zone in Internal.getZones(zw): zones_zw.append(zone[0])
+        for zone in Internal.getZones(zw2): zones_zw2.append(zone[0])
+        nbZones = len(zones_zw)
+
+        for i in range(nbZones): # for multi corps
+            szw  = Internal.getNodeFromName(zw, zones_zw[i])
+            szw2 = Internal.getNodeFromName(zw2, zones_zw2[i])
+
+            Internal.getNodeFromName(szw, 'Pressure')[1] = Internal.getNodeFromName(szw2, 'Pressure')[1]
+            Internal.getNodeFromName(szw, 'Density')[1]  = Internal.getNodeFromName(szw2, 'Density')[1]
+
+            Internal.getNodeFromName(szw, 'gradxPressure')[1] = Internal.getNodeFromName(szw2, 'gradxPressure')[1]
+            Internal.getNodeFromName(szw, 'gradyPressure')[1] = Internal.getNodeFromName(szw2, 'gradyPressure')[1]
+            Internal.getNodeFromName(szw, 'gradzPressure')[1] = Internal.getNodeFromName(szw2, 'gradzPressure')[1]
+
+    dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
+
+    if dimPb == 2: T._addkplane(zw)
+
+    zw = C.convertArray2Tetra(zw)
+    zw = T.reorderAll(zw, 1)
+
+    ts = C.newPyTree(['SKIN']); ts[2][1][2]=zw[2][1][2]
+
+    #==============================
+    # Reference state
+    #==============================
+    RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
+    ts[2][1][2].append(RefState)
+    P_IBM._loads0(ts, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
+
+    if dimPb == 2: # reextrait en 2D
+        ts = P.isoSurfMC(ts, "CoordinateZ", 0.)
+        nodes = Internal.getNodesFromName(ts, 'CoordinateX')
+        xmin = numpy.min(nodes[0][1])
+        xmax = numpy.max(nodes[0][1])
+        dxi = 1./(xmax-xmin)
+        C._initVars(ts, 'xsc=({CoordinateX}-%g)*%g'%(xmin, dxi))
+
+    if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
+    return ts
+
 #====================================================================================    
 
 ## IMPORTANT NOTE !!
@@ -1516,21 +1753,11 @@ def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
     tibm=P_IBM.extractIBMInfo(tc_in, t_out=t_out)
     return tibm
 
+def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, verbose=False):
+    return P_IBM.loads0(ts, Sref=Sref, Pref=Pref, Qref=Qref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=verbose)
 
 def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
-    ts=P_IBM.loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=verbose)
-    return ts
-
-def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[]):
-    ts = P_IBM.loads(t_case, tc_in=tc_in, tc2_in=tc2_in,
-                     wall_out=wall_out, alpha=alpha, beta=beta,
-                     gradP=gradP, order=order, Sref=Sref, famZones=famZones)
-    return ts
-
-
-def post(t_case, t_in, tc_in, t_out, wall_out):
-    t,zw = P_IBM.post(t_case,t_in, tc_in, t_out, wall_out)
-    return t,zw
+    return P_IBM.loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=verbose)
 
 def extractPressureHO(tc):
     tp=P_IBM.extractPressureHO(tc)
@@ -1540,89 +1767,20 @@ def extractPressureHO2(tc):
     tp=P_IBM.extractPressureHO2(tc)
     return tp
 
-def _unsteadyLoads(tb, Sref=None, alpha=0., beta=0.):
-    tp = Internal.copyRef(tb)
-    P_IBM._unsteadyLoads(tp, Sref=Sref, alpha=alpha, beta=beta)
-    return tp
-
 def extractConvectiveTerms(tc):
-    tp=P_IBM.extractConvectiveTerms(tc)
-    return tp
+    return P_IBM.extractConvectiveTerms(tc)
+
+def unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
+    return P_IBM.unsteadyLoads(tb, Sref=Sref, Pref=Pref, Qref=Qref, alpha=alpha, beta=beta)
+
+def _unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
+    return P_IBM._unsteadyLoads(tb, Sref=Sref, Pref=Pref, Qref=Qref, alpha=alpha, beta=beta)
 
 def _prepareSkinReconstruction(ts, tc):
-    tl, graphWPOST, interDictWPOST = P_IBM._prepareSkinReconstruction(ts,tc)
-    return tl, graphWPOST, interDictWPOST
+    return P_IBM._prepareSkinReconstruction(ts,tc)
 
-def _computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST):
-    P_IBM._computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST)
-    return None
-
-def prepareWallReconstruction(tw, tc):
-    tw=P_IBM.prepareWallReconstruction(tw, tc)
-    return tw 
-
-def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None, variables=['Pressure','Density','utau','yplus']):
-    P_IBM._computeWallReconstruction(tw, tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph, variables=variables)
-    return None
-
-#====================================================================================
-
-## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Post/Post/IBM.py
-## The functions below will become decrepit after Jan. 1 2023
-#====================================================================================
-def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
-    tibm=P_IBM.extractIBMInfo(tc_in, t_out=t_out)
-    return tibm
-
-
-def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
-    ts=P_IBM.loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=verbose)
-    return ts
-
-def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[]):
-    ts = P_IBM.loads(t_case, tc_in=tc_in, tc2_in=tc2_in,
-                     wall_out=wall_out, alpha=alpha, beta=beta,
-                     gradP=gradP, order=order, Sref=Sref, famZones=famZones)
-    return ts
-
-
-def post(t_case, t_in, tc_in, t_out, wall_out):
-    t,zw = P_IBM.post(t_case,t_in, tc_in, t_out, wall_out)
-    return t,zw
-
-def extractPressureHO(tc):
-    tp=P_IBM.extractPressureHO(tc)
-    return tp
-
-def extractPressureHO2(tc):
-    tp=P_IBM.extractPressureHO2(tc)
-    return tp
-
-def _unsteadyLoads(tb, Sref=None, alpha=0., beta=0.):
-    tp = Internal.copyRef(tb)
-    P_IBM._unsteadyLoads(tp, Sref=Sref, alpha=alpha, beta=beta)
-    return tp
-
-def extractConvectiveTerms(tc):
-    tp=P_IBM.extractConvectiveTerms(tc)
-    return tp
-
-def _prepareSkinReconstruction(ts, tc):
-    tl, graphWPOST, interDictWPOST = P_IBM._prepareSkinReconstruction(ts,tc)
-    return tl, graphWPOST, interDictWPOST
-
-def _computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST):
-    P_IBM._computeSkinVariables(ts, tc, tl, graphWPOST, interDictWPOST)
-    return None
-
-def prepareWallReconstruction(tw, tc):
-    tw=P_IBM.prepareWallReconstruction(tw, tc)
-    return tw 
-
-def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None, variables=['Pressure','Density','utau','yplus']):
-    P_IBM._computeWallReconstruction(tw, tcw, tc, procDictR=procDictR, procDictD=procDictD, graph=graph, variables=variables)
-    return None
+def _computeSkinVariables(ts, tc, tl, graphWPOST):
+    return P_IBM._computeSkinVariables(ts, tc, tl, graphWPOST)
 
 def _modifIBCD(tc):
     raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
