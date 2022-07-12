@@ -1562,12 +1562,15 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         //printf("teta  %.12f %.12f %.12f %.12f %.12f %.12f \n", teta/6.3*360., vz ,yPI[noind+ideb], param_real[ROT_CENTER+1], tetap , ctheta);
         //printf("teta  %f %f %f  \n", tetap, vy  vz);
 
+        //E_Int kloc = indR/(216*59);
+
         // vitesse du pt ext
         u = uOut[indR]-vx;
         v = vOut[indR]-vy; 
         w = wOut[indR]-vz;
-        //printf("IN WALL LAW: %f %f %f %f %f \n",roext, text, u,v,w);
 #       include "IBC/commonMuskerLaw_init.h"
+
+        //if( nbRcvPts == 18525 and kloc==10) { printf("IN WALL LAW: %f %f %f %f %f %f %f %f %f %f %d \n",roext, text, u,v,w, yext,yibc,n0,n1,n2, indR);}
         // out= utau  et err
      }  
 
@@ -1646,9 +1649,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;       
          uOut[indR]     = ucible_vec[noind]+vx;
-         vOut[indR]     = vcible_vec[noind]*0.+vy;
-         wOut[indR]     = wcible_vec[noind]*0.+vz;
+         //vOut[indR]     = vcible_vec[noind]*0.+vy;
+         //wOut[indR]     = wcible_vec[noind]*0.+vz;
+         vOut[indR]     = vcible_vec[noind]+vy;
+         wOut[indR]     = wcible_vec[noind]+vz;
          tOut[indR]     = tcible_vec[noind];
+        //if( nbRcvPts == 18525) {printf("OUT WALL LAW: %f %f %f %f %f %f %f %f %f %d \n",roOut[indR], uOut[indR], vOut[indR], wOut[indR],tOut[indR], xPW[noind+ideb],yPW[noind+ideb], vy,vz, indR);}
 
          vxPtr[noind+ideb] = uOut[indR];
          vyPtr[noind+ideb] = vOut[indR];
