@@ -32,6 +32,10 @@ import Generator.IBM as G_IBM
 import Generator.IBMmodelHeight as G_IBM_Height
 
 import timeit
+import getpass
+import socket
+import os
+
 
 try: range = xrange
 except: pass
@@ -189,7 +193,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # Extraction des coordonnees des pts IBM
     #----------------------------------------
     if check:
-        tibm = X_IBM.extractIBMInfo(tc)
+        tibm = P_IBM.extractIBMInfo(tc)
         C.convertPyTree2File(tibm, 'IBMInfo.cgns')
         del tibm
 
@@ -436,7 +440,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
-             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False):
+             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False,isDist2WallNearBodyOnly=False):
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -456,7 +460,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     if model is None: raise ValueError('GoverningEquations is missing in input tree.')
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
-
+    
     # check Euler non consistant avec Musker
     if model == 'Euler':
         for z in Internal.getZones(tb):
@@ -491,15 +495,21 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     # Distance a la paroi
     test.printMem(">>> Wall distance [start]")
     FSC = Internal.getNodeFromType(t,"FlowSolution_t")
+    
     if FSC is None or Internal.getNodeFromName(FSC,'TurbulentDistance') is None:
         if dimPb == 2:
             z0 = Internal.getNodeFromType2(t, "Zone_t")
             bb0 = G.bbox(z0); dz = bb0[5]-bb0[2]
             tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+            if isDist2WallNearBodyOnly: 
+                t=dist2wallNearBody(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+            else:
+                DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
         else:
-            DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
-
+            if isDist2WallNearBodyOnly:
+                t=dist2wallNearBody(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
+            else:
+                DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
 
     # Compute turbulentdistance wrt each body that is not a sym plan
     if correctionMultiCorpsF42 and frontType==42:
@@ -1236,19 +1246,20 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
     del tbbc
 
+    
+    tmpFilename = 'tmp_tc_IBM_prep'    
+    localUser= getpass.getuser()
+    localPc  = socket.gethostname().split('-')
+    if 'sator' not in localPc:
+        path2writetmp='/stck/'+localUser+'/'
+    else:
+        path2writetmp='/tmp_user/sator/'+localUser+'/'
+    tmpFilename = path2writetmp+tmpFilename+'.cgns'
+    
     if redistribute:
         # Distribute over NP procs
         if rank == 0: print("REDISTRIBUTE - Final")
-        tmpFilename = 'tmp_tc_IBM_prep'
         tcp = Compressor.compressCartesian(tc)
-        localUser= getpass.getuser()
-        localPc  = socket.gethostname().split('-')
-
-        if 'sator' not in localPc:
-            path2writetmp='/stck/'+localUser+'/'
-        else:
-            path2writetmp='/tmp_user/sator/'+localUser+'/'
-        tmpFilename = path2writetmp+tmpFilename+'.cgns'
         Cmpi.convertPyTree2File(tcp, tmpFilename, ignoreProcNodes=True)
         del tcp
 
@@ -1309,8 +1320,20 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
                 C._initVars(zone, 'centers:MomentumY', 0.)
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
-    # Save t
-    checkNcellsNptsPerProc(tc,NP,isAtCenter=True)
+    # Save t    
+    if not redistribute:
+        tc_local = Internal.rmNodesByName(tc,'GridCoordinates')
+        Internal._rmNodesByName(tc_local,'ID*')
+        Internal._rmNodesByName(tc_local,'IBCD*')
+        Cmpi.convertPyTree2File(tc_local, tmpFilename, ignoreProcNodes=True)
+        if rank ==0:
+            tc_local= C.convertFile2PyTree(tmpFilename)
+            checkNcellsNptsPerProc(tc_local,Cmpi.size,isAtCenter=True)
+            del tc_local
+            if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
+    else:
+        if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
+        
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
@@ -1400,13 +1423,17 @@ def checkNcellsNptsPerProc(ts,NP,isAtCenter=False):
                            
         NptsTot   += NPTS
         NcellsTot += NCELLS
-        print('Rank {} has {} points & {} cells'.format(i,NPTS,NCELLS))
+        if isAtCenter:
+            print('Rank {} has {} cells'.format(i,NCELLS))
+        else:
+            print('Rank {} has {} points & {} cells'.format(i,NPTS,NCELLS))
     print('All points: {} million points & {} million cells'.format(NptsTot/1.e6,NcellsTot/1.e6))
 
     for i in range(NP):
-        ncellslocal[i] = ncellslocal[i]/NcellsTot
+        ncellslocal[i] = ncellslocal[i]/NcellsTot*100
         print('Rank {} :: {} % of cells'.format(i,ncellslocal[i]))
     print('Range of % of cells: {} - {}'.format(min(ncellslocal),max(ncellslocal)))
+    
     return None
 
 
@@ -1802,3 +1829,75 @@ def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
 def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
     val=G_IBM_Height.computeSnearOpt(Re=Re,tb=tb,Lref=Lref,q=q,yplus=yplus,Cf_law=Cf_law)
     return val
+
+
+def dist2wallNearBody(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
+    list_final_zones=[]
+    for z in Internal.getZones(t):
+        list_final_zones.append(z[0])
+    print(len(list_final_zones))
+    tBB =G.BB(t)
+    tbBB=G.BB(tb)
+
+    interDict = X.getIntersectingDomains(tBB, tbBB)    
+
+    #FULL TB
+    zt       = []
+    zt_names = []
+    for i in interDict:
+        if interDict[i]:
+            zt.append(Internal.getNodeByName(t,i))
+            zt_names.append(i)            
+    DTW._distance2Walls(zt, tb, type='ortho', signed=0, dim=dim, loc='centers')
+
+    ##PRT1
+    list_additional_zones = get_zones_scale_up_down(tbBB,tBB,zt_names,diff_percent=0.15,sweep_num=3,scaleDirection=1)
+
+    ###PRT2
+    if list_additional_zones:        
+        zt=[]
+        for i in list_additional_zones:
+            zt.append(Internal.getNodeByName(t,i))
+        
+        DTW._distance2Walls(zt, tb, type='ortho', signed=0, dim=dim, loc='centers')
+    return t
+        
+
+def get_zones_scale_up_down(tbBB,tBB,zt_names,diff_percent=0.10,sweep_num=2,scaleDirection=0):
+    minval_tb = C.getMinValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
+    maxval_tb = C.getMaxValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
+    mean_tb   = get_mean(maxval_tb,minval_tb)
+
+    list_additional_zones=[]
+    for i in range(1,sweep_num+1):
+        if scaleDirection>=0:
+            tbBB_scale    = T.scale(tbBB, factor=(1.0+i*diff_percent,1.0+i*diff_percent,1.0+i*diff_percent))        
+        if scaleDirection<=0:
+            tbBB_scale    = T.scale(tbBB, factor=(1.0-i*diff_percent,1.0-i*diff_percent,1.0-i*diff_percent))            
+    add2listAdditionalZones(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
+                    
+    return list_additional_zones
+
+
+def get_mean(max_local,min_local):
+    mean_local=[]
+    for i in range(len(max_local)):
+        mean_local.append((max_local[i]+min_local[i])/2)
+    return mean_local
+
+
+def add2listAdditionalZones(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names):
+    minval_tbscale = C.getMinValue(tbBB_scale, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
+    maxval_tbscale = C.getMaxValue(tbBB_scale, ['CoordinateX', 'CoordinateY','CoordinateZ']);
+    mean_tbscale   = get_mean(maxval_tbscale,minval_tbscale) 
+    T._translate(tbBB_scale, (mean_tb[0]-mean_tbscale[0],mean_tb[1]-mean_tbscale[1],mean_tb[2]-mean_tbscale[2]))
+    interDict_scale = X.getIntersectingDomains(tBB, tbBB_scale)
+    for i in interDict_scale:
+        if interDict_scale[i] and i not in list_additional_zones and i not in zt_names:
+            list_additional_zones.append(i)
+    return None
+
+
+
+
+
