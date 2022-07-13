@@ -114,14 +114,14 @@ def createApp(win):
     # -3- mask inv or not -
     V = TK.StringVar(win); V.set('out'); VARS.append(V)
 
-    #- Snear settings  -
+    # - Snear settings -
     B = TTK.Label(Frame, text="snear")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='The generated grid spacing for selected curve.')
     B = TTK.Entry(Frame, textvariable=VARS[0], width=4, background="White")
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     
-    #- dfar settings  -
+    # - dfar settings  -
     B = TTK.Label(Frame, text="dfar")
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='The distance from the center of object to the far boundary.\nIf set to -1, not taken into account.')
@@ -132,10 +132,10 @@ def createApp(win):
     B = TTK.Label(Frame, text="IBC type")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of Immersed boundary condition.')
-    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE','slip_cr')
+    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap')
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
-    #- Mask settings (in or out)  -
+    # - Mask settings (in or out) -
     B = TTK.Label(Frame, text="Fluid")
     B.grid(row=3, column=0, sticky=TK.EW)
     B = TTK.OptionMenu(Frame, VARS[3], 'out', 'in')

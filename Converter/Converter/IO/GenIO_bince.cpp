@@ -66,7 +66,6 @@ E_Int K_IO::GenIO::readHeaderCE(FILE *ptrFile, E_Int& nfield,
   /* Number of variables */
   fread(&ib, si, 1, ptrFile);
   nfield = IBE(ib);
-
   varString = new char [nfield*K_ARRAY::VARNAMELENGTH];
 
   /* Variables name */

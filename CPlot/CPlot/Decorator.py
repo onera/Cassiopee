@@ -1,4 +1,6 @@
 # matplotlib decorators for CPlot
+# strongly inspired by Luis Bernardos ideas
+
 import CPlot.PyTree as CPlot
 import matplotlib.pyplot as plt
 import matplotlib
@@ -211,3 +213,73 @@ def savefig(fileName, pad=0.2):
 def show():
     """Show current figure."""
     plt.show()
+
+#==============================================================
+# Change xyz (3D) to image position (written by Luis Bernardos)
+#==============================================================
+def xyz2Pixel(points, win, posCam, posEye, dirCam, viewAngle):
+    """Return the two-component image-pixel positions of a set of points located in the 3D world of CPlot."""
+
+    # ------------------------------- #
+    # BUILD FRENET UNIT FRAME (b,n,c) #
+    # ------------------------------- #
+    # <c> is the Camera axes unit vector
+    c =  numpy.array(posCam) - numpy.array(posEye)
+    R = numpy.sqrt(c.dot(c)) # R is distance between posCam and posEye
+    c /= R
+
+    # <b> is binormal
+    b = numpy.cross(numpy.array(dirCam),c)
+    b /= numpy.sqrt(b.dot(b))
+
+    # <n> is normal
+    n = numpy.cross(c,b)
+    n /= numpy.sqrt(b.dot(b))
+
+    # <h> is the constant total height of the curvilinear window
+    va = numpy.deg2rad(viewAngle)
+    h = R * va
+    h = 2 * R * numpy.tan(va/2.)
+
+    # used to transform curvilinear unit to pixel
+    crv2Pixel = float(win[1]) / h
+
+    pixels = []
+
+    # The window plane is defined as a set of three points (p0, p1, p2)
+    p0 = numpy.array(posEye)
+    p1 = p0+b
+    p2 = p0+n
+    p01 = p1 - p0 # segment
+    p02 = p2 - p0 # segment
+
+    for point in points:
+        # ----------------------------------- #
+        # COMPUTE pixel-position of point <p> #
+        # ----------------------------------- #
+        p = numpy.array(point)
+
+        # Shall compute the intersection of the view of point <p> with the window plane
+
+        # Such line is defined through two points (la, lb) as
+        la, lb = numpy.array(posCam), p
+        lab = lb - la # segment
+
+        # Intersection is given by equation x = la + lab*t
+        den = -lab.dot(numpy.cross(p01,p02))
+
+        # Only for information (computation not required):
+        # t = numpy.cross(p01,p02).dot(la-p0) / den
+        # x = la + lab*t
+
+        # parametric components (u, v) are actually what we look for
+        u = numpy.cross(p02,-lab).dot(la-p0) / den
+        v = numpy.cross(-lab,p01).dot(la-p0) / den
+
+        # width and height in pixels are expressed in terms of (u, v)
+        # Pixel components relative to Figure origin (upper left)
+        pxP_w =  u*crv2Pixel + 0.5*float(win[0])
+        pxP_h = -v*crv2Pixel + 0.5*float(win[1])
+
+        pixels += [[pxP_w, pxP_h]]
+    return pixels

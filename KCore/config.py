@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 #=============================================================================
 # In installBase.py, you can specify:
 # - the name of the fortran 90 compiler

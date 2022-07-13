@@ -432,7 +432,6 @@ else if ($MAC == "cobalt") then
         setenv ELSAPROD cob_r8
         # Nombre de threads
         setenv OMP_NUM_THREADS 28
-        
         # modules
         module purge
         module purge
@@ -543,7 +542,7 @@ else if ($MAC == "spiro_python2") then
 
 else if ($MAC == "spiro_anaconda") then
 #------------------------------- spiro --------------------------------------
-	setenv ELSAPROD spiro_acda
+        setenv ELSAPROD spiro_acda
         # Number of threads
         setenv OMP_NUM_THREADS 24
         # Set next two lines only if python is not python
@@ -558,7 +557,7 @@ else if ($MAC == "spiro_anaconda") then
         module unload hdf5/1.8.8
         module load hdf5/1.8.17-intel-17
         module load anaconda/2021.05
-	    module load subversion/1.14.1-gnu830
+        module load subversion/1.14.1-gnu830
         
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
@@ -597,7 +596,7 @@ else if ($MAC == "sator") then
         #module unload intel/11.1.073
         module load CFD/4.0-intel-17.impi
         #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-	    #module load gcc/5.2
+        #module load gcc/5.2
         module load subversion/1.8.4
         # HDF para (deja dans le socle)
         # module load hdf5/1.8.17-intel-17.impi

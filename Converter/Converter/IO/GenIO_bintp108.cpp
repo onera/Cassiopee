@@ -419,36 +419,37 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
     while (ib != 0) fread(&ib, si, 1, ptrFile);
     goto zonemarker;
   }
-  else if (K_FUNC::fEqualZero(a - 299.) == false)
-    return 1;
+  else if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Zone name */
   i = 0; ib = 1;
-  while (ib != 0)
+  while (ib != 0 && i < BUFSIZE)
   {
     fread(&ib, si, 1, ptrFile);
-    dummy[i] = (char)IBE(ib);
+    ib = IBE(ib);
+    dummy[i] = (char)ib;
     i++;
   }
+  if (i == BUFSIZE) dummy[BUFSIZE] = '\0';
   strcpy(zoneName, dummy);
-
+  
   /* Parent zone: not used */
   fread(&ib, si, 1, ptrFile);
-
+  
   /* Strand id */
   fread(&ib, si, 1, ptrFile);
   strand = IBE(ib);
-
+  
   /* Solution time */
   fread(&t, sizeof(double), 1, ptrFile);
-  time = FBE(t);
-
+  time = DBE(t);
+  
   /* Zone color: not used */
   fread(&ib, si, 1, ptrFile);
-
+  
   /* Zone type: checked */
-  fread(&ib, si, 1, ptrFile); ib = IBE(ib);
-  elt = ib;
+  fread(&ib, si, 1, ptrFile);
+  elt = IBE(ib);
   if (elt < 0 || elt > 7)
   {
     printf("Warning: readZoneHeader: the element type is unknown.\n");
@@ -514,11 +515,11 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
       nk = ib;
       break;
 
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
+    case 1: // BAR (tecplot type)
+    case 2: // TRI
+    case 3: // QUAD
+    case 4: // TETRA
+    case 5: // HEXA
       fread(&ib, si, 1, ptrFile);
       npts = IBE(ib);
       fread(&ib, si, 1, ptrFile);
@@ -528,6 +529,9 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
       else if (elt == 3) eltType = 3; // QUAD
       else if (elt == 4) eltType = 4; // TETRA
       else if (elt == 5) eltType = 7; // HEXA
+      fread(&ib, si, 1, ptrFile); // cell dim
+      fread(&ib, si, 1, ptrFile);
+      fread(&ib, si, 1, ptrFile);
       break;
 
     case 6: // POLYGON
@@ -551,11 +555,11 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
       break;
   }
 
-  /* Repeat */
+  /* Auxiliary data: not supported. */
   fread(&ib, si, 1, ptrFile); ib = IBE(ib);
   if (ib == 1)
   {
-    printf("Warning: readZoneHeader: var repeat is not supported.\n");
+    printf("Warning: readZoneHeader: auxiliary data is not supported.\n");
     // read name string
     fread(&ib, si, 1, ptrFile); ib = IBE(ib);
     while (ib != 0) { fread(&ib, si, 1, ptrFile); ib = IBE(ib); }
@@ -566,6 +570,9 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
     // read value string
     fread(&ib, si, 1, ptrFile); ib = IBE(ib);
     while (ib != 0) { fread(&ib, si, 1, ptrFile); ib = IBE(ib); }
+
+    // read next
+    fread(&ib, si, 1, ptrFile);
   }
 
   return 0;

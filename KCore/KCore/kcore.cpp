@@ -216,7 +216,7 @@ extern "C"
 //=============================================================================
 void K_KCORE::testFooKCore()
 {
-  E_Int i; E_Float f;
+  E_Int i=0; E_Float f=0.;
   
   k6conv2center1_(i, i, i, i, NULL, NULL);
 

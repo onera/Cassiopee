@@ -1971,7 +1971,7 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
     return child;
   }
   else child = H5Gcreate2(node, s1, H5P_DEFAULT, _group, H5P_DEFAULT);
-  
+
   HDF_Add_Attribute_As_String(child, L3S_NAME, s1);
   HDF_Add_Attribute_As_String(child, L3S_LABEL, s2);
   HDF_Add_Attribute_As_Integer(child, L3S_FLAGS, 1);
@@ -2191,7 +2191,10 @@ hid_t K_IO::GenIOHdf::modifyNode(hid_t node, PyObject* tree)
   HDF_Set_Attribute_As_String(node, L3S_NAME, s1);
   HDF_Set_Attribute_As_String(node, L3S_LABEL, s2);
   //HDF_Set_Attribute_As_Integer(node, L3S_FLAGS, 1);
+  
   // Missing replace value!!
+  hid_t child = H5Gopen2(node, s1, H5P_DEFAULT);
+
   return node;
 }
 //=============================================================================
