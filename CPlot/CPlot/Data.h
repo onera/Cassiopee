@@ -220,7 +220,7 @@ public:
              float xeye, float yeye, float zeye,
              float dirx, float diry, float dirz,
              float viewAngle,
-             int meshStyle, int solidStyle, 
+             int meshStyle, int solidStyle,
              int scalarStyle, int vectorStyle, 
              float vectorScale, float vectorDensity, int vectorNormalize,
              int vectorShowSurface, int vectorShape, int vector_projection,

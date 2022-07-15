@@ -273,6 +273,11 @@ def filterColormap(values):
         colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
         if colormap == 24: colormap = 10
         elif colormap == 25: colormap = 11
+    elif colormap == 26 or colormap == 27: # Jet
+        colormapC1='#00008F'; colormapC2='#FF0000'; colormapC3='#00FFFF'; 
+        if colormap == 26: colormap = 10
+        elif colormap == 27: colormap = 11
+    
     return [colormap, colormapC1, colormapC2, colormapC3]
 
 def setState(dim=-1,

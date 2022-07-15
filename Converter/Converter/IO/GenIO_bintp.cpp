@@ -240,6 +240,7 @@ E_Int K_IO::GenIO::tecread(
   vector<FldArrayF*> geom;
   vector<E_Int> loc;
   E_Int dataPacking=1;
+  E_Int rawlocal=0; // 1 si PE connect
   E_Int strand=0; E_Float time=0.;
   no = 0;
   error = 0;
@@ -276,7 +277,7 @@ E_Int K_IO::GenIO::tecread(
                                     ni1, nj1, nk1, 
                                     npts, nelts, numFaces, numFaceNodes,
                                     numBoundaryFaces, numBoundaryConnections,
-                                    et, zoneName, 
+                                    et, rawlocal, zoneName, 
                                     dataPacking, strand, time, 
                                     loc, geom);
         else
@@ -284,7 +285,7 @@ E_Int K_IO::GenIO::tecread(
                                       ni1, nj1, nk1, 
                                       npts, nelts, numFaces, numFaceNodes,
                                       numBoundaryFaces, numBoundaryConnections,
-                                      et, zoneName, 
+                                      et, rawlocal, zoneName, 
                                       dataPacking, strand, time, 
                                       loc, geom);
         if (error == 0)
@@ -480,13 +481,13 @@ E_Int K_IO::GenIO::tecread(
                         numFacesl[zoneUnstruct], numFaceNodesl[zoneUnstruct],
                         numBoundaryFacesl[zoneUnstruct],  
                         numBoundaryConnectionsl[zoneUnstruct],
-                        neltsl[zoneUnstruct], f1, c1, fc);
+                        neltsl[zoneUnstruct], rawlocal, f1, c1, fc);
           else
             readData108CE(ptrFile, dataPacking, loc, etl[zone],
                           numFacesl[zoneUnstruct], numFaceNodesl[zoneUnstruct],
                           numBoundaryFacesl[zoneUnstruct],  
                           numBoundaryConnectionsl[zoneUnstruct],
-                          neltsl[zoneUnstruct], f1, c1, fc);
+                          neltsl[zoneUnstruct], rawlocal, f1, c1, fc);
           break;
           
         default:;

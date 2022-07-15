@@ -460,6 +460,7 @@ def setColormapLight(event=None):
     elif colormap == 'Magma': style = 20
     elif colormap == 'Plasma': style = 22
     elif colormap == 'NiceBlue': style = 24
+    elif colormap == 'Jet': style = 26
     
     if light == 'IsoLight on': style += 1
     
@@ -1165,7 +1166,7 @@ def createApp(win):
                        'TriColorRGB', 'TriColorHSV',
                        'Diverging', 'Black2White',
                        'Viridis', 'Inferno', 'Magma', 
-                       'Plasma', 'NiceBlue',
+                       'Plasma', 'NiceBlue', 'Jet',
                        command=setColormapLight)
     B.grid(row=6, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Colormap type.')

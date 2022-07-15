@@ -14132,13 +14132,13 @@ class MatplotlibFigure():
             ntickmy = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_number
 
             # CB rounder
-            print("init",xmin,xmax,ntickMx)
+            #print("init",xmin,xmax,ntickMx)
             ixmin = xmin; ixmax = xmax
             dx = (xmax-xmin)/(float(ntickMx))
             dx = pround(dx)
             xmin = round(xmin/dx)*dx
             xmax = xmin+ntickMx*dx
-            print(xmin-ixmin, xmax-ixmax)
+            #print(xmin-ixmin, xmax-ixmax)
 
             dy = (ymax-ymin)/(float(ntickMy))
             dy = pround(dy)

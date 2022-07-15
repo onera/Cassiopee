@@ -391,8 +391,7 @@ int HDF_Add_Attribute_As_String(hid_t nodeid, const char *name,
     H5Tclose(tid); H5Sclose(sid); return 0;
   }
   if (strlen(value) > L3C_MAX_ATTRIB_SIZE)
-    printf("Warning: hdfcgnswrite: %s node name has been truncated.\n",
-           value);
+    printf("Warning: hdfcgnswrite: %s node name has been truncated.\n", value);
   memset(buff, 0, dim); strcpy(buff, value);
   status = H5Awrite(aid, tid, buff);
 

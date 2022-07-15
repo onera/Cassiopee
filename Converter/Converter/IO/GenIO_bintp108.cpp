@@ -76,6 +76,7 @@ void getBeginFromLoc(vector<E_Int>& loc, vector<E_Int>& beginNodes,
    OUT: dataPacking: 0 (block), 1 (point)
    OUT: strand: strand number registered in zone
    OUT: time: time registered in zone
+   OUT: rawlocal: 1 si connect est donnee par le parent element
    OUT: loc: for each field, 0 (node), 1(center)
    OUT: geometries (1D fields)
    v108-112 compatible.
@@ -88,7 +89,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
   E_Int& npts, E_Int& nelts,
   E_Int& numFaces, E_Int& numFaceNodes,
   E_Int& numBoundaryFaces, E_Int& numBoundaryConnections,
-  E_Int& eltType,
+  E_Int& eltType, E_Int& rawlocal,
   char* zoneName, E_Int& dataPacking,
   E_Int& strand, E_Float& time,
   vector<E_Int>& loc,
@@ -190,10 +191,10 @@ E_Int K_IO::GenIO::readZoneHeader108(
   /* Solution time. */
   fread(&t, sizeof(double), 1, ptrFile);
   time = t;
-
+  
   /* Zone color: not used. */
   fread(&ib, si, 1, ptrFile);
-
+  
   /* Zone type: checked. */
   fread(&ib, si, 1, ptrFile);
   elt = ib;
@@ -202,7 +203,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
     printf("Warning: readZoneHeader: those elements are unknown.\n");
     return 1;
   }
-
+  
   /* Data packing: used. Disappear in v112. */
   dataPacking = 0;
   if (version < 112)
@@ -237,6 +238,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
   if (ib != 0)
   {
     printf("Warning: readZoneHeader: raw local faces not supported.\n");
+    rawlocal = 1;
   }
 
   /* Misc user defined faces: not supported. */
@@ -244,6 +246,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
   if (ib != 0)
   {
     fread(&ib, si, 1, ptrFile); // face mode (local, 1-to-1)
+    if (elt != 0) fread(&ib, si, 1, ptrFile);
     printf("Warning: readZoneHeader: user defined faces not supported.\n");
   }
 
@@ -339,7 +342,7 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   E_Int& npts, E_Int& nelts,
   E_Int& numFaces, E_Int& numFaceNodes,
   E_Int& numBoundaryFaces, E_Int& numBoundaryConnections,
-  E_Int& eltType,
+  E_Int& eltType, E_Int& rawlocal, 
   char* zoneName, E_Int& dataPacking,
   E_Int& strand, E_Float& time,
   vector<E_Int>& loc,
@@ -450,6 +453,7 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   /* Zone type: checked */
   fread(&ib, si, 1, ptrFile);
   elt = IBE(ib);
+  
   if (elt < 0 || elt > 7)
   {
     printf("Warning: readZoneHeader: the element type is unknown.\n");
@@ -490,6 +494,7 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   if (ib != 0)
   {
     printf("Warning: readZoneHeader: raw local faces not supported.\n");
+    rawlocal = 1;
   }
 
   /* Misc user defined faces: not supported */
@@ -497,9 +502,10 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   if (ib != 0)
   {
     fread(&ib, si, 1, ptrFile); // face mode (local, 1-to-1)
+    if (elt != 0) fread(&ib, si, 1, ptrFile);
     printf("Warning: readZoneHeader: user defined faces not supported.\n");
   }
-
+  
   switch (elt)
   {
     case 0: // Structure
@@ -663,16 +669,17 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     {
       float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
       int32_t* buf4=NULL; int8_t* buf5=NULL; 
-      if (varType[n] == 1) buf1 = new float[npts];
-      else if (varType[n] == 2) buf2 = new double[npts];
-      else if (varType[n] == 3) buf3 = new int64_t [npts];
-      else if (varType[n] == 4) buf4 = new int32_t [npts];
-      else if (varType[n] == 5) buf5 = new int8_t [npts];
-      else printf("Warning: unknow type of variable.\n");
-
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
       else { size = npts; fp = f->begin(beginNodes[n]); }
+
+      if (varType[n] == 1) buf1 = new float[size];
+      else if (varType[n] == 2) buf2 = new double[size];
+      else if (varType[n] == 3) buf3 = new int64_t [size];
+      else if (varType[n] == 4) buf4 = new int32_t [size];
+      else if (varType[n] == 5) buf5 = new int8_t [size];
+      else printf("Warning: unknow type of variable.\n");
+
       if (passive[n] == 0)
       {
         if (varType[n] == 1) 
@@ -821,7 +828,8 @@ E_Int K_IO::GenIO::readData108(
   FILE* ptrFile,
   E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
-  E_Int numBoundaryFaces, E_Int numBoundaryConnections, E_Int ne,
+  E_Int numBoundaryFaces, E_Int numBoundaryConnections, 
+  E_Int ne, E_Int rawlocal,
   FldArrayF* f, FldArrayI& c, FldArrayF* fc)
 {
   float a;
@@ -900,17 +908,19 @@ E_Int K_IO::GenIO::readData108(
     for (n = 0; n < nfield; n++)
     {
       float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
-      int32_t* buf4=NULL; int8_t* buf5=NULL; 
-      if (varType[n] == 1) buf1 = new float[npts];
-      else if (varType[n] == 2) buf2 = new double[npts];
-      else if (varType[n] == 3) buf3 = new int64_t [npts];
-      else if (varType[n] == 4) buf4 = new int32_t [npts];
-      else if (varType[n] == 5) buf5 = new int8_t [npts];
-      else printf("Warning: unknown type of variable.\n");
-
+      int32_t* buf4=NULL; int8_t* buf5=NULL;
+      
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
       else { size = npts; fp = f->begin(beginNodes[n]); }
+
+      if (varType[n] == 1) buf1 = new float[size];
+      else if (varType[n] == 2) buf2 = new double[size];
+      else if (varType[n] == 3) buf3 = new int64_t [size];
+      else if (varType[n] == 4) buf4 = new int32_t [size];
+      else if (varType[n] == 5) buf5 = new int8_t [size];
+      else printf("Warning: unknown type of variable.\n");
+
       if (passive[n] == 0)
       {
         if (varType[n] == 1) 
@@ -948,7 +958,7 @@ E_Int K_IO::GenIO::readData108(
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
-    }    
+    } 
   }
   else if (dataPacking == 1) // point all types (forcement node)
   {
@@ -1239,16 +1249,16 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     {
       float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
       int32_t* buf4=NULL; int8_t* buf5=NULL; 
-      if (varType[n] == 1) buf1 = new float[npts];
-      else if (varType[n] == 2) buf2 = new double[npts];
-      else if (varType[n] == 3) buf3 = new int64_t [npts];
-      else if (varType[n] == 4) buf4 = new int32_t [npts];
-      else if (varType[n] == 5) buf5 = new int8_t [npts];
-      else printf("Warning: unknown type of variable.\n");
-
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
       else { size = npts; fp = f->begin(beginNodes[n]); }
+      if (varType[n] == 1) buf1 = new float[size];
+      else if (varType[n] == 2) buf2 = new double[size];
+      else if (varType[n] == 3) buf3 = new int64_t [size];
+      else if (varType[n] == 4) buf4 = new int32_t [size];
+      else if (varType[n] == 5) buf5 = new int8_t [size];
+      else printf("Warning: unknown type of variable.\n");
+
       if (passive[n] == 0)
       {
         if (varType[n] == 1) 
@@ -1394,7 +1404,7 @@ E_Int K_IO::GenIO::readData108CE(
   E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
   E_Int numBoundaryFaces, E_Int numBoundaryConnections,
-  E_Int ne,
+  E_Int ne, E_Int rawlocal,
   FldArrayF* f, FldArrayI& c, FldArrayF* fc)
 {
   float a;
@@ -1410,7 +1420,7 @@ E_Int K_IO::GenIO::readData108CE(
   E_Int nelts = c.getSize();
   E_Int eltType = c.getNfld();
   E_Int si = sizeof(int);
-
+    
   vector<E_Int> beginNodes; vector<E_Int> beginCenters;
   getBeginFromLoc(loc, beginNodes, beginCenters);
   
@@ -1482,16 +1492,16 @@ E_Int K_IO::GenIO::readData108CE(
     {
       float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
       int32_t* buf4=NULL; int8_t* buf5=NULL; 
-      if (varType[n] == 1) buf1 = new float[npts];
-      else if (varType[n] == 2) buf2 = new double[npts];
-      else if (varType[n] == 3) buf3 = new int64_t [npts];
-      else if (varType[n] == 4) buf4 = new int32_t [npts];
-      else if (varType[n] == 5) buf5 = new int8_t [npts];
-      else printf("Warning: unknown type of variable.\n");
-
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
       else { size = npts; fp = f->begin(beginNodes[n]); }
+      if (varType[n] == 1) buf1 = new float[size];
+      else if (varType[n] == 2) buf2 = new double[size];
+      else if (varType[n] == 3) buf3 = new int64_t [size];
+      else if (varType[n] == 4) buf4 = new int32_t [size];
+      else if (varType[n] == 5) buf5 = new int8_t [size];
+      else printf("Warning: unknown type of variable.\n");
+
       if (passive[n] == 0)
       {
         if (varType[n] == 1) 
@@ -1629,6 +1639,14 @@ E_Int K_IO::GenIO::readData108CE(
     {
       fread(&buf2[0], si, eltType, ptrFile);
       for (i = 0; i < eltType; i++) c(n, i+1) = IBE(buf2[i])+1;
+    }
+    if (rawlocal == 1)
+    {
+      int b;
+      for (n = 0; n < nelts; n++)
+      {
+        fread(&b, si, 1, ptrFile);
+      }
     }
   }
   else // NGON

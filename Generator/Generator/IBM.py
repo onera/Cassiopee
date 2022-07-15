@@ -1,9 +1,9 @@
 """Mesh generation for IBM """
 from . import Generator
 from . import generator
+from . import PyTree as G
 
 import Converter.PyTree as C
-import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.IBM as X_IBM
@@ -15,7 +15,6 @@ import KCore
 import numpy
 
 EPSCART = 1.e-6
-
 
 def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True,
                        symmetry=0, externalBCType='BCFarfield', bbox=None):

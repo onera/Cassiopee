@@ -2897,14 +2897,18 @@ def createZoneNode(name, array, array2=[],
   if px == -1: px = KCore.isNamePresent(array, 'x')
   if px == -1: px = KCore.isNamePresent(array, 'X')
   if px == -1: px = KCore.isNamePresent(array, 'x3d')
+  if px == -1: px = KCore.isNamePresent(array, 'Coordinates.CoordinateX')
   py = KCore.isNamePresent(array, 'CoordinateY')
   if py == -1: py = KCore.isNamePresent(array, 'y')
   if py == -1: py = KCore.isNamePresent(array, 'Y')
   if py == -1: py = KCore.isNamePresent(array, 'y3d')
+  if py == -1: py = KCore.isNamePresent(array, 'Coordinates.CoordinateY')
   pz = KCore.isNamePresent(array, 'CoordinateZ')
   if pz == -1: pz = KCore.isNamePresent(array, 'z')
   if pz == -1: pz = KCore.isNamePresent(array, 'Z')
   if pz == -1: pz = KCore.isNamePresent(array, 'z3d')
+  if pz == -1: pz = KCore.isNamePresent(array, 'Coordinates.CoordinateZ')
+  
   if px != -1 or py != -1 or pz != -1:
     info.append([GridCoordinates, None, [], 'GridCoordinates_t'])
     if px != -1:

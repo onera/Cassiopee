@@ -744,7 +744,7 @@ class GenIO
       E_Int& npts, E_Int& nelts,
       E_Int& numFaces, E_Int& numFaceNodes,
       E_Int& numBoundaryFaces, E_Int& numBoundaryConnections,
-      E_Int& eltType,
+      E_Int& eltType, E_Int& rawlocal,
       char* zoneName, E_Int& dataPacking,
       E_Int& strand, E_Float& time,
       std::vector<E_Int>& loc,
@@ -756,9 +756,9 @@ class GenIO
       E_Int& npts, E_Int& nelts,
       E_Int& numFaces, E_Int& numFaceNodes,
       E_Int& numBoundaryFaces, E_Int& numBoundaryConnections,
-      E_Int& eltType,
+      E_Int& eltType, E_Int& rawlocal,
       char* zoneName, E_Int& dataPacking,
-      E_Int& strand, E_Float& time,
+      E_Int& strand, E_Float& time, 
       std::vector<E_Int>& loc,
       std::vector<FldArrayF*>& geom);
     /* bin_tp: read data */
@@ -769,7 +769,7 @@ class GenIO
                       E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                       E_Int numFaces, E_Int numFaceNodes,
                       E_Int numBoundaryFaces, E_Int numBoundaryConnections,
-                      E_Int ne,
+                      E_Int ne, E_Int rawlocal,
                       FldArrayF* f, FldArrayI& c, FldArrayF* fc);
     E_Int readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                         E_Int dataPacking, std::vector<E_Int>& loc,
@@ -778,7 +778,7 @@ class GenIO
                         E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                         E_Int numFaces, E_Int numFaceNodes,
                         E_Int numBoundaryFaces, E_Int numBoundaryConnections,
-                        E_Int ne,
+                        E_Int ne, E_Int rawlocal,
                         FldArrayF* f, FldArrayI& c, FldArrayF* fc);
     E_Int readData75(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                      E_Int dataPacking,

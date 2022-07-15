@@ -1022,7 +1022,7 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
   // 3. GET zone_to_rid_to_list_owned
   std::map<int, std::map<int, std::vector<int>>> zone_to_rid_to_list_owned;
   convert_dico_to_map___int_int_vecint(py_zone_to_rid_to_list_owned, zone_to_rid_to_list_owned);
-  assert (zone_to_zone_to_list_owned == nb_meshes);
+  //assert (zone_to_zone_to_list_owned == nb_meshes);
 
   /*std::cout << "adaptCells : before __adapt_wrapper" << std::endl;
   std::cout << "sub type : " << *subdiv_type << std::endl;
@@ -1494,7 +1494,7 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   // 2. GET POINTLISTS MAP 
   std::map<int, std::map<int, std::vector<int>>> zone_to_rid_to_list_owned;
   convert_dico_to_map___int_int_vecint(py_zone_to_rid_to_list_owned, zone_to_rid_to_list_owned);
-  assert (zone_to_zone_to_list_owned.size() == nb_meshes);
+  //assert (zone_to_zone_to_list_owned.size() == nb_meshes);
 
   // 3. GET RID_TO_ZONES MAP 
   //todo VD : py_rid_to_zones => rid_to_zones
