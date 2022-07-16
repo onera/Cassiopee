@@ -36,15 +36,6 @@ void reshape(int w, int h)
   d->_view.tang = tan(ANG2RAD * d->_view.angle * 0.5);
   d->farClipping();
 
-  /* pour Ivan
-  printf("CPlot reshape: coucou \n");
-  double alpha = 0.08;
-  double dx = (d->_view.xeye - d->_view.xcam)*alpha;
-  double dy = (d->_view.yeye - d->_view.ycam)*alpha;
-  double dz = (d->_view.zeye - d->_view.zcam)*alpha;
-  double di = sqrt(dx*dx+dy*dy+dz*dz);
-  d->adaptiveClipping(di);
-  */
 }
 
 //=============================================================================

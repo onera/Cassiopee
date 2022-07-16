@@ -14018,10 +14018,10 @@ class MatplotlibFigure():
                     if c.marker_sampling_step == '':
                         markingSampling = None
                     else:
-                        if c.marker_sampling_start=='':
+                        if c.marker_sampling_start == '':
                             markingSampling = c.marker_sampling_step
                         else:
-                            if c.marker_sampling_end=='':
+                            if c.marker_sampling_end == '':
                                 markingSampling=(c.marker_sampling_start,c.marker_sampling_step)
                             else:
                                 print('''Could not manage to make the 'slice' runs, therefore, it will be necessary to
@@ -14056,11 +14056,11 @@ class MatplotlibFigure():
                                 ### xaxis_label
                                 re_var = re.compile(c.varx.split('@')[0]+',')
                                 if not re.search(re_var,xaxis_label):
-                                    xaxis_label+=c.varx.split('@')[0]+','
+                                    xaxis_label += c.varx.split('@')[0]+','
                                 ### yaxis_label
                                 re_var = re.compile(c.vary.split('@')[0]+',')
                                 if not re.search(re_var,yaxis_label):
-                                    yaxis_label+=c.vary.split('@')[0]+','
+                                    yaxis_label += c.vary.split('@')[0]+','
                                 # Create the plot of the curve
                                 thisPlot, = self.subGraph[iCurSubGraph].axis[iCurrentAxis].plot(sortedData[0],sortedData[1],color=c.line_color,linestyle=c.line_style,linewidth=c.line_width,
                                                         marker=marker_dic[c.marker_style],markersize=c.marker_size,markerfacecolor=c.marker_face_color,
@@ -14076,6 +14076,11 @@ class MatplotlibFigure():
                                 if thisPlot is not None: legend_list.append(thisPlot)
                                 legend_text.append(c.legend_label)
 
+
+            # locator
+            #from matplotlib.ticker import MaxNLocator, AutoLocator
+            #self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_locator(MaxNLocator(2))
+            #self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_major_locator(MaxNLocator(2))
 
             ## Set Axis
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].relim()
@@ -14131,56 +14136,50 @@ class MatplotlibFigure():
             ntickmx = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_number
             ntickmy = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_number
 
-            # CB rounder
-            #print("init",xmin,xmax,ntickMx)
-            ixmin = xmin; ixmax = xmax
-            dx = (xmax-xmin)/(float(ntickMx))
-            dx = pround(dx)
-            xmin = round(xmin/dx)*dx
-            xmax = xmin+ntickMx*dx
-            #print(xmin-ixmin, xmax-ixmax)
-
-            dy = (ymax-ymin)/(float(ntickMy))
-            dy = pround(dy)
-            ymin = round(ymin/dy)*dy
-            ymax = ymin+ntickMy*dy
-            
-            stepx = (xmax-xmin)/(float(ntickMx))
-            dstepx = stepx*1.e-3
-            majorx = np.arange(xmin,xmax+dstepx,stepx)
-            # minorx = np.arange(xmin,xmax,(xmax-xmin)/(float(ntickmx)))
-            minorx = np.arange(xmin,xmax+dstepx,stepx/(float(ntickmx)))
-            stepy = (ymax-ymin)/(float(ntickMy))
-            dstepy = stepy*1.e-3
-            majory = np.arange(ymin,ymax+dstepy,stepy)
-            # minory = np.arange(ymin,ymax,(ymax-ymin)/(float(ntickmy)))
-            minory = np.arange(ymin,ymax+dstepy,stepy/(float(ntickmy)))
-
-            # Get the ticks position for debug
+            # This set strange values for min/max. I prefer matplotlib std locator
+            #ixmin = xmin; ixmax = xmax
+            #dx = (xmax-xmin)/(float(ntickMx))
+            #dx = pround(dx)
+            #xmin = (round(xmin/dx))*dx
+            #xmax = xmin+ntickMx*dx
+            #iymin = ymin; iymax = ymax            
+            #dy = (ymax-ymin)/(float(ntickMy))
+            #dy = pround(dy)
+            #ymin = round(ymin/dy)*dy
+            #ymax = ymin+ntickMy*dy
+            #stepx = (xmax-xmin)/(float(ntickMx))
+            #dstepx = stepx*1.e-3
+            #majorx = np.arange(xmin,xmax+dstepx,stepx)
+            #minorx = np.arange(xmin,xmax+dstepx,stepx/(float(ntickmx)))
+            #stepy = (ymax-ymin)/(float(ntickMy))
+            #dstepy = stepy*1.e-3
+            #majory = np.arange(ymin,ymax+dstepy,stepy)
+            #minory = np.arange(ymin,ymax+dstepy,stepy/(float(ntickmy)))
             # locs = self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.get_ticklocs()
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(majorx)
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(minorx,minor=True)
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_yticks(majory)
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_yticks(minory,minor=True)
+            #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(majorx)
+            #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(minorx, minor=True)
+            #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_yticks(majory)
+            #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_yticks(minory, minor=True)
+            
             # Tick size
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_tick_size)
-            # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_size,minor=True)
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_tick_size)
-            # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_size,minor=True)
+            self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x', labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_tick_size)
+            # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_size, minor=True)
+            self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y', labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_tick_size)
+            # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_size, minor=True)
 
             ## Spine position
             spines = self.subGraph[iCurSubGraph].axis[iCurrentAxis].spines
             offset_x = float(self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_offset)
-            spines['top'].set_position(('outward',offset_x))
-            spines['bottom'].set_position(('outward',offset_x))
+            spines['top'].set_position(('outward', offset_x))
+            spines['bottom'].set_position(('outward', offset_x))
             offset_y = float(self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_offset)
-            spines['left'].set_position(('outward',offset_y))
-            spines['right'].set_position(('outward',offset_y))
+            spines['left'].set_position(('outward', offset_y))
+            spines['right'].set_position(('outward', offset_y))
 
             ## make patch and spine invisible
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_frame_on(True)
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_visible(True)
-            if iCurrentAxis==0:
+            if iCurrentAxis == 0:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_facecolor(self.graph.subgraph_background_color)# BLABLA
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].patch.set_alpha(self.graph.subgraph_background_alpha)# BLABLA
             else:
