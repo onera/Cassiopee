@@ -298,3 +298,28 @@ class MB(Common):
     # post-processing: extrait la solution aux neouds + le champs sur les surfaces
     def post(self, t_in, t_out, wall_out):
         return post(t_in, t_out, wall_out, self.data['format'])
+
+
+
+def calc_cp_cf(t,h,listzones,isRANS=False,wallType='BCWall',mode=None):
+    h._loadZones(t, znp=listzones)
+
+    ##Removing the zones of no interest
+    bases = Internal.getBases(t)
+    for b in bases:
+        zones = Internal.getZones(b)
+        for z in zones:
+            if b[0]+'/'+z[0] not in listzones:
+                Internal._rmNode(t,z)
+
+    ##Getting and calculating ref. values
+    [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
+     ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+     Mus, Cs, Ts, Pr] = C.getState(t)
+
+    RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
+    
+    w=FastC.get_wall_values(t,isRANS=isRANS,wallType=wallType,mode=mode)
+    w=FastC.get_skin_friction(w,RoInf,PInf,RoUInf2I)
+
+    return w
