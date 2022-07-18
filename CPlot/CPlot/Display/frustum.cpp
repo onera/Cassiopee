@@ -228,6 +228,7 @@ int isInFrustum(Zone* z, ViewInfo& view)
   if (out == 8) return 0;
   
   // all points top of top plane
+  out = 0;
   for (int k = 0; k < 8; k++)
   {
     dist3 = topNx*bbx[k] + topNy*bby[k] + topNz*bbz[k] + topD;
@@ -236,6 +237,7 @@ int isInFrustum(Zone* z, ViewInfo& view)
   if (out == 8) return 0;
   
   // all points bottom of bottom plane
+  out = 0;
   for (int k = 0; k < 8; k++)
   {
     dist4 = bottomNx*bbx[k] + bottomNy*bby[k] + bottomNz*bbz[k] + bottomD;
