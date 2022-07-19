@@ -263,7 +263,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
 
 def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None, ext=3, snearsf=None, yplus=100.,
-                      vmin=21, check=False, expand=3, dfarDir=0, extrusion=False):
+                      vmin=21, check=False, expand=3, dfarDir=0, extrusion=False,dz_in=0.01,NPas_in=200,span_in=1,check2Donly=False,dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./'):
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
     refstate = C.getState(tb)
@@ -306,7 +306,7 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank,
                          expand=expand, dfarDir=dfarDir)
 
-    if rank==0 and check: C.convertPyTree2File(o, fileout)
+    if rank==0 and check: C.convertPyTree2File(o, directory_tmp_files+fileout)
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = G_IBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
@@ -358,23 +358,27 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
         X_IBM._addBCOverlaps(t, bbox=bb)
         X_IBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
 
-    dz = 0.01
+    if check and check2Donly:Cmpi.convertPyTree2File(t, directory_tmp_files+'2Dmesh.cgns')
+    if check2Donly: exit()
+        
+    dz = dz_in
     if dimPb == 2:
         if not extrusion:
             T._addkplane(t)
             T._contract(t, (0,0,0), (1,0,0), (0,1,0), dz)
         if extrusion:
-            chord = 1.
             NSplit = 1
-            NPas = 200
-            span = 0.25*chord
+            NPas   = NPas_in
+            span   = span_in
             dimPb = 3
             # Extrude 2D case
             T._addkplane(tb,N=NPas+4)
-            for node in Internal.getNodesFromName(tb,'EquationDimension'): Internal.setValue(node,3)
+            for node in Internal.getNodesFromName(tb,'EquationDimension'): Internal.setValue(node,dimPb)
             T._contract(tb, (0.,0.,0.), (1,0,0), (0,1,0), span/NPas)
             zmax = C.getMaxValue(tb,'CoordinateZ')
             T._translate(tb,(0.,0.,-0.5*zmax))
+
+                        
             # Close new 3D case
             for b in Internal.getBases(tb):
                 name = Internal.getName(b)
@@ -385,11 +389,21 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
                 for line in Internal.getZones(b):
                     closure = G.tetraMesher(line, algo=1)
                     tb = Internal.append(tb, closure, name)
-            if rank == 0: C.convertPyTree2File(tb, '3Dcase.cgns')
+
+            ##[AJ] A random unstructured mesh was created (NOT SURE WHY)
+            for z in Internal.getZones(tb):
+                ztype = Internal.getNodeFromType2(z, 'ZoneType_t');
+                if Internal.getValue(ztype)!='Structured':
+                    Internal._rmNode(tb,z)
+
+                    
+            if rank == 0: C.convertPyTree2File(tb, directory_tmp_files+'3Dcase.cgns')
+            
             # create new 3D tree
             t = T.subzone(t, (1,1,1), (-1,-1,1))
             bbox = G.bbox(t); bbox = [round(i,1) for i in bbox]
             bbox = numpy.array(bbox)
+            
             # Share the boundaries of the entire mesh for BCFarfield
             comm.Barrier()
             minbox = numpy.zeros(3)
@@ -412,20 +426,45 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
                 if abs(round(ymin-bbox[1]))==0.: C._addBC2Zone(z, 'external', 'BCFarfield', 'jmin')
                 if abs(round(ymax-bbox[4]))==0.: C._addBC2Zone(z, 'external', 'BCFarfield', 'jmax')
             C._fillEmptyBCWith(t,'overlap','BCOverlap')
-            T._addkplane(t,N=NPas+4)
+
+            if isCartesianExtrude:
+                for z in Internal.getZones(t):
+                    h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+                    NPas_local = int(round(span/h))
+                    if NPas_local<2:
+                        print("WARNING:: Zone %s has Nz=%d and is being clipped to Nz=2"%(z[0],NPas_local))
+                        NPas_local=2
+                    T._addkplane(z,N=NPas_local+4)
+                    T._contract(z, (0.,0.,0.), (1,0,0), (0,1,0), span/NPas_local)
+                    zmax_local = C.getMaxValue(z, 'CoordinateZ')
+                    T._translate(z,(0.,0.,-0.5*zmax_local))
+                    
+            if isExtrudeByZone and len(dict_Nz)>0:
+                for z in Internal.getZones(t):
+                    name_zone = z[0][0:len(z[0])-2]
+                    NPas_local = int(dict_Nz[name_zone])
+                    T._addkplane(z,N=NPas_local+4)                    
+                    T._contract(z, (0.,0.,0.), (1,0,0), (0,1,0), span/NPas_local)
+                    zmax_local = C.getMaxValue(z, 'CoordinateZ')
+                    T._translate(z,(0.,0.,-0.5*zmax_local))
+                    
+            if not isCartesianExtrude and not isExtrudeByZone:
+                T._addkplane(t,N=NPas+4)
+                T._contract(t, (0.,0.,0.), (1,0,0), (0,1,0), span/NPas)
+                T._translate(t,(0.,0.,-0.5*zmax))
+                
             for node in Internal.getNodesFromName(t,'EquationDimension'): Internal.setValue(node,3)
-            T._contract(t, (0.,0.,0.), (1,0,0), (0,1,0), span/NPas)
-            T._translate(t,(0.,0.,-0.5*zmax))
             C._addBC2Zone(t, 'period', 'BCautoperiod', 'kmin')
             C._addBC2Zone(t, 'period', 'BCautoperiod', 'kmax')
-            if check: Cmpi.convertPyTree2File(t, '3Dmesh.cgns')
+            
+            if check: Cmpi.convertPyTree2File(t, directory_tmp_files+'3Dmesh.cgns')
 
-
+    
     # ReferenceState
     C._addState(t, state=refstate)
     C._addState(t, 'GoverningEquations', model)
     C._addState(t, 'EquationDimension', dimPb)            
-    return t
+    return t,tb
 
 #================================================================================
 # IBM prepare - para
@@ -439,11 +478,23 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
              tbox=None, snearsf=None, yplus=100., Lref=1.,
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
-             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
-             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False,isDist2WallNearBodyOnly=False):
+             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100.,
+             dfarDir=0,dz_in=0.01,span_in=0.25,NPas_in=10,height_in=0.1,
+             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False,
+             redistribute=False,isDist2WallNearBodyOnly=False,isoverideheight=False,check2Donly=False,
+             dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./'):
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
+
+    
+    if isCartesianExtrude and isExtrudeByZone:
+        FastC._print2screen("isCartesianExtrude and isExtrudeByZone are both True. ONLY one can be true.",0)
+        FastC._print2screen("Exiting...",1)
+    if isExtrudeByZone and len(dict_Nz)==0:
+        FastC._print2screen("isExtrudeByZone is True but the Nz per zone dictionary is empty.",0)
+        FastC._print2screen("Exiting...",1)
+    
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
 
@@ -472,11 +523,13 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
     if t_in is None:
-        t = generateCartesian(tb, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, ext=DEPTH+1,
-                              snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir, extrusion=extrusion)                    
+        t,tb = generateCartesian(tb, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, ext=DEPTH+1,
+                              snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir, extrusion=extrusion,
+                                 dz_in=dz_in,NPas_in=NPas_in,span_in=span_in,check2Donly=check2Donly,dict_Nz=dict_Nz,isCartesianExtrude=isCartesianExtrude,isExtrudeByZone=isExtrudeByZone,directory_tmp_files=directory_tmp_files)                    
     else: 
         t = t_in
-
+    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
+    dimPb = Internal.getValue(dimPb)
     # Balancing
     if balancing:
         test.printMem(">>> balancing [start]")
@@ -591,7 +644,6 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
         # Creation du corps 2D pour le preprocessing IBC
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
-
     test.printMem(">>> Blanking [start]")
     t = X_IBM.blankByIBCBodies(t, tb, 'centers', dimPb)
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
@@ -627,10 +679,14 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
         for z in Internal.getZones(t):
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
             if yplus > 0.:
-                height = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+                if isoverideheight:height = height_in                    
+                else:height = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
             else:
-                height = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+                if isoverideheight:height = height_in
+                else:height = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
                 yplus  = G_IBM_Height.computeYplus(Re=Reynolds, height=height, L=Lref)
+                
+            print("height %f & heigh/h %f ="%(height,height/h))
             C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
 
             if correctionMultiCorpsF42:
@@ -751,6 +807,20 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     # Internal._rmNodesByName(FSN, 'cellNIBC')
     # Internal._rmNodesByName(FSN, 'TurbulentDistance')
     # tc = C.node2Center(tp); del tp
+
+    if extrusion:
+        listvars_local =['cellN','cellNChim','cellNIBC','cellNFront']
+        for z in Internal.getZones(t):
+            sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
+            for i in listvars_local:
+                cellN          = Internal.getNodeFromName(sol,i)[1]
+                sh             = numpy.shape(cellN)
+                if i== 'cellNChim':
+                    cellN[:,:,0:2]            = -3
+                    cellN[:,:,sh[2]-2:sh[2]]  = -3
+                else:
+                    cellN[:,:,0:2]            = 0
+                    cellN[:,:,sh[2]-2:sh[2]]  = 0
 
     test.printMem(">>> Interpdata [start]")
     tc = C.node2Center(t)
@@ -952,8 +1022,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
         front2 = X_IBM.gatherFront(front2)
 
     if check and rank == 0:
-        C.convertPyTree2File(front, 'front.cgns')
-        if twoFronts: C.convertPyTree2File(front2, 'front2.cgns')
+        C.convertPyTree2File(front, directory_tmp_files+'front.cgns')
+        if twoFronts: C.convertPyTree2File(front2, directory_tmp_files+'front2.cgns')
 
     zonesRIBC = []
     for zrcv in Internal.getZones(t):
