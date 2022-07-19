@@ -7,7 +7,7 @@ sys.stdout = open('/dev/null', 'w') # Something here that provides a write metho
 import srcs
 sys.stdout = sys.__stdout__
 
-names = srcs.cpp_srcs+srcs.for_srcs
+names = srcs.cpp_srcs
 
 for i in range(0,len(names)):
     names[i] = str(this_source_dir)+'/'+names[i];

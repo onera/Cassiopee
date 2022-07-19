@@ -7,7 +7,7 @@ import Converter.Internal as Internal
 
 Decorator.setBatch(True)
 
-a = G.cart((0,0,0), (1,1,1), (10,10,1))
+a = G.cart((0,0,0), (1,1,1), (11,10,1))
 C._initVars(a, '{F} = {CoordinateX}')
 
 CPlot.display(a, mode='scalar',

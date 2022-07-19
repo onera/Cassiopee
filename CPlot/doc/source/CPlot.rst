@@ -158,7 +158,7 @@ Actions
     :type vectorShape: 0 (3D arrows), 1 (Flat arrows), 2 (Tetra arrows)
     :param vectorProjection: 1 of vectors are projected on surface (default: 0)
     :type vectorProjection: 0 or 1
-    :param colormap: 0-1: Blue2Red, 2-3: Green2Red, 4-5: BiColorRGB, 6-7: BiColorHSV, 8-9: Diverging, 10-11: TriColorRGB, 12-13: TriColorHSV, 14-15: Grey2White, 16-17: Viridis, 18-19: Inferno, 20-21: magma, 22-23: plasma, 24-25: nice blue, 26-27: jet (default: 0)
+    :param colormap: 0-1: Blue2Red, 2-3: Green2Red, 4-5: BiColorRGB, 6-7: BiColorHSV, 8-9: Diverging, 10-11: TriColorRGB, 12-13: TriColorHSV, 14-15: Grey2White, 16-17: Viridis, 18-19: Inferno, 20-21: Magma, 22-23: Plasma, 24-25: Nice blue, 26-27: Jet (default: 0)
     :type colormap: int (upper number activates light)
     :param colormapC1: Hexa string for starting color of bi/tri colors colormaps (ex: #FFFFFF)
     :type colormapC1: string

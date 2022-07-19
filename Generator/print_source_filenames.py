@@ -13,4 +13,3 @@ for i in range(0,len(names)):
     names[i] = str(this_source_dir)+'/'+names[i];
 
 print(';'.join(names))
-#print("/scratchm/bberthou/travail/projects/KCore/KCore/Metis/balance.c")

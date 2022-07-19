@@ -248,7 +248,7 @@ def resetKeyboard():
     Usage: resetKeyboard()"""
     return cplot.resetKeyboard()
 
-# Ajoute des colormaps cablees
+# Ajoute des colormaps indirectes
 def filterColormap(values):
     [colormap, colormapC1, colormapC2, colormapC3, colormapC] = values
     if colormap == 14 or colormap == 15: # Black2White
@@ -256,30 +256,26 @@ def filterColormap(values):
         if colormap == 14: colormap = 6
         elif colormap == 15: colormap = 7
     elif colormap == 16 or colormap == 17: # Viridis
-        #colormapC2='#fde725'; colormapC3='#21918c'; colormapC1='#440154'
         colormapC = ColorMaps.Viridis
         if colormap == 16: colormap = 14
         elif colormap == 17: colormap = 15 
     elif colormap == 18 or colormap == 19: # Inferno
-        #colormapC2='#fcffa4'; colormapC3='#bc3754'; colormapC1='#000004'
         colormapC = ColorMaps.Inferno
         if colormap == 18: colormap = 14
         elif colormap == 19: colormap = 15 
     elif colormap == 20 or colormap == 21: # Magma
-        #colormapC2='#fcfdbf'; colormapC3='#b73779'; colormapC1='#000004'
         colormapC = ColorMaps.Magma
         if colormap == 20: colormap = 14
         elif colormap == 21: colormap = 15 
     elif colormap == 22 or colormap == 23: # Plasma
-        colormapC2='#f0f921'; colormapC3='#cc4778'; colormapC1='#0d0887'
-        if colormap == 22: colormap = 10
-        elif colormap == 23: colormap = 11
+        colormapC = ColorMaps.Plasma
+        if colormap == 22: colormap = 14
+        elif colormap == 23: colormap = 15
     elif colormap == 24 or colormap == 25: # NiceBlue
         colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
         if colormap == 24: colormap = 10
         elif colormap == 25: colormap = 11
     elif colormap == 26 or colormap == 27: # Jet
-        #colormapC1='#00008F'; colormapC2='#FF0000'; colormapC3='#00FFFF'
         colormapC = ColorMaps.Jet2
         if colormap == 26: colormap = 14
         elif colormap == 27: colormap = 15    

@@ -1,9 +1,12 @@
-import KCore.Dist as Dist
-from KCore.config import *
-
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                     additionalIncludePaths)
+try:
+    import KCore.Dist as Dist
+    from KCore.config import *
+
+    (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                         additionalIncludePaths)
+except:
+    mpi = True
 
 #==============================================================================
 # Fichiers C++

@@ -54,40 +54,12 @@ def createColormap(type='Blue2Red'):
         colors = [(0.00,[c1[0],c1[1],c1[2]]),
                   (0.50,[c3[0],c3[1],c3[2]]),
                   (1.00,[c2[0],c2[1],c2[2]])]
-    elif type == 'Black2White':
-        colors = [(0.00,[0.,0.,0.]),
-                  (1.00,[1.,1.,1.])]
-    elif type == 'Viridis':
-        #colors = [(0.00,[253./255.,231./255.,37./255.]),
-        #          (0.50,[33./255.,145./255.,140./255.]),
-        #          (1.00,[68./255.,1./255.,84./255.])]
-        colors = ColorMaps.export2MatplotLib2(ColorMaps.Viridis)
-        print(colors)
-    elif type == 'Inferno':
-        #colors = [(0.00,[252./255.,255./255.,164./255.]),
-        #          (0.50,[188./255.,55./255.,84./255.]),
-        #          (1.00,[0./255.,0./255.,4./255.])]
-        colors = ColorMaps.export2MatplotLib2(ColorMaps.Inferno)
-    elif type == 'Magma':
-        #colors = [(0.00,[252./255.,253./255.,191./255.]),
-        #          (0.50,[183./255.,55./255.,121./255.]),
-        #          (1.00,[0./255.,0./255.,4./255.])]
-        colors = ColorMaps.export2MatplotLib2(ColorMaps.Magma)
-    elif type == 'Plasma':
-        #colors = [(0.00,[240./255.,249./255.,33./255.]),
-        #          (0.50,[204./255.,71./255.,120./255.]),
-        #          (1.00,[13./255.,8./255.,135./255.])]
-        colors = ColorMaps.export2MatplotLib2(ColorMaps.Plasma)
-    elif type == 'NiceBlue':
-        colors = [(0.00,[0./255.,0./255.,0./255.]),
-                  (0.50,[255./255.,255./255.,255./255.]),
-                  (1.00,[0./255.,97./255.,165./255.])]
-    elif type == 'Jet':
-        colors = ColorMaps.export2MatplotLib2(ColorMaps.Jet2)
     elif type == 'MultiColorRGB':
         colors = ColorMaps.export2MatplotLib2(CPlot.getState('colormapC'))
     elif type == 'MultiColorHSV':
         colors = ColorMaps.export2MatplotLib2(CPlot.getState('colormapC'))
+    elif type == 'Diverging':
+        colors = ColorMaps.export2MatplotLib2(ColorMaps.Diverging)
     else: # Blue2Red par defaut
         colors = [(0.00,[0,0,1]),
                   (0.25,[0,1,1]),
@@ -111,35 +83,24 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
     """Create a color bar."""
     if cmap is None: 
         cmap = CPlot.getState('colormap')
-        print(cmap,'in decorator')
-        if cmap == 0 or cmap == 1:
+        if cmap == 0 or cmap == 1: # primaire
             cmap = createColormap('Blue2Red')
-        elif cmap == 2 or cmap == 3:
+        elif cmap == 2 or cmap == 3: # primaire
             cmap = createColormap('Green2Red')
-        elif cmap == 4 or cmap == 5:
+        elif cmap == 4 or cmap == 5: # primaire
             cmap = createColormap('BiColorRGB')
-        elif cmap == 6 or cmap == 7:
+        elif cmap == 6 or cmap == 7: # primaire
             cmap = createColormap('BiColorHSV')
-        elif cmap == 8 or cmap == 9:
+        elif cmap == 8 or cmap == 9: # primaire
             cmap = createColormap('Diverging')
-        elif cmap == 10 or cmap == 11:
+        elif cmap == 10 or cmap == 11: # premaire
             cmap = createColormap('TriColorRGB')
-        elif cmap == 12 or cmap == 13:
+        elif cmap == 12 or cmap == 13: # primaire
             cmap = createColormap('TriColorHSV')
-        elif cmap == 14 or cmap == 15:
+        elif cmap == 14 or cmap == 15: # primaire
             cmap = createColormap('MultiColorRGB')
-            #cmap = createColormap('Black2White')
-        elif cmap == 16 or cmap == 17: 
+        elif cmap == 16 or cmap == 17: # primaire
             cmap = createColormap('MultiColorHSV')
-            #cmap = createColormap('Veridis')
-        elif cmap == 18 or cmap == 19: 
-            cmap = createColormap('Inferno')
-        elif cmap == 20 or cmap == 21: 
-            cmap = createColormap('Magma')
-        elif cmap == 22 or cmap == 23: 
-            cmap = createColormap('Plasma')
-        elif cmap == 24 or cmap == 25: 
-            cmap = createColormap('NiceBlue')
         else: # default
             cmap = createColormap('Blue2Red')
     elif isinstance(cmap, str): cmap = createColormap(cmap)

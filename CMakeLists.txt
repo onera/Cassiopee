@@ -29,14 +29,19 @@ project(
 )
 
 project_find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
-project_add_subdirectory(KCore     )
-project_add_subdirectory(Converter )
-project_add_subdirectory(Compressor)
-project_add_subdirectory(Connector )
-project_add_subdirectory(Dist2Walls)
-project_add_subdirectory(Generator )
-project_add_subdirectory(Post      )
-project_add_subdirectory(Transform )
+project_add_subdirectory(KCore       )
+project_add_subdirectory(Converter   )
+project_add_subdirectory(Compressor  )
+project_add_subdirectory(Connector   )
+project_add_subdirectory(Dist2Walls  )
+project_add_subdirectory(Generator   )
+project_add_subdirectory(Post        )
+project_add_subdirectory(Transform   )
+project_add_subdirectory(Geom        )
+project_add_subdirectory(Distributor2)
+project_add_subdirectory(Initiator   )
+project_add_subdirectory(Intersector )
+project_add_subdirectory(RigidMotion )
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_link_libraries(${PROJECT_NAME}
@@ -50,4 +55,9 @@ target_link_libraries(${PROJECT_NAME}
     Generator::Generator
     Post::Post
     Transform::Transform
+    Geom::Geom
+    Distributor2::Distributor2
+    Initiator::Initiator
+    Intersector::Intersector
+    RigidMotion::RigidMotion
 )
