@@ -29,7 +29,7 @@ using namespace K_FLD;
 //=============================================================================
 E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
 {
-  E_Int val;
+  E_Int val; E_Float valf;
   IMPORTNUMPY;
   if (PyList_Check(o) == true)
   {
@@ -38,8 +38,7 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
     out.malloc(n);
     PyObject* first = PyList_GetItem(o, 0);
 
-    if (PyLong_Check(first) == true ||
-        PyInt_Check(first) == true)
+    if (PyLong_Check(first) == true || PyInt_Check(first) == true)
     {
       for (E_Int i = 0; i < n; i++)
       {
@@ -57,6 +56,16 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
         val = PyArray_PyIntAsInt(PyList_GetItem(o, i));
         out[i] = val;
       }
+      return 1;
+    }
+
+    if (PyFloat_Check(first) == true)
+    {
+      for (E_Int i = 0; i < n; i++)
+      {
+        valf = PyFloat_AsDouble(PyList_GetItem(o, i));
+        out[i] = (E_Int)valf;
+      } 
       return 1;
     }
     return 0;
@@ -90,17 +99,27 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
 //=============================================================================
 E_Int K_ARRAY::getFromList(PyObject* o, FldArrayF& out)
 {
-  E_Float val;
+  E_Float val; E_Int vali;
   IMPORTNUMPY;
   if (PyList_Check(o) == true)
   {
     E_Int n = PyList_Size(o);
     out.malloc(n);
-    if (PyFloat_Check(PyList_GetItem(o, 0)) == false) return 0;
-    for (E_Int i = 0; i < n; i++)
+    if (PyFloat_Check(PyList_GetItem(o, 0)) == true)
     {
-      val = PyFloat_AsDouble(PyList_GetItem(o, i));
-      out[i] = val;
+      for (E_Int i = 0; i < n; i++)
+      {
+        val = PyFloat_AsDouble(PyList_GetItem(o, i));
+        out[i] = val;
+      }
+    }
+    else // suppose int
+    {
+      for (E_Int i = 0; i < n; i++)
+      {
+        vali = PyLong_AsLong(PyList_GetItem(o, i));
+        out[i] = (E_Float)vali;
+      } 
     }
     return 1;
   }

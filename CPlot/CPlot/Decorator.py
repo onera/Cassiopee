@@ -1,7 +1,8 @@
 # matplotlib decorators for CPlot
 # strongly inspired by Luis Bernardos ideas
 
-import CPlot.PyTree as CPlot
+from . import PyTree as CPlot
+from . import ColorMaps
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy
@@ -57,25 +58,36 @@ def createColormap(type='Blue2Red'):
         colors = [(0.00,[0.,0.,0.]),
                   (1.00,[1.,1.,1.])]
     elif type == 'Viridis':
-        colors = [(0.00,[253./255.,231./255.,37./255.]),
-                  (0.50,[33./255.,145./255.,140./255.]),
-                  (1.00,[68./255.,1./255.,84./255.])]
+        #colors = [(0.00,[253./255.,231./255.,37./255.]),
+        #          (0.50,[33./255.,145./255.,140./255.]),
+        #          (1.00,[68./255.,1./255.,84./255.])]
+        colors = ColorMaps.export2MatplotLib2(ColorMaps.Viridis)
+        print(colors)
     elif type == 'Inferno':
-        colors = [(0.00,[252./255.,255./255.,164./255.]),
-                  (0.50,[188./255.,55./255.,84./255.]),
-                  (1.00,[0./255.,0./255.,4./255.])]
+        #colors = [(0.00,[252./255.,255./255.,164./255.]),
+        #          (0.50,[188./255.,55./255.,84./255.]),
+        #          (1.00,[0./255.,0./255.,4./255.])]
+        colors = ColorMaps.export2MatplotLib2(ColorMaps.Inferno)
     elif type == 'Magma':
-        colors = [(0.00,[252./255.,253./255.,191./255.]),
-                  (0.50,[183./255.,55./255.,121./255.]),
-                  (1.00,[0./255.,0./255.,4./255.])]
+        #colors = [(0.00,[252./255.,253./255.,191./255.]),
+        #          (0.50,[183./255.,55./255.,121./255.]),
+        #          (1.00,[0./255.,0./255.,4./255.])]
+        colors = ColorMaps.export2MatplotLib2(ColorMaps.Magma)
     elif type == 'Plasma':
-        colors = [(0.00,[240./255.,249./255.,33./255.]),
-                  (0.50,[204./255.,71./255.,120./255.]),
-                  (1.00,[13./255.,8./255.,135./255.])]
+        #colors = [(0.00,[240./255.,249./255.,33./255.]),
+        #          (0.50,[204./255.,71./255.,120./255.]),
+        #          (1.00,[13./255.,8./255.,135./255.])]
+        colors = ColorMaps.export2MatplotLib2(ColorMaps.Plasma)
     elif type == 'NiceBlue':
         colors = [(0.00,[0./255.,0./255.,0./255.]),
                   (0.50,[255./255.,255./255.,255./255.]),
                   (1.00,[0./255.,97./255.,165./255.])]
+    elif type == 'Jet':
+        colors = ColorMaps.export2MatplotLib2(ColorMaps.Jet2)
+    elif type == 'MultiColorRGB':
+        colors = ColorMaps.export2MatplotLib2(CPlot.getState('colormapC'))
+    elif type == 'MultiColorHSV':
+        colors = ColorMaps.export2MatplotLib2(CPlot.getState('colormapC'))
     else: # Blue2Red par defaut
         colors = [(0.00,[0,0,1]),
                   (0.25,[0,1,1]),
@@ -99,6 +111,7 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
     """Create a color bar."""
     if cmap is None: 
         cmap = CPlot.getState('colormap')
+        print(cmap,'in decorator')
         if cmap == 0 or cmap == 1:
             cmap = createColormap('Blue2Red')
         elif cmap == 2 or cmap == 3:
@@ -113,10 +126,12 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
             cmap = createColormap('TriColorRGB')
         elif cmap == 12 or cmap == 13:
             cmap = createColormap('TriColorHSV')
-        elif cmap == 14 or cmap == 15: 
-            cmap = createColormap('Black2White')
+        elif cmap == 14 or cmap == 15:
+            cmap = createColormap('MultiColorRGB')
+            #cmap = createColormap('Black2White')
         elif cmap == 16 or cmap == 17: 
-            cmap = createColormap('Veridis')
+            cmap = createColormap('MultiColorHSV')
+            #cmap = createColormap('Veridis')
         elif cmap == 18 or cmap == 19: 
             cmap = createColormap('Inferno')
         elif cmap == 20 or cmap == 21: 

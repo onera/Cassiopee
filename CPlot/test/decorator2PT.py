@@ -10,10 +10,11 @@ Decorator.setBatch(True)
 a = G.cart((0,0,0), (1,1,1), (10,10,1))
 C._initVars(a, '{F} = {CoordinateX}')
 
-CPlot.display(a, mode='Scalar',
+CPlot.display(a, mode='scalar',
               scalarField='F', isoScales=['F',12,0.,10.],
-              export=CPlot.decorator, exportResolution='3840x2160', offscreen=2,
-              isoEdges=1., colormap=24, bgColor=1)
+              export=CPlot.decorator,
+              offscreen=2,
+              isoEdges=1., colormap=26, bgColor=1)
 CPlot.finalizeExport()
 
 fig, ax = Decorator.createSubPlot()

@@ -139,10 +139,20 @@ void Data::fillColormapTexture(int type)
   double r3 = ptrState->colormapR3;
   double g3 = ptrState->colormapG3;
   double b3 = ptrState->colormapB3;
-  
-  if (type == _texColormapType and r1+g1+b1+r2+b2+g2+r3+g3+b3 == _texColormapMinMax) return; 
+  double check = 0.;
+  if (type == 5 || type == 6)
+    check = r1+g1+b1+r2+b2+g2+r3+g3+b3;
+  else if (type == 7 || type == 8)
+  {
+    int s = ptrState->colormapSize-1;
+    double* pr = ptrState->colormapR;
+    double* pg = ptrState->colormapG;
+    double* pb = ptrState->colormapB;  
+    check = pr[0]+pg[0]+pb[0]+pr[s]+pg[s]+pb[s]+s/2.+pr[s/2]+pg[s/2]+pb[s/2];
+  }
+  if (type == _texColormapType and check == _texColormapMinMax) return; 
 
-  int w = 200; // discretisation
+  int w = 200; // discretisation texture
   float* image = new float[w * 3];
   float f;
   float dx = 1./(w-1.);
@@ -280,11 +290,11 @@ void Data::fillColormapTexture(int type)
                 g = 0.321568627451+1.50588235294*f;
                 b = 0.827450980392+0.752941176471*f; }
               else if (f < 0.21875) 
-              {r = 0.207843137255+1.38039215686*f;
+              { r = 0.207843137255+1.38039215686*f;
                 g = 0.345098039216+1.38039215686*f;
                 b = 0.874509803922+0.501960784314*f;  }
               else 
-              {r = 0.207843137255+1.38039215686*f;
+              { r = 0.207843137255+1.38039215686*f;
                 g = 0.345098039216+1.38039215686*f;
                 b = 0.901960784314+0.376470588235*f;  } 
             }
@@ -294,44 +304,44 @@ void Data::fillColormapTexture(int type)
             if (f < 0.375)
             {
               if (f < 0.28125) 
-              {r = 0.207843137255+1.38039215686*f;
+              { r = 0.207843137255+1.38039215686*f;
                 g = 0.407843137255+1.12941176471*f;
                 b = 0.964705882353+0.125490196078*f;  }
               else if (f < 0.3125) 
-              {r = 0.207843137255+1.38039215686*f;
+              { r = 0.207843137255+1.38039215686*f;
                 g = 0.407843137255+1.12941176471*f;
                 b = 1.0;  }
               else if (f < 0.34375) 
-              {r = 0.207843137255+1.38039215686*f;
+              { r = 0.207843137255+1.38039215686*f;
                 g = 0.486274509804+0.878431372549*f;
                 b = 1.07843137255-0.250980392157*f;  }
               else 
-              {r = 0.250980392157+1.25490196078*f;
+              { r = 0.250980392157+1.25490196078*f;
                 g = 0.486274509804+0.878431372549*f;
                 b = 1.16470588235-0.501960784314*f;  }
             }
             else
             {
               if (f < 0.40625) 
-              {r = 0.250980392157+1.25490196078*f;
+              { r = 0.250980392157+1.25490196078*f;
                 g = 0.580392156863+0.627450980392*f;
                 b = 1.21176470588-0.627450980392*f;  }
               else if (f < 0.4375) 
-              {r = 0.250980392157+1.25490196078*f;
+              { r = 0.250980392157+1.25490196078*f;
                 g = 0.63137254902+0.501960784314*f;
                 b = 1.26274509804-0.752941176471*f;  }
               else if (f < 0.46875) 
-              {r = 0.305882352941+1.12941176471*f;
+              { r = 0.305882352941+1.12941176471*f;
                 g = 0.741176470588+0.250980392157*f;
                 b = 1.37254901961-1.00392156863*f;  }
               else 
-              {r = 0.364705882353+1.00392156863*f;
+              { r = 0.364705882353+1.00392156863*f;
                 g = 0.858823529412;
                 b = 1.43137254902-1.12941176471*f;  }
             }     
           }
         }
-        else 
+        else
         {
           if (f < 0.75) 
           {
@@ -342,7 +352,7 @@ void Data::fillColormapTexture(int type)
                 g = 0.733333333333+0.250980392157*f;
                 b = 1.61960784314-1.50588235294*f; }
               else if (f < 0.5625) 
-              {r = 0.43137254902+0.878431372549*f;
+              { r = 0.43137254902+0.878431372549*f;
                 g = 1.2-0.627450980392*f;
                 b = 1.61960784314-1.50588235294*f;  }
               else if (f < 0.59375) 
@@ -350,14 +360,14 @@ void Data::fillColormapTexture(int type)
                 g = 1.2-0.627450980392*f;
                 b = 1.61960784314-1.50588235294*f; }
               else 
-              {r = 0.647058823529+0.501960784314*f;
+              { r = 0.647058823529+0.501960784314*f;
                 g = 1.34901960784-0.878431372549*f;
                 b = 1.61960784314-1.50588235294*f;  }
             }
             else
             {
               if (f < 0.65625) 
-              {r = 0.803921568627+0.250980392157*f;
+              { r = 0.803921568627+0.250980392157*f;
                 g = 1.42745098039-1.00392156863*f;
                 b = 1.69803921569-1.63137254902*f;  }
               else if (f < 0.6875) 
@@ -369,7 +379,7 @@ void Data::fillColormapTexture(int type)
                 g = 1.59607843137-1.25490196078*f;
                 b = 1.70196078431-1.63137254902*f; }
               else 
-              {r = 1.23921568627-0.376470588235*f;
+              { r = 1.23921568627-0.376470588235*f;
                 g = 1.6862745098-1.38039215686*f;
                 b = 1.61176470588-1.50588235294*f;  }
             }
@@ -383,7 +393,7 @@ void Data::fillColormapTexture(int type)
                 g = 1.78039215686-1.50588235294*f;
                 b = 1.61176470588-1.50588235294*f; }
               else if (f < 0.8125) 
-              {r = 1.43529411765-0.627450980392*f;
+              { r = 1.43529411765-0.627450980392*f;
                 g = 1.87843137255-1.63137254902*f;
                 b = 1.61176470588-1.50588235294*f; }
               else if (f < 0.84375) 
@@ -391,7 +401,7 @@ void Data::fillColormapTexture(int type)
                 g = 1.98039215686-1.7568627451*f;
                 b = 1.50980392157-1.38039215686*f; }
               else 
-              {r = 1.63921568627-0.878431372549*f;
+              { r = 1.63921568627-0.878431372549*f;
                 g = 2.0862745098-1.88235294118*f;
                 b = 1.50980392157-1.38039215686*f;  }
             }
@@ -402,15 +412,15 @@ void Data::fillColormapTexture(int type)
                 g = 2.19607843137-2.00784313725*f;
                 b = 1.50980392157-1.38039215686*f; }
               else if (f < 0.9375) 
-              {r = 1.97254901961-1.25490196078*f;
+              { r = 1.97254901961-1.25490196078*f;
                 g = 4.2431372549-4.26666666667*f;
                 b = 1.39607843137-1.25490196078*f;  }
               else if (f < 0.96875) 
-              {r = 2.09019607843-1.38039215686*f;
+              { r = 2.09019607843-1.38039215686*f;
                 g = 2.83137254902-2.76078431373*f;
                 b = 1.27843137255-1.12941176471*f;  }
               else 
-              {r = 2.21176470588-1.50588235294*f;
+              { r = 2.21176470588-1.50588235294*f;
                 g = 4.53333333333-4.51764705882*f;
                 b = 1.27843137255-1.12941176471*f;  }
             }
@@ -490,6 +500,64 @@ void Data::fillColormapTexture(int type)
       }
       break;
     }
+
+    case 7: // Multi-color interpolation R G B
+    {
+      int size = ptrState->colormapSize;
+      double dsize = 1./(size-1.);
+      double* pr = ptrState->colormapR;
+      double* pg = ptrState->colormapG;
+      double* pb = ptrState->colormapB;
+      int i0, i1;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        r = (1.-f)*pr[i0]+f*pr[i1];
+        g = (1.-f)*pg[i0]+f*pg[i1];
+        b = (1.-f)*pb[i0]+f*pb[i1];
+        //printf("i0=%d i1=%d / f=%g / r=%g g=%g b=%g\n",i0,i1,f,r,g,b);
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+    case 8: // Multi-color interpolation H S V
+    {
+      int size = ptrState->colormapSize;
+      double dsize = 1./(size-1.);
+      double* pr = ptrState->colormapR;
+      double* pg = ptrState->colormapG;
+      double* pb = ptrState->colormapB;
+      int i0, i1;
+      double h0,s0,v0,h1,v1,s1;
+      double h,s,v,ro,go,bo;
+      double delta, delta1, delta2;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        rgb2hsv(pr[i0],pg[i0],pb[i0], h0,s0,v0);
+        rgb2hsv(pr[i1],pg[i1],pb[i1], h1,s1,v1);
+        delta = fabs(h1-h0);
+        delta1 = fabs(h1-h0-360.);
+        delta2 = fabs(h1-h0+360.);
+        if (delta1 < delta) h1 += -360.;
+        else if (delta2 < delta) h1 += 360.;
+        h = (1.-f)*h0+f*h1;
+        s = (1.-f)*s0+f*s1;
+        v = (1.-f)*v0+f*v1;
+        if (h < 0) h += 360.;
+        else if (h > 360.) h += -360.;
+        hsv2rgb(h,s,v,ro,go,bo);
+        image[3*i] = ro; image[3*i+1] = go; image[3*i+2] = bo;
+      }
+      break;
+    }
+
     default: // invalid colormap 
     {
       for (int i = 0; i < w; i++)
@@ -508,6 +576,15 @@ void Data::fillColormapTexture(int type)
                GL_RGB, GL_FLOAT, image);
 
   _texColormapType = type;
-  _texColormapMinMax = r1+g1+b1+r2+b2+g2+r3+g3+b3;
+  if (type == 5 || type == 6)
+    _texColormapMinMax = r1+g1+b1+r2+b2+g2+r3+g3+b3;
+  else if (type == 7 || type == 8)
+  {
+    int s = ptrState->colormapSize-1;
+    double* pr = ptrState->colormapR;
+    double* pg = ptrState->colormapG;
+    double* pb = ptrState->colormapB;  
+    _texColormapMinMax = pr[0]+pg[0]+pb[0]+pr[s]+pg[s]+pb[s]+s/2.+pr[s/2]+pg[s/2]+pb[s/2];
+  }
   delete [] image;
 }

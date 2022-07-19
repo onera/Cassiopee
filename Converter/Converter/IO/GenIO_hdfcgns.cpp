@@ -1068,7 +1068,7 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 
   hid_t gid = H5Gopen(start, "/", H5P_DEFAULT);
   
-  char local[32]; E_Int c = 0;
+  char local[L3C_MAX_ATTRIB_SIZE+1]; E_Int c = 0;
   char* p = path;
   while (*p != '\0')
   {

@@ -6,6 +6,7 @@ __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier
 from . import cplot
 import KCore.kcore as KCore
 import KCore.Vector as Vector
+from . import ColorMaps
 
 import time
 __timeStep__ = 0.01
@@ -44,6 +45,7 @@ def display(arrays,
             colormapC1="",
             colormapC2="",
             colormapC3="",
+            colormapC=None,
             niso=-1,
             isoEdges=-1,
             isoScales=[],
@@ -76,7 +78,7 @@ def display(arrays,
                      displayIsoLegend, meshStyle, solidStyle,
                      scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
                      vectorShowSurface, vectorShape, vectorProjection, 
-                     colormap, colormapC1, colormapC2, colormapC3,
+                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
                      niso, isoEdges, isoScales, win,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                      shadow, dof, stereo, stereoDist,
@@ -88,7 +90,7 @@ def display(arrays,
                        displayIsoLegend, meshStyle, solidStyle,
                        scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                        vectorShowSurface, vectorShape, vectorProjection,
-                       colormap, colormapC1, colormapC2, colormapC3,
+                       colormap, colormapC1, colormapC2, colormapC3, colormapC, 
                        niso, isoEdges, isoScales, win,
                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                        shadow, dof, stereo, stereoDist,
@@ -248,23 +250,26 @@ def resetKeyboard():
 
 # Ajoute des colormaps cablees
 def filterColormap(values):
-    [colormap, colormapC1, colormapC2, colormapC3] = values
+    [colormap, colormapC1, colormapC2, colormapC3, colormapC] = values
     if colormap == 14 or colormap == 15: # Black2White
         colormap=6; colormapC1='#000000'; colormapC2='#ffffff'
         if colormap == 14: colormap = 6
         elif colormap == 15: colormap = 7
     elif colormap == 16 or colormap == 17: # Viridis
-        colormapC2='#fde725'; colormapC3='#21918c'; colormapC1='#440154'
-        if colormap == 16: colormap = 10
-        elif colormap == 17: colormap = 11 
+        #colormapC2='#fde725'; colormapC3='#21918c'; colormapC1='#440154'
+        colormapC = ColorMaps.Viridis
+        if colormap == 16: colormap = 14
+        elif colormap == 17: colormap = 15 
     elif colormap == 18 or colormap == 19: # Inferno
-        colormapC2='#fcffa4'; colormapC3='#bc3754'; colormapC1='#000004'
-        if colormap == 18: colormap = 10
-        elif colormap == 19: colormap = 11 
+        #colormapC2='#fcffa4'; colormapC3='#bc3754'; colormapC1='#000004'
+        colormapC = ColorMaps.Inferno
+        if colormap == 18: colormap = 14
+        elif colormap == 19: colormap = 15 
     elif colormap == 20 or colormap == 21: # Magma
-        colormapC2='#fcfdbf'; colormapC3='#b73779'; colormapC1='#000004'
-        if colormap == 20: colormap = 10
-        elif colormap == 21: colormap = 11 
+        #colormapC2='#fcfdbf'; colormapC3='#b73779'; colormapC1='#000004'
+        colormapC = ColorMaps.Magma
+        if colormap == 20: colormap = 14
+        elif colormap == 21: colormap = 15 
     elif colormap == 22 or colormap == 23: # Plasma
         colormapC2='#f0f921'; colormapC3='#cc4778'; colormapC1='#0d0887'
         if colormap == 22: colormap = 10
@@ -274,11 +279,17 @@ def filterColormap(values):
         if colormap == 24: colormap = 10
         elif colormap == 25: colormap = 11
     elif colormap == 26 or colormap == 27: # Jet
-        colormapC1='#00008F'; colormapC2='#FF0000'; colormapC3='#00FFFF'; 
-        if colormap == 26: colormap = 10
-        elif colormap == 27: colormap = 11
-    
-    return [colormap, colormapC1, colormapC2, colormapC3]
+        #colormapC1='#00008F'; colormapC2='#FF0000'; colormapC3='#00FFFF'
+        colormapC = ColorMaps.Jet2
+        if colormap == 26: colormap = 14
+        elif colormap == 27: colormap = 15    
+    elif colormap == 28 or colormap == 29: # multiple RGB given colormapC
+        if colormap == 28: colormap = 14
+        elif colormap == 29: colormap = 15
+    elif colormap == 30 or colormap == 31: # multiple HSV given colormapC
+        if colormap == 30: colormap = 16
+        elif colormap == 31: colormap = 17
+    return [colormap, colormapC1, colormapC2, colormapC3, colormapC]
 
 def setState(dim=-1,
              mode=-1,
@@ -301,6 +312,7 @@ def setState(dim=-1,
              colormapC1="",
              colormapC2="",
              colormapC3="",
+             colormapC=None,
              niso=-1,
              isoEdges=-1,
              isoScales=[],
@@ -338,13 +350,13 @@ def setState(dim=-1,
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
     if colormap != -1: 
-        [colormap, colormapC1, colormapC2, colormapC3] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3] )
+        [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
                    vectorField3, displayBB, displayInfo, displayIsoLegend,
                    meshStyle, solidStyle, scalarStyle,
                    vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                    vectorShowSurface, vectorShape, vectorProjection,
-                   colormap, colormapC1, colormapC2, colormapC3,
+                   colormap, colormapC1, colormapC2, colormapC3, colormapC,
                    niso, isoEdges, isoScales, win,
                    posCam, posEye, dirCam, viewAngle, lightOffset,
                    bgColor, backgroundFile, shadow, 
@@ -674,7 +686,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  meshStyle, solidStyle, scalarStyle, vectorStyle,
                  vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
                  vectorShape, vectorProjection,
-                 colormap, colormapC1, colormapC2, colormapC3,
+                 colormap, colormapC1, colormapC2, colormapC3, colormapC, 
                  niso, isoEdges, isoScales, win,
                  posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                  shadow, dof, stereo, stereoDist,
@@ -682,7 +694,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
     global __slot__
     import threading
     if colormap != -1: 
-        [colormap, colormapC1, colormapC2, colormapC3] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3] )
+        [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     a = threading.Thread(None, cplot.displayNew, None,
                          (arrays, dim, mode, scalarField, vectorField1,
                           vectorField2, vectorField3, displayBB, displayInfo,
@@ -690,7 +702,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           meshStyle, solidStyle, scalarStyle,
                           vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                           vectorShowSurface, vectorShape, vectorProjection, 
-                          colormap, colormapC1, colormapC2, colormapC3, 
+                          colormap, colormapC1, colormapC2, colormapC3, colormapC,
                           niso, isoEdges, isoScales,
                           win, posCam, posEye, dirCam, viewAngle, 
                           bgColor, backgroundFile,
@@ -705,20 +717,20 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    meshStyle, solidStyle, scalarStyle, vectorStyle,
                    vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
                    vectorShape, vectorProjection,
-                   colormap, colormapC1, colormapC2, colormapC3,
+                   colormap, colormapC1, colormapC2, colormapC3, colormapC,
                    niso, isoEdges, isoScales,
                    win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                    shadow, dof, stereo, stereoDist,
                    export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     if colormap != -1: 
-        [colormap, colormapC1, colormapC2, colormapC3] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3] )
+        [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     cplot.displayAgain(arrays, dim, mode, scalarField, vectorField1,
                        vectorField2, vectorField3, displayBB, displayInfo,
                        displayIsoLegend,
                        meshStyle, solidStyle, scalarStyle, vectorStyle,
                        vectorScale, vectorDensity, vectorNormalize, vectorShowSurface, 
                        vectorShape, vectorProjection,
-                       colormap, colormapC1, colormapC2, colormapC3, 
+                       colormap, colormapC1, colormapC2, colormapC3, colormapC,
                        niso, isoEdges, isoScales,
                        win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                        shadow, dof, stereo, stereoDist,

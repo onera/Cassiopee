@@ -29,7 +29,7 @@ E_Int shader;
 
 switch (zonep->material)
 { 
-  case 1: // iso+glass 
+  case 1: // iso+glass
   {
     shader = _shaders.shader_id(shader::iso_glass);
     glActiveTexture(GL_TEXTURE0);

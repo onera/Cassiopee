@@ -37,7 +37,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   int winx, winy;
   int displayBB, displayInfo, displayIsoLegend;
   int meshStyle, solidStyle, scalarStyle, vectorStyle, colormap, niso;
-  char* colormapC1; char* colormapC2; char* colormapC3;
+  char* colormapC1; char* colormapC2; char* colormapC3; PyObject* colormapC;
   E_Float xcam, ycam, zcam, xeye, yeye, zeye, dirx, diry, dirz, isoEdges;
   E_Float stereoDist, viewAngle, vectorScale, vectorDensity;
   int vectorNormalize, vectorShowSurface, vectorShape, vectorProjection;
@@ -48,14 +48,14 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   char* backgroundFile;
   int bgColor, shadow, dof, offscreen, stereo, frameBuffer;
   if (!PyArg_ParseTuple(args, 
-                        "OiOOOOOiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)disiiidssOOii",
+                        "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disiiidssOOii",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
                         &meshStyle, &solidStyle, &scalarStyle,
                         &vectorStyle, &vectorScale, &vectorDensity, &vectorNormalize, 
                         &vectorShowSurface, &vectorShape, &vectorProjection, 
-                        &colormap, &colormapC1, &colormapC2, &colormapC3,
+                        &colormap, &colormapC1, &colormapC2, &colormapC3, &colormapC,
                         &niso, &isoEdges, &isoScales,
                         &winx, &winy, &xcam, &ycam, &zcam,
                         &xeye, &yeye, &zeye,
@@ -175,7 +175,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
                        meshStyle, solidStyle, scalarStyle, 
                        vectorStyle, vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
                        vectorShape, vectorProjection,
-                       colormap, colormapC1, colormapC2, colormapC3,
+                       colormap, colormapC1, colormapC2, colormapC3, colormapC,
                        niso, isoEdges, isoScales,
                        bgColor, backgroundFile,
                        -1, -1, -1, shadow, dof,

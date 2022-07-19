@@ -35,7 +35,7 @@ def ProdVect(U,V):
 #      PF: coord du foyer repere fixe
 #      Glob2Loc: Matrice de passage du repere global/fixe au repere local
 #=========================================================================
-def detect_BA_BF_QC(a, r):
+def detectBA_BF_QC(a, r):
 
     # Obtention du Leading Edge et Trailing Edge avec xc sur pale non deformee
     xcp = Internal.getNodeFromName2(a, 'xc')[1]
@@ -396,7 +396,7 @@ def extractSlices(teff, bladeName, psi, radius,
         C._initVars(iso, '{xc}= 1.-({CoordinateY}-%20.16g)/(%20.16g-%20.16g)'%(ymin,ymax,ymin))
         
         # Kp
-        adimKp = 0.5*RoInf*(rad*Mtip*ASOUND/AR+MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
+        adimKp = 0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR+MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
         C._initVars(iso, '{Kp}= ({Pressure}-%20.16g)/ %20.16g'%(PInf,adimKp))
         # Cf
         C._initVars(iso, '{Cf}= {frictionMagnitude}/ %20.16g'%adimKp)
@@ -407,7 +407,7 @@ def extractSlices(teff, bladeName, psi, radius,
         #C.convertPyTree2File(iso, 'slice%f.cgns'%rad)
 
         # Detection et repere local
-        (PLE,PTE,PF,Glob2Loc) = detect_BA_BF_QC(iso, rad)
+        (PLE,PTE,PF,Glob2Loc) = detectBA_BF_QC(iso, rad)
 
         # CnM2
         adimCnM2 = 0.5*RoInf*ASOUND**2*CHORD

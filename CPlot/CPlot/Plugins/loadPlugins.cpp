@@ -146,6 +146,24 @@ void Data::loadPlugins()
   pd->f = col3HSV;
   pd->next = NULL;
 
+  // colMRGB
+  pd->next =
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = pd->next;
+  strcpy(pd->functionName, "Multi-color RGB colormap");
+  strcpy(pd->varName, "7");
+  pd->f = colMRGB;
+  pd->next = NULL;
+
+  // colMHSV
+  pd->next =
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = pd->next;
+  strcpy(pd->functionName, "Multi-color HSV colormap");
+  strcpy(pd->varName, "8");
+  pd->f = colMHSV;
+  pd->next = NULL;
+
   // -- Default screenDump functions -- 
   // RGB ppm screen dump
   _plugins.screenDump = 

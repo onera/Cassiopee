@@ -771,7 +771,8 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              int meshStyle, int solidStyle, int scalarStyle,
                              int vectorStyle, float vectorScale, float vectorDensity, int vectorNormalize, 
                              int vectorShowSurface, int vectorShape, int vector_projection, 
-                             int colormap, char* colormapC1, char* colormapC2, char* colormapC3,
+                             int colormap, 
+                             char* colormapC1, char* colormapC2, char* colormapC3, PyObject* colormapC,
                              int niso, float isoEdges, PyObject* isoScales,
                              int bgColor, char* backgroundFile, int ghostifyDeactivatedZones,
                              int edgifyActivatedZones,
@@ -817,6 +818,56 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   {
     colorString2RGB(colormapC3, ptrState->colormapR3, ptrState->colormapG3, ptrState->colormapB3);
   }
+  if (colormapC != Py_None)
+  {
+    // colormapC must be a regular colormap of rgb values between 0 and 1.
+    FldArrayF colors;
+    if (PyArray_Check(colormapC)) // numpy
+    {
+      if (PyArray_ISFLOAT((PyArrayObject*)colormapC)) 
+        K_ARRAY::getFromList(colormapC, colors);
+      else
+      {
+        FldArrayI colorsI;
+        K_ARRAY::getFromList(colormapC, colorsI);
+        E_Int s = colorsI.getSize();
+        colors.malloc(s);
+        for (E_Int i = 0; i < s; i++) colors[i] = colorsI[i];
+      }
+    }
+    else // list
+    {
+      K_ARRAY::getFromList(colormapC, colors);
+    }
+
+    E_Int size = colors.getSize()/3;
+
+    ptrState->colormapSize = size;
+    double* r = ptrState->colormapR;
+    double* g = ptrState->colormapG;
+    double* b = ptrState->colormapB;
+
+    double cmax = -1;
+    for (E_Int i = 0; i < size; i++) 
+    {
+      r[i] = colors[3*i];
+      g[i] = colors[3*i+1];
+      b[i] = colors[3*i+2];
+      cmax = MAX(cmax, r[i]);
+      cmax = MAX(cmax, g[i]);
+      cmax = MAX(cmax, b[i]);
+    }
+    if (cmax > 1.5)
+    {
+      for (E_Int i = 0; i <size; i++)
+      {
+        r[i] = r[i]/255.;
+        g[i] = g[i]/255.;
+        b[i] = b[i]/255.;
+      }
+    }
+  }
+
   if (scalarStyle != -1) ptrState->scalarStyle = scalarStyle;
   if (vectorStyle != -1) ptrState->vectorStyle = vectorStyle;
   if (vectorScale > 0.) ptrState->vectorScale = vectorScale;

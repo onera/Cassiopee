@@ -165,9 +165,9 @@ struct CPlotState {
     int   selectionStyle;  // style pour la selection (0: bleue, 1: alpha)
     int   colormap;        // colormap type
     int   colormapSize;    // number of colors in colormap
-    double colormapR[30]; // colormap red
-    double colormapG[30]; // colormap green
-    double colormapB[30]; // colormap blue
+    double colormapR[300]; // colormap red
+    double colormapG[300]; // colormap green
+    double colormapB[300]; // colormap blue
 
     double colormapR1, colormapG1, colormapB1; // starting color for bi/tricolor colormaps
     double colormapR2, colormapG2, colormapB2; // ending color for bi/tricolor colormaps  
