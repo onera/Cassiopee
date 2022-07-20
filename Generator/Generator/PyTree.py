@@ -1520,3 +1520,69 @@ def quad2Pyra(t, hratio = 1.):
      Usage : quad2Pyra(array, hratio)"""
      a = C.getFields(Internal.__GridCoordinates__,t)[0]
      return C.convertArrays2ZoneNode('pyra', [Generator.quad2Pyra(a, hratio)])
+
+
+ 
+def refine_routine(t,torig,refine,dim_local):
+    list_of_types = ["BC_t","GridConnectivity_t"]
+
+    for type_local in list_of_types:
+        listofzones = []
+        zones = Internal.getZones(t)
+        for z in zones:
+            znodes = Internal.getNodesFromType(z, type_local)
+            if znodes:
+                listofzones.append(z[0])
+
+        for zname in listofzones:
+            z      = Internal.getNodeByName(t,zname)
+            znodes = Internal.getNodesFromType(z, type_local)
+            for bc in znodes:
+                bcname = bc[0]
+                bcarray= bc[2][0][1]
+                for j in range(0,dim_local):
+                    for i in range(0,2):
+                        if bcarray[j][i] !=1:
+                            bcarray[j][i]=(bcarray[j][i]-1)*refine[j]+1
+
+    ## CONNECT MATCH
+    listofzones = []
+    zones = Internal.getZones(torig)
+    for z in zones:
+        znodes = Internal.getNodesFromType(z, "GridConnectivity1to1_t")
+        if znodes:
+            listofzones.append(z[0])
+
+    for zname in listofzones:
+        z      = Internal.getNodeByName(t,zname)
+        zgc    = Internal.getNodeFromType(z, "ZoneGridConnectivity_t")
+
+        zorig  = Internal.getNodeByName(torig,zname)
+        znodes = Internal.getNodesFromType(zorig, "GridConnectivity1to1_t")
+        for gc in znodes:
+            gcarray_prange =gc[2][0][1]
+            gcarray_prangeD=gc[2][1][1]
+            for j in range(0,dim_local):
+                    for i in range(0,2):
+                        ##Point Range
+                        if gcarray_prange[j][i] !=1:
+                            gcarray_prange[j][i]=(gcarray_prange[j][i]-1)*refine[j]+1
+                        ##Point Range Donor
+                        if gcarray_prangeD[j][i] !=1:
+                            gcarray_prangeD[j][i]=(gcarray_prangeD[j][i]-1)*refine[j]+1
+            Internal.addChild(zgc,gc,pos=-1)
+    return t
+
+
+def refine_independently_xyz(fileName,refine=[1,1,1],dim_local=2):
+    torig = C.convertFile2PyTree(fileName)
+    t     = Internal.copyTree(torig)
+
+    for i in range(0,dim_local):
+        if refine[i]>1:
+            G._refine(t, refine[i], i+1)
+
+    t=refine_routine(t,torig,refine,dim_local)
+    return t
+
+

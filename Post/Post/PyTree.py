@@ -2133,3 +2133,163 @@ def _renameVars(a, varsPrev, varsNew):
                     for fn in fnodes:
                         for j in fn[2]:
                             if j[0]==splP[1]: j[0] = splN[1]
+
+
+def check_occupancy_cellN(lower_limit,t):
+    import Converter.Mpi as Cmpi
+    total_cells        = 0
+    
+    list_zones         =[]
+    list_occupancy     =[]
+    list_zones_below   =[]
+    
+    Internal._rmGhostCells(t,t,2,adaptBCs=1) #want "real" cells
+
+    for z in Internal.getZones(t):
+        cells_zone = 0
+        sol        = Internal.getNodeFromName(z,'FlowSolution#Centers')
+        celN       = Internal.getNodeFromName(sol,'cellN')[1]
+
+        total_cell_zone= C.getNCells(z)
+        cells_zone_0   = numpy.count_nonzero(celN==0)
+        cells_zone_1   = numpy.count_nonzero(celN==1)
+        cells_zone_2   = numpy.count_nonzero(celN==2)
+
+        cells_zone     = cells_zone_1
+
+        total_cells  += cells_zone
+        occupancy_rate=float(cells_zone)/float(total_cell_zone)*100
+
+        list_zones.append(z[0])
+        list_occupancy.append(occupancy_rate)
+        if occupancy_rate<lower_limit:list_zones_below.append(z[0])
+        
+    with open('CellN_occupancy_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
+        for i in range(len(list_zones)):
+            string2write=list_zones[i]          + '   ' + \
+                          str(list_occupancy[i])+ ' \n'
+            f.write(string2write)
+        
+        string2write='..........Below Threshold.......... \n'
+        f.write(string2write)
+        string2write='Total numberof zones ::'+str(len(list_zones_below))+ ' \n'
+        f.write(string2write)
+        string2write='List of zones='+str(list_zones_below) + ' \n'
+        f.write(string2write)
+        string2write='Min Occupancy='+str(numpy.min(list_occupancy)) + ' \n' 
+        f.write(string2write)
+        string2write='Max Occupancy='+str(numpy.max(list_occupancy)) + '  \n' 
+        f.write(string2write)
+        string2write='Mean Occupancy='+str(numpy.mean(list_occupancy))+'  \n' 
+        f.write(string2write)   
+
+    return None
+
+
+def check_t_maxmin_errors(t):
+    errors = Internal.checkPyTree(t)
+    print("Printing Errors")
+    print(errors)
+    
+    max_proc=0
+    for z in Internal.getZones(t):
+        print("______________________")
+        #check max & min values
+        print('Zone=',z[0],'u vel ',C.getMaxValue(z, 'centers:VelocityX')  ,C.getMinValue(z, 'centers:VelocityX'))
+        print('Zone=',z[0],'v vel ',C.getMaxValue(z, 'centers:VelocityY')  ,C.getMinValue(z, 'centers:VelocityY'))
+        print('Zone=',z[0],'w vel ',C.getMaxValue(z, 'centers:VelocityZ')  ,C.getMinValue(z, 'centers:VelocityZ'))
+        print('Zone=',z[0],'Temp  ',C.getMaxValue(z, 'centers:Temperature'),C.getMinValue(z, 'centers:Temperature'))
+    print("______________________")
+    #check max & min values
+    print('Tree= u vel ',C.getMaxValue(t, 'centers:VelocityX')  ,C.getMinValue(t, 'centers:VelocityX'))
+    print('Tree= v vel ',C.getMaxValue(t, 'centers:VelocityY')  ,C.getMinValue(t, 'centers:VelocityY'))
+    print('Tree= w vel ',C.getMaxValue(t, 'centers:VelocityZ')  ,C.getMinValue(t, 'centers:VelocityZ'))
+    print('Tree= Temp  ',C.getMaxValue(t, 'centers:Temperature'),C.getMinValue(t, 'centers:Temperature'))
+    
+    return None
+
+
+def check_size_zones_tc(t,with_ghost=False,isNCells=False,print_finalOnly=False):
+    import Converter.Mpi as Cmpi
+    list_save_zones  =[]
+    list_save_ncells =[]
+    
+    if not with_ghost:Internal._rmGhostCells(t,t,2,adaptBCs=0)
+
+    total_cells = 0
+    dict_cell_zone={}
+    for z in Internal.getZones(t):
+        if isNCells:var_loc      = C.getNCells(z)
+        else:var_loc      = C.getNPts(z)
+        total_cells += var_loc
+        dict_cell_zone[z[0]] = var_loc
+        list_save_zones.append(z[0])
+        list_save_ncells.append(var_loc/1e06)
+    
+    
+    with open('Ncells_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
+        for i in range(len(list_save_zones)):
+            string2write=list_save_zones[i]       + '   ' + \
+                          str(list_save_ncells[i])+ ' \n'
+            f.write(string2write)
+        
+        if print_final:
+            string2write='Ncells Total='+str(total_cells/1e06)
+            f.write(string2write)
+    return None
+
+
+def probe_locations(tprobe,tcase):
+    import Connector.PyTree as X
+    import Converter.Mpi as Cmpi
+    ##Create list of Probes for tprobe
+    interDict = X.getIntersectingDomains(tprobe,tcase)
+
+    list_save_zones=[]
+    list_save_i    =[]
+    list_save_j    =[]
+    list_save_k    =[]
+    ##In intersection zone get i,j,k for smallest distance
+    for p in Internal.getZones(tprobe):
+        xnode=Internal.getNodeFromName(p,'CoordinateX')
+        ynode=Internal.getNodeFromName(p,'CoordinateY')
+        znode=Internal.getNodeFromName(p,'CoordinateZ')
+        
+        x_loc=Internal.getValue(xnode)
+        y_loc=Internal.getValue(ynode)
+        z_loc=Internal.getValue(znode)
+
+        isave = 0
+        jsave = 0
+        ksave = 0
+        z=interDict[p[0]]
+        
+        if z:
+            z2=Internal.getNodeFromName(tcase, z[0])            
+            C._initVars(z2,'dist=sqrt(({CoordinateX}-%g)**2+({CoordinateY}-%g)**2+({CoordinateZ}-%g)**2)'%(x_loc,y_loc,z_loc))
+            dist_array = Internal.getNodeByName(z2,'dist')[1]
+            
+            dim   = Internal.getZoneDim(z2)
+            ni    = dim[1]
+            nj    = dim[2]
+            nk    = dim[3]
+            pnt   = numpy.where(dist_array == numpy.amin(dist_array))
+
+            list_save_zones.append(z[0])
+            list_save_i.append(pnt[0][0])
+            list_save_j.append(pnt[1][0])
+            list_save_k.append(pnt[2][0])
+                
+    with open('probes_locations_ijk_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
+        for i in range(len(list_save_zones)):
+            string2write=list_save_zones[i]  + '  '+ \
+                          str(list_save_i[i])+ '  '+ \
+                          str(list_save_j[i])+ '  '+ \
+                          str(list_save_k[i])+ '\n'
+            f.write(string2write)
+    return None
+
+
+
+
+
