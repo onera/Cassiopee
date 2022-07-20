@@ -2,6 +2,7 @@
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import numpy
+import math
 
 EPSCART = 1.e-6
 

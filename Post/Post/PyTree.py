@@ -84,13 +84,13 @@ def extractPlane(t, T, order=2, tol=1.e-6):
     a = Post.extractPlane(A, T, order, tol)
     return C.convertArrays2ZoneNode('extractedPlane', [a])
 
-def projectCloudSolution(cloud, surf, dim=3):
+def projectCloudSolution(cloud, surf, dim=3, loc='nodes'):
     """Project the solution defined on a set of points to a TRI surface."""
     surf2 = Internal.copyRef(surf)
-    _projectCloudSolution(cloud, surf2, dim=dim)
+    _projectCloudSolution(cloud, surf2, dim=dim, loc=loc)
     return surf2
 
-def _projectCloudSolution(cloud, surf, dim=3):
+def _projectCloudSolution(cloud, surf, dim=3, loc='nodes'):
     """Project the solution defined on a set of points to a TRI surface."""
     fc = C.getAllFields(cloud, 'nodes')[0]
     zones = Internal.getZones(surf)

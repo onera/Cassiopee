@@ -842,7 +842,7 @@ def prepareMotion(t_case, t_out, tc_out, to=None,
 # IBMO prepare
 #
 #================================================================================
-def prepare(t_case, t_out, tc_out, to=None,   
+def prepare(t_case, t_out, tc_out, tblank=None, to=None,   
             vmin=21, check=False, NP=0,
             frontType=1,  tbox=None, snearsf=None,
             expand=3, distrib=False, tinit=None, initWithBBox=-1., 
@@ -856,6 +856,13 @@ def prepare(t_case, t_out, tc_out, to=None,
         print("Warning: IBMO.prepare: currently implemented for frontType=1 algorithm only.")
         frontType=1
 
+    #read blanking bodies - if None : blanking bodies for Chimera are bcwalls
+    tbblank = None
+    if tblank is not None:
+        if isinstance(tblank,str):
+            tbblank = C.convertFile2PyTree(tblank)
+        else: tbblank = tblank
+    
     if isinstance(t_case, str): 
         h = Filter.Handle(t_case)
         if distrib:
@@ -885,7 +892,6 @@ def prepare(t_case, t_out, tc_out, to=None,
     # tbchim : arbre des corps chimeres 
     tbchim = C.newPyTree()
     tbov = C.newPyTree()
-    tbblank= C.newPyTree()
     # tbibm : arbre des corps ibms en z = 0
     tbibm = C.newPyTree()    
     # chargement des zones Chimere par proc 
@@ -1098,7 +1104,10 @@ def prepare(t_case, t_out, tc_out, to=None,
     # Blanking IBC
     C._initVars(t, 'centers:cellNIBC', 1.)
     t  = TIBM.blankByIBCBodies(t, tbibm, 'centers', dimPb, cellNName='cellNIBC')
-    t  = TIBM.blankByIBCBodies(t, tbchim, 'centers', dimPb, cellNName='cellNChim')
+    if tbblank is None:
+        t  = TIBM.blankByIBCBodies(t, tbchim, 'centers', dimPb, cellNName='cellNChim')
+    else:
+        t = TIBM.blankByIBCBodies(t, tbblank, 'centers', dimPb, cellNName='cellNChim')
     t2 = TIBM.blankByIBCBodies(t2, tbibm, 'centers', dimPb, cellNName='cellNChim')
     test.printMem(">>> Blanking [end]")
 

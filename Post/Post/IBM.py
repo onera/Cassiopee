@@ -20,6 +20,7 @@ import numpy
 ## The functions of this submodule will become decrepit after Jan. 1 2023
 #====================================================================================
 from . import IBM_OLDIES
+#====================================================================================
 
 def _add_gradxi_P(z):
     subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
@@ -45,8 +46,9 @@ def _add_gradxi_P(z):
 # if tb=None: return the cloud of points
 # else interpolate on tb
 # input famZones: family of subregions to extract as a list ['FAM1','FAM2,...]
+#solution is projected at nodes or cell centers
 #=============================================================================
-def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc='nodes'):
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
     xcNP = []; ycNP = []; zcNP = []
@@ -91,7 +93,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
                 zones = dictOfZoneFamilies[famName]
                 if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
 
-            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[])
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[], loc=loc)
             out+=Internal.getZones(zd)
         return out
 
@@ -304,7 +306,16 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
             C._initVars(td,XOD.__CONV1__,0.)
             C._initVars(td,XOD.__CONV2__,0.)
         print("projectCloudSolution for dim {}".format(dimPb))
-        td = P.projectCloudSolution(z, td, dim=dimPb)
+        if loc == 'nodes':
+            P._projectCloudSolution(z, td, dim=dimPb)
+        else:
+            tdc = C.node2Center(td)
+            P._projectCloudSolution(z, tdc, dim=dimPb)
+            FSC = Internal.getNodeFromName(tdc, Internal.__FlowSolutionNodes__)
+            FSC = Internal.getNodesFromType(FSC, 'DataArray_t')
+            for fs in FSC:
+                var = Internal.getName(fs)
+                C._cpVars(tdc,var, td, 'centers:'+var)
         return td
 
 
@@ -324,6 +335,10 @@ def extractIBMInfo(tc_in, filename_out='IBMInfo.cgns'):
 #-------------------------------------------------
 # computes the shear stress using utau
 #-------------------------------------------------
+def extractShearStress(ts):
+    ts2 = Internal.copyRef(ts)
+    return _extractShearStress(ts2)
+
 def _extractShearStress(ts): 
     if Internal.getNodeFromName(ts, Internal.__FlowSolutionCenters__) is None:
         ts = C.node2Center(ts, Internal.__FlowSolutionNodes__)
@@ -358,6 +373,11 @@ def _extractShearStress(ts):
 # OUT: geometry tree with additional solution fields: shear stress, tangential friction vector and modulus and taun, Cp, Cf
 # I/O screen:Cl & Cd
 #-------------------------------------------------
+def computeExtraVariables(ts, PInf, QInf, 
+                          variables=['Cp','Cf','frictionX','frictionY','frictionZ', 'frictionMagnitude','ShearStress']):
+    ts2 = Internal.copyRef(ts)
+    return _computeExtraVariables(ts2, PInf, QInf,variables=variables)
+                          
 def _computeExtraVariables(ts, PInf, QInf, 
                            variables=['Cp','Cf','frictionX','frictionY','frictionZ', 'frictionMagnitude','ShearStress']):
     import Post.ExtraVariables2 as PE
@@ -374,7 +394,7 @@ def _computeExtraVariables(ts, PInf, QInf,
     if 'ShearStress' or 'frictionX' in variables:
         _extractShearStress(ts)
 
-    if 'frictionX' or 'frctionMagnitude' in variables:
+    if 'frictionX' or 'frictionMagnitude' in variables:
         PE._extractFrictionMagnitude(ts)
     
     if 'Cf' in variables: 
