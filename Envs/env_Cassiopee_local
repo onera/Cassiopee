@@ -505,7 +505,7 @@ else if ($MAC == "spiro") then
         module load impi/17
         module load hdf5/1.8.17-intel-17
         module load python/3.6.1
-	    module unload hdf5/1.8.8
+	module unload hdf5/1.8.8
         module load subversion/1.14.1-gnu830
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
@@ -514,6 +514,94 @@ else if ($MAC == "spiro") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+else if ($MAC == "spiro_sky") then
+#------------------------------- spiro --------------------------------------
+        setenv ELSAPROD spiro_sky_r8
+        # Number of threads
+        setenv OMP_NUM_THREADS 24
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+       module unload impi/17
+       module load intel/17.0.4
+       module load impi/17
+       module load hdf5/1.8.17-intel-17
+       module load python/3.6.1
+       module unload hdf5/1.8.8
+       # Set next two lines only if python is not python
+       setenv PYTHONEXE python3
+       alias python python3
+       set path=($path $CASSIOPEE/Dist/bin)
+       set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+       setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
+       setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+else if ($MAC == "spiro_cas") then
+------------------------------- spiro --------------------------------------
+        setenv ELSAPROD spiro_cas_r8
+        # Number of threads
+        setenv OMP_NUM_THREADS 24
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+       module unload impi/17
+       module load intel/17.0.4
+       module load impi/17
+       module load hdf5/1.8.17-intel-17
+       module load python/3.6.1
+       module unload hdf5/1.8.8
+       # Set next two lines only if python is not python
+       setenv PYTHONEXE python3
+       alias python python3
+       set path=($path $CASSIOPEE/Dist/bin)
+       set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+       setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
+       setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+else if ($MAC == "spiro_amdRM") then
+#------------------------------- spiro --------------------------------------
+        setenv ELSAPROD spiro_amdrm_r8
+        # Number of threads
+        setenv OMP_NUM_THREADS 32
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+
+       module unload impi/17
+       module load intel/17.0.4
+       module load impi/17
+       module load hdf5/1.8.17-intel-17
+       module load python/3.6.1
+       module unload hdf5/1.8.8
+
+       # Set next two lines only if python is not python
+       setenv PYTHONEXE python3
+       alias python python3
+       set path=($path $CASSIOPEE/Dist/bin)
+       set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+       setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
+       setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+else if ($MAC == "spiro_amdNP") then
+#------------------------------- spiro --------------------------------------
+        setenv ELSAPROD spiro_amdnp_r8
+        # Number of threads
+        setenv OMP_NUM_THREADS 32
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+
+       module unload impi/17
+       module load intel/17.0.4
+       module load impi/17
+       module load hdf5/1.8.17-intel-17
+       module load python/3.6.1
+       module unload hdf5/1.8.8
+
+       # Set next two lines only if python is not python
+       setenv PYTHONEXE python3
+       alias python python3
+       set path=($path $CASSIOPEE/Dist/bin)
+       set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+       setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
+       setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
 
 else if ($MAC == "spiro_socle") then
 #------------------------------- spiro --------------------------------------

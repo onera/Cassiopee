@@ -462,6 +462,10 @@ def runSingleUnitaryTest(no, module, test):
     #else: pythonExec = 'python'
     pythonExec = os.getenv('PYTHONEXE', 'python')
     nthreads = KCore.kcore.getOmpMaxThreads()
+    if nthreads>24:
+        print("Nthreads is greater than 24...setting to 24")
+        nthreads=24
+        os.environ["OMP_NUM_THREADS"] = "24" 
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)

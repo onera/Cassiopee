@@ -49,6 +49,8 @@ if [ "$MACHINE" != "" ]; then
     export MAC=$MACHINE
 fi
 
+echo $MACHINE
+
 # ----------------------------- Common ----------------------------------------
 
 if [ "$MAC" = "ld" ]; then
@@ -418,7 +420,100 @@ elif [ "$MAC" = "spiro" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+elif [ "$MAC" = "spiro_sky" ]; then
+#----------------------------- spiro -----------------------------------------
+    export ELSAPROD=spiro_sky_r8
+    # Nbre de threads
+    export OMP_NUM_THREADS=24
+    # modules
+    . /usr/local/Modules/init/bash
+    module unload $(module -t list 2>&1 | grep -i intel)
+    module unload impi/17
+    #module load CFD/4.0-intel-17.impi
+    module load intel/17.0.4
+    module load impi/17
+    module load hdf5/1.8.17-intel-17
+    module load python/3.6.1
+    module unload hdf5/1.8.8
+    export PYTHONEXE=python3
+    alias python=python3
+    # Chemin de l'executable python
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
+    export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+    echo $PYTHONPATHL
+elif [ "$MAC" = "spiro_cas" ]; then
+#----------------------------- spiro -----------------------------------------
+    export ELSAPROD=spiro_cas_r8
+    # Nbre de threads
+    export OMP_NUM_THREADS=24
+    # modules
+    . /usr/local/Modules/init/bash
+    module unload $(module -t list 2>&1 | grep -i intel)
+    module unload impi/17
+    #module load CFD/4.0-intel-17.impi
+    module load intel/17.0.4
+    module load impi/17
+    module load hdf5/1.8.17-intel-17
+    module load python/3.6.1
+    module unload hdf5/1.8.8
+    export PYTHONEXE=python3
+    alias python=python3
+    # Chemin de l'executable python
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
+    export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+    echo $PYTHONPATHL
+elif [ "$MAC" = "spiro_amdRM" ]; then
+#----------------------------- spiro -----------------------------------------
+    export ELSAPROD=spiro_amdrm_r8
+    # Nbre de threads
+    export OMP_NUM_THREADS=32
+    # modules
+    . /usr/local/Modules/init/bash
+    module unload $(module -t list 2>&1 | grep -i intel)
 
+    module unload impi/17
+    module load intel/17.0.4
+    module load impi/17
+    module load hdf5/1.8.17-intel-17
+    module load python/3.6.1
+    module unload hdf5/1.8.8
+
+    export PYTHONEXE=python3
+    alias python=python3
+    # Chemin de l'executable python
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
+    export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+    echo $PYTHONPATHL
+elif [ "$MAC" = "spiro_amdNP" ]; then
+#----------------------------- spiro -----------------------------------------
+    export ELSAPROD=spiro_amdnp_r8
+    # Nbre de threads
+    export OMP_NUM_THREADS=32
+    # modules
+    . /usr/local/Modules/init/bash
+    module unload $(module -t list 2>&1 | grep -i intel)
+
+    module unload impi/17
+    module load intel/17.0.4
+    module load impi/17
+    module load hdf5/1.8.17-intel-17
+    module load python/3.6.1
+    module unload hdf5/1.8.8
+
+    export PYTHONEXE=python3
+    alias python=python3
+    # Chemin de l'executable python
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
+    export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+    echo $PYTHONPATHL
 elif [ "$MAC" = "spiro_socle" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_r8

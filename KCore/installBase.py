@@ -840,10 +840,10 @@ False, # useCuda
 ],
 ###############################################################################
 'spiro_amd': [ 'Machine dev Spiro (proc amd)',
-'gfortran', # f77compiler
-'gfortran', # f90compiler
-'gcc', # Cppcompiler
-['-DCACHELINE=32'], # CppAdditionalOptions
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=32','-DSIMD=AVX2'], 
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
