@@ -86,7 +86,7 @@ void Data::displayNodes()
   double d, dx, dy, dz, dist, alphaSav;
   double pru0, pru1, pru2, mru0, mru1, mru2;
   void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _plugins.colorMap->next->f;
+  getrgb = _plugins.zoneColorMap->f;
 
   int zone = 0;
   while (zone < _numberOfUnstructZones)

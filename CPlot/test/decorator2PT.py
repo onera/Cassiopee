@@ -14,7 +14,7 @@ CPlot.display(a, mode='scalar',
               scalarField='F', isoScales=['F',12,0.,10.],
               export=CPlot.decorator,
               offscreen=2,
-              isoEdges=1., colormap=26, bgColor=1)
+              isoEdges=1., colormap=16, bgColor=1)
 CPlot.finalizeExport()
 
 fig, ax = Decorator.createSubPlot()

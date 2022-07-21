@@ -448,19 +448,19 @@ def setColormapLight(event=None):
     light = VARS[5].get()
     style = 0
     if colormap == 'Blue2Red': style = 0
-    elif colormap == 'Green2Red': style = 2
-    elif colormap == 'BiColorRGB': style = 4
-    elif colormap == 'BiColorHSV': style = 6
-    elif colormap == 'Diverging': style = 8
-    elif colormap == 'TriColorRGB': style = 10
-    elif colormap == 'TriColorHSV': style = 12
-    elif colormap == 'Black2White': style = 14
+    elif colormap == 'BiColorRGB': style = 2
+    elif colormap == 'BiColorHSV': style = 4
+    elif colormap == 'TriColorRGB': style = 6
+    elif colormap == 'TriColorHSV': style = 8
+    elif colormap == 'Diverging': style = 14
     elif colormap == 'Viridis': style = 16
     elif colormap == 'Inferno': style = 18
     elif colormap == 'Magma': style = 20
     elif colormap == 'Plasma': style = 22
-    elif colormap == 'NiceBlue': style = 24
-    elif colormap == 'Jet': style = 26
+    elif colormap == 'Jet': style = 24
+    elif colormap == 'Greys': style = 26
+    elif colormap == 'NiceBlue': style = 28
+    elif colormap == 'Greens': style = 30
     
     if light == 'IsoLight on': style += 1
     
@@ -1161,12 +1161,12 @@ def createApp(win):
                         command=setIsoLegend)
     B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Display color legend.')
-    B = TTK.OptionMenu(Scalar, VARS[4], 'Blue2Red', 'Green2Red',
+    B = TTK.OptionMenu(Scalar, VARS[4], 'Blue2Red',
+                       'Diverging', 
+                       'Viridis', 'Inferno', 'Magma', 
+                       'Plasma', 'Jet', 'Greys', 'NiceBlue', 'Greens',
                        'BiColorRGB', 'BiColorHSV',
                        'TriColorRGB', 'TriColorHSV',
-                       'Diverging', 'Black2White',
-                       'Viridis', 'Inferno', 'Magma', 
-                       'Plasma', 'NiceBlue', 'Jet',
                        command=setColormapLight)
     B.grid(row=6, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Colormap type.')

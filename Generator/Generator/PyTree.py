@@ -1522,8 +1522,14 @@ def quad2Pyra(t, hratio = 1.):
      return C.convertArrays2ZoneNode('pyra', [Generator.quad2Pyra(a, hratio)])
 
 
- 
-def refine_routine(t,torig,refine,dim_local):
+#%CBAR
+# a tester
+# IN: t: arbre deep copy de torig
+# IN: t: torig: maillage originale
+# IN: refine: direction (1,2,3)
+# IN: dim_local: dimension=2 ou 3 -> dim
+def refine__(t, torig, refine, dim):
+    """Refine xyz"""
     list_of_types = ["BC_t","GridConnectivity_t"]
 
     for type_local in list_of_types:
@@ -1540,7 +1546,7 @@ def refine_routine(t,torig,refine,dim_local):
             for bc in znodes:
                 bcname = bc[0]
                 bcarray= bc[2][0][1]
-                for j in range(0,dim_local):
+                for j in range(0, dim):
                     for i in range(0,2):
                         if bcarray[j][i] !=1:
                             bcarray[j][i]=(bcarray[j][i]-1)*refine[j]+1
@@ -1562,7 +1568,7 @@ def refine_routine(t,torig,refine,dim_local):
         for gc in znodes:
             gcarray_prange =gc[2][0][1]
             gcarray_prangeD=gc[2][1][1]
-            for j in range(0,dim_local):
+            for j in range(0, dim):
                     for i in range(0,2):
                         ##Point Range
                         if gcarray_prange[j][i] !=1:
@@ -1573,16 +1579,14 @@ def refine_routine(t,torig,refine,dim_local):
             Internal.addChild(zgc,gc,pos=-1)
     return t
 
+#%CBAR
+def refineIndependently(t, refine=[1,1,1], dim=2):
+    
+    torig = Internal.copyTree(t) # copy ref sufficient?
+    for i in range(0, dim):
+        if refine[i]>1: _refine(t, refine[i], i+1)
 
-def refine_independently_xyz(fileName,refine=[1,1,1],dim_local=2):
-    torig = C.convertFile2PyTree(fileName)
-    t     = Internal.copyTree(torig)
-
-    for i in range(0,dim_local):
-        if refine[i]>1:
-            G._refine(t, refine[i], i+1)
-
-    t=refine_routine(t,torig,refine,dim_local)
+    t = refine__(t, torig, refine, dim)
     return t
 
 

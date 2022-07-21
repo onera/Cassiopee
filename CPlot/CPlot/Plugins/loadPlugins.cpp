@@ -91,22 +91,12 @@ void Data::loadPlugins()
   pd->f = colBlueToRed;
   pd->next = NULL;
 
-  // Green to red
-  pd->next =
-    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
-  pd = pd->next;
-  
-  strcpy(pd->functionName, "Green to red colormap");
-  strcpy(pd->varName, "1");
-  pd->f = colGreenToRed;
-  pd->next = NULL;
-
   // col2RGB
   pd->next =
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
   strcpy(pd->functionName, "Bi-color RGB colormap");
-  strcpy(pd->varName, "2");
+  strcpy(pd->varName, "1");
   pd->f = col2RGB;
   pd->next = NULL;
 
@@ -115,17 +105,8 @@ void Data::loadPlugins()
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
   strcpy(pd->functionName, "Bi-color HSV colormap");
-  strcpy(pd->varName, "3");
+  strcpy(pd->varName, "2");
   pd->f = col2HSV;
-  pd->next = NULL;
-
-  // Diverging
-  pd->next =
-    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
-  pd = pd->next;
-  strcpy(pd->functionName, "Diverging colormap");
-  strcpy(pd->varName, "4");
-  pd->f = diverging;
   pd->next = NULL;
 
   // col3RGB
@@ -133,7 +114,7 @@ void Data::loadPlugins()
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
   strcpy(pd->functionName, "Tri-color RGB colormap");
-  strcpy(pd->varName, "5");
+  strcpy(pd->varName, "3");
   pd->f = col3RGB;
   pd->next = NULL;
 
@@ -142,7 +123,7 @@ void Data::loadPlugins()
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
   strcpy(pd->functionName, "Tri-color HSV colormap");
-  strcpy(pd->varName, "6");
+  strcpy(pd->varName, "4");
   pd->f = col3HSV;
   pd->next = NULL;
 
@@ -151,7 +132,7 @@ void Data::loadPlugins()
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
   strcpy(pd->functionName, "Multi-color RGB colormap");
-  strcpy(pd->varName, "7");
+  strcpy(pd->varName, "5");
   pd->f = colMRGB;
   pd->next = NULL;
 
@@ -160,8 +141,26 @@ void Data::loadPlugins()
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
   strcpy(pd->functionName, "Multi-color HSV colormap");
-  strcpy(pd->varName, "8");
+  strcpy(pd->varName, "6");
   pd->f = colMHSV;
+  pd->next = NULL;
+
+  // Diverging
+  pd->next =
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = pd->next;
+  strcpy(pd->functionName, "Diverging colormap");
+  strcpy(pd->varName, "7");
+  pd->f = diverging;
+  pd->next = NULL;
+
+  // Zone color map plugins
+  _plugins.zoneColorMap = 
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = _plugins.zoneColorMap;
+  strcpy(pd->functionName, "Green to red colormap");
+  strcpy(pd->varName, "0");
+  pd->f = colGreenToRed;
   pd->next = NULL;
 
   // -- Default screenDump functions -- 

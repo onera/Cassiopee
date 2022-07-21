@@ -86,21 +86,19 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
         if cmap == 0 or cmap == 1: # primaire
             cmap = createColormap('Blue2Red')
         elif cmap == 2 or cmap == 3: # primaire
-            cmap = createColormap('Green2Red')
-        elif cmap == 4 or cmap == 5: # primaire
             cmap = createColormap('BiColorRGB')
-        elif cmap == 6 or cmap == 7: # primaire
+        elif cmap == 4 or cmap == 5: # primaire
             cmap = createColormap('BiColorHSV')
-        elif cmap == 8 or cmap == 9: # primaire
-            cmap = createColormap('Diverging')
-        elif cmap == 10 or cmap == 11: # premaire
+        elif cmap == 6 or cmap == 7: # primaire
             cmap = createColormap('TriColorRGB')
-        elif cmap == 12 or cmap == 13: # primaire
+        elif cmap == 8 or cmap == 9: # primaire
             cmap = createColormap('TriColorHSV')
-        elif cmap == 14 or cmap == 15: # primaire
+        elif cmap == 10 or cmap == 11: # primaire
             cmap = createColormap('MultiColorRGB')
-        elif cmap == 16 or cmap == 17: # primaire
+        elif cmap == 12 or cmap == 13: # primaire
             cmap = createColormap('MultiColorHSV')
+        elif cmap == 14 or cmap == 15: # primaire
+            cmap = createColormap('Diverging')
         else: # default
             cmap = createColormap('Blue2Red')
     elif isinstance(cmap, str): cmap = createColormap(cmap)

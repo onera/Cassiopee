@@ -72,7 +72,7 @@ void Data::displayUMeshZone_ho(UnstructZone* zonep, int zone, int zonet)
   // Colormap
   float r, g, b;
   void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _plugins.colorMap->next->f;
+  getrgb = _plugins.zoneColorMap->f;
 
   // For node rendering (1D zones)
   double dref = 0.003;

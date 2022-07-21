@@ -2134,8 +2134,10 @@ def _renameVars(a, varsPrev, varsNew):
                         for j in fn[2]:
                             if j[0]==splP[1]: j[0] = splN[1]
 
-
+#%CBAR
+# Statistique de cellN=1 par rapport au nombre total de pt des zones
 def check_occupancy_cellN(lower_limit,t):
+    """Check cellN occupancy"""
     import Converter.Mpi as Cmpi
     total_cells        = 0
     
@@ -2185,8 +2187,9 @@ def check_occupancy_cellN(lower_limit,t):
 
     return None
 
-
-def check_t_maxmin_errors(t):
+#%CBAR
+def printMinMaxAndErrors(t):
+    """Check min/max of all fields"""
     errors = Internal.checkPyTree(t)
     print("Printing Errors")
     print(errors)
@@ -2208,24 +2211,25 @@ def check_t_maxmin_errors(t):
     
     return None
 
-
-def check_size_zones_tc(t,with_ghost=False,isNCells=False,print_finalOnly=False):
+#%CBAR
+# Ecrit la taille des zones de t
+def printSizeZones(t, withGhost=False, isNCells=False, printFinal=False):
+    """Print zone stats"""
     import Converter.Mpi as Cmpi
     list_save_zones  =[]
     list_save_ncells =[]
     
-    if not with_ghost:Internal._rmGhostCells(t,t,2,adaptBCs=0)
+    if not withGhost: Internal._rmGhostCells(t, t, 2, adaptBCs=0)
 
     total_cells = 0
     dict_cell_zone={}
     for z in Internal.getZones(t):
-        if isNCells:var_loc      = C.getNCells(z)
-        else:var_loc      = C.getNPts(z)
+        if isNCells:var_loc = C.getNCells(z)
+        else: var_loc = C.getNPts(z)
         total_cells += var_loc
         dict_cell_zone[z[0]] = var_loc
         list_save_zones.append(z[0])
-        list_save_ncells.append(var_loc/1e06)
-    
+        list_save_ncells.append(var_loc/1.e06)
     
     with open('Ncells_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
         for i in range(len(list_save_zones)):
@@ -2233,13 +2237,14 @@ def check_size_zones_tc(t,with_ghost=False,isNCells=False,print_finalOnly=False)
                           str(list_save_ncells[i])+ ' \n'
             f.write(string2write)
         
-        if print_final:
-            string2write='Ncells Total='+str(total_cells/1e06)
+        if printFinal:
+            string2write='Ncells Total='+str(total_cells/1.e06)
             f.write(string2write)
     return None
 
-
-def probe_locations(tprobe,tcase):
+#%CBAR
+# voir si c'est redondant avec probe
+def probeLocations(tprobe, tcase):
     import Connector.PyTree as X
     import Converter.Mpi as Cmpi
     ##Create list of Probes for tprobe
@@ -2288,8 +2293,3 @@ def probe_locations(tprobe,tcase):
                           str(list_save_k[i])+ '\n'
             f.write(string2write)
     return None
-
-
-
-
-

@@ -73,13 +73,12 @@ DataDL::renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
     int i, ret;
 
     // Style colors
-    float color1[3];
-    float color2[3];
+    float color1[3]; float color2[3];
 
     // Colormap
     float r, g, b;
     void (*getrgb)(Data * data, double, float*, float*, float*);
-    getrgb = _plugins.colorMap->next->f;
+    getrgb = _plugins.zoneColorMap->f;
 
     // For node rendering (1D zones)
     double dref = 0.004;

@@ -31,13 +31,12 @@ void DataDL::renderGPUUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
     //this->displayUSolidHOZone(zonep, zone, zonet );
     //return;
     // Style
-    float color1[ 3 ];
-    float color2[ 3 ];
+    float color1[3]; float color2[3];
 
     // Colormap
     float r, g, b;
     void ( *getrgb )( Data * data, double, float *, float *, float * );
-    getrgb = _plugins.colorMap->next->f;
+    getrgb = _plugins.zoneColorMap->f;
 
     E_Float nz = 1. / _numberOfUnstructZones;
 #include "solidStyles.h"

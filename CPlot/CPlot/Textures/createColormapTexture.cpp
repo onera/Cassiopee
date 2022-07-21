@@ -28,8 +28,8 @@ int Data::createColormapTexture()
 
   GLenum target = GL_TEXTURE_1D;
   GLenum filter = GL_LINEAR;
-  GLenum address = GL_CLAMP_TO_BORDER;
-  //GLenum address = GL_CLAMP;
+  //GLenum address = GL_CLAMP_TO_BORDER;
+  GLenum address = GL_CLAMP_TO_EDGE;
   glBindTexture(target, _texColormap);
   glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter);
   glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filter);
@@ -140,9 +140,9 @@ void Data::fillColormapTexture(int type)
   double g3 = ptrState->colormapG3;
   double b3 = ptrState->colormapB3;
   double check = 0.;
-  if (type == 5 || type == 6)
+  if (type == 1 || type == 2)
     check = r1+g1+b1+r2+b2+g2+r3+g3+b3;
-  else if (type == 7 || type == 8)
+  else if (type == 5 || type == 6)
   {
     int s = ptrState->colormapSize-1;
     double* pr = ptrState->colormapR;
@@ -192,27 +192,7 @@ void Data::fillColormapTexture(int type)
       break;
     }
   
-    case 1: // Green to red colormap
-    {
-      for (int i = 0; i < w; i++)
-      {
-        f = i*dx;
-        if (f < 0.5)
-        {
-          if (f < 0.25) { r = 0.; g = 1.; b = 4.*f; }   
-          else { r = 0.; g = 4.*(0.5-f); b = 1.; }
-        }
-        else
-        {
-          if (f < 0.75) { r = 4.*(f-0.5); g = 0.; b = 1.; }
-          else { r = 1.; g = 0.; b = 4*(1.-f); }
-        }
-        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
-      }
-      break;
-    }
-
-    case 2: // Bi-color interpolation R G B de c1, c2 
+    case 1: // Bi-color interpolation R G B de c1, c2 
     {
       for (int i = 0; i < w; i++)
       {
@@ -225,7 +205,7 @@ void Data::fillColormapTexture(int type)
       break;
     }
   
-    case 3: // Bi-color interpolation H S V de c1 a c2
+    case 2: // Bi-color interpolation H S V de c1 a c2
     {
       double h1,s1,v1,h2,v2,s2,h,s,v,ro,go,bo;
       double delta, delta1, delta2;
@@ -251,7 +231,7 @@ void Data::fillColormapTexture(int type)
       break;
     }
 
-    case 4:  // diverging colormap
+    case 7:  // diverging colormap
     {
       for (int i = 0; i < w; i++)
       {
@@ -430,7 +410,7 @@ void Data::fillColormapTexture(int type)
       }
       break;
     }
-    case 5: // Tri-color interpolation R G B de c1, c3, c2 
+    case 3: // Tri-color interpolation R G B de c1, c3, c2 
     {
       for (int i = 0; i < w/2; i++)
       {
@@ -450,7 +430,7 @@ void Data::fillColormapTexture(int type)
       }
       break;
     }
-    case 6: // Tri-color interpolation H S V de c1,c3 a c2
+    case 4: // Tri-color interpolation H S V de c1,c3 a c2
     {
       double h1,s1,v1,h2,v2,s2,h3,v3,s3,h,s,v,ro,go,bo;
       double delta, delta1, delta2,h3s;
@@ -501,7 +481,7 @@ void Data::fillColormapTexture(int type)
       break;
     }
 
-    case 7: // Multi-color interpolation R G B
+    case 5: // Multi-color interpolation R G B
     {
       int size = ptrState->colormapSize;
       double dsize = 1./(size-1.);
@@ -517,13 +497,12 @@ void Data::fillColormapTexture(int type)
         f = (i*dx-i0*dsize)/dsize;
         r = (1.-f)*pr[i0]+f*pr[i1];
         g = (1.-f)*pg[i0]+f*pg[i1];
-        b = (1.-f)*pb[i0]+f*pb[i1];
-        //printf("i0=%d i1=%d / f=%g / r=%g g=%g b=%g\n",i0,i1,f,r,g,b);
+        b = (1.-f)*pb[i0]+f*pb[i1];        
         image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
       }
       break;
     }
-    case 8: // Multi-color interpolation H S V
+    case 6: // Multi-color interpolation H S V
     {
       int size = ptrState->colormapSize;
       double dsize = 1./(size-1.);
@@ -576,9 +555,9 @@ void Data::fillColormapTexture(int type)
                GL_RGB, GL_FLOAT, image);
 
   _texColormapType = type;
-  if (type == 5 || type == 6)
+  if (type == 1 || type == 2)
     _texColormapMinMax = r1+g1+b1+r2+b2+g2+r3+g3+b3;
-  else if (type == 7 || type == 8)
+  else if (type == 5 || type == 6)
   {
     int s = ptrState->colormapSize-1;
     double* pr = ptrState->colormapR;

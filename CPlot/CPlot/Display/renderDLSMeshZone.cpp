@@ -64,7 +64,7 @@ void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
   // Colormap
   float r, g, b;
   void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _plugins.colorMap->next->f;
+  getrgb = _plugins.zoneColorMap->f;
 
   // For node rendering (1D zones)
   double d;

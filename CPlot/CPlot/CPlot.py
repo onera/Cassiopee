@@ -251,40 +251,39 @@ def resetKeyboard():
 # Ajoute des colormaps indirectes
 def filterColormap(values):
     [colormap, colormapC1, colormapC2, colormapC3, colormapC] = values
-    if colormap == 14 or colormap == 15: # Black2White
-        colormap=6; colormapC1='#000000'; colormapC2='#ffffff'
-        if colormap == 14: colormap = 6
-        elif colormap == 15: colormap = 7
-    elif colormap == 16 or colormap == 17: # Viridis
+    if colormap == 16 or colormap == 17: # Viridis
         colormapC = ColorMaps.Viridis
-        if colormap == 16: colormap = 14
-        elif colormap == 17: colormap = 15 
+        if colormap == 16: colormap = 10
+        elif colormap == 17: colormap = 11 
     elif colormap == 18 or colormap == 19: # Inferno
         colormapC = ColorMaps.Inferno
-        if colormap == 18: colormap = 14
-        elif colormap == 19: colormap = 15 
+        if colormap == 18: colormap = 10
+        elif colormap == 19: colormap = 11 
     elif colormap == 20 or colormap == 21: # Magma
         colormapC = ColorMaps.Magma
-        if colormap == 20: colormap = 14
-        elif colormap == 21: colormap = 15 
+        if colormap == 20: colormap = 10
+        elif colormap == 21: colormap = 11 
     elif colormap == 22 or colormap == 23: # Plasma
         colormapC = ColorMaps.Plasma
-        if colormap == 22: colormap = 14
-        elif colormap == 23: colormap = 15
-    elif colormap == 24 or colormap == 25: # NiceBlue
-        colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
-        if colormap == 24: colormap = 10
-        elif colormap == 25: colormap = 11
-    elif colormap == 26 or colormap == 27: # Jet
+        if colormap == 22: colormap = 10
+        elif colormap == 23: colormap = 11
+    elif colormap == 24 or colormap == 25: # Jet
         colormapC = ColorMaps.Jet2
-        if colormap == 26: colormap = 14
-        elif colormap == 27: colormap = 15    
-    elif colormap == 28 or colormap == 29: # multiple RGB given colormapC
-        if colormap == 28: colormap = 14
-        elif colormap == 29: colormap = 15
-    elif colormap == 30 or colormap == 31: # multiple HSV given colormapC
-        if colormap == 30: colormap = 16
-        elif colormap == 31: colormap = 17
+        if colormap == 24: colormap = 10
+        elif colormap == 25: colormap = 11    
+    elif colormap == 26 or colormap == 27: # Greys
+        colormapC = ColorMaps.Greys
+        if colormap == 26: colormap = 10
+        elif colormap == 27: colormap = 11    
+    elif colormap == 28 or colormap == 29: # NiceBlue
+        colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
+        if colormap == 28: colormap = 6
+        elif colormap == 29: colormap = 7
+    elif colormap == 30 or colormap == 31: # Greys
+        colormapC = ColorMaps.Greens
+        if colormap == 30: colormap = 10
+        elif colormap == 31: colormap = 11    
+        
     return [colormap, colormapC1, colormapC2, colormapC3, colormapC]
 
 def setState(dim=-1,

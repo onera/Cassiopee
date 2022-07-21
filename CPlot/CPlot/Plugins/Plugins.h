@@ -62,6 +62,7 @@ struct chain_function_double
 typedef struct
 {
     struct chain_function_double* colorMap;
+    struct chain_function_double* zoneColorMap;
     struct chain_function_void* lookFor;
     struct chain_function_void* addAVariable;
     struct chain_function_int* blanking;
