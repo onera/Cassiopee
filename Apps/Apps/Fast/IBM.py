@@ -82,7 +82,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                          tbox=tbox, snearsf=snearsf, yplus=yplus, 
-                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, recomputeDist=recomputeDist,
+                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
                          expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt, dfarDir=dfarDir)
 
     return ret
@@ -477,7 +477,7 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
 def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100., Lref=1.,
              vmin=21, check=False, NP=0, format='single',
-             frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
+             frontType=1, extrusion=False, smoothing=False, balancing=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100.,
              dfarDir=0,dz_in=0.01,span_in=0.25,NPas_in=10,height_in=0.1,
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False,
@@ -554,15 +554,10 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
             z0 = Internal.getNodeFromType2(t, "Zone_t")
             bb0 = G.bbox(z0); dz = bb0[5]-bb0[2]
             tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-            if isDist2WallNearBodyOnly: 
-                t=dist2wallNearBody(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
-            else:
-                DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+            tbsave =tb2
+            t=dist2wallNearBody(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
         else:
-            if isDist2WallNearBodyOnly:
-                t=dist2wallNearBody(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
-            else:
-                DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
+            t=dist2wallNearBody(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
 
     # Compute turbulentdistance wrt each body that is not a sym plan
     if correctionMultiCorpsF42 and frontType==42:
@@ -1242,38 +1237,6 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
     if model == 'Euler': varsRM += ['centers:TurbulentDistance']
     C._rmVars(t, varsRM)
 
-    #-----------------------------------------
-    # Computes distance field for Musker only
-    #-----------------------------------------
-    # zones = Internal.getZones(t)
-    # npts = 0
-    # for z in zones:
-    #     dims = Internal.getZoneDim(z)
-    #     npts += dims[1]*dims[2]*dims[3]
-    # Cmpi.barrier()
-    # print('proc {} has {} blocks and {} Millions points'.format(rank, len(zones), npts/1.e6))
-    
-    if model != 'Euler' and recomputeDist:
-        ibctypes = set()
-        for node in Internal.getNodesFromName(tb,'ibctype'):
-            ibctypes.add(Internal.getValue(node))
-        ibctypes = list(ibctypes)
-        if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
-            test.printMem(">>> wall distance for viscous wall only [start]")
-            for z in Internal.getZones(tb):
-                ibc = Internal.getNodeFromName(z,'ibctype')
-                if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
-                    Internal._rmNode(tb,z)
-
-            if dimPb == 2:
-                z0 = Internal.getZones(t)
-                bb = G.bbox(z0); dz = bb[5]-bb[2]
-                tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-                DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
-            else:
-                DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
-            test.printMem(">>> wall distance for viscous wall only [end]")
-
 
     # Sauvegarde des infos IBM
     if check:
@@ -1338,6 +1301,37 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
         D2._copyDistribution(t, tc)    
         if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
 
+    #-----------------------------------------
+    # Computes distance field for Musker only
+    #-----------------------------------------
+    # zones = Internal.getZones(t)
+    # npts = 0
+    # for z in zones:
+    #     dims = Internal.getZoneDim(z)
+    #     npts += dims[1]*dims[2]*dims[3]
+    # Cmpi.barrier()
+    # print('proc {} has {} blocks and {} Millions points'.format(rank, len(zones), npts/1.e6))
+
+    if model == 'NSTurbulent':
+        test.printMem(">>> wall distance for viscous wall only - RANS [start]")
+        ibctypes = set()
+        for node in Internal.getNodesFromName(tb,'ibctype'):
+            ibctypes.add(Internal.getValue(node))
+        ibctypes = list(ibctypes)
+        if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
+            
+            for z in Internal.getZones(tb):
+                ibc = Internal.getNodeFromName(z,'ibctype')
+                if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
+                    Internal._rmNode(tb,z)
+        
+        if dimPb == 2:
+            DTW._distance2Walls(t,tbsave,type='ortho', signed=0, dim=dimPb, loc='centers')
+        else:
+            DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
+        C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistance}*({centers:cellN}>0.)+(-1.)*{centers:TurbulentDistance}*({centers:cellN}<1.)')
+            
+        test.printMem(">>> wall distance for viscous wall only - RANS [end]")  
     # Save tc
     if twoFronts:
         tc2 = Internal.copyTree(tc)
@@ -1356,7 +1350,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
                     proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(rank)
                     ibcd[0]=getIBCDName(proposedName)
 
-    if isinstance(tc_out, str): 
+    if isinstance(tc_out, str):
         tcp = Compressor.compressCartesian(tc)
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
 
@@ -1403,7 +1397,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
             if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
     else:
         if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
-        
+     
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
@@ -1905,7 +1899,7 @@ def dist2wallNearBody(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
     list_final_zones=[]
     for z in Internal.getZones(t):
         list_final_zones.append(z[0])
-    print(len(list_final_zones))
+    
     tBB =G.BB(t)
     tbBB=G.BB(tb)
 
@@ -1917,11 +1911,13 @@ def dist2wallNearBody(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
     for i in interDict:
         if interDict[i]:
             zt.append(Internal.getNodeByName(t,i))
-            zt_names.append(i)            
-    DTW._distance2Walls(zt, tb, type='ortho', signed=0, dim=dim, loc='centers')
+            zt_names.append(i)
+
+    if zt_names:
+        DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
 
     ##PRT1
-    list_additional_zones = get_zones_scale_up_down(tbBB,tBB,zt_names,diff_percent=0.15,sweep_num=3,scaleDirection=1)
+    list_additional_zones = get_zones_scale_up_down(tbBB,tBB,zt_names,dim=dim)
 
     ###PRT2
     if list_additional_zones:        
@@ -1929,22 +1925,27 @@ def dist2wallNearBody(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
         for i in list_additional_zones:
             zt.append(Internal.getNodeByName(t,i))
         
-        DTW._distance2Walls(zt, tb, type='ortho', signed=0, dim=dim, loc='centers')
+        DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
     return t
         
 
-def get_zones_scale_up_down(tbBB,tBB,zt_names,diff_percent=0.10,sweep_num=2,scaleDirection=0):
+def get_zones_scale_up_down(tbBB,tBB,zt_names,diff_percent=0.15,sweep_num=4,scaleDirection=0,dim=2):
     minval_tb = C.getMinValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
     maxval_tb = C.getMaxValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
     mean_tb   = get_mean(maxval_tb,minval_tb)
-
+    diff_percentz=diff_percent
+    if dim==2: diff_percentz=0
+    
     list_additional_zones=[]
     for i in range(1,sweep_num+1):
-        if scaleDirection>=0:
-            tbBB_scale    = T.scale(tbBB, factor=(1.0+i*diff_percent,1.0+i*diff_percent,1.0+i*diff_percent))        
+        if scaleDirection>=0:            
+            tbBB_scale    = T.scale(tbBB, factor=(1.0+i*diff_percent,1.0+i*diff_percent,1.0+i*diff_percentz))
+            add2listAdditionalZones(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
+
         if scaleDirection<=0:
-            tbBB_scale    = T.scale(tbBB, factor=(1.0-i*diff_percent,1.0-i*diff_percent,1.0-i*diff_percent))            
-    add2listAdditionalZones(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
+            tbBB_scale    = T.scale(tbBB, factor=(1.0-i*diff_percent,1.0-i*diff_percent,1.0-i*diff_percentz))            
+            add2listAdditionalZones(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
+    
                     
     return list_additional_zones
 
