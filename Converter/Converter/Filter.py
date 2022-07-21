@@ -772,7 +772,7 @@ class Handle:
     self._loadContainerPartial(a, variablesN=self.varsN, variablesC=self.varsC)
     return a
     
-  def loadFromProc(self, loadVariables=True):
+  def loadFromProc(self, loadVariables=True,selfRank=True,NprocIn=0):
     """Load and distribute zones from proc node."""
     if Cmpi.rank == 0:
       # Load le squelette niveau2 + les noeuds proc
@@ -793,7 +793,11 @@ class Handle:
     zones = Internal.getZones(t)
     for z in zones:
       proc = Internal.getNodeFromName2(z, 'proc')
-      if Internal.getValue(proc) == Cmpi.rank:
+      if selfRank:
+        local_mpi = Cmpi.rank
+      else:
+        local_mpi = NprocIn
+      if Internal.getValue(proc) == local_mpi:
         paths.append(Internal.getPath(t, z))
       else: Internal._rmNode(t, z)
     if loadVariables: skipTypes=None
@@ -1178,3 +1182,5 @@ class Handle:
       fr = {}
       writePyTreeFromFilter(a, fileName, fr, skelData=[])
       
+
+
