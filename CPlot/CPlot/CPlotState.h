@@ -165,14 +165,14 @@ struct CPlotState {
     int   selectionStyle;  // style pour la selection (0: bleue, 1: alpha)
     int   colormap;        // colormap type
     int   colormapSize;    // number of colors in colormap
-    double colormapR[300]; // colormap red
-    double colormapG[300]; // colormap green
-    double colormapB[300]; // colormap blue
+    double* colormapR; // colormap red
+    double* colormapG; // colormap green
+    double* colormapB; // colormap blue
 
     double colormapR1, colormapG1, colormapB1; // starting color for bi/tricolor colormaps
     double colormapR2, colormapG2, colormapB2; // ending color for bi/tricolor colormaps  
     double colormapR3, colormapG3, colormapB3; // mid color for tricolor colormaps
-    
+
     int   isoLight;        // light ou pas light -> isoLight
     int   niso;            // nbre d'isos (global)
     float isoEdges;        // edge entre les isos

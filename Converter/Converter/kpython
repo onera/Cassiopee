@@ -128,7 +128,7 @@ else
         set +x
     elif [ $ELSAPROD == 'spiro_r8' ] || [ $ELSAPROD == 'spiro_amdrm_r8' ] || [ $ELSAPROD == 'spiro_amdnp_r8' ] || [ $ELSAPROD == 'spiro_sky_r8' ] || [ $ELSAPROD == 'spiro_cas_r8' ] # spiro
     then
-	set -x
+    set -x
         # intelMpi
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
         set +x

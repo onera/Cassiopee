@@ -117,7 +117,7 @@
 #define rsum K_METIS__rsum
 #define uvwsorti K_METIS__uvwsorti
 
-/*
+
 #define gk_fopen K_METIS__gk_fopen
 #define gk_realloc K_METIS__gk_realloc
 #define gk_mcorePush K_METIS__gk_mcorePush
@@ -164,7 +164,13 @@
 #define gk_strstr_replace K_METIS__gk_strstr_replace
 #define gk_strrcmp K_METIS__gk_strrcmp
 #define gk_exit_on_error K_METIS__gk_exit_on_error
-*/
+#define gk_gkmcorePush K_METIS__gk_gkmcoprePush
+#define gk_gkmcorePop K_METIS__gk_gkmcorePop
+#define gk_gkmcoreDestroy K_METIS__gk_gkmcoreDestroy
+#define gk_gkmcoreAdd K_METIS__gk_gkmcoreAdd
+#define gk_gkmcoreDel K_METIS__gk_gkmcoreDel
+#define gk_gkmcoreCreate K_METIS__gk_gkmcoreCreate
+//#define errexit K_METIS__errexit
 #endif
 
 

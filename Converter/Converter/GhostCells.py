@@ -240,12 +240,12 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
             # zone dimension without ghost cells
             im = img-2*d; jm = jmg-2*d; km = kmg-2*d
             # check dimensions
-            dim_zone = dim[4]
-            if dim_zone == 3:
+            dimZone = dim[4]
+            if dimZone == 3:
                 if im <= 0 or jm <= 0 or km <= 0:
                     print("Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d)
                     return b
-            elif dim_zone == 2:
+            elif dimZone == 2:
                 if im <= 0 or jm <= 0:
                     print("Warning: rmGhostCells: cannot to remove %d ghost cells. Try less."%d)
                     return b
@@ -388,7 +388,7 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
 
     # current zone dimensions
     dim = Internal.getZoneDim(zp)
-    dim_zone = dim[4]
+    dimZone = dim[4]
 
     # donor zone dimensions
     dimdonor = Internal.getZoneDim(zdonor)
@@ -427,9 +427,9 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
         print('Periodicity by rotation and translation cannot be applied at the same time.')
 
     PR = prange[0][1]; PRD = prangedonor[0][1]
-    borderinfoN = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'Vertex', dim_zone, nmratio=nmratio,
+    borderinfoN = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'Vertex', dimZone, nmratio=nmratio,
                                               corner=treatment)
-    borderinfoC = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'CellCenter', dim_zone, nmratio=nmratio,
+    borderinfoC = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'CellCenter', dimZone, nmratio=nmratio,
                                               corner=treatment)
     for name in modified:
         containers, containersD, locations = getContainers__(name, zp, zdonor)
@@ -441,10 +441,10 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
             else: borderinfo = borderinfoN
             if treatment == 0:
                 cont[1] = fillJoinBorderStruct__(PR, PRD, trirac, dim, dimdonor, cont, containersD[noc],
-                                                 d, loc, dim_zone, borderinfo, typegc)
+                                                 d, loc, dimZone, borderinfo, typegc)
             else:             
                 cont[1] = fillJoinCornerStruct__(PR, PRD, trirac, dim, dimdonor, cont, containersD[noc],
-                                                 d, loc, dim_zone, borderinfo, treatment, typegc)
+                                                 d, loc, dimZone, borderinfo, treatment, typegc)
             noc += 1
     return None
 
@@ -454,30 +454,30 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
 # Return new field - for structured zones only
 #==============================================================================
 def fillJoinBorderStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
-                           fdonor, d, loc, dim_zone, borderinfo, typegc):
+                           fdonor, d, loc, dimZone, borderinfo, typegc):
     # copy of recv field (this field has already ghostcells)
     a = frecv[1]; f = fdonor[1]
     [arrayborder,dim1,dim2,listdonor,direction,dirdonor,incrrecv,incrdonor,im,imdonor,shiftDir1,shiftDir2,isFine]=borderinfo    
     # fill ghost values (except corner values) for join
     if typegc == 0:
         Converter.converter.fillJoin(a, f, arrayborder, listdonor, loc, dim1, dim2, direction, dirdonor,
-                                     incrrecv, incrdonor, dim_zone, d, im, imdonor)
+                                     incrrecv, incrdonor, dimZone, d, im, imdonor)
     else:
         if loc != 'CellCenter':
             Converter.converter.fillJoinNMNodes(a, f, arrayborder, listdonor, dim1, dim2, direction, dirdonor,
-                                                incrrecv, incrdonor, dim_zone, d, im, imdonor,
+                                                incrrecv, incrdonor, dimZone, d, im, imdonor,
                                                 shiftDir1, shiftDir2, isFine)
         else: 
             Converter.converter.fillJoinNMCenters(a, f, arrayborder, listdonor, 
                                                   dim1, dim2, direction, dirdonor,
-                                                  incrrecv, incrdonor, dim_zone, d, im, imdonor,
+                                                  incrrecv, incrdonor, dimZone, d, im, imdonor,
                                                   shiftDir1, shiftDir2, isFine)
     return a
 #===============================================================================
 #
 #===============================================================================
 def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor, 
-                                d, loc, dim_zone, nmratio=[], corner=0):
+                                d, loc, dimZone, nmratio=[], corner=0):
     if corner == 0: dloc = 0
     else: dloc = d
     # recv zone dimension
@@ -485,21 +485,21 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
 
     # donor zone dimension
     imdonor = dimdonor[1]
-    if dim_zone != 1: jmdonor = dimdonor[2]
-    if dim_zone == 3: kmdonor = dimdonor[3]
+    if dimZone != 1: jmdonor = dimdonor[2]
+    if dimZone == 3: kmdonor = dimdonor[3]
     if loc == 'CellCenter':
         imdonor = imdonor-1
         im = im-1 ; jm = jm-1 ; km = km-1        
-        if dim_zone != 1: jmdonor = jmdonor-1
-        if dim_zone == 3: kmdonor = kmdonor-1        
+        if dimZone != 1: jmdonor = jmdonor-1
+        if dimZone == 3: kmdonor = kmdonor-1        
 
     # get directions of recv and donor borders
-    direction = getDirBorderStruct__(prange, dim_zone)
-    dirdonor = getDirBorderStruct__(prangedonor, dim_zone)
+    direction = getDirBorderStruct__(prange, dimZone)
+    dirdonor = getDirBorderStruct__(prangedonor, dimZone)
     # get list of border nodes and direction of border
-    if dim_zone != 1:
-        [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prange,dim,direction,d,loc,dim_zone)
-        listdonor = getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,dloc,loc,dim_zone)
+    if dimZone != 1:
+        [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prange,dim,direction,d,loc,dimZone)
+        listdonor = getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,dloc,loc,dimZone)
 
     incrrecv = 1 ; incrdonor = 1
     absdirection = abs(direction)
@@ -530,16 +530,16 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
 
     if corner == 0: # for fillJoinBorder
         # liste des directions de la zone receveur
-        dir_rcv = [0]*dim_zone
+        dir_rcv = [0]*dimZone
         dir_rcv[absdirection-1] = 1
         # liste des directions de la zone donneuse
-        dir_donor = [0]*dim_zone
+        dir_donor = [0]*dimZone
         dir_donor[absdirdonor-1] = 1
 
-        if dim_zone == 3:
+        if dimZone == 3:
             incrrecv = increment__(dir_rcv[0],dir_rcv[1],dir_rcv[2],im,jm,km,d)
             incrdonor = increment__(dir_donor[0],dir_donor[1],dir_donor[2],imdonor,jmdonor,kmdonor,0)
-        elif dim_zone == 2:
+        elif dimZone == 2:
             incrrecv = increment__(dir_rcv[0],dir_rcv[1],im,jm,d)
             incrdonor = increment__(dir_donor[0],dir_donor[1],imdonor,jmdonor,0)
         
@@ -559,7 +559,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
         #    incrdonorI: index between two cells following the local axe I of the frontier
         #    incrdonorJ: index between two cells following the local axe J of the frontier
         
-        if dim_zone == 3:
+        if dimZone == 3:
             if absdirection == 1:
                 incrrecv = increment__(1,0,0,im,jm,km,d)
                 incrrecvI = increment__(0,1,0,im,jm,km,d)
@@ -591,7 +591,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
             absJ = abs(DonorJ); signJ = absJ//DonorJ
             incrdonorI = signI*(absI-2)*(absI-3)//2 -  signI*(absI-1)*(absI-3)*(imdonor+2*d) + signI*(absI-1)*(absI-2)//2*(imdonor+2*d)*(jmdonor+2*d)
             incrdonorJ = signJ*(absJ-2)*(absJ-3)//2 -  signJ*(absJ-1)*(absJ-3)*(imdonor+2*d) + signJ*(absJ-1)*(absJ-2)//2*(imdonor+2*d)*(jmdonor+2*d)
-        elif dim_zone == 2:
+        elif dimZone == 2:
             if abs(direction) == 1:
                 incrrecv = increment__(1,0,im,jm,d)
                 incrrecvI = increment__(0,1,im,jm,d)
@@ -620,7 +620,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
 #          2 corresponds to the second (and last) passage for unfilled ghost cells 
 #==============================================================================
 def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
-                           fdonor, d, loc, dim_zone, borderinfo, passage, typegc):
+                           fdonor, d, loc, dimZone, borderinfo, passage, typegc):
     # copy of recv field (this field has already ghostcells)
     a = frecv[1]
     f = fdonor[1]
@@ -631,7 +631,7 @@ def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
     if typegc == 0:
         Converter.converter.fillCornerGhostCells(a, f, arrayborder, listdonor, loc, dim1, dim2, incrrecvI, incrrecvJ,
                                                  incrdonorI, incrdonorJ, direction, dirdonor, incrrecv, incrdonor, 
-                                                 dim_zone, d, passage)
+                                                 dimZone, d, passage)
     else: # non implemented for nearmatch
         pass
     return a    
@@ -639,28 +639,28 @@ def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
 #==============================================================================
 # Return a list with donor indices for a matching join between structured zones
 #==============================================================================
-def getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,d,loc,dim_zone, shift=0):
+def getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,d,loc,dimZone, shift=0):
     im = dimdonor[1]
     jm = dimdonor[2]
     # trirac
     t1 = trirac[0]; t2 = trirac[1]; t3 = 0
-    if dim_zone == 3: km = dimdonor[3]; t3 = trirac[2]
+    if dimZone == 3: km = dimdonor[3]; t3 = trirac[2]
     if loc == 'CellCenter':
         im = im-1 ; jm = jm-1
-        if (dim_zone == 3): km = km-1
+        if dimZone == 3: km = km-1
 
     # Donor border window dimension
     [wimin,wimax,wjmin,wjmax,wkmin,wkmax] = Internal.range2Window(prangedonor)
     if loc == 'CellCenter':
         wimax = wimax-1
         wjmax = wjmax-1
-        if dim_zone == 3: wkmax = wkmax-1
+        if dimZone == 3: wkmax = wkmax-1
     # direction of recv border
-    direction = getDirBorderStruct__(prange,dim_zone)
-    dirdonor = getDirBorderStruct__(prangedonor,dim_zone)
+    direction = getDirBorderStruct__(prange,dimZone)
+    dirdonor = getDirBorderStruct__(prangedonor,dimZone)
     # get list of border nodes and direction of border
-    [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prangedonor,dimdonor,dirdonor,d,loc,dim_zone, shift)
-    if dim_zone == 3:
+    [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prangedonor,dimdonor,dirdonor,d,loc,dimZone, shift)
+    if dimZone == 3:
         dim1 = 3
         array = numpy.zeros((dim1,2), numpy.int32, order='F')
         array[0,1] = wimax-wimin+1
@@ -674,12 +674,12 @@ def getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,d,lo
     # reorder indices of opposite (donor) matching join wrt the trirac
     #dimb1 = arrayborder.shape[0]
     dimb1 = dim1border
-    return Converter.converter.getJoinDonorIndices(array,arrayborder,t1,t2,t3,direction,dim_zone,dim1,dimb1)
+    return Converter.converter.getJoinDonorIndices(array,arrayborder,t1,t2,t3,direction,dimZone,dim1,dimb1)
 
 #==============================================================================
 # Return an array with adjacent nodes/cells indices of a border
 #==============================================================================
-def getBorderIndicesStruct__(prange, dim, direction, d, loc, dim_zone, shift=0):
+def getBorderIndicesStruct__(prange, dim, direction, d, loc, dimZone, shift=0):
     # dimensions of zone
     im = dim[1] ; jm = dim[2] ; km = dim[3]
     if loc == 'CellCenter':
@@ -689,8 +689,8 @@ def getBorderIndicesStruct__(prange, dim, direction, d, loc, dim_zone, shift=0):
     [wimin,wimax,wjmin,wjmax,wkmin,wkmax] = Internal.range2Window(prange)
     if loc == 'CellCenter':
         wimax = wimax-1
-        if dim_zone != 1: wjmax = wjmax-1
-        if dim_zone == 3: wkmax = wkmax-1
+        if dimZone != 1: wjmax = wjmax-1
+        if dimZone == 3: wkmax = wkmax-1
 
     dim1 = wjmax-wjmin+1
     dim2 = wkmax-wkmin+1
@@ -701,18 +701,18 @@ def getBorderIndicesStruct__(prange, dim, direction, d, loc, dim_zone, shift=0):
         dim2 = wjmax-wjmin+1
 
     # 3D Treatment
-    if dim_zone == 3:
+    if dimZone == 3:
         #arrayIndices = numpy.empty((dim1,dim2), numpy.int32, order='F')
         arrayIndices = numpy.empty((dim1*dim2), numpy.int32, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
-                                                 direction, dim_zone, d, shift)
+                                                 direction, dimZone, d, shift)
     # 2D Treatment
     else:
         arrayIndices = numpy.empty((dim1), numpy.int32, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
-                                                 direction, dim_zone, d, shift)
+                                                 direction, dimZone, d, shift)
     return [ arrayIndices, dim1, dim2 ]
 
 #==============================================================================
@@ -907,7 +907,7 @@ def getContainers__(name, z, zdonor=None):
 # init all ghost cells for zone z with extrapolation of zeroth order.
 #-----------------------------------------------------------------------------
 def _initWithExtrapStruct__(z, dim, modified, d):
-    dim_zone = dim[4]
+    dimZone = dim[4]
     imz = dim[1]; jmz = dim[2]; kmz = dim[3]
 
     for name in modified:
@@ -920,10 +920,10 @@ def _initWithExtrapStruct__(z, dim, modified, d):
             else: im = imz; jm = jmz; km = kmz
             img = im+2*d ; jmg = jm+2*d ; kmg = km+2*d
             # copy real values and fill ghost values
-            if dim_zone == 3:
+            if dimZone == 3:
                 a = numpy.empty((img,jmg,kmg), b.dtype, order='F')
                 Converter.converter.cpyReal2Ghost(a, b, d, im, jm, km)
-            elif dim_zone == 2:
+            elif dimZone == 2:
                 a = numpy.empty((img,jmg), b.dtype, order='F')
                 Converter.converter.cpyReal2Ghost(a, b, d, im, jm, 0)
             else:
@@ -938,7 +938,7 @@ def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
     if dim[0] == 'Unstructured': 
         print('addGhostCells: _setBCDataInGhostCellsStruct__: not valid for unstructured zones.')
         return None
-    dim_zone = dim[4]
+    dimZone = dim[4]
     imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
     for name in modified:
         containers = Internal.getBCDataSetContainers(name, z) 
@@ -963,7 +963,7 @@ def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
 # Remove ghost cells in numpy arrays for zone z
 #-----------------------------------------------------------------------------
 def _rmGhostCellsStruct__(z, dim, modified, d):
-    dim_zone = dim[4]
+    dimZone = dim[4]
     imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
 
     for name in modified:
@@ -977,10 +977,10 @@ def _rmGhostCellsStruct__(z, dim, modified, d):
             else: img = imz; jmg = jmz; kmg = kmz
             im = img-2*d ; jm = jmg-2*d ; km = kmg-2*d
 
-            if dim_zone == 3:
+            if dimZone == 3:
                 a = numpy.empty((im,jm,km), b.dtype, order='F')
                 Converter.converter.cpyGhost2Real(a,b,d,im,jm,km)
-            elif dim_zone == 2:
+            elif dimZone == 2:
                 a = numpy.empty((im,jm), b.dtype, order='F')
                 Converter.converter.cpyGhost2Real(a,b,d,im,jm,0)
             else:
@@ -1012,7 +1012,7 @@ def _rmRindCells0(t):
     
     for zp in Internal.getZones(t):
         dim = Internal.getZoneDim(zp)
-        dim_zone = dim[4]
+        dimZone = dim[4]
         if dim[0] == 'Structured':
             imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
             rindnode = Internal.getNodeFromType(zp,'Rind_t')
@@ -1033,7 +1033,7 @@ def _rmRindCells(t, d=-1, modified=[]):
     nodes = Internal.getZones(t)
     for zp in nodes:
         dim = Internal.getZoneDim(zp)
-        dim_zone = dim[4]
+        dimZone = dim[4]
         if dim[0] == 'Structured':
             imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
             for name in modified:  # recherche les containers
@@ -1047,10 +1047,10 @@ def _rmRindCells(t, d=-1, modified=[]):
                     else: # output sera un champ en noeuds
                         im = imz; jm = jmz; km = kmz
 
-                    if dim_zone == 3:
+                    if dimZone == 3:
                         a = numpy.empty((im,jm,km), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,jm,km)
-                    elif dim_zone == 2:
+                    elif dimZone == 2:
                         a = numpy.empty((im,jm), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,jm,0)
                     else:
@@ -1075,10 +1075,10 @@ def _fillGhostCellCorners__(bp, modified, d, validjoins, dictjoins, loop=2):
     for j in validjoins:
         zp = dictjoins[indexjoin][0]          # zrcv: current zone
         dim = Internal.getZoneDim(zp)
-        dim_zone = dim[4]
+        dimZone = dim[4]
         joininfo = dictjoins[indexjoin][1]
         if dim[0] == 'Structured':
-            if (loop == 2) or (loop==3 and dim_zone==3): 
+            if (loop == 2) or (loop==3 and dimZone==3): 
                 zdonorname = joininfo[0][0]
                 zdonor = Internal.getNodesFromName2(bp, zdonorname)        
                 # Check if donor exists.
@@ -1101,12 +1101,12 @@ def _fillGhostCellCorners__(bp, modified, d, validjoins, dictjoins, loop=2):
 #-----------------------------------------------------------------------------
 def _fillGhostCellsForStructBCMatch__(zp, d, dimZone, modified, nodesRef,
                                       validjoins, dictjoins, indexjoin):
-    dim_zone = dimZone[4]
+    dimZone = dimZone[4]
     # BCMatch
     joinlist = Internal.getNodesFromType2(zp, 'GridConnectivity1to1_t')
     joindirs = []
     for i in joinlist:
-        joininfo = getJoinInfo__(i, 'BCMatch', dim_zone, nodesRef, d)
+        joininfo = getJoinInfo__(i, 'BCMatch', dimZone, nodesRef, d)
         if joininfo != []:
             # store valid joins (and its parent base) for second loop treatment
             validjoins.append(i)
@@ -1115,7 +1115,7 @@ def _fillGhostCellsForStructBCMatch__(zp, d, dimZone, modified, nodesRef,
             dictjoins[indexjoin]=(zp,joininfo)
             indexjoin += 1
 
-    if dim_zone == 1: return validjoins, dictjoins, indexjoin 
+    if dimZone == 1: return validjoins, dictjoins, indexjoin 
 
     # BCNearMatch
     joinlist = Internal.getNodesFromType2(zp, 'GridConnectivity_t')
@@ -1125,7 +1125,7 @@ def _fillGhostCellsForStructBCMatch__(zp, d, dimZone, modified, nodesRef,
         if typegc is not None:
             val = Internal.getValue(typegc)
             if val == 'Abutting':
-                joininfo = getJoinInfo__(i, 'BCNearMatch', dim_zone, nodesRef, d)
+                joininfo = getJoinInfo__(i, 'BCNearMatch', dimZone, nodesRef, d)
                 if joininfo != []:
                     # store valid joins (and its parent base) for second loop treatment
                     validjoins.append(i)
@@ -1260,7 +1260,7 @@ def updateZoneDim__(z,d):
 # rotationData = [] if no periodicity by rotation
 # rotationData = [xc,yc,zc, axisX, axisY, axisZ, angle] if rotation-per 
 #=============================================================================
-def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
+def getJoinInfo__(join, jointype, dimZone, nodesRef, d):
     prange = Internal.getNodesFromName1(join, 'PointRange')
     nmr = []; translVect = []; rotationData = []
     if jointype == 'BCMatch':
@@ -1292,27 +1292,27 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
     if dimdonor[0] != 'Unstructured':
         # get trirac
         # -----------------------
-        if dim_zone == 3: trirac = [1,2,3]
-        elif dim_zone == 2: trirac = [1,2]                
+        if dimZone == 3: trirac = [1,2,3]
+        elif dimZone == 2: trirac = [1,2]                
         else: trirac = [1]
         if transfo != []:
             trirac[0] = transfo[0][1][0]
-            if dim_zone != 1: trirac[1] = transfo[0][1][1]
-            if dim_zone == 3: trirac[2] = transfo[0][1][2]
+            if dimZone != 1: trirac[1] = transfo[0][1][1]
+            if dimZone == 3: trirac[2] = transfo[0][1][2]
         # get direction of donor border
-        dirdonor = getDirBorderStruct__(prangedonor[0][1], dim_zone)
+        dirdonor = getDirBorderStruct__(prangedonor[0][1], dimZone)
         # check donor zone dimension
         # check if dimensions of donor border match with dimension of current zone
         check = True
         [wimin,wimax,wjmin,wjmax,wkmin,wkmax] = Internal.range2Window(prange[0][1])        
         [wimindonor,wimaxdonor,wjmindonor,wjmaxdonor,wkmindonor,wkmaxdonor]=Internal.range2Window(prangedonor[0][1])
-        if dim_zone == 3:
+        if dimZone == 3:
             delta = [wimax-wimin,wjmax-wjmin,wkmax-wkmin]
             deltadonor = [wimaxdonor-wimindonor,wjmaxdonor-wjmindonor,wkmaxdonor-wkmindonor]
             if jointype == 'BCMatch':
                 if ((delta[1] != deltadonor[abs(trirac[1])-1]) or (delta[2] != deltadonor[abs(trirac[2])-1])): 
                     check = False
-        elif dim_zone == 2:
+        elif dimZone == 2:
             delta = [wimax-wimin,wjmax-wjmin]
             deltadonor = [wimaxdonor-wimindonor,wjmaxdonor-wjmindonor]
             if jointype == 'BCMatch':
@@ -1326,9 +1326,9 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
         if check:
             # check if donor zone is deep enough for "d" ghost cells
             imdonor = dimdonor[1]
-            if dim_zone != 1: jmdonor = dimdonor[2]
+            if dimZone != 1: jmdonor = dimdonor[2]
             else: jmdonor = 0 ### useless value for 1d: test is also on dirborder.
-            if dim_zone == 3: kmdonor = dimdonor[3]
+            if dimZone == 3: kmdonor = dimdonor[3]
             else: kmdonor = 0 ### useless value for 2d: test is also on dirborder.
             if (((abs(dirdonor) == 1) and (imdonor < d+1)) or 
                 ((abs(dirdonor) == 2) and (abs(jmdonor) < d+1)) or 

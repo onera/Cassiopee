@@ -49,8 +49,6 @@ if [ "$MACHINE" != "" ]; then
     export MAC=$MACHINE
 fi
 
-echo $MACHINE
-
 # ----------------------------- Common ----------------------------------------
 
 if [ "$MAC" = "ld" ]; then
@@ -442,7 +440,7 @@ elif [ "$MAC" = "spiro_sky" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
-    echo $PYTHONPATHL
+
 elif [ "$MAC" = "spiro_cas" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_cas_r8
@@ -465,7 +463,7 @@ elif [ "$MAC" = "spiro_cas" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
-    echo $PYTHONPATHL
+
 elif [ "$MAC" = "spiro_amdRM" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_amdrm_r8
@@ -489,7 +487,7 @@ elif [ "$MAC" = "spiro_amdRM" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
-    echo $PYTHONPATHL
+
 elif [ "$MAC" = "spiro_amdNP" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_amdnp_r8
@@ -513,7 +511,7 @@ elif [ "$MAC" = "spiro_amdNP" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
-    echo $PYTHONPATHL
+
 elif [ "$MAC" = "spiro_socle" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_r8
@@ -635,7 +633,6 @@ elif [ "$MAC" = "sator" ]; then
 elif [ "$MAC" = "sator_sky" ]; then
 #----------------------------- sator skylake ---------------------------------------
     export ELSAPROD=sat_sky_r8
-    echo "ELSAPROD=" $ELSAPROD
     # Nbre de threads
     export OMP_NUM_THREADS=28
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"

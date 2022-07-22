@@ -2134,9 +2134,8 @@ def _renameVars(a, varsPrev, varsNew):
                         for j in fn[2]:
                             if j[0]==splP[1]: j[0] = splN[1]
 
-#%CBAR
 # Statistique de cellN=1 par rapport au nombre total de pt des zones
-def check_occupancy_cellN(lower_limit,t):
+def checkOccupancyCellN(lowerLimit, t):
     """Check cellN occupancy"""
     import Converter.Mpi as Cmpi
     total_cells        = 0
@@ -2149,8 +2148,8 @@ def check_occupancy_cellN(lower_limit,t):
 
     for z in Internal.getZones(t):
         cells_zone = 0
-        sol        = Internal.getNodeFromName(z,'FlowSolution#Centers')
-        celN       = Internal.getNodeFromName(sol,'cellN')[1]
+        sol        = Internal.getNodeFromName(z, 'FlowSolution#Centers')
+        celN       = Internal.getNodeFromName(sol, 'cellN')[1]
 
         total_cell_zone= C.getNCells(z)
         cells_zone_0   = numpy.count_nonzero(celN==0)
@@ -2164,7 +2163,7 @@ def check_occupancy_cellN(lower_limit,t):
 
         list_zones.append(z[0])
         list_occupancy.append(occupancy_rate)
-        if occupancy_rate<lower_limit:list_zones_below.append(z[0])
+        if occupancy_rate < lowerLimit: list_zones_below.append(z[0])
         
     with open('CellN_occupancy_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
         for i in range(len(list_zones)):
@@ -2187,26 +2186,24 @@ def check_occupancy_cellN(lower_limit,t):
 
     return None
 
-#%CBAR
-def printMinMaxAndErrors(t,list_vars=[]):
+def printMinMaxAndErrors(t, listVars=[]):
     """Check min/max of given fields"""
     errors = Internal.checkPyTree(t)
     print("Printing Errors")
     print(errors)
     
-    if list_vars:
-    	for z in Internal.getZones(t):
-    	    print("______________________")
-    	    #check max & min values
-    	    for i in list_vars:print('Zone=',z[0],'|',i,':',C.getMinValue(z, i)  ,C.getMaxValue(z, i))
-    	print("______________________")
-    	#check max & min values
-    	for i in list_vars:print('Tree|',i,':',C.getMinValue(t, i)  ,C.getMaxValue(t, i))
+    if listVars == []:
+        for z in Internal.getZones(t):
+            print("______________________")
+            #check max & min values of each zone
+            for i in listVars: print('Zone=',z[0],'|',i,':', C.getMinValue(z, i), C.getMaxValue(z, i))
+        print("______________________")
+        #check max & min values
+        for i in listVars: print('Tree|',i,':', C.getMinValue(t, i), C.getMaxValue(t, i))
     else:
-        print("WARNING::List of variables to print min & max values is EMPTY")
+        print("Warning: printMinMaxAndErrors: List of variables to print min & max values is EMPTY.")
     return None
 
-#%CBAR
 # Ecrit la taille des zones de t
 def printSizeZones(t, withGhost=False, isNCells=False, printFinal=False):
     """Print zone stats - Ncells per zone & full Tree"""
@@ -2237,8 +2234,7 @@ def printSizeZones(t, withGhost=False, isNCells=False, printFinal=False):
             f.write(string2write)
     return None
 
-#%CBAR
-# voir si c'est redondant avec probe
+# probeLocations [CB:RR] - redondant peut-etre avec probe
 def probeLocations(tprobe, tcase):
     import Connector.PyTree as X
     import Converter.Mpi as Cmpi
@@ -2288,5 +2284,3 @@ def probeLocations(tprobe, tcase):
                           str(list_save_k[i])+ '\n'
             f.write(string2write)
     return None
-
-

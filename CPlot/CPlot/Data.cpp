@@ -155,6 +155,9 @@ Data::~Data()
   pthread_mutex_destroy(&ptrState->gpures_mutex);
   // delete all allocated data of ptrState
   delete [] ptrState->message;
+  delete [] ptrState->colormapR;
+  delete [] ptrState->colormapG;
+  delete [] ptrState->colormapB;
   delete ptrState;
   // delete billBoardStorage
   for (int i = 0; i < _nBillBoards; i++)
@@ -306,8 +309,11 @@ void Data::initState()
   ptrState->colormapG2 = 1.; 
   ptrState->colormapB2 = 1.;
   ptrState->colormapR3 = 0.5; 
-  ptrState->colormapG3 = 0.5; 
+  ptrState->colormapG3 = 0.5;
   ptrState->colormapB3 = 0.5;
+  ptrState->colormapR = NULL;
+  ptrState->colormapG = NULL;
+  ptrState->colormapB = NULL;
   ptrState->isoLight = 1;
   ptrState->niso = 25;
   ptrState->isoEdges = -0.5;
@@ -843,6 +849,15 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
     E_Int size = colors.getSize()/3;
 
     ptrState->colormapSize = size;
+
+    if (ptrState->colormapR != NULL) delete [] ptrState->colormapR;
+    if (ptrState->colormapG != NULL) delete [] ptrState->colormapG;
+    if (ptrState->colormapB != NULL) delete [] ptrState->colormapB;
+    
+    ptrState->colormapR = new double [size];
+    ptrState->colormapG = new double [size];
+    ptrState->colormapB = new double [size];
+
     double* r = ptrState->colormapR;
     double* g = ptrState->colormapG;
     double* b = ptrState->colormapB;

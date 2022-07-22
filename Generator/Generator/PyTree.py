@@ -1522,12 +1522,11 @@ def quad2Pyra(t, hratio = 1.):
      return C.convertArrays2ZoneNode('pyra', [Generator.quad2Pyra(a, hratio)])
 
 
-#%CBAR
-# a tester
 # IN: t: arbre deep copy de torig
 # IN: t: torig: maillage originale
 # IN: refine: direction (1,2,3)
 # IN: dim_local: dimension=2 ou 3 -> dim
+# refine__ [CB:AT]
 def refine__(t, torig, refine, dim):
     """Refine xyz"""
     list_of_types = ["BC_t","GridConnectivity_t"]
@@ -1579,10 +1578,9 @@ def refine__(t, torig, refine, dim):
             Internal.addChild(zgc,gc,pos=-1)
     return t
 
-#%CBAR
 def refineIndependently(t, refine=[1,1,1], dim=2):
     """Refine x,y, & z directions independently per refine=[] and conserve the BCs.
-     Usage : refineIndependently(t, refine=[], dim)"""
+     Usage: refineIndependently(t, refine=[], dim)"""
     import Converter.Mpi as Cmpi
     torig      = Cmpi.convert2SkeletonTree(t)
     list_nodes = ['GridCoordinates','ZoneBC']

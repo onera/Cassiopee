@@ -116,7 +116,7 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                                E_Int& built):
     InterpData()
 {
-    printf("Constructeur adt cyl\n"); fflush(stdout);
+    //printf("Constructeur adt cyl\n"); fflush(stdout);
 
     // keep data for cart2Cyl
     _cylCoord = true;
@@ -154,8 +154,7 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                     rt, thetat);
     //printf("ni=%d %d %d\n",*(E_Int*)a1,*(E_Int*)a2,*(E_Int*)a3);
     //for (E_Int i = 0; i < npts; i++) printf("%g %g %g\n", coordX[i], coordY[i], coordZ[i]);
-    //printf("axis = %g %g %g\n", axisX, axisY, axisZ);
-    //fflush(stdout);
+    //printf("BlkInterpAdt: axis = %g %g %g\n", axisX, axisY, axisZ); fflush(stdout);
 
     if (a1 != NULL && a2 != NULL && a3 != NULL) // structure
     {
@@ -1216,6 +1215,26 @@ short K_INTERP::InterpAdt::searchInterpolationCellStruct(
   if (_cylCoord) { cart2Cyl(x,y,z); xl = _xlc; yl = _ylc; zl = _zlc; }
   //printf("2. %g %g %g\n",x,y,z); fflush(stdout);
 
+  // Sortie DBX pour orphans
+  /*
+  if (_cylCoord)
+  {
+    FILE* ptrFile = fopen("mesh.dat", "w");
+    fprintf(ptrFile, "TITLE=toto\n");
+    fprintf(ptrFile, "ZONE NI=%d NJ=%d NK=%d\n", ni,nj,nk);
+    fprintf(ptrFile, "VARIABLES = x,y,z\n");
+    
+    //for (E_Int i = 0; i < ni*nj*nk; i++)
+    //{
+    //  fprintf(ptrFile, "%g %g %g\n", xl[i], yl[i], zl[i]);
+    //}
+    fclose(ptrFile);
+    exit(0);
+  }
+  */
+  // END DBX
+
+
   // recherche de la liste des cellules candidates
   list<E_Int> listOfCandidateCells; 
   E_Int found = getListOfCandidateCells(x, y, z, listOfCandidateCells);
@@ -1330,6 +1349,7 @@ short K_INTERP::InterpAdt::searchInterpolationCellStruct(
       }
     }
   }
+
   return 0;
 }
 

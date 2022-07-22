@@ -315,7 +315,7 @@ def extractSlices(teff, bladeName, psi, radius,
         if relativeShaft != 0.:
             b = T.rotate(b, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ'],['centers:Fx','centers:Fy','centers:Fz']]) 
 
-        # switch GridInit and GridCoordinates and save gridCoordinates in field
+        # switch GridInit and GridCoordinates and save GridCoordinates in field
         bp = Internal.copyRef(b)
         zones = Internal.getZones(bp)
         for z in zones:
