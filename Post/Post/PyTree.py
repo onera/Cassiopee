@@ -2188,33 +2188,28 @@ def check_occupancy_cellN(lower_limit,t):
     return None
 
 #%CBAR
-def printMinMaxAndErrors(t):
-    """Check min/max of all fields"""
+def printMinMaxAndErrors(t,list_vars=[]):
+    """Check min/max of given fields"""
     errors = Internal.checkPyTree(t)
     print("Printing Errors")
     print(errors)
     
-    max_proc=0
-    for z in Internal.getZones(t):
-        print("______________________")
-        #check max & min values
-        print('Zone=',z[0],'u vel ',C.getMaxValue(z, 'centers:VelocityX')  ,C.getMinValue(z, 'centers:VelocityX'))
-        print('Zone=',z[0],'v vel ',C.getMaxValue(z, 'centers:VelocityY')  ,C.getMinValue(z, 'centers:VelocityY'))
-        print('Zone=',z[0],'w vel ',C.getMaxValue(z, 'centers:VelocityZ')  ,C.getMinValue(z, 'centers:VelocityZ'))
-        print('Zone=',z[0],'Temp  ',C.getMaxValue(z, 'centers:Temperature'),C.getMinValue(z, 'centers:Temperature'))
-    print("______________________")
-    #check max & min values
-    print('Tree= u vel ',C.getMaxValue(t, 'centers:VelocityX')  ,C.getMinValue(t, 'centers:VelocityX'))
-    print('Tree= v vel ',C.getMaxValue(t, 'centers:VelocityY')  ,C.getMinValue(t, 'centers:VelocityY'))
-    print('Tree= w vel ',C.getMaxValue(t, 'centers:VelocityZ')  ,C.getMinValue(t, 'centers:VelocityZ'))
-    print('Tree= Temp  ',C.getMaxValue(t, 'centers:Temperature'),C.getMinValue(t, 'centers:Temperature'))
-    
+    if list_vars:
+    	for z in Internal.getZones(t):
+    	    print("______________________")
+    	    #check max & min values
+    	    for i in list_vars:print('Zone=',z[0],'|',i,':',C.getMinValue(z, i)  ,C.getMaxValue(z, i))
+    	print("______________________")
+    	#check max & min values
+    	for i in list_vars:print('Tree|',i,':',C.getMinValue(t, i)  ,C.getMaxValue(t, i))
+    else:
+        print("WARNING::List of variables to print min & max values is EMPTY")
     return None
 
 #%CBAR
 # Ecrit la taille des zones de t
 def printSizeZones(t, withGhost=False, isNCells=False, printFinal=False):
-    """Print zone stats"""
+    """Print zone stats - Ncells per zone & full Tree"""
     import Converter.Mpi as Cmpi
     list_save_zones  =[]
     list_save_ncells =[]
@@ -2293,3 +2288,5 @@ def probeLocations(tprobe, tcase):
                           str(list_save_k[i])+ '\n'
             f.write(string2write)
     return None
+
+

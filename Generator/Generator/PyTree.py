@@ -1566,8 +1566,8 @@ def refine__(t, torig, refine, dim):
         zorig  = Internal.getNodeByName(torig,zname)
         znodes = Internal.getNodesFromType(zorig, "GridConnectivity1to1_t")
         for gc in znodes:
-            gcarray_prange =gc[2][0][1]
-            gcarray_prangeD=gc[2][1][1]
+            gcarray_prange =gc[2][0][1] #PointRange
+            gcarray_prangeD=gc[2][1][1] #PointRangeDonor
             for j in range(0, dim):
                     for i in range(0,2):
                         ##Point Range
@@ -1581,8 +1581,14 @@ def refine__(t, torig, refine, dim):
 
 #%CBAR
 def refineIndependently(t, refine=[1,1,1], dim=2):
-    
-    torig = Internal.copyTree(t) # copy ref sufficient?
+    """Refine x,y, & z directions independently per refine=[] and conserve the BCs.
+     Usage : refineIndependently(t, refine=[], dim)"""
+    import Converter.Mpi as Cmpi
+    torig      = Cmpi.convert2SkeletonTree(t)
+    list_nodes = ['GridCoordinates','ZoneBC']
+    for i in list_nodes:
+        Internal._rmNodesByName(torig,i)
+
     for i in range(0, dim):
         if refine[i]>1: _refine(t, refine[i], i+1)
 
