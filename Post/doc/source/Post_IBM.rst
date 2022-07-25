@@ -21,21 +21,21 @@ List of functions
 
     .. Post.IBM.computeSkinVariables
     .. Post.IBM.prepareSkinReconstruction
-    Post.IBM.extractIBMInfo
     Post.IBM.extractIBMWallFields
+    Post.IBM.extractIBMInfo
     Post.IBM.extractShearStress
     Post.IBM.computeExtraVariables
-    Post.IBM.loads
-    Post.IBM.extractConvectiveTerms
+    .. Post.IBM.loads
     Post.IBM.extractPressureHO
     Post.IBM.extractPressureHO2
+    Post.IBM.extractConvectiveTerms
     .. Post.IBM.prepareSkinReconstruction
     .. Post.IBM.unsteadyLoads
 
 
 Contents
 ########
----------------------------------------
+
 .. py:function:: Post.IBM.extractIBMInfo(tc,filename='IBMInfo.cgns')
 
     Extracts the geometrical information required for the IBM (i.e. wall points, target points, and image points).
@@ -51,6 +51,7 @@ Contents
     .. literalinclude:: ../build/Examples/Post/extractIBMInfoPT.py
 
 ---------------------------------------
+
 .. py:function:: Post.IBM.extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc='nodes')
 
     Project the solution at IBM wall points onto the vertices of the surface.
@@ -70,14 +71,15 @@ Contents
 
     *Example of use:*
 
-    * `Extract the IBM geometrical information (pyTree) <Examples/Post/extractIBMWallFieldsPT.py>`_:
+    * `Project the solution at IBM wall points onto the vertices of the surface (pyTree) <Examples/Post/extractIBMWallFieldsPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Post/extractIBMWallFieldsPT.py
+    .. .. literalinclude:: ../build/Examples/Post/extractIBMWallFieldsPT.py
 
 ---------------------------------------
+
 .. py:function:: Post.IBM.extractShearStress(tb)
 
-     Computes the shear stress using utau values at vertices of the surface mesh
+    Computes the shear stress using utau values at vertices of the surface mesh
 
     :param tb: surface mesh (TRI-type) with density, velocity, utau variable
     :type tb: [zone, list of zones, base, tree]
@@ -85,14 +87,15 @@ Contents
 
     *Example of use:*
 
-    * `Extract the IBM geometrical information (pyTree) <Examples/Post/computeShearStressPT.py>`_:
+    * `Computes the shear stress using utau values at vertices of the surface mesh (pyTree) <Examples/Post/computeShearStressPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/computeShearStressPT.py
 
 ---------------------------------------
+
 .. py:function:: Post.IBM.computeExtraVariables(tb, PInf, QInf, variables=['Cp','Cf','frictionX','frictionY','frictionZ', 'frictionMagnitude','ShearStress'])
 
-    Computes variables using variables density, pressure, utau, velocity at vertices of tb
+    Computes variables using variables density, pressure, utau, and velocity at vertices of tb.
     Solution is located at cell centers.
 
     :param tb: surface mesh (TRI-type) with density, velocity, utau variable
@@ -107,13 +110,13 @@ Contents
 
     *Example of use:*
 
-    * `Extract the IBM geometrical information (pyTree) <Examples/Post/computeExtraVariablesIBMPT.py>`_:
+    * `Computes variables using variables density, pressure, utau, and velocity at vertices of tb (pyTree) <Examples/Post/computeExtraVariablesIBMPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/computeExtraVariablesIBMPT.py
 
----------------------------------------
+.. ---------------------------------------
 
-.. py:function:: Post.IBM.loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[])
+.. .. py:function:: Post.IBM.loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[])
 
     Computes the viscous and pressure forces on the IB. If tc_in=None, t_case must also contain the projection of the flow field solution onto the IB.
 
@@ -195,8 +198,6 @@ Contents
     .. literalinclude:: ../build/Examples/Post/extractPressureHO2PT.py
 
 
-
-
 ---------------------------------------
 
 .. .. py:function:: Post.IBM.unsteadyloads(tb, Sref=None, alpha=0., beta=0.)
@@ -220,9 +221,9 @@ Contents
     .. literalinclude:: ../build/Examples/Post/unsteadyloadsPT.py
 
 
----------------------------------------
+.. ---------------------------------------
 
-.. py:function:: Post.IBM.extractMassFlowThroughSurface(tb, t, famZones=[])
+.. .. py:function:: Post.IBM.extractMassFlowThroughSurface(tb, t, famZones=[])
 
     Returns massflow through a surface defined by tb and returns tb. If famZones is a list of families, then only the
     zones of tb where the

@@ -22,7 +22,7 @@ import numpy
 from . import IBM_OLDIES
 #====================================================================================
 
-def _add_gradxi_P(z):
+def _addGradxiP__(z):
     subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
     for zsr in subRegions:
         nameSubRegion = zsr[0]
@@ -49,6 +49,8 @@ def _add_gradxi_P(z):
 #solution is projected at nodes or cell centers
 #=============================================================================
 def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc='nodes'):
+    """Extract the value of the flow field at the IBM target points onto the surface.
+    Usage: extractIBMWallFields(tc, tb, coordRef, famZones, front, loc)"""
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
     xcNP = []; ycNP = []; zcNP = []
@@ -321,7 +323,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc
 
 # Extract location of IBM points in a file for check
 def extractIBMInfo(tc_in, filename_out='IBMInfo.cgns'):
-    """Extracts the geometrical information required for the IBM (i.e. wall points, target points, and image points).
+    """Extracts the geometrical information required for the IBM (i e  wall points, target points, and image points).
     Usage: extractIBMInfo (tc_in, filename_out)"""
     if isinstance(tc_in, str): tc = Cmpi.convertFile2PyTree(tc_in)
     else: tc = tc_in
@@ -336,10 +338,14 @@ def extractIBMInfo(tc_in, filename_out='IBMInfo.cgns'):
 # computes the shear stress using utau
 #-------------------------------------------------
 def extractShearStress(ts):
+    """Compute the shear stress on the IB surface.
+    Usage: extractShearStress (ts)""" 
     ts2 = Internal.copyRef(ts)
     return _extractShearStress(ts2)
 
-def _extractShearStress(ts): 
+def _extractShearStress(ts):
+    """Compute the shear stress on the IB surface.
+    Usage: extractShearStress (ts)""" 
     if Internal.getNodeFromName(ts, Internal.__FlowSolutionCenters__) is None:
         ts = C.node2Center(ts, Internal.__FlowSolutionNodes__)
 
@@ -375,11 +381,15 @@ def _extractShearStress(ts):
 #-------------------------------------------------
 def computeExtraVariables(ts, PInf, QInf, 
                           variables=['Cp','Cf','frictionX','frictionY','frictionZ', 'frictionMagnitude','ShearStress']):
+    """Computes additional variables required for IBM post-processing..
+    Usage: computeExtraVariables (ts,PInf,Qinf,variables)""" 
     ts2 = Internal.copyRef(ts)
     return _computeExtraVariables(ts2, PInf, QInf,variables=variables)
                           
 def _computeExtraVariables(ts, PInf, QInf, 
                            variables=['Cp','Cf','frictionX','frictionY','frictionZ', 'frictionMagnitude','ShearStress']):
+    """Computes additional variables required for IBM post-processing..
+    Usage: computeExtraVariables (ts,PInf,Qinf,variables)""" 
     import Post.ExtraVariables2 as PE
 
     #-------------------------
@@ -464,15 +474,15 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
        clf = res2[1]*calpha - res2[0]*salpha
 
     if verbose and Cmpi.rank==0:
-        print("Normalized pressure drag = %.2f and lift = %.2f"%(cdp, clp))
-        print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(%.2f, %.2f, %.2f)"%(res[0],res[1],res[2]))
+        print("Normalized pressure drag = %.4e and lift = %.4e"%(cdp, clp))
+        print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(%.4e, %.4e, %.4e)"%(res[0],res[1],res[2]))
 
-        print("Normalized skin friction drag = %.2f and lift = %.2f"%(cdf, clf))
-        print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(%.2f,%.2f,%.2f)"%(res2[0], res2[1], res2[2]))
+        print("Normalized skin friction drag = %.4e and lift = %.4e"%(cdf, clf))
+        print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(%.4e,%.4e,%.4e)"%(res2[0], res2[1], res2[2]))
 
         print("****************************************")
-        print("Total Drag : %2.f"%(cdp+cdf))
-        print("Total Lift : %2.f"%(clp+clf))
+        print("Total Drag : %.4e"%(cdp+cdf))
+        print("Total Lift : %.4e"%(clp+clf))
         print("****************************************")
 
     FSC = Internal.getNodesFromName(ts,Internal.__FlowSolutionCenters__)

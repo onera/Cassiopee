@@ -1756,7 +1756,7 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
         # add gradP fields in tc if necessary
         if tc is not None:
             for z in Internal.getZones(tc):
-                P_IBM._add_gradxi_P(z)
+                P_IBM._addGradxiP__(z)
 
             if tc2 is None:
                 if order < 2:
@@ -1768,7 +1768,7 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
         if tc2 is not None: 
             
             for z in Internal.getZones(tc2):
-                P_IBM._add_gradxi_P(z)
+                P_IBM._addGradxiP__(z)
                 
             if order < 2:
                 tc2 = P_IBM.extractPressureHO(tc2)
@@ -1821,6 +1821,10 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
     #==============================
     RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
     ts[2][1][2].append(RefState)
+
+    ts=C.node2Center(ts,'FlowSolution')
+    C._rmVars(ts, 'FlowSolution')
+    
     P_IBM._loads0(ts, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
 
     if dimPb == 2: # reextrait en 2D
