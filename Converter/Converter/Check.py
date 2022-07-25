@@ -436,6 +436,7 @@ def _correctDonors(t, ntype, zoneDonors):
 # IN: ntype: type du noeud de BC a verifier (BC_t,...)
 # Verifie que le range de la BC est contenu dans la grille
 # Verifie que les faces de la BC sont contenues dans la grille
+# Verifie que la fenetre n'est pas volumique
 # Corrige la shape des ranges si celle-ci est en C
 #==============================================================================
 def checkBCRanges(t, ntype):
@@ -459,11 +460,19 @@ def checkBCRanges(t, ntype):
                     # Check structure uniquement pour l'instant
                     error = 0
                     if win is not None:
+                        # Volumic window
+                        if win[0] != win[1] and win[2] != win[3] and win[4] != win[5]: error = 1
+                        # imin out of bounds
                         if win[0] < 0 or win[0] > dim[1]: error = 1
+                        # imax out of bounds
                         if win[1] < 0 or win[1] > dim[1]: error = 1
+                        # jmin out of bounds
                         if win[2] < 0 or win[2] > dim[2]: error = 1
+                        # jmax out of bounds
                         if win[3] < 0 or win[3] > dim[2]: error = 1
+                        # kmin out of bounds
                         if win[4] < 0 or win[4] > dim[3]: error = 1
+                        # kmax out of bounds
                         if win[5] < 0 or win[5] > dim[3]: error = 1
                     
                     if error == 1:
@@ -524,6 +533,7 @@ def checkDonorRanges(t, ntype):
                                 win = Internal.range2Window(r[1])
                             else: win = [0,0,0,0,0,0] # pas de check en NS
                             error = 0
+                            if win[0] != win[1] and win[2] != win[3] and win[4] != win[5]: error = 1
                             if win[0] < 0 or win[0] > dim[1]: error = 1
                             if win[1] < 0 or win[1] > dim[1]: error = 1
                             if win[2] < 0 or win[2] > dim[2]: error = 1
@@ -663,6 +673,7 @@ def checkOppositRanges(t, ntype):
                                 winopp = Internal.range2Window(ropp[1])
                             else: winopp = [-1,0,0,0,0,0]
                             error = 0
+                            if winopp[0] != winopp[1] and winopp[2] != winopp[3] and winopp[4] != winopp[5]: error = 1
                             if winopp[0] < 0 or winopp[0] > dim[1]: error = 1
                             if winopp[1] < 0 or winopp[1] > dim[1]: error = 1
                             if winopp[2] < 0 or winopp[2] > dim[2]: error = 1

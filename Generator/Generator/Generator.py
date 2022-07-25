@@ -478,19 +478,19 @@ def map1d(array, d):
     return generator.map(array, d)
 
 # map par lignes dans la direction dir
-def map1dpl(array, d, dir, h1, h2, isAvg,pnts):
+def map1dpl(array, d, dir, h1, h2, isAvg, pnts):
     try: import Transform as T; import Converter as C
     except:
         raise ImportError("map: requires Transform and Converter modules.")
 
     islocationdependent = False
-    if(h1 is not None and h2 is not None):
+    if h1 is not None and h2 is not None:
         islocationdependent = True
         import numpy
         import Geom as D
         import Converter.Internal as Internal
         import Geom.MapEdge as MapE
-        N=len(d[1][0])
+        N = len(d[1][0])
     
     if dir == 2: m = T.reorder(array, (2,1,3))
     elif dir == 3: m = T.reorder(array, (3,2,1))
@@ -511,7 +511,7 @@ def map1dpl(array, d, dir, h1, h2, isAvg,pnts):
                                                   (l[1][1][ni-1]-l[1][1][ni-2])**2+
                                                   (l[1][2][ni-1]-l[1][2][ni-2])**2)
                 length_local = D.getLength(l)                
-                d= MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
+                d = MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
 
                 if isAvg:
                     d_sum=d[1][0]
@@ -533,6 +533,7 @@ def map1dpl(array, d, dir, h1, h2, isAvg,pnts):
                 am = map1d(l, d)
                 ind = j*ndi+k*ndi2
                 a[1][:,ind:ndi+ind] = am[1][:,0:ndi]
+
     if dir == 2: a = T.reorder(a, (2,1,3))
     elif dir == 3: a = T.reorder(a, (3,2,1))
     return a
@@ -553,8 +554,9 @@ def d_local(m,j,k,ni,h1,h2,N):
                                       (l[1][2][ni-1]-l[1][2][ni-2])**2)
     length_local = D.getLength(l)                
     
-    d= MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
+    d = MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
     return d
+
 # map sur une surface
 def map2d(array, d):
     try: import Transform as T; import Converter as C

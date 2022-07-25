@@ -462,10 +462,6 @@ def runSingleUnitaryTest(no, module, test):
     #else: pythonExec = 'python'
     pythonExec = os.getenv('PYTHONEXE', 'python')
     nthreads = KCore.kcore.getOmpMaxThreads()
-    if nthreads>24:
-        print("Nthreads is greater than 24...setting to 24")
-        nthreads=24
-        os.environ["OMP_NUM_THREADS"] = "24" 
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
@@ -1145,8 +1141,18 @@ def setupGlobal():
     if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
         os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
     os.environ['VALIDLOCAL'] = CASSIOPEE+'/Apps/Modules/ValidData'
+    # Change to global ref
     CASSIOPEE = '/stck/benoit/Cassiopee'
+    # No update on global ref!
     WIDGETS['updateButton'].configure(state=TK.DISABLED)
+    # Change also to match the numthreads of global
+    try:
+        file = open('/stck/benoit/Cassiopee/Apps/Modules/ValidData/base.time')
+        d = file.read(); d = d.split('\n')
+        Threads.set(d[2])
+        setThreads()
+    except: pass
+
     buildTestList()
 
 def setupLocal():
@@ -1206,7 +1212,7 @@ tools.add_command(label='Tag selection', command=tagSelection)
 tools.add_command(label='Untag selection', command=untagSelection)
 
 try:
-    file = open(CASSIOPEE+'/Apps/Modules/ValidData/base.time')
+    file = open('/stck/benoit/Cassiopee/Apps/Modules/ValidData/base.time')
     d = file.read(); d = d.split('\n')
     d = ' ['+d[0]+'/'+d[1]+'/'+d[2]+' threads]'
 except: d = ''

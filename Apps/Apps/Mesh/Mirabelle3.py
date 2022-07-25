@@ -254,7 +254,7 @@ def _adaptDonorRanges(t):
 # B0: bloc a remailler
 # dir0: direction du remaillage sur B0 (1,2,3,4,5,6,-1,-2,-3,-4,-5,-6)
 #======================================================================
-def _propagate(t, graph, stack, treated, linelet,h1=None,h2=None,isAvg=False,nAvg=2):
+def _propagate(t, graph, stack, treated, linelet, h1=None, h2=None, isAvg=False, nAvg=2):
     # dir0 est la direction du traitement a appliquer
     # peut-etre : 1,2,3,4,5,6,-1,-2,-3,-4,-5,-6
     (B0, dir0) = stack.pop(0)
@@ -303,8 +303,7 @@ def _propagate(t, graph, stack, treated, linelet,h1=None,h2=None,isAvg=False,nAv
         stackIt(B0, dir0s, 3, graph, treated, stack)
         stackIt(B0, dir0s, 4, graph, treated, stack)
 
-
-    if len(stack) > 0: _propagate(t, graph, stack, treated, linelet,h1=h1,h2=h2,isAvg=isAvg,nAvg=nAvg)
+    if len(stack) > 0: _propagate(t, graph, stack, treated, linelet, h1=h1, h2=h2, isAvg=isAvg, nAvg=nAvg)
 
 # Construction de la distribution a remapper a partir de dir, h1, h2 et N
 # si h1,h2 < 0: conserve le h1,h2 original

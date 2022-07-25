@@ -356,7 +356,6 @@ def allgatherZones(zones):
     # Chaque processeur bcast ses zones vers les autres ranks
     zones = Internal.getZones(zones)
     lenZones = KCOMM.allgather(len(zones))
-    print('IN', lenZones)
     allZones = []
     for i in range(size):
         for cz in range(lenZones[i]):

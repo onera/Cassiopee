@@ -33,9 +33,9 @@ def computeVorticity(t):
 def computeVorticityMagnitude(t):
     t2 = Internal.copyRef(t)
     presvx = C.isNamePresent(t2, 'centers:VorticityX')
-    if presvx==-1: t2 = computeVorticity(t)
+    if presvx == -1: t2 = computeVorticity(t)
     t2 = C.magnitude(t2, ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ'])
-    if presvx==-1: t2 = C.rmVars(t2, ['centers:VorticityX','centers:VorticityY','centers:VorticityZ'])
+    if presvx == -1: t2 = C.rmVars(t2, ['centers:VorticityX','centers:VorticityY','centers:VorticityZ'])
     Internal._renameNode(t2, 'magnitudeVorticityXVorticityYVorticityZ', 'VorticityMagnitude')
     return t2
 
