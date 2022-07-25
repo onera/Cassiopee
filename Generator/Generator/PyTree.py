@@ -929,15 +929,16 @@ def modifyBC__(dir, ni0, nj0, nk0, z):
                 elif k1 != k2: z=C.rmNodes(z, parent[0])
     return z
 
-def map(z, d, dir=0):
+def map(z, d, dir=0, h1=None, h2=None,isAvg=False,nAvg=2):
     """Map a distribution d on a curve defined by zone z.
-    Usage: map(z, d)"""
+    Usage: map(z, d, h1, h2,isAvg,nAvg)"""
     dims = Internal.getZoneDim(z)
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     z = C.deleteFlowSolutions__(z)
     dist = C.getFields(Internal.__GridCoordinates__, d)[0]
-    z = C.TZGC(z, 'nodes', Generator.map, dist, dir)
+
+    z = C.TZGC(z, 'nodes', Generator.map, dist, dir, h1, h2, isAvg, nAvg)
     z = modifyBC__(dir, ni0, nj0, nk0, z)
     return z
 

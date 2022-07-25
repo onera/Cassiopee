@@ -463,13 +463,13 @@ def addPointInDistribution(array, ind):
     Usage: addPointInDistribution(array, ind)"""
     return generator.addPointInDistribution(array, ind)
 
-def map(array, d, dir=0):
+def map(array, d, dir=0, h1=None, h2=None, isAvg=False, nAvg=2):
     """Map a distribution on a curve or a surface.
-    Usage: map(array, d, dir)"""
+    Usage: map(array, d, dir, h1, h2, isAvg, nAvg)"""
     if len(d) == 5 and d[3] != 1 and d[4] == 1 and dir == 0:
         return map2d(array, d)
     elif len(d) == 5 and dir != 0:
-        return map1dpl(array, d, dir)
+        return map1dpl(array, d, dir, h1, h2, isAvg,nAvg)
     else: return map1d(array, d)
     
 # map sur une courbe
@@ -478,25 +478,83 @@ def map1d(array, d):
     return generator.map(array, d)
 
 # map par lignes dans la direction dir
-def map1dpl(array, d, dir):
+def map1dpl(array, d, dir, h1, h2, isAvg,pnts):
     try: import Transform as T; import Converter as C
     except:
         raise ImportError("map: requires Transform and Converter modules.")
+
+    islocationdependent = False
+    if(h1 is not None and h2 is not None):
+        islocationdependent = True
+        import numpy
+        import Geom as D
+        import Converter.Internal as Internal
+        import Geom.MapEdge as MapE
+        N=len(d[1][0])
+    
     if dir == 2: m = T.reorder(array, (2,1,3))
     elif dir == 3: m = T.reorder(array, (3,2,1))
     elif dir == 1: m = array
     ni = m[2]; nj = m[3]; nk = m[4]; ndi = d[2]; ndi2 = ndi*nj
     a = C.array('x,y,z', ndi, nj, nk)
-    for k in range(nk):
-        for j in range(nj):
-            l = T.subzone(m, (1,j+1,k+1), (ni,j+1,k+1))
-            am = map1d(l, d)
-            ind = j*ndi+k*ndi2
-            a[1][:,ind:ndi+ind] = am[1][:,0:ndi]
+
+    if islocationdependent:
+        for k in range(nk):
+            for j in range(nj):                
+                l = T.subzone(m, (1,j+1,k+1), (ni,j+1,k+1))
+                h1_local = h1
+                h2_local = h2                
+                if h1_local<0:h1_local=numpy.sqrt((l[1][0][0]   -l[1][0][1]   )**2+
+                                                  (l[1][1][0]   -l[1][1][1]   )**2+
+                                                  (l[1][2][0]   -l[1][2][1]   )**2)
+                if h2_local<0:h2_local=numpy.sqrt((l[1][0][ni-1]-l[1][0][ni-2])**2+
+                                                  (l[1][1][ni-1]-l[1][1][ni-2])**2+
+                                                  (l[1][2][ni-1]-l[1][2][ni-2])**2)
+                length_local = D.getLength(l)                
+                d= MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
+
+                if isAvg:
+                    d_sum=d[1][0]
+                    if j>pnts and j<nj-(pnts+1):
+                        for i in range(1,pnts+1):
+                            d_local_val = d_local(m,j-i,k,ni,h1,h2,N)
+                            d_sum      += d_local_val[1][0]
+                            d_local_val = d_local(m,j+i,k,ni,h1,h2,N)
+                            d_sum      += d_local_val[1][0]
+                        d[1][0]=d_sum/(2*pnts+1)
+
+                ind = j*ndi+k*ndi2
+                am = map1d(l, d)
+                a[1][:,ind:ndi+ind] = am[1][:,0:ndi]
+    else:
+        for k in range(nk):
+            for j in range(nj):
+                l = T.subzone(m, (1,j+1,k+1), (ni,j+1,k+1))
+                am = map1d(l, d)
+                ind = j*ndi+k*ndi2
+                a[1][:,ind:ndi+ind] = am[1][:,0:ndi]
     if dir == 2: a = T.reorder(a, (2,1,3))
     elif dir == 3: a = T.reorder(a, (3,2,1))
     return a
 
+def d_local(m,j,k,ni,h1,h2,N):
+    import Transform as T
+    import numpy
+    import Geom as D
+    import Geom.MapEdge as MapE
+    l = T.subzone(m, (1,j+1,k+1), (ni,j+1,k+1))
+    h1_local = h1
+    h2_local = h2                
+    if h1_local<0:h1_local=numpy.sqrt((l[1][0][0]   -l[1][0][1]   )**2+
+                                      (l[1][1][0]   -l[1][1][1]   )**2+
+                                      (l[1][2][0]   -l[1][2][1]   )**2)
+    if h2_local<0:h2_local=numpy.sqrt((l[1][0][ni-1]-l[1][0][ni-2])**2+
+                                      (l[1][1][ni-1]-l[1][1][ni-2])**2+
+                                      (l[1][2][ni-1]-l[1][2][ni-2])**2)
+    length_local = D.getLength(l)                
+    
+    d= MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
+    return d
 # map sur une surface
 def map2d(array, d):
     try: import Transform as T; import Converter as C

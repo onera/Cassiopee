@@ -254,8 +254,7 @@ def _adaptDonorRanges(t):
 # B0: bloc a remailler
 # dir0: direction du remaillage sur B0 (1,2,3,4,5,6,-1,-2,-3,-4,-5,-6)
 #======================================================================
-def _propagate(t, graph, stack, treated, linelet):
-
+def _propagate(t, graph, stack, treated, linelet,h1=None,h2=None,isAvg=False,nAvg=2):
     # dir0 est la direction du traitement a appliquer
     # peut-etre : 1,2,3,4,5,6,-1,-2,-3,-4,-5,-6
     (B0, dir0) = stack.pop(0)
@@ -272,7 +271,8 @@ def _propagate(t, graph, stack, treated, linelet):
     # traitement
     dir0s = getRac(dir0)
     print(">> Je traite %s (dir=%d, extDir=%d)\n"%(B0,dir0s,dir0))
-    zp = G.map(zB0, llt, dir=dir0s)
+
+    zp = G.map(zB0, llt, dir=dir0s,h1=h1,h2=h2,isAvg=isAvg,nAvg=nAvg)
     # zp a le meme nom, il faut reporter les matchs de zB0 full face sur zp
     _reportBCMatchs(zp, zB0, t, dir0s)
     # Adapte les donorRanges de ceux qui referencent zp
@@ -303,7 +303,8 @@ def _propagate(t, graph, stack, treated, linelet):
         stackIt(B0, dir0s, 3, graph, treated, stack)
         stackIt(B0, dir0s, 4, graph, treated, stack)
 
-    if len(stack) > 0: _propagate(t, graph, stack, treated, linelet)
+
+    if len(stack) > 0: _propagate(t, graph, stack, treated, linelet,h1=h1,h2=h2,isAvg=isAvg,nAvg=nAvg)
 
 # Construction de la distribution a remapper a partir de dir, h1, h2 et N
 # si h1,h2 < 0: conserve le h1,h2 original
@@ -334,7 +335,7 @@ def buildDistrib(t, block, dir, h1, h2, N):
     if h2 > 0: D.setH(l, ind2, h2)
     else: D.setH(l, ind2, h2s)
     l = D.enforceh(l, N=N)
-    C.convertPyTree2File(l, 'linelet.cgns')
+    #C.convertPyTree2File(l, 'linelet.cgns')
     # Converti en abscisse curviligne
     l = D.getCurvilinearAbscissa(l)
     C._initVars(l, '{CoordinateX}={s}')
