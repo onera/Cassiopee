@@ -1784,7 +1784,7 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
         zw = T.join(zw)
     else:
         zw = P_IBM.extractIBMWallFields(tc, tb=tb, famZones=famZones)
-
+    
     #====================================
     # Extract pressure info from tc2 to tc
     #====================================
@@ -1814,8 +1814,9 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
     zw = C.convertArray2Tetra(zw)
     zw = T.reorderAll(zw, 1)
 
-    ts = C.newPyTree(['SKIN']); ts[2][1][2]=zw[2][1][2]
-
+    ts = C.newPyTree(['SKIN']);
+    if famZones:ts[2][1][2]=zw
+    else:ts[2][1][2]=zw[2][1][2]
     #==============================
     # Reference state
     #==============================
