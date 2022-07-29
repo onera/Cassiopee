@@ -46,14 +46,15 @@ def _addGradxiP__(z):
 # if tb=None: return the cloud of points
 # else interpolate on tb
 # input famZones: family of subregions to extract as a list ['FAM1','FAM2,...]
-#solution is projected at nodes or cell centers
+#solution is projected at vertices only (currently)
 #=============================================================================
-def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc='nodes'):
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
     """Extract the value of the flow field at the IBM target points onto the surface.
     Usage: extractIBMWallFields(tc, tb, coordRef, famZones, front, loc)"""
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
     xcNP = []; ycNP = []; zcNP = []
+    xNP = []; yNP = []; zNP = []
     pressNP = []; utauNP = []; yplusNP = []; densNP = []
     vxNP = []; vyNP = []; vzNP = []
     KCurvNP = []
@@ -108,21 +109,22 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc
             else:
                 allIBCD = Internal.getNodesFromName(allZSR,"2_IBCD_*")
             for IBCD in allIBCD:
-                xPW = Internal.getNodeFromName1(IBCD,"CoordinateX_PW")[1]
-                yPW = Internal.getNodeFromName1(IBCD,"CoordinateY_PW")[1]
-                zPW = Internal.getNodeFromName1(IBCD,"CoordinateZ_PW")[1]
-                xwNP.append(xPW); ywNP.append(yPW); zwNP.append(zPW)
-
-                xPI = Internal.getNodeFromName1(IBCD,"CoordinateX_PI")[1]
-                yPI = Internal.getNodeFromName1(IBCD,"CoordinateY_PI")[1]
-                zPI = Internal.getNodeFromName1(IBCD,"CoordinateZ_PI")[1]
-                xiNP.append(xPI); yiNP.append(yPI); ziNP.append(zPI)
-
-                xPC = Internal.getNodeFromName1(IBCD,"CoordinateX_PC")[1]
-                yPC = Internal.getNodeFromName1(IBCD,"CoordinateY_PC")[1]
-                zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
-                xcNP.append(xPC); ycNP.append(yPC); zcNP.append(zPC)
-
+                if coordRef == 'cible':
+                    xPC = Internal.getNodeFromName1(IBCD,"CoordinateX_PC")[1]
+                    yPC = Internal.getNodeFromName1(IBCD,"CoordinateY_PC")[1]
+                    zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
+                    xNP.append(xPC); yNP.append(yPC); zNP.append(zPC)
+                elif coordRef=='image':
+                    xPI = Internal.getNodeFromName1(IBCD,"CoordinateX_PI")[1]
+                    yPI = Internal.getNodeFromName1(IBCD,"CoordinateY_PI")[1]
+                    zPI = Internal.getNodeFromName1(IBCD,"CoordinateZ_PI")[1]
+                    xNP.append(xPI); yNP.append(yPI); zNP.append(zPI)                 
+                else:
+                    xPW = Internal.getNodeFromName1(IBCD,"CoordinateX_PW")[1]
+                    yPW = Internal.getNodeFromName1(IBCD,"CoordinateY_PW")[1]
+                    zPW = Internal.getNodeFromName1(IBCD,"CoordinateZ_PW")[1]
+                    xNP.append(xPW); yNP.append(yPW); zNP.append(zPW)
+                    
                 PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
                 if PW is not None: pressNP.append(PW[1])
                 RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
@@ -173,39 +175,26 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc
         if conv1NP != []: conv1NP = numpy.concatenate(conv1NP)
         if conv2NP != []: conv2NP = numpy.concatenate(conv2NP)
 
-        xwNP = numpy.concatenate(xwNP)
-        ywNP = numpy.concatenate(ywNP)
-        zwNP = numpy.concatenate(zwNP)
+        xNP = numpy.concatenate(xNP)
+        yNP = numpy.concatenate(yNP)
+        zNP = numpy.concatenate(zNP)
 
-        xiNP = numpy.concatenate(xiNP)
-        yiNP = numpy.concatenate(yiNP)
-        ziNP = numpy.concatenate(ziNP)
+        #xiNP = numpy.concatenate(xiNP)
+        #yiNP = numpy.concatenate(yiNP)
+        #ziNP = numpy.concatenate(ziNP)
 
-        xcNP = numpy.concatenate(xcNP)
-        ycNP = numpy.concatenate(ycNP)
-        zcNP = numpy.concatenate(zcNP)
+        #xcNP = numpy.concatenate(xcNP)
+        #ycNP = numpy.concatenate(ycNP)
+        #zcNP = numpy.concatenate(zcNP)
 
     # Creation d une seule zone
     zsize = numpy.empty((1,3), numpy.int32, order='F')
-    zsize[0,0] = xwNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
+    zsize[0,0] = xNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
     z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
     gc = Internal.newGridCoordinates(parent=z)
-    if coordRef == 'cible':
-        coordx = ['CoordinateX',xcNP,[],'DataArray_t']
-        coordy = ['CoordinateY',ycNP,[],'DataArray_t']
-        coordz = ['CoordinateZ',zcNP,[],'DataArray_t']
-    elif coordRef == 'wall':
-        coordx = ['CoordinateX',xwNP,[],'DataArray_t']
-        coordy = ['CoordinateY',ywNP,[],'DataArray_t']
-        coordz = ['CoordinateZ',zwNP,[],'DataArray_t']
-    elif coordRef == 'image':
-        coordx = ['CoordinateX',xiNP,[],'DataArray_t']
-        coordy = ['CoordinateY',yiNP,[],'DataArray_t']
-        coordz = ['CoordinateZ',ziNP,[],'DataArray_t']
-    else:
-        coordx = ['CoordinateX',xwNP,[],'DataArray_t']
-        coordy = ['CoordinateY',ywNP,[],'DataArray_t']
-        coordz = ['CoordinateZ',zwNP,[],'DataArray_t']
+    coordx = ['CoordinateX',xNP,[],'DataArray_t']
+    coordy = ['CoordinateY',yNP,[],'DataArray_t']
+    coordz = ['CoordinateZ',zNP,[],'DataArray_t']
     gc[2] = [coordx,coordy,coordz]
     n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
     Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
@@ -214,19 +203,19 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc
                                    gridLocation='Vertex', parent=z)
     FSN[2].append([XOD.__PRESSURE__,pressNP, [],'DataArray_t'])
     FSN[2].append([XOD.__DENSITY__,densNP, [],'DataArray_t'])
-
-    FSN[2].append(["CoordinateX_PW",xwNP, [],'DataArray_t'])
+  
+    """FSN[2].append(["CoordinateX_PW",xwNP, [],'DataArray_t'])
     FSN[2].append(["CoordinateY_PW",ywNP, [],'DataArray_t'])
     FSN[2].append(["CoordinateZ_PW",zwNP, [],'DataArray_t'])
-
+    
     FSN[2].append(["CoordinateX_PI",xiNP, [],'DataArray_t'])
     FSN[2].append(["CoordinateY_PI",yiNP, [],'DataArray_t'])
     FSN[2].append(["CoordinateZ_PI",ziNP, [],'DataArray_t'])
 
     FSN[2].append(["CoordinateX_PC",xcNP, [],'DataArray_t'])
     FSN[2].append(["CoordinateY_PC",ycNP, [],'DataArray_t'])
-    FSN[2].append(["CoordinateZ_PC",zcNP, [],'DataArray_t'])
-
+    FSN[2].append(["CoordinateZ_PC",zcNP, [],'DataArray_t'])"""
+    
     utauPresent = 0; yplusPresent = 0
     if utauNP != []:
         utauPresent = 1
@@ -278,17 +267,17 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc
                     zones = C.convertArray2Tetra(zones)
                     zones = T.join(zones); zones = G.close(zones)
                     b[2] = [zones]
-        C._initVars(td,"CoordinateX_PW",0.)
-        C._initVars(td,"CoordinateY_PW",0.)
-        C._initVars(td,"CoordinateZ_PW",0.)
+        # C._initVars(td,"CoordinateX_PW",0.)
+        # C._initVars(td,"CoordinateY_PW",0.)
+        # C._initVars(td,"CoordinateZ_PW",0.)
 
-        C._initVars(td,"CoordinateX_PI",0.)
-        C._initVars(td,"CoordinateY_PI",0.)
-        C._initVars(td,"CoordinateZ_PI",0.)
+        # C._initVars(td,"CoordinateX_PI",0.)
+        # C._initVars(td,"CoordinateY_PI",0.)
+        # C._initVars(td,"CoordinateZ_PI",0.)
 
-        C._initVars(td,"CoordinateX_PC",0.)
-        C._initVars(td,"CoordinateY_PC",0.)
-        C._initVars(td,"CoordinateZ_PC",0.)
+        # C._initVars(td,"CoordinateX_PC",0.)
+        # C._initVars(td,"CoordinateY_PC",0.)
+        # C._initVars(td,"CoordinateZ_PC",0.)
 
         C._initVars(td,XOD.__PRESSURE__,0.)
         C._initVars(td,XOD.__DENSITY__,0.)
@@ -307,19 +296,10 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc
         if conv1Present==1:
             C._initVars(td,XOD.__CONV1__,0.)
             C._initVars(td,XOD.__CONV2__,0.)
-        print("projectCloudSolution for dim {}".format(dimPb))
-        if loc == 'nodes':
-            P._projectCloudSolution(z, td, dim=dimPb)
-        else:
-            tdc = C.node2Center(td)
-            P._projectCloudSolution(z, tdc, dim=dimPb)
-            FSC = Internal.getNodeFromName(tdc, Internal.__FlowSolutionNodes__)
-            FSC = Internal.getNodesFromType(FSC, 'DataArray_t')
-            for fs in FSC:
-                var = Internal.getName(fs)
-                C._cpVars(tdc,var, td, 'centers:'+var)
+        #print("projectCloudSolution for dim {}".format(dimPb))
+        
+        P._projectCloudSolution(z, td, dim=dimPb)                
         return td
-
 
 # Extract location of IBM points in a file for check
 def extractIBMInfo(tc_in, filename_out='IBMInfo.cgns'):
@@ -812,7 +792,7 @@ def _prepareSkinReconstruction(ts, tc):
                 FSN[2].append([XOD.__VELOCITYY__,vyNP[0], [],'DataArray_t'])
                 FSN[2].append([XOD.__VELOCITYZ__,vzNP[0], [],'DataArray_t'])
 
-            Cmpi._setProc(z,Cmpi.rank)            
+            Cmpi._setProc(z,Cmpi.rank)
             tl[2][1][2].append(z)
 
     tlBB=Cmpi.createBBoxTree(tl)
@@ -863,9 +843,11 @@ def _prepareSkinReconstruction(ts, tc):
     C._initVars(ts,XOD.__VELOCITYZ__,0.)
 
     RefStateNode = Internal.getNodeFromName(ts,'ReferenceState')
-    tl[2][1][2].append(RefStateNode)
+    if RefStateNode is not None:
+        tl[2][1][2].append(RefStateNode)
     FES =  Internal.getNodeFromName(ts,'FlowEquationSet')
-    tl[2][1][2].append(FES)
+    if FES is not None:
+        tl[2][1][2].append(FES)
     return tl, graphWPOST
 
 def _computeSkinVariables(ts, tc, tl, graphWPOST):

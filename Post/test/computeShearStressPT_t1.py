@@ -15,4 +15,4 @@ C._initVars(a,'{VelocityZ}={CoordinateX}*{CoordinateY}')
 C._initVars(a,'{Density}=1')
 
 P_IBM._extractShearStress(a)
-test.testA(a)
+test.testT(a)

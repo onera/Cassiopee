@@ -20,7 +20,7 @@ List of functions
 .. autosummary::
 
     .. Post.IBM.computeSkinVariables
-    .. Post.IBM.prepareSkinReconstruction
+    .. Post.IBM.prepareWallReconstruction
     Post.IBM.extractIBMWallFields
     Post.IBM.extractIBMInfo
     Post.IBM.extractShearStress
@@ -52,7 +52,7 @@ Contents
 
 ---------------------------------------
 
-.. py:function:: Post.IBM.extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1, loc='nodes')
+.. py:function:: Post.IBM.extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1)
 
     Project the solution at IBM wall points onto the vertices of the surface.
     If tb is None, returns the cloud of points, 
