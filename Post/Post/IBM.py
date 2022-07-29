@@ -46,7 +46,7 @@ def _addGradxiP__(z):
 # if tb=None: return the cloud of points
 # else interpolate on tb
 # input famZones: family of subregions to extract as a list ['FAM1','FAM2,...]
-#solution is projected at vertices only (currently)
+# solution is projected at vertices only (currently)
 #=============================================================================
 def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
     """Extract the value of the flow field at the IBM target points onto the surface.
@@ -96,8 +96,8 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
                 zones = dictOfZoneFamilies[famName]
                 if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
 
-            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[], loc=loc)
-            out+=Internal.getZones(zd)
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[])
+            out += Internal.getZones(zd)
         return out
 
     else:

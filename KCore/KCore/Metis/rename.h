@@ -260,6 +260,5 @@
 #define vnbrpoolReset                   K_METIS__vnbrpoolReset
 #define vnbrpoolGetNext                 K_METIS__vnbrpoolGetNext
 
+#define errexit                         K_METIS__errexit
 #endif
-
-

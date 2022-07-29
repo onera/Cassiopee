@@ -654,7 +654,6 @@ def _addRender2Zone(a, material=None, color=None, blending=None,
   if material is None and color is None and blending is None and meshOverlay is None and shaderParameters is None: return None
   
   zones = Internal.getZones(a)
-  if zones == []: raise TypeError("addRender2Zone: zone must be a zone node.")
   for z in zones:
 
     ri = Internal.createUniqueChild(z, '.RenderInfo', 'UserDefinedData_t')

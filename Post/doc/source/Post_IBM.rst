@@ -20,7 +20,6 @@ List of functions
 .. autosummary::
 
     .. Post.IBM.computeSkinVariables
-    .. Post.IBM.prepareWallReconstruction
     Post.IBM.extractIBMWallFields
     Post.IBM.extractIBMInfo
     Post.IBM.extractShearStress

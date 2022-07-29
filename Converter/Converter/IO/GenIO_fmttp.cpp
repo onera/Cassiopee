@@ -180,11 +180,12 @@ E_Int K_IO::GenIO::tpread(
             lastSeparator=prevData[i];
             nvar++;
           }
-          else {
+          else 
+          {
             lastSeparator='\0';
             prevData[i]=' ';
             if (c != 0) {varString[c] = ','; c++;}
-            }
+          }
         }
         else if ((prevData[i] == ' ' || prevData[i] == '\n' || prevData[i] == ','
             || prevData[i] == '\r') && lastSeparator=='\0')
@@ -217,7 +218,7 @@ E_Int K_IO::GenIO::tpread(
       ZONETFound = 1;
       zoneName[0] = '\0';
     }
-    else if (strcmp(keyword, "T") == 0)
+    else if (strcmp(keyword, "T") == 0 || strcmp(keyword, ",T") == 0)
     {
       // Build zoneName from prevData
       c = 0;
@@ -260,30 +261,30 @@ E_Int K_IO::GenIO::tpread(
       nfaces = convertString2Int(prevData);
       //printf("nfaces: %d\n", nfaces);
     }
-    else if (strcmp(keyword, "I") == 0)
+    else if (strcmp(keyword, "I") == 0 || strcmp(keyword, ",I") == 0)
     {
       //printf("i: %s\n", prevData);
       nil = convertString2Int(prevData);
     }
-    else if (strcmp(keyword, "J") == 0)
+    else if (strcmp(keyword, "J") == 0 || strcmp(keyword, ",J") == 0)
     {
       //printf("j: %s\n", prevData);
       njl = convertString2Int(prevData);
     }
-    else if (strcmp(keyword, "K") == 0)
+    else if (strcmp(keyword, "K") == 0 || strcmp(keyword, ",K") == 0)
     {
       //printf("k: %s\n", prevData);
       nkl = convertString2Int(prevData);
     }
-    else if (strcmp(keyword, "N") == 0 || strcmp(keyword, "NODES") == 0)
+    else if (strcmp(keyword, "N") == 0 || strcmp(keyword, "NODES") == 0 || strcmp(keyword, ",N") == 0)
     {
       np = convertString2Int(prevData);
     }
-    else if (strcmp(keyword, "E") == 0 || strcmp(keyword, "ELEMENTS") == 0)
+    else if (strcmp(keyword, "E") == 0 || strcmp(keyword, "ELEMENTS") == 0 || strcmp(keyword, ",E") == 0)
     {
       ne = convertString2Int(prevData);
     }
-    else if (strcmp(keyword, "F") == 0)
+    else if (strcmp(keyword, "F") == 0 || strcmp(keyword, ",F") == 0)
     {
       compressString(prevData);
       //printf("format : %s\n", prevData);
@@ -295,7 +296,6 @@ E_Int K_IO::GenIO::tpread(
     else if (strcmp(keyword, "DATAPACKING") == 0)
     {
       compressString(prevData);
-      //printf("format: %s \n", prevData);
       if (matchInString(prevData, "BLOCK") == 1) packing = 0;
       else packing = 1;
     }
@@ -335,37 +335,46 @@ E_Int K_IO::GenIO::tpread(
           }
         }
       }
-    } while(EOF!=c);
+    } while(EOF != c);
     // On compte le nombre de colonne de la premiere ligne
-    i=0;
+    i = 0;
     char ch;
     E_Int ncol=1;
-    do{ // read one line
-      do{
-      ch = firstline[i++];
-      }while(ch==' ');
-      if (firstline[i]==' ') ncol++;
-    }while(ch != '\n' && ch != '\0');
-    if (nvar==0) { // Essaie de lire un fichier sans entete (gnuplot/tecplot fmt point)
-      nvar=ncol; // Format point par defaut
+    do 
+    { // read one line
+      do 
+      {
+        ch = firstline[i++];
+      } while(ch == ' ');
+      if (firstline[i] == ' ') ncol++;
+    } while(ch != '\n' && ch != '\0');
+    if (nvar == 0) 
+    { // Essaie de lire un fichier sans entete (gnuplot/tecplot fmt point)
+      nvar = ncol; // Format point par defaut
       ndatalines++;
-      for (i=0;i<nvar;i++){
+      for (i=0; i < nvar; i++)
+      {
         varString[i*3]='V';
         varString[i*3+1]='1'+i; //static_cast<char>(i);
         varString[i*3+2]=',';
       }
       varString[strlen(varString)-1]='\0';
     }
-    if (ncol == nvar) { // Format point
+    if (ncol == nvar) 
+    { // Format point
       nil = ndatalines;
       packing = 1;
-    } else {
-      if (ndatalines==nvar) { // Format block simple
+    } 
+    else 
+    {
+      if (ndatalines==nvar) 
+      { // Format block simple
         nil=ncol;
         packing=0;
       }
     }
-    if (nil == 0) {
+    if (nil == 0) 
+    {
       printf("Warning: tpread: can not read ni,nj,nk or np.\n");
       fclose(ptrFile);
       return 1;

@@ -2030,6 +2030,7 @@ def getEnvForScons():
 # Fortran builder
 #==============================================================================
 # Ajoute le fortran builder a env
+# IN: dirs: include paths
 def createFortranBuilder(env, dirs=[]):
      import SCons
      from SCons.Builder import Builder
