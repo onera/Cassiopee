@@ -214,7 +214,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
       {
         const double * P = crdR.col(face.node(k));
         // if P is in ae1, ae0 is a piece of ae1
-        int err = faceC.fast_is_in_pred(dt, m.crd, P, is_in2, RTOL);
+        int err = faceC.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, m.crd, P, is_in2, RTOL);
         assert(!err);
         if (!is_in2) break;
       }
@@ -225,7 +225,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
       {
         const double * P = m.crd.col(faceC.node(k));
         // if P is in ae1, ae0 is a piece of ae1
-        int err = face.fast_is_in_pred(dt, crdR, P, is_in1, RTOL);
+        int err = face.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, crdR, P, is_in1, RTOL);
         assert(!err);
         if (!is_in1) break;
       }

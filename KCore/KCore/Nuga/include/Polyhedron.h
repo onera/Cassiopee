@@ -322,6 +322,21 @@ namespace K_MESH
 
     }
 
+    double fluxnorm(const K_FLD::FloatArray& crd, const E_Int* orient, bool normalize)
+    {
+      double fluxvec[3];
+      flux(crd, orient, fluxvec);
+
+      E_Float f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+
+      if (normalize)
+      {
+        E_Float s = surface(crd);
+        f /= s;
+      }
+      return f;
+    }
+
     ///
     E_Float surface(const K_FLD::FloatArray& crd)
     {

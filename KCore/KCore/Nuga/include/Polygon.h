@@ -258,7 +258,7 @@ public:
   static void getBoundary(const Polygon&  T1, const Polygon&  T2, E_Int& i1, E_Int& i2) ;
   
   static E_Int get_boundary
-    (const ngon_unit& PGS, const std::vector<E_Int>& ids, std::deque<E_Int>& PGi, const std::vector<E_Int>& orient,
+    (const K_FLD::FloatArray& crd, const ngon_unit& PGS, const std::vector<E_Int>& ids, std::vector<std::deque<E_Int>>& PGsi, const std::vector<E_Int>& orient,
     std::set<K_MESH::Edge>& w_oe_set, std::map<E_Int, E_Int>& w_n_map);
   
   static E_Int getOrientation(const Polygon&  PG, 
@@ -339,7 +339,7 @@ public:
   static bool is_hatty
   (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL=0.);
 
-  template <typename TriangulatorType>
+  template <typename TriangulatorType, int DIM>
   inline int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in, double ATOL=EPSILON);
 
   // Polygon-Edge intersection
@@ -1158,7 +1158,7 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
   return convex;
 }
 
-template <typename TriangulatorType>
+template <typename TriangulatorType, int DIM>
 inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in, double ATOL)
 {
   pt_is_in = false;
@@ -1184,7 +1184,7 @@ inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::Flo
     const double* pt1 = crd.col(T[1]);
     const double* pt2 = crd.col(T[2]);
 
-    pt_is_in = K_MESH::Triangle::fast_is_in_pred(P, pt0, pt1, pt2, ATOL);
+    pt_is_in = K_MESH::Triangle::fast_is_in_pred<DIM>(P, pt0, pt1, pt2, ATOL);
   }
 
   return 0;

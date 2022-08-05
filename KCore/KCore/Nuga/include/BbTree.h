@@ -110,9 +110,16 @@ public:
 
   void enlarge(double RTOL)
   {
-    E_Float Lref = (maxB[0] - minB[0]);
-    Lref = std::min((maxB[1] - minB[1]), Lref);
-    Lref = std::min((maxB[2] - minB[2]), Lref);
+    // compute Lref (min & non-null box size)
+    double dx = (maxB[0] - minB[0]);
+    double dy = (maxB[1] - minB[1]);
+    double dz = (DIM == 3) ? (maxB[2] - minB[2]) : 0.;
+
+    double Lref = std::max(dx, std::max(dy, dz)); // ensure to get a non-null val
+
+    if (dx > ZERO_M) Lref = std::min(Lref, dx);
+    if (dy > ZERO_M) Lref = std::min(Lref, dy);
+    if (dz > ZERO_M) Lref = std::min(Lref, dz);
 
     Lref *= RTOL;
 

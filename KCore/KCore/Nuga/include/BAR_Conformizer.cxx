@@ -19,9 +19,9 @@ namespace NUGA
 
 ///  
 template <E_Int DIM>
-std::vector<int> BAR_Conformizer<DIM>::get_x_history()
+std::vector<std::pair<int,int>> BAR_Conformizer<DIM>::get_x_history()
 {
-  std::vector<int> xhis;
+  std::vector<std::pair<int, int>> xhis;
   size_t nb_edges = parent_type::_elements.size();
   int maxid = -1;
   for (size_t i = 0; i < nb_edges; ++i)
@@ -32,8 +32,11 @@ std::vector<int> BAR_Conformizer<DIM>::get_x_history()
       continue;
     maxid = std::max(maxid, *std::max_element(ALL(e.nodes)));
   }
+
+  if (maxid == -1) return xhis;
   
-  xhis.resize(maxid+1, IDX_NONE);
+  xhis.resize(maxid+1);
+  for (size_t k = 0; k < xhis.size(); ++k)xhis[k].first = xhis[k].second = IDX_NONE;
 
   for (size_t i = 0; i < nb_edges; ++i)
   {
@@ -44,7 +47,10 @@ std::vector<int> BAR_Conformizer<DIM>::get_x_history()
     for (size_t j = 0; j < sz; ++j)
     {
       int xid = e.nodes[j];
-      if (xhis[xid] == IDX_NONE) xhis[xid] = e.id; // keep first (prior to lower ids)
+      if (xhis[xid].first == IDX_NONE)
+        xhis[xid].first = e.id;
+      else
+        xhis[xid].second = e.id;
     }
   }
 
@@ -108,7 +114,7 @@ BAR_Conformizer<DIM>::__intersect
     tol[0] /= ::sqrt(NUGA::sqrNorm<DIM>(/*Edge[0]*/Edg1));
     tol[1] /= ::sqrt(NUGA::sqrNorm<DIM>(/*Edge[1]*/Edg2));
   }
-  
+
   E_Int n1, Ni, ret = false;
   for (E_Int n = 0; n < 4; ++n)
   {

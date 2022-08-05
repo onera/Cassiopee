@@ -12,15 +12,15 @@
 #ifndef __DELAUNAY_MESHER_H__
 #define __DELAUNAY_MESHER_H__
 
-#include "Kernel.h"
-#include "delaunay_preds.h"
-#include "MeshData.h"
-#include "MesherMode.h"
-#include "Metric.h"
+#include "Nuga/include/Kernel.h"
+#include "Nuga/include/delaunay_preds.h"
+#include "Nuga/include/MeshData.h"
+#include "Nuga/include/MesherMode.h"
+#include "Nuga/include/Metric.h"
 #include "Nuga/include/MeshTool.h"
-#include "Refiner.h"
+#include "Nuga/include/Refiner.h"
 #include "Nuga/include/KdTree.h"
-#include "macros.h"
+#include "Nuga/include/macros.h"
 #include "Nuga/include/Edge.h"
 #ifdef E_TIME
 #include "chrono.h"
@@ -302,6 +302,11 @@ namespace DELAUNAY
       if (!mode.silent_errors) std::cout << "error setting colors" << std::endl;
       return _err;
     }
+
+#ifdef DEBUG_MESHER
+    //if (dbg_flag)
+      medith::write<E_Int>("triangulationC_color",*_data->pos, _data->connectM, "TRI", &_data->mask, &data.colors);
+#endif
 
     if (mode.mesh_mode == MesherMode::REFINE_MODE)
     {
@@ -728,7 +733,7 @@ namespace DELAUNAY
       {
         //DynArrayIO::write("part.mesh", data.pos, connects[c]);
         _tool->getBoundary(connects[c1], bound);
-        //KDynArrayIO::write("bound.mesh", data.pos, bound);
+        //medith::write("bound.mesh", *data.pos, bound, "BAR");
         good_color = true;
         nbound = bound.cols();
 
@@ -1281,7 +1286,7 @@ namespace DELAUNAY
     clean_data(data, data.mask);
 
     if (cols && data.connectM.cols() == 0)// all the elements are masked
-      return 1;
+      return 77;
 
     std::vector<E_Int> new_IDs;
     _tool->compact_to_mesh(*data.pos, data.connectM, new_IDs, &N0); // Remove unused nodes above N0.

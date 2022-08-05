@@ -66,6 +66,14 @@ void localizer<Tree_t>::get_candidates(const ELT& e, const crd_t& crde, std::vec
   e.bbox(crde, bb);
 
   if (RTOL > 0.) bb.enlarge(RTOL);
+
+  bb.minB[0] -= ZERO_M;
+  bb.minB[1] -= ZERO_M;
+  bb.minB[2] -= ZERO_M;
+
+  bb.maxB[0] += ZERO_M;
+  bb.maxB[1] += ZERO_M;
+  bb.maxB[2] += ZERO_M;
   
   get_candidates(bb, candidates, idx_start);
 }

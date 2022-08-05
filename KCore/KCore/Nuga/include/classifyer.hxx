@@ -405,6 +405,39 @@ namespace NUGA
       return ret;
     }
 
+    static eClassify classify2D(NUGA::aPolygon & ae1_2D/*!!!*/, NUGA::aPolygon & ae2_2D/*!!!*/, double ABSTOL)
+    {
+      DELAUNAY::Triangulator dt;
+
+      bool is_in{ false };
+      for (size_t k = 0; k < ae1_2D.m_crd.cols(); ++k)
+      {
+        const double * P = ae1_2D.m_crd.col(k);
+        // if P is in ae1, ae0 is a piece of ae1
+        int err = ae2_2D.fast_is_in_pred<DELAUNAY::Triangulator, 2/*!!!*/>(dt, ae2_2D.m_crd, P, is_in, ABSTOL);
+        assert(!err);
+        if (!is_in) break;
+      }
+
+      if (is_in) return IN;
+
+      is_in = false;
+      for (size_t k = 0; k < ae2_2D.m_crd.cols(); ++k)
+      {
+        const double * P = ae2_2D.m_crd.col(k);
+        // if P is in ae1, ae0 is a piece of ae1
+        int err = ae1_2D.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, ae1_2D.m_crd, P, is_in, ABSTOL);
+        assert(!err);
+        if (!is_in) break;
+      }
+
+      if (is_in) return IN_1;
+
+      return OUT;
+    }
+
+    
+
   };
 
   ///

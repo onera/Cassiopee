@@ -131,8 +131,8 @@ struct connect_trait<LINEIC, true>
     cnt.resize(2, nnodes);
     for (E_Int i = 0; i < nnodes; ++i)
     {
-      cnt(0, i) = i;
-      cnt(1, i) = (i + 1) % nnodes;
+      cnt(0, i) = e.m_nodes[i];
+      cnt(1, i) = e.m_nodes[(i + 1) % nnodes];
     }
   }
   
@@ -259,6 +259,43 @@ struct connect_trait<SURFACIC, false>
   {
     crd = e.m_crd;
     cnt = e.m_pgs;
+  }
+
+  static void build_global_edge_ids(const cnt_t& cnt, cnt_t& glob_edge_ids)
+  {
+    std::map<K_MESH::NO_Edge, int> e2id;
+    std::vector<int> molecule;
+    K_MESH::NO_Edge noe;
+    int count(0);
+
+    int npgs = cnt.size();
+    for (int i = 0; i < npgs; ++i)
+    {
+      const int* nodes = cnt.get_facets_ptr(i);
+      int nnodes = cnt.stride(i);
+
+      molecule.clear();
+      molecule.push_back(nnodes);
+
+      for (int n = 0; n < nnodes; ++n)
+      {
+        noe.setNodes(nodes[n], nodes[(n+1)%nnodes]);
+        auto ite = e2id.find(noe);
+
+        if (ite == e2id.end())
+        {
+          molecule.push_back(count);
+          e2id[noe] = count++;
+        }
+        else
+          molecule.push_back(ite->second);
+      }
+
+      glob_edge_ids.add(molecule);
+
+    }
+
+    glob_edge_ids.updateFacets();
   }
 };
 
@@ -517,10 +554,10 @@ struct mesh_t
   static const E_Int BOUND_STRIDE = trait::BOUND_STRIDE; //cannot use directly it in above definitions (instead of USTRIDE) as it does a infinite recursion => avoid it delcaring template
   static const E_Int index_start  = trait::index_start;
 
-  using cnt_t = typename trait::cnt_t;
+  using cnt_t           = typename trait::cnt_t;
   
-  using elt_t = typename trait::elt_t;
-  using aelt_t = typename trait::aelt_t;
+  using elt_t           = typename trait::elt_t;
+  using aelt_t          = typename trait::aelt_t;
   using construct_elt_t = typename trait::construct_elt_t;
   
   using loc_t = localizer<K_SEARCH::BbTree3D>;
@@ -753,6 +790,7 @@ struct mesh_t
     cnt.clear();
   }
 
+  ///
   template <typename T>
   void set_type(T typ, const std::vector<int>& ids)
   {
@@ -779,6 +817,11 @@ struct mesh_t
   {
     if (i >= flag.size()) flag.resize(ncells(), IDX_NONE);
     flag[i] = val;
+  }
+
+  void build_global_edge_ids(ngon_unit& glob_edge_ids) const
+  {
+    trait::build_global_edge_ids(cnt, glob_edge_ids);
   }
 
   void bbox(K_SEARCH::BBox3D& box) const 

@@ -153,6 +153,7 @@ namespace K_MESH
     static double trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
     static double oriented_trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
 
+    template <int DIM>
     inline static bool fast_is_in_pred(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2, double RTOL=EPSILON);
 
     /// Returns the rank of N in the storage pointed by pK.
@@ -2127,8 +2128,10 @@ namespace K_MESH
   }
 
   
+  //
+  template <>
   inline bool
-    K_MESH::Triangle::fast_is_in_pred(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2, double RTOL)
+    K_MESH::Triangle::fast_is_in_pred<3>(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2, double ABSTOL)
   {
     double V1[3], V2[3], V3[3];
     NUGA::diff<3>(P0, P, V1);
@@ -2148,21 +2151,42 @@ namespace K_MESH
 
     NUGA::crossProduct<3>(V1, V2, w);
     double s12 = NUGA::dot<3>(n, w) * srefm1;
-    s12 = (IS_ZERO(s12, RTOL)) ? 0. : s12;
+    s12 = (IS_ZERO(s12, ABSTOL)) ? 0. : s12;
 
     NUGA::crossProduct<3>(V2, V3, w);
     double s23 = NUGA::dot<3>(n, w) * srefm1;
-    s23 = (IS_ZERO(s23, RTOL)) ? 0. : s23;
+    s23 = (IS_ZERO(s23, ABSTOL)) ? 0. : s23;
 
     NUGA::crossProduct<3>(V3, V1, w);
     double s31 = NUGA::dot<3>(n, w) * srefm1;
-    s31 = (IS_ZERO(s31, RTOL)) ? 0. : s31;
+    s31 = (IS_ZERO(s31, ABSTOL)) ? 0. : s31;
 
     double smin = std::min(s12, std::min(s23, s31));
     double smax = std::max(s12, std::max(s23, s31));
 
     bool is_out = (smin*smax < 0.);
     return !is_out;
+  }
+
+  template <>
+  inline bool
+    K_MESH::Triangle::fast_is_in_pred<2>(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2, double ABSTOL)
+  {
+    double d1 = NUGA::signed_distance2D(P, P0, P1);
+    d1 = (IS_ZERO(d1, ABSTOL)) ? 0. : d1;
+        
+    double d2 = NUGA::signed_distance2D(P, P1, P2);
+    d2 = (IS_ZERO(d2, ABSTOL)) ? 0. : d2;
+    
+    double d3 = NUGA::signed_distance2D(P, P2, P0);
+    d3 = (IS_ZERO(d3, ABSTOL)) ? 0. : d3;
+    
+    double dmin  = std::min(d1, std::min(d2, d3));
+    double dmax = std::max(d1, std::max(d2, d3));
+
+    bool is_out = (dmin*dmax < 0.);
+    return !is_out;
+
   }
 
 } // End Namespace K_MESH

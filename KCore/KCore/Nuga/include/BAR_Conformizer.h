@@ -31,7 +31,7 @@ public:
 
   virtual ~BAR_Conformizer(){}
   
-  std::vector<int> get_x_history();
+  std::vector<std::pair<int, int>> get_x_history();
 
   // Overridden Methods ///////////////////////////////////////////////////////
 

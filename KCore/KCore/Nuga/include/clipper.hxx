@@ -223,16 +223,18 @@ namespace NUGA
       auto xedge = conformizer.get_x_history();
       for (size_t i = 0; i < zs.size(); ++i)
       {
-        if (zs[i] != NUGA::FLOAT_MAX) continue;
-        int xe = xedge[i];
-        
-        assert(xe != IDX_NONE); // i is an x point and has its histo
-        
-        if (xe >= subj.cols()) continue;
+        if (zs[i] != NUGA::FLOAT_MAX) continue;            // non valuated node
+        if (i < pnids.size() && pnids[i] != i && pnids[i] != IDX_NONE) continue;   // merged node
 
-        int N0 = subj(0, xe);
+        auto xe = xedge[i];
+        
+        assert(xe.first != IDX_NONE); // i is an x point and has its histo
+        
+        if (xe.first >= subj.cols()) continue;
+
+        int N0 = subj(0, xe.first);
         double * P0 = crd.col(N0);
-        int N1 = subj(1, xe);
+        int N1 = subj(1, xe.first);
         double * P1 = crd.col(N1);
         double * Px = crd.col(i);
 

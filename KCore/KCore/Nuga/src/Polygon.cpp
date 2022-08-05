@@ -502,7 +502,7 @@ E_Int Polygon::full_agglomerate
 
   std::vector<E_Int> ids, ori;
   std::set<K_MESH::Edge> w_oe_set;//fixme hpc
-  std::deque<E_Int> PG;
+  std::vector<std::deque<E_Int>> PG;
   std::map<E_Int, E_Int> w_n_map;//fixme hpc
   for (E_Int c = 0; c < nb_connex; ++c)
   {
@@ -527,13 +527,13 @@ E_Int Polygon::full_agglomerate
     if (ids.size() == 1) // i.e. unchanged
       continue;
 
-    E_Int err = get_boundary(PGS, ids, PG, ori, w_oe_set, w_n_map);
+    E_Int err = get_boundary(crd, PGS, ids, PG, ori, w_oe_set, w_n_map);
     if (err)
       continue;
 
-    size_t sz = PG.size();
-    PG.push_front(sz);
-    agg_pgs.add(PG);
+    size_t sz = PG[0].size();
+    PG[0].push_front(sz);
+    agg_pgs.add(PG[0]);
     E_Int shft=agg_pgs.size()-1;
 
     // we set the first to hold the aggregate, other agglomerated are discarded by setting them to NONE
@@ -549,9 +549,10 @@ E_Int Polygon::full_agglomerate
   return 0;
 }
 
+///
 E_Int Polygon::get_boundary
-(const ngon_unit& PGS, const std::vector<E_Int>& ids/*0 based*/, std::deque<E_Int>& PGb, const std::vector<E_Int>& orient,
- std::set<K_MESH::Edge>& w_oe_set, std::map<E_Int, E_Int>& w_n_map)
+(const K_FLD::FloatArray& crd, const ngon_unit& PGS, const std::vector<E_Int>& ids/*0 based*/, std::vector<std::deque<E_Int>>& PGbs, const std::vector<E_Int>& orient,
+  std::set<K_MESH::Edge>& w_oe_set, std::map<E_Int, E_Int>& w_n_map)
 {
   // Returns an error if non-connex or contains holes
 
@@ -559,10 +560,12 @@ E_Int Polygon::get_boundary
 
   w_oe_set.clear();
   w_n_map.clear();
-  PGb.clear();
+  PGbs.clear();
 
   std::set<K_MESH::Edge>::iterator it;
   K_MESH::Edge E, revE;
+
+  
 
   for (size_t i = 0; i < ids.size(); ++i)
   {
@@ -572,8 +575,8 @@ E_Int Polygon::get_boundary
 
     for (E_Int n = 0; n < nb_nodes; ++n)
     {
-      E_Int Ni = *(nodes + n);
-      E_Int Nj = *(nodes + (n + 1) % nb_nodes);
+      E_Int Ni = *(nodes + n) - 1;
+      E_Int Nj = *(nodes + (n + 1) % nb_nodes) - 1;
 
       if (orient[i] == -1) std::swap(Ni, Nj);
 
@@ -588,6 +591,93 @@ E_Int Polygon::get_boundary
 
   if (w_oe_set.empty())
     return 1;
+
+#ifdef DEBUG_IT
+  std::set<int> unodes;
+{
+    //
+    for (auto e : w_oe_set)
+    {
+      unodes.insert(*e.begin());
+      unodes.insert(*(e.begin() + 1));
+    }
+
+    std::vector<int> uunodes{ ALL(unodes) };
+
+    K_FLD::ArrayAccessor<K_FLD::FloatArray> acc(crd);
+    double totol = ZERO_M;
+    std::vector<int> nids;
+    int nb_merges = merge(acc, totol, uunodes, uunodes, nids);
+
+    auto toto = w_oe_set;
+    toto.clear();
+
+    for (auto& e : w_oe_set)
+    {
+      toto.insert(K_MESH::Edge(nids[e.node(0)], nids[e.node(1)]));
+    }
+    w_oe_set = toto;
+    toto.clear();
+    // remove dupilcated
+    
+    for (auto e : w_oe_set)
+    {
+      E_Int Ni = *(e.begin());
+      E_Int Nj = *(e.begin()+1);
+      revE.setNodes(Nj, Ni);
+      it = toto.find(revE);
+      if (it != toto.end())//already in
+        toto.erase(*it);
+      else
+        toto.insert(K_MESH::Edge(Ni, Nj));
+    }
+    w_oe_set = toto;
+
+    /*K_FLD::IntArray cnt;
+    for (auto e : w_oe_set)
+    {
+      cnt.pushBack(e.begin(), e.end());
+    }
+
+    medith::write("bound", crd, cnt, "BAR");*/
+
+}
+#endif
+
+
+  // check non_manifoldness
+  for (it = w_oe_set.begin(); it != w_oe_set.end(); ++it)
+  {
+    E_Int Ni = it->node(0);
+    E_Int Nj = it->node(1);
+
+#ifdef DEBUG_IT
+    std::map<E_Int, E_Int>::iterator itN = w_n_map.find(Ni);
+    assert(itN == w_n_map.end());
+#endif
+
+    auto it1 = w_n_map.find(Ni);
+    if (it1 == w_n_map.end()) w_n_map[Ni] = 0;
+    it1 = w_n_map.find(Nj);
+    if (it1 == w_n_map.end()) w_n_map[Nj] = 0;
+    
+    ++w_n_map[Ni];
+    ++w_n_map[Nj];
+
+  }
+
+  for (auto u : w_n_map)
+    if (u.second > 2) {
+      std::cout << "non -manifoldness found ! " << std::endl;
+      return 1;
+    }
+
+  w_n_map.clear();
+
+
+  int nb_edge0 = w_oe_set.size();
+
+  
 
   for (it = w_oe_set.begin(); it != w_oe_set.end(); ++it)
   {
@@ -605,21 +695,36 @@ E_Int Polygon::get_boundary
   if (w_n_map.empty())
     return 1;
 
-  E_Int Nbegin = w_n_map.begin()->first;
-  E_Int count = w_n_map.size();
-  E_Int Ncur = Nbegin;
   E_Int Nnext;
+  E_Int Nbegin;
 
-  do
+  int b = -1;
+ 
+  while (!w_oe_set.empty() > 0)
   {
-    Nnext = w_n_map[Ncur];
-    PGb.push_back(Ncur);
-    Ncur = Nnext;
-  } while (Nnext != Nbegin && count-- > 0);
+    Nbegin = w_oe_set.begin()->node(0);
+    E_Int count = w_oe_set/*w_n_map*/.size();
+    E_Int Ncur = Nbegin;
+    ++b;
+    PGbs.resize(PGbs.size() + 1);
+    auto & PGb = PGbs[b];
+   
+    do
+    {
+      Nnext = w_n_map[Ncur];
+      //w_n_map.erase(Ncur);
+      w_oe_set.erase(K_MESH::Edge(Ncur, Nnext));
 
-  return ( (Nnext != Nbegin) || (PGb.size() != w_oe_set.size()) ); // unclosed or non-connex/holes
+      PGb.push_back(Ncur+1);
+      Ncur = Nnext;
+    } while (Nnext != Nbegin && count-- > 0);
+  };
+
+  return ((Nnext != Nbegin));// || (PGb.size() != nb_edge0) ); // unclosed or non-connex/holes
 }
 
+
+///
 E_Int Polygon::shuffle_triangulation()
 {
   

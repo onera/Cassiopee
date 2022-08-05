@@ -2961,7 +2961,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     // remove duplicated references to PGs within each elements
     /*E_Int nb_phs_dups = */NG.PHs.remove_duplicated(); //fixme : redundant ?
     
-    // 4- Elimination des elts degeneres
+    // 4a- Elimination des elts degeneres
     Vector_t<E_Int> toremove;
     E_Int min_nb_facets = ngon_dim + 1;
     NG.PHs.get_degenerated(min_nb_facets, toremove);
@@ -4705,12 +4705,13 @@ static void ph_shell(const ngon_t& ng, E_Int PHi, const ngon_unit& neighbors, Ve
   std::vector<E_Int> pool;
   std::set<E_Int> shell;
   
-  // init : put PHi and it first neighborhood in the shell
+  // init : put PHi and its first neighborhood in the shell
 
   pool.push_back(PHi);
   shell.insert(PHi);
   wprocess[PHi] = true;
 
+  //
   const E_Int * neighs = neighbors.get_facets_ptr(PHi);
   for (size_t n=0; n < neighbors.stride(PHi); ++n)
   {

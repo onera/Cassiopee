@@ -242,6 +242,7 @@ public:
   E_Int _N0;
   K_FLD::IntArray _connect0;
   E_Int _X0; // start testing from that id (when 2 valid input mesh, avoid self-X tests)
+  E_Int _X1;
   
   bool _needs_another_iter;
   bool _one_pass_mode;

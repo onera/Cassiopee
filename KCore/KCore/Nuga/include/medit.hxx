@@ -610,6 +610,9 @@ static E_Int read(const char* filename, phmesh_type& mesh)
   template <typename ngo_t>
   static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngo_t& ng, E_Int i)
   {
+    if (i >= ng.PHs.size())
+      return 1;
+
     ng.PGs.updateFacets();
     ng.PHs.updateFacets();
 

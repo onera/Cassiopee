@@ -94,6 +94,7 @@ class MeshTool
                                     K_FLD::IntArray& connectElts);
     
     static void build_node_arity(const std::set<K_MESH::NO_Edge>& edges, std::map<E_Int, E_Int>& node_to_count);
+    static void build_node_arity(const K_FLD::IntArray& cntE2, std::map<E_Int, E_Int>& node_to_count);
 
     static void computeNodeNormals(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_FLD::FloatArray& normals);
     static E_Int computeNodeNormals(const K_FLD::FloatArray& crd, const ngon_unit& pgs, K_FLD::FloatArray& normals, E_Int smooth_iters = 0);
@@ -166,6 +167,8 @@ class MeshTool
 
     static E_Int get_edges_lying_on_plane(const K_FLD::FloatArray& crd, E_Int index_start, const std::set<K_MESH::NO_Edge>& edges, E_Int Np, const E_Float* normal, E_Float tol_rel, std::set<K_MESH::NO_Edge>& lyingEs);
     static void burn_free_branches(std::set<K_MESH::NO_Edge>& edges, std::map<E_Int, E_Int>& node_to_count);
+    static void burn_free_branches(K_FLD::IntArray& cntE2, std::map<E_Int, E_Int>& node_to_count, std::vector<bool> & keep);
+    
     static E_Float get_max_deviation (const K_FLD::FloatArray& crd, const K_FLD::IntArray& cT3, const K_FLD::IntArray& neighT3);
     
     template <typename Triangulator>

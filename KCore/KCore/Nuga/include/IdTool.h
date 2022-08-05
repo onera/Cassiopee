@@ -30,6 +30,8 @@ public:
   /// bijective
   static void reverse_indirection
   (const Vector_t<E_Int> & assoc, Vector_t<E_Int>& reverse_assoc);
+  /// non-bijective : convert a n-to-one vector (tipically an oids) to a map
+  static void reverse_indirection(const E_Int*oids, E_Int sz, std::map<int, std::vector<int>>& split_map);
   /// non-bijective : convert a n-to-one vector (tipically an oids) to a ngon_unit
   static void reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph);
   /// 

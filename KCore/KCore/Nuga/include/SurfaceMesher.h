@@ -71,7 +71,7 @@ SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
   //std::cout << "run 1" << std::endl;
   
 #ifdef DEBUG_MESHER
-  mesher.dbg_flag = dbg_flag;
+  parent_t::dbg_flag = dbg_flag;
 #endif
 
   E_Int err = parent_t::run(data);

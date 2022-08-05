@@ -142,6 +142,12 @@ void crossProduct<3> (const E_Float* x, const E_Float* y, E_Float* z)
    z[2] = x[0]*y[1] - x[1]*y[0];
 }
 
+inline
+void crossProduct2D(const long double* x, const long double* y, long double* z)
+{
+  *z = *x * (*(y + 1)) - *(x + 1) * (*y);
+}
+
 // | u1 v1 w1 |
 // | u2 v2 w2 |
 // | u3 v3 w3 |
@@ -177,6 +183,11 @@ E_Float dot<2> (const E_Float* x, const E_Float* y)
   return (*x * (*y)) + (*(x+1) * (*(y+1)));
 }
 
+inline long double dot_2D(long double* x, long double* y)
+{
+  return (*x * (*y)) + (*(x + 1) * (*(y + 1)));
+}
+
 template <>
 inline
 E_Float dot<3> (const E_Float* x, const E_Float* y) 
@@ -210,6 +221,14 @@ E_Float sqrCross<2>(const E_Float* x, const E_Float* y)
   NUGA::crossProduct<2>(x, y, &d);
   return d*d;
 }
+
+inline long double sqrCross_2D(const long double* x, const long double* y)
+{
+  long double d;
+  NUGA::crossProduct2D(x, y, &d);
+  return d * d;
+}
+
 
 template <>
 inline
@@ -455,6 +474,42 @@ template <typename T> inline
 T abs(T a) { return ::abs(a); } //wrapper for l.64 V1_smoother.hxx
 template <typename T> inline
 T max(T a, T b) { return std::max(a, b); } //wrapper for l.361 hierarchical_mesh.hxx
+
+
+inline long szudzik_pairing(int x, int y)
+{
+  return ((x <y) ? (y * y) + x : (x * x) + x + y);
+}
+
+inline void szudzik_unpairing(int szudzic_val, int& x, int& y)
+{
+  int a = (int)(::sqrt(szudzic_val));
+  int a2 = a * a;
+
+  if ((szudzic_val - a2) < a)
+  {
+    x = szudzic_val - a2;
+    y = a;
+  }
+  else
+  {
+    x = a;
+    y = szudzic_val - a2 - a;
+  }
+}
+
+template <typename T>
+inline T signed_distance2D(const T* P, const T* Q0, const T* Q1)
+{
+  T normal_Q0Q1[] = { Q0[1] - Q1[1], Q1[0] - Q0[0] };
+  normalize<2>(normal_Q0Q1);
+
+  T V01[2];
+  diff<2>(P, Q0, V01);
+
+  T pow2D_P0_Q0Q1 = NUGA::dot<2>(V01, normal_Q0Q1);
+  return pow2D_P0_Q0Q1;
+}
 
 
 } // NUGA
