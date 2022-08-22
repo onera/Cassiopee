@@ -205,15 +205,15 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(mode, "colormapC") == 0) // colormap-array
   {
     E_Int size = d->ptrState->colormapSize;
-    double* pr = d->ptrState->colormapR;
-    double* pg = d->ptrState->colormapG;
-    double* pb = d->ptrState->colormapB;
+    float* pr = d->ptrState->colormapR;
+    float* pg = d->ptrState->colormapG;
+    float* pb = d->ptrState->colormapB;
     PyObject* l = PyList_New(3*size);
     for (E_Int i = 0; i < size; i++)
     {
-      PyList_SetItem(l, 3*i,   Py_BuildValue("d",pr[i]));
-      PyList_SetItem(l, 3*i+1, Py_BuildValue("d",pg[i]));
-      PyList_SetItem(l, 3*i+2, Py_BuildValue("d",pb[i]));
+      PyList_SetItem(l, 3*i,   Py_BuildValue("f",pr[i]));
+      PyList_SetItem(l, 3*i+1, Py_BuildValue("f",pg[i]));
+      PyList_SetItem(l, 3*i+2, Py_BuildValue("f",pb[i]));
     }
     return l;
   }

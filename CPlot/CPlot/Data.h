@@ -101,9 +101,18 @@ class Data
   int _numberOfUnstructZones; // unstruct zones
   UnstructZone** _uzones;
 
+  // Global data
   double xmin, ymin, zmin, xmax, ymax, zmax; // global BB
   double dmoy; // taille moyenne de la BB
 
+  double epsup;     // minimum up
+  double epsstrafe; // minimum strafe
+
+  int _niter; // iteration (si calcul) ou transmis
+  int _winId; // main window id
+  PyThreadState* _save;
+
+  // Field data
   int _nfield; // dim of variables field arrays
   double* minf; // global min-max
   double* maxf;
@@ -112,14 +121,43 @@ class Data
   double* _isoAlphaMin; // min pour alpha iso
   double* _isoAlphaMax; // min pour alpha iso
   int* _niso; // nbre d'iso pour chaque champ (si specifie)
+  int* _isoColormap; // colormap pour chaque champ (si specifie)
 
-  double epsup;     // minimum up
-  double epsstrafe; // minimum strafe
+  // Colormap data
+  int _colormapSizeViridis; // number of colors in colormap
+  float* _colormapRViridis; // colormap red
+  float* _colormapGViridis; // colormap green
+  float* _colormapBViridis; // colormap blue
+  int _colormapSizeInferno; // number of colors in colormap
+  float* _colormapRInferno; // colormap red
+  float* _colormapGInferno; // colormap green
+  float* _colormapBInferno; // colormap blue
+  int _colormapSizeMagma; // number of colors in colormap
+  float* _colormapRMagma; // colormap red
+  float* _colormapGMagma; // colormap green
+  float* _colormapBMagma; // colormap blue
+  int _colormapSizePlasma; // number of colors in colormap
+  float* _colormapRPlasma; // colormap red
+  float* _colormapGPlasma; // colormap green
+  float* _colormapBPlasma; // colormap blue
+  int _colormapSizeJet; // number of colors in colormap
+  float* _colormapRJet; // colormap red
+  float* _colormapGJet; // colormap green
+  float* _colormapBJet; // colormap blue
+  int _colormapSizeGreys; // number of colors in colormap
+  float* _colormapRGreys; // colormap red
+  float* _colormapGGreys; // colormap green
+  float* _colormapBGreys; // colormap blue
+  int _colormapSizeNiceBlue; // number of colors in colormap
+  float* _colormapRNiceBlue; // colormap red
+  float* _colormapGNiceBlue; // colormap green
+  float* _colormapBNiceBlue; // colormap blue
+  int _colormapSizeGreens; // number of colors in colormap
+  float* _colormapRGreens; // colormap red
+  float* _colormapGGreens; // colormap green
+  float* _colormapBGreens; // colormap blue
   
-  int _niter; // iteration (si calcul) ou transmis
-  int _winId; // main window id
-  PyThreadState* _save;
-  
+  // Texture data
   GLuint _texNodes; // texture pour les nodes
   GLuint _texNoise; // texture pour le noise
   GLuint _texBillBoard; // texture for the billboard
@@ -139,7 +177,7 @@ class Data
   double _bias[16];
   double _lightModelView[16];
   double _lightProjection[16];
-    
+
   // billboards image files and texture storage
   int _nBillBoards; 
   char** _billBoardFiles;
@@ -233,11 +271,19 @@ public:
              int edgifyDeactivatedZones,
              int shadow, int dof,
              char* exportFile, char* exportResolution);
-  void rgb2hsv(double r, double g, double b, double& h, double& s, double& v);
-  void hsv2rgb(double h, double s, double v, double& r, double& g, double& b);
-  void colorString2RGB(char* color, double& colorR, double& colorG, double& colorB);
+  void rgb2hsv(float r, float g, float b, float& h, float& s, float& v);
+  void hsv2rgb(float h, float s, float v, float& r, float& g, float& b);
+  void colorString2RGB(char* color, float& colorR, float& colorG, float& colorB);
+  void initViridis();
+  void initInferno();
+  void initMagma();
+  void initPlasma();
+  void initJet();
+  void initGreys();
+  void initNiceBlue();
+  void initGreens();
   void codeFromRenderTag(Zone& z, char* tag, 
-             double& colorR, double& colorG, double& colorB,
+             float& colorR, float& colorG, float& colorB,
              int& material, double& blending, int& meshOverlay,
              float& shaderParam1, float& shaderParam2);
   void getAllVars(std::vector<char*>& structVarString,

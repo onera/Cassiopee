@@ -162,7 +162,7 @@ void computeFrustumPlanes(ViewInfo& view)
 //=============================================================================
 int isInFrustum(Zone* z, ViewInfo& view)
 {
-  int out, in;
+  int out;
   double dist1, dist2, dist3, dist4;
 
   // Bounding box of zone

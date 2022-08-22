@@ -39,9 +39,9 @@ int Data::createColormapTexture()
 }
 
 // rgb->hsv: rgb: entre 0 et 1, hsv h en degres,s,v entre 0 et 1
-void Data::rgb2hsv(double r, double g, double b, double& h, double& s, double& v)
+void Data::rgb2hsv(float r, float g, float b, float& h, float& s, float& v)
 {
-    double min, max, delta;
+    float min, max, delta;
     min = r < g ? r : g;
     min = min < b ? min : b;
     max = r > g ? r : g;
@@ -77,9 +77,9 @@ void Data::rgb2hsv(double r, double g, double b, double& h, double& s, double& v
     if (h < 0.0) h += 360.0;
 }
 
-void Data::hsv2rgb(double h, double s, double v, double& r, double& g, double& b)
+void Data::hsv2rgb(float h, float s, float v, float& r, float& g, float& b)
 {
-    double hh, p, q, t, ff;
+    float hh, p, q, t, ff;
     long   i;
     
     if (s <= 0.0) 
@@ -130,27 +130,26 @@ void Data::hsv2rgb(double h, double s, double v, double& r, double& g, double& b
 #define clamp(a, b, c) MIN(MAX(a,b),c)
 void Data::fillColormapTexture(int type)
 {
-  double r1 = ptrState->colormapR1;
-  double g1 = ptrState->colormapG1;
-  double b1 = ptrState->colormapB1;
-  double r2 = ptrState->colormapR2;
-  double g2 = ptrState->colormapG2;
-  double b2 = ptrState->colormapB2;
-  double r3 = ptrState->colormapR3;
-  double g3 = ptrState->colormapG3;
-  double b3 = ptrState->colormapB3;
-  double check = 0.;
-  if (type == 1 || type == 2)
-    check = r1+g1+b1+r2+b2+g2+r3+g3+b3;
+  float r1 = ptrState->colormapR1;
+  float g1 = ptrState->colormapG1;
+  float b1 = ptrState->colormapB1;
+  float r2 = ptrState->colormapR2;
+  float g2 = ptrState->colormapG2;
+  float b2 = ptrState->colormapB2;
+  float r3 = ptrState->colormapR3;
+  float g3 = ptrState->colormapG3;
+  float b3 = ptrState->colormapB3;
+  float check = 0.;
+  if (type == 1 || type == 2) check = r1+g1+b1+r2+b2+g2+r3+g3+b3;
   else if (type == 5 || type == 6)
   {
     int s = ptrState->colormapSize-1;
-    double* pr = ptrState->colormapR;
-    double* pg = ptrState->colormapG;
-    double* pb = ptrState->colormapB;  
+    float* pr = ptrState->colormapR;
+    float* pg = ptrState->colormapG;
+    float* pb = ptrState->colormapB;  
     check = pr[0]+pg[0]+pb[0]+pr[s]+pg[s]+pb[s]+s/2.+pr[s/2]+pg[s/2]+pb[s/2];
   }
-  if (type == _texColormapType and check == _texColormapMinMax) return; 
+  if (type == _texColormapType && check == _texColormapMinMax) return; 
 
   int w = 200; // discretisation texture
   float* image = new float[w * 3];
@@ -207,8 +206,8 @@ void Data::fillColormapTexture(int type)
   
     case 2: // Bi-color interpolation H S V de c1 a c2
     {
-      double h1,s1,v1,h2,v2,s2,h,s,v,ro,go,bo;
-      double delta, delta1, delta2;
+      float h1,s1,v1,h2,v2,s2,h,s,v,ro,go,bo;
+      float delta, delta1, delta2;
       rgb2hsv(r1,g1,b1,h1,s1,v1);
       rgb2hsv(r2,g2,b2,h2,s2,v2);
       delta = fabs(h2-h1);
@@ -432,8 +431,8 @@ void Data::fillColormapTexture(int type)
     }
     case 4: // Tri-color interpolation H S V de c1,c3 a c2
     {
-      double h1,s1,v1,h2,v2,s2,h3,v3,s3,h,s,v,ro,go,bo;
-      double delta, delta1, delta2,h3s;
+      float h1,s1,v1,h2,v2,s2,h3,v3,s3,h,s,v,ro,go,bo;
+      float delta, delta1, delta2,h3s;
       rgb2hsv(r1,g1,b1,h1,s1,v1);
       rgb2hsv(r2,g2,b2,h2,s2,v2);
       rgb2hsv(r3,g3,b3,h3,s3,v3);
@@ -485,9 +484,9 @@ void Data::fillColormapTexture(int type)
     {
       int size = ptrState->colormapSize;
       double dsize = 1./(size-1.);
-      double* pr = ptrState->colormapR;
-      double* pg = ptrState->colormapG;
-      double* pb = ptrState->colormapB;
+      float* pr = ptrState->colormapR;
+      float* pg = ptrState->colormapG;
+      float* pb = ptrState->colormapB;
       int i0, i1;
 
       for (int i = 0; i < w; i++)
@@ -506,13 +505,13 @@ void Data::fillColormapTexture(int type)
     {
       int size = ptrState->colormapSize;
       double dsize = 1./(size-1.);
-      double* pr = ptrState->colormapR;
-      double* pg = ptrState->colormapG;
-      double* pb = ptrState->colormapB;
+      float* pr = ptrState->colormapR;
+      float* pg = ptrState->colormapG;
+      float* pb = ptrState->colormapB;
       int i0, i1;
-      double h0,s0,v0,h1,v1,s1;
-      double h,s,v,ro,go,bo;
-      double delta, delta1, delta2;
+      float h0,s0,v0,h1,v1,s1;
+      float h,s,v,ro,go,bo;
+      float delta, delta1, delta2;
 
       for (int i = 0; i < w; i++)
       {
@@ -533,6 +532,191 @@ void Data::fillColormapTexture(int type)
         else if (h > 360.) h += -360.;
         hsv2rgb(h,s,v,ro,go,bo);
         image[3*i] = ro; image[3*i+1] = go; image[3*i+2] = bo;
+      }
+      break;
+    }
+
+    case 8: // Explicitely called viridis
+    {
+      if (_colormapBViridis == NULL) initViridis();
+      int size = _colormapSizeViridis;
+      double dsize = 1./(size-1.);
+      float* pr = _colormapRViridis;
+      float* pg = _colormapGViridis;
+      float* pb = _colormapBViridis;
+      int i0, i1;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        r = (1.-f)*pr[i0]+f*pr[i1];
+        g = (1.-f)*pg[i0]+f*pg[i1];
+        b = (1.-f)*pb[i0]+f*pb[i1];        
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+
+    case 9: // Explicitely called inferno
+    {
+      if (_colormapBInferno == NULL) initInferno();
+      int size = _colormapSizeInferno;
+      double dsize = 1./(size-1.);
+      float* pr = _colormapRInferno;
+      float* pg = _colormapGInferno;
+      float* pb = _colormapBInferno;
+      int i0, i1;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        r = (1.-f)*pr[i0]+f*pr[i1];
+        g = (1.-f)*pg[i0]+f*pg[i1];
+        b = (1.-f)*pb[i0]+f*pb[i1];        
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+
+    case 10: // Explicitely called magma
+    {
+      if (_colormapBMagma == NULL) initMagma();
+      int size = _colormapSizeMagma;
+      double dsize = 1./(size-1.);
+      float* pr = _colormapRMagma;
+      float* pg = _colormapGMagma;
+      float* pb = _colormapBMagma;
+      int i0, i1;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        r = (1.-f)*pr[i0]+f*pr[i1];
+        g = (1.-f)*pg[i0]+f*pg[i1];
+        b = (1.-f)*pb[i0]+f*pb[i1];        
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+
+    case 11: // Explicitely called plasma
+    {
+      if (_colormapBPlasma == NULL) initPlasma();
+      int size = _colormapSizePlasma;
+      double dsize = 1./(size-1.);
+      float* pr = _colormapRPlasma;
+      float* pg = _colormapGPlasma;
+      float* pb = _colormapBPlasma;
+      int i0, i1;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        r = (1.-f)*pr[i0]+f*pr[i1];
+        g = (1.-f)*pg[i0]+f*pg[i1];
+        b = (1.-f)*pb[i0]+f*pb[i1];        
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+
+    case 12: // Explicitely called jet
+    {
+      if (_colormapBJet == NULL) initJet();
+      int size = _colormapSizeJet;
+      double dsize = 1./(size-1.);
+      float* pr = _colormapRJet;
+      float* pg = _colormapGJet;
+      float* pb = _colormapBJet;
+      int i0, i1;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        r = (1.-f)*pr[i0]+f*pr[i1];
+        g = (1.-f)*pg[i0]+f*pg[i1];
+        b = (1.-f)*pb[i0]+f*pb[i1];        
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+
+    case 13: // Explicitely called greys
+    {
+      if (_colormapBGreys == NULL) initGreys();
+      int size = _colormapSizeGreys;
+      double dsize = 1./(size-1.);
+      float* pr = _colormapRGreys;
+      float* pg = _colormapGGreys;
+      float* pb = _colormapBGreys;
+      int i0, i1;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        r = (1.-f)*pr[i0]+f*pr[i1];
+        g = (1.-f)*pg[i0]+f*pg[i1];
+        b = (1.-f)*pb[i0]+f*pb[i1];        
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+
+    case 14: // Explicitely called nice blue
+    {
+      r1 = 0.; g1 = 0.; b1 = 0.;
+      r2 = 1.; g2 = 1.; b2 = 1.;
+      r3 = 0.; g3 = 0.38; b3 = 0.647;
+      for (int i = 0; i < w/2; i++)
+      {
+        f = i*dx*2.;
+        r = (1.-f)*r1+f*r3;
+        g = (1.-f)*g1+f*g3;
+        b = (1.-f)*b1+f*b3;
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      for (int i = w/2; i < w; i++)
+      {
+        f = i*dx*2.-1.;
+        r = (1.-f)*r3+f*r2;
+        g = (1.-f)*g3+f*g2;
+        b = (1.-f)*b3+f*b2;
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+
+    case 15: // Explicitely called greens
+    {
+      if (_colormapBGreens == NULL) initGreens();
+      int size = _colormapSizeGreens;
+      double dsize = 1./(size-1.);
+      float* pr = _colormapRGreens;
+      float* pg = _colormapGGreens;
+      float* pb = _colormapBGreens;
+      int i0, i1;
+
+      for (int i = 0; i < w; i++)
+      {
+        i0 = (size-1.)*i*dx;
+        i1 = MIN(i0+1, size-1);
+        f = (i*dx-i0*dsize)/dsize;
+        r = (1.-f)*pr[i0]+f*pr[i1];
+        g = (1.-f)*pg[i0]+f*pg[i1];
+        b = (1.-f)*pb[i0]+f*pb[i1];        
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
       }
       break;
     }
@@ -560,9 +744,9 @@ void Data::fillColormapTexture(int type)
   else if (type == 5 || type == 6)
   {
     int s = ptrState->colormapSize-1;
-    double* pr = ptrState->colormapR;
-    double* pg = ptrState->colormapG;
-    double* pb = ptrState->colormapB;  
+    float* pr = ptrState->colormapR;
+    float* pg = ptrState->colormapG;
+    float* pb = ptrState->colormapB;  
     _texColormapMinMax = pr[0]+pg[0]+pb[0]+pr[s]+pg[s]+pb[s]+s/2.+pr[s/2]+pg[s/2]+pb[s/2];
   }
   delete [] image;

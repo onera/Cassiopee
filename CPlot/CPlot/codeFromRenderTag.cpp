@@ -24,7 +24,7 @@
 // transforme une color string en R,G,B
 // color peut etre "White", ... ou en HEXA "#FFFFFF"
 //=============================================================================
-void Data::colorString2RGB(char* color, double& colorR, double& colorG, double& colorB)
+void Data::colorString2RGB(char* color, float& colorR, float& colorG, float& colorB)
 {
   // Hard coded colors
   if (K_STRING::cmp(color, "White") == 0)
@@ -67,7 +67,7 @@ void Data::colorString2RGB(char* color, double& colorR, double& colorG, double& 
 // OUT: parametres mis a jour a partir de la chaine tag
 //=============================================================================
 void Data::codeFromRenderTag(Zone& z, char* tag, 
-                             double& colorR, double& colorG, double& colorB,
+                             float& colorR, float& colorG, float& colorB,
                              int& material, double& blending, int& meshOverlay,
                              float& shaderParam1, float& shaderParam2)
 {

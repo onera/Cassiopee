@@ -73,7 +73,7 @@ class Zone
     int blank; // no blanking (0), otherwise the blanking variable number
 
     char renderTag[MAXSTRINGLENGTH];  // tag for render
-    double colorR, colorG, colorB; // color RGB (from tag)
+    float colorR, colorG, colorB; // color RGB (from tag)
     int material; // material code (from tag)
     double blending; // blending (from tag)
     int meshOverlay; // 1 if mesh must be overlaid (from tag)

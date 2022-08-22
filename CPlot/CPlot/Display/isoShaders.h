@@ -26,6 +26,9 @@ E_Int shader;
 //float dx = (_view.xeye - _view.xcam)*alpha;
 //float dy = (_view.yeye - _view.ycam)*alpha;
 //float dz = (_view.zeye - _view.zcam)*alpha;
+int nofield = -int(zonep->colorR)-2;
+int colormap = (int)((_isoColormap[nofield])*0.5);
+if (colormap == -1) colormap = (int)((ptrState->colormap)*0.5);
 
 switch (zonep->material)
 { 
@@ -34,7 +37,7 @@ switch (zonep->material)
     shader = _shaders.shader_id(shader::iso_glass);
     glActiveTexture(GL_TEXTURE0);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);    
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _texEnviron1); // environnement
@@ -51,7 +54,6 @@ switch (zonep->material)
       _shaders.activate((short unsigned int)shader); 
       
     _shaders[shader]->setUniform("colormap", (int)0);
-    int nofield = -int(zonep->colorR)-2;
       
     if (_niso[nofield] == -1)
     {
@@ -95,7 +97,7 @@ switch (zonep->material)
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, _texEnviron1); // environnement
@@ -108,7 +110,6 @@ switch (zonep->material)
       _shaders.activate((short unsigned int)shader);
 
     _shaders[shader]->setUniform("colormap", (int)1);
-    int nofield = -int(zonep->colorR)-2;
       
     if (_niso[nofield] == -1)
     {
@@ -118,8 +119,8 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amin", (float)0.);
       _shaders[shader]->setUniform("amax", (float)1.);
     }
-    else 
-    { 
+    else
+    {
       double rmin, rmax, alpha, beta;
       double deltai = MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
@@ -148,7 +149,7 @@ switch (zonep->material)
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_3D, _texNoise);
@@ -160,7 +161,6 @@ switch (zonep->material)
     _shaders[shader]->setUniform("bump", (float)(20.*zonep->shaderParam2+10.));
     _shaders[shader]->setUniform("Noise", (int)2);
     _shaders[shader]->setUniform("colormap", (int)1);
-    int nofield = -int(zonep->colorR)-2;
     
     if (_niso[nofield] == -1)
     {
@@ -200,12 +200,11 @@ switch (zonep->material)
     shader = _shaders.shader_id(shader::iso_brick);
     glActiveTexture(GL_TEXTURE0);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     if (_shaders.currentShader() != shader)
       _shaders.activate((short unsigned int)shader);
     _shaders[shader]->setUniform("colormap", (int)0);
-    int nofield = -(int)zonep->colorR-2;
     
     if (_niso[nofield] == -1)
     {
@@ -242,12 +241,11 @@ switch (zonep->material)
     shader = _shaders.shader_id(shader::iso_gooch);
     glActiveTexture(GL_TEXTURE0);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     if (_shaders.currentShader() != shader)
       _shaders.activate((short unsigned int)shader);
     _shaders[shader]->setUniform("colormap", (int)0);
-    int nofield = -(int)zonep->colorR-2;
     
     if (_niso[nofield] == -1)
     {
@@ -285,12 +283,11 @@ switch (zonep->material)
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     if (_shaders.currentShader() != shader)
       _shaders.activate((short unsigned int)shader);
     _shaders[shader]->setUniform("colormap", (int)1);
-    int nofield = -int(zonep->colorR)-2;
     
     if (_niso[nofield] == -1)
     {
@@ -327,12 +324,11 @@ switch (zonep->material)
     shader = _shaders.shader_id(shader::iso_xray);
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     if (_shaders.currentShader() != shader)
       _shaders.activate((short unsigned int)shader);
     _shaders[shader]->setUniform("colormap", (int)1);
-    int nofield = -int(zonep->colorR)-2;
     
     if (_niso[nofield] == -1)
     {
@@ -373,13 +369,12 @@ switch (zonep->material)
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     if (_shaders.currentShader() != shader)
       _shaders.activate((short unsigned int)shader);
     _shaders[shader]->setUniform("intensity", (float)(2.*zonep->shaderParam1+0.5), (float)(2.*zonep->shaderParam1+0.5), (float)(2.*zonep->shaderParam1+0.5));
     _shaders[shader]->setUniform("colormap", (int)1);
-    int nofield = -int(zonep->colorR)-2;
     
     if (_niso[nofield] == -1)
     {
@@ -417,13 +412,13 @@ switch (zonep->material)
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     
     if (_shaders.currentShader() != shader)
       _shaders.activate((short unsigned int)shader);
     _shaders[shader]->setUniform("colormap", (int)1);
-    int nofield = -int(zonep->colorR)-2;
+    
     if (_niso[nofield] == -1)
     {
       _shaders[shader]->setUniform("niso", (float)ptrState->niso);

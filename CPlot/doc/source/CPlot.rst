@@ -158,7 +158,7 @@ Actions
     :type vectorShape: 0 (3D arrows), 1 (Flat arrows), 2 (Tetra arrows)
     :param vectorProjection: 1 of vectors are projected on surface (default: 0)
     :type vectorProjection: 0 or 1
-    :param colormap: 0-1: Blue2Red, 2-3: BiColorRGB, 4-5: BiColorHSV, 6-7: TriColorRGB, 8-9: TriColorHSV, 10-11: MultiiColorRGB, 12-13: MultiColorHSV, 14-15: Diverging, 16-17: Viridis, 18-19: Inferno, 20-21: Magma, 22-23: Plasma, 24-25: Jet, 26-27: Greys, 28-29: Nice Blue, 30-31: Greens (default: 0)
+    :param colormap: 0-1: Blue2Red, 2-3: BiColorRGB, 4-5: BiColorHSV, 6-7: TriColorRGB, 8-9: TriColorHSV, 10-11: MultiColorRGB, 12-13: MultiColorHSV, 14-15: Diverging, 16-17: Viridis, 18-19: Inferno, 20-21: Magma, 22-23: Plasma, 24-25: Jet, 26-27: Greys, 28-29: Nice Blue, 30-31: Greens (default: 0)
     :type colormap: int (upper number activates light)
     :param colormapC1: Hexa string for starting color of bi/tri colors colormaps (ex: #FFFFFF)
     :type colormapC1: string
@@ -171,7 +171,7 @@ Actions
     :param isoEdges: width of iso edges for scalar display (default: -1)
     :type isoEdges: float
     :param isoScales: list of min and max of a variable ([varName, niso, min, max] or [varName, niso, min, max, cutmin, cutmax])(default: [])
-    :type isoScales: list of [string, int, float, float] or [string, int, float, float, float, float]
+    :type isoScales: list of [string, int, float, float] or [string, int, float, float, float, float]. Additional colormap number can be added.
     :param win: (sizeWinX, sizeWinY) window size (default: 700,700)
     :type win: tuple of 2 ints
     :param posCam: (x,y,z) camera position
@@ -883,7 +883,7 @@ Set rendering informations in pyTree
     :type isoLight: 0 or 1
     :param isoLegend: set to 1 if legend is displayed in Scalar mode
     :type isoLegend: 0 or 1
-    :param colormap: name of the colormap for Scalar mode ('Blue2Red', 'Green2Red', ...)
+    :param colormap: name of the colormap for Scalar mode ('Blue2Red', ...)
     :type colormap: string
     :type materials: list of image file names used for texture mapping
     :param materials: list of strings

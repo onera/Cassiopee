@@ -81,6 +81,41 @@ Data::Data(CPlotState* ptState)
   _isoAlphaMin = NULL;
   _isoAlphaMax = NULL;
   _niso = NULL;
+  _isoColormap = NULL;
+
+  // Colormaps (init on demand)
+  _colormapSizeViridis = 0;
+  _colormapRViridis = NULL;
+  _colormapGViridis = NULL; 
+  _colormapBViridis = NULL; 
+  _colormapSizeInferno = 0;
+  _colormapRInferno = NULL;
+  _colormapGInferno = NULL; 
+  _colormapBInferno = NULL; 
+  _colormapSizeMagma = 0;
+  _colormapRMagma = NULL;
+  _colormapGMagma = NULL; 
+  _colormapBMagma = NULL; 
+  _colormapSizePlasma = 0;
+  _colormapRPlasma = NULL;
+  _colormapGPlasma = NULL; 
+  _colormapBPlasma = NULL; 
+  _colormapSizeJet = 0;
+  _colormapRJet = NULL;
+  _colormapGJet = NULL; 
+  _colormapBJet = NULL; 
+  _colormapSizeGreys = 0;
+  _colormapRGreys = NULL;
+  _colormapGGreys = NULL; 
+  _colormapBGreys = NULL; 
+  _colormapSizeNiceBlue = 0;
+  _colormapRNiceBlue = NULL;
+  _colormapGNiceBlue = NULL; 
+  _colormapBNiceBlue = NULL; 
+  _colormapSizeGreens = 0;
+  _colormapRGreens = NULL;
+  _colormapGGreens = NULL; 
+  _colormapBGreens = NULL; 
 
   // billBoards settings
   int nb = 5; int c = 0;
@@ -148,7 +183,11 @@ Data::~Data()
   if (_isoMax != NULL) delete [] _isoMax;
   if (_isoAlphaMin != NULL) delete [] _isoAlphaMin;
   if (_isoAlphaMax != NULL) delete [] _isoAlphaMax;
-  
+  if (_isoColormap != NULL) delete [] _isoColormap;
+  if (_colormapRViridis != NULL) delete [] _colormapRViridis;
+  if (_colormapGViridis != NULL) delete [] _colormapGViridis;
+  if (_colormapBViridis != NULL) delete [] _colormapBViridis;
+
   unsigned int ns = _slots1D.size();
   for (unsigned int i = 0; i < ns; i++) delete _slots1D[i];
   pthread_mutex_destroy(&ptrState->lock_mutex);
@@ -854,15 +893,15 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
     if (ptrState->colormapG != NULL) delete [] ptrState->colormapG;
     if (ptrState->colormapB != NULL) delete [] ptrState->colormapB;
     
-    ptrState->colormapR = new double [size];
-    ptrState->colormapG = new double [size];
-    ptrState->colormapB = new double [size];
+    ptrState->colormapR = new float [size];
+    ptrState->colormapG = new float [size];
+    ptrState->colormapB = new float [size];
 
-    double* r = ptrState->colormapR;
-    double* g = ptrState->colormapG;
-    double* b = ptrState->colormapB;
+    float* r = ptrState->colormapR;
+    float* g = ptrState->colormapG;
+    float* b = ptrState->colormapB;
 
-    double cmax = -1;
+    float cmax = -1.;
     for (E_Int i = 0; i < size; i++) 
     {
       r[i] = colors[3*i];
@@ -923,17 +962,29 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
               _niso[nfield] = niso;
               _isoMin[nfield] = PyFloat_AsDouble(min);
               _isoMax[nfield] = PyFloat_AsDouble(max);
-              if (nelts > 4)
+              _isoAlphaMin[nfield] = -1.e38;
+              _isoAlphaMax[nfield] = 1.e38;
+
+              if (nelts == 5)
+              {
+                PyObject* cmap = PyList_GetItem(l, 4); // colormap for isos
+                _isoColormap[nfield] = (int)(PyLong_AsLong(cmap));
+              }
+              else if (nelts == 6)
               {
                 PyObject* amin = PyList_GetItem(l, 4); // alpha min for isos
                 PyObject* amax = PyList_GetItem(l, 5); // alpha max for isos
                 _isoAlphaMin[nfield] = PyFloat_AsDouble(amin);
                 _isoAlphaMax[nfield] = PyFloat_AsDouble(amax);
               }
-              else
+              else if (nelts == 7)
               {
-                _isoAlphaMin[nfield] = -1.e38;
-                _isoAlphaMax[nfield] = 1.e38;
+                PyObject* amin = PyList_GetItem(l, 4); // alpha min for isos
+                PyObject* amax = PyList_GetItem(l, 5); // alpha max for isos
+                _isoAlphaMin[nfield] = PyFloat_AsDouble(amin);
+                _isoAlphaMax[nfield] = PyFloat_AsDouble(amax);
+                PyObject* cmap = PyList_GetItem(l, 6); // colormap for isos
+                _isoColormap[nfield] = (int)(PyLong_AsLong(cmap));
               }
             }
           }
@@ -1089,7 +1140,12 @@ void Data::reallocNFieldArrays(int nfield)
     n = new double [nfield];
     if (_isoAlphaMax != NULL) delete [] _isoAlphaMax;
     _isoAlphaMax = n;
-    
+
+    int* ni = new int [nfield];
+    for (int i = 0; i < nfield; i++) ni[i] = -2;
+    if (_isoColormap != NULL) delete [] _isoColormap;
+    _isoColormap = ni;
+
     n = new double [nfield];
     for (int i = 0; i < nfield; i++) n[i] = 0.;
     if (ptrState->activePointF != NULL) delete [] ptrState->activePointF;
