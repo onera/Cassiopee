@@ -3585,7 +3585,7 @@ def concatenate(t, tol = 1.e-15):
               # Check size
               for BCData in Internal.getNodesFromType(BCDataSet, "BCData_t"):
                   for data in Internal.getNodesFromType(BCData, "DataArray_t"):
-                      if ( len(Internal.getValue(data)) != len(pointList)):
+                      if ( len(data[1]) != len(pointList)):
                           raise ValueError('Concatenate. BC size differs for BCDataSet.')
               
               Internal._addChild(bc,BCDataSet)   
