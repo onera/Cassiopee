@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/IdTool.h"
@@ -755,7 +755,7 @@ void ngon_unit::get_degenerated(E_Int min_nb_facets, Vector_t<E_Int>& indices)
     {
       std::set<K_MESH::NO_Edge> sedges;
       
-      for (size_t n = 0; n < s; ++n)
+      for (E_Int n = 0; n < s; ++n)
       {
         int Fi     = facets[n];
         int Fip1   = facets[(n + 1) % s];

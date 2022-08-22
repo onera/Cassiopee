@@ -295,12 +295,13 @@ void K_DIST2WALLS::computeMininterf(
     E_Float* yt = fields[v]->begin(posy);
     E_Float* zt = fields[v]->begin(posz);
     E_Float* distancep = distances[v]->begin();
-    if (isminortho==1){
+    if (isminortho == 1)
+    {
 #pragma omp parallel for default(shared) private(pt) schedule(dynamic)
-      for (E_Int ind = 0; ind < ncells; ind++)
+    for (E_Int ind = 0; ind < ncells; ind++)
 	{
 	  E_Int ret, vw;
-	  E_Int indw2,indw3;
+	  E_Int indw2;
 	  E_Float dist, distmin, dx, dy, dz;
 	  pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
 	  indw2 = kdt.getClosest(pt);
@@ -313,11 +314,11 @@ void K_DIST2WALLS::computeMininterf(
 	  }
 	} // fin boucle
     }
-    else{
+    else
+    {
 #pragma omp parallel for default(shared) private(pt) schedule(dynamic)
       for (E_Int ind = 0; ind < ncells; ind++)
 	{
-	  E_Int ret, vw;
 	  E_Int indw2;
 	  E_Float dist, distmin, dx, dy, dz;
 	  pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];

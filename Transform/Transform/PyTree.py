@@ -290,7 +290,7 @@ def join(t, t2=None, tol=1.e-10):
         z = C.identifyBC(z, allBCInfos, tol)
     return z
 
-def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
+def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180., mergeBCs=False):
     """Merge a list of matching zones.
     Usage: merge(t, sizeMax, dir, tol, alphaRef)"""
     Internal._orderFlowSolution(t, loc='both')
@@ -311,6 +311,42 @@ def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
             z = C.setFields([res[1][noi]], z, 'centers')
             zones += [z]
     zones = C.identifyBC(zones, allBCInfos, tol)
+
+    # Merge BCs by type (keeping families) and connectMatch
+    if mergeBCs:
+        import Connector.PyTree as X
+        zones = X.connectMatch(zones)
+        for z in zones:
+            bct = {}; fct = {}
+            zbcs = Internal.getNodesFromType1(z, 'ZoneBC_t')
+            for zbc in zbcs:
+                bcs = Internal.getNodesFromType1(zbc, 'BC_t')
+                for bc in bcs:
+                    btype = Internal.getValue(bc)
+                    if btype == 'FamilySpecified':
+                        fn = Internal.getNodeFromType1(bc, 'FamilyName_t')
+                        btype = Internal.getValue(fn)
+                        fct[btype] = bc[0].split('.')[0]
+                    else:
+                        bct[btype] = bc[0].split('.')[0]
+            # Rm classical BC and fill
+            for k in bct:
+                Internal._rmNodesFromValue(z, k)
+                C._fillEmptyBCWith(z, bct[k], k)
+            # Rm Family BC and fill
+            for k in fct:
+                zbcs = Internal.getNodesFromType1(z, 'ZoneBC_t')
+                for zbc in zbcs:
+                    out = []
+                    for i in zbc[2]:
+                        if Internal.getValue(i) == 'FamilySpecified':
+                            fn = Internal.getNodeFromType1(bc, 'FamilyName_t')
+                            btype = Internal.getValue(fn)
+                            if btype != k:
+                                out.append(i)
+                        else: out.append(i)
+                    zbc[2] = out
+                C._fillEmptyBCWith(z, fct[k], 'FamilySpecified:'+k)
     return zones
 
 def mergeCart(t, sizeMax=1000000000, tol=1.e-10):

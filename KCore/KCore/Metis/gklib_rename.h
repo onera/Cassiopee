@@ -126,8 +126,6 @@
 #define gk_mcoreDestroy K_METIS__gk_mcoreDestroy
 #define gk_mcoreCreate K_METIS__gk_mcoreCreate
 #define gk_mcoreDel K_METIS__gk_mcoreDel   
-#define gk_mcorePop K_METIS__gk_mcorePop
-#define gk_mcorePush K_METIS__gk_mcorePush
 #define gk_malloc K_METIS__gk_malloc
 #define gk_malloc_init K_METIS__gk_malloc_init
 #define gk_malloc_cleanup K_METIS__gk_malloc_cleanup

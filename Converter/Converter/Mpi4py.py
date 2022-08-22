@@ -502,7 +502,7 @@ def createBBoxTree(t, method='AABB', weighting=0, tol=0.):
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
             if not Distributed.isZoneSkeleton__(z):
-                zbb = G.BB(z, method, weighting,tol=tol)
+                zbb = G.BB(z, method, weighting, tol=tol)
                 # ajoute baseName/zoneName
                 zbb[0] = b[0]+'/'+zbb[0]
                 # Clean up (zoneSubRegion)

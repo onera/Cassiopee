@@ -451,6 +451,7 @@ def _BB(t, method='AABB', weighting=0, tol=0.):
     C._deleteGridConnectivity__(t)
     C._rmNodes(t, 'GridCoordinates#Init')
     C._rmNodes(t, 'Motion')
+    C._rmNodes(t, 'Displacement#0')
     C._rmNodes(t, '.Solver#ownData')
     C._TZGC(t, 'nodes', Generator.BB, method, weighting, tol)
     return None

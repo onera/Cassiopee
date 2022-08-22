@@ -829,7 +829,7 @@ Mesh splitting and merging
 ---------------------------------------
 
 
-.. py:function:: Transform.merge(a, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.)
+.. py:function:: Transform.merge(a, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180., mergeBCs=False)
 
     .. A1.O0.D0
     
@@ -854,6 +854,8 @@ Mesh splitting and merging
     :type tol: float
     :param alphaRef: angle max of deviation for abutting grids, above which grids are not merged (for surface grids only)
     :type alphaRef: float
+    :param mergeBCs: if True, merge BCs and perform connectMatch
+    :type mergeBCs: boolean
     :return: list of merged grids
     :rtype: [list of arrays] or [list of zones]
 
