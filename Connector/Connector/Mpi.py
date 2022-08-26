@@ -449,7 +449,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                dictOfNobOfDnrZones, dictOfNozOfDnrZones,
                dictOfNobOfRcvZonesC, dictOfNozOfRcvZonesC,
                time=0., absFrame=True, procDict=None, cellNName='cellN',
-               interpInDnrFrame=True,
+               interpInDnrFrame=True, order=2,
                hook=None):
 
     if procDict is None: procDict = Cmpi.getProcDict(tc)
@@ -543,7 +543,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
             TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP
     
-        fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
+        fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, order=order, hook=adt, variables=variables, interpDataType=interpDataType)
 
         # hack par CB
         if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None: 
