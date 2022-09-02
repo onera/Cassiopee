@@ -1447,12 +1447,11 @@ def _filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filte
   if typeN != 1: raise ValueError("_filterPartialFields: 1st arg must be a zone.")
 
   if filterName == '': raise ValueError("_filterPartialFields: filter name must be provided.")
-  if verbose: iverbose=1
-  else: iverbose=0
+  iverbose = int(verbose)
   Converter.converter.filterPartialFields(a, arrays, listIndices, locI, startFrom, filterName, 
                                           Internal.__GridCoordinates__, 
                                           Internal.__FlowSolutionNodes__, 
-                                          Internal.__FlowSolutionCenters__,iverbose)
+                                          Internal.__FlowSolutionCenters__, iverbose)
   return None
 
 # -- setPartialFields

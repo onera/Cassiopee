@@ -499,7 +499,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                     if procD == Cmpi.rank: # local
                         # local delayed
                         listOfLocalData.append([zname, znamed, indicesI, XI, YI, ZI])
-                    else:                    
+                    else:
                         if procD not in datas: datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                         else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
     
@@ -616,8 +616,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             indicesI = n[1]
             fields = n[2]
             if zrcvname not in dictOfFields:
-                dictOfFields[zrcvname]=[fields]
-                dictOfIndices[zrcvname]=indicesI
+                dictOfFields[zrcvname] = [fields]
+                dictOfIndices[zrcvname] = indicesI
             else:
                 dictOfFields[zrcvname].append(fields)
 

@@ -78,8 +78,8 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objsD;
-  E_Boolean skipNoCoord = false;  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;  E_Boolean skipDiffVars = true;
+  E_Boolean skipNoCoord = false; E_Boolean skipStructured = false;
+  E_Boolean skipUnstructured = true; E_Boolean skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(fArrays, resD, varStringD, fieldsD, a2, a3, a4, objsD,  
                                       skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nzonesD = objsD.size();
@@ -117,7 +117,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int lenZ = strlen(varStringZ);
   E_Int l = min(lenD,lenZ);
   varStringC = new char [l+1];
-  vector<E_Int> posvZ;//pos demarrent a 1
+  vector<E_Int> posvZ; //pos demarrent a 1
   vector<E_Int> posvD; 
   K_ARRAY::getPosition(varStringD[0], varStringZ, posvD, posvZ, varStringC);
   delete [] varStringC;
@@ -149,9 +149,11 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   
 #pragma omp parallel
   {
-    E_Float filterMax;
+    E_Float filterMax, filterVal;
     E_Int bestDnr;
+    E_Int posf, posZ, posD, ind;
     E_Int ithread = __CURRENT_THREAD__;
+    E_Float *ptrFilter, *fZ, *ptrFieldD;
 
 #pragma omp for
     for (E_Int i = 0; i < nPts; i++)
@@ -160,9 +162,9 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
       bestDnr = -1;
       for (E_Int nozD=0; nozD < nzonesD; nozD++)
       {
-        E_Int posf = posfD[nozD]; //demarre a 1
-        E_Float* ptrFilter = fieldsD[nozD]->begin(posf);
-        E_Float filterVal = ptrFilter[i];
+        posf = posfD[nozD]; //demarre a 1
+        ptrFilter = fieldsD[nozD]->begin(posf);
+        filterVal = ptrFilter[i];
         if (filterVal < filterMax && filterVal > ZEROVOL)
         {
           filterMax = filterVal;
@@ -175,14 +177,14 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
         if (filterMax >= penaltyExtrap) { countExtrapL[ithread]++; }
         if (bestDnr > -1)
         {
-          E_Int ind = indices[i]-startFrom;
+          ind = indices[i]-startFrom;
 
           for (E_Int eq = 0; eq < ncommonfields; eq++)
           {
-            E_Int posZ = posvZ[eq]; 
-            E_Float* fZ = fieldsZ[posZ-1];
-            E_Int posD = posvD[eq]; 
-            E_Float* ptrFieldD = fieldsD[bestDnr]->begin(posD);          
+            posZ = posvZ[eq]; 
+            fZ = fieldsZ[posZ-1];
+            posD = posvD[eq]; 
+            ptrFieldD = fieldsD[bestDnr]->begin(posD);          
             fZ[ind] = ptrFieldD[i];
           }
         }
@@ -209,7 +211,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     
     if (verbose == 1) 
     {
-      printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n", zname, countInterp, countExtrap, countOrphan);
+      printf("Zone %s: interpolated=%d; extrapolated=%d; orphans=%d.\n", zname, countInterp, countExtrap, countOrphan);
       if (countOrphan > 0)
         printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
     }

@@ -1,6 +1,8 @@
 # Interface pour MPI
 
 import os
+import timeit
+
 if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
     if int(os.environ['MPIRUN'])>0:
         try: from .Mpi4py import *
@@ -52,6 +54,9 @@ else: # try import (may fail - core or hang)
 from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph,  isZoneSkeleton__
 from . import PyTree as C
 from . import Internal
+
+# Previous times for CPU time measures
+PREVFULLTIME = None # full
 
 #==============================================================================
 # IN: t: full/loaded skel/partial
@@ -126,3 +131,20 @@ def getMeanValue(t, varName):
     val = allreduce(val, op=SUM)
     npts = allreduce(npts, op=SUM)
     return val/npts
+
+# Ecrit une trace dans un fichier proc0.out
+def trace(text):
+    global PREVFULLTIME
+    if PREVFULLTIME is None:
+        dt = 0.
+        PREVFULLTIME = timeit.default_timer()
+    else:
+        t = timeit.default_timer();
+        dt = t - PREVTIME;
+        PREVFULLTIME = t
+    
+    f = open('proc%03d.out'%rank, "a")
+    f.write(text+' [%g secs]\n'%dt)
+    f.flush()
+    f.close()
+    return None
