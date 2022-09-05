@@ -127,12 +127,16 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 //  }
   E_Int F1Id(IDX_NONE), F2Id(IDX_NONE), F3Id(IDX_NONE), TOPId(IDX_NONE);
 
+  bool commonNodes[3];
+
   for (int k = 1; k < nb_faces; ++k)
   {
     int count = 0;
-    std::vector<bool> commonNodes(3,false);
-    E_Int testedPG = faces[(k+l) % nb_faces]-1;
-    //E_Int testedPG = faces[k]-1;
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = false;
+    int ki = (k+l) % nb_faces;
+
+    E_Int testedPG = faces[ki]-1;
+
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
     E_Int nb_nodes = ng.PGs.stride(testedPG);
 //    std::cout << "testedPG= " << testedPG << "stride= " << ng.PGs.stride(testedPG) << std::endl; 
@@ -148,13 +152,13 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
       }
     }
     if (commonNodes[0] && commonNodes[1])
-      F1Id = (k+l) % nb_faces;
+      F1Id = ki;
     else if (commonNodes[1] && commonNodes[2])
-      F2Id = (k+l) % nb_faces;
+      F2Id = ki;
     else if (commonNodes[2] && commonNodes[0])
-      F3Id = (k+l) % nb_faces;
+      F3Id = ki;
     else if (count == 0)
-      TOPId = (k+l) % nb_faces;    
+      TOPId = ki;   
     }
 
   E_Int mol[5];

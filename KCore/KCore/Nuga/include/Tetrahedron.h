@@ -643,10 +643,13 @@ void Tetrahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   }
   E_Int F1Id(IDX_NONE), F2Id(IDX_NONE), F3Id(IDX_NONE);
 
+  bool commonNodes[3];
+
   for (int k = 1; k < 4; ++k)
   {
     int count = 0;
-    std::vector<bool> commonNodes(3,false);
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = false;
+
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 

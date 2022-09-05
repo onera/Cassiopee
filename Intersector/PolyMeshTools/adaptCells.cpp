@@ -698,8 +698,8 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     E_Int res = 
       K_ARRAY::getFromArray(pyfieldsN, fvarStringsN, fldsN, ni, nj, nk, cn, feltType);
 
-    /*td::cout << "res : " << res << std::endl;
-    std::cout << "var : " << fvarStrings[0] << std::endl;
+    /*std::cout << "res : " << res << std::endl;
+    std::cout << "var : " << fvarStringsN << std::endl;
     std::cout << "field N : " << fldsN.rows() << "/" << fldsN.cols() << std::endl;
     std::cout << "cn : " << cn.rows() << "/" << cn.cols() << std::endl;*/
 

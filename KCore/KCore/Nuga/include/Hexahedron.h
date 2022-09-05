@@ -190,10 +190,12 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // 
   }
   E_Int TopId(IDX_NONE),LeftId(IDX_NONE),RightId(IDX_NONE),FrontId(IDX_NONE),BackId(IDX_NONE);
 
+  bool commonNodes[4];
+
   for (int k = 1; k < 6; ++k)
   {
     int count = 0;
-    Vector_t<bool> commonNodes(4,false);
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 

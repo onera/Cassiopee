@@ -170,12 +170,13 @@ template< typename ngo_t>
 void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 {
   std::map<E_Int,E_Int> glmap; 
-  E_Int nb_faces = ng.PHs.stride(i); 
+  
+  assert (ng.PHs.stride(i) == 5);
   E_Int* faces = ng.PHs.get_facets_ptr(i);
   E_Int BOT = IDX_NONE;
 
   E_Int ibot(0);
-  for (int i=0; i< nb_faces; i++)
+  for (int i=0; i< 5; i++)
   {
     if (ng.PGs.stride(faces[i] - 1)!=4) // BOTTOM is the QUAD
       continue;
@@ -191,7 +192,7 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   E_Int* pN = ng.PGs.get_facets_ptr(BOT);
 
   
-  glmap[*pN] = 0; // PHi(0,0) -> 0  
+  glmap[*pN] = 0;
   glmap[*(pN+1)] = 1;
   glmap[*(pN+2)] = 2;
   glmap[*(pN+3)] = 3;
@@ -205,32 +206,31 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 
   E_Int F1Id(IDX_NONE), F2Id(IDX_NONE), F3Id(IDX_NONE), F4Id(IDX_NONE);
 
-  std::vector<bool> commonNodes;
-  for (int k = 1; k < nb_faces; ++k)
+  bool commonNodes[4];
+  for (int k = 1; k < 5; ++k)
   {
-    int count = 0;
-    commonNodes.clear();
-    commonNodes.resize(4,false);
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
+    int ki = (ibot + k) % 5;
     
-    E_Int testedPG = faces[(k+ibot) % nb_faces]-1;
+    E_Int testedPG = faces[ki]-1;
+    
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
+    assert(ng.PGs.stride(testedPG) == 3);
+
     for (int j = 0; j < 3; ++j)
     {
       auto it = glmap.find(pNode[j]);
-      if (it != glmap.end()){
-        // found
-        count++;
+      if (it != glmap.end())
         commonNodes[it->second] = true;
-      }
     }
     if (commonNodes[0] && commonNodes[1])
-      F1Id = k;
+      F1Id = ki;
     else if (commonNodes[1] && commonNodes[2])
-      F2Id = k;
+      F2Id = ki;
     else if (commonNodes[2] && commonNodes[3])
-      F3Id = k;
+      F3Id = ki;
     else if (commonNodes[3] && commonNodes[0])
-      F4Id = k;
+      F4Id = ki;
   }
   
   assert (F1Id != IDX_NONE);
@@ -240,7 +240,7 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 
   E_Int mol[] = {faces[ibot], faces[F1Id], faces[F2Id], faces[F3Id], faces[F4Id]};
 
-  for (int i = 0; i < nb_faces; ++i)
+  for (int i = 0; i < 5; ++i)
     faces[i] = mol[i];
 }
 
