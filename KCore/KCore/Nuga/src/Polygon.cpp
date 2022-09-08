@@ -675,8 +675,7 @@ E_Int Polygon::get_boundary
   w_n_map.clear();
 
 
-  int nb_edge0 = w_oe_set.size();
-
+  //int nb_edge0 = w_oe_set.size();
   
 
   for (it = w_oe_set.begin(); it != w_oe_set.end(); ++it)

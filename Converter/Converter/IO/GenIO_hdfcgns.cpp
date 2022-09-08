@@ -1064,6 +1064,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
 //==========================================================================
 hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 {
+  printf("%s\n", path); fflush(stdout);
   char _dtype[CGNSMAXLABEL+1]; char _name[CGNSMAXLABEL+1];
 
   hid_t gid = H5Gopen(start, "/", H5P_DEFAULT);
@@ -1369,14 +1370,16 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
 {
   // Nom du noeud de l'arbre
   HDF_Get_Attribute_As_String(node, L3S_NAME, _name);
-
   if (_stringStack.size() > 0)
   {
     std::string path = _stringStack.front();
     _currentPath = path+"/"+string(_name);
   }
+  
   // Remplace les liens eventuellement (change node par le node cible)
   HDF_Get_Attribute_As_String(node, L3S_DTYPE, _dtype);
+  //printf("create node %s %s\n", _name, _dtype); fflush(stdout);
+  
   if (strcmp(_dtype, "LK") == 0)
   {
     // store link data
@@ -1403,7 +1406,7 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
       //printf("link file: %s\n", rfile);
       //printf("link current path: %s\n", _currentPath.c_str());
       //printf("link target path: %s\n", rpath);
-
+      
       char lksearch[128]; strcpy(lksearch, ".");
       // list of ['targetdirectory', 'targetfilename', 'targetpath', 'currentpath']
       PyObject* v = Py_BuildValue("[s,s,s,s]", lksearch, rfile, rpath, _currentPath.c_str());
@@ -1413,15 +1416,22 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
     // follow link
     H5L_info_t sb;
     herr_t herr = H5Lget_info(node, L3S_LINK, &sb, H5P_DEFAULT);
-
+    
     if (herr < 0)
     {
-      printf("Error: hdfcgnsread: error opening link file.\n");
-      // supprimer le noeud?
+      printf("Error: hdfcgnsread: error opening file referenced in links.\n");
+      PyObject* s = Py_BuildValue("[sOOs]", _name, Py_None, Py_None, _type);
+      return s;
     }
     else
     {
       hid_t lid = H5Gopen2(node, L3S_LINK, H5P_DEFAULT);
+      if (lid < 0)
+      {
+        printf("Error: node %s referenced by link was not found.\n", _name);
+        PyObject* s = Py_BuildValue("[sOOs]", _name, Py_None, Py_None, _type);
+        return s;
+      }
       H5Gclose(node); //H5Gclose(herr);
       node = lid;
     }

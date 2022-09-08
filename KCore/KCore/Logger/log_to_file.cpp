@@ -5,7 +5,7 @@ namespace K_LOGGER {
     logger::listener( flags ), m_fileName( filename ) {
             m_file.open( m_fileName.c_str(), mode );
         }
-    catch ( std::ios_base::failure ) {
+    catch ( std::ios_base::failure const& ) {
         std::cerr << "File creation failed. This listener will be unavailable."
                   << std::endl;
     }

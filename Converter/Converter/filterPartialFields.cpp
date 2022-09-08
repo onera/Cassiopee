@@ -209,11 +209,37 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     else if (PyUnicode_Check(v)) zname = (char*)PyUnicode_AsUTF8(v); 
 #endif
     
-    if (verbose == 1) 
+    if (verbose >= 1) 
     {
       printf("Zone %s: interpolated=%d; extrapolated=%d; orphans=%d.\n", zname, countInterp, countExtrap, countOrphan);
       if (countOrphan > 0)
         printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
+    }
+    if (verbose == 2)
+    {
+      // Ecrit les indices globaux des pts orphelins
+      E_Float filterMax, filterVal;
+      E_Int posf, ind, posX, posY, posZ;
+      E_Float* ptrFilter;
+      for (E_Int i = 0; i < nPts; i++)
+      {
+        filterMax = K_CONST::E_MAX_FLOAT;
+        for (E_Int nozD=0; nozD < nzonesD; nozD++)
+        {
+          posf = posfD[nozD]; //demarre a 1
+          ptrFilter = fieldsD[nozD]->begin(posf);
+          filterVal = ptrFilter[i];
+          if (filterVal < filterMax && filterVal > ZEROVOL)
+          {
+            filterMax = filterVal;
+          }
+        }
+        if (filterMax >= penaltyOrphan)
+        {
+          ind = indices[i]-startFrom;
+          printf("orphan %s: %d\n", zname, ind);
+        }
+      }
     }
   }
   for (E_Int no = 0; no < nzonesD; no++)

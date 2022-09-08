@@ -15,7 +15,7 @@ namespace K_LOGGER
         K_MEMORY::shared_ptr<log_to_file> pt_log(new log_to_file(flags, file_name.str()));
       m_pt_log = pt_log;
   }
-  catch(std::ios_base::failure) {
+  catch(std::ios_base::failure const&) {
     std::cerr << "File creation failed. This listener will be unavailable." << std::endl;
   }
   // ...............................................................................................
