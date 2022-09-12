@@ -262,7 +262,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     return t, tc
 
 
-def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None, ext=3, snearsf=None, yplus=100.,
+def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None, ext=3, snearsf=None, yplus=100.,
                       vmin=21, check=False, expand=3, dfarDir=0, extrusion=False,dz_in=0.01,NPas_in=200,span_in=1,check2Donly=False,dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./'):
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
@@ -281,9 +281,6 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
             n = Internal.getNodeFromName2(z, 'dfar')
             if n is not None: dfarList[c] = Internal.getValue(n)*1.
 
-    # a mettre dans la classe ou en parametre de prepare1 ???
-    to = None
-
      # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
@@ -300,11 +297,18 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
     if check: fileout = 'octree.cgns'
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
-
-    o = G_IBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
-                         to=to, tbox=tbox, snearsf=snearsf,
-                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank,
-                         expand=expand, dfarDir=dfarDir)
+    if to is not None:
+        if isinstance(to, str):
+            o = C.convertFile2PyTree(to)
+            o = Internal.getZones(o)[0]
+        else:
+            o = Internal.getZones(to)[0]
+        parento = None
+    else:
+        o = G_IBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
+                              to=to, tbox=tbox, snearsf=snearsf,
+                              dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank,
+                              expand=expand, dfarDir=dfarDir)
 
     if rank==0 and check: C.convertPyTree2File(o, directory_tmp_files+fileout)
     # build parent octree 3 levels higher
@@ -474,7 +478,7 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
 # balancing ; balance the entire distribution after the octree generation, useful for symetries
 # distrib : new distribution at the end of prepare1
 #===================================================================================================================
-def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[],
+def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100., Lref=1.,
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False,
@@ -523,7 +527,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, snears=0.01, dfar=10., dfarList=[
 
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
     if t_in is None:
-        t,tb = generateCartesian(tb, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, ext=DEPTH+1,
+        t,tb = generateCartesian(tb, to=to, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, ext=DEPTH+1,
                               snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir, extrusion=extrusion,
                                  dz_in=dz_in,NPas_in=NPas_in,span_in=span_in,check2Donly=check2Donly,dict_Nz=dict_Nz,isCartesianExtrude=isCartesianExtrude,isExtrudeByZone=isExtrudeByZone,directory_tmp_files=directory_tmp_files)                    
     else: 

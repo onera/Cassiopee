@@ -5,6 +5,7 @@ import Converter.Internal as Internal
 import Converter
 import numpy
 import copy
+import Generator.IBMmodelHeight as G_IBM_Height
 
 vars_delete_ibm=['utau','StagnationEnthalpy','StagnationPressure',
                  'dirx'          ,'diry'          ,'dirz',
@@ -13,6 +14,10 @@ vars_delete_ibm=['utau','StagnationEnthalpy','StagnationPressure',
                  'gradxVelocityY','gradyVelocityY','gradzVelocityY',
                  'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
                  'KCurv','yplus']        
+
+# compute the near wall spacing in agreement with the yplus target at image points - front42
+def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
+    return G_IBM_Height.computeSnearOpt(Re=Re, tb=tb, Lref=Lref, q=q, yplus=yplus, Cf_law=Cf_law)
 
 # Set snear in zones
 def setSnear(t, value):
