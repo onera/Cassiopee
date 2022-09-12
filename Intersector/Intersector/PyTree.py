@@ -920,7 +920,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     fam_nodes = Internal.getNodesFromType(t2, 'Family_t')
     
     for node in fam_nodes:
-        Internal._addChild(zs, node)
+        zs.append(node)
 
     iz=-1
     # New name dictionary and zone name updating
@@ -979,7 +979,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     fam_nodes = Internal.getNodesFromType(t1, 'Family_t')
     
     for node in fam_nodes:
-        Internal._addChild(zs, node)
+        zs.append(node)
 
 
     # Create new matches
