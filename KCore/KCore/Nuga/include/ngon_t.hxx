@@ -263,7 +263,17 @@ struct ngon_t
   ///
   void export_to_array (Connectivity_t& c) const { 
     c.clear();
-    c.reserve(1, PGs._NGON.size() + PHs._NGON.size());
+    int ng_pgs = PGs._NGON.size();
+    int ng_phs = PHs._NGON.size();
+    int sum = ng_pgs + ng_phs;
+
+    if (sum < 0)
+    {
+      std::cout << "export_to_array error : ngon too big to be exported (int32 issue)" << std::endl;
+      return;
+    }
+
+    c.reserve(1, sum);
 
     if (PGs.size())
       c.pushBack(PGs._NGON);

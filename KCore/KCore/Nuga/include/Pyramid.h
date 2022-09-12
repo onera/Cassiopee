@@ -238,6 +238,11 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   assert (F3Id != IDX_NONE);
   assert (F4Id != IDX_NONE);
 
+  assert (F1Id != F2Id && F1Id != F3Id && F1Id != F4Id);
+  assert (F2Id != F1Id && F2Id != F3Id && F2Id != F4Id);
+  assert (F3Id != F1Id && F3Id != F2Id && F3Id != F4Id);
+  assert (F4Id != F1Id && F4Id != F2Id && F4Id != F3Id);
+
   E_Int mol[] = {faces[ibot], faces[F1Id], faces[F2Id], faces[F3Id], faces[F4Id]};
 
   for (int i = 0; i < 5; ++i)

@@ -163,6 +163,8 @@ namespace NUGA
     //
     for (E_Int i = 0; i < nb_phs; ++i)
     {
+      ASSERT_IN_VECRANGE(adap_incr.cell_adap_incr, i)
+      
       if (!(adap_incr.cell_adap_incr[i] > 0)) continue;
 
       E_Int nb_faces = ng.PHs.stride(i);

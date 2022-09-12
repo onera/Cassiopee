@@ -230,6 +230,12 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // 
   mol[4] = faces[FrontId];
   mol[5] = faces[BackId];
 
+  assert (TopId != IDX_NONE && TopId != LeftId && TopId != RightId && TopId != FrontId && TopId != BackId);
+  assert (LeftId != IDX_NONE && LeftId != TopId && LeftId != RightId && LeftId != FrontId && LeftId != BackId);
+  assert (RightId != IDX_NONE && RightId != LeftId && RightId != TopId && RightId != FrontId && RightId != BackId);
+  assert (FrontId != IDX_NONE && FrontId != LeftId && FrontId != RightId && FrontId != TopId && FrontId != BackId);
+  assert (BackId != IDX_NONE && BackId != LeftId && BackId != RightId && BackId != FrontId && BackId != TopId);
+
   for (int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }

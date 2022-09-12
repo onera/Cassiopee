@@ -19,6 +19,7 @@
 #include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/mem_chunk.hxx"
+#include "Nuga/include/macros.h"
 
 #define Vector_t std::vector
 
@@ -144,8 +145,17 @@ class ngon_unit
       for (E_Int i = 0; i < nn; ++i)
       {
         E_Int pos = ng_sz0 + i * (na * (astrd + 1) + nb * (bstrd + 1));
-        for (E_Int j = 0; j < na*(astrd + 1); ++j) _NGON[pos + j] = astrd;
-        for (E_Int j = 0; j < nb*(bstrd + 1); ++j) _NGON[pos + j + na * (astrd + 1)] = bstrd;
+        for (E_Int j = 0; j < na*(astrd + 1); ++j)
+        {
+          assert ((pos + j) > -1 && (pos + j) < _NGON.size());
+          _NGON[pos + j] = astrd;
+        }
+        for (E_Int j = 0; j < nb*(bstrd + 1); ++j)
+        {
+          int v = pos + j + na * (astrd + 1);
+          assert (v > -1 && v < _NGON.size());
+          _NGON[v] = bstrd;
+        }
       }
       
       if (!_type.empty()) _type.resize(_type.size() + nn * (na + nb));
@@ -179,6 +189,7 @@ class ngon_unit
       //put the nb_facets
       for (E_Int i = 0; i < n; ++i)
       {
+        ASSERT_IN_VECRANGE(_NGON, pos)
         _NGON[pos] = pregnant[i];
         pos += pregnant[i] + 1;
       }
@@ -197,17 +208,61 @@ class ngon_unit
     E_Int capacity(){return _NGON.capacity();}
     // Interrogations
     /// Returns the number of facets for the i-th PH(PG)  (ArrayAccessor interface)
-    inline E_Int stride(E_Int i) const {return _NGON[_facet[i]];}
+    inline E_Int stride(E_Int i) const
+    {
+      ASSERT_IN_VECRANGE(_facet, i)
+      ASSERT_IN_VECRANGE(_NGON, _facet[i])
+      return _NGON[_facet[i]];
+    }
     /// Returns the j-th element.  (ArrayAccessor interface)
     inline void getEntry(const E_Int& j, E_Int* pE) const
-    {for (E_Int k=0;k<_NGON[_facet[j]]/*stride(j)*/;++k) pE[k]=_NGON[_facet[j]+1+k];/*get_facet(j,k)*/}
+    {
+      ASSERT_IN_VECRANGE(_facet, j)
+      ASSERT_IN_VECRANGE(_NGON, _facet[j])
+
+      for (E_Int k=0;k<_NGON[_facet[j]]/*stride(j)*/;++k)
+      {
+        ASSERT_IN_VECRANGE(_NGON, _facet[j]+1+k)
+        pE[k]=_NGON[_facet[j]+1+k];/*get_facet(j,k)*/
+      }
+    }
     /// Returns the j-th facet of the i-th element
-    inline E_Int get_facet(E_Int i, E_Int j) const {return _NGON[_facet[i]+1+j];}
-    inline E_Int& get_facet(E_Int i, E_Int j) {return _NGON[_facet[i]+1+j];}
+    inline E_Int get_facet(E_Int i, E_Int j) const 
+    {
+      ASSERT_IN_VECRANGE(_facet, i)
+      ASSERT_IN_VECRANGE(_NGON, _facet[i]+1+j)
+      return _NGON[_facet[i]+1+j];
+    }
+    
+    inline E_Int& get_facet(E_Int i, E_Int j)
+    {
+      ASSERT_IN_VECRANGE(_facet, i)
+      ASSERT_IN_VECRANGE(_NGON, _facet[i]+1+j)
+      return _NGON[_facet[i]+1+j];
+    }
+    
     /// Returns the j-th facet of the i-th element
-    inline const E_Int* get_facets_ptr(E_Int i) const {return &_NGON[_facet[i]+1];}
-    inline E_Int* get_facets_ptr(E_Int i) {return &_NGON[_facet[i]+1];}
-    inline const E_Int* begin(E_Int i) const {return &_NGON[_facet[i]+1];}//SYNOMYM
+    inline const E_Int* get_facets_ptr(E_Int i) const
+    {
+      ASSERT_IN_VECRANGE(_facet, i)
+      ASSERT_IN_VECRANGE(_NGON, _facet[i]+1)
+      return &_NGON[_facet[i]+1];
+    }
+
+    inline E_Int* get_facets_ptr(E_Int i)
+    {
+      ASSERT_IN_VECRANGE(_facet, i)
+      ASSERT_IN_VECRANGE(_NGON, _facet[i]+1)
+      return &_NGON[_facet[i]+1];
+    }
+    
+    inline const E_Int* begin(E_Int i) const
+    {
+      ASSERT_IN_VECRANGE(_facet, i)
+      ASSERT_IN_VECRANGE(_NGON, _facet[i]+1)
+      return &_NGON[_facet[i]+1];
+    }//SYNOMYM
+    
     /// Returns the number of entities
     inline E_Int size() const {return !_NGON.empty() ? _NGON[0] : 0;}
     inline E_Int getSize() { return size(); } // to match DynArray interface

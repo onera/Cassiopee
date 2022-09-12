@@ -178,6 +178,12 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   assert(ng.PGs.stride(faces[2]-1) == 4);
   assert(ng.PGs.stride(faces[3]-1) == 4);
   assert(ng.PGs.stride(faces[4]-1) == 3);
+
+  assert (l != IDX_NONE && l != F1Id && l != F2Id && l != F3Id && l != TOPId);
+  assert (F1Id != IDX_NONE && F1Id != l && F1Id != F2Id && F1Id != F3Id && F1Id != TOPId);
+  assert (F2Id != IDX_NONE && F2Id != l && F2Id != F1Id && F2Id != F3Id && F2Id != TOPId);
+  assert (F3Id != IDX_NONE && F3Id != l && F3Id != F1Id && F3Id != F2Id && F1Id != TOPId);
+  assert (TOPId != IDX_NONE && TOPId != l && TOPId != F1Id && TOPId != F2Id && TOPId != F3Id);
   
 //  std::cout <<"after reorder" << std::endl;
 //  std::cout <<"/////////////" << std::endl;

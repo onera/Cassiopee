@@ -134,26 +134,26 @@ Design
     inline size_type capacity() { return _allocated_sz;}
 
     /// Expands the capacity.
-    void reserve(size_type rows, size_type cols);
+    int reserve(size_type rows, size_type cols);
 
     /// Resizes the array preserving the relevant data and set the missing ones to the input val.
     void resize(size_type rows, size_type cols, const value_type* val = 0);
     void resize(size_type rows, size_type cols, const value_type& val);
 
     /// Appends an array at the end of the array. array must have the same nb of rows.
-    void pushBack(const self_type& a);
+    int pushBack(const self_type& a);
 
     /// pushBack a colum defined by values between begin and end.
-    template <typename Iterator> void pushBack(Iterator begin, Iterator end);
+    template <typename Iterator> int pushBack(Iterator begin, Iterator end);
     
     /// pushBack a std::vector for a one-row DynArray
-    void pushBack(const std::vector<T>& a);
+    int pushBack(const std::vector<T>& a);
     
     ///
-    void pushBack(const self_type& a, const E_Int* fields, E_Int sz);
+    int pushBack(const self_type& a, const E_Int* fields, E_Int sz);
 
     /// pushBack a constant col colum .
-    void pushBack(value_type v, E_Int rows);
+    int pushBack(value_type v, E_Int rows);
     
     /// Extract a selection of entries given by ids from arr.
     void append_selection (const self_type& arr, const std::vector<E_Int>& ids);
@@ -456,16 +456,24 @@ Design
   *   Memory is reallocated (preserve data). 
   */
   template <typename T>
-  void
+  int
     DynArray<T>::reserve(size_type rows, size_type cols){
     
       if ((rows == _rowsMax) && (cols == _colsMax)) // Allocated memory is OK.
-        return;
+        return 0;
+
+      if (cols < 0)
+      {
+        std::cout << "DynArray error: ask to reserve with a negative value => int32 limit ?" << std::endl;
+        return 1;
+      }
 
       size_type r = std::max(rows, _rowsMax);
       size_type c = std::max(cols, _colsMax);
 
       iterator  newdata(__create(r*c)), start(0), there(0);
+
+      if (newdata == nullptr) return 1;
 
       // Assign the values column by colum.
       for (size_type i = 0; i < _cols; ++i){
@@ -478,6 +486,8 @@ Design
       _data = newdata;
       _rowsMax = r;
       _colsMax = c;
+
+      return 0;
   }
 
   template <typename T>
@@ -545,102 +555,126 @@ Design
 
 ///
 template <typename T>
-void
+int
 DynArray<T>::pushBack(const self_type& a){
 
     if (_rows == 0)// Empty array
     {
       *this = a;
-      return;
+      return 0;
     }
     else if (_rows != a._rows)
-      return;
+      return 1;
 
-    if (a._cols > (_colsMax - _cols))     // If the spare room is too tight.
-      reserve(_rows, 2*(_cols+a._cols));  // Double the columns capacity.
-
+    if (a._cols > (_colsMax - _cols)){     // If the spare room is too tight.
+      int err = reserve(_rows, 2*(_cols+a._cols));  // Double the columns capacity.
+      if (err) return 1;
+    }
     //const_iterator start(0);
     //iterator there(0);
 
     E_Int last=_cols;
     _cols += a._cols;
     __mappingcopy(a, _data+last*_rowsMax, _rowsMax, a._rows, a._cols);
+
+    return 0;
   }
   
   ///
   template <typename T>
-  void
+  int
   DynArray<T>::pushBack(const self_type& a, const E_Int* fields, E_Int sz)
   {
     if (sz==0)
-      return;
+      return 0;
     
     assert (_rows==0 || sz == _rows);
     
     if (_rows == 0)// Empty array
       _rows=sz;
     
-    if (a._cols > (_colsMax - _cols))     // If the spare room is too tight.
-      reserve(_rows, 2*(_cols+a._cols));  // Double the columns capacity.
-    
+    if (a._cols > (_colsMax - _cols)) {    // If the spare room is too tight.
+      int err = reserve(_rows, 2*(_cols+a._cols));  // Double the columns capacity.
+      if (err) return 1;
+    }
+
     for (size_type j = _cols; j < _cols + a._cols; ++j){
       for (size_type i = 0; i < sz; ++i)
         *(_data + j*_rowsMax +i) = a(fields[i], j-_cols);
     }
           
     _cols += a._cols;
+
+    return 0;
   }
   
   ///
   template <typename T>
-  void
+  int
   DynArray<T>::pushBack(const std::vector<T>& a)
   {
+    if (a.empty())  return 0;
     if (_rows == 0) _rows=1;
-    if (_rows > 1)  return;
+    if (_rows > 1)  return 1; //shape inconsistency
 
     if (E_Int(a.size()) > (_colsMax - _cols)) // If the spare room is too tight.
-      reserve(_rows, 2*(_cols+a.size()));  // Double the columns capacity.
+    {
+      int err = reserve(_rows, 2*(_cols+a.size()));  // Double the columns capacity.
+      if (err) return 1;
+    }
+
+    assert(_data != nullptr);
 
     iterator there = _data + (_cols*_rowsMax);//col(_cols);
     __copy(a.begin(), a.end(), there);
     
     _cols += a.size();
+
+    return 0;
   }
 
   ///
   template <typename T>
   template <typename Iterator>
-  void
+  int
     DynArray<T>::pushBack(Iterator begin, Iterator end){
 
       if (_rows == 0)// Empty array
         _rows = (end - begin);
       else if (_rows != (end - begin))
-        return;
+        return 1;
 
-      if (_cols == _colsMax)
-        reserve (_rows, 2*(_cols+1));
+      if (_cols == _colsMax){
+        int err = reserve (_rows, 2*(_cols+1));
+        if (err) return 1;
+      }
 
       iterator there(col(_cols++));
       __copy(begin, end, there);
+
+      return 0;
   }
 
   ///
   template <typename T>
-  void
+  int
     DynArray<T>::pushBack(value_type val, E_Int rows) {
         
     if (_rows == 0)// Empty array
       _rows = rows;
     else if (_rows != rows)
-      return;
+      return 1; // shape inconsistency
 
     if (_cols == _colsMax)
-      reserve(_rows, 2 * (_cols + 1));
+    {
+      int err = reserve(_rows, 2 * (_cols + 1));
+      if (err) return 1;
+    }
 
     iterator there(col(_cols++));
     __copy(val, rows, there);
+
+    return 0;
   }
   
   ///
@@ -990,6 +1024,7 @@ DynArray<T>::pushBack(const self_type& a){
         p = NUGA::allocator<true>::allocate<T>(size);
 
       if (p != nullptr) _allocated_sz = size;
+      assert(p != nullptr);
       return p;
   }
 
@@ -1008,6 +1043,8 @@ DynArray<T>::pushBack(const self_type& a){
   void
   DynArray<T>::__copy(InputIterator begin, InputIterator end, iterator there){
 
+    assert(there != nullptr);
+
     for (InputIterator it = begin; it != end; ++it)
       *(there++) = *(it);
 
@@ -1018,6 +1055,8 @@ DynArray<T>::pushBack(const self_type& a){
   void
     DynArray<T>::__copy(value_type val, E_Int rows, iterator there) {
 
+    assert(there != nullptr);
+    
     for (E_Int i=0; i < rows; ++i)
       *(there++) = val;
   }

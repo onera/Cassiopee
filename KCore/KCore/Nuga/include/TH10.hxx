@@ -173,13 +173,21 @@ namespace NUGA
       //static constexpr E_Int nbi = subdiv_pol<K_MESH::Tetrahedron, ISO>::NBI;
 
       E_Int* q41 = ng.PGs.get_facets_ptr(firsIntPG);
+      assert(ng.PGs.stride(firsIntPG) == 3);
       E_Int* q42 = ng.PGs.get_facets_ptr(firsIntPG+1);
+      assert(ng.PGs.stride(firsIntPG+1) == 3);
       E_Int* q43 = ng.PGs.get_facets_ptr(firsIntPG+2);
+      assert(ng.PGs.stride(firsIntPG+2) == 3);
       E_Int* q44 = ng.PGs.get_facets_ptr(firsIntPG+3);
+      assert(ng.PGs.stride(firsIntPG+3) == 3);
       E_Int* q45 = ng.PGs.get_facets_ptr(firsIntPG+4);
+      assert(ng.PGs.stride(firsIntPG+4) == 3);
       E_Int* q46 = ng.PGs.get_facets_ptr(firsIntPG+5);
+      assert(ng.PGs.stride(firsIntPG+5) == 3);
       E_Int* q47 = ng.PGs.get_facets_ptr(firsIntPG+6);
+      assert(ng.PGs.stride(firsIntPG+6) == 3);
       E_Int* q48 = ng.PGs.get_facets_ptr(firsIntPG+7);
+      assert(ng.PGs.stride(firsIntPG+7) == 3);
 
       q41[0] = nodes[4]; q41[1] = nodes[6]; q41[2] = nodes[7];
       q42[0] = nodes[5]; q42[1] = nodes[4]; q42[2] = nodes[8];
@@ -211,13 +219,21 @@ namespace NUGA
       for (size_t k = 0; k < 8; ++k) PHchildren[k] = firstPHChild + k;
 
       E_Int* h271 = ng.PHs.get_facets_ptr(PHchildren[0]);
+      assert(ng.PHs.stride(PHchildren[0]) == 4);
       E_Int* h272 = ng.PHs.get_facets_ptr(PHchildren[1]);
+      assert(ng.PHs.stride(PHchildren[1]) == 4);
       E_Int* h273 = ng.PHs.get_facets_ptr(PHchildren[2]);
+      assert(ng.PHs.stride(PHchildren[2]) == 4);
       E_Int* h274 = ng.PHs.get_facets_ptr(PHchildren[3]);
+      assert(ng.PHs.stride(PHchildren[3]) == 4);
       E_Int* h275 = ng.PHs.get_facets_ptr(PHchildren[4]);
+      assert(ng.PHs.stride(PHchildren[4]) == 4);
       E_Int* h276 = ng.PHs.get_facets_ptr(PHchildren[5]);
+      assert(ng.PHs.stride(PHchildren[5]) == 4);
       E_Int* h277 = ng.PHs.get_facets_ptr(PHchildren[6]);
+      assert(ng.PHs.stride(PHchildren[6]) == 4);
       E_Int* h278 = ng.PHs.get_facets_ptr(PHchildren[7]);
+      assert(ng.PHs.stride(PHchildren[7]) == 4);
 
       E_Int INT[8];
       for (size_t k = 0; k < 8; ++k)

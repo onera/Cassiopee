@@ -142,7 +142,7 @@ public:
   {
     for (int i = 0; i < n; i++)
       if (vec[i] == val) return i;
-
+    assert(false);
     return -1;
   }
 

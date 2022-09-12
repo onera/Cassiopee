@@ -106,7 +106,10 @@ class tree
       // set the local id of each entity promoted for refinement.
       E_Int n = ids.size();
       for (E_Int i=0; i < n; ++i)
+      {
+        ASSERT_IN_VECRANGE(_indir, ids[i])
         _indir[ids[i]] = locid++;
+      }
     }
 
     inline E_Int size() const
@@ -121,11 +124,11 @@ class tree
       return E_Int(sz);
     }
     
-    inline const E_Int& get_level(E_Int i /*zero based*/) const { assert(i < _level.size());  return _level[i];}
+    inline const E_Int& get_level(E_Int i /*zero based*/) const { ASSERT_IN_VECRANGE(_level, i);  return _level[i];}
     
-    inline void set_level(E_Int i /*zero based*/, E_Int level) { assert(i < _level.size());  _level[i] = level;}
+    inline void set_level(E_Int i /*zero based*/, E_Int level) { ASSERT_IN_VECRANGE(_level, i);  _level[i] = level;}
     
-    inline E_Int parent(E_Int i /*zero based*/) const { assert(i < _parent.size());  return _parent[i];}
+    inline E_Int parent(E_Int i /*zero based*/) const { ASSERT_IN_VECRANGE(_parent, i);  return _parent[i];}
     
     void get_oids(std::vector<E_Int>& oids) const ; //WARNING : NOT VALID AFTER CONFOMIZE
     
@@ -172,26 +175,26 @@ class tree
 
     //
     E_Int nb_children(E_Int i /*zero based*/) const {
-      assert(i < _indir.size());
+      ASSERT_IN_VECRANGE(_indir, i)
       if (_indir[i] == IDX_NONE) return 0;
       return array_trait<children_array>::nb_children(_children, _indir[i]);}
     
     //
     const E_Int* children(E_Int i /*zero based*/) const {
-      assert(i < _indir.size());
+      ASSERT_IN_VECRANGE(_indir, i)
       if (_indir[i] == IDX_NONE) return nullptr;
       return array_trait<children_array>::children(_children, _indir[i]);
     }
     
     E_Int* children(E_Int i /*zero based*/) {
-      assert(i < _indir.size());
+      ASSERT_IN_VECRANGE(_indir, i)
       if (_indir[i] == IDX_NONE) return nullptr;
       return array_trait<children_array>::children(_children, _indir[i]);
     }
     
     void enable(E_Int i /*zero based*/, bool act_on_genealogy = true)
     {
-       assert(i < _enabled.size());
+       ASSERT_IN_VECRANGE(_enabled, i)
 
        _enabled[i] = true;
 
@@ -208,7 +211,7 @@ class tree
          _enabled[*(childr + n)] = false;
     }
       
-    inline bool is_enabled(E_Int i /*zero based*/) const { assert(i < _enabled.size());  return _enabled[i]; }
+    inline bool is_enabled(E_Int i /*zero based*/) const { ASSERT_IN_VECRANGE(_enabled, i);  return _enabled[i]; }
 
     E_Int get_enabled_parent(E_Int i, E_Int& parent) const;
 
@@ -242,6 +245,7 @@ void tree<children_array>::get_oids(std::vector<E_Int>& oids) const
     while (pid != IDX_NONE) //get back to root _parent
     {
       oids[i] = pid;
+      ASSERT_IN_VECRANGE(_parent, pid);
       pid = _parent[pid];
     };
   }
@@ -253,7 +257,11 @@ E_Int tree<children_array>::get_enabled_parent(E_Int i, E_Int& pid) const
 {
   pid = _parent[i];
 
-  while (pid != IDX_NONE && !_enabled[pid]) {pid = _parent[pid];}
+  while (pid != IDX_NONE && !_enabled[pid])
+  {
+    ASSERT_IN_VECRANGE(_parent, pid);
+    pid = _parent[pid];
+  }
 
   return 0;
 }
@@ -282,6 +290,7 @@ void tree<children_array>::get_enabled_relatives(E_Int i, std::vector<E_Int>& id
   // rules : itself enabled, just return (leaving ids empty)
   //       : returns enabled parent in ids. WARNNG : assume hmesh cannot have single child descendant
   //       
+  ASSERT_IN_VECRANGE(_enabled, i);
   ids.clear();
   if (_enabled[i]) return;  // still enabled
 

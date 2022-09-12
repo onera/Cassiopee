@@ -98,6 +98,10 @@ E_Int NUGA::adaptor<hmesh_t, sensor_t>::run(hmesh_t& hmesh, sensor_t& sensor, bo
 
   }
 
+#ifdef ADAPT_STEPS
+  std::cout << "nuga/adapt::hmesh.adapt exiting" << std::endl;
+#endif
+
   return err;
 }
 

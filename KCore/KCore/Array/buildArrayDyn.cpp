@@ -85,7 +85,12 @@ PyObject* K_ARRAY::buildArray(const DynArray<E_Float>& field, const char* varStr
   E_Int cEltSize = cSize; // nb d'elements dans la connectivite
   if (et == 8 || (et == -1 && K_STRING::cmp(etString, "NGON") == 0))
   {
-    E_Int sizeFN = c[1]; cEltSize = c[sizeFN+2];
+    E_Int sizeFN = -1;
+    if (cSize > 1)
+      sizeFN = c[1];
+    cEltSize = 0;
+    if (sizeFN > 0 && cSize > sizeFN+2)
+      cEltSize = c[sizeFN+2];
     shift=0;
   }
 

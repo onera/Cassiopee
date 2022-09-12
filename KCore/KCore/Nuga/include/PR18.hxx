@@ -202,16 +202,34 @@ namespace NUGA
       for (size_t j = 0; j < 10; ++j)
         INT[j] = firstIntPG + j;
 
+      ASSERT_IN_VECRANGE(ng.PGs, INT[0])
       E_Int* q41 = ng.PGs.get_facets_ptr(INT[0]);     // triangle
+
+      ASSERT_IN_VECRANGE(ng.PGs, INT[1])
       E_Int* q42 = ng.PGs.get_facets_ptr(INT[1]);
+
+      ASSERT_IN_VECRANGE(ng.PGs, INT[2])
       E_Int* q43 = ng.PGs.get_facets_ptr(INT[2]);
+
+      ASSERT_IN_VECRANGE(ng.PGs, INT[3])
       E_Int* q44 = ng.PGs.get_facets_ptr(INT[3]);
 
+      ASSERT_IN_VECRANGE(ng.PGs, INT[4])
       E_Int* q45 = ng.PGs.get_facets_ptr(INT[4]);     // quad
+
+      ASSERT_IN_VECRANGE(ng.PGs, INT[5])
       E_Int* q46 = ng.PGs.get_facets_ptr(INT[5]);
+
+      ASSERT_IN_VECRANGE(ng.PGs, INT[6])
       E_Int* q47 = ng.PGs.get_facets_ptr(INT[6]);
+
+      ASSERT_IN_VECRANGE(ng.PGs, INT[7])
       E_Int* q48 = ng.PGs.get_facets_ptr(INT[7]);
+
+      ASSERT_IN_VECRANGE(ng.PGs, INT[8])
       E_Int* q49 = ng.PGs.get_facets_ptr(INT[8]);
+
+      ASSERT_IN_VECRANGE(ng.PGs, INT[9])
       E_Int* q410 = ng.PGs.get_facets_ptr(INT[9]);
 
       q41[0] = nodes[15]; q41[1] = nodes[12]; q41[2] = nodes[14];
@@ -233,13 +251,28 @@ namespace NUGA
         PHichildr[j] = firstPHChild + j;
       }
 
+      ASSERT_IN_VECRANGE(ng.PHs, PHichildr[0])
       E_Int* h271 = ng.PHs.get_facets_ptr(PHichildr[0]);
+
+      ASSERT_IN_VECRANGE(ng.PHs, PHichildr[1])
       E_Int* h272 = ng.PHs.get_facets_ptr(PHichildr[1]);
+
+      ASSERT_IN_VECRANGE(ng.PHs, PHichildr[2])
       E_Int* h273 = ng.PHs.get_facets_ptr(PHichildr[2]);
+
+      ASSERT_IN_VECRANGE(ng.PHs, PHichildr[3])
       E_Int* h274 = ng.PHs.get_facets_ptr(PHichildr[3]);
+
+      ASSERT_IN_VECRANGE(ng.PHs, PHichildr[4])
       E_Int* h275 = ng.PHs.get_facets_ptr(PHichildr[4]);
+
+      ASSERT_IN_VECRANGE(ng.PHs, PHichildr[5])
       E_Int* h276 = ng.PHs.get_facets_ptr(PHichildr[5]);
+
+      ASSERT_IN_VECRANGE(ng.PHs, PHichildr[6])
       E_Int* h277 = ng.PHs.get_facets_ptr(PHichildr[6]);
+
+      ASSERT_IN_VECRANGE(ng.PHs, PHichildr[7])
       E_Int* h278 = ng.PHs.get_facets_ptr(PHichildr[7]);
 
       splitPr18(INT, FACES, FACES + 4, FACES + 8, FACES + 12, FACES + 16, h271, h272, h273, h274, h275, h276, h277, h278);
@@ -276,6 +309,12 @@ namespace NUGA
       splitting_base_t::__update_outer_F2E(ng, PHi, children, nbc, PGtree, F2E);
 
       // INTERNAL faces
+
+      for (size_t k=0; k < 9; ++k)
+      {
+        assert(INT[k] > -1);
+        assert(INT[k] < F2E.cols());
+      }
 
       F2E(0, INT[0]) = *children;
       F2E(1, INT[0]) = *(children + 4);

@@ -678,6 +678,10 @@ void Tetrahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   mol[2] = faces[F2Id];
   mol[3] = faces[F3Id];
 
+  assert (F1Id != IDX_NONE && F1Id != 0 && F1Id != F2Id && F1Id != F3Id);
+  assert (F2Id != IDX_NONE && F2Id != 0 && F2Id != F1Id && F2Id != F3Id);
+  assert (F3Id != IDX_NONE && F3Id != 0 && F3Id != F1Id && F3Id != F2Id);
+
   for (int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }
