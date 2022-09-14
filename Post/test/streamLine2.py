@@ -15,5 +15,5 @@ m = C.initVars(m, 'rou', 1.)
 m = C.initVars(m, 'rov', F, ['x'])
 m = C.initVars(m, 'row', 0.)
 x0=0.1; y0=5.; z0=0.5
-s = P.streamLine2(m, (x0,y0,z0),['rou','rov','row'])
+s = P.streamLine2(m, (x0,y0,z0), ['rou','rov','row'])
 C.convertArrays2File(s, 'out.plt')

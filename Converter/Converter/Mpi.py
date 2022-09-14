@@ -139,8 +139,8 @@ def trace(text):
         dt = 0.
         PREVFULLTIME = timeit.default_timer()
     else:
-        t = timeit.default_timer();
-        dt = t - PREVTIME;
+        t = timeit.default_timer()
+        dt = t - PREVFULLTIME
         PREVFULLTIME = t
     
     f = open('proc%03d.out'%rank, "a")

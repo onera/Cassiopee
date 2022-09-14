@@ -326,8 +326,8 @@ def writeEnvs():
 #==============================================================================
 # Creation intel compiler + on le met si Cppcompiler = icc
 #==============================================================================
-try: from config import Cppcompiler
-except: from KCore.config import Cppcompiler
+try: from KCore.config import Cppcompiler
+except: from config import Cppcompiler
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
         from numpy.distutils.intelccompiler import IntelCCompiler
@@ -346,8 +346,8 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
 # setup.cfg est utilise par setup de python pour choisir le compilo.
 #==============================================================================
 def writeSetupCfg():
-    try: from config import Cppcompiler
-    except: from KCore.config import Cppcompiler
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     mySystem = getSystem()
 
     # Windows + mingw
@@ -392,8 +392,8 @@ def getDistUtilsCompilers():
     for i, v in enumerate(vars):
         if v is None: vars[i] = "" 
 
-    try: from config import Cppcompiler
-    except: from KCore.config import Cppcompiler
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     if Cppcompiler != 'None' or Cppcompiler != '':
         if Cppcompiler.find('clang++') != -1:
             vars[0] = Cppcompiler.replace('clang++', 'clang'); vars[1] = Cppcompiler
@@ -424,8 +424,8 @@ def getDistUtilsCompilers():
 # IN: config.Cppcompiler
 #==============================================================================
 def getPP():
-    try: from config import Cppcompiler
-    except: from KCore.config import Cppcompiler
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     sizes = '-DINTEGER_E="INTEGER*4" -DREAL_E="REAL*8"'
     if Cppcompiler == 'icl.exe': PP = 'fpp.exe '+sizes+' \\I'
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
@@ -438,8 +438,8 @@ def getPP():
 # IN: config.Cppcompiler
 #==============================================================================
 def getAR():
-    try: from config import Cppcompiler
-    except: from KCore.config import Cppcompiler
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     if Cppcompiler == "icl.exe": return 'ar.exe '
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
          return 'x86_64-w64-mingw32-ar'
@@ -450,8 +450,8 @@ def getAR():
 # IN: config.f90compiler
 #==============================================================================
 def getFortranModDirPrefix():
-    try: from config import f90compiler
-    except: from KCore.config import f90compiler
+    try: from KCore.config import f90compiler
+    except: from config import f90compiler
     if f90compiler == 'ifort': return '-module'
     elif f90compiler == 'ifort.exe': return '-module'
     elif f90compiler == 'gfortran': return '-J'
@@ -463,78 +463,78 @@ def getFortranModDirPrefix():
 # IN: config.useOMP
 #==============================================================================
 def useOMP():
-     try: from config import useOMP
-     except: from KCore.config import useOMP
-     if useOMP: return 1
-     else: return 0
+    try: from KCore.config import useOMP
+    except: from config import useOMP
+    if useOMP: return 1
+    else: return 0
 
 #==============================================================================
 # Retourne 1 si on produit des librairies statiques
 # IN: config.useStatic
 #==============================================================================
 def useStatic():
-     try: from config import useStatic
-     except: from KCore.config import useStatic
-     if useStatic: return 1
-     else: return 0
+    try: from KCore.config import useStatic
+    except: from config import useStatic
+    if useStatic: return 1
+    else: return 0
 
 #==============================================================================
 # Retourne les versions des compilateurs
 #==============================================================================
 def getVersion(compiler):
-     major = 0; minor = 0
-     cmd = [compiler, '--version']
-     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-     out = ''
-     while True:
-          line = proc.stdout.readline().decode()
-          if line != '': out += line
-          else: break
-     out = out.split('\n')
-     out = out[0]
-     out = out.split(' ')
-     for i in out:
-          isVersion = i.split('.')
-          if len(isVersion)>1: # maybe
-               try:
-                    major = int(isVersion[0])
-                    minor = int(isVersion[1])
-                    break
-               except: continue
-     return (major, minor)
+    major = 0; minor = 0
+    cmd = [compiler, '--version']
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    out = ''
+    while True:
+         line = proc.stdout.readline().decode()
+         if line != '': out += line
+         else: break
+    out = out.split('\n')
+    out = out[0]
+    out = out.split(' ')
+    for i in out:
+         isVersion = i.split('.')
+         if len(isVersion)>1: # maybe
+              try:
+                   major = int(isVersion[0])
+                   minor = int(isVersion[1])
+                   break
+              except: continue
+    return (major, minor)
 
 def getCppVersion():
-     try: from config import Cppcompiler
-     except: from KCore.config import Cppcompiler
-     return getVersion(Cppcompiler)
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
+    return getVersion(Cppcompiler)
 
 def getForVersion():
-     try: from config import f77compiler
-     except: from KCore.config import f77compiler
-     return getVersion(f77compiler)
+    try: from KCore.config import f77compiler
+    except: from config import f77compiler
+    return getVersion(f77compiler)
 
 #=============================================================================
 # Retourne le nbre de lignes du cache
 # Se base sur l'option du compilateur C si elle contient -DCACHELINE=XX
 #==============================================================================
 def getCacheLine():
-     opts = getCppArgs()
-     for i in opts:
-          if i[0:11] == '-DCACHELINE':
-               val = int(i[12:]); return val
-     return 1
+    opts = getCppArgs()
+    for i in opts:
+        if i[0:11] == '-DCACHELINE':
+            val = int(i[12:]); return val
+    return 1
 
 #=============================================================================
 # Retourne le niveau de vectorisation simd
 # Se base sur l'option du compilateur C si elle contient -DSIMD=XX
 #==============================================================================
 def getSimd():
-     opts = getCppArgs()
-     for i in opts:
-          if i[0:6] == '-DSIMD':
-               val = i[7:]; return val
-     return 1
+    opts = getCppArgs()
+    for i in opts:
+        if i[0:6] == '-DSIMD':
+            val = i[7:]; return val
+    return 1
 
 # Retourne les options SIMD pour les compilateurs
 # Se base sur les options precedentes qui doivent contenir -DSIMD
@@ -575,22 +575,22 @@ def isSimd(opt):
 # Se base sur l'option du compilateur C si elle contient -DNB_SOCKET=XX
 #==============================================================================
 def getNbSocket():
-     opts = getCppArgs()
-     for i in opts:
-          if i[0:11] == '-DNB_SOCKET':
-               val = int(i[12:]); return val
-     return 1
+    opts = getCppArgs()
+    for i in opts:
+         if i[0:11] == '-DNB_SOCKET':
+              val = int(i[12:]); return val
+    return 1
 
 #==============================================================================
 # Retourne le nbre de coeur physique par socket
 # Se base sur l'option du compilateur C si elle contient -DCORE_PER_SOCK=XX
 #==============================================================================
 def getCorePerSocket():
-     opts = getCppArgs()
-     for i in opts:
-          if i[0:15] == '-DCORE_PER_SOCK':
-               val = int(i[16:]); return val
-     return 1
+    opts = getCppArgs()
+    for i in opts:
+         if i[0:15] == '-DCORE_PER_SOCK':
+              val = int(i[16:]); return val
+    return 1
 
 #==============================================================================
 # Fonction interne a getFilesOfExt
@@ -617,9 +617,9 @@ def scanext(args, dir, file):
 # Ex: getFilesOfExt('Converter', ['.cpp'])
 #==============================================================================
 def getFilesOfExt(rootdir, givenExts):
-  ret = []
-  os.path.walk(rootdir, scanext, [givenExts, ret])
-  return ret
+    ret = []
+    os.path.walk(rootdir, scanext, [givenExts, ret])
+    return ret
 
 #==============================================================================
 # Sort a file list to solve the dependance to "use module" for fortran90
@@ -699,14 +699,14 @@ def sortFileListByUse(files):
 # Retourne les options additionelles des compilos definies dans config
 #==============================================================================
 def getCppAdditionalOptions():
-     try: from config import CppAdditionalOptions
-     except: from KCore.config import CppAdditionalOptions
-     return CppAdditionalOptions
+    try: from KCore.config import CppAdditionalOptions
+    except: from config import CppAdditionalOptions
+    return CppAdditionalOptions
 
 def getf77AdditionalOptions():
-     try: from config import f77AdditionalOptions
-     except: from KCore.config import f77AdditionalOptions
-     return f77AdditionalOptions
+    try: from KCore.config import f77AdditionalOptions
+    except: from config import f77AdditionalOptions
+    return f77AdditionalOptions
 
 #==============================================================================
 # Retourne les arguments pour le compilateur C (utilise aussi pour Cpp)
@@ -714,8 +714,8 @@ def getf77AdditionalOptions():
 # config.CppAdditionalOptions
 #==============================================================================
 def getCArgs():
-    try: from config import Cppcompiler
-    except: from KCore.config import Cppcompiler
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     mySystem = getSystem()
     compiler = Cppcompiler.split('/')
     l = len(compiler)-1
@@ -790,8 +790,8 @@ def getCArgs():
 # Options pour le compilateur C++
 def getCppArgs():
     opt = getCArgs()
-    try: from config import Cppcompiler
-    except: from KCore.config import Cppcompiler
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     if (Cppcompiler == 'g++' or Cppcompiler == 'gcc') and getSystem()[0] == 'mingw':
         opt += ["-std=c++11"]
     elif Cppcompiler == 'pgcc' or Cppcompiler == 'pg++':
@@ -808,9 +808,8 @@ def getCppArgs():
 # config.CppAdditionalOptions
 #==============================================================================
 def getCudaArgs():
-    try: from config import NvccAdditionalOptions
-    except: from KCore.config import NvccAdditionalOptions
-
+    try: from KCore.config import NvccAdditionalOptions
+    except: from config import NvccAdditionalOptions
     options = NvccAdditionalOptions
     if DEBUG: options += ['-g', '-O0']
     else: options += ['-DNDEBUG', '-O2']
@@ -821,8 +820,8 @@ def getCudaArgs():
 # IN: config.f77compiler
 #==============================================================================
 def getForArgs():
-    try: from config import f77compiler
-    except: from KCore.config import f77compiler
+    try: from KCore.config import f77compiler
+    except: from config import f77compiler
     mySystem = getSystem()
     compiler = f77compiler.split('/')
     l = len(compiler)-1
@@ -882,19 +881,19 @@ def getForArgs():
 # IN: config.Cppcompiler, config.useStatic, config.useOMP
 #==============================================================================
 def getLinkArgs():
-     try: from config import Cppcompiler
-     except: from KCore.config import Cppcompiler
-     out = []
-     if Cppcompiler == 'gcc' or Cppcompiler == 'g++':
-          if useStatic() == 1: out += ['--static']
-     elif Cppcompiler == 'icc':
-          if useStatic() == 1: out += ['-static']
-     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
-          if useStatic() == 1: out += ['--static']
-     mySystem = getSystem()[0]
-     if mySystem == 'Darwin':
-         if useStatic() == 0: out += ['-dynamiclib']
-     return out
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
+    out = []
+    if Cppcompiler == 'gcc' or Cppcompiler == 'g++':
+        if useStatic() == 1: out += ['--static']
+    elif Cppcompiler == 'icc':
+         if useStatic() == 1: out += ['-static']
+    elif Cppcompiler == "x86_64-w64-mingw32-gcc":
+         if useStatic() == 1: out += ['--static']
+    mySystem = getSystem()[0]
+    if mySystem == 'Darwin':
+        if useStatic() == 0: out += ['-dynamiclib']
+    return out
 
 #=============================================================================
 # Check PYTHONPATH
@@ -1446,7 +1445,8 @@ def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
 def checkCuda(additionalLibPaths=[], additionalIncludePaths=[]):
     # Check if the user want cuda supported
     # -------------------------------------
-    from config import useCuda
+    try: from KCore.config import useCuda
+    except: from config import useCuda
     if not useCuda:
         #print('Info: cuda is not activated. No cuda support.')
         return (False, None, None, None, None)
@@ -1536,8 +1536,8 @@ def checkParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
 # option de compile, nom de la librarie)
 #=============================================================================
 def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
-    try: from config import Cppcompiler
-    except: from KCore.config import Cppcompiler
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     if Cppcompiler == 'icc' or Cppcompiler == 'icpc': # intel - cherche dans MKL
         libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
@@ -1577,8 +1577,8 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
 # option de compile, nom de la librarie)
 #=============================================================================
 def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
-    try: from config import Cppcompiler
-    except: from KCore.config import Cppcompiler
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     if Cppcompiler == 'icc' or Cppcompiler == 'icpc': # intel - cherche dans MKL
         libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
@@ -1638,14 +1638,14 @@ def cythonize(src):
 def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                      f77compiler=None, useOMP=None):
      if f77compiler is None:
-          try: from config import f77compiler
+          try: from KCore.config import f77compiler
           except:
-            try: from KCore.config import f77compiler
+            try: from config import f77compiler
             except: f77compiler = 'gfortran'
      if useOMP is None:
-          try: from config import useOMP
+          try: from KCore.config import useOMP
           except:
-            try: from KCore.config import useOMP
+            try: from config import useOMP
             except: useOMP = True
      ret = True; libs = []; paths = []
 
@@ -1718,14 +1718,14 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
                  useOMP=None):
 
      if Cppcompiler is None:
-          try: from config import Cppcompiler
+          try: from KCore.config import Cppcompiler
           except:
-            try: from KCore.config import Cppcompiler
+            try: from config import Cppcompiler
             except: Cppcompiler = 'gcc'
      if useOMP is None:
-          try: from config import useOMP
+          try: from KCore.config import useOMP
           except:
-            try: from KCore.config import useOMP
+            try: from config import useOMP
             except: useOMP = True
 
      ret = True; libs = []; paths = []

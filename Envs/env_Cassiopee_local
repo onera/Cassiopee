@@ -656,6 +656,35 @@ else if ($MAC == "spiro_anaconda") then
         setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
+else if ($MAC == "spiro_coda") then
+#------------------------------- spiro --------------------------------------
+        setenv ELSAPROD spiro_coda
+        # Number of threads
+        setenv OMP_NUM_THREADS 24
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+
+        module purge
+        setenv CONFIG_SPACK_ROOT /scratchm/rhea/prod/config_spack
+        source $CONFIG_SPACK_ROOT/external/spack/share/spack/setup-env.csh
+
+        module load gcc-11.2.0-gcc-8.3.0-gyasbs4
+        module load openmpi/4.0.1-gcc-8.3
+        module load subversion/1.14.1-gnu830
+        
+        set filesystem_view_dir=/scratchm/rhea/opt/dev_coda_spliss_2022_01
+        setenv PATH $filesystem_view_dir/bin:$PATH
+        setenv LD_LIBRARY_PATH $filesystem_view_dir/lib:$filesystem_view_dir/lib64:$LD_LIBRARY_PATH
+        setenv PYTHONPATH $filesystem_view_dir/lib/python3.9/site-packages/:$PYTHONPATH
+        setenv CMAKE_PREFIX_PATH "$filesystem_view_dir":"$CMAKE_PREFIX_PATH"
+        setenv CODA_MESH_INPUT_DIRECTORY /stck/rhea/test_cases/rhea_meshes
+        
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.9/site-packages
+
 else if ($MAC == "sator_17python3") then
 #------------------------------- sator --------------------------------------
         setenv ELSAPROD sat_r8

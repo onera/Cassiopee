@@ -456,12 +456,12 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     if Cmpi.size == 1:
         for name in procDict: procDict[name]=0
     # dictionnaire des matrices de mouvement pour passer du repere relatif d'une zone au repere absolu
-    dictOfMotionMatR2A={}
-    dictOfMotionMatA2R={}
+    dictOfMotionMatR2A={}; dictOfMotionMatA2R={}
     coordsD=[0.,0.,0.]; coordsC=[0.,0.,0.] # XAbs = coordsD + coordsC + Mat*(XRel-coordsC)
     dictOfFields={}; dictOfIndices={}
     
     # 1. Formation data interpolation globale
+    #Cmpi.trace("1. transfer2 - start")
     datas={}; listOfLocalData = []; interpDatas={}
 
     if hook is not None and len(hook) == 2:
@@ -504,6 +504,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                         else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
     
     # 2. envoie data interpolation globale en asynchrone
+        #Cmpi.trace("2. transfer2")
         reqs = []
         if graph != {}:
             if Cmpi.rank in graph:
@@ -518,6 +519,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                     reqs.append(s)
 
     # 3. interpolation locale
+    #Cmpi.trace("3. transfer2")
     for z in listOfLocalData:
         zname   = z[0]
         znamed  = z[1]
@@ -556,6 +558,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             dictOfFields[zname].append(fields)
 
     # 4. reception des donnees d'interpolation globales
+    #Cmpi.trace("4. transfer2")
     if hook is not None and len(hook) == 0:
         if graph != {}:
             for node in graph:
@@ -567,7 +570,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     # set hook
     if hook is not None and len(hook) == 0: hook += [listOfLocalData, interpDatas]
 
-    # 5. interpolation globales    
+    # 5. interpolation globales
+    #Cmpi.trace("5. transfer2")
     transferedDatas={}
     for i in interpDatas:
         for n in interpDatas[i]:
@@ -605,11 +609,13 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                 transferedDatas[procR].append([zrcvname,indicesR,fields])
 
     # 6. envoie des numpys des donnees interpolees suivant le graphe
+    #Cmpi.trace("6. transfer2")
     rcvDatas = Cmpi.sendRecvC(transferedDatas, graph)
     #rcvDatas = Cmpi.sendRecv(transferedDatas, graph)
 
     # 7. remise des donnees interpolees chez les zones receveuses
     # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
+    #Cmpi.trace("7. transfer2")
     for i in rcvDatas:
         for n in rcvDatas[i]:
             zrcvname = n[0]
@@ -629,6 +635,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         indicesI = dictOfIndices[zrcvname]
         C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol')
 
+    #Cmpi.trace("8. transfer2 end")
     return None
 
 #=========================================================================

@@ -414,5 +414,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   }
   else delete interpData;
 
+  delete [] rakeFieldsD;
+  
   return tpl; 
 }

@@ -25,8 +25,6 @@ installPath = Dist.getInstallPath(prefix)
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-from KCore.config import *
-
 # Test if libhdf5 exists ======================================================
 (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
                                                      additionalIncludePaths)

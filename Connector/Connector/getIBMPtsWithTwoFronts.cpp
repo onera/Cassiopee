@@ -117,7 +117,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
     //tolerance of distance between corrected pts and wall/image to control projection
     //distance max for image pt to its corrected pt : (depth+1)*sqrt(2)*snearloc 
     E_Float toldistFactorImage;
-    if (signOfDist==-1) // interior points:  we move away the front from one additional layer
+    if (signOfDist == -1) // interior points:  we move away the front from one additional layer
         toldistFactorImage = ((depth+1)*1.1)*((depth+1)*1.1)*3.;
     else 
         toldistFactorImage = (depth*1.1)*(depth*1.1)*3.;
@@ -586,7 +586,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
         {
 
             /*-----------------------------------------------------------------------------------------------------*/
-            /* FIRST TRY: projection onto the front1 and bodies 
+            /* FIRST TRY: projection onto the front1 and bodies                                                    */
             /*-----------------------------------------------------------------------------------------------------*/
             E_Int noibctype = -1;
             xc0 = ptrXC[ind]; yc0 = ptrYC[ind]; zc0 = ptrZC[ind];
@@ -601,7 +601,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
 
             dirx0 = ptrNX[ind]; diry0 = ptrNY[ind]; dirz0 = ptrNZ[ind];
 #  include "IBC/getIBMPts_projectDirFront.h"
-            if ( ok > -1) // projection found
+            if (ok > -1) // projection found
             {
                 okf1 = 1; 
                 distF1 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);            
@@ -612,7 +612,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
                 dirz0 = sign*dirz0;
 
                 # include "IBC/getIBMPts_projectDirBodies.h"
-                if ( ok > -1) 
+                if (ok > -1) 
                 {
                     okb1 = 1; 
                     distB1 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
@@ -630,7 +630,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
             }
 
             /*-----------------------------------------------------------------------------------------------------*/
-            /* SECOND TRY: projection onto the front2 and bodies 
+            /* SECOND TRY: projection onto the front2 and bodies */
             /*-----------------------------------------------------------------------------------------------------*/
             noibctype = -1;
             xc0 = ptrXC[ind]; yc0 = ptrYC[ind]; zc0 = ptrZC[ind];

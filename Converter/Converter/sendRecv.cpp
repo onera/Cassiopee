@@ -106,7 +106,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
     // Tableaux du nombre d'octets 
     std::vector<E_Int> tabOctets(sizeDatas);
-
+    
     // Var des noms de zones
     char zoneName[256];
     char zoneDName[256];
@@ -153,9 +153,9 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             //  - nom de la zone : type, taille, nom
             //  - nom de la zone donneuse : type, taille, nom
             //  - indices des pts a interpo : type, taille, indices
-            //  - coordonées X des points a interpo : type, taille, X
-            //  - coordonées Y des points a interpo : type, taille, Y
-            //  - coordonées Z des points a interpo : type, taille, Z
+            //  - coordonnées X des points a interpo : type, taille, X
+            //  - coordonnées Y des points a interpo : type, taille, Y
+            //  - coordonnées Z des points a interpo : type, taille, Z
             E_Int nOctets = 6*1 + 6*4 + size_zoneName + size_zoneDName + nIndices*4 + nXCoords*8*3;
             tabOctets[nData] = nOctets;
             // 6 char pour types + 6 entiers pour 6 tailles + n char nom x2 + nIndices entiers + nCoords floats *3 (3 coords) 
@@ -396,7 +396,6 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 return Py_None;
             }
         }
-        
         else 
         {
             printf("[%d][ERROR] size of list = %d (= 3 or 6 normally)\n", rank, sizeList); fflush(stdout);
@@ -405,7 +404,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
     // Calcul de la taille du buffer final
     E_Int nOctetsTot = 0;
-    for (E_Int i=0; i<sizeDatas; i++)
+    for (E_Int i=0; i < sizeDatas; i++)
     {
         nOctetsTot += tabOctets[i];
     }
@@ -423,6 +422,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     (*(E_Int*)bufToSend) = sizeDatas; bufToSend += 4; // nombre de donnees
     (*(E_Int*)bufToSend) = dataType; bufToSend += 4; // type de la donnees (1 ou 2)
 
+    // Version by Clement
     #pragma omp parallel
     {
         for (E_Int i=0; i < sizeDatas; i++)
@@ -444,11 +444,36 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
             #pragma omp single
             {
-                bufToSend+=tabOctets[i];
+                bufToSend += tabOctets[i];
             } 
         }
     }
 
+    // Rewritten by CB : split explicite de la boucle sizeDatas
+    /*
+    E_Int nthreads = __NUMTHREADS__;
+    std::vector<E_Int> ptrOctets(sizeDatas);
+    ptrOctets[0] = 8;
+    for (E_Int i = 1; i < sizeDatas; i++) ptrOctets[i] = ptrOctets[i-1]+4+tabOctets[i];
+
+    #pragma omp parallel
+    {
+        E_Int ithread = __CURRENT_THREAD__;
+        E_Int sizeDataLoc = sizeDatas / nthreads;
+        for (E_Int i = sizeDataLoc*ithread; i < std::min(sizeDataLoc*(ithread+1), sizeDatas); i++)
+        {
+            char* bf = bufToSend+ptrOctets[i];
+            char* buf = bigBuf[i];
+
+            (*(E_Int*)bf) = tabOctets[i];
+            for (E_Int j=0; j < tabOctets[i]; j++)
+            {
+                bf[j+4] = buf[j];
+            }
+        }
+    }
+    */
+   
     // Envoi des donnees
 #ifdef _MPI
     MPI_Request request;
@@ -456,7 +481,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 #endif
 
     // Suppression des pointeurs (sauf celui de l'envoi)
-    for (E_Int i=0; i<sizeDatas; i++)
+    for (E_Int i=0; i < sizeDatas; i++)
     {
         delete bigBuf[i];
     }
@@ -570,9 +595,9 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
 #endif
 
     // GESTION DU CAS ISEND(None)
-    if (nOctetsTot==1)
+    if (nOctetsTot == 1)
     {
-        if (*recvBuf=='n')
+        if (*recvBuf == 'n')
         {
             Py_INCREF(Py_None);
             return Py_None;  
@@ -748,7 +773,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             E_Int nFlds         = intBuf[1]; buf+=4;
             E_Float* fields     = new E_Float[size*nFlds];
             E_Float* floatBuf   = (E_Float*) buf;
-            buf+=size*nFlds*8;
+            buf += size*nFlds*8;
 
             // Remplissage parallele
             #pragma omp parallel
@@ -803,8 +828,8 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             intBuf               = (E_Int*) buf;
             size                 = intBuf[0] ; buf+=4;
             char fieldNames[size+1];
-            for (E_Int k=0; k<size; k++) { fieldNames[k]   = buf[k]; }
-            fieldNames[size]='\0'; buf+=size;
+            for (E_Int k=0; k<size; k++) { fieldNames[k] = buf[k]; }
+            fieldNames[size] = '\0'; buf += size;
 
             // Tableau des fields
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};

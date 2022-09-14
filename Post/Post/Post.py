@@ -528,7 +528,7 @@ def streamLine(arrays, X0, vector, N=2000, dir=2):
         surf = Generator.close(surf)
     # grow 2D arrays
     if surf != []:
-        tol=1.
+        tol = 1.
         inl, modified = growOfEps__(arrays, tol, nlayers=2, planarity=False)
         arrays = inl
 
@@ -545,11 +545,11 @@ def streamLine(arrays, X0, vector, N=2000, dir=2):
             try: import Transform
             except: return a
             b = Transform.reorder(b, (-1,2,3))
-            c = Transform.join(b,a)
+            c = Transform.join(b, a)
             return c
         elif b == 0 and a != 0: return a
         elif a == 0 and b != 0: return b
-        else: raise
+        else: raise ValueError('Empty streamline.')
 
 # IN: arrays: coords + solution
 # IN: X0: (x,y,z) ou liste de tuples
