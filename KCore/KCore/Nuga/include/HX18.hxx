@@ -132,7 +132,7 @@ namespace NUGA
       E_Int* BACK = FACES + 14;  //DIR
 
 #ifdef DEBUG_HIERARCHICAL_MESH
-      if (PHi == 127)
+      if (PHi == 0)
       {
         const E_Int* faces = ng.PHs.get_facets_ptr(PHi);
         medith::write("BOT_0", crd, ng.PGs, faces[0]-1);
@@ -205,12 +205,12 @@ namespace NUGA
 
       // BOT
       E_Int i0 = 0;
-      reorient = need_a_reorient(pPGi[0] - 1, PHi, true, F2E);
+      reorient = need_a_reorient(PGi, PHi, true, F2E);
 
-      const E_Int* pchild = PGtree.children(pPGi[0] - 1);
+      const E_Int* pchild = PGtree.children(PGi);
       for (size_t k = 0; k < 4; ++k)BOT[k] = *(pchild++);//init
 
-      /*if (reorient)*/ Q9::retrieve_ordered_data(ng.PGs, pPGi[0] - 1, i0, reorient, BOT, tmpQ9);
+      /*if (reorient)*/ Q9::retrieve_ordered_data(ng.PGs, PGi, i0, reorient, BOT, tmpQ9);
 
       nodes[8] = tmpQ9[4];
       nodes[9] = tmpQ9[5];
@@ -227,16 +227,17 @@ namespace NUGA
 
       // LEFT 
       E_Int tmpQ6[6];
-      const E_Int* p = ng.PGs.get_facets_ptr(pPGi[2] - 1);
+      PGi = pPGi[2] - 1;
+      const E_Int* p = ng.PGs.get_facets_ptr(PGi);
       //std::cout << p[0] << "/" << p[1] << "/" << p[2] << "/" << p[3] << std::endl;
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
       assert(i0 != -1);
-      pchild = PGtree.children(pPGi[2] - 1);
-      assert(PGtree.nb_children(pPGi[2] - 1) == 2);
+      pchild = PGtree.children(PGi);
+      assert(PGtree.nb_children(PGi) == 2);
       for (size_t k = 0; k < 2; ++k)LEFT[k] = *(pchild++);//init
 
-      reorient = need_a_reorient(pPGi[2] - 1, PHi, true, F2E);
-      Q6::retrieve_ordered_data(ng.PGs, pPGi[2] - 1, i0, reorient, LEFT, tmpQ6);
+      reorient = need_a_reorient(PGi, PHi, true, F2E);
+      Q6::retrieve_ordered_data(ng.PGs, PGi, i0, reorient, LEFT, tmpQ6);
 
       nodes[4] = tmpQ6[3];
       nodes[7] = tmpQ6[2];
@@ -249,16 +250,17 @@ namespace NUGA
 #endif
 
       // RIGHT
-      p = ng.PGs.get_facets_ptr(pPGi[3] - 1);
+      PGi = pPGi[3] - 1;
+      p = ng.PGs.get_facets_ptr(PGi);
       //std::cout << p[0] << "/" << p[1] << "/" << p[2] << "/" << p[3] << std::endl;
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[1]);
       assert(i0 != -1);
-      pchild = PGtree.children(pPGi[3] - 1);
-      assert(PGtree.nb_children(pPGi[3] - 1) == 2);
+      pchild = PGtree.children(PGi);
+      assert(PGtree.nb_children(PGi) == 2);
       for (size_t k = 0; k < 2; ++k)RIGHT[k] = *(pchild++);//init
 
-      reorient = need_a_reorient(pPGi[3] - 1, PHi, false, F2E);
-      Q6::retrieve_ordered_data(ng.PGs, pPGi[3] - 1, i0, reorient, RIGHT, tmpQ6);
+      reorient = need_a_reorient(PGi, PHi, false, F2E);
+      Q6::retrieve_ordered_data(ng.PGs, PGi, i0, reorient, RIGHT, tmpQ6);
 
       nodes[5] = tmpQ6[3];
       nodes[6] = tmpQ6[2];
@@ -271,14 +273,15 @@ namespace NUGA
 #endif 
 
       // TOP
-      p = ng.PGs.get_facets_ptr(pPGi[1] - 1);
+      PGi = pPGi[1] - 1;
+      p = ng.PGs.get_facets_ptr(PGi);
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[4]);
       assert(i0 != -1);
-      pchild = PGtree.children(pPGi[1] - 1);
+      pchild = PGtree.children(PGi);
       for (size_t k = 0; k < 4; ++k)TOP[k] = *(pchild++);//init
 
-      reorient = need_a_reorient(pPGi[1] - 1, PHi, false, F2E);
-      Q9::retrieve_ordered_data(ng.PGs, pPGi[1] - 1, i0, reorient, TOP, tmpQ9);
+      reorient = need_a_reorient(PGi, PHi, false, F2E);
+      Q9::retrieve_ordered_data(ng.PGs, PGi, i0, reorient, TOP, tmpQ9);
 
       nodes[13] = tmpQ9[4];
       nodes[15] = tmpQ9[6];
@@ -294,15 +297,16 @@ namespace NUGA
 #endif 
 
       // FRONT
-      p = ng.PGs.get_facets_ptr(pPGi[4] - 1);
+      PGi = pPGi[4] - 1;
+      p = ng.PGs.get_facets_ptr(PGi);
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[1]);
       assert(i0 != -1);
-      pchild = PGtree.children(pPGi[4] - 1);
-      assert(PGtree.nb_children(pPGi[4] - 1) == 2);
+      pchild = PGtree.children(PGi);
+      assert(PGtree.nb_children(PGi) == 2);
       for (size_t k = 0; k < 2; ++k)FRONT[k] = *(pchild++);//init
 
-      reorient = need_a_reorient(pPGi[4] - 1, PHi, true, F2E);
-      Q6::retrieve_ordered_data(ng.PGs, pPGi[4] - 1, i0, reorient, FRONT, tmpQ6);
+      reorient = need_a_reorient(PGi, PHi, true, F2E);
+      Q6::retrieve_ordered_data(ng.PGs, PGi, i0, reorient, FRONT, tmpQ6);
 
 #ifdef DEBUG_HIERARCHICAL_MESH
       assert(tmpQ6[0] == nodes[1]);
@@ -314,15 +318,16 @@ namespace NUGA
 #endif
 
       // BACK
-      p = ng.PGs.get_facets_ptr(pPGi[5] - 1);
+      PGi = pPGi[5] - 1;
+      p = ng.PGs.get_facets_ptr(PGi);
       i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[2]);
       assert(i0 != -1);
-      pchild = PGtree.children(pPGi[5] - 1);
-      assert(PGtree.nb_children(pPGi[5] - 1) == 2);
+      pchild = PGtree.children(PGi);
+      assert(PGtree.nb_children(PGi) == 2);
       for (size_t k = 0; k < 2; ++k)BACK[k] = *(pchild++);//init
 
-      reorient = need_a_reorient(pPGi[5] - 1, PHi, false, F2E);
-      Q6::retrieve_ordered_data(ng.PGs, pPGi[5] - 1, i0, reorient, BACK, tmpQ6);
+      reorient = need_a_reorient(PGi, PHi, false, F2E);
+      Q6::retrieve_ordered_data(ng.PGs, PGi, i0, reorient, BACK, tmpQ6);
 
 #ifdef DEBUG_HIERARCHICAL_MESH
       assert(tmpQ6[0] == nodes[2]);

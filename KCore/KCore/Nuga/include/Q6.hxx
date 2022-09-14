@@ -49,87 +49,172 @@ namespace NUGA
       const E_Int* pNFils0 = PGs.get_facets_ptr(two_childrenPG[0]);
       const E_Int* pNFils1 = PGs.get_facets_ptr(two_childrenPG[1]);
 
-      if (i0 == 0 && !reorient)
-      {
-        Q6nodes[0] = nodes[0];
-        Q6nodes[1] = nodes[1];
-        Q6nodes[2] = nodes[2];
-        Q6nodes[3] = nodes[3];
-        Q6nodes[4] = pNFils0[1];
-        Q6nodes[5] = pNFils0[2];
-      }
-      else if (i0 == 1 && reorient)//a
-      {
-        Q6nodes[0] = nodes[1];
-        Q6nodes[1] = nodes[0];
-        Q6nodes[2] = nodes[3];
-        Q6nodes[3] = nodes[2];
-        Q6nodes[4] = pNFils0[1];
-        Q6nodes[5] = pNFils0[2];
+      NUGA::eDIR dir = (pNFils0[1] == nodes[1]) ? Y : Xd;
 
-        std::swap(two_childrenPG[0], two_childrenPG[1]);
-      }
-      else if (i0 == 2 && !reorient)//b
-      {
-        Q6nodes[0] = nodes[2];
-        Q6nodes[1] = nodes[3];
-        Q6nodes[2] = nodes[0];
-        Q6nodes[3] = nodes[1];
-        Q6nodes[4] = pNFils0[2];
-        Q6nodes[5] = pNFils0[1];
+      //init with parent nodes (shift and/or reverse might be needed)
+      Q6nodes[0] = nodes[0];
+      Q6nodes[1] = nodes[1];
+      Q6nodes[2] = nodes[2];
+      Q6nodes[3] = nodes[3];
 
-        std::swap(two_childrenPG[0], two_childrenPG[1]);
-      }
-      else if (i0 == 3 && reorient)//c
-      {
-        Q6nodes[0] = nodes[3];
-        Q6nodes[1] = nodes[2];
-        Q6nodes[2] = nodes[1];
-        Q6nodes[3] = nodes[0];
-        Q6nodes[4] = pNFils0[2];
-        Q6nodes[5] = pNFils0[1];
-      }
-      else if (i0 == 0 && reorient) //d
-      {
-        Q6nodes[0] = nodes[0];
-        Q6nodes[1] = nodes[3];
-        Q6nodes[2] = nodes[2];
-        Q6nodes[3] = nodes[1];
-        Q6nodes[4] = pNFils0[2];
-        Q6nodes[5] = pNFils0[3];
-      }
-      else if (i0 == 1 && !reorient) //e
-      {
-        Q6nodes[0] = nodes[3];
-        Q6nodes[1] = nodes[0];
-        Q6nodes[2] = nodes[1];
-        Q6nodes[3] = nodes[2];
-        Q6nodes[4] = pNFils0[3];
-        Q6nodes[5] = pNFils0[2];
+      int shift = reorient ? 3 - i0 : i0;
 
-        std::swap(two_childrenPG[0], two_childrenPG[1]);
-      }
-      else if (i0 == 2 && reorient) //f
-      {
-        Q6nodes[0] = nodes[2];
-        Q6nodes[1] = nodes[1];
-        Q6nodes[2] = nodes[0];
-        Q6nodes[3] = nodes[3];
-        Q6nodes[4] = pNFils0[2];
-        Q6nodes[5] = pNFils0[3];
+      if (reorient)
+        std::reverse(Q6nodes, Q6nodes + 4);
 
-        std::swap(two_childrenPG[0], two_childrenPG[1]);
-      }
-      else if (i0 == 3 && !reorient) //g
+      if (shift != 0) K_CONNECT::IdTool::right_shift<4>(Q6nodes, shift);
+
+      NUGA::eDIR dout;
+
+      // 1. setting the last 2 points, the refining point fetched from the first PG child.
+      // 2. eventually swapping the children to fit to the convention
+      // 3. output the dir based on 1. the local dir (the stored one), 2. the orientation and 3. the first node id i0
+      if (dir == Xd)
       {
-        Q6nodes[0] = nodes[1];
-        Q6nodes[1] = nodes[2];
-        Q6nodes[2] = nodes[3];
-        Q6nodes[3] = nodes[0];
-        Q6nodes[4] = pNFils0[2];
-        Q6nodes[5] = pNFils0[3];
+        if (!reorient)
+        {
+          if (i0 == 0)
+          {
+            Q6nodes[4] = pNFils0[1];
+            Q6nodes[5] = pNFils0[2];
+            dout = Xd;
+          }
+          else if (i0 == 1)
+          {
+            assert(false);
+            /*
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[1];
+            dout = Y;
+            std::swap(two_childrenPG[0], two_childrenPG[1]);
+            */
+          }
+          else if (i0 == 2)
+          {
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[1];
+            dout = Xd;
+            std::swap(two_childrenPG[0], two_childrenPG[1]);
+          }
+          else if (i0 == 3)
+          {
+            assert(false);
+            /*
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[1];
+            dout = Y;
+            */
+          }
+        }
+        else // opposite orientation stored
+        {
+          if (i0 == 0)
+          {
+            assert(false);
+            /*
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[1];
+            dout = Y;
+            */
+          }
+          else if (i0 == 1)
+          {
+            Q6nodes[4] = pNFils0[1];
+            Q6nodes[5] = pNFils0[2];
+            dout = Xd;
+            std::swap(two_childrenPG[0], two_childrenPG[1]);
+          }
+          else if (i0 == 2)
+          {
+            assert(false);
+            /*
+            Q6nodes[4] = pNFils0[1];
+            Q6nodes[5] = pNFils0[2];
+            dout = Y;
+            std::swap(two_childrenPG[0], two_childrenPG[1]);
+            */
+          }
+          else if (i0 == 3)
+          {
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[1];
+            dout = Xd;
+          }
+        }
       }
-      
+      else // dir == Y
+      {
+        if (!reorient)
+        {
+          if (i0 == 0)
+          {
+            assert(false);
+            /*
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[3];
+            dout = Y;
+            */
+          }
+          else if (i0 == 1)
+          {
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[3];
+            dout = Xd;
+          }
+          else if (i0 == 2)
+          {
+            assert(false);
+            /*
+            Q6nodes[4] = pNFils0[3];
+            Q6nodes[5] = pNFils0[2];
+            dout = Y;
+            std::swap(two_childrenPG[0], two_childrenPG[1]);
+            */
+          }
+          else if (i0 == 3)
+          {
+            Q6nodes[4] = pNFils0[3];
+            Q6nodes[5] = pNFils0[2];
+            dout = Xd;
+            std::swap(two_childrenPG[0], two_childrenPG[1]);
+          }
+        }
+        else // opposite orientation stored
+        {
+          if (i0 == 0)
+          {
+            Q6nodes[4] = pNFils0[3];
+            Q6nodes[5] = pNFils0[2];
+            dout = Xd;
+          }
+          else if (i0 == 1)
+          {
+            assert(false);
+            /*
+            Q6nodes[4] = pNFils0[3];
+            Q6nodes[5] = pNFils0[2];
+            dout = Y;
+            */
+          }
+          else if (i0 == 2)
+          {
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[3];
+            dout = Xd;
+            std::swap(two_childrenPG[0], two_childrenPG[1]);
+          }
+          else if (i0 == 3)
+          {
+            assert(false);
+            /*
+            Q6nodes[4] = pNFils0[2];
+            Q6nodes[5] = pNFils0[3];
+            dout = Y;
+            std::swap(two_childrenPG[0], two_childrenPG[1]);
+            */
+          }
+        }
+      }
     }
       
   };

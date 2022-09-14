@@ -87,7 +87,7 @@ bool cell_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   for (size_t k = 0; k < adap_incr.cell_adap_incr.size(); ++k)
     cmax = std::max(cmax, adap_incr.cmax(k));
 
-  E_Int cmin = 1;
+  E_Int cmin = IDX_NONE; // max int32
   for (size_t k = 0; k < adap_incr.cell_adap_incr.size(); ++k)
     cmin = std::min(cmin, adap_incr.cmin(k));
 

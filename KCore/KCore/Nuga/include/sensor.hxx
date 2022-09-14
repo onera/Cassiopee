@@ -105,6 +105,7 @@ inline NUGA::eDIR get_dir(const K_FLD::FloatArray& crd, const E_Int* nodes, E_In
 
   double E[3];
   NUGA::diff<3>(crd.col(nodes[1] - 1), crd.col(nodes[0] - 1), E);
+  NUGA::normalize<3>(E);
 
   ps = ::fabs(NUGA::dot<3>(Z, E));
 

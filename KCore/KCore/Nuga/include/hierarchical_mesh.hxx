@@ -388,7 +388,8 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
       if (adincrPHi > 0) // refinement : activate the children, transfer the adapincr & set their level
       {
         --adincrPHi;
-        adincrPHi = max(adincrPHi, 0); // to do same behaviour for DIR and ISO : if (adincrPHi > 0) = > adincrPHi - 1 >= 0
+        adincrPHi = max(adincrPHi, 0); // to do same behaviour for DIR and ISO:
+                                       // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
 
         E_Int nb_child = _PHtree.nb_children(PHi);
         const E_Int* children = _PHtree.children(PHi);
@@ -452,7 +453,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
     cmax = 0;
     for (size_t k=0; k < adap_incr.cell_adap_incr.size(); ++k)
       cmax = std::max(cmax, adap_incr.cmax(k));
-    E_Int cmin = 0;
+    E_Int cmin = do_agglo ? IDX_NONE : 0;
     if (do_agglo)
     {
       for (size_t k = 0; k < adap_incr.cell_adap_incr.size(); ++k)
