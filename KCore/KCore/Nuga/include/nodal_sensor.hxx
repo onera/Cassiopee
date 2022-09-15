@@ -19,11 +19,12 @@ namespace NUGA
 {
 
 template <typename mesh_t>
-class nodal_sensor : public sensor<mesh_t, Vector_t<E_Int>> // Vector_t might be templatized to have ISO mode with a metric field
+class nodal_sensor : public sensor<mesh_t, std::vector<typename mesh_t::cell_incr_t>> // Vector_t might be templatized to have ISO mode with a metric field
 {
   public:
   
-    using sensor_input_t = Vector_t<E_Int>;
+    using cell_incr_t = typename mesh_t::cell_incr_t;
+    using sensor_input_t = std::vector<cell_incr_t>;
     using parent_t = sensor<mesh_t, sensor_input_t>;
     using output_t = typename mesh_t::output_t; //fixme: static assert to add : must be ISO => IntVec
 
@@ -45,7 +46,7 @@ E_Int nodal_sensor<mesh_t>::assign_data(const sensor_input_t& data)
   {
     //converts input data to hmesh data
     sensor_input_t hmdat;
-    hmdat.resize(ncrd, 0);
+    hmdat.resize(ncrd, cell_incr_t(0));
 
     for (size_t k=0; k < data.size(); ++k){
       //std::cout << "id : " << k << " --> hmid : " << parent_t::_hmesh.pthids0[k] << " over " << ncrd << "points" << std::endl;
@@ -58,7 +59,7 @@ E_Int nodal_sensor<mesh_t>::assign_data(const sensor_input_t& data)
   else
   {
     parent_t::assign_data(data);
-    parent_t::_data.resize(ncrd, 0.); // resize anyway to ensure same size as crd
+    parent_t::_data.resize(ncrd, cell_incr_t(0)); // resize anyway to ensure same size as crd
   }
 
   return 0;
@@ -76,10 +77,15 @@ bool nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
   E_Int nb_elt= parent_t::_hmesh._ng.PHs.size();
   bool flag(false);
+
   adap_incr.cell_adap_incr.clear();
-  adap_incr.cell_adap_incr.resize(nb_elt, 0);
   adap_incr.face_adap_incr.clear();
-  adap_incr.face_adap_incr.resize(nb_faces, 0);
+
+  using cell_incr_t = typename output_t::cell_incr_t;
+  using face_incr_t = typename output_t::face_incr_t;
+
+  adap_incr.cell_adap_incr.resize(nb_elt, cell_incr_t(0));
+  adap_incr.face_adap_incr.resize(nb_faces, face_incr_t(0));
 
   if (Ln.empty()) return false;
 
@@ -116,7 +122,7 @@ bool nodal_sensor<mesh_t>::update()
   sensor_input_t& Ln = parent_t::_data;
   E_Int nb_pts = parent_t::_hmesh._crd.size();
   E_Int nb_new_pts = nb_pts - Ln.size();
-  Ln.resize(nb_pts, IDX_NONE);
+  Ln.resize(nb_pts, cell_incr_t(IDX_NONE));
 
   bool updated{ false };
 
@@ -126,7 +132,7 @@ bool nodal_sensor<mesh_t>::update()
   {
     if (Ln[i] > 0 && Ln[i] != IDX_NONE)
     {
-      Ln[i]--;
+      --Ln[i];
       updated = true;
     }
   }

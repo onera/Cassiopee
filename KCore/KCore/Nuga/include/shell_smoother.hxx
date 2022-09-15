@@ -20,7 +20,7 @@ namespace NUGA
 template <typename mesh_t>
 struct shell_smoother : public smoother<mesh_t>
 {
-  using output_t = incr_type<mesh_t::SUBTYPE>;
+  using output_t = adap_incr_type<mesh_t::SUBTYPE>;
   
   Vector_t<E_Int> _Ln;
 

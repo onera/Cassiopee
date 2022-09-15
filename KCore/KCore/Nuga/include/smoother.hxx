@@ -23,7 +23,7 @@ namespace NUGA
 template <typename mesh_t>
 struct smoother
 {
-  using output_t = incr_type<mesh_t::SUBTYPE>;
+  using output_t = adap_incr_type<mesh_t::SUBTYPE>;
      
   smoother() = default;
 

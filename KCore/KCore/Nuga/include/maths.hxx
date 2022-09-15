@@ -474,6 +474,9 @@ template <typename T> inline
 T abs(T a) { return ::abs(a); } //wrapper for l.64 V1_smoother.hxx
 template <typename T> inline
 T max(T a, T b) { return std::max(a, b); } //wrapper for l.361 hierarchical_mesh.hxx
+template <typename T> inline
+T min(T a, T b) { return std::min(a, b); } //wrapper for l.106 estimator.hxx
+
 
 
 inline long szudzik_pairing(int x, int y)

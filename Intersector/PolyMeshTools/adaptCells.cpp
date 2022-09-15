@@ -1564,9 +1564,12 @@ PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
 // //============================================================================
 // /* assign data to a sensor*/
 // ============================================================================
+
+template <NUGA::eSUBDIV_TYPE STYP> using incr_t = typename NUGA::adap_incr_type<STYP>::cell_incr_t; // E_Int (ISO) or int_tuple<3> (DIR)
+
 template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
 void __assign_sensor_data
-(E_Int sensor_type, void* psensor, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
+(E_Int sensor_type, void* psensor, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<incr_t<STYPE>>& punctual_data)
 {
   if (psensor == nullptr) return;
 
@@ -1735,7 +1738,7 @@ void __assign_sensor_data<K_MESH::Hexahedron, NUGA::ISO>
 
 template <NUGA::eSUBDIV_TYPE STYPE>
 void __assign_sensor_data
-(E_Int etype, E_Int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
+(E_Int etype, E_Int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<incr_t<STYPE>>& punctual_data)
 {
   if (etype == elt_t::HEXA)
     __assign_sensor_data<K_MESH::Hexahedron, STYPE>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
@@ -1756,7 +1759,7 @@ void __assign_sensor_data<NUGA::ISO_HEX>
 
 template <>
 void __assign_sensor_data<NUGA::DIR>
-(E_Int etype, E_Int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
+(E_Int etype, E_Int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<int_tuple<3>>& punctual_data)
 {
   __assign_sensor_data<K_MESH::Hexahedron, NUGA::DIR>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
 }
@@ -1777,7 +1780,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
   void** packet{ nullptr };
   void* sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type, elt_type, packet);
 
-  std::vector<E_Int> punctual_data;
+  std::vector<E_Int> sens_data;
   K_FLD::FloatArray fS;
   K_FLD::IntArray cnS;
 
@@ -1794,21 +1797,28 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
   {
      E_Int *nodv, size, nfld;
      /*E_Int res2 = */K_NUMPY::getFromNumpyArray(dataSensor, nodv, size, nfld, true/* shared*/);
-     punctual_data.resize(size);  
+     sens_data.resize(size);  
      for (E_Int i=0; i < size; ++i)
      {
        E_Int v = nodv[i];
        v = std::max((E_Int)0,v); //disable agglo currently
-       punctual_data[i] = v;
+       sens_data[i] = v;
      }
   }
 
   if (*subdiv_type == NUGA::ISO)
-    __assign_sensor_data<NUGA::ISO>(*elt_type, *sensor_type, sensor, fS, cnS, punctual_data);
+    __assign_sensor_data<NUGA::ISO>(*elt_type, *sensor_type, sensor, fS, cnS, sens_data);
   else if (*subdiv_type == NUGA::ISO_HEX)
-    __assign_sensor_data<NUGA::ISO_HEX>(*elt_type, *sensor_type, sensor, fS, cnS, punctual_data);
+    __assign_sensor_data<NUGA::ISO_HEX>(*elt_type, *sensor_type, sensor, fS, cnS, sens_data);
   else if (*subdiv_type == NUGA::DIR)
-    __assign_sensor_data<NUGA::DIR>(*elt_type, *sensor_type, sensor, fS, cnS, punctual_data);
+  {
+    //todo Imad : dealing with directional data set in the python
+    std::vector<int_tuple<3>> sens_data_dir(sens_data.size(), int_tuple<3>(0));
+    for (size_t u=0; u < sens_data.size(); ++u)
+      sens_data_dir[u] = sens_data[u]; // pass a single value to the 3-tuple
+
+    __assign_sensor_data<NUGA::DIR>(*elt_type, *sensor_type, sensor, fS, cnS, sens_data_dir);
+  }
 
   Py_INCREF(Py_None);
   return Py_None;

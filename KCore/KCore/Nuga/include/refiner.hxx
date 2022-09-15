@@ -86,7 +86,7 @@ namespace NUGA
   class refiner
   {
   public:
-    using output_t = incr_type<STYPE>;
+    using output_t = adap_incr_type<STYPE>;
 
   public:
     std::map<K_MESH::NO_Edge, E_Int> _ecenter;
@@ -146,11 +146,13 @@ namespace NUGA
   E_Int refiner<ELT_t, STYPE>::extract_PGs_to_refine
   (K_FLD::FloatArray& crd/*hack for CLEF*/, const ngon_type& ng, const tree<arr_t> & PGtree, const output_t &adap_incr, Vector_t<E_Int>& PG_to_ref, Vector_t<NUGA::eDIR> & PG_directive)
   {
+    using face_incr_t = typename output_t::face_incr_t;
+
     E_Int nb_phs = ng.PHs.size();
     // Gets PGs to refine
     E_Int nb_pgs(ng.PGs.size());
     auto is_PG_to_refine = adap_incr.face_adap_incr;// IMPORTANT : CAN HAVE SOMETHING UPON ENTRY (e.g. WHEN SYNCING JOINS)
-    is_PG_to_refine.resize(nb_pgs, 0);
+    is_PG_to_refine.resize(nb_pgs, face_incr_t(0));
 
     // disable non-admissible elements (face_adap_incr may contain info fo Q4 & T3)
     // IMPORTANT : need to be over all PGS (not only those belonging to cells to refine) 

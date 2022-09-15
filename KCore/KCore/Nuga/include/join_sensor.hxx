@@ -50,8 +50,11 @@ bool join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   E_Int nb_elts = parent_t::_hmesh._ng.PHs.size();
   E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
 
-  adap_incr.cell_adap_incr.resize(nb_elts, 0);
-  adap_incr.face_adap_incr.resize(nb_faces, 0);
+  using cell_incr_t = typename output_t::cell_incr_t;
+  using face_incr_t = typename output_t::face_incr_t;
+
+  adap_incr.cell_adap_incr.resize(nb_elts, cell_incr_t(0));
+  adap_incr.face_adap_incr.resize(nb_faces, face_incr_t(0));
 
   // 1. filling adap_incr.face_adap_incr : select if face plan ask for and not already subdivided
   for (auto& dat : parent_t::_data)

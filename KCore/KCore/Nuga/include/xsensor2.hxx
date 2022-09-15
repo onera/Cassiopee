@@ -87,8 +87,12 @@ bool xsensor2<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   
   adap_incr.face_adap_incr.clear();
   adap_incr.cell_adap_incr.clear();
-  adap_incr.cell_adap_incr.resize(nb_cells, 0);
-  adap_incr.face_adap_incr.resize(nb_faces, 0);
+
+  using cell_incr_t = typename output_t::cell_incr_t;
+  using face_incr_t = typename output_t::face_incr_t;
+
+  adap_incr.cell_adap_incr.resize(nb_cells, cell_incr_t(0));
+  adap_incr.face_adap_incr.resize(nb_faces, face_incr_t(0));
 
   ph_mesh_t m1;//fixme
   m1.crd = parent_t::_hmesh._crd;

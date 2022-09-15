@@ -291,15 +291,16 @@ namespace NUGA
   };
 
   template <E_Int DIM>
-  struct dir_type
+  struct int_tuple
   {
     E_Int n[DIM];
-    explicit dir_type(E_Int val) { n[0] = n[1] = val; if (DIM == 3) n[2] = val; }
-    dir_type& operator=(E_Int val) { n[0] = n[1] = val; if (DIM == 3) n[2] = val; return *this; }
-    dir_type& operator=(const dir_type& d) { n[0] = d.n[0];  n[1] = d.n[1]; n[2] = d.n[2]; return *this; }
+    int_tuple() : int_tuple(0){}
+    explicit int_tuple(E_Int val) { n[0] = n[1] = val; if (DIM == 3) n[2] = val; }
+    int_tuple& operator=(E_Int val) { n[0] = n[1] = val; if (DIM == 3) n[2] = val; return *this; }
+    int_tuple& operator=(const int_tuple& d) { n[0] = d.n[0];  n[1] = d.n[1]; n[2] = d.n[2]; return *this; }
     //E_Int operator+(E_Int v) const { return max() + v; }
-    dir_type& operator+(E_Int val) { n[0] += val;  n[1] += val; if (DIM == 3) n[2] += val; return *this; }
-    dir_type& operator--() { --n[0]; --n[1]; if (DIM == 3)--n[2]; return *this; }
+    int_tuple& operator+(E_Int val) { n[0] += val;  n[1] += val; if (DIM == 3) n[2] += val; return *this; }
+    int_tuple& operator--() { n[0] = std::max(0, --n[0]); n[1] = std::max(0, --n[1]); if (DIM == 3) { n[2] = std::max(0, --n[2]); }; return *this; }
 
     bool operator>=(E_Int v) const { return (max() >= v); }
     bool operator<=(E_Int v) const { return (max() <= v); }
@@ -312,15 +313,18 @@ namespace NUGA
       return false;
     }
     //DANGEROUS because weird logic
-    bool operator>(const dir_type& d) {
+    bool operator>(const int_tuple& d) {
       if (n[0] > d.n[0]) return true;
       if (n[1] > d.n[1]) return true;
       if ((DIM == 3) && (n[2] > d.n[2])) return true;
       return false;
     }
-    dir_type& operator+=(E_Int val) { n[0] = std::max(n[0] + val, 0); n[1] = std::max(n[1] + val, 0);; if (DIM == 3) n[2] = std::max(n[2] + val, 0); return *this; }
+    int_tuple& operator+=(E_Int val) { n[0] = std::max(n[0] + val, 0); n[1] = std::max(n[1] + val, 0);; if (DIM == 3) n[2] = std::max(n[2] + val, 0); return *this; }
+    int_tuple& operator+=(const int_tuple& d) { n[0] += d.n[0];  n[1] += d.n[1]; if (DIM == 3)  n[2] += d.n[2]; return *this; }
 
-    dir_type operator-(const dir_type& d) { dir_type res(0);  res.n[0] = n[0] - d.n[0]; res.n[1] = n[1] - d.n[1]; if (DIM == 3) res.n[2] = n[2] - d.n[2]; return res; }
+    int_tuple& operator/=(E_Int val) { n[0] /= val; n[1] /= val; if (DIM == 3) n[2] /= val; return *this; }
+  
+    int_tuple operator-(const int_tuple& d) { int_tuple res(0);  res.n[0] = n[0] - d.n[0]; res.n[1] = n[1] - d.n[1]; if (DIM == 3) res.n[2] = n[2] - d.n[2]; return res; }
 
     E_Int max() const {
       if (DIM == 3) return std::max(n[0], std::max(n[1], n[2]));
@@ -333,12 +337,13 @@ namespace NUGA
     }
   };
 
-  template <E_Int DIM> inline dir_type<DIM> max(dir_type<DIM>&d, E_Int v) { dir_type<DIM> res(0); res.n[0] = std::max(d.n[0], v); res.n[1] = std::max(d.n[1], v); if (DIM == 3) res.n[2] = std::max(d.n[2], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
-  inline dir_type<3> abs(dir_type<3> d) { dir_type<3> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); res.n[2] = ::abs(d.n[2]); return res; }
-  inline dir_type<3> max(dir_type<3> a, dir_type<3> b) { dir_type<3> res(0); res.n[0] = std::max(a.n[0], b.n[0]); res.n[1] = std::max(a.n[1], b.n[1]); res.n[2] = std::max(a.n[2], b.n[2]); return res; }
+  template <E_Int DIM> inline int_tuple<DIM> max(int_tuple<DIM>&d, E_Int v) { int_tuple<DIM> res(0); res.n[0] = std::max(d.n[0], v); res.n[1] = std::max(d.n[1], v); if (DIM == 3) res.n[2] = std::max(d.n[2], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
+  inline int_tuple<3> abs(int_tuple<3> d) { int_tuple<3> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); res.n[2] = ::abs(d.n[2]); return res; }
+  inline int_tuple<3> max(int_tuple<3> a, int_tuple<3> b) { int_tuple<3> res(0); res.n[0] = std::max(a.n[0], b.n[0]); res.n[1] = std::max(a.n[1], b.n[1]); res.n[2] = std::max(a.n[2], b.n[2]); return res; }
+  inline int_tuple<3> min(int_tuple<3> a, int_tuple<3> b) { int_tuple<3> res(0); res.n[0] = std::min(a.n[0], b.n[0]); res.n[1] = std::min(a.n[1], b.n[1]); res.n[2] = std::min(a.n[2], b.n[2]); return res; }
 
 
-  template <E_Int DIM> inline std::ostream &operator<<(std::ostream& out, const dir_type<DIM>& d)
+  template <E_Int DIM> inline std::ostream &operator<<(std::ostream& out, const int_tuple<DIM>& d)
   {
     out << d.n[0] << "/" << d.n[1];
 
@@ -349,37 +354,15 @@ namespace NUGA
     return out;
   }
 
-  template <E_Int DIM>
-  struct dir_vector_incr
-  {
-    using vec_t = Vector_t<dir_type<DIM>>;
-    vec_t vec;
-    dir_type<DIM>& operator[](E_Int i) { return vec[i]; };
-
-    const dir_type<DIM>& operator[](E_Int i) const { return vec[i]; };
-    size_t size() const { return vec.size(); }
-    void clear() { vec.clear(); }
-    void resize(E_Int sz, E_Int val) { dir_type<DIM> dt(val); vec.resize(sz, dt); }
-    typename vec_t::iterator begin() { return vec.begin(); }
-    typename vec_t::iterator end() { return vec.end(); }
-
-    E_Int max(E_Int k) { return vec[k].max(); }
-    E_Int min(E_Int k) { return vec[k].min(); }
-
-    dir_vector_incr& operator=(const Vector_t<E_Int>& v)
-    {
-      resize(v.size(), 0);
-      for (size_t k = 0; k < v.size(); ++k) { vec[k].n[0] = vec[k].n[1] = v[k]; if (DIM == 3) vec[k].n[2] = v[k]; }
-      return *this;
-    }
-  };
-
+ 
+  ///
   template <eSUBDIV_TYPE STYPE> // ISO impl
-  struct incr_type
+  struct adap_incr_type
   {
+    using cell_incr_t = int;
+    using face_incr_t = int;
     Vector_t<E_Int> cell_adap_incr;
-    using pg_directive_type = Vector_t<E_Int>;
-    pg_directive_type face_adap_incr;
+    Vector_t<E_Int> face_adap_incr;
 
     E_Int cmin(E_Int k) { return cell_adap_incr[k]; }
     E_Int cmax(E_Int k) { return cell_adap_incr[k]; }
@@ -394,15 +377,16 @@ namespace NUGA
   };
 
   template<>
-  struct incr_type<DIR>
+  struct adap_incr_type<DIR>
   {
-    dir_vector_incr<3> cell_adap_incr;
-    using pg_directive_type = dir_vector_incr<2>;
-    pg_directive_type face_adap_incr;
+    using cell_incr_t = int_tuple<3>;
+    using face_incr_t = int_tuple<2>;
+    Vector_t<cell_incr_t> cell_adap_incr;
+    Vector_t<face_incr_t> face_adap_incr;
 
-    E_Int cmin(E_Int k) { return cell_adap_incr.min(k); }
-    E_Int cmax(E_Int k) { return cell_adap_incr.max(k); }
-    E_Int fmax(E_Int k) { return face_adap_incr.max(k); }
+    E_Int cmin(E_Int k) { return cell_adap_incr[k].min(); }
+    E_Int cmax(E_Int k) { return cell_adap_incr[k].max(); }
+    E_Int fmax(E_Int k) { return face_adap_incr[k].max(); }
 
     NUGA::eDIR get_face_dir(E_Int k) const {
 

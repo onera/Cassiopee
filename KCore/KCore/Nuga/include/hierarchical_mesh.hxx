@@ -57,7 +57,8 @@ class hierarchical_mesh
     using subdiv_t = subdiv_pol<ELT_t, STYPE>;
     using pg_arr_t = typename subdiv_t::pg_arr_t;
     using ph_arr_t = typename subdiv_t::ph_arr_t;
-    using output_t = incr_type<STYPE>;
+    using output_t = adap_incr_type<STYPE>;
+    using cell_incr_t = typename output_t::cell_incr_t;
     using pg_tree_t = tree<pg_arr_t>; 
     using ph_tree_t = tree<ph_arr_t>;
 
@@ -360,6 +361,9 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
 {
   E_Int fmax{1}, cmax{1}; //initialized wit 1 to do refinement at first iter
 
+  using cell_incr_t = typename output_t::cell_incr_t;
+  using face_incr_t = typename output_t::face_incr_t;
+
   // infinite loop but breaking test is done at each iteration (and terminates at some point)
   while (true)
   {
@@ -370,9 +374,9 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
     if (cmax > 0) refiner<ELT_t, STYPE>::refine_PHs(adap_incr, _ng, _PGtree, _PHtree, _crd, _F2E);
         
     //std::cout << "update cell_adap_incr, enable the right PHs & their levels" << std::endl;
-    adap_incr.cell_adap_incr.resize(_ng.PHs.size(),0);// resize to new size
+    adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));// resize to new size
     adap_incr.face_adap_incr.clear();
-    adap_incr.face_adap_incr.resize(_ng.PGs.size(), 0);
+    adap_incr.face_adap_incr.resize(_ng.PGs.size(), face_incr_t(0));
 
     for (E_Int PHi = 0; PHi < nb_phs0; ++PHi)
     {

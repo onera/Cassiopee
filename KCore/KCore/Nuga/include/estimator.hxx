@@ -20,11 +20,11 @@
 namespace NUGA
 {
 
-  template <typename mesh_t1, typename mesh_t2>
-  bool estimate_adap_req(mesh_t1& m1, mesh_t2& m2, NUGA::eMetricType M, double RTOL, std::vector<E_Int>& data, E_Int MINVAL = 0, E_Int MAXVAL = 10)
+  template <typename mesh_t1, typename mesh_t2, typename cell_incr_t>
+  bool estimate_adap_req(mesh_t1& m1, mesh_t2& m2, NUGA::eMetricType M, double RTOL, std::vector<cell_incr_t>& data, E_Int MINVAL = 0, E_Int MAXVAL = 10)
   {
     data.clear();
-    data.resize(m1.ncells(), 0);
+    data.resize(m1.ncells(), cell_incr_t(0));
 
     m1.get_nodal_metric2(M); // ISO_MAX, ISO_MIN or ISO_MEAN
     m2.get_nodal_metric2(M);
@@ -103,8 +103,8 @@ namespace NUGA
 
       //maxv = std::max(nsub, maxv);
 
-      data[i] = std::min(MAXVAL, data[i]);
-      data[i] = std::max(MINVAL, data[i]);
+      data[i] = NUGA::min(cell_incr_t(MAXVAL), data[i]);
+      data[i] = NUGA::max(cell_incr_t(MINVAL), data[i]);
 
     }
 

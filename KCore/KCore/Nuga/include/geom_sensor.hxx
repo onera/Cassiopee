@@ -122,8 +122,12 @@ bool geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
 
   adap_incr.face_adap_incr.clear();
   adap_incr.cell_adap_incr.clear();
-  adap_incr.cell_adap_incr.resize(_cur_nphs, 0);
-  adap_incr.face_adap_incr.resize(nb_faces, 0);
+
+  using cell_incr_t = typename output_t::cell_incr_t;
+  using face_incr_t = typename output_t::face_incr_t;
+
+  adap_incr.cell_adap_incr.resize(_cur_nphs, cell_incr_t(0));
+  adap_incr.face_adap_incr.resize(nb_faces, face_incr_t(0));
 
   //points_to_cell gives the number of points per cell
   Vector_t<E_Int> nb_pts_per_cell(_cur_nphs,0);

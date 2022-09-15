@@ -25,7 +25,7 @@ template <typename mesh_t, typename sensor_input_t>
 class sensor
 {
   public:
-    using output_t = incr_type<mesh_t::SUBTYPE>;
+    using output_t = adap_incr_type<mesh_t::SUBTYPE>;
 
   public:
     sensor(mesh_t& mesh, smoother<mesh_t>* smoother) :_hmesh(mesh), _smoother(smoother) {};
@@ -79,13 +79,13 @@ static void discard_disabledand_unhandled(mesh_t& hmesh, adap_incr_t& adap_incr)
 
 //
 template <typename mesh_t>
-static void fix_adap_incr(mesh_t& hmesh, incr_type<ISO>& adap_incr)
+static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<ISO>& adap_incr)
 {
   discard_disabledand_unhandled(hmesh, adap_incr);
 }
 
 template <typename mesh_t>
-static void fix_adap_incr(mesh_t& hmesh, incr_type<ISO_HEX>& adap_incr)
+static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<ISO_HEX>& adap_incr)
 {
   discard_disabledand_unhandled(hmesh, adap_incr);
 }
@@ -116,7 +116,7 @@ inline NUGA::eDIR get_dir(const K_FLD::FloatArray& crd, const E_Int* nodes, E_In
 
 //
 template <typename mesh_t>
-static void fix_adap_incr(mesh_t& hmesh, incr_type<DIR>& adap_incr)
+static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<DIR>& adap_incr)
 {
   discard_disabledand_unhandled(hmesh, adap_incr);
 
@@ -140,7 +140,7 @@ static void fix_adap_incr(mesh_t& hmesh, incr_type<DIR>& adap_incr)
 
       NUGA::eDIR d = get_dir(hmesh._crd, nodes, nnodes);
 
-      auto& ad = adap_incr.face_adap_incr.vec[PGi];
+      auto& ad = adap_incr.face_adap_incr[PGi];
       //E_Int val = adap_incr.cell_adap_incr[i];
 
       if (d == XY || d == Xd)
@@ -153,7 +153,7 @@ static void fix_adap_incr(mesh_t& hmesh, incr_type<DIR>& adap_incr)
 }
 
 //template <typename mesh_t>
-//static void fix_adap_incr(mesh_t& hmesh, incr_type<dir_type>& adap_incr)
+//static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<incr_t>& adap_incr)
 //{
 //  discard_disabledand_unhandled(hmesh, adap_incr);
 //
