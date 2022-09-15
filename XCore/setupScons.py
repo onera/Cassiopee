@@ -33,7 +33,8 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["xcore", "pdm", "scotch1", "scotch2", "kcore"]
+# pdm supprime ici
+libraries = ["xcore", "scotch1", "scotch2", "kcore"]
 
 mySystem = Dist.getSystem()
 if mySystem[0] == 'mingw': 
@@ -67,7 +68,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="XCore",
-    version="3.4",
+    version="3.5",
     description="XCore for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

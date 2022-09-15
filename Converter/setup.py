@@ -96,7 +96,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Converter",
-    version="3.4",
+    version="3.5",
     description="Converter for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

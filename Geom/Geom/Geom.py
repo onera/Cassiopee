@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Geometry definition module.
 """
-__version__ = '3.4'
+__version__ = '3.5'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 
 from . import geom

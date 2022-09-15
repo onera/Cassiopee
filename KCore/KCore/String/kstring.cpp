@@ -48,7 +48,8 @@ E_Int K_STRING::cmp(char* s1, E_Int s, const char* s2)
 //==============================================================================
 #define CMP char* pt1 = (char*)s1; char* pt2 = (char*)s2;       \
   while (*pt1 != '\0' && *pt2 != '\0') { \
-  if (*pt1 != *pt2) return 1; pt1++; pt2++; } \
+  if (*pt1 != *pt2) return 1; \
+  pt1++; pt2++; } \
   if (*pt1 == *pt2) return 0; \
   else return 1;
 

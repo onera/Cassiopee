@@ -37,7 +37,7 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="Geom",
-    version="3.4",
+    version="3.5",
     description="Geometry definition for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

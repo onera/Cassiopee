@@ -1,6 +1,6 @@
 """Module performing rigid motion.
 """
-__version__ = '3.4'
+__version__ = '3.5'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
 
 from . import rigidMotion
