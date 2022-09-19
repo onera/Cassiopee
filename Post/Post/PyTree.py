@@ -1819,7 +1819,8 @@ def streamLine2(t, X0, vector, N=2000, dir=2, eps=1.e-2):
     a = Post.streamLine2(arrays, X0, vector, N, dir, eps)
     out = []
     for i in a:
-        out.append(C.convertArrays2ZoneNode('streamLine', [i]))
+        if i is None or i[2] > 0: # if not empty
+            out.append(C.convertArrays2ZoneNode('streamLine', [i]))
     return out
 
 def streamSurf(t, b, vector, N=2000, dir=1):

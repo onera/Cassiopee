@@ -174,7 +174,7 @@ void Data::displayNodes()
           if (_niso[nofield] == -1) // max field values
           { fmax = maxf[nofield]; fmin = minf[nofield]; }
           else { fmax = _isoMax[nofield]; fmin = _isoMin[nofield]; }
-          double deltai = MAX(fmax-fmin, 1.e-6);
+          double deltai = MAX(fmax-fmin, ISOCUTOFF);
           deltai = 1./deltai;
       
           offb = 0.;
@@ -214,7 +214,7 @@ void Data::displayNodes()
           if (_niso[nofield] == -1) // max field values
           { fmax = maxf[nofield]; fmin = minf[nofield]; }
           else { fmax = _isoMax[nofield]; fmin = _isoMin[nofield]; }
-          double deltai = MAX(fmax-fmin, 1.e-6);
+          double deltai = MAX(fmax-fmin, ISOCUTOFF);
           deltai = 1./deltai;
           */
 

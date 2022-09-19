@@ -182,7 +182,7 @@
   int blank;
   double fmin, fmax;
   fmax = maxf[nofield]; fmin = minf[nofield];
-  double deltai = MAX(fmax-fmin, 1.e-6);
+  double deltai = MAX(fmax-fmin, ISOCUTOFF);
   deltai = 1./deltai;
 
   // Colormap

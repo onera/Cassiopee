@@ -211,7 +211,7 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   {
     nofield = -int(zonep->colorR)-2;
     f = zonep->f[nofield];
-    deltai = 1./MAX(maxf[nofield]-minf[nofield], 1.e-6);
+    deltai = 1./MAX(maxf[nofield]-minf[nofield], ISOCUTOFF);
     fmin = minf[nofield];
   }
 

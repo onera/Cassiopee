@@ -98,7 +98,7 @@
   double* f = zonep->f[nofield];
   double fmin, fmax;
   fmax = maxf[nofield]; fmin = minf[nofield];
-  double deltai = MAX(fmax-fmin, 1.e-6);
+  double deltai = MAX(fmax-fmin, ISOCUTOFF);
   //if (fmax-fmin < 1.e-10) { deltai = 1.; fmax = fmin+1.; }
   //else deltai = fmax-fmin;
   deltai = 1./deltai;

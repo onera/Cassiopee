@@ -18,6 +18,7 @@
 */
 # include <string.h>
 # include "post.h"
+
 using namespace K_FLD;
 using namespace std;
 
@@ -546,8 +547,8 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
             indcellg = (i-1)+j*nic+k*nicnjc;
             indcelld = indcellg+1;
             cellG[indint] = indcellg; cellD[indint] = indcelld;
-            if (cellNp[indcellg] == 0) fintp[indint] = fcn[indcelld];
-            else if (cellNp[indcelld] == 0) fintp[indint] = fcn[indcellg];
+            if (cellNp[indcellg] == 0.) fintp[indint] = fcn[indcelld];
+            else if (cellNp[indcelld] == 0.) fintp[indint] = fcn[indcellg]; 
             else fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
           }
       //bords des faces en i
@@ -557,12 +558,12 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
           E_Int i = 0;
           indint = i+j*ni+k*ninjc;
           indcelld = i + j*nic+k*nicnjc;
-          fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+          fintp[indint] = fcn[indcelld]; //extrapolation de l'interieur
           cellG[indint] = -1; cellD[indint] = indcelld;
           i = nic;
           indint = i+j*ni+k*ninjc;
           indcellg = (i-1) + j*nic+k*nicnjc;
-          fintp[indint] = fcn[indcellg];//extrapolation de l'interieur
+          fintp[indint] = fcn[indcellg]; //extrapolation de l'interieur
           cellG[indint] = indcellg; cellD[indint] = -1;
         }
       //faces en j
@@ -574,8 +575,8 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
             indcellg = i+(j-1)*nic+k*nicnjc;
             indcelld = indcellg+nic;
             cellG[indint] = indcellg; cellD[indint] = indcelld;
-            if (cellNp[indcellg] == 0) fintp[indint] = fcn[indcelld];
-            else if (cellNp[indcelld] == 0) fintp[indint] = fcn[indcellg];
+            if (cellNp[indcellg] == 0.) fintp[indint] = fcn[indcelld];
+            else if (cellNp[indcelld] == 0.) fintp[indint] = fcn[indcellg];
             else fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
           }
       // bords des faces en j
@@ -586,7 +587,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
           indint = i+j*nic+k*nicnj+nbIntI;
           indcelld = i+j*nic+k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
-          fintp[indint] = fcn[indcelld];//extrapolation de l'interieur
+          fintp[indint] = fcn[indcelld]; //extrapolation de l'interieur
 
           j = njc;
           indint = i+j*nic+k*nicnj+nbIntI;
@@ -604,8 +605,8 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
             indcellg = i+j*nic+(k-1)*nicnjc;
             indcelld = indcellg + nicnjc;
             cellG[indint] = indcellg; cellD[indint] = indcelld;
-            if (cellNp[indcellg] == 0) fintp[indint] = fcn[indcelld];
-            else if (cellNp[indcelld] == 0) fintp[indint] = fcn[indcellg];
+            if (cellNp[indcellg] == 0.) fintp[indint] = fcn[indcelld];
+            else if (cellNp[indcelld] == 0.) fintp[indint] = fcn[indcellg];
             else fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
           }
       for (E_Int j = 0; j < njc; j++)
@@ -613,7 +614,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         {
           E_Int k = 0;
           indint = i+j*nic+k*nicnjc + nbIntIJ;
-          indcelld = i+j*nic+k*nicnjc;;
+          indcelld = i+j*nic+k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
           fintp[indint] = fcn[indcelld];
 
@@ -829,7 +830,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     {
       E_Float* fcn = fc.begin(eq+1);
       E_Float* fintp = faceField.begin(eq+1);
-      //faces en i internes
+      // faces en i internes
       for (E_Int j = 0; j < njc; j++)
         for (E_Int i = 1; i < nic; i++)
         {

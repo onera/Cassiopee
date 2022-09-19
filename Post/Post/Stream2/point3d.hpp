@@ -23,6 +23,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 namespace K_POST
 {
@@ -71,7 +72,7 @@ namespace K_POST
         explicit operator std::string() const
         {
             std::ostringstream sout;
-            sout << "{" << this->x << ", " << this->y << ", " << this->z
+            sout << std::setprecision(14) << "{" << this->x << ", " << this->y << ", " << this->z
                  << "}";
             return sout.str();
         }

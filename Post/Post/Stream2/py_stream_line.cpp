@@ -29,9 +29,9 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     E_Float   x0, y0, z0;
     PyObject* vectorNames;
     E_Int     nStreamPtsMax;
-    E_Float   signe;
+    E_Int     signe;
 
-    if (!PYPARSETUPLE(args, "OOOOdl", "OOOOdi", "OOOOfl", "OOOOfi", &arrays, &surfArray, &listOfPoints,
+    if (!PYPARSETUPLE(args, "OOOOll", "OOOOii", "OOOOll", "OOOOii", &arrays, &surfArray, &listOfPoints,
                       &vectorNames, &signe, &nStreamPtsMax)) {
         return NULL;
     }
@@ -237,7 +237,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     if (beg_nodes.size() == 1)
     {
         PyObject* list_of_streamlines = PyList_New(1);
-        streamline sline( {x0,y0,z0}, zones, nStreamPtsMax, (signe==1) );
+        streamline sline( {x0,y0,z0}, zones, nStreamPtsMax, (signe==2) );
         FldArrayF& field = sline.field();
         E_Int number_of_points = field.getSize();
         PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
@@ -254,9 +254,10 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
 //        std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
         try
         {
-            streamline sline( beg_nodes[i], zones, nStreamPtsMax, (signe==1) );
+            streamline sline( beg_nodes[i], zones, nStreamPtsMax, (signe==2) );
 
             FldArrayF& field = sline.field();
+            
             E_Int number_of_points = field.getSize();
 #       pragma omp critical
             {
@@ -271,14 +272,15 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
                 }
                 else 
                 {
-                    //Py_INCREF(Py_None);
+                    Py_INCREF(Py_None);
                     PyList_SetItem(list_of_streamlines, i, Py_None);
                 }
             }
         }
-        catch(std::exception& err)
+        catch (std::exception& err)
         {
             printf("Warning: streamLine: %s\n", err.what());
+            Py_INCREF(Py_None);
             PyList_SetItem(list_of_streamlines, i, Py_None);
         }
     }

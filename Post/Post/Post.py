@@ -581,7 +581,8 @@ def streamLine2(arrays, X0, vector, N=2000, dir=2, eps=1.e-2):
     if surf != []:
         inl, modified = growOfEps__(arrays, eps, nlayers=2, planarity=False)
         arrays = inl
-    return post.comp_stream_line(arrays, surf, X0, vector, dir, N)
+    rets = post.comp_stream_line(arrays, surf, X0, vector, dir, N)
+    return rets
 
 def streamRibbon(arrays, X0, N0, vector, N=2000, dir=2):
     """Compute a streamribbon starting from (x0,y0,z0) given

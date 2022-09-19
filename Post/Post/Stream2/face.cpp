@@ -364,8 +364,9 @@ namespace K_POST
             for ( E_Int f = 0; f < field.getNfld(); ++f )
                 baryfld[f] /= this->number_of_vertices();
         }
-
-        for ( E_Int f = 0; f < field.getNfld(); ++f )
+        // on force les 3 premiers champs (supposes coord) a l'intersection de la face
+        interpol_field[0] = pos_inter.x; interpol_field[1] = pos_inter.y; interpol_field[2] = pos_inter.z;
+        for ( E_Int f = 3; f < field.getNfld(); ++f )
         {
             double v1_val = (triangle_indices[0] >= 0 ? field(triangle_indices[0],f+1) : baryfld[f]);
             double v2_val = (triangle_indices[1] >= 0 ? field(triangle_indices[1],f+1) : baryfld[f]);
