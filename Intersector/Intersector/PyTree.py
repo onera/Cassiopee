@@ -473,25 +473,27 @@ def updateJoinsPointLists1(z, zones, oids):
       ptl = Internal.getNodeFromName1(j, 'PointList')
       # print("donnorName:", donnorName)
       dz = Internal.getNodeFromName(zones, donnorName)
-      joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
-      for jd in joinsD:
-        #dname = "".join(jd[1])
-        dname = "".join(Internal.getValue(jd))
-        # print("dname / zname : ", dname, zname)
-        if (dname != zname) : continue
-        ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
-        
-        PG0 = ptl[1][0][0] # first polygon in the point list 
-        PG0D = ptlD[1][0][0] # first polygon in the point list
-        if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
+
+      if dz is not None:
+          joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
+          for jd in joinsD:
+              #dname = "".join(jd[1])
+              dname = "".join(Internal.getValue(jd))
+              # print("dname / zname : ", dname, zname)
+              if (dname != zname) : continue
+              ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
+              
+              PG0 = ptl[1][0][0] # first polygon in the point list 
+              PG0D = ptlD[1][0][0] # first polygon in the point list
+              if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
                           
-        ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
+              ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
 
-        ptl[1]  = ptLists[i]
-        ptlD[1] = ptLists[i]
+              ptl[1]  = ptLists[i]
+              ptlD[1] = ptLists[i]
 
-        break
-      i=i+1
+              break
+          i=i+1
 
 def getJoinsPtList(z, zname2id):
 	raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
