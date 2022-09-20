@@ -19,7 +19,7 @@ namespace NUGA
 {
 
   template <>
-  class splitting_t<K_MESH::Pyramid, ISO, 1> : public splitting_base_t
+  class splitting_t<K_MESH::Pyramid, NUGA::XYZ, 1> : public splitting_base_t
   {
   public:
     E_Int FACES[20]; // BOT F1,F2,F3,F4
@@ -319,7 +319,7 @@ namespace NUGA
         
    };
 
-  using PY13 = splitting_t<K_MESH::Pyramid, ISO, 1>;
+  using PY13 = splitting_t<K_MESH::Pyramid, NUGA::XYZ, 1>;
 }
 
 #endif

@@ -18,7 +18,7 @@ namespace NUGA
 {
 
   template <>
-  class splitting_t<K_MESH::Prism, ISO, 1> : public splitting_base_t
+  class splitting_t<K_MESH::Prism, NUGA::XYZ, 1> : public splitting_base_t
   {
   public:
     E_Int FACES[24]; // BOT00, BOTO1,...BOT03, TOP..., LEFT, ...RIGHT,...,FRONT...
@@ -349,7 +349,7 @@ namespace NUGA
         
    };
 
-  using PR18 = splitting_t<K_MESH::Prism, ISO, 1>;
+  using PR18 = splitting_t<K_MESH::Prism, NUGA::XYZ, 1>;
 }
 
 #endif

@@ -1060,7 +1060,7 @@ namespace NUGA
     std::vector<E_Int> intpos, childpos;
     reserve_mem_PHs(crd, ng, PH_to_ref, PH_directive, PGtree, PHtree, F2E, intpos, childpos);
 
-    using spliting_t = splitting_t<ELT_t, STYPE, 1>; // HX27, TH10, PY13 or PR18, HX18
+    using spliting_t = splitting_t<ELT_t, XYZ, 1>; // HX27, TH10, PY13 or PR18, HX18
 
 #ifndef DEBUG_HIERARCHICAL_MESH
 //#pragma omp parallel for
@@ -1095,15 +1095,60 @@ namespace NUGA
   }
 
   // DIRECTIONNEL
-  //default impl : DIR IS ISO for all elements but HEXA "Layer"
+  //default impl : HEXA DIR
   template <>
+  template <typename pg_arr_t, typename ph_arr_t>
+  void refiner<K_MESH::Hexahedron, DIR>::refine_PHs
+  (const output_t &adap_incr,
+    ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+  {
+    assert((E_Int)adap_incr.cell_adap_incr.size() <= ng.PHs.size());
+    //
+    Vector_t<E_Int> PH_to_ref;
+    Vector_t<NUGA::eDIR>  PH_directive;
+    extract_PHs_to_refine(ng, PHtree, adap_incr, PH_to_ref, PH_directive);
+    E_Int nb_phs_ref = PH_to_ref.size();
+    if (nb_phs_ref == 0) return;
+
+    E_Int pos = crd.cols(); // first cell center in crd (if relevant)
+                            //E_Int nb_pgs0 = ng.PGs.size();
+                            //E_Int nb_phs0 = ng.PHs.size();
+                            // Reserve space for children in the tree
+    std::vector<E_Int> intpos, childpos;
+    reserve_mem_PHs(crd, ng, PH_to_ref, PH_directive, PGtree, PHtree, F2E, intpos, childpos);
+
+#ifndef DEBUG_HIERARCHICAL_MESH
+//#pragma omp parallel for
+#endif
+    for (E_Int i = 0; i < nb_phs_ref; ++i)
+    {
+      E_Int PHi = PH_to_ref[i];
+
+      if (PH_directive[i] == XY)
+      {
+        HX18 elt(crd, ng, PHi, pos + i, F2E, PGtree);
+
+        elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);
+      }
+      else // X
+      {
+        // todo Imad
+      }
+
+      
+    }
+  }
+
+
+  //default impl : DIR IS ISO for all elements but HEXA "Layer"
+  /*template <>
   template <typename pg_arr_t, typename ph_arr_t>
   void refiner<K_MESH::Tetrahedron, DIR>::refine_PHs
   (const output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
     //refiner<K_MESH::Tetrahedron, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
-  }
+  }*/
 
   ///
   template <>

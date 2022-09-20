@@ -2631,6 +2631,14 @@ def removeNthCell(t, nth):
     return C.convertArrays2ZoneNode('mes_wo_%d'%(nth), [m])
 
 #==============================================================================
+# removeNthFace : XXX
+#==============================================================================
+def removeNthFace(t, nth):
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    m = XOR.removeNthFace(m, nth)
+    return C.convertArrays2ZoneNode('mes_wo_%d'%(nth), [m])
+
+#==============================================================================
 # extractBiggestCell : XXX
 #==============================================================================
 def extractBiggestCell(t):

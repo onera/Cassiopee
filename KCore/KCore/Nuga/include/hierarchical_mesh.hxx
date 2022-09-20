@@ -152,6 +152,8 @@ class hierarchical_mesh
     ///
     template <typename InputIterator> void get_higher_level_neighbours(E_Int PHi, E_Int PGi, InputIterator neighbours, E_Int& nb_neighbours) const ;
     ///
+    void enable_PHs_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0);
+    ///
     void enable_PGs();
 
     void update_BCs();
@@ -361,9 +363,6 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
 {
   E_Int fmax{1}, cmax{1}; //initialized wit 1 to do refinement at first iter
 
-  using cell_incr_t = typename output_t::cell_incr_t;
-  using face_incr_t = typename output_t::face_incr_t;
-
   // infinite loop but breaking test is done at each iteration (and terminates at some point)
   while (true)
   {
@@ -374,53 +373,8 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
     if (cmax > 0) refiner<ELT_t, STYPE>::refine_PHs(adap_incr, _ng, _PGtree, _PHtree, _crd, _F2E);
         
     //std::cout << "update cell_adap_incr, enable the right PHs & their levels" << std::endl;
-    adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));// resize to new size
-    adap_incr.face_adap_incr.clear();
-    adap_incr.face_adap_incr.resize(_ng.PGs.size(), face_incr_t(0));
-
-    for (E_Int PHi = 0; PHi < nb_phs0; ++PHi)
-    {
-      auto& adincrPHi = adap_incr.cell_adap_incr[PHi];
-      if (adincrPHi == 0) continue;
-
-      if (!_PHtree.is_enabled(PHi))
-      {
-        adincrPHi = 0; // reset in cas it has something : do not allow splitting of disabled entities
-        continue;
-      }
-
-      if (adincrPHi > 0) // refinement : activate the children, transfer the adapincr & set their level
-      {
-        --adincrPHi;
-        adincrPHi = max(adincrPHi, 0); // to do same behaviour for DIR and ISO:
-                                       // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
-
-        E_Int nb_child = _PHtree.nb_children(PHi);
-        const E_Int* children = _PHtree.children(PHi);
-        for (E_Int j = 0; j < nb_child; ++j)
-        {
-          _PHtree.enable(*(children+j));
-          adap_incr.cell_adap_incr[*(children + j)] = adincrPHi;
-          
-          //
-          E_Int lvl_p1 = _PHtree.get_level(PHi) + 1;
-          _PHtree.set_level(*(children+j), lvl_p1); //fixme : do it somewhere else ?
-        }
-        adincrPHi = 0;//reset incr for parents
-      }
-      else // agglomeration : activate the father, transfer that adap incr
-      {
-        E_Int father = _PHtree.parent(PHi);
-        _PHtree.enable(father);
-        adap_incr.cell_adap_incr[father] = adincrPHi + 1;
-        // reset incr on children
-        E_Int nb_child = _PHtree.nb_children(PHi);
-        const E_Int* children = _PHtree.children(PHi);
-        for (E_Int j = 0; j < nb_child; ++j)
-          adap_incr.cell_adap_incr[*(children + j)] = 0;
-      }
-    }
-
+    enable_PHs_and_transmit_adap_incr_to_next_gen(adap_incr, nb_phs0);
+    
     //if (rank == 2) std::cout << "adapt iter : " << iter << " : enable_PGs..." << std::endl;
     enable_PGs();
     
@@ -722,6 +676,61 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_loop_plan(E_Int PGi, bool r
 //{
 //  //
 //}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_PHs_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0)
+{
+  using cell_incr_t = typename output_t::cell_incr_t;
+  using face_incr_t = typename output_t::face_incr_t;
+
+  adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));// resize to new size
+  adap_incr.face_adap_incr.clear();
+  adap_incr.face_adap_incr.resize(_ng.PGs.size(), face_incr_t(0));
+
+  for (E_Int PHi = 0; PHi < nb_phs0; ++PHi)
+  {
+    auto& adincrPHi = adap_incr.cell_adap_incr[PHi];
+    if (adincrPHi == 0) continue;
+
+    if (!_PHtree.is_enabled(PHi))
+    {
+      adincrPHi = 0; // reset in cas it has something : do not allow splitting of disabled entities
+      continue;
+    }
+
+    if (adincrPHi > 0) // refinement : activate the children, transfer the adapincr & set their level
+    {
+      --adincrPHi;
+      adincrPHi = max(adincrPHi, 0); // to do same behaviour for DIR and ISO:
+                                     // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
+
+      E_Int nb_child = _PHtree.nb_children(PHi);
+      const E_Int* children = _PHtree.children(PHi);
+      for (E_Int j = 0; j < nb_child; ++j)
+      {
+        _PHtree.enable(*(children + j));
+        adap_incr.cell_adap_incr[*(children + j)] = adincrPHi;
+
+        //
+        E_Int lvl_p1 = _PHtree.get_level(PHi) + 1;
+        _PHtree.set_level(*(children + j), lvl_p1); //fixme : do it somewhere else ?
+      }
+      adincrPHi = 0;//reset incr for parents
+    }
+    else // agglomeration : activate the father, transfer that adap incr
+    {
+      E_Int father = _PHtree.parent(PHi);
+      _PHtree.enable(father);
+      adap_incr.cell_adap_incr[father] = adincrPHi + 1;
+      // reset incr on children
+      E_Int nb_child = _PHtree.nb_children(PHi);
+      const E_Int* children = _PHtree.children(PHi);
+      for (E_Int j = 0; j < nb_child; ++j)
+        adap_incr.cell_adap_incr[*(children + j)] = 0;
+    }
+  }
+}
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>

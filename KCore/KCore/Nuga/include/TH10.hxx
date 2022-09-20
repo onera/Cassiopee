@@ -19,7 +19,7 @@
 namespace NUGA
 {
   template <>
-  class splitting_t<K_MESH::Tetrahedron, ISO, 1> : public splitting_base_t
+  class splitting_t<K_MESH::Tetrahedron, NUGA::XYZ, 1> : public splitting_base_t
   {
   public:
     E_Int FACES[16]; // BOT00, BOTO1,...BOT03, F1..., F2 ..., F3...
@@ -385,7 +385,7 @@ namespace NUGA
         
    };
 
-   using TH10 = splitting_t<K_MESH::Tetrahedron, ISO, 1>;
+   using TH10 = splitting_t<K_MESH::Tetrahedron, NUGA::XYZ, 1>;
 }
 
 #endif

@@ -105,6 +105,7 @@ namespace K_INTERSECTOR
   PyObject* extractNthFace(PyObject* self, PyObject* args);
   PyObject* extractBiggestCell(PyObject* self, PyObject* args);
   PyObject* removeNthCell(PyObject* self, PyObject* args);
+  PyObject* removeNthFace(PyObject* self, PyObject* args);
   PyObject* extractBadVolCells(PyObject* self, PyObject* args);
   PyObject* extractOverConnectedCells(PyObject* self, PyObject* args);
 

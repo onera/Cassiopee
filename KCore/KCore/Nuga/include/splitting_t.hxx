@@ -39,7 +39,7 @@ namespace NUGA
     static void __propagate_PH_neighbour_in_PG_descendance(E_Int PGi, E_Int side, E_Int PH, const tree<arr_t>& PGtree, K_FLD::IntArray& F2E);
   };
 
-  template <typename ELT_t, eSUBDIV_TYPE STYPE, short ORDER>
+  template <typename ELT_t, NUGA::eDIR dir, short ORDER>
   struct splitting_t;
 
   ///

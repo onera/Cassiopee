@@ -18,7 +18,7 @@
 namespace NUGA
 {
   template <>
-  class splitting_t<K_MESH::Hexahedron, ISO, 1> : public splitting_base_t
+  class splitting_t<K_MESH::Hexahedron, NUGA::XYZ, 1> : public splitting_base_t
   {
   public:
     E_Int FACES[24]; // BOT00, BOTO1,...BOT03, TOP..., LEFT, ...RIGHT,...,FRONT...
@@ -289,7 +289,7 @@ namespace NUGA
         
    };
 
-   using H27 = splitting_t<K_MESH::Hexahedron, ISO, 1>;
+   using HX27 = splitting_t<K_MESH::Hexahedron, NUGA::XYZ, 1>;
 }
 
 #endif

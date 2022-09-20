@@ -633,6 +633,69 @@ PyObject* K_INTERSECTOR::removeNthCell(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
+PyObject* K_INTERSECTOR::removeNthFace(PyObject* self, PyObject* args)
+{
+
+  PyObject *arr;
+  E_Int nth(0);
+
+  if (!PyArg_ParseTuple(args, "Ol", &arr, &nth)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  if (nth >= ngi.PGs.size())
+  {
+    std::cout << "ERROR " << nth << " : is out of range" << std::endl;
+    return NULL;
+  }
+  
+  ngon_unit pgs;
+  std::vector<int> nids(ngi.PGs.size(), IDX_NONE);
+  int count=0;
+  for (E_Int i = 0; i < ngi.PGs.size(); ++i)
+  {
+    if (i == nth) continue;
+    pgs.add(ngi.PGs.stride(i), ngi.PGs.get_facets_ptr(i));
+    nids[i]=count++;
+  }
+
+
+  
+  ngon_type ng;
+  ng.PGs = pgs;
+  ng.PHs = ngi.PHs;
+  std::vector<int> nfids;
+
+  ng.PHs.remove_facets(nids, nfids);
+  ng.updateFacets();
+
+  ngon_type::compact_to_used_nodes(ng.PGs, crd);
+  
+  K_FLD::IntArray cnto;
+  ng.export_to_array(cnto);
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
 PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
 {
 
@@ -997,8 +1060,8 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   }
 
   std::vector<E_Int> orient;
-  E_Int imax=-1, uimax=-1;
-  E_Float fluxmax = -1., ufluxmax=-1.;
+  E_Int imax=-1, uimax=-1, imax2=-1;
+  E_Float fluxmax = -1., ufluxmax=-1., fluxmax2=-1.;
   for (E_Int i=0; i < ngi.PHs.size(); ++i)
   {
     orient.clear();
@@ -1036,10 +1099,23 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
       imax = i;
       fluxmax = flux;
     }
+
+    double Lref = ::sqrt(PH.Lref2(crd, NUGA::ISO_MEAN));
+
+    flux /= Lref; // normalizing #2
+
+    if (flux > fluxmax2)
+    {
+      imax2 = i;
+      fluxmax2 = flux;
+    }
+
+
   }
 
   std::cout << "normalized max flux is : " << fluxmax << " reached at cell : " << imax << std::endl;
   std::cout << "unormalized max flux is : " << ufluxmax << " reached at cell : " << uimax << std::endl;
+  std::cout << "normalized (vol) max flux is : " << fluxmax2 << " reached at cell : " << imax2 << std::endl;
 
   delete f; delete cn;
 

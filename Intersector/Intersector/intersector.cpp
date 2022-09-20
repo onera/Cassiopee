@@ -91,6 +91,7 @@ static PyMethodDef Pyintersector [] =
   {"extractNthFace", K_INTERSECTOR::extractNthFace, METH_VARARGS},
   {"extractBiggestCell", K_INTERSECTOR::extractBiggestCell, METH_VARARGS},
   {"removeNthCell", K_INTERSECTOR::removeNthCell, METH_VARARGS},
+  {"removeNthFace", K_INTERSECTOR::removeNthFace, METH_VARARGS},
   {"extractBadVolCells", K_INTERSECTOR::extractBadVolCells, METH_VARARGS},
   {"extractOverConnectedCells", K_INTERSECTOR::extractOverConnectedCells, METH_VARARGS},
 

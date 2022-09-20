@@ -588,6 +588,17 @@ def removeNthCell(a, nth):
     return intersector.removeNthCell(a, nth)
 
 #==============================================================================
+# removeNthFace : Remove the nth cell in a mesh
+# IN: a          : 3D NGON mesh
+# IN: nth        : cell number
+# OUT: returns the mesh without the prescribed cell
+#==============================================================================
+def removeNthFace(a, nth):
+    """ Removes the nth cell in a.
+    Usage: removeNthCell(a, nth)"""
+    return intersector.removeNthFace(a, nth)
+
+#==============================================================================
 # detectIdenticalCells : detects (and optionally removes) geometrically identical cells
 # IN: a          : 3D NGON mesh
 # IN: nth        : cell number

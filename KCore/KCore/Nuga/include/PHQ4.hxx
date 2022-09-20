@@ -18,7 +18,7 @@
 namespace NUGA
 {
   template <>
-  class splitting_t<K_MESH::Polyhedron<0>, ISO_HEX, 1> : public splitting_base_t
+  class splitting_t<K_MESH::Polyhedron<0>, NUGA::XYZ, 1> : public splitting_base_t
   {
 
   public:
@@ -297,7 +297,7 @@ namespace NUGA
     }
   };
 
-  using PHQ4 = splitting_t<K_MESH::Polyhedron<0>, ISO_HEX, 1>;
+  using PHQ4 = splitting_t<K_MESH::Polyhedron<0>, NUGA::XYZ, 1>;
 }
 
 #endif
