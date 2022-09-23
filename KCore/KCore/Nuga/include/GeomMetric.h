@@ -101,7 +101,7 @@ namespace DELAUNAY
       maxID = std::max(maxID, *std::max_element(ALL(hard_nodes)));
 
     T m;// invalid by default
-    parent_type::_field.resize(parent_type::_pos.cols(), m);
+    parent_type::_field.resize(parent_type::_pos->cols(), m);
 
     E_Int max = std::min(maxID+1, metric.cols());
 
@@ -272,7 +272,7 @@ namespace DELAUNAY
     Mout(0,0) = Mout(1,1) = 1./(parent_type::_hmin*parent_type::_hmin);
     Mout(0,1) = Mout(1,0) = 0.; // Iso by default.
 
-    E_Float* Q = parent_type::_pos.col(N0);
+    E_Float* Q = parent_type::_pos->col(N0);
     E_Float  u = Q[0];
     E_Float  v = Q[1];
     E_Float  E, F, G; // Tangential plane's first fundamental form coefficients.
@@ -502,7 +502,7 @@ namespace DELAUNAY
   void
   GeomMetric<T, SurfaceType>::__compute_1st_fundamental_form(size_type N0, E_Float& E, E_Float& F, E_Float& G)
   {
-    E_Float* Q = parent_type::_pos.col(N0);
+    E_Float* Q = parent_type::_pos->col(N0);
     E_Float  u = Q[0];
     E_Float  v = Q[1];
     E_Float  dU1[3], dV1[3];
@@ -586,20 +586,20 @@ namespace DELAUNAY
     E_Float Piy = parent_type::_pos(1,Ni);
 
     // P0 = Pi +/- h0*v0
-    NUGA::sum<3>(1., parent_type::_pos.col(Ni), h0, v0, P0);
+    NUGA::sum<3>(1., parent_type::_pos->col(Ni), h0, v0, P0);
     bool P0_is_inside = _surface.in_bounds(P0[0], P0[1]);
     if (!P0_is_inside)
     {
-      NUGA::sum<3>(1., parent_type::_pos.col(Ni), -h0, v0, P0); //try with the opposite point
+      NUGA::sum<3>(1., parent_type::_pos->col(Ni), -h0, v0, P0); //try with the opposite point
       P0_is_inside = _surface.in_bounds(P0[0], P0[1]);
     }
 
     // P1 = Pi +/- h1*v1
-    NUGA::sum<3>(1., parent_type::_pos.col(Ni), h1, v1, P1);
+    NUGA::sum<3>(1., parent_type::_pos->col(Ni), h1, v1, P1);
     bool P1_is_inside = _surface.in_bounds(P1[0], P1[1]);
     if (!P1_is_inside)
     {
-      NUGA::sum<3>(1., parent_type::_pos.col(Ni), -h1, v1, P1); //try with the opposite point
+      NUGA::sum<3>(1., parent_type::_pos->col(Ni), -h1, v1, P1); //try with the opposite point
       P1_is_inside = _surface.in_bounds(P1[0], P1[1]);
     }
     
