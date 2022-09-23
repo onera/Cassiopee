@@ -65,7 +65,7 @@ public:
 
 };
 
-//aniso
+//aniso 2D
 template<> inline
 DELAUNAY::Aniso2D
 GeometricInterpolator<DELAUNAY::Aniso2D>::interpolate
@@ -73,6 +73,16 @@ GeometricInterpolator<DELAUNAY::Aniso2D>::interpolate
 {
   //fixme : in fact Linear currently
   return H0*(1-u) + H1*u;
+}
+
+//aniso 3D
+template<> inline
+DELAUNAY::Aniso3D
+GeometricInterpolator<DELAUNAY::Aniso3D>::interpolate
+(const DELAUNAY::Aniso3D& H0, const DELAUNAY::Aniso3D& H1, E_Float u) const
+{
+  //fixme : in fact Linear currently
+  return H0 * (1 - u) + H1 * u;
 }
 
 } // namespace DELAUNAY

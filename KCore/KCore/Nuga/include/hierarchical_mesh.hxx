@@ -36,6 +36,8 @@ using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #include "Nuga/include/communicator.hxx"
 #include "Nuga/include/join_t.hxx"
 
+#include "Nuga/include/metric_sensor.hxx"
+
 #include "Nuga/include/history.h"
 
 
@@ -89,6 +91,8 @@ class hierarchical_mesh
     jsensor_t*       jsensor;
     communicator_t*  COM;
 
+    DELAUNAY::VarMetric<DELAUNAY::Aniso3D>* _mfield;
+
     // for fields projetion
     E_Int                     _nb_phs0;         // intial nb of PHs
     E_Int                     _nb_pgs0;         // intial nb of PGs
@@ -97,10 +101,10 @@ class hierarchical_mesh
     NUGA::history_t  histo;
 
     ///
-    hierarchical_mesh(crd_t& crd, ngo_t & ng, bool reorient, bool sync_match):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(reorient, sync_match); }
-    hierarchical_mesh(crd_t& crd, ngo_t && ng, bool reorient, bool sync_match):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _idx_start(1) { init(reorient, sync_match); }
+    hierarchical_mesh(crd_t& crd, ngo_t & ng, bool reorient, bool sync_match):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _mfield(nullptr), _idx_start(1) { init(reorient, sync_match); }
+    hierarchical_mesh(crd_t& crd, ngo_t && ng, bool reorient, bool sync_match):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _mfield(nullptr), _idx_start(1) { init(reorient, sync_match); }
     ///
-    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(true/*reorient*/, true/*sync_match*/); }
+    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _mfield(nullptr)  { init(true/*reorient*/, true/*sync_match*/); }
 
     //multi-zone constructor
     hierarchical_mesh(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const bc_data_t& bcptlists, const join_data_t& jdata, E_Int idx_start, communicator_t* com);
@@ -152,7 +156,7 @@ class hierarchical_mesh
     ///
     template <typename InputIterator> void get_higher_level_neighbours(E_Int PHi, E_Int PGi, InputIterator neighbours, E_Int& nb_neighbours) const ;
     ///
-    void enable_PHs_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0);
+    void enable_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0);
     ///
     void enable_PGs();
 
@@ -193,7 +197,7 @@ private:
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 hierarchical_mesh<ELT_t, STYPE, ngo_t>::hierarchical_mesh
 (E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const bc_data_t& bcptlists, const join_data_t& jdata, E_Int idx_start, communicator_t* com) :
-  _crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(id), join(nullptr), jsensor(nullptr), COM(com)
+  _crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(id), join(nullptr), jsensor(nullptr), COM(com), _mfield(nullptr)
 {
   //std::cout << "hierarchical_mesh : begin " << std::endl;
   init(true/*reorient*/, false/*sync_match : done in join_t.hxx*/);
@@ -373,10 +377,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
     if (cmax > 0) refiner<ELT_t, STYPE>::refine_PHs(adap_incr, _ng, _PGtree, _PHtree, _crd, _F2E);
         
     //std::cout << "update cell_adap_incr, enable the right PHs & their levels" << std::endl;
-    enable_PHs_and_transmit_adap_incr_to_next_gen(adap_incr, nb_phs0);
-    
-    //if (rank == 2) std::cout << "adapt iter : " << iter << " : enable_PGs..." << std::endl;
-    enable_PGs();
+    enable_and_transmit_adap_incr_to_next_gen(adap_incr, nb_phs0);
     
     _ng.PGs.updateFacets();
     _ng.PHs.updateFacets();
@@ -679,12 +680,12 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_loop_plan(E_Int PGi, bool r
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_PHs_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0)
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0)
 {
   using cell_incr_t = typename output_t::cell_incr_t;
   using face_incr_t = typename output_t::face_incr_t;
 
-  adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));// resize to new size
+  adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));
   adap_incr.face_adap_incr.clear();
   adap_incr.face_adap_incr.resize(_ng.PGs.size(), face_incr_t(0));
 
@@ -730,6 +731,119 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_PHs_and_transmit_adap_incr_t
         adap_incr.cell_adap_incr[*(children + j)] = 0;
     }
   }
+
+  enable_PGs();
+}
+
+///
+template <> inline
+void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::enable_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0)
+{
+  //todo Imad : fixme 
+
+  using cell_incr_t = typename output_t::cell_incr_t;
+  using face_incr_t = typename output_t::face_incr_t;
+
+  int nb_pgs0 = adap_incr.face_adap_incr.size();
+
+  // 1. interpolate missing metric field values
+  // todo Imad
+  if (_mfield)
+  {
+    _mfield->resize(_crd.cols());
+    for (size_t i = 0; i < _crd.cols(); ++i)
+    {
+      if (!_mfield->isValidMetric((*_mfield)[i])) // or simply track what was the nb of points before refining to know from which to start
+      {
+        // either using _refiner._ecenter or better the PGtree we have to know from which nodes Ni and Nj, i is the middle : 
+
+        //_mfield->computeMetric(i, Ni, Nj, 0.5);
+      }
+    }
+  }
+
+  // 2. use this field to compute face_adap_incr for new faces (internals)
+  // todo Imad 
+  adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));
+  
+  // 3. can we use cell_adap_incr values to transmit to children ? if no needs to compute missing values from face_adap_incr
+  // todo Imad
+  adap_incr.face_adap_incr.resize(_ng.PGs.size(), face_incr_t(0));
+
+  for (E_Int PGi = 0; PGi < nb_pgs0; ++PGi)
+  {
+    auto& adincrPGi = adap_incr.face_adap_incr[PGi];
+    if (adincrPGi > 0) // refinement : activate the children, transfer the adapincr & set their level
+    {
+      --adincrPGi;
+      adincrPGi = max(adincrPGi, 0); // to do same behaviour for DIR and ISO:
+                                     // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
+
+      E_Int nb_child = _PGtree.nb_children(PGi);
+      const E_Int* children = _PGtree.children(PGi);
+      for (E_Int j = 0; j < nb_child; ++j)
+      {
+        E_Int PGc = *(children + j);
+        _PGtree.enable(*(children + j));
+        adap_incr.face_adap_incr[*(children + j)] = adincrPGi;
+
+        //
+        E_Int lvl_p1 = _PGtree.get_level(PGi) + 1;
+        _PGtree.set_level(*(children + j), lvl_p1); //fixme : do it somewhere else ?
+      }
+      adincrPGi = 0;//reset incr for parents
+    }
+    else // agglomeration : activate the father, transfer that adap incr
+    {
+      //
+    }
+  }
+
+
+  for (E_Int PHi = 0; PHi < nb_phs0; ++PHi)
+  {
+    auto& adincrPHi = adap_incr.cell_adap_incr[PHi];
+    if (adincrPHi == 0) continue;
+
+    if (!_PHtree.is_enabled(PHi))
+    {
+      adincrPHi = 0; // reset in cas it has something : do not allow splitting of disabled entities
+      continue;
+    }
+
+    if (adincrPHi > 0) // refinement : activate the children, transfer the adapincr & set their level
+    {
+      --adincrPHi;
+      adincrPHi = max(adincrPHi, 0); // to do same behaviour for DIR and ISO:
+                                     // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
+
+      E_Int nb_child = _PHtree.nb_children(PHi);
+      const E_Int* children = _PHtree.children(PHi);
+      for (E_Int j = 0; j < nb_child; ++j)
+      {
+        _PHtree.enable(*(children + j));
+        adap_incr.cell_adap_incr[*(children + j)] = adincrPHi;
+
+        //
+        E_Int lvl_p1 = _PHtree.get_level(PHi) + 1;
+        _PHtree.set_level(*(children + j), lvl_p1); //fixme : do it somewhere else ?
+      }
+      adincrPHi = 0;//reset incr for parents
+    }
+    else // agglomeration : activate the father, transfer that adap incr
+    {
+      E_Int father = _PHtree.parent(PHi);
+      _PHtree.enable(father);
+      adap_incr.cell_adap_incr[father] = adincrPHi + 1;
+      // reset incr on children
+      E_Int nb_child = _PHtree.nb_children(PHi);
+      const E_Int* children = _PHtree.children(PHi);
+      for (E_Int j = 0; j < nb_child; ++j)
+        adap_incr.cell_adap_incr[*(children + j)] = 0;
+    }
+  }
+
+  enable_PGs();
 }
 
 ///

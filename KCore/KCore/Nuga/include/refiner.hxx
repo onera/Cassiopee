@@ -30,16 +30,7 @@ namespace NUGA
 {
 
   ///
-  template <typename ELT_t>
   class refine_point_computer
-  {
-  public:
-    static void compute_center(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, E_Float* C);
-  };
-
-  ///
-  template <>
-  class refine_point_computer<K_MESH::NO_Edge>
   {
   public:
     static void compute_centers(const Vector_t<E_Int> &PGlist,
@@ -72,16 +63,7 @@ namespace NUGA
     }
   };
 
-  ///
-  template <typename ELT_t>
-  inline
-    void refine_point_computer<ELT_t>::compute_center
-    (const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, E_Float* C)
-  {
-    ELT_t::iso_barycenter(crd, nodes, nb_nodes, idx_start, C);
-  }
-
-  ///
+   ///
   template <typename ELT_t, eSUBDIV_TYPE STYPE>
   class refiner
   {
@@ -96,22 +78,22 @@ namespace NUGA
     // Generic wrapper for cells (calls relevant(s) refine_PGs)
     template <typename arr_t>
     static void refine_Faces(const output_t &adap_incr,
-      ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,
-      std::map<K_MESH::NO_Edge, E_Int>& ecenter);
+                             ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,
+                             std::map<K_MESH::NO_Edge, E_Int>& ecenter);
 
     /// Generic wrapper for cells
     template <typename pg_arr_t, typename ph_arr_t>
     static void refine_PHs(const output_t &adap_incr, ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
-      K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
+                           K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
 
     // T3/Q4/PG
     template <typename arr_t>
     static void refine_PGs(Vector_t<E_Int>& PG_to_ref, Vector_t<NUGA::eDIR> & PG_directive,
-      ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,
-      std::map<K_MESH::NO_Edge, E_Int>& ecenter);
+                           ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,
+                           std::map<K_MESH::NO_Edge, E_Int>& ecenter);
 
     static void refine_PG(K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d,
-      std::map<K_MESH::NO_Edge, E_Int>& ecenter);
+                          const std::map<K_MESH::NO_Edge, E_Int>& ecenter);
 
 
 
@@ -146,23 +128,29 @@ namespace NUGA
   E_Int refiner<ELT_t, STYPE>::extract_PGs_to_refine
   (K_FLD::FloatArray& crd/*hack for CLEF*/, const ngon_type& ng, const tree<arr_t> & PGtree, const output_t &adap_incr, Vector_t<E_Int>& PG_to_ref, Vector_t<NUGA::eDIR> & PG_directive)
   {
+    PG_to_ref.clear();
+    PG_directive.clear();
+
     using face_incr_t = typename output_t::face_incr_t;
 
     E_Int nb_phs = ng.PHs.size();
     // Gets PGs to refine
     E_Int nb_pgs(ng.PGs.size());
-    auto is_PG_to_refine = adap_incr.face_adap_incr;// IMPORTANT : CAN HAVE SOMETHING UPON ENTRY (e.g. WHEN SYNCING JOINS)
-    is_PG_to_refine.resize(nb_pgs, face_incr_t(0));
+    Vector_t<bool> is_PG_to_refine(nb_pgs, false);
 
     // disable non-admissible elements (face_adap_incr may contain info fo Q4 & T3)
     // IMPORTANT : need to be over all PGS (not only those belonging to cells to refine) 
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
-      if (ng.PGs.stride(i) != ELT_t::NB_NODES)
-        is_PG_to_refine[i] = 0;
+      if (ng.PGs.stride(i) != ELT_t::NB_NODES) continue;
+
+      ASSERT_IN_VECRANGE(adap_incr.face_adap_incr, i)
+
+      if (adap_incr.face_adap_incr[i] != 0) // IMPORTANT : CAN HAVE SOMETHING UPON ENTRY (e.g. WHEN SYNCING JOINS)
+        is_PG_to_refine[i] = true;
     }
 
-    //
+    // select cell-to-refine faces, but discard those having already children and not being of input type (Tri or Quad)
     for (E_Int i = 0; i < nb_phs; ++i)
     {
       ASSERT_IN_VECRANGE(adap_incr.cell_adap_incr, i)
@@ -177,26 +165,45 @@ namespace NUGA
         E_Int PGi = *(faces + j) - 1;
 
         if (ng.PGs.stride(PGi) != ELT_t::NB_NODES) continue;
+        if (PGtree.nb_children(PGi) != 0) continue;
 
-        is_PG_to_refine[PGi] = (PGtree.nb_children(PGi) == 0);
+        is_PG_to_refine[PGi] = true;
       }
     }
 
-    E_Int nb_pgs_ref = std::count(is_PG_to_refine.begin(), is_PG_to_refine.end(), 1);
+    E_Int nb_pgs_ref = std::count(is_PG_to_refine.begin(), is_PG_to_refine.end(), true);
+
+    if (nb_pgs_ref == 0) return 0;
+
     PG_to_ref.reserve(nb_pgs_ref);
+    PG_directive.reserve(nb_pgs_ref);
+
+    bool DIR_PROTO = true; //todo Imad : to remove
 
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
-      if (is_PG_to_refine[i] != NONE) {
+      //todo Imad 
+      // 1. adap_incr.get_face_dir(i)  must return a value
+      if (is_PG_to_refine[i]) 
+      {
         PG_to_ref.push_back(i);
+        
         auto fdir = adap_incr.get_face_dir(i);
-        if (fdir == NONE)
+        
+        if (fdir == NONE)  //todo Imad : to remove & replace by assert(frid != NONE)
         {
-          E_Int nnodes = ng.PGs.stride(i);
-          const E_Int* nodes = ng.PGs.get_facets_ptr(i);
+          if (STYPE == DIR && DIR_PROTO)
+          {
+            E_Int nnodes = ng.PGs.stride(i);
+            const E_Int* nodes = ng.PGs.get_facets_ptr(i);
 
-          fdir = get_dir(crd, nodes, nnodes);
+            fdir = get_dir(crd, nodes, nnodes);
+            assert(fdir != NONE);
+          }
+          else
+            fdir = XY;
         }
+
         PG_directive.push_back(fdir);
       }
     }
@@ -270,15 +277,21 @@ namespace NUGA
       if (adap_incr.cell_adap_incr[i] > 0 && (PHtree.nb_children(i) == 0) && (K_MESH::Hexahedron::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
       {
         PH_to_ref.push_back(i);
-        auto v = adap_incr.cell_adap_incr[i];
+        
         eDIR d = NONE;
-        if (v.n[0] != 0 && v.n[1] != 0 && v.n[2] != 0) d = XYZ;
-        else if (v.n[0] != 0 && v.n[1] != 0) d = XY;
-        //else if (v.n[0] != 0 && v.n[2] != 0) d = XZ;
-        //else if (v.n[1] != 0 && v.n[2] != 0) d = YZ;
-        else if (v.n[0] != 0) d = Xd;
-        else if (v.n[1] != 0) d = Y;
-        else if (v.n[2] != 0) d = Z;
+        auto v = adap_incr.cell_adap_incr[i];
+
+        int count = 0;
+        if (v.n[0]) ++count;
+        if (v.n[1]) ++count;
+        if (v.n[2]) ++count;
+
+        assert(count != 0);
+
+        if (count == 3) d = XYZ;
+        else if (count == 2) d = XY;
+        else if (count == 1) d = Xd;
+ 
         PH_directive.push_back(d);
       }
   }
@@ -746,7 +759,7 @@ namespace NUGA
     //
     E_Int nb_phs_ref = PH_to_ref.size();
 
-    E_Int nbi_tot = subdiv_pol<K_MESH::Hexahedron, DIR>::nbi_sum(ng.PHs, PH_to_ref, PH_directive);
+    E_Int nbi_tot = subdiv_pol<K_MESH::Hexahedron, DIR>::nbi_sum(ng, PH_to_ref, PH_directive);
 
     // reserve space for internal faces in the tree
     E_Int current_sz = PGtree.size();
@@ -765,7 +778,7 @@ namespace NUGA
 
     // reserve space for children in the tree
     std::vector<E_Int> pregnant;
-    subdiv_pol<K_MESH::Hexahedron, DIR>::nbc_list(ng.PHs, PH_to_ref, PH_directive, pregnant);
+    subdiv_pol<K_MESH::Hexahedron, DIR>::nbc_list(ng, PH_to_ref, PH_directive, pregnant);
 
     PHtree.resize(PH_to_ref, pregnant);
     E_Int nb_phs0{ ng.PHs.size() };
@@ -775,12 +788,14 @@ namespace NUGA
     ng.PHs.expand_n_fixed_stride(nb_tot_child, K_MESH::Hexahedron::NB_BOUNDS);
 
     intpos.resize(nb_phs_ref + 1);//one-pass-the-end size
-    E_Int s(nb_pgs0);
+    E_Int s(nb_pgs0), nb_xyz(0);
     for (E_Int i = 0; i < nb_phs_ref; ++i)
     {
       intpos[i] = s;
-      if (PH_directive[i] == XYZ)
+      if (PH_directive[i] == XYZ) {
         s += 12;
+        ++nb_xyz;
+      }
       else if (PH_directive[i] == XY || PH_directive[i] == XZ || PH_directive[i] == YZ)
         s += 4;
       else if (PH_directive[i] == Xd || PH_directive[i] == Y || PH_directive[i] == Z)
@@ -796,18 +811,22 @@ namespace NUGA
       s += pregnant[i];
     }
     childpos[nb_phs_ref] = s;
+
+    // allocate space in coordinates for XYZ centroids
+    crd.resize(3, crd.cols() + nb_xyz);
   }
 
   ///
   template<> inline
     void refiner<K_MESH::Quadrangle, ISO>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     E_Int* nodes = PGs.get_facets_ptr(PGi);
+    assert(PGs.stride(PGi) == 4);
     //const E_Int &nbc = subdiv_pol<K_MESH::Quadrangle, ISO>::NBC;
 
     // Centroid calculation
-    NUGA::refine_point_computer<K_MESH::Polygon>::compute_center(crd, nodes, K_MESH::Quadrangle::NB_NODES, 1, crd.col(posC));
+    K_MESH::Polygon::iso_barycenter(crd, nodes, 4, 1, crd.col(posC));
 
     E_Int q9[9];
     K_MESH::NO_Edge noE;
@@ -815,7 +834,9 @@ namespace NUGA
     {
       q9[n] = *(nodes + n);
       noE.setNodes(*(nodes + n), *(nodes + (n + 1) % 4));
-      q9[n + K_MESH::Quadrangle::NB_NODES] = ecenter[noE];
+      auto it = ecenter.find(noE);
+      assert(it != ecenter.end());
+      q9[n + K_MESH::Quadrangle::NB_NODES] = it->second;
     }
     q9[8] = posC + 1;
 
@@ -825,7 +846,7 @@ namespace NUGA
   ///
   template<> inline
     void refiner<K_MESH::Quadrangle, DIR>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     E_Int* nodes = PGs.get_facets_ptr(PGi);
     //const E_Int &nbc = subdiv_pol<K_MESH::Quadrangle, ISO>::NBC;
@@ -838,16 +859,24 @@ namespace NUGA
     if (d == Xd)
     {
       noE.setNodes(*(nodes), *(nodes + 1));
-      m1 = ecenter[noE];
+      auto it = ecenter.find(noE);
+      assert(it != ecenter.end());
+      m1 = it->second;
       noE.setNodes(*(nodes + 2), *(nodes + 3));
-      m2 = ecenter[noE];
+      it = ecenter.find(noE);
+      assert(it != ecenter.end());
+      m2 = it->second;
     }
     else //d == Y
     {
       noE.setNodes(*(nodes + 1), *(nodes + 2));
-      m1 = ecenter[noE];
+      auto it = ecenter.find(noE);
+      assert(it != ecenter.end());
+      m1 = it->second;
       noE.setNodes(*(nodes), *(nodes + 3));
-      m2 = ecenter[noE];
+      it = ecenter.find(noE);
+      assert(it != ecenter.end());
+      m2 = it->second;
     }
 
     for (E_Int n = 0; n < K_MESH::Quadrangle::NB_NODES; ++n)
@@ -861,7 +890,7 @@ namespace NUGA
   ///
   template<> inline
     void refiner<K_MESH::Triangle, ISO>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     E_Int* nodes = PGs.get_facets_ptr(PGi);
     //const E_Int &nbc = subdiv_pol<K_MESH::Triangle, ISO>::NBC;
@@ -872,7 +901,9 @@ namespace NUGA
     {
       T6[n] = *(nodes + n);
       noE.setNodes(*(nodes + n), *(nodes + (n + 1) % K_MESH::Triangle::NB_NODES));
-      T6[n + K_MESH::Triangle::NB_NODES] = ecenter[noE];
+      auto it = ecenter.find(noE);
+      assert(it != ecenter.end());
+      T6[n + K_MESH::Triangle::NB_NODES] = it->second;
     }
 
     NUGA::T6::split<eSUBDIV_TYPE::ISO>(PGs, T6, posChild);
@@ -881,7 +912,7 @@ namespace NUGA
   ///
   template<> inline
     void refiner<K_MESH::Polygon, ISO_HEX>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     //   remplir refE. A toi de choisir une convention d'ordre de stockage coherente avec l'appel qui suit
     //   (K_MESH::Polygon::split): si le dernier noeud est le centroid, faire : refE[nrefnodes-1]= posC + 1
@@ -889,7 +920,7 @@ namespace NUGA
     E_Int nnodes = PGs.stride(PGi);
 
     // Centroid calculation
-    NUGA::refine_point_computer<K_MESH::Polygon>::compute_center(crd, nodes, K_MESH::Quadrangle::NB_NODES, 1, crd.col(posC));
+    K_MESH::Polygon::iso_barycenter(crd, nodes, nnodes, 1, crd.col(posC));
 
     //refining face structure : nodes + mid points + centroid
     E_Int nrefnodes = nnodes * 2 + 1;
@@ -904,7 +935,9 @@ namespace NUGA
     {
       refE[2 * n] = *(nodes + n);
       noE.setNodes(*(nodes + n), *(nodes + (n + 1) % nnodes));
-      refE[2 * n + 1] = ecenter[noE];
+      auto it = ecenter.find(noE);
+      assert(it != ecenter.end());
+      refE[2 * n + 1] = it->second;
     }
     refE[2 * nnodes] = posC + 1;
 
@@ -914,7 +947,7 @@ namespace NUGA
   ///
   template<> inline
     void refiner<K_MESH::Polygon, ISO>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     assert(false);
   }
@@ -922,7 +955,7 @@ namespace NUGA
   ///
   template<> inline
     void refiner<K_MESH::Polygon, DIR>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     assert(false);
   }
@@ -930,21 +963,21 @@ namespace NUGA
   ///
   template<> inline
     void refiner<K_MESH::Triangle, DIR>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     //todo
   }
 
   template<> inline
     void refiner<K_MESH::Triangle, ISO_HEX>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     refiner<K_MESH::Polygon, ISO_HEX>::refine_PG(crd, PGs, PGi, posC, posChild, d, ecenter);
   }
 
   template<> inline
     void refiner<K_MESH::Quadrangle, ISO_HEX>::refine_PG
-    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
+    (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, eDIR d, const std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     refiner<K_MESH::Polygon, ISO_HEX>::refine_PG(crd, PGs, PGi, posC, posChild, d, ecenter);
   }
@@ -958,7 +991,7 @@ namespace NUGA
     std::map<K_MESH::NO_Edge, E_Int>& ecenter)
   {
     // Compute Edges refine points
-    refine_point_computer<K_MESH::NO_Edge>::compute_centers(PG_to_ref, ng, crd, ecenter);//fixme : should be relative to policy/directive
+    refine_point_computer::compute_centers(PG_to_ref, ng, crd, ecenter);//fixme : should be relative to policy/directive
 
     E_Int pos = crd.cols(); // first face center in crd (if relevant)
 
@@ -982,7 +1015,10 @@ namespace NUGA
       if (nbc == 2 && STYPE == DIR)
         refiner<ELT_t, DIR>::refine_PG(crd, ng.PGs, PGi, C, firstChild, PG_directive[i], ecenter);
       else if (STYPE == ISO || STYPE == DIR)
+      {
+        assert(nbc == 4);
         refiner<ELT_t, ISO>::refine_PG(crd, ng.PGs, PGi, C, firstChild, XY, ecenter);
+      }
       else if (STYPE == ISO_HEX)
         refiner<ELT_t, ISO_HEX>::refine_PG(crd, ng.PGs, PGi, C, firstChild, XY, ecenter);
       else
@@ -1120,11 +1156,18 @@ namespace NUGA
 #ifndef DEBUG_HIERARCHICAL_MESH
 //#pragma omp parallel for
 #endif
+    int xyzG = 0;
     for (E_Int i = 0; i < nb_phs_ref; ++i)
     {
       E_Int PHi = PH_to_ref[i];
 
-      if (PH_directive[i] == XY)
+      if (PH_directive[i] == XYZ)
+      {
+        HX27 elt(crd, ng, PHi, pos + (xyzG++), F2E, PGtree);
+
+        elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);
+      }
+      else if (PH_directive[i] == XY)
       {
         HX18 elt(crd, ng, PHi, pos + i, F2E, PGtree);
 

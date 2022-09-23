@@ -20,7 +20,7 @@ template <E_Int DIM>
 class AnisoMetricType
 {
 public:
-  typedef NUGA::size_type      size_type;
+  typedef NUGA::size_type            size_type;
   typedef AnisoMetricType<DIM>       self_type;
   #define                            DIMANISO DIM*(DIM+1) / 2
 
@@ -54,7 +54,9 @@ public:
 
 };
 
-typedef AnisoMetricType<2> Aniso2D;
+
+using Aniso2D = AnisoMetricType<2>;
+using Aniso3D = AnisoMetricType<3>;
 
 ///
 template <E_Int DIM>
@@ -90,6 +92,14 @@ void AnisoMetricType<2>::eigen_values(E_Float &lmax, E_Float & lmin) const
   d = (d > 0.) ? ::sqrt(d) : 0.;
   lmin = 0.5*(a - d);
   lmax = lmin+d;
+}
+
+template <> inline
+void AnisoMetricType<3>::eigen_values(E_Float &lmax, E_Float & lmin) const
+{
+  //todo Imad : fixme : asssume here a diagonal matrix!
+  lmin = std::min(_mij[0], std::min(_mij[3], _mij[5]));
+  lmax = std::max(_mij[0], std::max(_mij[3], _mij[5]));
 }
 
 #ifdef DEBUG_METRIC

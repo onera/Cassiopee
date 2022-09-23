@@ -39,8 +39,6 @@ class sensor
     const mesh_t& get_hmesh() { return _hmesh; }
 
     virtual bool fill_adap_incr(output_t& adap_incr, bool do_agglo) = 0;
-
-    void append_adap_incr_w_over_connected(output_t& adap_incr);
   
     virtual bool update() { return false; };
 
@@ -50,6 +48,8 @@ class sensor
     {
       if (_smoother != nullptr) { delete _smoother; _smoother = nullptr; }
     }
+
+    void append_adap_incr_w_over_connected(output_t& adap_incr);
 
   protected:
     mesh_t &          _hmesh;
@@ -77,17 +77,23 @@ static void discard_disabledand_unhandled(mesh_t& hmesh, adap_incr_t& adap_incr)
   }
 }
 
-//
-template <typename mesh_t>
-static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<ISO>& adap_incr)
+///
+/// ISO, ISO_HEX impl.
+template <typename mesh_t, eSUBDIV_TYPE STYPE>
+static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<STYPE>& adap_incr)
 {
   discard_disabledand_unhandled(hmesh, adap_incr);
 }
 
+/// proto DIR impl.
 template <typename mesh_t>
-static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<ISO_HEX>& adap_incr)
+static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<DIR>& adap_incr)
 {
-  discard_disabledand_unhandled(hmesh, adap_incr);
+  //todo Imad : shoud be removed.
+
+  // hack to make work the DIR prototype
+  for (size_t i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
+    adap_incr.cell_adap_incr[i].n[2] = 0; // force to be XY
 }
 
 inline NUGA::eDIR get_dir(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nnodes)
@@ -114,81 +120,6 @@ inline NUGA::eDIR get_dir(const K_FLD::FloatArray& crd, const E_Int* nodes, E_In
   return Xd;
 }
 
-//
-template <typename mesh_t>
-static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<DIR>& adap_incr)
-{
-  discard_disabledand_unhandled(hmesh, adap_incr);
-
-  E_Int nb_phs = adap_incr.cell_adap_incr.size();// hmesh._ng.PHs.size();
-  //E_Int nb_pgs = hmesh._ng.PGs.size();
-
-  for (E_Int i = 0; i < nb_phs; ++i)
-  {
-    if (adap_incr.cell_adap_incr[i] == 0) continue;
-
-    adap_incr.cell_adap_incr[i].n[2] = 0; //hack for CLEF : force to be XY
-    
-    E_Int nfaces = hmesh._ng.PHs.stride(i);
-    const E_Int* faces = hmesh._ng.PHs.get_facets_ptr(i);
-
-    for (size_t f = 0; f < nfaces; ++f)
-    {
-      E_Int PGi = faces[f] - 1;
-      E_Int nnodes = hmesh._ng.PGs.stride(PGi);
-      const E_Int* nodes = hmesh._ng.PGs.get_facets_ptr(PGi);
-
-      NUGA::eDIR d = get_dir(hmesh._crd, nodes, nnodes);
-
-      auto& ad = adap_incr.face_adap_incr[PGi];
-      //E_Int val = adap_incr.cell_adap_incr[i];
-
-      if (d == XY || d == Xd)
-        ad.n[0] = 1;// val;
-      if (d == XY || d == Y)
-        ad.n[1] = 1;// val;
-    }
-
-  }
-}
-
-//template <typename mesh_t>
-//static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<incr_t>& adap_incr)
-//{
-//  discard_disabledand_unhandled(hmesh, adap_incr);
-//
-//  //solve inconsistencies
-//  //alexis : todo
-//
-//  // premiere version : desactiver l'adaptation dans les cellules XYZ (iso) qui sont connectées à une cellule "layer" par un QUAD lateral
-//  //adap_incr._ph_dir.clear();
-//  E_Int nb_phs = hmesh._ng.PHs.size();
-//  //adap_incr._ph_dir.resize(nb_phs, XYZ);
-//
-//  for (E_Int i = 0; i < nb_phs; ++i)
-//  {
-//    // if type is layer => adap_incr._ph_dir[i] = XY
-//  }
-//
-//  E_Int nb_pgs = hmesh._ng.PGs.size();
-//  //adap_incr._pg_dir.clear();
-//  //adap_incr._pg_dir.resize(nb_pgs, NONE);
-//
-//  // boucle sur les layer
-//
-//  // appel à get_local
-//
-//  // remplissage approprié de adap_incr._pg_dir pour les 6 faces : X, Y, ou XY
-//
-//  // boucle sur le reste : 
-//
-//  // appel à get_local
-//
-//  // remplissage de adap_incr._pg_dir ou desactivation de adap_incr._ph_dir
-//
-//  // si NONE => remplissage
-//  // sinon, si valeur différente => desactivation
-//}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// 

@@ -294,10 +294,13 @@ namespace NUGA
   struct int_tuple
   {
     E_Int n[DIM];
-    int_tuple() : int_tuple(0){}
+
+    int_tuple() { n[0] = n[1] = 0; if (DIM == 3) n[2] = 0; }
     explicit int_tuple(E_Int val) { n[0] = n[1] = val; if (DIM == 3) n[2] = val; }
+    ~int_tuple() {};
+    
     int_tuple& operator=(E_Int val) { n[0] = n[1] = val; if (DIM == 3) n[2] = val; return *this; }
-    int_tuple& operator=(const int_tuple& d) { n[0] = d.n[0];  n[1] = d.n[1]; n[2] = d.n[2]; return *this; }
+    int_tuple& operator=(const int_tuple& d) { n[0] = d.n[0];  n[1] = d.n[1]; if (DIM == 3) n[2] = d.n[2]; return *this; }
     //E_Int operator+(E_Int v) const { return max() + v; }
     int_tuple& operator+(E_Int val) { n[0] += val;  n[1] += val; if (DIM == 3) n[2] += val; return *this; }
     int_tuple& operator--() { n[0] = std::max(0, --n[0]); n[1] = std::max(0, --n[1]); if (DIM == 3) { n[2] = std::max(0, --n[2]); }; return *this; }
@@ -306,7 +309,7 @@ namespace NUGA
     bool operator<=(E_Int v) const { return (max() <= v); }
     bool operator>(E_Int v) const { return (max() > v); }
     bool operator==(E_Int v) const { return (max() == v) && (min() == v); }
-    bool operator!=(E_Int val) const {
+    bool operator!=(E_Int val) const { // WARNING : weird logic unless val is 0
       if (n[0] != val) return true;
       if (n[1] != val) return true;
       if ((DIM == 3) && (n[2] != val)) return true;
@@ -337,7 +340,7 @@ namespace NUGA
     }
   };
 
-  template <E_Int DIM> inline int_tuple<DIM> max(int_tuple<DIM>&d, E_Int v) { int_tuple<DIM> res(0); res.n[0] = std::max(d.n[0], v); res.n[1] = std::max(d.n[1], v); if (DIM == 3) res.n[2] = std::max(d.n[2], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
+  template <E_Int DIM> inline int_tuple<DIM> max(int_tuple<DIM>&d, E_Int v) { int_tuple<DIM> res(0); for (size_t k=0; k < DIM; ++k) res.n[k] = std::max(d.n[k], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
   inline int_tuple<3> abs(int_tuple<3> d) { int_tuple<3> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); res.n[2] = ::abs(d.n[2]); return res; }
   inline int_tuple<3> max(int_tuple<3> a, int_tuple<3> b) { int_tuple<3> res(0); res.n[0] = std::max(a.n[0], b.n[0]); res.n[1] = std::max(a.n[1], b.n[1]); res.n[2] = std::max(a.n[2], b.n[2]); return res; }
   inline int_tuple<3> min(int_tuple<3> a, int_tuple<3> b) { int_tuple<3> res(0); res.n[0] = std::min(a.n[0], b.n[0]); res.n[1] = std::min(a.n[1], b.n[1]); res.n[2] = std::min(a.n[2], b.n[2]); return res; }
@@ -364,12 +367,14 @@ namespace NUGA
     Vector_t<E_Int> cell_adap_incr;
     Vector_t<E_Int> face_adap_incr;
 
-    E_Int cmin(E_Int k) { return cell_adap_incr[k]; }
-    E_Int cmax(E_Int k) { return cell_adap_incr[k]; }
-    E_Int fmax(E_Int k) { return face_adap_incr[k]; }
+    E_Int cmin(E_Int k) { ASSERT_IN_VECRANGE(cell_adap_incr, k); return cell_adap_incr[k]; }
+    E_Int cmax(E_Int k) { ASSERT_IN_VECRANGE(cell_adap_incr, k); return cell_adap_incr[k]; }
+    E_Int fmax(E_Int k) { ASSERT_IN_VECRANGE(face_adap_incr, k); return face_adap_incr[k]; }
 
     NUGA::eDIR get_face_dir(E_Int k) const
     {
+      ASSERT_IN_VECRANGE(face_adap_incr, k);
+
       if (face_adap_incr[k] != 0) return XY;
       return NONE;
     }
@@ -384,12 +389,13 @@ namespace NUGA
     Vector_t<cell_incr_t> cell_adap_incr;
     Vector_t<face_incr_t> face_adap_incr;
 
-    E_Int cmin(E_Int k) { return cell_adap_incr[k].min(); }
-    E_Int cmax(E_Int k) { return cell_adap_incr[k].max(); }
-    E_Int fmax(E_Int k) { return face_adap_incr[k].max(); }
+    E_Int cmin(E_Int k) { ASSERT_IN_VECRANGE(cell_adap_incr, k); return cell_adap_incr[k].min(); }
+    E_Int cmax(E_Int k) { ASSERT_IN_VECRANGE(cell_adap_incr, k); return cell_adap_incr[k].max(); }
+    E_Int fmax(E_Int k) { ASSERT_IN_VECRANGE(face_adap_incr, k); return face_adap_incr[k].max(); }
 
-    NUGA::eDIR get_face_dir(E_Int k) const {
-
+    NUGA::eDIR get_face_dir(E_Int k) const
+    {
+      ASSERT_IN_VECRANGE(face_adap_incr, k);
       if ((face_adap_incr[k].n[0] != 0) && (face_adap_incr[k].n[1] != 0)) return XY;
       if (face_adap_incr[k].n[0] != 0) return Xd;
       if (face_adap_incr[k].n[1] != 0) return Y;
