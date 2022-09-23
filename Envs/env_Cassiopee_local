@@ -640,13 +640,7 @@ else if ($MAC == "spiro_anaconda") then
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-	    module unload impi/17
-        module load intel/17.0.4
-        module load impi/17
-        module unload hdf5/1.8.8
+        module purge
         module load hdf5/1.8.17-intel-17
         module load anaconda/2021.05
         module load subversion/1.14.1-gnu830
@@ -654,6 +648,28 @@ else if ($MAC == "spiro_anaconda") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
+
+else if ($MAC == "spiro_el8") then
+#------------------------------- spiro --------------------------------------
+        setenv ELSAPROD spiro_el8
+        # Number of threads
+        setenv OMP_NUM_THREADS 24
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        source /etc/profile.d/modules-onera.csh
+        module purge
+        module load python/3.8.7-gnu831
+        module load intel/19.05
+        module load impi/19.0.5
+        module load hdf5/1.10.3-intel1905
+        module load occt/7.6.1-gnu831
+        module load subversion/1.14.1-gnu831
+        
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 else if ($MAC == "spiro_coda") then

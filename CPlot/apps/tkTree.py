@@ -910,26 +910,8 @@ class Node:
             val = pid[1]
             connectType = val[0]; boundary = val[1]
             v = 'Connectivity of type '
-            if connectType == 2: v += 'NODE.'
-            elif connectType == 3: v += 'BAR'
-            elif connectType == 5: v += 'TRI'
-            elif connectType == 7: v += 'QUAD'
-            elif connectType == 10: v += 'TETRA'
-            elif connectType == 12: v += 'PYRA'
-            elif connectType == 14: v += 'PENTA'
-            elif connectType == 17: v += 'HEXA'
-            elif connectType == 22: v += 'NGON_n'
-            elif connectType == 23: v += 'NFACE_n'
-            elif connectType == 4: v += 'BAR_3'
-            elif connectType == 6: v += 'TRI_6'
-            elif connectType == 8: v += 'QUAD_8'
-            elif connectType == 0: v += 'QUAD_9'
-            elif connectType == 11: v += 'TETRA_10'
-            elif connectType == 13: v += 'PYRA_14'
-            elif connectType == 15: v += 'PENTA_15'
-            elif connectType == 16: v += 'PENTA_18'
-            elif connectType == 18: v += 'HEXA_20'
-            elif connectType == 19: v += 'HEXA_27'
+            name, nnodes = Internal.eltNo2EltName(connectType)
+            v += name
 
             if boundary > 0: v += ' (boundary)'
             CTK.TXT.insert('START', v+'.\n')

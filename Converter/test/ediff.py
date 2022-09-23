@@ -13,7 +13,7 @@ def ediff__(file1, file2):
         c = 0
         for j in z:
             if varsref[c] != j:
-                print('Warning : variables are different in zones.')
+                print('Warning: ediff: variables are different in zones.')
             c += 1
     for i in varsref:
         L2 = C.normL2(ret, i)

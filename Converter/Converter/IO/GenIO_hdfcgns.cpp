@@ -1064,7 +1064,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
 //==========================================================================
 hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 {
-  printf("%s\n", path); fflush(stdout);
+  //printf("%s\n", path); fflush(stdout);
   char _dtype[CGNSMAXLABEL+1]; char _name[CGNSMAXLABEL+1];
 
   hid_t gid = H5Gopen(start, "/", H5P_DEFAULT);

@@ -930,7 +930,7 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
         break;
         
       default:
-        printf("Warning: Number of variables unknown in tpwriteTriangles.\n");
+        printf("Warning: tpwrite: Number of variables unknown in tpwriteTriangles.\n");
         return 1;
     }
   }
@@ -1042,7 +1042,7 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
         break;
         
       default:
-        printf("Warning: number of variables unknown in tpwriteQuads.\n");
+        printf("Warning: tpwrite: number of variables unknown in tpwriteQuads.\n");
         return 1;
     }
   }

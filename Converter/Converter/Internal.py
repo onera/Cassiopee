@@ -2703,7 +2703,7 @@ def eltNo2EltName(eltno):
     elif eltno == 5: name = 'TRI'; nnodes = 3
     elif eltno == 6: name = 'TRI_6'; nnodes = 6
     elif eltno == 25: name = 'TRI_9'; nnodes = 9
-    elif eltno == 26: name = 'TRI_10';nnodes = 10
+    elif eltno == 26: name = 'TRI_10'; nnodes = 10
     elif eltno == 7: name = 'QUAD'; nnodes = 4
     elif eltno == 8: name = 'QUAD_8'; nnodes = 8
     elif eltno == 9: name = 'QUAD_9'; nnodes = 9
@@ -4557,7 +4557,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, z[0], shift0)
                         if ref is None: 
-                            print('Warning: Cannot find', ind, b[0], z[0])
+                            print('Warning: fixNGon: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[z[0]][ref][0]-shift0[z[0]][ref][0]
                             pln[:] += shiftn
@@ -4578,7 +4578,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, z[0], shift0)
                         if ref is None: 
-                            print('Warning: Cannot find', ind, b[0], z[0])
+                            print('Warning: fixNGon: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[z[0]][ref][0]-shift0[z[0]][ref][0]
                             pln[:] += shiftn
@@ -4589,7 +4589,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, zdonor, shift0)
                         if ref is None:
-                            print('Warning: cannot find', ind, b[0], z[0])
+                            print('Warning: fixNGon: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[zdonor][ref][0]-shift0[zdonor][ref][0]
                             pln[:] += shiftn
@@ -4614,7 +4614,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, zdonorname, shift0)
                         if ref is None:
-                            print('Warning: Cannot find', ind, b[0], z[0])
+                            print('Warning: fixNGon: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[zdonorname][ref][0]-shift0[zdonorname][ref][0]
                             pln[:] += shiftn
@@ -5006,7 +5006,7 @@ def _mergeBCDataSets__(z, bcNode):
                     _createUniqueChild(cont, data0[0], 'DataArray_t', value=data0[1])
                 del parent[2][nop]
             else:
-                print('Warning: BCDataSet location of %s is different from %s. Not merged.'%(dataSets[no], dataSets[nod]))
+                print('Warning: mergeBCDataSet: BCDataSet location of %s is different from %s. Not merged.'%(dataSets[no], dataSets[nod]))
         no += 1
     return None
 
@@ -5210,9 +5210,9 @@ def autoSetContainers(t):
     if __FlowSolutionNodes__ == __FlowSolutionCenters__:
         if foundNode == 0: __FlowSolutionNodes__ = ''
         elif foundCenter == 0: __FlowSolutionCenters__ = ''
-        else: print('Warning: FlowSolutionNodes and FlowSolutionCenters have the same name (%s).'%__FlowSolutionNodes__)
-    if foundNode > 1: print('Warning: multiple FlowSolutionNodes containers found (selected: %s)'%__FlowSolutionNodes__)
-    if foundCenter > 1: print('Warning: multiple FlowSolutionCenters containers found (selected: %s)'%__FlowSolutionCenters__)
+        else: print('Warning: autoSetContainers: FlowSolutionNodes and FlowSolutionCenters have the same name (%s).'%__FlowSolutionNodes__)
+    if foundNode > 1: print('Warning: autoSetContainers: multiple FlowSolutionNodes containers found (selected: %s)'%__FlowSolutionNodes__)
+    if foundCenter > 1: print('Warning: autoSetContainers: multiple FlowSolutionCenters containers found (selected: %s)'%__FlowSolutionCenters__)
     return None
 
 #==============================================================================

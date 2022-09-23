@@ -69,12 +69,12 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
       }
       if (primitive.type == cgltf_primitive_type_points)
       {
-        printf("Warning: bloc: %d, primitives are points\n", blockId);
+        printf("Warning: bingltf: bloc: %d, primitives are points\n", blockId);
       }
       
       if (primitive.type == cgltf_primitive_type_triangle_strip)
       {
-        printf("Warning: bloc: %d, primitives are triangle strips\n", blockId);
+        printf("Warning: bingltf: bloc: %d, primitives are triangle strips\n", blockId);
       }
       if (primitive.indices && primitive.type == cgltf_primitive_type_triangles)
       {
@@ -108,7 +108,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
         if (attr.type == cgltf_attribute_type_invalid)
         {
-          fprintf(stderr, "Warning: ignoring unknown attribute %s in primitive %d of mesh %d\n", attr.name, int(pi), blockId);
+          fprintf(stderr, "Warning: bingltf: ignoring unknown attribute %s in primitive %d of mesh %d\n", attr.name, int(pi), blockId);
           continue;
         }
 
@@ -176,7 +176,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
           if (attr.type == cgltf_attribute_type_invalid)
           {
-            fprintf(stderr, "Warning: ignoring unknown attribute %s in morph target %d of primitive %d of mesh %d\n", attr.name, int(ti), int(pi), blockId);
+            fprintf(stderr, "Warning: bingltf: ignoring unknown attribute %s in morph target %d of primitive %d of mesh %d\n", attr.name, int(ti), int(pi), blockId);
             continue;
           }
 
@@ -255,11 +255,11 @@ E_Int K_IO::GenIO::gltfwrite(
     if (eltType[zone] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
-      printf("Warning: gtlfwrite: zone %d not written (not a triangle zone).", zone);
+      printf("Warning: gltfwrite: zone %d not written (not a triangle zone).", zone);
   } 
 
   if (nvalidZones == 0) return 1;
-  if (nvalidZones > 1) printf("Warning: gtlfwrite: only first zone will be written.");
+  if (nvalidZones > 1) printf("Warning: gltfwrite: only first zone will be written.");
   
   // Zone must have posx, posy, posz
   E_Int posx, posy, posz;
@@ -268,11 +268,11 @@ E_Int K_IO::GenIO::gltfwrite(
   posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    printf("Warning: gtlfwrite: zone do not have coordinates. Not written.");
+    printf("Warning: gltfwrite: zone do not have coordinates. Not written.");
     return 1;
   }
   posx++; posy++; posz++;
 
-  printf("Warning: gtlfwrite: not implemented. Nothing written.\n");
+  printf("Warning: gltfwrite: not implemented. Nothing written.\n");
   return 1;
 }
