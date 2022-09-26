@@ -439,19 +439,32 @@ void Data::dumpWindow()
   else strcpy(fileName, ptrState->exportFile);
   ptrState->exportNumber++;
 
-  if (strcmp(_pref.screenDump->extension, "ps") == 0)
+  if (strcmp(_pref.screenDump->extension, "ps")  == 0 || 
+      strcmp(_pref.screenDump->extension, "pdf") == 0 ||
+      strcmp(_pref.screenDump->extension, "svg") == 0)
   {
     // Postscript
     int state = GL2PS_OVERFLOW, buffsize = 0;
+    int format = GL2PS_EPS;
+    if (strcmp(_pref.screenDump->extension, "pdf") == 0) format = GL2PS_PDF;
+    else if (strcmp(_pref.screenDump->extension, "svg") == 0) format = GL2PS_SVG;
+    GLint viewport[4]; glGetIntegerv(GL_VIEWPORT, viewport);
 
     FILE* fp = fopen(fileName, "wb");
     while (state == GL2PS_OVERFLOW)
     {
       buffsize += 1024*1024;
-      gl2psBeginPage("test", "CPlot", NULL, 
-                     GL2PS_EPS, GL2PS_BSP_SORT, 
-		     GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT, 
-		     GL_RGBA, 0, NULL, 0, 0, 0,  buffsize, fp, fileName);
+      // Nouvelle version
+      //gl2psBeginPage("CPlot", "CPlot", viewport,
+      //               format, GL2PS_BSP_SORT, 
+      //               GL2PS_DRAW_BACKGROUND | GL2PS_SILENT | GL2PS_SIMPLE_LINE_OFFSET 
+      //               | GL2PS_NO_BLENDING | GL2PS_OCCLUSION_CULL | GL2PS_BEST_ROOT, 
+      //               GL_RGBA, 0, NULL, 0, 0, 0,  buffsize, fp, fileName);
+      // Ancienne version
+      gl2psBeginPage("CPlot", "CPlot", NULL,
+                     format, GL2PS_BSP_SORT, 
+                     GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT,
+                     GL_RGBA, 0, NULL, 0, 0, 0,  buffsize, fp, fileName);
       display();
       state = gl2psEndPage();
     }

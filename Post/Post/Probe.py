@@ -7,6 +7,8 @@ import Generator.PyTree as G
 import Converter.Filter as Filter
 import Converter.Distributed as Distributed
 import Distributor2.PyTree as D2
+import Connector.PyTree as X
+import Connector.Mpi as Xmpi
 import numpy, os
 
 # Probe class
@@ -17,7 +19,8 @@ class Probe:
         # probe mode: 
         # mode=0, probe XYZ, single point
         # mode=1, probe ind, single point
-        # mode=2, probe zones
+        # mode=2, zones donnees
+        # mode=3, zones interpolees
         self._mode = 2
 
         # -- data probe mode=0 --
@@ -36,6 +39,11 @@ class Probe:
         # the proc blockName is on
         self._proc = 0
         
+        # -- data probe mode=3 --
+        self._ts = None
+        self._graph = None
+        self._procDicts = None
+
         # -- data for all modes --
         # list of extracted field names
         self._fields = []
@@ -58,9 +66,11 @@ class Probe:
         self._probeZones = None
 
     # init from position X/ind+blockName/None
-    def __init__(self, fileName, t=None, 
+    def __init__(self, fileName, 
+                 t=None, 
                  X=None, 
                  ind=None, blockName=None,
+                 tPermeable=None, 
                  fields=None, append=True, 
                  bufferSize=100, writeCoords=True):
         """Create a probe."""
@@ -82,13 +92,21 @@ class Probe:
         
             if t is not None and loc is not None:
                 self.locateProbeXYZ(t, X, loc)
+            else: print("Warning: probe: need t for probe with point coordinates.")
 
         # Localisation a partir de ind,blockName (mode=1)
         elif ind is not None and blockName is not None:
             self._mode = 1
-            self.locateProbeInd(t, ind, blockName)
+            if t is not None: self.locateProbeInd(t, ind, blockName)
+            else: int("Warning: probe: need t for probe with index and blockName.")
 
-        else: self._mode = 2
+        elif tPermeable is not None:
+            self._mode = 3
+            self._ts = tPermeable
+
+        # Empilement de zones
+        else: 
+            self._mode = 2
         
         # Cree la probe et on relit le fichier uniquement en mode=0 et 1
         if self._mode == 0 or self._mode == 1:
@@ -252,6 +270,67 @@ class Probe:
 
         return None
 
+    # Prepare for mode=3
+    def prepare(self, ts, tc):
+        tcs = Internal.copyRef(tc)
+        cartesian = False # True if tc is cartesian
+        interpDataType = 1 # 0 if tc is cartesian
+
+        # Compute BBoxTrees
+        tsBB = Cmpi.createBBoxTree(ts)
+        procDicts = Cmpi.getProcDict(tsBB)
+        tcsBB = Cmpi.createBBoxTree(tcs)
+        procDictcs = Cmpi.getProcDict(tcsBB)
+        interDicts = X.getIntersectingDomains(tsBB, tcsBB)
+        interDictD2R = X.getIntersectingDomains(tcsBB, tsBB)
+
+        graph = Cmpi.computeGraph(tcsBB, type='bbox3', intersectionsDict=interDictD2R,
+                                  procDict=procDictcs, procDict2=procDicts, t2=tsBB, reduction=True)
+        Cmpi._addXZones(tcs, graph, variables=['cellN'], cartesian=cartesian, subr=True)
+
+        datas = {}
+        for zs in Internal.getZones(ts):
+            zrname = Internal.getName(zs)
+            dnrZones = []
+            for zdname in interDicts[zrname]:
+                zd = Internal.getNodeFromName2(tcs, zdname)
+                dnrZones.append(zd)
+            C._initVars(zs, 'cellN', 2.)
+            X._setInterpData(zs, dnrZones, nature=1, penalty=1, loc='nodes', storage='inverse',
+                             sameName=0, interpDataType=interpDataType, itype='chimera')
+
+            for zd in dnrZones:
+                zdname = zd[0]
+                destProc = procDictcs[zdname]
+        
+                IDs = []
+                for i in zd[2]:
+                    if i[0][0:2] == 'ID':
+                        if Internal.getValue(i) == zrname: IDs.append(i)
+
+                if IDs != []:
+                    if destProc == Cmpi.rank:
+                        zD = Internal.getNodeFromName2(tcs, zdname)
+                        zD[2] += IDs
+                    else:
+                        if destProc not in datas: datas[destProc] = [[zdname,IDs]]
+                        else: datas[destProc].append([zdname,IDs])
+                else:
+                    if destProc not in datas: datas[destProc] = []
+        Cmpi._rmXZones(tcs)
+        destDatas = Cmpi.sendRecv(datas, graph)
+        for i in destDatas:
+            for n in destDatas[i]:
+                zname = n[0]
+                IDs = n[1]
+                if IDs != []:
+                    zD = Internal.getNodeFromName2(tcs, zname)
+                    zD[2] += IDs
+        datas = {}; destDatas = None
+        
+        Cmpi.convertPyTree2File(tcs, "tcs.cgns", ignoreProcNodes=True)
+        return tcs
+
     # Check file, if it doesnt exist, write probe zone in it
     # else get the filecur
     # IN: _proc: proc of probe
@@ -386,85 +465,115 @@ class Probe:
     # IN: _probeZones: zone de stockage
     # IN: _ind: index of probe (static)
     # IN: _fields: nom des champs a extraire
-    def extract(self, t, time):
+    def extract(self, t, time, ts=None):
         """Extract XYZ or Ind fields from t."""
 
         if self._mode == 0 or self._mode == 1: # single point
-            if Cmpi.rank != self._proc: return None
+            self.extract1(t, time)
+            
+        elif self._mode == 2: # single zone
+            self.extract2(t, time)
+            
+        elif self._mode == 3:
+            # attention ici : t is tcs
+            self.extract3(self._ts, t, time)
+        return None
 
-            # time is in "time" of probe zone
-            pzone = self._probeZones[0]
-            pt = Internal.getNodeFromName2(pzone, 'time')[1]
-            pt[self._icur] = time
-            px = Internal.getNodeFromName2(pzone, 'CoordinateX')[1]
-            py = Internal.getNodeFromName2(pzone, 'CoordinateY')[1]
-            pz = Internal.getNodeFromName2(pzone, 'CoordinateZ')[1]
-            px[self._icur] = self._posX
-            py[self._icur] = self._posY
-            pz[self._icur] = self._posZ
+    def extract1(self, t, time):
+        """Extract for mode=1."""
+        if Cmpi.rank != self._proc: return None
+        # time is in "time" of probe zone
+        pzone = self._probeZones[0]
+        pt = Internal.getNodeFromName2(pzone, 'time')[1]
+        pt[self._icur] = time
+        px = Internal.getNodeFromName2(pzone, 'CoordinateX')[1]
+        py = Internal.getNodeFromName2(pzone, 'CoordinateY')[1]
+        pz = Internal.getNodeFromName2(pzone, 'CoordinateZ')[1]
+        px[self._icur] = self._posX
+        py[self._icur] = self._posY
+        pz[self._icur] = self._posZ
 
-            b = Internal.getNodeFromName2(t, self._blockName)
+        b = Internal.getNodeFromName2(t, self._blockName)
 
+        for c, v in enumerate(self._fields):
+            v = v.split(':')
+            if len(v) == 2: v = v[1]
+            else: v = v[0]
+            f = Internal.getNodeFromName2(b, v)[1]
+            f = f.ravel('k')
+            pf = Internal.getNodeFromName2(pzone, v)[1]
+            pf = pf.ravel('k')
+            pf[self._icur] = f[self._ind]
+            #print('value=',f[self._ind])
+        self._icur += 1
+        if self._icur >= self._bsize: self.flush()
+        return None
+
+    def extract2(self, t, time):
+        """Extract for mode=2"""
+        if self._probeZones is None: 
+            self.createProbeZones(t)
+            self.checkFile(append=self._append)
+        Cmpi.barrier()
+
+        # time is in "time" of probe zones
+        source = Internal.getZones(t)
+        for c, pz in enumerate(self._probeZones):
+            sourcez = source[c]
+            pt = Internal.getNodeFromName2(pz, 'time')[1]
+            pt[self._icur,:] = time
+
+            # Set zone coordinates
+            if self._coords:
+                ptx = Internal.getNodeFromName2(pz, 'CoordinateX')[1]
+                pty = Internal.getNodeFromName2(pz, 'CoordinateY')[1]
+                ptz = Internal.getNodeFromName2(pz, 'CoordinateZ')[1]
+                ptx2 = Internal.getNodeFromName2(sourcez, 'CoordinateX')[1].ravel('k')
+                pty2 = Internal.getNodeFromName2(sourcez, 'CoordinateY')[1].ravel('k')
+                ptz2 = Internal.getNodeFromName2(sourcez, 'CoordinateZ')[1].ravel('k')
+                if ptx2.size == ptx.shape[1]:
+                    ptx[self._icur,:] = ptx2[:]
+                    pty[self._icur,:] = pty2[:]
+                    ptz[self._icur,:] = ptz2[:]
+                else:
+                    sourcezp = C.node2Center(sourcez)
+                    ptx2 = Internal.getNodeFromName2(sourcezp, 'CoordinateX')[1].ravel('k')
+                    pty2 = Internal.getNodeFromName2(sourcezp, 'CoordinateY')[1].ravel('k')
+                    ptz2 = Internal.getNodeFromName2(sourcezp, 'CoordinateZ')[1].ravel('k')
+                    ptx[self._icur,:] = ptx2[:]
+                    pty[self._icur,:] = pty2[:]
+                    ptz[self._icur,:] = ptz2[:]                    
+
+            # Set zone fields
             for c, v in enumerate(self._fields):
                 v = v.split(':')
                 if len(v) == 2: v = v[1]
                 else: v = v[0]
-                f = Internal.getNodeFromName2(b, v)[1]
+                f = Internal.getNodeFromName2(sourcez, v)[1]
                 f = f.ravel('k')
-                pf = Internal.getNodeFromName2(pzone, v)[1]
-                pf = pf.ravel('k')
-                pf[self._icur] = f[self._ind]
-                #print('value=',f[self._ind])
-            self._icur += 1
-            if self._icur >= self._bsize: self.flush()
-
-        elif self._mode == 2: # single zone
-            if self._probeZones is None: 
-                self.createProbeZones(t)
-                self.checkFile(append=self._append)
-            Cmpi.barrier()
-
-            # time is in "time" of probe zones
-            source = Internal.getZones(t)
-            for c, pz in enumerate(self._probeZones):
-                sourcez = source[c]
-                pt = Internal.getNodeFromName2(pz, 'time')[1]
-                pt[self._icur,:] = time
-
-                # Set zone coordinates
-                if self._coords:
-                    ptx = Internal.getNodeFromName2(pz, 'CoordinateX')[1]
-                    pty = Internal.getNodeFromName2(pz, 'CoordinateY')[1]
-                    ptz = Internal.getNodeFromName2(pz, 'CoordinateZ')[1]
-                    ptx2 = Internal.getNodeFromName2(sourcez, 'CoordinateX')[1].ravel('k')
-                    pty2 = Internal.getNodeFromName2(sourcez, 'CoordinateY')[1].ravel('k')
-                    ptz2 = Internal.getNodeFromName2(sourcez, 'CoordinateZ')[1].ravel('k')
-                    if ptx2.size == ptx.shape[1]:
-                        ptx[self._icur,:] = ptx2[:]
-                        pty[self._icur,:] = pty2[:]
-                        ptz[self._icur,:] = ptz2[:]
-                    else:
-                        sourcezp = C.node2Center(sourcez)
-                        ptx2 = Internal.getNodeFromName2(sourcezp, 'CoordinateX')[1].ravel('k')
-                        pty2 = Internal.getNodeFromName2(sourcezp, 'CoordinateY')[1].ravel('k')
-                        ptz2 = Internal.getNodeFromName2(sourcezp, 'CoordinateZ')[1].ravel('k')
-                        ptx[self._icur,:] = ptx2[:]
-                        pty[self._icur,:] = pty2[:]
-                        ptz[self._icur,:] = ptz2[:]                    
-
-                # Set zone fields
-                for c, v in enumerate(self._fields):
-                    v = v.split(':')
-                    if len(v) == 2: v = v[1]
-                    else: v = v[0]
-                    f = Internal.getNodeFromName2(sourcez, v)[1]
-                    f = f.ravel('k')
-                    pf = Internal.getNodeFromName2(pz, v)[1]
-                    pf[self._icur,:] = f[:]
+                pf = Internal.getNodeFromName2(pz, v)[1]
+                pf[self._icur,:] = f[:]
                 
-            self._icur += 1
-            if self._icur >= self._bsize: self.flush()
+        self._icur += 1
+        if self._icur >= self._bsize: self.flush()
+        return None
 
+    def extract3(self, ts, tcs, time):
+        # ts : permeable surface
+        # tcs :  tc for surface interp must be set
+        if self._procDicts is None:
+            tsBB = Cmpi.createBBoxTree(ts)
+            self.procDicts = Cmpi.getProcDict(tsBB)
+            
+        if self._graph is None:
+            tcsBB = Cmpi.createBBoxTree(tcs)
+            procDict = Cmpi.getProcDict(tcsBB)
+            #interDicts = X.getIntersectingDomains(tsBB, tcsBB)
+            interDictD2R = X.getIntersectingDomains(tcsBB, tsBB)
+            self._graph = Cmpi.computeGraph(tcsBB, type='bbox3', intersectionsDict=interDictD2R,
+                                            procDict=procDict, procDict2=self._procDicts, t2=tsBB, reduction=True)
+
+        Xmpi._setInterpTransfers(ts, tcs, variables=['F'], graph=self._graph, procDict=self._procDicts)
         return None
 
     # flush containers of probe

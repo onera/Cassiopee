@@ -192,7 +192,7 @@ Actions
     :type stereo: int
     :param stereoDist: distance between eyes for stereo
     :type stereoDist: float
-    :param export: file name for export
+    :param export: file name for export (.png)
     :type export: string
     :param exportResolution: resolution for export ("1920x1080")
     :type exportResolution: string

@@ -56,7 +56,7 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
     if (resr == 1) RELEASESHAREDB(resr, arrayR, fr, cnr);
     return NULL;
   }
-  if (K_STRING::cmp(eltTyper, "TRI") != 0 && K_STRING::cmp(eltTyper, "BAR") != 0 & 
+  if (K_STRING::cmp(eltTyper, "TRI") != 0 && K_STRING::cmp(eltTyper, "BAR") != 0 && 
       K_STRING::cmp(eltTyper, "TRI*") != 0 && K_STRING::cmp(eltTyper, "BAR*") != 0  )
   {
     PyErr_SetString(PyExc_TypeError,

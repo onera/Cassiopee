@@ -772,7 +772,8 @@ void Data::initMagma()
   float* pr = _colormapRMagma;
   float* pg = _colormapGMagma;
   float* pb = _colormapBMagma;
-    pr[0]=0.001462; pg[0]=0.000466; pb[0]=0.013866;
+
+  pr[0]=0.001462; pg[0]=0.000466; pb[0]=0.013866;
   pr[1]=0.003279; pg[1]=0.002305; pb[1]=0.023708;
   pr[2]=0.007588; pg[2]=0.006356; pb[2]=0.044973;
   pr[3]=0.011465; pg[3]=0.009828; pb[3]=0.060750;
@@ -888,7 +889,8 @@ void Data::initPlasma()
   float* pr = _colormapRPlasma;
   float* pg = _colormapGPlasma;
   float* pb = _colormapBPlasma;
-    pr[0]=0.050383; pg[0]=0.029803; pb[0]=0.527975;
+
+  pr[0]=0.050383; pg[0]=0.029803; pb[0]=0.527975;
   pr[1]=0.075353; pg[1]=0.027206; pb[1]=0.538007;
   pr[2]=0.105980; pg[2]=0.024309; pb[2]=0.551368;
   pr[3]=0.123903; pg[3]=0.022878; pb[3]=0.559423;
@@ -1005,7 +1007,8 @@ void Data::initJet()
   float* pr = _colormapRJet;
   float* pg = _colormapGJet;
   float* pb = _colormapBJet;
-    pr[0]=0.000000; pg[0]=0.000000; pb[0]=0.500000;
+
+  pr[0]=0.000000; pg[0]=0.000000; pb[0]=0.500000;
   pr[1]=0.000000; pg[1]=0.000000; pb[1]=0.545914;
   pr[2]=0.000000; pg[2]=0.000000; pb[2]=0.591827;
   pr[3]=0.000000; pg[3]=0.000000; pb[3]=0.637741;
@@ -1105,7 +1108,6 @@ void Data::initJet()
   pr[97]=0.591827; pg[97]=0.000000; pb[97]=0.000000;
   pr[98]=0.545914; pg[98]=0.000000; pb[98]=0.000000;
   pr[99]=0.500000; pg[99]=0.000000; pb[99]=0.000000;
-
 }
 //============================================================================
 /*
@@ -1122,7 +1124,8 @@ void Data::initGreys()
   float* pr = _colormapRGreys;
   float* pg = _colormapGGreys;
   float* pb = _colormapBGreys;
-    pr[0]=1.000000; pg[0]=1.000000; pb[0]=1.000000;
+
+  pr[0]=1.000000; pg[0]=1.000000; pb[0]=1.000000;
   pr[1]=0.995247; pg[1]=0.995247; pb[1]=0.995247;
   pr[2]=0.990493; pg[2]=0.990493; pb[2]=0.990493;
   pr[3]=0.985740; pg[3]=0.985740; pb[3]=0.985740;
@@ -1226,23 +1229,6 @@ void Data::initGreys()
 }
 //============================================================================
 /*
-  Init NiceBlue colormap
-*/
-//============================================================================
-void Data::initNiceBlue()
-{
-  _colormapSizeNiceBlue = 100;
-  _colormapRNiceBlue = new float [100];
-  _colormapGNiceBlue = new float [100];
-  _colormapBNiceBlue = new float [100];
-  
-  float* pr = _colormapRNiceBlue;
-  float* pg = _colormapGNiceBlue;
-  float* pb = _colormapBNiceBlue;
-  
-}
-//============================================================================
-/*
   Init Greens colormap
 */
 //============================================================================
@@ -1256,7 +1242,8 @@ void Data::initGreens()
   float* pr = _colormapRGreens;
   float* pg = _colormapGGreens;
   float* pb = _colormapBGreens;
-    pr[0]=0.968627; pg[0]=0.988235; pb[0]=0.960784;
+
+  pr[0]=0.968627; pg[0]=0.988235; pb[0]=0.960784;
   pr[1]=0.962923; pg[1]=0.986017; pb[1]=0.954130;
   pr[2]=0.957219; pg[2]=0.983799; pb[2]=0.947475;
   pr[3]=0.951515; pg[3]=0.981581; pb[3]=0.940820;

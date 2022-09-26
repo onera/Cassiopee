@@ -280,7 +280,6 @@ public:
   void initPlasma();
   void initJet();
   void initGreys();
-  void initNiceBlue();
   void initGreens();
   void codeFromRenderTag(Zone& z, char* tag, 
              float& colorR, float& colorG, float& colorB,
