@@ -5418,7 +5418,10 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
             sizeD = (imaxD-iminD+1)*(jmaxD-jminD+1)*(kmaxD-kminD+1)
 
             if sizeR != sizeD:
-              raise ValueError("extractBCMatch. Not a coincident match: ", gc[0])
+              fldD = None
+              indR = None
+              print("extractBCMatch. Not a coincident match: ", gc[0])
+              return [indR,fldD]
 
             niR   = dimzR[1]-1 
             njR   = dimzR[2]-1

@@ -1053,7 +1053,6 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
 
   // Parent Elements 
   // ~~~~~~~~~~~~~~~
-  /*
   E_Int* PE = NULL;
   if (zoneType == 2)
   {
@@ -1065,7 +1064,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
     }
     else PE = cn[2];
   }
-  */
+  
   // Champs de la zone donneuse
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~
   E_Int ni2, nj2, nk2 ;
@@ -1155,20 +1154,20 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
 
   // Build 0.5(fldD+fldR) array on boundary faces
   // ============================================
-  //E_Int* ptrIndR = indR->begin();
+  E_Int* ptrIndR = indR->begin();
 
   for (E_Int var = 1; var <= nfld; var++)
   {
-    //E_Int posv          = posvars[var-1];
-    //E_Float* fieldV     = fields[posv];
-    //E_Float* ptrFldD    = fldD->begin(var);
+    E_Int posv          = posvars[var-1];
+    E_Float* fieldV     = fields[posv];
+    E_Float* ptrFldD    = fldD->begin(var);
     E_Float* ptrFld     = fld->begin(var);
 
     for (E_Int noindint = 0 ; noindint < nind ; noindint++)
     {
-      //E_Int indFace    = ptrIndR[noindint]-1;
-      //E_Int indcell    = PE[indFace]-1;
-      ptrFld[noindint] = 0.; //0.5*( fieldV[indcell]+ptrFldD[noindint] );    
+      E_Int indFace    = ptrIndR[noindint]-1;
+      E_Int indcell    = PE[indFace]-1;
+      ptrFld[noindint] = 0.5*( fieldV[indcell]+ptrFldD[noindint] );    
     }
   }
 
