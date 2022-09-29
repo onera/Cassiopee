@@ -15,7 +15,7 @@ limit stacksize unlimited
 
 # Detection machine (shortest first)
 set KC=`uname -n`
-set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator"
+set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator_brw"
 set MAC0=`echo $KC | grep 'ld'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'eos'`; if ($%MAC0 != 0) set MAC="eos"
@@ -35,14 +35,13 @@ set MAC0=`echo $KC | grep 'linux64'`; if ($%MAC0 != 0) set MAC="linux64"
 set MAC0=`echo $KC | grep 'moloch'`; if ($%MAC0 != 0) set MAC="moloch"
 set MAC0=`echo $KC | grep 'giulia'`; if ($%MAC0 != 0) set MAC="giulia"
 set MAC0=`echo $KC | grep 'westri'`; if ($%MAC0 != 0) set MAC="westri"
-set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator"
+set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_brw"
 set MAC0=`echo $KC | grep 'xdaap'`; if ($%MAC0 != 0) set MAC="xdaap"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro"
 set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
 set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
 set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 
-# force: sator_sky, ld_pgi en faisant setenv MACHINE sator_sky
 if ($?MACHINE != 0) then
     set MAC=$MACHINE
 endif
@@ -701,43 +700,19 @@ else if ($MAC == "spiro_coda") then
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.9/site-packages
 
-else if ($MAC == "sator_17python3") then
-#------------------------------- sator --------------------------------------
+else if ($MAC == "sator_brw") then
+#------------------------------- sator for broadwell ----------------------------------
         setenv ELSAPROD sat_r8
-        echo "pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
-
-        module unload intel/11.1.073
-        module load python/3.6.1-intel-17
+        module purge
+        #module load intel/21.2.0
+        #module load python/2.7.18-gnu831
+        module load socle-cfd/5.0-intel2120-impi
+        module load subversion/1.14.1-gnu831
+        module load emacs/27.2-gnu831
+        unsetenv I_MPI_PMI_LIBRARY 
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
-        module load intel/17.0.4
-        module load impi/17
-        #module load hdf5/1.8.17-intel-17
-        # HDF para (deja dans le socle)
-        module load hdf5/1.8.17-intel-17.impi
-        
-        # Number of threads
-        setenv OMP_NUM_THREADS 28
-        set path=($path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
-
-else if ($MAC == "sator") then
-#------------------------------- sator --------------------------------------
-        setenv ELSAPROD sat_r8
-        echo "Pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
-
-        module load intel/17.0.4
-        #module unload intel/11.1.073
-        module load CFD/4.0-intel-17.impi
-        #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-        #module load gcc/5.2
-        module load subversion/1.8.4
-        # HDF para (deja dans le socle)
-        # module load hdf5/1.8.17-intel-17.impi
-        
         # Number of threads
         setenv OMP_NUM_THREADS 28
         set path=($path $CASSIOPEE/Dist/bin)
@@ -746,28 +721,28 @@ else if ($MAC == "sator") then
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "sator_sky") then
-#------------------------------- sator skylake ------------------------------------
+#------------------------------- sator for skylake ------------------------------------
         setenv ELSAPROD sat_sky_r8
-        module unload intel/11.1.073
-        module load CFD/4.0-intel-17.impi
-        #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-
-        # HDF para (deja dans le socle)
-        # module load hdf5/1.8.17-intel-17.impi
-        
+        module purge
+        module load socle-cfd/5.0-intel2120-impi
+        module load subversion/1.14.1-gnu831
+        module load emacs/27.2-gnu831
+        unsetenv I_MPI_PMI_LIBRARY
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
         # Number of threads
-        setenv OMP_NUM_THREADS 28
+        setenv OMP_NUM_THREADS 44
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
 
-else if ($MAC == "sator_new") then
-#------------------------------- sator new ------------------------------------
+else if ($MAC == "sator_cas") then
+#------------------------------- sator for cascade ------------------------------------
         setenv ELSAPROD sat_cas_r8
         module purge
         module load socle-cfd/5.0-intel2120-impi
-        #module load socle-cfd/5.0-intel1905-impi
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         unsetenv I_MPI_PMI_LIBRARY 
@@ -775,7 +750,7 @@ else if ($MAC == "sator_new") then
         setenv PYTHONEXE python3
         alias python python3
         # Number of threads
-        setenv OMP_NUM_THREADS 24
+        setenv OMP_NUM_THREADS 48
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib

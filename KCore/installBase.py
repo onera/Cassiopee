@@ -795,7 +795,7 @@ False, # useCuda
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
-['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=22','-Dvtune','-DSIMD=AVX512'], # CppAdditionalOptions
+['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=22','-Dvtune','-DSIMD=AVX2P512'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static

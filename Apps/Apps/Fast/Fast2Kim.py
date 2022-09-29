@@ -372,9 +372,9 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
             #dim[0] = 1
             #dim[1] = -nB_Pts
             #dim[2] = nb_Elts
-            dim[0] = dimz[1]
-            dim[1] = dimz[2]
-            dim[2] = dimz[3]
+            dim[0] = dimz[1]-1
+            dim[1] = dimz[2]-1
+            dim[2] = 1
             nuikim = 1
             invnorm = 1
             dimdom.write(str(indom)+' '+str(indom)+' '+str(dim[0])+' '+str(dim[1])+' '+str(dim[2])+'  1  '+ str(dim[0])+'  0  0  1  '+str(dim[2])+' '+str(nuikim)+' '+str(invnorm)+'\n')

@@ -5332,7 +5332,7 @@ def computeBCMatchField(z,allMatch,variables=None):
 # indFaceD : indices des faces de la frontiere dans la zone donneuse
 # indFaceR : indices des faces de la frontiere dans la zone receveuse 
 # fldFace  : champ de la zone donneuse extrapole sur les faces frontieres 
-
+# ===================================================================================
 def extractBCMatch(zdonor,gc,dimzR,variables=None):
     # On verifie que gc donne le raccord dans zdonor 
     # ==============================================
@@ -5394,7 +5394,7 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
     #     fields = getAllFields(zdonor, 'centers')[0]
         if fields != []:
-            # raise ValueError("extractBCMatch. Variable(s) not found:", variables)
+            # raise ValueError("extractBCMatch: Variable(s) not found:", variables)
 
             # Infos raccord 
             # =============
@@ -5420,7 +5420,7 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
             if sizeR != sizeD:
               fldD = None
               indR = None
-              print("extractBCMatch. Not a coincident match: ", gc[0])
+              print("Warning: extractBCMatch: Not a coincident match: ", gc[0])
               return [indR,fldD]
 
             niR   = dimzR[1]-1 
@@ -5471,7 +5471,6 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
     # print("len(indR): ", len(indR))
     # print("len(fldD): ", len(fldD[1][0]) )
-
     
     return [indR,fldD]
 

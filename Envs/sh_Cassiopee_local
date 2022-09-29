@@ -19,7 +19,7 @@ ulimit -s unlimited
 
 # Detection machine (shortest first)
 KC=`uname -n`
-MAC0=$(echo $KC | grep 'n'); if [ "$MAC0" != "" ]; then export MAC="sator"; fi
+MAC0=$(echo $KC | grep 'n'); if [ "$MAC0" != "" ]; then export MAC="sator_brw"; fi
 MAC0=$(echo $KC | grep 'ld'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
 MAC0=$(echo $KC | grep 'clausius'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
 MAC0=$(echo $KC | grep 'eos'); if [ "$MAC0" != "" ]; then export MAC="eos"; fi
@@ -38,13 +38,12 @@ MAC0=$(echo $KC | grep 'visung'); if [ "$MAC0" != "" ]; then export MAC="visung"
 MAC0=$(echo $KC | grep 'moloch'); if [ "$MAC0" != "" ]; then export MAC="moloch"; fi
 MAC0=$(echo $KC | grep 'giulia'); if [ "$MAC0" != "" ]; then export MAC="giulia"; fi
 MAC0=$(echo $KC | grep 'westri'); if [ "$MAC0" != "" ]; then export MAC="westri"; fi
-MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator"; fi
+MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_brw"; fi
 MAC0=$(echo $KC | grep 'xdaap'); if [ "$MAC0" != "" ]; then export MAC="xdaap"; fi
 MAC0=$(echo $KC | grep 'spiro'); if [ "$MAC0" != "" ]; then export MAC="spiro"; fi
 MAC0=$(echo $KC | grep 'cobalt'); if [ "$MAC0" != "" ]; then export MAC="cobalt"; fi
 MAC0=$(echo $KC | grep 'node6.cluster'); if [ "$MAC0" != "" ]; then export MAC="macosx"; fi
 
-# force: sator_sky, ld_pgi
 if [ "$MACHINE" != "" ]; then
     export MAC=$MACHINE
 fi
@@ -603,28 +602,22 @@ elif [ "$MAC" = "spiro_arm" ]; then
     export LD_LIBRARY_PATHL=/usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=/usr/lib64/python3.6:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages:/usr/bin
 
-elif [ "$MAC" = "sator" ]; then
-#----------------------------- sator -----------------------------------------
+elif [ "$MAC" = "sator_brw" ]; then
+#----------------------------- sator for broadwell -----------------------------------------
     export ELSAPROD=sat_r8
-    echo "Pour compiler sur skylake, export MACHINE=sator_sky, puis sourcer sh_Cassiopee_r8" 
-
-    # Nbre de threads
-    export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
-#    export KMP_AFFINITY="scatter,1,0,granularity=fine,verbose"
+    . /etc/profile.d/module.sh
+    module purge
+    #module load intel/21.2.0
+    #module load python/2.7.18-gnu831
+    module load socle-cfd/5.0-intel2120-impi
+    module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
+    unset I_MPI_PMI_LIBRARY
+    # Set next two lines only if python is not python
+    export PYTHONEXE=python3
+    alias python python3
+    # Number of threads
     export OMP_NUM_THREADS=28
-
-    # modules
-    . /usr/share/Modules/init/bash
-    module unload $(module -t list 2>&1 | grep -i intel)
-    module load intel/17.0.4
-    module load CFD/4.0-intel-17.impi
-    #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-    #module load gcc/5.2 intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-    #module load gcc/5.2 intel/17.0.4 impi/17 python/2.7.13-intel-17
-    # HDF para (deja dans le socle)
-    #module load hdf5/1.8.17-intel-17.impi
-    module load subversion/1.8.4
-
     # Chemin de l'executable python
     export PATH=$PATH
     export PATH=$PATH:$CASSIOPEE/Dist/bin
@@ -635,39 +628,34 @@ elif [ "$MAC" = "sator" ]; then
 elif [ "$MAC" = "sator_sky" ]; then
 #----------------------------- sator skylake ---------------------------------------
     export ELSAPROD=sat_sky_r8
-    # Nbre de threads
-    export OMP_NUM_THREADS=28
-    export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
-    export PROC_NAME="SKL"
-
-    # modules 
-    . /usr/share/Modules/init/bash
-    module unload $(module -t list 2>&1 | grep -i intel)
-    module load CFD/4.0-intel-17.impi
-    #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-    #module load gcc/5.2 intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-    #module load gcc/5.2 intel/17.0.4 impi/17 python/2.7.13-intel-17
-    # HDF para (deja dans le socle)
-    #module load hdf5/1.8.17-intel-17.impi
-
+    . /etc/profile.d/module.sh
+    module purge
+    module load socle-cfd/5.0-intel2120-impi
+    module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
+    unset I_MPI_PMI_LIBRARY
+    # Set next two lines only if python is not python
+    export PYTHONEXE=python3
+    alias python python3
+    # Number of threads
+    export OMP_NUM_THREADS=44
     # Chemin de l'executable python
     export PATH=$PATH
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
 
-elif [ "$MAC" = "sator_new" ]; then
-#----------------------------- sator new ---------------------------------------
+elif [ "$MAC" = "sator_cas" ]; then
+#----------------------------- sator for cascade ---------------------------------------
     export ELSAPROD=sat_cas_r8
     # Nbre de threads
-    export OMP_NUM_THREADS=24
+    export OMP_NUM_THREADS=48
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
-    # modules 
+    
     . /etc/profile.d/module.sh
     module purge
     module load socle-cfd/5.0-intel2120-impi
-    #module load socle-cfd/5.0-intel1905-impi
     module load subversion/1.14.1-gnu831
     module load emacs/27.2-gnu831
     unset I_MPI_PMI_LIBRARY 
