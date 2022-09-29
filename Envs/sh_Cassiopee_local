@@ -615,7 +615,7 @@ elif [ "$MAC" = "sator_brw" ]; then
     unset I_MPI_PMI_LIBRARY
     # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    alias python python3
+    alias python=python3
     # Number of threads
     export OMP_NUM_THREADS=28
     # Chemin de l'executable python
@@ -623,7 +623,7 @@ elif [ "$MAC" = "sator_brw" ]; then
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
 
 elif [ "$MAC" = "sator_sky" ]; then
 #----------------------------- sator skylake ---------------------------------------

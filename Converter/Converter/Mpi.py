@@ -1,7 +1,6 @@
 # Interface pour MPI
 
-import os
-import timeit
+import os, time, timeit, sys
 
 if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
     if int(os.environ['MPIRUN'])>0:
@@ -133,18 +132,48 @@ def getMeanValue(t, varName):
     return val/npts
 
 # Ecrit une trace dans un fichier proc0.out
-def trace(text):
+# si cpu=True, ecrit le temps depuis le trace precedent
+# si mem=True, ecrit l'etat de la mem du noeud
+# si stdout=True, ecrit a l'ecran
+def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False):
+    """Write a trace of cpu and memory in a file or to stdout for current node."""
     global PREVFULLTIME
-    if PREVFULLTIME is None:
-        dt = 0.
-        PREVFULLTIME = timeit.default_timer()
-    else:
-        t = timeit.default_timer()
-        dt = t - PREVFULLTIME
-        PREVFULLTIME = t
-    
-    f = open('proc%03d.out'%rank, "a")
-    f.write(text+' [%g secs]\n'%dt)
-    f.flush()
-    f.close()
+    msg = text
+    if cpu:
+        if PREVFULLTIME is None:
+            dt = 0.
+            PREVFULLTIME = timeit.default_timer()
+        else:
+            t = timeit.default_timer()
+            dt = t - PREVFULLTIME
+            PREVFULLTIME = t
+        msg += ' [%g secs]'%dt
+    if mem:
+        pid = os.getpid()
+        try: 
+            f = open("/proc/{}/smaps".format(pid))
+            s = f.readlines()
+            f.close()
+        except: s = []
+        
+        tot = 0.
+        found = False
+        for ts in s:
+            if found:
+                tot += int(ts[5:-3])
+                found = False
+            if ts.find("heap") >= 0: found = True
+        if tot > 1.e6: msg += '[{} GB]'.format(tot/1.e6)
+        elif tot > 1000.: msg += '[{} MB]'.format(tot/1000.)
+        else: msg += '[{} kB]'.format(tot)
+    msg += '\n'
+
+    if stdout: # ecriture a l'ecran
+        print('%d: %s'%(rank, msg)) 
+        sys.stdout.flush()
+    else: # dans des fichiers
+        f = open('proc%03d.out'%rank, "a")
+        f.write(msg)
+        f.flush()
+        f.close()
     return None

@@ -90,6 +90,7 @@ List of functions
 
 .. autosummary::
 
+    Converter.Mpi.trace
     Converter.Mpi.center2Node
 
 
@@ -469,6 +470,28 @@ Exchanges
 Actions
 -------------
 
+.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, stdout=False):
+
+    Enable to monitor CPU usage and memory usage for each node/process.
+    If stdout=False, information is written in procXX.out files, one for each process.
+    If stdout=True, information is written to standard output with the processor number.
+    If cpu=True, time elapsed since the previous call to "trace" by this node is written.
+    If mem=True, the current usage of memory of each process is written.
+
+    :param text: text to write
+    :type text: string
+    :param cpu: True to write cpu usage information
+    :type cpu: boolean
+    :param mem: True to write memory usage information
+    :type mem: boolean
+    
+    *Example of use:*
+
+   * `Write a trace (pyTree) <Examples/Converter/tracePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/tracePT.py
+
+
 .. py:function:: Converter.Mpi.center2Node(t, var=None, cellNType=0, graph=None)
 
     Perform a center to node conversion for a distributed tree.
@@ -476,7 +499,6 @@ Actions
     (Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__, ...).
     Then, center2Node is performed in the given field.
     Otherwise, the zone with its coordinates is moved to node.
-
 
     :param t: input tree
     :type t: [pyTree]
