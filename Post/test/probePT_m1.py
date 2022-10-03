@@ -1,4 +1,5 @@
 # - Probe (pyTree) -
+# probe tous les modes
 import Post.Probe as Probe
 import Converter.PyTree as C
 import Transform.PyTree as T
@@ -45,7 +46,7 @@ if Cmpi.rank == 0: test.testT(p2._probeZones, 2)
 p3 = Probe.Probe(LOCAL+'/probe3.cgns', fields=['centers:F'], append=False, bufferSize=15)
 for i in range(20):
     time = 0.1*i
-    a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,11))
+    a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,1))
     a[0] = 'cart%d'%Cmpi.rank
     C._initVars(a, '{centers:F} = %20.16g'%time)
     p3.extract(a, time=time)
@@ -54,7 +55,7 @@ p3.flush()
 p3 = Probe.Probe(LOCAL+'/probe3.cgns', fields=['centers:F'], append=True, bufferSize=15)
 for i in range(20):
     time = 2+0.1*i
-    a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,11))
+    a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,1))
     a[0] = 'cart%d'%Cmpi.rank
     C._initVars(a, '{centers:F} = %20.16g'%time)
     p3.extract(a, time=time)

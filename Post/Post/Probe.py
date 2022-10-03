@@ -60,7 +60,7 @@ class Probe:
         # current position in buffer
         self._icur = 0
         # append or not
-        self._append = True
+        self._append = False
 
         # zones storing probe data
         self._probeZones = None
@@ -71,7 +71,7 @@ class Probe:
                  X=None, 
                  ind=None, blockName=None,
                  tPermeable=None, 
-                 fields=None, append=True, 
+                 fields=None, append=False, 
                  bufferSize=100, writeCoords=True):
         """Create a probe."""
         self.init0()
@@ -247,17 +247,20 @@ class Probe:
                 if len(v) == 2: v = v[1]
                 else: v = v[0]
                 C._initVars(self._probeZones, '{nodes:%s}=0.'%v)
-        elif self._mode == 2 and source is not None:
+
+        elif self._mode == 2  and source is not None:
             zones = Internal.getZones(source)
             self._probeZones = []
             for z in zones:
                 npts = C.getNPts(z)
                 ncells = C.getNCells(z)
+                dimz = Internal.getZoneDim(z)
+                ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
                 if self.getFieldLoc(self._fields) == 'nodes':
-                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,npts,1))
-                else: 
-                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,ncells,1))
-                zp[0] = '%s'%z[0] # name of probe is identical to name of source
+                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni,nj))
+                else:
+                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni-1,nj-1))
+                zp[0] = '%s'%z[0] # name of probe zone is identical to name of source
                 D2._addProcNode(zp, Cmpi.rank)
                 self._probeZones.append(zp)
                 C._initVars(zp, '{time}=-1.') # time sentinel
@@ -267,17 +270,39 @@ class Probe:
                     if len(v) == 2: v = v[1]
                     else: v = v[0]
                     C._initVars(zp, v, 0.)
+        
+        elif self._mode == 3 and source is not None: # surface permeable
+            zones = Internal.getZones(source)
+            self._probeZones = []
+            for z in zones:
+                dimz = Internal.getZoneDim(z)
+                if dimz[0] == 'Structured':
+                    ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
+                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni,nj))
+                else: # en non structure, c'est surement pas la bonne solution
+                    npts = C.getNPts(z)
+                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,npts,1))
+                zp[0] = '%s'%z[0] # name of probe zone is identical to name of source
+                D2._addProcNode(zp, Cmpi.rank)
+                self._probeZones.append(zp)
+                C._initVars(zp, '{time}=-1.') # time sentinel
 
+                for v in self._fields:
+                    v = v.split(':')
+                    if len(v) == 2: v = v[1]
+                    else: v = v[0]
+                    C._initVars(zp, v, 0.)
+            
         return None
 
     # Prepare for mode=3
-    def prepare(self, ts, tc):
+    def prepare(self, tc):
         tcs = Internal.copyRef(tc)
         cartesian = False # True if tc is cartesian
         interpDataType = 1 # 0 if tc is cartesian
 
         # Compute BBoxTrees
-        tsBB = Cmpi.createBBoxTree(ts)
+        tsBB = Cmpi.createBBoxTree(self._ts)
         procDicts = Cmpi.getProcDict(tsBB)
         tcsBB = Cmpi.createBBoxTree(tcs)
         procDictcs = Cmpi.getProcDict(tcsBB)
@@ -286,16 +311,18 @@ class Probe:
 
         graph = Cmpi.computeGraph(tcsBB, type='bbox3', intersectionsDict=interDictD2R,
                                   procDict=procDictcs, procDict2=procDicts, t2=tsBB, reduction=True)
+        graph2 = Cmpi.computeGraph(tsBB, type='bbox3', intersectionsDict=interDicts,
+                              procDict=procDicts, procDict2=procDictcs, t2=tcsBB, reduction=True)
         Cmpi._addXZones(tcs, graph, variables=['cellN'], cartesian=cartesian, subr=True)
 
         datas = {}
-        for zs in Internal.getZones(ts):
+        for zs in Internal.getZones(self._ts):
             zrname = Internal.getName(zs)
             dnrZones = []
             for zdname in interDicts[zrname]:
                 zd = Internal.getNodeFromName2(tcs, zdname)
                 dnrZones.append(zd)
-            C._initVars(zs, 'cellN', 2.)
+            C._initVars(zs, 'cellN', 2.) # interp all
             X._setInterpData(zs, dnrZones, nature=1, penalty=1, loc='nodes', storage='inverse',
                              sameName=0, interpDataType=interpDataType, itype='chimera')
 
@@ -317,8 +344,9 @@ class Probe:
                         else: datas[destProc].append([zdname,IDs])
                 else:
                     if destProc not in datas: datas[destProc] = []
+
         Cmpi._rmXZones(tcs)
-        destDatas = Cmpi.sendRecv(datas, graph)
+        destDatas = Cmpi.sendRecv(datas, graph2)
         for i in destDatas:
             for n in destDatas[i]:
                 zname = n[0]
@@ -328,7 +356,7 @@ class Probe:
                     zD[2] += IDs
         datas = {}; destDatas = None
         
-        Cmpi.convertPyTree2File(tcs, "tcs.cgns", ignoreProcNodes=True)
+        #Cmpi.convertPyTree2File(tcs, "tcs.cgns", ignoreProcNodes=True)
         return tcs
 
     # Check file, if it doesnt exist, write probe zone in it
@@ -416,8 +444,8 @@ class Probe:
             cont = Internal.getNodeFromName2(self._probeZones[0], 'FlowSolution')
             if cont is not None: 
                 pt = Internal.getNodeFromName2(cont, 'time')[1]
-                sh = pt.shape
-                if len(sh) == 2: pt = pt[:,0]
+                if pt.ndim == 2: pt = pt[:,0]
+                elif pt.ndim == 3: pt = pt[:,0,0]
                 a = pt > -0.5
                 self._icur = numpy.count_nonzero(a)
             else: self._icur = 0
@@ -465,7 +493,7 @@ class Probe:
     # IN: _probeZones: zone de stockage
     # IN: _ind: index of probe (static)
     # IN: _fields: nom des champs a extraire
-    def extract(self, t, time, ts=None):
+    def extract(self, t, time):
         """Extract XYZ or Ind fields from t."""
 
         if self._mode == 0 or self._mode == 1: # single point
@@ -476,11 +504,11 @@ class Probe:
             
         elif self._mode == 3:
             # attention ici : t is tcs
-            self.extract3(self._ts, t, time)
+            self.extract3(t, time)
         return None
 
     def extract1(self, t, time):
-        """Extract for mode=1."""
+        """Extract for mode=0 or 1."""
         if Cmpi.rank != self._proc: return None
         # time is in "time" of probe zone
         pzone = self._probeZones[0]
@@ -511,7 +539,7 @@ class Probe:
 
     def extract2(self, t, time):
         """Extract for mode=2"""
-        if self._probeZones is None: 
+        if self._probeZones is None:
             self.createProbeZones(t)
             self.checkFile(append=self._append)
         Cmpi.barrier()
@@ -521,59 +549,150 @@ class Probe:
         for c, pz in enumerate(self._probeZones):
             sourcez = source[c]
             pt = Internal.getNodeFromName2(pz, 'time')[1]
-            pt[self._icur,:] = time
-
+            if pt.ndim == 2: pt[self._icur,:] = time
+            else: pt[self._icur,:,:] = time
             # Set zone coordinates
             if self._coords:
                 ptx = Internal.getNodeFromName2(pz, 'CoordinateX')[1]
                 pty = Internal.getNodeFromName2(pz, 'CoordinateY')[1]
                 ptz = Internal.getNodeFromName2(pz, 'CoordinateZ')[1]
-                ptx2 = Internal.getNodeFromName2(sourcez, 'CoordinateX')[1].ravel('k')
-                pty2 = Internal.getNodeFromName2(sourcez, 'CoordinateY')[1].ravel('k')
-                ptz2 = Internal.getNodeFromName2(sourcez, 'CoordinateZ')[1].ravel('k')
-                if ptx2.size == ptx.shape[1]:
-                    ptx[self._icur,:] = ptx2[:]
-                    pty[self._icur,:] = pty2[:]
-                    ptz[self._icur,:] = ptz2[:]
+                ptx2 = Internal.getNodeFromName2(sourcez, 'CoordinateX')[1]
+                pty2 = Internal.getNodeFromName2(sourcez, 'CoordinateY')[1]
+                ptz2 = Internal.getNodeFromName2(sourcez, 'CoordinateZ')[1]
+                if ptx.ndim == 2:
+                    if ptx2.size == ptx.shape[1]:
+                        ptx[self._icur,:] = ptx2[:]
+                        pty[self._icur,:] = pty2[:]
+                        ptz[self._icur,:] = ptz2[:]
+                    else: # champ en centres
+                        sourcezp = C.node2Center(sourcez)
+                        ptx2 = Internal.getNodeFromName2(sourcezp, 'CoordinateX')[1]
+                        pty2 = Internal.getNodeFromName2(sourcezp, 'CoordinateY')[1]
+                        ptz2 = Internal.getNodeFromName2(sourcezp, 'CoordinateZ')[1]
+                        ptx[self._icur,:] = ptx2[:]
+                        pty[self._icur,:] = pty2[:]
+                        ptz[self._icur,:] = ptz2[:]
                 else:
-                    sourcezp = C.node2Center(sourcez)
-                    ptx2 = Internal.getNodeFromName2(sourcezp, 'CoordinateX')[1].ravel('k')
-                    pty2 = Internal.getNodeFromName2(sourcezp, 'CoordinateY')[1].ravel('k')
-                    ptz2 = Internal.getNodeFromName2(sourcezp, 'CoordinateZ')[1].ravel('k')
-                    ptx[self._icur,:] = ptx2[:]
-                    pty[self._icur,:] = pty2[:]
-                    ptz[self._icur,:] = ptz2[:]                    
-
+                    if ptx2.size == ptx.shape[1]*ptx.shape[2]:
+                        ptx[self._icur,:,:] = ptx2[:,:]
+                        pty[self._icur,:,:] = pty2[:,:]
+                        ptz[self._icur,:,:] = ptz2[:,:]
+                    else: # champ en centres
+                        sourcezp = C.node2Center(sourcez)
+                        ptx2 = Internal.getNodeFromName2(sourcezp, 'CoordinateX')[1]
+                        pty2 = Internal.getNodeFromName2(sourcezp, 'CoordinateY')[1]
+                        ptz2 = Internal.getNodeFromName2(sourcezp, 'CoordinateZ')[1]
+                        ptx[self._icur,:,:] = ptx2[:,:]
+                        pty[self._icur,:,:] = pty2[:,:]
+                        ptz[self._icur,:,:] = ptz2[:,:]
             # Set zone fields
             for c, v in enumerate(self._fields):
                 v = v.split(':')
                 if len(v) == 2: v = v[1]
                 else: v = v[0]
                 f = Internal.getNodeFromName2(sourcez, v)[1]
-                f = f.ravel('k')
                 pf = Internal.getNodeFromName2(pz, v)[1]
-                pf[self._icur,:] = f[:]
-                
+                if pf.ndim == 2: pf[self._icur,:] = f[:]
+                else: pf[self._icur,:,:] = f[:,:]
+
         self._icur += 1
         if self._icur >= self._bsize: self.flush()
         return None
 
-    def extract3(self, ts, tcs, time):
+    def extract3(self, tcs, time):
+        """Extract for mode=3."""
+        if self._probeZones is None: 
+            self.createProbeZones(self._ts)
+            self.checkFile(append=self._append)
+            for v in self._fields: C._initVars(self._ts, v, 0.)
+        Cmpi.barrier()
+
         # ts : permeable surface
         # tcs :  tc for surface interp must be set
         if self._procDicts is None:
-            tsBB = Cmpi.createBBoxTree(ts)
-            self.procDicts = Cmpi.getProcDict(tsBB)
+            tsBB = Cmpi.createBBoxTree(self._ts)
+            self._procDicts = Cmpi.getProcDict(tsBB)
             
         if self._graph is None:
             tcsBB = Cmpi.createBBoxTree(tcs)
-            procDict = Cmpi.getProcDict(tcsBB)
+            procDictc = Cmpi.getProcDict(tcsBB)
             #interDicts = X.getIntersectingDomains(tsBB, tcsBB)
             interDictD2R = X.getIntersectingDomains(tcsBB, tsBB)
             self._graph = Cmpi.computeGraph(tcsBB, type='bbox3', intersectionsDict=interDictD2R,
-                                            procDict=procDict, procDict2=self._procDicts, t2=tsBB, reduction=True)
+                                            procDict=procDictc, procDict2=self._procDicts, t2=tsBB, reduction=True)
 
-        Xmpi._setInterpTransfers(ts, tcs, variables=['F'], graph=self._graph, procDict=self._procDicts)
+        Xmpi._setInterpTransfers(self._ts, tcs, variables=self._fields, graph=self._graph, procDict=self._procDicts)
+        #Cmpi.convertPyTree2File(self._ts, 'out.cgns')
+        #Internal.printTree(self._probeZones)
+
+        # Set time
+        for z in self._probeZones:
+            pf = Internal.getNodeFromName2(z, 'time')[1]
+            if pf.ndim == 2: pf[self._icur, :] = time
+            else: pf[self._icur,:,:] = time
+
+        # Set Coordinates
+        for z in Internal.getZones(self._ts):
+            for pz in self._probeZones:
+                if pz[0] == z[0]: break
+            for n in ['CoordinateX', 'CoordinateY', 'CoordinateZ']:
+                px = Internal.getNodeFromName2(z, n)[1]
+                px2 = Internal.getNodeFromName2(pz, n)[1]
+                if px2.ndim == 2: px2[self._icur, :] = px[:]
+                else: px2[self._icur,:,:] = px[:,:]
+
+        # Set zone fields
+        for c, v in enumerate(self._fields):
+            v = v.split(':')
+            if len(v) == 2: v = v[1]
+            else: v = v[0]
+            for z in Internal.getZones(self._ts):
+                for pz in self._probeZones:
+                    if pz[0] == z[0]: break
+                f = Internal.getNodeFromName2(z, v)[1]
+                pf = Internal.getNodeFromName2(pz, v)[1]
+                if pf.ndim == 2: pf[self._icur,:] = f[:]
+                else: pf[self._icur,:,:] = f[:,:]
+
+        self._icur += 1
+        if self._icur >= self._bsize: self.flush()
+        
+        return None
+
+    def share(self, tcs, tc):
+        """Share coordinates and fields between tcs and tc."""
+        zones = Internal.getZones(tc)
+        for z in zones:
+            zp = Internal.getNodeFromName2(z[0])
+            if zp is None: continue
+            gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+            gcp = Internal.getNodeFromName1(zp, Internal.__GridCoordinates__)
+            if gc is not None and gcp is not None:
+                px = Internal.getNodeFromName1(gc, 'CoordinateX')
+                pxp = Internal.getNodeFromName1(gcp, 'CoordinateX')
+                pxp[1] = px[1] # pointers
+                py = Internal.getNodeFromName1(gc, 'CoordinateY')
+                pyp = Internal.getNodeFromName1(gcp, 'CoordinateY')
+                pyp[1] = py[1] # pointers
+                pz = Internal.getNodeFromName1(gc, 'CoordinateZ')
+                pzp = Internal.getNodeFromName1(gcp, 'CoordinateZ')
+                pzp[1] = pz[1] # pointers
+            fc = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
+            fcp = Internal.getNodeFromName1(zp, Internal.__FlowSolutionNodes__)
+            if fc is not None:
+                if fcp is None: fcp = Internal.newFlowSolution(Internal.__FlowSolutionNodes__, gridLocation='Vertex', parent=zp)
+                pfs = Internal.getNodesFromType(fc, 'DataArray_t')
+                for pf in pfs:
+                    pfp = Internal.getNodeFromName1(fcp, pf[0])
+                    if pfp is not None: pfp[1] = pf[1]
+            fc = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
+            fcp = Internal.getNodeFromName1(zp, Internal.__FlowSolutionCenters__)
+            if fc is not None:
+                if fcp is None: fcp = Internal.newFlowSolution(Internal.__FlowSolutionCenters__, gridLocation='Centers', parent=zp)
+                pfs = Internal.getNodesFromType(fc, 'DataArray_t')
+                for pf in pfs:
+                    pfp = Internal.getNodeFromName1(fcp, pf[0])
+                    if pfp is not None: pfp[1] = pf[1]
         return None
 
     # flush containers of probe
@@ -623,22 +742,58 @@ class Probe:
 
     # read all probe times as a single zone
     # IN: _fileName: nom du fichier
-    # IN: time: instant a extraire -> all points
+    # IN: cont: container a extraire -> all points
     # IN: index: point a extraire -> all times
-    def read(self, time=None, ind=None, probeName=None):
+    def read(self, cont=None, ind=None, probeName=None):
         """Reread all data from probe file."""
-        if time is not None:
-            return self.readTime(time)
+        if cont is not None:
+            return self.readCont(cont)
         elif ind is not None:
             return self.readInd(ind, probeName)
         else:
             return self.readInd(0, probeName)
 
-    # Retourne tous les indices d'un seul instant
-    def readTime(self, time):
-        return None
+    # Retourne tous les indices de tous les blocs d'un seul instant
+    def readCont(self, cont):
+        # Read the given cont from file
+        tl = Cmpi.convertFile2SkeletonTree(self._fileName)
+        zones = Internal.getZones(tl)
 
-    # Retourne tous les temps d'un seul indice
+        out = []
+
+        # Load full given container par zone
+        for z in zones:
+            paths = ['CGNSTree/Base/%s/GridCoordinates#%d'%(z[0], cont)]
+            paths += ['CGNSTree/Base/%s/FlowSolution#%d'%(z[0], cont)]
+            nodes2 = Distributed.readNodesFromPaths(self._fileName, paths)
+            
+            dimz = Internal.getZoneDim(z)
+            nrec = dimz[1]; ni = dimz[2]; nj = dimz[3]
+            if nj == 1: zsize = [[ni,ni-1,0]]
+            else: zsize = [[ni,ni-1,0],[nj,nj-1,0]]
+            for nr in range(nrec):
+                cz = Internal.newZone(z[0]+'@'+str(nr), zsize=zsize, ztype='Structured')
+                gc = Internal.newGridCoordinates(parent=cz)
+                px = Internal.getNodeFromName1(nodes2[0], 'CoordinateX')[1]
+                py = Internal.getNodeFromName1(nodes2[0], 'CoordinateY')[1]
+                pz = Internal.getNodeFromName1(nodes2[0], 'CoordinateZ')[1]
+                if nj > 1:
+                    px = px[nr,:]; py = py[nr,:]; pz = pz[nr,:]
+                else: 
+                    px = px[nr]; py = py[nr]; pz = pz[nr]
+                ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
+                oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
+                oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
+                fs = Internal.newFlowSolution('FlowSolution', 'Vertex', parent=cz)
+                for fields in Internal.getNodesFromType(nodes2[1], 'DataArray_t'):
+                    pf = fields[1]
+                    if nj > 1: pf = pf[nr,:]
+                    else: pf = pf[nr]
+                    op = Internal.newDataArray(fields[0], value=pf, parent=fs)
+                out.append(cz)
+        return out
+
+    # Retourne tous les temps d'un seul indice d'un bloc
     def readInd(self, ind=None, probeName=None):
         tl = Cmpi.convertFile2SkeletonTree(self._fileName)
 
@@ -661,8 +816,8 @@ class Probe:
         paths = ['CGNSTree/Base/%s/FlowSolution'%pz[0]]
         nodesTime = Distributed.readNodesFromPaths(self._fileName, paths)
         pt = Internal.getNodeFromName1(nodesTime[0], 'time')[1]
-        sh = pt.shape
-        if len(sh) == 2: pt = pt[:,0]
+        if pt.ndim == 2: pt = pt[:,0]
+        elif pt.ndim == 3: pt = pt[:,0,0]
         a = pt > -0.5
         csize = numpy.count_nonzero(a)
         sizeTimeCont = pt.shape[0]
@@ -674,8 +829,8 @@ class Probe:
         #print('csize', csize)
 
         # Rebuild full 1D zone (time only)
-
         out = G.cart((0,0,0), (1,1,1), (sizeTime,sizeNPts,1))
+        out[0] = 'probe'
         ptx = Internal.getNodeFromName2(out, 'CoordinateX')[1]
         pty = Internal.getNodeFromName2(out, 'CoordinateY')[1]
         ptz = Internal.getNodeFromName2(out, 'CoordinateZ')[1]
@@ -690,15 +845,7 @@ class Probe:
             ptx2 = Internal.getNodeFromName2(nodesX, 'CoordinateX')[1]
             pty2 = Internal.getNodeFromName2(nodesX, 'CoordinateY')[1]
             ptz2 = Internal.getNodeFromName2(nodesX, 'CoordinateZ')[1]
-            sh = ptx2.shape
-            if len(sh) == 1:
-                ptx[cur:cur+sizeTimeCont] = ptx2[0:sizeTimeCont]
-            elif ind is None:
-                ptx[cur:cur+sizeTimeCont,:] = ptx2[0:sizeTimeCont,:]
-            elif sizeNPts == 1:
-                ptx[cur:cur+sizeTimeCont] = ptx2[0:sizeTimeCont,ind[0]]
-            else:
-                for i in ind: ptx[cur:cur+sizeTimeCont,i] = ptx2[0:sizeTimeCont,i]
+            self.slice(ptx, ptx2, cur, sizeTimeCont, ind, dim[2])
             cur += sizeTimeCont
 
         paths = ['CGNSTree/Base/%s/GridCoordinates'%pz[0]]
@@ -706,16 +853,8 @@ class Probe:
         ptx2 = Internal.getNodeFromName2(nodesX, 'CoordinateX')[1]
         pty2 = Internal.getNodeFromName2(nodesX, 'CoordinateY')[1]
         ptz2 = Internal.getNodeFromName2(nodesX, 'CoordinateZ')[1]
-        sh = ptx2.shape
-        if len(sh) == 1:
-            ptx[cur:cur+csize] = ptx2[0:csize]
-        elif ind is None:
-            ptx[cur:cur+csize,:] = ptx2[0:csize,:]
-        elif sizeNPts == 1:
-            ptx[cur:cur+csize] = ptx2[0:csize,ind[0]]
-        else:
-            for i in ind: ptx[cur:cur+csize,i] = ptx2[0:csize,i]
-
+        self.slice(ptx, ptx2, cur, csize, ind, dim[2])
+        
         # load FS
         cur = 0
         nodes = Internal.getNodesFromName(pz, 'FlowSolution#*')
@@ -731,15 +870,7 @@ class Probe:
                         else:
                             pf = Internal.newDataArray(i[0], value=numpy.zeros( (sizeTime,sizeNPts), dtype=numpy.float64, order='F'), parent=fcont)
                     pf = pf[1]
-                    sh = i[1].shape
-                    if len(sh) == 1:
-                        pf[cur:cur+sizeTimeCont] = i[1][0:sizeTimeCont]
-                    elif ind is None:
-                        pf[cur:cur+sizeTimeCont,:] = i[1][0:sizeTimeCont,:]
-                    elif sizeNPts == 1:
-                        pf[cur:cur+sizeTimeCont] = i[1][0:sizeTimeCont,ind[0]]
-                    else:
-                        for i in ind: pf[cur:cur+sizeTimeCont,i] = i[1][0:sizeTimeCont,i]
+                    self.slice(pf, i[1], cur, sizeTimeCont, ind, dim[2])
             cur += sizeTimeCont
 
         paths = ['CGNSTree/Base/%s/FlowSolution'%pz[0]]
@@ -747,13 +878,28 @@ class Probe:
         for i in nodesF[2]:
             if i[3] == 'DataArray_t':
                 pf = Internal.getNodeFromName2(fcont, i[0])[1]
-                sh = i[1].shape
-                if len(sh) == 1:
-                    pf[cur:cur+csize] = i[1][0:csize]
-                elif ind is None:
-                    pf[cur:cur+csize,:] = i[1][0:csize,:]
-                elif sizeNPts == 1:
-                    pf[cur:cur+csize] = i[1][0:csize,ind[0]]
-                else:
-                    for i in ind: pf[cur:cur+csize,i] = i[1][0:csize,i]
+                self.slice(pf, i[1], cur, csize, ind, dim[2])
         return out
+
+    # slice from ptx2 a list of indices
+    def slice(self, ptx, ptx2, start, size, ind, ni):
+        if ptx2.ndim == 1:
+            ptx[start:start+size] = ptx2[0:size]
+        elif ind is None: # take all
+            if ptx2.ndim == 2: ptx[start:start+size,:] = ptx2[0:size,:]
+            else: raise ValueError('not implemented') 
+        elif len(ind) == 1:
+            i = ind[0]
+            if ptx2.ndim == 2: ptx[start:start+size] = ptx2[0:size,i]
+            else:
+                if isinstance(i, tuple) and len(i) == 2: ii = i[0]; jj = i[1]
+                else: jj = i//ni; ii = i-jj*ni
+                ptx[start:start+size] = ptx2[0:size,ii,jj]
+        else:
+            for c, i in enumerate(ind):
+                if ptx2.ndim == 2: ptx[start:start+size,c] = ptx2[0:size,i]
+                else:
+                    if isinstance(i, tuple) and len(i) == 2: ii = i[0]; jj = i[1]
+                    else: jj = i//ni; ii = i-jj*ni
+                    ptx[start:start+size,c] = ptx2[0:size,ii,jj]
+        return None
