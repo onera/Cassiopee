@@ -242,10 +242,11 @@ class Probe:
             self._probeZones = [z]
             C._initVars(self._probeZones, '{time}=-1.') # time sentinel
             # create vars in probe
-            for v in self._fields:
+            for c, v in enumerate(self._fields):
                 v = v.split(':')
                 if len(v) == 2: v = v[1]
                 else: v = v[0]
+                self._fields[c] = v # change location here because in mode=0, stored in nodes
                 C._initVars(self._probeZones, '{nodes:%s}=0.'%v)
 
         elif self._mode == 2  and source is not None:
@@ -256,20 +257,14 @@ class Probe:
                 ncells = C.getNCells(z)
                 dimz = Internal.getZoneDim(z)
                 ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
-                if self.getFieldLoc(self._fields) == 'nodes':
-                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni,nj))
-                else:
-                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni-1,nj-1))
+                if self.getFieldLoc(self._fields) == 'centers': # attention!
+                    zp = G.cart((0,0,0), (1,1,1), (self._bsize+1,ni,nj))
+                else: zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni,nj))
                 zp[0] = '%s'%z[0] # name of probe zone is identical to name of source
                 D2._addProcNode(zp, Cmpi.rank)
                 self._probeZones.append(zp)
                 C._initVars(zp, '{time}=-1.') # time sentinel
-
-                for v in self._fields:
-                    v = v.split(':')
-                    if len(v) == 2: v = v[1]
-                    else: v = v[0]
-                    C._initVars(zp, v, 0.)
+                for v in self._fields: C._initVars(zp, v, 0.)
         
         elif self._mode == 3 and source is not None: # surface permeable
             zones = Internal.getZones(source)
@@ -393,7 +388,6 @@ class Probe:
                 Cmpi.convertPyTree2File(self._probeZones, self._fileName)
             self._filecur = 0
             return None
-
         
         #  Nettoyage + ne conserve que les zones du proc
         to = C.newPyTree()
@@ -403,7 +397,7 @@ class Probe:
             zones = Internal.getZones(b)
             for z in zones:
                 Internal._rmNodesByName(z, 'GridCoordinates#*')
-                Internal._rmNodesByName(z, 'FlowSolution#*')
+                Internal._rmNodesByName(z, 'FlowSolution#[0123456789]*')
                 Internal._rmNodesByName(z, 'FlowSolution#Centers#*')
                 if D2.getProc(z) == Cmpi.rank: bl[2].append(z)
         
@@ -411,34 +405,38 @@ class Probe:
         self._probeZones = Internal.getZones(tl)
 
         # load GC
-        paths = []
         zones = Internal.getZones(tl)
+        paths = []
         for z in zones:
-            paths += ['CGNSTree/Base/%s/GridCoordinates'%z[0]]
-        nodes = Distributed.readNodesFromPaths(self._fileName, paths)
-        for c, z in enumerate(self._probeZones):
-            cont = Internal.getNodeFromName2(z, 'GridCoordinates')
-            if cont is not None: cont[2] = nodes[c][2]
+            if Internal.getNodeFromName1(z, 'GridCoordinates') is not None:
+                paths += ['CGNSTree/Base/%s/GridCoordinates'%z[0]]
+        if paths != []:
+            nodes = Distributed.readNodesFromPaths(self._fileName, paths)
+            for c, z in enumerate(self._probeZones):
+                cont = Internal.getNodeFromName2(z, 'GridCoordinates')
+                if cont is not None: cont[2] = nodes[c][2]
 
         # load FS
         paths = []
         for z in zones:
-            paths += ['CGNSTree/Base/%s/FlowSolution'%z[0]]
-        nodes = Distributed.readNodesFromPaths(self._fileName, paths)
-        for c, z in enumerate(self._probeZones):
-            cont = Internal.getNodeFromName2(z, 'FlowSolution')
-            if cont is not None: cont[2] = nodes[c][2]
+            if Internal.getNodeFromName1(z, 'FlowSolution') is not None:
+                paths += ['CGNSTree/Base/%s/FlowSolution'%z[0]]
+        if paths != []:
+            nodes = Distributed.readNodesFromPaths(self._fileName, paths)
+            for c, z in enumerate(self._probeZones):
+                cont = Internal.getNodeFromName2(z, 'FlowSolution')
+                if cont is not None: cont[2] = nodes[c][2]
 
         # load FS center
-        #paths = []
-        #for z in zones:
-        #    if Internal.getNodeFromName1(z, 'FlowSolution#Centers') is not None:
-        #        paths += ['CGNSTree/Base/%s/FlowSolution#Centers'%z[0]]
-        #if paths != []:    
-        #    nodes = Distributed.readNodesFromPaths(self._fileName, paths)
-        #    for c, z in enumerate(self._probeZones):
-        #        cont = Internal.getNodeFromName2(z, 'FlowSolution#Centers')
-        #        if cont is not None: cont[2] = nodes[c][2]
+        paths = []
+        for z in zones:
+            if Internal.getNodeFromName1(z, 'FlowSolution#Centers') is not None:
+                paths += ['CGNSTree/Base/%s/FlowSolution#Centers'%z[0]]
+        if paths != []:    
+            nodes = Distributed.readNodesFromPaths(self._fileName, paths)
+            for c, z in enumerate(self._probeZones):
+                cont = Internal.getNodeFromName2(z, 'FlowSolution#Centers')
+                if cont is not None: cont[2] = nodes[c][2]
 
         if len(self._probeZones) > 0:
             cont = Internal.getNodeFromName2(self._probeZones[0], 'FlowSolution')
@@ -565,10 +563,10 @@ class Probe:
                         pty[self._icur,:] = pty2[:]
                         ptz[self._icur,:] = ptz2[:]
                     else: # champ en centres
-                        sourcezp = C.node2Center(sourcez)
-                        ptx2 = Internal.getNodeFromName2(sourcezp, 'CoordinateX')[1]
-                        pty2 = Internal.getNodeFromName2(sourcezp, 'CoordinateY')[1]
-                        ptz2 = Internal.getNodeFromName2(sourcezp, 'CoordinateZ')[1]
+                        #sourcezp = C.node2Center(sourcez)
+                        ptx2 = Internal.getNodeFromName2(sourcez, 'CoordinateX')[1]
+                        pty2 = Internal.getNodeFromName2(sourcez, 'CoordinateY')[1]
+                        ptz2 = Internal.getNodeFromName2(sourcez, 'CoordinateZ')[1]
                         ptx[self._icur,:] = ptx2[:]
                         pty[self._icur,:] = pty2[:]
                         ptz[self._icur,:] = ptz2[:]
@@ -578,10 +576,10 @@ class Probe:
                         pty[self._icur,:,:] = pty2[:,:]
                         ptz[self._icur,:,:] = ptz2[:,:]
                     else: # champ en centres
-                        sourcezp = C.node2Center(sourcez)
-                        ptx2 = Internal.getNodeFromName2(sourcezp, 'CoordinateX')[1]
-                        pty2 = Internal.getNodeFromName2(sourcezp, 'CoordinateY')[1]
-                        ptz2 = Internal.getNodeFromName2(sourcezp, 'CoordinateZ')[1]
+                        #sourcezp = C.node2Center(sourcez)
+                        ptx2 = Internal.getNodeFromName2(sourcez, 'CoordinateX')[1]
+                        pty2 = Internal.getNodeFromName2(sourcez, 'CoordinateY')[1]
+                        ptz2 = Internal.getNodeFromName2(sourcez, 'CoordinateZ')[1]
                         ptx[self._icur,:,:] = ptx2[:,:]
                         pty[self._icur,:,:] = pty2[:,:]
                         ptz[self._icur,:,:] = ptz2[:,:]
@@ -703,39 +701,55 @@ class Probe:
         """Flush probe to file."""
         if self._mode == 0 or self._mode == 1:
             if Cmpi.rank != self._proc: return None
-            print('Info: probe: flush #%d.'%self._filecur)
+            print('Info: probe: flush #%d [%s].'%(self._filecur, self._fileName))
             self.flush__()
         else:
-            if Cmpi.rank == 0: print('Info: probe: flush #%d.'%self._filecur)
+            if Cmpi.rank == 0: print('Info: probe: flush #%d [%s].'%(self._filecur, self._fileName))
             Cmpi.seq(self.flush__)
 
     def flush__(self):
         if self._icur >= self._bsize: # because buffer is out
             for pzone in self._probeZones:
+                nodes = []; paths = []
                 gc = Internal.getNodeFromName1(pzone, 'GridCoordinates')
+                if gc is not None:
+                    gc = Internal.copyNode(gc)
+                    gc[0] = 'GridCoordinates#%d'%self._filecur
+                    nodes += [gc]
+                    paths += ['CGNSTree/Base/%s'%pzone[0]]
                 fc = Internal.getNodeFromName1(pzone, 'FlowSolution')
-                gc = Internal.copyNode(gc)
-                gc[0] = 'GridCoordinates#%d'%self._filecur
-                fc = Internal.copyNode(fc)
-                fc[0] = 'FlowSolution#%d'%self._filecur
-                paths = ['CGNSTree/Base/%s'%pzone[0],'CGNSTree/Base/%s'%pzone[0]]
-                nodes = [gc,fc]
+                if fc is not None:
+                    fc = Internal.copyNode(fc)
+                    fc[0] = 'FlowSolution#%d'%self._filecur
+                    nodes += [fc] 
+                    paths += ['CGNSTree/Base/%s'%pzone[0]] 
+                fcc = Internal.getNodeFromName1(pzone, 'FlowSolution#Centers')
+                if fcc is not None:
+                    fcc = Internal.copyNode(fcc)
+                    fcc[0] = 'FlowSolution#Centers#%d'%self._filecur
+                    nodes += [fcc]
+                    paths += ['CGNSTree/Base/%s'%pzone[0]]
                 Distributed.writeNodesFromPaths(self._fileName, paths, nodes, None, -1, 0)
                 C._initVars(pzone, '{time}=-1.') # time sentinel
-                for v in self._fields:
-                    v = v.split(':')
-                    if len(v) == 2: v = v[1]
-                    else: v = v[0] 
-                    C._initVars(pzone, '{%s}=0.'%v)
+                for v in self._fields: C._initVars(pzone, '{%s}=0.'%v)
             self._filecur += 1
             self._icur = 0
 
         else: # explicit flush
             for pzone in self._probeZones:
+                nodes = []; paths = []
                 gc = Internal.getNodeFromName1(pzone, 'GridCoordinates')
+                if gc is not None:
+                    nodes += [gc]
+                    paths += ['CGNSTree/Base/%s/GridCoordinates'%pzone[0]]
                 fc = Internal.getNodeFromName1(pzone, 'FlowSolution')
-                nodes = [gc,fc]
-                paths = ['CGNSTree/Base/%s/GridCoordinates'%pzone[0], 'CGNSTree/Base/%s/FlowSolution'%pzone[0]]
+                if fc is not None:
+                    nodes += [fc]
+                    paths += ['CGNSTree/Base/%s/FlowSolution'%pzone[0]]
+                fcc = Internal.getNodeFromName1(pzone, 'FlowSolution#Centers')
+                if fcc is not None:
+                    nodes += [fcc]
+                    paths += ['CGNSTree/Base/%s/FlowSolution#Centers'%pzone[0]]
                 Distributed.writeNodesFromPaths(self._fileName, paths, nodes, None, -1, 1)
         
         return None
@@ -763,8 +777,17 @@ class Probe:
 
         # Load full given container par zone
         for z in zones:
-            paths = ['CGNSTree/Base/%s/GridCoordinates#%d'%(z[0], cont)]
-            paths += ['CGNSTree/Base/%s/FlowSolution#%d'%(z[0], cont)]
+            paths = []
+            isGC = False; isFS = False; isFC = False
+            if Internal.getNodeFromName1(z, 'GridCoordinates') is not None:
+                isGC = True
+                paths += ['CGNSTree/Base/%s/GridCoordinates#%d'%(z[0], cont)]
+            if Internal.getNodeFromName1(z, 'FlowSolution') is not None:
+                isFS = True
+                paths += ['CGNSTree/Base/%s/FlowSolution#%d'%(z[0], cont)]
+            if Internal.getNodeFromName1(z, 'FlowSolution#Centers') is not None:
+                isFC = True
+                paths += ['CGNSTree/Base/%s/FlowSolution#Centers#%d'%(z[0], cont)]
             nodes2 = Distributed.readNodesFromPaths(self._fileName, paths)
             
             dimz = Internal.getZoneDim(z)
@@ -773,23 +796,41 @@ class Probe:
             else: zsize = [[ni,ni-1,0],[nj,nj-1,0]]
             for nr in range(nrec):
                 cz = Internal.newZone(z[0]+'@'+str(nr), zsize=zsize, ztype='Structured')
-                gc = Internal.newGridCoordinates(parent=cz)
-                px = Internal.getNodeFromName1(nodes2[0], 'CoordinateX')[1]
-                py = Internal.getNodeFromName1(nodes2[0], 'CoordinateY')[1]
-                pz = Internal.getNodeFromName1(nodes2[0], 'CoordinateZ')[1]
-                if nj > 1:
-                    px = px[nr,:]; py = py[nr,:]; pz = pz[nr,:]
-                else: 
-                    px = px[nr]; py = py[nr]; pz = pz[nr]
-                ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
-                oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
-                oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
-                fs = Internal.newFlowSolution('FlowSolution', 'Vertex', parent=cz)
-                for fields in Internal.getNodesFromType(nodes2[1], 'DataArray_t'):
-                    pf = fields[1]
-                    if nj > 1: pf = pf[nr,:]
-                    else: pf = pf[nr]
-                    op = Internal.newDataArray(fields[0], value=pf, parent=fs)
+                if isGC:
+                    gc = Internal.newGridCoordinates(parent=cz)
+                    px = Internal.getNodeFromName1(nodes2[0], 'CoordinateX')[1]
+                    py = Internal.getNodeFromName1(nodes2[0], 'CoordinateY')[1]
+                    pz = Internal.getNodeFromName1(nodes2[0], 'CoordinateZ')[1]
+                    if nj > 1:
+                        px = px[nr,:]; py = py[nr,:]; pz = pz[nr,:]
+                    else: 
+                        px = px[nr]; py = py[nr]; pz = pz[nr]
+                    ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
+                    oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
+                    oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
+                
+                if isFS:
+                    pos = 0
+                    if isGC: pos = 1
+                    fs = Internal.newFlowSolution('FlowSolution', 'Vertex', parent=cz)
+                    for fields in Internal.getNodesFromType(nodes2[pos], 'DataArray_t'):
+                        pf = fields[1]
+                        if nj > 1: pf = pf[nr,:]
+                        else: pf = pf[nr]
+                        op = Internal.newDataArray(fields[0], value=pf, parent=fs)
+
+                if isFC:
+                    pos = 0
+                    if isGC: pos = 1
+                    if isFC: pos += 1
+                    fs = Internal.newFlowSolution('FlowSolution#Centers', 'CellCenter', parent=cz)
+                    for fields in Internal.getNodesFromType(nodes2[pos], 'DataArray_t'):
+                        pf = fields[1]
+                        if nr < pf.shape[0]:
+                            if nj > 1: pf = pf[nr,:]
+                            else: pf = pf[nr]
+                            op = Internal.newDataArray(fields[0], value=pf, parent=fs)
+
                 out.append(cz)
         return out
 
@@ -855,10 +896,11 @@ class Probe:
         ptz2 = Internal.getNodeFromName2(nodesX, 'CoordinateZ')[1]
         self.slice(ptx, ptx2, cur, csize, ind, dim[2])
         
-        # load FS
+        # load FS containers
         cur = 0
         nodes = Internal.getNodesFromName(pz, 'FlowSolution#*')
         for n in nodes:
+            if "Center" in n[0]: continue
             paths = ['CGNSTree/Base/%s/%s'%(pz[0],n[0])]
             nodesF = Distributed.readNodesFromPaths(self._fileName, paths)[0]
             for i in nodesF[2]:

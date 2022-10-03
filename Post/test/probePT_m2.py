@@ -39,5 +39,5 @@ probe.flush()
 # Reread
 if Cmpi.rank == 0:
     out = probe.read(ind=1)
-    #out = probe.read(cont=0)
+    out = probe.read(cont=0)
     C.convertPyTree2File(out, 'out.cgns')
