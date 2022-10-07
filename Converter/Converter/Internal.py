@@ -4423,6 +4423,8 @@ def referencedElement(ind, zname, d):
 # Si zone MIX et convertMIX=True
 # Convertit la zone MIXED en NGON
 # Si addNFace=True, ajoute le NFace
+# Si NFACE, fait la valeur absolue des indices
+# Si nouvel NGON, converti en ancien NGON
 def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
     tp = copyRef(t)
     _fixNGon(tp, remove, breakBE, convertMIXED)

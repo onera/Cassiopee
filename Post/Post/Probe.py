@@ -293,6 +293,8 @@ class Probe:
     # Prepare for mode=3
     def prepare(self, tc):
         tcs = Internal.copyRef(tc)
+        # Clean previous IDs if necessary
+        Internal._rmNodesFromType(tcs, 'ZoneSubRegion_t')
         cartesian = False # True if tc is cartesian
         interpDataType = 1 # 0 if tc is cartesian
 

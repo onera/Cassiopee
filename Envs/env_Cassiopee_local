@@ -614,6 +614,7 @@ else if ($MAC == "spiro_socle") then
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
+        module purge
         module load CFD/5.0-intel-19.impi-19
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)

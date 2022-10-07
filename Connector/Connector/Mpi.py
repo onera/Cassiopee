@@ -215,7 +215,7 @@ def mergeWindows(t):
                                 Internal._rmNodesByName(z, name)
 
                     else:
-                        print("Warning: in zone ",z[0], " fail to merge matches: ", dico[match])
+                        print("Warning: mergeWindows: in zone ",z[0], " fail to merge matches: ", dico[match])
 
     return t
 

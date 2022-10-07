@@ -5691,6 +5691,7 @@ def getFamilyZones(t, familyName):
 
   for z in Internal.getZones(t):
     res = Internal.getNodesFromType1(z, 'FamilyName_t')
+    res += Internal.getNodesFromType1(z, 'AdditionalFamilyName_t')
     for i in res:
       val = Internal.getValue(i)
       for f in families:

@@ -862,7 +862,7 @@ class Node:
                     if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
                     CTK.display(CTK.t)
 
-        elif pid[3] == 'FamilyName_t':
+        elif pid[3] == 'FamilyName_t' or pid[3] == 'AdditionalFamilyName_t':
             v = Internal.getValue(pid)
             CTK.TXT.insert('START', v+'\n')
 
@@ -1163,7 +1163,7 @@ tcuom2foARAAyKRSmQAAOw==
             elif id[3] == 'CGNSBase_t':
                 collapsed_icon = self.collapsed_base
                 expanded_icon = self.expanded_base
-            elif id[3] == 'Family_t' or id[3] == 'FamilyName_t':
+            elif id[3] == 'Family_t' or id[3] == 'FamilyName_t' or id[3] == 'AdditionalFamilyName_t':
                 collapsed_icon = self.collapsed_family
                 expanded_icon = self.expanded_family
             elif id[3] == 'UserDefinedData_t' and len(id[2])>0:

@@ -518,7 +518,7 @@ elif [ "$MAC" = "spiro_socle" ]; then
     export OMP_NUM_THREADS=24
     # modules
     . /usr/local/Modules/init/bash
-    module unload $(module -t list 2>&1 | grep -i intel)
+    module purge
     module load CFD/5.0-intel-19.impi-19
     export PYTHONEXE=python3
     alias python=python3
