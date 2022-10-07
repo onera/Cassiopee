@@ -310,7 +310,7 @@ class Probe:
                                   procDict=procDictcs, procDict2=procDicts, t2=tsBB, reduction=True)
         graph2 = Cmpi.computeGraph(tsBB, type='bbox3', intersectionsDict=interDicts,
                               procDict=procDicts, procDict2=procDictcs, t2=tcsBB, reduction=True)
-        Cmpi._addXZones(tcs, graph, variables=['cellN'], cartesian=cartesian, subr=True)
+        Cmpi._addXZones(tcs, graph, variables=['cellN'], cartesian=cartesian, subr=False, keepOldNodes=False)
 
         datas = {}
         for zs in Internal.getZones(self._ts):
@@ -663,7 +663,7 @@ class Probe:
         """Share coordinates and fields between tcs and tc."""
         zones = Internal.getZones(tc)
         for z in zones:
-            zp = Internal.getNodeFromName2(z[0])
+            zp = Internal.getNodeFromName2(tcs, z[0])
             if zp is None: continue
             gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
             gcp = Internal.getNodeFromName1(zp, Internal.__GridCoordinates__)

@@ -626,7 +626,8 @@ def _addXZones(t, graph, variables=None, noCoordinates=False,
                         if zGC is not None: zonep[2].append(zGC)
                 elif variables is not None: # all nodes but vars and coordinates
                     v = C.getVarNames(zone, excludeXYZ=True)[0]
-                    for i in variables: v.remove(i)
+                    for i in variables: 
+                        if i in v: v.remove(i)
                     if noCoordinates: v += ['CoordinateX', 'CoordinateY', 'CoordinateZ']
                     zonep = C.rmVars(zone, v)
                     if cartesian: Compressor._compressCartesian(zonep, subr=subr)    
@@ -660,7 +661,7 @@ def _addXZones(t, graph, variables=None, noCoordinates=False,
                     base[2].append(z)
                 else:
                     #print('%d: recoit la zone %s.'%(rank,z[0]))
-                    # Existe deja? 
+                    # Existe deja?
                     zone = Internal.getNodeFromName2(t, z[0])
                     if zone is not None: # replace
                         bases = Internal.getBases(t)
@@ -703,7 +704,8 @@ def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDic
                 zone = Internal.getNodeFromName2(t, n)
                 if variables is not None:
                     v = C.getVarNames(zone, excludeXYZ=True)[0]
-                    for i in variables: v.remove(i)
+                    for i in variables: 
+                        if i in v: v.remove(i)
                     zonep = C.rmVars(zone, v)
                     if cartesian:
                         # Each block will be cut and compressed before being sent
@@ -989,7 +991,8 @@ def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=Tr
                         zs = zsp
                     elif variables is not None:
                         v = C.getVarNames(zs, excludeXYZ=True)[0]
-                        for i in variables: v.remove(i)
+                        for i in variables: 
+                            if i in v: v.remove(i)
                         if noCoordinates: v += ['CoordinateX', 'CoordinateY', 'CoordinateZ']
                         C._rmVars(zs, v)
                     for zl in zs: zl[0] = b[0]+'/'+zl[0]

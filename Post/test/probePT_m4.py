@@ -28,9 +28,11 @@ for i in range(20):
     p3.extract(a, time=time)
 p3.flush()
 
-#if Cmpi.rank == 0: test.testT(p3._probeZones, 3)
+if Cmpi.rank == 0: test.testT(p3._probeZones, 1)
 
 if Cmpi.rank == 0:
     out = p3.read(ind=[(0,0),(1,1)], probeName='cart0')
+    test.testT(out, 2)
     out = p3.read(cont=0)
-    C.convertPyTree2File(out, 'out.cgns')
+    test.testT(out, 3)
+    #C.convertPyTree2File(out, 'out.cgns')

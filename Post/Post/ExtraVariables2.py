@@ -541,8 +541,9 @@ def integLoads(teff):
 #=============================================================
 
 # Extrait des profiles proche paroi en i,j,k (deux grandeurs constantes)
-# IN: zonePath: chemin dela zone pour extraire
-# IN: i,j de la ligne
+# IN: zonePath: chemin de la zone a extraire
+# IN: i,j,k de la ligne constante
+# OUT: zp: ligne avec yw (distance a la paroi suivant la ligne)
 def extractProfile(t, zonePath, i=-1, j=-1, k=-1):
     """Extract given profile."""
     z = Internal.getNodeFromPath(t, zonePath)
@@ -561,36 +562,8 @@ def extractProfile(t, zonePath, i=-1, j=-1, k=-1):
     C._initVars(zp, '{yw}={s}*%20.16g'%L)
     return zp
 
-# Calcul y+ et u+ sur le profil
-# IN: teff: with utau, ViscosityMolecular computed
-# IN: zp: with VelocityTangential, yw
-def extractYPlus(zp, teff):
-    """Extract y+ and u+."""
-    zpp = Internal.copyRef(zp)
-    _extractYPlus(zpp, teff)
-    return zpp
-
-def _extractYPlus(zp, teff):
-    """Extract y+ and u+."""
-    # Extract point wall de zp
-    Pwall = T.subzone(zp, (1,1,1), (1,1,1))
-    # localise Pwall sur teff
-    zeff = Internal.getZones(teff)[0]
-    hook = C.createHook(zeff, function='nodes')
-    nodes, dist = C.nearestNodes(hook, Pwall)
-    # Get tauw
-    n = nodes[0]
-    utau = C.getValue(zeff, 'utau', n)
-    mu = C.getValue(zeff, 'ViscosityMolecular', n)
-    ro = C.getValue(zeff, 'Density2', n)
-    print('INFO: found wall point ro=%g, utau=%g, mu=%g, index=%d\n'%(ro, utau, mu, n))
-    C._initVars(zp, '{yPlus}={yw} * %20.16g * %20.16g / %20.16g'%(ro,utau,mu))
-    #C._initVars(zp, '{yPlus}=log10({yPlus})')
-    C._initVars(zp, '{uPlus}={VelocityTangential}/%20.16g'%utau)
-    return None
-
 # Calcul la norme de la vitesse tangentielle
-# IN: zp: with VelocityX, VelocityY, VelocityZ
+# IN: zp: ligne with VelocityX, VelocityY, VelocityZ
 # OUT: VelocityTangential: norm of tangential velocity
 def extractVelocityTangential(zp, teff):
     """Extract tangential speed."""
@@ -615,8 +588,61 @@ def _extractVelocityTangential(zp, teff):
     sx = C.getValue(zeff, 'sx', n) # must be normalized
     sy = C.getValue(zeff, 'sy', n)
     sz = C.getValue(zeff, 'sz', n)
-    print('INFO: found wall point sx=%g, sy=%g, sz=%g, index=%d\n'%(sx, sy, sz, n))
+    print('INFO: extractVelocityTangential: found wall point sx=%g, sy=%g, sz=%g, index=%d\n'%(sx, sy, sz, n))
     C._initVars(zp, '{VelocityTangential1}={VelocityX} * %20.16g+{VelocityY} * %20.16g +{VelocityZ} * %20.16g'%(sx,sy,sz))
     C._initVars(zp, '{VelocityTangential}=sqrt(({VelocityX}-{VelocityTangential1}*%20.16g)**2+({VelocityY}-{VelocityTangential1}*%20.16g)**2+({VelocityZ}-{VelocityTangential1}*%20.16g)**2)'%(sx,sy,sz))
     C._rmVars(zp, ['VelocityTangential1','sx','sy','sz'])
     return None
+
+# Calcul y+ et u+ sur le profil
+# on suppose que sur la ligne i=1 est la paroi (sinon reorder)
+# IN: zp: ligne de maillage with VelocityTangential, yw
+# IN: teff: with utau, ViscosityMolecular computed
+def extractYPlus(zp, teff):
+    """Extract y+ and u+."""
+    zpp = Internal.copyRef(zp)
+    _extractYPlus(zpp, teff)
+    return zpp
+
+def _extractYPlus(zp, teff):
+    """Extract y+ and u+."""
+    # Extract point wall de zp
+    Pwall = T.subzone(zp, (1,1,1), (1,1,1))
+    # localise Pwall sur teff
+    zeff = Internal.getZones(teff)[0]
+    hook = C.createHook(zeff, function='nodes')
+    nodes, dist = C.nearestNodes(hook, Pwall)
+    # Get tauw
+    n = nodes[0]
+    utau = C.getValue(zeff, 'utau', n)
+    mu = C.getValue(zeff, 'ViscosityMolecular', n)
+    ro = C.getValue(zeff, 'Density2', n)
+    print('INFO: extractYPlus: found wall point ro=%g, utau=%g, mu=%g, index=%d\n'%(ro, utau, mu, n))
+    C._initVars(zp, '{yPlus}={yw} * %20.16g * %20.16g / %20.16g'%(ro,utau,mu))
+    C._initVars(zp, '{yPlus}=log10({yPlus})')
+    C._initVars(zp, '{uPlus}={VelocityTangential}/%20.16g'%utau)
+    return None
+
+# Calcul delta (hauteur couche limite), teta (moment thickness), Rteta
+# on suppose que sur la ligne i=1 est la paroi (sinon reorder)
+# IN: zp: ligne de maillage with VelocityTangential
+# IN: Uinf,Roinf,MuInf etat infini ou au moins tout en haut de la ligne
+# OUT: delta,theta,Rtheta
+def extractRtheta(zp, Uinf, Roinf, Muinf):
+    """Compute delta, teta and Rteta."""
+    # delta
+    j = 1
+    while (C.getValue(zp, 'VelocityTangential', (j,1,1)) < 0.99*Uinf): j += 1 
+    dx = C.getValue(zp, 'CoordinateX', (j,1,1)) - C.getValue(zp, 'CoordinateX', (1,1,1))
+    dy = C.getValue(zp, 'CoordinateY', (j,1,1)) - C.getValue(zp, 'CoordinateY', (1,1,1))
+    dz = C.getValue(zp, 'CoordinateZ', (j,1,1)) - C.getValue(zp, 'CoordinateZ', (1,1,1))
+    delta = numpy.sqrt(dx*dx+dy*dy+dz*dz)
+
+    # subzone la ligne pour faire l'integrale de teta
+    zpp = T.subzone(zp, (1,1,1),(j+1,-1,-1))
+    C._initVars(zpp, '{dTheta} = ( 1. - {VelocityTangential} / %20.16g ) * ( {Density} * {VelocityTangential} ) / ( %20.16g * %20.16g)'%(Uinf,Uinf,Roinf) )
+    ret = Pmpi.integ(zpp, 'dTheta')
+    theta = ret[0]
+
+    Rtheta = Uinf * theta * Roinf / Muinf
+    return delta,theta,Rtheta

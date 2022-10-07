@@ -30,7 +30,7 @@ for i in range(20):
     p1.extract(t, time=time)
 p1.flush()
 
-#if Cmpi.rank == 0: test.testT(p1._probeZones, 1)
+if Cmpi.rank == 0: test.testT(p1._probeZones, 1)
 
 # reread ind/bloc are sequential functions
 if Cmpi.rank == 0: 
@@ -38,4 +38,5 @@ if Cmpi.rank == 0:
     test.testT(out, 2)
 
     out = p1.read(cont=0)
-    C.convertPyTree2File(out, 'out.cgns')
+    test.testT(out, 3)
+    #C.convertPyTree2File(out, 'out.cgns')

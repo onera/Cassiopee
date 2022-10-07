@@ -7,6 +7,7 @@ import Geom.PyTree as D
 import Post.Probe as Probe
 import Converter.Mpi as Cmpi
 import Converter.Filter as Filter
+import KCore.test as test
 
 if Cmpi.rank == 0:
     # Domaine donneur
@@ -36,8 +37,14 @@ for i in range(20):
     probe.extract(tcs, time)
 probe.flush()
 
+if Cmpi.rank == 0: 
+    test.testT(probe._probeZones, 1)
+    test.testT(probe._ts, 4)
+
 # Reread
 if Cmpi.rank == 0:
     out = probe.read(ind=1)
+    test.testT(out, 2)
     out = probe.read(cont=0)
+    test.testT(out, 3)
     C.convertPyTree2File(out, 'out.cgns')
