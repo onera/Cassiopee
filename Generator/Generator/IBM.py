@@ -57,7 +57,8 @@ def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=40000
 
 def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False,
-                 check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns'):
+                 check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns',
+                 isAMR=False,valMin=0,valMax=1):
     import Converter.Mpi as Cmpi
     if fileo is None: raise ValueError("adaptIBMMesh: Octree mesh must be specified by a file.")
     try: to = C.convertFile2PyTree(fileo)
@@ -79,11 +80,12 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     npts = dims[1]
     C._initVars(t,"{%s}={%s}*({centers:cellN}>0.)*({centers:cellN}<2.)"%(sensor,sensor))
     C._initVars(to, "centers:indicator", 1.)
-    to = P.computeIndicatorValue(to, t, sensor)
+    to = P.computeIndicatorValue(to, t, sensor) #projects values from t onto octree for var (but only the absolute value)
     res = P.computeIndicatorField(to, sensor, nbTargetPts=factor*npts, \
                                   bodies=constraintSurfaces, \
                                   refineFinestLevel=refineLevelF, \
-                                  coarsenCoarsestLevel=1)
+                                  coarsenCoarsestLevel=1,
+                                  isAMR=isAMR,valMin=valMin,valMax=valMax)
     # nettoyage : on n interpole pas tout
     if variables is not None:
         for z in Internal.getZones(t):
