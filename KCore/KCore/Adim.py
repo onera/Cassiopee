@@ -224,7 +224,7 @@ def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
 #==============================================================================
 def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
          alphaZ=0., alphaY=0., MutSMuInf=0.2,
-         TurbLevelInf=1.e-4, Mtip=None):
+         TurbLevelInf=1.e-4, Mtip=None,Mu_multiplier=1):
     """Return a dimensioned state specifying velocity, temperature and pressure."""
     alz = alphaZ * math.pi / 180.
     aly = alphaY * math.pi / 180.
@@ -240,10 +240,10 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     # mu en kg/m/s par loi directe
     MuInf = 8.8848e-15*TInf**3 -3.2398e-11*TInf**2 + 6.2657e-8*TInf+2.3543e-6
     # ou mu par Sutherland
-    Cs      = 110.4 # dimensionne
-    Ts      = 288.15 # temperature correspondante dimensionnee
+    Cs      = 110.4      # dimensionne
+    Ts      = 288.15     # temperature correspondante dimensionnee
     Mus     = 1.78938e-5 # mu correspondant dimensionne
-    MuInf = Mus*math.sqrt(TInf/Ts)*(1.+Cs/Ts)/(1.+Cs/TInf)
+    MuInf   = Mu_multiplier*Mus*math.sqrt(TInf/Ts)*(1.+Cs/Ts)/(1.+Cs/TInf)
 
     # nu en m2/s
     NuInf = MuInf / RoInf
@@ -310,13 +310,13 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
 #==============================================================================
 def dim2(UInf=2.7777, TInf=298.15, RoInf=1.225, LInf=1.,
          alphaZ=0., alphaY=0., MutSMuInf=0.2,
-         TurbLevelInf=1.e-4, Mtip=None):
+         TurbLevelInf=1.e-4, Mtip=None,Mu_multiplier=1):
     """Return a dimensioned state specifying velocity, temperature and density."""
     Rgp = 287.053
     PInf = RoInf*Rgp*TInf
     return dim1(UInf=UInf, TInf=TInf, PInf=PInf, LInf=LInf,
                 alphaZ=alphaZ, alphaY=alphaY, MutSMuInf=MutSMuInf,
-                TurbLevelInf=TurbLevelInf, Mtip=Mtip)
+                TurbLevelInf=TurbLevelInf, Mtip=Mtip,Mu_multiplier=Mu_multiplier)
 
 #==============================================================================
 # [6] Retourne un etat de reference dimmensionne correspondant a
@@ -325,13 +325,13 @@ def dim2(UInf=2.7777, TInf=298.15, RoInf=1.225, LInf=1.,
 #==============================================================================
 def dim3(UInf=2.7777, PInf=101325., RoInf=1.2, LInf=1.,
          alphaZ=0., alphaY=0., MutSMuInf=0.2,
-         TurbLevelInf=1.e-4, Mtip=None):
+         TurbLevelInf=1.e-4, Mtip=None,Mu_multiplier=1):
     """Return a dimensioned state specifying velocity, pressure and density."""
     Rgp = 287.053
     TInf = PInf/(RoInf*Rgp)
     return dim1(UInf=UInf, TInf=TInf, PInf=PInf, LInf=LInf,
                 alphaZ=alphaZ, alphaY=alphaY, MutSMuInf=MutSMuInf,
-                TurbLevelInf=TurbLevelInf, Mtip=Mtip)
+                TurbLevelInf=TurbLevelInf, Mtip=Mtip,Mu_multiplier=Mu_multiplier)
 
 #==============================================================================
 # [7] Retourne un etat de reference dimensionne correspondant a
