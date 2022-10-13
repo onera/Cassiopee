@@ -75,7 +75,7 @@ def createDragonMesh(s, dictOfParams={}, check=False, directory_tmp_files='./'):
     s = T.reorder(s, (+1,))
 
     XMax_surf = C.getMaxValue(s,'CoordinateX')
-    C.convertPyTree2File(s,"tmp.cgns")
+    #C.convertPyTree2File(s,"tmp.cgns")
     # Calcul automatique du snear (si snear < 0), il peut etre module avec le param snearFactor
     sizemax = 0.
     box = G.bbox(s)
