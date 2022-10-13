@@ -10,6 +10,7 @@ except ImportError: raise ImportError("Post: requires Converter module.")
 try: range = xrange
 except: pass
 
+## [AJ - KEEP FOR NOW - FROM MASTER]
 __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'computeGrad',
 'computeGrad2', 'computeDiv', 'computeDiv2', 'computeIndicatorField', 'computeIndicatorFieldForBounds',
 'computeIndicatorValue', 'computeNormCurl', 'computeNormGrad', 'computeVariables',
@@ -21,7 +22,7 @@ __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'com
 'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution', 'refine', 'renameVars',
 'selectCells', 'selectCells2', 'selectCells3', 'sharpEdges', 'silhouette', 'slice',
 'streamLine', 'streamLine2', 'streamRibbon', 'streamRibbon2', 
-'streamSurf', 'usurp', 'zip', 'zipper', 'growOfEps__']
+           'streamSurf', 'usurp', 'zip', 'zipper', 'growOfEps__','computeIndicatorField_AMR']
 
 #==============================================================================
 # Add two layers to surface arrays
@@ -1020,7 +1021,7 @@ def enforceIndicatorForCoarsestLevel(indicator, octreeHexa):
     level: the indicator is set to -3000 for the elements of coarsest level."""
     return post.enforceIndicatorForCoarsestLevel(indicator, octreeHexa)
 
-def computeIndicatorFieldForBounds(indicator, indicatorValues, valMin, valMax):
+def computeIndicatorFieldForBounds(indicator, indicatorValues, valMin, valMax, isAMR=False):
     """Return the modified indicator field in order to obtain a number of
     points controlled by bounds epsMin and epsMax. Indicator values greater
     than epsMax are refined (indicator=1), those lower than epsMin are
@@ -1030,16 +1031,28 @@ def computeIndicatorFieldForBounds(indicator, indicatorValues, valMin, valMax):
     indict = indicator2[1]
     for i in range(nelts):
         if indict[0,i] == -1000.: # enforce near bodies
-            if valt[0,i] >= valMax: indict[0,i] = 1.
-            else: indict[0,i] = 0.
+            if isAMR:
+                indict[0,i] = 0.
+            else:
+                if valt[0,i] >= valMax: indict[0,i] = 1.
+                else: indict[0,i] = 0.
         elif indict[0,i] == -2000.: # no refinement of finest level
             indict[0,i] = 0.
+            if isAMR:
+                if valt[0,i] <= valMin: indict[0,i] = -1.
         elif indict[0,i] == -3000.: # coarsening of coarsest level
             indict[0,i] = -1.
+            if isAMR:
+                if valt[0,i] >= valMax and valt[0,i] <=1: indict[0,i] = 1.
         else:
-            if valt[0,i] >= valMax: indict[0,i] = 1.
-            elif valt[0,i] <= valMin: indict[0,i] = -1.
-            else: indict[0,i] = 0.
+            if isAMR:
+                if valt[0,i] >= valMax and valt[0,i] <=1: indict[0,i] = 1.
+                elif valt[0,i] <= valMin: indict[0,i] = -1.
+                else: indict[0,i] = 0.
+            else:
+                if valt[0,i] >= valMax: indict[0,i] = 1.
+                elif valt[0,i] <= valMin: indict[0,i] = -1.
+                else: indict[0,i] = 0.
     return indicator2
 
 def computeIndicatorValue(octreeHexa, zones, indicField):
@@ -1196,3 +1209,57 @@ def renameVars(array, varsPrev, varsNew):
             except: pass
         res[0] = ','.join(varsb)
     return res
+
+## [AJ - KEEP FOR NOW - FROM MASTER]
+## This function needs to be further tested & validated and should be used at your own risk
+##      Further devs might occur upon further discussion with other developers
+def computeIndicatorField_AMR(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
+                              refineFinestLevel=1, coarsenCoarsestLevel=1,valMin=0,valMax=1,isOnlySmallest=False):
+    """Compute the indicator -1, 0 or 1 for each element of the HEXA octree
+    with respect to the indicatorValue field located at element centers. The
+    bodies fix the indicator to 0 in the vicinity of bodies. nbTargetPts
+    controls the number of points after adaptation.
+    If refineFinestLevel=1, the finest levels are refined.
+    If coarsenCoarsestLevel=1, the coarsest levels are coarsened wherever possible.
+    Returns the indicator field.
+    Usage: computeIndicatorField(octreeHexa, indicVal, nbTargetPts, bodies, refinestLevel, coarsenCoarsestLevel)"""
+    try: import Generator as G
+    except: raise ImportError("computeIndicatorField: requires Generator module.")
+    npts = octreeHexa[1][0].shape[0]
+    valName = indicVal[0]; nelts = indicVal[2]
+    indicVal[1] = numpy.absolute(indicVal[1])
+    indicator = Converter.initVars(indicVal, 'indicator', 0.)
+    indicator = Converter.extractVars(indicator, ['indicator'])
+
+    if bodies != []:
+        bodies = Converter.convertArray2Tetra(bodies)
+        indicator = post.enforceIndicatorNearBodies(indicator, octreeHexa, bodies)
+    if refineFinestLevel == 0:
+        indicator = post.enforceIndicatorForFinestLevel(indicator, octreeHexa)
+        if isOnlySmallest: return indicator
+    if coarsenCoarsestLevel == 1:
+        indicator = post.enforceIndicatorForCoarsestLevel(indicator, octreeHexa)
+
+
+    indicator1 = computeIndicatorFieldForBounds(indicator, indicVal,valMin,valMax,isAMR=True)
+    res        = G.adaptOctree(octreeHexa, indicator1)
+    nptsfin    = len(res[1][0])
+    print('Number of points: Pre %d | Post %d | Increase: %f'%(npts, nptsfin, nptsfin/npts))
+    if nptsfin < nbTargetPts:
+        return indicator1
+
+    count = 0;
+    while count < 100 and nptsfin/nbTargetPts > 1.02:
+        valMean    = 0.5*(valMin+valMax)
+        valMax    += 0.25*abs(valMean-valMin)
+        valMin    += 0.25*abs(valMean-valMin)
+        indicator1 = computeIndicatorFieldForBounds(indicator, indicVal,valMin,valMax,isAMR=True)
+        res        = G.adaptOctree(octreeHexa, indicator1)
+        nptsfin    = len(res[1][0])
+        count     += 1
+        print('Number of points: Pre %d | Post %d | Increase: %f | Lower Threshold: %f | Upper Threshold: %f | Limits Modif. Loop Cnt: %d'%(npts, nptsfin, nunt))
+
+    return indicator1
+
+
+

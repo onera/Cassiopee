@@ -2015,7 +2015,8 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
     return ret
 
 def computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
-                          refineFinestLevel=1, coarsenCoarsestLevel=1):
+                          refineFinestLevel=1, coarsenCoarsestLevel=1,
+                          isAMR=False,valMin=0,valMax=1,isOnlySmallest=False):
     """Compute the indicator -1, 0 or 1 for each element of the HEXA octree
     (or quadtree) with respect to the indicatorValue variable varName located
     at element centers.
@@ -2028,11 +2029,13 @@ def computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
     Usage: computeIndicatorField(octreeHexa, indicVal, nbTargetPts, bodies,
     refineFinestLevel, coarsenCoarsestLevel)"""
     epsInf, epsSup = _computeIndicatorField(octreeHexa, varName, nbTargetPts, bodies,
-                                            refineFinestLevel, coarsenCoarsestLevel)
+                                            refineFinestLevel, coarsenCoarsestLevel,
+                                            isAMR=isAMR,valMin=valMin,valMax=valMax,isOnlySmallest=isOnlySmallest)
     return octreeHexa, epsInf, epsSup
 
 def _computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
-                           refineFinestLevel=1, coarsenCoarsestLevel=1):
+                           refineFinestLevel=1, coarsenCoarsestLevel=1,
+                           isAMR=False,valMin=0,valMax=1,isOnlySmallest=False):
     """Compute the indicator -1, 0 or 1 for each element of the HEXA octree
     (or quadtree) with respect to the indicatorValue variable varName located
     at element centers.
@@ -2051,9 +2054,17 @@ def _computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
         bodiesA = C.getFields(Internal.__GridCoordinates__, bodies)
     fields = C.getField(varName, octreeHexa)[0]
     if zvars[0] != 'centers': fields = Converter.node2Center(fields)
-    indicator, epsInf, epsSup = Post.computeIndicatorField(
-        hexa, fields, nbTargetPts, bodiesA,
-        refineFinestLevel, coarsenCoarsestLevel)
+
+    if isAMR:
+        epsInf=valMin
+        epsSup=valMax
+        indicator = Post.computeIndicatorField_AMR(
+            hexa, fields, nbTargetPts, bodiesA,
+            refineFinestLevel, coarsenCoarsestLevel,valMin=valMin,valMax=valMax,isOnlySmallest=isOnlySmallest)
+    else:      
+        indicator, epsInf, epsSup = Post.computeIndicatorField(
+            hexa, fields, nbTargetPts, bodiesA,
+            refineFinestLevel, coarsenCoarsestLevel)
     C.setFields([indicator], octreeHexa, 'centers')
     return epsInf, epsSup
 
