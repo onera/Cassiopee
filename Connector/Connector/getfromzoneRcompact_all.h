@@ -9,6 +9,14 @@
          ipt_roR[nd]   = NULL;
          t                           = K_PYTREE::getNodeFromName1(sol, varname );
          if(t != NULL) ipt_roR[nd]   = K_PYTREE::getValueAF(t, hook);
+	 
+	 if(isWireModel==1){
+	   t  = K_PYTREE::getNodeFromName1(sol, "Density_WM" );
+	   if(t != NULL)ipt_roR_Pnt2[nd] = K_PYTREE::getValueAF(t, hook);
+
+	   t  = K_PYTREE::getNodeFromName1(sol, "TurbulentDistance" );
+	   if(t != NULL)ipt_roR_Dist2Walls[nd] = K_PYTREE::getValueAF(t, hook);
+	 }
        }
 
        sol = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution");
@@ -17,6 +25,14 @@
          ipt_roR_vert[nd] = NULL;
          t                              = K_PYTREE::getNodeFromName1(sol, varname );
          if(t != NULL) ipt_roR_vert[nd] = K_PYTREE::getValueAF(t, hook);
+	 
+	 if(isWireModel==1){
+	   t  = K_PYTREE::getNodeFromName1(sol, "Density_WM" );
+	   if(t != NULL)ipt_roR_Pnt2[nd] = K_PYTREE::getValueAF(t, hook);
+
+	   t  = K_PYTREE::getNodeFromName1(sol, "TurbulentDistance" );
+	   if(t != NULL)ipt_roR_Dist2Walls[nd] = K_PYTREE::getValueAF(t, hook);
+	 }
        }
 
         PyObject* own      = K_PYTREE::getNodeFromName1(zoneR , ".Solver#ownData");

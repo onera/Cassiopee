@@ -105,11 +105,11 @@ switch (type)
       val4 += ptrCoefs[ indCoef + 6 ]*vectOfDnrFields[4][ind011];
       val4 += ptrCoefs[ indCoef + 7 ]*vectOfDnrFields[4][ind111];
 
-      vectOfRcvFields[0][indR] = val0;
-      vectOfRcvFields[1][indR] = val1;
-      vectOfRcvFields[2][indR] = val2;
-      vectOfRcvFields[3][indR] = val3;
-      vectOfRcvFields[4][indR] = val4;
+      vectOfRcvFields[0][indR] = val0; //Density
+      vectOfRcvFields[1][indR] = val1; //VelocityX
+      vectOfRcvFields[2][indR] = val2; //VelocityY
+      vectOfRcvFields[3][indR] = val3; //VelocityZ
+      vectOfRcvFields[4][indR] = val4; //Temperature
       indCoef  += 8;
     }
     break;

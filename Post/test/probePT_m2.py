@@ -9,25 +9,27 @@ import Converter.Mpi as Cmpi
 import Converter.Filter as Filter
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 if Cmpi.rank == 0:
     # Domaine donneur
     a = G.cart((0,0,0),(0.1,0.1,0.1),(51,51,51))
     C._initVars(a, "{F}={CoordinateX}*{CoordinateY}")
     C._initVars(a, 'cellN', 1.)
-    C.convertPyTree2File(a, 'tc.cgns')
+    C.convertPyTree2File(a, LOCAL+'/tc.cgns')
 
     # Surface de probe permeable
     s = D.sphere((2.5,2.5,2.5), 1.)
-    C.convertPyTree2File(s, 'ts.cgns')
+    C.convertPyTree2File(s, LOCAL+'/ts.cgns')
 Cmpi.barrier()
 
 # Prepare la probe
-h = Filter.Handle('ts.cgns')
+h = Filter.Handle(LOCAL+'/ts.cgns')
 ts = h.loadAndSplit()
-h = Filter.Handle('tc.cgns')
+h = Filter.Handle(LOCAL+'/tc.cgns')
 tc = h.loadAndSplit()
 
-probe = Probe.Probe('probe.cgns', tPermeable=ts, fields=['F'], bufferSize=15)
+probe = Probe.Probe(LOCAL+'/probe.cgns', tPermeable=ts, fields=['F'], bufferSize=15)
 tcs = probe.prepare(tc)
 
 # Extraction
@@ -47,4 +49,4 @@ if Cmpi.rank == 0:
     test.testT(out, 2)
     out = probe.read(cont=0)
     test.testT(out, 3)
-    C.convertPyTree2File(out, 'out.cgns')
+    #C.convertPyTree2File(out, LOCAL+'/out.cgns')

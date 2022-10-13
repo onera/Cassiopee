@@ -161,11 +161,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
            sname        = s[0][0:2]
            utau         = Internal.getNodeFromName1(s, 'utau')
+           temp_local   = Internal.getNodeFromName1(s, 'Temperature')
            gradxP       = Internal.getNodeFromName1(s, 'gradxPressure')
            gradxU       = Internal.getNodeFromName1(s, 'gradxVelocityX')
            kcurv        = Internal.getNodeFromName1(s, XOD.__KCURV__)
            sd1          = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
-           yline        = Internal.getNodeFromName1(s, 'CoordinateN_ODE')
+           yline        = Internal.getNodeFromName1(s, 'CoordinateN_ODE')           
+           
 
            # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
            if sname == 'IB':
@@ -220,10 +222,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
            size_IBC =  0
            ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
            if utau is not None: ntab_IBC += 2
+           if temp_local is not None: ntab_IBC += 2
            if gradxP is not None: ntab_IBC += 3
            if gradxU is not None: ntab_IBC += 9
            if kcurv is not None: ntab_IBC += 1
-           if sd1 is not None: ntab_IBC += 5
+           if sd1 is not None: ntab_IBC += 5           
            if yline is not None: ntab_IBC += (7*nbpts_linelets+2)
            if sname == 'IB' and model == "LBMLaminar":
                if qloc_1 is not None: ntab_IBC += neq_trans
@@ -481,21 +484,30 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
        ptxc=0;ptyc=0;ptzc=0;ptxi=0;ptyi=0;ptzi=0;ptxw=0;ptyw=0;ptzw=0;ptdensity=0;ptpressure=0
        ptvx=0;ptvy=0;ptvz=0
        ptutau=0;ptyplus=0;ptkcurv=None
-       gradxP=None;gradyP=None;gradzP=None;
-       ptgradxP=0;ptgradyP=0;ptgradzP=0;
-       gradxU=None;gradyU=None;gradzU=None;
-       ptgradxU=0;ptgradyU=0;ptgradzU=0;
-       gradxV=None;gradyV=None;gradzV=None;
-       ptgradxV=0;ptgradyV=0;ptgradzV=0;
-       gradxW=None;gradyW=None;gradzW=None;
-       ptgradxW=0;ptgradyW=0;ptgradzW=0;
-       sd1=None;sd2=None;sd3=None;sd4=None;sd5=None
-       ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
        yline=None; uline=None; nutildeline=None; psiline=None; matmline=None; matline=None; matpline=None
        alphasbetaline=None; indexline=None
        ptyline=0; ptuline=0; ptnutildeline=0; ptpsiline=0; ptmatmline=0; ptmatline=0; ptmatpline=0
        ptalphasbetaline=0; ptindexline=0
 
+       temp_local=None;pttemp_local=0;
+       temp_extra_local =None;pttemp_extra_local =0;
+       temp_extra2_local=None;pttemp_extra2_local=0;
+
+       gradxP=None;gradyP=None;gradzP=None;
+       ptgradxP=0;ptgradyP=0;ptgradzP=0;
+
+       gradxU=None;gradyU=None;gradzU=None;
+       ptgradxU=0;ptgradyU=0;ptgradzU=0;
+
+       gradxV=None;gradyV=None;gradzV=None;
+       ptgradxV=0;ptgradyV=0;ptgradzV=0;
+
+       gradxW=None;gradyW=None;gradzW=None;
+       ptgradxW=0;ptgradyW=0;ptgradzW=0;
+
+       sd1=None;sd2=None;sd3=None;sd4=None;sd5=None
+       ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
+       
        qloc_1=[None]*(neq_loc)
        ptqloc_1=[0]*(neq_loc)
        
@@ -574,6 +586,22 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
            if kcurv is not None:
                ptkcurv = pt_coef + Nbpts_InterpD + Nbpts_D*inc
                size_IBC  += Nbpts_D; inc += 1
+
+           temp_local      = Internal.getNodeFromName1(s, 'Temperature')
+           if temp_local is not None:
+               pttemp_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+               size_IBC   += Nbpts_D; inc += 1
+
+           temp_extra_local = Internal.getNodeFromName1(s, 'TemperatureWall')
+           if temp_extra_local is not None:
+               pttemp_extra_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+               size_IBC   += Nbpts_D; inc += 1
+
+           temp_extra2_local = Internal.getNodeFromName1(s, 'WallHeatFlux')
+           if temp_extra2_local is not None:
+               pttemp_extra2_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+               size_IBC   += Nbpts_D; inc += 1
+
 
            gradxP = Internal.getNodeFromName1(s, 'gradxPressure')
            gradyP = Internal.getNodeFromName1(s, 'gradyPressure')
@@ -713,6 +741,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                        ptdensity,ptpressure, ptkcurv,
                        ptvx, ptvy, ptvz,
                        ptutau,ptyplus,
+                       pttemp_local, pttemp_extra_local,pttemp_extra2_local,
                        ptgradxP, ptgradyP, ptgradzP,
                        ptgradxU, ptgradyU, ptgradzU,
                        ptgradxV, ptgradyV, ptgradzV,
@@ -724,6 +753,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                        density,pressure, kcurv,
                        vx, vy, vz,
                        utau,yplus,
+                       temp_local, temp_extra_local,temp_extra2_local,
                        gradxP, gradyP, gradzP,
                        gradxU, gradyU, gradzU,
                        gradxV, gradyV, gradzV,
@@ -739,6 +769,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         ptdensity,ptpressure, ptkcurv,
                         ptvx, ptvy, ptvz,
                         ptutau,ptyplus,
+                        pttemp_local, pttemp_extra_local,pttemp_extra2_local,
                         ptgradxP, ptgradyP, ptgradzP,
                         ptgradxU, ptgradyU, ptgradzU,
                         ptgradxV, ptgradyV, ptgradzV,
@@ -750,6 +781,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         density,pressure, kcurv,
                         vx, vy, vz,
                         utau,yplus,
+                        temp_local, temp_extra_local, temp_extra2_local,
                         gradxP, gradyP, gradzP,
                         gradxU, gradyU, gradzU,
                         gradxV, gradyV, gradzV,
@@ -787,6 +819,14 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
               utau[1]  = param_real[ ptutau : ptutau + Nbpts_D ]
               yplus[1] = param_real[ ptyplus: ptyplus + Nbpts_D ]
 
+            if temp_local is not None:
+              temp_local[1]       = param_real[ pttemp_local       : pttemp_local       + Nbpts_D ]
+            if temp_extra_local is not None:
+              temp_extra_local[1] = param_real[ pttemp_extra_local : pttemp_extra_local + Nbpts_D ]
+            if temp_extra2_local is not None:
+              temp_extra2_local[1] = param_real[ pttemp_extra2_local : pttemp_extra2_local + Nbpts_D ]
+
+
             if gradxP is not None:
               gradxP[1] = param_real[ ptgradxP : ptgradxP + Nbpts_D ]
               gradyP[1] = param_real[ ptgradyP : ptgradyP + Nbpts_D ]
@@ -821,6 +861,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             if sd5 is not None:
               sd5[1]  = param_real[ ptd5 : ptd5 + Nbpts_D ]
 
+              
             if yline is not None:
               yline[1]          = param_real[ ptyline : ptyline + Nbpts_D*nbpts_linelets ]
               uline[1]          = param_real[ ptuline : ptuline + Nbpts_D*nbpts_linelets ]
@@ -934,6 +975,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  ptdensity,ptpressure, ptkcurv,
                  ptvx, ptvy, ptvz,
                  ptutau,ptyplus,
+                 pttemp_local, pttemp_extra_local, pttemp_extra2_local, 
                  ptgradxP, ptgradyP, ptgradzP,
                  ptgradxU, ptgradyU, ptgradzU,
                  ptgradxV, ptgradyV, ptgradzV,
@@ -945,6 +987,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  density,pressure,kcurv,
                  vx, vy, vz,
                  utau,yplus,
+                 temp_local, temp_extra_local, temp_extra2_local, 
                  gradxP, gradyP, gradzP,
                  gradxU, gradyU, gradzU,
                  gradxV, gradyV, gradzV,
@@ -1010,6 +1053,13 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                if utau is not None:
                    param_real[ ptutau    + l + l0 ]= utau[1][i]
                    param_real[ ptyplus   + l + l0 ]= yplus[1][i]
+
+               if temp_local is not None:
+                   param_real[ pttemp_local       + l + l0 ]= temp_local[1][i]
+               if temp_extra_local is not None: 
+                   param_real[ pttemp_extra_local + l + l0 ]= temp_extra_local[1][i]
+               if temp_extra2_local is not None: 
+                   param_real[ pttemp_extra2_local + l + l0 ]= temp_extra2_local[1][i]
 
                if gradxP is not None:
                    param_real[ ptgradxP + l + l0 ]= gradxP[1][i]
@@ -1093,6 +1143,7 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
                 ptdensity,ptpressure,ptkcurv,
                 ptvx, ptvy, ptvz,
                 ptutau,ptyplus,
+                pttemp_local, pttemp_extra_local, pttemp_extra2_local, 
                 ptgradxP, ptgradyP, ptgradzP,
                 ptgradxU, ptgradyU, ptgradzU,
                 ptgradxV, ptgradyV, ptgradzV,
@@ -1104,6 +1155,7 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
                 density,pressure,kcurv,
                 vx, vy, vz,
                 utau,yplus,
+                temp_local, temp_extra_local, temp_extra2_local, 
                 gradxP, gradyP, gradzP,
                 gradxU, gradyU, gradzU,
                 gradxV, gradyV, gradzV,
@@ -1152,6 +1204,13 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
        if utau is not None:
            connector.initNuma(utau[1], param_real, ptutau, Nbpts_D, 0, val)
            connector.initNuma(yplus[1], param_real, ptyplus, Nbpts_D , 0, val)
+
+       if temp_local is not None:
+           connector.initNuma(temp_local[1]      , param_real, pttemp_local       , Nbpts_D , 0, val)
+       if temp_extra_local is not None:    
+           connector.initNuma(temp_extra_local[1], param_real, pttemp_extra_local , Nbpts_D , 0, val)
+       if temp_extra2_local is not None:    
+           connector.initNuma(temp_extra2_local[1], param_real, pttemp_extra2_local , Nbpts_D , 0, val)            
 
        if gradxP is not None:
            connector.initNuma(gradxP[1] , param_real, ptgradxP , Nbpts_D , 0, val)
@@ -1245,6 +1304,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             pointlistD   =  Internal.getNodeFromName1(rac, 'PointListDonor')
             InterpD      =  Internal.getNodeFromName1(rac, 'InterpolantsDonor')
             utau         =  Internal.getNodeFromName1(rac, 'utau')
+            temp_local   =  Internal.getNodeFromName1(rac, 'Temperature')
             gradxP       =  Internal.getNodeFromName1(rac, 'gradxPressure')
             gradxU       =  Internal.getNodeFromName1(rac, 'gradxVelocityX')
             kcurv        =  Internal.getNodeFromName1(rac, 'KCurv')
@@ -1254,6 +1314,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
 	    
             ntab_IBC   = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour le post
             if utau is not None: ntab_IBC += 2
+            if temp_local is not None: ntab_IBC += 2
             if gradxP is not None: ntab_IBC += 3
             if gradxU is not None: ntab_IBC += 9
             if kcurv is not None: ntab_IBC += 1

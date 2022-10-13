@@ -21,7 +21,8 @@ import numpy
 import math
 
 
-varsn    = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
+varsn       = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
+varsnDouble = ['gradxTurbulentDistanceDouble','gradyTurbulentDistanceDouble','gradzTurbulentDistanceDouble']
 TOLDIST  = 1.e-14
 SHIFTF   = 1.e-10
 EPSCART  = 1.e-6
@@ -76,32 +77,37 @@ def _removeBlankedGrids(t, loc='centers'):
 # masquage par les corps IBC
 # gridType = single or composite - composite means that an off body grid exists
 #==============================================================================
-def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
+def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN',closedSolid=[]):
     DIM = dim
     blankalgo='tri'
     #blankalgo='xray'
     if DIM == 2: blankalgo = 'xray'
 
+    if not closedSolid:
+        closedSolid=[]
+        for b in Internal.getBases(tb):
+            closedSolid.append(b[0])
     bodies = []
     for b in Internal.getBases(tb):
-        wallsl = Internal.getNodesFromType1(b, 'Zone_t')
-        #soldef = Internal.getNodeFromName(wallsl,'.Solver#define')
-        bodies.append(wallsl)
-        # if wallsl != []:
-        #     try:
-        #         wallsl = C.convertArray2Tetra(wallsl)
-        #         wallsl = T.join(wallsl)
-        #         wallsl = G.close(wallsl)
-        #         Internal.addChild(wallsl,soldef)
-        #         bodies.append([wallsl])
-        #         # if DIM == 3:
-        #         #     try: P.exteriorFaces(wallsl)
-        #         #     except: pass
-        #         #     bodies.append([wallsl])
-        #         # else: bodies.append([wallsl])
-        #     except:
-        #         wallsl = C.convertArray2Tetra(wallsl)
-        #         bodies.append(wallsl)
+        if b[0] in closedSolid:
+            wallsl = Internal.getNodesFromType1(b, 'Zone_t')
+            #soldef = Internal.getNodeFromName(wallsl,'.Solver#define')
+            bodies.append(wallsl)
+            # if wallsl != []:
+            #     try:
+            #         wallsl = C.convertArray2Tetra(wallsl)
+            #         wallsl = T.join(wallsl)
+            #         wallsl = G.close(wallsl)
+            #         Internal.addChild(wallsl,soldef)
+            #         bodies.append([wallsl])
+            #         # if DIM == 3:
+            #         #     try: P.exteriorFaces(wallsl)
+            #         #     except: pass
+            #         #     bodies.append([wallsl])
+            #         # else: bodies.append([wallsl])
+            #     except:
+            #         wallsl = C.convertArray2Tetra(wallsl)
+            #         bodies.append(wallsl)
 
     nbodies = len(bodies)
     if nbodies == 0:
@@ -184,7 +190,7 @@ def _addBCOverlaps(t, bbox):
     return None
 
 
-def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
+def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield',dimPb=3):
     dirs = [0,1,2,3,4,5]
     rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
     if dimPb == 2: dirs = [0,1,3,4]
@@ -1651,7 +1657,7 @@ def extractIBMInfo2(tc):
 # =============================================================================
 # Calcul des points IBM a corriger, paroi et a interpoler
 # =============================================================================
-def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=None, frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1., hmod=0.1, isLBM=False):
+def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=None, frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1., hmod=0.1, isLBM=False,isWireModel=False, isOrthoFirst=False):
     if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected=1 # signe de la distance aux points corriges
 
@@ -1688,7 +1694,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                 #     listOfModelisationHeightsLoc.append(hmod)
                 # else:
                 #     listOfModelisationHeightsLoc.append(0.)
-    else:
+    else:        
         for z in Internal.getZones(t):            
             an = C.getFields(Internal.__GridCoordinates__,z)[0]
             an = Converter.node2Center(an)
@@ -1707,6 +1713,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             allCorrectedPts.append(correctedPts)
             xt = C.getField('CoordinateX',z)[0][1][0]
             snearl = xt[1]-xt[0]
+            
             listOfSnearsLoc.append(snearl)
             if frontType == 42: listOfModelisationHeightsLoc.append(G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref))
             else: 
@@ -1752,7 +1759,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             else: ibctype2 = str(ibctypeI)  
             if ibctype2 not in dictOfBodiesByIBCType: dictOfBodiesByIBCType[ibctype2]=[s]
             else: dictOfBodiesByIBCType[ibctype2]+=[s]
-
+        
         # Regroupement des corps par type de BC - optimise les projections ensuite 
         bodies = []; listOfIBCTypes=[]
         for itype in dictOfBodiesByIBCType:
@@ -1781,10 +1788,12 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                 res = connector.getIBMPtsWithoutFront(allCorrectedPts, bodies, varsn, 'dist', signOfDistCorrected)
             else:
                 front = C.getFields(Internal.__GridCoordinates__,tfront)
+                
                 front = Converter.convertArray2Tetra(front)
                 allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
+                
                 res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, listOfModelisationHeightsLoc, bodies,
-                 front, varsn, signOfDistCorrected, depth)
+                                                   front, varsn, signOfDistCorrected, depth, int(isWireModel), int(isOrthoFirst))
     
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])

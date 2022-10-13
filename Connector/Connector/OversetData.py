@@ -31,6 +31,8 @@ TypesOfIBC["Pohlhausen"]=8 #Lam fp
 TypesOfIBC["Thwaites"]=9 #Lam fp inclined
 TypesOfIBC["Mafzal"]=10 #Musker+gradP
 TypesOfIBC["TBLE_FULL"]=11 #TBLE+gradP+conv+SA
+TypesOfIBC["isothermal"]=12 #isothermal: set T_wall
+TypesOfIBC["heatflux"]=13 #heatflux: set q_wall
 
 # Variables IBM pour le post traitement
 __PRESSURE__= 'Pressure'
@@ -41,6 +43,7 @@ __VELOCITYX__ = 'VelocityX'
 __VELOCITYY__ = 'VelocityY'
 __VELOCITYZ__ = 'VelocityZ'
 __KCURV__ = 'KCurv' # curvature radius for IBCs
+__TEMPERATURE__ = 'Temperature'
 __GRADXPRESSURE__ = 'gradxPressure'
 __GRADYPRESSURE__ = 'gradyPressure'
 __GRADZPRESSURE__ = 'gradzPressure'
@@ -915,6 +918,16 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
         zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
         zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
 
+    if bcType == 12:
+        Temperature_local = numpy.zeros((nIBC),numpy.float64)
+        Internal._createChild(zsr, 'Temperature'    , 'DataArray_t', value=Temperature_local)
+        Internal._createChild(zsr, 'TemperatureWall', 'DataArray_t', value=Temperature_local)
+
+    if bcType == 13:
+        Temperature_local = numpy.zeros((nIBC),numpy.float64)
+        Internal._createChild(zsr, 'Temperature' , 'DataArray_t', value=Temperature_local)
+        Internal._createChild(zsr, 'WallHeatFlux', 'DataArray_t', value=Temperature_local)
+      
     if bcType == 5:
       stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
       Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
@@ -1885,8 +1898,9 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
         nvarIBC = len(variablesIBC)
         if nvarIBC != 5 and nvarIBC != 6:
             raise ValueError("setInterpTransfers: length of variablesIBC must be equal to 5.")
-
+    
     tR = Internal.copyRef(aR)
+
     _setInterpTransfers(tR, topTreeD, variables=variables, variablesIBC=variablesIBC, 
                         bcType=bcType, varType=varType, storage=storage, compact=compact, compactD=compactD,
                         cellNVariable=cellNVariable, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts)
@@ -1916,7 +1930,7 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
                         bcType=0, varType=2, storage=-1, compact=0, compactD=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0):
-
+    
     # Recup des donnees a partir des zones receveuses
     if storage < 1:
         # Dictionnaire pour optimisation
@@ -2026,7 +2040,6 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                         RotAngleX = RotAngleNode[0]
                                         RotAngleY = RotAngleNode[1]
                                         RotAngleZ = RotAngleNode[2]
-
                                     connector._setInterpTransfers(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs,loc, varType, compact, cellNVariable,
                                                                   Internal.__GridCoordinates__, 
                                                                   Internal.__FlowSolutionNodes__, 
@@ -2042,7 +2055,8 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                     xPI = Internal.getNodeFromName1(s,'CoordinateX_PI')[1]
                                     yPI = Internal.getNodeFromName1(s,'CoordinateY_PI')[1]
                                     zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
-                                    Density = Internal.getNodeFromName1(s,'Density')[1]                                      
+                                    Density = Internal.getNodeFromName1(s,'Density')[1]
+                                    
                                     connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
                                                                xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
                                                                Density, 

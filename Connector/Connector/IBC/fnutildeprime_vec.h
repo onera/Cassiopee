@@ -7,4 +7,4 @@ l3 = l1 + ax*ax*ax;            //g
 //  E_Float fp = 4*l1;                              
 //  E_Float gp = 3*nutilde*nutilde;
 
-f1p =  (4.*l1*l3 - 3.*l2)/(l3*l3);
+E_Float f1p =  (4.*l1*l3 - 3.*l2)/(l3*l3);

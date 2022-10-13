@@ -60,7 +60,8 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
     KCurvNP = []
     gradxPressureNP = []; gradyPressureNP = []; gradzPressureNP = []
     conv1NP = []; conv2NP = []
-
+    temperatureNP=[];
+    if coordRef =='cible':coordRef='target'
     dictOfFamilies={}
     if famZones != []:
         out = []
@@ -109,7 +110,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
             else:
                 allIBCD = Internal.getNodesFromName(allZSR,"2_IBCD_*")
             for IBCD in allIBCD:
-                if coordRef == 'cible':
+                if coordRef == 'target':
                     xPC = Internal.getNodeFromName1(IBCD,"CoordinateX_PC")[1]
                     yPC = Internal.getNodeFromName1(IBCD,"CoordinateY_PC")[1]
                     zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
@@ -144,6 +145,9 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
                 KCURVW = Internal.getNodeFromName1(IBCD, XOD.__KCURV__)
                 if KCURVW is not None: KCurvNP.append(KCURVW[1])
 
+                TEMP = Internal.getNodeFromName1(IBCD, XOD.__TEMPERATURE__)
+                if TEMP is not None:temperatureNP.append(TEMP[1])
+
                 GRADXPW = Internal.getNodeFromName1(IBCD, XOD.__GRADXPRESSURE__)
                 if GRADXPW is not None: gradxPressureNP.append(GRADXPW[1])
                 GRADYPW = Internal.getNodeFromName1(IBCD, XOD.__GRADYPRESSURE__)
@@ -168,6 +172,8 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
 
         if KCurvNP != []: KCurvNP = numpy.concatenate(KCurvNP)
 
+        if temperatureNP != []: temperatureNP = numpy.concatenate(temperatureNP)
+        
         if gradxPressureNP != []: gradxPressureNP = numpy.concatenate(gradxPressureNP)
         if gradyPressureNP != []: gradyPressureNP = numpy.concatenate(gradyPressureNP)
         if gradzPressureNP != []: gradzPressureNP = numpy.concatenate(gradzPressureNP)
@@ -235,6 +241,11 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
         kcurvPresent = 1
         FSN[2].append([XOD.__KCURV__,KCurvNP, [],'DataArray_t'])
 
+    temperaturePresent = 0
+    if temperatureNP != []:
+        temperaturePresent = 1
+        FSN[2].append([XOD.__TEMPERATURE__,temperatureNP, [],'DataArray_t'])
+
     gradxPressurePresent = 0
     if gradxPressureNP != []:
         gradxPressurePresent = 1
@@ -289,6 +300,8 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
             C._initVars(td,XOD.__VELOCITYZ__,0.)
         if kcurvPresent==1:
             C._initVars(td,XOD.__KCURV__,0.)
+        if temperaturePresent==1:
+            C._initVars(td,XOD.__TEMPERATURE__,0.)            
         if gradxPressurePresent==1:
             C._initVars(td,XOD.__GRADXPRESSURE__,0.)
             C._initVars(td,XOD.__GRADYPRESSURE__,0.)
@@ -471,7 +484,7 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
 
 #==============================================================================
 # Return ts, massflow 
-# A REFAIRE !!! 
+# A REFAIRE !!!  [AJ] KEEP FOR NOW
 def extractMassFlowThroughSurface(tb, t, famZones=[]):
     print("WARNING: fonction a reprendre !!!")
     ts = Internal.copyRef(tb)

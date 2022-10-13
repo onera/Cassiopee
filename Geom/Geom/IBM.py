@@ -7,13 +7,13 @@ import numpy
 import copy
 import Generator.IBMmodelHeight as G_IBM_Height
 
-vars_delete_ibm=['utau','StagnationEnthalpy','StagnationPressure',
-                 'dirx'          ,'diry'          ,'dirz',
-                 'gradxPressure' ,'gradyPressure' ,'gradzPressure' ,
-                 'gradxVelocityX','gradyVelocityX','gradzVelocityX',
-                 'gradxVelocityY','gradyVelocityY','gradzVelocityY',
-                 'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
-                 'KCurv','yplus']        
+varsDeleteIBM=['utau','StagnationEnthalpy','StagnationPressure',
+               'dirx'          ,'diry'          ,'dirz',
+               'gradxPressure' ,'gradyPressure' ,'gradzPressure' ,
+               'gradxVelocityX','gradyVelocityX','gradzVelocityX',
+               'gradxVelocityY','gradyVelocityY','gradzVelocityY',
+               'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
+            'KCurv','yplus']        
 
 # compute the near wall spacing in agreement with the yplus target at image points - front42
 def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
@@ -115,16 +115,16 @@ def _setFluidInside(t):
     return None
 
 # Set the IBC type outpress for zones in familyName
-def initOutflow(tc, familyName, P_static):
-    """Set the value of static pressure P_static for the outflow pressure IBC with family name familyName.
-    Usage: initOutflow(tc,familyName, P_static)"""
+def initOutflow(tc, familyName, PStatic):
+    """Set the value of static pressure PStatic for the outflow pressure IBC with family name familyName.
+    Usage: initOutflow(tc,familyName, PStatic)"""
     tc2 = Internal.copyRef(tc)
-    _initOutflow(tc2, familyName, P_static)
+    _initOutflow(tc2, familyName, PStatic)
     return tc2
 
-def _initOutflow(tc, familyName, P_static):
-    """Set the value of the pressure P_static for the outflow pressure IBC with family name familyName.
-    Usave: _initOutflow(tc,familyName, P_static)"""    
+def _initOutflow(tc, familyName, PStatic):
+    """Set the value of the pressure PStatic for the outflow pressure IBC with family name familyName.
+    Usave: _initOutflow(tc,familyName, PStatic)"""    
     for zc in Internal.getZones(tc):
         for zsr in Internal.getNodesFromName(zc,'IBCD_4_*'):
             FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
@@ -133,36 +133,95 @@ def _initOutflow(tc, familyName, P_static):
                 if FamName==familyName:
                     stagPNode =  Internal.getNodeFromName(zsr,'Pressure')    
                     sizeIBC = numpy.shape(stagPNode[1])
-                    Internal.setValue(stagPNode,P_static*numpy.ones(sizeIBC))
+                    Internal.setValue(stagPNode,PStatic*numpy.ones(sizeIBC))
+    return None
+
+def initIsoThermal(tc, familyName, TStatic):
+    """Set the value of static temperature TStatic for the wall no slip IBC with family name familyName.
+    Usage: initIsoThermal(tc,familyName, TStatic)"""
+    tc2 = Internal.copyRef(tc)
+    _initIsoThermal(tc2, familyName, TStatic)
+    return tc2
+
+
+def _initIsoThermal(tc, familyName, TStatic):
+    """Set the value of static temperature TStatic for the wall no slip IBC with family name familyName.
+    Usage: _initIsoThermal(tc,familyName, TStatic)"""
+    for zc in Internal.getZones(tc):
+        for zsr in Internal.getNodesFromName(zc,'IBCD_12_*'):
+            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
+            if FamNode is not None:
+                FamName = Internal.getValue(FamNode)
+                if FamName==familyName:
+                    stagPNode =  Internal.getNodeFromName(zsr,'TemperatureWall')    
+                    sizeIBC = numpy.shape(stagPNode[1])
+                    Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
+
+                    stagPNode =  Internal.getNodeFromName(zsr,'Temperature')    
+                    Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
     return None
 
 
-# Set the IBC type inj for zones in familyName
-def initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.]):
-    """Set the total pressure P_tot, total enthalpy H_tot, and direction of the flow injDir for the injection IBC with family name familyName.
-    Usave: initInj(tc, familyName, P_tot, H_tot, injDir)"""
+def initHeatFlux(tc, familyName, QWall):
+    """Set the value of heat flux QWall for the wall no slip IBC with family name familyName.
+    Usage: initHeatFlux(tc,familyName, QWall)"""
     tc2 = Internal.copyRef(tc)
-    _initInj(tc2, familyName, P_tot, H_tot, injDir)
+    _initHeatFlux(tc2, familyName, QWall)
+    return tc2
+
+
+def _initHeatFlux(tc, familyName, QWall):
+    """Set the value of heat flux QWall for the wall no slip IBC with family name familyName.
+    Usage: _initHeatFlux(tc,familyName, QWall)"""
+    for zc in Internal.getZones(tc):
+        for zsr in Internal.getNodesFromName(zc,'IBCD_13_*'):
+            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
+            if FamNode is not None:
+                FamName = Internal.getValue(FamNode)
+                if FamName==familyName:
+                    stagPNode =  Internal.getNodeFromName(zsr,'WallHeatFlux')    
+                    sizeIBC = numpy.shape(stagPNode[1])
+                    Internal.setValue(stagPNode,QWall*numpy.ones(sizeIBC))
+
+                    stagPNode =  Internal.getNodeFromName(zsr,'Temperature')    
+                    Internal.setValue(stagPNode,QWall*numpy.ones(sizeIBC))
+    return None
+
+
+
+
+# Set the IBC type inj for zones in familyName
+def initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
+    """Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.
+    Usave: initInj(tc, familyName, PTot, HTot, injDir)"""
+    tc2 = Internal.copyRef(tc)
+    _initInj(tc2, familyName, PTot, HTot, injDir)
     return tc2
                  
 
-def _initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.]):
-    """Set the total pressure P_tot, total enthalpy H_tot, and direction of the flow injDir for the injection IBC with family name familyName.
-    Usage: _initInj(tc, familyName, P_tot, H_tot, injDir)"""
+def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
+    """Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.
+    Usage: _initInj(tc, familyName, PTot, HTot, injDir)"""
     for zc in Internal.getZones(tc):
         for zsr in Internal.getNodesFromName(zc,'IBCD_5_*'):
             FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName==familyName:
+                    node_temp = Internal.getNodeFromName(zsr,'utau')
+                    if node_temp is not None:Internal._rmNode(zsr,node_temp)
+
+                    node_temp = Internal.getNodeFromName(zsr,'yplus')
+                    if node_temp is not None:Internal._rmNode(zsr,node_temp)
+                    
                     stagPNode =  Internal.getNodeFromName(zsr,'StagnationPressure')
                     stagHNode =  Internal.getNodeFromName(zsr,'StagnationEnthalpy')
                     dirxNode = Internal.getNodeFromName(zsr,'dirx')
                     diryNode = Internal.getNodeFromName(zsr,'diry')
                     dirzNode = Internal.getNodeFromName(zsr,'dirz')
                     sizeIBC = numpy.shape(stagHNode[1])
-                    Internal.setValue(stagHNode,H_tot*numpy.ones(sizeIBC))
-                    Internal.setValue(stagPNode,P_tot*numpy.ones(sizeIBC))
+                    Internal.setValue(stagHNode,HTot*numpy.ones(sizeIBC))
+                    Internal.setValue(stagPNode,PTot*numpy.ones(sizeIBC))
 
                     Internal.setValue(dirxNode, injDir[0]*numpy.ones(sizeIBC))
                     Internal.setValue(diryNode, injDir[1]*numpy.ones(sizeIBC))
@@ -171,8 +230,8 @@ def _initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.]):
     return None
 
 
-# Change IBC Types
-def _add_variables_tc_ibc(zsr, ibctype, nIBC):
+# Add variables to the IBC
+def _addVariablesTcIbc(zsr, ibctype, nIBC):
     Nlength = numpy.zeros((nIBC),numpy.float64)
     if ibctype in [2, 3, 6, 10, 11]:
         zsr[2].append(['utau' , copy.copy(Nlength), [], 'DataArray_t'])
@@ -230,10 +289,10 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
                     pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
                     nIBC = pressure.shape[0]
 
-                    for var_local in vars_delete_ibm:
+                    for var_local in varsDeleteIBM:
                         Internal._rmNodesByName(zsr, var_local)
                     
-                    _add_variables_tc_ibc(zsr, newIBCType, nIBC)
+                    _addVariablesTcIbc(zsr, newIBCType, nIBC)
 
     return None
 
@@ -256,7 +315,7 @@ def _transformTc2(tc2):
                 pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
                 nIBC = pressure.shape[0]
                 
-                vars_delete = ['Density','VelocityX','VelocityY','VelocityZ']+vars_delete_ibm
+                vars_delete = ['Density','VelocityX','VelocityY','VelocityZ']+varsDeleteIBM
                 for var_local in vars_delete:
                     Internal._rmNodesByName(zsr,vars_delete)
 
@@ -265,7 +324,7 @@ def _transformTc2(tc2):
                 zsr[2].append(['VelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
                 zsr[2].append(['VelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
                 zsr[2].append(['VelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
-                _add_variables_tc_ibc(zsr,ibctype,nIBC)
+                _addVariablesTcIbc(zsr,ibctype,nIBC)
                 
     return None
 

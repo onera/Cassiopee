@@ -653,7 +653,7 @@ namespace K_CONNECTOR
                                   E_Float* densPtr, 
                                   E_Float* tmp, E_Int&  size,
                                   E_Float* param_real,
-                                  std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut,
+                                  std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut,E_Int isWireModelPrep=0,
                                   E_Int nbptslinelets=0, E_Float* linelets=NULL, E_Int* indexlinelets=NULL);
 
   /* Transferts IBC avec variables (ro,u,v,w,p) en entree/sortie */

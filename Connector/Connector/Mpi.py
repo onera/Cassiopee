@@ -311,7 +311,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 #===============================================================================
 def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type_transfert, nitrun,
                          nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
-                         graph=None, procDict=None):
+                         graph=None, procDict=None,isWireModelPrep=False,isWireModel=False):
 
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
@@ -328,7 +328,8 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
         if dest == Cmpi.rank: #transfert intra_processus
             #print('transfert local', type_transfert, dest, flush=True)
             connector.___setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, nitrun, varType,
-                                            type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage)
+                                            type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage,
+                                            isWireModelPrep,isWireModel)
 
         else:
             #print('transfert global', type_transfert, dest, flush=True)
@@ -372,7 +373,8 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
 def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_transfert, nitrun,
                          nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
                          graph=None, procDict=None):
-
+    isWireModelPrep=False
+    isWireModel=False
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
     # On envoie aussi les indices receveurs pour l'instant
@@ -388,7 +390,8 @@ def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
             connector.___setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, nitrun, varType,
-                                            type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage)
+                                                  type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage,
+                                                  isWireModelPrep,isWireModel)
 
         else:
             if varType != 24: 

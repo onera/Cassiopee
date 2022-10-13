@@ -52,6 +52,15 @@ def getIBCDName(proposedName):
     (ibcname,__IBCNameServer__)=C.getUniqueName(proposedName, __IBCNameServer__)
     return ibcname
 
+def _change_name_IBCD(tc2,NewIBCD):
+    ZsubR=Internal.getNodesByType(tc2,'ZoneSubRegion_t')
+    for z in ZsubR:
+        zsplit=z[0].split('_')
+        if zsplit[0]=='IBCD':
+            zsplit[1]=str(NewIBCD)
+            znew = '_'.join(zsplit)
+            Internal.setName(z, znew)
+    return None   
 
 # IN: maillage surfacique + reference State + snears
 #================================================================================
@@ -263,7 +272,8 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
 
 def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None, ext=3, snearsf=None, yplus=100.,
-                      vmin=21, check=False, expand=3, dfarDir=0, extrusion=False,dz_in=0.01,NPas_in=200,span_in=1,check2Donly=False,dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./'):
+                      vmin=21, check=False, expand=3, dfarDir=0, extrusion=False,dz_in=0.01,NPas_in=200,span_in=1,
+                      check2Donly=False,dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./'):
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
     refstate = C.getState(tb)
@@ -291,7 +301,7 @@ def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], 
             for z in zones:
                 sn = Internal.getNodeFromName2(z, 'snear')
                 if sn is not None: snearsf.append(Internal.getValue(sn))
-                else: snearsf.append(1.)   
+                else: snearsf.append(1.)
     symmetry = 0
     fileout = None
     if check: fileout = 'octree.cgns'
@@ -357,7 +367,7 @@ def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], 
     Cmpi._rmXZones(t)
     coords = None; zones = None
     test.printMem(">>> extended cart grids (after rmXZones) [end]")
-
+    
     if not extrusion:
         X_IBM._addBCOverlaps(t, bbox=bb)
         X_IBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
@@ -383,26 +393,26 @@ def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], 
             T._translate(tb,(0.,0.,-0.5*zmax))
 
                         
-            # Close new 3D case
-            for b in Internal.getBases(tb):
-                name = Internal.getName(b)
-                b = C.convertArray2Tetra(b)
-                b = G.close(b)
-                b = P.exteriorFaces(b)
-                b = T.splitConnexity(b)
-                for line in Internal.getZones(b):
-                    closure = G.tetraMesher(line, algo=1)
-                    tb = Internal.append(tb, closure, name)
+            ## Close new 3D case
+            #for b in Internal.getBases(tb):
+            #    name = Internal.getName(b)
+            #    b = C.convertArray2Tetra(b)
+            #    b = G.close(b)
+            #    b = P.exteriorFaces(b)
+            #    b = T.splitConnexity(b)
+            #    for line in Internal.getZones(b):
+            #        closure = G.tetraMesher(line, algo=1)
+            #        tb = Internal.append(tb, closure, name)
 
-            ##[AJ] A random unstructured mesh was created (NOT SURE WHY)
-            for z in Internal.getZones(tb):
-                ztype = Internal.getNodeFromType2(z, 'ZoneType_t');
-                if Internal.getValue(ztype)!='Structured':
-                    Internal._rmNode(tb,z)
+            ###[AJ] A random unstructured mesh was created (NOT SURE WHY)
+            #for z in Internal.getZones(tb):
+            #    ztype = Internal.getNodeFromType2(z, 'ZoneType_t');
+            #    if Internal.getValue(ztype)!='Structured':
+            #        Internal._rmNode(tb,z)
 
                     
             if rank == 0: C.convertPyTree2File(tb, directory_tmp_files+'3Dcase.cgns')
-            
+
             # create new 3D tree
             t = T.subzone(t, (1,1,1), (-1,-1,1))
             bbox = G.bbox(t); bbox = [round(i,1) for i in bbox]
@@ -486,12 +496,41 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
              dfarDir=0,dz_in=0.01,span_in=0.25,NPas_in=10,height_in=0.1,
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False,
              redistribute=False,isDist2WallNearBodyOnly=False,isoverideheight=False,check2Donly=False,
-             dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./'):
+             dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./',
+             IBCType=1,isFilamentOnly=False,closedSolid=[],isWireModel=False):
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
+    isOrtho_Project_First = isFilamentOnly
+    if not closedSolid and not isFilamentOnly:
+        closedSolid=[]
+        for b in Internal.getBases(tb):
+            closedSolid.append(b[0])
 
-    
+    tb_filament_list=[]
+    if not isFilamentOnly:
+        tb_filament     =Internal.copyTree(tb)
+        for b in Internal.getBases(tb):
+            if b[0] not in closedSolid:
+                tb_filament_list.append(b[0])
+        
+        if tb_filament_list:
+            list_delete=[]
+            for b in Internal.getBases(tb):
+                if b[0] in tb_filament_list:
+                    list_delete.append(b)
+            for b in list_delete:
+                Internal._rmNode(tb,b)
+            
+            list_delete=[]
+            for b in Internal.getBases(tb_filament):
+                if b[0] not in tb_filament_list:
+                    list_delete.append(b)
+            for b in list_delete:
+                Internal._rmNode(tb_filament,b)
+            isOrtho_Project_First = True
+            
+        
     if isCartesianExtrude and isExtrudeByZone:
         FastC._print2screen("isCartesianExtrude and isExtrudeByZone are both True. ONLY one can be true.",0)
         FastC._print2screen("Exiting...",1)
@@ -503,7 +542,6 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     comm = Cmpi.COMM_WORLD
 
     DEPTH=2
-    IBCType=1
 
     # reference state
     refstate = C.getState(tb)
@@ -528,10 +566,12 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
     if t_in is None:
         t,tb = generateCartesian(tb, to=to, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, ext=DEPTH+1,
-                              snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir, extrusion=extrusion,
-                                 dz_in=dz_in,NPas_in=NPas_in,span_in=span_in,check2Donly=check2Donly,dict_Nz=dict_Nz,isCartesianExtrude=isCartesianExtrude,isExtrudeByZone=isExtrudeByZone,directory_tmp_files=directory_tmp_files)                    
+                                 snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir, extrusion=extrusion,
+                                 dz_in=dz_in,NPas_in=NPas_in,span_in=span_in,check2Donly=check2Donly,dict_Nz=dict_Nz,isCartesianExtrude=isCartesianExtrude,
+                                 isExtrudeByZone=isExtrudeByZone,directory_tmp_files=directory_tmp_files)                    
     else: 
         t = t_in
+    
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)
     # Balancing
@@ -552,16 +592,45 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     # Distance a la paroi
     test.printMem(">>> Wall distance [start]")
     FSC = Internal.getNodeFromType(t,"FlowSolution_t")
-    
+   
     if FSC is None or Internal.getNodeFromName(FSC,'TurbulentDistance') is None:
+        C._initVars(t,'{centers:TurbulentDistance}=1e06')
         if dimPb == 2:
             z0 = Internal.getNodeFromType2(t, "Zone_t")
             bb0 = G.bbox(z0); dz = bb0[5]-bb0[2]
-            tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-            tbsave =tb2
-            t=dist2wallNearBody(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+
+            tb2      = C.initVars(tb, 'CoordinateZ', dz*0.5)
+            tbsave   = tb2
+            t        = dist2wallNearBody(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+            
+            if tb_filament_list:
+                C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
+                C._initVars(t,'{centers:TurbulentDistance}=1e06')
+                
+                tb2      = C.initVars(tb_filament, 'CoordinateZ', dz*0.5)
+                tbsave   = tb2
+                t        = dist2wallNearBody(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+                C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
+                C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
+
+                C._initVars(t,"{centers:TurbulentDistanceSolid}=({centers:TurbulentDistanceSolid}>1e03)*0+({centers:TurbulentDistanceSolid}<1e03)*{centers:TurbulentDistanceSolid}")
+                C._initVars(t,"{centers:TurbulentDistanceFilament}=({centers:TurbulentDistanceFilament}>1e03)*0+({centers:TurbulentDistanceFilament}<1e03)*{centers:TurbulentDistanceFilament}")
+            
         else:
             t=dist2wallNearBody(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
+            
+            if tb_filament_list:
+                C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
+                C._initVars(t,'{centers:TurbulentDistance}=1e06')
+
+                t=dist2wallNearBody(t, tb_filament, type='ortho', signed=0, dim=dimPb, loc='centers')
+
+                C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
+                C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
+
+                C._initVars(t,"{centers:TurbulentDistanceSolid}=({centers:TurbulentDistanceSolid}>1e03)*0+({centers:TurbulentDistanceSolid}<1e03)*{centers:TurbulentDistanceSolid}")
+                C._initVars(t,"{centers:TurbulentDistanceFilament}=({centers:TurbulentDistanceFilament}>1e03)*0+({centers:TurbulentDistanceFilament}<1e03)*{centers:TurbulentDistanceFilament}")
+        C._initVars(t,"{centers:TurbulentDistance}=({centers:TurbulentDistance}>1e03)*0+({centers:TurbulentDistance}<1e03)*{centers:TurbulentDistance}")
 
     # Compute turbulentdistance wrt each body that is not a sym plan
     if correctionMultiCorpsF42 and frontType==42:
@@ -644,12 +713,69 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
     test.printMem(">>> Blanking [start]")
-    t = X_IBM.blankByIBCBodies(t, tb, 'centers', dimPb)
-    C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
 
-    X_IBM._signDistance(t)
+    if not isFilamentOnly:t = X_IBM.blankByIBCBodies(t, tb, 'centers', dimPb,closedSolid=closedSolid)
+    C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
+    
+
+    if not isFilamentOnly:X_IBM._signDistance(t)
 
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
+    #stncl=5 #real stencil + 1
+    ##if isFilament:
+    #for z in Internal.getZones(t):
+    #    if C.getMaxValue(z, 'centers:TurbulentDistanceFilament')> 1e-05:
+    #        sol  = Internal.getNodeByName(z,"FlowSolution#Centers")
+    #        cellN= Internal.getNodeByName(sol,'cellN')[1]
+    #        dist = Internal.getNodeByName(sol,'TurbulentDistance')[1]
+    #        h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+    #        sh=numpy.shape(dist)
+    #        for k in range(sh[2]):
+    #            for j in range(sh[1]):
+    #                for i in range(sh[0]):
+    #                    isTag=True
+    #                    local_val = 1
+    #                    for jj in range(min(j,stncl)):
+    #                        for ii in range(min(i,stncl)):
+    #                            local_val *=cellN[i-ii,j-jj]
+    #                        for ii in range(i+1,min(i+stncl,sh[0]-1)):
+    #                            local_val *=cellN[ii,j-jj]
+    #                            
+    #                    for jj in range(j+1,min(j+stncl,sh[1]-1)):
+    #                        for ii in range(min(i,stncl)):
+    #                            local_val *=cellN[i-ii,jj]
+    #                        for ii in range(i+1,min(i+stncl,sh[0]-1)):
+    #                            local_val *=cellN[ii,jj]
+    #                            
+    #                    if local_val<1e-05:                                
+    #                        isTag=False
+    #                    if dist[i,j]<math.sqrt(8)*h and isTag:
+    #                        cellN[i,j]=2
+    if tb_filament_list or isFilamentOnly:
+        if isFilamentOnly:
+            C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
+            maxy=C.getMaxValue(tb, ['CoordinateY']);
+            miny=C.getMinValue(tb, ['CoordinateY']);
+        if tb_filament_list:
+            maxy=C.getMaxValue(tb_filament_list, ['CoordinateY']);
+            miny=C.getMinValue(tb_filament_list, ['CoordinateY']);
+        for z in Internal.getZones(t):
+            if C.getMaxValue(z, 'centers:TurbulentDistanceFilament')> 1e-05:
+                sol  = Internal.getNodeByName(z,"FlowSolution#Centers")
+                cellN= Internal.getNodeByName(sol,'cellN')[1]
+                dist = Internal.getNodeByName(sol,'TurbulentDistanceFilament')[1]
+                ycord= Internal.getNodeByName(z,'CoordinateY')[1]
+                h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+                sh=numpy.shape(dist)
+                for k in range(sh[2]):
+                    for j in range(sh[1]):
+                        for i in range(sh[0]):
+                            valy=0.5*(ycord[i,j,k]+ycord[i,j+1,k])
+                            if dist[i,j]<numpy.sqrt(8)*h and valy<maxy and valy>miny :
+                                cellN[i,j]=2
+        C._rmVars(t,['centers:TurbulentDistanceFilament'])
+        if tb_filament_list:C._rmVars(t,['centers:TurbulentDistanceSolid'])
+
     # determination des pts IBC
     Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
     if Reynolds is not None: Reynolds = Internal.getValue(Reynolds)
@@ -667,6 +793,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                 # _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
         else:
             raise ValueError('prepareIBMData: not valid IBCType. Check model.')
+        
     else:
         # F42: tracking of IB points using distance information
         # the classical algorithm (front 1) is first used to ensure a minimum of two rows of target points around the geometry
@@ -756,9 +883,9 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
         if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)
 
-    X_IBM._removeBlankedGrids(t, loc='centers')
+    if not isFilamentOnly:X_IBM._removeBlankedGrids(t, loc='centers')
     test.printMem(">>> Blanking [end]")
-
+     
     print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
     npts = 0
     for i in Internal.getZones(t):
@@ -767,7 +894,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     print('Final number of points=%5.4f millions.'%(npts/1000000.))
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
-
+        
     if IBCType==-1:
         #print('Points IBC interieurs: on repousse le front un peu plus loin.')
         C._initVars(t,'{centers:cellNDummy}=({centers:cellNIBC}>0.5)*({centers:cellNIBC}<1.5)')
@@ -781,6 +908,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                                           Internal.__FlowSolutionCenters__)
     else:
         C._initVars(t,'{centers:cellNFront}=logical_and({centers:cellNIBC}>0.5, {centers:cellNIBC}<1.5)')
+        
         for z in Internal.getZones(t):
             if twoFronts:
                 epsilon_dist = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
@@ -790,12 +918,12 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                     dmin = max(dmin, SHIFTB+math.sqrt(3)*2*epsilon_dist) # where shiftb = hmod
                 C._initVars(z,'{centers:cellNIBC_2}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(dmin,dmin))
                 C._initVars(z,'{centers:cellNFront_2}=logical_and({centers:cellNIBC_2}>0.5, {centers:cellNIBC_2}<1.5)')
-
+            
             connector._updateNatureForIBM(z, IBCType,
                                           Internal.__GridCoordinates__,
                                           Internal.__FlowSolutionNodes__,
                                           Internal.__FlowSolutionCenters__)
-
+    
     # setInterpData - Chimere
     C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})')# vaut -3, 0, 1, 2 initialement
 
@@ -895,6 +1023,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     # Transfert du cellNFront
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
 
+    
     # propager cellNVariable='cellNFront'
     Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
 
@@ -1007,11 +1136,13 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     C._rmVars(t,['centers:cellNFront'])
     if twoFronts:
         C._rmVars(t,['centers:cellNFront_2', 'centers:cellNIBC_2'])
-    C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
+    C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
+    
     print('Minimum distance: %f.'%C.getMinValue(t,'centers:TurbulentDistance'))
     P._computeGrad2(t, 'centers:TurbulentDistance', ghostCells=True, withCellN=False)
-
+    
+    
     test.printMem(">>> Building IBM front [start]")
     front = X_IBM.getIBMFront(tc, 'cellNFront', dim=dimPb, frontType=frontType)
     front = X_IBM.gatherFront(front)
@@ -1023,22 +1154,27 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     if check and rank == 0:
         C.convertPyTree2File(front, directory_tmp_files+'front.cgns')
         if twoFronts: C.convertPyTree2File(front2, directory_tmp_files+'front2.cgns')
-
+    
     zonesRIBC = []
     for zrcv in Internal.getZones(t):
         if C.getMaxValue(zrcv, 'centers:cellNIBC')==2.:
             zrcvname = zrcv[0]; zonesRIBC.append(zrcv)
-
+    
     nbZonesIBC = len(zonesRIBC)
     if nbZonesIBC == 0:
         res = [{},{},{}]
         if twoFronts: res2 = [{},{},{}]
     else:
-        res = X_IBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
-                                   cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
+        print("isOrtho_Project_First=",isOrtho_Project_First)
+        res    = X_IBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
+                                       cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isOrthoFirst=isOrtho_Project_First)
         if twoFronts:
             res2 = X_IBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
                                         cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
+        if isWireModel:
+            res2 = X_IBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
+                                         cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,isWireModel=isWireModel,
+                                         isOrthoFirst=isOrtho_Project_First)
 
     # cleaning
     C._rmVars(tc,['cellNChim','cellNIBC','TurbulentDistance','cellNFront'])
@@ -1058,7 +1194,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     dictOfWallPtsByIBCType = res[1]
     dictOfInterpPtsByIBCType = res[2]
     interDictIBM={}
-    if twoFronts:
+    
+    if twoFronts or isWireModel:
         dictOfCorrectedPtsByIBCType2 = res2[0]
         dictOfWallPtsByIBCType2 = res2[1]
         dictOfInterpPtsByIBCType2 = res2[2]
@@ -1068,6 +1205,42 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         dictOfWallPtsByIBCType2={}
         dictOfInterpPtsByIBCType2={}
         interDictIBM2={}
+
+    ##[AJ LEAVE HERE FOR NOW]
+    #count=1
+    #for i in dictOfWallPtsByIBCType:
+    #    wallPts=dictOfWallPtsByIBCType[i]
+    #    xPW0 = wallPts[0][1]
+    #    with open('wall_test.txt', "w") as f:
+    #        numpy.savetxt(f, xPW0)
+    #
+    #    wallPts=dictOfInterpPtsByIBCType[i]
+    #    xPW0 = wallPts[0][1]
+    #    with open('int_test.txt', "w") as f:
+    #        numpy.savetxt(f, xPW0)
+    #
+    #    wallPts=dictOfCorrectedPtsByIBCType[i]
+    #    xPW0 = wallPts[0][1]
+    #    with open('ghost_test.txt', "w") as f:
+    #        numpy.savetxt(f, xPW0)
+    #
+    #    wallPts=dictOfWallPtsByIBCType2[i]
+    #    xPW0 = wallPts[0][1]
+    #    with open('wall_test2.txt', "w") as f:
+    #        numpy.savetxt(f, xPW0)
+    #
+    #    wallPts=dictOfInterpPtsByIBCType2[i]
+    #    xPW0 = wallPts[0][1]
+    #    with open('int_test2.txt', "w") as f:
+    #        numpy.savetxt(f, xPW0)
+    #
+    #    wallPts=dictOfCorrectedPtsByIBCType2[i]
+    #    xPW0 = wallPts[0][1]
+    #    with open('ghost_test2.txt', "w") as f:
+    #        numpy.savetxt(f, xPW0)
+    #exit()
+
+        
     if dictOfCorrectedPtsByIBCType!={}:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
@@ -1086,7 +1259,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                             if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
                             else:
                                 if zname not in interDictIBM[zrname]: interDictIBM[zrname].append(zname)
-        if twoFronts:
+        if twoFronts or isWireModel:
             for ibcTypeL in dictOfCorrectedPtsByIBCType2:
                     allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
                     allWallPts2 = dictOfWallPtsByIBCType2[ibcTypeL]
@@ -1217,7 +1390,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     dictOfWallPtsByIBCType = None
     dictOfInterpPtsByIBCType = None
     interDictIBM = None
-    if twoFronts:
+    if twoFronts or isWireModel:
         dictOfCorrectedPtsByIBCType2 = None
         dictOfWallPtsByIBCType2 = None
         dictOfInterpPtsByIBCType2 = None
@@ -1256,7 +1429,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
 
 
-        if twoFronts:
+        if twoFronts or isWireModel:
             tibm2 = X_IBM.extractIBMInfo2(tc)
 
             # Avoid that two procs write the same information
@@ -1269,7 +1442,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
 
         test.printMem(">>> Saving IBM infos [end]")
         del tibm
-        if twoFronts: del tibm2
+        if twoFronts or isWireModel: del tibm2
 
     # distribution par defaut (sur NP)
     tbbc = Cmpi.createBBoxTree(tc)
@@ -1318,6 +1491,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
 
     if model == 'NSTurbulent':
         test.printMem(">>> wall distance for viscous wall only - RANS [start]")
+        
         ibctypes = set()
         for node in Internal.getNodesFromName(tb,'ibctype'):
             ibctypes.add(Internal.getValue(node))
@@ -1337,29 +1511,40 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
             
         test.printMem(">>> wall distance for viscous wall only - RANS [end]")  
     # Save tc
-    if twoFronts:
+    if twoFronts or isWireModel:
         tc2 = Internal.copyTree(tc)
         tc2 = Internal.rmNodesByName(tc2, 'IBCD*')
         tc  = Internal.rmNodesByName(tc, '2_IBCD*')
+        
+        if isWireModel:tc2 = Internal.rmNodesByName(tc2, 'ID*')
 
     if RENAMEIBCNODES:
         for zc in Internal.getZones(tc):
             for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):            
                 proposedName = Internal.getName(ibcd)[0:6]+'_X%d'%(rank)
                 ibcd[0]=getIBCDName(proposedName)
-
-        if twoFronts:
+        
+        if twoFronts or isWireModel:
             for zc in Internal.getZones(tc2):
                 for ibcd in Internal.getNodesFromName1(zc,'2_IBCD_*'):            
                     proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(rank)
                     ibcd[0]=getIBCDName(proposedName)
 
     if isinstance(tc_out, str):
+        if isWireModel:
+            tc2  = transformTc2(tc2)
+            NewIBCD=140
+            _change_name_IBCD(tc,NewIBCD)
+            NewIBCD=141
+            _change_name_IBCD(tc2,NewIBCD)
+            tc=Internal.merge([tc,tc2])
+            del tc2
+            
         tcp = Compressor.compressCartesian(tc)
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
-
+        
         if twoFronts:
-            tc2 = transformTc2(tc2)
+            tc2  = transformTc2(tc2)
             tcp2 = Compressor.compressCartesian(tc2)
             Cmpi.convertPyTree2File(tcp2, 'tc2.cgns', ignoreProcNodes=True)
             del tc2
@@ -1369,7 +1554,16 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     else:
         t = Pmpi.extractMesh(tinit, t, mode='accurate')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
-
+    
+    if isWireModel:
+        vars_wm = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
+        if model == 'NSTurbulent':vars_wm.append('TurbulentSANuTilde')
+        vars_wm.append('DistWall2IP')            
+        for z in Internal.getZones(t):
+            #if C.getMaxValue(C.rmGhostCells(z, z, 2, adaptBCs=1), 'centers:cellN')>1:
+            for v_local in vars_wm:
+                C._initVars(z,'{centers:'+v_local+'_WM}=0.')
+                
     # Init with BBox
     if initWithBBox>0.:
         print('initialisation par bounding box')
@@ -1418,7 +1612,6 @@ def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
         tcs = Cmpi.convertFile2SkeletonTree(tc_in, maxDepth=3)
     else: tcs = tc_in
     stats = D2._distribute(tcs, NP, algorithm=algorithm, useCom='ID')
-    print(stats)
     if isinstance(tc_in, str):
         paths = []; ns = []
         bases = Internal.getBases(tcs)
