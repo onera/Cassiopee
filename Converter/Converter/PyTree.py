@@ -6146,20 +6146,20 @@ def addState(t, state=None, value=None, adim='adim1',
              MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
              UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None,
              Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4, 
-             EquationDimension=None, GoverningEquations=None, Mtip=None):
+             EquationDimension=None, GoverningEquations=None, Mtip=None,Mu_multiplier=1):
   """Add single state value or a full reference state."""
   tp = Internal.copyRef(t)
   _addState(tp, state, value, adim,
             MInf, alphaZ, alphaY, ReInf, UInf, TInf, PInf, RoInf, LInf,
             Mus, MutSMuInf, TurbLevelInf, EquationDimension, 
-            GoverningEquations, Mtip)
+            GoverningEquations, Mtip,Mu_multiplier)
   return tp
 
 def _addState(t, state=None, value=None, adim='adim1',
               MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8,
               UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None,
               Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4,
-              EquationDimension=None, GoverningEquations=None, Mtip=None):
+              EquationDimension=None, GoverningEquations=None, Mtip=None,Mu_multiplier=1):
   """Add single state value or a full reference state."""
   ntype = Internal.typeOfNode(t)
   if state is not None and value is not None: # single state value
@@ -6183,21 +6183,21 @@ def _addState(t, state=None, value=None, adim='adim1',
       if PInf is None: raise ValueError("addState: PInf is missing.")
       if LInf is None: raise ValueError("addState: LInf is missing.")
       state = KCore.Adim.dim1(UInf, TInf, PInf, LInf, alphaZ, alphaY,
-                              MutSMuInf, TurbLevelInf, Mtip)
+                              MutSMuInf, TurbLevelInf, Mtip,Mu_multiplier)
     elif adim == 'dim2':
       if UInf is None: raise ValueError("addState: UInf is missing.")
       if TInf is None: raise ValueError("addState: TInf is missing.")
       if RoInf is None: raise ValueError("addState: RoInf is missing.")
       if LInf is None: raise ValueError("addState: LInf is missing.")
       state = KCore.Adim.dim2(UInf, TInf, RoInf, LInf, alphaZ, alphaY,
-                              MutSMuInf, TurbLevelInf, Mtip)
+                              MutSMuInf, TurbLevelInf, Mtip,Mu_multiplier)
     elif adim == 'dim3':
       if UInf is None: raise ValueError("addState: UInf is missing.")
       if PInf is None: raise ValueError("addState: PInf is missing.")
       if RoInf is None: raise ValueError("addState: RoInf is missing.")
       if LInf is None: raise ValueError("addState: LInf is missing.")
       state = KCore.Adim.dim3(UInf, PInf, RoInf, LInf, alphaZ, alphaY,
-                              MutSMuInf, TurbLevelInf, Mtip)
+                              MutSMuInf, TurbLevelInf, Mtip,Mu_multiplier)
     elif adim == 'dim4':
       if UInf is None: raise ValueError("addState: UInf is missing.")
       if TInf is None: raise ValueError("addState: TInf is missing.")
