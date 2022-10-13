@@ -493,7 +493,7 @@ class Probe:
     # IN: _probeZones: zone de stockage
     # IN: _ind: index of probe (static)
     # IN: _fields: nom des champs a extraire
-    def extract(self, t, time):
+    def extract(self, t, time, onlyTransfer=False):
         """Extract XYZ or Ind fields from t."""
 
         if self._mode == 0 or self._mode == 1: # single point
@@ -504,7 +504,7 @@ class Probe:
             
         elif self._mode == 3:
             # attention ici : t is tcs
-            self.extract3(t, time)
+            self.extract3(t, time, onlyTransfer)
         return None
 
     def extract1(self, t, time):
@@ -599,7 +599,7 @@ class Probe:
         if self._icur >= self._bsize: self.flush()
         return None
 
-    def extract3(self, tcs, time):
+    def extract3(self, tcs, time, onlyTransfer):
         """Extract for mode=3."""
         if self._probeZones is None: 
             self.createProbeZones(self._ts)
@@ -612,7 +612,7 @@ class Probe:
         if self._procDicts is None:
             tsBB = Cmpi.createBBoxTree(self._ts)
             self._procDicts = Cmpi.getProcDict(tsBB)
-            
+
         if self._graph is None:
             tcsBB = Cmpi.createBBoxTree(tcs)
             procDictc = Cmpi.getProcDict(tcsBB)
@@ -622,6 +622,8 @@ class Probe:
                                             procDict=procDictc, procDict2=self._procDicts, t2=tsBB, reduction=True)
 
         Xmpi._setInterpTransfers(self._ts, tcs, variables=self._fields, graph=self._graph, procDict=self._procDicts)
+        if onlyTransfer:
+            return None
         #Cmpi.convertPyTree2File(self._ts, 'out.cgns')
         #Internal.printTree(self._probeZones)
 
