@@ -16,6 +16,7 @@ except: pass
 
 try:
     import Converter.PyTree as C
+    import Converter.Distributed as CD
     import Converter.Internal as Internal
     import Converter
     import Transform.PyTree as T
@@ -74,6 +75,21 @@ def nb_faces(t):
             ncfacesTot += er[1][1]-er[1][0]+1
     return ncfacesTot
 
+#==============================================================================
+# updateNugaData : update a field by applying an oid
+
+# IN: t             : 3D NGON mesh
+
+# OUT: returns the adapted feature
+#==============================================================================
+def updateNugaData(field, oid):
+  new_fld = numpy.empty(len(oid), numpy.int32)
+  i=-1
+  #print(oid)
+  for oi in oid:
+    i +=1
+    new_fld[i]=field[oi]
+  return new_fld
 
 #==============================================================================
 # getTreeDim : XXX
@@ -1334,12 +1350,24 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     
   return None
 
+#==============================================================================
+# P1ConservativeInterpolation
+# IN : XXX
+# IN : XXX
+# OUT: XXX
+#==============================================================================
 def P1ConservativeInterpolation(tR, tD):
      
     tp = Internal.copyRef(tR)
     _P1ConservativeInterpolation(tp, tD)
     return tp
 
+#==============================================================================
+# _P1ConservativeInterpolation
+# IN : XXX
+# IN : XXX
+# OUT: XXX
+#==============================================================================
 def _P1ConservativeInterpolation(tR, tD):
 
   zR = Internal.getZones(tR)
@@ -1355,37 +1383,181 @@ def _P1ConservativeInterpolation(tR, tD):
       fldR = intersector.P1ConservativeInterpolation(mR, mD, fldD)
       C.setFields([fldR], zr, 'centers', False)
 
+#==============================================================================
+# superMesh
+# IN : surfz : NGON surface mesh
+# IN : sclip : NGON surface mesh
+# IN : tol   : Tolerance
+# OUT: returrns the polyclipped surface mesh surfz clipped by sclip
+#==============================================================================
+def superMesh(surfz, sclip, priorFirst=True, rtol=0.01):
+  """Polyclips surfz surface with sclip surface (in-place).
+  Usage: superMesh(surfz, sclip, priorFirst, rtol)"""
+  m1 = C.getFields(Internal.__GridCoordinates__, surfz)[0]
+  m2 = C.getFields(Internal.__GridCoordinates__, sclip)[0]
+
+  if priorFirst == True:
+    res = XOR.superMesh(m1, m2, rtol)
+    if res == []: return None # empty result
+    anc = res[1]
+  else :
+    res = XOR.superMesh(m2, m1, rtol)
+    if res == []: return None # empty result
+    anc = res[2]
+
+  mesh = res[0]
+
+  xmatch = C.convertArrays2ZoneNode('xmatch', [mesh])
+  nnuga = Internal.getNodeFromName(surfz, 'NUGA')
+  if nnuga != None:
+    nnug = Internal.addChild(xmatch, nnuga)
+    nuga_fields = Internal.getChildren(nnug)
+    for nf in nuga_fields:
+        nf0 = nb_faces(surfz)
+        fld_sz = len(nf[1])
+        if nf0 == fld_sz : #valid face field stored => convert it
+          nf[1] = updateNugaData(nf[1], anc)
+
+  return xmatch
+
+# def superMesh(surfz, sclip, priorFirst=True, rtol=0.01):
+#   """Polyclips surfz surface with sclip surface.
+#   Usage: superMesh(surfz, sclip, rtol)"""
+#   tp = Internal.copyRef(surfz)
+#   _superMesh(tp, sclip, priorFirst, rtol)
+#   return tp
+
+# #==============================================================================
+# # _superMesh
+# # IN : surfz : NGON surface mesh
+# # IN : sclip : NGON surface mesh
+# # IN : tol   : Tolerance
+# # OUT: returrns the polyclipped surface mesh surfz clipped by sclip
+# #==============================================================================
+# def _superMesh(surfz, sclip, priorFirst=True, rtol=0.01):
+#   """Polyclips surfz surface with sclip surface (in-place).
+#   Usage: _superMesh(surfz, sclip, rtol)"""
+#   msurfz = C.getFields(Internal.__GridCoordinates__, surfz)[0]
+#   msclip = C.getFields(Internal.__GridCoordinates__, sclip)[0]
+
+#   res = XOR.superMesh(msurfz, msclip, rtol)
+#   mesh = res[0]
+#   anc = res[1]
+#   if priorFirst == False:
+#     anc = res[2]
+  
+#   # MAJ du maillage de la zone
+#   if mesh[1] != []:
+#     # UPFATE FACE FIELDS    
+#     nnuga = Internal.getNodeFromName(surfz, 'NUGA')
+#     if nnuga != None:
+#       nuga_fields = Internal.getChildren(nnuga)
+
+#       for nf in nuga_fields:
+#         nf0 = nb_faces(surfz)
+#         fld_sz = len(nf[1])
+#         if nf0 == fld_sz : #valid face field stored => convert it
+#           nf[1] = updateNugaData(nf[1], anc)
+#     #print(mesh)
+#     C.setFields([mesh], surfz, 'nodes')
+
+#==============================================================================
+# replaceFaces
+# IN : z            :  3D NGON zone
+# IN : face_soup    : surface mesh with oid indir referring to z faces' ids
+# OUT: returns z with replaced faces
+#==============================================================================
+def replaceFaces(z, face_soup):
+  """Replaces z faces with faces in face_soup having an indir for mapping.
+  Usage: replaceFaces(z, face_soup)"""
+  zp = Internal.copyRef(z)
+  _replaceFaces(zp, face_soup)
+  return zp
+
+#==============================================================================
+# _replaceFaces
+# IN : z            :  3D NGON zone
+# IN : face_soup    : surface mesh with oid indir referring to z faces' ids
+# OUT: returns z with replaced faces
+#==============================================================================
+def _replaceFaces(z, face_soup):
+  """Replaces z faces with faces in face_soup having an indir for mapping (in-place)
+  Usage: _replaceFaces(z, face_soup)"""
+  nnuga = Internal.getNodeFromName(face_soup, 'NUGA')
+  if nnuga == None:
+    print('_replaceFaces : error : NUGA node is missing')
+    return
+  
+  vfoid = Internal.getNodeFromName(nnuga, 'vfoid')
+  if vfoid == None:
+    print('_replaceFaces : error : vfoid node is missing')
+    return
+
+  vfoid = vfoid[1]
+
+  m    = C.getFields(Internal.__GridCoordinates__, z)[0]
+  soup = C.getFields(Internal.__GridCoordinates__, face_soup)[0]
+
+  res = intersector.replaceFaces(m, soup, vfoid)
+
+  mesh = res[0]
+  oids = res[1]
+
+  # MAJ du maillage de la zone
+  C.setFields([mesh], z, 'nodes')
+
+  # MAJ POINT LISTS #
+  updateBCPointLists1(z, oids)
 
 
 #==============================================================================
 # triangulateExteriorFaces
-# IN: mesh: 3D NGON mesh
-# IN : in_or_out : 0 means "ONLY INTERNALS", 1 means "ONLY EXTERNALS", any other value means "BOTH"
+# IN : t            :  3D NGON mesh
+# IN : in_or_out    : 0 means "ONLY INTERNALS", 1 means "ONLY EXTERNALS", any other value means "BOTH"
+# IN : improve_qual :  to improve mesh quality
 # OUT: returns a 3D NGON mesh with all the external faces triangulated
 #==============================================================================
 def triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
-    """Triangulates exterior polygons of a volume mesh.
-    Usage: triangulateExteriorFaces(t)"""
-    return C.TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out, improve_qual)
+  """Triangulates exterior polygons of a volume mesh.
+  Usage: triangulateExteriorFaces(t)"""
+  return C.TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out, improve_qual)
 
-def _triangulateExteriorFaces(t, in_or_out=2):
-    return C._TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out, improve_qual)
+#==============================================================================
+# _triangulateExteriorFaces
+# IN : t            :  3D NGON mesh
+# IN : in_or_out    : 0 means "ONLY INTERNALS", 1 means "ONLY EXTERNALS", any other value means "BOTH"
+# IN : improve_qual :  to improve mesh quality
+# OUT: returns a 3D NGON mesh with all the external faces triangulated
+#==============================================================================
+def _triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
+  """Triangulates exterior polygons of a volume mesh (in-place).
+  Usage: triangulateExteriorFaces(t)"""
+  return C._TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out, improve_qual)
 
 
 #==============================================================================
 # triangulateSpecifiedFaces 
-# IN: a: 3D NGON mesh
-# IN: pgs : list of polygons
+# IN : t            : 3D NGON mesh
+# IN : pgs          : list of polygons
+# IN : improve_qual : to improve mesh quality
 # OUT: returns a 3D NGON Mesh
 #==============================================================================
 def triangulateSpecifiedFaces(t, pgs, improve_qual=1):
-     
+    """Triangulates polygons specified by pgs.
+    Usage: triangulateSpecifiedFaces(t, pgs, improve_qual)"""
     tp = Internal.copyRef(t)
     _triangulateSpecifiedFaces(tp,pgs, improve_qual)
     return tp
 
+#==============================================================================
+# _triangulateSpecifiedFaces 
+# IN: a: 3D NGON mesh
+# IN: pgs : list of polygons
+# OUT: returns a 3D NGON Mesh
+#==============================================================================
 def _triangulateSpecifiedFaces(t, pgs, improve_qual=1):
-
+    """Triangulates polygons specified by pgs (in-place).
+    Usage: triangulateSpecifiedFaces(t, pgs, improve_qual)"""
     zones = Internal.getZones(t)
     if (len(pgs) != len(zones)) :
         print('triangulateSpecifiedFaces: input error: nb of polygons packs differ from nb of zones.')
@@ -1526,7 +1698,7 @@ def convexifyFaces(t, convexity_TOL=1.e-8):
 #==============================================================================
 # externalFaces : Returns erternal faces for CASSIOPEE NGON types and NUGA NGON
 #==============================================================================
-def externalFaces(t):
+def externalFaces(t, discard_joins=False, geo_dim=-1):
     """Returns erternal faces for CASSIOPEE NGON types and NUGA NGON.
     Usage: externalFaces(t)"""
     zs = Internal.getZones(t)
@@ -1537,8 +1709,47 @@ def externalFaces(t):
       i+=1
       coords = C.getFields(Internal.__GridCoordinates__, z)[0]
       if coords == []: continue
-      ef = XOR.externalFaces(coords)
-      efs.append(C.convertArrays2ZoneNode('ef_z'+str(i), [ef]))
+      ids=None
+      if discard_joins == True:
+        joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+        if joins != []:
+          ids=[]
+          for j in joins :
+            ptl = Internal.getNodeFromName1(j, 'PointList')
+            #print(ptl[1][0])
+            ids.append(ptl[1][0])
+
+          if (ids != []):
+            #print(ids)
+            ids = numpy.concatenate(ids) # create a single list
+            ids = ids -1 # 0-based
+            #ids = numpy.concatenate(ids) # create a single list
+          else:
+            ids=None
+      res = XOR.externalFaces(coords, ids, geo_dim)
+      #print(res)
+      ef = res[0]
+      vfoid=res[1] #ids in volume mesh
+      
+      zid = CD.getProperty(z, 'zid')
+      #print('zid : '+str(zid))
+      zid_defined = True
+      if zid == -1 :
+        zid=i
+        zid_defined=False
+
+      zonnod = C.convertArrays2ZoneNode('ef_z'+str(zid), [ef])
+
+      if zid_defined == True : # add it to the zone
+        l = Internal.newIntegralData(name='zid', parent=zonnod) #ceate a zid for each block    
+        l[1] = zid
+
+      # node : NUGA -> vfoid
+      Internal.createChild(zonnod, 'NUGA', 'UserDefinedData_t', value=None, children=[])
+      nnuga = Internal.getNodeFromName(zonnod, 'NUGA')
+      Internal.newDataArray('vfoid', value=vfoid, parent=nnuga)
+
+      efs.append(zonnod)
     return efs
 
 #==============================================================================

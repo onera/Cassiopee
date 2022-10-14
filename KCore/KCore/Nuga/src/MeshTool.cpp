@@ -1417,6 +1417,26 @@ void NUGA::MeshTool::build_node_arity
       ++node_to_count[it->node(1)];
   }
 }
+
+void NUGA::MeshTool::build_node_arity
+(const K_FLD::IntArray& cntE2, std::map<E_Int, E_Int>& node_to_count)
+{
+
+  node_to_count.clear();
+  for (int k = 0; k < cntE2.cols(); ++k)
+  {
+    if (node_to_count.find(cntE2(0,k)) == node_to_count.end())
+      node_to_count[cntE2(0, k)] = 1;
+    else
+      ++node_to_count[cntE2(0, k)];
+
+    if (node_to_count.find(cntE2(1, k)) == node_to_count.end())
+      node_to_count[cntE2(1, k)] = 1;
+    else
+      ++node_to_count[cntE2(1, k)];
+  }
+}
+
 ///
 void NUGA::MeshTool::burn_free_branches(std::set<K_MESH::NO_Edge>& edges, std::map<E_Int, E_Int>& node_to_count)
 {
@@ -1444,6 +1464,40 @@ void NUGA::MeshTool::burn_free_branches(std::set<K_MESH::NO_Edge>& edges, std::m
       }
     }
   };
+}
+
+void NUGA::MeshTool::burn_free_branches(K_FLD::IntArray& cntE2, std::map<E_Int, E_Int>& node_to_count, std::vector<bool> & keep)
+{
+  bool an_edge_has_been_removed = true;
+
+  keep.clear();
+  keep.resize(cntE2.cols(), true);
+
+  while (an_edge_has_been_removed)
+  {
+    an_edge_has_been_removed = false;
+    for (size_t k = 0; k < keep.size(); ++k)
+    {
+      if (!keep[k]) continue;
+      if (node_to_count[cntE2(0,k)] == 1)
+      {
+        an_edge_has_been_removed = true;
+        keep[k] = false;
+        --node_to_count[cntE2(0, k)];
+        --node_to_count[cntE2(1, k)];
+      }
+      else if (node_to_count[cntE2(1, k)] == 1)
+      {
+        an_edge_has_been_removed = true;
+        keep[k] = false;
+        --node_to_count[cntE2(0, k)];
+        --node_to_count[cntE2(1, k)];
+      }
+    }
+  };
+
+  K_CONNECT::keep<bool> pred(keep);
+  K_CONNECT::IdTool::compress(cntE2, pred);
 }
 
 ///

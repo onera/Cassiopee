@@ -41,6 +41,7 @@ static PyMethodDef Pyintersector [] =
   {"DiffSurf", K_INTERSECTOR::DiffSurf, METH_VARARGS},
 
   {"XcellN", K_INTERSECTOR::XcellN, METH_VARARGS},
+  {"superMesh", K_INTERSECTOR::superMesh, METH_VARARGS},
   
   {"P1ConservativeInterpolation", K_INTERSECTOR::P1ConservativeInterpolation, METH_VARARGS},
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},
@@ -84,6 +85,8 @@ static PyMethodDef Pyintersector [] =
   {"interpolateHMeshNodalField", K_INTERSECTOR::interpolateHMeshNodalField, METH_VARARGS},
   
   {"closeCells", K_INTERSECTOR::closeCells, METH_VARARGS},
+  {"replaceFaces", K_INTERSECTOR::replaceFaces, METH_VARARGS},
+  
   {"extractUncomputables", K_INTERSECTOR::extractUncomputables, METH_VARARGS},
   {"extractPathologicalCells", K_INTERSECTOR::extractPathologicalCells, METH_VARARGS},
   {"extractOuterLayers", K_INTERSECTOR::extractOuterLayers, METH_VARARGS},

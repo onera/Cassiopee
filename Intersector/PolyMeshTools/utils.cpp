@@ -2380,9 +2380,10 @@ PyObject* K_INTERSECTOR::reorient(PyObject* self, PyObject* args)
 //=============================================================================
 PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
 {
-  PyObject *arr;
+  PyObject *arr, *py_skipids;
+  E_Int geo_dim(-1);
 
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr, &py_skipids, &geo_dim)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -2397,7 +2398,7 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
   //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
   using ngon_type = ngon_t<K_FLD::IntArray>;
-  ngon_type::eGEODIM geodim = ngon_type::get_ngon_geodim(cnt);
+  ngon_type::eGEODIM geodim = (geo_dim == -1) ? ngon_type::get_ngon_geodim(cnt) : (ngon_type::eGEODIM)geo_dim;
 
   //std::cout << "GEO dIM ? " << geodim << std::endl;
 
@@ -2430,7 +2431,7 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
     cnt=cnt1;
   }
 
-  PyObject *tpl = nullptr;
+  PyObject *l(PyList_New(0));
   
   // SURFACIC OR VOLUMIC ?
 
@@ -2443,22 +2444,61 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
     mesh.get_boundary<true/*BAR : fixed stride*/>(ef);
     // pushing out the BAR
     //std::cout << "pushing out" << std::endl;
-    tpl = K_ARRAY::buildArray(ef.crd, varString, ef.cnt, -1, "BAR", false);
+    PyObject *tpl = K_ARRAY::buildArray(ef.crd, varString, ef.cnt, -1, "BAR", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    PyList_Append(l, Py_None); //no edge history
   }
   else if (geodim == ngon_type::eGEODIM::VOLUMIC)
   {
     NUGA::ph_mesh_t mesh(crd, cnt);
     NUGA::pg_smesh_t ef;
-    mesh.get_boundary<false>(ef);
+    std::vector<int> oids, ancestors;
+    mesh.get_boundary<false>(ef, oids, ancestors);
+
+    //std::cout << "ef.ncells vs oids sz : " << ef.ncells() << " / " << oids.size() << std::endl;
+
+    // get PG ids to skip 
+    std::vector<bool> keep;
+    std::set<int> discard_ids;
+
+    //std::cout << "py_skipids : " << py_skipids << std::endl;
+    if (py_skipids != Py_None)
+    {
+      keep.resize(ef.ncells(), true);
+      E_Int *ptL, size, nfld;
+      K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld, true/* shared*/);
+
+      discard_ids.insert(ptL, ptL+size);
+
+      for (size_t k=0; k < ef.ncells(); ++k)
+        if (discard_ids.find(oids[k]) != discard_ids.end())
+          keep[k] = false;
+
+      // remove joins if any specified
+      ef.compress(keep);
+      K_CONNECT::IdTool::compact(oids, keep);
+    }
+
     // pushing out the NGON SURFACE
     K_FLD::IntArray cnto;
     ngon_type ng(ef.cnt, true);
     ng.export_to_array(cnto);
-    tpl = K_ARRAY::buildArray(ef.crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(ef.crd, varString, cnto, -1, "NGON", false);
+
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out history  
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
   }
   
   delete f; delete cn;
-  return tpl;
+  return l;
 
 }
 

@@ -165,7 +165,8 @@ namespace NUGA
           o << "cut_" << i;
          // medith::write(o.str().c_str(), bits[b]);
 #endif
-          xmesh.mesh.add(bits[b]);
+
+          xmesh.mesh.add(bits[b], true/*append coords*/);
         }
         xmesh.mesh.flag.resize(xmesh.mesh.ncells(), i); //use flag for history
       }

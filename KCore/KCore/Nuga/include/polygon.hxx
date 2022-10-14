@@ -21,23 +21,33 @@ struct aPolygon : public K_MESH::Polygon
 {
   using parent_type = K_MESH::Polygon;
   
-  std::vector<E_Int>   m_nodes;
-  K_FLD::FloatArray    m_crd;
-  E_Float              m_Lref2;
-  mutable E_Float      m_normal[3];
-  mutable E_Float      m_centroid[3];
+  std::vector<E_Int> m_nodes;
+  K_FLD::FloatArray  m_crd;
+  std::vector<long>  m_poids;
+  E_Float            m_Lref2;
+  mutable E_Float    m_normal[3];
+  mutable E_Float    m_centroid[3];
     
   aPolygon() = delete;
   aPolygon(const E_Int* nodes, E_Int nb_nodes, const K_FLD::FloatArray& crd) = delete; // from "mesh" to autonmous
   aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd):parent_type(pg.begin(), pg.nb_nodes(), pg.shift()), m_Lref2(-1.)
-  {
+  { 
+    // keeping track of node history before compressing for autonomy
+    m_poids.clear();
+    m_poids.resize(_nb_nodes, IDX_NONE);
+    for (size_t n = 0; n < _nb_nodes; ++n)m_poids[n] = _nodes[n] + _shift;
+    
+    //compress
     NUGA::MeshTool::compact_to_mesh(crd, _nodes, _nb_nodes, -_shift, m_crd);
     
+    //autonomous values & plugging
     m_nodes.clear();
     K_CONNECT::IdTool::init_inc(m_nodes, pg.nb_nodes(), 0);
     
     parent_type::_nb_nodes = (E_Int)m_nodes.size();
     parent_type::_nodes = &m_nodes[0];
+    
+    // init remaining stuff
     _triangles = nullptr;
     parent_type::_shift = 0;
     m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
@@ -47,11 +57,14 @@ struct aPolygon : public K_MESH::Polygon
 
   aPolygon(K_FLD::FloatArray && crd):parent_type(nullptr, 0), m_crd(std::move(crd))
   {
+    //autonomous values & plugging
     m_nodes.clear();
     K_CONNECT::IdTool::init_inc(m_nodes, m_crd.cols(), 0);
 
     parent_type::_nb_nodes = m_nodes.size();
     parent_type::_nodes = &m_nodes[0];
+
+    // init remaining stuff
     _triangles = nullptr;
     parent_type::_shift = 0;
     m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
@@ -60,23 +73,42 @@ struct aPolygon : public K_MESH::Polygon
   aPolygon(const ngon_unit& ngu, E_Int ith, const K_FLD::FloatArray& crd): parent_type(nullptr, 0)
   {
     parent_type::_nb_nodes = ngu.stride(ith);
-    _triangles = nullptr;
-    parent_type::_shift = 0;
-    m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
+    const int* p = ngu.get_facets_ptr(ith);
 
+    // keeping track of node history before compressing for autonomy
+    m_poids.clear();
+    m_poids.resize(_nb_nodes, IDX_NONE);
+    for (size_t n = 0; n < _nb_nodes; ++n)m_poids[n] = p[n] - 1;
+
+    //compress
     NUGA::MeshTool::compact_to_mesh(crd, ngu.get_facets_ptr(ith), parent_type::_nb_nodes, 1, m_crd);
     
+    //autonomous values & plugging
     m_nodes.clear();
     K_CONNECT::IdTool::init_inc(m_nodes, parent_type::_nb_nodes, 0);
 
     parent_type::_nodes = &m_nodes[0];
+
+    // init remianing stuff
+    _triangles = nullptr;
+    parent_type::_shift = 0;
+    m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
+  }
+
+  aPolygon(const aPolygon& rhs) : parent_type(nullptr, 0)
+  {
+    *this = rhs;
   }
     
+  void clear() { m_nodes.clear();}
+  bool empty() { return m_nodes.empty(); }
+  
   aPolygon& operator=(const parent_type& rhs) = delete;
   aPolygon& operator=(const aPolygon& rhs)
   {
     m_nodes = rhs.m_nodes;
     m_crd = rhs.m_crd;
+    m_poids = rhs.m_poids;
     m_Lref2 = rhs.m_Lref2;
 
     parent_type::_nb_nodes = m_nodes.size();
@@ -96,7 +128,7 @@ struct aPolygon : public K_MESH::Polygon
   }
 
   aPolygon(aPolygon&& rhs) :/* = default; rejected by old compiler intel (15)*/
-  parent_type(rhs), m_nodes(std::move(rhs.m_nodes)), m_crd(std::move(rhs.m_crd)), m_Lref2(rhs.m_Lref2)
+  parent_type(rhs), m_nodes(std::move(rhs.m_nodes)), m_crd(std::move(rhs.m_crd)), m_poids(std::move(rhs.m_poids)), m_Lref2(rhs.m_Lref2)
   {
     m_normal[0] = rhs.m_normal[0];
     m_normal[1] = rhs.m_normal[1];
@@ -111,6 +143,7 @@ struct aPolygon : public K_MESH::Polygon
   {
     m_nodes = std::move(rhs.m_nodes);
     m_crd = std::move(rhs.m_crd);
+    m_poids = std::move(rhs.m_poids);
     m_Lref2 = rhs.m_Lref2;
 
     parent_type::_nb_nodes = m_nodes.size();

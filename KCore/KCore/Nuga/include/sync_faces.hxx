@@ -581,16 +581,15 @@ void duplicate_and_move_period_faces
 }
 
 ///
-bool sync_faces
-(NUGA::ph_mesh_t& m, const std::map<int, std::vector<int>>& face_to_bits, double ARTOL)
+void replace_faces(
+                  NUGA::ph_mesh_t& m,
+                  const std::map<int,
+                  std::vector<int>>& face_to_bits,
+                  double TOL,
+                  std::set<E_Int>& modifiedPHs)
 {
-  bool has_sync = false;
-  // 
   std::vector<int> molecPH;
   ngon_unit new_phs;
-
-  // 1. replace faces and keep track of modified PHs
-  std::set<E_Int> modifiedPHs;
   for (E_Int i = 0; i < m.cnt.PHs.size(); ++i)
   {
     const E_Int* pPGi = m.cnt.PHs.get_facets_ptr(i);
@@ -624,6 +623,47 @@ bool sync_faces
   m.cnt.PHs.remove_duplicated(); //several occurence of the same face in each phs
 
   // 2. merge coincident nodes
+  {
+    std::vector<int> nids, lnids;
+    K_CONNECT::IdTool::init_inc(nids, m.crd.cols());
+    for (auto i : modifiedPHs)
+    {
+      K_MESH::Polyhedron<0> ph(m.cnt, i);
+      NUGA::haPolyhedron<0> hph;
+      hph.set(ph, m.crd);
+      lnids.clear();
+      hph.join(TOL, lnids);
+
+      //std::ostringstream o;
+      //o << "ph_" << i;
+      //medith::write(o.str().c_str(), m.crd, m.cnt, i);
+
+      for (size_t k = 0; k < lnids.size(); ++k)
+      {
+        if (lnids[k] == k) continue;
+        int id1 = hph.poids[k] - 1;
+        int id2 = hph.poids[lnids[k]] - 1;
+        if (id2 < id1) std::swap(id1, id2);
+        nids[id2] = id1;
+      }
+    }
+
+    m.cnt.PGs.change_indices(nids);
+
+    //for (auto i : modifiedPHs)
+    //{
+    //  std::ostringstream o;
+    //  o << "ph1_" << i;
+    //  medith::write(o.str().c_str(), m.crd, m.cnt, i);
+    //}
+  }
+  //std::cout << "nmerges : " << nb_merges << std::endl;
+}
+
+///
+bool sync_faces
+(NUGA::ph_mesh_t& m, const std::map<int, std::vector<int>>& face_to_bits, double ARTOL)
+{
   if (ARTOL == 0.) ARTOL = -0.01;
 
   double TOL = ARTOL;
@@ -636,52 +676,20 @@ bool sync_faces
     assert(TOL > 0.); // no degen in m
   }
 
-  {
-    std::vector<int> nids, lnids;
-    K_CONNECT::IdTool::init_inc(nids, m.crd.cols());
-    for (auto i : modifiedPHs)
-    {
-      K_MESH::Polyhedron<0> ph(m.cnt, i);
-      NUGA::haPolyhedron<0> hph;
-      hph.set(ph, m.crd);
-      lnids.clear();
-      hph.join(TOL, lnids);
-
-      /*std::ostringstream o;
-      o << "ph_" << i;
-      medith::write(o.str().c_str(), m.crd, m.cnt, i);*/
-
-      for (size_t k = 0; k < lnids.size(); ++k)
-      {
-        if (lnids[k] == k) continue;
-        int id1 = hph.poids[k]-1;
-        int id2 = hph.poids[lnids[k]]-1;
-        if (id2 < id1) std::swap(id1, id2);
-        nids[id2] = id1;
-      }
-    }
-
-    m.cnt.PGs.change_indices(nids);
-
-    /*for (auto i : modifiedPHs)
-    {
-      std::ostringstream o;
-      o << "ph1_" << i;
-      medith::write(o.str().c_str(), m.crd, m.cnt, i);
-    }*/
-  }
-  //std::cout << "nmerges : " << nb_merges << std::endl;
+  // 1. replace faces and keep track of modified PHs
+  std::set<E_Int> modifiedPHs;
+  replace_faces(m, face_to_bits, TOL, modifiedPHs);
 
   //3. close_phs
   std::vector<E_Int> modPHs(ALL(modifiedPHs));
-  has_sync = ngon_type::close_phs(m.cnt, m.crd, &modPHs);
+  bool has_sync = ngon_type::close_phs(m.cnt, m.crd, &modPHs);
 
-  /*for (auto i : modifiedPHs)
-  {
-    std::ostringstream o;
-    o << "ph2_" << i;
-    medith::write(o.str().c_str(), m.crd, m.cnt, i);
-  }*/
+  //for (auto i : modifiedPHs)
+  //{
+  //  std::ostringstream o;
+  //  o << "ph2_" << i;
+  //  medith::write(o.str().c_str(), m.crd, m.cnt, i);
+  //}
 
   //4. replace moved master by modified bits : i.e replace original bits by their modified version
   //4.a reverse face_to_bits
@@ -702,9 +710,12 @@ bool sync_faces
   face_to_bits_rev = tmp;
 
   //4.c replace back
+  
   if (!face_to_bits_rev.empty())
   {
-    new_phs.clear();
+    std::vector<int> molecPH;
+    ngon_unit new_phs;
+
     for (E_Int i = 0; i < m.cnt.PHs.size(); ++i)
     {
       const E_Int* pPGi = m.cnt.PHs.get_facets_ptr(i);
@@ -770,6 +781,11 @@ bool sync_faces
   //5. clean
   std::vector<E_Int> pgnids, phnids;
   m.cnt.remove_unreferenced_pgs(pgnids, phnids);
+
+  if (pgnids.empty())
+    K_CONNECT::IdTool::init_inc(pgnids, m.cnt.PGs.size());
+
+  K_CONNECT::IdTool::reverse_indirection(pgnids, m.cnt.PGs._type); //to pass PG history upon exit
 
   // assert closed
 

@@ -25,7 +25,6 @@
 #include <iostream>
 #include <cstring>
 
-#include "Nuga/include/Triangulator.h"
 #include "Nuga/include/ngon_t.hxx"
 #include "Nuga/include/cdatastruct.hxx"
 
@@ -47,7 +46,7 @@ public:
   char* words[10];
   std::ifstream                file (filename);
   FILE * fp = fopen(filename, "r");
-  int                          nb_entities, i, nb_read;
+  int                          nb_entities, nb_read;
   std::vector<K_FLD::IntArray> connects;
   double                       P[3];
   int                          nb_nodes[5], S[8], nods, dim(3);
@@ -90,7 +89,7 @@ public:
 
     if ((curType == VERT) && (nb_read < nb_entities))
     {
-      for (i = 0; i < dim; ++i)
+      for (int i = 0; i < dim; ++i)
         P[i] = fast_atof(words[i]);
 
       pos.pushBack(P, P+dim);
@@ -101,7 +100,7 @@ public:
     if ((curType != NONE) && (nb_read < nb_entities))
     {
       nods = nb_nodes[curType];
-      for (i = 0; i < nods; ++i)
+      for (int i = 0; i < nods; ++i)
         S[i] = fast_atoindex(words[i])-1;
 
       connects[curType].pushBack(S, S+nods);
@@ -414,12 +413,12 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     return write<color_t>(filename, tmpcrd, tmpcnt, stype.c_str(), keep.empty() ? nullptr : &keep, colors);
   }
 
-  template< typename color_t = E_Int>
+  template< typename Triangulator_t, typename color_t = E_Int>
   static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_unit& pgs, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start = 0, const std::vector<color_t>* colors = nullptr)
   {
-    
+
     K_FLD::IntArray cT;
-    DELAUNAY::Triangulator dt;
+    Triangulator_t dt;
     std::vector<E_Int> Tcolors;
 
     E_Int pureBasic = 0;
@@ -467,7 +466,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
         for (size_t i = 0; i < toprocess->size(); ++i)
         {
           E_Int PGi = (*toprocess)[i] - idx_start;
-          K_MESH::Polygon::triangulate<DELAUNAY::Triangulator>(dt, crd, pgs.get_facets_ptr(PGi), pgs.stride(PGi), 1, cT);
+          K_MESH::Polygon::triangulate<Triangulator_t>(dt, crd, pgs.get_facets_ptr(PGi), pgs.stride(PGi), 1, cT);
           if (colors)Tcolors.resize(cT.cols(), (E_Int)(*colors)[PGi]);
         }
       }
@@ -475,7 +474,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
       {
         for (E_Int i = 0; i < pgs.size(); ++i)
         {
-          K_MESH::Polygon::triangulate<DELAUNAY::Triangulator>(dt, crd, pgs.get_facets_ptr(i), pgs.stride(i), 1, cT);
+          K_MESH::Polygon::triangulate<Triangulator_t>(dt, crd, pgs.get_facets_ptr(i), pgs.stride(i), 1, cT);
           if (colors)Tcolors.resize(cT.cols(), (E_Int)(*colors)[i]);
         }
       }
@@ -522,7 +521,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
   }
 
   #ifndef DEBUG_BOOLEAN //fixme
-  template <typename crd3D_t, typename vngon_unit>
+  /*template <typename crd3D_t, typename vngon_unit>
   static E_Int write(const char* filename, crd3D_t& crd3D, const vngon_unit& pgs)
   {
     K_FLD::FloatArray crd(crd3D.p, 3, crd3D.n, (crd3D.CALLOC == 1));
@@ -537,14 +536,12 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     crd.relay_mem(crd3D.p, dim, crd3D.n, calloc);
 
     return 0;
-  }
+  }*/
   #endif
 
   template< typename color_t = E_Int>
   static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_type& ng, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start = 0, const std::vector<color_t>* colors = nullptr)
   {
-    K_FLD::IntArray cT3;
-    DELAUNAY::Triangulator dt;
     std::vector<color_t> PHcolor;
     if (colors) PHcolor.insert(PHcolor.end(), ALL(*colors));
 

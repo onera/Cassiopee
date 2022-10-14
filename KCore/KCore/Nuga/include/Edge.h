@@ -297,6 +297,8 @@ K_MESH::Edge::intersect
   E_Float u0, u1, min_d, tol0(tol), tol1(tol);
   E_Bool  parallel, coincident, sharing_a_node;
 
+  enforceCoplanarity |= (DIM == 2); // 2D => true
+
   const E_Float* P0 = pos.col(N0);
   const E_Float* P1 = pos.col(N1);
   const E_Float* Q0 = pos.col(M0);
@@ -333,9 +335,11 @@ K_MESH::Edge::intersect
 
   if (tol_is_absolute)
   {
-    tol0 /= l0;
-    tol1 /= l1;
+    tol0 *= l0; // * because l0 is an inverse distance
+    tol1 *= l1;
   }
+  
+  // tol0 & tol1 are now relative
 
   if (min_d > std::max(tol0 * l0, tol1 * l1))      // Agonic lines
     return false;
@@ -374,18 +378,18 @@ K_MESH::Edge::intersect
     NUGA::diff<DIM>(Q0, P0, V00);
     NUGA::diff<DIM>(Q1, P0, V01);
 
-    E_Float s00 = NUGA::dot<DIM>(E0, V00) * L0; // fixme FIXME FIXME a revoir
-    E_Float s01 = NUGA::dot<DIM>(E0, V01) * L0;
+    E_Float s00 = NUGA::dot<DIM>(E0, V00) * L0; //pos de Q0 sur E0
+    E_Float s01 = NUGA::dot<DIM>(E0, V01) * L0; //pos de Q1 sur E0
     if (s01 < s00)
       std::swap(s00, s01);
 
     if ( (s01 < -tol0) || (s00 > (1. + tol0)) ) //  x----------x    x------x    
       return false;
-   
+
     NUGA::diff<DIM>(P1, Q0, V01);
 
-    E_Float s10 = - NUGA::dot<DIM>(E1, V00) * L1;
-    E_Float s11 = NUGA::dot<DIM>(E1, V01) * L1;
+    E_Float s10 = -NUGA::dot<DIM>(E1, V00) * L1; //pos de P0 sur E1
+    E_Float s11 = NUGA::dot<DIM>(E1, V01) * L1;  //pos de P1 sur E1
     if (s11 < s10)
       std::swap(s10, s11);
 
@@ -462,54 +466,85 @@ K_MESH::Edge::lineLineMinDistance
     return;
   }
       
-  //At thsi stage, computing the determinant should be safe, ie. no parallelism
-  E_Float a, b, c, det2, u,v;
+  //At this stage, computing the determinant should be safe, ie. no parallelism
+  E_Float a, b, c, det2, u,v; //u,v are internal temporaries
   
   det2 = NUGA::sqrCross<DIM>(E0, E1);
   c = NUGA::dot<DIM>(E1, V01); 
   parallel = (::fabs(det2) < tol2 * L02 * L12);
   
+  if (DIM == 2) // more testing for robsutness
+  {
+  	E_Float normal_Q0Q1[] = { -E1[1], E1[0] };
+    double pow2D_P0_Q0Q1 = NUGA::dot<2>(V01, normal_Q0Q1);
+  
+    E_Float V02[DIM];
+    NUGA::diff<DIM>(P1, Q0, V02);
+    E_Float pow2D_P1_Q0Q1 = NUGA::dot<2>(V02, normal_Q0Q1);
+
+    parallel &= ((pow2D_P0_Q0Q1 * pow2D_P1_Q0Q1) > 0.);
+  }
+  
+
   if (!parallel)
   {
-    a = NUGA::dot<DIM>(E0, E1);
-    b = NUGA::dot<DIM>(E0, V01);
-    det2 = 1. / det2;
-    u = det2 * (a*c - L12*b);
-    v = det2 * (L02*c - a*b);
-    E_Float IJ[DIM];
-    for (E_Int i = 0; i < DIM ; ++i)
-      IJ[i] = V01[i] + u*E0[i] - v*E1[i];
-    min_distance = NUGA::sqrNorm<DIM>(IJ);
-    
-    if (min_distance > MIN(dmax12, dmax22)) // numerical error catch (nearly //). fixme : SHOULD BE dmin12 and dmin22. cf. XXX
+    if (DIM == 3)
     {
-      parallel=true;
-      u = 0.;
-      v = c/L12;
+      a = NUGA::dot<DIM>(E0, E1);
+      b = NUGA::dot<DIM>(E0, V01);
+      det2 = 1. / det2;
+      u = det2 * (a*c - L12 * b);
+      v = det2 * (L02*c - a * b);
+      E_Float IJ[DIM];
+      for (E_Int i = 0; i < DIM; ++i)
+        IJ[i] = V01[i] + u * E0[i] - v * E1[i];
+      min_distance = NUGA::sqrNorm<DIM>(IJ);
+
+      if (min_distance > MIN(dmax12, dmax22)) // numerical error catch (nearly //). fixme : SHOULD BE dmin12 and dmin22. cf. XXX
+      {
+        parallel = true;
+        u = 0.;
+        v = c / L12;
+      }
+      else // params are good
+      {
+        u0 = u; u1 = v;
+      }
     }
-    else // params are good
+    else // 2D
     {
-      u0=u; u1=v;
+      E_Float normal_Q0Q1[] = { -E1[1], E1[0] };
+      NUGA::normalize<2>(normal_Q0Q1);
+      double a = -NUGA::dot<2>(E0, normal_Q0Q1);
+      double pow2D_P0_Q0Q1 = NUGA::dot<2>(V01, normal_Q0Q1);
+      double K = pow2D_P0_Q0Q1 / a;
+
+      double X[2];
+      for (E_Int i = 0; i < 2; ++i)
+        X[i] = P0[i] + K * E0[i];
+
+      d1 = linePointMinDistance2<DIM>(P0, P1, X, u0);
+      d2 = linePointMinDistance2<DIM>(Q0, Q1, X, u1);
     }
   }
-  else
+  else //parallel
   {
     u = 0.;
-    v = c/L12;
+    v = c / L12;
   }
 
   if (parallel || (DIM != 2))
   {
     E_Float IJ[DIM];
-    for (E_Int i = 0; i < DIM ; ++i)
-      IJ[i] = V01[i] + u*E0[i] - v*E1[i];
+    for (E_Int i = 0; i < DIM; ++i)
+      IJ[i] = V01[i] + u * E0[i] - v * E1[i];
     min_distance = ::sqrt(NUGA::sqrNorm<DIM>(IJ));
   }
   else
     min_distance = 0.;
 
   coincident = (parallel && (min_distance < abstol));
-} 
+}
 
 //=============================================================================
 template <E_Int DIM>

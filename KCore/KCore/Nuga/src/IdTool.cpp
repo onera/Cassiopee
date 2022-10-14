@@ -42,13 +42,11 @@ namespace K_CONNECT
         reverse_assoc[Ni]=i;
     }
   }
-  
-  /// n-to-1 => 1-to-n
-  void IdTool::reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph)
-  {
-    std::map<E_Int, std::vector<E_Int> > molecules;
 
-    //E_Int shift = (zero_based_in) ? 0 : -1;
+  ///
+  void IdTool::reverse_indirection(const E_Int*oids, E_Int sz, std::map<int, std::vector<int>>& split_map)
+  {
+    split_map.clear();
 
 #ifdef DEBUG_NGON_UNIT
     E_Int max_id = -1;
@@ -58,17 +56,25 @@ namespace K_CONNECT
     {
       E_Int id = oids[i]; //+ shift;
       if (id == IDX_NONE) continue; //created entity
-      molecules[id].push_back(i);
-    
+      split_map[id].push_back(i);
+
 #ifdef DEBUG_NGON_UNIT
       max_id = (max_id < id) ? id : max_id;
 #endif
-    
+
     }
 
 #ifdef DEBUG_NGON_UNIT
     assert(max_id < nb_pgs);
 #endif
+  }
+  
+  /// n-to-1 => 1-to-n
+  void IdTool::reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph)
+  {
+    std::map<E_Int, std::vector<E_Int> > molecules;
+
+    reverse_indirection(oids, sz, molecules);
 
     E_Int empty = IDX_NONE;
     std::map<E_Int, std::vector<E_Int> >::const_iterator it;

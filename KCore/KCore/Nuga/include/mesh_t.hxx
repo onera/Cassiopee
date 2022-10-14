@@ -157,12 +157,7 @@ struct connect_trait<SURFACIC, false>
 
   static void append(cnt_t& c, const cnt_t& to_append){c.append(to_append);}
 
-  template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e)
-  {
-    E_Int shift = crd.cols() + index_start - e.shift();
-    crd.pushBack(e.m_crd);
-    c.add(e.nb_nodes(), e.begin(), shift);
-  }
+  template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e, bool capitalize_coords);
   
   static void build_neighbors(const cnt_t& c, neighbor_t& neighbors)
   {
@@ -299,6 +294,52 @@ struct connect_trait<SURFACIC, false>
   }
 };
 
+// Specialisation aelt_t
+template <> inline
+void
+connect_trait<SURFACIC, false>::add<NUGA::aPolygon>(K_FLD::FloatArray& crd, ngon_unit& c, aelt_t const& e, bool append_vertices)
+{
+
+  if (append_vertices || e.m_poids.empty()) // fixme : add a condition : or inconsistent with crd
+  {
+    // append the vertices
+
+    E_Int shift = crd.cols() + index_start - e.shift();
+    crd.pushBack(e.m_crd);
+    c.add(e.nb_nodes(), e.begin(), shift);
+  }
+  else
+  {
+    // capitalize the nodes  to ease conformity
+    // here we use the original node ids
+    // and update crd
+
+    assert(crd.rows() == 3);
+    assert(e.m_poids.size() == e.m_nodes.size());
+
+    auto nods = e.m_nodes; //lazy way of construct
+    E_Int shift = index_start - e.shift();
+    //
+    for (size_t n = 0; n < nods.size(); ++n)
+    {
+      ASSERT_IN_VECRANGE(e.m_poids, nods[n]);
+
+      int oid = e.m_poids[nods[n]];
+
+      ASSERT_IN_DYNARANGE(crd, oid);
+
+      crd(0, oid) = e.m_crd(0, nods[n]);
+      crd(1, oid) = e.m_crd(1, nods[n]);
+      crd(2, oid) = e.m_crd(2, nods[n]);
+      nods[n] = oid;
+
+      assert(nods[n] != IDX_NONE);
+    }
+
+    c.add(nods.size(), &nods[0], shift);
+  }
+}
+
 // VOL 
 template <>
 struct connect_trait<VOLUMIC, false>
@@ -317,7 +358,7 @@ struct connect_trait<VOLUMIC, false>
   static void shift(cnt_t& c, int v) { c.PGs.shift(v);}
   static void unique_indices(const cnt_t& c, std::vector<E_Int>& uinds) { c.PGs.unique_indices(uinds);}
 
-  template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e)
+  template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e, bool capitalize_coords/*not used yet*/)
   {
     E_Int ptshift = crd.cols();
     E_Int npgs0 = c.PGs.size();
@@ -779,11 +820,12 @@ struct mesh_t
   }
 
   ///
-  void add(aelt_t const & e)
+  void add(aelt_t const & e, bool capitalize_coords)
   {
-    trait::add(crd, cnt, e);
+    trait::add(crd, cnt, e, capitalize_coords);
   }
 
+  ///
   void clear()
   {
     crd.clear();

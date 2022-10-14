@@ -171,6 +171,16 @@ def P1ConservativeChimeraCoeffs(aR, cellnR, aD):
 # IN: coords: 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all the external faces triangulated
 #==============================================================================
+def superMesh(surfz, sclip, tol=1.e-12):
+    """XXX.
+    Usage: superMesh(surfz, sclip, tol)"""
+    return intersector.superMesh(surfz, sclip, tol)
+
+#==============================================================================
+# triangulateExteriorFaces
+# IN: coords: 3D NGON mesh
+# OUT: returns a 3D NGON Mesh with all the external faces triangulated
+#==============================================================================
 def triangulateExteriorFaces(a, in_or_out=2, improve_qual=0):
     """Triangulates exterior polygons of a volume mesh.
     Usage: triangulateExteriorFaces(a, in_or_out)"""
@@ -205,10 +215,10 @@ def triangulateNFaces(a, improve_qual=1, min_nvertices=5, discard_joins=True):
 #==============================================================================
 # externalFaces : Returns erternal faces for CASSIOPEE NGON types and NUGA NGON
 #==============================================================================
-def externalFaces(a):
+def externalFaces(a, discarded_ids=None, geo_dim=-1):
     """Returns erternal faces for CASSIOPEE NGON types and NUGA NGON.
     Usage: externalFaces(t)"""
-    return intersector.externalFaces(a)
+    return intersector.externalFaces(a, discarded_ids, geo_dim)
 
 #==============================================================================
 # reorient

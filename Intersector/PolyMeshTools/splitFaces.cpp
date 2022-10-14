@@ -33,10 +33,13 @@
 #include "Nuga/include/BbTree.h"
 #include "Nuga/include/medit.hxx"
 #include "Nuga/include/sync_faces.hxx"
+#include "Nuga/include/supermesh.hxx"
 
 using namespace std;
 using namespace NUGA;
 
+using zmesh_t = NUGA::pg_smesh_t;
+using ngon_type = ngon_t<K_FLD::IntArray>;
 
 // update the point list according to a split expressed by oids
 PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
@@ -140,8 +143,6 @@ PyObject* K_INTERSECTOR::triangulateExteriorFaces(PyObject* self, PyObject* args
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
   
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
-  
   ngon_type ngi(cnt), ngo;
   NUGA::transfo_t qual_param;
   qual_param.improve_qual=improve_qual ? true : false;
@@ -188,8 +189,6 @@ PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* arg
   
   //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
-  
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
   
   ngon_type ngi(cnt), ngo;
 
@@ -254,8 +253,6 @@ PyObject* K_INTERSECTOR::triangulateNFaces(PyObject* self, PyObject* args)
     res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/);
 
   if (res != 1) return NULL;
-
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
   
   ngon_type ngi(cnt), ngo;
 
@@ -334,8 +331,6 @@ PyObject* K_INTERSECTOR::convexifyFaces(PyObject* self, PyObject* args)
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
   
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
-  
   ngon_type ngi(cnt), ngo;
   Splitter::split_pgs(Splitter::convexify_pgs<DELAUNAY::Triangulator>, crd, ngi, convexity_tol, ngo);
   
@@ -347,6 +342,197 @@ PyObject* K_INTERSECTOR::convexifyFaces(PyObject* self, PyObject* args)
   
   delete f; delete cn;
   return tpl;
+}
+
+//=============================================================================
+/* XXX. */
+//=============================================================================
+PyObject* K_INTERSECTOR::superMesh(PyObject* self, PyObject* args)
+{
+  PyObject *arr1{nullptr}, *arr2{nullptr};
+  E_Float rtol(1.e-6);
+
+  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &rtol)) return NULL;
+
+  K_FLD::FloatArray* f1(0);
+  K_FLD::IntArray* cn1(0);
+  char* varString1, *eltType1;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f1, cn1, varString1, eltType1);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd1 = *f1;
+  K_FLD::IntArray & cnt1 = *cn1;
+
+  K_FLD::FloatArray* f2(0);
+  K_FLD::IntArray* cn2(0);
+  char* varString2, *eltType2;
+  // Check array # 2
+  err = check_is_NGON(arr2, f2, cn2, varString2, eltType2);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd2 = *f2;
+  K_FLD::IntArray & cnt2 = *cn2;
+
+  /*std::cout << "crd1 : " << crd1.cols() << "/" << crd1.rows() << std::endl;
+  std::cout << "cnt1 : " << cnt1.cols() << "/" << cnt1.rows() << std::endl;
+  std::cout << "crd2 : " << crd2.cols() << "/" << crd2.rows() << std::endl;
+  std::cout << "cnt2 : " << cnt2.cols() << "/" << cnt2.rows() << std::endl;*/
+
+
+  // construction des structures de type "mesh" a pertir des ngon
+  zmesh_t m0(crd1, cnt1);
+  zmesh_t m1(crd2, cnt2);
+
+  //std::cout << "m0/m1 cells : " << m0.ncells() << "/" << m1.ncells() << std::endl;
+
+  // decoupage //////////////////////////////////////////
+
+  //NUGA::chrono c;
+  //c.start();
+
+  zmesh_t xmesh;                 // maillage des morceaux polygonaux
+  std::vector<E_Int> anc0, anc1; // anc0/anc1 : indice ancetre d'un polygone de xmesh dans m0/m1
+
+  double ARTOL = ::sqrt(m0.Lref2())* rtol;
+  /*std::cout << "Lref : " << ::sqrt(m0.Lref2()) << std::endl;
+  std::cout << "RTOL : " << rtol << std::endl;
+  std::cout << "ARTOL : " << ARTOL << std::endl;*/
+
+  double ARTOL1 = ::sqrt(m1.Lref2())* rtol;
+  //std::cout << "Lre : " << ::sqrt(m1.Lref2()) << std::endl;
+  //std::cout << "ARTOL1 : " << ARTOL1 << std::endl;
+
+  ARTOL = std::min(ARTOL, ARTOL1);
+
+  NUGA::xmatch<zmesh_t>(m0, m1, ARTOL, anc0, anc1, xmesh);
+
+  //std::cout << "xmesh cells : " << xmesh.ncells() << std::endl;
+
+  PyObject *l(PyList_New(0));
+
+  if (xmesh.ncells())
+  {
+    ngon_type ngo(xmesh.cnt, true);
+    K_FLD::IntArray cnto;
+    ngo.export_to_array(cnto);
+
+    PyObject* tpl = K_ARRAY::buildArray(xmesh.crd, varString1, cnto, -1, eltType1, false);
+
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out arr1 history  
+    tpl = K_NUMPY::buildNumpyArray(&anc0[0], anc0.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out arr2 history  
+    tpl = K_NUMPY::buildNumpyArray(&anc1[0], anc1.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  delete f1; delete cn1;
+  delete f2; delete cn2;
+  return l;
+}
+
+//=============================================================================
+/* XXX. */
+//=============================================================================
+PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr{nullptr}, *arr_soup{nullptr}, *py_vfoid{nullptr};
+
+  if (!PyArg_ParseTuple(args, "OOO", &arr, &arr_soup, &py_vfoid)) return NULL;
+
+  K_FLD::FloatArray* f1(0);
+  K_FLD::IntArray* cn1(0);
+  char* varString1, *eltType1;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f1, cn1, varString1, eltType1);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd1 = *f1;
+  K_FLD::IntArray & cnt1 = *cn1;
+
+  K_FLD::FloatArray* f2(0);
+  K_FLD::IntArray* cn2(0);
+  char* varString2, *eltType2;
+  // Check array # 2
+  err = check_is_NGON(arr_soup, f2, cn2, varString2, eltType2);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd2 = *f2;
+  K_FLD::IntArray & cnt2 = *cn2;
+
+  E_Int sz{0}, r;
+  E_Int* vfoid;
+  E_Int res = K_NUMPY::getFromNumpyArray(py_vfoid, vfoid, sz, r, true/*shared*/);
+  if (res != 1) return NULL;
+
+  // construction des structures de type "mesh" a pertir des ngon
+  NUGA::ph_mesh_t m0(crd1, cnt1);
+  NUGA::pg_smesh_t xmesh(crd2, cnt2);
+
+  //std::cout << "m0 faces : " << m0.cnt.PGs.size() << std::endl;
+  //std::cout << "xmesh faces : " << xmesh.ncells() << std::endl;
+  //std::cout << "vfoid sz : " << sz << std::endl;
+
+  assert (sz == xmesh.ncells());
+
+  // clean xmesh
+  // K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(xmesh.crd);
+  // Vector_t<E_Int> nids;
+  // E_Int nb_merges = ::merge(ca, 1.e-8, nids);
+  // if (nb_merges)
+  //   xmesh.cnt.change_indices(nids);
+  // ngon_type::compact_to_used_nodes(xmesh.cnt, xmesh.crd);
+
+  K_CONNECT::IdTool::init_inc(m0.cnt.PGs._type, m0.cnt.PGs.size());
+  xmesh.cnt._type.resize(sz, IDX_NONE);
+  for (size_t i=0; i < sz; ++i)xmesh.cnt._type[i] = vfoid[i];
+
+
+  int N0 = m0.crd.cols();
+  m0.crd.pushBack(xmesh.crd);
+  xmesh.cnt.shift(N0);
+  m0.cnt.PGs.append(xmesh.cnt);
+
+  std::map<int, std::vector<int>> split_map;
+  K_CONNECT::IdTool::reverse_indirection(&m0.cnt.PGs._type[0], m0.cnt.PGs._type.size(), split_map);
+
+  double RTOL = 0.1;
+  std::set<E_Int> modifiedPHs;
+  replace_faces(m0, split_map, -RTOL, modifiedPHs);
+
+  K_FLD::IntArray cnto;
+  m0.cnt.export_to_array(cnto);
+
+  PyObject* tpl = K_ARRAY::buildArray(m0.crd, varString1, cnto, -1, eltType1, false);
+
+  PyObject *l(PyList_New(0));
+
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  // pushing out arr1 history  
+  tpl = K_NUMPY::buildNumpyArray(&m0.cnt.PGs._type[0], m0.cnt.PGs._type.size(), 1, 0);
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  //std::cout << "nb pgs : " << m0.cnt.PGs.size() << std::endl;
+  //std::cout << "anc size : " << m0.cnt.PGs._type.size() << std::endl;
+
+  // pushing out arr2 history  
+  //pl = K_NUMPY::buildNumpyArray(&anc1[0], anc1.size(), 1, 0);
+  //PyList_Append(l, tpl);
+  //Py_DECREF(tpl);
+
+  delete f1; delete cn1;
+  delete f2; delete cn2;
+  return l;
 }
 
 //============================================================================================================
@@ -379,8 +565,6 @@ PyObject* K_INTERSECTOR::prepareCellsSplit(PyObject* self, PyObject* args)
   
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
-  
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
   
   ngon_type ngi(cnt), ngo;
   

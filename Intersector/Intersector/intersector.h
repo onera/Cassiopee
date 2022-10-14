@@ -35,7 +35,7 @@ namespace K_INTERSECTOR
   PyObject* DiffSurf(PyObject* self, PyObject* args);
 
   PyObject* XcellN(PyObject* self, PyObject* args);
-  PyObject* unify(PyObject* self, PyObject* args);
+  PyObject* superMesh(PyObject* self, PyObject* args);
   
   PyObject* P1ConservativeInterpolation(PyObject* self, PyObject* args);
   PyObject* P1ConservativeChimeraCoeffs(PyObject* self, PyObject* args);
@@ -46,6 +46,7 @@ namespace K_INTERSECTOR
   PyObject* triangulateNFaces(PyObject* self, PyObject* args);
   PyObject* convexifyFaces(PyObject* self, PyObject* args);
   PyObject* closeCells(PyObject* self, PyObject* args);
+  PyObject* replaceFaces(PyObject* self, PyObject* args);
   
   PyObject* collapseUncomputableFaces(PyObject* self, PyObject* args);
   PyObject* collapseSmallCells(PyObject* self, PyObject* args);

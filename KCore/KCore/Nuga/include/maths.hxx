@@ -183,11 +183,7 @@ E_Float dot<2> (const E_Float* x, const E_Float* y)
   return (*x * (*y)) + (*(x+1) * (*(y+1)));
 }
 
-inline long double dot_2D(long double* x, long double* y)
-{
-  return (*x * (*y)) + (*(x + 1) * (*(y + 1)));
-}
-
+///
 template <>
 inline
 E_Float dot<3> (const E_Float* x, const E_Float* y) 

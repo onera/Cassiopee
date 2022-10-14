@@ -78,17 +78,20 @@ E_Int Triangulator::run
   tcompact +=c.elapsed();
   c.start();
 #endif
- 
-  // Computes the fitting box coordinate system optimizing the view over the contour
-  K_FLD::FloatArray P(3,3), iP(3,3);
-  E_Float W[3];
-  FittingBox::computeNormalToContour(Wpos, connectE2b, W);
-  NUGA::computeAFrame(W, P);
-  iP = P;
-  K_FLD::FloatArray::inverse3(iP);
-  NUGA::transform(Wpos, iP);// Now we are in the fitting coordinate system.
-  
-  Wpos.resize(2, Wpos.cols()); // Wpos is 2D now.
+
+  if (Wpos.rows() >= 3) // fixme : if more than 3, it contains soluiton fields : are we sure the first 3 are x,y,z ?
+  {
+    // Computes the fitting box coordinate system optimizing the view over the contour
+    K_FLD::FloatArray P(3, 3), iP(3, 3);
+    E_Float W[3];
+    FittingBox::computeNormalToContour(Wpos, connectE2b, W);
+    NUGA::computeAFrame(W, P);
+    iP = P;
+    K_FLD::FloatArray::inverse3(iP);
+    NUGA::transform(Wpos, iP);// Now we are in the fitting coordinate system.
+
+    Wpos.resize(2, Wpos.cols()); // Wpos is 2D now.
+  }
   
 #ifdef FLAG_STEP
   ttra +=c.elapsed();

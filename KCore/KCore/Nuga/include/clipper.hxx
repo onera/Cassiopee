@@ -15,7 +15,6 @@
 #include <vector>
 #include "Nuga/include/BAR_Conformizer.h"
 #include "Nuga/include/T3Mesher.h"
-
 #include "Nuga/include/ph_clipper.hxx"
 #include "Nuga/include/classifyer.hxx"
 
@@ -30,11 +29,155 @@ namespace NUGA
   {
     using crd_t = K_FLD::FloatArray;
 
-    template <typename aELT1, typename aELT2> //sub & cut are non const as they can be reoriented/reversed
-    inline E_Int isolated_clip(aELT1& sub, aELT2& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aELT1>& res, bool& true_clip);
+    ///////////////////// private functions ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    inline void __filtrate_opposite_edges(K_FLD::IntArray& cnt, std::vector<bool>& keep)
+    {
+      std::map<K_MESH::Edge, std::vector<int>> w_E2ids;
+      bool do_compress = false;
+      //
+      for (size_t e = 0; e < cnt.cols(); ++e)
+      {
+        auto ee = K_MESH::Edge(cnt(0, e), cnt(1, e));
+        auto oee = K_MESH::Edge(cnt(1, e), cnt(0, e));
+
+        auto it1 = w_E2ids.find(ee);
+        auto it = w_E2ids.find(oee);
+        if (it != w_E2ids.end())
+          w_E2ids[oee].push_back(e);
+        if (it == w_E2ids.end() && it1 == w_E2ids.end())
+          w_E2ids[ee].push_back(e);
+
+      }
+
+      keep.resize(cnt.cols(), true);
+
+      for (auto ii : w_E2ids)
+      {
+        if (ii.second.size() == 1) continue;
+        do_compress = true;
+        for (size_t e = 0; e < ii.second.size(); ++e)
+          keep[ii.second[e]] = false;
+      }
+
+      if (do_compress)
+      {
+        K_CONNECT::keep<bool> pred(keep);
+        K_CONNECT::IdTool::compress(cnt, pred);
+      }
+    }
+
+    template <typename aELT>
+    inline void __filtrate_outside_edges(aELT& sub, const K_FLD::FloatArray& crd2D, K_FLD::IntArray& cnt, int id_start, std::vector<std::pair<int,int>>& xedge, std::vector<bool>& keep)
+    {
+      // WARNING : sub cnt ids must refer to crd2D
+
+      keep.resize(cnt.cols(), true);
+
+      std::vector<bool> w_keep(crd2D.cols(), true);
+      DELAUNAY::Triangulator dt;
+      bool is_in = true;
+      //
+      for (size_t k = id_start; k < crd2D.cols(); ++k)
+      {
+        if (k < xedge.size() && xedge[k].first != IDX_NONE)
+        {
+          w_keep[k] = true;
+          continue; // X node => lying on (impacted) sub : no test required (which is good it as it might fail)
+        }
+
+        const double * P = crd2D.col(k);
+        int err = sub.template fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, crd2D, P, is_in, 1.e-9);
+        assert(!err);
+        w_keep[k] = is_in;
+      }
+
+      bool do_compress = false;
+      keep.resize(cnt.cols(), true);
+      //
+      for (size_t k = 0; k < cnt.cols(); ++k)
+      {
+        auto pK = cnt.col(k);
+        keep[k] = (w_keep[*pK] && w_keep[*(pK + 1)]);
+        do_compress |= !keep[k];
+      }
+
+      if (do_compress)
+      {
+        K_CONNECT::keep<bool> pred(keep);
+        K_CONNECT::IdTool::compress(cnt, pred);
+      }
+    }
+
+    template <typename aELT>
+    inline void __filtrate_outside_edges2(aELT& cut, const K_FLD::FloatArray& crd2D, K_FLD::IntArray& cnt, int id_end, std::vector<std::pair<int, int>>& xedge, std::vector<bool>& keep)
+    {
+      // WARNING : sub cnt ids must refer to crd2D
+
+      keep.resize(cnt.cols(), true);
+
+      std::vector<bool> w_keep(crd2D.cols(), true);
+      DELAUNAY::Triangulator dt;
+      bool is_in = true;
+      //
+      for (size_t k = 0; k < id_end; ++k)
+      {
+        if (k < xedge.size() && xedge[k].first != IDX_NONE)
+        {
+          w_keep[k] = true;
+          continue; // X node => lying on (impacted) sub : no test required (which is good it as it might fail)
+        }
+
+        const double * P = crd2D.col(k);
+        int err = cut.template fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, crd2D, P, is_in, 1.e-9);
+        assert(!err);
+        w_keep[k] = is_in;
+      }
+
+      bool do_compress = false;
+      keep.resize(cnt.cols(), true);
+      //
+      for (size_t k = 0; k < cnt.cols(); ++k)
+      {
+        auto pK = cnt.col(k);
+        keep[k] = (w_keep[*pK] && w_keep[*(pK + 1)]);
+        do_compress |= !keep[k];
+      }
+
+      if (do_compress)
+      {
+        K_CONNECT::keep<bool> pred(keep);
+        K_CONNECT::IdTool::compress(cnt, pred);
+      }
+    }
+
+    template <int DIM>
+    void __normalize(K_FLD::FloatArray& crd)
+    {
+      //try again with a normalized contour
+      K_SEARCH::BoundingBox<DIM> box;
+      box.compute(crd);
+
+      double dX[DIM];
+      for (size_t k = 0; k < DIM; ++k)
+        dX[k] = box.maxB[k] - box.minB[k];
+
+      for (int u = 0; u < crd.cols(); ++u)
+      {
+        for (size_t k = 0; k < DIM; ++k)
+          if (dX[k] != 0.) crd(k, u) = (crd(k, u) - box.minB[k]) / dX[k];
+      }
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    template <typename aELT1, typename aELT2> //sub & cut are non const as they can be reoriented/reversed
+    inline E_Int isolated_clip(aELT1& sub, aELT2& cut, NUGA::INTERSECT::eOPER oper, E_Float ARTOL, std::vector<aELT1>& res, bool& true_clip);
+    
+    ///
     template <>
-    inline E_Int isolated_clip<aPolygon, edge_mesh_t>(aPolygon& sub, edge_mesh_t& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aPolygon>& bits, bool& true_clip)
+    inline E_Int isolated_clip<aPolygon, edge_mesh_t>(aPolygon& sub, edge_mesh_t& cut, NUGA::INTERSECT::eOPER oper, E_Float ARTOL, std::vector<aPolygon>& bits, bool& true_clip)
     {
       using cnt_t = K_FLD::IntArray;
       const crd_t& crd1 = sub.m_crd;
@@ -43,8 +186,6 @@ namespace NUGA
 
       true_clip = false;
       bits.clear();
-
-      std::vector<crd_t> crd_res; //intermediate format as crds
 
       E_Int nb_nodes = crd1.cols();
       cnt_t subj(2, nb_nodes);
@@ -98,22 +239,13 @@ namespace NUGA
       for (E_Int k = 0; k < nb_pts1; ++k) zmean += zs[k];
       zmean /= nb_pts1;
       
-      // compute an overall 3D abstol
+      // DISCARD FALSE OVERLAPS among fronts (now we are in 2D, those with big altitudes)
       // using meL : NOT WORKING because after first cut, sub is overdefined so underestimate Lref, hence some good cut edges are discarded
-      /*E_Float min_d, max_d, ABSTOL;
-      NUGA::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cnt, min_d, max_d);
-      double Lref = ::sqrt(min_d);*/
-      // using sub bbox
-      /* NOT WORKING neither when it's a planar case where the plane is axi-aligned => one corrdinate is the same => Lref gets null
-      K_SEARCH::BBox3D bx;
-      sub.bbox(sub.m_crd, bx);
-      double Lref = std::min(bx.maxB[0] - bx.minB[0], std::min(bx.maxB[1] - bx.minB[1], bx.maxB[2] - bx.minB[2]));*/
-      // using sub bbox in 2D frame
+      // using bbox in 3D frame : NOT WORKING neither when it's a planar case where the plane is axi-aligned => one corrdinate is the same => Lref gets null
+      // using bbox in 2D frame
       K_SEARCH::BBox2D bx(crd, nb_pts1);
+      std::vector<E_Int> new_edge_ids; //in case of compacting, need to propagate original ids in xedge
       double Lref = std::min(bx.maxB[0] - bx.minB[0], bx.maxB[1] - bx.minB[1]);
- 
-      double ABSTOL = Lref * RTOL;
-      ABSTOL = std::max(ABSTOL, ZERO_M);
 
       // discard false overlaps among front (now we are in 2D, those with big altitudes)
       {
@@ -132,9 +264,8 @@ namespace NUGA
         }
         if (do_compact)
         {
-          std::vector<E_Int> nids;
           E_Int nb_edgesi = cnt.cols();
-          K_FLD::IntArray::compact(cnt, keep, nids);
+          K_FLD::IntArray::compact(cnt, keep, new_edge_ids);
           // IMPORTANT : discard also those bits from cutter to synchronize it, in case of a I/O classify test afterwards
           assert (cnt2.cols() == (nb_edgesi - nb_edges1));
           std::vector<bool> kp(cnt2.cols(), true);// make keep info  relative to cutter
@@ -161,23 +292,43 @@ namespace NUGA
 #ifdef DEBUG_CLIPPER
       {
         K_FLD::FloatArray tcrd(crd);
+        __normalize<2>(tcrd);
         tcrd.resize(3, tcrd.cols(), 0.);
         medith::write("before_conf2D", tcrd, cnt, "BAR");
       }
 #endif
 
+      double ABSTOL2D = ARTOL;
+      if (ARTOL < 0.) //relative
+      {
+        //2D ABS TOLERANCE
+        double Lref2 = NUGA::FLOAT_MAX;
+        for (int k = 0; k < cnt.cols(); ++k)
+        {
+          double d2 = NUGA::sqrDistance(crd.col(cnt(0, k)), crd.col(cnt(1, k)), 3);
+          Lref2 = std::min(d2, Lref2);
+        }
+
+        ABSTOL2D = -::sqrt(Lref2) * ARTOL;
+        ABSTOL2D = std::max(ABSTOL2D, ZERO_M);
+      }
+
+      //
       E_Int nb_edges0 = cnt.cols();
-      err = conformizer.run(crd, cnt, ancE2, nullptr/*&priority*/, ABSTOL, nb_edges1, 1 /*one iter only*/);
+      err = conformizer.run(crd, cnt, ancE2, nullptr/*&priority*/, ABSTOL2D, nb_edges1, 1 /*one iter only*/);
       if (err)
         return err;
 
 #ifdef DEBUG_CLIPPER
       {
         K_FLD::FloatArray tcrd(crd);
+        __normalize<2>(tcrd);
         tcrd.resize(3, tcrd.cols(), 0.);
         medith::write("after_conf2D", tcrd, cnt, "BAR");
       }
 #endif
+
+      auto xedge = conformizer.get_x_history();
 
       if (cnt.cols() == nb_edges0) return 0;// no intersections => fully visible or hidden
 
@@ -202,15 +353,16 @@ namespace NUGA
       // 1 region after triangulation => so something might have happened on its boundary but not inside so consider as untouched
       if (data.mono_connex) return 0;
 
-      true_clip = true;
-
 #ifdef DEBUG_CLIPPER
       {
         K_FLD::FloatArray tcrd(*data.pos);
+        __normalize<2>(tcrd);
         tcrd.resize(3, tcrd.cols(), 0.);
         medith::write("out", tcrd, data.connectM, "TRI");
       }
 #endif
+
+      true_clip = true;
 
       // transfer altitude
       std::vector<double> zsnew(data.pos->cols(), NUGA::FLOAT_MAX);
@@ -220,7 +372,7 @@ namespace NUGA
       zs = std::move(zsnew);
 
       // interpolate missings using x history
-      auto xedge = conformizer.get_x_history();
+      
       for (size_t i = 0; i < zs.size(); ++i)
       {
         if (zs[i] != NUGA::FLOAT_MAX) continue;            // non valuated node
@@ -260,9 +412,11 @@ namespace NUGA
       //medith::write("boolean", *data.pos, data.connectM, "TRI");
 #endif
 
+      std::vector<crd_t> crd_res;              //intermediate format as crds
       int minc = *std::min_element(ALL(data.colors));
       int maxc = *std::max_element(ALL(data.colors));
 
+      std::vector<int> PGi;
       if (minc != maxc) // non-connex or glued on some edges due to a big tol
       {
         std::map<int, K_FLD::IntArray> col_to_cntB;
@@ -282,8 +436,8 @@ namespace NUGA
           }
         }
 
-        std::vector<int> PGi;
         crd_res.resize(col_to_cntB.size());
+        
         int i = 0;
         std::vector<E_Int> nids;
         for (auto it = col_to_cntB.begin(); it != col_to_cntB.end(); ++it, ++i)
@@ -305,6 +459,7 @@ namespace NUGA
       }
       else //connex
       {
+        crd_res.resize(1);
         K_FLD::IntArray cB;
         NUGA::MeshTool::getBoundaryT3Mesh(data.connectM, data.neighbors, cB);
 
@@ -312,11 +467,10 @@ namespace NUGA
         K_FLD::FloatArray& crd1 = *data.pos;
         NUGA::MeshTool::compact_to_mesh(crd1, cB, nids);
 
-        std::vector<E_Int> PGi;
+        PGi.clear();
         // sort the nodes
         BARSplitter::getSortedNodes(cB, PGi);
 
-        crd_res.resize(1);
         E_Int str = crd1.rows();
         crd_res[0].reserve(str, PGi.size());
  
@@ -324,19 +478,557 @@ namespace NUGA
           crd_res[0].pushBack(crd1.col(PGi[j]), crd1.col(PGi[j]) + str);
       }
 
-      bits.reserve(crd_res.size());
+      int nbits = crd_res.size();
+      bits.reserve(nbits);
       std::move(ALL(crd_res), std::back_inserter(bits));
 
       return err;
     }
 
+    ///
     template <>
-    inline E_Int isolated_clip<aPolygon, aPolygon>(aPolygon& sub, aPolygon& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aPolygon>& bits, bool& true_clip)
+    inline E_Int isolated_clip<aPolygon, aPolygon>(aPolygon& sub, aPolygon& cut, NUGA::INTERSECT::eOPER oper, E_Float ARTOL, std::vector<aPolygon>& bits, bool& true_clip)
     {
-      edge_mesh_t ecut(cut);
-      return isolated_clip<aPolygon, edge_mesh_t>(sub, ecut, oper, RTOL, bits, true_clip);
+      using cnt_t         = K_FLD::IntArray;
+      const crd_t& crd1   = sub.m_crd;
+      const crd_t& crd2   = cut.m_crd;
+      edge_mesh_t e_cut(cut); 
+      const cnt_t& cutter = e_cut.cnt;
+
+      true_clip = false;
+      bits.clear();
+
+      E_Int nb_nodes = crd1.cols();
+      cnt_t subj(2, nb_nodes);
+      for (E_Int i = 0; i < crd1.cols(); ++i)
+      {
+        subj(0, i) = i;
+        subj(1, i) = (i + 1) % nb_nodes;
+      }
+
+      int err(0);
+      int nb_edges1(nb_nodes);
+
+      //gather subj & cutter 
+      K_FLD::FloatArray crd(crd1);
+      E_Float W[3];
+      sub.normal<3>(W);
+        
+      E_Int nb_pts1 = crd.cols();
+      crd.pushBack(crd2);
+      K_FLD::IntArray cnt(subj), cnt2(cutter);
+
+      if (oper == NUGA::INTERSECT::DIFFERENCE)
+        connect_trait<LINEIC, true>::reverse_orient(cnt2);
+
+      cnt2.shift(nb_pts1);
+      cnt.pushBack(cnt2);
+
+#ifdef DEBUG_CLIPPER
+      {
+        medith::write("before_conf3D", crd, cnt, "BAR");
+      }
+#endif
+
+      // got 2D (in sub ref frame)
+      K_FLD::FloatArray P(3, 3), iP(3, 3);
+      
+      NUGA::computeAFrame(W, P);
+      iP = P;
+      K_FLD::FloatArray::inverse3(iP);
+      NUGA::transform(crd, iP);
+
+      std::vector<double> zs;
+      crd.extract_field(2, zs); //keep 3rd coord appart (altitude)
+      //compute zmean
+      double zmean(0.);
+      for (E_Int k = 0; k < nb_pts1; ++k) zmean += zs[k];
+      zmean /= nb_pts1;
+      
+      // DISCARD FALSE OVERLAPS among fronts (now we are in 2D, those with big altitudes)
+      // using meL : NOT WORKING because after first cut, sub is overdefined so underestimate Lref, hence some good cut edges are discarded
+      // using bbox in 3D frame : NOT WORKING neither when it's a planar case where the plane is axi-aligned => one corrdinate is the same => Lref gets null
+      // using bbox in 2D frame
+      K_SEARCH::BBox2D bx(crd, nb_pts1);
+      std::vector<E_Int> new_edge_ids; //in case of compacting, need to propagate original ids in xedge
+      double Lref = std::min(bx.maxB[0] - bx.minB[0], bx.maxB[1] - bx.minB[1]);
+
+      // discard false overlaps among front (now we are in 2D, those with big altitudes)
+      {
+        std::vector<bool> keep(cnt.cols(), true);
+        bool do_compact(false);
+        for (E_Int i = nb_edges1; i < cnt.cols(); ++i)
+        {
+          double z1 = zs[cnt(0, i)] - zmean;
+          double z2 = zs[cnt(1, i)] - zmean;
+
+          if (z1*z2 < 0.) continue; // means crossing 
+
+          double mz = std::min(::fabs(z1), ::fabs(z2));
+          keep[i] = (mz < Lref); //at least one inside interf zone
+          do_compact |= !keep[i];
+        }
+        if (do_compact)
+        {
+          E_Int nb_edgesi = cnt.cols();
+          K_FLD::IntArray::compact(cnt, keep, new_edge_ids);
+        }
+      }
+      // now apply zmean to front points such remaining ones at the end will be roughly on subj supporting surface
+      for (size_t k = nb_pts1; k < zs.size(); ++k) zs[k] = zmean;
+
+      crd.resize(2, crd.cols());//now pure 2D
+
+      // conformize this cloud
+      std::vector<E_Int> ancE2;
+      NUGA::BAR_Conformizer<2> conformizer(true/* keep track of nodes history*/);
+      conformizer._brute_force = true;
+
+#ifdef DEBUG_CLIPPER
+      conformizer._silent_errors = false;
+#else
+      conformizer._silent_errors = true;
+#endif
+
+#ifdef DEBUG_CLIPPER
+      {
+        K_FLD::FloatArray tcrd(crd);
+        __normalize<2>(tcrd);
+        tcrd.resize(3, tcrd.cols(), 0.);
+        medith::write("before_conf2D", tcrd, cnt, "BAR");
+      }
+#endif
+
+      double ABSTOL2D = ARTOL;
+      if (ARTOL < 0.) //relative
+      {
+        //2D ABS TOLERANCE
+        double Lref2 = NUGA::FLOAT_MAX;
+        for (int k = 0; k < cnt.cols(); ++k)
+        {
+          double d2 = NUGA::sqrDistance(crd.col(cnt(0, k)), crd.col(cnt(1, k)), 3);
+          Lref2 = std::min(d2, Lref2);
+        }
+
+        ABSTOL2D = -::sqrt(Lref2) * ARTOL;
+        ABSTOL2D = std::max(ABSTOL2D, ZERO_M);
+      }
+
+      //
+      err = conformizer.run(crd, cnt, ancE2, nullptr/*&priority*/, ABSTOL2D, -nb_nodes, 1 /*one iter only*/);
+      if (err)
+        return err;
+
+#ifdef DEBUG_CLIPPER
+      {
+        K_FLD::FloatArray tcrd(crd);
+        __normalize<2>(tcrd);
+        tcrd.resize(3, tcrd.cols(), 0.);
+        medith::write("after_conf2D", tcrd, cnt, "BAR");
+      }
+#endif
+
+      auto xedge = conformizer.get_x_history();
+
+      // Remove identical edges
+      {
+        std::vector<E_Int> dupIds;
+        int nb_removed = MeshTool::removeDuplicated(cnt, dupIds, true/*stict orient*/);
+        if (nb_removed)
+        {
+
+          std::vector<E_Int> new_ancE2;
+          new_ancE2.reserve(ancE2.size());
+          for (size_t k = 0; k < dupIds.size(); ++k)
+          {
+            if (dupIds[k] == k)
+              new_ancE2.push_back(ancE2[k]);
+          }
+          ancE2 = new_ancE2;
+        }
+      }
+
+      
+      //update edge history to reflect original edges (before discarding false overlaps)
+      if (!new_edge_ids.empty())
+      {
+        std::vector<int> oeids;
+        K_CONNECT::IdTool::reverse_indirection(new_edge_ids, oeids);
+        for (auto& x : xedge)
+        {
+          if (x.first != IDX_NONE) x.first = oeids[x.first];
+          if (x.second != IDX_NONE) x.second = oeids[x.second];
+        }
+      }
+
+      // FILTERS
+      std::vector<bool> keep;
+      
+      // INTERECTION & DIFFERENCE
+      {
+        // Filter #1 : remove oppposite edges 
+        __filtrate_opposite_edges(cnt, keep);
+
+        {
+          K_CONNECT::keep<bool> pred1(keep);
+          K_CONNECT::IdTool::compress(ancE2, pred1);
+        }
+
+        if (cnt.cols() == 0)
+        {
+          // Means that sub & cut are exactly matching, with opposite orientation
+          assert(oper != NUGA::INTERSECT::INTERSECTION); // bacause sub & cut ahve same orientation, so we cannot have ALL edges with opposite orientation
+          assert(oper == NUGA::INTERSECT::DIFFERENCE); // this function is currently only tested for INTERSECTION/DIFFERNCE cases only.
+          // Empty answer (solved topologically)
+          sub.clear();
+          return 0;
+        }
+
+#ifdef DEBUG_CLIPPER
+        {
+          K_FLD::FloatArray tcrd(crd);
+          __normalize<2>(tcrd);
+          tcrd.resize(3, tcrd.cols(), 0.);
+          medith::write("after_conf2D_filter1", tcrd, cnt, "BAR");
+        }
+#endif
+      }
+
+      // INTERECTION & DIFFERENCE
+      {
+        // Filter #2 : burn edges oustide subj
+        __filtrate_outside_edges(sub, crd, cnt, nb_pts1, xedge, keep);
+
+        {
+          K_CONNECT::keep<bool> pred1(keep);
+          K_CONNECT::IdTool::compress(ancE2, pred1);
+        }
+
+#ifdef DEBUG_CLIPPER
+        {
+          K_FLD::FloatArray tcrd(crd);
+          __normalize<2>(tcrd);
+          tcrd.resize(3, tcrd.cols(), 0.);
+          medith::write("after_conf2D_filter2", tcrd, cnt, "BAR");
+        }
+#endif
+      }
+      
+      /*if (oper == NUGA::INTERSECT::INTERSECTION)
+      {
+        // Filter #3 : burn edges oustide cut
+        keep.clear();
+        K_CONNECT::IdTool::shift(cut.m_nodes, nb_pts1);
+        __filtrate_outside_edges2(cut, crd, cnt, nb_pts1, xedge, keep);
+
+        {
+          K_CONNECT::keep<bool> pred1(keep);
+          K_CONNECT::IdTool::compress(ancE2, pred1);
+        }
+
+#ifdef DEBUG_CLIPPER
+        {
+          K_FLD::FloatArray tcrd(crd);
+          __normalize<2>(tcrd);
+          tcrd.resize(3, tcrd.cols(), 0.);
+          medith::write("after_conf2D_filter3", tcrd, cnt, "BAR");
+        }
+#endif
+        if (cnt.cols() == 0)
+        {
+          // Means that sub & cut are not overlapping
+          true_clip = true;
+          return 0;
+        }
+      }*/
+
+      //
+      {
+        // Filter #4 : burn edges oustide sub
+        std::map<E_Int, E_Int> node_to_count;
+        NUGA::MeshTool::build_node_arity(cnt, node_to_count);
+        NUGA::MeshTool::burn_free_branches(cnt, node_to_count, keep);
+
+        {
+          K_CONNECT::keep<bool> pred1(keep);
+          K_CONNECT::IdTool::compress(ancE2, pred1);
+        }
+
+#ifdef DEBUG_CLIPPER
+        {
+          K_FLD::FloatArray tcrd(crd);
+          __normalize<2>(tcrd);
+          tcrd.resize(3, tcrd.cols(), 0.);
+          medith::write("after_conf2D_filter4", tcrd, cnt, "BAR");
+        }
+#endif
+      }
+
+      //assert(cnt.cols() != 0);
+      if (cnt.cols() == 0)
+      {
+        // Empty answer
+        sub.clear();
+        return 0;
+      }
+
+      int maxAnc = *std::max_element(ALL(ancE2));
+      if (maxAnc < nb_nodes)
+      {
+        return 0; // "no" intersections => fully visible or hidden ;
+      }
+
+      // use the T3mesher to classify
+
+      DELAUNAY::MeshData data;
+      data.pos = &crd;
+      data.connectB = &cnt;
+
+      DELAUNAY::MesherMode mode;
+      mode.mesh_mode = mode.TRIANGULATION_MODE;
+      mode.remove_holes = true;
+      mode.silent_errors = true; // conformizer._silent_errors;
+      DELAUNAY::T3Mesher<E_Float> mesher(mode);
+      
+      mesher.seed_random(1);
+      err = mesher.run(data);
+      if (err != 0 && err != 77/*open contour*/)
+      {
+        return 1;
+      }
+
+      if (data.connectM.cols() == 0) //checkme
+      {
+        if (oper == NUGA::INTERSECT::DIFFERENCE)
+          sub.clear();
+        //checme : is it always meanin OUT for INTERSECTION ?
+        return 0; 
+      }
+
+      // check if the result is just impacted subj
+      {
+        int maxAnc = -1;
+        std::map<K_MESH::NO_Edge, int> edge_to_anc;
+        for (int e = 0; e < cnt.cols(); ++e)
+          edge_to_anc[K_MESH::NO_Edge(cnt(0, e), cnt(1, e))] = ancE2[e];
+
+        K_FLD::IntArray cB;
+        NUGA::MeshTool::getBoundaryT3Mesh(data.connectM, data.neighbors, cB);
+
+        for (int e = 0; e < cB.cols(); ++e)
+        {
+          auto pK = cB.col(e);
+          K_MESH::NO_Edge E(*pK, *(pK + 1));
+          auto it = edge_to_anc.find(E);
+          assert(it != edge_to_anc.end());
+          //if (it == edge_to_anc.end()) continue; //checkme : can happen ?
+          maxAnc = std::max(maxAnc, it->second);
+        }
+        assert(maxAnc != -1);
+        if (maxAnc < nb_nodes) return 0; // impacted subj => IO test
+      }
+
+#ifdef DEBUG_CLIPPER
+      {
+        K_FLD::FloatArray tcrd(*data.pos);
+        __normalize<2>(tcrd);
+        tcrd.resize(3, tcrd.cols(), 0.);
+        medith::write("out", tcrd, data.connectM, "TRI");
+      }
+#endif
+
+      true_clip = true;
+
+      // transfer altitude
+      std::vector<double> zsnew(data.pos->cols(), NUGA::FLOAT_MAX);
+      const auto& pnids = conformizer.get_node_history();
+      for (size_t i = 0; i < pnids.size(); ++i)
+        if (pnids[i] != IDX_NONE) zsnew[pnids[i]] = zs[i];
+      zs = std::move(zsnew);
+
+      // interpolate missings using x history
+      
+      for (size_t i = 0; i < zs.size(); ++i)
+      {
+        if (zs[i] != NUGA::FLOAT_MAX) continue;            // non valuated node
+        if (i < pnids.size() && pnids[i] != i && pnids[i] != IDX_NONE) continue;   // merged node
+
+        auto xe = xedge[i];
+        
+        assert(xe.first != IDX_NONE); // i is an x point and has its histo
+        
+        if (xe.first >= subj.cols()) continue;
+
+        int N0 = subj(0, xe.first);
+        double * P0 = crd.col(N0);
+        int N1 = subj(1, xe.first);
+        double * P1 = crd.col(N1);
+        double * Px = crd.col(i);
+
+        double L2 = NUGA::sqrDistance(P0, P1, 2);
+        double lam2 = NUGA::sqrDistance(P0, Px, 2);
+        double l = ::sqrt(lam2 / L2);
+
+        zs[i] = (1. - l) * zs[N0] + l * zs[N1];
+      }
+
+      
+      for (size_t k = 0; k < zs.size(); ++k)
+      {
+        if (zs[k] == NUGA::FLOAT_MAX) zs[k] = zmean;
+      }
+
+      // go back 3D
+      data.pos->resize(3, data.pos->cols());
+      data.pos->set_field(2, zs); //
+      NUGA::transform(*data.pos, P); // back to original ref frame  
+
+#ifdef DEBUG_CLIPPER
+      //medith::write("boolean", *data.pos, data.connectM, "TRI");
+#endif
+
+      // build history
+      std::vector<int> poids;
+      K_CONNECT::IdTool::reverse_indirection(pnids, poids);
+      poids.resize(data.pos->cols(), IDX_NONE);
+
+      // rule : 
+      // sub id =>
+      // cut id =>
+      // X node => SZUDOR code of both xe
+      std::vector<long> l_m_poids(poids.size(), IDX_NONE);
+      for (size_t k = 0; k < poids.size(); ++k)
+      {
+        if (poids[k] < nb_nodes)       // sub
+          l_m_poids[k] = sub.m_poids[poids[k]];
+        else if (poids[k] != IDX_NONE) // cutter
+          l_m_poids[k] = cut.m_poids[poids[k]- nb_nodes];
+        else if (k < xedge.size())
+        {
+          int e0 = xedge[k].first;
+          int e1 = xedge[k].second;
+
+          if (e0 == IDX_NONE || e1 == IDX_NONE) continue; // needs both ids 
+
+          e1 -= nb_nodes;
+
+          l_m_poids[k] = -(NUGA::szudzik_pairing(e0, e1) + 1);
+        }
+      }
+
+      std::vector<crd_t> crd_res;              //intermediate format as crds
+      std::vector<std::vector<long>> poids_res; // to migrate nodes history
+
+      int minc = *std::min_element(ALL(data.colors));
+      int maxc = *std::max_element(ALL(data.colors));
+
+      std::vector<int> PGi;
+      std::vector<long> new_poids;
+
+      if (minc != maxc) // non-connex or glued on some edges due to a big tol
+      {
+        std::map<int, K_FLD::IntArray> col_to_cntB;
+        E_Int nbe = data.connectM.cols();
+        for (E_Int i = 0; i < nbe; ++i)
+        {
+          int coli = data.colors[i];
+          K_FLD::IntArray::const_iterator pS = data.connectM.col(i);
+          for (size_t n = 0; n < 3; ++n)
+          {
+            E_Int& Kv = data.neighbors(n, i);
+            if (Kv == IDX_NONE || data.colors[Kv] != coli) //color border
+            {
+              int E[] = { *(pS + (n + 1) % 3),*(pS + (n + 2) % 3) };
+              col_to_cntB[coli].pushBack(E, E + 2);
+            }
+          }
+        }
+
+        crd_res.resize(col_to_cntB.size());
+        poids_res.resize(col_to_cntB.size());
+        
+        int i = 0;
+        std::vector<E_Int> nids;
+        for (auto it = col_to_cntB.begin(); it != col_to_cntB.end(); ++it, ++i)
+        {
+          //
+          nids.clear();
+          K_FLD::FloatArray crd1(*data.pos); //should not hurt as meshes are small
+          NUGA::MeshTool::compact_to_mesh(crd1, it->second, nids);
+
+          new_poids.clear();
+          new_poids.resize(crd1.cols(), IDX_NONE);
+          for (size_t k = 0; k < l_m_poids.size(); ++k)
+          {
+            if (nids[k] == IDX_NONE) continue;
+            new_poids[nids[k]] = l_m_poids[k];
+          }
+
+          PGi.clear();
+          // sort the nodes
+          BARSplitter::getSortedNodes(it->second, PGi);
+
+          E_Int str = crd1.rows();
+          crd_res[i].reserve(str, PGi.size());
+          poids_res[i].resize(crd1.cols(), IDX_NONE);
+          for (size_t j = 0; j < PGi.size(); ++j)
+          {
+            crd_res[i].pushBack(crd1.col(PGi[j]), crd1.col(PGi[j]) + str);
+            poids_res[i][j] = new_poids[PGi[j]];
+          }
+        }
+      }
+      else //connex
+      {
+        crd_res.resize(1);
+        poids_res.resize(1);
+
+        K_FLD::IntArray cB;
+        NUGA::MeshTool::getBoundaryT3Mesh(data.connectM, data.neighbors, cB);
+
+        std::vector<E_Int> nids;
+        K_FLD::FloatArray& crd1 = *data.pos;
+        NUGA::MeshTool::compact_to_mesh(crd1, cB, nids);
+
+        new_poids.clear();
+        new_poids.resize(crd1.cols(), IDX_NONE);
+        for (size_t k = 0; k < l_m_poids.size(); ++k)
+        {
+          if (nids[k] == IDX_NONE) continue;
+          new_poids[nids[k]] = l_m_poids[k];
+        }
+
+        PGi.clear();
+        // sort the nodes
+        BARSplitter::getSortedNodes(cB, PGi);
+
+        E_Int str = crd1.rows();
+
+        crd_res[0].reserve(str, PGi.size());
+        poids_res[0].resize(crd1.cols(), IDX_NONE);
+
+        for (size_t j = 0; j < PGi.size(); ++j)
+        {
+          crd_res[0].pushBack(crd1.col(PGi[j]), crd1.col(PGi[j]) + str);
+          poids_res[0][j] = new_poids[PGi[j]];
+        }
+      }
+
+      int nbits = crd_res.size();
+      bits.reserve(nbits);
+      std::move(ALL(crd_res), std::back_inserter(bits));
+      // pass the history
+      for (size_t k = 0; k < nbits; ++k)
+      {
+        assert(poids_res[k].size() == bits[k].m_crd.cols());
+        bits[k].m_poids = poids_res[k];
+      }
+
+      return err;
     }
 
+    
+    ///
     template <>
     inline E_Int isolated_clip<aPolyhedron<0>, pg_smesh_t>(aPolyhedron<0>& sub, pg_smesh_t& cut, NUGA::INTERSECT::eOPER oper, E_Float RTOL, std::vector<aPolyhedron<0>>& bits, bool& true_clip)
     {
@@ -374,7 +1066,7 @@ namespace NUGA
     bool compute(aELT1 & subj, aELT2 & cutter, NUGA::INTERSECT::eOPER oper, std::vector<aELT1>& bits)
     {
       bool true_clip(false);
-      double RTOL = 1.e-9;
+      double RTOL = -1.e-9;
       E_Int err(1);
       for (size_t i = 0; i < 8 && err; ++i)
       {
@@ -482,7 +1174,7 @@ namespace NUGA
           bound_mesh_t acut_front(mask_bit, cands, idx_start);
 
 #ifdef DEBUG_CLIPPER
-          medith::write("subj", ae1);// or medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
+          //medith::write("subj", ae1);// or medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
           medith::write("cutter_front", acut_front.crd, acut_front.cnt);
 #endif
           //CLIPPING

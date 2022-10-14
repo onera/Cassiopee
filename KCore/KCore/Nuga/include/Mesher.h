@@ -305,7 +305,7 @@ namespace DELAUNAY
 
 #ifdef DEBUG_MESHER
     //if (dbg_flag)
-      medith::write<E_Int>("triangulationC_color",*_data->pos, _data->connectM, "TRI", &_data->mask, &data.colors);
+      medith::write("triangulationC_color",*_data->pos, _data->connectM, "TRI", &_data->mask, &data.colors);
 #endif
 
     if (mode.mesh_mode == MesherMode::REFINE_MODE)
@@ -405,6 +405,7 @@ namespace DELAUNAY
     E_Float c4[2] = {minX,maxY};
 
     size_type C1,C2,C3,C4;
+    assert(_data->pos->rows() == 2);
     _data->pos->pushBack(c1, c1+2); C1 = _data->pos->cols()-1;
     _data->pos->pushBack(c2, c2+2); C2 = _data->pos->cols()-1;
     _data->pos->pushBack(c3, c3+2); C3 = _data->pos->cols()-1;

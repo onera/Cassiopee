@@ -252,6 +252,12 @@ Conformizer<DIM, Element_t>::__initialize
  std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc, E_Int X0)
 {
   _X0 = X0;
+  _X1 = 0;
+  if (X0 < 0)
+  {
+    _X0 = -X0;
+    _X1 = pos.cols(); 
+  }
   
   // initialize T3s ancestors
   ancestors.resize(connect.cols(), 0);
@@ -319,13 +325,25 @@ Conformizer<DIM, Element_t>::__merge_clean
     
     return __merge_clean(tol, pos, connect, ancestors, new_IDs, xc, nodes, nodes);
   }
-  else
+  else if (fromIdx > 0)
   {
     std::vector<E_Int> source, target;
     connect.uniqueVals(target);
     for (E_Int i = fromIdx; i < pos.cols(); ++i) source.push_back(i);
     target.insert(target.end(), source.begin(), source.end());
     
+    return __merge_clean(tol, pos, connect, ancestors, new_IDs, xc, source, target);
+  }
+  else // (fromIdx < 0) => _X1 is set : rule for target : [0, ... X0, X1+1, ...pos.cols(), X0+1, ... X1]. The less prior are those in the tail of input pos 
+  {
+    std::vector<E_Int> source, target;
+    for (E_Int i = 0; i < _X0; ++i) target.push_back(i);
+    for (E_Int i = _X1; i < pos.cols(); ++i) target.push_back(i);
+    for (E_Int i = _X0; i < _X1; ++i) target.push_back(i);
+    
+    source = target;
+    std::reverse(ALL(source));
+
     return __merge_clean(tol, pos, connect, ancestors, new_IDs, xc, source, target);
   }
 }
@@ -372,6 +390,9 @@ Conformizer<DIM, Element_t>::__clean
     K_CONNECT::IdTool::compress(ancestors, pred);
     if (xc)
       K_CONNECT::IdTool::compress(*xc, pred);
+    for (auto& e : _elements)
+      e.id = nids[e.id];
+    K_CONNECT::IdTool::compress(_elements, pred);
   }
 }
 
@@ -465,7 +486,8 @@ E_Int Conformizer<DIM, Element_t>::__run
 #ifdef FLAG_STEP
   E_Int nb_merges =
 #endif
-    __merge_clean(_tol_clean/*1.e-9 for now*/, pos, connect, ancestors, nids, &xc, _N0);
+    int n0 = (_X1 != 0) ? -_N0 : _N0; 
+    __merge_clean(_tol_clean/*1.e-9 for now*/, pos, connect, ancestors, nids, &xc, n0);
 
 #ifdef DEBUG_CONFORMIZER
   {
