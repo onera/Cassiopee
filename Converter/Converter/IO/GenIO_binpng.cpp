@@ -256,6 +256,7 @@ E_Int K_IO::GenIO::pngread(
 //=============================================================================
 // Ecrit seulement le premier domaine structure
 // Recupere seulement les champs RGB
+// Les champs doivent etre en entiers entre 0 et 255
 //=============================================================================
 E_Int K_IO::GenIO::pngwrite(
   char* file, char* dataFmt, char* varString,
@@ -274,12 +275,13 @@ E_Int K_IO::GenIO::pngwrite(
   if (posG == -1) posG = K_ARRAY::isNamePresent((char*)"G", varString);
   E_Int posB = K_ARRAY::isNamePresent((char*)"b", varString);
   if (posB == -1) posB = K_ARRAY::isNamePresent((char*)"B", varString);
-  printf("pos %d %d %d\n", posR, posG, posB);
   int mode = 0; // only RGB
   
   // recupere la taille de la premiere grille structuree
   int width = 0; int height = 0;
   width = ni[0]; height = nj[0];
+  
+  //printf("pos %d %d %d - %d %d\n", posR, posG, posB, width, height);
   
   // cree le buffer
   png_byte* buffer = new png_byte [3*width*height];
@@ -304,7 +306,7 @@ E_Int K_IO::GenIO::pngwrite(
   png_byte color_type;
   png_byte bit_depth;
   int stride = 0;
-  if (mode == 0) 
+  if (mode == 0)
   { color_type = PNG_COLOR_TYPE_RGB; bit_depth = 8; stride = 3; }
   else { color_type = PNG_COLOR_TYPE_RGBA; bit_depth = 8; stride = 4; }  
   

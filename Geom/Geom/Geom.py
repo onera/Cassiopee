@@ -914,3 +914,7 @@ def findNearest__(Pt, Pts, c):
             if d2 < minDist and d2 > 1.e-12:
                 minDist = d2; nearest = e2b; ext=1; dmin = d
     return minDist, nearest, dmin, ext
+
+def getUV(a, normalDeviationWeight=2., texelsPerUnit=0.):
+    """Return uv and atlas"""
+    return geom.getUV(a, normalDeviationWeight, texelsPerUnit)

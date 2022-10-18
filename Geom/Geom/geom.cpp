@@ -49,6 +49,7 @@ static PyMethodDef Pygeom [] =
   {"spline", K_GEOM::spline, METH_VARARGS},
   {"nurbs", K_GEOM::nurbs, METH_VARARGS},
   {"getSharpestAngle", K_GEOM::getSharpestAngleForVertices, METH_VARARGS},
+  {"getUV", K_GEOM::getUV, METH_VARARGS},
   {NULL, NULL}
 };
 

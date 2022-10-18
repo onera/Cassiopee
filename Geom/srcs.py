@@ -18,7 +18,9 @@ cpp_srcs = ["Geom/naca.cpp",
             "Geom/addSeparationLine.cpp",
             "Geom/torus.cpp",
             "Geom/getSharpestAngleForVertices.cpp",
-            "Geom/getNearestPointIndex.cpp"]
+            "Geom/getNearestPointIndex.cpp",
+            "Geom/xatlas/xatlas.cpp",
+            "Geom/getUV.cpp"]
 
 #==============================================================================
 # Fichiers fortran
