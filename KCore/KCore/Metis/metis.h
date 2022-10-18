@@ -176,7 +176,21 @@ typedef __int64 int64_t;
 #define METIS_API(type) type
 #endif
 
-
+/* Ajoute par Pascal et Sebastien */
+/*
+#define METIS_PartGraphRecursive K_METIS__METIS_PartGraphRecursive
+#define METIS_PartGraphKway      K_METIS__METIS_PartGraphKway
+#define METIS_MeshToDual         K_METIS__METIS_MeshToDual
+#define METIS_MeshToNodal        K_METIS__METIS_MeshToNodal
+#define METIS_PartMeshNodal        K_METIS__METIS_PartMeshNodal
+#define METIS_PartMeshDual        K_METIS__METIS_PartMeshDual
+#define METIS_NodeND        K_METIS__METIS_NodeND
+#define METIS_Free        K_METIS__METIS_Free
+#define METIS_SetDefaultOptions        K_METIS__METIS_SetDefaultOptions
+#define METIS_NodeNDP        K_METIS__METIS_NodeNDP
+#define METIS_ComputeVertexSeparator        K_METIS__METIS_ComputeVertexSeparator
+#define METIS_NodeRefine        K_METIS__METIS_NodeRefine
+*/
 
 #ifdef __cplusplus
 extern "C" {

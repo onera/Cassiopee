@@ -291,12 +291,14 @@ class Probe:
         return None
 
     # Prepare for mode=3
-    def prepare(self, tc):
+    def prepare(self, tc, cartesian=False):
         tcs = Internal.copyRef(tc)
         # Clean previous IDs if necessary
         Internal._rmNodesFromType(tcs, 'ZoneSubRegion_t')
-        cartesian = False # True if tc is cartesian
-        interpDataType = 1 # 0 if tc is cartesian
+        Internal._rmNodesFromName(tcs, 'GridCoordinates#Init')
+        
+        if cartesian: interpDataType = 0 # 0 if tc is cartesian
+        else: interpDataType = 1
 
         # Compute BBoxTrees
         tsBB = Cmpi.createBBoxTree(self._ts)
@@ -320,8 +322,9 @@ class Probe:
                 zd = Internal.getNodeFromName2(tcs, zdname)
                 dnrZones.append(zd)
             C._initVars(zs, 'cellN', 2.) # interp all
-            X._setInterpData(zs, dnrZones, nature=1, penalty=1, loc='nodes', storage='inverse',
-                             sameName=0, interpDataType=interpDataType, itype='chimera')
+            if dnrZones != []:
+                X._setInterpData(zs, dnrZones, nature=1, penalty=1, loc='nodes', storage='inverse',
+                                 sameName=0, interpDataType=interpDataType, itype='chimera')
 
             for zd in dnrZones:
                 zdname = zd[0]
@@ -493,6 +496,7 @@ class Probe:
     # IN: _probeZones: zone de stockage
     # IN: _ind: index of probe (static)
     # IN: _fields: nom des champs a extraire
+    # si onlyTransfer=True, les champ ne sont pas stockes dans la probe
     def extract(self, t, time, onlyTransfer=False):
         """Extract XYZ or Ind fields from t."""
 
@@ -599,7 +603,7 @@ class Probe:
         if self._icur >= self._bsize: self.flush()
         return None
 
-    def extract3(self, tcs, time, onlyTransfer):
+    def extract3(self, tcs, time, onlyTransfer=False):
         """Extract for mode=3."""
         if self._probeZones is None: 
             self.createProbeZones(self._ts)
@@ -607,8 +611,8 @@ class Probe:
             for v in self._fields: C._initVars(self._ts, v, 0.)
         Cmpi.barrier()
 
-        # ts : permeable surface
-        # tcs :  tc for surface interp must be set
+        # ts: permeable surface
+        # tcs: tc for surface interp must be set
         if self._procDicts is None:
             tsBB = Cmpi.createBBoxTree(self._ts)
             self._procDicts = Cmpi.getProcDict(tsBB)
@@ -622,8 +626,7 @@ class Probe:
                                             procDict=procDictc, procDict2=self._procDicts, t2=tsBB, reduction=True)
 
         Xmpi._setInterpTransfers(self._ts, tcs, variables=self._fields, graph=self._graph, procDict=self._procDicts)
-        if onlyTransfer:
-            return None
+        if onlyTransfer: return None
         #Cmpi.convertPyTree2File(self._ts, 'out.cgns')
         #Internal.printTree(self._probeZones)
 
@@ -687,6 +690,7 @@ class Probe:
                 for pf in pfs:
                     pfp = Internal.getNodeFromName1(fcp, pf[0])
                     if pfp is not None: pfp[1] = pf[1]
+                    else: Internal.newDataArray(pf[0], value=pf[1], parent=fcp)
             fc = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
             fcp = Internal.getNodeFromName1(zp, Internal.__FlowSolutionCenters__)
             if fc is not None:
@@ -695,6 +699,7 @@ class Probe:
                 for pf in pfs:
                     pfp = Internal.getNodeFromName1(fcp, pf[0])
                     if pfp is not None: pfp[1] = pf[1]
+                    else: Internal.newDataArray(pf[0], value=pf[1], parent=fcp)
         return None
 
     # flush containers of probe
@@ -796,6 +801,8 @@ class Probe:
             
             dimz = Internal.getZoneDim(z)
             nrec = dimz[1]; ni = dimz[2]; nj = dimz[3]
+            if self.getFieldLoc(self._fields) == 'centers': # attention!
+                nrec = nrec-1
             if nj == 1: zsize = [[ni,ni-1,0]]
             else: zsize = [[ni,ni-1,0],[nj,nj-1,0]]
             for nr in range(nrec):

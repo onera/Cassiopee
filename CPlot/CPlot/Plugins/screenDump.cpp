@@ -204,10 +204,12 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer];
       float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
       for ( int i = 0; i < exportHeight; ++i ) {
-        for ( int j = 0; j < exportWidth; ++j ) {
+        for ( int j = 0; j < exportWidth; ++j ) 
+        {
           unsigned ind = i*exportWidth+j;
           assert(ind < s);
-          if (depth[ind] < offscreenD[ind]) {
+          if (depth[ind] < offscreenD[ind]) 
+          {
             offscreen[3*ind  ] = buffer[3*ind  ];
             offscreen[3*ind+1] = buffer[3*ind+1];
             offscreen[3*ind+2] = buffer[3*ind+2];
@@ -225,7 +227,8 @@ char* Data::export2Image(int exportWidth, int exportHeight)
 
     E_Int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     E_Int size; MPI_Comm_size(MPI_COMM_WORLD, &size);
-    E_Int screenSize = _view.w * _view.h; 
+    E_Int screenSize = _view.w * _view.h;
+    //printf("Rendering : w=%d ew=%d h=%d eh=%d\n", _view.w, exportWidth, _view.h, exportHeight);
     
     // Recupere le depth buffer et l'adimensionne
     void* depthl;
@@ -329,7 +332,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   printf("Error: CPlot: mesa offscreen or MPI unavailable.\n");
 #endif
   }
-  else if (ptrState->offscreen == 5 || ptrState->offscreen == 6) // MESA RGB+DEPTH+COMPOSE)
+  else if (ptrState->offscreen == 5 || ptrState->offscreen == 6) // MESA RGB+DEPTH+COMPOSE
   {
 #ifdef __MESA__
     E_Int screenSize = _view.w * _view.h; 

@@ -286,6 +286,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     }
     
     // Compact - Essai pour enlever des streamlines qui auraient 0 points
+    /*
     size_t size = 0;
     for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
@@ -304,7 +305,8 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         Py_DECREF(list_of_streamlines);
         list_of_streamlines = list_of_streamlines2;
     }
-
+    */
+   
     for (unsigned int nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
     for (unsigned int nos = 0; nos < obju.size(); nos++)

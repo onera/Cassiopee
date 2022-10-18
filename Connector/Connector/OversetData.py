@@ -327,7 +327,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 # IN: penalty=1: penalise une cellule donneuse en terme de volume si elle est au bord
 # IN: nature=0: aucun sommet de la cellule d'interpolation ne doit etre avec un cellN=0
 #     nature=1: tous les sommets de la cellule d interpolation doivent etre de cellN=1
-# IN : interpDataType : 0 pour recherche cartesienne, 1 pour recherche dans ADT
+# IN: interpDataType: 0 pour recherche cartesienne, 1 pour recherche dans ADT
 # IN: hook: hook sur l'arbre de recherche (pas reconstruit dans setInterpIBC), l'ordre doit suivre celui de zonesD
 # IN: storage: type de stockage (direct: sur le bloc interpole, inverse: sur le bloc d'interpolation)
 # IN: loc='nodes','cells','faces': interpolation appliquee pour les receveurs (localises en noeuds/centres/faces)
