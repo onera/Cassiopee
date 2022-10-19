@@ -90,7 +90,7 @@ List of functions
    Geom.getCurvilinearAbscissa
    Geom.getDistribution
    Geom.getTangent
-
+   Geom.getUV
 
 Contents
 ########
@@ -1200,6 +1200,32 @@ all the points of the geometry.
 
 ---------------------------------------
 
+.. py:function:: Geom.getUV(a, normalDeviationWeight=2., texelsPerUnit=0)
+  
+    Return the UV map of a TRI surface. Return also color and bumpmap atlas as Zone image.
+    The number of points of returned zone can be greater than the one of input zone because
+    of seams in the map (lines where UV are not unique).
+
+    :param a: single TRI zone
+    :type a: [array] or [zone]
+    :param normalDeviationWeight: weight for normal deviation to form a chart
+    :type normalDeviationWeight: float
+    :param texelsPerUnit: number of pixels for each texel (set image resolution)
+    :type texelsPerUnit: float (if 0, automatic setting)
+    :return: The UV map of a, color atlas, bumpmap atlas
+    :rtype: three zones
+
+    *Example of use:*
+
+    * `Get UV map (array) <Examples/Geom/getUV.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getUV.py
+
+    * `Get UV map (pyTree) <Examples/Geom/getUVPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getUVPT.py
+
+---------------------------------------
 
 .. toctree::
    :maxdepth: 2   

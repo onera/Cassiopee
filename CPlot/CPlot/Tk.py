@@ -1408,6 +1408,7 @@ def toolBar(win):
 # IN: show: create and show if true
 #==============================================================================
 def minimal(title, show=True):
+    
     global TXT, TKTREE
     win = TK.Tk()
     WIDGETS['masterWin'] = win
@@ -1436,7 +1437,7 @@ def minimal(title, show=True):
     #win.grid_rowconfigure(2, weight=1)
     #win.grid_columnconfigure(2, weight=1)
     win.resizable(0,0)
-
+    
     menu = TK.Menu(win, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     # menu file
     file = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
@@ -1520,6 +1521,7 @@ def minimal(title, show=True):
 
     try: TKTREE = __import__('tkTree'); TKTREE.createApp(win)
     except: TKTREE = None 
+    
     return (win, menu, file, tools)
 
 #==============================================================================
@@ -1530,16 +1532,16 @@ def minimal(title, show=True):
 def minimal2(title, show=True):
     global TKTREE
     (win, menu, file, tools) = minimal(title, show)
-
+    
     # Frame container
     F = TTK.Frame(win)
     F.grid(columnspan=2, sticky=TK.EW)
     F.columnconfigure(0, weight=0)
-
+    
     # Cree le TkTree (colonne1)
     TKTREE = __import__('tkTree')
     TKTREE.createApp(F); TKTREE.showApp()
-
+    
     # Cree le notebook
     nb = noteBook(F, TK.LEFT, menu)
     frames = []; menus = []; buttons = []

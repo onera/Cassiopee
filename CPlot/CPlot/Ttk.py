@@ -28,30 +28,67 @@ def installLocalThemes(win):
         win.call("package", "require", "Tk", "8.5")
     except: pass
 
+# Themes a charger dynamiquement
+dynamicThemes = {
+    "aquativo": "aquativo.tcl",
+    "arc": "arc.tcl",
+    "black": "black.tcl",
+    #"blue": "blue.tcl",
+    "breeze": "breeze.tcl",
+    "clearlooks": "clearlooks.tcl",
+    #"elegance": "elegance.tcl",
+    "equilux": "equilux.tcl",
+    "itft1": "itft1.tcl",
+    #"keramik": "keramik.tcl",
+    #"plastik": "plastik.tcl",
+    "radiance": "radiance.tcl",
+    #"scid": "scid.tcl",
+    "smog": "smog.tcl",
+    "ubuntu": "ubuntu.tcl",
+    "winxpblue": "winxpblue.tcl",
+    #"forest": "forest-dark.tcl"
+}
+
 #=================================================================
 # Get available ttk themes
+#=================================================================
 def getAvailableThemes():
     if ttk is not None:
         l = ttk.Style().theme_names()
-        l = list(l); l.sort()
+        l = list(l)
+        # Ajout des themes dynamiques
+        l += dynamicThemes.keys()
+        l = set(l)
+        l = list(l)
+        l.sort()
         return l
     else: return ['default']
 
 #================================================================
 # Set theme if possible, otherwise try default themes
+#================================================================
 def setTheme(myTheme):
     if ttk is not None:
+
+        if myTheme == "None": # no pref set
+            myTheme = "clearlooks"
+
+        # Load des themes dynamiques
+        if myTheme in dynamicThemes.keys():
+            import KCore.installPath
+            folder = KCore.installPath.installPath+'/CPlot'
+            CTK.WIDGETS['masterWin'].call("lappend", "auto_path", "[%s]"%folder + "/themes/%s"%myTheme)
+            CTK.WIDGETS['masterWin'].eval("source %s/themes/%s/%s"%(folder,myTheme,dynamicThemes[myTheme]))
+            ttk.Style().theme_use(myTheme); createStyles(); return
+
+        # Load des themes availables
         available = ttk.Style().theme_names()
         if myTheme in available:
             ttk.Style().theme_use(myTheme); createStyles(); return
-        tryThemes = ["xpnative", "clearlooks",
-                     "black", "aquativa", "classic", "default"]
-        for t in tryThemes:
-            if t in available:
-                ttk.Style().theme_use(t); createStyles(); return
-
+        
 #=============================================================
 # Create specific styles
+#=============================================================
 def createStyles():
     if ttk is not None:
         
@@ -92,6 +129,7 @@ def createStyles():
 
 #===========================================================
 # Set global style and create specific styles
+#===========================================================
 def setStyle():
     if ttk is not None:
         # pour windows : xpnative, vista, winnative

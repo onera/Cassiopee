@@ -92,7 +92,9 @@ def notImplemented():
 
 #==============================================================================
 # To be called when CTK.t is set
+#==============================================================================
 def run(t=None):
+
     if t is not None:
         if Internal.isTopTree(t): CTK.t = t
         else: CTK.t, ntype = Internal.node2PyTree(t)
@@ -212,7 +214,14 @@ def run(t=None):
 
     # Load textures, billboards file names into CPlot
     CPlot.loadImageFiles(CTK.t)
-    
+
+    # Automatically adjust view if any slot
+    if CTK.t != []:
+        renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
+        if renderInfo is not None:
+            CTK.openApp("tkView")
+            import tkView; tkView.loadSlot()
+
     # - Main loop -
     win.mainloop()
 
