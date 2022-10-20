@@ -61,5 +61,4 @@ ppf = Dist.createFortranFiles(env, srcs)
 myMod = env.StaticLibrary('template', srcs.cpp_srcs+ppf)
 modDir = installPath+'/Template/'
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Template/*.py'))
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

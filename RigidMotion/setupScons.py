@@ -51,9 +51,10 @@ setup(
     name="RigidMotion",
     version="3.5",
     description="Compute/define rigid motion.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['RigidMotion'],
+    package_dir={"":"."},
     ext_modules=listExtensions
     )
 

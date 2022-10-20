@@ -134,11 +134,23 @@ namespace
                 std::cout << "Recherche d'un nouveau bloc contenant le point " << std::string(cur_point)
                           << " pour le " << istream << " sommet de streamline" << std::endl;
 #               endif
+                vector3d old_velocity = velocity;
+
                 std::tie(num_blk, ind_cell, velocity) = 
                         init_streamline(cur_point, zones, max_vertices_for_streamline, streamPt, istream, num_blk);
 #               if defined(DEBUG_VERBOSE)
                 std::cout << "bloc trouvé : " << num_blk << " indice cellule trouvée : " << ind_cell << std::endl;
 #               endif
+                if (ind_cell == -1)
+                {
+                    // On perturbe légèrement pour trouver une cellule :
+                    point3d newcur_point=cur_point + 1.E-6*old_velocity;
+                    std::tie(num_blk, ind_cell, velocity) = 
+                        init_streamline(newcur_point, zones, max_vertices_for_streamline, streamPt, istream, num_blk);
+#                   if defined(DEBUG_VERBOSE)
+                    std::cout << "bloc trouvé : " << num_blk << " indice cellule trouvée : " << ind_cell << std::endl;
+#                   endif
+                }
                 if (ind_cell == -1) break; // On n'a pas trouvé de zones correspondantes...
                 continue;
             }
@@ -208,23 +220,28 @@ namespace
             std::cout  << std::flush << std::endl;
 #endif
             decltype(facette.compute_intersection(cur_point, velocity)) intersect_data;
-#if !defined(DEBUG_VERBOSE)            
+/*#if !defined(DEBUG_VERBOSE)            
             try
             {
-#endif
+#endif*/
                 intersect_data = facette.compute_intersection(cur_point, velocity);
+            #define DEBUG_VERBOSE 
 #if defined(DEBUG_VERBOSE)
-                std::cout << "Nouvelle position: " << std::string(intersect_data.first) << std::endl;
-                std::cout << "No triangle d'intersection: " << intersect_data.second << "." << std::endl;
+                //std::cout << ".";
+                //std::cout << "Nouvelle position: " << std::string(intersect_data.first) << std::endl;
+                //std::cout << "No triangle d'intersection: " << intersect_data.second << "." << std::endl;
 #endif
-#if !defined(DEBUG_VERBOSE)            
+    #undef DEBUG_VERBOSE
+/*#if !defined(DEBUG_VERBOSE)            
             }
             catch(std::domain_error& err)
             {
                 std::cerr << "Warning: geometric intersection problem: " << err.what() << ". On arête prématurément le calcul de cette streamline." << std::endl;
-                break;
+                //break;
             }
-#endif
+#endif*/
+            if (intersect_data.second >= 0)
+            {
             const FldArrayF& field = *zones[num_blk].get_fields();
             std::vector<E_Float> interpfld = facette.compute_interpolated_field(intersect_data, field);
             for ( decltype(interpfld.size()) f = 0; f < interpfld.size(); ++f )
@@ -233,12 +250,14 @@ namespace
             velocity = { streamPt(istream, npos_vel[0]), streamPt(istream, npos_vel[1]), streamPt(istream, npos_vel[2]) };
             ind_cell  = facette.indices_cells.second;
             cur_point = intersect_data.first;
+            }
         } // End for (istream)
         E_Int nfld = streamPt.getNfld();
 //        std::cout << "Reallocation..." << istream << "," << nfld << std::endl << std::flush ;
         streamPt.reAllocMatSeq(istream,nfld);
 //        std::cout << "Fin reallocation..." << std::flush << std::endl;
     }
+
 }
 
 namespace K_POST
@@ -247,20 +266,27 @@ namespace K_POST
                                                E_Int max_vertices_for_streamline, bool is_bidirectional)
     {
         this->pt_field = std::unique_ptr<FldArrayF>(new FldArrayF);//std::make_unique<FldArrayF>();
+        if (zones.size() == 0) return;
         FldArrayF& streamPt = *this->pt_field;
         build_streamline(init_pos, zones, max_vertices_for_streamline, streamPt, false);
         if (is_bidirectional)
         {
+            const K_POST::zone_data_view& zone = zones[0];
+
+            // Interpolation du champs de la zone sur le sommet de depart de la streamline :
+            E_Int nfld = zone.get_fields()->getNfld();
+
             FldArrayF streamPtRev;
-            streamPtRev.malloc(max_vertices_for_streamline, streamPt.getNfld());
-            for ( E_Int f = 0; f < streamPt.getNfld(); ++f )
+            streamPtRev.malloc(max_vertices_for_streamline, nfld);
+            if (streamPt.getSize()==0) return;
+            for ( E_Int f = 0; f < nfld; ++f )
                 streamPtRev(0,f+1) = streamPt(0,f+1);
             build_streamline(init_pos, zones, max_vertices_for_streamline, streamPtRev, true);
-            // Fusion des deux streamlines pour en faire une seule :
+            // Fusion des deux streamlines pour en faire une seule
             std::unique_ptr<FldArrayF> pt_globStreamLine= std::unique_ptr<FldArrayF>(new FldArrayF);
             FldArrayF& globStreamLine = *pt_globStreamLine;
-            globStreamLine.malloc(streamPt.getSize()+streamPtRev.getSize()-1, streamPt.getNfld());
-            for ( E_Int f = 0; f < streamPt.getNfld(); ++f )
+            globStreamLine.malloc(streamPt.getSize()+streamPtRev.getSize()-1, nfld);
+            for ( E_Int f = 0; f < nfld; ++f )
             {
                 for ( E_Int i = 0; i < streamPt.getSize(); ++i )
                 {

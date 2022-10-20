@@ -51,7 +51,8 @@ setup(
     name="Transform",
     version="3.5",
     description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     package_dir={"":"."},
     packages=['Transform'],
     ext_modules=listExtensions

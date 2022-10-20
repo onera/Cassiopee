@@ -40,9 +40,10 @@ setup(
     name="Modeler",
     version="3.5",
     description="Modeler module.",
-    author="Onera",
-    package_dir={"":"."},
-    packages=['Modeler']
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
+    packages=['Modeler'],
+    package_dir={"":"."}
     )
 
 # Check PYTHONPATH ===========================================================

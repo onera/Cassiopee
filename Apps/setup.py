@@ -16,10 +16,10 @@ if prod is None: prod = 'xx'
 setup(
     name="Apps",
     version="3.5",
-    description="Application module (layer1).",
-    author="C. Benoit, S. Peron",
-    package_dir={"":"."},
-    packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda']
+    description="Application modules",
+    author="ONERA",
+    packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda'],
+    package_dir={"":"."}
     )
 
 # Check PYTHONPATH ===========================================================

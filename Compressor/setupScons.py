@@ -69,10 +69,10 @@ setup(
     name="Compressor",
     version="3.5",
     description="Compress CFD solutions.",
-    author="Onera",
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     package_dir={"":"."},
     packages=['Compressor', 'Compressor.sz', 'Compressor.zfp'],
-    #packages=['Compressor', 'Compressor.zfp'],
     ext_modules=extensions
     )
 

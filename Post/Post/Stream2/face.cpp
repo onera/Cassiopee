@@ -281,7 +281,11 @@ namespace K_POST
             num_trig += 1;
         }
         if (num_trig >= (E_Int)triangles.size())
-            throw std::domain_error("Aucune intersection trouvée avec les triangles composant la face");
+        {
+            std::cout << "Warning: no intersection found with face." << std::endl;
+            return {intersection,-1};
+        }
+            //throw std::domain_error("Aucune intersection trouvée avec les triangles composant la face");
         return {intersection, num_trig};
     }
     // ============================================================================================

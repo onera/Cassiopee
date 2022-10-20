@@ -53,9 +53,10 @@ setup(
     name="Connector",
     version="3.5",
     description="Connector for *Cassiopee* modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['Connector'],
+    package_dir={"":"."},
     ext_modules=listExtensions)
 
 # Check PYTHONPATH ===========================================================

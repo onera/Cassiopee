@@ -660,10 +660,9 @@ else if ($MAC == "spiro_el8") then
         alias python python3
         source /etc/profile.d/modules-onera.csh
         module purge
-        module load python/3.8.7-gnu831
-        module load intel/19.05
-        module load impi/19.0.5
-        module load hdf5/1.10.3-intel1905
+        module load python/3.8.14-gnu831
+        module load intel/19.0.5
+        module load hdf5/1.10.5-intel1905-impi
         module load occt/7.6.1-gnu831
         module load subversion/1.14.1-gnu831
         

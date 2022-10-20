@@ -114,7 +114,6 @@ env.Append(CPPFLAGS=EXTRA)
 cplotLib = env.StaticLibrary('cplot', srcs.cpp_srcs)
 modDir = installPath+'/CPlot/'
 dp1 = env.Install(modDir, cplotLib)
-dp2 = env.Install(modDir, Glob('CPlot/*.py'))
 dp3 = env.Install(modDir, 'ttk-themes/themes.tar')
 dp4 = env.Install(modDir, Glob('CPlot/Textures/*.png'))
 dp5 = env.Install(modDir, Glob('CPlot/Textures/*.ico'))
@@ -131,4 +130,4 @@ else:
     dp8 = env.Install(modDir, Glob('CPlot/Shaders/*.geom'))
     dp9 = env.Install(modDir, Glob('CPlot/Shaders/*.tcs'))
     dp10= env.Install(modDir, Glob('CPlot/Shaders/*.tes'))
-env.Alias(target="install", source=[dp1,dp2,dp3,dp4,dp5,dp6,dp7,dp8,dp9,dp10])
+env.Alias(target="install", source=[dp1,dp3,dp4,dp5,dp6,dp7,dp8,dp9,dp10])

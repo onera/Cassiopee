@@ -54,8 +54,8 @@ setup(
     version="2.0",
     description="Template module.",
     author="You",
-    package_dir={"":"."},
     packages=['Template'],
+    package_dir={"":"."},
     ext_modules=listExtensions)
 
 # Check PYTHONPATH ===========================================================

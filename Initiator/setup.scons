@@ -62,6 +62,5 @@ myMod = env.StaticLibrary('initiator',
                           srcs.cpp_srcs+ppf)
 modDir = installPath+'/Initiator/'
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Initiator/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

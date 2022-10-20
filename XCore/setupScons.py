@@ -70,9 +70,10 @@ setup(
     name="XCore",
     version="3.5",
     description="XCore for *Cassiopee* modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['XCore'],
+    package_dir={"":"."},
     ext_modules=listExtensions
     )
 

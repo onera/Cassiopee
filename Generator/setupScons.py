@@ -49,9 +49,10 @@ setup(
     name="Generator",
     version="3.5",
     description="*Cassiopee* module of mesh generation.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['Generator'],
+    package_dir={"":"."},
     ext_modules=listExtensions
     )
 

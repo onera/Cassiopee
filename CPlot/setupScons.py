@@ -119,9 +119,10 @@ setup(
     name="CPlot",
     version="3.5",
     description="A plotter for *Cassiopee* Modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['CPlot'],
+    package_dir={"":"."},
     ext_modules=extensions
     )
 

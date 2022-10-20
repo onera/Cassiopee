@@ -48,9 +48,10 @@ setup(
     name="Dist2Walls",
     version="3.5",
     description="Computation of distance to walls.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['Dist2Walls'],
+    package_dir={"":"."},
     ext_modules=extensions
     )
 

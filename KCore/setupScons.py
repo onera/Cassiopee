@@ -52,9 +52,10 @@ setup(
     name="KCore",
     version="3.5",
     description="Core for *Cassiopee* modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['KCore'],
+    package_dir={"":"."},
     ext_modules=extensions
     )
 

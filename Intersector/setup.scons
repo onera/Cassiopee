@@ -91,6 +91,5 @@ for i, v in enumerate(srcs.cpp_srcs):
 myMod = env.StaticLibrary('intersector', srcs.cpp_srcs+ppf)
 modDir = installPath+'/Intersector/'
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Intersector/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

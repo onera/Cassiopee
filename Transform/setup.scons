@@ -61,6 +61,5 @@ ppf = Dist.createFortranFiles(env, srcs)
 myMod = env.StaticLibrary('transform', source=srcs.cpp_srcs+ppf)
 modDir = installPath+'/Transform/'
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Transform/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

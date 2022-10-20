@@ -99,6 +99,5 @@ modDir = installPath+'/Generator/'
 dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, myMod2)
 dp3 = env.Install(modDir, myMod3)
-dp4 = env.Install(modDir, Glob('Generator/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2,dp3,dp4])
+env.Alias(target="install", source=[dp1,dp2,dp3])

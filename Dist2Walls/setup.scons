@@ -50,10 +50,8 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
 #==============================================================================
 
-myMod = env.StaticLibrary('dist2walls',
-                          srcs.cpp_srcs)
+myMod = env.StaticLibrary('dist2walls', srcs.cpp_srcs)
 modDir = installPath+'/Dist2Walls/'
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Dist2Walls/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

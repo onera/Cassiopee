@@ -87,10 +87,9 @@ for m in srcs.allMods:
   allLibs.append(lib)
   allDeps.append(env.Install(modDir, lib))
 
-dp = env.Install(modDir, Glob('OCC/*.py'))
 dp0 = env.Install(modDir, occ_cassiopee)
 
 if OCEPresent:
-        env.Alias(target="install", source=[dp,dp0])
+        env.Alias(target="install", source=[dp0])
 else:
-        env.Alias(target="install", source=[dp, dp0]+allDeps)
+        env.Alias(target="install", source=[dp0]+allDeps)
