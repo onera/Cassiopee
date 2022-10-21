@@ -37,7 +37,8 @@ else: # Essai en dynamique
     else:
         print("Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal))
 
-installPath = K.installPath+'/'+Dist.getInstallModuleDirName('KCore')
+installPath = K.installPath+'/'+Dist.getInstallModuleDirName('KCore', '3.5')
+print('>>>>>', installPath)
 
 # Copie aussi les .py
 shutil.copyfile("config.py", installPath+"/config.py")

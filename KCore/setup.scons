@@ -75,6 +75,6 @@ myMod1 = env.StaticLibrary('kcore1', source=cpp_srcs1)
 myMod2 = env.StaticLibrary('kcore2', source=cpp_srcs2+ppf)
 myMod = 'libkcore.a'
 
-modDir = installPath+'/KCore/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 env.Alias(target="install", source=[dp1])

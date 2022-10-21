@@ -11,4 +11,4 @@ a = C.initVars(a, 'u', 0.)
 a = C.initVars(a, 'v', 0.)
 ret = D.getUV(a, 2., 0.)
 
-test.testT(ret, 0)
+test.testT(ret[0], 0)
