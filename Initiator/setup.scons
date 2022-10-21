@@ -60,7 +60,7 @@ ppf = Dist.createFortranFiles(env, srcs)
 
 myMod = env.StaticLibrary('initiator',
                           srcs.cpp_srcs+ppf)
-modDir = installPath+'/Initiator/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 
 env.Alias(target="install", source=[dp1])

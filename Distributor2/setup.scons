@@ -52,7 +52,7 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
 myMod = env.StaticLibrary('distributor2',
                           srcs.cpp_srcs)
-modDir = installPath+'/Distributor2/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 
 env.Alias(target="install", source=[dp1])

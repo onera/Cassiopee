@@ -109,6 +109,6 @@ for i, v in enumerate(srcs.cpp_srcs):
        srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
 
 myMod = env.StaticLibrary('converter', srcs.cpp_srcs+ppf)
-modDir = installPath+'/Converter/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 env.Alias(target="install", source=[dp1])

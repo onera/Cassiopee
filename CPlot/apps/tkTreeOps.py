@@ -147,9 +147,13 @@ def moveNodeDown():
         p[2][c] = temp
         CTK.TKTREE.updateApp()
 
-# format string pour ecriture
+# format string pour ecriture en haut
 def strFormat(value):
-    return "%g"%value
+    return "%.5g"%value
+
+# format string pour ecriture dans treeops
+def strFormat2(value):
+    return "%.12g"%value
 
 #==============================================================================
 # Affiche la valeur de noeud et le type du noeud
@@ -168,8 +172,8 @@ def showNodeValue(event=None):
     except: index = 0; VARS[1].set('0')
     if index < 0: index = 0; VARS[1].set(str(index))
     v = node[1]
-    if isinstance(v, float): v = strFormat(v); index = 0
-    elif isinstance(v, int): v = strFormat(v); index = 0
+    if isinstance(v, float): v = strFormat2(v); index = 0
+    elif isinstance(v, int): v = strFormat2(v); index = 0
     elif isinstance(v, numpy.ndarray):
         if v.dtype == 'c': v = Internal.getValue(node); index = 0
         else:
@@ -246,7 +250,7 @@ def showNodeValue(event=None):
                 CTK.TXT.insert('START', flatView, 'Warning')
                 flatView = dim
                 CTK.TXT.insert('START', flatView)                
-            v = strFormat(vf[index])
+            v = strFormat2(vf[index])
     VARS[1].set(str(index))
     VARS[2].set(v)
 

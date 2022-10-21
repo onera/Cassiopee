@@ -79,7 +79,7 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
 #==============================================================================
 occ_cassiopee = env.StaticLibrary('occ_cassiopee', srcs.srcs)
-modDir = installPath+'/OCC/'
+modDir = 'build/'+ELSAPROD
 allLibs = []; allDeps = []
 for m in srcs.allMods:
   f = srcs.mod_srcs[m]

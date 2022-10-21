@@ -61,7 +61,7 @@ myMod2 = env.StaticLibrary('zstd', srcs.zstd_srcs)
 myMod3 = env.StaticLibrary('sz', srcs.sz_srcs)
 myMod4 = env.StaticLibrary('zfp', srcs.zfp_srcs)
 
-modDir = installPath+'/Compressor/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 dp3 = env.Install(modDir, myMod2)
 dp4 = env.Install(modDir, myMod3)

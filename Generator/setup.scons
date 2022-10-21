@@ -95,7 +95,7 @@ for i, v in enumerate(srcs.cpp_srcs):
 myMod = env.StaticLibrary('generator', srcs.cpp_srcs)
 myMod2 = env.StaticLibrary('generator2', srcs.cpp_srcs2)
 myMod3 = env.StaticLibrary('generator3', ppf)
-modDir = installPath+'/Generator/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, myMod2)
 dp3 = env.Install(modDir, myMod3)

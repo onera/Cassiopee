@@ -75,7 +75,7 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
 
 myMod = env.StaticLibrary('post',
                           srcs.cpp_srcs+ppf)
-modDir = installPath+'/Post/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 
 env.Alias(target="install", source=[dp1])

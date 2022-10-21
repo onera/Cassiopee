@@ -89,7 +89,7 @@ for i, v in enumerate(srcs.cpp_srcs):
 #==============================================================================	
 
 myMod = env.StaticLibrary('intersector', srcs.cpp_srcs+ppf)
-modDir = installPath+'/Intersector/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 
 env.Alias(target="install", source=[dp1])
