@@ -45,10 +45,10 @@ if [ $? -eq 0 ]; then
     #touch Distributor2/distributor2.cpp
     rm -f build/lib.*/Distributor2/distributor2.*
     rm -f build/lib.*/Distributor2/distributor2-*.*
-    python setupScons.py install --prefix="$INSTALLPATH"
+    python setup.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 else
-    python setup.py install --prefix="$INSTALLPATH"
+    python setupLegacy.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 fi
 

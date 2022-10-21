@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from distutils.core import setup, Extension
-import os, sys
+import os
 
 #=============================================================================
 # Post requires:
@@ -20,29 +20,17 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-# Compilation des fortrans ===================================================
 from KCore.config import *
-if f77compiler == "None":
-    print("Error: a fortran 77 compiler is required for compiling Post.")
-    sys.exit()
-args = Dist.getForArgs(); opt = ''
-for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
-os.system("make -e FC="+f77compiler+" F90=true WDIR=Post/Fortran "+opt)
-os.system("make -e FC="+f77compiler+" F90=true WDIR=Post/zipper "+opt)
-if f90compiler != "None" and os.access('Post/usurp', os.F_OK):
-    os.system("(cd Post/usurp; make -e FC="+f77compiler+" F90="+f90compiler+" "+opt+")")
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["PostF", "kcore"]
+libraries = ["post", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-
-if f90compiler != "None" and os.access('Post/usurp', os.F_OK): libraries.append("UsurpF")
 
 import srcs
 
@@ -50,7 +38,7 @@ import srcs
 listExtensions = []
 listExtensions.append(
     Extension('Post.post',
-              sources=["Post/post.cpp"]+srcs.cpp_srcs,
+              sources=["Post/post.cpp"],
               include_dirs=["Post"]+additionalIncludePaths+[numpyIncDir,kcoreIncDir], 
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
@@ -63,9 +51,10 @@ setup(
     name="Post",
     version="3.5",
     description="Post-processing of CFD solutions.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['Post'],
+    package_dir={"":"."},
     ext_modules=listExtensions
     )
 

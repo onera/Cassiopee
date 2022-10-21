@@ -3,7 +3,7 @@ from distutils.core import setup, Extension
 import os
 
 #=============================================================================
-# Intersector requires:
+# Geom requires:
 # ELSAPROD variable defined in environment
 # C++ compiler
 # Fortran compiler: defined in config.py
@@ -11,8 +11,7 @@ import os
 # KCore library
 #=============================================================================
 
-
-# Write setup.cfg file
+# Write setup.cfg
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
@@ -21,53 +20,40 @@ Dist.writeSetupCfg()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
-
+    
+# Compilation des fortrans ===================================================
 from KCore.config import *
-
-# Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                     additionalIncludePaths)
-(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
-                                                        additionalIncludePaths)
-
-# Compilation des fortrans ====================================================
+if f77compiler == "None":
+    print("Error: a fortran 77 compiler is required for compiling Geom.")
+args = Dist.getForArgs(); opt = ''
+for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
+os.system("make -e FC="+f77compiler+" WDIR=Geom/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
-# Setting libraryDirs, include dirs and libraries =============================
+# Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
-includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["intersector", "kcore"]
-ADDITIONALCPPFLAGS = []
-if mpi:
-    libraryDirs.append(mpiLibDir)
-    includeDirs.append(mpiIncDir)
-    ADDITIONALCPPFLAGS += ['-D_MPI']
-if mpi4py:
-    includeDirs.append(mpi4pyIncDir)
-
-if mpi: libraries += mpiLibs
-
+libraries = ["GeomF", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
+import srcs
 setup(
-    name="Intersector",
+    name="Geom",
     version="3.5",
-    description="Mesh-intersection-based services in *Cassiopee*.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['Intersector'],
+    description="Geometry definition for *Cassiopee* modules.",
+    author="Onera",
     package_dir={"":"."},
-    ext_modules=[Extension('Intersector.intersector',
-                           sources=["Intersector/intersector.cpp"],
-                           include_dirs=["Intersector"]+additionalIncludePaths+includeDirs,
+    packages=['Geom'],
+    ext_modules=[Extension('Geom.geom',
+                           sources=["Geom/geom.cpp"]+srcs.cpp_srcs,
+                           include_dirs=["Geom"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
-                           extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+                           extra_compile_args=Dist.getCppArgs(),
                            extra_link_args=Dist.getLinkArgs()
                            )]
     )

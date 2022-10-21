@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-import os
 from distutils.core import setup, Extension
+import os, sys
 
 #=============================================================================
-# RigidMotion requires:
+# Connector requires:
 # C++ compiler
-# Fortran compiler: defined in config.py
+# Fortran compiler
 # Numpy
 # KCore
 #=============================================================================
 
-# Write setup.cfg
+# Write setup.cfg file
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
@@ -22,41 +22,45 @@ Dist.writeSetupCfg()
 
 # Compilation des fortrans ===================================================
 from KCore.config import *
+if f77compiler == "None":
+    print("Error: a fortran 77 compiler is required for compiling Connector.")
+    sys.exit()
+args = Dist.getForArgs(); opt = ''
+for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
+os.system("make -e FC="+f77compiler+" WDIR=Connector/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["rigidMotion", "kcore"]
+libraries = ["ConnectorF", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
-includeDirs=[numpyIncDir, kcoreIncDir]
-# Extensions ==================================================================
+# setup =======================================================================
+import srcs
 listExtensions = []
 listExtensions.append(
-    Extension('RigidMotion.rigidMotion',
-              sources=['RigidMotion/rigidMotion.cpp'],
-              include_dirs=["RigidMotion"]+additionalIncludePaths+includeDirs,
+    Extension('Connector.connector',
+              sources=['Connector/connector.cpp']+srcs.cpp_srcs,
+              include_dirs=["Connector", "Connector/CMP/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs()
               ) )
 
-# Setup ======================================================================
+# setup ======================================================================
 setup(
-    name="RigidMotion",
+    name="Connector",
     version="3.5",
-    description="Compute/define rigid motion.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['RigidMotion'],
+    description="Connector for *Cassiopee* modules.",
+    author="Onera",
     package_dir={"":"."},
-    ext_modules=listExtensions
-    )
+    packages=['Connector'],
+    ext_modules=listExtensions)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

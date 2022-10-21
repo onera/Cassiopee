@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __K_MESH_EDGE_H__
 #define __K_MESH_EDGE_H__
@@ -467,7 +467,7 @@ K_MESH::Edge::lineLineMinDistance
   }
       
   //At this stage, computing the determinant should be safe, ie. no parallelism
-  E_Float a, b, c, det2, u,v; //u,v are internal temporaries
+  E_Float a, b, c, det2, u,v=0; //u,v are internal temporaries
   
   det2 = NUGA::sqrCross<DIM>(E0, E1);
   c = NUGA::dot<DIM>(E1, V01); 

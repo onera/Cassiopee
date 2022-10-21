@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 from distutils.core import setup, Extension
-import os
 
 #=============================================================================
-# Initiator requires :
-# [ENV] CASSIOPEE, ELSAPROD
+# Distributor2 requires:
 # C++ compiler
-# Fortran compiler : defined in config.py
 # Numpy
-# KCore library
+# KCore
 #=============================================================================
 
 # Write setup.cfg
@@ -20,32 +17,26 @@ Dist.writeSetupCfg()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
-    
-# Compilation des fortrans ===================================================
-from KCore.config import *
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["initiator", "kcore"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
+libraryDirs = [kcoreLibDir]
+libraries = ["kcore"]
+from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-
-# setup =======================================================================
+    
+# setup ======================================================================
+import srcs
 setup(
-    name="Initiator",
+    name="Distributor2",
     version="3.5",
-    description="Initiator for *Cassiopee* modules.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['Initiator'],
+    description="Distributor for arrays and pyTrees.",
+    author="Onera",
     package_dir={"":"."},
-    ext_modules=[Extension('Initiator.initiator',
-                           sources=['Initiator/initiator.cpp'],
-                           include_dirs=["Initiator"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+    packages=['Distributor2'],
+    ext_modules=[Extension('Distributor2.distributor2',
+                           sources=['Distributor2/distributor2.cpp']+srcs.cpp_srcs,
+                           include_dirs=["Distributor2"]+additionalIncludePaths+[numpyIncDir,kcoreIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
                            extra_compile_args=Dist.getCppArgs(),

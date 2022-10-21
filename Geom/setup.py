@@ -23,33 +23,28 @@ Dist.writeSetupCfg()
     
 # Compilation des fortrans ===================================================
 from KCore.config import *
-if f77compiler == "None":
-    print("Error: a fortran 77 compiler is required for compiling Geom.")
-args = Dist.getForArgs(); opt = ''
-for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
-os.system("make -e FC="+f77compiler+" WDIR=Geom/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["GeomF", "kcore"]
+libraries = ["geom", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
-import srcs
 setup(
     name="Geom",
     version="3.5",
     description="Geometry definition for *Cassiopee* modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['Geom'],
+    package_dir={"":"."},
     ext_modules=[Extension('Geom.geom',
-                           sources=["Geom/geom.cpp"]+srcs.cpp_srcs,
+                           sources=["Geom/geom.cpp"],
                            include_dirs=["Geom"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,

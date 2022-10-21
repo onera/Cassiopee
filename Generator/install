@@ -44,10 +44,10 @@ if [ $? -eq 0 ]; then
     #touch Generator/generator.cpp
     rm -f build/lib.*/Generator/generator.*
     rm -f build/lib.*/Generator/generator-*.*
-    python setupScons.py install --prefix="$INSTALLPATH"
+    python setup.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 else
-    python setup.py install --prefix="$INSTALLPATH"
+    python setupLegacy.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 fi
 

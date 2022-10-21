@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-import os
 from distutils.core import setup, Extension
 
 #=============================================================================
-# Dist2Walls requires:
+# Compressor requires:
 # C++ compiler
 # Numpy
 # KCore
@@ -20,38 +19,49 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 # Setting libraryDirs and libraries ===========================================
-from KCore.config import *
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
-libraryDirs = [kcoreLibDir, 'build/'+prod]
-libraries = ["dist2walls", "kcore"]
+libraryDirs = [kcoreLibDir]
+libraries = ["kcore"]
 from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
 
+includeDirs = [numpyIncDir, kcoreIncDir]
+    
 # Extensions =================================================================
+import srcs
 extensions = [
-    Extension('Dist2Walls.dist2walls',
-              sources=["Dist2Walls/dist2walls.cpp"],
-              include_dirs=["Dist2Walls"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+    Extension('Compressor.compressor',
+              sources=["Compressor/compressor.cpp"]+srcs.cpp_srcs,
+              include_dirs=["Compressor"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-	)
+              extra_link_args=Dist.getLinkArgs()),
+    #Extension('Compressor.sz.csz',
+    #          sources=["Compressor/sz/compressor.cpp"],
+    #          include_dirs=["Compressor"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+    #          library_dirs=additionalLibPaths+libraryDirs,
+    #          libraries=libraries+["SZ",]+additionalLibs,
+    #          extra_compile_args=Dist.getCppArgs(),
+    #          extra_link_args=Dist.getLinkArgs()),    
+    #Extension('Compressor.zfp.czfp',
+    #          sources=["Compressor/zfp/compressor.cpp"],
+    #          include_dirs=["Compressor"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+    #          library_dirs=additionalLibPaths+libraryDirs,
+    #          libraries=libraries+["zfp",]+additionalLibs,
+    #          extra_compile_args=Dist.getCppArgs(),
+    #          extra_link_args=Dist.getLinkArgs()),    
     ]
 
 # Setup ======================================================================
 setup(
-    name="Dist2Walls",
+    name="Compressor",
     version="3.5",
-    description="Computation of distance to walls.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['Dist2Walls'],
+    description="Compress CFD solutions.",
+    author="Onera",
     package_dir={"":"."},
+    #packages=['Compressor', 'Compressor.zfp', 'Compressor.sz'],
+    packages=['Compressor'],
     ext_modules=extensions
     )
 

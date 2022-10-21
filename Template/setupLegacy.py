@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-
-import os, sys
 from distutils.core import setup, Extension
+import os, sys
 
 #=============================================================================
 # Template requires:
@@ -10,7 +9,6 @@ from distutils.core import setup, Extension
 # Fortran compiler: defined in config.py
 # Numpy
 # KCore
-# Scons
 #=============================================================================
 
 # Write setup.cfg file
@@ -23,40 +21,50 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-# Compilation des fortrans ===================================================
 from KCore.config import *
+
+# Compilation des fortrans ====================================================
+#if f77compiler == "None":
+#    print("Error: a fortran 77 compiler is required for compiling Fast.")
+#args = Dist.getForArgs(); opt = ''
+#for c in xrange(len(args)):
+#    opt += 'FOPT'+str(c)+'='+args[c]+' '
+#os.system("make -e FC="+f77compiler+" WDIR=Template/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
-# Setting libraryDirs and libraries ===========================================
+# Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["template", "kcore"]
+includeDirs = [numpyIncDir, kcoreIncDir]
+libraries = ["kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
-# setup =======================================================================
+# Extensions ==================================================================
+import srcs
 listExtensions = []
 listExtensions.append(
     Extension('Template.template',
-              sources=['Template/template.cpp'],
-              include_dirs=["Template"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+              sources=['Template/template.cpp']+srcs.cpp_srcs,
+              include_dirs=["Template"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs()
               ) )
-
+    
 # setup ======================================================================
 setup(
     name="Template",
     version="2.0",
     description="Template module.",
     author="You",
-    packages=['Template'],
     package_dir={"":"."},
-    ext_modules=listExtensions)
+    packages=['Template'],
+    ext_modules=listExtensions
+    )
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

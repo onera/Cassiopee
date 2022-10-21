@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 from distutils.core import setup, Extension
 import KCore.config
@@ -8,7 +9,7 @@ import KCore.config
 # Numpy
 # KCore
 # GL
-# optional: PNG, MPEG, OSMesa
+# optional: GLEW, PNG, MPEG, OSMesa
 #=============================================================================
 
 # If you want to use CPlot as a offscreen plotter (as on clusters)
@@ -25,15 +26,41 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-libraries = ["GLU", "kcore", "Xi", "Xmu", "rt"]
-from KCore.config import *
-if not UseOSMesa: libraries += ["GL"]
+mySystem = Dist.getSystem()
+if mySystem[0] == 'mingw' and mySystem[1] == '32':
+    libraries = ["cplot", "kcore", "wsock32", "winmm", "gdi32"]
+    libGL = ['opengl32', 'glu32']
+elif mySystem[0] == 'mingw' and mySystem[1] == '64':
+    libraries = ["cplot", "kcore", "wsock32", "winmm", "gdi32"]
+    libGL = ['opengl32', 'glu32']
+elif mySystem[0] == 'Darwin':
+    libraries = ["kcore", "X11", "Xmu", "cplot"]
+    libGL = ['GL', 'GLU'] 
+else:
+    libraries = ["cplot", "kcore", "Xi", "Xmu", "rt"]
+    libGL = ['GL', 'GLU']
 
-#libraryDirs = [kcoreLibDir]
-libraryDirs = [kcoreLibDir, '/usr/X11R6/lib64']
+from KCore.config import *
+prod = os.getenv("ELSAPROD")
+if prod is None: prod = 'xx'
+libraryDirs = ["build/"+prod]
 includeDirs = [numpyIncDir, kcoreIncDir]
 
+# Test if OSMesa exists =======================================================
+if UseOSMesa:
+    (OSMesa, OSMesaIncDir, OSMesaLibDir, libname) = Dist.checkOSMesa(additionalLibPaths,
+                                                                     additionalIncludePaths)
+else: OSMesa = False
+
+if not OSMesa: libraries += libGL
+else: 
+  libraries += [libname]+libGL
+  libraryDirs += [OSMesaLibDir]
+  includeDirs += [OSMesaIncDir]
+
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
 # Test if PNG exists =========================================================
@@ -41,6 +68,9 @@ libraryDirs += paths; libraries += libs
                                          additionalIncludePaths)
 if png:
     libraries += ["png"]
+    if mySystem[0] == 'mingw':
+        if Dist.useStatic() == False: libraries += ["zlib1"]
+        else: libraries += ["z"]
     libraryDirs += [pngLib]
     includeDirs += [pngIncDir]
 
@@ -48,34 +78,34 @@ if png:
 (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
                                              additionalIncludePaths)
 if mpeg:
-    libraries += ["avcodec"]
+    libraries += ["avcodec", "avutil"]
     libraryDirs += [mpegLib]
     includeDirs += [mpegIncDir]
-
-# Test if OSMesa exists =======================================================
-# Put this to True for using CPlot in batch mode
-if UseOSMesa:
-    (OSMesa, OSMesaIncDir, OSMesaLib) = Dist.checkOSMesa(additionalLibPaths,
-                                                         additionalIncludePaths)
-    if OSMesa:
-        libraries += ["OSMesa"]
-        libraryDirs += [OSMesaLib]
-        includeDirs += [OSMesaIncDir]
-else: OSMesa = False
     
-# Extensions =================================================================
-import srcs
+libraryDirs += [kcoreLibDir]
 
-import KCore.installPath
+from srcs import SHADERS
+if SHADERS == 2: includeDirs += ['CPlot/Shaders2.0']
+else: includeDirs += ['CPlot/Shaders']
+
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
+
+# Extensions =================================================================
 EXTRA = ['-D__SHADERS__']
 if OSMesa: EXTRA += ['-D__MESA__']
+if mpi:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+    libraries += mpiLibs
+    EXTRA += ['-D_MPI']
 
-cppargs = Dist.getCppArgs()
-EXTRA += cppargs
+EXTRA += Dist.getCppArgs()
 
 extensions = [
     Extension('CPlot.cplot',
-              sources=['CPlot/cplot.cpp']+srcs.cpp_srcs,
+              sources=['CPlot/cplot.cpp'],
               include_dirs=["CPlot"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
@@ -89,19 +119,12 @@ setup(
     name="CPlot",
     version="3.5",
     description="A plotter for *Cassiopee* Modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['CPlot'],
+    package_dir={"":"."},
     ext_modules=extensions
     )
-
-# Install shaders + textures ==================================================
-os.system("cp CPlot/Shaders/*.vert %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Shaders/*.frag %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Shaders/*.geom %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Shaders/*.tcs %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Shaders/*.tes %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Textures/*.png %s/CPlot/"%KCore.installPath.installPath)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

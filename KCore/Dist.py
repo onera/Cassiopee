@@ -195,13 +195,11 @@ def getInstallPath(prefix):
     return installPath
 
 #=============================================================================
-# A partir des version 3.8 de python, le nom du repertoire d'installation
-# cree par setuptools contient la version et la plateforme
+# nom de l'egg cree par setup tools
 #=============================================================================
-def getInstallModuleDirName(moduleName, version):
+def getEggModuleDirName(moduleName, version):
     import platform
     pversion = sys.version_info
-    if pversion[0] <= 3 and pversion[1] <= 8 and pversion[2] < 14: return moduleName
     #mod = __import__(moduleName)
     fullName = moduleName+'-'+version+'-py%d.%d'%(pversion[0],pversion[1])+'-'+platform.system().lower()+'-'+platform.processor()+'.egg'
     return fullName

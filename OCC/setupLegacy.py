@@ -3,52 +3,52 @@ from distutils.core import setup, Extension
 import os
 
 #=============================================================================
-# Distributor2 requires:
+# OCC requires:
+# ELSAPROD variable defined in environment
 # C++ compiler
-# Numpy
-# KCore
+# KCore library
+# Generator library
 #=============================================================================
 
 # Write setup.cfg
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
-# Test if numpy exists =======================================================
-(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+prod = os.getenv("ELSAPROD")
+if prod is None: prod = 'xx'
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-# Setting libraryDirs and libraries ===========================================
-from KCore.config import *
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+# Test if generator exists ===================================================
+(generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
 
-libraryDirs = ['build/'+prod, kcoreLibDir]
-libraries = ["distributor2", "kcore"]
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
+# Setting libraryDirs and libraries ==========================================
+libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
+includeDirs = [kcoreIncDir, generatorIncDir]
+libraries = ["generator", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
+import srcs
 setup(
-    name="Distributor2",
-    version="3.5",
-    description="Distributor for arrays and pyTrees.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['Distributor2'],
+    name="OCC",
+    version="2.7",
+    description="OpenCascade link.",
+    author="Onera",
     package_dir={"":"."},
-    ext_modules=[Extension('Distributor2.distributor2',
-                           sources=['Distributor2/distributor2.cpp'],
-                           include_dirs=["Distributor2"]+additionalIncludePaths+[numpyIncDir,kcoreIncDir],
+    packages=['OCC'],
+    ext_modules=[Extension('OCC.occ',
+                           sources=["OCC/occ.cpp"]+srcs.cpp_srcs,
+                           include_dirs=[["OCC", "OCC/occ_inc"]]+additionalIncludePaths+[kcoreIncDir, generatorIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
                            extra_compile_args=Dist.getCppArgs(),
                            extra_link_args=Dist.getLinkArgs()
-                           )
-                 ]
+                           )]
     )
 
 # Check PYTHONPATH ===========================================================

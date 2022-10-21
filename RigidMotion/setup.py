@@ -1,16 +1,13 @@
 #!/usr/bin/env python
-import os, sys
+import os
 from distutils.core import setup, Extension
 
 #=============================================================================
 # RigidMotion requires:
 # C++ compiler
+# Fortran compiler: defined in config.py
 # Numpy
 # KCore
-#
-# Optional motion from solvers requires:
-# Cassiopee/Kernel
-# elsA/Kernel
 #=============================================================================
 
 # Write setup.cfg
@@ -25,39 +22,40 @@ Dist.writeSetupCfg()
 
 # Compilation des fortrans ===================================================
 from KCore.config import *
-if f77compiler == "None":
-    print("Error: a fortran 77 compiler is required for compiling RigidMotion.")
-args = Dist.getForArgs(); opt = ''
-for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
-os.system("make -e FC="+f77compiler+" WDIR=RigidMotion/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = ["build/"+prod,kcoreLibDir]
-libraries = ["RigidMotionF","kcore"]
+libraryDirs = ["build/"+prod, kcoreLibDir]
+libraries = ["rigidMotion", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-    
-# Extensions =================================================================
-import srcs
+
+includeDirs=[numpyIncDir, kcoreIncDir]
+# Extensions ==================================================================
+listExtensions = []
+listExtensions.append(
+    Extension('RigidMotion.rigidMotion',
+              sources=['RigidMotion/rigidMotion.cpp'],
+              include_dirs=["RigidMotion"]+additionalIncludePaths+includeDirs,
+              library_dirs=additionalLibPaths+libraryDirs,
+              libraries=libraries+additionalLibs,
+              extra_compile_args=Dist.getCppArgs(),
+              extra_link_args=Dist.getLinkArgs()
+              ) )
+
+# Setup ======================================================================
 setup(
     name="RigidMotion",
     version="3.5",
-    description="Rigid motion module.",
-    author="Onera",
-    package_dir={"":"."},
+    description="Compute/define rigid motion.",
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['RigidMotion'],
-    ext_modules=[Extension('RigidMotion.rigidMotion',
-                           sources=["RigidMotion/rigidMotion.cpp"]+srcs.cpp_srcs,
-                           include_dirs=["RigidMotion"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-                           library_dirs=additionalLibPaths+libraryDirs,
-                           libraries=libraries+additionalLibs,
-                           extra_compile_args=Dist.getCppArgs(),
-                           extra_link_args=Dist.getLinkArgs()
-                           )]
+    package_dir={"":"."},
+    ext_modules=listExtensions
     )
 
 # Check PYTHONPATH ===========================================================

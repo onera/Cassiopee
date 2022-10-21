@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 from distutils.core import setup, Extension
-from KCore.config import *
 import os
 
 #=============================================================================
-# OCC requires:
-# ELSAPROD variable defined in environment
+# Initiator requires:
+# [ENV] CASSIOPEE, ELSAPROD
 # C++ compiler
+# Fortran compiler : defined in config.py
+# Numpy
 # KCore library
 #=============================================================================
 
@@ -19,58 +20,44 @@ Dist.writeSetupCfg()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
-
-# Test if generator exists ===================================================
-(generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
     
-# Test if open-cascade is already installed ==================================
-(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
-                                                   additionalIncludePaths)
-
-if not OCEPresent: os._exit(0)
-
 # Compilation des fortrans ===================================================
+from KCore.config import *
+if f77compiler == "None":
+    print("Error: a fortran 77 compiler is required for compiling Initiator.")
+args = Dist.getForArgs(); opt = ''
+for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
+os.system("make -e FC="+f77compiler+" WDIR=Initiator/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
-includeDirs = [numpyIncDir, kcoreIncDir, generatorIncDir]
-#libraries = ["occ_cassiopee", "generator", "converter", "kcore"]
-libraries = ["occ_cassiopee", "generator", "kcore"]
-
-if OCEPresent:
-  libraryDirs += [OCELibDir]
-  includeDirs += [OCEIncDir]
-
-import srcs
-libOCE = srcs.allMods
-if OCEPresent and Dist.getSystem()[0] == 'mingw':
-    libOCE = [i+".dll" for i in libOCE]
-libraries += libOCE + libOCE
-
+libraryDirs = ["build/"+prod, kcoreLibDir]
+libraries = ["InitiatorF", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
-# setup ======================================================================
+import srcs
+
+# setup =======================================================================
 setup(
-    name="OCC",
+    name="Initiator",
     version="3.5",
-    description="OpenCascade python module.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['OCC'],
+    description="Initiator for *Cassiopee* modules.",
+    author="Onera",
     package_dir={"":"."},
-    ext_modules=[Extension('OCC.occ',
-                           sources=["OCC/occ.cpp"],
-                           include_dirs=["OCC"]+additionalIncludePaths+includeDirs,
+    packages=['Initiator'],
+    ext_modules=[Extension('Initiator.initiator',
+                           sources=['Initiator/initiator.cpp']+srcs.cpp_srcs,
+                           include_dirs=["Initiator"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
                            extra_compile_args=Dist.getCppArgs(),
                            extra_link_args=Dist.getLinkArgs()
-                           )]
+                           )
+                 ]
     )
 
 # Check PYTHONPATH ===========================================================

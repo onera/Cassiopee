@@ -1,45 +1,36 @@
 #!/usr/bin/env python
-
-import os
 from distutils.core import setup, Extension
 
 #=============================================================================
-# KCore requires:
+# Dist2Walls requires:
 # C++ compiler
-# Fortran compiler: defined in config.py
 # Numpy
-# Scons
+# KCore
 #=============================================================================
-# Compiler settings must be set in config.py
-from config import *
 
-# Write KCore installation path to installPath.py
-import Dist
-Dist.writeInstallPath()
-
-# Write setup.cfg file
+# Write setup.cfg
+import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+# Test if kcore exists =======================================================
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-# Setting libraries path =====================================================
-libraryDirs = ["build/"+prod]
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = [kcoreLibDir]
 libraries = ["kcore"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
+from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
-srcs = ['KCore/kcore.cpp']
+import srcs
 extensions = [
-    Extension('KCore.kcore',
-              sources=srcs,
-              include_dirs=["KCore"]+additionalIncludePaths+[numpyIncDir],
+    Extension('Dist2Walls.dist2walls',
+              sources=["Dist2Walls/dist2walls.cpp"]+srcs.cpp_srcs,
+              include_dirs=["Dist2Walls"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
@@ -49,15 +40,14 @@ extensions = [
 
 # Setup ======================================================================
 setup(
-    name="KCore",
+    name="Dist2Walls",
     version="3.5",
-    description="Core for *Cassiopee* modules.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['KCore'],
+    description="Computation of distance to walls.",
+    author="Onera",
     package_dir={"":"."},
+    packages=['Dist2Walls'],
     ext_modules=extensions
     )
 
-# Check PYTHONPATH
+# Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

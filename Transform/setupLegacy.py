@@ -3,12 +3,12 @@ from distutils.core import setup, Extension
 import os
 
 #=============================================================================
-# Geom requires:
+# Transform requires:
 # ELSAPROD variable defined in environment
 # C++ compiler
 # Fortran compiler: defined in config.py
 # Numpy
-# KCore library
+# KCore
 #=============================================================================
 
 # Write setup.cfg
@@ -19,33 +19,38 @@ Dist.writeSetupCfg()
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLib) = Dist.checkKCore()
     
 # Compilation des fortrans ===================================================
 from KCore.config import *
+if f77compiler == "None":
+    print("Error: a fortran 77 compiler is required for compiling Transform.")
+args = Dist.getForArgs(); opt = ''
+for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
+os.system("make -e FC="+f77compiler+" WDIR=Transform/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["geom", "kcore"]
+libraryDirs = ["build/"+prod, kcoreLib]
+libraries = ["TransformF", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
-# setup ======================================================================
+# setup =======================================================================
+import srcs
 setup(
-    name="Geom",
+    name="Transform",
     version="3.5",
-    description="Geometry definition for *Cassiopee* modules.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['Geom'],
+    description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
+    author="Onera",
     package_dir={"":"."},
-    ext_modules=[Extension('Geom.geom',
-                           sources=["Geom/geom.cpp"],
-                           include_dirs=["Geom"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+    packages=['Transform'],
+    ext_modules=[Extension('Transform.transform',
+                           sources=["Transform/transform.cpp"]+srcs.cpp_srcs,
+                           include_dirs=["Transform"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
                            extra_compile_args=Dist.getCppArgs(),

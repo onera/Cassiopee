@@ -8,7 +8,6 @@ from distutils.core import setup, Extension
 # C++ compiler
 # Fortran compiler: defined in config.py
 # Numpy
-# Scons
 #=============================================================================
 # Compiler settings must be set in config.py
 from config import *
@@ -23,23 +22,34 @@ Dist.writeSetupCfg()
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
+# Fortran compilation ========================================================
+if f77compiler == "None":
+    print("Error: a fortran 77 compiler is required for compiling KCore.")
+args = Dist.getForArgs(); opt = ''
+for c, v in enumerate(args): opt += 'FOPT%d=%s '%(c, v)
+os.system("make -e FC="+f77compiler+" WDIR=KCore/Fld "+opt)
+os.system("make -e FC="+f77compiler+" WDIR=KCore/Interp "+opt)
+os.system("make -e FC="+f77compiler+" WDIR=KCore/Metric "+opt)
+os.system("make -e FC="+f77compiler+" WDIR=KCore/CompGeom "+opt)
+os.system("make -e FC="+f77compiler+" WDIR=KCore/Loc "+opt)
+os.system("make -e FC="+f77compiler+" WDIR=KCore/Linear "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraries path =====================================================
 libraryDirs = ["build/"+prod]
-libraries = ["kcore"]
+libraries = ["Fld", "Interp", "Metric", "CompGeom", "Loc", "Linear"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
-srcs = ['KCore/kcore.cpp']
+import srcs
 extensions = [
     Extension('KCore.kcore',
-              sources=srcs,
-              include_dirs=["KCore"]+additionalIncludePaths+[numpyIncDir],
+              sources=['KCore/kcore.cpp']+srcs.cpp_srcs,
+              include_dirs=["KCore", "KCore/Metis"]+additionalIncludePaths+[numpyIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
@@ -52,10 +62,9 @@ setup(
     name="KCore",
     version="3.5",
     description="Core for *Cassiopee* modules.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['KCore'],
+    author="Onera",
     package_dir={"":"."},
+    packages=['KCore'],
     ext_modules=extensions
     )
 

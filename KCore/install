@@ -50,10 +50,11 @@ if [ $? -eq 0 ]; then
     rm -f build/lib.*/KCore/kcore.*
     rm -f build/lib.*/KCore/kcore-*.*
     python -c "import Dist; Dist.symLinks()"
-    python setupScons.py install --prefix="$INSTALLPATH"
+    python setup.py install --prefix="$INSTALLPATH"
+    #python -m pip install --target="$INSTALLPATH/lib/python3.8/site-packages" .
     [ $? != 0 ] && exit 1;
 else
-    python setup.py install --prefix="$INSTALLPATH"
+    python setupLegacy.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 fi
 

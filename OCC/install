@@ -48,10 +48,10 @@ if [ $? -eq 0 ]; then
     #touch OCC/occ.cpp
     rm -f build/lib.*/OCC/occ.*
     rm -f build/lib.*/OCC/occ-*.*
-    python setupScons.py install --prefix="$INSTALLPATH"
+    python setup.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 else
-    python setup.py install --prefix="$INSTALLPATH"
+    python setupLegacy.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 fi
 

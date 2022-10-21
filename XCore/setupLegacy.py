@@ -3,11 +3,10 @@ from distutils.core import setup, Extension
 import os
 
 #=============================================================================
-# Converter requires:
+# XCore requires:
 # ELSAPROD variable defined in environment
 # C++ compiler
-# Fortran compiler: defined in config.py
-# Numpy
+# Numpy, MPI
 # KCore library
 #=============================================================================
 
@@ -15,21 +14,13 @@ import os
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
+from KCore.config import *
+
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
-
-from KCore.config import *
-
-# Test if libhdf5 exists ======================================================
-(hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
-                                                     additionalIncludePaths)
-
-# Test if libpng exists ======================================================
-(png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
-                                            additionalIncludePaths)
 
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
@@ -37,20 +28,14 @@ from KCore.config import *
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
                                                         additionalIncludePaths)
 
-# Compilation des fortrans ====================================================
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["converter", "kcore"]
-if hdf:
-    libraryDirs.append(hdfLibDir)
-    includeDirs.append(hdfIncDir)
-if png:
-    libraryDirs.append(pngLibDir)
-    includeDirs.append(pngIncDir)
+libraries = ["kcore"]
+
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
@@ -58,54 +43,32 @@ if mpi:
     ADDITIONALCPPFLAGS += ['-D_MPI']
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
-
-if hdf: 
-  for l in hdflibs: libraries.append(l)
-if png: libraries.append('png')
 if mpi: libraries += mpiLibs
 
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs    
+libraryDirs += paths; libraries += libs
 
-if png: 
-    mySystem = Dist.getSystem()
-    if mySystem[0] == 'mingw': 
-        if not Dist.useStatic(): libraries += ["zlib1"]
-        else: libraries += ["z"]
-    
 # Extensions ==================================================================
+import srcs
 listExtensions = []
 listExtensions.append(
-    Extension('Converter.converter',
-              sources=['Converter/converter.cpp'],
-              include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
+    Extension('XCore.xcore',
+              sources=['XCore/xcore.cpp']+srcs.cpp_srcs,
+              include_dirs=["XCore"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs()
-              ) )
-import srcs
-if srcs.EXPRESSION:
-  listExtensions.append(
-    Extension('Converter.expression',
-              sources=['Converter/Expression/Expression.cpp'],
-              include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-              extra_link_args=Dist.getLinkArgs() ) )
+              ))
 
 # setup ======================================================================
 setup(
-    name="Converter",
+    name="XCore",
     version="3.5",
-    description="Converter for *Cassiopee* modules.",
-    author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
-    packages=['Converter'],
+    description="Parallel core for *Cassiopee* modules.",
+    author="Onera",
     package_dir={"":"."},
+    packages=['XCore'],
     ext_modules=listExtensions
     )
 

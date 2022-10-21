@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from distutils.core import setup, Extension
-import os, sys
+import os
 
 #=============================================================================
 # Intersector requires:
@@ -11,7 +11,8 @@ import os, sys
 # KCore library
 #=============================================================================
 
-# Write setup.cfg
+
+# Write setup.cfg file
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
@@ -21,30 +22,22 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
+from KCore.config import *
+
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
                                                         additionalIncludePaths)
-    
-# Compilation des fortrans ===================================================
-from KCore.config import *
-if f77compiler == "None":
-    print("Error: a fortran 77 compiler is required for compiling Intersector.")
-args = Dist.getForArgs(); opt = ''
-for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
-os.system("make -e FC="+f77compiler+" WDIR=Intersector/Fortran "+opt)
+
+# Compilation des fortrans ====================================================
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
-# Setting libraryDirs and libraries ===========================================
+# Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
+includeDirs = [numpyIncDir, kcoreIncDir]
 libraries = ["intersector", "kcore"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
-
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
@@ -53,18 +46,25 @@ if mpi:
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
 
+if mpi: libraries += mpiLibs
+
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
 # setup ======================================================================
-import srcs
 setup(
     name="Intersector",
     version="3.5",
     description="Mesh-intersection-based services in *Cassiopee*.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['Intersector'],
+    package_dir={"":"."},
     ext_modules=[Extension('Intersector.intersector',
-                           sources=["Intersector/intersector.cpp"]+srcs.cpp_srcs,
-                           include_dirs=["Intersector"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+                           sources=["Intersector/intersector.cpp"],
+                           include_dirs=["Intersector"]+additionalIncludePaths+includeDirs,
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
                            extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,

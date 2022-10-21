@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from distutils.core import setup, Extension
+from KCore.config import *
 import os
 
 #=============================================================================
@@ -7,43 +8,64 @@ import os
 # ELSAPROD variable defined in environment
 # C++ compiler
 # KCore library
-# Generator library
 #=============================================================================
 
 # Write setup.cfg
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 # Test if generator exists ===================================================
 (generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
+    
+# Test if open-cascade is already installed ==================================
+(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
+                                                   additionalIncludePaths)
 
-# Setting libraryDirs and libraries ==========================================
+if not OCEPresent: os._exit(0)
+
+# Compilation des fortrans ===================================================
+prod = os.getenv("ELSAPROD")
+if prod is None: prod = 'xx'
+
+# Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
-includeDirs = [kcoreIncDir, generatorIncDir]
-libraries = ["generator", "kcore"]
+includeDirs = [numpyIncDir, kcoreIncDir, generatorIncDir]
+#libraries = ["occ_cassiopee", "generator", "converter", "kcore"]
+libraries = ["occ_cassiopee", "generator", "kcore"]
+
+if OCEPresent:
+  libraryDirs += [OCELibDir]
+  includeDirs += [OCEIncDir]
+
+import srcs
+libOCE = srcs.allMods
+if OCEPresent and Dist.getSystem()[0] == 'mingw':
+    libOCE = [i+".dll" for i in libOCE]
+libraries += libOCE + libOCE
+
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
-import srcs
 setup(
     name="OCC",
-    version="2.7",
-    description="OpenCascade link.",
-    author="Onera",
-    package_dir={"":"."},
+    version="3.5",
+    description="OpenCascade python module.",
+    author="ONERA",
+    url="http://elsa.onera.fr/Cassiopee",
     packages=['OCC'],
+    package_dir={"":"."},
     ext_modules=[Extension('OCC.occ',
-                           sources=["OCC/occ.cpp"]+srcs.cpp_srcs,
-                           include_dirs=[["OCC", "OCC/occ_inc"]]+additionalIncludePaths+[kcoreIncDir, generatorIncDir],
+                           sources=["OCC/occ.cpp"],
+                           include_dirs=["OCC"]+additionalIncludePaths+includeDirs,
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
                            extra_compile_args=Dist.getCppArgs(),
