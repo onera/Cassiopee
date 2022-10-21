@@ -14,16 +14,18 @@ else:
 
 import KCore.installPath as K
 libPath = K.libPath
-installPathLocal = K.installPath
+prod = os.getenv("ELSAPROD")
+if prod is None: prod = 'xx'
+installPathLocal = 'build/'+prod
 
 # La librarie statique existe?
-a = os.access(installPathLocal+"/Connector/libconnector.a", os.F_OK)
+a = os.access(installPathLocal+"/libconnector.a", os.F_OK)
 if a:
-    shutil.copyfile(installPathLocal+"/Connector/libconnector.a", libPath+"/libconnector.a")
+    shutil.copyfile(installPathLocal+"/libconnector.a", libPath+"/libconnector.a")
 else: # Essai en dynamique
-    a = os.access(installPathLocal+"/Connector/connector"+__EXTMODULE__, os.F_OK)
+    a = os.access(installPathLocal+"/connector"+__EXTMODULE__, os.F_OK)
     if a:
-        shutil.copyfile(installPathLocal+"/Connector/connector"+__EXTMODULE__,
+        shutil.copyfile(installPathLocal+"/connector"+__EXTMODULE__,
                         libPath+"/libconnector"+__EXTSHARED__) 
     else:
         print("Error: connector"+__EXTMODULE__+" can not be found.")

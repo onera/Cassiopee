@@ -21,29 +21,33 @@ else:
 try: import KCore.installPath as K
 except ImportError: import installPath as K
 libPath = K.libPath
-installPathLocal = K.installPath
+prod = os.getenv("ELSAPROD")
+if prod is None: prod = 'xx'
+installPathLocal = 'build/'+prod
 
 # La librarie statique existe?
-a = os.access(installPathLocal+"/KCore/libkcore.a", os.F_OK)
+a = os.access(installPathLocal+"/libkcore.a", os.F_OK)
 if a:
-    shutil.copyfile(installPathLocal+"/KCore/libkcore.a", libPath+"/libkcore.a")
+    shutil.copyfile(installPathLocal+"/libkcore.a", libPath+"/libkcore.a")
 else: # Essai en dynamique
-    a = os.access(installPathLocal+"/KCore/kcore"+__EXTMODULE__, os.F_OK)
+    a = os.access(installPathLocal+"/kcore"+__EXTMODULE__, os.F_OK)
     if a:
-        shutil.copyfile(installPathLocal+"/KCore/kcore"+__EXTMODULE__,
+        shutil.copyfile(installPathLocal+"/kcore"+__EXTMODULE__,
                         libPath+"/libkcore"+__EXTSHARED__)
     else:
         print("Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal))
 
+installPath = K.installPath+'/'+Dist.getInstallModuleDirName('KCore')
+
 # Copie aussi les .py
-shutil.copyfile("config.py", installPathLocal+"/KCore/config.py")
-shutil.copyfile("Dist.py", installPathLocal+"/KCore/Dist.py")
-shutil.copyfile("installPath.py", installPathLocal+"/KCore/installPath.py")
-shutil.copyfile("installBase.py", installPathLocal+"/KCore/installBase.py")
+shutil.copyfile("config.py", installPath+"/config.py")
+shutil.copyfile("Dist.py", installPath+"/Dist.py")
+shutil.copyfile("installPath.py", installPath+"/installPath.py")
+shutil.copyfile("installBase.py", installPath+"/installBase.py")
 
 # Ecrit les infos d'install
 Dist.writeBuildInfo()
-shutil.copyfile("buildInfo.py", installPathLocal+"/KCore/buildInfo.py")
+shutil.copyfile("buildInfo.py", installPath+"/buildInfo.py")
 
 # Ecrit les fichiers d'environnement
 Dist.writeEnvs()

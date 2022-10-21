@@ -112,7 +112,7 @@ if mpi: EXTRA += ['-D_MPI']
 env.Append(CPPFLAGS=EXTRA)
 
 cplotLib = env.StaticLibrary('cplot', srcs.cpp_srcs)
-modDir = installPath+'/CPlot/'
+modDir = installPath+'/'+Dist.getInstallModuleDirName('CPlot')
 dp1 = env.Install(modDir, cplotLib)
 dp3 = env.Install(modDir, 'ttk-themes/themes.tar')
 dp4 = env.Install(modDir, Glob('CPlot/Textures/*.png'))
