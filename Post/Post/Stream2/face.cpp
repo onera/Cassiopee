@@ -282,7 +282,7 @@ namespace K_POST
         }
         if (num_trig >= (E_Int)triangles.size())
         {
-            std::cout << "Warning: no intersection found with face." << std::endl;
+            std::cout << "Warning: streamLine2: no intersection found with face." << std::endl;
             return {intersection,-1};
         }
             //throw std::domain_error("Aucune intersection trouvée avec les triangles composant la face");

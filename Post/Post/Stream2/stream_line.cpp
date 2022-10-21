@@ -178,7 +178,7 @@ namespace
             if ((velocity|velocity) < 1.E-14)
             {
 #           if defined(DEBUG_VERBOSE)
-                std::cout << "Warning: null speed detected. End Streamline computation ..." << std::flush << std::endl;
+                std::cout << "Warning: streamLine2: null speed detected. End Streamline computation ..." << std::flush << std::endl;
 #           endif
                 //istream -= 1;
                 break;
@@ -236,7 +236,7 @@ namespace
             }
             catch(std::domain_error& err)
             {
-                std::cerr << "Warning: geometric intersection problem: " << err.what() << ". On arête prématurément le calcul de cette streamline." << std::endl;
+                std::cerr << "Warning: streamLine2: geometric intersection problem: " << err.what() << ". On arête prématurément le calcul de cette streamline." << std::endl;
                 //break;
             }
 #endif*/

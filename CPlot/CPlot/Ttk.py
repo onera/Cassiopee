@@ -77,8 +77,10 @@ def setTheme(myTheme):
         if myTheme in dynamicThemes.keys():
             import KCore.installPath
             folder = KCore.installPath.installPath+'/CPlot'
-            CTK.WIDGETS['masterWin'].call("lappend", "auto_path", "[%s]"%folder + "/themes/%s"%myTheme)
-            CTK.WIDGETS['masterWin'].eval("source %s/themes/%s/%s"%(folder,myTheme,dynamicThemes[myTheme]))
+            try: # if already loaded
+                CTK.WIDGETS['masterWin'].call("lappend", "auto_path", "[%s]"%folder + "/themes/%s"%myTheme)
+                CTK.WIDGETS['masterWin'].eval("source %s/themes/%s/%s"%(folder,myTheme,dynamicThemes[myTheme]))
+            except: pass
             ttk.Style().theme_use(myTheme); createStyles(); return
 
         # Load des themes availables

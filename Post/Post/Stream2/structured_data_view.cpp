@@ -307,9 +307,9 @@ namespace K_POST
             is_inside = hexaedre.is_containing(pt);
         } catch(std::invalid_argument& err)
         {
-            // On est sur la frontière de l'élément :
-            std::cerr << "Warning : interpolated point is on interface. Possibility to have two points in same location in the stream line"
-                      << std::flush << std::endl;
+            // On est sur la frontiere de l'element :
+            //std::cerr << "Warning: streamLine2: interpolated point is on interface. Possibility to have two points in same location in the stream line"
+            //          << std::flush << std::endl;
             is_inside = true; // Dans ce cas, on considère qu'on est à l'intérieur (on prend l'élément comme un fermé topologique)
         }
         return is_inside;

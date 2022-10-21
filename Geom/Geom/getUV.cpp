@@ -331,8 +331,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
 
   // export Image as array
   printf("Rasterizing result...\n");
-  // Dump images.
-  std::vector<uint8_t> outputTrisImage, outputChartsImage, outputBumpImage;
+  std::vector<uint8_t> outputTrisImage, outputChartsImage, outputBumpImage, outputFieldImage;
   const uint32_t imageDataSize = atlas->width * atlas->height * 3;
   outputTrisImage.resize(atlas->atlasCount * imageDataSize);
   outputChartsImage.resize(atlas->atlasCount * imageDataSize);
@@ -397,6 +396,44 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       RasterizeLine(imageData, atlas->width, verts[j], verts[(j + 1) % faceVertexCount], color2);
     faceFirstIndex += faceVertexCount;
   }
+
+  // Rasterize mesh triangles in field image
+  /*
+  if (posvx >= 0 && posvy >= 0 && posvz >= 0)
+  {
+    E_Float* pvx = f->begin(posvx+1);
+    E_Float* pvy = f->begin(posvy+1);
+    E_Float* pvz = f->begin(posvz+1);
+    
+    outputFieldImage.resize(atlas->atlasCount * imageDataSize);
+    faceFirstIndex = 0;
+    for (uint32_t f = 0; f < faceCount; f++)
+    {
+      int32_t atlasIndex = -1;
+      int verts[255][2];
+      const uint32_t faceVertexCount = nf;
+      for (uint32_t j = 0; j < faceVertexCount; j++) 
+      {
+        const xatlas::Vertex &v = mesh.vertexArray[mesh.indexArray[faceFirstIndex + j]];
+        atlasIndex = v.atlasIndex; // The same for every vertex in the face.
+        verts[j][0] = int(v.uv[0]);
+        verts[j][1] = int(v.uv[1]);
+      }
+      if (atlasIndex < 0) continue; // Skip faces that weren't atlased.
+      uint8_t color[3];
+      color[0] = pvx[];
+      
+      uint8_t *imageData = &outputFieldImage[atlasIndex * imageDataSize];
+      if (faceVertexCount == 3)
+        RasterizeTriangle(imageData, atlas->width, verts[0], verts[1], verts[2], color);
+      else
+        RasterizePolygon(imageData, atlas->width, verts, (int)faceVertexCount, color);
+      for (uint32_t j = 0; j < faceVertexCount; j++)
+        RasterizeLine(imageData, atlas->width, verts[j], verts[(j + 1) % faceVertexCount], color2);
+      faceFirstIndex += faceVertexCount;
+    }
+  }
+  */
 
   // Rasterize mesh charts.
   /*
