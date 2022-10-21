@@ -272,14 +272,14 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
         {
           E_Int j;
           
-          if (pncad[index] != -1 && k_size == 1) 
+          if ((k_size == 1) && (pncad[index] > 0) &&  (pncad[index] < nfaces+1)) 
             j = pncad[index]-1;
           else
             j = (captured_boxes.size() != 0) ? captured_boxes[k] : k;
 
           if (j < 0 || j >= nfaces)
           {
-            std::cout << "BUG TO FIX" << std::endl;
+            std::cout << "BUG TO FIX : cad id : " << j << std::endl;
             continue;
           }
 

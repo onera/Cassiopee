@@ -1024,15 +1024,13 @@ void __interpolateHMeshNodalField(const void* hmesh_ptrs, std::vector<double>& f
   mesh_type* hmesh = (mesh_type*)hmesh_ptrs;
   
 
-
+  //wall_face_ids
+  const auto & bcptlists = hmesh->BCptLists; 
+  if (bcptlists.empty()) return;
+  
   // hmesh2amesh
   std::vector<E_Int> pth2a;
-  K_CONNECT::IdTool::reverse_indirection(hmesh->pthids0, pth2a);
-
-  //wall_face_ids
-  std::vector<std::vector<E_Int>> bcptlists;
-  bcptlists = hmesh->BCptLists;
-  
+  K_CONNECT::IdTool::reverse_indirection(hmesh->pthids0, pth2a);  
 
 // PARTIE A
   std::set<E_Int> donnorFaces;  
@@ -1053,10 +1051,6 @@ void __interpolateHMeshNodalField(const void* hmesh_ptrs, std::vector<double>& f
     E_Int PGi_hmesh = *it;
     MAJenfants(*hmesh, fieldN, PGi_hmesh, pth2a);
   }  
-  
-  donnorFaces.clear();
-  pth2a.clear();
-  bcptlists.clear();
 }
 
 template <NUGA::eSUBDIV_TYPE STYPE>
