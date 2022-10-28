@@ -110,7 +110,7 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
                             znp.append('/'+b[0]+'/'+z[0])
     elif BCType is not None:
         families = PyTree.getFamilyBCNamesOfType(a, BCType)
-        s = BCType.split(':')
+        s = BCType.split(':',1)
         if len(s) == 2: families.append(s[1])
         if BCType == 'BCWall':
           families1 = PyTree.getFamilyBCNamesOfType(a, 'BCWallInviscid')
@@ -286,7 +286,7 @@ def _loadVariables(a, fileName, znp, var, format, uncompress=True):
     else: znps = [znp]
     fvars = []; cont = []
     for v in vars:
-       s = v.split(':')
+       s = v.split(':',1)
        if v[0:10] == 'Coordinate': 
         fvars.append(Internal.__GridCoordinates__+'/'+v); cont = Internal.__GridCoordinates__
        elif len(s) == 2 and s[0] == 'centers': 
@@ -598,7 +598,7 @@ def writeVariables(a, fileName, var, znp, format=None):
   
   loc = []
   for v in vars:
-    vs = v.split(':')
+    vs = v.split(':',1)
     if len(vs) == 2: 
       if vs[0] == 'centers': loc.append(Internal.__FlowSolutionCenters__)
       else: loc.append(Internal.__FlowSolutionNodes__)

@@ -298,7 +298,7 @@ def getFieldsInContainer__(zp, modified, coords=True):
             if not isinstance(name, list): name = [name]
             for vname in name:
                 if vname not in PyTree.getVarNames(zp)[0]: continue
-                vars0 = vname.split(':')
+                vars0 = vname.split(':',1)
                 if len(vars0) == 1: # nodes
                     if fieldsn == []: fieldsn = PyTree.getField(vname,zp)[0]
                     else:
@@ -310,11 +310,17 @@ def getFieldsInContainer__(zp, modified, coords=True):
                         else: 
                             fc = PyTree.getField(vname,zp)[0]
                             fieldsc = Converter.addVars([fieldsc,fc])
-                    else: # nodes
+                    elif vars0[0] == 'nodes': # nodes
                         if fieldsn == []: fieldsn = PyTree.getField(vname,zp)[0]
                         else: 
                             fn = PyTree.getField(vname,zp)[0]
                             fieldsn = Converter.addVars([fieldsn,fn])
+                    else:
+                        if fieldsn == []: fieldsn = PyTree.getField(vname,zp)[0]
+                        else:
+                            fn = PyTree.getField(vname,zp)[0]
+                            fieldsn = Converter.addVars([fieldsn,fn])
+                        
     return fieldsn, fieldsc
 
 def _rmGhostCellsNGON__(zp, bp, d, stdNode, modified):
@@ -870,12 +876,15 @@ def getContainers__(name, z, zdonor=None):
     else:
         if not isinstance(name, list): name = [name]
         for v in name:
-            vars = v.split(':')
+            vars = v.split(':',1)
             loc = 'Vertex'; container = Internal.__FlowSolutionNodes__
             if len(vars) == 2: # center value
-                if vars[0] == 'centers': loc = 'CellCenter'; container = Internal.__FlowSolutionCenters__
-                vars = vars[1]
-            else: vars = vars[0] # node value
+                if vars[0] == 'centers':
+                    loc = 'CellCenter'; container = Internal.__FlowSolutionCenters__
+                    vars = vars[1]
+                elif vars[0] == 'nodes': vars = vars[1]
+                else: vars = v
+            else: vars = v # node value
             # search vars in nodes/centers container
             containerNode = Internal.getNodesFromName1(z, container)
             if containerNode != []:

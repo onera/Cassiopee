@@ -504,7 +504,7 @@ def _interpDirectStorage(z, zdonorname, nozd, resInterp, depth):
 def chimeraTransfer(t, storage='inverse', variables=[], loc='cell',mesh='extended'):
     vars2 = []
     for v in variables:
-        v2 = v.split(':')
+        v2 = v.split(':',1)
         if len(v2) == 2 and v2[0] == 'centers': vars2.append(v)
         # DBG else: print('Warning: chimeraTransfer: only variables located at centers taken into account.')
     if vars2 == []:
@@ -719,7 +719,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
                                 if rcvZoneName not in localZonesName: # zone receveuse pas sur le processeur locale
                                     vars2 = ''
                                     for v in variables:
-                                        v2 = v.split(':')[1];
+                                        v2 = v.split(':',1)[1]
                                         if variables.index(v) == len(variables)-1: vars2=vars2+v2
                                         else: vars2=vars2+v2+','
                                     cellRcvPara = numpy.arange(cellRcv.shape[0],dtype=numpy.int32)

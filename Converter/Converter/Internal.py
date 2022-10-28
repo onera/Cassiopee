@@ -5143,18 +5143,21 @@ def getBCDataSetContainers(name, z):
                             datas = getNodesFromName1(allBCDatas[nobcdata],fname) 
                             if datas != []:
                                 dataSetL+=[[allRanges[nobcdata], datas[0][1]]]
-                    if dataSetL!=[]:# variable exists both in flow solution and in bcdataset
+                    if dataSetL != []: # variable exists both in flow solution and in bcdataset
                         dataFS = [fname, loc, dataSetL]
                         containers.append(dataFS)
     else: 
         if not isinstance(name, list): name = [name]
         for v in name:
-            varname = v.split(':')
+            varname = v.split(':',1)
             loc = 'Vertex'; container = __FlowSolutionNodes__
-            if len(varname) == 2: # center value
-                if varname[0] == 'centers': loc = 'CellCenter'; container = __FlowSolutionCenters__
-                varname = varname[1]
-            else: varname = varname[0] # node value
+            if len(varname) == 2: # center/node value
+                if varname[0] == 'centers':
+                    loc = 'CellCenter'; container = __FlowSolutionCenters__
+                    varname = varname[1]
+                elif varname[0] == 'nodes': varname = varname[1]
+                else: varname = v
+            else: varname = v # node value
 
             # search vars in nodes/centers container
             containerNode = getNodeFromName1(z, container)

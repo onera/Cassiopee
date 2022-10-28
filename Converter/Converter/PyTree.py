@@ -5,7 +5,7 @@ except: pass
 from . import Converter
 from . import Internal
 import KCore
-import numpy, fnmatch
+import numpy, fnmatch, re
 __version__ = Converter.__version__
 
 # Variables globales
@@ -186,9 +186,11 @@ def convertPyTree2ZoneNames(t):
 # Si pas trouve, retourne []
 def getStdNodesFromName(z, name):
   loc = '*'
-  v = name.split(':')
-  if len(v) > 1: var = v[1]; loc = v[0]
-  else: var = v[0]
+  v = name.split(':',1)
+  if len(v) > 1: 
+    if v[0] == 'centers' or v[0] == 'nodes': var = v[1]; loc = v[0]
+    else: var = name
+  else: var = name
   v = name.split('/')
   if len(v) > 1: var = v[1]; loc = v[0]
   result = []
@@ -281,9 +283,8 @@ def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
 # Retourne 0: la variable est presente dans au moins une zone, mais pas toutes.
 # Retourne 1: la variables est presente dans toutes les zones
 def isNamePresent(t, varname):
-  v = varname.split(':')
-  if len(v) > 1 and v[0] == 'nodes':
-    varname = v[1]
+  v = varname.split(':',1)
+  if len(v) > 1 and v[0] == 'nodes': varname = v[1]
   zvars = getVarNames(t)
   if len(zvars) == 0: return -1
   one = 0; n = 0
@@ -296,12 +297,6 @@ def isNamePresent(t, varname):
   if one == 0: return -1
   elif n != len(zvars): return 0
   else: return 1
-
-
-
-
-
-
   
 # -- getNobNozOfZone
 # IN: a: zone
@@ -1320,10 +1315,10 @@ def getField(name, t, api=1):
   zones = Internal.getZones(t)
   arrays = []
   loc = 'nodes'
-  spl = name.split(':')
-  if len(spl) != 1:
-    if spl[0] == 'centers': loc = 'centers'
-    name = spl[1]
+  spl = name.split(':',1)
+  if len(spl) > 1:
+    if spl[0] == 'centers': loc = 'centers'; name = spl[1]
+    elif spl[0] == 'nodes': name = spl[1]
 
   for z in zones:
     dim = Internal.getZoneDim(z)
@@ -2334,8 +2329,10 @@ def _addVars(t, vars):
   zones = Internal.getZones(t)
   if isinstance(vars, list):
     for var in vars:
-      loc = 'nodes'; v = var.split(':')
-      if len(v) > 1: var = v[1]; loc = v[0]
+      loc = 'nodes'; v = var.split(':',1)
+      if len(v) > 1: 
+        if v[0] == 'nodes' or v[0] == 'centers': 
+          var = v[1]; loc = v[0]
       for z in zones:
         found = 0
         if loc == 'centers':
@@ -2356,8 +2353,9 @@ def _addVars(t, vars):
           dim = Internal.getZoneDim(z)
           _addAVar__(z, dim, '%s:%s'%(loc,var))
   else:
-    loc = 'nodes'; v = vars.split(':')
-    if len(v) > 1: vars = v[1]; loc = v[0]
+    loc = 'nodes'; v = vars.split(':',1)
+    if len(v) > 1: 
+        if loc == 'nodes' or loc == 'centers': vars = v[1]; loc = v[0]
     for z in zones:
       found = 0
       if loc == 'centers':
@@ -2383,9 +2381,9 @@ def _addAVar__(z, dim, var):
   vref = getVarNames(z)
   if var in vref: return # variable deja existante
   loc = 'nodes'
-  v = var.split(':')
-  if len(v) > 1: var = v[1]; loc = v[0]
-  else: var = v[0]
+  v = var.split(':',1)
+  if len(v) > 1: 
+    if v[0] == 'nodes' or v[0] == 'centers': var = v[1]; loc = v[0]
   if dim[0] == 'Structured':
     if loc == 'nodes':
       ni = dim[1]; nj = dim[2]; nk = dim[3]
@@ -2432,41 +2430,51 @@ def initVars(t, varNameString, v1=[], v2=[]):
 def _initVars(t, varNameString, v1=[], v2=[]):
   s = varNameString.split('=')
   if len(s) == 1: # const/F
-    loc = 'nodes'
-    v = varNameString.split(':')
-    if len(v) > 1: var = v[1]; loc = v[0]
-    else: var = v[0]
-  else: # formule
-    loc = 'nodes'; var = s[0]
-    v = s[0].split(':')
-    if len(v) > 1: loc = v[0]
-    loc = loc.replace('{', '')
+    loc = 'nodes'; var = varNameString
     var = var.replace('}', '')
     var = var.replace('{', '')
     var = var.strip()
-    loc = loc.strip()
+    v = var.split(':',1)
+    if len(v) > 1:
+      if v[0] == 'nodes' or v[0] == 'centers': loc = v[0]; var = v[1]
+
+  else: # formule
+    loc = 'nodes'; var = s[0]
+    var = var.replace('}', '')
+    var = var.replace('{', '')
+    var = var.strip()
+    v = var.split(':',1)
+    if len(v) > 1:
+        if v[0] == 'centers': loc = v[0]
 
   centerCoordNeeded = False
   if loc == 'centers':
     if v1 == []:
-      import re
       r = s[1]
       vars = re.findall("{.*?}", r)
       for v in vars:
-       vp = v.split(':')
-       if len(vp)>1:
-        loc1 = vp[0].replace('{', ''); loc1 = loc1.replace('}', '')
-        var1 = vp[1].replace('{', ''); var1 = var1.replace('}', '')
-        if loc1 == 'centers' and var1[0:10] == 'Coordinate': centerCoordNeeded = True
+       v = v.replace('}', '')
+       v = v.replace('{', '')
+       v = v.strip()
+       vp = v.split(':',1)
+       if len(vp) > 1:
+        if vp[0] == 'centers':
+          var1 = vp[1]
+          if var1[0:10] == 'Coordinate': centerCoordNeeded = True
     elif callable(v1):
       c = 0
       for v in v2:
-       vp = v.split(':')
-       if len(vp)>1:
-        loc1 = vp[0].replace('{', ''); loc1 = loc1.replace('}', '')
-        var1 = vp[1].replace('{', ''); var1 = var1.replace('}', '')
-        if loc1 == 'centers' and var1[0:10] == 'Coordinate': centerCoordNeeded = True
-        v2[c] = vp[1]
+       v = v.replace('}', '')
+       v = v.replace('{', '')
+       v = v.strip()
+       vp = v.split(':',1)
+       if len(vp) > 1:
+        if vp[0] == 'centers':
+          var1 = vp[1]
+          if var1[0:10] == 'Coordinate': centerCoordNeeded = True
+          v2[c] = vp[1]
+        elif vp[0] == 'nodes':
+          v2[c] = vp[1]
        c += 1
 
   #centerCoordNeeded = True # for DBX
@@ -2483,23 +2491,28 @@ def _initVars(t, varNameString, v1=[], v2=[]):
   else:
     s = varNameString.split('=')
     if len(s) == 1: # pas formule
-      loc = 'nodes'
-      v = varNameString.split(':')
-      if len(v) > 1: var = v[1]; loc = v[0]
-      else: var = v[0]
+      loc = 'nodes'; var = varNameString
+      var = var.replace('}', '')
+      var = var.replace('{', '')
+      var = var.strip()
+      v = var.split(':',1)
+      if len(v) > 1:
+        if v[0] == 'centers' or v[0] == 'nodes': var = v[1]; loc = v[0]
       _addVars(t, varNameString)
-      c = 0
-      for i in v2:
-          v = i.split(':')
-          if len(v) > 1: v2[c] = v[1]
-          else: v2[c] = v[0]
-          c += 1
+      for c, i in enumerate(v2):
+          v = i.split(':',1)
+          if len(v) > 1:
+            if v2[0] == 'centers' or v2[0] == 'nodes': v2[c] = v[1]
       _TZAGC(t, loc, loc, False, Converter.initVars,
              Converter.initVars, var, v1, v2)
     else: # formule
-      loc = 'nodes'
-      v = s[0].split(':')
-      if len(v) > 1: loc = v[0]; loc = loc.replace('{', '')
+      loc = 'nodes'; var = s[0]
+      var = var.replace('}', '')
+      var = var.replace('{', '')
+      var = var.strip()
+      v = var.split(':',1)
+      if len(v) > 1: 
+        if v[0] == 'centers': loc = v[0]
       _TZAGC(t, loc, loc, False, Converter.initVars, 
              Converter.initVars, varNameString, v1, v2)
   return None

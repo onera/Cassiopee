@@ -25,8 +25,10 @@ def _extrapOnBCDataSet(t, variables):
                     fields = Internal.getNodesFromType1(bcd, 'DataArray_t')
 
                     for var in variables:
-                        v = var.split(':')
-                        if len(v) == 2: v = v[1]
+                        v = var.split(':',1)
+                        if len(v) == 2: 
+                            if v[0] == 'centers' or v[0] == 'nodes': v = v[1]
+                            else: v = var
                         else: v = var
                         found = 0
                         for field in fields:
@@ -66,16 +68,19 @@ def _setBCDataSet__(z, bc, variables):
                         Internal._createUniqueChild(d,varName,'DataArray_t',value=fsn[1])
         else:
             for var in variables:
-                varl = var.split(':')
+                varl = var.split(':',1)
                 if len(varl) > 1:
                     if varl[0] == 'centers':
                         varname = varl[1]
                         fs = Internal.getNodeFromName1(FSC,varname)
-                    else:
+                    elif varl[0] == 'nodes':
                         varname = varl[1]
                         fs = Internal.getNodeFromName1(FSN,varname)
+                    else:
+                        varname = var
+                        fs = Internal.getNodeFromName1(FSN,varname)
                 else:
-                    varname = varl[0]
+                    varname = var
                     fs = Internal.getNodeFromName1(FSN,varname)
                 Internal._createUniqueChild(d,varname,'DataArray_t',value=fs[1])
 
@@ -90,7 +95,7 @@ def _setBCDataSet__(z, bc, variables):
                 Internal._createUniqueChild(cont,varName,'DataArray_t',value=fsn[1])
         else:
             for var in variables:
-                varl = var.split(':')
+                varl = var.split(':',1)
                 if len(varl) > 1:
                     if varl[0] == 'centers':
                         varname = varl[1]

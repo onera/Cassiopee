@@ -211,7 +211,6 @@ def break__(z, stack, final, t):
 
         # verifie si la fenetre est full
         if (dir == 2 or dir == 3) and rnge[0] > 1:
-            print('split1')
             z1 = T.subzone(z, (1,1,1), (rnge[0],nj,nk))
             z2 = T.subzone(z, (rnge[0],1,1), (ni,nj,nk))
             z1,z2 = T.split(z, dir, rnge[0], t)
@@ -220,7 +219,6 @@ def break__(z, stack, final, t):
             return
 
         if (dir == 2 or dir == 3) and rnge[1] < ni:
-            print('split2')
             z1 = T.subzone(z, (1,1,1), (rnge[1],nj,nk))
             z2 = T.subzone(z, (rnge[1],1,1), (ni,nj,nk))
             #adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=rnge[1])
@@ -228,7 +226,6 @@ def break__(z, stack, final, t):
             return
 
         if (dir == 1 or dir == 3) and rnge[2] > 1: # need split, stack
-            print('split3')
             z1 = T.subzone(z, (1,1,1), (ni,rnge[2],nk))
             z2 = T.subzone(z, (1,rnge[2],1), (ni,nj,nk))
             #adaptBCMatch(z, allzones, z1, z2, splitDir=2, splitIndex=rnge[2])
@@ -236,7 +233,6 @@ def break__(z, stack, final, t):
             return
 
         if (dir == 1 or dir == 3) and rnge[3] < nj: # need split, stack
-            print('split4')
             z1 = T.subzone(z, (1,1,1), (ni,rnge[3],nk))
             z2 = T.subzone(z, (1,rnge[3],1), (ni,nj,nk))
             #adaptBCMatch(z, allzones, z1, z2, splitDir=2, splitIndex=rnge[3])
@@ -244,7 +240,6 @@ def break__(z, stack, final, t):
             return
 
         if (dir == 1 or dir == 2) and rnge[4] > 1: # need split, stack
-            print('split5')
             z1 = T.subzone(z, (1,1,1), (ni,nj,rnge[4]))
             z2 = T.subzone(z, (1,1,rnge[4]), (ni,nj,nk))
             #adaptBCMatch(z, allzones, z1, z2, splitDir=3, splitIndex=rnge[4])
@@ -252,14 +247,12 @@ def break__(z, stack, final, t):
             return
 
         if (dir == 1 or dir == 2) and rnge[5] < nk: # need split, stack
-            print('split6')
             z1 = T.subzone(z, (1,1,1), (ni,nj,rnge[5]))
             z2 = T.subzone(z, (1,1,rnge[5]), (ni,nj,nk))
             #adaptBCMatch(z, allzones, z1, z2, splitDir=3, splitIndex=rnge[5])
             stack.append(z1); stack.append(z2)
             return
 
-    print('only append', z[0])
     final.append(z)
 
 # adapte toutes les BCMatchs quand z est splitte en z1+z2

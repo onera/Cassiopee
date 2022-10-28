@@ -147,11 +147,11 @@ def moveNodeDown():
         p[2][c] = temp
         CTK.TKTREE.updateApp()
 
-# format string pour ecriture en haut
+# format string pour ecriture casual (6)
 def strFormat(value):
     return "%.5g"%value
 
-# format string pour ecriture dans treeops
+# format string pour ecriture precise (12)
 def strFormat2(value):
     return "%.12g"%value
 
