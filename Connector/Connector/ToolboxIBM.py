@@ -140,7 +140,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
     return dictOfCorrectedPtsByIBCType, dictOfWallPtsByIBCType, dictOfInterpPtsByIBCType
 
 
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., Lref=1., wallAdapt=None, blankingF42=False, isLBM=False,LBMQ=False,isPrintDebug=False):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., Lref=1., wallAdapt=None, blankingF42=False, isLBM=False, LBMQ=False, isPrintDebug=False):
     t,tc=X_IBM.prepareIBMData(t, tbody, DEPTH=DEPTH, loc=loc, frontType=frontType, interpDataType=interpDataType, smoothing=smoothing, yplus=yplus, Lref=Lref, wallAdapt=wallAdapt, blankingF42=blankingF42, isLBM=isLBM,LBMQ=LBMQ,isPrintDebug=isPrintDebug)
     return t, tc
 

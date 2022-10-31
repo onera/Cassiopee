@@ -26,14 +26,19 @@ else
     exit 1
 fi
 
+# if specific python exe name
 if [ "$PYTHONEXE" != "" ]; then
     alias python=$PYTHONEXE
 fi
 
+# set production mode (0: scons+setup, 1: scons+pip, 2: setup legacy)
+if [ "$PRODMODE" == "" ]; then
+    PRODMODE=0
+fi
+
 # Compilation et installation
-sconsf=`which scons`
-which scons &>/dev/null
-if [ $? -eq 0 ]; then
+if [ $PRODMODE -le 1 ]; then
+    sconsf=`which scons`
     if [ "$OMP_NUM_THREADS" != "" ]; then
         export SCONSOPT="-j $OMP_NUM_THREADS"
     else
@@ -44,8 +49,15 @@ if [ $? -eq 0 ]; then
     #touch Generator/generator.cpp
     rm -f build/lib.*/Generator/generator.*
     rm -f build/lib.*/Generator/generator-*.*
-    python setup.py install --prefix="$INSTALLPATH"
-    [ $? != 0 ] && exit 1;
+    if [ $PRODMODE -eq 0 ]; then
+        python setup.py install --prefix="$INSTALLPATH"
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 1 ]; then
+        rep=`python -c "import sys; print('%d.%d'%(sys.version_info[0],sys.version_info[1]))"`
+        rep="$INSTALLPATH/lib/python"$rep"/site-packages"
+        python -m pip install --upgrade --target=$rep .
+        [ $? != 0 ] && exit 1;
+    fi
 else
     python setupLegacy.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
