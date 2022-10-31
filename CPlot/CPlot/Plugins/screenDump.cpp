@@ -130,7 +130,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   // Switch viewport
   int viewWSav = _view.w; int viewHSav = _view.h;
   _view.w = exportWidth; _view.h = exportHeight;
-  glViewport(0, 0, (GLsizei) exportWidth, (GLsizei) exportHeight);
+  glViewport(0, 0, (GLsizei)exportWidth, (GLsizei)exportHeight);
   _view.ratio = (double)_view.w/(double)_view.h;
 
   if (ptrState->stereo == 0) display();
@@ -208,7 +208,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
         {
           unsigned ind = i*exportWidth+j;
           assert(ind < s);
-          if (depth[ind] < offscreenD[ind]) 
+          if (depth[ind] < offscreenD[ind])
           {
             offscreen[3*ind  ] = buffer[3*ind  ];
             offscreen[3*ind+1] = buffer[3*ind+1];
@@ -228,7 +228,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     E_Int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     E_Int size; MPI_Comm_size(MPI_COMM_WORLD, &size);
     E_Int screenSize = _view.w * _view.h;
-    //printf("Rendering : w=%d ew=%d h=%d eh=%d\n", _view.w, exportWidth, _view.h, exportHeight);
+    //printf("Rendering: w=%d ew=%d h=%d eh=%d\n", _view.w, exportWidth, _view.h, exportHeight);
     
     // Recupere le depth buffer et l'adimensionne
     void* depthl;
@@ -536,8 +536,7 @@ void Data::dumpWindow()
     }
 
     // Dump the buffer to a file
-    if (ptrState->offscreen != 3 && ptrState->offscreen != 5 &&
-	ptrState->offscreen != 7)
+    if (ptrState->offscreen != 3 && ptrState->offscreen != 5 && ptrState->offscreen != 7)
       _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
 
 #ifdef _MPI

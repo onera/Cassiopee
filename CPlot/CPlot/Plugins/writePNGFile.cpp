@@ -104,6 +104,8 @@ void writePNGFile(Data* d, char* filename, char* buffer,
 
   /* cleanup heap allocation */
   delete [] row_pointers;
+  png_destroy_write_struct(&png_ptr, &info_ptr);
+
   fclose(fp); 
 
   printf("Wrote file %s (%d x %d pixels).\n", filename, width, height);

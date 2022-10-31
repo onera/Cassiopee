@@ -174,6 +174,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
       referenceNfield, referenceVarNames);
 
   for (size_t i = 0; i < zoneNames.size(); i++) delete [] zoneNames[i];
+  for (size_t i = 0; i < renderTags.size(); i++) delete [] renderTags[i];
 
   for (E_Int i = 0; i < referenceNfield; i++) delete [] referenceVarNames[i];
   delete [] referenceVarNames;

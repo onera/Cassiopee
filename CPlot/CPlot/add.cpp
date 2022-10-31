@@ -124,8 +124,7 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   // Creations d'une nouvelle zone structuree
   if (res == 1)
   {
-    if (zoneNameI != NULL) 
-    { strcpy(zoneName, zoneNameI); delete [] zoneNameI; }
+    if (zoneNameI != NULL) { strcpy(zoneName, zoneNameI); delete [] zoneNameI; }
     else sprintf(zoneName, "S-Zone %d", nzs);
     
     posx = K_ARRAY::isCoordinateXPresent(varString);
