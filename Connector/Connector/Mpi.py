@@ -53,10 +53,10 @@ def connectMatch(a, tol=1.e-6, dim=3):
 #==============================================================================
 def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
     """Find boundaries that matches with a given ratio."""
-    if not isinstance(ratio, list):
+    if not isinstance(ratio, list): 
         iratio = ratio
     else:
-        iratio=1
+        iratio = 1
         for r in ratio: iratio=max(iratio,r)
 
     # Ajout des bandelettes
@@ -356,7 +356,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
             rcvName = n[0]
             field = n[1]
             #if Cmpi.rank==0: print('reception', Cmpi.rank, 'no zone', zones[ rcvName ][0], field[0])
-            if field != [] and field[0] !='Nada':
+            if field != [] and field[0] != 'Nada':
                 # print(field[0])
                 listIndices = n[2]
                 z = zones[rcvName]

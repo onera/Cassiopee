@@ -55,7 +55,7 @@ PyObject* K_GEOM::polyline( PyObject* self, PyObject* args )
     E_Int dim;  
     if (PyTuple_Check(tpli) != 0)
     {
-        dim = PyTuple_Size(tpli); 
+      dim = PyTuple_Size(tpli); 
     }
     else
     {

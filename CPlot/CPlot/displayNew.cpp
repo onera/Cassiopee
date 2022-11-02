@@ -169,9 +169,9 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   d->_CDisplayIsLaunched = 1;
 
   d->initZoneData(structF, structVarString, nit, njt, nkt,
-		  unstrF, unstrVarString, cnt, eltType, 
-		  zoneNames, renderTags,
-      referenceNfield, referenceVarNames);
+                  unstrF, unstrVarString, cnt, eltType, 
+                  zoneNames, renderTags,
+                  referenceNfield, referenceVarNames);
 
   for (size_t i = 0; i < zoneNames.size(); i++) delete [] zoneNames[i];
   for (size_t i = 0; i < renderTags.size(); i++) delete [] renderTags[i];

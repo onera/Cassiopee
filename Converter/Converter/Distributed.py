@@ -896,6 +896,23 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
     if not exploc: return graph
     else: return list_graph_
 
+# Split graph in one zone graphs
+def splitGraph(graph):
+    graphs = []
+    c = 0; goon = True
+    while goon:
+        g = {} 
+        goon = False
+        for p1 in graph:
+            g[p1] = {}
+            for p2 in graph[p1]:
+                l = graph[p1][p2]
+                if len(l) > c: g[p1][p2] = [l[c]]; goon = True
+                else: g[p1][p2] = []
+        if goon: graphs.append(g)
+        c += 1
+    return graphs
+
 #==============================================================================
 # Retourne le dictionnaire proc['blocName']
 # a partir d'un arbre distribue contenant des noeuds proc
