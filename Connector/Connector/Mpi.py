@@ -654,8 +654,18 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
     # Le graph doit correspondre au probleme
     if itype == 'abutting':
-        graph = Cmpi.computeGraph(aR, type='match', reduction=True) 
-    else: 
+        graph = Cmpi.computeGraph(aR, type='match', reduction=True)
+        Cmpi._addXZones(aR, graph, variables=[], noCoordinates=True, 
+                        cartesian=False, zoneGC=True, keepOldNodes=False)
+        Cmpi._addXZones(aD, graph, variables=[], noCoordinates=True, 
+                        cartesian=False, zoneGC=True, keepOldNodes=False)
+        X._setInterpData(aR, aD, double_wall, order, penalty, nature, 
+                         method, loc, storage, interpDataType, hook, 
+                         topTreeRcv, topTreeDnr,
+                         sameName, dim, itype)
+        Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
+
+    elif itype == 'chimera':
         tbbc = Cmpi.createBBoxTree(aD)
         interDict = X.getIntersectingDomains(tbbc)
         if sameBase == 0:
@@ -671,32 +681,86 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 interDict[i] = out
 
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
-
-    #if Cmpi.rank == 0 and itype == 'chimera': print(interDict)
-    #print("%d: setInterpData(min): itype=%s, Nblocs=%d, NPts(M)=%g"%(Cmpi.rank,itype,len(Internal.getZones(aR)), C.getNPts(aR)*1./1.e6), flush=True)
-    #if Cmpi.rank == 0 and itype == 'chimera': print(graph)
-    
-    # Pour abutting, pas besoin de coords
-    # Pour le chimere, il faut les coords et le cellN
-    if itype == 'abutting':
-        Cmpi._addXZones(aR, graph, variables=[], noCoordinates=True, 
-                        cartesian=False, zoneGC=True, keepOldNodes=False)
-        Cmpi._addXZones(aD, graph, variables=[], noCoordinates=True, 
-                        cartesian=False, zoneGC=True, keepOldNodes=False)
-    else:
-        # weakness : graph gros, zones grosses
         Cmpi._addXZones(aR, graph, variables=['centers:cellN'], noCoordinates=False, 
                         cartesian=False, zoneGC=False, keepOldNodes=False)
         Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
                         cartesian=False, zoneGC=False, keepOldNodes=False)
         
-    #print("%d: setInterpData(max): itype=%s, Nblocs=%d, NPts(M)=%g"%(Cmpi.rank,itype,len(Internal.getZones(aR)), C.getNPts(aR)*1./1.e6), flush=True)
-    #if Cmpi.rank == 0 and itype == 'chimera': Internal.printTree(aR)
+        X._setInterpData(aR, aD, double_wall, order, penalty, nature, 
+                         method, loc, storage, interpDataType, hook, 
+                         topTreeRcv, topTreeDnr,
+                         sameName, dim, itype)
 
-    X._setInterpData(aR, aD, double_wall, order, penalty, nature, 
-                     method, loc, storage, interpDataType, hook, 
-                     topTreeRcv, topTreeDnr,
-                     sameName, dim, itype)
-    Cmpi._rmXZones(aR)
-    Cmpi._rmXZones(aD)
+        Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
+    
+    elif itype == 'chimera2': # nouvelle version 
+        tbbc = Cmpi.createBBoxTree(aD)
+        interDict = X.getIntersectingDomains(tbbc)
+        if sameBase == 0:
+            # on ne conserve que les intersections inter base
+            baseNames = {}
+            for b in Internal.getBases(tbbc):
+                for z in Internal.getZones(b): baseNames[z[0]] = b[0]
+            for i in interDict:
+                bi = baseNames[i]
+                out = []
+                for z in interDict[i]: 
+                    if bi != baseNames[z]: out.append(z)
+                interDict[i] = out
+
+        graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
+        # weakness : graph gros, zones grosses
+        Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
+                        cartesian=False, zoneGC=False, keepOldNodes=False)
+        # serialisation eventuelle
+        #graphs = Cmpi.splitGraph(graph)
+        #for g in graphs:
+        #    Cmpi._addXZones(aD, g, variables=['centers:cellN'], noCoordinates=False, 
+        #                    cartesian=False, zoneGC=False, keepOldNodes=False)
+
+        # Il faut creer ici hook (en fonction de CARTESIAN)
+        X._setInterpData(aR, aD, double_wall, order, penalty, nature,
+                         method, loc, storage, interpDataType, hook, 
+                         topTreeRcv, topTreeDnr,
+                         sameName, dim, itype)
+        datas = {}
+        for zr in Internal.getZones(aR):
+            zrname = Internal.getName(zr)
+            dnrZones = []
+            for zdname in interDicts[zrname]:
+                zd = Internal.getNodeFromName2(aD, zdname)
+                dnrZones.append(zd)
+            
+            for zd in dnrZones:
+                zdname = zd[0]
+                destProc = procDictcs[zdname]
+        
+                IDs = []
+                for i in zd[2]:
+                    if i[0][0:2] == 'ID':
+                        if Internal.getValue(i) == zrname: IDs.append(i)
+
+                if IDs != []:
+                    if destProc == Cmpi.rank:
+                        zD = Internal.getNodeFromName2(tcs, zdname)
+                        zD[2] += IDs
+                    else:
+                        if destProc not in datas: datas[destProc] = [[zdname,IDs]]
+                        else: datas[destProc].append([zdname,IDs])
+                else:
+                    if destProc not in datas: datas[destProc] = []
+
+        Cmpi._rmXZones(aD)
+        # Releaser ici hook
+        
+        destDatas = Cmpi.sendRecv(datas, graph)
+        for i in destDatas:
+            for n in destDatas[i]:
+                zname = n[0]
+                IDs = n[1]
+                if IDs != []:
+                    zD = Internal.getNodeFromName2(aD, zname)
+                    zD[2] += IDs
+        datas = {}; destDatas = None
+
     return None

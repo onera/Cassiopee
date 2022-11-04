@@ -1,6 +1,9 @@
 # Interface pour MPI
 
 import os, time, timeit, sys
+from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph, splitGraph, isZoneSkeleton__
+from . import PyTree as C
+from . import Internal
 
 if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
     if int(os.environ['MPIRUN'])>0:
@@ -16,6 +19,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def Gather(a, root=0): return a
         def gatherZones(a, root=0): return a
         def allgatherZones(a, root=0): return a
+        def allgatherTree(a): return a
         def send(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
         def sendRecv(a, source=0, dest=0): return []
@@ -25,6 +29,8 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): return a
         def seq(F, *args): F(*args)
+        def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
+        def convertPyTree2File(t, fileName, format=None, links=[]): return C.convertPyTree2File(t, fileName, format, links)
         print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
  
 else: # try import (may fail - core or hang)
@@ -39,6 +45,7 @@ else: # try import (may fail - core or hang)
         def Gather(a, root=0): return a
         def gatherZones(a, root=0): return a
         def allgatherZones(a, root=0): return a
+        def allgatherTree(a): return a
         def send(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
         def sendRecv(a, source=0, dest=0): return []
@@ -49,10 +56,6 @@ else: # try import (may fail - core or hang)
         def Allreduce(a, b, op=None): return a
         def seq(F, *args): F(*args)
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
-
-from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph, splitGraph, isZoneSkeleton__
-from . import PyTree as C
-from . import Internal
 
 # Previous times for CPU time measures
 PREVFULLTIME = None # full

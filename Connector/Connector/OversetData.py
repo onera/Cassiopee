@@ -367,7 +367,6 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
         if storage == 'direct': return None
         else: return None
 
-
     locCellND = 'nodes'
     # pour l'enlever ensuite si addCellN le cree
     dictIsCellNPresent={}
@@ -582,7 +581,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
 # 2nd PI
 def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpPts2=None, loc='nodes', \
                          order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
-                         interpDataType=1,hook=None, dim=3, bcType=-1, ReferenceState=None):
+                         interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None):
 
     prefixIBCD ='IBCD_'
     prefixIBC2D ='2_IBCD_'
@@ -1075,7 +1074,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
 
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
-    if itype != 'chimera':
+    if itype != 'chimera': # abutting
         if storage == 'direct':
             _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
         else:
@@ -1086,12 +1085,12 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
             #if itype == 'abutting': # SP : a mettre non ? sinon on le refait 2 fois
             _adaptForRANSLES__(aR, aD)
 
-    if itype != 'abutting':
+    if itype != 'abutting': # chimera
         _setInterpDataChimera(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature,
                               method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
                               topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
 
-    # SP : pour l'instant adaptForRANSLES est appele 2 fois : pour les ghost cells et pour le chimere
+    # SP: pour l'instant adaptForRANSLES est appele 2 fois: pour les ghost cells et pour le chimere
     # peut on ne le mettre qu ici ?
     #if storage=='inverse': _adaptForRANSLES__(aR, aD)
     return None
@@ -1113,7 +1112,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     # pour l'enlever ensuite si addCellN le cree
     dictIsCellNPresent={}
     for zd in Internal.getZones(aD):
-        dictIsCellNPresent[zd[0]]=C.isNamePresent(zd, 'cellN')
+        dictIsCellNPresent[zd[0]] = C.isNamePresent(zd, 'cellN')
 
     _addCellN__(aD, loc=locCellND)
 
@@ -1204,6 +1203,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     nozr = -1
 
     for z in zonesRcv:
+        print(z[0], flush=True)
         nozr += 1
         if loc == 'nodes': cellNPresent = C.isNamePresent(z, 'cellN')
         else: cellNPresent = C.isNamePresent(z, 'centers:cellN')
@@ -1231,7 +1231,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
             isdw = 0 # si double wall effectivement active, interpPts est une liste d'arrays
             if locR == 'nodes':
                 an = C.getFields(Internal.__GridCoordinates__, z)[0]
-                cellN = C.getField('cellN',z)[0]
+                cellN = C.getField('cellN', z)[0]
                 an = Converter.addVars([an,cellN])
                 if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d'arrays
                     isdw = 1
@@ -1246,7 +1246,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 ac = Converter.node2Center(an)
                 cellN = C.getField('centers:cellN',z)[0]
                 ac = Converter.addVars([ac,cellN])
-                if double_wall == 1 and interpWallPts[nozr] != []:# dw : liste d'arrays
+                if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d'arrays
                     isdw = 1
                     for nozd in range(nzonesDnr):
                         ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
@@ -1271,7 +1271,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 nbinterpolated = nbinterpolated-nbextrapolated-nborphan
 
                 print('Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(z[0], nbinterpolated, nbextrapolated, nborphan))
-                if  nborphan > 0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
+                if nborphan > 0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
                 # on remet a une seule zone, attention si x,y,z sont necessaires ensuite
                 # les coordonnees peuvent etre fausses a cause du double walls
                 indcells=[]
@@ -1302,7 +1302,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 if len(resInterp[4])>0: # pts extrapoles par zone donneuse
                     for noz in range(nzonesDnr):
                         nextraploc = resInterp[4][noz].size
-                        if nextraploc > 0:# Extrapoles
+                        if nextraploc > 0: # Extrapoles
                             for noi in range(nextraploc):
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
@@ -1637,13 +1637,13 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
                             elif dirD==-2: shift += rinddnr[2]
                             elif dirD== 2: shift += rinddnr[3]
                             elif dirD==-3: shift += rinddnr[4]
-                            else: shift+= rinddnr[5]
+                            else: shift += rinddnr[5]
                             if dirR  ==-1: shift += rindimin
                             elif dirR== 1: shift += rindimax
                             elif dirR==-2: shift += rindjmin
                             elif dirR== 2: shift += rindjmax
                             elif dirR==-3: shift += rindkmin
-                            else: shift+= rindkmax
+                            else: shift += rindkmax
                             if locR == 1: shift -= 1
                             listOfIndicesD = GhostCells.getJoinDonorIndicesStruct__(prange,prangedonor,zoneDimD,dirD, trirac,0,locS,dimPb, shift)
 
@@ -1712,7 +1712,6 @@ def _adaptForRANSLES__(tR, tD):
                    Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
             except: pass
     return None
-
 
 def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, interpType, interpVol, indicesExtrap, indicesOrphan, \
                           EXDir = [], pointlistdonorExtC=None, tag='Receiver', loc='centers', itype='chimera',
@@ -1844,9 +1843,9 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
                 node = Internal.getNodesFromName1(zsr[0],'PointListDonorExtC')
                 if node!=[]: node[0][1] = numpy.concatenate((node[0][1],pointlistdonorExtC))
                 node = Internal.getNodesFromName1(zsr[0],'OrphanPointList')
-                if node!=[]: node[0][1]=numpy.unique(indicesOrphan)
+                if node!=[]: node[0][1] = numpy.unique(indicesOrphan)
                 node = Internal.getNodesFromName1(zsr[0],'ExtrapPointList')
-                if node!=[]: node[0][1]=numpy.concatenate((node[0][1],indicesExtrap))
+                if node!=[]: node[0][1] = numpy.concatenate((node[0][1],indicesExtrap))
 
     return None
 
