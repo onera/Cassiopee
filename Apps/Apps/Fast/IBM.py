@@ -281,11 +281,17 @@ def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], 
     if model is None: raise ValueError('GoverningEquations is missing in input tree.')
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
-
+    tb2 = Internal.copyRef(tb)
+    for zb in Internal.getZones(tb2):
+        dfarsym = Internal.getNodeFromName(zb,"dfar")
+        if dfarsym is not None:
+            dfarsym = Internal.getValue(dfarsym)
+            if dfarsym < 0: 
+                Internal._rmNodesFromName(tb2, zb[0])
 
     # list of dfars
     if dfarList == []:
-        zones = Internal.getZones(tb)
+        zones = Internal.getZones(tb2)
         dfarList = [dfar*1.]*len(zones)
         for c, z in enumerate(zones):
             n = Internal.getNodeFromName2(z, 'dfar')
@@ -307,6 +313,7 @@ def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], 
     if check: fileout = 'octree.cgns'
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
+    
     if to is not None:
         if isinstance(to, str):
             o = C.convertFile2PyTree(to)
@@ -315,7 +322,7 @@ def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], 
             o = Internal.getZones(to)[0]
         parento = None
     else:
-        o = G_IBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
+        o = G_IBM.buildOctree(tb2, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
                               to=to, tbox=tbox, snearsf=snearsf,
                               dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank,
                               expand=expand, dfarDir=dfarDir)
@@ -323,13 +330,31 @@ def generateCartesian(tb, to=None, dimPb=3, snears=0.01, dfar=10., dfarList=[], 
     if rank==0 and check: C.convertPyTree2File(o, directory_tmp_files+fileout)
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = G_IBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
+    parento = G_IBM.buildParentOctrees__(o, tb2, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
                                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
     test.printMem(">>> Octree unstruct split [start]")
     bb = G.bbox(o)
+    #  remove symmetry parts
+    isSym=False
+    tb2 = Internal.copyRef(tb)
+    for zb in Internal.getZones(tb2):
+        dfar = Internal.getNodeFromName(zb,"dfar")
+        if dfar is not None:
+            dfar = Internal.getValue(dfar)
+            if dfar > -1: 
+                Internal._rmNodesFromName(tb2, zb[0])
+            else: isSym = True
+    if isSym:
+        tosym = C.newPyTree(['Octree']); tosym[2][1][2].append(o)   
+        tosym = X_IBM.blankByIBCBodies(tosym, tb2, 'centers', dimPb)
+        tosym = X.setHoleInterpolatedPoints(tosym,depth=-1, loc='centers')
+        o = P.selectCells(tosym,'({centers:cellN}>0)',strict=1)
+        o = Internal.getZones(o)[0]
+        if check and Cmpi.rank==0: C.convertPyTree2File(o, "octree2.cgns")
+    # 
     NPI = Cmpi.size
     if NPI == 1: p = Internal.copyRef(o) # keep reference
     else: p = T.splitNParts(o, N=NPI, recoverBC=False)[rank]
@@ -498,6 +523,17 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
              redistribute=False,isDist2WallNearBodyOnly=False,isoverideheight=False,check2Donly=False,
              dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./',
              IBCType=1,isFilamentOnly=False,closedSolid=[],isWireModel=False):
+
+    tmpFilename = 'tmp_tc_IBM_prep'    
+    localUser= getpass.getuser()
+    localPc  = socket.gethostname().split('-')
+    if 'sator' not in localPc:
+        path2writetmp='/stck/'+localUser+'/'
+    else:
+        path2writetmp='/tmp_user/sator/'+localUser+'/'
+    tmpFilename = path2writetmp+tmpFilename+'.cgns'  
+    
+             
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -579,14 +615,15 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         test.printMem(">>> balancing [start]")
         Cmpi.convertPyTree2File(t, t_out)
         # Need to wait for all the procs to write their parts before the new distribution
-        comm.Barrier()
-        ts = Cmpi.convertFile2SkeletonTree(t_out)
-        D2._distribute(ts, Cmpi.size, algorithm='graph')
-        t = Cmpi.readZones(ts, t_out, rank=rank)
+        #comm.Barrier() # useless so far (SP) as there is a barrier() in convertPyTree2File ? 
+        t = Cmpi.convertFile2SkeletonTree(t_out)
+        D2._distribute(t, Cmpi.size, algorithm='graph')
+        Cmpi._readZones(t, t_out, rank=rank)
         Cmpi._convert2PartialTree(t)
         zones = Internal.getZones(t)
-        for z in zones: z[0] = z[0] + 'X%d'%rank
-        del ts
+        for z in zones: 
+            zname = z[0].split('X')[0]
+            z[0] = zname + 'X%d'%rank
         test.printMem(">>> balancing [end]")
 
     # Distance a la paroi
@@ -655,8 +692,10 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
             cptBody = 1
             if dimPb == 3: tb2 = tb
             for body in Internal.getNodesFromType(tb2,'Zone_t'):
-                if body[0] != "sym" and ("closure" not in body[0]):
-                    # Create extanded BBox around each body
+                dfarval = Internal.getNodeFromName(body,"dfar")
+                dfarval = Internal.getValue(dfarval)
+                if (body[0] != "sym" or dfarval > -1) and ("closure" not in body[0]):
+                    # Create extended BBox around each body
                     bboxBody = G.BB(body)
                     coordX = Internal.getNodeFromName(bboxBody, 'CoordinateX')[1]
                     coordX[0] = coordX[0] - shiftDist
@@ -680,7 +719,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                     Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1] = coordZ
                     bboxZone = G.BB(z)
 
-                    # Compute new individual turbulentDistance when blocks are close enough
+                    # Compute new individual TurbulentDistance when blocks are close enough
                     if G.bboxIntersection(bboxBody, bboxZone, isBB=True):
                         DTW._distance2Walls(z, body, type='ortho', signed=0, dim=dimPb, loc='centers')
                         C._initVars(z,'{centers:TurbulentDistance_body%i={centers:TurbulentDistance}'%cptBody)
@@ -714,9 +753,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
     test.printMem(">>> Blanking [start]")
 
-    if not isFilamentOnly:t = X_IBM.blankByIBCBodies(t, tb, 'centers', dimPb,closedSolid=closedSolid)
+    if not isFilamentOnly:t = X_IBM.blankByIBCBodies(t, tb, 'centers', dimPb, closedSolid=closedSolid)
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
-    
 
     if not isFilamentOnly:X_IBM._signDistance(t)
 
@@ -883,7 +921,19 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
         if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)
 
-    if not isFilamentOnly:X_IBM._removeBlankedGrids(t, loc='centers')
+    if not isFilamentOnly: 
+        X_IBM._removeBlankedGrids(t, loc='centers')
+        if balancing:
+            Cmpi.convertPyTree2File(t, t_out)
+            t = Cmpi.convertFile2SkeletonTree(t_out)
+            D2._distribute(t, Cmpi.size, algorithm='graph')
+            Cmpi._readZones(t, t_out, rank=rank)
+            Cmpi._convert2PartialTree(t)
+            zones = Internal.getZones(t)
+            for z in zones: 
+                zname = z[0].split('X')[0]
+                z[0] = zname + 'X%d'%rank
+
     test.printMem(">>> Blanking [end]")
      
     print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
@@ -1346,43 +1396,43 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                             if destProc not in datas: datas[destProc] = []
 
     if dictOfCorrectedPtsByIBCType2!={}:
-                for ibcTypeL in dictOfCorrectedPtsByIBCType2:
-                    allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
-                    allWallPts2 = dictOfWallPtsByIBCType2[ibcTypeL]
-                    allInterpPts2 = dictOfInterpPtsByIBCType2[ibcTypeL]
-                    for nozr in range(nbZonesIBC):
-                        if allCorrectedPts2[nozr] != []:
-                            zrcv = zonesRIBC[nozr]
-                            zrname = zrcv[0]
-                            dnrZones = []
-                            for zdname in interDictIBM2[zrname]:
-                                zd = Internal.getNodeFromName2(tc, zdname)
-                                #if zd is not None: dnrZones.append(zd)
-                                if zd is None: print('!!!Zone None', zrname, zdname)
-                                else: dnrZones.append(zd)
-                            XOD._setIBCDataForZone2__(zrcv, dnrZones, allCorrectedPts2[nozr], allWallPts2[nozr], None, allInterpPts2[nozr],
-                                                     nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
-                                                     interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL)
+        for ibcTypeL in dictOfCorrectedPtsByIBCType2:
+            allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
+            allWallPts2 = dictOfWallPtsByIBCType2[ibcTypeL]
+            allInterpPts2 = dictOfInterpPtsByIBCType2[ibcTypeL]
+            for nozr in range(nbZonesIBC):
+                if allCorrectedPts2[nozr] != []:
+                    zrcv = zonesRIBC[nozr]
+                    zrname = zrcv[0]
+                    dnrZones = []
+                    for zdname in interDictIBM2[zrname]:
+                        zd = Internal.getNodeFromName2(tc, zdname)
+                        #if zd is not None: dnrZones.append(zd)
+                        if zd is None: print('!!!Zone None', zrname, zdname)
+                        else: dnrZones.append(zd)
+                    XOD._setIBCDataForZone2__(zrcv, dnrZones, allCorrectedPts2[nozr], allWallPts2[nozr], None, allInterpPts2[nozr],
+                                             nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
+                                             interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL)
 
-                            nozr += 1
-                            for zd in dnrZones:
-                                zdname = zd[0]
-                                destProc = procDict[zdname]
+                    nozr += 1
+                    for zd in dnrZones:
+                        zdname = zd[0]
+                        destProc = procDict[zdname]
 
-                                IDs = []
-                                for i in zd[2]:
-                                    if i[0][0:6] == '2_IBCD':
-                                        if Internal.getValue(i)==zrname: IDs.append(i)
+                        IDs = []
+                        for i in zd[2]:
+                            if i[0][0:6] == '2_IBCD':
+                                if Internal.getValue(i)==zrname: IDs.append(i)
 
-                                if IDs != []:
-                                    if destProc == rank:
-                                        zD = Internal.getNodeFromName2(tc,zdname)
-                                        zD[2] += IDs
-                                    else:
-                                        if destProc not in datas: datas[destProc]=[[zdname,IDs]]
-                                        else: datas[destProc].append([zdname,IDs])
-                                else:
-                                    if destProc not in datas: datas[destProc] = []
+                        if IDs != []:
+                            if destProc == rank:
+                                zD = Internal.getNodeFromName2(tc,zdname)
+                                zD[2] += IDs
+                            else:
+                                if destProc not in datas: datas[destProc]=[[zdname,IDs]]
+                                else: datas[destProc].append([zdname,IDs])
+                        else:
+                            if destProc not in datas: datas[destProc] = []
 
     test.printMem(">>> Interpolating IBM [end]")
     Cmpi._rmXZones(tc)
@@ -1444,38 +1494,27 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         del tibm
         if twoFronts or isWireModel: del tibm2
 
-    # distribution par defaut (sur NP)
-    tbbc = Cmpi.createBBoxTree(tc)
-
     # Perform the final distribution
     if distrib:
+        # distribution par defaut (sur NP)
+        tbbc = Cmpi.createBBoxTree(tc)
+
         if NP == 0: NP = Cmpi.size
         stats = D2._distribute(tbbc, NP, algorithm='graph', useCom='ID')
         D2._copyDistribution(tc, tbbc)
         D2._copyDistribution(t, tbbc)
-
-    del tbbc
-
+        del tbbc
     
-    tmpFilename = 'tmp_tc_IBM_prep'    
-    localUser= getpass.getuser()
-    localPc  = socket.gethostname().split('-')
-    if 'sator' not in localPc:
-        path2writetmp='/stck/'+localUser+'/'
-    else:
-        path2writetmp='/tmp_user/sator/'+localUser+'/'
-    tmpFilename = path2writetmp+tmpFilename+'.cgns'
-    
-    if redistribute:
+    if redistribute:      
         # Distribute over NP procs
         if rank == 0: print("REDISTRIBUTE - Final")
         tcp = Compressor.compressCartesian(tc)
         Cmpi.convertPyTree2File(tcp, tmpFilename, ignoreProcNodes=True)
         del tcp
-
-        tc    = Cmpi.convertFile2PyTree(tmpFilename)
-        stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
-        D2._copyDistribution(t, tc)    
+        tcs   = Cmpi.convertFile2SkeletonTree(tmpFilename, maxDepth=3)
+        stats = D2._distribute(tcs, NP, algorithm='graph', useCom='ID')
+        D2._copyDistribution(tc, tcs); del tcs
+        D2._copyDistribution(t , tc)
         if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
 
     #-----------------------------------------
@@ -1981,7 +2020,7 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
         zw = T.join(zw)
     else:
         zw = P_IBM.extractIBMWallFields(tc, tb=tb, famZones=famZones)
-    
+
     #====================================
     # Extract pressure info from tc2 to tc
     #====================================
@@ -2006,14 +2045,17 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
 
     dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
 
-    if dimPb == 2: T._addkplane(zw)
+    if dimPb == 2:
+        zw = C.convertBAR2Struct(zw)
+        T._addkplane(zw)
 
     zw = C.convertArray2Tetra(zw)
     zw = T.reorderAll(zw, 1)
 
     ts = C.newPyTree(['SKIN']);
     if famZones:ts[2][1][2]=zw
-    else:ts[2][1][2]=zw[2][1][2]
+    else:ts[2][1][2]=Internal.getZones(zw)
+
     #==============================
     # Reference state
     #==============================

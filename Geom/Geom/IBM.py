@@ -57,6 +57,25 @@ def _setDfar(t, value):
         Internal._createUniqueChild(n, 'dfar', 'DataArray_t', value)
     return None
 
+def getDfarOpt(tb, vmin, snear_opt, factor=10, nlevel=-1):
+    """Computes the optimal dfar to get the exact snear.
+    Usage: getDfarOpt(tb, vmin, snear_opt, factor=10, nlevel=-1)"""
+    import Generator.PyTree as G
+    bb = G.bbox(tb)
+    sizemax = max(bb[3]-bb[0],bb[4]-bb[1],bb[5]-bb[2])
+    #print('sizemax',sizemax)
+    if factor>0 and nlevel <1:
+        dfar= factor*sizemax
+        nlevel = int(numpy.ceil((numpy.log(2*dfar+sizemax)-numpy.log((vmin-1)*snear_opt))/numpy.log(2)))
+        #print('nb levels=',nlevel)
+    elif nlevel > 0:
+        pass
+    dfaropt = 0.5*(snear_opt*(2**nlevel*(vmin-1)) - sizemax)
+    dfaropt = numpy.trunc(dfaropt*10**nlevel)/10**nlevel
+    #print('dfar opt',dfaropt)
+    #print('2*dfar opt + sizemax =',2*dfar + sizemax)
+    #print('2**n*vmin*snear opt =',(vmin-1)*snear_opt*2**nlevel)
+    return dfaropt
 
 # Multiply the snear by factors XX in zones
 def snearFactor(t, sfactor):

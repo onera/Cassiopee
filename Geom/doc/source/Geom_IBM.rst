@@ -56,7 +56,8 @@ List of functions
     Geom.IBM.setSnear
     Geom.IBM.setDfar
     Geom.IBM.snearFactor
-
+    .. Geom.IBM.getDfarOpt
+    
 **-- Setting IBC Type**
 
 .. autosummary::
@@ -112,6 +113,32 @@ Setting Snear & Dfar
     * `Set the value of the dfar (pyTree) <Examples/Geom/setDfarPT.py>`_:
     
     .. literalinclude:: ../build/Examples/Geom/setDfarPT.py
+
+---------------------------------------
+
+
+
+   .. py:function:: Geom.IBM.getDfarOpt(tb, vmin, snear, factor=10, nlevel=-1)
+
+       Computes the optimal dfar to get the exact snear.
+
+       :param tb: geometry tree
+       :type  tb: [zone, list of zones, tree]
+       :param vmin: number of points per elementary structured octree zone
+       :type vmin: integer
+       :param snear: targeted snear (smallest value)
+       :type snear: float
+       :param factor: factor*L is the extent of the octree, where L is the maximum length of the bounding box of tb.
+       :type factor: float
+       :param nlevel: number of levels prescribed for the octree (-1 means that the number of refinement levels are computed according to the parameter factor).
+       :type nlevel: integer
+       :return: float
+
+       *Example of use:*
+
+       * `Get the value of the dfar to respect exactly snear (pyTree) <Examples/Geom/getDfarOptPT.py>`_:
+
+       .. literalinclude:: ../build/Examples/Geom/getDfarOptPT.py
 
 ---------------------------------------
 

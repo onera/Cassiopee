@@ -456,10 +456,14 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
     calpha = math.cos(alpha); cbeta = math.cos(beta)
     salpha = math.sin(alpha); sbeta = math.sin(beta)
     if dimPb == 3:
-       cdp = res[0]*calpha*cbeta + res[1]*salpha*cbeta - res[2]*sbeta
-       clp = res[1]*calpha       - res[0]*salpha
-       cdf = res2[0]*calpha*cbeta + res2[1]*salpha*cbeta - res2[2]*sbeta
-       clf = res2[1]*calpha       - res2[0]*salpha
+        cdp = res[0]*calpha*cbeta + res[2]*salpha*cbeta - res[1]*sbeta
+        clp = res[2]*calpha       - res[0]*salpha
+        cdf = res2[0]*calpha*cbeta + res2[2]*salpha*cbeta - res2[1]*sbeta
+        clf = res2[2]*calpha       - res2[0]*salpha
+        # cdp = res[0]*calpha*cbeta + res[1]*salpha*cbeta - res[2]*sbeta
+       # clp = res[1]*calpha       - res[0]*salpha
+       # cdf = res2[0]*calpha*cbeta + res2[1]*salpha*cbeta - res2[2]*sbeta
+       # clf = res2[1]*calpha       - res2[0]*salpha
     else:
        cdp = res[0]*calpha + res[1]*salpha
        clp = res[1]*calpha - res[0]*salpha
