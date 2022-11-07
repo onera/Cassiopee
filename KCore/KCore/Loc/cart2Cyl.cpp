@@ -58,7 +58,8 @@ E_Int K_LOC::cart2Cyl(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
       return 1; // FAILED
     }
     // Maintenant axe Z
-    E_Float thetaref = atan2(yl[0]-y0,xl[0]-x0);
+    
+    //E_Float thetaref = atan2(yl[0]-y0,xl[0]-x0);
 
 #pragma omp parallel default(shared)
     {
@@ -72,25 +73,27 @@ E_Int K_LOC::cart2Cyl(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
         dx = xl[ind]-x0;
         dy = yl[ind]-y0;
         r = sqrt(dx*dx+dy*dy);
-        if ( dx > eps )
+        //theta = atan2(dy,dx);
+
+        if (dx > eps)
         { 
-            if ( dy > eps) theta = atan2(dy,dx);
-            else if ( dy < -eps) 
-            { 
+            if (dy > eps) theta = atan2(dy,dx);
+            else if (dy < -eps) 
+            {
                 theta = 2*K_CONST::E_PI+atan2(dy,dx);
             }
             else theta = 0;
         }
-        else if ( dx < -eps) 
+        else if (dx < -eps) 
         {
-            if ( dy > eps) theta = atan2(dy,dx);
-            else if ( dy < -eps) theta = 2*K_CONST::E_PI+atan2(dy,dx);   
+            if (dy > eps) theta = atan2(dy,dx);
+            else if (dy < -eps) theta = 2*K_CONST::E_PI+atan2(dy,dx);   
             else theta = K_CONST::E_PI;
         }
-        else 
+        else
         {
-            if ( dy > eps)  theta = K_CONST::E_PI_2;
-            else if ( dy < -eps ) theta = 3*K_CONST::E_PI_2;
+            if (dy > eps) theta = K_CONST::E_PI_2;
+            else if (dy < -eps) theta = 3*K_CONST::E_PI_2;
             else theta = 0.;
         }
 

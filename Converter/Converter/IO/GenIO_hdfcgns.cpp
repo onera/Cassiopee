@@ -1473,7 +1473,7 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
   else if (strcmp(_dtype, L3T_R8) == 0)
   {
     if (_skeleton == 1 && strcmp(_type, "DataArray_t") == 0) v = getArrayR8Skel(node, tid, dim, _dims);
-    else v = getArrayR8(node, tid, dim, _dims); 
+    else v = getArrayR8(node, tid, dim, _dims);
   }
   else if (strcmp(_dtype, L3T_I8) == 0)
   {

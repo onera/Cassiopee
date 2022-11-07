@@ -153,6 +153,7 @@ class GenIOHdf
     PyObject* getArrayI82I4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI8Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     #define getArrayI8 getArrayI82I4
+    //#define getArrayI8 getArrayI8Raw
     char* getArrayC1(hid_t node, hid_t tid, int dim, hsize_t* dims);
 
     /* Method for contiguous array **/

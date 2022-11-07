@@ -461,14 +461,14 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
         cdf = res2[0]*calpha*cbeta + res2[2]*salpha*cbeta - res2[1]*sbeta
         clf = res2[2]*calpha       - res2[0]*salpha
         # cdp = res[0]*calpha*cbeta + res[1]*salpha*cbeta - res[2]*sbeta
-       # clp = res[1]*calpha       - res[0]*salpha
-       # cdf = res2[0]*calpha*cbeta + res2[1]*salpha*cbeta - res2[2]*sbeta
-       # clf = res2[1]*calpha       - res2[0]*salpha
+        # clp = res[1]*calpha       - res[0]*salpha
+        # cdf = res2[0]*calpha*cbeta + res2[1]*salpha*cbeta - res2[2]*sbeta
+        # clf = res2[1]*calpha       - res2[0]*salpha
     else:
-       cdp = res[0]*calpha + res[1]*salpha
-       clp = res[1]*calpha - res[0]*salpha
-       cdf = res2[0]*calpha + res2[1]*salpha
-       clf = res2[1]*calpha - res2[0]*salpha
+        cdp = res[0]*calpha + res[1]*salpha
+        clp = res[1]*calpha - res[0]*salpha
+        cdf = res2[0]*calpha + res2[1]*salpha
+        clf = res2[1]*calpha - res2[0]*salpha
 
     if verbose and Cmpi.rank==0:
         print("Normalized pressure drag = %.4e and lift = %.4e"%(cdp, clp))

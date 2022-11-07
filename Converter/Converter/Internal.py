@@ -5296,11 +5296,12 @@ def getGlob2Loc(z):
 
 # change les numpy R4 en R8 et les numpy i8 en i4
 # dans FlowSolution/Coordinates et Elements_t
-def _adaptTypes(t, convertR42R8=True, convertI82I4=True):
+def _adaptTypes(t, convertR42R8=True, convertI82I4=True, convertR82R4=False, convertI42I8=False):
     zones = getZones(t)
     for z in zones:
         if convertR42R8:
             nodes = getNodesFromType1(z, 'GridCoordinates_t')
+            nodes += getNodesFromType1(z, 'FlowSolution_t')
             for no in nodes:
                 for n in no[2]: 
                     if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.float32:
@@ -5308,14 +5309,18 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True):
                         n[1] = numpy.empty(n[1].shape, dtype=numpy.float64, order='F')
                         pt2 = n[1].ravel('k')
                         pt2[:] = pt1[:]
-            nodes = getNodesFromType1(z, 'FlowSolution_t')
+
+        if convertR82R4:
+            nodes = getNodesFromType1(z, 'GridCoordinates_t')
+            nodes += getNodesFromType1(z, 'FlowSolution_t')
             for no in nodes:
-                for n in no[2]:
-                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.float32:
+                for n in no[2]: 
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.float64:
                         pt1 = n[1].ravel('k')
-                        n[1] = numpy.empty(n[1].shape, dtype=numpy.float64, order='F')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.float32, order='F')
                         pt2 = n[1].ravel('k')
                         pt2[:] = pt1[:]
+
         if convertI82I4:
             if z[3] == 'Zone_t' and z[1] is not None and z[1].dtype == numpy.int64:
                 pt1 = z[1].ravel('k')
@@ -5324,18 +5329,19 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True):
                 pt2[:] = pt1[:]
             nodes = getNodesFromType1(z, 'Elements_t')
             for no in nodes:
+                if no[1] is not None and no[1].dtype == numpy.int64:
+                    pt1 = no[1].ravel('k')
+                    no[1] = numpy.empty(no[1].shape, dtype=numpy.int32, order='F')
+                    pt2 = no[1].ravel('k')
+                    pt2[:] = pt1[:]
                 for n in no[2]:
-                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                    if (n[3] == 'DataArray_t' or n[3] == 'IndexRange_t') and n[1] is not None and n[1].dtype == numpy.int64:
                         pt1 = n[1].ravel('k')
                         n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
                         pt2 = n[1].ravel('k')
                         pt2[:] = pt1[:]
-                    if n[3] == 'IndexRange_t' and n[1] is not None and n[1].dtype == numpy.int64:
-                        pt1 = n[1].ravel('k')
-                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
-                        pt2 = n[1].ravel('k')
-                        pt2[:] = pt1[:] 
             nodes = getNodesFromType2(z, 'BC_t')
+            nodes += getNodesFromType2(z, 'GridConnectivity_t')
             for no in nodes:
                 for n in no[2]:
                     if n[3] == 'IndexArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
@@ -5343,12 +5349,34 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True):
                         n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
                         pt2 = n[1].ravel('k')
                         pt2[:] = pt1[:]
-            nodes = getNodesFromType2(z, 'GridConnectivity_t')
+
+        if convertI42I8:
+            if z[3] == 'Zone_t' and z[1] is not None and z[1].dtype == numpy.int32:
+                pt1 = z[1].ravel('k')
+                z[1] = numpy.empty(z[1].shape, dtype=numpy.int64, order='F')
+                pt2 = z[1].ravel('k')
+                pt2[:] = pt1[:]
+            nodes = getNodesFromType1(z, 'Elements_t')
+            for no in nodes:
+                if no[1] is not None and no[1].dtype == numpy.int32:
+                    pt1 = no[1].ravel('k')
+                    no[1] = numpy.empty(no[1].shape, dtype=numpy.int64, order='F')
+                    pt2 = no[1].ravel('k')
+                    pt2[:] = pt1[:]
+                for n in no[2]:
+                    if (n[3] == 'DataArray_t' or n[3] == 'IndexRange_t') and n[1] is not None and n[1].dtype == numpy.int32:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int64, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+            nodes = getNodesFromType2(z, 'BC_t')
+            nodes += getNodesFromType2(z, 'GridConnectivity_t')
             for no in nodes:
                 for n in no[2]:
-                    if n[3] == 'IndexArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                    if n[3] == 'IndexArray_t' and n[1] is not None and n[1].dtype == numpy.int32:
                         pt1 = n[1].ravel('k')
-                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int64, order='F')
                         pt2 = n[1].ravel('k')
-                        pt2[:] = pt1[:]            
+                        pt2[:] = pt1[:]
+
     return None
