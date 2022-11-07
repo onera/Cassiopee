@@ -43,7 +43,7 @@ mySystem = Dist.getSystem()
 if mySystem[0] == 'mingw': 
   libraries += ["wsock32"]
 
-ADDITIONALCPPFLAGS = []
+ADDITIONALCPPFLAGS = ['-fpermissive']
 if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
@@ -81,7 +81,7 @@ for c in srcs_paradigma.pyx_srcs:
                   include_dirs=["XCore","XCore/paradigma","XCore/paradigma/ppart","XCore/paradigma/struct","XCore/paradigma/pario","XCore/paradigma/mesh"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
                   library_dirs=additionalLibPaths+libraryDirs,
                   libraries=libraries+additionalLibs,
-                  extra_compile_args=ADDITIONALCPPFLAGS+['-fpermissive'],
+                  extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
                   extra_link_args=[],
                   language='c++'
                   ) )
