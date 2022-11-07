@@ -15,6 +15,9 @@ Dist.writeSetupCfg()
 
 from KCore.config import *
 
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
@@ -34,7 +37,7 @@ if prod is None: prod = 'xx'
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
 # pdm supprime ici
-libraries = ["xcore", "scotch1", "scotch2", "kcore"]
+libraries = ["xcore", "scotch1", "scotch2", "pdm", "kcore"]
 
 mySystem = Dist.getSystem()
 if mySystem[0] == 'mingw': 
@@ -65,6 +68,24 @@ listExtensions.append(
               extra_link_args=Dist.getLinkArgs()
               ) )
 
+listExtensionsPyx = []
+import srcs_paradigma
+from Cython.Build import cythonize
+for c in srcs_paradigma.pyx_srcs:
+    name = c.replace('.pyx', '')
+    names = name.split('/')
+    name = names[0]+'.'+names[-1]
+    listExtensionsPyx.append(
+        Extension(name,
+                  sources=[c],
+                  include_dirs=["XCore","XCore/paradigma","XCore/paradigma/ppart","XCore/paradigma/struct","XCore/paradigma/pario","XCore/paradigma/mesh"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
+                  library_dirs=additionalLibPaths+libraryDirs,
+                  libraries=libraries+additionalLibs,
+                  extra_compile_args=ADDITIONALCPPFLAGS+['-fpermissive'],
+                  extra_link_args=[],
+                  language='c++'
+                  ) )
+
 # setup ======================================================================
 setup(
     name="XCore",
@@ -74,7 +95,7 @@ setup(
     url="http://elsa.onera.fr/Cassiopee",
     packages=['XCore'],
     package_dir={"":"."},
-    ext_modules=listExtensions
+    ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=["XCore/paradigma"])
     )
 
 # Check PYTHONPATH ===========================================================
