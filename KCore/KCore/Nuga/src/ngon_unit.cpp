@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/IdTool.h"
@@ -742,7 +742,7 @@ void ngon_unit::get_degenerated(E_Int min_nb_facets, Vector_t<E_Int>& indices)
       continue;
     }
 
-    int* facets = get_facets_ptr(i);
+    E_Int* facets = get_facets_ptr(i);
     
     // remove duplicates
     unic.clear();

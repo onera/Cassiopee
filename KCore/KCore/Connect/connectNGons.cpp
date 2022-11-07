@@ -114,7 +114,7 @@ void K_CONNECT::getDimElts(FldArrayI& cNG, FldArrayI& posFaces,
       nbNodes = cnp[pos];
       dim = max(nbNodes, dim);
     }
-    dim = min(dim, 3);
+    dim = min(dim, E_Int(3));
     cEFp += nbFaces+1;
     dimEltsp[i] = dim;
   }

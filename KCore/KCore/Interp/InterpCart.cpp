@@ -82,9 +82,9 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_
   jc = E_Int((y-_ymin)*_hji)+_ioff;
   kc = E_Int((z-_zmin)*_hki)+_ioff;
 
-  ic = std::min(ic,ni-1); ic = std::max(ic,1); 
-  jc = std::min(jc,nj-1); jc = std::max(jc,1); 
-  kc = std::min(kc,nk-1); kc = std::max(kc,1);
+  ic = std::min(ic,ni-1); ic = std::max(ic,E_Int(1)); 
+  jc = std::min(jc,nj-1); jc = std::max(jc,E_Int(1)); 
+  kc = std::min(kc,nk-1); kc = std::max(kc,E_Int(1));
         
   E_Float* cfp = cf.begin();
   
@@ -145,9 +145,9 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_
   ic = E_Int((x-_xmin)*_hii)+_ioff;
   jc = E_Int((y-_ymin)*_hji)+_joff;
   kc = E_Int((z-_zmin)*_hki)+_koff;
-  ic = std::max(ic,1); ic = std::min(ic,ni-1);
-  jc = std::max(jc,1); jc = std::min(jc,nj-1);
-  kc = std::max(kc,1); kc = std::min(kc,nk-1);
+  ic = std::max(ic,E_Int(1)); ic = std::min(ic,ni-1);
+  jc = std::max(jc,E_Int(1)); jc = std::min(jc,nj-1);
+  kc = std::max(kc,E_Int(1)); kc = std::min(kc,nk-1);
 
   //E_Float* cfp = cf.begin();
   

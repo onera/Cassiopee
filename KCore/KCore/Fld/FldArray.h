@@ -1556,7 +1556,7 @@ void FldArray<T>::resize(E_Int nfld, E_Int size, const T& val)
 {
   // WARNING ; structure (_nfldMax, _sizeMax) are changed only when reallocation is required.
 
-  nfld = std::max(1, nfld);
+  nfld = std::max(E_Int(1), nfld);
 
   E_Int sizeTot = size*nfld;
   E_Int sz = K_FUNC::E_min(size, _sizeLoc);

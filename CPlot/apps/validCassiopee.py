@@ -806,6 +806,34 @@ def showFailed():
     Filter.set(''); text.update()
     return True
 
+#==============================================================================
+# Affiche les test qui ont deja tournes dans la listbox
+#==============================================================================
+def showRunCases():
+    filter = '\.\.\.'
+    listbox.delete(0, TK.END)
+    for s in TESTS:
+        if re.search(filter, s) is None:
+            listbox.insert(TK.END, s)
+    listbox.config(yscrollcommand=scrollbar.set)
+    scrollbar.config(command=listbox.yview)
+    Filter.set(''); text.update()
+    return True
+
+#==============================================================================
+# Affiche les test qui n'ont deja tournes dans la listbox
+#==============================================================================
+def showUnrunCases():
+    filter = '\.\.\.'
+    listbox.delete(0, TK.END)
+    for s in TESTS:
+        if re.search(filter, s) is not None:
+            listbox.insert(TK.END, s)
+    listbox.config(yscrollcommand=scrollbar.set)
+    scrollbar.config(command=listbox.yview)
+    Filter.set(''); text.update()
+    return True
+
 #=============================================================================
 # Affiche les tests couverts
 #==============================================================================
@@ -934,6 +962,7 @@ def showSlowerP():
     Filter.set(''); text.update()
     return True
 
+
 #==============================================================================
 # Affiche tous les tests
 #==============================================================================
@@ -952,6 +981,7 @@ def stopTests():
         if mySystem == 'mingw' or mySystem == 'windows':
             subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
         else:
+            # use signal.SIGKILL ?
             os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
         PROCESS = None
 
@@ -1194,6 +1224,9 @@ file.add_command(label='Notify Ready for commit', command=notifyValidOK)
 file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
 view.add_command(label='Show FAILED', command=showFailed)
 view.add_command(label='Show ALL tests', command=showAll)
+view.add_separator()
+view.add_command(label='Show run cases', command=showRunCases)
+view.add_command(label='Show unrun cases', command=showUnrunCases)
 view.add_separator()
 view.add_command(label='Show covered (100%)', command=showCovered)
 view.add_command(label='Show partially covered (x%)',

@@ -555,8 +555,7 @@ PyObject* K_IO::GenIOHdf::getArrayI4(hid_t node, hid_t tid,
 {
   IMPORTNUMPY;
   PyArrayObject* r = NULL;
-
-  // Create numpy: toujours en INT
+  // Create numpy en NPY_INT
   vector<npy_intp> npy_dim_vals(dim);
   for (E_Int nn = 0; nn < dim; nn++) npy_dim_vals[nn] = dims[nn];
   r = (PyArrayObject*)PyArray_EMPTY(dim, &npy_dim_vals[0], NPY_INT, 1);
@@ -594,7 +593,6 @@ PyObject* K_IO::GenIOHdf::getArrayI82I4(hid_t node, hid_t tid,
   IMPORTNUMPY;
   int s, sizem;
   PyArrayObject* r = NULL;
-
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
   E_LONG* ptr = (E_LONG*)::malloc(sizem*sizeof(E_LONG));
@@ -649,7 +647,6 @@ PyObject* K_IO::GenIOHdf::getArrayI8Raw(hid_t node, hid_t tid,
 {
   IMPORTNUMPY;
   PyArrayObject* r = NULL;
-
   vector<npy_intp> npy_dim_vals(dim);
   for (E_Int nn = 0; nn < dim; nn++) npy_dim_vals[nn] = dims[nn];
   r = (PyArrayObject*)PyArray_EMPTY(dim, &npy_dim_vals[0], NPY_INT64, 1);

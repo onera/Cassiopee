@@ -33,11 +33,11 @@
 
 // Essai de trouve si long long existe (8 octets)
 #ifdef LLONG_MAX
-#define E_LONG long long
+  #define E_LONG long long
 //int64_t
 //long long
 #else
-#define E_LONG long
+  #define E_LONG long
 #endif
 
 #ifdef E_DOUBLEREAL
@@ -58,30 +58,13 @@
 
 // Int (int or long long)
 #ifdef E_DOUBLEINT
-  #if !defined(_ELSA_COMPILER_NEC_) && !defined(_ELSA_COMPILER_HP64_) && !defined(_ELSA_COMPILER_DEC_)
-    #if defined(_ELSA_COMPILER_CRAY_)
-      #define E_Int long 
-      #define E_Boolean long
-      #define E_Bool long
-    #else
-      typedef long long E_Int;
-      typedef long long E_Boolean;
-      typedef long long E_Bool;
-    #endif
-    #ifdef E_MPI
-      #define E_PCM_INT MPI_LONG_LONG
-    #else
-      #define E_PCM_INT sizeof(E_Int)
-    #endif
+  typedef int64_t E_Int;
+  typedef int E_Boolean;
+  typedef int E_Bool;
+  #ifdef E_MPI
+    #define E_PCM_INT MPI_LONG
   #else
-    typedef long E_Int;
-    typedef long E_Boolean;
-    typedef long E_Bool;
-    #ifdef E_MPI
-      #define E_PCM_INT MPI_LONG
-    #else
-      #define E_PCM_INT sizeof(E_Int)
-    #endif
+    #define E_PCM_INT sizeof(E_Int)
   #endif
 #else
   typedef int  E_Int;

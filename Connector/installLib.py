@@ -2,8 +2,8 @@
 # Si libconnector.a existe, on la recopie
 # Sinon, on cherche connector.so ou connector.pyd, on le recopie en libconnector.so ou dll
 import os, shutil
-import platform
-system = platform.uname()[0]
+import KCore.Dist as Dist
+system = Dist.getSystem()[0]
 
 if system == 'Windows':
     __EXTMODULE__ = '.pyd'
