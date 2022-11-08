@@ -7,14 +7,13 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __NUGA_DEFS_H__
 #define __NUGA_DEFS_H__
 
 #define ZERO_M       1.e-15
 #define EPSILON      1.e-12
-#define IDX_NONE     2147483647
 
 #define Vector_t     std::vector
 #define SQRT         std::sqrt
@@ -26,6 +25,12 @@
 
 #include "Def/DefTypes.h"
 #include "Def/DefCplusPlusConst.h"
+
+#ifdef E_DOUBLEINT
+  #define IDX_NONE E_Int(9223372036854775807)
+#else
+  #define IDX_NONE 2147483647
+#endif
 
 namespace NUGA
 {
@@ -39,6 +44,7 @@ static const E_Float PI_4 = K_CONST::E_PI_4;
 
 #else
 
+#define IDX_NONE     2147483647
 using E_Float = double;
 using E_Int   = int;
 using E_Bool  = int;

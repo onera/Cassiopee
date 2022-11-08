@@ -264,7 +264,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   // build output arrays 
   // ===================
   E_Int nfld = FCenter->getNfld();
-  E_Int nint = max(1,(imaxD-iminD))*max(1,(jmaxD-jminD))*max(1,(kmaxD-kminD)); 
+  E_Int nint = max(E_Int(1),(imaxD-iminD))*max(E_Int(1),(jmaxD-jminD))*max(E_Int(1),(kmaxD-kminD)); 
 
   // 1. tableau des indices 
   // ~~~~~~~~~~~~~~~~~~~~~~

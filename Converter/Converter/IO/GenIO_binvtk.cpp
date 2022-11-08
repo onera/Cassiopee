@@ -227,12 +227,12 @@ void readType(FILE* ptrFile, char* rtype, E_Int& n1, E_Int& n2)
 
 //===========================================================================
 void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
-                  E_Int& ncells, E_Int& size, E_Int*& cells)
+                  E_Int& ncells, E_Int& size, int*& cells)
 {
   char celltype[256];
   readType(ptrFile, celltype, ncells, size);
   printf("ncells = %d, size=%d\n", ncells, size);
-  cells = new E_Int [size];
+  cells = new int [size];
   E_Int num;
 
   if (formated)
@@ -815,7 +815,7 @@ E_Int K_IO::GenIO::binvtkread(
        // export as a surface NGON
        E_Int sizeFN = 0; E_Int nfaces = 0;
        E_Int nelts = 0; E_Int sizeEF = 0;
-       E_Int* ptr = cells;
+       int* ptr = cells;
        E_Int n;
        for (E_Int i = 0; i < ncells; i++)
        {

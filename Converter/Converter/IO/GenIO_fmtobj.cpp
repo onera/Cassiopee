@@ -304,11 +304,11 @@ E_Int K_IO::GenIO::objread(
   FldArrayF indir(nv);
   indir[0] = 0;
   for (E_Int i = 1; i < nv; i++)
-    indir[i] = indir[i-1]+max(nmap[i-1],1);
+    indir[i] = indir[i-1]+max(nmap[i-1],E_Int(1));
 
   // mise a plat et dimensionnement de f
   E_Int size = 0;
-  for (E_Int i = 0; i < nv; i++) size += max(nmap[i],1);
+  for (E_Int i = 0; i < nv; i++) size += max(nmap[i],E_Int(1));
   //printf("full size=%d\n", size);
 
   if (uvPresent) f = new FldArrayF(size, 5);

@@ -2038,7 +2038,7 @@ if (_XPol != BOTH_SURFACE)
   if (nb_pg20 != wNG2.PGs.size() && (F2E2.cols() != 0))
   {
     E_Int nb_pgs = wNG2.PGs.size();
-    K_FLD::IntArray f2e(2, nb_pgs, IDX_NONE);
+    K_FLD::IntArray f2e(E_Int(2), nb_pgs, IDX_NONE);
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
       E_Int ancPGi = wNG2.PGs._ancEs(1, i);
@@ -3137,13 +3137,13 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
     if (rPH != IDX_NONE) ph_to_faces[rPH].push_back(i);
   }
 
-  std::set<int> lpgs, rpgs, lphs, rphs;
+  std::set<E_Int> lpgs, rpgs, lphs, rphs;
 
-  for (int i = shiftPG; i < ngXh.PGs.size(); ++i)
+  for (E_Int i = shiftPG; i < ngXh.PGs.size(); ++i)
   {
-    //const int* anc = ngXh.PGs._ancEs.col(i);
+    //const E_Int* anc = ngXh.PGs._ancEs.col(i);
 
-    const int* tutu = totoF2E.col(i - shiftPG);
+    const E_Int* tutu = totoF2E.col(i - shiftPG);
 
     /*lpgs.insert(anc[0]);
     rpgs.insert(anc[1]);
@@ -3161,7 +3161,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
   }
 
   ngXh.PHs._ancEs.resize(2, ph_to_faces.size(), IDX_NONE);
-  int c{ 0 };
+  E_Int c{ 0 };
   for (auto i : ph_to_faces)
   {
     ngXh.PHs.add(i.second.size(), &i.second[0], 1);

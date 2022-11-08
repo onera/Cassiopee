@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_t.hxx"
@@ -67,12 +67,12 @@ struct connect_trait<LINEIC, true>
     K_CONNECT::keep<bool> pred_keep(keep);
     K_CONNECT::IdTool::compress(c, pred_keep, nids);
   }
-  static void compress(cnt_t&c, const std::vector<int>& keepids, int idx_start)
+  static void compress(cnt_t&c, const std::vector<E_Int>& keepids, E_Int idx_start)
   {
     K_CONNECT::IdTool::compress(c, keepids, idx_start);
   }
 
-  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids,int idx_start)
+  static cnt_t compress_(cnt_t const& c, const std::vector<E_Int>& keepids,E_Int idx_start)
   {
     return K_CONNECT::IdTool::compress_(c, keepids, idx_start);
   }
@@ -200,7 +200,7 @@ struct connect_trait<SURFACIC, false>
 
   template <typename T> static void set_boundary_type(cnt_t const& c, T typ, const std::vector<int>& ids) { /*todo ?*/ }
   
-  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int idx_start)
+  static cnt_t compress_(cnt_t const& c, const std::vector<E_Int>& keepids, E_Int idx_start)
   {
     std::vector<E_Int> oids;
     ngon_unit pgs;
@@ -266,7 +266,7 @@ struct connect_trait<SURFACIC, false>
     int npgs = cnt.size();
     for (int i = 0; i < npgs; ++i)
     {
-      const int* nodes = cnt.get_facets_ptr(i);
+      const E_Int* nodes = cnt.get_facets_ptr(i);
       int nnodes = cnt.stride(i);
 
       molecule.clear();
@@ -430,7 +430,7 @@ struct connect_trait<VOLUMIC, false>
   {
     oList.clear();
 
-    N = std::max(0, N);
+    N = std::max(E_Int(0), N);
     if (N == 0) return 0;
 
     std::set<E_Int> front, iset, oset;
@@ -523,7 +523,7 @@ struct connect_trait<VOLUMIC, false>
     //std::cout << "wall ids list size : " << ids.size() << std::endl;
   }
 
-  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int idx_start)
+  static cnt_t compress_(cnt_t const& c, const std::vector<E_Int>& keepids, E_Int idx_start)
   {
     std::vector<E_Int> oids;
     cnt_t ng;

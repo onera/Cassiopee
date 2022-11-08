@@ -686,7 +686,7 @@ E_Int K_IO::GenIO::su2read(
           res = readInt(ptrFile, inds[0], -1);
           res = readInt(ptrFile, inds[1], -1);
           indf = K_CONNECT::identifyFace(inds, 2, cVF);
-          facep[c] = std::max(indf,1);
+          facep[c] = std::max(indf,E_Int(1));
           break;
 
         case 5: // TRI
@@ -694,7 +694,7 @@ E_Int K_IO::GenIO::su2read(
           res = readInt(ptrFile, inds[1], -1);
           res = readInt(ptrFile, inds[2], -1);
           indf = K_CONNECT::identifyFace(inds, 3, cVF);
-          facep[c] = std::max(indf,1);
+          facep[c] = std::max(indf,E_Int(1));
           break;
 
         case 9: // QUAD
@@ -703,7 +703,7 @@ E_Int K_IO::GenIO::su2read(
           res = readInt(ptrFile, inds[2], -1);
           res = readInt(ptrFile, inds[3], -1);
           indf = K_CONNECT::identifyFace(inds, 4, cVF);
-          facep[c] = std::max(indf,1);
+          facep[c] = std::max(indf,E_Int(1));
           break;
       }
       if (res == 1) skipLine(ptrFile);

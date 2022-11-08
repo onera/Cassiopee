@@ -184,7 +184,7 @@ namespace K_POST
         std::vector<E_Int> indices;
         indices.reserve(8);
         auto indices_cell = this->get_indices_of_cell_from_unique_index(icell);
-        for (const std::array<int,3>& inds : std::vector<std::array<int,3>>{
+        for (const std::array<E_Int,3>& inds : std::vector<std::array<E_Int,3>>{
                             indices_cell,                                                // i  ,j  ,k
                             {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
                             {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]  },   // i+1,j+1,k
@@ -206,7 +206,7 @@ namespace K_POST
         std::array<std::vector<double>,3> coords; // 8 points cellules + 6 points barycentres
         coords[0].reserve(14); coords[1].reserve(14); coords[2].reserve(14);
         // On extrait tous les points de la cellule :
-        for (const std::array<int,3>& indices : std::vector<std::array<int,3>>{
+        for (const std::array<E_Int,3>& indices : std::vector<std::array<E_Int,3>>{
         //for (const auto& indices : {
                             indices_cell,                                                // i  ,j  ,k
                             {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
@@ -337,7 +337,7 @@ namespace K_POST
         // On recherche sur les huit cellules potentielles contenant ce sommet :
         dimension_type dim = this->dimensions;
         E_Int ind_cell = -1;
-        for (const std::array<int,3>& neighbour_cell_indices : std::vector<std::array<int,3>>{
+        for (const std::array<E_Int,3>& neighbour_cell_indices : std::vector<std::array<E_Int,3>>{
         //for ( const auto& neighbour_cell_indices : {
                         {indices_nearest_vertex[0]-1,indices_nearest_vertex[1]-1,indices_nearest_vertex[2]-1},
                         {indices_nearest_vertex[0]  ,indices_nearest_vertex[1]-1,indices_nearest_vertex[2]-1},
@@ -420,7 +420,7 @@ namespace K_POST
         values.reserve(nfld);
 
         E_Int ivert = 0;
-        for (const std::array<int,3>& indices : std::vector<std::array<int,3>>{
+        for (const std::array<E_Int,3>& indices : std::vector<std::array<E_Int,3>>{
         //for (const auto& indices : {
                             indices_cell,                                                // i  ,j  ,k
                             {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
@@ -525,7 +525,7 @@ namespace K_POST
         //coordinates_npos pos_vel = this->pos_velocity;
 
         E_Int ivert = 0;
-        for (const std::array<int,3>& indices : std::vector<std::array<int,3>>{
+        for (const std::array<E_Int,3>& indices : std::vector<std::array<E_Int,3>>{
                             indices_cell,                                                // i  ,j  ,k
                             {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
                             {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]  },   // i+1,j+1,k
@@ -560,7 +560,7 @@ namespace K_POST
         auto indices_cell = this->get_indices_of_cell_from_unique_index(ind_cell);
         std::array<point3d,8> coords; // 8 points/cellules
         E_Int ivert = 0;
-        for (const std::array<int,3>& indices : std::vector<std::array<int,3>>{
+        for (const std::array<E_Int,3>& indices : std::vector<std::array<E_Int,3>>{
                             indices_cell,                                                // i  ,j  ,k
                             {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
                             {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]  },   // i+1,j+1,k

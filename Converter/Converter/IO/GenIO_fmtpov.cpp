@@ -297,7 +297,7 @@ E_Int K_IO::GenIO::povwrite(
     for (E_Int i = 0; i < nv; i++)
     {
       vector<E_Int>& cVEi = cVE[i];
-      E_Int sizecVE = K_FUNC::E_max(cVEi.size(), 1);
+      E_Int sizecVE = K_FUNC::E_max(cVEi.size(), E_Int(1));
       E_Int cVESize = cVEi.size();
       n1[i] = 0; n2[i] = 0; n3[i] = 0;
       for (E_Int j = 0; j < cVESize; j++)

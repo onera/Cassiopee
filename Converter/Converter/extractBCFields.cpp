@@ -117,7 +117,7 @@ PyObject* K_CONVERTER::extractBCFields(PyObject* self, PyObject* args)
     E_Int dimZ = 3;
     if (nk==1) dimZ = 2;
         
-    E_Int nic = max(1,ni-1); E_Int njc = max(1,nj-1); E_Int nkc = max(1,nk-1);
+    E_Int nic = max(E_Int(1),ni-1); E_Int njc = max(E_Int(1),nj-1); E_Int nkc = max(E_Int(1),nk-1);
     E_Int nbIntI = ni*njc*nkc; E_Int nbIntJ = nic*nj*nkc;
     E_Int nbIntIJ = nbIntI+nbIntJ;
     for (E_Int novar = 0; novar < nvars; novar++)     

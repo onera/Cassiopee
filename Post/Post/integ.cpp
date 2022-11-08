@@ -654,7 +654,7 @@ PyObject* K_POST::integ2(PyObject* self, PyObject* args)
   E_Float* v = fields[posVol];
   
   E_Int n;
-  if (res == 1) n = max(ni-1,1)*max(nj-1,1)*max(nk-1,1);
+  if (res == 1) n = max(ni-1,E_Int(1))*max(nj-1,E_Int(1))*max(nk-1,E_Int(1));
   else n = nj;
   //printf("%d\n", n);
 

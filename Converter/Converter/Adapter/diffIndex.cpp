@@ -62,14 +62,14 @@ PyObject* K_CONVERTER::diffIndex(PyObject* self, PyObject* args)
   
   if (sizeA == sizeB) // retourne vide?
   {
-    PyObject* tpl = K_NUMPY::buildNumpyArray(0, 1, 1, 1);
+    PyObject* tpl = K_NUMPY::buildNumpyArray(E_Int(0), 1, 1, 1);
     return tpl;
   }
 
   if (sizeB > sizeA)
   {
     printf("Warning: diffIndex: listB is not included in listA.");
-    PyObject* tpl = K_NUMPY::buildNumpyArray(0, 1, 1, 1);
+    PyObject* tpl = K_NUMPY::buildNumpyArray(E_Int(0), 1, 1, 1);
     return tpl;
   }
 

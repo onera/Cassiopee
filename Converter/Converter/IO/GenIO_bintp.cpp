@@ -393,9 +393,9 @@ E_Int K_IO::GenIO::tecread(
         ni.push_back(ni1);
         nj.push_back(nj1);
         nk.push_back(nk1);
-        E_Int nim = std::max(ni1-1,1);
-        E_Int njm = std::max(nj1-1,1);
-        E_Int nkm = std::max(nk1-1,1);
+        E_Int nim = std::max(ni1-1,E_Int(1));
+        E_Int njm = std::max(nj1-1,E_Int(1));
+        E_Int nkm = std::max(nk1-1,E_Int(1));
         if (nfldNodes > 0) f = new FldArrayF(ni1*nj1*nk1, nfldNodes);
         else f = NULL;
         if (nfldCenters > 0) fc = new FldArrayF(nim*njm*nkm, nfldCenters);

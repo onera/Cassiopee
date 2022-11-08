@@ -580,7 +580,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
 #endif
 
     // get number of elements
-    E_Int nOctetsTot=0;
+    int nOctetsTot=0; // flaw!!
 #ifdef _MPI
     MPI_Get_count(&status, MPI_CHAR, &nOctetsTot);
 #endif

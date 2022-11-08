@@ -77,15 +77,15 @@ PyObject* K_POST::exteriorEltsStructured(PyObject* self, PyObject* args)
     ind = i+nis*j+nijs*k;
     ip = i;
     if (i >= nis-depth-1) ip = ni-nis+i-1;
-    ip = std::max(ip,0);
+    ip = std::max(ip,E_Int(0));
     ip = std::min(ip,ni-1);
     jp = j;
     if (j >= njs-depth-1) jp = nj-njs+j-1;
-    jp = std::max(jp,0);
+    jp = std::max(jp,E_Int(0));
     jp = std::min(jp,nj-1);
     kp = k;
     if (k >= nks-depth-1) kp = nk-nks+k-1;
-    kp = std::max(kp,0);
+    kp = std::max(kp,E_Int(0));
     kp = std::min(kp,nk-1);
     indp = ip+ni*jp+nij*kp;
     //printf("%d %d %d\n", ip,jp,kp);

@@ -195,7 +195,7 @@ E_Int K_IO::GenIO::v3dread(
       fclose(ptrFile);
       return 1;
     }
-    nvar = std::min(nrec, 500);
+    nvar = std::min(nrec, E_Int(500));
     //printf("read: nrec=%d %d\n", nvar, nrec);
 
     for (n = 0; n < nrec; n++)
