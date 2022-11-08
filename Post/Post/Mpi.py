@@ -33,8 +33,11 @@ def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
 #==============================================================================
 def integ(t, var=''):
     """Integral of fields defined in t."""
-    ret = P.integ(t, var)
-    ret = numpy.array(ret, dtype=numpy.float64)
+    if t is not None:
+        ret = P.integ(t, var)
+    else:
+        ret = 0.
+    ret  = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)
     return ret1.tolist()
@@ -42,15 +45,21 @@ def integ(t, var=''):
 #==============================================================================
 def integNorm(t, var=''):
     """Integral of fields times normal."""
-    ret = P.integNorm(t, var)
-    ret = numpy.array(ret, dtype=numpy.float64)
+    if t is not None:
+        ret = P.integNorm(t, var)
+    else:
+        ret = 0.
+    ret  = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)
     return [ret1.tolist()]
 
 #==============================================================================
 def integNormProduct(t, vector=[]):
-    ret = P.integNormProduct(t, vector)
+    if t is not None:
+        ret = P.integNormProduct(t, vector)
+    else:
+        ret = 0.    
     ret = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)
@@ -58,7 +67,10 @@ def integNormProduct(t, vector=[]):
 
 #==============================================================================
 def integMoment(t, center=(0.,0.,0.), vector=[]):
-    ret = P.integMoment(t, center, vector)
+    if t is not None:
+        ret = P.integMoment(t, center, vector)
+    else:
+        ret = 0.    
     ret = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)
@@ -66,7 +78,10 @@ def integMoment(t, center=(0.,0.,0.), vector=[]):
 
 #==============================================================================
 def integNormMoment(t, center=(0.,0.,0.), vector=[]):
-    ret = P.integNormMoment(t, center, vector)
+    if t is not None:
+        ret = P.integNormMoment(t, center, vector)
+    else:
+        ret = 0.    
     ret = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)

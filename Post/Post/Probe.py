@@ -72,7 +72,7 @@ class Probe:
                  ind=None, blockName=None,
                  tPermeable=None, 
                  fields=None, append=False, 
-                 bufferSize=100, writeCoords=True):
+                 bufferSize=100, writeCoords=True,modeForce=0):
         """Create a probe."""
         self.init0()
         self._bsize = bufferSize
@@ -104,12 +104,15 @@ class Probe:
             self._mode = 3
             self._ts = tPermeable
 
+        elif modeForce == 4:
+            self._mode=4
+
         # Empilement de zones
         else: 
             self._mode = 2
         
         # Cree la probe et on relit le fichier uniquement en mode=0 et 1
-        if self._mode == 0 or self._mode == 1:
+        if self._mode == 0 or self._mode == 1 or self._mode == 4:
             if self._proc is not None and self._fields is not None:
                 self.createProbeZones()
         
@@ -234,11 +237,12 @@ class Probe:
     # IN: _fields: champ a extraire
     # OUT: _probeZones: zones de stockage
     def createProbeZones(self, source=None):
-        if self._mode == 0 or self._mode == 1:
-            if Cmpi.rank != self._proc: return
+        if self._mode == 0 or self._mode == 1 or self._mode == 4:
+            if Cmpi.rank != self._proc and self._mode!=4: return
             z = G.cart((0,0,0), (1,1,1), (self._bsize,1,1))
             z[0] = 'probe'
-            D2._addProcNode(z, self._proc)
+            if self._mode!=4:
+                D2._addProcNode(z, self._proc)
             self._probeZones = [z]
             C._initVars(self._probeZones, '{time}=-1.') # time sentinel
             # create vars in probe
@@ -287,7 +291,6 @@ class Probe:
                     if len(v) == 2: v = v[1]
                     else: v = v[0]
                     C._initVars(zp, v, 0.)
-            
         return None
 
     # Prepare for mode=3
@@ -365,7 +368,7 @@ class Probe:
     def checkFile(self, append=False):
         if append:
             create = False
-            if self._mode == 0 or self._mode == 1:
+            if self._mode == 0 or self._mode == 1 or self._mode == 4:
                 isFilePresent = os.path.exists(self._fileName)
             else:
                 if Cmpi.rank == 0: isFilePresent = os.path.exists(self._fileName)
@@ -377,6 +380,7 @@ class Probe:
                     tl = Distributed.convertFile2SkeletonTree(self._fileName)
                 else: 
                     tl = Cmpi.convertFile2SkeletonTree(self._fileName)
+                    
                 zones = Internal.getZones(tl)
                 if len(zones) > 0:
                     nodes = Internal.getNodesFromName(zones[0], 'GridCoordinates#*')
@@ -389,24 +393,27 @@ class Probe:
             if self._mode == 0 or self._mode == 1:
                 if Cmpi.rank == self._proc:
                     C.convertPyTree2File(self._probeZones, self._fileName)
+            elif self._mode == 4:
+                C.convertPyTree2File(self._probeZones, self._fileName)
             else:
                 Cmpi.convertPyTree2File(self._probeZones, self._fileName)
             self._filecur = 0
             return None
-        
-        #  Nettoyage + ne conserve que les zones du proc
-        to = C.newPyTree()
-        bases = Internal.getBases(tl)
-        for b in bases:
-            bl = Internal.newCGNSBase(b[0], parent=to)
-            zones = Internal.getZones(b)
-            for z in zones:
-                Internal._rmNodesByName(z, 'GridCoordinates#*')
-                Internal._rmNodesByName(z, 'FlowSolution#[0123456789]*')
-                Internal._rmNodesByName(z, 'FlowSolution#Centers#*')
-                if D2.getProc(z) == Cmpi.rank: bl[2].append(z)
-        
-        tl = to
+
+        if self._mode != 4:
+            #  Nettoyage + ne conserve que les zones du proc
+            to = C.newPyTree()
+            bases = Internal.getBases(tl)
+            for b in bases:
+                bl = Internal.newCGNSBase(b[0], parent=to)
+                zones = Internal.getZones(b)
+                for z in zones:
+                    Internal._rmNodesByName(z, 'GridCoordinates#*')
+                    Internal._rmNodesByName(z, 'FlowSolution#[0123456789]*')
+                    Internal._rmNodesByName(z, 'FlowSolution#Centers#*')
+                    if D2.getProc(z) == Cmpi.rank: bl[2].append(z)
+            
+            tl = to
         self._probeZones = Internal.getZones(tl)
 
         # load GC
@@ -497,7 +504,7 @@ class Probe:
     # IN: _ind: index of probe (static)
     # IN: _fields: nom des champs a extraire
     # si onlyTransfer=True, les champ ne sont pas stockes dans la probe
-    def extract(self, t, time, onlyTransfer=False):
+    def extract(self, t, time, onlyTransfer=False,list_vals=[]):
         """Extract XYZ or Ind fields from t."""
 
         if self._mode == 0 or self._mode == 1: # single point
@@ -509,6 +516,9 @@ class Probe:
         elif self._mode == 3:
             # attention ici : t is tcs
             self.extract3(t, time, onlyTransfer)
+            
+        elif self._mode == 4: # store values that are given
+            self.extract4(t, time,list_vals)
         return None
 
     def extract1(self, t, time):
@@ -610,13 +620,16 @@ class Probe:
             self.checkFile(append=self._append)
             for v in self._fields: C._initVars(self._ts, v, 0.)
         Cmpi.barrier()
-
         # ts: permeable surface
         # tcs: tc for surface interp must be set
         if self._procDicts is None:
             tsBB = Cmpi.createBBoxTree(self._ts)
             self._procDicts = Cmpi.getProcDict(tsBB)
-
+            if Cmpi.size==1:
+                for i in self._procDicts:
+                    if self._procDicts[i]<0:
+                        self._procDicts[i]=0 
+            
         if self._graph is None:
             tcsBB = Cmpi.createBBoxTree(tcs)
             procDictc = Cmpi.getProcDict(tcsBB)
@@ -664,6 +677,20 @@ class Probe:
         
         return None
 
+    def extract4(self, t, time,list_vals):
+        """Extract for mode=4."""
+        # time is in "time" of probe zone
+        pzone = self._probeZones[0]
+        pt = Internal.getNodeFromName2(pzone, 'time')[1]
+        pt[self._icur] = time
+        for c,v in enumerate(self._fields):
+            pf = Internal.getNodeFromName2(pzone, v)[1]
+            pf[self._icur] = list_vals[c]
+        self._icur += 1
+        if self._icur >= self._bsize: self.flush()
+        return None
+
+    
     def share(self, tcs, tc):
         """Share coordinates and fields between tcs and tc."""
         zones = Internal.getZones(tc)
@@ -710,6 +737,9 @@ class Probe:
         """Flush probe to file."""
         if self._mode == 0 or self._mode == 1:
             if Cmpi.rank != self._proc: return None
+            print('Info: probe: flush #%d [%s].'%(self._filecur, self._fileName))
+            self.flush__()
+        elif self._mode==4:
             print('Info: probe: flush #%d [%s].'%(self._filecur, self._fileName))
             self.flush__()
         else:

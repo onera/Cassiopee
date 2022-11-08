@@ -419,71 +419,79 @@ def _computeExtraVariables(ts, PInf, QInf,
 def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     import Post.ExtraVariables2 as PE
 
-    if Sref is None:
-        C._initVars(ts, '__ONE__',1.)
-        Sref = P.integ(ts, '__ONE__')[0];
-        C._rmVars(ts, ['__ONE__', 'centers:vol'])
-
-    RefState = Internal.getNodeFromType(ts,'ReferenceState_t')
-    PInf     = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
-    RoInf    = Internal.getValue(Internal.getNodeFromName(RefState,"Density"))
-    VxInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityX"))
-    VyInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityY"))
-    VzInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityZ"))
-    VInf2    = VxInf*VxInf+VyInf*VyInf+VzInf*VzInf
-    VInf     = math.sqrt(VInf2)
-    q      = 0.5*RoInf*VInf2
-    qinv   = 1./q
-    alpha  = math.radians(alpha)
-    beta   = math.radians(beta)
-    calpha = math.cos(alpha); cbeta = math.cos(beta)
-    salpha = math.sin(alpha); sbeta = math.sin(beta)   
-
-    if Qref is None: Qref = q
-    if Pref is None: Pref = PInf
-
-    _computeExtraVariables(ts, Pref, Qref, variables=['Cp','Cf','frictionX','frictionY','frictionZ','frictionMagnitude','ShearStress'])
-
-    #===========================
-    # Compute pressure forces
-    #===========================    
+    zones = Internal.getZones(ts)
+    if zones:
+        if Sref is None:
+            C._initVars(ts, '__ONE__',1.)
+            Sref = P.integ(ts, '__ONE__')[0];
+            C._rmVars(ts, ['__ONE__', 'centers:vol'])
+        
+        RefState = Internal.getNodeFromType(ts,'ReferenceState_t')
+        PInf     = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
+        RoInf    = Internal.getValue(Internal.getNodeFromName(RefState,"Density"))
+        VxInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityX"))
+        VyInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityY"))
+        VzInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityZ"))
+        VInf2    = VxInf*VxInf+VyInf*VyInf+VzInf*VzInf
+        VInf     = math.sqrt(VInf2)
+        q      = 0.5*RoInf*VInf2
+        
+        qinv   = 1./q
+        alpha  = math.radians(alpha)
+        beta   = math.radians(beta)
+        calpha = math.cos(alpha); cbeta = math.cos(beta)
+        salpha = math.sin(alpha); sbeta = math.sin(beta)   
+        
+        if Qref is None: Qref = q
+        if Pref is None: Pref = PInf
+       
+        _computeExtraVariables(ts, Pref, Qref, variables=['Cp','Cf','frictionX','frictionY','frictionZ','frictionMagnitude','ShearStress'])
+        
+        #===========================
+        # Compute pressure forces
+        #===========================    
     res = PE.integCp(ts)[0]
-    res = [-i/Sref for i in res]
-    QADIMI = 1./(Qref*Sref)
     res2 = PE.integTaun(ts)
-    res2 = [ i*QADIMI for i in res2]
+    clp=0
+    cdp=0
+    clf=0
+    cdf=0
+    if zones:
+        res    = [-i/Sref for i in res]
+        QADIMI = 1./(Qref*Sref)
+        res2   = [ i*QADIMI for i in res2]
+        
+        calpha = math.cos(alpha); cbeta = math.cos(beta)
+        salpha = math.sin(alpha); sbeta = math.sin(beta)
+        if dimPb == 3:
+           cdp = res[0]*calpha*cbeta + res[1]*salpha*cbeta - res[2]*sbeta
+           clp = res[1]*calpha       - res[0]*salpha
+           cdf = res2[0]*calpha*cbeta + res2[1]*salpha*cbeta - res2[2]*sbeta
+           clf = res2[1]*calpha       - res2[0]*salpha
+           # cdp = res[0]*calpha*cbeta + res[1]*salpha*cbeta - res[2]*sbeta
+           # clp = res[1]*calpha       - res[0]*salpha
+           # cdf = res2[0]*calpha*cbeta + res2[1]*salpha*cbeta - res2[2]*sbeta
+           # clf = res2[1]*calpha       - res2[0]*salpha
+        else:
+           cdp = res[0]*calpha + res[1]*salpha
+           clp = res[1]*calpha - res[0]*salpha
+           cdf = res2[0]*calpha + res2[1]*salpha
+           clf = res2[1]*calpha - res2[0]*salpha
 
-    calpha = math.cos(alpha); cbeta = math.cos(beta)
-    salpha = math.sin(alpha); sbeta = math.sin(beta)
-    if dimPb == 3:
-        cdp = res[0]*calpha*cbeta + res[2]*salpha*cbeta - res[1]*sbeta
-        clp = res[2]*calpha       - res[0]*salpha
-        cdf = res2[0]*calpha*cbeta + res2[2]*salpha*cbeta - res2[1]*sbeta
-        clf = res2[2]*calpha       - res2[0]*salpha
-        # cdp = res[0]*calpha*cbeta + res[1]*salpha*cbeta - res[2]*sbeta
-        # clp = res[1]*calpha       - res[0]*salpha
-        # cdf = res2[0]*calpha*cbeta + res2[1]*salpha*cbeta - res2[2]*sbeta
-        # clf = res2[1]*calpha       - res2[0]*salpha
-    else:
-        cdp = res[0]*calpha + res[1]*salpha
-        clp = res[1]*calpha - res[0]*salpha
-        cdf = res2[0]*calpha + res2[1]*salpha
-        clf = res2[1]*calpha - res2[0]*salpha
+        if verbose and Cmpi.rank==0:
+            print("Normalized pressure drag = %.4e and lift = %.4e"%(cdp, clp))
+            print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(%.4e, %.4e, %.4e)"%(res[0],res[1],res[2]))
+        
+            print("Normalized skin friction drag = %.4e and lift = %.4e"%(cdf, clf))
+            print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(%.4e,%.4e,%.4e)"%(res2[0], res2[1], res2[2]))
+        
+            print("****************************************")
+            print("Total Drag : %.4e"%(cdp+cdf))
+            print("Total Lift : %.4e"%(clp+clf))
+            print("****************************************")
 
-    if verbose and Cmpi.rank==0:
-        print("Normalized pressure drag = %.4e and lift = %.4e"%(cdp, clp))
-        print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(%.4e, %.4e, %.4e)"%(res[0],res[1],res[2]))
-
-        print("Normalized skin friction drag = %.4e and lift = %.4e"%(cdf, clf))
-        print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(%.4e,%.4e,%.4e)"%(res2[0], res2[1], res2[2]))
-
-        print("****************************************")
-        print("Total Drag : %.4e"%(cdp+cdf))
-        print("Total Lift : %.4e"%(clp+clf))
-        print("****************************************")
-
-    FSC = Internal.getNodesFromName(ts,Internal.__FlowSolutionCenters__)
-    Internal._rmNodesFromName(FSC, 'ShearStress*')
+        FSC = Internal.getNodesFromName(ts,Internal.__FlowSolutionCenters__)
+        Internal._rmNodesFromName(FSC, 'ShearStress*')
     return [res, res2, [clp, cdp], [clf, cdf]]
 
 #==============================================================================
@@ -746,7 +754,7 @@ def _extractConvectiveTerms(tc):
 # OUT: graphWPOST    : graph of coms between tc and tl
 # OUT: interDictWPOST: dictionary of intersection domains
 #==========================================================================================
-def _prepareSkinReconstruction(ts, tc):
+def _prepareSkinReconstruction(ts, tc,famZones=[]):
     alphah=2.2
     tBBs=Cmpi.createBBoxTree(ts)
     procDictFUS = Cmpi.getProcDict(tBBs)
@@ -757,6 +765,9 @@ def _prepareSkinReconstruction(ts, tc):
         allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
         allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
         for IBCD in allIBCD:
+            fam_tmp = Internal.getNodeFromType(IBCD,'FamilyName_t')
+            if fam_tmp is not None:fam   = Internal.getValue(fam_tmp)
+            if famZones and fam not in famZones:continue
             zname = Internal.getValue(IBCD)
             XW = Internal.getNodeFromName(IBCD,'CoordinateX_PW')[1]
             YW = Internal.getNodeFromName(IBCD,'CoordinateY_PW')[1]
@@ -813,6 +824,10 @@ def _prepareSkinReconstruction(ts, tc):
             tl[2][1][2].append(z)
 
     tlBB=Cmpi.createBBoxTree(tl)
+    for zbb in Internal.getZones(tlBB):
+        if Internal.getNodeByName(zbb,'FlowSolution') is not None:
+            G._BB(zbb)
+ 
     hmin = -1e10
     for zbb in Internal.getZones(tlBB):    
         zc = Internal.getNodeFromName2(tl,zbb[0])
@@ -867,35 +882,47 @@ def _prepareSkinReconstruction(ts, tc):
         tl[2][1][2].append(FES)
     return tl, graphWPOST
 
-def _computeSkinVariables(ts, tc, tl, graphWPOST):
+
+def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[]):
     for zc in Internal.getZones(tc):
         allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
         allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
         for IBCD in allIBCD:
-            PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
-            RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
-            UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
-            YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
-            VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
-            VYW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
-            VZW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
-            
+            fam_tmp = Internal.getNodeFromType(IBCD,'FamilyName_t')
+            if fam_tmp is not None: fam   = Internal.getValue(fam_tmp)
+            if famZones and fam not in famZones: continue
             zname = Internal.getValue(IBCD)
             znamepostw = 'IBW_Wall_%s_%s'%(zc[0],zname)
             zpostw = Internal.getNodeFromName(tl,znamepostw)
             FSP = Internal.getNodeFromType(zpostw,'FlowSolution_t')
-            PW2 = Internal.getNodeFromName1(FSP,XOD.__PRESSURE__)
-            RHOW2 = Internal.getNodeFromName1(FSP,XOD.__DENSITY__)
-            UTAUW2 = Internal.getNodeFromName1(FSP,XOD.__UTAU__)
+            
+            PW     = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
+            RHOW   = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
+            UTAUW  = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
+            YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
+            VXW    = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
+            VYW    = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
+            VZW    = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
+            
+            
+            PW2     = Internal.getNodeFromName1(FSP,XOD.__PRESSURE__)
+            RHOW2   = Internal.getNodeFromName1(FSP,XOD.__DENSITY__)
+            UTAUW2  = Internal.getNodeFromName1(FSP,XOD.__UTAU__)
             YPLUSW2 = Internal.getNodeFromName1(FSP, XOD.__YPLUS__)
-            VXW2 = Internal.getNodeFromName1(FSP, XOD.__VELOCITYX__)
-            VYW2 = Internal.getNodeFromName1(FSP, XOD.__VELOCITYY__)
-            VZW2 = Internal.getNodeFromName1(FSP, XOD.__VELOCITYZ__)
-            PW2[1]=PW[1]; RHOW2[1]=RHOW[1]; UTAUW2[1]=UTAUW[1];
-            YPLUSW2[1]=YPLUSW[1]
-            VXW2[1]=VXW[1]
-            VYW2[1]=VYW[1]
-            VZW2[1]=VZW[1]
+            VXW2    = Internal.getNodeFromName1(FSP, XOD.__VELOCITYX__)
+            VYW2    = Internal.getNodeFromName1(FSP, XOD.__VELOCITYY__)
+            VZW2    = Internal.getNodeFromName1(FSP, XOD.__VELOCITYZ__)
+            
+            PW2[1]  =PW[1]
+            RHOW2[1]=RHOW[1]
+            VXW2[1] =VXW[1]
+            VYW2[1] =VYW[1]
+            VZW2[1] =VZW[1]
+
+            if UTAUW2 is not None:
+                UTAUW2[1] =UTAUW[1]
+                YPLUSW2[1]=YPLUSW[1]
+            
     tdl = Cmpi.addXZones(tl, graphWPOST)
     tdl = Cmpi.convert2PartialTree(tdl)
     for nobs in range(len(ts[2])):
