@@ -870,7 +870,7 @@ E_Int K_IO::GenIO::tpwrite(
         for (E_Int n = 1; n <= c.getNfld(); n++)
         {
 #ifdef E_DOUBLEINT
-          fprintf(ptrFile, "%lld ", c(i,n));
+          fprintf(ptrFile, "%ld ", c(i,n));
 #else
           fprintf(ptrFile, "%d ", c(i,n));
 #endif

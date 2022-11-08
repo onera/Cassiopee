@@ -290,7 +290,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
   // Recupere la dim en se basant sur la premiere face
   E_Int dim = 3;
   dim = ptr[2];
-  dim = min(dim, 3);
+  dim = min(dim, E_Int(3));
 
   // Commence par calculer alpha
   E_Int nfaces = ptr[0];
@@ -550,7 +550,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   // Recupere la dim en se basant sur la premiere face
   E_Int dim = 3;
   dim = ptr[2];
-  dim = min(dim, 3);
+  dim = min(dim, E_Int(3));
 
   // Commence par calculer alpha
   E_Int nfaces = ptr[0];

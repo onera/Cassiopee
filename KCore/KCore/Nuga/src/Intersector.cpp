@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/Intersector.h"
 #include "Nuga/include/MeshTool.h"
@@ -37,7 +37,7 @@ Intersector::getXPairs
   }
   
   // Get Intersection Matrix (coarse with bounding boxes)
-  K_FLD::IntArray is_x(nb_comps,nb_comps, 0);
+  K_FLD::IntArray is_x(nb_comps,nb_comps, E_Int(0));
   std::vector<bool> used(nb_comps, false);
   K_SEARCH::BBox3D res;
   for (size_t s1 = 0; s1 < nb_comps; ++s1)

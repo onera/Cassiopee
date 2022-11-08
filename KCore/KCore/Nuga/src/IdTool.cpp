@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/IdTool.h"
 #include <algorithm>
@@ -44,7 +44,7 @@ namespace K_CONNECT
   }
 
   ///
-  void IdTool::reverse_indirection(const E_Int*oids, E_Int sz, std::map<int, std::vector<int>>& split_map)
+  void IdTool::reverse_indirection(const E_Int*oids, E_Int sz, std::map<E_Int, std::vector<E_Int>>& split_map)
   {
     split_map.clear();
 

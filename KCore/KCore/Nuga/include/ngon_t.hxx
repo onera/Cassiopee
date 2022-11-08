@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __NGON_T_HXX__
 #define	__NGON_T_HXX__
@@ -1184,7 +1184,7 @@ struct ngon_t
    
     indices.insert(indices.end(), tmp.begin(), tmp.end());
     if (zerobased)
-      ngon_unit::shift(indices, -1);
+      ngon_unit::shift(indices, E_Int(-1));
     
     return 0;
   }
@@ -2932,7 +2932,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     }
 
     // 1- Referencement unique pour les noeuds confondus par kdtree (les doublons seront supprimes a la fin)
-    // si la tolerance est négative => pas de merge
+    // si la tolerance est nï¿½gative => pas de merge
     E_Int nb_merges = 0;
     if (tolerance >= 0.) nb_merges = NG.join_phs(f, tolerance);
 
@@ -2951,7 +2951,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       NG.PGs.remove_consecutive_duplicated(); //removing duplicated facets : compact representation
     }
     
-    // 3- Faces confondues : identification et suppression des références.
+    // 3- Faces confondues : identification et suppression des rï¿½fï¿½rences.
     /*bool has_dups = false;*/
     if (ngon_dim == 3) //volumic
     {

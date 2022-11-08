@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __BAR_CONFORMIZER_CXX__
 #define __BAR_CONFORMIZER_CXX__
@@ -23,7 +23,7 @@ std::vector<std::pair<int,int>> BAR_Conformizer<DIM>::get_x_history()
 {
   std::vector<std::pair<int, int>> xhis;
   size_t nb_edges = parent_type::_elements.size();
-  int maxid = -1;
+  E_Int maxid = -1;
   for (size_t i = 0; i < nb_edges; ++i)
   {
     E2& e = parent_type::_elements[i];

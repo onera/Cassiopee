@@ -34,7 +34,7 @@ E_Float K_METRIC::compVolOfStructCell2D(E_Int ni, E_Int nj,
                                         E_Int indcell, E_Int indnode)
 {
   E_Int i, j;
-  E_Int nic = max(1,ni-1);
+  E_Int nic = max(E_Int(1),ni-1);
   //E_Int njc = max(1,nj-1);
 
   if ( indcell >  -1)

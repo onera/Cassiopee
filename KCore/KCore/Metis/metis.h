@@ -6,6 +6,7 @@
 \date   Started 8/9/02
 \version\verbatim $Id$\endverbatim
 */
+#include "Def/DefTypes.h"
 
 #ifndef _METIS_H_
 #define _METIS_H_ 
@@ -30,8 +31,11 @@
  GCC does provides these definitions in stdint.h, but it may require some
  modifications on other architectures.
 --------------------------------------------------------------------------*/
-#define IDXTYPEWIDTH 32
-
+#ifdef E_DOUBLEINT
+  #define IDXTYPEWIDTH 64
+#else
+  #define IDXTYPEWIDTH 32
+#endif
 
 /*--------------------------------------------------------------------------
  Specifies the data type that will hold floating-point style information.

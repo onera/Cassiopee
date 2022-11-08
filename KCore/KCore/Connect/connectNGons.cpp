@@ -152,7 +152,7 @@ void K_CONNECT::getDimElts(FldArrayI& cNG, E_Int* indPG,
       nbNodes = ptrf[pos];
       dim = max(nbNodes, dim);
     }
-    dim = min(dim, 3);
+    dim = min(dim, E_Int(3));
     dimEltsp[i] = dim;
   }
 }
@@ -184,7 +184,7 @@ E_Int K_CONNECT::getVertexIndices(const E_Int* connect, const E_Int* posFaces,
     nvertex = ptrface[0]; totVertex += nvertex;
     dim = max(nvertex, dim);
   }
-  dim = min(dim, 3);
+  dim = min(dim, E_Int(3));
 
   if (dim == 1)
   {

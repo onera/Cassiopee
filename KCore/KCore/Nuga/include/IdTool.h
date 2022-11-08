@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __K_CONNECT_IDTOOL_H__
 #define __K_CONNECT_IDTOOL_H__
@@ -31,7 +31,7 @@ public:
   static void reverse_indirection
   (const Vector_t<E_Int> & assoc, Vector_t<E_Int>& reverse_assoc);
   /// non-bijective : convert a n-to-one vector (tipically an oids) to a map
-  static void reverse_indirection(const E_Int*oids, E_Int sz, std::map<int, std::vector<int>>& split_map);
+  static void reverse_indirection(const E_Int*oids, E_Int sz, std::map<E_Int, std::vector<E_Int>>& split_map);
   /// non-bijective : convert a n-to-one vector (tipically an oids) to a ngon_unit
   static void reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph);
   /// 

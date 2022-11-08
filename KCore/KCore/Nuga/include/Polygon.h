@@ -1173,7 +1173,7 @@ inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::Flo
 
   for (size_t t = 0; (t < ntris) && !pt_is_in; ++t)
   {
-    int T[3];
+    E_Int T[3];
     this->triangle(t, T);
 
     assert(T[0] < crd.cols()); // if false => corrupted element
