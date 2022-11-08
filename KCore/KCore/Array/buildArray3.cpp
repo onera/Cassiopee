@@ -126,7 +126,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
     if (api == 1) // Array 1
     {
         dim[1] = 4+sizeNGon+sizeNFace; dim[0] = 1;
-        ac = PyArray_SimpleNew(2, dim, NPY_INT);
+        ac = PyArray_SimpleNew(2, dim, E_NPY_INT);
         E_Int* data = (E_Int*)PyArray_DATA((PyArrayObject*)ac);
         data[0] = nface;
         data[1] = sizeNGon;
@@ -138,23 +138,23 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         ac = PyList_New(0);
         // ngons - NGON - sizeNGon
         dim[0] = sizeNGon;
-        PyObject* ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        PyObject* ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // ngons - NFACE - sizeNFace
         dim[0] = sizeNFace;
-        ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // ngons - indPG - nfaces
         dim[0] = nface;
-        ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // ngons - indPH - nelts
         dim[0] = nelt;
-        ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // Eventuellement PE - 2*nface
         //dim[0] = nface; dim[1] = 2;
-        //PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+        //PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
         //PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
     else
@@ -162,23 +162,23 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         ac = PyList_New(0);
         // NGON - sizeNGon
         dim[0] = sizeNGon;
-        PyObject* ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        PyObject* ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // NFACE - sizeNFace
         dim[0] = sizeNFace;
-        ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // NGON - StartOffset
         dim[0] = nface+1;
-        ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // NFACE - startOffset
         dim[0] = nelt+1;
-        ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+        ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // Eventuellement PE - 2*nface
         //dim[0] = nface; dim[1] = 2;
-        //PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+        //PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
         //PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
   
@@ -244,7 +244,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         char st[256]; E_Int dummy; E_Int nvpe;
         eltString2TypeId(eltType, st, nvpe, dummy, dummy);
         dim[1] = cSize; dim[0] = nvpe;
-        ac = PyArray_SimpleNew(2, dim, NPY_INT);
+        ac = PyArray_SimpleNew(2, dim, E_NPY_INT);
     }
     else if (api == 2 || api == 3) // Array2 ou 3
     {
@@ -253,7 +253,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         eltString2TypeId(eltType, st, nvpe, dummy, dummy);
         ac = PyList_New(0);
         dim[0] = cSize; dim[1] = nvpe;
-        PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+        PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
     else
@@ -325,7 +325,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         char st[256]; E_Int dummy; E_Int nvpe;
         eltString2TypeId(eltType, st, nvpe, dummy, dummy);
         dim[1] = cSize; dim[0] = nvpe;
-        ac = PyArray_SimpleNew(2, dim, NPY_INT);
+        ac = PyArray_SimpleNew(2, dim, E_NPY_INT);
     }
     else if (api == 2) // Array2
     {
@@ -334,7 +334,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         eltString2TypeId(eltType, st, nvpe, dummy, dummy);
         ac = PyList_New(0);
         dim[0] = cSize; dim[1] = nvpe;
-        PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+        PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
     else // Array3
@@ -349,7 +349,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
             E_Int cSize = neltsPerType[i];
             eltString2TypeId(eltTypes[i], st, nvpe, dummy, dummy);
             dim[0] = cSize; dim[1] = nvpe;
-            PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+            PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
             PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         }
         for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];

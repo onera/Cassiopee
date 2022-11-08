@@ -617,19 +617,19 @@ void K_GENERATOR::computeStructFrontIndi(E_Float* cellN, E_Int ni, E_Int nj, E_I
           
         if (cellN[ind] == var1)
         {
-          ivm = max(i-1, 0);
+          ivm = max(i-1, E_Int(0));
           indv = ivm + j*ni + k*nij;
           if (cellN[indv] == var2) { BRANCH; }
           ivp = min(i+1, ni-1);
           indv = ivp + j*ni + k*nij;
           if (cellN[indv] == var2) { BRANCH; }
-          jvm = max(j-1, 0);
+          jvm = max(j-1, E_Int(0));
           indv = i + jvm*ni + k*nij;
           if (cellN[indv] == var2) { BRANCH; }
           jvp = min(j+1, nj-1);
           indv = i + jvp*ni + k*nij;
           if (cellN[indv] == var2) { BRANCH; }
-          kvm = max(k-1, 0);
+          kvm = max(k-1, E_Int(0));
           indv = i + j*ni + kvm*nij;
           if (cellN[indv] == var2) { BRANCH; }
           kvp = min(k+1, nk-1);

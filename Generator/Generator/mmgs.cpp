@@ -285,7 +285,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
 
   // 1) Manually get the mesh 
   // get the size of the mesh: vertices, tetra, triangles, edges
-  E_Int npo, nto, nao;
+  int npo, nto, nao; // flaws
   MMGS_Get_meshSize(mesh, &npo, &nto, &nao);
   printf("INFO: output mesh has %d vertices, %d triangles.\n", npo, nto);
 
@@ -293,7 +293,8 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   int* corner = new int [npo+1];
   
   // Table to know if a vertex/tetra/tria/edge is required
-  int* required = new int [K_FUNC::E_max(npo,nto,nao)+1];
+  int size = std::max(npo, nto); size = std::max(size, nao);
+  int* required = new int [ size+1 ];
   
   // Table to know if a component is corner and/or required
   int* ridge = new int [nao+1];
@@ -310,7 +311,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   E_Int* co3 = co->begin(3);
   stride = co->getStride();
 
-  E_Int ref; E_Float px,py,pz;
+  int ref; E_Float px,py,pz;
   for (E_Int k=1; k <= npo; k++) 
   {
     MMGS_Get_vertex(mesh, &px, &py, &pz,
@@ -320,7 +321,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     foz[k-1] = pz;
   }
 
-  E_Int ind1,ind2,ind3;
+  int ind1,ind2,ind3;
   for(E_Int k=1; k <= nto; k++) 
   {
     MMGS_Get_triangle(mesh, &ind1,&ind2,&ind3,

@@ -176,7 +176,7 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
   if (api == 1) // Array 1
   {
     dim[1] = cSize; dim[0] = nvpe;
-    ac = PyArray_SimpleNew(2, dim, NPY_INT);
+    ac = PyArray_SimpleNew(2, dim, E_NPY_INT);
     E_Int* data = (E_Int*)PyArray_DATA((PyArrayObject*)ac);
     if (ngon == 1)
     {
@@ -193,30 +193,30 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
     {
       // autre que NGON - connectivite elt-noeuds
       dim[0] = cSize; dim[1] = nvpe;
-      PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+      PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
     else
     {
       // ngons - NGON - sizeNGon
       dim[0] = sizeNGon;
-      PyObject* ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+      PyObject* ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
       // ngons - NFACE - sizeNFace
       dim[0] = sizeNFace;
-      ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+      ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
       // ngons - indPG - nfaces
       dim[0] = nface;
-      ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+      ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
       // ngons - indPH - nelts
       dim[0] = nelt;
-      ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+      ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
       // Eventuellement PE - 2*nface
       //dim[0] = nface; dim[1] = 2;
-      //PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+      //PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
       //PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
   }

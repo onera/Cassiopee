@@ -66,6 +66,8 @@
   #else
     #define E_PCM_INT sizeof(E_Int)
   #endif
+  #define E_NPY_INT NPY_INT64 
+  #define E_IDX_NONE E_Int(9223372036854775807)
 #else
   typedef int  E_Int;
   typedef int  E_Boolean;
@@ -75,12 +77,11 @@
   #else
     #define E_PCM_INT sizeof(E_Int)
   #endif
+  #define E_NPY_INT NPY_INT
+  #define E_IDX_NONE 2147483647
 #endif
 
 ///-
-
-/** None index in an array */
-#define E_IDX_NONE        2147483647
 
 #define E_EPSILON         1.e-12
 
