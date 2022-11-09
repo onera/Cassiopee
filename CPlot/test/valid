@@ -15,5 +15,5 @@ rm -f *~
 for i in *_t*
 do
         echo '=======================' $i '======================'
-        python $i
+        kpython $i
 done
