@@ -1522,13 +1522,13 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                        e1R  = NG_PE_R[faceR,0]
                        e2R  = NG_PE_R[faceR,1]
                        #element couche externe a forcemment un no + grand
-                       if (e1R > e2R): elR = e1R
+                       if e1R > e2R: elR = e1R
                        else          : elR = e2R  
                        eltR =  FA_IDX_R[elR-1]
                        face_bingo = []
                        faceSearch = True
                        faceR      = 1
-                       while  faceSearch == True:
+                       while faceSearch:
                        #for faceR in range( 1, FA_EC_R[eltR]+1):
                           no_faceR = FA_EC_R[ eltR + faceR] -1
                           e3R      = NG_PE_R[no_faceR,0]
@@ -1543,11 +1543,11 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                              searchD    = True
                              bingo      = 0
                              cd =1
-                             while  searchD == True:
+                             while searchD:
                                  vtxD = NG_EC_D[ ind_fD+cd]-1
                                  searchR= True
                                  cr =1
-                                 while  searchR == True:
+                                 while searchR:
                                     vtxR = NG_EC_R[ ind_fR+cr]-1
                                     #if(elR==26 and no_faceR ==104):
                                     #  print 'xD=',  coordxD[vtxD], coordyD[vtxD],coordzD[vtxD]
@@ -1580,7 +1580,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                               clD      = Internal.getValue(gD)
                               searchBC = True
                               #Recherche existence CL sur la zone receuveuse, on ajoute la face en cas d'absence
-                              while  searchBC == True:
+                              while searchBC:
                                   clR    = Internal.getValue(bc_R[c])
                                   if (clD==clR and ldone==False):
 
@@ -1599,7 +1599,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                                   if c == len(bc_R): searchBC = False
 
                               #creation du noeud BC si type inconnu sur zone receveuse
-                              if ldone == False:
+                              if not ldone:
                                   print('type BC inconnu: creation from scratch',gD)
                                   #ptlistR = Internal.getNodeFromName1(tmp, 'PointList')[1]
                                   datap = numpy.empty(1, numpy.int32)
@@ -1663,7 +1663,7 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                     gcD = Internal.getNodesFromType1(zgcD, 'GridConnectivity_t')
                     rac = 0
                     gcSearch = True
-                    while  gcSearch == True:
+                    while  gcSearch:
                       if Internal.getValue( gcD[rac]) == z[0]:
                           gcSearch =  False
                       else: rac +=1

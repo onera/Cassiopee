@@ -693,7 +693,7 @@ def isFinite(array, var=None):
         ret = True
         for a in array:
             ret1 = isFinite__(a, var)
-            if ret1 == False: ret = False
+            if not ret1: ret = False
         return ret
     else: return isFinite__(array, var)
 

@@ -68,7 +68,7 @@ def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDe
       place[0] = n[0]
       place[1] = n[1]
       if maxDepth == -1: place[2] = n[2]
-      elif setOnlyValue == False: place[2] = n[2]
+      elif not setOnlyValue: place[2] = n[2]
       place[3] = n[3]
     else:
      parent = Internal.getPathAncestor(p)

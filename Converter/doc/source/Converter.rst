@@ -807,7 +807,7 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.extractBCOfType(a, bndType,topTree=None,reorder=True)
+.. py:function:: Converter.PyTree.extractBCOfType(a, bndType, topTree=None, reorder=True, shift=0)
 
     Extract all boundaries of a given type. Returns a list of zones.
     Each zone corresponds to one boundary condition. 
@@ -827,6 +827,8 @@ pyTree creation and manipulation
     :type topTree: pyTree
     :param reorder: if True, extracted zones are reordered such that normals are oriented towards the interior of a.
     :type reorder: Boolean
+    :param shift: if not 0, shift boundary of shift cells (only structured grids)
+    :type shift: int
     :rtype: list of zones
 
     *Example of use:*
@@ -837,7 +839,7 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.extractBCOfName(a, bndName, reorder=True)
+.. py:function:: Converter.PyTree.extractBCOfName(a, bndName, reorder=True, shift=0)
 
     Extract all boundaries of a given name. Returns a list of zones.
     Each zone corresponds to one boundary condition. 
@@ -855,6 +857,8 @@ pyTree creation and manipulation
     :type bndName: string
     :param reorder: if True, extracted zones are reordered such that normals are oriented towards the interior of a.
     :type reorder: Boolean
+    :param shift: if not 0, shift boundary of shift cells (only structured grids)
+    :type shift: int
     :rtype: list of zones
 
     *Example of use:*

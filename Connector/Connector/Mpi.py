@@ -311,7 +311,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 #===============================================================================
 def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type_transfert, nitrun,
                          nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
-                         graph=None, procDict=None,isWireModelPrep=False,isWireModel=False):
+                         graph=None, procDict=None, isWireModelPrep=False, isWireModel=False):
 
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
@@ -696,6 +696,8 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     elif itype == 'chimera2': # nouvelle version 
         tbbc = Cmpi.createBBoxTree(aD)
         interDict = X.getIntersectingDomains(tbbc)
+        procDict = Cmpi.getProcDict(aD)
+        
         if sameBase == 0:
             # on ne conserve que les intersections inter base
             baseNames = {}
@@ -727,13 +729,13 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         for zr in Internal.getZones(aR):
             zrname = Internal.getName(zr)
             dnrZones = []
-            for zdname in interDicts[zrname]:
+            for zdname in interDict[zrname]:
                 zd = Internal.getNodeFromName2(aD, zdname)
                 dnrZones.append(zd)
             
             for zd in dnrZones:
                 zdname = zd[0]
-                destProc = procDictcs[zdname]
+                destProc = procDict[zdname]
         
                 IDs = []
                 for i in zd[2]:
@@ -742,7 +744,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
                 if IDs != []:
                     if destProc == Cmpi.rank:
-                        zD = Internal.getNodeFromName2(tcs, zdname)
+                        zD = Internal.getNodeFromName2(aR, zdname)
                         zD[2] += IDs
                     else:
                         if destProc not in datas: datas[destProc] = [[zdname,IDs]]
