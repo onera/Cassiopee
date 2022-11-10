@@ -389,7 +389,7 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
         for iDom, zone in enumerate(zones):
             zonew = zonesw[iDom]
             dimz = Internal.getZoneDim(zonew)
-            print(zone[0], zonew[0], flush=True)
+            #print(zone[0], zonew[0], flush=True)
 
             nodes = Internal.getNodesFromName(zone, 'FlowSolution#*')
             ncont = len(nodes) # nbre de containers pleins
