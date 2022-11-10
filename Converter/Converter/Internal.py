@@ -3860,7 +3860,7 @@ def adaptConnect__(connects, dim):
         if c1 is not None and c2 is not None:
             st1 = c1.size; st2 = c2.size
             st = st1 + st2 + 4
-            cr = numpy.empty((1, st), numpy.int32)
+            cr = numpy.empty((1, st), __E_NPY_INT__)
             converter.cpyConnectP2ConnectA(cr, c1, c2, stype, ne, nfaces, nelts)
     else: # Autres types
         info = connect[2]
@@ -3869,10 +3869,10 @@ def adaptConnect__(connects, dim):
           if i[0] == 'ElementConnectivity':
             c = i[1]
             if c is None: # a NODE
-                cr = numpy.empty((stype, 0), numpy.int32)
+                cr = numpy.empty((stype, 0), __E_NPY_INT__)
             else:
                 nelts = c.size // stype # elts = ne sauf si MULTIPLE
-                cr = numpy.empty((stype, nelts), numpy.int32)
+                cr = numpy.empty((stype, nelts), __E_NPY_INT__)
                 c2 = None
                 converter.cpyConnectP2ConnectA(cr, c, c2, stype, nelts, -1, -1)
     return cr, ettype
@@ -3890,7 +3890,7 @@ def setElementConnectivity(z, array):
           info = z[2][len(z[2])-1]
           i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = array[2].shape[1]
           info[2].append(['ElementRange', i, [], 'IndexRange_t'])
-          connect = numpy.empty((array[2].size), numpy.int32)
+          connect = numpy.empty((array[2].size), __E_NPY_INT__)
           converter.cpyConnectA2ConnectP(array[2], connect,
                                          stype, array[2].shape[1])
           info[2].append(['ElementConnectivity', connect, [], 'DataArray_t'])
@@ -3914,7 +3914,7 @@ def setElementConnectivity(z, array):
           _updateElementRange(z)
           # Creation du noeud NFACE_n: connectivite Elements->Faces
           etype,stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0
+          i2 = numpy.empty((2), __E_NPY_INT__); i2[0] = etype; i2[1] = 0
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
@@ -3934,7 +3934,7 @@ def setElementConnectivity(z, array):
           nodeE = getNodeFromName2(z, 'ElementRange')
           i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = array[2].shape[1]
           nodeE[1] = i
-          connect = numpy.empty((array[2].size), numpy.int32)
+          connect = numpy.empty((array[2].size), __E_NPY_INT__)
           converter.cpyConnectA2ConnectP(array[2], connect,
                                          stype, array[2].shape[1])
           nodeE = getNodeFromName2(z, 'ElementConnectivity')
@@ -3985,7 +3985,7 @@ def setElementConnectivity(z, array):
 def setElementConnectivity2(z, array):
   etype, stype = eltName2EltNo(array[3])
   GENodes = getElementNodes(z)
-  i = numpy.empty((2), numpy.int32); i[0] = etype; i[1] = 0
+  i = numpy.empty((2), __E_NPY_INT__); i[0] = etype; i[1] = 0
   if GENodes == []:
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           z[2].append(['GridElements', i, [], 'Elements_t'])
@@ -4392,7 +4392,7 @@ def _adaptZoneBCEltRange2EltList(t):
     for b in bcs:
         r = getNodeFromType1(b, 'IndexRange_t')
         v = getValue(r)
-        val = numpy.arange(v[0][0],v[0][1]+1,dtype=numpy.int32)
+        val = numpy.arange(v[0][0], v[0][1]+1, dtype=__E_NPY_INT__)
         val = val.reshape((1,val.size))
         setValue(r, val)
         setType(r, 'IndexArray_t')
@@ -4762,7 +4762,7 @@ def convertIJKArray21DArray(*thetuple):
   if len(thetuple) == 4:
     (a,im,jm,km) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), numpy.int32)
+    b = numpy.empty((1,size), __E_NPY_INT__)
     for l in range(size):
       i = a[0][l]-1; j = a[1][l]-1; k = a[2][l]-1
       ind = adrNode1__(i,j,k,im,jm,km,0)
@@ -4771,7 +4771,7 @@ def convertIJKArray21DArray(*thetuple):
   elif len(thetuple) == 3:
     (a,im,jm) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), numpy.int32)
+    b = numpy.empty((1,size), __E_NPY_INT__)
     for l in range(size):
       i = a[0][l]-1; j = a[1][l]-1
       ind = adrNode2__(i,j,im,jm,0)
@@ -4779,7 +4779,7 @@ def convertIJKArray21DArray(*thetuple):
   elif len(thetuple) == 2:
     (a,im) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), numpy.int32)
+    b = numpy.empty((1,size), __E_NPY_INT__)
     for l in range(size):
       b[0][l] = a[l]-1
     return b

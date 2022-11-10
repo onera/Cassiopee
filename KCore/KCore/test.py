@@ -398,8 +398,8 @@ def checkTree__(node1, node2):
             print('DIFF: reference:', val2)
             print('DIFF: courant:', val1)
             return 0
-        if val1.dtype == numpy.int32:
-            if val2.dtype != numpy.int32:
+        if val1.dtype == numpy.int32 or val1.dtype == numpy.int64:
+            if val2.dtype != numpy.int32 and val2.dtype != numpy.int64:
                 print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)

@@ -112,14 +112,14 @@ PyObject* K_NUMPY::buildNumpyArray(FldArrayI& field, E_Int fortran)
   if (field.getNfld() == 1)
   {
     dim[0] = field.getSize();
-    a = (PyArrayObject*)PyArray_EMPTY(1, dim, NPY_INT, fortran);
+    a = (PyArrayObject*)PyArray_EMPTY(1, dim, E_NPY_INT, fortran);
     dim[1] = 1;
   }
   else
   {
     if (fortran == 0) { dim[1] = field.getSize(); dim[0] = field.getNfld(); }
     else { dim[0] = field.getSize(); dim[1] = field.getNfld(); }
-    a = (PyArrayObject*)PyArray_EMPTY(2, dim, NPY_INT, fortran);
+    a = (PyArrayObject*)PyArray_EMPTY(2, dim, E_NPY_INT, fortran);
   }
   E_Int* ptrf = field.begin();
   E_Int* ptra = (E_Int*)PyArray_DATA(a);
@@ -153,7 +153,7 @@ PyObject* K_NUMPY::buildNumpyArray(E_Int size, E_Int nfld, E_Int type,
   if (type == 0) // E_Float
     a = (PyArrayObject*)PyArray_EMPTY(ndim, dim, NPY_DOUBLE, fortran);
   else
-    a = (PyArrayObject*)PyArray_EMPTY(ndim, dim, NPY_INT, fortran);
+    a = (PyArrayObject*)PyArray_EMPTY(ndim, dim, E_NPY_INT, fortran);
   return (PyObject*)a;
 }
 
@@ -174,14 +174,14 @@ PyObject* K_NUMPY::buildNumpyArray(E_Int* f, E_Int size, E_Int nfld,
   if (nfld == 1)
   {
     dim[0] = size;
-    a = (PyArrayObject*)PyArray_EMPTY(1, dim, NPY_INT, fortran);
+    a = (PyArrayObject*)PyArray_EMPTY(1, dim, E_NPY_INT, fortran);
     dim[1] = 1;
   }
   else
   {
     if (fortran == 0) { dim[1] = size; dim[0] = nfld; }
     else { dim[0] = size; dim[1] = nfld; }
-    a = (PyArrayObject*)PyArray_EMPTY(2, dim, NPY_INT, fortran);
+    a = (PyArrayObject*)PyArray_EMPTY(2, dim, E_NPY_INT, fortran);
   }
 
   E_Int* ptrf = f;

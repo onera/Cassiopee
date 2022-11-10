@@ -496,19 +496,19 @@ void K_CONNECT::createConnectEV_opt(FldArrayI& cn, vector<E_Int> newId,
 {
   E_Int nelts = cn.getSize(); E_Int nvert = cn.getNfld();
 
-    E_Int indp, indn;
-    E_Int n1, et1;
+  E_Int indp, indn;
+  E_Int n1, et1;
     
-    for (n1 = 1; n1 <= nvert; n1++)
+  for (n1 = 1; n1 <= nvert; n1++)
+  {
+    E_Int* cnp = cn.begin(n1);
+    E_Int* cnoutp = cnout.begin(n1);
+    for (et1 = 0; et1 < nelts; et1++)
     {
-      E_Int* cnp = cn.begin(n1);
-      E_Int* cnoutp = cnout.begin(n1);
-      for (et1 = 0; et1 < nelts; et1++)
-      {
-        indp = cnp[et1]-1; indn = newId[indp];
-        cnoutp[et1] = indirp[indn]+1;
-      }
+      indp = cnp[et1]-1; indn = newId[indp];
+      cnoutp[et1] = indirp[indn]+1;
     }
+  }
 }
 //=============================================================================
 /* 

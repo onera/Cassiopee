@@ -60,7 +60,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
     PyObject* c = PyList_GetItem(o,2);
 
     //PyArrayObject* ac = 
-    //  (PyArrayObject*)PyArray_ContiguousFromObject(c, NPY_INT,
+    //  (PyArrayObject*)PyArray_ContiguousFromObject(c, E_NPY_INT,
     //						   1, 10000000);
     PyArrayObject* ac = (PyArrayObject*)c; Py_INCREF(ac);
     if (K_STRING::cmp(eltType, "NGON") == 0)
@@ -168,7 +168,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
     PyObject* c = PyList_GetItem(o,2);
 
     //PyArrayObject* ac = 
-    //  (PyArrayObject*)PyArray_ContiguousFromObject(c, NPY_INT,
+    //  (PyArrayObject*)PyArray_ContiguousFromObject(c, E_NPY_INT,
     //               1, 10000000);  
     if (K_STRING::cmp(eltType, "NGON") == 0)
     {

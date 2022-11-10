@@ -177,7 +177,7 @@ PyObject* K_ARRAY::buildArray(const DynArray<E_Float>& field, const char* varStr
   dim[1] = c.cols();
   dim[0] = c.rows();
   dim1 = dim[1];
-  ac = (PyArrayObject*)PyArray_SimpleNew(2, dim, NPY_INT);
+  ac = (PyArrayObject*)PyArray_SimpleNew(2, dim, E_NPY_INT);
   E_Int* di = (E_Int*)PyArray_DATA(ac);
   DynArray<E_Int>::const_iterator iti = c.begin();
   for (E_Int i = 0; i < dim1; i++)

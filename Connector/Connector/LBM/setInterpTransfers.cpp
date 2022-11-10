@@ -1082,13 +1082,16 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 #pragma omp barrier 
     }//ipass
   }// omp
+
+  /*
   E_Float maxval_mea= max({abs(meax),abs(meay),abs(meaz)});
-  if(maxval_mea>1e-9  && TypeTransfert==2) {
+  if(maxval_mea>1e-9  && TypeTransfert==2) 
+  {
     FILE* outfile;
     outfile=fopen("mea_data_setinterp.txt", "a");
     fprintf(outfile,"%d %e %e %e\n",nitrun,meax,meay,meaz);
     fclose(outfile);
-  }
+  }*/
   
   
   delete [] ipt_param_intR;

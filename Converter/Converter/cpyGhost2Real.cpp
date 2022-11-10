@@ -43,8 +43,8 @@ PyObject* K_CONVERTER::cpyGhost2Real(PyObject* self, PyObject* args)
   E_Int indreal, indghost;
   PyArrayObject* arR = (PyArrayObject*)arrayR;
   PyArrayObject* arG = (PyArrayObject*)arrayG;
-  double* dataG = (double*)PyArray_DATA(arG);
-  double* dataR = (double*)PyArray_DATA(arR);
+  E_Float* dataG = (E_Float*)PyArray_DATA(arG);
+  E_Float* dataR = (E_Float*)PyArray_DATA(arR);
   if (km == 0) dim = 2; 
   if (jm == 0) dim = 1; 
 
@@ -105,8 +105,8 @@ PyObject* K_CONVERTER::cpyReal2Ghost(PyObject* self,
   E_Int indreal, indghost, indadj;
   PyArrayObject* arR = (PyArrayObject*)arrayR;
   PyArrayObject* arG = (PyArrayObject*)arrayG;
-  double* dataG = (double*)PyArray_DATA(arG);
-  double* dataR = (double*)PyArray_DATA(arR);
+  E_Float* dataG = (E_Float*)PyArray_DATA(arG);
+  E_Float* dataR = (E_Float*)PyArray_DATA(arR);
   if (km == 0) dim = 2; 
   if (jm == 0) dim = 1;
   

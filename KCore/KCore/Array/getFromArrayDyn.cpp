@@ -158,7 +158,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
       Py_DECREF(a);
       return -6;
     }
-    //ac = (PyArrayObject*)PyArray_ContiguousFromObject(tpl, NPY_INT,
+    //ac = (PyArrayObject*)PyArray_ContiguousFromObject(tpl, E_NPY_INT,
     //                                                  1, 10000000);
     ac = (PyArrayObject*)tpl; Py_INCREF(ac);
 

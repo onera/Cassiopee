@@ -120,7 +120,7 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
   E_Int cSize = nelt;
   E_Int nvpe = 0;
   E_Int ngon = 0;
-
+      
   IMPORTNUMPY;
 
   if (et == -1)
