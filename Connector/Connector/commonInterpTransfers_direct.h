@@ -1,5 +1,5 @@
 imdjmd           = imd*jmd;
-E_Int max_thread = min(nvars , __NUMTHREADS__);
+E_Int max_thread = min(nvars , E_Int(__NUMTHREADS__));
 
 
 #pragma omp parallel default(shared) num_threads(max_thread)

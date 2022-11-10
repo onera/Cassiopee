@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_POLYGON_HXX
 #define NUGA_POLYGON_HXX
@@ -73,7 +73,7 @@ struct aPolygon : public K_MESH::Polygon
   aPolygon(const ngon_unit& ngu, E_Int ith, const K_FLD::FloatArray& crd): parent_type(nullptr, 0)
   {
     parent_type::_nb_nodes = ngu.stride(ith);
-    const int* p = ngu.get_facets_ptr(ith);
+    const E_Int* p = ngu.get_facets_ptr(ith);
 
     // keeping track of node history before compressing for autonomy
     m_poids.clear();

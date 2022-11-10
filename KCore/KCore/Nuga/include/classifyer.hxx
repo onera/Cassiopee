@@ -357,9 +357,9 @@ namespace NUGA
       DELAUNAY::Triangulator dt;
       ae2.triangulate(dt, ae2.m_crd);
       double omega = 0.;
+      E_Int T[3];
       for (E_Int i = 0; i < ae2.nb_tris(); ++i)
       {
-        int T[3];
         ae2.triangle(i, T);
         omega += K_MESH::Triangle::oriented_trihedral_angle(G1, ae2.m_crd.col(T[0]), ae2.m_crd.col(T[1]), ae2.m_crd.col(T[2]));
       }
@@ -372,9 +372,9 @@ namespace NUGA
       const double* G2 = ae2.get_centroid();
       ae1.triangulate(dt, ae1.m_crd);
       omega = 0.;
+      E_Int T[3];
       for (E_Int i = 0; i < ae1.nb_tris(); ++i)
       {
-        int T[3];
         ae1.triangle(i, T);
         omega += K_MESH::Triangle::oriented_trihedral_angle(G2, ae1.m_crd.col(T[0]), ae1.m_crd.col(T[1]), ae1.m_crd.col(T[2]));
       }

@@ -339,8 +339,8 @@ public:
   static bool is_hatty
   (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL=0.);
 
-  template <typename TriangulatorType, int DIM>
-  inline int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in, double ATOL=EPSILON);
+  template <typename TriangulatorType, E_Int DIM>
+  inline E_Int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in, double ATOL=EPSILON);
 
   // Polygon-Edge intersection
   template <typename TriangulatorType>
@@ -1158,18 +1158,18 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
   return convex;
 }
 
-template <typename TriangulatorType, int DIM>
-inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in, double ATOL)
+template <typename TriangulatorType, E_Int DIM>
+inline E_Int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in, double ATOL)
 {
   pt_is_in = false;
 
-  int err = this->triangulate(dt, crd);
+  E_Int err = this->triangulate(dt, crd);
   if (err != 0)
   {
     std::cout << "error triangulating" << std::endl;
     return err;
   }
-  int ntris = this->nb_tris();
+  E_Int ntris = this->nb_tris();
 
   for (size_t t = 0; (t < ntris) && !pt_is_in; ++t)
   {

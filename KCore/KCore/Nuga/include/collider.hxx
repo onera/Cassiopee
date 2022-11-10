@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_COLLIDER_HXX
 #define NUGA_COLLIDER_HXX
@@ -563,7 +563,7 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
   keep.clear();
   keep.resize(ncands, false);
 
-  int T1[3];
+  E_Int T1[3];
   for (E_Int i = 0; (i < ae1.nb_tris()); ++i)
   {
     ae1.triangle(i, T1);

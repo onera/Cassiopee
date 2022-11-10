@@ -18,7 +18,9 @@
 */
 
 # include "connector.h"
+#ifndef E_DOUBLEINT
 #include "Nuga/include/conservative_chimera.h"
+#endif
 
 #define CLOUDMAX 50
 
@@ -37,11 +39,11 @@ using namespace K_FLD;
 //=============================================================================
 /* Calcule et stocke les coefficients d'interpolation par intersection
    OUT: [donorBlks,donorInd1D, donorType, coefs, extrapInd1D, orphanInd1D] 
-        donorBlks: no du blk donneur, démarre à 0
+        donorBlks: no du blk donneur, dï¿½marre ï¿½ 0
         donorInd1D: indice global (structure), de l elt (NS) du donneur
-        donorType: type d interpolation effectué localement
-        coefs: coefficients d interpolation, stockés selon le type
-        extrapInd1D: indices des pts extrapolés
+        donorType: type d interpolation effectuï¿½ localement
+        coefs: coefficients d interpolation, stockï¿½s selon le type
+        extrapInd1D: indices des pts extrapolï¿½s
         orphanInd1D: indices des pts orphelins */
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
@@ -194,15 +196,15 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   /*-------------------------------------------------------*/
   /* Calcul des coefficients d'interpolation               */
   /*-------------------------------------------------------*/
-  E_Int* cngR= cnr->begin();//connectivite ngon recepteur
-  E_Int sizeFN=cngR[1];
-  E_Int neltsR=cngR[sizeFN+2];
+  E_Int* cngR = cnr->begin();//connectivite ngon recepteur
+  E_Int sizeFN = cngR[1];
+  E_Int neltsR = cngR[sizeFN+2];
 
 
   //E_Int nbI = neltsR; //nb d elts a interpoler (initialisation, a redimensionner en sortie)
 
   // Initialisation des tableaux et dimensionnement a priori
-  // On met pour l'instant NCloudPtsMax à CLOUDMAX: la molecule d'interpolation contient a priori CLOUDMAX pts
+  // On met pour l'instant NCloudPtsMax ï¿½ CLOUDMAX: la molecule d'interpolation contient a priori CLOUDMAX pts
   //E_Int nCloudPtsMax = CLOUDMAX;
 
   vector<E_Int> cellNt(neltsR);
@@ -235,10 +237,14 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
     FldArrayI* cnd = (FldArrayI*)a2[noz]; 
     vector<E_Int> dindices, xr, roids;
     vector<E_Float> dcoeffs;
-    // Interpolation de (xr,yr,zr) par le donneur 
-    E_Int err = NUGA::P1_CONSERVATIVE::compute_chimera_coeffs(*fr, posxr, posyr, poszr, *cnr, 
-                                                              *fd, posxd[noz], posyd[noz], poszd[noz], *cnd, cellNt,
-                                                              dindices, dcoeffs, xr, roids);
+    // Interpolation de (xr,yr,zr) par le donneur
+    E_Int err = 0;
+#ifndef E_DOUBLEINT
+    // Nuga ne compile pas en DOUBLE_INT
+    err = NUGA::P1_CONSERVATIVE::compute_chimera_coeffs(*fr, posxr, posyr, poszr, *cnr, 
+                                                        *fd, posxd[noz], posyd[noz], poszd[noz], *cnd, cellNt,
+                                                        dindices, dcoeffs, xr, roids);
+#endif
     if (err)
     {
       FldArrayI* donorInd1D = new FldArrayI(0);

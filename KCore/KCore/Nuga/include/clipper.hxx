@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CLIPPER_HXX
 #define NUGA_CLIPPER_HXX
@@ -652,7 +652,7 @@ namespace NUGA
       //update edge history to reflect original edges (before discarding false overlaps)
       if (!new_edge_ids.empty())
       {
-        std::vector<int> oeids;
+        std::vector<E_Int> oeids;
         K_CONNECT::IdTool::reverse_indirection(new_edge_ids, oeids);
         for (auto& x : xedge)
         {
@@ -888,7 +888,7 @@ namespace NUGA
 #endif
 
       // build history
-      std::vector<int> poids;
+      std::vector<E_Int> poids;
       K_CONNECT::IdTool::reverse_indirection(pnids, poids);
       poids.resize(data.pos->cols(), IDX_NONE);
 

@@ -1465,12 +1465,12 @@ if (PHi == faultyPH)
     for (size_t f = 0; f < nb_pgs; ++f)
     {
       E_Int PGi = first_pg[f] - 1;
-      const int* pn = PGS.get_facets_ptr(PGi);
-      int nnodes = PGS.stride(PGi);
+      const E_Int* pn = PGS.get_facets_ptr(PGi);
+      E_Int nnodes = PGS.stride(PGi);
 
       for (size_t n = 0; n < nnodes; ++n)
       {
-        int Ni = pn[n];
+        E_Int Ni = pn[n];
         node_to_faces[Ni].insert(PGi);
       }
     }
@@ -1501,8 +1501,8 @@ if (PHi == faultyPH)
       double nPGi[3];
       for (auto PGi : common_faces)
       {
-        const int* pn = PGS.get_facets_ptr(PGi);
-        int nnodes = PGS.stride(PGi);
+        const E_Int* pn = PGS.get_facets_ptr(PGi);
+        E_Int nnodes = PGS.stride(PGi);
 
         K_MESH::Polygon::normal<K_FLD::FloatArray, 3>(crd, pn, nnodes, 1, nPGi);
         double ps = ::fabs(NUGA::dot<3>(N, nPGi));

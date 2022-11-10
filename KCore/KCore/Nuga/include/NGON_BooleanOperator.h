@@ -3164,7 +3164,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
   E_Int c{ 0 };
   for (auto i : ph_to_faces)
   {
-    ngXh.PHs.add(i.second.size(), &i.second[0], 1);
+    ngXh.PHs.add(i.second.size(), &i.second[0], E_Int(1));
     ngXh.PHs._ancEs(1, c++) = i.first;
   }
  

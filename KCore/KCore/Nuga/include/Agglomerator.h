@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_AGGLOMERATOR_H
 #define NUGA_AGGLOMERATOR_H
@@ -44,7 +44,7 @@ namespace NUGA
    
     ///
     template<typename TriangulatorType>
-    inline static void agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold=1.e-12, int method=0);
+    inline static void agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, E_Float angle_threshold=1.e-12, E_Int method=0);
     ///
     template<typename TriangulatorType>
     inline static void agglomerate_non_star_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold = 1.e-12);
@@ -78,7 +78,7 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static void agglomerate_phs_NEW(const K_FLD::FloatArray& crd,
                                            const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-                                           ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria_and_or_badagglo_allowance);
+                                           ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_criteria_and_or_badagglo_allowance);
 
     /// 
     template<typename TriangulatorType>
@@ -90,13 +90,13 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static void agglomerate_phs (const K_FLD::FloatArray& crd, 
                                         const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-                                        ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_mode);
+                                        ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_mode);
 
     /// TRYING TO FOCUSE MORE ON REFLEX SITUATION
     template<typename TriangulatorType>
     inline static void agglomerate_phs2(const K_FLD::FloatArray& crd,
       const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-      ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_mode);
+      ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_mode);
   
   
   private:
@@ -240,7 +240,7 @@ namespace NUGA
   void NUGA::Agglomerator::agglomerate_phs2
   (const K_FLD::FloatArray& crd, 
    const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria)
+   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_criteria)
   {
     ngo.clear();
     oriento.clear();
@@ -487,7 +487,7 @@ namespace NUGA
   void NUGA::Agglomerator::agglomerate_phs
   (const K_FLD::FloatArray& crd, 
    const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria)
+   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_criteria)
   {
     ngo.clear();
     oriento.clear();
@@ -735,7 +735,7 @@ namespace NUGA
   void NUGA::Agglomerator::agglomerate_phs_NEW
   (const K_FLD::FloatArray& crd,
     const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-    ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria_and_or_badagglo_allowance)
+    ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_criteria_and_or_badagglo_allowance)
   {
     // enforce_reflex_criteria_and_or_badagglo_allowance == 0 => do not enforce + forbid bad agglo
     // enforce_reflex_criteria_and_or_badagglo_allowance == 1 =>        enforce + forbid bad agglo
@@ -1042,8 +1042,8 @@ namespace NUGA
     oriento.clear();
     nb_aggs = 0;
 
-    double concave_threshold = angle_threshold;
-    double convex_threshold = angle_threshold;
+    E_Float concave_threshold = angle_threshold;
+    E_Float convex_threshold = angle_threshold;
     
     //std::cout << "ngi : initial nb of phs : " << ngi.PHs.size() << std::endl;
   
@@ -1271,7 +1271,7 @@ namespace NUGA
   
   ///
   template<typename TriangulatorType>
-  void NUGA::Agglomerator::agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold, int method)
+  void NUGA::Agglomerator::agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold, E_Int method)
   {
     ngon_unit neighborsi;
     ngi.build_ph_neighborhood(neighborsi);
@@ -1644,15 +1644,15 @@ namespace NUGA
       return 0;
     }
 
-    std::vector<int> nids;
+    std::vector<E_Int> nids;
     K_CONNECT::IdTool::init_inc(nids, crd.cols());
 
     for (size_t i = 0; i < PHlist.size(); ++i)
     {
       E_Int PHi = PHlist[i];
 
-      const int* pf = ngio.PHs.get_facets_ptr(PHi);
-      int npf = ngio.PHs.stride(PHi);
+      const E_Int* pf = ngio.PHs.get_facets_ptr(PHi);
+      E_Int npf = ngio.PHs.stride(PHi);
       
       if (!K_MESH::Polyhedron<0>::is_of_type<K_MESH::Tetrahedron>(ngio.PGs, pf, npf)) continue;
 
@@ -1660,13 +1660,13 @@ namespace NUGA
 
       //find tha max id : more chances to be an X point, so more chance to lie on the X interface :
       // it it better if entities crash on the interface to not deform it
-      int Ntarget=-1; 
+      E_Int Ntarget=-1; 
       for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
       {
-        int* pnodes = ngio.PGs.get_facets_ptr(pf[p]-1);
+        E_Int* pnodes = ngio.PGs.get_facets_ptr(pf[p]-1);
         for (size_t k=0; k < 3; ++k)
         {
-          int Ni = pnodes[k]-1;
+          E_Int Ni = pnodes[k]-1;
           Ntarget = (Ntarget < Ni) ? Ni : Ntarget;
         }
       }
@@ -1674,7 +1674,7 @@ namespace NUGA
       // now collapse the tetra on Ntrget
       for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
       {
-        int* pnodes = ngio.PGs.get_facets_ptr(pf[p]-1);
+        E_Int* pnodes = ngio.PGs.get_facets_ptr(pf[p]-1);
         for (size_t k=0; k < 3; ++k)
           nids[pnodes[k]-1]=Ntarget;
       }
@@ -1683,7 +1683,7 @@ namespace NUGA
     // update the pointers to point to the leaves
     for (size_t i =0; i < nids.size(); ++i)
     {
-      int Fi=nids[i];
+      E_Int Fi=nids[i];
       while (Fi != nids[Fi])Fi=nids[Fi];
       nids[i]=Fi;
     }
@@ -1715,19 +1715,19 @@ namespace NUGA
       return 0;
     }
 
-    std::vector<int> nids;
+    std::vector<E_Int> nids;
     K_CONNECT::IdTool::init_inc(nids, crd.cols());
 
     std::map<K_MESH::NO_Edge, std::deque<int> > edge_to_refine_nodes;
     ngon_unit splitpgs;
-    std::vector<int> splitoids;
+    std::vector<E_Int> splitoids;
     ///
     for (size_t i = 0; i < PHlist.size(); ++i)
     {
       E_Int PHi = PHlist[i];
 
-      const int* pf = ngio.PHs.get_facets_ptr(PHi);
-      int npf = ngio.PHs.stride(PHi);
+      const E_Int* pf = ngio.PHs.get_facets_ptr(PHi);
+      E_Int npf = ngio.PHs.stride(PHi);
 
       if (!K_MESH::Polyhedron<0>::is_of_type<K_MESH::Tetrahedron>(ngio.PGs, pf, npf)) continue;
 
@@ -1754,13 +1754,13 @@ namespace NUGA
         //break;
         //find tha max id : more chances to be an X point, so more chance to lie on the X interface :
         // it it better if entities crash on the interface to not deform it
-        int Ntarget = -1;
+        E_Int Ntarget = -1;
         /*for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
         {
-          int* pnodes = ngio.PGs.get_facets_ptr(pf[p] - 1);
+          E_Int* pnodes = ngio.PGs.get_facets_ptr(pf[p] - 1);
           for (size_t k = 0; k < 3; ++k)
           {
-            int Ni = pnodes[k] - 1;
+            E_Int Ni = pnodes[k] - 1;
             Ntarget = (Ntarget < Ni) ? Ni : Ntarget;
           }
         }
@@ -1768,21 +1768,21 @@ namespace NUGA
         // now collapse the tetra on Ntrget
         for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
         {
-          int* pnodes = ngio.PGs.get_facets_ptr(pf[p] - 1);
+          E_Int* pnodes = ngio.PGs.get_facets_ptr(pf[p] - 1);
           for (size_t k = 0; k < 3; ++k)
             nids[pnodes[k] - 1] = Ntarget;
         }*/
         double Lmin2=NUGA::FLOAT_MAX;
-        int* pf = ngio.PHs.get_facets_ptr(PHi);
+        E_Int* pf = ngio.PHs.get_facets_ptr(PHi);
         E_Int Nmin,Nmax;
         for (size_t f = 0; f < 4; ++f)
         {
-          int* pnodes = ngio.PGs.get_facets_ptr(pf[f] - 1);
+          E_Int* pnodes = ngio.PGs.get_facets_ptr(pf[f] - 1);
 
           for (size_t n = 0; n < 3; ++n)
           {
-            int Ni = pnodes[n] - 1;
-            int Nj = pnodes[(n+1)%3] - 1;
+            E_Int Ni = pnodes[n] - 1;
+            E_Int Nj = pnodes[(n+1)%3] - 1;
 
             E_Float d2 = NUGA::sqrDistance(crd.col(Ni), crd.col(Nj), 3);
 
@@ -1843,14 +1843,14 @@ namespace NUGA
         medith::write("check0.mesh", crd, th4.nodes(), 4, 0);
 #endif
 
-        double lambda;
+        E_Float lambda;
         K_MESH::Edge::edgePointMinDistance2<3>(crd.col(N2), crd.col(N3), crd.col(N1), lambda);
         assert(lambda > 0. && lambda < 1.);
-        double N2N3[3], Psibling[3];
+        E_Float N2N3[3], Psibling[3];
         NUGA::diff<3>(crd.col(N3), crd.col(N2), N2N3);
         NUGA::sum<3>(lambda, N2N3, crd.col(N2), Psibling);
         crd.pushBack(Psibling, Psibling + 3);
-        int Nsibling = crd.cols() - 1;
+        E_Int Nsibling = crd.cols() - 1;
 
         edge_to_refine_nodes[K_MESH::NO_Edge(N2+1, N3+1)].push_back(Nsibling+1);
         nids.push_back(N1);
@@ -1858,10 +1858,10 @@ namespace NUGA
         // append splitpgs : N2N3N4 has to be replaced by N2NsiblingN4 & NsiblingN3N4
         
         // find the face id in ngon to split
-        int Fopp = K_MESH::Tetrahedron::get_opposite_face_to_node(ngio.PGs, pf, N1);
+        E_Int Fopp = K_MESH::Tetrahedron::get_opposite_face_to_node(ngio.PGs, pf, N1);
         assert(Fopp != IDX_NONE);
 
-        int molecule[3];
+        E_Int molecule[3];
         molecule[0] = N2 + 1;
         molecule[1] = Nsibling + 1;
         molecule[2] = N4 + 1;
@@ -1889,16 +1889,16 @@ namespace NUGA
         // and ling Nsibling to Nmax (this way is easier to revert back in case of error
         E_Int N2 = th4.node(2);
         E_Int N3 = th4.node(3);
-        double lambda;
+        E_Float lambda;
         K_MESH::Edge::edgePointMinDistance2<3>(crd.col(N2), crd.col(N3), crd.col(Nmax), lambda);
         
         assert(lambda > 0. && lambda < 1.);
         
-        double N2N3[3], Psibling[3];
+        E_Float N2N3[3], Psibling[3];
         NUGA::diff<3>(crd.col(N3), crd.col(N2), N2N3);
         NUGA::sum<3>(lambda, N2N3, crd.col(N2), Psibling);
         crd.pushBack(Psibling, Psibling + 3);
-        int Nsibling = crd.cols() - 1;
+        E_Int Nsibling = crd.cols() - 1;
         
         edge_to_refine_nodes[K_MESH::NO_Edge(th4.node(2)+1, th4.node(3)+1)].push_back(Nsibling+1);
         nids.push_back(Nmax) ; // nids[Nsibling]=Nmax;
@@ -1908,7 +1908,7 @@ namespace NUGA
     // update the pointers to point to the leaves
     for (size_t i = 0; i < nids.size(); ++i)
     {
-      int Fi = nids[i];
+      E_Int Fi = nids[i];
       while (Fi != nids[Fi])Fi = nids[Fi];
       nids[i] = Fi;
     }
