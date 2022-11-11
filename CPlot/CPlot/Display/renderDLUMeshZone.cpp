@@ -61,16 +61,15 @@
   Le render des zones node est fait en direct.
 */
 //=============================================================================
-void
-DataDL::renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
+void DataDL::renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 {
     ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
-    if ( zImpl->_DLmesh == 0 )
+    if (zImpl->_DLmesh == 0)
     {
         displayUMeshZone(zonep, zone, zonet);
         return;
     }
-    int i, ret;
+    E_Int i, ret;
 
     // Style colors
     float color1[3]; float color2[3];
@@ -109,7 +108,7 @@ DataDL::renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
     double* x       = zonep->x;
     double* y       = zonep->y;
     double* z       = zonep->z;
-    int     eltType = zonep->eltType;
+    E_Int eltType = zonep->eltType;
 
     if (eltType == 1 || eltType == 0 || (eltType == 10 && zonep->nelts1D > 0)) 
     { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }

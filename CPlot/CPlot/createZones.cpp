@@ -580,10 +580,10 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   if (api == 2 && z.eltType == 10) // array2 NGon
   {
     // store as compact
-    int size1 = cn->getSizeNGon();
-    int size2 = cn->getSizeNFace();
-    int nfaces = cn->getNFaces();
-    int nelts = cn->getNElts();
+    E_Int size1 = cn->getSizeNGon();
+    E_Int size2 = cn->getSizeNFace();
+    E_Int nfaces = cn->getNFaces();
+    E_Int nelts = cn->getNElts();
     z.connect = new E_Int[size1+size2+4];
     z.connect[0] = nfaces;
     z.connect[1] = size1;
@@ -624,25 +624,25 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   if (z.eltType == 10) // NGONS
   {
     // calcul posFaces (position des faces dans connect)
-    int nfaces = NFACES(z.connect);
+    E_Int nfaces = NFACES(z.connect);
     z.posFaces = new E_Int[nfaces];
-    int c = POSFACES(z.connect); int l;
-    for (int i = 0; i < nfaces; i++)
+    E_Int c = POSFACES(z.connect); E_Int l;
+    for (E_Int i = 0; i < nfaces; i++)
     {
       z.posFaces[i] = c; l = z.connect[c]; c += l+1;
     }
 
     // calcul le nombre d'elements 1D et 2D
-    int nelts = NELTS(z.connect);
+    E_Int nelts = NELTS(z.connect);
     
     c = POSELTS(z.connect);
-    int dim, s, c1, c2;
+    E_Int dim, s, c1, c2;
     z.nelts1D = 0; z.nelts2D = 0;
-    for (int i = 0; i < nelts; i++)
+    for (E_Int i = 0; i < nelts; i++)
     {
       l = z.connect[c]; // nbre de faces
       dim = 0;
-      for (int j = 0; j < l; j++)
+      for (E_Int j = 0; j < l; j++)
       {
         s = z.posFaces[z.connect[c+j+1]-1];
         dim = max(dim, z.connect[s]);
@@ -657,11 +657,11 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     if (z.nelts2D > 0) z.posElts2D = new E_Int[z.nelts2D];
     c = POSELTS(z.connect);
     c1 = 0; c2 = 0;
-    for (int i = 0; i < nelts; i++)
+    for (E_Int i = 0; i < nelts; i++)
     {
       l = z.connect[c]; // nbre de faces
       dim = 0;
-      for (int j = 0; j < l; j++)
+      for (E_Int j = 0; j < l; j++)
       {
         s = z.posFaces[z.connect[c+j+1]-1];
         dim = max(dim, z.connect[s]);

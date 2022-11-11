@@ -23,10 +23,10 @@
 // IN: im1 : image 1 RGB factor * w x factor * h (deja alloue)
 // OUT: im2: image 2 RGB w x h (deja alloue)
 //=============================================================================
-void Data::superSample(int w, int h, char* im1, char* im2, int factor)
+void Data::superSample(E_Int w, E_Int h, char* im1, char* im2, E_Int factor)
 {
-  int w3=3*w; int w6=factor*3*w;
-  int i2, j2; 
+  E_Int w3=3*w; E_Int w6=factor*3*w;
+  E_Int i2, j2; 
   //int rmoy, gmoy, bmoy;
   uint8_t r1, g1, b1;
   int r, g, b;
@@ -38,14 +38,14 @@ void Data::superSample(int w, int h, char* im1, char* im2, int factor)
   double Y, U, V, Y1, U1, V1;
 
   // moyenne sur YUV
-  for (int j = 0; j < h; j++)
-    for (int i = 0; i < w; i++)
+  for (E_Int j = 0; j < h; j++)
+    for (E_Int i = 0; i < w; i++)
     {
       i2 = factor*i; j2 = factor*j;
       r = 0; g = 0; b = 0;
       Y = 0.; U = 0.; V = 0.;
-      for (int q = 0; q < factor; q++)
-        for (int p = 0; p < factor; p++)
+      for (E_Int q = 0; q < factor; q++)
+        for (E_Int p = 0; p < factor; p++)
         {
           r1 = (uint8_t)im1[3*(i2+p) + (j2+q)*w6];
           g1 = (uint8_t)im1[3*(i2+p) + (j2+q)*w6+1];
@@ -127,19 +127,19 @@ void Data::superSample(int w, int h, char* im1, char* im2, int factor)
 // IN: eps: facteur de lissage
 // OUT: im2: w x h: deja alloue
 //=============================================================================
-void Data::gaussianBlur(int w, int h, char* im1, char* im2, int r, double eps)
+void Data::gaussianBlur(E_Int w, E_Int h, char* im1, char* im2, E_Int r, double eps)
 {
-  int w3 = 3*w;
+  E_Int w3 = 3*w;
   uint8_t r1, r2, r3, r4, r5, rmoy;
   uint8_t g1, g2, g3, g4, g5, gmoy, b1, b2, b3, b4, b5, bmoy;
-  int it = 0;
+  E_Int it = 0;
 
   while (it < r)
   {
-    for (int i = 0; i < w*h*3; i++) im2[i] = im1[i];
+    for (E_Int i = 0; i < w*h*3; i++) im2[i] = im1[i];
     
-    for (int j = 1; j < h-1; j++)
-      for (int i = 1; i < w-1; i++)
+    for (E_Int j = 1; j < h-1; j++)
+      for (E_Int i = 1; i < w-1; i++)
       {
         r1 = (uint8_t)im2[3*i + j*w3];
         r2 = (uint8_t)im2[3*(i-1) + j*w3];
@@ -167,7 +167,7 @@ void Data::gaussianBlur(int w, int h, char* im1, char* im2, int r, double eps)
       }
     it++;
   }
-  for (int i = 0; i < w*h*3; i++) im2[i] = im1[i];
+  for (E_Int i = 0; i < w*h*3; i++) im2[i] = im1[i];
 }
 
 //=============================================================================
@@ -176,15 +176,15 @@ void Data::gaussianBlur(int w, int h, char* im1, char* im2, int r, double eps)
 // IN: im2: w x h
 // OUT: im1: w x h
 //=============================================================================
-void Data::mixImages(int w, int h, char* im1, char* im2, 
-		     double alpha, double beta)
+void Data::mixImages(E_Int w, E_Int h, char* im1, char* im2, 
+	double alpha, double beta)
 {
-  int w3 = 3*w;
-  int ind, ind1, ind2;
+  E_Int w3 = 3*w;
+  E_Int ind, ind1, ind2;
   uint8_t r1, r2;
   uint8_t g1, g2, b1, b2;
-  for (int j = 0; j < h; j++)
-    for (int i = 0; i < w; i++)
+  for (E_Int j = 0; j < h; j++)
+    for (E_Int i = 0; i < w; i++)
     {
       ind = 3*i + j*w3;
       ind1 = ind+1;
@@ -210,20 +210,20 @@ void Data::mixImages(int w, int h, char* im1, char* im2,
 // OUT: im2 : w x h deja alloue
 // Pour l'instant, n'a pas encore montre son efficacite
 //=============================================================================
-void Data::sharpenImage(int w, int h, char* im1, char* im2, double amount,
-                        int radius, int threshold)
+void Data::sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
+                        E_Int radius, E_Int threshold)
 {
   uint8_t v1, v2;
-  int val;
+  int val; double vv;
   char* im3 = (char*)malloc(w*h*3*sizeof(char));
   // Save image
-  for (int i = 0; i < w*h*3; i++) { im3[i] = im1[i]; }
+  for (E_Int i = 0; i < w*h*3; i++) { im3[i] = im1[i]; }
 
   // Blur image
   gaussianBlur(w, h, im1, im2, radius, 0.1);
 
   // substract
-  for (int i = 0; i < w*h*3; i++)
+  for (E_Int i = 0; i < w*h*3; i++)
   {
     v1 = (uint8_t)im3[i];
     v2 = (uint8_t)im2[i];
@@ -232,11 +232,11 @@ void Data::sharpenImage(int w, int h, char* im1, char* im2, double amount,
   }
 
   // output  
-  for (int i = 0; i < w*h*3; i++)
+  for (E_Int i = 0; i < w*h*3; i++)
   {
     v1 = (uint8_t)im1[i];
     if (v1 > threshold) { 
-      double vv = amount*(double)v1;
+      vv = amount*(double)v1;
       val = (int)vv; 
       v1 = (uint8_t)im3[i];
       val += (int)v1; 

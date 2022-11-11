@@ -23,7 +23,7 @@
 #  include <winsock.h>
 #endif
 
-int findFace(double xp, double yp, double zp, int elt, 
+int findFace(double xp, double yp, double zp, E_Int elt, 
              UnstructZone* zone, double& dist);
 
 //=============================================================================
@@ -148,7 +148,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   if (billBoards != Py_None) 
   {
     // delete billBoardStorage
-    for (int i = 0; i < d->_nBillBoards; i++)
+    for (E_Int i = 0; i < d->_nBillBoards; i++)
     {
       delete [] d->_billBoardFiles[i];
       //if (d->_billBoardTexs[i] != 0) glDeleteTextures(1, &d->_billBoardTexs[i]);
@@ -157,7 +157,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     delete [] d->_billBoardNis; delete [] d->_billBoardNjs;
     delete [] d->_billBoardWidths; delete [] d->_billBoardHeights;
     delete [] d->_billBoardFiles;
-    int nb = PyList_Size(billBoards)/3;
+    E_Int nb = PyList_Size(billBoards)/3;
     d->_nBillBoards = nb;
     d->_billBoardFiles = new char* [nb];
     d->_billBoardNis = new int [nb];
@@ -165,7 +165,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     d->_billBoardWidths = new int [nb];
     d->_billBoardHeights = new int [nb];
     d->_billBoardTexs = new GLuint [nb];
-    for (int i = 0; i < nb; i++)
+    for (E_Int i = 0; i < nb; i++)
     {
       PyObject* o = PyList_GetItem(billBoards, 3*i);
       char* file = NULL;
@@ -174,9 +174,9 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
       else if (PyUnicode_Check(o)) file = (char*)PyUnicode_AsUTF8(o); 
 #endif
       o = PyList_GetItem(billBoards, 3*i+1);
-      int ni = PyLong_AsLong(o);
+      E_Int ni = PyLong_AsLong(o);
       o = PyList_GetItem(billBoards, 3*i+2);
-      int nj = PyLong_AsLong(o);
+      E_Int nj = PyLong_AsLong(o);
       d->_billBoardFiles[i] = new char [128];  
       strcpy(d->_billBoardFiles[i], file);
       d->_billBoardTexs[i] = 0;
@@ -190,7 +190,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
 
   if (materials != Py_None)
   {
-    for (int i = 0; i < d->_nMaterials; i++)
+    for (E_Int i = 0; i < d->_nMaterials; i++)
     {
       delete [] d->_materialFiles[i];
       // DeleteTex must be done by gfx thread
@@ -201,14 +201,14 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     delete [] d->_materialFiles;
     delete [] d->_materialWidths;
     delete [] d->_materialHeights;
-    int nb = PyList_Size(materials);
+    E_Int nb = PyList_Size(materials);
     
     d->_nMaterials = nb;
     d->_materialFiles = new char* [nb];
     d->_materialWidths = new int [nb];
     d->_materialHeights = new int [nb];
     d->_materialTexs = new GLuint [nb];
-    for (int i = 0; i < nb; i++)
+    for (E_Int i = 0; i < nb; i++)
     {
       PyObject* o = PyList_GetItem(materials, i);
       char* file = NULL;
@@ -224,7 +224,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
 
   if (bumpMaps != Py_None)
   {
-    for (int i = 0; i < d->_nBumpMaps; i++)
+    for (E_Int i = 0; i < d->_nBumpMaps; i++)
     {
       delete [] d->_bumpMapFiles[i];
       //if (d->_bumpMapTexs[i] != 0) glDeleteTextures(1, &d->_bumpMapTexs[i]);
@@ -233,13 +233,13 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     delete [] d->_bumpMapFiles;
     delete [] d->_bumpMapWidths;
     delete [] d->_bumpMapHeights;
-    int nb = PyList_Size(bumpMaps);
+    E_Int nb = PyList_Size(bumpMaps);
     d->_nBumpMaps = nb;
     d->_bumpMapFiles = new char* [nb];
     d->_bumpMapWidths = new int [nb];
     d->_bumpMapHeights = new int [nb];
     d->_bumpMapTexs = new GLuint [nb];
-    for (int i = 0; i < nb; i++)
+    for (E_Int i = 0; i < nb; i++)
     {
       PyObject* o = PyList_GetItem(bumpMaps, i);
       if (o == Py_None)
@@ -288,7 +288,7 @@ PyObject* K_CPLOT::setMode(PyObject* self, PyObject* args)
   if (mode <= 2) d->ptrState->mode = mode;
   else if (d->_numberOfZones > 0) // check variables
   {
-    int nv = d->_zones[0]->nfield;
+    E_Int nv = d->_zones[0]->nfield;
     if (mode == 3 && d->ptrState->scalarField < nv) d->ptrState->mode = mode;
     if (mode == 4 && d->ptrState->vectorField1 < nv && 
         d->ptrState->vectorField2 < nv && d->ptrState->vectorField3 < nv) 
@@ -311,8 +311,8 @@ PyObject* K_CPLOT::changeVariable(PyObject* self, PyObject* args)
   Data* d = Data::getInstance();
   if (d->_numberOfZones == 0) return Py_BuildValue("i", KFAILED);
 
-  int scalarField = d->ptrState->scalarField;
-  int nv = d->_zones[0]->nfield;
+  E_Int scalarField = d->ptrState->scalarField;
+  E_Int nv = d->_zones[0]->nfield;
   if (nv == 0) return Py_BuildValue("i", KSUCCESS); // no field
   scalarField++;
   if (scalarField >= nv) scalarField = 0;
@@ -366,7 +366,7 @@ PyObject* K_CPLOT::changeBlanking(PyObject* self, PyObject* args)
   // Attends que la ressource GPU soit libre pour la modifier :
   d->ptrState->syncGPURes();
   // Libere les ressources utilisees par les zones :
-  for (int i = 0; i < d->_numberOfZones; i++)
+  for (E_Int i = 0; i < d->_numberOfZones; i++)
   {
     Zone* z = d->_zones[i];
     z->freeGPURessources( true, false );
@@ -402,7 +402,7 @@ PyObject* K_CPLOT::setDim(PyObject* self, PyObject* args)
   {
     d->ptrState->dim = dim;
     d->ptrState->syncGPURes();
-    for (int i = 0; i < d->_numberOfZones; i++)
+    for (E_Int i = 0; i < d->_numberOfZones; i++)
     {
       Zone* z = d->_zones[i];
       z->freeGPURessources(true, false);
@@ -548,7 +548,7 @@ PyObject* K_CPLOT::setDim(PyObject* self, PyObject* args)
   {
     d->ptrState->dim = dim;
     d->ptrState->syncGPURes();
-    for (int i = 0; i < d->_numberOfZones; i++)
+    for (E_Int i = 0; i < d->_numberOfZones; i++)
     {
       Zone* z = d->_zones[i];
       z->freeGPURessources(true, false);
@@ -611,8 +611,8 @@ PyObject* K_CPLOT::setSelectedZones(PyObject* self, PyObject* args)
   }
   Data* d = Data::getInstance();
   PyObject* tpl;
-  int n = PyList_Size(o);
-  for (int i = 0; i < n; i++)
+  E_Int n = PyList_Size(o);
+  for (E_Int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(o, i);
     // tpl must be a tuple of two ints (no, 1)
@@ -668,7 +668,7 @@ PyObject* K_CPLOT::setSelectedZones(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::unselectAllZones(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  for (int i = 0; i < d->_numberOfZones; i++)
+  for (E_Int i = 0; i < d->_numberOfZones; i++)
     d->_zones[i]->selected = 0;
 
   d->ptrState->selectedZone = 0;
@@ -695,8 +695,8 @@ PyObject* K_CPLOT::setActiveZones(PyObject* self, PyObject* args)
   }
   Data* d = Data::getInstance();
   PyObject* tpl;
-  int n = PyList_Size(o);
-  for (int i = 0; i < n; i++)
+  E_Int n = PyList_Size(o);
+  for (E_Int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(o, i);
     // tpl must be a tuple of two ints (no, 1)
@@ -714,8 +714,8 @@ PyObject* K_CPLOT::setActiveZones(PyObject* self, PyObject* args)
         "setActiveZones: arg must be a list of tuples (noz, 1).");
       return NULL;
     }
-    int noz = PyLong_AsLong(PyTuple_GetItem(tpl, 0));
-    int status = PyLong_AsLong(PyTuple_GetItem(tpl, 1));
+    E_Int noz = PyLong_AsLong(PyTuple_GetItem(tpl, 0));
+    E_Int status = PyLong_AsLong(PyTuple_GetItem(tpl, 1));
     if (noz < 0 || noz > d->_numberOfZones-1)
     {
       // Je supprime ce message, car il arrive que l'interface
@@ -754,7 +754,7 @@ PyObject* K_CPLOT::setZoneNames(PyObject* self, PyObject* args)
   }
   Data* d = Data::getInstance();
   PyObject* tpl;
-  int n = PyList_Size(o);
+  E_Int n = PyList_Size(o);
   for (int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(o, i);
@@ -773,7 +773,7 @@ PyObject* K_CPLOT::setZoneNames(PyObject* self, PyObject* args)
         "setZoneNames: arg must be a list of tuples (noz, 'name').");
       return NULL;
     }
-    int noz = PyLong_AsLong(PyTuple_GetItem(tpl, 0));
+    E_Int noz = PyLong_AsLong(PyTuple_GetItem(tpl, 0));
     
     char* name = NULL;
     PyObject* l = PyTuple_GetItem(tpl, 1);
@@ -807,7 +807,7 @@ PyObject* K_CPLOT::setActivePoint(PyObject* self, PyObject* args)
 #endif
   Data* d = Data::getInstance();
   
-  int ret; int zone, ind, indE; double dist;
+  E_Int ret; E_Int zone, ind, indE; double dist;
   ret = d->findBlockContaining(px, py, pz, zone, ind, indE, dist);
   Zone* z = d->_zones[zone];
   if (ret == 1)
@@ -820,11 +820,11 @@ PyObject* K_CPLOT::setActivePoint(PyObject* self, PyObject* args)
     if (zone < d->_numberOfStructZones)
     {
       StructZone* zz = (StructZone*)z;
-      int ni = zz->ni; 
-      int nj = zz->nj;
-      int k = ind / (ni*nj);
-      int j = (ind - k*ni*nj)/ni;
-      int i = ind - k*ni*nj - j*ni;
+      E_Int ni = zz->ni; 
+      E_Int nj = zz->nj;
+      E_Int k = ind / (ni*nj);
+      E_Int j = (ind - k*ni*nj)/ni;
+      E_Int i = ind - k*ni*nj - j*ni;
       d->ptrState->activePointI = i+1;
       d->ptrState->activePointJ = j+1;
       d->ptrState->activePointK = k+1;
@@ -836,10 +836,10 @@ PyObject* K_CPLOT::setActivePoint(PyObject* self, PyObject* args)
       UnstructZone* zz = (UnstructZone*)z;
       if (zz->eltType != 10) // autre que NGON
       {
-        int* c = zz->connect;
-        int size = zz->eltSize;
-        int ne = zz->ne;
-        int v = 0;
+        E_Int* c = zz->connect;
+        E_Int size = zz->eltSize;
+        E_Int ne = zz->ne;
+        E_Int v = 0;
         for (v = 0; v < size; v++)
         {
           if (c[indE+v*ne] == ind+1) break;
@@ -848,7 +848,7 @@ PyObject* K_CPLOT::setActivePoint(PyObject* self, PyObject* args)
       }
       else d->ptrState->activePointK = findFace(px, py, pz, indE, zz, dist);
     }
-    for (int n = 0; n < z->nfield; n++)
+    for (E_Int n = 0; n < z->nfield; n++)
     {
       double* f = z->f[n];
       d->ptrState->activePointF[n] = f[ind];

@@ -23,16 +23,16 @@
 // sortie png + depth dans le canal alpha
 //============================================================================
 void writeDPNGFile(Data* d, char *filename, char* buffer, 
-                   int width, int height, int mode)
+                   E_Int width, E_Int height, E_Int mode)
 {
   char* sbuffer = new char [width*height*4];
-  for (int j = 0; j < width*height; j++)
+  for (E_Int j = 0; j < width*height; j++)
   {
     sbuffer[4*j] = buffer[3*j];
     sbuffer[4*j+1] = buffer[3*j+1];
     sbuffer[4*j+2] = buffer[3*j+2];
   }
-  for (int j = 0; j < width*height; j++)
+  for (E_Int j = 0; j < width*height; j++)
   {
     sbuffer[4*j+3] = buffer[3*width*height+j];
   }
@@ -48,14 +48,14 @@ void writeDPNGFile(Data* d, char *filename, char* buffer,
 */
 //=============================================================================
 void writePNGFile(Data* d, char* filename, char* buffer, 
-                  int width, int height, int mode)
+                  E_Int width, E_Int height, E_Int mode)
 {
   FILE *fp;
   if (buffer == NULL) return;
 
   png_byte color_type;
   png_byte bit_depth;
-  int stride = 0;
+  E_Int stride = 0;
   if (mode == 0) 
   { color_type = PNG_COLOR_TYPE_RGB; bit_depth = 8; stride = 3; }
   else { color_type = PNG_COLOR_TYPE_RGBA; bit_depth = 8; stride = 4; }  

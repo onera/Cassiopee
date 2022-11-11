@@ -34,30 +34,29 @@ using namespace std;
 // si retourne 0: echec
 // si retourne 1: OK
 //=============================================================================
-int
-DataDL::initZoneData(vector<FldArrayF*>& structF,
-			vector<char*>& structVarString,
-			vector<E_Int>& nit,
-			vector<E_Int>& njt,
-			vector<E_Int>& nkt,
-			vector<FldArrayF*>& unstrF,
-			vector<char*>& unstrVarString,
-			vector<FldArrayI*>& cnt,
-			vector<char*>& eltType,
-			vector<char*>& zoneNames,
-			vector<char*>& zoneTags,
-      E_Int referenceNfield,
-      char** referenceVarNames)
+E_Int DataDL::initZoneData(vector<FldArrayF*>& structF,
+	vector<char*>& structVarString,
+	vector<E_Int>& nit,
+	vector<E_Int>& njt,
+	vector<E_Int>& nkt,
+	vector<FldArrayF*>& unstrF,
+	vector<char*>& unstrVarString,
+	vector<FldArrayI*>& cnt,
+	vector<char*>& eltType,
+	vector<char*>& zoneNames,
+	vector<char*>& zoneTags,
+    E_Int referenceNfield,
+    char** referenceVarNames)
 {
   // Dit a display de liberer les DL des zones
   ptrState->syncGPURes();
-  for (int i = 0; i < _numberOfZones; i++) {
+  for (E_Int i = 0; i < _numberOfZones; i++) {
     ZoneImplDL* z;
     z = static_cast<ZoneImplDL*>(_zones[i]->ptr_impl);
     z->freeGPURes(ptrState); z->_GPUResUse = 0; 
   }
 
   return Data::initZoneData(structF, structVarString, nit, njt, nkt,
-			     unstrF, unstrVarString, cnt, eltType, zoneNames, zoneTags,
-           referenceNfield, referenceVarNames);
+			unstrF, unstrVarString, cnt, eltType, zoneNames, zoneTags,
+            referenceNfield, referenceVarNames);
 }

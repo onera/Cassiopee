@@ -27,10 +27,10 @@
   Cette fonction n'utilise pas la DL.
 */
 //=============================================================================
-void Data::displaySIsoSolidZone(StructZone* zonep, int zone,
-                                int nofield)
+void Data::displaySIsoSolidZone(StructZone* zonep, E_Int zone,
+                                E_Int nofield)
 {
-  int stepi, stepj, stepk;
+  E_Int stepi, stepj, stepk;
   double blend; float offb;
   computeSteps(zonep, stepi, stepj, stepk);
 
@@ -50,7 +50,7 @@ void Data::displaySIsoSolidZone(StructZone* zonep, int zone,
   if (nij == 1 || ni*nk == 1 || nj*nk == 1)
   {
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;
@@ -102,10 +102,10 @@ void Data::displaySIsoSolidZone(StructZone* zonep, int zone,
   Cette fonction n'utilise pas la DL.
 */
 //=============================================================================
-void Data::displaySIsoSolidZone(StructZone* zonep, int zone,
-                                int nofield1, int nofield2, int nofield3)
+void Data::displaySIsoSolidZone(StructZone* zonep, E_Int zone,
+                                E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {
-  int stepi, stepj, stepk;
+  E_Int stepi, stepj, stepk;
   double blend; float offb;
   computeSteps(zonep, stepi, stepj, stepk);
 
@@ -135,7 +135,7 @@ void Data::displaySIsoSolidZone(StructZone* zonep, int zone,
   if (nij == 1 || ni*nk == 1 || nj*nk == 1)
   {
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;

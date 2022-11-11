@@ -26,23 +26,25 @@
 //=============================================================================
 void DataDL::createGPUUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
 {
-    int i, n1, n2, n3, n4, n5, n6, n7, n8;
-    int ret1, ret2, ret3, ret4, f;
+    E_Int i, n1, n2, n3, n4, n5, n6, n7, n8;
+    E_Int ret1, ret2, ret3, ret4, f;
     ZoneImplDL *zImpl = static_cast<ZoneImplDL *>( zonep->ptr_impl );
     GLenum error = glGetError();
-    if ( error != GL_NO_ERROR )
+    if (error != GL_NO_ERROR)
     {
         std::cerr << __PRETTY_FUNCTION__ << " : get error 0 n°0x" << std::hex << error << std::dec << std::flush << std::endl;
     }
-   zImpl->_DLsolid = glGenLists( 1 );
-    unsigned stride = zonep->ne;
+    zImpl->_DLsolid = glGenLists( 1 );
+    E_Int stride = zonep->ne;
     glNewList( zImpl->_DLsolid, GL_COMPILE );
-    glPatchParameteri( GL_PATCH_VERTICES, GLint(zonep->eltSize) );
-    glBegin( GL_PATCHES );
-    for ( int ielts = 0; ielts < zonep->ne; ++ielts ) {
-        int ind_elt = ielts;
-        for ( unsigned short inode = 0; inode < zonep->eltSize; inode++ ) {
-            int ind = zonep->connect[ ind_elt + inode * stride ] - 1;
+    glPatchParameteri(GL_PATCH_VERTICES, GLint(zonep->eltSize));
+    glBegin(GL_PATCHES);
+    for (E_Int ielts = 0; ielts < zonep->ne; ++ielts) 
+    {
+        E_Int ind_elt = ielts;
+        for ( E_Int inode = 0; inode < zonep->eltSize; inode++ ) 
+        {
+            E_Int ind = zonep->connect[ ind_elt + inode * stride ] - 1;
             glVertex3f( (float)zonep->x[ ind ], (float)zonep->y[ ind ], (float)zonep->z[ ind ] );
         }
     }

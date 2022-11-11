@@ -31,7 +31,7 @@
 void DataDL::displayUMesh()
 {
   if (_numberOfUnstructZones == 0) return;
-  int zone, zonet, isDL;
+  E_Int zone, zonet, isDL;
 
   // Enable blending
   glEnable(GL_BLEND);
@@ -110,7 +110,7 @@ void DataDL::displayUMesh()
   glColor3f(1., 1., 1.);
 
   float alphaSav = ptrState->alpha;
-  int solidStyleSav = ptrState->solidStyle;
+  E_Int solidStyleSav = ptrState->solidStyle;
   ptrState->alpha = 0.01;
   switch (ptrState->meshStyle)
   {

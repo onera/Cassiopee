@@ -52,11 +52,11 @@
 //=============================================================================
 void Data::displaySMeshZone(StructZone* zonep, int zone)
 {
-  int i, n1, n2, j, k, plane;
-  int stepi, stepj, stepk;
-  int nis, njs, nks;
-  int nie, nje, nke;
-  int ret1, ret2, ret;
+  E_Int i, n1, n2, j, k, plane;
+  E_Int stepi, stepj, stepk;
+  E_Int nis, njs, nks;
+  E_Int nie, nje, nke;
+  E_Int ret1, ret2, ret;
 
   // Style colors
   float color1[3]; float color2[3];
@@ -91,11 +91,11 @@ void Data::displaySMeshZone(StructZone* zonep, int zone)
 #include "meshStyles.h"
   
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
   
   if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) 
   { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }

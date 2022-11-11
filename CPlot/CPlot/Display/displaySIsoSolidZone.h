@@ -86,12 +86,12 @@
   ret4 = _pref.blanking->f(this, n4, zonep->blank, zone);               \
   if (ret1*ret2*ret3*ret4 != 0) { PLOT; }    
 
-  int i, j, k, n1, n2, n3, n4, n1s, n2s, n3s, n4s;
+  E_Int i, j, k, n1, n2, n3, n4, n1s, n2s, n3s, n4s;
   float r, g, b;
 #ifndef __SHADERS__
   float a;
 #endif
-  int ret1, ret2, ret3, ret4;
+  E_Int ret1, ret2, ret3, ret4;
   //double r2, r3, r4;
 
   // scalar field
@@ -108,26 +108,26 @@
   getrgb = _pref.colorMap->f;
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
 
-  int nim = MIN(ni, 2);
-  int njm = MIN(nj, 2);
-  int nkm = MIN(nk, 2);
-  int nbElti = nj*nk*nim;
-  int nbEltj = ni*nk*njm;
-  int nbEltk = nij*nkm;
+  E_Int nim = MIN(ni, E_Int(2));
+  E_Int njm = MIN(nj, E_Int(2));
+  E_Int nkm = MIN(nk, E_Int(2));
+  E_Int nbElti = nj*nk*nim;
+  E_Int nbEltj = ni*nk*njm;
+  E_Int nbEltk = nij*nkm;
 
-  int nistepj = ni*stepj;
-  int nijstepk = nij*stepk;
-  int njstepk = nj*stepk;
-  int nistepk = ni*stepk;
-  int inci = (nim-1)*nj*nk;
-  int incj = (njm-1)*ni*nk;
-  int inck = (nkm-1)*nij;
+  E_Int nistepj = ni*stepj;
+  E_Int nijstepk = nij*stepk;
+  E_Int njstepk = nj*stepk;
+  E_Int nistepk = ni*stepk;
+  E_Int inci = (nim-1)*nj*nk;
+  E_Int incj = (njm-1)*ni*nk;
+  E_Int inck = (nkm-1)*nij;
 
   double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
   float* surfx = zonep->surf;
@@ -462,7 +462,7 @@
     glLineWidth(3.);
     glPolygonOffset(-1.,-10.); // force offset
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;

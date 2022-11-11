@@ -34,7 +34,7 @@
 //=============================================================================
 void DataDL::createGPURes()
 {
-  int zone, zonet;
+  E_Int zone, zonet;
   ptrState->lockDisplay();
   // - Solid -
   zone = 0;
@@ -112,8 +112,8 @@ void DataDL::createGPURes()
 //=============================================================================
 void DataDL::createIsoGPURes(int nofield)
 {
-  int zone = 0;
-  int zonet;
+  E_Int zone = 0;
+  E_Int zonet;
   while (zone < _numberOfStructZones)
   {
     StructZone* z = _szones[zone];
@@ -160,8 +160,8 @@ void DataDL::createIsoGPURes(int nofield)
 //=============================================================================
 void DataDL::createIsoGPUResForRender()
 {
-  int zone = 0;
-  int zonet;
+  E_Int zone = 0;
+  E_Int zonet;
   while (zone < _numberOfStructZones)
   {
     StructZone* z = _szones[zone];
@@ -211,8 +211,8 @@ void DataDL::createIsoGPUResForRender()
 //=============================================================================
 void DataDL::createIsoGPURes(int nofield1, int nofield2, int nofield3)
 {
-  int zone = 0;
-  int zonet;
+  E_Int zone = 0;
+  E_Int zonet;
   while (zone < _numberOfStructZones)
   {
     StructZone* z = _szones[zone];
@@ -263,7 +263,7 @@ void DataDL::createIsoGPURes(int nofield1, int nofield2, int nofield3)
 //=============================================================================
 void DataDL::freeGPURes(int mode, int start, int end, int permanent)
 {
-  int i;
+  E_Int i;
   if (mode == 0 || mode == -1)
   {
     for (i = start; i <= end; i++)
@@ -292,7 +292,7 @@ void DataDL::freeGPURes(int mode, int start, int end, int permanent)
 //=============================================================================
 void DataDL::freeGPURes(int mode, int size, int* ptr, int permanent)
 {
-  int i;
+  E_Int i;
   if (mode == 0 || mode == -1)
   {
     for (i = 0; i < size; i++)

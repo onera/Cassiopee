@@ -24,7 +24,7 @@
   Display une zone en solid ou en material.
 */
 //=============================================================================
-void DataDL::renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet)
+void DataDL::renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 {
   // Style
   float color1[3]; float color2[3];
@@ -61,8 +61,8 @@ void DataDL::renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet)
 #ifdef __SHADERS__
       triggerShader(*zonep, zonep->material, s, color1);
 #endif
-      int ff=0; double offb=0.;
-      int ret1, ret2, ret3, ret4, i, n1, n2, n3, n4;
+      E_Int ff=0; double offb=0.;
+      E_Int ret1, ret2, ret3, ret4, i, n1, n2, n3, n4;
       #undef PLOT
       double* f1 = zonep->texu;
       double* f2 = zonep->texv;
@@ -93,14 +93,14 @@ void DataDL::renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet)
       triggerShader(*zonep, 0, s, color2);
     else triggerShader(*zonep, 0, s, color1);
   }
-#endif  
+#endif
 
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
   glCallList(zImpl->_DLsolid);
-    GLenum error = glGetError();
-    if ( error != GL_NO_ERROR )
-    {
-        std::cerr << __PRETTY_FUNCTION__ << " : get error n°0x" << std::hex << error << std::dec << std::flush << std::endl;
-    }
+  GLenum error = glGetError();
+  if (error != GL_NO_ERROR)
+  {
+    std::cerr << __PRETTY_FUNCTION__ << " : get error n°0x" << std::hex << error << std::dec << std::flush << std::endl;
+  }
   glLineWidth(1.);
 }

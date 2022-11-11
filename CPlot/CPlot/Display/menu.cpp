@@ -127,8 +127,8 @@ void Data::menu()
   static void* menuItemValue[NITEM];
 
   char msg[120];
-  int l = 50; // current line
-  int i, size, o;
+  E_Int l = 50; // current line
+  E_Int i, size, o;
 
   // Init menu item values
   menuItemType[0] = NONE; menuItemValue[0] = NULL;
@@ -177,7 +177,7 @@ void Data::menu()
   ptrState->render = 1;
 
   // Display menu title
-  int sizeMax = 0;
+  E_Int sizeMax = 0;
   glColor3f(0.1, 0.1, 0.3);
   strcpy(msg, submenuNames[currentMenu]);
   size = strlen(msg);

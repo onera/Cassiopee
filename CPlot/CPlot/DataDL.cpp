@@ -18,7 +18,7 @@
 */
 # include "DataDL.h"
 
-DataDL::DataDL() : Data( new CPlotStateDL)
+DataDL::DataDL() : Data(new CPlotStateDL)
 {}
 //=============================================================================
 DataDL::~DataDL()

@@ -49,7 +49,7 @@ void Data::init(void)
 #endif
   
   // Cree les textures
-  int width, height;
+  E_Int width, height;
   createNodeTexture();
   createNoise3DTexture();
   createFrameBufferTexture();

@@ -25,14 +25,14 @@
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
-  int* connect = zonep->connect;
+  E_Int* connect = zonep->connect;
   
   // Grid dimensions
-  int ne = zonep->ne;
-  int ne2 = 2*ne;
-  int ne3 = 3*ne;
-  int eltType = zonep->eltType;
-  int nd, l;
+  E_Int ne = zonep->ne;
+  E_Int ne2 = 2*ne;
+  E_Int ne3 = 3*ne;
+  E_Int eltType = zonep->eltType;
+  E_Int nd, l;
 
   glBegin(GL_LINES);
   
@@ -231,8 +231,8 @@
 
       case 10: // NGON
       {
-        int nf = NFACES(connect); // nbre de faces
-        int *ptrface = PTRFACES(connect);
+        E_Int nf = NFACES(connect); // nbre de faces
+        E_Int *ptrface = PTRFACES(connect);
         for (i = 0; i < nf; i++)
         {
           nd = ptrface[0]; // nbre de noeuds de la face
@@ -247,13 +247,13 @@
         }
 
         // Elements 1D
-        int elt;
+        E_Int elt;
         for (i = 0; i < zonep->nelts1D; i++)
         {
           elt = zonep->posElts1D[i];
-          int* ptrelt = &connect[elt];
-          int face = ptrelt[1]-1; // indice de la face
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int* ptrelt = &connect[elt];
+          E_Int face = ptrelt[1]-1; // indice de la face
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           face = ptrelt[2]-1; // indice de la face
           ptrface = &connect[zonep->posFaces[face]];
@@ -444,8 +444,8 @@
 
       case 10: // NGON
       {
-        int nf = NFACES(connect); // nbre de faces
-        int *ptrface = PTRFACES(connect);
+        E_Int nf = NFACES(connect); // nbre de faces
+        E_Int *ptrface = PTRFACES(connect);
         for (i = 0; i < nf; i++)
         {
           nd = ptrface[0]; // nbre de noeuds de la face
@@ -460,13 +460,13 @@
         }
 
         // Elements 1D
-        int elt;
+        E_Int elt;
         for (i = 0; i < zonep->nelts1D; i++)
         {
           elt = zonep->posElts1D[i];
-          int* ptrelt = &connect[elt];
-          int face = ptrelt[1]-1; // indice de la face
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int* ptrelt = &connect[elt];
+          E_Int face = ptrelt[1]-1; // indice de la face
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           face = ptrelt[2]-1; // indice de la face
           ptrface = &connect[zonep->posFaces[face]];

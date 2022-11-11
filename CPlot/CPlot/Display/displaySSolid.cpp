@@ -29,7 +29,7 @@
 void DataDL::displaySSolid()
 {
   if (_numberOfStructZones == 0) return;
-  int zone;
+  E_Int zone;
 
   // Enable blending
   glEnable(GL_BLEND);

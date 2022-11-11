@@ -77,17 +77,17 @@ typedef struct
 
 // Add a variable plugins
 void addPressureVariable();
-double compVolumeOfBBOfCell( int* ind, double* coord, int dim);
-void compInterpCellVertices(int ic, int jc, int kc,
-                            int im, int jm, int km,          
-                            int* indtab);
-void compMaxDiagOfCell( int dim, int* ind, double* coord, double* diag );
-void setVariableToZero(int ni, int nj, int nk, double* f);
+double compVolumeOfBBOfCell(E_Int* ind, double* coord, E_Int dim);
+void compInterpCellVertices(E_Int ic, E_Int jc, E_Int kc,
+                            E_Int im, E_Int jm, E_Int km,          
+                            E_Int* indtab);
+void compMaxDiagOfCell(E_Int dim, E_Int* ind, double* coord, double* diag);
+void setVariableToZero(E_Int ni, E_Int nj, E_Int nk, double* f);
 
 // Blanking plugins (blanking.cpp)
-int blankCellN(Data* d, int p1, int blank, int zone);
-int blankCellNF(Data* d, int p1, int blank, int zone);
-int blankStatus(Data* d, int p1, int blank, int zone);
+int blankCellN(Data* d, E_Int p1, E_Int blank, E_Int zone);
+int blankCellNF(Data* d, E_Int p1, E_Int blank, E_Int zone);
+int blankStatus(Data* d, E_Int p1, E_Int blank, E_Int zone);
 
 // Colormaps plugins (colormap.c)
 void colBlueToRed(Data* d, double f, float* r, float* g, float* b);
@@ -110,20 +110,20 @@ void selectNextZoneIncr(Data* d);
 void selectPreviousZoneIncr(Data* d);
 
 // Mouse plugins
-void mouseClickSelect(Data* d, int button, int etat, int x, int y);
-void mouseClickMultipleSelect(Data* d, int button, int etat, int x, int y);
-void mouseClickAccurateSelect(Data* d, int button, int etat, int x, int y);
-void mouseRightClickSelect(Data* d, int button, int etat, int x, int y);
-void mouseClickTag(Data* d, int button, int etat, int x, int y);
-void mouseClickPoint(Data* d, int button, int etat, int x, int y);
+void mouseClickSelect(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y);
+void mouseClickMultipleSelect(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y);
+void mouseClickAccurateSelect(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y);
+void mouseRightClickSelect(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y);
+void mouseClickTag(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y);
+void mouseClickPoint(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y);
 
 // Screen dump plugins
 void writePPMFile(Data* d, char *filename, char* buffer, 
-                  int win_width, int win_height, int mode);
+                  E_Int win_width, E_Int win_height, E_Int mode);
 void writePNGFile(Data* d, char *filename, char* buffer, 
-                  int width, int height, int mode);
+                  E_Int width, E_Int height, E_Int mode);
 void writeDPNGFile(Data* d, char *filename, char* buffer, 
-                   int width, int height, int mode);
+                   E_Int width, E_Int height, E_Int mode);
 void writeMPEGFrame(Data* d, char *filename, char* buffer, 
-                    int width, int height, int mode);
+                    E_Int width, E_Int height, E_Int mode);
 #endif

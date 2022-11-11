@@ -25,8 +25,8 @@
 //=============================================================================
 void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
 {
-    int i, n1, n2, n3, n4, n5, n6, n7, n8;
-    int ret1, ret2, ret3, ret4, f;
+    E_Int i, n1, n2, n3, n4, n5, n6, n7, n8;
+    E_Int ret1, ret2, ret3, ret4, f;
 
     // Style
     float color1[ 3 ];
@@ -41,7 +41,8 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
 #include "solidStyles.h"
 
     // Ecrasement si renderTag
-    if ( zonep->colorR > -0.5 ) {
+    if (zonep->colorR > -0.5) 
+    {
         color1[ 0 ] = zonep->colorR;
         color1[ 1 ] = zonep->colorG;
         color1[ 2 ] = zonep->colorB;
@@ -50,12 +51,12 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
 #include "selection.h"
 
     bool is1D = ( ( zonep->eltType == 1 ) | ( zonep->eltType == 10 && zonep->nelts1D > 0 ) );
-    if ( is1D == true && ptrState->mode == RENDER )
-        glLineWidth( 1. + 5 * zonep->shaderParam1 );
-    else if ( is1D == true )
-        glLineWidth( 3. );
+    if (is1D == true && ptrState->mode == RENDER)
+        glLineWidth(1. + 5 * zonep->shaderParam1);
+    else if (is1D == true)
+        glLineWidth(3.);
     else
-        glLineWidth( 1. );
+        glLineWidth(1.);
 
     // scale
     E_Float s = MAX( zonep->xmax - zonep->xmin, zonep->ymax - zonep->ymin );
@@ -63,12 +64,12 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
     s = 100. / ( s + 1.e-12 );
 
     // Only for textured rendering, we use vect display =======================
-    if ( ptrState->mode == RENDER && zonep->material == 14 && zonep->texu != NULL )  // Textured rendering
+    if (ptrState->mode == RENDER && zonep->material == 14 && zonep->texu != NULL)  // Textured rendering
     {
         // Sans doute également à modifier pour le high order ?
         triggerShader( *zonep, zonep->material, s, color1 );
 
-        int ff=0;
+        E_Int ff=0;
         double offb=0.;
 #undef PLOT
         double* f1 = zonep->texu;
@@ -88,12 +89,13 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
     // END Textured rendering ===========================================
     // Activation du shader de tesselation :
     int ishader = 0;
-    if ( zonep->eltType == UnstructZone::TRI )
+    if (zonep->eltType == UnstructZone::TRI)
         ishader = 1;  // OK, element de type Tri_6, TRI_9, TRI_10, TRI_12 or TRI_15
-    if ( zonep->eltType == UnstructZone::QUAD )
+    if (zonep->eltType == UnstructZone::QUAD)
         ishader = 2;  // OK, element de type Quad_8 ou Quad_9, QUAD_12, QUAD_16, QUAD_25
-    this->_shaders.set_tesselation( ishader );
-    if ( ptrState->mode == RENDER ) {
+    this->_shaders.set_tesselation(ishader);
+    if (ptrState->mode == RENDER) 
+    {
         if ( zonep->selected == 1 && zonep->active == 1 )
             triggerShader( *zonep, zonep->material, s, color2 );
         else
@@ -112,10 +114,10 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
     this->_shaders[ idShader ]->setUniform( "uOuter", (float)t_outer );
     this->_shaders[ idShader ]->setUniform( "patch_size", (int)zonep->eltSize );
 
-    glPatchParameteri( GL_PATCH_VERTICES, zonep->eltSize );
-    unsigned stride = zonep->ne;
-    glBegin( GL_PATCHES );
-    for ( int ielts = 0; ielts < zonep->ne; ++ielts ) {
+    glPatchParameteri(GL_PATCH_VERTICES, zonep->eltSize);
+    E_Int stride = zonep->ne;
+    glBegin(GL_PATCHES);
+    for (E_Int ielts = 0; ielts < zonep->ne; ++ielts) {
         int ind_elt = ielts;
         for ( unsigned short inode = 0; inode < zonep->eltSize; inode++ ) {
             int ind = zonep->connect[ ind_elt + inode * stride ] - 1;

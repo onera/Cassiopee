@@ -24,10 +24,10 @@
 */
 //=============================================================================
 void writePPMFile(Data* d, char *filename, char* buffer, 
-                  int width, int height, int mode)
+                  E_Int width, E_Int height, E_Int mode)
 {
   if (buffer == NULL) return;
-  int i, j, k, q;
+  E_Int i, j, k, q;
   unsigned char *ibuffer;
   FILE *fp;
   int pixelSize = GL_RGB==GL_RGBA?4:3;

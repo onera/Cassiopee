@@ -52,7 +52,7 @@ Data::Data(CPlotState* ptState)
   _texColormap = 0;
   _texColormapType = -1;
   _texColormapMinMax= -1;
-  for (int i = 0; i < 16; i++) _bias[i] = 0.;
+  for (E_Int i = 0; i < 16; i++) _bias[i] = 0.;
   _bias[0] = 0.5; _bias[5]= 0.5; _bias[10] = 0.5; _bias[12] = 0.5;
   _bias[13] = 0.5; _bias[14] = 0.5; _bias[15] = 1.;
 
@@ -188,8 +188,8 @@ Data::~Data()
   if (_colormapGViridis != NULL) delete [] _colormapGViridis;
   if (_colormapBViridis != NULL) delete [] _colormapBViridis;
 
-  unsigned int ns = _slots1D.size();
-  for (unsigned int i = 0; i < ns; i++) delete _slots1D[i];
+  size_t ns = _slots1D.size();
+  for (size_t i = 0; i < ns; i++) delete _slots1D[i];
   pthread_mutex_destroy(&ptrState->lock_mutex);
   pthread_mutex_destroy(&ptrState->gpures_mutex);
   // delete all allocated data of ptrState
@@ -199,7 +199,7 @@ Data::~Data()
   delete [] ptrState->colormapB;
   delete ptrState;
   // delete billBoardStorage
-  for (int i = 0; i < _nBillBoards; i++)
+  for (E_Int i = 0; i < _nBillBoards; i++)
   {
     delete [] _billBoardFiles[i];
     if (_billBoardTexs[i] != 0) glDeleteTextures(1, &_billBoardTexs[i]);
@@ -209,7 +209,7 @@ Data::~Data()
   delete [] _billBoardFiles;
 
   // delete material storage
-  for (int i = 0; i < _nMaterials; i++)
+  for (E_Int i = 0; i < _nMaterials; i++)
   {
     delete [] _materialFiles[i];
     if (_materialTexs[i] != 0) glDeleteTextures(1, &_materialTexs[i]);
@@ -217,7 +217,7 @@ Data::~Data()
   delete [] _materialTexs;
   delete [] _materialFiles;
 
-  for (int i = 0; i < _nBumpMaps; i++)
+  for (E_Int i = 0; i < _nBumpMaps; i++)
   {
     delete [] _bumpMapFiles[i];
     if (_bumpMapTexs[i] != 0) glDeleteTextures(1, &_bumpMapTexs[i]);
@@ -757,16 +757,16 @@ void Data::loadPrefs()
 
 //=============================================================================
 void Data::enforceGivenData(
-  int dim, int mode, int scalarField,
-  int vectorField1, int vectorField2, int vectorField3,
-  int displayBB, int displayInfo, int displayIsoLegend)
+  E_Int dim, E_Int mode, E_Int scalarField,
+  E_Int vectorField1, E_Int vectorField2, E_Int vectorField3,
+  E_Int displayBB, E_Int displayInfo, E_Int displayIsoLegend)
 {
   if (dim != -1) ptrState->dim = dim;
   if (mode != -1)
   {
     if (mode == SCALARFIELD && _numberOfZones > 0)  // check valid field
     {
-      int nf = _zones[0]->nfield;
+      E_Int nf = _zones[0]->nfield;
       if (scalarField < nf && scalarField >= 0)
       { ptrState->mode = mode; ptrState->scalarField = scalarField; }
       else if (scalarField == -1 && ptrState->scalarField < nf)
@@ -774,7 +774,7 @@ void Data::enforceGivenData(
     }
     else if (mode == VECTORFIELD && _numberOfZones > 0) // check valid fields
     {
-      int nf = _zones[0]->nfield;
+      E_Int nf = _zones[0]->nfield;
       if (vectorField1 < nf && vectorField1 >= 0)
         ptrState->vectorField1 = vectorField1;
       if (vectorField2 < nf && vectorField2 >= 0)
@@ -790,7 +790,7 @@ void Data::enforceGivenData(
     {
       if (_numberOfZones > 0)
       {
-        int nf = _zones[0]->nfield;
+        E_Int nf = _zones[0]->nfield;
         if (scalarField < nf && scalarField >= 0) ptrState->scalarField = scalarField;
         if (vectorField1 < nf && vectorField1 >= 0) ptrState->vectorField1 = vectorField1;
         if (vectorField2 < nf && vectorField2 >= 0) ptrState->vectorField2 = vectorField2;
@@ -813,16 +813,16 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              float xeye, float yeye, float zeye,
                              float dirx, float diry, float dirz,
                              float viewAngle,
-                             int meshStyle, int solidStyle, int scalarStyle,
-                             int vectorStyle, float vectorScale, float vectorDensity, int vectorNormalize, 
-                             int vectorShowSurface, int vectorShape, int vector_projection, 
-                             int colormap, 
+                             E_Int meshStyle, E_Int solidStyle, E_Int scalarStyle,
+                             E_Int vectorStyle, float vectorScale, float vectorDensity, E_Int vectorNormalize, 
+                             E_Int vectorShowSurface, E_Int vectorShape, E_Int vector_projection, 
+                             E_Int colormap, 
                              char* colormapC1, char* colormapC2, char* colormapC3, PyObject* colormapC,
-                             int niso, float isoEdges, PyObject* isoScales,
-                             int bgColor, char* backgroundFile, int ghostifyDeactivatedZones,
-                             int edgifyActivatedZones,
-                             int edgifyDeactivatedZones,
-                             int shadow, int dof,
+                             E_Int niso, float isoEdges, PyObject* isoScales,
+                             E_Int bgColor, char* backgroundFile, E_Int ghostifyDeactivatedZones,
+                             E_Int edgifyActivatedZones,
+                             E_Int edgifyDeactivatedZones,
+                             E_Int shadow, E_Int dof,
                              char* exportFile, char* exportResolution)
 {
   if (xcam != -999) _view.xcam = xcam;
@@ -842,7 +842,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
     ptrState->colormap = colormap;
     ptrState->isoLight = 0;
     _pref.colorMap = _plugins.colorMap;
-    for (int i = 0; i < colormap/2; i++)
+    for (E_Int i = 0; i < colormap/2; i++)
     {
       if (_pref.colorMap->next == NULL)
         _pref.colorMap = _plugins.colorMap;
@@ -937,7 +937,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   {
     if (PyList_Check(isoScales) == true)
     {
-      int size = PyList_Size(isoScales);
+      E_Int size = PyList_Size(isoScales);
       
       // double liste (nouvelle methode)
       if (size > 0 && PyList_Check(PyList_GetItem(isoScales, 0)) == true) 
@@ -954,9 +954,9 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
             PyObject* max = PyList_GetItem(l, 3); // max for isos
             E_Int nfield = getScalarField(f);
             if (nfield == -1) nfield = 0; // not found
-            int niso = 10;
+            E_Int niso = 10;
             if (PyLong_Check(n) == true) niso = PyLong_AsLong(n);
-            else niso = int(PyFloat_AsDouble(n));
+            else niso = E_Int(PyFloat_AsDouble(n));
             if (_nfield > nfield)
             {
               _niso[nfield] = niso;
@@ -993,7 +993,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
       else
       {
         // liste a plat (ancienne methode)
-        int cpt = 0;
+        E_Int cpt = 0;
         while (cpt < size)
         {
           PyObject* f = PyList_GetItem(isoScales, cpt); // nfield
@@ -1002,9 +1002,9 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
           PyObject* max = PyList_GetItem(isoScales, cpt+3); // max for isos
           E_Int nfield = getScalarField(f);
           if (nfield == -1) nfield = 0; // not found
-          int niso = 10;
+          E_Int niso = 10;
           if (PyLong_Check(n) == true) niso = PyLong_AsLong(n);
-          else niso = int(PyFloat_AsDouble(n));
+          else niso = E_Int(PyFloat_AsDouble(n));
           if (_nfield > nfield)
           {
             _niso[nfield] = niso;
@@ -1039,8 +1039,8 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   if (strcmp(exportResolution, "None") != 0)
   {
     // look for x
-    int s = strlen(exportResolution);
-    int i = 0;
+    E_Int s = strlen(exportResolution);
+    E_Int i = 0;
     while (i < s)
     {
       if (exportResolution[i] == 'x') break;
@@ -1051,10 +1051,10 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
       char number[256];
       for (int j = 0; j < i; j++) number[j] = exportResolution[j];
       number[i] = '\0';
-      int w = atoi(number);
-      for (int j = i+1; j < s; j++) number[j-i-1] = exportResolution[j];
+      E_Int w = atoi(number);
+      for (E_Int j = i+1; j < s; j++) number[j-i-1] = exportResolution[j];
       number[s-i-1] = '\0';
-      int h = atoi(number);
+      E_Int h = atoi(number);
       ptrState->exportWidth = w;
       ptrState->exportHeight = h;
     }
@@ -1142,19 +1142,19 @@ void Data::reallocNFieldArrays(int nfield)
     _isoAlphaMax = n;
 
     int* ni = new int [nfield];
-    for (int i = 0; i < nfield; i++) ni[i] = -2;
+    for (E_Int i = 0; i < nfield; i++) ni[i] = -2;
     if (_isoColormap != NULL) delete [] _isoColormap;
     _isoColormap = ni;
 
     n = new double [nfield];
-    for (int i = 0; i < nfield; i++) n[i] = 0.;
+    for (E_Int i = 0; i < nfield; i++) n[i] = 0.;
     if (ptrState->activePointF != NULL) delete [] ptrState->activePointF;
     ptrState->activePointF = n;
 
     int* m = new int [nfield];
     if (_niso != NULL) delete [] _niso;
     _niso = m;
-    for (int i = 0; i < nfield; i++) _niso[i] = -1;
+    for (E_Int i = 0; i < nfield; i++) _niso[i] = -1;
 
     _nfield = nfield;
   }

@@ -1,21 +1,21 @@
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
-  int* connect = zonep->connect;
+  E_Int* connect = zonep->connect;
   // Grid dimensions
-  int ne = zonep->ne;
-  int ne2 = 2*ne;
-  int ne3 = 3*ne;
-  int ne4 = 4*ne;
-  int ne5 = 5*ne;
-  int ne6 = 6*ne;
-  int ne7 = 7*ne;
-  int ne8 = 8*ne;
-  int ne9 = 9*ne;
-  int ne10= 10*ne;
-  int ne11= 11*ne;
-  int eltType = zonep->eltType;
-  int nbNodesPerPatch = zonep->eltSize;
+  E_Int ne = zonep->ne;
+  E_Int ne2 = 2*ne;
+  E_Int ne3 = 3*ne;
+  E_Int ne4 = 4*ne;
+  E_Int ne5 = 5*ne;
+  E_Int ne6 = 6*ne;
+  E_Int ne7 = 7*ne;
+  E_Int ne8 = 8*ne;
+  E_Int ne9 = 9*ne;
+  E_Int ne10= 10*ne;
+  E_Int ne11= 11*ne;
+  E_Int eltType = zonep->eltType;
+  E_Int nbNodesPerPatch = zonep->eltSize;
   glPatchParameteri( GL_PATCH_VERTICES, 3 );
   glBegin(GL_PATCHES);
   //glBegin(GL_LINES);
@@ -82,7 +82,7 @@
         break;
         
       case 3: // QUAD
-        if ( ( nbNodesPerPatch == 8 ) or ( nbNodesPerPatch == 9 ) )
+        if ( (nbNodesPerPatch == 8) or (nbNodesPerPatch == 9) )
         {
           for (i = 0; i < ne; i++)
           {
@@ -183,7 +183,7 @@
         break;
         
       case 3: // QUAD
-        if ( ( nbNodesPerPatch == 8 ) or ( nbNodesPerPatch == 9 ) )
+        if ( (nbNodesPerPatch == 8) or (nbNodesPerPatch == 9) )
         {
           for (i = 0; i < ne; i++)
           {

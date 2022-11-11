@@ -92,13 +92,13 @@ class Data
   CPlotState* ptrState;
   volatile int _CDisplayIsLaunched;
     
-  int _numberOfZones; // all zones
+  E_Int _numberOfZones; // all zones
   Zone** _zones;
     
-  int _numberOfStructZones; // struct zones
+  E_Int _numberOfStructZones; // struct zones
   StructZone** _szones;
 
-  int _numberOfUnstructZones; // unstruct zones
+  E_Int _numberOfUnstructZones; // unstruct zones
   UnstructZone** _uzones;
 
   // Global data
@@ -108,51 +108,51 @@ class Data
   double epsup;     // minimum up
   double epsstrafe; // minimum strafe
 
-  int _niter; // iteration (si calcul) ou transmis
-  int _winId; // main window id
+  E_Int _niter; // iteration (si calcul) ou transmis
+  E_Int _winId; // main window id
   PyThreadState* _save;
 
   // Field data
-  int _nfield; // dim of variables field arrays
+  E_Int _nfield; // dim of variables field arrays
   double* minf; // global min-max
   double* maxf;
   double* _isoMin; // min pour chaque champ (si specifie)
   double* _isoMax; // max pour chaque champ
   double* _isoAlphaMin; // min pour alpha iso
   double* _isoAlphaMax; // min pour alpha iso
-  int* _niso; // nbre d'iso pour chaque champ (si specifie)
-  int* _isoColormap; // colormap pour chaque champ (si specifie)
+  E_Int* _niso; // nbre d'iso pour chaque champ (si specifie)
+  E_Int* _isoColormap; // colormap pour chaque champ (si specifie)
 
   // Colormap data
-  int _colormapSizeViridis; // number of colors in colormap
+  E_Int _colormapSizeViridis; // number of colors in colormap
   float* _colormapRViridis; // colormap red
   float* _colormapGViridis; // colormap green
   float* _colormapBViridis; // colormap blue
-  int _colormapSizeInferno; // number of colors in colormap
+  E_Int _colormapSizeInferno; // number of colors in colormap
   float* _colormapRInferno; // colormap red
   float* _colormapGInferno; // colormap green
   float* _colormapBInferno; // colormap blue
-  int _colormapSizeMagma; // number of colors in colormap
+  E_Int _colormapSizeMagma; // number of colors in colormap
   float* _colormapRMagma; // colormap red
   float* _colormapGMagma; // colormap green
   float* _colormapBMagma; // colormap blue
-  int _colormapSizePlasma; // number of colors in colormap
+  E_Int _colormapSizePlasma; // number of colors in colormap
   float* _colormapRPlasma; // colormap red
   float* _colormapGPlasma; // colormap green
   float* _colormapBPlasma; // colormap blue
-  int _colormapSizeJet; // number of colors in colormap
+  E_Int _colormapSizeJet; // number of colors in colormap
   float* _colormapRJet; // colormap red
   float* _colormapGJet; // colormap green
   float* _colormapBJet; // colormap blue
-  int _colormapSizeGreys; // number of colors in colormap
+  E_Int _colormapSizeGreys; // number of colors in colormap
   float* _colormapRGreys; // colormap red
   float* _colormapGGreys; // colormap green
   float* _colormapBGreys; // colormap blue
-  int _colormapSizeNiceBlue; // number of colors in colormap
+  E_Int _colormapSizeNiceBlue; // number of colors in colormap
   float* _colormapRNiceBlue; // colormap red
   float* _colormapGNiceBlue; // colormap green
   float* _colormapBNiceBlue; // colormap blue
-  int _colormapSizeGreens; // number of colors in colormap
+  E_Int _colormapSizeGreens; // number of colors in colormap
   float* _colormapRGreens; // colormap red
   float* _colormapGGreens; // colormap green
   float* _colormapBGreens; // colormap blue
@@ -163,12 +163,12 @@ class Data
   GLuint _texBillBoard; // texture for the billboard
   GLuint _texBackground; // texture for background
   GLuint _texColormap; // texture for colormap
-  int _texColormapType; // type stored in colormap
+  E_Int _texColormapType; // type stored in colormap
   double _texColormapMinMax; // Min max of colormap stored 
-  int _frameBufferSize[10]; // size of frame buffer
+  E_Int _frameBufferSize[10]; // size of frame buffer
   GLuint _texFrameBuffer[10]; // texture for frame buffer
   GLuint _texEnviron1; // texture environnement 1
-  int _voxelBufferSize; // size of voxel buffer
+  E_Int _voxelBufferSize; // size of voxel buffer
   GLuint _texVoxelBuffer; // texture pour le voxel buffer
   GLuint _texLeft; // texture for left eye rendered frame (anaglyph)
   GLuint _texRight; // texture for right eye rendered frame (anaglyph)
@@ -179,26 +179,26 @@ class Data
   double _lightProjection[16];
 
   // billboards image files and texture storage
-  int _nBillBoards; 
+  E_Int _nBillBoards; 
   char** _billBoardFiles;
-  int* _billBoardNis;
-  int* _billBoardNjs;
-  int* _billBoardWidths;
-  int* _billBoardHeights;
+  E_Int* _billBoardNis;
+  E_Int* _billBoardNjs;
+  E_Int* _billBoardWidths;
+  E_Int* _billBoardHeights;
   GLuint* _billBoardTexs;
 
   // Material image files and texture storage
-  int _nMaterials; 
+  E_Int _nMaterials; 
   char** _materialFiles;
-  int* _materialWidths;
-  int* _materialHeights;
+  E_Int* _materialWidths;
+  E_Int* _materialHeights;
   GLuint* _materialTexs;
 
   // BumpMaps image files and texture storage
-  int _nBumpMaps; // must be equal to nMaterials, but accepts NULL
+  E_Int _nBumpMaps; // must be equal to nMaterials, but accepts NULL
   char** _bumpMapFiles;
-  int* _bumpMapWidths;
-  int* _bumpMapHeights;
+  E_Int* _bumpMapWidths;
+  E_Int* _bumpMapHeights;
   GLuint* _bumpMapTexs;
 
 #ifdef __SHADERS__
@@ -250,26 +250,26 @@ public:
   // Load preferences
   void loadPrefs();
   // enforce data
-  void enforceGivenData(int dim, int mode, int scalarField,
-            int vectorField1, int vectorField2, int vectorField3,
-            int displayBB, int displayInfo, 
-            int displayIsoLegend);
+  void enforceGivenData(E_Int dim, E_Int mode, E_Int scalarField,
+            E_Int vectorField1, E_Int vectorField2, E_Int vectorField3,
+            E_Int displayBB, E_Int displayInfo,
+            E_Int displayIsoLegend);
   void enforceGivenData2(float xcam, float ycam, float zcam,
              float xeye, float yeye, float zeye,
              float dirx, float diry, float dirz,
              float viewAngle,
-             int meshStyle, int solidStyle,
-             int scalarStyle, int vectorStyle, 
-             float vectorScale, float vectorDensity, int vectorNormalize,
-             int vectorShowSurface, int vectorShape, int vector_projection,
-             int colormap, 
+             E_Int meshStyle, E_Int solidStyle,
+             E_Int scalarStyle, E_Int vectorStyle, 
+             float vectorScale, float vectorDensity, E_Int vectorNormalize,
+             E_Int vectorShowSurface, E_Int vectorShape, E_Int vector_projection,
+             E_Int colormap, 
              char* colormapC1, char* colormapC2, char* colormapC3, PyObject* colormapC,
-             int niso, float isoEdges, PyObject* isoScales,
-             int bgColor, char* backgroundFile,
-             int ghostifyDeactivatedZones,
-             int edgifyActivatedZones, 
-             int edgifyDeactivatedZones,
-             int shadow, int dof,
+             E_Int niso, float isoEdges, PyObject* isoScales,
+             E_Int bgColor, char* backgroundFile,
+             E_Int ghostifyDeactivatedZones,
+             E_Int edgifyActivatedZones, 
+             E_Int edgifyDeactivatedZones,
+             E_Int shadow, int dof,
              char* exportFile, char* exportResolution);
   void rgb2hsv(float r, float g, float b, float& h, float& s, float& v);
   void hsv2rgb(float h, float s, float v, float& r, float& g, float& b);
@@ -283,7 +283,7 @@ public:
   void initGreens();
   void codeFromRenderTag(Zone& z, char* tag, 
              float& colorR, float& colorG, float& colorB,
-             int& material, double& blending, int& meshOverlay,
+             E_Int& material, double& blending, E_Int& meshOverlay,
              float& shaderParam1, float& shaderParam2);
   void getAllVars(std::vector<char*>& structVarString,
                   std::vector<char*>& unstrVarString,
@@ -297,24 +297,24 @@ public:
 
     // Misc
     int findBlockContaining(double x, double y, double z,
-                            int& zone, int& ind, int& indE, double& dist);
+                            E_Int& zone, E_Int& ind, E_Int& indE, double& dist);
 
     // Create textures
-    int createNodeTexture();
-    int createNoise3DTexture();
-    int createColormapTexture();
-    void fillColormapTexture(int type);
-    int createFrameBufferTexture();
-    int createPngTexture(const char* filename, GLuint &tex,
-                         int& width, int& height, 
-                         bool mipmap=true);
-    int createVoxelTexture();
+    E_Int createNodeTexture();
+    E_Int createNoise3DTexture();
+    E_Int createColormapTexture();
+    void fillColormapTexture(E_Int type);
+    E_Int createFrameBufferTexture();
+    E_Int createPngTexture(const char* filename, GLuint &tex,
+                           E_Int& width, E_Int& height, 
+                           bool mipmap=true);
+    E_Int createVoxelTexture();
     void voxelize(UnstructZone& zn, UnstructZone& z);
     void voxelize(StructZone& zn, StructZone& z);
 
     // Keys
-    void keyboard(unsigned char key, int x, int y);
-    void arrows(int key, int x, int y);
+    void keyboard(unsigned char key, E_Int x, E_Int y);
+    void arrows(E_Int key, E_Int x, E_Int y);
     void moveDown(double alpha, double dx, double dy, double dz, double d,
                   double dirx, double diry, double dirz);
     void strafeDown(double alpha, double dx, double dy, double dz, double d,
@@ -356,87 +356,85 @@ public:
     void changeSecondaryVariableMinus();
     void changeBlankingFunction();
     void changeAppearance();
-    void mouseButton(int button, int etat, int x, int y);
-    void mouseMotion(int x, int y);
-    void mousePassiveMotion(int x, int y);
-    void mouseDrag(int x, int y);
+    void mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y);
+    void mouseMotion(E_Int x, E_Int y);
+    void mousePassiveMotion(E_Int x, E_Int y);
+    void mouseDrag(E_Int x, E_Int y);
 
     // Local display
     void fog();
-    void light(int type);
+    void light(E_Int type);
     void noLight();
-    void setCursor(int type);
+    void setCursor(E_Int type);
     double dist2BB(double x, double y, double z,
     double xmin, double ymin, double zmin,
     double xmax, double ymax, double zmax);
     void computeSteps0(StructZone* zonep, 
-                       int& stepi, int& stepj, int& stepk);
+                       E_Int& stepi, E_Int& stepj, E_Int& stepk);
     void computeSteps1(StructZone* zonep, 
-                       int& stepi, int& stepj, int& stepk);
+                       E_Int& stepi, E_Int& stepj, E_Int& stepk);
     void computeSteps(StructZone* zonep, 
-                      int& stepi, int& stepj, int& stepk);
+                      E_Int& stepi, E_Int& stepj, E_Int& stepk);
     void activateZone();
     void deactivateZone();
     void clearDisplay();
     virtual void createGPURes() = 0;
-    virtual void createIsoGPURes(int nofield) = 0; // scalaire
-    virtual void createIsoGPURes(int nofield1, int nofield2, int nofield3) = 0; // vecteur
+    virtual void createIsoGPURes(E_Int nofield) = 0; // scalaire
+    virtual void createIsoGPURes(E_Int nofield1, E_Int nofield2, E_Int nofield3) = 0; // vecteur
     virtual void createIsoGPUResForRender() = 0; // scalaire for render mode
-    virtual void freeGPURes(int mode, int start, int end, int permanent) = 0;
-    virtual void freeGPURes(int mode, int size, int* ptr, int permanent) = 0;
+    virtual void freeGPURes(E_Int mode, E_Int start, E_Int end, E_Int permanent) = 0;
+    virtual void freeGPURes(E_Int mode, E_Int size, E_Int* ptr, E_Int permanent) = 0;
     void display();
     void displayBB();
     void displayBB2();
-    void displayFrameTex(int mode, double sobelThreshold=-0.5);
+    void displayFrameTex(E_Int mode, double sobelThreshold=-0.5);
     void displayAnaglyph();
     void displayActivePoint();
     void displaySEdges();
     void displayUEdges();
     virtual void displaySMesh() = 0;
-    void displaySMeshZone(StructZone* zonep, int zone);
+    void displaySMeshZone(StructZone* zonep, E_Int zone);
     virtual void displayUMesh() = 0;
-    void displayUMeshZone(UnstructZone* zonep, int zone, int zonet);
-    void displayUMeshZone_ho(UnstructZone* zonep, int zone, int zonet);
+    void displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+    void displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet);
     virtual void displaySSolid() = 0;
-    void displaySSolidZone(StructZone* zonep, int zone);
+    void displaySSolidZone(StructZone* zonep, E_Int zone);
     virtual void displayUSolid() = 0;
-    void displayUSolidZone(UnstructZone* zonep, int zone, int zonet);
-    void displayUSolidHOZone(UnstructZone* zonep, int zone, int zonet);
+    void displayUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+    void displayUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
     virtual void displaySIsoSolid() = 0;
-    void displaySIsoSolidZone(StructZone* zonep, int zone, int nofield);
-    void displaySIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-                              int nofield2, int nofield3);
+    void displaySIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
+    void displaySIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+                              E_Int nofield2, E_Int nofield3);
     virtual void displayUIsoSolid() = 0;
-    void displayUIsoSolidZone(UnstructZone* zonep, int zonet, 
-                              int nofield);
-    void displayUIsoSolidZone(UnstructZone* zonep, int zonet, 
-                              int nofield1, int nofield2, int nofield3);
+    void displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield);
+    void displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, 
+                              E_Int nofield1, E_Int nofield2, E_Int nofield3);
     void displayNodes();
-    void displayBillBoards(Zone* zonep, int zone);
+    void displayBillBoards(Zone* zonep, E_Int zone);
     void displayAllBillBoards();
-    void createGPUSMeshZone(StructZone* zonep, int zone);
-    virtual void renderGPUSMeshZone(StructZone* zonep, int zone) = 0;
-    void createGPUUMeshZone(UnstructZone* zonep, int zone, int zonet);
-    virtual void renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet) = 0;
-    void createGPUSSolidZone(StructZone* zonep, int zone);
-    virtual void renderGPUSSolidZone(StructZone* zonep, int zone) = 0;
-    virtual void createGPUUSolidZone(UnstructZone* zonep, int zone, int zonet) = 0;
-    virtual void renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet) = 0;
-    virtual void createGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet) = 0;
-    virtual void renderGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet) = 0;
-    void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield);
-    void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-                               int nofield2, int nofield3);
-    void createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-                               int nofield);
-    void createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-                               int nofield1, int nofield2, int nofield3);
-    virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield) = 0;
-    virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-                     int nofield2, int nofield3) = 0;
-    virtual void renderUIsoSolidZone(UnstructZone* zonep, int zonet, int nofield) = 0;
-    virtual void renderUIsoSolidZone(UnstructZone* zonep, int zonet, int nofield1,
-                             int nofield2, int nofield3) = 0;
+    void createGPUSMeshZone(StructZone* zonep, E_Int zone);
+    virtual void renderGPUSMeshZone(StructZone* zonep, E_Int zone) = 0;
+    void createGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+    virtual void renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+    void createGPUSSolidZone(StructZone* zonep, E_Int zone);
+    virtual void renderGPUSSolidZone(StructZone* zonep, E_Int zone) = 0;
+    virtual void createGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+    virtual void renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+    virtual void createGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+    virtual void renderGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+    void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
+    void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+                                E_Int nofield2, E_Int nofield3);
+    void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, E_Int nofield);
+    void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+                                E_Int nofield1, E_Int nofield2, E_Int nofield3);
+    virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield) = 0;
+    virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+                                     E_Int nofield2, E_Int nofield3) = 0;
+    virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield) = 0;
+    virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield1,
+                                     E_Int nofield2, E_Int nofield3) = 0;
 
     // roll
     void roll3Dto2D();
@@ -449,31 +447,31 @@ public:
     void rollto1Dws();
 
     // Text
-    int textWidth(int fontSize, char* string);
-    int textWidth1(int fontSize, char* string);
-    int textWidth2(int fontSize, char* string);
-    int textHeight(int fontSize);
+    E_Int textWidth(E_Int fontSize, char* string);
+    E_Int textWidth1(E_Int fontSize, char* string);
+    E_Int textWidth2(E_Int fontSize, char* string);
+    E_Int textHeight(E_Int fontSize);
     void renderBitmapString(float x, float y, float z,
-                            int fontSize, char *string,
+                            E_Int fontSize, char *string,
                             float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
                             float nx=0., float ny=1., float nz=0.,
                             float r=1.);
-    void* getGlutFont(int fontSize);
+    void* getGlutFont(E_Int fontSize);
     void renderBitmapString1(float x, float y, float z,
-                             int fontSize, char *string,
+                             E_Int fontSize, char *string,
                              float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
                              float nx=0., float ny=1., float nz=0.,
                              float r=1.);
-    OpenGLText* getOpenGLText(int fontSize);
+    OpenGLText* getOpenGLText(E_Int fontSize);
     void renderBitmapString2(float x, float y, float z,
-                             int fontSize, char *string,
+                             E_Int fontSize, char *string,
                              float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
                              float nx=0., float ny=1., float nz=0.,
                              float r=1.);
                             
     void renderStringWithShadow(
       float x, float y, float z,
-      int fontSize, char *myString,
+      E_Int fontSize, char *myString,
       float fgColorR, float fgColorG,
       float fgColorB, float fgColorA,
       float shColorR, float shColorG, 
@@ -484,15 +482,15 @@ public:
     void resetPerspectiveProjection();
     void setOrthographicProjection();
     void displayText(char* text);
-    void displayBigText(int posx, int posy, char* text);
-    void displaySmallText(int posx, int posy, char* text);
+    void displayBigText(E_Int posx, E_Int posy, char* text);
+    void displaySmallText(E_Int posx, E_Int posy, char* text);
     void printHeader();
     void printTmpMessage(const char* text);
     void displayInfoWindow(char* text, int l);
     void displayInfo();
 
     // Legend
-    void displayIsoLegend(int dir);
+    void displayIsoLegend(E_Int dir);
 
     // 3D Axis
     void displayAxis();
@@ -501,30 +499,30 @@ public:
     void displayPlots();
     void displayPlot(Slot1D* s);
     void plotZone(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
-                  E_Float dx, E_Float dy, int var1, int var2);
+                  E_Float dx, E_Float dy, E_Int var1, E_Int var2);
     E_Float getTick(E_Float rmin, E_Float rmax);
     void plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
                     E_Float dx, E_Float dy, E_Float blend);
     void getCharsFromVarName(char* varName, char& c1, char& c2);
-    int getActivePointIndex(Zone1D* z, int var1, int var2,
-                            int& e1, int& e2, double& alpha);
+    int getActivePointIndex(Zone1D* z, E_Int var1, E_Int var2,
+                            E_Int& e1, E_Int& e2, double& alpha);
     int display1DActivePoint(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
-                             E_Float dx, E_Float dy, int var1, int var2);
-    int link2View(Zone1D* z, int var1, int var2,
+                             E_Float dx, E_Float dy, E_Int var1, E_Int var2);
+    int link2View(Zone1D* z, E_Int var1, E_Int var2,
                   E_Float& r1min, E_Float& r1max, 
                   E_Float& r2min, E_Float& r2max);
 
     // Menu
     void displayMenu();
-    void displayDimensionMenu(int* x);
-    void displayVariableMenu(int* x);
-    void displayAxisMenu(int* x);
-    void displayZoneMenu(int* x);
+    void displayDimensionMenu(E_Int* x);
+    void displayVariableMenu(E_Int* x);
+    void displayAxisMenu(E_Int* x);
+    void displayZoneMenu(E_Int* x);
     void menu();
-    void menuKeyboard(unsigned char key, int x, int y);
-    void menuArrows(int key, int x, int y);
-    void displayMenuString(int no, char* msg, int* l, int* sizeMax,
-                           int type, void* value);
+    void menuKeyboard(unsigned char key, E_Int x, E_Int y);
+    void menuArrows(E_Int key, E_Int x, E_Int y);
+    void displayMenuString(E_Int no, char* msg, E_Int* l, E_Int* sizeMax,
+                           E_Int type, void* value);
     void changeMenuItemRight();
     void changeMenuItemLeft();
     void changeMenuItemSpaceBar();
@@ -533,21 +531,21 @@ public:
     void loadPlugins();
     void loadPluginsPath();
     void autoPlugins();
-    int checkVariable(int zone, const char* varName);
+    int checkVariable(E_Int zone, const char* varName);
     void findBlankedZones();
     void dumpWindow();
-    char* export2Image(int exportWidth, int exportHeight);
-    void superSample(int w, int h, char* im1, char* im2, int factor);
-    void gaussianBlur(int w, int h, char* im1, char* im2, int r, double eps);
-    void mixImages(int w, int h, char* im1, char* im2, 
+    char* export2Image(E_Int exportWidth, E_Int exportHeight);
+    void superSample(E_Int w, E_Int h, char* im1, char* im2, E_Int factor);
+    void gaussianBlur(E_Int w, E_Int h, char* im1, char* im2, E_Int r, double eps);
+    void mixImages(E_Int w, E_Int h, char* im1, char* im2, 
                    double alpha, double beta);
-    void sharpenImage(int w, int h, char* im1, char* im2, double amount,
-                      int radius, int threshold);
+    void sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
+                      E_Int radius, E_Int threshold);
     void exportFile();
     void finalizeExport();
-    void dataMouseClickSelect(int button, int etat, int x, int y, 
-                              int multiple, int accurate);
-    void dataMouseRightClickSelect(int button, int etat, int x, int y);
+    void dataMouseClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y, 
+                              E_Int multiple, E_Int accurate);
+    void dataMouseRightClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y);
 
     // Clipping
     void farClipping();
@@ -557,50 +555,50 @@ public:
     void adaptiveClipping(double d);
 
     // Tools
-    inline int isBlanked( Zone& zone, int zonet, int n1, int n2, int n3 ) {
-      int ret1 = _pref.blanking->f(this, n1, zone.blank, zonet);
-      int ret2 = _pref.blanking->f(this, n2, zone.blank, zonet);
-      int ret3 = _pref.blanking->f(this, n3, zone.blank, zonet);
+    inline int isBlanked( Zone& zone, E_Int zonet, E_Int n1, E_Int n2, E_Int n3 ) {
+      E_Int ret1 = _pref.blanking->f(this, n1, zone.blank, zonet);
+      E_Int ret2 = _pref.blanking->f(this, n2, zone.blank, zonet);
+      E_Int ret3 = _pref.blanking->f(this, n3, zone.blank, zonet);
       return (ret1*ret2*ret3 != 0 ? 1 : 0);
     }
 
-    inline int isBlanked( Zone& zone, int zonet, int n1, int n2, int n3, int n4 ) {
-      int ret1 = _pref.blanking->f(this, n1, zone.blank, zonet);
-      int ret2 = _pref.blanking->f(this, n2, zone.blank, zonet);
-      int ret3 = _pref.blanking->f(this, n3, zone.blank, zonet);
-      int ret4 = _pref.blanking->f(this, n3, zone.blank, zonet);
+    inline int isBlanked( Zone& zone, E_Int zonet, E_Int n1, E_Int n2, E_Int n3, E_Int n4 ) {
+      E_Int ret1 = _pref.blanking->f(this, n1, zone.blank, zonet);
+      E_Int ret2 = _pref.blanking->f(this, n2, zone.blank, zonet);
+      E_Int ret3 = _pref.blanking->f(this, n3, zone.blank, zonet);
+      E_Int ret4 = _pref.blanking->f(this, n3, zone.blank, zonet);
       return (ret1*ret2*ret3*ret4 != 0 ? 1 : 0);
     }
 
-    unsigned long numberOfNonBlankedCells( UnstructZone& zone, int zonet );
+    unsigned long numberOfNonBlankedCells( UnstructZone& zone, E_Int zonet );
 
-    int _font1Size; // size of font1
-    int _font2Size; // size of font2
-    int _font3Size; // size of font3
+    E_Int _font1Size; // size of font1
+    E_Int _font2Size; // size of font2
+    E_Int _font3Size; // size of font3
     OpenGLText* _oglText1; // texture font ptr
     OpenGLText* _oglText2; // texture font ptr
     OpenGLText* _oglText3; // texture font ptr
     
  protected:
-    virtual void freeGPUResources( int mode, int start, int end, int permanent );
-    virtual void updateGPUResources( int mode, int size, int permanent, void* updatedPointer );
+    virtual void freeGPUResources( E_Int mode, E_Int start, E_Int end, E_Int permanent );
+    virtual void updateGPUResources( E_Int mode, E_Int size, E_Int permanent, void* updatedPointer );
     virtual ZoneImpl* createZoneImpl( ) = 0;
 };
 
 // global functions
 void gdisplay();
 void fdisplay();
-void reshape(int w, int h);
-void gkeyboard(unsigned char key, int x, int y);
-void gkeyboardup(int key, int x, int y);
-void garrows(int key, int x, int y);
+void reshape(E_Int w, E_Int h);
+void gkeyboard(unsigned char key, E_Int x, E_Int y);
+void gkeyboardup(E_Int key, E_Int x, E_Int y);
+void garrows(E_Int key, E_Int x, E_Int y);
 void gidle();
-void gtimer(int val);
-void gmouseButton(int button, int etat, int x, int y);
-void gmouseMotion(int x, int y);
-void gmousePassiveMotion(int x, int y);
-void gmenuKeyboard(unsigned char key, int x, int y);
-void gmenuArrows(int key, int x, int y);
+void gtimer(E_Int val);
+void gmouseButton(E_Int button, E_Int etat, E_Int x, E_Int y);
+void gmouseMotion(E_Int x, E_Int y);
+void gmousePassiveMotion(E_Int x, E_Int y);
+void gmenuKeyboard(unsigned char key, E_Int x, E_Int y);
+void gmenuArrows(E_Int key, E_Int x, E_Int y);
 
 // frustum
 void computeFrustumPlanes(ViewInfo& view);

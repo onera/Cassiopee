@@ -107,21 +107,21 @@
   glVertex3d(x[n6], y[n6], z[n6]);
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
-  int n1s, n2s, n3s, n4s;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
+  E_Int n1s, n2s, n3s, n4s;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
-  int nistepj = ni*stepj;
-  int nijstepk = nij*stepk;
+  E_Int nij = ni*nj;
+  E_Int nistepj = ni*stepj;
+  E_Int nijstepk = nij*stepk;
   
-  int nim = MIN(ni, 2);
-  int njm = MIN(nj, 2);
-  int nkm = MIN(nk, 2);
-  int nbElti = nj*nk*nim;
-  int nbEltj = ni*nk*njm;
-  int nbEltk = ni*nj*nkm;
+  E_Int nim = MIN(ni, E_Int(2));
+  E_Int njm = MIN(nj, E_Int(2));
+  E_Int nkm = MIN(nk, E_Int(2));
+  E_Int nbElti = nj*nk*nim;
+  E_Int nbEltj = ni*nk*njm;
+  E_Int nbEltk = ni*nj*nkm;
 
   double* x = zonep->x;
   double* y = zonep->y;
@@ -532,7 +532,7 @@
   {
     glPolygonOffset(-1.,-10.); // force offset
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;

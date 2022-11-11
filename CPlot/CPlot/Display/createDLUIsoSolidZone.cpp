@@ -32,9 +32,9 @@
 void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
 				    int nofield)
 {  
-  int i, n1, n2, n3, n4;
+  E_Int i, n1, n2, n3, n4;
   float r, g, b, offb;
-  int ret1, ret2, ret3, ret4, ff;
+  E_Int ret1, ret2, ret3, ret4, ff;
   offb = 0.;
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
 
@@ -56,9 +56,9 @@ void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet,
 void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
 				    int nofield1, int nofield2, int nofield3)
 {  
-  int i, n1, n2, n3, n4;
+  E_Int i, n1, n2, n3, n4;
   float r, g, b, offb;
-  int ret1, ret2, ret3, ret4, ff;
+  E_Int ret1, ret2, ret3, ret4, ff;
   offb = 0.;
 
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);

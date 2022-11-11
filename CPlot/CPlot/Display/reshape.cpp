@@ -35,7 +35,6 @@ void reshape(int w, int h)
   // Set view angle here
   d->_view.tang = tan(ANG2RAD * d->_view.angle * 0.5);
   d->farClipping();
-
 }
 
 //=============================================================================

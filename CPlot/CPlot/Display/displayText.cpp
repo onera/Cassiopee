@@ -74,7 +74,7 @@ void* Data::getGlutFont(int fontSize)
 int Data::textWidth1(int fontSize, char* string)
 {
   void* font = getGlutFont(fontSize);
-  int l = 0;
+  E_Int l = 0;
   char* c;
   for (c = string; *c != '\0'; c++) 
   {
@@ -108,7 +108,7 @@ void Data::renderBitmapString1(float x, float y, float z,
   void* font = getGlutFont(fontSize);
   glColor4f(colorR, colorG, colorB, colorA);
   glRasterPos3f(x, y, z);
-  int i = 0;
+  E_Int i = 0;
   while (myString[i] != '\0')
   {
     glutBitmapCharacter(font, myString[i]); i++;
@@ -129,7 +129,7 @@ void Data::renderBitmapString1(float x, float y, float z,
 //==============================================================================
 void Data::renderStringWithShadow(
   float x, float y, float z,
-  int fontSize, char *myString,
+  E_Int fontSize, char *myString,
   float fgColorR, float fgColorG, float fgColorB, float fgColorA,
   float shColorR, float shColorG, float shColorB, float shColorA,
   double offtx, double offty, double offtz,
@@ -154,7 +154,7 @@ void Data::renderStringWithShadow(
   
   // segmente la string en mots
   char msg[1024];
-  int i = 0; int j = 0; int w = 0;
+  E_Int i = 0; E_Int j = 0; E_Int w = 0;
   while (myString[j] != '\0')
   {
     if (myString[j] == '@')
@@ -533,11 +533,11 @@ void Data::displayInfoWindow(char* text, int l)
   glLoadIdentity();
 
   // Render a string with newline
-  int ls = l-20;
-  int i1 = 0; // on text
-  int i2 = 0; // on msg
+  E_Int ls = l-20;
+  E_Int i1 = 0; // on text
+  E_Int i2 = 0; // on msg
   char c = text[i1];
-  int w = 0;
+  E_Int w = 0;
   while (c != '\0')
   {
     if (c == '\n')
@@ -605,11 +605,11 @@ void Data::displayInfo()
   char msg[1024]; char temp[512]; char local[512];
 
   // Nombre de champs
-  int nv = 0;
+  E_Int nv = 0;
   if (_numberOfZones > 0) nv = _zones[0]->nfield;
 
   // Nombre de lignes a afficher
-  int nlignes = 0;
+  E_Int nlignes = 0;
 
   // Display info on position (cam) (if no selected point)
   sprintf(msg, " ");
@@ -764,11 +764,11 @@ void Data::displayInfo()
     {
       strcat(msg, "\n");
       
-      int count = 0;
+      E_Int count = 0;
       
       if (nv < 10) // moins de 10 variables, on affiche tout
       {
-        for (int i = 0; i < nv; i++)
+        for (E_Int i = 0; i < nv; i++)
         {
           if (i == ptrState->scalarField && ptrState->mode != MESH && ptrState->mode != SOLID)
             sprintf(temp, "@1%s=%g@0",  
@@ -786,7 +786,7 @@ void Data::displayInfo()
       }
       else // on affiche le debut et autour de la variable courante
       {
-        int tp[10];
+        E_Int tp[10];
         if (ptrState->scalarField < 2)
         {
           tp[0] = 0; tp[1] = 1; tp[2] = 2; tp[3] = 3; tp[4] = 4; tp[5] = 5;
@@ -807,9 +807,9 @@ void Data::displayInfo()
           tp[6] = nv-4; 
           tp[7] = nv-3; tp[8] = nv-2; tp[9] = nv-1;
         }
-        for (int i = 0; i < 10; i++)
+        for (E_Int i = 0; i < 10; i++)
         {
-          int tt = tp[i];
+          E_Int tt = tp[i];
           if (tt != -1)
           {
             if (tp[i] == ptrState->scalarField && ptrState->mode != MESH && ptrState->mode != SOLID)
@@ -878,7 +878,7 @@ OpenGLText* Data::getOpenGLText(int fontSize)
   else pt = _oglText3;
   
   if (pt != NULL) return pt;
-  int canvasWidth = _view.w; int canvasHeight = _view.h;
+  E_Int canvasWidth = _view.w; E_Int canvasHeight = _view.h;
   pt = new OpenGLText();
   
   if (fontSize == _font1Size) _oglText1 = pt;
@@ -908,14 +908,14 @@ void Data::renderBitmapString2(float x, float y, float z,
   OpenGLText* pt = getOpenGLText(fontSize);
   OpenGLText& oglText = *pt;
   
-  int canvasWidth = _view.w; int canvasHeight = _view.h;
+  E_Int canvasWidth = _view.w; E_Int canvasHeight = _view.h;
   oglText.changeSize(canvasWidth, canvasHeight);
   oglText.changeCanvas(canvasWidth, canvasHeight);
   
   oglText.backupStates();
 
   // render string
-  int posX = x; int posY = _view.h-1-y;
+  E_Int posX = x; E_Int posY = _view.h-1-y;
   oglText.beginString();
   //float bbStr[2];
   //oglText.stringSize(myString, bbStr);

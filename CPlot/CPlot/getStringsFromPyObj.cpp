@@ -26,8 +26,8 @@
 int getStringsFromPyObj(PyObject* obj, std::vector<char*>& strings)
 {
   if (PyList_Check(obj) == false) return 0; // failed
-  int l = PyList_Size(obj);
-  for (int i = 0; i < l; i++)
+  E_Int l = PyList_Size(obj);
+  for (E_Int i = 0; i < l; i++)
   {
     PyObject* o = PyList_GetItem(obj, i);
     if (PyString_Check(o))

@@ -19,7 +19,7 @@
 
 #include "Data.h"
 
-void gmouseButton(int button, int etat, int x, int y)
+void gmouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
 {
   Data* d = Data::getInstance();
   d->mouseButton(button, etat, x, y);
@@ -29,7 +29,7 @@ void gmouseMotion(int x, int y)
   Data* d = Data::getInstance();
   d->mouseMotion(x, y);
 }
-void gmousePassiveMotion(int x, int y)
+void gmousePassiveMotion(E_Int x, E_Int y)
 {
   Data* d = Data::getInstance();
   d->mousePassiveMotion(x, y);
@@ -43,10 +43,10 @@ void gmousePassiveMotion(int x, int y)
    Clicking selects the active mouse plugin.
 */
 //=============================================================================
-void Data::mouseButton(int button, int etat, int x, int y)
+void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
 {
   if (etat == 1) { ptrState->currentMouseButton = 5; return; } // button released
-  int modif = glutGetModifiers();
+  E_Int modif = glutGetModifiers();
   ptrState->render = 1;
 
   switch (button)
@@ -63,7 +63,7 @@ void Data::mouseButton(int button, int etat, int x, int y)
           double dx = _view.xcam-_view.xeye;
           double dy = _view.ycam-_view.yeye;
           double dz = _view.zcam-_view.zeye;
-          int suiviDir = -1;
+          E_Int suiviDir = -1;
           if (fabs(dx) < 1.e-6 && fabs(dy) < 1.e-6) suiviDir = 1; // xy
           else if (fabs(dx) < 1.e-6 && fabs(dz) < 1.e-6) suiviDir = 2; // xz
           else if (fabs(dy) < 1.e-6 && fabs(dz) < 1.e-6) suiviDir = 3; // yz
@@ -187,7 +187,7 @@ void Data::mouseButton(int button, int etat, int x, int y)
 }
 
 //=============================================================================
-void Data::mouseMotion(int x, int y)
+void Data::mouseMotion(E_Int x, E_Int y)
 {
   // Mouvement de la souris + shift = selection par BBOX
   if (ptrState->modifier == GLUT_ACTIVE_SHIFT) { mouseDrag(x, y); return;}
@@ -359,7 +359,7 @@ void Data::mouseMotion(int x, int y)
 //=============================================================================
 // Appele quand la souris se balade dans la fenetre sans cliquer
 //=============================================================================
-void Data::mousePassiveMotion(int x, int y)
+void Data::mousePassiveMotion(E_Int x, E_Int y)
 {
   //printf("Mouse passive motion triggered.\n");
   //fdisplay();
@@ -368,7 +368,7 @@ void Data::mousePassiveMotion(int x, int y)
 //=============================================================================
 // Appele quand la souris est presse + motion
 //=============================================================================
-void Data::mouseDrag(int x, int y)
+void Data::mouseDrag(E_Int x, E_Int y)
 {
   if (ptrState->render == 1) return; // attend que le render se fasse
   GLint viewport[4];
@@ -392,7 +392,7 @@ void Data::mouseDrag(int x, int y)
     ptrState->currentMousePosZ = posZ;
 
     // coloriage
-    int zone, ind, indE, ret;
+    E_Int zone, ind, indE, ret;
     double dist;
     ret = findBlockContaining(posX, posY, posZ,
                               zone, ind, indE, 

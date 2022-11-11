@@ -68,22 +68,22 @@ void Data::colorString2RGB(char* color, float& colorR, float& colorG, float& col
 //=============================================================================
 void Data::codeFromRenderTag(Zone& z, char* tag, 
                              float& colorR, float& colorG, float& colorB,
-                             int& material, double& blending, int& meshOverlay,
+                             E_Int& material, double& blending, E_Int& meshOverlay,
                              float& shaderParam1, float& shaderParam2)
 {
   colorR = -1.; colorG = -1.; colorB = -1.; material = -1; blending = -1.;
   meshOverlay = 0; shaderParam1 = 1.; shaderParam2 = 1.;
 
   if (tag == NULL) return;
-  int c = tag[0];
+  E_Int c = tag[0];
   char color[256];
   char mat[256];
   char temp[256];
-  int isoColor = 0;
-  int l;
+  E_Int isoColor = 0;
+  E_Int l;
 
   // Get color
-  int i = 0;
+  E_Int i = 0;
   while (c != '\0' && c != ':')
   {
     color[i] = c; i++; c = tag[i];
@@ -111,7 +111,7 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
   }
 
   // Get Material
-  int j = 0;
+  E_Int j = 0;
   if (c == '\0') // material missing
     strcpy(mat, "None");
   else
@@ -180,7 +180,7 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
   else
   { // iso color
     colorR = 1.; colorG = 0.; colorB = 0.;
-    for (int n = 0; n < z.nfield; n++)
+    for (E_Int n = 0; n < z.nfield; n++)
     {
       if (K_STRING::cmp(z.varnames[n], color) == 0) { colorR = -n-2; break;}
     }

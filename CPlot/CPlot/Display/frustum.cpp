@@ -160,9 +160,9 @@ void computeFrustumPlanes(ViewInfo& view)
 // Return 1 if zone is in frustum
 // 0 otherwise
 //=============================================================================
-int isInFrustum(Zone* z, ViewInfo& view)
+E_Int isInFrustum(Zone* z, ViewInfo& view)
 {
-  int out;
+  E_Int out;
   double dist1, dist2, dist3, dist4;
 
   // Bounding box of zone
@@ -200,7 +200,7 @@ int isInFrustum(Zone* z, ViewInfo& view)
   double bottomNz = view.BottomNz;
 
   // all points in
-  for (int k = 0; k < 8; k++)
+  for (E_Int k = 0; k < 8; k++)
   {
     dist1 = leftNx*bbx[k] + leftNy*bby[k] + leftNz*bbz[k] + leftD;
     dist2 = rightNx*bbx[k] + rightNy*bby[k] + rightNz*bbz[k] + rightD;
@@ -211,7 +211,7 @@ int isInFrustum(Zone* z, ViewInfo& view)
 
   // all points left of left plane
   out = 0;
-  for (int k = 0; k < 8; k++)
+  for (E_Int k = 0; k < 8; k++)
   {
     dist1 = leftNx*bbx[k] + leftNy*bby[k] + leftNz*bbz[k] + leftD;
     if (dist1 < -TOL) out++;
@@ -220,7 +220,7 @@ int isInFrustum(Zone* z, ViewInfo& view)
   
   // all points roght of righ plane
   out = 0;
-  for (int k = 0; k < 8; k++)
+  for (E_Int k = 0; k < 8; k++)
   {
     dist2 = rightNx*bbx[k] + rightNy*bby[k] + rightNz*bbz[k] + rightD;
     if (dist2 < -TOL) out++;
@@ -229,7 +229,7 @@ int isInFrustum(Zone* z, ViewInfo& view)
   
   // all points top of top plane
   out = 0;
-  for (int k = 0; k < 8; k++)
+  for (E_Int k = 0; k < 8; k++)
   {
     dist3 = topNx*bbx[k] + topNy*bby[k] + topNz*bbz[k] + topD;
     if (dist3 < -TOL) out++;
@@ -238,7 +238,7 @@ int isInFrustum(Zone* z, ViewInfo& view)
   
   // all points bottom of bottom plane
   out = 0;
-  for (int k = 0; k < 8; k++)
+  for (E_Int k = 0; k < 8; k++)
   {
     dist4 = bottomNx*bbx[k] + bottomNy*bby[k] + bottomNz*bbz[k] + bottomD;
     if (dist4 < -TOL) out++;

@@ -30,7 +30,7 @@
 #endif
 
 //=============================================================================
-Zone::Zone( CPlotState* states, ZoneImpl* impl ) : ptr_impl(impl)
+Zone::Zone(CPlotState* states, ZoneImpl* impl) : ptr_impl(impl)
 {
   dim = 3;
   nfield = 0;
@@ -60,12 +60,12 @@ Zone::~Zone()
   if (surf != NULL) delete [] surf;
   if (f != NULL)
   {
-    for (int i = 0; i < nfield; i++) delete [] f[i];
+    for (E_Int i = 0; i < nfield; i++) delete [] f[i];
     delete [] f;
   }
   if (varnames != NULL)
   {
-    for (int i = 0; i < nfield; i++) delete [] varnames[i];
+    for (E_Int i = 0; i < nfield; i++) delete [] varnames[i];
     delete [] varnames;
   }
   if (minf != NULL) delete [] minf;
@@ -79,10 +79,9 @@ Zone::~Zone()
   delete ptr_impl;
 }
 // ------------------------------------------------------------------------
-void
-Zone::freeGPURessources( bool useGPURessources, bool freeIso )
+void Zone::freeGPURessources(bool useGPURessources, bool freeIso)
 {
-  ptr_impl->freeGPURes( ptrState, freeIso );
-  if ( useGPURessources ) setUseGPURessources();
+  ptr_impl->freeGPURes(ptrState, freeIso);
+  if (useGPURessources) setUseGPURessources();
   else unsetUseGPURessources();
 }

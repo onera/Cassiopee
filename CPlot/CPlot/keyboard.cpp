@@ -21,14 +21,14 @@
 #include <math.h>
 
 // Global keyboard function
-void gkeyboard(unsigned char key, int x, int y)
+void gkeyboard(unsigned char key, E_Int x, E_Int y)
 {
   Data* d = Data::getInstance();
   d->keyboard(key, x, y);
 }
 
 // Global keyboard up function
-void gkeyboardup(int key, int x, int y)
+void gkeyboardup(E_Int key, E_Int x, E_Int y)
 {
   CPlotState* ptrState = Data::getInstance()->ptrState;
   if (ptrState->kkeysActivated == 0)
@@ -46,7 +46,7 @@ void gkeyboardup(int key, int x, int y)
 }
 
 // Global arrows function
-void garrows(int key, int x, int y)
+void garrows(E_Int key, E_Int x, E_Int y)
 {
   Data* d = Data::getInstance();
   d->arrows(key, x, y);
@@ -56,11 +56,11 @@ void garrows(int key, int x, int y)
 // Keyboards calls
 //=============================================================================
 // Branche les differents appels pour le clavier
-void Data::keyboard(unsigned char key, int x, int y)
+void Data::keyboard(unsigned char key, E_Int x, E_Int y)
 {
   //printf("normal key: %d\n", key);
-  int nv;
-  int stateHeader, stateInfo, stateMenu, stateBB;
+  E_Int nv;
+  E_Int stateHeader, stateInfo, stateMenu, stateBB;
   double alpha = 0.04;
   double dx = (_view.xeye-_view.xcam)*alpha;
   double dy = (_view.yeye-_view.ycam)*alpha;
@@ -69,7 +69,7 @@ void Data::keyboard(unsigned char key, int x, int y)
   double dirx = _view.dirx;
   double diry = _view.diry;
   double dirz = _view.dirz;
-  int modif = glutGetModifiers();
+  E_Int modif = glutGetModifiers();
 
   ptrState->render = 1;
 
@@ -255,7 +255,7 @@ void Data::keyboard(unsigned char key, int x, int y)
     {
       PyEval_RestoreThread(_save);
       char com[1024];
-      int l = strlen(ptrState->file); char *p = ptrState->file;
+      E_Int l = strlen(ptrState->file); char *p = ptrState->file;
       if (l > 5 && p[l-1] == 's' && p[l-2] == 'n' && p[l-3] == 'g' 
           && p[l-4] == 'c' && p[l-5] == '.')
         sprintf(com, "import Converter.PyTree; import CPlot.PyTree; kpl = Converter.PyTree.convertFile2PyTree('%s'); CPlot.PyTree.display(kpl)",
@@ -305,8 +305,7 @@ void Data::keyboard(unsigned char key, int x, int y)
         else
         {
           struct chain_int* ci = ptrState->deactivatedZones;
-          while (ci->next != NULL)
-            ci = ci->next;
+          while (ci->next != NULL) ci = ci->next;
           ci->next = (struct chain_int*)malloc(sizeof(struct chain_int));
           ci = ci->next;
           ci->value = ptrState->selectedZone;
@@ -385,14 +384,14 @@ void Data::keyboard(unsigned char key, int x, int y)
 //=============================================================================
 // Branche les appels suivants les fleches
 //=============================================================================
-void Data::arrows(int key, int x, int y)
+void Data::arrows(E_Int key, E_Int x, E_Int y)
 {
   double alpha = 0.07;
   double dx = (_view.xeye - _view.xcam)*alpha;
   double dy = (_view.yeye - _view.ycam)*alpha;
   double dz = (_view.zeye - _view.zcam)*alpha;
   double d = sqrt(dx*dx + dy*dy + dz*dz);
-  int modif = glutGetModifiers();
+  E_Int modif = glutGetModifiers();
   double dirx = _view.dirx;
   double diry = _view.diry;
   double dirz = _view.dirz;
@@ -1017,11 +1016,11 @@ void Data::strafeLeft(double alpha, double dx, double dy, double dz, double d,
 //=============================================================================
 void Data::changeIPlanePlus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1044,11 +1043,11 @@ void Data::changeIPlanePlus()
 //=============================================================================
 void Data::changeJPlanePlus()
 {
-  int modif = glutGetModifiers();
-  int*  changed = new int [_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1071,11 +1070,11 @@ void Data::changeJPlanePlus()
 //=============================================================================
 void Data::changeKPlanePlus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1098,11 +1097,11 @@ void Data::changeKPlanePlus()
 //=============================================================================
 void Data::changeIPlaneMinus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1124,11 +1123,11 @@ void Data::changeIPlaneMinus()
 //=============================================================================
 void Data::changeJPlaneMinus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1150,11 +1149,11 @@ void Data::changeJPlaneMinus()
 //=============================================================================
 void Data::changeKPlaneMinus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)

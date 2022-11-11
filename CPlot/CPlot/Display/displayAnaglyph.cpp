@@ -178,8 +178,8 @@ void Data::displayAnaglyph()
   // Je pense qu'il faudrait le faire tout le temps
   if (_shaders.currentShader() == _shaders.shader_id(3))
   {
-     int w = _view.w;
-     int h = _view.h;
+     E_Int w = _view.w;
+     E_Int h = _view.h;
      w = w < _frameBufferSize[ptrState->frameBuffer] ? w : (int) _frameBufferSize[ptrState->frameBuffer];
      h = h < _frameBufferSize[ptrState->frameBuffer] ? h : (int) _frameBufferSize[ptrState->frameBuffer];
     glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]);

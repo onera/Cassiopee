@@ -29,7 +29,7 @@ void Data::displaySEdges()
   if (_numberOfStructZones == 0) return;
   if (ptrState->edgifyDeactivatedZones == 0 && ptrState->edgifyActivatedZones == 0)
     return;
-  int zone;
+  E_Int zone;
 
   glColor4f(0.8, 0.8, 0.8, 1.);
   glEnable(GL_BLEND);
@@ -48,16 +48,16 @@ void Data::displaySEdges()
           (zonep->active == 0 && ptrState->edgifyDeactivatedZones == 1))
         
       {
-        int ni, nj, nk, n1;
+        E_Int ni, nj, nk, n1;
         ni = zonep->ni; nj = zonep->nj; nk = zonep->nk;
         if (ptrState->dim == 2) nk = 1;
-        int ni1 = ni-1; int nj1 = nj-1; int nk1 = nk-1; 
-        int nij = ni*nj;
+        E_Int ni1 = ni-1; E_Int nj1 = nj-1; E_Int nk1 = nk-1; 
+        E_Int nij = ni*nj;
         double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
 
         // ligne 1
         glBegin(GL_LINE_STRIP);
-        for (int i = 0; i < ni; i++) 
+        for (E_Int i = 0; i < ni; i++) 
         { n1 = i; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
 
@@ -69,61 +69,61 @@ void Data::displaySEdges()
 
         // ligne 3
         glBegin(GL_LINE_STRIP);
-        for (int i = 0; i < ni; i++) 
+        for (E_Int i = 0; i < ni; i++) 
         { n1 = i+nk1*nij; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
 
         // ligne 4
         glBegin(GL_LINE_STRIP);
-        for (int i = 0; i < ni; i++) 
+        for (E_Int i = 0; i < ni; i++) 
         { n1 = i+nj1*ni+nk1*nij; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
 
         // ligne 5
         glBegin(GL_LINE_STRIP);
-        for (int j = 0; j < nj; j++) 
+        for (E_Int j = 0; j < nj; j++) 
         { n1 = j*ni; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
         
         // ligne 6
         glBegin(GL_LINE_STRIP);
-        for (int j = 0; j < nj; j++) 
+        for (E_Int j = 0; j < nj; j++) 
         { n1 = ni1+j*ni; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
         
         // ligne 7
         glBegin(GL_LINE_STRIP);
-        for (int j = 0; j < nj; j++) 
+        for (E_Int j = 0; j < nj; j++) 
         { n1 = j*ni+nk1*nij; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
 
         // ligne 8
         glBegin(GL_LINE_STRIP);
-        for (int j = 0; j < nj; j++) 
+        for (E_Int j = 0; j < nj; j++) 
         { n1 = ni1+j*ni+nk1*nij; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
 
         // ligne 9
         glBegin(GL_LINE_STRIP);
-        for (int k = 0; k < nk; k++) 
+        for (E_Int k = 0; k < nk; k++) 
         { n1 = k*nij; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
 
         // ligne 10
         glBegin(GL_LINE_STRIP);
-        for (int k = 0; k < nk; k++) 
+        for (E_Int k = 0; k < nk; k++) 
         { n1 = ni1+k*nij; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
 
         // ligne 11
         glBegin(GL_LINE_STRIP);
-        for (int k = 0; k < nk; k++) 
+        for (E_Int k = 0; k < nk; k++) 
         { n1 = nj1*ni+k*nij; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
 
         // ligne 12
         glBegin(GL_LINE_STRIP);
-        for (int k = 0; k < nk; k++) 
+        for (E_Int k = 0; k < nk; k++) 
         { n1 = ni1+nj1*ni+k*nij; glVertex3d(x[n1], y[n1], z[n1]); }
         glEnd();
       }
@@ -136,4 +136,3 @@ void Data::displaySEdges()
   ptrState->alpha = 1.; 
   glColor3f(1., 1., 1.);
 }
-

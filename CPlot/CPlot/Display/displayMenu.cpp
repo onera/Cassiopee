@@ -26,8 +26,8 @@
 void Data::displayMenu()
 {
 #define NMENU 4
-  int pos, posn, i, l;
-  int width[NMENU];
+  E_Int pos, posn, i, l;
+  E_Int width[NMENU];
 
   setOrthographicProjection();
   glPushMatrix();
@@ -67,8 +67,8 @@ void Data::displayMenu()
 //=============================================================================
 void Data::displayDimensionMenu(int* x)
 {
-  int posx = *x + 4;
-  int posy = _view.h - 20;
+  E_Int posx = *x + 4;
+  E_Int posy = _view.h - 20;
 
   switch (ptrState->dim)
   {
@@ -96,8 +96,8 @@ void Data::displayDimensionMenu(int* x)
 void Data::displayVariableMenu(int* x)
 {
   char msg[30];
-  int posx = *x + 4;
-  int posy = _view.h - 20;
+  E_Int posx = *x + 4;
+  E_Int posy = _view.h - 20;
 
   switch (ptrState->mode)
   {
@@ -144,8 +144,8 @@ void Data::displayVariableMenu(int* x)
 void Data::displayAxisMenu(int* x)
 {
   char msg[30];
-  int posx = *x + 4;
-  int posy = _view.h - 20;
+  E_Int posx = *x + 4;
+  E_Int posy = _view.h - 20;
 
   if (ptrState->dim != 1)
   {
@@ -201,11 +201,11 @@ void Data::displayAxisMenu(int* x)
 void Data::displayZoneMenu(int* x)
 {
   char msg[100];
-  int posx = *x + 4;
-  int posy = _view.h - 20;
+  E_Int posx = *x + 4;
+  E_Int posy = _view.h - 20;
   if (ptrState->selectedZone > 0)
   {
-    int nz = ptrState->selectedZone-1;
+    E_Int nz = ptrState->selectedZone-1;
     strcpy(msg, _zones[nz]->zoneName);
   }
   else

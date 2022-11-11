@@ -99,23 +99,23 @@ int Data::initZoneData(
   }
 
   // Recuperation des precedents pointeurs
-  int numberOfStructZonesp = _numberOfStructZones;
-  int numberOfUnstructZonesp = _numberOfUnstructZones;
+  E_Int numberOfStructZonesp = _numberOfStructZones;
+  E_Int numberOfUnstructZonesp = _numberOfUnstructZones;
   Zone** zonesp = _zones;
   StructZone** szonesp = _szones;
   UnstructZone** uzonesp = _uzones;
 
   // Remplissage du container de donnees
-  int numberOfStructZones = structF.size();
-  int numberOfUnstructZones = unstrF.size();
-  int numberOfZones = numberOfStructZones + numberOfUnstructZones;
+  E_Int numberOfStructZones = structF.size();
+  E_Int numberOfUnstructZones = unstrF.size();
+  E_Int numberOfZones = numberOfStructZones + numberOfUnstructZones;
   Zone** zones = (Zone**)malloc(numberOfZones*sizeof(Zone*));
   StructZone** szones = (StructZone**)malloc(numberOfStructZones*
                                              sizeof(StructZone*));
   UnstructZone** uzones = (UnstructZone**)malloc(numberOfUnstructZones*
                                                  sizeof(UnstructZone*));
-  int zoneNamesSize = zoneNames.size();
-  int zoneTagsSize = zoneTags.size();
+  E_Int zoneNamesSize = zoneNames.size();
+  E_Int zoneTagsSize = zoneTags.size();
   char zoneName[MAXSTRINGLENGTH];
   char* zTags;
 
@@ -296,7 +296,7 @@ int Data::initZoneData(
   globFMinMax(_zones, _numberOfZones, minf, maxf);
   
   // Free the previous
-  int i;
+  E_Int i;
   for (i = 0; i < numberOfStructZonesp; i++) delete szonesp[i];
   for (i = 0; i < numberOfUnstructZonesp; i++) delete uzonesp[i];
   if (szonesp != NULL) free(szonesp);

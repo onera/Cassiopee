@@ -106,13 +106,13 @@
 //=============================================================================
 void UnstructZone::compNorm()
 {
-  int i, n1, n2, n3, n4;
+  E_Int i, n1, n2, n3, n4;
   double x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3;
   double vx1, vy1, vz1, vx2, vy2, vz2, vx, vy, vz;
   float normi;
 
-  int ne2 = 2*ne;
-  int ne3 = 3*ne;
+  E_Int ne2 = 2*ne;
+  E_Int ne3 = 3*ne;
 
   // TRI: stocke en vertex + lissage gouraud
   if (eltType == 2)
@@ -354,14 +354,14 @@ void UnstructZone::compNorm()
   // NGON
   else if (eltType == 10)
   {
-    int nf = connect[0];
+    E_Int nf = connect[0];
     surf = new float[nf * 3];
 
     float* surfx = surf;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
-    int c = 2;
-    int nd, l;
+    E_Int c = 2;
+    E_Int nd, l;
     float inv, vxm, vym, vzm, xc, yc, zc;
 
     for (i = 0; i < nf; i++)
@@ -400,15 +400,15 @@ void UnstructZone::compNorm()
     // Correction pour elements 2D (prise en compte d'un seul triangle)
     for (i = 0; i < nelts2D; i++)
     {
-      int elt = posElts2D[i];
-      int* ptrelt = &connect[elt];
-      int nf = ptrelt[0];
-      int face;
-      int* ptrface;
+      E_Int elt = posElts2D[i];
+      E_Int* ptrelt = &connect[elt];
+      E_Int nf = ptrelt[0];
+      E_Int face;
+      E_Int* ptrface;
 
       // barycentre de l'element
       xc = 0.; yc = 0.; zc = 0.;
-      for (int j = 0; j < nf; j++)
+      for (E_Int j = 0; j < nf; j++)
       {
         face = ptrelt[j+1]-1;
         ptrface = &connect[posFaces[face]];

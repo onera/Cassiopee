@@ -25,8 +25,8 @@
 //=============================================================================
 void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
 {
-    int i, n1, n2, n3, n4, n5, n6, n7, n8;
-    int ret1, ret2, ret3, ret4, f;
+    E_Int i, n1, n2, n3, n4, n5, n6, n7, n8;
+    E_Int ret1, ret2, ret3, ret4, f;
 
     // Style
     float color1[3]; float color2[ 3 ];
@@ -67,7 +67,7 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
         triggerShader(*zonep, zonep->material, s, color1);
 #endif
 
-        int ff=0;
+        E_Int ff=0;
         double offb=0.;
 #undef PLOT
         double* f1 = zonep->texu;

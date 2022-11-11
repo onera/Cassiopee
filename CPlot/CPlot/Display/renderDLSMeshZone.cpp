@@ -56,7 +56,7 @@
 //=============================================================================
 void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
 {
-  int i, ret;
+  E_Int i, ret;
 
   // Style colors
   float color1[3]; float color2[3];
@@ -95,9 +95,9 @@ void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
   double* z = zonep->z;
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
   
   if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) 

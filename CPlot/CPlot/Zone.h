@@ -49,15 +49,15 @@ class Zone
     CPlotState* ptrState;
     char zoneName[MAXSTRINGLENGTH];  // zone name
     
-    int dim;                         // dim = 1, 2 or 3
-    int nfield;                      // Number of variables defined in zone
+    E_Int dim;                       // dim = 1, 2 or 3
+    E_Int nfield;                    // Number of variables defined in zone
                                      // that is 3 (xyz) + nfield
-    int npts;                       // number of vertices
-    double* x;                      // storage of coords of points (x,y,z)
+    E_Int npts;                      // number of vertices
+    double* x;                       // storage of coords of points (x,y,z)
     double* y;
     double* z;
-    double **f;                    // storage of variables (size nf)
-    char** varnames;               // x,y,z + other variables
+    double **f;                      // storage of variables (size nf)
+    char** varnames;                 // x,y,z + other variables
     float* surf;                     // normal to each element
     double xmin, xmax;               // min max of zone coords
     double ymin, ymax; 
@@ -67,16 +67,16 @@ class Zone
     double Di, Dj, Dk;               // Mesh densities
     double xc, yc, zc;                // center of zone (sphere)
     double rc;                        // radius of sphere
-    int active; // if set to 0 the zone is not displayed
-    int selected; // if set to 1 the zone is displayed selected
-    int previouslySelected; // 1 means that zone was selected at previous click
-    int blank; // no blanking (0), otherwise the blanking variable number
+    E_Int active; // if set to 0 the zone is not displayed
+    E_Int selected; // if set to 1 the zone is displayed selected
+    E_Int previouslySelected; // 1 means that zone was selected at previous click
+    E_Int blank; // no blanking (0), otherwise the blanking variable number
 
     char renderTag[MAXSTRINGLENGTH];  // tag for render
     float colorR, colorG, colorB; // color RGB (from tag)
-    int material; // material code (from tag)
+    E_Int material; // material code (from tag)
     double blending; // blending (from tag)
-    int meshOverlay; // 1 if mesh must be overlaid (from tag)
+    E_Int meshOverlay; // 1 if mesh must be overlaid (from tag)
     float shaderParam1, shaderParam2; // shaders param (from tag)
                                   // default value is 1. (can vary in 0-2).
     double* texu; // pointe sur le champ u pour les textures

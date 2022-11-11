@@ -25,7 +25,7 @@
 //=============================================================================
 void Data::displayAllBillBoards()
 {
-  int zone;
+  E_Int zone;
 
   // Enable blending
   glEnable(GL_BLEND);

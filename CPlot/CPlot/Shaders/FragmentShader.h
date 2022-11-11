@@ -27,7 +27,7 @@ namespace CPlot
   {
   public:
     FragmentShader();
-    FragmentShader( const std::string& src );
+    FragmentShader(const std::string& src);
     FragmentShader(const FragmentShader& shader) = delete;
     virtual ~FragmentShader();
 

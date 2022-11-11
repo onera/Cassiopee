@@ -22,7 +22,7 @@
 // Display legend
 // IN: dir: 0=vertical, 1=horizontal
 //=============================================================================
-void Data::displayIsoLegend(int dir)
+void Data::displayIsoLegend(E_Int dir)
 {
   if (ptrState->mode == MESH) return;
   if (ptrState->mode == SOLID) return;
@@ -39,8 +39,8 @@ void Data::displayIsoLegend(int dir)
   void (*getrgb)(Data* data, double, float*, float*, float*);
   getrgb = _pref.colorMap->f;
   double fmax, fmin;
-  int niso = ptrState->niso;
-  int mod = ptrState->scalarField;
+  E_Int niso = ptrState->niso;
+  E_Int mod = ptrState->scalarField;
   if (_niso[mod] == -1)
   {
     fmax = maxf[ptrState->scalarField];
@@ -53,10 +53,10 @@ void Data::displayIsoLegend(int dir)
   }
   double deltai = 1./(niso*1.);
 
-  int x1 = _view.w-30;
-  int y1 = _view.h-2;
-  int x2 = _view.w-2;
-  int y2 = 50;
+  E_Int x1 = _view.w-30;
+  E_Int y1 = _view.h-2;
+  E_Int x2 = _view.w-2;
+  E_Int y2 = 50;
   double delta = (y2-y1)/(niso*1.);
 
   // Rectangle de fond bleu
@@ -75,7 +75,7 @@ void Data::displayIsoLegend(int dir)
 
   // Rectangle des couleurs
   glBegin(GL_QUADS);
-  for (int i = 0; i < niso; i++)
+  for (E_Int i = 0; i < niso; i++)
   {
     getrgb(this, i*deltai, &r, &g, &b);
     glColor4f(r, g, b, 1.);
@@ -93,8 +93,8 @@ void Data::displayIsoLegend(int dir)
   char text[128];
   
   sprintf(text, "%s", _zones[0]->varnames[ptrState->scalarField]);
-  int y = y2-5;
-  int x = x2 - textWidth(_font2Size, text) - 2;
+  E_Int y = y2-5;
+  E_Int x = x2 - textWidth(_font2Size, text) - 2;
   renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
@@ -120,13 +120,13 @@ void Data::displayIsoLegend(int dir)
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
   sprintf(text, FORMAT, 0.25*fmax+0.75*fmin);
-  y = int(0.75*y1+0.25*y2);
+  y = E_Int(0.75*y1+0.25*y2);
   x = x1 - textWidth(_font2Size, text) - 2;
   renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,
                          0.0, 0.0, 0.0, 1.0);
   sprintf(text, FORMAT, 0.75*fmax+0.25*fmin);
-  y = int(0.25*y1+0.75*y2);
+  y = E_Int(0.25*y1+0.75*y2);
   x = x1 - textWidth(_font2Size, text) - 2;
   renderStringWithShadow(x, y, 0, _font2Size, text,
                          1.0, 1.0, 1.0, 1.0,

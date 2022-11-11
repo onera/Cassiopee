@@ -303,7 +303,7 @@ void Data::display()
   if (update == 1)
   {
     // Il faut normalement faire la photo sans les objets glass
-    int w = _view.w; int h = _view.h;
+    E_Int w = _view.w; E_Int h = _view.h;
     w = w < _frameBufferSize[ptrState->frameBuffer] ? w : (int) _frameBufferSize[ptrState->frameBuffer];
     h = h < _frameBufferSize[ptrState->frameBuffer] ? h : (int) _frameBufferSize[ptrState->frameBuffer];
     glActiveTexture(GL_TEXTURE0);
@@ -314,7 +314,7 @@ void Data::display()
 #endif
 
   // Post-processing
-  int post = 0; double sobelThreshold = -0.5; 
+  E_Int post = 0; double sobelThreshold = -0.5; 
   if (ptrState->DOF == 1) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
   if (ptrState->mode == SOLID && ptrState->solidStyle == 4) { post = 1; sobelThreshold = 0.5; }
 

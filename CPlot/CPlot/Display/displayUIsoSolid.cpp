@@ -26,7 +26,7 @@
 //============================================================================
 void DataDL::displayUIsoSolid()
 {
-  int zone, zonet;
+  E_Int zone, zonet;
   if (_numberOfUnstructZones == 0) return;
 
   // Blending

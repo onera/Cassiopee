@@ -123,12 +123,12 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   }
 #endif
 
-  int s = exportWidth*exportHeight;
+  E_Int s = exportWidth*exportHeight;
   unsigned szDepth = 4*s; // Nombre d'octets par pixel si DEPTH32F et STENCIL 8 : 4 bytes pour depth + 1 byte spare + 1 byte stencil
   char* buffer = (char*)malloc(s*3*sizeof(char));
 
   // Switch viewport
-  int viewWSav = _view.w; int viewHSav = _view.h;
+  E_Int viewWSav = _view.w; E_Int viewHSav = _view.h;
   _view.w = exportWidth; _view.h = exportHeight;
   glViewport(0, 0, (GLsizei)exportWidth, (GLsizei)exportHeight);
   _view.ratio = (double)_view.w/(double)_view.h;
@@ -145,7 +145,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   if (ptrState->offscreen == 1) // mesa RGBA
   {
     char* buffRGBA = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer];
-    for (int i = 0; i < s; i++)
+    for (E_Int i = 0; i < s; i++)
     { 
       buffer[3*i] = buffRGBA[4*i];
       buffer[3*i+1] = buffRGBA[4*i+1];
@@ -180,7 +180,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       float* ptd = ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
       double zNear = _view.nearD; 
       double zFar  = _view.farD;
-      for (int i = 0; i < exportHeight*exportWidth; i++)
+      for (E_Int i = 0; i < exportHeight*exportWidth; i++)
       {
         double z_n = 2.*double(depth[i])-1.0;
         double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
@@ -194,7 +194,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
       double zNear = _view.nearD; 
       double zFar  = _view.farD;
-      for (int i = 0; i < exportHeight*exportWidth; i++)
+      for (E_Int i = 0; i < exportHeight*exportWidth; i++)
       {
         double z_n = 2.*double(depth[i])-1.0;
         double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
@@ -203,8 +203,8 @@ char* Data::export2Image(int exportWidth, int exportHeight)
         
       char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer];
       float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
-      for ( int i = 0; i < exportHeight; ++i ) {
-        for ( int j = 0; j < exportWidth; ++j ) 
+      for (E_Int i = 0; i < exportHeight; ++i) {
+        for (E_Int j = 0; j < exportWidth; ++j) 
         {
           unsigned ind = i*exportWidth+j;
           assert(ind < s);
@@ -363,7 +363,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
 
     double zNear = _view.nearD; 
     double zFar  = _view.farD;
-    for (int i = 0; i < screenSize; i++)
+    for (E_Int i = 0; i < screenSize; i++)
     {
       double z_n = 2.*double(depth[i])-1.0;
       double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
@@ -377,7 +377,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
     {
       ptrState->offscreenBuffer[ptrState->frameBuffer+1] = (char*)malloc(screenSize*3*sizeof(char));
       char* b = ptrState->offscreenBuffer[ptrState->frameBuffer+1];
-      for (int i = 0; i < screenSize; i++)
+      for (E_Int i = 0; i < screenSize; i++)
       { 
         b[3*i] = bufferRGBA[4*i]; b[3*i+1] = bufferRGBA[4*i+1]; b[3*i+2] = bufferRGBA[4*i+2];
       }
@@ -390,8 +390,8 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       // composition
       char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
       float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer]; // stored
-      for ( int i = 0; i < exportHeight; ++i ) {
-      for ( int j = 0; j < exportWidth; ++j ) {
+      for (E_Int i = 0; i < exportHeight; ++i) {
+      for (E_Int j = 0; j < exportWidth; ++j) {
         unsigned ind = i*exportWidth+j;
         if (depth[ind] < offscreenD[ind]) {
           offscreen[3*ind  ] = bufferRGBA[4*ind  ];
@@ -476,8 +476,8 @@ void Data::dumpWindow()
   }
   else // Other formats
   {
-    int exportWidth = _view.w;
-    int exportHeight = _view.h;
+    E_Int exportWidth = _view.w;
+    E_Int exportHeight = _view.h;
     double r = _view.h * 1. / _view.w;
     if (ptrState->exportWidth != -1 && ptrState->exportHeight != -1)
     {
@@ -499,7 +499,7 @@ void Data::dumpWindow()
     exportHeight = (exportHeight/2)*2; // doit etre pair
     
     char* buffer; char* buffer2;
-    int antialiasing = 0;
+    E_Int antialiasing = 0;
     if (ptrState->offscreen == 2) antialiasing=1; // FBO rendering with no compositing
 
     if (antialiasing == 1)
@@ -509,7 +509,7 @@ void Data::dumpWindow()
     
       // blur image X2
       buffer2 = (char*)malloc(3*2*exportWidth*2*exportHeight*sizeof(char));
-      int nitBlur;
+      E_Int nitBlur;
       if (ptrState->mode == MESH) nitBlur = int(exportWidth/500.)+1;
       else nitBlur = 1;
       gaussianBlur(2*exportWidth, 2*exportHeight, buffer, buffer2, nitBlur, 0.1);
@@ -531,7 +531,7 @@ void Data::dumpWindow()
       gaussianBlur(exportWidth, exportHeight, buffer, buffer2, 1, 0.1);
       //sharpenImage(exportWidth, exportHeight, buffer, buffer2, 5.,
       //             2, 2);
-      for (int i = 0; i < 3*exportWidth*exportHeight; i++) buffer[i] = buffer2[i];
+      for (E_Int i = 0; i < 3*exportWidth*exportHeight; i++) buffer[i] = buffer2[i];
       free(buffer2);
     }
 
@@ -555,8 +555,8 @@ void Data::dumpWindow()
 //=============================================================================
 void Data::finalizeExport()
 {
-  int exportWidth = _view.w;
-  int exportHeight = _view.h;
+  E_Int exportWidth = _view.w;
+  E_Int exportHeight = _view.h;
   if (ptrState->exportWidth != -1) exportWidth = ptrState->exportWidth;
   if (ptrState->exportHeight != -1) exportHeight = ptrState->exportHeight;
   exportWidth = (exportWidth/2)*2;

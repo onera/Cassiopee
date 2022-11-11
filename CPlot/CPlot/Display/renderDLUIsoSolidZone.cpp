@@ -26,15 +26,14 @@
   IN: nofield: le no du champ a afficher.
 */
 //=============================================================================
-void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
-				 int nofield)
+void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
 {
-  int i, n1, n2;
+  E_Int i, n1, n2;
   float offb;
   double blend;
-  int ret1, ret2;
+  E_Int ret1, ret2;
 
-  int ne = zonep->ne;
+  E_Int ne = zonep->ne;
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
   
   // Blending
@@ -48,7 +47,7 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
 #endif
 
   double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  int* connect = zonep->connect;
+  E_Int* connect = zonep->connect;
   
   glCallList(zoneImpl->_DLiso);
 
@@ -97,12 +96,12 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        E_Int elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int face1 = ptrelt[1]-1;
+        E_Int face2 = ptrelt[2]-1;
+        E_Int posface1 = zonep->posFaces[face1];
+        E_Int posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         glColor4f(0., 0., 0.+offb, blend); 
@@ -115,12 +114,12 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        E_Int elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int face1 = ptrelt[1]-1;
+        E_Int face2 = ptrelt[2]-1;
+        E_Int posface1 = zonep->posFaces[face1];
+        E_Int posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
@@ -149,12 +148,12 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
 void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
 				 int nofield1, int nofield2, int nofield3)
 {
-  int i, n1, n2;
+  E_Int i, n1, n2;
   float offb;
   double blend;
-  int ret1, ret2;
+  E_Int ret1, ret2;
 
-  int ne = zonep->ne;
+  E_Int ne = zonep->ne;
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
   
   // Blending
@@ -168,7 +167,7 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
 #endif
 
   double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  int* connect = zonep->connect;
+  E_Int* connect = zonep->connect;
   
   glCallList(zoneImpl->_DLiso);
 
@@ -217,12 +216,12 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        E_Int elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int face1 = ptrelt[1]-1;
+        E_Int face2 = ptrelt[2]-1;
+        E_Int posface1 = zonep->posFaces[face1];
+        E_Int posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         glColor4f(0., 0., 0.+offb, blend); 
@@ -235,12 +234,12 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, int zonet,
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        E_Int elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int face1 = ptrelt[1]-1;
+        E_Int face2 = ptrelt[2]-1;
+        E_Int posface1 = zonep->posFaces[face1];
+        E_Int posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);

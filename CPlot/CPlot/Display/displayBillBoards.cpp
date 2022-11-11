@@ -25,7 +25,7 @@
   On suppose que les zones billboard sont apres les zones opaques!
 */
 //=============================================================================
-void Data::displayBillBoards(Zone* zonep, int zone)
+void Data::displayBillBoards(Zone* zonep, E_Int zone)
 {
   double pt1[3]; double pt2[3]; double pt3[3]; double pt4[3];
   double xi, yi, zi;
@@ -142,10 +142,10 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   //printf("%g %g\n", dref, ptrState->billBoardSize);
 
   // Billboard size
-  int bw = (int)(ptrState->billBoardWidth);
-  int bh = (int)(ptrState->billBoardHeight);
-  int Ni = (int)(ptrState->billBoardNi);
-  int Nj = (int)(ptrState->billBoardNj);
+  E_Int bw = (int)(ptrState->billBoardWidth);
+  E_Int bh = (int)(ptrState->billBoardHeight);
+  E_Int Ni = (int)(ptrState->billBoardNi);
+  E_Int Nj = (int)(ptrState->billBoardNj);
   float rt = (bh*Ni*1./(bw*Nj));
   //printf("Width=%d %d - %g\n",bw,bh,rt);
   //rt = 1.; // DBX
@@ -171,8 +171,8 @@ void Data::displayBillBoards(Zone* zonep, int zone)
 
   // look for billBoard field (field to choose image in multi-image billboards)
   char** v = zonep->varnames;
-  int nf = zonep->nfield;
-  for (int i = 0; i < nf; i++)
+  E_Int nf = zonep->nfield;
+  for (E_Int i = 0; i < nf; i++)
   {
     if (strcmp(v[i], "TBB__") == 0) ptrState->billBoardT = i;
   }
@@ -181,15 +181,15 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   // look for radius field (tell the size of billboards)
   v = zonep->varnames;
   nf = zonep->nfield;
-  int radiusField = -1;
-  for (int i = 0; i < nf; i++)
+  E_Int radiusField = -1;
+  for (E_Int i = 0; i < nf; i++)
   {
     if (strcmp(v[i], "radius") == 0) { radiusField = i; break; }
   }
   
   // Compute ran field (choose image in billboard)
   // Compute di distance to camera field
-  for (int i = 0; i < npts; i++)
+  for (E_Int i = 0; i < npts; i++)
   {
     xi = x[i]; yi = y[i]; zi = z[i];
     di[i] = sqrt((xcam-xi)*(xcam-xi)+(ycam-yi)*(ycam-yi)+(zcam-zi)*(zcam-zi));
@@ -199,14 +199,14 @@ void Data::displayBillBoards(Zone* zonep, int zone)
     else ran[i] = zonep->f[ptrState->billBoardT][i]; // doit etre entre 0 et 1
   }
 
-  int NSplit = 25;
+  E_Int NSplit = 25;
   double delta = (dmax-dmin)/(NSplit-1.);
   double range, ranged;
-  int e1,e2;
+  E_Int e1,e2;
   dmin = dmin-1.e-10;
 
   // Field for iso (if needed)
-  int nofield=0; double* f=NULL; float deltai=1.; float fmin=0.;
+  E_Int nofield=0; double* f=NULL; float deltai=1.; float fmin=0.;
   if (zonep->colorR < -1.5) // iso 
   {
     nofield = -int(zonep->colorR)-2;
@@ -216,14 +216,14 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   }
 
   // render
-  for (int n = NSplit-1; n >= 0; n--)
+  for (E_Int n = NSplit-1; n >= 0; n--)
   {
     range = dmin+delta*n;
     ranged = range+delta;
 
     if (zonep->shaderParam2 < 0.1) // sphere shader
     {
-      for (int i = 0; i < npts; i++)
+      for (E_Int i = 0; i < npts; i++)
       {
         if (di[i] > range && di[i] <= ranged)
         {
@@ -270,7 +270,7 @@ void Data::displayBillBoards(Zone* zonep, int zone)
     }
     else // billboard shader texture
     {
-      for (int i = 0; i < npts; i++)
+      for (E_Int i = 0; i < npts; i++)
       {
         if (di[i] > range && di[i] <= ranged)
         {
@@ -293,8 +293,8 @@ void Data::displayBillBoards(Zone* zonep, int zone)
           pt4[2] = zi - mru2;
           
           // Le champ T est transmis dans r avec la couleur encodee
-          e1 = int(ran[i]*255.); // encode entre 0 et 255
-          e2 = int(color1[0]*255.); // encode entre 0 et 255
+          e1 = E_Int(ran[i]*255.); // encode entre 0 et 255
+          e2 = E_Int(color1[0]*255.); // encode entre 0 et 255
           //printf("encode %d %d %f\n", e1,e2,(e1+2*e2)/768.);
           glColor4f((e1+255*e2)/65280., color1[1], color1[2], ptrState->alpha);
         

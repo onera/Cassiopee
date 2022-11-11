@@ -20,20 +20,20 @@
 #include "../ZoneImplDL.h"
 
 //=============================================================================
-void DataDL::createGPUSMeshZone(StructZone* zonep, int zone)
+void DataDL::createGPUSMeshZone(StructZone* zonep, E_Int zone)
 {
-  int i, n1, n2, j, k, plane;
-  int stepi, stepj, stepk;
-  int nis, njs, nks;
-  int nie, nje, nke;
-  int ret1, ret2;
+  E_Int i, n1, n2, j, k, plane;
+  E_Int stepi, stepj, stepk;
+  E_Int nis, njs, nks;
+  E_Int nie, nje, nke;
+  E_Int ret1, ret2;
   
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
 
   // steps
   stepi = 1; stepj = 1; stepk = 1;

@@ -26,9 +26,9 @@
 //=============================================================================
 void DataDL::createGPUSSolidZone(StructZone* zonep, int zone)
 {
-  int i, j, k, n1, n2, n3, n4, n5, n6, n7, n8;
-  int stepi, stepj, stepk;
-  int ret1, ret2, ret3, ret4, ret13, ret24;
+  E_Int i, j, k, n1, n2, n3, n4, n5, n6, n7, n8;
+  E_Int stepi, stepj, stepk;
+  E_Int ret1, ret2, ret3, ret4, ret13, ret24;
 
   stepi = 1; stepj = 1; stepk = 1;
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);

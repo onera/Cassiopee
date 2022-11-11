@@ -31,23 +31,23 @@
 //=============================================================================
 void StructZone::compNorm()
 {
-  int nij = ni*nj;
-  int nik = ni*nk;
-  int njk = nj*nk;
-  int ni1 = ni-1;
-  int nj1 = nj-1;
-  int nk1 = nk-1;
-  int nim = MIN(ni, 2);
-  int njm = MIN(nj, 2);
-  int nkm = MIN(nk, 2);
+  E_Int nij = ni*nj;
+  E_Int nik = ni*nk;
+  E_Int njk = nj*nk;
+  E_Int ni1 = ni-1;
+  E_Int nj1 = nj-1;
+  E_Int nk1 = nk-1;
+  E_Int nim = MIN(ni, E_Int(2));
+  E_Int njm = MIN(nj, E_Int(2));
+  E_Int nkm = MIN(nk, E_Int(2));
 
   // Nombre d'interfaces
-  int nbElti = njk*nim;
-  int nbEltj = nik*njm;
-  int nbEltk = nij*nkm;
-  int nbElt = nbElti+nbEltj+nbEltk;
+  E_Int nbElti = njk*nim;
+  E_Int nbEltj = nik*njm;
+  E_Int nbEltk = nij*nkm;
+  E_Int nbElt = nbElti+nbEltj+nbEltk;
 
-  surf = new float [nbElt*3];
+  surf = new float [nbElt*3]; // float volontaire
   float* surfx = surf;
   float* surfy = surfx + nbElti;
   float* surfz = surfy + nbElti;
@@ -62,20 +62,20 @@ void StructZone::compNorm()
 
 //#pragma omp parallel default(shared)
   {
-    int n1, n2, n3, n4, n5, i, j, k, p, indp;
-    double x0, x1, x2, x3, x4;
-    double y0, y1, y2, y3, y4;
-    double z0, z1, z2, z3, z4;
-    double vx, vy, vz;
-    double vx1, vy1, vz1;
-    double vx2, vy2, vz2;
-    double vx3, vy3, vz3;
-    double vx4, vy4, vz4;
+    E_Int n1, n2, n3, n4, n5, i, j, k, p, indp;
+    E_Float x0, x1, x2, x3, x4;
+    E_Float y0, y1, y2, y3, y4;
+    E_Float z0, z1, z2, z3, z4;
+    E_Float vx, vy, vz;
+    E_Float vx1, vy1, vz1;
+    E_Float vx2, vy2, vz2;
+    E_Float vx3, vy3, vz3;
+    E_Float vx4, vy4, vz4;
     float normi;
 
 // Interfaces en i
 //#pragma omp for
-  for (int ind = 0; ind < nbElti; ind++)
+  for (E_Int ind = 0; ind < nbElti; ind++)
   {
     p = ind/njk; // plane
     indp = ind - p*njk;
@@ -124,7 +124,7 @@ void StructZone::compNorm()
 
   // Interfaces en j
 //#pragma omp for
-  for (int ind = 0; ind < nbEltj; ind++)
+  for (E_Int ind = 0; ind < nbEltj; ind++)
   {
     p = ind/(ni*nk); // plane
     indp = ind - p*nik;
@@ -173,7 +173,7 @@ void StructZone::compNorm()
 
   // Interfaces en k
 //#pragma omp for
-  for (int ind = 0; ind < nbEltk; ind++)
+  for (E_Int ind = 0; ind < nbEltk; ind++)
   {
     p = ind/nij; // plane
     indp = ind - p*nij;

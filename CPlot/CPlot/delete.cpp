@@ -105,10 +105,10 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
 
   // Suppression DL
   d->ptrState->syncGPURes();
-  for (int i = 0; i < size; i++)
+  for (E_Int i = 0; i < size; i++)
   {
     Zone* z = d->_zones[deleted[i]];
-    z->freeGPURessources( false, false );
+    z->freeGPURessources(false, false);
   }
 
   // Suppression de la zone
@@ -149,8 +149,8 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
   StructZone** szones = (StructZone**)malloc(numberOfStructZones*sizeof(StructZone*));
   UnstructZone** uzones = (UnstructZone**)malloc(numberOfUnstructZones*sizeof(UnstructZone*));
   
-  int mustDel;
-  int c = 0;
+  E_Int mustDel;
+  E_Int c = 0;
   for (E_Int i = 0; i < d->_numberOfStructZones; i++)
   {
     mustDel = 0;
@@ -175,7 +175,7 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
   // Renumerotation de deactivatedZones
   if (d->ptrState->deactivatedZones != NULL)
   {
-    int* old2new = new int [d->_numberOfZones];
+    E_Int* old2new = new E_Int [d->_numberOfZones];
     c = 0;
     for (E_Int i = 0; i < d->_numberOfZones; i++)
     {
@@ -187,7 +187,7 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
     }
     
     chain_int* c = d->ptrState->deactivatedZones;
-    int oldn, newn;
+    E_Int oldn, newn;
     while (c != NULL)
     {
       oldn = c->value-1;

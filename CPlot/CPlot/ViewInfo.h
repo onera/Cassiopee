@@ -20,6 +20,8 @@
 #ifndef _CPLOT_VIEWINFO_H_
 #define _CPLOT_VIEWINFO_H_
 
+#include "cplot.h"
+
 #define ANG2RAD 0.017453292519943295
 #define PIS2 1.5707963267948966
 
@@ -62,13 +64,13 @@ typedef struct
     double dirx1D; // save the 1D camera direction if set
     double diry1D;
     double dirz1D;
-    int w;         // window size
-    int h;
-    int wSav;      // Store window size when in full screen
-    int hSav;
+    E_Int w;         // window size
+    E_Int h;
+    E_Int wSav;      // Store window size when in full screen
+    E_Int hSav;
 
     // frustum info
-    int clipping; // 0: far, 1: near, 2: very close
+    E_Int clipping; // 0: far, 1: near, 2: very close
     double ratio;   
     double angle;
     double nearD;

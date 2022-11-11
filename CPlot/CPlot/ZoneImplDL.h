@@ -27,11 +27,11 @@ class ZoneImplDL : public ZoneImpl
   unsigned int _DLmesh; // Display list for mesh lines
   unsigned int _DLsolid; // Display list for solid
   unsigned int _DLiso; // Display list pour les isos
-  int _DLisoField; // Champ actuellement contenu dans la DLiso
-  int _DLisoField2; // champ 2 si champ vectoriel dans DLiso
-  int _DLisoField3; // champ 3 si champ vectoriel dans DLiso
+  E_Int _DLisoField; // Champ actuellement contenu dans la DLiso
+  E_Int _DLisoField2; // champ 2 si champ vectoriel dans DLiso
+  E_Int _DLisoField3; // champ 3 si champ vectoriel dans DLiso
 
-  virtual void freeGPURes( CPlotState* pt_state, bool freeIso = true );
+  virtual void freeGPURes(CPlotState* pt_state, bool freeIso=true);
   virtual void destroyIsoField();
 };
 

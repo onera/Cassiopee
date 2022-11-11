@@ -33,7 +33,7 @@
 void lookForActiveZone(Data* data)
 {
   double xcam, ycam, zcam, xeye, yeye, zeye;
-  int nz;
+  E_Int nz;
   double xmax, ymax, zmax, xmin, ymin, zmin;
   double k, d, dx, dy, dz, dd, dbb;
 
@@ -56,7 +56,7 @@ void lookForActiveZone(Data* data)
   // Calcul la BB de l'ensemble de la selection
   xmin = +1.e+20; ymin = +1.e+20; zmin = +1.e+20;
   xmax = -1.e+20; ymax = -1.e+20; zmax = -1.e+20;
-  for (int i = 0; i < data->_numberOfZones; i++)
+  for (E_Int i = 0; i < data->_numberOfZones; i++)
   {
     Zone* z = data->_zones[i];
     if (z->selected == 1)
@@ -145,11 +145,11 @@ void lookForActiveZone(Data* data)
 void lookForMaxValue(Data* data)
 {
   double xcam, ycam, zcam, xeye, yeye, zeye;
-  int nz, nfld;
+  E_Int nz, nfld;
   Zone* z;
   double* f;
-  int npts, v, ind, n;
-  int imax, jmax, kmax, indmax;
+  E_Int npts, v, ind, n;
+  E_Int imax, jmax, kmax, indmax;
   double xmax, ymax, zmax, xmin, ymin, zmin;
   double kfact, d, dx, dy, dz, dd;
   double val;
@@ -261,11 +261,11 @@ void lookForMaxValue(Data* data)
 void lookForMinValue(Data* data)
 {
   double xcam, ycam, zcam, xeye, yeye, zeye;
-  int nz, nfld;
+  E_Int nz, nfld;
   Zone* z;
   double* f;
-  int npts, v, ind, n;
-  int imin, jmin, kmin, indmin;
+  E_Int npts, v, ind, n;
+  E_Int imin, jmin, kmin, indmin;
   double xmax, ymax, zmax, xmin, ymin, zmin;
   double kfact, d, dx, dy, dz, dd;
   double val;
@@ -292,8 +292,7 @@ void lookForMinValue(Data* data)
     }
     state.selectedZone = nz+1;
   }
-  else
-    nz = nz-1;
+  else nz = nz-1;
 
   // Find Min in active zone
   z = data->_zones[nz];

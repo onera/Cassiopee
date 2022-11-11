@@ -94,9 +94,9 @@ PyObject* K_CPLOT::display1D(PyObject* self, PyObject* args)
   E_Int mySlot = slot;
   Slot1D* s;
   vector<Slot1D*>& slots = d->_slots1D;
-  unsigned int ns = slots.size();
+  size_t ns = slots.size();
   E_Int found = -1;
-  for (unsigned int i = 0; i < ns; i++)
+  for (size_t i = 0; i < ns; i++)
   {
     s = slots[i];
     if (s->_no == mySlot) { found = i; break; } 

@@ -32,7 +32,7 @@
 PyObject* K_CPLOT::render(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int count = 5000;
+  E_Int count = 5000;
   while (d->ptrState->render == 1 && count > 0)
   {
     static struct timeval tv;

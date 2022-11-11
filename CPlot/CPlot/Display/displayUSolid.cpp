@@ -27,7 +27,7 @@
 //=============================================================================
 void DataDL::displayUSolid()
 {
-    int zone, zonet;
+    E_Int zone, zonet;
     if (_numberOfUnstructZones == 0) return;
 
     // Enable blending

@@ -33,37 +33,37 @@ public:
   virtual ~DataDL();
 
   virtual void createGPURes();
-  virtual void freeGPURes(int mode, int start, int end, int permanent);
-  virtual void freeGPURes(int mode, int size, int* ptr, int permanent);
+  virtual void freeGPURes(E_Int mode, E_Int start, E_Int end, E_Int permanent);
+  virtual void freeGPURes(E_Int mode, E_Int size, E_Int* ptr, E_Int permanent);
 
-  virtual void createIsoGPURes(int nofield); // scalaire
-  virtual void createIsoGPURes(int nofield1, int nofield2, int nofield3); // vecteur
+  virtual void createIsoGPURes(E_Int nofield); // scalaire
+  virtual void createIsoGPURes(E_Int nofield1, E_Int nofield2, E_Int nofield3); // vecteur
   virtual void createIsoGPUResForRender(); // scalaire for render mode
-  virtual void createGPUSMeshZone(StructZone* zonep, int zone);
-  virtual void createGPUUMeshZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void createGPUUMeshZone_ho(UnstructZone* zonep, int zone, int zonet);
-  virtual void createGPUSSolidZone(StructZone* zonep, int zone);
-  virtual void createGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void createGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield);
-  virtual void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-			      int nofield2, int nofield3);
-  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-			      int nofield);
-  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-			      int nofield1, int nofield2, int nofield3);
+  virtual void createGPUSMeshZone(StructZone* zonep, E_Int zone);
+  virtual void createGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUSSolidZone(StructZone* zonep, E_Int zone);
+  virtual void createGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
+  virtual void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+			                          E_Int nofield2, E_Int nofield3);
+  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+			                          E_Int nofield);
+  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+			                          E_Int nofield1, E_Int nofield2, E_Int nofield3);
 
-  virtual void renderGPUSMeshZone(StructZone* zonep, int zone);
-  virtual void renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void renderGPUSSolidZone(StructZone* zonep, int zone);
-  virtual void renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void renderGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield);
-  virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-				   int nofield2, int nofield3);
-  virtual void renderUIsoSolidZone(UnstructZone* zonep, int zonet, int nofield);
-  virtual void renderUIsoSolidZone(UnstructZone* zonep, int zonet, int nofield1,
-				   int nofield2, int nofield3);
+  virtual void renderGPUSMeshZone(StructZone* zonep, E_Int zone);
+  virtual void renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void renderGPUSSolidZone(StructZone* zonep, E_Int zone);
+  virtual void renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void renderGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
+  virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+				                   E_Int nofield2, E_Int nofield3);
+  virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield);
+  virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield1,
+				                   E_Int nofield2, E_Int nofield3);
 
   virtual void displaySMesh();
   virtual void displayUMesh();

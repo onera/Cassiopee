@@ -29,17 +29,17 @@
 //=============================================================================
 void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield)
 {
-  int i, j, k, n1, n2;
+  E_Int i, j, k, n1, n2;
   float offb;
   double blend;
-  int ret1, ret2;
+  E_Int ret1, ret2;
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
 
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
 
@@ -61,7 +61,7 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield)
   if (nij == 1 || ni*nk == 1 || nj*nk == 1)
   {
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;
@@ -115,17 +115,17 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield)
 void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
                                int nfield2, int nofield3)
 {  
-  int i, j, k, n1, n2;
+  E_Int i, j, k, n1, n2;
   float offb;
   double blend;
-  int ret1, ret2;
+  E_Int ret1, ret2;
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
 
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
 
@@ -147,7 +147,7 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
   if (nij == 1 || ni*nk == 1 || nj*nk == 1)
   {
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;
@@ -189,4 +189,3 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
     glEnd();
   }
 }
-

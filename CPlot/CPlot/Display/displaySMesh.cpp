@@ -30,7 +30,7 @@
 void DataDL::displaySMesh()
 {
   if (_numberOfStructZones == 0) return;
-  int zone, isDL;
+  E_Int zone, isDL;
 
   // Enable blending
   glEnable(GL_BLEND);
@@ -108,7 +108,7 @@ void DataDL::displaySMesh()
   glColor3f(1., 1., 1.);
 
   float alphaSav = ptrState->alpha;
-  int solidStyleSav = ptrState->solidStyle;
+  E_Int solidStyleSav = ptrState->solidStyle;
   ptrState->alpha = 0.01;
   switch (ptrState->meshStyle)
   {

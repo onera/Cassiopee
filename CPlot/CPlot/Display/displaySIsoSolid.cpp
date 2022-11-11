@@ -29,7 +29,7 @@
 void DataDL::displaySIsoSolid()
 {
   if (_numberOfStructZones == 0) return;
-  int zone;
+  E_Int zone;
 
   // Blending
   glEnable(GL_BLEND);
@@ -44,9 +44,9 @@ void DataDL::displaySIsoSolid()
   { // shader pour les isos scalaires
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture((E_Int)_pref.colorMap->varName[0]-48);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
-    int s = _shaders.shader_id(shader::iso_banded_colormap);
+    E_Int s = _shaders.shader_id(shader::iso_banded_colormap);
     if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(shader::iso_colored_lines);
     
     if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);

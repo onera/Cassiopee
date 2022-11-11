@@ -34,9 +34,9 @@ public:
   Slot1D(int no, int gridPosI, int gridPosJ, double bgBlend);
   ~Slot1D();
   
-  int _no;          // le no du slot
-  int _gridPosI;    // position de ce slot dans la grille
-  int _gridPosJ;    
+  E_Int _no;          // le no du slot
+  E_Int _gridPosI;    // position de ce slot dans la grille
+  E_Int _gridPosJ;    
   double _bgBlend;  // le % de blending sur le fond (0-1)
   char _title[MAXSTRINGLENGTH]; // titre du slot
   double _r1min;
@@ -44,10 +44,10 @@ public:
   double _r2min;
   double _r2max;
   std::vector<Zone1D*> _zones; // data a afficher dans ce slot 
-  std::vector<int> _var1; // var1 pos
+  std::vector<E_Int> _var1; // var1 pos
   std::vector<char> _var1NameC1; // char 1 of var1
   std::vector<char> _var1NameC2; // char 2 of var1
-  std::vector<int> _var2; // var2 pos
+  std::vector<E_Int> _var2; // var2 pos
   std::vector<char> _var2NameC1; // char 1 of var2
   std::vector<char> _var2NameC2; // char 2 of var2  
 };

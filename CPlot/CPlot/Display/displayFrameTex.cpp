@@ -61,7 +61,7 @@ void Data::displayFrameTex(int mode, double sobelThreshold)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
  
-    int shader = _shaders.shader_id(20);
+    E_Int shader = _shaders.shader_id(20);
     if (_shaders.currentShader() != shader) _shaders.activate(shader);
     _shaders[shader]->setUniform("FrameBuffer", (int)0);
     _shaders[shader]->setUniform("depthMap", (int)1);

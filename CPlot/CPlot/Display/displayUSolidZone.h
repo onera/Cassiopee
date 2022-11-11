@@ -160,15 +160,15 @@
   ret4 = _pref.blanking->f(this, n4, zonep->blank, zonet);               \
   if (ret1*ret2*ret3*ret4 != 0) { PLOTQUAD2; }
 
-  int ne = zonep->ne;
-  int ne2 = 2*ne;
-  int ne3 = 3*ne;
-  int np = zonep->np;
+  E_Int ne = zonep->ne;
+  E_Int ne2 = 2*ne;
+  E_Int ne3 = 3*ne;
+  E_Int np = zonep->np;
   
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
-  int* connect = zonep->connect;
+  E_Int* connect = zonep->connect;
   
   if (zonep->eltType == 2) // TRI
   {
@@ -599,12 +599,12 @@
   }
   else if (zonep->eltType == 10) // NGON
   {
-    int nf = connect[0];
-    int l, nd, c;
+    E_Int nf = connect[0];
+    E_Int l, nd, c;
     float* surfx = zonep->surf;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
-    int next;
+    E_Int next;
 
     if (zonep->blank == 0)
     {
@@ -666,16 +666,16 @@
       for (i = 0; i < zonep->nelts2D; i++)
       {
         glBegin(GL_POLYGON);
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
-        int drawn = 0;
-        int prev, j, first;
+        E_Int elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int nf = ptrelt[0];
+        E_Int drawn = 0;
+        E_Int prev, j, first;
 
-        int face = ptrelt[1]-1;
+        E_Int face = ptrelt[1]-1;
         glNormal3f(surfx[face], surfy[face], surfz[face]);
         
-        int* ptrface = &connect[zonep->posFaces[face]];
+        E_Int* ptrface = &connect[zonep->posFaces[face]];
         n1 = ptrface[1]-1; n2 = ptrface[2]-1;
 
         face = ptrelt[2]-1;
@@ -753,7 +753,7 @@
         nd = connect[c]; 
         if (nd > 4) // elt 3D
         {
-          int blank = 0;
+          E_Int blank = 0;
           for (l = 0; l < nd; l++)
           {
             n1 = connect[c+l+1]-1;
@@ -782,11 +782,11 @@
         int* ptrelt = &connect[elt];
         int nf = ptrelt[0];
 
-        int blank = 0;
-        for (int j = 1; j <= nf; j++)
+        E_Int blank = 0;
+        for (E_Int j = 1; j <= nf; j++)
         {
-          int face = ptrelt[1]-1;
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int face = ptrelt[1]-1;
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           n2 = ptrface[2]-1;
           if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
@@ -797,15 +797,15 @@
         if (blank == 0)
         {
           glBegin(GL_POLYGON);
-          int elt = zonep->posElts2D[i];
-          int* ptrelt = &connect[elt];
-          int nf = ptrelt[0];
-          int drawn = 0;
-          int prev, j, first;
+          E_Int elt = zonep->posElts2D[i];
+          E_Int* ptrelt = &connect[elt];
+          E_Int nf = ptrelt[0];
+          E_Int drawn = 0;
+          E_Int prev, j, first;
 
-          int face = ptrelt[1]-1;
+          E_Int face = ptrelt[1]-1;
           glNormal3f(surfx[face], surfy[face], surfz[face]);
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1; first = n1;
           n2 = ptrface[2]-1;
           glVertex3d(x[n1], y[n1], z[n1]);
@@ -879,12 +879,12 @@
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        E_Int elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int face1 = ptrelt[1]-1;
+        E_Int face2 = ptrelt[2]-1;
+        E_Int posface1 = zonep->posFaces[face1];
+        E_Int posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         glVertex3d(x[n1], y[n1], z[n1]);
@@ -895,12 +895,12 @@
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        E_Int elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int face1 = ptrelt[1]-1;
+        E_Int face2 = ptrelt[2]-1;
+        E_Int posface1 = zonep->posFaces[face1];
+        E_Int posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);

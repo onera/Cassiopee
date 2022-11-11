@@ -88,7 +88,7 @@ void Data::displayNodes()
   void (*getrgb)(Data* data, double, float*, float*, float*);
   getrgb = _plugins.zoneColorMap->f;
 
-  int zone = 0;
+  E_Int zone = 0;
   while (zone < _numberOfUnstructZones)
   {
     UnstructZone* zonep = _uzones[zone];
@@ -118,9 +118,9 @@ void Data::displayNodes()
 #endif
         // look for radius field (if any)
         char** v = zonep->varnames;
-        int nf = zonep->nfield;
-        int radiusField = -1;
-        for (int i = 0; i < nf; i++)
+        E_Int nf = zonep->nfield;
+        E_Int radiusField = -1;
+        for (E_Int i = 0; i < nf; i++)
         {
             if (strcmp(v[i], "radius") == 0) { radiusField = i; break; }
         }
@@ -131,7 +131,7 @@ void Data::displayNodes()
           case 0:
             // Couleur uniforme blanche (defaut)
             color1[0] = 0.5; color1[1] = 0.5; color1[2] = 1.;
-            color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1;
+            color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1;
             break;
           
           case 1:
@@ -139,7 +139,7 @@ void Data::displayNodes()
             color1[0] = r; color1[1] = g; color1[2] = b;
             if (b > 0.8 && r < 0.2 && g < 0.2)
             { color1[0] = r; color1[1] = b; color1[2] = g; }
-            color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1;
+            color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1;
             break;
 
           case 2:
@@ -147,7 +147,7 @@ void Data::displayNodes()
             color1[0] = g; color1[1] = r;  color1[2] = b;
             if (r > 0.8 && g < 0.2 && b < 0.2) 
             {color1[0] = g; color1[1] = r; color1[2] = b;}
-            color2[0] = 0.3;  color2[1] = 0.3;  color2[2] = 1.;
+            color2[0] = 0.3; color2[1] = 0.3; color2[2] = 1.;
             break;
 
           default:
@@ -201,9 +201,9 @@ void Data::displayNodes()
         else if (ptrState->mode == VECTORFIELD)
         {
           float r, g, b, offb, blend;
-          int nofield1 = ptrState->vectorField1;
-          int nofield2 = ptrState->vectorField2;
-          int nofield3 = ptrState->vectorField3;
+          E_Int nofield1 = ptrState->vectorField1;
+          E_Int nofield2 = ptrState->vectorField2;
+          E_Int nofield3 = ptrState->vectorField3;
           
           double* pr = zonep->f[nofield1];
           double* pg = zonep->f[nofield2];
@@ -231,7 +231,7 @@ void Data::displayNodes()
           double *x = zonep->x;
           double *y = zonep->y;
           double *z = zonep->z;
-          for (int i = 0; i < zonep->np; i++)
+          for (E_Int i = 0; i < zonep->np; i++)
           {
             glColor4f(pr[i], pg[i], pb[i]+offb, blend);
             PLOTBILLBOARD;
@@ -244,7 +244,7 @@ void Data::displayNodes()
           double *x = zonep->x;
           double *y = zonep->y;
           double *z = zonep->z;
-          for (int i = 0; i < zonep->np; i++)
+          for (E_Int i = 0; i < zonep->np; i++)
           {
             PLOTBILLBOARD;
           }

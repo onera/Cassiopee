@@ -31,8 +31,8 @@ class UnstructZone : public Zone
     void compNorm();
 
   public:
-    int np;                       // number of points
-    int ne;                       // number of elements
+    E_Int np;                       // number of points
+    E_Int ne;                       // number of elements
     enum enumType {
       NODE=0, BAR, TRI, QUAD, TETRA, PENTA, PYRA, HEXA, NGON, ENDTYPE
     };
@@ -43,15 +43,15 @@ class UnstructZone : public Zone
                                   // 4: TETRA
                                   // 7: HEXA
                                   // 10: NGON
-    int eltSize;                  // nbre de noeuds par elt
+    E_Int eltSize;                // nbre de noeuds par elt
                                   // sauf pour NGONS (=1) 
-    int* connect;                 // connectivity (ne*eltSize sauf pour NGONS)
+    E_Int* connect;               // connectivity (ne*eltSize sauf pour NGONS)
                                   // Seulement pour NGONS
-    int* posFaces;                // position de la face no i dans connect
-    int nelts1D;                  // nombre d'elements 1D
-    int nelts2D;                  // nombre d'elements 2D
-    int* posElts1D;               // position des elements 1D dans connect
-    int* posElts2D;               // position des elements 2D dans connect
-    int  _is_high_order;          // Dit si on est en presence d'elements high order ou non
+    E_Int* posFaces;              // position de la face no i dans connect
+    E_Int nelts1D;                // nombre d'elements 1D
+    E_Int nelts2D;                // nombre d'elements 2D
+    E_Int* posElts1D;             // position des elements 1D dans connect
+    E_Int* posElts2D;             // position des elements 2D dans connect
+    E_Int  _is_high_order;        // Dit si on est en presence d'elements high order ou non
 };
 #endif

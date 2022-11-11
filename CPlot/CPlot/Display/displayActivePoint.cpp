@@ -29,7 +29,7 @@
 //============================================================================
 void Data::displayActivePoint()
 {
-  int nz = ptrState->selectedZone;
+  E_Int nz = ptrState->selectedZone;
   if (nz == 0) return;
   if (_zones[nz-1]->active == 0) return;
 
@@ -115,19 +115,19 @@ void Data::displayActivePoint()
 
     /* Structurees: axes */
     StructZone* zp = (StructZone*)_zones[nz];
-    int ni = zp->ni;
-    int nj = zp->nj;
-    int nk = zp->nk;
-    int nij = ni*nj;
-    int is = MAX(ptrState->activePointI-1,0); is = MIN(is, ni-1);
-    int js = MAX(ptrState->activePointJ-1,0); js = MIN(js, nj-1);
-    int ks = MAX(ptrState->activePointK-1,0); ks = MIN(ks, nk-1);
-    int ind = is + js*ni + ks*nij;
+    E_Int ni = zp->ni;
+    E_Int nj = zp->nj;
+    E_Int nk = zp->nk;
+    E_Int nij = ni*nj;
+    E_Int is = MAX(ptrState->activePointI-1,0); is = MIN(is, ni-1);
+    E_Int js = MAX(ptrState->activePointJ-1,0); js = MIN(js, nj-1);
+    E_Int ks = MAX(ptrState->activePointK-1,0); ks = MIN(ks, nk-1);
+    E_Int ind = is + js*ni + ks*nij;
     double* px = zp->x;
     double* py = zp->y;
     double* pz = zp->z;
     double vx, vy, vz, n;
-    int indp, ip, jp, kp;
+    E_Int indp, ip, jp, kp;
 
     // axe i
     if (is < ni-1 && ni > 1)
@@ -426,8 +426,8 @@ void Data::displayActivePoint()
     */
     
     // render rectangle
-    int width = textWidth(_font3Size, msg);
-    int height = textHeight(_font3Size);
+    E_Int width = textWidth(_font3Size, msg);
+    E_Int height = textHeight(_font3Size);
     double x0 = ptx-5*shtx-8*shnx;
     double y0 = pty-5*shty-8*shny;
     double z0 = ptz-5*shtz-8*shnz;

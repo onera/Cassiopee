@@ -53,12 +53,12 @@
 //=============================================================================
 void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
 {
-  if ( zonep->_is_high_order == true )
+  if (zonep->_is_high_order == true)
   {
     displayUMeshZone_ho(zonep, zone, zonet);
     return;
   }
-  int i, n1, n2, ret1, ret2, ret;
+  E_Int i, n1, n2, ret1, ret2, ret;
 
   // Style colors
   float color1[3]; float color2[3];

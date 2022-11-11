@@ -70,8 +70,8 @@ void Data::displayPlots()
   setOrthographicProjection();
   glPushMatrix(); glLoadIdentity();
   
-  unsigned int ns = _slots1D.size();
-  for (unsigned int i = 0; i < ns; i++) displayPlot(_slots1D[i]);
+  size_t ns = _slots1D.size();
+  for (size_t i = 0; i < ns; i++) displayPlot(_slots1D[i]);
 
   // Put back the previous projection
   glPopMatrix();
@@ -116,7 +116,7 @@ void Data::displayPlot(Slot1D* s)
   // display Title
 
   // display plot
-  for (unsigned int i = 0; i < s->_zones.size(); i++)
+  for (size_t i = 0; i < s->_zones.size(); i++)
     plotZone(s, s->_zones[i], posx, posy, dx, dy, s->_var1[i], s->_var2[i]);
 
 }
@@ -126,8 +126,8 @@ void Data::plotZone(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
                     E_Float dx, E_Float dy, int var1, int var2)
 {
   E_Int ne = z->_ne;
-  int c1, c2;
-  int* c = z->_cn;
+  E_Int c1, c2;
+  E_Int* c = z->_cn;
   double* f1 = &(z->_f[var1*(z->_np)]);
   double* f2 = &(z->_f[var2*(z->_np)]);
   // scale
@@ -377,7 +377,7 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
                               int& e1, int& e2, double& alpha)
 {
   // active point
-  int nz = ptrState->selectedZone;
+  E_Int nz = ptrState->selectedZone;
   if (nz == 0) return 0; // FAIL
  
   double xP = ptrState->activePointX;
@@ -410,8 +410,8 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
   {
     // Check index of f in fv
     E_Int ne = z->_ne;
-    int* c = z->_cn;
-    int c1, c2;
+    E_Int* c = z->_cn;
+    E_Int c1, c2;
     for (E_Int i = 0; i < ne; i++)
     {
       c1 = c[i]-1; c2 = c[ne+i]-1;
@@ -424,11 +424,11 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
   }
 
   // autres cas
-  int iP = ptrState->activePointI;
-  int jP = ptrState->activePointJ;
-  int kP = ptrState->activePointK;
+  E_Int iP = ptrState->activePointI;
+  E_Int jP = ptrState->activePointJ;
+  E_Int kP = ptrState->activePointK;
 
-  int ind;
+  E_Int ind;
   if (nz < _numberOfStructZones) 
   {
     StructZone* zs = (StructZone*)z;
@@ -440,8 +440,8 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
   double f2 = fv2[ind];
   
   E_Int ne = z->_ne;
-  int* c = z->_cn;
-  int c1, c2;
+  E_Int* c = z->_cn;
+  E_Int c1, c2;
   for (E_Int i = 0; i < ne; i++)
   {
     c1 = c[i]-1; c2 = c[ne+i]-1;
@@ -460,11 +460,11 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
 int Data::display1DActivePoint(Slot1D* s, Zone1D* z, 
                                E_Float posx, E_Float posy,
                                E_Float dx, E_Float dy,
-                               int var1, int var2)
+                               E_Int var1, E_Int var2)
 {
-  int e1, e2;
+  E_Int e1, e2;
   double alpha;
-  int ret = getActivePointIndex(z, var1, var2, e1, e2, alpha);
+  E_Int ret = getActivePointIndex(z, var1, var2, e1, e2, alpha);
   if (ret == 0) return 0; // FAIL
 
   double* f1 = &(z->_f[var1*(z->_np)]);
@@ -512,7 +512,7 @@ int Data::link2View(Zone1D* z, int var1, int var2,
   // var1 ou var2 doit etre une coordonnee
   char* v1 = z->_varNames[var1];
   char* v2 = z->_varNames[var2];
-  int f = 0;
+  E_Int f = 0;
   if (strcmp(v1, "CoordinateX") == 0 || strcmp(v1, "x") == 0) 
   { f = 1; }
   else if (strcmp(v1, "CoordinateY") == 0 || strcmp(v1, "y") == 0) 

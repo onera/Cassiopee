@@ -36,7 +36,7 @@
 //=============================================================================
 void DataDL::createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield)
 {
-  int stepi, stepj, stepk;
+  E_Int stepi, stepj, stepk;
   float offb;
   stepi = 1; stepj = 1; stepk = 1;
   offb = 0.;
@@ -60,10 +60,10 @@ void DataDL::createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield)
   est forcee a 0.
 */
 //=============================================================================
-void DataDL::createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-				    int nofield2, int nofield3)
+void DataDL::createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, 
+    E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {
-  int stepi, stepj, stepk;
+  E_Int stepi, stepj, stepk;
   float offb;
   stepi = 1; stepj = 1; stepk = 1;
   offb = 0.;

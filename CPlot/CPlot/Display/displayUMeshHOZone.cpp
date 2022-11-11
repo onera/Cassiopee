@@ -64,7 +64,7 @@
 //=============================================================================
 void Data::displayUMeshZone_ho(UnstructZone* zonep, int zone, int zonet)
 {
-  int i, n1, n2, n3, ret1, ret2, ret;
+  E_Int i, n1, n2, n3, ret1, ret2, ret;
 
   // Style colors
   float color1[3]; float color2[3];

@@ -314,7 +314,7 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
    IN: nz: nz d'insertion. 
 */
 //=============================================================================
-void insertAfterNz(Zone** zonesp, int& lzonesn, Zone**& zonesn, int nz, Zone* z)
+void insertAfterNz(Zone** zonesp, E_Int& lzonesn, Zone**& zonesn, E_Int nz, Zone* z)
 {
   /*
   // locate nz in zonesp
@@ -347,7 +347,7 @@ void insertAfterNz(Zone** zonesp, int& lzonesn, Zone**& zonesn, int nz, Zone* z)
    IN: nz: nz delete. 
 */
 //=============================================================================
-void deleteNz(Zone** zonesp, int& lzonesn, Zone**& zonesn, int nz)
+void deleteNz(Zone** zonesp, E_Int& lzonesn, Zone**& zonesn, E_Int nz)
 {
   lzonesn--;
   Zone** ntzones = (Zone**)malloc(lzonesn * sizeof(Zone*) );

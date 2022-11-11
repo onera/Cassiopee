@@ -186,10 +186,10 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
     return Py_BuildValue("i", d->ptrState->autoblank);
   else if (K_STRING::cmp(mode, "isoScale") == 0) // iso scale of current field
   {
-    int nofield = d->ptrState->scalarField;
+    E_Int nofield = d->ptrState->scalarField;
     if (nofield >= 0 && nofield < d->_nfield)
     {
-      int niso = d->_niso[nofield];
+      E_Int niso = d->_niso[nofield];
       double isoMin = d->_isoMin[nofield];
       double isoMax = d->_isoMax[nofield];
       return Py_BuildValue("[idd]",niso,isoMin,isoMax);
@@ -235,7 +235,7 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getSelectedZone(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int nz = d->ptrState->selectedZone-1;
+  E_Int nz = d->ptrState->selectedZone-1;
   return Py_BuildValue("i", nz);
 }
 
@@ -249,7 +249,7 @@ PyObject* K_CPLOT::getSelectedZones(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
   PyObject* o = PyList_New(0);
-  for (int i = 0; i < d->_numberOfZones; i++)
+  for (E_Int i = 0; i < d->_numberOfZones; i++)
   {
     if (d->_zones[i]->selected == 1)
     {
@@ -270,7 +270,7 @@ PyObject* K_CPLOT::getActiveZones(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
   PyObject* o = PyList_New(0);
-  for (int i = 0; i < d->_numberOfZones; i++)
+  for (E_Int i = 0; i < d->_numberOfZones; i++)
   {
     if (d->_zones[i]->active == 1)
     {
@@ -324,7 +324,7 @@ PyObject* K_CPLOT::getActiveStatus(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getActivePoint(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int nz = d->ptrState->selectedZone;
+  E_Int nz = d->ptrState->selectedZone;
   PyObject* tpl;
   PyObject*l = PyList_New(0);
   if (nz == 0) return l;
@@ -349,7 +349,7 @@ PyObject* K_CPLOT::getActivePoint(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getActivePointF(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int nz = d->ptrState->selectedZone;
+  E_Int nz = d->ptrState->selectedZone;
   PyObject* tpl;
   PyObject*l = PyList_New(0);
   if (nz == 0) return l;
@@ -376,7 +376,7 @@ PyObject* K_CPLOT::getActivePointF(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int nz = d->ptrState->selectedZone;
+  E_Int nz = d->ptrState->selectedZone;
   PyObject* tpl;
   PyObject*l = PyList_New(0);
   if (nz == 0) return l;
@@ -384,7 +384,7 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
   {
     // Re-check (if zone has been replaced)
     double posX, posY, posZ;
-    int zone, ind, indE; double dist;
+    E_Int zone, ind, indE; double dist;
     posX = d->ptrState->activePointX;
     posY = d->ptrState->activePointY;
     posZ = d->ptrState->activePointZ;
@@ -394,11 +394,11 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
     if (zone < d->_numberOfStructZones)
     {
       StructZone* zz = (StructZone*)z;
-      int ni = zz->ni; 
-      int nj = zz->nj;
-      int k = ind / (ni*nj);
-      int j = (ind - k*ni*nj)/ni;
-      int i = ind - k*ni*nj - j*ni;
+      E_Int ni = zz->ni; 
+      E_Int nj = zz->nj;
+      E_Int k = ind / (ni*nj);
+      E_Int j = (ind - k*ni*nj)/ni;
+      E_Int i = ind - k*ni*nj - j*ni;
       d->ptrState->activePointI = i+1;
       d->ptrState->activePointJ = j+1;
       d->ptrState->activePointK = k+1;
@@ -410,10 +410,10 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
       UnstructZone* zz = (UnstructZone*)z;
       if (zz->eltType != 10) // autre que NGON
       {
-        int* c = zz->connect;
-        int size = zz->eltSize;
-        int ne = zz->ne;
-        int v = 0;
+        E_Int* c = zz->connect;
+        E_Int size = zz->eltSize;
+        E_Int ne = zz->ne;
+        E_Int v = 0;
         for (v = 0; v < size; v++)
         {
           if (c[indE+v*ne] == ind+1) break;
@@ -515,7 +515,7 @@ PyObject* K_CPLOT::getMouseState(PyObject* self, PyObject* args)
   float posX = d->ptrState->currentMousePosX;
   float posY = d->ptrState->currentMousePosY;
   float posZ = d->ptrState->currentMousePosZ;
-  int mouseButton = d->ptrState->currentMouseButton;
+  E_Int mouseButton = d->ptrState->currentMouseButton;
   //printf("%f %f %f\n", posX, posY, posZ);
   PyObject* tpl = Py_BuildValue("lddd", mouseButton, posX, posY, posZ);
   return tpl;

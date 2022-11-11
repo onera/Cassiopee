@@ -25,9 +25,9 @@
 //=============================================================================
 void Data::displaySSolidZone(StructZone* zonep, int zone)
 {
-  int i, j, k, n1, n2, n3, n4, n5, n6, n7, n8;
-  int stepi, stepj, stepk;
-  int ret1, ret2, ret3, ret4, ret13, ret24;
+  E_Int i, j, k, n1, n2, n3, n4, n5, n6, n7, n8;
+  E_Int stepi, stepj, stepk;
+  E_Int ret1, ret2, ret3, ret4, ret13, ret24;
 
   // Style
   float color1[3]; float color2[3];

@@ -32,19 +32,19 @@ class StructZone : public Zone
     void compNorm();
       
   public:
-    int ni, nj, nk;                  // number of points
+    E_Int ni, nj, nk;                  // number of points
  
-    int activePlane; // not used, i=0, j=1, k=2
+    E_Int activePlane; // not used, i=0, j=1, k=2
     // In 2D or 3D mode, CPlot displays 3 2D planes (i=cste, j=cste, k=cste)
-    int iPlane; // from 0 to ni-1, -1 means min-max planes
-    int jPlane;
-    int kPlane;
+    E_Int iPlane; // from 0 to ni-1, -1 means min-max planes
+    E_Int jPlane;
+    E_Int kPlane;
     // In 1D mode, CPlot displays only one line:
     // In 1D i mode: line j = jPlane, k = kLine
     // In 1D j mode: line i = iLine, k = kPlane
     // In 1D k mode: line i = iPlane, j = jLine
-    int iLine;
-    int jLine;
-    int kLine;
+    E_Int iLine;
+    E_Int jLine;
+    E_Int kLine;
 };
 #endif

@@ -69,7 +69,7 @@ void DataDL::renderGPUSSolidZone(StructZone* zonep, int zone)
       fmax2 = 0.; fmin2 = 1.;
       fmax3 = 0.; fmin3 = 1.;
   
-      int stepi, stepj, stepk;
+      E_Int stepi, stepj, stepk;
       computeSteps(zonep, stepi, stepj, stepk);
       #undef PLOT
       #define GL_QUADS_ARE GL_QUADS

@@ -27,9 +27,9 @@
 //============================================================================
 void addPressureVariable()
 {
-  int i, nf, ni, nj, nk, found, ind;
+  E_Int i, nf, ni, nj, nk, found, ind;
   double ro, rou, rov, row, roE, roe;
-  int pro, prou, prov, prow, proE;
+  E_Int pro, prou, prov, prow, proE;
   char varName[] = "pressure";
   double gamma = 1.4;
 

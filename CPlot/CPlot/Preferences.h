@@ -25,13 +25,13 @@ typedef struct
 {
     /* -- Performance preferences -- */
     // Speed factor (0 is accurate drawing)
-    int speed;
+    E_Int speed;
     // Number of roll steps when rotating views
-    int nroll;
+    E_Int nroll;
 
     /* -- Smoke preferences -- */
     // Max number of particles in smoke
-    int maxParticles;
+    E_Int maxParticles;
     // Radius of smoke particles
     float smokeRadius;
     // Radius of emission zone
@@ -41,8 +41,8 @@ typedef struct
 
     /* -- Texture preferences -- */
     // Number of mesh quads to map texture
-    int sizeTexi;
-    int sizeTexj;
+    E_Int sizeTexi;
+    E_Int sizeTexj;
 
     /* -- Plugins preferences -- */
     // Plugins location
