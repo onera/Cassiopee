@@ -34,17 +34,27 @@ NPY.import_array()
 # PDM Specific type :
 # -----------------
 
+#cdef extern from "pdm_config.h":
+#    cdef int PDM_LONG_G_NUM_BOOL
+#PDM_LONG_G_NUM_BOOL2 = PDM_LONG_G_NUM_BOOL
+
 ctypedef NPY.int32_t npy_pdm_gnum_t
 ctypedef NPY.int32_t npy_pdm_lnum_t
 npy_pdm_gnum_dtype = NPY.int32
-
 ctypedef int PDM_g_num_t
 ctypedef int PDM_l_num_t
-
 ctypedef int PDM_MPI_Comm
-
 ctypedef enum PDM_g_num_npy_t:
-  PDM_G_NUM_NPY_INT = NPY.NPY_INT32
+    PDM_G_NUM_NPY_INT = NPY.NPY_INT32
+
+#ctypedef NPY.int64_t npy_pdm_gnum_t
+#ctypedef NPY.int64_t npy_pdm_lnum_t
+#npy_pdm_gnum_dtype = NPY.int64
+#ctypedef long PDM_g_num_t  # not safe : must be int64_t
+#ctypedef int PDM_l_num_t
+#ctypedef int PDM_MPI_Comm
+#ctypedef enum PDM_g_num_npy_t:
+#    PDM_G_NUM_NPY_INT = NPY.NPY_INT64
 
 # -----------------------------------------------------------------
 

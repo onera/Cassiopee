@@ -668,13 +668,13 @@ def getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,d,lo
     [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prangedonor,dimdonor,dirdonor,d,loc,dimZone, shift)
     if dimZone == 3:
         dim1 = 3
-        array = numpy.zeros((dim1,2), numpy.int32, order='F')
+        array = numpy.zeros((dim1,2), dtype=numpy.int32, order='F')
         array[0,1] = wimax-wimin+1
         array[1,1] = wjmax-wjmin+1
         array[2,1] = wkmax-wkmin+1
     else:
         dim1 = 2
-        array = numpy.zeros((dim1,2), numpy.int32, order='F')
+        array = numpy.zeros((dim1,2), dtype=numpy.int32, order='F')
         array[0,1] = wimax-wimin+1
         array[1,1] = wjmax-wjmin+1
     # reorder indices of opposite (donor) matching join wrt the trirac
@@ -708,14 +708,13 @@ def getBorderIndicesStruct__(prange, dim, direction, d, loc, dimZone, shift=0):
 
     # 3D Treatment
     if dimZone == 3:
-        #arrayIndices = numpy.empty((dim1,dim2), numpy.int32, order='F')
-        arrayIndices = numpy.empty((dim1*dim2), numpy.int32, order='F')
+        arrayIndices = numpy.empty((dim1*dim2), dtype=Internal.__E_NPY_INT__, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
                                                  direction, dimZone, d, shift)
     # 2D Treatment
     else:
-        arrayIndices = numpy.empty((dim1), numpy.int32, order='F')
+        arrayIndices = numpy.empty((dim1), dtype=Internal.__E_NPY_INT__, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
                                                  direction, dimZone, d, shift)
@@ -1588,21 +1587,21 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                                      if (fbingo+1 not in ptlistR): 
 
                                        sizeR   = numpy.size(ptlistR)
-                                       datap   = numpy.empty( sizeR +1, numpy.int32)
+                                       datap   = numpy.empty(sizeR+1, dtype=numpy.int32)
                                        datap[0:sizeR] = ptlistR[0:sizeR]
                                        datap[sizeR]   = fbingo +1
                                        Internal.getNodeFromName1(bc_R[c], 'PointList')[1] = datap
 
                                      searchBC = False
                                      ldone    = True
-                                  c +=1
+                                  c += 1
                                   if c == len(bc_R): searchBC = False
 
                               #creation du noeud BC si type inconnu sur zone receveuse
                               if not ldone:
                                   print('type BC inconnu: creation from scratch',gD)
                                   #ptlistR = Internal.getNodeFromName1(tmp, 'PointList')[1]
-                                  datap = numpy.empty(1, numpy.int32)
+                                  datap = numpy.empty(1, dtype=numpy.int32)
                                   datap[0] = fbingo +1
                                   tmp = [ gD[0],  gD[1], [ gD[2][0] ], gD[3]]
                                   tmp[2].append( [ 'PointList',  datap, [], 'IndexArray_t'] )
@@ -1783,7 +1782,7 @@ def adapt2FastP(t, nlayers=2):
         Nelts = z[1][0][1]
         dims_woghost.append( [ Nvtx , Nelts,  nface_tot, 0, nface_bc ] )
 
-        data_ng = numpy.zeros(6, numpy.int32)
+        data_ng = numpy.zeros(6, dtype=numpy.int32)
         data_ng[0] = dims_woghost[c][2] - dims_woghost[c][3] - dims_woghost[c][4] # couche 0: faceInterne= nbface tot(0) -nface_rac(0)-nfacebc(0)
         data_ng[1] = dims_woghost[c][3]                                           # couche 0: nbface_rac(0)
         data_ng[2] = dims_woghost[c][4]                                           # couche 0: nbfacebc(0)
@@ -1797,7 +1796,7 @@ def adapt2FastP(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NGonElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_ng)
 
-        data_nf = numpy.zeros(3, numpy.int32)
+        data_nf = numpy.zeros(3, dtype=numpy.int32)
         data_nf[0] = dims_woghost[c][1]                                           # couche 0: nombre element
         l1 = c + nbzone
         l2 = c + nbzone*2
@@ -1999,8 +1998,8 @@ def addGhostCellsNG(t, nlayers=2):
              else:
                 print(key,": cette CL n'est pas contigue et doit etre mergee")
                 ptlistNew = numpy.empty((1,size_fen), dtype=numpy.int32)
-                c=0
-                ipt_ptlist=0
+                c = 0
+                ipt_ptlist = 0
                 for bc in bc_type[key]:
                   if c==0:
                     ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]

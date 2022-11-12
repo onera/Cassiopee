@@ -1950,6 +1950,7 @@ PyObject* K_IO::GenIOHdf::dumpOne(PyObject* tree, int depth, PyObject* links)
 hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
 {
   IMPORTNUMPY;
+  printf("in writenode\n");
   char s1[CGNSMAXLABEL+1];
   char s2[CGNSMAXLABEL+1];
   PyObject* pname = PyList_GetItem(tree, 0);
@@ -2018,11 +2019,9 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
     PyArrayObject* ar = (PyArrayObject*)v;
     int dim = PyArray_NDIM(ar);
     hsize_t* dims = new hsize_t [dim];
-    //int typeNum = ar->descr->type_num;
-    //int elSize = ar->descr->elsize;
-    int typeNum = PyArray_TYPE(ar);
-    int elSize = PyArray_ITEMSIZE(ar);
-    for (int n = 0; n < dim; n++)
+    E_Int typeNum = PyArray_TYPE(ar);
+    E_Int elSize = PyArray_ITEMSIZE(ar);
+    for (E_Int n = 0; n < dim; n++)
     {
       // Fortran indexing
       dims[n] = PyArray_DIMS(ar)[dim-n-1];
@@ -2043,7 +2042,12 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
           setSingleR8(child, ptr[0]);
         }
       }
-      else if (typeNum == NPY_INT)
+      else if (typeNum == NPY_FLOAT)
+      {
+        float* ptr = (float*)PyArray_DATA(ar);
+        setSingleR4(child, ptr[0]);
+      }
+      else if (typeNum == NPY_INT || typeNum == NPY_LONG || typeNum == NPY_INT64)
       {
         if (elSize == 4)
         {
@@ -2071,24 +2075,6 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
         HDF_Add_Attribute_As_String(child, L3S_DTYPE, L3T_C1);
         delete [] buf;
       }
-      else if (typeNum == NPY_LONG)
-      {
-        if (elSize == 4)
-        {
-         int* ptr = (int*)PyArray_DATA(ar);
-         setSingleI4(child, ptr[0]);
-        }
-        else
-        {
-          E_LONG* ptr = (E_LONG*)PyArray_DATA(ar);
-          setSingleI8(child, ptr[0]);
-        }
-      }
-      else if (typeNum == NPY_FLOAT)
-      {
-        float* ptr = (float*)PyArray_DATA(ar);
-        setSingleR4(child, ptr[0]);
-      }
     }
     else // tableau
     {
@@ -2096,7 +2082,7 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
       {
         setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
       }
-      else if (typeNum == NPY_INT)
+      else if (typeNum == NPY_INT || typeNum == NPY_INT64 || typeNum == NPY_LONG)
       {
        if (elSize == 4)
        {
@@ -2109,6 +2095,11 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
        else
        {
          setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
+         //E_Int s = PyArray_Size(v);
+         //int* buf = new int [s];
+         //for (int i = 0; i < s; i++) buf[i] = (int)PyArray_DATA(ar)[i];
+         //setArrayI4(child, buf, dim, dims);
+         //delete [] buf;
        }
       }
       else if (typeNum == NPY_BYTE)
@@ -2136,26 +2127,6 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
         { 
           setArrayC1(child, (char*)PyArray_DATA(ar), dim, dims);
         }
-      }
-      else if (typeNum == NPY_LONG)
-      {
-       if (elSize == 4)
-       {
-         setArrayI4(child, (int*)PyArray_DATA(ar), dim, dims);
-       }
-       else if (elSize == 1)
-       {
-         setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
-       }
-       else
-       {
-         setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
-       }
-        //E_Int s = PyArray_Size(v);
-        //int* buf = new int [s];
-        //for (int i = 0; i < s; i++) buf[i] = (int)PyArray_DATA(ar)[i];
-        //setArrayI4(child, buf, dim, dims);
-        //delete [] buf;
       }
       else if (typeNum == NPY_FLOAT)
       {

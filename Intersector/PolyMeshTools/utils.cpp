@@ -1647,12 +1647,12 @@ PyObject* K_INTERSECTOR::extractOverConnectedCells(PyObject* self, PyObject* arg
 
   for (size_t k = 0; k < ngi.PHs.size(); ++k)
   {
-    int nf = ngi.PHs.stride(k);
-    const int* faces = ngi.PHs.get_facets_ptr(k);
-    int nb_overcon = 0;
+    E_Int nf = ngi.PHs.stride(k);
+    const E_Int* faces = ngi.PHs.get_facets_ptr(k);
+    E_Int nb_overcon = 0;
     for (size_t f = 0; f < nf; ++f)
     {
-      int PGi = faces[f] - 1;
+      E_Int PGi = faces[f] - 1;
       if (nfconnects[PGi] > 2) ++nb_overcon;
     }
     if (nb_overcon == nf) // => fully over connected
@@ -3433,13 +3433,13 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
 
     int nneighs = neighbors->stride(i);
 
-    const int* pneighs = neighbors->get_facets_ptr(i);
+    const E_Int* pneighs = neighbors->get_facets_ptr(i);
 
-    int nfaces = m1.cnt.PHs.stride(i);
-    const int* pfaces = m1.cnt.PHs.get_facets_ptr(i);
+    E_Int nfaces = m1.cnt.PHs.stride(i);
+    const E_Int* pfaces = m1.cnt.PHs.get_facets_ptr(i);
 
     //freeze top of boundary elements
-    int bot = IDX_NONE;
+    E_Int bot = IDX_NONE;
     for (size_t k = 0; k< nneighs; ++k)
     {
       if (pneighs[k] != IDX_NONE) continue;
@@ -3466,12 +3466,12 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
 
     int nneighs = neighbors->stride(i);
 
-    const int* pneighs = neighbors->get_facets_ptr(i);
+    const E_Int* pneighs = neighbors->get_facets_ptr(i);
 
-    int nfaces = m1.cnt.PHs.stride(i);
-    const int* pfaces = m1.cnt.PHs.get_facets_ptr(i);
+    E_Int nfaces = m1.cnt.PHs.stride(i);
+    const E_Int* pfaces = m1.cnt.PHs.get_facets_ptr(i);
 
-    int top=IDX_NONE, topOK=IDX_NONE;
+    E_Int top=IDX_NONE, topOK=IDX_NONE;
 
     // seek for colliging regions boundary
     int bot = IDX_NONE;

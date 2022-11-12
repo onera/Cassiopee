@@ -22,6 +22,7 @@
 
 using namespace K_FLD;
 using ngon_type = ngon_t<K_FLD::IntArray>;
+
 //=============================================================================
 /* Convert a NGon NFace numpy to a NGON Parent Element numpy */
 //=============================================================================
@@ -257,7 +258,6 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
         etd = facesp2[fa]-1;
         if (etg == 29 || etd == 29) printf("face %d\n", fa);
 
-
         sx = 0.; sy = 0.; sz = 0.;
         for (E_Int nv = 1; nv < nvert; nv++)
         {
@@ -356,7 +356,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
 
     // replace NGON/NFACE
     E_Int* ptrNG2 = cNGon->begin();
-    std::copy ( ng.PGs._NGON.begin()+2, ng.PGs._NGON.end(), ptrNG2 );
+    std::copy (ng.PGs._NGON.begin()+2, ng.PGs._NGON.end(), ptrNG2);
     //E_Int* ptrNF = cNFace->begin();
     //std::copy ( ng.PHs._NGON.begin()+2, ng.PHs._NGON.end(), ptrNF );
   }

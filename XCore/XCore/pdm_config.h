@@ -1,13 +1,21 @@
 #ifndef __PDM_CONFIG_H__
 #define __PDM_CONFIG_H__
 
-// /* #undef PDM_HAVE_PARMETIS */
-// /* #undef PDM_HAVE_PTSCOTCH */
+// #define PDM_HAVE_PARMETIS
 #define PDM_HAVE_PTSCOTCH
 //#define PDM_HAVE_GETRUSAGE
 //#define PDM_HAVE_GETTIMEOFDAY
-// /* #undef PDM_LONG_G_NUM */
-// /* #undef PDM_IN_PDMA */
+
+// CBX
+#include "Def/DefTypes.h"
+#ifdef E_DOUBLEINT
+  #define PDM_LONG_G_NUM
+  #define PDM_LONG_G_NUM_BOOL "1"
+#else
+  #define PDM_LONG_G_NUM_BOOL "0"
+#endif
+// END CBX
+
 #define PDM_IN_PDMA_BOOL 0
 #define PDM_VERSION_MAJOR "1"
 #define PDM_VERSION_MINOR "6"

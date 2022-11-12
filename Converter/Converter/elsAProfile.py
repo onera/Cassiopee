@@ -921,8 +921,8 @@ def _addTurbulentDistanceIndex(t):
       if distindex is None:
         dist = Internal.getNodeFromName1(sol,'TurbulentDistance')
         if dist is not None:
-          #indexa = numpy.full(dist[1].shape,-1, dtype=numpy.int32, order='F')
-          #indexa = numpy.empty(dist[1].shape, dtype=numpy.int32, order='F')
+          #indexa = numpy.full(dist[1].shape,-1, dtype=Internal.__E_NPY_INT, order='F')
+          #indexa = numpy.empty(dist[1].shape, dtype=Internal.__E_NPY_INT, order='F')
           indexa = numpy.empty(dist[1].shape, dtype=numpy.float64, order='F')
           indexa[:] = -1
           distindex = Internal.createNode("TurbulentDistanceIndex",'DataArray_t',value=indexa,parent=sol)
@@ -1024,13 +1024,13 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
              if ESO is not None: ESO = ESO[1]
 
              # to be removed (only used by elsA for nothing)
-             sct = numpy.arange((nfaces), dtype=numpy.int32)
+             sct = numpy.arange((nfaces), dtype=Internal.__E_NPY_INT__)
              Internal.newDataArray('SortedCrossTable', value=sct, parent=child)
-             inct = numpy.empty((nfaces), dtype=numpy.int32)
+             inct = numpy.empty((nfaces), dtype=Internal.__E_NPY_INT__)
              if ESO is None: Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
              # OK
-             ict = -1*numpy.ones((nfaces), dtype=numpy.int32)
-             bcct = -1*numpy.ones((nfaces), dtype=numpy.int32)
+             ict = -1*numpy.ones((nfaces), dtype=Internal.__E_NPY_INT__)
+             bcct = -1*numpy.ones((nfaces), dtype=Internal.__E_NPY_INT__)
              Internal.newDataArray('InversedCrossTable', value=ict, parent=child)
              Internal.newDataArray('BCCrossTable', value=bcct, parent=child)
              if axe2D > 0:

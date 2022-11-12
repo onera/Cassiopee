@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "Numpy/Numpy.h"
-# include <stdio.h>
-# include <string.h>
 
 using namespace K_FLD;
 using namespace std;

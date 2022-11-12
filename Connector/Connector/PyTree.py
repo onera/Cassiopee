@@ -256,16 +256,16 @@ def _connectMatchStruct__(a, tol, dim, glob):
 
             if model_z1 == 'NSTurbulent' and model_z1 != model_z2:
                 # creation flag pour tranfert rans/LES
-                datap1 = numpy.ones(1, numpy.int32)
-                datap2 = numpy.ones(1, numpy.int32)
+                datap1 = numpy.ones(1, dtype=numpy.int32)
+                datap2 = numpy.ones(1, dtype=numpy.int32)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz1], name1), 'RANSLES', 'DataArray_t', datap1)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz2], name2), 'RANSLES', 'DataArray_t', datap2)
                 name_extrap = 'RANS_LES%d_%d'%(noz1,noz2)
                 C._addBC2Zone(zones[noz1],name_extrap,'BCExtrapolateRANS',range1)
 
             if model_z2 == 'NSTurbulent' and model_z1 != model_z2:
-                datap1 = numpy.ones(1, numpy.int32)
-                datap2 = numpy.ones(1, numpy.int32)
+                datap1 = numpy.ones(1, dtype=numpy.int32)
+                datap2 = numpy.ones(1, dtype=numpy.int32)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz2], name2), 'RANSLES', 'DataArray_t', datap2)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz1], name1), 'RANSLES', 'DataArray_t', datap1)
                 name_extrap = 'RANS_LES%d_%d'%(noz2,noz1)
@@ -515,7 +515,7 @@ def connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, to
             tag[id0[:]-1] = 0
         sel = P.selectCells2(f, 'centers:__tag__')
         id1 = C.identifyElements(hook,sel)
-        id2 = numpy.empty(id1.size, numpy.int32)
+        id2 = numpy.empty(id1.size, dtype=Internal.__E_NPY_INT__)
         id2[:] = indicesF[id1[:]-1]
         C.freeHook(hook)
         if id2 != []:
@@ -895,16 +895,16 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
 
                 if model_z1 == 'NSTurbulent' and  model_z1 != model_z2:
                    #creation flag pour tranfert rans/LES
-                   datap1 = numpy.ones(1, numpy.int32)
-                   datap2 = numpy.ones(1, numpy.int32)
+                   datap1 = numpy.ones(1, dtype=numpy.int32)
+                   datap2 = numpy.ones(1, dtype=numpy.int32)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz1], name1) , 'RANSLES', 'DataArray_t', datap1)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
                    name1 = 'RANS_LES%d_%d'%(noz1,noz2)
                    C._addBC2Zone(zones[noz1],name1,'BCExtrapolateRANS',rangenm1)
 
                 if model_z2 =='NSTurbulent' and  model_z1 != model_z2:
-                   datap1 = numpy.ones(1, numpy.int32)
-                   datap2 = numpy.ones(1, numpy.int32)
+                   datap1 = numpy.ones(1, dtype=numpy.int32)
+                   datap2 = numpy.ones(1, dtype=numpy.int32)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz1], name1) , 'RANSLES', 'DataArray_t', datap1)
                    name2 = 'RANS_LES%d_%d'%(noz2,noz1)
@@ -972,7 +972,7 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCells: no CGNS base found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), numpy.int32)
+    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), Internal.__E_NPY_INT__)
     for b in bases:
         coords = C.getFields(Internal.__GridCoordinates__, b)
         if coords != []:
@@ -1042,7 +1042,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("_blankCells: no CGNS base found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), numpy.int32)
+    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), dtype=Internal.__E_NPY_INT__)
     for b in bases:
         coords = C.getFields(Internal.__GridCoordinates__, b, api=2) # api=1 a cause de node2Center en center_in dans le Connector.py
         if coords != []:
@@ -1095,7 +1095,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTetra: no basis found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT4)), numpy.int32)
+    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT4)), dtype=Internal.__E_NPY_INT__)
     for b in bases:
         nb += 1
         coords = C.getFields(Internal.__GridCoordinates__, b)
@@ -1153,7 +1153,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTri: no basis found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), numpy.int32)
+    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), dtype=Internal.__E_NPY_INT__)
     for b in bases:
         nb += 1
         coords = C.getFields(Internal.__GridCoordinates__, b)
@@ -1207,7 +1207,7 @@ def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTri: no basis found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), numpy.int32)
+    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), dtype=Internal.__E_NPY_INT__)
     for b in bases:
         nb += 1
         coords = C.getFields(Internal.__GridCoordinates__, b)

@@ -290,7 +290,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
 
   // IndexNGONCrossTable (c'est le posFace)
   E_Int* pINCT = cINCT->begin();
-  for (E_Int i = 0; i < nfaces; i++) pINCT[i]=posFacesp[i];
+  for (E_Int i = 0; i < nfaces; i++) pINCT[i] = posFacesp[i];
 
   RELEASESHAREDN(NGon, cNGon);
   RELEASESHAREDN(PE, cPE);
