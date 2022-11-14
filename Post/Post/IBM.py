@@ -416,7 +416,7 @@ def _computeExtraVariables(ts, PInf, QInf,
 # to avoid adimensionning by Sref of forces, set Sref=1
 # works in parallel
 #-------------------------------------------------
-def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, verbose=False):
+def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, verbose=False,time=0):
     import Post.ExtraVariables2 as PE
 
     zones = Internal.getZones(ts)
@@ -484,10 +484,11 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
         
             print("Normalized skin friction drag = %.4e and lift = %.4e"%(cdf, clf))
             print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(%.4e,%.4e,%.4e)"%(res2[0], res2[1], res2[2]))
-        
+
+            if time==0:time=-1
             print("****************************************")
-            print("Total Drag : %.4e"%(cdp+cdf))
-            print("Total Lift : %.4e"%(clp+clf))
+            print("Total Drag (time/nit=%.4e) : %.4e"%(time,(cdp+cdf)))
+            print("Total Lift (time/nit=%.4e) : %.4e"%(time,(clp+clf)))
             print("****************************************")
 
         FSC = Internal.getNodesFromName(ts,Internal.__FlowSolutionCenters__)

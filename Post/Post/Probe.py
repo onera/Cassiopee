@@ -21,6 +21,7 @@ class Probe:
         # mode=1, probe ind, single point
         # mode=2, zones donnees
         # mode=3, zones interpolees
+        # mode=4, global quantities
         self._mode = 2
 
         # -- data probe mode=0 --
@@ -115,7 +116,7 @@ class Probe:
         if self._mode == 0 or self._mode == 1 or self._mode == 4:
             if self._proc is not None and self._fields is not None:
                 self.createProbeZones()
-        
+
             if self._proc is not None and self._probeZones is not None:
                 self.checkFile(append=self._append)
             #if t is not None and fields is not None: 
@@ -241,8 +242,7 @@ class Probe:
             if Cmpi.rank != self._proc and self._mode!=4: return
             z = G.cart((0,0,0), (1,1,1), (self._bsize,1,1))
             z[0] = 'probe'
-            if self._mode!=4:
-                D2._addProcNode(z, self._proc)
+            if self._mode!=4:D2._addProcNode(z, self._proc)
             self._probeZones = [z]
             C._initVars(self._probeZones, '{time}=-1.') # time sentinel
             # create vars in probe
@@ -378,6 +378,8 @@ class Probe:
             if isFilePresent:
                 if self._mode == 0 or self._mode == 1:
                     tl = Distributed.convertFile2SkeletonTree(self._fileName)
+                elif self._mode == 4:
+                    tl = C.convertFile2PyTree(self._fileName)
                 else: 
                     tl = Cmpi.convertFile2SkeletonTree(self._fileName)
                     
@@ -400,22 +402,25 @@ class Probe:
             self._filecur = 0
             return None
 
-        if self._mode != 4:
-            #  Nettoyage + ne conserve que les zones du proc
-            to = C.newPyTree()
-            bases = Internal.getBases(tl)
-            for b in bases:
-                bl = Internal.newCGNSBase(b[0], parent=to)
-                zones = Internal.getZones(b)
-                for z in zones:
-                    Internal._rmNodesByName(z, 'GridCoordinates#*')
-                    Internal._rmNodesByName(z, 'FlowSolution#[0123456789]*')
-                    Internal._rmNodesByName(z, 'FlowSolution#Centers#*')
+        #if self._mode != 4:   
+        #  Nettoyage + ne conserve que les zones du proc
+        to = C.newPyTree()
+        bases = Internal.getBases(tl)
+        for b in bases:
+            bl = Internal.newCGNSBase(b[0], parent=to)
+            zones = Internal.getZones(b)
+            for z in zones:
+                Internal._rmNodesByName(z, 'GridCoordinates#*')
+                Internal._rmNodesByName(z, 'FlowSolution#[0123456789]*')
+                Internal._rmNodesByName(z, 'FlowSolution#Centers#*')
+                if self._mode != 4:
                     if D2.getProc(z) == Cmpi.rank: bl[2].append(z)
+                else:bl[2].append(z)
+        tl = to
             
-            tl = to
         self._probeZones = Internal.getZones(tl)
 
+                     
         # load GC
         zones = Internal.getZones(tl)
         paths = []
@@ -427,7 +432,7 @@ class Probe:
             for c, z in enumerate(self._probeZones):
                 cont = Internal.getNodeFromName2(z, 'GridCoordinates')
                 if cont is not None: cont[2] = nodes[c][2]
-
+        
         # load FS
         paths = []
         for z in zones:
@@ -438,7 +443,7 @@ class Probe:
             for c, z in enumerate(self._probeZones):
                 cont = Internal.getNodeFromName2(z, 'FlowSolution')
                 if cont is not None: cont[2] = nodes[c][2]
-
+        
         # load FS center
         paths = []
         for z in zones:
@@ -770,7 +775,8 @@ class Probe:
                     paths += ['CGNSTree/Base/%s'%pzone[0]]
                 Distributed.writeNodesFromPaths(self._fileName, paths, nodes, None, -1, 0)
                 C._initVars(pzone, '{time}=-1.') # time sentinel
-                for v in self._fields: C._initVars(pzone, '{%s}=0.'%v)
+                for v in self._fields:C._initVars(pzone, '{%s}=0.'%v)
+            #print('self._filecur=',self._filecur)
             self._filecur += 1
             self._icur = 0
 

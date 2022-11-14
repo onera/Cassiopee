@@ -1,0 +1,13 @@
+#! /bin/sh
+# cleanAll: enleve tous les .o, ...
+. ./MODULES
+
+for mod in $FULLMODULES
+do
+  if test -e $mod
+  then
+      echo "cp -r /stck/benoit/Cassiopee/Apps/Modules/$mod/test/Data $mod/test/."
+      cp -r /stck/benoit/Cassiopee/Apps/Modules/$mod/test/Data $mod/test/.
+  fi
+done
+
