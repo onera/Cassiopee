@@ -1950,7 +1950,6 @@ PyObject* K_IO::GenIOHdf::dumpOne(PyObject* tree, int depth, PyObject* links)
 hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
 {
   IMPORTNUMPY;
-  printf("in writenode\n");
   char s1[CGNSMAXLABEL+1];
   char s2[CGNSMAXLABEL+1];
   PyObject* pname = PyList_GetItem(tree, 0);

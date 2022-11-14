@@ -90,7 +90,6 @@ Multiblock connectivity
     :param a1,a2:  Input data
     :type  a1,a2:  arrays
     
-
     *Using the PyTree interface:*
 
         ::
@@ -104,6 +103,9 @@ Multiblock connectivity
     :param t: input data
     :type  t: pyTree, base, zone, list of zones
     :rtype:  identical to input
+
+    Exists also as parallel distributed version (X.Mpi.connectMatch).
+
 
     *Example of use:*
 
@@ -138,6 +140,7 @@ Multiblock connectivity
 
     If unitAngle='Radian': parameter rotationAngle is assumed in radians.
 
+    Exists also as parallel distributed version (X.Mpi.connectMatchPeriodic).
 
     .. note:: 
 

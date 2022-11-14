@@ -87,6 +87,7 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
     a = mergeWindows(a)
 
     return a
+
 #==============================================================================
 # connectMatchPeriodic 
 #==============================================================================
@@ -124,6 +125,7 @@ def giveName2Window(p, zname, zopp):
         else: pos = zname+'_kmax_'+zopp
 
     return pos
+    
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def mergeWindows(t):
     # Merge grid connectivities created after addBXZones

@@ -5355,6 +5355,14 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True, convertR82R4=False, con
                         n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
                         pt2 = n[1].ravel('k')
                         pt2[:] = pt1[:]
+            node = getNodeFromName1(z, ':elsA#Hybrid')
+            if node is not None:
+                for n in node[2]:
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
 
         if convertI42I8:
             if z[3] == 'Zone_t' and z[1] is not None and z[1].dtype == numpy.int32:
@@ -5384,5 +5392,14 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True, convertR82R4=False, con
                         n[1] = numpy.empty(n[1].shape, dtype=numpy.int64, order='F')
                         pt2 = n[1].ravel('k')
                         pt2[:] = pt1[:]
+            node = getNodeFromName1(z, ':elsA#Hybrid')
+            if node is not None:
+                for n in node[2]:
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.int32:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int64, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+                
 
     return None

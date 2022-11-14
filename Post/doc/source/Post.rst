@@ -1284,6 +1284,8 @@ Solution integration
 
 .. py:function:: Post.integ(A, var='F')
 
+---------------------------------------
+
     Compute the integral :math:`\int F.dS` of a scalar field (whose name is in var string) over
     the geometry defined by arrays containing the coordinates + field ( + an optional ratio ).
     Solution and ratio can be located at nodes or at centers.
@@ -1305,6 +1307,8 @@ Solution integration
     :type var: string
     :return: the result of integration
     :rtype: a list of 1 float
+
+    Exists also as parallel distributed version (P.Mpi.integ).
 
     *Example of use:*
 
@@ -1340,6 +1344,8 @@ Solution integration
     :return: the result of integration
     :rtype: double list of 3 floats
 
+    Exists also as parallel distributed version (P.Mpi.integNorm).
+
     *Example of use:*
 
     * `Integration dot the surface normal (array) <Examples/Post/integNorm.py>`_:
@@ -1368,6 +1374,8 @@ Solution integration
         res = P.integNormProduct(A, vector=['vx','vy','vz'])
 
 
+    Exists also as parallel distributed version (P.Mpi.integNormProduct).
+
     *Example of use:*
 
     * `Integration cross the surface normal (array) <Examples/Post/integNormProduct.py>`_:
@@ -1395,6 +1403,8 @@ Solution integration
     ::
 
        res = P.integMoment(A, center=(0.,0.,0.), vector=['vx','vy','vz'])
+
+    Exists also as parallel distributed version (P.Mpi.integMoment).
 
     :param A: input data
     :type  A: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -1438,6 +1448,8 @@ Solution integration
     :type var: string
     :return: the result of integration
     :rtype: a list of 3 floats
+
+    Exists also as parallel distributed version (P.Mpi.integMomentNorm).
 
     *Example of use:*
 

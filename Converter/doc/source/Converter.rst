@@ -1326,7 +1326,9 @@ Array / PyTree common manipulations
 
 .. py:function:: Converter.getNPts(a)
 
-    Return the total number of points in a. 
+    Return the total number of points in a.
+
+    Exists also as parallel distributed version (C.Mpi.getNPts).
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -1347,6 +1349,8 @@ Array / PyTree common manipulations
 .. py:function:: Converter.getNCells(a)
 
     Return the total number of cells in a. 
+    
+    Exists also as parallel distributed version (C.Mpi.getNCells).
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -1868,6 +1872,8 @@ Array / PyTree analysis
 
     Return the minimum value of field 'var' on input.
 
+    Exists also as parallel distributed version (C.Mpi.getMinValue).
+
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param var: variable name
@@ -1889,6 +1895,8 @@ Array / PyTree analysis
 .. py:function:: Converter.getMaxValue(a, var)
 
     Return the maximum value of field 'var' on input.
+
+    Exists also as parallel distributed version (C.Mpi.getMaxValue).
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -1912,6 +1920,8 @@ Array / PyTree analysis
 .. py:function:: Converter.getMeanValue(a, var)
 
     Return the mean value of field 'var' on input.
+
+    Exists also as parallel distributed version (C.Mpi.getMeanValue).
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
