@@ -20,7 +20,6 @@ from    cpython.ref cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
 cimport cython
 cimport numpy       as      NPY
 
-#from    mpi4py      cimport MPI
 cimport mpi4py.MPI as MPI
 
 # -----------------------------------------------------------------
@@ -34,10 +33,6 @@ NPY.import_array()
 # PDM Specific type :
 # -----------------
 
-#cdef extern from "pdm_config.h":
-#    cdef int PDM_LONG_G_NUM_BOOL
-#PDM_LONG_G_NUM_BOOL2 = PDM_LONG_G_NUM_BOOL
-
 ctypedef NPY.int32_t npy_pdm_gnum_t
 ctypedef NPY.int32_t npy_pdm_lnum_t
 npy_pdm_gnum_dtype = NPY.int32
@@ -47,14 +42,28 @@ ctypedef int PDM_MPI_Comm
 ctypedef enum PDM_g_num_npy_t:
     PDM_G_NUM_NPY_INT = NPY.NPY_INT32
 
+
 #ctypedef NPY.int64_t npy_pdm_gnum_t
-#ctypedef NPY.int64_t npy_pdm_lnum_t
+#ctypedef NPY.int32_t npy_pdm_lnum_t
 #npy_pdm_gnum_dtype = NPY.int64
 #ctypedef long PDM_g_num_t  # not safe : must be int64_t
 #ctypedef int PDM_l_num_t
 #ctypedef int PDM_MPI_Comm
 #ctypedef enum PDM_g_num_npy_t:
 #    PDM_G_NUM_NPY_INT = NPY.NPY_INT64
+
+
+# CBX - get it from internal and pdmconfig
+#cdef extern from "pdm_config.h":
+#    cdef int PDM_LONG_G_NUM_BOOL
+#PDM_LONG_G_NUM_BOOL2 = PDM_LONG_G_NUM_BOOL
+#cimport Converter.Internal as Internal
+#ctypedef Internal.__E_NPY_INT_T__ npy_pdm_gnum_t
+#ctypedef NPY.int32_t npy_pdm_lnum_t
+#npy_pdm_gnum_dtype = Internal.__E_NPY_INT__
+#ctypedef enum PDM_g_num_npy_t:
+#    PDM_G_NUM_NPY_INT = Internal.__E_NPY_INT__
+# ENDCBX
 
 # -----------------------------------------------------------------
 

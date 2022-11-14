@@ -658,7 +658,7 @@ else if ($MAC == "spiro_el8") then
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
-        #setenv PRODMODE 1
+        setenv PRODMODE 1
         source /etc/profile.d/modules-onera.csh
         module purge
 
@@ -666,16 +666,19 @@ else if ($MAC == "spiro_el8") then
         #module load intel/19.0.5
         #module load hdf5/1.10.5-intel1905-impi
         
-        module load socle-cfd/5.0-intel2120-impi
-    
+        #module load socle-cfd/5.0-intel2120-impi
+        module load socle-cfd/6.0-intel2220-impi
+
         module load occt/7.6.1-gnu831
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        
+        # DBX - pb d'installation DSI
+        setenv PATH /stck/benoit/Cassiopee/Dist/bin/spiro_el8:/stck/benoit/Cassiopee/Dist/bin/spiro_el8/bin:/opt/tools/emacs/27.2-gnu831/bin:/opt/tools/freetype/2.10.2-gnu831/bin:/opt/tools/subversion/1.14.1-gnu831/bin:/opt/tools/occt/7.6.1-gnu831/bin:/opt/tools/swig/3.0.12-python3814-intel2220-impi-hpc/bin:/opt/tools/scotch/6.0.9-idx32-intel2220-impi-hpc/bin:/opt/tools/parmetis/4.0.3-intel2220-impi-hpc/bin:/opt/tools/metis/5.1.0-intel2220-impi-hpc/bin:/opt/tools/cgns/4.1.2-intel2220-impi-hpc/bin:/opt/tools/hdf5/1.10.5-intel2220-impi-hpc/bin:/opt/tools/python/3.8.14-intel2220-hpc/bin:/opt/tools/intel/oneapi/mpi/2021.6.0/libfabric/bin:/opt/tools/intel/oneapi/mpi/2021.6.0/bin:/opt/tools/intel/oneapi/compiler/2022.1.0/linux/bin/intel64:/opt/tools/intel/oneapi/compiler/2022.1.0/linux/bin:.:/stck/benoit/bin:/opt/tools/Modules/bin:/opt/tools/adm/bin:/opt/tools/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/stck/benoit/Cassiopee/Dist/bin
+        # ENDDBX
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 else if ($MAC == "spiro_coda") then
 #------------------------------- spiro --------------------------------------

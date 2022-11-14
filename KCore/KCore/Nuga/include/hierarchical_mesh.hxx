@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
 
 #ifndef NUGA_HIERACHICAL_MESH_HXX
 #define NUGA_HIERACHICAL_MESH_HXX
@@ -148,7 +148,7 @@ class hierarchical_mesh
     ///
     inline void extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const;
     ///
-    inline void extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const; //todo VD : à implémenter
+    inline void extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const; //todo VD : ï¿½ implï¿½menter
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
@@ -257,13 +257,13 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
   for (E_Int i=0; i < nb_phs; ++i)
   {
     K_MESH::Polyhedron<0>::is_prismN(_ng.PGs, _ng.PHs.get_facets_ptr(i), _ng.PHs.stride(i), pg, qopp);
-    // alexis : utiliser pg et qopp pour réordonner
+    // alexis : utiliser pg et qopp pour rï¿½ordonner
   }
   
   // promote eventually to layer type + 2nd reorder
   for (E_Int i=0; i < _F2E.cols(); ++i)
   {
-    // alexis : si i n'est pas une frontière => continue
+    // alexis : si i n'est pas une frontiï¿½re => continue
     
     E_Int PHi = (_F2E(0,i) != IDX_NONE) ? _F2E(0,i) : _F2E(1,i);
     
@@ -703,8 +703,8 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_and_transmit_adap_incr_to_ne
     if (adincrPHi > 0) // refinement : activate the children, transfer the adapincr & set their level
     {
       --adincrPHi;
-      adincrPHi = max(adincrPHi, 0); // to do same behaviour for DIR and ISO:
-                                     // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
+      adincrPHi = max(adincrPHi, E_Int(0)); // to do same behaviour for DIR and ISO:
+                // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
 
       E_Int nb_child = _PHtree.nb_children(PHi);
       const E_Int* children = _PHtree.children(PHi);

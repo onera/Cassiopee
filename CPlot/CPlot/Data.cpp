@@ -121,10 +121,10 @@ Data::Data(CPlotState* ptState)
   int nb = 5; int c = 0;
   _nBillBoards = nb;
   _billBoardFiles = new char* [nb];
-  _billBoardNis = new int [nb];
-  _billBoardNjs = new int [nb];
-  _billBoardWidths = new int [nb]; // init from files
-  _billBoardHeights = new int [nb];
+  _billBoardNis = new E_Int [nb];
+  _billBoardNjs = new E_Int [nb];
+  _billBoardWidths = new E_Int [nb]; // init from files
+  _billBoardHeights = new E_Int [nb];
   _billBoardTexs = new GLuint [nb];
   _billBoardFiles[c] = new char [128];
   strcpy(_billBoardFiles[c], "smoke1.png");
@@ -426,7 +426,7 @@ void Data::initState()
 }
 //=============================================================================
 void
-Data::freeGPUResources(int mode, int start, int end, int permanent)
+Data::freeGPUResources(E_Int mode, E_Int start, E_Int end, E_Int permanent)
 {
   CPlotState& state = (*ptrState);
   state.freeGPUData[0] = mode; state.freeGPUData[1] = start;
@@ -436,7 +436,7 @@ Data::freeGPUResources(int mode, int start, int end, int permanent)
 }
 //=============================================================================
 void
-Data::updateGPUResources(int mode, int size, int permanent, void* updatedPointer)
+Data::updateGPUResources(E_Int mode, E_Int size, E_Int permanent, void* updatedPointer)
 {
   CPlotState& state = (*ptrState);
   state.freeGPUData[0] = mode; state.freeGPUData[1] = size;
@@ -1141,7 +1141,7 @@ void Data::reallocNFieldArrays(int nfield)
     if (_isoAlphaMax != NULL) delete [] _isoAlphaMax;
     _isoAlphaMax = n;
 
-    int* ni = new int [nfield];
+    E_Int* ni = new E_Int [nfield];
     for (E_Int i = 0; i < nfield; i++) ni[i] = -2;
     if (_isoColormap != NULL) delete [] _isoColormap;
     _isoColormap = ni;
@@ -1151,7 +1151,7 @@ void Data::reallocNFieldArrays(int nfield)
     if (ptrState->activePointF != NULL) delete [] ptrState->activePointF;
     ptrState->activePointF = n;
 
-    int* m = new int [nfield];
+    E_Int* m = new E_Int [nfield];
     if (_niso != NULL) delete [] _niso;
     _niso = m;
     for (E_Int i = 0; i < nfield; i++) _niso[i] = -1;

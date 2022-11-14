@@ -27,7 +27,7 @@
    type=3: soft, two-sided
 */
 //============================================================================
-void Data::light(int type)
+void Data::light(E_Int type)
 {
   GLfloat ambient[4];
   GLfloat diffuse[4];

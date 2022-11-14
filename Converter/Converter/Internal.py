@@ -13,7 +13,6 @@ from . import converter
 __E_NPY_INT__ = numpy.int32
 #__E_NPY_INT__ = numpy.int64
 
-
 # Containeurs
 __GridCoordinates__ = 'GridCoordinates'
 __FlowSolutionNodes__ = 'FlowSolution'

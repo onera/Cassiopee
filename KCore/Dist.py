@@ -211,10 +211,13 @@ def writeInstallPath():
     import re
     prefix = sys.prefix
     a = sys.argv
-    for i in a:
-        if re.compile('--prefix=').search(i) is not None: prefix = i[9:]
-        elif re.compile('prefix=').search(i) is not None: prefix = i[7:]
+    for c, i in enumerate(a):
+        if re.compile('--prefix=').search(i) is not None: prefix = i[9:] # setup
+        elif re.compile('prefix=').search(i) is not None: prefix = i[7:] # setup
+        elif re.compile('--prefix').search(i) is not None: prefix = a[c+1] # pip
+        
     installPath = getInstallPath(prefix)
+    
     p = open('installPath.py', 'w')
     if p is None:
         raise SystemError("Error: can not open file installPath.py for writing.")
@@ -229,7 +232,7 @@ def writeInstallPath():
     p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))
     p.write('includePath = \'%s\'\n'%(os.getcwd()))
     p.close()
-
+    
 #==============================================================================
 # Write env files
 # Directement dans le repertoire d'installation

@@ -6,11 +6,11 @@ import Generator as G
 import KCore.test as test
 
 def F(x):
-    if ( x > 5. ): return True
+    if x > 5.: return True
     else: return False
 #
 def celln(y):
-    if ( y > 5. ): return True
+    if y > 5.: return True
     else: return False
 
 # computeDiff_t3 does not work for unstructured arrays, located at centers.

@@ -755,7 +755,7 @@ def shiftMatrix__(trirac):
     return m
 
 def triracopp__(trirac):
-    m = numpy.zeros((3,3),dtype=numpy.int32)
+    m = numpy.zeros((3,3),dtype=Internal.__E_NPY_INT__)
     for no in range(3):
         signt = (trirac[no]>0)*1+(-1*(trirac[no]<0))
         i1 = abs(trirac[no])-1
@@ -826,7 +826,7 @@ def getBCMatchData__(bc):
     trf = Internal.getNodeFromName1(bc, 'Transform')
     trf = Internal.getValue(trf)
     if trf.size == 2: # met toujours le transform en 3D
-        trf2 = numpy.empty(3, dtype=numpy.int32)
+        trf2 = numpy.empty(3, dtype=Internal.__E_NPY_INT__)
         trf2[0:2] = trf[0:2]; trf2[2] = 3
         trf = trf2
     # Get periodic data if any
@@ -1510,9 +1510,9 @@ def reorderIndices__(w0, dim, oi, oj, ok):
 #=============================================================================
 def reorderTrirac__(transfo, order=[1,2,3]):
     nt = transfo.size
-    TM = numpy.zeros((nt,nt), numpy.int32) # matrice liee a la transfo
-    OM = numpy.zeros((nt,nt), numpy.int32) # matrice transposee de order:  son inverse
-    BM = numpy.zeros((nt,nt), numpy.int32) # T.R^-1 pour reordonner la transfo
+    TM = numpy.zeros((nt,nt), dtype=Internal.__E_NPY_INT__) # matrice liee a la transfo
+    OM = numpy.zeros((nt,nt), dtype=Internal.__E_NPY_INT__) # matrice transposee de order:  son inverse
+    BM = numpy.zeros((nt,nt), dtype=Internal.__E_NPY_INT__) # T.R^-1 pour reordonner la transfo
     from numpy import linalg
     for i in range(nt):
         for j in range(nt):
@@ -1538,9 +1538,9 @@ def reorderTrirac__(transfo, order=[1,2,3]):
 
 def reorderTriracOpp__(transfo, order=[1,2,3]):
     nt = transfo.size
-    TM = numpy.zeros((nt,nt), numpy.int32) # matrice liee a la transfo opp de z1 vers z1
-    OM = numpy.zeros((nt,nt), numpy.int32) # matrice transposee de order appliquee a z1:  son inverse
-    BM = numpy.zeros((nt,nt), numpy.int32) # R.T pour reordonner la transfo
+    TM = numpy.zeros((nt,nt), dtype=Internal.__E_NPY_INT__) # matrice liee a la transfo opp de z1 vers z1
+    OM = numpy.zeros((nt,nt), dtype=Internal.__E_NPY_INT__) # matrice transposee de order appliquee a z1:  son inverse
+    BM = numpy.zeros((nt,nt), dtype=Internal.__E_NPY_INT__) # R.T pour reordonner la transfo
     from numpy import linalg
     for i in range(nt):
         for j in range(nt):
@@ -1593,7 +1593,7 @@ def _reorderBCNearMatch__(a, order, zoneNames):
                             nmratios = Internal.getNodesFromName2(cn, 'NMRatio')
                             for nmratio in nmratios:
                                 (parent,d) = Internal.getParentOfNode(cn, nmratio)
-                                triracnm = numpy.zeros((3), numpy.int32)
+                                triracnm = numpy.zeros((3), dtype=Internal.__E_NPY_INT__)
                                 for i in range(3): triracnm[i] = i+1
                                 triracnm = reorderTrirac__(triracnm,[abs(oi),abs(oj),abs(ok)])
                                 nmr = nmratio[1]
@@ -2401,11 +2401,10 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
 
                 if test != []:
 
-                    indexleft  = numpy.zeros(6, numpy.int32)
-                    indexright = numpy.zeros(6, numpy.int32)
-                    indexfather=test[0][0]
-                    dimfather  =test[0][1]
-
+                    indexleft  = numpy.zeros(6, dtype=Internal.__E_NPY_INT__)
+                    indexright = numpy.zeros(6, dtype=Internal.__E_NPY_INT__)
+                    indexfather= test[0][0]
+                    dimfather  = test[0][1]
 
                     indexleft[0]=indexfather[0];indexleft[1]=indexfather[1]
                     indexleft[2]=indexfather[2];indexleft[3]=indexfather[3]
@@ -2450,7 +2449,6 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
         for zleaf in enumerate(Thread_z[ith][2]):
             zind= [s for s in zsplit if zleaf[1] in s[2][:] ] # get the indexes
             zomp_threads[zind[0][4]][ith+1].append((zleaf[1],zind[0][0]))
-
 
     t = C.addVars(t,'centers:thread_number')
     t = C.addVars(t,'centers:thread_subzone')

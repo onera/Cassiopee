@@ -25,7 +25,7 @@
   mode=2: DOF+GAMMA+SOBEL
 */
 //============================================================================
-void Data::displayFrameTex(int mode, double sobelThreshold)
+void Data::displayFrameTex(E_Int mode, double sobelThreshold)
 {
   glColor3f(1., 0, 0);
 
