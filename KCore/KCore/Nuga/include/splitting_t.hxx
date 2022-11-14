@@ -58,31 +58,25 @@ namespace NUGA
       for (E_Int i = 0; i < nfaces; ++i)
       {
         E_Int PGi = faces[i] - 1;
-        E_Int parentPGi = PGtree.parent(PGi);
-
-        if (parentPGi == IDX_NONE) continue; // inner face
+        //E_Int parentPGi = PGtree.parent(PGi);
 
         assert(PGi < F2E.cols());
 
-        if (F2E(0, PGi) == IDX_NONE && F2E(1, PGi) == IDX_NONE) // init with parent data for outer faces
-        {
-          //std::cout << "toto" << std::endl;
-          F2E(0, PGi) = F2E(0, parentPGi);
-          F2E(1, PGi) = F2E(1, parentPGi);
-        }
+        if (F2E(0, PGi) == IDX_NONE && F2E(1, PGi) == IDX_NONE) // INNER FACE
+          continue;
 
-        E_Int side = IS_OUTWARD(F2E, parentPGi, parentPHi) ? 0 : 1; //child PH is on same side of child PG as parent PH regarding parent PG 
-        if (side == 1)
+        E_Int side = IS_OUTWARD(F2E, PGi, parentPHi) ? 0 : 1; //child PH is on same side of child PG as parent PH regarding parent PG 
+        /*if (side == 1)
         {
           if (!IS_INWARD(F2E, parentPGi, parentPHi)) {
-            /*std::cout << "PHi/parentPHi : " << PHi << "/" << parentPHi << std::endl;
+            std::cout << "PHi/parentPHi : " << PHi << "/" << parentPHi << std::endl;
             std::cout << "PGi/parentPGi : " << PGi << "/" << parentPGi << std::endl;
             std::cout << "F2E(0, PGi) : " << F2E(0, PGi) << std::endl;
             std::cout << "F2E(1, PGi) : " << F2E(1, PGi) << std::endl;
             std::cout << "F2E(0, parentPGi) : " << F2E(0, parentPGi) << std::endl;
-            std::cout << "F2E(1, parentPGi) : " << F2E(1, parentPGi) << std::endl;*/
+            std::cout << "F2E(1, parentPGi) : " << F2E(1, parentPGi) << std::endl;
           }
-        }
+        }*/
 
         // replace parentPHi and propagate this PHi to PGi entire descendance
         __propagate_PH_neighbour_in_PG_descendance(PGi, side, PHi, PGtree, F2E);

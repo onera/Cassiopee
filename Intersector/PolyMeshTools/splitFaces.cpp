@@ -490,15 +490,21 @@ PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
   //   xmesh.cnt.change_indices(nids);
   // ngon_type::compact_to_used_nodes(xmesh.cnt, xmesh.crd);
 
-  K_CONNECT::IdTool::init_inc(m0.cnt.PGs._type, m0.cnt.PGs.size());
+  K_CONNECT::IdTool::init_inc(m0.cnt.PGs._type, m0.cnt.PGs.size()); // first, all faces assumed intact
   xmesh.cnt._type.resize(sz, IDX_NONE);
-  for (size_t i=0; i < sz; ++i)xmesh.cnt._type[i] = vfoid[i];
+  for (size_t i=0; i < sz; ++i)
+  {
+    xmesh.cnt._type[i] = vfoid[i]; // assign history to faces to be appended referring to faces in m0
+    assert (vfoid[i] < m0.cnt.PGs.size());
+    //if (vfoid[i] < 0 || vfoid[i] >= m0.cnt.PGs.size()) std::cout << "error vfoid" << std::endl;
+    m0.cnt.PGs._type[vfoid[i]] = IDX_NONE; // disable such face that will be replaced (to avoid to append both a face and its decomposition)
+  }
 
 
   int N0 = m0.crd.cols();
   m0.crd.pushBack(xmesh.crd);
   xmesh.cnt.shift(N0);
-  m0.cnt.PGs.append(xmesh.cnt);
+  m0.cnt.PGs.append(xmesh.cnt); //appending faces
 
   std::map<int, std::vector<int>> split_map;
   K_CONNECT::IdTool::reverse_indirection(&m0.cnt.PGs._type[0], m0.cnt.PGs._type.size(), split_map);

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sï¿½m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __K_MESH_EDGE_H__
 #define __K_MESH_EDGE_H__
