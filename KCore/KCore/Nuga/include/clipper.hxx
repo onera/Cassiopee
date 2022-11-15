@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CLIPPER_HXX
 #define NUGA_CLIPPER_HXX
@@ -68,7 +68,7 @@ namespace NUGA
     }
 
     template <typename aELT>
-    inline void __filtrate_outside_edges(aELT& sub, const K_FLD::FloatArray& crd2D, K_FLD::IntArray& cnt, int id_start, std::vector<std::pair<int,int>>& xedge, std::vector<bool>& keep)
+    inline void __filtrate_outside_edges(aELT& sub, const K_FLD::FloatArray& crd2D, K_FLD::IntArray& cnt, int id_start, std::vector<std::pair<E_Int,E_Int>>& xedge, std::vector<bool>& keep)
     {
       // WARNING : sub cnt ids must refer to crd2D
 
@@ -1101,7 +1101,7 @@ namespace NUGA
     }
 
     template<typename aelt_t>
-    void __replace_append_and_next_iter(std::vector<aelt_t>& bits, E_Int& b, std::vector<aelt_t>& toadd)
+    void __replace_append_and_next_iter(std::vector<aelt_t>& bits, int& b, std::vector<aelt_t>& toadd)
     {
       size_t sz = toadd.size();
 
@@ -1116,7 +1116,7 @@ namespace NUGA
       }
       else
       {
-        if (b < (E_Int)bits.size() - 1) // put the last (if exist) in the current, pop back the last
+        if (b < (int)bits.size() - 1) // put the last (if exist) in the current, pop back the last
         {
           bits[b] = std::move(bits.back());
           --b; // to treat it at next iter
@@ -1153,10 +1153,10 @@ namespace NUGA
 #ifdef DEBUG_CLIPPER
         medith::write("mask", mask_bit.crd, mask_bit.cnt);
 #endif
-        E_Int idx_start = mask_bit.index_start;
+        int idx_start = mask_bit.index_start;
         //
-        E_Int nbits = (E_Int)bits.size(); // bits can be appended when split give multiple bits
-        for (E_Int b = 0; b < nbits; ++b)
+        int nbits = (int)bits.size(); // bits can be appended when split give multiple bits
+        for (int b = 0; b < nbits; ++b)
         {
           auto& ae1 = bits[b];
 
@@ -1200,7 +1200,7 @@ namespace NUGA
           // if tmpbits is empty (IN) => compress (erase bits if single, put the last instead of current otherwise)
           // else replace the first bit, append the other bits  . 
           __replace_append_and_next_iter(bits, b, tmpbits);
-          if ((E_Int)bits.size() < nbits) nbits = bits.size(); //update iff the last have replaced the current 
+          if ((int)bits.size() < nbits) nbits = bits.size(); //update iff the last have replaced the current 
         }
 
         // update vcur

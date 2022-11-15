@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/IdTool.h"
@@ -156,7 +156,7 @@ void ngon_unit::get_stride_extrema(E_Int& mins, E_Int& maxs) const
 
 
 ///
-void ngon_unit::add(E_Int n, const E_Int* facet_ptr, E_Int shift)
+void ngon_unit::add(int n, const E_Int* facet_ptr, int shift)
 {
   // molecule here is one PH or PG
   if (_NGON.empty())

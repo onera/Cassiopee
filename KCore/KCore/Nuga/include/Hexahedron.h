@@ -140,7 +140,7 @@ public:
   static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i);
 
   template <typename ngunit_t>
-  static int get_opposite(const ngunit_t & PGs, const E_Int* first_pg, E_Int k);
+  static E_Int get_opposite(const ngunit_t & PGs, const E_Int* first_pg, E_Int k);
 
   template <typename ngunit_t>
   static void get_local(const ngunit_t & PGs, const E_Int* first_pg, E_Int*& local);
@@ -242,17 +242,17 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // 
 
 ///
 template <typename ngunit_t>
-int Hexahedron::get_opposite(const ngunit_t & PGs, const E_Int* first_pg, E_Int k)
+E_Int Hexahedron::get_opposite(const ngunit_t & PGs, const E_Int* first_pg, E_Int k)
 {
   E_Int PGk = first_pg[k]-1;
-  const int* nodes = PGs.get_facets_ptr(PGk);
-  std::set<int> bnodes(nodes, nodes+4), tmp;
+  const E_Int* nodes = PGs.get_facets_ptr(PGk);
+  std::set<E_Int> bnodes(nodes, nodes+4), tmp;
 
   for (size_t i=0; i < 6; ++i)
   {
     if (i == k) continue;
 
-    const int* inodes = PGs.get_facets_ptr(first_pg[i]-1);
+    const E_Int* inodes = PGs.get_facets_ptr(first_pg[i]-1);
     tmp = bnodes;
 
     int nb_common = 0;

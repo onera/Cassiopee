@@ -290,7 +290,7 @@ namespace NUGA
 
   };
 
-  template <E_Int DIM>
+  template <int DIM>
   struct int_tuple
   {
     E_Int n[DIM];
@@ -303,7 +303,7 @@ namespace NUGA
     int_tuple& operator=(const int_tuple& d) { n[0] = d.n[0];  n[1] = d.n[1]; if (DIM == 3) n[2] = d.n[2]; return *this; }
     //E_Int operator+(E_Int v) const { return max() + v; }
     int_tuple& operator+(E_Int val) { n[0] += val;  n[1] += val; if (DIM == 3) n[2] += val; return *this; }
-    int_tuple& operator--() { n[0] = std::max(0, --n[0]); n[1] = std::max(0, --n[1]); if (DIM == 3) { n[2] = std::max(0, --n[2]); }; return *this; }
+    int_tuple& operator--() { n[0] = std::max((E_Int)0, --n[0]); n[1] = std::max((E_Int)0, --n[1]); if (DIM == 3) { n[2] = std::max((E_Int)0, --n[2]); }; return *this; }
 
     bool operator>=(E_Int v) const { return (max() >= v); }
     bool operator<=(E_Int v) const { return (max() <= v); }
@@ -322,7 +322,7 @@ namespace NUGA
       if ((DIM == 3) && (n[2] > d.n[2])) return true;
       return false;
     }
-    int_tuple& operator+=(E_Int val) { n[0] = std::max(n[0] + val, 0); n[1] = std::max(n[1] + val, 0);; if (DIM == 3) n[2] = std::max(n[2] + val, 0); return *this; }
+    int_tuple& operator+=(E_Int val) { n[0] = std::max(n[0] + val, (E_Int)0); n[1] = std::max(n[1] + val, (E_Int)0);; if (DIM == 3) n[2] = std::max(n[2] + val, (E_Int)0); return *this; }
     int_tuple& operator+=(const int_tuple& d) { n[0] += d.n[0];  n[1] += d.n[1]; if (DIM == 3)  n[2] += d.n[2]; return *this; }
 
     int_tuple& operator/=(E_Int val) { n[0] /= val; n[1] /= val; if (DIM == 3) n[2] /= val; return *this; }
@@ -340,13 +340,13 @@ namespace NUGA
     }
   };
 
-  template <E_Int DIM> inline int_tuple<DIM> max(int_tuple<DIM>&d, E_Int v) { int_tuple<DIM> res(0); for (size_t k=0; k < DIM; ++k) res.n[k] = std::max(d.n[k], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
+  template <int DIM> inline int_tuple<DIM> max(int_tuple<DIM>&d, E_Int v) { int_tuple<DIM> res(0); for (size_t k=0; k < DIM; ++k) res.n[k] = std::max(d.n[k], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
   inline int_tuple<3> abs(int_tuple<3> d) { int_tuple<3> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); res.n[2] = ::abs(d.n[2]); return res; }
   inline int_tuple<3> max(int_tuple<3> a, int_tuple<3> b) { int_tuple<3> res(0); res.n[0] = std::max(a.n[0], b.n[0]); res.n[1] = std::max(a.n[1], b.n[1]); res.n[2] = std::max(a.n[2], b.n[2]); return res; }
   inline int_tuple<3> min(int_tuple<3> a, int_tuple<3> b) { int_tuple<3> res(0); res.n[0] = std::min(a.n[0], b.n[0]); res.n[1] = std::min(a.n[1], b.n[1]); res.n[2] = std::min(a.n[2], b.n[2]); return res; }
 
 
-  template <E_Int DIM> inline std::ostream &operator<<(std::ostream& out, const int_tuple<DIM>& d)
+  template <int DIM> inline std::ostream &operator<<(std::ostream& out, const int_tuple<DIM>& d)
   {
     out << d.n[0] << "/" << d.n[1];
 
@@ -362,8 +362,8 @@ namespace NUGA
   template <eSUBDIV_TYPE STYPE> // ISO impl
   struct adap_incr_type
   {
-    using cell_incr_t = int;
-    using face_incr_t = int;
+    using cell_incr_t = E_Int;
+    using face_incr_t = E_Int;
     Vector_t<E_Int> cell_adap_incr;
     Vector_t<E_Int> face_adap_incr;
 

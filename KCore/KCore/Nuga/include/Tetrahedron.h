@@ -311,7 +311,7 @@ class Tetrahedron {
     }
 
     template <typename ngunit_t>
-    inline static int get_opposite_face_to_node(const ngunit_t & PGs, const E_Int* first_pg, E_Int N)
+    inline static E_Int get_opposite_face_to_node(const ngunit_t & PGs, const E_Int* first_pg, E_Int N)
     {
       // Fopp is the face not having N
 

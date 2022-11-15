@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/IdTool.h"
 #include <algorithm>
@@ -276,7 +276,7 @@ namespace K_CONNECT
     return equal;
  }
 
-  void IdTool::right_shift(E_Int* list, E_Int sz, E_Int shift)
+  void IdTool::right_shift(E_Int* list, E_Int sz, int shift)
   {
     if (shift == 0) return;
 

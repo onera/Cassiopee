@@ -21,16 +21,16 @@ using acrd_t = K_FLD::ArrayAccessor<crd_t>;
 
 ///
 void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, const double * axis, double angle, const double* translation,
-  double ARTOL, std::map<int, std::vector<int>>& glob_face_to_bits)
+  double ARTOL, std::map<E_Int, std::vector<E_Int>>& glob_face_to_bits)
 {
   DELAUNAY::Triangulator dt;
 
   NUGA::pg_smesh_t m;
-  std::vector<int> oids, ancestors;
+  std::vector<E_Int> oids, ancestors;
 
   vmesh.get_boundary(m, oids, ancestors);
 
-  std::map<int, std::vector<int>> loc_face_to_bits;
+  std::map<E_Int, std::vector<E_Int>> loc_face_to_bits;
 
   glob_face_to_bits.clear();
 
@@ -115,7 +115,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 #ifdef DEBUG_MATCH_PERIO
   std::vector<E_Int> left, right, remain;
 #endif
-  for (size_t i = npgs; i <nids.size(); ++i)
+  for (E_Int i = npgs; i <nids.size(); ++i)
   {
     if (nids[i] == i)
     {
@@ -145,7 +145,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 
   // 5. Filtrate non-perio by boxes
   auto loc = m.get_localizer();
-  std::vector<int> cands;
+  std::vector<E_Int> cands;
 
   K_FLD::FloatArray crdR(m.crd);
   if (axis)
@@ -166,7 +166,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   acrd_t acrdR(crdR);
   acrd_t acrd(m.crd);
 
-  for (size_t i = 0; i < npgs; ++i)
+  for (E_Int i = 0; i < npgs; ++i)
   {
     if (nids[i] != i) continue; // exact match already found
 
@@ -292,18 +292,18 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   // It means that input is not processable by this algo (some agglomeration might have occured that breaks the pairing
   // check that surfaces are matching
 
-  std::map<int, std::vector<int>> tmp;
+  std::map<E_Int, std::vector<E_Int>> tmp;
 
   for (auto i : loc_face_to_bits)
   {
-    int master = (i.first < 0) ? -(i.first+1) : i.first;
+    E_Int master = (i.first < 0) ? -(i.first+1) : i.first;
 
     auto face = m.element(master);
     double s1 = face.surface<3>(crdR);
     double s2{ 0. };
     for (size_t k = 0; k < i.second.size(); ++k)
     {
-      int bitid = (i.second[k] < 0) ? -(i.second[k] + 1) : i.second[k];
+      E_Int bitid = (i.second[k] < 0) ? -(i.second[k] + 1) : i.second[k];
       auto fb = m.element(bitid);
       s2 += fb.surface<3>(m.crd);
     }
@@ -316,12 +316,12 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   loc_face_to_bits = tmp;
 
   // FILTER : ONLY ONE FACE PER PH PER ITER
-  std::set<int> involved_phs;
+  std::set<E_Int> involved_phs;
 
   tmp.clear();
   for (auto ii : loc_face_to_bits)
   {
-    int id = ii.first;
+    E_Int id = ii.first;
     if (id < 0) id = -(id + 1);
 
     if (!involved_phs.insert(ancestors[id]).second) // already in
@@ -333,18 +333,18 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   loc_face_to_bits = tmp;
 
   //make it reciprocal (ONLY IF bits belong to the same cell)
-  std::map<int, std::vector<int>> tmp1;
+  std::map<E_Int, std::vector<E_Int>> tmp1;
   for (auto i : loc_face_to_bits)
   {
-    int master = i.first;
+    E_Int master = i.first;
     auto& bits = i.second;
     tmp1[master] = bits;
 
     bool samePH = true;
     for (size_t k = 0; (k < bits.size() - 1) && samePH; ++k)
     {
-      int bk = bits[k];
-      int bkp1 = bits[k + 1];
+      E_Int bk = bits[k];
+      E_Int bkp1 = bits[k + 1];
       bk = (bk < 0) ? -(bk + 1) : bk;
       bkp1 = (bkp1 < 0) ? -(bkp1 + 1) : bkp1;
 
@@ -360,8 +360,8 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
   // indirection to refer to volume mesh ids
   for (auto i : loc_face_to_bits)
   {
-    int lface = i.first;
-    int gface = 0;
+    E_Int lface = i.first;
+    E_Int gface = 0;
     if (lface < 0)
     {
       lface = -(lface + 1);
@@ -390,16 +390,16 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 ///
 void duplicate_and_move_period_faces
 (NUGA::ph_mesh_t& m, const double* center, const double * axis, double angle, const double* translation,
- std::map<int, std::vector<int>>& face_to_bits)
+ std::map<E_Int, std::vector<E_Int>>& face_to_bits)
 {
-  std::set<int> leftF; //apply +Transfo
-  std::set<int> rightF;//apply -Transfo
+  std::set<E_Int> leftF; //apply +Transfo
+  std::set<E_Int> rightF;//apply -Transfo
 
   // 1. update ids (i.e. remove neg vals), separate ids in these two groups to apply appropriate transformation
-  std::map<int, std::vector<int>> new_face_to_bits;
+  std::map<E_Int, std::vector<E_Int>> new_face_to_bits;
   for (auto i : face_to_bits)
   {
-    int master = i.first;
+    E_Int master = i.first;
     auto& bits = i.second;
 
     if (master < 0) {
@@ -426,7 +426,7 @@ void duplicate_and_move_period_faces
 
   //2. extract these faces and apply Transfo
 
-  std::vector<int> oids1;
+  std::vector<E_Int> oids1;
   ngon_unit pgsL;
   std::vector<E_Int> lF(ALL(leftF));
   m.cnt.PGs.extract(lF, pgsL, oids1);
@@ -436,7 +436,7 @@ void duplicate_and_move_period_faces
   pgsL._ancEs.clear();
   pgsL._ancEs.resize(2, pgsL.size(), IDX_NONE);
   K_CONNECT::IdTool::init_inc(pgsL._ancEs, 0, pgsL.size());
-  int k = -1;
+  E_Int k = -1;
   for (auto i : lF)
   {
     ++k;
@@ -464,7 +464,7 @@ void duplicate_and_move_period_faces
   if (axis)
     NUGA::axial_rotate(crdL, center, axis, angle);
   else if (translation)
-    for (size_t k = 0; k < crdL.cols(); ++k)
+    for (E_Int k = 0; k < crdL.cols(); ++k)
     {
       crdL(0, k) += translation[0];
       crdL(1, k) += translation[1];
@@ -486,7 +486,7 @@ void duplicate_and_move_period_faces
   }
 #endif
 
-  std::vector<int> oids2;
+  std::vector<E_Int> oids2;
   ngon_unit pgsR;
   std::vector<E_Int> rF(ALL(rightF));
   m.cnt.PGs.extract(rF, pgsR, oids2);
@@ -546,13 +546,13 @@ void duplicate_and_move_period_faces
 
   //3. append these faces (geometrically, with their own coordinates)
 
-  std::vector<int> nids;
+  std::vector<E_Int> nids;
   K_CONNECT::IdTool::init_inc(nids, m.cnt.PGs.size());
 
   E_Int shift = m.cnt.PGs.size();
 
   // append L
-  int pt_shift = m.crd.cols();
+  E_Int pt_shift = m.crd.cols();
   pgsL.shift(pt_shift);
   m.crd.pushBack(crdL);
   m.cnt.PGs.append(pgsL);
@@ -574,7 +574,7 @@ void duplicate_and_move_period_faces
   //update face_to_bits
   for (auto& i : face_to_bits)
   {
-    int master = i.first;
+    E_Int master = i.first;
     auto& bits = i.second;
     for (auto& b : bits) b = nids[b];
   }
@@ -583,21 +583,21 @@ void duplicate_and_move_period_faces
 ///
 void replace_faces(
                   NUGA::ph_mesh_t& m,
-                  const std::map<int,
-                  std::vector<int>>& face_to_bits,
+                  const std::map<E_Int,
+                  std::vector<E_Int>>& face_to_bits,
                   double TOL,
                   std::set<E_Int>& modifiedPHs)
 {
-  std::vector<int> molecPH;
+  std::vector<E_Int> molecPH;
   ngon_unit new_phs;
   for (E_Int i = 0; i < m.cnt.PHs.size(); ++i)
   {
     const E_Int* pPGi = m.cnt.PHs.get_facets_ptr(i);
-    E_Int nb_pgs = m.cnt.PHs.stride(i);
+    int nb_pgs = m.cnt.PHs.stride(i);
 
     molecPH.clear();
 
-    for (E_Int p = 0; p < nb_pgs; ++p)
+    for (int p = 0; p < nb_pgs; ++p)
     {
       E_Int PGi = *(pPGi + p) - 1;
 
@@ -624,7 +624,7 @@ void replace_faces(
 
   // 2. merge coincident nodes
   {
-    std::vector<int> nids, lnids;
+    std::vector<E_Int> nids, lnids;
     K_CONNECT::IdTool::init_inc(nids, m.crd.cols());
     for (auto i : modifiedPHs)
     {
@@ -641,8 +641,8 @@ void replace_faces(
       for (size_t k = 0; k < lnids.size(); ++k)
       {
         if (lnids[k] == k) continue;
-        int id1 = hph.poids[k] - 1;
-        int id2 = hph.poids[lnids[k]] - 1;
+        E_Int id1 = hph.poids[k] - 1;
+        E_Int id2 = hph.poids[lnids[k]] - 1;
         if (id2 < id1) std::swap(id1, id2);
         nids[id2] = id1;
       }
@@ -662,7 +662,7 @@ void replace_faces(
 
 ///
 bool sync_faces
-(NUGA::ph_mesh_t& m, const std::map<int, std::vector<int>>& face_to_bits, double ARTOL)
+(NUGA::ph_mesh_t& m, const std::map<E_Int, std::vector<E_Int>>& face_to_bits, double ARTOL)
 {
   if (ARTOL == 0.) ARTOL = -0.01;
 
@@ -693,11 +693,11 @@ bool sync_faces
 
   //4. replace moved master by modified bits : i.e replace original bits by their modified version
   //4.a reverse face_to_bits
-  std::map<int, std::vector<int>> face_to_bits_rev, tmp;
+  std::map<E_Int, std::vector<E_Int>> face_to_bits_rev, tmp;
   for (auto i : face_to_bits)
   {
     auto bits = i.second;
-    int f = i.first;
+    E_Int f = i.first;
     for (auto k : bits)
       face_to_bits_rev[k].push_back(f);
   }
@@ -713,7 +713,7 @@ bool sync_faces
   
   if (!face_to_bits_rev.empty())
   {
-    std::vector<int> molecPH;
+    std::vector<E_Int> molecPH;
     ngon_unit new_phs;
 
     for (E_Int i = 0; i < m.cnt.PHs.size(); ++i)
@@ -747,7 +747,7 @@ bool sync_faces
     m.cnt.PHs.updateFacets();
 
     {
-      std::vector<int> nids, lnids;
+      std::vector<E_Int> nids, lnids;
       K_CONNECT::IdTool::init_inc(nids, m.crd.cols());
       for (auto i : modPHs)
       {
@@ -764,8 +764,8 @@ bool sync_faces
         for (size_t k = 0; k < lnids.size(); ++k)
         {
           if (lnids[k] == k) continue;
-          int id1 = hph.poids[k] - 1;
-          int id2 = hph.poids[lnids[k]] - 1;
+          E_Int id1 = hph.poids[k] - 1;
+          E_Int id2 = hph.poids[lnids[k]] - 1;
           if (id2 < id1) std::swap(id1, id2);
           nids[id2] = id1;
         }

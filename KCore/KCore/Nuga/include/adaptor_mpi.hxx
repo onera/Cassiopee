@@ -35,8 +35,8 @@ namespace NUGA
     static bool prepare_data_to_send
     (
       const hmesh_t & mesh,
-      const std::map<E_Int, std::vector<E_Int>>& rid_to_list,
-      std::map<E_Int, data_t> & rid_to_PG_to_plan
+      const std::map<int, std::vector<E_Int>>& rid_to_list,
+      std::map<int, data_t> & rid_to_PG_to_plan
     )
     {
       bool has_packs{ false };
@@ -70,7 +70,7 @@ namespace NUGA
     static void exchange_mpi_data
     (
       const std::vector<hmesh_t*>& hmeshes,
-      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
+      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
       const std::map<int, std::pair<int, int>>& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM,
@@ -83,7 +83,7 @@ namespace NUGA
       if (nranks == 1) return;
 
       // Each zone builds its MPI-data-to-send by sending zone
-      std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>> sz_to_rid_to_PG_to_plan;
+      std::map<int, std::map<int, std::map<E_Int, K_FLD::IntArray>>> sz_to_rid_to_PG_to_plan;
       bool has_packs{ false };
       for (size_t i = 0; i < hmeshes.size(); ++i)
       {
@@ -96,7 +96,7 @@ namespace NUGA
 
         const auto & rid_to_list = it->second;
         
-        std::map<int, std::map<int, K_FLD::IntArray>> rid_to_PG_to_plan;
+        std::map<int, std::map<E_Int, K_FLD::IntArray>> rid_to_PG_to_plan;
         has_packs |= prepare_data_to_send(*hmeshes[i], rid_to_list, rid_to_PG_to_plan);
 
         sz_to_rid_to_PG_to_plan[hmeshes[i]->zid] = rid_to_PG_to_plan;
@@ -131,7 +131,7 @@ namespace NUGA
     static void exchange_omp_data
     (
       const std::vector<hmesh_t*>& hmeshes,
-      const std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
+      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
       const std::map<int, std::pair<int,int>> & rid_to_zones,
       std::map<int, data_t>& sensor_data
     )
@@ -208,22 +208,22 @@ namespace NUGA
     static void run
     (
       std::vector<hmesh_t*>& hmeshes, std::vector<sensor_t*>& sensors,
-      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
-      const std::map<E_Int, std::pair<int, int>>& rid_to_zones,
+      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
+      const std::map<int, std::pair<int, int>>& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM,
       bool do_agglo
     )
     {
-      E_Int err(0);
-      E_Int NBZ{ E_Int(hmeshes.size()) };
+      int err(0);
+      int NBZ{ int(hmeshes.size()) };
 
       int nranks{ 0 };
       MPI_Comm_size(COM, &nranks);
       int rank{ 0 };
       MPI_Comm_rank(COM, &rank);
 
-      for (E_Int i = 0; i < NBZ; ++i)
+      for (int i = 0; i < NBZ; ++i)
         assert(rank == zonerank[hmeshes[i]->zid]);
 
       assert(NBZ == sensors.size());
@@ -239,7 +239,7 @@ namespace NUGA
 
       ePara PARA = COARSE_OMP;
 #pragma omp parallel for if(PARA == COARSE_OMP)
-      for (E_Int i = 0; i < NBZ; ++i)
+      for (int i = 0; i < NBZ; ++i)
       {
         adaptor_t::run(*hmeshes[i], *sensors[i], do_agglo);
       }
@@ -250,7 +250,7 @@ namespace NUGA
 #endif
 
       //separate MPI/OMP joins
-      std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_rid_to_list_mpi, zone_to_rid_to_list_omp;
+      std::map<int, std::map<int, std::vector<E_Int>>> zone_to_rid_to_list_mpi, zone_to_rid_to_list_omp;
       NUGA::split_mpi_omp_joins(zone_to_rid_to_list, rank, rid_to_zones, zonerank, zone_to_rid_to_list_omp, zone_to_rid_to_list_mpi);
 
       bool has_mpi_changes{ true };

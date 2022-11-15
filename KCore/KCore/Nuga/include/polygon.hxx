@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_POLYGON_HXX
 #define NUGA_POLYGON_HXX
@@ -190,7 +190,7 @@ struct aPolygon : public K_MESH::Polygon
 
     // check for vertices coincidence
     const double* pt0 = m_crd.col(0);
-    int n0 = IDX_NONE;
+    E_Int n0 = IDX_NONE;
     double dmin2 = NUGA::FLOAT_MAX;
     for (E_Int n = 0; n < nnodes; ++n)
     {

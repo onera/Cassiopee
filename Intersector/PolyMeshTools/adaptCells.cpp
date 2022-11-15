@@ -187,7 +187,7 @@ void* __createHM<NUGA::DIR>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
 //=============================================================================
 /* get COM hook  */
 //=============================================================================
-void* unpackCOM(PyObject* hook, E_Int *&hook_id, E_Int *&subdiv_type, E_Int *&elt_type, void **&packet)
+void* unpackCOM(PyObject* hook, int *&hook_id, int *&subdiv_type, int *&elt_type, void **&packet)
 {
 
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -196,7 +196,7 @@ void* unpackCOM(PyObject* hook, E_Int *&hook_id, E_Int *&subdiv_type, E_Int *&el
   packet = (void**)PyCapsule_GetPointer(hook, NULL);
 #endif
 
-  hook_id           = (E_Int*)packet[0];        // type of hook
+  hook_id           = (int*)packet[0];        // type of hook
  
   if (*hook_id != COM_HOOK_ID)
   {
@@ -205,8 +205,8 @@ void* unpackCOM(PyObject* hook, E_Int *&hook_id, E_Int *&subdiv_type, E_Int *&el
     return nullptr;
   }
   
-  subdiv_type          = (E_Int*)packet[2];        // subdivision type ISO, ISO_HEX, DIR...  
-  elt_type             = (E_Int*)packet[3];        // type of elements in hmesh
+  subdiv_type          = (int*)packet[2];        // subdivision type ISO, ISO_HEX, DIR...  
+  elt_type             = (int*)packet[3];        // type of elements in hmesh
   
   return packet[1];
 }
@@ -219,12 +219,12 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
   PyObject* hook;
   void** packet = new void*[HMESH_PACK_SIZE];  // hook_ID, hmesh ptr, subdiv policy, elt type, varString
 
-  E_Int* hookid = new E_Int;  packet[0] = hookid;
+  int* hookid = new int;  packet[0] = hookid;
   //void* hmesh_ptr = nullptr;  packet[1] = hmesh_ptr;// templated hmesh type to build 
-  E_Int* subtype = new E_Int; packet[2] = subtype;
+  int* subtype = new int; packet[2] = subtype;
   elt_t* etyp = new elt_t;    packet[3] = etyp;
   std::string* vString = new std::string; packet[4] = vString;
-  E_Int* zid = new E_Int; packet[5] = zid;
+  int* zid = new int; packet[5] = zid;
 
   *hookid = HMESH_HOOK_ID;
 
@@ -306,7 +306,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
     // COM
     assert (hookCom != Py_None);
 
-    E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
+    int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
     void** packet{ nullptr };
     com = unpackCOM(hookCom, hook_id, sub_type, elt_type, packet);
   }
@@ -647,7 +647,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   PyObject* hook, *pyfieldsC, *pyfieldsN, *pyfieldsF;
   if (!PyArg_ParseTuple(args, "OOOO", &hook, &pyfieldsC, &pyfieldsN, &pyfieldsF)) return nullptr;
 
-  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
+  int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
   std::string* vString{ nullptr };
   void** packet{ nullptr };
   void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, zid, vString, packet);
@@ -907,7 +907,7 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
   }
 
   // recupere le hook
-  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
+  int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
   std::string* vString{ nullptr };
   void** packet{ nullptr };
   void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, zid, vString, packet);
@@ -1108,7 +1108,7 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
       fieldN[i] = pfieldN[i];
 
   // recupere le hook
-  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid{nullptr};
+  int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid{nullptr};
   std::string* vString{ nullptr };
   void** packet{ nullptr };
   void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, zid, vString, packet);
@@ -1340,7 +1340,7 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
 
   // // Unpack hmesh hook
   // // ==================
-  E_Int* subtype_hm{ nullptr }, *elttype_hm{ nullptr }, *hook_id{ nullptr }, *zid{nullptr};
+  int* subtype_hm{ nullptr }, *elttype_hm{ nullptr }, *hook_id{ nullptr }, *zid{nullptr};
   std::string* vString{ nullptr };
   void ** packet_h{ nullptr };
   void* hmesh = unpackHMesh(hook_hmesh, hook_id, subtype_hm, elttype_hm, zid, vString, packet_h);
@@ -1533,8 +1533,8 @@ PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
   }
 
   // recupere le hook
-  E_Int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
-  E_Int *subdiv_type{ nullptr }, *elt_type{ nullptr };
+  int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
+  int *subdiv_type{ nullptr }, *elt_type{ nullptr };
   void** packet{ nullptr };
   void* sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type, elt_type, packet);  
 
@@ -1563,7 +1563,7 @@ template <NUGA::eSUBDIV_TYPE STYP> using incr_t = typename NUGA::adap_incr_type<
 
 template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
 void __assign_sensor_data
-(E_Int sensor_type, void* psensor, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<incr_t<STYPE>>& punctual_data)
+(int sensor_type, void* psensor, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<incr_t<STYPE>>& punctual_data)
 {
   if (psensor == nullptr) return;
 
@@ -1642,7 +1642,7 @@ void __assign_sensor_data
 // xsensor is only available for HEXA/ISO 
 template <>
 void __assign_sensor_data<K_MESH::Hexahedron, NUGA::ISO>
-(E_Int sensor_type, void* psensor, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
+(int sensor_type, void* psensor, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
 {
   if (psensor == nullptr) return;
 
@@ -1732,7 +1732,7 @@ void __assign_sensor_data<K_MESH::Hexahedron, NUGA::ISO>
 
 template <NUGA::eSUBDIV_TYPE STYPE>
 void __assign_sensor_data
-(E_Int etype, E_Int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<incr_t<STYPE>>& punctual_data)
+(int etype, int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<incr_t<STYPE>>& punctual_data)
 {
   if (etype == elt_t::HEXA)
     __assign_sensor_data<K_MESH::Hexahedron, STYPE>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
@@ -1746,14 +1746,14 @@ void __assign_sensor_data
 
 template <>
 void __assign_sensor_data<NUGA::ISO_HEX>
-(E_Int etype, E_Int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
+(int etype, int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
 {
   __assign_sensor_data<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
 }
 
 template <>
 void __assign_sensor_data<NUGA::DIR>
-(E_Int etype, E_Int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<int_tuple<3>>& punctual_data)
+(int etype, int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<int_tuple<3>>& punctual_data)
 {
   __assign_sensor_data<K_MESH::Hexahedron, NUGA::DIR>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
 }
@@ -1769,8 +1769,8 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
     return Py_None;
 
   // recupere le hook
-  E_Int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
-  E_Int *subdiv_type{ nullptr }, *elt_type{ nullptr };
+  int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
+  int *subdiv_type{ nullptr }, *elt_type{ nullptr };
   void** packet{ nullptr };
   void* sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type, elt_type, packet);
 
@@ -1888,7 +1888,7 @@ PyObject* K_INTERSECTOR::deleteCom(PyObject* self, PyObject* args)
   }
 
   // recupere le hook
-  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
+  int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
   void** packet{ nullptr };
   void* com = unpackCOM(hook, hook_id, sub_type, elt_type, packet);
   
@@ -2378,11 +2378,11 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 
   std::vector<void*> hmeshes, sensors;
   //for unpacking hmeshes
-  E_Int* elt_type{ nullptr }, *subdiv_type{ nullptr }, *hook_id{ nullptr }, *zid{nullptr};
+  int* elt_type{ nullptr }, *subdiv_type{ nullptr }, *hook_id{ nullptr }, *zid{nullptr};
   std::string* vString{ nullptr };
   //for unpacking sensors
-  E_Int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
-  E_Int *subdiv_type_ss{ nullptr }, *elt_type_ss{ nullptr };
+  int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
+  int *subdiv_type_ss{ nullptr }, *elt_type_ss{ nullptr };
 
   //std::cout << "adaptCells : before loop" << std::endl;
 

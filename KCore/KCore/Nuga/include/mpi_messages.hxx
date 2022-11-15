@@ -31,12 +31,12 @@ namespace NUGA
   inline
   static void split_mpi_omp_joins
   (
-      const std::map<int, std::map<int, std::vector<int>>>& zone_to_rid_to_list,
+      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
       int rank, 
       const std::map<int, std::pair<int, int>>& rid_to_zones,
       const std::vector<int>& zonerank,
-      std::map<int, std::map<int, std::vector<int>>>& zone_to_rid_to_list_omp,
-      std::map<int, std::map<int, std::vector<int>>>& zone_to_rid_to_list_mpi
+      std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_omp,
+      std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_mpi
 
    )
   {
@@ -63,14 +63,14 @@ namespace NUGA
   
   struct plan_msg_type
   {
-    std::vector<int> data, datarange, pgs, szone, szonerange, rac, racrange;
+    std::vector<E_Int> data, datarange, pgs, szone, szonerange, rac, racrange;
 
     void clear() { data.clear(); datarange.clear(); pgs.clear(); szone.clear(); szonerange.clear(); rac.clear(); racrange.clear(); }
 
     ///
     static void convert_to_MPI_exchange_format
     (
-      const std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>> & sz_to_rid_to_PG_to_plan,
+      const std::map<int, std::map<int, std::map<E_Int, K_FLD::IntArray>>> & sz_to_rid_to_PG_to_plan,
       const std::map<int, std::pair<int,int>> & rid_to_zones,
       const std::vector<int>& zonerank,
       std::map<int, plan_msg_type> & rank_to_data
@@ -79,7 +79,7 @@ namespace NUGA
       rank_to_data.clear();
 
       // Gather data by rank
-      std::map<int, std::map<int, std::map<int, std::map<int, K_FLD::IntArray>>>> rank_to_sz_to_rid_to_PG_to_plan;
+      std::map<int, std::map<int, std::map<int, std::map<E_Int, K_FLD::IntArray>>>> rank_to_sz_to_rid_to_PG_to_plan;
       for (auto & it : sz_to_rid_to_PG_to_plan)
       {
         int szid = it.first;
@@ -127,11 +127,11 @@ namespace NUGA
 
             for (auto& k : PG_to_plan)
             {
-              int iloc/*PGi*/ = k.first;
+              E_Int iloc/*PGi*/ = k.first;
               auto p = k.second; //copy to ensure contiguous
 
               assert(p.cols() != 0);
-              int sz0 = rankdata.data.size();
+              E_Int sz0 = rankdata.data.size();
               rankdata.datarange.push_back(rankdata.data.size());
               rankdata.data.insert(rankdata.data.end(), p.begin(), p.end());
               assert(rankdata.data.size() > sz0);
@@ -197,7 +197,7 @@ namespace NUGA
     (
       int rank, int nranks, MPI_Comm COM,
       const std::map<int, std::pair<int,int>> & rid_to_zones,
-      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
+      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
       std::vector<MPI_Request>& sender_reqs,
       std::map<int, data_t>& zone_to_sensor_data
     )
@@ -235,7 +235,7 @@ namespace NUGA
       // 1.2. datarange
       STACK_ARRAY(int, NB_SENT, datarange_sz);
       // 1.3. pgs
-      STACK_ARRAY(int, NB_SENT, pgs_sz);
+      STACK_ARRAY(E_Int, NB_SENT, pgs_sz);
       // 1.4. szone
       STACK_ARRAY(int, NB_SENT, szone_sz);
       // 1.5. szonerange
@@ -383,8 +383,8 @@ namespace NUGA
             int rid = rac[v];
             int jzid = get_opp_zone(rid_to_zones, rid, szid);
 
-            int n_beg = racrange[v];
-            int n_end = racrange[v + 1];
+            E_Int n_beg = racrange[v];
+            E_Int n_end = racrange[v + 1];
 
             // if (rank == 2) std::cout << "n_beg : " << n_beg << std::endl;
             // if (rank == 2) std::cout << "n_end : " << n_end << std::endl;
@@ -397,25 +397,25 @@ namespace NUGA
             assert(itPtList != rid_to_list.end());
             const auto& ptlist = itPtList->second;
 
-            for (size_t n = n_beg; n < n_end; ++n)
+            for (E_Int n = n_beg; n < n_end; ++n)
             {
               assert(n >= 0 && n < datarange.size());
               assert((n + 1) < datarange.size());
-              int data_beg = datarange[n];
-              int data_end = datarange[n + 1];
+              E_Int data_beg = datarange[n];
+              E_Int data_end = datarange[n + 1];
               assert(n < pgs.size());
-              int iloc = pgs[n];
+              E_Int iloc = pgs[n];
 
-              int sz = data_end - data_beg;
-              int cols = sz / 4;
+              E_Int sz = data_end - data_beg;
+              E_Int cols = sz / 4;
               // if (rank == 2) std::cout << "sz : " << sz << std::endl;
               // if (rank == 2) std::cout << "cols : " << cols << std::endl;
 
               assert(data_beg >= 0 && data_beg < data.size());
-              const int* p = &data[data_beg];
+              const E_Int* p = &data[data_beg];
               K_FLD::IntArray a;
               a.resize(4, cols);
-              for (size_t c = 0; c < cols; ++c)
+              for (E_Int c = 0; c < cols; ++c)
               {
                 a(0, c) = *(p++);
                 a(1, c) = *(p++);
@@ -423,7 +423,7 @@ namespace NUGA
                 a(3, c) = *(p++);
               }
               assert(iloc >= 0 && iloc < ptlist.size());
-              int PGi = ptlist[iloc] - 1;
+              E_Int PGi = ptlist[iloc] - 1;
               //std::cout << "PGi : " << PGi << std::endl;
               //std::cout << a << std::endl;
 
@@ -440,7 +440,7 @@ namespace NUGA
 
   struct pointlist_msg_type
   {
-    std::vector<int> ptList, szone, szonerange, rac, racrange;
+    std::vector<E_Int> ptList, szone, szonerange, rac, racrange;
 
     void clear() { ptList.clear(); szone.clear(); szonerange.clear(); rac.clear(); racrange.clear(); }
 
@@ -451,14 +451,14 @@ namespace NUGA
       const std::vector<int>& zonerank,
       MPI_Comm COM,
       int rank, int nranks,
-      const std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list_owned,
-      std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list_opp
+      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_owned,
+      std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_opp
     )
     {
       zone_to_rid_to_list_opp.clear();
 
       //separate MPI/OMP joins
-      std::map<int, std::map<E_Int, std::vector<E_Int>>> zone_to_rid_to_list_mpi, zone_to_rid_to_list_omp;
+      std::map<int, std::map<int, std::vector<E_Int>>> zone_to_rid_to_list_mpi, zone_to_rid_to_list_omp;
       split_mpi_omp_joins(zone_to_rid_to_list_owned, rank, rid_to_zones, zonerank, zone_to_rid_to_list_omp, zone_to_rid_to_list_mpi);
 
       // OMP : just transpose
@@ -499,7 +499,7 @@ namespace NUGA
     ///
     static void convert_to_MPI_exchange_format
     (
-      const std::map<int, std::map<E_Int, std::vector<E_Int>>> & zone_to_rid_to_list_mpi,
+      const std::map<int, std::map<int, std::vector<E_Int>>> & zone_to_rid_to_list_mpi,
       const std::map<int, std::pair<int,int>>& rid_to_zones,
       const std::vector<int>& zonerank,
       std::map<int, pointlist_msg_type> & rank_to_data
@@ -623,7 +623,7 @@ namespace NUGA
     (
       int rank, int nranks, MPI_Comm COM,
       const std::map<int, std::pair<int,int>>& rid_to_zones,
-      std::map<int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list_opp
+      std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_opp
     )
     {
       STACK_ARRAY(bool, nranks, has_sent);
@@ -653,15 +653,15 @@ namespace NUGA
       int NB_REQ_FOR_SIZES = 5 * NB_SENT;
       STACK_ARRAY(MPI_Request, NB_REQ_FOR_SIZES, sreqs_sz);
       // 1.1. data
-      STACK_ARRAY(int, NB_SENT, ptList_sz);
+      STACK_ARRAY(E_Int, NB_SENT, ptList_sz);
       // 1.4. szone
-      STACK_ARRAY(int, NB_SENT, szone_sz);
+      STACK_ARRAY(E_Int, NB_SENT, szone_sz);
       // 1.5. szonerange
-      STACK_ARRAY(int, NB_SENT, szonerange_sz);
+      STACK_ARRAY(E_Int, NB_SENT, szonerange_sz);
       // 1.4. szone
-      STACK_ARRAY(int, NB_SENT, rac_sz);
+      STACK_ARRAY(E_Int, NB_SENT, rac_sz);
       // 1.5. szonerange
-      STACK_ARRAY(int, NB_SENT, racrange_sz);
+      STACK_ARRAY(E_Int, NB_SENT, racrange_sz);
 
       int req_count = -1;
       int rcount = -1;

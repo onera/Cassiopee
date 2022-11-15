@@ -31,7 +31,7 @@
 //=============================================================================
 /* get hmesh hook  */
 //=============================================================================
-inline void* unpackHMesh(PyObject* hook_hmesh, E_Int *&hook_hm_id, E_Int *&subdiv_type, E_Int *&elt_type, E_Int *&zid, std::string *&vString, void **&packet)
+inline void* unpackHMesh(PyObject* hook_hmesh, int *&hook_hm_id, int *&subdiv_type, int *&elt_type, int *&zid, std::string *&vString, void **&packet)
 {
   //std::cout << "unpackHMesh : begin : " << hook_hmesh << std::endl;
 
@@ -50,7 +50,7 @@ inline void* unpackHMesh(PyObject* hook_hmesh, E_Int *&hook_hm_id, E_Int *&subdi
     return nullptr;
   }
 
-  hook_hm_id = (E_Int*)packet[0];        // type of hook
+  hook_hm_id = (int*)packet[0];        // type of hook
 
   //std::cout << "unpackHMesh : after type" << std::endl;
 
@@ -64,10 +64,10 @@ inline void* unpackHMesh(PyObject* hook_hmesh, E_Int *&hook_hm_id, E_Int *&subdi
   //std::cout << "unpackHMesh : before setting vals" << std::endl;
   
   void* hmesh          = packet[1];                // untyped hmesh ptr
-  subdiv_type          = (E_Int*)packet[2];        // subdivision type ISO, ISO_HEX, DIR...  
-  elt_type             = (E_Int*)packet[3];        // type of elements in hmesh
+  subdiv_type          = (int*)packet[2];        // subdivision type ISO, ISO_HEX, DIR...  
+  elt_type             = (int*)packet[3];        // type of elements in hmesh
   vString              = (std::string*)packet[4];  // for buildArray
-  zid                  = (E_Int*) packet[5];
+  zid                  = (int*) packet[5];
 
   //std::cout << "unpackHMesh : end" << std::endl;
 
@@ -77,7 +77,7 @@ inline void* unpackHMesh(PyObject* hook_hmesh, E_Int *&hook_hm_id, E_Int *&subdi
 //=============================================================================
 /* get sensor hook  */
 //=============================================================================
-inline void* unpackSensor(PyObject* hook_sensor, E_Int *&hook_ss_id, E_Int *&sensor_type, E_Int *&smoothing_type, E_Int *&subdiv_type, E_Int *&elt_type, void **&packet_ss)
+inline void* unpackSensor(PyObject* hook_sensor, int *&hook_ss_id, int *&sensor_type, int *&smoothing_type, int *&subdiv_type, int *&elt_type, void **&packet_ss)
 {
 
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -86,7 +86,7 @@ inline void* unpackSensor(PyObject* hook_sensor, E_Int *&hook_ss_id, E_Int *&sen
   packet_ss = (void**)PyCapsule_GetPointer(hook_sensor, NULL);
 #endif
 
-  hook_ss_id = (E_Int*)packet_ss[0];
+  hook_ss_id = (int*)packet_ss[0];
 
   if (*hook_ss_id != SENSOR_HOOK_ID)
   {
@@ -95,10 +95,10 @@ inline void* unpackSensor(PyObject* hook_sensor, E_Int *&hook_ss_id, E_Int *&sen
     return nullptr;
   }
 
-  sensor_type    = (E_Int*)packet_ss[1];
-  smoothing_type = (E_Int*)packet_ss[3];
-  elt_type       = (E_Int*)packet_ss[4];
-  subdiv_type    = (E_Int*)packet_ss[5];
+  sensor_type    = (int*)packet_ss[1];
+  smoothing_type = (int*)packet_ss[3];
+  elt_type       = (int*)packet_ss[4];
+  subdiv_type    = (int*)packet_ss[5];
   void* sensor   = packet_ss[2];
 
   return sensor;

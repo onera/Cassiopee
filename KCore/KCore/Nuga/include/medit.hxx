@@ -163,11 +163,11 @@ public:
   }
 
   // Gather the meshes.
-  int none = IDX_NONE;
+  E_Int none = IDX_NONE;
   if (connects[HEX].size() != 0)
   {
     connect = connects[HEX];
-    connects[TET].resize(8, connects[TET].cols(), &none);
+    connects[TET].resize((E_Int)8, connects[TET].cols(), &none);
     connect.pushBack(connects[TET]);
   }
   else if (connects[TET].size() != 0)
@@ -177,7 +177,7 @@ public:
   else if (connects[QUAD].size() != 0)
   {
     connect = connects[QUAD];
-    connects[TRI].resize(4, connects[TRI].cols(), &none);
+    connects[TRI].resize((E_Int)4, connects[TRI].cols(), &none);
     connect.pushBack(connects[TRI]);
   }
   else if (connects[TRI].size() != 0)

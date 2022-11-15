@@ -38,9 +38,9 @@ class localizer
   ~localizer() { if (_owner) __destroy_tree(); }
   
   template<typename ELT, typename crd_t>
-  void get_candidates(const ELT& e, const crd_t& crde, std::vector<E_Int>& candidates, E_Int idx_start = 0, E_Float RTOL = 0.) const ;
+  void get_candidates(const ELT& e, const crd_t& crde, std::vector<E_Int>& candidates, int idx_start = 0, E_Float RTOL = 0.) const ;
 
-  void get_candidates(const box_t& bb, std::vector<E_Int>& candidates, E_Int idx_start = 0, E_Float RTOL = 0.) const ;
+  void get_candidates(const box_t& bb, std::vector<E_Int>& candidates, int idx_start = 0, E_Float RTOL = 0.) const ;
   
   const Tree_t* get_tree() const { return _tree;}
   
@@ -60,7 +60,7 @@ class localizer
 ///
 template <typename Tree_t>
 template<typename ELT, typename crd_t>
-void localizer<Tree_t>::get_candidates(const ELT& e, const crd_t& crde, std::vector<E_Int>& candidates, E_Int idx_start, E_Float RTOL) const {
+void localizer<Tree_t>::get_candidates(const ELT& e, const crd_t& crde, std::vector<E_Int>& candidates, int idx_start, E_Float RTOL) const {
   
   box_t bb;
   e.bbox(crde, bb);
@@ -80,7 +80,7 @@ void localizer<Tree_t>::get_candidates(const ELT& e, const crd_t& crde, std::vec
 
 ///
 template <typename Tree_t>
-void localizer<Tree_t>::get_candidates(const box_t& bb, std::vector<E_Int>& candidates, E_Int idx_start, E_Float RTOL) const {
+void localizer<Tree_t>::get_candidates(const box_t& bb, std::vector<E_Int>& candidates, int idx_start, E_Float RTOL) const {
 
   candidates.clear();
   _tree->getOverlappingBoxes(bb.minB, bb.maxB, candidates);

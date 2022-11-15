@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __K_CONNECT_IDTOOL_H__
 #define __K_CONNECT_IDTOOL_H__
@@ -35,10 +35,10 @@ public:
   /// non-bijective : convert a n-to-one vector (tipically an oids) to a ngon_unit
   static void reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph);
   /// 
-  template < E_Int LIST_sZ >
-  static void right_shift(E_Int* list, E_Int shift);
+  template < int LIST_sZ >
+  static void right_shift(E_Int* list, int shift);
   // variable stride version
-  static void right_shift(E_Int* list, E_Int sz, E_Int shift);
+  static void right_shift(E_Int* list, E_Int sz, int shift);
   ///
   static void reverse_sorting(Vector_t<E_Int> & vec);
   ///
@@ -140,7 +140,7 @@ public:
 
  static inline E_Int get_pos(const E_Int* vec, E_Int n, E_Int val)
   {
-    for (int i = 0; i < n; i++)
+    for (E_Int i = 0; i < n; i++)
       if (vec[i] == val) return i;
     assert(false);
     return -1;
@@ -149,8 +149,8 @@ public:
 };
 
 /// 
-template <E_Int LIST_SZ>
-void IdTool::right_shift(E_Int* list, E_Int shift)
+template <int LIST_SZ>
+void IdTool::right_shift(E_Int* list, int shift)
 {
   if (shift == 0) return;
 

@@ -74,7 +74,7 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
 
   double Lref2() const { return (m_Lref2 > 0. && m_Lref2 != NUGA::FLOAT_MAX) ? m_Lref2 : parent_type::Lref2(m_crd); } // if passed by mesh_t, return it, otherwise compute it first
 
-  bool join(double TOL, std::vector<int>& lnids);
+  bool join(double TOL, std::vector<E_Int>& lnids);
 
   void plug() { parent_type::_pgs = &m_pgs; parent_type::_faces = &m_faces[0]; parent_type::_nb_faces = m_faces.size(); }
 };
@@ -322,7 +322,7 @@ double aPolyhedron<TopoShape>::metrics()
 }
 
 template <int TopoShape>
-bool aPolyhedron<TopoShape>::join(double TOL, std::vector<int>& lnids)
+bool aPolyhedron<TopoShape>::join(double TOL, std::vector<E_Int>& lnids)
 {
   bool has_join{ false };
   lnids.clear();

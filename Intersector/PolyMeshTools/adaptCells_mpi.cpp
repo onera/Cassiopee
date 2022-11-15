@@ -65,7 +65,7 @@ using elt_t = K_INTERSECTOR::eType;
 void convert_dico_to_map___int_int_vecint
 (
   PyObject *py_zone_to_zone_to_list_owned,
-  std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned)
+  std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned)
 {
   if (PyDict_Check(py_zone_to_zone_to_list_owned))
   {
@@ -372,7 +372,7 @@ E_Int __adapt
 (std::vector<hmesh_t*>& hmeshes, std::vector<sensor_t*>& sensors,
 std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
-std::map<int, std::map<int, std::vector<int>>>& zone_to_rid_to_list_owned,
+std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
@@ -407,16 +407,16 @@ const char* varString, PyObject *out)
 
 ///
 template <subdiv_t STYPE>
-E_Int __adapt_wrapper
-(E_Int elt_type, E_Int sensor_type,
+int __adapt_wrapper
+(int elt_type, int sensor_type,
 std::vector<void*>&hookhmes, std::vector<void*>&hooksensors,
 std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
-std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned,
+std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
-  E_Int err(0);
+  int err(0);
   size_t nb_meshes = hookhmes.size();
 
   assert (nb_meshes == hooksensors.size());
@@ -650,12 +650,12 @@ const char* varString, PyObject *out)
 }
 
 template <>
-E_Int __adapt_wrapper<NUGA::ISO_HEX>
-(E_Int elt_type/*dummy*/, E_Int sensor_type,
+int __adapt_wrapper<NUGA::ISO_HEX>
+(int elt_type/*dummy*/, int sensor_type,
 std::vector<void*>& hookhmes, std::vector<void*>& hooksensors,
 std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
-std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned,
+std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
@@ -720,12 +720,12 @@ const char* varString, PyObject *out)
 }
 
 template <>
-E_Int __adapt_wrapper<NUGA::DIR>
-(E_Int elt_type/*dummy*/, E_Int sensor_type,
+int __adapt_wrapper<NUGA::DIR>
+(int elt_type/*dummy*/, int sensor_type,
 std::vector<void*>& hookhmes, std::vector<void*>& hooksensors,
 std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
-std::map<int, std::map<int, std::vector<int>>>& zone_to_zone_to_list_owned,
+std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
@@ -866,7 +866,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
       {
         int pti = ptlist[i] -1;
 
-        int* nodes = ngi.PGs.get_facets_ptr(pti);
+        E_Int* nodes = ngi.PGs.get_facets_ptr(pti);
         int nnodes = ngi.PGs.stride(pti);
 
         K_MESH::Polygon::shift_geom(crd_tmp, nodes, nnodes, 1);
@@ -879,7 +879,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
       {
         int pti = ptlist[i] -1;
 
-        int* nodes = ngi.PGs.get_facets_ptr(pti);
+        E_Int* nodes = ngi.PGs.get_facets_ptr(pti);
         int nnodes = ngi.PGs.stride(pti);
 
         K_MESH::Polygon::shift_geom(crd, nodes, nnodes, 1);
@@ -912,8 +912,8 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
 
   // 1. GET MESHES AND SENSORS
 
-  E_Int nb_meshes{1};
-  E_Int nb_sensors{1};
+  int nb_meshes{1};
+  int nb_sensors{1};
   bool input_is_list{false};
   if (PyList_Check(hook_hmeshes))
   {
@@ -932,15 +932,15 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
 
   std::vector<void*> hmeshes, sensors;
   //for unpacking hmeshes
-  E_Int* elt_type{ nullptr }, *subdiv_type{ nullptr }, *hook_id{ nullptr };
+  int* elt_type{ nullptr }, *subdiv_type{ nullptr }, *hook_id{ nullptr };
   std::string* vString{ nullptr };
   //for unpacking sensors
-  E_Int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr }, *zid{nullptr};
-  E_Int *subdiv_type_ss{ nullptr }, *elt_type_ss{ nullptr };
+  int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr }, *zid{nullptr};
+  int *subdiv_type_ss{ nullptr }, *elt_type_ss{ nullptr };
 
   //std::cout << "adaptCells : before loop" << std::endl;
   std::vector<E_Int> zids;
-  for (E_Int m = 0; m < nb_meshes; ++m)
+  for (int m = 0; m < nb_meshes; ++m)
   {
     PyObject* hook_hm = nullptr;
     if (input_is_list)
@@ -1020,7 +1020,7 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
   }
 
   // 3. GET zone_to_rid_to_list_owned
-  std::map<int, std::map<int, std::vector<int>>> zone_to_rid_to_list_owned;
+  std::map<int, std::map<int, std::vector<E_Int>>> zone_to_rid_to_list_owned;
   convert_dico_to_map___int_int_vecint(py_zone_to_rid_to_list_owned, zone_to_rid_to_list_owned);
   //assert (zone_to_zone_to_list_owned == nb_meshes);
 
@@ -1216,7 +1216,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh2(PyObject* self, PyObject* args)
   
   if (!PyArg_ParseTuple(args, "OOOOOO", &hook, &py_bcptlists, &py_jzone_to_ptlist, &pyfieldsC, &pyfieldsN, &pyfieldsF)) return nullptr;
 
-  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
+  int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
   std::string* vString{ nullptr };
   void** packet{ nullptr };
   void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, zid, vString, packet);
@@ -1492,7 +1492,7 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   }
 
   // 2. GET POINTLISTS MAP 
-  std::map<int, std::map<int, std::vector<int>>> zone_to_rid_to_list_owned;
+  std::map<int, std::map<int, std::vector<E_Int>>> zone_to_rid_to_list_owned;
   convert_dico_to_map___int_int_vecint(py_zone_to_rid_to_list_owned, zone_to_rid_to_list_owned);
   //assert (zone_to_zone_to_list_owned.size() == nb_meshes);
 
@@ -1502,7 +1502,7 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   convert_dico_to_map__int_pairint(py_rid_to_zones, rid_to_zones);
 
   // 3. EXCHANGE
-  std::map<int, std::map<int, std::vector<int>>> zone_to_rid_to_list_opp;
+  std::map<int, std::map<int, std::vector<E_Int>>> zone_to_rid_to_list_opp;
   NUGA::pointlist_msg_type::exchange_pointlists(rid_to_zones, zonerank, COM, rank, nranks, zone_to_rid_to_list_owned, zone_to_rid_to_list_opp);
 
   // 4. pushing out joins pointlist map : 'zid to jzid to ptlist'

@@ -1718,7 +1718,7 @@ namespace NUGA
     std::vector<E_Int> nids;
     K_CONNECT::IdTool::init_inc(nids, crd.cols());
 
-    std::map<K_MESH::NO_Edge, std::deque<int> > edge_to_refine_nodes;
+    std::map<K_MESH::NO_Edge, std::deque<E_Int> > edge_to_refine_nodes;
     ngon_unit splitpgs;
     std::vector<E_Int> splitoids;
     ///

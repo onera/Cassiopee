@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ngon_t.hxx"
@@ -36,11 +36,11 @@ struct connect_trait;
 //  static const eGEODIM BOUND_GEODIM = eGEODIM(GEODIM-1);
 //  static const bool BOUND_STRIDE = fixed_stride;
 //
-//  static int ncells(const cnt_t& c) {return c.cols();}
+//  static E_Int ncells(const cnt_t& c) {return c.cols();}
 //  static void shift(cnt_t& c, int v) { c.shift(v);}
 //  static void unique_indices(const cnt_t&c, std::vector<E_Int>& uinds) { c.uniqueVals(uinds);}
 //
-//  //static void compact(cnt_t&c, const std::vector<int>& keep){ std::vector<E_Int> nids; c.compact(keep, nids);}
+//  //static void compact(cnt_t&c, const std::vector<E_Int>& keep){ std::vector<E_Int> nids; c.compact(keep, nids);}
 //};
 
 // LINEIC : BAR
@@ -55,10 +55,10 @@ struct connect_trait<LINEIC, true>
   static const E_Int index_start=0;
   static const bool BOUND_STRIDE = true;
 
-  static int ncells(const cnt_t& c) {return c.cols();}
+  static E_Int ncells(const cnt_t& c) {return c.cols();}
   static void unique_indices(const cnt_t&c, std::vector<E_Int>& uinds) { c.uniqueVals(uinds);}
 
-  static void shift(cnt_t& c, int v) { c.shift(v);}
+  static void shift(cnt_t& c, E_Int v) { c.shift(v);}
   static void append(cnt_t& c, const cnt_t& to_append){c.pushBack(to_append);}
   
   static void compress(cnt_t&c, const std::vector<bool>& keep)
@@ -151,8 +151,8 @@ struct connect_trait<SURFACIC, false>
   static const bool BOUND_STRIDE = true;
   static const E_Int index_start=1;
 
-  static int ncells(const cnt_t& c) {return c.size();}
-  static void shift(cnt_t& c, int v) { c.shift(v);}
+  static E_Int ncells(const cnt_t& c) {return c.size();}
+  static void shift(cnt_t& c, E_Int v) { c.shift(v);}
   static void unique_indices(const cnt_t& c, std::vector<E_Int>& uinds) { c.unique_indices(uinds);}
 
   static void append(cnt_t& c, const cnt_t& to_append){c.append(to_append);}
@@ -198,7 +198,7 @@ struct connect_trait<SURFACIC, false>
     }
   }
 
-  template <typename T> static void set_boundary_type(cnt_t const& c, T typ, const std::vector<int>& ids) { /*todo ?*/ }
+  template <typename T> static void set_boundary_type(cnt_t const& c, T typ, const std::vector<E_Int>& ids) { /*todo ?*/ }
   
   static cnt_t compress_(cnt_t const& c, const std::vector<E_Int>& keepids, E_Int idx_start)
   {
@@ -258,13 +258,13 @@ struct connect_trait<SURFACIC, false>
 
   static void build_global_edge_ids(const cnt_t& cnt, cnt_t& glob_edge_ids)
   {
-    std::map<K_MESH::NO_Edge, int> e2id;
+    std::map<K_MESH::NO_Edge, E_Int> e2id;
     std::vector<int> molecule;
     K_MESH::NO_Edge noe;
-    int count(0);
+    E_Int count(0);
 
-    int npgs = cnt.size();
-    for (int i = 0; i < npgs; ++i)
+    E_Int npgs = cnt.size();
+    for (E_Int i = 0; i < npgs; ++i)
     {
       const E_Int* nodes = cnt.get_facets_ptr(i);
       int nnodes = cnt.stride(i);
@@ -324,7 +324,7 @@ connect_trait<SURFACIC, false>::add<NUGA::aPolygon>(K_FLD::FloatArray& crd, ngon
     {
       ASSERT_IN_VECRANGE(e.m_poids, nods[n]);
 
-      int oid = e.m_poids[nods[n]];
+      E_Int oid = e.m_poids[nods[n]];
 
       ASSERT_IN_DYNARANGE(crd, oid);
 
@@ -348,14 +348,14 @@ struct connect_trait<VOLUMIC, false>
   using elt_t = K_MESH::Polyhedron<UNKNOWN>; using aelt_t = NUGA::aPolyhedron<UNKNOWN>;
   using neighbor_t = ngon_unit;
 
-  using construct_elt_t = int;//DUMMY : non-sense in volumic
+  using construct_elt_t = E_Int;//DUMMY : non-sense in volumic
 
   static const eGEODIM BOUND_GEODIM = SURFACIC;
   static const bool BOUND_STRIDE = false;
   static const E_Int index_start=1;
 
-  static int ncells(const cnt_t& c) {return c.PHs.size();}
-  static void shift(cnt_t& c, int v) { c.PGs.shift(v);}
+  static E_Int ncells(const cnt_t& c) {return c.PHs.size();}
+  static void shift(cnt_t& c, E_Int v) { c.PGs.shift(v);}
   static void unique_indices(const cnt_t& c, std::vector<E_Int>& uinds) { c.PGs.unique_indices(uinds);}
 
   template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e, bool capitalize_coords/*not used yet*/)
@@ -513,7 +513,7 @@ struct connect_trait<VOLUMIC, false>
     neighs.erase(i);
   }*/
 
-  template <typename T> static void set_boundary_type(cnt_t const& c, T typ, const std::vector<int>& ids)
+  template <typename T> static void set_boundary_type(cnt_t const& c, T typ, const std::vector<E_Int>& ids)
   {
     c.PGs._type.clear();
     c.PGs._type.resize(c.PGs.size(), 0/*NUGA::ANY*/);
@@ -712,21 +712,21 @@ struct mesh_t
 
   // ACCESSORS //
 
-  elt_t element(int i) const { return elt_t(cnt,i);}
-  aelt_t aelement(int i) const 
+  elt_t element(E_Int i) const { return elt_t(cnt,i);}
+  aelt_t aelement(E_Int i) const 
   {
     elt_t e(cnt, i);
     E_Float Lr2 = e.Lref2(nodal_metric2);
     return aelt_t(e, crd, Lr2);
   }
     
-  template <bool BSTRIDE = BOUND_STRIDE> void get_boundary(int i, int j, bound_elt_t<BSTRIDE>& b) const
+  template <bool BSTRIDE = BOUND_STRIDE> void get_boundary(E_Int i, int j, bound_elt_t<BSTRIDE>& b) const
   {
     elt_t e(cnt, i);
     e.getBoundary(j, b);
   }
   
-  int ncells() const {return trait::ncells(cnt);}
+  E_Int ncells() const {return trait::ncells(cnt);}
 
   // end accessors
 
@@ -755,7 +755,7 @@ struct mesh_t
 
   ///
   template <bool BSTRIDE>
-  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<int>& ancestors) 
+  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<E_Int>& ancestors) 
   {
     trait::get_boundary(cnt, bound_mesh.cnt, ancestors);
     bound_mesh.crd = crd;
@@ -767,7 +767,7 @@ struct mesh_t
 
   ///
   template <bool BSTRIDE>
-  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<int>& oids, std::vector<int>& ancestors)
+  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<E_Int>& oids, std::vector<E_Int>& ancestors)
   {
     trait::get_boundary(cnt, bound_mesh.cnt, oids, ancestors);
     bound_mesh.crd = crd;
@@ -834,10 +834,10 @@ struct mesh_t
 
   ///
   template <typename T>
-  void set_type(T typ, const std::vector<int>& ids)
+  void set_type(T typ, const std::vector<E_Int>& ids)
   {
     //std::cout << "set_type : 1" << std::endl;
-    int nbcells = ncells();
+    E_Int nbcells = ncells();
     e_type.resize(nbcells, IDX_NONE);
     //std::cout << "set_type : nb cell : " << nbcells << std::endl;
     for (size_t i=0; i < ids.size(); ++i)
@@ -850,12 +850,12 @@ struct mesh_t
   }
 
   template <typename T>
-  void set_boundary_type(T typ, const std::vector<int>& ids)
+  void set_boundary_type(T typ, const std::vector<E_Int>& ids)
   {
     trait::set_boundary_type(cnt, typ, ids);
   }
   
-  void set_flag(int i, int val) const // fixme : constness here is bad design
+  void set_flag(E_Int i, int val) const // fixme : constness here is bad design
   {
     if (i >= flag.size()) flag.resize(ncells(), IDX_NONE);
     flag[i] = val;
@@ -873,7 +873,7 @@ struct mesh_t
     box.compute(crd, uinds, index_start);
   }
   
-  void bbox(int i, K_SEARCH::BBox3D& box) const 
+  void bbox(E_Int i, K_SEARCH::BBox3D& box) const 
   {
     assert(i < ncells());
 
@@ -896,7 +896,7 @@ struct mesh_t
     return minLref2;
   }
   
-  double Lref2(int i) const
+  double Lref2(E_Int i) const
   { 
     elt_t e =element(i);
     
@@ -1024,7 +1024,7 @@ struct mesh_t
       for (size_t i = 0; i < nodal_metric2.size(); ++i)
       {
         double r2 = (1. - EPSILON) * nodal_metric2[i]; //reduce it to discard nodes connected to i.
-        int N = tree.getClosest(i, r2, d2);
+        E_Int N = tree.getClosest(i, r2, d2);
         if (N != IDX_NONE)nodal_metric2[i] = d2;
       }
     }
@@ -1045,11 +1045,11 @@ struct vmesh_t
 
   vmesh_t(const K_FLD::FloatArray &crd, const K_FLD::IntArray& cnt):crd(crd),cnt(cnt){}
 
-  elt_t element(int i) const { return elt_t(cnt, i);}
+  elt_t element(E_Int i) const { return elt_t(cnt, i);}
   
   //mesh_t& operator=(const mesh_t&m){crd = m.crd; cnt = m.cnt;} 
   
-  int ncells() const {return connect_trait<GEODIM, FIXSTRIDE>::ncells(cnt);}
+  E_Int ncells() const {return connect_trait<GEODIM, FIXSTRIDE>::ncells(cnt);}
   
   void bbox(K_SEARCH::BBox3D& box) const 
   {
@@ -1058,7 +1058,7 @@ struct vmesh_t
     box.compute(crd, uinds, index_start);
   }
 
-  void bbox(int i, K_SEARCH::BBox3D& box) const 
+  void bbox(E_Int i, K_SEARCH::BBox3D& box) const 
   {
     assert(i < ncells());
 

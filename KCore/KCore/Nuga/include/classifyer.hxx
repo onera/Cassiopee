@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CLASSIFYER_HXX
 #define NUGA_CLASSIFYER_HXX
@@ -43,7 +43,7 @@ namespace NUGA
 
   struct color_t
   {
-    color_t(int col) :val(col) {}
+    color_t(E_Int col) :val(col) {}
     color_t()
     {
       //todo SL
@@ -52,14 +52,14 @@ namespace NUGA
 
     color_t& operator=(color_t& col) { val = col.val; masks = col.masks; return *this;}
 
-    color_t& operator=(int col) { val = col; return *this; } // do not touch to masks
-    bool operator!=(int col) const = delete; // { return (col != val); }
-    bool operator==(int col) const { return (col == val); }
+    color_t& operator=(E_Int col) { val = col; return *this; } // do not touch to masks
+    bool operator!=(E_Int col) const = delete; // { return (col != val); }
+    bool operator==(E_Int col) const { return (col == val); }
 
     operator double() const { return val; }
 
     double val;
-    std::vector<int> masks;
+    std::vector<E_Int> masks;
   };
 
   template <typename zmesh_t>
@@ -571,7 +571,7 @@ namespace NUGA
       __flag_hidden_subzones(z_mesh, *(mask_bits[i]), virgin_wdata, X, 2);
 
       // update wdata
-      for (size_t u = 0; u < ncells; ++u)
+      for (E_Int u = 0; u < ncells; ++u)
       {
         if (wdata[u] == IN) continue;
         if (virgin_wdata[u] == OUT) continue;
@@ -671,12 +671,12 @@ namespace NUGA
 
   	  bound_mesh_t* bit = new bound_mesh_t(mask_crds[compi], mask_cnts[compi], 1/* ASSUME DIRECT UPEN ENTRY*/);
       
-  	  int nbcells = bit->ncells();
+  	  E_Int nbcells = bit->ncells();
       
       //std::cout << "__build_mask_bits : 3 : nb of cells in mask : " << nbcells  << std::endl;
 
       // empty or only walls in it (WP are not required)
-  	  bool discard_bit = ( (nbcells == 0) || (z_is_prior_over_compi && (nbcells == (int)mask_wall_ids[compi].size()) ) );
+  	  bool discard_bit = ( (nbcells == 0) || (z_is_prior_over_compi && (nbcells == (E_Int)mask_wall_ids[compi].size()) ) );
 
   	  if (discard_bit) 
   	  {
@@ -767,7 +767,7 @@ namespace NUGA
 
       bound_mesh_t* bit = new bound_mesh_t(mask_crds[compi], mask_cnts[compi], 1/* ASSUME DIRECT UPEN ENTRY*/);
 
-      int nbcells = bit->ncells();
+      E_Int nbcells = bit->ncells();
 
       //std::cout << "__build_mask_bits : 3 : nb of cells in mask : " << nbcells  << std::endl;
 
@@ -1180,8 +1180,8 @@ namespace NUGA
     std::cout << "NB SUZONES : " << nb_subzones << std::endl;
 #endif
     
-    int ncell = z_mesh.ncells();
-    int missing_col=nb_subzones;
+    E_Int ncell = z_mesh.ncells();
+    E_Int missing_col=nb_subzones;
 
     using loc_t = typename zmesh_t::loc_t;
     const loc_t& mask_loc = *(mask_bit.get_localizer());
@@ -1197,7 +1197,7 @@ namespace NUGA
         if (cur_xcelln[i] != XCOL) continue;
 
         int nneighs = neighborz->stride(i);
-        const int* pneighs = neighborz->begin(i);
+        const E_Int* pneighs = neighborz->begin(i);
 
         for (int j = 0; (j < nneighs); ++j)
         {

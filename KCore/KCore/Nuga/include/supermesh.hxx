@@ -63,7 +63,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
   bool ref2Dcomputed = false;
   K_FLD::FloatArray crd2D1, crd2D2;
 
-  std::map<K_MESH::Edge, int> key_to_id; // to ease gluing (see 'add' calls below)
+  std::map<K_MESH::Edge, E_Int> key_to_id; // to ease gluing (see 'add' calls below)
   xm.crd = m0.crd;               // to ease gluing (see 'add' calls below)
   xm.crd.pushBack(m1.crd);       // to ease gluing (see 'add' calls below)
 
@@ -71,9 +71,9 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
   E_Int nbpts0 = m0.crd.cols();
   E_Int nbptsI = xm.crd.cols();
 
-  std::set<std::pair<int, int>> edge_to_node;
-  std::vector<std::pair<double, int>> lambda_to_node;
-  std::vector<int> xbit_ids;
+  std::set<std::pair<E_Int, E_Int>> edge_to_node;
+  std::vector<std::pair<double, E_Int>> lambda_to_node;
+  std::vector<E_Int> xbit_ids;
   std::vector<E_Int> orient;
   std::set<K_MESH::Edge> w_oe_set;
   std::map<E_Int, E_Int> w_n_map;
@@ -171,7 +171,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
       if (true_clip)
       {
-        int le0, le1;
+        E_Int le0, le1;
         auto ge0s = glob_edge_ids0.get_facets_ptr(i);
         auto ge1s = glob_edge_ids1.get_facets_ptr(i2);
 
@@ -182,12 +182,12 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
           {
             if (bits[k].m_poids[p] < 0) //intersection point : convert local to global szudzic
             {
-              int szudzik_val = -bits[k].m_poids[p] - 1;
+              E_Int szudzik_val = -bits[k].m_poids[p] - 1;
               NUGA::szudzik_unpairing(szudzik_val, le0, le1);
 
               if (ai1_reversed)
               {
-                int n0 = ae1.m_crd.cols();
+                E_Int n0 = ae1.m_crd.cols();
                 if (le1 <= n0 - 2)
                   le1 = (n0 - 2) - le1;
               }

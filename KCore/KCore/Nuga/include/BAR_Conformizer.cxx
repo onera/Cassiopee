@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __BAR_CONFORMIZER_CXX__
 #define __BAR_CONFORMIZER_CXX__
@@ -19,9 +19,9 @@ namespace NUGA
 
 ///  
 template <E_Int DIM>
-std::vector<std::pair<int,int>> BAR_Conformizer<DIM>::get_x_history()
+std::vector<std::pair<E_Int,E_Int>> BAR_Conformizer<DIM>::get_x_history()
 {
-  std::vector<std::pair<int, int>> xhis;
+  std::vector<std::pair<E_Int, E_Int>> xhis;
   size_t nb_edges = parent_type::_elements.size();
   E_Int maxid = -1;
   for (size_t i = 0; i < nb_edges; ++i)
@@ -46,7 +46,7 @@ std::vector<std::pair<int,int>> BAR_Conformizer<DIM>::get_x_history()
       continue;
     for (size_t j = 0; j < sz; ++j)
     {
-      int xid = e.nodes[j];
+      E_Int xid = e.nodes[j];
       if (xhis[xid].first == IDX_NONE)
         xhis[xid].first = e.id;
       else

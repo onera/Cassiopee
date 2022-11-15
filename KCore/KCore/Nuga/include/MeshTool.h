@@ -184,8 +184,8 @@ class MeshTool
     static E_Int computeNodeRadiusAndAngles(K_FLD::FloatArray& coord, const ngon_unit& pgs, E_Float x0, E_Float y0, 
                                             std::vector<E_Float>& radius, std::vector<E_Float>& angles);
 
-    template <typename IntCont, E_Int DIM>
-    static void reorder_nodes_on_edge(const K_FLD::FloatArray& pos, IntCont & nodes, E_Int idx_start, std::vector<std::pair<E_Float, E_Int> >& sorter);
+    template <typename IntCont, int DIM>
+    static void reorder_nodes_on_edge(const K_FLD::FloatArray& pos, IntCont & nodes, int idx_start, std::vector<std::pair<E_Float, E_Int> >& sorter);
 
 private:
 

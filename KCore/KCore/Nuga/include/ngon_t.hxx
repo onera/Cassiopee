@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __NGON_T_HXX__
 #define	__NGON_T_HXX__
@@ -263,9 +263,9 @@ struct ngon_t
   ///
   void export_to_array (Connectivity_t& c) const { 
     c.clear();
-    int ng_pgs = PGs._NGON.size();
-    int ng_phs = PHs._NGON.size();
-    int sum = ng_pgs + ng_phs;
+    E_Int ng_pgs = PGs._NGON.size();
+    E_Int ng_phs = PHs._NGON.size();
+    E_Int sum = ng_pgs + ng_phs;
 
     if (sum < 0)
     {
@@ -1417,7 +1417,7 @@ struct ngon_t
   }
 
   ///
-  bool collapse_micro_edge(const K_FLD::FloatArray& crd, double edge_ratio, double Lmax, std::vector<int>& nids)
+  bool collapse_micro_edge(const K_FLD::FloatArray& crd, double edge_ratio, double Lmax, std::vector<E_Int>& nids)
   {
     bool has_changed=false;
 
@@ -1432,20 +1432,20 @@ struct ngon_t
     K_FLD::FloatArray L;
     NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, PGs, L);
 
-    int npgs = PGs.size();
-    int n_bad_nodes;
+    E_Int npgs = PGs.size();
+    E_Int n_bad_nodes;
 
     // rule : collapse an edge iff this edge is small compared to some surrounding edges attached at both ends
-    for (int i=0; i < npgs; ++i)
+    for (E_Int i=0; i < npgs; ++i)
     {
       n_bad_nodes = 0;
-      const int* pnodes = PGs.get_facets_ptr(i);
+      const E_Int* pnodes = PGs.get_facets_ptr(i);
       int nnodes = PGs.stride(i);
 
       for (int n=0; n < nnodes; ++n)
       {
-        int Ni   = pnodes[n]-1;
-        int Nip1 = pnodes[(n+1) % nnodes]-1;
+        E_Int Ni   = pnodes[n]-1;
+        E_Int Nip1 = pnodes[(n+1) % nnodes]-1;
 
         double NiNj[3];
         NUGA::diff<3>(crd.col(Ni), crd.col(Nip1), NiNj);
@@ -1475,7 +1475,7 @@ struct ngon_t
     // update the pointers to point to the leaves
     for (size_t i =0; i < nids.size(); ++i)
     {
-      int Fi=nids[i];
+      E_Int Fi=nids[i];
       while (Fi != nids[Fi])Fi=nids[Fi];
       nids[i]=Fi;
     }
@@ -5448,11 +5448,11 @@ static E_Int discard_holes_by_box(const K_FLD::FloatArray& coord, ngon_t& wNG)
 template <typename TriangulatorType>
 static int validate_moves_by_fluxes
 (
-  std::vector<int>& nids,
+  std::vector<E_Int>& nids,
   const K_FLD::FloatArray& crd,
   ngon_t& ngio,
   const ngon_unit& neighborsi,
-  const std::vector<int>& PHlist
+  const std::vector<E_Int>& PHlist
 )
 {
   bool has_moves = false;
@@ -5504,15 +5504,15 @@ static int validate_moves_by_fluxes
     
 
     // apply all node moves for PHi (fixme : shell might contain more than one bad ph => process by group of bads ?)
-    const int* faces = ngio.PHs.get_facets_ptr(PHi);
+    const E_Int* faces = ngio.PHs.get_facets_ptr(PHi);
     int nfaces = ngio.PHs.stride(PHi);
 
     has_moves = false;
 
-    for (size_t f = 0; f < nfaces; ++f)
+    for (int f = 0; f < nfaces; ++f)
     {
       E_Int Fi = faces[f] - 1;
-      const int* nodes = ngio.PGs.get_facets_ptr(Fi);
+      const E_Int* nodes = ngio.PGs.get_facets_ptr(Fi);
       int nnodes = ngio.PGs.stride(Fi);
 
       for (size_t n = 0; n < nnodes; ++n)
@@ -5592,10 +5592,10 @@ static int validate_moves_by_fluxes
       for (size_t f = 0; f < nfaces; ++f)
       {
         E_Int Fi = faces[f] - 1;
-        const int* nodes = ngio.PGs.get_facets_ptr(Fi);
+        const E_Int* nodes = ngio.PGs.get_facets_ptr(Fi);
         int nnodes = ngio.PGs.stride(Fi);
 
-        for (size_t n = 0; n < nnodes; ++n)
+        for (int n = 0; n < nnodes; ++n)
         {
           E_Int Ni = nodes[n] - 1;
           if (nids[Ni] >= 0) continue;
@@ -5612,8 +5612,8 @@ static int validate_moves_by_fluxes
   // discard non-valids
   for (size_t n = 0; n < nids.size(); ++n) if (nids[n] < 0)nids[n] = n;
 
-  int nb_valid_moves = 0;
-  for (size_t n = 0; n < nids.size(); ++n)
+  E_Int nb_valid_moves = 0;
+  for (E_Int n = 0; n < nids.size(); ++n)
   {
     if (nids[n] != n)
     {

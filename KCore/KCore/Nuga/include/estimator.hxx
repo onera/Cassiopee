@@ -31,7 +31,7 @@ namespace NUGA
 
     auto loc2 = m2.get_localizer();
 
-    std::vector<int> cands;
+    std::vector<E_Int> cands;
     //E_Int maxv = 0;
     //E_Int count{ 0 };
 

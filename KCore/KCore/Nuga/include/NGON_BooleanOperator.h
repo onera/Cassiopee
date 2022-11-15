@@ -3077,7 +3077,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
   __refine_open_PGs(connectHard, nT3_to_PG, extrawPGs);
 
   // gather connectHard by soft color
-  std::map<int, std::vector<int>> softcol_to_t3s;
+  std::map<E_Int, std::vector<E_Int>> softcol_to_t3s;
   {
     for (E_Int i = 0; i < connectHard.cols(); ++i)
     {
@@ -3122,7 +3122,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
   ngXh.PGs.append(tapPGs);
 
   // build ngXh.Phs
-  std::map<int, std::vector<int>> ph_to_faces;
+  std::map<E_Int, std::vector<E_Int>> ph_to_faces;
   for (int i = 0; i < shiftPG; ++i)
   {
     /*const int* anc = ngXh.PGs._ancEs.col(i);
@@ -3164,7 +3164,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard2
   E_Int c{ 0 };
   for (auto i : ph_to_faces)
   {
-    ngXh.PHs.add(i.second.size(), &i.second[0], E_Int(1));
+    ngXh.PHs.add((int)i.second.size(), &i.second[0], 1);
     ngXh.PHs._ancEs(1, c++) = i.first;
   }
  

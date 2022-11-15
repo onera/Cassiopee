@@ -43,7 +43,7 @@ namespace NUGA
       outdata_t xcelln(ncells, OUT);
       if (mask_bits.empty()) return xcelln;// completely visible
 
-      std::vector<int> cands;
+      std::vector<E_Int> cands;
       std::vector<aelt_t> bits, tmpbits; // one clip can produce several bits
 
       for (E_Int i = 0; i < ncells; ++i)
@@ -141,7 +141,7 @@ namespace NUGA
 
       z_mesh.get_nodal_metric2();
 
-      std::vector<int> cands;
+      std::vector<E_Int> cands;
       std::vector<aelt_t> bits, tmpbits; // one clip can produce several bits
 
       for (E_Int i = 0; i < ncells; ++i)
@@ -187,12 +187,12 @@ namespace NUGA
   using ii_pair_t = std::pair<E_Int, E_Int>;
   using no_ii_pair_t = K_MESH::NO_Edge;
 
-  struct aIsLessThanb : std::binary_function<int, int, bool>
+  struct aIsLessThanb : std::binary_function<E_Int, E_Int, bool>
   {
 
     aIsLessThanb(const prior_t p) :_p(p) {}
 
-    bool operator()(int a, int b) const {
+    bool operator()(E_Int a, E_Int b) const {
 
       auto it = _p.find(a);
       if (it == _p.end()) return false;

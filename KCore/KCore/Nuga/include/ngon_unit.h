@@ -332,7 +332,7 @@ class ngon_unit
     void add (const Container_t<Element, Allocator_t>& molecule);
 
     /// warning : need a call to updateFacets afterwards
-    void add(E_Int n, const E_Int* facet_ptr, E_Int shift = 0);
+    void add(int n, const E_Int* facet_ptr, int shift = 0);
 
     //check
     bool is_fixed_stride(E_Int& stride) const;

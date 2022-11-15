@@ -480,10 +480,10 @@ inline long szudzik_pairing(int x, int y)
   return ((x <y) ? (y * y) + x : (x * x) + x + y);
 }
 
-inline void szudzik_unpairing(int szudzic_val, int& x, int& y)
+inline void szudzik_unpairing(E_Int szudzic_val, E_Int& x, E_Int& y)
 {
-  int a = (int)(::sqrt(szudzic_val));
-  int a2 = a * a;
+  E_Int a = (E_Int)(::sqrt(szudzic_val));
+  E_Int a2 = a * a;
 
   if ((szudzic_val - a2) < a)
   {

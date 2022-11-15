@@ -429,7 +429,7 @@ PyObject* K_INTERSECTOR::extractNthCell(PyObject* self, PyObject* args)
     E_Int nb_pgs = ngi.PHs.stride(nth);
     E_Int* pgs = ngi.PHs.get_facets_ptr(nth);
     std::vector<bool> wprocessed/*externalized to not reallocate it each time*/;
-    std::vector<int> shellPHs, boundPGs;
+    std::vector<E_Int> shellPHs, boundPGs;
     std::vector<bool> keepPH;
     keepPH.resize(ngi.PHs.size(), false);
 
@@ -664,8 +664,8 @@ PyObject* K_INTERSECTOR::removeNthFace(PyObject* self, PyObject* args)
   }
   
   ngon_unit pgs;
-  std::vector<int> nids(ngi.PGs.size(), IDX_NONE);
-  int count=0;
+  std::vector<E_Int> nids(ngi.PGs.size(), IDX_NONE);
+  E_Int count=0;
   for (E_Int i = 0; i < ngi.PGs.size(); ++i)
   {
     if (i == nth) continue;
@@ -678,7 +678,7 @@ PyObject* K_INTERSECTOR::removeNthFace(PyObject* self, PyObject* args)
   ngon_type ng;
   ng.PGs = pgs;
   ng.PHs = ngi.PHs;
-  std::vector<int> nfids;
+  std::vector<E_Int> nfids;
 
   ng.PHs.remove_facets(nids, nfids);
   ng.updateFacets();
@@ -854,7 +854,7 @@ PyObject* K_INTERSECTOR::collapseSmallEdges(PyObject* self, PyObject* args)
   ngon_type ngi(cnt);
   ngon_unit pgso;
 
-  std::vector<int> nids;
+  std::vector<E_Int> nids;
   bool carry_on{false};
   int iter{0};
 
@@ -870,10 +870,10 @@ PyObject* K_INTERSECTOR::collapseSmallEdges(PyObject* self, PyObject* args)
     //validate/invalidate moves by flux
     ngon_unit neighborsi;
     ngi.build_ph_neighborhood(neighborsi);
-    std::vector<int> PHlist;
+    std::vector<E_Int> PHlist;
     K_CONNECT::IdTool::init_inc(PHlist, ngi.PHs.size());
     //std::cout << "validate_moves_by_fluxes" << std::endl;
-    int nb_valid_moves = ngon_type::validate_moves_by_fluxes<DELAUNAY::Triangulator>(nids, crd, ngi, neighborsi, PHlist);
+    E_Int nb_valid_moves = ngon_type::validate_moves_by_fluxes<DELAUNAY::Triangulator>(nids, crd, ngi, neighborsi, PHlist);
     //std::cout << "nb valid moves : " << nb_valid_moves << std::endl;
     carry_on=(nb_valid_moves > 0);
     //std::cout << "clean_connectivity" << std::endl;
@@ -2127,12 +2127,12 @@ PyObject* K_INTERSECTOR::extrudeSurf(PyObject* self, PyObject* args)
 
   ngio.PHs.clear();
 
-  std::vector<int> pglist;
+  std::vector<E_Int> pglist;
   K_CONNECT::IdTool::init_inc(pglist, ngio.PGs.size());
 
   ngon_type::eExtrudeStrategy strat = (ngon_type::eExtrudeStrategy)strategy;
 
-  std::vector<int> tops;
+  std::vector<E_Int> tops;
   int smooth_iters = 0;
 
   for (int l = 0; l < nlayers; ++l)
@@ -2190,10 +2190,10 @@ PyObject* K_INTERSECTOR::extrudeRevolSurf(PyObject* self, PyObject* args)
 
   ngio.PHs.clear();
 
-  std::vector<int> pglist;
+  std::vector<E_Int> pglist;
   K_CONNECT::IdTool::init_inc(pglist, ngio.PGs.size());
 
-  std::vector<int> tops;
+  std::vector<E_Int> tops;
 
   E_Float angle = K_FUNC::normalize<3>(dir);
 
@@ -2454,14 +2454,14 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
   {
     NUGA::ph_mesh_t mesh(crd, cnt);
     NUGA::pg_smesh_t ef;
-    std::vector<int> oids, ancestors;
+    std::vector<E_Int> oids, ancestors;
     mesh.get_boundary<false>(ef, oids, ancestors);
 
     //std::cout << "ef.ncells vs oids sz : " << ef.ncells() << " / " << oids.size() << std::endl;
 
     // get PG ids to skip 
     std::vector<bool> keep;
-    std::set<int> discard_ids;
+    std::set<E_Int> discard_ids;
 
     //std::cout << "py_skipids : " << py_skipids << std::endl;
     if (py_skipids != Py_None)
@@ -3423,7 +3423,7 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
 
   auto neighbors = m1.get_neighbors();
 
-  std::vector<int> freezePG(m1.cnt.PGs.size(), false);
+  std::vector<E_Int> freezePG(m1.cnt.PGs.size(), false);
   for (size_t i = 0; i < isx1.size(); ++i)
   {
     if (!isx1[i]) continue;
@@ -3452,7 +3452,7 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
     }    
   }
 
-  std::set<int> pgids;
+  std::set<E_Int> pgids;
   for (size_t i = 0; i < isx1.size(); ++i)
   {
     if (!isx1[i]) continue;
@@ -3474,13 +3474,13 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
     E_Int top=IDX_NONE, topOK=IDX_NONE;
 
     // seek for colliging regions boundary
-    int bot = IDX_NONE;
+    E_Int bot = IDX_NONE;
     for (size_t k = 0; k< nneighs; ++k)
     {
       if (pneighs[k] == IDX_NONE) continue;  // boundary
       if (pneighs[k] != IDX_NONE && isx1[pneighs[k]]) continue; // inner face
 
-      int PGi = pfaces[k]-1;
+      E_Int PGi = pfaces[k]-1;
 
       if (freezePG[PGi]) continue;
 
@@ -3520,7 +3520,7 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
   PyObject* tpl = nullptr;
   if (!pgids.empty())
   {
-    std::vector<int> tmp(ALL(pgids));
+    std::vector<E_Int> tmp(ALL(pgids));
     tpl = K_NUMPY::buildNumpyArray(&tmp[0], tmp.size(), 1, 0);
   }
   return tpl;
@@ -4271,7 +4271,7 @@ PyObject* K_INTERSECTOR::getFaceIdsWithCentroids(PyObject* self, PyObject* args)
   for (E_Int i=0; i < nb_pts2; ++i)
   {
     double d2;
-    int N = tree.getClosest(crd2.col(i));
+    E_Int N = tree.getClosest(crd2.col(i));
     if (N != IDX_NONE)
       ids.push_back(N+1);
   }
@@ -4513,8 +4513,8 @@ PyObject* K_INTERSECTOR::getFaces(PyObject* self, PyObject* args)
   ngon_type ng(cnt);
 
   ngon_unit nguo;
-  std::vector<int> tmp(size);
-  for (size_t i=0; i < size; ++i)tmp[i] = pgids[i];
+  std::vector<E_Int> tmp(size);
+  for (E_Int i=0; i < size; ++i)tmp[i] = pgids[i];
 
   std::vector< E_Int> oids;
   ng.PGs.extract(tmp, nguo, oids);

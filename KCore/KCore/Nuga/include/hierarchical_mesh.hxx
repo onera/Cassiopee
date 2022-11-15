@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sï¿½m Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
 
 #ifndef NUGA_HIERACHICAL_MESH_HXX
 #define NUGA_HIERACHICAL_MESH_HXX
@@ -148,7 +148,7 @@ class hierarchical_mesh
     ///
     inline void extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const;
     ///
-    inline void extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const; //todo VD : ï¿½ implï¿½menter
+    inline void extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const;
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
@@ -161,7 +161,7 @@ class hierarchical_mesh
     void enable_PGs();
 
     void update_BCs();
-    void update_pointlist(std::vector<int>& ptLists);
+    void update_pointlist(std::vector<E_Int>& ptLists);
     
     ///
     bool is_initialised() const ;
@@ -257,13 +257,13 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
   for (E_Int i=0; i < nb_phs; ++i)
   {
     K_MESH::Polyhedron<0>::is_prismN(_ng.PGs, _ng.PHs.get_facets_ptr(i), _ng.PHs.stride(i), pg, qopp);
-    // alexis : utiliser pg et qopp pour rï¿½ordonner
+    // alexis : utiliser pg et qopp pour reordonner
   }
   
   // promote eventually to layer type + 2nd reorder
   for (E_Int i=0; i < _F2E.cols(); ++i)
   {
-    // alexis : si i n'est pas une frontiï¿½re => continue
+    // alexis : si i n'est pas une frontiere => continue
     
     E_Int PHi = (_F2E(0,i) != IDX_NONE) ? _F2E(0,i) : _F2E(1,i);
     
@@ -333,7 +333,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init(bool reorient, bool sync_matc
   if (sync_match)
   {
     auto * process = &_ng.PGs._type;
-    std::vector<int> tmp;
+    std::vector<E_Int> tmp;
     if (!BCptLists.empty())
     {
       tmp = _ng.PGs._type; //cpy to disable bcs
@@ -345,7 +345,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init(bool reorient, bool sync_matc
     for (size_t i = 0; i < _nb_pgs0; ++i)
     {
       if ((*process)[i] != 1) continue; // not a boundary
-      int* nodes = _ng.PGs.get_facets_ptr(i);
+      E_Int* nodes = _ng.PGs.get_facets_ptr(i);
       int nnodes = _ng.PGs.stride(i);
       K_MESH::Polygon::shift_geom(_crd, nodes, nnodes, _idx_start);
     }
@@ -494,12 +494,12 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_phs(ngon_type& filt
   //E_Int sz = _PGtree.get_parent_size();
   E_Int sz = _ng.PHs.size();
         
-  for (int i = 0; i < sz; i++)
+  for (E_Int i = 0; i < sz; i++)
   {
     if (_PHtree.is_enabled(i) == true)
     {
       const E_Int* p = _ng.PHs.get_facets_ptr(i);
-      E_Int s = _ng.PHs.stride(i);
+      int s = _ng.PHs.stride(i);
       filtered_ng.PHs.add(s,p);//alexis : set _type for children ??
     }
   }
@@ -704,7 +704,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_and_transmit_adap_incr_to_ne
     {
       --adincrPHi;
       adincrPHi = max(adincrPHi, E_Int(0)); // to do same behaviour for DIR and ISO:
-                // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
+      // if refining (adincrPHi > 0) decrementing should not get negative (for e.g (2,2,0) must decrease as (1,1,0) and not (1,1,-1)
 
       E_Int nb_child = _PHtree.nb_children(PHi);
       const E_Int* children = _PHtree.children(PHi);
@@ -744,7 +744,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::enable_and_transmit_
   using cell_incr_t = typename output_t::cell_incr_t;
   using face_incr_t = typename output_t::face_incr_t;
 
-  int nb_pgs0 = adap_incr.face_adap_incr.size();
+  E_Int nb_pgs0 = adap_incr.face_adap_incr.size();
 
   // 1. interpolate missing metric field values
   // todo Imad
@@ -895,7 +895,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
 
 //
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<int>& ptlist)
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<E_Int>& ptlist)
 {
   std::vector<E_Int> ids;
   E_Int nb_pgs = _ng.PGs.size();
@@ -1104,8 +1104,8 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
   //loop on new mesh and get fields val from previous state
   for (size_t i = 0; i < nb_target_phs; ++i)
   {
-    int nb_sources = histo.phoids.xr[i + 1] - histo.phoids.xr[i];
-    const int* source_start = &histo.phoids.data[histo.phoids.xr[i]];
+    E_Int nb_sources = histo.phoids.xr[i + 1] - histo.phoids.xr[i];
+    const E_Int* source_start = &histo.phoids.data[histo.phoids.xr[i]];
 
     if (nb_sources == 1)
     {

@@ -1150,7 +1150,7 @@ namespace K_MESH
       E_Int err = 0;
       K_FLD::IntArray cT3;
       {
-        std::vector<int> colors;
+        std::vector<E_Int> colors;
         err = triangulate(dt, PGS, first_pg, nb_pgs, crd, cT3, colors, true, false); // PH -> PHT3
         if (err) return dDELAUNAY_FAILURE;
       }

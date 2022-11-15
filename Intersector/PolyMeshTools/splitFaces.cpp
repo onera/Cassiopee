@@ -501,12 +501,12 @@ PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
   }
 
 
-  int N0 = m0.crd.cols();
+  E_Int N0 = m0.crd.cols();
   m0.crd.pushBack(xmesh.crd);
   xmesh.cnt.shift(N0);
   m0.cnt.PGs.append(xmesh.cnt); //appending faces
 
-  std::map<int, std::vector<int>> split_map;
+  std::map<E_Int, std::vector<E_Int>> split_map;
   K_CONNECT::IdTool::reverse_indirection(&m0.cnt.PGs._type[0], m0.cnt.PGs._type.size(), split_map);
 
   double RTOL = 0.1;
@@ -662,7 +662,7 @@ PyObject* K_INTERSECTOR::syncMacthPeriodicFaces(PyObject* self, PyObject* args)
   int iter=0;
   do
   {
-    std::map<int, std::vector<int>> glob_face_to_bits;
+    std::map<E_Int, std::vector<E_Int>> glob_face_to_bits;
     detect_async_modified_faces(m, center, paxis, rot_angle, ptrans, artol, glob_face_to_bits);
 
     carry_on = !glob_face_to_bits.empty();
