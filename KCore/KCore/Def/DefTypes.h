@@ -26,7 +26,7 @@
 #define _KCORE_DEF_DEFTYPES_H_
 
 #define E_DOUBLEREAL
-//#define E_DOUBLEINT
+//#define E_DOUBLEINT // set by compilation option
 
 // ==========================================================================
 ///+ Basic types

@@ -4,6 +4,9 @@ import os, sys, distutils.sysconfig, platform, glob, subprocess
 # Toggle to True for compiling for debug (valgrind, inspector)
 DEBUG = False
 
+# Toggle to True for compiling in i8
+EDOUBLEINT = False
+
 #==============================================================================
 # Check module import
 # Write SUCCESS or FAILED (with colored output)
@@ -439,7 +442,8 @@ def getDistUtilsCompilers():
 def getPP():
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
-    sizes = '-DINTEGER_E="INTEGER*4" -DREAL_E="REAL*8"'
+    if EDOUBLEINT: sizes = '-DINTEGER_E="INTEGER*8" -DREAL_E="REAL*8"'
+    else: sizes = '-DINTEGER_E="INTEGER*4" -DREAL_E="REAL*8"'
     if Cppcompiler == 'icl.exe': PP = 'fpp.exe '+sizes+' \\I'
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
         PP = 'x86_64-w64-mingw32-cpp -P -traditional %s -I'%sizes
@@ -735,6 +739,7 @@ def getCArgs():
     Cppcompiler = compiler[l]
     if Cppcompiler == "None": return []
     options = getCppAdditionalOptions()[:]
+    if EDOUBLEINT: options += ['-DE_DOUBLEINT']
     if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
         v = getCppVersion() 
         if DEBUG:
