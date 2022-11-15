@@ -4,6 +4,7 @@ import os, time, timeit, sys
 from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph, splitGraph, isZoneSkeleton__
 from . import PyTree as C
 from . import Internal
+from . import Distributed
 
 if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
     if int(os.environ['MPIRUN'])>0:
@@ -18,6 +19,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def gather(a, root=0): return a
         def Gather(a, root=0): return a
         def gatherZones(a, root=0): return a
+        def allgather(a): return [a]
         def allgatherZones(a, root=0): return a
         def allgatherTree(a): return a
         def send(a, dest=0, tag=0): return None
@@ -44,6 +46,7 @@ else: # try import (may fail - core or hang)
         def gather(a, root=0): return a
         def Gather(a, root=0): return a
         def gatherZones(a, root=0): return a
+        def allgather(a): return [a]
         def allgatherZones(a, root=0): return a
         def allgatherTree(a): return a
         def send(a, dest=0, tag=0): return None
@@ -180,3 +183,37 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False):
         f.flush()
         f.close()
     return None
+
+#==============================================================================
+# Construit un arbre de BBox a partir d'un arbre squelette charge
+# ou d'un arbre partiel
+# L'arbre des BBox final est identique sur tous les processeurs
+# Nota Bene: Si method='OBB' et weighting=1, les zones de t doivent etre 
+# formees par des triangles. Pour cela, appliquer au prealable (par exemple):
+# createBBoxTree(C.convertArray2Tetra(P.exteriorFaces(t)),isOBB=1,weighting=1)
+#==============================================================================
+def createBBoxTree(t, method='AABB', weighting=0, tol=0.):
+    """Return a bbox tree of t."""
+    try: import Generator.PyTree as G
+    except: raise ImportError("createBBoxTree requires Generator module.")
+    # bounding box des zones locales
+    bases = Internal.getBases(t)
+    zb = []
+    for b in bases:
+        zones = Internal.getNodesFromType1(b, 'Zone_t')
+        for z in zones:
+            if not Distributed.isZoneSkeleton__(z):
+                zbb = G.BB(z, method, weighting, tol=tol)
+                # ajoute baseName/zoneName
+                zbb[0] = b[0]+'/'+zbb[0]
+                # Clean up (zoneSubRegion)
+                Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
+                zb.append(zbb)
+        
+    # Echanges des zones locales de bounding box
+    # (allgather serialise automatiquement les donnees)
+    zones = allgather(zb)
+
+    # On les remplace dans l'arbre (par noms)
+    tb = Distributed.setZonesInTree(t, zones)
+    return tb

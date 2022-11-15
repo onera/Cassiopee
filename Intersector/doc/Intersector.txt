@@ -1,4 +1,9 @@
 ===============================================================================
+Intersector 3.5 [12/2022]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 3.5
+Optional: pyTree interface requires Converter 3.5
+===============================================================================
 Intersector 3.4 [07/2022]
 Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
 KCore 3.4
