@@ -19,14 +19,16 @@ C ============================================================================
 C 2D hyperbolic mesh generator with constant alpha angle
 C  ===========================================================================
 	SUBROUTINE k6hyper2D2(ni, nj, d, xi, yi, zi,
-     &                        type, alphad,
-     &                        xd, yd, zd,
-     &                        IP, A, B, C, RHS, Z, ZA, vol)
+     &                    type, alphad,
+     &                    xd, yd, zd,
+     &                    IP, A, B, C, RHS, Z, ZA, vol)
 
 /* #define MODIFIED_VOLUME(x) x	*/
 #define MODIFIED_VOLUME(x) SQRT(g11)*x
 C
 	IMPLICIT NONE
+#include "Def/DefFortranConst.h"
+
 C==============================================================================
 C_IN
 	INTEGER_E ni		   ! Nbre de points sur une ligne eta=cte
@@ -59,14 +61,13 @@ C_LOCAL
 	REAL_E betas, beta2s
 	REAL_E cca, ccb, cca2, ccb2, beta2, a1, a2, a3, a4, a5, a6
 	REAL_E S, alpha, sin_alpha, cos_alpha
-	REAL_E cost1pa, cost2pa, sint1pa, sint2pa, ONE
+	REAL_E cost1pa, cost2pa, sint1pa, sint2pa
 	INTEGER_E deux, signe
 C==============================================================================
 	indice(i,j) = i+(j-1)*nk
 
 	pi = 4*atan(1.D0)
 	deux = 2
-	ONE = 1.D0
 
 C------------------------------------------------------------------------------
 C Global change of angle (for now)
@@ -149,8 +150,8 @@ C Note: delta_xi=1 et delta_eta=1
 	ENDDO
 
 	IF (type.EQ.1) THEN
-	   ind = indice(ni+1,1)
-	   indb = indice(2,1)
+	   ind = indice(ni+1,ONE_I)
+	   indb = indice(TWO_I,ONE_I)
 	   xd(ind) = xd(indb)
 	   yd(ind) = yd(indb)
 	ENDIF
@@ -158,14 +159,14 @@ C Note: delta_xi=1 et delta_eta=1
 C------------------------------------------------------------------------------
 C Angles pour les conditions aux limites
 C------------------------------------------------------------------------------
-	ind = indice(1,1)
-	indp1 = indice(2,1)
+	ind = indice(ONE_I,ONE_I)
+	indp1 = indice(TWO_I,ONE_I)
 	norm = SQRT((yd(indp1)-yd(ind))**2+(xd(indp1)-xd(ind))**2)
 	sin_teta1 = (yd(indp1)-yd(ind)) / norm
 	cos_teta1 = (xd(indp1)-xd(ind)) / norm
 
-	ind = indice(ni,1)
-	indm1 = indice(ni-1,1)
+	ind = indice(ni,ONE_I)
+	indm1 = indice(ni-1,ONE_I)
 	norm = SQRT((yd(ind)-yd(indm1))**2+(xd(ind)-xd(indm1))**2)
 	sin_teta2 = (yd(ind)-yd(indm1)) / norm
 	cos_teta2 = (xd(ind)-xd(indm1)) / norm
@@ -252,8 +253,8 @@ C Point courant
 
 C Point i=2
 	      indv = 2+(j-1)*ni
-	      indp1 = indice(3,j)
-	      indm1 = indice(1,j)
+	      indp1 = indice(THREE_I,j)
+	      indm1 = indice(ONE_I,j)
 	      dxdxi = (xd(indp1)-xd(indm1))*0.5D0
 	      dydxi = (yd(indp1)-yd(indm1))*0.5D0
 	      g11 = dxdxi*dxdxi+dydxi*dydxi
@@ -290,11 +291,11 @@ C Point i=2
 	      A(1,2,1) = -ba1*a2-ba2*a4
 	      A(2,2,1) = 1.D0-ba2*a2+ba1*a4
 		
-	      indp2 = indice(4,j)
-	      indp1 = indice(3,j)
-	      ind = indice(2,j)
-	      indm1 = indice(1,j)
-	      indb = indice(1,1)
+	      indp2 = indice(FOUR_I,j)
+	      indp1 = indice(THREE_I,j)
+	      ind = indice(TWO_I,j)
+	      indm1 = indice(ONE_I,j)
+	      indb = indice(ONE_I,ONE_I)
 
 	      S = sqrt(g11)*sqrt(dxdeta*dxdeta+dydeta*dydeta)*cos_alpha
 	      a5 = -cos_teta1/sin_alpha*( cost1pa*yd(indb) -
@@ -359,7 +360,7 @@ C Point ni-1
 	      ind = indice(ni-1,j)
 	      indm1 = indice(ni-2,j)
 	      indm2 = indice(ni-3,j)
-	      indb = indice(ni,1)
+	      indb = indice(ni,ONE_I)
 
 	      S = sqrt(g11)*sqrt(dxdeta*dxdeta+dydeta*dydeta)*cos_alpha
 	      a5 = -cos_teta2/sin_alpha*( cost2pa*yd(indb) -
@@ -396,10 +397,10 @@ C Point i=2 a ni-1
 	      ENDDO
 	
 C Point i=1	
-	      ind = indice(1,j+1)
-	      indp1 = indice(2,j+1)
-	      indp2 = indice(3,j+1)
-	      indb = indice(1,1)
+	      ind = indice(ONE_I,j+1)
+	      indp1 = indice(TWO_I,j+1)
+	      indp2 = indice(THREE_I,j+1)
+	      indb = indice(ONE_I,ONE_I)
 	      
 	      cost1pa = cos_teta1*cos_alpha-sin_teta1*sin_alpha
 	      sint1pa = sin_teta1*cos_alpha+cos_teta1*sin_alpha
@@ -420,7 +421,7 @@ C Point i=ni
 	      ind = indice(ni,j+1)
 	      indm1 = indice(ni-1,j+1)
 	      indm2 = indice(ni-2,j+1)
-	      indb = indice(ni,1)
+	      indb = indice(ni,ONE_I)
 		
 	      cost2pa = cos_teta2*cos_alpha-sin_teta2*sin_alpha
 	      sint2pa = sin_teta2*cos_alpha+cos_teta2*sin_alpha
@@ -489,8 +490,8 @@ C------------------------------------------------------------------------------
 	   ENDDO
 C i=2
 	   indv = 2+(j-1)*ni
-	   indp1 = indice(3,j)
-	   indm1 = indice(1,j)
+	   indp1 = indice(THREE_I,j)
+	   indm1 = indice(ONE_I,j)
 	   dxdxi =(xd(indp1)-xd(indm1))*0.5D0
 	   dydxi = (yd(indp1)-yd(indm1))*0.5D0
 	   g11 = dxdxi*dxdxi+dydxi*dydxi
@@ -518,10 +519,10 @@ C i=2
 	   A(1,2,1) = 0.D0
 	   A(2,2,1) = 1.D0-2*beta2	
 
-	   indp2 = indice(4,j)
-	   indp1 = indice(3,j)
-	   ind = indice(2,j)
-	   indm1 = indice(1,j)
+	   indp2 = indice(FOUR_I,j)
+	   indp1 = indice(THREE_I,j)
+	   ind = indice(TWO_I,j)
+	   indm1 = indice(ONE_I,j)
 	   indm2 = indice(ni-1,j)
 				
 	   RHS(1,1)=-2*vol(indv)*b2+beta*(xd(indm2)- 
@@ -564,7 +565,7 @@ C i = ni
 	   ind = indice(ni,j)
 	   indm1 = indice(ni-1,j)
 	   indm2 = indice(ni-2,j)   
-	   indp2 = indice(3,j)
+	   indp2 = indice(THREE_I,j)
 				
 	   RHS(1,ni-1)=-2*vol(indv)*b2+beta*(xd(indm2)- 
      &	4*xd(indm1)+ 6*xd(ind)-4*xd(indp1)+xd(indp2))
@@ -581,12 +582,12 @@ C          Inversion
 	      yd(ind) = yd(indb)+RHS(2,i-1)
 	   ENDDO
 	
-	   ind = indice(1,j+1)
+	   ind = indice(ONE_I,j+1)
 	   indb = indice(ni,j+1)
 	   xd(ind) = xd(indb)
 	   yd(ind) = yd(indb)
 	   ind = indice(ni+1,j+1)
-	   indb = indice(2,j+1)
+	   indb = indice(TWO_I,j+1)
 	   xd(ind) = xd(indb)
 	   yd(ind) = yd(indb)
 	

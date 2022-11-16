@@ -28,6 +28,7 @@ C  ===========================================================================
 #define MODIFIED_VOLUME(x) SQRT(g11)*x
 C
 	IMPLICIT NONE
+#include "Def/DefFortranConst.h"
 C==============================================================================
 C_IN
 	INTEGER_E ni		   ! nbre de points sur une ligne eta=cte
@@ -134,22 +135,22 @@ C* Initialisation
 	ENDDO
 
 	IF (type.EQ.1) THEN
-	   ind = indice(ni+1,1)
-	   indb = indice(2,1)
+	   ind = indice(ni+1,ONE_I)
+	   indb = indice(TWO_I,ONE_I)
 	   xd(ind) = xd(indb)
 	   yd(ind) = yd(indb)
 	ENDIF
 C*
 C* Schema implicite
 C*
-	ind = indice(1,1)
-	indp1 = indice(2,1)
+	ind = indice(ONE_I,ONE_I)
+	indp1 = indice(TWO_I,ONE_I)
 	norm = SQRT((yd(indp1)-yd(ind))**2+(xd(indp1)-xd(ind))**2)
 	sin_teta1 = (yd(indp1)-yd(ind))/norm
 	cos_teta1 = (xd(indp1)-xd(ind))/norm
 	
-	ind = indice(ni,1)
-	indm1 = indice(ni-1,1)
+	ind = indice(ni,ONE_I)
+	indm1 = indice(ni-1,ONE_I)
 	norm = SQRT((yd(ind)-yd(indm1))**2+(xd(ind)-xd(indm1))**2)
 	sin_teta2 = (yd(indm1)-yd(ind))/norm
 	cos_teta2 = (xd(indm1)-xd(ind))/norm
@@ -225,8 +226,8 @@ C		 WRITE(*,*) 'vol',i,j,vol(indv)
      &                4*yd(indm1)+ 6*yd(ind)-4*yd(indp1)+yd(indp2))
 	      ENDDO
 		
-	      indp1 = indice(3,j) ! points particuliers 
-	      indm1 = indice(1,j) ! (i=2)
+	      indp1 = indice(THREE_I,j) ! points particuliers 
+	      indm1 = indice(ONE_I,j) ! (i=2)
 	      dxdxi = (xd(indp1)-xd(indm1))*0.5D0
 	      dydxi = (yd(indp1)-yd(indm1))*0.5D0
 	      g11 = dxdxi*dxdxi+dydxi*dydxi
@@ -264,11 +265,11 @@ C		 WRITE(*,*) 'vol',i,j,vol(indv)
      &		(4./3.)*cos_teta1*cos_teta1*ba1
 		
 C les CL sur la dissipation sont de type eriksson-dissip explicite
-	      indp2 = indice(4,j)
-	      indp1 = indice(3,j)
-	      ind = indice(2,j)
-	      indm1 = indice(1,j)
-	      indb = indice(1,1)
+	      indp2 = indice(FOUR_I,j)
+	      indp1 = indice(THREE_I,j)
+	      ind = indice(TWO_I,j)
+	      indm1 = indice(ONE_I,j)
+	      indb = indice(ONE_I,ONE_I)
 		
 	      RHS(1,1)=-2*vol(indv)*b2+xd(ind)+beta*(-xd(indm1)+
      &		3*xd(ind)- 3*xd(indp1)+ xd(indp2))+ 
@@ -329,7 +330,7 @@ C les CL sur la dissipation sont de type eriksson-dissip explicite
 	      ind = indice(ni-1,j)
 	      indm1 = indice(ni-2,j)
 	      indm2 = indice(ni-3,j)
-	      indb = indice(ni,1)
+	      indb = indice(ni,ONE_I)
 	
 	      RHS(1,ni1-1)=-2*vol(indv)*b2+xd(ind)+beta*(-xd(indp1)+ 
      &    	     3*xd(ind)- 3*xd(indm1)+xd(indm2))- 
@@ -362,10 +363,10 @@ C* Inversion
 	      ENDDO
 	
 C* i=2	
-	      ind = indice(1,j+1)
-	      indp1 = indice(2,j+1)
-	      indp2 = indice(3,j+1)
-	      indb = indice(1,1)
+	      ind = indice(ONE_I,j+1)
+	      indp1 = indice(TWO_I,j+1)
+	      indp2 = indice(THREE_I,j+1)
+	      indb = indice(ONE_I,ONE_I)
 	
 	      xd(ind)=-(4./3.)*sin_teta1*cos_teta1*yd(indp1)+ 
      &	               (1./3.)*sin_teta1*cos_teta1*yd(indp2)+ 
@@ -384,7 +385,7 @@ C* i=ni-1
 	      ind = indice(ni,j+1)
 	      indm1 = indice(ni-1,j+1)
 	      indm2 = indice(ni-2,j+1)
-	      indb = indice(ni,1)
+	      indb = indice(ni,ONE_I)
 			
 	      xd(ind)=-(4./3.)*sin_teta2*cos_teta2*yd(indm1)+ 
      &	            (1./3.)*sin_teta2*cos_teta2*yd(indm2)+ 
@@ -451,8 +452,8 @@ C*---*---*
 	   ENDDO
 C* i=2
 	   indv = 2+(j-1)*ni
-	   indp1 = indice(3,j)
-	   indm1 = indice(1,j)
+	   indp1 = indice(THREE_I,j)
+	   indm1 = indice(ONE_I,j)
 	   dxdxi =(xd(indp1)-xd(indm1))*0.5D0
 	   dydxi = (yd(indp1)-yd(indm1))*0.5D0
 	   g11 = dxdxi*dxdxi+dydxi*dydxi
@@ -480,10 +481,10 @@ C* i=2
 	   A(1,2,1) = 0.D0
 	   A(2,2,1) = 1.D0-2*beta2	
 
-	   indp2 = indice(4,j)
-	   indp1 = indice(3,j)
-	   ind = indice(2,j)
-	   indm1 = indice(1,j)
+	   indp2 = indice(FOUR_I,j)
+	   indp1 = indice(THREE_I,j)
+	   ind = indice(TWO_I,j)
+	   indm1 = indice(ONE_I,j)
 	   indm2 = indice(ni-1,j)
 				
 	   RHS(1,1)=-2*vol(indv)*b2+beta*(xd(indm2)- 
@@ -526,7 +527,7 @@ C* i = ni
 	   ind = indice(ni,j)
 	   indm1 = indice(ni-1,j)
 	   indm2 = indice(ni-2,j)   
-	   indp2 = indice(3,j)
+	   indp2 = indice(THREE_I,j)
 				
 	   RHS(1,ni-1)=-2*vol(indv)*b2+beta*(xd(indm2)- 
      &	   4*xd(indm1)+ 6*xd(ind)-4*xd(indp1)+xd(indp2))
@@ -543,12 +544,12 @@ C* Inversion
 	      yd(ind) = yd(indb)+RHS(2,i-1)
 	   ENDDO
 	
-	   ind = indice(1,j+1)
+	   ind = indice(ONE_I,j+1)
 	   indb = indice(ni,j+1)
 	   xd(ind) = xd(indb)
 	   yd(ind) = yd(indb)
 	   ind = indice(ni+1,j+1)
-	   indb = indice(2,j+1)
+	   indb = indice(TWO_I,j+1)
 	   xd(ind) = xd(indb)
 	   yd(ind) = yd(indb)
 	

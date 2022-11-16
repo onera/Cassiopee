@@ -29,6 +29,7 @@ C  ===========================================================================
 #define MODIFIED_VOLUME(x) SQRT(g11)*x
 C
       IMPLICIT NONE
+#include "Def/DefFortranConst.h"
 C==============================================================================
 C_IN
       INTEGER_E ni		   ! nbre de points sur une ligne eta=cte
@@ -58,13 +59,11 @@ C_LOCAL
       INTEGER_E eta_start,eta_end,indv
       REAL_E betas,lambda
       REAL_E cca,ccb,cca2,ccb2,beta2
-      INTEGER_E deux
 C==============================================================================
       indice(i,j) = i+(j-1)*ni
 
       pi = 4*atan(1.D0)
-      deux = 2
-
+      
       betas = MIN(betas, 0.125)  ! max stabilite
 
 C gestion des bornes negatives
@@ -93,7 +92,7 @@ C* Initialisation
       ENDDO
 
       DO i = 1, ni
-        ind = indice(i,1)
+        ind = indice(i,ONE_I)
         xd(ind) = xi(i)
         yd(ind) = yi(i)
       ENDDO
@@ -102,8 +101,8 @@ C* Initialisation
       ENDDO
 
       IF (type.EQ.1) THEN
-        ind = indice(ni,1)
-        indb = indice(1,1)
+        ind = indice(ni,ONE_I)
+        indb = indice(ONE_I,ONE_i)
         xd(ind) = xd(indb)
         yd(ind) = yd(indb)
       ENDIF
@@ -111,14 +110,14 @@ C* Initialisation
 C*
 C* Schema implicite
 C*
-      ind = indice(1,1)
-      indp1 = indice(2,1)
+      ind = indice(ONE_I,ONE_I)
+      indp1 = indice(TWO_I,ONE_I)
       norm = SQRT((yd(indp1)-yd(ind))**2+(xd(indp1)-xd(ind))**2)
       sin_teta1 = (yd(indp1)-yd(ind))/norm
       cos_teta1 = (xd(indp1)-xd(ind))/norm
     
-      ind = indice(ni,1)
-      indm1 = indice(ni-1,1)
+      ind = indice(ni,ONE_I)
+      indm1 = indice(ni-1,ONE_I)
       norm = SQRT((yd(ind)-yd(indm1))**2+(xd(ind)-xd(indm1))**2)
       sin_teta2 = (yd(indm1)-yd(ind))/norm
       cos_teta2 = (xd(indm1)-xd(ind))/norm
@@ -192,8 +191,8 @@ C* teta=0 <=> coupure verticale
         
 c i=2
         indv = 2+(j-1)*ni
-        indp1 = indice(3,j) 
-        indm1 = indice(1,j)
+        indp1 = indice(THREE_I,j) 
+        indm1 = indice(ONE_I,j)
         dxdxi = (xd(indp1)-xd(indm1))*0.5D0
         dydxi = (yd(indp1)-yd(indm1))*0.5D0
         g11 = dxdxi*dxdxi+dydxi*dydxi
@@ -233,11 +232,11 @@ c i=2
      &		(4.D0/3.D0)*cos_teta1*cos_teta1*ba1
         
 C les CL sur la dissipation sont de type eriksson-dissip explicite
-        indp2 = indice(4,j)
-        indp1 = indice(3,j)
-        ind = indice(2,j)
-        indm1 = indice(1,j)
-        indb = indice(1,1)
+        indp2 = indice(FOUR_I,j)
+        indp1 = indice(THREE_I,j)
+        ind = indice(TWO_I,j)
+        indm1 = indice(ONE_I,j)
+        indb = indice(ONE_I,ONE_I)
         
         RHS(1,1)=-2.D0*vol(indv)*b2+xd(ind)+beta*
      &      (-xd(indm1)+3.D0*xd(ind) 
@@ -303,7 +302,7 @@ C i = ni-1
         ind = indice(ni-1,j)
         indm1 = indice(ni-2,j)
         indm2 = indice(ni-3,j)
-        indb = indice(ni,1)
+        indb = indice(ni,ONE_I)
     
         RHS(1,ni1-1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(-xd(indp1)+ 
      &    	     3.D0*xd(ind)- 3.D0*xd(indm1)+xd(indm2))- 
@@ -331,13 +330,13 @@ C            WRITE(*,*) 'C',C(2,1,i),C(2,2,i)
 C            WRITE(*,*) 'RHS',RHS(1,i),RHS(2,i)            
 C        ENDDO
 
-        CALL k6DECBT(deux,ni-2,A,B,C,IP,IER)
+        CALL k6DECBT(TWO_I,ni-2,A,B,C,IP,IER)
         IF (IER.NE.0) THEN
             WRITE(*,*) 'IER error:',IER
             STOP 'MATRICE SINGULIERE'
         ENDIF
           
-        CALL k6SOLBT(deux,ni-2,A,B,C,RHS,IP)
+        CALL k6SOLBT(TWO_I,ni-2,A,B,C,RHS,IP)
           
         DO i = 2, ni-1
          ind = indice(i,j+1)
@@ -346,10 +345,10 @@ C        ENDDO
         ENDDO
     
 C* i=1	
-        ind = indice(1,j+1)
-        indp1 = indice(2,j+1)
-        indp2 = indice(3,j+1)
-        indb = indice(1,1)
+        ind = indice(ONE_I,j+1)
+        indp1 = indice(TWO_I,j+1)
+        indp2 = indice(THREE_I,j+1)
+        indb = indice(ONE_I,ONE_I)
     
         xd(ind)=-(4.D0/3.D0)*sin_teta1*cos_teta1*yd(indp1)+ 
      &	               (1.D0/3.D0)*sin_teta1*cos_teta1*yd(indp2)+ 
@@ -368,7 +367,7 @@ C* i=ni
         ind = indice(ni,j+1)
         indm1 = indice(ni-1,j+1)
         indm2 = indice(ni-2,j+1)
-        indb = indice(ni,1)
+        indb = indice(ni,ONE_I)
             
         xd(ind)=-(4.D0/3.D0)*sin_teta2*cos_teta2*yd(indm1)+ 
      &	            (1.D0/3.D0)*sin_teta2*cos_teta2*yd(indm2)+ 
@@ -438,8 +437,8 @@ C*------*-------*-------*------------*-------------
         ENDDO
 C* i=2
        indv = 2+(j-1)*ni
-       indp1 = indice(3,j)
-       indm1 = indice(1,j)
+       indp1 = indice(THREE_I,j)
+       indm1 = indice(ONE_I,j)
        dxdxi = (xd(indp1)-xd(indm1))*0.5D0
        dydxi = (yd(indp1)-yd(indm1))*0.5D0
        g11 = dxdxi*dxdxi+dydxi*dydxi
@@ -470,10 +469,10 @@ C* i=2
        A(1,2,1) = 0.D0
        A(2,2,1) = 1.D0-1.D0*beta2	
 
-       indp2 = indice(4,j)
-       indp1 = indice(3,j)
-       ind = indice(2,j)
-       indm1 = indice(1,j)
+       indp2 = indice(FOUR_I,j)
+       indp1 = indice(THREE_I,j)
+       ind = indice(TWO_I,j)
+       indm1 = indice(ONE_I,j)
        indm2 = indice(ni-1,j)
                 
        RHS(1,1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(xd(indm2)- 
@@ -515,7 +514,7 @@ C* i = ni-1
        A(1,2,ni-2) = 0.D0
        A(2,2,ni-2) = 1.D0-1.D0*beta2
 
-       indp2 = indice(1,j)
+       indp2 = indice(ONE_I,j)
        indp1 = indice(ni,j)
        ind = indice(ni-1,j)
        indm1 = indice(ni-2,j)
@@ -529,7 +528,7 @@ C* i = ni-1
 
 C* i = ni	
        indv = ni+(j-1)*ni
-       indp1 = indice(2,j)
+       indp1 = indice(TWO_I,j)
        indm1 = indice(ni-1,j)
        dxdxi = (xd(indp1)-xd(indm1))*0.5D0
        dydxi = (yd(indp1)-yd(indm1))*0.5D0
@@ -561,8 +560,8 @@ C* i = ni
        A(1,2,ni-1) = 0.D0
        A(2,2,ni-1) = 1.D0-1.D0*beta2
 
-       indp2 = indice(3,j)
-       indp1 = indice(2,j)
+       indp2 = indice(THREE_I,j)
+       indp1 = indice(TWO_I,j)
        ind = indice(ni,j)
        indm1 = indice(ni-1,j)
        indm2 = indice(ni-2,j)
@@ -583,7 +582,7 @@ C            WRITE(*,*) 'C',C(2,1,i),C(2,2,i)
 C            WRITE(*,*) 'RHS',RHS(1,i),RHS(2,i)            
 C        ENDDO
 
-       CALL k6PTRID(deux,ni-1,C,A,B,RHS,Z,ZA,IP)
+       CALL k6PTRID(TWO_I,ni-1,C,A,B,RHS,Z,ZA,IP)
     
        DO i = 2, ni
           ind = indice(i,j+1)
@@ -591,7 +590,7 @@ C        ENDDO
           yd(ind) = RHS(2,i-1)
        ENDDO
     
-       ind = indice(1,j+1)
+       ind = indice(ONE_I,j+1)
        indb = indice(ni,j+1)
        xd(ind) = xd(indb)
        yd(ind) = yd(indb)

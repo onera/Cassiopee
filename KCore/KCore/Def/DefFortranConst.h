@@ -23,6 +23,7 @@ C     -------------------------
       INTEGER_E ONE_I
       INTEGER_E TWO_I
       INTEGER_E THREE_I
+      INTEGER_E FOUR_I
       INTEGER_E E_MAXITERNWT
 
       INTEGER_E X_AXIS_E, Y_AXIS_E, Z_AXIS_E
@@ -30,7 +31,8 @@ C     -------------------------
       PARAMETER (ZERO_I = 0)
       PARAMETER (ONE_I  = 1)
       PARAMETER (TWO_I  = 2)
-      PARAMETER (THREE_I  = 3)
+      PARAMETER (THREE_I = 3)
+      PARAMETER (FOUR_I = 4)
       PARAMETER (E_MAXITERNWT = 30)
 
       PARAMETER (X_AXIS_E=1, Y_AXIS_E=2, Z_AXIS_E=3)
