@@ -110,7 +110,7 @@ def container__(flag, newPos, indDonor, periodicity, coefs, faceDir):
 # writeUnsteadyCoefs
 #------------------------------------------------------------------------------
 def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
-    """write interpolation coefficients for unsteady computations."""
+    """Write interpolation coefficients for unsteady computations."""
     Compressor.writeUnsteadyCoefs(iteration, indices, filename, loc, format)
     
 # Remplace les coordonnees d'une grille cartesienne par un noeud CartesianData

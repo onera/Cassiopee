@@ -108,7 +108,7 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
     isIntersect = 1;
 
 #ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(isIntersect));
+    return Py_BuildValue("l", isIntersect);
 #else
     return Py_BuildValue("i", isIntersect);
 #endif

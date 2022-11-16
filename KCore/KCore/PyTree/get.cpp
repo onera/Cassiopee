@@ -164,7 +164,7 @@ E_Int* K_PYTREE::getValueAI(PyObject* o, vector<PyArrayObject*>& hook)
 {
   //IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  if ( v != Py_None)
+  if (v != Py_None)
   {
     PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
     E_Int* d = (E_Int*)PyArray_DATA(ac);
@@ -207,14 +207,14 @@ E_Int* K_PYTREE::getValueAI(PyObject* o, E_Int& s0, E_Int& s1,
 {
   //IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  if ( v != Py_None )
+  if (v != Py_None)
   {
     PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
     E_Int* d = (E_Int*)PyArray_DATA(ac);
-    int ndim = PyArray_NDIM(ac);
+    E_Int ndim = PyArray_NDIM(ac);
    
     if (ndim == 1) { s0 = PyArray_DIM(ac,0); s1 = 1; }
-    else if ( ndim == 2 || ndim == 3) { s0 = PyArray_DIM(ac,0); s1 = PyArray_DIM(ac,1); }
+    else if (ndim == 2 || ndim == 3) { s0 = PyArray_DIM(ac,0); s1 = PyArray_DIM(ac,1); }
     hook.push_back(ac);
     return d;
   }

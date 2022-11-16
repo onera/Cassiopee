@@ -22,7 +22,6 @@ using namespace K_FLD;
 using namespace std;
 using namespace K_CONST;
 
-
 extern "C"
 {
   void evalrotfor_(
@@ -83,30 +82,30 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
   E_Float del_pnt[3]; E_Float bet_pnt[3]; E_Float tet_pnt[3];
   
   //harmonics for lead-lag, pitching and flapping
-  int nhdel = PyList_Size(delc0);
+  E_Int nhdel = PyList_Size(delc0);
   FldArrayF delc(nhdel); FldArrayF dels(nhdel);
   E_Float* ptdelc = delc.begin(); E_Float* ptdels = dels.begin();
-  for (int nov=0; nov<nhdel; nov++)
+  for (E_Int nov=0; nov < nhdel; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(delc0,nov);
     ptdelc[nov] = PyFloat_AsDouble(tpl0);
     tpl0 = PyList_GetItem(dels0,nov);
     ptdels[nov] = PyFloat_AsDouble(tpl0);
   }
-  int nhbet = PyList_Size(betc0);
+  E_Int nhbet = PyList_Size(betc0);
   FldArrayF betc(nhbet); FldArrayF bets(nhbet);
   E_Float* ptbetc = betc.begin(); E_Float* ptbets = bets.begin();
-  for (int nov=0; nov<nhbet; nov++)
+  for (E_Int nov=0; nov < nhbet; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(betc0,nov);
     ptbetc[nov] = PyFloat_AsDouble(tpl0);
     tpl0 = PyList_GetItem(bets0,nov);
     ptbets[nov] = PyFloat_AsDouble(tpl0);
   }
-  int nhtet = PyList_Size(tetc0);
+  E_Int nhtet = PyList_Size(tetc0);
   FldArrayF tetc(nhtet); FldArrayF tets(nhtet);
   E_Float* pttetc = tetc.begin(); E_Float* pttets = tets.begin();
-  for (int nov=0; nov<nhtet; nov++)
+  for (E_Int nov=0; nov<nhtet; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(tetc0,nov);
     pttetc[nov] = PyFloat_AsDouble(tpl0);
@@ -114,7 +113,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     pttets[nov] = PyFloat_AsDouble(tpl0);
   }
   
-  for (int nov = 0; nov < 3; nov++)
+  for (E_Int nov = 0; nov < 3; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(transl_speed,nov);
     E_Float val = PyFloat_AsDouble(tpl0);
@@ -287,30 +286,30 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   E_Float del_pnt[3]; E_Float bet_pnt[3]; E_Float tet_pnt[3];
   
   //harmonics for lead-lag, pitching and flapping
-  int nhdel = PyList_Size(delc0);
+  E_Int nhdel = PyList_Size(delc0);
   FldArrayF delc(nhdel); FldArrayF dels(nhdel);
   E_Float* ptdelc = delc.begin(); E_Float* ptdels = dels.begin();
-  for (int nov=0; nov<nhdel; nov++)
+  for (E_Int nov=0; nov<nhdel; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(delc0,nov);
     ptdelc[nov] = PyFloat_AsDouble(tpl0);
     tpl0 = PyList_GetItem(dels0,nov);
     ptdels[nov] = PyFloat_AsDouble(tpl0);
   }
-  int nhbet = PyList_Size(betc0);
+  E_Int nhbet = PyList_Size(betc0);
   FldArrayF betc(nhbet); FldArrayF bets(nhbet);
   E_Float* ptbetc = betc.begin(); E_Float* ptbets = bets.begin();
-  for (int nov=0; nov<nhbet; nov++)
+  for (E_Int nov=0; nov<nhbet; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(betc0,nov);
     ptbetc[nov] = PyFloat_AsDouble(tpl0);
     tpl0 = PyList_GetItem(bets0,nov);
     ptbets[nov] = PyFloat_AsDouble(tpl0);
   }
-  int nhtet = PyList_Size(tetc0);
+  E_Int nhtet = PyList_Size(tetc0);
   FldArrayF tetc(nhtet); FldArrayF tets(nhtet);
   E_Float* pttetc = tetc.begin(); E_Float* pttets = tets.begin();
-  for (int nov=0; nov<nhtet; nov++)
+  for (E_Int nov=0; nov<nhtet; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(tetc0,nov);
     pttetc[nov] = PyFloat_AsDouble(tpl0);
@@ -318,7 +317,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     pttets[nov] = PyFloat_AsDouble(tpl0);
   }
   
-  for (int nov = 0; nov < 3; nov++)
+  for (E_Int nov = 0; nov < 3; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(transl_speed,nov);
     E_Float val = PyFloat_AsDouble(tpl0);

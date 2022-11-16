@@ -54,7 +54,7 @@ def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
 
         # Set it
         motion[2] = []
-        motion[2].append(['MotionType', numpy.array([1], numpy.int32), [], 'DataArray_t'])
+        motion[2].append(['MotionType', numpy.array([1], dtype=Internal.__E_NPY_INT__), [], 'DataArray_t'])
         motion[2].append(['tx', numpy.fromstring(tx, 'c'), [], 'DataArray_t'])
         motion[2].append(['ty', numpy.fromstring(ty, 'c'), [], 'DataArray_t'])
         motion[2].append(['tz', numpy.fromstring(tz, 'c'), [], 'DataArray_t'])
@@ -129,7 +129,7 @@ def _setPrescribedMotion2(t, name,
 
         # Set it
         motion[2] = []
-        motion[2].append(['MotionType', numpy.array([2], numpy.int32),
+        motion[2].append(['MotionType', numpy.array([2], dtype=Internal.__E_NPY_INT__),
                           [], 'DataArray_t'])
         motion[2].append(['transl_speed', numpy.array([transl_speed[0], transl_speed[1], transl_speed[2]], numpy.float64),
                           [], 'DataArray_t'])
@@ -247,7 +247,7 @@ def _setPrescribedMotion3(t, name, transl_speed=(0.,0.,0.),
 
         # Set it
         motion[2] = []
-        motion[2].append(['MotionType', numpy.array([3], numpy.int32),
+        motion[2].append(['MotionType', numpy.array([3], dtype=Internal.__E_NPY_INT__),
                           [], 'DataArray_t'])
         motion[2].append(['transl_speed', numpy.array([transl_speed[0], transl_speed[1], transl_speed[2]], numpy.float64),
                           [], 'DataArray_t'])
@@ -864,7 +864,7 @@ def _setRotorMotionCoordsAndGridVel(a, time):
                   if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size))
                   sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
                   if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size))
-                  transl_speed=Internal.getValue(Internal.getNodeFromName(m,'transl_speed'))
+                  transl_speed = Internal.getValue(Internal.getNodeFromName(m, 'transl_speed'))
                   psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
                   psi0_b = Internal.getValue(Internal.getNodeFromName(m, 'psi0_b'))
                   alp_pnt = Internal.getValue(Internal.getNodeFromName(m, 'alp_pnt'))
@@ -899,9 +899,9 @@ def _setRotorMotionCoordsAndGridVel(a, time):
                   pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
                   rigidMotion._computeRotorMotionZ(
                       z,  sx[1], sy[1], sz[1], time, transl_speed.tolist(), psi0, psi0_b,
-                      alp_pnt.tolist(),alp_vct.tolist(),alp0,
-                      rot_pnt.tolist(),rot_vct.tolist(),rot_omg,
-                      del_pnt.tolist(),del_vct.tolist(),del0, delc.tolist(), dels.tolist(),
+                      alp_pnt.tolist(), alp_vct.tolist(), alp0,
+                      rot_pnt.tolist(), rot_vct.tolist(), rot_omg,
+                      del_pnt.tolist(), del_vct.tolist(), del0, delc.tolist(), dels.tolist(),
                       bet_pnt.tolist(), bet_vct.tolist(), bet0, betc.tolist(), bets.tolist(),
                       tet_pnt.tolist(), tet_vct.tolist(), tet0, tetc.tolist(), tets.tolist(),
                       span_vct.tolist(),

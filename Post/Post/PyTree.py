@@ -929,7 +929,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(a2)
     nzones1 = len(zones1); nzones2 = len(zones2)
-    dejaVu = numpy.zeros(nzones2, numpy.int32)
+    dejaVu = numpy.zeros(nzones2, dtype=Internal.__E_NPY_INT__)
 
     locDict={}
     if method == 2:
@@ -1015,9 +1015,9 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                             loci = Internal.getNodesFromType1(s1, 'GridLocation_t')
                             if len(loci) > 0:
                                 v = loci[0]
-                                if v[0]!='V': loc1 = 1# 'Vertex'
+                                if v[0] != 'V': loc1 = 1 # 'Vertex'
 
-                            if loc1==0:
+                            if loc1 == 0:
                                 sol11 = Internal.getNodesFromType(s1, 'DataArray_t')
                                 for s11 in sol11:
                                     ar1 = Internal.convertDataNode2Array(s11, dim1, cn1)[1]
@@ -1028,7 +1028,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
 
     if not Internal.isTopTree(a2): return a2
 
-    tag = numpy.zeros(nzones1, numpy.int32)
+    tag = numpy.zeros(nzones1, dtype=Internal.__E_NPY_INT__)
     for noz2 in range(nzones2):
         if dejaVu[noz2] > 0: tag[dejaVu[noz2]-1] = 1
 
