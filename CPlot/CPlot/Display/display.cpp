@@ -182,13 +182,13 @@ void gdisplay()
     // Update des textures eventuellement
     if (d->ptrState->updateEnvmap == 1)
     { 
-      int width, height;
+      E_Int width, height;
       d->createPngTexture(d->ptrState->envmapFile, d->_texEnviron1, width, height, true);
       d->ptrState->updateEnvmap = 0; 
     }
     if (d->ptrState->updateBackground == 1)
     { 
-      int width, height;
+      E_Int width, height;
       if (d->ptrState->bgColor == 6)
        d->createPngTexture("paperBackground1.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 7)

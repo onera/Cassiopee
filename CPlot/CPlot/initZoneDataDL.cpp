@@ -50,7 +50,8 @@ E_Int DataDL::initZoneData(vector<FldArrayF*>& structF,
 {
   // Dit a display de liberer les DL des zones
   ptrState->syncGPURes();
-  for (E_Int i = 0; i < _numberOfZones; i++) {
+  for (E_Int i = 0; i < _numberOfZones; i++) 
+  {
     ZoneImplDL* z;
     z = static_cast<ZoneImplDL*>(_zones[i]->ptr_impl);
     z->freeGPURes(ptrState); z->_GPUResUse = 0; 

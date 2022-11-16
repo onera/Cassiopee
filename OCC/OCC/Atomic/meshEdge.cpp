@@ -63,7 +63,7 @@ E_Int& nbPoints, K_FLD::FldArrayF& coords)
   }
 
   // non degenrated
-  GCPnts_UniformAbscissa unifAbs(geomAdap, nbPoints, u0, u1);
+  GCPnts_UniformAbscissa unifAbs(geomAdap, int(nbPoints), u0, u1);
   if (!unifAbs.IsDone()) return 1;
   if (nbPoints != unifAbs.NbPoints()) return 1;
     
@@ -145,7 +145,7 @@ E_Int __getNbPts(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints)
   
   E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
   nbPoints = (E_Int)round(L / hmax);
-  nbPoints = std::max(nbPoints, 2);
+  nbPoints = std::max(nbPoints, E_Int(2));
   return 0;
 }
 

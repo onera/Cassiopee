@@ -25,7 +25,7 @@
   Display une zone en solid ou en material.
 */
 //=============================================================================
-void DataDL::renderGPUUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
+void DataDL::renderGPUUSolidHOZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
 {
     //std::cerr << "Call display " << std::flush << std::endl;
     //this->displayUSolidHOZone(zonep, zone, zonet );
@@ -111,7 +111,7 @@ void DataDL::renderGPUUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
     {
         std::cerr << __PRETTY_FUNCTION__ << " : get error n°0x" << std::hex << error << std::dec << std::flush << std::endl;
     }
-    // Pour eviter de tracer le lo order sans faire expres :-)
+    // Pour eviter de tracer le low order sans faire expres :-)
     unsigned short idShader = this->_shaders.currentShader();
     int t_inner = this->ptrState->inner_tesselation;
     int t_outer = this->ptrState->outer_tesselation;

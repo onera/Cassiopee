@@ -50,8 +50,6 @@ using namespace std;
 using namespace K_FLD;
 using namespace NUGA;
 
-
-
 E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
 {
 
@@ -86,14 +84,13 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
   return 0;
 }
 
-std::vector<int> getFacesVector (PyObject* arrf){
-  
+std::vector<E_Int> getFacesVector (PyObject* arrf)
+{  
   std::vector<E_Int> Flist;
   {
     FldArrayI* inds=NULL;
     E_Int res=0;
-    if (arrf != Py_None)
-      res = K_NUMPY::getFromNumpyArray(arrf, inds, true);
+    if (arrf != Py_None) res = K_NUMPY::getFromNumpyArray(arrf, inds, true);
 
     std::unique_ptr<FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
   

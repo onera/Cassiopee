@@ -30,13 +30,13 @@ void CreateNoise3D();
   Create a mipmap of textures.
 */
 //=============================================================================
-int Data::createNodeTexture(void)
+E_Int Data::createNodeTexture(void)
 {
-  int texWidth = 256;
-  int texHeight = 256;
+  E_Int texWidth = 256;
+  E_Int texHeight = 256;
   GLubyte *texPixels, *p;
-  int texSize;
-  int i, j;
+  E_Int texSize;
+  E_Int i, j;
   
   glGenTextures(1, &_texNodes);
   glBindTexture(GL_TEXTURE_2D, _texNodes);
@@ -82,7 +82,7 @@ int Data::createNodeTexture(void)
   Noise3D est une texture 3D qui sert comme tirage aleatoire dans les shaders.
 */
 //=============================================================================
-int Data::createNoise3DTexture(void)
+E_Int Data::createNoise3DTexture(void)
 {
 #ifdef __SHADERS__
   if (glewIsSupported("GL_EXT_texture3D") != 0)
@@ -101,7 +101,7 @@ int Data::createNoise3DTexture(void)
   Cette texture sert a stocker une copie de l'ecran (courant)
 */
 //=============================================================================
-int Data::createFrameBufferTexture(void)
+E_Int Data::createFrameBufferTexture(void)
 {
   glGenTextures(1, &_texFrameBuffer[ptrState->frameBuffer]);
   glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]);

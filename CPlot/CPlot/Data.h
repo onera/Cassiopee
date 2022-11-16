@@ -80,9 +80,7 @@ class Data
   // le getInstance ici n'est valable que si deja appele dans les
   // classes filles :
   static Data* getInstance(); // <--- put in DataDL and DataVBO class.
-  enum RenderID {
-    Direct = 0, VBO = 1, DL = 2, END_GUARD
-  };
+  enum RenderID { Direct = 0, VBO = 1, DL = 2, END_GUARD };
   static RenderID _renderID;
   static Data* _instance;
 
@@ -215,7 +213,7 @@ public:
   void setBgColor();
   
   // Init zone data
-  virtual int initZoneData(std::vector<K_FLD::FldArrayF*>& structF,
+  virtual E_Int initZoneData(std::vector<K_FLD::FldArrayF*>& structF,
                 std::vector<char*>& structVarString,
                 std::vector<E_Int>& nit,
                 std::vector<E_Int>& njt, 
@@ -240,7 +238,7 @@ public:
                 char* zoneName, char* zoneTags, 
                 E_Int referenceNfield=-1, char** referenceVarNames=NULL,
                 E_Int mustComplete=0);
-  void reallocNFieldArrays(int nfield);
+  void reallocNFieldArrays(E_Int nfield);
   // Init _state
   virtual void initState();
   // Init camera
@@ -269,7 +267,7 @@ public:
              E_Int ghostifyDeactivatedZones,
              E_Int edgifyActivatedZones, 
              E_Int edgifyDeactivatedZones,
-             E_Int shadow, int dof,
+             E_Int shadow, E_Int dof,
              char* exportFile, char* exportResolution);
   void rgb2hsv(float r, float g, float b, float& h, float& s, float& v);
   void hsv2rgb(float h, float s, float v, float& r, float& g, float& b);
@@ -291,186 +289,184 @@ public:
                   char**& referenceVarNames);
   void replaceVolumetricZones();
   
-    // openGfx
-    void openGfx();
-    void closeGfx();
+  // openGfx
+  void openGfx();
+  void closeGfx();
 
-    // Misc
-    int findBlockContaining(double x, double y, double z,
+  // Misc
+  E_Int findBlockContaining(double x, double y, double z,
                             E_Int& zone, E_Int& ind, E_Int& indE, double& dist);
 
-    // Create textures
-    E_Int createNodeTexture();
-    E_Int createNoise3DTexture();
-    E_Int createColormapTexture();
-    void fillColormapTexture(E_Int type);
-    E_Int createFrameBufferTexture();
-    E_Int createPngTexture(const char* filename, GLuint &tex,
-                           E_Int& width, E_Int& height, 
-                           bool mipmap=true);
-    E_Int createVoxelTexture();
-    void voxelize(UnstructZone& zn, UnstructZone& z);
-    void voxelize(StructZone& zn, StructZone& z);
+  // Create textures
+  E_Int createNodeTexture();
+  E_Int createNoise3DTexture();
+  E_Int createColormapTexture();
+  void fillColormapTexture(E_Int type);
+  E_Int createFrameBufferTexture();
+  E_Int createPngTexture(const char* filename, GLuint &tex,
+                         E_Int& width, E_Int& height, 
+                         bool mipmap=true);
+  E_Int createVoxelTexture();
+  void voxelize(UnstructZone& zn, UnstructZone& z);
+  void voxelize(StructZone& zn, StructZone& z);
 
-    // Keys
-    void keyboard(unsigned char key, E_Int x, E_Int y);
-    void arrows(E_Int key, E_Int x, E_Int y);
-    void moveDown(double alpha, double dx, double dy, double dz, double d,
-                  double dirx, double diry, double dirz);
-    void strafeDown(double alpha, double dx, double dy, double dz, double d,
-                    double dirx, double diry, double dirz);
-    void moveUp(double alpha, double dx, double dy, double dz, double d,
+  // Keys
+  void keyboard(unsigned char key, E_Int x, E_Int y);
+  void arrows(unsigned char key, E_Int x, E_Int y);
+  void moveDown(double alpha, double dx, double dy, double dz, double d,
                 double dirx, double diry, double dirz);
-    void strafeUp(double alpha, double dx, double dy, double dz, double d,
+  void strafeDown(double alpha, double dx, double dy, double dz, double d,
                   double dirx, double diry, double dirz);
-    void moveRight(double alpha, double dx, double dy, double dz, double d,
+  void moveUp(double alpha, double dx, double dy, double dz, double d,
+              double dirx, double diry, double dirz);
+  void strafeUp(double alpha, double dx, double dy, double dz, double d,
+                double dirx, double diry, double dirz);
+  void moveRight(double alpha, double dx, double dy, double dz, double d,
+                 double dirx, double diry, double dirz);
+  void strafeRight(double alpha, double dx, double dy, double dz, double d,
                    double dirx, double diry, double dirz);
-    void strafeRight(double alpha, double dx, double dy, double dz, double d,
-                     double dirx, double diry, double dirz);
-    void moveLeft(double alpha, double dx, double dy, double dz, double d,
+  void moveLeft(double alpha, double dx, double dy, double dz, double d,
+                double dirx, double diry, double dirz);
+  void strafeLeft(double alpha, double dx, double dy, double dz, double d,
                   double dirx, double diry, double dirz);
-    void strafeLeft(double alpha, double dx, double dy, double dz, double d,
-                    double dirx, double diry, double dirz);
-    void tiltRight(double alpha, double dx, double dy, double dz, double d,
-                   double dirx, double diry, double dirz);
-    void tiltLeft(double alpha, double dx, double dy, double dz, double d,
-                  double dirx, double diry, double dirz);
-    void rotateHeadRight(double alpha, double dx, double dy, double dz, 
-                         double d,
-                         double dirx, double diry, double dirz);
-    void rotateHeadLeft(double alpha, double dx, double dy, double dz, 
-                        double d,
-                        double dirx, double diry, double dirz);
-    void rotateHeadUp(double alpha, double dx, double dy, double dz, double d,
+  void tiltRight(double alpha, double dx, double dy, double dz, double d,
+                 double dirx, double diry, double dirz);
+  void tiltLeft(double alpha, double dx, double dy, double dz, double d,
+                double dirx, double diry, double dirz);
+  void rotateHeadRight(double alpha, double dx, double dy, double dz, 
+                       double d, double dirx, double diry, double dirz);
+  void rotateHeadLeft(double alpha, double dx, double dy, double dz, 
+                      double d,
                       double dirx, double diry, double dirz);
-    void rotateHeadDown(double alpha, double dx, double dy, double dz, 
-                        double d,
-                        double dirx, double diry, double dirz);
-    void changeIPlanePlus();
-    void changeJPlanePlus();
-    void changeKPlanePlus();
-    void changeIPlaneMinus();
-    void changeJPlaneMinus();
-    void changeKPlaneMinus();
-    void changeSecondaryVariablePlus();
-    void changeSecondaryVariableMinus();
-    void changeBlankingFunction();
-    void changeAppearance();
-    void mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y);
-    void mouseMotion(E_Int x, E_Int y);
-    void mousePassiveMotion(E_Int x, E_Int y);
-    void mouseDrag(E_Int x, E_Int y);
+  void rotateHeadUp(double alpha, double dx, double dy, double dz, double d,
+                    double dirx, double diry, double dirz);
+  void rotateHeadDown(double alpha, double dx, double dy, double dz, 
+                      double d,
+                      double dirx, double diry, double dirz);
+  void changeIPlanePlus();
+  void changeJPlanePlus();
+  void changeKPlanePlus();
+  void changeIPlaneMinus();
+  void changeJPlaneMinus();
+  void changeKPlaneMinus();
+  void changeSecondaryVariablePlus();
+  void changeSecondaryVariableMinus();
+  void changeBlankingFunction();
+  void changeAppearance();
+  void mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y);
+  void mouseMotion(E_Int x, E_Int y);
+  void mousePassiveMotion(E_Int x, E_Int y);
+  void mouseDrag(E_Int x, E_Int y);
 
-    // Local display
-    void fog();
-    void light(E_Int type);
-    void noLight();
-    void setCursor(E_Int type);
-    double dist2BB(double x, double y, double z,
+  // Local display
+  void fog();
+  void light(E_Int type);
+  void noLight();
+  void setCursor(E_Int type);
+  double dist2BB(double x, double y, double z,
     double xmin, double ymin, double zmin,
     double xmax, double ymax, double zmax);
-    void computeSteps0(StructZone* zonep, 
-                       E_Int& stepi, E_Int& stepj, E_Int& stepk);
-    void computeSteps1(StructZone* zonep, 
-                       E_Int& stepi, E_Int& stepj, E_Int& stepk);
-    void computeSteps(StructZone* zonep, 
-                      E_Int& stepi, E_Int& stepj, E_Int& stepk);
-    void activateZone();
-    void deactivateZone();
-    void clearDisplay();
-    virtual void createGPURes() = 0;
-    virtual void createIsoGPURes(E_Int nofield) = 0; // scalaire
-    virtual void createIsoGPURes(E_Int nofield1, E_Int nofield2, E_Int nofield3) = 0; // vecteur
-    virtual void createIsoGPUResForRender() = 0; // scalaire for render mode
-    virtual void freeGPURes(E_Int mode, E_Int start, E_Int end, E_Int permanent) = 0;
-    virtual void freeGPURes(E_Int mode, E_Int size, E_Int* ptr, E_Int permanent) = 0;
-    void display();
-    void displayBB();
-    void displayBB2();
-    void displayFrameTex(E_Int mode, double sobelThreshold=-0.5);
-    void displayAnaglyph();
-    void displayActivePoint();
-    void displaySEdges();
-    void displayUEdges();
-    virtual void displaySMesh() = 0;
-    void displaySMeshZone(StructZone* zonep, E_Int zone);
-    virtual void displayUMesh() = 0;
-    void displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
-    void displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet);
-    virtual void displaySSolid() = 0;
-    void displaySSolidZone(StructZone* zonep, E_Int zone);
-    virtual void displayUSolid() = 0;
-    void displayUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
-    void displayUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
-    virtual void displaySIsoSolid() = 0;
-    void displaySIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
-    void displaySIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+  void computeSteps0(StructZone* zonep, 
+                     E_Int& stepi, E_Int& stepj, E_Int& stepk);
+  void computeSteps1(StructZone* zonep, 
+                     E_Int& stepi, E_Int& stepj, E_Int& stepk);
+  void computeSteps(StructZone* zonep, 
+                    E_Int& stepi, E_Int& stepj, E_Int& stepk);
+  void activateZone();
+  void deactivateZone();
+  void clearDisplay();
+  virtual void createGPURes() = 0;
+  virtual void createIsoGPURes(E_Int nofield) = 0; // scalaire
+  virtual void createIsoGPURes(E_Int nofield1, E_Int nofield2, E_Int nofield3) = 0; // vecteur
+  virtual void createIsoGPUResForRender() = 0; // scalaire for render mode
+  virtual void freeGPURes(int mode, int start, int end, int permanent) = 0;
+  virtual void freeGPURes(int mode, int size, int* ptr, int permanent) = 0;
+  void display();
+  void displayBB();
+  void displayBB2();
+  void displayFrameTex(E_Int mode, double sobelThreshold=-0.5);
+  void displayAnaglyph();
+  void displayActivePoint();
+  void displaySEdges();
+  void displayUEdges();
+  virtual void displaySMesh() = 0;
+  void displaySMeshZone(StructZone* zonep, E_Int zone);
+  virtual void displayUMesh() = 0;
+  void displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  void displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void displaySSolid() = 0;
+  void displaySSolidZone(StructZone* zonep, E_Int zone);
+  virtual void displayUSolid() = 0;
+  void displayUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  void displayUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void displaySIsoSolid() = 0;
+  void displaySIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
+  void displaySIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+                            E_Int nofield2, E_Int nofield3);
+  virtual void displayUIsoSolid() = 0;
+  void displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield);
+  void displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, 
+                            E_Int nofield1, E_Int nofield2, E_Int nofield3);
+  void displayNodes();
+  void displayBillBoards(Zone* zonep, E_Int zone);
+  void displayAllBillBoards();
+  void createGPUSMeshZone(StructZone* zonep, E_Int zone);
+  virtual void renderGPUSMeshZone(StructZone* zonep, E_Int zone) = 0;
+  void createGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+  void createGPUSSolidZone(StructZone* zonep, E_Int zone);
+  virtual void renderGPUSSolidZone(StructZone* zonep, E_Int zone) = 0;
+  virtual void createGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+  virtual void renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+  virtual void createGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+  virtual void renderGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
+  void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
+  void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
                               E_Int nofield2, E_Int nofield3);
-    virtual void displayUIsoSolid() = 0;
-    void displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield);
-    void displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, 
+  void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, E_Int nofield);
+  void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
                               E_Int nofield1, E_Int nofield2, E_Int nofield3);
-    void displayNodes();
-    void displayBillBoards(Zone* zonep, E_Int zone);
-    void displayAllBillBoards();
-    void createGPUSMeshZone(StructZone* zonep, E_Int zone);
-    virtual void renderGPUSMeshZone(StructZone* zonep, E_Int zone) = 0;
-    void createGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
-    virtual void renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
-    void createGPUSSolidZone(StructZone* zonep, E_Int zone);
-    virtual void renderGPUSSolidZone(StructZone* zonep, E_Int zone) = 0;
-    virtual void createGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
-    virtual void renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
-    virtual void createGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
-    virtual void renderGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
-    void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
-    void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
-                                E_Int nofield2, E_Int nofield3);
-    void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, E_Int nofield);
-    void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
-                                E_Int nofield1, E_Int nofield2, E_Int nofield3);
-    virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield) = 0;
-    virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
-                                     E_Int nofield2, E_Int nofield3) = 0;
-    virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield) = 0;
-    virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield1,
-                                     E_Int nofield2, E_Int nofield3) = 0;
+  virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield) = 0;
+  virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+                                   E_Int nofield2, E_Int nofield3) = 0;
+  virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield) = 0;
+  virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield1,
+                                   E_Int nofield2, E_Int nofield3) = 0;
 
-    // roll
-    void roll3Dto2D();
-    void roll2Dto1D();
-    void roll1Dto3D();
-    void roll1Dto2D();
-    void roll2Dto3D();
-    void roll3Dto1D();
-    void rollto2Dws();
-    void rollto1Dws();
+  // roll
+  void roll3Dto2D();
+  void roll2Dto1D();
+  void roll1Dto3D();
+  void roll1Dto2D();
+  void roll2Dto3D();
+  void roll3Dto1D();
+  void rollto2Dws();
+  void rollto1Dws();
 
-    // Text
-    E_Int textWidth(E_Int fontSize, char* string);
-    E_Int textWidth1(E_Int fontSize, char* string);
-    E_Int textWidth2(E_Int fontSize, char* string);
-    E_Int textHeight(E_Int fontSize);
-    void renderBitmapString(float x, float y, float z,
-                            E_Int fontSize, char *string,
-                            float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
-                            float nx=0., float ny=1., float nz=0.,
-                            float r=1.);
-    void* getGlutFont(E_Int fontSize);
-    void renderBitmapString1(float x, float y, float z,
-                             E_Int fontSize, char *string,
-                             float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
-                             float nx=0., float ny=1., float nz=0.,
-                             float r=1.);
-    OpenGLText* getOpenGLText(E_Int fontSize);
-    void renderBitmapString2(float x, float y, float z,
-                             E_Int fontSize, char *string,
-                             float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
-                             float nx=0., float ny=1., float nz=0.,
-                             float r=1.);
+  // Text
+  E_Int textWidth(E_Int fontSize, char* string);
+  E_Int textWidth1(E_Int fontSize, char* string);
+  E_Int textWidth2(E_Int fontSize, char* string);
+  E_Int textHeight(E_Int fontSize);
+  void renderBitmapString(float x, float y, float z,
+                          E_Int fontSize, char *string,
+                          float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
+                          float nx=0., float ny=1., float nz=0.,
+                          float r=1.);
+  void* getGlutFont(E_Int fontSize);
+  void renderBitmapString1(float x, float y, float z,
+                           E_Int fontSize, char *string,
+                           float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
+                           float nx=0., float ny=1., float nz=0.,
+                           float r=1.);
+  OpenGLText* getOpenGLText(E_Int fontSize);
+  void renderBitmapString2(float x, float y, float z,
+                           E_Int fontSize, char *string,
+                           float colorR=1., float colorG=1., float colorB=1., float colorA=1.,
+                           float nx=0., float ny=1., float nz=0.,
+                           float r=1.);
                             
-    void renderStringWithShadow(
-      float x, float y, float z,
+  void renderStringWithShadow(float x, float y, float z,
       E_Int fontSize, char *myString,
       float fgColorR, float fgColorG,
       float fgColorB, float fgColorA,
@@ -479,126 +475,128 @@ public:
       double offtx=1., double offty=0., double offtz=0.,
       double offnx=0., double offny=1., double offnz=0., 
       double r=1.);
-    void resetPerspectiveProjection();
-    void setOrthographicProjection();
-    void displayText(char* text);
-    void displayBigText(E_Int posx, E_Int posy, char* text);
-    void displaySmallText(E_Int posx, E_Int posy, char* text);
-    void printHeader();
-    void printTmpMessage(const char* text);
-    void displayInfoWindow(char* text, int l);
-    void displayInfo();
+  void resetPerspectiveProjection();
+  void setOrthographicProjection();
+  void displayText(char* text);
+  void displayBigText(E_Int posx, E_Int posy, char* text);
+  void displaySmallText(E_Int posx, E_Int posy, char* text);
+  void printHeader();
+  void printTmpMessage(const char* text);
+  void displayInfoWindow(char* text, E_Int l);
+  void displayInfo();
 
-    // Legend
-    void displayIsoLegend(E_Int dir);
+  // Legend
+  void displayIsoLegend(E_Int dir);
 
-    // 3D Axis
-    void displayAxis();
+  // 3D Axis
+  void displayAxis();
 
-    // 1D
-    void displayPlots();
-    void displayPlot(Slot1D* s);
-    void plotZone(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
-                  E_Float dx, E_Float dy, E_Int var1, E_Int var2);
-    E_Float getTick(E_Float rmin, E_Float rmax);
-    void plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
-                    E_Float dx, E_Float dy, E_Float blend);
-    void getCharsFromVarName(char* varName, char& c1, char& c2);
-    int getActivePointIndex(Zone1D* z, E_Int var1, E_Int var2,
+  // 1D
+  void displayPlots();
+  void displayPlot(Slot1D* s);
+  void plotZone(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
+                E_Float dx, E_Float dy, E_Int var1, E_Int var2);
+  E_Float getTick(E_Float rmin, E_Float rmax);
+  void plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
+                  E_Float dx, E_Float dy, E_Float blend);
+  void getCharsFromVarName(char* varName, char& c1, char& c2);
+  E_Int getActivePointIndex(Zone1D* z, E_Int var1, E_Int var2,
                             E_Int& e1, E_Int& e2, double& alpha);
-    int display1DActivePoint(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
+  E_Int display1DActivePoint(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
                              E_Float dx, E_Float dy, E_Int var1, E_Int var2);
-    int link2View(Zone1D* z, E_Int var1, E_Int var2,
+  E_Int link2View(Zone1D* z, E_Int var1, E_Int var2,
                   E_Float& r1min, E_Float& r1max, 
                   E_Float& r2min, E_Float& r2max);
 
-    // Menu
-    void displayMenu();
-    void displayDimensionMenu(E_Int* x);
-    void displayVariableMenu(E_Int* x);
-    void displayAxisMenu(E_Int* x);
-    void displayZoneMenu(E_Int* x);
-    void menu();
-    void menuKeyboard(unsigned char key, E_Int x, E_Int y);
-    void menuArrows(E_Int key, E_Int x, E_Int y);
-    void displayMenuString(E_Int no, char* msg, E_Int* l, E_Int* sizeMax,
-                           E_Int type, void* value);
-    void changeMenuItemRight();
-    void changeMenuItemLeft();
-    void changeMenuItemSpaceBar();
+  // Menu
+  void displayMenu();
+  void displayDimensionMenu(E_Int* x);
+  void displayVariableMenu(E_Int* x);
+  void displayAxisMenu(E_Int* x);
+  void displayZoneMenu(E_Int* x);
+  void menu();
+  void menuKeyboard(unsigned char key, int x, int y);
+  void menuArrows(int key, int x, int y);
+  void displayMenuString(E_Int no, char* msg, E_Int* l, E_Int* sizeMax,
+                         E_Int type, void* value);
+  void changeMenuItemRight();
+  void changeMenuItemLeft();
+  void changeMenuItemSpaceBar();
 
-    // Plugins
-    void loadPlugins();
-    void loadPluginsPath();
-    void autoPlugins();
-    int checkVariable(E_Int zone, const char* varName);
-    void findBlankedZones();
-    void dumpWindow();
-    char* export2Image(E_Int exportWidth, E_Int exportHeight);
-    void superSample(E_Int w, E_Int h, char* im1, char* im2, E_Int factor);
-    void gaussianBlur(E_Int w, E_Int h, char* im1, char* im2, E_Int r, double eps);
-    void mixImages(E_Int w, E_Int h, char* im1, char* im2, 
-                   double alpha, double beta);
-    void sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
-                      E_Int radius, E_Int threshold);
-    void exportFile();
-    void finalizeExport();
-    void dataMouseClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y, 
-                              E_Int multiple, E_Int accurate);
-    void dataMouseRightClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y);
+  // Plugins
+  void loadPlugins();
+  void loadPluginsPath();
+  void autoPlugins();
+  E_Int checkVariable(E_Int zone, const char* varName);
+  void findBlankedZones();
+  void dumpWindow();
+  char* export2Image(E_Int exportWidth, E_Int exportHeight);
+  void superSample(E_Int w, E_Int h, char* im1, char* im2, E_Int factor);
+  void gaussianBlur(E_Int w, E_Int h, char* im1, char* im2, E_Int r, double eps);
+  void mixImages(E_Int w, E_Int h, char* im1, char* im2, 
+                 double alpha, double beta);
+  void sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
+                    E_Int radius, E_Int threshold);
+  void exportFile();
+  void finalizeExport();
+  void dataMouseClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y, 
+                            E_Int multiple, E_Int accurate);
+  void dataMouseRightClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y);
 
-    // Clipping
-    void farClipping();
-    void closeClipping();
-    void veryCloseClipping();
-    void veryVeryCloseClipping();
-    void adaptiveClipping(double d);
+  // Clipping
+  void farClipping();
+  void closeClipping();
+  void veryCloseClipping();
+  void veryVeryCloseClipping();
+  void adaptiveClipping(double d);
 
-    // Tools
-    inline int isBlanked( Zone& zone, E_Int zonet, E_Int n1, E_Int n2, E_Int n3 ) {
-      E_Int ret1 = _pref.blanking->f(this, n1, zone.blank, zonet);
-      E_Int ret2 = _pref.blanking->f(this, n2, zone.blank, zonet);
-      E_Int ret3 = _pref.blanking->f(this, n3, zone.blank, zonet);
-      return (ret1*ret2*ret3 != 0 ? 1 : 0);
-    }
+  // Tools
+  inline E_Int isBlanked(Zone& zone, E_Int zonet, E_Int n1, E_Int n2, E_Int n3) 
+  {
+    E_Int ret1 = _pref.blanking->f(this, n1, zone.blank, zonet);
+    E_Int ret2 = _pref.blanking->f(this, n2, zone.blank, zonet);
+    E_Int ret3 = _pref.blanking->f(this, n3, zone.blank, zonet);
+    return (ret1*ret2*ret3 != 0 ? 1 : 0);
+  }
 
-    inline int isBlanked( Zone& zone, E_Int zonet, E_Int n1, E_Int n2, E_Int n3, E_Int n4 ) {
-      E_Int ret1 = _pref.blanking->f(this, n1, zone.blank, zonet);
-      E_Int ret2 = _pref.blanking->f(this, n2, zone.blank, zonet);
-      E_Int ret3 = _pref.blanking->f(this, n3, zone.blank, zonet);
-      E_Int ret4 = _pref.blanking->f(this, n3, zone.blank, zonet);
-      return (ret1*ret2*ret3*ret4 != 0 ? 1 : 0);
-    }
+  inline E_Int isBlanked(Zone& zone, E_Int zonet, E_Int n1, E_Int n2, E_Int n3, E_Int n4) 
+  {
+    E_Int ret1 = _pref.blanking->f(this, n1, zone.blank, zonet);
+    E_Int ret2 = _pref.blanking->f(this, n2, zone.blank, zonet);
+    E_Int ret3 = _pref.blanking->f(this, n3, zone.blank, zonet);
+    E_Int ret4 = _pref.blanking->f(this, n3, zone.blank, zonet);
+    return (ret1*ret2*ret3*ret4 != 0 ? 1 : 0);
+  }
 
-    unsigned long numberOfNonBlankedCells( UnstructZone& zone, E_Int zonet );
+  E_Int numberOfNonBlankedCells(UnstructZone& zone, E_Int zonet);
 
-    E_Int _font1Size; // size of font1
-    E_Int _font2Size; // size of font2
-    E_Int _font3Size; // size of font3
-    OpenGLText* _oglText1; // texture font ptr
-    OpenGLText* _oglText2; // texture font ptr
-    OpenGLText* _oglText3; // texture font ptr
+  E_Int _font1Size; // size of font1
+  E_Int _font2Size; // size of font2
+  E_Int _font3Size; // size of font3
+  OpenGLText* _oglText1; // texture font ptr
+  OpenGLText* _oglText2; // texture font ptr
+  OpenGLText* _oglText3; // texture font ptr
     
  protected:
-    virtual void freeGPUResources( E_Int mode, E_Int start, E_Int end, E_Int permanent );
-    virtual void updateGPUResources( E_Int mode, E_Int size, E_Int permanent, void* updatedPointer );
-    virtual ZoneImpl* createZoneImpl( ) = 0;
+  virtual void freeGPUResources(int mode, int start, int end, int permanent);
+  virtual void updateGPUResources(int mode, int size, int permanent, void* updatedPointer);
+  virtual ZoneImpl* createZoneImpl() = 0;
 };
 
-// global functions
+// global functions (no E_Int here to be compatible with glut)
 void gdisplay();
 void fdisplay();
-void reshape(E_Int w, E_Int h);
-void gkeyboard(unsigned char key, E_Int x, E_Int y);
-void gkeyboardup(E_Int key, E_Int x, E_Int y);
-void garrows(E_Int key, E_Int x, E_Int y);
+void reshape(int w, int h);
+void gkeyboard(unsigned char key, int x, int y);
+void gkeyboardup(int key, int x, int y);
+void garrows(int key, int x, int y);
 void gidle();
-void gtimer(E_Int val);
-void gmouseButton(E_Int button, E_Int etat, E_Int x, E_Int y);
-void gmouseMotion(E_Int x, E_Int y);
-void gmousePassiveMotion(E_Int x, E_Int y);
-void gmenuKeyboard(unsigned char key, E_Int x, E_Int y);
-void gmenuArrows(E_Int key, E_Int x, E_Int y);
+void gtimer(int val);
+void gmouseButton(int button, int etat, int x, int y);
+void gmouseMotion(int x, int y);
+void gmousePassiveMotion(int x, int y);
+void gmenuKeyboard(unsigned char key, int x, int y);
+void gmenuArrows(int key, int x, int y);
 
 // frustum
 void computeFrustumPlanes(ViewInfo& view);

@@ -65,7 +65,7 @@ void Data::exportFile()
 // exportWidth et exportHeight doivent etre Pairs
 // Si mode=1, ajoute depth au buffer
 //=============================================================================
-char* Data::export2Image(int exportWidth, int exportHeight) 
+char* Data::export2Image(E_Int exportWidth, E_Int exportHeight) 
 {
   //printf("mode = %d\n", ptrState->offscreen);
 
@@ -225,8 +225,8 @@ char* Data::export2Image(int exportWidth, int exportHeight)
   {
 #if defined(_MPI) && defined(__MESA__)
 
-    E_Int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    E_Int size; MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    int size; MPI_Comm_size(MPI_COMM_WORLD, &size);
     E_Int screenSize = _view.w * _view.h;
     //printf("Rendering: w=%d ew=%d h=%d eh=%d\n", _view.w, exportWidth, _view.h, exportHeight);
     
@@ -542,7 +542,7 @@ void Data::dumpWindow()
 #ifdef _MPI
     if (ptrState->offscreen == 7)
     {
-      E_Int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank == 0)
         _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
     }

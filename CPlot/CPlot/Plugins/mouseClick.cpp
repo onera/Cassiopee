@@ -23,16 +23,16 @@
 // Mouse plugins
 //=============================================================================
 
-int findNearestPoint(double xp, double yp, double zp,
-                     StructZone* zone, E_Int& ind, double& dist);
-int findNearestPoint(double xp, double yp, double zp,
-                     UnstructZone* zone, E_Int& ind, double& dist);
-int findElement(double xp, double yp, double zp,
-                UnstructZone* zone, double& dist);
-int findElement(double xp, double yp, double zp,
-                StructZone* zone, double& dist);
-int findFace(double xp, double yp, double zp, E_Int elt, 
-             UnstructZone* zone, double& dist);
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       StructZone* zone, E_Int& ind, double& dist);
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       UnstructZone* zone, E_Int& ind, double& dist);
+E_Int findElement(double xp, double yp, double zp,
+                  UnstructZone* zone, double& dist);
+E_Int findElement(double xp, double yp, double zp,
+                  StructZone* zone, double& dist);
+E_Int findFace(double xp, double yp, double zp, E_Int elt, 
+               UnstructZone* zone, double& dist);
 
 //=============================================================================
 // Click selects
@@ -252,9 +252,9 @@ void Data::dataMouseRightClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y)
 // OUT: d: distance entre P et le point ind
 // Retourne 1 si une zone a ete trouvee, 0 sinon.
 //=============================================================================
-int Data::findBlockContaining(double x, double y, double z,
-                              int& zone, int& ind, int& indE,
-                              double& dist)
+E_Int Data::findBlockContaining(double x, double y, double z,
+                                E_Int& zone, E_Int& ind, E_Int& indE,
+                                double& dist)
 {
   E_Int nz, indl, inde;
   double xmi, ymi, zmi, xma, yma, zma;
@@ -331,8 +331,8 @@ int Data::findBlockContaining(double x, double y, double z,
 //=============================================================================
 // pour les grilles non structurees
 //=============================================================================
-int findNearestPoint(double xp, double yp, double zp,
-                     UnstructZone* zone, E_Int& ind, double& dist)
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       UnstructZone* zone, E_Int& ind, double& dist)
 {
   double d, dx, dy, dz;
   dist = 1.e6;
@@ -356,8 +356,8 @@ int findNearestPoint(double xp, double yp, double zp,
 //=============================================================================
 // pour les grilles structurees
 //=============================================================================
-int findNearestPoint(double xp, double yp, double zp,
-                     StructZone* zone, E_Int& ind, double& dist)
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       StructZone* zone, E_Int& ind, double& dist)
 {
   double d, dx, dy, dz;
   dist = 1.e6;
@@ -475,8 +475,8 @@ int findNearestPoint(double xp, double yp, double zp,
 // (pour une zone non structuree)
 // Retourne distMin: la distance du centre a P
 //=============================================================================
-int findElement(double xp, double yp, double zp,
-                UnstructZone* zone, double& distMin)
+E_Int findElement(double xp, double yp, double zp,
+                  UnstructZone* zone, double& distMin)
 {
   E_Int ne = zone->ne;
   E_Int nv = zone->eltSize;
@@ -544,8 +544,8 @@ int findElement(double xp, double yp, double zp,
 // (pour une zone structuree)
 // Retourne: distMin: la distance de P au centre.
 //=============================================================================
-int findElement(double xp, double yp, double zp,
-                StructZone* zone, double& distMin)
+E_Int findElement(double xp, double yp, double zp,
+                  StructZone* zone, double& distMin)
 {
   E_Int ni = zone->ni;
   E_Int nj = zone->nj;
@@ -770,8 +770,8 @@ int findElement(double xp, double yp, double zp,
 // proche de xp,yp,zp
 // le no de la face commence a 0, elt commence a 0
 //=============================================================================
-int findFace(double xp, double yp, double zp, int elt, 
-             UnstructZone* zone, double& dist)
+E_Int findFace(double xp, double yp, double zp, E_Int elt, 
+               UnstructZone* zone, double& dist)
 {
   E_Int* c = zone->connect;
   E_Int* ptr = PTRELTS(c); // ptr sur les elts

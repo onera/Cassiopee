@@ -110,7 +110,7 @@ void DataDL::createGPURes()
 //=============================================================================
 // Cree les DL pour le champ scalaire nofield
 //=============================================================================
-void DataDL::createIsoGPURes(int nofield)
+void DataDL::createIsoGPURes(E_Int nofield)
 {
   E_Int zone = 0;
   E_Int zonet;
@@ -209,7 +209,7 @@ void DataDL::createIsoGPUResForRender()
 //=============================================================================
 // Cree les DL pour le champ vector nofield1, nofield2, nofield3
 //=============================================================================
-void DataDL::createIsoGPURes(int nofield1, int nofield2, int nofield3)
+void DataDL::createIsoGPURes(E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {
   E_Int zone = 0;
   E_Int zonet;
@@ -300,7 +300,7 @@ void DataDL::freeGPURes(int mode, int size, int* ptr, int permanent)
       if (ptr[i] >= 0 && ptr[i] < _numberOfZones)
       {
         Zone* z = _zones[ptr[i]];
-	ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
+        ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
         if (zImpl._DLmesh != 0) {glDeleteLists(zImpl._DLmesh, 1); zImpl._DLmesh = 0;}
         if (permanent == 1) zImpl._GPUResUse = 0;
       }
@@ -313,7 +313,7 @@ void DataDL::freeGPURes(int mode, int size, int* ptr, int permanent)
       if (ptr[i] >= 0 && ptr[i] < _numberOfZones)
       {
         Zone* z = _zones[ptr[i]];
-	ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
+        ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
         if (zImpl._DLsolid != 0) {glDeleteLists(zImpl._DLsolid, 1); zImpl._DLsolid = 0;}
         if (permanent == 1) zImpl._GPUResUse = 0;
       }

@@ -42,7 +42,6 @@ ctypedef int PDM_MPI_Comm
 ctypedef enum PDM_g_num_npy_t:
     PDM_G_NUM_NPY_INT = NPY.NPY_INT32
 
-
 #ctypedef NPY.int64_t npy_pdm_gnum_t
 #ctypedef NPY.int32_t npy_pdm_lnum_t
 #npy_pdm_gnum_dtype = NPY.int64
@@ -54,15 +53,12 @@ ctypedef enum PDM_g_num_npy_t:
 
 
 # CBX - get it from internal and pdmconfig
-#cdef extern from "pdm_config.h":
-#    cdef int PDM_LONG_G_NUM_BOOL
-#PDM_LONG_G_NUM_BOOL2 = PDM_LONG_G_NUM_BOOL
-#cimport Converter.Internal as Internal
-#ctypedef Internal.__E_NPY_INT_T__ npy_pdm_gnum_t
+#ctypedef NPY.int64_t npy_pdm_gnum_t
 #ctypedef NPY.int32_t npy_pdm_lnum_t
-#npy_pdm_gnum_dtype = Internal.__E_NPY_INT__
+#from Internal import __E_NPY_INT__
+#npy_pdm_gnum_dtype = __E_NPY_INT__
 #ctypedef enum PDM_g_num_npy_t:
-#    PDM_G_NUM_NPY_INT = Internal.__E_NPY_INT__
+#    PDM_G_NUM_NPY_INT = __E_NPY_INT__
 # ENDCBX
 
 # -----------------------------------------------------------------

@@ -33,7 +33,7 @@ using namespace std;
 // si retourne 0: echec
 // si retourne 1: OK
 //=============================================================================
-int Data::initZoneData(
+E_Int Data::initZoneData(
   vector<FldArrayF*>& structF,
   vector<char*>& structVarString,
   vector<E_Int>& nit,

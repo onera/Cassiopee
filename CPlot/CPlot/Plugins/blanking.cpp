@@ -37,7 +37,7 @@
    This variable is: blanked (0), interpolated or discretized (1)
 */
 //=============================================================================
-int blankCellN(Data* d, int p1, int blank, int zone)
+int blankCellN(Data* d, E_Int p1, E_Int blank, E_Int zone)
 {
   Zone* z = d->_zones[zone];
   double* cellN = z->f[blank-1];
@@ -54,7 +54,7 @@ int blankCellN(Data* d, int p1, int blank, int zone)
    interpolated (-noOfInterpolatedDomain)
 */
 //=============================================================================
-int blankCellNF(Data* d, int p1, int blank, int zone)
+int blankCellNF(Data* d, E_Int p1, E_Int blank, E_Int zone)
 {
   Zone* z = d->_zones[zone];
   double* cellN = z->f[blank-1];
@@ -71,7 +71,7 @@ int blankCellNF(Data* d, int p1, int blank, int zone)
    interpolated (-noOfInterpolatedDomain)
 */
 //=============================================================================
-int blankStatus(Data* d, int p1, int blank, int zone)
+int blankStatus(Data* d, E_Int p1, E_Int blank, E_Int zone)
 {
   Zone* z = d->_zones[zone];
   double* cellN = z->f[blank-1];

@@ -79,9 +79,9 @@ namespace CPlot
 
     // dim = 2, 3 or 4
     void setUniformMatrix(const char* varname, size_t dim, size_t count,
-			  bool transpose, float* value);
+                          bool transpose, float* value);
     void setUniformMatrix(unsigned int idVar , size_t dim, size_t count,
-			  bool transpose, float* value);
+                          bool transpose, float* value);
     // Submitting attribute variables
 
     /** Attribute modificators */
@@ -91,16 +91,13 @@ namespace CPlot
     /** Change a double scalar vertex attribute */
     void setAttribute(unsigned int index, float v0, float v1);
     /** Change a triple scalar vertex attribute */
-    void setAttribute(unsigned int index, float v0, float v1,
-		      float v2);
+    void setAttribute(unsigned int index, float v0, float v1, float v2);
     /** Change a quadruple scalar vertex attribute */
-    void setAttribute(unsigned int index, float v0, float v1,
-		      float v2, float v3);
+    void setAttribute(unsigned int index, float v0, float v1, float v2, float v3);
     /** Change 1 vector vertex attribute 
 	dim must be 1, 2, 3 or 4.
      */
-    void setAttribute(unsigned int index, unsigned int dim,
-		      const float* values);
+    void setAttribute(unsigned int index, unsigned int dim, const float* values);
     //@}
   private:
     void unlink();

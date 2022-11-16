@@ -11,6 +11,8 @@ try:
 except: raise ImportError("PolyC1 module requires numpy, Geom, Post, Transform and Converter modules.")
 __version__ = G.__version__
 
+from Converter.Internal import __E_NPY_INT__
+
 try: range = xrange
 except: pass
 
@@ -42,9 +44,9 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     ne = len(curves)
 
     # Calcul des relations entre courbes C1
-    ext = N.ones((ne,2), N.int32)# cas d'extension
-    nghb = N.zeros((ne,2), N.int32); nghb[:] = -1 # no de la courbe voisine
-    nghbind = N.zeros((ne,2), N.int32) # index corresp. sur la courbe voisine
+    ext = N.ones((ne,2), dtype=__E_NPY_INT__)# cas d'extension
+    nghb = N.zeros((ne,2), dtype=__E_NPY_INT__); nghb[:] = -1 # no de la courbe voisine
+    nghbind = N.zeros((ne,2), dtype=__E_NPY_INT__) # index corresp. sur la courbe voisine
     # coord des pts de contact
     xpts = N.zeros((ne,2)); ypts = N.zeros((ne,2)) ; zpts = N.zeros((ne,2))
     # courbure au pts de contact
@@ -138,7 +140,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
                     surfzpts[i,j] = nunique[1][2,ind]
                     break
 
-    #for c in xrange(ne):
+    #for c in range(ne):
     #    print 'courbe %d: angle0=%f, angle1=%f'%(c, cpts[c,0], cpts[c,1])
 
     #for c in xrange(ne):

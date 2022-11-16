@@ -19,7 +19,7 @@
 
 #include "Data.h"
 
-void gmouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
+void gmouseButton(int button, int etat, int x, int y)
 {
   Data* d = Data::getInstance();
   d->mouseButton(button, etat, x, y);
@@ -29,7 +29,7 @@ void gmouseMotion(int x, int y)
   Data* d = Data::getInstance();
   d->mouseMotion(x, y);
 }
-void gmousePassiveMotion(E_Int x, E_Int y)
+void gmousePassiveMotion(int x, int y)
 {
   Data* d = Data::getInstance();
   d->mousePassiveMotion(x, y);

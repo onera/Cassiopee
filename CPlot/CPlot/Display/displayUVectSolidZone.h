@@ -695,15 +695,15 @@
       for (i = 0; i < zonep->nelts2D; i++)
       {
         glBegin(GL_POLYGON);
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
-        int drawn = 0;
-        int j, first;
+        E_Int elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int nf = ptrelt[0];
+        E_Int drawn = 0;
+        E_Int j, first;
 
-        int face = ptrelt[1]-1;
+        E_Int face = ptrelt[1]-1;
         glNormal3f(surfx[face], surfy[face], surfz[face]);
-        int* ptrface = &connect[zonep->posFaces[face]];
+        E_Int* ptrface = &connect[zonep->posFaces[face]];
         n1 = ptrface[1]-1; first = n1;
         n2 = ptrface[2]-1;
         PLOTNGON(n1);
@@ -777,7 +777,7 @@
         nd = connect[c]; // nbre de noeuds de la face
         if (nd > 2) // elt 3D
         {
-          int blank = 0;
+          E_Int blank = 0;
           for (l = 0; l < nd; l++)
           {
             n1 = connect[c+l+1]-1;

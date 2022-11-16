@@ -54,7 +54,7 @@
   Les steps sont forces a 1
 */
 //=============================================================================
-void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
+void DataDL::renderGPUSMeshZone(StructZone* zonep, E_Int zone)
 {
   E_Int i, ret;
 

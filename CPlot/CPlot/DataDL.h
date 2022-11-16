@@ -33,15 +33,15 @@ public:
   virtual ~DataDL();
 
   virtual void createGPURes();
-  virtual void freeGPURes(E_Int mode, E_Int start, E_Int end, E_Int permanent);
-  virtual void freeGPURes(E_Int mode, E_Int size, E_Int* ptr, E_Int permanent);
+  virtual void freeGPURes(int mode, int start, int end, int permanent);
+  virtual void freeGPURes(int mode, int size, int* ptr, int permanent);
 
   virtual void createIsoGPURes(E_Int nofield); // scalaire
   virtual void createIsoGPURes(E_Int nofield1, E_Int nofield2, E_Int nofield3); // vecteur
   virtual void createIsoGPUResForRender(); // scalaire for render mode
   virtual void createGPUSMeshZone(StructZone* zonep, E_Int zone);
   virtual void createGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
-  virtual void createGPUUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUUMeshZoneHO(UnstructZone* zonep, E_Int zone, E_Int zonet);
   virtual void createGPUSSolidZone(StructZone* zonep, E_Int zone);
   virtual void createGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
   virtual void createGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
@@ -72,24 +72,24 @@ public:
   virtual void displaySIsoSolid();
   virtual void displayUIsoSolid();
 
-  virtual int initZoneData( std::vector<K_FLD::FldArrayF*>& structF,
-			    std::vector<char*>& structVarString,
-			    std::vector<E_Int>& nit,
-			    std::vector<E_Int>& njt, 
-			    std::vector<E_Int>& nkt,
-			    std::vector<K_FLD::FldArrayF*>& unstrF,
-			    std::vector<char*>& unstrVarString,
-			    std::vector<K_FLD::FldArrayI*>& cnt,
-			    std::vector<char*>& eltType,
-			    std::vector<char*>& zoneNames,
-			    std::vector<char*>& zoneTags,
-          E_Int referenceNfield=-1,
-          char** referenceVarNames=NULL);
+  virtual E_Int initZoneData(std::vector<K_FLD::FldArrayF*>& structF,
+    std::vector<char*>& structVarString,
+	std::vector<E_Int>& nit,
+	std::vector<E_Int>& njt, 
+	std::vector<E_Int>& nkt,
+	std::vector<K_FLD::FldArrayF*>& unstrF,
+	std::vector<char*>& unstrVarString,
+	std::vector<K_FLD::FldArrayI*>& cnt,
+	std::vector<char*>& eltType,
+	std::vector<char*>& zoneNames,
+	std::vector<char*>& zoneTags,
+    E_Int referenceNfield=-1,
+    char** referenceVarNames=NULL);
   virtual void initState();
 
 protected:
-  //virtual void freeGPUResources( int mode, int start, int end, int permanent );
-  //virtual void updateGPUResources( int mode, int size, int permanent, void* updatedPointer );
+  //virtual void freeGPUResources(int mode, int start, int end, int permanent);
+  //virtual void updateGPUResources(int mode, int size, int permanent, void* updatedPointer);
 
   virtual ZoneImpl* createZoneImpl( );
 };

@@ -29,8 +29,8 @@
   OUT: width, height: nbre de pixels de la texture
 */
 //=============================================================================
-int Data::createPngTexture(const char* filename, GLuint &tex, 
-                           int &width, int &height, bool mipmap)
+E_Int Data::createPngTexture(const char* filename, GLuint &tex, 
+                             E_Int &width, E_Int &height, bool mipmap)
 {
   Data* d = Data::getInstance();
   //GLint mipMap = GL_FALSE;
@@ -127,14 +127,14 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
   { printf("Warning: error during read of png image.\n"); fclose(ptrFile); return 1; }
   
   bool alpha; int components;
-  int size = png_get_rowbytes(png_ptr, info_ptr);
+  E_Int size = png_get_rowbytes(png_ptr, info_ptr);
   if (size == width*3) { alpha = false; components = 3; }
   else { alpha = true; components = 4; }
 
   png_bytepp rows = new png_bytep[height];
   png_bytep image = new png_byte[height * width * components];
   
-  for (int i = 0; i < height; i++)
+  for (E_Int i = 0; i < height; i++)
     rows[i] = image + (height - i - 1) * width * components;
   
   png_set_rows(png_ptr, info_ptr, rows);

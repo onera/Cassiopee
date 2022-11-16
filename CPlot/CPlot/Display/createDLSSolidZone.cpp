@@ -24,7 +24,7 @@
   Display une zone en solid ou en material.
 */
 //=============================================================================
-void DataDL::createGPUSSolidZone(StructZone* zonep, int zone)
+void DataDL::createGPUSSolidZone(StructZone* zonep, E_Int zone)
 {
   E_Int i, j, k, n1, n2, n3, n4, n5, n6, n7, n8;
   E_Int stepi, stepj, stepk;

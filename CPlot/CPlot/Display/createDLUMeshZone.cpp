@@ -24,10 +24,10 @@
   Display une zone en mesh.
 */
 //=============================================================================
-void DataDL::createGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
+void DataDL::createGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 {
   if (zonep->_is_high_order == true) {
-    createGPUUMeshZone_ho(zonep, zone, zonet);
+    createGPUUMeshZoneHO(zonep, zone, zonet);
     return;
   }
   E_Int i, n1, n2, ret1, ret2;

@@ -173,7 +173,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       
       K_FLD::FloatArray pos3Dorig = pos3D;
       K_FLD::IntArray connectBorig = connectB;
-      K_FLD::IntArray switcha(1,pos3D.cols(),0);
+      K_FLD::IntArray switcha(E_Int(1),pos3D.cols(),E_Int(0));
       std::map<E_Int, E_Int> mirror;
       
       _faces[i]->dupBAR(pos3D, connectB, switcha, mirror);

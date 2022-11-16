@@ -24,8 +24,8 @@
   Stub for creating textures from png files (when libpng is unavailable)
 */
 //=============================================================================
-int Data::createPngTexture(const char* filename, GLuint &tex, 
-                           int& width, int& height, bool mipmap)
+E_Int Data::createPngTexture(const char* filename, GLuint &tex, 
+                             E_Int& width, E_Int& height, bool mipmap)
 {
   return 0;
 }

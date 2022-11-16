@@ -25,7 +25,7 @@
   If variable is not found return -1.
 */
 //=============================================================================
-E_Int Data::checkVariable(int zone, const char* varName)
+E_Int Data::checkVariable(E_Int zone, const char* varName)
 {
   E_Int i;
   Zone* z = _zones[zone];

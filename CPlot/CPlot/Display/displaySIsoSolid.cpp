@@ -111,7 +111,7 @@ void DataDL::displaySIsoSolid()
       _shaders[s]->setUniform("colormap", (int)1);
       if (s == _shaders.shader_id(shader::vector_arrow))
       {
-        _shaders[s]->setUniform("show_surface", ptrState->vectorShowSurface);
+        _shaders[s]->setUniform("show_surface", (int)ptrState->vectorShowSurface);
         _shaders[s]->setUniform("project_vectors", (int)ptrState->vector_projection);
         _shaders[s]->setUniform("style_arrow", (int)ptrState->vectorShape);
       }

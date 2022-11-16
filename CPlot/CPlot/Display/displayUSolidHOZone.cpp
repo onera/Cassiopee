@@ -23,7 +23,7 @@
   Display une zone en solid ou en material (mode SOLID ou RENDER)
 */
 //=============================================================================
-void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
+void Data::displayUSolidHOZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
 {
     E_Int i, n1, n2, n3, n4, n5, n6, n7, n8;
     E_Int ret1, ret2, ret3, ret4, f;
@@ -116,15 +116,18 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
 
     glPatchParameteri(GL_PATCH_VERTICES, zonep->eltSize);
     E_Int stride = zonep->ne;
+    E_Int ind_elt, ind;
     glBegin(GL_PATCHES);
-    for (E_Int ielts = 0; ielts < zonep->ne; ++ielts) {
-        int ind_elt = ielts;
-        for ( unsigned short inode = 0; inode < zonep->eltSize; inode++ ) {
-            int ind = zonep->connect[ ind_elt + inode * stride ] - 1;
-            glVertex3f( (float)zonep->x[ ind ], (float)zonep->y[ ind ], (float)zonep->z[ ind ] );
+    for (E_Int ielts = 0; ielts < zonep->ne; ++ielts) 
+    {
+        ind_elt = ielts;
+        for ( size_t inode = 0; inode < zonep->eltSize; inode++ ) 
+        {
+            ind = zonep->connect[ind_elt + inode * stride]-1;
+            glVertex3f( (float)zonep->x[ind], (float)zonep->y[ind], (float)zonep->z[ind] );
         }
     }
     glEnd();
-    glLineWidth( 1. );
+    glLineWidth(1.);
     return;
 }

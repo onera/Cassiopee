@@ -62,7 +62,7 @@
   IN: zonet: le no de la zone dans liste globale des zones
 */
 //=============================================================================
-void Data::displayUMeshZone_ho(UnstructZone* zonep, int zone, int zonet)
+void Data::displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet)
 {
   E_Int i, n1, n2, n3, ret1, ret2, ret;
 

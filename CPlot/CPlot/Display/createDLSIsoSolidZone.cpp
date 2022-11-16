@@ -34,7 +34,7 @@
   est forcee a 0.
 */
 //=============================================================================
-void DataDL::createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield)
+void DataDL::createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
 {
   E_Int stepi, stepj, stepk;
   float offb;

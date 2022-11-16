@@ -778,9 +778,9 @@
       // Elements 2D
       for (i = 0; i < zonep->nelts2D; i++)
       {
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
+        E_Int elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int nf = ptrelt[0];
 
         E_Int blank = 0;
         for (E_Int j = 1; j <= nf; j++)

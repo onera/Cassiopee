@@ -23,7 +23,7 @@
 #  include <winsock.h>
 #endif
 
-int findFace(double xp, double yp, double zp, E_Int elt, 
+E_Int findFace(double xp, double yp, double zp, E_Int elt, 
              UnstructZone* zone, double& dist);
 
 //=============================================================================
@@ -160,10 +160,10 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     E_Int nb = PyList_Size(billBoards)/3;
     d->_nBillBoards = nb;
     d->_billBoardFiles = new char* [nb];
-    d->_billBoardNis = new int [nb];
-    d->_billBoardNjs = new int [nb];
-    d->_billBoardWidths = new int [nb];
-    d->_billBoardHeights = new int [nb];
+    d->_billBoardNis = new E_Int [nb];
+    d->_billBoardNjs = new E_Int [nb];
+    d->_billBoardWidths = new E_Int [nb];
+    d->_billBoardHeights = new E_Int [nb];
     d->_billBoardTexs = new GLuint [nb];
     for (E_Int i = 0; i < nb; i++)
     {
@@ -205,8 +205,8 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     
     d->_nMaterials = nb;
     d->_materialFiles = new char* [nb];
-    d->_materialWidths = new int [nb];
-    d->_materialHeights = new int [nb];
+    d->_materialWidths = new E_Int [nb];
+    d->_materialHeights = new E_Int [nb];
     d->_materialTexs = new GLuint [nb];
     for (E_Int i = 0; i < nb; i++)
     {
@@ -236,8 +236,8 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     E_Int nb = PyList_Size(bumpMaps);
     d->_nBumpMaps = nb;
     d->_bumpMapFiles = new char* [nb];
-    d->_bumpMapWidths = new int [nb];
-    d->_bumpMapHeights = new int [nb];
+    d->_bumpMapWidths = new E_Int [nb];
+    d->_bumpMapHeights = new E_Int [nb];
     d->_bumpMapTexs = new GLuint [nb];
     for (E_Int i = 0; i < nb; i++)
     {

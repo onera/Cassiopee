@@ -200,7 +200,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         int type = floor( (z.shaderParam2-0.1)*(_nBillBoards-1)/1.9 +0.5 );
         int t = type;
         t = std::max(t, 0);
-        t = std::min(t, _nBillBoards-1);
+        t = std::min(t, (int)_nBillBoards-1);
         if (_billBoardTexs[t] == 0) 
         {
           createPngTexture(_billBoardFiles[t], _billBoardTexs[t], _billBoardWidths[t], _billBoardHeights[t], true);
@@ -278,7 +278,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         // choix de la texture
         t = (int)( (z.shaderParam2)*((_nMaterials-1)*0.5) );
         t = std::max(t, 0);
-        t = std::min(t, _nMaterials-1);
+        t = std::min(t, (int)_nMaterials-1);
         glActiveTexture(GL_TEXTURE1);
         if (_materialTexs[t] == 0) 
         {

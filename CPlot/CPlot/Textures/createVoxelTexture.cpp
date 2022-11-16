@@ -18,13 +18,13 @@
 */
 
 #include "../Data.h"
-void addNoise(unsigned char* array, int n, 
+void addNoise(unsigned char* array, E_Int n, 
               double x, double y, double z, double r);
 
 //=============================================================================
 // Cree une texture 3D pour le voxel buffer
 //=============================================================================
-int Data::createVoxelTexture()
+E_Int Data::createVoxelTexture()
 {
 #ifdef __SHADERS__
   if (glewIsSupported("GL_EXT_texture3D") != 0)
@@ -66,14 +66,14 @@ int Data::createVoxelTexture()
 //=============================================================================
 void Data::voxelize(UnstructZone& zn, UnstructZone& z)
 {
-  int n = _voxelBufferSize;
-  int n2 = n*n;
+  E_Int n = _voxelBufferSize;
+  E_Int n2 = n*n;
 
   unsigned char* voxelArray = new unsigned char[n2*n];
 
   double cx, cy, cz;
   double xf, yf, zf;
-  int tx, ty, tz;
+  E_Int tx, ty, tz;
   double xmin = zn.xmin;
   double ymin = zn.ymin;
   double zmin = zn.zmin;
@@ -99,7 +99,7 @@ void Data::voxelize(UnstructZone& zn, UnstructZone& z)
     // Coord dans le repere de la texture
     xf = (cx-xmin)*dx; yf = (cy-ymin)*dy; zf = (cz-zmin)*dz;
     centerx = centerx+xf; centery = centery+yf; centerz = centerz+zf;
-    tx = int(xf); ty = int(yf); tz = int(zf);
+    tx = E_Int(xf); ty = E_Int(yf); tz = E_Int(zf);
     voxelArray[tx + n*ty + n2*tz] = 255;
     addNoise(voxelArray, n, xf, yf, zf, z.shaderParam1*0.01);
   } 
@@ -109,12 +109,12 @@ void Data::voxelize(UnstructZone& zn, UnstructZone& z)
   //addNoise(voxelArray, n, centerx, centery, centerz, z.shaderParam1*0.2);
 
   // Ajout de pts supplementaires par elements
-  int ne = z.ne;
-  int ind;
-  int eltSize = z.eltSize;
+  E_Int ne = z.ne;
+  E_Int ind;
+  E_Int eltSize = z.eltSize;
   double eltSizei = 1./eltSize;
   double eltSize1i = 1./(eltSize+1.);
-  int* connect = z.connect;
+  E_Int* connect = z.connect;
   
   // Centre de l'element
   for (E_Int i = 0; i < ne; i++)
@@ -130,7 +130,7 @@ void Data::voxelize(UnstructZone& zn, UnstructZone& z)
     cx = cx * eltSizei; cy = cy * eltSizei; cz = cz * eltSizei;  
     // Coord dans le repere de la texture
     xf = (cx-xmin)*dx; yf = (cy-ymin)*dy; zf = (cz-zmin)*dz;
-    tx = int(xf); ty = int(yf); tz = int(zf);
+    tx = E_Int(xf); ty = E_Int(yf); tz = E_Int(zf);
     voxelArray[tx + n*ty + n2*tz] = 255;
     //addNoise(voxelArray, n, xf, yf, zf, z.shaderParam1 / z.npts);
   }
@@ -154,7 +154,7 @@ void Data::voxelize(UnstructZone& zn, UnstructZone& z)
       }
       // Coord dans le repere de la texture
       xf = (cx-xmin)*dx; yf = (cy-ymin)*dy; zf = (cz-zmin)*dz;
-      tx = int(xf); ty = int(yf); tz = int(zf);
+      tx = E_Int(xf); ty = E_Int(yf); tz = E_Int(zf);
       voxelArray[tx + n*ty + n2*tz] = 255;
       //addNoise(voxelArray, n, xf, yf, zf, z.shaderParam1 / z.npts);
     }
@@ -167,14 +167,14 @@ void Data::voxelize(UnstructZone& zn, UnstructZone& z)
 //=============================================================================
 void Data::voxelize(StructZone& zn, StructZone& z)
 {
-  int n = _voxelBufferSize;
-  int n2 = n*n;
+  E_Int n = _voxelBufferSize;
+  E_Int n2 = n*n;
 
   unsigned char* voxelArray = new unsigned char[n2*n];
 
   double cx, cy, cz;
   double xf, yf, zf;
-  int tx, ty, tz;
+  E_Int tx, ty, tz;
   double xmin = zn.xmin;
   double ymin = zn.ymin;
   double zmin = zn.zmin;
@@ -200,7 +200,7 @@ void Data::voxelize(StructZone& zn, StructZone& z)
     // Coord dans le repere de la texture
     xf = (cx-xmin)*dx; yf = (cy-ymin)*dy; zf = (cz-zmin)*dz;
     centerx = centerx+xf; centery = centery+yf; centerz = centerz+zf;
-    tx = int(xf); ty = int(yf); tz = int(zf);
+    tx = E_Int(xf); ty = E_Int(yf); tz = E_Int(zf);
     voxelArray[tx + n*ty + n2*tz] = 255;
     addNoise(voxelArray, n, xf, yf, zf, z.shaderParam1*0.01);
   } 
@@ -217,7 +217,7 @@ void Data::voxelize(StructZone& zn, StructZone& z)
 // x,y,z sont des coord dans le repere de la texture (0-n-1)
 // n est la taille array (n*n*n)
 //=============================================================================
-void addNoise(unsigned char* array, int n, 
+void addNoise(unsigned char* array, E_Int n, 
               double x, double y, double z, double r)
 {
   float frequency = 3.0f / n;
@@ -228,21 +228,21 @@ void addNoise(unsigned char* array, int n,
   double dxf, dyf, dzf;
   float off;
   double onen = 1./(n-1.);
-  int n2 = n*n;
+  E_Int n2 = n*n;
 
   double delta = 10*r*n;
-  int imin = K_FUNC::E_max(int(x-delta),0);
-  int imax = K_FUNC::E_min(int(x+delta),n);
-  int jmin = K_FUNC::E_max(int(y-delta),0);
-  int jmax = K_FUNC::E_min(int(y+delta),n);
-  int kmin = K_FUNC::E_max(int(z-delta),0);
-  int kmax = K_FUNC::E_min(int(z+delta),n);
+  E_Int imin = K_FUNC::E_max(E_Int(x-delta),0);
+  E_Int imax = K_FUNC::E_min(E_Int(x+delta),n);
+  E_Int jmin = K_FUNC::E_max(E_Int(y-delta),0);
+  E_Int jmax = K_FUNC::E_min(E_Int(y+delta),n);
+  E_Int kmin = K_FUNC::E_max(E_Int(z-delta),0);
+  E_Int kmax = K_FUNC::E_min(E_Int(z+delta),n);
 
-  for (int i = imin; i < imax; i++)
+  for (E_Int i = imin; i < imax; i++)
   {
-    for (int j = jmin; j < jmax; j++)
+    for (E_Int j = jmin; j < jmax; j++)
     {
-      for (int k = kmin; k < kmax; k++)
+      for (E_Int k = kmin; k < kmax; k++)
       {
         dxf = x-i; dyf = y-j; dzf = z-k;
         off = fabsf(K_NOISE::perlinNoise3D(i*frequency,

@@ -226,7 +226,7 @@ E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err
   E_Int nb_pts_defl = 0;
   __eval_nb_points(C0, u0, u1, chordal_err, nb_pts_defl);
   nb_pts_defl += 1; //give the number of split => +1 to have the nb of points
-  nb_pts_defl = std::max(nb_pts_defl, 3); // at least 3 points
+  nb_pts_defl = std::max(nb_pts_defl, E_Int(3)); // at least 3 points
   nb_points = std::max(nb_pts_defl, nb_points); // max des nbre de pts
   return 0;
 }
@@ -993,7 +993,7 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   // it would then lead to a mismatch between shared edge discretizations.
   Standard_Real u0 = geom_adap.FirstParameter();
   Standard_Real u1 = geom_adap.LastParameter();
-  GCPnts_UniformAbscissa unif_abs(geom_adap, nb_points, u0, u1);
+  GCPnts_UniformAbscissa unif_abs(geom_adap, int(nb_points), u0, u1);
   if (!unif_abs.IsDone()) return 1;
    
   nb_points = unif_abs.NbPoints(); // just in case the number of constructed points is different from what was asked.

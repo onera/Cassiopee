@@ -81,15 +81,15 @@ E_Int getMode(PyObject* modeObject);
 E_Int getScalarField(PyObject* scalarFieldMode);
 void findMinMax(Zone* zone);
 void findFMinMax(Zone* zone);
-void globMinMax(Zone** zones, int nz,
+void globMinMax(Zone** zones, E_Int nz,
                 double& xmin, double& xmax,
                 double& ymin, double& ymax,
                 double& zmin, double& zmax,
                 double& epsup, double& epsstrafe, double& dmoy);
-void globFMinMax(Zone** zones, int nz,
+void globFMinMax(Zone** zones, E_Int nz,
                  double* minf, double* maxf);
 int getStringsFromPyObj(PyObject* obj, std::vector<char*>& strings);
 int getStringFromPyObj(PyObject* obj, char*& string);
-void insertAfterNz(Zone** zonesp, int& lzonesn, Zone**& zonesn, int nz, Zone* z);
-void deleteNz(Zone** zonesp, int& lzonesn, Zone**& zonesn, int nz);
+void insertAfterNz(Zone** zonesp, E_Int& lzonesn, Zone**& zonesn, E_Int nz, Zone* z);
+void deleteNz(Zone** zonesp, E_Int& lzonesn, Zone**& zonesn, E_Int nz);
 #endif

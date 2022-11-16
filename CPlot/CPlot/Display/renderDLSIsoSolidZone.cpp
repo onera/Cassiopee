@@ -27,7 +27,7 @@
   IN: nofield: le no du champ
 */
 //=============================================================================
-void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield)
+void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
 {
   E_Int i, j, k, n1, n2;
   float offb;
@@ -112,8 +112,8 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield)
   IN: nofield1, nofield2, nofield3: les no des champs
 */
 //=============================================================================
-void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-                               int nfield2, int nofield3)
+void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+                                 E_Int nfield2, E_Int nofield3)
 {  
   E_Int i, j, k, n1, n2;
   float offb;

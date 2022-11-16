@@ -22,7 +22,7 @@
 //=============================================================================
 // Cree une texture 1D pour la colormap
 //=============================================================================
-int Data::createColormapTexture()
+E_Int Data::createColormapTexture()
 {
   glGenTextures(1, &_texColormap);
 
@@ -128,7 +128,7 @@ void Data::hsv2rgb(float h, float s, float v, float& r, float& g, float& b)
 */
 //=============================================================================
 #define clamp(a, b, c) MIN(MAX(a,b),c)
-void Data::fillColormapTexture(int type)
+void Data::fillColormapTexture(E_Int type)
 {
   float r1 = ptrState->colormapR1;
   float g1 = ptrState->colormapG1;
@@ -151,7 +151,7 @@ void Data::fillColormapTexture(int type)
   }
   if (type == _texColormapType && check == _texColormapMinMax) return; 
 
-  int w = 200; // discretisation texture
+  E_Int w = 200; // discretisation texture
   float* image = new float[w * 3];
   float f;
   float dx = 1./(w-1.);
@@ -161,7 +161,7 @@ void Data::fillColormapTexture(int type)
   {
     case 0: // blue to red colormap
     {
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         f = i*dx;
         if (f < 0.25) 
@@ -193,7 +193,7 @@ void Data::fillColormapTexture(int type)
   
     case 1: // Bi-color interpolation R G B de c1, c2 
     {
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         f = i*dx;
         r = (1.-f)*r1+f*r2;
@@ -216,7 +216,7 @@ void Data::fillColormapTexture(int type)
       if (delta1 < delta) h2 += -360.;
       else if (delta2 < delta) h2 += 360.;
       
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         f = i*dx;
         h = (1.-f)*h1+f*h2;
@@ -232,7 +232,7 @@ void Data::fillColormapTexture(int type)
 
     case 7:  // diverging colormap
     {
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         f = i*dx;
         if (f < 0.5)
@@ -411,7 +411,7 @@ void Data::fillColormapTexture(int type)
     }
     case 3: // Tri-color interpolation R G B de c1, c3, c2 
     {
-      for (int i = 0; i < w/2; i++)
+      for (E_Int i = 0; i < w/2; i++)
       {
         f = i*dx*2.;
         r = (1.-f)*r1+f*r3;
@@ -446,7 +446,7 @@ void Data::fillColormapTexture(int type)
       //printf("%f %f %f->%f %f %f\n",r1,g1,b1,h1,s1,v1);
       //printf("%f %f %f->%f %f %f\n",r3,g3,b3,h3,s3,v3);
 
-      for (int i = 0; i < w/2; i++)
+      for (E_Int i = 0; i < w/2; i++)
       {
         f = i*dx*2.;
         h = (1.-f)*h1+f*h3;
@@ -482,14 +482,14 @@ void Data::fillColormapTexture(int type)
 
     case 5: // Multi-color interpolation R G B
     {
-      int size = ptrState->colormapSize;
+      E_Int size = ptrState->colormapSize;
       double dsize = 1./(size-1.);
       float* pr = ptrState->colormapR;
       float* pg = ptrState->colormapG;
       float* pb = ptrState->colormapB;
-      int i0, i1;
+      E_Int i0, i1;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -503,17 +503,17 @@ void Data::fillColormapTexture(int type)
     }
     case 6: // Multi-color interpolation H S V
     {
-      int size = ptrState->colormapSize;
+      E_Int size = ptrState->colormapSize;
       double dsize = 1./(size-1.);
       float* pr = ptrState->colormapR;
       float* pg = ptrState->colormapG;
       float* pb = ptrState->colormapB;
-      int i0, i1;
+      E_Int i0, i1;
       float h0,s0,v0,h1,v1,s1;
       float h,s,v,ro,go,bo;
       float delta, delta1, delta2;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -539,14 +539,14 @@ void Data::fillColormapTexture(int type)
     case 8: // Explicitely called viridis
     {
       if (_colormapBViridis == NULL) initViridis();
-      int size = _colormapSizeViridis;
+      E_Int size = _colormapSizeViridis;
       double dsize = 1./(size-1.);
       float* pr = _colormapRViridis;
       float* pg = _colormapGViridis;
       float* pb = _colormapBViridis;
-      int i0, i1;
+      E_Int i0, i1;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -562,14 +562,14 @@ void Data::fillColormapTexture(int type)
     case 9: // Explicitely called inferno
     {
       if (_colormapBInferno == NULL) initInferno();
-      int size = _colormapSizeInferno;
+      E_Int size = _colormapSizeInferno;
       double dsize = 1./(size-1.);
       float* pr = _colormapRInferno;
       float* pg = _colormapGInferno;
       float* pb = _colormapBInferno;
-      int i0, i1;
+      E_Int i0, i1;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -585,14 +585,14 @@ void Data::fillColormapTexture(int type)
     case 10: // Explicitely called magma
     {
       if (_colormapBMagma == NULL) initMagma();
-      int size = _colormapSizeMagma;
+      E_Int size = _colormapSizeMagma;
       double dsize = 1./(size-1.);
       float* pr = _colormapRMagma;
       float* pg = _colormapGMagma;
       float* pb = _colormapBMagma;
-      int i0, i1;
+      E_Int i0, i1;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -608,14 +608,14 @@ void Data::fillColormapTexture(int type)
     case 11: // Explicitely called plasma
     {
       if (_colormapBPlasma == NULL) initPlasma();
-      int size = _colormapSizePlasma;
+      E_Int size = _colormapSizePlasma;
       double dsize = 1./(size-1.);
       float* pr = _colormapRPlasma;
       float* pg = _colormapGPlasma;
       float* pb = _colormapBPlasma;
-      int i0, i1;
+      E_Int i0, i1;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -631,14 +631,14 @@ void Data::fillColormapTexture(int type)
     case 12: // Explicitely called jet
     {
       if (_colormapBJet == NULL) initJet();
-      int size = _colormapSizeJet;
+      E_Int size = _colormapSizeJet;
       double dsize = 1./(size-1.);
       float* pr = _colormapRJet;
       float* pg = _colormapGJet;
       float* pb = _colormapBJet;
-      int i0, i1;
+      E_Int i0, i1;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -654,14 +654,14 @@ void Data::fillColormapTexture(int type)
     case 13: // Explicitely called greys
     {
       if (_colormapBGreys == NULL) initGreys();
-      int size = _colormapSizeGreys;
+      E_Int size = _colormapSizeGreys;
       double dsize = 1./(size-1.);
       float* pr = _colormapRGreys;
       float* pg = _colormapGGreys;
       float* pb = _colormapBGreys;
-      int i0, i1;
+      E_Int i0, i1;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -679,7 +679,7 @@ void Data::fillColormapTexture(int type)
       r1 = 0.; g1 = 0.; b1 = 0.;
       r2 = 1.; g2 = 1.; b2 = 1.;
       r3 = 0.; g3 = 0.38; b3 = 0.647;
-      for (int i = 0; i < w/2; i++)
+      for (E_Int i = 0; i < w/2; i++)
       {
         f = i*dx*2.;
         r = (1.-f)*r1+f*r3;
@@ -687,7 +687,7 @@ void Data::fillColormapTexture(int type)
         b = (1.-f)*b1+f*b3;
         image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
       }
-      for (int i = w/2; i < w; i++)
+      for (E_Int i = w/2; i < w; i++)
       {
         f = i*dx*2.-1.;
         r = (1.-f)*r3+f*r2;
@@ -701,14 +701,14 @@ void Data::fillColormapTexture(int type)
     case 15: // Explicitely called greens
     {
       if (_colormapBGreens == NULL) initGreens();
-      int size = _colormapSizeGreens;
+      E_Int size = _colormapSizeGreens;
       double dsize = 1./(size-1.);
       float* pr = _colormapRGreens;
       float* pg = _colormapGGreens;
       float* pb = _colormapBGreens;
-      int i0, i1;
+      E_Int i0, i1;
 
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         i0 = (size-1.)*i*dx;
         i1 = MIN(i0+1, size-1);
@@ -723,7 +723,7 @@ void Data::fillColormapTexture(int type)
 
     default: // invalid colormap 
     {
-      for (int i = 0; i < w; i++)
+      for (E_Int i = 0; i < w; i++)
       {
         f = i*dx;
         r = 0.; g = 0.; b = 0.;
@@ -743,7 +743,7 @@ void Data::fillColormapTexture(int type)
     _texColormapMinMax = r1+g1+b1+r2+b2+g2+r3+g3+b3;
   else if (type == 5 || type == 6)
   {
-    int s = ptrState->colormapSize-1;
+    E_Int s = ptrState->colormapSize-1;
     float* pr = ptrState->colormapR;
     float* pg = ptrState->colormapG;
     float* pb = ptrState->colormapB;  

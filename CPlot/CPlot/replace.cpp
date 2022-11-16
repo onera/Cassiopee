@@ -89,12 +89,12 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
   E_Int nz = 0;
   if (oldType == 1) nz = nzs;
   else nz = numberOfStructZones+nzu;
-  int* replaced = new int[1]; replaced[0] = nz;
+  E_Int* replaced = new E_Int[1]; replaced[0] = nz;
 
   // Suppression 
   d->ptrState->syncGPURes();
   Zone* z = d->_zones[replaced[0]];
-  z->freeGPURessources( false, false );
+  z->freeGPURessources(false, false);
 
   // Recuperation des nouveaux noms de zones (eventuellement)
   char* zoneNameI=NULL;
@@ -330,11 +330,11 @@ void insertAfterNz(Zone** zonesp, E_Int& lzonesn, Zone**& zonesn, E_Int nz, Zone
 
   lzonesn++;
   Zone** ntzones = (Zone**)malloc(lzonesn * sizeof(Zone*) );
-  int i = nz;
-  for (int j = 0; j < i; j++) ntzones[j] = zonesn[j];
+  E_Int i = nz;
+  for (E_Int j = 0; j < i; j++) ntzones[j] = zonesn[j];
 
   ntzones[i] = z;
-  for (int j = i+1; j < lzonesn; j++) ntzones[j] = zonesn[j-1];
+  for (E_Int j = i+1; j < lzonesn; j++) ntzones[j] = zonesn[j-1];
   free(zonesn);
   zonesn = ntzones;
 }
@@ -351,8 +351,8 @@ void deleteNz(Zone** zonesp, E_Int& lzonesn, Zone**& zonesn, E_Int nz)
 {
   lzonesn--;
   Zone** ntzones = (Zone**)malloc(lzonesn * sizeof(Zone*) );
-  for (int j = 0; j < nz; j++) ntzones[j] = zonesn[j];
-  for (int j = nz; j < lzonesn; j++) ntzones[j] = zonesn[j+1];
+  for (E_Int j = 0; j < nz; j++) ntzones[j] = zonesn[j];
+  for (E_Int j = nz; j < lzonesn; j++) ntzones[j] = zonesn[j+1];
   free(zonesn);
   zonesn = ntzones;
 }

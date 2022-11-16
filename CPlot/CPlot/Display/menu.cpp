@@ -345,25 +345,23 @@ void Data::menuArrows(int key, int x, int y)
   value : the menu value
 */
 //=============================================================================
-void Data::displayMenuString(int no, char* msg, int* l, int* sizeMax,
-                             int type, void* value)
+void Data::displayMenuString(E_Int no, char* msg, E_Int* l, E_Int* sizeMax,
+                             E_Int type, void* value)
 {
   static char loc[120];
   static char loc2[20];
-  int size;
-  int* vali;
+  E_Int size;
+  E_Int* vali;
   float* valf;
   struct chain_function_void* v1;
   struct chain_function_int* v2;
   struct chain_function_double* v3;
   struct chain_function_void2* v4;
   struct chain_function_void3* v5;
-  int n;
+  E_Int n;
 
-  if (order[ptrState->currentMenuItem] == no)
-    glColor3f(0.8, 0.5, 0.2);
-  else
-    glColor3f(1.0, 1.0, 1.0);
+  if (order[ptrState->currentMenuItem] == no) glColor3f(0.8, 0.5, 0.2);
+  else glColor3f(1.0, 1.0, 1.0);
 
   switch (type)
   {
@@ -372,7 +370,7 @@ void Data::displayMenuString(int no, char* msg, int* l, int* sizeMax,
       break;
 
     case INT:
-      vali = (int*)(value);
+      vali = (E_Int*)(value);
       strcpy(loc, msg);
       sprintf(loc2, "%d", *vali);
       strcat(loc, loc2);
@@ -436,7 +434,7 @@ void Data::displayMenuString(int no, char* msg, int* l, int* sizeMax,
     case TEXT_DATA:
       // Data set info text
       n = 0;
-      for (int i = 0; i < _numberOfZones; i++)
+      for (E_Int i = 0; i < _numberOfZones; i++)
         n = n + _zones[i]->npts;
       sprintf(loc, "Total number of points : %d", n);
       size = strlen(loc);

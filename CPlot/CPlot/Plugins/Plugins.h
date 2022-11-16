@@ -34,20 +34,20 @@ struct chain_function_void2
 {
     char functionName[MAXSTRINGLENGTH];
     char extension[MAXSTRINGLENGTH];
-    void (*f)(Data* d, char *, char*,  int, int, int);
+    void (*f)(Data* d, char *, char*, E_Int, E_Int, E_Int);
     struct chain_function_void2* next;
 };
 struct chain_function_void3
 {
     char functionName[MAXSTRINGLENGTH];
-    void (*f)(Data* d, int, int, int, int);
+    void (*f)(Data* d, E_Int, E_Int, E_Int, E_Int);
     struct chain_function_void3* next;
 };
 struct chain_function_int
 {
     char functionName[MAXSTRINGLENGTH];
     char varName[MAXSTRINGLENGTH];
-    int (*f)(Data* d, int, int, int);
+    int (*f)(Data* d, E_Int, E_Int, E_Int);
     struct chain_function_int* next;
 };
 struct chain_function_double

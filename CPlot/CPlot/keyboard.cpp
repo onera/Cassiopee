@@ -21,14 +21,14 @@
 #include <math.h>
 
 // Global keyboard function
-void gkeyboard(unsigned char key, E_Int x, E_Int y)
+void gkeyboard(unsigned char key, int x, int y)
 {
   Data* d = Data::getInstance();
   d->keyboard(key, x, y);
 }
 
 // Global keyboard up function
-void gkeyboardup(E_Int key, E_Int x, E_Int y)
+void gkeyboardup(int key, int x, int y)
 {
   CPlotState* ptrState = Data::getInstance()->ptrState;
   if (ptrState->kkeysActivated == 0)
@@ -46,7 +46,7 @@ void gkeyboardup(E_Int key, E_Int x, E_Int y)
 }
 
 // Global arrows function
-void garrows(E_Int key, E_Int x, E_Int y)
+void garrows(int key, int x, int y)
 {
   Data* d = Data::getInstance();
   d->arrows(key, x, y);
@@ -384,7 +384,7 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
 //=============================================================================
 // Branche les appels suivants les fleches
 //=============================================================================
-void Data::arrows(E_Int key, E_Int x, E_Int y)
+void Data::arrows(unsigned char key, E_Int x, E_Int y)
 {
   double alpha = 0.07;
   double dx = (_view.xeye - _view.xcam)*alpha;

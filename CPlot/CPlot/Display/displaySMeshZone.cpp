@@ -50,7 +50,7 @@
   IN: zone: le no de la zone dans la liste globale des zones
 */
 //=============================================================================
-void Data::displaySMeshZone(StructZone* zonep, int zone)
+void Data::displaySMeshZone(StructZone* zonep, E_Int zone)
 {
   E_Int i, n1, n2, j, k, plane;
   E_Int stepi, stepj, stepk;

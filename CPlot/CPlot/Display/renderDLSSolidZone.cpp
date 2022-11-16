@@ -24,7 +24,7 @@
   Display une zone en solid ou en material.
 */
 //=============================================================================
-void DataDL::renderGPUSSolidZone(StructZone* zonep, int zone)
+void DataDL::renderGPUSSolidZone(StructZone* zonep, E_Int zone)
 {
   // Style
   float color1[3]; float color2[3];

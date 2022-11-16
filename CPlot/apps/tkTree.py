@@ -833,10 +833,11 @@ class Node:
             txt = ''
             if isinstance(v, numpy.ndarray):
                 txt += str(v.shape)+': '
-                if v.shape[0] > 0: txt += strFormat(v[0])
-                if v.shape[0] > 1: txt += ' ' + strFormat(v[1])
-                if v.shape[0] > 2: txt += ' ' + strFormat(v[2])
-                if v.shape[0] > 3: txt += '...'
+                p = v.ravel('k'); ln = p.size
+                if ln > 0: txt += strFormat(p[0])
+                if ln > 1: txt += ' ' + strFormat(p[1])
+                if ln > 2: txt += ' ' + strFormat(p[2])
+                if ln > 3: txt += '...'
             else: txt += str(v)
             CTK.TXT.insert('START', txt+'\n')
 

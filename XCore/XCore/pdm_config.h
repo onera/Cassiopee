@@ -7,7 +7,6 @@
 //#define PDM_HAVE_GETTIMEOFDAY
 
 // CBX
-#include "Def/DefTypes.h"
 #ifdef E_DOUBLEINT
   #define PDM_LONG_G_NUM
   #define PDM_LONG_G_NUM_BOOL "1"

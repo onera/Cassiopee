@@ -123,7 +123,7 @@ void Data::displayPlot(Slot1D* s)
 
 //=============================================================================
 void Data::plotZone(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
-                    E_Float dx, E_Float dy, int var1, int var2)
+                    E_Float dx, E_Float dy, E_Int var1, E_Int var2)
 {
   E_Int ne = z->_ne;
   E_Int c1, c2;
@@ -373,8 +373,8 @@ E_Float Data::getTick(E_Float rmin, E_Float rmax)
 // Determine les indices du point actif dans la courbe
 // Retourne 1 (trouve) et 0 (FAIL)
 //=============================================================================
-int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
-                              int& e1, int& e2, double& alpha)
+E_Int Data::getActivePointIndex(Zone1D* z, E_Int var1, E_Int var2,
+                                E_Int& e1, E_Int& e2, double& alpha)
 {
   // active point
   E_Int nz = ptrState->selectedZone;
@@ -457,10 +457,10 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
 }
 
 //=============================================================================
-int Data::display1DActivePoint(Slot1D* s, Zone1D* z, 
-                               E_Float posx, E_Float posy,
-                               E_Float dx, E_Float dy,
-                               E_Int var1, E_Int var2)
+E_Int Data::display1DActivePoint(Slot1D* s, Zone1D* z, 
+                            E_Float posx, E_Float posy,
+                            E_Float dx, E_Float dy,
+                            E_Int var1, E_Int var2)
 {
   E_Int e1, e2;
   double alpha;
@@ -504,9 +504,9 @@ int Data::display1DActivePoint(Slot1D* s, Zone1D* z,
 }
 
 //=============================================================================
-int Data::link2View(Zone1D* z, int var1, int var2, 
-                    E_Float& r1min, E_Float& r1max, 
-                    E_Float& r2min, E_Float& r2max)
+E_Int Data::link2View(Zone1D* z, E_Int var1, E_Int var2, 
+                      E_Float& r1min, E_Float& r1max, 
+                      E_Float& r2min, E_Float& r2max)
 {
   // Check coordinates
   // var1 ou var2 doit etre une coordonnee

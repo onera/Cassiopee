@@ -182,7 +182,7 @@ void findFMinMax(Zone* zone)
 // IN: zones: All Zones
 // IN: nz: number of zones
 //=============================================================================
-void globMinMax(Zone** zones, int nz,
+void globMinMax(Zone** zones, E_Int nz,
                 double& xmin, double& xmax,
                 double& ymin, double& ymax,
                 double& zmin, double& zmax,
@@ -219,7 +219,7 @@ void globMinMax(Zone** zones, int nz,
   The min max of each zone must have been computed before
 */
 //============================================================================
-void globFMinMax(Zone** zones, int nz,
+void globFMinMax(Zone** zones, E_Int nz,
                  double* minf, double* maxf)
 {
   E_Int i, j, nf;

@@ -24,7 +24,7 @@
 */
 //=============================================================================
 void writeMPEGFrame(Data* d, char *filename, char* buffer, 
-                    int width, int height, int mode)
+                    E_Int width, E_Int height, E_Int mode)
 {
   return;
 }

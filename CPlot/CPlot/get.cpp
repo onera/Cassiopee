@@ -19,7 +19,7 @@
 
 #include "cplot.h"
 #include "Data.h"
-int findFace(double xp, double yp, double zp, int elt, 
+int findFace(double xp, double yp, double zp, E_Int elt, 
              UnstructZone* zone, double& dist);
 
 //======================================================

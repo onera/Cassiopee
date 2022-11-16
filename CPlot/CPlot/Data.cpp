@@ -118,7 +118,7 @@ Data::Data(CPlotState* ptState)
   _colormapBGreens = NULL; 
 
   // billBoards settings
-  int nb = 5; int c = 0;
+  E_Int nb = 5; E_Int c = 0;
   _nBillBoards = nb;
   _billBoardFiles = new char* [nb];
   _billBoardNis = new E_Int [nb];
@@ -425,8 +425,7 @@ void Data::initState()
   ptrState->_lockGPURes = 0;
 }
 //=============================================================================
-void
-Data::freeGPUResources(E_Int mode, E_Int start, E_Int end, E_Int permanent)
+void Data::freeGPUResources(int mode, int start, int end, int permanent)
 {
   CPlotState& state = (*ptrState);
   state.freeGPUData[0] = mode; state.freeGPUData[1] = start;
@@ -435,8 +434,7 @@ Data::freeGPUResources(E_Int mode, E_Int start, E_Int end, E_Int permanent)
   freeGPURes(state.freeGPUData[0], state.freeGPUData[1], state.freeGPUData[2], state.freeGPUData[3]);
 }
 //=============================================================================
-void
-Data::updateGPUResources(E_Int mode, E_Int size, E_Int permanent, void* updatedPointer)
+void Data::updateGPUResources(int mode, int size, int permanent, void* updatedPointer)
 {
   CPlotState& state = (*ptrState);
   state.freeGPUData[0] = mode; state.freeGPUData[1] = size;
@@ -444,7 +442,7 @@ Data::updateGPUResources(E_Int mode, E_Int size, E_Int permanent, void* updatedP
   state.freeGPUPtr = static_cast<int*>(updatedPointer);
   ptrState->freeGPURes = 1;
   freeGPURes(state.freeGPUData[0], state.freeGPUData[1],
-	     state.freeGPUPtr, state.freeGPUData[3]);
+	         state.freeGPUPtr, state.freeGPUData[3]);
 }
 //=============================================================================
 /*
@@ -518,7 +516,6 @@ void Data::initCam()
       _view.diry = 1.;
       _view.dirz = 0.;
     }
-
   }
   else
   {
@@ -1049,7 +1046,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
     if (i != s)
     {
       char number[256];
-      for (int j = 0; j < i; j++) number[j] = exportResolution[j];
+      for (E_Int j = 0; j < i; j++) number[j] = exportResolution[j];
       number[i] = '\0';
       E_Int w = atoi(number);
       for (E_Int j = i+1; j < s; j++) number[j-i-1] = exportResolution[j];
@@ -1112,7 +1109,7 @@ void gtimer(int val)
 /* Realloue si necessaire les vecteurs globaux de Data et du _state
    dependant de nfield */
 //=============================================================================
-void Data::reallocNFieldArrays(int nfield)
+void Data::reallocNFieldArrays(E_Int nfield)
 {
   //printf("allocating field %d %d\n", nfield, _nfield);
   if (nfield > 0 && nfield > _nfield)

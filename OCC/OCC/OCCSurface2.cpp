@@ -166,7 +166,7 @@ void K_OCC::OCCSurface::parcoursBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& c
 {
   E_Int npts = pos3D.cols();
   E_Int nelts = connectB.cols();
-  K_FLD::IntArray found(1,nelts,0); 
+  K_FLD::IntArray found(E_Int(1), nelts, E_Int(0)); 
   
   // Node2Elt
   E_Int ind0, ind1;
@@ -432,9 +432,9 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
   
   // order
   E_Int s, e0, e1;
-  index.resize(1,npts);
-  start.resize(1,npts,0);
-  K_FLD::IntArray found(1,npts,0);
+  index.resize(1, npts);
+  start.resize(E_Int(1), npts, E_Int(0));
+  K_FLD::IntArray found(E_Int(1), npts, E_Int(0));
    
   // NEW ALGO
   //E_Int indCur = findNextPoint(found, node2Elt);

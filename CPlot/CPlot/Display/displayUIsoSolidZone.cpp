@@ -26,8 +26,7 @@
   IN: nofield: le no du champ a afficher.
 */
 //=============================================================================
-void Data::displayUIsoSolidZone(UnstructZone* zonep, int zonet,
-                                int nofield)
+void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
 {
   E_Int i, n1, n2, n3, n4;
   float r, g, b, offb=0.;
@@ -144,8 +143,8 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, int zonet,
   IN: nofield1, nofield2, nofield3: les no des champs a afficher.
 */
 //=============================================================================
-void Data::displayUIsoSolidZone(UnstructZone* zonep, int zonet,
-                                int nofield1, int nofield2, int nofield3)
+void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
+                                E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {
   E_Int i, n1, n2, n3, n4;
   float r, g, b, offb=0.;

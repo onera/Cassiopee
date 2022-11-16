@@ -18,9 +18,7 @@
 */
 
 # include "connector.h"
-#ifndef E_DOUBLEINT
 #include "Nuga/include/conservative_chimera.h"
-#endif
 
 #define CLOUDMAX 50
 

@@ -32,7 +32,7 @@
 // renderBitmapString2 : avec le texte en texture
 //=============================================================================
 void Data::renderBitmapString(float x, float y, float z,
-                              int fontSize, char *string,
+                              E_Int fontSize, char *string,
                               float colorR, float colorG, float colorB, float colorA,
                               float nx, float ny, float nz,
                               float r)
@@ -48,7 +48,7 @@ void Data::renderBitmapString(float x, float y, float z,
 // textWidth1 : avec les polices de glut
 // textWidth2 : avec le texte en texture
 //=============================================================================
-int Data::textWidth(int fontSize, char* string)
+E_Int Data::textWidth(E_Int fontSize, char* string)
 {
 #if FONTMETHOD == 0
   return textWidth1(fontSize, string);
@@ -60,7 +60,7 @@ int Data::textWidth(int fontSize, char* string)
 //=============================================================================
 // Retourne la font GLUT
 //=============================================================================
-void* Data::getGlutFont(int fontSize)
+void* Data::getGlutFont(E_Int fontSize)
 {
 
   if (fontSize == 10) return GLUT_BITMAP_HELVETICA_10;
@@ -71,7 +71,7 @@ void* Data::getGlutFont(int fontSize)
 //=============================================================================
 // Retourne la largeur en pixels de la chaine
 //=============================================================================
-int Data::textWidth1(int fontSize, char* string)
+E_Int Data::textWidth1(E_Int fontSize, char* string)
 {
   void* font = getGlutFont(fontSize);
   E_Int l = 0;
@@ -85,7 +85,7 @@ int Data::textWidth1(int fontSize, char* string)
 //=============================================================================
 // Retourne la hauteur en pixels de la police
 //=============================================================================
-int Data::textHeight(int fontSize)
+E_Int Data::textHeight(E_Int fontSize)
 {
   return fontSize;
 }
@@ -100,7 +100,7 @@ int Data::textHeight(int fontSize)
 // Don't deal with \n
 //=============================================================================
 void Data::renderBitmapString1(float x, float y, float z,
-                               int fontSize, char *myString,
+                               E_Int fontSize, char *myString,
                                float colorR, float colorG, float colorB, float colorA,
                                float nx, float ny, float nz,
                                float r) 
@@ -267,7 +267,7 @@ void Data::displayText(char* text)
 //=============================================================================
 // Display big text (font2)
 //=============================================================================
-void Data::displayBigText(int posx, int posy, char* text)
+void Data::displayBigText(E_Int posx, E_Int posy, char* text)
 {
   // Swap to orthographic 2D projection view
   setOrthographicProjection();
@@ -284,7 +284,7 @@ void Data::displayBigText(int posx, int posy, char* text)
 //=============================================================================
 // Display small text (font1)
 //=============================================================================
-void Data::displaySmallText(int posx, int posy, char* text)
+void Data::displaySmallText(E_Int posx, E_Int posy, char* text)
 {
   // Swap to orthographic 2D projection view
   setOrthographicProjection();
@@ -524,9 +524,9 @@ void Data::printTmpMessage(const char* text)
 //=============================================================================
 // Display info window
 //=============================================================================
-void Data::displayInfoWindow(char* text, int l)
+void Data::displayInfoWindow(char* text, E_Int l)
 {
-  char msg[1024]; char msg2[1024]; int j; int jl;
+  char msg[1024]; char msg2[1024]; E_Int j; E_Int jl;
   // Swap to orthographic 2D projection view
   setOrthographicProjection();
   glPushMatrix();
@@ -848,7 +848,7 @@ void Data::displayInfo()
 // Par contre, pour les sorties offscreen, il faut utiliser les polices
 // correspondants a la resolution de l'export.
 //============================================================================
-OpenGLText* Data::getOpenGLText(int fontSize)
+OpenGLText* Data::getOpenGLText(E_Int fontSize)
 {
   char fontName[256];
   OpenGLText* pt = NULL;
@@ -899,7 +899,7 @@ OpenGLText* Data::getOpenGLText(int fontSize)
 // Manque : gestion des couleurs, gestion de l'affichage dans l'espace physique
 //=============================================================================
 void Data::renderBitmapString2(float x, float y, float z,
-                               int fontSize, char *myString,
+                               E_Int fontSize, char *myString,
                                float colorR, float colorG, float colorB, float colorA,
                                float nx, float ny, float nz,
                                float r) 
@@ -929,7 +929,7 @@ void Data::renderBitmapString2(float x, float y, float z,
 //=============================================================================
 // Retourne la largeur en pixels de la chaine
 //=============================================================================
-int Data::textWidth2(int fontSize, char* string)
+E_Int Data::textWidth2(E_Int fontSize, char* string)
 {
   OpenGLText* pt = getOpenGLText(fontSize);
   float bbStr[2];

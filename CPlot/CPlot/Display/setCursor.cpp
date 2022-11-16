@@ -23,7 +23,7 @@
 // cursor=0 (default), 1 (cross), 2 (wait)
 // Cette fonction doit etre appelee de CPlot et non de l'interface tkInter.
 //=============================================================================
-void Data::setCursor(int type)
+void Data::setCursor(E_Int type)
 {
   switch (type)
   {

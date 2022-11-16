@@ -51,7 +51,7 @@
   IN: zonet: le no de la zone dans liste globale des zones
 */
 //=============================================================================
-void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
+void Data::displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 {
   if (zonep->_is_high_order == true)
   {

@@ -29,8 +29,8 @@
   - offb=0 (couleur de selection)
 */
 //=============================================================================
-void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-				    int nofield)
+void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+				    E_Int nofield)
 {  
   E_Int i, n1, n2, n3, n4;
   float r, g, b, offb;
@@ -53,8 +53,8 @@ void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet,
   - offb=0 (couleur de selection)
 */
 //=============================================================================
-void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-				    int nofield1, int nofield2, int nofield3)
+void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+				    E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {  
   E_Int i, n1, n2, n3, n4;
   float r, g, b, offb;
