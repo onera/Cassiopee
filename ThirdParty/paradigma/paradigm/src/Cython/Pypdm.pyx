@@ -1,6 +1,5 @@
 #!python
-##cython: language_level=3
-##cython: boundscheck=False
+#cython: language_level=3
 #cython: boundscheck=True
 #cython: cdivision=True
 #cython: wraparound=False

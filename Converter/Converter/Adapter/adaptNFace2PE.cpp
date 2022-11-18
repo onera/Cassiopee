@@ -100,13 +100,14 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
 
   if (methodPE == 0) // GEOMETRIC APPROACH => assume all cells are centroid-star-shaped.
   {
-    for (E_Int i = 0; i < nfaces*2; i++) cFE[i] = 0;
-
     E_Int* facesp1 = cFE;
     E_Int* facesp2 = cFE + nfaces;
 
     E_Int* ptrNF = cNFace->begin();
     E_Int face, nf;
+
+    for (E_Int i = 0; i < nfaces*2; i++) cFE[i] = 0;
+
     for (E_Int i = 0; i < nelts; i++)
     {
       nf = ptrNF[0]; // nb de face pour l'elt
@@ -215,7 +216,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
         else if (etg > -1 && etd == -1)
         {
           K_COMPGEOM::getNGONEltBarycenter(etg, posElts.begin(), posFaces.begin(),
-                                         ptrNF, ptrNG, xt, yt, zt, xbg, ybg, zbg);
+                                           ptrNF, ptrNG, xt, yt, zt, xbg, ybg, zbg);
           dx = xbf-xbg; dy = ybf-ybg; dz = zbf-zbg;
           ps = sx*dx+sy*dy+sz*dz;
           if (ps < 0.)
@@ -256,8 +257,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
         nvert = ptrNG2[0];
         etg = facesp1[fa]-1;
         etd = facesp2[fa]-1;
-        if (etg == 29 || etd == 29) printf("face %d\n", fa);
-
+        
         sx = 0.; sy = 0.; sz = 0.;
         for (E_Int nv = 1; nv < nvert; nv++)
         {
@@ -278,9 +278,6 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
         surfny = l1z*l2x-l1x*l2z; 
         surfnz = l1x*l2y-l1y*l2x;
         sx += surfnx; sy += surfny; sz += surfnz;
-
-        if (fa == 124 || fa == 133 || fa == 135 || fa == 136 || fa == 137 || fa == 138)
-        printf("fa=%d, xbf=%f %f %f, surf=%f %f %f\n", fa, xbf,ybf,zbf,sx,sy,sz);
 
         if (etg >= 0)
         {
