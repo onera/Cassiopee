@@ -80,7 +80,7 @@ short K_POST::computeStructIntersectionWithPlane(
         for (E_Int i = 0; i < nic; i++)
         {
           E_Int indv  = i+j*nic;
-          if ( tagC[indv] == 1 ) 
+          if (tagC[indv] == 1) 
           {
             E_Int indv1, indv2, indv3, indv4;
             indv1 = i + j*ni; //(i,j)
@@ -273,7 +273,7 @@ void K_POST::computeUnstrIntersectionWithPlane(
 
   for (E_Int et = 0; et < connect.getSize(); et++)
   {
-    if (tagC[et] == 1 ) 
+    if (tagC[et] == 1) 
     {
       E_Int ind1 = indt1[et]-1;
       E_Int ind2 = indt2[et]-1;
@@ -742,7 +742,7 @@ void K_POST::searchStructIntersectForSegment(
 //               intersectPts(cnt, posc) = E_max(cellNA, cellNB);
           }
           
-          k6compvolofstructcell_(ni, nj, nk, inddummy, indA, 
+          k6compvolofstructcell_(ni, nj, nk, inddummy, indA,
                                  field.begin(posx), 
                                  field.begin(posy),
                                  field.begin(posz), 

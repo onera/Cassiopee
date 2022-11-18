@@ -1,5 +1,5 @@
 imdjmd = imd*jmd;
-E_Int max_thread = min(nvars , E_Int(__NUMTHREADS__));
+E_Int max_thread = min(nvars, E_Int(__NUMTHREADS__));
 
 # pragma omp parallel default(shared) num_threads(max_thread)
 {
@@ -23,7 +23,7 @@ E_Int max_thread = min(nvars , E_Int(__NUMTHREADS__));
   E_Float* ptrCoefs = donorCoefsF->begin();
   E_Int indR, type;
   E_Int indD0, indD, i, j, k, ncfLoc;
-  E_Int noi = 0; // compteur sur le tableau d indices donneur
+  E_Int noi = 0; // compteur sur le tableau d'indices donneur
   E_Int sizecoefs = 0;
 
   for (E_Int noind = 0; noind < nbRcvPts; noind++)

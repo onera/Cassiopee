@@ -2,6 +2,7 @@
 import Generator as G
 import Distributor2 as D2
 import numpy
+from Converter.Internal import __E_NPY_INT__
 
 # Distribution sans communication entre blocs
 N = 11
@@ -22,7 +23,7 @@ out = D2.distribute(arrays, NProc=5, prescribed=prescribed); print(out)
 
 # Distribution avec communications entre blocs, perfos identique pour tous
 # les procs
-volCom = numpy.zeros( (N, N), numpy.int32 )
+volCom = numpy.zeros((N, N), dtype=__E_NPY_INT__)
 volCom[0,1] = 100; # Le bloc 0 echange 100 pts avec le bloc 1
 out = D2.distribute(arrays, NProc=5, com=volCom, perfo=(1,0.,0.1)); print(out)
 

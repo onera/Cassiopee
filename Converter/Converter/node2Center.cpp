@@ -36,7 +36,6 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
   E_Int sorted;
   if (!PYPARSETUPLEI(args, "Ol","Oi", &array, &sorted)) return NULL;
 
-
   PyObject* tpl;
   E_Int ni, nj, nk;
   char* varString; char* eltType;
@@ -64,7 +63,7 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
   {
     mod = 1;
     E_Float* cellNat = FNode->begin(cellN);
-    for (E_Int ind = 0; ind < FNode->getSize(); ind++) 
+    for (E_Int ind = 0; ind < FNode->getSize(); ind++)
     {
       nature = cellNat[ind];
       if (K_FUNC::fEqualZero(nature-2.) == true) { mod = 2; break; }

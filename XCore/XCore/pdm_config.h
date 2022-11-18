@@ -10,8 +10,20 @@
 #ifdef E_DOUBLEINT
   #define PDM_LONG_G_NUM
   #define PDM_LONG_G_NUM_BOOL "1"
+
+  //#define __G_NPY_T__ NPY.int64_t
+  //#define __L_NPY_T__ NPY.int32_t
+  //#define __G_T__ int64_t
+  //#define __L_T__ int
+  //#define __G_NPY_ENUM__ NPY.NPY_INT64
 #else
   #define PDM_LONG_G_NUM_BOOL "0"
+  
+  //#define __G_NPY_T__ NPY.int32_t
+  //#define __L_NPY_T__ NPY.int32_t
+  //#define __G_T__ int32_t
+  //#define __L__T__ int
+  //#define __G_NPY_ENUM__ NPY.NPY_INT32
 #endif
 // END CBX
 

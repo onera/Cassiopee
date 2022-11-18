@@ -53,12 +53,23 @@ ctypedef enum PDM_g_num_npy_t:
 
 
 # CBX - get it from internal and pdmconfig
-#ctypedef NPY.int64_t npy_pdm_gnum_t
-#ctypedef NPY.int32_t npy_pdm_lnum_t
+#cdef extern from "stdint.h":
+#    ctypedef long long int64_t
+#cdef extern from "pdm_config.h":
+#    ctypedef int __G_NPY_T__
+#    ctypedef int __L_NPY_T__
+#    ctypedef int __G_T__
+#    ctypedef int __L_T__
+#    cdef const int __G_NPY_ENUM__
+#ctypedef __G_NPY_T__ npy_pdm_gnum_t
+#ctypedef __L_NPY_T__ npy_pdm_lnum_t
 #from Internal import __E_NPY_INT__
 #npy_pdm_gnum_dtype = __E_NPY_INT__
+#ctypedef __G_T__ PDM_g_num_t
+#ctypedef __L_T__ PDM_l_num_t
+#ctypedef int PDM_MPI_Comm
 #ctypedef enum PDM_g_num_npy_t:
-#    PDM_G_NUM_NPY_INT = __E_NPY_INT__
+#    PDM_G_NUM_NPY_INT = __G_NPY_ENUM__
 # ENDCBX
 
 # -----------------------------------------------------------------

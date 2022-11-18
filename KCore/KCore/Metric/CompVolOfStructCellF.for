@@ -54,15 +54,15 @@ C
       nicnjc = nic*njc
 
 C     Warning : here i,j,k start from 0
-      if ( indcell > -1 ) then
-            if ( indnode < 0 ) then
+      if (indcell > -1) then
+            if (indnode < 0) then
                   k = indcell/nicnjc
                   j = (indcell-k*nicnjc)/nic
                   i = indcell -j*nic -k*nicnjc
                   indnode = i+j*ni+k*ninj
             endif
       else
-            if ( indnode < 0 ) then 
+            if (indnode < 0) then 
                   WRITE(*,*) 'ERROR: compvolofstructcell: '
                   WRITE(*,*) 'one of indcell or indnode must be > -1.'
                   STOP
@@ -183,7 +183,7 @@ C=========================================================================
 C computes the cross product AC ^ BD 
 C=========================================================================
       subroutine k6crossproduct(xA, yA, zA, xB, yB, zB, xC, yC, zC,
-     &                          xD, yD, zD, nx, ny, nz )
+     &                          xD, yD, zD, nx, ny, nz)
 
 C
       IMPLICIT NONE

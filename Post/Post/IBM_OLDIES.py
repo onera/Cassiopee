@@ -1,4 +1,17 @@
 # ANCIENNES FONCTIONS DE POST.IBM A NE PLUS UTILISER
+import Converter.PyTree as C
+import Converter.Internal as Internal
+from . import PyTree as P
+import Generator.PyTree as G
+import Converter.Mpi as Cmpi
+import Transform.PyTree as T
+import Converter.Distributed as Distributed
+import Connector.PyTree as X
+import math, numpy
+import Connector.connector as connector
+import Converter.converter
+import Connector.OversetData as XOD
+import Connector.IBM as X_IBM
 
 #====================================================================================
 #===========================================================
@@ -162,7 +175,7 @@ def unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
 def _unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
     """Computes the viscous and pressure forces on the IB during the computation of the solution. 
     Usage: _unsteadyLoads(tb, Sref, Pref, Qref, alpha, beta, dimPb)"""
-    return loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=verbose)
+    return loads0(tb, Sref=Sref, alpha=alpha, beta=beta, dimPb=3, verbose=False)
 
 
 # reconstruit les champs parietaux a partir des infos stockees dans tw et les champs de tc

@@ -1,4 +1,4 @@
-       PyObject* sol;  PyObject* t; PyObject* t2;
+       PyObject* sol; PyObject* t; PyObject* t2;
        
        sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution#Centers");
        if (sol != NULL)

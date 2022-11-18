@@ -58,16 +58,16 @@ PyObject* K_GENERATOR::obbox(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
   
-  if ( Weighting == 1 ) //Input zone must be a TRI mesh
+  if (Weighting == 1) //Input zone must be a TRI mesh
   {
-    if ( res == 1 ) //structured
+    if (res == 1) //structured
     {
       PyErr_SetString(PyExc_TypeError,"obbox: 1st arg must be a TRI zone.");
       RELEASESHAREDB(res, array, f, cn); return NULL;
     }
     else
     {
-      if ( strcmp(eltType,"TRI") != 0 )
+      if (strcmp(eltType,"TRI") != 0)
       {
 	PyErr_SetString(PyExc_TypeError,"obbox: 1st arg must be a TRI zone.");
 	RELEASESHAREDB(res, array, f, cn); return NULL;  
@@ -85,39 +85,39 @@ PyObject* K_GENERATOR::obbox(PyObject* self, PyObject* args)
   FldArrayF mu(3); mu.setAllValuesAtNull();
   FldArrayF Cov(3,3); Cov.setAllValuesAtNull();
 
-  if (Weighting==0)// no weighting by triangle surfaces : cloud used
+  if (Weighting == 0)// no weighting by triangle surfaces : cloud used
   {
     // METHOD 1: point cloud (Weighting=0)
     // Calculation of mu
     for (E_Int i=0; i < nt; i++)
-      {
-	mu[0] = mu[0] + xt[i];
-	mu[1] = mu[1] + yt[i];
-	mu[2] = mu[2] + zt[i];
-      }
+    {
+      mu[0] = mu[0] + xt[i];
+      mu[1] = mu[1] + yt[i];
+      mu[2] = mu[2] + zt[i];
+    }
     mu[0] = mu[0]/nt;
     mu[1] = mu[1]/nt;
     mu[2] = mu[2]/nt;
     // Calculation of the covariance matrix
     for (E_Int k=1; k < 4; k++)
+    {
+      for (E_Int j=0; j < 3; j++)
       {
-	for (E_Int j=0; j < 3; j++)
-	  {
-	    for (E_Int i=0; i < nt; i++)
-	      {
-		Cov(j,k) = Cov(j,k) + ((*f)(i,j+1)-mu[j])*((*f)(i,k)-mu[k-1]);
-	      }
-	  }
+        for (E_Int i=0; i < nt; i++)
+        {
+          Cov(j,k) = Cov(j,k) + ((*f)(i,j+1)-mu[j])*((*f)(i,k)-mu[k-1]);
+        }
       }
+    }
     for (E_Int k=1; k < 4; k++)
       {
-	for (E_Int j=0; j < 3; j++)
-	  {
-	    Cov(j,k) = Cov(j,k)/nt;
-	  }
+      for (E_Int j=0; j < 3; j++)
+      {
+        Cov(j,k) = Cov(j,k)/nt;
       }
+    }
   }
-  else 
+  else
   {
   // METHOD 2: triangular dense sampling (for unstructured surfaces of TRI)
   E_Int nelts = cn->getSize();
@@ -178,7 +178,7 @@ PyObject* K_GENERATOR::obbox(PyObject* self, PyObject* args)
   {
       for (E_Int j=0; j < 3; j++)
       {
-         Cov(j,k) = Cov(j,k)/(24.0*nelts);
+        Cov(j,k) = Cov(j,k)/(24.0*nelts);
       }
    }
   }

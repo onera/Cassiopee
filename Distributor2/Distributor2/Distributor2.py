@@ -4,6 +4,7 @@ __version__ = '3.5'
 __author__ = "Christophe Benoit, Xavier Juvigny, Stephanie Peron, Pascal Raud"
 
 from . import distributor2
+from Converter.Internal import __E_NPY_INT__
 import numpy
 
 #==============================================================================
@@ -84,7 +85,7 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
 
     # Matrice du volume des coms (volCom ou volComd)
     volCom = None; volComd = None
-    if com is None and comd is None: volComd = numpy.empty((0), numpy.int32)
+    if com is None and comd is None: volComd = numpy.empty((0), dtype=__E_NPY_INT__)
     elif com is not None and comd is None:
         if isinstance(com, list): volCom = numpy.array(com)
         else: volCom = com
@@ -92,7 +93,7 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
         if isinstance(comd, dict):
             allkeys = comd.keys()
             size = len(allkeys)
-            volComd = numpy.empty((2*size), numpy.int32)
+            volComd = numpy.empty((2*size), dtype=__E_NPY_INT__)
             for i, k in enumerate(allkeys):
                 volComd[2*i] = k
                 volComd[2*i+1] = comd[k]   

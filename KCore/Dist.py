@@ -858,6 +858,7 @@ def getForArgs():
             options.remove('-fPIC')
             options += ['-large-address-aware']
         options += getSimdOptions()
+        if EDOUBLEINT: options += ['-fdefault-integer-i8']
         return options
     elif f77compiler.find("ifort") == 0:
         if DEBUG:
@@ -875,6 +876,7 @@ def getForArgs():
         if useStatic() == 1: options += ['-static']
         else: options += ['-fPIC']
         options += getSimdOptions()
+        if EDOUBLEINT: options += ['-i8']
         return options
     elif f77compiler == "pgf90" or f77compiler == "pgf77":
         options += ['-fPIC']
@@ -882,6 +884,7 @@ def getForArgs():
         else: options += ['-O3']
         if useOMP() == 1: options += ['-omp']
         options += getSimdOptions()
+        if EDOUBLEINT: options += ['-i8']
         return options
     elif f77compiler == "x86_64-w64-mingw32-gfortran":
         if DEBUG: options += ['-g', '-O0']
@@ -890,6 +893,7 @@ def getForArgs():
         if useStatic() == 1: options += ['--static']
         else: options += ['-fPIC']
         options += getSimdOptions()
+        if EDOUBLEINT: options += ['-fdefault_integer-8']
         return options
     elif f77compiler == "ifort.exe":
         if useOMP() == 1: return ['/names:lowercase', '/assume:underscore', '/Qopenmp']
