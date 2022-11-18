@@ -1183,9 +1183,9 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
     if noWallsInDnr == 1 or noWallsInRcv == 1: double_wall = 0 # on desactive le double wall
     arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
-    print(arraysD)
+    #print(arraysD)
     cellND = C.getField('cellN', zonesDnr)
-    print(cellND)
+    #print(cellND)
     arraysD = Converter.addVars([arraysD,cellND])
     cellND = []
 
@@ -1207,7 +1207,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     nozr = -1
 
     for z in zonesRcv:
-        print(z[0], flush=True)
+        #print(z[0], flush=True)
         nozr += 1
         if loc == 'nodes': cellNPresent = C.isNamePresent(z, 'cellN')
         else: cellNPresent = C.isNamePresent(z, 'centers:cellN')
