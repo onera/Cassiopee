@@ -90,7 +90,7 @@
 
 #define BLOCKRELEASEMEM2 \
   if ( pyArrayDens != Py_None)                          \
-    RELEASESHAREDN(pyArrayDens, densF);                 
+    RELEASESHAREDN(pyArrayDens, densF);
 
 #define BLOCKRELEASEMEM3 \
   if ( pyArrayDens != Py_None)                          \
@@ -148,7 +148,7 @@
   if ( pyArrayAlphasbetaline != Py_None)                \
     RELEASESHAREDN(pyArrayAlphasbetaline, alphasbetalineF); \
   if ( pyArrayIndexline != Py_None)                     \
-    RELEASESHAREDN(pyArrayIndexline, indexlineF);               
+    RELEASESHAREDN(pyArrayIndexline, indexlineF);
 extern "C"
 {
   void spalart_1d_(E_Int& ithread, E_Float* y, E_Float* matm,E_Float* mat,E_Float* matp,E_Float* nutilde, E_Float* utble, E_Float& pdtc, E_Float& nu, E_Float& nutildeext, E_Int& jmax, E_Float& kappa);
@@ -650,7 +650,7 @@ namespace K_CONNECTOR
                                   E_Float* xPC, E_Float* yPC, E_Float* zPC,
                                   E_Float* xPW, E_Float* yPW, E_Float* zPW,
                                   E_Float* xPI, E_Float* yPI, E_Float* zPI,
-                                  E_Float* densPtr, 
+                                  E_Float* densPtr,
                                   E_Float* tmp, E_Int&  size,
                                   E_Float* param_real,
                                   std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut,E_Int isWireModelPrep=0,
@@ -691,15 +691,15 @@ namespace K_CONNECTOR
                      K_FLD::FldArrayI& rcvIndices);
 
     //LBM
-  
+
   /* Transferts IBC avec variables (ro,u,v,w,t) en entree/sortie */
   E_Int setIBCTransfersCommonVar2LBM(E_Int bctype    , E_Int* rcvPtsI   , E_Int& nbRcvPts,
 				     E_Int& ideb     , E_Int& ifin      , E_Int& ithread ,
 				     E_Float* xPC    , E_Float* yPC     , E_Float* zPC   ,
 				     E_Float* xPW    , E_Float* yPW     , E_Float* zPW   ,
-				     E_Float* xPI    , E_Float* yPI     , E_Float* zPI   , 
-				     E_Float* densPtr, E_Float* pressPtr, 		    
-						E_Float* vxPtr  , E_Float* vyPtr   , E_Float* vzPtr , 
+				     E_Float* xPI    , E_Float* yPI     , E_Float* zPI   ,
+				     E_Float* densPtr, E_Float* pressPtr,
+						E_Float* vxPtr  , E_Float* vyPtr   , E_Float* vzPtr ,
 						E_Float* utauPtr, E_Float* yplusPtr,
 						E_Float* d1     , E_Float* d2      ,
 						E_Float* d3     , E_Float* d4      , E_Float* d5    ,
@@ -707,25 +707,25 @@ namespace K_CONNECTOR
 				     E_Float cv      , E_Float muS      , E_Float Cs     ,
 				     E_Float Ts      , E_Float Pr       , E_Int* Qdir    ,
 				     E_Int& nvarsQ   ,
-				     std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut, 
+				     std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut,
 				     E_Int nbptslinelets=0, E_Float* linelets=NULL, E_Int* indexlinelets=NULL);
 
   E_Int setIBCTransfersCommonVar5(E_Int bctype    , E_Int* rcvPtsI, E_Int& nbRcvPts,
-				  E_Int& ideb     , E_Int& ifin   , E_Int& ithread , 
+				  E_Int& ideb     , E_Int& ifin   , E_Int& ithread ,
 				  E_Int* c_vel    , E_Float* wdist, E_Float c0     , E_Float nu              ,
 				  E_Float* QlocPtr, E_Int vartype , E_Int* Qdir    , E_Float gamma_precon_inv,
-				  E_Float* H2H3   , E_Int ni      , E_Int ninj     , 
-          std::vector<E_Float*>& macrosfields  , 
-          std::vector<E_Float*>& Qneqfields    , 
+				  E_Float* H2H3   , E_Int ni      , E_Int ninj     ,
+          std::vector<E_Float*>& macrosfields  ,
+          std::vector<E_Float*>& Qneqfields    ,
           std::vector<E_Float*>& Qfields,
 				  std::vector<E_Float*>& cellN_IBC_LBM );
-  
+
 
   E_Int setIBCTransfersCommonVar44(E_Int* rcvPts  , E_Int& nbRcvPts, E_Int& ideb     ,
 				   E_Int& ifin    , E_Int& ithread ,
 				   E_Float* xPC   , E_Float* yPC   , E_Float* zPC    ,
 				   E_Int* cvel    , E_Int* Qdir    , E_Int* cminus   ,
-				   E_Int* ptbcs   , E_Int num_bcs  , E_Float* QlocPtr, 
+				   E_Int* ptbcs   , E_Int num_bcs  , E_Float* QlocPtr,
 				   E_Float* tmp   , E_Int& size    , E_Float& meax   ,
 				   E_Float& meay  , E_Float& meaz  ,
 				   std::vector<E_Float*>& vectOfRcvFields,
@@ -736,20 +736,20 @@ namespace K_CONNECTOR
 				   E_Float* xPC   , E_Float* yPC   , E_Float* zPC    ,
 				   E_Int* cvel    , E_Int* Qdir    , E_Float* Qdist  ,
 				   E_Int* cminus  , E_Int& imd     , E_Int& jmd      ,
-				   E_Int* ptbcs   , E_Int num_bcs  , E_Float* QlocPtr, 
+				   E_Int* ptbcs   , E_Int num_bcs  , E_Float* QlocPtr,
 				   E_Float* tmp   , E_Int& size    , E_Float& meax   ,
 				   E_Float& meay  , E_Float& meaz  ,
 				   std::vector<E_Float*>& vectOfRcvFields,
 				   std::vector<E_Float*>& vectOfQstarRcvFields);
 
   E_Int setIBCTransfersCommonVar46(E_Int* rcvPts             , E_Int& nbRcvPts, E_Int& ideb       ,
-				   E_Int& ifin               , E_Int& ithread ,			  
+				   E_Int& ifin               , E_Int& ithread ,
 				   E_Float* xPC              , E_Float* yPC   , E_Float* zPC      ,
 				   E_Int* cvel               , E_Int* Qdir    , E_Float* Qdist    ,
 				   E_Int* cminus             , E_Int& imd     , E_Int& jmd        ,
 				   E_Float& tau_relax        , E_Float* wdist , E_Float& c0       ,
 				   E_Float& gamma_precond_inv, E_Int& ni      , E_Int& ninj       ,
-				   E_Int* ptbcs              , E_Int num_bcs  , E_Float* QlocPtr  , 
+				   E_Int* ptbcs              , E_Int num_bcs  , E_Float* QlocPtr  ,
 				   E_Float* tmp              , E_Int& size    , E_Float& meax     ,
 				   E_Float& meay             , E_Float& meaz  ,
 				   std::vector<E_Float*>& vectOfRcvFields,
@@ -757,12 +757,12 @@ namespace K_CONNECTOR
 				   std::vector<E_Float*>& vectOfmacroRcvFields);
 
   E_Int setIBCTransfersCommonVar47(E_Int* rcvPts     , E_Int& nbRcvPts, E_Int& ideb       ,
-				   E_Int& ifin       , E_Int& ithread ,			  
+				   E_Int& ifin       , E_Int& ithread ,
 				   E_Float* xPC      , E_Float* yPC   , E_Float* zPC      ,
 				   E_Int* cvel       , E_Int* Qdir    , E_Float* Qdist    ,
 				   E_Int* cminus     , E_Int& imd     , E_Int& jmd        ,
-				   E_Float& tau_relax, E_Float* wdist , E_Float& c0       , 
-				   E_Int* ptbcs      , E_Int num_bcs  , E_Float* QlocPtr  , 
+				   E_Float& tau_relax, E_Float* wdist , E_Float& c0       ,
+				   E_Int* ptbcs      , E_Int num_bcs  , E_Float* QlocPtr  ,
 				   E_Float* tmp      , E_Int& size    , E_Float& meax     ,
 				   E_Float& meay     , E_Float& meaz  ,
 				   std::vector<E_Float*>& vectOfRcvFields,
@@ -776,15 +776,15 @@ namespace K_CONNECTOR
 					 E_Float* tmp   , E_Int& size    , E_Float& zlimit ,
 					 E_Int& isinside,
 					 E_Float*& RcvFields);
-  
+
   E_Int setIBCTransfersCommonVarQ(E_Int* rcvPts  , E_Int& nbRcvPts, E_Int& ideb     ,
 				  E_Int& ifin    , E_Int& ithread ,
 				  E_Float* xPC   , E_Float* yPC   , E_Float* zPC    ,
 				  E_Int* cvel    , E_Int* Qdir    , E_Float* Qdist  ,
 				  E_Int& nvars   , E_Int& imd     , E_Int& jmd      ,
 				  E_Float* tmp   , E_Int& size    , E_Float& zlimit ,
-				  E_Float*& RcvFields);  
-  
+				  E_Float*& RcvFields);
+
 
 
   /* Fonctions pour les lois de paroi */
@@ -877,5 +877,6 @@ namespace K_CONNECTOR
   PyObject* _modCellN2(PyObject* self, PyObject* args);
   PyObject* ___setInterpTransfersLBM(PyObject* self, PyObject* args);
   PyObject* ___setQintersectionLBM(PyObject* self, PyObject* args);
+  PyObject* _computeFrictionVelocityIBM(PyObject* self, PyObject* args);
 }
 #endif

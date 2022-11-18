@@ -19,6 +19,7 @@ List of functions
 
 .. autosummary::
 
+   Connector.IBM._computeFrictionVelocity
    Connector.IBM._blankClosestTargetCells
    Connector.IBM._removeBlankedGrids
    Connector.IBM.blankByIBCBodies
@@ -47,8 +48,8 @@ List of functions
    Connector.IBM.createWallAdapt
    Connector.IBM.createIBMWZones
    Connector.IBM._computeKcurvParameter
-   Connector.IBM._signDistance	     
-   
+   Connector.IBM._signDistance
+
 
 Contents
 #########

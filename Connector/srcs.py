@@ -58,7 +58,8 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
             "Connector/correctCoeffList.cpp",
             "Connector/modCellN.cpp",
             "Connector/LBM/setInterpTransfers.cpp",
-            "Connector/IBC/LBM/setIBCTransfers.cpp"]
+            "Connector/IBC/LBM/setIBCTransfers.cpp",
+            "Connector/computeFrictionVelocityIBM.cpp"]
 
 #==============================================================================
 # Fichiers fortran

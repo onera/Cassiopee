@@ -106,6 +106,7 @@ static PyMethodDef Pyconnector [] =
   {"_modCellN2",K_CONNECTOR::_modCellN2, METH_VARARGS},
   {"___setQintersectionLBM", K_CONNECTOR::___setQintersectionLBM, METH_VARARGS},
   {"___setInterpTransfersLBM", K_CONNECTOR::___setInterpTransfersLBM, METH_VARARGS},
+  {"_computeFrictionVelocity", K_CONNECTOR::_computeFrictionVelocityIBM, METH_VARARGS},
   {NULL, NULL}
 };
 

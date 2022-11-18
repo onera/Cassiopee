@@ -33,6 +33,15 @@ LBM_IBC_NUM        = 113
 
 TypesOfIBC = XOD.TypesOfIBC
 
+# computes the friction velocity
+def _computeFrictionVelocity(a):
+    for z in Internal.getZones(a):
+        connector._computeFrictionVelocity(z,
+                                           Internal.__GridCoordinates__,
+                                           Internal.__FlowSolutionNodes__,
+                                           Internal.__FlowSolutionCenters__)
+    return None
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## BLANKING
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -60,7 +69,7 @@ def _removeBlankedGrids(t, loc='centers'):
     C._initVars(t,'{%s}=abs(1.-{%s}*{%s})<0.5'%(flag,vari,varc))
     #if poschim != -1 and posibc != -1: C._initVars(t,'{%s}=abs(1.-{%s}*{%s})<0.5'%(flag,vari,varc))
     #elif poschim != -1 and posibc==-1: flag=varc
-    #elif poschim == -1 and posibc!=-1: flag=vari        
+    #elif poschim == -1 and posibc!=-1: flag=vari
     #else: return None
 
     for z in Internal.getZones(t):
@@ -139,7 +148,7 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN',closedSolid=[]):
             XRAYDIM1 = max(XRAYDIM1,int(Lxref/(0.15*dh_min)))
             XRAYDIM2 = max(XRAYDIM2,int(Lyref/(0.15*dh_min)))
         if DIM == 2: XRAYDIM2 = 2
-      
+
         if loc == 'centers':
             tc = C.node2Center(t)
             for body in bodiesInv:
@@ -447,7 +456,7 @@ def getIBMFrontType0_old(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=
                 dmin = 2*SHIFTB
 
             print("before : {}".format(dmin*SHIFTD*1.125))
-            if frontType == 42: dmin += SHIFTB                
+            if frontType == 42: dmin += SHIFTB
             print('after : {}'.format(dmin*SHIFTD))
             front = []
             # Creation du corps 2D pour le preprocessing IBC
@@ -706,7 +715,7 @@ def gatherFront(front):
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##INTERPOLATIONS
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1., isLBM=False):    
+def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1., isLBM=False):
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
     if typeI == 'ID':
         # toutes les zones sont interpolables en Chimere
@@ -757,7 +766,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
         nbZonesIBC = len(zonesRIBC)
         dictOfADT = {}
         dictOfCorrectedPtsByIBCType = res[0]
-        dictOfWallPtsByIBCType = res[1] 
+        dictOfWallPtsByIBCType = res[1]
         dictOfInterpPtsByIBCType = res[2]
         for ibcTypeL in  dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
@@ -781,7 +790,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                                     bba = C.getFields(Internal.__GridCoordinates__,zbb)[0]
                                     if Generator.bboxIntersection(interpPtsBB,bba,isBB=True) == 1:
                                         if interpDataType == 1:
-                                            if zdnrname not in dictOfADT: 
+                                            if zdnrname not in dictOfADT:
                                                 HOOKADT = C.createHook(zdnr, 'adt')
                                                 dictOfADT[zdnrname] = HOOKADT
                                             hook0.append(dictOfADT[zdnrname])
@@ -800,7 +809,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                         nozd = nobOfDnrZones[nod]
                         tc[2][nobd][2][nozd] = dnrZones[nod]
 
-        if dictOfADT is not None: 
+        if dictOfADT is not None:
             for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
     return tc
@@ -1382,7 +1391,7 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 ## IBM INFO
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def _extractIBMInfo_param(t,tc):
-    XPC   ={}; 
+    XPC   ={};
     Zones = []
     for z in Internal.getZones(tc):
         allIBCD = Internal.getNodesFromName(z, "IBCD_*")
@@ -1682,20 +1691,20 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             if ah != []: an = Converter.addVars([an,ah])
             ah = C.getField('he',z)[0]
             if ah != []: an = Converter.addVars([an,ah])
-            correctedPts = Connector.getInterpolatedPoints__(an) 
+            correctedPts = Connector.getInterpolatedPoints__(an)
             xt = C.getField('CoordinateX',z)[0][1][0]
             snearl = xt[1]-xt[0]
             listOfSnearsLoc.append(snearl)
             allCorrectedPts.append(correctedPts)
             if frontType == 42: listOfModelisationHeightsLoc.append(G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref))
-            else: 
+            else:
                 listOfModelisationHeightsLoc.append(0.)
                 # if tfront2 is not None:
                 #     listOfModelisationHeightsLoc.append(hmod)
                 # else:
                 #     listOfModelisationHeightsLoc.append(0.)
     else:        
-        for z in Internal.getZones(t):            
+        for z in Internal.getZones(t):
             an = C.getFields(Internal.__GridCoordinates__,z)[0]
             an = Converter.node2Center(an)
             ac1 = C.getField('centers:'+cellNName,z)[0]
@@ -1709,14 +1718,14 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             if ah != []: an = Converter.addVars([an,ah])
             ah = C.getField('centers:he',z)[0]
             if ah != []: an = Converter.addVars([an,ah])
-            correctedPts = Connector.getInterpolatedPoints__(an) 
+            correctedPts = Connector.getInterpolatedPoints__(an)
             allCorrectedPts.append(correctedPts)
             xt = C.getField('CoordinateX',z)[0][1][0]
             snearl = xt[1]-xt[0]
             
             listOfSnearsLoc.append(snearl)
             if frontType == 42: listOfModelisationHeightsLoc.append(G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref))
-            else: 
+            else:
                 listOfModelisationHeightsLoc.append(0.)
                 # if tfront2 is not None:
                 #     listOfModelisationHeightsLoc.append(hmod)
@@ -1724,9 +1733,9 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                 #     listOfModelisationHeightsLoc.append(0.)
     #-------------------------------------------
     # 2. Get the list of IBC wall and interp pts
-    #-------------------------------------------        
+    #-------------------------------------------
     indcell = Converter.extractVars(allCorrectedPts,['indcell'])
-    if tb is None or tfront is None: # constant hi, he   
+    if tb is None or tfront is None: # constant hi, he
         for nozc in range(len(allCorrectedPts)):
             poshe = KCore.isNamePresent(allCorrectedPts[nozc],'he')
             if poshe == -1: allCorrectedPts[nozc] = Converter.initVars(allCorrectedPts[nozc],'he',he)
@@ -1741,11 +1750,11 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                 ibctype = Internal.getNodeFromName1(sdd, "ibctype")
                 if ibctype is not None:
                     ibctype = Internal.getValue(ibctype)
-                else: 
-                    if IBCType == -1: ibctype = 'slip' 
+                else:
+                    if IBCType == -1: ibctype = 'slip'
                     else: ibctype = 'Musker'
-            else: # type of IBC not found: Euler -> slip, other : Musker            
-                if IBCType == -1: ibctype = 'slip' 
+            else: # type of IBC not found: Euler -> slip, other : Musker
+                if IBCType == -1: ibctype = 'slip'
                 else: ibctype = 'Musker'
 	    #Over ride as LBM only supports no slip at the moment
             if isLBM==True:
@@ -1756,11 +1765,11 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
 
             ibctypeI = TypesOfIBC[ibctype]
             if famName is not None: ibctype2 = str(ibctypeI)+"#"+famName
-            else: ibctype2 = str(ibctypeI)  
+            else: ibctype2 = str(ibctypeI)
             if ibctype2 not in dictOfBodiesByIBCType: dictOfBodiesByIBCType[ibctype2]=[s]
             else: dictOfBodiesByIBCType[ibctype2]+=[s]
         
-        # Regroupement des corps par type de BC - optimise les projections ensuite 
+        # Regroupement des corps par type de BC - optimise les projections ensuite
         bodies = []; listOfIBCTypes=[]
         for itype in dictOfBodiesByIBCType:
             s = dictOfBodiesByIBCType.get(itype)
@@ -1794,32 +1803,32 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                 
                 res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, listOfModelisationHeightsLoc, bodies,
                                                    front, varsn, signOfDistCorrected, depth, int(isWireModel), int(isOrthoFirst))
-    
+
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
 
-    allInterpPts = res[1] 
+    allInterpPts = res[1]
     allInterpPts = Converter.extractVars(allInterpPts,['CoordinateX','CoordinateY','CoordinateZ'])
     allInterpPts = Converter.addVars([allInterpPts,indcell])
     allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ'])
 
-    dictOfInterpPtsByIBCType={} 
+    dictOfInterpPtsByIBCType={}
     dictOfCorrectedPtsByIBCType={}
     dictOfWallPtsByIBCType={}
     nzonesR = len(allInterpPts)
-    if len(res)==3: 
-        allIndicesByIBCType = res[2]    
+    if len(res)==3:
+        allIndicesByIBCType = res[2]
         for noz in range(nzonesR):
             indicesByTypeForZone = res[2][noz]
             nbTypes = len(indicesByTypeForZone)
             for nob in range(nbTypes):
                 ibcTypeL = listOfIBCTypes[nob]
                 indicesByTypeL = indicesByTypeForZone[nob]
-                if indicesByTypeL.shape[0] > 0:                
+                if indicesByTypeL.shape[0] > 0:
                     correctedPtsL = Transform.subzone(allCorrectedPts[noz], indicesByTypeL)
                     interpPtsL = Transform.subzone(allInterpPts[noz], indicesByTypeL)
-                    wallPtsL = Transform.subzone(allWallPts[noz], indicesByTypeL)                
-                else: 
+                    wallPtsL = Transform.subzone(allWallPts[noz], indicesByTypeL)
+                else:
                     correctedPtsL=[]; interpPtsL = []; wallPtsL = []
                 if noz == 0:
                     dictOfCorrectedPtsByIBCType[ibcTypeL] = [correctedPtsL]
@@ -1831,7 +1840,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                     dictOfInterpPtsByIBCType[ibcTypeL] += [interpPtsL]
     else:
         if IBCType == -1: ibcTypeL = 0
-        else: ibcTypeL = 3 
+        else: ibcTypeL = 3
         for noz in range(nzonesR):
             if noz == 0:
                 dictOfCorrectedPtsByIBCType[ibcTypeL] = [allCorrectedPts[noz]]
@@ -1840,7 +1849,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             else:
                 dictOfCorrectedPtsByIBCType[ibcTypeL] += [allCorrectedPts[noz]]
                 dictOfWallPtsByIBCType[ibcTypeL] += [allWallPts[noz]]
-                dictOfInterpPtsByIBCType[ibcTypeL] += [allInterpPts[noz]]        
+                dictOfInterpPtsByIBCType[ibcTypeL] += [allInterpPts[noz]]
 
     return dictOfCorrectedPtsByIBCType, dictOfWallPtsByIBCType, dictOfInterpPtsByIBCType
 
@@ -1867,7 +1876,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
 
     if model == 'Euler': IBCType =-1
     elif model == 'LBMLaminar':
-        IBCType =-1      
+        IBCType =-1
         if LBMQ == True:
             IBCType =1
     else: IBCType = 1 # Points cibles externes
@@ -1964,7 +1973,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
                     if zd is not None:
                         yplus_w = Internal.getNodeFromName(zd, 'yplus')[1]
                         listIndices = Internal.getNodeFromName(zd, 'PointListDonor')[1]
-                        
+
                         n = numpy.shape(yplus_w)[0]
                         yplusA = Converter.array('yplus', n, 1, 1)
                         yplusA[1][:] = yplus_w
@@ -1972,7 +1981,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
                         C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
 
                 cpt += 1
-             
+
             C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
 
         # Securite finale, on aura au min deux rangees de points cibles
@@ -2313,7 +2322,7 @@ def createWallAdapt(tc):
 
     listOfZones = []
     DictOfZones = {}
-    
+
     for zc in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(zc, 'ZoneSubRegion_t')
         for s in subRegions:
@@ -2395,7 +2404,7 @@ def createIBMWZones(tc,variables=[]):
                 FSN = Internal.newFlowSolution(parent=zw)
                 for varo in variables:
                     fieldV = Internal.getNodeFromName2(IBCD,varo)
-                    if fieldV is not None: 
+                    if fieldV is not None:
                         C._initVars(zw,varo,0.)
                         fieldW = Internal.getNodeFromName2(FSN,varo)
                         fieldW[1] = fieldV[1]
