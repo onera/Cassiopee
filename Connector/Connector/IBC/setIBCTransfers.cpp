@@ -583,10 +583,9 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       gradyPressPtr = densPtr+8*nbRcvPts;
       gradzPressPtr = densPtr+9*nbRcvPts;
 
-      E_Int   mafzalMode    = param_real[ MAFZAL_MODE ];
-      E_Float alphaGradP    = param_real[ ALPHAGRADP ];
-      nbptslinelets         = param_real[ NBPTS_LINELETS ];
-
+      //E_Int   mafzalMode    = param_real[ MAFZAL_MODE ];
+      //E_Float alphaGradP    = param_real[ ALPHAGRADP ];
+      //nbptslinelets         = param_real[ NBPTS_LINELETS ];
       // std::cout << "mafzalMode = " << mafzalMode << " alpha = " << alphaGradP << " nbpts linelets = " << nbptslinelets << std::endl;
     }
   else if (bctype == 11) // TBLE-FULL
@@ -1567,7 +1566,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
 	} 
     }      
-  else if (bctype == 7) // loi de paroi Musker paroi rotation
+  else if (bctype == 7) // loi de paroi adh paroi rotation
     {
 #   include "IBC/pointer.h" 
 
@@ -1579,130 +1578,64 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       E_Float teta     = teta_out;
 
 
-      E_Float cay,caz,ctheta, stheta,vx,vy,vz;
-      stheta = sin(teta);
-      ctheta = cos(teta);
-      //initialisation parametre geometrique et utau
+    E_Float cay,caz,ctheta, stheta,vx,vy,vz,vn_paroi;
+    stheta = sin(teta);
+    ctheta = cos(teta);
 #ifdef _OPENMP4
-#pragma omp simd
-#endif 
-      for (E_Int noind = 0; noind < ifin-ideb; noind++)
-	{
-	  E_Int indR = rcvPts[noind+ideb];
- 
-	  roext = roOut[indR]; // densite du point interpole
-	  text  = tOut[indR];  // pression du point interpole
-	  pext  = text*roext*cvgam;
-
-	  cay = -stheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]) + ctheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]);
-	  caz =  stheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]) + ctheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]);
-
-	  vx  =  0;
-	  vy  = -tetap*caz;
-	  vz  =  tetap*cay;
-
-	  //printf("teta  %.12f %.12f %.12f %.12f %.12f %.12f \n", teta/6.3*360., vz ,yPI[noind+ideb], param_real[ROT_CENTER+1], tetap , ctheta);
-	  //printf("teta  %f %f %f  \n", tetap, vy  vz);
-
-	  //E_Int kloc = indR/(216*59);
-
-	  // vitesse du pt ext
-	  u = uOut[indR]-vx;
-	  v = vOut[indR]-vy; 
-	  w = wOut[indR]-vz;
-#       include "IBC/commonMuskerLaw_init.h"
-
-	  //if( nbRcvPts == 18525 and kloc==10) { printf("IN WALL LAW: %f %f %f %f %f %f %f %f %f %f %d \n",roext, text, u,v,w, yext,yibc,n0,n1,n2, indR);}
-	  // out= utau  et err
-	}  
-
-      // Newton pour utau
-#    include "IBC/commonMuskerLaw_Newton.h" 
-
-      //initialisation Newton SA  + vitesse cible
-#if NUTILDE_FERRARI == 0
-#    include "IBC/commonMuskerLaw_cible.h"
-#elif NUTILDE_FERRARI == 1
-#    include "IBC/nutilde_Ferrari.h"
-#else
-#    include "IBC/nutilde_Ferrari_adim.h"
+       #pragma omp simd
 #endif
-      if (nvars == 6)
-	{
-	  // Newton pour mut
-#if NUTILDE_FERRARI == 0
-#       include "IBC/nutildeSA_Newton.h" 
-#endif
-	  // mise a jour des variables
-#ifdef _OPENMP4
-#pragma omp simd
-#endif 
-	  for (E_Int noind = 0; noind < ifin-ideb; noind++)
-	    {
-	      E_Int indR = rcvPts[noind+ideb];
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+         E_Int indR = rcvPts[noind+ideb];
 
-	      // For Post (tOut temperature du point image en entree, pt corrige en sortie)
-	      twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
-	      densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
-	      pressPtr[noind+ideb]= press_vec[noind ];
+         cay = -stheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]) + ctheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]);
+         caz =  stheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]) + ctheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]);
+# include "IBC/commonGeom.h"
+         vx  =  0;
+         vy  = -tetap*caz;
+         vz  =  tetap*cay;
 
-	      // Mise a jour pt corrige
-	      cay = -stheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]) + ctheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]);
-	      caz =  stheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]) + ctheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]);
-	      vx  =  0;
-	      vy  = -tetap*caz;
-	      vz  =  tetap*cay;
+         //composante normale de la vitesse paroi
+         vn_paroi = vx*n0 + vy*n1 + vz*n2;
+  
+         //composante tangentielle de la vitesse paroi au pt interpole
+         vx = vx-vn_paroi*n0;
+         vy = vy-vn_paroi*n1;
+         vz = vz-vn_paroi*n2;
 
-	      roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;       
-	      uOut[indR]     = ucible_vec[noind]+vx;
-	      vOut[indR]     = vcible_vec[noind]+vy;
-	      wOut[indR]     = wcible_vec[noind]+vz;
-	      tOut[indR]     = tcible_vec[noind];
-	      varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
 
-	      vxPtr[noind+ideb] = uOut[indR];
-	      vyPtr[noind+ideb] = vOut[indR];
-	      vzPtr[noind+ideb] = wOut[indR];
+         // vitesse relative paroi
+         u = uOut[indR]-vx;
+         v = vOut[indR]-vy; 
+         w = wOut[indR]-vz;
+         //if (noind == 0){printf("avt %f %f %f %f \n",vOut[indR],vy,wOut[indR],vz );}
+         //
+         vn_paroi = u*n0 + v*n1 + w*n2;         
 
-	      // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
-	    }
-	}
-      else //5eq 
-	{
-	  // mise a jour des variable
-#ifdef _OPENMP4
-#pragma omp simd
-#endif 
-	  for (E_Int noind = 0; noind < ifin-ideb; noind++)
-	    {
-	      E_Int indR = rcvPts[noind+ideb];
+         ucible = (u-vn_paroi*n0)*alphasbeta;// u du pt corrige
+         vcible = (v-vn_paroi*n1)*alphasbeta;// v du pt corrige
+         wcible = (w-vn_paroi*n2)*alphasbeta;// w du pt corrige
 
-	      // For Post (tOut temperature du point image)
-	      twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
-	      densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
-	      pressPtr[noind+ideb]= press_vec[noind ];
 
-	      // Mise a jour pt corrige
-	      cay = -stheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]) + ctheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]);
-	      caz =  stheta*(yPW[noind+ideb] - param_real[ROT_CENTER+1]) + ctheta*(zPW[noind+ideb] - param_real[ROT_CENTER+2]);
-	      vx  =  0;
-	      vy  = -tetap*caz;
-	      vz  =  tetap*cay;
+         //E_Float uext2    = vx*vx+vy*vy+vz*vz;
+         //E_Float pressure = tOut[indR]*roOut[indR];
+         //tOut[indR]    = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext2); // Crocco-Busemann
+         //roOut[indR]   = pressure/tOut[indR];
 
-	      roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;       
-	      uOut[indR]     = ucible_vec[noind]+vx;
-	      //vOut[indR]     = vcible_vec[noind]*0.+vy;
-	      //wOut[indR]     = wcible_vec[noind]*0.+vz;
-	      vOut[indR]     = vcible_vec[noind]+vy;
-	      wOut[indR]     = wcible_vec[noind]+vz;
-	      tOut[indR]     = tcible_vec[noind];
-	      //if( nbRcvPts == 18525) {printf("OUT WALL LAW: %f %f %f %f %f %f %f %f %f %d \n",roOut[indR], uOut[indR], vOut[indR], wOut[indR],tOut[indR], xPW[noind+ideb],yPW[noind+ideb], vy,vz, indR);}
+         uOut[indR] = ucible+vx;
+         vOut[indR] = vcible+vy;
+         wOut[indR] = wcible+vz;
+         //printf("apr %f %f \n",vOut[indR],wOut[indR] );
+         if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
-	      vxPtr[noind+ideb] = uOut[indR];
-	      vyPtr[noind+ideb] = vOut[indR];
-	      vzPtr[noind+ideb] = wOut[indR];
-	    }
-	}
+         pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam;
+         densPtr[ noind + ideb] = roOut[indR];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+
+        }
 
     }//bctype 
   else if (bctype == 8) // loi de paroi Pohlhausen

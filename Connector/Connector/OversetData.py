@@ -33,6 +33,7 @@ TypesOfIBC["Mafzal"]=10 #Musker+gradP
 TypesOfIBC["TBLE_FULL"]=11 #TBLE+gradP+conv+SA
 TypesOfIBC["isothermal"]=12 #isothermal: set T_wall
 TypesOfIBC["heatflux"]=13 #heatflux: set q_wall
+TypesOfIBC["overlap"]=14 #TBLE+gradP+conv+SA
 
 # Variables IBM pour le post traitement
 __PRESSURE__= 'Pressure'
@@ -1101,6 +1102,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                           topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
     locR = loc
 
+
     # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
     elif loc == 'centers': cellNPresent = C.isNamePresent(aR, 'centers:cellN')
@@ -1181,7 +1183,9 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
     if noWallsInDnr == 1 or noWallsInRcv == 1: double_wall = 0 # on desactive le double wall
     arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
+    print(arraysD)
     cellND = C.getField('cellN', zonesDnr)
+    print(cellND)
     arraysD = Converter.addVars([arraysD,cellND])
     cellND = []
 
@@ -1675,8 +1679,8 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
                     prefix = 'ID_'
                     if RotationAngle is not None:
                         val = Internal.getValue(RotationAngle)
-                        if val[0]>0. or val[1]>0. or val[2]>0.: prefix='IDPERP'
-                        else: prefix = 'IDPERM'
+                        if val[0]>0. or val[1]>0. or val[2]>0.: prefix='IDPERP_'
+                        else: prefix = 'IDPERM_'
                     if storage == 'direct':
                         _createInterpRegion__(zp, zdonorname,res[0],res[1],res[3],res[2],vols,indicesExtrap,\
                                               indicesOrphan,tag = 'Receiver',loc=loc,EXDir=EXdir,itype='abutting',\
