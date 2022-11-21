@@ -81,7 +81,7 @@ def _change_name_IBCD(tc2,NewIBCD):
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None, yplus=100.,
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, recomputeDist=False):
+            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, recomputeDist=False,redistribute=False):
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
@@ -93,7 +93,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                          tbox=tbox, snearsf=snearsf, yplus=yplus, 
                          vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                         expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt, dfarDir=dfarDir)
+                         expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt, dfarDir=dfarDir,redistribute=redistribute)
 
     return ret
 
@@ -752,7 +752,6 @@ def extrudeCartesian(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10, spa
 # in : tc_3d arbre cartesien connectivite   (issue de prepare1)
 # in : t_curvi arbre curviligne   (avec bc et rac, mais sans ghost)
 #==================================================
-
 def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1):
 
    overlap     ='14'
@@ -1861,17 +1860,14 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
                       zz  = r[l]*numpy.sin( theta[l] )
                       r[l]= yy; theta[l] = zz
     if redistribute:
-        tmpFilename = 'tmp_tc_IBM_prep.cgns'
-        # Distribute over NP procs
-        if rank == 0: print("REDISTRIBUTE - Final")
-        tcp = Compressor.compressCartesian(tc)
-        Cmpi.convertPyTree2File(tcp, tmpFilename, ignoreProcNodes=True)
-        del tcp
-
-        tc    = Cmpi.convertFile2PyTree(tmpFilename)
-        stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
-        D2._copyDistribution(t, tc)    
-        if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
+        import Distributor2.Mpi as D2mpi
+        tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
+        stats  = D2._distribute(tcs, NP, algorithm='graph')
+        if rank ==0:checkNcellsNptsPerProc(tcs,Cmpi.size,isAtCenter=True)
+        D2._copyDistribution(tc, tcs)
+        D2._copyDistribution(t , tcs)
+        D2mpi._redispatch(tc)
+        D2mpi._redispatch(t)
 
     #-----------------------------------------
     # Computes distance field for Musker only
@@ -1944,6 +1940,7 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
             Cmpi.convertPyTree2File(tcp2, 'tc2.cgns', ignoreProcNodes=True)
             del tc2
 
+    
     # Initialisation
     if tinit is None: I._initConst(t, loc='centers')
     else:
@@ -1977,20 +1974,12 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
                 C._initVars(zone, 'centers:MomentumY', 0.)
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
-    # Save t    
-    #if not redistribute:
-    #    tc_local = Internal.rmNodesByName(tc,'GridCoordinates')
-    #    Internal._rmNodesByName(tc_local,'ID*')
-    #    Internal._rmNodesByName(tc_local,'IBCD*')
-    #    Cmpi.convertPyTree2File(tc_local, tmpFilename, ignoreProcNodes=True)
-    #    if rank ==0:
-    #        tc_local= C.convertFile2PyTree(tmpFilename)
-    #        checkNcellsNptsPerProc(tc_local,Cmpi.size,isAtCenter=True)
-    #        del tc_local
-    #        if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
-    #else:
-    if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
-     
+    if not redistribute:
+        tc_tmp=Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
+        if rank ==0:checkNcellsNptsPerProc(tc_tmp,Cmpi.size,isAtCenter=True)
+        del tc_tmp
+        
+    # Save t         
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
@@ -2989,31 +2978,18 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         D2._copyDistribution(t, tbbc)
 
     del tbbc
-
-    
     
     if redistribute:
-        tmpFilename = 'tmp_tc_IBM_prep'    
-        #localUser= getpass.getuser()
-        #localPc  = socket.gethostname().split('-')
-        #if 'sator' not in localPc:
-        #    path2writetmp='/stck/'+localUser+'/'
-        #else:
-        #    path2writetmp='/tmp_user/sator/'+localUser+'/'
-        #tmpFilename = path2writetmp+tmpFilename+'.cgns'
-        tmpFilename = tmpFilename+'.cgns'
+        import Distributor2.Mpi as D2mpi
+        tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
+        stats  = D2._distribute(tcs, NP, algorithm='graph')
+        if rank ==0:checkNcellsNptsPerProc(tcs,Cmpi.size,isAtCenter=True)
+        D2._copyDistribution(tc, tcs)
+        D2._copyDistribution(t , tcs)
+        D2mpi._redispatch(tc)
+        D2mpi._redispatch(t)
         
-        # Distribute over NP procs
-        if rank == 0: print("REDISTRIBUTE - Final")
-        tcp = Compressor.compressCartesian(tc)
-        Cmpi.convertPyTree2File(tcp, tmpFilename, ignoreProcNodes=True)
-        del tcp
-
-        tc    = Cmpi.convertFile2PyTree(tmpFilename)
-        stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
-        D2._copyDistribution(t, tc)    
-        if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
-
+    
     #-----------------------------------------
     # Computes distance field for Musker only
     #-----------------------------------------
@@ -3084,7 +3060,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
             tcp2 = Compressor.compressCartesian(tc2)
             Cmpi.convertPyTree2File(tcp2, 'tc2.cgns', ignoreProcNodes=True)
             del tc2
-
+    
     # Initialisation
     if tinit is None: I._initConst(t, loc='centers')
     else:
@@ -3118,21 +3094,12 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                 C._initVars(zone, 'centers:MomentumY', 0.)
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
-    # Save t    
-    #if not redistribute:
-    #    tc_local = Internal.rmNodesByName(tc,'GridCoordinates')
-    #    Internal._rmNodesByName(tc_local,'ID*')
-    #    Internal._rmNodesByName(tc_local,'IBCD*')
-    #    Cmpi.convertPyTree2File(tc_local, tmpFilename, ignoreProcNodes=True)
-    #    if rank ==0:
-    #        tc_local= C.convertFile2PyTree(tmpFilename)
-    #        checkNcellsNptsPerProc(tc_local,Cmpi.size,isAtCenter=True)
-    #        del tc_local
-    #        if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
-    #else:
-    #    if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
-    if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
-     
+    if not redistribute:
+        tc_tmp=Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
+        if rank ==0:checkNcellsNptsPerProc(tc_tmp,Cmpi.size,isAtCenter=True)
+        del tc_tmp
+        
+    # Save t
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
@@ -3220,7 +3187,7 @@ def checkNcellsNptsPerProc(ts,NP,isAtCenter=False):
         for z in Internal.getZones(ts):
             if Cmpi.getProc(z) == i:
                 NPTS += C.getNPts(z)
-                if isAtCenter:
+                if not isAtCenter:
                     NCELLS += C.getNCells(z)
                 else:
                     NCELLS=NPTS
@@ -3255,14 +3222,15 @@ class IBM(Common):
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                 tbox=None, snearsf=None, yplus=100.,
                 vmin=21, check=False, frontType=1, NP=None, expand=3, tinit=None,
-                initWithBBox=-1., wallAdapt=None,dfarDir=0):
+                initWithBBox=-1., wallAdapt=None,dfarDir=0,redistribute=False):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for an IBM computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                       tbox=tbox, snearsf=snearsf, yplus=yplus,
                       vmin=vmin, check=check, NP=NP, format=self.data['format'],
-                      frontType=frontType, expand=expand, tinit=tinit, dfarDir=dfarDir)
+                      frontType=frontType, expand=expand, tinit=tinit, dfarDir=dfarDir,
+                      redistribute=redistribute)
         return ret
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces
