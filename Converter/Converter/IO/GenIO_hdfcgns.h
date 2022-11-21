@@ -149,7 +149,9 @@ class GenIOHdf
     PyObject* getArrayR4Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     #define getArrayR4 getArrayR42R8
     PyObject* getArrayI1(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayI4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI4Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI42I8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    #define getArrayI4 getArrayI4Raw
     PyObject* getArrayI82I4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI8Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     #ifdef E_DOUBLEINT

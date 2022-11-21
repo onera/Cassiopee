@@ -691,8 +691,8 @@ class Handle:
         z = Internal.getNodeFromPath(a, zn)
         if z[1] is not None:
           pt = z[1].ravel('k')
-          if pt[2] == 0: s = pt[0]
-          else: s = pt[0]*pt[1]*pt[2]
+          if len(pt) == 6: s = pt[0]*pt[1]*pt[2]
+          else: s = pt[0]
         else: s = 0
         self.size[zn] = s
     else: a = None
