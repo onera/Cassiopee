@@ -82,7 +82,7 @@ then
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex Connector >& /dev/null
-    pdflatex Connector_IBM 
+    pdflatex Connector_IBM >& /dev/null
     #pdflatex ConnectorMpi
     #pdflatex OversetData
     #pdflatex OversetDataElsA

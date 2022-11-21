@@ -83,8 +83,7 @@ then
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex Geom >& /dev/null
-    #pdflatex Geom_IBM >& /dev/null
-    pdflatex Geom_IBM 
+    pdflatex Geom_IBM >& /dev/null 
     cd ..
 fi
 

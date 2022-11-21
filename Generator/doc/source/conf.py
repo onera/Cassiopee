@@ -213,6 +213,8 @@ latex_elements = {
 latex_documents = [
   ('Generator', 'Generator.tex', u'Generator Documentation',
    u'/ELSA/MU-09022/V'+__version__, 'manual'),
+  ('Generator_IBM', 'Generator_IBM.tex', u'Generator IBM Documentation',
+   u'/ELSA/MU-09022/V'+__version__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

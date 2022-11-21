@@ -212,6 +212,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('Connector', 'Connector.tex', u'Connector Documentation',
+   u'/ELSA/MU-090XX/V'+__version__, 'manual'),
+  ('Connector_IBM', 'Connector_IBM.tex', u'Connector IBM Documentation',
    u'/ELSA/MU-090XX/V'+__version__, 'manual')
 ]
 

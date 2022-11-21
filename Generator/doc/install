@@ -83,7 +83,7 @@ then
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex Generator >& /dev/null
-    pdflatex Generator_IBM 
+    pdflatex Generator_IBM >& /dev/null
     cd ..
 fi
 
