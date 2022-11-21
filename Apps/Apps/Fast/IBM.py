@@ -81,7 +81,7 @@ def _change_name_IBCD(tc2,NewIBCD):
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None, yplus=100.,
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, recomputeDist=True):
+            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, recomputeDist=False):
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
@@ -102,7 +102,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 #================================================================================
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
-             vmin=21, check=False, NP=0, format='single', frontType=1, recomputeDist=True,
+             vmin=21, check=False, NP=0, format='single', frontType=1, recomputeDist=False,
              expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -892,7 +892,7 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
 def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100., Lref=1.,
              vmin=21, check=False, NP=0, format='single', interpDataType=0, order=2, ext=2,
-             frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=True,
+             frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
              isoverideheight=False,isFilamentOnly=False,closedSolid=[],isWireModel=False, cleanCellN=True):
@@ -1861,7 +1861,7 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
                       zz  = r[l]*numpy.sin( theta[l] )
                       r[l]= yy; theta[l] = zz
     if redistribute:
-        tmpFilename = 'tmp_tc_IBM_prep'
+        tmpFilename = 'tmp_tc_IBM_prep.cgns'
         # Distribute over NP procs
         if rank == 0: print("REDISTRIBUTE - Final")
         tcp = Compressor.compressCartesian(tc)
@@ -1978,19 +1978,18 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
     # Save t    
-    if not redistribute:
-        tmpFilename = 'tmp_tc_IBM_prep'
-        tc_local = Internal.rmNodesByName(tc,'GridCoordinates')
-        Internal._rmNodesByName(tc_local,'ID*')
-        Internal._rmNodesByName(tc_local,'IBCD*')
-        Cmpi.convertPyTree2File(tc_local, tmpFilename, ignoreProcNodes=True)
-        if rank ==0:
-            tc_local= C.convertFile2PyTree(tmpFilename)
-            checkNcellsNptsPerProc(tc_local,Cmpi.size,isAtCenter=True)
-            del tc_local
-            if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
-    else:
-        if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
+    #if not redistribute:
+    #    tc_local = Internal.rmNodesByName(tc,'GridCoordinates')
+    #    Internal._rmNodesByName(tc_local,'ID*')
+    #    Internal._rmNodesByName(tc_local,'IBCD*')
+    #    Cmpi.convertPyTree2File(tc_local, tmpFilename, ignoreProcNodes=True)
+    #    if rank ==0:
+    #        tc_local= C.convertFile2PyTree(tmpFilename)
+    #        checkNcellsNptsPerProc(tc_local,Cmpi.size,isAtCenter=True)
+    #        del tc_local
+    #        if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
+    #else:
+    if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
      
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
@@ -2018,7 +2017,7 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
 def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100., Lref=1.,
              vmin=21, check=False, NP=0, format='single', interpDataType=0, order=2, ext=2,
-             frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
+             frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100.,
              dfarDir=0,dz_in=0.01,span_in=0.25,NPas_in=10,height_in=0.1,
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False,
@@ -2991,16 +2990,19 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
 
     del tbbc
 
-    tmpFilename = 'tmp_tc_IBM_prep'    
-    localUser= getpass.getuser()
-    localPc  = socket.gethostname().split('-')
-    if 'sator' not in localPc:
-        path2writetmp='/stck/'+localUser+'/'
-    else:
-        path2writetmp='/tmp_user/sator/'+localUser+'/'
-    tmpFilename = path2writetmp+tmpFilename+'.cgns'
+    
     
     if redistribute:
+        tmpFilename = 'tmp_tc_IBM_prep'    
+        #localUser= getpass.getuser()
+        #localPc  = socket.gethostname().split('-')
+        #if 'sator' not in localPc:
+        #    path2writetmp='/stck/'+localUser+'/'
+        #else:
+        #    path2writetmp='/tmp_user/sator/'+localUser+'/'
+        #tmpFilename = path2writetmp+tmpFilename+'.cgns'
+        tmpFilename = tmpFilename+'.cgns'
+        
         # Distribute over NP procs
         if rank == 0: print("REDISTRIBUTE - Final")
         tcp = Compressor.compressCartesian(tc)
@@ -3117,18 +3119,19 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
     # Save t    
-    if not redistribute:
-        tc_local = Internal.rmNodesByName(tc,'GridCoordinates')
-        Internal._rmNodesByName(tc_local,'ID*')
-        Internal._rmNodesByName(tc_local,'IBCD*')
-        Cmpi.convertPyTree2File(tc_local, tmpFilename, ignoreProcNodes=True)
-        if rank ==0:
-            tc_local= C.convertFile2PyTree(tmpFilename)
-            checkNcellsNptsPerProc(tc_local,Cmpi.size,isAtCenter=True)
-            del tc_local
-            if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
-    else:
-        if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
+    #if not redistribute:
+    #    tc_local = Internal.rmNodesByName(tc,'GridCoordinates')
+    #    Internal._rmNodesByName(tc_local,'ID*')
+    #    Internal._rmNodesByName(tc_local,'IBCD*')
+    #    Cmpi.convertPyTree2File(tc_local, tmpFilename, ignoreProcNodes=True)
+    #    if rank ==0:
+    #        tc_local= C.convertFile2PyTree(tmpFilename)
+    #        checkNcellsNptsPerProc(tc_local,Cmpi.size,isAtCenter=True)
+    #        del tc_local
+    #        if rank==0 and os.path.exists(tmpFilename): os.remove(tmpFilename)
+    #else:
+    #    if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
+    if rank ==0:checkNcellsNptsPerProc(tc,Cmpi.size,isAtCenter=True)
      
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
