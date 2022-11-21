@@ -648,6 +648,22 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'irene': [ 'TGCC machine Irene-skylake-partition',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=32'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'topaze': [ 'CCRT machine Topaze',
 'ifort', # f77compiler
 'ifort', # f90compiler

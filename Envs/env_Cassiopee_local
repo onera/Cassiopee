@@ -40,6 +40,7 @@ set MAC0=`echo $KC | grep 'xdaap'`; if ($%MAC0 != 0) set MAC="xdaap"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro"
 set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
 set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
+set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
 set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 
 if ($?MACHINE != 0) then
@@ -445,6 +446,24 @@ else if ($MAC == "cobalt") then
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
+else if ($MAC == "tgcc_irene") then
+#------------------------------- cobalt ---------------------------------------
+        setenv ELSAPROD irene_r8
+        # Nombre de threads
+        setenv OMP_NUM_THREADS 24
+        # modules
+	module purge
+	module load intel/20
+	module load mpi/openmpi
+	module load python/2.7.14
+	module load hdf5/1.8.20
+	#module load scons/3.0.1
+
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+	
 else if ($MAC == "eos") then
 #-------------------------------- ld (centos6) -----------------------------------------
         ELSAPROD x86_r8

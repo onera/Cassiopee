@@ -42,12 +42,13 @@ MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_br
 MAC0=$(echo $KC | grep 'xdaap'); if [ "$MAC0" != "" ]; then export MAC="xdaap"; fi
 MAC0=$(echo $KC | grep 'spiro'); if [ "$MAC0" != "" ]; then export MAC="spiro"; fi
 MAC0=$(echo $KC | grep 'cobalt'); if [ "$MAC0" != "" ]; then export MAC="cobalt"; fi
+MAC0=$(echo $KC | grep 'irene'); if [ "$MAC0" != "" ]; then export MAC="irene"; fi
 MAC0=$(echo $KC | grep 'node6.cluster'); if [ "$MAC0" != "" ]; then export MAC="macosx"; fi
 
 if [ "$MACHINE" != "" ]; then
     export MAC=$MACHINE
 fi
-
+echo 'Cassiopee :: MACHINE NAME::'$MAC, $KC, $MACHINE
 # ----------------------------- Common ----------------------------------------
 
 if [ "$MAC" = "ld" ]; then
@@ -376,6 +377,25 @@ elif [ "$MAC" = "cobalt" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages   
+elif [ "$MAC" = "tgcc_irene" ]; then 
+#-------------------------------- irene -----------------------------------------
+    export ELSAPROD=irene_r8
+    # Nbre de threads
+    export OMP_NUM_THREADS=24
+    echo 'TGCC_IRENE SH_CASSIOPEE_LOCAL _v2'
+    # modules 
+    module purge
+    module load intel/20
+    module load mpi/openmpi
+    module load python/2.7.14
+    module load hdf5/1.8.20
+    #module load scons/3.0.1
+
+    # Chemin de l'executable python
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages  
 
 elif [ "$MAC" = "xdaap" ]; then
 #----------------------------- xdaap -----------------------------------------
