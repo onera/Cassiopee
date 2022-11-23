@@ -48,7 +48,7 @@ MAC0=$(echo $KC | grep 'node6.cluster'); if [ "$MAC0" != "" ]; then export MAC="
 if [ "$MACHINE" != "" ]; then
     export MAC=$MACHINE
 fi
-echo 'Cassiopee :: MACHINE NAME::'$MAC, $KC, $MACHINE
+#echo 'Cassiopee :: MACHINE NAME::'$MAC, $KC, $MACHINE
 # ----------------------------- Common ----------------------------------------
 
 if [ "$MAC" = "ld" ]; then

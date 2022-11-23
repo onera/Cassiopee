@@ -340,24 +340,6 @@ def writeEnvs():
     p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
 
 #==============================================================================
-# Creation intel compiler + on le met si Cppcompiler = icc
-#==============================================================================
-try: from KCore.config import Cppcompiler
-except: from config import Cppcompiler
-if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
-    def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
-        from numpy.distutils.intelccompiler import IntelCCompiler
-        compiler = IntelCCompiler(None, dry_run, force)
-        compiler.cc_exe = Cppcompiler
-        compiler.set_executables(compiler=Cppcompiler, compiler_cxx=Cppcompiler, compiler_so=Cppcompiler,
-                                linker_exe=Cppcompiler, linker_so=Cppcompiler+' -shared')
-        return compiler
-
-    from distutils import ccompiler
-    import numpy.distutils.ccompiler
-    ccompiler.new_compiler = new_compiler
-
-#==============================================================================
 # Write setup.cfg en fonction du compilateur C++ (si different de None)
 # setup.cfg est utilise par setup de python pour choisir le compilo.
 #==============================================================================
@@ -556,6 +538,8 @@ def getSimd():
 # Retourne les options SIMD pour les compilateurs
 # Se base sur les options precedentes qui doivent contenir -DSIMD
 def getSimdOptions():
+    try: from KCore.config import Cppcompiler
+    except: from config import Cppcompiler
     options = getCppAdditionalOptions()
     simd = ''
     for i in options:
@@ -1330,9 +1314,9 @@ def checkMpeg(additionalLibPaths=[], additionalIncludePaths=[]):
             l = checkLibFile__('libavcodec.dll.a', additionalLibPaths)
     i = checkIncFile__('libavcodec/avcodec.h', additionalIncludePaths)
     if i is not None:
-         i = checkIncFile__('libavutil/mem.h', additionalIncludePaths)
+        i = checkIncFile__('libavutil/mem.h', additionalIncludePaths)
     if i is not None:
-         i = checkIncFile__('libavutil/imgutils.h', additionalIncludePaths)
+        i = checkIncFile__('libavutil/imgutils.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: mpeg detected at %s.'%l)
         return (True, i, l)
@@ -1527,13 +1511,13 @@ def checkCuda(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkPyParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
-    try: import pyPdm
+    try: import XCore.Pypdm
     except:
-        print('Info: paradigma was not found on your system.')
+        print('Info: python module for paradigma was not found on your system.')
         return (False, '', '')
 
-    i = pyPdm.__file__
-    print('Info: paradigma detected at %s.'%i)
+    i = XCore.Pypdm.__file__
+    print('Info: python module for paradigma detected at %s.'%i)
     return (True, i, '')
 
 #=============================================================================

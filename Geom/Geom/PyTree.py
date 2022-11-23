@@ -442,7 +442,7 @@ def _smooth(a, eps, niter):
     return None
 
 def getUV(a, normalDeviationWeight=2., texelsPerUnit=0.):
-    """Return uv of surface and atlas"""
+    """Return uv of surface and atlas."""
     b = Internal.getZones(a)[0] # only first zone for now
     array = C.getFields('nodes', b, api=2)[0]
     ret = Geom.getUV(array, normalDeviationWeight, texelsPerUnit)

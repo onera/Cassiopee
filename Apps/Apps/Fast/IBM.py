@@ -81,7 +81,8 @@ def _change_name_IBCD(tc2,NewIBCD):
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None, yplus=100.,
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, recomputeDist=False,redistribute=False):
+            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, 
+            dfarDir=0, recomputeDist=False, redistribute=False):
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
@@ -93,7 +94,8 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                          tbox=tbox, snearsf=snearsf, yplus=yplus, 
                          vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                         expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt, dfarDir=dfarDir,redistribute=redistribute)
+                         expand=expand, tinit=tinit, initWithBBox=initWithBBox, 
+                         wallAdapt=wallAdapt, dfarDir=dfarDir, redistribute=redistribute)
 
     return ret
 
@@ -1863,7 +1865,7 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
         import Distributor2.Mpi as D2mpi
         tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
         stats  = D2._distribute(tcs, NP, algorithm='graph')
-        if rank ==0:checkNcellsNptsPerProc(tcs,Cmpi.size,isAtCenter=True)
+        if rank == 0: checkNcellsNptsPerProc(tcs, Cmpi.size, isAtCenter=True)
         D2._copyDistribution(tc, tcs)
         D2._copyDistribution(t , tcs)
         D2mpi._redispatch(tc)
@@ -1975,8 +1977,8 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
     if not redistribute:
-        tc_tmp=Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
-        if rank ==0:checkNcellsNptsPerProc(tc_tmp,Cmpi.size,isAtCenter=True)
+        tc_tmp = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
+        if rank == 0: checkNcellsNptsPerProc(tc_tmp, Cmpi.size, isAtCenter=True)
         del tc_tmp
         
     # Save t         
@@ -2983,7 +2985,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         import Distributor2.Mpi as D2mpi
         tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
         stats  = D2._distribute(tcs, NP, algorithm='graph')
-        if rank ==0:checkNcellsNptsPerProc(tcs,Cmpi.size,isAtCenter=True)
+        if rank == 0: checkNcellsNptsPerProc(tcs, Cmpi.size, isAtCenter=True)
         D2._copyDistribution(tc, tcs)
         D2._copyDistribution(t , tcs)
         D2mpi._redispatch(tc)
@@ -3095,8 +3097,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
     if not redistribute:
-        tc_tmp=Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
-        if rank ==0:checkNcellsNptsPerProc(tc_tmp,Cmpi.size,isAtCenter=True)
+        tc_tmp = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
+        if rank == 0: checkNcellsNptsPerProc(tc_tmp, Cmpi.size, isAtCenter=True)
         del tc_tmp
         
     # Save t
@@ -3187,10 +3189,8 @@ def checkNcellsNptsPerProc(ts,NP,isAtCenter=False):
         for z in Internal.getZones(ts):
             if Cmpi.getProc(z) == i:
                 NPTS += C.getNPts(z)
-                if not isAtCenter:
-                    NCELLS += C.getNCells(z)
-                else:
-                    NCELLS=NPTS
+                if not isAtCenter: NCELLS += C.getNCells(z)
+                else: NCELLS = NPTS
         ncellslocal.append(NCELLS)
         nptslocal.append(NPTS)
                            
@@ -3222,7 +3222,7 @@ class IBM(Common):
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                 tbox=None, snearsf=None, yplus=100.,
                 vmin=21, check=False, frontType=1, NP=None, expand=3, tinit=None,
-                initWithBBox=-1., wallAdapt=None,dfarDir=0,redistribute=False):
+                initWithBBox=-1., wallAdapt=None, dfarDir=0, redistribute=False):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for an IBM computation on %d processors.'%NP)
