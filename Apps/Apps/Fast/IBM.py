@@ -638,7 +638,6 @@ def extrudeCartesian(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10, spa
 
          yy_2d   = Internal.getNodeFromName(z, "CoordinateY")[1]
          zz_2d   = Internal.getNodeFromName(z, "CoordinateZ")[1]
-         theta0  = numpy.arctan(zz_2d/yy_2d)
 
          sh_2d   = numpy.shape(yy_2d)
       
@@ -648,7 +647,6 @@ def extrudeCartesian(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10, spa
          yy   = Internal.getNodeFromName(z, "CoordinateY")[1]
 
          r       = numpy.sqrt( zz**2+yy**2)
-         #theta0  = numpy.arctan(zz[:,:,0]/yy[:,:,0])
 
          perio_loc = perio
          if c==1: period_loc= perio*1.5
@@ -660,6 +658,7 @@ def extrudeCartesian(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10, spa
               for k in range( sh[1]):
                   zz[:,k] = (k-ific)* dz_loc[z[0]]
             else:
+              theta0  = numpy.arctan(zz_2d/yy_2d)
               for k in range( sh[1]):
                   shift = perio_loc/float(sh[1]-5.)*(k-ific)
                   zz[:,k] = r[:,0]*numpy.sin(theta0[:] + shift)
@@ -669,6 +668,7 @@ def extrudeCartesian(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10, spa
               for k in range(sh[2]):
                 zz[:,:,k] = (k-ific)* dz_loc[z[0]]
             else:
+              theta0  = numpy.arctan(zz_2d/yy_2d)
               for k in range(sh[2]):
                 shift = perio_loc/float(sh[2]-5.)*(k-ific)
                 zz[:,:,k] = r[:,:,0]*numpy.sin(theta0[:,:,0] + shift)
@@ -758,7 +758,7 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
 
    overlap     ='14'
    InterpOrder =2
-   root_racHybride='join'
+   root_racHybride='joinIBC'
 
    #ajout 2 ghost maillag curvi
    Internal._addGhostCells(t_curvi, t_curvi, 2, adaptBCs=1, fillCorner=0)
@@ -774,7 +774,6 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
         C._fillEmptyBCWith(z,'trou','BCOverlap',dim=dimPb)
         X._applyBCOverlaps(z,loc='centers',depth=2, val=0)
         X._applyBCOverlaps(z,loc='centers',depth=4, val=2)
-
 
    if extrusion =='cyl':
      T._cart2Cyl(t_3d , (0,0,0),(1,0,0))
@@ -824,10 +823,12 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
      cellN          = Internal.getNodeFromName(sol,'cellN')[1]
      C._initVars(z,"{centers:cellN}={centers:cellN#racChim}")
      sh             = numpy.shape(cellN)
-     for k in [0,1, sh[2]-2, sh[2]-1]:
-       for j in range(sh[1]):
-          for i in range(sh[0]):
-             if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
+
+     if sh[2]> 1:
+       for k in [0,1, sh[2]-2, sh[2]-1]:
+         for j in range(sh[1]):
+            for i in range(sh[0]):
+               if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
 
    interDict = X.getIntersectingDomains(tBB, t2=tBB2, method='AABB', taabb=tBB, taabb2=tBB2)
    print(" Interp Cartesian from curvilinear")
@@ -847,7 +848,6 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
    print(" Interp curvi from Cartesian")
    for z in Internal.getZones(t_curvi):
      if C.getMaxValue(z,'centers:cellN')==2:
-        print(z[0])
      #if 'join' in z[0]:
         dnrZones = []    
         for zdname in interDict_curvi[z[0]]:
