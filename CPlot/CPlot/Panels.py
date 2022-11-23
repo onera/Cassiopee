@@ -252,9 +252,10 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText += " - tetgen (see Generator/Tetgen/LICENSE).\n"
     myText += " - metis (see KCore/Metis/LICENSE).\n"
     myText += " - scotch (see XCore/scotch/LICENSE).\n"
+    myText += " - paradigma (see paradigma/LICENSE).\n"
     myText += " - MMGs (see Generator/MMGS/LICENSE).\n"
     myText += " - opencascade (see opencascade/LICENSE_LGPL_21.txt).\n"
-    myText += " - paradigma (see paradigma/LICENSE).\n"
+    myText += " - xatlas (see Geom/xatlas/LICENCE).\n"
     
     textWidget.insert(TK.END, myText)
     return

@@ -470,7 +470,7 @@ Exchanges
 Actions
 -------------
 
-.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, stdout=False):
+.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, stdout=False)
 
     Enable to monitor CPU usage and memory usage for each node/process.
     If stdout=False, information is written in procXX.out files, one for each process.
@@ -491,6 +491,7 @@ Actions
 
     .. literalinclude:: ../build/Examples/Converter/tracePT.py
 
+---------------------------------------------------------------------------
 
 .. py:function:: Converter.Mpi.center2Node(t, var=None, cellNType=0, graph=None)
 

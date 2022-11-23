@@ -10,7 +10,7 @@ import KCore.kcore as KCore
 from . import converter
 
 # INT size for numpys connectivities
-from KCore.Dist import EDOUBLEINT 
+from KCore.Dist import EDOUBLEINT
 if EDOUBLEINT: __E_NPY_INT__ = numpy.int64
 else: __E_NPY_INT__ = numpy.int32
 
