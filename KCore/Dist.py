@@ -2039,14 +2039,16 @@ def getEnvForScons():
 #==============================================================================
 # Ajoute le fortran builder a env
 # IN: dirs: include paths
-def createFortranBuilder(env, dirs=[]):
+def createFortranBuilder(env, dirs=[], additionalPPArgs='', additionalFortranArgs=[]):
     import SCons
     from SCons.Builder import Builder
     # Pre-processing
     path = ''
     for i in dirs: path += '"%s" -I'%i
     if path != '': path = path[:-3]
-    bld = Builder(action=getPP()+'%s $SOURCES $TARGETS'%path, suffix='.f',
+    PP = getPP()
+    if additionalPPArgs != '': PP = PP[0:-2]+' '+additionalPPArgs+' -I'
+    bld = Builder(action=PP+'%s $SOURCES $TARGETS'%path, suffix='.f',
                   src_suffix='.for')
     env.Append(BUILDERS={'FPROC': bld})
     # Fortran compiler
@@ -2064,6 +2066,7 @@ def createFortranBuilder(env, dirs=[]):
     env.Replace(FORTRANMODDIRPREFIX=pref) # doesnt work
     env.Replace(FORTRANMODDIR='MODS') # doesnt work
     args = getForArgs()
+    args += additionalFortranArgs
     if pref != '': args += [pref,'build'] # trick
     env.Replace(FORTRANFLAGS=args)
     return env

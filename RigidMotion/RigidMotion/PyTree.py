@@ -54,7 +54,7 @@ def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
 
         # Set it
         motion[2] = []
-        motion[2].append(['MotionType', numpy.array([1], dtype=Internal.__E_NPY_INT__), [], 'DataArray_t'])
+        motion[2].append(['MotionType', numpy.array([1], dtype=Internal.E_NpyInt), [], 'DataArray_t'])
         motion[2].append(['tx', numpy.fromstring(tx, 'c'), [], 'DataArray_t'])
         motion[2].append(['ty', numpy.fromstring(ty, 'c'), [], 'DataArray_t'])
         motion[2].append(['tz', numpy.fromstring(tz, 'c'), [], 'DataArray_t'])
@@ -129,7 +129,7 @@ def _setPrescribedMotion2(t, name,
 
         # Set it
         motion[2] = []
-        motion[2].append(['MotionType', numpy.array([2], dtype=Internal.__E_NPY_INT__),
+        motion[2].append(['MotionType', numpy.array([2], dtype=Internal.E_NpyInt),
                           [], 'DataArray_t'])
         motion[2].append(['transl_speed', numpy.array([transl_speed[0], transl_speed[1], transl_speed[2]], numpy.float64),
                           [], 'DataArray_t'])
@@ -247,7 +247,7 @@ def _setPrescribedMotion3(t, name, transl_speed=(0.,0.,0.),
 
         # Set it
         motion[2] = []
-        motion[2].append(['MotionType', numpy.array([3], dtype=Internal.__E_NPY_INT__),
+        motion[2].append(['MotionType', numpy.array([3], dtype=Internal.E_NpyInt),
                           [], 'DataArray_t'])
         motion[2].append(['transl_speed', numpy.array([transl_speed[0], transl_speed[1], transl_speed[2]], numpy.float64),
                           [], 'DataArray_t'])

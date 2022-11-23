@@ -79,7 +79,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
 
 
         # Creation of a single zone
-        zsize = numpy.empty((1,3), dtype=Internal.__E_NPY_INT__, order='F')
+        zsize = numpy.empty((1,3), dtype=Internal.E_NpyInt, order='F')
         zsize[0,0] = 1; zsize[0,1] = 0; zsize[0,2] = 0
         dictOfZoneFamilies={}
         for z in Internal.getZones(tb):
@@ -194,7 +194,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
         #zcNP = numpy.concatenate(zcNP)
 
     # Creation d une seule zone
-    zsize = numpy.empty((1,3), dtype=Internal.__E_NPY_INT__, order='F')
+    zsize = numpy.empty((1,3), dtype=Internal.E_NpyInt, order='F')
     zsize[0,0] = xNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
     z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
     gc = Internal.newGridCoordinates(parent=z)

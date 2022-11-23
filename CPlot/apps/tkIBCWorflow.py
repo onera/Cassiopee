@@ -185,14 +185,14 @@ def blank():
         if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): surfaces.append(z)
+                if z[0] == sname[1]: surfaces.append(z)
     # Reglages XRay
     delta = float(VARS[2].get())
     tol = float(VARS[3].get())
 
     # Blank in/out ?
     # Create blanking Matrix
-    BM = numpy.zeros((1, 1), numpy.int32)
+    BM = numpy.zeros((1, 1), dtype=Internal.E_NpyInt)
     isIn = VARS[4].get()
     if isIn == 'inside': BM[0,0] = 1
     else: BM[0,0] = -1

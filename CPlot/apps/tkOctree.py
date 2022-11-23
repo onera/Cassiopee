@@ -171,7 +171,7 @@ def bodyFit():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     # Blank
-    BM = numpy.zeros((1, 1), numpy.int32); BM[0,0] = 1
+    BM = numpy.zeros((1, 1), dtype=Internal.E_NpyInt); BM[0,0] = 1
     tp = X.blankCells(tp, [surfaces], blankingMatrix=BM,
                       blankingType='node_in', dim=dim)
 
@@ -263,7 +263,7 @@ def adaptInsideOctree():
     # Blank   
     CTK.saveTree()
 
-    BM = numpy.zeros((1, 1), numpy.int32); BM[0,0] = 1
+    BM = numpy.zeros((1, 1), dtype=Internal.E_NpyInt); BM[0,0] = 1
     end = 0
     count = 0
     while end == 0:

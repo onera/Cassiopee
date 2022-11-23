@@ -929,7 +929,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(a2)
     nzones1 = len(zones1); nzones2 = len(zones2)
-    dejaVu = numpy.zeros(nzones2, dtype=Internal.__E_NPY_INT__)
+    dejaVu = numpy.zeros(nzones2, dtype=Internal.E_NpyInt)
 
     locDict={}
     if method == 2:
@@ -1028,7 +1028,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
 
     if not Internal.isTopTree(a2): return a2
 
-    tag = numpy.zeros(nzones1, dtype=Internal.__E_NPY_INT__)
+    tag = numpy.zeros(nzones1, dtype=Internal.E_NpyInt)
     for noz2 in range(nzones2):
         if dejaVu[noz2] > 0: tag[dejaVu[noz2]-1] = 1
 

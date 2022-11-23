@@ -708,13 +708,13 @@ def getBorderIndicesStruct__(prange, dim, direction, d, loc, dimZone, shift=0):
 
     # 3D Treatment
     if dimZone == 3:
-        arrayIndices = numpy.empty((dim1*dim2), dtype=Internal.__E_NPY_INT__, order='F')
+        arrayIndices = numpy.empty((dim1*dim2), dtype=Internal.E_NpyInt, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
                                                  direction, dimZone, d, shift)
     # 2D Treatment
     else:
-        arrayIndices = numpy.empty((dim1), dtype=Internal.__E_NPY_INT__, order='F')
+        arrayIndices = numpy.empty((dim1), dtype=Internal.E_NpyInt, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
                                                  direction, dimZone, d, shift)

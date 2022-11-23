@@ -152,7 +152,7 @@ def blank():
         z = CTK.t[2][nob][2][noz]
         t[2][1][2].append(z)
     # Create blanking Matrix
-    BM = numpy.zeros((1, 1), numpy.int32); BM[0,0] = 1
+    BM = numpy.zeros((1, 1), dtype=Internal.E_NpyInt); BM[0,0] = 1
 
     # BlankCells
     CTK.saveTree()

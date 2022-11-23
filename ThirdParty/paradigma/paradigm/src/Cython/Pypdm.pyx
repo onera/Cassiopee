@@ -57,15 +57,15 @@ ctypedef enum PDM_g_num_npy_t:
 #cdef extern from "pdm_config.h":
 #    ctypedef int G_NpyInt_t
 #    ctypedef int L_NpyInt_t_
-#    ctypedef int __G_T__
-#    ctypedef int __L_T__
+#    ctypedef int G_Int
+#    ctypedef int L_Int
 #    cdef const int __G_NPY_ENUM__
 #ctypedef G_NpyInt_t npy_pdm_gnum_t
 #ctypedef L_NpyInt_t npy_pdm_lnum_t
 #from Internal import E_NpyInt
-#npy_pdm_gnum_dtype = __E_NPY_INT__
-#ctypedef __G_T__ PDM_g_num_t
-#ctypedef __L_T__ PDM_l_num_t
+#npy_pdm_gnum_dtype = E_NpyInt
+#ctypedef G_Int PDM_g_num_t
+#ctypedef L_Int PDM_l_num_t
 #ctypedef int PDM_MPI_Comm
 #ctypedef enum PDM_g_num_npy_t:
 #    PDM_G_NUM_NPY_INT = __G_NPY_ENUM__

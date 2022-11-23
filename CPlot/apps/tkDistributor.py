@@ -108,13 +108,13 @@ def setProc(event=None):
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         nodes = Internal.getNodesFromName1(z, '.Solver#Param')
-        if (nodes != []): param = nodes[0]
+        if nodes != []: param = nodes[0]
         else:
             param = ['.Solver#Param', None, [], 'UserDefinedData_t']
             z[2].append(param)
-        v = numpy.zeros((1,1), numpy.int32); v[0,0] = proc
+        v = numpy.zeros((1,1), dtype=Internal.E_NpyInt); v[0,0] = proc
         nodes = Internal.getNodesFromName(param, 'proc')
-        if (nodes != []):
+        if nodes != []:
             a = nodes[0]; a[1] = v
         else:
             a = ['proc', v, [], 'DataArray_t']
@@ -162,7 +162,7 @@ def computeStats():
          CTK.TXT.insert('START', 'Error: ', 'Error')
          return
 
-    a = numpy.zeros((NProc), numpy.int32)
+    a = numpy.zeros((NProc), dtype=Internal.E_NpyInt)
     m = 0; ntot = 0
     for z in zones:
         param = Internal.getNodesFromName1(z, '.Solver#Param')
@@ -217,12 +217,12 @@ def updateStats():
 
     # Calcul du nombre de pts par proc
     zones = Internal.getZones(CTK.t)
-    a = numpy.zeros((NProc), numpy.int32)
+    a = numpy.zeros((NProc), dtype=Internal.E_NpyInt)
     for z in zones:
         param = Internal.getNodesFromName1(z, '.Solver#Param')
         if param != []:
             proc = Internal.getNodesFromName1(param[0], 'proc')
-            if (proc != []):
+            if proc != []:
                 value = proc[0][1][0,0]
                 dim = Internal.getZoneDim(z)
                 if dim[0] == 'Structured':

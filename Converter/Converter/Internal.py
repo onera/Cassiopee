@@ -11,8 +11,8 @@ from . import converter
 
 # INT size for numpys connectivities
 from KCore.Dist import EDOUBLEINT
-if EDOUBLEINT: __E_NPY_INT__ = numpy.int64
-else: __E_NPY_INT__ = numpy.int32
+if EDOUBLEINT: E_NpyInt = numpy.int64
+else: E_NpyInt = numpy.int32
 
 # Containeurs
 __GridCoordinates__ = 'GridCoordinates'
@@ -248,7 +248,7 @@ def setValue(node, value=None):
             if isinstance(testValue, float) or isinstance(testValue, numpy.float32) or isinstance(testValue, numpy.float64):
                 node[1] = numpy.array(value, dtype=numpy.float64, order='F')
             elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64) or isinstance(testValue,numpy.intc):
-                node[1] = numpy.array(value, dtype=__E_NPY_INT__, order='F')
+                node[1] = numpy.array(value, dtype=E_NpyInt, order='F')
             elif isinstance(testValue, str):
                 if isinstance(value[0], str):
                     size = 0
@@ -277,7 +277,7 @@ def setValue(node, value=None):
             if isinstance(testValue, float) or isinstance(testValue, numpy.float32) or isinstance(testValue, numpy.float64):
                 node[1] = numpy.array(value, dtype=numpy.float64, order='F')
             elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64):
-                node[1] = numpy.array(value, dtype=__E_NPY_INT__, order='F')
+                node[1] = numpy.array(value, dtype=E_NpyInt, order='F')
             elif isinstance(testValue, str):
                 if isinstance(value[0], str):
                     size = 0
@@ -453,7 +453,7 @@ def createRootNode(name='CGNSTree', children=None):
 # -- Create base node named name with dim
 # cellDim=2 (cells surfaciques), cellDim=3 (cells volumiques)
 def createBaseNode(name, cellDim):
-    a = numpy.empty((2), dtype=__E_NPY_INT__)
+    a = numpy.empty((2), dtype=E_NpyInt)
     a[0] = cellDim; a[1] = 3
     return [name, a, [], 'CGNSBase_t']
 
@@ -1067,7 +1067,7 @@ def newBaseIterativeData(name='BaseIterativeData', nsteps=0,
         node = createNode(name, 'BaseIterativeData_t', value=nsteps)
     else: node = createUniqueChild(parent, name, 'BaseIterativeData_t',
                                    value=nsteps)
-    newDataArray(itype, value=numpy.arange(1,nsteps+1, dtype=__E_NPY_INT__), parent=node)
+    newDataArray(itype, value=numpy.arange(1,nsteps+1, dtype=E_NpyInt), parent=node)
     return node
 
 # -- newZoneIterativeData
@@ -2755,7 +2755,7 @@ def range2Window(r):
 
 # -- Convertit une fenetre [imin,imax,jmin,jmax,kmin,kmax] en PointRange pyTree
 def window2Range(win):
-    r = numpy.empty((3,2), dtype=__E_NPY_INT__, order='F')
+    r = numpy.empty((3,2), dtype=E_NpyInt, order='F')
     r[0,0] = win[0]; r[0,1] = win[1]
     r[1,0] = win[2]; r[1,1] = win[3]
     r[2,0] = win[4]; r[2,1] = win[5]
@@ -2789,38 +2789,38 @@ def array2PyTreeDim(a):
         ni = a[2]; nj = a[3]; nk = a[4]
         if ni == 1:
             if nj == 1:
-                d = numpy.empty((1,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = nk
                 d[0,1] = nk-1
                 d[0,2] = 0
             elif nk == 1:
-                d = numpy.empty((1,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = nj
                 d[0,1] = nj-1
                 d[0,2] = 0
             else:
-                d = numpy.empty((2,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((2,3), dtype=E_NpyInt, order='F')
                 d[0,0] = nj;   d[1,0] = nk
                 d[0,1] = nj-1; d[1,1] = nk-1
                 d[0,2] = 0;    d[1,2] = 0
         elif nj == 1:
             if nk == 1:
-                d = numpy.empty((1,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = ni
                 d[0,1] = ni-1
                 d[0,2] = 0
             else:
-                d = numpy.empty((2,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((2,3), dtype=E_NpyInt, order='F')
                 d[0,0] = ni;   d[1,0] = nk
                 d[0,1] = ni-1; d[1,1] = nk-1
                 d[0,2] = 0;    d[1,2] = 0
         elif nk == 1:
-            d = numpy.empty((2,3), dtype=__E_NPY_INT__, order='F')
+            d = numpy.empty((2,3), dtype=E_NpyInt, order='F')
             d[0,0] = ni;   d[1,0] = nj
             d[0,1] = ni-1; d[1,1] = nj-1
             d[0,2] = 0;    d[1,2] = 0
         else:
-            d = numpy.empty((3,3), dtype=__E_NPY_INT__, order='F')
+            d = numpy.empty((3,3), dtype=E_NpyInt, order='F')
             d[0,0] = ni;   d[1,0] = nj;   d[2,0] = nk
             d[0,1] = ni-1; d[1,1] = nj-1; d[2,1] = nk-1
             d[0,2] = 0;    d[1,2] = 0;    d[2,2] = 0
@@ -2829,18 +2829,18 @@ def array2PyTreeDim(a):
             if a[3] == 'NGON':
                 if a[2][3][-1] == a[2][1].size: nelts = a[2][3].size-1
                 else: nelts = a[2][3].size
-                d = numpy.empty((1,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0
             else:
-                d = numpy.empty((1,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = a[1][0].size; d[0,1] = a[2][0].shape[0]; d[0,2] = 0 
         else:   # Array1
             if a[3] == 'NGON':
                 sizeFN = a[2][0,1]; nelts = a[2][0,2+sizeFN]
-                d = numpy.empty((1,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = a[1].shape[1]; d[0,1] = nelts; d[0,2] = 0
             else:
-                d = numpy.empty((1,3), dtype=__E_NPY_INT__, order='F')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = a[1].shape[1]; d[0,1] = a[2].shape[1]; d[0,2] = 0
     else:
         d = None
@@ -2930,7 +2930,7 @@ def createZoneNode(name, array, array2=[],
   # Connectivite
   if len(array) == 4: # non structure
       etype,stype = eltName2EltNo(array[3])
-      i = numpy.empty((2), dtype=__E_NPY_INT__); i[0] = etype; i[1] = 0
+      i = numpy.empty((2), dtype=E_NpyInt); i[0] = etype; i[1] = 0
       if etype == 22: # Faces->Nodes and Elements->Faces connectivities (NGON array)
           if isinstance(array[2], list): # Array2 or array3
             setElementConnectivity2(zone, array)
@@ -2939,7 +2939,7 @@ def createZoneNode(name, array, array2=[],
       else:  # Elements -> Nodes connectivities
           info.append(['GridElements', i, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
-          i = numpy.empty((2), dtype=__E_NPY_INT__); i[0] = 1
+          i = numpy.empty((2), dtype=E_NpyInt); i[0] = 1
           if isinstance(array[2], list): # Array2
              i[1] = array[2][0].shape[0]
              info2.append(['ElementRange', i, [], 'IndexRange_t']) 
@@ -3091,7 +3091,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
-        cr = numpy.empty((1,0), dtype=__E_NPY_INT__); ettype='NODE'
+        cr = numpy.empty((1,0), dtype=E_NpyInt); ettype='NODE'
 
     ettype, stype = eltNo2EltName(eltType)
 
@@ -3210,7 +3210,7 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
         cr = crOut
         eltString = eltString[:-1]
         #if cr == []: # patch empty connect
-        #    c = numpy.empty((1,0), dtype=__E_NPY_INT__)
+        #    c = numpy.empty((1,0), dtype=E_NpyInt)
         #    eltString='NODE'
         #    crOut.append(c)
     else:
@@ -3354,7 +3354,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
-        cr = numpy.empty((1,0), dtype=__E_NPY_INT__); ettype='NODE'; eltType = 0
+        cr = numpy.empty((1,0), dtype=E_NpyInt); ettype='NODE'; eltType = 0
 
     ettype, stype = eltNo2EltName(eltType)
 
@@ -3778,7 +3778,7 @@ def _addOneLayer2BC(a, dir, N=1):
             nom = 0
             for w in winsopp: # passe seult pour les matchs/nearmatch
                 if dir == 3 and len(transf[nom][1]) == 2:
-                    n = numpy.empty((3), dtype=__E_NPY_INT__)
+                    n = numpy.empty((3), dtype=E_NpyInt)
                     n[0] = transf[nom][1][0]; n[1] = transf[nom][1][1]; n[2] = 3
                     transf[nom][1] = n; diropp = 3
                 else: diropp = abs(transf[nom][1][dir-1])
@@ -3841,7 +3841,7 @@ def adaptConnect__(connects, dim):
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
-        return (numpy.empty((1,0), dtype=__E_NPY_INT__), 'NODE')
+        return (numpy.empty((1,0), dtype=E_NpyInt), 'NODE')
 
     np = dim[1]; ne = dim[2]
     ettype, stype = eltNo2EltName(eltType)
@@ -3860,7 +3860,7 @@ def adaptConnect__(connects, dim):
         if c1 is not None and c2 is not None:
             st1 = c1.size; st2 = c2.size
             st = st1 + st2 + 4
-            cr = numpy.empty((1, st), __E_NPY_INT__)
+            cr = numpy.empty((1, st), E_NpyInt)
             converter.cpyConnectP2ConnectA(cr, c1, c2, stype, ne, nfaces, nelts)
     else: # Autres types
         info = connect[2]
@@ -3869,10 +3869,10 @@ def adaptConnect__(connects, dim):
           if i[0] == 'ElementConnectivity':
             c = i[1]
             if c is None: # a NODE
-                cr = numpy.empty((stype, 0), __E_NPY_INT__)
+                cr = numpy.empty((stype, 0), E_NpyInt)
             else:
                 nelts = c.size // stype # elts = ne sauf si MULTIPLE
-                cr = numpy.empty((stype, nelts), __E_NPY_INT__)
+                cr = numpy.empty((stype, nelts), E_NpyInt)
                 c2 = None
                 converter.cpyConnectP2ConnectA(cr, c, c2, stype, nelts, -1, -1)
     return cr, ettype
@@ -3883,14 +3883,14 @@ def adaptConnect__(connects, dim):
 def setElementConnectivity(z, array):
   etype, stype = eltName2EltNo(array[3])
   GENodes = getElementNodes(z)
-  i = numpy.empty((2), dtype=__E_NPY_INT__); i[0] = etype; i[1] = 0
+  i = numpy.empty((2), dtype=E_NpyInt); i[0] = etype; i[1] = 0
   if GENodes == []:
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           z[2].append(['GridElements', i, [], 'Elements_t'])
           info = z[2][len(z[2])-1]
-          i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = array[2].shape[1]
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2].shape[1]
           info[2].append(['ElementRange', i, [], 'IndexRange_t'])
-          connect = numpy.empty((array[2].size), __E_NPY_INT__)
+          connect = numpy.empty((array[2].size), E_NpyInt)
           converter.cpyConnectA2ConnectP(array[2], connect,
                                          stype, array[2].shape[1])
           info[2].append(['ElementConnectivity', connect, [], 'DataArray_t'])
@@ -3903,7 +3903,7 @@ def setElementConnectivity(z, array):
           info2 = info[len(info)-1][2]
           # Size of ElementRange : nb de faces
           nfaces = array[2][0][0]
-          i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = nfaces
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Face/Noeuds
           sizeNGON = array[2][0][1]
@@ -3914,12 +3914,12 @@ def setElementConnectivity(z, array):
           _updateElementRange(z)
           # Creation du noeud NFACE_n: connectivite Elements->Faces
           etype,stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), __E_NPY_INT__); i2[0] = etype; i2[1] = 0
+          i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
           nelts = array[2][0][sizeNGON+2]
-          i = numpy.empty((2), __E_NPY_INT__)
+          i = numpy.empty((2), E_NpyInt)
           i[0] = nfaces+1; i[1] = nfaces+nelts
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Elements/Faces
@@ -3932,9 +3932,9 @@ def setElementConnectivity(z, array):
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           GENodes[0][1] = i
           nodeE = getNodeFromName2(z, 'ElementRange')
-          i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = array[2].shape[1]
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2].shape[1]
           nodeE[1] = i
-          connect = numpy.empty((array[2].size), __E_NPY_INT__)
+          connect = numpy.empty((array[2].size), E_NpyInt)
           converter.cpyConnectA2ConnectP(array[2], connect,
                                          stype, array[2].shape[1])
           nodeE = getNodeFromName2(z, 'ElementConnectivity')
@@ -3956,7 +3956,7 @@ def setElementConnectivity(z, array):
           info2 = info[len(info)-1][2]
           # Size of ElementRange : nb de faces
           nfaces = array[2][0][0]
-          i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = nfaces
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Face/Noeuds
           sizeNGON = array[2][0][1]
@@ -3966,12 +3966,12 @@ def setElementConnectivity(z, array):
           info2.append(['ElementConnectivity', cFN, [], 'DataArray_t'])
           # Creation du noeud NFACE_n : connectivite Elements->Faces
           etype, stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), __E_NPY_INT__); i2[0] = etype; i2[1] = 0
+          i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
           nelts = array[2][0][sizeNGON+2]
-          i = numpy.empty((2), __E_NPY_INT__)
+          i = numpy.empty((2), E_NpyInt)
           i[0] = nfaces+1; i[1] = nfaces+nelts
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Elements/Faces
@@ -3985,12 +3985,12 @@ def setElementConnectivity(z, array):
 def setElementConnectivity2(z, array):
   etype, stype = eltName2EltNo(array[3])
   GENodes = getElementNodes(z)
-  i = numpy.empty((2), __E_NPY_INT__); i[0] = etype; i[1] = 0
+  i = numpy.empty((2), E_NpyInt); i[0] = etype; i[1] = 0
   if GENodes == []:
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           z[2].append(['GridElements', i, [], 'Elements_t'])
           info = z[2][len(z[2])-1]
-          i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = array[2][0].shape[1]
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2][0].shape[1]
           info[2].append(['ElementRange', i, [], 'IndexRange_t'])
           info[2].append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
           _updateElementRange(z)
@@ -4002,7 +4002,7 @@ def setElementConnectivity2(z, array):
           # Size of ElementRange : nb de faces
           if array[2][2][-1] == array[2][0].size: nfaces = array[2][2].size-1
           else: nfaces = array[2][2].size
-          i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = nfaces
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Face/Noeuds
           info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
@@ -4014,13 +4014,13 @@ def setElementConnectivity2(z, array):
           _updateElementRange(z)
           # Creation du noeud NFACE_n: connectivite Elements->Faces
           etype,stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), __E_NPY_INT__); i2[0] = etype; i2[1] = 0
+          i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
           if array[2][3][-1] == array[2][1].size: nelts = array[2][3].size-1
           else: nelts = array[2][3].size
-          i = numpy.empty((2), __E_NPY_INT__)
+          i = numpy.empty((2), E_NpyInt)
           i[0] = nfaces+1; i[1] = nfaces+nelts
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Elements/Faces
@@ -4035,7 +4035,7 @@ def setElementConnectivity2(z, array):
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           GENodes[0][1] = i
           nodeE = getNodeFromName2(z, 'ElementRange')
-          i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = array[2][0].shape[1]
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2][0].shape[1]
           nodeE[1] = i
           nodeE = getNodeFromName2(z, 'ElementConnectivity')
           nodeE[1] = array[2][0]
@@ -4056,7 +4056,7 @@ def setElementConnectivity2(z, array):
           info2 = info[len(info)-1][2]
           # Size of ElementRange : nb de faces
           nfaces = array[2][2].size
-          i = numpy.empty((2), __E_NPY_INT__); i[0] = 1; i[1] = nfaces
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Face/Noeuds
           info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
@@ -4067,12 +4067,12 @@ def setElementConnectivity2(z, array):
             createUniqueChild(info2, 'FaceIndex', 'DataArray_t', array[2][2])
           # Creation du noeud NFACE_n : connectivite Elements->Faces
           etype, stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), __E_NPY_INT__); i2[0] = etype; i2[1] = 0
+          i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
           nelts = array[2][3].size
-          i = numpy.empty((2), __E_NPY_INT__)
+          i = numpy.empty((2), E_NpyInt)
           i[0] = nfaces+1; i[1] = nfaces+nelts
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Elements/Faces
@@ -4392,7 +4392,7 @@ def _adaptZoneBCEltRange2EltList(t):
     for b in bcs:
         r = getNodeFromType1(b, 'IndexRange_t')
         v = getValue(r)
-        val = numpy.arange(v[0][0], v[0][1]+1, dtype=__E_NPY_INT__)
+        val = numpy.arange(v[0][0], v[0][1]+1, dtype=E_NpyInt)
         val = val.reshape((1,val.size))
         setValue(r, val)
         setType(r, 'IndexArray_t')
@@ -4762,7 +4762,7 @@ def convertIJKArray21DArray(*thetuple):
   if len(thetuple) == 4:
     (a,im,jm,km) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), __E_NPY_INT__)
+    b = numpy.empty((1,size), E_NpyInt)
     for l in range(size):
       i = a[0][l]-1; j = a[1][l]-1; k = a[2][l]-1
       ind = adrNode1__(i,j,k,im,jm,km,0)
@@ -4771,7 +4771,7 @@ def convertIJKArray21DArray(*thetuple):
   elif len(thetuple) == 3:
     (a,im,jm) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), __E_NPY_INT__)
+    b = numpy.empty((1,size), E_NpyInt)
     for l in range(size):
       i = a[0][l]-1; j = a[1][l]-1
       ind = adrNode2__(i,j,im,jm,0)
@@ -4779,7 +4779,7 @@ def convertIJKArray21DArray(*thetuple):
   elif len(thetuple) == 2:
     (a,im) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), __E_NPY_INT__)
+    b = numpy.empty((1,size), E_NpyInt)
     for l in range(size):
       b[0][l] = a[l]-1
     return b

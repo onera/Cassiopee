@@ -3,7 +3,7 @@
 from . import Generator as G
 __version__ = G.__version__
 
-from Converter.Internal import __E_NPY_INT__
+from Converter.Internal import E_NpyInt
 
 try: range = xrange
 except: pass
@@ -41,7 +41,7 @@ def polyTri2PolyQuad(polyTri):
     fq = numpy.zeros((3,n+4*ne),dtype=numpy.float64)
     for i in range(n):
         fq[0,i] = f[0,i]; fq[1,i] = f[1,i]; fq[2,i] = f[2,i] 
-    cq = numpy.zeros((4,3*ne), dtype=__E_NPY_INT__)
+    cq = numpy.zeros((4,3*ne), dtype=E_NpyInt)
     
     for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1; ind3 = c[2,i]-1

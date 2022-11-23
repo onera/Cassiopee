@@ -29,7 +29,7 @@ im2 = 201; jm2 = 101; km2 = 2 # dimensions de la zone a patcher
 # nodes: tableau des noeuds globaux correspondant au patch sur c1 en (1,1,1)
 ip = 1; jp = 1; kp = 1
 indp = (kp-1)*im2*jm2 + (jp-1)*im2 + ip-1
-nodes = numpy.arange((im1*jm1*km1), dtype=Internal.__E_NPY_INT__)
+nodes = numpy.arange((im1*jm1*km1), dtype=Internal.E_NpyInt)
 c = 0
 for k in range(0,km1):
     for j in range(0,jm1):
@@ -60,7 +60,7 @@ im2 = 201; jm2 = 101; km2 = 20 # dimensions de la zone a patcher
 # nodes: tableau des noeuds globaux correspondant au patch sur c1 en (1,1,1)
 ip = 1; jp = 1; kp = 1
 indp = (kp-1)*im2*jm2 + (jp-1)*im2 + ip-1
-nodes = numpy.arange((im1*jm1*km1),dtype=Internal.__E_NPY_INT__)
+nodes = numpy.arange((im1*jm1*km1),dtype=Internal.E_NpyInt)
 c = 0
 for k in range(0,km1):
     for j in range(0,jm1):

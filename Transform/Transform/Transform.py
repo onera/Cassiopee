@@ -8,7 +8,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 from . import transform
 try: import Converter 
 except: raise ImportError("Transform: requires Converter module.")
-from Converter.Internal import __E_NPY_INT__
+from Converter.Internal import E_NpyInt
 import numpy
 
 try: range = xrange
@@ -844,7 +844,7 @@ def patch(a1, a2, position=None, nodes=None, order=None):
         return transform.patch(a2, a1, position)
     elif nodes is not None:
         if isinstance(nodes, list):
-            nodes = numpy.asarray(nodes, dtype=__E_NPY_INT__, order='F')
+            nodes = numpy.asarray(nodes, dtype=E_NpyInt, order='F')
         return transform.patch2(a2, a1, nodes)
 
 def oneovern(a, N, add=1):

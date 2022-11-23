@@ -93,7 +93,7 @@ def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='matc
         else:
             param = ['.Solver#Param', None, [], 'UserDefinedData_t']
             z[2].append(param)
-        v = numpy.zeros((1,1), dtype=Internal.__E_NPY_INT__); v[0,0] = procs[i]
+        v = numpy.zeros((1,1), dtype=Internal.E_NpyInt); v[0,0] = procs[i]
         node = Internal.getNodeFromName1(param, 'proc')
         if node is not None:
             a = node; a[1] = v
@@ -136,8 +136,8 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
         #    else: arrays.append(C.getNPts(z))
 
     Nb = len(nbPts)
-    #com = numpy.zeros((Nb, Nb), dtype=Internal.__E_NPY_INT__); comd = None
-    #com = numpy.zeros((Nb, Nb), dtype=Internal.__E_NPY_INT__); comd = {}
+    #com = numpy.zeros((Nb, Nb), dtype=Internal.E_NpyInt); comd = None
+    #com = numpy.zeros((Nb, Nb), dtype=Internal.E_NpyInt); comd = {}
     com = None; comd = {}
     
     if useCom == 'match' or useCom == 'all':
@@ -367,7 +367,7 @@ def _copyDistribution(a, b):
             else:
                 param = ['.Solver#Param', None, [], 'UserDefinedData_t']
                 z[2].append(param)
-            v = numpy.zeros((1,1), dtype=Internal.__E_NPY_INT__); v[0,0] = proc
+            v = numpy.zeros((1,1), dtype=Internal.E_NpyInt); v[0,0] = proc
             node = Internal.getNodeFromName1(param, 'proc')
             if node is not None:
                 a = node; a[1] = v
@@ -456,8 +456,8 @@ def stats(t, useCom='match', mode='nodes'):
     NProc = 0; nbTot = 0
     zones = Internal.getZones(t)
     nzones = len(zones)
-    nbPts = numpy.empty( (nzones), dtype=Internal.__E_NPY_INT__ )
-    out = numpy.empty( (nzones), dtype=Internal.__E_NPY_INT__ )
+    nbPts = numpy.empty( (nzones), dtype=Internal.E_NpyInt )
+    out = numpy.empty( (nzones), dtype=Internal.E_NpyInt )
 
     for c, z in enumerate(zones):
         if mode == 'nodes': np = C.getNPts(z)
@@ -497,7 +497,7 @@ def stats(t, useCom='match', mode='nodes'):
     if comd is not None:    
         allkeys = comd.keys()
         size = len(allkeys)
-        volComd = numpy.empty((2*size), dtype=Internal.__E_NPY_INT__)
+        volComd = numpy.empty((2*size), dtype=Internal.E_NpyInt)
         for i, k in enumerate(allkeys):
             volComd[2*i] = k
             volComd[2*i+1] = comd[k]

@@ -1024,13 +1024,13 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
              if ESO is not None: ESO = ESO[1]
 
              # to be removed (only used by elsA for nothing)
-             sct = numpy.arange((nfaces), dtype=Internal.__E_NPY_INT__)
+             sct = numpy.arange((nfaces), dtype=Internal.E_NpyInt)
              Internal.newDataArray('SortedCrossTable', value=sct, parent=child)
-             inct = numpy.empty((nfaces), dtype=Internal.__E_NPY_INT__)
+             inct = numpy.empty((nfaces), dtype=Internal.E_NpyInt)
              if ESO is None: Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
              # OK
-             ict = -1*numpy.ones((nfaces), dtype=Internal.__E_NPY_INT__)
-             bcct = -1*numpy.ones((nfaces), dtype=Internal.__E_NPY_INT__)
+             ict = -1*numpy.ones((nfaces), dtype=Internal.E_NpyInt)
+             bcct = -1*numpy.ones((nfaces), dtype=Internal.E_NpyInt)
              Internal.newDataArray('InversedCrossTable', value=ict, parent=child)
              Internal.newDataArray('BCCrossTable', value=bcct, parent=child)
              if axe2D > 0:
