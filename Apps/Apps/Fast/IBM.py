@@ -899,7 +899,7 @@ def prepare1_IM(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10.
              isoverideheight=False,isFilamentOnly=False,closedSolid=[],isWireModel=False, cleanCellN=True):
 
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
-    else: tb = t_case
+    else: tb = Internal.copyTree(t_case)
 
     isOrtho_Project_First = isFilamentOnly
     if not closedSolid and not isFilamentOnly:
@@ -2017,7 +2017,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
              IBCType=1,isFilamentOnly=False,closedSolid=[],isWireModel=False, cleanCellN=True):
 
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
-    else: tb = t_case
+    else: tb = Internal.copyTree(t_case)
 
     isOrtho_Project_First = isFilamentOnly
     if not closedSolid and not isFilamentOnly:

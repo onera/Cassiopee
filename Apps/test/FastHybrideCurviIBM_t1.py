@@ -6,6 +6,8 @@ import FastS.PyTree as FastS
 import Converter.PyTree as C
 import Initiator.PyTree as Initiator
 import Generator.PyTree as G
+import Geom.PyTree as D
+import Geom.IBM    as IBM
 import Connector.PyTree as X
 import Converter.Internal as Internal
 import math
@@ -15,24 +17,78 @@ test.TOLERANCE = 1.e-6
 
 LOCAL = test.getLocal()
 
-#load case 2d pour maillage octree 
-tb_2d = C.convertFile2PyTree('cavityCase.cgns')
+#Fabrication case 2d pour maillage octree 
+lines=[]
+lines.append( D.line((0.05,-0.15, 0), (0.1 ,-0.08,0), N=10) )
+lines.append( D.line((0.10,-0.03, 0), (0.1 ,-0.08,0), N=10) )
+lines.append( D.line((0.1 ,-0.03, 0), (0.1 , 0.  ,0), N=8) )
+
+lines.append( D.line((0.15,-0.08, 0), (0.15,-0.03,0), N=10) )
+lines.append( D.line((0.15,-0.08, 0), (0.2 ,-0.15,0), N=10) )
+lines.append( D.line((0.05,-0.15, 0), (0.2 ,-0.15,0), N=10) )
+
+lines.append( D.line((0.15,-0.03, 0), (0.15, 0   ,0), N=8 ) )
+lines.append( D.line((0.10, 0.01, 0), (0.15, 0.01,0), N=10) )
+lines.append( D.line((0.15, 0.01, 0), (0.15, 0   ,0), N=3) )
+lines.append( D.line((0.10, 0.01, 0), (0.10, 0   ,0), N=3) )
+case = C.newPyTree(['BOBY', lines])
+
+IBM._setSnear(case, 0.002)
+IBM._setIBCType(case, "Musker")
+IBM._setDfar(case, 0.)
+IBM._setFluidInside(case)
+
+zones = Internal.getZones(case)
+for z in zones:
+ if '8' in z[0] or '9'  in z[0]  or '6'  in z[0]:
+    IBM._setIBCType(z, "overlap")
+    IBM._setSnear(z, 0.008)
+ if 'line.1' == z[0] or '10'  in z[0]:
+    IBM._setSnear(z, 0.008)
+ if '2' in z[0] or '0'  in z[0]:
+    IBM._setSnear(z, 0.004)
+
+zones[6][0]='line10'
+zones[8][0]='line9'
+U0= 120.0
+P0= 101325.0
+L0= 1.
+R0= 1.18
+T0= 279.15
+
+equation = 'NSLaminar'
+C._addState(case, 'GoverningEquations', equation )
+C._addState(case, 'EquationDimension', 2)
+C._addState(case, UInf=U0, RoInf=R0, PInf=P0, LInf=L0, alphaZ=0., adim='dim3')
+#C.convertPyTree2File(case,'verifcase.cgns')
+'''
+'''
 
 # Prepare cas 2d IBM
-t_2d, tc_2d = App.prepare1_IM('cavityCase.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', frontType=42 ,cleanCellN=False)
+t_2d, tc_2d = App.prepare1_IM(case, None, None, frontType=42 ,cleanCellN=False)
+
+test.testT(tc_2d, 1)
+test.testT(t_2d, 2)
 
 #extrusion 3D IBM
 extrusion ='cart'; span = 0.01
-t_3d, tb_3d = App.extrudeCartesian(t_2d, tb_2d, extrusion=extrusion, NPas=5, span=span)
 
-#calcul interp IBM 3D
+t_3d, tb_3d = App.extrudeCartesian(t_2d, case, extrusion=extrusion, NPas=5, span=span)
+
+test.testT(tb_3d,3)
+test.testT(t_3d, 4)
+
+#calcul interp IBM 3D; celln, distnce paroi 3D,.... deja obtenue lors de l'extrusion
 interpDataType = 1 # on suppose maillage non cartesion pour interp
 order          = 2
 t_3d, tc_3d = App.prepare1_IM(tb_3d,None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order)
 
 Internal._rmNodesFromType(tc_2d,'Rind_t')
 Internal._rmNodesFromName(tc_2d,Internal.__GridCoordinates__)
-test.testT(tc_2d, 1)
+test.testT(tc_3d, 5)
+test.testT(t_3d, 6)
+
+#import sys; sys.exit()
 
 #Maillage plaque plane Curviligne sans ghost
 a = G.cart((0,0,0), (0.005,0.005,0.01), (200,100,5))
@@ -56,14 +112,6 @@ for z in zones:
      coordy[:,j,:]=coordy[:,j-1,:]+0.002*1.02**j
 
 
-U0= 120.0
-P0= 101325.0
-L0= 1.
-R0= 1.18
-T0= 279.15
-
-equation = 'NSLaminar'
-#equation = 'NSTurbulent'
 C._addState(t_curvi, 'GoverningEquations', equation )
 C._addState(t_curvi, 'EquationDimension', 3)
 C._addState(t_curvi, UInf=U0, RoInf=R0, PInf=P0, LInf=L0, alphaZ=0., adim='dim3')
@@ -87,7 +135,6 @@ numz={"time_step": 0.0001, "scheme":"roe","slope":"minmod", "time_step_nature":"
 
 Fast._setNum2Zones(t_final, numz); Fast._setNum2Base(t_final, numb)
 
-#tc_final=None
 (t_final, tc_final, metrics) = FastS.warmup(t_final, tc_final,verbose=1)
 
 
@@ -97,12 +144,12 @@ for it in range(nit):
     if it%25==0:
        FastS.displayTemporalCriteria(t_final, metrics, it)
 
-#C.convertPyTree2File(t_final, 'restart.cgns')
+C.convertPyTree2File(t_final, 'restart.cgns')
 Internal._rmNodesByName(t_final, '.Solver#Param')
 Internal._rmNodesByName(t_final, '.Solver#ownData')
 Internal._rmNodesByName(t_final, '.Solver#dtloc')
 Internal._rmNodesByName(t_final, '*P1*')
 Internal._rmNodesByName(t_final, '*M1*')
 Internal._rmNodesFromType(t_final, 'Rind_t')
-test.testT(t_final, 2)
+test.testT(t_final, 7)
 
