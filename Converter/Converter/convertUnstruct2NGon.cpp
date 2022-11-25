@@ -131,9 +131,10 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   {
     E_Int* cn1 = cnl->begin(1);
     E_Int* cn2 = cnl->begin(2);
+    E_Int v1, v2;
     for (E_Int et = 0; et < nelts; et++)
     {
-      E_Int v1 = cn1[et]; E_Int v2 = cn2[et]; 
+      v1 = cn1[et]; v2 = cn2[et]; 
       // connectivite face/noeuds
       cFN[c1]   = 1; cFN[c1+1] = v1;// face 1
       cFN[c1+2] = 1; cFN[c1+3] = v2;// face 2
@@ -148,9 +149,10 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
     E_Int* cn1 = cnl->begin(1);
     E_Int* cn2 = cnl->begin(2);
     E_Int* cn3 = cnl->begin(3);
+    E_Int v1, v2, v3;
     for (E_Int et = 0; et < nelts; et++)
     {
-      E_Int v1 = cn1[et]; E_Int v2 = cn2[et]; E_Int v3 = cn3[et]; 
+      v1 = cn1[et]; v2 = cn2[et]; v3 = cn3[et]; 
       // connectivite face/noeuds
       cFN[c1]   = 2; cFN[c1+1] = v1; cFN[c1+2] = v2; // face 1
       cFN[c1+3] = 2; cFN[c1+4] = v2; cFN[c1+5] = v3; // face 2
@@ -167,9 +169,10 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
     E_Int* cn2 = cnl->begin(2);
     E_Int* cn3 = cnl->begin(3);
     E_Int* cn4 = cnl->begin(4);
+    E_Int v1, v2, v3, v4;
     for (E_Int et = 0; et < nelts; et++)
     {
-      E_Int v1 = cn1[et]; E_Int v2 = cn2[et]; E_Int v3 = cn3[et]; E_Int v4 = cn4[et]; 
+      v1 = cn1[et]; v2 = cn2[et]; v3 = cn3[et]; v4 = cn4[et]; 
       // connectivite face/noeuds
       cFN[c1]   = 2; cFN[c1+1] = v1;  cFN[c1+2] = v2;// face 1
       cFN[c1+3] = 2; cFN[c1+4] = v2;  cFN[c1+5] = v3;// face 2
@@ -178,7 +181,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
       c1 += 12;
       // connectivite elt/faces
       cEF[c2] = 4; cEF[c2+1] = nof; cEF[c2+2] = nof+1; cEF[c2+3] = nof+2; cEF[c2+4] = nof+3;      
-      c2 += 5;nof += 4;
+      c2 += 5; nof += 4;
     }
   }
   else if (strcmp(eltType, "TETRA") == 0) 
@@ -287,7 +290,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
   E_Float tol = 1.e-12;
   if (posx > 0 && posy > 0 && posz > 0)
-    K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, field, cn);
+    K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, field, cn, false);
 
   PyObject* tpl = K_ARRAY::buildArray(field, varString, 
                                       cn, -1, "NGON");

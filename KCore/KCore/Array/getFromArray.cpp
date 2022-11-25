@@ -209,6 +209,7 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
         K_STRING::cmp(eltType, "PENTA") != 0 &&
         K_STRING::cmp(eltType, "HEXA") != 0 &&
         K_STRING::cmp(eltType, "NGON") != 0 &&
+        K_STRING::cmp(eltType, "MIXED") != 0 &&
         K_STRING::cmp(eltType, "NODE*") != 0 &&
         K_STRING::cmp(eltType, "BAR*") != 0 &&
         K_STRING::cmp(eltType, "TRI*") !=0 &&
@@ -217,7 +218,8 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
         K_STRING::cmp(eltType, "PYRA*") != 0 &&
         K_STRING::cmp(eltType, "PENTA*") != 0 &&
         K_STRING::cmp(eltType, "HEXA*") != 0 &&
-        K_STRING::cmp(eltType, "NGON*") != 0)
+        K_STRING::cmp(eltType, "NGON*") != 0 &&
+        K_STRING::cmp(eltType, "MIXED*") != 0)
     {
       PyErr_Warn(PyExc_Warning,
                  "getFromArray: element type unknown: %s. Must be in NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON or NODE*, BAR*, TRI*, QUAD*, TETRA*, PYRA*, PENTA*, HEXA*, NGON*.");

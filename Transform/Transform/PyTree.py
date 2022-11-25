@@ -2447,7 +2447,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
 
     for ith, listth in enumerate(Thread_z): # get the subzone list for each threads
         for zleaf in enumerate(Thread_z[ith][2]):
-            zind= [s for s in zsplit if zleaf[1] in s[2][:] ] # get the indexes
+            zind = [s for s in zsplit if zleaf[1] in s[2][:] ] # get the indexes
             zomp_threads[zind[0][4]][ith+1].append((zleaf[1],zind[0][0]))
 
     t = C.addVars(t,'centers:thread_number')

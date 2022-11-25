@@ -53,8 +53,7 @@ void K_CONNECT::cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz,
                                   E_Float eps,  const char* eltType, 
                                   FldArrayF& f, FldArrayI& cn, bool remove_degen)
 {
-  if (K_STRING::cmp(eltType, "NGON") == 0 || 
-      K_STRING::cmp(eltType, "NGON*") == 0) 
+  if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0) 
     cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen);
   else
     cleanConnectivityBasic_opt(posx, posy, posz, eps, eltType, f, cn);
@@ -558,7 +557,7 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   }
    
   // 3- Elimination des faces confondues
-  if (ngon_dim ==3) //volumic
+  if (ngon_dim == 3) //volumic
   {
     Vector_t<E_Int> pgnidstmp;
     NG.remove_duplicated_pgs(fcA,pgnidstmp);

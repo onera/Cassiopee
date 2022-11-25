@@ -50,10 +50,10 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
       strcmp(eltTypes, "PENTA") == 0 || strcmp(eltTypes, "BAR")  == 0 || 
       strcmp(eltTypes, "PYRA")  == 0 || strcmp(eltTypes, "NODE") == 0)
   { RELEASESHAREDU(array, f, cnl); return array; }
-  if (strcmp(eltTypes, "NGON") != 0)
+  if (strcmp(eltTypes, "NGON") != 0 && strcmp(eltTypes, "MIXED") != 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
-                    "breakElements: elt type must be NGON.");
+    PyErr_SetString(PyExc_TypeError,
+                    "breakElements: elt type must be NGON or MIXED.");
     RELEASESHAREDU(array, f, cnl); return NULL;    
   }
 
@@ -65,7 +65,11 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0);
 
   vector<E_Int> eltTypev; vector<FldArrayI*> cEV; vector<FldArrayF*> fields;
-  breakNGonElements(*f, *cnl, cEV, fields, eltTypev);
+  
+  if (strcmp(eltTypes, "NGON") == 0)
+    breakNGonElements(*f, *cnl, cEV, fields, eltTypev);
+  else breakMixedElements(*f, *cnl, cEV, fields, eltTypev);
+
   char eltType[10];
   strcpy(eltType, "BAR");
   E_Int cEVsize = cEV.size();
@@ -104,7 +108,7 @@ void K_TRANSFORM::breakNGonElements(
   E_Int* cnp = cNG.begin();
   E_Int nfaces = cnp[0];
   E_Int sizeFN = cnp[1];
-  E_Int ncells = cnp[sizeFN+2]; 
+  E_Int ncells = cnp[sizeFN+2];
   E_Int sizeEF = cnp[sizeFN+3];
   //E_Int* cEF = cnp+4+sizeFN;// debut connectivite EF
   //E_Int* cFN = cnp+2;// debut connectivite FN

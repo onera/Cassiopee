@@ -141,7 +141,8 @@ def getMeanValue(t, varName):
 # si cpu=True, ecrit le temps depuis le trace precedent
 # si mem=True, ecrit l'etat de la mem du noeud
 # si stdout=True, ecrit a l'ecran
-def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False):
+# si reset, vide le fichier log
+def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False):
     """Write a trace of cpu and memory in a file or to stdout for current node."""
     global PREVFULLTIME
     msg = text
@@ -178,7 +179,8 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False):
         print('%d: %s'%(rank, msg)) 
         sys.stdout.flush()
     else: # dans des fichiers
-        f = open('proc%03d.out'%rank, "a")
+        if reset: f = open('proc%03d.out'%rank, "w")
+        else: f = open('proc%03d.out'%rank, "a")
         f.write(msg)
         f.flush()
         f.close()

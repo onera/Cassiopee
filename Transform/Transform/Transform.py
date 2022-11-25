@@ -1688,12 +1688,12 @@ def breakElements(a):
     if isinstance(a[0], list):
         b = []
         for i in a:
-            if len(i) == 4 and i[3] == 'NGON':
+            if len(i) == 4 and (i[3] == 'NGON' or i[3] == 'MIXED'):
                 b += transform.breakElements(i)
             else: b.append(i)
         return b
     else:
-        if len(a) == 4 and a[3] == 'NGON':
+        if len(a) == 4 and (a[3] == 'NGON' or a[3] == 'MIXED'):
             return transform.breakElements(a)
         else: return [a]
 

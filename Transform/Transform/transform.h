@@ -32,11 +32,11 @@ namespace K_TRANSFORM
 {
 
 /* joint deux arrays 1 et 2 structures
-   IN: f1: champs de l array 1 : contient coord
+   IN: f1: champs de l'array 1 : contient coord
    IN: im1, jm1, km1: dimensions de array1
    IN: posx1, posy1, posz1: position des coordonnees ds f1
    IN: pos1: position des champs communs a f2 ds f1
-   IN: f2: champs de l array 2 : contient coord
+   IN: f2: champs de l'array 2 : contient coord
    IN: im2, jm2, km2: dimensions de array2
    IN: posx2, posy2, posz2: position des coordonnees ds f2
    IN: pos2: position des champs communs a f1 ds f2
@@ -243,8 +243,14 @@ namespace K_TRANSFORM
                                 E_Int dir2, E_Int ni2, E_Int nj2,
                                 E_Float* xt2, E_Float* yt2, E_Float* zt2);
 
+  /* break a NGON connectivity into elements */
   void breakNGonElements(FldArrayF& field, FldArrayI& cFNEF, 
                          std::vector<FldArrayI*>& cEV, 
+                         std::vector<FldArrayF*>& fields, 
+                         std::vector<E_Int>& eltType);
+  /* break a MIXED connectivity into elements */
+  void breakMixedElements(FldArrayF& field, FldArrayI& ce, 
+                         std::vector<FldArrayI*>& cEV,
                          std::vector<FldArrayF*>& fields, 
                          std::vector<E_Int>& eltType);
   

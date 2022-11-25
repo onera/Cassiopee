@@ -2693,7 +2693,7 @@ def eltName2EltNo(name):
         elif nnodes == 27: eltno = 19
     elif name == 'MIXED':
         print('Warning: eltName2EltNo: MIXED elements not supported.')
-        eltno = 20; nnodes = -1
+        eltno = 20; nnodes = 1
     elif name == 'NGON' or name == 'NGON_n': eltno = 22; nnodes = 1
     elif name == 'NFACE' or name == 'NFACE_n': eltno = 23; nnodes = 1
     return eltno, nnodes
@@ -2727,7 +2727,7 @@ def eltNo2EltName(eltno):
     elif eltno == 19: name = 'HEXA_27'; nnodes = 27
     elif eltno == 20:
         print('Warning: eltNo2EltName: MIXED elements not supported.')
-        name = 'MIXED'; nnodes = -1
+        name = 'MIXED'; nnodes = 1
     elif eltno == 22: name = 'NGON'; nnodes = 1
     elif eltno == 23: name = 'NFACE'; nnodes = 1
     return name, nnodes
