@@ -148,12 +148,16 @@ def moveNodeDown():
         CTK.TKTREE.updateApp()
 
 # format string pour ecriture casual (6)
-def strFormat(value):
-    return "%.5g"%value
-
+def strFormat(v):
+    if isinstance(v, int): return "%ld"%v
+    elif isinstance(v, float): return "%.5g"%v
+    else: return "%s"%v
+    
 # format string pour ecriture precise (12)
-def strFormat2(value):
-    return "%.12g"%value
+def strFormat2(v):
+    if isinstance(v, int): return "%ld"%v
+    elif isinstance(v, float): return "%.12g"%v
+    else: return "%s"%v
 
 #==============================================================================
 # Affiche la valeur de noeud et le type du noeud

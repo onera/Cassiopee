@@ -171,7 +171,7 @@ void K_TRANSFORM::breakMixedElements(
         et = cnp[nov+1]-1;
         if (indirt[et] == -1)
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) ftri(nptstri,eq) = field(et-1,eq);    
+          for (E_Int eq = 1; eq <= nfld; eq++) ftri(nptstri,eq) = field(et,eq);
           nptstri++;
           indirt[et] = nptstri;
         }
@@ -188,16 +188,16 @@ void K_TRANSFORM::breakMixedElements(
       for (E_Int nov = 0; nov < 4; nov++)
       {
         et = cnp[nov+1]-1;
-        if (indirt[et] == -1)
+        if (indirq[et] == -1)
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) fquad(nptstri,eq) = field(et,eq);    
+          for (E_Int eq = 1; eq <= nfld; eq++) fquad(nptsquad,eq) = field(et,eq);    
           nptsquad++;
           indirq[et] = nptsquad;
         }
       }
       for (E_Int nov = 0; nov < 4; nov++)
       {  
-        cEVquad(nettri,nov+1) = indirq[cnp[nov+1]-1];
+        cEVquad(netquad,nov+1) = indirq[cnp[nov+1]-1];
       }
       netquad++;
       cnp += 4+1; ps += 4+1;   
@@ -266,23 +266,25 @@ void K_TRANSFORM::breakMixedElements(
         et = cnp[nov+1]-1;
         if (indirp[et] == -1)
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) fpenta(nptshexa,eq) = field(et,eq);    
+          for (E_Int eq = 1; eq <= nfld; eq++) fhexa(nptshexa,eq) = field(et,eq);    
           nptshexa++;
           indirh[et] = nptshexa;
         }
       }
       for (E_Int nov = 0; nov < 8; nov++)
       {  
-        cEVpenta(nethexa,nov+1) = indirh[cnp[nov+1]-1];
+        cEVhexa(nethexa,nov+1) = indirh[cnp[nov+1]-1];
       }
       nethexa++;
       cnp += 8+1; ps += 8+1;
     }
   }
+  printf("found %d TRI\n", nettri);
+  printf("found %d QUAD\n", netquad);
   printf("found %d HEXA\n", nethexa);
   printf("found %d PENTA\n", netpenta);
-  printf("found %d TETRA\n", nettetra);
-  
+  printf("found %d TETRA\n", nettetra);  
+
   // BAR
   cEVbarp->reAllocMat(netbar,2);
   cEV.push_back(cEVbarp); fields.push_back(fbarp); eltType.push_back(1);

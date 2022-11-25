@@ -520,7 +520,7 @@ def isWindowInSubzone__(w, dim, imin, imax, jmin, jmax, kmin, kmax,
     if imax < i1 or imin > i2 or jmax < j1 or jmin > j2 or kmax < k1 or kmin > k2: isout = 1
     return isout
 
-# subzone les BC de z de l'arbre t
+# subzone les BCs de z de l'arbre t
 def subzoneBC__(t, z, dim, imin, imax, jmin, jmax, kmin, kmax, \
                 dim0, nip, njp, nkp, ni0, nj0, nk0):
     wins = Internal.getNodesFromType(z, 'BC_t')

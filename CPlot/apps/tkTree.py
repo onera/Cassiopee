@@ -23,8 +23,10 @@ WIDGETS = {}; VARS = []
 BUFFER = None
 
 def strFormat(v):
-    return "%g"%v
-
+    if isinstance(v, int): return "%ld"%v
+    elif isinstance(v, float): return "%g"%v
+    else: return "%s"%v
+    
 #==============================================================================
 def report_callback_exception():
     """report exception on sys.stderr."""

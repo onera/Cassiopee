@@ -4941,6 +4941,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
       Internal.newGridLocation(value='CellCenter', parent=f)
       for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
     res.append(zp)
+
   # IndexArray
   if r is None: r = Internal.getNodeFromName(i, Internal.__FACELIST__)
   else: r = None
@@ -4951,12 +4952,14 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
       val = Internal.getValue(loc)
       if val == 'FaceCenter' or val == 'CellCenter': # Face list (BE ou NGON)
         faceList = r[1]
+
         rf = Internal.getElementRange(z, type='NGON')
         if rf is not None and rf[0] != 1: # decalage possible du NGON
           faceList2 = numpy.copy(faceList)
           faceList2[:] = faceList[:]-rf[0]+1
           zp = T.subzone(z, faceList2, type='faces')
-        else: zp = T.subzone(z, faceList, type='faces')
+        else: zp = T.subzone(z, faceList, type='faces') # BE
+        
         zp[0] = z[0]+Internal.SEP1+i[0]
         _deleteZoneBC__(zp)
         _deleteGridConnectivity__(zp)
@@ -5127,7 +5130,7 @@ def getBCs(t, reorder=True, extrapFlow=True):
     for n in nodes:
       name = n[0]; typeBC = Internal.getValue(n)
       if typeBC == 'FamilySpecified':
-        fname = Internal.getNodeFromType1(n,'FamilyName_t')
+        fname = Internal.getNodeFromType1(n, 'FamilyName_t')
         if fname is not None:
           fname = Internal.getValue(fname)
           typeBC = 'FamilySpecified:%s'%fname
@@ -7155,10 +7158,10 @@ def addPeriodicZones__(a):
 
 def _addPeriodicZones__(a):
     try: import Transform.PyTree as T
-    except: raise ImportError("_addPeriodicZones__: requires Transform module.")
+    except: raise ImportError("addPeriodicZones: requires Transform module.")
     atype = Internal.typeOfNode(a)
     if atype != 4:  # base
-        print('Warning: _addPeriodicZones__: input node must be a CGNS basis.')
+        print('Warning: addPeriodicZones: input node must be a CGNS basis.')
         print('Skipped.')
         return None
 
@@ -7169,7 +7172,7 @@ def _addPeriodicZones__(a):
       usd = Internal.getNodeFromName2(z,".Solver#Param")
       periodicChimera = False
       if usd is not None:
-        perdir = Internal.getNodeFromName1(usd,'periodic_dir')
+        perdir = Internal.getNodeFromName1(usd, 'periodic_dir')
         if perdir is not None: periodicChimera=True
 
       # Periodic match info
@@ -7184,7 +7187,7 @@ def _addPeriodicZones__(a):
           if rotationData == []: rotated = False
           else: rotated = True
           if rotated and translated:
-            print('Warning: _addPeriodicZones__: rotation and translation cannot be applied at the same time. %s periodic grid connectivity not taken into account.'%gc[0])
+            print('Warning: addPeriodicZones: rotation and translation cannot be applied at the same time. %s periodic grid connectivity not taken into account.'%gc[0])
           elif not rotated and not translated: pass
           else:
             zdonorname = Internal.getValue(gc)
@@ -7201,14 +7204,14 @@ def _addPeriodicZones__(a):
                   rotationInfo = Internal.createNode('SignOfRotationAngle','UserDefinedData_t',value=signangle)
                   # creation du noeud temporaire le marquant comme periodique
                   zddup[0] = getZoneName(zddup[0]+'_dup')
-                  Internal.createChild(zddup,'TempPeriodicZone','UserDefinedData_t',value=zdonorname,children=[rotationInfo])
+                  Internal.createChild(zddup, 'TempPeriodicZone', 'UserDefinedData_t', value=zdonorname, children=[rotationInfo])
                   zonesdup.append(zddup)
               elif translated:
                 tvx = translVect[0]; tvy = translVect[1]; tvz = translVect[2]
                 zddup = T.translate(zd,(-tvx,-tvy,-tvz))
                 # creation du noeud temporaire le marquant comme periodique
                 zddup[0] = getZoneName(zddup[0]+'_dup')
-                Internal.createChild(zddup,'TempPeriodicZone','UserDefinedData_t',value=zdonorname,children=None)
+                Internal.createChild(zddup, 'TempPeriodicZone', 'UserDefinedData_t', value=zdonorname, children=None)
                 zonesdup.append(zddup)
 
       # Chimere periodique: compatible avec elsA uniquement
@@ -7237,12 +7240,12 @@ def _addPeriodicZones__(a):
               if len(pref) == 1: pref = pref[0]
               else: pref = pref[0]+'_'+pref[1]
               zdup[0] = getZoneName(pref+'_dup')
-              Internal.createChild(zdup,'TempPeriodicZone','UserDefinedData_t',value=zname,children=[rotationInfo])
+              Internal.createChild(zdup, 'TempPeriodicZone', 'UserDefinedData_t', value=zname, children=[rotationInfo])
               zonesdup.append(zdup)
             if perdir == 2 or perdir == 3:
               zdup = T.rotate(z,(xc,yc,zc), (vx,vy,vz),-angle)
               signangle =-1
-              rotationInfo = Internal.createNode('SignOfRotationAngle','UserDefinedData_t',value=signangle)
+              rotationInfo = Internal.createNode('SignOfRotationAngle', 'UserDefinedData_t', value=signangle)
               # creation du noeud temporaire le marquant comme periodique
               zdup[0] = getZoneName(zdup[0]+'_dup')
               pref = zdup[0].split('_')
@@ -7250,7 +7253,7 @@ def _addPeriodicZones__(a):
               else: pref = pref[0]+'_'+pref[1]
               zdup[0] = getZoneName(pref+'_dup')
 
-              Internal.createChild(zdup,'TempPeriodicZone','UserDefinedData_t',value=zname,children=[rotationInfo])
+              Internal.createChild(zdup, 'TempPeriodicZone', 'UserDefinedData_t', value=zname, children=[rotationInfo])
               zonesdup.append(zdup)
     a[2] += zonesdup
     return None
