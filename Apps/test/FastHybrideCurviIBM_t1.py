@@ -65,7 +65,7 @@ C._addState(case, UInf=U0, RoInf=R0, PInf=P0, LInf=L0, alphaZ=0., adim='dim3')
 '''
 
 # Prepare cas 2d IBM
-t_2d, tc_2d = App.prepare1_IM(case, None, None, frontType=42 ,cleanCellN=False)
+t_2d, tc_2d = App.prepare1(case, None, None, frontType=42 ,cleanCellN=False)
 
 test.testT(tc_2d, 1)
 test.testT(t_2d, 2)
@@ -81,7 +81,7 @@ test.testT(t_3d, 4)
 #calcul interp IBM 3D; celln, distnce paroi 3D,.... deja obtenue lors de l'extrusion
 interpDataType = 1 # on suppose maillage non cartesion pour interp
 order          = 2
-t_3d, tc_3d = App.prepare1_IM(tb_3d,None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order)
+t_3d, tc_3d = App.prepare1(tb_3d,None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order)
 
 Internal._rmNodesFromType(tc_2d,'Rind_t')
 Internal._rmNodesFromName(tc_2d,Internal.__GridCoordinates__)

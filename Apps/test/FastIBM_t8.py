@@ -22,7 +22,7 @@ myApp.set(numz={"time_step": 0.0007,
 tb_2d = C.convertFile2PyTree('naca1DNS.cgns')
 
 # Prepare
-t_2d, tc_2d = App.prepare1_IM('naca1DNS.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', frontType=2, cleanCellN=False)
+t_2d, tc_2d = App.prepare1('naca1DNS.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', frontType=2, cleanCellN=False)
 
 Internal._rmNodesFromType(tc_2d,'Rind_t')
 Internal._rmNodesFromName(tc_2d,Internal.__GridCoordinates__)
@@ -79,7 +79,7 @@ t_3d, tb_3d = App.extrudeCartesian(t_2d, tb_2d, extrusion=extrusion, NPas=5, spa
 interpDataType = 1 # on suppose maillage non cartesion pour interp
 order          = 2
 
-t_3d, tc_3d = App.prepare1_IM(tb_3d,None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order)
+t_3d, tc_3d = App.prepare1(tb_3d,None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order)
 
 C.convertPyTree2File(t_3d, LOCAL+'/t.cgns')
 C.convertPyTree2File(tc_3d, LOCAL+'/tc.cgns')
