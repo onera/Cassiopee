@@ -107,7 +107,7 @@ Actions
     
 .. py:function:: CPlot.Decorator.savefig(fileName, pad=0.2)
     
-    Save figure un fileName. A padding space can be added.
+    Save figure in fileName. A padding space can be added.
 
     :param fileName: name of the file to export to
     :type fileName: string

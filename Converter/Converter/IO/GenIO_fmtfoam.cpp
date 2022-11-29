@@ -79,7 +79,7 @@ E_Int createSimpleFoamStructure(char* path)
 
   // constant/polymesh
   strcpy(fullPath, path);
-  strcat(fullPath, "/constant/polymesh");
+  strcat(fullPath, "/constant/polyMesh");
   ret = createDir(fullPath);
   if (ret == 1) return 1;
 
@@ -617,16 +617,21 @@ E_Int K_IO::GenIO::foamread(
 }
 
 //=============================================================================
-E_Int foamWritePoints(FldArrayF& f)
+// Mesh point coordinates
+//=============================================================================
+E_Int foamWritePoints(char* file, FldArrayF& f)
 {
-  FILE* ptrFile = fopen("constant/polymesh", "w");
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/points");
+  FILE* ptrFile = fopen(fullPath, "w");
 
   fprintf(ptrFile, "FoamFile\n");
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
   fprintf(ptrFile, "    class       vectorField;\n");
-  fprintf(ptrFile, "    location    \"constant/polymesh\";\n");
+  fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      points;\n");
   fprintf(ptrFile, "}\n");
 
@@ -636,15 +641,142 @@ E_Int foamWritePoints(FldArrayF& f)
   E_Float* z = f.begin(3);
   
   fprintf(ptrFile, "%d\n", npts);
-  fprintf(ptrFile, ")\n");
+  fprintf(ptrFile, "(\n");
 
   for (E_Int i = 0; i < npts; i++)
   {
-    fprintf(ptrFile, "(%g %g %g)\n", x[i], y[i], z[i]);
+    fprintf(ptrFile, "(17.18%g 17.18%g 17.18%g)\n", x[i], y[i], z[i]);
   }
   fprintf(ptrFile, ")\n");
+  fclose(ptrFile);
   return 0;
 }
+
+//=============================================================================
+// face indices (NGON)
+//=============================================================================
+E_Int foamWriteFaces(char* file, FldArrayI& cn)
+{
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/faces");
+  FILE* ptrFile = fopen(fullPath, "w");
+
+  fprintf(ptrFile, "FoamFile\n");
+  fprintf(ptrFile, "{\n");
+  fprintf(ptrFile, "    version     2.0;\n");
+  fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    class       vectorField;\n");
+  fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
+  fprintf(ptrFile, "    object      faces;\n");
+  fprintf(ptrFile, "}\n");
+
+  E_Int nfaces = cn.getNFaces();
+  E_Int* cnp = cn.getNGon();
+  fprintf(ptrFile, "%d\n", nfaces);
+  fprintf(ptrFile, "(\n");
+
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    fprintf(ptrFile, "%d(", cnp[0]);
+    for (E_Int i = 1; i <= cnp[0]; i++) fprintf(ptrFile, "%d ", cnp[i]);
+    fprintf(ptrFile, ")\n");
+    cnp += cnp[0]+1;
+  }
+  fprintf(ptrFile, ")\n");
+  fclose(ptrFile);
+  return 0;
+}
+
+//=============================================================================
+// All faces (left=owner)
+//=============================================================================
+E_Int foamWriteOwner(char* file, FldArrayI& PE)
+{
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/owner");
+  FILE* ptrFile = fopen(fullPath, "w");
+
+  fprintf(ptrFile, "FoamFile\n");
+  fprintf(ptrFile, "{\n");
+  fprintf(ptrFile, "    version     2.0;\n");
+  fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    class       vectorField;\n");
+  fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
+  fprintf(ptrFile, "    object      owner;\n");
+  fprintf(ptrFile, "}\n");
+
+  E_Int nfaces = PE.getSize();
+  fprintf(ptrFile, "%d\n", nfaces);
+  fprintf(ptrFile, "(\n");
+
+  E_Int c = 0; E_Int val;
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    val = PE(i,1);
+    if (val == 0) val = -1;
+    fprintf(ptrFile, "%d ", val);
+    if (c > 10)
+    {
+      fprintf(ptrFile, "\n"); c = 0;
+    }
+    c += 1;
+  }
+  fprintf(ptrFile, ")\n");
+  fclose(ptrFile);
+  return 0;
+}
+//=============================================================================
+// Internal faces only (right=neighbour)
+//=============================================================================
+E_Int foamWriteNeighbour(char* file, FldArrayI& PE)
+{
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/neighbour");
+  FILE* ptrFile = fopen(fullPath, "w");
+
+  fprintf(ptrFile, "FoamFile\n");
+  fprintf(ptrFile, "{\n");
+  fprintf(ptrFile, "    version     2.0;\n");
+  fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    class       vectorField;\n");
+  fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
+  fprintf(ptrFile, "    object      neighbour;\n");
+  fprintf(ptrFile, "}\n");
+
+  E_Int nfaces = PE.getSize();
+  fprintf(ptrFile, "%d\n", nfaces);
+  fprintf(ptrFile, "(\n");
+
+  // Count internal faces
+  E_Int count = 0; E_Int val1, val2;
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    val1 = PE(i,1); val2 = PE(i,2);
+    if (val1 > 0 && val2 > 0) count += 1; 
+  }
+
+  E_Int c = 0;
+  for (E_Int i = 0; i < count; i++)
+  {
+    val1 = PE(i,1); val2 = PE(i,2);
+    if (val1 > 0 && val2 > 0)
+    {
+      fprintf(ptrFile, "%d ", val2);
+      if (c > 10)
+      {
+        fprintf(ptrFile, "\n"); c = 0;
+      }
+      c += 1;
+    }
+  }
+  fprintf(ptrFile, ")\n");
+  fclose(ptrFile);
+  return 0;
+}
+
 //=============================================================================
 // Write to open foam format
 //=============================================================================
@@ -661,19 +793,7 @@ E_Int K_IO::GenIO::foamwrite(
 
   createSimpleFoamStructure(file);
 
-  E_Int zone;
   E_Int nzone = unstructField.size();
-  E_Int nvalidZones = 0;
-  for (zone = 0; zone < nzone; zone++)
-  {
-    // triangles, quads supported
-    if (eltType[zone] == 2 || eltType[zone] == 3)
-      nvalidZones++;
-    else
-      printf("Warning: fmt_foam: zone %d not written (not a valid elements in zone).", zone);
-  }
-
-  if (nvalidZones == 0) return 1;
 
   // All zones must have posx, posy, posz
   E_Int posx, posy, posz;
@@ -682,76 +802,69 @@ E_Int K_IO::GenIO::foamwrite(
   posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    printf("Warning: objwrite: zones do not have coordinates. Not written.\n");
+    printf("Warning: foamwrite: zones do not have coordinates. Not written.\n");
     return 1;
   }
   posx++; posy++; posz++;
 
-  // Ouverture fichier
-  FILE* ptrFile = fopen(file, "w");
-  if (ptrFile == NULL) 
+
+  // constant/polyMesh/points
+  // constant/polyMesh/faces
+  // constant/polyMesh/neighbour
+  // constant/polyMesh/owner
+  // constant/polyMesh/boundary
+  // constant/polyMesh/faceZones
+  // constant/polyMesh/cellZones
+
+    
+  // limited to one NGON zone
+  if (nzone == 0) 
   {
-    printf("Warning: objwrite: I can't open file %s.\n", file);
+    printf("Warning: foamwrite: no unstructured zone in input. Nothing written.\n");
     return 1;
   }
 
-  // Build writing data format
-  char format1[124]; char dataFmtl[40];
-  strcpy(dataFmtl, dataFmt);
-  int l = strlen(dataFmt);
-  if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
-
-  // Build format of data
-  sprintf(format1,"v %s%s%s\n", dataFmt, dataFmt, dataFmtl);
-
-  // Write zones
-  E_Int ng = 0;
+  // find first NGON zone
+  E_Int no = -1;
   for (E_Int i = 0; i < nzone; i++)
   {
-    // vertices
-    FldArrayF& field = *unstructField[i];
-    E_Float* fx = field.begin(posx);
-    E_Float* fy = field.begin(posy);
-    E_Float* fz = field.begin(posz);
-    for (E_Int n = 0; n < field.getSize(); n++)
-    {
-      fprintf(ptrFile, format1, fx[n], fy[n], fz[n]);
-    }
-    if (eltType[i] == 2)
-    {
-      // faces
-      FldArrayI& cn = *connect[i];
-      E_Int* cn1 = cn.begin(1);
-      E_Int* cn2 = cn.begin(2);
-      E_Int* cn3 = cn.begin(3);
-      for (E_Int n = 0; n < cn.getSize(); n++)
-      {
-        fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", 
-                cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
-                cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
-                cn3[n]+ng, cn3[n]+ng, cn3[n]+ng);
-      }
-    }
-    if (eltType[i] == 3)
-    {
-      // faces
-      FldArrayI& cn = *connect[i];
-      E_Int* cn1 = cn.begin(1);
-      E_Int* cn2 = cn.begin(2);
-      E_Int* cn3 = cn.begin(3);
-      E_Int* cn4 = cn.begin(4);
-      for (E_Int n = 0; n < cn.getSize(); n++)
-      {
-        fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n", 
-                cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
-                cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
-                cn3[n]+ng, cn3[n]+ng, cn3[n]+ng,
-                cn4[n]+ng, cn4[n]+ng, cn4[n]+ng);
-      }
-    }
-    ng += field.getSize();
+    E_Int et = eltType[i];
+    if (et == 8) { no = i; break; }
+  }
+  if (no == -1)
+  {
+    printf("Warning: foamwrite: no NGON zone found in input. Nothing written.\n");
+    return 1;
   }
 
-  fclose(ptrFile);
+  FldArrayF& field = *unstructField[no];
+  FldArrayI& cn = *connect[no];
+
+  // Compute PE
+  E_Int nfaces = cn.getNFaces();
+  E_Int nelts = cn.getNElts();
+  FldArrayI cFE(nfaces,2);
+  E_Int* facesp1 = cFE.begin(1);
+  E_Int* facesp2 = cFE.begin(2);
+  E_Int* ptrNF = cn.getNFace();
+  E_Int face, nf;
+  for (E_Int i = 0; i < nfaces*2; i++) cFE[i] = 0;
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    nf = ptrNF[0]; // nb de face pour l'elt
+    for (E_Int j = 1; j <= nf; j++)
+    {
+      face = ptrNF[j]-1;
+	  if (facesp1[face] == 0) facesp1[face] = i+1;
+      else facesp2[face] = i+1;
+    }
+    ptrNF += nf+1;
+	}
+
+  foamWritePoints(file, field);
+  foamWriteFaces(file, cn);
+  foamWriteOwner(file, cFE);
+  foamWriteNeighbour(file, cFE);
+
   return 0;
 }

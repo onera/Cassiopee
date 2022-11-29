@@ -143,6 +143,7 @@ static void RasterizePolygon(uint8_t *dest, int destWidth, int vertices[][2], co
     }
   }
 }
+
 // ============================================================================
 /* Get UV mapping of a surface (use xatlas) */
 // ============================================================================
@@ -211,7 +212,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   }
   posu++; posv++;
 
-  // Check Velocity field (optional image output)
+  // Check Velocity field (optional image rgb output)
   E_Int posvx = K_ARRAY::isNamePresent("VelocityX", varString);
   E_Int posvy = K_ARRAY::isNamePresent("VelocityY", varString);
   E_Int posvz = K_ARRAY::isNamePresent("VelocityZ", varString);
