@@ -3135,10 +3135,13 @@ def getCells(t1, ids, are_face_ids = True):
     res = XOR.getCells(m, ids[i], are_face_ids)
     narr = res[0] # mesh
     oids = res[1] # old cell ids
-    #print(narr)
+
+    if len(narr[2][0]) == 4 : continue #no connectivity
+
+    #print(narr[2])
     #print(oids)
-    newz = C.convertArrays2ZoneNode('cell%s'%i,[narr])
-    C.setFields([oids], newz, 'centers', False)
+    newz = C.convertArrays2ZoneNode('zone%s'%i,[narr])
+    if oids[1] != [] : C.setFields([oids], newz, 'centers', False)
 
     cells .append(newz)
 

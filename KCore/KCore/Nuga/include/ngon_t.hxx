@@ -1074,6 +1074,21 @@ struct ngon_t
       PGs.change_indices(nids);
     return nb_merges;
   }
+
+  /// Change the node indice to reference the same when duplicated exist (Relative tolerance version)
+  E_Int join_phs(const K_FLD::FloatArray& coord, const std::vector<E_Float>&nodal_metric2,  E_Float RTOL)
+  {
+    if (PGs.size() == 0) return 0;
+
+    PGs.updateFacets();
+
+    K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(coord);
+    Vector_t<E_Int> nids;
+    E_Int nb_merges = ::merge(ca, nodal_metric2, RTOL, nids);
+    if (nb_merges)
+      PGs.change_indices(nids);
+    return nb_merges;
+  }
   
   /// Change the node indice to reference the same when duplicated exist (FldArrayF)
 #ifndef NUGALIB
@@ -1090,6 +1105,58 @@ struct ngon_t
     if (nb_merges)
       PGs.change_indices(nids, true/*zero based*/);
   }
+
+  void join_phs(const K_FLD::FldArrayF& coord, E_Int px, E_Int py, E_Int pz, const std::vector<E_Float>&nodal_metric2, E_Float RTOL)
+  {
+    if (PGs.size() == 0)
+      return;
+
+    PGs.updateFacets();
+
+    K_FLD::ArrayAccessor<K_FLD::FldArrayF> ca(coord, px, py, pz);
+    Vector_t<E_Int> nids;
+    E_Int nb_merges = ::merge(ca, nodal_metric2, RTOL, nids);
+    if (nb_merges)
+      PGs.change_indices(nids, true/*zero based*/);
+  }
+
+  /*E_Int join_phs2(const K_FLD::FldArrayF& coord, E_Int px, E_Int py, E_Int pz, const std::vector<E_Float>&nodal_metric2, E_Float RTOL)
+  {
+    if (PGs.size() == 0) return 0;
+
+    PGs.updateFacets();
+
+    flag_external_pgs(INITIAL_SKIN);
+
+    std::vector<E_Int> anodes;
+
+    {
+      // get the exterior nodes
+      E_Int nb_pgs = PGs.size();
+      for (E_Int i = 0; i < nb_pgs; ++i)
+      {
+        if (PGs._type[i] != 1) continue;
+        const E_Int* nodes = PGs.get_facets_ptr(i);
+        E_Int nb_nodes = PGs.stride(i);
+        anodes.insert(anodes.end(), nodes, nodes + nb_nodes);
+      }
+      
+      std::set<E_Int> attaching_nodes;
+      attaching_nodes.insert(ALL(anodes)); // make the list unique
+      anodes.clear();
+      anodes.insert(anodes.end(), ALL(attaching_nodes)); // put it back in a vector
+      K_CONNECT::IdTool::shift(anodes, -1); // 0-based required for __merge
+    }
+
+    K_FLD::ArrayAccessor<K_FLD::FldArrayF> ca(coord, px, py, pz);
+
+    Vector_t<E_Int> nids;
+    E_Int nb_merges = ::__merge(ca, nodal_metric2, RTOL, anodes, anodes, nids);
+
+    if (nb_merges)
+      PGs.change_indices(nids);
+    return nb_merges;
+  }*/
 #endif
   /*   
   ///
@@ -2898,7 +2965,8 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   /// Warning : The coordinates are not cleaned, only the connectivity.
   static E_Int clean_connectivity
   (ngon_t& NG, const K_FLD::FloatArray& f, E_Int ngon_dim=-1,E_Float tolerance = EPSILON, bool remove_dup_phs=false,
-   std::vector<E_Int>* pgnids=nullptr, std::vector<E_Int>* phnids=nullptr)
+   std::vector<E_Int>* pgnids=nullptr, std::vector<E_Int>* phnids=nullptr,
+   std::vector<E_Float>* Lmin2=nullptr)
   {   
     bool histo = false;
     if (pgnids!=nullptr) histo = true;
@@ -2932,9 +3000,31 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     }
 
     // 1- Referencement unique pour les noeuds confondus par kdtree (les doublons seront supprimes a la fin)
-    // si la tolerance est n�gative => pas de merge
+    // si la tolerance est :
+    // * positive : absolue
+    // * nulle => pas de merge
+    // * negative => relative
     E_Int nb_merges = 0;
-    if (tolerance >= 0.) nb_merges = NG.join_phs(f, tolerance);
+    if (tolerance >= 0.)
+    {
+      nb_merges = NG.join_phs(f, tolerance);
+    }
+    else //if (tolerance < 0.)
+    {
+      //std::cout << "RELATIVE TOL" << std::endl;
+      std::vector<double> nodal_metric2;
+      if (Lmin2 == nullptr)
+      {
+        //std::cout << "computing Lmin2" << std::endl;
+        NUGA::MeshTool::computeNodalDistance2<K_FLD::FloatArray, ngon_unit>(f, NG.PGs, nodal_metric2);
+        Lmin2 = &nodal_metric2;
+      }
+
+      //std::cout << "Limn2 size vs crd : " << Lmin2->size() << "/" << f.cols() << std::endl;
+      
+      double RTOL = -tolerance;
+      nb_merges = NG.join_phs(f, *Lmin2, RTOL);
+    }
 
     // 2- Elimination des faces degenerees
     Vector_t<E_Int> pgnidstmp, phnidstmp; // required to update the history (PG/PH)

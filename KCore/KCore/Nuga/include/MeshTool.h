@@ -18,6 +18,7 @@
 #include "Nuga/include/Polygon.h"
 #include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/random.h"
+#include "Nuga/include/EltAlgo.h"
 
 #include <deque>
 
@@ -126,6 +127,15 @@ class MeshTool
     /// L stores the min, and the max incident edge's length for each node (column-wise). The first row is for mins.
     template <typename cnt_t>
     static void computeIncidentEdgesSqrLengths(const K_FLD::FloatArray& pos, const cnt_t& cnt, K_FLD::FloatArray& L);
+
+#ifndef NUGALIB
+    template <typename arr_t, typename cnt_t>
+    static void computeIncidentEdgesSqrLengths(const K_FLD::ArrayAccessor<arr_t>& acrd, const cnt_t& cnt, K_FLD::FloatArray& L);
+#endif
+
+    /// compute mimimal nodal distance bases on faces
+    template <typename arr_t, typename cnt_t>
+    static void computeNodalDistance2(const arr_t& crd, const ngon_unit& cnt, std::vector<E_Float> & Lmin2);
     
     static void computeMinMaxIndices (const K_FLD::IntArray& connect, E_Int& min_i, E_Int& max_i);
 
@@ -259,6 +269,7 @@ void MeshTool::computeIncidentEdgesSqrLengths<ngon_unit>
 {
   E_Int nb_pgs(cnt.size());
   short DIM(3);
+  E_Float min(-NUGA::FLOAT_MAX), max(NUGA::FLOAT_MAX);
   
   L.clear();
   
@@ -280,11 +291,174 @@ void MeshTool::computeIncidentEdgesSqrLengths<ngon_unit>
       E_Int Nj = *(nodes + (n+1) % nb_nodes) - 1;
       E_Float l = NUGA::sqrDistance(crd.col(Ni), crd.col(Nj), DIM);
       
-      L(0, Ni) = (l < L(0, Ni)) ? l : L(0, Ni);
-      L(1, Ni) = (l > L(1, Ni)) ? l : L(1, Ni);
+      // update Ni.
+      min = L(0, Ni);
+      max = L(1, Ni);
+      L(0, Ni) = (l < min) ? l : min;
+      L(1, Ni) = (l > max) ? l : max;
+      // update Nj.
+      min = L(0, Nj);
+      max = L(1, Nj);
+      L(0, Nj) = (l < min) ? l : min;
+      L(1, Nj) = (l > max) ? l : max;
     }
   }
 }
+
+///
+template <> inline
+void MeshTool::computeNodalDistance2<K_FLD::FloatArray,ngon_unit>
+(const K_FLD::FloatArray& crd, const ngon_unit& cnt, std::vector<E_Float> & Lmin2)
+{
+  E_Int DIM(3), nb_pgs(cnt.size());
+  E_Float min(-NUGA::FLOAT_MAX), max(NUGA::FLOAT_MAX);
+
+  Lmin2.clear();
+
+  if (nb_pgs == 0) return;
+
+  E_Int idmaxp1 = cnt.get_facets_max_id();
+  Lmin2.resize(idmaxp1, NUGA::FLOAT_MAX);
+
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    const E_Int* nodes = cnt.get_facets_ptr(i);
+    E_Int nb_nodes = cnt.stride(i);
+
+    for (E_Int n = 0; n < nb_nodes; ++n)
+    {
+      E_Int Ni = *(nodes + n) - 1;
+      E_Int Nj = *(nodes + (n + 1) % nb_nodes) - 1;
+
+      E_Float l = NUGA::sqrDistance(crd.col(Ni), crd.col(Nj), DIM);
+
+      Lmin2[Ni] = (l < Lmin2[Ni]) ? l : Lmin2[Ni];
+      Lmin2[Nj] = (l < Lmin2[Nj]) ? l : Lmin2[Nj];
+
+      // Q4 specific : check diagonals
+      if (nb_nodes != 4) continue;
+      E_Int Nk = *(nodes + (n + 2) % nb_nodes) - 1;
+      l = NUGA::sqrDistance(crd.col(Ni), crd.col(Nk), DIM);
+      Lmin2[Ni] = (l < Lmin2[Ni]) ? l : Lmin2[Ni];
+      Lmin2[Nk] = (l < Lmin2[Nk]) ? l : Lmin2[Nk];
+
+      Nk = *(nodes + (n + 3) % nb_nodes) - 1;
+      l = NUGA::sqrDistance(crd.col(Nj), crd.col(Nk), DIM);
+      Lmin2[Nj] = (l < Lmin2[Nj]) ? l : Lmin2[Nj];
+      Lmin2[Nk] = (l < Lmin2[Nk]) ? l : Lmin2[Nk];
+    }
+  }
+}
+
+
+#ifndef NUGALIB
+/*template <> inline
+void MeshTool::computeIncidentEdgesSqrLengths<K_FLD::FldArrayF, ngon_unit>
+(
+  const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& acrd,
+  const ngon_unit& cnt, K_FLD::FloatArray& L
+)
+{
+  E_Int DIM(3), nb_pgs(cnt.size());
+  E_Float min(-NUGA::FLOAT_MAX), max(NUGA::FLOAT_MAX);
+  
+  L.clear();
+  
+  if (nb_pgs == 0) return;
+  
+  E_Int idmaxp1 = cnt.get_facets_max_id();
+  
+  L.resize(1, idmaxp1, NUGA::FLOAT_MAX);  //mins
+  L.resize(2, idmaxp1, -NUGA::FLOAT_MAX); // maxs
+
+  double pi[3], pj[3];
+  
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    const E_Int* nodes = cnt.get_facets_ptr(i);
+    E_Int nb_nodes = cnt.stride(i);
+    
+    for (E_Int n = 0; n < nb_nodes; ++n)
+    {
+      E_Int Ni = *(nodes + n) - 1;
+      E_Int Nj = *(nodes + (n+1) % nb_nodes) - 1;
+
+      acrd.getEntry(Ni, pi);
+      acrd.getEntry(Nj, pj);
+
+      E_Float l = NUGA::sqrDistance(pi, pj, DIM);
+
+      // update Ni.
+      min = L(0, Ni);
+      max = L(1, Ni);
+      L(0, Ni) = (l < min) ? l : min;
+      L(1, Ni) = (l > max) ? l : max;
+      // update Nj.
+      min = L(0, Nj);
+      max = L(1, Nj);
+      L(0, Nj) = (l < min) ? l : min;
+      L(1, Nj) = (l > max) ? l : max;
+    }
+  }
+}*/
+
+///
+template <> inline
+void MeshTool::computeNodalDistance2<K_FLD::ArrayAccessor<K_FLD::FldArrayF>,ngon_unit>
+(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& acrd, const ngon_unit& cnt, std::vector<E_Float> & Lmin2)
+{
+
+  E_Int DIM(3), nb_pgs(cnt.size());
+
+  Lmin2.clear();
+
+  if (nb_pgs == 0) return;
+
+  E_Int idmaxp1 = cnt.get_facets_max_id();
+  Lmin2.resize(idmaxp1, NUGA::FLOAT_MAX);
+
+  double pi[3], pj[3], pk[3];
+
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    const E_Int* nodes = cnt.get_facets_ptr(i);
+    E_Int nb_nodes = cnt.stride(i);
+
+    for (E_Int n = 0; n < nb_nodes; ++n)
+    {
+      E_Int Ni = *(nodes + n) - 1;
+      E_Int Nj = *(nodes + (n + 1) % nb_nodes) - 1;
+
+      acrd.getEntry(Ni, pi);
+      acrd.getEntry(Nj, pj);
+
+      E_Float l = NUGA::sqrDistance(pi, pj, DIM);
+
+      Lmin2[Ni] = (l < Lmin2[Ni]) ? l : Lmin2[Ni];
+      Lmin2[Nj] = (l < Lmin2[Nj]) ? l : Lmin2[Nj];
+
+      // Q4 specific : check diagonals
+      if (nb_nodes != 4) continue;
+
+      E_Int Nk = *(nodes + (n + 2) % nb_nodes) - 1;
+      acrd.getEntry(Nk, pk);
+
+      l = NUGA::sqrDistance(pi, pk, DIM);
+      Lmin2[Ni] = (l < Lmin2[Ni]) ? l : Lmin2[Ni];
+      Lmin2[Nk] = (l < Lmin2[Nk]) ? l : Lmin2[Nk];
+
+      Nk = *(nodes + (n + 3) % nb_nodes) - 1;
+      acrd.getEntry(Nk, pk);
+
+      l = NUGA::sqrDistance(pj, pk, DIM);
+      Lmin2[Nj] = (l < Lmin2[Nj]) ? l : Lmin2[Nj];
+      Lmin2[Nk] = (l < Lmin2[Nk]) ? l : Lmin2[Nk];
+    }
+  }  
+
+}
+
+#endif
 
 } // End namespace NUGA
 

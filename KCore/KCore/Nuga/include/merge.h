@@ -244,6 +244,112 @@ __merge
   return nb_merges;
 }
 
+
+template <typename ArrayType>
+E_Int
+__merge
+(const K_FLD::ArrayAccessor<ArrayType>& coordAcc,
+ const std::vector<E_Float>& nodal_metric2, 
+ E_Float RTOL,
+ NUGA::int_vector_type& umoving,
+ NUGA::int_vector_type& utarget,
+ NUGA::int_vector_type& new_IDs)
+{
+  E_Int ssz = (E_Int)umoving.size();
+  E_Int tsz = (E_Int)utarget.size();
+  E_Int nsz = (E_Int)coordAcc.size();
+
+  new_IDs.resize(nsz);
+  for (E_Int i = 0; i < nsz; ++i) new_IDs[i] = i;
+
+  // Fast return
+  if (ssz*tsz*nsz == 0) return 0;
+
+  // build the KdTree on moving nodes.
+  K_SEARCH::KdTree<ArrayType> moving_tree(coordAcc, umoving);
+
+  //E_Float d2, tol2(tol*tol);
+  typedef std::vector<std::pair <E_Float, std::pair <E_Int, E_Int> > > palmares_t;
+  palmares_t palma;
+
+  std::vector<E_Int> onodes;
+  std::vector<E_Float> dist2;
+
+  // loop on target nodes and get all moving nodes in sphere of radius tol.
+  E_Int osz;
+  //long int count{0};
+  for (E_Int i = 0; i < tsz; ++i)
+  {
+    onodes.clear(); dist2.clear();
+
+    E_Int& Fi = utarget[i];
+    assert (Fi >= 0 && Fi < nodal_metric2.size());
+    if (nodal_metric2[Fi] == NUGA::FLOAT_MAX)
+    {
+      //std::cout << "wrong TOLi" << std::endl;
+      continue;
+    }
+    
+    double TOLi = ::sqrt(nodal_metric2[Fi]) * RTOL;
+
+    moving_tree.getInSphere(Fi, TOLi, onodes, dist2);
+    osz = onodes.size();
+    for (size_t j = 0; j < osz; ++j)
+    {
+      E_Int& Fj = onodes[j];
+
+      if (nodal_metric2[Fj] == NUGA::FLOAT_MAX)
+      {
+        //std::cout << "wrong TOLj" << std::endl;
+        continue;
+      }
+
+      double TOLj2 = nodal_metric2[Fj] * RTOL * RTOL;
+
+      if (TOLj2 < dist2[j])
+      {
+        //++count;
+        continue;
+      }
+
+      palma.push_back(std::make_pair(dist2[j], std::make_pair(Fi, Fj))); // (d2, Fi, Fj)
+    }
+  }
+
+  //std::cout << "NB OF REJECTED : " << count << std::endl;
+
+  if (palma.empty()) return 0;
+
+  // sort them by increasing distance (keep intial order in case of equality to priorize it).
+  std::stable_sort(palma.begin(), palma.end(), lower_than);
+
+  // move the node
+  E_Int Fi, Fj, nb_merges(0);
+  E_Int psz = palma.size();
+  for (E_Int i = 0; i < psz; ++i)
+  {
+    Fi = palma[i].second.first;
+    Fj = palma[i].second.second;
+
+    // rule of merging : if target and moving has not been moved already
+    if ((new_IDs[Fi] == Fi) && (new_IDs[Fj] == Fj))
+    {
+      new_IDs[Fj] = Fi;
+      ++nb_merges;
+    }
+  }
+
+  // update the pointers to point to the leaves
+  for (E_Int i = 0; i < nsz; ++i)
+  {
+    Fi = new_IDs[i];
+    while (Fi != new_IDs[Fi]) Fi = new_IDs[Fi];
+    new_IDs[i] = Fi;
+  }
+
+  return nb_merges;
+}
+
 // Merge moving (mergeable) cloud into target cloud.
 // targets might be moving too.
 // Ni  Nj    Nk         Nl
@@ -285,6 +391,18 @@ merge
   for (size_t i = 0; i < nodes.size(); ++i)nodes[i]=i;
 
   return ::__merge(coordAcc, tol, nodes, nodes, new_IDs);
+}
+
+template <typename ArrayType>
+E_Int
+merge
+(const K_FLD::ArrayAccessor<ArrayType>& coordAcc, const std::vector<E_Float>&nodal_metric2,  E_Float RTOL,
+  NUGA::int_vector_type& new_IDs)
+{
+  NUGA::int_vector_type nodes(coordAcc.size());
+  for (size_t i = 0; i < nodes.size(); ++i)nodes[i] = i;
+
+  return ::__merge(coordAcc, nodal_metric2, RTOL, nodes, nodes, new_IDs);
 }
 
 /////////////////////////// temporary here to avoid cycling dep with EltAlgo

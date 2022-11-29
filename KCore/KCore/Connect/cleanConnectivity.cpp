@@ -527,7 +527,8 @@ void K_CONNECT::createConnectEV_opt(FldArrayI& cn, vector<E_Int> newId,
 void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz, 
                                       E_Float eps, FldArrayF& f, FldArrayI& cn, bool remove_degen)
 {
-  ArrayAccessor<FldArrayF> fcA(f, posx, posy, posz);
+  using acrd_t = K_FLD::ArrayAccessor<FldArrayF> ;
+  acrd_t fcA(f, posx, posy, posz);
   typedef ngon_t<K_FLD::FldArrayI> ngon_type;
   ngon_type NG(cn);
   
@@ -546,7 +547,30 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
     ngon_dim=2;
 
   // 1- Referencement unique pour les noeuds confondus par kdtree (les doublons seront supprimes a la fin)
-  if (eps >= 0.) NG.join_phs(f, posx, posy, posz, eps);
+  // si la tolerance est :
+  // * positive : absolue
+  // * nulle => pas de merge
+  // * negative => relative
+  if (eps >= 0.)
+  {
+    NG.join_phs(f, posx, posy, posz, eps);
+  }
+  else // if (eps < 0.) 
+  {
+    /*std::cout << "RELATIVE TOL !!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+    NG.flag_external_pgs(INITIAL_SKIN);
+    std::vector<double> nodal_metric2;
+    NUGA::MeshTool::computeNodalDistance2<acrd_t, ngon_unit>(fcA, NG.PGs, nodal_metric2);
+    
+    double RTOL = -eps;
+    NG.join_phs2(f, posx, posy, posz, nodal_metric2, RTOL);*/
+
+    std::vector<double> nodal_metric2;
+    NUGA::MeshTool::computeNodalDistance2<acrd_t, ngon_unit>(fcA, NG.PGs, nodal_metric2);
+    
+    double RTOL = -eps;
+    NG.join_phs(f, posx, posy, posz, nodal_metric2, RTOL);      
+  }
   
   // 2- Elimination des faces degenerees
   std::vector<E_Int> pgids, phnids;

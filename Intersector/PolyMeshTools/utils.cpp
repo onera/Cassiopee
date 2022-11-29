@@ -1315,6 +1315,8 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
 
   E_Int imin=-1;
   E_Float vmin = NUGA::FLOAT_MAX;
+  E_Int imax=-1;
+  E_Float vmax = 0;
 
   E_Int nb_max_threads = __NUMTHREADS__;
   //std::cout << "nb threads max : " << nb_max_threads << std::endl;
@@ -1323,10 +1325,13 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
   std::vector<E_Float> vm(nb_max_threads, NUGA::FLOAT_MAX);
   std::vector<std::vector<E_Int>> orient(nb_max_threads);
 
+  std::vector<E_Int> iM(nb_max_threads, IDX_NONE);
+  std::vector<E_Float> vM(nb_max_threads, 0.);
+
   E_Int i, id{0};
   DELAUNAY::Triangulator dt;
 
-#pragma omp parallel shared(vm, im, ngi, crd, cFE, orient) private (i, id, dt) default(none)
+#pragma omp parallel shared(vm, im, vM, iM, ngi, crd, cFE, orient) private (i, id, dt) default(none)
 {
   id = __CURRENT_THREAD__;
   //std::cout << "before loop thread : " << id  << std::endl;
@@ -1340,6 +1345,11 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
       im[id] = i;
       vm[id] = v;
     }
+    if (!err && v > vM[id]) // min for current thread
+    {
+      iM[id] = i;
+      vM[id] = v;
+    }
   }
 }
 
@@ -1350,9 +1360,15 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
       imin = im[i];
       vmin = vm[i];
     }
+    if (vM[i] > vmax)
+    {
+      imax = iM[i];
+      vmax = vM[i];
+    }
   }
 
   std::cout << "min vol is : " << vmin << " reached at cell : " << imin << std::endl;
+  std::cout << "max vol is : " << vmax << " reached at cell : " << imax << std::endl;
 
   delete f; delete cn;
 
@@ -4045,6 +4061,9 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   
   ngon_type ng;
   K_FLD::FloatArray crd; 
+  std::vector<E_Float> Lmin2, *pLmin2(nullptr);
+  bool tol_is_relative = (tol < 0.);
+  
   for (size_t i=0; i < cnts.size(); ++i)
   {
     //std::cout << "appending" << std::endl;
@@ -4061,7 +4080,17 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
     ng.append(ngt);
     crd.pushBack(*crds[i]);
 
+    if (tol_is_relative)
+    {
+      // compute nodal metric for this zone
+      NUGA::ph_mesh_t mesh(*crds[i], *cnts[i]);
+      auto lm2 = mesh.get_nodal_metric2(); // importtant to be ISO_MIN to detect closest nodes in warpes meshes
+
+      Lmin2.insert(Lmin2.end(), ALL(lm2));
+    }
   }
+
+  if (tol_is_relative) pLmin2 = &Lmin2;
 
   // Creation z_pgnids et z_phnids global
   std::vector<E_Int> glo_pgnids;
@@ -4069,7 +4098,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
 
   // std::cout << "before clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
 
-  ngon_type::clean_connectivity(ng, crd, -1, tol, true/*remove dups*/ , &glo_pgnids, &glo_phnids ); 
+  ngon_type::clean_connectivity(ng, crd, -1, tol, true/*remove dups*/ , &glo_pgnids, &glo_phnids, pLmin2 ); 
 
   //Propagation des nouveaux ids dans z_pgnids/z_phnids
   for (size_t i=0; i < nb_zones; ++i)

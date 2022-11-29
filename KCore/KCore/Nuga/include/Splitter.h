@@ -233,7 +233,7 @@ namespace NUGA
         }
       }  
 
-      ngo.clean_connectivity(ngo, crd, -1, -1.);
+      ngo.clean_connectivity(ngo, crd, -1, 0./*no merge*/);
       
       
       E_Int nb_to_split = nb_phs - nb_ok;
