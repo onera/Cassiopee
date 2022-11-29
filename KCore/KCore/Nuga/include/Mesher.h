@@ -761,7 +761,7 @@ namespace DELAUNAY
     {
       std::ostringstream o;
       o << "ellipse_triangulation.mesh";
-      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
+      _metric->draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
       
       std::vector<bool> tmask = _data->mask;
       E_Int cols = _data->connectM.cols();
@@ -807,7 +807,7 @@ namespace DELAUNAY
 //    {
 //      std::ostringstream o;
 //      o << "ellipse_refine_iter_" << iter << ".mesh";
-//      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
+//      _metric->draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
 //    }
 //#endif
 
@@ -822,7 +822,7 @@ namespace DELAUNAY
     {
       std::ostringstream o;
       o << "ellipse_refine_points_iter_" << iter << ".mesh";
-      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, refine_nodes);
+      _metric->draw_ellipse_field(o.str().c_str(), *_data->pos, refine_nodes);
     }
     //if (iter == 5) saturator._debug = true;
 #endif
@@ -879,7 +879,7 @@ namespace DELAUNAY
     {
       std::ostringstream o;
       o << "ellipse_mesh_iter_" << iter << ".mesh";
-      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM);
+      _metric->draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM);
     }
 #endif
 

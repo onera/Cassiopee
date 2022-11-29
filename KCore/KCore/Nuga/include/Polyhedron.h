@@ -1775,7 +1775,7 @@ namespace K_MESH
       return err;
     }
 
-    inline void triangle(E_Int i, E_Int* target) const
+    inline void triangle(int i, E_Int* target) const
     {
       assert(_triangles != nullptr);
       assert(i < nb_tris());

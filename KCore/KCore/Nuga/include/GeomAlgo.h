@@ -22,7 +22,7 @@ template <typename ElementType>
 class GeomAlgo {
 public:
   ///
-  template <typename Coordinate_t, typename Connectivity_t, int DIM>
+  template <typename Coordinate_t, typename Connectivity_t, short DIM>
   static void neighboring (const K_FLD::ArrayAccessor<Coordinate_t>& coords,
                            const K_FLD::ArrayAccessor<Connectivity_t>& conn, Connectivity_t& neighbors);
   ///

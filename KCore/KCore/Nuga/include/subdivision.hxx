@@ -290,7 +290,7 @@ namespace NUGA
 
   };
 
-  template <int DIM>
+  template <short DIM>
   struct int_tuple
   {
     E_Int n[DIM];
@@ -340,13 +340,13 @@ namespace NUGA
     }
   };
 
-  template <int DIM> inline int_tuple<DIM> max(int_tuple<DIM>&d, E_Int v) { int_tuple<DIM> res(0); for (size_t k=0; k < DIM; ++k) res.n[k] = std::max(d.n[k], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
+  template <short DIM> inline int_tuple<DIM> max(int_tuple<DIM>&d, E_Int v) { int_tuple<DIM> res(0); for (size_t k=0; k < DIM; ++k) res.n[k] = std::max(d.n[k], v); return res; }//hack fr CLEF : l.362(hmesh.xhh)
   inline int_tuple<3> abs(int_tuple<3> d) { int_tuple<3> res(0);  res.n[0] = ::abs(d.n[0]); res.n[1] = ::abs(d.n[1]); res.n[2] = ::abs(d.n[2]); return res; }
   inline int_tuple<3> max(int_tuple<3> a, int_tuple<3> b) { int_tuple<3> res(0); res.n[0] = std::max(a.n[0], b.n[0]); res.n[1] = std::max(a.n[1], b.n[1]); res.n[2] = std::max(a.n[2], b.n[2]); return res; }
   inline int_tuple<3> min(int_tuple<3> a, int_tuple<3> b) { int_tuple<3> res(0); res.n[0] = std::min(a.n[0], b.n[0]); res.n[1] = std::min(a.n[1], b.n[1]); res.n[2] = std::min(a.n[2], b.n[2]); return res; }
 
 
-  template <int DIM> inline std::ostream &operator<<(std::ostream& out, const int_tuple<DIM>& d)
+  template <short DIM> inline std::ostream &operator<<(std::ostream& out, const int_tuple<DIM>& d)
   {
     out << d.n[0] << "/" << d.n[1];
 

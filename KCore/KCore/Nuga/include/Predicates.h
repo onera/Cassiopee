@@ -59,7 +59,7 @@ struct T3T3_XPredicate
   inline bool operator() (E_Int N1, E_Int N2) const  
   {
     E_Int t1[3], t2[3];
-    const E_Int DIM = 3;
+    const short DIM = 3;
     E_Float P0[DIM], P1[DIM], P2[DIM], Q0[DIM], Q1[DIM], Q2[DIM];
     
     _connect1->getEntry(N1, t1);    
@@ -114,7 +114,7 @@ struct TH4T3_XPredicate
   inline bool operator() (E_Int N1, E_Int N2) const  
   {
     E_Int t1[4], t2[3];
-    const E_Int DIM = 3;
+    const short DIM = 3;
     E_Float P0[DIM], P1[DIM], P2[DIM], P3[DIM], Q0[DIM], Q1[DIM], Q2[DIM];
     
     _connect1->getEntry(N1, t1);
@@ -199,7 +199,7 @@ struct TH4HX6_XPredicate
   inline bool operator() (E_Int N1, E_Int N2) const  
   {
     E_Int t1[4], t2[8];
-    const E_Int DIM = 3;
+    const short DIM = 3;
     E_Float P0[DIM], P1[DIM], P2[DIM], P3[DIM], Q0[DIM], Q1[DIM], Q2[DIM];
     
     _connect1->getEntry(N1, t1);
@@ -297,7 +297,7 @@ struct T3HX6_XPredicate
   inline bool operator() (E_Int N1, E_Int N2) const  
   {
     E_Int t1[3], t2[8];
-    const E_Int DIM = 3;
+    const short DIM = 3;
     E_Float P0[DIM], P1[DIM], P2[DIM], Q0[DIM], Q1[DIM], Q2[DIM];
     
  #ifdef DEBUG_COLLIDE_PRED

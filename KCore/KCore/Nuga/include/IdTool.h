@@ -35,7 +35,7 @@ public:
   /// non-bijective : convert a n-to-one vector (tipically an oids) to a ngon_unit
   static void reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph);
   /// 
-  template < int LIST_sZ >
+  template < short LIST_sZ >
   static void right_shift(E_Int* list, int shift);
   // variable stride version
   static void right_shift(E_Int* list, E_Int sz, int shift);
@@ -149,7 +149,7 @@ public:
 };
 
 /// 
-template <int LIST_SZ>
+template <short LIST_SZ>
 void IdTool::right_shift(E_Int* list, int shift)
 {
   if (shift == 0) return;

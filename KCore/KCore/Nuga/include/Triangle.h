@@ -100,11 +100,11 @@ namespace K_MESH
     /// Computes the surface.
     static E_Float surface(const E_Float* p1, const E_Float* p2, const E_Float* p3, size_type dim);
 
-    template <E_Int DIM> inline
+    template <short DIM> inline
       static E_Float surface(const E_Float* p1, const E_Float* p2, const E_Float* p3);
     
     /// Computes the surface vector
-    template <E_Int DIM> inline
+    template <short DIM> inline
     static void ndS(const E_Float* p1, const E_Float* p2, const E_Float* p3, E_Float* ndS);
 
     // Normal
@@ -135,7 +135,7 @@ namespace K_MESH
       //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
 
     }
-    template <E_Int DIM>
+    template <short DIM>
     static void bary_coordinates(const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* P, E_Float* bary_coord)
     {
       E_Float Sinv = 1./ K_MESH::Triangle::surface(P0, P1, P2, DIM);
@@ -153,7 +153,7 @@ namespace K_MESH
     static double trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
     static double oriented_trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
 
-    template <int DIM>
+    template <short DIM>
     inline static bool fast_is_in_pred(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2, double RTOL=EPSILON);
 
     /// Returns the rank of N in the storage pointed by pK.
@@ -174,12 +174,12 @@ namespace K_MESH
       (const K_FLD::FloatArray& pos, const K_FLD::IntArray::const_iterator& pN, double& R2, E_Float* C, const MetricType& m) const;
 
     /// Computes the parameters of the projected point of P in the base (P0P1, P0P2).
-    template <E_Int DIM>
+    template <short DIM>
     static void
       project(const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* P, E_Float* UV);
 
     /// Overload of the above method.
-    template <E_Int DIM, typename CoordMatrix, typename NodeIterator>
+    template <short DIM, typename CoordMatrix, typename NodeIterator>
     static void
       project(const CoordMatrix& pos, NodeIterator pS, const E_Float* P, E_Float* UV);
 
@@ -193,7 +193,7 @@ namespace K_MESH
       minDistanceToPoint(const CoordMatrix& pos, NodeIterator pS, const E_Float* P, E_Float* UV, bool& inside);
 
     ///
-    template <E_Int DIM>
+    template <short DIM>
     static inline void planeLineMinDistance
       (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1,
       E_Float tol, E_Bool tol_is_absolute,
@@ -208,7 +208,7 @@ namespace K_MESH
     static inline bool overlap2 (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL);
     
     /// Implementation de l'algo rapide de test d'inetrsection T3-T3 en 3D (INRIA - Rapport de recherche N° 4488)
-    template <E_Int DIM>
+    template <short DIM>
     static inline bool fast_intersectT3 
       (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL);
 
@@ -217,34 +217,34 @@ namespace K_MESH
       (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, E_Float ABSTOL);
 
     ///
-    template <E_Int DIM>
+    template <short DIM>
     static bool intersect 
       (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1,
       E_Float tol, E_Bool tol_is_absolute, 
       E_Float& u00, E_Float& u01, E_Int& tx, E_Bool& overlap);
 
     ///
-    template <E_Int DIM>
+    template <short DIM>
     static bool intersect 
       (const K_FLD::FloatArray& pos, E_Int i0,  E_Int i1,  E_Int i2, E_Int n0, E_Int n1, 
       E_Float tol, E_Bool tol_is_absolute, 
       E_Float& u00, E_Float& u01, E_Int* tx, E_Bool& overlap, E_Bool& coplanar);
     
     ///
-    template <E_Int DIM>
+    template <short DIM>
     static bool intersectv2 
     (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1, 
     E_Float tol, E_Bool tol_is_absolute, 
     E_Float& u0, E_Float& u1, E_Int& tx, E_Bool& overlap, E_Bool& coincident);
 
     ///
-    template <E_Int DIM>
+    template <short DIM>
     static bool intersect2 
       (const K_FLD::FloatArray& pos, E_Int i0,  E_Int i1,  E_Int i2, E_Int n0, E_Int n1, 
       E_Float tol, E_Bool tol_is_absolute, 
       E_Float& u00, E_Float& u01, E_Bool& overlap);
 
-    template <E_Int DIM>
+    template <short DIM>
     static E_Float qualityG(const E_Float* P0, const E_Float* P1, const E_Float* P2);
     
     //dummies
@@ -465,7 +465,7 @@ namespace K_MESH
   }
 
   ///
-  template <E_Int DIM, typename CoordMatrix, typename NodeIterator>
+  template <short DIM, typename CoordMatrix, typename NodeIterator>
   void
     Triangle::project(const CoordMatrix& pos, NodeIterator pS, const E_Float* P, E_Float* UV)
   {
@@ -473,7 +473,7 @@ namespace K_MESH
   }
 
   ///
-  template <E_Int DIM>
+  template <short DIM>
   void
     Triangle::project(const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* P, E_Float* UV)
   {
@@ -590,7 +590,7 @@ namespace K_MESH
   }
 
   ///
-  template <E_Int DIM>
+  template <short DIM>
   inline void
     K_MESH::Triangle::planeLineMinDistance
     (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1,
@@ -1441,7 +1441,7 @@ namespace K_MESH
   }
 
   // Triangle-Edge intersection. ==> used only in CompGeom/trianglesIntersection.cpp
-  template <E_Int DIM>
+  template <short DIM>
   bool
     K_MESH::Triangle::intersect 
     (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1, 
@@ -1540,7 +1540,7 @@ namespace K_MESH
   }
   
   // Triangle-Edge intersection.  ==> used in maskGen
-  template <E_Int DIM>
+  template <short DIM>
   bool
     K_MESH::Triangle::intersectv2 
     (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1, 
@@ -1650,7 +1650,7 @@ namespace K_MESH
   }
 
   // Triangle-Edge intersection. // USED IN TRI_CONFORMIZER and therefore Booleans
-  template <E_Int DIM>
+  template <short DIM>
   bool
     K_MESH::Triangle::intersect 
     (const K_FLD::FloatArray& pos, E_Int i0,  E_Int i1,  E_Int i2, E_Int n0, E_Int n1, 
@@ -1920,7 +1920,7 @@ namespace K_MESH
   }
 
   //=============================================================================
-  template <E_Int DIM>
+  template <short DIM>
   E_Float
     K_MESH::Triangle::qualityG(const E_Float* P0, const E_Float* P1, const E_Float* P2)
   {

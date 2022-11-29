@@ -19,7 +19,7 @@
 using ngon_type = ngon_t<K_FLD::IntArray>;
 
 /// Builds a tree and inserts the boxes (externally built) from begin to end.
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 K_SEARCH::BbTree<DIM, BBoxType>::BbTree
 (const std::vector<BBoxType*> & boxes, E_Float tolerance)
 :_boxes(boxes), _tolerance(tolerance), _owes_boxes(false), _pool(NULL)
@@ -153,7 +153,7 @@ BbTree<3>::BbTree
 }
 
 ///
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 void
 K_SEARCH::BbTree<DIM, BBoxType>::getOverlappingBoxes
 (const E_Float* minB, const E_Float* maxB, std::vector<size_type>& out) const
@@ -163,7 +163,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::getOverlappingBoxes
 }
 
 ///
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 void
 K_SEARCH::BbTree<DIM, BBoxType>::__getOverlappingBoxes
 (BBoxType* box, E_Int node, std::vector<size_type>& out) const
@@ -188,7 +188,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getOverlappingBoxes
 }
 
 ///============================================================================
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 bool
 K_SEARCH::BbTree<DIM, BBoxType>::hasAnOverlappingBox
 (const E_Float* minB, const E_Float* maxB) const
@@ -198,7 +198,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::hasAnOverlappingBox
 }
 
 ///
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 bool
 K_SEARCH::BbTree<DIM, BBoxType>::__hasAnOverlappingBox
 (BBoxType* box, E_Int node) const
@@ -222,7 +222,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__hasAnOverlappingBox
 }
 
 //=============================================================================
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 void
 K_SEARCH::BbTree<DIM, BBoxType>::getIntersectingBoxes
 (const E_Float* P0, const E_Float* P1, std::vector<size_type>& out, E_Float tolerance, bool strict) const
@@ -242,7 +242,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::getIntersectingBoxes
 }
 
 //=============================================================================
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 void
 K_SEARCH::BbTree<DIM, BBoxType>::__getIntersectingBoxes
 (const E_Float* P0, const E_Float* P1, E_Int node, const E_Float& abstol, std::vector<size_type>& out) const
@@ -267,7 +267,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getIntersectingBoxes
 }
 
 //=============================================================================
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 void
 K_SEARCH::BbTree<DIM, BBoxType>::__getIntersectingBoxesStrict
 (const E_Float* P0, const E_Float* P1, E_Int node, const E_Float& abstol, std::vector<size_type>& out, const BBoxType & boxSeg) const
@@ -293,7 +293,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getIntersectingBoxesStrict
 
 
 ///
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 E_Int
 K_SEARCH::BbTree<DIM, BBoxType>::__insert
 (const std::vector<size_type>::const_iterator& begin,
@@ -403,7 +403,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__insert
 }
 
 ///
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 void
 K_SEARCH::BbTree<DIM, BBoxType>::__getBoxesBox
 (const std::vector<BBoxType*>& boxes, const std::vector<size_type>::const_iterator& begin,
@@ -422,7 +422,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getBoxesBox
 }
 
 ///
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 E_Int
 K_SEARCH::BbTree<DIM, BBoxType>::__getLongestSideAxis
 (const BBoxType& box) const
@@ -441,7 +441,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getLongestSideAxis
   return axis;
 }
 
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 E_Bool
 K_SEARCH::BbTree<DIM, BBoxType>::boxesAreOverlapping (const BBoxType * bb1, const BBoxType * bb2, const E_Float& tol) 
 {
@@ -455,7 +455,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::boxesAreOverlapping (const BBoxType * bb1, cons
   return true;
 }
 
-template <E_Int DIM, typename BBoxType>
+template <short DIM, typename BBoxType>
 E_Bool
 K_SEARCH::BbTree<DIM, BBoxType>::box1IsIncludedinbox2 (const BBoxType * bb1, const BBoxType * bb2, const E_Float& tol) 
 {

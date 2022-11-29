@@ -48,7 +48,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__run_correction_beta
 (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
@@ -212,7 +212,7 @@ TRI_Conformizer<DIM>::__run_correction_beta
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__run_correction_gamma
 (const std::set<K_MESH::NO_Edge>&xpairs, NUGA::int_vector_type&colors,
@@ -367,7 +367,7 @@ TRI_Conformizer<DIM>::__run_correction_gamma
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__buildSameSupportSurfacePairs
 (const K_FLD::FloatArray& pos, const std::vector<K_FLD::IntArray >& connectZs,
@@ -396,7 +396,7 @@ TRI_Conformizer<DIM>::__buildSameSupportSurfacePairs
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Bool
 TRI_Conformizer<DIM>::__areOverlapping
 (const K_FLD::FloatArray& pos, E_Float tolerance, const K_FLD::FloatArray& normals,
@@ -448,7 +448,7 @@ TRI_Conformizer<DIM>::__areOverlapping
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Bool
 TRI_Conformizer<DIM>::__IsNodeFarFromSurface
 (const K_FLD::FloatArray& pos, const K_FLD::FloatArray& normals,
@@ -480,7 +480,7 @@ TRI_Conformizer<DIM>::__IsNodeFarFromSurface
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__computeAveragedNormal
 (const K_FLD::FloatArray& normals, const std::vector<E_Int>& nodes, E_Float* ni)
@@ -502,7 +502,7 @@ TRI_Conformizer<DIM>::__computeAveragedNormal
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__get_common_edges
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const std::vector<E_Int>& dupIds,
@@ -574,7 +574,7 @@ TRI_Conformizer<DIM>::__get_common_edges
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__get_zones
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
@@ -641,7 +641,7 @@ TRI_Conformizer<DIM>::__get_zones
 
 /*
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__run_correction_alpha1
 (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
@@ -798,7 +798,7 @@ TRI_Conformizer<DIM>::__run_correction_alpha1
 */
 /*
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__compute_splitting_points
 (K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
@@ -866,7 +866,7 @@ TRI_Conformizer<DIM>::__compute_splitting_points
 }
 */
 ///
-/*template <E_Int DIM>
+/*template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__fix_bad_triangles
 (K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArray& connect,
@@ -1074,7 +1074,7 @@ TRI_Conformizer<DIM>::__fix_bad_triangles
 /*
 #define GOOD_MERGE(E0,E1) ((nids[E0] == nids[E1]) || (commonEdges.find(K_MESH::NO_Edge(nids[E0], nids[E1])) != commonEdges.end()))
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__swap_edges
 (std::vector<std::pair<E_Int, E_Int> >& swapE, K_FLD::IntArray& connect, std::vector<E_Int> ancestors, K_FLD::IntArray& neighbors,
@@ -1184,7 +1184,7 @@ TRI_Conformizer<DIM>::__swap_edges
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__clean_topology
 (K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc, 
@@ -1331,7 +1331,7 @@ TRI_Conformizer<DIM>::__clean_topology
 } 
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__multi_swap
 (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, NUGA::bool_vector_type& xc, std::vector<E_Int>& ancestors)
@@ -1468,7 +1468,7 @@ TRI_Conformizer<DIM>::__multi_swap
 
 /*
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__get_triangles_to_swap
  (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const K_FLD::IntArray& connect0,

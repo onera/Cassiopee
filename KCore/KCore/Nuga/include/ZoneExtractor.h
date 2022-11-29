@@ -42,28 +42,28 @@ public:
   ~ZoneExtractor(){}
   
   /// Retrieves any cell in mesh (crd,cnt) inside box(mB,MB).
-  template <E_Int DIM, typename ELT_t>
+  template <short DIM, typename ELT_t>
   void getInBox(const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, const AConnectivity_t& cnt, Vector_t<E_Int>& xCells_ids);
-  template <E_Int DIM>
+  template <short DIM>
   void getInBox
   (const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, const ngon_unit& ng, Vector_t<E_Int>& xCells_ids);
-  template <E_Int DIM>
+  template <short DIM>
   void getInBox_omp(const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, const AConnectivity_t& cnt, Vector_t<E_Int>& xCells_ids);
   
   /// Retrieves any point cloud crd inside box(mB,MB).
-  template <E_Int DIM>
+  template <short DIM>
   void getInBox(const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, Vector_t<E_Int>& xCells_ids);
-  template <E_Int DIM>
+  template <short DIM>
   void getInBox_omp(const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, Vector_t<E_Int>& xCells_ids);
 
   /// Retrieves any box in boxes inside box(mB,MB).
-  template <E_Int DIM>
+  template <short DIM>
   void getInBox(const E_Float* mB, const E_Float* MB, E_Float tol, const Vector_t<K_SEARCH::BoundingBox<DIM>*>& boxes, Vector_t<E_Int>& xnode_ids);
   /// same as above but with a flag instead of a list
-  template <E_Int DIM>
+  template <short DIM>
   void getInBox(const E_Float* mB, const E_Float* MB, E_Float tol, const Vector_t<K_SEARCH::BoundingBox<DIM>*>& boxes, Vector_t<bool>& is_in);
   //omp version
-  template <E_Int DIM>
+  template <short DIM>
   void getInBox_omp(const E_Float* mB, const E_Float* MB, E_Float tol, const Vector_t<K_SEARCH::BoundingBox<DIM>*>& boxes, Vector_t<bool>& is_in);
 };
 
@@ -73,7 +73,7 @@ typedef ZoneExtractor<K_FLD::FloatArray, K_FLD::IntArray> DynZoneExtractor;
 
 ///
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM, typename ELT_t>
+template <short DIM, typename ELT_t>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 (const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, const AConnectivity_t& cnt, Vector_t<E_Int>& xCells_ids)
 {
@@ -95,7 +95,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 
 ///
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM>
+template <short DIM>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 (const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, const ngon_unit& PGs, Vector_t<E_Int>& xCells_ids)
 {
@@ -121,7 +121,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 
 ///
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM>
+template <short DIM>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 (const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, Vector_t<E_Int>& xnode_ids)
 {
@@ -142,7 +142,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 
 ///
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM>
+template <short DIM>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 (const E_Float* mB, const E_Float* MB, E_Float tol, const Vector_t<K_SEARCH::BoundingBox<DIM>*>& boxes, Vector_t<E_Int>& xCells_ids)
 {
@@ -159,7 +159,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 
 ///
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM>
+template <short DIM>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 (const E_Float* mB, const E_Float* MB, E_Float tol, const Vector_t<K_SEARCH::BoundingBox<DIM>*>& boxes, Vector_t<bool>& is_in)
 {
@@ -176,7 +176,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 
 ///
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM>
+template <short DIM>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox_omp
 (const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, const AConnectivity_t& cnt, Vector_t<E_Int>& is_in)
 {
@@ -205,7 +205,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox_omp
 }
 
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM>
+template <short DIM>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox_omp
 (const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, Vector_t<E_Int>& is_in)
 {
@@ -226,7 +226,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox_omp
 
 ///
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM>
+template <short DIM>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox_omp
 (const E_Float* mB, const E_Float* MB, E_Float tol, const Vector_t<K_SEARCH::BoundingBox<DIM>*>& boxes, Vector_t<bool>& is_in)
 {

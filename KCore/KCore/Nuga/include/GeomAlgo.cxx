@@ -28,7 +28,7 @@
 #define MIN3(a,b,c) ((a<b) ? ((a<c) ? 0 : 2) : ((b<c) ? 1 : 2))
 
 ///
-template <E_Int DIM>
+template <short DIM>
 static void iso_barycenter(const K_FLD::FloatArray& coords, E_Float* isob)
 {
   for (size_t i = 0; i < DIM; ++i) isob[i]=0.;
@@ -48,7 +48,7 @@ static void iso_barycenter(const K_FLD::FloatArray& coords, E_Float* isob)
 
 ///
 template <typename ElementType>
-template <typename Coordinate_t, typename Connectivity_t, int DIM>
+template <typename Coordinate_t, typename Connectivity_t, short DIM>
 void
 NUGA::GeomAlgo<ElementType>::neighboring
 (const K_FLD::ArrayAccessor<Coordinate_t>& coords, const K_FLD::ArrayAccessor<Connectivity_t>& conn,

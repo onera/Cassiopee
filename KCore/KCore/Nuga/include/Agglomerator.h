@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sï¿½m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_AGGLOMERATOR_H
 #define NUGA_AGGLOMERATOR_H
@@ -44,7 +44,7 @@ namespace NUGA
    
     ///
     template<typename TriangulatorType>
-    inline static void agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, E_Float angle_threshold=1.e-12, E_Int method=0);
+    inline static void agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, E_Float angle_threshold=1.e-12, int method=0);
     ///
     template<typename TriangulatorType>
     inline static void agglomerate_non_star_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold = 1.e-12);
@@ -78,7 +78,7 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static void agglomerate_phs_NEW(const K_FLD::FloatArray& crd,
                                            const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-                                           ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_criteria_and_or_badagglo_allowance);
+                                           ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria_and_or_badagglo_allowance);
 
     /// 
     template<typename TriangulatorType>
@@ -90,13 +90,13 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static void agglomerate_phs (const K_FLD::FloatArray& crd, 
                                         const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-                                        ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_mode);
+                                        ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_mode);
 
     /// TRYING TO FOCUSE MORE ON REFLEX SITUATION
     template<typename TriangulatorType>
     inline static void agglomerate_phs2(const K_FLD::FloatArray& crd,
       const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-      ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_mode);
+      ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_mode);
   
   
   private:
@@ -240,7 +240,7 @@ namespace NUGA
   void NUGA::Agglomerator::agglomerate_phs2
   (const K_FLD::FloatArray& crd, 
    const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_criteria)
+   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria)
   {
     ngo.clear();
     oriento.clear();
@@ -487,7 +487,7 @@ namespace NUGA
   void NUGA::Agglomerator::agglomerate_phs
   (const K_FLD::FloatArray& crd, 
    const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_criteria)
+   ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria)
   {
     ngo.clear();
     oriento.clear();
@@ -735,7 +735,7 @@ namespace NUGA
   void NUGA::Agglomerator::agglomerate_phs_NEW
   (const K_FLD::FloatArray& crd,
     const ngon_type& ngi, const ngon_unit& neighborsi, const ngon_unit& orienti, const Vector_t<E_Int>& PHlist,
-    ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, E_Int enforce_reflex_criteria_and_or_badagglo_allowance)
+    ngon_type& ngo, ngon_unit& oriento, E_Int& nb_aggs, double angle_threshold, int enforce_reflex_criteria_and_or_badagglo_allowance)
   {
     // enforce_reflex_criteria_and_or_badagglo_allowance == 0 => do not enforce + forbid bad agglo
     // enforce_reflex_criteria_and_or_badagglo_allowance == 1 =>        enforce + forbid bad agglo
@@ -1271,7 +1271,7 @@ namespace NUGA
   
   ///
   template<typename TriangulatorType>
-  void NUGA::Agglomerator::agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold, E_Int method)
+  void NUGA::Agglomerator::agglomerate_small_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Float vmin, E_Float vratio, ngon_type& ngo, E_Int& nb_aggs, double angle_threshold, int method)
   {
     ngon_unit neighborsi;
     ngi.build_ph_neighborhood(neighborsi);
@@ -1652,7 +1652,7 @@ namespace NUGA
       E_Int PHi = PHlist[i];
 
       const E_Int* pf = ngio.PHs.get_facets_ptr(PHi);
-      E_Int npf = ngio.PHs.stride(PHi);
+      int npf = ngio.PHs.stride(PHi);
       
       if (!K_MESH::Polyhedron<0>::is_of_type<K_MESH::Tetrahedron>(ngio.PGs, pf, npf)) continue;
 
@@ -1727,7 +1727,7 @@ namespace NUGA
       E_Int PHi = PHlist[i];
 
       const E_Int* pf = ngio.PHs.get_facets_ptr(PHi);
-      E_Int npf = ngio.PHs.stride(PHi);
+      int npf = ngio.PHs.stride(PHi);
 
       if (!K_MESH::Polyhedron<0>::is_of_type<K_MESH::Tetrahedron>(ngio.PGs, pf, npf)) continue;
 

@@ -16,7 +16,7 @@
 
 namespace DELAUNAY{
 
-template <E_Int DIM>
+template <short DIM>
 class AnisoMetricType
 {
 public:
@@ -59,7 +59,7 @@ using Aniso2D = AnisoMetricType<2>;
 using Aniso3D = AnisoMetricType<3>;
 
 ///
-template <E_Int DIM>
+template <short DIM>
 AnisoMetricType<DIM>
 AnisoMetricType<DIM>::operator*(const E_Float& a) const {
 
@@ -71,7 +71,7 @@ AnisoMetricType<DIM>::operator*(const E_Float& a) const {
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 AnisoMetricType<DIM>
 AnisoMetricType<DIM>::operator+(const AnisoMetricType& rhs) const
 {

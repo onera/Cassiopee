@@ -54,7 +54,7 @@ namespace NUGA
 #define IS_IN_SEG(val, tol) ((val > -tol) && (val < (1. + tol)))
 
 ///
-template<E_Int DIM>
+template<short DIM>
 TRI_Conformizer<DIM>::TRI_Conformizer(bool wnh) : Conformizer<DIM, K_MESH::Triangle>(wnh)
 {
   _P.resize(3,3);
@@ -64,7 +64,7 @@ TRI_Conformizer<DIM>::TRI_Conformizer(bool wnh) : Conformizer<DIM, K_MESH::Trian
 }
 
 ///
-template<E_Int DIM>
+template<short DIM>
 void TRI_Conformizer<DIM>::__set_tolerances(E_Float Lmin, E_Float Lmax, E_Float  user_tolerance)
 {
   // min edge length (MEL)
@@ -101,7 +101,7 @@ void TRI_Conformizer<DIM>::__set_tolerances(E_Float Lmin, E_Float Lmax, E_Float 
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__split_Elements
 (const K_FLD::FloatArray& pos, K_FLD::IntArray & connect,
@@ -515,7 +515,7 @@ TRI_Conformizer<DIM>::__split_Elements
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__iterative_run
 (DELAUNAY::T3Mesher<E_Float>& mesher, K_FLD::FloatArray& crd, K_FLD::IntArray& cB, 
@@ -655,7 +655,7 @@ TRI_Conformizer<DIM>::__iterative_run
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__improve_triangulation_quality(const T3& tri, const std::vector<E_Int>& revIDs,
                                                       std::vector<std::pair<E_Int, E_Int> >& wpair_set,
@@ -723,7 +723,7 @@ TRI_Conformizer<DIM>::__improve_triangulation_quality(const T3& tri, const std::
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__intersect
 (K_FLD::FloatArray& pos, const K_FLD::IntArray & connect, T3& t1, T3& t2, E_Float tol)
@@ -950,7 +950,7 @@ inline bool getBoundary(const E_Int* t0, const E_Int* t1, E_Int& i, E_Int& j)
     
 
 ///
-template <E_Int DIM>
+template <short DIM>
 bool
 TRI_Conformizer<DIM>::__fast_discard
 (const K_FLD::FloatArray& pos, const E_Int* T0, const E_Int* T1, E_Float tol)
@@ -1093,7 +1093,7 @@ TRI_Conformizer<DIM>::__fast_discard
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Bool
 TRI_Conformizer<DIM>::__intersect
 (K_FLD::FloatArray& pos, const K_FLD::IntArray & connect, T3& t, edge_container_type& edges, E_Int idxE,
@@ -1226,7 +1226,7 @@ TRI_Conformizer<DIM>::__intersect
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__update_data
 (const K_FLD::FloatArray& coord, const K_FLD::IntArray& dum_connect, const std::vector<E_Int>& newIDs)
@@ -1258,7 +1258,7 @@ TRI_Conformizer<DIM>::__update_data
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__get_mesh_data
 (const K_FLD::FloatArray & pos,
@@ -1426,7 +1426,7 @@ TRI_Conformizer<DIM>::__get_mesh_data
 
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__get_connectB2
 (const K_FLD::FloatArray & pos,
@@ -1485,7 +1485,7 @@ TRI_Conformizer<DIM>::__get_connectB2
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 inline bool
 TRI_Conformizer<DIM>::__get_B0_edges
 (const K_FLD::IntArray & connect,
@@ -1546,7 +1546,7 @@ TRI_Conformizer<DIM>::__get_B0_edges
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 inline void
 TRI_Conformizer<DIM>::__get_Inner_edges
 (const K_FLD::FloatArray & pos,
@@ -1585,7 +1585,7 @@ TRI_Conformizer<DIM>::__get_Inner_edges
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 inline void
 TRI_Conformizer<DIM>::__get_Imprint_edges
 (const T3& t, std::set<K_MESH::Edge>& hBO, std::set<E_Int>& Nodes0)
@@ -1607,7 +1607,7 @@ TRI_Conformizer<DIM>::__get_Imprint_edges
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Bool
 TRI_Conformizer<DIM>::is_inside
 (const K_FLD::IntArray& connect, const T3& t, const K_FLD::FloatArray& pos, E_Int Ni, E_Float tol)
@@ -1623,7 +1623,7 @@ TRI_Conformizer<DIM>::is_inside
   return (::fabs(s - s0) < tol);
 }
 
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__tidy_edges
 (const K_FLD::FloatArray& coord, edge_container_type& edges)
@@ -1634,7 +1634,7 @@ TRI_Conformizer<DIM>::__tidy_edges
     __tidy_edge(coord, edges[i]);
 }
 
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__tidy_edge (const K_FLD::FloatArray& coord, std::vector<E_Int>& nodes)
 {
@@ -1658,7 +1658,7 @@ TRI_Conformizer<DIM>::__tidy_edge (const K_FLD::FloatArray& coord, std::vector<E
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__simplify_and_clean
 (const K_FLD::FloatArray& pos, E_Float tolerance,
@@ -1741,7 +1741,7 @@ TRI_Conformizer<DIM>::__simplify_and_clean
 }
 
 #ifdef DEBUG_TRI_CONFORMIZER
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::draw(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, double tol, E_Int what, K_FLD::IntArray& out)
 {
@@ -1785,7 +1785,7 @@ TRI_Conformizer<DIM>::draw(const K_FLD::FloatArray& pos, const K_FLD::IntArray& 
 }
 #endif
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 TRI_Conformizer<DIM>::__simplify_and_clean2
 (const K_FLD::FloatArray& pos, E_Float tolerance,
@@ -1871,7 +1871,7 @@ K_FLD::IntArray& connect, NUGA::int_vector_type& ancestors, NUGA::bool_vector_ty
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__prepare_data
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect)
@@ -1908,7 +1908,7 @@ TRI_Conformizer<DIM>::__prepare_data
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__compact_to_mesh
 (const K_FLD::FloatArray& posIn, const K_FLD::IntArray& connectIn, 
@@ -1954,7 +1954,7 @@ TRI_Conformizer<DIM>::__compact_to_mesh
 }
 
 /// WARNING ; transform but do not resize
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__transform
 (const E_Float* P0, const E_Float* P1, const E_Float* P2, K_FLD::FloatArray& pos)
@@ -1980,7 +1980,7 @@ TRI_Conformizer<DIM>::__transform
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__transform
 (K_FLD::FloatArray& pos, const K_FLD::FloatArray& t)
@@ -2005,7 +2005,7 @@ TRI_Conformizer<DIM>::__transform
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::__process_duplicates
 (K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc)
@@ -2076,7 +2076,7 @@ inline E_Float dist2(const E_Float* pt, const E_Float* pt2)
   return d2;
 }
 
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::drawElements
 (const char* fname, const char* filefmt, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect,
@@ -2115,7 +2115,7 @@ TRI_Conformizer<DIM>::drawElements
 #ifdef DEBUG_TRI_CONFORMIZER
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::drawTandE
 (const K_FLD::FloatArray& pos, K_FLD::IntArray::const_iterator pS, E_Int Ni, E_Int Nj)
@@ -2141,7 +2141,7 @@ TRI_Conformizer<DIM>::drawTandE
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::drawT3(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Int ith_elt, bool compact)
 {
@@ -2200,7 +2200,7 @@ TRI_Conformizer<DIM>::drawT3(const K_FLD::FloatArray& pos, const K_FLD::IntArray
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 TRI_Conformizer<DIM>::T3nodes
 (const K_FLD::IntArray& connect, const T3& t, std::set<E_Int>& nodes)
@@ -2233,7 +2233,7 @@ TRI_Conformizer<DIM>::T3nodes
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 bool
 TRI_Conformizer<DIM>::detect_duplis_and_baffles(const K_FLD::IntArray& connect)
 {

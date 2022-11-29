@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __NGON_T_HXX__
 #define	__NGON_T_HXX__
@@ -2951,7 +2951,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       NG.PGs.remove_consecutive_duplicated(); //removing duplicated facets : compact representation
     }
     
-    // 3- Faces confondues : identification et suppression des r�f�rences.
+    // 3- Faces confondues : identification et suppression des references.
     /*bool has_dups = false;*/
     if (ngon_dim == 3) //volumic
     {

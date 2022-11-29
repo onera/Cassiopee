@@ -24,7 +24,7 @@
 namespace NUGA
 {
 
-template<E_Int DIM>
+template<short DIM>
 class TRI_Conformizer : public Conformizer<DIM, K_MESH::Triangle>
 {
 

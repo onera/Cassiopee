@@ -23,7 +23,7 @@ namespace K_SEARCH
 {
 
 ///
-template <E_Int DIM>
+template <short DIM>
 class BoundingBox{
 
 public:
@@ -366,7 +366,7 @@ typedef BoundingBox<2> BBox2D;
 typedef BoundingBox<3> BBox3D;
 
 ///
-template <E_Int DIM, typename BBoxType = BoundingBox<DIM> >
+template <short DIM, typename BBoxType = BoundingBox<DIM> >
 class BbTree {
 
   public: /** Typedefs */

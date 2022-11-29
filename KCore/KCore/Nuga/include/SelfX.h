@@ -45,7 +45,7 @@ inline bool getBoundary(const E_Int* t0, const E_Int* t1, E_Int& i, E_Int& j)
 #endif
 
 ///
-template <E_Int DIM>
+template <short DIM>
 bool __fast_discard
 (const K_FLD::FloatArray& pos, const E_Int* t0, const E_Int* t1, E_Float tol)
 {
@@ -143,7 +143,7 @@ bool __fast_discard
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Bool __intersect
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Int t, E_Int e0, E_Int e1, E_Float tol, E_Bool& coplanar)
 {
@@ -207,7 +207,7 @@ E_Bool __intersect
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int intersect_from_Conformizer_wo_trace
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Int t1, E_Int t2, E_Float tol)
 {

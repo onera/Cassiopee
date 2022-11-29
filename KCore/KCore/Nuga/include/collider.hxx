@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_COLLIDER_HXX
 #define NUGA_COLLIDER_HXX
@@ -36,7 +36,7 @@ namespace NUGA
     using collision_func = bool (*) (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1, const E_Float* Q2, E_Float tol);
     
     // Valid for any VOL or SURF elements
-    template <typename crd_t, int DIM, typename ELT1, typename ELT2>
+    template <typename crd_t, short DIM, typename ELT1, typename ELT2>
     bool simplicial_colliding(const crd_t& crd1, ELT1& e1, const crd_t& crd2, ELT2& e2, collision_func COLLIDING_FUNC, E_Float abstol, E_Int& t1, E_Int& t2)
     {
       //
@@ -177,7 +177,7 @@ namespace NUGA
     }
 
     ///  
-    template <typename crd_t, typename cnt_t1, typename cnt_t2, typename loc_t, typename ELT1, typename ELT2, int DIM>
+    template <typename crd_t, typename cnt_t1, typename cnt_t2, typename loc_t, typename ELT1, typename ELT2, short DIM>
     void compute(const crd_t& crd1,  short px1, short py1, short pz1, const cnt_t1& cnt1, 
                   const crd_t& crd2,  short px2, short py2, short pz2, const cnt_t2& cnt2, 
                   std::vector<E_Int>& ids1, std::vector<E_Int>& ids2, E_Float tolerance = EPSILON)
@@ -197,7 +197,7 @@ namespace NUGA
     }
  
     /// fixme : this function must be reworked : logic inside could be wrong and assume frank X (by using fast_intersectT3 that doesnt behave well otherwise) 
-    template <typename crd_t, typename cnt_t1, typename cnt_t2, typename loc_t, typename ELT1, typename ELT2, int DIM>
+    template <typename crd_t, typename cnt_t1, typename cnt_t2, typename loc_t, typename ELT1, typename ELT2, short DIM>
     void compute(const K_FLD::ArrayAccessor<crd_t>& acrd1,  const cnt_t1& cnt1, const loc_t& loc1,
                   const crd_t& crd2,  short px2, short py2, short pz2, const cnt_t2& cnt2, 
                   std::vector<E_Int>& is_x1, std::vector<E_Int>& is_x2, E_Float tolerance = EPSILON)
@@ -564,7 +564,7 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
   keep.resize(ncands, false);
 
   E_Int T1[3];
-  for (E_Int i = 0; (i < ae1.nb_tris()); ++i)
+  for (int i = 0; (i < ae1.nb_tris()); ++i)
   {
     ae1.triangle(i, T1);
     const E_Float* P1 = crd2D.col(T1[0]);

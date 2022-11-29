@@ -151,7 +151,7 @@ namespace NUGA
       }
     }
 
-    template <int DIM>
+    template <short DIM>
     void __normalize(K_FLD::FloatArray& crd)
     {
       //try again with a normalized contour

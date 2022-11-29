@@ -18,7 +18,7 @@ namespace NUGA
 {
 
 ///  
-template <E_Int DIM>
+template <short DIM>
 std::vector<std::pair<E_Int,E_Int>> BAR_Conformizer<DIM>::get_x_history()
 {
   std::vector<std::pair<E_Int, E_Int>> xhis;
@@ -58,7 +58,7 @@ std::vector<std::pair<E_Int,E_Int>> BAR_Conformizer<DIM>::get_x_history()
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 BAR_Conformizer<DIM>::__set_tolerances(E_Float Lmin, E_Float Lmax, E_Float  user_tolerance)
 {  
@@ -85,7 +85,7 @@ BAR_Conformizer<DIM>::__set_tolerances(E_Float Lmin, E_Float Lmax, E_Float  user
 }
   
 ///
-template <E_Int DIM>
+template <short DIM>
 E_Int
 BAR_Conformizer<DIM>::__intersect
 (K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E2& e1, E2& e2, E_Float tolerance)
@@ -147,7 +147,7 @@ BAR_Conformizer<DIM>::__intersect
 }
 
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 BAR_Conformizer<DIM>::__update_data
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const std::vector<E_Int>& newIDs)
@@ -173,7 +173,7 @@ BAR_Conformizer<DIM>::__update_data
   }
 }
 
-template <E_Int DIM>
+template <short DIM>
 void
 BAR_Conformizer<DIM>::__reorder_nodes_on_edge
 (const K_FLD::FloatArray& pos, std::vector<E_Int>& nodes, const E_Float *P0)
@@ -210,7 +210,7 @@ BAR_Conformizer<DIM>::__reorder_nodes_on_edge
 }
 
 ///  
-template <E_Int DIM>
+template <short DIM>
 E_Int
 BAR_Conformizer<DIM>::__split_Elements
 (const K_FLD::FloatArray& pos, K_FLD::IntArray & connect,

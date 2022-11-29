@@ -30,7 +30,7 @@
 #include "Nuga/include/Hexahedron.h"
 
 
-#define TEMPLATE_COORD_CONNECT_DIM_ELT_PRED template <typename Coordinate_t, typename Connectivity_t, E_Int DIM, typename Element_t, template<class, class> class Predicate_t >
+#define TEMPLATE_COORD_CONNECT_DIM_ELT_PRED template <typename Coordinate_t, typename Connectivity_t, short DIM, typename Element_t, template<class, class> class Predicate_t >
 #define COLLIDER Collider<Coordinate_t, Connectivity_t, DIM, Element_t, Predicate_t>
 
 namespace K_CONNECT

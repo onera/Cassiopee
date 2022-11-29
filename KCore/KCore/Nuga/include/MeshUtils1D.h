@@ -27,11 +27,11 @@ public:
   MeshUtils1D(void);
   ~MeshUtils1D(void);
 
-  template <E_Int DIM>
+  template <short DIM>
   static void mesh_line (const E_Float* P0, const E_Float* P1, E_Int N,
     K_FLD::FloatArray& pos, K_FLD::IntArray& connect);
 
-  template <E_Int DIM>
+  template <short DIM>
   static void mesh_arc (E_Float* C, E_Float* axis, E_Float* P0, E_Float alpha, E_Int N,
     K_FLD::FloatArray& pos, K_FLD::IntArray& connect);
 
@@ -41,7 +41,7 @@ public:
     std::vector<E_Float> & metric, E_Float &hmax, E_Float& hmin);
 };
 
-template <E_Int DIM>
+template <short DIM>
 void
 MeshUtils1D::mesh_line
 (const E_Float* P0, const E_Float* P1, E_Int N,
@@ -70,7 +70,7 @@ MeshUtils1D::mesh_line
   }
 }
 
-template <E_Int DIM>
+template <short DIM>
 void
 MeshUtils1D::mesh_arc (E_Float* C, E_Float* axis, E_Float* P0, E_Float alpha, E_Int N,
                        K_FLD::FloatArray& pos, K_FLD::IntArray& connect)

@@ -101,41 +101,41 @@ public : /* Static functions related to edges */
   ///Computes the minimum distance between the lines supported by P0P1 and Q0Q1.
   /** u0 and u1 are the parameter along each line to the points closest to each other.
       in case of intersection both parameters allow to compute the intersection point and min_distance = 0.*/
-  template <E_Int DIM>
+  template <short DIM>
   static void lineLineMinDistance
               (const E_Float* P0, const E_Float* P1, const E_Float* Q0, const E_Float* Q1,
                E_Float& u0, E_Float& u1,
                E_Float tolerance, E_Bool& parallel, E_Bool& coincident, E_Float& min_distance);
                                
   ///
-  template <E_Int DIM>
+  template <short DIM>
   static bool intersect (const E_Float* P0, const E_Float* P1, const E_Float* Q0, const E_Float* Q1,
                          E_Float tol, E_Bool tol_is_absolute,
                          E_Float& u00, E_Float& u01, E_Float& u10, E_Float& u11, E_Bool& overlap);
 
   ///
-  template <E_Int DIM>
+  template <short DIM>
   static bool intersect 
     (const K_FLD::FloatArray& pos, E_Int N0, E_Int N1, E_Int M0, E_Int M1, E_Float tol, E_Bool tol_is_absolute,
     E_Float& u00, E_Float& u01, E_Float& u10, E_Float& u11, E_Bool& overlap, bool enforceCoplanarity=false);
   
   ///
-  template <E_Int DIM>
+  template <short DIM>
   static E_Float
   linePointMinDistance(const E_Float* P0, const E_Float* P1, const E_Float* P, E_Float& lambda) ;
   
   ///
-  template <E_Int DIM>
+  template <short DIM>
   static E_Float
   linePointMinDistance2(const E_Float* P0, const E_Float* P1, const E_Float* P, E_Float& lambda) ;
 
   ///
-  template <E_Int DIM>
+  template <short DIM>
   static E_Float
   edgePointMinDistance (const E_Float* P0, const E_Float* P1, const E_Float* P, E_Float& lambda);
   
   ///
-  template <E_Int DIM>
+  template <short DIM>
   inline static E_Float
   edgePointMinDistance2 (const E_Float* P0, const E_Float* P1, const E_Float* P, E_Float& lambda);
 
@@ -201,7 +201,7 @@ struct aEdge : public Edge
 } // End namespace K_MESH
 
 //// Template implementation //////////
-template <E_Int DIM>
+template <short DIM>
 bool
 K_MESH::Edge::intersect 
 (const E_Float* P0, const E_Float* P1, const E_Float* Q0, const E_Float* Q1,
@@ -288,7 +288,7 @@ K_MESH::Edge::intersect
 }
 
 //// Template implementation //////////
-template <E_Int DIM>
+template <short DIM>
 bool
 K_MESH::Edge::intersect 
 (const K_FLD::FloatArray& pos, E_Int N0, E_Int N1, E_Int M0, E_Int M1, E_Float tol, E_Bool tol_is_absolute,
@@ -419,7 +419,7 @@ K_MESH::Edge::intersect
 #define MAX(a,b) ((a<b)?b:a)
 #define MIN(a,b) ((a<b)?a:b)
 ///
-template <E_Int DIM>
+template <short DIM>
 void
 K_MESH::Edge::lineLineMinDistance
 (const E_Float* P0, const E_Float* P1, const E_Float* Q0, const E_Float* Q1,
@@ -547,7 +547,7 @@ K_MESH::Edge::lineLineMinDistance
 }
 
 //=============================================================================
-template <E_Int DIM>
+template <short DIM>
 E_Float
 K_MESH::Edge::linePointMinDistance2
 (const E_Float* P0, const E_Float* P1, const E_Float* P, E_Float& lambda)
@@ -564,7 +564,7 @@ K_MESH::Edge::linePointMinDistance2
 }
 
 //=============================================================================
-template <E_Int DIM>
+template <short DIM>
 E_Float
 K_MESH::Edge::linePointMinDistance
 (const E_Float* P0, const E_Float* P1, const E_Float* P, E_Float& lambda) 
@@ -573,7 +573,7 @@ K_MESH::Edge::linePointMinDistance
 }
 
 //=============================================================================
-template <E_Int DIM>
+template <short DIM>
 E_Float
 K_MESH::Edge::edgePointMinDistance
 (const E_Float* P0, const E_Float* P1, const E_Float* P, E_Float& lambda) 
@@ -582,7 +582,7 @@ K_MESH::Edge::edgePointMinDistance
 }
 
 //=============================================================================
-template <E_Int DIM>
+template <short DIM>
 E_Float
 K_MESH::Edge::edgePointMinDistance2
 (const E_Float* P0, const E_Float* P1, const E_Float* P, E_Float& lambda) 

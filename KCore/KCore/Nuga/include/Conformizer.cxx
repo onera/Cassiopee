@@ -45,7 +45,7 @@ namespace NUGA
 {
   
 //
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__prepare_data
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect)
@@ -79,7 +79,7 @@ Conformizer<DIM, Element_t>::__prepare_data
 }
   
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 E_Int Conformizer<DIM, Element_t>::__removeDegenerated
 (K_FLD::IntArray& connect, NUGA::int_vector_type& newIDs)
 {
@@ -111,7 +111,7 @@ E_Int Conformizer<DIM, Element_t>::__removeDegenerated
 }
   
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 E_Int Conformizer<DIM, Element_t>::run
 (K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, Vector_t<E_Int>* priority, E_Float tolerance, E_Int X0, E_Int itermax)
 {
@@ -245,7 +245,7 @@ E_Int Conformizer<DIM, Element_t>::run
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__initialize
 (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, E_Float tolerance,
@@ -308,7 +308,7 @@ Conformizer<DIM, Element_t>::__initialize
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 E_Int
 Conformizer<DIM, Element_t>::__merge_clean
 (E_Float tol, const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, 
@@ -349,7 +349,7 @@ Conformizer<DIM, Element_t>::__merge_clean
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 E_Int
 Conformizer<DIM, Element_t>::__merge_clean
 (E_Float tol, const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, 
@@ -372,7 +372,7 @@ Conformizer<DIM, Element_t>::__merge_clean
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__clean
 (const std::vector<E_Int>& new_IDs, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, NUGA::bool_vector_type* xc)
@@ -397,7 +397,7 @@ Conformizer<DIM, Element_t>::__clean
 }
 
 ///
-template<E_Int DIM, typename Element_t>
+template<short DIM, typename Element_t>
 E_Int Conformizer<DIM, Element_t>::__run
 (K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors,
  NUGA::bool_vector_type& xc, E_Float tolerance)
@@ -682,7 +682,7 @@ E_Int Conformizer<DIM, Element_t>::__run
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__finalize()
 {
@@ -702,7 +702,7 @@ Conformizer<DIM, Element_t>::__finalize()
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, NUGA::bool_vector_type& xc, const std::vector<E_Int>& ancestors)
 {
@@ -724,7 +724,7 @@ Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, 
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__compute_min_edge_length
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const NUGA::bool_vector_type& xc, E_Float &Lmin, E_Float& Lmax)
@@ -746,7 +746,7 @@ Conformizer<DIM, Element_t>::__compute_min_edge_length
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 E_Int
 Conformizer<DIM, Element_t>::__compute_intersections_w_localizer
 (K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, NUGA::bool_vector_type& xc, E_Float tolerance)
@@ -885,7 +885,7 @@ Conformizer<DIM, Element_t>::__compute_intersections_w_localizer
 }
 
 ///
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 E_Int
 Conformizer<DIM, Element_t>::__compute_intersections_brute
 (K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, NUGA::bool_vector_type& xc, E_Float tolerance)

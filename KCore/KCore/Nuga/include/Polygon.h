@@ -193,21 +193,21 @@ public:
   static E_Int build_pg_neighborhood(const ngon_unit& PGS, ngon_unit& neighbor, const E_Int* first_pg = 0, E_Int nb_pgs = 0,
                                      const std::set<K_MESH::NO_Edge>* wall = 0/*extra specified walls*/);
   ///
-  template <typename CoordAcc, E_Int DIM>
+  template <typename CoordAcc, short DIM>
   inline void iso_barycenter(const CoordAcc& coord, E_Float* G);
   
   // Center of gravity of the summit : the polygon is seen as a cloud . INACURATE FOR IRREGULAR DISTRIBUTION OF NODES
-  template <typename CoordAcc, E_Int DIM>
+  template <typename CoordAcc, short DIM>
   static inline void iso_barycenter(const CoordAcc& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
 
   static inline void iso_barycenter(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
 
   // Center of gravity using the topology (weighted with triangles area)
-  template <E_Int DIM>
+  template <short DIM>
   static inline void centroid(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
   
   // Center of gravity using the topology (weighted with edge length-based) TODO
-  //template <E_Int DIM>
+  //template <short DIM>
   //static inline void center_of_mass(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
   
   void edge_length_extrema(const K_FLD::FloatArray& crd, E_Float& Lmin2, E_Float& Lmax2) const
@@ -277,11 +277,11 @@ public:
   }
   
   /// Computes the surface vector
-  template <typename CoordAcc, E_Int DIM>
+  template <typename CoordAcc, short DIM>
   static inline void ndS(const CoordAcc& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* ndS);
 
   // Compute the surface : norm of ndS
-  template <E_Int DIM>
+  template <short DIM>
   inline void ndS(const K_FLD::FloatArray& crd, E_Float* nds)
   {
     ndS<K_FLD::FloatArray, DIM>(crd, _nodes, _nb_nodes, -_shift, nds);
@@ -291,22 +291,22 @@ public:
   static inline void compute_dir(const mesh_t& mesh, const E_Float* origin, E_Float* dir);
     
   /// Compute the surface : norm of ndS
-  template <typename Coord_t, E_Int DIM>
+  template <typename Coord_t, short DIM>
   static E_Float surface(const Coord_t& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start);
 
   // Computes the normal : normalized ndS
-  template <typename CoordAcc, E_Int DIM>
+  template <typename CoordAcc, short DIM>
   static inline void normal(const CoordAcc& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* W);
 
   // Computes the normal : normalized ndS
-  template <typename CoordAcc, E_Int DIM>
+  template <typename CoordAcc, short DIM>
   inline void normal(const CoordAcc& crd, E_Float* W) const
   {
     normal<CoordAcc, DIM>(crd, _nodes, _nb_nodes, -_shift, W);
   }
 
   // Compute the surface : norm of ndS
-  template <E_Int DIM>
+  template <short DIM>
   inline E_Float surface(const K_FLD::FloatArray& crd)
   {
     return surface<K_FLD::FloatArray, DIM>(crd, _nodes, _nb_nodes, -_shift);
@@ -318,7 +318,7 @@ public:
   static E_Int get_oriented_normal(const K_FLD::FloatArray& crd, const ngon_unit& pgs, E_Int PGi/*glob id : sync with normals*/, bool reverse, E_Float* Normi, const E_Float** normals = 0);
   
   /// Tells if the input Polygon is star-shaped in regard with queryP.
-  template <E_Int DIM>
+  template <short DIM>
   static bool is_star_shaping(const E_Float* queryP, const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start);
 
   // returns the worst reflex info (K0, n0)
@@ -339,8 +339,8 @@ public:
   static bool is_hatty
   (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL=0.);
 
-  template <typename TriangulatorType, E_Int DIM>
-  inline E_Int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in, double ATOL=EPSILON);
+  template <typename TriangulatorType, short DIM>
+  inline int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in, double ATOL=EPSILON);
 
   // Polygon-Edge intersection
   template <typename TriangulatorType>
@@ -607,7 +607,7 @@ void Polygon::iso_barycenter<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& coor
 }
 
 ///
-template <typename CoordAcc, E_Int DIM> inline
+template <typename CoordAcc, short DIM> inline
 void Polygon::iso_barycenter(const CoordAcc& coord, E_Float* G)
 { 
   //
@@ -630,7 +630,7 @@ void Polygon::iso_barycenter(const CoordAcc& coord, E_Float* G)
 }
 
 ///
-template <typename CoordAcc, E_Int DIM> inline
+template <typename CoordAcc, short DIM> inline
 void Polygon::iso_barycenter(const CoordAcc& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G) 
 { 
   //
@@ -680,7 +680,7 @@ void Polygon::iso_barycenter(const K_FLD::FloatArray& crd, const E_Int* nodes, E
 }
 
 ///
-template <typename CoordAcc, E_Int DIM> inline
+template <typename CoordAcc, short DIM> inline
 void Polygon::ndS(const CoordAcc& acrd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* ndS)
 {
   E_Float G[3], Pi[3], Pj[3], V1[3], V2[3], w[3];
@@ -784,7 +784,7 @@ void Polygon::compute_dir(const mesh_t& poly_line/*0-based*/, const E_Float* ori
 }
 
 ///
-template <E_Int DIM> inline
+template <short DIM> inline
 void Polygon::centroid(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* cM)
 {
   // A TESTER
@@ -879,7 +879,7 @@ E_Float Polygon::surface<K_FLD::ArrayAccessor<K_FLD::FloatArray>,2>(const K_FLD:
   return s;
 }
 
-template <typename CoordAcc, E_Int DIM> inline
+template <typename CoordAcc, short DIM> inline
 void Polygon::normal(const CoordAcc& acrd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* n)
 {
   //
@@ -895,7 +895,7 @@ void Polygon::normal<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& crd, const E
 }
 
 ///
-template <E_Int DIM> inline
+template <short DIM> inline
 bool Polygon::is_star_shaping
 (const E_Float* queryP, const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start)
 {
@@ -1158,18 +1158,18 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
   return convex;
 }
 
-template <typename TriangulatorType, E_Int DIM>
-inline E_Int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in, double ATOL)
+template <typename TriangulatorType, short DIM>
+inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in, double ATOL)
 {
   pt_is_in = false;
 
-  E_Int err = this->triangulate(dt, crd);
+  int err = this->triangulate(dt, crd);
   if (err != 0)
   {
     std::cout << "error triangulating" << std::endl;
     return err;
   }
-  E_Int ntris = this->nb_tris();
+  int ntris = this->nb_tris();
 
   for (size_t t = 0; (t < ntris) && !pt_is_in; ++t)
   {

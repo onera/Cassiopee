@@ -625,7 +625,7 @@ inline void MeshTool::get_farthest_point_to_edge
   //std::cout << "farthest dist :" << d2 << std::endl;
 }
 
-template <typename IntCont, int DIM >
+template <typename IntCont, short DIM >
 inline void
 NUGA::MeshTool::reorder_nodes_on_edge
 (const K_FLD::FloatArray& pos, IntCont& nodes, int idx_start, std::vector<std::pair<E_Float, E_Int> >& sorter)

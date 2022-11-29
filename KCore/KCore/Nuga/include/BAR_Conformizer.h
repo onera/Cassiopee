@@ -20,7 +20,7 @@
 namespace NUGA
 {
 
-template <E_Int DIM>
+template <short DIM>
 class BAR_Conformizer : public Conformizer<DIM, K_MESH::Edge> {
 
 public :

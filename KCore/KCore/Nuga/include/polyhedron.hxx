@@ -322,7 +322,7 @@ double aPolyhedron<TopoShape>::metrics()
 }
 
 template <int TopoShape>
-bool aPolyhedron<TopoShape>::join(double TOL, std::vector<E_Int>& lnids)
+bool aPolyhedron<TopoShape>::join(E_Float TOL, std::vector<E_Int>& lnids)
 {
   bool has_join{ false };
   lnids.clear();

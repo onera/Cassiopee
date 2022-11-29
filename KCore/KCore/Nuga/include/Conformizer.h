@@ -93,7 +93,7 @@ protected:
 };
 
 
-template <E_Int DIM, typename Element_t>
+template <short DIM, typename Element_t>
 class Conformizer : public ConformizerRoot {
 
 public:

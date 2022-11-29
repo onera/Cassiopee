@@ -24,9 +24,15 @@ namespace NUGA
     struct mpi_type_trait;
 
     template <>
-    struct mpi_type_trait<E_Int>
+    struct mpi_type_trait<int>
     {
       static constexpr MPI_Datatype type = MPI_INT;
+    };
+    
+    template <>
+    struct mpi_type_trait<long>
+    {
+      static constexpr MPI_Datatype type = MPI_LONG;
     };
 
 
