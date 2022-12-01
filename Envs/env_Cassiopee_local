@@ -627,7 +627,7 @@ else if ($MAC == "spiro_amdNP") then
 
 else if ($MAC == "spiro_socle") then
 #------------------------------- spiro --------------------------------------
-        setenv ELSAPROD spiro_r8
+        setenv ELSAPROD spiro_socle_r8
         # Number of threads
         setenv OMP_NUM_THREADS 24
         # Set next two lines only if python is not python

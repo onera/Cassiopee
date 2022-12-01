@@ -81,13 +81,22 @@ void K_CONNECT::connectMix2EV(FldArrayI& cMIX,
       case 17:
         nHEXA++; ls = 8; break;
 
-      default: ; // probleme
-        printf("Warning: Mix2Ev: Unknow element type (%d).\n", ntype); ls = 0; break;
+      default: // probleme
+#ifdef E_DOUBLEINT
+        printf("Warning: Mix2Ev: Unknow element type (%lld).\n", ntype); 
+#else
+        printf("Warning: Mix2Ev: Unknow element type (%d).\n", ntype); 
+#endif
+        ls = 0; break;
     }
     c += ls+1;
   }
 
-  printf("Info: found %d HEXAS %d PENTAS\n", nHEXA, nPENTA);
+#ifdef E_DOUBLEINT
+  printf("Info: Mix2EV: found %lld HEXAS %lld PENTAS\n", nHEXA, nPENTA);
+#else
+  printf("Info: Mix2EV: found %d HEXAS %d PENTAS\n", nHEXA, nPENTA);
+#endif
 
   // Dimensionne
   cBAR.malloc(nBAR*2);
@@ -135,7 +144,8 @@ void K_CONNECT::connectMix2EV(FldArrayI& cMIX,
         ls = 8; lp = ptHEXA; ptHEXA += 8; break;
 
       default:
-        printf("Warning: Mix2Ev: unknown element type.\n"); ls = 0; lp = NULL; break;
+        printf("Warning: Mix2Ev: unknown element type.\n");
+        ls = 0; lp = NULL; break;
 
     }
     for (E_Int i = 0; i < ls; i++) lp[i] = mix[c+i+1];

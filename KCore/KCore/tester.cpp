@@ -128,7 +128,11 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   //f->print();
   E_Int nfld = f->getNfld(); // nbre de champs
   E_Int npts = f->getSize(); // nbre de pts
+#ifdef E_DOUBLEINT
+  printf("field: npts=%lld, nfld=%lld\n", npts, nfld);
+#else
   printf("field: npts=%d, nfld=%d\n", npts, nfld);
+#endif
   // Acces par begin
   E_Float* x = f->begin(1); x[0] = -0.05;
   // Acces direct
@@ -143,11 +147,19 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   {
     // Acces universel sur BE/ME
     E_Int nc = c->getNConnect();
+#ifdef E_DOUBLEINT
+    printf("nombre de connectivites=%lld\n", nc); // may be 0
+#else
     printf("nombre de connectivites=%d\n", nc); // may be 0
+#endif
     FldArrayI& cm = *(c->getConnect(0));
     E_Int nelts = cm.getSize();
     E_Int nvpe = cm.getNfld();
+#ifdef E_DOUBLEINT
+    printf("first connect, nelts=%lld, nvpe=%lld\n", nelts, nvpe);
+#else
     printf("first connect, nelts=%d, nvpe=%d\n", nelts, nvpe);
+#endif
     for (E_Int i = 0; i < nelts; i++)
     {
       cm(i,1) = -1; cm(i,2) = -2; cm(i,3) = -3; // pas de begin sur les connects

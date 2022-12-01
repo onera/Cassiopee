@@ -533,7 +533,7 @@ elif [ "$MAC" = "spiro_amdNP" ]; then
 
 elif [ "$MAC" = "spiro_socle" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_r8
+    export ELSAPROD=spiro_socle_r8
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules

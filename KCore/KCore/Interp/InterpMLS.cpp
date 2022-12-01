@@ -425,7 +425,14 @@ void K_INTERP::structStencil(E_Int dimPb, E_Int indi, E_Int depth,
           for (E_Int i = -depth; i <= depth; i++)
             if (indi+i >= j_*ni+k_*nij && indi+i < (j_+1)*ni+k_*nij && indi+i+ni*j+nij*k != indi)      //(indi+i)/ni ==j_+k_*nj   On reste sur la bonne ligne j_
             {
-              if (indi+i+ni*j+nij*k < 0) printf("indices negatif i=%d j=%d k=%d\n", i, j, k);
+              if (indi+i+ni*j+nij*k < 0)
+              {
+#ifdef E_DOUBLEINT 
+                printf("indices negatif i=%lld j=%lld k=%lld\n", i, j, k);
+#else
+                printf("indices negatif i=%d j=%d k=%d\n", i, j, k);
+#endif
+              }
               else indicesIn.push_back(indi+i+ni*j+nij*k);
             }
       }

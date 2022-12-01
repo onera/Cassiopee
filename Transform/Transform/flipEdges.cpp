@@ -77,7 +77,7 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
 
   for (E_Int i = 0; i < nit; i++)
   {
-    printf("iteration %d=mode=%d================\n",i,mode);
+    //printf("iteration %d=mode=%d================\n",i,mode);
     flipEdges(ct, f->getSize(), x,y,z, indic, mode);
   }
 
@@ -132,8 +132,11 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
     dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
     dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
     ndirl = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-    if (ndirl < 1.e-11) printf("flipEdges: %d: %f init ecrase.\n", i, ndirl); 
-
+#ifdef E_DOUBLEINT
+    if (ndirl < 1.e-11) printf("Warning: flipEdges: %lld: %f init ecrase.\n", i, ndirl);
+#else
+    if (ndirl < 1.e-11) printf("Warning: flipEdges: %d: %f init ecrase.\n", i, ndirl);
+#endif
     for (size_t v = 0; v < voisins.size(); v++)
     {
       E_Int ie = voisins[v];
@@ -161,7 +164,6 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       else 
       {
         indA = 0; indB = 0; indC = 0; indD = 0;
-        printf("what?? problem\n");
       }
       //printf("ind1 %d %d %d\n", ind1, ind2, ind3);
       //printf("ind4 %d %d %d\n", ind4, ind5, ind6);
@@ -224,14 +226,22 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         goto next;
       }
 
-      if (ndir1 < 1.e-11) printf("flipEdges: %d: %f ecrase. inv1=%f,inv2=%f,ndirs=%f %f %f\n", i, ndir1,inverse1,inverse2,ndir2,ndir3,ndir4); 
-
+#ifdef E_DOUBLEINT
+      if (ndir1 < 1.e-11) printf("Warning: flipEdges: %lld: %f ecrase. inv1=%f,inv2=%f,ndirs=%f %f %f\n", i, ndir1,inverse1,inverse2,ndir2,ndir3,ndir4); 
+#else
+      if (ndir1 < 1.e-11) printf("Warning: flipEdges: %d: %f ecrase. inv1=%f,inv2=%f,ndirs=%f %f %f\n", i, ndir1,inverse1,inverse2,ndir2,ndir3,ndir4); 
+#endif
       if (mode == 2)
       {
         if (ndir1 < 1.e-12 && ndir3 > 1.e-12 && ndir4 > 1.e-12)
         {
+#ifdef E_DOUBLEINT
+          printf("flipEdges: %lld: swap maille ecrasee1\n", i);
+          printf("flipEdges: %lld: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+#else
           printf("flipEdges: %d: swap maille ecrasee1\n", i);
           printf("flipEdges: %d: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+#endif
           swap = ie; goto next;
         }
       }
@@ -242,15 +252,25 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         if (inverse1 < -0.9)
         {
           // corrige l'inverse
-          printf("flipEdges: %d: swap inverse\n", i);
-          printf("flipEdges: %d: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+#ifdef E_DOUBLEINT
+          printf("Warning: flipEdges: %lld: swap inverse\n", i);
+          printf("Warning: flipEdges: %lld: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+#else
+          printf("Warning: flipEdges: %d: swap inverse\n", i);
+          printf("Warning: flipEdges: %d: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+#endif
           swap = ie; goto next;
         }
         else if (ndir1 < 1.e-12 && ndir3 > 1.e-12 && ndir4 > 1.e-12)
         {
           // corrige mailles ecrasees 
-          printf("flipEdges: %d: swap maille ecrasee1\n", i);
-          printf("flipEdges: %d: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+#ifdef E_DOUBLEINT
+          printf("Warning: flipEdges: %lld: swap maille ecrasee1\n", i);
+          printf("Warning: flipEdges: %lld: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+#else
+          printf("Warning: flipEdges: %d: swap maille ecrasee1\n", i);
+          printf("Warning: flipEdges: %d: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+#endif
           swap = ie; goto next;
         }
       }
@@ -273,8 +293,13 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         if (rad3 < rad1 && rad3 < rad2 && rad4 < rad1 && rad4 < rad2)
         {
           // optimisation suivant equilaterite
-          printf("flipEdges: %d: swap opt equi\n",i );
-          printf("flipEdges: %d: improving rad %f %f -> %f %f\n", i, rad1, rad2, rad3, rad4);
+#ifdef E_DOUBLEINT
+          printf("Warning: flipEdges: %lld: swap opt equi\n",i );
+          printf("Warning: flipEdges: %lld: improving rad %f %f -> %f %f\n", i, rad1, rad2, rad3, rad4);
+#else
+          printf("Warning: flipEdges: %d: swap opt equi\n",i );
+          printf("Warning: flipEdges: %d: improving rad %f %f -> %f %f\n", i, rad1, rad2, rad3, rad4);
+#endif
           swap = ie; goto next;
         }
       }
@@ -376,6 +401,9 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
     }
   }
 
+#ifdef E_DOUBLEINT
+  printf("Mailles inversees=%lld - mailles ecrasees=%lld\n", maillesInversees, maillesEcrasees);
+#else
   printf("Mailles inversees=%d - mailles ecrasees=%d\n", maillesInversees, maillesEcrasees);
-
+#endif
 }

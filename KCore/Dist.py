@@ -842,7 +842,7 @@ def getForArgs():
             options.remove('-fPIC')
             options += ['-large-address-aware']
         options += getSimdOptions()
-        if EDOUBLEINT: options += ['-fdefault-integer-i8']
+        if EDOUBLEINT: options += ['-fdefault-integer-8']
         return options
     elif f77compiler.find("ifort") == 0:
         if DEBUG:
@@ -877,7 +877,7 @@ def getForArgs():
         if useStatic() == 1: options += ['--static']
         else: options += ['-fPIC']
         options += getSimdOptions()
-        if EDOUBLEINT: options += ['-fdefault_integer-8']
+        if EDOUBLEINT: options += ['-fdefault-integer-8']
         return options
     elif f77compiler == "ifort.exe":
         if useOMP() == 1: return ['/names:lowercase', '/assume:underscore', '/Qopenmp']

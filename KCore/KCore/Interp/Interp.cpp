@@ -1311,7 +1311,11 @@ short K_INTERP::compInterpolatedField(
       break;
       
     default:
+#ifdef E_DOUBLEINT
+      printf("compInterpolatedField: unknown interpolation type: %lld.\n", type);
+#else
       printf("compInterpolatedField: unknown interpolation type: %d.\n", type);
+#endif
       return -1;
   }
   return 1;

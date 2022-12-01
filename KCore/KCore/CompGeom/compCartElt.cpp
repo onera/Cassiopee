@@ -264,8 +264,12 @@ void K_COMPGEOM::compDimOfCartElts(E_Int dir, E_Int ni, E_Int nj, E_Int nk,
       nbElts1 = nx;
       nbElts2 = ny;
       break;
-    default :
+    default:
+#ifdef E_DOUBLEINT
+      printf("Error: compDimOfCartElts: bad dir value: %lld.", dir);
+#else
       printf("Error: compDimOfCartElts: bad dir value: %d.", dir);
+#endif
       exit(0);
   }
 }
