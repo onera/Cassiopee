@@ -1133,7 +1133,7 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
         if smoothType == 0: ht[1][1,:] = 1. # force constant epsilon
     return ht
 
-#==============================================================================
+#===============================================================================
 # Regle la hauteur des normales, retourne aussi le champ pour le lisseur (algo=1)
 def modifyNormalWithMetric(array, narray, algo=0, smoothType=0, eps=0.4, nitLocal=3, kappaType=0, kappaS=[0.2,1.6]):
     """Correct the normals located at nodes with respect to metric."""

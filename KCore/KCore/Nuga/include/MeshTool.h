@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef _NUGA_MESHTOOL_H_
 #define _NUGA_MESHTOOL_H_
@@ -311,7 +311,7 @@ void MeshTool::computeNodalDistance2<K_FLD::FloatArray,ngon_unit>
 (const K_FLD::FloatArray& crd, const ngon_unit& cnt, std::vector<E_Float> & Lmin2)
 {
   E_Int DIM(3), nb_pgs(cnt.size());
-  E_Float min(-NUGA::FLOAT_MAX), max(NUGA::FLOAT_MAX);
+  //E_Float min(-NUGA::FLOAT_MAX), max(NUGA::FLOAT_MAX);
 
   Lmin2.clear();
 

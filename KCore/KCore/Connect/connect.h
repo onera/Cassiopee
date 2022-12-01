@@ -247,7 +247,7 @@ namespace K_CONNECT
      Version openmp corse grain de createConnectEV
   */
   void createConnectEV_opt(K_FLD::FldArrayI& cEV, std::vector<E_Int> newId, 
-                       E_Int* indirp, K_FLD::FldArrayI& cEVout);
+                           E_Int* indirp, K_FLD::FldArrayI& cEVout);
   /* 
      Suppression des points doubles et des elements 
      degeneres (surface nulle) dans un array non-structure (f, cEV).
@@ -259,7 +259,6 @@ namespace K_CONNECT
   void cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz, 
                               E_Float eps, const char* eltType, 
                               K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
-
 
   /*
      Version openmp corse grain de cleanConnectivityBasic

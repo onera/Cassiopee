@@ -289,6 +289,14 @@ class GenIO
       std::vector<E_Int>& eltType,
       std::vector<char*>& zoneNames,
       PyObject* BCFaces);
+    E_Int foamWritePoints(char* file, FldArrayF& f);
+    E_Int foamReadPoints(char* file, FldArrayF& f);
+    E_Int foamWriteFaces(char* file, FldArrayI& cn);
+    E_Int foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn);
+    E_Int foamWriteOwner(char* file, FldArrayI& PE);
+    E_Int foamReadOwner(char* file, FldArrayI& PE);
+    E_Int foamWriteNeighbour(char* file, FldArrayI& PE);
+    E_Int foamReadNeighbour(char* file, FldArrayI& PE);
     ///-
 
     ///+ Povray functions

@@ -10,6 +10,7 @@ try: range = xrange
 except: pass
 
 import numpy
+import os.path
 try: from . import converter
 except: import converter
 import KCore
@@ -492,7 +493,6 @@ def getIndexField(array):
 # Converti l'extension en nom de format
 def convertExt2Format__(fileName):
     """Convertit un fichier en format suivant son extension."""
-    import os.path
     ext = os.path.splitext(fileName)
     extension = ext[len(ext)-1]; extension = extension.lower()
     if extension == '.plt': format = 'bin_tp'
@@ -541,9 +541,9 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
     except: pass
     if format is None: format = convertExt2Format__(fileName); autoTry = True
     else: autoTry = False
-    try: file = open(fileName, 'r')
-    except: raise IOError("convertFile2Arrays: file %s not found."%fileName)
-    file.close()
+    exists = os.path.exists(fileName)
+    if not exists: raise IOError("convertFile2Arrays: file %s not found."%fileName)
+
     if format == 'bin_pickle':
         try: import cPickle as pickle
         except: import pickle
@@ -608,7 +608,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             format = checkFileType(fileName)
             try:
                 return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
-            except:   
+            except:
                 FORMATS = ['bin_ply', 'fmt_tp', 'fmt_v3d',
                 'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
                 'fmt_gmsh', 'bin_gmsh', 'fmt_stl', 

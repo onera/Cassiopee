@@ -78,8 +78,8 @@ namespace xcore
 		{
 		   int n;
 		   double PI25DT = 3.141592653589793238462643;
-		   double mypi, h, pi, i, sum, x, a;
-	       int myid, numprocs, resultlen;
+		   double mypi, h, pi, i, sum;
+	       int myid, numprocs;
 
  	       xcore::communicator globCom;
 	       numprocs = globCom.size;

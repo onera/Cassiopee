@@ -5,7 +5,7 @@ except: pass
 from . import Converter
 from . import Internal
 import KCore
-import numpy, fnmatch, re
+import numpy, fnmatch, re, os.path
 __version__ = Converter.__version__
 
 # Variables globales
@@ -996,9 +996,8 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
   if format is None:
     format = Converter.convertExt2Format__(fileName); autoTry = True
   else: autoTry = False
-  try: file = open(fileName, 'r')
-  except: raise IOError("convertFile2PyTree: file %s not found."%fileName)
-  file.close()
+  exists = os.path.exists(fileName)
+  if not exists: raise IOError("convertFile2PyTree: file %s not found."%fileName)
 
   if format == 'bin_cgns' or format == 'unknown':
     format = Converter.checkFileType(fileName)

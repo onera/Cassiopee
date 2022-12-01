@@ -273,6 +273,14 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     for (size_t i = 0; i < BCNames.size(); i++) delete [] BCNames[i];
     BCFaces.clear(); BCNames.clear();
   }
+  else if (K_STRING::cmp(fileFmt, "fmt_foam") == 0)
+  {
+    // Formatted foam read
+    ret = K_IO::GenIO::getInstance()->foamread(fileName, varString, 
+                                               field, im, jm, km, 
+                                               ufield, c, et, zoneNames,
+                                               BCFaces, BCNames);
+  }
   else if (K_STRING::cmp(fileFmt, "fmt_cedre") == 0)
   {
     // Formatted cedre read (Cedre input)

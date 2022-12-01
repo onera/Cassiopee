@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __MERGE_H__
 #define __MERGE_H__
@@ -276,7 +276,7 @@ __merge
   std::vector<E_Float> dist2;
 
   // loop on target nodes and get all moving nodes in sphere of radius tol.
-  E_Int osz;
+  size_t osz;
   //long int count{0};
   for (E_Int i = 0; i < tsz; ++i)
   {

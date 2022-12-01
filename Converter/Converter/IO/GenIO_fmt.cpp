@@ -447,7 +447,7 @@ E_Int K_IO::GenIO::readInt(FILE* ptrFile, E_Int& value,
   number[i] = '\0';
   errno = 0;
   value = strtol(number, NULL, 0);
-  //printf("number: %d %s\n", value, number);
+  //printf("number: %d string: %s errno=%d\n", value, number, errno);
 
   if (i == 0) return -1; // pas de caractere valide lu
   else if (c == EOF) return 2; // end of file
@@ -894,9 +894,11 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
   // Write just one zone
   E_Int npts = field.getSize();
   E_Int nbElts = connect.getSize();
-  fprintf(ptr_file,"ZONE N=%d, E=%d, F=FEPOINT, ET=TRIANGLE\n",
-          int(npts), int(nbElts));
-
+#ifdef E_DOUBLEINT
+  fprintf(ptr_file,"ZONE N=%lld, E=%lld, F=FEPOINT, ET=TRIANGLE\n", npts, nbElts);
+#else
+  fprintf(ptr_file,"ZONE N=%d, E=%d, F=FEPOINT, ET=TRIANGLE\n", npts, nbElts);
+#endif
   // Write points
   for (E_Int np = 0; np < npts; np++)
   {
@@ -1007,9 +1009,11 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
   // Write just one zone
   E_Int npts = field.getSize();
   E_Int nbElts = connect.getSize();
-  fprintf(ptr_file, "ZONE N=%d, E=%d, F=FEPOINT, ET=QUADRILATERAL\n",
-          int(npts), int(nbElts));
-
+#ifdef E_DOUBLEINT
+  fprintf(ptr_file, "ZONE N=%lld, E=%lld, F=FEPOINT, ET=QUADRILATERAL\n", npts, nbElts);
+#else
+  fprintf(ptr_file, "ZONE N=%d, E=%d, F=FEPOINT, ET=QUADRILATERAL\n", npts, nbElts);
+#endif
   // Write points
   for (E_Int np = 0; np < npts; np++)
   {
