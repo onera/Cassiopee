@@ -32,6 +32,7 @@ NPY.import_array()
 # PDM Specific type :
 # -----------------
 
+# global index : i4
 ctypedef NPY.int32_t npy_pdm_gnum_t
 ctypedef NPY.int32_t npy_pdm_lnum_t
 npy_pdm_gnum_dtype = NPY.int32
@@ -41,6 +42,7 @@ ctypedef int PDM_MPI_Comm
 ctypedef enum PDM_g_num_npy_t:
     PDM_G_NUM_NPY_INT = NPY.NPY_INT32
 
+# global index : i8
 #ctypedef NPY.int64_t npy_pdm_gnum_t
 #ctypedef NPY.int32_t npy_pdm_lnum_t
 #npy_pdm_gnum_dtype = NPY.int64
@@ -49,7 +51,6 @@ ctypedef enum PDM_g_num_npy_t:
 #ctypedef int PDM_MPI_Comm
 #ctypedef enum PDM_g_num_npy_t:
 #    PDM_G_NUM_NPY_INT = NPY.NPY_INT64
-
 
 # CBX - get it from internal and pdmconfig
 #cdef extern from "stdint.h":

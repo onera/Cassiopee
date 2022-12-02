@@ -71,6 +71,7 @@
 typedef int64_t SCOTCH_Idx;
 
 typedef int SCOTCH_Num;
+//typedef int64_t SCOTCH_Num;
 
 #define SCOTCH_NUMMAX               ((int) (((unsigned int) 1 << ((sizeof (int) << 3) - 1)) - 1))
 #define SCOTCH_NUMSTRING            "%d"
