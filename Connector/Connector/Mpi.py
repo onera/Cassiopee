@@ -236,7 +236,7 @@ def mergeWindows(t):
 #===============================================================================
 def setInterpTransfers(aR, aD, variables=[], cellNVariable='',
                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
-                       bcType=0, varType=1, graph=None, 
+                       bcType=0, varType=1, graph=None,
                        procDict=None, type='ALLD', 
                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, 
                        Cs=0.3831337844872463, Ts=1.0, alpha=1.):
@@ -270,14 +270,14 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
             proc = procDict[rcvName]
             if proc == Cmpi.rank:
                 field = n[1]
-                #print 'direct', Cmpi.rank, rcvName
+                #print('direct', Cmpi.rank, rcvName)
                 if field != []:
                     listIndices = n[2]
                     z = Internal.getNodeFromName2(aR, rcvName)
                     C._setPartialFields(z, [field], [listIndices], loc=n[3])
             else:
                 rcvNode = procDict[rcvName]
-                #print Cmpi.rank, 'envoie a ',rcvNode
+                #print(Cmpi.rank, 'envoie a ',rcvNode)
                 if rcvNode not in datas: datas[rcvNode] = [n]
                 else: datas[rcvNode] += [n]
                 #print datas
@@ -298,7 +298,8 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
     return None
 
 #===============================================================================
-# __setInterpTransfers - version optimisee de _setInterpTransfers: arbre t et tc compact, moins de python + de C
+# __setInterpTransfers - version optimisee de _setInterpTransfers: arbre t et tc compact, 
+# moins de python + de C
 #
 # Warning: inverse storage!
 # IN: zones: list zones receveurs
@@ -701,7 +702,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         procDict = Cmpi.getProcDict(aD)
         
         if sameBase == 0:
-            # on ne conserve que les intersections inter base
+            # on ne conserve que les intersections inter bases
             baseNames = {}
             for b in Internal.getBases(tbbc):
                 for z in Internal.getZones(b): baseNames[z[0]] = b[0]
@@ -746,7 +747,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
                 if IDs != []:
                     if destProc == Cmpi.rank:
-                        zD = Internal.getNodeFromName2(aR, zdname)
+                        zD = Internal.getNodeFromName2(aD, zdname)
                         zD[2] += IDs
                     else:
                         if destProc not in datas: datas[destProc] = [[zdname,IDs]]
