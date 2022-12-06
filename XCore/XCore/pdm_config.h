@@ -7,17 +7,12 @@
 //#define PDM_HAVE_GETTIMEOFDAY
 
 // CBX
-#ifdef E_DOUBLEINT
+#ifdef G_DOUBLEINT
   #define PDM_LONG_G_NUM
   #define PDM_LONG_G_NUM_BOOL "1"
 #else
   #define PDM_LONG_G_NUM_BOOL "0"  
 #endif
-
-// force i8
-//#define PDM_LONG_G_NUM
-//#define PDM_LONG_G_NUM_BOOL "1"
-
 // END CBX
 
 #define PDM_IN_PDMA_BOOL 0

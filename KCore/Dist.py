@@ -4,8 +4,10 @@ import os, sys, distutils.sysconfig, platform, glob, subprocess
 # Toggle to True for compiling for debug (valgrind, inspector)
 DEBUG = False
 
-# Toggle to True for compiling in i8
+# Toggle to True for compiling Cassiopee in i8
 EDOUBLEINT = False
+# Toggle to True for compiling pypart/paradigma in i8/i4
+GDOUBLEINT = False
 
 #==============================================================================
 # Check module import
@@ -424,8 +426,12 @@ def getDistUtilsCompilers():
 def getPP():
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
-    if EDOUBLEINT: sizes = '-DINTEGER_E="INTEGER*8" -DREAL_E="REAL*8"'
-    else: sizes = '-DINTEGER_E="INTEGER*4" -DREAL_E="REAL*8"'
+    sizes = '-DREAL_E="REAL*8"'
+    if EDOUBLEINT: sizes += ' -DINTEGER_E="INTEGER*8"'
+    else: sizes += ' -DINTEGER_E="INTEGER*4"'
+    if GDOUBLEINT: sizes += ' -DINTEGER_G="INTEGER*8"'
+    else: sizes += ' -DINTEGER_G="INTEGER*4"'
+    sizes += ' -DINTEGER_L="INTEGER*4"'
     if Cppcompiler == 'icl.exe': PP = 'fpp.exe '+sizes+' \\I'
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
         PP = 'x86_64-w64-mingw32-cpp -P -traditional %s -I'%sizes
@@ -724,6 +730,7 @@ def getCArgs():
     if Cppcompiler == "None": return []
     options = getCppAdditionalOptions()[:]
     if EDOUBLEINT: options += ['-DE_DOUBLEINT']
+    if GDOUBLEINT: options += ['-DG_DOUBLEINT']
     if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
         v = getCppVersion() 
         if DEBUG:

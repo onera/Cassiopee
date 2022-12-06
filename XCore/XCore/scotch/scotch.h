@@ -70,11 +70,16 @@
 
 typedef int64_t SCOTCH_Idx;
 
-typedef int SCOTCH_Num;
-//typedef int64_t SCOTCH_Num;
-
-#define SCOTCH_NUMMAX               ((int) (((unsigned int) 1 << ((sizeof (int) << 3) - 1)) - 1))
+#ifdef G_DOUBLEINT
+typedef int64_t SCOTCH_Num;
+#define SCOTCH_NUMMAX               ((int64_t) (((unsigned int64_t) 1 << ((sizeof (int64_t) << 3) - 1)) - 1))
 #define SCOTCH_NUMSTRING            "%d"
+#else
+typedef int SCOTCH_Num;
+#define SCOTCH_NUMMAX               ((int) (((unsigned int) 1 << ((sizeof (int) << 3) - 1)) - 1))
+#define SCOTCH_NUMSTRING            "%ld"
+#endif
+
 
 /*+ Version flags. +*/
 

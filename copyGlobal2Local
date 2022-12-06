@@ -1,5 +1,5 @@
 #! /bin/sh
-# cleanAll: enleve tous les .o, ...
+# copie les resultats de la base de validation de reference localement
 . ./MODULES
 
 for mod in $FULLMODULES

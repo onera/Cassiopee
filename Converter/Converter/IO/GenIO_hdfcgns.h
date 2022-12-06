@@ -160,7 +160,10 @@ class GenIOHdf
       #define getArrayI8 getArrayI82I4
       #define getArrayI4 getArrayI4Raw
     #endif
-
+    
+    // force
+    //#define getArrayI8 getArrayI8Raw
+      
     char* getArrayC1(hid_t node, hid_t tid, int dim, hsize_t* dims);
 
     /* Method for contiguous array **/

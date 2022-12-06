@@ -602,7 +602,7 @@ PyObject* K_IO::GenIOHdf::getArrayI42I8(hid_t node, hid_t tid,
   did = H5Dopen2(node, L3S_DATA, H5P_DEFAULT);
   yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   
-#if defined(_MPI) && defined(H5_HAVE_PARALLEL)  
+#if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (_ismpi == 1)    // HDF is executed in parallel context and compiled in MPI
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
@@ -619,7 +619,7 @@ PyObject* K_IO::GenIOHdf::getArrayI42I8(hid_t node, hid_t tid,
   
   H5Tclose(yid); H5Dclose(did);
 
-  int* ptr2 = (int*)::malloc(sizem*sizeof(int64_t));
+  int64_t* ptr2 = (int64_t*)::malloc(sizem*sizeof(int64_t));
   for (int n = 0; n < sizem; n++)
   {
     ptr2[n] = (int64_t)(ptr[n]);
@@ -633,7 +633,7 @@ PyObject* K_IO::GenIOHdf::getArrayI42I8(hid_t node, hid_t tid,
     npy_dim_vals[nn] = dims[nn];
   }
   r = (PyArrayObject*)PyArray_EMPTY(dim, &npy_dim_vals[0], NPY_INT64, 1);
-  memcpy(PyArray_DATA(r), ptr2, sizem*sizeof(int));
+  memcpy(PyArray_DATA(r), ptr2, sizem*sizeof(int64_t));
   free(ptr2);
 
   return (PyObject*)r;
