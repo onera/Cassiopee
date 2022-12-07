@@ -100,8 +100,9 @@ def box(Pmin, Pmax, chamfer=-1.):
 #==========================================================================
 # IN: Pmin, Pmax: pts min et max
 # IN: r: % de round (entre 0 et 1)
+# IN: fill: si True, remplit la surface
 #==========================================================================
-def box2D(Pmin, Pmax, r=0.):
+def box2D(Pmin, Pmax, r=0., fill=True):
     xmin = Pmin[0]; ymin = Pmin[1]
     xmax = Pmax[0]; ymax = Pmax[1]
     dx = r*(xmax-xmin); dy = r*(ymax-ymin) 
@@ -135,13 +136,13 @@ def box2D(Pmin, Pmax, r=0.):
     a = T.join(a)
     a = G.close(a)
     a = T.reorder(a, (1,))
-    a = G.tetraMesher(a)
+    if fill: a = G.tetraMesher(a)
     return a
 
 #=================================================================
 # Ellipse 2D
 #=================================================================
-def ellipse2D(Pmin, Pmax):
+def ellipse2D(Pmin, Pmax, fill=True):
     xmin = Pmin[0]; ymin = Pmin[1]
     xmax = Pmax[0]; ymax = Pmax[1]
     xc = (xmin+xmax)*0.5
@@ -151,12 +152,12 @@ def ellipse2D(Pmin, Pmax):
     R = 1.4142*dx*0.5
     a = D.circle((xc,yc,0), R, N=40)
     a = T.contract(a, (xc,yc,0),(1,0,0),(0,0,1),dy*1./dx)
-    a = G.tetraMesher(a)
+    if fill: a = G.tetraMesher(a)
     return a
 
 #=================================================================
 # deformNormals ne marche pas...
-def ellipseSpikes2D(Pmin, Pmax, r=0.1):
+def ellipseSpikes2D(Pmin, Pmax, r=0.1, fill=True):
     xmin = Pmin[0]; ymin = Pmin[1]
     xmax = Pmax[0]; ymax = Pmax[1]
     xc = (xmin+xmax)*0.5
@@ -173,5 +174,5 @@ def ellipseSpikes2D(Pmin, Pmax, r=0.1):
     #for i in range(1,20,2): b[1][0,i] = -r
     a = T.deformNormals(a, b)
     a = T.contract(a, (xc,yc,0),(1,0,0),(0,0,1),dy*1./dx)
-    a = G.tetraMesher(a)
+    if fill: a = G.tetraMesher(a)
     return a    
