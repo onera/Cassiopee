@@ -27,7 +27,7 @@ Table outlining the various IBCs currently supported. Please note that the "Name
 +-------------------------------------------------------+---------------+-------------------+
 | Injection                                             | inj           | 5                 |
 +-------------------------------------------------------+---------------+-------------------+
-| Wall model: Turbulent Boundary Layer Equation (TBLE)  | TBLE          | 6                 |
+| Wall model: Thin Boundary Layer Equations (TBLE)      | TBLE          | 6                 |
 +-------------------------------------------------------+---------------+-------------------+
 | Wall model: Mobile Musker                             | MuskerMob     | 7                 |
 +-------------------------------------------------------+---------------+-------------------+
