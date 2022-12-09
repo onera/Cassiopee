@@ -1893,7 +1893,7 @@ class IBM(Common):
         ##IN  - isFilamentOnly       :boolean if there is only a filament in tb
         ##OUT - isOrthoProjectFirst  :bolean to do orthonormal projection first
         ##OUT - tb(in place)         :tb of solid geometries only
-        ##OUT - tbFilament          :tb of filament geometries only
+        ##OUT - tbFilament           :tb of filament geometries only
         ##OUT - tbFilamentList       :list of names of bases in tbFilament
         self._determineClosedSolidFilament__(tb)            
         
@@ -2173,6 +2173,40 @@ class IBM(Common):
                     for ibcd in Internal.getNodesFromName1(zc,'2_IBCD_*'):            
                         proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(self.rank)
                         ibcd[0]=getIBCDName(proposedName)
+
+        ##Adding a userdefined node to the tc tree for the IBC conditions that are provided
+        ##to FastS solver to reduce the number of input arguments and to make a clear distinction
+        ##of the solver parameters and the IBC parameters
+        base      = Internal.getBases(tc)[0]
+        Internal._createUniqueChild(base, '.Solver#IBCdefine', 'UserDefinedData_t')
+        solverIBC = Internal.getNodeFromName1(base, '.Solver#IBCdefine')
+        
+        Internal._createUniqueChild(solverIBC, 'Reref', 'DataArray_t', -1)
+        Internal._createUniqueChild(solverIBC, 'Lref' , 'DataArray_t',  1)
+        
+        Internal._createUniqueChild(solverIBC, 'isgradP'    , 'DataArray_t', 'False')
+        Internal._createUniqueChild(solverIBC, 'isWireModel', 'DataArray_t', 'False')
+        Internal._createUniqueChild(solverIBC, 'isTBLE'     , 'DataArray_t', 'False')
+        
+        ##note: here alphagrad is the corrected nomenclature for alghagradp found in param_solver.h (B.Constant confirmed)
+        ##      changed some other variables names to be consistent with other options/coding "guidelines"
+        if 'Mafzal' in self.ibctypes:
+            Internal._createUniqueChild(solverIBC, 'isgradP'   , 'DataArray_t', 'True')
+            Internal._createUniqueChild(solverIBC, 'mafzalMode', 'DataArray_t', 0)
+            Internal._createUniqueChild(solverIBC, 'alphaGrad' , 'DataArray_t', 0)            
+        if self.input_var.twoFronts:
+            Internal._createUniqueChild(solverIBC, 'isgradP'    , 'DataArray_t', 'True')
+            Internal._createUniqueChild(solverIBC, 'alphaGrad'  , 'DataArray_t', 0)
+        if self.input_var.isWireModel:
+            Internal._createUniqueChild(solverIBC, 'isWireModel' , 'DataArray_t', 'True')
+            Internal._createUniqueChild(solverIBC, 'DeltaVWire'  , 'DataArray_t', 0)
+            Internal._createUniqueChild(solverIBC, 'KWire'       , 'DataArray_t', 0)
+            Internal._createUniqueChild(solverIBC, 'DiameterWire', 'DataArray_t', 0)
+            Internal._createUniqueChild(solverIBC, 'CtWire'      , 'DataArray_t', 0) 
+        if 'TBLE' in self.ibctypes or 'TBLE_FULL' in self.ibctypes:
+            Internal._createUniqueChild(solverIBC, 'isTBLE'        , 'DataArray_t', 'True')
+            Internal._createUniqueChild(solverIBC, 'alphaGrad'     , 'DataArray_t', 0)
+            Internal._createUniqueChild(solverIBC, 'NbPtsLinelits' , 'DataArray_t', 0)            
         
         if isinstance(tc_out, str):
             tcp = Compressor.compressCartesian(tc)
