@@ -51,7 +51,8 @@ if Cmpi.rank==0: C.convertPyTree2File(tb, FILEB)
 Cmpi.barrier()
 
 # Prepare
-t,tc = myApp.prepare(FILEB, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=Cmpi.size)
+myApp.input_var.NP=Cmpi.size
+t,tc = myApp.prepare(FILEB, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns')
 Internal._rmNodesFromType(tc,'Rind_t')
 Internal._rmNodesFromName(tc,Internal.__GridCoordinates__)
 if Cmpi.rank == 0: test.testT(tc, 1)

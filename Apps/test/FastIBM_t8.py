@@ -54,7 +54,7 @@ print("Nlevel, hmin",Nlevels, hmin)
 
 
 ## Create the dict with Nz for each zone
-dict_Nz      = {}
+dictNz      = {}
 
 Nz_min = 8
 Nz_max = 8
@@ -68,13 +68,13 @@ for z in Internal.getZones(t_2d):
    
     level = int( dict_ZEXT[ z[0] ] )
     print("Nz local",  z[0], level)
-    dict_Nz[z[0]]=  NzLoc[level]
+    dictNz[z[0]]=  NzLoc[level]
     print("Nz local", NzLoc[level], z[0], level)
 
 extrusion ='cart'; span = 0.078
 #extrusion ='cyl'; span = 22.5
 
-t_3d, tb_3d = App.extrudeCartesian(t_2d, tb_2d, extrusion=extrusion, NPas=5, span=span, Ntranche=1, dict_Nz=dict_Nz)
+t_3d, tb_3d = App.extrudeCartesian(t_2d, tb_2d, extrusion=extrusion, NPas=5, span=span, Ntranche=1, dictNz=dictNz)
 
 interpDataType = 1 # on suppose maillage non cartesion pour interp
 order          = 2
@@ -94,7 +94,7 @@ Internal._rmNodesFromType(t, 'Rind_t')
 test.testT(t, 2)
 
 # Post
-t, zw = myApp.post('naca1DNS.cgns', LOCAL+'/restart.cgns', LOCAL+'/tc_restart.cgns', t_out=LOCAL+'/out.cgns', wall_out=LOCAL+'/wall.cgns')
+t, zw = myApp.post(tb_3d, LOCAL+'/restart.cgns', LOCAL+'/tc_restart.cgns', t_out=LOCAL+'/out.cgns', wall_out=LOCAL+'/wall.cgns')
 C._rmVars(t, 'mutsmu') # pas assez precis
 Internal._rmNodesFromType(t, 'Rind_t')
 Internal._rmNodesByName(t, '.Solver#dtloc')
