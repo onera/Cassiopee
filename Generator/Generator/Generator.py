@@ -2129,8 +2129,8 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
         n[1] = hloc*n[1]
 
         # modification eventuelle de la hauteur globale
-        hsize = C.extractVars(surfu,['hsize'])
-        if hsize is not None: 
+        if KCore.isNamePresent(surfu, 'hsize') != -1:
+            hsize = C.extractVars(surfu,['hsize'])
             n[1][0,:] = n[1][0,:] * hsize[1][0,:]
             n[1][1,:] = n[1][1,:] * hsize[1][0,:]
             n[1][2,:] = n[1][2,:] * hsize[1][0,:]

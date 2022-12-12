@@ -4,7 +4,7 @@ import Generator as G
 import Converter as C
 import KCore.test as test
 
-a = D.sphere6( (0,0,0), 1., N=20, ntype='TRI' )
+a = D.sphere6((0,0,0), 1., N=20, ntype='TRI')
 
 # Optimisation
 b = G.mmgs(a, optim=1)

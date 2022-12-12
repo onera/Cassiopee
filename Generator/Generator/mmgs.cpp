@@ -199,10 +199,10 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   if (optim == 1) // optimisation du maillage
   {
     nargs = 0; vals = NULL;
-    argc = 2;
+    argc = 1;
     argv = new char* [argc];
     argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
-    argv[1] = new char [20]; strcpy(argv[1], "-optim");
+    //argv[1] = new char [20]; strcpy(argv[1], "-optim");
   }
   else 
   {

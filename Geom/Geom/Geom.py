@@ -95,9 +95,7 @@ def sphere6(C, R, N=100, ntype='STRUCT'):
     b1 = G.cart((x0,y0,z0), (hx,hy,hz), (N,N,1)) # k=1
     b2 = G.cart((x0,y0,z0), (hx,hy,hz), (1,N,N)) # i=1
     b3 = G.cart((x0,y0,z0), (hx,hy,hz), (N,1,N)) # j=1
-
     b4 = G.cart((x0+(N-1)*hx,y0,z0), (hx,hy,hz), (1,N,N)) # i=imax
-
     b5 = G.cart((x0,y0,z0+(N-1)*hz), (hx,hy,hz), (N,N,1)) # k=kmax
     b6 = G.cart((x0,y0+(N-1)*hy,z0), (hx,hy,hz), (N,1,N)) # j=jmax
 
