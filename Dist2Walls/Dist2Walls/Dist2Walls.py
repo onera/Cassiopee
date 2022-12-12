@@ -43,13 +43,16 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
     """Compute distance to walls.
        Usage: distance2Walls(zones, bodies, cellnbodies, type, loc, signed, dim)"""
       
+    # firewalls
+    if len(zones) == 0: return
+    if bodies == []:
+        print('Warning: distance2Walls: no body defined, no distance computed.')
+        return zones
+
     onezone = 0
     if not isinstance(zones[0], list):
         onezone = 1
         zones = [zones]
-    if bodies == []:
-        print('Warning: distance2Walls: no body defined, no distance computed.')
-        return zones
 
     if loc != 'centers' and loc != 'nodes':
         raise ValueError("distance2Walls: loc must be centers or nodes.")

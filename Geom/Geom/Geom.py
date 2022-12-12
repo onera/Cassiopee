@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Geometry definition module.
 """
 __version__ = '3.5'
@@ -90,14 +89,18 @@ def sphere6(C, R, N=100, ntype='STRUCT'):
     except ImportError:
         raise ImportError("sphere6: requires Transform and Generator modules.")
     s = sphere(C, R, 2*N)
-    b = G.cart((-R/2.+C[0],-R/2.+C[1],-R/2.+C[2]),
-               (R/(N-1.),R/(N-1.),R/(N-1.)), (N,N,N))
-    b1 = T.subzone(b, (1,1,1), (N,N,1))
-    b2 = T.subzone(b, (1,1,1), (1,N,N))
-    b3 = T.subzone(b, (1,1,1), (N,1,N))
-    b4 = T.subzone(b, (N,1,1), (N,N,N))
-    b5 = T.subzone(b, (1,1,N), (N,N,N))
-    b6 = T.subzone(b, (1,N,1), (N,N,N))
+
+    (x0,y0,z0) = (-R/2.+C[0],-R/2.+C[1],-R/2.+C[2])
+    (hx,hy,hz) = (R/(N-1.),R/(N-1.),R/(N-1.))
+    b1 = G.cart((x0,y0,z0), (hx,hy,hz), (N,N,1)) # k=1
+    b2 = G.cart((x0,y0,z0), (hx,hy,hz), (1,N,N)) # i=1
+    b3 = G.cart((x0,y0,z0), (hx,hy,hz), (N,1,N)) # j=1
+
+    b4 = G.cart((x0+(N-1)*hx,y0,z0), (hx,hy,hz), (1,N,N)) # i=imax
+
+    b5 = G.cart((x0,y0,z0+(N-1)*hz), (hx,hy,hz), (N,N,1)) # k=kmax
+    b6 = G.cart((x0,y0+(N-1)*hy,z0), (hx,hy,hz), (N,1,N)) # j=jmax
+
     c1 = T.projectRay(b1, [s], C); c1 = T.reorder(c1, (-1,2,3))
     c2 = T.projectRay(b2, [s], C); c2 = T.reorder(c2, (3,2,1))
     c3 = T.projectRay(b3, [s], C); c3 = T.reorder(c3, (1,3,2))

@@ -649,6 +649,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 # IN: t, tc: arbres partiels locaux
 # IN: sameBase=1 (itype='chimera'): autorise l'interpolation dans la meme base
 # memes arguments que setInterpData
+#=========================================================================
 def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None,
@@ -761,10 +762,10 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         destDatas = Cmpi.sendRecv(datas, graph)
         for i in destDatas:
             for n in destDatas[i]:
-                zname = n[0]
+                zdname = n[0]
                 IDs = n[1]
                 if IDs != []:
-                    zD = Internal.getNodeFromName2(aD, zname)
+                    zD = Internal.getNodeFromName2(aD, zdname)
                     zD[2] += IDs
         datas = {}; destDatas = None
 

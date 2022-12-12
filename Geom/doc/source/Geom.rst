@@ -428,9 +428,9 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
 
 ---------------------------------------
 
-.. py:function:: Geom.sphere(C,R,N=100)
+.. py:function:: Geom.sphere(C, R, N=100)
 
-    Create a structured mesh defining a sphere of radius R with N points in the longitudinal direction and NxN along the latitude.
+    Create a structured mesh defining a sphere of radius R with N points in the longitudinal direction and 2xN along the latitude.
 
     :param C: sphere center coordinates
     :type C: 3-tuple of floats

@@ -166,7 +166,7 @@ Various operations
 
 .. py:function:: Distributor2.PyTree.addProcNode(a, NProc)
 
-    Add a "proc" node to all zones of a with given value.
+    Add a ".Solver#Param/proc" node to all zones of a with given value.
     Exists also as in place version (_addProcNode) that modifies
     a and returns None.
 
