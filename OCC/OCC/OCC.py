@@ -1,6 +1,6 @@
 """OpenCascade definition module.
 """
-__version__ = '3.5'
+__version__ = '3.6'
 __author__ = "Sam Landier"
 
 from . import occ

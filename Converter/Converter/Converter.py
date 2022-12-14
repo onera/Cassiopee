@@ -1,7 +1,7 @@
 """Conversion module for Cassiopee package.
 """
 from numpy import *
-__version__ = '3.5'
+__version__ = '3.6'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Benoit Rodriguez, Simon Verley, Bruno Maugars, Thomas Renaud"
 #
 # Python Interface for conversion between array / file / CGNS

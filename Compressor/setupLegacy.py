@@ -56,7 +56,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="Compressor",
-    version="3.5",
+    version="3.6",
     description="Compress CFD solutions.",
     author="Onera",
     package_dir={"":"."},

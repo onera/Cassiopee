@@ -1,6 +1,6 @@
 """Find connectivity in grids.
 """
-__version__ = '3.5'
+__version__ = '3.6'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Luis Bernardos"
 
 from . import connector

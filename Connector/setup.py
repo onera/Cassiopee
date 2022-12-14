@@ -51,7 +51,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Connector",
-    version="3.5",
+    version="3.6",
     description="Connector for *Cassiopee* modules.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

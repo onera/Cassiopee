@@ -1,3 +1,3 @@
 """Parallel core for Cassiopee"""
-__version__ = '3.5'
+__version__ = '3.6'
 __author__ = ''

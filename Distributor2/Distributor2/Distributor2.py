@@ -1,6 +1,6 @@
 """Distribution module for Cassiopee package.
 """
-__version__ = '3.5'
+__version__ = '3.6'
 __author__ = "Christophe Benoit, Xavier Juvigny, Stephanie Peron, Pascal Raud"
 
 from . import distributor2

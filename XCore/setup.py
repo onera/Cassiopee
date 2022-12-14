@@ -90,7 +90,7 @@ for c in srcs_paradigma.pyx_srcs:
 # setup ======================================================================
 setup(
     name="XCore",
-    version="3.5",
+    version="3.6",
     description="XCore for *Cassiopee* modules.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

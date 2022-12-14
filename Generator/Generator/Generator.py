@@ -1,6 +1,6 @@
 """Grid generation module.
 """
-__version__ = '3.5'
+__version__ = '3.6'
 __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Luis Bernardos"
 
 from . import generator
@@ -1491,7 +1491,7 @@ def fittingPlaster(contour, bumpFactor=0.):
 def gapfixer(contour, cloud, hardPoints=None, refine=1):
     """Fix a gap defined by a contour bar and a point cloud representing the gap surface.
     Some hard points can be specified to force the constructed surface to pass by.
-    If the optional refine argument is set to 0, the resulting surface will be a contrained triangulation of the contour [and the additional hard nodes].
+    If the optional refine argument is set to 0, the resulting surface will be a constrained triangulation of the contour [and the additional hard nodes].
     Usage: gapFixer(contour, cloud, hardPoints, refine)"""
     try:
         import Converter as C
@@ -2077,7 +2077,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                     else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
                     n[1] = (1-beta0)*n[1] + beta0*np[1]
         else: # algo=1, lissage ponctuel, hauteur 2
-            if k1 == 0 and kappaType == 2: 
+            if k1 == 0 and kappaType == 2:
                 vol0 = getVolumeMap(surfu)
                 vol0 = C.center2Node(vol0)
                 h0 = distrib[1][0,1]-distrib[1][0,0]
