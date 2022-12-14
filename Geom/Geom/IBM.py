@@ -151,8 +151,9 @@ def _initOutflow(tc, familyName, PStatic):
                 FamName = Internal.getValue(FamNode)
                 if FamName==familyName:
                     stagPNode =  Internal.getNodeFromName(zsr,'Pressure')    
-                    sizeIBC = numpy.shape(stagPNode[1])
-                    Internal.setValue(stagPNode,PStatic*numpy.ones(sizeIBC))
+                    sizeIBC   = numpy.shape(stagPNode[1])
+                    stagPNode[1][:]  = PStatic
+                    #Internal.setValue(stagPNode,PStatic*numpy.ones(sizeIBC))
     return None
 
 def initIsoThermal(tc, familyName, TStatic):
@@ -172,9 +173,10 @@ def _initIsoThermal(tc, familyName, TStatic):
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName==familyName:
-                    stagPNode =  Internal.getNodeFromName(zsr,'TemperatureWall')    
-                    sizeIBC = numpy.shape(stagPNode[1])
-                    Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
+                    stagPNode = Internal.getNodeFromName(zsr,'TemperatureWall')    
+                    sizeIBC   = numpy.shape(stagPNode[1])
+                    stagPNode[1][:]  = TStatic
+                    #Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
 
                     stagPNode =  Internal.getNodeFromName(zsr,'Temperature')    
                     Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
@@ -198,9 +200,10 @@ def _initHeatFlux(tc, familyName, QWall):
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName==familyName:
-                    stagPNode =  Internal.getNodeFromName(zsr,'WallHeatFlux')    
-                    sizeIBC = numpy.shape(stagPNode[1])
-                    Internal.setValue(stagPNode,QWall*numpy.ones(sizeIBC))
+                    stagPNode = Internal.getNodeFromName(zsr,'WallHeatFlux')    
+                    sizeIBC   = numpy.shape(stagPNode[1])
+                    stagPNode[1][:]  = QWall
+                    #Internal.setValue(stagPNode,QWall*numpy.ones(sizeIBC))
 
                     stagPNode =  Internal.getNodeFromName(zsr,'Temperature')    
                     Internal.setValue(stagPNode,QWall*numpy.ones(sizeIBC))
@@ -233,18 +236,24 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
                     node_temp = Internal.getNodeFromName(zsr,'yplus')
                     if node_temp is not None:Internal._rmNode(zsr,node_temp)
                     
-                    stagPNode =  Internal.getNodeFromName(zsr,'StagnationPressure')
-                    stagHNode =  Internal.getNodeFromName(zsr,'StagnationEnthalpy')
-                    dirxNode = Internal.getNodeFromName(zsr,'dirx')
-                    diryNode = Internal.getNodeFromName(zsr,'diry')
-                    dirzNode = Internal.getNodeFromName(zsr,'dirz')
-                    sizeIBC = numpy.shape(stagHNode[1])
-                    Internal.setValue(stagHNode,HTot*numpy.ones(sizeIBC))
-                    Internal.setValue(stagPNode,PTot*numpy.ones(sizeIBC))
-
-                    Internal.setValue(dirxNode, injDir[0]*numpy.ones(sizeIBC))
-                    Internal.setValue(diryNode, injDir[1]*numpy.ones(sizeIBC))
-                    Internal.setValue(dirzNode, injDir[2]*numpy.ones(sizeIBC))
+                    stagPNode = Internal.getNodeFromName(zsr,'StagnationPressure')
+                    stagHNode = Internal.getNodeFromName(zsr,'StagnationEnthalpy')
+                    dirxNode  = Internal.getNodeFromName(zsr,'dirx')
+                    diryNode  = Internal.getNodeFromName(zsr,'diry')
+                    dirzNode  = Internal.getNodeFromName(zsr,'dirz')
+                    sizeIBC   = numpy.shape(stagHNode[1])
+                    stagPNode[1][:] = PTot
+                    stagHNode[1][:] = HTot
+                    dirxNode[1][:]  = injDir[0]
+                    diryNode[1][:]  = injDir[1]
+                    dirzNode[1][:]  = injDir[2]
+                    
+                    #Internal.setValue(stagHNode,HTot*numpy.ones(sizeIBC))
+                    #Internal.setValue(stagPNode,PTot*numpy.ones(sizeIBC))
+                    #
+                    #Internal.setValue(dirxNode, injDir[0]*numpy.ones(sizeIBC))
+                    #Internal.setValue(diryNode, injDir[1]*numpy.ones(sizeIBC))
+                    #Internal.setValue(dirzNode, injDir[2]*numpy.ones(sizeIBC))
                     
     return None
 
