@@ -109,22 +109,61 @@ E_Int K_IO::GenIO::foamread(
   printf("foamread\n");
 
   // Read points
-  FldArrayF f;
-  foamReadPoints(file, f);
-  for (E_Int i = 0; i < f.getSize(); i++) printf("%g\n", f(i,1));
+  FldArrayF* f = new FldArrayF();
+  foamReadPoints(file, *f);
+  //printf("points\n");
+  //for (E_Int i = 0; i < f.getSize(); i++) printf("%g %g %g\n", f(i,1), f(i,2), f(i,3));
 
   // Read NGON
-  FldArrayI cNGON; E_Int nfaces;
-  foamReadFaces(file, nfaces, cNGON);
+  FldArrayI cNGon; E_Int nfaces;
+  foamReadFaces(file, nfaces, cNGon);
+  //printf("NGON\n");
+  //fflush(stdout);
+  //for (E_Int i = 0; i < cNGON.getSize(); i++) printf("%d ", cNGON[i]);
+  //printf("\n"); fflush(stdout);
 
   // Allocate PE
   FldArrayI PE(nfaces, 2);
   foamReadOwner(file, PE);
-  foamReadNeighbour(file, PE);
+  //printf("PE 1 (owner)\n");
+  //fflush(stdout);
+  //for (E_Int i = 0; i < PE.getSize(); i++) printf("%d ", PE(i,1));
+  //printf("\n"); fflush(stdout);
 
-  // Merge in a single connect
+  foamReadNeighbour(file, PE);
+  //printf("PE 2 (neighbour)\n");
+  //fflush(stdout);
+  //for (E_Int i = 0; i < PE.getSize(); i++) printf("%d ", PE(i,2));
+  //printf("\n"); fflush(stdout);
+
+  // compute NFace
   FldArrayI cNFace; E_Int nelts;
   K_CONNECT::connectFE2NFace(PE, cNFace, nelts);
+
+  // Merge
+  E_Int sizeNGon = cNGon.getSize();
+  E_Int sizeNFace = cNFace.getSize();
+  FldArrayI* cn = new FldArrayI(4+sizeNGon+sizeNFace);
+  E_Int* cnp = cn->begin();
+  
+  cnp[0] = nfaces;
+  cnp[1] = cNGon.getSize();
+  cnp += 2;
+  for (E_Int i = 0; i < sizeNGon; i++) cnp[i] = cNGon[i];
+  cnp += sizeNGon;
+  cnp[0] = nelts;
+  cnp[1] = sizeNFace;
+  cnp += 2;
+  for (E_Int i = 0; i < sizeNFace; i++) cnp[i] = cNFace[i];
+  
+  unstructField.push_back(f);
+  connect.push_back(cn);
+  eltType.push_back(8); // NGon
+  char* zoneName = new char [128];
+  strcpy(zoneName, "toto");
+  zoneNames.push_back(zoneName);
+  varString = new char [16];
+  strcpy(varString, "x,y,z");
 
   return 0;
 }
@@ -180,12 +219,22 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
   readGivenKeyword(ptrFile, "FOAMFILE");
   for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
 
-  E_Int npts;
-  ret = -1;
-  while (ret == -1) ret = readInt(ptrFile, npts);
+  // Passe comments
+  char buf[1024]; E_Int l;
+  E_Boolean cont = true;
+  while (cont)
+  {
+    readline(ptrFile, buf, 1024); printf("buf=%s\n", buf);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
+  }
 
-  char buf[1024];
-  readline(ptrFile, buf, 1024); printf("buf=%s\n", buf);
+  // Readint in buf
+  E_Int npts; E_Int pos=0;
+  readInt(buf, 1024, pos, npts);
   printf("npts=%d\n", npts);
 
   f.malloc(npts, 3);
@@ -193,15 +242,21 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
   E_Float* y = f.begin(2);
   E_Float* z = f.begin(3);
 
-  skipLine(ptrFile);
+  skipLine(ptrFile); // (
 
   for (E_Int i = 0; i < npts; i++)
   {
-    ret = fgetc(ptrFile); // (
-    ret = readDouble(ptrFile, x[i]);
-    ret = readDouble(ptrFile, y[i]);
-    ret = readDouble(ptrFile, z[i]);
-    ret = fgetc(ptrFile); // )
+    //ret = fgetc(ptrFile); // (
+    //ret = readDouble(ptrFile, x[i]);
+    //ret = readDouble(ptrFile, y[i]);
+    //ret = readDouble(ptrFile, z[i]);
+    //ret = fgetc(ptrFile); // )
+
+    readline(ptrFile, buf, 1024); pos = 1;
+    ret = readDouble(buf, 1024, pos, x[i]);
+    ret = readDouble(buf, 1024, pos, y[i]);
+    ret = readDouble(buf, 1024, pos, z[i]);
+    
   }
   fclose(ptrFile);
   return 0;
@@ -249,41 +304,62 @@ E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
   char fullPath[1024];
   strcpy(fullPath, file);
   strcat(fullPath, "/constant/polyMesh/faces");
-  FILE* ptrFile = fopen(fullPath, "w");
+  FILE* ptrFile = fopen(fullPath, "r");
 
-  E_Int ret; char buf[1024];
-  for (E_Int i = 0; i < 8; i++) ret = readline(ptrFile, buf, 1024);
+  E_Int ret;
+  readGivenKeyword(ptrFile, "FOAMFILE");
+  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
 
-  ret = readInt(ptrFile, nfaces);
-  ret = readline(ptrFile, buf, 1024);
-
-  // Compte la taille du tableau
-  E_LONG pos = KFTELL(ptrFile);
-  E_Int sizeNGon = 0; E_Int val;
-  for (E_Int i = 0; i < nfaces; i++)
+  // Passe comments
+  char buf[1024]; E_Int l;
+  E_Boolean cont = true;
+  while (cont)
   {
-    ret = readInt(ptrFile, val);
-    sizeNGon += val+1;
-    skipLine(ptrFile);
+    readline(ptrFile, buf, 1024); printf("buf=%s\n", buf);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
   }
 
+  // Readint in buf
+  E_Int pos=0; 
+  readInt(buf, 1024, pos, nfaces);
+
+  skipLine(ptrFile);
+
+  // Find sizeNGon
+  E_LONG fpos = KFTELL(ptrFile);
+  E_Int sizeNGon = 0; E_Int nf;
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    ret = readline(ptrFile, buf, 1024); pos = 0;
+    readInt(buf, 1024, pos, nf);
+    sizeNGon += nf+1;
+  }
+  KFSEEK(ptrFile, fpos, SEEK_SET);
+  printf("sizeNGon=%d\n", sizeNGon); 
+  
   cn.malloc(sizeNGon);
   E_Int* cnp = cn.begin();
-  KFSEEK(ptrFile, pos, SEEK_SET);
-
-  E_Int nf;
+  
+  E_Int val; sizeNGon = 0;
   for (E_Int i = 0; i < nfaces; i++)
   {
-    ret = readInt(ptrFile, nf);
-    cnp[0] = val;
-    fgetc(ptrFile);
+    ret = readline(ptrFile, buf, 1024); pos = 0;
+    readInt(buf, 1024, pos, nf);
+    cnp[0] = nf; 
     for (E_Int e = 0; e < nf; e++)
     {
-      ret = readInt(ptrFile, val);
-      cnp[1+e] = val;
+      ret = readInt(buf, 1024, pos, val);
+      cnp[1+e] = val+1;
     }
     cnp += nf+1;
+    sizeNGon += nf+1;
   }
+
+  printf("sizeNGon=%d, nfaces=%d\n", sizeNGon, nfaces);
 
   return 0;
 }
@@ -334,19 +410,38 @@ E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
   char fullPath[1024];
   strcpy(fullPath, file);
   strcat(fullPath, "/constant/polyMesh/owner");
-  FILE* ptrFile = fopen(fullPath, "w");
+  FILE* ptrFile = fopen(fullPath, "r");
 
-  E_Int ret; char buf[1024];
-  for (E_Int i = 0; i < 8; i++) ret = readline(ptrFile, buf, 1024);
+  E_Int ret;
+  readGivenKeyword(ptrFile, "FOAMFILE");
+  for (E_Int i = 0; i < 10; i++) skipLine(ptrFile);
 
+  // Passe comments
+  char buf[1024]; E_Int l;
+  E_Boolean cont = true;
+  while (cont)
+  {
+    readline(ptrFile, buf, 1024);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
+  }
+
+  // Readint in buf
   E_Int nfaces; E_Int val;
-  ret = readInt(ptrFile, nfaces);
-  ret = readline(ptrFile, buf, 1024);
+  E_Int pos=0;
+  printf("buf=%s\n", buf);
+  readInt(buf, 1024, pos, nfaces);
+  printf("nfaces=%d\n", nfaces);
 
+  skipLine(ptrFile);
+  
   for (E_Int i = 0; i < nfaces; i++)
   {
-    ret = readInt(ptrFile, val);
-    PE(i, 1) = val;
+    ret = readInt(ptrFile, val); PE(i, 1) = val+1;
+    //printf("%d\n", val);
   }
   return 0;
 }
@@ -406,21 +501,44 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
   char fullPath[1024];
   strcpy(fullPath, file);
   strcat(fullPath, "/constant/polyMesh/neighbour");
-  FILE* ptrFile = fopen(fullPath, "w");
+  FILE* ptrFile = fopen(fullPath, "r");
 
-  E_Int ret; char buf[1024];
-  for (E_Int i = 0; i < 8; i++) ret = readline(ptrFile, buf, 1024);
+    E_Int ret;
+  readGivenKeyword(ptrFile, "FOAMFILE");
+  for (E_Int i = 0; i < 10; i++) skipLine(ptrFile);
 
+  // Passe comments
+  char buf[1024]; E_Int l;
+  E_Boolean cont = true;
+  while (cont)
+  {
+    readline(ptrFile, buf, 1024);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
+  }
+
+  // Readint in buf
   E_Int nfaces; E_Int val;
-  ret = readInt(ptrFile, nfaces);
-  ret = readline(ptrFile, buf, 1024);
+  E_Int pos=0;
+  printf("buf=%s\n", buf);
+  readInt(buf, 1024, pos, nfaces);
+  printf("nfaces=%d\n", nfaces);
+
+  skipLine(ptrFile);
 
   for (E_Int i = 0; i < nfaces; i++)
   {
-    ret = readInt(ptrFile, val);
-    PE(i, 2) = val;
+    ret = readInt(ptrFile, val); PE(i, 2) = val+1;
   }
 
+  // tag exterior faces
+  for (E_Int i = nfaces; i < PE.getSize(); i++)
+  {
+    PE(i,2) = 0; // exterior
+  }
   return 0;
 }
 //=============================================================================

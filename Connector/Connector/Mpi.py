@@ -653,7 +653,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None,
-                   topTreeRcv=None, topTreeDnr=None, sameName=1, sameBase=1, 
+                   topTreeRcv=None, topTreeDnr=None, sameName=1, 
                    dim=3, itype='both'):
 
     # Le graph doit correspondre au probleme
@@ -669,20 +669,19 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                          sameName, dim, itype)
         Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
 
-    elif itype == 'chimera':
+    elif itype == 'chimeraOld': # ancienne version
         tbbc = Cmpi.createBBoxTree(aD)
         interDict = X.getIntersectingDomains(tbbc)
-        if sameBase == 0:
-            # on ne conserve que les intersections inter base
-            baseNames = {}
-            for b in Internal.getBases(tbbc):
-                for z in Internal.getZones(b): baseNames[z[0]] = b[0]
-            for i in interDict:
-                bi = baseNames[i]
-                out = []
-                for z in interDict[i]: 
-                    if bi != baseNames[z]: out.append(z)
-                interDict[i] = out
+        # on ne conserve que les intersections inter base
+        baseNames = {}
+        for b in Internal.getBases(tbbc):
+            for z in Internal.getZones(b): baseNames[z[0]] = b[0]
+        for i in interDict:
+            bi = baseNames[i]
+            out = []
+            for z in interDict[i]: 
+                if bi != baseNames[z]: out.append(z)
+            interDict[i] = out
 
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
         Cmpi._addXZones(aR, graph, variables=['centers:cellN'], noCoordinates=False, 
@@ -697,25 +696,26 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
         Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
     
-    elif itype == 'chimera2': # nouvelle version 
+    elif itype == 'chimera': # nouvelle version 
         tbbc = Cmpi.createBBoxTree(aD)
         interDict = X.getIntersectingDomains(tbbc)
         procDict = Cmpi.getProcDict(aD)
-        
-        if sameBase == 0:
-            # on ne conserve que les intersections inter bases
-            baseNames = {}
-            for b in Internal.getBases(tbbc):
-                for z in Internal.getZones(b): baseNames[z[0]] = b[0]
-            for i in interDict:
-                bi = baseNames[i]
-                out = []
-                for z in interDict[i]: 
-                    if bi != baseNames[z]: out.append(z)
-                interDict[i] = out
 
+        # Get baseName for each zone
+        baseNames = {}
+        for b in Internal.getBases(tbbc):
+            for z in Internal.getZones(b): baseNames[z[0]] = b[0]
+
+        # on ne conserve que les intersections inter bases
+        for i in interDict:
+            bi = baseNames[i]
+            out = []
+            for z in interDict[i]: 
+                if bi != baseNames[z]: out.append(z)
+            interDict[i] = out
+
+        # Perform addXZones on aD
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
-        # weakness : graph gros, zones grosses
         Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
                         cartesian=False, zoneGC=False, keepOldNodes=False)
         # serialisation eventuelle
@@ -724,19 +724,39 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         #    Cmpi._addXZones(aD, g, variables=['centers:cellN'], noCoordinates=False, 
         #                    cartesian=False, zoneGC=False, keepOldNodes=False)
 
-        # Il faut creer ici hook (en fonction de CARTESIAN)
-        X._setInterpData(aR, aD, double_wall, order, penalty, nature,
-                         method, loc, storage, interpDataType, hook, 
-                         topTreeRcv, topTreeDnr,
-                         sameName, dim, itype)
+        # Build hook on local aD zones
+        hooks = {}; 
+        for b in Internal.getBases(aD):
+            if b[0] == 'CARTESIAN':
+                for z in Internal.getZones(b):
+                    hooks[z[0]] = C.createHook(z, 'adt') # must be None for Cartesian
+            else:
+                for z in Internal.getZones(b): 
+                    hooks[z[0]] = C.createHook(z, 'adt')
+        
         datas = {}
+        # InterpData par zone
         for zr in Internal.getZones(aR):
             zrname = Internal.getName(zr)
+            baseNameRcv = baseNames[zrname]
             dnrZones = []
             for zdname in interDict[zrname]:
                 zd = Internal.getNodeFromName2(aD, zdname)
-                dnrZones.append(zd)
+                baseNameDnr = baseNames[zd[0]]
+                if baseNameDnr != baseNameRcv: dnrZones.append(zd)
             
+            hookL = []; interpDataTypeL = []
+            for z in dnrZones:
+                h = hooks[z[0]]
+                hookL.append(h)
+                if h is None: interpDataTypeL.append(0)
+                else: interpDataTypeL.append(1)
+            
+            if dnrZones != []:
+                X._setInterpData(zr, dnrZones, double_wall, order, penalty, nature,
+                                 method, loc, storage, interpDataTypeL, hookL, # HOOKL 
+                                 topTreeRcv, topTreeDnr,
+                                 sameName, dim, itype="chimera")
             for zd in dnrZones:
                 zdname = zd[0]
                 destProc = procDict[zdname]
@@ -757,7 +777,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                     if destProc not in datas: datas[destProc] = []
 
         Cmpi._rmXZones(aD)
-        # Releaser ici hook
+        for h in hooks: C.freeHook(hooks[h])
         
         destDatas = Cmpi.sendRecv(datas, graph)
         for i in destDatas:

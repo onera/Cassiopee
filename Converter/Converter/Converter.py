@@ -1307,8 +1307,10 @@ def freeHook(hook):
     """Free hook.
     Usage: freeHook(hook)"""
     if isinstance(hook, list):
-        for i in hook: converter.freeHook(i)
-    else: converter.freeHook(hook)
+        for i in hook: 
+            if i is not None: converter.freeHook(i)
+    else: 
+        if hook is not None: converter.freeHook(hook)
 
 #==============================================================================
 # Fonctions d'identification geometrique

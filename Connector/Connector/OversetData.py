@@ -418,7 +418,7 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
                     zonesDnr.pop(cL); nzonesDnr = nzonesDnr-1
             if  correctedPts[nozr] != []:
                 _setIBCDataForZone__(z, zonesDnr, correctedPts[nozr], wallPts[nozr], interpPts[nozr], loc=locR, order=order, penalty=penalty,nature=nature,method=method,\
-                   storage=storage,interpDataType=interpDataType,hook=hook,dim=dim, ReferenceState=ReferenceState, bcType=bcType)
+                   storage=storage, interpDataType=interpDataType, hook=hook, dim=dim, ReferenceState=ReferenceState, bcType=bcType)
 
     # fin parcours des zones receveuses
     for zd in Internal.getZones(aD):
@@ -427,7 +427,7 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
 
 def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nodes', \
                          order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
-                         interpDataType=1,hook=None, dim=3, bcType=-1, ReferenceState=None):
+                         interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None):
 
     prefixIBCD ='IBCD_'
     bcName = None
@@ -600,7 +600,7 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
         prefixIBC2D += ibcType[0]+'_'
 
         if len(ibcType)>1:
-            bcName=ibcType[1]
+            bcName = ibcType[1]
             prefixIBCD += bcName+'_'
             prefixIBC2D += bcName+'_'
 
@@ -1101,7 +1101,6 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                           interpDataType=1, hook=None,
                           topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
     locR = loc
-
 
     # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
