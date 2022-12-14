@@ -1,4 +1,5 @@
 import Converter.PyTree as C
+import Converter.Internal as I 
 import Generator.PyTree as G
 #import Post.PyTree as P
 import os, sys
@@ -23,7 +24,7 @@ for i in range(3): # simple loop to demonstrate the feature sequencing adaptCell
   
   #nodal specification
   n = C.getNPts(z)
-  nodal_vals = numpy.empty((n,), dtype=numpy.int32)
+  nodal_vals = numpy.empty((n,), dtype=I.E_NpyInt)
   nodal_vals[:] = 1
   #one nodal_vals and one hmesh per zone
   z = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh)

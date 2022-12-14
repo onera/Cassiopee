@@ -1,6 +1,7 @@
 # - adapts a cells with respect to b points (array) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
+import Converter.Internal as I 
 import Generator.PyTree as G
 import Converter.Internal as I
 import Transform.PyTree as T
@@ -24,7 +25,7 @@ t = C.initVars(t, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 zs = I.getZones(t)
 n = C.getNPts(zs[0])
 
-nv0 = numpy.empty((n,), dtype=numpy.int32)
+nv0 = numpy.empty((n,), dtype=I.E_NpyInt)
 nv0[:] = 2
 
 nv = []

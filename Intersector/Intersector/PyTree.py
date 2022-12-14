@@ -83,7 +83,7 @@ def nb_faces(t):
 # OUT: returns the adapted feature
 #==============================================================================
 def updateNugaData(field, oid):
-  new_fld = numpy.empty(len(oid), numpy.int32)
+  new_fld = numpy.empty(len(oid), Internal.E_NpyInt)
   i=-1
   #print(oid)
   for oi in oid:
@@ -402,7 +402,7 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
         wpgs = bb[2][1][1][0] # POINTLIST NUMPY fixme : can be somewhere else in the array
         #print(wpgs)
         # SYNC THE POINTLIST BEFORE APPENDING  : SHIFT WITH THE CURRENT NB OF STORED POLYGONS
-        id2 = numpy.empty(len(wpgs), numpy.int32)
+        id2 = numpy.empty(len(wpgs), Internal.E_NpyInt)
         id2[:] = wpgs[:] + cur_shift
         wallpgs.append(id2)
 
@@ -1497,7 +1497,7 @@ def _replaceFaces(z, face_soup):
 
   m    = C.getFields(Internal.__GridCoordinates__, z)[0]
   soup = C.getFields(Internal.__GridCoordinates__, face_soup)[0]
-
+  
   res = intersector.replaceFaces(m, soup, vfoid)
 
   mesh = res[0]

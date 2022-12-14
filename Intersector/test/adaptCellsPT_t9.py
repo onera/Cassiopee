@@ -26,7 +26,7 @@ C._initVars(t, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY
 zs = I.getZones(t)
 n = C.getNPts(zs[0])
 
-nv0 = numpy.empty((n,), dtype=numpy.int32)
+nv0 = numpy.empty((n,), dtype=I.E_NpyInt)
 nv0[:] = 8
 
 nv = []

@@ -38,8 +38,7 @@ zTH4 = C.fillEmptyBCWith(zTH4, 'wall', 'BCWall')
 zTH4 = C.initVars(zTH4, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
 n = C.getNPts(zTH4)
-#nodal_vals = numpy.zeros((n,), dtype=numpy.int32)
-nodal_vals = numpy.empty((n,), dtype=numpy.int32)
+nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
 m = XOR.adaptCellsNodal(zTH4, [nodal_vals], smoothing_type = 1)

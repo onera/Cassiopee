@@ -17,7 +17,7 @@ a = C.convertArray2NGon(a)
 a = G.close(a)
 #C.convertPyTree2File(a,'prism.tp')
 
-cv0 = numpy.empty((1,), dtype=numpy.int32)
+cv0 = numpy.empty((1,), dtype=Internal.E_NpyInt)
 cv0[0]=1
 
 cv = []

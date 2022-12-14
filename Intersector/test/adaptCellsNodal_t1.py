@@ -2,6 +2,7 @@
 import Intersector as XOR
 import Converter as C
 import Generator as G
+import Converter.Internal as I 
 import numpy
 import KCore.test as test
 
@@ -12,7 +13,7 @@ aTH4 = C.convertArray2NGon(aTH4); aTH4 = G.close(aTH4)
 #C.convertArrays2File([a], 'a.plt')
 
 n = C.getNPts(a)
-nodal_vals = numpy.empty((n,), dtype=numpy.int32)
+nodal_vals = numpy.empty((n,), dtype=I.E_NpyInt)
 nodal_vals[:] = 2
 
 ## HEXA static adaptation
@@ -24,7 +25,7 @@ test.testA(m,1)
 
 ## TETRA static adaptation
 n = C.getNPts(aTH4)
-nodal_vals = numpy.empty((n,), dtype=numpy.int32)
+nodal_vals = numpy.empty((n,), dtype=I.E_NpyInt)
 nodal_vals[:] = 2
 
 m = XOR.adaptCells(aTH4, nodal_vals, sensor_type = 2, smoothing_type = 1)

@@ -477,8 +477,8 @@ PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
   NUGA::pg_smesh_t xmesh(crd2, cnt2);
 
   //std::cout << "m0 faces : " << m0.cnt.PGs.size() << std::endl;
-  //std::cout << "xmesh faces : " << xmesh.ncells() << std::endl;
-  //std::cout << "vfoid sz : " << sz << std::endl;
+  // std::cout << "xmesh faces : " << xmesh.ncells() << std::endl;
+  // std::cout << "vfoid sz : " << sz << std::endl;
 
   assert (sz == xmesh.ncells());
 

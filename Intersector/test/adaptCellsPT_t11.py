@@ -20,7 +20,7 @@ t = C.initVars(t, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 zs = I.getZones(t)
 n = C.getNCells(zs[0])
 
-cv0 = numpy.empty((n,), dtype=numpy.int32)
+cv0 = numpy.empty((n,), dtype=I.E_NpyInt)
 cv0[:] = 0
 cv0[0]=4
 

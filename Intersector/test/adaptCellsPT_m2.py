@@ -62,7 +62,7 @@ zs = I.getZones(t)
 cell_vals = []
 for z in zs :
     n = C.getNCells(I.getZones(z))
-    cv = numpy.empty((n,), dtype=numpy.int32)
+    cv = numpy.empty((n,), dtype=I.E_NpyInt)
     cv[:]=0
     if Cmpi.rank%2== 0:
         cv[20]=CVmax

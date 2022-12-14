@@ -193,7 +193,7 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
     # get rid of duplicate ids
     idlist = list(set(idlist))
     #format
-    ids = numpy.empty(len(idlist), numpy.int32)
+    ids = numpy.empty(len(idlist), Internal.E_NpyInt)
     ids[:] = idlist[:]  
     
     # give this list to all zones
@@ -259,7 +259,7 @@ def regularizeFeature(feature, skin, max_overlap_angle, max_simplify_angle):
         if len(res2) > i : 
             idlist = numpy.concatenate((idlist, res2[i]))
         idlist = list(set(idlist))# get rid of duplicate ids
-        ids = numpy.empty(len(idlist), numpy.int32) #format
+        ids = numpy.empty(len(idlist), Internal.E_NpyInt) #format
         ids[:] = idlist[:]
         ids_per_z.append(ids)
    
@@ -283,7 +283,7 @@ def adaptFirstToSecond(comp1, comp2, XVAL, NVAL, Nneigh):
     # Nneigh   : the surrounding zone is the Nneigh-th neighborhood
 
     n = XOR.nb_cells(comp1)
-    cell_vals = numpy.empty((n,), dtype=numpy.int32)
+    cell_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
     cell_vals[:] = 0
 
     # flag what collides comp2' skin

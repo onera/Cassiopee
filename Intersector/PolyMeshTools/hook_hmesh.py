@@ -26,7 +26,7 @@ for i in range(5): # simple loop to demonstrate the feature
   
   #nodal specification
   n = C.getNPts(z)
-  nodal_vals = numpy.empty((n,), dtype=numpy.int32)
+  nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
   nodal_vals[:] = 1
   #one nodal_vals and one hmesh per zone
   z = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh)

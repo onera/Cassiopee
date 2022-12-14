@@ -11,7 +11,7 @@ zTH4 = C.convertArray2NGon(zTH4); zTH4 = G.close(zTH4)
 #C.convertPyTree2File([z], 'a.cgns')
 
 n = C.getNCells(z)
-nodal_vals = numpy.empty((n,), dtype=numpy.int32)
+nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
 ## HEXA static adaptation
@@ -38,8 +38,7 @@ zTH4 = C.fillEmptyBCWith(zTH4, 'wall', 'BCWall')
 zTH4 = C.initVars(zTH4, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
 n = C.getNCells(zTH4)
-#nodal_vals = numpy.zeros((n,), dtype=numpy.int32)
-nodal_vals = numpy.empty((n,), dtype=numpy.int32)
+nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
 m = XOR.adaptCells(zTH4, [nodal_vals], sensor_type=3, smoothing_type = 1)

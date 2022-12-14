@@ -23,7 +23,7 @@ hmsh = XOR.createHMesh(z, subdiv_type=STYPE) # 0 : ISOTROPIC subdivision
  
 #nodal specification
 n = C.getNCells(z)
-cell_vals = numpy.empty((n,), dtype=numpy.int32)
+cell_vals = numpy.empty((n,), dtype=I.E_NpyInt)
 cell_vals[:] = 1
 # refine now with source mesh
 z = XOR.adaptCells(z, cell_vals, subdiv_type=STYPE, sensor_type=3, itermax=-1, hmesh = hmsh)
