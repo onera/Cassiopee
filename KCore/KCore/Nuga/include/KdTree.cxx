@@ -19,7 +19,7 @@
 // ============================================================================
 template <typename CoordArrayType>
 K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc,
-                                         E_Float tolerance)
+                                         E_Float tolerance, bool do_omp)
 :_posAcc(posAcc), _tree_sz(0), _dim(posAcc.stride()), _tolerance(tolerance*tolerance), _pred(posAcc, 0)
 {
   size_type none = IDX_NONE;
@@ -33,7 +33,23 @@ K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc,
 
   while (it != itEnd) *(it++) = val++;
 
-  __insert(indices.begin(), itEnd, 0/*depth*/);
+  if (!do_omp){
+    //std::cout << "MERGE SEQ 1" << std::endl;
+    __insert(indices.begin(), itEnd, 0/*depth*/);
+  }
+  else
+  {
+    //std::cout << "MERGE OMP1" << std::endl;
+    //omp_set_nested(1);
+#pragma omp parallel
+    {
+      #pragma omp single
+      {
+        __insert_omp(indices.begin(), itEnd, 0/*depth*/);
+        __set_tree(indices.begin(), indices.end());
+      }
+    } 
+  }
 }
 
 // ============================================================================
@@ -42,13 +58,29 @@ K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc,
 template <typename CoordArrayType>
 K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc, 
                                          std::vector<size_type> indices/*passed by value*/,
-                                         E_Float tolerance)
+                                         E_Float tolerance, bool do_omp)
  :_posAcc(posAcc), _tree_sz(0), _dim(posAcc.stride()), _tolerance(tolerance*tolerance), _pred(_posAcc, 0)
 {
   size_type none = IDX_NONE;
   _tree.resize(3, _tree_sz + indices.size(), &none);
 
-  __insert(indices.begin(), indices.end(), 0/*depth*/);
+  if (!do_omp){
+    //std::cout << "MERGE SEQ 2" << std::endl;
+    __insert(indices.begin(), indices.end(), 0/*depth*/);
+  }
+  else
+  {
+    //std::cout << "MERGE OMP 2" << std::endl;
+#pragma omp parallel
+    {
+
+      #pragma omp single
+      {
+        __insert_omp(indices.begin(), indices.end(), 0/*depth*/);
+        __set_tree(indices.begin(), indices.end());
+      }
+    }
+  }
 }
 
 // ============================================================================
@@ -118,15 +150,66 @@ K_SEARCH::KdTree<CoordArrayType>::__insert
   _tree(0, _tree_sz++) = *it; // Set N as the parent, increase tree size by one.
 
    if (begin != it)
-   {
-     std::vector<E_Int> left(begin, it);
-     _tree(1,cols) = __insert (left.begin(), left.end(), depth+1);
-   }
+     _tree(1,cols) = __insert (begin, it, depth+1);
+
    if (++it != end)
-   {
-     std::vector<E_Int> right(it, end);
-     _tree(2,cols) = __insert (right.begin(), right.end(), depth+1);
-   }
+     _tree(2,cols) = __insert (it, end, depth+1);
+
+   return cols;
+}
+
+//
+template <typename CoordArrayType>
+template <typename InputIterator>
+void
+K_SEARCH::KdTree<CoordArrayType>::__insert_omp
+(InputIterator begin, InputIterator end, size_type depth)
+{
+  if (begin == end) return;
+
+  InputIterator it(begin + (end - begin)/2);
+  auto itn=it; ++itn;
+  size_type dn = depth+1;
+  sortingPredicate<CoordArrayType> pred(_posAcc, depth%_dim);
+  
+  if (it != begin)
+  {
+    pred.setAxis(depth%_dim);
+    std::nth_element(begin, it, end, pred); // Sort the nodes according to their axis-coordinate.
+  }
+
+  #pragma omp task
+  {
+    __insert_omp (begin, it, dn);
+  }
+
+  //#pragma omp task : save a thread by using the current thread
+  {
+    __insert_omp (itn, end, dn);
+  }
+
+  #pragma omp taskwait
+}
+
+//
+template <typename CoordArrayType>
+template <typename InputIterator>
+E_Int
+K_SEARCH::KdTree<CoordArrayType>::__set_tree
+(InputIterator begin, InputIterator end)
+{
+  if (begin == end) return IDX_NONE;
+
+  InputIterator                    it(begin + (end - begin)/2);
+  size_type                        cols(_tree_sz);
+
+  _tree(0, _tree_sz++) = *it; // Set N as the parent, increase tree size by one.
+
+   if (begin != it)
+     _tree(1,cols) = __set_tree (begin, it);
+
+   if (++it != end)
+     _tree(2,cols) = __set_tree (it, end);
 
    return cols;
 }

@@ -980,7 +980,7 @@ E_Int NGON_BOOLEAN_CLASS::Diffsurf
   }
   
   coord=_coord;
-  ngon_type::clean_connectivity(_ng1, coord);
+  ngon_type::clean_connectivity(_ng1, coord, -1/*ngon_dim*/, EPSILON/*tolerance*/, false/*remove_dup_phs*/, true/*do_omp*/);
   ngon_type::simplify_pgs(_ng1, coord);
   __compact_and_join(_ng1, coord);
   _ng1.export_to_array(connect);
@@ -1074,7 +1074,7 @@ E_Int NGON_BOOLEAN_CLASS::Union
 
   if (ret != ERROR && _ngoper != nullptr)
   {
-    ngon_type::clean_connectivity(*_ngoper, coord);
+    ngon_type::clean_connectivity(*_ngoper, coord, -1/*ngon_dim*/, EPSILON/*tolerance*/, false/*remove_dup_phs*/, true/*do_omp*/);
     if(simplify_pgs) ngon_type::simplify_pgs(*_ngoper, coord);
     __compact_and_join(*_ngoper, coord);
     _ngoper->export_to_array(connect);
@@ -1820,8 +1820,8 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
 
 #ifdef DEBUG_BOOLEAN
   //fixme : should be done before the boolean call CODE_1
-  E_Int nb_modifs = ngon_type::clean_connectivity(wNG1, _aCoords1.array());
-  nb_modifs += ngon_type::clean_connectivity(wNG2, _crd2);
+  E_Int nb_modifs = ngon_type::clean_connectivity(wNG1, _aCoords1.array(), -1/*ngon_dim*/, EPSILON/*tolerance*/, false/*remove_dup_phs*/, false/*do_omp*/);
+  nb_modifs += ngon_type::clean_connectivity(wNG2, _crd2, -1/*ngon_dim*/, EPSILON/*tolerance*/, false/*remove_dup_phs*/, false/*do_omp*/);
   
   if (nb_modifs)
     std::cout << "WARNING : INPUTS HAVE NOT BEEN CLEANED BEFORE CALLING THE BOOLEAN" << std::endl << std::endl;
@@ -2509,8 +2509,8 @@ NGON_BOOLEAN_CLASS::__compute()
     _ng2.clear();
   
     // glue and clean (including handling PH duplicates) : required for classification. 
-    ngon_type::clean_connectivity(_ngXs, _coord, 3, EPSILON, true/*remove dups*/); // soft part
-    ngon_type::clean_connectivity(_ngXh, _coord, 3); // hard part : no need for duplicates removal
+    ngon_type::clean_connectivity(_ngXs, _coord, 3/*ngon_dim*/, EPSILON/*tolerance*/, true/*remove_dup_phs*/, false/*do_omp*/);
+    ngon_type::clean_connectivity(_ngXh, _coord, 3/*ngon_dim*/, EPSILON/*tolerance*/, false/*remove_dup_phs*/, false/*do_omp*/); // hard part : no need for duplicates removal
     
   #ifdef DEBUG_BOOLEAN
     medith::write("ngXs1.mesh", _coord, _ngXs);

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sï¿½m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __MERGE_H__
 #define __MERGE_H__
@@ -36,9 +36,17 @@ inline void stable_unique_values
   }
 }
 
-inline bool lower_than(const std::pair<E_Float, NUGA::int_pair_type >& p1,
-                      const std::pair<E_Float, NUGA::int_pair_type >& p2)
-{return p1.first < p2.first;}
+
+struct triplet_t
+{
+  triplet_t()=default;
+  triplet_t(double id, E_Int iNi, E_Int iNj):d(id), Ni(iNi), Nj(iNj){}
+
+  double d; E_Int Ni, Nj;
+};
+
+inline bool lower_than(const triplet_t& p1, const triplet_t& p2)
+{return p1.d < p2.d;}
 
 //==============================================================================
 template <typename ArrayType>
@@ -47,7 +55,7 @@ merge_no_order_omp
 (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
  NUGA::int_vector_type& new_IDs)
 {
-  K_SEARCH::KdTree<ArrayType> tree(coordAcc);
+  K_SEARCH::KdTree<ArrayType> tree(coordAcc, EPSILON, true/*do_omp*/);
   size_t npts = coordAcc.size();
   new_IDs.resize(npts);
   printf("merge no order\n");
@@ -193,7 +201,7 @@ __merge
   K_SEARCH::KdTree<ArrayType> moving_tree(coordAcc, umoving);
   
   //E_Float d2, tol2(tol*tol);
-  typedef std::vector<std::pair <E_Float, std::pair <E_Int, E_Int> > > palmares_t;
+  typedef std::vector<triplet_t > palmares_t;
   palmares_t palma;
 
   std::vector<E_Int> onodes;
@@ -209,7 +217,7 @@ __merge
     moving_tree.getInSphere(Fi, tol, onodes, dist2);
     osz = onodes.size();
     for (size_t j = 0; j < osz; ++j)
-      palma.push_back(std::make_pair(dist2[j], std::make_pair(Fi, onodes[j]))); // (d2, Fi, Mi)
+      palma.push_back(triplet_t(dist2[j], Fi, onodes[j]));
   }
 
   if (palma.empty()) return 0;
@@ -222,8 +230,8 @@ __merge
   size_t psz = palma.size();
   for (size_t i = 0; i < psz; ++i)
   {
-    Fi=palma[i].second.first;
-    Mi=palma[i].second.second;
+    Fi=palma[i].Ni;
+    Mi=palma[i].Nj;
 
     // rule of merging : if target and moving has not been moved already
     if ((new_IDs[Fi] == Fi) && (new_IDs[Mi] == Mi))
@@ -244,6 +252,229 @@ __merge
   return nb_merges;
 }
 
+//==============================================================================
+template <typename ArrayType>
+E_Int
+__merge_omp
+(const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
+  NUGA::int_vector_type& umoving,
+  NUGA::int_vector_type& utarget,
+  NUGA::int_vector_type& new_IDs)
+{
+  size_t ssz = umoving.size();
+  size_t tsz = utarget.size();
+  size_t nsz = coordAcc.size();
+
+  new_IDs.resize(nsz);
+  
+  for (size_t i = 0; i < nsz; ++i) new_IDs[i] = i;
+
+  // Fast return
+  if (ssz*tsz*nsz == 0) return 0;
+
+  // build the KdTree on moving nodes.
+  K_SEARCH::KdTree<ArrayType> moving_tree(coordAcc, umoving, EPSILON, true /*do omp*/);
+
+  using palmares_t = std::vector<triplet_t>;
+
+  std::vector<palmares_t> palma_thrd(__NUMTHREADS__);
+  palmares_t palma;
+
+  std::vector<std::vector<E_Int>> onodes_thrd(__NUMTHREADS__);
+  std::vector<std::vector<E_Float>> dist2_thrd(__NUMTHREADS__);
+
+  E_Int id, Fi, Fj;
+  size_t i, j, osz;
+  double d2;
+
+  // loop on target nodes and get all moving nodes in sphere of radius tol.
+#pragma omp parallel shared(tsz, moving_tree, palma, utarget, tol, palma_thrd, dist2_thrd, onodes_thrd) private (i, j, id, osz, Fi, Fj, d2) default(none)
+  {
+    id = __CURRENT_THREAD__;
+
+#pragma omp for schedule(static)
+    for (i = 0; i < tsz; ++i)
+    {
+      onodes_thrd[id].clear(); dist2_thrd[id].clear();
+
+      Fi = utarget[i];
+      moving_tree.getInSphere(Fi, tol, onodes_thrd[id], dist2_thrd[id]);
+
+      osz = onodes_thrd[id].size();
+
+      for (j = 0; j < osz; ++j)
+      {
+        d2 = dist2_thrd[id][j];
+        Fj = onodes_thrd[id][j];
+
+        palma_thrd[id].push_back(triplet_t(d2, Fi, Fj));
+      }
+    }
+  }
+
+  size_t sz = 0;
+  for (size_t t = 0; t < __NUMTHREADS__; ++t) sz += palma_thrd[t].size();
+
+  palma.reserve(sz);
+
+  for (size_t t = 0; t < __NUMTHREADS__; ++t)
+  {
+    //std::cout << "palma_thrd[t] sz : " << palma_thrd[t].size() << std::endl;
+    if (!palma_thrd[t].empty())
+      palma.insert(palma.end(), ALL(palma_thrd[t]));
+  }
+
+  if (palma.empty()) return 0;
+
+  // sort them by increasing distance (keep intial order in case of equality to priorize it).
+  std::stable_sort(palma.begin(), palma.end(), lower_than);
+
+  // move the node
+  E_Int Mi, nb_merges(0);
+  size_t psz = palma.size();
+  for (size_t i = 0; i < psz; ++i)
+  {
+    Fi = palma[i].Ni;
+    Mi = palma[i].Nj;
+
+    // rule of merging : if target and moving has not been moved already
+    if ((new_IDs[Fi] == Fi) && (new_IDs[Mi] == Mi))
+    {
+      new_IDs[Mi] = Fi;
+      ++nb_merges;
+    }
+  }
+  
+  // update the pointers to point to the leaves
+  for (size_t i = 0; i < nsz; ++i)
+  {
+    Fi = new_IDs[i];
+    while (Fi != new_IDs[Fi]) Fi = new_IDs[Fi];
+    new_IDs[i] = Fi;
+  }
+
+  return nb_merges;
+}
+
+// // chunk version
+// template <typename ArrayType>
+// E_Int
+// __merge_omp
+// (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
+//   NUGA::int_vector_type& umoving,
+//   NUGA::int_vector_type& utarget,
+//   NUGA::int_vector_type& new_IDs)
+// {
+//   size_t ssz = umoving.size();
+//   size_t tsz = utarget.size();
+//   size_t nsz = coordAcc.size();
+
+//   new_IDs.resize(nsz);
+  
+//   for (size_t i = 0; i < nsz; ++i) new_IDs[i] = i;
+
+//   // Fast return
+//   if (ssz*tsz*nsz == 0) return 0;
+
+//   // build the KdTree on moving nodes.
+//   K_SEARCH::KdTree<ArrayType> moving_tree(coordAcc, umoving, EPSILON, true /*do omp*/);
+
+//   const int CHUNK_SZ = 50;
+//   E_Int NB_CHUNKS = tsz / CHUNK_SZ;
+
+//   using palmares_t = std::vector<triplet_t>;
+
+//   std::vector<palmares_t> palma_thrd(NB_CHUNKS);
+//   palmares_t palma;
+
+//   std::vector<std::vector<E_Int>> onodes_thrd(NB_CHUNKS);
+//   std::vector<std::vector<E_Float>> dist2_thrd(NB_CHUNKS);
+
+//   std::vector<E_Int> ibeg(NB_CHUNKS), iend(NB_CHUNKS);
+//   for (size_t k=0; k<NB_CHUNKS; ++k)
+//   {
+//     ibeg[k]=k*CHUNK_SZ;
+//     iend[k]=std::min((k+1)*CHUNK_SZ, tsz);
+//   }
+
+//   E_Int id, Fi, Fj;
+//   size_t i, j, osz, c;
+//   double d2;
+
+//   // loop on target nodes and get all moving nodes in sphere of radius tol.
+// #pragma omp parallel shared(tsz, moving_tree, palma, utarget, tol, palma_thrd, dist2_thrd, onodes_thrd, NB_CHUNKS, ibeg, iend) private (c, i, j, id, osz, Fi, Fj, d2) default(none)
+//   {
+//     //id = __CURRENT_THREAD__;
+
+// #pragma omp for schedule(dynamic)
+//     for (c = 0; c < NB_CHUNKS; ++c)
+//     {
+//       id = c;
+
+//       onodes_thrd[id].clear(); dist2_thrd[id].clear();
+
+//       for (size_t i = ibeg[c]; i < iend[c]; ++i)
+//       {
+
+//         Fi = utarget[i];
+//         moving_tree.getInSphere(Fi, tol, onodes_thrd[id], dist2_thrd[id]);
+
+//         osz = onodes_thrd[id].size();
+
+//         for (j = 0; j < osz; ++j)
+//         {
+//           d2 = dist2_thrd[id][j];
+//           Fj = onodes_thrd[id][j];
+
+//           palma_thrd[id].push_back(triplet_t(d2, Fi, Fj));
+//         }
+//       }
+//     }
+//   }
+
+//   size_t sz = 0;
+//   for (size_t t = 0; t < palma_thrd.size(); ++t) sz += palma_thrd[t].size();
+
+//   palma.reserve(sz);
+
+//   for (size_t t = 0; t < NB_CHUNKS; ++t)
+//   {
+//     //std::cout << "palma_thrd[t] sz : " << palma_thrd[t].size() << std::endl;
+//     if (!palma_thrd[t].empty())
+//       palma.insert(palma.end(), ALL(palma_thrd[t]));
+//   }
+
+//   if (palma.empty()) return 0;
+
+//   // sort them by increasing distance (keep intial order in case of equality to priorize it).
+//   std::stable_sort(palma.begin(), palma.end(), lower_than);
+
+//   // move the node
+//   E_Int Mi, nb_merges(0);
+//   size_t psz = palma.size();
+//   for (size_t i = 0; i < psz; ++i)
+//   {
+//     Fi = palma[i].Ni;
+//     Mi = palma[i].Nj;
+
+//     // rule of merging : if target and moving has not been moved already
+//     if ((new_IDs[Fi] == Fi) && (new_IDs[Mi] == Mi))
+//     {
+//       new_IDs[Mi] = Fi;
+//       ++nb_merges;
+//     }
+//   }
+  
+//   // update the pointers to point to the leaves
+//   for (size_t i = 0; i < nsz; ++i)
+//   {
+//     Fi = new_IDs[i];
+//     while (Fi != new_IDs[Fi]) Fi = new_IDs[Fi];
+//     new_IDs[i] = Fi;
+//   }
+
+//   return nb_merges;
+// }
 
 template <typename ArrayType>
 E_Int
@@ -255,12 +486,12 @@ __merge
  NUGA::int_vector_type& utarget,
  NUGA::int_vector_type& new_IDs)
 {
-  E_Int ssz = (E_Int)umoving.size();
-  E_Int tsz = (E_Int)utarget.size();
-  E_Int nsz = (E_Int)coordAcc.size();
+  size_t ssz = umoving.size();
+  size_t tsz = utarget.size();
+  size_t nsz = coordAcc.size();
 
   new_IDs.resize(nsz);
-  for (E_Int i = 0; i < nsz; ++i) new_IDs[i] = i;
+  for (size_t i = 0; i < nsz; ++i) new_IDs[i] = i;
 
   // Fast return
   if (ssz*tsz*nsz == 0) return 0;
@@ -269,7 +500,7 @@ __merge
   K_SEARCH::KdTree<ArrayType> moving_tree(coordAcc, umoving);
 
   //E_Float d2, tol2(tol*tol);
-  typedef std::vector<std::pair <E_Float, std::pair <E_Int, E_Int> > > palmares_t;
+  typedef std::vector<triplet_t> palmares_t;
   palmares_t palma;
 
   std::vector<E_Int> onodes;
@@ -278,7 +509,7 @@ __merge
   // loop on target nodes and get all moving nodes in sphere of radius tol.
   size_t osz;
   //long int count{0};
-  for (E_Int i = 0; i < tsz; ++i)
+  for (size_t i = 0; i < tsz; ++i)
   {
     onodes.clear(); dist2.clear();
 
@@ -312,7 +543,7 @@ __merge
         continue;
       }
 
-      palma.push_back(std::make_pair(dist2[j], std::make_pair(Fi, Fj))); // (d2, Fi, Fj)
+      palma.push_back(triplet_t(dist2[j], Fi, Fj));
     }
   }
 
@@ -325,11 +556,11 @@ __merge
 
   // move the node
   E_Int Fi, Fj, nb_merges(0);
-  E_Int psz = palma.size();
-  for (E_Int i = 0; i < psz; ++i)
+  size_t psz = palma.size();
+  for (size_t i = 0; i < psz; ++i)
   {
-    Fi = palma[i].second.first;
-    Fj = palma[i].second.second;
+    Fi = palma[i].Ni;
+    Fj = palma[i].Nj;
 
     // rule of merging : if target and moving has not been moved already
     if ((new_IDs[Fi] == Fi) && (new_IDs[Fj] == Fj))
@@ -340,7 +571,136 @@ __merge
   }
 
   // update the pointers to point to the leaves
-  for (E_Int i = 0; i < nsz; ++i)
+  for (size_t i = 0; i < nsz; ++i)
+  {
+    Fi = new_IDs[i];
+    while (Fi != new_IDs[Fi]) Fi = new_IDs[Fi];
+    new_IDs[i] = Fi;
+  }
+
+  return nb_merges;
+}
+
+template <typename ArrayType>
+E_Int
+__merge_omp
+(const K_FLD::ArrayAccessor<ArrayType>& coordAcc,
+ const std::vector<E_Float>& nodal_metric2, 
+ E_Float RTOL,
+ NUGA::int_vector_type& umoving,
+ NUGA::int_vector_type& utarget,
+ NUGA::int_vector_type& new_IDs)
+{
+  size_t ssz = umoving.size();
+  size_t tsz = utarget.size();
+  size_t nsz = coordAcc.size();
+
+  new_IDs.resize(nsz);
+  for (size_t i = 0; i < nsz; ++i) new_IDs[i] = i;
+
+  // Fast return
+  if (ssz*tsz*nsz == 0) return 0;
+
+  // build the KdTree on moving nodes.
+  K_SEARCH::KdTree<ArrayType> moving_tree(coordAcc, umoving, EPSILON, true /*do omp*/);
+
+  const int NB_CANDS=50;
+
+  using palmares_t = std::vector<triplet_t>;
+
+  std::vector<palmares_t> palma_thrd(__NUMTHREADS__);
+  palmares_t palma;
+
+  std::vector<std::vector<E_Int>> onodes_thrd(__NUMTHREADS__);
+  std::vector<std::vector<E_Float>> dist2_thrd(__NUMTHREADS__);
+
+  E_Int id, Fi, Fj;
+  size_t i, j, osz;
+  double d2, TOLi, TOLj2;
+
+  // loop on target nodes and get all moving nodes in sphere of radius tol.
+#pragma omp parallel shared(tsz, moving_tree, palma, utarget, palma_thrd, dist2_thrd, onodes_thrd, RTOL, nodal_metric2) private (i, j, id, osz, Fi, Fj, d2, TOLi, TOLj2) default(none)
+  {
+    id = __CURRENT_THREAD__;
+
+#pragma omp for schedule(static)
+    for (i = 0; i < tsz; ++i)
+    {
+      onodes_thrd[id].clear(); dist2_thrd[id].clear();
+
+      Fi = utarget[i];
+      assert (Fi >= 0 && Fi < nodal_metric2.size());
+      if (nodal_metric2[Fi] == NUGA::FLOAT_MAX)
+      {
+        //std::cout << "wrong TOLi" << std::endl;
+        continue;
+      }
+    
+      TOLi = ::sqrt(nodal_metric2[Fi]) * RTOL;
+
+      moving_tree.getInSphere(Fi, TOLi, onodes_thrd[id], dist2_thrd[id]);
+    
+      osz = onodes_thrd[id].size();
+
+      for (j = 0; j < osz; ++j)
+      {
+        d2 = dist2_thrd[id][j];
+        Fj = onodes_thrd[id][j];
+
+        if (nodal_metric2[Fj] == NUGA::FLOAT_MAX)
+        {
+          //std::cout << "wrong metric" << std::endl;
+          continue;
+        }
+
+        TOLj2 = nodal_metric2[Fj] * RTOL * RTOL;
+
+        if (TOLj2 < dist2_thrd[id][j])
+        {
+          //++count;
+          continue;
+        }
+
+        palma_thrd[id].push_back(triplet_t(d2, Fi, Fj));
+      }
+    }
+  }
+
+  size_t sz = 0;
+  for (size_t t = 0; t < __NUMTHREADS__; ++t) sz += palma_thrd[t].size();
+
+  palma.reserve(sz);
+
+  for (size_t t = 0; t < __NUMTHREADS__; ++t)
+  {
+    //std::cout << "palma_thrd[t] sz : " << palma_thrd[t].size() << std::endl;
+    if (!palma_thrd[t].empty())
+      palma.insert(palma.end(), ALL(palma_thrd[t]));
+  }
+
+  if (palma.empty()) return 0;
+
+  // sort them by increasing distance (keep intial order in case of equality to priorize it).
+  std::stable_sort(palma.begin(), palma.end(), lower_than);
+
+  // move the node
+  E_Int nb_merges(0);
+  size_t psz = palma.size();
+  for (size_t i = 0; i < psz; ++i)
+  {
+    Fi = palma[i].Ni;
+    Fj = palma[i].Nj;
+
+    // rule of merging : if target and moving has not been moved already
+    if ((new_IDs[Fi] == Fi) && (new_IDs[Fj] == Fj))
+    {
+      new_IDs[Fj] = Fi;
+      ++nb_merges;
+    }
+  }
+
+  // update the pointers to point to the leaves
+  for (size_t i = 0; i < nsz; ++i)
   {
     Fi = new_IDs[i];
     while (Fi != new_IDs[Fi]) Fi = new_IDs[Fi];
@@ -365,7 +725,7 @@ merge
 (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
  const NUGA::int_vector_type& moving,
  const NUGA::int_vector_type& target,
- NUGA::int_vector_type& new_IDs)
+ NUGA::int_vector_type& new_IDs, bool do_omp=false)
 {
   // Fast return
   if (moving.size()*target.size()*coordAcc.size() == 0) return 0;
@@ -375,7 +735,10 @@ merge
   stable_unique_values(moving, umoving);
   stable_unique_values(target, utarget);
 
-  return ::__merge(coordAcc, tol, umoving, utarget, new_IDs);
+  if (!do_omp)
+    return ::__merge(coordAcc, tol, umoving, utarget, new_IDs);
+  else
+    return ::__merge_omp(coordAcc, tol, umoving, utarget, new_IDs);
 }
 
 // Merge points in the input coordinate matrix between them.
@@ -385,24 +748,30 @@ template <typename ArrayType>
 E_Int
 merge
 (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
- NUGA::int_vector_type& new_IDs)
+ NUGA::int_vector_type& new_IDs, bool do_omp=false)
 {
   NUGA::int_vector_type nodes(coordAcc.size());
   for (size_t i = 0; i < nodes.size(); ++i)nodes[i]=i;
 
-  return ::__merge(coordAcc, tol, nodes, nodes, new_IDs);
+  if (!do_omp)
+    return ::__merge(coordAcc, tol, nodes, nodes, new_IDs);
+  else
+    return ::__merge_omp(coordAcc, tol, nodes, nodes, new_IDs);
 }
 
 template <typename ArrayType>
 E_Int
 merge
 (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, const std::vector<E_Float>&nodal_metric2,  E_Float RTOL,
-  NUGA::int_vector_type& new_IDs)
+  NUGA::int_vector_type& new_IDs, bool do_omp=false)
 {
   NUGA::int_vector_type nodes(coordAcc.size());
   for (size_t i = 0; i < nodes.size(); ++i)nodes[i] = i;
 
-  return ::__merge(coordAcc, nodal_metric2, RTOL, nodes, nodes, new_IDs);
+  if (!do_omp)
+    return ::__merge(coordAcc, nodal_metric2, RTOL, nodes, nodes, new_IDs);
+  else
+    return ::__merge_omp(coordAcc, nodal_metric2, RTOL, nodes, nodes, new_IDs);
 }
 
 /////////////////////////// temporary here to avoid cycling dep with EltAlgo
@@ -411,8 +780,8 @@ template <typename Connectivity_t>
 void getNodeToNodes
 (const K_FLD::ArrayAccessor<Connectivity_t>& ELTContainer, std::map<E_Int, NUGA::int_vector_type > & bound_to_bounds)
 {
-  E_Int*                          pN;
-  E_Int                           ROWS(ELTContainer.stride()), COLS(ELTContainer.size()), s;
+  E_Int* pN;
+  E_Int  ROWS(ELTContainer.stride()), COLS(ELTContainer.size()), s;
   
   pN = new E_Int[ROWS];
 
@@ -473,7 +842,7 @@ merge
   std::map<E_Int, NUGA::int_vector_type > n_to_ns;
   getNodeToNodes(connectAcc, n_to_ns);
   
-  typedef std::vector<std::pair <E_Float, std::pair <E_Int, E_Int> > > palmares_t;
+  typedef std::vector<triplet_t > palmares_t;
   palmares_t palma;
   
   // loop on target nodes and get all connected nodes closer than tol.
@@ -488,7 +857,7 @@ merge
       const E_Int& Mj = n_to_ns[Fi][j];
       d2 = coordAcc.dist2(Fi, Mj);
       if (d2 < tol2)
-        palma.push_back(std::make_pair(d2, std::make_pair(Fi, Mj))); // (d2, Fi, Mj)
+        palma.push_back(triplet_t(d2, Fi, Mj));
     }
   }
 
@@ -500,8 +869,8 @@ merge
   size_t psz = palma.size();
   for (size_t i =0; i < psz; ++i)
   {
-    Fi=palma[i].second.first;
-    Mi=palma[i].second.second;
+    Fi=palma[i].Ni;
+    Mi=palma[i].Nj;
 
     // rule of merging : if target and moving has not been moved already
     if ((new_IDs[Fi] == Fi) && (new_IDs[Mi] == Mi))

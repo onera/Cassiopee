@@ -1009,8 +1009,8 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   std::vector<E_Int> clean_phnids1;
   std::vector<E_Int> clean_phnids2;
     
-  ngon_type::clean_connectivity(ng1, crd1, -1, closetol, true, &clean_pgnids1, &clean_phnids1);
-  ngon_type::clean_connectivity(ng2, crd2, -1, closetol, true, &clean_pgnids2, &clean_phnids2);
+  ngon_type::clean_connectivity(ng1, crd1, -1/*ngon_dim*/, closetol/*tolerance*/, true/*remove_dup_phs*/, true/*do_omp*/, &clean_pgnids1, &clean_phnids1);
+  ngon_type::clean_connectivity(ng2, crd2, -1/*ngon_dim*/, closetol/*tolerance*/, true/*remove_dup_phs*/, true/*do_omp*/, &clean_pgnids2, &clean_phnids2);
 
   // Reverse indirection (preserving information when 2 ancestors exist) 
   map<E_Int,std::vector<E_Int>> vect_pgoids1 ;

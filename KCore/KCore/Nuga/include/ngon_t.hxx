@@ -1061,7 +1061,7 @@ struct ngon_t
   }
   
   /// Change the node indice to reference the same when duplicated exist
-  E_Int join_phs(const K_FLD::FloatArray& coord, E_Float tolerance = EPSILON)
+  E_Int join_phs(const K_FLD::FloatArray& coord, E_Float tolerance = EPSILON, bool do_omp=false)
   {
     if (PGs.size() == 0) return 0;
     
@@ -1069,14 +1069,14 @@ struct ngon_t
     
     K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(coord);
     Vector_t<E_Int> nids;
-    E_Int nb_merges = ::merge(ca, tolerance, nids);
+    E_Int nb_merges = ::merge(ca, tolerance, nids, do_omp);
     if (nb_merges)
       PGs.change_indices(nids);
     return nb_merges;
   }
 
   /// Change the node indice to reference the same when duplicated exist (Relative tolerance version)
-  E_Int join_phs(const K_FLD::FloatArray& coord, const std::vector<E_Float>&nodal_metric2,  E_Float RTOL)
+  E_Int join_phs(const K_FLD::FloatArray& coord, const std::vector<E_Float>&nodal_metric2,  E_Float RTOL, bool do_omp=false)
   {
     if (PGs.size() == 0) return 0;
 
@@ -1084,7 +1084,7 @@ struct ngon_t
 
     K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(coord);
     Vector_t<E_Int> nids;
-    E_Int nb_merges = ::merge(ca, nodal_metric2, RTOL, nids);
+    E_Int nb_merges = ::merge(ca, nodal_metric2, RTOL, nids, do_omp);
     if (nb_merges)
       PGs.change_indices(nids);
     return nb_merges;
@@ -1092,7 +1092,7 @@ struct ngon_t
   
   /// Change the node indice to reference the same when duplicated exist (FldArrayF)
 #ifndef NUGALIB
-  void join_phs(const K_FLD::FldArrayF& coord, E_Int px, E_Int py, E_Int pz, E_Float tolerance = EPSILON)
+  void join_phs(const K_FLD::FldArrayF& coord, E_Int px, E_Int py, E_Int pz, E_Float tolerance = EPSILON, bool do_omp=false)
   {
     if (PGs.size() == 0)
       return;
@@ -1101,12 +1101,12 @@ struct ngon_t
     
     K_FLD::ArrayAccessor<K_FLD::FldArrayF> ca(coord, px, py, pz);
     Vector_t<E_Int> nids;
-    E_Int nb_merges = ::merge(ca, tolerance, nids);
+    E_Int nb_merges = ::merge(ca, tolerance, nids, do_omp);
     if (nb_merges)
       PGs.change_indices(nids, true/*zero based*/);
   }
 
-  void join_phs(const K_FLD::FldArrayF& coord, E_Int px, E_Int py, E_Int pz, const std::vector<E_Float>&nodal_metric2, E_Float RTOL)
+  void join_phs(const K_FLD::FldArrayF& coord, E_Int px, E_Int py, E_Int pz, const std::vector<E_Float>&nodal_metric2, E_Float RTOL, bool do_omp=false)
   {
     if (PGs.size() == 0)
       return;
@@ -1115,7 +1115,7 @@ struct ngon_t
 
     K_FLD::ArrayAccessor<K_FLD::FldArrayF> ca(coord, px, py, pz);
     Vector_t<E_Int> nids;
-    E_Int nb_merges = ::merge(ca, nodal_metric2, RTOL, nids);
+    E_Int nb_merges = ::merge(ca, nodal_metric2, RTOL, nids, do_omp);
     if (nb_merges)
       PGs.change_indices(nids, true/*zero based*/);
   }
@@ -1393,10 +1393,10 @@ struct ngon_t
    
   ///
   template <typename CoordAccType>
-  bool remove_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids)
+  bool remove_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids, bool do_omp)
   {
     //detect the matching and replace the ids with the first one found
-    bool found = replace_duplicated_pgs(coord,pgnids); 
+    bool found = replace_duplicated_pgs(coord,pgnids, do_omp); 
     if (found)
       PHs.remove_duplicated(); //clean
     return found;
@@ -1553,7 +1553,7 @@ struct ngon_t
 
   ///
   template <typename CoordAccType>
-  bool replace_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids)
+  bool replace_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids, bool do_omp)
   { 
     if (PHs.size()*PGs.size() == 0)
       return false;
@@ -1594,7 +1594,7 @@ struct ngon_t
     // Merge
     Vector_t<E_Int> nids;
     K_FLD::ArrayAccessor<K_FLD::FloatArray> cab(barys);
-    E_Int nmerges = ::merge(cab, EPSILON, nids);
+    E_Int nmerges = ::merge(cab, EPSILON, nids, do_omp);
 
     if (!nmerges) //no duplicated faces.
     {
@@ -1760,7 +1760,7 @@ struct ngon_t
     nids.clear();
     K_FLD::ArrayAccessor<K_FLD::FloatArray> cab(barys);
  
-    return ::merge(cab, EPSILON, nids);
+    return ::merge(cab, EPSILON, nids, true /*do_omp*/);
   }
 
   ///
@@ -2964,7 +2964,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   
   /// Warning : The coordinates are not cleaned, only the connectivity.
   static E_Int clean_connectivity
-  (ngon_t& NG, const K_FLD::FloatArray& f, E_Int ngon_dim=-1,E_Float tolerance = EPSILON, bool remove_dup_phs=false,
+  (ngon_t& NG, const K_FLD::FloatArray& f, E_Int ngon_dim, E_Float tolerance, bool remove_dup_phs, bool do_omp,
    std::vector<E_Int>* pgnids=nullptr, std::vector<E_Int>* phnids=nullptr,
    std::vector<E_Float>* Lmin2=nullptr)
   {   
@@ -3007,7 +3007,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     E_Int nb_merges = 0;
     if (tolerance >= 0.)
     {
-      nb_merges = NG.join_phs(f, tolerance);
+      nb_merges = NG.join_phs(f, tolerance, do_omp);
     }
     else //if (tolerance < 0.)
     {
@@ -3023,7 +3023,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       //std::cout << "Limn2 size vs crd : " << Lmin2->size() << "/" << f.cols() << std::endl;
       
       double RTOL = -tolerance;
-      nb_merges = NG.join_phs(f, *Lmin2, RTOL);
+      nb_merges = NG.join_phs(f, *Lmin2, RTOL, do_omp);
     }
 
     // 2- Elimination des faces degenerees
@@ -3046,7 +3046,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     if (ngon_dim == 3) //volumic
     {
       // /*has_dups = */NG.remove_duplicated_pgs(fcA, pgnidstmp);
-      bool has_dups = NG.remove_duplicated_pgs(fcA, pgnidstmp);
+      bool has_dups = NG.remove_duplicated_pgs(fcA, pgnidstmp, do_omp);
       
       //Propagation de pgnidstmp/phnidstmp
       if ((histo) and (not pgnidstmp.empty())) K_CONNECT::IdTool::propagate(pgnidstmp, *pgnids);
@@ -5651,7 +5651,7 @@ static int validate_moves_by_fluxes
     select_phs(ngio, keep, pgnids, ngshell);
 
     ngshell.PGs.change_indices(nidsshell);
-    clean_connectivity(ngshell, crd, 3, 0.);
+    clean_connectivity(ngshell, crd, 3/*ngon_dim*/, 0./*tolerance*/, false/*remove_dup_phs*/, false/*do_omp*/);
 
     ngon_unit orientshell;
     E_Int err = build_orientation_ngu<TriangulatorType>(crd, ngshell, orientshell);

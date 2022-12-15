@@ -35,12 +35,12 @@ using namespace std;
 //=============================================================================
 void K_CONNECT::cleanConnectivity(E_Int posx, E_Int posy, E_Int posz, 
                                   E_Float eps,  const char* eltType, 
-                                  FldArrayF& f, FldArrayI& cn, bool remove_degen)
+                                  FldArrayF& f, FldArrayI& cn, bool remove_degen, bool ordered_merge)
 {
   if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0) 
-    cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen);
+    cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen, ordered_merge);
   else
-    cleanConnectivityBasic(posx, posy, posz, eps, eltType, f, cn);
+    cleanConnectivityBasic(posx, posy, posz, eps, eltType, f, cn, ordered_merge);
 }
 
 //=============================================================================
@@ -51,12 +51,12 @@ void K_CONNECT::cleanConnectivity(E_Int posx, E_Int posy, E_Int posz,
 //=============================================================================
 void K_CONNECT::cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz, 
                                   E_Float eps,  const char* eltType, 
-                                  FldArrayF& f, FldArrayI& cn, bool remove_degen)
+                                  FldArrayF& f, FldArrayI& cn, bool remove_degen, bool ordered_merge)
 {
   if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0) 
-    cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen);
+    cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen, ordered_merge);
   else
-    cleanConnectivityBasic_opt(posx, posy, posz, eps, eltType, f, cn);
+    cleanConnectivityBasic_opt(posx, posy, posz, eps, eltType, f, cn, ordered_merge);
 }
 
 
@@ -74,7 +74,8 @@ void K_CONNECT::cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz,
 //=============================================================================
 void K_CONNECT::cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz, 
                                        E_Float eps,  const char* eltType, 
-                                       FldArrayF& f, FldArrayI& cn)
+                                       FldArrayF& f, FldArrayI& cn,
+                                       bool ordered_merge)
 {
   E_Int nelts = cn.getSize(); E_Int nvert = cn.getNfld();
   E_Int npts = f.getSize(); E_Int nfld = f.getNfld();
@@ -147,8 +148,11 @@ void K_CONNECT::cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz,
   vector<E_Int> newId;
   {
     ArrayAccessor<FldArrayF> coordAcc(f2, posx, posy, posz);
-    //::merge_no_order_omp(coordAcc, eps, newId);
-    ::merge(coordAcc, eps, newId);
+
+    if (ordered_merge)
+      ::merge(coordAcc, eps, newId, true /*do omp*/);
+    else
+      ::merge_no_order_omp(coordAcc, eps, newId);
     
     for (E_Int i = 0; i < npts; i++)
     {
@@ -235,7 +239,8 @@ void K_CONNECT::cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz,
 //=============================================================================
 void K_CONNECT::cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz, 
                                            E_Float eps,  const char* eltType, 
-                                           FldArrayF& f, FldArrayI& cn)
+                                           FldArrayF& f, FldArrayI& cn,
+                                           bool ordered_merge)
 {
   E_Int nelts = cn.getSize(); 
   E_Int nvert = cn.getNfld();
@@ -303,8 +308,12 @@ void K_CONNECT::cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz,
   vector<E_Int> newId;
   {
     ArrayAccessor<FldArrayF> coordAcc(f2, posx, posy, posz);
-    //::merge_no_order_omp(coordAcc, eps, newId);
-    ::merge(coordAcc, eps, newId);
+
+    if (ordered_merge)
+      ::merge(coordAcc, eps, newId, true/*do omp*/);
+    else
+      ::merge_no_order_omp(coordAcc, eps, newId);
+
     
     for (E_Int i = 0; i < npts; i++)
     {
@@ -525,7 +534,7 @@ void K_CONNECT::createConnectEV_opt(FldArrayI& cn, vector<E_Int> newId,
 */
 //=============================================================================
 void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz, 
-                                      E_Float eps, FldArrayF& f, FldArrayI& cn, bool remove_degen)
+                                      E_Float eps, FldArrayF& f, FldArrayI& cn, bool remove_degen, bool ordered_merge)
 {
   using acrd_t = K_FLD::ArrayAccessor<FldArrayF> ;
   acrd_t fcA(f, posx, posy, posz);
@@ -553,7 +562,14 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   // * negative => relative
   if (eps >= 0.)
   {
-    NG.join_phs(f, posx, posy, posz, eps);
+    Vector_t<E_Int> nids;
+
+    if (ordered_merge)
+      ::merge(fcA, eps, nids, true/*do omp*/);
+    else
+      ::merge_no_order_omp(fcA, eps, nids);
+
+    NG.PGs.change_indices(nids);
   }
   else // if (eps < 0.) 
   {
@@ -569,7 +585,13 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
     NUGA::MeshTool::computeNodalDistance2<acrd_t, ngon_unit>(fcA, NG.PGs, nodal_metric2);
     
     double RTOL = -eps;
-    NG.join_phs(f, posx, posy, posz, nodal_metric2, RTOL);      
+
+    Vector_t<E_Int> nids;
+
+    ::merge(fcA, nodal_metric2, RTOL, nids, true /*do_omp*/);
+    // merge_no_order_omp not implemented for relative tol
+
+    NG.PGs.change_indices(nids);
   }
   
   // 2- Elimination des faces degenerees
@@ -584,7 +606,7 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   if (ngon_dim == 3) //volumic
   {
     Vector_t<E_Int> pgnidstmp;
-    NG.remove_duplicated_pgs(fcA,pgnidstmp);
+    NG.remove_duplicated_pgs(fcA,pgnidstmp, true/*do_omp*/);
   }
   else if (ngon_dim == 2) //surfacic
     NG.remove_duplicated_edges();

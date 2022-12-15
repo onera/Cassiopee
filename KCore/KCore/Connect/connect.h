@@ -39,14 +39,16 @@ namespace K_CONNECT
   void cleanConnectivity(E_Int posx, E_Int posy, E_Int posz, 
                          E_Float eps, const char* eltType, 
                          K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
-                         bool remove_degen = false);
+                         bool remove_degen = false,
+                         bool ordered_merge = true);
 
   /* Nettoyage de la connectivite de maillage non-structures 
      (openmp coarse grain) */
   void cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz, 
                              E_Float eps, const char* eltType, 
                              K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
-                             bool remove_degen = false);
+                             bool remove_degen = false,
+                             bool ordered_merge = true);
 
   /*-------------*/
   /*- Structure -*/
@@ -258,14 +260,16 @@ namespace K_CONNECT
   */
   void cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz, 
                               E_Float eps, const char* eltType, 
-                              K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+                              K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
+                              bool ordered_merge = true);
 
   /*
      Version openmp corse grain de cleanConnectivityBasic
   */
   void cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz, 
                                   E_Float eps, const char* eltType, 
-                                  K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+                                  K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
+                                  bool ordered_merge = true);
 
   /* Elimine les vertex non references dans une connectivite basique */
   void cleanUnreferencedVertexBasic(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
@@ -388,7 +392,8 @@ namespace K_CONNECT
   void cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz, 
                              E_Float eps, K_FLD::FldArrayF& f, 
                              K_FLD::FldArrayI& cNG,
-                             bool remove_degen = false);
+                             bool remove_degen = false,
+                             bool ordered_merge = true);
 
   /* Nettoyage des faces non referencees dans la connectivity NGon */
   void cleanUnreferencedFacesNGon(K_FLD::FldArrayI& cn);

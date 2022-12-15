@@ -878,7 +878,7 @@ PyObject* K_INTERSECTOR::collapseSmallEdges(PyObject* self, PyObject* args)
     carry_on=(nb_valid_moves > 0);
     //std::cout << "clean_connectivity" << std::endl;
     ngi.PGs.change_indices(nids);
-    ngon_type::clean_connectivity(ngi, crd, 3, 0., true/*remove dups*/); 
+    ngon_type::clean_connectivity(ngi, crd, 3/*ngon_dim*/, 0./*tolerance*/, true/*remove_dup_phs*/, false/*do_omp*/);
     //std::cout << "nb pgs : " << ngi.PGs.size() << std::endl;
     //std::cout << "nb pts : " << crd.cols() << std::endl;
     //std::cout << "nb phs : " << ngi.PHs.size() << std::endl;
@@ -3925,7 +3925,7 @@ PyObject* K_INTERSECTOR::merge(PyObject* self, PyObject* args)
 
   K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(crd);
   Vector_t<E_Int> nids;
-  /*E_Int nb_merges = */::merge(ca, tolerance, nids);
+  /*E_Int nb_merges = */::merge(ca, tolerance, nids, true /*do_omp*/);
 
   E_Int sz = f2->cols();
   Vector_t<E_Int> nids_for_2(sz);
@@ -3972,7 +3972,6 @@ PyObject* K_INTERSECTOR::oneph(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   
   ngon_type ng(pgs, 1);
-  //ngon_type::clean_connectivity(ng, crd);
 
   K_FLD::IntArray cnto;
   ng.export_to_array(cnto);
@@ -4098,7 +4097,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
 
   // std::cout << "before clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
 
-  ngon_type::clean_connectivity(ng, crd, -1, tol, true/*remove dups*/ , &glo_pgnids, &glo_phnids, pLmin2 ); 
+  ngon_type::clean_connectivity(ng, crd, -1/*ngon_dim*/, tol/*tolerance*/, true/*remove_dup_phs*/, true/*do_omp*/, &glo_pgnids, &glo_phnids, pLmin2 );
 
   //Propagation des nouveaux ids dans z_pgnids/z_phnids
   for (size_t i=0; i < nb_zones; ++i)

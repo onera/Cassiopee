@@ -233,8 +233,7 @@ namespace NUGA
         }
       }  
 
-      ngo.clean_connectivity(ngo, crd, -1, 0./*no merge*/);
-      
+      ngo.clean_connectivity(ngo, crd, -1/*ngon_dim*/, 0./*tolerance*/, false/*remove_dup_phs*/, false/*do_omp*/);      
       
       E_Int nb_to_split = nb_phs - nb_ok;
       std::cout << "nb of phs requiring a split : " << nb_to_split << " over " << nb_phs << std::endl;

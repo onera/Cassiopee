@@ -772,6 +772,8 @@ void ngon_unit::get_degenerated(E_Int min_nb_facets, Vector_t<E_Int>& indices)
 ///
 void ngon_unit::change_indices (const Vector_t<E_Int>& nIds, E_Int idx_start)
 {
+  if (nIds.empty()) return;
+
   updateFacets();
   
   E_Int nb_facets, nb_elts(size());

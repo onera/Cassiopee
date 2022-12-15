@@ -59,12 +59,12 @@ class KdTree {
   public: /** Constructors and Destructor */
 
     /// Build a tree and inserts all the nodes of the input coordinate array pos.
-    KdTree(const coord_access_type& posAcc, E_Float tolerance=EPSILON);
+    KdTree(const coord_access_type& posAcc, E_Float tolerance=EPSILON, bool use_omp=false);
 
     /// Builds a tree and inserts only the valid nodes from begin to end.
     KdTree(const coord_access_type& posAcc, 
            std::vector<size_type> indices/*passed by value to preserve input*/,
-	   E_Float tolerance=EPSILON);
+	   E_Float tolerance=EPSILON, bool use_omp=false);
 
     /// Destructor.
     ~KdTree(){};
@@ -122,6 +122,10 @@ class KdTree {
     /// Underneath algorithm for creating a tree with a set of nodes (balanced construction).
     template <typename InputIterator>
     E_Int __insert(InputIterator begin,InputIterator end, size_type depth);
+    template <typename InputIterator>
+    void __insert_omp(InputIterator begin,InputIterator end, size_type depth);
+    template <typename InputIterator>
+    E_Int __set_tree(InputIterator begin,InputIterator end);
 
     /// Underneath algorithm for the getClosest method.
     void __seek_closest(const E_Float *pt, size_type cur_col, size_type axis, E_Float& d2, size_type& m) const;

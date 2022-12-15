@@ -1573,7 +1573,7 @@ namespace NUGA
   
     ng.PGs.change_indices(nid);
   
-    ngon_type::clean_connectivity(ng, crd);
+    ngon_type::clean_connectivity(ng, crd, -1/*ngon_dim*/, EPSILON/*tolerance*/, false/*remove_dup_phs*/, true/*do_omp*/);
   
   return 0;
 }
@@ -1621,7 +1621,7 @@ namespace NUGA
   
     ng.PGs.change_indices(nids);
   
-    ngon_type::clean_connectivity(ng, crd, 3, 0.);
+    ngon_type::clean_connectivity(ng, crd, 3/*ngon_dim*/, 0./*tolerance*/, false/*remove_dup_phs*/, true/*do_omp*/);
   
   return 0;
 }
@@ -1690,7 +1690,7 @@ namespace NUGA
 
     ngio.PGs.change_indices(nids);
 
-    ngon_type::clean_connectivity(ngio, crd);
+    ngon_type::clean_connectivity(ngio, crd, -1/*ngon_dim*/, EPSILON/*tolerance*/, false/*remove_dup_phs*/, false/*do_omp*/);
 
     return 0;
 
@@ -1972,7 +1972,7 @@ namespace NUGA
 
     // now apply the validated moves globally
     ngio.PGs.change_indices(nids);
-    ngon_type::clean_connectivity(ngio, crd, 3, 0., true);
+    ngon_type::clean_connectivity(ngio, crd, 3/*ngon_dim*/, 0./*tolerance*/, false/*remove_dup_phs*/, true/*do_omp*/);
 
     return 0;
 
