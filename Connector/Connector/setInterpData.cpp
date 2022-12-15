@@ -820,27 +820,58 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       PyErr_SetString(PyExc_TypeError,
                       "setInterpData: size of list of hooks must be equal to the number of donor zones.");
     }
-    oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
-
-    if (oki < 1) 
+    //oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
+    for (E_Int no = 0; no < nHooks; no++)
     {
-      if (oki == -1)
+      PyObject* hook = PyList_GetItem(allHooks,no);
+      if ( hook == Py_None) //CARTESIAN
       {
+        E_Float* xt = fields[no]->begin(posxs[no]);
+        E_Float* yt = fields[no]->begin(posys[no]);
+        E_Float* zt = fields[no]->begin(poszs[no]);
+        E_Int ni = *(E_Int*)a2[no];
+        E_Int nj = *(E_Int*)a3[no];
+        E_Int nk = *(E_Int*)a4[no];
+        E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
+        E_Float hi = xt[1]-xt[0];
+        E_Float hj = yt[ni]-yt[0];
+        E_Float hk = zt[ni*nj]-zt[0];
+        K_INTERP::InterpCart* interpCart = new K_INTERP::InterpCart(ni,nj,nk,hi,hj,hk,x0,y0,z0);
+        interpDatas.push_back(interpCart);
+      }
+      else 
+      {
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+      void** packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+      void** packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+      E_Int* type = (E_Int*)packet[0];
+      if (type[0] != 1) 
+      {
+        oki = -1;
         PyErr_SetString(PyExc_TypeError,
                         "setInterpData: hook must define an ADT.");
       }
-      else if (oki == -2)
+      if (type[1] != 1)   
       {
+        oki = -1;
         PyErr_SetString(PyExc_TypeError,
                         "setInterpData: one ADT per hook only.");
       }
-
+      interpDatas.push_back((K_INTERP::InterpAdt*)(packet[1])); 
+     }
+    }  
+    if ( oki < 1) 
+    {
       RELEASESHAREDB(resr, receiverArray, fr, cnr); 
       for (E_Int no = 0; no < nzones; no++)
         RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  
       return NULL;
     }
   }
+  
    // cas seulement non structure : ncf a 4 (minimum)
   if (nzonesU != 0)
   {

@@ -434,8 +434,9 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   PyObject* listFields;
   PyObject* center; // si adt en cylindrique
   PyObject* axis; // si adt en cylindrique
-  if (!PyArg_ParseTuple(args, "OOO", &listFields, 
-      &center, &axis)) return NULL;
+  E_Int depth; // nb de rangees de cellules fictives - a modifier a Pi pres
+  if (!PYPARSETUPLEI(args, "OOOl", "OOOi",
+      &listFields, &center, &axis, &depth)) return NULL;
   
   if (PyList_Check(listFields) == false)
   {
@@ -555,7 +556,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
         a2[no], a3[no], a4[no],
         centerX, centerY, centerZ,
         axisX, axisY, axisZ, 
-        isBuilt);
+        isBuilt, depth);
     }
 
     if (isBuilt == 1) interpDatas.push_back(adt);

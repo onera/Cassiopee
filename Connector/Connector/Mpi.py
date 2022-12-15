@@ -729,7 +729,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         for b in Internal.getBases(aD):
             if b[0] == 'CARTESIAN':
                 for z in Internal.getZones(b):
-                    hooks[z[0]] = C.createHook(z, 'adt') # must be None for Cartesian
+                    hooks[z[0]] = None# must be None for Cartesian
             else:
                 for z in Internal.getZones(b): 
                     hooks[z[0]] = C.createHook(z, 'adt')

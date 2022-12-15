@@ -2827,7 +2827,7 @@ def _orderVariables(t, varsn=[], varsc=[]):
         except: new.append(children[pos])
         pos += 1
       cont[2] = new
-    return None
+  return None
 
 #reorder containers: GC, then FSN, then FSC
 def _orderContainers(t):
@@ -6584,10 +6584,10 @@ def createHook(a, function='None'):
     if len(fields) == 1: return Converter.createHook(fields[0], function)
     else: return Converter.createHook(fields, function)
 
-def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1)):
+def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0):
     """Create a hook for a cylindrical adt."""
     fields = getFields(Internal.__GridCoordinates__, a, api=2)
-    return Converter.createHookAdtCyl(fields, center, axis)
+    return Converter.createHookAdtCyl(fields, center, axis, depth)
 
 # -- createGlobalHook
 def createGlobalHook(a, function='None', indir=0):

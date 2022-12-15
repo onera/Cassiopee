@@ -88,6 +88,8 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
   _cylCoord = false; 
   _centerX = 0; _centerY = 0; _centerZ = 0;
   _axisX = -1; _axisY = -1; _axisZ = -1;
+  _theta_min = K_CONST::E_MAX_FLOAT;
+  _theta_max =-K_CONST::E_MAX_FLOAT;
 
   if (a1 != NULL && a2 != NULL && a3 != NULL) // structure
   {
@@ -113,11 +115,9 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                                void* a1, void* a2, void* a3, 
                                E_Float& centerX, E_Float& centerY, E_Float& centerZ,
                                E_Float& axisX, E_Float& axisY, E_Float& axisZ, 
-                               E_Int& built):
+                               E_Int& built, E_Int depth):
     InterpData()
 {
-    //printf("Constructeur adt cyl\n"); fflush(stdout);
-
     // keep data for cart2Cyl
     _cylCoord = true;
     _centerX = centerX; _centerY = centerY; _centerZ = centerZ;
@@ -146,15 +146,6 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
       rt = coordX; thetat = coordY;
       for (E_Int i = 0; i < npts; i++) coordZ[i] = zD[i];
     }
-    
-    // cart2Cyl coordinates
-    K_LOC::cart2Cyl(npts, xD, yD, zD,
-                    centerX, centerY, centerZ, 
-                    axisX, axisY, axisZ, 
-                    rt, thetat);
-    //printf("ni=%d %d %d\n",*(E_Int*)a1,*(E_Int*)a2,*(E_Int*)a3);
-    //for (E_Int i = 0; i < npts; i++) printf("%g %g %g\n", coordX[i], coordY[i], coordZ[i]);
-    //printf("BlkInterpAdt: axis = %g %g %g\n", axisX, axisY, axisZ); fflush(stdout);
 
     if (a1 != NULL && a2 != NULL && a3 != NULL) // structure
     {
@@ -162,12 +153,40 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
         E_Int ni = *(E_Int*)a1;
         E_Int nj = *(E_Int*)a2;
         E_Int nk = *(E_Int*)a3;
+
+        // cart2Cyl coordinates
+        K_LOC::cart2Cyl(npts, xD, yD, zD,
+                        centerX, centerY, centerZ, 
+                        axisX, axisY, axisZ, 
+                        rt, thetat, ni, nj, nk, depth);
+        E_Float thetarefmin = K_CONST::E_MAX_FLOAT;
+        E_Float thetarefmax =-K_CONST::E_MAX_FLOAT;
+
+        for (E_Int i = 0; i < npts; i++)
+        {
+          thetarefmin = K_FUNC::E_min(thetarefmin, thetat[i]);
+          thetarefmax = K_FUNC::E_max(thetarefmax, thetat[i]);
+        }
+        _theta_min = thetarefmin;
+        _theta_max = thetarefmax;
+//        printf("ni=%d %d %d\n",*(E_Int*)a1,*(E_Int*)a2,*(E_Int*)a3);
+        // for (E_Int i = 0; i < npts; i++) printf("%g %g\n", thetat[i], coordZ[i]);
+        // printf("BlkInterpAdt: axis = %g %g %g\n", axisX, axisY, axisZ); fflush(stdout);        
+        // printf(" thetamin = %g %g \n", _theta_min, _theta_max);
+
         built = buildStructAdt(ni, nj, nk, coordX, coordY, coordZ);
     }
     else //non structure
     {
         _topology = 2;
         FldArrayI& cEV = *(FldArrayI*)a1;
+
+       // cart2Cyl coordinates
+        K_LOC::cart2Cyl(npts, xD, yD, zD,
+                        centerX, centerY, centerZ, 
+                        axisX, axisY, axisZ, 
+                        rt, thetat);
+
         built = buildUnstrAdt(npts, cEV, coordX, coordY, coordZ);
     }
     _xlc = coordX; _ylc = coordY; _zlc = coordZ;
@@ -185,7 +204,7 @@ void K_INTERP::InterpAdt::cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* 
     E_Float *rt, *thetat;
     thetat = NULL; rt = NULL;
     E_Float eps = 1.e-12;
-
+    E_Float PI2 = 2.*K_CONST::E_PI;
     if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
     {
       rt = coordY; thetat = coordZ;
@@ -203,9 +222,14 @@ void K_INTERP::InterpAdt::cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* 
                     _centerX, _centerY, _centerZ, 
                     _axisX, _axisY, _axisZ, 
                     rt, thetat);
+#pragma omp parallel default(shared)
+    {    
+#pragma omp for         
     for (E_Int i = 0; i < npts; i++)
     {
-        x[i] = coordX[i]; y[i] = coordY[i]; z[i] = coordZ[i];
+      if ( thetat[i] < _theta_min) thetat[i] += PI2;
+      else if (thetat[i] > _theta_max) thetat[i] -= PI2;
+    }
     }
     delete [] coordX; delete [] coordY; delete [] coordZ;
 }
@@ -215,6 +239,7 @@ void K_INTERP::InterpAdt::cart2Cyl(E_Float& x, E_Float& y, E_Float& z)
     E_Float eps = 1.e-12;
     E_Float* rt=NULL; E_Float* thetat=NULL;
     E_Float Xo, Yo, Zo;
+    E_Float PI2 = 2.*K_CONST::E_PI;
 
     if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
     {
@@ -233,6 +258,9 @@ void K_INTERP::InterpAdt::cart2Cyl(E_Float& x, E_Float& y, E_Float& z)
                     _centerX, _centerY, _centerZ, 
                     _axisX, _axisY, _axisZ, 
                     rt, thetat);
+    if ( thetat[0] < _theta_min) thetat[0] += PI2;
+    else if (thetat[0] > _theta_max) thetat[0] -= PI2;
+
     x = Xo; y = Yo; z = Zo;
 }
 

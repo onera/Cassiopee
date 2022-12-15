@@ -29,9 +29,11 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     PyObject *array; 
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    if (!PYPARSETUPLEF(args,"O(ddd)(ddd)", "O(fff)(fff)",
-                       &array, &X0, &Y0, &Z0, &ex, &ey, &ez))
-      return NULL;
+    E_Int depth;
+    if (!PYPARSETUPLE(args,"O(ddd)(ddd)l", "O(ddd)(ddd)i", 
+                           "O(fff)(fff)l","O(fff)(fff)i",
+                            &array, &X0, &Y0, &Z0, &ex, &ey, &ez, &depth))
+        return NULL;
     
     // check array
     E_Int im, jm, km;
@@ -79,7 +81,8 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
       RELEASESHAREDB(res, array, f, cn); return NULL;
     }
     E_Int ret = K_LOC::cart2Cyl(npts, f->begin(posx), f->begin(posy), f->begin(posz),
-                                X0, Y0, Z0, ex, ey, ez, rt, thetat);
+                                X0, Y0, Z0, ex, ey, ez, rt, thetat,  
+                                im, jm, km, depth);
     if (ret == 1)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -102,8 +105,11 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    if (!PYPARSETUPLEF(args,"O(ddd)(ddd)sss", "O(fff)(fff)sss",
-                       &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
+    E_Int depth;
+    if (!PYPARSETUPLE(args,"O(ddd)(ddd)lsss", "O(ddd)(ddd)isss", 
+                           "O(fff)(fff)lsss","O(fff)(fff)isss",
+                            &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, 
+                            &depth, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;
     
     vector<PyArrayObject*> hook;
@@ -148,7 +154,7 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     }
    
     E_Int ret = K_LOC::cart2Cyl(npts, fields[posx], fields[posy], fields[posz],
-                                X0, Y0, Z0, ex, ey, ez, rt, thetat);
+                                X0, Y0, Z0, ex, ey, ez, rt, thetat,  im, jm, km, depth);
     if (ret == 1)
     {
       RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);

@@ -492,7 +492,7 @@ def getBCVariables(a, fileName, znp, cont=None, format=None):
 
 # Load only zones that match a bbox
 def isInBBox(a, fileName, format, bbox, znp):
-    """Load zones that lien in bbox."""
+    """Load zones that lie in bbox."""
     xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
     xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
     if isinstance(znp, list): znps = znp

@@ -21,6 +21,7 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
                  constraint=40., tol=1.e-6, hook=None, mode='robust'):
     """Extract the solution in one point.
     Usage: extractPoint(t, (x,y,z), order, tol, hook, mode)"""
+        
     if not isinstance(Pts, list):
         a = Converter.array('CoordinateX,CoordinateY,CoordinateZ',1,1,1)
         a[1][0,0] = Pts[0]; a[1][1,0] = Pts[1]; a[1][2,0] = Pts[2]
@@ -113,6 +114,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                  constraint=40., tol=1.e-6, hook=None, mode='robust'):
     """Extract the solution on a given mesh.
     Usage: extractMesh(t, extractMesh, order, extrapOrder, constraint, tol, hook)"""
+
     # we sort structured then unstructured
     orderedZones=[]
     for i,z in enumerate(Internal.getZones(extractionMesh)):
@@ -122,6 +124,8 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
 
     if mode == 'robust':        
         tc = C.center2Node(t, Internal.__FlowSolutionCenters__)
+        C._orderVariables(tc, varsn=[], varsc=[])
+
         if hook is not None:
             if not isinstance(hook,list): raise TypeError("_extractMesh: hook must be a list of hooks on ADTs.") 
         fa = C.getAllFields(tc, 'nodes')
@@ -138,6 +142,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             nor += 1
 
     else: # accurate: extract les centres sur le maillage en centres
+        C._orderVariables(t, varsn=[], varsc=[])
         varsC = C.getVarNames(t, excludeXYZ=True, loc='centers')
         varsN = C.getVarNames(t, excludeXYZ=True, loc='nodes')
         if len(varsC) == 0 or len(varsN) == 0: return extractionMesh

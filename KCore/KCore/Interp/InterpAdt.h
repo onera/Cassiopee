@@ -50,7 +50,7 @@ class InterpAdt  : public InterpData
               void* a1, void* a2, void* a3,
               E_Float& centerX, E_Float& centerY, E_Float& centerZ,
               E_Float& axisX, E_Float& axisY, E_Float& axisZ, 
-              E_Int& built);
+              E_Int& built, E_Int depth=0);
     
     private:
     /* Construit l'adt a partir d'un maillage structure 
@@ -137,7 +137,8 @@ class InterpAdt  : public InterpData
     E_Float _centerX, _centerY, _centerZ; // centre pour les coord. cylindriques
     E_Float _axisX, _axisY, _axisZ; // axe pour les coord. cylindriques
     E_Float *_xlc, *_ylc, *_zlc; // coords cylindrique
-
+    E_Float _theta_min, _theta_max;
+    
     protected:
     IntTreeNode* _tree;
 };

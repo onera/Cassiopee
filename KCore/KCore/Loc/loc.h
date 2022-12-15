@@ -82,11 +82,14 @@ namespace K_LOC
                                   E_Int indExt, E_Int type,  K_FLD::FldArrayI& indTab,
                                   E_Int& extrapB);
 
-  /* Transformation repere cart -> repere cylindrique */
+  /* Transformation repere cart -> repere cylindrique 
+   if depth >0, theta must be continuous between two adjacent points - work for structured zones only (ni,nj,nk must be provided)
+  */
   E_Int cart2Cyl(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
                  E_Float X0, E_Float Y0, E_Float Z0,
                  E_Float ex, E_Float ey, E_Float ez,
-                 E_Float* rt, E_Float* thetat);
+                 E_Float* rt, E_Float* thetat, 
+                 E_Int ni=0, E_Int nj=0, E_Int nk=0, E_Int depth=0);
   /* Transformation repere cylindrique -> repere cartesien */
   E_Int cyl2Cart(E_Int npts, E_Float* rt, E_Float* thetat, 
                  E_Float X0, E_Float Y0, E_Float Z0,
