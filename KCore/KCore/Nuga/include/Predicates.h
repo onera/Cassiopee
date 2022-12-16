@@ -35,10 +35,6 @@ inline void fooX(const E_Float* P0, const E_Float* P1, const E_Float* P2,
 
 #define TEMPLATE_COORD_CONNECT template <typename Coordinate_t, typename Connectivity_t>
 
-TEMPLATE_COORD_CONNECT
-struct TruePredicate : public std::binary_function <E_Int, E_Int, bool>
-{inline bool operator() (E_Int i, E_Int j) const {return true;}};
-
 
 TEMPLATE_COORD_CONNECT
 struct T3T3_XPredicate

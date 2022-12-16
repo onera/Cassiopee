@@ -21,26 +21,6 @@
 
 namespace K_SEARCH
 {
-// ============================================================================
-/// Predicate for sorting a container of points according to a given axis.
-// ============================================================================
-template <typename CoordArrayType>
-struct sortingPredicate : public std::binary_function <E_Int, E_Int, bool> 
-{
-  /// Required by the median balancing method.
-
-  sortingPredicate (const K_FLD::ArrayAccessor<CoordArrayType>& posAcc, E_Int axis)
-    : _posAcc(posAcc), _axis(axis){}
-
-  inline bool operator() (E_Int Ni, E_Int Nj) const  
-  { return ( _posAcc.getVal(Ni, _axis) <  _posAcc.getVal(Nj, _axis) ); } 
-
-  inline void setAxis(E_Int a){_axis=a;}
-
-  const K_FLD::ArrayAccessor<CoordArrayType>& _posAcc;
-  E_Int _axis;
-};
-
 ///
 template <typename ArrayType = K_FLD::FloatArray>
 class KdTree {
@@ -161,8 +141,6 @@ class KdTree {
 
     /// to extract the coordinates.
     mutable E_Float _Xn[3], _mB[3], _MB[3];
-
-    sortingPredicate<ArrayType> _pred;
     
 }; // End class KdTree
 

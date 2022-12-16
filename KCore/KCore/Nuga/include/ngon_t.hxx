@@ -2082,21 +2082,6 @@ static void detect_uncomputable_phs(const K_FLD::FloatArray& crd, const ngon_t& 
   }
 }
 
-using pair_t = std::pair<E_Float, E_Int>;
-
-struct sort_func : std::binary_function<pair_t, pair_t, bool>
-{
-  bool operator()(pair_t a, pair_t b) { 
-
-    
-    double tol = (std::max(a.first, b.first) < 1.e-15) ? 1.e-30 : 1.e-15;
-
-    return (a.first < (b.first + tol)); 
-
-  }
-};
-
-
 ///
 template <typename TriangulatorType>
 static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi, const ngon_unit& neighborsi, E_Float vmin, E_Float vratio, Vector_t<E_Int>& PHlist)
@@ -2114,10 +2099,10 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
   std::vector<E_Float> vols;
   ngon_t::volumes<TriangulatorType>(crd, ngi, vols, false/*i.e. not all cvx*/, true/* ! new algo*/);
   
+  using pair_t = std::pair<E_Float, E_Int>;
   std::vector<pair_t> v_to_id;
 
   E_Float vi, vj;
-  sort_func sortf ;
   
   for (E_Int i=0; i < nb_phs; ++i)
   {
@@ -2155,7 +2140,13 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
     }
   }
 
-  std::stable_sort(v_to_id.begin(), v_to_id.end(), sortf);
+  std::stable_sort(v_to_id.begin(), v_to_id.end(), 
+  [](const pair_t& a, const pair_t& b)
+  {
+    double tol = (std::max(a.first, b.first) < 1.e-15) ? 1.e-30 : 1.e-15;
+    return (a.first < (b.first + tol));
+  }
+  );
 
   for (size_t i = 0; i < v_to_id.size(); ++i)
   {

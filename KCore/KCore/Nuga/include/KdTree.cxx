@@ -20,7 +20,7 @@
 template <typename CoordArrayType>
 K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc,
                                          E_Float tolerance, bool do_omp)
-:_posAcc(posAcc), _tree_sz(0), _dim(posAcc.stride()), _tolerance(tolerance*tolerance), _pred(posAcc, 0)
+:_posAcc(posAcc), _tree_sz(0), _dim(posAcc.stride()), _tolerance(tolerance*tolerance)
 {
   size_type none = IDX_NONE;
   _tree.resize(3, posAcc.size(), &none);
@@ -59,7 +59,7 @@ template <typename CoordArrayType>
 K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc, 
                                          std::vector<size_type> indices/*passed by value*/,
                                          E_Float tolerance, bool do_omp)
- :_posAcc(posAcc), _tree_sz(0), _dim(posAcc.stride()), _tolerance(tolerance*tolerance), _pred(_posAcc, 0)
+ :_posAcc(posAcc), _tree_sz(0), _dim(posAcc.stride()), _tolerance(tolerance*tolerance)
 {
   size_type none = IDX_NONE;
   _tree.resize(3, _tree_sz + indices.size(), &none);
@@ -91,7 +91,6 @@ void K_SEARCH::KdTree<CoordArrayType>::clear()
 {
   _tree_sz   = 0;
   _dim       = _posAcc.stride();
-  _pred.setAxis(0);
 
   //size_type none = IDX_NONE;
   _tree.clear();
@@ -143,8 +142,8 @@ K_SEARCH::KdTree<CoordArrayType>::__insert
 
   if (it != begin)
   {
-    _pred.setAxis(depth%_dim);
-    std::nth_element(begin, it, end, _pred); // Sort the nodes according to their axis-coordinate.
+    size_type d = depth % _dim;
+    std::nth_element(begin, it, end, [this,d](E_Int Ni, E_Int Nj) {return  this->_posAcc.getVal(Ni, d) <  this->_posAcc.getVal(Nj, d);});
   }
 
   _tree(0, _tree_sz++) = *it; // Set N as the parent, increase tree size by one.
@@ -170,12 +169,11 @@ K_SEARCH::KdTree<CoordArrayType>::__insert_omp
   InputIterator it(begin + (end - begin)/2);
   auto itn=it; ++itn;
   size_type dn = depth+1;
-  sortingPredicate<CoordArrayType> pred(_posAcc, depth%_dim);
-  
+    
   if (it != begin)
   {
-    pred.setAxis(depth%_dim);
-    std::nth_element(begin, it, end, pred); // Sort the nodes according to their axis-coordinate.
+    size_type d = depth % _dim;
+    std::nth_element(begin, it, end, [this,d](E_Int Ni, E_Int Nj) {return  this->_posAcc.getVal(Ni, d) <  this->_posAcc.getVal(Nj, d); });
   }
 
   #pragma omp task

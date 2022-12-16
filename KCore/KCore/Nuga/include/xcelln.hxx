@@ -187,25 +187,6 @@ namespace NUGA
   using ii_pair_t = std::pair<E_Int, E_Int>;
   using no_ii_pair_t = K_MESH::NO_Edge;
 
-  struct aIsLessThanb : std::binary_function<E_Int, E_Int, bool>
-  {
-
-    aIsLessThanb(const prior_t p) :_p(p) {}
-
-    bool operator()(E_Int a, E_Int b) const {
-
-      auto it = _p.find(a);
-      if (it == _p.end()) return false;
-
-      for (size_t i = 0; i < it->second.size(); ++i)
-        if (it->second[i] == b) return true;
-
-      return false;
-    }
-
-    prior_t _p;
-  };
-
   inline void comp_priorities(const std::vector<ii_pair_t> & priority, prior_t & decrease_prior_per_comp, IntVec& rank_wnps)
   {
     // WARNING DECREASING PRIORITY UPON EXIT
@@ -248,12 +229,21 @@ namespace NUGA
       ++rank_wnps[Lcompid];
     }
 
-    aIsLessThanb pred(decrease_prior_per_comp);
     E_Int i = 0;
     for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it, ++i)
     {
       //E_Int compid = it->first;
-      std::sort(ALL(it->second), pred);
+      std::sort(ALL(it->second), 
+        [&decrease_prior_per_comp] (E_Int a, E_Int b)
+        {
+        auto it = decrease_prior_per_comp.find(a);
+        if (it == decrease_prior_per_comp.end()) return false;
+
+        for (size_t i = 0; i < it->second.size(); ++i)
+          if (it->second[i] == b) return true;
+
+        return false;
+        });
       std::reverse(ALL(it->second)); // WARNING DECREASING PRIORITY DONE HERE
       //std::cout << "WNP rank for comp " << compid << " is " << rank_wnps[compid] << std::endl;
     }
