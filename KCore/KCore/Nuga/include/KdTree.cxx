@@ -407,7 +407,7 @@ K_SEARCH::KdTree<CoordArrayType>::getInSphere
 (const E_Float* C, E_Float radius, std::vector<size_type>& out) const
 {
   E_Float mB[3], MB[3];
-  for (size_t i = 0; i < _dim; ++i)
+  for (E_Int i = 0; i < _dim; ++i)
   {
     MB[i] = C[i]+radius;
     mB[i] = C[i]-radius;

@@ -27,7 +27,7 @@ def convertCAD2Arrays(fileName, format='fmt_iges',
         except: pass
         return a
     elif algo == 1: # OCC+T3Mesher
-    	return  occ.convertCAD2Arrays1(fileName, format, h, chordal_err, growth_ratio)
+        return  occ.convertCAD2Arrays1(fileName, format, h, chordal_err, growth_ratio)
     else: # OCC+T3Mesher v2
     	return  occ.convertCAD2Arrays2(fileName, format, h, chordal_err, growth_ratio, merge_tol)
 

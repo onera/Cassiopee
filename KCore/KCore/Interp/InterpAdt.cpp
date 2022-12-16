@@ -114,7 +114,7 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                                E_Float* xD, E_Float* yD, E_Float* zD,
                                void* a1, void* a2, void* a3, 
                                E_Float& centerX, E_Float& centerY, E_Float& centerZ,
-                               E_Float& axisX, E_Float& axisY, E_Float& axisZ, 
+                               E_Float& axisX, E_Float& axisY, E_Float& axisZ,  
                                E_Int& built, E_Int depth):
     InterpData()
 {

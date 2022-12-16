@@ -434,7 +434,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   PyObject* listFields;
   PyObject* center; // si adt en cylindrique
   PyObject* axis; // si adt en cylindrique
-  E_Int depth; // nb de rangees de cellules fictives - a modifier a Pi pres
+  E_Int depth; // si adt en cylindrique : nb de rangees de cellules fictives - a modifier a Pi pres 
   if (!PYPARSETUPLEI(args, "OOOl", "OOOi",
       &listFields, &center, &axis, &depth)) return NULL;
   

@@ -26,7 +26,7 @@ __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'cent
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
     'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
     'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
-    'checkFileType', 'convertHO2LO', 'convertLO2HO']
+    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__']
 
 # -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF

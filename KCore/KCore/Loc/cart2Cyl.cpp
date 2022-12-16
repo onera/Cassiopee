@@ -65,7 +65,6 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
     
     //E_Float thetaref = atan2(yl[0]-y0,xl[0]-x0);
 
-
 #pragma omp parallel default(shared)
     {
       E_Float dx, dy, r;
@@ -81,8 +80,11 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
       }
     }
 
-     // i-lines
-    if ( ni > 0 && nj >0 && nk > 0)
+    // firewall
+    if (depth == 0) return 0;
+
+    // i-lines
+    if (ni > 0 && nj >0 && nk > 0)
     {
         E_Float DEUXPI = 2*K_CONST::E_PI; 
         E_Float DELTATHETAMAX = 0.75*DEUXPI;
@@ -119,7 +121,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
             }   
 
             // depth premieres rangees
-            if (depth >0)
+            if (depth > 0)
             {
                 for (E_Int i = depth-1; i >= 0; i--)
                 {
@@ -145,7 +147,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
 
             if (K_FUNC::E_abs(theta-thetap)>DELTATHETAMAX)
             {
-                if ( theta < thetap) thetat[ind] = theta+DEUXPI;
+                if (theta < thetap) thetat[ind] = theta+DEUXPI;
                 else thetat[ind] = theta-DEUXPI;
             }
 
@@ -155,12 +157,12 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
                 indm = ind-ni; E_Float thetam = thetat[indm];  
                 if (K_FUNC::E_abs(theta-thetam)>DELTATHETAMAX)
                 {   
-                    if ( theta < thetam) thetat[ind] = theta+DEUXPI;
+                    if (theta < thetam) thetat[ind] = theta+DEUXPI;
                     else thetat[ind] = theta-DEUXPI;
                 }  
             }    
             //deux premieres rangees
-            if ( depth >0)
+            if (depth > 0)
             {
                 for (E_Int j = depth-1; j >= 0; j--)
                 {
@@ -169,7 +171,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
                     thetap = thetat[indp]; 
                     if (K_FUNC::E_abs(theta-thetap)>DELTATHETAMAX)
                     {   
-                        if ( theta < thetap) thetat[ind] = theta+DEUXPI;
+                        if (theta < thetap) thetat[ind] = theta+DEUXPI;
                         else thetat[ind] = theta-DEUXPI;
                     }                     
                 }                
@@ -179,7 +181,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
         for (E_Int j = 0; j < nj; j++)
             for (E_Int i = 0; i < ni; i++)
             {
-                if ( depth+1 < nk)
+                if (depth+1 < nk)
                 {
                 //cas k = depth
                 ind = i+j*ni+depth*ninj; E_Int indp = ind+ninj;
@@ -188,7 +190,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
 
                 if (K_FUNC::E_abs(theta-thetap)>DELTATHETAMAX)
                 {
-                    if ( theta < thetap) thetat[ind] = theta+DEUXPI;
+                    if (theta < thetap) thetat[ind] = theta+DEUXPI;
                     else thetat[ind] = theta-DEUXPI;
                 }
 
@@ -198,13 +200,13 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
                     indm = ind-ninj; E_Float thetam = thetat[indm];  
                     if (K_FUNC::E_abs(theta-thetam)>DELTATHETAMAX)
                     {   
-                        if ( theta < thetam) thetat[ind] = theta+DEUXPI;
+                        if (theta < thetam) thetat[ind] = theta+DEUXPI;
                         else thetat[ind] = theta-DEUXPI;
                     }  
                 }    
             
             // depth premieres rangees
-            if (depth >0)
+            if (depth > 0)
             {
                 for (E_Int k = depth-1; k >= 0; k--)
                 {
@@ -213,7 +215,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
                     thetap = thetat[indp]; 
                     if (K_FUNC::E_abs(theta-thetap)>DELTATHETAMAX)
                     {   
-                        if ( theta < thetap) thetat[ind] = theta+DEUXPI;
+                        if (theta < thetap) thetat[ind] = theta+DEUXPI;
                         else thetat[ind] = theta-DEUXPI;
                     }                     
                 }

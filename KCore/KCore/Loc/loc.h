@@ -83,7 +83,7 @@ namespace K_LOC
                                   E_Int& extrapB);
 
   /* Transformation repere cart -> repere cylindrique 
-   if depth >0, theta must be continuous between two adjacent points - work for structured zones only (ni,nj,nk must be provided)
+   if depth > 0, theta must be continuous between two adjacent points - work for structured zones only (ni,nj,nk must be provided)
   */
   E_Int cart2Cyl(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
                  E_Float X0, E_Float Y0, E_Float Z0,

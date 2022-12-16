@@ -966,9 +966,10 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
     else if( vartype == 4 ) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
     else                    nvars =6;
 
-    if (vartype == 22 || vartype == 23 || vartype == 24){
-    nvars = 6;
-    nvars_grad = 6;
+    if (vartype == 22 || vartype == 23 || vartype == 24)
+    {
+        nvars = 6;
+        nvars_grad = 6;
     }
 
     E_Int nidomD = PyList_Size( zonesD );

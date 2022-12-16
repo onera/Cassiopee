@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __MERGE_H__
 #define __MERGE_H__
@@ -56,10 +56,9 @@ merge_no_order_omp
  NUGA::int_vector_type& new_IDs)
 {
   K_SEARCH::KdTree<ArrayType> tree(coordAcc, EPSILON, true/*do_omp*/);
-  size_t npts = coordAcc.size();
+  E_Int npts = coordAcc.size();
   new_IDs.resize(npts);
-  printf("merge no order\n");
-
+  
 #pragma omp parallel for default (shared)
   for (E_Int i = 0; i < npts; i++)
   {
@@ -152,7 +151,7 @@ merge_no_order_omp
         //std::sort(onodes.begin(), onodes.end());
         iID = new_IDs[i];
          
-        for (E_Int j = 0; j < size; j++)
+        for (size_t j = 0; j < size; j++)
         {
           m = onodes[j];
           mID = new_IDs[m]; // firewall needed
@@ -313,11 +312,11 @@ __merge_omp
   }
 
   size_t sz = 0;
-  for (size_t t = 0; t < __NUMTHREADS__; ++t) sz += palma_thrd[t].size();
+  for (E_Int t = 0; t < __NUMTHREADS__; ++t) sz += palma_thrd[t].size();
 
   palma.reserve(sz);
 
-  for (size_t t = 0; t < __NUMTHREADS__; ++t)
+  for (E_Int t = 0; t < __NUMTHREADS__; ++t)
   {
     //std::cout << "palma_thrd[t] sz : " << palma_thrd[t].size() << std::endl;
     if (!palma_thrd[t].empty())
@@ -604,7 +603,7 @@ __merge_omp
   // build the KdTree on moving nodes.
   K_SEARCH::KdTree<ArrayType> moving_tree(coordAcc, umoving, EPSILON, true /*do omp*/);
 
-  const int NB_CANDS=50;
+  //const int NB_CANDS=50;
 
   using palmares_t = std::vector<triplet_t>;
 
@@ -619,7 +618,7 @@ __merge_omp
   double d2, TOLi, TOLj2;
 
   // loop on target nodes and get all moving nodes in sphere of radius tol.
-#pragma omp parallel shared(tsz, moving_tree, palma, utarget, palma_thrd, dist2_thrd, onodes_thrd, RTOL, nodal_metric2) private (i, j, id, osz, Fi, Fj, d2, TOLi, TOLj2) default(none)
+#pragma omp parallel shared(tsz, moving_tree, palma, utarget, palma_thrd, dist2_thrd, onodes_thrd, RTOL, nodal_metric2, NUGA::FLOAT_MAX) private (i, j, id, osz, Fi, Fj, d2, TOLi, TOLj2) default(none)
   {
     id = __CURRENT_THREAD__;
 
@@ -667,11 +666,11 @@ __merge_omp
   }
 
   size_t sz = 0;
-  for (size_t t = 0; t < __NUMTHREADS__; ++t) sz += palma_thrd[t].size();
+  for (E_Int t = 0; t < __NUMTHREADS__; ++t) sz += palma_thrd[t].size();
 
   palma.reserve(sz);
 
-  for (size_t t = 0; t < __NUMTHREADS__; ++t)
+  for (E_Int t = 0; t < __NUMTHREADS__; ++t)
   {
     //std::cout << "palma_thrd[t] sz : " << palma_thrd[t].size() << std::endl;
     if (!palma_thrd[t].empty())
