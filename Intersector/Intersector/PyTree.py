@@ -663,16 +663,16 @@ def intersection(surface1, surface2, tol=0., itermax=10):
     s = XOR.intersection(s1, s2, tol, itermax)
     return C.convertArrays2ZoneNode('inter', [s])
 
-def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the intersection between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanIntersection(a1, a2, tol)
     Usage for volumes: booleanIntersection(a1, a2, tol, preserve_right, solid_right)"""
     s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = XOR.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual)
+    s = XOR.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, itermax)
     return C.convertArrays2ZoneNode('inter', [s])
 
-def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False, simplify_pgs=True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False, simplify_pgs=True, hard_mode=0, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -703,7 +703,7 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
     #print("nb of pgs to pass : %s" %(len(extrudepgs)))
 
-    res = XOR.booleanUnionWithHisto(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs, simplify_pgs, hard_mode)
+    res = XOR.booleanUnionWithHisto(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs, simplify_pgs, hard_mode, itermax)
 
     is_zone_list  = 0
     if (len(res) != 5) : is_zone_list = 1  
@@ -1068,28 +1068,28 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
         return zs
       
 
-def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanMinus(a1, a2, tol)
     Usage for volumes: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
     s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = XOR.booleanMinus(s1, s2, tol, preserve_right, solid_right, agg_mode)
+    s = XOR.booleanMinus(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, itermax)
     return C.convertArrays2ZoneNode('minus', [s])
 
-def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, outward_surf=True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, outward_surf=True, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between a volume mesh and a surface mesh."""
     s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = XOR.diffSurf(s1, s2, tol, preserve_right, agg_mode,improve_qual, outward_surf)
+    s = XOR.diffSurf(s1, s2, tol, preserve_right, agg_mode,improve_qual, outward_surf, itermax)
     return C.convertArrays2ZoneNode('VmS', [s])
     
-def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the transformed input solid after solving the intersection of its skin with a2.
     Usage: booleanModifiedSolid(a1, a2, tol, preserve_right, solid_right)"""
     sld = C.getFields(Internal.__GridCoordinates__, solid)[0]
     operand = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = XOR.booleanModifiedSolid(operand, sld, tol, preserve_solid, agg_mode, improve_qual)
+    s = XOR.booleanModifiedSolid(operand, sld, tol, preserve_solid, agg_mode, improve_qual, itermax)
     return C.convertArrays2ZoneNode('modified_solid', [s])
 
 #==============================================================================

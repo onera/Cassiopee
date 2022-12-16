@@ -99,7 +99,7 @@ bool getArgs(PyObject* args, eOperation oper,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
              E_Float& tolerance,
-             E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual, bool& outward_surf, char*& eltType, char*& varString)
+             E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual, bool& outward_surf, int& itermax, char*& eltType, char*& varString)
 {
   PyObject *arrS[2];
   E_Float tol = 0.;
@@ -108,8 +108,8 @@ bool getArgs(PyObject* args, eOperation oper,
   std::string opername = getName(oper);
 
   if (!PYPARSETUPLE(args, 
-                    "OOdlllll", "OOdiiiii", "OOflllll", "OOfiiiii", 
-                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &out_sur))
+                    "OOdllllll", "OOdiiiiii", "OOfllllll", "OOfiiiiii", 
+                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &out_sur, &itermax))
   {
     o << opername << ": wrong arguments.";
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
@@ -277,7 +277,7 @@ bool getUnionArgs(PyObject* args,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
              E_Float& tolerance, E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual,
-             std::vector<E_Int>& pgsList, E_Int& simplify_pgs, E_Int& hard_mode,
+             std::vector<E_Int>& pgsList, E_Int& simplify_pgs, E_Int& hard_mode, E_Int &itermax,
              char*& eltType, char*& varString)
 {
   PyObject *arrS[2], *pgs;
@@ -289,8 +289,8 @@ bool getUnionArgs(PyObject* args,
   pgsList.clear();
 
   if (!PYPARSETUPLE(args, 
-                    "OOdllllOll", "OOdiiiiOii", "OOfllllOll", "OOfiiiiOii", 
-                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &pgs, &simplify_pgs, &hard_mode))
+                    "OOdllllOlll", "OOdiiiiOiii", "OOfllllOlll", "OOfiiiiOiii", 
+                    &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &pgs, &simplify_pgs, &hard_mode, &itermax))
   {
     o << opername << ": wrong arguments.";
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
@@ -429,11 +429,11 @@ PyObject* call_operation(PyObject* args, eOperation oper)
   E_Float tolerance;
   char *eltType, *varString;
   std::vector<E_Int> colors;
-  E_Int preserve_right, solid_right, agg_mode;
+  E_Int preserve_right, solid_right, agg_mode, itermax;
   bool improve_conformal_cloud_qual(false), outward_surf(true);
   
   bool ok = getArgs(args, oper, pos1, connect1, pos2, connect2, tolerance,
-		    preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, outward_surf, eltType, varString);
+		    preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, outward_surf, itermax, eltType, varString);
   if (!ok) return NULL;
   PyObject* tpl = NULL;
   E_Int err(0), et=-1;
@@ -448,7 +448,7 @@ PyObject* call_operation(PyObject* args, eOperation oper)
     
     if (strcmp(eltType, "TRI") == 0)
     {
-      BO = new TRI_BooleanOperator (pos1, connect1, pos2, connect2, tolerance, 10/*itermax*/);
+      BO = new TRI_BooleanOperator (pos1, connect1, pos2, connect2, tolerance, itermax);
       op = getOperation<TRI_BooleanOperator>(oper);
     }
     else if (strcmp(eltType, "BAR") == 0)
@@ -571,10 +571,10 @@ PyObject* call_union(PyObject* args)
   E_Int preserve_right, solid_right, agg_mode;
   bool improve_conformal_cloud_qual(false);
   E_Int simplify_pgs{1};
-  E_Int hard_mode{0};
+  E_Int hard_mode{0}, itermax{10};
   
   bool ok = getUnionArgs(args, pos1, connect1, pos2, connect2, tolerance, 
-        preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, ghost_pgs, simplify_pgs, hard_mode, eltType, varString);
+        preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, ghost_pgs, simplify_pgs, hard_mode, itermax, eltType, varString);
   if (!ok) return NULL;
   PyObject* tpl  = NULL;
   PyObject* tplph0 = NULL, *tplph1 = NULL;
@@ -600,7 +600,7 @@ PyObject* call_union(PyObject* args)
     
     if (strcmp(eltType, "TRI") == 0)
     {
-      BO = new TRI_BooleanOperator (pos1, connect1, pos2, connect2, tolerance);
+      BO = new TRI_BooleanOperator (pos1, connect1, pos2, connect2, tolerance, itermax);
       op = getOperation<TRI_BooleanOperator>(UNION);
     }
     else if (strcmp(eltType, "BAR") == 0)
@@ -1500,11 +1500,11 @@ PyObject* K_INTERSECTOR::DiffSurf(PyObject* self, PyObject* args)
   E_Float tolerance;
   char *eltType, *varString;
   std::vector<E_Int> colors;
-  E_Int preserve_right, solid_right, agg_mode;
+  E_Int preserve_right, solid_right, agg_mode, itermax;
   bool improve_conformal_cloud_qual(false), outward_surf(true);
   
   bool ok = getArgs(args, DIFFSURF, pos1, connect1, pos2, connect2, tolerance, 
-        preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, outward_surf, eltType, varString);
+        preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, outward_surf, itermax, eltType, varString);
   if (!ok) return NULL;
   PyObject* tpl = NULL;
   E_Int err(0)/*, et=-1*/;

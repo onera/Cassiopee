@@ -46,7 +46,7 @@ def intersection(a1, a2, tol=0., itermax=10):
     c = intersector.booleanIntersectionBorder(a1, a2, tol, itermax)
     return G.close(c)
 
-def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the intersection between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanIntersection(a1, a2, tol)
     Usage for volumes: booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode)"""
@@ -57,10 +57,10 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
           a2 = Converter.convertArray2Tetra(a2)
           a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-    c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True)# last is dummy (outward)
+    c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True, itermax)# last is dummy (outward)
     return G.close(c)
 
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True, hard_mode=0, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -71,13 +71,13 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0)
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0, itermax)
       return G.close(c[0])
     else: 
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode)
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode, itermax)
       return c[0] #close is done inside
 
-def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True, hard_mode=0, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -88,10 +88,10 @@ def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_m
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0)
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0, itermax)
       return G.close(c)
     else: 
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode)
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode, itermax)
       return c #close is done inside
 
 
@@ -105,7 +105,7 @@ def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_qual=False, s
     c = intersector.booleanUnionMZ(a1, a2, xtol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
     return c #close is done inside
 
-def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanMinus(a1, a2, tol)
     Usage for volumes: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
@@ -116,19 +116,19 @@ def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-    c = intersector.booleanMinus(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True)# last is dummy (outward)
+    c = intersector.booleanMinus(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True, itermax)# last is dummy (outward)
     return G.close(c)
 
-def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the transformed input solid after solving the intersection of its skin with a2.
     Usage: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
-    c = intersector.booleanModifiedSolid(a2, solid, tol, 1, preserve_solid, agg_mode, improve_qual, True)# last is dummy (outward)
+    c = intersector.booleanModifiedSolid(a2, solid, tol, 1, preserve_solid, agg_mode, improve_qual, True, itermax)# last is dummy (outward)
     return G.close(c)
     
-def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, outward_surf=True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, outward_surf=True, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between a volume mesh and a surface mesh."""
     solid_right=1
-    c = intersector.DiffSurf(a1, a2, tol, solid_right, preserve_right, agg_mode, improve_qual, outward_surf)
+    c = intersector.DiffSurf(a1, a2, tol, solid_right, preserve_right, agg_mode, improve_qual, outward_surf, itermax)
     return G.close(c)
     
 #==============================================================================
