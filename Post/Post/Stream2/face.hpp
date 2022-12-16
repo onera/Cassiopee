@@ -23,6 +23,7 @@
 #include "point3d.hpp"
 #include "vector3d.hpp"
 #include <limits>
+#include <array>
 
 namespace K_POST
 {

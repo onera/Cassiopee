@@ -364,7 +364,7 @@ def writeSetupCfg():
     if Cppcompiler == "None" or Cppcompiler == "":
         a = os.access("./setup.cfg", os.F_OK)
         if a: os.remove("./setup.cfg")
-    elif Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
+    elif Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0 or Cppcompiler.find('icx') == 0:
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=intel\n')
         p.close()
@@ -552,7 +552,7 @@ def getSimdOptions():
         if i[0:6] == '-DSIMD':
             simd = i[7:]; break
     opts = []
-    if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
+    if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0 or Cppcompiler.find("icx") == 0:
         if   simd == 'SSE4.2'  : opts += ['-xSSE4.2']
         elif simd == 'AVX2'    : opts += ['-xCORE-AVX2']
         elif simd == 'AVX512'  : opts += ['-xCORE-AVX512']
@@ -731,7 +731,7 @@ def getCArgs():
     options = getCppAdditionalOptions()[:]
     if EDOUBLEINT: options += ['-DE_DOUBLEINT']
     if GDOUBLEINT: options += ['-DG_DOUBLEINT']
-    if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
+    if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0 or Cppcompiler.find("icx") == 0:
         v = getCppVersion() 
         if DEBUG:
             options += ['-g', '-O0', '-wd47', '-wd1224']
@@ -869,6 +869,16 @@ def getForArgs():
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
         return options
+    elif f77compiler.find("ifx") == 0:
+        if DEBUG: options += ['-g', '-O0', '-CB', '-fpe0']
+        else: options += ['-O3']
+        options += ['-fp-model=precise']
+        if useOMP() == 1: options += ['-qopenmp']
+        if useStatic() == 1: options += ['-static']
+        else: options += ['-fPIC']
+        options += getSimdOptions()
+        if EDOUBLEINT: options += ['-i8']
+        return options
     elif f77compiler == "pgf90" or f77compiler == "pgf77":
         options += ['-fPIC']
         if DEBUG: options += ['-g', '-O0']
@@ -902,6 +912,8 @@ def getLinkArgs():
     if Cppcompiler == 'gcc' or Cppcompiler == 'g++':
         if useStatic() == 1: out += ['--static']
     elif Cppcompiler == 'icc':
+         if useStatic() == 1: out += ['-static']
+    elif Cppcompiler == 'icx':
          if useStatic() == 1: out += ['-static']
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
          if useStatic() == 1: out += ['--static']
@@ -1553,7 +1565,7 @@ def checkParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
 def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
-    if Cppcompiler == 'icc' or Cppcompiler == 'icpc': # intel - cherche dans MKL
+    if Cppcompiler == 'icc' or Cppcompiler == 'icpc' or Cppcompiler == 'icx': # intel - cherche dans MKL
         libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
         libPrefix = 'lib'; includePrefix = ''; compOpt = ''
@@ -1594,7 +1606,7 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
 def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
-    if Cppcompiler == 'icc' or Cppcompiler == 'icpc': # intel - cherche dans MKL
+    if Cppcompiler == 'icc' or Cppcompiler == 'icpc' or Cppcompiler == 'icx': # intel - cherche dans MKL
         libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
         libPrefix = 'lib'; includePrefix = ''; compOpt = ''
@@ -1769,7 +1781,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             else: ret = False
 
     # icc (stdc++, guide ou iomp5)
-    if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
+    if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0 or Cppcompiler.find('icx') == 0:
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libstdc++.a', additionalLibPaths)

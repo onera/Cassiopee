@@ -640,6 +640,22 @@ else if ($MAC == "spiro_socle") then
         setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/tools/hdf5-1.10.5-intel-19-impi-19/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
 
+else if ($MAC == "spiro_sonics") then
+#------------------------------- spiro --------------------------------------
+        setenv ELSAPROD linux64
+        # Number of threads
+        setenv OMP_NUM_THREADS 24
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        module purge
+        bash -c 'source /scratchm/sonics/dist/spiro-el8.sh --compiler=intel@2022 --mpi=impi'
+        module load emacs
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/tools/hdf5-1.10.5-intel-19-impi-19/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.9/site-packages
+
 else if ($MAC == "spiro_python2") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_r8

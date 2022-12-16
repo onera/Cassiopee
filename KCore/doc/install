@@ -45,6 +45,8 @@ cp $CASSIOPEE/Apps/Modules/Converter/doc/source/Filter.rst source/
 cp $CASSIOPEE/Apps/Modules/Converter/doc/source/Converter.rst source/
 
 cp $CASSIOPEE/Apps/Modules/Geom/doc/source/Geom.rst source/
+cp $CASSIOPEE/Apps/Modules/Geom/doc/source/Geom_IBM.rst source/
+
 cp $CASSIOPEE/Apps/Modules/Compressor/doc/source/Compressor.rst source/
 cp $CASSIOPEE/Apps/Modules/Initiator/doc/source/Initiator.rst source/
 cp $CASSIOPEE/Apps/Modules/Generator/doc/source/Generator.rst source/
@@ -52,13 +54,22 @@ cp $CASSIOPEE/Apps/Modules/Transform/doc/source/Transform.rst source/
 cp $CASSIOPEE/Apps/Modules/Dist2Walls/doc/source/Dist2Walls.rst source/
 cp $CASSIOPEE/Apps/Modules/Connector/doc/source/Connector.rst source/
 cp $CASSIOPEE/Apps/Modules/Distributor2/doc/source/Distributor2.rst source/
+
 cp $CASSIOPEE/Apps/Modules/Post/doc/source/Post.rst source/
+cp $CASSIOPEE/Apps/Modules/Post/doc/source/ExtraVariables2.rst source/
+cp $CASSIOPEE/Apps/Modules/Post/doc/source/Rotor.rst source/
+cp $CASSIOPEE/Apps/Modules/Post/doc/source/Post_IBM.rst source/
+
 cp $CASSIOPEE/Apps/Modules/RigidMotion/doc/source/RigidMotion.rst source/
+cp $CASSIOPEE/Apps/Modules/RigidMotion/doc/source/OCC.rst source/
 
 cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/CPlot.rst source/
 cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/tkCassiopee.rst source/
+cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/tkPlotXY.rst source/
+cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/Decorator.rst source/
 
 cp $CASSIOPEE/Apps/Modules/Intersector/doc/source/Intersector.rst source/
+
 
 sphinx-build -b html ./source ./build
 
@@ -72,7 +83,10 @@ sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
 sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
 sed -i 's/Converter\.Converter/Converter/g' $FILE
 sed -i 's/Converter\:{/converter\:{/g' $FILE
+
 sed -i 's/Geom\.Geom/Geom/g' $FILE
+sed -i 's/Geom\.IBM\.Geom\.IBM/Geom\.IBM/g' $FILE
+
 sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
 sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
 sed -i 's/Generator\.Generator/Generator/g' $FILE
@@ -80,9 +94,17 @@ sed -i 's/Transform\.Transform/Transform/g' $FILE
 sed -i 's/Dist2Walls\.Dist2Walls/Dist2Walls/g' $FILE
 sed -i 's/Connector\.Connector/Connector/g' $FILE
 sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
+
 sed -i 's/Post\.Post/Post/g' $FILE
+sed -i 's/Post\.ExtraVariables2\.Post\.ExtraVariables2/Post\.ExtraVariables2/g' $FILE
+sed -i 's/Post\.Rotor\.Post\.Rotor/Post\.Rotor/g' $FILE
+sed -i 's/Post\.Post_IBM\.Post\.Post_IBM/Post\.Post_IBM/g' $FILE
+
 sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
+
 sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
+sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' $FILE
+
 sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
 
 # meme modif de genindex
@@ -94,7 +116,11 @@ sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
 sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
 sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
 sed -i 's/Converter\.Converter/Converter/g' $FILE
+sed -i 's/Converter\:{/converter\:{/g' $FILE
+
 sed -i 's/Geom\.Geom/Geom/g' $FILE
+sed -i 's/Geom\.IBM\.Geom\.IBM/Geom\.IBM/g' $FILE
+
 sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
 sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
 sed -i 's/Generator\.Generator/Generator/g' $FILE
@@ -102,10 +128,19 @@ sed -i 's/Transform\.Transform/Transform/g' $FILE
 sed -i 's/Dist2Walls\.Dist2Walls/Dist2Walls/g' $FILE
 sed -i 's/Connector\.Connector/Connector/g' $FILE
 sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
+
 sed -i 's/Post\.Post/Post/g' $FILE
+sed -i 's/Post\.ExtraVariables2\.Post\.ExtraVariables2/Post\.ExtraVariables2/g' $FILE
+sed -i 's/Post\.Rotor\.Post\.Rotor/Post\.Rotor/g' $FILE
+sed -i 's/Post\.Post_IBM\.Post\.Post_IBM/Post\.Post_IBM/g' $FILE
+
 sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
+
 sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
+sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' $FILE
+
 sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
+
 
 cp build/searchindex.js $DEST
 cp build/genindex.html $DEST

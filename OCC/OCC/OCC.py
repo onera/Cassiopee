@@ -15,11 +15,12 @@ __all__ = ['convertCAD2Arrays', 'switch2UV', '_scaleUV', '_unscaleUV',
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
 # algo=2: algorithme T3mesher (h, chordal_error, growth_ratio, merge_tol)
-def convertCAD2Arrays(fileName, format='fmt_iges', 
+def convertCAD2Arrays(fileName, format=None, 
                       h=0., chordal_err=0., growth_ratio=0., 
                       merge_tol=-1, algo=1):
     """Convert a CAD (IGES or STEP) file to arrays.
     Usage: a = convertCAD2Arrays(fileName, options)"""
+    if format is None: format = Converter.convertExt2Format__(fileName)
     if algo == 0: # pure OCC
         if chordal_err == 0.: chordal_err = 1.
         a = occ.convertCAD2Arrays0(fileName, format, "None", "None", chordal_err)
