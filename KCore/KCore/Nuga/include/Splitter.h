@@ -1467,7 +1467,7 @@ if (PHi == faultyPH)
       const E_Int* pn = PGS.get_facets_ptr(PGi);
       int nnodes = PGS.stride(PGi);
 
-      for (size_t n = 0; n < nnodes; ++n)
+      for (int n = 0; n < nnodes; ++n)
       {
         E_Int Ni = pn[n];
         node_to_faces[Ni].insert(PGi);

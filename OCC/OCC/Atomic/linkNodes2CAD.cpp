@@ -421,9 +421,9 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
   E_Int ret = K_ARRAY::getFromArray2(arr, varStringA, fi, ni, nj, nk, c, eltTypeA);
   if (ret != 1 && ret != 2) return 0;
   
-  E_Float* px = fi->begin(1); // fix
-  E_Float* py = fi->begin(2);
-  E_Float* pz = fi->begin(3);
+  //E_Float* px = fi->begin(1);
+  //E_Float* py = fi->begin(2);
+  //E_Float* pz = fi->begin(3);
   
 // array (mesh)
   K_FLD::FloatArray* f(0);
@@ -432,8 +432,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
 
-
-  K_FLD::FloatArray & crd = *f;
+  //K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
   
   typedef ngon_t<K_FLD::IntArray> ngon_type;
@@ -471,8 +470,9 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
         {
           E_Int Ni = p_nodes[n]-1;
           
-          if (fPoints.count(Ni) == 0){
-            E_Float nCADid = pncad[Ni];
+          if (fPoints.count(Ni) == 0)
+          {
+            //E_Float nCADid = pncad[Ni];
             if (pfcad[PGi] != -1) {
                 pncad[Ni] = pfcad[PGi];
                 fPoints.insert(Ni);
@@ -512,7 +512,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   
   TopExp_Explorer expl;
 
-  chrono::steady_clock sc;
+  //chrono::steady_clock sc;
   
   E_Float tol = 1e-11;
   
@@ -532,7 +532,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
 
-  K_FLD::FloatArray & crd = *f;
+  //K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
   
   typedef ngon_t<K_FLD::IntArray> ngon_type;

@@ -120,7 +120,7 @@ merge_no_order_omp
   */
     
     // nouvelle version --
-    std::vector< std::vector<E_Int>* > allnodes(npts);
+    std::vector< std::vector<E_Int> > allnodes(npts);
 #pragma omp parallel default(shared)
     {
       E_Float Xn[3]; 
@@ -128,29 +128,24 @@ merge_no_order_omp
 #pragma omp for schedule(dynamic)
       for (E_Int i = 0; i < npts; i++)
       {
-        std::vector<E_Int>* onodes = new std::vector<E_Int>;
         coordAcc.getEntry(i, Xn);
         //printf("pt %f %f %f\n", Xn[0], Xn[1], Xn[2]);
-        tree.getInSphere(Xn, tol, *onodes);
-        allnodes[i] = onodes;
+        tree.getInSphere(Xn, tol, allnodes[i]);
       }
     }
 
     E_Int m; E_Float d2;
     E_Float Xn[3]; E_Float Xm[3];
-    E_Int mID, iID;  size_t size; 
+    E_Int mID;  size_t size; 
     
     for (E_Int i = 0; i < npts; i++)
     {
-      std::vector<E_Int>& onodes = *allnodes[i]; 
+      coordAcc.getEntry(i, Xn);
+      std::vector<E_Int>& onodes = allnodes[i]; 
       size = onodes.size();
       //printf("cloud size %d\n", size);
       if (size > 0)
       {
-        //m = *std::min_element(onodes.begin(), onodes.end());
-        //std::sort(onodes.begin(), onodes.end());
-        iID = new_IDs[i];
-         
         for (size_t j = 0; j < size; j++)
         {
           m = onodes[j];
@@ -172,8 +167,6 @@ merge_no_order_omp
       }
     }
     
-    // free
-    for (E_Int i = 0; i < npts; i++) delete allnodes[i];
     // Fin deuxieme version
 }
 

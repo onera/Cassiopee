@@ -78,7 +78,7 @@ struct aPolygon : public K_MESH::Polygon
     // keeping track of node history before compressing for autonomy
     m_poids.clear();
     m_poids.resize(_nb_nodes, IDX_NONE);
-    for (size_t n = 0; n < _nb_nodes; ++n)m_poids[n] = p[n] - 1;
+    for (E_Int n = 0; n < _nb_nodes; ++n)m_poids[n] = p[n] - 1;
 
     //compress
     NUGA::MeshTool::compact_to_mesh(crd, ngu.get_facets_ptr(ith), parent_type::_nb_nodes, 1, m_crd);
