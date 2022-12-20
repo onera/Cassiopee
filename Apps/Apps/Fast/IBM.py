@@ -790,7 +790,7 @@ def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
                         paths.append(p); ns.append(n)
             Filter.writeNodesFromPaths(tc2_in, paths, ns, maxDepth=0, mode=1)
 
-    checkNcellsNptsPerProc(ts,NP)
+    _checkNcellsNptsPerProc(ts,NP)
     return None
 
 
@@ -972,7 +972,8 @@ class IBM(Common):
             self.input_var.closedSolid = closedSolid
         
         ## if tb has both a closed solid and filaments
-        tbFilamentList=[]
+        tbFilamentList= []
+        tbFilament    = None
         if not self.input_var.isFilamentOnly:
             tbFilament = Internal.copyTree(tb)
             for b in Internal.getBases(tb):
@@ -1850,8 +1851,7 @@ class IBM(Common):
         
         if self.input_var.isWireModel:
             vars_wm = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
-            if self.model == 'NSTurbulent':vars_wm.append('TurbulentSANuTilde')
-            vars_wm.append('DistWall2IP')            
+            if self.model == 'NSTurbulent':vars_wm.append('TurbulentSANuTilde')     
             for z in Internal.getZones(t):
                 for v_local in vars_wm:
                     C._initVars(z,'{centers:'+v_local+'_WM}=0.')
@@ -2154,6 +2154,10 @@ class IBM(Common):
             
             if self.input_var.isWireModel:
                 tc2 = Internal.rmNodesByName(tc2, 'ID*')
+                tc2 = Internal.rmNodesByName(tc2, 'gradxPressure')
+                tc2 = Internal.rmNodesByName(tc2, 'gradyPressure')
+                tc2 = Internal.rmNodesByName(tc2, 'gradzPressure')
+		
                 tc2  = transformTc2(tc2)
                 NewIBCD=140
                 _changeNameIBCD__(tc,NewIBCD)

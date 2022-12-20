@@ -482,7 +482,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 					     E_Float* densPtr, 
 					     E_Float* tmp, E_Int& size,
 					     E_Float*  param_real,
-					     vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields, E_Int isWireModelPrep,
+					     vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields,
 					     E_Int nbptslinelets, E_Float* linelets, E_Int* indexlinelets)
 {
   E_Float Pr           = param_real[ PRANDT ];
@@ -724,22 +724,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   //   return 0;
   // }
 
-  if (isWireModelPrep==1)
-    {
-      E_Float* DistWall2IPOut  = vectOfRcvFields[nvarsRcv-2];
-      E_Float norma;
-      if (bctype == 140){
-#ifdef _OPENMP4
-#pragma omp simd
-#endif
-	for (E_Int noind = 0; noind < ifin-ideb; noind++){
-	  E_Int indR = rcvPts[noind+ideb];
-# include "IBC/commonGeom.h"
-	  DistWall2IPOut[indR]=normb;
-	}
-      }
-      goto WireMeshSkip;
-    }
   if (bctype == 100)//wallslip + curvature radius
     {
 #ifdef _OPENMP4
@@ -1021,6 +1005,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
     }
   else if (bctype == 4) // outpres
     {
+      printf("I AM HERE\n");
 #ifdef _OPENMP4
 #pragma omp simd
 #endif
@@ -2276,9 +2261,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	  vzPtr[noind+ideb] = wOut[indR];                         
         }
     }
-  else if (bctype == 140) // Wire Model prt1 - just interpolation of image points & placed at control points
-    {;}      
-  else if (bctype == 141) // Wire Model - M. Terracol & E. Monaha 2021 - Numerical Wire Mesh Model for the Simulation of Noise Reduction Devices
+  else if (bctype == 140) // Wire Model - M. Terracol & E. Monaha 2021 - Numerical Wire Mesh Model for the Simulation of Noise Reduction Devices
     {
 #   include "IBC/pointer.h"
       E_Int err  = 0;
@@ -2290,20 +2273,14 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       E_Float u_n_w,u_t_w;
       E_Float v_n_w,v_t_w;
       E_Float w_n_w,w_t_w;
-      E_Float distWP2IP_Pnt1;
-      E_Float dist2walls;
-      
-      E_Float* roOut_Pnt2  = vectOfRcvFields[nvars  ];// ro          2pnt 6
-      E_Float* uOut_Pnt2   = vectOfRcvFields[nvars+1];// u           2pnt 7
-      E_Float* vOut_Pnt2   = vectOfRcvFields[nvars+2];// v           2pnt 8
-      E_Float* wOut_Pnt2   = vectOfRcvFields[nvars+3];// w           2pnt 9
-      E_Float* tOut_Pnt2   = vectOfRcvFields[nvars+4];// temperature 2pnt 10
-      E_Float* varSAOut_Pnt2;                         // pseudoviscosity nu_tilde 2pnt 10/0
-      E_Float* distwall2IP = vectOfRcvFields[nvars+(nvars-5)+5];// dist between wall & IP   1pnt 11/12
-      E_Float* Dist2Wall   = vectOfRcvFields[nvars+(nvars-5)+6];// dist2walls  (Target Pnt)      12/13
-      
-      if (nvars==6){varSAOut_Pnt2 = vectOfRcvFields[nvars+5];}
-  
+
+      E_Float* roOut_Pnt2    = densPtr +  5*nbRcvPts;// ro          
+      E_Float* uOut_Pnt2     = densPtr +  6*nbRcvPts;// u           
+      E_Float* vOut_Pnt2     = densPtr +  7*nbRcvPts;// v            
+      E_Float* wOut_Pnt2     = densPtr +  8*nbRcvPts;// w           
+      E_Float* tOut_Pnt2     = densPtr +  9*nbRcvPts;// temperature 
+      E_Float* varSAOut_Pnt2 = densPtr + 10*nbRcvPts;// pseudoviscosity nu_tilde 
+        
 #ifdef _OPENMP4
 #pragma omp simd
 #endif
@@ -2319,23 +2296,17 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	  v             = vOut[indR];     
 	  w             = wOut[indR];     
 	  t             = tOut[indR];
-	  distWP2IP_Pnt1= distwall2IP[indR];
-	  dist2walls    = Dist2Wall[indR];
 
 	  // These image point values are those for tc2
 	  // Value at A2 for the wire model (second image points)
 	  // 2pnt
-	  ro_Pnt2 = roOut_Pnt2[indR]; 
-	  u_Pnt2  = uOut_Pnt2[indR];     
-	  v_Pnt2  = vOut_Pnt2[indR];     
-	  w_Pnt2  = wOut_Pnt2[indR];     
-	  t_Pnt2  = tOut_Pnt2[indR];
+	  ro_Pnt2 = roOut_Pnt2[noind+ ideb]; 
+	  u_Pnt2  = uOut_Pnt2[noind+ ideb];     
+	  v_Pnt2  = vOut_Pnt2[noind+ ideb];     
+	  w_Pnt2  = wOut_Pnt2[noind+ ideb];     
+	  t_Pnt2  = tOut_Pnt2[noind+ ideb];
 	  
-	  // dist2walls@Corrected/dist2walls@Image(tc)
-	  // delta_A/delta_A1
-	  E_Float dist_ratio=dist2walls/distWP2IP_Pnt1;
-
-# include "IBC/commonGeom_WM.h"
+# include "IBC/commonGeom.h"
 	  s_w = u*n0+v*n1+w*n2;
 	  s_w = copysign(1,s_w);
 	  // Flow -->
@@ -2357,7 +2328,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	    v_up=v_Pnt2;
 	    w_up=w_Pnt2;
 	  }
-	  //printf("s_w & u_up & u = %g %g %g\n",s_w,u_up,u);
+
 	  p_w    = 0.5*R_gas*(ro_Pnt2*t_Pnt2+ro*t);
 	  p_t    = p_w-s_w*0.25*K_wire*ro_up*(u_up*u_up+v_up*v_up+w_up*w_up);
 	  tcible = p_t/(ro_up*R_gas);
@@ -2392,16 +2363,16 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	  uext_wall  = Delta_V_wire*uext_wall;
 	  
 
-	  //uext      = dist_ratio*uext_image  +(1.-dist_ratio)*uext_wall;
-	  //uscaln    = dist_ratio*uscaln_image+(1.-dist_ratio)*uscaln_wall;
+	  //uext      = alphasbeta*uext_image  +(1.-alphasbeta)*uext_wall;
+	  //uscaln    = alphasbeta*uscaln_image+(1.-alphasbeta)*uscaln_wall;
 	  
 	  //ucible = uscaln*n0+uext*t0;
 	  //vcible = uscaln*n1+uext*t1;
 	  //wcible = uscaln*n2+uext*t2;
 
-	  ucible      = dist_ratio*uOut[indR]  +(1.-dist_ratio)*(uscaln_wall*n0+uext_wall*t0);
-	  vcible      = dist_ratio*vOut[indR]  +(1.-dist_ratio)*(uscaln_wall*n1+uext_wall*t1);
-	  wcible      = dist_ratio*wOut[indR]  +(1.-dist_ratio)*(uscaln_wall*n2+uext_wall*t2);
+	  ucible      = alphasbeta*uOut[indR]  +(1.-alphasbeta)*(uscaln_wall*n0+uext_wall*t0);
+	  vcible      = alphasbeta*vOut[indR]  +(1.-alphasbeta)*(uscaln_wall*n1+uext_wall*t1);
+	  wcible      = alphasbeta*wOut[indR]  +(1.-alphasbeta)*(uscaln_wall*n2+uext_wall*t2);
 
 	  //if (yPC[noind+ideb]>0 && yPC[noind+ideb]<0.0007){
 	  //  printf("xPC[noind+ideb] uscaln_wall uscaln_target:: %g %g %g %g %g\n",xPC[noind+ideb],uscaln_wall,uscaln_target,ucible,vcible);
@@ -2452,17 +2423,14 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	for (E_Int noind = 0; noind < ifin-ideb; noind++)
 	{
 	  E_Int indR    = rcvPts[noind+ideb];
-	  
-	  distWP2IP_Pnt1= distwall2IP[indR];
-	  dist2walls    = Dist2Wall[indR];
-	  // dist2walls@Corrected/dist2walls@Image(tc)
-	  // delta_A/delta_A1
-	  E_Float dist_ratio=dist2walls/distWP2IP_Pnt1;
-	  varSAOut_Pnt2[indR]=nutcible_vec[noind];
-	  varSAOut[indR]=dist_ratio*varSAOut[indR]  +(1.-dist_ratio)*(aa_vec[noind]);
+# include "IBC/commonGeom.h"	  
+	  varSAOut_Pnt2[noind+ ideb]=nutcible_vec[noind];
+	  varSAOut[indR]=alphasbeta*varSAOut[indR]  +(1.-alphasbeta)*(aa_vec[noind]);
 	}
       }
     }
+  else if (bctype == 141) // Wire Model prt2 - just interpolation of image points & placed at control points
+    {;}      
   else
     {
       printf("Warning !!! setIBCTransfersCommonVar2: bcType %d not implemented.\n", bctype);
@@ -4770,3 +4738,260 @@ PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE2(PyObject* self, PyObject* args
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+
+//=============================================================================
+// Get the values at target points in RCV and put them in the tc (local - as in the copy of the tc locations)
+//=============================================================================
+PyObject* K_CONNECTOR::_WM_getVal2tc(PyObject* self, PyObject* args)
+{
+  PyObject *zoneR;
+  PyObject *pyVariables;
+  PyObject *pyIndRcv;
+  PyObject *pyArrayDensWM, *pyArrayVelXWM, *pyArrayVelYWM, *pyArrayVelZWM, *pyArrayTempWM, *pyArraySaNuWM;
+  E_Int     loc,nvars;
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOOOOOllsss",
+		    "OOOOOOOOOiisss",
+                    "OOOOOOOOOllsss",
+		    "OOOOOOOOOiisss",
+                    &zoneR, &pyVariables, &pyIndRcv, 
+                    &pyArrayDensWM, &pyArrayVelXWM, &pyArrayVelYWM, &pyArrayVelZWM, &pyArrayTempWM, &pyArraySaNuWM,
+                    &loc,&nvars,
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)){
+    return NULL;
+  }
+
+  vector<PyArrayObject*> hook;
+
+  // recupere les champs du donneur (nodes)
+  E_Int imdjmd, imd, jmd, kmd, ndimdxR, meshtype;
+  E_Float* iptroR;
+
+  /*--------------------------------------*/
+  /* Extraction des indices des receveurs */
+  /*--------------------------------------*/
+  FldArrayI* rcvPtsI;
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int* rcvPts  = rcvPtsI->begin();
+  E_Int nbRcvPts = rcvPtsI->getSize();
+
+  FldArrayF* dens_F; FldArrayF* velx_F; FldArrayF* vely_F;
+  FldArrayF* velz_F; FldArrayF* temp_F; FldArrayF* sanu_F;
+  E_Int okdens = K_NUMPY::getFromNumpyArray(pyArrayDensWM , dens_F , true);
+  E_Int okvelx = K_NUMPY::getFromNumpyArray(pyArrayVelXWM , velx_F , true);
+  E_Int okvely = K_NUMPY::getFromNumpyArray(pyArrayVelYWM , vely_F , true);
+  E_Int okvelz = K_NUMPY::getFromNumpyArray(pyArrayVelZWM , velz_F , true);
+  E_Int oktemp = K_NUMPY::getFromNumpyArray(pyArrayTempWM , temp_F , true);
+  E_Int oksanu = K_NUMPY::getFromNumpyArray(pyArraySaNuWM , sanu_F , true);
+  E_Float* dens = dens_F->begin();
+  E_Float* velx = velx_F->begin();
+  E_Float* vely = vely_F->begin();
+  E_Float* velz = velz_F->begin();
+  E_Float* temp = temp_F->begin();
+  E_Float* sanu = sanu_F->begin();
+
+  vector<E_Float*> vectOfRcvFields(nvars);
+
+  // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
+  //##############################
+  PyObject* solR;
+  PyObject* t;
+  char* type; E_Int s, s0, s1;  E_Int* d;
+
+  PyObject* tpl0= PyList_GetItem(pyVariables, 0);
+  char* varname = NULL;
+  if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(tpl0)) varname = (char*)PyUnicode_AsUTF8(tpl0);
+#endif
+
+  if  (loc==0) { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution"        ); }
+  else  { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution#Centers"); }
+  t = K_PYTREE::getNodeFromName1(solR, "Density_WM");
+  iptroR = K_PYTREE::getValueAF(t, hook);
+
+  // get type
+  t =  K_PYTREE::getNodeFromName1(zoneR, "ZoneType");
+  type =  K_PYTREE::getValueS(t, s, hook);
+  // get dims zone receveuse
+  d  =  K_PYTREE::getValueAI(zoneR, s0, s1, hook);
+
+  if  (K_STRING::cmp(type, s, "Structured") == 0){
+    E_Int shift = 0; if(loc == 1) shift = 3;
+    if (s0 == 1) { ndimdxR= d[0+shift]; }
+    else if (s0 == 2) { ndimdxR= d[0+shift]*d[1+shift]; } 
+    else if (s0 == 3) { ndimdxR= d[0+shift]*d[1+shift]*d[2+shift]; } 
+  }
+  else{
+    // non structure
+    ndimdxR= d[0]* d[1]; // npoint, nelements
+  }
+  //##############################
+
+  for (E_Int eq = 0; eq < nvars; eq++){
+    vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+  }
+
+#    pragma omp parallel default(shared)
+  {
+    //indice loop pour paralelisation omp
+    E_Int ideb, ifin;
+#ifdef _OPENMP
+    E_Int  ithread           = omp_get_thread_num()+1;
+    E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+    E_Int ithread = 1;
+    E_Int Nbre_thread_actif = 1;
+#endif
+    // Calcul du nombre de champs a traiter par chaque thread
+    E_Int chunk = nbRcvPts/Nbre_thread_actif;
+    E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+    // pts traitees par thread
+    if (ithread <= r){ ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+    else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+
+#ifdef _OPENMP4
+#pragma omp simd
+#endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++){
+      E_Int indR = rcvPts[noind+ideb];
+      dens[noind+ideb] = vectOfRcvFields[0][indR];
+      velx[noind+ideb] = vectOfRcvFields[1][indR];
+      vely[noind+ideb] = vectOfRcvFields[2][indR];
+      velz[noind+ideb] = vectOfRcvFields[3][indR];
+      temp[noind+ideb] = vectOfRcvFields[4][indR];
+    }
+    if (nvars==6){
+      for (E_Int noind = 0; noind < ifin-ideb; noind++){
+	E_Int indR = rcvPts[noind+ideb];
+	sanu[noind+ideb] = vectOfRcvFields[5][indR];
+      }
+    }
+		 
+  } // Fin zone // omp
+  // sortie
+  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+
+  RELEASESHAREDN(pyIndRcv     , rcvPtsI  );
+  RELEASESHAREDN(pyArrayDensWM, dens_F );
+  RELEASESHAREDN(pyArrayVelXWM, velx_F );
+  RELEASESHAREDN(pyArrayVelYWM, vely_F );
+  RELEASESHAREDN(pyArrayVelZWM, velz_F );
+  RELEASESHAREDN(pyArrayTempWM, temp_F );
+  RELEASESHAREDN(pyArraySaNuWM, sanu_F );
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
+// Set the value at the target points in the tc (local) into the real tc (as in the tree itself)
+//=============================================================================
+PyObject* K_CONNECTOR::_WM_setVal2tc(PyObject* self, PyObject* args)
+{
+  PyObject *pyArraydens_new, *pyArrayvelx_new, *pyArrayvely_new;
+  PyObject *pyArrayvelz_new, *pyArraytemp_new, *pyArraysanu_new;
+  PyObject *pyArraydens    , *pyArrayvelx    , *pyArrayvely;
+  PyObject *pyArrayvelz    , *pyArraytemp    , *pyArraysanu;
+
+  if (!PYPARSETUPLE(args,
+                    "OOOOOOOOOOOO", "OOOOOOOOOOOO",
+                    "OOOOOOOOOOOO", "OOOOOOOOOOOO",
+                    &pyArraydens_new, &pyArrayvelx_new, &pyArrayvely_new,
+                    &pyArrayvelz_new, &pyArraytemp_new, &pyArraysanu_new,
+		    &pyArraydens    , &pyArrayvelx    , &pyArrayvely    ,
+                    &pyArrayvelz    , &pyArraytemp    , &pyArraysanu    ))
+    {
+      return NULL;
+    }
+
+  FldArrayF* densF; FldArrayF* velxF; FldArrayF* velyF;
+  FldArrayF* velzF; FldArrayF* tempF; FldArrayF* sanuF;
+  E_Int okdens = K_NUMPY::getFromNumpyArray(pyArraydens, densF , true);
+  E_Int okvelx = K_NUMPY::getFromNumpyArray(pyArrayvelx, velxF , true);
+  E_Int okvely = K_NUMPY::getFromNumpyArray(pyArrayvely, velyF , true);
+  E_Int okvelz = K_NUMPY::getFromNumpyArray(pyArrayvelz, velzF , true);
+  E_Int oktemp = K_NUMPY::getFromNumpyArray(pyArraytemp, tempF , true);
+  E_Int oksanu = K_NUMPY::getFromNumpyArray(pyArraysanu, sanuF , true);
+  E_Float* dens = densF->begin();
+  E_Float* velx = velxF->begin();
+  E_Float* vely = velyF->begin();
+  E_Float* velz = velzF->begin();
+  E_Float* temp = tempF->begin();
+  E_Float* sanu = sanuF->begin();
+
+  FldArrayF* densF_new; FldArrayF* velxF_new; FldArrayF* velyF_new;
+  FldArrayF* velzF_new; FldArrayF* tempF_new; FldArrayF* sanuF_new;
+  okdens = K_NUMPY::getFromNumpyArray(pyArraydens_new, densF_new, true);
+  okvelx = K_NUMPY::getFromNumpyArray(pyArrayvelx_new, velxF_new, true);
+  okvely = K_NUMPY::getFromNumpyArray(pyArrayvely_new, velyF_new, true);
+  okvelz = K_NUMPY::getFromNumpyArray(pyArrayvelz_new, velzF_new, true);
+  oktemp = K_NUMPY::getFromNumpyArray(pyArraytemp_new, tempF_new, true);
+  oksanu = K_NUMPY::getFromNumpyArray(pyArraysanu_new, sanuF_new, true);
+  E_Float* dens_new = densF_new->begin();
+  E_Float* velx_new = velxF_new->begin();
+  E_Float* vely_new = velyF_new->begin();
+  E_Float* velz_new = velzF_new->begin();
+  E_Float* temp_new = tempF_new->begin();
+  E_Float* sanu_new = sanuF_new->begin();
+
+  E_Int nbRcvPts = densF_new->getSize();
+
+#    pragma omp parallel default(shared)
+  {
+
+    //indice loop pour paralelisation omp
+    E_Int ideb, ifin;
+#ifdef _OPENMP
+    E_Int  ithread           = omp_get_thread_num()+1;
+    E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+#else
+    E_Int ithread = 1;
+    E_Int Nbre_thread_actif = 1;
+#endif
+    // Calcul du nombre de champs a traiter par chaque thread
+    E_Int chunk = nbRcvPts/Nbre_thread_actif;
+    E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+    // pts traitees par thread
+    if (ithread <= r)
+      { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+    else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+
+#ifdef _OPENMP4
+#pragma omp simd
+#endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+      {
+	dens[noind+ideb] = dens_new[noind+ideb];
+	velx[noind+ideb] = velx_new[noind+ideb];
+	vely[noind+ideb] = vely_new[noind+ideb];
+	velz[noind+ideb] = velz_new[noind+ideb];
+	temp[noind+ideb] = temp_new[noind+ideb];
+	sanu[noind+ideb] = sanu_new[noind+ideb];
+      }
+
+  } // Fin zone // omp
+  // sortie
+
+  RELEASESHAREDN(pyArraydens, densF);
+  RELEASESHAREDN(pyArrayvelx, velxF);
+  RELEASESHAREDN(pyArrayvely, velyF);
+  RELEASESHAREDN(pyArrayvelz, velzF);
+  RELEASESHAREDN(pyArraytemp, tempF);
+  RELEASESHAREDN(pyArraysanu, sanuF);
+
+  RELEASESHAREDN(pyArraydens_new, densF_new);
+  RELEASESHAREDN(pyArrayvelx_new, velxF_new);
+  RELEASESHAREDN(pyArrayvely_new, velyF_new);
+  RELEASESHAREDN(pyArrayvelz_new, velzF_new);
+  RELEASESHAREDN(pyArraytemp_new, tempF_new);
+  RELEASESHAREDN(pyArraysanu_new, sanuF_new);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+

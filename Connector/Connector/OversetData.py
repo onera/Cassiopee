@@ -34,6 +34,7 @@ TypesOfIBC["TBLE_FULL"]=11 #TBLE+gradP+conv+SA
 TypesOfIBC["isothermal"]=12 #isothermal: set T_wall
 TypesOfIBC["heatflux"]=13 #heatflux: set q_wall
 TypesOfIBC["overlap"]=14 #TBLE+gradP+conv+SA
+TypesOfIBC["wiremodel"]=140 #heatflux: set q_wall
 
 # Variables IBM pour le post traitement
 __PRESSURE__= 'Pressure'
@@ -927,7 +928,16 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
         Temperature_local = numpy.zeros((nIBC),numpy.float64)
         Internal._createChild(zsr, 'Temperature' , 'DataArray_t', value=Temperature_local)
         Internal._createChild(zsr, 'WallHeatFlux', 'DataArray_t', value=Temperature_local)
-      
+
+    if bcType == 140:
+        val_local = numpy.zeros((nIBC),numpy.float64)
+        Internal._createChild(zsr, 'Density_WM'           , 'DataArray_t', value=val_local)
+        Internal._createChild(zsr, 'VelocityX_WM'         , 'DataArray_t', value=val_local)
+        Internal._createChild(zsr, 'VelocityY_WM'         , 'DataArray_t', value=val_local)
+        Internal._createChild(zsr, 'VelocityZ_WM'         , 'DataArray_t', value=val_local)
+        Internal._createChild(zsr, 'Temperature_WM'       , 'DataArray_t', value=val_local)
+        Internal._createChild(zsr, 'TurbulentSANuTilde_WM', 'DataArray_t', value=val_local)
+
     if bcType == 5:
       stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
       Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)

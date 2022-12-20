@@ -7,7 +7,7 @@ do
   if test -e $mod
   then
       cd $mod
-      rm -fr build
+      rm -fr build/spiro_r8
       rm -fr .sconsign.dblite
       cd ..
   fi

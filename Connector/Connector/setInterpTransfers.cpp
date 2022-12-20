@@ -761,22 +761,22 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   PyObject *pyVariables, *pydtloc;
   PyObject *pyParam_int, *pyParam_real;
   E_Int vartype, type_transfert, no_transfert, It_target, nstep, nitmax;
-  E_Int rk, exploc, num_passage, isWireModel, isWireModelPrep;
+  E_Int rk, exploc, num_passage, isWireModel;
   
   if (!PYPARSETUPLE(args,
-                    "OOOOOOlllllllllll", 
-                    "OOOOOOiiiiiiiiiii",
-                    "OOOOOOlllllllllll", 
-                    "OOOOOOiiiiiiiiiii",
+                    "OOOOOOllllllllll", 
+                    "OOOOOOiiiiiiiiii",
+                    "OOOOOOllllllllll", 
+                    "OOOOOOiiiiiiiiii",
                     &zonesR, &zonesD, &pyVariables, &pydtloc, &pyParam_int,  
                     &pyParam_real, &It_target, &vartype,
                     &type_transfert, &no_transfert, &nstep, &nitmax, &rk, 
-                    &exploc, &num_passage, &isWireModelPrep, &isWireModel))
+                    &exploc, &num_passage, &isWireModel))
     {
       return NULL;
     }
-
-  E_Int it_target= E_Int(It_target);
+  E_Int rank     = -100;
+  E_Int it_target=  E_Int(It_target);
   /* varType :
      1  : conservatives,
      11 : conservatives + ronutildeSA
@@ -805,7 +805,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   else                    nvars =6;
 
   nvars_Pnt2 = 0;
-  if (isWireModel==1)     nvars_Pnt2=nvars+2; // *_WM variables (6 for NSLam & 7 for NSTurb) & Dist2Walls
+  if (TypeTransfert==0)  isWireModel=0;
+  if (isWireModel>0)     nvars_Pnt2=nvars; // *_WM variables (5 for NSLam & 6 for NSTurb) 
 
   E_Int nidomR   = PyList_Size(zonesR);
   E_Int nidomD   = PyList_Size(zonesD);
@@ -814,23 +815,22 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   E_Int* ipt_ndimdxD; E_Int** ipt_param_intR; E_Int** ipt_cnd;
   E_Float** ipt_roR; E_Float** ipt_roD; E_Float** ipt_roR_vert;  E_Float** ipt_roD_vert; E_Float** ipt_param_realR;
   E_Float** ipt_roR_Pnt2;
-  E_Float** ipt_roR_Dist2Walls;
+  E_Float** ipt_roD_Pnt2;
   
   //ipt_ndimdxR      = new E_Int*[nidomR*3];   // on stocke ndimdx  en centre et vertexe
   ipt_param_intR   = new E_Int*[nidomR];
 
-  ipt_roR            = new E_Float*[nidomR*5];
-  ipt_roR_vert       = ipt_roR         + nidomR;
-  ipt_param_realR    = ipt_roR_vert    + nidomR;
-  ipt_roR_Pnt2       = ipt_param_realR + nidomR;
-  ipt_roR_Dist2Walls = ipt_roR_Pnt2    + nidomR;
+  ipt_roR            = new E_Float*[nidomR*4];  //1
+  ipt_roR_vert       = ipt_roR         + nidomR;//2
+  ipt_param_realR    = ipt_roR_vert    + nidomR;//3
+  ipt_roR_Pnt2       = ipt_param_realR + nidomR;//4
 
-  ipt_ndimdxD      = new E_Int[nidomD*8];  //on stocke ndimdx, imd, jmd, en centre et vertexe, meshtype et cnDfld
-  ipt_cnd          = new E_Int*[nidomD];
+  ipt_ndimdxD        = new E_Int[nidomD*8];  //on stocke ndimdx, imd, jmd, en centre et vertexe, meshtype et cnDfld
+  ipt_cnd            = new E_Int*[nidomD];
 
-  ipt_roD          = new E_Float*[nidomD*2];
-  ipt_roD_vert     = ipt_roD + nidomD;
-
+  ipt_roD            = new E_Float*[nidomD*3];  //1
+  ipt_roD_vert       = ipt_roD         + nidomD;//2
+  ipt_roD_Pnt2       = ipt_roD_vert    + nidomD;//3
 
   vector<PyArrayObject*> hook;
 
@@ -1064,11 +1064,10 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 			  }
 			imd= ipt_param_intR[ NoD ][ NIJK ]; jmd= ipt_param_intR[ NoD ][ NIJK+1];
 
-			if (isWireModel==1){
-			  for (E_Int eq = nvars_loc; eq < nvars_loc+nvars_Pnt2-1; eq++){
+			if (isWireModel>0){
+			  for (E_Int eq = nvars_loc; eq < nvars_loc+nvars_Pnt2; eq++){
 			    vectOfRcvFields[eq] = ipt_roR_Pnt2[ NoR] + (eq-nvars_loc)*ipt_param_intR[ NoR ][ NDIMDX ];
 			  }
-			  vectOfRcvFields[nvars_loc+nvars_Pnt2-1] = ipt_roR_Dist2Walls[NoR];
 			}        
 		      }
 
@@ -1129,10 +1128,26 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 			noi       = shiftDonor;                             // compteur sur le tableau d indices donneur
 			indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
 			
-			if (ibcType==141){
+			if (isWireModel==1){
+			  if (ibcType==141){
+			    // Interpolation at these points only for _WM variables
+			    // Can be included in the commonInterpTransfers_reorder_*eq.h functions
+			    // but do not want an if statement inside the loops
 #           include "commonInterpTransfers_reorder_WireModel.h"
+			  }
+			  // Only do the Interpolations for ibcType=141 (Wire Model)
+			  // No other IBC interpolations
 			  goto IBCType_SkipInterpolation;
 			}
+			else if(isWireModel==2){
+			  goto WireModel_fill_tc;
+			}
+			else{
+			  if (ibcType==141){
+			    goto IBCType_SkipInterpolation;
+			  }
+			}
+			
 			
 			if     (nvars_loc==5)
 			  {
@@ -1158,36 +1173,51 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 			    E_Float* angle = ptrCoefs + nbInterpD;
 #          include "includeTransfers_rotation.h"
 			  }
+			
+		      WireModel_fill_tc:
 			// ibc
-			if (ibc == 1 && isWireModelPrep !=2)
-			  {
-			    //E_Int nvars = vectOfDnrFields.size();
+			if (ibc == 1){
+			  //E_Int nvars = vectOfDnrFields.size();
+			  Pr    = ipt_param_realR[ NoR ][ PRANDT ];
+			  Ts    = ipt_param_realR[ NoR ][ TEMP0 ];
+			  Cs    = ipt_param_realR[ NoR ][ CS ];
+			  muS   = ipt_param_realR[ NoR ][ XMUL0 ];
+			  cv    = ipt_param_realR[ NoR ][ CVINF ];
+			  gamma = ipt_param_realR[ NoR ][ GAMMA ];
 			
-			    Pr    = ipt_param_realR[ NoR ][ PRANDT ];
-			    Ts    = ipt_param_realR[ NoR ][ TEMP0 ];
-			    Cs    = ipt_param_realR[ NoR ][ CS ];
-			    muS   = ipt_param_realR[ NoR ][ XMUL0 ];
-			    cv    = ipt_param_realR[ NoR ][ CVINF ];
-			    gamma = ipt_param_realR[ NoR ][ GAMMA ];
+			  if (varType == 2 || varType == 21){
+			    if (isWireModel ==0){
+			      setIBCTransfersCommonVar2(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
+			      			    xPC, xPC+nbRcvPts, xPC+nbRcvPts*2,
+			      			    xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
+			      			    xPI, xPI+nbRcvPts, xPI+nbRcvPts*2,
+			      			    densPtr, 
+			      			    ipt_tmp, size,
+			      			    ipt_param_realR[ NoR ],
+			      			    //gamma, cv, muS, Cs, Ts, Pr,
+			      			    vectOfDnrFields, vectOfRcvFields);
+			    }
+			    else if(isWireModel==2){
+			      if (ibcType==140){
+				for (E_Int noind = 0; noind < pt_fin-pt_deb; noind++){
+				  E_Int indR = rcvPts[noind+pt_deb];
+				  (densPtr+nbRcvPts*5 )[noind+pt_deb] = vectOfRcvFields[nvars  ][indR];
+				  (densPtr+nbRcvPts*6 )[noind+pt_deb] = vectOfRcvFields[nvars+1][indR];
+				  (densPtr+nbRcvPts*7 )[noind+pt_deb] = vectOfRcvFields[nvars+2][indR];
+				  (densPtr+nbRcvPts*8)[noind+pt_deb]  = vectOfRcvFields[nvars+3][indR];
+				  (densPtr+nbRcvPts*9)[noind+pt_deb]  = vectOfRcvFields[nvars+4][indR];
+				  if (nvars==6){
+				    (densPtr+nbRcvPts*10)[noind+pt_deb] = vectOfRcvFields[nvars+5][indR];
+				  }					  
+				}
+			      }
+			    }
+			  }
+			  else {
+			    printf("Warning: setInterpTransfers: only valid for vartype=2 or 21 \n");
+			  }
+			}//ibc
 			
-			    if (varType == 2 || varType == 21)
-			      {
-				setIBCTransfersCommonVar2(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
-							  xPC, xPC+nbRcvPts, xPC+nbRcvPts*2,
-							  xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
-							  xPI, xPI+nbRcvPts, xPI+nbRcvPts*2,
-							  densPtr, 
-							  ipt_tmp, size,
-							  ipt_param_realR[ NoR ],
-							  //gamma, cv, muS, Cs, Ts, Pr,
-							  vectOfDnrFields, vectOfRcvFields,isWireModelPrep);
-			      }
-			    else 
-			      {
-				printf("Warning: setInterpTransfers: only valid for vartype=2 or 21 \n");
-			      }
-			  }//ibc
-                        
 			ideb       = ideb + ifin;
 			shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
 			shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif

@@ -21,7 +21,7 @@ try:
     import Geom as D
     import math
 except:
-    raise ImportError("Collar: requires Converter, Generator, Post, Transform, Dist2Walls modules.")
+    raise ImportError("Collar: requires Converter, Generator, Post, Transform, Dist2Walls, Intersector modules.")
 
 #==============================================================================
 # Return the list of created collar grids and the list of BCWall ranges as

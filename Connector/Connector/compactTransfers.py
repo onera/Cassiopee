@@ -162,6 +162,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
            sname        = s[0][0:2]
            utau         = Internal.getNodeFromName1(s, 'utau')
            temp_local   = Internal.getNodeFromName1(s, 'Temperature')
+           wmodel_local = Internal.getNodeFromName1(s, 'Density_WM')
            gradxP       = Internal.getNodeFromName1(s, 'gradxPressure')
            gradxU       = Internal.getNodeFromName1(s, 'gradxVelocityX')
            kcurv        = Internal.getNodeFromName1(s, XOD.__KCURV__)
@@ -223,6 +224,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
            ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
            if utau is not None: ntab_IBC += 2
            if temp_local is not None: ntab_IBC += 2
+           if wmodel_local is not None: ntab_IBC += 6
            if gradxP is not None: ntab_IBC += 3
            if gradxU is not None: ntab_IBC += 9
            if kcurv is not None: ntab_IBC += 1
@@ -493,6 +495,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
        temp_extra_local =None;pttemp_extra_local =0;
        temp_extra2_local=None;pttemp_extra2_local=0;
 
+       wmodel_local_dens=None;wmodel_local_velx=None;wmodel_local_vely=None;
+       wmodel_local_velz=None;wmodel_local_temp=None;wmodel_local_sanu=None;       
+       pt_dens_wm_local=0;pt_velx_wm_local=0;pt_vely_wm_local=0;
+       pt_velz_wm_local=0;pt_temp_wm_local=0;pt_sanu_wm_local=0;   
+
        gradxP=None;gradyP=None;gradzP=None;
        ptgradxP=0;ptgradyP=0;ptgradzP=0;
 
@@ -601,6 +608,21 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
            if temp_extra2_local is not None:
                pttemp_extra2_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
                size_IBC   += Nbpts_D; inc += 1
+
+           wmodel_local_dens = Internal.getNodeFromName1(s, 'Density_WM')
+           wmodel_local_velx = Internal.getNodeFromName1(s, 'VelocityX_WM')
+           wmodel_local_vely = Internal.getNodeFromName1(s, 'VelocityY_WM')
+           wmodel_local_velz = Internal.getNodeFromName1(s, 'VelocityZ_WM')
+           wmodel_local_temp = Internal.getNodeFromName1(s, 'Temperature_WM')
+           wmodel_local_sanu = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_WM')
+           if wmodel_local_dens is not None:
+               pt_dens_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+               pt_velx_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+               pt_vely_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+               pt_velz_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3)
+               pt_temp_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
+               pt_sanu_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
+               size_IBC   += 6*Nbpts_D; inc += 6 
 
 
            gradxP = Internal.getNodeFromName1(s, 'gradxPressure')
@@ -742,6 +764,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                        ptvx, ptvy, ptvz,
                        ptutau,ptyplus,
                        pttemp_local, pttemp_extra_local,pttemp_extra2_local,
+                       pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
+                       pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,                       
                        ptgradxP, ptgradyP, ptgradzP,
                        ptgradxU, ptgradyU, ptgradzU,
                        ptgradxV, ptgradyV, ptgradzV,
@@ -754,6 +778,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                        vx, vy, vz,
                        utau,yplus,
                        temp_local, temp_extra_local,temp_extra2_local,
+                       wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
+                       wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
                        gradxP, gradyP, gradzP,
                        gradxU, gradyU, gradzU,
                        gradxV, gradyV, gradzV,
@@ -770,6 +796,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         ptvx, ptvy, ptvz,
                         ptutau,ptyplus,
                         pttemp_local, pttemp_extra_local,pttemp_extra2_local,
+                        pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
+                        pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,   
                         ptgradxP, ptgradyP, ptgradzP,
                         ptgradxU, ptgradyU, ptgradzU,
                         ptgradxV, ptgradyV, ptgradzV,
@@ -782,6 +810,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         vx, vy, vz,
                         utau,yplus,
                         temp_local, temp_extra_local, temp_extra2_local,
+                        wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
+                        wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
                         gradxP, gradyP, gradzP,
                         gradxU, gradyU, gradzU,
                         gradxV, gradyV, gradzV,
@@ -824,7 +854,15 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             if temp_extra_local is not None:
               temp_extra_local[1] = param_real[ pttemp_extra_local : pttemp_extra_local + Nbpts_D ]
             if temp_extra2_local is not None:
-              temp_extra2_local[1] = param_real[ pttemp_extra2_local : pttemp_extra2_local + Nbpts_D ]
+              temp_extra2_local[1] = param_real[ pttemp_extra2_local: pttemp_extra2_local + Nbpts_D ]
+
+            if wmodel_local_dens is not None:
+                wmodel_local_dens[1]       = param_real[ pt_dens_wm_local    : pt_dens_wm_local    + Nbpts_D ]
+                wmodel_local_velx[1]       = param_real[ pt_velx_wm_local    : pt_velx_wm_local    + Nbpts_D ]
+                wmodel_local_vely[1]       = param_real[ pt_vely_wm_local    : pt_vely_wm_local    + Nbpts_D ]
+                wmodel_local_velz[1]       = param_real[ pt_velz_wm_local    : pt_velz_wm_local    + Nbpts_D ]
+                wmodel_local_temp[1]       = param_real[ pt_temp_wm_local    : pt_temp_wm_local    + Nbpts_D ]
+                wmodel_local_sanu[1]       = param_real[ pt_sanu_wm_local    : pt_sanu_wm_local    + Nbpts_D ]
 
 
             if gradxP is not None:
@@ -975,7 +1013,9 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  ptdensity,ptpressure, ptkcurv,
                  ptvx, ptvy, ptvz,
                  ptutau,ptyplus,
-                 pttemp_local, pttemp_extra_local, pttemp_extra2_local, 
+                 pttemp_local, pttemp_extra_local, pttemp_extra2_local,
+                 pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
+                 pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,   
                  ptgradxP, ptgradyP, ptgradzP,
                  ptgradxU, ptgradyU, ptgradzU,
                  ptgradxV, ptgradyV, ptgradzV,
@@ -987,7 +1027,9 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  density,pressure,kcurv,
                  vx, vy, vz,
                  utau,yplus,
-                 temp_local, temp_extra_local, temp_extra2_local, 
+                 temp_local, temp_extra_local, temp_extra2_local,
+                 wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
+                 wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
                  gradxP, gradyP, gradzP,
                  gradxU, gradyU, gradzU,
                  gradxV, gradyV, gradzV,
@@ -1060,6 +1102,14 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                    param_real[ pttemp_extra_local + l + l0 ]= temp_extra_local[1][i]
                if temp_extra2_local is not None: 
                    param_real[ pttemp_extra2_local + l + l0 ]= temp_extra2_local[1][i]
+
+               if wmodel_local_dens is not None:
+                   wmodel_local_dens[ pt_dens_wm_local       + l + l0 ]= wmodel_local_dens[1][i]
+                   wmodel_local_velx[ pt_velx_wm_local       + l + l0 ]= wmodel_local_velx[1][i]
+                   wmodel_local_vely[ pt_vely_wm_local       + l + l0 ]= wmodel_local_vely[1][i]
+                   wmodel_local_velz[ pt_velz_wm_local       + l + l0 ]= wmodel_local_velz[1][i]
+                   wmodel_local_temp[ pt_temp_wm_local       + l + l0 ]= wmodel_local_temp[1][i]
+                   wmodel_local_sanu[ pt_sanu_wm_local       + l + l0 ]= wmodel_local_sanu[1][i]
 
                if gradxP is not None:
                    param_real[ ptgradxP + l + l0 ]= gradxP[1][i]
@@ -1143,7 +1193,9 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
                 ptdensity,ptpressure,ptkcurv,
                 ptvx, ptvy, ptvz,
                 ptutau,ptyplus,
-                pttemp_local, pttemp_extra_local, pttemp_extra2_local, 
+                pttemp_local, pttemp_extra_local, pttemp_extra2_local,
+                pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
+                pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,
                 ptgradxP, ptgradyP, ptgradzP,
                 ptgradxU, ptgradyU, ptgradzU,
                 ptgradxV, ptgradyV, ptgradzV,
@@ -1155,7 +1207,9 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
                 density,pressure,kcurv,
                 vx, vy, vz,
                 utau,yplus,
-                temp_local, temp_extra_local, temp_extra2_local, 
+                temp_local, temp_extra_local, temp_extra2_local,
+                wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
+                wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
                 gradxP, gradyP, gradzP,
                 gradxU, gradyU, gradzU,
                 gradxV, gradyV, gradzV,
@@ -1210,7 +1264,16 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
        if temp_extra_local is not None:    
            connector.initNuma(temp_extra_local[1], param_real, pttemp_extra_local , Nbpts_D , 0, val)
        if temp_extra2_local is not None:    
-           connector.initNuma(temp_extra2_local[1], param_real, pttemp_extra2_local , Nbpts_D , 0, val)            
+           connector.initNuma(temp_extra2_local[1], param_real, pttemp_extra2_local , Nbpts_D , 0, val)
+
+       if wmodel_local_dens is not None:
+           connector.initNuma(wmodel_local_dens[1]      , param_real, pt_dens_wm_local       , Nbpts_D , 0, val)
+           connector.initNuma(wmodel_local_velx[1]      , param_real, pt_velx_wm_local       , Nbpts_D , 0, val)
+           connector.initNuma(wmodel_local_vely[1]      , param_real, pt_vely_wm_local       , Nbpts_D , 0, val)
+           connector.initNuma(wmodel_local_velz[1]      , param_real, pt_velz_wm_local       , Nbpts_D , 0, val)
+           connector.initNuma(wmodel_local_temp[1]      , param_real, pt_temp_wm_local       , Nbpts_D , 0, val)
+           connector.initNuma(wmodel_local_sanu[1]      , param_real, pt_sanu_wm_local       , Nbpts_D , 0, val)
+           
 
        if gradxP is not None:
            connector.initNuma(gradxP[1] , param_real, ptgradxP , Nbpts_D , 0, val)
@@ -1305,6 +1368,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             InterpD      =  Internal.getNodeFromName1(rac, 'InterpolantsDonor')
             utau         =  Internal.getNodeFromName1(rac, 'utau')
             temp_local   =  Internal.getNodeFromName1(rac, 'Temperature')
+            wmodel_local =  Internal.getNodeFromName1(rac, 'Density_WM')
             gradxP       =  Internal.getNodeFromName1(rac, 'gradxPressure')
             gradxU       =  Internal.getNodeFromName1(rac, 'gradxVelocityX')
             kcurv        =  Internal.getNodeFromName1(rac, 'KCurv')
@@ -1315,6 +1379,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             ntab_IBC   = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour le post
             if utau is not None: ntab_IBC += 2
             if temp_local is not None: ntab_IBC += 2
+            if wmodel_local is not None: ntab_IBC += 6
             if gradxP is not None: ntab_IBC += 3
             if gradxU is not None: ntab_IBC += 9
             if kcurv is not None: ntab_IBC += 1
