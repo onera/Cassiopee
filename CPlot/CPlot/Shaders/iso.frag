@@ -25,6 +25,8 @@ void main()
   float f, fs;
   int vali;
   f = color.r;
+
+  // discard
   if (amax > amin)
   { 
     if (f > amax) discard;
@@ -34,6 +36,17 @@ void main()
   {
     if (f > amax && f < amin) discard;
   }
+
+  /*
+  Essai pour avoir de l'antialiasing sur la coupure.
+  float delta = 0.003;
+  float blend2 = blend;
+  if (f > amax+delta) discard;
+  else if (f > amax) blend2 = (-blend/delta)*f+blend*(1.+amax/delta);
+  else if (f < amin-delta) discard;
+  else if (f < amin) blend2 = (blend/delta)*f+blend*(1.-amin/delta);
+  */
+
   f = alpha*f + beta;
   f = clamp(f, 0.0, 1.-0.5/niso);
   
@@ -93,7 +106,7 @@ void main()
      // Z buffer du point dans la texture rendu du pt de vue de la lumiere
      float distanceFromLight = texture2D(ShadowMap, shadowCoordinateW.st).r;
      float s = shadowCoordinateW.s;
-     float t = shadowCoordinateW.t;      
+     float t = shadowCoordinateW.t;
      if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
       {
       //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;

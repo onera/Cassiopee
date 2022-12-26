@@ -1714,6 +1714,7 @@ def _applyBCOverlaps(a, depth=2, loc='centers', val=2, cellNName='cellN', checkC
 #==============================================================================
 # IN: a: contains the cellN located at nodes or centers
 # IN: depth can be positive or negative
+# IN: dir=0 (directional), dir=1 (star), dir=2 (diamond)
 # Return depth layers of interpolated points at the fringe of blanked points
 #==============================================================================
 def setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers', cellNName='cellN'):

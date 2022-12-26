@@ -739,7 +739,7 @@ def _evalGridSpeed(a, time, out=0):
           if omega is None: omega = 0.
           else: omega = Internal.getValue(omega)
         
-          rigidMotion.evalSpeed3(xcoord[1], ycoord[1], zcoord[1], 
+          rigidMotion.evalSpeed3(xcoord[1], ycoord[1], zcoord[1],
             sx[1], sy[1], sz[1], omega, omega*time,
             transl_speed[0], transl_speed[1], transl_speed[2],
             axis_pnt[0], axis_pnt[1], axis_pnt[2],

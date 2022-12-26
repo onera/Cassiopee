@@ -482,7 +482,7 @@ def getProcGlobal__(zoneName, t, procDict=None):
 # Ex: addXZones: envoie les zones graph[rank][opp] au proc opp,
 # attend ensuite les zones graph[opp][rank] pour tout opp.
 #==============================================================================
-def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
+def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0, reduction=True,
                  intersectionsDict=None, exploc=False, procDict2=None, it=None):
     """Return the communication graph for different block relation types."""
     zones = Internal.getZones(t)
