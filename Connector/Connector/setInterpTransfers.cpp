@@ -449,7 +449,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
 
       // transfer of cellN variable
       if (posvarcr > -1 && posvarcd > -1) // cellNVariable exists and is transfered specifically
-	{
+    {
 	  E_Int indR, type, nocf;
 	  E_Int indD0, indD, i, j, k, ncfLoc;
 	  E_Int noi = 0; // compteur sur le tableau d'indices donneur
@@ -457,11 +457,11 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
 	  E_Float* cellNR = fieldsR[poscr];
 	  E_Float* cellND = fieldsD[poscd];
 	  for (E_Int noind = 0; noind < nbRcvPts; noind++)
-	    {
-	      // adressage indirect pour indR
-	      indR = rcvPts[noind];
+      {
+	    // adressage indirect pour indR
+	    indR = rcvPts[noind];
 # include "commonCellNTransfersStrict.h"
-	    }
+      }
 	}
       // Prise en compte de la periodicite par rotation
       if (dirR != 0)

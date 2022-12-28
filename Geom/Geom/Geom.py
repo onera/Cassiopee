@@ -916,6 +916,6 @@ def findNearest__(Pt, Pts, c):
                 minDist = d2; nearest = e2b; ext=1; dmin = d
     return minDist, nearest, dmin, ext
 
-def getUV(a, normalDeviationWeight=2., texelsPerUnit=0.):
+def getUV(a, normalDeviationWeight=2., texelsPerUnit=0., fields=None):
     """Return uv of surface and atlas."""
-    return geom.getUV(a, normalDeviationWeight, texelsPerUnit)
+    return geom.getUV(a, normalDeviationWeight, texelsPerUnit, fields)

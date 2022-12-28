@@ -330,17 +330,15 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
   //zoneR : zones arbre t
   //zoneD : zones arbre tc
   //param_int/real : arbre tc
-  E_Float   gamma, cv, muS, Cs, Ts, Pr;
-  E_Int varType  = E_Int( vartype );
+  E_Float gamma, cv, muS, Cs, Ts, Pr;
   E_Int it_target= E_Int(It_target);
 
   E_Int isWireModel_local = 0;
-  if (isWireModel==-1){
+  if (isWireModel == -1)
+  {
     isWireModel_local=-1;
     isWireModel=0;
   }
-    
-    
 
   // gestion nombre de pass pour ID et/ou IBC
   E_Int TypeTransfert = E_Int( type_transfert );
@@ -355,7 +353,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
   E_Int   kmd, cnNfldD, nvars, meshtype, nvars_Pnt2;
 
-  if       (vartype <= 3 &&  vartype >= 1) nvars =5;
+  if       (vartype <= 3 &&  vartype >= 1) nvars = 5;
   else if  (vartype == 4) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
   else                    nvars =6;
 
@@ -1385,11 +1383,12 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
                     E_Float* xPI       = NULL;
                     E_Float* xPW       = NULL;
                     E_Float* densPtr   = NULL;
-                    if ( ibc == 1 ) {
-		      xPC     = ptrCoefs + nbInterpD;
-		      xPI     = ptrCoefs + nbInterpD + 3 * nbRcvPts;
-		      xPW     = ptrCoefs + nbInterpD + 6 * nbRcvPts;
-		      densPtr = ptrCoefs + nbInterpD + 9 * nbRcvPts;
+                    if ( ibc == 1 ) 
+                    {
+                      xPC     = ptrCoefs + nbInterpD;
+                      xPI     = ptrCoefs + nbInterpD + 3 * nbRcvPts;
+                      xPW     = ptrCoefs + nbInterpD + 6 * nbRcvPts;
+                      densPtr = ptrCoefs + nbInterpD + 9 * nbRcvPts;
                     }
 
                     E_Int ideb        = 0;

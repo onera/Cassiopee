@@ -95,24 +95,152 @@ static void RasterizeTriangle(uint8_t *dest, int destWidth, const int *t0, const
       SetPixel(dest, destWidth, j, t0[1] + i, color);
   }
 }
+
+// Rasterize triangle with a different color for each vertex (field)
+static void RasterizeTriangle2(uint8_t *dest, int destWidth, const int *t0, const int *t1, const int *t2, 
+                               uint8_t *colorv0, uint8_t *colorv1, uint8_t* colorv2)
+{
+  //printf("rastering triangle : u0=%d v0=%d\n", t0[0], t0[1]);
+  //printf("rastering triangle : u1=%d v1=%d\n", t1[0], t1[1]);
+  //printf("rastering triangle : u2=%d v2=%d\n", t2[0], t2[1]);
+  
+  if (t0[1] > t1[1]) { std::swap(t0, t1); std::swap(colorv0, colorv1); }
+  if (t0[1] > t2[1]) { std::swap(t0, t2); std::swap(colorv0, colorv2); }
+  if (t1[1] > t2[1]) { std::swap(t1, t2); std::swap(colorv1, colorv2); }
+
+  //printf("after rastering triangle : u0=%d v0=%d\n", t0[0], t0[1]);
+  //printf("after rastering triangle : u1=%d v1=%d\n", t1[0], t1[1]);
+  //printf("after rastering triangle : u2=%d v2=%d\n", t2[0], t2[1]);
+
+  int total_height = t2[1] - t0[1];
+  int A[2], B[2];
+  uint8_t color[3];
+  E_Float u,v,r0,r1,r2,u0,u1,u2,v0,v1,v2,dd,a0,a1,a2;
+  for (int i = 0; i < total_height; i++)
+  {
+    bool second_half = i > t1[1] - t0[1] || t1[1] == t0[1];
+    int segment_height = second_half ? t2[1] - t1[1] : t1[1] - t0[1];
+    float alpha = (float)i / total_height;
+    float beta = (float)(i - (second_half ? t1[1] - t0[1] : 0)) / segment_height;
+    for (int j = 0; j < 2; j++) 
+    {
+      A[j] = int(t0[j] + (t2[j] - t0[j]) * alpha);
+      B[j] = int(second_half ? t1[j] + (t2[j] - t1[j]) * beta : t0[j] + (t1[j] - t0[j]) * beta);
+    }
+    if (A[0] > B[0]) std::swap(A, B);
+    for (int j = A[0]; j <= B[0]; j++)
+    {
+      // global pixel uv : t0[1] + i, j
+      u = j;
+      v = t0[1]+i;
+      u0 = t0[0]; u1 = t1[0]; u2 = t2[0];
+      v0 = t0[1]; v1 = t1[1]; v2 = t2[1];
+      //printf("u0=%f, v0=%f\n", u0,v0);
+      //printf("u1=%f, v1=%f\n", u1,v1);
+      //printf("u2=%f, v2=%f\n", u2,v2);
+      
+      dd = (u2-u0)*(v1-v0)-(v2-v0)*(u1-u0);
+      
+      r0 = colorv0[0]; r1 = colorv1[0]; r2 = colorv2[0];  
+      a0 = (r2-r0)*(v1-v0)-(v2-v0)*(r1-r0);
+      a0 = a0 / dd;
+      if (v1 != v0)
+      {
+        a1 = (r1-r0) - a0*(u1-u0);
+        a1 = a1 / (v1-v0);
+      }
+      else if (v2 != v0)
+      {
+        a1 = (r2-r0) - a0*(u2-u0);
+        a1 = a1 / (v2-v0);
+      }
+      else
+      {
+        a1 = (r2-r1) - a0*(u2-u1);
+        a1 = a1 / (v2-v1);
+      }
+      a2 = r0 - a0*u0 - a1*v0;
+      color[0] = int(a0*u + a1*v + a2);
+      //printf("u=%f v=%f r=%d, r0=%d r1=%d r2=%d dd=%f \n ",u,v,color[0],colorv0[0],colorv1[0],colorv2[0],dd);
+
+      r0 = colorv0[1]; r1 = colorv1[1]; r2 = colorv2[1];      
+      a0 = (r2-r0)*(v1-v0)-(v2-v0)*(r1-r0);
+      a0 = a0 / dd;
+
+      if (v1 != v0)
+      {
+        a1 = (r1-r0) - a0*(u1-u0);
+        a1 = a1 / (v1-v0);
+      }
+      else if (v2 != v0)
+      {
+        a1 = (r2-r0) - a0*(u2-u0);
+        a1 = a1 / (v2-v0);
+      }
+      else
+      {
+        a1 = (r2-r1) - a0*(u2-u1);
+        a1 = a1 / (v2-v1);
+      }
+
+      a2 = r0 - a0*u0 - a1*v0;
+      color[1] = int(a0*u + a1*v + a2);
+
+      r0 = colorv0[2]; r1 = colorv1[2]; r2 = colorv2[2];      
+      a0 = (r2-r0)*(v1-v0)-(v2-v0)*(r1-r0);
+      a0 = a0 / dd;
+      
+      if (v1 != v0)
+      {
+        a1 = (r1-r0) - a0*(u1-u0);
+        a1 = a1 / (v1-v0);
+      }
+      else if (v2 != v0)
+      {
+        a1 = (r2-r0) - a0*(u2-u0);
+        a1 = a1 / (v2-v0);
+      }
+      else
+      {
+        a1 = (r2-r1) - a0*(u2-u1);
+        a1 = a1 / (v2-v1);
+      }
+
+      a2 = r0 - a0*u0 - a1*v0;
+      color[2] = int(a0*u + a1*v + a2);
+
+      // u = (j-A[0])/(t1[0]-t0[0])
+      // v = i*1./(t1[1]-t0[1])
+      // r = u*r1 + v*r2 + (1-u-v)*r0
+      //color[0] = colorv0[0];
+      //color[1] = colorv0[1];
+      //color[2] = colorv0[2];
+      SetPixel(dest, destWidth, j, t0[1] + i, color);
+    }
+  }
+}
+
 //  public-domain code by Darel Rex Finley, 2007
 // http://alienryderflex.com/polygon_fill/
 static void RasterizePolygon(uint8_t *dest, int destWidth, int vertices[][2], const int vertexCount, const uint8_t *color)
 {
   int IMAGE_TOP = INT_MAX, IMAGE_BOT = 0, IMAGE_LEFT = INT_MAX, IMAGE_RIGHT = 0;
-  for (int i = 0; i < vertexCount; i++) {
+  for (int i = 0; i < vertexCount; i++) 
+  {
     const int *vertex = vertices[i];
     IMAGE_TOP = vertex[1] < IMAGE_TOP ? vertex[1] : IMAGE_TOP;
     IMAGE_BOT = vertex[1] > IMAGE_BOT ? vertex[1] : IMAGE_BOT;
     IMAGE_LEFT = vertex[0] < IMAGE_LEFT ? vertex[0] : IMAGE_LEFT;
     IMAGE_RIGHT = vertex[0] > IMAGE_RIGHT ? vertex[0] : IMAGE_RIGHT;
   }
-  int  nodes, nodeX[255], pixelX, pixelY, i, j, swap;
+  int nodes, nodeX[255], pixelX, pixelY, i, j, swap;
   //  Loop through the rows of the image.
-  for (pixelY=IMAGE_TOP; pixelY<IMAGE_BOT; pixelY++) {
+  for (pixelY=IMAGE_TOP; pixelY<IMAGE_BOT; pixelY++) 
+  {
     //  Build a list of nodes.
     nodes=0; j=vertexCount-1;
-    for (i=0; i<vertexCount; i++) {
+    for (i=0; i<vertexCount; i++) 
+    {
       if ((vertices[i][1]<(double)pixelY && vertices[j][1]>=(double)pixelY) || (vertices[j][1]<(double)pixelY && vertices[i][1]>=(double)pixelY))
       {
         nodeX[nodes++]=(int) (vertices[i][0]+(pixelY-vertices[i][1])/(vertices[j][1]-vertices[i][1])*(vertices[j][0]-vertices[i][0]));
@@ -121,22 +249,25 @@ static void RasterizePolygon(uint8_t *dest, int destWidth, int vertices[][2], co
     }
     //  Sort the nodes, via a simple Bubble sort.
     i=0;
-    while (i<nodes-1) {
-      if (nodeX[i]>nodeX[i+1]) {
-        swap=nodeX[i]; nodeX[i]=nodeX[i+1]; nodeX[i+1]=swap; if (i) i--; }
-      else {
+    while (i<nodes-1) 
+    {
+      if (nodeX[i]>nodeX[i+1]) 
+      {
+        swap=nodeX[i]; nodeX[i]=nodeX[i+1]; nodeX[i+1]=swap; if (i) i--; 
+      }
+      else 
+      {
         i++;
       }
     }
     //  Fill the pixels between node pairs.
-    for (i=0; i<nodes; i+=2) {
-      if (nodeX[i  ]>=IMAGE_RIGHT)
-        break;
-      if (nodeX[i+1]> IMAGE_LEFT ) {
-        if (nodeX[i  ]< IMAGE_LEFT )
-          nodeX[i  ]=IMAGE_LEFT ;
-        if (nodeX[i+1]> IMAGE_RIGHT)
-          nodeX[i+1]=IMAGE_RIGHT;
+    for (i=0; i<nodes; i+=2) 
+    {
+      if (nodeX[i  ]>=IMAGE_RIGHT) break;
+      if (nodeX[i+1]> IMAGE_LEFT ) 
+      {
+        if (nodeX[i  ]< IMAGE_LEFT) nodeX[i  ]=IMAGE_LEFT ;
+        if (nodeX[i+1]> IMAGE_RIGHT) nodeX[i+1]=IMAGE_RIGHT;
         for (pixelX=nodeX[i]; pixelX<nodeX[i+1]; pixelX++)
           SetPixel(dest, destWidth, pixelX, pixelY, color);
       }
@@ -152,7 +283,9 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float normalDeviationWeight;
   E_Float texelsPerUnit;
-  if (!PYPARSETUPLEF(args, "Odd", "Off", &array, &normalDeviationWeight, &texelsPerUnit)) return NULL;
+  PyObject* fields; // champ a sortir en rgb
+  if (!PYPARSETUPLEF(args, "OddO", "OffO", &array, &normalDeviationWeight, 
+      &texelsPerUnit, &fields)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -200,7 +333,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
-  // UV must have been added
+  // UV must have been already added
   E_Int posu = K_ARRAY::isNamePresent("u", varString);
   E_Int posv = K_ARRAY::isNamePresent("v", varString);
   if (posu == -1 || posv == -1)
@@ -212,10 +345,46 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   }
   posu++; posv++;
 
-  // Check Velocity field (optional image rgb output)
-  E_Int posvx = K_ARRAY::isNamePresent("VelocityX", varString);
-  E_Int posvy = K_ARRAY::isNamePresent("VelocityY", varString);
-  E_Int posvz = K_ARRAY::isNamePresent("VelocityZ", varString);
+  // Check fields (optional image rgb output)
+  bool exportFields = false;
+  std::vector<char*> fNames;
+  if (fields != Py_None)
+  {
+    for (int i = 0; i < PyList_Size(fields); i++) 
+    {
+      PyObject* tpl0 = PyList_GetItem(fields, i);
+      if (PyString_Check(tpl0)) 
+      {
+        char* str = PyString_AsString(tpl0);
+        fNames.push_back(str);
+      }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl0)) 
+      {
+        char* str = (char*)PyUnicode_AsUTF8(tpl0);
+        fNames.push_back(str);
+      }
+    }
+#endif
+  }
+  E_Int posvx, posvy, posvz;
+  if (fNames.size() == 0) exportFields = false;
+  if (fNames.size() >= 1)
+  {
+    posvx = K_ARRAY::isNamePresent(fNames[0], varString);
+    if (posvx >= 0) { exportFields = true; posvy = posvx; posvz = posvx; } 
+  }
+  if (fNames.size() >= 2 && exportFields)
+  {
+    posvy = K_ARRAY::isNamePresent(fNames[1], varString);
+    if (posvy >= 0) { posvz = posvy; }
+    else exportFields = false; 
+  }
+  if (fNames.size() >= 3 && exportFields)
+  {
+    posvz = K_ARRAY::isNamePresent(fNames[2], varString);
+    if (posvz < 0) exportFields = false;
+  }
 
   // Pass mesh to xatlas
   xatlas::Atlas *atlas = xatlas::Create();
@@ -284,7 +453,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   E_Float* pv = f->begin(posv);
   const xatlas::Mesh &mesh = atlas->meshes[0];
   E_Int nvertexOut = mesh.vertexCount;
-  printf("output nvertex=%d\n", mesh.vertexCount);
+  //printf("output nvertex=%d\n", mesh.vertexCount);
 
   for (E_Int i = 0; i < nvertexOut; i++)
   {
@@ -297,8 +466,14 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     //printf("vt %f %f\n", pu[i],pv[i]);
   }
 
+  //=========================
   // Export mesh with seams
-  PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nvertexOut, nelts, -1, "TRI", 0, 1, 1, api);
+  //=========================
+  PyObject* o;
+  if (exportFields)
+    o = K_ARRAY::buildArray2(8, "x,y,z,u,v,vx,vy,vz", nvertexOut, nelts, -1, "TRI", 0, 1, 1, api);
+  else 
+    o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nvertexOut, nelts, -1, "TRI", 0, 1, 1, api);
   FldArrayF* fo; FldArrayI* cno; 
   K_ARRAY::getFromArray2(o, fo, cno);
   E_Float* puo = fo->begin(4);
@@ -306,6 +481,15 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   E_Float* pxo = fo->begin(1);
   E_Float* pyo = fo->begin(2);
   E_Float* pzo = fo->begin(3);
+  E_Float* pvxo = NULL; E_Float* pvyo = NULL; E_Float* pvzo = NULL;
+  E_Float* pvx = NULL; E_Float* pvy = NULL; E_Float* pvz = NULL;
+
+  if (exportFields)
+  {
+    pvxo = fo->begin(6); pvx = f->begin(posvx+1);
+    pvyo = fo->begin(7); pvy = f->begin(posvy+1);
+    pvzo = fo->begin(8); pvz = f->begin(posvz+1);
+  }
   for (E_Int i = 0; i < nvertexOut; i++)
   {
     const xatlas::Vertex &vertex = mesh.vertexArray[i];
@@ -315,6 +499,12 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     pzo[i] = pz[iref];
     puo[i] = vertex.uv[0] / atlas->width;
     pvo[i] = vertex.uv[1] / atlas->height;
+    if (exportFields)
+    {
+      pvxo[i] = pvx[iref];
+      pvyo[i] = pvy[iref];
+      pvzo[i] = pvz[iref];
+    }
   }
   uint32_t currentIndex = 0;
   for (E_Int i = 0; i < cn->getSize(); i++)
@@ -325,12 +515,28 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     }
   }
   
-  PyObject* tpl = PyList_New(0);   
+  PyObject* tpl = PyList_New(0);
   PyList_Append(tpl, o); Py_DECREF(o);
 
   if (atlas->width <= 0 || atlas->height <= 0) return tpl; 
 
-  // export Image as array
+  // si la vitesse est presente, on calcule le max de la norme
+  E_Float vmax = 0.;
+  E_Float dx, dy, dz;
+  if (exportFields)
+  { 
+    for (E_Int i = 0; i < nvertex; i++)
+    {
+      dx = pvx[i]; dy = pvy[i]; dz = pvz[i];
+      vmax = std::max(vmax, dx*dx+dy*dy+dz*dz);
+    }
+    vmax = sqrt(vmax);
+    vmax = std::max(vmax, 1.e-12);
+  }
+
+  //===============================
+  // export Texture Image as array
+  //===============================
   printf("Rasterizing result...\n");
   std::vector<uint8_t> outputTrisImage, outputChartsImage, outputBumpImage, outputFieldImage;
   const uint32_t imageDataSize = atlas->width * atlas->height * 3;
@@ -339,14 +545,17 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   outputBumpImage.resize(atlas->atlasCount * imageDataSize);
   //const xatlas::Mesh &mesh = atlas->meshes[0];
 
-  // Rasterize mesh triangles in Image
+  // Rasterize mesh triangles/polygons in Image
   const uint8_t white[] = { 255, 255, 255 };
   auto faceCount = (const uint32_t)nelts;
   uint32_t faceFirstIndex = 0;
+  int verts[255][2];
+  uint8_t color[3];
+  uint8_t color0[3]; uint8_t color1[3]; uint8_t color2[3];
+  
   for (uint32_t f = 0; f < faceCount; f++)
   {
     int32_t atlasIndex = -1;
-    int verts[255][2];
     const uint32_t faceVertexCount = nf;
     for (uint32_t j = 0; j < faceVertexCount; j++) 
     {
@@ -356,19 +565,46 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       verts[j][1] = int(v.uv[1]);
     }
     if (atlasIndex < 0) continue; // Skip faces that weren't atlased.
-    uint8_t color[3];
     RandomColor(color);
     uint8_t *imageData = &outputTrisImage[atlasIndex * imageDataSize];
-    if (faceVertexCount == 3)
-      RasterizeTriangle(imageData, atlas->width, verts[0], verts[1], verts[2], color);
+    if (exportFields)
+    {
+      // attention, only triangle for now
+      const xatlas::Vertex &v0 = mesh.vertexArray[mesh.indexArray[faceFirstIndex + 0]];
+      const xatlas::Vertex &v1 = mesh.vertexArray[mesh.indexArray[faceFirstIndex + 1]];
+      const xatlas::Vertex &v2 = mesh.vertexArray[mesh.indexArray[faceFirstIndex + 2]];
+      E_Int i0 = v0.xref;
+      E_Int i1 = v1.xref;
+      E_Int i2 = v2.xref;
+
+      color0[0] = int(255*pvx[i0]/vmax);
+      color0[1] = int(255*pvy[i0]/vmax);
+      color0[2] = int(255*pvz[i0]/vmax);
+      color1[0] = int(255*pvx[i1]/vmax); 
+      color1[1] = int(255*pvy[i1]/vmax);
+      color1[2] = int(255*pvz[i1]/vmax);
+      color2[0] = int(255*pvx[i2]/vmax); 
+      color2[1] = int(255*pvy[i2]/vmax);
+      color2[2] = int(255*pvz[i2]/vmax);
+
+      if (faceVertexCount == 3)
+        RasterizeTriangle2(imageData, atlas->width, verts[0], verts[1], verts[2], color0, color1, color2);
+    }
     else
-      RasterizePolygon(imageData, atlas->width, verts, (int)faceVertexCount, color);
-    for (uint32_t j = 0; j < faceVertexCount; j++)
-      RasterizeLine(imageData, atlas->width, verts[j], verts[(j + 1) % faceVertexCount], white);
+    {
+      if (faceVertexCount == 3)
+        RasterizeTriangle(imageData, atlas->width, verts[0], verts[1], verts[2], color);
+      else
+        RasterizePolygon(imageData, atlas->width, verts, (int)faceVertexCount, color);
+      for (uint32_t j = 0; j < faceVertexCount; j++)
+        RasterizeLine(imageData, atlas->width, verts[j], verts[(j + 1) % faceVertexCount], white);
+    }
     faceFirstIndex += faceVertexCount;
   }
 
-  // Rasterize mesh triangles in Bump
+  //============================================
+  // Rasterize mesh triangles in Bumpmap image
+  //============================================
   faceFirstIndex = 0;
   for (uint32_t f = 0; f < faceCount; f++)
   {

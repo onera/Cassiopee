@@ -505,7 +505,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* vyPtr    = densPtr + 3*nbRcvPts; 
   E_Float* vzPtr    = densPtr + 4*nbRcvPts;
   
-
   E_Float* utauPtr = NULL;
   E_Float* yplusPtr = NULL;
   E_Float* kcurvPtr = NULL;

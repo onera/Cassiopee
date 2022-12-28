@@ -441,16 +441,16 @@ def _smooth(a, eps, niter):
     C._TZGC(a, 'nodes', Geom.smooth, eps, niter)
     return None
 
-def getUV(a, normalDeviationWeight=2., texelsPerUnit=0.):
+def getUV(a, normalDeviationWeight=2., texelsPerUnit=0., fields=None):
     """Return uv of surface and atlas."""
     b = Internal.getZones(a)[0] # only first zone for now
     array = C.getFields('nodes', b, api=2)[0]
-    ret = Geom.getUV(array, normalDeviationWeight, texelsPerUnit)
+    ret = Geom.getUV(array, normalDeviationWeight, texelsPerUnit, fields)
     z0 = C.convertArrays2ZoneNode(b[0], [ret[0]])
     z1 = C.convertArrays2ZoneNode('colorAtlas', [ret[1]])
     z2 = C.convertArrays2ZoneNode('bumpAtlas', [ret[2]])
     if len(ret) > 3: z3 = C.convertArrays2ZoneNode('speedAtlas', [ret[3]])
-    return z0,z1,z2
+    return z0, z1, z2
     
     
 

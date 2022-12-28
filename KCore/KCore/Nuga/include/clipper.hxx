@@ -36,7 +36,7 @@ namespace NUGA
       std::map<K_MESH::Edge, std::vector<int>> w_E2ids;
       bool do_compress = false;
       //
-      for (size_t e = 0; e < cnt.cols(); ++e)
+      for (E_Int e = 0; e < cnt.cols(); ++e)
       {
         auto ee = K_MESH::Edge(cnt(0, e), cnt(1, e));
         auto oee = K_MESH::Edge(cnt(1, e), cnt(0, e));
@@ -78,7 +78,7 @@ namespace NUGA
       DELAUNAY::Triangulator dt;
       bool is_in = true;
       //
-      for (size_t k = id_start; k < crd2D.cols(); ++k)
+      for (E_Int k = id_start; k < crd2D.cols(); ++k)
       {
         if (k < xedge.size() && xedge[k].first != IDX_NONE)
         {
@@ -95,7 +95,7 @@ namespace NUGA
       bool do_compress = false;
       keep.resize(cnt.cols(), true);
       //
-      for (size_t k = 0; k < cnt.cols(); ++k)
+      for (E_Int k = 0; k < cnt.cols(); ++k)
       {
         auto pK = cnt.col(k);
         keep[k] = (w_keep[*pK] && w_keep[*(pK + 1)]);
@@ -570,7 +570,7 @@ namespace NUGA
         }
         if (do_compact)
         {
-          E_Int nb_edgesi = cnt.cols();
+          //E_Int nb_edgesi = cnt.cols();
           K_FLD::IntArray::compact(cnt, keep, new_edge_ids);
         }
       }
@@ -1018,7 +1018,7 @@ namespace NUGA
       bits.reserve(nbits);
       std::move(ALL(crd_res), std::back_inserter(bits));
       // pass the history
-      for (size_t k = 0; k < nbits; ++k)
+      for (E_Int k = 0; k < nbits; ++k)
       {
         assert(poids_res[k].size() == bits[k].m_crd.cols());
         bits[k].m_poids = poids_res[k];

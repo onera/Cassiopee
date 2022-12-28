@@ -268,7 +268,6 @@ E_Int K_IO::GenIO::pngwrite(
   vector<char*>& zoneNames)
 {
   if (structField.size() == 0) return 0;
-  printf("%s\n", varString);
   E_Int posR = K_ARRAY::isNamePresent((char*)"r", varString);
   if (posR == -1) posR = K_ARRAY::isNamePresent((char*)"R", varString);
   E_Int posG = K_ARRAY::isNamePresent((char*)"g", varString);

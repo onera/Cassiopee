@@ -240,7 +240,6 @@ namespace NUGA
     {
       const double* ae1G = ae1.get_centroid();
       E_Int nfronts = front.ncells();
-
       assert (nfronts);
 
       E_Int sign(0);
@@ -410,7 +409,7 @@ namespace NUGA
       DELAUNAY::Triangulator dt;
 
       bool is_in{ false };
-      for (size_t k = 0; k < ae1_2D.m_crd.cols(); ++k)
+      for (E_Int k = 0; k < ae1_2D.m_crd.cols(); ++k)
       {
         const double * P = ae1_2D.m_crd.col(k);
         // if P is in ae1, ae0 is a piece of ae1
@@ -422,7 +421,7 @@ namespace NUGA
       if (is_in) return IN;
 
       is_in = false;
-      for (size_t k = 0; k < ae2_2D.m_crd.cols(); ++k)
+      for (E_Int k = 0; k < ae2_2D.m_crd.cols(); ++k)
       {
         const double * P = ae2_2D.m_crd.col(k);
         // if P is in ae1, ae0 is a piece of ae1

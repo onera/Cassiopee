@@ -5106,7 +5106,7 @@ def getBCDataSetContainers(name, z):
     containers = []
     dims = getZoneDim(z)
     if dims[0] == 'Unstructured': 
-        print('Internal: getBCDataSetContainers not yet implemented for unstructured zones.')
+        print('Warning: Internal: getBCDataSetContainers not yet implemented for unstructured zones.')
         return None
 
     if name == __GridCoordinates__: return None

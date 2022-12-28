@@ -48,10 +48,12 @@ bool dirExist(char* path)
   return (info.st_mode & S_IFDIR) != 0;
 #endif
 }
+
 // return 0: ok, 1: FAILED
 E_Int createDir(char* path)
 {
-  if (dirExist(path) == true) return 0;
+  if (dirExist(path) == true) 
+  { printf("exists : %s\n", path); return 0; }
 #if defined(_WIN32)
   int ret = _mkdir(path);
 #else
@@ -61,6 +63,7 @@ E_Int createDir(char* path)
   if (ret != 0) return 1;
   return 0;
 }
+
 // create a directory structure for foam
 // return 0: OK, 1:FAILED
 E_Int createSimpleFoamStructure(char* path)
@@ -182,6 +185,7 @@ E_Int K_IO::GenIO::foamWritePoints(char* file, FldArrayF& f)
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
   fprintf(ptrFile, "    class       vectorField;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      points;\n");
@@ -201,7 +205,7 @@ E_Int K_IO::GenIO::foamWritePoints(char* file, FldArrayF& f)
 
   for (E_Int i = 0; i < npts; i++)
   {
-    fprintf(ptrFile, "(17.18%g 17.18%g 17.18%g)\n", x[i], y[i], z[i]);
+    fprintf(ptrFile, "(%.18g %.18g %.18g)\n", x[i], y[i], z[i]);
   }
   fprintf(ptrFile, ")\n");
   fclose(ptrFile);
@@ -276,6 +280,7 @@ E_Int K_IO::GenIO::foamWriteFaces(char* file, FldArrayI& cn)
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
   fprintf(ptrFile, "    class       vectorField;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      faces;\n");
@@ -288,8 +293,14 @@ E_Int K_IO::GenIO::foamWriteFaces(char* file, FldArrayI& cn)
 
   for (E_Int i = 0; i < nfaces; i++)
   {
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "%ld(", cnp[0]);
+    for (E_Int i = 1; i <= cnp[0]; i++) fprintf(ptrFile, "%ld ", cnp[i]-1);
+    fprintf(ptrFile, ")\n");
+#else
     fprintf(ptrFile, "%d(", cnp[0]);
-    for (E_Int i = 1; i <= cnp[0]; i++) fprintf(ptrFile, "%d ", cnp[i]);
+    for (E_Int i = 1; i <= cnp[0]; i++) fprintf(ptrFile, "%d ", cnp[i]-1);
+#endif
     fprintf(ptrFile, ")\n");
     cnp += cnp[0]+1;
   }
@@ -339,7 +350,7 @@ E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
     sizeNGon += nf+1;
   }
   KFSEEK(ptrFile, fpos, SEEK_SET);
-  printf("sizeNGon=%d\n", sizeNGon); 
+  //printf("sizeNGon=%d\n", sizeNGon); 
   
   cn.malloc(sizeNGon);
   E_Int* cnp = cn.begin();
@@ -378,25 +389,30 @@ E_Int K_IO::GenIO::foamWriteOwner(char* file, FldArrayI& PE)
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
   fprintf(ptrFile, "    class       vectorField;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      owner;\n");
   fprintf(ptrFile, "}\n");
 
   E_Int nfaces = PE.getSize();
+#ifdef E_DOUBLEINT
+  fprintf(ptrFile, "%ld\n", nfaces);
+#else
   fprintf(ptrFile, "%d\n", nfaces);
+#endif
   fprintf(ptrFile, "(\n");
 
   E_Int c = 0; E_Int val;
   for (E_Int i = 0; i < nfaces; i++)
   {
     val = PE(i,1);
-    if (val == 0) val = -1;
-    fprintf(ptrFile, "%d ", val);
-    if (c > 10)
-    {
-      fprintf(ptrFile, "\n"); c = 0;
-    }
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "%ld ", val-1);
+#else
+    fprintf(ptrFile, "%d ", val-1);
+#endif
+    //if (c > 10) { fprintf(ptrFile, "\n"); c = 0; }
     c += 1;
   }
   fprintf(ptrFile, ")\n");
@@ -432,9 +448,9 @@ E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
   // Readint in buf
   E_Int nfaces; E_Int val;
   E_Int pos=0;
-  printf("buf=%s\n", buf);
+  //printf("buf=%s\n", buf);
   readInt(buf, 1024, pos, nfaces);
-  printf("nfaces=%d\n", nfaces);
+  //printf("nfaces=%d\n", nfaces);
 
   skipLine(ptrFile);
   
@@ -459,13 +475,18 @@ E_Int K_IO::GenIO::foamWriteNeighbour(char* file, FldArrayI& PE)
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
   fprintf(ptrFile, "    class       vectorField;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      neighbour;\n");
   fprintf(ptrFile, "}\n");
 
   E_Int nfaces = PE.getSize();
+#ifdef E_DOUBLEINT
+  fprintf(ptrFile, "%ld\n", nfaces);
+#else
   fprintf(ptrFile, "%d\n", nfaces);
+#endif
   fprintf(ptrFile, "(\n");
 
   // Count internal faces
@@ -482,11 +503,12 @@ E_Int K_IO::GenIO::foamWriteNeighbour(char* file, FldArrayI& PE)
     val1 = PE(i,1); val2 = PE(i,2);
     if (val1 > 0 && val2 > 0)
     {
-      fprintf(ptrFile, "%d ", val2);
-      if (c > 10)
-      {
-        fprintf(ptrFile, "\n"); c = 0;
-      }
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "%ld ", val2+1);
+#else
+      fprintf(ptrFile, "%d ", val2+1);
+#endif
+      //if (c > 10) { fprintf(ptrFile, "\n"); c = 0; }
       c += 1;
     }
   }
@@ -523,9 +545,9 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
   // Readint in buf
   E_Int nfaces; E_Int val;
   E_Int pos=0;
-  printf("buf=%s\n", buf);
+  //printf("buf=%s\n", buf);
   readInt(buf, 1024, pos, nfaces);
-  printf("nfaces=%d\n", nfaces);
+  //printf("nfaces=%d\n", nfaces);
 
   skipLine(ptrFile);
 
@@ -541,6 +563,7 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
   }
   return 0;
 }
+
 //=============================================================================
 // Write to open foam format
 //=============================================================================
@@ -554,7 +577,6 @@ E_Int K_IO::GenIO::foamwrite(
   vector<char*>& zoneNames,
   PyObject* BCFaces)
 {
-
   createSimpleFoamStructure(file);
 
   E_Int nzone = unstructField.size();
@@ -622,7 +644,7 @@ E_Int K_IO::GenIO::foamwrite(
       else facesp2[face] = i+1;
     }
     ptrNF += nf+1;
-	}
+  }
 
   foamWritePoints(file, field);
   foamWriteFaces(file, cn);
