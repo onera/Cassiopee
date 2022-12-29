@@ -11,32 +11,46 @@ WIDGETS = {}; VARS = []
 
 #==============================================================================
 def setShadow(event=None):
-    if VARS[1].get() == '1': CPlot.setState(shadow=1)
-    else: CPlot.setState(shadow=0)
+    if VARS[1].get() == '1': shadow= 1 
+    else: shadow = 0 
+    CPlot.setState(shadow=shadow)
+    CPlot._addRender2PyTree(CTK.t, shadow=shadow)
 
 #==============================================================================
 def setDOF(event=None):
-    if VARS[2].get() == '1': CPlot.setState(dof=1)
-    else: CPlot.setState(dof=0)
+    if VARS[2].get() == '1': dof = 1
+    else: dof = 0 
+    CPlot.setState(dof=dof)
+    CPlot._addRender2PyTree(CTK.t, dof=dof)
 
 #==============================================================================
 def setDofPower(event=None):
     off = WIDGETS['dofPower'].get()*4./100.
     VARS[5].set('Depth of field power [%.2f].'%off)
     CPlot.setState(dofPower=off)
-    
+    CPlot._addRender2PyTree(CTK.t, dofPower=off)
+
+#==============================================================================
+def setSharpenPower(event=None):
+    off = WIDGETS['sharpenPower'].get()*2./100.
+    VARS[5].set('Sharpen power [%.2f].'%off)
+    CPlot.setState(sharpenPower=off)
+    CPlot._addRender2PyTree(CTK.t, sharpenPower=off)
+
 #==============================================================================
 def setLightOffsetX(event=None):
     off = WIDGETS['lightOffsetX'].get() / 50. - 1.
     VARS[3].set('Light offset in x [%.2f %%].'%off)
     CPlot.setState(lightOffset=(off, -999))
+    CPlot._addRender2PyTree(CTK.t, lightOffsetX=off)
 
 #==============================================================================
 def setLightOffsetY(event=None):
     off = WIDGETS['lightOffsetY'].get() / 50.
     VARS[4].set('Light offset in y [%.2f %%].'%off)
     CPlot.setState(lightOffset=(-999, off))
-    
+    CPlot._addRender2PyTree(CTK.t, lightOffsetY=off)
+
 #==============================================================================
 def setViewAngle(event=None):
     angle = VARS[0].get()
@@ -48,6 +62,7 @@ def setGammaCorrection(event=None):
     off = WIDGETS['gammaCorrection'].get()*2.5/100.
     VARS[6].set('Gamma correction [%.2f].'%off)
     CPlot.setState(gamma=off)
+    CPlot._addRender2PyTree(CTK.t, gamma=off)
 
 #==============================================================================
 def setToneMapping(event=None):
@@ -58,6 +73,7 @@ def setToneMapping(event=None):
     elif ntype == 'Filmic': rtype = 2
     elif ntype == 'Uchimura': rtype = 3
     CPlot.setState(toneMapping=rtype)
+    CPlot._addRender2PyTree(CTK.t, tone=rtype)
 
 #==============================================================================
 # Create app widgets
@@ -104,7 +120,9 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Gamma correction.'); VARS.append(V)
     # -7- Type of tone mapping
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
-
+    # -8- Sharpen info bulle
+    V = TK.StringVar(win); V.set('Sharpen power.'); VARS.append(V)
+    
     # - Camera angle -
     B = TTK.Button(Frame, text="Cam angle", command=setViewAngle)
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
@@ -122,14 +140,14 @@ def createApp(win):
     
     # - Light offset X -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-                  borderwidth=1, command=setLightOffsetX, value=55)
+                  borderwidth=1, command=setLightOffsetX, value=50)
     WIDGETS['lightOffsetX'] = B
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[3])
     
     # - Light offset Y -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-                  borderwidth=1, command=setLightOffsetY, value=25)
+                  borderwidth=1, command=setLightOffsetY, value=0)
     WIDGETS['lightOffsetY'] = B
     B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[4])
@@ -138,7 +156,6 @@ def createApp(win):
     B = TTK.Checkbutton(Frame, text='Post', variable=VARS[2], command=setDOF)
     BB = CTK.infoBulle(parent=B, text='Toggle image post processing (depth of field blur/gamma correction/tone mapping).')
     B.grid(row=2, column=0, sticky=TK.EW)
-    
 
     # - Tone mapping -
     B = TTK.OptionMenu(Frame, VARS[7], 'None', 'ACE', 'Filmic', 'Uchimura', command=setToneMapping)
@@ -162,6 +179,19 @@ def createApp(win):
     WIDGETS['dofPower'] = B
     B.grid(row=3, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[5])
+
+    # - Sharpen -
+    B = TTK.Label(Frame, text='Sharp')
+    BB = CTK.infoBulle(parent=B, text='Sharpen image.')
+    B.grid(row=4, column=0, sticky=TK.EW)
+        
+    # - Sharpen power -
+    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
+                  borderwidth=1, command=setSharpenPower, value=0)
+    WIDGETS['sharpenPower'] = B
+    B.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, textVariable=VARS[8])
+
     
 #==============================================================================
 # Called to display widgets

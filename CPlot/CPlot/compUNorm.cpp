@@ -100,12 +100,32 @@
 //=============================================================================
 /* 
    Calcul les normales pour chaque noeud d'une zone non-structuree.
+   Si nx,ny,nz present en noeuds, on les choisit.
    Allocate zone->surf.
    Warning: les normales ne sont pas necessairement exterieures.
 */
 //=============================================================================
 void UnstructZone::compNorm()
 {
+
+  // Detecte si les normales sont presentes aux noeuds dans les champs
+  E_Float* pnx = NULL; E_Float* pny = NULL; E_Float* pnz = NULL; 
+  for (E_Int nv = 0; nv < nfield; nv++)
+  {
+    if (strcmp(varnames[nv], "nx") == 0) pnx = f[nv];
+    if (strcmp(varnames[nv], "ny") == 0) pny = f[nv];
+    if (strcmp(varnames[nv], "nz") == 0) pnz = f[nv];
+  }
+  if (pnx != NULL && pny != NULL && pnz != NULL)
+  {
+    surf = new float[np * 3];
+    for (E_Int i = 0; i < np; i++) surf[i] = pnx[i];
+    for (E_Int i = 0; i < np; i++) surf[i+np] = pny[i];
+    for (E_Int i = 0; i < np; i++) surf[i+2*np] = pnz[i];
+    return;
+  }
+
+  // Calcule les normales
   E_Int i, n1, n2, n3, n4;
   double x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3;
   double vx1, vy1, vz1, vx2, vy2, vz2, vx, vy, vz;

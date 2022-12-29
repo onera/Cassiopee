@@ -416,6 +416,38 @@ def loadSlot():
         for i in pos[2]: out.append(Internal.getValue(i)) #; out += [1,1]
         CPlot.setState(billBoards=out, billBoardSize=0.8)
         
+    pos = Internal.getNodeFromName1(slot, 'dof')
+    if pos is not None:
+        CPlot.setState(dof=Internal.getValue(pos))
+
+    pos = Internal.getNodeFromName1(slot, 'tone')
+    if pos is not None:
+        CPlot.setState(toneMapping=Internal.getValue(pos))
+
+    pos = Internal.getNodeFromName1(slot, 'gamma')
+    if pos is not None:
+        CPlot.setState(gamma=Internal.getValue(pos))
+
+    pos = Internal.getNodeFromName1(slot, 'shadow')
+    if pos is not None:
+        CPlot.setState(shadow=Internal.getValue(pos))
+
+    pos = Internal.getNodeFromName1(slot, 'lightOffsetX')
+    if pos is not None:
+        CPlot.setState(lightOffset=(Internal.getValue(pos),-999))
+
+    pos = Internal.getNodeFromName1(slot, 'lightOffsetY')
+    if pos is not None:
+        CPlot.setState(lightOffset=(-999,Internal.getValue(pos)))
+
+    pos = Internal.getNodeFromName1(slot, 'dofPower')
+    if pos is not None:
+        CPlot.setState(dofPower=Internal.getValue(pos))
+
+    pos = Internal.getNodeFromName1(slot, 'sharpenPower')
+    if pos is not None:
+        CPlot.setState(sharpenPower=Internal.getValue(pos))
+
     CTK.TXT.insert('START', 'Slot loaded.\n')
 
 #==============================================================================

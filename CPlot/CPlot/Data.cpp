@@ -294,14 +294,16 @@ void Data::initState()
   ptrState->stereoDist = 1./30.;
 
   // Post-processing
-  ptrState->lightOffsetX = +0.1; // entre -1 et 1
-  ptrState->lightOffsetY = 0.5; // entre 0 et 5
+  ptrState->lightOffsetX = 0.; // entre -1 et 1
+  ptrState->lightOffsetY = 0.; // entre 0 et 5
   ptrState->DOF = 0;
   ptrState->shadow = 0;
   ptrState->dofPower = 0.; // inactif par defaut
   ptrState->gamma = 1.; // inactif par defaut
   ptrState->toneMapping = 0; // rien par defaut
   ptrState->sobelThreshold = -0.5; // inactif par defaut
+  ptrState->sharpenPower = -0.5; // inactif par defaut
+  ptrState->ssaoPower = -0.5; // inactif par defaut
 
   strcpy(ptrState->winTitle, "CPlot - array/pyTree display");
   strcpy(ptrState->file, "tmp");

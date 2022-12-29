@@ -70,7 +70,9 @@ void Data::displayFrameTex(E_Int mode, double sobelThreshold)
     _shaders[shader]->setUniform("ext", (float)1.);
     _shaders[shader]->setUniform("toneMapping", (int)ptrState->toneMapping);
     _shaders[shader]->setUniform("gamma", (float)ptrState->gamma);
-    _shaders[shader]->setUniform("sobelThreshold", (float)sobelThreshold); 
+    _shaders[shader]->setUniform("sobelThreshold", (float)sobelThreshold);
+    _shaders[shader]->setUniform("sharpenCoeff", (float)ptrState->sharpenPower);
+    _shaders[shader]->setUniform("ssaoRadius", (float)ptrState->ssaoPower);
   }
 #endif
 

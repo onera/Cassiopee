@@ -130,7 +130,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
           E_Int npts = data1.size()/3;
           FldArrayF* f;
           if (coordCreated) f = unstructField[blockId];
-          else { f = new FldArrayF(npts, 5); unstructField.push_back(f); f->setAllValuesAtNull(); coordCreated = true; }
+          else { f = new FldArrayF(npts, 8); unstructField.push_back(f); f->setAllValuesAtNull(); coordCreated = true; }
           E_Float* fx = f->begin(1);
           E_Float* fy = f->begin(2);
           E_Float* fz = f->begin(3);
@@ -151,7 +151,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
           E_Int npts = data1.size()/2;
           FldArrayF* f;
           if (coordCreated) f = unstructField[blockId];
-          else { f = new FldArrayF(npts, 5); unstructField.push_back(f); f->setAllValuesAtNull(); coordCreated = true; }
+          else { f = new FldArrayF(npts, 8); unstructField.push_back(f); f->setAllValuesAtNull(); coordCreated = true; }
           E_Float* u = f->begin(4);
           E_Float* v = f->begin(5);
            for (E_Int i = 0; i < npts; i++)
@@ -163,6 +163,27 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
           //for (E_Int i = 0; i < data.size(); i++) 
           //  printf("%f %f\n", data[i*2+0], data[i*2+1]); 
         }
+
+        if (attr.type == cgltf_attribute_type_normal)
+        {
+          //printf("bloc %d : trouve normals\n", blockId);
+          E_Int npts = data1.size()/3;
+          FldArrayF* f;
+          if (coordCreated) f = unstructField[blockId];
+          else { f = new FldArrayF(npts, 8); unstructField.push_back(f); f->setAllValuesAtNull(); coordCreated = true; }
+          E_Float* nx = f->begin(6);
+          E_Float* ny = f->begin(7);
+          E_Float* nz = f->begin(8);
+        
+          for (E_Int i = 0; i < npts; i++)
+          {
+            //printf("%f %f\n", data[i*3+0], data[i*3+1]);
+            nx[i] = data1[i*3+0];
+            ny[i] = data1[i*3+1];
+            nz[i] = data1[i*3+2];
+          }
+        }
+
       }
    
       // morph target
@@ -229,8 +250,10 @@ E_Int K_IO::GenIO::gltfread(
     sprintf(zoneName, "Zone%d", i);
     zoneNames.push_back(zoneName);
   }
-  varString = new char [11];
-  strcpy(varString, "x,y,z,u,v");
+  varString = new char [20];
+  strcpy(varString, "x,y,z,u,v,nx,ny,nz");
+  //varString = new char [11];
+  //strcpy(varString, "x,y,z,u,v");
 
   return 0;
 }

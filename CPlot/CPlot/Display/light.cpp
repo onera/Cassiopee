@@ -78,9 +78,14 @@ void Data::light(E_Int type)
   // x,y,z sont la direction
 #ifdef __SHADERS__
   // Position fixe dans le repere entraine (pour le shader)
-  GLfloat position[] = { 0., 0., 0., 0.0 };
+  //GLfloat position[] = { 0., 0., 0., 0.0 };
   //printf("light updated %f %f\n", ptrState->lightOffsetX*10,ptrState->lightOffsetY*100);
-  //GLfloat position[] = { ptrState->lightOffsetX*1000., ptrState->lightOffsetY*1000., 0., 0.0 };
+  float r = (_view.xcam-_view.xeye)*(_view.xcam-_view.xeye)+(_view.ycam-_view.yeye)*(_view.ycam-_view.yeye)+(_view.zcam-_view.zeye)*(_view.zcam-_view.zeye);
+  r = sqrt(r)*3.14/2.;
+  float xl = ptrState->lightOffsetX * r ;
+  float yl = ptrState->lightOffsetY * r / 5.;
+  float zl = ptrState->lightOffsetY * r / 5.;
+  GLfloat position[] = { xl, yl, zl, 0.0 };
 #else
   // Position dependant de la BB
   //GLfloat position[] = { (xmin+xmax)*0.5, ymin-2., zmax+2., 0.0 };

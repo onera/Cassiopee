@@ -234,7 +234,9 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
     z.shaderParam2 = 1.;
   }
 
-  z.surf = NULL; z.compNorm();
+  // Calcul les normales
+  z.surf = NULL; 
+  z.compNorm();
 
   z.activePlane = 0;
   z.iPlane = -1;

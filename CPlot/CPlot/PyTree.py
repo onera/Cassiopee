@@ -269,6 +269,8 @@ def setState(dim=-1,
              gamma=-1,
              toneMapping=-1,
              sobelThreshold=-1,
+             sharpenPower=-1,
+             ssaoPower=-1,
              ghostifyDeactivatedZones=-1,
              edgifyActivatedZones=-1,
              edgifyDeactivatedZones=-1,
@@ -298,7 +300,8 @@ def setState(dim=-1,
                    niso, isoEdges, isoScales, win,
                    posCam, posEye, dirCam, viewAngle, lightOffset,
                    bgColor, backgroundFile, 
-                   shadow, dof, dofPower, gamma, toneMapping, sobelThreshold,
+                   shadow, dof, dofPower, gamma, toneMapping, 
+                   sobelThreshold, sharpenPower, ssaoPower,
                    ghostifyDeactivatedZones, edgifyActivatedZones,
                    edgifyDeactivatedZones,
                    export, exportResolution, continuousExport,
@@ -679,7 +682,10 @@ def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None, isoLegend=None,
                      colormap=None, colormapC1=None, colormapC2=None, colormapC3=None, colormapC=None,
-                     materials=None, bumpMaps=None, billBoards=None):
+                     materials=None, bumpMaps=None, billBoards=None,
+                     shadow=None, lightOffsetX=None, lightOffsetY=None,
+                     dof=None, tone=None, gamma=None, dofPower=None,
+                     sharpenPower=None, ssaoPower=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, slot, renderInfo)"""
   a = Internal.copyRef(t)
@@ -687,14 +693,20 @@ def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
                     mode, scalarField, niso, isoScales,
                     isoEdges, isoLight, isoLegend,
                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                    materials, bumpMaps, billBoards)
+                    materials, bumpMaps, billBoards,
+                    shadow, lightOffsetX, lightOffsetY,
+                    dof, tone, gamma, dofPower,
+                    sharpenPower, ssaoPower)
   return a
 
 def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None, isoLegend=None,
                      colormap=None, colormapC1=None, colormapC2=None, colormapC3=None, colormapC=None,
-                     materials=None, bumpMaps=None, billBoards=None):
+                     materials=None, bumpMaps=None, billBoards=None,
+                     shadow=None, lightOffsetX=None, lightOffsetY=None,
+                     dof=None, tone=None, gamma=None, dofPower=None,
+                     sharpenPower=None, ssaoPower=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, renderInfo)"""
   if a[3] != 'CGNSTree_t': return None
@@ -791,6 +803,34 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
       if i not in prevValues: li.append(i)
     for c, f in enumerate(li):
         Internal._createUniqueChild(rt, 'file%d'%(c+cnt), 'DataArray_t', value=f)
+
+  if shadow is not None:
+    rt = Internal.createUniqueChild(sl, 'shadow', 'UserDefinedData_t', value=int(shadow))
+    
+  if lightOffsetX is not None:
+    rt = Internal.createUniqueChild(sl, 'lightOffsetX', 'UserDefinedData_t', value=lightOffsetX)
+
+  if lightOffsetY is not None:
+    rt = Internal.createUniqueChild(sl, 'lightOffsetY', 'UserDefinedData_t', value=lightOffsetY)
+    
+  if dof is not None: # dof activate general post-processing of frame buffer
+    rt = Internal.createUniqueChild(sl, 'dof', 'UserDefinedData_t', value=dof)
+  
+  if tone is not None:
+    rt = Internal.createUniqueChild(sl, 'tone', 'UserDefinedData_t', value=tone)
+    
+  if gamma is not None:
+    rt = Internal.createUniqueChild(sl, 'gamma', 'UserDefinedData_t', value=gamma)
+
+  if dofPower is not None:
+    rt = Internal.createUniqueChild(sl, 'dofPower', 'UserDefinedData_t', value=dofPower)
+
+  if sharpenPower is not None:
+    rt = Internal.createUniqueChild(sl, 'sharpenPower', 'UserDefinedData_t', value=sharpenPower)
+
+  if ssaoPower is not None:
+    rt = Internal.createUniqueChild(sl, 'ssaoPower', 'UserDefinedData_t', value=ssaoPower)
+
   return None
 
 #==============================================================================

@@ -102,6 +102,12 @@ struct CPlotState {
     // Sobel threshold
     double sobelThreshold;
 
+    // Sharpen power
+    double sharpenPower;
+
+    // ssao power
+    double ssaoPower;
+    
     // Last selected zone
     E_Int selectedZone;
     // List of deactivated zones
