@@ -198,7 +198,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     textWidget.image_create(TK.INSERT, image=logoImg)
     textWidget.image = logoImg
 
-    myText = "\n\n Parts licensed under GPL3.\n Parts licensed by Onera.\n\n"
+    myText = "\n\n Parts licensed under GPL3.\n Parts licensed by ONERA.\n\n"
     textWidget.insert(TK.END, myText)
     authors = KCore.__allAuthors__
     authors = authors.split(',')

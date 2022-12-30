@@ -3,8 +3,10 @@ try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
+import Converter.Internal as Internal
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
+import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -33,7 +35,7 @@ def setDofPower(event=None):
 #==============================================================================
 def setSharpenPower(event=None):
     off = WIDGETS['sharpenPower'].get()*2./100.
-    VARS[5].set('Sharpen power [%.2f].'%off)
+    VARS[8].set('Sharpen power [%.2f].'%off)
     CPlot.setState(sharpenPower=off)
     CPlot._addRender2PyTree(CTK.t, sharpenPower=off)
 
@@ -74,6 +76,83 @@ def setToneMapping(event=None):
     elif ntype == 'Uchimura': rtype = 3
     CPlot.setState(toneMapping=rtype)
     CPlot._addRender2PyTree(CTK.t, tone=rtype)
+
+#==============================================================================
+def getData(event=None):
+    renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
+    if renderInfo is None: return
+    slot = Internal.getNodeFromName1(renderInfo, 'Slot0')
+    if slot is None: return
+
+    pos = Internal.getNodeFromName1(renderInfo, 'materials')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(materials=out)
+    pos = Internal.getNodeFromName1(renderInfo, 'bumpMaps')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(bumpMaps=out)  
+    pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i)) #; out += [1,1]
+        CPlot.setState(billBoards=out, billBoardSize=0.8)
+        
+    pos = Internal.getNodeFromName1(slot, 'dof')
+    if pos is not None:
+        dof = Internal.getValue(pos)
+        VARS[2].set(dof)
+        CPlot.setState(dof=dof)
+
+    pos = Internal.getNodeFromName1(slot, 'tone')
+    if pos is not None:
+        tone = Internal.getValue(pos)
+        if tone == 0: VARS[7].set('None')
+        elif tone == 1: VARS[7].set('ACE')
+        elif tone == 2: VARS[7].set('Filmic')
+        elif tone == 3: VARS[7].set('Uchimura')
+        CPlot.setState(toneMapping=tone)
+
+    pos = Internal.getNodeFromName1(slot, 'gamma')
+    if pos is not None:
+        gamma = Internal.getValue(pos)
+        WIDGETS['gammaCorrection'].set(100/2.5)
+        CPlot.setState(gamma=gamma)
+
+    pos = Internal.getNodeFromName1(slot, 'shadow')
+    if pos is not None:
+        shadow = Internal.getValue(pos)
+        VARS[1].set(shadow)
+        CPlot.setState(shadow=shadow)
+
+    pos = Internal.getNodeFromName1(slot, 'lightOffsetX')
+    if pos is not None:
+        val = Internal.getValue(pos)
+        WIDGETS['lightOffsetX'].set(val * 50. + 1)
+        CPlot.setState(lightOffset=(val,-999))
+
+    pos = Internal.getNodeFromName1(slot, 'lightOffsetY')
+    if pos is not None:
+        val = Internal.getValue(pos)
+        WIDGETS['lightOffsetY'].set(val * 50.)
+        CPlot.setState(lightOffset=(-999,val))
+
+    pos = Internal.getNodeFromName1(slot, 'dofPower')
+    if pos is not None:
+        dofPower = Internal.getValue(pos)
+        WIDGETS['dofPower'].set(100./4.*dofPower)
+        CPlot.setState(dofPower=dofPower)
+
+    pos = Internal.getNodeFromName1(slot, 'sharpenPower')
+    if pos is not None:
+        sharpenPower = Internal.getValue(pos)
+        WIDGETS['sharpenPower'].set(100./2.*sharpenPower)
+        
+        CPlot.setState(sharpenPower=sharpenPower)
+
+    CTK.TXT.insert('START', 'Effects data loaded.\n')
 
 #==============================================================================
 # Create app widgets
@@ -192,6 +271,11 @@ def createApp(win):
     B.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[8])
 
+    # - Get data from tree -
+    B = TTK.Button(Frame, command=getData,
+                   image=iconics.PHOTO[8], padx=0, pady=0)
+    BB = CTK.infoBulle(parent=B, text='Get data from tree.')
+    B.grid(row=4, column=2, sticky=TK.EW)
     
 #==============================================================================
 # Called to display widgets

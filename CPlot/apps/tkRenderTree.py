@@ -122,18 +122,18 @@ def createApp(win):
     B.grid(row=0, column=1, sticky=TK.EW)
     F.grid(row=0, column=0, sticky=TK.EW)
     
-    B = TTK.Button(Frame, text="Add as billboard", command=addBillboardFile)
+    B = TTK.Button(Frame, text="Set Billboards texture", command=addBillboardFile)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Add file name as billboard file to be referenced\n in Sphere material of tkRenderSet.')
-    B = TTK.Button(Frame, text="Add as Texture", command=addTextureFile)
+                       text='Add file name as image billboard file to be referenced\n in Sphere material of tkRenderSet.')
+    B = TTK.Button(Frame, text="Set Base Color texture", command=addTextureFile)
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Add file name as texture file to be referenced\n in Texmat material of tkRenderSet..')
-    B = TTK.Button(Frame, text="Add as BumpMap", command=addBumpMapFile)
+                       text='Add given file as color texture file to be referenced\n in Texmat material of tkRenderSet..')
+    B = TTK.Button(Frame, text="Set Normal map", command=addBumpMapFile)
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Add file name as bumpmap file to be referenced\n in Texmat material of tkRenderSet..')
+                       text='Add given file as normal/bumpmap file to be referenced\n in Texmat material of tkRenderSet..')
     
 #==============================================================================
 # Called to display widgets

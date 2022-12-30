@@ -18,6 +18,7 @@
 */
 #include "UnstructZone.h"
 #include "Functions.h"
+#include <string.h>
 #include <math.h>                      
 #include <stdio.h>
 
