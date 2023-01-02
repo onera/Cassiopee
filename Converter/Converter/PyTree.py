@@ -2417,7 +2417,7 @@ def _addAVar__(z, dim, var):
   return None
 
 # -- initVars: initialise une variable
-def initVars(t, varNameString, v1=[], v2=[]):
+def initVars(t, varNameString, v1=[], v2=[], mode=0):
   """Init variables defined by varNameString.
   Usage: a = initVars(array, varNameString, val)
   or
@@ -2426,7 +2426,7 @@ def initVars(t, varNameString, v1=[], v2=[]):
   _initVars(tp, varNameString, v1, v2)
   return tp
 
-def _initVars(t, varNameString, v1=[], v2=[]):
+def _initVars(t, varNameString, v1=[], v2=[], mode=0):
   s = varNameString.split('=')
   if len(s) == 1: # const/F
     loc = 'nodes'; var = varNameString
@@ -2480,13 +2480,13 @@ def _initVars(t, varNameString, v1=[], v2=[]):
   if not centerCoordNeeded:
     if v1 == []:
       _addVars(t, var)
-      return __TZA2(t, Converter._initVars, loc, varNameString, v1, v2)
+      return __TZA2(t, Converter._initVars, loc, varNameString, v1, v2, mode)
     elif callable(v1):
       _addVars(t, varNameString)
-      return __TZA2(t, Converter._initVars, loc, var, v1, v2)
+      return __TZA2(t, Converter._initVars, loc, var, v1, v2, mode)
     else:
       _addVars(t, varNameString)
-      return __TZA2(t, Converter._initVars, loc, var, v1, v2)
+      return __TZA2(t, Converter._initVars, loc, var, v1, v2, mode)
   else:
     s = varNameString.split('=')
     if len(s) == 1: # pas formule
@@ -2503,7 +2503,7 @@ def _initVars(t, varNameString, v1=[], v2=[]):
           if len(v) > 1:
             if v2[0] == 'centers' or v2[0] == 'nodes': v2[c] = v[1]
       _TZAGC(t, loc, loc, False, Converter.initVars,
-             Converter.initVars, var, v1, v2)
+             Converter.initVars, var, v1, v2, mode)
     else: # formule
       loc = 'nodes'; var = s[0]
       var = var.replace('}', '')
@@ -2513,7 +2513,7 @@ def _initVars(t, varNameString, v1=[], v2=[]):
       if len(v) > 1: 
         if v[0] == 'centers': loc = v[0]
       _TZAGC(t, loc, loc, False, Converter.initVars, 
-             Converter.initVars, varNameString, v1, v2)
+             Converter.initVars, varNameString, v1, v2, mode)
   return None
 
 # Merge BCDataSets

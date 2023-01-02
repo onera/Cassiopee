@@ -9,7 +9,6 @@
 #include "Expression/unary_operator.hpp"
 #include <algorithm>
 
-// CONTINUER ICI POUR NETTOYAGE
 namespace Expression {
     class ast::tree {
       public:
@@ -169,8 +168,7 @@ namespace Expression {
 
     void ast::eval(const std::unordered_map<std::string, vector_view<double>> &params, vector_view<double> &result) {
         auto &st = symbol_table::get();
-        for (auto &v : st)
-            v.second = symbol_table::data_t();
+        for (auto &v : st) v.second = symbol_table::data_t();
         std::size_t sz = 0;
         for (auto v : params) {
             auto &d = st.at(v.first);

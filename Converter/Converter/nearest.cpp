@@ -99,22 +99,27 @@ PyObject* K_CONVERTER::nearestNodes(PyObject* self, PyObject* args)
   E_Float* nptr2 = K_NUMPY::getNumpyPtrF(dist);
 
   // Remplissage
-  E_Int ind;
-  E_Float xf, yf, zf, d;
-  E_Float pt[3];
-  
-  for (E_Int i = 0; i < npts; i++)
+#pragma omp parallel
   {
-    xf = xp[i]; yf = yp[i]; zf = zp[i];
-    pt[0] = xf; pt[1] = yf; pt[2] = zf;
-    ind = globalKdt->getClosest(pt); // closest pt
-    d = (xt[ind]-xf)*(xt[ind]-xf)+(yt[ind]-yf)*(yt[ind]-yf)+(zt[ind]-zf)*(zt[ind]-zf);
-    nptr1[i] = ind+1;
-    nptr2[i] = sqrt(d);
+    E_Int ind;
+    E_Float xf, yf, zf, d;
+    E_Float pt[3];
+  
+#pragma omp for
+    for (E_Int i = 0; i < npts; i++)
+    {
+      xf = xp[i]; yf = yp[i]; zf = zp[i];
+      pt[0] = xf; pt[1] = yf; pt[2] = zf;
+      ind = globalKdt->getClosest(pt); // closest pt
+      d = (xt[ind]-xf)*(xt[ind]-xf)+(yt[ind]-yf)*(yt[ind]-yf)+(zt[ind]-zf)*(zt[ind]-zf);
+      nptr1[i] = ind+1;
+      nptr2[i] = sqrt(d);
+    }
   }
-  RELEASESHAREDB(res,array, f, cnl);
+
+  RELEASESHAREDB(res, array, f, cnl);
   PyObject* tpl;
-  tpl = Py_BuildValue("[OO]",ac,dist);
+  tpl = Py_BuildValue("[OO]", ac, dist);
   return tpl;
 }
 
@@ -206,49 +211,63 @@ PyObject* K_CONVERTER::nearestFaces(PyObject* self, PyObject* args)
   PyObject* dist = K_NUMPY::buildNumpyArray(nfaces, 1, 0);
   E_Float* nptr2 = K_NUMPY::getNumpyPtrF(dist);
 
-
   FldArrayI posFace; K_CONNECT::getPosFaces(*cnl, posFace);
 
-# pragma omp parallel for default(shared)
+# pragma omp parallel
+  {
+    E_Int posf, nv, indv, ind;
+    E_Int* ptrFace;
+    E_Float xf, yf, zf, inv, d;
+#ifdef QUADDOUBLE
+    E_Float qinv;
+    quad_double qxf, qyf, qzf;
+#endif
+    E_Float pt[3];
+
+#pragma omp for
   for (E_Int i = 0; i < nfaces; i++)
   {
-    E_Int posf = posFace[i];
-    E_Int* ptrFace = &ptr[posf];
-    E_Int nv = ptrFace[0];
-    E_Float xf=0.,yf=0.,zf=0.;
-    quad_double  qxf, qyf, qzf;
-    for (E_Int n = 1; n <= nv; n++)
-    {
-      E_Int indv = ptrFace[n]-1;
+    posf = posFace[i];
+    ptrFace = &ptr[posf];
+    nv = ptrFace[0];
 
 #ifdef QUADDOUBLE
+    qxf = 0.; qyf = 0.; qzf = 0.;
+    for (E_Int n = 1; n <= nv; n++)
+    {
+      indv = ptrFace[n]-1;
       qxf = qxf+quad_double(xp[indv]); 
       qyf = qyf+quad_double(yp[indv]); 
       qzf = qzf+quad_double(zp[indv]); 
-    }//loop on vertices
+    } //loop on vertices
 
-    E_Float qinv = quad_double(nv); 
+    qinv = quad_double(nv); 
     qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
     xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
 # else
+    xf = 0.; yf = 0.; zf = 0.;
+    for (E_Int n = 1; n <= nv; n++)
     {
-      #ifdef __INTEL_COMPILER
-      #pragma float_control(precise, on)
-      #endif
-      xf += xp[indv]; yf += yp[indv]; zf += zp[indv];
-    }
-    }//loop on vertices
-    E_Float inv = 1./E_Float(nv); xf *= inv; yf *= inv; zf *= inv;
+      indv = ptrFace[n]-1;
+      {
+        #ifdef __INTEL_COMPILER
+        #pragma float_control(precise, on)
+        #endif
+        xf += xp[indv]; yf += yp[indv]; zf += zp[indv];
+      }
+    } //loop on vertices
+    inv = 1./E_Float(nv); xf *= inv; yf *= inv; zf *= inv;
 #endif
 
-    E_Float pt[3];  pt[0] = xf; pt[1] = yf; pt[2] = zf;
-    E_Int ind = globalKdt->getClosest(pt); // closest pt
-    E_Float d = (xt[ind]-xf)*(xt[ind]-xf)+(yt[ind]-yf)*(yt[ind]-yf)+(zt[ind]-zf)*(zt[ind]-zf);
+    pt[0] = xf; pt[1] = yf; pt[2] = zf;
+    ind = globalKdt->getClosest(pt); // closest pt
+    d = (xt[ind]-xf)*(xt[ind]-xf)+(yt[ind]-yf)*(yt[ind]-yf)+(zt[ind]-zf)*(zt[ind]-zf);
     nptr1[i] = ind+1;
     nptr2[i] = sqrt(d);
   }
-
+  }
   RELEASESHAREDU(array, f, cnl);
+
   PyObject* tpl;
   tpl = Py_BuildValue("[OO]",ac,dist);
   return tpl;
@@ -257,7 +276,7 @@ PyObject* K_CONVERTER::nearestFaces(PyObject* self, PyObject* args)
 // ============================================================================
 /* Trouve pour les centres des elements de a le plus proche parmi les points 
    stockes dans un KdTree (hook).
-   IN: a: NGON
+   IN: a: NGON, BE
    Retourne la liste des elements. */
 // ============================================================================
 PyObject* K_CONVERTER::nearestElements(PyObject* self, PyObject* args)
@@ -340,59 +359,83 @@ PyObject* K_CONVERTER::nearestElements(PyObject* self, PyObject* args)
     FldArrayI posFace; K_CONNECT::getPosFaces(*cnl, posFace);
     FldArrayI posElt; K_CONNECT::getPosElts(*cnl, posElt);
 
-  # pragma omp parallel for default(shared)
-    for (E_Int i = 0; i < nelts; i++)
+    # pragma omp parallel
     {
-      E_Int pose = posElt[i];
-      E_Int* ptrElt = &ptr[pose];
-      E_Int nf = ptrElt[0]; 
-      E_Float xf = 0., yf = 0., zf = 0.; 
-      E_Int c = 0;
+      E_Int pose, nf, c, ind, pos, nv;
+      E_Int* ptrElt; E_Int* ptrFace;
+      E_Float xf, yf, zf, inv, d;
+      E_Float pt[3];    
+#ifdef QUADDOUBLE
+      quad_double qinv;
       quad_double qxf, qyf, qzf;
+#endif
 
-      for (E_Int n = 1; n <= nf; n++)
-      { 
-        E_Int ind = ptrElt[n]-1;
-        E_Int pos = posFace[ind];
-        E_Int* ptrFace = &ptr[pos];
-        E_Int nv = ptrFace[0];
-
-  #ifdef QUADDOUBLE
-        for (E_Int p = 1; p <= nv; p++)
-        { 
-          ind = ptrFace[p]-1; 
-          qxf = qxf+quad_double(xp[ind]); 
-          qyf = qyf+quad_double(yp[ind]); 
-          qzf = qzf+quad_double(zp[ind]); 
-          c++;
-        }
-      }
-      quad_double qinv = quad_double(c); qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
-      xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
-  #else
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
       {
-      #ifdef __INTEL_COMPILER
-      #pragma float_control(precise, on)
-      #endif
-      for (E_Int p = 1; p <= nv; p++)
-      { 
-        ind = ptrFace[p]-1; 
-        xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; c++; 
-      }
-      }
-    }
-    E_Float inv = 1./E_Float(c); xf *= inv; yf *= inv; zf *= inv;
+        pose = posElt[i];
+        ptrElt = &ptr[pose];
+        nf = ptrElt[0]; 
+        c = 0;
+#ifdef QUADDOUBLE
+        qxf = 0.; qyf = 0.; qzf = 0.;
+#else
+        xf = 0.; yf = 0.; zf = 0.;
+#endif
+
+#ifdef QUADDOUBLE
+        for (E_Int n = 1; n <= nf; n++)
+        {  
+          ind = ptrElt[n]-1;
+          pos = posFace[ind];
+          ptrFace = &ptr[pos];
+          nv = ptrFace[0];
+
+          for (E_Int p = 1; p <= nv; p++)
+          {  
+            ind = ptrFace[p]-1; 
+            qxf = qxf+quad_double(xp[ind]); 
+            qyf = qyf+quad_double(yp[ind]); 
+            qzf = qzf+quad_double(zp[ind]); 
+            c++;
+          }
+        }
+        qinv = quad_double(c); qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
+        xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
+  #else
+        for (E_Int n = 1; n <= nf; n++)
+        { 
+          ind = ptrElt[n]-1;
+          pos = posFace[ind];
+          ptrFace = &ptr[pos];
+          nv = ptrFace[0];
+
+          {
+            #ifdef __INTEL_COMPILER
+            #pragma float_control(precise, on)
+            #endif
+
+            for (E_Int p = 1; p <= nv; p++)
+            { 
+              ind = ptrFace[p]-1; 
+              xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; c++; 
+            }
+          }
+        }
+        inv = 1./E_Float(c); xf *= inv; yf *= inv; zf *= inv;
   #endif
 
-    E_Float pt[3];
-    pt[0] = xf; pt[1] = yf; pt[2] = zf;
-    E_Int ind = globalKdt->getClosest(pt); // closest pt
-    E_Float d = (xt[ind]-xf)*(xt[ind]-xf)+(yt[ind]-yf)*(yt[ind]-yf)+(zt[ind]-zf)*(zt[ind]-zf);
-    nptr1[i] = ind+1; nptr2[i] = sqrt(d);
-  }
-  RELEASESHAREDU(array, f, cnl);
-  return Py_BuildValue("[OO]",ac,dist);
+        pt[0] = xf; pt[1] = yf; pt[2] = zf;
+        ind = globalKdt->getClosest(pt); // closest pt
+        d = (xt[ind]-xf)*(xt[ind]-xf)+(yt[ind]-yf)*(yt[ind]-yf)+(zt[ind]-zf)*(zt[ind]-zf);
+        nptr1[i] = ind+1; nptr2[i] = sqrt(d);
+      } // elts
+    } // parallel
+  
+    RELEASESHAREDU(array, f, cnl);
+    return Py_BuildValue("[OO]", ac, dist);
   }//NGON
+
   else if (strcmp(eltType,"BAR")==0 || strcmp(eltType,"TRI")==0 || 
            strcmp(eltType,"QUAD")==0 || strcmp(eltType,"TETRA")==0 || 
            strcmp(eltType,"HEXA")==0 || strcmp(eltType,"PENTA")==0 ||
@@ -413,50 +456,57 @@ PyObject* K_CONVERTER::nearestElements(PyObject* self, PyObject* args)
     E_Float* nptr2 = K_NUMPY::getNumpyPtrF(dist);
     E_Float inv = 1./E_Float(nvert);
     quad_double qinv = quad_double(nvert);
-    E_Float pt[3];
 
-#pragma omp parallel for default(shared) private(pt) schedule(dynamic)
-    for (E_Int i = 0; i < nelts; i++)
+#pragma omp parallel
     {
-      E_Float dx,dy,dz;
+      E_Float dx,dy,dz,d;
       E_Int ind;
-      E_Float xf=0.,yf=0.,zf=0.;
-      quad_double qxf, qyf, qzf;
-
+      E_Float xf, yf, zf;
+      E_Float pt[3];
 #ifdef QUADDOUBLE
-      for (E_Int n = 1; n <= nvert; n++)
-      {
-        ind = (*cnl)(i,n)-1; 
-        qxf = qxf+quad_double(xp[ind]); 
-        qyf = qyf+quad_double(yp[ind]); 
-        qzf = qzf+quad_double(zp[ind]); 
-      }
-      qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
-      xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
-#else
-      {
-      #ifdef __INTEL_COMPILER
-      #pragma float_control(precise, on)
-      #endif
-      for (E_Int n = 1; n <= nvert; n++)
-      {
-        ind = (*cnl)(i,n)-1; 
-        xf += xp[ind]; yf += yp[ind]; zf += zp[ind];        
-      }
-      xf*=inv; yf*=inv; zf*=inv;
-      }
+      quad_double qxf, qyf, qzf;
 #endif
 
-      pt[0] = xf; pt[1] = yf; pt[2] = zf;
-      ind = globalKdt->getClosest(pt); // closest pt
-      dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+#ifdef QUADDOUBLE
+        qxf = 0.; qyf = 0.; qzf = 0.;
+        for (E_Int n = 1; n <= nvert; n++)
+        {
+          ind = (*cnl)(i,n)-1; 
+          qxf = qxf+quad_double(xp[ind]); 
+          qyf = qyf+quad_double(yp[ind]); 
+          qzf = qzf+quad_double(zp[ind]); 
+        }
+        qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
+        xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
+#else
+        {
+          #ifdef __INTEL_COMPILER
+          #pragma float_control(precise, on)
+          #endif
+          xf = 0.; yf = 0.; zf = 0.;
+          for (E_Int n = 1; n <= nvert; n++)
+          {
+            ind = (*cnl)(i,n)-1; 
+            xf += xp[ind]; yf += yp[ind]; zf += zp[ind];        
+          }
+          xf *= inv; yf *= inv; zf *= inv;
+        }
+#endif
+      
+        pt[0] = xf; pt[1] = yf; pt[2] = zf;
+        ind = globalKdt->getClosest(pt); // closest pt
+        dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
 
-      E_Float d = dx*dx+dy*dy*dz*dz;
-      nptr1[i] = ind+1; nptr2[i] = sqrt(d);
-    }
+        d = dx*dx+dy*dy*dz*dz;
+        nptr1[i] = ind+1; nptr2[i] = sqrt(d);
+      }
+    }//parallel
     RELEASESHAREDU(array, f, cnl);
     return Py_BuildValue("[OO]",ac,dist);
-  }//EB
+  } // Basic elements
   else
   {
     RELEASESHAREDU(array, f, cnl);

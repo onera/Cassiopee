@@ -61,28 +61,46 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
 
   E_Float* fv = f->begin(posv);
 
+  E_Int nthreads = __NUMTHREADS__;
+  E_Float delta = npts/nthreads;
+  E_Float* fmax = new E_Float [nthreads];
+  for (E_Int i = 0; i < nthreads; i++) fmax[i] = -1.;
+  
   if (posc != 0) // celln exists
   {
     E_Float* fc = f->begin(posc);
-#ifdef _OPENMP4
-#pragma omp parallel for reduction(max:L0err)
-#endif
-    for (E_Int ind = 0; ind < npts; ind++)
+#pragma omp parallel
     {
-      E_Float celln = (fc[ind] == 0.) ? 0. : 1.; 
-      L0err = E_max(L0err, fv[ind]) * celln;
+      E_Float celln;
+      E_Int ithread = __CURRENT_THREAD__;
+      E_Int istart = ithread*delta;
+      E_Int iend = (ithread+1)*delta;
+      if (ithread == nthreads-1) iend = npts;
+      for (E_Int i = istart; i < iend; i++)
+      {
+        celln = (fc[i] == 0.) ? 0. : 1.; 
+        fmax[ithread] = E_max(fmax[ithread], fv[i]) * celln;
+      }
     }
   }
   else
   {
-#ifdef _OPENMP4
-//#pragma omp parallel for reduction(max:L0err)
-#endif
-    for (E_Int ind = 0; ind < npts; ind++)
+#pragma omp parallel
     {
-      L0err = E_max(L0err, fv[ind]);
+      E_Int ithread = __CURRENT_THREAD__;
+      E_Int istart = ithread*delta;
+      E_Int iend = (ithread+1)*delta;
+      if (ithread == nthreads-1) iend = npts;
+      for (E_Int i = istart; i < iend; i++)
+      {
+        fmax[ithread] = E_max(fmax[ithread], fv[i]);
+      }
     }
   }
+
+  for (E_Int i = 0; i < nthreads; i++) L0err = E_max(L0err, fmax[i]);
+  delete [] fmax;
+
   RELEASESHAREDB(res, array, f, cn);
   
 #ifdef E_DOUBLEREAL

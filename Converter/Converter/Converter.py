@@ -358,21 +358,22 @@ def randomizeVar(array, var, deltaMin, deltaMax):
         return converter.randomizeVar(array, var, deltaMin, deltaMax)
 
 # -- Init variables --
-def initVars(a, var, v1=[], v2=[]):
+def initVars(a, var, v1=[], v2=[], mode=0):
     """Initialize a variable by a value or a formula."""
     b = copy(a)
-    _initVars(b, var, v1, v2)
+    _initVars(b, var, v1, v2, mode)
     return b
 
-def _initVars(a, var, v1=[], v2=[]):
+def _initVars(a, var, v1=[], v2=[], mode=0):
     if isinstance(a[0], list):
-        for i in a: _initVars__(i, var, v1, v2)
-    else: _initVars__(a, var, v1, v2)
+        for i in a: _initVars__(i, var, v1, v2, mode)
+    else: _initVars__(a, var, v1, v2, mode)
     return None
 
-def _initVars__(a, var, v1, v2):
+def _initVars__(a, var, v1, v2, mode=0):
     if v1 == []:
-        _initVarByEq__(a, var)
+        if mode == 0: _initVarByEq__(a, var)
+        else: _initVarByEq2__(a, var)
     elif callable(v1):
         _initVarByFunction__(a, var, v1, v2)
     else:
@@ -423,9 +424,9 @@ def _initVarByFunction__(a, var, F, vars):
                 x = [npos[j][i] for j in range(l)]
                 nvar1[i] = F(*x)
     return None
-                
+
+# Initialisation par une formule par numpy
 def _initVarByEq__(a, eq):
-    #import expression as expr
     # Extrait les variables de a
     varstring = a[0]
     vars = varstring.split(',')
@@ -437,7 +438,6 @@ def _initVarByEq__(a, eq):
     eq = eq.split(';')
 
     for eq0 in eq:
-        #ast_eq = expr.ast(eq0)
         # Extrait la variable a initialiser de eq
         s = eq0.split('=', 1)
         #if len(s) != 2:
@@ -448,8 +448,6 @@ def _initVarByEq__(a, eq):
         varp = KCore.isNamePresent(a, var)
         if varp == -1:
             _addVars(a, var); varp = KCore.isNamePresent(a, var)
-
-        #ast_eq.run(a)
 
         # Initialisation de la variable
         if not isinstance(a[1], list): # array1
@@ -465,6 +463,33 @@ def _initVarByEq__(a, eq):
             for v in vars:
                 loc = loc.replace('{%s}'%v, 'ap1[%d][:]'%c); c += 1
             ap1[varp][:] = eval(loc)
+    return None
+
+# Initialisation par une formule avec expression.ast
+def _initVarByEq2__(a, eq):
+    from . import expression as expr
+    # Extrait les variables de a
+    varstring = a[0]
+    vars = varstring.split(',')
+
+    eq = eq.replace('centers:', '')
+    eq = eq.replace('nodes:', '')
+
+    # Split suivant ; si plusieurs formules sont definies
+    eq = eq.split(';')
+
+    for eq0 in eq:
+        ast_eq = expr.ast(eq0)
+        # Extrait la variable a initialiser de eq
+        s = eq0.split('=', 1)
+
+        var = s[0]; var = var.replace('{', ''); var = var.replace('}', '')
+        var = var.lstrip(); var = var.rstrip()
+        varp = KCore.isNamePresent(a, var)
+        if varp == -1:
+            _addVars(a, var); varp = KCore.isNamePresent(a, var)
+
+        ast_eq.run(a)
     return None
 
 # Get index field

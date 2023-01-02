@@ -108,9 +108,9 @@ namespace {
         // ..........................................................................
         if (not PyTuple_Check(args)) std::cerr << "args would be a python tuple. Strange..." << std::endl;
         assert((PyTuple_Check(args) != 0) && "args would be a python tuple. Strange... Call serial killer !");
-        int nb_args_vars = PyTuple_Size(args);
-        int nb_dict_vars = (kwds == nullptr ? 0 : PyDict_Size(kwds));
-        int nb_vars      = std::max(nb_args_vars, 0) + std::max(nb_dict_vars, 0);
+        E_Int nb_args_vars = PyTuple_Size(args);
+        E_Int nb_dict_vars = (kwds == nullptr ? 0 : PyDict_Size(kwds));
+        E_Int nb_vars      = std::max(nb_args_vars, 0) + std::max(nb_dict_vars, 0);
         if (nb_vars == 0) // Pas d'arguments de passe !
         {
             // Cela ne peut etre qu'une expression constante qui renvoie un double dans l'etat de l'arbre ast
@@ -140,7 +140,7 @@ namespace {
             assert((nb_dict_vars > 0) && "Logical error : if args is void, dicts would be not void !");
             PyObject *values = PyDict_Values(kwds);
             parray           = PyList_GetItem(values, 0);
-            int ind          = 1;
+            E_Int ind        = 1;
             while (PyFloat_Check(parray) && (ind < nb_dict_vars)) {
                 parray = PyList_GetItem(values, ind);
                 ind += 1;
@@ -177,7 +177,7 @@ namespace {
         if (nb_args_vars > 0) RELEASESHAREDB(res, parray, f, cn);
         // Parcourt des arguments
         std::vector<data_array> arrays(nb_args_vars);
-        for (int iargs = 0; iargs < nb_args_vars; ++iargs) {
+        for (E_Int iargs = 0; iargs < nb_args_vars; ++iargs) {
             // Tous les objets de la liste doivent etre des arrays de style
             // cassiopee compatible avec le tableau de reference :
             PyObject *array2 = PyTuple_GetItem(args, iargs);
@@ -196,7 +196,7 @@ namespace {
                                       std::string(varString2) + " is a" +
                                       (arrays[iargs].res == 1 ? " structured array" : "n unstructured array");
                 PyErr_SetString(PyExc_ValueError, s_error.c_str());
-                for (int jargs = 0; jargs <= iargs; jargs++)
+                for (E_Int jargs = 0; jargs <= iargs; jargs++)
                     RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                 return NULL;
             }
@@ -206,7 +206,7 @@ namespace {
                                       std::to_string(npts) + " elements and " + std::string(varString2) + " has" +
                                       std::to_string(npts2) + " elements.";
                 PyErr_SetString(PyExc_ValueError, s_error.c_str());
-                for (int jargs = 0; jargs <= iargs; jargs++)
+                for (E_Int jargs = 0; jargs <= iargs; jargs++)
                     RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                 return NULL;
             }
@@ -224,14 +224,13 @@ namespace {
                     // Sinon on ignore simplement cette variable
                 }
             }
-            for (auto &v : vars)
-                delete[] v;
+            for (auto &v : vars) delete[] v;
         }
         if (nb_dict_vars > 0) {
             // Parcourt du dictionnaire,
             // Le dictionnaire ne doit contenir que des valeurs scalaires ou des objets acceptant un buffer memoire
             PyObject *py_keys = PyDict_Keys(kwds);
-            for (int idict = 0; idict < nb_dict_vars; ++idict) {
+            for (E_Int idict = 0; idict < nb_dict_vars; ++idict) {
                 PyObject *  py_str = PyList_GetItem(py_keys, idict);
                 std::string key_str;
                 if (PyString_Check(py_str))
@@ -247,7 +246,7 @@ namespace {
                 if (std::find(symbol_kwds.begin(), symbol_kwds.end(), key_str) == symbol_kwds.end()) {
                     std::string s_error = key_str + " is not a variable of the expression";
                     PyErr_SetString(PyExc_NameError, s_error.c_str());
-                    for (int jargs = 0; jargs < nb_args_vars; jargs++)
+                    for (E_Int jargs = 0; jargs < nb_args_vars; jargs++)
                         RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                     return NULL;
                 }
@@ -263,7 +262,7 @@ namespace {
                     if (mem_view == nullptr) {
                         std::string s_error = key_str + " has wrong kind of value ( not a float or an array )";
                         PyErr_SetString(PyExc_NameError, s_error.c_str());
-                        for (int jargs = 0; jargs < nb_args_vars; jargs++)
+                        for (E_Int jargs = 0; jargs < nb_args_vars; jargs++)
                             RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                         return NULL;
                     }
@@ -273,7 +272,7 @@ namespace {
                         std::string s_error =
                             key_str + " has wrong kind of value ( not double precision floats in array )";
                         PyErr_SetString(PyExc_NameError, s_error.c_str());
-                        for (int jargs = 0; jargs < nb_args_vars; jargs++)
+                        for (E_Int jargs = 0; jargs < nb_args_vars; jargs++)
                             RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                         return NULL;
                     }
@@ -309,14 +308,14 @@ namespace {
                 E_Int  size = arrays[0].cn->getSize();
                 E_Int  i;
 #pragma omp parallel for shared(size, cnpp, cnp) private(i)
-                for (i = 0; i < size; i++)
-                    cnp[i] = cnpp[i];
+                for (i = 0; i < size; i++) cnp[i] = cnpp[i];
             }
             auto vout = K_MEMORY::vector_view<E_Float>(fnp, npts);
             Py_BEGIN_ALLOW_THREADS;
             self->pt_ast->eval(cpp_dico, vout);
             Py_END_ALLOW_THREADS;
-            for (int jargs = 0; jargs < nb_args_vars; jargs++) {
+            for (E_Int jargs = 0; jargs < nb_args_vars; jargs++) 
+            {
                 RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
             }
             return result;
@@ -349,14 +348,14 @@ namespace {
         assert((PyTuple_Check(args) != 0) && "args would be a python list. Strange... Call serial killer !");
         assert(((kwds == nullptr) || (PyDict_Check(kwds) != 0)) &&
                "kwds would be a python dictionnary. Strange... Call serial killed !");
-        int nb_args_vars = PyTuple_GET_SIZE(args);
+        E_Int nb_args_vars = PyTuple_GET_SIZE(args);
         if (nb_args_vars == 0) {
             std::string s_error = "An array must be given as first argument of the eval method";
             PyErr_SetString(PyExc_ValueError, s_error.c_str());
             return NULL;
         }
-        int nb_dict_vars = (kwds == nullptr ? 0 : PyDict_Size(kwds));
-        int nb_vars      = nb_args_vars + nb_dict_vars;
+        E_Int nb_dict_vars = (kwds == nullptr ? 0 : PyDict_Size(kwds));
+        E_Int nb_vars      = nb_args_vars + nb_dict_vars;
         scal_variables.reserve(nb_vars);
         // =====================================================================
         // ==                   PARCOURTS DES ARGUMENTS                       ==
@@ -392,7 +391,7 @@ namespace {
         const char* outName;
         if (PyString_Check(py_name))
         {
-         outName = PyString_AsString(py_name);   
+            outName = PyString_AsString(py_name);   
         }
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(py_name))
@@ -411,7 +410,7 @@ namespace {
         // nom de la variable de sortie )
         bool must_release = true;
         std::vector<data_array> arrays(nb_args_vars);
-        for (int iargs = 2; iargs < nb_args_vars; ++iargs) {
+        for (E_Int iargs = 2; iargs < nb_args_vars; ++iargs) {
             // Tous les objets de la liste doivent etre des arrays de style
             // cassiopee compatible avec le tableau de reference :
             PyObject *array2    = PyTuple_GetItem(args, iargs);
@@ -430,7 +429,7 @@ namespace {
                                       std::string(varString2) + " is a" +
                                       (arrays[iargs].res == 1 ? " structured array" : "n unstructured array");
                 PyErr_SetString(PyExc_ValueError, s_error.c_str());
-                for (int jargs = 2; jargs <= iargs; jargs++)
+                for (E_Int jargs = 2; jargs <= iargs; jargs++)
                     RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                 RELEASESHAREDB(res, parray, f, cn);
                 return NULL;
@@ -441,7 +440,7 @@ namespace {
                                       std::to_string(npts) + " elements and " + std::string(varString2) + " has" +
                                       std::to_string(npts2) + " elements.";
                 PyErr_SetString(PyExc_ValueError, s_error.c_str());
-                for (int jargs = 2; jargs <= iargs; jargs++)
+                for (E_Int jargs = 2; jargs <= iargs; jargs++)
                     RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                 RELEASESHAREDB(res, parray, f, cn);
                 return NULL;
@@ -460,14 +459,13 @@ namespace {
                     // Sinon on ignore simplement cette variable
                 }
             }
-            for (auto &v : vars)
-                delete[] v;
+            for (auto &v : vars) delete[] v;
         }
         // Parcourt du dictionnaire,
         // Le dictionnaire ne doit contenir que des valeurs scalaires ou des objets acceptant un buffer memoire
         if (nb_dict_vars > 0) {
             PyObject *py_keys = PyDict_Keys(kwds);
-            for (int idict = 0; idict < nb_dict_vars; ++idict) {
+            for (E_Int idict = 0; idict < nb_dict_vars; ++idict) {
                 PyObject *  py_str = PyList_GetItem(py_keys, idict);
                 std::string key_str;
                 if (PyString_Check(py_str))
@@ -516,7 +514,7 @@ namespace {
         }
         // On cherche tout d'abord si la variable demandee existe dans le array :
         E_Int posvar = K_ARRAY::isNamePresent((char*)outName, varString);
-        E_Int res2=0;
+        E_Int res2 = 0;
         if (posvar == -1) // Ce nom n'existe pas, on rajoute le champs a l'array
         {
             // On va prendre le premier argument de args  comme modele
@@ -533,11 +531,12 @@ namespace {
         self->pt_ast->eval(cpp_dico, vout);
         Py_END_ALLOW_THREADS;
 
-        for ( int jargs = 2; jargs < nb_args_vars; jargs++ ) {
+        for (E_Int jargs = 2; jargs < nb_args_vars; jargs++) {
             RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
         }
 
-        if ( must_release ) {
+        if (must_release) 
+        {
             RELEASESHAREDB(res2, parray, f, cn);
         }
 
@@ -576,14 +575,14 @@ namespace {
         assert((PyTuple_Check(args) != 0) && "args would be a python list. Strange... Call serial killer !");
         assert(((kwds == nullptr) || (PyDict_Check(kwds) != 0)) &&
                "kwds would be a python dictionnary. Strange... Call serial killed !");
-        int nb_args_vars = PyTuple_GET_SIZE(args);
+        E_Int nb_args_vars = PyTuple_GET_SIZE(args);
         if (nb_args_vars == 0) {
             std::string s_error = "An array must be given as first argument of the eval method";
             PyErr_SetString(PyExc_ValueError, s_error.c_str());
             return NULL;
         }
-        int nb_dict_vars = (kwds == nullptr ? 0 : PyDict_Size(kwds));
-        int nb_vars      = nb_args_vars + nb_dict_vars;
+        E_Int nb_dict_vars = (kwds == nullptr ? 0 : PyDict_Size(kwds));
+        E_Int nb_vars      = nb_args_vars + nb_dict_vars;
         scal_variables.reserve(nb_vars);
         // =====================================================================
         // ==                   PARCOURTS DES ARGUMENTS                       ==
@@ -618,7 +617,7 @@ namespace {
         }
         RELEASESHAREDB(res, parray, f, cn);
         std::vector<data_array> arrays(nb_args_vars);
-        for (int iargs = 0; iargs < nb_args_vars; ++iargs) {
+        for (E_Int iargs = 0; iargs < nb_args_vars; ++iargs) {
             // Tous les objets de la liste doivent etre des arrays de style
             // cassiopee compatible avec le tableau de reference :
             PyObject *array2    = PyTuple_GetItem(args, iargs);
@@ -636,7 +635,7 @@ namespace {
                                       std::string(varString2) + " is a" +
                                       (arrays[iargs].res == 1 ? " structured array" : "n unstructured array");
                 PyErr_SetString(PyExc_ValueError, s_error.c_str());
-                for (int jargs = 2; jargs <= iargs; jargs++)
+                for (E_Int jargs = 2; jargs <= iargs; jargs++)
                     RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                 RELEASESHAREDB(res, parray, f, cn);
                 return NULL;
@@ -647,7 +646,7 @@ namespace {
                                       std::to_string(npts) + " elements and " + std::string(varString2) + " has" +
                                       std::to_string(npts2) + " elements.";
                 PyErr_SetString(PyExc_ValueError, s_error.c_str());
-                for (int jargs = 2; jargs <= iargs; jargs++)
+                for (E_Int jargs = 2; jargs <= iargs; jargs++)
                     RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
                 RELEASESHAREDB(res, parray, f, cn);
                 return NULL;
@@ -666,14 +665,13 @@ namespace {
                     // Sinon on ignore simplement cette variable
                 }
             }
-            for (auto &v : vars)
-                delete[] v;
+            for (auto &v : vars) delete[] v;
         }
         // Parcourt du dictionnaire,
         // Le dictionnaire ne doit contenir que des valeurs scalaires ou des objets acceptant un buffer memoire
         if (nb_dict_vars > 0) {
             PyObject *py_keys = PyDict_Keys(kwds);
-            for (int idict = 0; idict < nb_dict_vars; ++idict) {
+            for (E_Int idict = 0; idict < nb_dict_vars; ++idict) {
                 PyObject *  py_str = PyList_GetItem(py_keys, idict);
                 std::string key_str;
                 if (PyString_Check(py_str))
@@ -699,7 +697,7 @@ namespace {
                     scal_variables.push_back(x);
                     cpp_dico[key_str] = vector_view<double>(&scal_variables.back(), 1);
                 } else {
-                    // On vérifie si on a bien un objet de type tableau ( compatible avec un memoryview )
+                    // On verifie si on a bien un objet de type tableau ( compatible avec un memoryview )
                     PyObject *mem_view = PyMemoryView_FromObject(py_val);
                     if (mem_view == nullptr) {
                         std::string s_error = key_str + " has wrong kind of value ( not a float or array )";
@@ -708,7 +706,7 @@ namespace {
                         return NULL;
                     }
                     Py_buffer *py_buf = PyMemoryView_GET_BUFFER(mem_view);
-                    // On vérifie qu'on a bien des "doubles"
+                    // On verifie qu'on a bien des "doubles"
                     if (py_buf->format[0] != 'd') {
                         std::string s_error =
                             key_str + " has wrong kind of value ( not double precision floats in array )";
@@ -725,7 +723,8 @@ namespace {
         self->pt_ast->eval(cpp_dico);
         Py_END_ALLOW_THREADS;
 
-        for ( int jargs = 1; jargs < nb_args_vars; jargs++ ) {
+        for (E_Int jargs = 1; jargs < nb_args_vars; jargs++) 
+        {
             RELEASESHAREDB(arrays[jargs].res, arrays[jargs].array, arrays[jargs].f, arrays[jargs].cn);
         }
         
@@ -738,7 +737,7 @@ namespace {
         {NULL} // Sentinelle
     };
     //
-    static int ast_init(py_ast_handler *self, PyObject *args) {
+    static E_Int ast_init(py_ast_handler *self, PyObject *args) {
         const char *expression;
         if (!PyArg_ParseTuple(args, "s", &expression)) return -1;
         try {
@@ -761,7 +760,7 @@ namespace {
 } // namespace
 // ========================================================================
 // Definition of new type ast for python language
-static const char ast_doc[]           = "Abstract syntax tree documentation to do !";
+static const char ast_doc[] = "Abstract syntax tree documentation to do !";
 #if defined (_WIN32) || defined (_WIN64)
 __declspec(dllexport)
 #endif
@@ -871,18 +870,17 @@ PyMODINIT_FUNC PyInit_expression( void )
 {
     PyObject *m;
 
-    if ( PyType_Ready( &py_ast_handler_type ) < 0 )
-        return NULL;
+    if (PyType_Ready( &py_ast_handler_type ) < 0) return NULL;
 
     m = PyModule_Create( &expression_moduledef );
-    if ( m == NULL ) return NULL;
+    if (m == NULL) return NULL;
 
     Py_INCREF(&py_ast_handler_type);
     /* Très important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();
     Expression::init_math_functions();
 
-    PyModule_AddObject( m, "ast", (PyObject *)&py_ast_handler_type );
+    PyModule_AddObject(m, "ast", (PyObject *)&py_ast_handler_type);
     return m;
 }
 #else
@@ -900,7 +898,7 @@ PyMODINIT_FUNC initexpression() {
 
     if (PyType_Ready(&py_ast_handler_type) < 0) return;
     m = Py_InitModule4("expression", expression_methods, expression_mod_doc, (PyObject *)NULL, PYTHON_API_VERSION);
-    /* Très important : initialise numpy afin de pouvoir l'utiliser ici !!!!
+    /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!!
      */
     import_array();
 

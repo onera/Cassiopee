@@ -649,7 +649,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
 
     # 8- HEXA
     try:
-        a = G.cartHexa( (0,0,0), (1,1,1), (10,10,10) )
+        a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
         C._initVars(a, '{F}={x}+{y}+{z}')
         b = F(a, *keywords)
         res = checkType__(b)
@@ -845,7 +845,7 @@ def stdTestT__(output, F, *keywords):
         b = G.cartTetra( (0,0,0), (1,1,1), (10,10,10) )
         B = F([a,b], *keywords)
         res = Internal.isStdNode(B)
-        if (output == 1 and res != -2):
+        if output == 1 and res != -2:
             t = C.newPyTree(['Base']); t[2][1][2] += B
             C.convertPyTree2File(t, 'out2.cgns')
         if res != -2: testT(B, 2)
