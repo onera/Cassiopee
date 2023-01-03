@@ -212,6 +212,8 @@ namespace
             std::cout << std::flush << std::endl;
 #endif
             // Dans un premier temps, on recherche en aval. On cherchera en amont uniquement si is_bidirectional est vrai
+            if (facette_out == -1) break;
+
             auto& facette = facettes_candidates[facette_out];
 #if defined(DEBUG_VERBOSE)
             std::cout << "facette sélectionnée : " << std::endl;

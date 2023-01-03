@@ -110,7 +110,7 @@ namespace {
         assert((PyTuple_Check(args) != 0) && "args would be a python tuple. Strange... Call serial killer !");
         E_Int nb_args_vars = PyTuple_Size(args);
         E_Int nb_dict_vars = (kwds == nullptr ? 0 : PyDict_Size(kwds));
-        E_Int nb_vars      = std::max(nb_args_vars, 0) + std::max(nb_dict_vars, 0);
+        E_Int nb_vars      = std::max(nb_args_vars, E_Int(0)) + std::max(nb_dict_vars, E_Int(0));
         if (nb_vars == 0) // Pas d'arguments de passe !
         {
             // Cela ne peut etre qu'une expression constante qui renvoie un double dans l'etat de l'arbre ast

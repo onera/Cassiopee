@@ -157,7 +157,7 @@ namespace K_POST
         //~                           Partie privée                            
         private:
             using triangle_indices_type = std::array<E_Int,3>;
-            mutable std::vector<triangle_indices_type> triangles;
+            mutable std::vector<triangle_indices_type> triangles{};
             void compute_tessellation() const;
             mutable point3d barycenter;
             mutable vector3d normal;

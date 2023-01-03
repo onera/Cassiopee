@@ -99,7 +99,7 @@ bool getArgs(PyObject* args, eOperation oper,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
              E_Float& tolerance,
-             E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual, bool& outward_surf, int& itermax, char*& eltType, char*& varString)
+             E_Int& preserve_right, E_Int& solid_right, E_Int& agg_mode, bool& improve_conformal_cloud_qual, bool& outward_surf, E_Int& itermax, char*& eltType, char*& varString)
 {
   PyObject *arrS[2];
   E_Float tol = 0.;

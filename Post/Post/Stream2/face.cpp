@@ -149,7 +149,7 @@ namespace K_POST
         auto signe = comp_sign(this->indices_vertices[this->number_of_vertices()-1], this->indices_vertices[0] );
         bool not_change_sign = true;
         // Si on change de signe, c'est que le rayon n'intersecte pas la face
-        for (int i = 0; (i < this->number_of_vertices()-1) && (not_change_sign == true); ++i)
+        for (E_Int i = 0; (i < this->number_of_vertices()-1) && (not_change_sign == true); ++i)
         {
             auto signe2 = comp_sign(this->indices_vertices[i],this->indices_vertices[i+1]);
             // Si signe2 est nul, cela signifie que le rayon passe par cette arête.
@@ -158,7 +158,7 @@ namespace K_POST
             if (signe2 != 0)
             {
                 if (signe == 0) signe = signe2;
-                if ( signe2 != signe ) not_change_sign = false;
+                if (signe2 != signe) not_change_sign = false;
             }
         }
         if (signe == 0) 
@@ -193,15 +193,17 @@ namespace K_POST
         {
             this->compute_tessellation();
         }
+        assert(this->triangles.size() > 0);
+
         // II] On va parcourir tous les triangles composant la face :
         //     ====================================================
         const auto& coordinates = this->coordinates_of_zone;
-        point3d v1, v2, v3; // Coordonnées des sommets d'un triangle
+        point3d v1, v2, v3; // Coordonnees des sommets d'un triangle
         point3d intersection;
         E_Int num_trig = 0;
         for ( const auto& trig_ind : triangles )
         {
-            // II.1) Constitution du triangle géométrique :
+            // II.1) Constitution du triangle geometrique :
             // ------------------------------------------
             if (trig_ind[0] == -1)
                 v1 = this->get_barycenter();
@@ -300,7 +302,7 @@ namespace K_POST
         const auto& coordinates = this->coordinates_of_zone;
         const auto& pos_inter   = intersection.first;
         const auto& triangle_indices = triangles[intersection.second];
-        point3d v1, v2, v3; // Coordonnées des sommets d'un triangle
+        point3d v1, v2, v3; // Coordonnees des sommets d'un triangle
         if (triangle_indices[0] >= 0)
         {
             v1 = { coordinates[0][triangle_indices[0]], coordinates[1][triangle_indices[0]],

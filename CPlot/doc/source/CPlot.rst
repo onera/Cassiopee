@@ -642,6 +642,7 @@ Set / Get functions
     + **dofPower**: power of depth of field effect (default: 3.).
     + **gamma**: gamma correction (default: 1.).
     + **sobelThreshold**: sobel threshold for zone outlines (default: -0.5).
+    + **sharpenPower**: power of sharpening image post-processing (default: -0.5).
     + **selectionStyle**: style for selection (default: 0).
     + **activateShortCut**: if False, deactivate shortCut keys (def: True).
     + **billBoards**: list of billboard image files ['file.png',1,1] (default: None).

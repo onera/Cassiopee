@@ -92,7 +92,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         PyErr_SetString(PyExc_TypeError, "streamLine: vector must be defined by 3 components.");
         return NULL;
     }
-    for (int i = 0; i < PyList_Size(vectorNames); i++) {
+    for (E_Int i = 0; i < PyList_Size(vectorNames); i++) {
         PyObject* tpl0 = PyList_GetItem(vectorNames, i);
         if (PyString_Check(tpl0)) {
             char* str = PyString_AsString(tpl0);
@@ -250,20 +250,17 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
 #   pragma omp parallel for schedule(dynamic,10)
     for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
-//#       pragma omp critical
-//        std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
+        //#pragma omp critical
+        //std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
         try
         {
-            streamline sline( beg_nodes[i], zones, nStreamPtsMax, (signe==2) );
+            streamline sline(beg_nodes[i], zones, nStreamPtsMax, (signe==2));
 
             FldArrayF& field = sline.field();
             
             E_Int number_of_points = field.getSize();
-#       pragma omp critical
-            {
-                //PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
-                //PyList_SetItem(list_of_streamlines, i, tpl);
-            
+            #pragma omp critical
+            {            
                 /* Essai pour supprimer les streams avec 0 points */
                 if (number_of_points > 0)
                 {
