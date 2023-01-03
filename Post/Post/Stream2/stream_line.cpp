@@ -168,7 +168,7 @@ namespace
                 for ( auto fi : f.indices_vertices ) std::cout << fi << " ";
                 std::cout << std::flush << std::endl;
                 std::cout << "\tCoordonnées des sommets ";
-                for ( E_Int ivert = 0; ivert < f.indices_vertices.size(); ivert++ ) 
+                for ( size_t ivert = 0; ivert < f.indices_vertices.size(); ivert++ ) 
                     std::cout << std::string(point3d{zone_coords[0][f.indices_vertices[ivert]],
                                                      zone_coords[1][f.indices_vertices[ivert]],
                                                      zone_coords[2][f.indices_vertices[ivert]]}) << " ";

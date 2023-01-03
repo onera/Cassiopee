@@ -993,7 +993,7 @@ namespace NUGA
     // Compute Edges refine points
     refine_point_computer::compute_centers(PG_to_ref, ng, crd, ecenter);//fixme : should be relative to policy/directive
 
-    E_Int pos = crd.cols(); // first face center in crd (if relevant)
+    //E_Int pos = crd.cols(); // first face center in crd (if relevant)
 
     // Reserve space for children in the tree
     std::vector<E_Int> childpos, crdpos;

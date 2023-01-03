@@ -433,7 +433,7 @@ namespace K_POST
                     barycentre.z += 0.25*sommets[i].z;
                 }
                 vector3d sortante(barycentre, origin);
-                if (std::abs((sortante|direction)) < 1.E-16) std::cout << "Warning: too mush small dot product..." << std::endl;
+                if (std::abs((sortante|direction)) < 1.E-16) std::cout << "Warning: too much small dot product..." << std::endl;
                 if ((sortante|direction) > 0)
                     is_direct[ref_face] = true;
                 else

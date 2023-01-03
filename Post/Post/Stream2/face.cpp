@@ -22,6 +22,7 @@
 
 #include "face.hpp"
 //#define DEBUG_VERBOSE
+
 namespace K_POST
 {
     // Calcul d'une tesselation pour la face. On utilise les sommets de la face + le barycentre
@@ -151,7 +152,7 @@ namespace K_POST
         for (int i = 0; (i < this->number_of_vertices()-1) && (not_change_sign == true); ++i)
         {
             auto signe2 = comp_sign(this->indices_vertices[i],this->indices_vertices[i+1]);
-            // Si signe2 est nul, cela signifie que le rayon passe par cet arête.
+            // Si signe2 est nul, cela signifie que le rayon passe par cette arête.
             // Dans ce cas, on a une indétermination et on prend pas en compte cette arête
             // dans la détermination de l'intersection (on la considère toujours comme valide). 
             if (signe2 != 0)
@@ -228,7 +229,7 @@ namespace K_POST
             // Möller et Trumbore, « Fast, Minimum Storage Ray-Triangle Intersection », 
             // Journal of Graphics Tools, vol. 2,‎ 1997, p. 21–28 
             // ============================================================================
-            constexpr const double epsilon = 1.E-7; // Tolérance d'erreur géométrique
+            constexpr const double epsilon = 1.E-12; // Tolérance d'erreur géométrique
             constexpr const double gepsilon = 1.E-3; // Tolérance d'erreur géométrique
             double nrm2 = std::sqrt((direction|direction));
             vector3d ndir = (1./nrm2)*direction;// Normalisation de la direction du rayon
@@ -239,9 +240,13 @@ namespace K_POST
             vector3d h = (ndir ^ edge2);
             double a = (edge1 | h);
 #if defined(DEBUG_VERBOSE)
+            std::cerr << "ndir : "<<std::string(ndir) << std::endl;
+            std::cerr << "edge1 : "<<std::string(edge1) << std::endl;
+            std::cerr << "edge2 : "<<std::string(edge2) << std::endl;
+            std::cerr << "h : "<<std::string(h) << std::endl;
             std::cerr << "a : " << a << ", nrmedge1 : " << nrmedge1 << ", nrmedge2 : " << nrmedge2 << "epsilon : " << epsilon << std::endl;
 #endif
-            if ( ( a*a> -epsilon*epsilon*nrmedge1*nrmedge2 ) && ( a*a < epsilon*epsilon*nrmedge1*nrmedge2 ) ) 
+            if (a*a < epsilon*epsilon*nrmedge1*nrmedge2)
             {
                 // Pas d'intersection, on continue avec le prochain triangle
                 num_trig += 1;

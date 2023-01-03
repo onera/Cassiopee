@@ -2510,7 +2510,7 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0):
       var = var.replace('{', '')
       var = var.strip()
       v = var.split(':',1)
-      if len(v) > 1: 
+      if len(v) > 1:
         if v[0] == 'centers': loc = v[0]
       _TZAGC(t, loc, loc, False, Converter.initVars, 
              Converter.initVars, varNameString, v1, v2, mode)

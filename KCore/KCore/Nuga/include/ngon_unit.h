@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __NGON_UNIT_H__
 #define	__NGON_UNIT_H__
@@ -147,13 +147,13 @@ class ngon_unit
         E_Int pos = ng_sz0 + i * (na * (astrd + 1) + nb * (bstrd + 1));
         for (E_Int j = 0; j < na*(astrd + 1); ++j)
         {
-          assert ((pos + j) > -1 && (pos + j) < _NGON.size());
+          assert ((pos + j) > -1 && (pos + j) < E_Int(_NGON.size()));
           _NGON[pos + j] = astrd;
         }
         for (E_Int j = 0; j < nb*(bstrd + 1); ++j)
         {
           int v = pos + j + na * (astrd + 1);
-          assert (v > -1 && v < _NGON.size());
+          assert (v > -1 && v < E_Int(_NGON.size()));
           _NGON[v] = bstrd;
         }
       }

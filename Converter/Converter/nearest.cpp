@@ -105,7 +105,7 @@ PyObject* K_CONVERTER::nearestNodes(PyObject* self, PyObject* args)
     E_Float xf, yf, zf, d;
     E_Float pt[3];
   
-#pragma omp for
+#pragma omp for schedule(dynamic)
     for (E_Int i = 0; i < npts; i++)
     {
       xf = xp[i]; yf = yp[i]; zf = zp[i];
@@ -215,6 +215,7 @@ PyObject* K_CONVERTER::nearestFaces(PyObject* self, PyObject* args)
 
 # pragma omp parallel
   {
+    E_Float pt[3];
     E_Int posf, nv, indv, ind;
     E_Int* ptrFace;
     E_Float xf, yf, zf, inv, d;
@@ -222,9 +223,8 @@ PyObject* K_CONVERTER::nearestFaces(PyObject* self, PyObject* args)
     E_Float qinv;
     quad_double qxf, qyf, qzf;
 #endif
-    E_Float pt[3];
 
-#pragma omp for
+#pragma omp for schedule(dynamic)
   for (E_Int i = 0; i < nfaces; i++)
   {
     posf = posFace[i];
@@ -370,7 +370,7 @@ PyObject* K_CONVERTER::nearestElements(PyObject* self, PyObject* args)
       quad_double qxf, qyf, qzf;
 #endif
 
-      #pragma omp for
+      #pragma omp for schedule(dynamic)
       for (E_Int i = 0; i < nelts; i++)
       {
         pose = posElt[i];
@@ -467,7 +467,7 @@ PyObject* K_CONVERTER::nearestElements(PyObject* self, PyObject* args)
       quad_double qxf, qyf, qzf;
 #endif
 
-      #pragma omp for
+      #pragma omp for schedule(dynamic)
       for (E_Int i = 0; i < nelts; i++)
       {
 #ifdef QUADDOUBLE
