@@ -385,7 +385,12 @@ const char* varString, PyObject *out)
   using adaptor_t = NUGA::adaptor_mpi<hmesh_t, sensor_t>;
 
   adaptor_t a;
-  a.run(hmeshes, sensors, zone_to_rid_to_list_owned, rid_to_zones, zonerank, COM, false/*do_agglo*/);
+  a.sensors = sensors;
+  a.do_agglo = false;
+  std::vector<int> zids(hmeshes.size());
+  for (size_t i=0; i < hmeshes.size(); ++i)zids[i]=hmeshes[i]->zid;
+
+  a.run(hmeshes, zids, zone_to_rid_to_list_owned, rid_to_zones, zonerank, COM);
 
   for (size_t i=0; i < nb_meshes; ++i)
   {

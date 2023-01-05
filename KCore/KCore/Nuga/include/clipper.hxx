@@ -1018,7 +1018,7 @@ namespace NUGA
       bits.reserve(nbits);
       std::move(ALL(crd_res), std::back_inserter(bits));
       // pass the history
-      for (E_Int k = 0; k < nbits; ++k)
+      for (int k = 0; k < nbits; ++k)
       {
         assert(poids_res[k].size() == bits[k].m_crd.cols());
         bits[k].m_poids = poids_res[k];

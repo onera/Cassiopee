@@ -351,6 +351,8 @@ public:
   static void sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1, E_Int idx_strt1, const K_FLD::FloatArray&crd2, E_Int* nodes2, E_Int idx_strt2, E_Int nb_nodes, bool do_reverse = false);
   static void shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int nnodes, E_Int idx_strt);
 
+  static void imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, std::vector<E_Int>& molec);
+
 private: 
   Polygon(const Polygon& orig);
  
@@ -1052,6 +1054,73 @@ inline void Polygon::shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int
   E_Int locid = cands[palma[0].second];
   K_CONNECT::IdTool::right_shift(nodes, nnodes, locid);
   return;
+}
+
+inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, std::vector<E_Int>& molec)
+{
+  molec.clear();
+
+  std::map <E_Int, std::vector<E_Float>> lambdas;
+
+#define EQUAL(a,b) (::fabs(a-b) < 1.e-5)
+
+  for (E_Int i = 0; i < crd2.cols(); ++i)
+  {
+    const double * P = crd2.col(i);
+
+    for (E_Int j = 0; j < nnodes1; ++j)
+    {
+      E_Int Ni = pnodes1[j] - 1;
+      E_Int Nj = pnodes1[(j + 1) % nnodes1] - 1;
+      const E_Float* Pi = crd1.col(Ni);
+      const E_Float* Pj = crd1.col(Nj);
+      
+      double L2 = (Pj[0] - Pi[0])*(Pj[0] - Pi[0]) + (Pj[1] - Pi[1])*(Pj[1] - Pi[1]) + (Pj[2] - Pi[2])*(Pj[2] - Pi[2]);
+
+      double l;
+      double d2 = K_MESH::Edge::linePointMinDistance2<3>(Pi, Pj, P, l) / L2;
+
+      if (d2 > EPSILON) continue;
+
+      // P is lying on PiPj
+
+      if (l <= EPSILON || l >= 1. - EPSILON) break; // outside
+
+      // found a refining point !
+      lambdas[j].push_back(l);
+      break;
+    }
+
+  }
+
+  if (lambdas.empty()) return;
+
+  for (E_Int n = 0; n < nnodes1; ++n)
+  {
+    molec.push_back(pnodes1[n]);
+    
+    auto it = lambdas.find(n);
+    if (it == lambdas.end()) continue;
+
+    auto & lms = it->second;
+    std::sort(lms.begin(), lms.end());
+
+    E_Int Ni = pnodes1[n] - 1;
+    E_Int Nj = pnodes1[(n + 1) % nnodes1] - 1;
+    const E_Float* Pi = crd1.col(Ni);
+    const E_Float* Pj = crd1.col(Nj);
+    E_Float v[3];
+    NUGA::diff<3>(Pj, Pi, v);
+
+    for (size_t j = 0; j < lms.size(); ++j)
+    {
+      double& lambda = lms[j];
+      E_Float P[3];
+      NUGA::sum<3>(lambda, v, Pi, P);
+      crd1.pushBack(P, P + 3);
+      molec.push_back(crd1.cols());
+    }
+  }
 }
 
 template <typename InputIterator>

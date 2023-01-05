@@ -148,8 +148,6 @@ class hierarchical_mesh
     ///
     inline void extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const;
     ///
-    inline void extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const;
-    ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
     template <typename InputIterator> void get_enabled_neighbours(E_Int PHi, InputIterator neighbours, E_Int& nb_neighbours) const ;
@@ -161,7 +159,7 @@ class hierarchical_mesh
     void enable_PGs();
 
     void update_BCs();
-    void update_pointlist(std::vector<E_Int>& ptLists);
+    void update_pointlist(std::vector<E_Int>& ptLists, bool reverse=false);
     
     ///
     bool is_initialised() const ;
@@ -654,32 +652,6 @@ void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const
-{
-  //todo VD
-
-  plan.clear(); // plan est un IntArray (DynArray<E_Int>) : une 'matrice' 4x1
-
-  /*E_Int ret{ 0 };*/
-
-  if (_ng.PGs.stride(PGi) == 3)
-  {
-  }
-  else if (_ng.PGs.stride(PGi) == 4) 
-  { 
-  }
-
-  // if reverse, utiliser std::reverse sur la colonne
-}
-
-//template <> inline
-//void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_loop_plan(E_Int PGi, bool reverse, pg_arr_t& plan) const
-//{
-//  //
-//}
-
-///
-template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0)
 {
   using cell_incr_t = typename output_t::cell_incr_t;
@@ -895,7 +867,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
 
 //
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<E_Int>& ptlist)
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<E_Int>& ptlist, bool reverse)
 {
   std::vector<E_Int> ids;
   E_Int nb_pgs = _ng.PGs.size();
@@ -918,7 +890,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<E_Int>
     else // look in the genealogy where are the enabled
     {
       ids.clear();
-      extract_enabled_pgs_descendance(PGi, false/*reverse not required*/, ids);
+      extract_enabled_pgs_descendance(PGi, reverse, ids);
 
       if (!ids.empty()) //refinement
         new_ptlist.insert(new_ptlist.end(), ALL(ids));

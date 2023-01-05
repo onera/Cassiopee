@@ -61,16 +61,19 @@ namespace NUGA
     }
   }
   
+  // data to serialize for exchange : one DynArray per face
+
+  template <typename T>
   struct plan_msg_type
   {
-    std::vector<E_Int> data, datarange, pgs, szone, szonerange, rac, racrange;
+    std::vector<T> data, datarange, pgs, szone, szonerange, rac, racrange;
 
     void clear() { data.clear(); datarange.clear(); pgs.clear(); szone.clear(); szonerange.clear(); rac.clear(); racrange.clear(); }
 
     ///
     static void convert_to_MPI_exchange_format
     (
-      const std::map<int, std::map<int, std::map<E_Int, K_FLD::IntArray>>> & sz_to_rid_to_PG_to_plan,
+      const std::map<int, std::map<int, std::map<E_Int, K_FLD::DynArray<T>>>> & sz_to_rid_to_PG_to_plan,
       const std::map<int, std::pair<int,int>> & rid_to_zones,
       const std::vector<int>& zonerank,
       std::map<int, plan_msg_type> & rank_to_data
@@ -79,7 +82,7 @@ namespace NUGA
       rank_to_data.clear();
 
       // Gather data by rank
-      std::map<int, std::map<int, std::map<int, std::map<E_Int, K_FLD::IntArray>>>> rank_to_sz_to_rid_to_PG_to_plan;
+      std::map<int, std::map<int, std::map<int, std::map<E_Int, K_FLD::DynArray<T>>>>> rank_to_sz_to_rid_to_PG_to_plan;
       for (auto & it : sz_to_rid_to_PG_to_plan)
       {
         int szid = it.first;
@@ -192,14 +195,14 @@ namespace NUGA
     }
 
     ///
-    template <typename data_t>
     static int receive_data
     (
       int rank, int nranks, MPI_Comm COM,
+      int data_stride,
       const std::map<int, std::pair<int,int>> & rid_to_zones,
       const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
       std::vector<MPI_Request>& sender_reqs,
-      std::map<int, data_t>& zone_to_sensor_data
+      std::map<int, std::map<int, K_FLD::DynArray<T>>>& zone_to_sensor_data
     )
     {
       zone_to_sensor_data.clear();
@@ -407,21 +410,21 @@ namespace NUGA
               E_Int iloc = pgs[n];
 
               E_Int sz = data_end - data_beg;
-              E_Int cols = sz / 4;
-              // if (rank == 2) std::cout << "sz : " << sz << std::endl;
-              // if (rank == 2) std::cout << "cols : " << cols << std::endl;
+              
 
+              E_Int cols = sz / data_stride;
+             
               assert(data_beg >= 0 && data_beg < data.size());
-              const E_Int* p = &data[data_beg];
-              K_FLD::IntArray a;
-              a.resize(4, cols);
+              const T* p = &data[data_beg];
+              K_FLD::DynArray<T> a;
+              a.resize(data_stride, cols);
+              
               for (E_Int c = 0; c < cols; ++c)
               {
-                a(0, c) = *(p++);
-                a(1, c) = *(p++);
-                a(2, c) = *(p++);
-                a(3, c) = *(p++);
+                for (size_t k = 0; k < data_stride; ++k)
+                  a(k, c) = *(p++);
               }
+
               assert(iloc >= 0 && iloc < ptlist.size());
               E_Int PGi = ptlist[iloc] - 1;
               //std::cout << "PGi : " << PGi << std::endl;
@@ -437,6 +440,8 @@ namespace NUGA
       return 0;
     }
   };
+
+  // data to serialize for exchange : one pointlist per rac
 
   struct pointlist_msg_type
   {
