@@ -92,16 +92,15 @@ void Data::light(E_Int type)
   double n = d3x*d3x+d3y*d3y+d3z*d3z;
   n = 1./fmax(sqrt(n), 1.e-12);
   d3x = d3x*n; d3y=d3y*n; d3z=d3z*n;
-	n = d2x*d2x+d2y*d2y+d2z*d2z;
+  n = d2x*d2x+d2y*d2y+d2z*d2z;
   n = 1./fmax(sqrt(n), 1.e-12);
   d2x = d2x*n; d2y=d2y*n; d2z=d2z*n;
   r = sqrt(r)*3.14;
-    
-	float xl = ptrState->lightOffsetX * r * d3x + ptrState->lightOffsetY * r * d2x;
+  float xl = ptrState->lightOffsetX * r * d3x + ptrState->lightOffsetY * r * d2x;
   float yl = ptrState->lightOffsetX * r * d3y + ptrState->lightOffsetY * r * d2y;
-	float zl = ptrState->lightOffsetX * r * d3z + ptrState->lightOffsetY * r * d2z;
-	
-	GLfloat position[] = { xl, yl, zl, 0.0 };
+  float zl = ptrState->lightOffsetX * r * d3z + ptrState->lightOffsetY * r * d2z;
+
+  GLfloat position[] = { xl, yl, zl, 0.0 };
 #else
   // Position dependant de la BB
   //GLfloat position[] = { (xmin+xmax)*0.5, ymin-2., zmax+2., 0.0 };

@@ -5078,6 +5078,23 @@ def getBCDataSet(z, bcNode, withLoc=False):
             if l is not None: ploc = getValue(l)
             return datas,ploc
         else: return datas
+
+    # Try from ZoneSubRegion
+    bcName = getName(bcNode)
+    zoneSubRegions = getNodesFromType1(z, 'ZoneSubRegion_t')
+    if zoneSubRegions is not None:
+        for zoneSubRegion in zoneSubRegions:
+            bcRegionNameNode = getNodeFromName1(zoneSubRegion,'BCRegionName')
+            if bcRegionNameNode and (getValue(bcRegionNameNode) == bcName):
+                # print('Found zoneSubRegion linked to bc')
+                datas = getNodesFromType1(zoneSubRegion, 'DataArray_t')
+                if withLoc:
+                    l = getNodeFromType1(zoneSubRegion, 'GridLocation_t')
+                    if l is not None: ploc = getValue(l)
+                    else: ploc = 'Vertex'
+                    return datas,ploc
+                else: return datas
+
     if withLoc: return None
     else: return datas
  

@@ -1118,9 +1118,9 @@ def _fillGhostCellsForStructBCMatch__(zp, d, dimZone, modified, nodesRef,
         if joininfo != []:
             # store valid joins (and its parent base) for second loop treatment
             validjoins.append(i)
-            zdonor = joininfo[0]
+            #zdonor = joininfo[0]
             fillJoinGhostCellsStruct__(zp, i, modified, joininfo, d, treatment=0)
-            dictjoins[indexjoin]=(zp,joininfo)
+            dictjoins[indexjoin] = (zp,joininfo)
             indexjoin += 1
 
     if dimZone == 1: return validjoins, dictjoins, indexjoin 
@@ -1137,7 +1137,7 @@ def _fillGhostCellsForStructBCMatch__(zp, d, dimZone, modified, nodesRef,
                 if joininfo != []:
                     # store valid joins (and its parent base) for second loop treatment
                     validjoins.append(i)
-                    zdonor = joininfo[0]
+                    #zdonor = joininfo[0]
                     fillJoinGhostCellsStruct__(zp, i, modified, joininfo, d, treatment=0)
                     dictjoins[indexjoin] = (zp,joininfo)
                     indexjoin += 1
@@ -1573,7 +1573,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                        for fbingo in  face_bingo:     
                          for gD in bc_D:
                            ptlist = Internal.getNodeFromName1(gD, 'PointList')[1]
-                           if (no_faceD+1 in ptlist): 
+                           if no_faceD+1 in ptlist: 
                               ldone    = False
                               c        = 0
                               clD      = Internal.getValue(gD)
@@ -1581,10 +1581,10 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                               #Recherche existence CL sur la zone receuveuse, on ajoute la face en cas d'absence
                               while searchBC:
                                   clR    = Internal.getValue(bc_R[c])
-                                  if (clD==clR and ldone==False):
+                                  if clD == clR and ldone == False:
 
                                      ptlistR = Internal.getNodeFromName1(bc_R[c], 'PointList')[1]
-                                     if (fbingo+1 not in ptlistR): 
+                                     if fbingo+1 not in ptlistR: 
 
                                        sizeR   = numpy.size(ptlistR)
                                        datap   = numpy.empty(sizeR+1, dtype=numpy.int32)

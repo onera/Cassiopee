@@ -38,7 +38,7 @@ namespace K_POST
                                                             this->indices_vertices[1],
                                                             this->indices_vertices[2]} };
         }
-        else if ( nb_vertices == 4)
+        else if (nb_vertices == 4)
         {
             // Dans le cas d'un quadrangle, on choisit pour ne pas avoir de cas ambigus,
             // de prendre le barycentre et de faire une triangulation étoilée avec
@@ -52,7 +52,7 @@ namespace K_POST
         else {
             // Dans le cas général, on génère une triangulation de Delaunay qui ne prend en compte que
             // les sommets de la face (sans rajouter de nouveaux sommets).
-            assert(nb_vertices > 4);// Sinon, ce n'est pas une face ou alors elle est dégénérée de par sa connectivité !
+            assert(nb_vertices > 4); // Sinon, ce n'est pas une face ou alors elle est dégénérée de par sa connectivité !
             DELAUNAY::Triangulator dt;
             K_FLD::FloatArray coord(nb_vertices, 3);
             const auto& zone_coords = this->coordinates_of_zone;

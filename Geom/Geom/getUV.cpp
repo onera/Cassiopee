@@ -364,10 +364,10 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
         char* str = (char*)PyUnicode_AsUTF8(tpl0);
         fNames.push_back(str);
       }
-    }
 #endif
+    }
   }
-  E_Int posvx, posvy, posvz;
+  E_Int posvx=0, posvy=0, posvz=0;
   if (fNames.size() == 0) exportFields = false;
   if (fNames.size() >= 1)
   {
