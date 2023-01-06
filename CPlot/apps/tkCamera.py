@@ -31,6 +31,7 @@ def setInfo(event=None):
     dirCam = CTK.varsFromWidget(dirCam, 1)
     if dirCam != [] and len(dirCam) == 3:
         CPlot.setState(dirCam=dirCam)
+    CTK.TXT.insert('START', 'Set camera position.\n')
 
 #==============================================================================
 # Create app widgets

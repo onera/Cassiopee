@@ -43,6 +43,7 @@ def setSharpenPower(event=None):
 def setLightOffsetX(event=None):
     off = WIDGETS['lightOffsetX'].get() / 50. - 1.
     VARS[3].set('Light offset in x [%.2f %%].'%off)
+    off = -off
     CPlot.setState(lightOffset=(off, -999))
     CPlot._addRender2PyTree(CTK.t, lightOffsetX=off)
 

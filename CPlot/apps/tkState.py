@@ -198,6 +198,23 @@ def setState(event=None):
     try: alphaY = float(alphaY)
     except: alphaY = 0.
 
+    # Grandeurs primaires
+    RoInf = VARS[16].get()
+    try: RoInf = float(RoInf)
+    except: RoInf = 1.
+    UInf = VARS[12].get()
+    try: UInf = float(UInf)
+    except: UInf = 1.
+    TInf = VARS[13].get()
+    try: TInf = float(TInf)
+    except: TInf = 298.
+    PInf = VARS[14].get()
+    try: PInf = float(PInf)
+    except: PInf = 101325.
+    LInf = VARS[15].get()
+    try: LInf = float(LInf)
+    except: LInf = 1.
+    
     # Grandeurs turb
     MutSMuInf = VARS[9].get()
     try: MutSMuInf = float(MutSMuInf)
@@ -209,9 +226,9 @@ def setState(event=None):
     adim = ''; ADIM = VARS[11].get()
     if ADIM == 'adim1(Ro,A,T)': adim = 'adim1'
     elif ADIM == 'adim2(Ro,U,T)': adim = 'adim2'
-    elif ADIM == 'dim1(real UInf,TInf,PInf,Rgp=287.053)': adim = 'dim1'
-    elif ADIM == 'dim2(real UInf,TInf,RoInf,Rgp=287.053)': adim = 'dim2'
-    elif ADIM == 'dim3(real UInf,PInf,RoInf,Rgp=287.053)': adim = 'dim3'
+    elif ADIM == 'dim1(real UInf,TInf,PInf)': adim = 'dim1'
+    elif ADIM == 'dim2(real UInf,TInf,RoInf)': adim = 'dim2'
+    elif ADIM == 'dim3(real UInf,PInf,RoInf)': adim = 'dim3'
     CTK.saveTree()
 
     if CTK.__MAINTREE__ <= 0 or nzs == []:
@@ -250,6 +267,7 @@ def setState(event=None):
                                   'TwoEquation_MenterSST')
         C._addState(p[2][r], MInf=mach, alphaZ=alphaZ, alphaY=alphaY, 
                     ReInf=Re, MutSMuInf=MutSMuInf, TurbLevelInf=TurbLevelInf,
+                    UInf=UInf, TInf=TInf, LInf=LInf, RoInf=RoInf, PInf=PInf,
                     adim=adim)
 
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)

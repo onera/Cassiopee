@@ -23,8 +23,8 @@ void main(void)
 {
   v2f_out.color  = gl_Color;
   v2f_out.position = gl_Vertex;
-  v2f_out.view_normal     = vec4(gl_NormalMatrix * gl_Normal,0.);
-  v2f_out.mv_position      = gl_ModelViewMatrix * gl_Vertex;
+  v2f_out.view_normal = vec4(gl_NormalMatrix * gl_Normal,0.);
+  v2f_out.mv_position = gl_ModelViewMatrix * gl_Vertex;
   v2ct_out.color    = gl_Color;
   v2ct_out.position = gl_Vertex;
   v2ct_out.data_comp = ivec4(0,0,0,0);

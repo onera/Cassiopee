@@ -77,15 +77,31 @@ void Data::light(E_Int type)
   // 0.0 indique une lumiere directionelle
   // x,y,z sont la direction
 #ifdef __SHADERS__
-  // Position fixe dans le repere entraine (pour le shader)
+  // Position fixe dans le repere du modele (pour le shader)
   //GLfloat position[] = { 0., 0., 0., 0.0 };
-  //printf("light updated %f %f\n", ptrState->lightOffsetX*10,ptrState->lightOffsetY*100);
-  float r = (_view.xcam-_view.xeye)*(_view.xcam-_view.xeye)+(_view.ycam-_view.yeye)*(_view.ycam-_view.yeye)+(_view.zcam-_view.zeye)*(_view.zcam-_view.zeye);
-  r = sqrt(r)*3.14/2.;
-  float xl = ptrState->lightOffsetX * r ;
-  float yl = ptrState->lightOffsetY * r / 5.;
-  float zl = ptrState->lightOffsetY * r / 5.;
-  GLfloat position[] = { xl, yl, zl, 0.0 };
+  double d1x = _view.xcam-_view.xeye;
+  double d1y = _view.ycam-_view.yeye;
+  double d1z = _view.zcam-_view.zeye;
+  double d2x = _view.dirx;
+  double d2y = _view.diry;
+  double d2z = _view.dirz;
+  double d3x = d1y*d2z-d1z*d2y;
+  double d3y = d1z*d2x-d1x*d2z;
+  double d3z = d1x*d2y-d1y*d2x;
+  double r = d1x*d1x+d1y*d1y+d1z*d1z;
+  double n = d3x*d3x+d3y*d3y+d3z*d3z;
+  n = 1./fmax(sqrt(n), 1.e-12);
+  d3x = d3x*n; d3y=d3y*n; d3z=d3z*n;
+	n = d2x*d2x+d2y*d2y+d2z*d2z;
+  n = 1./fmax(sqrt(n), 1.e-12);
+  d2x = d2x*n; d2y=d2y*n; d2z=d2z*n;
+  r = sqrt(r)*3.14;
+    
+	float xl = ptrState->lightOffsetX * r * d3x + ptrState->lightOffsetY * r * d2x;
+  float yl = ptrState->lightOffsetX * r * d3y + ptrState->lightOffsetY * r * d2y;
+	float zl = ptrState->lightOffsetX * r * d3z + ptrState->lightOffsetY * r * d2z;
+	
+	GLfloat position[] = { xl, yl, zl, 0.0 };
 #else
   // Position dependant de la BB
   //GLfloat position[] = { (xmin+xmax)*0.5, ymin-2., zmax+2., 0.0 };

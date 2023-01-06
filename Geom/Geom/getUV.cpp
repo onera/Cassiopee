@@ -436,7 +436,14 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   // ajouter chartOptions et packOptions
   printf("-> normal=%f texels=%f\n", normalDeviationWeight, texelsPerUnit);
   xatlas::ChartOptions opt1;
-  opt1.normalDeviationWeight = normalDeviationWeight;
+  opt1.normalDeviationWeight = normalDeviationWeight; // poids de la deviation des normales dans la metrique
+  //opt1.maxCost = 2.; // si grand, moins de charts
+  //opt1.maxIterations = 2; // improve quality
+  //opt1.roundnessWeight = 0.01f;
+  //opt1.straightnessWeight = 6.0f;
+  //opt1.normalSeamWeight = 4.0f; // If > 1000, normal seams are fully respected.
+  //opt1.textureSeamWeight = 0.5f;
+  
   xatlas::PackOptions opt2;
   opt2.texelsPerUnit = texelsPerUnit;
 
