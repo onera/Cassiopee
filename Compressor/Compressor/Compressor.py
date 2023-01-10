@@ -5,6 +5,8 @@ __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Xavier Juvigny"
 
 from . import compressor
 import numpy
+try: import cPickle as pickle # best for now
+except: import pickle 
 
 #==============================================================================
 # deltaIndex
@@ -31,17 +33,11 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
 def pack(a, method=0):
     """Serialize or compress a."""
     if method == 0:
-        try: import cPickle as pickle # best for now
-        except: import pickle 
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
     elif method == 1:
-        try: import cPickle as pickle # best for now
-        except: import pickle
         import zlib
         return zlib.compress(pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL), level=1)
     else:
-        try: import cPickle as pickle # best for now
-        except: import pickle
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
    
 #==============================================================================
@@ -50,17 +46,11 @@ def pack(a, method=0):
 def unpack(a, method=0):
     """Deserialize or decompress a."""
     if method == 0:
-        try: import cPickle as pickle # best for now
-        except: import pickle
         return pickle.loads(a)
     elif method == 1:
-        try: import cPickle as pickle # best for now
-        except: import pickle
         import zlib
         return pickle.loads(zlib.decompress(a))
     else:
-        try: import cPickle as pickle # best for now
-        except: import pickle
         return pickle.loads(a)
 
     

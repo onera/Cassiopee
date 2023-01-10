@@ -23,18 +23,19 @@
 
 namespace K_COMPRESSOR
 {
-PyObject *
-py_cellN_compress(PyObject *self, PyObject *args)
+PyObject* py_cellN_compress(PyObject *self, PyObject *args)
 {
     PyObject *arrays;
-    if (!PyArg_ParseTuple(args, "O", &arrays)) {
+    if (!PyArg_ParseTuple(args, "O", &arrays)) 
+    {
         PyErr_SetString(PyExc_SyntaxError,
-                        "Wrong syntax. Right syntax : packCellN(array or list of arrays");
+                        "pack: wrong syntax. Right syntax: packCellN(array or list of arrays");
         return NULL;
     }
     bool  is_list = false;
     std::vector<PyArrayObject *> np_arrays;
-    if (PyList_Check(arrays)) {
+    if (PyList_Check(arrays)) 
+    {
         is_list = true;
         np_arrays.reserve(PyList_Size(arrays));
         for (Py_ssize_t i = 0; i < PyList_Size(arrays); ++i)
@@ -42,8 +43,9 @@ py_cellN_compress(PyObject *self, PyObject *args)
     }
     else if (PyArray_Check(arrays))
         np_arrays.push_back((PyArrayObject *)arrays);
-    else {
-        PyErr_SetString(PyExc_TypeError, "First argument must be an array or a list of array");
+    else 
+    {
+        PyErr_SetString(PyExc_TypeError, "pack: first argument must be an array or a list of array");
         return NULL;
     }
 
@@ -58,12 +60,12 @@ py_cellN_compress(PyObject *self, PyObject *args)
         double* array_data = (double*)PyArray_DATA(an_array);
         bool is_c_order = false;
         if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
-        //= On prépare l'objet décrivant la compression du cellN
+        //= On prepare l'objet decrivant la compression du cellN
         PyObject *shape = PyTuple_New(ndims);
         for (int j = 0; j < ndims; ++j) PyTuple_SET_ITEM(shape, j, PyLong_FromLong(long(dims[j])));
         PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
-        //= Réservation mémoire pour le buffer compressé de cellN
+        //= Reservation mémoire pour le buffer compressé de cellN
         npy_intp sz = npy_intp(an_array_length+3)/4;
         PyArrayObject* cpr_arr = (PyArrayObject*)PyArray_SimpleNew(1, &sz,
                                                                    NPY_BYTE);
@@ -81,7 +83,7 @@ py_cellN_compress(PyObject *self, PyObject *args)
         //= Il faut traiter le cas où le tableau a une longueur non divisible
         //- par quatre :
         std::size_t remainder = an_array_length&3;
-        if ( remainder > 0)
+        if (remainder > 0)
         {
             std::size_t ind = an_array_length - remainder;
             std::uint8_t c1 = std::uint8_t(array_data[ind])&3;
@@ -104,7 +106,8 @@ py_cellN_compress(PyObject *self, PyObject *args)
         }
         PyList_SetItem(compressed_list, i, obj);
     }
-    if (!is_list) {
+    if (!is_list) 
+    {
         //= Si ce n'était pas une liste au départ, on retourne un tableau
         PyObject* array = PyList_GetItem(compressed_list, 0);
         Py_INCREF(array);
@@ -115,11 +118,11 @@ py_cellN_compress(PyObject *self, PyObject *args)
     return compressed_list;
 }
 
-PyObject *
-py_cellN_uncompress(PyObject *self, PyObject *args)
+PyObject* py_cellN_uncompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays;
-    if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) {
+    if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) 
+    {
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpackCellN(array or list of compressed arrays");
         return NULL;
     }
@@ -127,13 +130,15 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
     std::vector<PyArrayObject *> np_cpr_arrays;
     std::vector<std::vector<npy_intp>> shape_arrays;
     std::vector<bool> is_c_order;
-    if (PyList_Check(cpr_arrays)) {
-        is_list              = true;
+    if (PyList_Check(cpr_arrays)) 
+    {
+        is_list = true;
         Py_ssize_t list_size = PyList_Size(cpr_arrays);
         np_cpr_arrays.reserve(list_size);
         shape_arrays.resize(list_size);
         is_c_order.reserve(list_size);
-        for (Py_ssize_t i = 0; i < list_size; ++i) {
+        for (Py_ssize_t i = 0; i < list_size; ++i) 
+        {
             PyObject *tuple = PyList_GetItem(cpr_arrays, i);
             if (!PyTuple_Check(tuple)) {
                 PyErr_SetString(PyExc_TypeError, "The values of the list must be tuple as (shape, compressed data)");
@@ -230,12 +235,12 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
         {
             py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,1);
         }
-        double *py_array_data = (double *)PyArray_DATA(py_array);
+        double* py_array_data = (double*)PyArray_DATA(py_array);
         std::size_t    cpr_length    = PyArray_SIZE(np_cpr_arrays[i]);
-        //std::size_t    array_length  = PyArray_SIZE(py_array);
-        std::uint8_t *cpr_data = (std::uint8_t *)PyArray_DATA(np_cpr_arrays[i]);
+        //std::size_t   array_length  = PyArray_SIZE(py_array);
+        std::uint8_t* cpr_data = (std::uint8_t*)PyArray_DATA(np_cpr_arrays[i]);
 #       pragma omp parallel for        
-        for ( std::size_t ibyte = 0; ibyte < cpr_length-1; ++ibyte)
+        for (std::size_t ibyte = 0; ibyte < cpr_length-1; ++ibyte)
         {
             std::size_t ind = 4*ibyte;
             std::int8_t byte = cpr_data[ibyte];
@@ -250,7 +255,8 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
         if (((byte>>2)&3) != 3) py_array_data[ind+1] = (byte>>2)&3;
         if (((byte>>4)&3) != 3) py_array_data[ind+2] = (byte>>4)&3;
         if (((byte>>6)&3) != 3) py_array_data[ind+3] = (byte>>6)&3;
-        if (!is_list) {
+        if (!is_list) 
+        {
             Py_DecRef(lst_out_arrays);
             return (PyObject *)py_array;
         }

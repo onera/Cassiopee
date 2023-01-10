@@ -118,14 +118,14 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
 # if layers not None, only communicate the desired number of layers
 # bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
 # if subr, the tree subregions are kept during the exchange 
-def compressCartesian(t, bbox=[], layers=None, subr=True):
+def compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
     """For Cartesian grids, replace Grid Coordinates with a UserDefined CartesianData node."""
     tp = Internal.copyRef(t)
-    _compressCartesian(tp, bbox=bbox, layers=layers, subr=subr)
+    _compressCartesian(tp, bbox=bbox, layers=layers, subr=subr, tol=tol)
     return tp
 
 # compress a gridCoordinates container
-def _compressCartesian__(z, ztype, gc):
+def _compressCartesian__(z, ztype, gc, tol=1.e-10):
     xp = Internal.getNodeFromName1(gc, 'CoordinateX')
     yp = Internal.getNodeFromName1(gc, 'CoordinateY')
     zp = Internal.getNodeFromName1(gc, 'CoordinateZ')
@@ -137,63 +137,83 @@ def _compressCartesian__(z, ztype, gc):
     zp = zp[1].ravel(order='K')
     ni = ztype[1]; nj = ztype[2]; nk = ztype[3]
     x0 = xp[0]; y0 = yp[0]; z0 = zp[0]
-    hi = xp[1]-x0
+    if ni > 3: hi = xp[3]-xp[2]
+    elif ni > 2: hi = xp[2]-xp[1]
+    elif ni > 1: hi = xp[1]-x0
+    else: hi = 1.
     cartesian = True
+    if ni > 1:
+        if abs(xp[1] - xp[0] - hi) > tol: cartesian = False
+        if abs(yp[1] - y0) > tol: cartesian = False
+        if abs(zp[1] - z0) > tol: cartesian = False
     if ni > 2:
-        if abs(xp[2] - xp[1] - hi) > 1.e-10: cartesian = False
-        if abs(yp[1] - y0) > 1.e-10: cartesian = False
-        if abs(zp[1] - z0) > 1.e-10: cartesian = False
-    if ni > 3:
-        if abs(xp[3] - xp[2] - hi) > 1.e-10: cartesian = False
-        if abs(yp[2] - y0) > 1.e-10: cartesian = False
-        if abs(zp[2] - z0) > 1.e-10: cartesian = False
+        if abs(xp[2] - xp[1] - hi) > tol: cartesian = False
+        if abs(yp[1] - y0) > tol: cartesian = False
+        if abs(zp[1] - z0) > tol: cartesian = False
+    if ni > 3: # safe from here
+        if abs(xp[3] - xp[2] - hi) > tol: cartesian = False
+        if abs(yp[2] - y0) > tol: cartesian = False
+        if abs(zp[2] - z0) > tol: cartesian = False
     if ni > 4:
-        if abs(xp[4] - xp[3] - hi) > 1.e-10: cartesian = False
-        if abs(yp[3] - y0) > 1.e-10: cartesian = False
-        if abs(zp[3] - z0) > 1.e-10: cartesian = False
+        if abs(xp[4] - xp[3] - hi) > tol: cartesian = False
+        if abs(yp[3] - y0) > tol: cartesian = False
+        if abs(zp[3] - z0) > tol: cartesian = False
     if ni > 5:
-        if abs(xp[5] - xp[4] - hi) > 1.e-10: cartesian = False
-        if abs(yp[4] - y0) > 1.e-10: cartesian = False
-        if abs(zp[4] - z0) > 1.e-10: cartesian = False
-        
-    if nj > 1: hj = yp[ni]-y0
+        if abs(xp[5] - xp[4] - hi) > tol: cartesian = False
+        if abs(yp[4] - y0) > tol: cartesian = False
+        if abs(zp[4] - z0) > tol: cartesian = False
+    
+    if nj > 3: hj = yp[3*ni]-yp[2*ni]
+    elif nj > 2: hj = yp[2*ni]-yp[ni]
+    elif nj > 1: hj = yp[ni]-y0
     else: hj = 1.
+    if nj > 1:
+        if abs(yp[ni] - yp[0] - hj) > tol: cartesian = False
+        if abs(xp[ni] - x0) > tol: cartesian = False
+        if abs(zp[ni] - z0) > tol: cartesian = False
     if nj > 2:
-        if abs(yp[2*ni] - yp[ni] - hj) > 1.e-10: cartesian = False
-        if abs(xp[ni] - x0) > 1.e-10: cartesian = False
-        if abs(zp[ni] - z0) > 1.e-10: cartesian = False
+        if abs(yp[2*ni] - yp[ni] - hj) > tol: cartesian = False
+        if abs(xp[ni] - x0) > tol: cartesian = False
+        if abs(zp[ni] - z0) > tol: cartesian = False
     if nj > 3:
-        if abs(yp[3*ni] - yp[2*ni] - hj) > 1.e-10: cartesian = False
-        if abs(xp[2*ni] - x0) > 1.e-10: cartesian = False
-        if abs(zp[2*ni] - z0) > 1.e-10: cartesian = False
+        if abs(yp[3*ni] - yp[2*ni] - hj) > tol: cartesian = False
+        if abs(xp[2*ni] - x0) > tol: cartesian = False
+        if abs(zp[2*ni] - z0) > tol: cartesian = False
     if nj > 4:
-        if abs(yp[4*ni] - yp[3*ni] - hj) > 1.e-10: cartesian = False
-        if abs(xp[3*ni] - x0) > 1.e-10: cartesian = False
-        if abs(zp[3*ni] - z0) > 1.e-10: cartesian = False
+        if abs(yp[4*ni] - yp[3*ni] - hj) > tol: cartesian = False
+        if abs(xp[3*ni] - x0) > tol: cartesian = False
+        if abs(zp[3*ni] - z0) > tol: cartesian = False
     if nj > 5:
-        if abs(yp[5*ni] - yp[4*ni] - hj) > 1.e-10: cartesian = False
-        if abs(xp[4*ni] - x0) > 1.e-10: cartesian = False
-        if abs(zp[4*ni] - z0) > 1.e-10: cartesian = False
+        if abs(yp[5*ni] - yp[4*ni] - hj) > tol: cartesian = False
+        if abs(xp[4*ni] - x0) > tol: cartesian = False
+        if abs(zp[4*ni] - z0) > tol: cartesian = False
 
-    if nk > 1: hk = zp[ni*nj]-z0
+    if nk > 3: hk = zp[3*ni*nj]-zp[2*ni*nj]
+    elif nk > 2: hk = zp[2*ni*nj]-zp[ni*nj]
+    elif nk > 1: hk = zp[ni*nj]-z0
     else: hk = 1.
+    if nk > 1: 
+        if abs(zp[ni*nj] - zp[0] - hk) > tol: cartesian = False
+        if abs(xp[ni*nj] - x0) > tol: cartesian = False
+        if abs(yp[ni*nj] - y0) > tol: cartesian = False
     if nk > 2: 
-        if abs(zp[2*ni*nj] - zp[ni*nj] - hk) > 1.e-10: cartesian = False
-        if abs(xp[ni*nj] - x0) > 1.e-10: cartesian = False
-        if abs(yp[ni*nj] - y0) > 1.e-10: cartesian = False
+        if abs(zp[2*ni*nj] - zp[ni*nj] - hk) > tol: cartesian = False
+        if abs(xp[ni*nj] - x0) > tol: cartesian = False
+        if abs(yp[ni*nj] - y0) > tol: cartesian = False
     if nk > 3: 
-        if abs(zp[3*ni*nj] - zp[2*ni*nj] - hk) > 1.e-10: cartesian = False
-        if abs(xp[2*ni*nj] - x0) > 1.e-10: cartesian = False
-        if abs(yp[2*ni*nj] - y0) > 1.e-10: cartesian = False
+        if abs(zp[3*ni*nj] - zp[2*ni*nj] - hk) > tol: cartesian = False
+        if abs(xp[2*ni*nj] - x0) > tol: cartesian = False
+        if abs(yp[2*ni*nj] - y0) > tol: cartesian = False
     if nk > 4: 
-        if abs(zp[4*ni*nj] - zp[3*ni*nj] - hk) > 1.e-10: cartesian = False
-        if abs(xp[3*ni*nj] - x0) > 1.e-10: cartesian = False
-        if abs(yp[3*ni*nj] - y0) > 1.e-10: cartesian = False
+        if abs(zp[4*ni*nj] - zp[3*ni*nj] - hk) > tol: cartesian = False
+        if abs(xp[3*ni*nj] - x0) > tol: cartesian = False
+        if abs(yp[3*ni*nj] - y0) > tol: cartesian = False
     if nk > 5: 
-        if abs(zp[5*ni*nj] - zp[4*ni*nj] - hk) > 1.e-10: cartesian = False
-        if abs(xp[4*ni*nj] - x0) > 1.e-10: cartesian = False
-        if abs(yp[4*ni*nj] - y0) > 1.e-10: cartesian = False
+        if abs(zp[5*ni*nj] - zp[4*ni*nj] - hk) > tol: cartesian = False
+        if abs(xp[4*ni*nj] - x0) > tol: cartesian = False
+        if abs(yp[4*ni*nj] - y0) > tol: cartesian = False
 
+    #print(cartesian, abs(zp[2*ni*nj] - zp[ni*nj] - hk), abs(zp[3*ni*nj] - zp[2*ni*nj] - hk))
     if cartesian:
         Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read
         Internal.createUniqueChild(gc, 'CoordinateY', 'DataArray_t', value=[0.]*10)
@@ -205,14 +225,14 @@ def _compressCartesian__(z, ztype, gc):
 # Si la zone est cartesienne :
 # Ajoute un noeud CartesianData a la zone
 # remplace Coordinates par des noeuds avec des champs de taille 10
-def _compressCartesian(t, bbox=[], layers=None, subr=True):
+def _compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
     zones = Internal.getZones(t)
     for z in zones:
         ztype = Internal.getZoneDim(z)
         if ztype[0] == 'Unstructured': continue
         gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
         if gc is None: continue
-        cartesian = _compressCartesian__(z, ztype, gc)
+        cartesian = _compressCartesian__(z, ztype, gc, tol)
         #print('cartesian?=', cartesian)
 
         # traitement layers
@@ -285,7 +305,7 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True):
 
         # Compress GridInit is present
         gc = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
-        if gc is not None: _compressCartesian__(z, ztype, gc)
+        if gc is not None: _compressCartesian__(z, ztype, gc, tol)
 
     return None
     
@@ -368,6 +388,8 @@ def _uncompressCartesian_old(t):
 # ctype=0: compress with sz
 # ctype=1: compress with zfp
 # ctype=2: compress cellN
+# ctype=3: compress basic element connectivity
+# ctype=4: compress ngon connectivity
 def _packNode(node, tol=1.e-8, ctype=0):
     if ctype == 0: # sz
         from . import sz

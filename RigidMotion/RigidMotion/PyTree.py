@@ -424,7 +424,7 @@ def _copyGridInit2Grid(t):
 # si mode=1, recopie toujours
 def copyGrid2GridInit(t, mode=0):
     tp = Internal.copyRef(t)
-    _copyGrid2GridInit(t, mode)
+    _copyGrid2GridInit(tp, mode)
     return tp
 
 def _copyGrid2GridInit(t, mode=0):
