@@ -4268,7 +4268,7 @@ def _adaptNGon22NGon1(t):
     for z in zones:
         cn = getElementNodes(z)
         for c in cn:
-            # NGON ou NFACE
+            # NGON ou NFACE modifie l'offset
             if c[1][0] == 22 or c[1][0] == 23: 
                 off = getNodeFromName1(c, 'ElementStartOffset')
                 cn = getNodeFromName1(c, 'ElementConnectivity')
@@ -4276,6 +4276,17 @@ def _adaptNGon22NGon1(t):
                     n = converter.adaptNGon22NGon1(cn[1], off[1])
                     cn[1] = n
                     _rmNodesFromName(c, 'ElementStartOffset')
+
+            # Si ParentElement, regarde si il adresse les elements decales du nbre de faces de NGON
+            if c[1][0] == 22:
+                parentElt = getNodeFromName1(c, 'ParentElements')
+                if parentElt is not None and parentElt[1] is not None: # parent element est present
+                    cFE = parentElt[1]
+                    erange = getNodeFromName1(c, 'ElementRange')
+                    shift = numpy.min(cFE[numpy.nonzero(cFE)])
+                    if shift > 1 and shift == erange[1][1]+1:
+                        cFE = cFE+(1-shift)*(cFE>0)
+                        parentElt[1] = cFE
     return None
 
 # -- Adapte un NGon1 en NGon2
@@ -4289,7 +4300,7 @@ def _adaptNGon12NGon2(t):
     for z in zones:
         cn = getElementNodes(z)
         for c in cn:
-            # NGON ou NFACE
+            # NGON ou NFACE offsets
             if c[1][0] == 22 or c[1][0] == 23: 
                 cn = getNodeFromName1(c, 'ElementConnectivity')
                 if cn is not None:
@@ -4298,6 +4309,17 @@ def _adaptNGon12NGon2(t):
                     createUniqueChild(c, 'ElementStartOffset', 'DataArray_t', off)
                     _rmNodesFromName(c, 'FaceIndex')
                     _rmNodesFromName(c, 'ElementIndex')
+            # Si ParentElement, regarde si il adresse les elements decales du nbre de faces de NGON
+            if c[1][0] == 22:
+                parentElt = getNodeFromName1(c, 'ParentElements')
+                if parentElt is not None and parentElt[1] is not None: # parent element est present
+                    cFE = parentElt[1]
+                    erange = getNodeFromName1(c, 'ElementRange')
+                    shift = numpy.min(cFE[numpy.nonzero(cFE)])
+                    if shift == erange[1][1]+1:
+                        cFE = cFE+(shift-1)*(cFE>0)
+                        parentElt[1] = cFE
+
     return None
 
 # -- Adapte une condition aux limites definies par faces en conditions aux
@@ -4430,14 +4452,13 @@ def referencedElement(ind, zname, d):
 # Convertit la zone MIXED en NGON
 # Si addNFace=True, ajoute le NFace
 # Si NFACE, fait la valeur absolue des indices
-# Si nouvel NGON, converti en ancien NGON
+# Si nouvel NGON, convertit en ancien NGON
 def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
     tp = copyRef(t)
     _fixNGon(tp, remove, breakBE, convertMIXED)
     return tp
 
 def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
-    
     zones = getZones(t)
     dictOfZTypes = {} # dictionnaire des types de zone (0: struct, 1: non struct)
     for z in zones:
@@ -4455,8 +4476,12 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
             for s in sons:
                 if s[3] == 'Elements_t':
                     ztype = s[1][0]
-                    if ztype == 22: NGON = no
-                    elif ztype == 23: NFACE = no
+                    if ztype == 22: 
+                        if NGON == -1: NGON = no
+                        else: print("Warning: fixNGon: only first NGON connectivity is taken into account.")
+                    elif ztype == 23: 
+                        if NFACE == -1: NFACE = no
+                        else: print("Warning: fixNGon: only first NFACE connectivity is taken into account.")
                     elif BE == -1: BE = no
                 no += 1
 
@@ -4467,17 +4492,6 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
             if NFACE != -1:
                 c = getNodeFromName1(sons[NFACE], 'ElementConnectivity')
                 if c is not None and c[1] is not None: c[1] = numpy.absolute(c[1])
-
-            # Si ParentElement, regarde si il adresse les elements decales du nbre de faces de NGON
-            #if NGON >= 0:
-            #    ngon = sons[NGON]
-            #    parentElt = getNodeFromName1(ngon, 'ParentElements')
-            #    if parentElt is not None and parentElt[1] is not None: # parent element est present
-            #        cFE = parentElt[1]
-            #        shift = numpy.min(cFE[numpy.nonzero(cFE)])
-            #        if shift > 1: # possible de verifier si ca correspond au nombre de faces
-            #            cFE = cFE+(1-shift)*(cFE>0)
-            #            parentElt[1] = cFE
 
             # Si NGON, ajoute NFace si manquant
             if addNFace == True and NFACE == -1 and NGON >= 0:
