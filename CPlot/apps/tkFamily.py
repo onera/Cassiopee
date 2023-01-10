@@ -1,4 +1,5 @@
-# - Gestion des familles -
+# - tkFamily -
+"""Gestion des familles."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
@@ -195,7 +196,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

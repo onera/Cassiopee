@@ -1,4 +1,5 @@
-# - Draw isolines -
+# - tkIsoLine -
+"""Draw isolines."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
@@ -96,7 +97,7 @@ def drawIsoLines():
     if isos != []:
         isos = T.join(isos)
         CTK.add(CTK.t, nob, -1, isos)
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'Isolines extracted.\n')
     else:
         Panels.displayErrors(errors, header='Error: Isolines')
@@ -108,8 +109,8 @@ def drawIsoLines():
     
 #==============================================================================
 def extractIsoLine():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -144,7 +145,7 @@ def extractIsoLine():
     bases = Internal.getNodesFromName1(CTK.t, 'CONTOURS')
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in isos: CTK.add(CTK.t, nob, -1, i)
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'Isolines extracted.\n')
     else:
         Panels.displayErrors(errors, header='Error: Isolines')
@@ -225,7 +226,7 @@ def createApp(win):
 
     if CTK.t != []:
         vars = C.getVarNames(CTK.t)
-        if (len(vars)>0):
+        if len(vars) > 0:
             if (len(vars[0])>0): VARS[0].set(vars[0][0])
          
     # - nlevels -
@@ -299,7 +300,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

@@ -1,4 +1,5 @@
-# - Fix holes in meshes -
+# - tkFixer -
+"""Fix holes in mesh."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import Converter.PyTree as C
@@ -150,9 +151,9 @@ def hideApp(event=None):
 def updateApp(): return
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

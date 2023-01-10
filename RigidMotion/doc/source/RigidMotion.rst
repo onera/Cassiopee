@@ -39,6 +39,8 @@ List of functions
 
    RigidMotion.PyTree.evalPosition
    RigidMotion.PyTree.evalGridSpeed
+   RigidMotion.PyTree.copyGrid2GridInit
+   RigidMotion.PyTree.copyGridInit2Grid
    
 
 Contents
@@ -265,6 +267,48 @@ General functions
 
     .. literalinclude:: ../build/Examples/RigidMotion/evalGridSpeedPT.py
     
+
+------------------------------------------------------------------------------------------------
+
+.. py:function:: RigidMotion.copyGrid2GridInit(a, mode=0)
+
+    Copy GridCoordinates to GridCoordinates#Init.
+    If mode=0, only if grid has a TimeMotion node.
+    If mode=1, always copy.
+
+    Exists also as an in-place version (_copyGrid2GridInit) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [pyTree, base, zone, list of zones]
+    :param mode: behaviour
+    :type mode: 0 or 1
+    :return: reference copy of a
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Copy GridCoordinates to GridCoordinates#Init (pyTree) <Examples/RigidMotion/copyGrid2GridInitPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/RigidMotion/copyGrid2GridInitPT.py
+
+------------------------------------------------------------------------------------------------
+
+.. py:function:: RigidMotion.copyGridInit2Grid(a)
+
+    Copy GridCoordinates#Init to GridCoordinates if it exists.
+    
+    Exists also as an in-place version (_copyGridInit2Grid) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [pyTree, base, zone, list of zones]
+    :return: reference copy of a
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Copy GridCoordinates#Init to GridCoordinates (pyTree) <Examples/RigidMotion/copyGridInit2GridPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/RigidMotion/copyGridInit2GridPT.py
 
 
 .. toctree::

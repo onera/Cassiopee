@@ -1,4 +1,5 @@
-# - Flow Equation and Reference State manipulator -
+# - tkState -
+"""Flow Equation and Reference State manipulator."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK

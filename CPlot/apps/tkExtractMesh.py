@@ -1,4 +1,5 @@
-# - extract mesh par interpolation -
+# - tkExtractMesh -
+"""Extract mesh by interpolation."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK

@@ -1,4 +1,5 @@
-# -- filters in a pyTree --
+# -- tkFilter --
+"""Filters for viewing certain zones."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK

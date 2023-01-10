@@ -4475,7 +4475,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
             #    if parentElt is not None and parentElt[1] is not None: # parent element est present
             #        cFE = parentElt[1]
             #        shift = numpy.min(cFE[numpy.nonzero(cFE)])
-            #        if shift > 1:
+            #        if shift > 1: # possible de verifier si ca correspond au nombre de faces
             #            cFE = cFE+(1-shift)*(cFE>0)
             #            parentElt[1] = cFE
 
@@ -5098,6 +5098,39 @@ def getBCDataSet(z, bcNode, withLoc=False):
     if withLoc: return None
     else: return datas
  
+# Retourne une liste des BCDataSets et BCZoneSubRegions de z
+# Retourne un dictionnaire
+def getBCDataSets(z, bcNode):
+    ret = {}
+    nodes1 = getNodesFromType(z, 'BCDataSet_t')
+    for n in nodes1:
+        datas = getNodesFromType2(n, 'DataArray_t')
+        ploc = 'Vertex'
+        l = getNodeFromType1(n, 'GridLocation_t')
+        if l is not None: ploc = getValue(l)
+        ret[getName(n)] = [datas, ploc]
+
+    nodes2 = getNodesFromType(z, 'ZoneSubRegion_t')
+    bcName = getName(bcNode)
+    for n in nodes2:
+        bcRegionNameNode = getNodeFromName1(n, 'BCRegionName')
+        if bcRegionNameNode and (getValue(bcRegionNameNode) == bcName):
+            datas = getNodesFromType2(n, 'DataArray_t')
+            ploc = 'Vertex'
+            l = getNodeFromType1(n, 'GridLocation_t')
+            if l is not None: ploc = getValue(l)
+            ret[getName(n)] = [datas, ploc]
+        
+        gcRegionNameNode = getNodeFromName1(n, 'GridConnectivityRegionName')
+        if gcRegionNameNode and (getValue(gcRegionNameNode) == bcName):
+            datas = getNodesFromType2(n, 'DataArray_t')
+            ploc = 'Vertex'
+            l = getNodeFromType1(n, 'GridLocation_t')
+            if l is not None: ploc = getValue(l)
+            ret[getName(n)] = [datas, ploc]
+
+    return ret
+
 #==============================================================================
 # Retourne une liste des faces de la BC (node)
 # si la grille est structuree, retourne un indicage de faces

@@ -1,4 +1,5 @@
-# - tkHats: close surfaces with hats -
+# - tkHats -
+"""Close surfaces with hat."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import Converter.Internal as Internal

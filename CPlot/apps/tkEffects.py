@@ -1,4 +1,5 @@
-# - render effects (shadow, dof,...) -
+# - tkEffects -
+"""Setup render effects (shadow, dof, ...)"""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
@@ -42,8 +43,8 @@ def setSharpenPower(event=None):
 #==============================================================================
 def setLightOffsetX(event=None):
     off = WIDGETS['lightOffsetX'].get() / 50. - 1.
-    VARS[3].set('Light offset in x [%.2f %%].'%off)
     off = -off
+    VARS[3].set('Light offset in x [%.2f %%].'%off)
     CPlot.setState(lightOffset=(off, -999))
     CPlot._addRender2PyTree(CTK.t, lightOffsetX=off)
 
@@ -131,7 +132,7 @@ def getData(event=None):
     pos = Internal.getNodeFromName1(slot, 'lightOffsetX')
     if pos is not None:
         val = Internal.getValue(pos)
-        WIDGETS['lightOffsetX'].set(val * 50. + 1)
+        WIDGETS['lightOffsetX'].set(-val * 50. + 1)
         CPlot.setState(lightOffset=(val,-999))
 
     pos = Internal.getNodeFromName1(slot, 'lightOffsetY')

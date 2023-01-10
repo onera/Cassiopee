@@ -1,4 +1,5 @@
-# - manipulate edges -
+# -- tkExtractEdges --
+"""Applet to manipulate mesh edges."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
@@ -11,9 +12,6 @@ import Post.PyTree as P
 import Transform.PyTree as T
 import Generator.PyTree as G
 import Intersector.PyTree as XOR
-
-try: range = xrange
-except: pass
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -223,13 +221,13 @@ def splitTBranches():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = CTK.varsFromWidget(VARS[1].get(), type=1)
-    if (len(tol) != 1):
+    if len(tol) != 1:
         CTK.TXT.insert('START', 'Split tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     
@@ -239,7 +237,7 @@ def splitTBranches():
     z = CTK.t[2][nob][2][noz]
     dim = Internal.getZoneDim(z)
     structured = 0
-    if (dim[0] == 'Structured'): structured = 1
+    if dim[0] == 'Structured': structured = 1
 
     CTK.saveTree()
 
@@ -256,7 +254,7 @@ def splitTBranches():
     a = G.close(a)
     try:
         splits = T.splitTBranches(a, tol)
-        if (structured == 1): splits = C.convertBAR2Struct(splits)
+        if structured == 1: splits = C.convertBAR2Struct(splits)
         n = len(nzs); ns = len(splits)
 
         for c in range(n):
@@ -422,9 +420,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
  
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

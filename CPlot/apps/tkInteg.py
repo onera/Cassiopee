@@ -1,4 +1,5 @@
-# - integration -
+# - tkInteg -
+"""Perform field integration."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK

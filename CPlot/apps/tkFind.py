@@ -1,4 +1,5 @@
-# - find nodes and elements of given number -
+# - tkFind -
+"""Find nodes or elements by their number."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK

@@ -88,7 +88,8 @@ def integNormMoment(t, center=(0.,0.,0.), vector=[]):
     return ret1.tolist()
 
 #=============================================================================
-# Parallel streamline2 : dans la direction de l'ecoulement uniquement
+# Parallel streamline2 : dans la direction de l'ecoulement uniquement (dir=1)
+#=============================================================================
 def streamLine2(t, X0, vector, N=2000, eps=1.e-2, maxCompt=20):
     """Compute a streamline starting from (x0,y0,z0) given
     a list of arrays containing 'vector' information."""

@@ -1,4 +1,5 @@
-# - Mesh generation by extrusion -
+# - tkExtrusion -
+"""Generate mesh by extrusion."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK

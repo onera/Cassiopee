@@ -397,7 +397,12 @@ def _moveZone__(z, time):
                 print("Warning: Motion type not found. Nothing done.")
     return None
   
-# Recopie GridCoordinates#Init (s'il existe) dans GridCoordinates  
+# Recopie GridCoordinates#Init (s'il existe) dans GridCoordinates 
+def copyGridInit2Grid(t):
+    tp = Internal.copyRef(t)
+    _copyGridInit2Grid(tp)
+    return tp
+
 def _copyGridInit2Grid(t):
   """Copy GridCoordinates#Init to GridCoordinates."""
   zones = Internal.getZones(t)
@@ -415,10 +420,20 @@ def _copyGridInit2Grid(t):
   return None
 
 # Copy GridCoordinates dans GridCoordinates#Init
-def _copyGrid2GridInit(t):
+# si mode=0, ne recopie que si TimeMotion est present
+# si mode=1, recopie toujours
+def copyGrid2GridInit(t, mode=0):
+    tp = Internal.copyRef(t)
+    _copyGrid2GridInit(t, mode)
+    return tp
+
+def _copyGrid2GridInit(t, mode=0):
   """Copy GridCoordinates to GridCoordinates#Init."""
   zones = Internal.getZones(t)
   for z in zones:
+    if mode == 0:
+        timeMotion = Internal.getNodeFromName1(z, 'TimeMotion')
+        if timeMotion is None: continue
     grid = Internal.getNodeFromName1(z, 'GridCoordinates')
     xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
     ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')
