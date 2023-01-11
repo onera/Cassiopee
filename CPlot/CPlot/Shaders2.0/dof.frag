@@ -271,7 +271,7 @@ float ssao(vec2 coords)
   return occlusion;
 }
 
-// Adapted from https://igortrindade.wordpress.com/2010/04/23/fun-with-opengl-and-shaders/
+// sharpen
 vec4 sharpen(vec2 coords, float coeff) 
 {
   float dx = pixelSizeHigh.x;
@@ -279,7 +279,7 @@ vec4 sharpen(vec2 coords, float coeff)
   vec4 sum = vec4(0.0);
   sum += -coeff * texture2D(FrameBuffer, coords + vec2( -1.0 * dx , 0.0 * dy));
   sum += -coeff * texture2D(FrameBuffer, coords + vec2( 0.0 * dx , -1.0 * dy));
-  sum += (1.+4*coeff) * texture2D(FrameBuffer, coords + vec2( 0.0 * dx , 0.0 * dy));
+  sum += (1.+4.*coeff) * texture2D(FrameBuffer, coords + vec2( 0.0 * dx , 0.0 * dy));
   sum += -coeff * texture2D(FrameBuffer, coords + vec2( 0.0 * dx , 1.0 * dy));
   sum += -coeff * texture2D(FrameBuffer, coords + vec2( 1.0 * dx , 0.0 * dy));
   return sum;
@@ -329,14 +329,14 @@ void main()
   vec4 res = color;
   
   // sharpen
-  if (sharpenCoeff > 0)
+  if (sharpenCoeff > 0.)
   {
     res = sharpen(gl_TexCoord[0].xy, sharpenCoeff);
     res.a = color.a;
   }
   
   // ssao
-  if (ssaoRadius > 0)
+  if (ssaoRadius > 0.)
   {
     float occlusion = ssao(gl_TexCoord[0].xy);
     res.rgb = (1.-occlusion)*res.rgb;

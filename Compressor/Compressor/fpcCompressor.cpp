@@ -23,7 +23,7 @@
 
 namespace K_COMPRESSOR
 {
-PyObject* py_cellN_compress(PyObject *self, PyObject *args)
+PyObject* py_fpc_compress(PyObject *self, PyObject *args)
 {
     PyObject *arrays;
     if (!PyArg_ParseTuple(args, "O", &arrays)) 
@@ -65,11 +65,11 @@ PyObject* py_cellN_compress(PyObject *self, PyObject *args)
         for (int j = 0; j < ndims; ++j) PyTuple_SET_ITEM(shape, j, PyLong_FromLong(long(dims[j])));
         PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
-        //= Reservation mémoire pour le buffer compressé de cellN
+        //= Reservation mémoire pour le buffer compresse de cellN
         npy_intp sz = npy_intp(an_array_length+3)/4;
         PyArrayObject* cpr_arr = (PyArrayObject*)PyArray_SimpleNew(1, &sz, NPY_BYTE);
         std::uint8_t* buffer = (std::uint8_t*)PyArray_DATA(cpr_arr);
-#       pragma omp parallel for        
+        # pragma omp parallel for        
         for (std::size_t ibyte = 0; ibyte < an_array_length/4; ++ibyte)
         {
             std::size_t ind = 4*ibyte;
@@ -117,7 +117,7 @@ PyObject* py_cellN_compress(PyObject *self, PyObject *args)
     return compressed_list;
 }
 
-PyObject* py_cellN_uncompress(PyObject *self, PyObject *args)
+PyObject* py_fpc_uncompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays;
     if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) 
@@ -125,7 +125,7 @@ PyObject* py_cellN_uncompress(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpackCellN(array or list of compressed arrays");
         return NULL;
     }
-    bool                         is_list = false;
+    bool is_list = false;
     std::vector<PyArrayObject *> np_cpr_arrays;
     std::vector<std::vector<npy_intp>> shape_arrays;
     std::vector<bool> is_c_order;
@@ -167,7 +167,8 @@ PyObject* py_cellN_uncompress(PyObject *self, PyObject *args)
             }
             Py_ssize_t dimshape = PyTuple_Size(shp);
             shape_arrays[i].reserve(dimshape);
-            for (Py_ssize_t j = 0; j < dimshape; ++j) {
+            for (Py_ssize_t j = 0; j < dimshape; ++j) 
+            {
                 PyObject *py_dim = PyTuple_GetItem(shp, j);
                 if (PyLong_Check(py_dim) == false && PyInt_Check(py_dim) == false) 
                 {
@@ -184,7 +185,8 @@ PyObject* py_cellN_uncompress(PyObject *self, PyObject *args)
         PyObject *shape = PyTuple_GetItem(cpr_arrays, 0);
         PyObject *array = PyTuple_GetItem(cpr_arrays, 1);
         PyObject *py_is_c_order = PyTuple_GetItem(cpr_arrays, 2);
-        if (!PyArray_Check(array)) {
+        if (!PyArray_Check(array)) 
+        {
             PyErr_SetString(PyExc_TypeError, "Second value of tuple must be an array with compressed data");
             return NULL;
         }

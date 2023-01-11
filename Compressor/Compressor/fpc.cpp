@@ -32,37 +32,40 @@
 //================================================================
 
 #if defined(__clang__) || defined(__GNUC__)
-#define FPC_GCC_OR_CLANG
-#define FPC_ALIGN(K) __attribute__((aligned((K))))
-#define FPC_CLZ32(MASK) (uint_fast8_t)__builtin_clz(MASK)
-#define FPC_CLZ64(MASK) (uint_fast8_t)__builtin_clzll(MASK)
+  #define FPC_GCC_OR_CLANG
+  #define FPC_ALIGN(K) __attribute__((aligned((K))))
+  #define FPC_CLZ32(MASK) (uint_fast8_t)__builtin_clz(MASK)
+  #define FPC_CLZ64(MASK) (uint_fast8_t)__builtin_clzll(MASK)
+
 #elif defined(_MSC_VER) || defined(_MSVC_LANG)
-#include <intrin.h>
-#include <Windows.h>
-#define FPC_MSVC
-#define FPC_ALIGN(K) __declspec(align(K))
-#if defined(_M_IX86) || defined(_M_X64)
-#define FPC_CLZ32(MASK) (uint_fast8_t)__lzcnt(MASK)
-#define FPC_CLZ64(MASK) (uint_fast8_t)__lzcnt64(MASK)
-#elif defined(_M_ARM)
-#define FPC_CLZ32(MASK) (uint_fast8_t)_CountLeadingZeros(MASK)
-#define FPC_CLZ64(MASK) (uint_fast8_t)_CountLeadingZeros64(MASK)
+  #include <intrin.h>
+  #include <Windows.h>
+  #define FPC_MSVC
+  #define FPC_ALIGN(K) __declspec(align(K))
+
+  #if defined(_M_IX86) || defined(_M_X64)
+    #define FPC_CLZ32(MASK) (uint_fast8_t)__lzcnt(MASK)
+    #define FPC_CLZ64(MASK) (uint_fast8_t)__lzcnt64(MASK)
+  #elif defined(_M_ARM)
+    #define FPC_CLZ32(MASK) (uint_fast8_t)_CountLeadingZeros(MASK)
+    #define FPC_CLZ64(MASK) (uint_fast8_t)_CountLeadingZeros64(MASK)
+  #else
+    #error "FPC: UNSUPPORTED ARCHITECTURE."
+  #endif
+
 #else
-#error "FPC: UNSUPPORTED ARCHITECTURE."
-#endif
-#else
-#error "FPC: UNSUPPORTED COMPILER"
+  #error "FPC: UNSUPPORTED COMPILER"
 #endif
 
 #if defined(_DEBUG) || !defined(NDEBUG)
-#include <assert.h>
-#define FPC_INVARIANT(EXPRESSION) assert((EXPRESSION))
+  #include <assert.h>
+  #define FPC_INVARIANT(EXPRESSION) assert((EXPRESSION))
 #else
-#ifdef FPC_GCC_OR_CLANG
-#define FPC_INVARIANT(EXPRESSION) __builtin_assume((EXPRESSION))
-#elif defined(FPC_MSVC)
-#define FPC_INVARIANT(EXPRESSION) __assume((EXPRESSION))
-#endif
+  #ifdef FPC_GCC_OR_CLANG
+    #define FPC_INVARIANT(EXPRESSION) __builtin_assume((EXPRESSION))
+  #elif defined(FPC_MSVC)
+    #define FPC_INVARIANT(EXPRESSION) __assume((EXPRESSION))
+  #endif
 #endif
 
 #define FPC_FCM_HASH_UPDATE(HASH, VALUE)   HASH = ((HASH << ctx->hash_args.fcm_lshift) ^ (size_t)((VALUE) >> ctx->hash_args.fcm_rshift)) & fcm_mod_mask

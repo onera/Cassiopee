@@ -31,19 +31,19 @@
 #include <stddef.h>
 
 #ifndef FPC_CALL
-#define FPC_CALL
+  #define FPC_CALL
 #endif
 
 #ifndef FPC_ATTR
-#define FPC_ATTR
+  #define FPC_ATTR
 #endif
 
 #ifdef __cplusplus
-#define FPC_EXTERN_C_BEGIN extern "C" {
-#define FPC_EXTERN_C_END }
+  #define FPC_EXTERN_C_BEGIN extern "C" {
+  #define FPC_EXTERN_C_END }
 #else
-#define FPC_EXTERN_C_BEGIN
-#define FPC_EXTERN_C_END
+  #define FPC_EXTERN_C_BEGIN
+  #define FPC_EXTERN_C_END
 #endif
 
 #define FPC_TABLE_SIZE_DEFAULT 32768
