@@ -106,11 +106,11 @@ namespace NUGA
       for (auto& i : rank_to_sz_to_rid_to_PG_to_plan)
       {
         int rank = i.first;
-        auto & sz_to_rid_to_PG_to_plan_PG_to_plan = i.second;
+        auto & sz_to_rid_to_PG_to_plan = i.second;
 
         auto & rankdata = rank_to_data[rank]; //creation et referencement
 
-        for (auto & kk : sz_to_rid_to_PG_to_plan_PG_to_plan)
+        for (auto & kk : sz_to_rid_to_PG_to_plan)
         {
           int szid = kk.first;
           auto & rid_to_PG_to_plan = kk.second;
@@ -528,7 +528,8 @@ namespace NUGA
           int jzid = get_opp_zone(rid_to_zones, rid, szid);
           int jrk = zonerank[jzid];
 
-          rank_to_sz_to_rid_to_PTL[jrk][szid][jzid] = PTL;
+          rank_to_sz_to_rid_to_PTL[jrk][szid][rid] = PTL;
+          //std::cout << "prepa send : ...[jrk][szid][rid] : [" << jrk << "][" << szid << "][" << rid << "] : sz PTL : " << PTL.size() << std::endl; 
         }
       }
 
@@ -788,10 +789,10 @@ namespace NUGA
 
             int n_beg = racrange[v];
             int n_end = racrange[v + 1];
+            int sz = n_end - n_beg;
 
-            zone_to_rid_to_list_opp[jzid][rid].insert(zone_to_rid_to_list_opp[jzid][rid].end(), &ptList[n_beg], &ptList[n_beg] + n_end);
+            zone_to_rid_to_list_opp[jzid][rid].insert(zone_to_rid_to_list_opp[jzid][rid].end(), &ptList[n_beg], &ptList[n_beg] + sz);
           }
-
         }
       }
       return 0;

@@ -537,19 +537,42 @@ def getJoinsPtList(z, zname2id):
 
 	return (jzid, jptlist)
 
+#==============================================================================
+# getBCsPtLists : XXX
+# IN: t : 3D NGON PyTree
+# IN: subdiv_type : isotropic currently
+# OUT: Returns a hierarchical zone hook 
+#==============================================================================
+def getBCsPtLists(t):
+
+  zone_to_bcptlists = {}
+  zones = Internal.getZones(t)
+  #
+  for z in zones:
+    zid = CD.getProperty(z, 'zid')
+    # BC and Joins point list (owned side)
+    bcptlists = getBCPtList(z)
+    zone_to_bcptlists[zid]=bcptlists
+
+  return zone_to_bcptlists
+
+
 def getBCPtList(z):
   #
   bnds = Internal.getNodesFromType(z, 'BC_t')
-  zname=z[0]
-
-  ptLists = []
+  
+  ptList = []
   for bb in bnds :
-    ptList = Internal.getNodesFromType(bb, 'IndexArray_t')
-    ptLists.append(ptList[0][1][0])
-    #ptLists.append(ptList)
+    ptlnod = Internal.getNodesFromType(bb, 'IndexArray_t')
+    if ptlnod == [] : continue
+    x = ptlnod[0][1]
 
-  #print (ptLists)
-  return ptLists
+    if type(x[0]) is numpy.ndarray: # ptlnod[0][1] is a list with one ptlist : [ [...] ]
+      ptList.append(x[0])
+    else: # # ptlnod[0][1] is directly the ptlist : [...]
+      ptList.append(x)
+
+  return ptList
 
 def getBCPtListOfType(z, typesList, families = []):
     #
@@ -641,6 +664,49 @@ def updateBCPointLists2(z, ptLists):
       ptl[0][1] = ptLists[i]
       #print(ptl[0][1])
       i=i+1
+
+#------------------------------------------------------------------------------
+# 
+#------------------------------------------------------------------------------
+def updateJoinsPointLists3(z, zidDict, rid_to_ptlist, ptlname): # 'PointList', 'PointListDonor'
+
+  joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+  zid = CD.getProperty(z, 'zid')
+
+  # update the Join pointlist and synchronize with other zones (their PointListDonor)
+
+  processed_rid = set()
+
+  for j in joins:
+
+    ptl    = Internal.getNodeFromName1(j, ptlname)
+
+    rid    = CD.getProperty(j, 'rid')
+    donnorName = "".join(Internal.getValue(j))
+    jzid   = zidDict[donnorName]
+
+    if rid not in rid_to_ptlist : continue
+
+    L1     = rid_to_ptlist[rid]
+
+    if jzid==zid:
+      half   = int(len(rid_to_ptlist[rid]) / 2)
+
+      if ptlname == 'PointList':        # appel apres conformisation
+        if rid in processed_rid:        ## deuxieme passe (i.e deuxime demi-raccord)
+          L1 = L1[half:]
+        else:                           ## premiere passe
+          processed_rid.add(rid)
+          L1 = L1[:half]
+      elif ptlname == 'PointListDonor': # appel apres echange de pointlist
+        if rid in processed_rid:        ## deuxieme passe (i.e deuxime demi-raccord)
+          L1 = L1[:half]
+        else:                           ## premiere passe
+          processed_rid.add(rid)
+          L1 = L1[half:]
+  
+    L1     = numpy.reshape(L1, (1,len(L1)))
+    ptl[1] = L1
 
 #------------------------------------------------------------------------------
 # Conformisation d'une soupe de TRI ou de BAR
@@ -2303,14 +2369,185 @@ def _closeCells(t):
     return t
 
 #==============================================================================
+# setZonesAndJoinsUId : Assigns a unique id for zones and joins
+# IN: zidDict : dictionary zname <-> zid
+# IN: procDict : dictionary zname <-> rank
+#==============================================================================
+def setZonesAndJoinsUId(t):
+
+  zs = Internal.getZones(t)
+  iz = -1
+  ir = -1
+
+  # ---------------------------------------------------------------------
+  # dict_VD = {z1 : {z2 : {0 : {[idx_min_1, idx_min_2], [ir_1, ir_2]}, 1 : {[idx_min_1, idx_min_2], [ir_3, ir_4]}}}
+  #                 {z4 : {0 : {[idx_min], [ir_5]}, 1 : {[idx_min], [ir_6]}, 1 : {[idx_min], [ir_7]}, 1 : {[idx_min], [ir_8]}}}
+  #           {z2 : {z3 : {0 : {[idx_min, ...], [ir, ...]}}}
+  #           {z3 : {z4 : {0 : {[idx_min, ...], [ir, ...]}}}}
+  # ---------------------------------------------------------------------
+
+  dict_VD = {}
+  zidDict = {}
+
+  for z in zs: # loop on blocks
+    iz += 1
+
+    zidDict[z[0]] = iz #build zidDict
+
+    l = Internal.newIntegralData(name='zid', parent=z) #ceate a zid for each block 
+    l[1] = iz
+
+  for z in zs: # loop on blocks
+
+    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t') # check if rac exists for block z
+    nb_racs  = len(raccords)
+    
+    for rac in raccords: # loop on racs
+
+      # GET ZONES INDICES
+      z1 = CD.getProperty(z, 'zid')
+
+      donnorName = "".join(Internal.getValue(rac))
+      z2 = zidDict[donnorName]
+
+      # re-arrange
+      if z1 > z2:
+        c  = z2
+        z2 = z1
+        z1 = c            
+
+      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+      ptList_donor = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
+
+      is_perio = Internal.getNodeFromName1(rac, 'GridConnectivityProperty')
+      idx_min  = numpy.minimum(numpy.min(ptList), numpy.min(ptList_donor))
+
+      # 0==match connec; 1==perio connec
+      if is_perio:
+        idx_perio = 1
+      else:
+        idx_perio = 0
+
+      # -----
+
+      if z1 in dict_VD:
+        if z2 in dict_VD[z1]:
+          # if 'idx_min' in dict_VD[z1][z2]:
+          if idx_perio in dict_VD[z1][z2]:
+            if idx_min in dict_VD[z1][z2][idx_perio]:
+              r    = Internal.newIntegralData(name='rid', parent=rac)
+              r[1] = dict_VD[z1][z2][idx_perio][idx_min]
+            else:
+              ir += 1
+              dict_VD[z1][z2][idx_perio][idx_min]=ir
+              
+              r    = Internal.newIntegralData(name='rid', parent=rac) 
+              r[1] = ir
+          else:
+            ir += 1
+            dict_VD[z1][z2][idx_perio] = {}
+            dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+            r    = Internal.newIntegralData(name='rid', parent=rac) 
+            r[1] = ir
+        else:
+          ir += 1
+          dict_VD[z1][z2] = {}
+          dict_VD[z1][z2][idx_perio] = {}
+          dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+          r    = Internal.newIntegralData(name='rid', parent=rac) 
+          r[1] = ir
+      else:
+        ir += 1
+        dict_VD[z1] = {}
+        dict_VD[z1][z2] = {}
+        dict_VD[z1][z2][idx_perio] = {}
+        dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+        r    = Internal.newIntegralData(name='rid', parent=rac) 
+        r[1] = ir
+
+#==============================================================================
+# getJoinsPtList : XXX
+# IN: t : 3D NGON PyTree
+# IN: XXX
+# OUT: XXX
+#==============================================================================
+def getJoinsPtLists(t, zidDict):
+
+  zone_to_rid_to_list_owned = {}
+
+  zones = Internal.getZones(t)
+
+  for z in zones:
+    zid = CD.getProperty(z, 'zid')
+
+    rid_to_list_owned = {}
+
+    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    for rac in raccords:
+      
+      rid = CD.getProperty(rac, 'rid')
+
+      donnorName = "".join(Internal.getValue(rac))
+      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+
+      jzid = zidDict[donnorName]
+      if jzid==zid: # auto-match case
+        if rid in rid_to_list_owned:
+          rid_to_list_owned[rid] = numpy.concatenate((rid_to_list_owned[rid], ptList))
+        else:
+          rid_to_list_owned[rid] = ptList
+      else:         # other cases
+        rid_to_list_owned[rid] = ptList
+
+    zone_to_rid_to_list_owned[zid] = rid_to_list_owned
+
+  return zone_to_rid_to_list_owned
+
+
+#==============================================================================
+# getRidToZones : Computes a dictionary rid <-> (zid1,zid2)
+# IN: t : 3D NGON PyTree
+# IN: zidDict : dictionary zname <-> zid
+# OUT: Returns the dictionary rid <-> (zid1,zid2)
+#==============================================================================
+def getRidToZones(t, zidDict):
+  """ Function returning ridDict (zones concerned 
+  by rac rid, given tree t as well as zidDict.
+  """
+
+  ridDict = {}
+
+  zones = Internal.getZones(t)
+  for z in zones:
+    zid = CD.getProperty(z, 'zid')
+
+    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    for rac in raccords:
+      rid = CD.getProperty(rac, 'rid')
+
+      z1 = CD.getProperty(z, 'zid')
+
+      donnorName = "".join(Internal.getValue(rac))
+      z2 = zidDict[donnorName]
+
+      ridDict[rid] = (z1,z2)
+
+  return ridDict
+
+
+
+#==============================================================================
 # adaptCells : Adapts an unstructured mesh a with respect to a sensor
 # IN: t : 3D NGON mesh
 # IN: sensdata : sensor data (a bunch of vertices or a mesh for a geom sensor, a mesh for a xsensor, punctual values for a nodal or cell sensor)
-# IN: sensor_type : geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3), xsensor2(4)
+# IN: sensor_type : geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3), xsensor(4)
 # IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
 # IN itermax : max number of level in the hierarchy
 # IN: subdiv_type : isotropic currently
-# IN: sensor_metric_policy (specific for xsensor2) : which reference cell size (edge length) to use ? min (0), mean (1), max(2) or min_or_max(3) 
+# IN: sensor_metric_policy (specific for xsensor) : which reference cell size (edge length) to use ? min (0), mean (1), max(2) or min_or_max(3) 
 # IN: hmesh : hierarchical mesh hook
 # IN: sensor : sensor hook
 # OUT: returns a 3D NGON Mesh with adapted cells
@@ -2359,7 +2596,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     err=0
     if sensdata is not None:
       #print("assignData2Sensor")
-      if sensor_type == 4:
+      if sensor_type == 1 or sensor_type == 4:
         sensdata = C.convertArray2NGon(sensdata)
       err = assignData2Sensor(sensor, sensdata)
       if err == 1:

@@ -30,11 +30,11 @@ a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 
 m1 = XOR.adaptCells(a, cv, sensor_type=3, subdiv_type=1) # ISO_HEX
 m1 = XOR.closeCells(m1)
-#C.convertPyTree2File(m1, 'PT_t4_1.cgns')
+#C.convertPyTree2File(m1, 'PT_t15_1.cgns')
 test.testT(m1,1)
 
 m2 = XOR.adaptCells(a, cv, sensor_type=3, subdiv_type=1, smoothing_type=1) # ISO_HEX
 m2 = XOR.closeCells(m2)
-#C.convertPyTree2File(m2, 'PT_t4_2.cgns')
+#C.convertPyTree2File(m2, 'PT_t15_2.cgns')
 test.testT(m2,2)
 

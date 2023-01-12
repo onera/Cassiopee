@@ -439,7 +439,7 @@ def adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1
         owesHMesh=1
     sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax)
 
-    if sensor_type == 4: #xsensor2 need an NGON
+    if sensor_type == 1 or sensor_type == 4: #xsensor2 need an NGON
         sensdata = C.convertArray2NGon(sensdata)
 
     assignData2Sensor(sensor, sensdata)
