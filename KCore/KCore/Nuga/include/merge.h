@@ -16,6 +16,7 @@
 #include "Nuga/include/ArrayAccessor.h"
 #include "Nuga/include/KdTree.h"
 #include "Nuga/include/Triangle.h"
+#include "Nuga/include/openMP.h"
 
 //namespace K_CONNECT
 //{

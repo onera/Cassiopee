@@ -31,13 +31,12 @@ namespace NUGA
   inline
   static void split_mpi_omp_joins
   (
-      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
-      int rank, 
-      const std::map<int, std::pair<int, int>>& rid_to_zones,
-      const std::vector<int>& zonerank,
-      std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_omp,
-      std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_mpi
-
+    const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
+    int rank, 
+    const std::map<int, std::pair<int, int>>& rid_to_zones,
+    const std::vector<int>& zonerank,
+    std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_omp,
+    std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_mpi
    )
   {
     zone_to_rid_to_list_omp.clear();
@@ -450,6 +449,37 @@ namespace NUGA
     void clear() { ptList.clear(); szone.clear(); szonerange.clear(); rac.clear(); racrange.clear(); }
 
     ///
+    static void transpose_pointlists
+    (
+      const std::map<int, std::pair<int,int>>& rid_to_zones,
+      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_owned,
+      std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_opp
+    )
+    {
+      zone_to_rid_to_list_opp.clear();
+
+      // OMP : just transpose
+      if (!zone_to_rid_to_list_owned.empty())
+      {
+        for (const auto& it : zone_to_rid_to_list_owned)
+        {
+          int zid = it.first;
+          const auto& rid_to_list = it.second;
+          for (const auto & z2L : rid_to_list)
+          {
+            int rid = z2L.first;
+            int jzid = get_opp_zone(rid_to_zones, rid, zid);
+            const auto & ptL = z2L.second;
+
+            zone_to_rid_to_list_opp[jzid][rid] = ptL;
+          }
+        }
+      }
+
+      assert(zone_to_rid_to_list_owned.size() == zone_to_rid_to_list_opp.size());
+    }
+
+    ///
     static void exchange_pointlists
     (
       const std::map<int, std::pair<int,int>>& rid_to_zones,
@@ -467,22 +497,7 @@ namespace NUGA
       split_mpi_omp_joins(zone_to_rid_to_list_owned, rank, rid_to_zones, zonerank, zone_to_rid_to_list_omp, zone_to_rid_to_list_mpi);
 
       // OMP : just transpose
-      if (!zone_to_rid_to_list_omp.empty())
-      {
-        for (const auto& it : zone_to_rid_to_list_omp)
-        {
-          int zid = it.first;
-          const auto& rid_to_list = it.second;
-          for (const auto & z2L : rid_to_list)
-          {
-            int rid = z2L.first;
-            int jzid = get_opp_zone(rid_to_zones, rid, zid);
-            const auto & ptL = z2L.second;
-
-            zone_to_rid_to_list_opp[jzid][rid] = ptL;
-          }
-        }
-      }
+      transpose_pointlists(rid_to_zones, zone_to_rid_to_list_omp, zone_to_rid_to_list_opp);
 
       // MPI
       if (zone_to_rid_to_list_mpi.empty()) return;

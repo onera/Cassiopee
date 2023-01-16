@@ -19,11 +19,11 @@ namespace NUGA
 
 
   template <typename mesh_t>
-  class close_cells_mpi : public hybrid_para_algo<mesh_t, atomdata<1>>
+  class close_cells_mpi : public hybrid_para_algo<mesh_t, E_Float>
   {
   public:
 
-    using data_t = typename atomdata<1>::type;// == K_FLD::FloatArray;
+    using data_t = K_FLD::FloatArray;
 
     inline int get_data_stride() override { return 3; }
 

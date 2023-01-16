@@ -90,42 +90,27 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
         return
 
     #
-    #tt0 = time.time()
     zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
 
-    #if Cmpi.rank == 0 :
-    #print('rank :' + str(Cmpi.rank)+' python : getJoinsPtLists ' + str(time.time()-tt0))
-
-    #tt0 = time.time()
+    #
     zonerank = getZonesRanks(zidDict, procDict)
-    #if Cmpi.rank == 0 :
-    #print('rank :' + str(Cmpi.rank)+' python : getZonesRanks ' + str(time.time()-tt0))
-    #print(zonerank)
-
+    
     rid_to_zones = getRidToZones(t, zidDict)
 
     #print('adaptCells..')
-    #tt0 = time.time()
     intersector.adaptCells_mpi(hmesh, sensor, zone_to_rid_to_list_owned, zonerank, rid_to_zones)#, com) #fxme agglo
-    #if Cmpi.rank == 0 :
-    #print('rank :' + str(Cmpi.rank)+' python : adaptCells_mpi ' + str(time.time()-tt0))
-
-    #tt0 = time.time()
+    
     if owesHmesh == 1 : #and owesSensor == 1 :
       #print("_conformizeHMesh")
       _conformizeHMesh(t, hmesh, zidDict, procDict, rid_to_zones, zonerank, zone_to_rid_to_list_owned, com)
-    #if Cmpi.rank == 0 :
-    #print('rank :' + str(Cmpi.rank)+' python : _conformizeHMesh ' + str(time.time()-tt0))
-
-    #tt0 = time.time()
+    
     if owesHmesh == 1 :
     #   #print('delete owned hmesh')
       XOR.deleteHMesh(hmesh)
     if owesSensor == 1 : 
       #print('delete owned sensor')
       XOR.deleteSensor(sensor)
-    #if Cmpi.rank == 0 :
-    #print('rank :' + str(Cmpi.rank)+' python : destroy ' + str(time.time()-tt0))
+    
 
 #==============================================================================
 # getZonesRanks : Computes the dictionary zid <-> rank

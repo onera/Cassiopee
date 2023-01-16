@@ -22,13 +22,13 @@ namespace NUGA
 
 //
 template <typename mesh_t>
-class join_sensor : public sensor<mesh_t, std::map<E_Int, typename mesh_t::pg_arr_t>> // Vector_t might be templatized to have ISO mode with a metric field
+class join_sensor : public sensor<mesh_t, std::map<E_Int, K_FLD::IntArray>> 
 {
   public:
     using pg_arr_t = typename mesh_t::pg_arr_t;
-    using input_t = std::map<E_Int, pg_arr_t>;
+    using input_t = std::map<E_Int, K_FLD::IntArray>;
     using parent_t = sensor<mesh_t, input_t>;
-    using output_t = typename mesh_t::output_t; //fixme: static assert to add : must be ISO => IntVec
+    using output_t = typename mesh_t::output_t;
 
     join_sensor(mesh_t& mesh) : parent_t(mesh, new V1_smoother<mesh_t>()) {}
 
@@ -126,7 +126,7 @@ bool join_sensor<mesh_t>::update()
       }
     }
 
-    // get plans for children fort next adaptation pass
+    // get plans for children for the next adaptation pass
     join_plan<pg_arr_t>::extract_sub_plans(parent_t::_hmesh._PGtree, PGi, plan, new_data);
   }
 

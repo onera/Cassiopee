@@ -21,38 +21,12 @@
 
 namespace NUGA
 {
-  // atomdata_t : IntArray, FloatArray, E_Int ...
-  template <short a> struct atomdata;
   
-  template <>
-  struct atomdata <0>
-  {
-    using type = K_FLD::IntArray;
-    using basic_type = E_Int;
-  };
-
-  template <>
-  struct atomdata <1>
-  {
-    using type = K_FLD::FloatArray;
-    using basic_type = E_Float;
-  };
-
-  template <>
-  struct atomdata <2>
-  {
-    using type = std::vector<E_Int>;
-    using basic_type = E_Int;
-  };
-
-
-
-  template <typename mesh_t, typename atomdata_t>
+  template <typename mesh_t, typename T>
   class hybrid_para_algo
   {
   public:
 
-    using atomdata_type = typename atomdata_t::type;
     using zone_to_rid_to_ptlist_t = std::map<int, std::map<int, std::vector<E_Int>>>;
     using rid_to_zones_t = std::map<int, std::pair<int, int>>;
 
@@ -60,12 +34,12 @@ namespace NUGA
     (
       const mesh_t & mesh,
       const std::map<int, std::vector<E_Int>>& rid_to_list,
-      std::map<int, std::map<int, atomdata_type>> & rid_to_PG_to_plan
+      std::map<int, std::map<int, K_FLD::DynArray<T>>> & rid_to_PG_to_plan
     ) = 0;
 
     virtual void autonomous_run(const std::vector<mesh_t*>& mesh, int i) = 0;
 
-    virtual bool run_with_data(const std::vector<mesh_t*>& meshes, const std::map<int, std::map<int, atomdata_type>> & zid_to_data) = 0;
+    virtual bool run_with_data(const std::vector<mesh_t*>& meshes, const std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data) = 0;
 
     virtual int get_data_stride() = 0;
 
@@ -100,7 +74,7 @@ namespace NUGA
       MPI_Comm COM,
       int rank,
       int nranks,
-      std::map<int, std::map<int, atomdata_type>> & zid_to_data
+      std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
     );
 
     void exchange_omp_data
@@ -109,7 +83,7 @@ namespace NUGA
       const std::vector<int>& zids,
       const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
       const rid_to_zones_t& rid_to_zones,
-      std::map<int, std::map<int, atomdata_type>> & zid_to_data
+      std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
     );
 
     ///
@@ -118,8 +92,8 @@ namespace NUGA
   };
 
   ///
-  template <typename mesh_t, typename atomdata_t>
-  void hybrid_para_algo<mesh_t, atomdata_t>::run
+  template <typename mesh_t, typename T>
+  void hybrid_para_algo<mesh_t, T>::run
   (
     std::vector<mesh_t*>& meshes,
     std::vector<int>& zids,
@@ -144,8 +118,8 @@ namespace NUGA
   }
 
 
-  template <typename mesh_t, typename atomdata_t>
-  void hybrid_para_algo<mesh_t, atomdata_t>::exchange_and_run
+  template <typename mesh_t, typename T>
+  void hybrid_para_algo<mesh_t, T>::exchange_and_run
   (
     const std::vector<mesh_t*>& meshes,
     const std::vector<int>& zids,
@@ -176,7 +150,7 @@ namespace NUGA
       ++mpi_iter;
       has_mpi_changes = false;
 
-      std::map<int, std::map<int, atomdata_type>> zid_to_jdata;
+      std::map<int, std::map<int, K_FLD::DynArray<T>>> zid_to_jdata;
 
       exchange_mpi_data(meshes, zids, zone_to_rid_to_list_mpi, rid_to_zones, zonerank, COM, rank, nranks, zid_to_jdata);
 
@@ -202,8 +176,8 @@ namespace NUGA
   }
 
   ///
-  template <typename mesh_t, typename atomdata_t>
-  void hybrid_para_algo<mesh_t, atomdata_t>::exchange_mpi_data
+  template <typename mesh_t, typename T>
+  void hybrid_para_algo<mesh_t, T>::exchange_mpi_data
   (
     const std::vector<mesh_t*>& meshes,
     const std::vector<int>& zids,
@@ -213,14 +187,14 @@ namespace NUGA
     MPI_Comm COM,
     int rank,
     int nranks,
-    std::map<int, std::map<int, atomdata_type>> & zid_to_data
+    std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
   )
   {
     if (zone_to_rid_to_list.empty()) return;
     if (nranks == 1) return;
 
     // Each zone builds its MPI-data-to-send by sending zone
-    std::map<int, std::map<int, std::map<int, atomdata_type>>> sz_to_rid_to_PG_to_data;
+    std::map<int, std::map<int, std::map<int, K_FLD::DynArray<T>>>> sz_to_rid_to_PG_to_data;
     bool has_packs{ false };
     for (size_t i = 0; i < meshes.size(); ++i)
     {
@@ -234,7 +208,7 @@ namespace NUGA
       //if (rank == 2) std::cout << "rank : " << rank << " found zid : " << hmeshes[i]->zid << std::endl;
       const auto & rid_to_list = it->second;
 
-      std::map<int, std::map<int, atomdata_type>> rid_to_PG_to_data;
+      std::map<int, std::map<int, K_FLD::DynArray<T>>> rid_to_PG_to_data;
       has_packs |= this->prepare_data_to_send(*meshes[i], rid_to_list, rid_to_PG_to_data);
 
       sz_to_rid_to_PG_to_data[zids[i]] = rid_to_PG_to_data;
@@ -243,7 +217,7 @@ namespace NUGA
 
     // Convert for sending and gather by rank : rank/zone/face/data
     //if (rank == 2) std::cout << "rank : " << rank << " convert_to_MPI_exchange_format ..." << std::endl;
-    using plan_type = NUGA::plan_msg_type<typename atomdata_t::basic_type>;
+    using plan_type = NUGA::plan_msg_type<T>;
     std::map<int, plan_type> rank_to_mpi_data;
     plan_type::convert_to_MPI_exchange_format(sz_to_rid_to_PG_to_data, rid_to_zones, zonerank, rank_to_mpi_data);
 
@@ -266,14 +240,14 @@ namespace NUGA
   }
 
   ///
-  template <typename mesh_t, typename atomdata_t>
-  void hybrid_para_algo<mesh_t, atomdata_t>::exchange_omp_data
+  template <typename mesh_t, typename T>
+  void hybrid_para_algo<mesh_t, T>::exchange_omp_data
   (
     const std::vector<mesh_t*>& meshes,
     const std::vector<int>& zids,
     const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
     const rid_to_zones_t& rid_to_zones,
-    std::map<int, std::map<int, atomdata_type>> & zid_to_data
+    std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
   )
   {
     //zid_to_data.clear();
@@ -288,7 +262,7 @@ namespace NUGA
 
       const auto & rid_to_list = it->second;
 
-      std::map<int, std::map<int, atomdata_type>> rid_to_PG_to_plan;
+      std::map<int, std::map<int, K_FLD::DynArray<T>>> rid_to_PG_to_plan;
       has_packs |= this->prepare_data_to_send(*meshes[i], rid_to_list, rid_to_PG_to_plan);
 
       // convert to sensor data
@@ -304,35 +278,32 @@ namespace NUGA
         assert(itptl != itopp->second.end());
         const auto& ptlist = itptl->second;
 
-        auto & PG_to_plan = r.second;
+        const auto & PG_to_plan = r.second;
 
         if (jzid != zid)
         {
-          for (auto & k : PG_to_plan)
+          for (const auto & k : PG_to_plan)
           {
-            E_Int PGi = ptlist[k.first] - 1;
-            zid_to_data[jzid][PGi] = k.second;
+            const E_Int& j = k.first;
+            const auto& plan = k.second;
+            E_Int PGi = ptlist[j] - 1;
+            zid_to_data[jzid][PGi] = plan; // we pass the plan associated to j-th face of zid to the correponding face in the joined zone
           }
         }
         else // auto-join
         {
-          int sz = ptlist.size() / 2; // outside of the loop to earn some calculation time
-          int stock_Plan_size = PG_to_plan.size();
-
-          for (auto & k : PG_to_plan) // copy refinement plan to apply it to adequate face
+          E_Int sz = ptlist.size();
+          E_Int sz2 = sz / 2;
+          
+          for (const auto & k : PG_to_plan)
           {
-            // keys we work with, each associated to a Plan
-            int key1 = k.first; // 1st Plan (can be Left or Right, doesn't matter)
-            int key2 = (k.first + sz) % ptlist.size(); // 2nd Plan // modulo as k.first may begin on List Right side (namely above ptlist.size()/2)
+            const E_Int& j = k.first;
+            const auto& plan = k.second;
+            
+            E_Int j2 = (j + sz2) % sz; // j2 is the rank in the appropriate half of ptlist associated with j-th face in second half
 
-            E_Int PGi = ptlist[key1] - 1; // Face on which we test plan 1
-
-            int PGj = ptlist[key2] - 1;
-            zid_to_data[jzid][PGj] = k.second;       // zone to refine - Plan 1
-
-            const auto Plan2 = PG_to_plan.find(key2);
-            if (Plan2 == PG_to_plan.end()) continue;
-            zid_to_data[jzid][PGi] = Plan2->second;  // zone to refine - Plan 2         
+            E_Int PGi = ptlist[j2] - 1;
+            zid_to_data[zid][PGi] = k.second;
           }
         }
       }
@@ -340,8 +311,8 @@ namespace NUGA
   }
 
   ///
-  template <typename mesh_t, typename atomdata_t>
-  bool hybrid_para_algo<mesh_t, atomdata_t>::exchange_status
+  template <typename mesh_t, typename T>
+  bool hybrid_para_algo<mesh_t, T>::exchange_status
   (bool local_changes, int rank, int nranks, MPI_Comm COM)
   {
     bool has_changes{ false };

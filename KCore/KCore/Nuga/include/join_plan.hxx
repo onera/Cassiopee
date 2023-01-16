@@ -29,16 +29,16 @@ class join_plan
 {
 public:
 
-  inline static E_Int extract_compact_enabled_tree(const tree<arr_t>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, arr_t& plan);
+  inline static E_Int extract_compact_enabled_tree(const tree<arr_t>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, K_FLD::IntArray& plan);
   
-  inline static void extract_sub_plans(const tree<arr_t>& PGtree, E_Int PGi, const arr_t& plan, std::map<E_Int, arr_t>& odata);
+  inline static void extract_sub_plans(const tree<arr_t>& PGtree, E_Int PGi, const K_FLD::IntArray& plan, std::map<E_Int, K_FLD::IntArray>& odata);
 
-  inline static bool one_child_requires(const arr_t& plan);
+  inline static bool one_child_requires(const K_FLD::IntArray& plan);
 
 private:
   ///
-  inline static void __extract_subplan(E_Int i, const arr_t& plan, arr_t& sub_plan);
-  inline static E_Int __extract_compact_enabled_tree(const tree<arr_t> & PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, arr_t& plan);  
+  inline static void __extract_subplan(E_Int i, const  K_FLD::IntArray& plan, K_FLD::IntArray& sub_plan);
+  inline static E_Int __extract_compact_enabled_tree(const tree<arr_t> & PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, K_FLD::IntArray& plan);
 };
 
 ///
@@ -220,7 +220,7 @@ bool join_plan<K_FLD::IntArray>::one_child_requires(const K_FLD::IntArray& plan)
 //////////////// ngon_unit impl //////////////////////////////
 ///
 template <> inline
-E_Int join_plan<ngon_unit>::extract_compact_enabled_tree(const tree<ngon_unit>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, ngon_unit& plan)
+E_Int join_plan<ngon_unit>::extract_compact_enabled_tree(const tree<ngon_unit>& PGtree, E_Int PGi, reordering_func F, bool reverse, E_Int i0, K_FLD::IntArray& plan)
 {
   //todo
   return 1;
@@ -228,7 +228,7 @@ E_Int join_plan<ngon_unit>::extract_compact_enabled_tree(const tree<ngon_unit>& 
 
 ///
 template <> inline
-void join_plan<ngon_unit>::extract_sub_plans(const tree<ngon_unit>& PGtree, E_Int PGi, const ngon_unit& plan, std::map<E_Int, ngon_unit>& odata)
+void join_plan<ngon_unit>::extract_sub_plans(const tree<ngon_unit>& PGtree, E_Int PGi, const K_FLD::IntArray& plan, std::map<E_Int, K_FLD::IntArray>& odata)
 {
   //todo
   return;
@@ -236,7 +236,7 @@ void join_plan<ngon_unit>::extract_sub_plans(const tree<ngon_unit>& PGtree, E_In
 
 ///
 template <> inline
-bool join_plan<ngon_unit>::one_child_requires(const ngon_unit& plan)
+bool join_plan<ngon_unit>::one_child_requires(const K_FLD::IntArray& plan)
 {
   //todo
   return false;

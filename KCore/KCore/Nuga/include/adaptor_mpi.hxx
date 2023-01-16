@@ -27,12 +27,11 @@ namespace NUGA
   
 
   template <typename hmesh_t, typename sensor_t>
-  class adaptor_mpi : public hybrid_para_algo<hmesh_t, atomdata<0>>
+  class adaptor_mpi : public hybrid_para_algo<hmesh_t, E_Int>
   {
   public:
 
-    using parent_t = hybrid_para_algo < hmesh_t, atomdata<0>>;
-    using atomdata_type = atomdata<0>::type;
+    using parent_t = hybrid_para_algo < hmesh_t, K_FLD::IntArray>;
 
     std::vector<sensor_t*> sensors;
     bool do_agglo;
@@ -45,7 +44,7 @@ namespace NUGA
     (
       const hmesh_t & mesh,
       const std::map<int, std::vector<E_Int>>& rid_to_list,
-      std::map<int, std::map<int, atomdata_type>> & rid_to_PG_to_plan
+      std::map<int, std::map<int, K_FLD::IntArray>> & rid_to_PG_to_plan
     ) override
     {
       bool has_packs{ false };
@@ -57,7 +56,7 @@ namespace NUGA
 
         for (size_t i = 0; i < ptlist.size(); ++i)
         {
-          typename hmesh_t::pg_arr_t p; //only implemented for IntArray
+          K_FLD::IntArray p;
           E_Int PGi = ptlist[i] - 1;
           //std::cout << "i/PGi/sz : " << i << "/" << PGi << "/" << ptlist.size() << std::endl;
           mesh.extract_plan(PGi, true/*reverse*/, 0/*because previous sync*/, p);
@@ -81,7 +80,7 @@ namespace NUGA
     }
 
     bool run_with_data
-    (const std::vector<hmesh_t*>& hmeshes, const std::map<int, std::map<int, atomdata_type>> & zid_to_data) override
+    (const std::vector<hmesh_t*>& hmeshes, const std::map<int, std::map<int, K_FLD::IntArray>> & zid_to_data) override
     {
       E_Int NBZ{ E_Int(hmeshes.size()) };
 

@@ -146,7 +146,7 @@ class hierarchical_mesh
     ///
     inline void __extract_enabled_pgs_descendance(E_Int PGi, NUGA::reordering_func F, bool reverse, std::vector<E_Int>& pointlist);
     ///
-    inline void extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const;
+    inline void extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const;
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
@@ -632,7 +632,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_cell_center(E_Int PHi, E_Float*
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const
 {
   plan.clear();
 
@@ -644,8 +644,9 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_plan(E_Int PGi, bool revers
     /*ret = */join_plan<pg_arr_t>::extract_compact_enabled_tree(_PGtree, PGi, subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children, reverse, i0, plan);
 }
 
+///
 template <> inline
-void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const
+void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const
 {
   //todo
 }

@@ -2588,7 +2588,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       owesHmesh=1
 
     owesSensor=0
-    if sensor is None: 
+    if sensor is None : 
       #print("create sensor")
       sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
       owesSensor=1

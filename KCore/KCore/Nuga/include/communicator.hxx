@@ -134,7 +134,7 @@ namespace NUGA
 
       for (size_t i = 0; i < ptlist.size(); ++i)
       {
-        pg_arr_t p; //only implemented for IntArray
+        K_FLD::IntArray p; //only implemented for IntArray
         E_Int PGi = ptlist[i] - join->idx_start;
         //std::cout << "i/PGi : " << i << "/" << PGi << std::endl;
         mesh.extract_plan(PGi, true/*reverse*/, 0/*because previous sync*/, p);
