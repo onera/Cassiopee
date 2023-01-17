@@ -9,7 +9,7 @@ cpp_srcs = ["Compressor/deltaIndex.cpp",
             "Compressor/writeUnsteadyCoefs.cpp",
             "Compressor/cellNCompressor.cpp",
             "Compressor/fpcCompressor.cpp",
-            #"Compressor/fpc.cpp",
+            "Compressor/fpc.cpp",
             "Compressor/indicesCompressor.cpp",
             "Compressor/NGonConnectivityCompressor.cpp"]
 

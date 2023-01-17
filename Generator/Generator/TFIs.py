@@ -28,7 +28,10 @@ def quality(meshes):
 
 # distance au carre entre deux points
 def distance2(P0,P1):
-    return (P0[0]-P1[0])*(P0[0]-P1[0])+(P0[1]-P1[1])*(P0[1]-P1[1])+(P0[2]-P1[2])*(P0[2]-P1[2])
+    dx = P0[0]-P1[0]
+    dy = P0[1]-P1[1]
+    dz = P0[2]-P1[2]
+    return dx*dx+dy*dy+dz*dz
 
 # Order a set of structured edges in a loop
 def orderEdges(edges, tol=1.e-10):

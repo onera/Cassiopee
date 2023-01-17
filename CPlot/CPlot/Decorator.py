@@ -79,7 +79,8 @@ def createColormap(type='Blue2Red'):
 # IN: title: color bar title
 # IN: discrete: True if discrete color map
 #==========================================================
-def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.3f', discrete=True):
+def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.3f', discrete=True,
+                   fontSize=20, color="black", location="right", pad=0.):
     """Create a color bar."""
     if cmap is None: 
         cmap = CPlot.getState('colormap')
@@ -119,20 +120,23 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
         norm = matplotlib.colors.Normalize(levels[1], levels[2], clip=True)
         cset = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
 
-    fontdict = {'fontsize':25}
+    fontdict = {'fontsize':fontSize}
     from mpl_toolkits.axes_grid1 import make_axes_locatable    
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="2%", pad=0.5)
-    cbar = fig.colorbar(cset, format=valueFormat, ticks=cbar_ticks, cax=cax)
+    cax = divider.append_axes(location, size="2%", pad=pad)
+    if location == "top" or location == "bottom": orientation = "horizontal"
+    else: orientation = "vertical"
+    cbar = fig.colorbar(cset, format=valueFormat, ticks=cbar_ticks, cax=cax, orientation=orientation)
 
     # Regle les marqueurs de la barre
-    cbar.ax.tick_params(which='major', length=4., width=0.5, color='black', labelsize=20)
+    cbar.ax.tick_params(which='major', length=4., width=0.5, color=color, labelsize=fontSize)
+    cbar.ax.tick_params(labelcolor=color)
 
     # Titre de la barre
     if title is not None:
-        cbar.ax.set_title(title, fontdict=fontdict, color='black', pad=0.15*dpi)
+        cbar.ax.set_title(title, fontdict=fontdict, color=color, pad=0.15*dpi)
     
-    fig.subplots_adjust(right=1.)
+    fig.subplots_adjust(wspace=0.)    
     return cbar
 
 #==========================================================
@@ -147,7 +151,7 @@ def getImage(fileName):
 # IN: img: image or image file name
 # OUT: fig, ax: figure and axes 
 #==========================================================
-def createSubPlot(img='.decorator.png', title=None):
+def createSubPlot(img='.decorator.png', title=None, box=False):
     """Create a sub plot figure."""
     if isinstance(img, str): img = getImage(img)
     sh = img.shape
@@ -156,27 +160,28 @@ def createSubPlot(img='.decorator.png', title=None):
     ax.imshow(img, animated=True, aspect=1)
     # Axes vides
     #ax.plot([], [], 'o', ms=8., mfc='None')
-    # ax.set_axis_off()
-    ax.set(xticks=[], yticks=[])
+    if box: ax.set(xticks=[], yticks=[])
+    else: ax.set_axis_off()
     if title is not None: ax.set_title(title)
     return fig, ax
 
 #==========================================================
 # Create a text 
 #==========================================================
-def createText(ax, posx=0, posy=0, text='', size=20, box=False):
+def createText(ax, text='', posx=0, posy=0, size=20, color="black",
+               box=False, boxColor="black", boxBackColor="white"):
     """Create text."""
     if not box:
-        ax.text(posx, posy, text, size=size, ha='left', va='bottom', transform=ax.transAxes)
+        ax.text(posx, posy, text, size=size, ha='left', va='bottom', color=color, transform=ax.transAxes)
     else:
-        ax.text(posx, posy, text, size=size, ha='left', va='bottom', transform=ax.transAxes,
-                bbox=dict(boxstyle="round, pad=0.2, rounding_size=0.02", ec="black", fc="white"))
+        ax.text(posx, posy, text, size=size, ha='left', va='bottom', color=color, transform=ax.transAxes,
+                bbox=dict(boxstyle="round, pad=0.2, rounding_size=0.02", ec=boxColor, fc=boxBackColor))
     return ax
 
 #==========================================================
 # Save current figure to fileName
 #==========================================================
-def savefig(fileName, pad=0.2):
+def savefig(fileName, pad=0.):
     """Save current figure."""
     print("Write %s"%fileName)
     plt.savefig(fileName, dpi=dpi, bbox_inches='tight', pad_inches=pad)
@@ -198,7 +203,7 @@ def xyz2Pixel(points, win, posCam, posEye, dirCam, viewAngle):
     # BUILD FRENET UNIT FRAME (b,n,c) #
     # ------------------------------- #
     # <c> is the Camera axes unit vector
-    c =  numpy.array(posCam) - numpy.array(posEye)
+    c = numpy.array(posCam) - numpy.array(posEye)
     R = numpy.sqrt(c.dot(c)) # R is distance between posCam and posEye
     c /= R
 

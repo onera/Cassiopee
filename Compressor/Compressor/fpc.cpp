@@ -61,11 +61,12 @@
   #include <assert.h>
   #define FPC_INVARIANT(EXPRESSION) assert((EXPRESSION))
 #else
-  #ifdef FPC_GCC_OR_CLANG
-    #define FPC_INVARIANT(EXPRESSION) __builtin_assume((EXPRESSION))
-  #elif defined(FPC_MSVC)
-    #define FPC_INVARIANT(EXPRESSION) __assume((EXPRESSION))
-  #endif
+  #define FPC_INVARIANT(EXPRESSION) 
+  //#ifdef FPC_GCC_OR_CLANG
+  //  #define FPC_INVARIANT(EXPRESSION) __builtin_assume((EXPRESSION))
+  //#elif defined(FPC_MSVC)
+  //  #define FPC_INVARIANT(EXPRESSION) __assume((EXPRESSION))
+  //#endif
 #endif
 
 #define FPC_FCM_HASH_UPDATE(HASH, VALUE)   HASH = ((HASH << ctx->hash_args.fcm_lshift) ^ (size_t)((VALUE) >> ctx->hash_args.fcm_rshift)) & fcm_mod_mask

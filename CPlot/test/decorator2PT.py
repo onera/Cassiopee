@@ -18,11 +18,8 @@ CPlot.display(a, mode='scalar',
 CPlot.finalizeExport()
 
 fig, ax = Decorator.createSubPlot()
-ax.set_title('Computation of the year', size=40)
-Decorator.createText(ax, 0.02, 0.9, "Fast LES", size=40, box=True)
-cbar = Decorator.createColorBar(fig, ax, title=r'$\mu_t / \mu$')
-cbar.ax.tick_params(labelcolor='tab:red')
+Decorator.createText(ax, "Fast LES", 0.4, 0.95, size=40, box=True)
+cbar = Decorator.createColorBar(fig, ax, title=r'$\mu_t / \mu$', location="right", color="black", fontSize=15, pad=-2.)
 
 Decorator.savefig('out.png')
 import os; os._exit(0)
-

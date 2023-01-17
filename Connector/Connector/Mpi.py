@@ -668,7 +668,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         z = t[2][nob][2][noz]
         allInterpFields = dictOfFields[zrcvname]
         indicesI = dictOfIndices[zrcvname]
-        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol')
+        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol', verbose=1)
 
     #Cmpi.trace("8. transfer2 end")
     return None

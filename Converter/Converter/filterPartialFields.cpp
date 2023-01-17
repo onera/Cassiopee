@@ -93,7 +93,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     return NULL; 
   }
 
-  /*--------------------------------------------*/
+  /*-------------------------------------------*/
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
@@ -213,7 +213,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     {
       printf("Zone %s: interpolated=%d; extrapolated=%d; orphans=%d.\n", zname, countInterp, countExtrap, countOrphan);
       if (countOrphan > 0)
-        printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
+        printf("WARNING: Zone %s has %d orphan points.\n", zname, countOrphan);
     }
     if (verbose == 2)
     {
@@ -238,6 +238,37 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
         {
           ind = indices[i]-startFrom;
           printf("orphan %s: %d\n", zname, ind);
+        }
+      }
+    }
+    else if (verbose == 3)
+    {
+      // Met cellN=-1 pour les points orphelins
+      E_Float filterMax, filterVal;
+      E_Int posf, ind, posX, posY, posZ;
+      E_Float* ptrFilter;
+      E_Int posCellN = K_ARRAY::isNamePresent("cellN", varStringZ);
+      if (posCellN >= 0)
+      {
+        E_Float* cellN = fieldsZ[posCellN];
+        for (E_Int i = 0; i < nPts; i++)
+        {
+          filterMax = K_CONST::E_MAX_FLOAT;
+          for (E_Int nozD=0; nozD < nzonesD; nozD++)
+          {
+            posf = posfD[nozD]; //demarre a 1
+            ptrFilter = fieldsD[nozD]->begin(posf);
+            filterVal = ptrFilter[i];
+            if (filterVal < filterMax && filterVal > ZEROVOL)
+            {
+              filterMax = filterVal;
+            }
+          }
+          if (filterMax >= penaltyOrphan)
+          {
+            ind = indices[i]-startFrom;
+            cellN[ind] = -1;
+          }
         }
       }
     }

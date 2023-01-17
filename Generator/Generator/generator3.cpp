@@ -264,9 +264,9 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     snl2.malloc(npl);
 
     k6stretch_(pt1, pt4, snl2.begin(), npl, eh, deltal, 2, 1);
-    for (E_Int pp = 0 ; pp < npl ; pp++)
+    for (E_Int pp = 0 ; pp < npl; pp++)
     {
-      snl[pp] = -snl2[npl-1-pp]+pt4+pt1 ;
+      snl[pp] = -snl2[npl-1-pp]+pt4+pt1;
     }
     // Verification de la distribution : decroissance des tailles de maille a gauche si add > 0
     pb = false;
@@ -307,7 +307,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     pb = false;
 
     // Distribution a droite
-    E_Int npr = suppr + add + 2 ;
+    E_Int npr = suppr + add + 2;
     snr.malloc(npr) ;
     k6stretch_(pt3, pt2, snr.begin(), npr, eh, deltar, 2, 1);
     // Verification de la distribution : croissance des tailles de maille a droite si add > 0
