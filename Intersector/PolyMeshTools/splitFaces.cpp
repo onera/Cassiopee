@@ -350,9 +350,10 @@ PyObject* K_INTERSECTOR::convexifyFaces(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::superMesh(PyObject* self, PyObject* args)
 {
   PyObject *arr1{nullptr}, *arr2{nullptr};
-  E_Float rtol(1.e-6);
+  E_Float ARTOL(1.e-6);
+  E_Int proj_on_first=1;
 
-  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &rtol)) return NULL;
+  if (!PYPARSETUPLE(args, "OOdl", "OOdi", "OOfl", "OOfi", &arr1, &arr2, &ARTOL, &proj_on_first)) return NULL;
 
   K_FLD::FloatArray* f1(0);
   K_FLD::IntArray* cn1(0);
@@ -379,33 +380,15 @@ PyObject* K_INTERSECTOR::superMesh(PyObject* self, PyObject* args)
   std::cout << "crd2 : " << crd2.cols() << "/" << crd2.rows() << std::endl;
   std::cout << "cnt2 : " << cnt2.cols() << "/" << cnt2.rows() << std::endl;*/
 
-
   // construction des structures de type "mesh" a pertir des ngon
   zmesh_t m0(crd1, cnt1);
   zmesh_t m1(crd2, cnt2);
-
   //std::cout << "m0/m1 cells : " << m0.ncells() << "/" << m1.ncells() << std::endl;
 
-  // decoupage //////////////////////////////////////////
-
-  //NUGA::chrono c;
-  //c.start();
-
+  //
   zmesh_t xmesh;                 // maillage des morceaux polygonaux
   std::vector<E_Int> anc0, anc1; // anc0/anc1 : indice ancetre d'un polygone de xmesh dans m0/m1
-
-  double ARTOL = ::sqrt(m0.Lref2())* rtol;
-  /*std::cout << "Lref : " << ::sqrt(m0.Lref2()) << std::endl;
-  std::cout << "RTOL : " << rtol << std::endl;
-  std::cout << "ARTOL : " << ARTOL << std::endl;*/
-
-  double ARTOL1 = ::sqrt(m1.Lref2())* rtol;
-  //std::cout << "Lre : " << ::sqrt(m1.Lref2()) << std::endl;
-  //std::cout << "ARTOL1 : " << ARTOL1 << std::endl;
-
-  ARTOL = std::min(ARTOL, ARTOL1);
-
-  NUGA::xmatch<zmesh_t>(m0, m1, ARTOL, anc0, anc1, xmesh);
+  NUGA::xmatch<zmesh_t>(m0, m1, ARTOL, anc0, anc1, xmesh, (proj_on_first==1));
 
   //std::cout << "xmesh cells : " << xmesh.ncells() << std::endl;
 
@@ -509,9 +492,9 @@ PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
   std::map<E_Int, std::vector<E_Int>> split_map;
   K_CONNECT::IdTool::reverse_indirection(&m0.cnt.PGs._type[0], m0.cnt.PGs._type.size(), split_map);
 
-  double RTOL = 0.1;
+  double ARTOL = -0.1;
   std::set<E_Int> modifiedPHs;
-  replace_faces(m0, split_map, -RTOL, modifiedPHs);
+  replace_faces(m0, split_map, ARTOL, modifiedPHs);
 
   K_FLD::IntArray cnto;
   m0.cnt.export_to_array(cnto);

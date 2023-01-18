@@ -1451,27 +1451,23 @@ def _P1ConservativeInterpolation(tR, tD):
 
 #==============================================================================
 # superMesh
-# IN : surfz : NGON surface mesh
-# IN : sclip : NGON surface mesh
-# IN : tol   : Tolerance
-# OUT: returrns the polyclipped surface mesh surfz clipped by sclip
+# IN: surfz: 3D NGON surface mesh to clip
+# IN: sclip: 3D NGON surface mesh (clipper)
+# IN: tol: tolerance (abolute if positive, relative otherwise)
+# IN: proj_on_first: if True(False), each sclip(surfz) face is projected on surfz(sclip).
+# OUT: returns the polyclipping of surfz by sclip
 #==============================================================================
-def superMesh(surfz, sclip, priorFirst=True, rtol=0.01):
-  """Polyclips surfz surface with sclip surface (in-place).
-  Usage: superMesh(surfz, sclip, priorFirst, rtol)"""
+def superMesh(surfz, sclip, tol=-1.e-4, proj_on_first=True):
+  """Polyclips surfz surface with sclip surface.
+  Usage: superMesh(surfz, sclip, priorFirst, tol)"""
   m1 = C.getFields(Internal.__GridCoordinates__, surfz)[0]
   m2 = C.getFields(Internal.__GridCoordinates__, sclip)[0]
 
-  if priorFirst == True:
-    res = XOR.superMesh(m1, m2, rtol)
-    if res == []: return None # empty result
-    anc = res[1]
-  else :
-    res = XOR.superMesh(m2, m1, rtol)
-    if res == []: return None # empty result
-    anc = res[2]
+  res = XOR.superMesh(m1, m2, tol, proj_on_first)
+  if res == []: return None # empty result
 
   mesh = res[0]
+  anc = res[1]
 
   xmatch = C.convertArrays2ZoneNode('xmatch', [mesh])
   nnuga = Internal.getNodeFromName(surfz, 'NUGA')
@@ -1485,47 +1481,6 @@ def superMesh(surfz, sclip, priorFirst=True, rtol=0.01):
           nf[1] = updateNugaData(nf[1], anc)
 
   return xmatch
-
-# def superMesh(surfz, sclip, priorFirst=True, rtol=0.01):
-#   """Polyclips surfz surface with sclip surface.
-#   Usage: superMesh(surfz, sclip, rtol)"""
-#   tp = Internal.copyRef(surfz)
-#   _superMesh(tp, sclip, priorFirst, rtol)
-#   return tp
-
-# #==============================================================================
-# # _superMesh
-# # IN : surfz : NGON surface mesh
-# # IN : sclip : NGON surface mesh
-# # IN : tol   : Tolerance
-# # OUT: returrns the polyclipped surface mesh surfz clipped by sclip
-# #==============================================================================
-# def _superMesh(surfz, sclip, priorFirst=True, rtol=0.01):
-#   """Polyclips surfz surface with sclip surface (in-place).
-#   Usage: _superMesh(surfz, sclip, rtol)"""
-#   msurfz = C.getFields(Internal.__GridCoordinates__, surfz)[0]
-#   msclip = C.getFields(Internal.__GridCoordinates__, sclip)[0]
-
-#   res = XOR.superMesh(msurfz, msclip, rtol)
-#   mesh = res[0]
-#   anc = res[1]
-#   if priorFirst == False:
-#     anc = res[2]
-  
-#   # MAJ du maillage de la zone
-#   if mesh[1] != []:
-#     # UPFATE FACE FIELDS    
-#     nnuga = Internal.getNodeFromName(surfz, 'NUGA')
-#     if nnuga != None:
-#       nuga_fields = Internal.getChildren(nnuga)
-
-#       for nf in nuga_fields:
-#         nf0 = nb_faces(surfz)
-#         fld_sz = len(nf[1])
-#         if nf0 == fld_sz : #valid face field stored => convert it
-#           nf[1] = updateNugaData(nf[1], anc)
-#     #print(mesh)
-#     C.setFields([mesh], surfz, 'nodes')
 
 #==============================================================================
 # replaceFaces

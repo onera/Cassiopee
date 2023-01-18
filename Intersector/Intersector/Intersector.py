@@ -167,14 +167,17 @@ def P1ConservativeChimeraCoeffs(aR, cellnR, aD):
     return intersector.P1ConservativeChimeraCoeffs(aR, cellnR, aD)
 
 #==============================================================================
-# triangulateExteriorFaces
-# IN: coords: 3D NGON mesh
-# OUT: returns a 3D NGON Mesh with all the external faces triangulated
+# superMesh
+# IN: surfz: 3D NGON surface mesh to clip
+# IN: sclip: 3D NGON surface mesh (clipper)
+# IN: tol: tolerance (abolute if positive, relative otherwise)
+# IN: proj_on_first: if True(False), each sclip(surfz) face is projected on surfz(sclip).
+# OUT: returns the polyclipping of surfz by sclip
 #==============================================================================
-def superMesh(surfz, sclip, tol=1.e-12):
-    """XXX.
-    Usage: superMesh(surfz, sclip, tol)"""
-    return intersector.superMesh(surfz, sclip, tol)
+def superMesh(surfz, sclip, tol=-1.e-4, proj_on_first=True):
+    """Polyclips surfz with sclip.
+    Usage: superMesh(surfz, sclip, tol, proj_on_first)"""
+    return intersector.superMesh(surfz, sclip, tol, proj_on_first)
 
 #==============================================================================
 # triangulateExteriorFaces

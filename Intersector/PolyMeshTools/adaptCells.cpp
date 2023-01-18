@@ -910,7 +910,7 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
   std::string* vString{ nullptr };
   void** packet{ nullptr };
   void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, zid, vString, packet);
-  
+
   if (*sub_type == NUGA::ISO)
     __deleteHM<NUGA::ISO>(*elt_type, hmesh);
   else if (*sub_type == NUGA::ISO_HEX)
@@ -1845,7 +1845,7 @@ const char* varString, PyObject *out,
 std::vector<void*>&hookhmes, std::vector<void*>&hooksensors)
 {
   E_Int err(0);
-  assert (elt_type == K_MESH::Polyhedron<0>);
+  assert (elt_type == elt_t::UNKN);
 
   err = __adapt_wrapper_lvl1<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(sensor_type, varString, out, hookhmes, hooksensors);
 
@@ -1859,7 +1859,7 @@ const char* varString, PyObject *out,
 std::vector<void*>&hookhmes, std::vector<void*>&hooksensors)
 {
   E_Int err(0);
-  assert (elt_type == K_MESH::Hexahedron);
+  assert (elt_type == elt_t::HEXA);
 
   err = __adapt_wrapper_lvl1<K_MESH::Hexahedron, NUGA::DIR>(sensor_type, varString, out, hookhmes, hooksensors);
 

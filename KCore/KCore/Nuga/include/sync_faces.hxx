@@ -626,6 +626,7 @@ void replace_faces(
   {
     std::vector<E_Int> nids, lnids;
     K_CONNECT::IdTool::init_inc(nids, m.crd.cols());
+
     for (auto i : modifiedPHs)
     {
       K_MESH::Polyhedron<0> ph(m.cnt, i);

@@ -169,6 +169,36 @@ namespace NUGA
       }
     }
 
+    inline void go_2D(bool proj_on_first, const E_Float* W, K_FLD::FloatArray& crd, std::vector<double>& zs, double& zmean, K_FLD::FloatArray& P, const K_FLD::IntArray& cnt, E_Int nb_pts1, E_Int nb_edges1)
+    {      
+      K_FLD::FloatArray iP(3, 3);
+
+      NUGA::computeAFrame(W, P);
+      iP = P;
+      K_FLD::FloatArray::inverse3(iP);
+      NUGA::transform(crd, iP);
+
+      crd.extract_field(2, zs); //keep 3rd coord appart (altitude)
+      
+      //compute zmean
+      zmean = 0.;
+      if (proj_on_first) {
+        for (E_Int k = 0; k < nb_pts1; ++k) zmean += zs[k];
+        zmean /= nb_pts1;
+      }
+      else {
+        for (E_Int k = nb_pts1; k < crd.cols(); ++k) zmean += zs[k];
+        zmean /= (crd.cols() - nb_pts1);
+      }
+
+      if (proj_on_first)  // now apply zmean to front points such remaining ones at the end will be roughly on subj supporting surface
+        for (size_t k = nb_pts1; k < zs.size(); ++k) zs[k] = zmean;
+      else
+        for (size_t k = 0; k < nb_pts1; ++k) zs[k] = zmean;
+
+      crd.resize(2, crd.cols());//now pure 2D
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -495,6 +525,9 @@ namespace NUGA
       edge_mesh_t e_cut(cut); 
       const cnt_t& cutter = e_cut.cnt;
 
+      // always project on sub unless cut normal is computed before getting here
+      bool proj_on_first = (cut.m_normal[0] == NUGA::FLOAT_MAX);
+
       true_clip = false;
       bits.clear();
 
@@ -511,8 +544,6 @@ namespace NUGA
 
       //gather subj & cutter 
       K_FLD::FloatArray crd(crd1);
-      E_Float W[3];
-      sub.normal<3>(W);
         
       E_Int nb_pts1 = crd.cols();
       crd.pushBack(crd2);
@@ -530,54 +561,13 @@ namespace NUGA
       }
 #endif
 
-      // got 2D (in sub ref frame)
-      K_FLD::FloatArray P(3, 3), iP(3, 3);
-      
-      NUGA::computeAFrame(W, P);
-      iP = P;
-      K_FLD::FloatArray::inverse3(iP);
-      NUGA::transform(crd, iP);
+      // project one on the other
+      const E_Float* W = proj_on_first ? sub.get_normal() : cut.get_normal();
 
       std::vector<double> zs;
-      crd.extract_field(2, zs); //keep 3rd coord appart (altitude)
-      //compute zmean
-      double zmean(0.);
-      for (E_Int k = 0; k < nb_pts1; ++k) zmean += zs[k];
-      zmean /= nb_pts1;
-      
-      // DISCARD FALSE OVERLAPS among fronts (now we are in 2D, those with big altitudes)
-      // using meL : NOT WORKING because after first cut, sub is overdefined so underestimate Lref, hence some good cut edges are discarded
-      // using bbox in 3D frame : NOT WORKING neither when it's a planar case where the plane is axi-aligned => one corrdinate is the same => Lref gets null
-      // using bbox in 2D frame
-      K_SEARCH::BBox2D bx(crd, nb_pts1);
-      std::vector<E_Int> new_edge_ids; //in case of compacting, need to propagate original ids in xedge
-      double Lref = std::min(bx.maxB[0] - bx.minB[0], bx.maxB[1] - bx.minB[1]);
-
-      // discard false overlaps among front (now we are in 2D, those with big altitudes)
-      {
-        std::vector<bool> keep(cnt.cols(), true);
-        bool do_compact(false);
-        for (E_Int i = nb_edges1; i < cnt.cols(); ++i)
-        {
-          double z1 = zs[cnt(0, i)] - zmean;
-          double z2 = zs[cnt(1, i)] - zmean;
-
-          if (z1*z2 < 0.) continue; // means crossing 
-
-          double mz = std::min(::fabs(z1), ::fabs(z2));
-          keep[i] = (mz < Lref); //at least one inside interf zone
-          do_compact |= !keep[i];
-        }
-        if (do_compact)
-        {
-          //E_Int nb_edgesi = cnt.cols();
-          K_FLD::IntArray::compact(cnt, keep, new_edge_ids);
-        }
-      }
-      // now apply zmean to front points such remaining ones at the end will be roughly on subj supporting surface
-      for (size_t k = nb_pts1; k < zs.size(); ++k) zs[k] = zmean;
-
-      crd.resize(2, crd.cols());//now pure 2D
+      double zmean;
+      K_FLD::FloatArray P(3, 3);
+      go_2D(proj_on_first, W, crd, zs, zmean, P, cnt, nb_pts1, nb_edges1);
 
       // conformize this cloud
       std::vector<E_Int> ancE2;
@@ -645,19 +635,6 @@ namespace NUGA
               new_ancE2.push_back(ancE2[k]);
           }
           ancE2 = new_ancE2;
-        }
-      }
-
-      
-      //update edge history to reflect original edges (before discarding false overlaps)
-      if (!new_edge_ids.empty())
-      {
-        std::vector<E_Int> oeids;
-        K_CONNECT::IdTool::reverse_indirection(new_edge_ids, oeids);
-        for (auto& x : xedge)
-        {
-          if (x.first != IDX_NONE) x.first = oeids[x.first];
-          if (x.second != IDX_NONE) x.second = oeids[x.second];
         }
       }
 
@@ -895,7 +872,7 @@ namespace NUGA
       // rule : 
       // sub id =>
       // cut id =>
-      // X node => SZUDOR code of both xe
+      // X node => SZUDOR code of both xe (intersecting edges)
       std::vector<long> l_m_poids(poids.size(), IDX_NONE);
       for (size_t k = 0; k < poids.size(); ++k)
       {

@@ -277,8 +277,8 @@ void MeshTool::computeIncidentEdgesSqrLengths<ngon_unit>
   
   E_Int idmaxp1 = cnt.get_facets_max_id();
   
-  L.resize(1, idmaxp1, NUGA::FLOAT_MAX);  //mins
-  L.resize(2, idmaxp1, -NUGA::FLOAT_MAX); // maxs
+  L.resize(1, crd.cols(), NUGA::FLOAT_MAX);  //mins
+  L.resize(2, crd.cols(), -NUGA::FLOAT_MAX); // maxs
   
   for (E_Int i = 0; i < nb_pgs; ++i)
   {

@@ -33,7 +33,7 @@ struct field
 };
 
 template <typename zmesh_t> inline
-void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_Int>& anc0, std::vector<E_Int>& anc1, zmesh_t& xm)
+void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_Int>& anc0, std::vector<E_Int>& anc1, zmesh_t& xm, bool proj_on_first)
 {
   using aelt_t = typename zmesh_t::aelt_t;
 
@@ -149,7 +149,11 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
       bits.clear();
       bool true_clip(false);
-      aPolygon subj(ae0); // restart from a clean face as isolated_clip might erase subj and we are not in an incremental-boolean loop
+      aPolygon subj(ae0); // restart from a clean face as isolated_clip might erase subj and we are not in an incremental-boolean loo
+
+      if (proj_on_first) // reset cutter (ae1) normal to tell aPolygon specialization of isolated_clip to projet on subj
+        ae1.m_normal[0] = NUGA::FLOAT_MAX;
+
       int err = NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(subj, ae1, NUGA::INTERSECT::INTERSECTION, ARTOL, bits, true_clip);
 
       if (err) std::cout << "clipping erreor : " << i << "-th cell with " << n << "-th candidates" << std::endl;
@@ -212,7 +216,6 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
           xm.add(bits[k], false/*do capitalize crds*/);
           anc0.push_back(i);
           anc1.push_back(i2);
-          
 
 #ifdef SUPERMESH_DBG
           std::ostringstream o;
@@ -273,13 +276,16 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
       }
       else if (c == IN_1)
       {
-        // project ae1 on ae0 first
-        double zmean = 0;
-        for (size_t u = 0; u < a0.m_crd.cols(); ++u) zmean += a0.m_crd(2, u);
-        zmean /= a0.m_crd.cols();
-        for (size_t u = 0; u < a1.m_crd.cols(); ++u)a1.m_crd(2, u) = zmean;
-        NUGA::transform(a1.m_crd, P); // back to original ref frame  
-        a1.m_poids = ae1.m_poids;
+        if (proj_on_first)
+        {
+          // project ae1 on ae0
+          double zmean = 0;
+          for (size_t u = 0; u < a0.m_crd.cols(); ++u) zmean += a0.m_crd(2, u);
+          zmean /= a0.m_crd.cols();
+          for (size_t u = 0; u < a1.m_crd.cols(); ++u)a1.m_crd(2, u) = zmean;
+          NUGA::transform(a1.m_crd, P); // back to original ref frame  
+          a1.m_poids = ae1.m_poids;
+        }
 
         xm.add(a1, false/*do capitalize crds*/);
         xbit_ids.push_back(anc0.size());
@@ -351,7 +357,6 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
       ae0 = aPolygon(std::move(crd2D1));
       ae0.m_poids = poids;
-      
 
 #ifdef SUPERMESH_DBG
       std::ostringstream o;
