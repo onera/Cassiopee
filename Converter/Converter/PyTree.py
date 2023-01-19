@@ -5276,25 +5276,20 @@ def computeBCMatchField(z,allMatch,variables=None):
           if len(spl) != 1: 
               if spl[0] != 'centers':
                   raise TypeError("computeBCMatchField: expected variables at centers location.")
-          else:
-              var = 'centers:'+var 
+          else: var = 'centers:'+var 
 
           fld = getField(var,z)[0]
-          if fld != []:
-              fields.append(fld)
+          if fld != []: fields.append(fld)
 
       if fields != []:
           fields = Internal.convertDataNodes2Array2(fields, dim, connects=[], loc=1)
 
       # Fields array in zdonor (stored in allMatch)
       # ===========================================
-      dim  = Internal.getZoneDim(z)
-      ni   = dim[1]-1
-      nj   = dim[2]-1
-      nk   = dim[3]-1
+      dim = Internal.getZoneDim(z)
+      ni = dim[1]-1; nj = dim[2]-1; nk = dim[3]-1
 
-      fld  = None
-      indR = None 
+      fld = None; indR = None
 
       for key in allMatch:
         if key.split("/")[0] == z[0]:
@@ -5317,10 +5312,8 @@ def computeBCMatchField(z,allMatch,variables=None):
     varL = []
     for var in varList:
         spl = var.split(':') 
-        if len(spl) !=1: 
-          varL.append(spl[1]) 
-        else: 
-          varL.append(spl[0]) 
+        if len(spl) != 1: varL.append(spl[1]) 
+        else: varL.append(spl[0]) 
 
     fld  = []; indR = None
 

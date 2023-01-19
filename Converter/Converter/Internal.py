@@ -5219,7 +5219,7 @@ def getBCDataSetContainers(name, z):
     else: 
         if not isinstance(name, list): name = [name]
         for v in name:
-            varname = v.split(':',1)
+            varname = v.split(':', 1)
             loc = 'Vertex'; container = __FlowSolutionNodes__
             if len(varname) == 2: # center/node value
                 if varname[0] == 'centers':

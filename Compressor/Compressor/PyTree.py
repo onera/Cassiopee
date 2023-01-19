@@ -462,7 +462,7 @@ def _unpackNode(node):
             raise ValueError("unpackNode: unknown compression type.")
     return None
 
-# compressFields of zones
+# compressCoords of zones
 def _compressCoords(t, tol=1.e-8, ctype=0):
     """Compress coordinates with a relative tolerance."""
     from . import sz
@@ -482,16 +482,35 @@ def compressCoords(t, tol=1.e-8, ctype=0):
     _compressCoords(tp, tol, ctype)
     return tp
 
-def _compressFields(t, tol=1.e-8, ctype=0):
+def _compressFields(t, tol=1.e-8, ctype=0, varNames=None):
     """Compress fields with a relative tolerance."""
     zones = Internal.getZones(t)
     for z in zones:
-        FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
-        fields = []
-        for c in FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
-        for f in fields:
-            if Internal.getNodeFromName1(f, 'ZData') is None:
-                _packNode(f, tol, ctype)
+        if varNames is None:
+            # Compress all FlowSolution_t containers
+            FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
+            fields = []
+            for c in FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
+            for f in fields:
+                if Internal.getNodeFromName1(f, 'ZData') is None:
+                    _packNode(f, tol, ctype)
+        else:
+            # Compress only given variables
+            for v in varNames:
+                varname = v.split(':', 1)
+                container = Internal.__FlowSolutionNodes__
+                if len(varname) == 2 and varname[0] == 'centers': 
+                    container = Internal.__FlowSolutionCenters__
+                    varname = v[1]
+                elif len(varname) == 2 and varname[0] == 'nodes': 
+                    varname = v[1]
+                else: varname = v
+                FS = Internal.getNodeFromName1(z, container)
+                f = Internal.getNodeFromName1(FS, varname)
+                if f is not None:
+                    if Internal.getNodeFromName1(f, 'ZData') is None:
+                        _packNode(f, tol, ctype)
+                else: print("Warning: compressFields: field %s not found."%v)
     return None
 
 def compressFields(t, tol=1.e-8, ctype=0):
@@ -501,18 +520,18 @@ def compressFields(t, tol=1.e-8, ctype=0):
     return tp
 
 # Compresse un cellN 0,1,2
-def _compressCellN(t):
-    """Compress cellN on 2 bits."""
+def _compressCellN(t, cellNName='cellN'):
+    """Compress cellN (0,1,2) on 2 bits."""
     zones = Internal.getZones(t)
     for z in zones:
-        cellNs = Internal.getNodesFromName2(z, 'cellN')
+        cellNs = Internal.getNodesFromName2(z, cellNName)
         for cellN in cellNs: _packNode(cellN, 0., 2)
     return None
 
-def compressCellN(t):
-    """Compress cellN on 2 bits.""" 
+def compressCellN(t, cellNName='cellN'):
+    """Compress cellN (0,1,2) on 2 bits.""" 
     tp = Internal.copyRef(t)
-    _compressCellN(tp)
+    _compressCellN(tp, cellNName)
     return tp
 
 # Compress Elements_t (elts basiques ou NGONs)

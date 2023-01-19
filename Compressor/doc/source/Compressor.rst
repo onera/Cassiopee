@@ -189,7 +189,7 @@ Object serialize/compression
 
 ---------------------------------------
 
-.. py:function:: Compressor.PyTree.compressFields(a, tol=1.e-8)
+.. py:function:: Compressor.PyTree.compressFields(a, tol=1.e-8, varNames=None)
 
     Compress zone fields with sz library with a relative tolerance tol.
 
@@ -201,6 +201,8 @@ Object serialize/compression
     :type tol: float
     :param ctype: compression algorithm
     :type ctype: 0 (sz), 1 (zfp)
+    :param varNames: optional list of variable names to compress (e.g. ['f', 'centers:G'])
+    :type varNames: list of strings
     :return: identical to input
 
     * `Field compression (pyTree) <Examples/Compressor/compressFieldsPT.py>`_:
