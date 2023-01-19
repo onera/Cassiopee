@@ -74,7 +74,7 @@ Actions
     :type fig: matplotlib figure
     :param ax: subplot axis
     :type ax: matplotlib axis
-    :param levels: if given, the list of levels to display in colorbar. If none, levels are taken from CPlot.
+    :param levels: if given, a list [no, minLevel, maxLevel] to display in colorbar. If none, levels are taken from CPlot.
     :type levels: None or list or numpy
     :param title: title of createColorBar
     :type title: string

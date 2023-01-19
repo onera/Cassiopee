@@ -19,7 +19,7 @@ CPlot.finalizeExport()
 
 fig, ax = Decorator.createSubPlot()
 Decorator.createText(ax, "Fast LES", 0.4, 0.95, size=40, box=True)
-cbar = Decorator.createColorBar(fig, ax, title=r'$\mu_t / \mu$', location="right", color="black", fontSize=15, pad=-2.)
+cbar = Decorator.createColorBar(fig, ax, title=r'$\mu_t / \mu$', location="right", color="black", fontSize=10, pad=-2.)
 
 Decorator.savefig('out.png')
 import os; os._exit(0)

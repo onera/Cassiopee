@@ -10,6 +10,9 @@ import CPlot.Tk as CTK
 # local widgets list
 WIDGETS = {}; VARS = []
 
+#==============================================================================
+# Get camera info from state
+#==============================================================================
 def getInfo(event=None):
     posCam = CPlot.getState('posCam')
     posEye = CPlot.getState('posEye')
@@ -18,6 +21,9 @@ def getInfo(event=None):
     VARS[1].set('(%f, %f, %f)'%(posEye[0],posEye[1],posEye[2]))
     VARS[2].set('(%f, %f, %f)'%(dirCam[0],dirCam[1],dirCam[2]))
 
+#==============================================================================
+# Set camera position
+#==============================================================================
 def setInfo(event=None):
     posCam = VARS[0].get()
     posCam = CTK.varsFromWidget(posCam, 1)
@@ -34,6 +40,46 @@ def setInfo(event=None):
     CTK.TXT.insert('START', 'Set camera position.\n')
 
 #==============================================================================
+# Write CPlot command
+#==============================================================================
+def exportInfo(event=None):
+    com = 'display( '
+    posCam = CPlot.getState('posCam'); com += 'posCam=%s'%str(posCam)
+    posEye = CPlot.getState('posEye'); com += ', posEye=%s'%str(posEye)
+    dirCam = CPlot.getState('dirCam'); com += ', dirCam=%s'%str(dirCam)
+    mode = CPlot.getState('mode')
+    if mode == 0: com += ', mode="Mesh"'
+    elif mode == 1: com += ', mode="Solid"'
+    elif mode == 2: com += ', mode="Render"'
+    elif mode == 3: com += ', mode="Scalar"'
+    if mode == 0: # mesh
+        meshStyle = CPlot.getState('meshStyle'); com += ', meshStyle=%d'%meshStyle
+    elif mode == 1: # solid
+        solidStyle = CPlot.getState('solidStyle'); com += ', solidStyle=%d'%solidStyle
+    elif mode == 3: # scalar
+        scalarField = CPlot.getState('scalarField')
+        varnames = C.getVarNames(CTK.t, excludeXYZ=True)
+        field = str(scalarField)
+        if len(varnames) > 0:
+            varnames = varnames[0]
+            if scalarField < len(varnames): field = varnames[scalarField]
+        com += ', scalarField="%s"'%field
+
+        scalarStyle = CPlot.getState('scalarStyle'); com += ', scalarStyle=%d'%scalarStyle
+        colormap = CPlot.getState('colormap'); com += ', colormap=%d'%colormap
+        isoEdges = CPlot.getState('isoEdges'); com += ', isoEdges=%g'%isoEdges
+        isoScale = CPlot.getState('isoScale'); 
+        isoScale = [field]+isoScale
+        com += ', isoScales=%s'%str(isoScale)
+        
+    #bgColor = CPlot.getState('bgColor'); com += ', bgColor=%d'%bgColor
+    com += ' )'
+    # Ecriture a l'ecran
+    print('\n')
+    print(com)
+    print('\n')
+
+#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
@@ -46,7 +92,8 @@ def createApp(win):
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=0)
-    Frame.columnconfigure(1, weight=3)
+    Frame.columnconfigure(1, weight=1)
+    Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
@@ -67,7 +114,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="posCam: ")
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
-    B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     B.bind('<Return>', setInfo)
     BB = CTK.infoBulle(parent=B, text='Camera position.')
 
@@ -75,7 +122,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="posEye: ")
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=15)
-    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
     B.bind('<Return>', setInfo)
     BB = CTK.infoBulle(parent=B, text='Eye position.')
 
@@ -83,17 +130,24 @@ def createApp(win):
     B = TTK.Label(Frame, text="dirCam: ")
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=15)
-    B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
     B.bind('<Return>', setInfo)
     BB = CTK.infoBulle(parent=B, text='Camera direction.')
     
     # - get -
     B = TTK.Button(Frame, text="Get", command=getInfo)
     B.grid(row=3, column=1, columnspan=1, sticky=TK.EW)
-    
+    BB = CTK.infoBulle(parent=B, text='Get camera position from view.')
+
     # - set -
     B = TTK.Button(Frame, text="Set", command=setInfo)
     B.grid(row=3, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Set Camera position in view.')
+
+    # - export -
+    B = TTK.Button(Frame, text="Export", command=exportInfo)
+    B.grid(row=3, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Write display command line to terminal.')
     
 #==============================================================================
 # Called to display widgets

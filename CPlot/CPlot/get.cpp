@@ -192,6 +192,12 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
       E_Int niso = d->_niso[nofield];
       double isoMin = d->_isoMin[nofield];
       double isoMax = d->_isoMax[nofield];
+      if (niso == -1) 
+      {
+        niso = d->ptrState->niso;
+        isoMin = d->minf[nofield];
+        isoMax = d->maxf[nofield];
+      }
       return Py_BuildValue("[idd]",niso,isoMin,isoMax);
     }
     else return Py_BuildValue("[idd]",0,0.,0.);

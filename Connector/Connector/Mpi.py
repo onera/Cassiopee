@@ -568,8 +568,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         adt = dictOfADT[znamed]
         if adt is None: interpDataType = 0
         else: interpDataType = 1
-        if interpInDnrFrame:
-            [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+        if interpInDnrFrame: [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
         else: [XIRel,YIRel,ZIRel] = [XI,YI,ZI]
         
         # transfers avec coordonnees dans le repere relatif
@@ -620,8 +619,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             adt = dictOfADT[zdnrname]
             if adt is None: interpDataType = 0
             else: interpDataType = 1
-            if interpInDnrFrame:
-                [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+            if interpInDnrFrame: [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
             else: [XIRel,YIRel,ZIRel] = [XI,YI,ZI]
 
             # [XIRel,YIRel,ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
