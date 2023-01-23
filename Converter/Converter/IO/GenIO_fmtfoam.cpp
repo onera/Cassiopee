@@ -109,7 +109,7 @@ E_Int K_IO::GenIO::foamread(
   vector<E_Int>& eltType, vector<char*>& zoneNames,
   vector<FldArrayI*>& BCFaces, vector<char*>& BCNames)
 {
-  printf("foamread\n");
+  printf("\nfoamread\n");
 
   // Read points
   FldArrayF* f = new FldArrayF();
@@ -263,6 +263,7 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
     
   }
   fclose(ptrFile);
+
   return 0;
 }
 
@@ -281,7 +282,7 @@ E_Int K_IO::GenIO::foamWriteFaces(char* file, FldArrayI& cn)
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
   fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
-  fprintf(ptrFile, "    class       vectorField;\n");
+  fprintf(ptrFile, "    class       faceList;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      faces;\n");
   fprintf(ptrFile, "}\n");
@@ -390,7 +391,7 @@ E_Int K_IO::GenIO::foamWriteOwner(char* file, FldArrayI& PE)
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
   fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
-  fprintf(ptrFile, "    class       vectorField;\n");
+  fprintf(ptrFile, "    class       labelList;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      owner;\n");
   fprintf(ptrFile, "}\n");
@@ -408,9 +409,9 @@ E_Int K_IO::GenIO::foamWriteOwner(char* file, FldArrayI& PE)
   {
     val = PE(i,1);
 #ifdef E_DOUBLEINT
-    fprintf(ptrFile, "%ld ", val-1);
+    fprintf(ptrFile, "%ld\n", val-1);
 #else
-    fprintf(ptrFile, "%d ", val-1);
+    fprintf(ptrFile, "%d\n", val-1);
 #endif
     //if (c > 10) { fprintf(ptrFile, "\n"); c = 0; }
     c += 1;
@@ -430,27 +431,31 @@ E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
 
   E_Int ret;
   readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 10; i++) skipLine(ptrFile);
+  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
 
   // Passe comments
   char buf[1024]; E_Int l;
+  /*
   E_Boolean cont = true;
   while (cont)
   {
     readline(ptrFile, buf, 1024);
+    printf("%s\n", buf);
     l = strlen(buf);
     if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
     if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
     if (l < 2) continue;
     cont = false;
   }
+  */
 
   // Readint in buf
   E_Int nfaces; E_Int val;
   E_Int pos=0;
-  //printf("buf=%s\n", buf);
+  readline(ptrFile, buf, 1024);
+  //printf("BUFF=%s\n", buf);
   readInt(buf, 1024, pos, nfaces);
-  //printf("nfaces=%d\n", nfaces);
+  //printf("NFACES=%d\n", nfaces);
 
   skipLine(ptrFile);
   
@@ -476,19 +481,12 @@ E_Int K_IO::GenIO::foamWriteNeighbour(char* file, FldArrayI& PE)
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
   fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
-  fprintf(ptrFile, "    class       vectorField;\n");
+  fprintf(ptrFile, "    class       labelList;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      neighbour;\n");
   fprintf(ptrFile, "}\n");
 
   E_Int nfaces = PE.getSize();
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "%ld\n", nfaces);
-#else
-  fprintf(ptrFile, "%d\n", nfaces);
-#endif
-  fprintf(ptrFile, "(\n");
-
   // Count internal faces
   E_Int count = 0; E_Int val1, val2;
   for (E_Int i = 0; i < nfaces; i++)
@@ -497,21 +495,29 @@ E_Int K_IO::GenIO::foamWriteNeighbour(char* file, FldArrayI& PE)
     if (val1 > 0 && val2 > 0) count += 1; 
   }
 
+#ifdef E_DOUBLEINT
+  fprintf(ptrFile, "%ld\n", count);
+#else
+  fprintf(ptrFile, "%d\n", count);
+#endif
+  fprintf(ptrFile, "(\n");
+
   E_Int c = 0;
-  for (E_Int i = 0; i < count; i++)
+  for (E_Int i = 0; i < nfaces; i++)
   {
     val1 = PE(i,1); val2 = PE(i,2);
     if (val1 > 0 && val2 > 0)
     {
 #ifdef E_DOUBLEINT
-      fprintf(ptrFile, "%ld ", val2+1);
+      fprintf(ptrFile, "%ld\n", val2-1);
 #else
-      fprintf(ptrFile, "%d ", val2+1);
+      fprintf(ptrFile, "%d\n", val2-1);
 #endif
       //if (c > 10) { fprintf(ptrFile, "\n"); c = 0; }
       c += 1;
     }
   }
+  assert(c == count);
   fprintf(ptrFile, ")\n");
   fclose(ptrFile);
   return 0;
@@ -527,10 +533,11 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
 
     E_Int ret;
   readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 10; i++) skipLine(ptrFile);
+  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
 
   // Passe comments
   char buf[1024]; E_Int l;
+  /*
   E_Boolean cont = true;
   while (cont)
   {
@@ -541,13 +548,17 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
     if (l < 2) continue;
     cont = false;
   }
+  */
+
+  std::cout << "reading neighbour\n";
 
   // Readint in buf
   E_Int nfaces; E_Int val;
   E_Int pos=0;
   //printf("buf=%s\n", buf);
+  readline(ptrFile, buf, 1024);
   readInt(buf, 1024, pos, nfaces);
-  //printf("nfaces=%d\n", nfaces);
+  //printf("NNEI=%d\n", nfaces);
 
   skipLine(ptrFile);
 
