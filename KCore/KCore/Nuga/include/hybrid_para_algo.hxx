@@ -34,12 +34,12 @@ namespace NUGA
     (
       const mesh_t & mesh,
       const std::map<int, std::vector<E_Int>>& rid_to_list,
-      std::map<int, std::map<int, K_FLD::DynArray<T>>> & rid_to_PG_to_plan
+      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & rid_to_PG_to_plan
     ) = 0;
 
     virtual void autonomous_run(const std::vector<mesh_t*>& mesh, int i) = 0;
 
-    virtual bool run_with_data(const std::vector<mesh_t*>& meshes, const std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data) = 0;
+    virtual bool run_with_data(const std::vector<mesh_t*>& meshes, const std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data) = 0;
 
     virtual int get_data_stride() = 0;
 
@@ -48,8 +48,8 @@ namespace NUGA
     (
       std::vector<mesh_t*>& meshes,
       std::vector<int>& zids,
-      const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
-      const std::map<E_Int, std::pair<int, int>>& rid_to_zones,
+      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
+      const std::map<int, std::pair<int, int>>& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM
     );
@@ -74,7 +74,7 @@ namespace NUGA
       MPI_Comm COM,
       int rank,
       int nranks,
-      std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
+      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
     );
 
     void exchange_omp_data
@@ -83,7 +83,7 @@ namespace NUGA
       const std::vector<int>& zids,
       const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
       const rid_to_zones_t& rid_to_zones,
-      std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
+      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
     );
 
     ///
@@ -97,19 +97,19 @@ namespace NUGA
   (
     std::vector<mesh_t*>& meshes,
     std::vector<int>& zids,
-    const std::map<E_Int, std::map<E_Int, std::vector<E_Int>>>& zone_to_rid_to_list,
-    const std::map<E_Int, std::pair<int, int>>& rid_to_zones,
+    const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
+    const std::map<int, std::pair<int, int>>& rid_to_zones,
     const std::vector<int>& zonerank,
     MPI_Comm COM
   )
   {
-    E_Int err(0);
-    E_Int NBZ{ E_Int(meshes.size()) };
+    int err(0);
+    int NBZ{ E_Int(meshes.size()) };
 
     //1. autonomous runs
     ePara PARA = COARSE_OMP;
 #pragma omp parallel for if(PARA == COARSE_OMP)
-    for (E_Int i = 0; i < NBZ; ++i)
+    for (int i = 0; i < NBZ; ++i)
       this->autonomous_run(meshes, i);
 
     //2. exchange and run untill convergence
@@ -150,7 +150,7 @@ namespace NUGA
       ++mpi_iter;
       has_mpi_changes = false;
 
-      std::map<int, std::map<int, K_FLD::DynArray<T>>> zid_to_jdata;
+      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> zid_to_jdata;
 
       exchange_mpi_data(meshes, zids, zone_to_rid_to_list_mpi, rid_to_zones, zonerank, COM, rank, nranks, zid_to_jdata);
 
@@ -187,14 +187,14 @@ namespace NUGA
     MPI_Comm COM,
     int rank,
     int nranks,
-    std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
+    std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
   )
   {
     if (zone_to_rid_to_list.empty()) return;
     if (nranks == 1) return;
 
     // Each zone builds its MPI-data-to-send by sending zone
-    std::map<int, std::map<int, std::map<int, K_FLD::DynArray<T>>>> sz_to_rid_to_PG_to_data;
+    std::map<int, std::map<int, std::map<E_Int, K_FLD::DynArray<T>>>> sz_to_rid_to_PG_to_data;
     bool has_packs{ false };
     for (size_t i = 0; i < meshes.size(); ++i)
     {
@@ -208,7 +208,7 @@ namespace NUGA
       //if (rank == 2) std::cout << "rank : " << rank << " found zid : " << hmeshes[i]->zid << std::endl;
       const auto & rid_to_list = it->second;
 
-      std::map<int, std::map<int, K_FLD::DynArray<T>>> rid_to_PG_to_data;
+      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> rid_to_PG_to_data;
       has_packs |= this->prepare_data_to_send(*meshes[i], rid_to_list, rid_to_PG_to_data);
 
       sz_to_rid_to_PG_to_data[zids[i]] = rid_to_PG_to_data;
@@ -247,7 +247,7 @@ namespace NUGA
     const std::vector<int>& zids,
     const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
     const rid_to_zones_t& rid_to_zones,
-    std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
+    std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
   )
   {
     //zid_to_data.clear();
@@ -262,7 +262,7 @@ namespace NUGA
 
       const auto & rid_to_list = it->second;
 
-      std::map<int, std::map<int, K_FLD::DynArray<T>>> rid_to_PG_to_plan;
+      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> rid_to_PG_to_plan;
       has_packs |= this->prepare_data_to_send(*meshes[i], rid_to_list, rid_to_PG_to_plan);
 
       // convert to sensor data

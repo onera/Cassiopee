@@ -44,7 +44,7 @@ namespace NUGA
     (
       const hmesh_t & mesh,
       const std::map<int, std::vector<E_Int>>& rid_to_list,
-      std::map<int, std::map<int, K_FLD::IntArray>> & rid_to_PG_to_plan
+      std::map<int, std::map<E_Int, K_FLD::IntArray>> & rid_to_PG_to_plan
     ) override
     {
       bool has_packs{ false };
@@ -80,7 +80,7 @@ namespace NUGA
     }
 
     bool run_with_data
-    (const std::vector<hmesh_t*>& hmeshes, const std::map<int, std::map<int, K_FLD::IntArray>> & zid_to_data) override
+    (const std::vector<hmesh_t*>& hmeshes, const std::map<int, std::map<E_Int, K_FLD::IntArray>> & zid_to_data) override
     {
       E_Int NBZ{ E_Int(hmeshes.size()) };
 

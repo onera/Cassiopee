@@ -650,7 +650,7 @@ std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
-  E_Int err(0);
+  int err(0);
   /*size_t nb_meshes = hookhmes.size();
   
   using ELT_type = K_MESH::Polyhedron<0>;
@@ -720,7 +720,7 @@ std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
-  E_Int err(0);
+  int err(0);
   /*size_t nb_meshes = hookhmes.size();
   
   using ELT_type = K_MESH::Hexahedron;
@@ -834,7 +834,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
     auto & transfo = transfo_map.first.t;
     auto & ptlist  = transfo_map.second;
 
-    int sz = ptlist.size();
+    size_t sz = ptlist.size();
 
     E_Float center_rota[3];
     E_Float axis_rota[3];
@@ -853,9 +853,9 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
 
       NUGA::axial_rotate(crd_tmp, center_rota, axis_rota, -angle);
 
-      for (E_Int i=0; i < sz; i++)
+      for (size_t i=0; i < sz; i++)
       {
-        int pti = ptlist[i] -1;
+        E_Int pti = ptlist[i] -1;
 
         E_Int* nodes = ngi.PGs.get_facets_ptr(pti);
         int nnodes = ngi.PGs.stride(pti);
@@ -866,9 +866,9 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
 
     else //translation, match, negative rotation periodicity
     {
-      for (E_Int i=0; i < sz; i++)
+      for (size_t i=0; i < sz; i++)
       {
-        int pti = ptlist[i] -1;
+        E_Int pti = ptlist[i] -1;
 
         E_Int* nodes = ngi.PGs.get_facets_ptr(pti);
         int nnodes = ngi.PGs.stride(pti);

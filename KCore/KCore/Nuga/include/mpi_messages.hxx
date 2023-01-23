@@ -201,7 +201,7 @@ namespace NUGA
       const std::map<int, std::pair<int,int>> & rid_to_zones,
       const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
       std::vector<MPI_Request>& sender_reqs,
-      std::map<int, std::map<int, K_FLD::DynArray<T>>>& zone_to_sensor_data
+      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>>& zone_to_sensor_data
     )
     {
       zone_to_sensor_data.clear();
