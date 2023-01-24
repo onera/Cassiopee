@@ -572,8 +572,8 @@ namespace NUGA
       // update wdata
       for (E_Int u = 0; u < ncells; ++u)
       {
-        if (wdata[u] == IN) continue;
-        if (virgin_wdata[u] == OUT) continue;
+        if (wdata[u] == (E_Int)IN) continue;
+        if (virgin_wdata[u] == (E_Int)OUT) continue;
 
         E_Int val = virgin_wdata[u];
         data_trait<POLICY, zmesh_t>::mark_cell_w_mask(wdata, u, i, val);
@@ -1056,7 +1056,7 @@ namespace NUGA
       //std::cout << i << " over " << nbcells << std::endl;
       assert (i < data.size());
       // in any POLICY, X must be re-processed to avoid missing element in current X-front being computed
-      if (data[i] == IN) continue;
+      if (data[i] == (E_Int)IN) continue;
 
       // autonomous element
       auto ae1 = z_mesh.aelement(i);
@@ -1135,8 +1135,7 @@ namespace NUGA
 
     for (size_t i=0; i < z_xcelln.size(); ++i)
     {
-      if (z_xcelln[i] == IN)
-        cur_xcelln[i] = IN;
+      if (z_xcelln[i] == (E_Int)IN) cur_xcelln[i] = IN;
       else if (z_xcelln[i] == -XCOL) // collision colors : negative to say 'new'
       {
         z_xcelln[i] = XCOL; //reset on z_xcelln

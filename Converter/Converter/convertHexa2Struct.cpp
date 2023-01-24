@@ -21,7 +21,7 @@
 using namespace std;
 using namespace K_FLD;
 
-#define FINDNEXT { next = -1;                    \
+#define FINDNEXT { next = -1;                   \
   for (E_Int i = 0; i < nv; i++)                \
   { if (no[4*i] == 0) { next = i; break; } } }
 

@@ -206,9 +206,7 @@ PyObject* K_CONVERTER::deleteBBTree(PyObject* self, PyObject* args)
 #endif
     
     K_SEARCH::BbTree3D* BBTree = (K_SEARCH::BbTree3D*)packet[0]; 
-    
     delete BBTree;
-
     Py_INCREF(Py_None);
     return Py_None;
 }

@@ -1,5 +1,5 @@
 # - check -
-# Un module de verification de la coherence des arbres pythons
+"""Check pyTree integrity."""""
 try: range = xrange
 except: pass
 
@@ -159,6 +159,8 @@ def checkPyTree(t, level=-20):
         #errors += checkCoordinatesInFields(t)
         # check field dimension
         #errors += checkFieldConformity(t)
+    if level <= -11 or level == 11:
+        errors += checkNameLength(t)
     # Ne retourne que le noeud et le message dans les erreurs
     retErrors = []
     for i in range(len(errors)//3): retErrors += [errors[3*i], errors[3*i+2]]
@@ -218,6 +220,10 @@ def _correctPyTree(t, level=-20):
         _correctCGNSVarNames(t)
         #_correctCoordinatesInFields(t)
         #_correctFieldConformity(t)
+    # Corrige les noms > 32 chars
+    if level <= -11 or level == 11:
+        _correctNameLength(t)
+
     C.registerAllNames(t)
 
     return None
@@ -263,7 +269,7 @@ def _correctVersionNode(t):
 # de caracteres avec des blancs au debut ou a la fin
 #==============================================================================
 def checkNodes(node):
-    """Check basic node conformity (types)."""
+    """Check basic node conformity."""
     errors = []
     isStd = Internal.isStdNode(node)
     if isStd >= 0:
@@ -298,8 +304,8 @@ def checkNode__(node, parent, errors):
             # node[3] doit etre une string se terminant par _t ...
             if not isinstance(node[3], str):
                 errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
-            #if node[3].find('_t') != len(node[3])-2:
-            #    errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
+            if node[3][-2:] != '_t':
+                errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
                    
         else: errors += [node, parent, "Node %s has a length != 4."%node[0]]
     else: errors += [node, parent, "Node is not a list."]
@@ -318,6 +324,39 @@ def _correctNodes(t):
         parent = errors[3*e+1]
         c = Internal.getNodePosition(node, parent)
         del parent[2][c]
+    return None
+
+#==============================================================================
+# Check name length 
+# Check if node[0] has less than 32 chars (legacy constraint for cgnsview)
+#==============================================================================
+def checkNameLength(node):
+    """Check node[0] length. Must be < 32 chars."""
+    errors = []
+    isStd = Internal.isStdNode(node)
+    if isStd >= 0:
+        for c in node[isStd:]: checkNameLength__(c, node, errors)
+    else: checkNameLength__(node, node, errors)
+    return errors
+
+#==============================================================================
+def checkNameLength__(node, parent, errors):
+    sons = []
+    if len(node[0]) > 32:               
+        errors += [node, parent, "Node name %s has a length > 32."%node[0]]
+    for n in sons: checkNameLength__(n, node, errors)
+
+#==============================================================================
+# Truncate > 32 node names
+#==============================================================================
+def _correctNameLength(t):
+    """Truncate node names if necessary."""
+    errors = checkNameLength(t)
+    le = len(errors)//3
+    for e in range(le):
+        node = errors[3*e]
+        parent = errors[3*e+1]
+        node[0] = node[0][0:32]
     return None
 
 #==============================================================================

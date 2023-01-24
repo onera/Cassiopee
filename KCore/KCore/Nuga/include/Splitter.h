@@ -1461,7 +1461,7 @@ if (PHi == faultyPH)
   // 3 consecutive nodes in the chain belonging to a same face should not make a normal aligned with that face
   {
     std::map<int, std::set<int>> node_to_faces;
-    for (size_t f = 0; f < nb_pgs; ++f)
+    for (E_Int f = 0; f < nb_pgs; ++f)
     {
       E_Int PGi = first_pg[f] - 1;
       const E_Int* pn = PGS.get_facets_ptr(PGi);

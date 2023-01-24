@@ -37,6 +37,10 @@ def runCheckPyTree():
         errors += Internal.checkPyTree(CTK.t, level=9)
     if v == 'All conformity' or v == ' > Valid CGNS flowfield name':
         errors += Internal.checkPyTree(CTK.t, level=10)
+
+    if v == ' > Node name length < 32':
+        errors += Internal.checkPyTree(CTK.t, level=11)
+        
     if v == 'Multigrid compatibility':
         MGlevel = CTK.varsFromWidget(VARS[2].get(), type=2)
         minBlk = CTK.varsFromWidget(VARS[0].get(), type=2)
@@ -84,6 +88,9 @@ def correctPyTree():
         Internal._correctPyTree(CTK.t, level=9)
     if v == 'All conformity' or v == ' > Valid CGNS flowfield name':
         Internal.correctPyTree(CTK.t, level=10)
+    if v == ' > Node name length < 32':
+        Internal.correctPyTree(CTK.t, level=10)
+        
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -149,7 +156,7 @@ def createApp(win):
     # Option menu
     B = TTK.OptionMenu(Frame, VARS[3], 'All conformity', ' > Node conformity', ' > Unique base name', ' > Unique zone name', ' > Unique BC name', 
                        ' > Valid BC ranges', ' > Valid BC match', ' > Referenced families', ' > Valid CGNS types', ' > Valid element nodes',
-                       ' > Valid CGNS flowfield name', 'Multigrid compatibility', 'Maximum number of nodes')
+                       ' > Valid CGNS flowfield name',  '> Node name length < 32', 'Multigrid compatibility', 'Maximum number of nodes')
     B.grid(row=1, column=0, columnspan=8, sticky=TK.EW)
 
     # - Buttons -

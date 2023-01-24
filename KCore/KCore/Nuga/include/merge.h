@@ -507,7 +507,7 @@ __merge
     onodes.clear(); dist2.clear();
 
     E_Int& Fi = utarget[i];
-    assert (Fi >= 0 && Fi < nodal_metric2.size());
+    assert (Fi >= 0 && (size_t)Fi < nodal_metric2.size());
     if (nodal_metric2[Fi] == NUGA::FLOAT_MAX)
     {
       //std::cout << "wrong TOLi" << std::endl;
@@ -622,7 +622,7 @@ __merge_omp
       onodes_thrd[id].clear(); dist2_thrd[id].clear();
 
       Fi = utarget[i];
-      assert (Fi >= 0 && Fi < nodal_metric2.size());
+      assert (Fi >= 0 && (size_t)Fi < nodal_metric2.size());
       if (nodal_metric2[Fi] == NUGA::FLOAT_MAX)
       {
         //std::cout << "wrong TOLi" << std::endl;

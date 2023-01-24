@@ -49,11 +49,11 @@ bool dirExist(char* path)
 #endif
 }
 
-// return 0: ok, 1: FAILED
+// Create a directory at given path if it doesnt exist already
+// return 0: OK, 1: FAILED
 E_Int createDir(char* path)
 {
-  if (dirExist(path) == true) 
-  { printf("exists : %s\n", path); return 0; }
+  if (dirExist(path) == true) { printf("exists : %s\n", path); return 0; }
 #if defined(_WIN32)
   int ret = _mkdir(path);
 #else
@@ -159,6 +159,7 @@ E_Int K_IO::GenIO::foamread(
   cnp += 2;
   for (E_Int i = 0; i < sizeNFace; i++) cnp[i] = cNFace[i];
   
+  // push in output
   unstructField.push_back(f);
   connect.push_back(cn);
   eltType.push_back(8); // NGon
@@ -172,7 +173,7 @@ E_Int K_IO::GenIO::foamread(
 }
 
 //=============================================================================
-// Mesh point coordinates
+// Write Mesh point coordinates
 //=============================================================================
 E_Int K_IO::GenIO::foamWritePoints(char* file, FldArrayF& f)
 {
@@ -407,7 +408,7 @@ E_Int K_IO::GenIO::foamWriteOwner(char* file, FldArrayI& PE)
   E_Int c = 0; E_Int val;
   for (E_Int i = 0; i < nfaces; i++)
   {
-    val = PE(i,1);
+    val = PE(i, 1);
 #ifdef E_DOUBLEINT
     fprintf(ptrFile, "%ld\n", val-1);
 #else
@@ -440,7 +441,6 @@ E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
   while (cont)
   {
     readline(ptrFile, buf, 1024);
-    printf("%s\n", buf);
     l = strlen(buf);
     if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
     if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
@@ -549,8 +549,6 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
     cont = false;
   }
   */
-
-  std::cout << "reading neighbour\n";
 
   // Readint in buf
   E_Int nfaces; E_Int val;

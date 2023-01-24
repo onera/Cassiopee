@@ -10,5 +10,7 @@ C.convertArrays2File(a, "out.foam", "fmt_foam")
 
 # Reread
 b = C.convertFile2Arrays("out.foam", "fmt_foam")
-#print(b)
-C.convertArrays2File(b, 'foam_ngon.plt')
+print(b)
+
+# Rewrite in plt format
+C.convertArrays2File(b, 'foamNGon.plt')
