@@ -11,10 +11,7 @@ from distutils.core import setup, Extension
 #=============================================================================
 # Compiler settings must be set in config.py
 from config import *
-
-# Write KCore installation path to installPath.py
 import Dist
-Dist.writeInstallPath()
 
 # Write setup.cfg file
 Dist.writeSetupCfg()

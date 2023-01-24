@@ -6,9 +6,6 @@
 import os, shutil
 import Dist
 
-# Symlinks eventuel
-Dist.symLinks()
-
 system = Dist.getSystem()[0]
 
 if system == 'Windows':
