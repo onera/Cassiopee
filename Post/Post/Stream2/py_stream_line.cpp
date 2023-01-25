@@ -255,9 +255,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         try
         {
             streamline sline(beg_nodes[i], zones, nStreamPtsMax, (signe==2));
-
-            FldArrayF& field = sline.field();
-            
+            FldArrayF& field = sline.field();            
             E_Int number_of_points = field.getSize();
             #pragma omp critical
             {            
@@ -309,8 +307,5 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     for (unsigned int nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
 
-    //std::cout << "varStringOut : " << varStringOut << std::endl;
-    // Vérifier que le nettoyage est bon.
-    //std::cout << "Retour de la streamline..." << std::flush << std::endl;
     return list_of_streamlines;
 }

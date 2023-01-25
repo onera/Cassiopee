@@ -53,7 +53,7 @@ if [ $PRODMODE -le 1 ]; then
         python setup.py install --prefix="$INSTALLPATH"
         [ $? != 0 ] && exit 1;
     elif [ $PRODMODE -eq 1 ]; then
-        python -m pip install -v --upgrade --prefix="$INSTALLPATH" .
+        python -m pip install --upgrade --prefix="$INSTALLPATH" .
         [ $? != 0 ] && exit 1;
     fi
 else

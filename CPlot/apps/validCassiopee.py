@@ -984,9 +984,10 @@ def stopTests():
             # use signal.SIGKILL ?
             os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
         PROCESS = None
+        displayStatus(0)
 
     if THREAD is not None:
-        print("Info: Stopping thread...")
+        print("Info: stopping thread...")
         #THREAD._stop() # kill?
         #THREAD.join() # wait
         #THREAD.terminate()

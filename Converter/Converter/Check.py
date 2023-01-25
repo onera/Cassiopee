@@ -304,8 +304,8 @@ def checkNode__(node, parent, errors):
             # node[3] doit etre une string se terminant par _t ...
             if not isinstance(node[3], str):
                 errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
-            if node[3][-2:] != '_t':
-                errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
+            #if node[3][-2:] != '_t' and node[3] != "int[IndexDimension]":
+            #    errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
                    
         else: errors += [node, parent, "Node %s has a length != 4."%node[0]]
     else: errors += [node, parent, "Node is not a list."]

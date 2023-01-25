@@ -1,3 +1,21 @@
+/*
+    Copyright 2013-2023 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "ribbon_stream_line.hpp"
 #include "structured_data_view.hpp"
 #include "unstructured_data_view.hpp"
@@ -159,7 +177,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
             for (unsigned int nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
             for (unsigned int nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
             PyErr_SetString(PyExc_TypeError, 
-                    "streamRibbon: Vector is missing.");
+                    "streamRibbon: vector is missing.");
             return NULL;
         }
         posv1++; posv2++; posv3++;
@@ -230,34 +248,34 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
 #   pragma omp parallel for schedule(dynamic,10)
     for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
-//#       pragma omp critical
-//        std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
-        ribbon_streamline rline(beg_nodes[i], zones, nStreamPtsMax, width, (signe==1));
-//#       pragma omp critical
-//        std::cout << "\t Conversion en python..." << std::flush << std::endl;
-        FldArrayF& field = rline.field();
-        E_Int number_of_points = field.getSize()/2;
-        //std::cout << "field : " << number_of_points << ", " << field.getNfld() << std::endl;
-#       pragma omp critical
+        //#pragma omp critical
+        //std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
+        try
         {
-            PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, 2, number_of_points, 1);
-            PyList_SetItem(list_of_ribbonstreams, i, tpl);
-            
-            /* Essai pour supprimer les streams avec 0 points
-            if (number_of_points > 0)
+            ribbon_streamline rline(beg_nodes[i], zones, nStreamPtsMax, width, (signe==1));
+            FldArrayF& field = rline.field();
+            E_Int number_of_points = field.getSize()/2;
+            #pragma omp critical
             {
-                PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
-                PyList_SetItem(list_of_streamlines, i, tpl);
+                if (number_of_points > 0)
+                {
+                    PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, 2, number_of_points, 1);
+                    PyList_SetItem(list_of_ribbonstreams, i, tpl);
+                }
+                else
+                {
+                    Py_INCREF(Py_None);
+                    PyList_SetItem(list_of_ribbonstreams, i, Py_None);
+                }
+
             }
-            else 
-            {
-                //Py_INCREF(Py_None);
-                PyList_SetItem(list_of_streamlines, i, Py_None);
-            }
-            */
         }
-//#       pragma omp critical
-//        std::cout << "OK" << std::flush << std::endl;
+        catch (std::exception& err)
+        {
+            printf("Warning: streamRibbon: %s\n", err.what());
+            Py_INCREF(Py_None);
+            PyList_SetItem(list_of_ribbonstreams, i, Py_None);
+        }
     }
     
     // Compact - Essai pour enlever des streamlines qui auraient 0 points
@@ -287,8 +305,5 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
     for (unsigned int nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
 
-    //std::cout << "varStringOut : " << varStringOut << std::endl;
-    // Vérifier que le nettoyage est bon.
-    //std::cout << "Retour de la streamline..." << std::flush << std::endl;
     return list_of_ribbonstreams;
 }
