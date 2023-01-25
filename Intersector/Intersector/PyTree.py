@@ -709,6 +709,55 @@ def updateJoinsPointLists3(z, zidDict, rid_to_ptlist, ptlname): # 'PointList', '
     ptl[1] = L1
 
 #------------------------------------------------------------------------------
+# 
+#------------------------------------------------------------------------------
+def get_transfo_to_ptlist_dico(z):
+
+  # ----- 
+
+  dico_rotation_to_ptList = {}
+
+  key1 = [0.]*6
+  key1 = tuple(key1)
+
+  raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+
+  for rac in raccords:
+    rac_match_perio = Internal.getNodesFromType2(rac, 'GridConnectivityProperty_t')
+
+    ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+
+    if rac_match_perio: #perio BC
+      center_rotat  = Internal.getNodesFromName3(rac, 'RotationCenter')[0][1]
+      angle_rotat   = Internal.getNodesFromName3(rac, 'RotationAngle' )[0][1]
+
+      # Condition to set negative angle as a translation like dict
+
+      key2 = numpy.concatenate((center_rotat, angle_rotat))
+      key2 = tuple(key2)
+
+      if numpy.sum(angle_rotat) < 0: #negative rotation
+        if key1 in dico_rotation_to_ptList:
+          dico_rotation_to_ptList[key1] = numpy.concatenate((dico_rotation_to_ptList[key1], ptList))
+        else:
+          dico_rotation_to_ptList[key1] = ptList
+      else: #translation or positive rotation
+        if key2 in dico_rotation_to_ptList:
+          dico_rotation_to_ptList[key2] = numpy.concatenate((dico_rotation_to_ptList[key2], ptList))
+        else:
+          dico_rotation_to_ptList[key2] = ptList
+    else: #match BC
+      if key1 in dico_rotation_to_ptList: #following match BC
+        dico_rotation_to_ptList[key1] = numpy.concatenate((dico_rotation_to_ptList[key1], ptList))
+      else: #first match BC
+        dico_rotation_to_ptList[key1] = ptList
+
+  return dico_rotation_to_ptList
+
+
+
+
+#------------------------------------------------------------------------------
 # Conformisation d'une soupe de TRI ou de BAR
 #------------------------------------------------------------------------------
 def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0, itermax=10):
@@ -2324,106 +2373,6 @@ def _closeCells(t):
     return t
 
 #==============================================================================
-# setZonesAndJoinsUId : Assigns a unique id for zones and joins
-# IN: zidDict : dictionary zname <-> zid
-# IN: procDict : dictionary zname <-> rank
-#==============================================================================
-def setZonesAndJoinsUId(t):
-
-  zs = Internal.getZones(t)
-  iz = -1
-  ir = -1
-
-  # ---------------------------------------------------------------------
-  # dict_VD = {z1 : {z2 : {0 : {[idx_min_1, idx_min_2], [ir_1, ir_2]}, 1 : {[idx_min_1, idx_min_2], [ir_3, ir_4]}}}
-  #                 {z4 : {0 : {[idx_min], [ir_5]}, 1 : {[idx_min], [ir_6]}, 1 : {[idx_min], [ir_7]}, 1 : {[idx_min], [ir_8]}}}
-  #           {z2 : {z3 : {0 : {[idx_min, ...], [ir, ...]}}}
-  #           {z3 : {z4 : {0 : {[idx_min, ...], [ir, ...]}}}}
-  # ---------------------------------------------------------------------
-
-  dict_VD = {}
-  zidDict = {}
-
-  for z in zs: # loop on blocks
-    iz += 1
-
-    zidDict[z[0]] = iz #build zidDict
-
-    l = Internal.newIntegralData(name='zid', parent=z) #ceate a zid for each block 
-    l[1] = iz
-
-  for z in zs: # loop on blocks
-
-    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t') # check if rac exists for block z
-    nb_racs  = len(raccords)
-    
-    for rac in raccords: # loop on racs
-
-      # GET ZONES INDICES
-      z1 = CD.getProperty(z, 'zid')
-
-      donnorName = "".join(Internal.getValue(rac))
-      z2 = zidDict[donnorName]
-
-      # re-arrange
-      if z1 > z2:
-        c  = z2
-        z2 = z1
-        z1 = c            
-
-      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
-      ptList_donor = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
-
-      is_perio = Internal.getNodeFromName1(rac, 'GridConnectivityProperty')
-      idx_min  = numpy.minimum(numpy.min(ptList), numpy.min(ptList_donor))
-
-      # 0==match connec; 1==perio connec
-      if is_perio:
-        idx_perio = 1
-      else:
-        idx_perio = 0
-
-      # -----
-
-      if z1 in dict_VD:
-        if z2 in dict_VD[z1]:
-          # if 'idx_min' in dict_VD[z1][z2]:
-          if idx_perio in dict_VD[z1][z2]:
-            if idx_min in dict_VD[z1][z2][idx_perio]:
-              r    = Internal.newIntegralData(name='rid', parent=rac)
-              r[1] = dict_VD[z1][z2][idx_perio][idx_min]
-            else:
-              ir += 1
-              dict_VD[z1][z2][idx_perio][idx_min]=ir
-              
-              r    = Internal.newIntegralData(name='rid', parent=rac) 
-              r[1] = ir
-          else:
-            ir += 1
-            dict_VD[z1][z2][idx_perio] = {}
-            dict_VD[z1][z2][idx_perio][idx_min]=ir
-
-            r    = Internal.newIntegralData(name='rid', parent=rac) 
-            r[1] = ir
-        else:
-          ir += 1
-          dict_VD[z1][z2] = {}
-          dict_VD[z1][z2][idx_perio] = {}
-          dict_VD[z1][z2][idx_perio][idx_min]=ir
-
-          r    = Internal.newIntegralData(name='rid', parent=rac) 
-          r[1] = ir
-      else:
-        ir += 1
-        dict_VD[z1] = {}
-        dict_VD[z1][z2] = {}
-        dict_VD[z1][z2][idx_perio] = {}
-        dict_VD[z1][z2][idx_perio][idx_min]=ir
-
-        r    = Internal.newIntegralData(name='rid', parent=rac) 
-        r[1] = ir
-
-#==============================================================================
 # getJoinsPtList : XXX
 # IN: t : 3D NGON PyTree
 # IN: XXX
@@ -2518,6 +2467,8 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     """Adapts an unstructured mesh a with respect to a sensor.
     Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None)"""
 
+    if sensor_type == 1: sensor_type=4 # initial xsensor does not exist anymore
+
     if sensdata is None and sensor is None:
       print('INPUT ERROR : no source data to initialize a sensor')
       return
@@ -2529,17 +2480,13 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     NBZ = len(Internal.getZones(t))
 
     owesHmesh=0
-    com = None
-    if hmesh == [None]: # no basic elts in t
-      return 
+
     if hmesh is None :
       #print("create hm : ", NBZ)
-      if NBZ == 1:
-        hmesh = createHMesh(t, subdiv_type)
-        if hmesh == [None] : # no basic elts in t (assumed because hmesh creation as done [None]
-          return
-      else :
-      	(hmesh, com) = createHZones(t, subdiv_type)
+      _setZonesAndJoinsUId(t)
+      hmesh = createHMesh(t, subdiv_type)
+      if hmesh == [None] : # no basic elts in t (assumed because hmesh creation as done [None]
+        return
       owesHmesh=1
 
     owesSensor=0
@@ -2558,23 +2505,29 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
         print('INPUT ERROR : sensor data list must be sized as nb of sensors')
         return
 
+    zidDict={}
+    zs = Internal.getZones(t)
+    for z in zs:
+      zidDict[z[0]]=CD.getProperty(z, 'zid')
+
+    #
+    zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
+    
+    rid_to_zones = getRidToZones(t, zidDict)
+
     #print('adaptCells..')
-    intersector.adaptCells(hmesh, sensor)
-
+    intersector.adaptCells(hmesh, sensor, zone_to_rid_to_list_owned, rid_to_zones) #fxme agglo
+    
     if owesHmesh == 1 : #and owesSensor == 1 :
-    	#print("_conformizeHMesh")
-    	_conformizeHMesh(t, hmesh)
-
+      #print("_conformizeHMesh")
+      _conformizeHMesh(t, hmesh)
+    
     if owesHmesh == 1 :
-    	#print('delete owned hmesh')
-    	deleteHMesh(hmesh)
+    #   #print('delete owned hmesh')
+      deleteHMesh(hmesh)
     if owesSensor == 1 : 
-    	#print('delete owned sensor')
-    	deleteSensor(sensor)
-    	#print('delete done')
-    if com is not None:
-    	#print('delete com')
-    	deleteCom(com)
+      #print('delete owned sensor')
+      deleteSensor(sensor)
 
 #==============================================================================
 # adaptCellsNodal (deprecated) : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
@@ -2590,62 +2543,139 @@ def adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=N
     return tp
 
 #==============================================================================
-# createHMesh : Returns a hierarchical zone hook 
-# IN: z : 3D NGON zone
+# setZonesAndJoinsUId : Assigns a zid and  the dictionary zid <-> rank
+# IN: zidDict : dictionary zname <-> zid
+# IN: procDict : dictionary zname <-> rank
+# OUT: Returns the dictionary zid <-> rank
+#==============================================================================
+def setZonesAndJoinsUId(t):
+    """Adapts an unstructured mesh a with respect to a sensor (DEPRECATED : use adaptCells with a sensor of type 2 instead.)
+    Usage: adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=None, sensor=None)"""
+    tp = Internal.copyRef(t)
+    _setZonesAndJoinsUId(tp)
+    return tp
+
+def _setZonesAndJoinsUId(t):
+
+  zs = Internal.getZones(t)
+  iz = -1
+  ir = -1
+
+  # ---------------------------------------------------------------------
+  # dict_VD = {z1 : {z2 : {0 : {[idx_min_1, idx_min_2], [ir_1, ir_2]}, 1 : {[idx_min_1, idx_min_2], [ir_3, ir_4]}}}
+  #                 {z4 : {0 : {[idx_min], [ir_5]}, 1 : {[idx_min], [ir_6]}, 1 : {[idx_min], [ir_7]}, 1 : {[idx_min], [ir_8]}}}
+  #           {z2 : {z3 : {0 : {[idx_min, ...], [ir, ...]}}}
+  #           {z3 : {z4 : {0 : {[idx_min, ...], [ir, ...]}}}}
+  # ---------------------------------------------------------------------
+
+  dict_VD = {}
+  zidDict = {}
+
+  for z in zs: # loop on blocks
+    iz += 1
+
+    zidDict[z[0]] = iz #build zidDict
+
+    l = Internal.newIntegralData(name='zid', parent=z) #ceate a zid for each block    
+    l[1] = iz
+
+  for z in zs: # loop on blocks
+
+    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t') # check if rac exists for block z
+    nb_racs  = len(raccords)
+    
+    for rac in raccords: # loop on racs
+
+      # GET ZONES INDICES
+      z1 = CD.getProperty(z, 'zid')
+
+      donnorName = "".join(Internal.getValue(rac))
+      z2 = zidDict[donnorName]
+
+      # re-arrange
+      if z1 > z2:
+        c  = z2
+        z2 = z1
+        z1 = c            
+
+      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+      ptList_donor = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
+
+      is_perio = Internal.getNodeFromName1(rac, 'GridConnectivityProperty')
+      idx_min  = numpy.minimum(numpy.min(ptList), numpy.min(ptList_donor))
+
+      # 0==match connec; 1==perio connec
+      if is_perio:
+        idx_perio = 1
+      else:
+        idx_perio = 0
+
+      # -----
+
+      if z1 in dict_VD:
+        if z2 in dict_VD[z1]:
+          # if 'idx_min' in dict_VD[z1][z2]:
+          if idx_perio in dict_VD[z1][z2]:
+            if idx_min in dict_VD[z1][z2][idx_perio]:
+              r    = Internal.newIntegralData(name='rid', parent=rac)
+              r[1] = dict_VD[z1][z2][idx_perio][idx_min]
+            else:
+              ir += 1
+              dict_VD[z1][z2][idx_perio][idx_min]=ir
+              
+              r    = Internal.newIntegralData(name='rid', parent=rac) 
+              r[1] = ir
+          else:
+            ir += 1
+            dict_VD[z1][z2][idx_perio] = {}
+            dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+            r    = Internal.newIntegralData(name='rid', parent=rac) 
+            r[1] = ir
+        else:
+          ir += 1
+          dict_VD[z1][z2] = {}
+          dict_VD[z1][z2][idx_perio] = {}
+          dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+          r    = Internal.newIntegralData(name='rid', parent=rac) 
+          r[1] = ir
+      else:
+        ir += 1
+        dict_VD[z1] = {}
+        dict_VD[z1][z2] = {}
+        dict_VD[z1][z2][idx_perio] = {}
+        dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+        r    = Internal.newIntegralData(name='rid', parent=rac) 
+        r[1] = ir
+
+#==============================================================================
+# createHMesh : Returns a hierarchical mesh hook per zone
+# IN: t : 3D NGON PyTree
 # IN: subdiv_type : isotropic currently
 # OUT: Returns a hierarchical zone hook 
 #==============================================================================
-def createHMesh(z, subdiv_type= 0):
-    """Returns a hierarchical zone hook .
-    Usage: createHMesh(z, subdiv_type= 0)"""
+def createHMesh(t, subdiv_type= 0):
+  """Returns a hierarchical mesh hook per zone.
+  Usage: createHMesh(t, subdiv_type= 0)"""
+
+  zones = Internal.getZones(t)
+  
+  hmeshs = []
+  for z in zones:
+
     m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    bcptlists = getBCPtList(z)
 
-    hmeshs = []
-    hmeshs.append(intersector.createHMesh(m, subdiv_type, bcptlists, 0, None, None, None))
-    return hmeshs
-
-#==============================================================================
-# createHZones : Returns a hierarchical PyTree hook 
-# IN: t : 3D NGON PyTree
-# IN: subdiv_type : isotropic currently
-# OUT: Returns a hierarchical PyTree hook 
-#==============================================================================
-def createHZones(t, subdiv_type= 0):
-    """Returns a hierarchical PyTree hook.
-    Usage: createHZones(t, subdiv_type= 0)"""
-    zones = Internal.getZones(t)
-    hmeshs = []
-
-    nbz = len(zones)
-
-    if nbz == 1:
-      hmeshs = createHMesh(zones[0], subdiv_type)
-      return (hmeshs, None)
-
-    # zone name to id
-    name2id = dict()
-    i = 0
-    for z in zones :
-      name2id[z[0]] = i
-      #print('zone ' + z[0] + ' has ' + str(i))
-      i += 1
-
-    # create COM
-    m = C.getFields(Internal.__GridCoordinates__, zones[0])[0] # fixme : first zone tells for all
-    com = createCom(m, subdiv_type, nbz)
-
-    # create HZones
-    zid=0
-    for z in zones:
-      (jzids, jptlists) = getJoinsPtList(z, name2id)
-      bcptlists = getBCPtList(z)
-
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      hmeshs.append(intersector.createHMesh(m, subdiv_type, bcptlists, zid, jzids, jptlists, com))
-      zid+=1
+    dico_rotation_to_ptList = get_transfo_to_ptlist_dico(z)
     
-    return (hmeshs, com)
+    m = intersector.initForAdaptCells(m, dico_rotation_to_ptList)
+
+    zid = CD.getProperty(z, 'zid')
+    hm = intersector.createHMesh(m, subdiv_type, zid)
+    hmeshs.append(hm)
+
+  return hmeshs
 
 #==============================================================================
 # deleteHMesh : Releases a hierachical zone hook 
@@ -2747,6 +2777,93 @@ def createCom(t, subdiv_type = 0, nbz = 1):
 
 def deleteCom(hook):
     intersector.deleteCom(hook)
+
+#==============================================================================
+# getRidToZones : Computes a dictionary rid <-> (zid1,zid2)
+# IN: t : 3D NGON PyTree
+# IN: zidDict : dictionary zname <-> zid
+# OUT: Returns the dictionary rid <-> (zid1,zid2)
+#==============================================================================
+def getRidToZones(t, zidDict):
+  """ Function returning ridDict (zones concerned 
+  by rac rid, given tree t as well as zidDict.
+  """
+
+  ridDict = {}
+
+  zones = Internal.getZones(t)
+  for z in zones:
+    zid = CD.getProperty(z, 'zid')
+
+    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    for rac in raccords:
+      rid = CD.getProperty(rac, 'rid')
+
+      z1 = CD.getProperty(z, 'zid')
+
+      donnorName = "".join(Internal.getValue(rac))
+      z2 = zidDict[donnorName]
+
+      ridDict[rid] = (z1,z2)
+
+  return ridDict
+
+#==============================================================================
+# getJoinsPtList : XXX
+# IN: t : 3D NGON PyTree
+# IN: XXX
+# OUT: XXX
+#==============================================================================
+def getJoinsPtLists(t, zidDict):
+
+  zone_to_rid_to_list_owned = {}
+
+  zones = Internal.getZones(t)
+
+  for z in zones:
+    zid = CD.getProperty(z, 'zid')
+
+    rid_to_list_owned = {}
+
+    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    for rac in raccords:
+      
+      rid = CD.getProperty(rac, 'rid')
+
+      donnorName = "".join(Internal.getValue(rac))
+      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+
+      jzid = zidDict[donnorName]
+      if jzid==zid: # auto-match case
+        if rid in rid_to_list_owned:
+          rid_to_list_owned[rid] = numpy.concatenate((rid_to_list_owned[rid], ptList))
+        else:
+          rid_to_list_owned[rid] = ptList
+      else:         # other cases
+        rid_to_list_owned[rid] = ptList
+
+    zone_to_rid_to_list_owned[zid] = rid_to_list_owned
+
+  return zone_to_rid_to_list_owned
+
+#==============================================================================
+# getBCsPtLists : XXX
+# IN: t : 3D NGON PyTree
+# IN: subdiv_type : isotropic currently
+# OUT: Returns a hierarchical zone hook 
+#==============================================================================
+def getBCsPtLists(t):
+
+  zone_to_bcptlists = {}
+  zones = Internal.getZones(t)
+  #
+  for z in zones:
+    zid = CD.getProperty(z, 'zid')
+    # BC and Joins point list (owned side)
+    bcptlists = getBCPtList(z)
+    zone_to_bcptlists[zid]=bcptlists
+
+  return zone_to_bcptlists
         
 #==============================================================================
 # conformizeHMesh : Converts the basic element leaves of a hierarchical mesh (hooks is a list of hooks to hiearchical zones) to a conformal polyhedral mesh.
@@ -2779,78 +2896,139 @@ def _conformizeHMesh(t, hooks):
     if nb_zones != nb_hooks:
         print('must give one hook per zone')
         return
+
+    zidDict = {}
+    for z in zones: # loop on blocks
+      zidDict[z[0]] = CD.getProperty(z, 'zid')
+
+
+    ### 1. UPDATE BC & JOIN POINTLISTS WITH CURRENT ENABLING STATUS AND MPI EXCHANGES
+    zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
+    zone_to_bcptlists = getBCsPtLists(t)
+    rid_to_zones = getRidToZones(t, zidDict)
+
     i=0
     for z in zones:
-        m = C.getFields(Internal.__GridCoordinates__, z)[0]
-        if m == []: continue
-        if hooks[i] == None : continue
 
-        fieldsC = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
-        if fieldsC == [] : fieldsC = None
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      if m == []: continue
+      if hooks[i] == None : continue
 
-        fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        if fieldsN == [] : fieldsN = None
+      zid = CD.getProperty(z, 'zid')
+
+      # BC and Joins point list (owned side)
+      bcptlists = zone_to_bcptlists[zid]
+      rid_to_ptlist = zone_to_rid_to_list_owned[zid]
+
+      fieldsC = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+      if fieldsC == [] : fieldsC = None
+
+      fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+      if fieldsN == [] : fieldsN = None
+
+      try:
+        pfieldsF = Internal.getNodeFromName(z, 'CADData')
+        fieldsF = Internal.getChildFromName(pfieldsF, 'fcadid')
+        fieldsF = [fieldsF[1]]
+        if fieldsF == [] : fieldsF = None # Unnecessary ?
         
-        try:
-          pfieldsF = Internal.getNodeFromName(z, 'CADData')
-          fieldsF = Internal.getChildFromName(pfieldsF, 'fcadid')
-          fieldsF = [fieldsF[1]]
-          if fieldsF == [] : fieldsF = None # Unnecessary ?
-          
-        except TypeError:
-          fieldsF = None
+      except TypeError:
+        fieldsF = None
 
-        res = intersector.conformizeHMesh(hooks[i], fieldsC, fieldsN, fieldsF)
+      res = intersector.conformizeHMesh(hooks[i], bcptlists, rid_to_ptlist, rid_to_zones, fieldsC, fieldsN, fieldsF)
 
-        # res[0] : mesh
-        # res[1] : ranges for what is in res from 3 to end in res
-        #          res[1][0] -> res[1][1]-1 : joins
-        #          res[1][1] -> res[1][2]-1 : bcs
-        #          res[1][2] -> res[1][3]-1 : fields 
-        # res[2] : joined zones ids
-        # res[3] -> end :  joins, bcs, fields
+      # res[0] : mesh
+      # res[1] : List : updated bc pointlist
+      # res[2] : Dict : updated 'jzone to PtList'
+      # res[3] : List : center fields
+      # res[4] : List : node fields
+      # res[5] : List : face fields
 
-        mesh = res[0]
+      mesh = res[0]
 
-        # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes')
+      # MAJ du maillage de la zone
+      C.setFields([mesh], z, 'nodes')
 
-        if len(res) < 2 : continue
+      if len(res) < 2 : continue
 
-        ranges = res[1]
-        jzids = res[2]
-        
-        # MAJ Joins
-        jptlists = res[ranges[0] : ranges[1]]
-        if jptlists != []:
-          updateJoinsPointLists2(z, zones, jzids, jptlists)
+      # MAJ BCs
+      bcptlists = res[1]
 
-        # MAJ BCs
-        bcptlists = res[ranges[1] : ranges[2]]
-        #print(bcptlists)
-        if bcptlists != [] :
-          updateBCPointLists2(z, bcptlists)
-        else:
-          C._deleteZoneBC__(z)
+      if bcptlists != [] :
+        updateBCPointLists2(z, bcptlists)
+      else:
+        C._deleteZoneBC__(z)
 
-        C._deleteFlowSolutions__(z)
+      # MAJ Joins
+      rid_to_ptlist = res[2]
 
-        ## MAJ center fields
-        fieldz = res[ranges[2]: ranges[3]]
+      zone_to_rid_to_list_owned[zid] = rid_to_ptlist #dico z_to_rid_to_ptlist_owned est mis à jour avant de le donner à exchangePointList
+
+      if rid_to_ptlist != {}:
+        updateJoinsPointLists3(z, zidDict, rid_to_ptlist, 'PointList')
+
+      # MAJ FIELDS
+
+      C._deleteFlowSolutions__(z)
+
+      ## center fields
+      fieldz = [res[3]]
+      #print (fieldz)
+      if fieldz != [None]:
         for f in fieldz:
           C.setFields([f], z, 'centers', False)
 
-        ## MAJ node fields
-        fieldz = res[ranges[3]:ranges[4]]
-        #print (fieldz)
+      # # ## node fields
+      fieldz = [res[4]]
+      #print (fieldz)
+      if fieldz != [None]:
         for f in fieldz:
           C.setFields([f], z, 'nodes', False)
 
-        ## MAJ face fields 
-        fieldz = res[ranges[4]:]
-        if fieldz != [] :
-          Internal.newDataArray('fcadid', value=fieldz[0], parent=Internal.getNodeFromName(z, 'CADData'))
-        i=i+1
+      ## face fields 
+      fieldz = [res[5]]
+      #print(fieldz)
+      if fieldz is not [None]:
+        Internal.newDataArray('fcadid', value=fieldz[0], parent=Internal.getNodeFromName(z, 'CADData'))
+
+      i +=1
+    _transposePointLists(t, hooks, zidDict, rid_to_zones, zone_to_bcptlists, zone_to_rid_to_list_owned)
+
+    Internal._rmNodesByName(t, 'zid')
+    Internal._rmNodesByName(t, 'rid')
+
+#==============================================================================
+# _transposePointLists : XXX
+#==============================================================================
+def _transposePointLists(t, hooks, zidDict, rid_to_zones = None, zone_to_bcptlists=None, zone_to_rid_to_list_owned=None):
+
+  nb_hooks = len(hooks)
+  zones = Internal.getZones(t)
+  nb_zones = len(zones)
+
+  if nb_zones != nb_hooks:
+    print('must give one hook per zone')
+    return
+
+  if zone_to_rid_to_list_owned == None :
+    zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
+
+  if rid_to_zones == None:
+    rid_to_zones = getRidToZones(t, zidDict)
+
+  #
+  zone_to_rid_to_list_opp = intersector.transposePointLists(rid_to_zones, zone_to_rid_to_list_owned)
+
+  if zone_to_rid_to_list_opp == {} : return # single block
+  #
+  for z in zones:
+    zid = CD.getProperty(z, 'zid')
+    if zid not in zone_to_rid_to_list_opp : continue
+
+    rid_to_list_opp = zone_to_rid_to_list_opp[zid]
+    if rid_to_list_opp == {} : continue
+
+    updateJoinsPointLists3(z, zidDict, rid_to_list_opp, 'PointListDonor')
 
 #==============================================================================
 # interpolateHMeshNodalField : XXX
@@ -2882,13 +3060,18 @@ def _interpolateHMeshNodalField(t, hooks, fname):
         fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
         if fieldsN == [] : fieldsN = None
 
-        #todo Pablo : recuperation du field ayant pour nom fname : u ou v
+        #print(fieldsN)
+
+        bcptlists = getBCPtList(z)
+        #print(bcptlists)
+
+        #recuperation du field ayant pour nom fname : u ou v
         for j in range(len(fname)):
           #print(fname[j])
           fieldsN[j] = C.getFields(Internal.__FlowSolutionNodes__, C.extractVars(z, fname[j]))
         
           fieldN = fieldsN[j]
-          ofield = intersector.interpolateHMeshNodalField(hooks[i], fieldsN[j][0])
+          ofield = intersector.interpolateHMeshNodalField(hooks[i], fieldsN[j][0], bcptlists)
 
           ## MAJ node fields
           C.setFields([ofield], z, 'nodes', False)
@@ -2901,7 +3084,11 @@ def _interpolateHMeshNodalField(t, hooks, fname):
 def adaptBox(t, box_ratio = 10., smoothing_type=0, itermax=-1):
     """Adapts a bounding box to a cloud of interior points.
     Usage: adaptBox(t, box_ratio)"""
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+
+    z = Internal.getZones(t)[0]
+
+    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+
     m = intersector.adaptBox(m, box_ratio, smoothing_type, itermax)
     return C.convertArrays2ZoneNode('adapted', [m])
 

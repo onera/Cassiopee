@@ -446,7 +446,7 @@ def adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1
         sensdata = C.convertArray2NGon(sensdata)
 
     assignData2Sensor(sensor, sensdata)
-    am = intersector.adaptCells(hmesh, sensor)
+    am = intersector.adaptCells(hmesh, sensor, {}, {})
     if owesHMesh == 1 :
         deleteHMesh(hmesh)
     deleteSensor(sensor)
@@ -468,7 +468,8 @@ def adaptBox(a, box_ratio=10., smoothing_type=0, itermax=-1):
 def createHMesh(a, subdiv_type = 0): # 0 : ISO, 1: ISO_HEX
     """Returns a hierarchical zone hook.
     Usage: createHMesh(a, subdiv_type= 0)"""
-    return intersector.createHMesh(a, subdiv_type, None, 0, None, None, None)
+    a = intersector.initForAdaptCells(a, {})
+    return intersector.createHMesh(a, subdiv_type, 0)
 
 #==============================================================================
 # deleteHMesh : Releases a hierachical zone hook 

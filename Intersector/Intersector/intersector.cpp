@@ -67,21 +67,21 @@ static PyMethodDef Pyintersector [] =
   //{"agglomerateUncomputableCells", K_INTERSECTOR::agglomerateUncomputableCells, METH_VARARGS},
   {"immerseNodes", K_INTERSECTOR::immerseNodes, METH_VARARGS},
   {"agglomerateCellsWithSpecifiedFaces", K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces, METH_VARARGS},
+  
   {"adaptCells", K_INTERSECTOR::adaptCells, METH_VARARGS},
   {"adaptCells_mpi", K_INTERSECTOR::adaptCells_mpi, METH_VARARGS},
-  {"initForAdaptCells", K_INTERSECTOR::initForAdaptCells, METH_VARARGS},
+  
   {"adaptBox", K_INTERSECTOR::adaptBox, METH_VARARGS},
+  
+  {"initForAdaptCells", K_INTERSECTOR::initForAdaptCells, METH_VARARGS},
   {"createHMesh", K_INTERSECTOR::createHMesh, METH_VARARGS},
-  {"createHMesh2", K_INTERSECTOR::createHMesh2, METH_VARARGS},
   {"deleteHMesh", K_INTERSECTOR::deleteHMesh, METH_VARARGS},
   {"conformizeHMesh", K_INTERSECTOR::conformizeHMesh, METH_VARARGS},
-  {"conformizeHMesh2", K_INTERSECTOR::conformizeHMesh2, METH_VARARGS},
+  
   {"createSensor", K_INTERSECTOR::createSensor, METH_VARARGS},
   {"deleteSensor", K_INTERSECTOR::deleteSensor, METH_VARARGS},
   {"assignData2Sensor", K_INTERSECTOR::assignData2Sensor, METH_VARARGS},
-  {"createCom", K_INTERSECTOR::createCom, METH_VARARGS},
-  {"deleteCom", K_INTERSECTOR::deleteCom, METH_VARARGS},
-  {"deleteCom", K_INTERSECTOR::deleteCom, METH_VARARGS},
+  
   {"interpolateHMeshNodalField", K_INTERSECTOR::interpolateHMeshNodalField, METH_VARARGS},
   
   {"closeCells", K_INTERSECTOR::closeCells, METH_VARARGS},
@@ -152,6 +152,7 @@ static PyMethodDef Pyintersector [] =
   /////////// syncronizing the tree ///////////
   { "updatePointLists", K_INTERSECTOR::updatePointLists, METH_VARARGS },
   { "exchangePointLists", K_INTERSECTOR::exchangePointLists, METH_VARARGS },
+  { "transposePointLists", K_INTERSECTOR::transposePointLists, METH_VARARGS },
   /////////////////////////////////////////////
   { "merge", K_INTERSECTOR::merge, METH_VARARGS },
   { "concatenate", K_INTERSECTOR::concatenate, METH_VARARGS },

@@ -85,18 +85,18 @@ namespace K_INTERSECTOR
 
   PyObject* adaptCells(PyObject* self, PyObject* args);
   PyObject* adaptCells_mpi(PyObject* self, PyObject* args);
-  PyObject* initForAdaptCells(PyObject* self, PyObject* args);
+  
   PyObject* adaptBox(PyObject* self, PyObject* args);
+
+  PyObject* initForAdaptCells(PyObject* self, PyObject* args);
   PyObject* createHMesh(PyObject* self, PyObject* args);
-  PyObject* createHMesh2(PyObject* self, PyObject* args);
   PyObject* deleteHMesh(PyObject* self, PyObject* args);
+  
   PyObject* createSensor(PyObject* self, PyObject* args);
   PyObject* assignData2Sensor(PyObject* self, PyObject* args);
   PyObject* deleteSensor(PyObject* self, PyObject* args);
-  PyObject* createCom(PyObject* self, PyObject* args);
-  PyObject* deleteCom(PyObject* self, PyObject* args);
+  
   PyObject* conformizeHMesh(PyObject* self, PyObject* args);
-  PyObject* conformizeHMesh2(PyObject* self, PyObject* args);
   PyObject* interpolateHMeshNodalField(PyObject* self, PyObject* args);
   
   PyObject* extractUncomputables(PyObject* self, PyObject* args);
@@ -155,6 +155,7 @@ namespace K_INTERSECTOR
   /////////// syncronizing the tree ///////////
   PyObject* updatePointLists(PyObject* self, PyObject* args);
   PyObject* exchangePointLists(PyObject* self, PyObject* args);
+  PyObject* transposePointLists(PyObject* self, PyObject* args);
   /////////////////////////////////////////////
 
   PyObject* merge(PyObject* self, PyObject* args);

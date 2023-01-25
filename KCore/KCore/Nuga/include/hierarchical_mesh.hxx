@@ -33,9 +33,6 @@ using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #include "Nuga/include/macros.h"
 
 #include "Nuga/include/join_sensor.hxx"
-#include "Nuga/include/communicator.hxx"
-#include "Nuga/include/join_t.hxx"
-
 #include "Nuga/include/metric_sensor.hxx"
 
 #include "Nuga/include/history.h"
@@ -64,14 +61,6 @@ class hierarchical_mesh
     using pg_tree_t = tree<pg_arr_t>; 
     using ph_tree_t = tree<ph_arr_t>;
 
-    using bc_data_t = std::vector<std::vector<E_Int>>;
-
-    // mutli-zone stuff
-    using jsensor_t = join_sensor<self_t>;
-    using join_data_t = std::vector<std::pair<E_Int, std::vector<E_Int>>>;
-    using jcom_t = jsensor_com_agent<self_t, typename jsensor_t::input_t>;
-    using communicator_t = NUGA::communicator<jcom_t>;
-
     crd_t                     _crd;             // Coordinates
     ngo_t                     _ng;              // NGON mesh
     pg_tree_t                 _PGtree;          // Polygons hierarchy
@@ -82,14 +71,8 @@ class hierarchical_mesh
 
     E_Int _idx_start;
     E_Int rank,iter;
-    // BCs
-    bc_data_t BCptLists;
 
-    // JOINS
-    E_Int            zid;
-    join_t<self_t>* join;
-    jsensor_t*       jsensor;
-    communicator_t*  COM;
+    E_Int zid;
 
     DELAUNAY::VarMetric<DELAUNAY::Aniso3D>* _mfield;
 
@@ -101,38 +84,15 @@ class hierarchical_mesh
     NUGA::history_t  histo;
 
     ///
-    hierarchical_mesh(crd_t& crd, ngo_t & ng, bool reorient, bool sync_match):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _mfield(nullptr), _idx_start(1) { init(reorient, sync_match); }
-    hierarchical_mesh(crd_t& crd, ngo_t && ng, bool reorient, bool sync_match):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _mfield(nullptr), _idx_start(1) { init(reorient, sync_match); }
+    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), _mfield(nullptr), _idx_start(1) { init(); }
+    hierarchical_mesh(crd_t& crd, ngo_t && ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), _mfield(nullptr), _idx_start(1) { init(); }
     ///
-    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start, bc_data_t& bcptlists) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr), _mfield(nullptr)  { init(true/*reorient*/, true/*sync_match*/); }
+    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), zid(0), _mfield(nullptr)  { init(); }
 
-    //multi-zone constructor
-    hierarchical_mesh(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const bc_data_t& bcptlists, const join_data_t& jdata, E_Int idx_start, communicator_t* com);
-
-    ~hierarchical_mesh()
-    {
-      if (join != nullptr) delete join;
-      if (jsensor != nullptr) delete jsensor;
-      if (COM != nullptr)
-        if (COM->agents[zid] != nullptr) delete COM->agents[zid];
-    }
+    ~hierarchical_mesh(){}
 
     ///
-    E_Int init(bool reorient = true, bool sync_match = true);
-    ///
-    /*E_Int relocate (crd_t& crd, ngo_t & ng) {
-      _crd = &crd;
-      _ng = &ng;
-      _PGtree.set_entities(ng.PGs);
-      _PHtree.set_entities(ng.PHs);
-
-      if (ng.PGs.size() != _PGtree.size())
-        return 1; //trying to relocate on the wrong mesh
-      if (ng.PHs.size() != _PHtree.size())
-        return 1; //trying to relocate on the wrong mesh
-      
-      return 0;
-    }*/
+    E_Int init();
 
     ///
     E_Int adapt(output_t& adap_incr, bool do_agglo);
@@ -157,8 +117,7 @@ class hierarchical_mesh
     void enable_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0);
     ///
     void enable_PGs();
-
-    void update_BCs();
+    ///
     void update_pointlist(std::vector<E_Int>& ptLists, bool reverse=false);
     
     ///
@@ -191,38 +150,7 @@ private:
  
 };
 
-///
-template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-hierarchical_mesh<ELT_t, STYPE, ngo_t>::hierarchical_mesh
-(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const bc_data_t& bcptlists, const join_data_t& jdata, E_Int idx_start, communicator_t* com) :
-  _crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), BCptLists(bcptlists), zid(id), join(nullptr), jsensor(nullptr), COM(com), _mfield(nullptr)
-{
-  //std::cout << "hierarchical_mesh : begin " << std::endl;
-  init(true/*reorient*/, false/*sync_match : done in join_t.hxx*/);
-  //std::cout << "hierarchical_mesh : jdata sz" << jdata.size() << std::endl;
-  join_data_t jmp = jdata;
-  if (!jmp.empty()) // join is specified
-  {
-    //std::cout << "hierarchical_mesh : join specified " << std::endl;
-    jsensor = new jsensor_t(*this);
-    join = new join_t<self_t>(id, *this, idx_start);
-
-    assert((E_Int)COM->agents.size() > zid); //COM agents must be resized by the caller before this call
-
-    COM->agents[zid] = new jcom_t(zid, join, jsensor);
-    //std::cout << "hierarchical_mesh : jmp sz " << jmp.size() << std::endl;
-    for (auto j : jmp)
-    {
-      E_Int joinedZid = j.first;
-      std::vector<E_Int>& ptlist = j.second;
-
-      join->link(joinedZid, ptlist);
-      COM->agents[zid]->link(joinedZid);
-    }
-  }
-}
-
-// default implementation for any basci element in ISO mode
+/// default implementation for any basci element in ISO mode
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__init()
 {
@@ -232,73 +160,16 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__init()
     ELT_t::reorder_pgs(_ng,_F2E,i);
 }
 
+///
 template <> inline
 void hierarchical_mesh<K_MESH::Polyhedron<0>, ISO_HEX, ngon_type>::__init()
 {
   // nothing to do
 }
 
-
-/*template <> inline
-void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
-{
-  // alexis : todo
-  
-  E_Int nb_phs = _ng.PHs.size();
-  
-  //type init
-  _ng.PHs._type.clear();
-  _ng.PHs._type.resize(nb_phs, (E_Int)K_MESH::Polyhedron<0>::eType::HEXA);
-  
-  // first reorder : by opposite pair
-  E_Int generators[2], HX6opposites[6], *pg(generators), *qopp(HX6opposites);
-  for (E_Int i=0; i < nb_phs; ++i)
-  {
-    K_MESH::Polyhedron<0>::is_prismN(_ng.PGs, _ng.PHs.get_facets_ptr(i), _ng.PHs.stride(i), pg, qopp);
-    // alexis : utiliser pg et qopp pour reordonner
-  }
-  
-  // promote eventually to layer type + 2nd reorder
-  for (E_Int i=0; i < _F2E.cols(); ++i)
-  {
-    // alexis : si i n'est pas une frontiere => continue
-    
-    E_Int PHi = (_F2E(0,i) != IDX_NONE) ? _F2E(0,i) : _F2E(1,i);
-    
-    E_Int PHcur = PHi;
-//    E_Int Basecur = i;
-    
-    while (true) // climb over the layer
-    {
-      if (_ng.PHs._type[PHcur] == K_MESH::Polyhedron<0>::eType::LAYER) //already set
-        break;
-      
-      // alexis : mettre la paire de i en premier, i en premier dans la pair
-      
-      // alexis : verifier l'anisotropie
-      
-      // alexis : si pas anisotrope => break
-      
-      // alexis : faire Basecur := 2nd de la pair (top)
-      // alexis : marquer ng.PHs.type[PHcur] := LAYER 
-      // alexis : faire PHcur = le voisin qui partage le top
-    }; 
-  }
-  
-  // third reorder 
-  for (E_Int i = 0; i < nb_phs; ++i)
-    K_MESH::Hexahedron::reorder_pgs(_ng,_F2E,i);
-  
-  //detect now any layer cell
-//  double aniso_ratio = 0.2; //fixme : parametre a externaliser
-  
-  //to do : si aniso => faire  ng.PHs._type =  K_MESH::Polyhedron<0>::eType::LAYER
-  
-}*/
-
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init(bool reorient, bool sync_match)
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
 {
   if (_initialized) return 0;
 
@@ -307,59 +178,24 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init(bool reorient, bool sync_matc
   _nb_phs0 = _ng.PHs.size();
   _nb_pgs0 = _ng.PGs.size();
   _nb_pts0 = _crd.cols();
-  
-  E_Int err(0);
-  
-  // We reorient the PG of our NGON
-  _ng.flag_externals(1);
-
-  if (reorient)
-  {
-    DELAUNAY::Triangulator dt;
-    bool has_been_reversed;
-    err = ngon_type::reorient_skins(dt, _crd, _ng, has_been_reversed);
-    if (err)
-      return 1;
-  }
-  
+    
   //F2E
   ngon_unit neighbors;
   _ng.build_ph_neighborhood(neighbors);
   _ng.build_F2E(neighbors, _F2E);
 
-  // shift nodes on boundaries for sync joins
-  if (sync_match)
-  {
-    auto * process = &_ng.PGs._type;
-    std::vector<E_Int> tmp;
-    if (!BCptLists.empty())
-    {
-      tmp = _ng.PGs._type; //cpy to disable bcs
-      process = &tmp;
-      for (const auto & ptl : BCptLists)
-        for (size_t i = 0; i < ptl.size(); ++i) tmp[ptl[i] - _idx_start] = 0;
-    }
-
-    for (size_t i = 0; i < _nb_pgs0; ++i)
-    {
-      if ((*process)[i] != 1) continue; // not a boundary
-      E_Int* nodes = _ng.PGs.get_facets_ptr(i);
-      int nnodes = _ng.PGs.stride(i);
-      K_MESH::Polygon::shift_geom(_crd, nodes, nnodes, _idx_start);
-    }
-  }
-
   __init(); // for pure type == reorder_pgs
 
   _initialized = true;
   
-  return err;
+  return 0;
 }
 
 #ifdef OUTPUT_ITER_MESH
  static E_Int iter = 1;
 #endif
 
+///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do_agglo)
 {
@@ -853,21 +689,6 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_PGs()
 
 //
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_BCs()
-{
-  //std::cout << "join_t<mesh_t>::update() : begin" << std::endl;
-  std::vector<E_Int> ids;
-  E_Int nb_pgs = _ng.PGs.size();
-
-  // update pointlists
-  for (size_t i=0; i < BCptLists.size(); ++i)
-  {
-    update_pointlist(BCptLists[i]);
-  }
-}
-
-//
-template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<E_Int>& ptlist, bool reverse)
 {
   std::vector<E_Int> ids;
@@ -882,7 +703,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<E_Int>
 
     if (PGi < 0 || PGi >= nb_pgs)
     {
-      std::cout << "update_BCs : WARNING : wrong PG id : " << PGi << std::endl;
+      std::cout << "update_pointlist : WARNING : wrong PG id : " << PGi << std::endl;
       continue;
     }
 

@@ -40,7 +40,7 @@ if Cmpi.rank == 0:
     a = X.connectMatchPeriodic(a, translation=[0.,0.,dz], tol=1.e-6, dim=3, unitAngle='Degree')
 
     D2._distribute(a, Nprocs)
-    XOR.setZonesAndJoinsUId(a)
+    XOR._setZonesAndJoinsUId(a)
 
     C.convertPyTree2File(a, ifname)
 

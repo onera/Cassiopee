@@ -27,6 +27,161 @@
 
 #define HMESH_PACK_SIZE 6
 
+//// DICO / MAP utils //////////////////////////
+ 
+inline void convert_dico_to_map___int_int_vecint
+(
+  PyObject *py_zone_to_zone_to_list_owned,
+  std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned)
+{
+  if (PyDict_Check(py_zone_to_zone_to_list_owned))
+  {
+    //E_Int nzid = PyDict_Size(py_zone_to_zone_to_list_owned);
+
+    PyObject *py_zid/*key*/, *py_zone_to_list_owned /*value : map jzid to ptlist*/;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(py_zone_to_zone_to_list_owned, &pos, &py_zid, &py_zone_to_list_owned))
+    {
+      int zid = (int) PyInt_AsLong(py_zid);
+
+      assert (PyDict_Check(py_zone_to_list_owned) == 1); // it s a map
+
+      PyObject *py_jzid/*key*/, *py_ptlist_owned /*value : ptlist*/;
+      Py_ssize_t pos1 = 0;
+
+      while (PyDict_Next(py_zone_to_list_owned, &pos1, &py_jzid, &py_ptlist_owned))
+      {
+        int jzid = (int) PyInt_AsLong(py_jzid);
+
+        assert (PyArray_Check(py_ptlist_owned) == 1) ; // it s a numpy
+        
+        PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist_owned);
+
+        long ndims = PyArray_NDIM(pyarr);
+        assert (ndims == 1); // vector
+        npy_intp* dims = PyArray_SHAPE(pyarr);
+
+        E_Int ptl_sz = dims[0];
+        
+        //long* dataPtr = static_cast<long*>(PyArray_DATA(pyarr));
+        E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
+
+        std::vector<E_Int> ptl(ptl_sz);
+        for (size_t u=0; u < ptl_sz; ++u) ptl[u] = dataPtr[u];
+
+        //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
+
+        zone_to_zone_to_list_owned[zid][jzid]=ptl;
+
+      }
+    }
+  }
+}
+
+inline void convert_dico_to_map__int_pairint
+(
+  PyObject *py_rid_to_zones,
+  std::map<int, std::pair<int,int>>& rid_to_zones)
+{
+  if (PyDict_Check(py_rid_to_zones))
+  {
+    // E_Int nzid = PyDict_Size(py_rid_to_zones);
+
+    PyObject *py_rid/*key*/, *py_pair_owned /*value : map zid to ptlist*/;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(py_rid_to_zones, &pos, &py_rid, &py_pair_owned))
+    {
+      int rid = (int) PyInt_AsLong(py_rid);
+
+      assert (PyTuple_Check(py_pair_owned) == 1); // is it a tuple ?
+
+      PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_pair_owned);    
+      Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
+
+      // -----
+
+      std::pair<int,int> pair_zid;
+
+      PyObject * z1 PyTuple_GET_ITEM(pytup, 0);
+      PyObject * z2 PyTuple_GET_ITEM(pytup, 1);
+
+      pair_zid.first  = (double) PyFloat_AsDouble(z1);
+      pair_zid.second = (double) PyFloat_AsDouble(z2);
+
+      rid_to_zones[rid] = pair_zid;
+    }
+  }
+}
+
+struct transf_t {
+  double t[6];
+  bool operator==(const transf_t& r) const
+  {
+    for (size_t k=0; k < 6; ++k)
+      if (t[k] != r.t[k]) return false;
+    return true;
+  }
+  bool operator<(const transf_t& r) const
+  {
+    if (*this == r) return false;
+    for (size_t k=0; k < 6; ++k)
+      if (t[k] <r.t[k]) return true;
+    return false;
+  }
+};
+
+inline int convert_dico_to_map___transfo_to_vecint
+(
+  PyObject *py_transfo_to_list,
+  std::map<transf_t, std::vector<int>>& transfo_to_list
+)
+{
+  if (PyDict_Check(py_transfo_to_list) == 0) return 1;
+  
+  //E_Int nzid = PyDict_Size(transfo_to_list);
+
+  PyObject *py_transfo/*key*/, *py_vecint /*value : vector<int>*/;
+  Py_ssize_t pos = 0;
+
+  transf_t t;
+
+  while (PyDict_Next(py_transfo_to_list, &pos, &py_transfo, &py_vecint))
+  {
+    // key
+    assert (PyTuple_Check(py_transfo) == 1) ; // it s a tuple (Xx, Yc, Zc, R)
+    PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_transfo);
+    Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
+
+    assert (nb == 6);
+    for (size_t i=0; i < 6; ++i)
+    {
+      PyObject * p PyTuple_GET_ITEM(pytup, i);
+      t.t[i] = (double) PyFloat_AsDouble(p);
+      //std::cout << "transfo " << i << " : " << t.t[i] << std::endl;
+    }
+
+    // val
+    assert (PyArray_Check(py_vecint) == 1) ; // it s a numpy
+    PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_vecint);
+
+    long ndims = PyArray_NDIM(pyarr);
+    assert (ndims == 1); // vector
+    npy_intp* dims = PyArray_SHAPE(pyarr);
+
+    E_Int sz = dims[0];
+    
+    //long* dataPtr = static_cast<long*>(PyArray_DATA(pyarr));
+    E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
+
+    transfo_to_list[t].resize(sz);
+    for (size_t u=0; u < sz; ++u) transfo_to_list[t][u] = dataPtr[u];
+  }
+}
+
+////////////////////////////////////////////////
+
 
 //=============================================================================
 /* get hmesh hook  */
