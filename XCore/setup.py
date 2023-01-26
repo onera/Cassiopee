@@ -70,22 +70,27 @@ listExtensions.append(
               ) )
 
 listExtensionsPyx = []
-import srcs_paradigma
-from Cython.Build import cythonize
-for c in srcs_paradigma.pyx_srcs:
-    name = c.replace('.pyx', '')
-    names = name.split('/')
-    name = names[0]+'.'+names[-1]
-    listExtensionsPyx.append(
-        Extension(name,
-                  sources=[c],
-                  include_dirs=["XCore","XCore/paradigma","XCore/paradigma/ppart","XCore/paradigma/struct","XCore/paradigma/pario","XCore/paradigma/mesh"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
-                  library_dirs=additionalLibPaths+libraryDirs,
-                  libraries=libraries+additionalLibs,
-                  extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-                  extra_link_args=[],
-                  language='c++'
-                  ) )
+cython = Dist.checkCython(additionalLibPaths, additionalIncludePaths)
+
+if cython:
+    import srcs_paradigma
+    from Cython.Build import cythonize
+    for c in srcs_paradigma.pyx_srcs:
+        name = c.replace('.pyx', '')
+        names = name.split('/')
+        name = names[0]+'.'+names[-1]
+        listExtensionsPyx.append(
+            Extension(name,
+                    sources=[c],
+                    include_dirs=["XCore","XCore/paradigma","XCore/paradigma/ppart","XCore/paradigma/struct","XCore/paradigma/pario","XCore/paradigma/mesh"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
+                    library_dirs=additionalLibPaths+libraryDirs,
+                    libraries=libraries+additionalLibs,
+                    extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+                    extra_link_args=[],
+                    language='c++'
+                    ) )
+else:
+    def cythonize(srcs, include_path): return []
 
 # setup ======================================================================
 setup(

@@ -245,6 +245,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
     }
     */
     PyObject* list_of_ribbonstreams = PyList_New(beg_nodes.size());
+    std::vector<FldArrayF> blockFields(beg_nodes.size());
 #   pragma omp parallel for schedule(dynamic,10)
     for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
@@ -252,27 +253,28 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
         //std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
         try
         {
-            ribbon_streamline rline(beg_nodes[i], zones, nStreamPtsMax, width, (signe==1));
-            FldArrayF& field = rline.field();
-            E_Int number_of_points = field.getSize()/2;
-            #pragma omp critical
-            {
-                if (number_of_points > 0)
-                {
-                    PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, 2, number_of_points, 1);
-                    PyList_SetItem(list_of_ribbonstreams, i, tpl);
-                }
-                else
-                {
-                    Py_INCREF(Py_None);
-                    PyList_SetItem(list_of_ribbonstreams, i, Py_None);
-                }
-
-            }
+            ribbon_streamline r(beg_nodes[i], zones, nStreamPtsMax, width, (signe==1));
+            FldArrayF& field = r.field();
+            blockFields[i] = field;            
         }
         catch (std::exception& err)
         {
             printf("Warning: streamRibbon: %s\n", err.what());
+            Py_INCREF(Py_None);
+            PyList_SetItem(list_of_ribbonstreams, i, Py_None);
+        }
+    }
+    for (size_t i = 0; i < beg_nodes.size(); ++i)
+    {
+        FldArrayF& field = blockFields[i];
+        E_Int number_of_points = field.getSize()/2;
+        if (number_of_points > 0)
+        {
+            PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, 2, number_of_points, 1);
+            PyList_SetItem(list_of_ribbonstreams, i, tpl);
+        }
+        else
+        {
             Py_INCREF(Py_None);
             PyList_SetItem(list_of_ribbonstreams, i, Py_None);
         }

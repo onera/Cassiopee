@@ -247,6 +247,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     }
     */
     PyObject* list_of_streamlines = PyList_New(beg_nodes.size());
+    std::vector<FldArrayF> arrFields(beg_nodes.size());
 #   pragma omp parallel for schedule(dynamic,10)
     for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
@@ -255,26 +256,27 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         try
         {
             streamline sline(beg_nodes[i], zones, nStreamPtsMax, (signe==2));
-            FldArrayF& field = sline.field();            
-            E_Int number_of_points = field.getSize();
-            #pragma omp critical
-            {            
-                /* Essai pour supprimer les streams avec 0 points */
-                if (number_of_points > 0)
-                {
-                    PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
-                    PyList_SetItem(list_of_streamlines, i, tpl);
-                }
-                else 
-                {
-                    Py_INCREF(Py_None);
-                    PyList_SetItem(list_of_streamlines, i, Py_None);
-                }
-            }
+            FldArrayF& field = sline.field();
+            arrFields[i] = field;
         }
         catch (std::exception& err)
         {
             printf("Warning: streamLine: %s\n", err.what());
+            Py_INCREF(Py_None);
+            PyList_SetItem(list_of_streamlines, i, Py_None);
+        }
+    }
+    for (size_t i = 0; i < beg_nodes.size(); ++i)
+    {
+        E_Int number_of_points = arrFields[i].getSize();
+        /* Essai pour supprimer les streams avec 0 points */
+        if (number_of_points > 0)
+        {
+            PyObject* tpl = K_ARRAY::buildArray(arrFields[i], varStringOut, number_of_points, 1, 1);
+            PyList_SetItem(list_of_streamlines, i, tpl);
+        }
+        else 
+        {
             Py_INCREF(Py_None);
             PyList_SetItem(list_of_streamlines, i, Py_None);
         }

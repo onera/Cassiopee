@@ -60,15 +60,14 @@ ppf = Dist.createFortranFiles(env, srcs)
 cppOpts = Dist.getCppArgs()
 
 # Optimisation en -O1 pour les fichiers de stream2
-files = ["Post/Stream2/stream_line.cpp"]
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     flags = ''
     for i in cppOpts:
         if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
-    flags += '-fp-model=strict -O2'
+    flags += '-fp-model=strict -O1'
     for i, v in enumerate(srcs.cpp_srcs):
-       	if v in files:
-           #print('altering', v,flags)
+       	if 'Stream2/' in v:
+           #print('altering', v, flags)
            srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
 
 #==============================================================================
