@@ -37,7 +37,7 @@
 #include "Nuga/include/xsensor2.hxx"
 #include "Nuga/include/nodal_sensor.hxx"
 #include "Nuga/include/cell_sensor.hxx"
-#include "Nuga/include/adaptor_omp.hxx"
+#include "Nuga/include/adaptor_para.hxx"
 #include "Nuga/include/hierarchical_mesh.hxx"
 #include "Nuga/include/smoother.hxx"
 
@@ -983,35 +983,6 @@ void __assign_sensor_data
   }
 }
 
-///
-template <NUGA::eSUBDIV_TYPE STYPE>
-void __assign_sensor_data
-(int etype, int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<incr_t<STYPE>>& punctual_data)
-{
-  if (etype == elt_t::HEXA)
-    __assign_sensor_data<K_MESH::Hexahedron, STYPE>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
-  else if (etype == (E_Int)elt_t::TETRA)
-    __assign_sensor_data<K_MESH::Tetrahedron, STYPE>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
-  else if (etype == (E_Int)elt_t::PRISM3)
-    __assign_sensor_data<K_MESH::Prism, STYPE>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
-  else if (etype == (E_Int)elt_t::BASIC)
-    __assign_sensor_data<K_MESH::Basic, STYPE>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
-}
-
-template <>
-void __assign_sensor_data<NUGA::ISO_HEX>
-(int etype, int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& punctual_data)
-{
-  __assign_sensor_data<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
-}
-
-template <>
-void __assign_sensor_data<NUGA::DIR>
-(int etype, int sensor_type, void* sensor_ptr, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<int_tuple<3>>& punctual_data)
-{
-  __assign_sensor_data<K_MESH::Hexahedron, NUGA::DIR>(sensor_type, sensor_ptr, crdS, cntS, punctual_data);
-}
-
 
 PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
 {
@@ -1055,9 +1026,18 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
   }
 
   if (*subdiv_type == NUGA::ISO)
-    __assign_sensor_data<NUGA::ISO>(*elt_type, *sensor_type, sensor, fS, cnS, sens_data);
+  {
+    if (*elt_type == elt_t::HEXA)
+    __assign_sensor_data<K_MESH::Hexahedron, NUGA::ISO>(*sensor_type, sensor, fS, cnS, sens_data);
+  else if (*elt_type == (E_Int)elt_t::TETRA)
+    __assign_sensor_data<K_MESH::Tetrahedron, NUGA::ISO>(*sensor_type, sensor, fS, cnS, sens_data);
+  else if (*elt_type == (E_Int)elt_t::PRISM3)
+    __assign_sensor_data<K_MESH::Prism, NUGA::ISO>(*sensor_type, sensor, fS, cnS, sens_data);
+  else if (*elt_type == (E_Int)elt_t::BASIC)
+    __assign_sensor_data<K_MESH::Basic, NUGA::ISO>(*sensor_type, sensor, fS, cnS, sens_data);
+  }
   else if (*subdiv_type == NUGA::ISO_HEX)
-    __assign_sensor_data<NUGA::ISO_HEX>(*elt_type, *sensor_type, sensor, fS, cnS, sens_data);
+    __assign_sensor_data<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(*sensor_type, sensor, fS, cnS, sens_data);
   else if (*subdiv_type == NUGA::DIR)
   {
     //todo Imad : dealing with directional data set in the python
@@ -1065,7 +1045,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
     for (size_t u=0; u < sens_data.size(); ++u)
       sens_data_dir[u] = sens_data[u]; // pass a single value to the 3-tuple
 
-    __assign_sensor_data<NUGA::DIR>(*elt_type, *sensor_type, sensor, fS, cnS, sens_data_dir);
+    __assign_sensor_data<K_MESH::Hexahedron, NUGA::DIR>(*sensor_type, sensor, fS, cnS, sens_data_dir);
   }
 
   Py_INCREF(Py_None);
@@ -1086,7 +1066,8 @@ const char* varString, PyObject *out)
   size_t nb_meshes = hmeshes.size();
   if (nb_meshes != sensors.size()) return 1;
 
-  using adaptor_t = NUGA::adaptor_omp<hmesh_t, sensor_t>;
+  using para_algo_t = omp_algo<hmesh_t, E_Int>; //SEQ or multi-SEQ (coarse grain OMP)
+  using adaptor_t = adaptor_para<para_algo_t, hmesh_t, sensor_t>;
 
   adaptor_t a;
   a.sensors = sensors;

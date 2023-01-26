@@ -32,7 +32,7 @@
 #include "Nuga/include/xsensor2.hxx"
 #include "Nuga/include/nodal_sensor.hxx"
 #include "Nuga/include/cell_sensor.hxx"
-#include "Nuga/include/adaptor_mpi.hxx"
+#include "Nuga/include/adaptor_para.hxx"
 #include "Nuga/include/hierarchical_mesh.hxx"
 #include "Nuga/include/smoother.hxx"
 
@@ -79,7 +79,8 @@ const char* varString, PyObject *out)
   size_t nb_meshes = hmeshes.size();
   if (nb_meshes != sensors.size()) return 1;
 
-  using adaptor_t = NUGA::adaptor_mpi<hmesh_t, sensor_t>;
+  using para_algo_t = hybrid_para_algo<hmesh_t, E_Int>; //hybrid MPI-OMP
+  using adaptor_t = adaptor_para<para_algo_t, hmesh_t, sensor_t>;
 
   adaptor_t a;
   a.sensors = sensors;

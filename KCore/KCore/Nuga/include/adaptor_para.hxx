@@ -17,21 +17,19 @@
 #include "Nuga/include/adaptor.hxx"
 #include "Nuga/include/join_sensor.hxx"
 #include "Nuga/include/hybrid_para_algo.hxx"
-
+#include "Nuga/include/omp_algo.hxx"
 #ifdef ADAPT_TIMER
 #include "Nuga/include/chrono.h"
 #endif
 
 namespace NUGA
 {
-  
 
-  template <typename hmesh_t, typename sensor_t>
-  class adaptor_mpi : public hybrid_para_algo<hmesh_t, E_Int>
+  //
+  template <typename para_algo_t, typename hmesh_t, typename sensor_t>
+  class adaptor_para : public para_algo_t
   {
   public:
-
-    using parent_t = hybrid_para_algo < hmesh_t, K_FLD::IntArray>;
 
     std::vector<sensor_t*> sensors;
     bool do_agglo;

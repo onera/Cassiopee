@@ -31,32 +31,32 @@
  
 inline void convert_dico_to_map___int_int_vecint
 (
-  PyObject *py_zone_to_zone_to_list_owned,
-  std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned)
+  PyObject *py_zone_to_rid_to_list,
+  std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list)
 {
-  if (PyDict_Check(py_zone_to_zone_to_list_owned))
+  if (PyDict_Check(py_zone_to_rid_to_list))
   {
-    //E_Int nzid = PyDict_Size(py_zone_to_zone_to_list_owned);
+    //E_Int nzid = PyDict_Size(py_zone_to_rid_to_list);
 
-    PyObject *py_zid/*key*/, *py_zone_to_list_owned /*value : map jzid to ptlist*/;
+    PyObject *py_zid/*key*/, *py_rid_to_list /*value : map rid to ptlist*/;
     Py_ssize_t pos = 0;
 
-    while (PyDict_Next(py_zone_to_zone_to_list_owned, &pos, &py_zid, &py_zone_to_list_owned))
+    while (PyDict_Next(py_zone_to_rid_to_list, &pos, &py_zid, &py_rid_to_list))
     {
       int zid = (int) PyInt_AsLong(py_zid);
 
-      assert (PyDict_Check(py_zone_to_list_owned) == 1); // it s a map
+      assert (PyDict_Check(py_rid_to_list) == 1); // it s a map
 
-      PyObject *py_jzid/*key*/, *py_ptlist_owned /*value : ptlist*/;
+      PyObject *py_rid/*key*/, *py_ptlist /*value : ptlist*/;
       Py_ssize_t pos1 = 0;
 
-      while (PyDict_Next(py_zone_to_list_owned, &pos1, &py_jzid, &py_ptlist_owned))
+      while (PyDict_Next(py_rid_to_list, &pos1, &py_rid, &py_ptlist))
       {
-        int jzid = (int) PyInt_AsLong(py_jzid);
+        int rid = (int) PyInt_AsLong(py_rid);
 
-        assert (PyArray_Check(py_ptlist_owned) == 1) ; // it s a numpy
+        assert (PyArray_Check(py_ptlist) == 1) ; // it s a numpy
         
-        PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist_owned);
+        PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist);
 
         long ndims = PyArray_NDIM(pyarr);
         assert (ndims == 1); // vector
@@ -72,7 +72,7 @@ inline void convert_dico_to_map___int_int_vecint
 
         //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
 
-        zone_to_zone_to_list_owned[zid][jzid]=ptl;
+        zone_to_rid_to_list[zid][rid]=ptl;
 
       }
     }
@@ -88,16 +88,16 @@ inline void convert_dico_to_map__int_pairint
   {
     // E_Int nzid = PyDict_Size(py_rid_to_zones);
 
-    PyObject *py_rid/*key*/, *py_pair_owned /*value : map zid to ptlist*/;
+    PyObject *py_rid/*key*/, *py_pair /*value : map zid to ptlist*/;
     Py_ssize_t pos = 0;
 
-    while (PyDict_Next(py_rid_to_zones, &pos, &py_rid, &py_pair_owned))
+    while (PyDict_Next(py_rid_to_zones, &pos, &py_rid, &py_pair))
     {
       int rid = (int) PyInt_AsLong(py_rid);
 
-      assert (PyTuple_Check(py_pair_owned) == 1); // is it a tuple ?
+      assert (PyTuple_Check(py_pair) == 1); // is it a tuple ?
 
-      PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_pair_owned);    
+      PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_pair);    
       Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
 
       // -----
