@@ -1413,13 +1413,15 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True):
         
         # Test if vol present
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
-        vol  = Internal.getNodeFromName1(cont, 'vol')
-        if vol is not None: vol = vol[1]
+        if cont is not None:
+            vol  = Internal.getNodeFromName1(cont, 'vol')
+            if vol is not None: vol = vol[1]
 
         # Test if cellN present
         if withCellN:
-            cellN  = Internal.getNodeFromName1(cont, 'cellN')
-            if cellN is not None: cellN = cellN[1]
+            if cont is not None:
+                cellN  = Internal.getNodeFromName1(cont, 'cellN')
+                if cellN is not None: cellN = cellN[1]
         else: cellN = None
         
         f = C.getField(var, z)[0]

@@ -17,9 +17,14 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"kcore.h"
+
 # include "Connect/connect.h"
 # include "metric.h"
 # include <stdio.h>
+
+# include <iostream> 
+
 using namespace K_FUNC;
 using namespace K_FLD;
 using namespace std;
@@ -37,6 +42,7 @@ E_Int K_METRIC::compNGonFacesSurf(
   E_Float* sxp, E_Float* syp, E_Float* szp, E_Float* snp,
   FldArrayI* cFE)
 {
+  
   // Donnees liees a la connectivite
   E_Int* cnp = cn.begin(); // pointeur sur la connectivite NGon
   E_Int nfaces = cnp[0]; // nombre total de faces
@@ -57,6 +63,7 @@ E_Int K_METRIC::compNGonFacesSurf(
     ptrf = cnp+posf;
     nvertices = ptrf[0];
     dim = K_FUNC::E_min(nvertices,3);
+   
     if (dim == 1) 
     {
       return 1;
@@ -112,7 +119,7 @@ E_Int K_METRIC::compNGonFacesSurf(
       snp[fa] = sqrt(sxp[fa]*sxp[fa]+syp[fa]*syp[fa]+szp[fa]*szp[fa]);
     }
   }
-
+  
   if (cFE != NULL)
   {
     E_Int* cFE1 = cFE->begin(1);
@@ -138,6 +145,7 @@ E_Int K_METRIC::compNGonFacesSurf(
         // elements gauche et droit de la face
         E_Int ig = cFE1[fa];
         E_Int id = cFE2[fa];
+	if ((ig == 0) && (id == 0)){continue;}	      
         E_Int icell; E_Float isign;
         if (ig != 0) { icell = ig-1; isign = -1.; }
         else { icell = id-1; isign = +1.; }
