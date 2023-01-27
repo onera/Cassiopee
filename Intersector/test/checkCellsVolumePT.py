@@ -12,6 +12,3 @@ t = XOR.closeCells(t)
 I._createElsaHybrid(t, method=1, methodPE=1)
 
 err = XOR.checkCellsVolume(t)
-
-
-

@@ -1517,7 +1517,7 @@ def _getTriQualityMap(t):
 #------------------------------------------------------------------------------
 # Genere des pyramides ayant pour base les QUAD d'une surface donnee
 #------------------------------------------------------------------------------
-def quad2Pyra(t, hratio = 1.):
+def quad2Pyra(t, hratio=1.):
      """Creates a set of pyramids from a set of quads.
      Usage : quad2Pyra(array, hratio)"""
      a = C.getFields(Internal.__GridCoordinates__,t)[0]
@@ -1581,7 +1581,7 @@ def refine__(t, torig, refine, dim):
     return t
 
 def refineIndependently(t, refine=[1,1,1], dim=2):
-    """Refine x,y, & z directions independently per refine=[] and conserve the BCs.
+    """Refine x, y, z directions independently per refine=[] and conserve the BCs.
      Usage: refineIndependently(t, refine=[], dim)"""
     import Converter.Mpi as Cmpi
     torig      = Cmpi.convert2SkeletonTree(t)
@@ -1595,4 +1595,36 @@ def refineIndependently(t, refine=[1,1,1], dim=2):
     t = refine__(t, torig, refine, dim)
     return t
 
+#========================================================
+# Mesh quality informations
+#========================================================
+def checkMesh(m):
+    """Return informations on mesh quality."""
+    # volume (neg? Error)
+    _getVolumeMap(m)
+    vmin = C.getMinValue(m, 'centers:vol')
+    vmean = C.getMeanValue(m, 'centers:vol')
+    vmax = C.getMaxValue(m, 'centers:vol')
+    if vmin < 0: print('Error: mesh contains negative volume cells.')
+    print('INFO: vol: vmin=%g, vmax=%g, vmean=%g'%(vmin,vmax,vmean))
+    Internal._rmNodesFromName(m, 'vol')
 
+    # reg -> Warning
+    _getRegularityMap(m)
+    rmin = C.getMinValue(m, 'centers:regularity')
+    rmean = C.getMeanValue(m, 'centers:regularity')
+    rmax = C.getMaxValue(m, 'centers:regularity')
+    print('INFO: reg: rmin=%g, rmax=%g, rmean=%g'%(rmin,rmax,rmean))
+    Internal._rmNodesFromName(m, 'regularity')
+
+    # ortho -> Warning
+    _getOrthogonalityMap(m)
+    omin = C.getMinValue(m, 'centers:orthogonality')
+    omean = C.getMeanValue(m, 'centers:orthogonality')
+    omax = C.getMaxValue(m, 'centers:orthogonality')
+    print('INFO: ortho(deg): rmin=%g, rmax=%g, rmean=%g'%(omin,omax,omean))
+    Internal._rmNodesFromName(m, 'orthogonality')
+
+    return {'vmin':vmin,'vmax':vmax,'vmean':vmean,
+            'rmin':rmin,'rmax':rmax,'rmean':rmean,
+            'omin':omin,'omax':omax,'omean':omean}

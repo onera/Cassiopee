@@ -742,13 +742,13 @@ def _evalGridSpeed(a, time, out=0):
 
         elif dtype == 3: # type 3: constant rotation / translation
           transl_speed = Internal.getNodeFromName1(m, 'transl_speed')
-          if transl_speed is None: transl_speed = [0,0,0]
-          else: transl_speed = transl_speed[1] 
+          if transl_speed is None: transl_speed = [0.,0.,0.]
+          else: transl_speed = transl_speed[1]
           axis_pnt = Internal.getNodeFromName1(m, 'axis_pnt')
-          if axis_pnt is None: axis_pnt = [0,0,0]
+          if axis_pnt is None: axis_pnt = [0.,0.,0.]
           else: axis_pnt = axis_pnt[1]
           axis_vct = Internal.getNodeFromName1(m, 'axis_vct')
-          if axis_vct is None: axis_vct = [0,0,1]
+          if axis_vct is None: axis_vct = [0.,0.,1.]
           else: axis_vct = axis_vct[1]
           omega = Internal.getNodeFromName1(m, 'omega')
           if omega is None: omega = 0.

@@ -26,7 +26,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra',
     'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct', 'cutOctant',
     'octree', 'conformOctree3', 'adaptOctree', 'expandLayer', 'forceMatch',
     '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap', 'getTriQualityMap',
-    'getTriQualityStat', 'quad2Pyra', 'extendCartGrids']
+    'getTriQualityStat', 'quad2Pyra', 'extendCartGrids', 'checkMesh']
 
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.
@@ -2415,3 +2415,42 @@ def quad2Pyra(array, hratio = 1.):
      """Create a set of pyramids from a set of quads.
      Usage: quad2Pyra(array, hratio)"""
      return generator.quad2Pyra(array, hratio)
+
+def checkMesh(array):
+    """Return informations on mesh quality."""
+    if not isinstance(array[0], list): array = [array] 
+
+    vmin = 1.e32; vmax = -1.; vmean = 0. ; size = 0
+    rmin = 1.e32; rmax = -1.; rmean = 0.
+    omin = 1.e32; omax = -1.; omean = 0.
+    
+    for m in array:
+        v = getVolumeMap(m)[1]
+        vmin = min(vmin, numpy.min(v))
+        vmean = vmean + numpy.mean(v)
+        vmax = max(vmax, numpy.max(v))
+        size += vmin.size
+
+        # reg -> Warning
+        r = getRegularityMap(m)[1]
+        rmin = min(rmin, numpy.min(r))
+        rmean = rmean + numpy.mean(r)
+        rmax = max(rmax, numpy.max(r))
+    
+        # ortho -> Warning
+        o = getOrthogonalityMap(m)[1]
+        omin = min(omin, numpy.min(o))
+        omean = omean + numpy.mean(o)
+        omax = max(omax, numpy.max(o))
+
+    vmean = vmean / size
+    rmean = rmean / size
+    omean = omean / size
+    if vmin < 0: print('Error: mesh contains negative volume cells.')
+    print('INFO: vol: vmin=%g, vmax=%g, vmean=%g'%(vmin,vmax,vmean))
+    print('INFO: reg: rmin=%g, rmax=%g, rmean=%g'%(rmin,rmax,rmean))
+    print('INFO: ortho(deg): rmin=%g, rmax=%g, rmean=%g'%(omin,omax,omean))
+
+    return {'vmin':vmin,'vmax':vmax,'vmean':vmean,
+            'rmin':rmin,'rmax':rmax,'rmean':rmean,
+            'omin':omin,'omax':omax,'omean':omean}

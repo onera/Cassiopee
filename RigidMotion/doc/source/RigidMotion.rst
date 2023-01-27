@@ -16,7 +16,7 @@ For use with the array interface, you have to import RigidMotion module::
 
 For use with the pyTree interface::
 
-    import RigidMotion.PyTree as RigidMotion
+   import RigidMotion.PyTree as RigidMotion
 
 
 .. py:module:: RigidMotion
@@ -46,7 +46,7 @@ List of functions
 Contents
 #########
 
-.. py:function:: RigidMotion.setPrescribedMotion1(a, motionName, tx="0", ty="0", tz="0", cx="0", cy="0", cz="0", ex="0", ey="0", ez="0", angle="0")
+.. py:function:: RigidMotion.PyTree.setPrescribedMotion1(a, motionName, tx="0", ty="0", tz="0", cx="0", cy="0", cz="0", ex="0", ey="0", ez="0", angle="0")
 
     Set a prescribed motion defined by a translation of the origin (tx,ty,tz), the center of a rotation (cx,cy,cz), the second point of the rotation axis (ex,ey,ez) and the rotation angle in degrees. They can depend on time {t}.
     
@@ -83,7 +83,7 @@ Contents
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: RigidMotion.setPrescribedMotion2(a, motionName, transl_speed, psi0, pis0_b, alp_pnt, alp_vct, alp0, rot_pnt, rot_vct, rot_omg, del_pnt, del_vct, del0, delc, dels, bet_pnt, bet_vct, bet0, betc, bets, tet_pnt, tet_vct, tet0, tetc, tets, span_vct, pre_lag_pnt, pre_lag_vct, pre_lag_ang, pre_con_pnt, pre_con_vct, pre_con_ang)
+.. py:function:: RigidMotion.PyTree.setPrescribedMotion2(a, motionName, transl_speed, psi0, pis0_b, alp_pnt, alp_vct, alp0, rot_pnt, rot_vct, rot_omg, del_pnt, del_vct, del0, delc, dels, bet_pnt, bet_vct, bet0, betc, bets, tet_pnt, tet_vct, tet0, tetc, tets, span_vct, pre_lag_pnt, pre_lag_vct, pre_lag_ang, pre_con_pnt, pre_con_vct, pre_con_ang)
 
     Set a prescribed motion defined by a rigid rotor motion. Arguments are identical to elsA rotor motion. 
 
@@ -167,7 +167,7 @@ Contents
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: RigidMotion.setPrescribedMotion3(a, motionName, transl_speed, axis_pnt, axis_vct, omega)
+.. py:function:: RigidMotion.PyTree.setPrescribedMotion3(a, motionName, transl_speed, axis_pnt, axis_vct, omega)
 
     Set a precribed motion defined by a constant speed rotation and constant translation vector. 
     omega is in rad/time unit.
@@ -201,7 +201,7 @@ Contents
 General functions
 ---------------------
 
-.. py:function:: RigidMotion.evalPosition(a, time)
+.. py:function:: RigidMotion.PyTree.evalPosition(a, time)
 
     Evaluate the position at time t according to a motion.
     The motion must be defined in a with setPrescribedMotion.
@@ -247,7 +247,7 @@ General functions
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: RigidMotion.evalGridSpeed(a, time)
+.. py:function:: RigidMotion.PyTree.evalGridSpeed(a, time)
 
     Evaluate grid speed at given time.
     The position must already have been evaluated at this time.
@@ -270,7 +270,7 @@ General functions
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: RigidMotion.copyGrid2GridInit(a, mode=0)
+.. py:function:: RigidMotion.PyTree.copyGrid2GridInit(a, mode=0)
 
     Copy GridCoordinates to GridCoordinates#Init.
     If mode=0, only if grid has a TimeMotion node.
@@ -293,7 +293,7 @@ General functions
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: RigidMotion.copyGridInit2Grid(a)
+.. py:function:: RigidMotion.PyTree.copyGridInit2Grid(a)
 
     Copy GridCoordinates#Init to GridCoordinates if it exists.
     
@@ -312,7 +312,7 @@ General functions
 
 
 .. toctree::
-   :maxdepth: 2   
+   :maxdepth: 2
 
 
 Index

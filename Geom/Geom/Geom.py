@@ -437,20 +437,20 @@ def getCurvilinearAbscissa(a):
         return geom.getCurvilinearAbscissa(a)
         
 def getDistribution(a):
-    """Return the curvilinear abscissa for each point as coordinates.
+    """Return the curvilinear abscissa for each point as X coordinate.
     Usage: getDistribution(a)"""
     if isinstance(a[0], list):
         b = []
         for i in a:
-            if i[-1]=='BAR': raise TypeError("getDistribution: only for structured array.")
+            if i[-1] == 'BAR': raise TypeError("getDistribution: only for structured array.")
             c = line((0,0,0),(1,0,0),i[2])
             c[1][0] = geom.getCurvilinearAbscissa(i)[1]
             b.append(c)
         return b
     else:
-        if a[-1]=='BAR': raise TypeError("getDistribution: only for structured arrays.")
+        if a[-1] == 'BAR': raise TypeError("getDistribution: only for structured arrays.")
         c = line((0,0,0),(1,0,0),a[2])
-        c[1][0] = geom.getCurvilinearAbscissa(a)[1]    
+        c[1][0] = geom.getCurvilinearAbscissa(a)[1]   
         return c       
         
 def getTangent(a):

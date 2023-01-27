@@ -125,6 +125,7 @@ List of functions
    Generator.getInCircleMap
    Generator.getEdgeRatio
    Generator.getMaxLength
+   Generator.checkMesh
 
 **-- Operations on distributions**
 

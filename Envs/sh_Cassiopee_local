@@ -617,7 +617,7 @@ elif [ "$MAC" = "spiro_el8" ]; then
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
-    . /usr/local/Modules/init/bash
+    #. /usr/local/Modules/init/bash
     module purge
     #module load python/3.8.14-gnu831
     #module load intel/19.0.5

@@ -1461,7 +1461,7 @@ PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject
   Vector_t<E_Float> growth_ratio;
   ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., growth_ratio);
 
-  E_Int ivolmin,igrmin;
+  E_Int ivolmin = -1,igrmin = -1;
   E_Float volmin{NUGA::FLOAT_MAX}, grmin{NUGA::FLOAT_MAX};
 
   for (size_t i=0; i < vols.size(); ++i)

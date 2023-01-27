@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_XSENSOR2_HXX
 #define NUGA_XSENSOR2_HXX
@@ -217,7 +217,7 @@ bool xsensor2<mesh_t>::update()
 
     E_Int nbc = parent_t::_hmesh._PHtree.nb_children(PHi);
     const E_Int* children = parent_t::_hmesh._PHtree.children(PHi);
-    for (size_t c = 0; c < nbc; ++c)
+    for (E_Int c = 0; c < nbc; ++c)
     {
       E_Int cphi = children[c];
 

@@ -266,7 +266,7 @@ PyObject* K_GEOM::getDistantIndex(PyObject* self, PyObject* args)
 PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if ( !PyArg_ParseTuple(args, "O", &array) ) return NULL;
+  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -327,16 +327,16 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
   }
   else if (res == 2)
   {
-    if ( strcmp(eltType, "BAR") != 0 ) 
+    if (strcmp(eltType, "BAR") != 0) 
     {
       RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "getCurvilinearAbscissa: only for BAR-array.");
       return NULL;
     }
-    posx = K_ARRAY::isCoordinateXPresent( varString );
-    posy = K_ARRAY::isCoordinateYPresent( varString );
-    posz = K_ARRAY::isCoordinateZPresent( varString );
+    posx = K_ARRAY::isCoordinateXPresent(varString);
+    posy = K_ARRAY::isCoordinateYPresent(varString);
+    posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
       RELEASESHAREDU(array, f, cn);

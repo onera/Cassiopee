@@ -1158,7 +1158,7 @@ namespace K_MESH
       // PHT3 must be closed
       K_FLD::IntArray neighbors;
       NUGA::EltAlgo<K_MESH::Triangle>::getNeighbours(cT3, neighbors, true);
-      for (size_t i = 0; i < neighbors.cols(); ++i)
+      for (E_Int i = 0; i < neighbors.cols(); ++i)
       {
         auto n = neighbors.col(i);
         if (n[0] == IDX_NONE) return dOPEN_PHS;
