@@ -23,7 +23,6 @@
 
 #define HMESH_HOOK_ID 77
 #define SENSOR_HOOK_ID 78
-#define COM_HOOK_ID 79
 
 #define HMESH_PACK_SIZE 6
 

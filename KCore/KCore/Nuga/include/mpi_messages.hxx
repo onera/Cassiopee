@@ -65,7 +65,11 @@ namespace NUGA
   template <typename T>
   struct plan_msg_type
   {
-    std::vector<T> data, datarange, pgs, szone, szonerange, rac, racrange;
+    std::vector<T> data; // data contains all construction plans contiguouslsy. e.g a construction plan as a IntArray 4x3 is stored in data as 12 ints. get_data_stride() function in receiver side will allow to figure out the 4x3 structure
+    std::vector<T> datarange; // i-th plan is stored between datarange[i] and datarange[i+1] in data
+    std::vector<T> pgs;  // gives  the positions in pointlist : i-th plan is intended for pointlist[pgs[i]]
+    std::vector<T> szone, szonerange; // "sending zone" and associated range : all plans concerned by szone[i] are in data between szonerange[i] and szonerange[i+1]
+    std::vector<T> rac, racrange; // rid and associated range : all plans concerned by rid = rac[i] are in data between racrange[i] and racrange[i+1]
 
     void clear() { data.clear(); datarange.clear(); pgs.clear(); szone.clear(); szonerange.clear(); rac.clear(); racrange.clear(); }
 

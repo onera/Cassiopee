@@ -9,6 +9,7 @@
 */
 //Authors : Sâm Landier (sam.landier@onera.fr)
 
+#include "Nuga/include/omp_algo.hxx"
 #include "Nuga/include/mpi_stl.hxx"
 #include "Nuga/include/mpi_messages.hxx"
 #include "Nuga/include/macros.h"
@@ -23,25 +24,14 @@ namespace NUGA
 {
   
   template <typename mesh_t, typename T>
-  class hybrid_para_algo
+  class hybrid_para_algo : public omp_algo<mesh_t, T>
   {
   public:
 
+    using parent_t = omp_algo<mesh_t, T>;
+
     using zone_to_rid_to_ptlist_t = std::map<int, std::map<int, std::vector<E_Int>>>;
     using rid_to_zones_t = std::map<int, std::pair<int, int>>;
-
-    virtual bool prepare_data_to_send
-    (
-      const mesh_t & mesh,
-      const std::map<int, std::vector<E_Int>>& rid_to_list,
-      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & rid_to_PG_to_plan
-    ) = 0;
-
-    virtual void autonomous_run(const std::vector<mesh_t*>& mesh, int i) = 0;
-
-    virtual bool run_with_data(const std::vector<mesh_t*>& meshes, const std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data) = 0;
-
-    virtual int get_data_stride() = 0;
 
     ///
     void run
@@ -74,15 +64,6 @@ namespace NUGA
       MPI_Comm COM,
       int rank,
       int nranks,
-      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
-    );
-
-    void exchange_omp_data
-    (
-      const std::vector<mesh_t*>& hmeshes,
-      const std::vector<int>& zids,
-      const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
-      const rid_to_zones_t& rid_to_zones,
       std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
     );
 
@@ -154,19 +135,7 @@ namespace NUGA
 
       exchange_mpi_data(meshes, zids, zone_to_rid_to_list_mpi, rid_to_zones, zonerank, COM, rank, nranks, zid_to_jdata);
 
-      bool has_omp_changes{ true }, has_local_changes{ false };
-      int omp_iter = -1;
-
-      while (has_omp_changes)
-      {
-        ++omp_iter;
-        //std::cout << "rank : " << rank << " : C : omp iter : " << omp_iter << std::endl;
-
-        exchange_omp_data(meshes, zids, zone_to_rid_to_list_omp, rid_to_zones, zid_to_jdata);
-
-        has_omp_changes = this->run_with_data(meshes, zid_to_jdata); // OVERLOADED
-        has_local_changes |= has_omp_changes;
-      }
+      bool has_local_changes = parent_t::exchange_and_run(meshes, zids, zone_to_rid_to_list_omp, rid_to_zones, zid_to_jdata);
 
       MPI_Barrier(COM);
 
@@ -237,77 +206,6 @@ namespace NUGA
     //if (rank == 2) std::cout << "rank : " << rank << " receive_data ..." << std::endl;
     plan_type::receive_data(rank, nranks, COM, this->get_data_stride(), rid_to_zones, zone_to_rid_to_list, sreqs, zid_to_data);
     //if (rank == 2) std::cout << "rank : " << rank << " DONE. exit exch mpi" << std::endl;
-  }
-
-  ///
-  template <typename mesh_t, typename T>
-  void hybrid_para_algo<mesh_t, T>::exchange_omp_data
-  (
-    const std::vector<mesh_t*>& meshes,
-    const std::vector<int>& zids,
-    const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
-    const rid_to_zones_t& rid_to_zones,
-    std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
-  )
-  {
-    //zid_to_data.clear();
-    bool has_packs{ false };
-
-    for (size_t i = 0; i < meshes.size(); ++i)
-    {
-      int zid = zids[i];
-      const auto it = zone_to_rid_to_list.find(zid);
-
-      if (it == zone_to_rid_to_list.end()) continue; // current zone has no OMP joins
-
-      const auto & rid_to_list = it->second;
-
-      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> rid_to_PG_to_plan;
-      has_packs |= this->prepare_data_to_send(*meshes[i], rid_to_list, rid_to_PG_to_plan);
-
-      // convert to sensor data
-      for (auto& r : rid_to_PG_to_plan)
-      {
-        int rid = r.first;
-        int jzid = get_opp_zone(rid_to_zones, rid, zid);
-        //get the OPP ptlist
-        const auto itopp = zone_to_rid_to_list.find(jzid);
-        assert(itopp != zone_to_rid_to_list.end());
-
-        const auto itptl = itopp->second.find(rid);
-        assert(itptl != itopp->second.end());
-        const auto& ptlist = itptl->second;
-
-        const auto & PG_to_plan = r.second;
-
-        if (jzid != zid)
-        {
-          for (const auto & k : PG_to_plan)
-          {
-            const E_Int& j = k.first;
-            const auto& plan = k.second;
-            E_Int PGi = ptlist[j] - 1;
-            zid_to_data[jzid][PGi] = plan; // we pass the plan associated to j-th face of zid to the correponding face in the joined zone
-          }
-        }
-        else // auto-join
-        {
-          E_Int sz = ptlist.size();
-          E_Int sz2 = sz / 2;
-          
-          for (const auto & k : PG_to_plan)
-          {
-            const E_Int& j = k.first;
-            const auto& plan = k.second;
-            
-            E_Int j2 = (j + sz2) % sz; // j2 is the rank in the appropriate half of ptlist associated with j-th face in second half
-
-            E_Int PGi = ptlist[j2] - 1;
-            zid_to_data[zid][PGi] = k.second;
-          }
-        }
-      }
-    }
   }
 
   ///

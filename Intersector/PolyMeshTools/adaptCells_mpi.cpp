@@ -62,25 +62,33 @@ using elt_t = K_INTERSECTOR::eType;
 # include "mpi.h"
 # include "mpi4py/mpi4py.h"
 
-
-///
+//=============================================================================
+/* generic adatptation function */
+//=============================================================================
 template <typename hmesh_t, typename sensor_t>
-E_Int __adapt
-(std::vector<hmesh_t*>& hmeshes, std::vector<sensor_t*>& sensors,
+E_Int __adapt_lvl0
+(std::vector<void*>& hookhmeshes, std::vector<void*>& hooksensors,
 std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
 std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
-  if (hmeshes.empty()) return 0;
-  if (sensors.empty()) return 0;
+  if (hookhmeshes.empty()) return 0;
+  if (hooksensors.empty()) return 0;
 
-  size_t nb_meshes = hmeshes.size();
-  if (nb_meshes != sensors.size()) return 1;
+  size_t nb_meshes = hookhmeshes.size();
+  if (nb_meshes != hooksensors.size()) return 1;
 
   using para_algo_t = hybrid_para_algo<hmesh_t, E_Int>; //hybrid MPI-OMP
+
   using adaptor_t = adaptor_para<para_algo_t, hmesh_t, sensor_t>;
+
+  // static cast from void* to known types
+  std::vector<hmesh_t*> hmeshes(nb_meshes);
+  for (size_t i=0; i < nb_meshes; ++i) hmeshes[i] = (hmesh_t*)hookhmeshes[i];
+  std::vector<sensor_t*> sensors(nb_meshes);
+  for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
 
   adaptor_t a;
   a.sensors = sensors;
@@ -112,7 +120,7 @@ const char* varString, PyObject *out)
 template <subdiv_t STYPE>
 int __adapt_wrapper
 (int elt_type, int sensor_type,
-std::vector<void*>&hookhmes, std::vector<void*>&hooksensors,
+std::vector<void*>&hmeshes, std::vector<void*>&sensors,
 std::map<int, std::pair<int,int>>& rid_to_zones,
 std::vector<int>& zonerank,
 std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
@@ -120,219 +128,110 @@ MPI_Comm COM,
 const char* varString, PyObject *out)
 {
   int err(0);
-  size_t nb_meshes = hookhmes.size();
+  size_t nb_meshes = hmeshes.size();
 
-  assert (nb_meshes == hooksensors.size());
+  assert (nb_meshes == sensors.size());
 
   if (elt_type==elt_t::HEXA)
   {
-    using ELT_type = K_MESH::Hexahedron;
-    using mesh_type = NUGA::hierarchical_mesh<ELT_type, STYPE>;
-
-    std::vector<mesh_type*> hmeshes(nb_meshes);
-    for (size_t i=0; i < nb_meshes; ++i) hmeshes[i] = (mesh_type*)hookhmes[i];
+    using mesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, STYPE>;
    
     if (sensor_type == 0) // geom sensor
     {
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::geom_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 2) //nodal sensor
     {
-      using sensor_t = NUGA::nodal_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      //std::cout << "before __adapt " << std::endl;
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
-
-      //std::cout << "after __adapt " << std::endl;
+      using sensor_t = NUGA::nodal_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 3) //cell sensor
     {
-      using sensor_t = NUGA::cell_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      //std::cout << "before __adapt " << std::endl;
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
-
-      //std::cout << "after __adapt " << std::endl;
+      using sensor_t = NUGA::cell_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 1 || sensor_type == 4) // xsensor2
     {
-      using sensor_t = NUGA::xsensor2<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::xsensor2<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
   }
   else if (elt_type==elt_t::TETRA)
   {
-    using ELT_type = K_MESH::Tetrahedron;
-    using mesh_type = NUGA::hierarchical_mesh<ELT_type, STYPE>;
-
-    std::vector<mesh_type*> hmeshes(nb_meshes);
-    for (size_t i=0; i < nb_meshes; ++i) hmeshes[i] = (mesh_type*)hookhmes[i];
+    using mesh_t = NUGA::hierarchical_mesh<K_MESH::Tetrahedron, STYPE>;
     
     if (sensor_type == 0)
     {
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::geom_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
-    // else if (sensor_type == 1) //xsensor
-    // {
-    // }
     else if (sensor_type == 2) //nodal sensor
     {
-      using sensor_t = NUGA::nodal_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::nodal_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 3) //cell sensor
     {
-      using sensor_t = NUGA::cell_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      //std::cout << "before __adapt " << std::endl;
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
-
-      //std::cout << "after __adapt " << std::endl;
+      using sensor_t = NUGA::cell_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 4) // xsensor2
     {
-      using sensor_t = NUGA::xsensor2<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::xsensor2<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
   }
   else if (elt_type==elt_t::PRISM3)
   {
-    using ELT_type = K_MESH::Prism;
-    using mesh_type = NUGA::hierarchical_mesh<ELT_type, STYPE>;
+    using mesh_t = NUGA::hierarchical_mesh<K_MESH::Prism, STYPE>;
 
-    std::vector<mesh_type*> hmeshes(nb_meshes);
-    for (size_t i=0; i < nb_meshes; ++i) hmeshes[i] = (mesh_type*)hookhmes[i];
-    
     if (sensor_type == 0)
     {
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::geom_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
-    // else if (sensor_type == 1) //xsensor
-    // {
-    // }
     else if (sensor_type == 2) //nodal sensor
     {
-      using sensor_t = NUGA::nodal_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::nodal_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 3) //cell sensor
     {
-      using sensor_t = NUGA::cell_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      //std::cout << "before __adapt " << std::endl;
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
-
-      //std::cout << "after __adapt " << std::endl;
+      using sensor_t = NUGA::cell_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 4) // xsensor2
     {
-      using sensor_t = NUGA::xsensor2<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::xsensor2<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
   }
   else if (elt_type==elt_t::BASIC)
   {
-    using ELT_type = K_MESH::Basic;
-    using mesh_type = NUGA::hierarchical_mesh<ELT_type, STYPE>;
-
-    std::vector<mesh_type*> hmeshes(nb_meshes);
-    for (size_t i=0; i < nb_meshes; ++i) hmeshes[i] = (mesh_type*)hookhmes[i];
+    using mesh_t = NUGA::hierarchical_mesh<K_MESH::Basic, STYPE>;
 
     if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
 
     if (sensor_type == 0)
     {
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::geom_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
-    // else if (sensor_type == 1) //xsensor
-    // {
-    // }
     else if (sensor_type == 2) //nodal sensor
     {
-      using sensor_t = NUGA::nodal_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::nodal_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 3) //cell sensor
     {
-      using sensor_t = NUGA::cell_sensor<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      //std::cout << "before __adapt " << std::endl;
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
-
-      //std::cout << "after __adapt " << std::endl;
+      using sensor_t = NUGA::cell_sensor<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
     else if (sensor_type == 4) // xsensor2
     {
-      using sensor_t = NUGA::xsensor2<mesh_type>;
-
-      std::vector<sensor_t*> sensors(nb_meshes);
-      for (size_t i=0; i < nb_meshes; ++i) sensors[i] = (sensor_t*)hooksensors[i];
-
-      err = __adapt<mesh_type, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+      using sensor_t = NUGA::xsensor2<mesh_t>;
+      err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
   }
   return err;

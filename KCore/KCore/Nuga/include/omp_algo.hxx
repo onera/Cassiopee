@@ -61,12 +61,13 @@ namespace NUGA
       const std::map<E_Int, std::pair<int, int>>& rid_to_zones
     );
 
-    void exchange_and_run
+    bool exchange_and_run
     (
       const std::vector<mesh_t*>& hmeshes,
       const std::vector<int>& zids,
       const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
-      const rid_to_zones_t& rid_to_zones
+      const rid_to_zones_t& rid_to_zones,
+      std::map<int, std::map<int, K_FLD::DynArray<T>>>& zid_to_jdata
     );
 
     void exchange_omp_data
@@ -100,34 +101,37 @@ namespace NUGA
       this->autonomous_run(meshes, i);
 
     //2. exchange and run untill convergence
-    exchange_and_run(meshes, zids, zone_to_rid_to_list, rid_to_zones);
+    std::map<int, std::map<int, K_FLD::DynArray<T>>> zid_to_jdata;
+    exchange_and_run(meshes, zids, zone_to_rid_to_list, rid_to_zones, zid_to_jdata);
 
   }
 
 
   template <typename mesh_t, typename T>
-  void omp_algo<mesh_t, T>::exchange_and_run
+  bool omp_algo<mesh_t, T>::exchange_and_run
   (
     const std::vector<mesh_t*>& meshes,
     const std::vector<int>& zids,
     const zone_to_rid_to_ptlist_t& zone_to_rid_to_list_omp,
-    const rid_to_zones_t& rid_to_zones
-  )
+    const rid_to_zones_t& rid_to_zones,
+    std::map<int, std::map<int, K_FLD::DynArray<T>>>& zid_to_jdata)
   {
     bool has_omp_changes{ true }, has_local_changes{ false };
     int omp_iter = -1;
-    std::map<int, std::map<int, K_FLD::DynArray<T>>> zid_to_jdata;
+    
 
     while (has_omp_changes)
     {
       ++omp_iter;
-        //std::cout << "rank : " << rank << " : C : omp iter : " << omp_iter << std::endl;
+      //std::cout << "rank : " << rank << " : C : omp iter : " << omp_iter << std::endl;
 
-      exchange_omp_data(meshes, zids, zone_to_rid_to_list_omp, rid_to_zones, zid_to_jdata);
+      exchange_omp_data(meshes, zids, zone_to_rid_to_list_omp, rid_to_zones, zid_to_jdata); //zid_to_jdata is appended with local contributions (might have distant contrib upon entry)
 
       has_omp_changes = this->run_with_data(meshes, zid_to_jdata); // OVERLOADED
       has_local_changes |= has_omp_changes;
     }
+
+    return has_local_changes;
   }
 
 
@@ -142,7 +146,6 @@ namespace NUGA
     std::map<int, std::map<int, K_FLD::DynArray<T>>> & zid_to_data
   )
   {
-    //zid_to_data.clear();
     bool has_packs{ false };
 
     for (size_t i = 0; i < meshes.size(); ++i)
@@ -154,7 +157,7 @@ namespace NUGA
 
       const auto & rid_to_list = it->second;
 
-      std::map<int, std::map<int, K_FLD::DynArray<T>>> rid_to_PG_to_plan;
+      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> rid_to_PG_to_plan;
       has_packs |= this->prepare_data_to_send(*meshes[i], rid_to_list, rid_to_PG_to_plan);
 
       // convert to sensor data
@@ -170,41 +173,37 @@ namespace NUGA
         assert(itptl != itopp->second.end());
         const auto& ptlist = itptl->second;
 
-        auto & PG_to_plan = r.second;
+        const auto & PG_to_plan = r.second;
 
         if (jzid != zid)
         {
-          for (auto & k : PG_to_plan)
+          for (const auto & k : PG_to_plan)
           {
-            E_Int PGi = ptlist[k.first] - 1;
-            zid_to_data[jzid][PGi] = k.second;
+            const E_Int& j = k.first;
+            const auto& plan = k.second;
+            E_Int PGi = ptlist[j] - 1;
+            zid_to_data[jzid][PGi] = plan; // we pass the plan associated to j-th face of zid to the correponding face in the joined zone
           }
         }
         else // auto-join
         {
-          int sz = ptlist.size() / 2; // outside of the loop to earn some calculation time
-          int stock_Plan_size = PG_to_plan.size();
+          E_Int sz = ptlist.size();
+          E_Int sz2 = sz / 2;
 
-          for (auto & k : PG_to_plan) // copy refinement plan to apply it to adequate face
+          for (const auto & k : PG_to_plan)
           {
-            // keys we work with, each associated to a Plan
-            int key1 = k.first; // 1st Plan (can be Left or Right, doesn't matter)
-            int key2 = (k.first + sz) % ptlist.size(); // 2nd Plan // modulo as k.first may begin on List Right side (namely above ptlist.size()/2)
+            const E_Int& j = k.first;
+            const auto& plan = k.second;
 
-            E_Int PGi = ptlist[key1] - 1; // Face on which we test plan 1
+            E_Int j2 = (j + sz2) % sz; // j2 is the rank in the appropriate half of ptlist associated with j-th face in second half
 
-            int PGj = ptlist[key2] - 1;
-            zid_to_data[jzid][PGj] = k.second;       // zone to refine - Plan 1
-
-            const auto Plan2 = PG_to_plan.find(key2);
-            if (Plan2 == PG_to_plan.end()) continue;
-            zid_to_data[jzid][PGi] = Plan2->second;  // zone to refine - Plan 2         
+            E_Int PGi = ptlist[j2] - 1;
+            zid_to_data[zid][PGi] = k.second;
           }
         }
       }
     }
   }
-
   
 }
 
