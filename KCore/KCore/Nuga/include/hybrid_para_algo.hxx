@@ -30,16 +30,17 @@ namespace NUGA
 
     using parent_t = omp_algo<mesh_t, T>;
 
-    using zone_to_rid_to_ptlist_t = std::map<int, std::map<int, std::vector<E_Int>>>;
-    using rid_to_zones_t = std::map<int, std::pair<int, int>>;
+    using zid_to_rid_to_ptlist_t = typename parent_t::zid_to_rid_to_ptlist_t;
+    using id_to_PG_to_plan_t = typename parent_t::id_to_PG_to_plan_t;
+    using rid_to_zones_t = typename parent_t::rid_to_zones_t;
 
     ///
     void run
     (
       std::vector<mesh_t*>& meshes,
       std::vector<int>& zids,
-      const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
-      const std::map<int, std::pair<int, int>>& rid_to_zones,
+      const zid_to_rid_to_ptlist_t& zone_to_rid_to_list,
+      const rid_to_zones_t& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM
     );
@@ -48,7 +49,7 @@ namespace NUGA
     (
       const std::vector<mesh_t*>& hmeshes,
       const std::vector<int>& zids,
-      const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
+      const zid_to_rid_to_ptlist_t& zone_to_rid_to_list,
       const rid_to_zones_t& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM
@@ -58,13 +59,13 @@ namespace NUGA
     (
       const std::vector<mesh_t*>& meshes,
       const std::vector<int>& zids,
-      const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
+      const zid_to_rid_to_ptlist_t& zone_to_rid_to_list,
       const rid_to_zones_t& rid_to_zones,
       const std::vector<int>& zonerank,
       MPI_Comm COM,
       int rank,
       int nranks,
-      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
+      id_to_PG_to_plan_t & zid_to_PG_to_plan
     );
 
     ///
@@ -78,14 +79,14 @@ namespace NUGA
   (
     std::vector<mesh_t*>& meshes,
     std::vector<int>& zids,
-    const std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list,
-    const std::map<int, std::pair<int, int>>& rid_to_zones,
+    const zid_to_rid_to_ptlist_t& zone_to_rid_to_list,
+    const rid_to_zones_t& rid_to_zones,
     const std::vector<int>& zonerank,
     MPI_Comm COM
   )
   {
     int err(0);
-    int NBZ{ E_Int(meshes.size()) };
+    int NBZ{ int(meshes.size()) };
 
     //1. autonomous runs
     ePara PARA = COARSE_OMP;
@@ -104,7 +105,7 @@ namespace NUGA
   (
     const std::vector<mesh_t*>& meshes,
     const std::vector<int>& zids,
-    const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
+    const zid_to_rid_to_ptlist_t& zone_to_rid_to_list,
     const rid_to_zones_t& rid_to_zones,
     const std::vector<int>& zonerank,
     MPI_Comm COM
@@ -119,7 +120,7 @@ namespace NUGA
     MPI_Comm_rank(COM, &rank);
 
     //separate MPI/OMP joins
-    zone_to_rid_to_ptlist_t zone_to_rid_to_list_mpi, zone_to_rid_to_list_omp;
+    zid_to_rid_to_ptlist_t zone_to_rid_to_list_mpi, zone_to_rid_to_list_omp;
     split_mpi_omp_joins(zone_to_rid_to_list, rank, rid_to_zones, zonerank, zone_to_rid_to_list_omp, zone_to_rid_to_list_mpi);
 
     bool has_mpi_changes{ true };
@@ -131,11 +132,11 @@ namespace NUGA
       ++mpi_iter;
       has_mpi_changes = false;
 
-      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> zid_to_jdata;
+      id_to_PG_to_plan_t zid_to_PG_to_plan;
 
-      exchange_mpi_data(meshes, zids, zone_to_rid_to_list_mpi, rid_to_zones, zonerank, COM, rank, nranks, zid_to_jdata);
+      exchange_mpi_data(meshes, zids, zone_to_rid_to_list_mpi, rid_to_zones, zonerank, COM, rank, nranks, zid_to_PG_to_plan);
 
-      bool has_local_changes = parent_t::exchange_and_run(meshes, zids, zone_to_rid_to_list_omp, rid_to_zones, zid_to_jdata);
+      bool has_local_changes = parent_t::exchange_and_run(meshes, zids, zone_to_rid_to_list_omp, rid_to_zones, zid_to_PG_to_plan);
 
       MPI_Barrier(COM);
 
@@ -150,20 +151,20 @@ namespace NUGA
   (
     const std::vector<mesh_t*>& meshes,
     const std::vector<int>& zids,
-    const zone_to_rid_to_ptlist_t& zone_to_rid_to_list,
+    const zid_to_rid_to_ptlist_t& zone_to_rid_to_list,
     const rid_to_zones_t& rid_to_zones,
     const std::vector<int>& zonerank,
     MPI_Comm COM,
     int rank,
     int nranks,
-    std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_data
+    id_to_PG_to_plan_t & zid_to_PG_to_plan
   )
   {
     if (zone_to_rid_to_list.empty()) return;
     if (nranks == 1) return;
 
     // Each zone builds its MPI-data-to-send by sending zone
-    std::map<int, std::map<int, std::map<E_Int, K_FLD::DynArray<T>>>> sz_to_rid_to_PG_to_data;
+    std::map<int, id_to_PG_to_plan_t> sz_to_rid_to_PG_to_plan; // sz means "sending zone"
     bool has_packs{ false };
     for (size_t i = 0; i < meshes.size(); ++i)
     {
@@ -177,10 +178,10 @@ namespace NUGA
       //if (rank == 2) std::cout << "rank : " << rank << " found zid : " << hmeshes[i]->zid << std::endl;
       const auto & rid_to_list = it->second;
 
-      std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> rid_to_PG_to_data;
-      has_packs |= this->prepare_data_to_send(*meshes[i], rid_to_list, rid_to_PG_to_data);
+      id_to_PG_to_plan_t rid_to_PG_to_plan;
+      has_packs |= this->prepare_data_to_send(*meshes[i], rid_to_list, rid_to_PG_to_plan);
 
-      sz_to_rid_to_PG_to_data[zids[i]] = rid_to_PG_to_data;
+      sz_to_rid_to_PG_to_plan[zids[i]] = rid_to_PG_to_plan;
 
     }
 
@@ -188,7 +189,7 @@ namespace NUGA
     //if (rank == 2) std::cout << "rank : " << rank << " convert_to_MPI_exchange_format ..." << std::endl;
     using plan_type = NUGA::plan_msg_type<T>;
     std::map<int, plan_type> rank_to_mpi_data;
-    plan_type::convert_to_MPI_exchange_format(sz_to_rid_to_PG_to_data, rid_to_zones, zonerank, rank_to_mpi_data);
+    plan_type::convert_to_MPI_exchange_format(sz_to_rid_to_PG_to_plan, rid_to_zones, zonerank, rank_to_mpi_data);
 
     // Send MPI data   
     //if (rank == 2) std::cout << "rank : " << rank << " send_data ..." << std::endl;
@@ -204,7 +205,7 @@ namespace NUGA
 
     // Receive MPI data and build sensor data by zone
     //if (rank == 2) std::cout << "rank : " << rank << " receive_data ..." << std::endl;
-    plan_type::receive_data(rank, nranks, COM, this->get_data_stride(), rid_to_zones, zone_to_rid_to_list, sreqs, zid_to_data);
+    plan_type::receive_data(rank, nranks, COM, this->get_data_stride(), rid_to_zones, zone_to_rid_to_list, sreqs, zid_to_PG_to_plan);
     //if (rank == 2) std::cout << "rank : " << rank << " DONE. exit exch mpi" << std::endl;
   }
 

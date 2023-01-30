@@ -9,8 +9,8 @@
 */
 //Authors : Sâm Landier (sam.landier@onera.fr)
 
-#ifndef NUGA_CLOSE_CELLS_MPI_HXX
-#define NUGA_CLOSE_CELLS_MPI_HXX
+#ifndef NUGA_CLOSE_CELLS_HXX
+#define NUGA_CLOSE_CELLS_HXX
 
 #include "Nuga/include/hybrid_para_algo.hxx"
 
@@ -18,8 +18,8 @@ namespace NUGA
 {
 
 
-  template <typename mesh_t>
-  class close_cells_mpi : public hybrid_para_algo<mesh_t, E_Float>
+  template <typename para_algo_t, typename mesh_t>
+  class close_cells : public para_algo_t
   {
   public:
 

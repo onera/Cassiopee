@@ -49,7 +49,7 @@ namespace NUGA
       //std::cout << "pack : loop on joins : " << join << std::endl;
       for (auto& it : rid_to_list)
       {
-        E_Int rid = it.first;
+        int rid = it.first;
         auto& ptlist = it.second;
 
         for (size_t i = 0; i < ptlist.size(); ++i)
@@ -78,7 +78,7 @@ namespace NUGA
     }
 
     bool run_with_data
-    (const std::vector<hmesh_t*>& hmeshes, const std::map<int, std::map<E_Int, K_FLD::IntArray>> & zid_to_data) override
+    (const std::vector<hmesh_t*>& hmeshes, const std::map<int, std::map<E_Int, K_FLD::IntArray>> & zid_to_PG_to_plan) override
     {
       E_Int NBZ{ E_Int(hmeshes.size()) };
 
@@ -92,8 +92,8 @@ namespace NUGA
       for (E_Int i = 0; i < NBZ; ++i)
       {
         join_sensor_t jsensor(*hmeshes[i]);
-        auto it = zid_to_data.find(hmeshes[i]->zid);
-        if (it == zid_to_data.end()) continue;
+        auto it = zid_to_PG_to_plan.find(hmeshes[i]->zid);
+        if (it == zid_to_PG_to_plan.end()) continue;
         
         jsensor.assign_data(it->second);
 
