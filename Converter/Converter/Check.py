@@ -356,7 +356,29 @@ def _correctNameLength(t):
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
-        node[0] = node[0][0:32]
+        name = node[0]
+        if node[3] == 'Zone_t': 
+            newName = name[0:31]
+            newName = C.getZoneName(newName)
+            if len(newName) > 32: newName = newName[0:32]
+            node[0] = newName
+            Internal._renameNode(t, name, newName)
+        elif node[3] == 'BC_t': 
+            newName = name[0:31]
+            newName = C.getBCName(newName)
+            if len(newName) > 32: newName = newName[0:32]
+            node[0] = newName
+            Internal._renameNode(t, name, newName)
+        elif node[3] == 'CGNSBase_t': 
+            newName = name[0:31]
+            newName = C.getBaseName(newName)
+            if len(newName) > 32: newName = newName[0:32]
+            node[0] = newName
+            Internal._renameNode(t, name, newName)
+        else:
+            node[0] = name[0:32]
+
+        print("INFO: replacing %s with %s."%(name, node[0]))
     return None
 
 #==============================================================================

@@ -44,9 +44,9 @@ if Cmpi.rank == 0:
     test.testT(probe._ts, 4)
 
 # Reread
-if Cmpi.rank == 0:
-    out = probe.read(ind=1)
-    test.testT(out, 2)
-    out = probe.read(cont=0)
-    test.testT(out, 3)
-    #C.convertPyTree2File(out, LOCAL+'/out.cgns')
+out = probe.read(ind=1)
+if Cmpi.rank == 0: test.testT(out, 2)
+
+out = probe.read(cont=0)
+if Cmpi.rank == 0: test.testT(out, 3)
+#Cmpi.convertPyTree2File(out, LOCAL+'/out.cgns')

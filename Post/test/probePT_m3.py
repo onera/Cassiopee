@@ -32,11 +32,9 @@ p1.flush()
 
 if Cmpi.rank == 0: test.testT(p1._probeZones, 1)
 
-# reread ind/bloc are sequential functions
-if Cmpi.rank == 0: 
-    out = p1.read(ind=0)
-    test.testT(out, 2)
+out = p1.read(ind=0)
+if Cmpi.rank == 0: test.testT(out, 2)
 
-    out = p1.read(cont=0)
-    test.testT(out, 3)
-    #C.convertPyTree2File(out, 'out.cgns')
+out = p1.read(cont=0)
+if Cmpi.rank == 0: test.testT(out, 3)
+#Cmpi.convertPyTree2File(out, 'out.cgns')
