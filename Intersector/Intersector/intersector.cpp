@@ -85,6 +85,8 @@ static PyMethodDef Pyintersector [] =
   {"interpolateHMeshNodalField", K_INTERSECTOR::interpolateHMeshNodalField, METH_VARARGS},
   
   {"closeCells", K_INTERSECTOR::closeCells, METH_VARARGS},
+  {"closeCells_mpi", K_INTERSECTOR::closeCells_mpi, METH_VARARGS},
+
   {"replaceFaces", K_INTERSECTOR::replaceFaces, METH_VARARGS},
   
   {"extractUncomputables", K_INTERSECTOR::extractUncomputables, METH_VARARGS},

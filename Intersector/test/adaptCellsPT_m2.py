@@ -78,7 +78,7 @@ for z in zs :
     C._initVars(z, '{centers:var3} = {centers:CoordinateX} + {centers:CoordinateY}')
 
 at = XORMPI.adaptCells(t,cell_vals, sensor_type=3, subdiv_type=0, procDict=procDico, zidDict=zidDico)
-at = XOR.closeCells(at)
+at = XORMPI.closeCells(at, procDico, zidDico)
 
 Cmpi.convertPyTree2File(at, ofname)
 

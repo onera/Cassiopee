@@ -23,8 +23,6 @@
 namespace NUGA
 {
 
-  enum ePara { SEQ, FINE_OMP, COARSE_OMP , DISTRIB };
-
 ///
 template <typename hmesh_t, typename sensor_t>
 class adaptor

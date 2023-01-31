@@ -39,7 +39,7 @@
 #include "Nuga/include/BbTree.h"
 #include <memory>
 //#include <iostream>
-
+#include "dico_to_stl.h"
 #include "adaptCells_hook.h"
 
 
@@ -52,7 +52,6 @@ E_Int chrono::verbose = 0;
 
 #define HMESH_HOOK_ID 77
 #define SENSOR_HOOK_ID 78
-#define COM_HOOK_ID 79
 #define PACK_SIZE 5
 
 using ngon_type = ngon_t<K_FLD::IntArray>;

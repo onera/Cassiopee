@@ -41,6 +41,8 @@ E_Int chrono::verbose=1;
 #include "Nuga/include/Hexahedron.h"
 //#include <iostream>
 #include <memory>
+#include "dico_to_stl.h"
+#include "Nuga/include/close_cells.hxx"
 
 using namespace std;
 using namespace K_FLD;
@@ -2991,34 +2993,91 @@ PyObject* K_INTERSECTOR::immerseNodes(PyObject* self, PyObject* args)
 //=============================================================================
 PyObject* K_INTERSECTOR::closeCells(PyObject* self, PyObject* args)
 {
-  PyObject *arr;
+  PyObject *py_arrs(nullptr);
+  PyObject *py_zids(nullptr), *py_zid_to_rid_to_list(nullptr);
+  PyObject *py_rid_to_zones(nullptr);
 
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PyArg_ParseTuple(args, "OOOO", &py_arrs, &py_zids, &py_zid_to_rid_to_list, &py_rid_to_zones)) return NULL;
 
-  K_FLD::FloatArray* f(0);
-  K_FLD::IntArray* cn(0);
+  // 1. GET MESHES 
+
+  int nb_meshes{0};
+  if (PyList_Check(py_arrs))
+    nb_meshes = PyList_Size(py_arrs);
+
+  //std::cout << "nb_meshes : " << nb_meshes << std::endl;
+
+  if (nb_meshes == 0) return nullptr;
+
+  std::vector<K_FLD::FloatArray*> f(nb_meshes);
+  std::vector<K_FLD::IntArray*> cn(nb_meshes);
   char* varString, *eltType;
-  // Check array # 1
-  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
-  if (err) return NULL;
 
-  K_FLD::FloatArray & crd = *f;
-  K_FLD::IntArray & cnt = *cn;
+  std::vector<NUGA::ph_mesh_t> ph_meshes(nb_meshes);
+  std::vector<NUGA::ph_mesh_t*> ptr_ph_meshes(nb_meshes);
 
-  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
-  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
-
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
-  ngon_type ngi(cnt);
-
-  ngon_type::close_phs(ngi, crd);
-
-  K_FLD::IntArray cnto;
-  ngi.export_to_array(cnto);
-  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  using ngon_type = ngon_t<K_FLD::IntArray>;
   
-  delete f; delete cn;
-  return tpl;
+  for (int m = 0; m < nb_meshes; ++m)
+  {
+    PyObject* arr = PyList_GetItem(py_arrs, m);
+    // Check array
+    int err = check_is_NGON(arr, f[m], cn[m], varString, eltType);
+    if (err) return nullptr;
+    
+    // conversion to the generic mesh interface
+    ph_meshes[m].crd = *(f[m]);
+    ph_meshes[m].cnt = std::move(ngon_type(*(cn[m])));
+
+    ptr_ph_meshes[m] = &ph_meshes[m];
+  }
+
+  // 2. GET ZIDS 
+  std::vector<int> zids(nb_meshes);
+  assert (nb_meshes == PyList_Size(py_zids));
+  for (int m = 0; m < nb_meshes; ++m)
+  {
+    PyObject* pyz = PyList_GetItem(py_zids, m);
+    int zid = (int) PyInt_AsLong(pyz);
+    zids[m]=zid;
+  }
+
+  // 3. GET  GET RID TO LIST MAP  MAP 
+  std::map<int, std::map<int, std::vector<E_Int>>> zid_to_rid_to_list;
+  convert_dico_to_map___int_int_vecint(py_zid_to_rid_to_list, zid_to_rid_to_list);
+  //assert (zid_to_rid_to_list.size() == nb_meshes);
+
+  // 4. GET RID_TO_ZONES MAP 
+  //todo VD : py_rid_to_zones => rid_to_zones
+  std::map<int, std::pair<int,int>> rid_to_zones;
+  convert_dico_to_map__int_pairint(py_rid_to_zones, rid_to_zones);
+
+  // 5. CLOSE
+  using para_algo_t = NUGA::omp_algo<NUGA::ph_mesh_t, E_Float>; // SEQ or multi-SEQ
+  using closecell_t = NUGA::close_cells< para_algo_t, NUGA::ph_mesh_t>;
+
+  closecell_t cc;
+  cc.run(ptr_ph_meshes, zids, zid_to_rid_to_list, rid_to_zones);
+
+  // pushing out the result : the set of closed meshes
+  PyObject *l(PyList_New(0));
+  for (size_t i=0; i < nb_meshes; ++i)
+  {
+    K_FLD::IntArray cnto;
+    ptr_ph_meshes[i]->cnt.export_to_array(cnto);
+
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(ptr_ph_meshes[i]->crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  for (int m = 0; m < nb_meshes; ++m)
+  {
+    delete f[m]; delete cn[m];
+  }
+
+  return l;
 }
 
 //=============================================================================

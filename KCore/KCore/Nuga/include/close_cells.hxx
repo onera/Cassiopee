@@ -13,6 +13,7 @@
 #define NUGA_CLOSE_CELLS_HXX
 
 #include "Nuga/include/hybrid_para_algo.hxx"
+#include "Nuga/include/ngon_t.hxx"
 
 namespace NUGA
 {
@@ -23,7 +24,11 @@ namespace NUGA
   {
   public:
 
-    using data_t = K_FLD::FloatArray;
+    using parent_t = para_algo_t;
+    using plan_t = K_FLD::FloatArray;
+    using zid_to_rid_to_ptlist_t = typename parent_t::zid_to_rid_to_ptlist_t;
+    using id_to_PG_to_plan_t = typename parent_t::id_to_PG_to_plan_t;
+    using rid_to_zones_t = typename parent_t::rid_to_zones_t;
 
     inline int get_data_stride() override { return 3; }
 
@@ -31,8 +36,8 @@ namespace NUGA
     bool prepare_data_to_send
     (
       const mesh_t & mesh,
-      const std::map<E_Int, std::vector<E_Int>>& rid_to_list,
-      std::map<int, std::map<int, data_t>> & rid_to_PG_to_plan
+      const std::map<int, std::vector<E_Int>>& rid_to_list,
+      id_to_PG_to_plan_t & rid_to_PG_to_plan
     ) override
     {
       bool has_packs{ false };
@@ -44,7 +49,7 @@ namespace NUGA
 
         for (size_t i = 0; i < ptlist.size(); ++i)
         {
-          data_t p; //only implemented for IntArray
+          plan_t p; //only implemented for IntArray
           E_Int PGi = ptlist[i] - 1;
           //std::cout << "i/PGi/sz : " << i << "/" << PGi << "/" << ptlist.size() << std::endl;
           
@@ -68,7 +73,7 @@ namespace NUGA
     bool run_with_data
     (
       const std::vector<mesh_t*>& meshes,
-      const std::map<int, std::map<int, data_t>> & zid_to_data
+      const id_to_PG_to_plan_t & zid_to_PG_to_plan
     ) override
     {
       bool has_changes = false;
@@ -82,8 +87,8 @@ namespace NUGA
         mesh_t& mesh = *meshes[i];
         auto& crd = mesh.crd;
 
-        auto it_PG_to_plan = zid_to_data.find(i);
-        if (it_PG_to_plan == zid_to_data.end()) continue;
+        auto it_PG_to_plan = zid_to_PG_to_plan.find(i);
+        if (it_PG_to_plan == zid_to_PG_to_plan.end()) continue;
 
         auto & PG_to_plan = it_PG_to_plan->second;
 
@@ -133,7 +138,7 @@ namespace NUGA
     }
     
     ///
-    void extract_loop_plan(const K_FLD::FloatArray& crd, const ngon_unit& PGs, E_Int PGi, bool reverse, data_t& plan) const
+    void extract_loop_plan(const K_FLD::FloatArray& crd, const ngon_unit& PGs, E_Int PGi, bool reverse, plan_t& plan) const
     {
       plan.clear(); // plan est un IntArray (DynArray<E_Int>) : une 'matrice' nnodes x 1
 

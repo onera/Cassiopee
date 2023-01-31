@@ -291,3 +291,59 @@ def _exchangePointLists(t, hooks, zidDict, procDict, rid_to_zones = None, zonera
     if rid_to_list_opp == {} : continue
 
     XOR.updateJoinsPointLists3(z, zidDict, rid_to_list_opp, 'PointListDonor')
+
+
+#------------------------------------------------------------------------------
+# closeCells MPI
+#------------------------------------------------------------------------------
+def closeCells(t, procDict, zidDict, com = MPI.COMM_WORLD):
+    """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
+    Usage: closeCells(t, com, procDict, zidDict)"""
+    tp = Internal.copyRef(t)
+    _closeCells(tp, procDict, zidDict, com)
+    return tp
+
+def _closeCells(t, procDict, zidDict, com = MPI.COMM_WORLD):
+    """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
+    Usage: closeCells(t, com, procDict, zidDict)"""
+    if procDict is {}:
+      print ('INPUT ERROR : you must also give as an argument the processors dictionary')
+      return
+
+    if zidDict is {}:
+      print ('INPUT ERROR : you must also give as an argument the zone id dictionary')
+      return
+
+    #
+    zid_to_rid_to_list_owned = XOR.getJoinsPtLists(t, zidDict)
+    #
+    zonerank = getZonesRanks(zidDict, procDict)
+    
+    rid_to_zones = XOR.getRidToZones(t, zidDict)
+
+    zs = Internal.getZones(t)
+
+    meshes = []
+    zids = []
+    for z in zs:
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      meshes.append(m)
+      zid = CD.getProperty(z, 'zid')
+      zids.append(zid)
+
+    meshes = intersector.closeCells_mpi(meshes, zids, zid_to_rid_to_list_owned, zonerank, rid_to_zones, com) #fxme agglo
+
+    # associate zid and closed mesh
+    zid_to_m = {}
+    for i in range(len(zids)) :
+      zid = zids[i]
+      m = meshes[i]
+      zid_to_m[zid]=m
+
+    for z in zs : 
+      zid = CD.getProperty(z, 'zid')
+      m = zid_to_m[zid]
+      # MAJ du maillage de la zone
+      C.setFields([m], z, 'nodes')
+
+    return t

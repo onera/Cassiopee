@@ -45,6 +45,7 @@
 #include <memory>
 //#include <iostream>
 
+#include "dico_to_stl.h"
 #include "adaptCells_hook.h"
 
 using namespace std;
@@ -984,9 +985,7 @@ const char* varString, PyObject *out)
 
   for (size_t i=0; i < nb_meshes; ++i)
   {
-    std::vector<E_Int> oids;
     K_FLD::IntArray cnto;
-
     hmeshes[i]->_ng.export_to_array(cnto);
 
     // pushing out the mesh

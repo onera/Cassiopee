@@ -21,19 +21,14 @@
 # include "stub.h"
 
 //=============================================================================
-/* Hierarchical Mesh Adaptation : MPI version (has MPI calls) */
+//
 //=============================================================================
-PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::closeCells_mpi(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return nullptr;
 }
 
-//=============================================================================
-/* Exchange the owned PointLists : to update PointListDonor (has MPI calls) */
-//=============================================================================
-PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
-{
-  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
-  return nullptr;
-}
+
+
+//=======================  Intersector/PolyMeshTools/utils_mpi.cpp ====================

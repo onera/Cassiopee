@@ -418,7 +418,7 @@ def immerseNodes(a, s, TOL):
 def closeCells(a):
     """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
     Usage: closeCells(a)"""
-    return intersector.closeCells(a)
+    return intersector.closeCells([a], [0], {}, {})[0]
 
 #==============================================================================
 # adaptCells : Adapts an unstructured mesh a with respect to a sensor

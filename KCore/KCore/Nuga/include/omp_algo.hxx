@@ -23,6 +23,7 @@ namespace NUGA
   // zid and rid will probably never need to be long int
   // PG id or poition in pointlist must be E_Int
 
+  enum ePara { SEQ, FINE_OMP, COARSE_OMP , DISTRIB };
 
   template <typename mesh_t, typename T>
   class omp_algo
@@ -97,7 +98,7 @@ namespace NUGA
     int NBZ{ int(meshes.size()) };
 
     //1. autonomous runs
-    ePara PARA = COARSE_OMP;
+    NUGA::ePara PARA = COARSE_OMP;
 #pragma omp parallel for if(PARA == COARSE_OMP)
     for (int i = 0; i < NBZ; ++i)
       this->autonomous_run(meshes, i);

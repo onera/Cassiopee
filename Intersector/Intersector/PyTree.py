@@ -2117,33 +2117,6 @@ def shellAgglomerateSmallCells(t, vmin=0., vratio=1000.):
 
     return z
 
-# def agglomerateSmallCells(mesh, vmin=0., vratio=1000.):
-#     m = C.getFields(Internal.__GridCoordinates__, mesh)[0]
-#     print("one")
-#     res = XOR.agglomerateSmallCells(m, vmin, vratio)
-#     print("NB ZONES %d"%len(res))
-
-#     z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
-
-#     debug = True
-
-#     if (debug == False) : return z
-
-#     nb_aggs = res[1]
-#     nb_cels = nb_cells(z);
-#     nb_points = len(res[0][1][0])
-    
-#     #print "NB AGG OVER NB CELLS : %d / %d "%(nb_aggs, nb_cels)
-
-#     C._initVars(z, 'centers:cellN', 0)
-
-#     cellN = Internal.getNodesFromName(z, 'cellN')[0][1]
-#     cellN[0:nb_aggs] = numpy.arange(1,nb_aggs+1)
-
-#     C.convertPyTree2File(z, 'agglo.cgns')
-
-#     return z
-
 #==============================================================================
 # agglomerateNonStarCells : Agglomerates non-centroid-star-shaped cells
 # IN: t: 3D NGON mesh
@@ -2358,17 +2331,50 @@ def _closeCells(t):
     """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
     Usage: _closeCells(t)"""
 
-    zones = Internal.getZones(t)
+    _setZonesAndJoinsUId(t)
 
-    for z in zones:
-        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
-        if coords == []: continue
+    zs  = Internal.getZones(t)
 
-        coords = Converter.convertArray2NGon(coords)
-        mesh = intersector.closeCells(coords)
+    meshes = []
+    zids   = []
 
-        # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes')
+    for z in zs:
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      if m ==[] : continue
+
+      meshes.append(m)
+
+      zid=CD.getProperty(z, 'zid')
+      zids.append(zid)
+
+    zidDict={}
+    zs = Internal.getZones(t)
+    for z in zs:
+      zidDict[z[0]]=CD.getProperty(z, 'zid')
+
+    #
+    zid_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
+
+    rid_to_zones = getRidToZones(t, zidDict)
+
+    # SEQ or open-MP processing across joins
+    meshes = intersector.closeCells(meshes, zids, zid_to_rid_to_list_owned, rid_to_zones)
+
+    # associate zid and closed mesh
+    zid_to_m = {}
+    for i in range(len(zids)) :
+      zid = zids[i]
+      m = meshes[i]
+      zid_to_m[zid]=m
+
+    for z in zs : 
+      zid = CD.getProperty(z, 'zid')
+      m = zid_to_m[zid]
+      # MAJ du maillage de la zone
+      C.setFields([m], z, 'nodes')
+
+    Internal._rmNodesByName(t, 'zid')
+    Internal._rmNodesByName(t, 'rid')
 
     return t
 
