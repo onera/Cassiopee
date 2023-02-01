@@ -734,7 +734,7 @@ Overset connectivity
     
     Interpolation data are stored as a ZoneSubRegion_t node, stored under the donor or receptor zone node depending of the storage.
 
-    Exists also as in place version (_setInterpData2) that modifies a and return None.
+    Exists also as in place version (_setInterpData) that modifies a and return None.
     Exists also as parallel distributed version (X.Mpi.setInterpData and X.Mpi._setInterpData).
 
     *Example of use:* 
@@ -754,7 +754,6 @@ Overset connectivity
     Interpolation order can be 2, 3 or 5 for structured donor zones, only order=2 for unstructured donor zones is performed.
 
     Parameter loc can 'nodes' or 'centers', meaning that interpolated fields in aR will be located at nodes/centers respectively
-
 
     .. warning:: currently, no periodic Chimera taken into account by this function automatically.
     

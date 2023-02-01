@@ -681,7 +681,7 @@ class Probe:
             if Cmpi.rank != self._proc: return None
             print('Info: probe: flush #%d [%s].'%(self._filecur, self._fileName))
             self.flush__()
-        elif self._mode==4:
+        elif self._mode == 4:
             print('Info: probe: flush #%d [%s].'%(self._filecur, self._fileName))
             self.flush__()
         else:

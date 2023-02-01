@@ -648,7 +648,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 
     # 7. remise des donnees interpolees chez les zones receveuses
     # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
-    Cmpi.trace("7. transfer2")
+    #Cmpi.trace("7. transfer2")
     for i in rcvDatas:
         for n in rcvDatas[i]:
             zrcvname = n[0]

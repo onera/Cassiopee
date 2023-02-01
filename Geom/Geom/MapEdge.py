@@ -197,7 +197,7 @@ def buildDistrib(h1, h2, N):
     a = G.cart((0,0,0), (h2,1,1), (Ni,1,1))
     a[1][0,Ni-2] = 1.-h2
     a[1][0,Ni-1] = 1.
-    b = G.enforcePlusX(a, h1, (Ni-2,N-Ni-1))
+    b = G.enforcePlusX(a, h1, (Ni-2,N-Ni-1), verbose=False)
     return b
 
 # moyenne ponderee de hl

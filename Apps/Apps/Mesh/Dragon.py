@@ -66,9 +66,9 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     # pour un seul plan de symetrie, on symetrise la geometrie pour assurer que l octree se decoupe sur ce plan
     if nbsyms == 1:
         if sym == 'X': syms = T.symetrize(body, (Locsyms[0],0.,0.), (0,1,0), (0,0,1))
-        if sym == 'Y': syms = T.symetrize(body, (0.,Locsyms[0],0.), (1,0,0), (0,0,1))
-        if sym == 'Z': syms = T.symetrize(body, (0.,0.,Locsyms[0]), (1,0,0), (0,1,0))
-        syms[0]='syms'
+        elif sym == 'Y': syms = T.symetrize(body, (0.,Locsyms[0],0.), (1,0,0), (0,0,1))
+        elif sym == 'Z': syms = T.symetrize(body, (0.,0.,Locsyms[0]), (1,0,0), (0,1,0))
+        syms[0] = 'syms'
         body = T.join(body,syms); G._close(body,tol=4.e-5)
 
     T._reorderAll(body, dir=1)
@@ -85,7 +85,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     sizemax = 0.
     box = G.bbox(body)
     sizemax = max(sizemax,abs(box[3]-box[0]),abs(box[4]-box[1]),abs(box[5]-box[2]));print('sizemax=',sizemax)
-    if (snear < 0):
+    if snear < 0:
         G._getNormalMap(body)
         C._magnitude(body, ['centers:sx','centers:sy','centers:sz'])
         meanarea = C.getMeanValue(body,'centers:sMagnitude')
@@ -127,7 +127,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
         s = ext[-1]
     s = T.breakElements(s)[0]
     s = T.splitConnexity(s)[-1]
-    T._reorderAll(s,dir=1)
+    T._reorderAll(s, dir=1)
     if check: C.convertPyTree2File(s, directory_tmp_files+'externalLayer.cgns')
 
     # Generation de l octree 3D
@@ -216,14 +216,14 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     if check: C.convertPyTree2File(ext, directory_tmp_files+'ext2Watch.cgns')
 
     # Selectionne la bonne frontiere (celle proche corps)
-    if nbsyms!=2:
+    if nbsyms != 2:
         ext2 = G.getVolumeMap(ext)
         minsize = C.getMinValue(ext2,'centers:vol')**0.5
 
         ext = C.newPyTree(['Base'])
         for e in ext2:
             meansize = C.getMeanValue(e,'centers:vol')**0.5
-            if abs(meansize-minsize)<eps: ext[2][1][2].append(e)
+            if abs(meansize-minsize) < eps: ext[2][1][2].append(e)
         
         ext = T.join(ext)
     else:
@@ -253,7 +253,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     # Remplit l'espace entre l'exterieur faces, la surface et le remplissage tri sur le(s) plan(s) de symetrie
     print('Tetra filling...')
     ext = XOR.conformUnstr(ext, tol=0., itermax=1); ext = T.splitManifold(ext)
-    if (len(ext)>1): print("Warning: Tetra/octree border has manifolds. Tetra mesher might fail.")
+    if len(ext) > 1: print("Warning: Tetra/octree border has manifolds. Tetra mesher might fail.")
     ext = ext[0]
     T._reorderAll(ext, dir=1)
     T._reorderAll(s, dir=-1)
@@ -277,7 +277,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
         
         surfsym1 = G.tetraMesher(surfsmin, grading=0.2, maxh=0.5*snear, algo=1)
         s_in += [surfsym1]
-        if nbsyms==2:
+        if nbsyms == 2:
             surfsym2 = G.tetraMesher(surfsmax, grading=0.2, maxh=0.5*snear, algo=1)
             s_in += [surfsym2]
 
@@ -317,10 +317,10 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     ext = T.splitSharpEdges(ext, alphaRef=90.)
     for zone in Internal.getByType(ext,'Zone_t')[2]:
         if C.getMaxValue(zone,'CoordinateX') != XMax_surf: bc[2][1][2].append(zone)
-    bc2=T.splitSharpEdges(bc, alphaRef=30.)
+    bc2 = T.splitSharpEdges(bc, alphaRef=30.)
 
     for zone in Internal.getByType(bc,'Zone_t')[2]:
-        if (C.getMaxValue(zone,'CoordinateX') == xp and C.getMaxValue(zone,'CoordinateY') == yp):
+        if C.getMaxValue(zone,'CoordinateX') == xp and C.getMaxValue(zone,'CoordinateY') == yp:
             Internal._rmNode(bc,zone)
     for zone in Internal.getByType(bc2,'Zone_t')[2]:
         bc[2][1][2].append(zone)
@@ -332,12 +332,12 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
         dimax = Internal.getZoneDim(zone)[1] - 1
         bary = G.barycenter(zone)
         #print(zone[0],dimax,bary)
-        if abs(bary[0] - xm) < eps : C._addBC2Zone(m,'IN','FamilySpecified:IN',subzone=zone); #print('Xmin')
-        if abs(bary[0] - xp) < eps : C._addBC2Zone(m,'OUT','FamilySpecified:OUT',subzone=zone); #print('Xmax')
-        if abs(bary[1] - ym) < eps : C._addBC2Zone(m,'DOWN','FamilySpecified:DOWN',subzone=zone); #print('Ymin')
-        if abs(bary[1] - yp) < eps : C._addBC2Zone(m,'TOP','FamilySpecified:TOP',subzone=zone); #print('Ymax')
-        if abs(bary[2] - zm) < eps : C._addBC2Zone(m,'RIGHT','FamilySpecified:RIGHT',subzone=zone); #print('Zmin')
-        if abs(bary[2] - zp) < eps : C._addBC2Zone(m,'LEFT','FamilySpecified:LEFT',subzone=zone); #print('Zmax')
+        if abs(bary[0] - xm) < eps: C._addBC2Zone(m,'IN','FamilySpecified:IN',subzone=zone); #print('Xmin')
+        if abs(bary[0] - xp) < eps: C._addBC2Zone(m,'OUT','FamilySpecified:OUT',subzone=zone); #print('Xmax')
+        if abs(bary[1] - ym) < eps: C._addBC2Zone(m,'DOWN','FamilySpecified:DOWN',subzone=zone); #print('Ymin')
+        if abs(bary[1] - yp) < eps: C._addBC2Zone(m,'TOP','FamilySpecified:TOP',subzone=zone); #print('Ymax')
+        if abs(bary[2] - zm) < eps: C._addBC2Zone(m,'RIGHT','FamilySpecified:RIGHT',subzone=zone); #print('Zmin')
+        if abs(bary[2] - zp) < eps: C._addBC2Zone(m,'LEFT','FamilySpecified:LEFT',subzone=zone); #print('Zmax')
 
     C._fillEmptyBCWith(m,'WALL', 'FamilySpecified:WALL')
 
@@ -346,7 +346,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     print('add families')
     base = Internal.getNodeFromType(tp,'CGNSBase_t')
     #print(base)
-    if nbsyms>0:
+    if nbsyms > 0:
         C._addFamily2Base(base, 'RIGHT', bndType='BCSymmetryPlane')
         if nbsyms == 2: C._addFamily2Base(base, 'LEFT', bndType='BCSymmetryPlane')
         if nbsyms == 1: C._addFamily2Base(base, 'LEFT', bndType='BCFarfield')
@@ -423,7 +423,6 @@ def createDragonMeshForBladeInChannel(aube, dictOfParams={}, check=False, direct
     line_aube_spin = lines_ext_aube[0];T._reorder(line_aube_spin,(-1,2,3))
     line_aube_cart = lines_ext_aube[1];T._reorder(line_aube_cart,(-1,2,3))
 
-    
     dim = C.getNPts(line_aube_spin)
     zmin_aube_spin = C.getMinValue(line_aube_spin,'CoordinateZ')
     zmax_aube_spin = C.getMaxValue(line_aube_spin,'CoordinateZ')
@@ -471,7 +470,6 @@ def createDragonMeshForBladeInChannel(aube, dictOfParams={}, check=False, direct
     surf_cart = D.axisym(line_cart, centre, axis, angle=360./nb_aubes_fan, Ntheta=30); surf_cart[0]='CART'
     surf_perio1 = perio; surf_perio1 = C.convertArray2Tetra(surf_perio1); surf_perio1[0]='PERIO1'
     surf_perio2 = T.rotate(perio, centre, axis, 360./nb_aubes_fan); surf_perio2 = C.convertArray2Tetra(surf_perio2); surf_perio2[0]='PERIO2'
-
 
     tmp = C.newPyTree(['Base',surf_spin,surf_cart,surf_amont,surf_aval,surf_perio1,surf_perio2])
 
@@ -611,10 +609,10 @@ def createDragonMeshForBladeInChannel(aube, dictOfParams={}, check=False, direct
             coord = numpy.array(C.getValue(seg, 'GridCoordinates', (2,1,1)))#; print(coord)
             coordproj = numpy.array(C.getValue(segproj, 'GridCoordinates', (2,1,1)))#; print(coordproj)
             if numpy.allclose(coord,coordproj, atol=1.e-3):
-               if surfproj[0]=='AMONT':line_spin_amont.append(seg)
-               if surfproj[0]=='AVAL':line_spin_aval.append(seg)
-               if surfproj[0]=='PERIO1':line_spin_perio1.append(seg)
-               if surfproj[0]=='PERIO2':line_spin_perio2.append(seg)
+               if surfproj[0]=='AMONT': line_spin_amont.append(seg)
+               if surfproj[0]=='AVAL': line_spin_aval.append(seg)
+               if surfproj[0]=='PERIO1': line_spin_perio1.append(seg)
+               if surfproj[0]=='PERIO2': line_spin_perio2.append(seg)
 
 
     line_spin_amont = T.join(line_spin_amont)
