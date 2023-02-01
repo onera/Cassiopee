@@ -1038,6 +1038,25 @@ def _addIBCCoords2__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, b
 
     return None
 
+def setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
+    aD = Internal.copyRef(tD)
+    aR = Internal.copyRef(tR)
+    _setInterpData2(aR, aD, order=order, loc=loc, cartesian=cartesian)
+    return aD
+
+def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
+    if cartesian: interpDataType = 0
+    else: interpDataType = 1
+
+    if loc == 'nodes': varcelln = 'cellN'
+    else: varcelln = 'centers:cellN'    
+    cellNPresent = C.isNamePresent(aR, varcelln)
+    if cellNPresent==-1: C._initVars(aR, varcelln, 2.) # interp all
+    _setInterpData(aR, aD, double_wall=0, order=order, penalty=1, nature=1,
+                   method='lagrangian', loc=loc, storage='inverse', 
+                   interpDataType=interpDataType, sameName=0, itype="chimera")
+    if cellNPresent==-1: C._rmVars(aR, [varcelln])
+    return None
 #==============================================================================
 # Calcul des donnees d'interpolation et stockage dans l'arbre CGNS/Python
 # ----------------------------------------------------------------------------

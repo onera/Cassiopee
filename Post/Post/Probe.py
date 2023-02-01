@@ -296,72 +296,9 @@ class Probe:
     # Prepare for mode=3
     def prepare(self, tc, cartesian=False):
         tcs = Internal.copyRef(tc)
-        # Clean previous IDs if necessary
-        Internal._rmNodesFromType(tcs, 'ZoneSubRegion_t')
-        Internal._rmNodesFromName(tcs, 'GridCoordinates#Init')
-        
-        if cartesian: interpDataType = 0 # 0 if tc is cartesian
-        else: interpDataType = 1
-
-        # Compute BBoxTrees
-        tsBB = Cmpi.createBBoxTree(self._ts)
-        procDicts = Cmpi.getProcDict(tsBB)
-        tcsBB = Cmpi.createBBoxTree(tcs)
-        procDictcs = Cmpi.getProcDict(tcsBB)
-        interDicts = X.getIntersectingDomains(tsBB, tcsBB)
-        interDictD2R = X.getIntersectingDomains(tcsBB, tsBB)
-
-        graph = Cmpi.computeGraph(tcsBB, type='bbox3', intersectionsDict=interDictD2R,
-                                  procDict=procDictcs, procDict2=procDicts, t2=tsBB, reduction=True)
-        graph2 = Cmpi.computeGraph(tsBB, type='bbox3', intersectionsDict=interDicts,
-                              procDict=procDicts, procDict2=procDictcs, t2=tcsBB, reduction=True)
-        Cmpi._addXZones(tcs, graph, variables=['cellN'], cartesian=cartesian, subr=False, keepOldNodes=False)
-
-        datas = {}
-        for zs in Internal.getZones(self._ts):
-            zrname = Internal.getName(zs)
-            dnrZones = []
-            for zdname in interDicts[zrname]:
-                zd = Internal.getNodeFromName2(tcs, zdname)
-                dnrZones.append(zd)
-            C._initVars(zs, 'cellN', 2.) # interp all
-            if dnrZones != []:
-                X._setInterpData(zs, dnrZones, nature=1, penalty=1, loc='nodes', storage='inverse',
-                                 sameName=0, interpDataType=interpDataType, itype='chimera')
-
-            for zd in dnrZones:
-                zdname = zd[0]
-                destProc = procDictcs[zdname]
-        
-                IDs = []
-                for i in zd[2]:
-                    if i[0][0:2] == 'ID':
-                        if Internal.getValue(i) == zrname: IDs.append(i)
-
-                if IDs != []:
-                    if destProc == Cmpi.rank:
-                        zD = Internal.getNodeFromName2(tcs, zdname)
-                        zD[2] += IDs
-                    else:
-                        if destProc not in datas: datas[destProc] = [[zdname,IDs]]
-                        else: datas[destProc].append([zdname,IDs])
-                else:
-                    if destProc not in datas: datas[destProc] = []
-
-        Cmpi._rmXZones(tcs)
-        destDatas = Cmpi.sendRecv(datas, graph2)
-        for i in destDatas:
-            for n in destDatas[i]:
-                zname = n[0]
-                IDs = n[1]
-                if IDs != []:
-                    zD = Internal.getNodeFromName2(tcs, zname)
-                    zD[2] += IDs
-        datas = {}; destDatas = None
-        
-        #Cmpi.convertPyTree2File(tcs, "tcs.cgns", ignoreProcNodes=True)
+        Xmpi._setInterpData2(self._ts, tcs, loc='nodes', cartesian=cartesian)
         return tcs
-
+ 
     # Check file, if it doesnt exist, write probe zone in it
     # else get the filecur
     # IN: _proc: proc of probe

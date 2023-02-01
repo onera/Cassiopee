@@ -54,6 +54,7 @@ List of functions
 
    Connector.PyTree.cellN2OversetHoles
    Connector.PyTree.setInterpData
+   Connector.PyTree.setInterpData2
    Connector.PyTree.getOversetInfo
    Connector.PyTree.extractChimeraInfo
 
@@ -732,12 +733,40 @@ Overset connectivity
     .. warning:: currently, no periodic Chimera taken into account by this function automatically.
     
     Interpolation data are stored as a ZoneSubRegion_t node, stored under the donor or receptor zone node depending of the storage.
-    
+
+    Exists also as in place version (_setInterpData2) that modifies a and return None.
+    Exists also as parallel distributed version (X.Mpi.setInterpData and X.Mpi._setInterpData).
+
     *Example of use:* 
 
     * `Compute interpolation connectivity (pyTree) <Examples/Connector/setInterpDataPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Connector/setInterpDataPT.py 
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+.. py:function:: Connector.PyTree.setInterpData2(aR, aD, order=2, loc='centers', cartesian=False)
+
+    Compute and store in a pyTree the interpolation data between two trees/bases/zones and store them in aD.
+    Only points from aR that are cellN=2 are interpolated. If cellN is not defined in aR, all the points are interpolated.
+    Donor zones can be either structured or TETRA while receptor zones can be either structured or unstructured.
+
+    Interpolation order can be 2, 3 or 5 for structured donor zones, only order=2 for unstructured donor zones is performed.
+
+    Parameter loc can 'nodes' or 'centers', meaning that interpolated fields in aR will be located at nodes/centers respectively
+
+
+    .. warning:: currently, no periodic Chimera taken into account by this function automatically.
+    
+    Interpolation data are stored as a ZoneSubRegion_t node, stored under the donor or receptor zone node depending of the storage.
+    
+    Exists also as in place version (_setInterpData2) that modifies a and return None.
+    Exists also as parallel distributed version (X.Mpi.setInterpData2 and X.Mpi._setInterpData2).
+    *Example of use:* 
+
+    * `Compute interpolation connectivity (pyTree) <Examples/Connector/setInterpData2PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/setInterpData2PT.py 
 
 -----------------------------------------------------------------------------------------------------------------------------
 
@@ -1027,7 +1056,8 @@ Overset and Immersed Boundary transfers with pyTrees
     +-------------------------+-----------------------------------------------------------------------------------------------------------+
 
     Exists also as an in-place function (X._setInterpTransfers):
-
+    Exists also as a parallel distributed function (X.Mpi._setInterpTransfers)
+    
      *Example of use:* 
 
     * `Transfers the solution from donor zones to receptor zones (pyTree) <Examples/Connector/setInterpTransfersPT.py>`_:

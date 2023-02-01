@@ -648,7 +648,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 
     # 7. remise des donnees interpolees chez les zones receveuses
     # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
-    #Cmpi.trace("7. transfer2")
+    Cmpi.trace("7. transfer2")
     for i in rcvDatas:
         for n in rcvDatas[i]:
             zrcvname = n[0]
@@ -666,8 +666,9 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         z = t[2][nob][2][noz]
         allInterpFields = dictOfFields[zrcvname]
         indicesI = dictOfIndices[zrcvname]
+        
         C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol', verbose=1)
-
+        
     #Cmpi.trace("8. transfer2 end")
     return None
 
@@ -816,6 +817,86 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                     zD[2] += IDs
         datas = {}; destDatas = None
 
+    return None
+
+def setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
+    aD = Internal.copyRef(tD)
+    aR = Internal.copyRef(tR)
+    _setInterpData2(aR, aD, order=order, loc=loc, cartesian=cartesian)
+    return aD
+
+def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
+
+    if loc == 'nodes': varcelln = 'cellN'
+    else: varcelln = 'centers:cellN'    
+
+    # Clean previous IDs if necessary
+    Internal._rmNodesFromType(tD, 'ZoneSubRegion_t')
+    Internal._rmNodesFromName(tD, 'GridCoordinates#Init')
+        
+    if cartesian: interpDataType = 0 # 0 if tc is cartesian
+    else: interpDataType = 1
+    locR = loc
+    # Compute BBoxTrees
+    tsBB = Cmpi.createBBoxTree(tR)
+    procDicts = Cmpi.getProcDict(tsBB)
+    tDBB = Cmpi.createBBoxTree(tD)
+    procDictD = Cmpi.getProcDict(tDBB)
+    interDicts = X.getIntersectingDomains(tsBB, tDBB)
+    interDictD2R = X.getIntersectingDomains(tDBB, tsBB)
+
+    graph = Cmpi.computeGraph(tDBB, type='bbox3', intersectionsDict=interDictD2R,
+                            procDict=procDictD, procDict2=procDicts, t2=tsBB, reduction=True)
+    graph2 = Cmpi.computeGraph(tsBB, type='bbox3', intersectionsDict=interDicts,
+                            procDict=procDicts, procDict2=procDictD, t2=tDBB, reduction=True)
+    Cmpi._addXZones(tD, graph, variables=['cellN'], cartesian=cartesian, subr=False, keepOldNodes=False)
+
+    datas = {}
+    for zs in Internal.getZones(tR):
+        zrname = Internal.getName(zs)
+        dnrZones = []
+        for zdname in interDicts[zrname]:
+            zd = Internal.getNodeFromName2(tD, zdname)
+            dnrZones.append(zd)
+
+        cellNPresent = C.isNamePresent(zs, varcelln)
+        if cellNPresent==-1: C._initVars(zs, varcelln, 2.) # interp all
+
+        if dnrZones != []:
+            X._setInterpData(zs, dnrZones, nature=1, penalty=1, order=order, loc=locR, storage='inverse',
+                             sameName=0, interpDataType=interpDataType, itype='chimera')
+        if cellNPresent == -1:
+            C._rmVars(zs, [varcelln])
+        for zd in dnrZones:
+            zdname = zd[0]
+            destProc = procDictD[zdname]
+    
+            IDs = []
+            for i in zd[2]:
+                if i[0][0:2] == 'ID':
+                    if Internal.getValue(i) == zrname: IDs.append(i)
+
+            if IDs != []:
+                if destProc == Cmpi.rank:
+                    zD = Internal.getNodeFromName2(tD, zdname)
+                    zD[2] += IDs
+                else:
+                    if destProc not in datas: datas[destProc] = [[zdname,IDs]]
+                    else: datas[destProc].append([zdname,IDs])
+            else:
+                if destProc not in datas: datas[destProc] = []
+
+    Cmpi._rmXZones(tD)
+    destDatas = Cmpi.sendRecv(datas, graph2)
+    for i in destDatas:
+        for n in destDatas[i]:
+            zname = n[0]
+            IDs = n[1]
+            if IDs != []:
+                zD = Internal.getNodeFromName2(tD, zname)
+                zD[2] += IDs
+    datas = {}; destDatas = None
+    
     return None
 
 
