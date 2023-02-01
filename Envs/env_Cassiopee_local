@@ -99,7 +99,7 @@ else if ($MAC == "ld_eos8") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
-        
+
 else if ($MAC == "ld") then
 #-------------------------- ld centos 7 + python 3 -----------------------------
         setenv ELSAPROD x86_r8
@@ -122,7 +122,7 @@ else if ($MAC == "ld") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL /d/benoit/.local/lib/python3.6/site-packages:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
-        
+
 else if ($MAC == "ld_python2") then
 #----------------------------- ld centos 7 -------------------------------------
         setenv ELSAPROD x86_r8
@@ -303,7 +303,7 @@ else if ($MAC == "visung") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /stck/benoit/opencascade2/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8/lib:/opt/tools/intel/studio/2017/compilers_and_libraries_2017.4.196/linux/mpi/intel64/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
-	
+
 else if ($MAC == "tiamat") then
 #------------------------------- tiamat ---------------------------------------
         setenv ELSAPROD tia_r8
@@ -463,7 +463,7 @@ else if ($MAC == "tgcc_irene") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
-	
+
 else if ($MAC == "eos") then
 #-------------------------------- ld (centos6) -----------------------------------------
         ELSAPROD x86_r8
@@ -679,7 +679,7 @@ else if ($MAC == "spiro_anaconda") then
         module load hdf5/1.8.17-intel-17
         module load anaconda/2021.05
         module load subversion/1.14.1-gnu830
-        
+
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
@@ -728,14 +728,44 @@ else if ($MAC == "spiro_coda") then
         module load gcc-11.2.0-gcc-8.3.0-gyasbs4
         module load openmpi/4.0.1-gcc-8.3
         module load subversion/1.14.1-gnu830
-        
+
         set filesystem_view_dir=/scratchm/rhea/opt/dev_coda_spliss_2022_01
         setenv PATH $filesystem_view_dir/bin:$PATH
         setenv LD_LIBRARY_PATH $filesystem_view_dir/lib:$filesystem_view_dir/lib64:$LD_LIBRARY_PATH
         setenv PYTHONPATH $filesystem_view_dir/lib/python3.9/site-packages/:$PYTHONPATH
         setenv CMAKE_PREFIX_PATH "$filesystem_view_dir":"$CMAKE_PREFIX_PATH"
         setenv CODA_MESH_INPUT_DIRECTORY /stck/rhea/test_cases/rhea_meshes
-        
+
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.9/site-packages
+
+else if ($MAC == "spiro_coda_el8") then
+#------------------------------- spiro --------------------------------------
+        setenv ELSAPROD spiro_coda_el8
+        # Number of threads
+        setenv OMP_NUM_THREADS 24
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+
+        module purge
+        setenv CONFIG_SPACK_ROOT /stck/rhea/prod/spacky_2022-centos8
+        source $CONFIG_SPACK_ROOT/external/spack/share/spack/setup-env.csh
+
+        module load gcc/10.2.0
+        #module load openmpi/4.0.5-gnu1020
+        module load openmpi/4.1.1-gnu831-cuda112
+        module load subversion/1.14.1-gnu831
+
+        set filesystem_view_dir=/stck/rhea/dev_coda_spliss_gcc_openmpi_el8
+        setenv PATH $filesystem_view_dir/bin:$PATH
+        setenv LD_LIBRARY_PATH $filesystem_view_dir/lib:$filesystem_view_dir/lib64:$LD_LIBRARY_PATH
+        setenv PYTHONPATH $filesystem_view_dir/lib/python3.9/site-packages/:$PYTHONPATH
+        setenv CMAKE_PREFIX_PATH "$filesystem_view_dir":"$CMAKE_PREFIX_PATH"
+        setenv CODA_MESH_INPUT_DIRECTORY /stck/rhea/test_cases/rhea_meshes
+
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
@@ -752,7 +782,7 @@ else if ($MAC == "sator_brw") then
         module load hdf5/1.10.5-intel2120-impi
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
-        unsetenv I_MPI_PMI_LIBRARY 
+        unsetenv I_MPI_PMI_LIBRARY
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
@@ -769,7 +799,7 @@ else if ($MAC == "sator_sky") then
         module purge
         #module load socle-cfd/5.0-intel2120-impi
         module load python/3.7.4-intel2120
-        module load hdf5/1.10.5-intel2120-impi    
+        module load hdf5/1.10.5-intel2120-impi
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         unsetenv I_MPI_PMI_LIBRARY
@@ -789,10 +819,10 @@ else if ($MAC == "sator_cas") then
         module purge
         #module load socle-cfd/5.0-intel2120-impi
         module load python/3.7.4-intel2120
-        module load hdf5/1.10.5-intel2120-impi 
+        module load hdf5/1.10.5-intel2120-impi
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
-        unsetenv I_MPI_PMI_LIBRARY 
+        unsetenv I_MPI_PMI_LIBRARY
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
@@ -816,7 +846,7 @@ else
 #        echo '->var detected; not added'
         breaksw
     default:
-#        echo $LD_LIBRARY_PATH, $STE 
+#        echo $LD_LIBRARY_PATH, $STE
         setenv LD_LIBRARY_PATH "$STE":"$LD_LIBRARY_PATH"
         breaksw
     endsw
@@ -833,7 +863,7 @@ else
 #        echo '->var detected; not added'
         breaksw
     default:
-#        echo $PYTHONPATH, $STE 
+#        echo $PYTHONPATH, $STE
         setenv PYTHONPATH "$STE":"$PYTHONPATH"
         breaksw
     endsw
