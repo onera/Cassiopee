@@ -118,7 +118,7 @@ Setting Snear & Dfar
 
 
 
-   .. py:function:: Geom.IBM.getDfarOpt(tb, vmin, snear, factor=10, nlevel=-1)
+    .. .. py:function:: Geom.IBM.getDfarOpt(tb, vmin, snear, factor=10, nlevel=-1)
 
        Computes the optimal dfar to get the exact snear.
 
@@ -212,7 +212,7 @@ Setting IBC Type
 
     *Example of use:*
     
-    * `Change the type of IBC (pyTree) <Examples/Geom/setFluidInsidePT.py>`_:
+    * `Define fluid inside surface (pyTree) <Examples/Geom/setFluidInsidePT.py>`_:
     
     .. literalinclude:: ../build/Examples/Geom/setFluidInsidePT.py
 

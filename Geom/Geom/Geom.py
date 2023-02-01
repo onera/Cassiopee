@@ -7,7 +7,7 @@ from . import geom
 import numpy
 import KCore.Vector as Vector
 
-from .MapEdge import enforceh, uniformize, refine, setH, setF, enforce, smooth, mapCurvature, enforceh3D
+from .MapEdge import enforceh, uniformize, refine, setH, setF, enforce, distrib1, distrib2, smooth, mapCurvature, enforceh3D
 
 try: range = xrange
 except: pass

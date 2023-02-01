@@ -2,7 +2,7 @@
 import math
 
 # Mesh size comme pointwise (turbulent)
-def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1):
+def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1.):
     ReInf = RoInf*UInf*LInf/MuInf
     Cf = 0.026/ReInf**(1./7.)
     tauw = Cf*RoInf*(UInf**2)/2.
@@ -13,13 +13,13 @@ def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1):
     return hp
 
 # a partir du Reynolds
-def meshSize2(UInf, RoInf, ReInf, LInf, yplus=1):
+def meshSize2(UInf, RoInf, ReInf, LInf, yplus=1.):
     MuInf = RoInf*UInf*LInf/ReInf
     return meshSize1(UInf, RoInf, MuInf, LInf, yplus)
 
 # Marco turbulent
 # avec correction de e/c = rapport de epaisseur sur corde
-def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1):
+def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     xsurL = 0.5
     MuInf = RoInf*UInf*LInf/ReInf
     correction = math.exp(4.5*pow(esurc, 1.3))
@@ -30,7 +30,7 @@ def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1):
     return hp
 
 # Marco laminaire
-def meshSize4(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1):
+def meshSize4(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     xsurL = 0.5
     MuInf = RoInf*UInf*LInf/ReInf
     correction = math.exp(4.5*pow(esurc, 1.3))
@@ -40,7 +40,7 @@ def meshSize4(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1):
     print('INFO: utau: %20.16g'%utau)
     return hp
 
-def meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1, algo='Turbulent'):
+def meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1., algo='Turbulent'):
     """Return the height of first wall cell to match a certain y+."""
     if algo == 'Turbulent':
         return meshSize2(UInf, RoInf, ReInf, LInf, yplus)

@@ -222,7 +222,8 @@ def TFIO(a):
     Nt = a[2]
     if Nt//2 - Nt*0.5 == 0: raise ValueError("TFIO: number of points must be odd.")
 
-    for j in range(-Nt//4,Nt//4+1):
+    step = int(Nt / 2 / 50)+1; print(step)
+    for j in range(-Nt//4, Nt//4+1, step):
         for i in range(3,10):
             try:
                 [m,m1,m2,m3,m4] = TFIO__(a, i, j)
@@ -230,8 +231,8 @@ def TFIO(a):
                 if score < optScore:
                     optWeight = i; optOffset = j; optScore = score
             except: pass
-    print('resulting weight=%g, offset=%g.'%(optWeight,optOffset))
-    print('resulting score=%g.'%optScore)
+    print('Info: TFIO: resulting weight=%g, offset=%g.'%(optWeight,optOffset))
+    print('Info: TFIO: resulting score=%g.'%optScore)
     return TFIO__(a, optWeight, optOffset)
 
 #==============================================================================
@@ -330,15 +331,17 @@ def TFIHalfO(a1, a2):
     Nt1 = a1[2]; Nt2 = a2[2]
     if Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0:
         raise ValueError("TFIHalfO: N1 and N2 must be odd.")
-    for j in range(-Nt2//8, Nt2//8):
-        for i in range(2,10):
+
+    step = int(Nt2 / 4 / 50)+1
+    for j in range(-Nt2//8, Nt2//8, step):
+        for i in range(2, 10):
             try:
                 [m,m1,m2,m3] = TFIHalfO__(a1, a2, i, j)
                 score = quality([m,m1,m2,m3])
                 if score < optScore:
                     optWeight = i; optScore = score; optOffset = j
             except: pass
-    print('resulting score=%g'%optScore)
+    print('Info: TFIHalfO; resulting score=%g'%optScore)
     return TFIHalfO__(a1, a2, optWeight, optOffset)
 
 #==============================================================================

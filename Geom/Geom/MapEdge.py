@@ -344,7 +344,7 @@ def enforceh__(a, N, h):
         sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))
         d = buildDistrib(h1, h2, Ps[x])
         c = G.map(sub, d)
-        if h < -0.5: 
+        if h < -0.5:
             setH(c, 0, sub[1][pos,0]); setH(c, -1, sub[1][pos,-1])
         out.append(c)
     out = T.join(out)
@@ -352,7 +352,7 @@ def enforceh__(a, N, h):
 
 # Enforce h at ind (STRUCT)
 def enforce(a, h, ind, supp, add):
-    """Enforce h in distribution."""
+    """Enforce h in a line. Return line."""
     c = D.getDistribution(a)
     L = D.getLength(a)
     if ind == 0: b = G.enforceMoinsX(c, h/L, supp, add)
@@ -360,6 +360,50 @@ def enforce(a, h, ind, supp, add):
     else: b = G.enforceX(c, c[1][0,ind], h/L, supp, add)
     a = G.map(a, c)
     return a
+
+# Enforce h everywhere in a line
+def distrib1(a, h, normalized=True):
+    """Enforce h in line. Return distribution."""
+    L = D.getLength(a)
+    N = int(L / h)+1 # correspondant a hf
+    if N <= 2: print('Error: distrib1: not enough point to remesh.')
+    a = G.cart((0,0,0), (h,1,1), (N,1,1)) # match h
+    if normalized: a = D.getDistribution(a)
+    return a
+
+# Enforce h1 and h2 at extremities in a dimensionned line
+# algo: 0 (tanh), 1 (geom)
+# Return distribution ready to map
+def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0):
+    """Enforce h1,h2 in line. Return distribution."""
+    L = D.getLength(a)
+
+    if algo == 0: # tanh
+        if h1 > h2:
+            N = int(L / h1)+1 # correspondant a hf
+            if N <= 2: print('Error: distrib2: not enough point to remesh.')
+            a = G.cart((0,0,0), (h1,1,1), (N,1,1)) # match h1
+            if forceAdd: a = G.enforceMoinsX(a, h2, (N-1, add)) # match h2
+            else: a = G.enforceMoinsX(a, h2, N-1, add) # match h2
+            if normalized: a = D.getDistribution(a)
+            return a
+        else:
+            N = int(L / h2)+1 # correspondant a hf
+            if N <= 2: print('Error: distrib2: not enough point to remesh.')
+            a = G.cart((0,0,0), (h2,1,1), (N,1,1)) # match h2
+            if forceAdd: a = G.enforcePlusX(a, h1, (N-1, add)) # match h1
+            else: a = G.enforcePlusX(a, h1, N-1, add)
+            if normalized: a = D.getDistribution(a)
+            return a
+    else: # geometrique
+        q = (L-h1)/(L-h2)
+        print("Info: distrib2: geometric progression: %g"%q)
+        N = numpy.log(h2/h1) / numpy.log(q)
+        N = int(N)+2
+        if N <= 2: print('Error: distrib2: not enough point to remesh.')
+        a = G.cartr1((0,0,0), (h1,1,1), (q,1,1), (N,1,1))
+        if normalized: a = D.getDistribution(a)
+        return a
 
 # Super smooth - OK
 def smooth(a, eps=0.1, niter=5, sharpAngle=30.):

@@ -396,6 +396,28 @@ def _refine(a, N=10, factor=-1, sharpAngle=30.):
     C._TZGC(a, 'nodes', Geom.refine, N, factor, sharpAngle)
     return None
 
+def distrib1(a, h, normalized=True):
+    """Enforce h everywhere in line. Return distribution."""
+    ap = Internal.copyRef(a)
+    _distrib1(ap, h, normalized)
+    return ap
+
+def _distrib1(a, h, normalized=True):
+    """Enforce h everywhere in line. Return distribution."""
+    C._TZA(a, 'nodes', 'nodes', Geom.distrib1, None, h, normalized)
+    return None
+
+def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0):
+    """Enforce h1,h2 in line. Return distribution."""
+    ap = Internal.copyRef(a)
+    _distrib2(ap, h1, h2, add, forceAdd, normalized, algo)
+    return ap
+
+def _distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0):
+    """Enforce h1,h2 in line. Return distribution."""
+    C._TZA(a, 'nodes', 'nodes', Geom.distrib2, None, h1, h2, add, forceAdd, normalized, algo)
+    return None
+
 def enforceh(a, N=100, h=-1.):
     """Remesh a 1D curve with imposed steps."""
     ap = Internal.copyRef(a)

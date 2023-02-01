@@ -73,7 +73,7 @@ class Probe:
                  ind=None, blockName=None,
                  tPermeable=None, 
                  fields=None, append=False, 
-                 bufferSize=100, writeCoords=True,modeForce=0):
+                 bufferSize=100, writeCoords=True, modeForce=0):
         """Create a probe."""
         self.init0()
         self._bsize = bufferSize
@@ -106,7 +106,7 @@ class Probe:
             self._ts = tPermeable
 
         elif modeForce == 4:
-            self._mode=4
+            self._mode = 4
 
         # Empilement de zones
         else: 

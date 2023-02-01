@@ -97,11 +97,9 @@ def isStdNode(node):
     if not isinstance(node, list): return -2
     if len(node) == 0: return 0
     node0 = node[0]
-    if (isinstance(node0, str) and len(node) == 4 and
-        isinstance(node[2], list)): return -1
+    if isinstance(node0, str) and len(node) == 4 and isinstance(node[2], list): return -1
     if not isinstance(node0, list): return -2
-    if (len(node0) == 4 and isinstance(node0[0], str) and 
-        isinstance(node0[2], list)): return 0
+    if len(node0) == 4 and isinstance(node0[0], str) and isinstance(node0[2], list): return 0
     return -2
 
 # -- typeOfNode
@@ -1773,6 +1771,7 @@ def getNodeFromName__(node, name):
 
 # Parcours un seul niveau de recursivite, node doit etre un noeud du pyTree
 def getNodeFromName1(node, name):
+    if node == [] or node is None: return None
     if node[0] == name: return node
     for c in node[2]:
         if c[0] == name: return c
@@ -1782,6 +1781,7 @@ getNodeByName1 = getNodeFromName1 # alias
 
 # node doit etre un noeud du pyTree
 def getNodeFromName2(node, name):
+    if node == [] or node is None: return None
     if node[0] == name: return node
     for c in node[2]:
         if c[0] == name: return c
@@ -1793,6 +1793,7 @@ getNodeByName2 = getNodeFromName2 # alias
 
 # node doit etre un noeud du pyTree
 def getNodeFromName3(node, name):
+    if node == [] or node is None: return None
     if node[0] == name: return node
     for c in node[2]:
         if c[0] == name: return c

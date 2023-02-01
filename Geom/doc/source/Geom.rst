@@ -76,6 +76,14 @@ List of functions
    .. Geom.volumeFromCrossSections
    .. Geom.addSeparationLine
 
+**-- 1D distributions**
+
+.. autosummary::
+
+    Geom.distrib1
+    Geom.distrib2
+    Geom.getDistribution
+   
 **-- Information about geometries**
 
 .. autosummary::
@@ -88,7 +96,6 @@ List of functions
    Geom.getCurvatureHeight
    Geom.getSharpestAngle
    Geom.getCurvilinearAbscissa
-   Geom.getDistribution
    Geom.getTangent
    Geom.getUV
 
@@ -964,6 +971,89 @@ Geometry modification
     .. literalinclude:: ../build/Examples/Geom/connect1DPT.py
 
 
+1D distributions
+------------------
+
+.. py:function:: Geom.distrib1(a, h, normalized=True)
+
+    Return the distribution enforcing h everywhere in curve a.
+
+    :param a: 1D mesh
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones] 
+    :param h: size to enforce
+    :type h: float
+    :param normalized: if True, return a normalized distribution
+    :type normalized: boolean
+    :return: the distribution of the curve as mesh coordinates with h enforced
+    :rtype: Identical to a
+
+    *Example of use:*
+
+    * `Distribution setting regular h (array) <Examples/Geom/distrib1.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/distrib1.py
+
+    * `Distribution setting regular h (pyTree) <Examples/Geom/distrib1PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/distrib1PT.py
+
+
+---------------------------------------
+
+.. py:function:: Geom.distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0)
+
+    Return the distribution enforcing h1 and h2 at curve a extremities.
+
+    :param a: 1D mesh
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones] 
+    :param h1: size to enforce at first extremity
+    :type h1: float
+    :param h2: size to enforce at second extremity
+    :type h2: float
+    :param add: when algo=0, number of points to add starting from regular distribution
+    :type add: integer
+    :param forceAdd: when algo=0, force add to be exact
+    :type forceAdd: boolean
+    :param normalized: if True, return a normalized distribution
+    :type normalized: boolean
+    :param algo: 0: hyperbolic tangent, 1: geometric
+    :type algo: integer
+    :return: the distribution of the curve as mesh coordinates with h enforced
+    :rtype: Identical to a
+
+    *Example of use:*
+
+    * `Distribution setting h1 and h2 (array) <Examples/Geom/distrib2.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/distrib2.py
+
+    * `Distribution setting h1 and h2 (pyTree) <Examples/Geom/distrib2PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/distrib2PT.py
+
+
+---------------------------------------
+
+.. py:function:: Geom.getDistribution(a)
+  
+    Return the distribution (curvilinear abscissa) of a curve as a mesh coordinates.
+    
+    :param a: 1D mesh
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones] 
+    :return: the distribution of the curve as mesh coordinates
+    :rtype: Identical to a
+
+    *Example of use:*
+
+    * `Distribution of a uniform NACA0012 profile (array) <Examples/Geom/getDistribution.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getDistribution.py
+
+    * `Distribution of a uniform NACA0012 profile (pyTree) <Examples/Geom/getDistributionPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getDistributionPT.py
+
+
 Information about geometries
 --------------------------------
 
@@ -1155,27 +1245,6 @@ all the points of the geometry.
     * `Curvilinear abscissa of a curve (pyTree) <Examples/Geom/getCurvilinearAbscissaPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/getCurvilinearAbscissaPT.py
-
----------------------------------------
-
-.. py:function:: Geom.getDistribution(a)
-  
-    Return the distribution (curvilinear abscissa) of a curve as a mesh coordinates.
-    
-    :param a: 1D mesh
-    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones] 
-    :return: the distribution of the curve as mesh coordinates
-    :rtype: Identical to a
-
-    *Example of use:*
-
-    * `Distribution of a uniform NACA0012 profile (array) <Examples/Geom/getDistribution.py>`_:
-
-    .. literalinclude:: ../build/Examples/Geom/getDistribution.py
-
-    * `Distribution of a uniform NACA0012 profile (pyTree) <Examples/Geom/getDistributionPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Geom/getDistributionPT.py
 
 ---------------------------------------
 
