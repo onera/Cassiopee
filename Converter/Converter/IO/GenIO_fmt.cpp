@@ -190,6 +190,78 @@ E_Int K_IO::GenIO::readGivenKeyword(FILE* ptrFile, const char* keyword1,
 
 //=============================================================================
 /*
+  Lit le ptrFile jusqu'a rencontrer keyword1 ou keyword2 ou keyword3 ou eof.
+  keyword1, keyword2, keyword3 doivent etre en majuscule.
+  Ignore les majuscules.
+  Retourne 1 si keyword1 a ete trouve en premier.
+  Retourne 2 si keyword2 a ete trouve en premier.
+  Retourne 3 si keyword3 a ete trouve en premier.
+  Retourne 0 si eof a ete atteint.
+*/
+//=============================================================================
+E_Int K_IO::GenIO::readGivenKeyword(FILE* ptrFile, const char* keyword1, 
+                                    const char* keyword2, const char *keyword3)
+{
+  E_Int i, a;
+  E_Int l1 = strlen(keyword1);
+  E_Int l2 = strlen(keyword2);
+  E_Int l3 = strlen(keyword3);
+  
+  char* word1 = new char [l1+1];
+  char* word2 = new char [l2+1];
+  char* word3 = new char [l3+1];
+  
+  for (i = 0; i < l1; i++) word1[i] = ' ';
+  word1[l1] = '\0';
+  for (i = 0; i < l2; i++) word2[i] = ' ';
+  word2[l2] = '\0';
+  for (i = 0; i < l3; i++) word3[i] = ' ';
+  word2[l3] = '\0';
+
+  char t;
+  t = fgetc(ptrFile);
+  
+  while (t != EOF)
+  {
+    for (a = 0; a < l1-1; a++) word1[a] = word1[a+1];
+    word1[l1-1] = toupper(t);
+    for (a = 0; a < l2-1; a++) word2[a] = word2[a+1];
+    word2[l2-1] = toupper(t);
+    for (a = 0; a < l3-1; a++) word3[a] = word3[a+1];
+    word3[l3-1] = toupper(t);
+  
+    if (strcmp(word1, keyword1) == 0)
+    {
+      //printf("%s\n", word1);
+      delete [] word1; delete [] word2; delete [] word3;
+      return 1;
+    }
+
+    if (strcmp(word2, keyword2) == 0)
+    {
+      //printf("%s\n", word2);
+      delete [] word1; delete [] word2; delete [] word3;
+      return 2;
+    }
+
+    if (strcmp(word3, keyword3) == 0)
+    {
+      //printf("%s\n", word3);
+      delete [] word1; delete [] word2; delete [] word3;
+      return 3;
+    }
+
+    t = fgetc(ptrFile);
+  }
+
+  delete [] word1; delete [] word2; delete [] word3;
+
+  if (t == EOF) return 0;
+  else return 1;
+}
+
+//=============================================================================
+/*
   Lit le ptrFile jusqu'a recontrer '=' ou atteindre la taille max du buffer.
   En cas de succes, retourne 0 et le Keyword dans buf.
   Sinon retourne 1.

@@ -279,7 +279,10 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->foamread(fileName, varString, 
                                                field, im, jm, km, 
                                                ufield, c, et, zoneNames,
-                                               BCFaces, BCNames);
+                                               BCFaces, BCNames,
+                                               varStringc,
+                                               fieldc,
+                                               ufieldc);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_cedre") == 0)
   {

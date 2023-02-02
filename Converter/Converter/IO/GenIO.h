@@ -28,6 +28,7 @@
 # include "Fld/FldArray.h"
 # include "Def/DefCplusPlusConst.h"
 # include "kPython.h"
+# include "Nuga/include/ngon_t.hxx"
 
 // Define ftell and fseek (long return)
 #ifdef _WIN64
@@ -278,7 +279,10 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
-      std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames);
+      std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames,
+      char*& varStringc,
+      std::vector<FldArrayF*>& centerStructField,
+      std::vector<FldArrayF*>& centerUnstructField);
     /** Write */
     E_Int foamwrite(
       char* file, char* dataFmt, char* varString,
@@ -291,12 +295,19 @@ class GenIO
       PyObject* BCFaces);
     E_Int foamWritePoints(char* file, FldArrayF& f);
     E_Int foamReadPoints(char* file, FldArrayF& f);
-    E_Int foamWriteFaces(char* file, FldArrayI& cn);
+    E_Int foamReadFields(char* file, std::vector<FldArrayF*>& centerUnstructField, E_Int ncells, char*& varStringc);
+    E_Int foamWriteFaces(char* file, const ngon_t<K_FLD::IntArray>& NG, const std::vector<E_Int>& faces);
     E_Int foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn);
-    E_Int foamWriteOwner(char* file, FldArrayI& PE);
+    E_Int foamWriteOwner(char* file, const K_FLD::IntArray& F2E, const std::vector<E_Int>& faces);
     E_Int foamReadOwner(char* file, FldArrayI& PE);
-    E_Int foamWriteNeighbour(char* file, FldArrayI& PE);
+    E_Int foamWriteNeighbour(char* file, const K_FLD::IntArray& F2E, const std::vector<E_Int>& faces, 
+      const E_Int ninternal_faces);
     E_Int foamReadNeighbour(char* file, FldArrayI& PE);
+    E_Int foamWriteBoundary(char* file, const std::vector<char*>& bc_names, 
+      const std::vector<E_Int>& bc_nfaces, const std::vector<E_Int>& bc_startfaces);
+    E_Int readScalarField(char *file, FldArrayF& f, E_Int idx);
+    E_Int readVectorField(char *file, FldArrayF& f, E_Int idx);
+    E_Int readTensorField(char *file, FldArrayF& f, E_Int idx);
     ///-
 
     ///+ Povray functions
@@ -855,6 +866,7 @@ class GenIO
     E_Int readWord(FILE* ptrFile, char* buf);
     E_Int readGivenKeyword(FILE* ptrFile, const char* keyword);
     E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1, const char* keyword2);
+    E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1, const char* keyword2, const char* keyword3);
     E_Int readKeyword(FILE* ptrFile, char* buf);
     E_Int readDataAndKeyword(
       FILE* ptrFile, char* buf,

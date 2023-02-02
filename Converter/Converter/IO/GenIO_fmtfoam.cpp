@@ -27,6 +27,7 @@
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
+#include <dirent.h>
 
 #if defined(_WIN32)
 # include <direct.h>
@@ -95,6 +96,117 @@ E_Int createSimpleFoamStructure(char* path)
   return 0;
 }
 
+E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx)
+{
+  FILE* ptrFile = fopen(file, "r");
+  assert(ptrFile);
+
+  E_Int ret;
+
+  ret = readGivenKeyword(ptrFile, "<SCALAR>");
+
+  skipLine(ptrFile);
+
+  char buf[1024];
+  readline(ptrFile, buf, 1024);
+  
+  E_Int ncells; E_Int pos=0;
+  readInt(buf, 1024, pos, ncells);
+
+  E_Float* fld = f.begin(idx);
+
+  skipLine(ptrFile);
+
+  for (E_Int i = 0; i < ncells; i++)
+  {
+    readline(ptrFile, buf, 1024); pos = 0;
+    ret = readDouble(buf, 1024, pos, fld[i]);
+  }
+  fclose(ptrFile);
+
+  return ncells;
+}
+
+E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx)
+{
+  FILE* ptrFile = fopen(file, "r");
+  assert(ptrFile);
+
+  E_Int ret;
+  readGivenKeyword(ptrFile, "<VECTOR>");
+  
+  skipLine(ptrFile);
+
+  char buf[1024];
+  readline(ptrFile, buf, 1024);
+  
+  E_Int ncells; E_Int pos=0;
+  readInt(buf, 1024, pos, ncells);
+
+  E_Float* fldx = f.begin(idx);
+  E_Float* fldy = f.begin(idx+1);
+  E_Float* fldz = f.begin(idx+2);
+
+  skipLine(ptrFile);
+
+  for (E_Int i = 0; i < ncells; i++)
+  {
+    readline(ptrFile, buf, 1024); pos = 1;
+    ret = readDouble(buf, 1024, pos, fldx[i]);
+    ret = readDouble(buf, 1024, pos, fldy[i]);
+    ret = readDouble(buf, 1024, pos, fldz[i]);
+  }
+  fclose(ptrFile);
+
+  return ncells;
+}
+
+E_Int K_IO::GenIO::readTensorField(char *file, FldArrayF& f, E_Int idx)
+{
+  FILE* ptrFile = fopen(file, "r");
+  assert(ptrFile);
+
+  E_Int ret;
+  readGivenKeyword(ptrFile, "<TENSOR>");
+  
+  skipLine(ptrFile);
+
+  char buf[1024];
+  readline(ptrFile, buf, 1024);
+  
+  E_Int ncells; E_Int pos=0;
+  readInt(buf, 1024, pos, ncells);
+
+  E_Float* fldxx = f.begin(idx);
+  E_Float* fldxy = f.begin(idx+1);
+  E_Float* fldxz = f.begin(idx+2);
+  E_Float* fldyx = f.begin(idx+3);
+  E_Float* fldyy = f.begin(idx+4);
+  E_Float* fldyz = f.begin(idx+5);
+  E_Float* fldzx = f.begin(idx+6);
+  E_Float* fldzy = f.begin(idx+7);
+  E_Float* fldzz = f.begin(idx+8);
+
+  skipLine(ptrFile);
+
+  for (E_Int i = 0; i < ncells; i++)
+  {
+    readline(ptrFile, buf, 1024); pos = 1;
+    ret = readDouble(buf, 1024, pos, fldxx[i]);
+    ret = readDouble(buf, 1024, pos, fldxy[i]);
+    ret = readDouble(buf, 1024, pos, fldxz[i]);
+    ret = readDouble(buf, 1024, pos, fldyx[i]);
+    ret = readDouble(buf, 1024, pos, fldyy[i]);
+    ret = readDouble(buf, 1024, pos, fldyz[i]);
+    ret = readDouble(buf, 1024, pos, fldzx[i]);
+    ret = readDouble(buf, 1024, pos, fldzy[i]);
+    ret = readDouble(buf, 1024, pos, fldzz[i]);
+  }
+  fclose(ptrFile);
+
+  return ncells;
+}
+
 //=============================================================================
 /* foamread */
 // Manque: commentaires
@@ -107,41 +219,37 @@ E_Int K_IO::GenIO::foamread(
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
   vector<E_Int>& eltType, vector<char*>& zoneNames,
-  vector<FldArrayI*>& BCFaces, vector<char*>& BCNames)
+  vector<FldArrayI*>& BCFaces, vector<char*>& BCNames,
+  char*& varStringc,
+  vector<FldArrayF*>& centerStructField,
+  vector<FldArrayF*>& centerUnstructField)
 {
-  printf("\nfoamread\n");
+  puts("\n");
 
   // Read points
   FldArrayF* f = new FldArrayF();
   foamReadPoints(file, *f);
-  //printf("points\n");
-  //for (E_Int i = 0; i < f.getSize(); i++) printf("%g %g %g\n", f(i,1), f(i,2), f(i,3));
 
   // Read NGON
   FldArrayI cNGon; E_Int nfaces;
   foamReadFaces(file, nfaces, cNGon);
-  //printf("NGON\n");
-  //fflush(stdout);
-  //for (E_Int i = 0; i < cNGON.getSize(); i++) printf("%d ", cNGON[i]);
-  //printf("\n"); fflush(stdout);
 
   // Allocate PE
   FldArrayI PE(nfaces, 2);
   foamReadOwner(file, PE);
-  //printf("PE 1 (owner)\n");
-  //fflush(stdout);
-  //for (E_Int i = 0; i < PE.getSize(); i++) printf("%d ", PE(i,1));
-  //printf("\n"); fflush(stdout);
-
   foamReadNeighbour(file, PE);
-  //printf("PE 2 (neighbour)\n");
-  //fflush(stdout);
-  //for (E_Int i = 0; i < PE.getSize(); i++) printf("%d ", PE(i,2));
-  //printf("\n"); fflush(stdout);
 
   // compute NFace
   FldArrayI cNFace; E_Int nelts;
   K_CONNECT::connectFE2NFace(PE, cNFace, nelts);
+#ifdef E_DOUBLEINT
+  printf("cells: %ld\n", nelts);
+#else
+  printf("cells: %d\n", nelts);
+#endif
+
+  // Read fields
+  foamReadFields(file, centerUnstructField, nelts, varStringc);
 
   // Merge
   E_Int sizeNGon = cNGon.getSize();
@@ -159,15 +267,443 @@ E_Int K_IO::GenIO::foamread(
   cnp += 2;
   for (E_Int i = 0; i < sizeNFace; i++) cnp[i] = cNFace[i];
   
+  
   // push in output
   unstructField.push_back(f);
   connect.push_back(cn);
   eltType.push_back(8); // NGon
   char* zoneName = new char [128];
-  strcpy(zoneName, "toto");
+  strcpy(zoneName, "FOAM_ZONE");
   zoneNames.push_back(zoneName);
+      
   varString = new char [16];
+  // add field names
   strcpy(varString, "x,y,z");
+
+  puts("");
+
+  return 0;
+}
+
+
+
+#define MAX_FIELDS 20
+
+E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUnstructField,
+  E_Int ncells, char*& varStringc)
+{
+  // identify latest time output folder
+  DIR *d;
+  struct dirent *dir;
+  d = opendir(file);
+
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  E_Float ret;
+  E_Float max_time = 0;
+  while (dir = readdir(d)) {
+    if (dir->d_type == DT_DIR) {
+      fullPath[0] = '\0';
+      strcat(fullPath, dir->d_name);
+      ret = atof(fullPath);
+      max_time = std::max(max_time, ret);
+    }
+  }
+  closedir(d);
+
+  // loop again and get fullPath
+  bool found = false;
+  char dir_name[10] = {0};
+  dir_name[0] = '\0';
+  d = opendir(file);
+  while (dir = readdir(d)) {
+    if (dir->d_type == DT_DIR) {
+      ret = atof(dir->d_name);
+      if (ret == max_time) {
+        sprintf(dir_name, "%s", dir->d_name);
+        found = true;
+      }
+      if (found) break;
+    }
+    if (found) break;
+  }
+  closedir(d);
+
+  fullPath[0] = '\0';
+  strcat(fullPath, file);
+  strcat(fullPath, "/");
+  strcat(fullPath, dir_name);
+  
+  d = opendir(fullPath);
+  assert(d);
+  varStringc = new char[1024];
+  varStringc[0] = '\0';
+
+  E_Int nflds = 0;
+  E_Int size = 0;
+  E_Int field_type[MAX_FIELDS] = {1}; // 1: scalar, 2: vector, 3: tensor
+  char field_name[MAX_FIELDS][128];
+
+  while (dir = readdir(d)) {
+    if (dir->d_type == DT_REG) {
+      // skip .swp files
+      if (dir->d_name[0] == '.') continue;
+      char path[1028];
+      strcpy(path, fullPath);
+      strcat(path, "/");
+      strcat(path, dir->d_name);
+      
+      // read only volScalarFields and volVectorFields
+      FILE *fh = fopen(path, "r");
+      assert(fh);
+      E_Int ret = readGivenKeyword(fh, "VOLSCALARFIELD", "VOLVECTORFIELD", "VOLTENSORFIELD");
+      if (ret == 1) { // volScalarField
+        strcpy(field_name[size], dir->d_name);
+
+        field_type[size] = 1;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, ",");
+
+        nflds++;
+        size++;
+      } else if (ret == 2) { // volVectorField
+        strcpy(field_name[size], dir->d_name);
+
+        field_type[size] = 2;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "x,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "y,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "z,");
+        nflds++;
+
+        size++;
+      } else if (ret == 3) { // volTensorField
+        strcpy(field_name[size], dir->d_name);
+
+        field_type[size] = 3;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "xx,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "xy,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "xz,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "yx,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "yy,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "yz,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "zx,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "zy,");
+        nflds++;
+
+        strcat(varStringc, field_name[size]);
+        strcat(varStringc, "zz,");
+        nflds++;
+
+        size++;
+      }
+      if (size == MAX_FIELDS) {
+        fprintf(stderr, "Trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
+        exit(1);
+      }
+      fclose(fh);
+    }
+  }
+  closedir(d);
+
+  // delete the last comma
+  varStringc[strlen(varStringc)-1] = '\0';
+
+  FldArrayF *F = new FldArrayF();
+  F->malloc(ncells, nflds);
+
+  d = opendir(fullPath);
+  assert(d);
+
+  E_Int idx = 1;
+  for (E_Int fld = 0; fld < size; fld++) {
+    if (field_type[fld] == 1) {
+      char path[1028];
+      strcpy(path, fullPath);
+      strcat(path, "/");
+      strcat(path, field_name[fld]);
+      assert(readScalarField(path, *F, idx) == ncells);
+      idx++;
+      printf("%s\n", field_name[fld]);
+    } else if (field_type[fld] == 2) {
+      char path[1028];
+      strcpy(path, fullPath);
+      strcat(path, "/");
+      strcat(path, field_name[fld]);
+      assert(readVectorField(path, *F, idx) == ncells);
+      idx += 3;
+      printf("%s\n", field_name[fld]);
+    } else if (field_type[fld] == 3) {
+      char path[1028];
+      strcpy(path, fullPath);
+      strcat(path, "/");
+      strcat(path, field_name[fld]);
+      assert(readTensorField(path, *F, idx) == ncells);
+      idx += 9;
+      printf("%s\n", field_name[fld]);
+    } else {
+      assert(false);
+    }
+  }
+
+  printf("Done reading fields.\n");
+  printf("%s\n", varStringc);
+
+  centerUnstructField.push_back(F);
+
+  return 0;
+}
+
+E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
+{
+  char fullPath[1024];
+  fullPath[0] = '\0';
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/points");
+  FILE* ptrFile = fopen(fullPath, "r");
+
+  E_Int ret;
+  readGivenKeyword(ptrFile, "FOAMFILE");
+  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
+
+  // Passe comments
+  char buf[1024]; E_Int l;
+  E_Boolean cont = true;
+  while (cont)
+  {
+    readline(ptrFile, buf, 1024);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
+  }
+
+  // Readint in buf
+  E_Int npts; E_Int pos=0;
+  readInt(buf, 1024, pos, npts);
+
+  f.malloc(npts, 3);
+
+  E_Float* x = f.begin(1);
+  E_Float* y = f.begin(2);
+  E_Float* z = f.begin(3);
+
+  skipLine(ptrFile); // (
+
+  for (E_Int i = 0; i < npts; i++)
+  {
+    readline(ptrFile, buf, 1024); pos = 1;
+    ret = readDouble(buf, 1024, pos, x[i]);
+    ret = readDouble(buf, 1024, pos, y[i]);
+    ret = readDouble(buf, 1024, pos, z[i]);
+  }
+  fclose(ptrFile);
+
+#ifdef E_DOUBLEINT
+  printf("points: %ld\n", f.getSize());
+#else
+  printf("points: %d\n", f.getSize());
+#endif
+
+  return 0;
+}
+
+//===========================================================
+E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
+{
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/faces");
+  FILE* ptrFile = fopen(fullPath, "r");
+
+  E_Int ret;
+  readGivenKeyword(ptrFile, "FOAMFILE");
+  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
+
+  // Passe comments
+  char buf[1024]; E_Int l;
+  E_Boolean cont = true;
+  while (cont)
+  {
+    readline(ptrFile, buf, 1024);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
+  }
+
+  // Readint in buf
+  E_Int pos=0; 
+  readInt(buf, 1024, pos, nfaces);
+
+  skipLine(ptrFile);
+
+  // Find sizeNGon
+  E_LONG fpos = KFTELL(ptrFile);
+  E_Int sizeNGon = 0; E_Int nf;
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    ret = readline(ptrFile, buf, 1024); pos = 0;
+    readInt(buf, 1024, pos, nf);
+    sizeNGon += nf+1;
+  }
+  KFSEEK(ptrFile, fpos, SEEK_SET);
+  
+  cn.malloc(sizeNGon);
+  E_Int* cnp = cn.begin();
+  
+  E_Int val; sizeNGon = 0;
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    ret = readline(ptrFile, buf, 1024); pos = 0;
+    readInt(buf, 1024, pos, nf);
+    cnp[0] = nf; 
+    for (E_Int e = 0; e < nf; e++)
+    {
+      ret = readInt(buf, 1024, pos, val);
+      cnp[1+e] = val+1;
+    }
+    cnp += nf+1;
+    sizeNGon += nf+1;
+  }
+  fclose(ptrFile);
+
+#ifdef E_DOUBLEINT
+  printf("faces: %ld\n", nfaces);
+#else
+  printf("faces: %d\n", nfaces);
+#endif
+
+  return 0;
+}
+
+//=============================================================================
+E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
+{
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/owner");
+  FILE* ptrFile = fopen(fullPath, "r");
+
+  E_Int ret;
+  readGivenKeyword(ptrFile, "FOAMFILE");
+  for (E_Int i = 0; i < 10; i++) skipLine(ptrFile);
+
+  // Passe comments
+  char buf[1024]; E_Int l;
+
+  E_Boolean cont = true;
+  while (cont)
+  {
+    readline(ptrFile, buf, 1024);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
+  }
+
+  // Readint in buf
+  E_Int nfaces; E_Int val;
+  E_Int pos=0;
+  readInt(buf, 1024, pos, nfaces);
+
+  skipLine(ptrFile);
+  
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    ret = readInt(ptrFile, val); PE(i, 1) = val+1;
+  }
+
+  fclose(ptrFile);
+
+  return 0;
+}
+
+//=============================================================================
+E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
+{
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/neighbour");
+  FILE* ptrFile = fopen(fullPath, "r");
+
+  E_Int ret;
+  readGivenKeyword(ptrFile, "FOAMFILE");
+  for (E_Int i = 0; i < 10; i++) skipLine(ptrFile);
+
+  // Passe comments
+  char buf[1024]; E_Int l;
+
+  E_Boolean cont = true;
+  while (cont)
+  {
+    readline(ptrFile, buf, 1024);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
+  }
+
+  // Readint in buf
+  E_Int nfaces; E_Int val;
+  E_Int pos=0;
+  readInt(buf, 1024, pos, nfaces);
+
+  skipLine(ptrFile);
+
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    ret = readInt(ptrFile, val); PE(i, 2) = val+1;
+  }
+
+  // tag exterior faces
+  for (E_Int i = nfaces; i < PE.getSize(); i++)
+  {
+    PE(i,2) = 0; // exterior
+  }
+
+#ifdef E_DOUBLEINT
+  printf("internal faces: %ld\n", nfaces);
+#else
+  printf("internal faces: %d\n", nfaces);
+#endif
+
+  fclose(ptrFile);
 
   return 0;
 }
@@ -186,7 +722,7 @@ E_Int K_IO::GenIO::foamWritePoints(char* file, FldArrayF& f)
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
-  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\";\n");
   fprintf(ptrFile, "    class       vectorField;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      points;\n");
@@ -213,65 +749,11 @@ E_Int K_IO::GenIO::foamWritePoints(char* file, FldArrayF& f)
   return 0;
 }
 
-E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
-{
-  char fullPath[1024];
-  strcpy(fullPath, file);
-  strcat(fullPath, "/constant/polyMesh/points");
-  FILE* ptrFile = fopen(fullPath, "r");
-
-  E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
-
-  // Passe comments
-  char buf[1024]; E_Int l;
-  E_Boolean cont = true;
-  while (cont)
-  {
-    readline(ptrFile, buf, 1024); printf("buf=%s\n", buf);
-    l = strlen(buf);
-    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
-    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
-    if (l < 2) continue;
-    cont = false;
-  }
-
-  // Readint in buf
-  E_Int npts; E_Int pos=0;
-  readInt(buf, 1024, pos, npts);
-  printf("npts=%d\n", npts);
-
-  f.malloc(npts, 3);
-  E_Float* x = f.begin(1);
-  E_Float* y = f.begin(2);
-  E_Float* z = f.begin(3);
-
-  skipLine(ptrFile); // (
-
-  for (E_Int i = 0; i < npts; i++)
-  {
-    //ret = fgetc(ptrFile); // (
-    //ret = readDouble(ptrFile, x[i]);
-    //ret = readDouble(ptrFile, y[i]);
-    //ret = readDouble(ptrFile, z[i]);
-    //ret = fgetc(ptrFile); // )
-
-    readline(ptrFile, buf, 1024); pos = 1;
-    ret = readDouble(buf, 1024, pos, x[i]);
-    ret = readDouble(buf, 1024, pos, y[i]);
-    ret = readDouble(buf, 1024, pos, z[i]);
-    
-  }
-  fclose(ptrFile);
-
-  return 0;
-}
-
 //=============================================================================
 // face indices (NGON)
 //=============================================================================
-E_Int K_IO::GenIO::foamWriteFaces(char* file, FldArrayI& cn)
+E_Int K_IO::GenIO::foamWriteFaces(char* file, const ngon_t<K_FLD::IntArray>& NG,
+  const std::vector<E_Int>& faces)
 {
   char fullPath[1024];
   strcpy(fullPath, file);
@@ -282,122 +764,14 @@ E_Int K_IO::GenIO::foamWriteFaces(char* file, FldArrayI& cn)
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
-  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\";\n");
   fprintf(ptrFile, "    class       faceList;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      faces;\n");
   fprintf(ptrFile, "}\n");
 
-  E_Int nfaces = cn.getNFaces();
-  E_Int* cnp = cn.getNGon();
-  fprintf(ptrFile, "%d\n", nfaces);
-  fprintf(ptrFile, "(\n");
+  E_Int nfaces = NG.PGs.size();
 
-  for (E_Int i = 0; i < nfaces; i++)
-  {
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "%ld(", cnp[0]);
-    for (E_Int i = 1; i <= cnp[0]; i++) fprintf(ptrFile, "%ld ", cnp[i]-1);
-    fprintf(ptrFile, ")\n");
-#else
-    fprintf(ptrFile, "%d(", cnp[0]);
-    for (E_Int i = 1; i <= cnp[0]; i++) fprintf(ptrFile, "%d ", cnp[i]-1);
-#endif
-    fprintf(ptrFile, ")\n");
-    cnp += cnp[0]+1;
-  }
-  fprintf(ptrFile, ")\n");
-  fclose(ptrFile);
-  return 0;
-}
-
-//===========================================================
-E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
-{
-  char fullPath[1024];
-  strcpy(fullPath, file);
-  strcat(fullPath, "/constant/polyMesh/faces");
-  FILE* ptrFile = fopen(fullPath, "r");
-
-  E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
-
-  // Passe comments
-  char buf[1024]; E_Int l;
-  E_Boolean cont = true;
-  while (cont)
-  {
-    readline(ptrFile, buf, 1024); printf("buf=%s\n", buf);
-    l = strlen(buf);
-    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
-    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
-    if (l < 2) continue;
-    cont = false;
-  }
-
-  // Readint in buf
-  E_Int pos=0; 
-  readInt(buf, 1024, pos, nfaces);
-
-  skipLine(ptrFile);
-
-  // Find sizeNGon
-  E_LONG fpos = KFTELL(ptrFile);
-  E_Int sizeNGon = 0; E_Int nf;
-  for (E_Int i = 0; i < nfaces; i++)
-  {
-    ret = readline(ptrFile, buf, 1024); pos = 0;
-    readInt(buf, 1024, pos, nf);
-    sizeNGon += nf+1;
-  }
-  KFSEEK(ptrFile, fpos, SEEK_SET);
-  //printf("sizeNGon=%d\n", sizeNGon); 
-  
-  cn.malloc(sizeNGon);
-  E_Int* cnp = cn.begin();
-  
-  E_Int val; sizeNGon = 0;
-  for (E_Int i = 0; i < nfaces; i++)
-  {
-    ret = readline(ptrFile, buf, 1024); pos = 0;
-    readInt(buf, 1024, pos, nf);
-    cnp[0] = nf; 
-    for (E_Int e = 0; e < nf; e++)
-    {
-      ret = readInt(buf, 1024, pos, val);
-      cnp[1+e] = val+1;
-    }
-    cnp += nf+1;
-    sizeNGon += nf+1;
-  }
-
-  printf("sizeNGon=%d, nfaces=%d\n", sizeNGon, nfaces);
-
-  return 0;
-}
-
-//=============================================================================
-// All faces (left=owner)
-//=============================================================================
-E_Int K_IO::GenIO::foamWriteOwner(char* file, FldArrayI& PE)
-{
-  char fullPath[1024];
-  strcpy(fullPath, file);
-  strcat(fullPath, "/constant/polyMesh/owner");
-  FILE* ptrFile = fopen(fullPath, "w");
-
-  fprintf(ptrFile, "FoamFile\n");
-  fprintf(ptrFile, "{\n");
-  fprintf(ptrFile, "    version     2.0;\n");
-  fprintf(ptrFile, "    format      ascii;\n");
-  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
-  fprintf(ptrFile, "    class       labelList;\n");
-  fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
-  fprintf(ptrFile, "    object      owner;\n");
-  fprintf(ptrFile, "}\n");
-
-  E_Int nfaces = PE.getSize();
 #ifdef E_DOUBLEINT
   fprintf(ptrFile, "%ld\n", nfaces);
 #else
@@ -405,71 +779,80 @@ E_Int K_IO::GenIO::foamWriteOwner(char* file, FldArrayI& PE)
 #endif
   fprintf(ptrFile, "(\n");
 
-  E_Int c = 0; E_Int val;
+
+  E_Int idx, pos, k, stride;
   for (E_Int i = 0; i < nfaces; i++)
   {
-    val = PE(i, 1);
+    idx = faces[i];
+    const E_Int *pN = NG.PGs.get_facets_ptr(idx);
+    stride = NG.PGs.stride(idx);
 #ifdef E_DOUBLEINT
-    fprintf(ptrFile, "%ld\n", val-1);
+    fprintf(ptrFile, "%ld(", stride);
+    for (E_Int k = 0; k < stride; k++) fprintf(ptrFile, "%ld ", pN[k]-1);
 #else
-    fprintf(ptrFile, "%d\n", val-1);
+    fprintf(ptrFile, "%d(", stride);
+    for (E_Int k = 0; k < stride; k++) fprintf(ptrFile, "%d ", pN[k]-1);
 #endif
-    //if (c > 10) { fprintf(ptrFile, "\n"); c = 0; }
-    c += 1;
+    fprintf(ptrFile, ")\n");
+  }
+  fprintf(ptrFile, ")\n");
+  fclose(ptrFile);
+
+  return 0;
+}
+
+
+
+//=============================================================================
+// All faces (left=owner)
+//=============================================================================
+E_Int K_IO::GenIO::foamWriteOwner(char* file, const K_FLD::IntArray& F2E, const std::vector<E_Int>& faces)
+{
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/owner");
+  FILE* ptrFile = fopen(fullPath, "w");
+
+  fprintf(ptrFile, "FoamFile\n");
+  fprintf(ptrFile, "{\n");
+  fprintf(ptrFile, "    version     2.0;\n");
+  fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\";\n");
+  fprintf(ptrFile, "    class       labelList;\n");
+  fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
+  fprintf(ptrFile, "    object      owner;\n");
+  fprintf(ptrFile, "}\n");
+
+  E_Int nfaces = F2E.cols();
+#ifdef E_DOUBLEINT
+  fprintf(ptrFile, "%ld\n", nfaces);
+#else
+  fprintf(ptrFile, "%d\n", nfaces);
+#endif
+  fprintf(ptrFile, "(\n");
+
+  E_Int own, idx;
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    idx = faces[i];
+    own = F2E(0, idx);
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "%ld\n", own);
+#else
+    fprintf(ptrFile, "%d\n", own);
+#endif
   }
   fprintf(ptrFile, ")\n");
   fclose(ptrFile);
   return 0;
 }
 
-//=============================================================================
-E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
-{
-  char fullPath[1024];
-  strcpy(fullPath, file);
-  strcat(fullPath, "/constant/polyMesh/owner");
-  FILE* ptrFile = fopen(fullPath, "r");
 
-  E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
-
-  // Passe comments
-  char buf[1024]; E_Int l;
-  /*
-  E_Boolean cont = true;
-  while (cont)
-  {
-    readline(ptrFile, buf, 1024);
-    l = strlen(buf);
-    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
-    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
-    if (l < 2) continue;
-    cont = false;
-  }
-  */
-
-  // Readint in buf
-  E_Int nfaces; E_Int val;
-  E_Int pos=0;
-  readline(ptrFile, buf, 1024);
-  //printf("BUFF=%s\n", buf);
-  readInt(buf, 1024, pos, nfaces);
-  //printf("NFACES=%d\n", nfaces);
-
-  skipLine(ptrFile);
-  
-  for (E_Int i = 0; i < nfaces; i++)
-  {
-    ret = readInt(ptrFile, val); PE(i, 1) = val+1;
-    //printf("%d\n", val);
-  }
-  return 0;
-}
 //=============================================================================
 // Internal faces only (right=neighbour)
 //=============================================================================
-E_Int K_IO::GenIO::foamWriteNeighbour(char* file, FldArrayI& PE)
+E_Int K_IO::GenIO::foamWriteNeighbour(char* file, const K_FLD::IntArray& F2E, const std::vector<E_Int>& faces,
+  const E_Int ninternal_faces)
 {
   char fullPath[1024];
   strcpy(fullPath, file);
@@ -480,96 +863,80 @@ E_Int K_IO::GenIO::foamWriteNeighbour(char* file, FldArrayI& PE)
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
   fprintf(ptrFile, "    format      ascii;\n");
-  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\"\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\";\n");
   fprintf(ptrFile, "    class       labelList;\n");
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      neighbour;\n");
   fprintf(ptrFile, "}\n");
 
-  E_Int nfaces = PE.getSize();
-  // Count internal faces
-  E_Int count = 0; E_Int val1, val2;
-  for (E_Int i = 0; i < nfaces; i++)
-  {
-    val1 = PE(i,1); val2 = PE(i,2);
-    if (val1 > 0 && val2 > 0) count += 1; 
-  }
+  E_Int nfaces = F2E.cols();
 
 #ifdef E_DOUBLEINT
-  fprintf(ptrFile, "%ld\n", count);
+  fprintf(ptrFile, "%ld\n", ninternal_faces);
 #else
-  fprintf(ptrFile, "%d\n", count);
+  fprintf(ptrFile, "%d\n", ninternal_faces);
 #endif
   fprintf(ptrFile, "(\n");
 
-  E_Int c = 0;
-  for (E_Int i = 0; i < nfaces; i++)
+  E_Int idx, nei;
+  for (E_Int i = 0; i < ninternal_faces; i++)
   {
-    val1 = PE(i,1); val2 = PE(i,2);
-    if (val1 > 0 && val2 > 0)
-    {
+    idx = faces[i];
+    nei = F2E(1, idx);
 #ifdef E_DOUBLEINT
-      fprintf(ptrFile, "%ld\n", val2-1);
+    fprintf(ptrFile, "%ld\n", nei);
 #else
-      fprintf(ptrFile, "%d\n", val2-1);
+    fprintf(ptrFile, "%d\n", nei);
 #endif
-      //if (c > 10) { fprintf(ptrFile, "\n"); c = 0; }
-      c += 1;
-    }
   }
-  assert(c == count);
   fprintf(ptrFile, ")\n");
   fclose(ptrFile);
   return 0;
 }
 
 //=============================================================================
-E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
+E_Int K_IO::GenIO::foamWriteBoundary(char* file, const std::vector<char*>& bc_names,
+  const std::vector<E_Int>& bc_nfaces, const std::vector<E_Int>& bc_startfaces)
 {
   char fullPath[1024];
   strcpy(fullPath, file);
-  strcat(fullPath, "/constant/polyMesh/neighbour");
-  FILE* ptrFile = fopen(fullPath, "r");
+  strcat(fullPath, "/constant/polyMesh/boundary");
+  FILE* ptrFile = fopen(fullPath, "w");
 
-    E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
+  fprintf(ptrFile, "FoamFile\n");
+  fprintf(ptrFile, "{\n");
+  fprintf(ptrFile, "    version     2.0;\n");
+  fprintf(ptrFile, "    format      ascii;\n");
+  fprintf(ptrFile, "    arch        \"LSB;label=32;scalar=64\";\n");
+  fprintf(ptrFile, "    class       polyBoundaryMesh;\n");
+  fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
+  fprintf(ptrFile, "    object      boundary;\n");
+  fprintf(ptrFile, "}\n");
 
-  // Passe comments
-  char buf[1024]; E_Int l;
-  /*
-  E_Boolean cont = true;
-  while (cont)
+#ifdef E_DOUBLEINT
+  fprintf(ptrFile, "%ld\n", bc_names.size());
+#else
+  fprintf(ptrFile, "%d\n", bc_names.size());
+#endif
+  fprintf(ptrFile, "(\n");
+
+  for (E_Int i = 0; i < bc_names.size(); i++)
   {
-    readline(ptrFile, buf, 1024);
-    l = strlen(buf);
-    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
-    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
-    if (l < 2) continue;
-    cont = false;
+    fprintf(ptrFile, "    %s\n", bc_names[i]);
+    fprintf(ptrFile, "    {\n");
+    fprintf(ptrFile, "        type            patch;\n"); // TO DO (Imad): everything is a patch for now...
+    fprintf(ptrFile, "        physicalType    patch;\n"); // TO DO (Imad): same
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "        nFaces          %ld;\n", bc_nfaces[i]);
+    fprintf(ptrFile, "        startFace       %ld;\n", bc_startfaces[i]);
+#else
+    fprintf(ptrFile, "        nFaces          %d;\n", bc_nfaces[i]);
+    fprintf(ptrFile, "        startFace       %d;\n", bc_startfaces[i]);
+#endif
+    fprintf(ptrFile, "    }\n");
   }
-  */
-
-  // Readint in buf
-  E_Int nfaces; E_Int val;
-  E_Int pos=0;
-  //printf("buf=%s\n", buf);
-  readline(ptrFile, buf, 1024);
-  readInt(buf, 1024, pos, nfaces);
-  //printf("NNEI=%d\n", nfaces);
-
-  skipLine(ptrFile);
-
-  for (E_Int i = 0; i < nfaces; i++)
-  {
-    ret = readInt(ptrFile, val); PE(i, 2) = val+1;
-  }
-
-  // tag exterior faces
-  for (E_Int i = nfaces; i < PE.getSize(); i++)
-  {
-    PE(i,2) = 0; // exterior
-  }
+  fprintf(ptrFile, ")\n");
+  fclose(ptrFile);
   return 0;
 }
 
@@ -589,6 +956,8 @@ E_Int K_IO::GenIO::foamwrite(
   createSimpleFoamStructure(file);
 
   E_Int nzone = unstructField.size();
+
+  std::cout << "nzone = " << nzone << std::endl;
 
   // All zones must have posx, posy, posz
   E_Int posx, posy, posz;
@@ -634,31 +1003,108 @@ E_Int K_IO::GenIO::foamwrite(
   FldArrayF& field = *unstructField[no];
   FldArrayI& cn = *connect[no];
 
-  // Compute PE
-  E_Int nfaces = cn.getNFaces();
-  E_Int nelts = cn.getNElts();
-  FldArrayI cFE(nfaces,2);
-  E_Int* facesp1 = cFE.begin(1);
-  E_Int* facesp2 = cFE.begin(2);
-  E_Int* ptrNF = cn.getNFace();
-  E_Int face, nf;
-  for (E_Int i = 0; i < nfaces*2; i++) cFE[i] = 0;
-  for (E_Int i = 0; i < nelts; i++)
-  {
-    nf = ptrNF[0]; // nb de face pour l'elt
-    for (E_Int j = 1; j <= nf; j++)
-    {
-      face = ptrNF[j]-1;
-	  if (facesp1[face] == 0) facesp1[face] = i+1;
-      else facesp2[face] = i+1;
+  foamWritePoints(file, field);
+
+  K_FLD::IntArray CN(cn);
+  K_FLD::FloatArray CRD(field); 
+
+  ngon_t<K_FLD::IntArray> NG(CN);
+  NG.flag_externals(1);
+
+  DELAUNAY::Triangulator dt;
+  bool has_been_reversed;
+  ngon_t<K_FLD::IntArray>::reorient_skins(dt, CRD, NG, has_been_reversed);
+
+  // F2E
+  ngon_unit neighbors;
+  K_FLD::IntArray F2E;
+  NG.build_ph_neighborhood(neighbors);
+  NG.build_F2E(neighbors, F2E);
+
+  std::vector<E_Int> faces;
+  std::vector<bool> marked(NG.PGs.size(), false);
+
+  E_Int PGi, stride;
+  for (E_Int PHi = 0; PHi < NG.PHs.size(); PHi++) {
+    const E_Int *pF = NG.PHs.get_facets_ptr(PHi);
+    stride = NG.PHs.stride(PHi);
+    for (E_Int j = 0; j < stride; j++) {
+      PGi = pF[j] - 1;
+      
+      if (F2E(0, PGi) == IDX_NONE || F2E(1, PGi) == IDX_NONE) continue;
+
+      if (!marked[PGi]) {
+        // new face
+        faces.push_back(PGi);
+
+        // PHi should be the owner of PGi
+        if (F2E(1, PGi) == PHi) {
+          E_Int *pN = NG.PGs.get_facets_ptr(PGi);
+          std::reverse(pN, pN+4);
+        }
+        F2E(0, PGi) = PHi;
+        marked[PGi] = true;
+      } else {
+        F2E(1, PGi) = PHi;
+      }
     }
-    ptrNF += nf+1;
   }
 
-  foamWritePoints(file, field);
-  foamWriteFaces(file, cn);
-  foamWriteOwner(file, cFE);
-  foamWriteNeighbour(file, cFE);
+  E_Int nfaces = NG.PGs.size();
+  E_Int ninternal_faces = faces.size();
+
+  // BC
+  E_Int BCFacesSize = 0;
+  if (PyList_Check(BCFaces)) BCFacesSize = PyList_Size(BCFaces);
+
+  std::vector<E_Int> start_face_per_bc;
+  std::vector<E_Int> nfaces_per_bc;
+  std::vector<char*> name_per_bc;
+
+  if (BCFacesSize > 0) {
+    E_Int indFace, inde, nof;
+    IMPORTNUMPY;
+
+    PyObject* BCs = PyList_GetItem(BCFaces, 0);
+    E_Int size = PyList_Size(BCs);
+
+    if (size == 0) {
+      fprintf(stderr, "    Error: OpenFOAM requires boundary patches. Aborting.\n");
+      exit(1);
+    }
+
+    E_Int np;
+    E_Int *ptr;
+    char *name;
+    for (E_Int j = 0; j < size/2; j++) {
+      name = NULL;
+      PyObject *o = PyList_GetItem(BCs, 2*j);
+      if (PyString_Check(o)) name = PyString_AsString(o);
+      else if (PyUnicode_Check(o)) name = (char *) PyUnicode_AsUTF8(o);
+      name_per_bc.push_back(0);
+      name_per_bc[j] = new char[strlen(name) + 1];
+      strncpy(name_per_bc[j], name, strlen(name));
+      PyArrayObject *array = (PyArrayObject *) PyList_GetItem(BCs, 2*j+1);
+      ptr = (E_Int *) PyArray_DATA(array);
+      np = PyArray_SIZE(array); // number of faces in current boundary
+      nfaces_per_bc.push_back(np);
+      start_face_per_bc.push_back(faces.size());
+      for (E_Int k = 0; k < np; k++) {
+        indFace = ptr[k]-1;
+        faces.push_back(indFace);
+      }
+    }
+  }
+
+  assert(faces.size() == nfaces);
+
+  foamWriteFaces(file, NG, faces);
+  foamWriteOwner(file, F2E, faces);
+  foamWriteNeighbour(file, F2E, faces, ninternal_faces);
+  foamWriteBoundary(file, name_per_bc, nfaces_per_bc, start_face_per_bc);
+
+  for (E_Int i = 0; i < name_per_bc.size(); i++)
+    delete [] name_per_bc[i];
 
   return 0;
 }
