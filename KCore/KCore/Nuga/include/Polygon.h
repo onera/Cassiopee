@@ -351,7 +351,7 @@ public:
   static void sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1, E_Int idx_strt1, const K_FLD::FloatArray&crd2, E_Int* nodes2, E_Int idx_strt2, E_Int nb_nodes, bool do_reverse = false);
   static void shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int nnodes, E_Int idx_strt);
 
-  static void imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, std::vector<E_Int>& molec);
+  static void imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, double RTOL, std::vector<E_Int>& molec);
 
 private: 
   Polygon(const Polygon& orig);
@@ -1056,7 +1056,7 @@ inline void Polygon::shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int
   return;
 }
 
-inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, std::vector<E_Int>& molec)
+inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, double RTOL, std::vector<E_Int>& molec)
 {
   molec.clear();
 
@@ -1082,9 +1082,18 @@ inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_In
 
       if (d2 > EPSILON) continue;
 
+      if (std::isnan(d2))
+      {
+        //std::cout << "rank : " << rank << " face : " << PGi << " ::: ISNAN !!!! : NI/NJ : " << Ni << "/" << Nj << " : L2 : " << L2 << std::endl;
+        assert(false); // should not happen
+        continue;
+      }
+
+      if (d2 > EPSILON) continue;
+
       // P is lying on PiPj
 
-      if (l <= EPSILON || l >= 1. - EPSILON) break; // outside
+      if (l <= RTOL || l >= 1. - RTOL) break; // outside
 
       // found a refining point !
       lambdas[j].push_back(l);

@@ -65,14 +65,29 @@ namespace NUGA
       return has_packs;
     }
 
+    ///
     void autonomous_run(const std::vector<mesh_t*>& meshes, int i) override
     {
+      //std::cout << "close_cell : autonomous_run : build_nodal_metric2" << std::endl;
+
+      //1. merge nodes : coincident vertices (appearing when refining faces sharing an edge by Polygon::imprint) need to be merge before close_phs call
+      auto& nodal_metric2 = meshes[i]->get_nodal_metric2(eMetricType::ISO_MIN, true/*because coincident points exist here*/); //fixme hpc : currently nodal_metric2 recomputed each time. should be extended instead 
+
+      //E_Float minm = *std::min_element(ALL(nodal_metric2));
+      //assert (minm > 0.); // mandatory : to ensure coincident vertices will be merged
+      
+      /*E_Int nmerges = */meshes[i]->cnt.join_phs(meshes[i]->crd, nodal_metric2, 1.e-12);//small tol to deal only with coincident vertices generated after Polygon::imprint call
+      
+      //2. close
+      //std::cout << "close_cell : autonomous_run : close_phs" << std::endl;
       ngon_type::close_phs(meshes[i]->cnt, meshes[i]->crd);
     }
 
+    ///
     bool run_with_data
     (
       const std::vector<mesh_t*>& meshes,
+      const std::vector<int>& zids,
       const id_to_PG_to_plan_t & zid_to_PG_to_plan
     ) override
     {
@@ -84,15 +99,17 @@ namespace NUGA
       //no reduction mode #pragma omp parallel for if(PARA == COARSE_OMP)          
       for (E_Int i = 0; i < NBZ; ++i)
       {
+        int zid = zids[i];
         mesh_t& mesh = *meshes[i];
         auto& crd = mesh.crd;
 
-        auto it_PG_to_plan = zid_to_PG_to_plan.find(i);
+        auto it_PG_to_plan = zid_to_PG_to_plan.find(zid);
         if (it_PG_to_plan == zid_to_PG_to_plan.end()) continue;
 
         auto & PG_to_plan = it_PG_to_plan->second;
 
         E_Int npgs = mesh.cnt.PGs.size();
+        E_Int npts0 = mesh.crd.cols();
 
         ngon_unit new_pgs;
         std::vector<E_Int> molecPG;
@@ -113,7 +130,7 @@ namespace NUGA
           auto & p1 = it->second;
           
           molecPG.clear();
-          K_MESH::Polygon::imprint(crd, pnodes, nnodes, p1, molecPG);
+          K_MESH::Polygon::imprint(crd, pnodes, nnodes, p1, 1.e-6/*RTOL*/, molecPG);
 
           if (molecPG.empty())
           {
@@ -122,16 +139,20 @@ namespace NUGA
           }
 
           new_pgs.add(molecPG.size(), &molecPG[0]);
-          modified = true;
         }
+
+        E_Int npts1 = crd.cols();
+
+        modified = (npts1 > npts0);
 
         if (!modified) continue;
 
         mesh.cnt.PGs = new_pgs;
         mesh.cnt.PGs.updateFacets();
-        has_changes = true;
 
-        ngon_type::close_phs(mesh.cnt, mesh.crd); //fixme : fill PHto_process
+        autonomous_run(meshes, i); // close_phs. fixme hpc : should pass PH_to_process to close_phs..
+
+        has_changes = true;
       }
 
       return has_changes;

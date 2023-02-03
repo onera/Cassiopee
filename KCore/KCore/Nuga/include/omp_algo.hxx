@@ -43,7 +43,9 @@ namespace NUGA
 
     virtual void autonomous_run(const std::vector<mesh_t*>& mesh, int i) = 0;
 
-    virtual bool run_with_data(const std::vector<mesh_t*>& meshes, const std::map<int, std::map<E_Int, K_FLD::DynArray<T>>> & zid_to_PG_to_plan) = 0;
+    virtual bool run_with_data(const std::vector<mesh_t*>& meshes,
+                               const std::vector<int>& zids,
+                               const id_to_PG_to_plan_t & zid_to_PG_to_plan) = 0;
 
     virtual int get_data_stride() = 0;
 
@@ -130,7 +132,7 @@ namespace NUGA
 
       exchange_omp_data(meshes, zids, zid_to_rid_to_list, rid_to_zones, zid_to_PG_to_plan); //zid_to_PG_to_plan is appended with local contributions (might have distant contrib upon entry)
 
-      has_omp_changes = this->run_with_data(meshes, zid_to_PG_to_plan); // OVERLOADED
+      has_omp_changes = this->run_with_data(meshes, zids, zid_to_PG_to_plan); // OVERLOADED
       has_local_changes |= has_omp_changes;
     }
 

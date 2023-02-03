@@ -1001,21 +1001,21 @@ struct mesh_t
     trait::get_nth_neighborhood(cnt, *neighbors, i, N, neighs);
   }*/
 
-  const std::vector<E_Float>& get_nodal_metric2(eMetricType mtype = eMetricType::ISO_MIN) const
+  const std::vector<E_Float>& get_nodal_metric2(eMetricType mtype = eMetricType::ISO_MIN, bool based_on_cnt_only=false) const // based_on_cnt_only is only relevant woth ISO_MIN (cf. build_nodal_metric2)
   {
     if ( (metric_type != mtype) || nodal_metric2.empty() || ((E_Int)nodal_metric2.size() != crd.cols()))
-       build_nodal_metric2(mtype); // already computed and correctly sized
+       build_nodal_metric2(mtype, based_on_cnt_only); // already computed and correctly sized
     return nodal_metric2;
   }
 
-  void build_nodal_metric2(eMetricType mtype) const
+  void build_nodal_metric2(eMetricType mtype, bool based_on_cnt_only=false) const
   {
     metric_type = mtype;
     trait::compute_nodal_metric2(crd, cnt, nodal_metric2, metric_type);
 
-    if (mtype == ISO_MIN)
+    if (mtype == ISO_MIN && !based_on_cnt_only)
     {
-      // check if close point other than cnt (specially with folded surfaces)
+      // check if close point other than cnt, specially with folded surfaces. WARNING : better to use on watertight mesh i.e without doublons
       using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
       acrd_t acrd(crd);
       K_SEARCH::KdTree<> tree(acrd);

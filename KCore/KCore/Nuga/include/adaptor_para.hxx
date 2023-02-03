@@ -31,6 +31,11 @@ namespace NUGA
   {
   public:
 
+    using parent_t = para_algo_t;
+    using zid_to_rid_to_ptlist_t = typename parent_t::zid_to_rid_to_ptlist_t;
+    using id_to_PG_to_plan_t = typename parent_t::id_to_PG_to_plan_t;
+    using rid_to_zones_t = typename parent_t::rid_to_zones_t;
+
     std::vector<sensor_t*> sensors;
     bool do_agglo;
 
@@ -42,7 +47,7 @@ namespace NUGA
     (
       const hmesh_t & mesh,
       const std::map<int, std::vector<E_Int>>& rid_to_list,
-      std::map<int, std::map<E_Int, K_FLD::IntArray>> & rid_to_PG_to_plan
+      id_to_PG_to_plan_t & rid_to_PG_to_plan
     ) override
     {
       bool has_packs{ false };
@@ -78,7 +83,9 @@ namespace NUGA
     }
 
     bool run_with_data
-    (const std::vector<hmesh_t*>& hmeshes, const std::map<int, std::map<E_Int, K_FLD::IntArray>> & zid_to_PG_to_plan) override
+    (const std::vector<hmesh_t*>& hmeshes,
+     const std::vector<int>& zids,//useless for hmesh as it has a zid atribute
+     const id_to_PG_to_plan_t & zid_to_PG_to_plan) override
     {
       E_Int NBZ{ E_Int(hmeshes.size()) };
 
