@@ -5,6 +5,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Xavier Juvigny"
 
 from . import compressor
 import numpy
+import Converter.Internal as Internal
 try: import cPickle as pickle # best for now
 except: import pickle 
 
@@ -14,9 +15,9 @@ except: import pickle
 def deltaIndex(index, ref):
     """Return the delta between index and ref."""
     r1 = numpy.in1d(index, ref)
-    r1 = r1.astype(numpy.int32)
+    r1 = r1.astype(Internal.E_NpyInt)
     r2 = numpy.in1d(ref, index)
-    r2 = r2.astype(numpy.int32)
+    r2 = r2.astype(Internal.E_NpyInt)
     return compressor.deltaIndex(index, ref, r1, r2)
 
 #==============================================================================

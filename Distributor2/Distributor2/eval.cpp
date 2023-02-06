@@ -28,7 +28,7 @@ using namespace K_FLD;
 E_Float K_DISTRIBUTOR2::eval(
   E_Int nb, E_Int NProc, E_Float meanPtsPerProc,
   vector<E_Float>& solver, vector<E_Float>& latence,
-  vector<E_Float>& comSpeed, int* com, int* comd, E_Int sizeComd,
+  vector<E_Float>& comSpeed, E_Int* com, E_Int* comd, E_Int sizeComd,
   FldArrayF& nbPtsPerProcs, vector<E_Float>& nbPts,
   E_Int* dis)
 {

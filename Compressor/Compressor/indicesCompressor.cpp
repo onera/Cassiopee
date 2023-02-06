@@ -253,8 +253,8 @@ PyObject* py_indices_uncompress(PyObject *self, PyObject *args)
     lst_out_arrays = PyList_New(np_cpr_arrays.size());
     for (size_t i = 0; i < np_cpr_arrays.size(); ++i) {
         npy_intp  length = length_arrays[i];
-        int ordering = (is_c_order[i] ? 0 : 1);
-        PyArrayObject *py_array = (PyArrayObject *)PyArray_EMPTY(1, &length, NPY_INT32, ordering);
+        E_Int ordering = (is_c_order[i] ? 0 : 1);
+        PyArrayObject *py_array = (PyArrayObject *)PyArray_EMPTY(1, &length, E_NPY_INT, ordering);
         E_Int *py_array_data = (E_Int *)PyArray_DATA(py_array);
         std::uint8_t *cpr_data = (std::uint8_t *)PyArray_DATA(np_cpr_arrays[i]);
         std::size_t compressed_size = PyArray_SIZE((PyArrayObject*)np_cpr_arrays[i]);

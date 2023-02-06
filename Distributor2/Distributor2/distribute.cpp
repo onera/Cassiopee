@@ -90,7 +90,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   IMPORTNUMPY;
 
   // Analyse de com
-  int* volCom = NULL; PyArrayObject* coma = NULL;
+  E_Int* volCom = NULL; PyArrayObject* coma = NULL;
   if (com == Py_None) volCom = NULL;
   else if (PyArray_Check(com) == 0)
   {
@@ -101,12 +101,12 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   else
   {
     coma = (PyArrayObject*)com;
-    volCom = (int*)PyArray_DATA(coma);
+    volCom = (E_Int*)PyArray_DATA(coma);
     Py_INCREF(coma);
   }
   
   // Analyse de comd
-  int* volComd = NULL; E_Int sizeComd = 0; PyArrayObject* comad = NULL;
+  E_Int* volComd = NULL; E_Int sizeComd = 0; PyArrayObject* comad = NULL;
   if (comd == Py_None) volComd = NULL;
   else if (PyArray_Check(comd) == 0)
   {
@@ -117,7 +117,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   else
   {
     comad = (PyArrayObject*)comd;
-    volComd = (int*)PyArray_DATA(comad);
+    volComd = (E_Int*)PyArray_DATA(comad);
     Py_INCREF(comad);
     sizeComd = PyArray_SIZE(comad);
   }

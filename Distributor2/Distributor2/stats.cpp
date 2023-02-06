@@ -29,7 +29,7 @@ using namespace K_FLD;
 // OUT: empty, varMin, varMax, varRMS, volRatio 
 //============================================================================
 void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc, 
-  int* com, int* comd, E_Int sizeComd, 
+  E_Int* com, E_Int* comd, E_Int sizeComd, 
   vector<E_Int>& out,
   E_Int& empty, E_Float& varMin, E_Float& varMax, E_Float& varRMS,
   E_Float& volRatio)

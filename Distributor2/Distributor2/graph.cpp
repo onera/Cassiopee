@@ -84,7 +84,7 @@ E_Int fillEmpty(E_Int iEmpty, E_Int NProc, E_Int nb, std::vector<E_Int>& out,
 //=============================================================================
 void K_DISTRIBUTOR2::graph(
   vector<E_Float>& nbPts, vector<E_Int>& setBlocks,
-  E_Int NProc, int* com, int* comd, E_Int sizeComd,
+  E_Int NProc, E_Int* com, E_Int* comd, E_Int sizeComd,
   vector<E_Float>& solver,
   vector<E_Float>& latence, vector<E_Float>& comSpeed, E_Int param,
   vector<E_Int>& out, E_Float& meanPtsPerProc, E_Float& varMin,

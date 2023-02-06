@@ -268,11 +268,11 @@ py_ngon_indices_uncompress(PyObject *self, PyObject *args)
         }
         E_Int kind_of_array = uncompressed_data[0];
         PyArrayObject *py_array, *py_index = nullptr;
-        int ordering = (is_c_order[i] == true ? 0 : 1);
+        E_Int ordering = (is_c_order[i] == true ? 0 : 1);
         if (kind_of_array == 1)
         {
             npy_intp size_of_array = length-1;
-            py_array = (PyArrayObject *)PyArray_EMPTY(1, &size_of_array, NPY_INT32, ordering);
+            py_array = (PyArrayObject *)PyArray_EMPTY(1, &size_of_array, E_NPY_INT, ordering);
             E_Int *py_array_data = (E_Int *)PyArray_DATA(py_array);
             // Reconstitution des indices :
             size_t cpteur = 1;
