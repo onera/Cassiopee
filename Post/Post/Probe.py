@@ -445,8 +445,8 @@ class Probe:
     # IN: _probeZones: zone de stockage
     # IN: _ind: index of probe (static)
     # IN: _fields: nom des champs a extraire
-    # si onlyTransfer=True, les champ ne sont pas stockes dans la probe
-    def extract(self, t, time, onlyTransfer=False,list_vals=[]):
+    # si onlyTransfer=True, les champs ne sont pas stockes dans la probe
+    def extract(self, t, time, onlyTransfer=False, list_vals=[]):
         """Extract XYZ or Ind fields from t."""
 
         if self._mode == 0 or self._mode == 1: # single point
@@ -460,7 +460,7 @@ class Probe:
             self.extract3(t, time, onlyTransfer)
             
         elif self._mode == 4: # store values that are given
-            self.extract4(t, time,list_vals)
+            self.extract4(t, time, list_vals)
         return None
 
     def extract1(self, t, time):

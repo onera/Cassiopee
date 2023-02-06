@@ -478,14 +478,16 @@ def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_
 # absFrame=True: les coordonnees de t sont deja dans le repere absolu en entree
 # interpInDnrFrame=True: interpolation avec les coordonnees des pts a interpoler dans le repere relatif au donneur
 # applicable en mouvement rigide; en mvt avec deformation: mettre False
-# #---------------------------------------------------------------------------------------------------------
+# verbose: 0 (rien), 1 (bilan interpolation), 2 (ecrit les indices de pts orphelins), 
+# 3 (met cellN=-1 pour les points orphelins)
+#---------------------------------------------------------------------------------------------------------
 def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                dictOfNobOfRcvZones, dictOfNozOfRcvZones,
                dictOfNobOfDnrZones, dictOfNozOfDnrZones,
                dictOfNobOfRcvZonesC, dictOfNozOfRcvZonesC,
                time=0., absFrame=True, procDict=None, cellNName='cellN',
                interpInDnrFrame=True, order=2,
-               hook=None):
+               hook=None, verbose=1):
 
     if procDict is None: procDict = Cmpi.getProcDict(tc)
     if Cmpi.size == 1:
@@ -667,7 +669,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         allInterpFields = dictOfFields[zrcvname]
         indicesI = dictOfIndices[zrcvname]
         
-        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol', verbose=1)
+        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, 
+                               filterName='donorVol', verbose=verbose)
         
     #Cmpi.trace("8. transfer2 end")
     return None
@@ -683,7 +686,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    interpDataType=1, hook=None,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, 
                    dim=3, itype='both'):
-
+    """Compute interpolation data for abutting or chimera intergrid connectivity."""
     # Le graph doit correspondre au probleme
     if itype == 'abutting':
         graph = Cmpi.computeGraph(aR, type='match', reduction=True)
@@ -820,12 +823,14 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     return None
 
 def setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
+    """Compute interpolation data for 2 different trees."""
     aD = Internal.copyRef(tD)
     aR = Internal.copyRef(tR)
     _setInterpData2(aR, aD, order=order, loc=loc, cartesian=cartesian)
     return aD
 
 def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
+    """Compute interpolation data for 2 different trees."""
 
     if loc == 'nodes': varcelln = 'cellN'
     else: varcelln = 'centers:cellN'    
@@ -906,7 +911,7 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
                                    graph=None, procDict=None, graphIBCD=None, graphInvIBCD_WM=None,nvars=5):
 
     variablesIBC=['Density_WM', 'VelocityX_WM', 'VelocityY_WM', 'VelocityZ_WM', 'Temperature_WM', 'TurbulentSANuTilde_WM']
-    if nvars==5:
+    if nvars == 5:
         variablesIBC=['Density_WM', 'VelocityX_WM', 'VelocityY_WM', 'VelocityZ_WM', 'Temperature_WM']
         
     # Transferts locaux/globaux

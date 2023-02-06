@@ -33,10 +33,10 @@ py_indices_compress(PyObject* self, PyObject* args)
                         "Wrong syntax. Right syntax : packIndices((n,array) or list of (n,array)s");
         return NULL;
     }
-    bool  is_list = false;
+    bool is_list = false;
     std::vector<PyArrayObject *> np_arrays;
-    std::vector<long>             nb_verts_per_elt_arr;
-    std::vector<bool>             is_c_order;
+    std::vector<long> nb_verts_per_elt_arr;
+    std::vector<bool> is_c_order;
     if (PyList_Check(arrays)) {
         is_list = true;
         np_arrays.reserve(PyList_Size(arrays));
@@ -171,8 +171,7 @@ py_indices_compress(PyObject* self, PyObject* args)
     return compressed_list;
 }
 //@ ________________________________________________________________________________________________
-PyObject *
-py_indices_uncompress(PyObject *self, PyObject *args)
+PyObject* py_indices_uncompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays;
     if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) {

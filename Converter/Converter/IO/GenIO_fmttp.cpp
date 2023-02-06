@@ -405,7 +405,12 @@ E_Int K_IO::GenIO::tpread(
   {
     // put zone name in structured list
     E_Int structSize = structZoneNames.size();
-    if (zoneName[0] == '\0') sprintf(zoneName, "StructZone%d", structSize);
+    if (zoneName[0] == '\0') 
+#ifdef E_DOUBLEINT
+        sprintf(zoneName, "StructZone%ld", structSize);
+#else
+        sprintf(zoneName, "StructZone%d", structSize);
+#endif
     char* name = new char[BUFSIZE+1]; strcpy(name, zoneName);
     structZoneNames.push_back(name);
     zoneName[0] = '\0';
@@ -414,7 +419,12 @@ E_Int K_IO::GenIO::tpread(
   {
     // put zone name in unstructured list
     E_Int unstructSize = unstructZoneNames.size();
-    if (zoneName[0] == '\0') sprintf(zoneName, "UnstructZone%d", unstructSize);
+    if (zoneName[0] == '\0')
+#ifdef E_DOUBLEINT
+        sprintf(zoneName, "UnstructZone%ld", unstructSize);
+#else
+        sprintf(zoneName, "UnstructZone%d", unstructSize);
+#endif
     char* name = new char[BUFSIZE+1]; strcpy(name, zoneName);
     unstructZoneNames.push_back(name);
     zoneName[0] = '\0';
@@ -567,7 +577,7 @@ E_Int K_IO::GenIO::tpread(
     else
     {
       compressString(keyword);
-      if (strcmp(keyword,"ZONE")==0) break;
+      if (strcmp(keyword, "ZONE")==0) break;
       else
       {
         KFSEEK(ptrFile, pos, SEEK_SET);
@@ -576,7 +586,7 @@ E_Int K_IO::GenIO::tpread(
     }
   }
 
-  if (strcmp(keyword,"ZONE")==0) {zone++; KFSEEK(ptrFile, pos, SEEK_SET); goto blocread;}
+  if (strcmp(keyword, "ZONE")==0) {zone++; KFSEEK(ptrFile, pos, SEEK_SET); goto blocread;}
 
   // Concatenation of structured and unstructured zones names lists
   zoneNames = structZoneNames;
@@ -652,8 +662,13 @@ E_Int K_IO::GenIO::tpwrite(
     FldArrayF& f = *structField[cnt];
     E_Int nijk = ni[cnt]*nj[cnt]*nk[cnt];
 
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "ZONE T=\"%s\",  I=%ld,  J=%ld,  K=%ld, F=BLOCK\n",
+            zoneNames[cnt], ni[cnt], nj[cnt], nk[cnt]);
+#else
     fprintf(ptrFile, "ZONE T=\"%s\",  I=%d,  J=%d,  K=%d, F=BLOCK\n",
             zoneNames[cnt], ni[cnt], nj[cnt], nk[cnt]);
+#endif
 
     for (E_Int n = 1; n <= f.getNfld(); n++)
     {
@@ -699,19 +714,37 @@ E_Int K_IO::GenIO::tpwrite(
     switch (eltType[cnt])
     {
       case 1: // BAR
+#ifdef E_DOUBLEINT
+        fprintf(ptrFile,
+                "ZONE T=\"%s\", N=%ld, E=%ld, ET=LINESEG, F=FEBLOCK\n",
+                zoneNames[cnt+structSize], nodes, elts);
+#else
         fprintf(ptrFile,
                 "ZONE T=\"%s\", N=%d, E=%d, ET=LINESEG, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
+#endif
         break;
       case 2: // TRI
+#ifdef E_DOUBLEINT
         fprintf(ptrFile,
                 "ZONE T=\"%s\", N=%d, E=%d, ET=TRIANGLE, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
+#else
+        fprintf(ptrFile,
+                "ZONE T=\"%s\", N=%ld, E=%ld, ET=TRIANGLE, F=FEBLOCK\n",
+                zoneNames[cnt+structSize], nodes, elts);
+#endif
         break;
       case 3: // QUAD
+#ifdef E_DOUBLEINT
+        fprintf(ptrFile,
+                "ZONE T=\"%s\", N=%ld, E=%ld, ET=QUADRILATERAL, F=FEBLOCK\n",
+                zoneNames[cnt+structSize], nodes, elts);
+#else
         fprintf(ptrFile,
                 "ZONE T=\"%s\", N=%d, E=%d, ET=QUADRILATERAL, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
+#endif
         break;
       case 4: // TETRA
         fprintf(ptrFile,

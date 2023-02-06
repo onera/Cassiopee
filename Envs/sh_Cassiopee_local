@@ -532,22 +532,25 @@ elif [ "$MAC" = "spiro_amdNP" ]; then
     export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
 
-elif [ "$MAC" = "spiro_socle" ]; then
+elif [ "$MAC" = "spiro_socle6" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_socle_r8
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
-    . /usr/local/Modules/init/bash
+    #. /usr/local/Modules/init/bash
     module purge
-    module load CFD/5.0-intel-19.impi-19
+    module load socle-cfd/6.0-intel2220-impi
+    module load occt/7.6.1-gnu831
+    module load subversion/1.14.1-gnu831    
     export PYTHONEXE=python3
     alias python=python3
+    export PRODMODE=1
     # Chemin de l'executable python
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
-    export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/tools/hdf5-1.10.5-intel-19-impi-19/lib
-    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 elif [ "$MAC" = "spiro_sonics" ]; then
 #----------------------------- spiro sonics -----------------------------------------

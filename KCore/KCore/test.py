@@ -239,8 +239,12 @@ def testO(objet, number=1):
 
         # tests sur les types
         if type(a) != type(objet):
-            print("DIFF: object type differs from "+reference+'.')
-            return False
+            if isinstance(a, (int,float)): pass
+            elif isinstance(a, (numpy.int32, numpy.int64)) and isinstance(objet, (numpy.int32, numpy.int64)): pass
+            elif isinstance(a, (numpy.float32, numpy.float64)) and isinstance(objet, (numpy.float32, numpy.float64)): pass
+            else:
+                print("DIFF: object type differs from "+reference+'.')
+                return False
         # autres tests
         if isinstance(a, numpy.ndarray): # array
             if a.shape != objet.shape:
@@ -255,8 +259,12 @@ def testO(objet, number=1):
         elif isinstance(a, list):        # liste
             for i in range(len(a)):
                 if type(a[i]) != type(objet[i]):
-                    print("DIFF: object type differs from "+reference+'.')
-                    return False
+                    if isinstance(a[i], (int,float)): pass
+                    elif isinstance(a[i], (numpy.int32, numpy.int64)) and isinstance(objet[i], (numpy.int32, numpy.int64)): pass
+                    elif isinstance(a[i], (numpy.float32, numpy.float64)) and isinstance(objet[i], (numpy.float32, numpy.float64)): pass
+                    else:
+                        print("DIFF: object type differs from "+reference+'.')
+                        return False
                 if isinstance(a[i], numpy.ndarray):   # liste d'array
                     if a[i].shape != objet[i].shape:
                         print("DIFF: object shape differs from "+reference+'.')

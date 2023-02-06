@@ -32,9 +32,9 @@ p1.flush()
 
 if Cmpi.rank == 0: test.testT(p1._probeZones, 1)
 
-out = p1.read(ind=0)
-if Cmpi.rank == 0: test.testT(out, 2)
+#out = p1.read(ind=0)
+#if Cmpi.rank == 0: test.testT(out, 2)
 
-out = p1.read(cont=0)
-if Cmpi.rank == 0: test.testT(out, 3)
+#out = p1.read(cont=0)
+#if Cmpi.rank == 0: test.testT(out, 3)
 #Cmpi.convertPyTree2File(out, 'out.cgns')

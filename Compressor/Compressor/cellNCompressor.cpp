@@ -54,7 +54,7 @@ PyObject* py_cellN_compress(PyObject *self, PyObject *args)
     {
         //= On recupere un tableau numpy et ses dimensions et sa taille
         PyArrayObject* an_array = np_arrays[i];
-        int       ndims = PyArray_NDIM(an_array);
+        E_Int ndims = PyArray_NDIM(an_array);
         npy_intp *dims  = PyArray_DIMS(an_array);
         std::size_t  an_array_length = PyArray_SIZE(an_array);
         double* array_data = (double*)PyArray_DATA(an_array);
@@ -62,7 +62,7 @@ PyObject* py_cellN_compress(PyObject *self, PyObject *args)
         if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
         //= On prepare l'objet decrivant la compression du cellN
         PyObject *shape = PyTuple_New(ndims);
-        for (int j = 0; j < ndims; ++j) PyTuple_SET_ITEM(shape, j, PyLong_FromLong(long(dims[j])));
+        for (E_Int j = 0; j < ndims; ++j) PyTuple_SET_ITEM(shape, j, PyLong_FromLong(long(dims[j])));
         PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
         //= Reservation mémoire pour le buffer compressé de cellN
@@ -125,7 +125,7 @@ PyObject* py_cellN_uncompress(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpackCellN(array or list of compressed arrays");
         return NULL;
     }
-    bool                         is_list = false;
+    bool is_list = false;
     std::vector<PyArrayObject *> np_cpr_arrays;
     std::vector<std::vector<npy_intp>> shape_arrays;
     std::vector<bool> is_c_order;
@@ -230,9 +230,9 @@ PyObject* py_cellN_uncompress(PyObject *self, PyObject *args)
     for (size_t i = 0; i < np_cpr_arrays.size(); ++i) 
     {
         npy_intp  dims[5];
-        int       ndim;
+        E_Int ndim;
         ndim = shape_arrays[i].size();
-        for (int j = 0; j < ndim; ++j) 
+        for (E_Int j = 0; j < ndim; ++j) 
         { 
             dims[j] = shape_arrays[i][j]; 
         }

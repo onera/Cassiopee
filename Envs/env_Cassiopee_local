@@ -625,7 +625,7 @@ else if ($MAC == "spiro_amdNP") then
        setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
 
-else if ($MAC == "spiro_socle") then
+else if ($MAC == "spiro_socle6") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_socle_r8
         # Number of threads
@@ -633,12 +633,17 @@ else if ($MAC == "spiro_socle") then
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
+        source /etc/profile.d/modules-onera.csh
         module purge
-        module load CFD/5.0-intel-19.impi-19
+        module load socle-cfd/6.0-intel2220-impi
+        module load occt/7.6.1-gnu831
+        module load subversion/1.14.1-gnu831
+        module load emacs/27.2-gnu831
+        setenv PRODMODE 1
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/tools/hdf5-1.10.5-intel-19-impi-19/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 else if ($MAC == "spiro_sonics") then
 #------------------------------- spiro --------------------------------------

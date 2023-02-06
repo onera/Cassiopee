@@ -951,6 +951,22 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'spiro_socle6': [ 'Machine dev Spiro centos8 - socle6 (Onera)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+False, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'spiro': [ 'Machine dev Spiro (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler
