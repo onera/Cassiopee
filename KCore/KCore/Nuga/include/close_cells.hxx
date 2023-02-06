@@ -68,15 +68,29 @@ namespace NUGA
     ///
     void autonomous_run(const std::vector<mesh_t*>& meshes, int i) override
     {
-      //std::cout << "close_cell : autonomous_run : build_nodal_metric2" << std::endl;
+
+      {
+        //0. store (in _type attrib.) nb of nodes before close_phs for each PG
+        // this is used in prepare_data_to_send to select only those that have been refined
+        E_Int npgs = meshes[i]->cnt.PGs.size();
+        meshes[i]->cnt.PGs._type.clear();
+        meshes[i]->cnt.PGs._type.resize(npgs);
+        for (E_Int k = 0; k < npgs; ++k)
+        {
+          int nnodes = meshes[i]->cnt.PGs.stride(k);
+          meshes[i]->cnt.PGs._type[k] = nnodes;
+        }
+      }
 
       //1. merge nodes : coincident vertices (appearing when refining faces sharing an edge by Polygon::imprint) need to be merge before close_phs call
       auto& nodal_metric2 = meshes[i]->get_nodal_metric2(eMetricType::ISO_MIN, true/*because coincident points exist here*/); //fixme hpc : currently nodal_metric2 recomputed each time. should be extended instead 
 
-      //E_Float minm = *std::min_element(ALL(nodal_metric2));
-      //assert (minm > 0.); // mandatory : to ensure coincident vertices will be merged
+#ifdef DEBUG_CLOSECELLS
+      E_Float minm = *std::min_element(ALL(nodal_metric2));
+      assert (minm > 0.); // mandatory : to ensure coincident vertices will be merged
+#endif
       
-      /*E_Int nmerges = */meshes[i]->cnt.join_phs(meshes[i]->crd, nodal_metric2, 1.e-12);//small tol to deal only with coincident vertices generated after Polygon::imprint call
+      /*E_Int nmerges = */meshes[i]->cnt.join_phs(meshes[i]->crd, nodal_metric2, EPSILON);//small tol to deal only with coincident vertices generated after Polygon::imprint call
       
       //2. close
       //std::cout << "close_cell : autonomous_run : close_phs" << std::endl;
@@ -165,7 +179,7 @@ namespace NUGA
 
       E_Int nnodes = PGs.stride(PGi);
 
-      if (nnodes < 4) return; //fixme
+      if (PGs._type[PGi] == nnodes) return; // i.e. if this PG has not been refined, skip
 
       const E_Int* pnodes = PGs.get_facets_ptr(PGi);
 
