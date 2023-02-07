@@ -39,7 +39,7 @@ if [ $PRODMODE -eq 0 ] || [ $PRODMODE -eq 2 ]; then
     python setup.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 elif [ $PRODMODE -eq 1 ]; then
-    python -m pip install --upgrade --prefix="$INSTALLPATH" .
+    python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
     [ $? != 0 ] && exit 1;
 fi
 
