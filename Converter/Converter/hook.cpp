@@ -435,8 +435,9 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   PyObject* center; // si adt en cylindrique
   PyObject* axis; // si adt en cylindrique
   E_Int depth; // si adt en cylindrique : nb de rangees de cellules fictives - a modifier a Pi pres 
-  if (!PYPARSETUPLEI(args, "OOOl", "OOOi",
-      &listFields, &center, &axis, &depth)) return NULL;
+  E_Float thetaShift; // si adt cylindrique, thetaShift! 
+  if (!PYPARSETUPLE(args, "OOOld", "OOOid", "OOOlf", "OOOif",
+      &listFields, &center, &axis, &depth, &thetaShift)) return NULL;
   
   if (PyList_Check(listFields) == false)
   {
@@ -535,6 +536,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
     K_INTERP::InterpAdt* adt=NULL;
     if (center == Py_None || axis == Py_None)
     {
+        // Adt sur les coordonnees cartesiennes
         adt = new K_INTERP::InterpAdt(
         fields[no]->getSize(), 
         fields[no]->begin(posxs[no]),
@@ -544,6 +546,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
     }
     else
     {
+        // Adt sur les coordonnees cylindriques
         E_Float centerX, centerY, centerZ;
         E_Float axisX, axisY, axisZ;
         PYPARSETUPLEF(center, "ddd", "fff", &centerX, &centerY, &centerZ);
@@ -555,8 +558,8 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
         fields[no]->begin(poszs[no]),
         a2[no], a3[no], a4[no],
         centerX, centerY, centerZ,
-        axisX, axisY, axisZ, 
-        isBuilt, depth);
+        axisX, axisY, axisZ, 0., depth,
+        isBuilt);
     }
 
     if (isBuilt == 1) interpDatas.push_back(adt);

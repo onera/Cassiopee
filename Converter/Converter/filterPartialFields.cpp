@@ -219,7 +219,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     {
       // Ecrit les indices globaux des pts orphelins
       E_Float filterMax, filterVal;
-      E_Int posf, ind, posX, posY, posZ;
+      E_Int posf, ind;
       E_Float* ptrFilter;
       for (E_Int i = 0; i < nPts; i++)
       {
@@ -245,7 +245,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     {
       // Met cellN=-1 pour les points orphelins
       E_Float filterMax, filterVal;
-      E_Int posf, ind, posX, posY, posZ;
+      E_Int posf, ind;
       E_Float* ptrFilter;
       E_Int posCellN = K_ARRAY::isNamePresent("cellN", varStringZ);
       if (posCellN >= 0)

@@ -27,7 +27,8 @@
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
-#include <dirent.h>
+
+# include <dirent.h>
 
 #if defined(_WIN32)
 # include <direct.h>
@@ -63,6 +64,21 @@ E_Int createDir(char* path)
 #endif
   if (ret != 0) return 1;
   return 0;
+}
+
+
+// Return true if path is a file
+E_Int fileExist(char* path)
+{
+#if defined(_WIN32)
+  struct _stat info;
+  if (_stat(path, &info) != 0) return false;
+  return (info.st_mode & _S_IFREG) != 0;
+#else 
+  struct stat info;
+  if (stat(path, &info) != 0) return false;
+  return (info.st_mode & S_IFREG) != 0;
+#endif
 }
 
 // create a directory structure for foam
@@ -112,6 +128,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx)
   
   E_Int ncells; E_Int pos=0;
   readInt(buf, 1024, pos, ncells);
+  printf("scalar ncells=%d\n", ncells);
 
   E_Float* fld = f.begin(idx);
 
@@ -301,26 +318,32 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
   d = opendir(file);
 
   char fullPath[1024];
+  char path[1024];
   strcpy(fullPath, file);
   E_Float ret;
   E_Float max_time = 0;
   while (dir = readdir(d)) {
-    if (dir->d_type == DT_DIR) {
-      fullPath[0] = '\0';
-      strcat(fullPath, dir->d_name);
-      ret = atof(fullPath);
+    strcpy(path, fullPath);
+    strcat(path, "/");
+    strcat(path, dir->d_name);
+    if (dirExist(path)) {
+      ret = atof(dir->d_name);
       max_time = std::max(max_time, ret);
     }
   }
+  printf("maxtime %f\n", max_time);
   closedir(d);
 
   // loop again and get fullPath
   bool found = false;
-  char dir_name[10] = {0};
+  char dir_name[260] = {0};
   dir_name[0] = '\0';
   d = opendir(file);
   while (dir = readdir(d)) {
-    if (dir->d_type == DT_DIR) {
+    strcpy(path, fullPath);
+    strcat(path, "/");
+    strcat(path, dir->d_name);
+    if (dirExist(path)) {
       ret = atof(dir->d_name);
       if (ret == max_time) {
         sprintf(dir_name, "%s", dir->d_name);
@@ -331,6 +354,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
     if (found) break;
   }
   closedir(d);
+  printf("dirname %s\n", dir_name);
 
   fullPath[0] = '\0';
   strcat(fullPath, file);
@@ -348,7 +372,10 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
   char field_name[MAX_FIELDS][128];
 
   while (dir = readdir(d)) {
-    if (dir->d_type == DT_REG) {
+    strcpy(path, fullPath);
+    strcat(path, "/");
+    strcat(path, dir->d_name);
+    if (fileExist(path)) {
       // skip .swp files
       if (dir->d_name[0] == '.') continue;
       char path[1028];
@@ -432,7 +459,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
         size++;
       }
       if (size == MAX_FIELDS) {
-        fprintf(stderr, "Trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
+        fprintf(stderr, "Warning: fomread: Trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
         exit(1);
       }
       fclose(fh);
@@ -456,31 +483,34 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
       strcpy(path, fullPath);
       strcat(path, "/");
       strcat(path, field_name[fld]);
-      assert(readScalarField(path, *F, idx) == ncells);
+      E_Int ret = readScalarField(path, *F, idx); 
+      assert(ret == ncells);
       idx++;
-      printf("Reading scalar field %s\n", field_name[fld]);
+      printf("Info: foamread: reading scalar field %s\n", field_name[fld]);
     } else if (field_type[fld] == 2) {
       char path[1028];
       strcpy(path, fullPath);
       strcat(path, "/");
       strcat(path, field_name[fld]);
-      assert(readVectorField(path, *F, idx) == ncells);
+      E_Int ret = readVectorField(path, *F, idx); 
+      assert(ret == ncells);
       idx += 3;
-      printf("Reading vector field %s\n", field_name[fld]);
+      printf("Info: foamread: reading vector field %s\n", field_name[fld]);
     } else if (field_type[fld] == 3) {
       char path[1028];
       strcpy(path, fullPath);
       strcat(path, "/");
       strcat(path, field_name[fld]);
-      assert(readTensorField(path, *F, idx) == ncells);
-      idx += 9;
-      printf("Reading tensor field %s\n", field_name[fld]);
+      E_Int ret = readTensorField(path, *F, idx); 
+      assert(ret == ncells);
+      idx += 9; 
+      printf("Info: foamrread: reading tensor field %s\n", field_name[fld]);
     } else {
       assert(false);
     }
   }
 
-  printf("Done reading fields.\n");
+  printf("Info: foamread: done reading fields.\n");
 
   centerUnstructField.push_back(F);
 
@@ -1217,7 +1247,7 @@ E_Int K_IO::GenIO::foamwrite(
   foamWriteNeighbour(file, F2E, faces, ninternal_faces);
   foamWriteBoundary(file, name_per_bc, nfaces_per_bc, start_face_per_bc);
 
-  for (E_Int i = 0; i < name_per_bc.size(); i++)
+  for (size_t i = 0; i < name_per_bc.size(); i++)
     delete [] name_per_bc[i];
 
   return 0;

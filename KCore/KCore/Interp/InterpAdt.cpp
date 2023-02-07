@@ -21,6 +21,16 @@
 # include "Interp/InterpAdt.h"
 #include "Loc/loc.h"
 
+extern "C"
+{
+  void k6rotatemesh_(const E_Int& npts,
+                 const E_Float* x, const E_Float* y, const E_Float* z,
+                 const E_Float& xc, const E_Float& yc, const E_Float& zc,
+                 const E_Float& nx, const E_Float& ny, const E_Float& nz,
+                 const E_Float& teta,
+                 E_Float* xo, E_Float* yo, E_Float* zo);
+}
+
 using namespace std;
 using namespace K_FLD;
 
@@ -113,20 +123,33 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
 K_INTERP::InterpAdt::InterpAdt(E_Int npts, 
                                E_Float* xD, E_Float* yD, E_Float* zD,
                                void* a1, void* a2, void* a3, 
-                               E_Float& centerX, E_Float& centerY, E_Float& centerZ,
-                               E_Float& axisX, E_Float& axisY, E_Float& axisZ,  
-                               E_Int& built, E_Int depth):
+                               E_Float centerX, E_Float centerY, E_Float centerZ,
+                               E_Float axisX, E_Float axisY, E_Float axisZ,
+                               E_Float thetaShift, E_Int depth,  
+                               E_Int& built):
     InterpData()
 {
     // keep data for cart2Cyl
     _cylCoord = true;
     _centerX = centerX; _centerY = centerY; _centerZ = centerZ;
-    _axisX = axisX; _axisY = axisY; _axisZ = axisZ;
+    _axisX = axisX; _axisY = axisY; _axisZ = axisZ; _thetaShift = thetaShift;
 
     E_Float* coordX = new E_Float[npts];
     E_Float* coordY = new E_Float[npts];
     E_Float* coordZ = new E_Float[npts];
     
+    // rotate of thetaShift
+    if (thetaShift != 0.)
+    {
+      E_Float* xDR = new E_Float[npts];
+      E_Float* yDR = new E_Float[npts];
+      E_Float* zDR = new E_Float[npts];
+      k6rotatemesh_(npts, xD, yD, zD,
+                    centerX, centerY, centerZ, axisX, axisY, axisZ, thetaShift, 
+                    xDR, yDR, zDR);
+      xD = xDR; yD = yDR; zD = zDR; // leak
+    }
+
     E_Float *rt, *thetat;
     thetat = NULL; rt = NULL;
     E_Float eps = 1.e-12;
@@ -159,9 +182,10 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
                         centerX, centerY, centerZ, 
                         axisX, axisY, axisZ, 
                         rt, thetat, ni, nj, nk, depth);
+
+        /*
         E_Float thetarefmin = K_CONST::E_MAX_FLOAT;
         E_Float thetarefmax =-K_CONST::E_MAX_FLOAT;
-
         for (E_Int i = 0; i < npts; i++)
         {
           thetarefmin = K_FUNC::E_min(thetarefmin, thetat[i]);
@@ -169,10 +193,12 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
         }
         _theta_min = thetarefmin;
         _theta_max = thetarefmax;
-//        printf("ni=%d %d %d\n",*(E_Int*)a1,*(E_Int*)a2,*(E_Int*)a3);
+        // printf(" thetamin = %g %g \n", _theta_min, _theta_max);
+
+        */
+        // printf("ni=%d %d %d\n",*(E_Int*)a1,*(E_Int*)a2,*(E_Int*)a3);
         // for (E_Int i = 0; i < npts; i++) printf("%g %g\n", thetat[i], coordZ[i]);
         // printf("BlkInterpAdt: axis = %g %g %g\n", axisX, axisY, axisZ); fflush(stdout);        
-        // printf(" thetamin = %g %g \n", _theta_min, _theta_max);
 
         built = buildStructAdt(ni, nj, nk, coordX, coordY, coordZ);
     }
@@ -181,7 +207,7 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
         _topology = 2;
         FldArrayI& cEV = *(FldArrayI*)a1;
 
-       // cart2Cyl coordinates
+        // cart2Cyl coordinates
         K_LOC::cart2Cyl(npts, xD, yD, zD,
                         centerX, centerY, centerZ, 
                         axisX, axisY, axisZ, 
@@ -197,49 +223,77 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
 // passe le vecteur de points fourni en cylindrique
 void K_INTERP::InterpAdt::cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* z)
 {
-    E_Float* coordX = new E_Float[npts];
-    E_Float* coordY = new E_Float[npts];
-    E_Float* coordZ = new E_Float[npts];
+  E_Float* coordX = new E_Float[npts];
+  E_Float* coordY = new E_Float[npts];
+  E_Float* coordZ = new E_Float[npts];
     
-    E_Float *rt, *thetat;
-    thetat = NULL; rt = NULL;
-    E_Float eps = 1.e-12;
-    E_Float PI2 = 2.*K_CONST::E_PI;
-    if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
-    {
-      rt = coordY; thetat = coordZ;
-    }
-    else if (_axisY > eps && _axisX < eps && _axisZ < eps) // axe Y
-    {
-      rt = coordZ; thetat = coordX;
-    }
-    else if (_axisZ > eps && _axisY < eps && _axisX < eps) // axe Z
-    {
-      rt = coordX; thetat = coordY;
-    }
-    // cart2Cyl coordinates
-    K_LOC::cart2Cyl(npts, x, y, z,
-                    _centerX, _centerY, _centerZ, 
-                    _axisX, _axisY, _axisZ, 
-                    rt, thetat);
+  // tetaShift x,y,z
+  E_Float* xR=NULL; E_Float* yR=NULL; E_Float* zR=NULL;
+  if (_thetaShift != 0.)
+  {
+    xR = new E_Float[npts];
+    yR = new E_Float[npts];
+    zR = new E_Float[npts];
+    k6rotatemesh_(npts, x, y, z,
+                  _centerX, _centerY, _centerZ, 
+                  _axisX, _axisY, _axisZ, _thetaShift, 
+                  xR, yR, zR);
+    x = xR; y = yR; z = zR; // leak
+  }
+
+  E_Float *rt, *thetat;
+  thetat = NULL; rt = NULL;
+  E_Float eps = 1.e-12;
+  if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
+  {
+    rt = coordY; thetat = coordZ;
+  }
+  else if (_axisY > eps && _axisX < eps && _axisZ < eps) // axe Y
+  {
+    rt = coordZ; thetat = coordX;
+  }
+  else if (_axisZ > eps && _axisY < eps && _axisX < eps) // axe Z
+  {
+    rt = coordX; thetat = coordY;
+  }
+  // cart2Cyl coordinates
+  K_LOC::cart2Cyl(npts, x, y, z,
+                  _centerX, _centerY, _centerZ, 
+                  _axisX, _axisY, _axisZ, 
+                  rt, thetat);
+  /*
+  E_Float PI2 = 2.*K_CONST::E_PI;
 #pragma omp parallel default(shared)
-    {    
+  {    
 #pragma omp for         
     for (E_Int i = 0; i < npts; i++)
     {
       if ( thetat[i] < _theta_min) thetat[i] += PI2;
       else if (thetat[i] > _theta_max) thetat[i] -= PI2;
     }
-    }
-    delete [] coordX; delete [] coordY; delete [] coordZ;
+  }
+  */
+
+  delete [] coordX; delete [] coordY; delete [] coordZ;
+  if (_thetaShift != 0.) { delete [] xR; delete [] yR; delete [] zR; }
 }
 // Passe le pt fourni en cylindrique
 void K_INTERP::InterpAdt::cart2Cyl(E_Float& x, E_Float& y, E_Float& z)
 {
-    E_Float eps = 1.e-12;
-    E_Float* rt=NULL; E_Float* thetat=NULL;
-    E_Float Xo, Yo, Zo;
-    E_Float PI2 = 2.*K_CONST::E_PI;
+  E_Float eps = 1.e-12;
+  E_Float* rt=NULL; E_Float* thetat=NULL;
+  E_Float Xo, Yo, Zo;
+
+  // tetaShift x,y,z
+  if (_thetaShift != 0.)
+  {
+    E_Float xR, yR, zR;
+    k6rotatemesh_(1, &x, &y, &z,
+                  _centerX, _centerY, _centerZ, 
+                  _axisX, _axisY, _axisZ, _thetaShift, 
+                  &xR, &yR, &zR);
+    x = xR; y = yR; z = zR;
+  }
 
     if (_axisX > eps && _axisY < eps && _axisZ < eps) // axe X
     {
@@ -258,8 +312,10 @@ void K_INTERP::InterpAdt::cart2Cyl(E_Float& x, E_Float& y, E_Float& z)
                     _centerX, _centerY, _centerZ, 
                     _axisX, _axisY, _axisZ, 
                     rt, thetat);
+    /*
+    E_Float PI2 = 2.*K_CONST::E_PI;
     if ( thetat[0] < _theta_min) thetat[0] += PI2;
-    else if (thetat[0] > _theta_max) thetat[0] -= PI2;
+    else if (thetat[0] > _theta_max) thetat[0] -= PI2; */
 
     x = Xo; y = Yo; z = Zo;
 }

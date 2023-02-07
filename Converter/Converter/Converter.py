@@ -1115,20 +1115,20 @@ def node2Center(array, accurate=0):
     else:
         return converter.node2Center(array,accurate)
 
-def center2Node(array, cellNType=0):
+def center2Node(array, cellNType=0, BCFields=None):
     """Convert array defined on centers to array defined on nodes.
     Usage: center2Node(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(converter.center2Node(i, cellNType))
+            b.append(converter.center2Node(i, cellNType, BCFields))
         for nob in range(len(b)):
             if len(b[nob]) == 4:
                 eltType = b[nob][3]
                 b[nob][3] = eltType.split('*')[0]
         return b
     else:
-        b = converter.center2Node(array, cellNType)
+        b = converter.center2Node(array, cellNType, BCFields)
         if len(b) == 4:
             eltType = b[3]; b[3] = eltType.split('*')[0]
         return b
@@ -1287,16 +1287,16 @@ def createHook(a, function='None'):
         try: import Post as P
         except: inl = a
         else: inl, modified = P.growOfEps__(a, 1.e-6, nlayers=2, planarity=False)
-        return converter.registerCells(inl, None, None, 0)
+        return converter.registerCells(inl, None, None, 0, 0.)
 
     elif function == 'adt': # 1 ADT pour les interpolations
-        return converter.registerCells(a, None, None, 0)
+        return converter.registerCells(a, None, None, 0, 0.)
 
     else: raise ValueError("function %s is invalid."%function)
 
 def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0):
     """Create a hook for cylindrical adt."""
-    return converter.registerCells(a, center, axis, depth)
+    return converter.registerCells(a, center, axis, depth, 0.)
 
 #===============================================================================
 # Fonctions de preconditionement (hook)

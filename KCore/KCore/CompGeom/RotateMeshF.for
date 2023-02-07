@@ -19,7 +19,7 @@ C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 C  ============================================================================
 C  Make a rotation of a mesh
 C  ============================================================================
-      SUBROUTINE k6rotatemesh( dim, center, axis, teta, x0, y0, z0)
+      SUBROUTINE k6rotatemesh(dim, center, axis, teta, x0, y0, z0)
 C
       IMPLICIT NONE
 C==============================================================================

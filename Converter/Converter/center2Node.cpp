@@ -28,7 +28,19 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int type;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &array, &type)) return NULL;
+  PyObject* BCFields; // optional indR+fields on BCs
+  if (!PYPARSETUPLEI(args, "OlO", "OiO", &array, &type, &BCFields)) return NULL;
+
+  // Check BCFields
+  if (BCFields != Py_None)
+  {
+    if (PyList_Check(BCFields) == false) 
+    {
+      PyErr_SetString(PyExc_TypeError, 
+                       "center2Node: BCFields must be a list of indR+fields.");
+      return NULL;
+    }
+  }
 
   E_Int ni, nj, nk;
   FldArrayI* c; FldArrayF* FCenter;
@@ -70,52 +82,32 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     if (ni == 1)
     {
       if ((nj != 1)&&(nk != 1))
-      {
-        nin = 1; njn = nj+1; nkn = nk+1;
-      }
+      { nin = 1; njn = nj+1; nkn = nk+1; }
       else if (nj == 1)
-      {
-        nin = 1; njn = 1; nkn = nk+1;
-      }
+      { nin = 1; njn = 1; nkn = nk+1; }
       else //if (nk == 1)
-      {
-        nin = 1; njn = 1; nkn = nk+1;
-      }
+      { nin = 1; njn = 1; nkn = nk+1; }
     }
     else if (nj == 1)
     {
       if ((ni != 1)&&(nk != 1))
-      {
-        nin = ni+1; njn = 1; nkn = nk+1;
-      }
+      { nin = ni+1; njn = 1; nkn = nk+1; }
       else if (ni == 1)
-      {
-        nin = 1; njn = 1; nkn = nk+1;
-      }
+      { nin = 1; njn = 1; nkn = nk+1; }
       else // if (nk == 1)
-      {
-        nin = ni+1; njn = 1; nkn = 1;
-      }
+      { nin = ni+1; njn = 1; nkn = 1; }
     }
     else if (nk == 1)
     {
       if ((ni != 1)&&(nj != 1))
-      {
-        nin = ni+1; njn = nj+1; nkn = 1;
-      }
+      { nin = ni+1; njn = nj+1; nkn = 1; }
       else if (ni == 1)
-      {
-        nin = 1; njn = nj+1; nkn = 1;
-      }
+      { nin = 1; njn = nj+1; nkn = 1; }
       else //if (nj == 1)
-      {
-        nin = ni+1; njn = 1; nkn = 1;
-      }
+      { nin = ni+1; njn = 1; nkn = 1; }
     }
     else
-    {
-      nin = ni+1; njn = nj+1; nkn = nk+1;
-    }
+    { nin = ni+1; njn = nj+1; nkn = nk+1; }
     PyObject*tpl = K_ARRAY::buildArray(nfld, varString, 
                                        nin, njn, nkn);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
@@ -123,6 +115,17 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     ret = K_LOC::center2nodeStruct(*FCenter, ni, nj, nk, cellN, mod, 
                                    posx, posy, posz, FNode, nin, njn, nkn,
                                    type);
+    // Boundary corrections
+    if (BCFields != Py_None)
+    {
+      PyObject* indR = PyList_GetItem(BCFields, 0);
+      PyObject* fields = PyList_GetItem(BCFields, 1);
+      //E_Int res = K_ARRAY::getFromArray(fields, varString, FCenter, 
+      //                                  ni, nj, nk, c, eltType, true);
+      //center2NodeStructBorder(FNode, nin, njn, nkn);
+      //RELEASESHAREDB(res, fields, );
+    }
+
     RELEASESHAREDS(array, FCenter);
     if (ret == 0) return NULL;
     return tpl;
@@ -227,3 +230,5 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
   }
   else return NULL;
 }
+
+// center2Node for border
