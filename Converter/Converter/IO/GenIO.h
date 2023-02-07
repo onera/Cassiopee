@@ -305,6 +305,7 @@ class GenIO
     E_Int foamReadNeighbour(char* file, FldArrayI& PE);
     E_Int foamWriteBoundary(char* file, const std::vector<char*>& bc_names, 
       const std::vector<E_Int>& bc_nfaces, const std::vector<E_Int>& bc_startfaces);
+    E_Int foamReadBoundary(char* file, std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames);
     E_Int readScalarField(char *file, FldArrayF& f, E_Int idx);
     E_Int readVectorField(char *file, FldArrayF& f, E_Int idx);
     E_Int readTensorField(char *file, FldArrayF& f, E_Int idx);

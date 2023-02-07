@@ -251,6 +251,9 @@ E_Int K_IO::GenIO::foamread(
   // Read fields
   foamReadFields(file, centerUnstructField, nelts, varStringc);
 
+  // Read boundary
+  foamReadBoundary(file, BCFaces, BCNames);
+
   // Merge
   E_Int sizeNGon = cNGon.getSize();
   E_Int sizeNFace = cNFace.getSize();
@@ -455,7 +458,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
       strcat(path, field_name[fld]);
       assert(readScalarField(path, *F, idx) == ncells);
       idx++;
-      printf("%s\n", field_name[fld]);
+      printf("Reading scalar field %s\n", field_name[fld]);
     } else if (field_type[fld] == 2) {
       char path[1028];
       strcpy(path, fullPath);
@@ -463,7 +466,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
       strcat(path, field_name[fld]);
       assert(readVectorField(path, *F, idx) == ncells);
       idx += 3;
-      printf("%s\n", field_name[fld]);
+      printf("Reading vector field %s\n", field_name[fld]);
     } else if (field_type[fld] == 3) {
       char path[1028];
       strcpy(path, fullPath);
@@ -471,14 +474,13 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
       strcat(path, field_name[fld]);
       assert(readTensorField(path, *F, idx) == ncells);
       idx += 9;
-      printf("%s\n", field_name[fld]);
+      printf("Reading tensor field %s\n", field_name[fld]);
     } else {
       assert(false);
     }
   }
 
   printf("Done reading fields.\n");
-  printf("%s\n", varStringc);
 
   centerUnstructField.push_back(F);
 
@@ -709,6 +711,107 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
 }
 
 //=============================================================================
+E_Int K_IO::GenIO::foamReadBoundary(char* file, std:: vector<FldArrayI*>& BCFaces,
+  std::vector<char*>& BCNames)
+{
+  char fullPath[1024];
+  strcpy(fullPath, file);
+  strcat(fullPath, "/constant/polyMesh/boundary");
+  FILE* ptrFile = fopen(fullPath, "r");
+
+  E_Int ret;
+  readGivenKeyword(ptrFile, "FOAMFILE");
+  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile); // no "note" line in OpenFOAM boundary file
+
+  // Passe comments
+  char buf[1024]; E_Int l;
+
+  E_Boolean cont = true;
+  while (cont)
+  {
+    readline(ptrFile, buf, 1024);
+    l = strlen(buf);
+    if (l >= 2 && buf[0] == '/' && buf[1] == '/') continue;
+    if (l >= 2 && buf[0] == '/' && buf[1] == '*') continue;
+    if (l < 2) continue;
+    cont = false;
+  }
+
+  // Readint in buf
+  E_Int nBC; E_Int val;
+  E_Int pos=0;
+  readInt(buf, 1024, pos, nBC);
+
+  skipLine(ptrFile);
+
+  // extract total number and names of boundary faces
+#define BCSTRINGMAXSIZE 50
+  char bcnames[nBC][BCSTRINGMAXSIZE] = {0};
+  E_Int nFaces[nBC];
+  E_Int startFace[nBC];
+  char type[nBC][BCSTRINGMAXSIZE] = {0};
+
+  for (E_Int i = 0; i < nBC; i++)
+  {
+    // name
+    readWord(ptrFile, bcnames[i]);
+
+    // type
+    readGivenKeyword(ptrFile, "TYPE");
+    readWord(ptrFile, type[i]);
+    type[i][strlen(type[i])-1] = '\0';
+    if (strcmp(type[i], "wall") == 0) {
+      strcat(bcnames[i], "@");
+      strcat(bcnames[i], "BCWall");
+    }
+    
+
+    // nFaces
+    readGivenKeyword(ptrFile, "NFACES");
+    readWord(ptrFile, buf);
+    buf[strlen(buf)-1] = '\0';
+    nFaces[i] = convertString2Int(buf);
+
+    // startFace
+    readGivenKeyword(ptrFile, "STARTFACE");
+    readWord(ptrFile, buf);
+    buf[strlen(buf)-1] = '\0';
+    startFace[i] = convertString2Int(buf);
+
+    skipLine(ptrFile);
+  }
+
+  fclose(ptrFile);
+
+  E_Int nboundaryfaces = 0;
+  for (E_Int i = 0; i < nBC; i++) nboundaryfaces += nFaces[i];
+  FldArrayI *faces = new FldArrayI(nboundaryfaces);
+  char *names = new char [nboundaryfaces * BCSTRINGMAXSIZE];
+  E_Int *facesp = faces->begin();
+  E_Int le;
+  E_Int c = 0;
+
+  E_Int k = 0;
+  for (E_Int i = 0; i < nBC; i++) {
+    printf("Reading %s\n", bcnames[i]);
+    le = strlen(bcnames[i]);
+    le = K_FUNC::E_min(le, BCSTRINGMAXSIZE-1);
+    for (E_Int j = 1; j <= nFaces[i]; j++) {
+      facesp[k++] = startFace[i] + j;
+      for (E_Int l = 0; l < le; l++) { names[c+l] = bcnames[i][l]; }
+      c += le;
+      names[c] = '\0'; c++;
+    }
+  }
+  assert(k == nboundaryfaces);
+
+  BCFaces.push_back(faces);
+  BCNames.push_back(names);
+
+  return 0;
+}
+
+//=============================================================================
 // Write Mesh point coordinates
 //=============================================================================
 E_Int K_IO::GenIO::foamWritePoints(char* file, FldArrayF& f)
@@ -922,10 +1025,23 @@ E_Int K_IO::GenIO::foamWriteBoundary(char* file, const std::vector<char*>& bc_na
 
   for (E_Int i = 0; i < bc_names.size(); i++)
   {
-    fprintf(ptrFile, "    %s\n", bc_names[i]);
+    char *token = strtok(bc_names[i], "@");
+    char name[strlen(token)+1];
+    strcpy(name, token);
+
+    fprintf(ptrFile, "    %s\n", token);
     fprintf(ptrFile, "    {\n");
-    fprintf(ptrFile, "        type            patch;\n"); // TO DO (Imad): everything is a patch for now...
-    fprintf(ptrFile, "        physicalType    patch;\n"); // TO DO (Imad): same
+
+    token = strtok(NULL, "@");
+    if (token == NULL) {
+      fprintf(stderr, "No type for BC %s, defaulting to wall.\n", bc_names[i]);
+      fprintf(ptrFile, "        type            %s;\n", "wall");
+      fprintf(ptrFile, "        physicalType    %s;\n", "wall");
+    } else {
+      fprintf(ptrFile, "        type            %s;\n", token);
+      fprintf(ptrFile, "        physicalType    %s;\n", token);
+    }
+    
 #ifdef E_DOUBLEINT
     fprintf(ptrFile, "        nFaces          %ld;\n", bc_nfaces[i]);
     fprintf(ptrFile, "        startFace       %ld;\n", bc_startfaces[i]);
@@ -1069,8 +1185,8 @@ E_Int K_IO::GenIO::foamwrite(
     E_Int size = PyList_Size(BCs);
 
     if (size == 0) {
-      fprintf(stderr, "    Error: OpenFOAM requires boundary patches. Aborting.\n");
-      exit(1);
+      fprintf(stderr, "    Warning: OpenFOAM requires boundary patches.\n");
+      //exit(1);
     }
 
     E_Int np;
@@ -1095,8 +1211,6 @@ E_Int K_IO::GenIO::foamwrite(
       }
     }
   }
-
-  assert(faces.size() == nfaces);
 
   foamWriteFaces(file, NG, faces);
   foamWriteOwner(file, F2E, faces);
