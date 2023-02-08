@@ -943,7 +943,7 @@ namespace K_MESH
         return true; // silent meshing failures to avoid to treat it as a concavity to split
       }
 
-      //MIO::write("PHT3.mesh", crd, connectT3, "TRI");
+      //medith::write("PHT3.mesh", crd, connectT3, "TRI");
       //
 
       E_Int nb_t3s = connectT3.cols();
@@ -1302,7 +1302,7 @@ namespace K_MESH
         return 1;
       }
 
-      //MIO::write("PHT3.mesh", crd, connectT3, "TRI");
+      //medith::write("PHT3.mesh", crd, connectT3, "TRI");
 
 
       V = 0.;
@@ -1496,12 +1496,12 @@ namespace K_MESH
           K_MESH::Polygon::cvx_triangulate(crd, nodes, nb_nodes, ibest, 1, connectT3);
         }
 
-        //MIO::write("PHT3.mesh", crd, connectT3, "TRI");    
+        //medith::write("PHT3.mesh", crd, connectT3, "TRI");    
       }
       else
       {
         err = triangulate(t, opgs, crd, connectT3, false, false); // PH -> PHT3
-        //MIO::write("PHT30.mesh", crd, connectT3, "TRI");
+        //medith::write("PHT30.mesh", crd, connectT3, "TRI");
       }
 
       err &= (connectT3.cols() != 0);
@@ -1698,7 +1698,7 @@ namespace K_MESH
         }
 
         //std::cout << crd  << std::endl;
-        //MIO::write("crd.mesh", crd, K_FLD::IntArray(), "TRI");
+        //medith::write("crd.mesh", crd, K_FLD::IntArray(), "TRI");
 
         err = K_MESH::Polygon::triangulate_inplace(dt, crd, &lpgs[0], stride, 0/*index start*/, pstart, true/*do_not_shuffle*/, false/*improve_quality*/);
         if (err) return err;

@@ -292,7 +292,7 @@ namespace DELAUNAY{
     for (size_t i = 0; i < indices.size(); ++i)
       append_unity_ellipse(crd, indices[i], crdo, cnto);
     
-    MIO::write(fname, crdo, cnto, "BAR");
+    medith::write(fname, crdo, cnto, "BAR");
   }
   
   template <typename T> inline
@@ -304,7 +304,7 @@ namespace DELAUNAY{
     
     append_unity_ellipse(crd, i, crdo, cnto);
     
-    MIO::write(fname, crdo, cnto, "BAR");
+    medith::write(fname, crdo, cnto, "BAR");
   }
   
   template <typename T> inline
@@ -317,7 +317,7 @@ namespace DELAUNAY{
     for (size_t i = 0; i < indices.size(); ++i)
       append_unity_ellipse(crd, indices[i], crdo, cnto);
     
-    MIO::write(fname, crdo, cnto, "BAR");
+    medith::write(fname, crdo, cnto, "BAR");
   }
   
   template<> inline
@@ -682,7 +682,7 @@ namespace DELAUNAY{
 //
 //    std::ostringstream o;
 //    o << "metric_at_Ni_before" << Ni << ".mesh";
-//    MIO::write(o.str().c_str(), crdo, cnto, "BAR");
+//    medith::write(o.str().c_str(), crdo, cnto, "BAR");
 //    
 //    }
 #endif

@@ -772,7 +772,7 @@ namespace DELAUNAY
           tmask[i] = (_data->colors[i] != 0);
       }
       
-      MIO::write("triangulation.mesh", *_data->pos, _data->connectM, "TRI", &tmask);
+      medith::write("triangulation.mesh", *_data->pos, _data->connectM, "TRI", &tmask);
     }
 #endif
     

@@ -427,7 +427,7 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
                 K_FLD::IntArray tmp;
                 tmp.pushBack(cntT3.col(I), cntT3.col(I)+3);
                 tmp.pushBack(cntT3.col(J), cntT3.col(J)+3);
-                MIO::write("xpair.mesh", crd, tmp, "TRI");
+                medith::write("xpair.mesh", crd, tmp, "TRI");
                 
               }
 #endif

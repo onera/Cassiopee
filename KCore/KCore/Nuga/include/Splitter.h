@@ -430,7 +430,7 @@ namespace NUGA
         continue;
 
 #ifdef DEBUG_NGON_T
-      MIO::write("before_star.mesh", crd, connectT3, "TRI");
+      medith::write("before_star.mesh", crd, connectT3, "TRI");
 #endif
 
       K_MESH::Polygon::normal<acrd_t, 3>(acrd, nodes, nb_nodes, 1, normal);
@@ -444,7 +444,7 @@ namespace NUGA
       NUGA::MeshTool::starify_from_node(crd, nodes, nb_nodes, 1/*index start*/, iworst, connectT3, neighbors, normal, params.convexity_tol);
 
 #ifdef DEBUG_NGON_T
-      MIO::write("after_star.mesh", crd, connectT3, "TRI");
+      medith::write("after_star.mesh", crd, connectT3, "TRI");
 #endif
       //in case of error, connecT3 is not changed
       ngstar.clear();
@@ -701,19 +701,19 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, E_Float GRmin
     E_Int err = K_MESH::Polyhedron<UNKNOWN>::triangulate(dt, PGS, first_pg, nb_pgs, crd, cT3, nT3_to_PG, true, false);
     scolorT3.resize(cT3.cols());
     for (E_Int i=0; i < cT3.cols(); ++i) scolorT3[i] = simple_colors[nT3_to_PG[i]];
-    MIO::write("simplified.mesh", crd, cT3, "TRI", 0, &scolorT3);
+    medith::write("simplified.mesh", crd, cT3, "TRI", 0, &scolorT3);
 
     K_FLD::IntArray cntE;
     for (std::set<K_MESH::NO_Edge>::iterator it = rflx_edges.begin(); it != rflx_edges.end(); ++it)
       cntE.pushBack(it->begin(), it->end());
     cntE.shift(-1);
-    MIO::write("reflex_edges.mesh", crd, cntE, "BAR");
+    medith::write("reflex_edges.mesh", crd, cntE, "BAR");
     
     K_FLD::IntArray cntSk;
     for (std::set<K_MESH::NO_Edge>::iterator it = convex_edges.begin(); it != convex_edges.end(); ++it)
       cntSk.pushBack(it->begin(), it->end());
     cntSk.shift(-1);
-    MIO::write("skeleton.mesh", crd, cntSk, "BAR");
+    medith::write("skeleton.mesh", crd, cntSk, "BAR");
   }
 #endif
 
@@ -1255,7 +1255,7 @@ void NUGA::Splitter::__append_all_geom_paths
       //std::cout << tmp << std::endl;
       std::ostringstream o;
       o << "lying_edges_" << PHi << ".mesh";
-      MIO::write(o.str().c_str(), crd, tmp, "BAR");
+      medith::write(o.str().c_str(), crd, tmp, "BAR");
     }*/
 #endif
 
@@ -1272,7 +1272,7 @@ void NUGA::Splitter::__append_all_geom_paths
       //std::cout << tmp << std::endl;
       std::ostringstream o;
       o << "withadded_edges_" << PHi << ".mesh";
-      MIO::write(o.str().c_str(), crd, tmp, "BAR");
+      medith::write(o.str().c_str(), crd, tmp, "BAR");
     }
 #endif
 

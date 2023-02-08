@@ -617,7 +617,6 @@ namespace NUGA
   void TEMPLATE_CLASS::__compact_to_box
   (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> & mask_bits, bound_mesh_t& WP, bound_mesh_t& WNP)
   {
-    //using vmesh_t = NUGA::vmesh_t<bound_mesh_t::ARG1, bound_mesh_t::ARG2>; //i.e same type as boundaries of zmesh but as a pure view
     // zone reduction
     K_SEARCH::BBox3D z_box;
     z_mesh.bbox(z_box);

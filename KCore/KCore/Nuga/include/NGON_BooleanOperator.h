@@ -2515,10 +2515,6 @@ NGON_BOOLEAN_CLASS::__compute()
   #ifdef DEBUG_BOOLEAN
     medith::write("ngXs1.mesh", _coord, _ngXs);
     medith::write("ngXh1.mesh", _coord, _ngXh);
-    medith::write("ngXsG_ex.mesh", _coord, _ngXs, INITIAL_SKIN);
-    std::vector<E_Int> toprocess;
-    for (size_t i=0; i < _ngXs.PHs.size(); ++i) if(_ngXs.PHs._type[i] != INITIAL_SKIN)toprocess.push_back(i);
-    medith::write("ngXsGin.mesh", _coord, _ngXs, &toprocess);
   #endif
     
     return OK;
@@ -4805,23 +4801,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
 #ifdef E_TIMER
   std::cout << "total number of elements : " << colors.size() << std::endl;
 #endif
-  
-#ifdef DEBUG_BOOLEAN
-{
-  for (size_t c=0; c < colmax; ++c)
-  {
-    Vector_t<E_Int> toprocess;
-    for (size_t i=0; i < colors.size(); ++i)
-      if(colors[i]==c)toprocess.push_back(i);
     
-    std::ostringstream o;
-    o << "zc_" << c << ".mesh";
-    
-    medith::write(o.str().c_str(), _coord, _ngXs, &toprocess);
-  }
-}
-#endif
-  
   if (colmax == 1) // special case : when a single zone unset : correspond to 2 meshes of a same domain
   {
     bool zone_is_unset=true;
@@ -4873,21 +4853,12 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
     col_to_z[ci]=zi;
   }
   
-#ifdef DEBUG_BOOLEAN
-  if (!toprocess.empty()) medith::write("wrong_col.mesh", _coord, _ngXs, &toprocess);
-#endif
-  
   // Now update missing zones (Z_NONE)
   
   for (E_Int i=0; i < _ngXs.PHs.size(); ++i)
   {
     if (_ngXs.PHs._type[i] == (E_Int)Z_NONE)
       _ngXs.PHs._type[i] = col_to_z[colors[i]];
-    
-#ifdef DEBUG_BOOLEAN
-    /*if (_XPol != SURFACE_RIGHT || _Op != DIFF) //fixme : due to previous filter
-        assert(_zones[i] != Z_NONE);*/
-#endif
   }
   
   // Do the split on ngX

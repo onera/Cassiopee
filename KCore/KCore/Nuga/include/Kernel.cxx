@@ -155,7 +155,7 @@ Kernel<T>::__getCavity
       K_FLD::IntArray::const_iterator pK = _data->connectM.col(*it);
       cc.pushBack(pK, pK+3);
     }
-    MIO::write ("init_cav.mesh", *_data->pos, cc, "TRI");
+    medith::write ("init_cav.mesh", *_data->pos, cc, "TRI");
   }
 #endif
   
@@ -182,7 +182,7 @@ Kernel<T>::__getCavity
   cc.pushBack(pK, pK+3);
   }
 
-  MIO::write ("fixed_cav.mesh", *_data->pos, cc, "TRI");  
+  medith::write ("fixed_cav.mesh", *_data->pos, cc, "TRI");  
   }
 #endif
 
@@ -259,7 +259,7 @@ Kernel<T>::__getInitialCavity
   const E_Int* p = connect.col(*i);
   cc.pushBack(p,p+3);
   }
-  MIO::write("base.mesh", pos, cc);
+  medith::write("base.mesh", pos, cc);
   }
 #endif
 
@@ -278,7 +278,7 @@ Kernel<T>::__getInitialCavity
   const E_Int* p = connect.col(*i);
   cc.pushBack(p,p+3);
   }
-  MIO::write("cavity.mesh", pos, cc);
+  medith::write("cavity.mesh", pos, cc);
   }
 #endif
 

@@ -1893,7 +1893,7 @@ struct ngon_t
 //      ngo.remove_unreferenced_pgs(pgnids, phnids);
 //      K_FLD::IntArray cnto;
 //      ngo.export_to_array(cnto);
-//      MIO::write("patho.plt", crd, cnto, "NGON");
+//      medith::write("patho.plt", crd, cnto, "NGON");
 //    
 //      DELAUNAY::Triangulator t;
 //      E_Float v, centroid[3];
@@ -1912,7 +1912,7 @@ struct ngon_t
 //      crd.pushBack(isoG, isoG+3);
 //      crd.pushBack(centroid, centroid+3);
 //
-//      MIO::write("baryTocentroid.mesh", crd, cn, "BAR");    
+//      medith::write("baryTocentroid.mesh", crd, cn, "BAR");    
 #endif
     }
     
@@ -1988,7 +1988,7 @@ struct ngon_t
         ngon_t ngo(pg);
         K_FLD::IntArray cnto;
         ngo.export_to_array(cnto);
-        MIO::write("hat.plt", crd, cnto, "NGON");*/
+        medith::write("hat.plt", crd, cnto, "NGON");*/
 #endif
           }
           else if (type == K_MESH::Triangle::SPIKE)
@@ -2003,7 +2003,7 @@ struct ngon_t
         ngon_t ngo(pg);
         K_FLD::IntArray cnto;
         ngo.export_to_array(cnto);
-        MIO::write("spike.plt", crd, cnto, "NGON");*/
+        medith::write("spike.plt", crd, cnto, "NGON");*/
 #endif
           }
           else if (type == K_MESH::Triangle::SMALL)
@@ -2037,7 +2037,7 @@ struct ngon_t
         ngon_t ngo(pg);
         K_FLD::IntArray cnto;
         ngo.export_to_array(cnto);
-        MIO::write("fPG.plt", crd, cnto, "NGON");
+        medith::write("fPG.plt", crd, cnto, "NGON");
 #endif
       }
     }
@@ -3496,41 +3496,13 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     tmpE.pushBack(it->begin(), it->begin()+2);
   tmpE.shift(-1);
   std::cout << tmpE << std::endl;
-  MIO::write("walls.mesh", coord, tmpE, "BAR");*/
+  medith::write("walls.mesh", coord, tmpE, "BAR");*/
 #endif
     
   orient.resize(pg_ext.size(), 1);
   if (ori == -1)
     orient[iref]=-1;
   NUGA::EltAlgo<K_MESH::Polygon>::reversi_connex(pg_ext, neighbors, refPG, orient);
-  
-  #ifdef DEBUG_NGON_T
-  //Check orientation consistency
-  {
-    ngon_unit pgtmp = pg_ext;
-    pgtmp.updateFacets();
-  
-    for (E_Int i = 0; i < pgtmp.size(); ++i)
-    {
-      if (orient[i] == -1)
-      {
-        E_Int s = pgtmp.stride(i);
-        E_Int* p = pgtmp.get_facets_ptr(i);
-        std::reverse(p, p + s);
-      }
-    }
-    
-    std::set<E_Int> faultys;
-    E_Int er = NUGA::EltAlgo<K_MESH::Polygon>::check_orientation_consistency(pgtmp, neighbors, faultys);
-    if (faultys.empty())
-    {
-      Vector_t<E_Int> vfaultys, olids;
-      vfaultys.insert(vfaultys.end(), faultys.begin(), faultys.end());
-      NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs(coord, pgtmp, vfaultys);
-      return er;
-    }
-  }
-#endif
    
   return 0;
 }
@@ -3596,7 +3568,7 @@ static E_Int __find_reference_orientation_triangle
     return err;
   
 #ifdef DEBUG_NGON_T
-  //MIO::write("PHref.mesh", coord, connectT3, "TRI", 0, &T3_to_nPG);
+  //medith::write("PHref.mesh", coord, connectT3, "TRI", 0, &T3_to_nPG);
 #endif
   
   {
@@ -3703,7 +3675,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
     ngon_t ng(pg_ext, true);
     K_FLD::IntArray cnto;
     ng.export_to_array(cnto);
-    MIO::write("pgski1.plt", coord, cnto, "NGON");
+    medith::write("pgski1.plt", coord, cnto, "NGON");
     
     K_FLD::IntArray connectT3;
     Vector_t<E_Int> T3_to_nPG;
@@ -3821,7 +3793,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
         o << "reorient_error_zone_" << z << ".tp";
         K_FLD::IntArray cnto;
         NGZ.export_to_array(cnto);
-        MIO::write(o.str().c_str(), coord, cnto, "NGON");
+        medith::write(o.str().c_str(), coord, cnto, "NGON");
 #endif
         return err;
       }
@@ -3845,7 +3817,7 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
       o << "reorient_error_zone_0.tp";
       K_FLD::IntArray cnto;
       wNG.export_to_array(cnto);
-      MIO::write(o.str().c_str(), coord, cnto, "NGON");
+      medith::write(o.str().c_str(), coord, cnto, "NGON");
 #endif
       return err;
     }
@@ -4365,7 +4337,7 @@ static E_Int write
 {
   K_FLD::IntArray cnt;
   ng.export_to_array(cnt);
-  return MIO::write(filename, crd, cnt, "NGON", mask, colors);
+  return medith::write(filename, crd, cnt, "NGON", mask, colors);
 }
 #endif
 
@@ -5053,7 +5025,7 @@ static E_Int extrude_faces
     ngon_t just_tops(tops, false);
     K_FLD::IntArray cnto;
     just_tops.export_to_array(cnto);
-    MIO::write("tops.plt", coord, cnto, "NGON");
+    medith::write("tops.plt", coord, cnto, "NGON");
   }
   
   {
@@ -5062,13 +5034,13 @@ static E_Int extrude_faces
     just_bulks.PHs.updateFacets();
     K_FLD::IntArray cnto;
     just_bulks.export_to_array(cnto);
-    MIO::write("bulks.plt", coord, cnto, "NGON");
+    medith::write("bulks.plt", coord, cnto, "NGON");
   }
   
   {
     K_FLD::IntArray cnto;
     wNG.export_to_array(cnto);
-    MIO::write("ghost.plt", coord, cnto, "NGON");
+    medith::write("ghost.plt", coord, cnto, "NGON");
   }
   
 #endif
@@ -5244,7 +5216,7 @@ static E_Int extrude_revol_faces
     ngon_t just_tops(tops, false);
     K_FLD::IntArray cnto;
     just_tops.export_to_array(cnto);
-    MIO::write("tops.plt", coord, cnto, "NGON");
+    medith::write("tops.plt", coord, cnto, "NGON");
   }
   
   {
@@ -5253,13 +5225,13 @@ static E_Int extrude_revol_faces
     just_bulks.PHs.updateFacets();
     K_FLD::IntArray cnto;
     just_bulks.export_to_array(cnto);
-    MIO::write("bulks.plt", coord, cnto, "NGON");
+    medith::write("bulks.plt", coord, cnto, "NGON");
   }
   
   {
     K_FLD::IntArray cnto;
     wNG.export_to_array(cnto);
-    MIO::write("ghost.plt", coord, cnto, "NGON");
+    medith::write("ghost.plt", coord, cnto, "NGON");
   }
   
 #endif
@@ -5375,13 +5347,13 @@ static E_Int add_flat_ghosts(ngon_t& wNG, const Vector_t<E_Int>& PGlist, bool cr
     just_bulks.PHs.updateFacets();
     K_FLD::IntArray cnto;
     just_bulks.export_to_array(cnto);
-    MIO::write("bulks.plt", coord, cnto, "NGON");
+    medith::write("bulks.plt", coord, cnto, "NGON");
   }
   
   {
     K_FLD::IntArray cnto;
     wNG.export_to_array(cnto);
-    MIO::write("ghost.plt", coord, cnto, "NGON");
+    medith::write("ghost.plt", coord, cnto, "NGON");
   }
 #endif
 

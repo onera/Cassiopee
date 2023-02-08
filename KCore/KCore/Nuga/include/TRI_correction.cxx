@@ -340,7 +340,7 @@ TRI_Conformizer<DIM>::__run_correction_gamma
   K_FLD::IntArray tmp(connect);
   K_CONNECT::keep<bool> upred(ukeep);
   K_CONNECT::IdTool::compress(tmp, upred);
-  MIO::write("Oremoved.mesh", pos, tmp, "TRI");
+  medith::write("Oremoved.mesh", pos, tmp, "TRI");
   TRI_debug::write_wired("OremovedN.mesh", pos, tmp, true);
   std::vector<bool> keep2(connect.cols(), false);
   for (size_t i = 0; i < connect.cols(); ++i)
@@ -350,7 +350,7 @@ TRI_Conformizer<DIM>::__run_correction_gamma
   K_FLD::IntArray tmp2(connect);
   K_CONNECT::keep<bool> gpred(keep2);
   K_CONNECT::IdTool::compress(tmp2, gpred);
-  MIO::write("Okept.mesh", pos, tmp2, "TRI");
+  medith::write("Okept.mesh", pos, tmp2, "TRI");
   TRI_debug::write_wired("OkeptN.mesh", pos, tmp2, true);
 #endif
   
@@ -567,7 +567,7 @@ TRI_Conformizer<DIM>::__get_common_edges
   }
   std::ostringstream o;
   o << "common_" << parent_type::_iter << ".mesh";
-  MIO::write(o.str().c_str(), pos, com, "BAR");
+  medith::write(o.str().c_str(), pos, com, "BAR");
 #endif
 
   return 0;
@@ -786,7 +786,7 @@ TRI_Conformizer<DIM>::__run_correction_alpha1
   {
     std::ostringstream o;
     o << "odd.mesh";
-    MIO::write(o.str().c_str(), pos, odd, "TRI", 0, &odd_colors);
+    medith::write(o.str().c_str(), pos, odd, "TRI", 0, &odd_colors);
   }
 #endif
   
@@ -956,7 +956,7 @@ TRI_Conformizer<DIM>::__fix_bad_triangles
     return 0;
   
 #ifdef DEBUG_TRI_CONFORMIZER
-  MIO::write("bad_triangles.mesh", coord, connectBad, "TRI");
+  medith::write("bad_triangles.mesh", coord, connectBad, "TRI");
   connectBad.clear();
 #endif
   
@@ -1046,13 +1046,13 @@ TRI_Conformizer<DIM>::__fix_bad_triangles
   }
   
 #ifdef DEBUG_TRI_CONFORMIZER
-  //MIO::write("triangles_to_split.mesh", coord, connectBad, "TRI");
+  //medith::write("triangles_to_split.mesh", coord, connectBad, "TRI");
   //for (size_t i=nb_tris; i < new_connect.cols(); ++i)
   //{
   //  pSi = new_connect.col(i);
   //  connectSplit.pushBack(pSi, pSi+3);
   //}
-  //MIO::write("triangles_splitted.mesh", coord, connectSplit, "TRI");
+  //medith::write("triangles_splitted.mesh", coord, connectSplit, "TRI");
 #endif
   
   connect = new_connect;
@@ -1221,7 +1221,7 @@ TRI_Conformizer<DIM>::__clean_topology
   }
     
 #ifdef DEBUG_TRI_CONFORMIZER
-  MIO::write("toswap0.mesh", coord, connectW, "TRI");
+  medith::write("toswap0.mesh", coord, connectW, "TRI");
 #endif
     
  #ifdef DEBUG_TRI_CONFORMIZER   
@@ -1274,8 +1274,8 @@ TRI_Conformizer<DIM>::__clean_topology
 #endif
   }
 #ifdef DEBUG_TRI_CONFORMIZER
-  MIO::write("swapE.mesh", coord, ee, "BAR");
-  MIO::write("toswapM0.mesh", coord, connectW, "TRI", 0, &colors);
+  medith::write("swapE.mesh", coord, ee, "BAR");
+  medith::write("toswapM0.mesh", coord, connectW, "TRI", 0, &colors);
 #endif
   
   if (!swapKb.empty())
@@ -1300,7 +1300,7 @@ TRI_Conformizer<DIM>::__clean_topology
       
       colz[K]=1;
     }   
-    MIO::write("toswap1.mesh", coord, connectW, "TRI", 0, &colz);
+    medith::write("toswap1.mesh", coord, connectW, "TRI", 0, &colz);
 #endif
   
     //Apply swapping to connect : now we should have a coorect topology to prevent faulty elements after merging
@@ -1325,7 +1325,7 @@ TRI_Conformizer<DIM>::__clean_topology
       
       colz[oids[K]]=1;
     }   
-    MIO::write("toswap1m.mesh", coord, connect, "TRI", 0, &colz);
+    medith::write("toswap1m.mesh", coord, connect, "TRI", 0, &colz);
   }
 #endif
 } 
@@ -1449,8 +1449,8 @@ TRI_Conformizer<DIM>::__multi_swap
 #ifdef DEBUG_CONFORMIZER
 //  K_FLD::IntArray ctmp;
 //  for (size_t i=0; i< tmp.size(); ++i) ctmp.pushBack(connect.col(tmp[i]), connect.col(tmp[i])+3);
-//  MIO::write("beforesplit.mesh", pos, ctmp, "TRI");
-//  MIO::write("aftersplit.mesh", pos, splitT3s, "TRI");
+//  medith::write("beforesplit.mesh", pos, ctmp, "TRI");
+//  medith::write("aftersplit.mesh", pos, splitT3s, "TRI");
 #endif
   
   {

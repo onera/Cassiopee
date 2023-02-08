@@ -218,7 +218,7 @@ TRI_Conformizer<DIM>::__split_Elements
 //          DELAUNAY::MeshTool::compact_to_mesh(coord1, tmp, newIDs);   
 //          std::ostringstream o;
 //          o << "TRI_degen_compact_" <<parent_type::_iter << "_" << i << ".mesh";
-//          MIO::write(o.str().c_str(), coord1, tmp, "TRI");
+//          medith::write(o.str().c_str(), coord1, tmp, "TRI");
 //        }
 #endif
       //return ret;
@@ -250,7 +250,7 @@ TRI_Conformizer<DIM>::__split_Elements
       
 #ifdef DEBUG_TRI_CONFORMIZER
     //if (ancestors[i]==401)//parent_type::_iter == 10 || xtest
-      //MIO::write("conto.mesh", pos, ci, "BAR");
+      //medith::write("conto.mesh", pos, ci, "BAR");
 #endif
 
       // coordinates
@@ -263,7 +263,7 @@ TRI_Conformizer<DIM>::__split_Elements
 #ifdef DEBUG_TRI_CONFORMIZER
     //if (ancestors[i]==401) //parent_type::_iter == 10 || xtest
     //{
-    //  MIO::write("contoci.mesh", pi, ci2, "BAR");
+    //  medith::write("contoci.mesh", pi, ci2, "BAR");
     //  std::cout << "hard nodes ? " << hnodes.size() << std::endl;
     //}
 #endif
@@ -285,7 +285,7 @@ TRI_Conformizer<DIM>::__split_Elements
 #endif
 #ifdef DEBUG_MESHER
       //if (ancestors[i]==1167)//parent_type::_iter == 10 || xtest
-        //MIO::write("contot.mesh", pi, ci2, "BAR");
+        //medith::write("contot.mesh", pi, ci2, "BAR");
 #endif
       // Now mesh
       data.clear(); //reset containers
@@ -323,7 +323,7 @@ TRI_Conformizer<DIM>::__split_Elements
         /*{
           K_FLD::FloatArray tmp(pi);
           tmp.resize(3, tmp.cols(), 0.);
-          MIO::write("contour_init.mesh", tmp, ci2, "BAR");
+          medith::write("contour_init.mesh", tmp, ci2, "BAR");
         }*/
 
         for (int u = 0; u < pi.cols(); ++u)
@@ -335,7 +335,7 @@ TRI_Conformizer<DIM>::__split_Elements
         /*{
           K_FLD::FloatArray tmp(pi);
           tmp.resize(3, tmp.cols(), 0.);
-          MIO::write("contour_norma.mesh", tmp, ci2, "BAR");
+          medith::write("contour_norma.mesh", tmp, ci2, "BAR");
         }*/
 
         err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, false/*i.e. try to force all edge*/, true/*i.e silent also last it*/);
@@ -372,7 +372,7 @@ TRI_Conformizer<DIM>::__split_Elements
           {
             std::ostringstream o;
             o << "TRI_mesher_err_compact_" <<parent_type::_iter << "_" <<  i << ".mesh";
-            MIO::write(o.str().c_str(), coord1, ci, "BAR");
+            medith::write(o.str().c_str(), coord1, ci, "BAR");
           }
 #endif
 #ifdef DEBUG_EXTRACT
@@ -410,7 +410,7 @@ TRI_Conformizer<DIM>::__split_Elements
       {
         K_FLD::FloatArray c(*data.pos);
         c.resize(3, data.pos->cols(), 0.);
-        MIO::write("mesh0.mesh", c, data.connectM, "TRI");
+        medith::write("mesh0.mesh", c, data.connectM, "TRI");
       }
 #endif   
    
@@ -422,7 +422,7 @@ TRI_Conformizer<DIM>::__split_Elements
       {
         K_FLD::FloatArray c(*data.pos);
         c.resize(3, data.pos->cols(), 0.);
-        MIO::write("meshSwap.mesh", c, data.connectM, "TRI");
+        medith::write("meshSwap.mesh", c, data.connectM, "TRI");
       }
 #endif  
      
@@ -714,7 +714,7 @@ TRI_Conformizer<DIM>::__improve_triangulation_quality(const T3& tri, const std::
       //K_FLD::FloatArray c(*data.pos);
       //c.resize(3, data.pos->cols(), 0.);
       //o << "swap_" << data.connectM.cols() - railing << ".mesh";
-      //MIO::write(o.str().c_str(), c, data.connectM, "TRI");
+      //medith::write(o.str().c_str(), c, data.connectM, "TRI");
 #endif
     }
     else
@@ -1302,7 +1302,7 @@ TRI_Conformizer<DIM>::__get_mesh_data
     }
   }
   
-  //MIO::write("cnt0.mesh", pos, cnt0, "BAR");
+  //medith::write("cnt0.mesh", pos, cnt0, "BAR");
   
   // X edges
   K_FLD::IntArray::const_iterator pS;
@@ -1318,11 +1318,11 @@ TRI_Conformizer<DIM>::__get_mesh_data
   if (unodes.size() == 3)
     return 2; //clean triangle
   
-  //MIO::write("cnt0x.mesh", pos, cnt0, "BAR");
+  //medith::write("cnt0x.mesh", pos, cnt0, "BAR");
   
   NUGA::MeshTool::compact_to_mesh(pos, cnt0, crd, cnt1, oids);
     
-  //MIO::write("cnt1.mesh", crd, cnt1, "BAR");
+  //medith::write("cnt1.mesh", crd, cnt1, "BAR");
   
   // transform (in the coord. sys of the triangle)
   pS = connect.col(t.id);
@@ -1697,7 +1697,7 @@ TRI_Conformizer<DIM>::__simplify_and_clean
   for (size_t i=0; i < mask.size(); ++i)
     if ((ancX[i]==407) || (ancX[i]==424)  || (ancX[i]==1361) || (ancX[i]==1378))
       mask[i]=true;
-  MIO::write("before.mesh", pos, connectX, "TRI", &mask, &ancX);*/
+  medith::write("before.mesh", pos, connectX, "TRI", &mask, &ancX);*/
 #endif
 
   
@@ -1710,7 +1710,7 @@ TRI_Conformizer<DIM>::__simplify_and_clean
     connectXC.uniqueVals(nodesXC);
 
 #ifdef DEBUG_TRI_CONFORMIZER
-    MIO::write("commonE0.mesh", pos, connectXC, "BAR");
+    medith::write("commonE0.mesh", pos, connectXC, "BAR");
 #endif
   }
   
@@ -1726,13 +1726,13 @@ TRI_Conformizer<DIM>::__simplify_and_clean
   E_Int nb_merges = merge(posAcc, connectAcc, tolerance, nodesXC, nodesXC, nids);
   
 #ifdef DEBUG_TRI_CONFORMIZER
-  MIO::write("beforem.mesh", pos, connect, "TRI");
+  medith::write("beforem.mesh", pos, connect, "TRI");
 #endif
   
   parent_type::__clean(nids, connect, ancestors, &xc);
 
 #ifdef DEBUG_TRI_CONFORMIZER
-  MIO::write("afterm.mesh", pos, connect, "TRI");
+  medith::write("afterm.mesh", pos, connect, "TRI");
 #endif
   
   __process_duplicates(connect, ancestors, xc); // remove baffles due to duplication by merging.
@@ -2106,7 +2106,7 @@ TRI_Conformizer<DIM>::drawElements
   //E_Float d13 = ::sqrt(dist2(coord1.col(1), coord1.col(3)));
   //std::cout << "distances : " << d01 << " " << d03 << " " << d13 << std::endl;
       
-  MIO::write(fname, coord1, cOut, "TRI", 0, colors);
+  medith::write(fname, coord1, cOut, "TRI", 0, colors);
 
 }
 #endif
@@ -2136,7 +2136,7 @@ TRI_Conformizer<DIM>::drawTandE
 
   std::vector<E_Int> nids;
   NUGA::MeshTool::compact_to_mesh(p, toto, nids);
-  MIO::write("TandE.mesh", p, toto);
+  medith::write("TandE.mesh", p, toto);
 
 }
 
@@ -2192,10 +2192,10 @@ TRI_Conformizer<DIM>::drawT3(const K_FLD::FloatArray& pos, const K_FLD::IntArray
     K_FLD::FloatArray p(pos);
     NUGA::MeshTool::compact_to_mesh(p, cOut, newIds);
       
-    MIO::write(o.str().c_str(), p, cOut, "BAR", 0, &colors);
+    medith::write(o.str().c_str(), p, cOut, "BAR", 0, &colors);
   }
   else
-    MIO::write(o.str().c_str(), pos, cOut, "BAR", 0, &colors);
+    medith::write(o.str().c_str(), pos, cOut, "BAR", 0, &colors);
   
 }
 

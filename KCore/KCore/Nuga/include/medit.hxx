@@ -25,10 +25,9 @@
 #include <iostream>
 #include <cstring>
 
-#include "Nuga/include/ngon_t.hxx"
-#include "Nuga/include/cdatastruct.hxx"
+#include "Nuga/include/DynArray.h"
+#include "Nuga/include/MeshTool.h"
 
-using ngon_type = ngon_t<K_FLD::IntArray>;
 
 class medith
 {
@@ -206,58 +205,7 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
   return ret;
 }
 
-template <typename phmesh_type>
-static E_Int read(const char* filename, phmesh_type& mesh)
-{
-  using INT_t = typename phmesh_type::INT_t;
-  using FLT_t = typename phmesh_type::FLT_t;
-  using cnt_t = K_FLD::DynArray<INT_t>;
-  using ngon_type = ngon_t<cnt_t>;
-  using crd_t = K_FLD::DynArray<FLT_t>;
-
-  crd_t pos(mesh.CALLOC == 1);      // pass the allocation style
-  cnt_t connect(mesh.CALLOC == 1);  // pass the allocation style
-
-  E_Int ret = read(filename, pos, connect);
-
-  if (pos.cols() == 0)
-  {
-    std::cout << "could not open file : " << filename << std::endl;
-    return 1;
-  }
-
-  ngon_type ng;
-
-  INT_t rows = connect.rows();
-
-  if (rows == 4) // TETRA
-    ngon_type::template convert<K_MESH::Tetrahedron>(connect, ng);
-  else if (rows == 8) // HEXA
-    ngon_type::template convert<K_MESH::Hexahedron>(connect, ng);
-  else
-  {
-    std::cout << "elt type no handled" << std::endl;
-    return 1;
-  }
-  
-  ngon_type::clean_connectivity(ng, pos);
-
-  // grabs coordinates
-  int dim{ 3 };
-  bool alloc;
-  pos.relay_mem(mesh.crd.p, dim, mesh.crd.n, alloc);
-  assert(int(alloc) == mesh.CALLOC);
-
-  // grabs mesh
-  ng.PGs.relay_mem(mesh.pgs);
-  ng.PHs.relay_mem(mesh.phs);
-
-
-  return ret;
-}
-
-  template< typename color_t = E_Int>
-  static E_Int write(const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const char* elt_type, const std::vector<bool>* keep = nullptr, const std::vector<color_t>* colors = nullptr)
+  static E_Int write(const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const char* elt_type, const std::vector<bool>* keep = nullptr, const std::vector<E_Int>* colors = nullptr)
   {
     if (crd.cols() == 0)
     return 0;
@@ -388,8 +336,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
   return 0;
   }
 
-  template< typename color_t = E_Int>
-  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start=0, const std::vector<color_t>* colors = nullptr)
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start=0, const std::vector<E_Int>* colors = nullptr)
   {
     std::string stype;
     if      (cnt.rows() == 2) stype="BAR";
@@ -410,15 +357,13 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     K_FLD::IntArray tmpcnt(cnt);
     NUGA::MeshTool::compact_to_mesh(tmpcrd, tmpcnt, nids);
 
-    return write<color_t>(filename, tmpcrd, tmpcnt, stype.c_str(), keep.empty() ? nullptr : &keep, colors);
+    return write(filename, tmpcrd, tmpcnt, stype.c_str(), keep.empty() ? nullptr : &keep, colors);
   }
 
-  template< typename Triangulator_t, typename color_t = E_Int>
-  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_unit& pgs, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start = 0, const std::vector<color_t>* colors = nullptr)
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_unit& pgs, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start = 0, const std::vector<E_Int>* colors = nullptr)
   {
 
     K_FLD::IntArray cT;
-    Triangulator_t dt;
     std::vector<E_Int> Tcolors;
 
     E_Int pureBasic = 0;
@@ -466,7 +411,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
         for (size_t i = 0; i < toprocess->size(); ++i)
         {
           E_Int PGi = (*toprocess)[i] - idx_start;
-          K_MESH::Polygon::triangulate<Triangulator_t>(dt, crd, pgs.get_facets_ptr(PGi), pgs.stride(PGi), 1, cT);
+          //K_MESH::Polygon::triangulate(crd, pgs.get_facets_ptr(PGi), pgs.stride(PGi), 1, cT);
           if (colors)Tcolors.resize(cT.cols(), (E_Int)(*colors)[PGi]);
         }
       }
@@ -474,7 +419,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
       {
         for (E_Int i = 0; i < pgs.size(); ++i)
         {
-          K_MESH::Polygon::triangulate<Triangulator_t>(dt, crd, pgs.get_facets_ptr(i), pgs.stride(i), 1, cT);
+          //K_MESH::Polygon::triangulate(crd, pgs.get_facets_ptr(i), pgs.stride(i), 1, cT);
           if (colors)Tcolors.resize(cT.cols(), (E_Int)(*colors)[i]);
         }
       }
@@ -488,8 +433,8 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     }
     else
     {
-      std::vector<color_t> newPGcolor;
-      const std::vector<color_t> *pColors(colors);
+      std::vector<E_Int> newPGcolor;
+      const std::vector<E_Int> *pColors(colors);
 
       ngon_unit pgs2(pgs);
 
@@ -538,53 +483,6 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     return 0;
   }*/
   #endif
-
-  template< typename color_t = E_Int>
-  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_type& ng, const std::vector<E_Int>* toprocess = nullptr, E_Int idx_start = 0, const std::vector<color_t>* colors = nullptr)
-  {
-    std::vector<color_t> PHcolor;
-    if (colors) PHcolor.insert(PHcolor.end(), ALL(*colors));
-
-    ngon_type ngt(ng);
-
-    if (toprocess)
-    {
-      ngon_unit phs;
-      Vector_t<E_Int> oids;
-      std::vector<E_Int> shiftedToPoc(ALL(*toprocess));
-      K_CONNECT::IdTool::shift(shiftedToPoc, -idx_start);
-      ng.PHs.extract(shiftedToPoc, phs, oids);
-      ngt.PHs = phs;
-      //update PH color
-      if (colors)
-      {
-        std::vector<color_t> newPHcolor(ngt.PHs.size(), 0);
-        for (size_t k = 0; k < newPHcolor.size(); ++k)
-          newPHcolor[k] = PHcolor[oids[k]];
-        PHcolor = newPHcolor;
-      }
-    }
-    
-    // clean up with unrelevant pgs
-    std::vector<E_Int> pgnids, phnids;
-    ngt.remove_unreferenced_pgs(pgnids, phnids);
-    K_CONNECT::IdTool::compact(PHcolor, phnids);
-
-    std::vector<E_Int> PGcolor;
-    if (colors)
-    {
-      PGcolor.resize(ngt.PGs.size(), 0);
-      for (size_t i = 0; i < ngt.PHs.size(); ++i)
-      {
-        const E_Int* PGi = ngt.PHs.get_facets_ptr(i);
-        E_Int stride = ngt.PHs.stride(i);
-        for (size_t j = 0; j < stride; ++j)
-          if (PGcolor[PGi[j] - 1]==0) PGcolor[PGi[j] - 1] = PHcolor[i];
-      }
-    }
-    
-    return medith::write(filename, crd, ngt.PGs, nullptr, 0,colors ? &PGcolor : nullptr);
-  }
   
   template <typename aELT>
   static E_Int write(const char* filename, const aELT& ae);
@@ -623,7 +521,7 @@ static E_Int read(const char* filename, phmesh_type& mesh)
     K_FLD::FloatArray crdl(crd);
     ngo_t::compact_to_used_nodes(one_ph.PGs, crdl);
 
-    write<E_Int>(filename, crdl, one_ph.PGs);
+    write(filename, crdl, one_ph.PGs);
 
     return 0;
   }

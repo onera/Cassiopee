@@ -12,6 +12,10 @@
 #ifndef LOCALIZER_HXX
 #define LOCALIZER_HXX
 
+#ifdef DEBUG_COLLIDER
+#include "Nuga/include/chrono.h"
+#endif
+
 namespace NUGA
 {
 

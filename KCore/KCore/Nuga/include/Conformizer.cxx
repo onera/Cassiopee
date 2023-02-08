@@ -302,7 +302,7 @@ Conformizer<DIM, Element_t>::__initialize
     std::cout << "_tolerance      : " << _tolerance << std::endl;
   }
 #endif
-  //MIO::write("cleaned.tp", pos, connect, "BAR");
+  //medith::write("cleaned.tp", pos, connect, "BAR");
 //#endif
 
 }
@@ -422,7 +422,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   {
   std::ostringstream o;
   o << "beforeX_" << _iter << ".mesh";
-  MIO::write(o.str().c_str(), pos, connect);
+  medith::write(o.str().c_str(), pos, connect);
 
   E_Int Ti = TRI_debug::get_T3_index(connect, TRUPLE);
   E_Int a = (Ti != IDX_NONE) ? ancestors[Ti] : IDX_NONE;
@@ -466,7 +466,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   _nbX = nbX;
   std::ostringstream o;
   o << "allX_" << _iter << ".mesh";
-  //MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
+  //medith::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
   medith::write(o.str().c_str(), pos, connect, "TRI");
 #endif
   
@@ -493,7 +493,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   {
     std::ostringstream o;
     o << "after_merge_" << _iter << ".mesh";
-    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/);
+    medith::write(o.str().c_str(), pos, connect);
 }
 #endif
 
@@ -530,7 +530,7 @@ E_Int Conformizer<DIM, Element_t>::__run
     for (size_t i = 0; i < xc.size(); ++i)
       //if (xc[i])
         xing.pushBack(connect.col(i), connect.col(i)+3);
-    MIO::write(o.str().c_str(), pos, xing);
+    medith::write(o.str().c_str(), pos, xing);
   }
 #endif
   
@@ -552,7 +552,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   {
     std::ostringstream o;
     o << "before_splitX_" << _iter << ".mesh";
-    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/);
+    medith::write(o.str().c_str(), pos, connect);
   }
 #endif
 
@@ -582,7 +582,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   {
     std::ostringstream o;
     o << "splitX_" << _iter << ".mesh";
-    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/);
+    medith::write(o.str().c_str(), pos, connect);
   }
 #endif
 
@@ -631,7 +631,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   {
     std::ostringstream o;
     o << "spe_mergeX_" << _iter << ".mesh";
-    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
+    medith::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
   }
 #endif
 
@@ -663,7 +663,7 @@ E_Int Conformizer<DIM, Element_t>::__run
     
     std::ostringstream o;
     o << "connecto_" << _iter << ".mesh";
-    MIO::write(o.str().c_str(), pos, connect, 0);
+    medith::write(o.str().c_str(), pos, connect);
   }
 #endif
   
@@ -672,7 +672,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   {
     std::ostringstream o;
     o << "solvedX_" << _iter << ".mesh";
-    MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
+    medith::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
     E_Int Ti = TRI_debug::get_T3_index(connect,TRUPLE);
     E_Int a = (Ti != IDX_NONE) ? ancestors[Ti] : IDX_NONE;
   }
@@ -711,7 +711,7 @@ Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, 
   {
     xc0[ancestors[i]]=xc[i];
   }
-  //MIO::write("X.mesh", pos, _connect0, 0/*elt type*/, &xc0);
+  //medith::write("X.mesh", pos, _connect0, 0/*elt type*/, &xc0);
   E_Float Lmin, Lmax;
   __compute_min_edge_length(coord, _connect0, xc0, Lmin, Lmax);
   E_Float new_tol = MAX_PERCENT*Lmin;

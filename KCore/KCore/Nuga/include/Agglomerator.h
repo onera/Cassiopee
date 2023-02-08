@@ -183,7 +183,7 @@ namespace NUGA
     K_FLD::IntArray cnto;
     //ngon_type ng(gagg_pgs);
     //ng.export_to_array(cnto);
-    //MIO::write("agg.plt", crd, cnto, "NGON");
+    //medith::write("agg.plt", crd, cnto, "NGON");
     medith::write("agged", crd, gagg_pgs);
   }
 #endif
@@ -202,7 +202,7 @@ namespace NUGA
     K_FLD::IntArray cnto;
     ngon_type ng(ngo.PGs);
     ng.export_to_array(cnto);
-    //MIO::write("aggandinit.plt", crd, cnto, "NGON");
+    //medith::write("aggandinit.plt", crd, cnto, "NGON");
     medith::write("aggandinit", crd, ngo.PGs);
   }
 #endif
@@ -1197,7 +1197,7 @@ namespace NUGA
             ng.export_to_array(cnto);
             std::ostringstream o;
             o << "agg_" << n << ".tp";
-            MIO::write(o.str().c_str(), crd, cnto, "NGON"); 
+            medith::write(o.str().c_str(), crd, cnto, "NGON"); 
             
             E_Float isoG[3];
             typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
@@ -1214,7 +1214,7 @@ namespace NUGA
             crd.pushBack(isoG, isoG+3);
             crd.pushBack(centroid, centroid+3);
 
-            MIO::write("baryTocentroid.mesh", crd, cn, "BAR"); 
+            medith::write("baryTocentroid.mesh", crd, cn, "BAR"); 
             
           }*/
 #endif
@@ -1480,7 +1480,7 @@ namespace NUGA
 //    
 //        K_FLD::IntArray cnto;
 //        ngo.export_to_array(cnto);
-//        MIO::write("current.plt", crd, cnto, "NGON");
+//        medith::write("current.plt", crd, cnto, "NGON");
 //
 //        for (size_t i=0; i < F2E.cols(); ++i)
 //        {
@@ -1520,7 +1520,7 @@ namespace NUGA
     tmp.keep_PHs_having_PGs(badPGs);
     K_FLD::IntArray ctmp;
     tmp.export_to_array(ctmp);
-    MIO::write("bad_phs.plt", crd, ctmp, "NGON");
+    medith::write("bad_phs.plt", crd, ctmp, "NGON");
 #endif
     
     ///  COLLAPSING THE SMALLEST EDGE => NUGA::Agglomerator::collapse_pgs2

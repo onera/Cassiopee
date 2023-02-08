@@ -471,29 +471,6 @@ namespace NUGA
       }
     }
 
-#ifdef DEBUG_IMMERSION
-    ngon_unit ngumoved;
-    for (size_t i = 0; i < m1.cnt.PGs.size(); ++i)
-    {
-      const E_Int* nodes = m1.cnt.PGs.get_facets_ptr(i);
-      E_Int nnodes = m1.cnt.PGs.stride(i);
-      E_Int count{ 0 };
-      for (size_t j = 0; j < nnodes; ++j)
-      {
-        E_Int Ni = nodes[j] - m1.index_start;
-
-        if (!pt_to_faces[Ni].empty())
-          ++count;
-      }
-
-      if (count != 0)
-        ngumoved.add(nnodes, nodes);
-    }
-
-    ngumoved.updateFacets();
-    medith::write("pgmoved", m1.crd, ngumoved);
-#endif
-
     // returns moved vertices and displacements
     std::vector<direction> odirs;
     for (size_t i = 0; i < vertices.size(); ++i)

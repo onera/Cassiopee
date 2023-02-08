@@ -99,7 +99,7 @@ SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
 
 #ifdef WIN32
 #ifdef E_DEBUG
-  MIO::write("param.mesh", data.pos, data.connectM);
+  medith::write("param.mesh", data.pos, data.connectM);
 #endif
 #endif
 

@@ -95,7 +95,7 @@ namespace NUGA
             ngon_type ng(pg);
             K_FLD::IntArray cnt;
             ng.export_to_array(cnt);
-            MIO::write("pg1.plt", acrd1.array(), cnt, "NGON");
+            medith::write("pg1.plt", acrd1.array(), cnt, "NGON");
             }
             {
             ngon_unit pg;
@@ -103,7 +103,7 @@ namespace NUGA
             ngon_type ng(pg);
             K_FLD::IntArray cnt;
             ng.export_to_array(cnt);
-            MIO::write("pg2.plt", acrd2.array(), cnt, "NGON");
+            medith::write("pg2.plt", acrd2.array(), cnt, "NGON");
             }
           }*/
 #endif
@@ -537,7 +537,7 @@ namespace NUGA
 //#ifdef DEBUG_CLIPPER
 //      std::vector<bool> kp(cT3.cols(), false);
 //      kp[26]=true;
-//      MIO::write("k26.mesh", crd, cT3, "TRI", &kp/*, &colors*/);
+//      medith::write("k26.mesh", crd, cT3, "TRI", &kp/*, &colors*/);
 //      TRI_debug::coloring_frames(crd, cT3, neighbors, 0);
 //#endif
  

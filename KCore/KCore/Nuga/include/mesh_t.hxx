@@ -30,18 +30,7 @@ enum eGEODIM { LINEIC = 1, SURFACIC = 2, VOLUMIC = 3};
 // : default impl : fixed stride (Basic element in any DIM)
 template <eGEODIM GEODIM, bool fixed_stride>
 struct connect_trait;
-//{
-//  using cnt_t = K_FLD::IntArray;
-//  // missing elt_t : need a polytop<GEODIM, N> => polyhedron<N> and a polygon<N>
-//  static const eGEODIM BOUND_GEODIM = eGEODIM(GEODIM-1);
-//  static const bool BOUND_STRIDE = fixed_stride;
-//
-//  static E_Int ncells(const cnt_t& c) {return c.cols();}
-//  static void shift(cnt_t& c, int v) { c.shift(v);}
-//  static void unique_indices(const cnt_t&c, std::vector<E_Int>& uinds) { c.uniqueVals(uinds);}
-//
-//  //static void compact(cnt_t&c, const std::vector<E_Int>& keep){ std::vector<E_Int> nids; c.compact(keep, nids);}
-//};
+
 
 // LINEIC : BAR
 template <>
@@ -1032,42 +1021,7 @@ struct mesh_t
 
 };
 
-template <eGEODIM GEODIM, bool FIXSTRIDE>
-struct vmesh_t
-{
-  using trait = connect_trait<GEODIM, FIXSTRIDE>;
-  using cnt_t = typename trait::cnt_t;
-  using elt_t = typename trait::elt_t;
-  static const E_Int index_start = trait::index_start;
-  
-  const K_FLD::FloatArray&  crd;
-  const cnt_t&              cnt;
-
-  vmesh_t(const K_FLD::FloatArray &crd, const K_FLD::IntArray& cnt):crd(crd),cnt(cnt){}
-
-  elt_t element(E_Int i) const { return elt_t(cnt, i);}
-  
-  //mesh_t& operator=(const mesh_t&m){crd = m.crd; cnt = m.cnt;} 
-  
-  E_Int ncells() const {return connect_trait<GEODIM, FIXSTRIDE>::ncells(cnt);}
-  
-  void bbox(K_SEARCH::BBox3D& box) const 
-  {
-    std::vector<E_Int> uinds;
-    connect_trait<GEODIM, FIXSTRIDE>::unique_indices(cnt, uinds);
-    box.compute(crd, uinds, index_start);
-  }
-
-  void bbox(E_Int i, K_SEARCH::BBox3D& box) const 
-  {
-    assert(i < ncells());
-
-    elt_t e = element(i);
-    e.bbox(crd, box);
-  }
-  
-};
-
+///
 template <typename MT>
 using boundary_t = mesh_t<MT::trait::BOUND_GEODIM, MT::trait::BOUND_STRIDE>;
 

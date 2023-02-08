@@ -181,7 +181,7 @@ inline bool is_a_ref(const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, E
     crd1.pushBack(G,G+3);
     crd1.pushBack(P,P+3);
     K_FLD::IntArray cnt1(2,1,0); cnt1(0,0)=crd1.cols()-2;cnt1(1,0)=crd1.cols()-1;
-    MIO::write("ray.mesh", crd1, cnt1, "BAR");
+    medith::write("ray.mesh", crd1, cnt1, "BAR");
     {
       K_FLD::IntArray cnt2;
       for (size_t i=0; i < nb_cands; ++i)
@@ -189,7 +189,7 @@ inline bool is_a_ref(const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, E
         cnt2.pushBack(cnt.col(boxes[i]), cnt.col(boxes[i])+3);
       }
       
-      MIO::write("cands.mesh", crd1, cnt2, "TRI");
+      medith::write("cands.mesh", crd1, cnt2, "TRI");
     }
   }*/
 #endif
@@ -246,10 +246,10 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
    if (crds.size() != cnts.size())
      return;
    
-   E_Int nb_zones = crds.size();
+   size_t nb_zones = crds.size();
    
    //0. Clean by removing duplicates in order to have a correct answer when calling getManifoldNeighbor below
-   for (E_Int i=1; i < nb_zones; ++i)
+   for (size_t i=1; i < nb_zones; ++i)
    {
      Vector_t<E_Int> dupIds;
      NUGA::MeshTool::removeDuplicated(*cnts[i], dupIds, false);

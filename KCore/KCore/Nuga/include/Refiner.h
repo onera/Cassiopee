@@ -214,7 +214,7 @@ namespace DELAUNAY
           cnto.pushBack(E, E+2);
           std::ostringstream o;
           o << "discarded_" << Ni << ".mesh";
-          MIO::write(o.str().c_str(), crdo, cnto, "BAR");     
+          medith::write(o.str().c_str(), crdo, cnto, "BAR");     
         }*/
 #endif
       }

@@ -96,7 +96,7 @@ namespace NUGA
     
     K_FLD::IntArray cnto;
     ngS.export_to_array(cnto);
-    //MIO::write("supermesh.plt", crdS, cnto, "NGON");
+    //medith::write("supermesh.plt", crdS, cnto, "NGON");
     
     std::cout << "compute_coeffs : step 2 : reorient 3D" << std::endl;
 #endif

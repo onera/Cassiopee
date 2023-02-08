@@ -235,7 +235,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do
       o << "NGON_it_" << iter << ".plt"; // we create a file at each iteration
       K_FLD::IntArray cnto;
       filtered_ng.export_to_array(cnto);
-      MIO::write(o.str().c_str(), _crd, cnto, "NGON");
+      medith::write(o.str().c_str(), _crd, cnto, "NGON");
 #endif
     }
 

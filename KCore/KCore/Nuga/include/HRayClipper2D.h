@@ -590,7 +590,7 @@ void draw_PG(const char* fname, K_FLD::FloatArray& crd)
     E[1]=(j+1)%sz;
     edges.pushBack(E, E+2);
   }
-  MIO::write(fname, crd, edges, "BAR");
+  medith::write(fname, crd, edges, "BAR");
 }
 #endif
 

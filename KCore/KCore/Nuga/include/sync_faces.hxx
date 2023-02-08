@@ -20,7 +20,7 @@ using crd_t = K_FLD::FloatArray;
 using acrd_t = K_FLD::ArrayAccessor<crd_t>;
 
 ///
-void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, const double * axis, double angle, const double* translation,
+inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, const double * axis, double angle, const double* translation,
   double ARTOL, std::map<E_Int, std::vector<E_Int>>& glob_face_to_bits)
 {
   DELAUNAY::Triangulator dt;
@@ -388,7 +388,7 @@ void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, c
 }
 
 ///
-void duplicate_and_move_period_faces
+inline void duplicate_and_move_period_faces
 (NUGA::ph_mesh_t& m, const double* center, const double * axis, double angle, const double* translation,
  std::map<E_Int, std::vector<E_Int>>& face_to_bits)
 {
@@ -581,7 +581,7 @@ void duplicate_and_move_period_faces
 }
 
 ///
-void replace_faces(
+inline void replace_faces(
                   NUGA::ph_mesh_t& m,
                   const std::map<E_Int,
                   std::vector<E_Int>>& face_to_bits,
@@ -662,7 +662,7 @@ void replace_faces(
 }
 
 ///
-bool sync_faces
+inline bool sync_faces
 (NUGA::ph_mesh_t& m, const std::map<E_Int, std::vector<E_Int>>& face_to_bits, double ARTOL)
 {
   if (ARTOL == 0.) ARTOL = -0.01;

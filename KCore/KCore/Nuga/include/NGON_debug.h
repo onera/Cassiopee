@@ -114,7 +114,7 @@ void NGON_DBG_CLASS::enabling_write
 (const char* fname, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect, const char* elt_type)
 {
   //if (_enabled)
-    //MIO::write(fname, coord, connect, elt_type);
+    //medith::write(fname, coord, connect, elt_type);
 }
 
 #define dABS(x) ((x<0)? -x : x)
