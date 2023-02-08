@@ -179,10 +179,12 @@ def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=40000
 
 def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False,
-                 check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns'):
+                 check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns',
+                 isAMR=False,valMin=0,valMax=1):
     t2=G_IBM.adaptIBMMesh(t, tb, vmin, sensor, factor=factor, DEPTH=DEPTH, sizeMax=sizeMax,
-                 variables=variables, refineFinestLevel=refineFinestLevel, refineNearBodies=refineNearBodies,
-                 check=check, symmetry=symmetry, externalBCType=externalBCType, fileo=fileo)
+                          variables=variables, refineFinestLevel=refineFinestLevel, refineNearBodies=refineNearBodies,
+                          check=check, symmetry=symmetry, externalBCType=externalBCType, fileo=fileo,isAMR=isAMR,
+                          valMin=valMin,valMax=valMax)
     return t2
 
 
