@@ -6,12 +6,28 @@ import Fast.PyTree as Fast
 import FastC.PyTree as FastC
 import FastS.PyTree as FastS
 import Post.PyTree as P
+import Geom.PyTree as D
 import numpy
 
 LOCAL = test.getLocal()
 
-bodySurfaceFile       = LOCAL+'/vertical_line_WMM.cgns'
-tbFile                = LOCAL+'/tbox_WMM.cgns'
+##Vertical Line
+t = Internal.newCGNSTree()
+Internal.newCGNSBase('Base1', 3, 3, parent=t);
+C._addState(t, 'EquationDimension', 2)
+C._addState(t, 'GoverningEquations', 'NSTurbulent')
+C._addState(t, 'TurbulenceModel', 'OneEquation_SpalartAllmaras')
+
+base=Internal.getNodeByName(t,'Base1')
+Internal.addChild(base, D.line((-0.09128554453599108,-0.19576248199991644,0), (0.09128554453599105,0.19576248199991644,0),N=800))
+
+uinf            = 69.22970250694424*numpy.cos(4* numpy.pi/180)
+Lcharac         = 0.03362355
+C._addState(t, adim='dim4', UInf=uinf, TInf=298.15, PInf=101325,LInf=Lcharac,Mus=1.78938e-5)
+App._setSnear(t, 0.0025)
+App._setDfar(t, 0.75)
+App._setIBCType(t, 'wiremodel')
+
 tFile                 = LOCAL+'/t.cgns'
 tcFile                = LOCAL+'/tc.cgns'
 
@@ -19,8 +35,8 @@ tcFile                = LOCAL+'/tc.cgns'
 dfar      = 5
 snears    = 1
 vmin      = 21;
-    
-t,tc=App.prepare1(bodySurfaceFile  , tFile      , tcFile             , 
+
+t,tc=App.prepare1(t                , tFile      , tcFile             , 
                   snears=snears    , dfar=dfar  , vmin=vmin          ,
                   check=False      , frontType=1, isFilamentOnly=True, isWireModel=True )
 
