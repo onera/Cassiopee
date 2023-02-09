@@ -472,7 +472,7 @@ E_Int K_OCC::CADviaOCC::build_loops
     __remove_degenerated(connectBs[i]);
     
 #ifdef DEBUG_CAD_READER
-    //meshIO::write("connectBf.mesh",coords , connectBs[i]);
+    //medith::write("connectBf.mesh",coords , connectBs[i]);
 #endif
   }
   
@@ -649,7 +649,17 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       medith::write("connectBcompacted.mesh", pos3D, connectB, "BAR");
 #endif
     
-
+#ifdef DEBUG_CAD_READER
+    //if (i == faulty_id)
+    {
+      K_FLD::FloatArray surfc;
+      K_FLD::IntArray con;
+      _faces[i]->discretize(surfc, con, 30, 30);
+      std::ostringstream o;
+      o << "discretized_surf_" << i;
+      //medith::write(o.str().c_str(), surfc, con, "QUAD");
+    }
+#endif
       
     // surface of revolution => duplicate, reverse and separate seams
     //bool is_of_revolution = ((E_Int)nodes.size() != connectB.cols());
@@ -663,6 +673,14 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       __split_surface_of_revolution(_faces[i], connectB, pos3D, seam_nodes);
       
     }
+
+    E_Int nb_loops = 1;
+    std::vector<K_FLD::IntArray> cntLoops;
+    {
+      std::set<E_Int> dummy;
+      ContourSplitter<K_MESH::Edge, E_Int>::splitConnectivity(connectB, dummy, cntLoops);
+      nb_loops = cntLoops.size();
+    }
     
     // Up to 2 tries : first by asking OCC for params, Second by "hand" (sampling)
     E_Int err = 0;
@@ -670,11 +688,27 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     {
       if (t==0)
         err = _faces[i]->parameters(pos3D, connectB, UVcontour);
-      else
+      else if (nb_loops == 1)
         err = _faces[i]->parametersSample(pos3D, UVcontour);
+      else
+      {
+        // todo : try to mesh in the contour mean plane
+        err = 1;
+      }
+      
+      if (!err)
+      {
+        // check if there are spikes in the contour :  == angular node equal to 0 == overlapping edges
+        err = __check_for_spikes(cntLoops, UVcontour);
+      }
 
       if (!err) // Need to reorient holed surface.
-        err = __reorient_holed_surface(connectB, UVcontour);
+      {
+        err = __reorient_holed_surface(cntLoops, UVcontour);
+        //concatenate back to connectB
+        connectB.clear();
+        for (E_Int c = 0; c< nb_loops; ++c) connectB.pushBack(cntLoops[c]);
+      }
       
       if (err)
       {
@@ -703,14 +737,12 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
       
 #ifdef DEBUG_CAD_READER
-    {
-      std::ostringstream o;
-      o << "connectBUV";
-      if (t==0)
-        o << "1_";
-      else o << "2_";
-      o << i << ".mesh"; 
-      medith::write(o.str().c_str(), UVcontour, connectB, "BAR");
+      if (/*i==faulty_id&&*/ t==0)
+        medith::write("connectBUV1.mesh", UVcontour, connectB, "BAR");
+      else if (/*i==faulty_id&&*/ t==1)
+        medith::write("connectBUV2.mesh", UVcontour, connectB, "BAR");
+      /*else if (t == 2)
+        medith::write("connectBUV3.mesh", UVcontour, connectB, "BAR");*/
       //std::cout << UVcontour << std::endl;
     }
 #endif
@@ -858,11 +890,6 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       {
         if (crds[i].cols()==0) continue;
 
-#ifdef DEBUG_CAD_READER
-        E_Int maxid = 0;
-        maxid = *std::max_element(connectMs[i].begin(), connectMs[i].end());
-        assert(maxid < crds[i].cols());
-#endif
         /*K_FLD::ArrayAccessor<K_FLD::FloatArray > crdA(crds[i]);
         ::merge(crdA, _merge_tol, nids);
         K_FLD::IntArray::changeIndices(connectMs[i], nids);
@@ -1019,7 +1046,7 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   return 0;
 }
 
-int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const K_FLD::FloatArray& UVcontour)
+E_Int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const K_FLD::FloatArray& UVcontour)
 {
   std::vector<K_FLD::IntArray> cntLoops;
   std::set<E_Int> dummy;
@@ -1028,8 +1055,21 @@ int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const 
 
   if (nb_loops == 1) return 0;
 
+  E_Int err =  K_OCC::CADviaOCC::__reorient_holed_surface(cntLoops, UVcontour);
+
+  //concatenate back to connectB
+  connectB.clear();
+  for (E_Int i = 0; i < nb_loops; ++i) connectB.pushBack(cntLoops[i]);
+}
+
+E_Int K_OCC::CADviaOCC::__reorient_holed_surface(std::vector<K_FLD::IntArray>& cntLoops, const K_FLD::FloatArray& UVcontour)
+{
+  E_Int nb_loops = cntLoops.size();
+
+  if (nb_loops == 1) return 0;
+
   std::vector<E_Int> indices;
-  K_SEARCH::BBox3D boxOuter, box;
+  K_SEARCH::BBox2D boxOuter, box;
   K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(UVcontour);
   E_Int outer=0;
   
@@ -1078,11 +1118,47 @@ int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const 
         std::swap(cntLoops[i](0,j), cntLoops[i](1,j));
   }
 
-  //concatenate back to connectB
-  connectB.clear();
-  for (E_Int i=0; i < nb_loops; ++i) connectB.pushBack(cntLoops[i]);
-  
   return 0;
+}
+
+E_Int K_OCC::CADviaOCC::__check_for_spikes(const std::vector<K_FLD::IntArray>& cntLoops, const K_FLD::FloatArray& UVcontour)
+{
+  E_Int err = 0;
+  
+  Vector_t<E_Int> sorted_nodes;
+  E_Int E[2];
+  E_Int nb_loops = cntLoops.size();
+
+  for (E_Int l = 0; (l < nb_loops) && !err; ++l)
+  {
+    sorted_nodes.clear();
+    err = BARSplitter::getSortedNodes(cntLoops[l], sorted_nodes);
+    int nnodes = sorted_nodes.size();
+    // the following test is added to catch a getSortedNodes error. Not added inside it for efficiency (generally works fine).
+    if (std::find(sorted_nodes.begin(), sorted_nodes.end(), E_IDX_NONE) != sorted_nodes.end()) err = 1;
+    for (size_t n = 0; n < sorted_nodes.size() && !err; ++n)
+    {
+      // detect spikes
+
+      int Nim1 = sorted_nodes[n];
+      int Ni = sorted_nodes[(n + 1) % nnodes];
+      int Nip1 = sorted_nodes[(n + 2) % nnodes];
+
+      double Pim1Pi[] = { UVcontour(0, Ni) - UVcontour(0, Nim1) , UVcontour(1, Ni) - UVcontour(1, Nim1) };
+      NUGA::normalize<2>(Pim1Pi);
+      double Norm1[] = { -Pim1Pi[1], Pim1Pi[0] , 0.};  // {-b, a}
+
+      double PiPip1[] = { UVcontour(0, Nip1) - UVcontour(0, Ni) , UVcontour(1, Nip1) - UVcontour(1, Ni) };
+      NUGA::normalize<2>(PiPip1);
+      double Norm2[] = { -PiPip1[1], PiPip1[0], 0. };  // {-b, a}
+
+      double spiky = ::fabs(NUGA::normals_angle(Norm1, Norm2) - NUGA::PI);
+
+      err = (spiky < ZERO_M);
+    }
+  }
+
+  return err;
 }
 
 void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_FLD::IntArray& connectB, K_FLD::FloatArray& pos3D, std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes)

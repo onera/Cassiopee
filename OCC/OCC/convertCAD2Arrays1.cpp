@@ -127,6 +127,8 @@ E_Int K_OCC::CADread
  
    for (unsigned int i=0; i < connectMs.size(); i++)
    {
+     if (connectMs[i].cols() == 0) continue; //failed to mesh it
+     
      FldArrayF* crd = new FldArrayF;
      crds[i].convert(*crd);
      unstructField.push_back(crd);
