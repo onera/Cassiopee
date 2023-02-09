@@ -869,7 +869,7 @@ void __assign_sensor_data
     {
       NUGA::ph_mesh_t mesh(crdS, cntS);
       NUGA::pg_smesh_t data;
-      mesh.get_boundary<false>(data);
+      mesh.get_boundary(data);
       sensor->assign_data(data);
     }
     else

@@ -42,7 +42,11 @@ struct connect_trait<LINEIC, true>
   using construct_elt_t = NUGA::aPolygon; // a polygon is a polyline (closed) => define a constructor
 
   static const E_Int index_start=0;
+
   static const bool BOUND_STRIDE = true;
+  
+  using             bound_elt_t  = int; //dummy :  need to define it to compile, but unused for BARs so put int as a dummy type;
+  using             bound_trait  = int; //dummy : idem
 
   static E_Int ncells(const cnt_t& c) {return c.cols();}
   static void unique_indices(const cnt_t&c, std::vector<E_Int>& uinds) { c.uniqueVals(uinds);}
@@ -137,7 +141,11 @@ struct connect_trait<SURFACIC, false>
   using construct_elt_t = NUGA::aPolyhedron<UNKNOWN>;  // a polyhedron is a surface (closed) => define a constructor
 
   static const eGEODIM BOUND_GEODIM = LINEIC;
-  static const bool BOUND_STRIDE = true;
+  static const bool    BOUND_STRIDE = true;
+ 
+  using                bound_elt_t = K_MESH::Edge;
+  using                bound_trait = int; //dummy : need to define it to compile, but unused for BARs so put int as a dummy type;
+
   static const E_Int index_start=1;
 
   static E_Int ncells(const cnt_t& c) {return c.size();}
@@ -340,7 +348,11 @@ struct connect_trait<VOLUMIC, false>
   using construct_elt_t = E_Int;//DUMMY : non-sense in volumic
 
   static const eGEODIM BOUND_GEODIM = SURFACIC;
-  static const bool BOUND_STRIDE = false;
+  static const bool    BOUND_STRIDE = false;
+ 
+  using                bound_elt_t = K_MESH::Polygon;
+  using                bound_trait = connect_trait<SURFACIC, false>;
+  
   static const E_Int index_start=1;
 
   static E_Int ncells(const cnt_t& c) {return c.PHs.size();}
@@ -574,14 +586,16 @@ template <eGEODIM GEODIM, bool FIXSTRIDE>
 struct mesh_t
 {
   static const  eGEODIM ARG1 = GEODIM;
-  static const  bool ARG2 = FIXSTRIDE;
-  
+  //static const  bool ARG2 = FIXSTRIDE;
+
   using trait = connect_trait<GEODIM, FIXSTRIDE>;
-  template <bool USTRIDE> using bound_mesh_t = mesh_t<eGEODIM(GEODIM-1), USTRIDE>;
-  template <bool USTRIDE> using bound_trait  = connect_trait<eGEODIM(GEODIM-1), USTRIDE>;
-  template <bool USTRIDE> using bound_elt_t  = typename bound_mesh_t<USTRIDE>::elt_t;
-  
-  static const E_Int BOUND_STRIDE = trait::BOUND_STRIDE; //cannot use directly it in above definitions (instead of USTRIDE) as it does a infinite recursion => avoid it delcaring template
+
+  static const E_Int BOUND_STRIDE = trait::BOUND_STRIDE;
+
+  using bound_mesh_t = mesh_t<eGEODIM(GEODIM - 1), BOUND_STRIDE>; // recursive definition! => require dummy terminal struct : mesh_t<0,true>
+  using bound_elt_t  = typename bound_mesh_t::elt_t;
+  using bound_trait  = typename bound_mesh_t::trait;  
+ 
   static const E_Int index_start  = trait::index_start;
 
   using cnt_t           = typename trait::cnt_t;
@@ -636,7 +650,7 @@ struct mesh_t
   ///
   mesh_t& operator=(const mesh_t &&m)
   {
-    crd = std::move(m.crd);
+    crd = std::move(m.crd); //call to DynArray::operator=(DynArray&&)
     cnt = std::move(m.cnt);
     oriented = m.oriented;
 
@@ -709,7 +723,7 @@ struct mesh_t
     return aelt_t(e, crd, Lr2);
   }
     
-  template <bool BSTRIDE = BOUND_STRIDE> void get_boundary(E_Int i, int j, bound_elt_t<BSTRIDE>& b) const
+  void get_boundary(E_Int i, int j, bound_elt_t& b) const
   {
     elt_t e(cnt, i);
     e.getBoundary(j, b);
@@ -720,16 +734,14 @@ struct mesh_t
   // end accessors
 
   //
-
-  template <bool BSTRIDE>
-  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh) 
+  void get_boundary(bound_mesh_t& bound_mesh) 
   {
     trait::get_boundary(cnt, bound_mesh.cnt);
     bound_mesh.crd = crd;
     bound_mesh.oriented = oriented;
     //compact crd to boundary only
     std::vector<E_Int> nids;
-    bound_trait<BSTRIDE>::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
+    bound_trait::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
     //tranfer metric if any
     if (!nodal_metric2.empty())
     {
@@ -743,35 +755,31 @@ struct mesh_t
   }
 
   ///
-  template <bool BSTRIDE>
-  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<E_Int>& ancestors) 
+  void get_boundary(bound_mesh_t& bound_mesh, std::vector<E_Int>& ancestors) 
   {
     trait::get_boundary(cnt, bound_mesh.cnt, ancestors);
     bound_mesh.crd = crd;
     bound_mesh.oriented = oriented;
     //compact crd to boundary only
     std::vector<E_Int> nids;
-    bound_trait<BSTRIDE>::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
+    bound_trait::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
   }
 
   ///
-  template <bool BSTRIDE>
-  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<E_Int>& oids, std::vector<E_Int>& ancestors)
+  void get_boundary(bound_mesh_t& bound_mesh, std::vector<E_Int>& oids, std::vector<E_Int>& ancestors)
   {
     trait::get_boundary(cnt, bound_mesh.cnt, oids, ancestors);
     bound_mesh.crd = crd;
     bound_mesh.oriented = oriented;
     //compact crd to boundary only
     std::vector<E_Int> nids;
-    bound_trait<BSTRIDE>::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
+    bound_trait::compact_to_used_nodes(bound_mesh.cnt, bound_mesh.crd, nids);
   }
   
   ///
-  template <bool BSTRIDE>
-  void get_boundaries_by_color(std::map<E_Int, mesh_t<eGEODIM(GEODIM-1), BSTRIDE>>& col_to_boundmesh) const
+  void get_boundaries_by_color(std::map<E_Int, bound_mesh_t>& col_to_boundmesh) const
   {
-    using bound_t = mesh_t<eGEODIM(GEODIM-1), BSTRIDE>;
-    using bcnt_t = typename bound_t::cnt_t;
+    using bcnt_t = typename bound_mesh_t::cnt_t;
     
     const neighbor_t* neighborz = get_neighbors(); // should be computed and set with colors before to have more than IDX_NONE
     
@@ -781,10 +789,10 @@ struct mesh_t
     for (auto it : col_to_boundcnt)
     {
       bcnt_t& bcn = it.second;
-      bound_t& bmesh = col_to_boundmesh[it.first] = bound_t(crd, bcn);
+      bound_mesh_t& bmesh = col_to_boundmesh[it.first] = bound_mesh_t(crd, bcn);
       
       std::vector<E_Int> nids;
-      bound_trait<BSTRIDE>::compact_to_used_nodes(bmesh.cnt, bmesh.crd, nids);
+      bound_trait::compact_to_used_nodes(bmesh.cnt, bmesh.crd, nids);
     }
     
   }
@@ -797,7 +805,7 @@ struct mesh_t
   }
   
   ///
-  void append(const mesh_t<GEODIM, FIXSTRIDE>& m)
+  void append(const mesh_t& m)
   {
     cnt_t mcnt = m.cnt;//fixme copy just because of the non-constness of the shift : shift should also have an option to start from an inex to make it at the end
     trait::shift(mcnt, crd.cols());
@@ -1019,6 +1027,13 @@ struct mesh_t
     }
   }
 
+};
+
+template <>
+struct mesh_t<NUGA::eGEODIM(0), true>
+{
+  using elt_t = int; //dummy
+  using trait = int; //dummy
 };
 
 ///

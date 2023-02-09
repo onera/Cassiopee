@@ -2459,7 +2459,7 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
     NUGA::pg_smesh_t mesh(crd, cnt);
     //std::cout << "getting boundary..." << std::endl;
     NUGA::edge_mesh_t ef;
-    mesh.get_boundary<true/*BAR : fixed stride*/>(ef);
+    mesh.get_boundary(ef);
     // pushing out the BAR
     //std::cout << "pushing out" << std::endl;
     PyObject *tpl = K_ARRAY::buildArray(ef.crd, varString, ef.cnt, -1, "BAR", false);
@@ -2473,7 +2473,7 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
     NUGA::ph_mesh_t mesh(crd, cnt);
     NUGA::pg_smesh_t ef;
     std::vector<E_Int> oids, ancestors;
-    mesh.get_boundary<false>(ef, oids, ancestors);
+    mesh.get_boundary(ef, oids, ancestors);
 
     //std::cout << "ef.ncells vs oids sz : " << ef.ncells() << " / " << oids.size() << std::endl;
 
