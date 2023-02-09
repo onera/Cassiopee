@@ -38,7 +38,8 @@ E_Int CADread2
  vector<FldArrayF*>& unstructField,
  vector<FldArrayI*>& connect,
  vector<E_Int>& eltType,
- vector<char*>& zoneNames);
+ vector<char*>& zoneNames,
+ bool do_join);
 }
 
 // ============================================================================
@@ -48,12 +49,23 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
 {
   char* fileName; char* fileFmt;
   E_Float h, chordal_err, gr(-1.), merge_tol(1.e-6);
+  E_Int do_join(1);
 
 #if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "ssdddd", &fileName, &fileFmt, &h, &chordal_err, &gr, &merge_tol)) return NULL;
+#if defined E_DOUBLEINT
+  const char* fm = "ssddddl";
 #else
-  if (!PyArg_ParseTuple(args, "ssffff", &fileName, &fileFmt, &h, &chordal_err, &gr, &merge_tol)) return NULL;
+  const char* fm = "ssddddi";
 #endif
+#else
+#if defined E_DOUBLEINT
+  const char* fm = "ssffffl";
+#else
+  const char* fm = "ssffffi";
+#endif
+#endif
+
+  if (!PyArg_ParseTuple(args, fm, &fileName, &fileFmt, &h, &chordal_err, &gr, &merge_tol, &do_join)) return NULL;
 
   // Check recognised formats
   if (K_STRING::cmp(fileFmt, "fmt_iges") != 0 && K_STRING::cmp(fileFmt, "fmt_step") != 0)
@@ -72,8 +84,7 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
   printf("Reading %s (%s)...", fileName, fileFmt);
   fflush(stdout);
   
-  E_Int ret = CADread2(fileName, fileFmt, h, chordal_err, gr, merge_tol, 
-                       varString, ufield, c, et, zoneNames);
+  E_Int ret = CADread2(fileName, fileFmt, h, chordal_err, gr, merge_tol, varString, ufield, c, et, zoneNames, do_join);
 
   if (ret == 1)
   {
@@ -123,7 +134,8 @@ E_Int K_OCC::CADread2
  vector<FldArrayF*>& unstructField,
  vector<FldArrayI*>& connect,
  vector<E_Int>& eltType,
- vector<char*>& zoneNames)
+ vector<char*>& zoneNames,
+ bool do_join)
 {
    std::vector<K_FLD::FloatArray> crds;
    std::vector<K_FLD::IntArray> connectMs;
@@ -167,24 +179,36 @@ E_Int K_OCC::CADread2
     
   // Mesh the surfaces.
   connectMs.clear();
-  err = reader.mesh_faces2(coords, connectBs, crds, connectMs, aniso);
+  err = reader.mesh_faces2(coords, connectBs, crds, connectMs, aniso, do_join);
   
    if (err) return err;
+
+   int nmeshes = connectMs.size();
+
+   unstructField.resize(nmeshes, nullptr);
+   connect.resize(nmeshes, nullptr);
+   eltType.resize(nmeshes, 0);
+   zoneNames.resize(nmeshes, nullptr);
  
    for (unsigned int i=0; i < connectMs.size(); i++)
    {
+     if (connectMs[i].cols() == 0) continue; //failed to mesh it
+     
      FldArrayF* crd = new FldArrayF;
      crds[i].convert(*crd);
-     unstructField.push_back(crd);
+     unstructField[i] = crd;
      FldArrayI* cnt = new FldArrayI;
      connectMs[i].convert(*cnt,1/*shift*/);
-     connect.push_back(cnt);
+     connect[i] = cnt;
     
      char* zoneName = new char [128];
      sprintf(zoneName, "Zone%d",i);
-     zoneNames.push_back(zoneName);
-    
-     eltType.push_back(2); //TRI
+
+    int row = connectMs[i].rows();
+
+    zoneNames[i] = zoneName;
+
+    eltType[i] = row -1 ; // 2->TRI or 3->QUAD
    }
 
   varString = new char [8];

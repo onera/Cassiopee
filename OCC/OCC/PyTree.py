@@ -14,10 +14,10 @@ __version__ = OCC.__version__
 # -- convertCAD2PyTree --
 #==============================================================================
 def convertCAD2PyTree(fileName, format=None, h=0., chordal_err=0., 
-  growth_ratio=0., merge_tol=-1, algo=1):
+  growth_ratio=0., merge_tol=-1, algo=1, join=True):
   """Convert a CAD (IGES or STEP) file to pyTree.
   Usage: convertCAD2PyTree(fileName, options)"""
-  a = OCC.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio, merge_tol, algo)
+  a = OCC.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio, merge_tol, algo, join)
   
   t = C.newPyTree([])
   base1 = False; base2 = False; base3 = False; base = 1

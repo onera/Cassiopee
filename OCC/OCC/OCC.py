@@ -17,7 +17,7 @@ __all__ = ['convertCAD2Arrays', 'switch2UV', '_scaleUV', '_unscaleUV',
 # algo=2: algorithme T3mesher (h, chordal_error, growth_ratio, merge_tol)
 def convertCAD2Arrays(fileName, format=None, 
                       h=0., chordal_err=0., growth_ratio=0., 
-                      merge_tol=-1, algo=1):
+                      merge_tol=-1, algo=1, join=True):
     """Convert a CAD (IGES or STEP) file to arrays.
     Usage: a = convertCAD2Arrays(fileName, options)"""
     if format is None: format = Converter.convertExt2Format__(fileName)
@@ -28,9 +28,9 @@ def convertCAD2Arrays(fileName, format=None,
         except: pass
         return a
     elif algo == 1: # OCC+T3Mesher
-        return  occ.convertCAD2Arrays1(fileName, format, h, chordal_err, growth_ratio)
+        return  occ.convertCAD2Arrays1(fileName, format, h, chordal_err, growth_ratio, join)
     else: # OCC+T3Mesher v2
-    	return  occ.convertCAD2Arrays2(fileName, format, h, chordal_err, growth_ratio, merge_tol)
+    	return  occ.convertCAD2Arrays2(fileName, format, h, chordal_err, growth_ratio, merge_tol, join)
 
 # IN: edges: liste d'arrays STRUCT possedant x,y,z,u,v
 # OUT: liste d'arrays STRUCT ayant uv dans x,y et z=0

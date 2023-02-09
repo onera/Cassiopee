@@ -22,7 +22,12 @@
 #include "CADviaOCC.h"
 
 E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
-(const char* fname, const char* format, std::vector<K_FLD::FloatArray> & crds, std::vector<K_FLD::IntArray>& connectMs, E_Float h, E_Float chordal_err, E_Float gr, bool aniso)
+(
+  const char* fname, const char* format,
+  std::vector<K_FLD::FloatArray> & crds,
+  std::vector<K_FLD::IntArray>& connectMs,
+  E_Float h, E_Float chordal_err, E_Float gr,
+  bool aniso, bool do_join)
 {
 #ifdef DEBUG_CAD_READER
   std::cout << "import_OCC_CAD_wrapper::import_cad..." << std::endl;
@@ -62,7 +67,7 @@ E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
     
   // Mesh the surfaces.
   connectMs.clear();
-  err = reader.mesh_faces(coords, connectBs, crds, connectMs, aniso);
+  err = reader.mesh_faces(coords, connectBs, crds, connectMs, aniso, do_join);
   
 #ifdef DEBUG_CAD_READER 
   std::cout << "import_OCC_CAD_wrapper::import_cad done." << std::endl;

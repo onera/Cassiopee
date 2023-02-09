@@ -576,7 +576,7 @@ E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& c
 
 // Parametrise les edges et appelle le mailleur par face
 E_Int K_OCC::CADviaOCC::mesh_faces
-(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectBs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso)
+(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectBs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso, bool do_join)
 {
   E_Int nb_faces{_surfs.Extent()};
   
@@ -744,7 +744,6 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       /*else if (t == 2)
         medith::write("connectBUV3.mesh", UVcontour, connectB, "BAR");*/
       //std::cout << UVcontour << std::endl;
-    }
 #endif
     
       OCCSurface occ_surf(F);
@@ -865,7 +864,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 
     } // End face loop
 
-    // Final cleaning and compacting
+    if (do_join)
     {
       E_Int max_solid_id=0;
       for (E_Int i=1; i <= nb_faces; ++i)
@@ -896,6 +895,11 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         nids.clear();
         NUGA::MeshTool::compact_to_mesh(crds[i], connectMs[i], nids);*/
       }
+    }
+    else
+    {
+      connectMs = connectMs1;
+      crds = crds1;
     }
   
 #ifdef DEBUG_CAD_READER

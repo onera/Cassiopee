@@ -30,7 +30,15 @@ namespace K_OCC
   
 class import_OCC_CAD_wrapper {
 public:
-  static E_Int import_cad(const char* fname, const char*format, std::vector<K_FLD::FloatArray> & crds, std::vector<K_FLD::IntArray>& connectMs, E_Float h=0., E_Float chordal_err=0.,  E_Float gr = 0. /*growth ratio*/, bool aniso = false);
+  static E_Int import_cad
+  (
+    const char* fname, const char*format, 
+    std::vector<K_FLD::FloatArray> & crds,
+    std::vector<K_FLD::IntArray>& connectMs,
+    E_Float h=0., E_Float chordal_err=0.,  E_Float gr = 0. /*growth ratio*/,
+    bool aniso = false, bool do_join = true
+  );
+
 private:
   import_OCC_CAD_wrapper();
   import_OCC_CAD_wrapper(const import_OCC_CAD_wrapper& orig);
