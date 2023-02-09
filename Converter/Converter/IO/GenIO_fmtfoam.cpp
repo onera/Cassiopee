@@ -128,7 +128,6 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx)
   
   E_Int ncells; E_Int pos=0;
   readInt(buf, 1024, pos, ncells);
-  printf("scalar ncells=%d\n", ncells);
 
   E_Float* fld = f.begin(idx);
 
@@ -331,7 +330,6 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
       max_time = std::max(max_time, ret);
     }
   }
-  printf("maxtime %f\n", max_time);
   closedir(d);
 
   // loop again and get fullPath
@@ -354,7 +352,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
     if (found) break;
   }
   closedir(d);
-  printf("dirname %s\n", dir_name);
+
 
   fullPath[0] = '\0';
   strcat(fullPath, file);
@@ -459,7 +457,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
         size++;
       }
       if (size == MAX_FIELDS) {
-        fprintf(stderr, "Warning: fomread: Trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
+        fprintf(stderr, "Warning: foamread: Trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
         exit(1);
       }
       fclose(fh);
@@ -504,7 +502,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
       E_Int ret = readTensorField(path, *F, idx); 
       assert(ret == ncells);
       idx += 9; 
-      printf("Info: foamrread: reading tensor field %s\n", field_name[fld]);
+      printf("Info: foamread: reading tensor field %s\n", field_name[fld]);
     } else {
       assert(false);
     }
@@ -526,8 +524,10 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
   FILE* ptrFile = fopen(fullPath, "r");
 
   E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
+  ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  assert(ret == 1);
+  ret = readGivenKeyword(ptrFile, "}");
+  assert(ret == 1);
 
   // Passe comments
   char buf[1024]; E_Int l;
@@ -581,8 +581,10 @@ E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
   FILE* ptrFile = fopen(fullPath, "r");
 
   E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile);
+  ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  assert(ret == 1);
+  ret = readGivenKeyword(ptrFile, "}");
+  assert(ret == 1);
 
   // Passe comments
   char buf[1024]; E_Int l;
@@ -651,8 +653,10 @@ E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
   FILE* ptrFile = fopen(fullPath, "r");
 
   E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 10; i++) skipLine(ptrFile);
+  ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  assert(ret == 1);
+  ret = readGivenKeyword(ptrFile, "}");
+  assert(ret == 1);
 
   // Passe comments
   char buf[1024]; E_Int l;
@@ -694,8 +698,10 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
   FILE* ptrFile = fopen(fullPath, "r");
 
   E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 10; i++) skipLine(ptrFile);
+  ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  assert(ret == 1);
+  ret = readGivenKeyword(ptrFile, "}");
+  assert(ret == 1);
 
   // Passe comments
   char buf[1024]; E_Int l;
@@ -750,8 +756,10 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file, std:: vector<FldArrayI*>& BCFace
   FILE* ptrFile = fopen(fullPath, "r");
 
   E_Int ret;
-  readGivenKeyword(ptrFile, "FOAMFILE");
-  for (E_Int i = 0; i < 9; i++) skipLine(ptrFile); // no "note" line in OpenFOAM boundary file
+  ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  assert(ret == 1);
+  ret = readGivenKeyword(ptrFile, "}");
+  assert(ret == 1);
 
   // Passe comments
   char buf[1024]; E_Int l;
@@ -790,11 +798,8 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file, std:: vector<FldArrayI*>& BCFace
     readGivenKeyword(ptrFile, "TYPE");
     readWord(ptrFile, type[i]);
     type[i][strlen(type[i])-1] = '\0';
-    if (strcmp(type[i], "wall") == 0) {
-      strcat(bcnames[i], "@");
-      strcat(bcnames[i], "BCWall");
-    }
-    
+    strcat(bcnames[i], "@");
+    strcat(bcnames[i], type[i]);
 
     // nFaces
     readGivenKeyword(ptrFile, "NFACES");
