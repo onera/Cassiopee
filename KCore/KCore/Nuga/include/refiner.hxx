@@ -188,7 +188,7 @@ namespace NUGA
       {
         PG_to_ref.push_back(i);
         
-        auto fdir = (STYPE == DIR_PROTO) ? NONE : adap_incr.get_face_dir(i);
+        auto fdir = (STYPE == DIR && DIR_PROTO)? NONE : adap_incr.get_face_dir(i);
         
         if (fdir == NONE)  //todo Imad : to remove & replace by assert(frid != NONE)
         {
