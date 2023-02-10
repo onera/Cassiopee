@@ -18,6 +18,8 @@ nodal_vals[:] = 2
 z = C.fillEmptyBCWith(z, 'wall', 'BCWall')
 z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
+XOR._setZonesAndJoinsUId(z)
+
 m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type = 1)
 
 m = XOR.closeCells(m)

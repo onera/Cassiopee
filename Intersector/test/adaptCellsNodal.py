@@ -14,6 +14,8 @@ n = C.getNPts(a)
 nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
+XOR._setZonesAndJoinsUId(a)
+
 ## HEXA static adaptation
 m = XOR.adaptCells(a, nodal_vals, sensor_type = 2, smoothing_type = 1)
 

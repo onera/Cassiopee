@@ -34,8 +34,13 @@ for i in range(P-1):
 	nv.append(None)
 #print(nv)
 
+XOR._setZonesAndJoinsUId(t)
+
 ta = XOR.adaptCells(t,nv, sensor_type=2)
 ta = XOR.closeCells(ta)
+
+I._rmNodesByName(ta, 'zid')
+I._rmNodesByName(ta, 'rid')
 
 test.testT(ta,1)
 #C.convertPyTree2File(ta, 'PT_t10_1.cgns')

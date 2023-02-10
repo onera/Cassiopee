@@ -27,18 +27,32 @@ mesh = XOR.booleanUnion(p1,p2) #conformize the join
 
 mesh = C.initVars(mesh, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
+XOR._setZonesAndJoinsUId(mesh)
+
 m0 = XOR.adaptCells(mesh,source, sensor_type=0)
 m0 = XOR.closeCells(m0)
+
+I._rmNodesByName(m0, 'zid')
+I._rmNodesByName(m0, 'rid')
+
 test.testT(m0,1)
 #C.convertPyTree2File(m0, 'PT_t3_1.cgns')
 
 m1 = XOR.adaptCells(mesh,source, sensor_type=0, smoothing_type=1)
 m1 = XOR.closeCells(m1)
+
+I._rmNodesByName(m1, 'zid')
+I._rmNodesByName(m1, 'rid')
+
 test.testT(m1,2)
 #C.convertPyTree2File(m1, 'PT_t3_2.cgns')
 
 m2 = XOR.adaptCells(mesh,source, sensor_type=0)
 m2 = XOR.closeCells(m2)
+
+I._rmNodesByName(m2, 'zid')
+I._rmNodesByName(m2, 'rid')
+
 test.testT(m2,3)
 #C.convertPyTree2File(m2, 'PT_t3_3.cgns')
 
@@ -47,6 +61,10 @@ hmsh = XOR.createHMesh(mesh)
 m3 = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0)
 m3 = XOR.conformizeHMesh(m3, hmsh)
 m3 = XOR.closeCells(m3)
+
+I._rmNodesByName(m3, 'zid')
+I._rmNodesByName(m3, 'rid')
+
 XOR.deleteHMesh(hmsh);
 test.testT(m3,4)
 #C.convertPyTree2File(m3, 'PT_t3_4.cgns')
@@ -56,6 +74,10 @@ m4 = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0, smoothing_type=1)
 
 m4 = XOR.conformizeHMesh(m4, hmsh)
 m4 = XOR.closeCells(m4)
+
+I._rmNodesByName(m4, 'zid')
+I._rmNodesByName(m4, 'rid')
+
 test.testT(m4,5)
 #C.convertPyTree2File(m4, 'PT_t3_5.cgns')
 
@@ -63,6 +85,10 @@ m5 = XOR.adaptCells(m4, source, hmesh = hmsh, sensor_type=0) # applied to existi
 
 m5 = XOR.conformizeHMesh(m4, hmsh)
 m5 = XOR.closeCells(m5)
+
+I._rmNodesByName(m5, 'zid')
+I._rmNodesByName(m5, 'rid')
+
 XOR.deleteHMesh(hmsh);
 test.testT(m5,6)
 #C.convertPyTree2File(m5, 'PT_t3_6.cgns')

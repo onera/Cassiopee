@@ -17,6 +17,7 @@ z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 
 
 ########################## create the hook
+XOR._setZonesAndJoinsUId(z)
 hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
 ######################################## 
     
@@ -34,6 +35,9 @@ for i in range(3): # simple loop to demonstrate the feature sequencing adaptCell
 z = XOR.conformizeHMesh(z, hmsh)     # each children faces replace its mother in any polyhedron
 
 z = XOR.closeCells(z)            # close cells (adding point on lateral faces)
+
+I._rmNodesByName(z, 'zid')
+I._rmNodesByName(z, 'rid')
 
 test.testT(z, 1)
 #C.convertPyTree2File(z, "PT_t8.cgns")

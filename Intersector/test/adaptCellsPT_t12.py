@@ -18,6 +18,7 @@ z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 
 STYPE=3 # DIR
 ########################## create the hook
+XOR._setZonesAndJoinsUId(z)
 hmsh = XOR.createHMesh(z, subdiv_type=STYPE) # 0 : ISOTROPIC subdivision 
 ######################################## 
  
@@ -31,6 +32,9 @@ z = XOR.adaptCells(z, cell_vals, subdiv_type=STYPE, sensor_type=3, itermax=-1, h
 z = XOR.conformizeHMesh(z, hmsh)     # each children faces replace its mother in any polyhedron
 
 z = XOR.closeCells(z)            # close cells (adding point on lateral faces)
+
+I._rmNodesByName(z, 'zid')
+I._rmNodesByName(z, 'rid')
 
 test.testT(z, 1)
 #C.convertPyTree2File(z, "PT_t12.cgns")

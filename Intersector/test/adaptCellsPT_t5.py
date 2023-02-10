@@ -4,7 +4,7 @@ import Intersector.PyTree as XOR
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Post.PyTree as P
-import Converter.Internal as Internal
+import Converter.Internal as I
 import time
 import KCore.test as test
 
@@ -22,12 +22,22 @@ a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 
 #C.convertPyTree2File(a, 'out5.cgns')
 
+XOR._setZonesAndJoinsUId(a)
+
 m1 = XOR.adaptCells(a,b, sensor_type=0)
 m1 = XOR.closeCells(m1)
+
+I._rmNodesByName(m1, 'zid')
+I._rmNodesByName(m1, 'rid')
+
 #C.convertPyTree2File(m1, 'PT_t5_1.cgns')
 test.testT(m1,1)
 
 m2 = XOR.adaptCells(a,b, sensor_type=0, smoothing_type=1)
 m2 = XOR.closeCells(m2)
+
+I._rmNodesByName(m2, 'zid')
+I._rmNodesByName(m2, 'rid')
+
 #C.convertPyTree2File(m2, 'PT_t5_2.cgns')
 test.testT(m2,2)

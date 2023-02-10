@@ -12,6 +12,8 @@ b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
 
+XOR._setZonesAndJoinsUId(a)
+
 ## static adaptation
 m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeCells(m)

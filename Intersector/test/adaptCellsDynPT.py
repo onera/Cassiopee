@@ -10,6 +10,8 @@ mesh = C.convertArray2NGon(mesh)
 
 source = G.cartHexa((8,8,8), (0.2,0.2,0.2), (20,20,20))
 
+XOR._setZonesAndJoinsUId(mesh)
+
 hmsh = XOR.createHMesh(mesh)
 
 senso = XOR.createSensor(hmsh)

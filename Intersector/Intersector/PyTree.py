@@ -538,6 +538,15 @@ def getJoinsPtList(z, zname2id):
 	return (jzid, jptlist)
 
 #==============================================================================
+# wrapper to catch errors
+#==============================================================================
+def getProperty(z, pname):
+  val = CD.getProperty(z, pname)
+  #if val == -1 :
+  #  print('ERROR : ' + str(pname) + ' is not set. You must call _setZonesAndJoinsUId on the input tree')
+  return val
+
+#==============================================================================
 # getBCsPtLists : XXX
 # IN: t : 3D NGON PyTree
 # IN: subdiv_type : isotropic currently
@@ -549,7 +558,7 @@ def getBCsPtLists(t):
   zones = Internal.getZones(t)
   #
   for z in zones:
-    zid = CD.getProperty(z, 'zid')
+    zid = getProperty(z, 'zid')
     # BC and Joins point list (owned side)
     bcptlists = getBCPtList(z)
     zone_to_bcptlists[zid]=bcptlists
@@ -671,7 +680,7 @@ def updateBCPointLists2(z, ptLists):
 def updateJoinsPointLists3(z, zidDict, rid_to_ptlist, ptlname): # 'PointList', 'PointListDonor'
 
   joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-  zid = CD.getProperty(z, 'zid')
+  zid = getProperty(z, 'zid')
 
   # update the Join pointlist and synchronize with other zones (their PointListDonor)
 
@@ -681,7 +690,7 @@ def updateJoinsPointLists3(z, zidDict, rid_to_ptlist, ptlname): # 'PointList', '
 
     ptl    = Internal.getNodeFromName1(j, ptlname)
 
-    rid    = CD.getProperty(j, 'rid')
+    rid    = getProperty(j, 'rid')
     donnorName = "".join(Internal.getValue(j))
     jzid   = zidDict[donnorName]
 
@@ -1801,7 +1810,7 @@ def externalFaces(t, discard_joins=False, geo_dim=-1):
       ef = res[0]
       vfoid=res[1] #ids in volume mesh
       
-      zid = CD.getProperty(z, 'zid')
+      zid = getProperty(z, 'zid')
       #print('zid : '+str(zid))
       zid_defined = True
       if zid == -1 :
@@ -2331,8 +2340,6 @@ def _closeCells(t):
     """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
     Usage: _closeCells(t)"""
 
-    _setZonesAndJoinsUId(t)
-
     zs  = Internal.getZones(t)
 
     meshes = []
@@ -2344,13 +2351,13 @@ def _closeCells(t):
 
       meshes.append(m)
 
-      zid=CD.getProperty(z, 'zid')
+      zid=getProperty(z, 'zid')
       zids.append(zid)
 
     zidDict={}
     zs = Internal.getZones(t)
     for z in zs:
-      zidDict[z[0]]=CD.getProperty(z, 'zid')
+      zidDict[z[0]]=getProperty(z, 'zid')
 
     #
     zid_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
@@ -2368,13 +2375,10 @@ def _closeCells(t):
       zid_to_m[zid]=m
 
     for z in zs : 
-      zid = CD.getProperty(z, 'zid')
+      zid = getProperty(z, 'zid')
       m = zid_to_m[zid]
       # MAJ du maillage de la zone
       C.setFields([m], z, 'nodes')
-
-    Internal._rmNodesByName(t, 'zid')
-    Internal._rmNodesByName(t, 'rid')
 
     return t
 
@@ -2391,14 +2395,14 @@ def getJoinsPtLists(t, zidDict):
   zones = Internal.getZones(t)
 
   for z in zones:
-    zid = CD.getProperty(z, 'zid')
+    zid = getProperty(z, 'zid')
 
     rid_to_list_owned = {}
 
     raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
     for rac in raccords:
       
-      rid = CD.getProperty(rac, 'rid')
+      rid = getProperty(rac, 'rid')
 
       donnorName = "".join(Internal.getValue(rac))
       ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
@@ -2432,13 +2436,13 @@ def getRidToZones(t, zidDict):
 
   zones = Internal.getZones(t)
   for z in zones:
-    zid = CD.getProperty(z, 'zid')
+    zid = getProperty(z, 'zid')
 
     raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
     for rac in raccords:
-      rid = CD.getProperty(rac, 'rid')
+      rid = getProperty(rac, 'rid')
 
-      z1 = CD.getProperty(z, 'zid')
+      z1 = getProperty(z, 'zid')
 
       donnorName = "".join(Internal.getValue(rac))
       z2 = zidDict[donnorName]
@@ -2483,13 +2487,13 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       print ('INPUT ERROR : you must also give as an argument the hmesh targeted by the sensor')
       return
 
-    NBZ = len(Internal.getZones(t))
+    zs = Internal.getZones(t)
+    NBZ = len(zs)
 
     owesHmesh=0
 
     if hmesh is None :
       #print("create hm : ", NBZ)
-      _setZonesAndJoinsUId(t)
       hmesh = createHMesh(t, subdiv_type)
       if hmesh == [None] : # no basic elts in t (assumed because hmesh creation as done [None]
         return
@@ -2514,7 +2518,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     zidDict={}
     zs = Internal.getZones(t)
     for z in zs:
-      zidDict[z[0]]=CD.getProperty(z, 'zid')
+      zidDict[z[0]]=getProperty(z, 'zid')
 
     #
     zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
@@ -2593,7 +2597,7 @@ def _setZonesAndJoinsUId(t):
     for rac in raccords: # loop on racs
 
       # GET ZONES INDICES
-      z1 = CD.getProperty(z, 'zid')
+      z1 = getProperty(z, 'zid')
 
       donnorName = "".join(Internal.getValue(rac))
       z2 = zidDict[donnorName]
@@ -2677,7 +2681,7 @@ def createHMesh(t, subdiv_type= 0):
     
     m = intersector.initForAdaptCells(m, dico_rotation_to_ptList)
 
-    zid = CD.getProperty(z, 'zid')
+    zid = getProperty(z, 'zid')
     hm = intersector.createHMesh(m, subdiv_type, zid)
     hmeshs.append(hm)
 
@@ -2818,7 +2822,7 @@ def _conformizeHMesh(t, hooks):
 
     zidDict = {}
     for z in zones: # loop on blocks
-      zidDict[z[0]] = CD.getProperty(z, 'zid')
+      zidDict[z[0]] = getProperty(z, 'zid')
 
 
     ### 1. UPDATE BC & JOIN POINTLISTS WITH CURRENT ENABLING STATUS AND MPI EXCHANGES
@@ -2833,7 +2837,7 @@ def _conformizeHMesh(t, hooks):
       if m == []: continue
       if hooks[i] == None : continue
 
-      zid = CD.getProperty(z, 'zid')
+      zid = getProperty(z, 'zid')
 
       # BC and Joins point list (owned side)
       bcptlists = zone_to_bcptlists[zid]
@@ -2913,9 +2917,6 @@ def _conformizeHMesh(t, hooks):
       i +=1
     _transposePointLists(t, hooks, zidDict, rid_to_zones, zone_to_bcptlists, zone_to_rid_to_list_owned)
 
-    Internal._rmNodesByName(t, 'zid')
-    Internal._rmNodesByName(t, 'rid')
-
 #==============================================================================
 # _transposePointLists : XXX
 #==============================================================================
@@ -2941,7 +2942,7 @@ def _transposePointLists(t, hooks, zidDict, rid_to_zones = None, zone_to_bcptlis
   if zone_to_rid_to_list_opp == {} : return # single block
   #
   for z in zones:
-    zid = CD.getProperty(z, 'zid')
+    zid = getProperty(z, 'zid')
     if zid not in zone_to_rid_to_list_opp : continue
 
     rid_to_list_opp = zone_to_rid_to_list_opp[zid]

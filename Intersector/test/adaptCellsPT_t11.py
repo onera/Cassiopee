@@ -28,8 +28,14 @@ cv = []
 cv.append(cv0)
 
 #C.convertPyTree2File(t, 't.cgns')
+
+XOR._setZonesAndJoinsUId(t)
+
 ta = XOR.adaptCells(t,cv, sensor_type=3, subdiv_type=3)## DIR
 ta = XOR.closeCells(ta)
+
+I._rmNodesByName(ta, 'zid')
+I._rmNodesByName(ta, 'rid')
 
 test.testT(ta,1)
 #C.convertPyTree2File(ta, 'PT_t11.cgns')

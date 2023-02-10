@@ -56,6 +56,7 @@ t = C.initVars(t, 'ncadid', -1)
 fcadid = np.empty((XOR.nb_faces(t)), dtype=np.int32)
 fcadid[:] = -1
 
+XOR._setZonesAndJoinsUId(t)
 hmsh = XOR.createHMesh(t, 0)
 
 #-------------------------------------------
@@ -100,7 +101,8 @@ nv[:] = 1
 t = XOR.adaptCells(t,nv, sensor_type=2,hmesh = hmsh)
 t = XOR.conformizeHMesh(t, hmsh)
 t = XOR.closeCells(t)
-
+Internal._rmNodesByName(t, 'zid')
+Internal._rmNodesByName(t, 'rid')
 
 #-------------------------------------------
 # update updateNcadidFromFcadid
