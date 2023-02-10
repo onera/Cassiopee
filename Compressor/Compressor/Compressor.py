@@ -30,6 +30,7 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
 #==============================================================================
 # Serialize/compress
 # method=0: pickle
+# method=1: pickle+zlib
 #==============================================================================
 def pack(a, method=0):
     """Serialize or compress a."""

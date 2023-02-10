@@ -365,7 +365,7 @@ def enforce(a, h, ind, supp, add):
 def distrib1(a, h, normalized=True):
     """Enforce h in line. Return distribution."""
     L = D.getLength(a)
-    N = round(L / h)+1 # correspondant a hf
+    N = int(round(L / h))+1 # correspondant a hf
     if N <= 2: print('Error: distrib1: not enough point to remesh.')
     a = G.cart((0,0,0), (h,1,1), (N,1,1)) # match h
     if normalized: a = D.getDistribution(a)
@@ -380,7 +380,7 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
 
     if algo == 0: # tanh
         if h1 > h2:
-            N = round(L / h1)+1 # correspondant a hf
+            N = int(round(L / h1))+1 # correspondant a hf
             if N <= 2: print('Error: distrib2: not enough point to remesh.')
             a = G.cart((0,0,0), (h1,1,1), (N,1,1)) # match h1
             if forceAdd: a = G.enforceMoinsX(a, h2, (N-1, add)) # match h2
@@ -388,7 +388,7 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
             if normalized: a = D.getDistribution(a)
             return a
         else:
-            N = round(L / h2)+1 # correspondant a hf
+            N = int(round(L / h2))+1 # correspondant a hf
             if N <= 2: print('Error: distrib2: not enough point to remesh.')
             a = G.cart((0,0,0), (h2,1,1), (N,1,1)) # match h2
             if forceAdd: a = G.enforcePlusX(a, h1, (N-1, add)) # match h1
@@ -399,7 +399,7 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
         q = (L-h1)/(L-h2)
         if verbose > 0: print("Info: distrib2: geometric progression: %g"%q)
         N = numpy.log(h2/h1) / numpy.log(q)
-        N = round(N)+2
+        N = int(round(N))+2
         if N <= 2: print('Error: distrib2: not enough point to remesh.')
         a = G.cartr1((0,0,0), (h1,1,1), (q,1,1), (N,1,1))
         if normalized: a = D.getDistribution(a)

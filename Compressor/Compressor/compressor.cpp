@@ -34,6 +34,8 @@ static PyMethodDef Pycompressor [] =
   {"uncompressIndices", K_COMPRESSOR::py_indices_uncompress, METH_VARARGS},
   {"compressNGonIndices", K_COMPRESSOR::py_ngon_indices_compress, METH_VARARGS},
   {"uncompressNGonIndices", K_COMPRESSOR::py_ngon_indices_uncompress, METH_VARARGS},
+  {"compressFpc", K_COMPRESSOR::py_fpc_compress, METH_VARARGS},
+  {"uncompressFpc", K_COMPRESSOR::py_fpc_uncompress, METH_VARARGS},
   {NULL, NULL}
 };
 

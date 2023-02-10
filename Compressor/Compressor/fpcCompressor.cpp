@@ -19,6 +19,7 @@
 #include <array>
 #include <cstdint>
 #include <iostream>
+#include "fpc.h"
 #include "compressor.h"
 
 namespace K_COMPRESSOR
@@ -29,7 +30,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O", &arrays)) 
     {
         PyErr_SetString(PyExc_SyntaxError,
-                        "pack: wrong syntax. Right syntax: packCellN(array or list of arrays");
+                        "pack: wrong syntax. Right syntax: packFpc(array or list of arrays");
         return NULL;
     }
     bool  is_list = false;
@@ -60,37 +61,51 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
         double* array_data = (double*)PyArray_DATA(an_array);
         bool is_c_order = false;
         if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
-        //= On prepare l'objet decrivant la compression du cellN
+        
+        // encode with fpc
+        E_Int outSize = FPC_UPPER_BOUND(an_array_length);
+        uint8_t* out_compressed = new uint8_t [outSize];
+        fpc_context_t ctx;
+        uint64_t fcm[FPC_TABLE_SIZE_DEFAULT];
+        uint64_t dfcm[FPC_TABLE_SIZE_DEFAULT];
+        ctx.fcm_size = FPC_TABLE_SIZE_DEFAULT;
+        ctx.fcm = fcm;
+        ctx.dfcm_size = FPC_TABLE_SIZE_DEFAULT;
+        ctx.dfcm = dfcm;
+        ctx.hash_args = FPC_DEFAULT_HASH_ARGS;
+        ctx.seed = 0.0;
+        memset(fcm, 0, sizeof(fcm));
+        memset(dfcm, 0, sizeof(dfcm));
+        //for (E_Int i = 0; i < an_array_length; i++) printf("%g ", array_data[i]);
+        
+        E_Int size = fpc_encode(&ctx, array_data, an_array_length, out_compressed);
+        printf("compression: init=%d, compressed=%d\n", an_array_length*8, size);
+        //printf("outcompress %d\n", size);
+        //for (E_Int i = 0; i < size; i++) printf("%u ", out_compressed[i]);
+        
+        // Decompression:
+        //memset(fcm, 0, sizeof(fcm));
+        //memset(dfcm, 0, sizeof(dfcm));
+        //double* decompressed = new double [an_array_length];
+        //fpc_decode(&ctx, out_compressed, decompressed, an_array_length);
+        //for (E_Int i = 0; i < an_array_length; i++) printf("%f ", decompressed[i]);
+
+        //= On prepare l'objet compresse
         PyObject *shape = PyTuple_New(ndims);
         for (int j = 0; j < ndims; ++j) PyTuple_SET_ITEM(shape, j, PyLong_FromLong(long(dims[j])));
         PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
-        //= Reservation mémoire pour le buffer compresse de cellN
-        npy_intp sz = npy_intp(an_array_length+3)/4;
+    
+        //= Reservation memoire pour le buffer compresse
+        npy_intp sz = size;
         PyArrayObject* cpr_arr = (PyArrayObject*)PyArray_SimpleNew(1, &sz, NPY_BYTE);
         std::uint8_t* buffer = (std::uint8_t*)PyArray_DATA(cpr_arr);
-        # pragma omp parallel for        
-        for (std::size_t ibyte = 0; ibyte < an_array_length/4; ++ibyte)
+        # pragma omp parallel for
+        for (std::size_t ibyte = 0; ibyte < size; ibyte++)
         {
-            std::size_t ind = 4*ibyte;
-            std::uint8_t c1 = std::uint8_t(array_data[ind+0])&3, 
-                         c2 = std::uint8_t(array_data[ind+1])&3,
-                         c3 = std::uint8_t(array_data[ind+2])&3, 
-                         c4 = std::uint8_t(array_data[ind+3])&3;
-            buffer[ibyte] =  c1 + (c2<<2) + (c3<<4) + (c4<<6);
+            buffer[ibyte] = out_compressed[ibyte];
         }
-        //= Il faut traiter le cas où le tableau a une longueur non divisible
-        //- par quatre :
-        std::size_t remainder = an_array_length&3;
-        if (remainder > 0)
-        {
-            std::size_t ind = an_array_length - remainder;
-            std::uint8_t c1 = std::uint8_t(array_data[ind])&3;
-            std::uint8_t c2 = 3, c3 = 3, c4 = 3;
-            if (remainder > 1) c2 = std::uint8_t(array_data[ind+1])&3;
-            if (remainder > 2) c3 = std::uint8_t(array_data[ind+2])&3;
-            buffer[sz-1] = c1 + (c2<<2) + (c3<<4) + (c4<<6);
-        }
+        
         //= On rajoute le tableau au tuple (shape,buffer)
         PyTuple_SET_ITEM(obj, 1, (PyObject*)cpr_arr);
         if (is_c_order)
@@ -107,7 +122,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
     }
     if (!is_list) 
     {
-        //= Si ce n'était pas une liste au départ, on retourne un tableau
+        //= Si ce n'etait pas une liste au depart, on retourne un tableau
         PyObject* array = PyList_GetItem(compressed_list, 0);
         Py_INCREF(array);
         Py_DECREF(compressed_list);
@@ -232,39 +247,44 @@ PyObject* py_fpc_uncompress(PyObject *self, PyObject *args)
     for (size_t i = 0; i < np_cpr_arrays.size(); ++i) 
     {
         npy_intp  dims[5];
-        int       ndim;
+        E_Int     ndim;
         ndim = shape_arrays[i].size();
-        for (int j = 0; j < ndim; ++j) 
+        for (E_Int j = 0; j < ndim; ++j) 
         { 
             dims[j] = shape_arrays[i][j]; 
         }
         PyArrayObject *py_array;
         bool is_c_ord = is_c_order[i];
-        if (is_c_ord)  py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,0);
-        else 
+        if (is_c_ord) py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE, 0);
+        else
         {
-            py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE,1);
+            py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE, 1);
         }
         double* py_array_data = (double*)PyArray_DATA(py_array);
         std::size_t cpr_length = PyArray_SIZE(np_cpr_arrays[i]);
-        //std::size_t   array_length  = PyArray_SIZE(py_array);
+        std::size_t array_length = PyArray_SIZE(py_array);
         std::uint8_t* cpr_data = (std::uint8_t*)PyArray_DATA(np_cpr_arrays[i]);
-#       pragma omp parallel for        
-        for (std::size_t ibyte = 0; ibyte < cpr_length-1; ++ibyte)
-        {
-            std::size_t ind = 4*ibyte;
-            std::int8_t byte = cpr_data[ibyte];
-            py_array_data[ind + 0] = (byte   )&3;
-            py_array_data[ind + 1] = (byte>>2)&3;
-            py_array_data[ind + 2] = (byte>>4)&3;
-            py_array_data[ind + 3] = (byte>>6)&3;
-        }
-        std::size_t ind = 4*(cpr_length-1);
-        std::int8_t byte = cpr_data[cpr_length-1];
-        py_array_data[ind+0] = (byte   )&3;
-        if (((byte>>2)&3) != 3) py_array_data[ind+1] = (byte>>2)&3;
-        if (((byte>>4)&3) != 3) py_array_data[ind+2] = (byte>>4)&3;
-        if (((byte>>6)&3) != 3) py_array_data[ind+3] = (byte>>6)&3;
+
+        // decode with fpc
+        fpc_context_t ctx;
+        uint64_t fcm[FPC_TABLE_SIZE_DEFAULT];
+        uint64_t dfcm[FPC_TABLE_SIZE_DEFAULT];
+        ctx.fcm_size = FPC_TABLE_SIZE_DEFAULT;
+        ctx.fcm = fcm;
+        ctx.dfcm_size = FPC_TABLE_SIZE_DEFAULT;
+        ctx.dfcm = dfcm;
+        ctx.hash_args = FPC_DEFAULT_HASH_ARGS;
+        ctx.seed = 0.0;
+        memset(fcm, 0, sizeof(fcm));
+        memset(dfcm, 0, sizeof(dfcm));
+        printf("compressed size=%d uncomp=%d\n", cpr_length, array_length);
+        //printf("cprdata %d\n", cpr_length);
+        //for (E_Int i = 0; i < cpr_length; i++) printf("%u ", cpr_data[i]);
+        
+        //for (E_Int i = 0; i < array_length; i++) py_array_data[i] = 0.;
+        fpc_decode(&ctx, cpr_data, py_array_data, array_length);
+        //for (E_Int j = 0; j < array_length; j++) printf("%f ", py_array_data[j]);
+        
         if (!is_list) 
         {
             Py_DecRef(lst_out_arrays);

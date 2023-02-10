@@ -170,16 +170,19 @@ Object serialize/compression
 
 .. py:function:: Compressor.PyTree.compressCoords(a, tol=1.e-8, ctype=0)
 
-    Compress zone coordinates with sz library with a relative tolerance tol.
+    Compress zone coordinates with sz, zfp or fpc libraries.
+
+    Fpc is a lossless compression and doesn't use tol.
+    sz and zfp are approximative compression controling error at a given tolerance.
 
     Exists also as an in-place version (_compressCoords) which modifies a and returns None.
 
     :param a: input data
     :type a: [zone, list of zones, base, pyTree]
-    :param tol: control relative error on output
+    :param tol: control relative error on output (sz, zfp)
     :type tol: float
     :param ctype: compression algorithm
-    :type ctype: 0 (sz), 1 (zfp)
+    :type ctype: 0 (sz), 1 (zfp), 5 (fpc)
     :return: identical to input
 
     * `Coordinates compression (pyTree) <Examples/Compressor/compressCoordsPT.py>`_:
@@ -191,7 +194,10 @@ Object serialize/compression
 
 .. py:function:: Compressor.PyTree.compressFields(a, tol=1.e-8, varNames=None)
 
-    Compress zone fields with sz library with a relative tolerance tol.
+    Compress zone fields with sz, zfp or fpc libraries.
+
+    Fpc is a lossless compression and doesn't use tol.
+    sz and zfp are approximative compression controling error at a given tolerance.
 
     Exists also as an in-place version (_compressFields) which modifies a and returns None.
 
@@ -200,7 +206,7 @@ Object serialize/compression
     :param tol: control relative error on output
     :type tol: float
     :param ctype: compression algorithm
-    :type ctype: 0 (sz), 1 (zfp)
+    :type ctype: 0 (sz), 1 (zfp), 5 (fpc)
     :param varNames: optional list of variable names to compress (e.g. ['f', 'centers:G'])
     :type varNames: list of strings
     :return: identical to input

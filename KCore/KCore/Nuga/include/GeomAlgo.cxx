@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef _GEOMALGO_CXX_
 #define _GEOMALGO_CXX_
@@ -262,7 +262,7 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
    std::vector<E_Int> shiftcnt(nb_zones); // to pass from local index to surface index
    shiftcnt[0]=0;
    
-   for (E_Int i=1; i < nb_zones; ++i)
+   for (size_t i=1; i < nb_zones; ++i)
    {
      E_Int shiftcrd = crd.cols();
      shiftcnt[i]=cnt.cols();
@@ -290,7 +290,7 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
 #ifndef NETBEANSZ
 #pragma omp parallel for private(neighbors, orient, colors)
 #endif
-   for (E_Int i=0; i< nb_zones; ++i)
+   for (size_t i=0; i< nb_zones; ++i)
    {
      //A. Get connex bits, so
      //a. call getManifoldNeighbor
