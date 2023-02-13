@@ -27,6 +27,7 @@
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
+# include <queue>
 
 # include <dirent.h>
 
@@ -784,10 +785,16 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file, std:: vector<FldArrayI*>& BCFace
 
   // extract total number and names of boundary faces
 #define BCSTRINGMAXSIZE 50
-  char bcnames[nBC][BCSTRINGMAXSIZE] = {0};
-  E_Int nFaces[nBC];
-  E_Int startFace[nBC];
-  char type[nBC][BCSTRINGMAXSIZE] = {0};
+
+  char **bcnames = (char **) malloc(nBC * sizeof(char *));
+  char **type = (char **) malloc(nBC * sizeof(char *));
+  for (E_Int i = 0; i < nBC; i++) {
+    bcnames[i] = (char *) malloc(BCSTRINGMAXSIZE);
+    type[i] = (char *) malloc(BCSTRINGMAXSIZE);
+  }
+
+  E_Int *nFaces = (E_Int *) malloc(nBC * sizeof(E_Int));
+  E_Int *startFace = (E_Int *) malloc(nBC * sizeof(E_Int));
 
   for (E_Int i = 0; i < nBC; i++)
   {
@@ -842,6 +849,15 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file, std:: vector<FldArrayI*>& BCFace
 
   BCFaces.push_back(faces);
   BCNames.push_back(names);
+
+  for (E_Int i = 0; i < nBC; i++) {
+    free(bcnames[i]);
+    free(type[i]);
+  }
+  free(bcnames);
+  free(type);
+  free(startFace);
+  free(nFaces);
 
   return 0;
 }
@@ -1173,36 +1189,52 @@ E_Int K_IO::GenIO::foamwrite(
   NG.build_F2E(neighbors, F2E);
 
   std::vector<E_Int> faces;
-  std::vector<bool> marked(NG.PGs.size(), false);
+  std::vector<uint8_t> marked(NG.PGs.size(), 0);
+  E_Int nfaces = NG.PGs.size();
+
 
   E_Int PGi, stride;
+  std::vector<E_Int> neis;
+  std::vector<E_Int> pgs;
+
   for (E_Int PHi = 0; PHi < NG.PHs.size(); PHi++) {
     const E_Int *pF = NG.PHs.get_facets_ptr(PHi);
     stride = NG.PHs.stride(PHi);
+
+    neis.clear();
+    pgs.clear();
+    
     for (E_Int j = 0; j < stride; j++) {
       PGi = pF[j] - 1;
       
       if (F2E(0, PGi) == IDX_NONE || F2E(1, PGi) == IDX_NONE) continue;
 
       if (!marked[PGi]) {
-        // new face
-        faces.push_back(PGi);
-
-        // PHi should be the owner of PGi
-        if (F2E(1, PGi) == PHi) {
+        neis.push_back(NEIGHBOR(PHi, F2E, PGi));
+        pgs.push_back(PGi);
+        marked[PGi] = 1;
+        if (F2E(0,PGi) > F2E(1,PGi)) {
+          std::swap(F2E(0,PGi), F2E(1,PGi));
           E_Int *pN = NG.PGs.get_facets_ptr(PGi);
-          std::reverse(pN, pN+4);
+          std::reverse(pN,pN+4);
         }
-        F2E(0, PGi) = PHi;
-        marked[PGi] = true;
-      } else {
-        F2E(1, PGi) = PHi;
       }
+    }
+
+    // Note (Imad) : internal faces are sorted in increasing order of corresponding neighbours (upper triangular ordering)
+    std::vector<E_Int> order(neis.size());
+    std::iota(order.begin(), order.end(), 0); // init
+    std::sort(order.begin(), order.end(), [&](E_Int i, E_Int j){return neis[i] < neis[j];});
+
+    for (E_Int i = 0; i < order.size(); i++) {
+      E_Int index = order[i];
+      faces.push_back(pgs[index]);
     }
   }
 
-  E_Int nfaces = NG.PGs.size();
   E_Int ninternal_faces = faces.size();
+
+  std::cout << "internal faces: " << ninternal_faces << std::endl;
 
   // BC
   E_Int BCFacesSize = 0;
