@@ -101,10 +101,14 @@ for it in range(NIT):
 # time stamp
 Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
 Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
+Internal._rmNodesByName(t, '.Solver#Param')
+Internal._rmNodesByName(t, '.Solver#ownData')
+Internal._rmNodesByName(tc, '.Solver#Param')
+Internal._rmNodesByName(tc, '.Solver#ownData')
 
 test.testT(t , 3)
 test.testT(tc, 4)
 
 ##TO VISUALIZE
-C.convertPyTree2File(t ,LOCAL+'/restart_WMM.cgns')
-C.convertPyTree2File(tc,LOCAL+'/tc_restart_WMM.cgns')
+#C.convertPyTree2File(t ,LOCAL+'/restart_WMM.cgns')
+#C.convertPyTree2File(tc,LOCAL+'/tc_restart_WMM.cgns')

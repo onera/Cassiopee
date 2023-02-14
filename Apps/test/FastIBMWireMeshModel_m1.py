@@ -72,5 +72,14 @@ Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
 
 #Cmpi.convertPyTree2File(t,LOCAL+'/checking.cgns')
 
-test.testT(t , 1)
-test.testT(tc, 2)
+if Cmpi.rank == 0:
+    Internal._rmNodesFromType(t, 'Rind_t')
+    Internal._rmNodesByName(t, '.Solver#Param')
+    Internal._rmNodesByName(t, '.Solver#ownData')
+    Internal._rmNodesByName(t, '.Solver#dtloc')
+    Internal._rmNodesFromType(tc, 'Rind_t')
+    Internal._rmNodesByName(tc, '.Solver#Param')
+    Internal._rmNodesByName(tc, '.Solver#ownData')
+    Internal._rmNodesByName(tc, '.Solver#dtloc')
+    test.testT(t , 1)
+    test.testT(tc, 2)

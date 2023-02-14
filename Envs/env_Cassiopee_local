@@ -100,6 +100,30 @@ else if ($MAC == "ld_eos8") then
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
 
+else if ($MAC == "eos814") then
+#-------------------------- ld centos 8 + python 3.8 -----------------------------
+        setenv ELSAPROD eos814_r8
+        module purge
+        module load occt/7.6.1-gnu831
+        module load gcc/10.2.0
+        module load python/3.8.14-gnu831
+        #module load intel/21.2.0
+        #module load impi/21.2.0
+        module load hdf5/1.8.17-intel2120
+        unsetenv I_MPI_PMI_LIBRARY
+        setenv PRODMODE 1
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        # Number of threads
+        set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
+        @ ncpu++
+        setenv OMP_NUM_THREADS $ncpu
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
+
 else if ($MAC == "ld") then
 #-------------------------- ld centos 7 + python 3 -----------------------------
         setenv ELSAPROD x86_r8

@@ -1457,7 +1457,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True):
 
                 fldp = None
                 for fgc in fldFace:
-                    fgc   = fgc[1][0]
+                    fgc = fgc[1][0]
                     if fldp is None: fldp = fgc
                     else: fldp = numpy.concatenate((fldp,fgc))
 

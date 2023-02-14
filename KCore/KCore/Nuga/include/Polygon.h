@@ -22,6 +22,7 @@
 #include "Nuga/include/subdiv_defs.h"
 #include "Nuga/include/macros.h"
 #include "Nuga/include/metric.hxx"
+#include <cmath>
 
 namespace K_MESH
 {
