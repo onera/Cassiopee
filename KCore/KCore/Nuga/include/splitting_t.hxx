@@ -13,8 +13,8 @@
 #define NUGA_SPLITTING_T_HXX
 
 #include "subdivision.hxx"
- // CONVENTION UTILS //////////////////////////////////////////////////////////////////
-inline bool need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R, const K_FLD::IntArray & F2E)
+
+static bool need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R, const K_FLD::IntArray & F2E)
 {
   if (F2E(1, PGi) == PHi && oriented_if_R == true) return false;
   else if (F2E(0, PGi) == PHi && oriented_if_R == false) return false;
@@ -58,9 +58,9 @@ namespace NUGA
       for (E_Int i = 0; i < nfaces; ++i)
       {
         E_Int PGi = faces[i] - 1;
-        //E_Int parentPGi = PGtree.parent(PGi);
-
         assert(PGi < F2E.cols());
+
+        //E_Int parentPGi = PGtree.parent(PGi);
 
         if (F2E(0, PGi) == IDX_NONE && F2E(1, PGi) == IDX_NONE) // INNER FACE
           continue;
@@ -82,7 +82,6 @@ namespace NUGA
         __propagate_PH_neighbour_in_PG_descendance(PGi, side, PHi, PGtree, F2E);
 
       }
-
     }
   }
 

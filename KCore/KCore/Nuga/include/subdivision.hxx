@@ -328,6 +328,15 @@ namespace NUGA
     int_tuple& operator/=(E_Int val) { n[0] /= val; n[1] /= val; if (DIM == 3) n[2] /= val; return *this; }
   
     int_tuple operator-(const int_tuple& d) { int_tuple res(0);  res.n[0] = n[0] - d.n[0]; res.n[1] = n[1] - d.n[1]; if (DIM == 3) res.n[2] = n[2] - d.n[2]; return res; }
+    int_tuple operator-(E_Int d) const
+    {
+      int_tuple res(0);
+      res.n[0] = std::max(n[0] - d, (E_Int)0);
+      res.n[1] = std::max(n[1] - d, (E_Int)0);
+      if (DIM == 3)
+        res.n[2] = std::max(n[2] - d, (E_Int)0);
+      return res;
+    }
 
     E_Int max() const {
       if (DIM == 3) return std::max(n[0], std::max(n[1], n[2]));

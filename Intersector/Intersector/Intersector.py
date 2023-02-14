@@ -864,6 +864,9 @@ def oneph(a):
 def edgeLengthExtrema(a):
     return intersector.edgeLengthExtrema(a)
 
+def edgeLengthMax(a):
+    return intersector.edgeLengthMax(a)
+
 #==============================================================================
 # computeGrowthRatio : Returns a field of growth ratio
 # IN: a    : 3D NGON mesh

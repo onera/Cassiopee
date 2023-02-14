@@ -38,7 +38,7 @@ for i in range(P-1):
 
 XOR._setZonesAndJoinsUId(t)
 
-ta = XOR.adaptCells(t,cv, sensor_type=3, subdiv_type=0)## DIR
+ta = XOR.adaptCells(t,cv, sensor_type=3, subdiv_type=0)## ISO
 ta = XOR.closeCells(ta)
 
 I._rmNodesByName(ta, 'zid')

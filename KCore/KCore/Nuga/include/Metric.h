@@ -21,6 +21,8 @@
 #include "Nuga/include/MeshUtils1D.h"
 #include "Nuga/include/ngon_unit.h"
 
+#include "Nuga/include/diag.h"
+
 #ifdef DEBUG_METRIC
 #include "iodata.h"
 #include "IO/io.h"
@@ -101,6 +103,8 @@ namespace DELAUNAY{
 
     inline bool smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/);
     
+    inline bool aniso_smooth(size_type Ni, size_type Nj, E_Float gr);
+    
     bool is_valid() {
       bool res= true; E_Int i=0; 
       for (; (i < _field.size()) && res; ++i) res &= isValidMetric(_field[i]); 
@@ -111,6 +115,7 @@ namespace DELAUNAY{
     inline void convertIsoToAniso(const std::vector<E_Float>& isoM, std::vector<T>& anisoM);
     inline void convertIsoToAniso(const std::vector<E_Float>& isoM); //set the aniso field in this->_field
 
+    static E_Int eig(std::array<E_Float, 9> N, E_Float lambda[3], E_Float[3][3]);
 
 #ifdef DEBUG_METRIC
   void append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc = -1);
@@ -125,9 +130,11 @@ namespace DELAUNAY{
 
     field_type* get_field() {return &_field; }
 
-    
+  
   //protected:
 
+    inline void inverse_matrix(const E_Float Mat[3][3], E_Float inv[3][3]);
+    
     inline void compute_intersection(field_type& metric1, const K_FLD::FloatArray& metric2);
 
     inline bool isValidMetric(const T& mi);
@@ -140,7 +147,7 @@ namespace DELAUNAY{
 
     inline void setUserMetric(const K_FLD::FloatArray& Umetric, field_type& metric);
 
-  protected:
+  public:
 
     ///
     E_Float                   _hmin;
@@ -156,7 +163,16 @@ namespace DELAUNAY{
     E_Int _N0;
     
   };
-  
+ 
+  template <typename T> inline
+  E_Int
+  VarMetric<T>::eig(std::array<E_Float, 9> N, E_Float lambda[3], E_Float v[3][3])
+  {
+    E_Float mat[9];
+   for (int i = 0; i < 9; i++) mat[i] = N[i];
+   return NUGA::eigenv(0, mat, lambda, v);
+  }
+
   /// 
   template <> inline
   bool
@@ -175,8 +191,17 @@ namespace DELAUNAY{
   bool
   VarMetric<Aniso3D>::isValidMetric(const E_Float* mi)
   {
-    //todo : Imad
-    return true;
+
+    const E_Float& a = mi[0];
+    const E_Float& b = mi[1];
+    const E_Float& c = mi[2];
+    const E_Float& d = mi[3];
+    const E_Float& e = mi[4];
+    const E_Float& f = mi[5];
+
+    E_Float det = a*d*f - (a*e*e + d*c*c + f*b*b) + 2.*b*c*e;
+
+    return (a > 0.) && (a*d > b*b) && (det > 0.);
   }
   
     template<> inline
@@ -203,8 +228,16 @@ namespace DELAUNAY{
   bool
   VarMetric<Aniso3D>::isValidMetric(const Aniso3D& mi)
   {
-    //todo : Imad
-    return false;
+    const E_Float& a = mi[0];
+    const E_Float& b = mi[1];
+    const E_Float& c = mi[2];
+    const E_Float& d = mi[3];
+    const E_Float& e = mi[4];
+    const E_Float& f = mi[5];
+
+    E_Float det = a*d*f - (a*e*e + d*c*c + f*b*b) + 2.*b*c*e;
+
+    return (a > 0.) && (a*d > b*b) && (det > 0.);
   }
   
   template<> inline
@@ -236,14 +269,22 @@ namespace DELAUNAY{
     return k2*L2;
   }
 
-  /// computes the intersection between an ellipse and a line
+  /// length of edge in metric M[Ni]
   template<> inline
   E_Float
   VarMetric<Aniso3D>::get_h2_along_dir(size_type Ni, const E_Float* dir)
   {
-    //todo Imad
+    const E_Float& m11 = _field[Ni][0];
+    const E_Float& m12 = _field[Ni][1];
+    const E_Float& m13 = _field[Ni][2];
+    const E_Float& m22 = _field[Ni][3];
+    const E_Float& m23 = _field[Ni][4];
+    const E_Float& m33 = _field[Ni][5];
 
-    return 1.;
+    E_Float l = m11*dir[0]*dir[0] + m22*dir[1]*dir[1] + m33*dir[2]*dir[2] +
+		2.*m12*dir[0]*dir[1] + 2.*m13*dir[0]*dir[2] + 2.*m23*dir[1]*dir[2];
+
+    return ::sqrt(l);
   }
   
   template<> inline
@@ -559,6 +600,48 @@ namespace DELAUNAY{
     // Warning : input mi and mj are in fact hi and hj.
     return 0.5 * ((1./mi) + (1./mj)) * ::sqrt(NUGA::sqrDistance(_pos->col(Ni), _pos->col(Nj), _pos->rows()));
   }
+
+  template <> inline
+  E_Float
+  VarMetric<DELAUNAY::Aniso3D>::lengthEval (size_type Ni, const DELAUNAY::Aniso3D& mi,
+    size_type Nj, const DELAUNAY::Aniso3D& mj)
+  {
+    E_Float v[3];
+    E_Float vi[3];
+    E_Float vj[3];
+    E_Float r1;
+    E_Float r2;
+    r1 = r2 = 0.;
+
+#ifdef DEBUG_METRIC
+    assert (isValidMetric(mi));
+    assert (isValidMetric(mj));
+#endif
+
+    NUGA::diff<3> (_pos->col(Nj), _pos->col(Ni), v);
+
+    vi[0] = mi[0]*v[0] + mi[1]*v[1] + mi[2]*v[2];
+    vi[1] = mi[1]*v[0] + mi[3]*v[1] + mi[4]*v[2];
+    vi[2] = mi[2]*v[0] + mi[4]*v[1] + mi[5]*v[2];
+
+    vj[0] = mj[0]*v[0] + mj[1]*v[1] + mj[2]*v[2];
+    vj[1] = mj[1]*v[0] + mj[3]*v[1] + mj[4]*v[2];
+    vj[2] = mj[2]*v[0] + mj[4]*v[1] + mj[5]*v[2];
+
+    for (NUGA::size_type i = 0; i < _pos->rows(); ++i)
+    {
+      r1 += vi[i]*v[i];
+      r2 += vj[i]*v[i];
+    }
+
+    E_Float res = 0.5 * (::sqrt(r1) + ::sqrt(r2)); //integral approx.
+
+#ifdef DEBUG_METRIC
+    assert (res > EPSILON);
+#endif
+
+    return res;
+  }
   
   ///
   template<> inline
@@ -739,6 +822,227 @@ namespace DELAUNAY{
   }
 
   ///
+  template <> inline
+  void
+  VarMetric<Aniso3D>::inverse_matrix(const E_Float Mat[3][3], E_Float inv[3][3])
+  {
+    const E_Float& a11 = Mat[0][0];
+    const E_Float& a12 = Mat[0][1];
+    const E_Float& a13 = Mat[0][2];
+    const E_Float& a21 = Mat[1][0];
+    const E_Float& a22 = Mat[1][1];
+    const E_Float& a23 = Mat[1][2];
+    const E_Float& a31 = Mat[2][0];
+    const E_Float& a32 = Mat[2][1];
+    const E_Float& a33 = Mat[2][2];
+
+    E_Float DET = a11*(a33*a22 - a32*a23) - a21*(a33*a12 - a32*a13) + a31*(a23*a12 - a22*a13);
+
+    // assert DET != 0...
+	  
+    inv[0][0] = (a33*a22 - a32*a23) / DET;
+    inv[0][1] = (a32*a13 - a33*a12) / DET;
+    inv[0][2] = (a23*a12 - a22*a13) / DET;
+    inv[1][0] = (a31*a23 - a33*a21) / DET;
+    inv[1][1] = (a33*a11 - a31*a13) / DET;
+    inv[1][2] = (a21*a13 - a23*a11) / DET;
+    inv[2][0] = (a32*a21 - a31*a22) / DET;
+    inv[2][1] = (a31*a12 - a32*a11) / DET;
+    inv[2][2] = (a22*a11 - a21*a12) / DET;
+  }
+  
+  ///
+  template <> inline
+  void
+  VarMetric<Aniso3D>::computeMetric(size_type N, size_type Ni, size_type Nj, E_Float r)
+  {
+    // simulaneous reduction
+    const auto& Mi = _field[Ni];
+    const auto& Mj = _field[Nj];
+	   auto& M = _field[N];
+
+    if (Mi == Mj) {
+      M = Mi;
+      return;
+    }
+
+    std::array<E_Float, 9> NN = Mi.inverse() * Mj;
+    E_Float lambda[3], v[3][3];
+    eig(NN, lambda, v);
+
+    // diagonal terms of Mi and Mj in (v0, v1, v2) basis
+    E_Float v00 = v[0][0], v01 = v[0][1], v02 = v[0][2];
+    E_Float v10 = v[1][0], v11 = v[1][1], v12 = v[1][2];
+    E_Float v20 = v[2][0], v21 = v[2][1], v22 = v[2][2];
+
+    E_Float la0 = (Mi[0]*v00 + Mi[1]*v01 + Mi[2]*v02) * v00 + (Mi[1]*v00 + Mi[3]*v01 + Mi[4]*v02) * v01 + (Mi[2]*v00 + Mi[4]*v01 + Mi[5]*v02) * v02;
+    E_Float la1 = (Mi[0]*v10 + Mi[1]*v11 + Mi[2]*v12) * v10 + (Mi[1]*v10 + Mi[3]*v11 + Mi[4]*v12) * v11 + (Mi[2]*v10 + Mi[4]*v11 + Mi[5]*v12) * v12;
+    E_Float la2 = (Mi[0]*v20 + Mi[1]*v21 + Mi[2]*v22) * v20 + (Mi[1]*v20 + Mi[3]*v21 + Mi[4]*v22) * v21 + (Mi[2]*v20 + Mi[4]*v21 + Mi[5]*v22) * v22;
+	
+    E_Float mu0 = (Mj[0]*v00 + Mj[1]*v01 + Mj[2]*v02) * v00 + (Mj[1]*v00 + Mj[3]*v01 + Mj[4]*v02) * v01 + (Mj[2]*v00 + Mj[4]*v01 + Mj[5]*v02) * v02;
+    E_Float mu1 = (Mj[0]*v10 + Mj[1]*v11 + Mj[2]*v12) * v10 + (Mj[1]*v10 + Mj[3]*v11 + Mj[4]*v12) * v11 + (Mj[2]*v10 + Mj[4]*v11 + Mj[5]*v12) * v12;
+    E_Float mu2 = (Mj[0]*v20 + Mj[1]*v21 + Mj[2]*v22) * v20 + (Mj[1]*v20 + Mj[3]*v21 + Mj[4]*v22) * v21 + (Mj[2]*v20 + Mj[4]*v21 + Mj[5]*v22) * v22;
+
+    // geometric interpolation
+    E_Float L0 = la0*::pow(mu0 / la0, r);
+    E_Float L1 = la1*::pow(mu1 / la1, r);
+    E_Float L2 = la2*::pow(mu2 / la2, r);
+	
+    // M = inv(v) * Diag(L0,L1,L2) * inv(transpose(v))
+    E_Float iv[3][3];
+    inverse_matrix(v, iv);
+    iv[0][0] *= L0; iv[0][1] *= L1; iv[0][2] *= L2;
+    iv[1][0] *= L0; iv[1][1] *= L1; iv[1][2] *= L2;
+    iv[2][0] *= L0; iv[2][1] *= L1; iv[2][2] *= L2;
+
+    E_Float tv[3][3];
+    tv[0][0] = v[0][0]; tv[0][1] = v[1][0]; tv[0][2] = v[2][0];
+    tv[1][0] = v[0][1]; tv[1][1] = v[1][1]; tv[1][2] = v[2][1];
+    tv[2][0] = v[0][2]; tv[2][1] = v[1][2]; tv[2][2] = v[2][2];
+
+    E_Float itv[3][3];
+    inverse_matrix(tv, itv);
+
+    M[0] = iv[0][0]*itv[0][0] + iv[0][1]*itv[1][0] + iv[0][2]*itv[2][0];
+    M[1] = iv[0][0]*itv[0][1] + iv[0][1]*itv[1][1] + iv[0][2]*itv[2][1];
+    M[2] = iv[0][0]*itv[0][2] + iv[0][1]*itv[1][2] + iv[0][2]*itv[2][2];
+	
+    M[3] = iv[1][0]*itv[0][1] + iv[1][1]*itv[1][1] + iv[1][2]*itv[2][1];
+    M[4] = iv[1][0]*itv[0][2] + iv[1][1]*itv[1][2] + iv[1][2]*itv[2][2];
+
+    M[5] = iv[2][0]*itv[0][2] + iv[2][1]*itv[1][2] + iv[2][2]*itv[2][2];
+
+    assert(isValidMetric(M));
+  }
+
+  ///
+  template <> inline
+  bool
+  VarMetric<Aniso3D>::aniso_smooth(size_type Ni, size_type Nj, E_Float gr)
+  {
+    // simulaneous reduction
+    auto& Mi = _field[Ni];
+    auto& Mj = _field[Nj];
+
+    if (Mi == Mj) return false;
+
+    E_Float NiNj[3];
+    NUGA::diff<3>(_pos->col(Nj), _pos->col(Ni), NiNj);
+
+   // do Mi
+   E_Float lP = get_h2_along_dir(Ni, NiNj);
+   E_Float fact = ::pow(1. + gr*lP, -2);
+   auto Mjf = Mj * fact;
+	 
+    std::array<E_Float, 9> NN = Mi.inverse() * Mjf;
+    E_Float lambda[3], v[3][3];
+    eig(NN, lambda, v);
+
+    E_Float v00 = v[0][0], v01 = v[0][1], v02 = v[0][2];
+    E_Float v10 = v[1][0], v11 = v[1][1], v12 = v[1][2];
+    E_Float v20 = v[2][0], v21 = v[2][1], v22 = v[2][2];
+
+    E_Float la0 = (Mi[0]*v00 + Mi[1]*v01 + Mi[2]*v02) * v00 + (Mi[1]*v00 + Mi[3]*v01 + Mi[4]*v02) * v01 + (Mi[2]*v00 + Mi[4]*v01 + Mi[5]*v02) * v02;
+    E_Float la1 = (Mi[0]*v10 + Mi[1]*v11 + Mi[2]*v12) * v10 + (Mi[1]*v10 + Mi[3]*v11 + Mi[4]*v12) * v11 + (Mi[2]*v10 + Mi[4]*v11 + Mi[5]*v12) * v12;
+    E_Float la2 = (Mi[0]*v20 + Mi[1]*v21 + Mi[2]*v22) * v20 + (Mi[1]*v20 + Mi[3]*v21 + Mi[4]*v22) * v21 + (Mi[2]*v20 + Mi[4]*v21 + Mi[5]*v22) * v22;
+
+    E_Float mu0 = (Mjf[0]*v00 + Mjf[1]*v01 + Mjf[2]*v02) * v00 + (Mjf[1]*v00 + Mjf[3]*v01 + Mjf[4]*v02) * v01 + (Mjf[2]*v00 + Mjf[4]*v01 + Mjf[5]*v02) * v02;
+    E_Float mu1 = (Mjf[0]*v10 + Mjf[1]*v11 + Mjf[2]*v12) * v10 + (Mjf[1]*v10 + Mjf[3]*v11 + Mjf[4]*v12) * v11 + (Mjf[2]*v10 + Mjf[4]*v11 + Mjf[5]*v12) * v12;
+    E_Float mu2 = (Mjf[0]*v20 + Mjf[1]*v21 + Mjf[2]*v22) * v20 + (Mjf[1]*v20 + Mjf[3]*v21 + Mjf[4]*v22) * v21 + (Mjf[2]*v20 + Mjf[4]*v21 + Mjf[5]*v22) * v22;
+
+    E_Float L0 = std::max(la0, mu0);
+    E_Float L1 = std::max(la1, mu1);
+    E_Float L2 = std::max(la2, mu2);
+
+    E_Float iv[3][3];
+    inverse_matrix(v, iv);
+    iv[0][0] *= L0; iv[0][1] *= L1; iv[0][2] *= L2;
+    iv[1][0] *= L0; iv[1][1] *= L1; iv[1][2] *= L2;
+    iv[2][0] *= L0; iv[2][1] *= L1; iv[2][2] *= L2;
+
+    E_Float tv[3][3];
+    tv[0][0] = v[0][0]; tv[0][1] = v[1][0]; tv[0][2] = v[2][0];
+    tv[1][0] = v[0][1]; tv[1][1] = v[1][1]; tv[1][2] = v[2][1];
+    tv[2][0] = v[0][2]; tv[2][1] = v[1][2]; tv[2][2] = v[2][2];
+
+    E_Float itv[3][3];
+    inverse_matrix(tv, itv);
+
+    DELAUNAY::Aniso3D Mii;
+    Mii[0] = iv[0][0]*itv[0][0] + iv[0][1]*itv[1][0] + iv[0][2]*itv[2][0];
+    Mii[1] = iv[0][0]*itv[0][1] + iv[0][1]*itv[1][1] + iv[0][2]*itv[2][1];
+    Mii[2] = iv[0][0]*itv[0][2] + iv[0][1]*itv[1][2] + iv[0][2]*itv[2][2];
+
+    Mii[3] = iv[1][0]*itv[0][1] + iv[1][1]*itv[1][1] + iv[1][2]*itv[2][1];
+    Mii[4] = iv[1][0]*itv[0][2] + iv[1][1]*itv[1][2] + iv[1][2]*itv[2][2];
+
+    Mii[5] = iv[2][0]*itv[0][2] + iv[2][1]*itv[1][2] + iv[2][2]*itv[2][2];
+
+    assert(isValidMetric(Mii));
+
+    if (Mi != Mii) {
+      Mi = Mii;
+      return true;
+    }
+
+    // do Mj
+    E_Float lQ = get_h2_along_dir(Nj, NiNj);
+    fact = ::pow(1. + gr*lQ, -2);
+    auto Mif = Mi * fact;
+
+    NN = Mj.inverse() * Mif;
+    eig(NN, lambda, v);
+
+    v00 = v[0][0], v01 = v[0][1], v02 = v[0][2];
+    v10 = v[1][0], v11 = v[1][1], v12 = v[1][2];
+    v20 = v[2][0], v21 = v[2][1], v22 = v[2][2];
+
+    la0 = (Mj[0]*v00 + Mj[1]*v01 + Mj[2]*v02) * v00 + (Mj[1]*v00 + Mj[3]*v01 + Mj[4]*v02) * v01 + (Mj[2]*v00 + Mj[4]*v01 + Mj[5]*v02) * v02;
+    la1 = (Mj[0]*v10 + Mj[1]*v11 + Mj[2]*v12) * v10 + (Mj[1]*v10 + Mj[3]*v11 + Mj[4]*v12) * v11 + (Mj[2]*v10 + Mj[4]*v11 + Mj[5]*v12) * v12;
+    la2 = (Mj[0]*v20 + Mj[1]*v21 + Mj[2]*v22) * v20 + (Mj[1]*v20 + Mj[3]*v21 + Mj[4]*v22) * v21 + (Mj[2]*v20 + Mj[4]*v21 + Mj[5]*v22) * v22;
+
+    mu0 = (Mif[0]*v00 + Mif[1]*v01 + Mif[2]*v02) * v00 + (Mif[1]*v00 + Mif[3]*v01 + Mif[4]*v02) * v01 + (Mif[2]*v00 + Mif[4]*v01 + Mif[5]*v02) * v02;
+    mu1 = (Mif[0]*v10 + Mif[1]*v11 + Mif[2]*v12) * v10 + (Mif[1]*v10 + Mif[3]*v11 + Mif[4]*v12) * v11 + (Mif[2]*v10 + Mif[4]*v11 + Mif[5]*v12) * v12;
+    mu2 = (Mif[0]*v20 + Mif[1]*v21 + Mif[2]*v22) * v20 + (Mif[1]*v20 + Mif[3]*v21 + Mif[4]*v22) * v21 + (Mif[2]*v20 + Mif[4]*v21 + Mif[5]*v22) * v22;
+
+    L0 = std::max(la0, mu0);
+    L1 = std::max(la1, mu1);
+    L2 = std::max(la2, mu2);
+
+    inverse_matrix(v, iv);
+    iv[0][0] *= L0; iv[0][1] *= L1; iv[0][2] *= L2;
+    iv[1][0] *= L0; iv[1][1] *= L1; iv[1][2] *= L2;
+    iv[2][0] *= L0; iv[2][1] *= L1; iv[2][2] *= L2;
+
+    tv[0][0] = v[0][0]; tv[0][1] = v[1][0]; tv[0][2] = v[2][0];
+    tv[1][0] = v[0][1]; tv[1][1] = v[1][1]; tv[1][2] = v[2][1];
+    tv[2][0] = v[0][2]; tv[2][1] = v[1][2]; tv[2][2] = v[2][2];
+
+    inverse_matrix(tv, itv);
+
+    DELAUNAY::Aniso3D Mji;
+    Mji[0] = iv[0][0]*itv[0][0] + iv[0][1]*itv[1][0] + iv[0][2]*itv[2][0];
+    Mji[1] = iv[0][0]*itv[0][1] + iv[0][1]*itv[1][1] + iv[0][2]*itv[2][1];
+    Mji[2] = iv[0][0]*itv[0][2] + iv[0][1]*itv[1][2] + iv[0][2]*itv[2][2];
+
+    Mji[3] = iv[1][0]*itv[0][1] + iv[1][1]*itv[1][1] + iv[1][2]*itv[2][1];
+    Mji[4] = iv[1][0]*itv[0][2] + iv[1][1]*itv[1][2] + iv[1][2]*itv[2][2];
+
+    Mji[5] = iv[2][0]*itv[0][2] + iv[2][1]*itv[1][2] + iv[2][2]*itv[2][2];
+
+    assert(isValidMetric(Mji));
+
+    if (Mj != Mji) {
+      Mj = Mji;
+      return true;
+    }
+
+    //printf("%d\n", (Mii == Mi) && (Mji == Mj));
+    //std::cout << "returning false" << std::endl;
+    return false;
+  }
+
+  ///
   template <typename T> inline
     void
     VarMetric<T>::setMetric(E_Int N, const T& m)
@@ -764,6 +1068,26 @@ namespace DELAUNAY{
         has_changed |= this->smooth(Ei.node(0), Ei.node(1), gr, N0);
     }
     while ( has_changed && (++iter < itermax) );
+  }
+
+  template <> inline
+  void
+  VarMetric<Aniso3D>::smoothing_loop
+  (const std::set<K_MESH::NO_Edge>& edges, E_Float gr, E_Int itermax, E_Int N0 /* threshold for metric changes*/)
+  {
+    E_Int iter(0);
+    bool has_changed = false;
+
+    do
+    {
+      has_changed = false;
+      for (const auto& Ei : edges) {
+        has_changed |= this->aniso_smooth(Ei.node(0), Ei.node(1), gr);
+      }
+    }
+    while ( has_changed && (++iter < itermax) );
+
+    //std::cout << "Done " << iter << " smoothing iterations\n";
   }
   
   ///
@@ -792,6 +1116,20 @@ namespace DELAUNAY{
   {
     //todo Imad : fill edges from PGs : warning 0-based ! (smoothing_loop expects indices starting from 0)
     std::set<K_MESH::NO_Edge> edges;
+    K_MESH::NO_Edge e;
+    E_Int stride, n0, n1, PGi, i;
+
+   for (PGi = 0; PGi < PGs.size(); PGi++) {
+     stride = PGs.stride(PGi);
+     const E_Int *pN = PGs.get_facets_ptr(PGi);
+     for (i = 0; i < stride; i++) {
+       n0 = pN[i]-1; n1 = pN[(i+1)%stride]-1;
+       e.setNodes(n0, n1);
+       edges.insert(e);
+     }
+   }
+    
+   //std::cout << "nedges: " << edges.size() << std::endl;
 
     smoothing_loop(edges, gr, itermax, N0);
   }

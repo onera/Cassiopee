@@ -15,6 +15,7 @@
 #include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/Edge.h"
+#include "Nuga/include/IdTool.h"
 
 namespace K_MESH
 {
@@ -103,10 +104,107 @@ namespace K_MESH
         }
       }
     }
+
+    bool operator==(const K_MESH::Quadrangle& q) const
+    {
+      return K_CONNECT::IdTool::equal(this->nodes(),q.nodes(),4,true,false);
+    }
+
+    static bool need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R, const K_FLD::IntArray & F2E)
+    {
+      if (F2E(1, PGi) == PHi && oriented_if_R == true) return false;
+      else if (F2E(0, PGi) == PHi && oriented_if_R == false) return false;
+      else return true;
+    }
+
+    static void order_nodes(E_Int *nodes, const E_Int *pN, bool reorient, E_Int i0)
+    {
+      for (int i = 0; i < 4; i++)
+        nodes[i] = pN[i];
+
+      K_CONNECT::IdTool::right_shift<4>(nodes, i0);
+
+      if (reorient) std::swap(nodes[1], nodes[3]);
+    }
     
   private:
     E_Int _nodes[4];
   };
 }
+
+static uint32_t fcValue(const E_Int *nodes, int len, int pivot)
+{
+  return (pivot == len-1) ? nodes[0] : nodes[pivot+1];
+}
+
+static
+int fcIndex(int len, int pivot)
+{
+  return (pivot == len-1) ? 0 : pivot+1;
+}
+
+static
+uint32_t rcValue(const E_Int *nodes, int len, int pivot)
+{
+  return (pivot == 0) ? nodes[len-1] : nodes[pivot-1];
+}
+
+static
+int rcIndex(int len, int pivot)
+{
+  return (pivot == 0) ? len-1 : pivot-1;
+}
+
+struct Quadrangle_Hash
+{
+  uint32_t hash(uint32_t val, uint32_t seed) const
+  {
+    uint32_t HASH = seed;
+    HASH += val;
+    HASH += HASH << 10;
+    HASH ^= HASH >> 6;
+    return HASH;
+  }
+
+  uint32_t operator()(const K_MESH::Quadrangle& q) const
+  {
+    const auto& nodes = q.nodes();
+    
+    // find location of min vertex
+    int pivot = 0;
+    int len = 4;
+    for (int i = 1; i < len; ++i) {
+      if (nodes[pivot] > nodes[i]) {
+        pivot = i;
+      }
+    }
+
+    uint32_t seed = 0;
+
+    if (fcValue(nodes, len, pivot) < rcValue(nodes, len, pivot))
+    {
+      // Forward circulate
+      while (len--)
+      {
+          seed = hash(nodes[pivot], seed);
+          pivot = fcIndex(4, pivot);
+      }
+    }
+    else
+    {
+      // Reverse circulate
+      while (len--)
+      {
+          seed = hash(nodes[pivot], seed);
+          pivot = rcIndex(4, pivot);
+      }
+    }
+ 
+    seed += seed << 3;
+    seed ^= seed >> 11;
+    seed += seed << 15;
+    return seed;
+  }
+};
 
 #endif

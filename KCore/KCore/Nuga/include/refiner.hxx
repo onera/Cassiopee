@@ -23,6 +23,7 @@
 #include "PY13.hxx"
 #include "PHQ4.hxx"
 #include "HX18.hxx"
+#include "HX12.hxx"
 
 #include "sensor.hxx"
 

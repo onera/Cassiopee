@@ -1986,6 +1986,44 @@ PyObject* K_INTERSECTOR::edgeLengthExtrema(PyObject* self, PyObject* args)
 #endif
 }
 
+PyObject* K_INTERSECTOR::edgeLengthMax(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+  E_Float Lmin,Lmax;
+  E_Int imin, imax;
+
+  ngon_type::edge_length_extrema(ngi.PGs, crd, Lmin, imin, Lmax, imax);
+
+  //std::cout << "Minimum Edge Length : " << Lmin << " reached at PG : " << imin << std::endl;
+  //std::cout << "Maximum Edge Length : " << Lmax << " reached at PG : " << imax << std::endl;
+
+  delete f; delete cn;
+
+#ifdef E_DOUBLEREAL
+    return Py_BuildValue("d", double(Lmax));
+#else
+    return Py_BuildValue("f", float(Lmax));
+#endif
+}
+
 //=============================================================================
 /* XXX */
 //=============================================================================

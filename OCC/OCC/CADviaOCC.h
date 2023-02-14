@@ -43,7 +43,7 @@ public:
 	~CADviaOCC();
     
     ///
-    E_Int import_cad(const char* fname, const char*format, E_Float h=0., E_Float chordal_err=0.,  E_Float gr = 0. /*groqth ratio*/);
+    E_Int import_cad(const char* fname, const char*format, E_Float h=0., E_Float chordal_err=0.,  E_Float gr = 0. /*growth ratio*/);
     ///
     E_Int compute_h_sizing(K_FLD::FloatArray& coords, std::vector<E_Int>& Ns);
     ///

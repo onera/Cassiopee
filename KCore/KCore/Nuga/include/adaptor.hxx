@@ -44,7 +44,7 @@ E_Int NUGA::adaptor<hmesh_t, sensor_t>::run(hmesh_t& hmesh, sensor_t& sensor, bo
   
   typename hmesh_t::output_t adap_incr;
 
-  hmesh.init();  
+  hmesh.init();
 
 #ifdef ADAPT_STEPS
   int iter = -1;

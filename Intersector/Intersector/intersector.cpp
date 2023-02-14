@@ -132,6 +132,7 @@ static PyMethodDef Pyintersector [] =
   { "detectIdenticalCells", K_INTERSECTOR::detectIdenticalCells, METH_VARARGS },
   { "detectOverConnectedFaces", K_INTERSECTOR::detectOverConnectedFaces, METH_VARARGS },
   { "edgeLengthExtrema", K_INTERSECTOR::edgeLengthExtrema, METH_VARARGS },
+  { "edgeLengthMax", K_INTERSECTOR::edgeLengthMax, METH_VARARGS },
   { "removeBaffles", K_INTERSECTOR::removeBaffles, METH_VARARGS },
   { "convert2Polyhedron", K_INTERSECTOR::convert2Polyhedron, METH_VARARGS },
   { "oneZonePerCell", K_INTERSECTOR::oneZonePerCell, METH_VARARGS },

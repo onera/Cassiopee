@@ -1820,7 +1820,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     K_FLD::FloatArray farr;
     if (has_fieldsC)
     {
-      farr.resize(nfields, fieldsC[0].size());
+      farr.resize(fieldsC.size(), fieldsC[0].size());
       for (size_t i=0; i < fieldsC.size(); ++i)
       {
         std::vector<double>& fld = fieldsC[i];
@@ -1839,7 +1839,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     K_FLD::FloatArray farr;
     if (has_fieldsN)
     {
-      farr.resize(nfields, fieldsN[0].size());
+      farr.resize(fieldsN.size(), fieldsN[0].size());
       for (size_t i=0; i < fieldsN.size(); ++i)
       {
         std::vector<double>& fld = fieldsN[i];

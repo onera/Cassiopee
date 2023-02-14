@@ -37,19 +37,43 @@ public:
   inline self_type& operator=(const self_type& m){for (E_Int k = 0; k < DIMANISO; ++k)_mij[k] = m[k]; return *this;}
   inline self_type& operator=(const E_Float* mvals){for (E_Int k = 0; k < DIMANISO; ++k)_mij[k] = mvals[k]; return *this;}
 
+  //fixme imad : not great to have a hard coded test value (should be passed as an argument so not appropriate for operator==)
+  inline bool operator==(const self_type& other) const
+  {
+    for (E_Int k = 0; k < DIMANISO; k++) {
+      if (::fabs(_mij[k] - other[k]) > 1e-6) return false;
+    }
+    return true;
+  }
+
+  inline bool operator!=(const self_type& other) const
+  {
+    return !(*this == other);
+  }
+
   inline self_type operator*(const E_Float& a) const;
   //inline self_type operator*(E_Float* v) const;
 
+  // product of 2 metrics is a 3x3 matrix
+  inline std::array<E_Float, 9> operator*(const self_type& N); 
 
+
+  inline self_type operator/(const E_Float& a) const;
+  
   AnisoMetricType operator+(const AnisoMetricType&) const;
 
  void eigen_values(E_Float &lmax, E_Float & lmin) const;
+
+  inline self_type inverse() const;
+
+  inline E_Float det() const;
 
 #ifndef DEBUG_METRIC
   private:
 #else
   public:
 #endif
+	public:
   E_Float                 _mij[DIM*(DIM+1) / 2]; // 2D -> 3, 3D -> 6
 
 };
@@ -66,6 +90,47 @@ AnisoMetricType<DIM>::operator*(const E_Float& a) const {
   self_type res(*this);
   for (E_Int i = 0; i < DIMANISO; ++i)
     res._mij[i] *= a;
+
+  return res;
+}
+
+template <> inline
+std::array<E_Float, 9>
+AnisoMetricType<3>::operator*(const self_type& N)
+{
+  std::array<E_Float, 9> RES;
+
+  const E_Float& a11 = _mij[0];
+  const E_Float& a12 = _mij[1];
+  const E_Float& a13 = _mij[2];
+  const E_Float& a22 = _mij[3];
+  const E_Float& a23 = _mij[4];
+  const E_Float& a33 = _mij[5];
+
+  const E_Float& b11 = N[0];
+  const E_Float& b12 = N[1];
+  const E_Float& b13 = N[2];
+  const E_Float& b22 = N[3];
+  const E_Float& b23 = N[4];
+  const E_Float& b33 = N[5];
+	
+  RES[0] = a11*b11 + a12*b12 + a13*b13; RES[1] = a11*b12 + a12*b22 + a13*b23; RES[2] = a11*b13 + a12*b23 + a13*b33;
+  RES[3] = a12*b11 + a22*b12 + a23*b13; RES[4] = a12*b12 + a22*b22 + a23*b23; RES[5] = a12*b13 + a22*b23 + a23*b33;
+  RES[6] = a13*b11 + a23*b12 + a33*b13; RES[7] = a13*b12 + a23*b22 + a33*b23; RES[8] = a13*b13 + a23*b23 + a33*b33;
+
+  return RES;
+}
+
+
+
+// doesn't check if a != 0
+template <short DIM>
+AnisoMetricType<DIM>
+AnisoMetricType<DIM>::operator/(const E_Float& a) const
+{
+  self_type res(*this);
+  for (E_Int i = 0; i < DIMANISO; ++i)
+    res._mij[i] /= a;
 
   return res;
 }
@@ -110,6 +175,68 @@ inline std::ostream&
   return os;  
 }  
 #endif
+
+inline std::ostream&
+ operator<<(std::ostream& os, const DELAUNAY::AnisoMetricType<3>& m)  
+{  
+  os << m[0] << " " << m[1] << " " << m[2] << " " << 
+  	m[3] << " " << m[4] << " " << m[5];
+  return os;  
+}  
+
+template <> inline
+E_Float AnisoMetricType<2>::det() const
+{
+  return _mij[0]*_mij[2] - _mij[1]*_mij[1];
+}
+
+template <> inline
+AnisoMetricType<2> AnisoMetricType<2>::inverse() const
+{
+  AnisoMetricType<2> INV;
+
+  INV[0] = _mij[2];
+  INV[1] = _mij[0];  
+  INV[2] = -_mij[1];
+	
+  return INV/det();  
+}
+
+template <> inline
+E_Float AnisoMetricType<3>::det() const
+{
+  const E_Float& a = _mij[0];
+  const E_Float& b = _mij[1];
+  const E_Float& c = _mij[2];
+  const E_Float& d = _mij[3];
+  const E_Float& e = _mij[4];
+  const E_Float& f = _mij[5];
+
+  return a*d*f - (a*e*e + d*c*c + f*b*b) + 2.*b*c*e;
+}
+
+template <> inline
+AnisoMetricType<3> AnisoMetricType<3>::inverse() const
+{
+  AnisoMetricType<3> INV;
+
+  const E_Float& a11 = _mij[0];
+  const E_Float& a12 = _mij[1];
+  const E_Float& a13 = _mij[2];
+  const E_Float& a22 = _mij[3];
+  const E_Float& a23 = _mij[4];
+  const E_Float& a33 = _mij[5];
+	
+  INV[0] = a33*a22 - a23*a23;
+  INV[1] = a23*a13 - a33*a12;  
+  INV[2] = a23*a12 - a22*a13;  
+  INV[3] = a33*a11 - a13*a13;  
+  INV[4] = a12*a13 - a23*a11;  
+  INV[5] = a22*a11 - a12*a12;
+	
+  return INV/det();  
+}
+
 
 }
 

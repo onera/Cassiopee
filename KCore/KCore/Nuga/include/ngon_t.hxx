@@ -30,6 +30,7 @@
 #include "Nuga/include/macros.h"
 #include "Nuga/include/BbTree.h"
 #include <limits.h>
+#include <unordered_map>
 
 #ifdef DEBUG_NGON_T
 #include "IO/io.h"
@@ -139,6 +140,118 @@ struct ngon_t
   ngon_t(){}
 
   void updateFacets() const { PGs.updateFacets(); PHs.updateFacets(); }
+
+  // for HEXA only
+  static void create_ngon_from_connectivity(ngon_t& ngon, const K_FLD::IntArray& cnt)
+  {
+    auto& PHs = ngon.PHs._NGON;
+    auto& PGs = ngon.PGs._NGON;
+
+    // stride
+    E_Int nfpc = 6;
+    E_Int nvpc = 8;
+    E_Int nvpf = 4;
+
+    PGs.push_back(0);
+    PGs.push_back(0);
+
+    // number of cells
+    E_Int ncells = cnt.cols();
+
+    PHs.resize(2,0);
+    PHs[0] = ncells;
+
+    E_Int size = ncells * (nfpc + 1);
+    PHs[1] = size;
+
+    PHs.resize(size+2);
+
+    // maps faces (polygons) to a unique key
+    std::unordered_map<K_MESH::Quadrangle,uint32_t,Quadrangle_Hash> pg_map;
+
+    // loop over the elements and create bottom, top, left, right, front, back
+    E_Int pos(2);
+    E_Int face_id(0);
+
+    K_MESH::Quadrangle face;
+
+    for (int i = 0; i < ncells; i++)
+    {
+      E_Int celli_pos = pos + i*(nfpc+1);
+
+      PHs[celli_pos] = 6;
+      E_Int local_face = 1;
+
+      E_Int nodes[nvpc];
+      for (E_Int j = 0; j < nvpc; j++) nodes[j] = cnt(j,i)+1;
+
+      // bottom
+      face.setNodes(nodes[0], nodes[1], nodes[2], nodes[3]);
+      ngon.insert_face(face, pg_map, ngon, celli_pos, local_face, face_id);
+
+      // top
+      face.setNodes(nodes[4], nodes[5], nodes[6], nodes[7]);
+      ngon.insert_face(face, pg_map, ngon, celli_pos, local_face, face_id);
+
+      // front
+      face.setNodes(nodes[0], nodes[1], nodes[5], nodes[4]);
+      ngon.insert_face(face, pg_map, ngon, celli_pos, local_face, face_id);
+
+      // back
+      face.setNodes(nodes[3], nodes[2], nodes[6], nodes[7]);
+      ngon.insert_face(face, pg_map, ngon, celli_pos, local_face, face_id);
+
+      // left
+      face.setNodes(nodes[0], nodes[3], nodes[7], nodes[4]);
+      ngon.insert_face(face, pg_map, ngon, celli_pos, local_face, face_id);
+
+      // right
+      face.setNodes(nodes[1], nodes[2], nodes[6], nodes[5]);
+      ngon.insert_face(face, pg_map, ngon, celli_pos, local_face, face_id);
+    }
+
+    PGs[0] = face_id;
+    PGs[1] = face_id * (1 + nvpf);
+
+    ngon.PGs.updateFacets();
+    ngon.PHs.updateFacets();
+    
+  }
+
+  bool insert_face(K_MESH::Quadrangle& face, std::unordered_map<K_MESH::Quadrangle,uint32_t,Quadrangle_Hash>& pg_map, ngon_t& ngon, const E_Int celli, E_Int& local_face, E_Int& face_id)
+  {
+      bool inserted = false;
+
+      auto& PHs = ngon.PHs._NGON;
+      auto& PGs = ngon.PGs._NGON;
+
+      // check if face is in map
+      auto search = pg_map.find(face);
+      if (search != pg_map.end()) // found
+      {
+          // retrieve its id
+          E_Int id = search->second;
+          // insert it
+          PHs[celli+local_face] = id;
+          inserted = false;
+      }
+      else
+      {
+          // first time making this face
+          face_id++;
+          PHs[celli+local_face] = face_id;
+          // insert it in PGs with its nodes
+          PGs.push_back(4);
+          PGs.push_back(face.nodes()[0]);
+          PGs.push_back(face.nodes()[1]);
+          PGs.push_back(face.nodes()[2]);
+          PGs.push_back(face.nodes()[3]);
+          pg_map.emplace(face, face_id);
+          inserted = true;
+      }
+      local_face++;
+      return inserted;
+  }
 
   static eGEODIM get_ngon_geodim(const K_FLD::IntArray& cnt)
   {

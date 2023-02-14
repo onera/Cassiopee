@@ -51,7 +51,7 @@ class sensor
 
     void append_adap_incr_w_over_connected(output_t& adap_incr);
 
-  protected:
+  public:
     mesh_t &          _hmesh;
     sensor_input_t     _data;
     smoother<mesh_t>* _smoother;

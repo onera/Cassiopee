@@ -51,18 +51,9 @@ namespace NUGA
 
       NUGA::eDIR dir = (pNFils0[1] == nodes[1]) ? Y : Xd;
 
-      //init with parent nodes (shift and/or reverse might be needed)
-      Q6nodes[0] = nodes[0];
-      Q6nodes[1] = nodes[1];
-      Q6nodes[2] = nodes[2];
-      Q6nodes[3] = nodes[3];
+      K_CONNECT::IdTool::right_shift<4>(Q6nodes, i0);
 
-      int shift = reorient ? 3 - i0 : i0;
-
-      if (reorient)
-        std::reverse(Q6nodes, Q6nodes + 4);
-
-      if (shift != 0) K_CONNECT::IdTool::right_shift<4>(Q6nodes, shift);
+      if (reorient) std::swap(Q6nodes[1], Q6nodes[3]);
 
       NUGA::eDIR dout;
 
@@ -81,13 +72,11 @@ namespace NUGA
           }
           else if (i0 == 1)
           {
-            assert(false);
-            /*
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[1];
             dout = Y;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
-            */
+
           }
           else if (i0 == 2)
           {
@@ -98,24 +87,20 @@ namespace NUGA
           }
           else if (i0 == 3)
           {
-            assert(false);
-            /*
-            Q6nodes[4] = pNFils0[2];
-            Q6nodes[5] = pNFils0[1];
+            Q6nodes[4] = pNFils0[1];
+            Q6nodes[5] = pNFils0[2];
             dout = Y;
-            */
+            
           }
         }
         else // opposite orientation stored
         {
           if (i0 == 0)
           {
-            assert(false);
-            /*
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[1];
             dout = Y;
-            */
+            
           }
           else if (i0 == 1)
           {
@@ -126,13 +111,11 @@ namespace NUGA
           }
           else if (i0 == 2)
           {
-            assert(false);
-            /*
             Q6nodes[4] = pNFils0[1];
             Q6nodes[5] = pNFils0[2];
             dout = Y;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
-            */
+          
           }
           else if (i0 == 3)
           {
@@ -148,12 +131,10 @@ namespace NUGA
         {
           if (i0 == 0)
           {
-            assert(false);
-            /*
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[3];
             dout = Y;
-            */
+            
           }
           else if (i0 == 1)
           {
@@ -163,13 +144,10 @@ namespace NUGA
           }
           else if (i0 == 2)
           {
-            assert(false);
-            /*
             Q6nodes[4] = pNFils0[3];
             Q6nodes[5] = pNFils0[2];
             dout = Y;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
-            */
           }
           else if (i0 == 3)
           {
@@ -189,12 +167,9 @@ namespace NUGA
           }
           else if (i0 == 1)
           {
-            assert(false);
-            /*
             Q6nodes[4] = pNFils0[3];
             Q6nodes[5] = pNFils0[2];
             dout = Y;
-            */
           }
           else if (i0 == 2)
           {
@@ -205,13 +180,10 @@ namespace NUGA
           }
           else if (i0 == 3)
           {
-            assert(false);
-            /*
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[3];
             dout = Y;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
-            */
           }
         }
       }

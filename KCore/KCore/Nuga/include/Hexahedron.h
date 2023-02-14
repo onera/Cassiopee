@@ -137,7 +137,17 @@ public:
   }
   
   template< typename ngo_t>
-  static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i);
+  static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0=0);
+  template< typename ngo_t>
+  static void reorder_pgs_top(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0);
+  template< typename ngo_t>
+  static void reorder_pgs_left(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0);
+  template< typename ngo_t>
+  static void reorder_pgs_right(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0);
+  template< typename ngo_t>
+  static void reorder_pgs_front(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0);
+  template< typename ngo_t>
+  static void reorder_pgs_back(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0);
 
   template <typename ngunit_t>
   static E_Int get_opposite(const ngunit_t & PGs, const E_Int* first_pg, E_Int k);
@@ -168,7 +178,402 @@ private:
 };
 
 template< typename ngo_t>
-void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // bot, top, left, right, front, back
+void Hexahedron::reorder_pgs_top(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0)
+{
+  std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
+  E_Int nb_faces = ng.PHs.stride(i); 
+  E_Int* faces = ng.PHs.get_facets_ptr(i);
+  E_Int PGi = faces[1] - 1;
+  E_Int* pN = ng.PGs.get_facets_ptr(PGi);
+
+  E_Int nodes[4];
+  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  K_CONNECT::IdTool::right_shift<4>(nodes, i0);
+
+  glmap[*nodes] = 0; // PHi(2,0) -> 0  
+  glmap[*(nodes+1)] = 1;
+  glmap[*(nodes+2)] = 2;
+  glmap[*(nodes+3)] = 3;
+
+  bool reorient = K_MESH::Quadrangle::need_a_reorient(PGi, i, false, F2E);
+
+  if (reorient)
+  { 
+    glmap[*(nodes+3)] = 1;
+    glmap[*(nodes+1)] = 3;
+  }
+  E_Int BottomId(IDX_NONE), RightId(IDX_NONE), LeftId(IDX_NONE), FrontId(IDX_NONE), BackId(IDX_NONE);
+
+  bool commonNodes[4];
+
+  for (int k = 0; k < 6; ++k)
+  {
+    if (k == 1) continue;
+
+    int count = 0;
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
+    E_Int testedPG = faces[k]-1;
+    E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
+
+    for (int j = 0; j < 4; ++j)
+    {
+      auto it = glmap.find(pNode[j]);
+      if (it != glmap.end())
+      {
+        // found
+        count++;
+        commonNodes[it->second] = true;
+      }
+    }
+    if (count == 0) // no common point, the ith PG is the bottom
+      BottomId = k;
+    else if (commonNodes[0] && commonNodes[1])
+      FrontId = k;
+    else if (commonNodes[1] && commonNodes[2])
+      RightId = k;
+    else if (commonNodes[2] && commonNodes[3])
+      BackId = k;
+    else if (commonNodes[0] && commonNodes[3])
+      LeftId = k;
+  }
+
+  assert (BottomId != IDX_NONE && BottomId != LeftId && BottomId != RightId && BottomId != FrontId && BottomId != BackId);
+  assert (LeftId != IDX_NONE && LeftId != BottomId && LeftId != RightId && LeftId != FrontId && LeftId != BackId);
+  assert (RightId != IDX_NONE && RightId != LeftId && RightId != BottomId && RightId != FrontId && RightId != BackId);
+  assert (FrontId != IDX_NONE && FrontId != LeftId && FrontId != RightId && FrontId != BottomId && FrontId != BackId);
+  assert (BackId != IDX_NONE && BackId != LeftId && BackId != RightId && BackId != FrontId && BackId != BottomId);
+  
+  E_Int mol[6];
+
+  mol[0] = faces[BottomId];
+  mol[1] = faces[1];
+  mol[2] = faces[LeftId];
+  mol[3] = faces[RightId];
+  mol[4] = faces[FrontId];
+  mol[5] = faces[BackId];
+
+  for (int i = 0; i < nb_faces; ++i)
+    faces[i] = mol[i];
+}
+
+template< typename ngo_t>
+void Hexahedron::reorder_pgs_right(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0)
+{
+  std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
+  E_Int nb_faces = ng.PHs.stride(i); 
+  E_Int* faces = ng.PHs.get_facets_ptr(i);
+  E_Int PGi = faces[3] - 1;
+  E_Int* pN = ng.PGs.get_facets_ptr(PGi);
+
+  E_Int nodes[4];
+  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  K_CONNECT::IdTool::right_shift<4>(nodes, i0);
+
+  glmap[*nodes] = 0; // PHi(2,0) -> 0  
+  glmap[*(nodes+1)] = 1;
+  glmap[*(nodes+2)] = 2;
+  glmap[*(nodes+3)] = 3;
+
+  bool reorient = K_MESH::Quadrangle::need_a_reorient(PGi, i, false, F2E);
+
+  if (reorient)
+  { 
+    glmap[*(nodes+3)] = 1;
+    glmap[*(nodes+1)] = 3;
+  }
+  E_Int BottomId(IDX_NONE), TopId(IDX_NONE), LeftId(IDX_NONE), FrontId(IDX_NONE), BackId(IDX_NONE);
+
+  bool commonNodes[4];
+
+  for (int k = 0; k < 6; ++k)
+  {
+    if (k == 3) continue;
+
+    int count = 0;
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
+    E_Int testedPG = faces[k]-1;
+    E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
+
+    for (int j = 0; j < 4; ++j)
+    {
+      auto it = glmap.find(pNode[j]);
+      if (it != glmap.end())
+      {
+        // found
+        count++;
+        commonNodes[it->second] = true;
+      }
+    }
+    if (count == 0) // no common point, the ith PG is the left
+      LeftId = k;
+    else if (commonNodes[0] && commonNodes[1])
+      BottomId = k;
+    else if (commonNodes[1] && commonNodes[2])
+      BackId = k;
+    else if (commonNodes[2] && commonNodes[3])
+      TopId = k;
+    else if (commonNodes[0] && commonNodes[3])
+      FrontId = k;
+  }
+
+  assert (TopId != IDX_NONE && TopId != LeftId && TopId != BottomId && TopId != FrontId && TopId != BackId);
+  assert (LeftId != IDX_NONE && LeftId != TopId && LeftId != BottomId && LeftId != FrontId && LeftId != BackId);
+  assert (BottomId != IDX_NONE && BottomId != LeftId && BottomId != TopId && BottomId != FrontId && BottomId != BackId);
+  assert (FrontId != IDX_NONE && FrontId != LeftId && FrontId != BottomId && FrontId != TopId && FrontId != BackId);
+  assert (BackId != IDX_NONE && BackId != LeftId && BackId != BottomId && BackId != FrontId && BackId != TopId);
+  
+  E_Int mol[6];
+
+  mol[0] = faces[BottomId];
+  mol[1] = faces[TopId];
+  mol[2] = faces[LeftId];
+  mol[3] = faces[3];
+  mol[4] = faces[FrontId];
+  mol[5] = faces[BackId];
+
+  for (int i = 0; i < nb_faces; ++i)
+    faces[i] = mol[i];
+}
+
+template< typename ngo_t>
+void Hexahedron::reorder_pgs_front(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0)
+{
+  std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
+  E_Int nb_faces = ng.PHs.stride(i); 
+  E_Int* faces = ng.PHs.get_facets_ptr(i);
+  E_Int PGi = faces[4] - 1;
+  E_Int* pN = ng.PGs.get_facets_ptr(PGi);
+
+  E_Int nodes[4];
+  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  K_CONNECT::IdTool::right_shift<4>(nodes, i0);
+
+  glmap[*nodes] = 0; // PHi(2,0) -> 0  
+  glmap[*(nodes+1)] = 1;
+  glmap[*(nodes+2)] = 2;
+  glmap[*(nodes+3)] = 3;
+
+  bool reorient = K_MESH::Quadrangle::need_a_reorient(PGi, i, true, F2E);
+
+  if (reorient)
+  { 
+    glmap[*(nodes+3)] = 1;
+    glmap[*(nodes+1)] = 3;
+  }
+  E_Int BottomId(IDX_NONE), TopId(IDX_NONE), LeftId(IDX_NONE), RightId(IDX_NONE), BackId(IDX_NONE);
+
+  bool commonNodes[4];
+
+  for (int k = 0; k < 6; ++k)
+  {
+    if (k == 4) continue;
+
+    int count = 0;
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
+    E_Int testedPG = faces[k]-1;
+    E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
+
+    for (int j = 0; j < 4; ++j)
+    {
+      auto it = glmap.find(pNode[j]);
+      if (it != glmap.end())
+      {
+        // found
+        count++;
+        commonNodes[it->second] = true;
+      }
+    }
+    if (count == 0) // no common point, the ith PG is the back
+      BackId = k;
+    else if (commonNodes[0] && commonNodes[1])
+      BottomId = k;
+    else if (commonNodes[1] && commonNodes[2])
+      LeftId = k;
+    else if (commonNodes[2] && commonNodes[3])
+      TopId = k;
+    else if (commonNodes[0] && commonNodes[3])
+      RightId = k;
+  }
+
+  assert (TopId != IDX_NONE && TopId != LeftId && TopId != RightId && TopId != BottomId && TopId != BackId);
+  assert (LeftId != IDX_NONE && LeftId != TopId && LeftId != RightId && LeftId != BottomId && LeftId != BackId);
+  assert (RightId != IDX_NONE && RightId != LeftId && RightId != TopId && RightId != BottomId && RightId != BackId);
+  assert (BottomId != IDX_NONE && BottomId != LeftId && BottomId != RightId && BottomId != TopId && BottomId != BackId);
+  assert (BackId != IDX_NONE && BackId != LeftId && BackId != RightId && BackId != BottomId && BackId != TopId);
+  
+  E_Int mol[6];
+
+  mol[0] = faces[BottomId];
+  mol[1] = faces[TopId];
+  mol[2] = faces[LeftId];
+  mol[3] = faces[RightId];
+  mol[4] = faces[4];
+  mol[5] = faces[BackId];
+
+  for (int i = 0; i < nb_faces; ++i)
+    faces[i] = mol[i];
+}
+
+template< typename ngo_t>
+void Hexahedron::reorder_pgs_back(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0)
+{
+  std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
+  E_Int nb_faces = ng.PHs.stride(i); 
+  E_Int* faces = ng.PHs.get_facets_ptr(i);
+  E_Int PGi = faces[5] - 1;
+  E_Int* pN = ng.PGs.get_facets_ptr(PGi);
+
+  E_Int nodes[4];
+  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  K_CONNECT::IdTool::right_shift<4>(nodes, i0);
+
+  glmap[*nodes] = 0; // PHi(2,0) -> 0  
+  glmap[*(nodes+1)] = 1;
+  glmap[*(nodes+2)] = 2;
+  glmap[*(nodes+3)] = 3;
+
+  bool reorient = K_MESH::Quadrangle::need_a_reorient(PGi, i, false, F2E);
+
+  if (reorient)
+  { 
+    glmap[*(nodes+3)] = 1;
+    glmap[*(nodes+1)] = 3;
+  }
+  E_Int BottomId(IDX_NONE), TopId(IDX_NONE), LeftId(IDX_NONE), RightId(IDX_NONE), FrontId(IDX_NONE);
+
+  bool commonNodes[4];
+
+  for (int k = 0; k < 6; ++k)
+  {
+    if (k == 5) continue;
+
+    int count = 0;
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
+    E_Int testedPG = faces[k]-1;
+    E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
+
+    for (int j = 0; j < 4; ++j)
+    {
+      auto it = glmap.find(pNode[j]);
+      if (it != glmap.end())
+      {
+        // found
+        count++;
+        commonNodes[it->second] = true;
+      }
+    }
+    if (count == 0) // no common point, the ith PG is the front
+      FrontId = k;
+    else if (commonNodes[0] && commonNodes[1])
+      BottomId = k;
+    else if (commonNodes[1] && commonNodes[2])
+      LeftId = k;
+    else if (commonNodes[2] && commonNodes[3])
+      TopId = k;
+    else if (commonNodes[0] && commonNodes[3])
+      RightId = k;
+  }
+
+  assert (TopId != IDX_NONE && TopId != LeftId && TopId != RightId && TopId != FrontId && TopId != BottomId);
+  assert (LeftId != IDX_NONE && LeftId != TopId && LeftId != RightId && LeftId != FrontId && LeftId != BottomId);
+  assert (RightId != IDX_NONE && RightId != LeftId && RightId != TopId && RightId != FrontId && RightId != BottomId);
+  assert (FrontId != IDX_NONE && FrontId != LeftId && FrontId != RightId && FrontId != TopId && FrontId != BottomId);
+  assert (BottomId != IDX_NONE && BottomId != LeftId && BottomId != RightId && BottomId != FrontId && BottomId != TopId);
+  
+  E_Int mol[6];
+
+  mol[0] = faces[BottomId];
+  mol[1] = faces[TopId];
+  mol[2] = faces[LeftId];
+  mol[3] = faces[RightId];
+  mol[4] = faces[FrontId];
+  mol[5] = faces[5];
+
+  for (int i = 0; i < nb_faces; ++i)
+    faces[i] = mol[i];
+}
+
+template< typename ngo_t>
+void Hexahedron::reorder_pgs_left(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0)
+{
+  std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
+  E_Int nb_faces = ng.PHs.stride(i); 
+  E_Int* faces = ng.PHs.get_facets_ptr(i);
+  E_Int PGi = faces[2] - 1;
+  E_Int* pN = ng.PGs.get_facets_ptr(PGi);
+
+  E_Int nodes[4];
+  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  K_CONNECT::IdTool::right_shift<4>(nodes, i0);
+
+  glmap[*nodes] = 0; // PHi(2,0) -> 0  
+  glmap[*(nodes+1)] = 1;
+  glmap[*(nodes+2)] = 2;
+  glmap[*(nodes+3)] = 3;
+
+  bool reorient = K_MESH::Quadrangle::need_a_reorient(PGi, i, true, F2E);
+
+  if (reorient)
+  { 
+    glmap[*(nodes+3)] = 1;
+    glmap[*(nodes+1)] = 3;
+  }
+  E_Int BottomId(IDX_NONE), TopId(IDX_NONE), RightId(IDX_NONE), FrontId(IDX_NONE), BackId(IDX_NONE);
+
+  bool commonNodes[4];
+
+  for (int k = 0; k < 6; ++k)
+  {
+    if (k == 2) continue;
+
+    int count = 0;
+    commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
+    E_Int testedPG = faces[k]-1;
+    E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
+
+    for (int j = 0; j < 4; ++j)
+    {
+      auto it = glmap.find(pNode[j]);
+      if (it != glmap.end())
+      {
+        // found
+        count++;
+        commonNodes[it->second] = true;
+      }
+    }
+    if (count == 0) // no common point, the ith PG is the right
+      RightId = k;
+    else if (commonNodes[0] && commonNodes[1])
+      BottomId = k;
+    else if (commonNodes[1] && commonNodes[2])
+      BackId = k;
+    else if (commonNodes[2] && commonNodes[3])
+      TopId = k;
+    else if (commonNodes[0] && commonNodes[3])
+      FrontId = k;
+  }
+  
+  assert (TopId != IDX_NONE && TopId != BottomId && TopId != RightId && TopId != FrontId && TopId != BackId);
+  assert (BottomId != IDX_NONE && BottomId != TopId && BottomId != RightId && BottomId != FrontId && BottomId != BackId);
+  assert (RightId != IDX_NONE && RightId != BottomId && RightId != TopId && RightId != FrontId && RightId != BackId);
+  assert (FrontId != IDX_NONE && FrontId != BottomId && FrontId != RightId && FrontId != TopId && FrontId != BackId);
+  assert (BackId != IDX_NONE && BackId != BottomId && BackId != RightId && BackId != FrontId && BackId != TopId);
+
+  E_Int mol[6];
+
+  mol[0] = faces[BottomId];
+  mol[1] = faces[TopId];
+  mol[2] = faces[2];
+  mol[3] = faces[RightId];
+  mol[4] = faces[FrontId];
+  mol[5] = faces[BackId];
+
+  for (int i = 0; i < nb_faces; ++i)
+    faces[i] = mol[i];
+}
+
+template< typename ngo_t>
+void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_Int i0) // bot, top, left, right, front, back
 {
   std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
   E_Int nb_faces = ng.PHs.stride(i); 
@@ -178,15 +583,22 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // 
   
   // by convention, first face is bottom, first node is 0 in local numbering (0 to 26)
 
-  glmap[*pN] = 0; // PHi(0,0) -> 0  
-  glmap[*(pN+1)] = 1;
-  glmap[*(pN+2)] = 2;
-  glmap[*(pN+3)] = 3;
+  E_Int nodes[4];
+  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  K_CONNECT::IdTool::right_shift<4>(nodes, i0);
 
-  if (F2E(1,PGi) != i) // for BOT, PH is the right element. if not, wrong orientation => swap of 1 and 3
+  glmap[*nodes] = 0; // PHi(2,0) -> 0  
+  glmap[*(nodes+1)] = 1;
+  glmap[*(nodes+2)] = 2;
+  glmap[*(nodes+3)] = 3;
+
+  //if (F2E(1,PGi) != i) // for BOT, PH is the right element. if not, wrong orientation => swap of 1 and 3
+  bool reorient = K_MESH::Quadrangle::need_a_reorient(PGi, i, true, F2E);
+
+  if (reorient)
   { 
-    glmap[*(pN+3)] = 1;
-    glmap[*(pN+1)] = 3;
+    glmap[*(nodes+3)] = 1;
+    glmap[*(nodes+1)] = 3;
   }
   E_Int TopId(IDX_NONE),LeftId(IDX_NONE),RightId(IDX_NONE),FrontId(IDX_NONE),BackId(IDX_NONE);
 
