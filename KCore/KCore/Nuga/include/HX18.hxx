@@ -26,6 +26,8 @@ namespace NUGA
     E_Int FACES[16]; // BOT00, BOTO1,...BOT03, TOP..., LEFT00, LEFT01, RIGHT00,...,FRONT...
     E_Int nodes[18];
 
+    bool do_reorder;
+
     template <typename arr_t>
     void reorder_as_XY(ngon_type& ng, E_Int PHi, const tree<arr_t> & PGtree, const K_FLD::IntArray& F2E)
     {
@@ -144,7 +146,9 @@ namespace NUGA
       }
 #endif
 
-      //reorder_as_XY(ng, PHi, PGtree, F2E); // swap faces to have bot/top ISO, remaining DIR
+      if (do_reorder)
+        reorder_as_XY(ng, PHi, PGtree, F2E); // swap faces to have bot/top ISO, remaining DIR (reorder here only for DIR_PROTO mode)
+      
       const E_Int* pPGi = ng.PHs.get_facets_ptr(PHi);
 
       assert(PGtree.nb_children(pPGi[0] - 1) == 4);

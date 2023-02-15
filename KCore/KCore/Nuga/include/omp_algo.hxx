@@ -198,12 +198,12 @@ namespace NUGA
           for (const auto & k : PG_to_plan)
           {
             const E_Int& j = k.first;
-            //const auto& plan = k.second;
+            const auto& plan = k.second;
 
             E_Int j2 = (j + sz2) % sz; // j2 is the rank in the appropriate half of ptlist associated with j-th face in second half
 
             E_Int PGi = ptlist[j2] - 1;
-            zid_to_PG_to_plan[zid][PGi] = k.second;
+            zid_to_PG_to_plan[zid][PGi] = plan;
           }
         }
       }

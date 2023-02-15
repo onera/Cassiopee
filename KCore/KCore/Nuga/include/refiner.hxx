@@ -117,6 +117,9 @@ namespace NUGA
 
 
     //private:
+    template <typename pg_arr_t, typename ph_arr_t>
+    static void __refine_PHS_hexa_dir (const output_t &adap_incr,
+                                ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
 
     ///
     template <typename arr_t>
@@ -309,6 +312,15 @@ namespace NUGA
  
         PH_directive.push_back(d);
       }
+  }
+
+  ///
+  template <>
+  template <typename arr_t>
+  void refiner<K_MESH::Hexahedron, DIR_PROTO>::extract_PHs_to_refine
+  (const ngon_type& ng, const tree<arr_t> & PHtree, const output_t &adap_incr, Vector_t<E_Int> & PH_to_ref, Vector_t<NUGA::eDIR> & PH_directive)
+  {
+    refiner<K_MESH::Hexahedron, DIR>::extract_PHs_to_refine(ng, PHtree, adap_incr, PH_to_ref, PH_directive);
   }
 
   ///
@@ -1179,10 +1191,10 @@ namespace NUGA
   }
 
   // DIRECTIONNEL
-  //default impl : HEXA DIR
-  template <>
+  
+  template <typename ELT_t, eSUBDIV_TYPE STYPE>
   template <typename pg_arr_t, typename ph_arr_t>
-  void refiner<K_MESH::Hexahedron, DIR>::refine_PHs
+  void refiner<ELT_t, STYPE>::__refine_PHS_hexa_dir
   (const output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
@@ -1218,17 +1230,26 @@ namespace NUGA
       else if (PH_directive[i] == XY)
       {
         HX18 elt(crd, ng, PHi, pos + i, F2E, PGtree);
+        elt.do_reorder = (STYPE == DIR_PROTO); // do reoder (reorder_as_XY call) only if DIR_PROTO
 
         elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);
       }
       else // X
       {
-        // todo Imad
         HX12 elt(crd, ng, PHi, pos + i, F2E, PGtree);
 
         elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);
       }
     }
+ }
+
+  template <>
+  template <typename pg_arr_t, typename ph_arr_t>
+  void refiner<K_MESH::Hexahedron, DIR>::refine_PHs
+  (const output_t &adap_incr,
+    ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+  {
+    refiner<K_MESH::Hexahedron, DIR>::__refine_PHS_hexa_dir <pg_arr_t, ph_arr_t> (adap_incr, ng, PGtree, PHtree, crd, F2E);
   }
 
   template <>
@@ -1237,7 +1258,7 @@ namespace NUGA
   (const output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
-    refiner<K_MESH::Hexahedron, DIR>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
+    refiner<K_MESH::Hexahedron, DIR_PROTO>::__refine_PHS_hexa_dir <pg_arr_t, ph_arr_t> (adap_incr, ng, PGtree, PHtree, crd, F2E);
   }
 
 
