@@ -221,7 +221,7 @@ E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err
   E_Float u0 = geom_adap.FirstParameter();
   E_Float u1 = geom_adap.LastParameter();
   
-  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geom_adap, u0, u1);
+  //E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geom_adap, u0, u1);
   
   E_Int nb_pts_defl = 0;
   __eval_nb_points(C0, u0, u1, chordal_err, nb_pts_defl);
@@ -947,9 +947,9 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
 #endif
   
   TopExp::MapShapes(occ_shape, TopAbs_EDGE, _edges);
-  E_Int nb_edges = _edges.Extent();
   
 #ifdef DEBUG_CAD_READER
+  E_Int nb_edges = _edges.Extent();
   std::cout << "nb of edges : " << nb_edges << std::endl;
 #endif
   
@@ -1130,7 +1130,6 @@ E_Int K_OCC::CADviaOCC::__check_for_spikes(const std::vector<K_FLD::IntArray>& c
   E_Int err = 0;
   
   Vector_t<E_Int> sorted_nodes;
-  E_Int E[2];
   E_Int nb_loops = cntLoops.size();
 
   for (E_Int l = 0; (l < nb_loops) && !err; ++l)

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __KCORE_SEARCH_BBTREE_H__
 #define __KCORE_SEARCH_BBTREE_H__
@@ -372,7 +372,7 @@ class BbTree {
   public: /** Typedefs */
 
     typedef           BbTree                                self_type;
-    typedef           NUGA::size_type                 size_type;
+    typedef           NUGA::size_type                       size_type;
     typedef           K_FLD::IntArray                       tree_array_type;
     typedef           BBoxType                              box_type;
    
@@ -455,7 +455,7 @@ class BbTree {
 
 #ifdef E_TIME1
 public:
-  static double _append_tree ;
+  static double _append_tree;
   static double _get_box_boxes;
   static double _get_longest_axis;
   static double _build_vectors;

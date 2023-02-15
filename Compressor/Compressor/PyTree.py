@@ -358,6 +358,7 @@ def _uncompressCartesian(t):
 # ctype=4: compress ngon connectivity
 # ctype=5: compress with fpc
 def _packNode(node, tol=1.e-8, ctype=0):
+    if Internal.getNodeFromName1(node, 'ZData') is not None: return None # already compressed node
     if ctype == 0: # sz
         from . import sz
         ret = sz.pack(node[1], {'relBoundRatio':tol})
@@ -390,10 +391,9 @@ def _packNode(node, tol=1.e-8, ctype=0):
         shape = [4.,0.,float(iscorder),ret[0]]
         node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
-    elif ctype == 5: # zfp
+    elif ctype == 5: # fpc
         ret = Compressor.compressor.compressFpc(node[1])
-        iscorder = not numpy.isfortran(node[1])
-        shape = [5.,0.,float(iscorder)]+list(ret[0])
+        shape = [5.,0.,float(ret[2])]+list(ret[0])
         node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
     else:
@@ -433,7 +433,7 @@ def _unpackNode(node):
             Internal._rmNodesFromName1(node, 'ZData')
         elif ctype == 5: # fpc
             ret = Compressor.compressor.uncompressFpc((shape,node[1],iscorder))
-            node[1] = ret[0]
+            node[1] = ret
             Internal._rmNodesFromName1(node, 'ZData')
         else:
             raise ValueError("unpackNode: unknown compression type.")
@@ -442,14 +442,14 @@ def _unpackNode(node):
 # compressCoords of zones
 def _compressCoords(t, tol=1.e-8, ctype=0):
     """Compress coordinates with a relative tolerance."""
-    from . import sz
+    #from . import sz
     zones = Internal.getZones(t)
     for z in zones:
         GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
         fields = []
         for c in GC: fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields:
-            if Internal.getNodeFromName1(f, 'ZData') is None:
+            if Internal.getNodeFromName1(f, 'ZData') is None: 
                 _packNode(f, tol, ctype)
     return None
 
@@ -490,25 +490,29 @@ def _compressFields(t, tol=1.e-8, ctype=0, varNames=None):
                 else: print("Warning: compressFields: field %s not found."%v)
     return None
 
-def compressFields(t, tol=1.e-8, ctype=0):
+def compressFields(t, tol=1.e-8, ctype=0, varNames=None):
     """Compress fields with a relative tolerance."""
     tp = Internal.copyRef(t)
-    _compressFields(tp, tol, ctype)
+    _compressFields(tp, tol, ctype, varNames)
     return tp
 
 # Compresse un cellN 0,1,2
-def _compressCellN(t, cellNName='cellN'):
+def _compressCellN(t, varNames=['cellN']):
     """Compress cellN (0,1,2) on 2 bits."""
     zones = Internal.getZones(t)
-    for z in zones:
-        cellNs = Internal.getNodesFromName2(z, cellNName)
-        for cellN in cellNs: _packNode(cellN, 0., 2)
+    for name in varNames:
+        spl = name.split(':')
+        if len(spl) == 2: spl = spl[1]
+        else: spl = name
+        for z in zones:
+            cellNs = Internal.getNodesFromName2(z, spl)
+            for cellN in cellNs: _packNode(cellN, 0., 2)
     return None
 
-def compressCellN(t, cellNName='cellN'):
+def compressCellN(t, varNames=['cellN']):
     """Compress cellN (0,1,2) on 2 bits.""" 
     tp = Internal.copyRef(t)
-    _compressCellN(tp, cellNName)
+    _compressCellN(tp, varNames)
     return tp
 
 # Compress Elements_t (elts basiques ou NGONs)

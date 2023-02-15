@@ -727,11 +727,11 @@ E_Int K_IO::GenIO::tpwrite(
       case 2: // TRI
 #ifdef E_DOUBLEINT
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%d, E=%d, ET=TRIANGLE, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=%ld, E=%ld, ET=TRIANGLE, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
 #else
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%ld, E=%ld, ET=TRIANGLE, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=%d, E=%d, ET=TRIANGLE, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
 #endif
         break;
@@ -747,24 +747,48 @@ E_Int K_IO::GenIO::tpwrite(
 #endif
         break;
       case 4: // TETRA
+#ifdef E_DOUBLEINT
+        fprintf(ptrFile,
+                "ZONE T=\"%s\", N=%ld, E=%ld, ET=TETRAHEDRON, F=FEBLOCK\n",
+                zoneNames[cnt+structSize], nodes, elts);
+#else
         fprintf(ptrFile,
                 "ZONE T=\"%s\", N=%d, E=%d, ET=TETRAHEDRON, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
+#endif
         break;
       case 5: // PYRA - FIX as HEXA
+#ifdef E_DOUBLEINT
+        fprintf(ptrFile,
+                "ZONE T=\"%s\", N=%ld, E=%ld, ET=BRICK, F=FEBLOCK\n",
+                zoneNames[cnt+structSize], nodes, elts);
+#else
         fprintf(ptrFile,
                 "ZONE T=\"%s\", N=%d, E=%d, ET=BRICK, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
+#endif
         break;
       case 6: // PENTA - FIX as HEXA
+#ifdef E_DOUBLEINT
+        fprintf(ptrFile,
+                "ZONE T=\"%s\", N=%ld, E=%ld, ET=BRICK, F=FEBLOCK\n",
+                zoneNames[cnt+structSize], nodes, elts);
+#else
         fprintf(ptrFile,
                 "ZONE T=\"%s\", N=%d, E=%d, ET=BRICK, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
+#endif
         break;
       case 7: // HEXA
+#ifdef E_DOUBLEINT
+        fprintf(ptrFile,
+                "ZONE T=\"%s\", N=%ld, E=%ld, ET=BRICK, F=FEBLOCK\n",
+                zoneNames[cnt+structSize], nodes, elts);
+#else
         fprintf(ptrFile,
                 "ZONE T=\"%s\", N=%d, E=%d, ET=BRICK, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
+#endif
         break;
       case 8: // NGON
         {

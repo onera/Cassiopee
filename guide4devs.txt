@@ -1,5 +1,5 @@
-For developpers :
-==================
+For developers :
+================
 
 Editor :
 --------
@@ -23,7 +23,8 @@ Python Functions:
 
 Tests :
 -------
-- no snake in test file name 
+- no snake in test file name.
 - first line of test shoud be # - functionName (pyTree) -
-- seq tests finishes by _t1, _t2
-- parallel test finishes by _m1, _m2 and are run on 2 procs
+- seq tests finishes by _t1, _t2.
+- parallel test finishes by _m1, _m2 and are run on 2 procs.
+- in tests, dont use input files, create the test case in the script.

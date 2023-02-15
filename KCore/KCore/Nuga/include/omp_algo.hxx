@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/macros.h"
 #include <map>
@@ -198,7 +198,7 @@ namespace NUGA
           for (const auto & k : PG_to_plan)
           {
             const E_Int& j = k.first;
-            const auto& plan = k.second;
+            //const auto& plan = k.second;
 
             E_Int j2 = (j + sz2) % sz; // j2 is the rank in the appropriate half of ptlist associated with j-th face in second half
 

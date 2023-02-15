@@ -217,7 +217,7 @@ namespace NUGA
       {
         STACK_ARRAY(MPI_Request, NB_REQ_FOR_HASSENT, sreqs);
         int req_count = -1;
-        for (size_t r = 0; r < nranks; ++r)
+        for (int r = 0; r < nranks; ++r)
         {
           if (r == rank) continue;
           int err = MPI_Irecv(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreqs[++req_count]);
@@ -232,7 +232,7 @@ namespace NUGA
 
       // 1. catch all sizes :
       int NB_SENT = 0;
-      for (size_t r = 0; r < nranks; ++r) if (has_sent[r])++NB_SENT;
+      for (int r = 0; r < nranks; ++r) if (has_sent[r])++NB_SENT;
 
       int NB_REQ_FOR_SIZES = 7 * NB_SENT;
       STACK_ARRAY(MPI_Request, NB_REQ_FOR_SIZES, sreqs_sz);
@@ -253,7 +253,7 @@ namespace NUGA
 
       int req_count = -1;
       int rcount = -1;
-      for (size_t r = 0; r < nranks; ++r)
+      for (int r = 0; r < nranks; ++r)
       {
         if (has_sent[r] == false) continue;
         ++rcount;
@@ -289,7 +289,7 @@ namespace NUGA
 
 
       rcount=-1;
-      for (size_t r = 0; r < nranks; ++r)
+      for (int r = 0; r < nranks; ++r)
       {
         if (has_sent[r] == false) continue;
         ++rcount;
@@ -314,7 +314,7 @@ namespace NUGA
 
         req_count = -1;
         rcount=-1;
-        for (size_t r = 0; r < nranks; ++r)
+        for (int r = 0; r < nranks; ++r)
         {
           if (has_sent[r] == false) continue;
           ++rcount;

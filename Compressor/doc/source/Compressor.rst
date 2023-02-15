@@ -150,7 +150,7 @@ Object serialize/compression
 ---------------------------------------
 
 
-.. py:function:: Compressor.PyTree.compressCellN(a)
+.. py:function:: Compressor.PyTree.compressCellN(a, varNames=['cellN'])
 
     Compress cellN fields (valued 0,1,2).
 
@@ -158,6 +158,8 @@ Object serialize/compression
 
     :param a: input data
     :type a: [zone, list of zones, base, pyTree]
+    :param varNames: list of 'cellN' names
+    :type varNames: list of strings
     :return: identical to input
 
     * `CellN compression (pyTree) <Examples/Compressor/compressCellNPT.py>`_:
@@ -173,7 +175,7 @@ Object serialize/compression
     Compress zone coordinates with sz, zfp or fpc libraries.
 
     Fpc is a lossless compression and doesn't use tol.
-    sz and zfp are approximative compression controling error at a given tolerance.
+    sz and zfp are approximative compressions controling error at a given relative tolerance.
 
     Exists also as an in-place version (_compressCoords) which modifies a and returns None.
 
@@ -197,7 +199,7 @@ Object serialize/compression
     Compress zone fields with sz, zfp or fpc libraries.
 
     Fpc is a lossless compression and doesn't use tol.
-    sz and zfp are approximative compression controling error at a given tolerance.
+    sz and zfp are approximative compressions controling error at a given relative tolerance.
 
     Exists also as an in-place version (_compressFields) which modifies a and returns None.
 

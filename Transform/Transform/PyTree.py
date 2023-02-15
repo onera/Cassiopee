@@ -254,13 +254,13 @@ def _deformPoint(a, xyz, dxdydz, depth, width):
     """Deform mesh by moving point (x,y,z) of a vector (dx, dy, dz)."""
     return C._TZGC(a, 'nodes', Transform.deformPoint, xyz, dxdydz, depth, width)
 
-def deformMesh(a, surfDelta, beta=4.,type='nearest'):
+def deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it.
     Usage: deformMesh(a, surfDelta, beta, type)"""
     info = C.getAllFields(surfDelta, 'nodes')
     return C.TZA(a, 'nodes', 'nodes', Transform.deformMesh, None, info, beta, type)
 
-def _deformMesh(a, surfDelta, beta=4.,type='nearest'):
+def _deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it."""
     info = C.getAllFields(surfDelta, 'nodes')
     return C._TZA(a, 'nodes', 'nodes', Transform.deformMesh, None, info, beta, type)

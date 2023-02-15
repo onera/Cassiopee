@@ -1940,7 +1940,7 @@ namespace K_MESH
         {
           E_Int N = *(nodes + n);
           //
-          for (E_Int j = 0; j < unodes.size(); j++)
+          for (size_t j = 0; j < unodes.size(); j++)
           {
             if (unodes[j] == N)
               arity[j] += 1;

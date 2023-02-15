@@ -383,7 +383,7 @@ namespace NUGA
   {
     // info : nbc is variable and equal to number of nodes
 
-    E_Int nb_pts_ref = crd.cols();
+    //E_Int nb_pts_ref = crd.cols();
     E_Int nb_pgs_ref = PGlist.size();
     E_Int nb_pgs0 = PGs.size();
 
