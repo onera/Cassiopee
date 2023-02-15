@@ -89,6 +89,7 @@ public:
     return true;
   }
   
+  // default impl for 3D. Specialization below after the class scope
   BoundingBox& operator=(const BoundingBox& rhs)
   {
   	minB[0] = rhs.minB[0]; minB[1] = rhs.minB[1]; minB[2] = rhs.minB[2];
@@ -108,12 +109,13 @@ public:
     return true;
   }
 
+  // default impl for 3D. Specialization below after the class scope
   void enlarge(double RTOL)
   {
     // compute Lref (min & non-null box size)
     double dx = (maxB[0] - minB[0]);
     double dy = (maxB[1] - minB[1]);
-    double dz = (DIM == 3) ? (maxB[2] - minB[2]) : 0.;
+    double dz = (maxB[2] - minB[2]);
 
     double Lref = std::max(dx, std::max(dy, dz)); // ensure to get a non-null val
 
@@ -131,6 +133,7 @@ public:
     maxB[2] += Lref;
   }
 
+  // default impl for 3D. Specialization below after the class scope
   void merge(const BoundingBox& b)
   {
     minB[0] = std::min(minB[0], b.minB[0]);
@@ -364,6 +367,47 @@ public://fixme //private:
 
 typedef BoundingBox<2> BBox2D;
 typedef BoundingBox<3> BBox3D;
+
+
+// 2D - specializations
+
+BBox2D& BBox2D::operator=(const BBox2D& rhs)
+{
+  minB[0] = rhs.minB[0]; minB[1] = rhs.minB[1];
+  maxB[0] = rhs.maxB[0]; maxB[1] = rhs.maxB[1];
+
+  return *this;
+}
+
+void BBox2D::enlarge(double RTOL)
+  {
+    // compute Lref (min & non-null box size)
+    double dx = (maxB[0] - minB[0]);
+    double dy = (maxB[1] - minB[1]);
+
+    double Lref = std::max(dx, dy);
+
+    if (dx > ZERO_M) Lref = std::min(Lref, dx);
+    if (dy > ZERO_M) Lref = std::min(Lref, dy);
+
+    Lref *= RTOL;
+
+    minB[0] -= Lref;
+    minB[1] -= Lref;
+    
+    maxB[0] += Lref;
+    maxB[1] += Lref;
+  }
+
+  // default impl for 3D. Specialization below
+  void BBox2D::merge(const BBox2D& b)
+  {
+    minB[0] = std::min(minB[0], b.minB[0]);
+    minB[1] = std::min(minB[1], b.minB[1]);
+    
+    maxB[0] = std::max(maxB[0], b.maxB[0]);
+    maxB[1] = std::max(maxB[1], b.maxB[1]);
+  }
 
 ///
 template <short DIM, typename BBoxType = BoundingBox<DIM> >
