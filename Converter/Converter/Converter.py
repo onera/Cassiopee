@@ -1294,9 +1294,9 @@ def createHook(a, function='None'):
 
     else: raise ValueError("function %s is invalid."%function)
 
-def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0):
+def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0.):
     """Create a hook for cylindrical adt."""
-    return converter.registerCells(a, center, axis, depth, 0.)
+    return converter.registerCells(a, center, axis, depth, thetaShift)
 
 #===============================================================================
 # Fonctions de preconditionement (hook)

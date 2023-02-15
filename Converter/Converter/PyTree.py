@@ -6577,10 +6577,10 @@ def createHook(a, function='None'):
     if len(fields) == 1: return Converter.createHook(fields[0], function)
     else: return Converter.createHook(fields, function)
 
-def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0):
+def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0.):
     """Create a hook for a cylindrical adt."""
     fields = getFields(Internal.__GridCoordinates__, a, api=2)
-    return Converter.createHookAdtCyl(fields, center, axis, depth)
+    return Converter.createHookAdtCyl(fields, center, axis, depth, thetaShift)
 
 # -- createGlobalHook
 def createGlobalHook(a, function='None', indir=0):

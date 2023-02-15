@@ -141,7 +141,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
             for (E_Int i = 0; i < ni; i++)
             {
             //cas j = depth
-            ind = i+depth+ni+k*ninj; E_Int indp = ind+ni;
+            ind = i+depth*ni+k*ninj; E_Int indp = ind+ni;
             theta = thetat[ind];  
             thetap = thetat[indp];  
 
