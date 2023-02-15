@@ -13,6 +13,7 @@
 #define __ANISO_METRIC_TYPE_H__
 
 #include "Nuga/include/defs.h"
+#include <array>
 
 namespace DELAUNAY{
 

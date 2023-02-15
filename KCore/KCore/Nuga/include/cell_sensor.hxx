@@ -27,7 +27,7 @@ class cell_sensor : public sensor<mesh_t, std::vector<typename mesh_t::cell_incr
     bool _single_pass_done;
 
     using cell_incr_t = typename mesh_t::cell_incr_t;
-    using sensor_input_t = std::vector<cell_incr_t>; // either vector<int> (ISO) or vector(incr_t<3>) (DIR)
+    using sensor_input_t = std::vector<cell_incr_t>; // either vector<int> (ISO) or vector(incr_t<3>) (DIR_PROTO)
     using parent_t = sensor<mesh_t, sensor_input_t>;
     using output_t = typename mesh_t::output_t; //fixme: static assert to add : must be ISO => IntVec
 

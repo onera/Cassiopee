@@ -24,10 +24,9 @@
 #include "Nuga/include/diag.h"
 
 #ifdef DEBUG_METRIC
-#include "iodata.h"
-#include "IO/io.h"
-#include <sstream>
+#include "eberly_eigen.h"
 #endif
+
 
 //#include<list>
 
@@ -122,7 +121,13 @@ namespace DELAUNAY{
   void draw_ellipse_field(const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<bool>* mask = 0);
   void draw_ellipse_field(const char* fname, const K_FLD::FloatArray& crd, const std::vector<size_type>& indices);
   void draw_ellipse(const char* fname, const K_FLD::FloatArray& crd, size_type i);
+
+  static void append_unity_ellipse(const double* pNc, const T& m, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, int SAMPLE = 100);
+  static void append_ellipse_axis(const double * P0, double a00, double a01, double a02, double a11, double a12, double a22, int axis, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int SAMPLE=100);
+  static void append_ellipse(const double * P0, double a00, double a01, double a02, double a11, double a12, double a22, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int Nsample = 1000);
+  static void build_ellipses_field(const K_FLD::FloatArray & crd, std::vector<T> & field, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int Nsample = 100, std::vector<int>* indices = nullptr);
 #endif
+
 
   public: /** accessors  */
 
@@ -405,6 +410,46 @@ namespace DELAUNAY{
       cnt.pushBack(e, e+2);
     }   
   }
+
+
+  template<typename T> inline
+  void
+  VarMetric<T>::append_unity_ellipse(const double* pNc, const T& m, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, int SAMPLE)
+  {
+    if (m[0] == 0. || m[2] == 0.) return;
+
+    E_Float alpha = 2. * NUGA::PI / (E_Float)SAMPLE;
+
+    E_Int pos0 = crd.cols();
+
+    for (size_t n = 0; n < SAMPLE; ++n)
+    {
+      E_Float a = alpha * n;
+
+      E_Float V[] = { ::cos(a), ::sin(a) };
+
+      const E_Float& u = V[0];
+      const E_Float& v = V[1];
+      const E_Float& m11 = m[0];
+      const E_Float& m12 = m[1];
+      const E_Float& m22 = m[2];
+
+      E_Float k = 1. / ::sqrt(u*(m11*u + m12 * v) + v * (m12*u + m22 * v));
+
+      E_Float Pt[] = { k*u , k*v };
+
+      NUGA::sum<2>(Pt, pNc, Pt); //center it at node Nc
+
+      crd.pushBack(Pt, Pt + 2);
+
+    }
+
+    for (size_t n = 0; n < SAMPLE; ++n)
+    {
+      E_Int e[] = { pos0 + n, pos0 + (n + 1) % SAMPLE };
+      cnt.pushBack(e, e + 2);
+    }
+  }
   
   template<> inline
   void
@@ -439,7 +484,143 @@ namespace DELAUNAY{
       cnt.pushBack(e, e+2);
     }   
   }
-  
+
+  template<typename T> inline
+    void
+    VarMetric<T>::append_ellipse_axis
+  (
+    const double * P0,
+    double a00, double a01, double a02, double a11, double a12, double a22,
+    int axis,
+    K_FLD::FloatArray& crdo,
+    K_FLD::IntArray& cnto,
+    int SAMPLE
+  )
+  {
+    bool aggressive = false;
+    int32_t sortType = 0; //no sorting
+    std::array<double, 3> eval;
+    std::array<std::array<double, 3>, 3> evec;
+
+    gte::SymmetricEigensolver3x3<double>()(a00, a01, a02, a11, a12, a22, aggressive, sortType, eval, evec);
+
+    K_FLD::FloatArray evectors(3, 3);
+
+    if (axis == 2) //  (V0,V1) plane where Vi are eigen vectors
+    {
+      for (size_t j = 0; j < 3; ++j)
+        for (size_t i = 0; i < 3; ++i)
+          evectors(i, j) = evec[i][j];
+    }
+    else if (axis == 0) //  (V1,V2) plane where Vi are eigen vectors
+    {
+      for (size_t j = 0; j < 3; ++j)
+        for (size_t i = 0; i < 3; ++i)
+          evectors(i, (j + 2) % 3) = evec[i][j];
+    }
+    else //if (axis == 1) //  (V2,V0) plane where Vi are eigen vectors
+    {
+      evectors(0, 0) = evec[0][2];
+      evectors(1, 0) = evec[1][2];
+      evectors(2, 0) = evec[2][2];
+
+      evectors(0, 1) = evec[0][0];
+      evectors(1, 1) = evec[1][0];
+      evectors(2, 1) = evec[2][0];
+
+      evectors(0, 2) = evec[0][1];
+      evectors(1, 2) = evec[1][1];
+      evectors(2, 2) = evec[2][1];
+    }
+
+    DELAUNAY::Aniso2D m;
+    K_FLD::FloatArray iP(3, 3);
+
+    iP = evectors;
+    K_FLD::FloatArray::inverse3(iP);
+
+    K_FLD::FloatArray cc;
+    cc.pushBack(P0, P0 + 3);
+    NUGA::transform(cc, iP);
+    double * pNc = cc.col(0); // centroid in local ref frame
+
+                              // axis : normal to the 2D-ellipse to consider
+
+    m[1] = 0.;
+
+    if (axis == 2) //  (V0,V1) plane where Vi are eigen vectors
+    {
+      m[0] = eval[0];
+      m[2] = eval[1];
+    }
+    else if (axis == 0) //  (V1,V2) plane where Vi are eigen vectors
+    {
+      m[0] = eval[1];
+      m[2] = eval[2];
+    }
+    else //if (axis == 1) //  (V2,V0) plane where Vi are eigen vectors
+    {
+      m[0] = eval[2];
+      m[2] = eval[0];
+    }
+
+    K_FLD::FloatArray crde;
+    K_FLD::IntArray cnte;
+    DELAUNAY::VarMetric<DELAUNAY::Aniso2D>::append_unity_ellipse(pNc, m, crde, cnte, SAMPLE);
+    crde.resize(3, crde.cols(), cc(2, 0));
+    NUGA::transform(crde, evectors);
+
+    cnte.shift(crdo.cols());
+    cnto.pushBack(cnte);
+    crdo.pushBack(crde);
+  }
+
+  template<typename T> inline
+    void
+    VarMetric<T>::append_ellipse
+  (
+    const double * P0,
+    double a00, double a01, double a02, double a11, double a12, double a22,
+    K_FLD::FloatArray& crdo,
+    K_FLD::IntArray& cnto,
+    int Nsample
+  )
+  {
+    append_ellipse_axis(P0, a00, a01, a02, a11, a12, a22, 0, crdo, cnto, Nsample);
+    append_ellipse_axis(P0, a00, a01, a02, a11, a12, a22, 1, crdo, cnto, Nsample);
+    append_ellipse_axis(P0, a00, a01, a02, a11, a12, a22, 2, crdo, cnto, Nsample);
+  }
+
+  template<typename T> inline
+   void
+    VarMetric<T>::build_ellipses_field(const K_FLD::FloatArray & crd, std::vector<T> & field, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int Nsample, std::vector<int>* indices)
+  {
+    crdo.clear();
+    cnto.clear();
+
+    if (indices != nullptr)
+    {
+      for (size_t i = 0; i < indices->size(); ++i)
+      {
+        int Ni = (*indices)[i];
+        auto& fld = field[Ni];
+
+        const double* Pi = crd.col(Ni);
+        append_ellipse(Pi, fld[0], fld[1], fld[2], fld[3], fld[4], fld[5], crdo, cnto, Nsample);
+      }
+    }
+    else
+    {
+      for (int Ni = 0; Ni < crd.cols(); ++Ni)
+      {
+        auto& fld = field[Ni];
+
+        const double* Pi = crd.col(Ni);
+        append_ellipse(Pi, fld[0], fld[1], fld[2], fld[3], fld[4], fld[5], crdo, cnto, Nsample);
+      }
+    }
+
+  }
 #endif
 
   // Implementations.

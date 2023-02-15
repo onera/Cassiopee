@@ -188,6 +188,13 @@ namespace NUGA
     }
   };
 
+  // DIR_PROTO for HEXA
+  /// same impl for both so define by inheritance
+  template <>
+  struct subdiv_pol < K_MESH::Hexahedron, DIR_PROTO > : public subdiv_pol < K_MESH::Hexahedron, DIR>
+  {
+  };
+
   // isotropic HEXA subdivision => 4 Quadrangles children => fixed stride array
   template <>
   struct subdiv_pol<K_MESH::Quadrangle, ISO>
@@ -247,6 +254,11 @@ namespace NUGA
 
   };
 
+  /// same impl for both so define by inheritance
+  template <>
+  struct subdiv_pol<K_MESH::Quadrangle, DIR_PROTO> : public subdiv_pol<K_MESH::Quadrangle, DIR>
+  {};
+
   // directional Triangle subdivision => 2 Trianges children => fixed stride array
   template <>
   struct subdiv_pol<K_MESH::Triangle, DIR>
@@ -260,6 +272,11 @@ namespace NUGA
         std::swap(child[0], child[1]);
     }
   };
+
+  /// same impl for both so define by inheritance
+  template <>
+  struct subdiv_pol<K_MESH::Triangle, DIR_PROTO> : public subdiv_pol<K_MESH::Triangle, DIR>
+  {};
 
   // ISO_HEX Polygon subdivision => N quad children , with N is the nb of nodes
   template <>
@@ -390,7 +407,8 @@ namespace NUGA
 
   };
 
-  template<>
+  ///
+  template<> // DIR 
   struct adap_incr_type<DIR>
   {
     using cell_incr_t = int_tuple<3>;
@@ -412,6 +430,13 @@ namespace NUGA
     }
 
   };
+
+  /// same impl for both so define by inheritance
+  template<> 
+  struct adap_incr_type<DIR_PROTO> : public adap_incr_type<DIR>
+  {
+  };
+
 
 
 } // NUGA

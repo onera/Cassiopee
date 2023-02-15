@@ -87,13 +87,17 @@ static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<STYPE>& adap_incr)
 
 /// proto DIR impl.
 template <typename mesh_t>
-static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<DIR>& adap_incr)
+static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<DIR_PROTO>& adap_incr)
 {
-  //todo Imad : shoud be removed.
-
   // hack to make work the DIR prototype
   for (size_t i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
     adap_incr.cell_adap_incr[i].n[2] = 0; // force to be XY
+}
+
+/// DIR impl.
+template <typename mesh_t>
+static void fix_adap_incr(mesh_t& hmesh, adap_incr_type<DIR>& adap_incr)
+{
 }
 
 inline NUGA::eDIR get_dir(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nnodes)

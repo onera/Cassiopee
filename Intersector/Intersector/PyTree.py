@@ -139,10 +139,13 @@ def getZoneNSTypeAndDim(z):
 
 # OUT:  XXX
 #==============================================================================
-# return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (PyTree), 4(list of zones)
+# return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (PyTree), 4(list of zones), 5(list of list of numpies)
 def InputType(t): # fixme : based on first block only
   if isinstance(t, list):
     if isinstance(t[0], numpy.ndarray): return 1
+    # note (Imad): on check que t[0] est une liste et que le premier élément est un numpy
+    if isinstance(t[0], list):
+      if isinstance(t[0][0], numpy.ndarray): return 5
     isnod = Internal.isStdNode(t)
     #print(isnod)
     if isnod == -1 or isnod == 0:
@@ -2479,7 +2482,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
 
     if sensor_type == 1: sensor_type=4 # initial xsensor does not exist anymore
 
-    if sensdata is None and sensor is None:
+    if sensor_type != 5 and sensdata is None and sensor is None:
       print('INPUT ERROR : no source data to initialize a sensor')
       return
 
@@ -2506,6 +2509,30 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       owesSensor=1
 
     err=0
+
+    if sensdata is None and sensor_type == 5 : #extract metric fields
+      sensdata = [] # going to fill it
+      for z in zs : 
+        mxx = C.getField("mxx", z)
+        if mxx == [] : err = 1; break
+        mxy = C.getField("mxy", z)
+        if mxy == [] : err = 1; break
+        mxz = C.getField("mxz", z)
+        if mxz == [] : err = 1; break
+        myy = C.getField("myy", z)
+        if myy == [] : err = 1; break
+        myz = C.getField("myz", z)
+        if myz == [] : err = 1; break
+        mzz = C.getField("mzz", z)
+        if mzz == [] : err = 1; break
+        sensdata.append([mxx[0][1], mxy[0][1], mxz[0][1], myy[0][1], myz[0][1], mzz[0][1]])
+
+      if err == 1 : 
+        print('INPUT ERROR : metric fields are missing or incomplete in the inout tree')
+        return
+
+    #print(sensdata)
+
     if sensdata is not None:
       #print("assignData2Sensor")
       if sensor_type == 1 or sensor_type == 4:
@@ -2772,7 +2799,7 @@ def assignData2Sensor(hooks, sensdata):
       return 1
     intersector.assignData2Sensor(hooks[0], sensdata)
 
-  elif sens_data_typ == 1: # list of numpies
+  elif sens_data_typ == 1 or sens_data_typ == 5: # list of numpies or list of list of numpies
     if len(sensdata) != len(hooks):
       print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
       return 1

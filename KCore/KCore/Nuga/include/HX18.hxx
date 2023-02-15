@@ -144,7 +144,7 @@ namespace NUGA
       }
 #endif
 
-      reorder_as_XY(ng, PHi, PGtree, F2E); // swap faces to have bot/top ISO, remaining DIR
+      //reorder_as_XY(ng, PHi, PGtree, F2E); // swap faces to have bot/top ISO, remaining DIR
       const E_Int* pPGi = ng.PHs.get_facets_ptr(PHi);
 
       assert(PGtree.nb_children(pPGi[0] - 1) == 4);
@@ -352,7 +352,7 @@ namespace NUGA
       p[6] = nodes[8];  p[7] = nodes[10];  p[8] = nodes[15];  p[9] = nodes[13];  p[10] = nodes[12];  p[11] = nodes[17];
       
       for (size_t j = 0; j < 2; ++j)
-        NUGA::Q6::split<eSUBDIV_TYPE::DIR>(ng.PGs, &p[6 * j], Xd, firstIntPG + 2 * j);
+        NUGA::Q6::split(ng.PGs, &p[6 * j], Xd, firstIntPG + 2 * j);
 
       // HX8 creation
       E_Int *BOT(FACES), *TOP(FACES + 4), *LEFT(FACES + 8), *RIGHT(FACES + 10), *FRONT(FACES + 12), *BACK(FACES + 14);

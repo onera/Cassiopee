@@ -175,7 +175,7 @@ const char* varString, PyObject *out)
       using sensor_t = NUGA::cell_sensor<mesh_t>;
       err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
-    else if (sensor_type == 4) // xsensor2
+    else if (sensor_type == 1 || sensor_type == 4) // xsensor2
     {
       using sensor_t = NUGA::xsensor2<mesh_t>;
       err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
@@ -200,7 +200,7 @@ const char* varString, PyObject *out)
       using sensor_t = NUGA::cell_sensor<mesh_t>;
       err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
-    else if (sensor_type == 4) // xsensor2
+    else if (sensor_type == 1 || sensor_type == 4) // xsensor2
     {
       using sensor_t = NUGA::xsensor2<mesh_t>;
       err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
@@ -209,8 +209,6 @@ const char* varString, PyObject *out)
   else if (elt_type==elt_t::BASIC)
   {
     using mesh_t = NUGA::hierarchical_mesh<K_MESH::Basic, STYPE>;
-
-    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
 
     if (sensor_type == 0)
     {
@@ -227,7 +225,7 @@ const char* varString, PyObject *out)
       using sensor_t = NUGA::cell_sensor<mesh_t>;
       err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
     }
-    else if (sensor_type == 4) // xsensor2
+    else if (sensor_type == 1 || sensor_type == 4) // xsensor2
     {
       using sensor_t = NUGA::xsensor2<mesh_t>;
       err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
@@ -236,6 +234,46 @@ const char* varString, PyObject *out)
   return err;
 }
 
+///
+template <>
+int __adapt_wrapper<NUGA::DIR_PROTO>
+(int elt_type, int sensor_type,
+std::vector<void*>&hmeshes, std::vector<void*>&sensors,
+std::map<int, std::pair<int,int>>& rid_to_zones,
+std::vector<int>& zonerank,
+std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
+MPI_Comm COM,
+const char* varString, PyObject *out)
+{
+  E_Int err(0);
+
+  using mesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR_PROTO>;
+
+  if (sensor_type == 0) // geom sensor
+  {
+    using sensor_t = NUGA::geom_sensor<mesh_t>;
+    err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+  }
+  else if (sensor_type == 2) //nodal sensor
+  {
+    using sensor_t = NUGA::nodal_sensor<mesh_t>;
+    err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+  }
+  else if (sensor_type == 3) //cell sensor
+  {
+    using sensor_t = NUGA::cell_sensor<mesh_t>;
+    err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+  }
+  else if (sensor_type == 1 || sensor_type == 4) // xsensor2
+  {
+    using sensor_t = NUGA::xsensor2<mesh_t>;
+    err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zonerank, zone_to_zone_to_list_owned, COM, varString, out);
+  }
+
+  return err;
+}
+
+///
 template <>
 int __adapt_wrapper<NUGA::ISO_HEX>
 (int elt_type/*dummy*/, int sensor_type,
@@ -246,10 +284,11 @@ std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
-  //todo
+  assert(false);//todo
   return 1;
 }
 
+///
 template <>
 int __adapt_wrapper<NUGA::DIR>
 (int elt_type/*dummy*/, int sensor_type,
@@ -260,7 +299,7 @@ std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_zone_to_list_owned,
 MPI_Comm COM,
 const char* varString, PyObject *out)
 {
-  //todo
+  assert(false);//todo
   return 1;
 }
 

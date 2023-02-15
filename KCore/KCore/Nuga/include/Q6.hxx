@@ -18,7 +18,6 @@ namespace NUGA
 {
   struct Q6
   {
-    template <eSUBDIV_TYPE STYPE>
     static void split(ngon_unit& PGs, const E_Int* nodes, NUGA::eDIR d, E_Int firstChild)
     {
       // set them in PGs

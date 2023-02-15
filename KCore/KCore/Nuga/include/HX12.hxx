@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr), Imad Hammani (imadeddine.hammani@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr), Imad Hammani (imadeddine.hammani@onera.fr)
 
 #ifndef NUGA_H12_HXX
 #define NUGA_H12_HXX

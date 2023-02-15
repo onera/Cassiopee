@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __KCORE_SEARCH_BBTREE_H__
 #define __KCORE_SEARCH_BBTREE_H__

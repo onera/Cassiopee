@@ -209,7 +209,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
 
   // ISO_HEX +> Polyhedron
   *etyp = elt_t::UNKN;// Polyhedron
-  if (*subtype == NUGA::ISO || *subtype == NUGA::DIR)
+  if (*subtype == NUGA::ISO || *subtype == NUGA::DIR_PROTO || *subtype == NUGA::DIR)
     *etyp = check_has_NGON_BASIC_ELEMENT(cnt);
 
   if (*subtype == NUGA::ISO)
@@ -238,6 +238,16 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
       return nullptr;
     }
     packet[1] = __createHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(crd, cnt, *zid);
+  }
+  else if (*subtype == NUGA::DIR_PROTO)
+  {
+    if (*etyp != elt_t::HEXA)
+    {
+      PyErr_WarnEx(PyExc_Warning,
+        "createHMesh: directionnal policy is only supported with Hexahedral mesh currently.", 1);
+      return nullptr;
+    }
+    packet[1] = __createHM<K_MESH::Hexahedron, NUGA::DIR_PROTO>(crd, cnt, *zid);
   }
   else if (*subtype == NUGA::DIR)
   {
@@ -306,6 +316,16 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
       return nullptr;
     }
     __deleteHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr);
+  }
+  else if (*sub_type == NUGA::DIR_PROTO)
+  {
+    if (*elt_type != elt_t::HEXA)
+    {
+      PyErr_WarnEx(PyExc_Warning,
+        "deleteHMesh: directionnal policy is only supported with Hexahedral mesh currently.", 1);
+      return nullptr;
+    }
+    __deleteHM<K_MESH::Hexahedron, NUGA::DIR_PROTO>(hmesh_ptr);
   }
   else if (*sub_type == NUGA::DIR)
   {
@@ -524,6 +544,16 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
     }
     __interpolateHMeshNodalField<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh_ptr, fieldN, bcptlists);
   }
+  else if (*sub_type == NUGA::DIR_PROTO)
+  {
+    if (*elt_type != elt_t::HEXA)
+    {
+      PyErr_WarnEx(PyExc_Warning,
+        "interpolateHMeshNodalField: directionnal policy is only supported with Hexahedral mesh currently.", 1);
+      return nullptr;
+    }
+    __interpolateHMeshNodalField<K_MESH::Hexahedron, NUGA::DIR_PROTO>(hmesh_ptr, fieldN, bcptlists);
+  }
   else if (*sub_type == NUGA::DIR)
   {
     if (*elt_type != elt_t::HEXA)
@@ -580,6 +610,15 @@ void* __createSensor(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int met
     using sensor_t = NUGA::xsensor2<hmesh_t>;
     NUGA::eMetricPolicy policy = (NUGA::eMetricPolicy)metric_policy;
     return new sensor_t(*(hmesh_t*)hmesh, NUGA::eSmoother(smoothing_type), policy, itermax);
+  }
+  if (sensor_type == 5)
+  {
+    using hmesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR>;
+    using sensor_t = NUGA::metric_sensor<hmesh_t>;
+
+    hmesh_t* hm = (hmesh_t*)(hmesh);
+
+    return new sensor_t(*hm);
   }
   return nullptr;
 }
@@ -641,12 +680,21 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
       return nullptr;
     }
   }
-  else if (*sub_type == NUGA::DIR)
+  else if (*sub_type == NUGA::DIR_PROTO)
   {
     if (sensor_type != 2 && sensor_type != 3)
     {
       PyErr_SetString(PyExc_ValueError,
-       "adaptCells: DIR only works with cell/nodal sensor currently.");
+       "adaptCells: DIR_PROTO only works with cell/nodal sensor currently.");
+      return nullptr;
+    }
+  }
+  else if (*sub_type == NUGA::DIR)
+  {
+    if (sensor_type != 5)
+    {
+      PyErr_SetString(PyExc_ValueError,
+       "adaptCells: DIR only works with metric sensor.");
       return nullptr;
     }
   }
@@ -678,6 +726,16 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
       return nullptr;
     }
     packet_ss[2] = __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh, smoothing_type, itermax, metric_policy, sensor_type);
+  }
+  else if (*subtype_hm == NUGA::DIR_PROTO)
+  {
+    if (*elt_type != elt_t::HEXA)
+    {
+      PyErr_WarnEx(PyExc_Warning,
+        "createSensor: directionnal policy is only supported with Hexahedral mesh currently.", 1);
+      return nullptr;
+    }
+    packet_ss[2] = __createSensor<K_MESH::Hexahedron, NUGA::DIR_PROTO>(hmesh, smoothing_type, itermax, metric_policy, sensor_type);
   }
   else if (*subtype_hm == NUGA::DIR)
   {
@@ -775,6 +833,16 @@ PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
     }
     __deleteSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(*sensor_type, sensor);
   }
+  else if (*subdiv_type == NUGA::DIR_PROTO)
+  {
+    if (*elt_type != elt_t::HEXA)
+    {
+      PyErr_WarnEx(PyExc_Warning,
+        "deleteSensor: directionnal policy is only supported with Hexahedral mesh currently.", 1);
+      return nullptr;
+    }
+    __deleteSensor<K_MESH::Hexahedron, NUGA::DIR_PROTO>(*sensor_type, sensor);
+  }
   else if (*subdiv_type == NUGA::DIR)
   {
     if (*elt_type != elt_t::HEXA)
@@ -800,7 +868,7 @@ PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
 // /* assign data to a sensor*/
 // ============================================================================
 
-template <NUGA::eSUBDIV_TYPE STYP> using incr_t = typename NUGA::adap_incr_type<STYP>::cell_incr_t; // E_Int (ISO) or int_tuple<3> (DIR)
+template <NUGA::eSUBDIV_TYPE STYP> using incr_t = typename NUGA::adap_incr_type<STYP>::cell_incr_t; // E_Int (ISO) or int_tuple<3> (DIR_PROTO)
 
 template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
 void __assign_sensor_data
@@ -878,6 +946,16 @@ void __assign_sensor_data
       sensor->assign_data(data);
     }
   }
+  else if (sensor_type == 5)
+  {
+    assert(crdS.rows() == 6);
+
+    using mesh_type  = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR>;
+    using sensor_t   = NUGA::metric_sensor<mesh_type>;
+    sensor_t* sensor = (sensor_t*)psensor;
+
+    sensor->assign_data(crdS);
+  }
 }
 
 
@@ -902,12 +980,49 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
 
   //geom/xsensor or nodal_sensor data ?
 
-  if (PyList_Check(dataSensor)) // Array (mesh or coordinates)
+  if (PyList_Check(dataSensor)) // Array (mesh or coordinates) OR metric_field as 6 numpies
   {
-    E_Int ni, nj, nk;
+    if (PyList_Size(dataSensor) == 6) // metric_field as 6 numpies
+    {
+      E_Float *mxx, *mxy, *mxz, *myy, *myz, *mzz;
+      E_Int size = -1, nfld = -1;
+
+      PyObject *py_mxx = PyList_GetItem(dataSensor, 0);
+      K_NUMPY::getFromNumpyArray(py_mxx, mxx, size, nfld, true /*shared*/);
+      
+      PyObject *py_mxy = PyList_GetItem(dataSensor, 1);
+      K_NUMPY::getFromNumpyArray(py_mxy, mxy, size, nfld, true /*shared*/);
+      
+      PyObject *py_mxz = PyList_GetItem(dataSensor, 2);
+      K_NUMPY::getFromNumpyArray(py_mxz, mxz, size, nfld, true /*shared*/);
+      
+      PyObject *py_myy = PyList_GetItem(dataSensor, 3);
+      K_NUMPY::getFromNumpyArray(py_myy, myy, size, nfld, true /*shared*/);
+      
+      PyObject *py_myz = PyList_GetItem(dataSensor, 4);
+      K_NUMPY::getFromNumpyArray(py_myz, myz, size, nfld, true /*shared*/);
+      
+      PyObject *py_mzz = PyList_GetItem(dataSensor, 5);
+      K_NUMPY::getFromNumpyArray(py_mzz, mzz, size, nfld, true /*shared*/);
+
+      // remplir fS
+      fS.resize(6, nfld);
+      
+      for (E_Int i = 0; i < nfld; i++) {
+        fS(0,i) = mxx[i];
+        fS(1,i) = mxy[i];
+        fS(2,i) = mxz[i];
+        fS(3,i) = myy[i];
+        fS(4,i) = myz[i];
+        fS(5,i) = mzz[i]; 
+      }
+    }
+    else { // Array (mesh or coordinates)
+     E_Int ni, nj, nk;
     char* varString, *eltType;
     /*E_Int res = */K_ARRAY::getFromArray(dataSensor, varString, fS, ni, nj, nk, cnS, eltType);
     //std::cout << "res/eltType/fs sz/cns sz : " << res << "/" << eltType << "/" << fS.cols() << "/" << cnS.cols() << std::endl;
+    }
   }
   else // assuming numpy for nodal/cell
   {
@@ -935,14 +1050,19 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
   }
   else if (*subdiv_type == NUGA::ISO_HEX)
     __assign_sensor_data<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(*sensor_type, sensor, fS, cnS, sens_data);
-  else if (*subdiv_type == NUGA::DIR)
+  else if (*subdiv_type == NUGA::DIR_PROTO)
   {
-    //todo Imad : dealing with directional data set in the python
     std::vector<int_tuple<3>> sens_data_dir(sens_data.size(), int_tuple<3>(0));
     for (size_t u=0; u < sens_data.size(); ++u)
       sens_data_dir[u] = sens_data[u]; // pass a single value to the 3-tuple
 
-    __assign_sensor_data<K_MESH::Hexahedron, NUGA::DIR>(*sensor_type, sensor, fS, cnS, sens_data_dir);
+    __assign_sensor_data<K_MESH::Hexahedron, NUGA::DIR_PROTO>(*sensor_type, sensor, fS, cnS, sens_data_dir);
+  }
+  else if (*subdiv_type == NUGA::DIR)
+  {
+    // Imad
+    std::vector<int_tuple<3>> dummy;
+    __assign_sensor_data<K_MESH::Hexahedron, NUGA::DIR>(*sensor_type, sensor, fS, cnS, dummy);
   }
 
   Py_INCREF(Py_None);
@@ -1155,7 +1275,7 @@ const char* varString, PyObject *out)
 }
 
 template <>
-int __adapt_wrapper<NUGA::DIR>
+int __adapt_wrapper<NUGA::DIR_PROTO>
 (int elt_type/*dummy*/, int sensor_type,
 std::vector<void*>& hmeshes, std::vector<void*>& sensors,
 std::map<int, std::pair<int,int>>& rid_to_zones,
@@ -1164,7 +1284,7 @@ const char* varString, PyObject *out)
 {
   E_Int err(0);
 
-  using mesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR>;
+  using mesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR_PROTO>;
 
   if (sensor_type == 0) // geom sensor
   {
@@ -1184,6 +1304,27 @@ const char* varString, PyObject *out)
   else if (sensor_type == 1 || sensor_type == 4) // xsensor2
   {
     using sensor_t = NUGA::xsensor2<mesh_t>;
+    err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zone_to_rid_to_list_owned, varString, out);
+  }
+
+  return err;
+}
+
+template <>
+int __adapt_wrapper<NUGA::DIR>
+(int elt_type/*dummy*/, int sensor_type,
+std::vector<void*>& hmeshes, std::vector<void*>& sensors,
+std::map<int, std::pair<int,int>>& rid_to_zones,
+std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_owned,
+const char* varString, PyObject *out)
+{
+  E_Int err(0);
+
+  using mesh_t = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::DIR>;
+
+  if (sensor_type == 5) // metric sensor
+  {
+    using sensor_t = NUGA::metric_sensor<mesh_t>;
     err = __adapt_lvl0<mesh_t, sensor_t>(hmeshes, sensors, rid_to_zones, zone_to_rid_to_list_owned, varString, out);
   }
 
@@ -1323,6 +1464,8 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     err = __adapt_wrapper<ISO>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zone_to_rid_to_list_owned, vString->c_str(), l);
   else if (*subdiv_type == NUGA::ISO_HEX)
     err = __adapt_wrapper<ISO_HEX>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zone_to_rid_to_list_owned, vString->c_str(), l);
+  else if (*subdiv_type == NUGA::DIR_PROTO)
+    err = __adapt_wrapper<DIR_PROTO>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zone_to_rid_to_list_owned, vString->c_str(), l);
   else if (*subdiv_type == NUGA::DIR)
     err = __adapt_wrapper<DIR>(*elt_type, *sensor_type, hmeshes, sensors, rid_to_zones, zone_to_rid_to_list_owned, vString->c_str(), l);
 
@@ -1767,6 +1910,16 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
       return nullptr;
     }
     __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
+  }
+  else if (*sub_type == NUGA::DIR_PROTO)
+  {
+    if (*elt_type != elt_t::HEXA)
+    {
+      PyErr_WarnEx(PyExc_Warning,
+        "conformizeHMesh: directionnal policy is only supported with Hexahedral mesh currently.", 1);
+      return nullptr;
+    }
+    __conformizeHM<K_MESH::Hexahedron, NUGA::DIR_PROTO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
   }
   else if (*sub_type == NUGA::DIR)
   {
