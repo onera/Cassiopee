@@ -96,7 +96,6 @@ namespace NUGA
     const rid_to_zones_t& rid_to_zones
   )
   {
-    int err(0);
     int NBZ{ int(meshes.size()) };
 
     //1. autonomous runs

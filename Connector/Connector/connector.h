@@ -843,6 +843,7 @@ namespace K_CONNECTOR
   PyObject* getInterpolatedPoints(PyObject* self, PyObject* args);
   PyObject* getInterpolatedPointsZ(PyObject* self, PyObject* args);
   PyObject* changeWall(PyObject* self, PyObject* args);
+  PyObject* changeWall2(PyObject* self, PyObject* args);
   PyObject* changeWallEX(PyObject* self, PyObject* args);
   PyObject* modifyBorders(PyObject* self, PyObject* args);
   PyObject* blankIntersectingCells(PyObject* self, PyObject* args);

@@ -547,6 +547,7 @@ def integLoads(teff):
 def extractProfile(t, zonePath, i=-1, j=-1, k=-1):
     """Extract given profile."""
     z = Internal.getNodeFromPath(t, zonePath)
+    if z is None: return None
     #zp = T.subzone(z, (i,j,3), (i,j,-1))
     if k == -1: # suivant k
         zp = T.subzone(z, (i,j,3), (i,j,-1))

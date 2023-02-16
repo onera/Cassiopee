@@ -370,8 +370,8 @@ typedef BoundingBox<3> BBox3D;
 
 
 // 2D - specializations
-
-BBox2D& BBox2D::operator=(const BBox2D& rhs)
+template <>
+inline BBox2D& BBox2D::operator=(const BBox2D& rhs)
 {
   minB[0] = rhs.minB[0]; minB[1] = rhs.minB[1];
   maxB[0] = rhs.maxB[0]; maxB[1] = rhs.maxB[1];
@@ -379,8 +379,9 @@ BBox2D& BBox2D::operator=(const BBox2D& rhs)
   return *this;
 }
 
-void BBox2D::enlarge(double RTOL)
-  {
+template <>
+inline void BBox2D::enlarge(double RTOL)
+{
     // compute Lref (min & non-null box size)
     double dx = (maxB[0] - minB[0]);
     double dy = (maxB[1] - minB[1]);
@@ -397,17 +398,17 @@ void BBox2D::enlarge(double RTOL)
     
     maxB[0] += Lref;
     maxB[1] += Lref;
-  }
+}
 
-  // default impl for 3D. Specialization below
-  void BBox2D::merge(const BBox2D& b)
-  {
+template <>
+inline void BBox2D::merge(const BBox2D& b)
+{
     minB[0] = std::min(minB[0], b.minB[0]);
     minB[1] = std::min(minB[1], b.minB[1]);
     
     maxB[0] = std::max(maxB[0], b.maxB[0]);
     maxB[1] = std::max(maxB[1], b.maxB[1]);
-  }
+}
 
 ///
 template <short DIM, typename BBoxType = BoundingBox<DIM> >

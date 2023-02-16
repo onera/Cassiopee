@@ -29,7 +29,7 @@ namespace NUGA
 		const K_FLD::IntArray & F2E, const tree<arr_t> & PGtree)
 		{
 			const E_Int* faces = ng.PHs.get_facets_ptr(PHi);
-			E_Int stride = ng.PHs.stride(PHi);
+			//E_Int stride = ng.PHs.stride(PHi);
 
 			E_Int PGi = faces[0]-1;
 			assert(PGtree.nb_children(PGi) == 2);
@@ -270,7 +270,7 @@ namespace NUGA
 			K_FLD::IntArray& F2E, E_Int firstIntPG, E_Int firstPHchild)
 		{
 			const E_Int* faces = ng.PHs.get_facets_ptr(PHi);
-			E_Int stride = ng.PHs.stride(PHi);
+			//E_Int stride = ng.PHs.stride(PHi);
 
 			E_Int PGi = faces[0]-1;
 			const E_Int *pN = ng.PGs.get_facets_ptr(PGi);

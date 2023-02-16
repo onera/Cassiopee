@@ -777,7 +777,7 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file, std:: vector<FldArrayI*>& BCFace
   }
 
   // Readint in buf
-  E_Int nBC; E_Int val;
+  E_Int nBC;
   E_Int pos=0;
   readInt(buf, 1024, pos, nBC);
 
@@ -933,8 +933,7 @@ E_Int K_IO::GenIO::foamWriteFaces(char* file, const ngon_t<K_FLD::IntArray>& NG,
 #endif
   fprintf(ptrFile, "(\n");
 
-
-  E_Int idx, pos, k, stride;
+  E_Int idx, stride;
   for (E_Int i = 0; i < nfaces; i++)
   {
     idx = faces[i];
@@ -1023,7 +1022,7 @@ E_Int K_IO::GenIO::foamWriteNeighbour(char* file, const K_FLD::IntArray& F2E, co
   fprintf(ptrFile, "    object      neighbour;\n");
   fprintf(ptrFile, "}\n");
 
-  E_Int nfaces = F2E.cols();
+  //E_Int nfaces = F2E.cols();
 
 #ifdef E_DOUBLEINT
   fprintf(ptrFile, "%ld\n", ninternal_faces);
@@ -1067,14 +1066,10 @@ E_Int K_IO::GenIO::foamWriteBoundary(char* file, const std::vector<char*>& bc_na
   fprintf(ptrFile, "    object      boundary;\n");
   fprintf(ptrFile, "}\n");
 
-#ifdef E_DOUBLEINT
   fprintf(ptrFile, "%ld\n", bc_names.size());
-#else
-  fprintf(ptrFile, "%d\n", bc_names.size());
-#endif
   fprintf(ptrFile, "(\n");
 
-  for (E_Int i = 0; i < bc_names.size(); i++)
+  for (size_t i = 0; i < bc_names.size(); i++)
   {
     char *token = strtok(bc_names[i], "@");
     char name[strlen(token)+1];
@@ -1190,8 +1185,7 @@ E_Int K_IO::GenIO::foamwrite(
 
   std::vector<E_Int> faces;
   std::vector<uint8_t> marked(NG.PGs.size(), 0);
-  E_Int nfaces = NG.PGs.size();
-
+  //E_Int nfaces = NG.PGs.size();
 
   E_Int PGi, stride;
   std::vector<E_Int> neis;
@@ -1226,7 +1220,7 @@ E_Int K_IO::GenIO::foamwrite(
     std::iota(order.begin(), order.end(), 0); // init
     std::sort(order.begin(), order.end(), [&](E_Int i, E_Int j){return neis[i] < neis[j];});
 
-    for (E_Int i = 0; i < order.size(); i++) {
+    for (size_t i = 0; i < order.size(); i++) {
       E_Int index = order[i];
       faces.push_back(pgs[index]);
     }
@@ -1245,7 +1239,7 @@ E_Int K_IO::GenIO::foamwrite(
   std::vector<char*> name_per_bc;
 
   if (BCFacesSize > 0) {
-    E_Int indFace, inde, nof;
+    E_Int indFace;
     IMPORTNUMPY;
 
     PyObject* BCs = PyList_GetItem(BCFaces, 0);
@@ -1262,8 +1256,11 @@ E_Int K_IO::GenIO::foamwrite(
     for (E_Int j = 0; j < size/2; j++) {
       name = NULL;
       PyObject *o = PyList_GetItem(BCs, 2*j);
+      
       if (PyString_Check(o)) name = PyString_AsString(o);
-      else if (PyUnicode_Check(o)) name = (char *) PyUnicode_AsUTF8(o);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(o)) name = (char *)PyUnicode_AsUTF8(o);
+#endif
       name_per_bc.push_back(0);
       name_per_bc[j] = new char[strlen(name) + 1];
       strncpy(name_per_bc[j], name, strlen(name));

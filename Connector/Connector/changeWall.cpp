@@ -207,10 +207,10 @@ void K_CONNECTOR::changeWall(
   E_Float tolbb = 1.e-6;
   //Creation des bbtrees pour chaque surface
   E_Int nzones = unstrF.size();
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
+  typedef K_SEARCH::BoundingBox<3> BBox3DType;
   vector<K_SEARCH::BbTree3D*> vectOfBBTrees;
-  E_Float minB[3];  E_Float maxB[3];
-  vector< vector<BBox3DType*> > vectOfBoxes;// a detruire a la fin
+  E_Float minB[3]; E_Float maxB[3];
+  vector< vector<BBox3DType*> > vectOfBoxes; // a detruire a la fin
   for (E_Int v = 0; v < nzones; v++)
   {
     E_Int nelts2 = cnt[v]->getSize();
@@ -248,13 +248,13 @@ void K_CONNECTOR::changeWall(
   E_Float pr1[3]; E_Float pr2[3];
   E_Int iA, jA, kA;
   // Projection des pts interpoles
-  // Poids du vecteur delta pour chq pt au dessus du pt près de la paroi à interpoler : 
+  // Poids du vecteur delta pour chq pt au dessus du pt pres de la paroi a interpoler : 
   // Si i < no1 : alpha = 1, si no1 <= i< no2 : alpha decroissant, 0 ensuite
   vector<E_Float> xbt; vector<E_Float> ybt; vector<E_Float> zbt; vector<E_Int> dirt;vector<E_Float> hmaxt;
   for (E_Int ii = 0; ii < nbCentersW; ii++)
   {
     indA = E_Int(indicesw[ii]);
-    if ( cellN[indA] == 1. ) goto nextpt;
+    if (cellN[indA] == 1.) goto nextpt;
     kA = indA/imcjmc;
     jA = (indA-kA*imcjmc)/imc;
     iA = indA-jA*imc-kA*imcjmc;
@@ -326,7 +326,7 @@ void K_CONNECTOR::changeWall(
           hmax = K_FUNC::E_max(hmax1, hmax2); hmax = hmax*hmax;
           if (dAP2 < coefhmax*hmax && dAP2 < delta)  
           {delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
-          else if ( hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
+          else if (hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
           {
             delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; 
           }
