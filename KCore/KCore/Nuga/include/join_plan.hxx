@@ -78,7 +78,7 @@ E_Int join_plan<arr_t>::__extract_compact_enabled_tree
 
   if (nb_tot_enabled_grand_children == 0)
   {
-    plan.pushBack(IDX_NONE, 4); //fixme DIR
+    plan.pushBack(IDX_NONE, 4); // for a directional face, the last two elements in the column will be empty
     for (size_t uu = 0; uu < nbc; ++uu)plan(uu, cols) = NO_CHILDREN; //set for real children
     
     return  cols;
@@ -86,7 +86,7 @@ E_Int join_plan<arr_t>::__extract_compact_enabled_tree
  
   //std::cout << "nb_tot_enabled_grand_children : " << nb_tot_enabled_grand_children << std::endl;
 
-  plan.pushBack(IDX_NONE, 4);//fixme DIR
+  plan.pushBack(IDX_NONE, 4); // for a directional face, the last two elements in the column will be empty
   //std::cout << plan << std::endl;
 
   for (E_Int i = 0; i < nbc; ++i)

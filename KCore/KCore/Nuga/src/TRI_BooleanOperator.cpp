@@ -223,7 +223,7 @@ TRI_BooleanOperator::__compute_x_contour(std::set<K_MESH::NO_Edge>& hXC)
       Ei[1] = i->node(1);
       connectXB.pushBack(Ei, Ei+2);
     }
-    MIO::write("xcontour.mesh", _coord, connectXB, "BAR");
+    medith::write("xcontour.mesh", _coord, connectXB, "BAR");
   }*/
 #endif
 
@@ -489,7 +489,7 @@ TRI_BooleanOperator::__alternate_coloring
     colors[Si] = zcolors[zones[Si]];
 
 #ifdef E_DEBUG_TRI_BOOLEANOPERATOR
-  MIO::write("alternate_col.mesh", _coord, connect, "TRI", 0, &colors);
+  medith::write("alternate_col.mesh", _coord, connect, "TRI", 0, &colors);
 #endif
 
 
@@ -589,7 +589,7 @@ TRI_BooleanOperator::__reorient_x_contour
     std::cout << "number of edges : " << hXCO.size() << std::endl;
     std::cout << "number of oriented edges : " << tmp.size() << std::endl;
     
-    MIO::write("reoriented_xcontour.mesh", _coord, connectXB, "BAR");
+    medith::write("reoriented_xcontour.mesh", _coord, connectXB, "BAR");
   }
 #endif
 
@@ -626,7 +626,7 @@ TRI_BooleanOperator::__color_other_part
       Ei[1] = i->node(1);
       tmp.pushBack(Ei, Ei+2);
     }
-    MIO::write("hXC.mesh", _coord, tmp);
+    medith::write("hXC.mesh", _coord, tmp);
   }
 #endif
 
@@ -646,7 +646,7 @@ TRI_BooleanOperator::__color_other_part
 #ifdef E_DEBUG_TRI_BOOLEANOPERATOR
     std::ostringstream o;
     o << "m_" << z << ".mesh";
-    MIO::write(o.str().c_str(), _coord, Ci);
+    medith::write(o.str().c_str(), _coord, Ci);
 #endif
 
     connectOut.pushBack(Ci);
@@ -663,7 +663,7 @@ TRI_BooleanOperator::__color_other_part
       {
         std::ostringstream o;
         o << "zb_" << z << ".mesh";
-        MIO::write(o.str().c_str(), _coord, connectbo);
+        medith::write(o.str().c_str(), _coord, connectbo);
       }
 #endif
 
@@ -690,7 +690,7 @@ TRI_BooleanOperator::__color_other_part
   colors = colorsOut;
 
 #ifdef E_DEBUG_TRI_BOOLEANOPERATOR
-  MIO::write("other_part_col.mesh", _coord, connect, "TRI", 0, &colors);
+  medith::write("other_part_col.mesh", _coord, connect, "TRI", 0, &colors);
 #endif
 
   return ret;
@@ -788,11 +788,11 @@ TRI_BooleanOperator::isClosed(const K_FLD::FloatArray& coord, const K_FLD::IntAr
     static int s_file_count = 0;
     std::ostringstream o;
     o << "unclosed_" << s_file_count << ".mesh";
-    MIO::write(o.str().c_str(), coord, connect, "TRI", 0, &color_pathos);
+    medith::write(o.str().c_str(), coord, connect, "TRI", 0, &color_pathos);
     
     o.str("");
     o << "only_pathos_" << s_file_count++ << ".mesh";
-    MIO::write(o.str().c_str(), coord, connect, "TRI", &mask);
+    medith::write(o.str().c_str(), coord, connect, "TRI", &mask);
     std::cout << "UNCLOSED !!!! " << std::endl << std::endl;
     
     // attached to pathos
@@ -816,7 +816,7 @@ TRI_BooleanOperator::isClosed(const K_FLD::FloatArray& coord, const K_FLD::IntAr
     }
     o.str("");
     o << "pathos_and_Co_" << s_file_count++ << ".mesh";
-    MIO::write(o.str().c_str(), coord, connect, "TRI", &new_mask);
+    medith::write(o.str().c_str(), coord, connect, "TRI", &new_mask);
   }
 #endif
   return !is_not_close;

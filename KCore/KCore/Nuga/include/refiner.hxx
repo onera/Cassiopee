@@ -420,7 +420,7 @@ namespace NUGA
 
     // expand ng.PGs for children with total nb of QUADS
     E_Int nb_tot_child = 0;
-    for (E_Int i = 0; i < nb_pgs_ref; ++i)
+    for (size_t i = 0; i < nb_pgs_ref; ++i)
       nb_tot_child += pregnant[i];
     PGs.expand_n_fixed_stride(nb_tot_child, 4);
 
@@ -823,7 +823,7 @@ namespace NUGA
     PHtree.resize(PH_to_ref, pregnant);
     E_Int nb_phs0{ ng.PHs.size() };
     E_Int nb_tot_child = 0;
-    for (E_Int i = 0; i < nb_phs_ref; ++i)
+    for (size_t i = 0; i < nb_phs_ref; ++i)
       nb_tot_child += pregnant[i];
     ng.PHs.expand_n_fixed_stride(nb_tot_child, K_MESH::Hexahedron::NB_BOUNDS);
 

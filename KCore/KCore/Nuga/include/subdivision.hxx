@@ -234,9 +234,7 @@ namespace NUGA
 
     static void reorder_children(E_Int* child, E_Int nchildren/*dummy*/, bool reverse, E_Int i0)
     {
-      //K_CONNECT::IdTool::right_shift<2>(&child[0], i0);
-      //if (reverse)
-        //std::swap(child[0], child[1]);
+      // has nothing to do : with 2 children, the sorting must be kept
     }
 
     static E_Int nbc_list(const ngon_unit& PGs, const std::vector<E_Int>& PGlist, const std::vector<eDIR>& PG_directive, std::vector<E_Int>& pregnant)

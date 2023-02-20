@@ -1076,7 +1076,7 @@ E_Int  NUGA::MeshTool::aggregate_convex
 #ifdef DEBUG_MESHTOOL
     std::ostringstream o;
     o << "cM.mesh";
-    MIO::write(o.str().c_str(), crd, connectMi, "TRI");
+    medith::write(o.str().c_str(), crd, connectMi, "TRI");
 #endif
 
     //Build the neighbourhood matrix.
@@ -1224,7 +1224,7 @@ K_FLD::IntArray& connectT31, K_FLD::IntArray& connectT32)
   if (colmax != 1)
   {
 #ifdef DEBUG_BOOLEAN
-    //MIO::write("part.plt", _coord, connectT3, "TRI");
+    //medith::write("part.plt", _coord, connectT3, "TRI");
 #endif
     return 1;
   }

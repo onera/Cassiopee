@@ -32,6 +32,120 @@ struct field
   field() :f(nullptr) { gradf[0] = gradf[1] = gradf[2] = nullptr; }
 };
 
+inline void __get_local_edge_ids(long szudzik_val, E_Int n0, E_Int& le0, E_Int& le1)
+{
+  // on decode les deux valeurs qui sont les indices locaux d'arete en intersection
+  
+  NUGA::szudzik_unpairing(szudzik_val, le0, le1);
+
+  if (n0 != IDX_NONE) // ae1 has been reversed so need to convert local edge numbering
+  {
+    // conversion de l'indice local d'arete de l'element inverse vers l'element initial
+    if (le1 < (n0 - 1))
+      le1 = (n0 - 2) - le1;
+  }
+}
+
+inline void __manage_x_points(aPolygon& bit, E_Int n0,
+                              const E_Int* ge0s, const E_Int* ge1s,
+                              K_FLD::FloatArray& xmcrd,
+                              std::map<K_MESH::Edge, E_Int>& key_to_ptxid,
+                              std::set<std::pair<E_Int, E_Int>>& edge_to_xnodes)
+{
+  for (size_t p = 0; p < bit.m_poids.size(); ++p)
+  {
+    bool is_an_x_point = (bit.m_poids[p] < 0);
+    // valuation bits[k].m_poids[p] : soit avec un id dans xm.crd (le point est cree si inexistant)
+    if (is_an_x_point)
+    {
+      // algo de szudzik : permet d'encoder 2 entiers en 1 seul
+      // ici on recupere la valeur encodee
+      E_Int szudzik_val = -bit.m_poids[p] - 1;
+
+      E_Int le0, le1; //local edge ids
+      __get_local_edge_ids(szudzik_val, n0, le0, le1);
+
+      K_MESH::Edge key(ge0s[le0], ge1s[le1]);
+      auto it = key_to_ptxid.find(key);
+
+      if (it == key_to_ptxid.end())
+      {
+        // nouveau point a creer et a stocker : xpt aura new_ptid comme id dans xm.crd
+        E_Int new_ptid = xmcrd.cols();
+        double* xpt = bit.m_crd.col(p);
+
+        xmcrd.pushBack(xpt, xpt + 3); // stockage du point
+        key_to_ptxid[key] = new_ptid; // association de la paire d'arete a ce point
+        bit.m_poids[p] = new_ptid; // on fait reference ce point dans l'hsito => xm.add va utiliser ce point
+      }
+      else
+        bit.m_poids[p] = it->second;
+
+      edge_to_xnodes.insert(std::make_pair(le0, bit.m_poids[p])); // on recense le point pour construire a posteriori le ae0 impacté
+    }
+  }
+}
+
+inline void __impact_ae0(aPolygon& ae0, const std::set<std::pair<E_Int, E_Int>>& edge_to_xnodes, const K_FLD::FloatArray& xmcrd)
+{
+  std::vector<std::pair<double, E_Int>> lambda_to_node;
+
+  int nnodes = ae0.nb_nodes();
+
+  for (size_t n = 0; n < nnodes; ++n)
+    lambda_to_node.push_back(std::make_pair(double(n), ae0.m_poids[n]));
+
+  double P0PX[3], P0P1[3];
+  for (auto& e2n : edge_to_xnodes)
+  {
+    int n0 = e2n.first;
+
+    const double* P0 = xmcrd.col(ae0.m_poids[n0]);
+    const double* PX = xmcrd.col(e2n.second);
+    const double* P1 = xmcrd.col(ae0.m_poids[(n0 + 1) % nnodes]);
+
+    NUGA::diff<3>(P1, P0, P0P1);
+    NUGA::diff<3>(PX, P0, P0PX);
+
+    double Lx = ::sqrt(NUGA::sqrNorm<3>(P0PX));
+    double L = ::sqrt(NUGA::sqrNorm<3>(P0P1));
+
+    assert(Lx <= L);
+
+    double lambda = (Lx / L) + double(n0);
+
+    lambda_to_node.push_back(std::make_pair(lambda, e2n.second));
+  }
+
+  std::sort(ALL(lambda_to_node));
+
+  // from lambda_to_node to ae0
+  K_FLD::FloatArray impact_crd;;
+  std::vector<long> poids;
+
+  double lambda_prev = -1.;
+  for (auto& l2n : lambda_to_node)
+  {
+    double& lambda = l2n.first;
+    if (lambda - lambda_prev > ZERO_M)
+    {
+      impact_crd.pushBack(xmcrd.col(l2n.second), xmcrd.col(l2n.second) + 3);
+      poids.push_back(l2n.second);
+    }
+    lambda_prev = lambda;
+  }
+
+  ae0 = aPolygon(std::move(impact_crd));
+  ae0.m_poids = poids;
+
+#ifdef SUPERMESH_DBG
+  std::ostringstream o;
+  o << "modified_ae0";
+  medith::write(o.str().c_str(), ae0.m_crd, &ae0.m_nodes[0], ae0.m_nodes.size(), ae0.shift());
+  medith::write<DELAUNAY::Triangulator>("bits", xm.crd, xm.cnt, &xbit_ids, 0);
+#endif
+}
+
 template <typename zmesh_t> inline
 void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_Int>& anc0, std::vector<E_Int>& anc1, zmesh_t& xm, bool proj_on_first)
 {
@@ -43,93 +157,95 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
   auto loc1 = m1.get_localizer();
 
-  m0.get_nodal_metric2();
-  m1.get_nodal_metric2();
-
+  // chaque pair d'arete en intersection est consideree jusqu'a 4 fois (chaque arete pouvant etre partagee par 2 faces)
+  // les faces ayant des normales differentes, la projection pour se ramener au 2D peut etre differente, ces points d'intersection peuvent donc etre differents 
+  // on decide donc de le calculer une seule fois et de l'utiliser pour les 4 decoupages => on force ainsi la conformite
+  // on a donc besoin de connaitre l'indice global de chaque arete
   ngon_unit glob_edge_ids0;
   m0.build_global_edge_ids(glob_edge_ids0);
   ngon_unit glob_edge_ids1;
   m1.build_global_edge_ids(glob_edge_ids1);
+  // on le stocke donc une map "cle vers id du pt d'intersection dans xm.crd". La cle etant formee a partir des indices globaux d'arete
+  std::map<K_MESH::Edge, E_Int> key_to_ptxid;
+  // Pour pouvoir reutiliser un maximum de points existants (voir les appels aux fonctions add plus bas), on concatene au depart tous les points de m0 et m1 dans xm.crd
+  // cela minimise le besoin de fusion en aval
+  xm.crd = m0.crd;
+  xm.crd.pushBack(m1.crd); // => en extrayant un element de m1, on peut convertir son historique (ae1.m_poids) pour faire reference a des points de xm en decalant les indices (voir appel a  IdTool::shift dans la boucle)
 
- 
-  std::vector<E_Int> cands;
-  std::vector<aelt_t> bits;
-  size_t n, k;
-  E_Int i,i2;
-  DELAUNAY::Triangulator dt;
+  std::vector<E_Int> cands; // ids des candidats dans m2 en potention intersection avec ae0
+  std::vector<aelt_t> bits;    // moreceaaux de l'elt courant ae0
 
-  // got 2D (in sub ref frame)
-  K_FLD::FloatArray P(3, 3), iP(3, 3);
-  bool ref2Dcomputed = false;
-  K_FLD::FloatArray crd2D1, crd2D2;
+  // donnees pour CLASSIFIER ae0 : classifier c'est dire si ae0 est completement dedans ou hors de ae1 s'il n'y a pas d'intersections retournee par :CLIP::isolated_clip. Dans ce cas true_clip vaut false.
+  // pour classifier on pass en 2D : dans le referentiel de ae0 (2 axes dans le plan moyen de ae0 + sa normale)
+  aPolygon ae0_2D, ae1_2D;
+  bool true_clip(false); // pour distinguer les vrais intersections (celles avec un recouvrement non nul) des fausses (pas d'intersection du tout ou deux polygones en butte)
+  bool ae0_crd_2D_computed = false; // booleen pour eviter de calculer plusieurs fois la transfo de ae0 dans son plan moyen
+  K_FLD::FloatArray P(3, 3), iP(3, 3); // matrice de passage (et son inverse) pour passer du repere 2D au 3D (et vice versa)
 
-  std::map<K_MESH::Edge, E_Int> key_to_id; // to ease gluing (see 'add' calls below)
-  xm.crd = m0.crd;               // to ease gluing (see 'add' calls below)
-  xm.crd.pushBack(m1.crd);       // to ease gluing (see 'add' calls below)
+  // donnees pour calculer le COMPLEMENTAIRE de ae0 : ae0 - bits
+  std::vector<E_Int> xbit_ids; // ids dans xm des morceaux de ae0 : stockes pour calculer le complementaire de ae0
+  // IMPACTED ae0  =  ae0 + points d'intersection sur ses aretes : on ajoute sur ae0 tous les points du contour de tous les morceaux : plus robuste et precis pour calculer le complementaite
+  std::set<std::pair<E_Int, E_Int>> edge_to_xnodes;      // pour calculer impacted ae0 : indice local d'arete vers id de point dans xm.crd
+  std::vector<std::vector<E_Int>> PGbs; // frontier des paquets de morceaux : il peut y en avoir plusieurs
+  
 
-  E_Int nbcells0 = m0.ncells();
-  E_Int nbpts0 = m0.crd.cols();
-  E_Int nbptsI = xm.crd.cols();
-
-  std::set<std::pair<E_Int, E_Int>> edge_to_node;
-  std::vector<std::pair<double, E_Int>> lambda_to_node;
-  std::vector<E_Int> xbit_ids;
+  // structure de donnees declarees ici pour eviter de les instancier dans les boucles : faire un clear est bcp moins couteux
   std::vector<E_Int> orient;
   std::set<K_MESH::Edge> w_oe_set;
   std::map<E_Int, E_Int> w_n_map;
+  
   std::vector<long> poids;
 
-  for (i = 0; i < nbcells0; ++i)
-  {
+  E_Int nbcells0 = m0.ncells();
+  E_Int nbpts0 = m0.crd.cols();
 
-    //if (i != 16106) continue;
-    //if (i !=  142) continue;
-    //if (i > 100) continue;
+  ///
+  for (E_Int i = 0; i < nbcells0; ++i)
+  {
     auto ae0 = m0.aelement(i);
     int nnodes = ae0.nb_nodes();
 
     double surf0 = ae0.metrics();
     const double *norm0 = ae0.get_normal();
 
+    // on recupere tous les candidats : ceux dans la bounding box colisionne celle de ae0 
     cands.clear();
-    loc1->get_candidates(ae0, ae0.m_crd, cands, 1, 1.e-2/*RTOL*/); //return as 1-based
+    loc1->get_candidates(ae0, ae0.m_crd, cands, 1/*return as 1-based*/, 1.e-2/*RTOL*/);// on etend un peu la boite de ae0 avec RTOL
     if (cands.empty()) continue;
 
 #ifdef SUPERMESH_DBG
-    medith::write<DELAUNAY::Triangulator>("cands", m1.crd, m1.cnt, &cands, 1);
+    medith::write("cands", m1.crd, m1.cnt, &cands, 1);
     medith::write("ae0", ae0.m_crd, &ae0.m_nodes[0], ae0.m_nodes.size(), ae0.shift());
 #endif
 
-    ref2Dcomputed = false;
-    edge_to_node.clear();
+    ae0_crd_2D_computed = false;
+    edge_to_xnodes.clear();
     xbit_ids.clear();
 
-    for (n = 0; n < cands.size(); ++n)
+    // polyclip de chaque candidat
+    for (size_t n = 0; n < cands.size(); ++n)
     {
       //
-      i2 = cands[n] - 1;
+      E_Int i2 = cands[n] - 1;
       auto ae1 = m1.aelement(i2);
 
-      K_CONNECT::IdTool::shift(ae1.m_poids, nbpts0); //since xrd contains both crd0 & crd1
+      K_CONNECT::IdTool::shift(ae1.m_poids, nbpts0); //pour faire reference aux points de xm plutot que de m1
 
       double surfc = ae1.metrics();
       const double *normc = ae1.get_normal();
 
       double ps = NUGA::dot<3>(norm0, normc);
-      if (::fabs(ps) < 0.9) continue; // must be nearly colinear
+      if (::fabs(ps) < 0.9) continue; // doivent être colineaire
 
-      //double toto = (180. / NUGA::PI) * NUGA::normals_angle(norm0, normc);
-      //if (toto > 5. && toto != 180.) continue;
-
-      bool ai1_reversed = false;
-      if (ps < 0.) // revert one to have both with same orient (for NUGA::INTERSECT::INTERSECTION logic)
+      bool ae1_reversed = false;
+      if (ps < 0.) // CLIP::isolated_clip needs input polygons to have same orientation
       {
         ae1.reverse_orient();
         ps = -ps;
-        ai1_reversed = true;
+        ae1_reversed = true; // on garde l'info pour 1) retrouver les bons indices locaux d'arete 2) pour faire aussi le reverse sur la version 2D de ae1
       }
 
-      bool check_for_equality = (::fabs(surf0 - surfc) < EPSILON) && (ps > 1. - EPSILON);
+      bool check_for_equality = (::fabs(surf0 - surfc) < EPSILON) && (ps > 1. - EPSILON); // filtre pour eviter de faire le test complet systematiquement
 
 #ifdef SUPERMESH_DBG
       std::ostringstream o; o << "ae1_" << n;
@@ -138,9 +254,9 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
       if (check_for_equality)
       {
-        if (ae0 == ae1)
+        if (ae0 == ae1) // test complet (aPolygon::operator==)
         {
-          xm.add(ae0, false/*do capitalize crds*/);
+          xm.add(ae0, false/*do capitalize crds*/); // => aucun points nouveaux ajoutes a xm.xrd (puisque pas de points d'intersection)
           anc0.push_back(i);
           anc1.push_back(i2);
           break; // pure match found on a conformal mesh => no more candidate to check
@@ -148,13 +264,16 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
       }
 
       bits.clear();
-      bool true_clip(false);
-      aPolygon subj(ae0); // restart from a clean face as isolated_clip might erase subj and we are not in an incremental-boolean loo
+     
+      aPolygon subj(ae0); // restart from a clean face as isolated_clip might erase subj and we are not in an incremental-boolean loop
 
-      if (proj_on_first) // reset cutter (ae1) normal to tell aPolygon specialization of isolated_clip to projet on subj
+      if (proj_on_first)
+        // reset cutter (ae1) normal to tell aPolygon specialization of isolated_clip to project on subj instead of cutter
+        // "finte" : facon de passer une info a isolated_clip sans passer un argument a isolated_clip et donc sans modifier sa signature
+        // car cette info n'est pertinenente que pour le surfacique, et pas le volumique.
         ae1.m_normal[0] = NUGA::FLOAT_MAX;
 
-      int err = NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(subj, ae1, NUGA::INTERSECT::INTERSECTION, ARTOL, bits, true_clip);
+        int err = NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(subj, ae1, NUGA::INTERSECT::INTERSECTION, ARTOL, bits, true_clip);
 
       if (err) std::cout << "clipping erreor : " << i << "-th cell with " << n << "-th candidates" << std::endl;
       assert(!err);
@@ -175,42 +294,26 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
       if (true_clip)
       {
-        E_Int le0, le1;
+        // ajout des morceaux et de leur historique
+      
         auto ge0s = glob_edge_ids0.get_facets_ptr(i);
         auto ge1s = glob_edge_ids1.get_facets_ptr(i2);
 
-        for (k = 0; k < bits.size(); ++k)
+        for (size_t k = 0; k < bits.size(); ++k)
         {
-          
-          for (size_t p = 0; p < bits[k].m_poids.size(); ++p)
-          {
-            if (bits[k].m_poids[p] < 0) //intersection point : convert local to global szudzic
-            {
-              E_Int szudzik_val = -bits[k].m_poids[p] - 1;
-              NUGA::szudzik_unpairing(szudzik_val, le0, le1);
+          // on gere au prealable les points d'intersection, ceux avec un poid negatif
+          // si le point existe dans key_to_ptxid, on recupere son id
+          // sinon on le stocke dans xm.crd et on l'ajoute dans la map
+          // on l'ajoute aussi dans edge_to_xnodes pour calculer ae0 impacte
 
-              if (ai1_reversed)
-              {
-                E_Int n0 = ae1.m_crd.cols();
-                if (le1 <= n0 - 2)
-                  le1 = (n0 - 2) - le1;
-              }
- 
-              K_MESH::Edge key(ge0s[le0], ge1s[le1]);
-              auto it = key_to_id.find(key);
+          // la cle est est definie par la paire des indices globaux des aretes
+          // on retrouve les indices globaux  avec les indices locaux (le0 de ae0 et le1 de ae1)
+          // si ae1 a ete reoriiente, l'indice local doit etre modifié
+         
+          // n0 pour conversion de l'indice local d'arete le1
+          E_Int n0 = ae1_reversed ? ae1.m_crd.cols() : IDX_NONE;
 
-              if (it == key_to_id.end())
-              {
-                key_to_id[key] = xm.crd.cols();
-                bits[k].m_poids[p] = xm.crd.cols();
-                xm.crd.pushBack(bits[k].m_crd.col(p), bits[k].m_crd.col(p) + 3);
-              }
-              else
-                bits[k].m_poids[p] = it->second;
-
-              edge_to_node.insert(std::make_pair(le0, bits[k].m_poids[p]));
-            }
-          }
+          __manage_x_points(bits[k], n0, ge0s, ge1s, xm.crd, key_to_ptxid, edge_to_xnodes);
           
           xbit_ids.push_back(anc0.size());
           xm.add(bits[k], false/*do capitalize crds*/);
@@ -227,31 +330,29 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
         continue;
       }
 
-      // check for fully-in case : is ae0 fully inside ae1 ?
+      // CLASSIFICATION : check for fully-in case : is ae0 fully inside ae1 ? or vice & versa ? => go 2D
 
-      if (!ref2Dcomputed)
+      if (!ae0_crd_2D_computed)
       {
-        ref2Dcomputed = true;
+        ae0_crd_2D_computed = true;
         NUGA::computeAFrame(norm0, P);
         iP = P;
         K_FLD::FloatArray::inverse3(iP);
-        crd2D1 = ae0.m_crd;
-        NUGA::transform(crd2D1, iP);
+
+        ae0_2D = ae0;
+        NUGA::transform(ae0_2D.m_crd, iP); // on est maintenant effectivement 2D i.e dans le plan moyen de ae0
       }
 
-      double Lref2 = ae0.Lref2();
+      ae1_2D = ae1;
+      NUGA::transform(ae1_2D.m_crd, iP); // on passe dans le repere de ae0      
+
+      if (ae1_reversed) // on fait subir le meme sort a la version 2D
+        ae1_2D.reverse_orient();
+
+      double Lref2 = ae0.Lref2(); //ae0_2D ???
       double ABSTOL = ::sqrt(Lref2) * 1.e-2;
 
-      crd2D2 = ae1.m_crd;
-      NUGA::transform(crd2D2, iP);
-
-      aPolygon a0(std::move(crd2D1));
-      aPolygon a1(std::move(crd2D2));
-
-      if (ai1_reversed)
-        a1.reverse_orient();
-
-      NUGA::eClassify c = NUGA::CLASSIFY::classify2D(a0, a1, ABSTOL);
+      NUGA::eClassify c = NUGA::CLASSIFY::classify2D(ae0_2D, ae1_2D, ABSTOL);
       assert(c != AMBIGUOUS);
 
       //
@@ -274,20 +375,20 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
       {
         // empty
       }
-      else if (c == IN_1)
+      else if (c == IN_1) // ae1 fully inside ae0
       {
         if (proj_on_first)
         {
           // project ae1 on ae0
           double zmean = 0;
-          for (size_t u = 0; u < a0.m_crd.cols(); ++u) zmean += a0.m_crd(2, u);
-          zmean /= a0.m_crd.cols();
-          for (size_t u = 0; u < a1.m_crd.cols(); ++u)a1.m_crd(2, u) = zmean;
-          NUGA::transform(a1.m_crd, P); // back to original ref frame  
-          a1.m_poids = ae1.m_poids;
+          for (size_t u = 0; u < ae0_2D.m_crd.cols(); ++u) zmean += ae0_2D.m_crd(2, u);
+          zmean /= ae0_2D.m_crd.cols();
+          for (size_t u = 0; u < ae1_2D.m_crd.cols(); ++u)ae1_2D.m_crd(2, u) = zmean;
+          NUGA::transform(ae1_2D.m_crd, P); // back to original ref frame  
+          ae1_2D.m_poids = ae1.m_poids;
         }
 
-        xm.add(a1, false/*do capitalize crds*/);
+        xm.add(ae1_2D, false/*do capitalize crds*/);
         xbit_ids.push_back(anc0.size());
         anc0.push_back(i);
         anc1.push_back(i2);
@@ -298,106 +399,48 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
         medith::write(o.str().c_str(), ae1.m_crd, &ae1.m_nodes[0], ae1.m_nodes.size(), ae1.shift());
 #endif
       }
-
-      crd2D1 = std::move(a0.m_crd);//give it back
-      crd2D2 = std::move(a1.m_crd);//give it back
     }
 
     
-    // COMPUTE THE RESIDUAL BIT : modified a0 minus {bits}
+    // COMPUTE THE RESIDUAL BIT : impacted a0 minus {bits}
     
     // impacted ae0 : update ae0 with refining points
-    if (!edge_to_node.empty())
+    if (!edge_to_xnodes.empty())
     {
-      crd2D1.clear();
-      lambda_to_node.clear();
-
-      for (size_t n = 0; n < nnodes; ++n)
-        lambda_to_node.push_back(std::make_pair(double(n), ae0.m_poids[n]));
-
-      double P0PX[3], P0P1[3];
-      for (auto& e2n : edge_to_node)
-      {
-        int n0 = e2n.first;
-
-        const double* P0 = xm.crd.col(ae0.m_poids[n0]);
-        const double* PX = xm.crd.col(e2n.second);
-        const double* P1 = xm.crd.col(ae0.m_poids[(n0+1)%nnodes]);
-
-        NUGA::diff<3>(P1, P0, P0P1);
-        NUGA::diff<3>(PX, P0, P0PX);
-
-        double Lx = ::sqrt(NUGA::sqrNorm<3>(P0PX));
-        double L = ::sqrt(NUGA::sqrNorm<3>(P0P1));
-
-        assert(Lx <= L);
-
-        double lambda = (Lx / L) + double(n0);
-        
-        lambda_to_node.push_back(std::make_pair(lambda, e2n.second));
-      }
-
-      std::sort(ALL(lambda_to_node));
-
-      // from lambda_to_node to ae0
-
-      poids.clear();
-      
-      double lambda_prev = -1.;
-      for (auto& l2n : lambda_to_node)
-      {
-        double& lambda = l2n.first;
-        if (lambda - lambda_prev > ZERO_M)
-        {
-          crd2D1.pushBack(xm.crd.col(l2n.second), xm.crd.col(l2n.second) + 3);
-          poids.push_back(l2n.second);
-        }
-        lambda_prev = lambda;
-      }
-
-      ae0 = aPolygon(std::move(crd2D1));
-      ae0.m_poids = poids;
-
+      __impact_ae0(ae0, edge_to_xnodes, xm.crd);
 #ifdef SUPERMESH_DBG
       std::ostringstream o;
-      o << "modified_ae0";
+      o << "impacted_ae0";
       medith::write(o.str().c_str(), ae0.m_crd, &ae0.m_nodes[0], ae0.m_nodes.size(), ae0.shift());
-      medith::write<DELAUNAY::Triangulator>("bits", xm.crd, xm.cnt, &xbit_ids, 0);
 #endif
     }
 
     // boolean diff ae0 \ bound{bits} : add missing bits if any
-    std::vector<std::deque<E_Int>> PGbs;
+ 
+    orient.clear();
     orient.resize(xbit_ids.size(), 1);
-
-    int err = K_MESH::Polygon::get_boundary(xm.crd, xm.cnt, xbit_ids/*0 based*/, PGbs, orient, w_oe_set, w_n_map);
-
+    PGbs.clear();
+    int err = K_MESH::Polygon::get_boundary(xm.crd, xm.cnt, xbit_ids/*0 based*/, PGbs, orient, w_oe_set, w_n_map); // can have more than one element in PGbs !
     if (err) continue;
 
     assert(err == 0);
     assert(!PGbs.empty());
 
-    std::vector<aelt_t> bits, tmpbits;
-
+    bits.clear();
     bits.push_back(std::move(ae0));
+
+    std::vector<aelt_t> tmpbits;
     
-    // incremental-boolean loop
+    // on part de ae0, on fait un diff avec chaque contour de PGbs
+    // chacune des ces operation peut donner plusieurs morceaux
+    std::vector<E_Int> tmp;
     for (size_t p = 0; (p < PGbs.size()) && !bits.empty(); ++p)
     {
+      const auto& PGb = PGbs[p]; /*1-based*/
+     
+      // construction d'un aPolygon a prtir de la frontiere
+      NUGA::aPolygon ae1f(&PGb[0], PGb.size(), 1/*idx_start*/, xm.crd);
 
-      poids.clear();
-      crd2D2.clear();
-
-      auto & PGb = PGbs[p];
-
-      for (auto& N : PGb)
-      {
-        crd2D2.pushBack(xm.crd.col(N - 1), xm.crd.col(N - 1) + 3);
-        poids.push_back(N - 1);
-      }
-
-      NUGA::aPolygon ae1f = std::move(crd2D2);
-      ae1f.m_poids = poids;
       int nbits = bits.size();
       for (int b = 0; b < nbits; ++b)
       {
@@ -417,9 +460,8 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
           o << "bitcur_" << i << "_" << b;
           medith::write(o.str().c_str(), bits[b].m_crd, &bits[b].m_nodes[0], bits[b].m_nodes.size(), bits[b].shift());
         }
-#endif
 
-        //ae1f.reverse_orient();
+#endif
 
         tmpbits.clear();
         bool true_clip(false);
@@ -427,7 +469,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
         if (!true_clip) continue;
 
-        // COMPRESS STRATEGY (with MOVE SEMANTICS) for bits => b can be reduced of 1 to treat the replaced at next iter 
+        // COMPRESS STRATEGY (with MOVE SEMANTICS) for bits => b can be decremented to treat the replaced at next iter 
         // if tmpbits is empty (IN) => compress (erase bits if single, put the last instead of current otherwise)
         // else replace the first bit, append the other bits  . 
         NUGA::CLIP::__replace_append_and_next_iter(bits, b, tmpbits);

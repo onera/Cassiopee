@@ -28,8 +28,45 @@ struct aPolygon : public K_MESH::Polygon
   mutable E_Float    m_normal[3];
   mutable E_Float    m_centroid[3];
     
-  aPolygon() = delete;
-  aPolygon(const E_Int* nodes, E_Int nb_nodes, const K_FLD::FloatArray& crd) = delete; // from "mesh" to autonmous
+  aPolygon():parent_type(nullptr, 0)
+  {
+    /*m_nodes.resize(1); //hack to have an allocated place and hence an address to pass to _nodes
+    parent_type::_nodes = &m_nodes[0];
+    m_nodes.clear(); //end of hack : clear this dummy value*/
+
+    // init remaining stuff
+    _triangles = nullptr;
+    _shift = 0;
+    m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
+  }
+  
+  // from "mesh" to autonmous
+  aPolygon(const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, const K_FLD::FloatArray& crd):parent_type(nodes, nb_nodes, -idx_start)
+  {
+    _nb_nodes = nb_nodes;
+ 
+    // keeping track of node history before compressing for autonomy
+    m_poids.clear();
+    m_poids.resize(_nb_nodes, IDX_NONE);
+    for (E_Int n = 0; n < _nb_nodes; ++n)m_poids[n] = nodes[n] - idx_start;
+
+    //compress
+    NUGA::MeshTool::compact_to_mesh(crd, nodes, nb_nodes, idx_start, m_crd);
+
+    //autonomous values & plugging
+    m_nodes.clear();
+    K_CONNECT::IdTool::init_inc(m_nodes, nb_nodes, 0);
+
+    _nodes = &m_nodes[0];
+
+    // init remaining stuff
+    _triangles = nullptr;
+    _shift = 0;
+    m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
+
+  }
+
+  // from "mesh" to autonmous (2)
   aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd):parent_type(pg.begin(), pg.nb_nodes(), pg.shift()), m_Lref2(-1.)
   { 
     // keeping track of node history before compressing for autonomy

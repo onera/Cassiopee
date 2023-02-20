@@ -85,7 +85,7 @@ BooleanOperator::BooleanOperator
   if (ret) return;
   
 #ifdef DEBUG_BOOLEAN
-  MIO::write("conformized.mesh", coord, connect, EType.c_str(), 0, &ancestors);
+  medith::write("conformized.mesh", coord, connect, EType.c_str(), 0, &ancestors);
 #endif
 
   _coord = coord;
@@ -101,8 +101,8 @@ BooleanOperator::BooleanOperator
     return; // Errror : at least one is empty.
   
 #ifdef DEBUG_BOOLEAN
-  //MIO::write("connect1split0.mesh", _coord, _connects[0], EType.c_str());
-  //MIO::write("connect2split0.mesh", _coord, _connects[1], EType.c_str());
+  //medith::write("connect1split0.mesh", _coord, _connects[0], EType.c_str());
+  //medith::write("connect2split0.mesh", _coord, _connects[1], EType.c_str());
 #endif
   
   // Remove eventual duplicates in each part individually
@@ -113,8 +113,8 @@ BooleanOperator::BooleanOperator
   }
 
 #ifdef DEBUG_BOOLEAN
-  MIO::write("connect1split.mesh", _coord, _connects[0], EType.c_str());
-  MIO::write("connect2split.mesh", _coord, _connects[1], EType.c_str());
+  medith::write("connect1split.mesh", _coord, _connects[0], EType.c_str());
+  medith::write("connect2split.mesh", _coord, _connects[1], EType.c_str());
 #endif
 }
 

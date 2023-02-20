@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_H18_HXX
 #define NUGA_H18_HXX
@@ -26,7 +26,9 @@ namespace NUGA
     E_Int FACES[16]; // BOT00, BOTO1,...BOT03, TOP..., LEFT00, LEFT01, RIGHT00,...,FRONT...
     E_Int nodes[18];
 
-    bool do_reorder = false;
+    bool do_reorder;
+    
+    splitting_t<K_MESH::Hexahedron, NUGA::XY, 1>() : do_reorder(false){}
 
     template <typename arr_t>
     void reorder_as_XY(ngon_type& ng, E_Int PHi, const tree<arr_t> & PGtree, const K_FLD::IntArray& F2E)

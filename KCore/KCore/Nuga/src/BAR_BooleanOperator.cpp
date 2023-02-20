@@ -183,7 +183,7 @@ BAR_BooleanOperator::compute_zones()
     return 1;
   
 #ifdef DEBUG_BOOLEANBAR
-  MIO::write("triangulation.mesh", _dT3->pos, _dT3->connectM, "TRI", 0, &_dT3->colors);
+  medith::write("triangulation.mesh", _dT3->pos, _dT3->connectM, "TRI", 0, &_dT3->colors);
 #endif
   
   // Split the sub domains.
@@ -214,7 +214,7 @@ BAR_BooleanOperator::compute_zones()
   NUGA::MeshTool::getBoundary(connectT3, _connectUnion);
   
 #ifdef DEBUG_BOOLEANBAR
-  MIO::write("union.mesh", _coord, _connectUnion, "BAR");
+  medith::write("union.mesh", _coord, _connectUnion, "BAR");
 #endif
   
   convert_to_hset(_connectUnion, hBu);

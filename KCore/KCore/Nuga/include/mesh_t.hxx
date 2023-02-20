@@ -719,7 +719,12 @@ struct mesh_t
   aelt_t aelement(E_Int i) const 
   {
     elt_t e(cnt, i);
-    E_Float Lr2 = e.Lref2(nodal_metric2);
+
+    // Lref2
+    // if nodal_metric2 exist and is 'valid' (same size as crd) => use it
+    // otherwise compute Lref2 based only on min edge length of the element (so might by over estimated)
+    E_Float Lr2 = (nodal_metric2.size() == crd.cols()) ? e.Lref2(nodal_metric2) : e.Lref2(crd);
+    
     return aelt_t(e, crd, Lr2);
   }
     
@@ -883,6 +888,8 @@ struct mesh_t
     if (! nodal_metric2.empty())
       return *std::min_element(ALL(nodal_metric2));
 
+    // Lref2 est calcule uniquement avec les aretes de la cellule => Possiblement surestime 
+    // car des cellules voisines pourraient avoir des aretes plus petites et donc definir une valeur nodale plus petite
     double minLref2 = NUGA::FLOAT_MAX;
     for (E_Int i=0; i < ncells(); ++i)
     {

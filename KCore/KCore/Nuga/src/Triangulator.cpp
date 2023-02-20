@@ -129,14 +129,6 @@ E_Int Triangulator::run
   // In case we need to improve the output quality by swapping.
   if (improve_quality) // fixme : means specified (what to do for relative tol is given as negative ?)
   {
-#ifdef DEBUG_TRIANGULATOR
-    if (dbg_enabled)
-    {
-      K_FLD::FloatArray crd(*data.pos);
-      crd.resize(3,crd.cols(), 0.);
-      medith::write("before_swap", crd, data.connectM, "TRI");
-    }
-#endif
     E_Float quality_tol = 1.e-4;// EPSILON;
     E_Int railing =_data.connectM.cols();
     while (--railing)
@@ -151,17 +143,6 @@ E_Int Triangulator::run
       else
         break;
     }
-
-#ifdef DEBUG_TRIANGULATOR
-    if (dbg_enabled)
-    {
-      {
-      K_FLD::FloatArray crd(*data.pos);
-      crd.resize(3,crd.cols(), 0.);
-      medith::write("after_swap", crd, data.connectM, "TRI");
-      }
-    }
-#endif
   }
   
 #ifdef FLAG_STEP
