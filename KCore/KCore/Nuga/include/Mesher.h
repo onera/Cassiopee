@@ -35,7 +35,6 @@
 #if defined(DEBUG_METRIC)
 #include "iodata.h"
 #include <sstream>
-#include "IO/io.h"
 #endif
 #include <iostream>
 
@@ -803,13 +802,13 @@ namespace DELAUNAY
       c.start();
 #endif
 
-//#ifdef DEBUG_METRIC
-//    {
-//      std::ostringstream o;
-//      o << "ellipse_refine_iter_" << iter << ".mesh";
-//      _metric->draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
-//    }
-//#endif
+#ifdef DEBUG_METRIC
+    {
+      std::ostringstream o;
+      o << "ellipse_refine_iter_" << iter << ".mesh";
+      _metric->draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
+    }
+#endif
 
       saturator.computeRefinePoints(iter, *_data, _box_nodes, _data->hardEdges, refine_nodes, _N0);
 

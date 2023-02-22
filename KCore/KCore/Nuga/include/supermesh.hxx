@@ -190,11 +190,11 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
   
 
   // structure de donnees declarees ici pour eviter de les instancier dans les boucles : faire un clear est bcp moins couteux
+  // pour la fonction get_boundary
   std::vector<E_Int> orient;
   std::set<K_MESH::Edge> w_oe_set;
   std::map<E_Int, E_Int> w_n_map;
-  
-  std::vector<long> poids;
+ 
 
   E_Int nbcells0 = m0.ncells();
   E_Int nbpts0 = m0.crd.cols();
@@ -294,7 +294,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
       if (true_clip)
       {
-        // ajout des morceaux et de leur historique
+        // ajout des morceaux et mise a jour de leur historique
       
         auto ge0s = glob_edge_ids0.get_facets_ptr(i);
         auto ge1s = glob_edge_ids1.get_facets_ptr(i2);
@@ -356,7 +356,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
       assert(c != AMBIGUOUS);
 
       //
-      if (c == IN)
+      if (c == IN) // ae0 fully inside ae1
       {
         xm.add(ae0, false/*do capitalize crds*/);
         xbit_ids.push_back(anc0.size());

@@ -21,7 +21,6 @@
 #ifdef DEBUG_METRIC
 #include "Linear/DelaunayMath.h"
 #include "iodata.h"
-#include "IO/io.h"
 #endif
 #include "GeomMetric.h"
 
@@ -106,7 +105,7 @@ namespace DELAUNAY
 
     //smooth the metric at each nodes.
     // so do it at leat once whatever the user ask for to impovre the overall
-    // mesh quality by setting the right metrics at bone nodes (__init_refine_points)
+    // mesh quality by setting the right metrics at skeleton nodes (__init_refine_points)
     _metric._N0 = N0;
 
     bool do_smooth  = (_nb_smooth_iter > 0) && (iter > 1);

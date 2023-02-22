@@ -370,6 +370,8 @@ namespace DELAUNAY{
   void
   VarMetric<Aniso2D>::append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc)
   {
+    if (i >= this->_field.size()) return; // bounding box nodes
+
     const Aniso2D& m = this->_field[i];
     
     if (m[0] == 0. || m[2] == 0. ) return;

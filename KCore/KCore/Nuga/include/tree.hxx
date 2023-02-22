@@ -130,8 +130,10 @@ class tree
     
     inline E_Int parent(E_Int i /*zero based*/) const { ASSERT_IN_VECRANGE(_parent, i);  return _parent[i];}
     
-    void get_oids(std::vector<E_Int>& oids) const ; //WARNING : NOT VALID AFTER CONFOMIZE
-    
+    void get_oids(std::vector<E_Int>& oids) const ;
+
+    E_Int get_root_parent(E_Int i) const;
+
     //WRONG (enablin logic) and unused
     // void add_children(E_Int i/*zero based*/, const E_Int* children, E_Int n){
      
@@ -230,7 +232,7 @@ class tree
 
 };
 
-/// WARNING : true while the tree is alive (NOT AFTER CONFORMIZE))
+/// 
 template <typename children_array>
 void tree<children_array>::get_oids(std::vector<E_Int>& oids) const
 {
@@ -249,6 +251,22 @@ void tree<children_array>::get_oids(std::vector<E_Int>& oids) const
       pid = _parent[pid];
     };
   }
+}
+
+/// 
+template <typename children_array>
+E_Int tree<children_array>::get_root_parent(E_Int i) const
+{
+  E_Int pid = _parent[i];
+  while (pid != IDX_NONE) //get back to root _parent
+  {
+    ASSERT_IN_VECRANGE(_parent, pid);
+
+    E_Int npid = _parent[pid];
+    if (npid == IDX_NONE) break;
+    pid = npid;
+  };
+  return pid;
 }
 
 ///

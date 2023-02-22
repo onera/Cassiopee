@@ -82,28 +82,28 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
     if (split_graph.size() != 0)
     {
       
-    for (E_Int j=0; j < ptl_sz; ++j)
-    {
-      E_Int oid = out(j,1)-1;
-
-      // need to check in case last face has disappeared
-      // and size of split_graph is smaller than number of faces
-      if ( oid < split_graph.size() )
+      for (E_Int j=0; j < ptl_sz; ++j)
       {
-      
-	E_Int nb_bits = split_graph.stride(oid);
-	const E_Int* pbits = split_graph.get_facets_ptr(oid);
-	// printf("pbits : %d \n", pbits );
+        E_Int oid = out(j,1)-1;
 
-	if (nb_bits == 1 && pbits[0] == E_IDX_NONE)  // gone
-	  continue;
-	else
-	  for (E_Int u=0; u<nb_bits; ++u )
-	  {
-	    new_ptl.push_back(pbits[u]+1);
-	  }
+        // need to check in case last face has disappeared
+        // and size of split_graph is smaller than number of faces
+        if ( oid < split_graph.size() )
+        {
+        
+  	      E_Int nb_bits = split_graph.stride(oid);
+  	      const E_Int* pbits = split_graph.get_facets_ptr(oid);
+        	// printf("pbits : %d \n", pbits );
+
+        	if (nb_bits == 1 && pbits[0] == E_IDX_NONE)  // gone
+        	  continue;
+        	else
+        	  for (E_Int u=0; u<nb_bits; ++u )
+        	  {
+        	    new_ptl.push_back(pbits[u]+1);
+        	  }
+        }
       }
-    }
     }
 
     if (new_ptl.empty())
@@ -115,7 +115,7 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
     Py_DECREF(tpl);
   }
 
-   return l;
+  return l;
   
 }
 

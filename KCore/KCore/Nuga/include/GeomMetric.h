@@ -166,7 +166,7 @@ namespace DELAUNAY
       parent_type::_field[Ni][2] *= G;
       
 #ifdef DEBUG_METRIC
-      assert (isValidMetric(parent_type::_field[Ni]));
+      assert (parent_type::isValidMetric(parent_type::_field[Ni]));
 #endif
   }
 

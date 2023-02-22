@@ -192,6 +192,7 @@ namespace NUGA
         else // auto-join
         {
           E_Int sz = ptlist.size();
+          assert (sz % 2 == 0); // must always be even
           E_Int sz2 = sz / 2;
 
           for (const auto & k : PG_to_plan)
