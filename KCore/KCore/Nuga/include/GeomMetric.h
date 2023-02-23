@@ -56,6 +56,8 @@ namespace DELAUNAY
 
     inline virtual void computeMetric(size_type N, size_type Ni, size_type Nj, E_Float /*dummy*/);
 
+    inline virtual void setMetric(E_Int N, const T& m);
+
     void init_metric
       (const K_FLD::FloatArray& metric, K_FLD::FloatArray& pos, const K_FLD::IntArray& connectB,
        const std::vector<E_Int>& hard_nodes);
@@ -316,12 +318,6 @@ namespace DELAUNAY
     M = NUGA::dot<3>(n, dUV);
     N = NUGA::dot<3>(n, dV2);
 
-    if (::fabs(L) < EPSILON && ::fabs(N) < EPSILON && ::fabs(M) < E_EPSILON) //planar
-    {
-      Mout(0, 0) = Mout(1, 1) = 0.; // invalidate it to do an interpolation upon exit
-      return;
-    }
-
     bool locally_iso = ((::fabs((F*L)-(E*M)) < EPSILON) && 
                         (::fabs((G*L)-(E*N)) < EPSILON) && 
                         (::fabs((G*M)-(F*N)) < EPSILON));
@@ -466,12 +462,12 @@ namespace DELAUNAY
     m[0] = M(0,0);
     m[1] = M(1,0);
     m[2] = M(1,1);
-
-    if (!parent_type::isValidMetric(parent_type::_field[N0])){ // hmax is inf and surface is locally planar
+    parent_type::setMetric(N0, m);
     
-      m = parent_type::_interpol->interpolate(parent_type::_field[Ni], parent_type::_field[Nj], r);
-      parent_type::setMetric(N0, m);
-    
+    if (! parent_type::isValidMetric(parent_type::_field[N0])) // hmax is inf and surface is locally planar
+    {
+      setMetric(N0, parent_type::_interpol->interpolate(parent_type::_field[Ni], parent_type::_field[Nj], r));
+      return;
     }
 
     if (_gr > 1.)
@@ -491,7 +487,17 @@ namespace DELAUNAY
     assert (parent_type::isValidMetric(parent_type::_field[N0]));
   }
 
-  ///
+  //fixme : implementation required ?
+   template <typename T, typename SurfaceType>
+  inline 
+  void GeomMetric<T, SurfaceType>::setMetric(E_Int N, const T& m)
+  {
+    //if (isValidMetric(m)) // relates to the above work around.
+    if ((E_Int)parent_type::_field.size() > N)//fixme : work around to avoid to set more than once
+      return;
+    parent_type::setMetric(N, m);
+  }
+
   template <typename T, typename SurfaceType>
   void
   GeomMetric<T, SurfaceType>::__compute_1st_fundamental_form(size_type N0, E_Float& E, E_Float& F, E_Float& G)
