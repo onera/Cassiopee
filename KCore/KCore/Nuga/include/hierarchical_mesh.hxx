@@ -106,6 +106,11 @@ class hierarchical_mesh
     ///
     inline void __extract_enabled_pgs_descendance(E_Int PGi, NUGA::reordering_func F, bool reverse, std::vector<E_Int>& pointlist);
     ///
+    inline void extract_pgs_descendance(E_Int PGi, std::vector<E_Int>& pointlist);
+    ///
+    inline void __extract_pgs_descendance(E_Int PGi, std::vector<E_Int>& pointlist);
+
+    ///
     inline void extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const;
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
@@ -402,6 +407,41 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E
   //
   for (E_Int i = 0; i < nbc; ++i)
     __extract_enabled_pgs_descendance(children[i], F, reverse, ids);
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_pgs_descendance(E_Int PGi, std::vector<E_Int>& ids)
+{
+  ids.clear();
+  assert(PGi < _ng.PGs.size());
+
+  if (_PGtree.is_enabled(PGi))
+    return;
+  
+  __extract_pgs_descendance(PGi, ids);
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_pgs_descendance(E_Int PGi, std::vector<E_Int>& ids)
+{
+  E_Int nbc = _PGtree.nb_children(PGi);
+  //
+  if (nbc == 0)
+  {
+    ids.push_back(PGi);
+    return;
+  }
+
+  const E_Int* pchild = _PGtree.children(PGi);
+
+  STACK_ARRAY(E_Int, nbc, children);
+  for (E_Int i = 0; i < nbc; ++i) children[i] = pchild[i];
+
+  //
+  for (E_Int i = 0; i < nbc; ++i)
+    __extract_pgs_descendance(children[i], ids);
 }
 
 ///
@@ -841,11 +881,21 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::enable_and_transmit_
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_PGs()
-{
-  // INFO : at the end, some join PG can be wrongly disbaled
+{ 
+  // FIXME : ENABLING FACES IS NOT WORKING PROPERLY! (see also join_sensor<mesh_t>::update())
+  // the OLD MODE approach (maintained only for DIR mode now) is
+  // to enable at this stage any natural face of enabled cells
+  // so at the end of this stage some join face can be wrongly disbaled
   // (those which ensure conformal join with the other side)
-  // indeed, for some join, children must be enabled instead of natural face
-  // but these are fixed in join_sensor<mesh_t>::update()
+  // indeed, for some join, children must be enabled instead of natural face,
+  // these are SUPPOSED TO BE fixed in join_sensor<mesh_t>::update()
+  // but some cases with a complex enabling state of the leaves is not handled.
+  // The correct behaviour should be to enable on each side the merged highest enabled leaves
+  // meanwhile, a NEW MODE is introduced : this stage handles entirely the enabling (nothing done in join_sensor)
+  // by blindly and systematicaly enabling all the leaves. Since each side have the same face hierarchies
+  // this should work, by providing an overdefined state (more subdivisions than required).
+  // NEED TO BE DOUBLE CHECKED though when enabling agglomeration.
+  bool OLD_MODE = (STYPE == DIR);
 
   //reset
   _PGtree.reset_enabled(_ng.PGs.size(), false);
@@ -863,7 +913,23 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_PGs()
       E_Int PHn = NEIGHBOR(PHi, _F2E, PGi);
 
       if (PHn == IDX_NONE)
-        _PGtree.enable(PGi);
+      {
+        if (OLD_MODE)
+          _PGtree.enable(PGi);
+        else
+        {
+          E_Int nbc = _PGtree.nb_children(PGi);
+          if (nbc == 0)
+            _PGtree.enable(PGi);
+          else
+          {
+            std::vector<E_Int> ids;
+            extract_pgs_descendance(PGi, ids);
+            for (size_t u=0; u < ids.size(); ++u)
+              _PGtree.enable(ids[u]);
+          }
+        }
+      }
       else if (_PHtree.is_enabled(PHn))
         _PGtree.enable(PGi);
     }

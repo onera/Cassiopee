@@ -113,16 +113,34 @@ bool join_sensor<mesh_t>::update()
 
     if (plan.getSize() == 0) continue;                            // nothing planned
     //std::cout << plan << std::endl;
+  
+    // FIXME : ENABLING FACES IS NOT WORKING PROPERLY! (see also hierarchical_mesh::enable_PGs)
+    // the OLD MODE approach (maintained only for DIR mode now) is
+    // to enable at hierarchical_mesh::enable_PGs stage any natural face of enabled cells
+    // so at the end of this stage some join face can be wrongly disbaled
+    // (those which ensure conformal join with the other side)
+    // indeed, for some join, children must be enabled instead of natural face,
+    // these are SUPPOSED TO BE fixed here at this stage
+    // but some cases with a complex enabling state of the leaves is not handled.
+    // The correct behaviour should be to enable on each side the merged highest enabled leaves
+    // meanwhile, a NEW MODE is introduced : this stage handles entirely the enabling (nothing done in join_sensor)
+    // by blindly and systematicaly enabling all the leaves. Since each side have the same face hierarchies
+    // this should work, by providing an overdefined state (more subdivisions than required).
+    // NEED TO BE DOUBLE CHECKED though when enabling agglomeration.
+    bool OLD_MODE = (mesh_t::SUBTYPE == DIR);
 
-    if (parent_t::_hmesh._PGtree.is_enabled(PGi))
+    if (OLD_MODE)
     {
-      // enable its children instead : if they are in plan, it means they are enabled on the other join side
-      E_Int nbc{ parent_t::_hmesh._PGtree.nb_children(PGi) };
-      if (nbc != 0)
+      if (parent_t::_hmesh._PGtree.is_enabled(PGi))
       {
-        const E_Int* children = parent_t::_hmesh._PGtree.children(PGi);
-        for (E_Int i = 0; i < nbc; ++i)
-          parent_t::_hmesh._PGtree.enable(children[i]);
+        // enable its children instead : if they are in plan, it means they are enabled on the other join side
+        E_Int nbc{ parent_t::_hmesh._PGtree.nb_children(PGi) };
+        if (nbc != 0)
+        {
+          const E_Int* children = parent_t::_hmesh._PGtree.children(PGi);
+          for (E_Int i = 0; i < nbc; ++i)
+            parent_t::_hmesh._PGtree.enable(children[i]);
+        }
       }
     }
 
