@@ -682,12 +682,12 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
   }
   else if (*sub_type == NUGA::DIR_PROTO)
   {
-    if (sensor_type != 2 && sensor_type != 3)
+    /*if (sensor_type != 2 && sensor_type != 3)
     {
       PyErr_SetString(PyExc_ValueError,
        "adaptCells: DIR_PROTO only works with cell/nodal sensor currently.");
       return nullptr;
-    }
+    }*/
   }
   else if (*sub_type == NUGA::DIR)
   {

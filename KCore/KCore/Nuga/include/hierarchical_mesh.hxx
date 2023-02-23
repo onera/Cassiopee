@@ -106,6 +106,11 @@ class hierarchical_mesh
     ///
     inline void __extract_enabled_pgs_descendance(E_Int PGi, NUGA::reordering_func F, bool reverse, std::vector<E_Int>& pointlist);
     ///
+    inline void extract_pgs_descendance(E_Int PGi, std::vector<E_Int>& pointlist);
+    ///
+    inline void __extract_pgs_descendance(E_Int PGi, std::vector<E_Int>& pointlist);
+
+    ///
     inline void extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const;
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
@@ -402,6 +407,41 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E
   //
   for (E_Int i = 0; i < nbc; ++i)
     __extract_enabled_pgs_descendance(children[i], F, reverse, ids);
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_pgs_descendance(E_Int PGi, std::vector<E_Int>& ids)
+{
+  ids.clear();
+  assert(PGi < _ng.PGs.size());
+
+  if (_PGtree.is_enabled(PGi))
+    return;
+  
+  __extract_pgs_descendance(PGi, ids);
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t> inline
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_pgs_descendance(E_Int PGi, std::vector<E_Int>& ids)
+{
+  E_Int nbc = _PGtree.nb_children(PGi);
+  //
+  if (nbc == 0)
+  {
+    ids.push_back(PGi);
+    return;
+  }
+
+  const E_Int* pchild = _PGtree.children(PGi);
+
+  STACK_ARRAY(E_Int, nbc, children);
+  for (E_Int i = 0; i < nbc; ++i) children[i] = pchild[i];
+
+  //
+  for (E_Int i = 0; i < nbc; ++i)
+    __extract_pgs_descendance(children[i], ids);
 }
 
 ///
@@ -863,7 +903,18 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::enable_PGs()
       E_Int PHn = NEIGHBOR(PHi, _F2E, PGi);
 
       if (PHn == IDX_NONE)
-        _PGtree.enable(PGi);
+      {
+        E_Int nbc = _PGtree.nb_children(PGi);
+        if (nbc == 0)
+          _PGtree.enable(PGi);
+        else
+        {
+          std::vector<E_Int> ids;
+          extract_pgs_descendance(PGi, ids);
+          for (size_t u=0; u < ids.size(); ++u)
+            _PGtree.enable(ids[u]);
+        }
+      }
       else if (_PHtree.is_enabled(PHn))
         _PGtree.enable(PGi);
     }
@@ -879,16 +930,81 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::update_pointlist(std::vector<E_Int>
 
   std::vector<E_Int> new_ptlist;
 
+  size_t sz = ptlist.size();
+  size_t sz2 = sz / 2;
+
   for (size_t i = 0; i < ptlist.size(); ++i)
   {
     E_Int PGi = ptlist[i] - _idx_start;
     //if (rank == 0) std::cout << "PGi : " << PGi << std::endl;
+
+    //size_t imate = (i + sz2) % sz; // j2 is the rank in the appropriate half of ptlist associated with j-th face in second half
+    //E_Int PGmate = ptlist[imate] - _idx_start;
 
     if (PGi < 0 || PGi >= nb_pgs)
     {
       std::cout << "update_pointlist : WARNING : wrong PG id : " << PGi << std::endl;
       continue;
     }
+
+    /*bool is_PGi_enabled = _PGtree.is_enabled(PGi);
+    bool is_PGmate_enabled = _PGtree.is_enabled(PGmate);
+
+    if (autojoin && (i==48) && ( (is_PGi_enabled && !is_PGmate_enabled) || (!is_PGi_enabled && is_PGmate_enabled) ))
+    {
+      std::cout << "WRONG enabling for i : " << i << " : PGi/PGmate : " << PGi << "/" << PGmate << std::endl;
+
+      std::cout << "ancestors : " << _PGtree.get_root_parent(PGi) << "/" << _PGtree.get_root_parent(PGmate) << std::endl;
+
+      E_Int nbc = _PGtree.nb_children(PGi);
+      E_Int nbcmate = _PGtree.nb_children(PGmate);
+      std::cout << "nbc : " << nbc << "/" << nbcmate << std::endl;
+      {
+        std::ostringstream o;
+        o << "pair_" << i << "_" << PGi;
+        medith::write(o.str().c_str(), _crd, _ng.PGs, PGi);
+      }
+      {
+        std::ostringstream o;
+        o << "pair_" << i << "_" << PGmate;
+        medith::write(o.str().c_str(), _crd, _ng.PGs, PGmate);
+      }
+    }
+    else if (autojoin && (i==48) && !is_PGi_enabled && !is_PGmate_enabled)
+    {
+      //std::cout << "ancestors : " << _PGtree.get_root_parent(PGi) << "/" << _PGtree.get_root_parent(PGmate) << std::endl;
+
+      ids.clear();
+      extract_enabled_pgs_descendance(PGi, reverse, ids);
+      size_t sz1 = ids.size();
+      ids.clear();
+      extract_enabled_pgs_descendance(PGmate, reverse, ids);
+      size_t sz2 = ids.size();
+
+      ids.clear();
+      extract_pgs_descendance(PGi, ids);
+      size_t total_sz1 = ids.size();
+      ids.clear();
+      extract_pgs_descendance(PGmate, ids);
+      size_t total_sz2 = ids.size();
+      
+      if (sz1 != sz2)
+      {
+        std::cout << "WRONG nb of enabled desc for i : " << i << " : PGi/PGmate : " << PGi << "/" << PGmate << std::endl;
+        std::cout << "sz1/sz2 : " << sz1 << "/" << sz2 << std::endl;
+        std::cout << "total sz1/sz2 : " << total_sz1 << "/" << total_sz2 << std::endl;
+        {
+          std::ostringstream o;
+          o << "pair_" << i << "_" << PGi;
+          medith::write(o.str().c_str(), _crd, _ng.PGs, PGi);
+        }
+        {
+          std::ostringstream o;
+          o << "pair_" << i << "_" << PGmate;
+          medith::write(o.str().c_str(), _crd, _ng.PGs, PGmate);
+        }
+      }
+    }*/
 
     if (_PGtree.is_enabled(PGi))
       new_ptlist.push_back(PGi);
