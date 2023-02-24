@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SPLITTING_T_HXX
 #define NUGA_SPLITTING_T_HXX
@@ -32,6 +32,10 @@ namespace NUGA
 {
   struct splitting_base_t
   {
+    bool ok_for_split;
+
+    splitting_base_t() : ok_for_split(true) {}
+
     template <typename arr_t>
     static void __update_outer_F2E(const ngon_type& ng, E_Int parentPHi, const E_Int* childrenPHi, E_Int nchildren, const tree<arr_t>& PGtree, K_FLD::IntArray& F2E);
 

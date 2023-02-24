@@ -26,12 +26,19 @@ namespace NUGA
 
 		template <typename arr_t>
 		splitting_t(K_FLD::FloatArray& crd, ngon_type& ng, E_Int PHi, E_Int centroidId,
-		const K_FLD::IntArray & F2E, const tree<arr_t> & PGtree)
+		const K_FLD::IntArray & F2E, const tree<arr_t> & PGtree) :
+			splitting_base_t()
 		{
 			const E_Int* faces = ng.PHs.get_facets_ptr(PHi);
 			//E_Int stride = ng.PHs.stride(PHi);
 
 			E_Int PGi = faces[0]-1;
+
+			if (PGtree.nb_children(PGi) != 2) {
+				ok_for_split = false;
+				return;
+			}
+
 			assert(PGtree.nb_children(PGi) == 2);
 			const E_Int *pN = ng.PGs.get_facets_ptr(PGi);
 
@@ -71,6 +78,12 @@ namespace NUGA
 
 			E_Int* faces = ng.PHs.get_facets_ptr(PHi);
 			E_Int local[6];
+
+			if (PGtree.nb_children(faces[0]-1) != 2 || PGtree.nb_children(faces[1]-1) != 2 ||
+				PGtree.nb_children(faces[4]-1) != 2 || PGtree.nb_children(faces[5]-1) != 2) {
+					ok_for_split = false;
+					return;
+				}
 
 			// BOTTOM
 			E_Int PGi = faces[0] - 1;
@@ -174,6 +187,12 @@ namespace NUGA
 
 			E_Int* faces = ng.PHs.get_facets_ptr(PHi);
 			E_Int local[6];
+
+			if (PGtree.nb_children(faces[0]-1) != 2 || PGtree.nb_children(faces[1]-1) != 2 ||
+				PGtree.nb_children(faces[2]-1) != 2 || PGtree.nb_children(faces[3]-1) != 2) {
+					ok_for_split = false;
+					return;
+				}
 
 			// BOTTOM
 			E_Int PGi = faces[0] - 1;

@@ -28,7 +28,7 @@ namespace NUGA
 
     bool do_reorder;
     
-    splitting_t<K_MESH::Hexahedron, NUGA::XY, 1>() : do_reorder(false){}
+    splitting_t<K_MESH::Hexahedron, NUGA::XY, 1>() : splitting_base_t(), do_reorder(false) {}
 
     template <typename arr_t>
     void reorder_as_XY(ngon_type& ng, E_Int PHi, const tree<arr_t> & PGtree, const K_FLD::IntArray& F2E)
@@ -153,12 +153,19 @@ namespace NUGA
       
       const E_Int* pPGi = ng.PHs.get_facets_ptr(PHi);
 
-      assert(PGtree.nb_children(pPGi[0] - 1) == 4);
-      assert(PGtree.nb_children(pPGi[1] - 1) == 4);
-      assert(PGtree.nb_children(pPGi[2] - 1) == 2);
-      assert(PGtree.nb_children(pPGi[3] - 1) == 2);
-      assert(PGtree.nb_children(pPGi[4] - 1) == 2);
-      assert(PGtree.nb_children(pPGi[5] - 1) == 2);
+      if (PGtree.nb_children(pPGi[0] - 1) != 4 || PGtree.nb_children(pPGi[1] - 1) != 4 ||
+          PGtree.nb_children(pPGi[2] - 1) != 2 || PGtree.nb_children(pPGi[3] - 1) != 2 ||
+          PGtree.nb_children(pPGi[4] - 1) != 2 || PGtree.nb_children(pPGi[5] - 1) != 2) {
+            ok_for_split = false;
+            return;
+          }
+
+      // assert(PGtree.nb_children(pPGi[0] - 1) == 4);
+      // assert(PGtree.nb_children(pPGi[1] - 1) == 4);
+      // assert(PGtree.nb_children(pPGi[2] - 1) == 2);
+      // assert(PGtree.nb_children(pPGi[3] - 1) == 2);
+      // assert(PGtree.nb_children(pPGi[4] - 1) == 2);
+      // assert(PGtree.nb_children(pPGi[5] - 1) == 2);
 
 #ifdef DEBUG_HIERARCHICAL_MESH
 

@@ -102,7 +102,7 @@ namespace NUGA
 
     /// Generic wrapper for cells
     template <typename pg_arr_t, typename ph_arr_t>
-    static void refine_PHs(const output_t &adap_incr, ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
+    static void refine_PHs(output_t &adap_incr, ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
                            K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
 
     // T3/Q4/PG
@@ -118,7 +118,7 @@ namespace NUGA
 
     //private:
     template <typename pg_arr_t, typename ph_arr_t>
-    static void __refine_PHS_hexa_dir (const output_t &adap_incr,
+    static void __refine_PHS_hexa_dir (output_t &adap_incr,
                                 ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
 
     ///
@@ -1137,7 +1137,7 @@ namespace NUGA
   template <typename ELT_t, eSUBDIV_TYPE STYPE>
   template <typename pg_arr_t, typename ph_arr_t>
   void refiner<ELT_t, STYPE>::refine_PHs
-  (const output_t &adap_incr, ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
+  (output_t &adap_incr, ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
     K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
 
@@ -1175,7 +1175,7 @@ namespace NUGA
   template <>
   template <typename pg_arr_t, typename ph_arr_t>
   void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PHs
-  (const output_t &adap_incr,
+  (output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
     assert((E_Int)adap_incr.cell_adap_incr.size() <= ng.PHs.size());
@@ -1195,7 +1195,7 @@ namespace NUGA
   template <typename ELT_t, eSUBDIV_TYPE STYPE>
   template <typename pg_arr_t, typename ph_arr_t>
   void refiner<ELT_t, STYPE>::__refine_PHS_hexa_dir
-  (const output_t &adap_incr,
+  (output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
     assert((E_Int)adap_incr.cell_adap_incr.size() <= ng.PHs.size());
@@ -1232,13 +1232,19 @@ namespace NUGA
         HX18 elt(crd, ng, PHi, pos + i, F2E, PGtree);
         elt.do_reorder = (STYPE == DIR_PROTO); // do reoder (reorder_as_XY call) only if DIR_PROTO
 
-        elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);
+        if (elt.ok_for_split)
+          elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);
+        else
+          adap_incr.cell_adap_incr[PHi].set(0);
       }
       else // X
       {
         HX12 elt(crd, ng, PHi, pos + i, F2E, PGtree);
 
-        elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);
+        if (elt.ok_for_split)
+          elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);
+        else
+          adap_incr.cell_adap_incr[PHi].set(0);
       }
     }
  }
@@ -1246,7 +1252,7 @@ namespace NUGA
   template <>
   template <typename pg_arr_t, typename ph_arr_t>
   void refiner<K_MESH::Hexahedron, DIR>::refine_PHs
-  (const output_t &adap_incr,
+  (output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
     refiner<K_MESH::Hexahedron, DIR>::__refine_PHS_hexa_dir <pg_arr_t, ph_arr_t> (adap_incr, ng, PGtree, PHtree, crd, F2E);
@@ -1255,7 +1261,7 @@ namespace NUGA
   template <>
   template <typename pg_arr_t, typename ph_arr_t>
   void refiner<K_MESH::Hexahedron, DIR_PROTO>::refine_PHs
-  (const output_t &adap_incr,
+  (output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
     refiner<K_MESH::Hexahedron, DIR_PROTO>::__refine_PHS_hexa_dir <pg_arr_t, ph_arr_t> (adap_incr, ng, PGtree, PHtree, crd, F2E);
@@ -1276,7 +1282,7 @@ namespace NUGA
   template <>
   template <typename pg_arr_t, typename ph_arr_t>
   void refiner<K_MESH::Pyramid, DIR_PROTO>::refine_PHs
-  (const output_t &adap_incr,
+  (output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
     //refiner<K_MESH::Pyramid, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
@@ -1286,7 +1292,7 @@ namespace NUGA
   template <>
   template <typename pg_arr_t, typename ph_arr_t>
   void refiner<K_MESH::Prism, DIR_PROTO>::refine_PHs
-  (const output_t &adap_incr,
+  (output_t &adap_incr,
     ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
   {
     //refiner<K_MESH::Prism, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);

@@ -310,6 +310,12 @@ namespace NUGA
   {
     E_Int n[DIM];
 
+    void set(E_Int val) 
+    {
+      for (E_Int i = 0; i < DIM; i++)
+        n[i] = val;
+    }
+
     int_tuple() { n[0] = n[1] = 0; if (DIM == 3) n[2] = 0; }
     explicit int_tuple(E_Int val) { n[0] = n[1] = val; if (DIM == 3) n[2] = val; }
     ~int_tuple() {};
@@ -330,6 +336,17 @@ namespace NUGA
       if ((DIM == 3) && (n[2] != val)) return true;
       return false;
     }
+	bool operator==(const int_tuple& d) const
+    {
+      for (E_Int i = 0; i < DIM; i++)
+        if (n[i] != d.n[i]) return false;
+      return true;
+    }
+    bool operator!=(const int_tuple& d) const
+    {
+      return !(*this == d);
+    }
+
     //DANGEROUS because weird logic
     bool operator>(const int_tuple& d) {
       if (n[0] > d.n[0]) return true;

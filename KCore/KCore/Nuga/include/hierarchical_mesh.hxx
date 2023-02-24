@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
 
 #ifndef NUGA_HIERACHICAL_MESH_HXX
 #define NUGA_HIERACHICAL_MESH_HXX
@@ -680,9 +680,7 @@ template <> inline
 void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::enable_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0)
 {
 
-#ifdef DEBUG_HIERARCHICAL_MESH
-  std::cout << "enabling and transmitting\n";
-#endif
+std::cout << "enabling and transmitting\n";
 
   using cell_incr_t = typename output_t::cell_incr_t;
   using face_incr_t = typename output_t::face_incr_t;
@@ -694,186 +692,95 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::enable_and_transmit_
 
   E_Int nb_pgs0 = adap_incr.face_adap_incr.size();
 
+  adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));
+
   K_MESH::NO_Edge e;
   E_Int nb_child;
   E_Int PGi, j, n1, n2, center;
 
   // enable cells and then faces
   for (E_Int PHi = 0; PHi < nb_phs0; PHi++) {
-      nb_child = _PHtree.nb_children(PHi);
-      const E_Int *children = _PHtree.children(PHi);
-      for (j = 0; j < nb_child; j++) {
-          _PHtree.enable(children[j]);
-      }
+    auto& adincrPHi = adap_incr.cell_adap_incr[PHi];
+    if (adincrPHi == 0) continue;
+    --adincrPHi; 
+    nb_child = _PHtree.nb_children(PHi);
+    const E_Int *children = _PHtree.children(PHi);
+    for (j = 0; j < nb_child; j++) {
+      _PHtree.enable(children[j]);
+      adap_incr.cell_adap_incr[children[j]] = adincrPHi;
+    }
+    adincrPHi = 0;
   }
 
   enable_PGs();
 
-  //adap_incr.face_adap_incr.clear();
+  adap_incr.face_adap_incr.clear();
   adap_incr.face_adap_incr.resize(_ng.PGs.size(), face_incr_t(0));
-  adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));
 
-  // internal faces
-  for (E_Int PHi = 0; PHi < nb_phs0; PHi++) {
-    if (adap_incr.cell_adap_incr[PHi] == 0) continue;
-
-    const E_Int *faces = _ng.PHs.get_facets_ptr(PHi);
-
-    E_Int BOT = faces[0]-1;
-    E_Int TOP = faces[1]-1;
-    E_Int LFT = faces[2]-1;
-    E_Int RGT = faces[3]-1;
-    E_Int FRO = faces[4]-1;
-    E_Int BCK = faces[5]-1;
-
-    const auto& SWAP = _sensor->_canon_info[PHi];
-
-    auto BOT_INC = adap_incr.face_adap_incr[BOT];
-    if (SWAP[0]) std::swap(BOT_INC.n[0], BOT_INC.n[1]);
-    auto TOP_INC = adap_incr.face_adap_incr[TOP];
-    if (SWAP[1]) std::swap(TOP_INC.n[0], TOP_INC.n[1]);
-    auto LFT_INC = adap_incr.face_adap_incr[LFT];
-    if (SWAP[2]) std::swap(LFT_INC.n[0], LFT_INC.n[1]);
-    auto RGT_INC = adap_incr.face_adap_incr[RGT];
-    if (SWAP[3]) std::swap(RGT_INC.n[0], RGT_INC.n[1]);
-    auto FRO_INC = adap_incr.face_adap_incr[FRO];
-    if (SWAP[4]) std::swap(FRO_INC.n[0], FRO_INC.n[1]);
-    auto BCK_INC = adap_incr.face_adap_incr[BCK];
-    if (SWAP[5]) std::swap(BCK_INC.n[0], BCK_INC.n[1]);
-
-    const E_Int *children = _PHtree.children(PHi);
-
-    if (_PHtree.nb_children(PHi) == 4) {
-      const E_Int *child0 = _ng.PHs.get_facets_ptr(children[0]);
-      const E_Int *child1 = _ng.PHs.get_facets_ptr(children[1]);
-      const E_Int *child3 = _ng.PHs.get_facets_ptr(children[3]);
-
-      // right of child0
-      adap_incr.face_adap_incr[child0[3]-1].n[0] = std::min(LFT_INC.n[0]-1, RGT_INC.n[0]-1);
-      adap_incr.face_adap_incr[child0[3]-1].n[1] = std::min(LFT_INC.n[1], RGT_INC.n[1]);
-
-      // back of child0
-      adap_incr.face_adap_incr[child0[5]-1].n[0] = std::min(FRO_INC.n[0]-1, BCK_INC.n[0]-1);
-      adap_incr.face_adap_incr[child0[5]-1].n[1] = std::min(FRO_INC.n[1], BCK_INC.n[1]);
-
-      // right of child3
-      adap_incr.face_adap_incr[child3[3]-1] = adap_incr.face_adap_incr[child0[3]-1];
-
-      // back of child1
-      adap_incr.face_adap_incr[child1[5]-1] = adap_incr.face_adap_incr[child0[5]-1];
-    }
-    
-    if (_PHtree.nb_children(PHi) == 2) {
-      NUGA::eDIR dir;
-      if (adap_incr.face_adap_incr[BOT].n[0] > 0) dir = Xd;
-      else dir = Y;
-
-      if (SWAP[0]) {
-        if (dir == Y) dir = Xd;
-	else dir = Y;
-     }
-
-     const E_Int *pF = _ng.PHs.get_facets_ptr(children[0]);
-     E_Int INTERNAL;
-
-     if (dir == Xd) {
-        // internal is right of child
-        INTERNAL = pF[3]-1;
-        adap_incr.face_adap_incr[INTERNAL].n[0] = std::min(LFT_INC.n[0], RGT_INC.n[0]);
-        adap_incr.face_adap_incr[INTERNAL].n[1] = std::min(LFT_INC.n[1], RGT_INC.n[1]);
-      } else {
-        // internal is back of child
-        INTERNAL = pF[5]-1;
-        adap_incr.face_adap_incr[INTERNAL].n[0] = std::min(FRO_INC.n[0], BCK_INC.n[0]);
-        adap_incr.face_adap_incr[INTERNAL].n[1] = std::min(FRO_INC.n[1], BCK_INC.n[1]);
-      }
-    }
-    
-    if (_PHtree.nb_children(PHi) == 8) {
-      const E_Int *child0 = _ng.PHs.get_facets_ptr(children[0]);
-      const E_Int *child1 = _ng.PHs.get_facets_ptr(children[1]);
-      const E_Int *child2 = _ng.PHs.get_facets_ptr(children[2]);
-      const E_Int *child3 = _ng.PHs.get_facets_ptr(children[3]);
-      const E_Int *child4 = _ng.PHs.get_facets_ptr(children[4]);
-      const E_Int *child5 = _ng.PHs.get_facets_ptr(children[5]);
-      const E_Int *child7 = _ng.PHs.get_facets_ptr(children[7]);
-
-      // right of child0
-      E_Int rgt0 = child0[3]-1;
-      adap_incr.face_adap_incr[rgt0].n[0] = std::min(LFT_INC.n[0]-1, RGT_INC.n[0]-1);
-      adap_incr.face_adap_incr[rgt0].n[1] = std::min(LFT_INC.n[1]-1, RGT_INC.n[1]-1);
-
-      // back of child0
-      E_Int bck0 = child0[5]-1;
-      adap_incr.face_adap_incr[bck0].n[0] = std::min(FRO_INC.n[0]-1, BCK_INC.n[0]-1);
-      adap_incr.face_adap_incr[bck0].n[1] = std::min(FRO_INC.n[1]-1, BCK_INC.n[1]-1);
-
-      // right of child3
-      E_Int rgt3 = child3[3]-1;
-      adap_incr.face_adap_incr[rgt3] = adap_incr.face_adap_incr[rgt0];
-
-      // back of child1
-      E_Int bck1 = child1[5]-1;
-      adap_incr.face_adap_incr[bck1] = adap_incr.face_adap_incr[bck0];
-
-      // right of child4
-      E_Int rgt4 = child4[3]-1;
-      adap_incr.face_adap_incr[rgt4] = adap_incr.face_adap_incr[rgt0];
-
-      // right of child7
-      E_Int rgt7 = child7[3]-1;
-      adap_incr.face_adap_incr[rgt7] = adap_incr.face_adap_incr[rgt0];
-
-      // back of child4
-      E_Int bck4 = child4[5]-1;
-      adap_incr.face_adap_incr[bck4] = adap_incr.face_adap_incr[bck0];
-
-      // back of child5
-      E_Int bck5 = child5[5]-1;
-      adap_incr.face_adap_incr[bck5] = adap_incr.face_adap_incr[bck0];
-
-      // top of child0
-      E_Int top0 = child0[1]-1;
-      adap_incr.face_adap_incr[top0].n[0] = std::min(BOT_INC.n[0]-1, TOP_INC.n[0]-1);
-      adap_incr.face_adap_incr[top0].n[1] = std::min(BOT_INC.n[1]-1, TOP_INC.n[1]-1);
-
-      // top of child1
-      E_Int top1 = child1[1]-1;
-      adap_incr.face_adap_incr[top1] = adap_incr.face_adap_incr[top0];
-
-      // top of child2
-      E_Int top2 = child2[1]-1;
-      adap_incr.face_adap_incr[top2] = adap_incr.face_adap_incr[top0];
-
-      // top of child3
-      E_Int top3 = child3[1]-1;
-      adap_incr.face_adap_incr[top3] = adap_incr.face_adap_incr[top0];
-    }
-  }
-
-  // cut faces
-  for (E_Int PGi = 0; PGi < nb_pgs0; PGi++) {
-    auto& f_incr = adap_incr.face_adap_incr[PGi];
-    if (f_incr == 0) continue;
-    --f_incr;
-    E_Int *children = _PGtree.children(PGi);
-    for (int j = 0; j < _PGtree.nb_children(PGi); j++) {
-      E_Int child = children[j];
-      adap_incr.face_adap_incr[child] = f_incr;
-    }
-    f_incr = 0;
-  }
-
-  adap_incr.cell_adap_incr.clear();
-  adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));
-
-  // compute face_adap_incr on faces belonging to active cells
-  // if face already has children, set its adap_incr to 0
-  
+  E_Int bot, top, lft, rgt, fro, bck;
+  E_Int alpha, beta, gamma;
+  // deduce face increments
   for (E_Int PHi = 0; PHi < _ng.PHs.size(); PHi++) {
     if (!_PHtree.is_enabled(PHi)) continue;
+    if (adap_incr.cell_adap_incr[PHi] == 0) continue;
+    E_Int *pF = _ng.PHs.get_facets_ptr(PHi);
+    //K_MESH::Hexahedron::reorder_pgs(_ng, _F2E, PHi);
     _sensor->compute_canon_info_bottom(PHi, 0);
+    const auto& swap = _sensor->_canon_info[PHi];
+
+    bot = pF[0]-1;
+    top = pF[1]-1;
+    lft = pF[2]-1;
+    rgt = pF[3]-1;
+    fro = pF[4]-1;
+    bck = pF[5]-1;
+
+    alpha = adap_incr.cell_adap_incr[PHi].n[0];
+    beta = adap_incr.cell_adap_incr[PHi].n[1];
+    gamma = adap_incr.cell_adap_incr[PHi].n[2];
+
+    if (alpha) {
+      // bot top fro bck: X
+      if (swap[0]) adap_incr.face_adap_incr[bot].n[1] = std::max(adap_incr.face_adap_incr[bot].n[1], alpha);
+      else         adap_incr.face_adap_incr[bot].n[0] = std::max(adap_incr.face_adap_incr[bot].n[0], alpha);
+      if (swap[1]) adap_incr.face_adap_incr[top].n[1] = std::max(adap_incr.face_adap_incr[top].n[1], alpha);
+      else         adap_incr.face_adap_incr[top].n[0] = std::max(adap_incr.face_adap_incr[top].n[0], alpha);
+      if (swap[4]) adap_incr.face_adap_incr[fro].n[1] = std::max(adap_incr.face_adap_incr[fro].n[1], alpha);
+      else         adap_incr.face_adap_incr[fro].n[0] = std::max(adap_incr.face_adap_incr[fro].n[0], alpha);
+      if (swap[5]) adap_incr.face_adap_incr[bck].n[1] = std::max(adap_incr.face_adap_incr[bck].n[1], alpha);
+      else         adap_incr.face_adap_incr[bck].n[0] = std::max(adap_incr.face_adap_incr[bck].n[0], alpha);
+    }
+
+    if (beta) {
+      // bot top: Y, lft rgt: X
+      if (swap[0]) adap_incr.face_adap_incr[bot].n[0] = std::max(adap_incr.face_adap_incr[bot].n[0], beta);
+      else         adap_incr.face_adap_incr[bot].n[1] = std::max(adap_incr.face_adap_incr[bot].n[1], beta);
+      if (swap[1]) adap_incr.face_adap_incr[top].n[0] = std::max(adap_incr.face_adap_incr[top].n[0], beta);
+      else         adap_incr.face_adap_incr[top].n[1] = std::max(adap_incr.face_adap_incr[top].n[1], beta);
+      if (swap[2]) adap_incr.face_adap_incr[lft].n[1] = std::max(adap_incr.face_adap_incr[lft].n[1], beta);
+      else         adap_incr.face_adap_incr[lft].n[0] = std::max(adap_incr.face_adap_incr[lft].n[0], beta);
+      if (swap[3]) adap_incr.face_adap_incr[rgt].n[1] = std::max(adap_incr.face_adap_incr[rgt].n[1], beta);
+      else         adap_incr.face_adap_incr[rgt].n[0] = std::max(adap_incr.face_adap_incr[rgt].n[0], beta);
+    }
+
+    if (gamma) {
+      // lft rgt fro bck: Y
+      if (swap[2]) adap_incr.face_adap_incr[lft].n[0] = std::max(adap_incr.face_adap_incr[lft].n[0], gamma);
+      else         adap_incr.face_adap_incr[lft].n[1] = std::max(adap_incr.face_adap_incr[lft].n[1], gamma);
+      if (swap[3]) adap_incr.face_adap_incr[rgt].n[0] = std::max(adap_incr.face_adap_incr[rgt].n[0], gamma);
+      else         adap_incr.face_adap_incr[rgt].n[1] = std::max(adap_incr.face_adap_incr[rgt].n[1], gamma);
+      if (swap[4]) adap_incr.face_adap_incr[fro].n[0] = std::max(adap_incr.face_adap_incr[fro].n[0], gamma);
+      else         adap_incr.face_adap_incr[fro].n[1] = std::max(adap_incr.face_adap_incr[fro].n[1], gamma);
+      if (swap[5]) adap_incr.face_adap_incr[bck].n[0] = std::max(adap_incr.face_adap_incr[bck].n[0], gamma);
+      else         adap_incr.face_adap_incr[bck].n[1] = std::max(adap_incr.face_adap_incr[bck].n[1], gamma);
+    }
+
+
     _sensor->Hexa_adap_compute(PHi, adap_incr);
+    assert(alpha == adap_incr.cell_adap_incr[PHi].n[0]);
+    assert(beta == adap_incr.cell_adap_incr[PHi].n[1]);
+    assert(gamma == adap_incr.cell_adap_incr[PHi].n[2]);
+
   }
 
 }
