@@ -5239,7 +5239,7 @@ def extractAllBCMatch(t,varList=None):
 
   return allMatch
 
-def computeBCMatchField(z,allMatch,variables=None):
+def computeBCMatchField(z, allMatch, variables=None):
 
   # Fields array in receiver zone (z)
   # =================================

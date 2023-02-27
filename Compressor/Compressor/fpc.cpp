@@ -226,7 +226,7 @@ FPC_ATTR void FPC_CALL fpc_decode_explicit(
         ++out_values;
         if (out_values == end)
         {
-            (void)memcpy(out_values, tmp, 8);
+            (void)memcpy(out_values-1, tmp, 8);
             return;
         }
         // DECODE HEADER #2
@@ -418,7 +418,7 @@ FPC_ATTR void FPC_CALL fpc32_decode_explicit(
         ++out_values;
         if (out_values == end)
         {
-            (void)memcpy(out_values, tmp, 4);
+            (void)memcpy(out_values-1, tmp, 4);
             return;
         }
         // DECODE HEADER #2

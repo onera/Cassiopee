@@ -88,6 +88,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
         //memset(dfcm, 0, sizeof(dfcm));
         //double* decompressed = new double [an_array_length];
         //fpc_decode(&ctx, out_compressed, decompressed, an_array_length);
+        //delete [] decompressed;
         //for (E_Int i = 0; i < an_array_length; i++) printf("%f ", decompressed[i]);
 
         //= On prepare l'objet compresse
@@ -105,7 +106,8 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
         {
             buffer[ibyte] = out_compressed[ibyte];
         }
-        
+        delete [] out_compressed;
+
         //= On rajoute le tableau au tuple (shape,buffer)
         PyTuple_SET_ITEM(obj, 1, (PyObject*)cpr_arr);
         if (is_c_order)
@@ -283,6 +285,8 @@ PyObject* py_fpc_uncompress(PyObject *self, PyObject *args)
         
         //for (E_Int i = 0; i < array_length; i++) py_array_data[i] = 0.;
         fpc_decode(&ctx, cpr_data, py_array_data, array_length);
+        //double* decompressed = new double [array_length];
+        //fpc_decode(&ctx, cpr_data, decompressed, array_length);
         //for (E_Int j = 0; j < array_length; j++) printf("%f ", py_array_data[j]);
                 
         if (!is_list)

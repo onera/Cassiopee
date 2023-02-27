@@ -1315,11 +1315,11 @@ Check nodes
 .. py:function:: Converter.Internal.checkPyTree(t, level=-20) 
 
     Check pyTree t following level (0: valid version node,
-    1: node conformity, 2: unique base names,
-    3: unique zone names, 4: unique BC names, 5: valid BC ranges, 6: valid
-    opposite BC ranges for match and nearmatch, 7: referenced familyZone and
-    familyBCs must be defined in bases, 8: valid CGNS types, 9: valid connectivities,
-    10: valid CGNS flowfield names and dimensions, 11: node names have less than 32 chars).
+    1: node conformity, 2: unique base name,
+    3: unique zone name, 4: unique BC name, 5: valid BC range, 6: valid
+    opposite BC range for match and nearmatch, 7: referenced familyZone and
+    familyBCs must be defined in bases, 8: valid CGNS types, 9: valid connectivity,
+    10: valid CGNS flowfield name and dimension).
     If level=-20, all previous checks are performed.
     
     Return a list of pairs of invalid nodes and error message.

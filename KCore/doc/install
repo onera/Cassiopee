@@ -61,7 +61,7 @@ cp $CASSIOPEE/Apps/Modules/Post/doc/source/Rotor.rst source/
 cp $CASSIOPEE/Apps/Modules/Post/doc/source/Post_IBM.rst source/
 
 cp $CASSIOPEE/Apps/Modules/RigidMotion/doc/source/RigidMotion.rst source/
-cp $CASSIOPEE/Apps/Modules/RigidMotion/doc/source/OCC.rst source/
+cp $CASSIOPEE/Apps/Modules/OCC/doc/source/OCC.rst source/
 
 cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/CPlot.rst source/
 cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/tkCassiopee.rst source/
