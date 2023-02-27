@@ -607,13 +607,14 @@ __merge_omp
   std::vector<std::vector<E_Int>> onodes_thrd(__NUMTHREADS__);
   std::vector<std::vector<E_Float>> dist2_thrd(__NUMTHREADS__);
 
-  E_Int id, Fi, Fj;
-  size_t i, j, osz;
-  double d2, TOLi, TOLj2;
-
   // loop on target nodes and get all moving nodes in sphere of radius tol.
-#pragma omp parallel shared(tsz, moving_tree, palma, utarget, palma_thrd, dist2_thrd, onodes_thrd, RTOL, nodal_metric2, NUGA::FLOAT_MAX) private (i, j, id, osz, Fi, Fj, d2, TOLi, TOLj2) default(none)
+//#pragma omp parallel shared(tsz, moving_tree, palma, utarget, palma_thrd, dist2_thrd, onodes_thrd, RTOL, nodal_metric2) private (i, j, id, osz, Fi, Fj, d2, TOLi, TOLj2) default(none)
+  #pragma omp parallel
   {
+    E_Int id, Fi, Fj;
+    size_t i, j, osz;
+    double d2, TOLi, TOLj2;
+
     id = __CURRENT_THREAD__;
 
 #pragma omp for schedule(static)
@@ -678,6 +679,7 @@ __merge_omp
 
   // move the node
   E_Int nb_merges(0);
+  E_Int Fi, Fj;
   size_t psz = palma.size();
   for (size_t i = 0; i < psz; ++i)
   {

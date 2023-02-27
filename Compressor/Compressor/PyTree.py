@@ -353,10 +353,10 @@ def _uncompressCartesian(t):
 
 # ctype=0: compress with sz
 # ctype=1: compress with zfp
-# ctype=2: compress cellN
-# ctype=3: compress basic element connectivity
-# ctype=4: compress ngon connectivity
-# ctype=5: compress with fpc
+# ctype=2: compress cellN (lossless)
+# ctype=3: compress basic element connectivity (lossless)
+# ctype=4: compress ngon connectivity (losless)
+# ctype=5: compress with fpc (lossless)
 def _packNode(node, tol=1.e-8, ctype=0):
     if Internal.getNodeFromName1(node, 'ZData') is not None: return None # already compressed node
     if ctype == 0: # sz
@@ -392,6 +392,7 @@ def _packNode(node, tol=1.e-8, ctype=0):
         node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
     elif ctype == 5: # fpc
+        #print('compress', node[0], node[1].shape, flush=True)
         ret = Compressor.compressor.compressFpc(node[1])
         shape = [5.,0.,float(ret[2])]+list(ret[0])
         node[1] = ret[1]
@@ -432,8 +433,10 @@ def _unpackNode(node):
             node[1] = ret[0]
             Internal._rmNodesFromName1(node, 'ZData')
         elif ctype == 5: # fpc
+            #print('uncompress', node[0], shape, flush=True)
             ret = Compressor.compressor.uncompressFpc((shape,node[1],iscorder))
             node[1] = ret
+            #print('ret', node[1], numpy.isfortran(node[1]))
             Internal._rmNodesFromName1(node, 'ZData')
         else:
             raise ValueError("unpackNode: unknown compression type.")
@@ -442,7 +445,6 @@ def _unpackNode(node):
 # compressCoords of zones
 def _compressCoords(t, tol=1.e-8, ctype=0):
     """Compress coordinates with a relative tolerance."""
-    #from . import sz
     zones = Internal.getZones(t)
     for z in zones:
         GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
@@ -560,4 +562,19 @@ def uncompressAll(t):
     """Uncompress all compressed data."""
     tp = Internal.copyRef(t)
     _uncompressAll(tp)
+    return tp
+
+# compresse le plus possible en lossless (sauf le cartesien)
+def _compressAll(t):
+    """Compress coords, fields and connectivity (lossless)."""
+    _compressCellN(t)
+    _compressCoords(t, ctype=5)
+    _compressFields(t, ctype=5)
+    _compressElements(t)
+    return None
+
+def compressAll(t):
+    """Compress coords, fields and connectivity (lossless)."""
+    tp = Internal.copyRef(t)
+    _compressAll(tp)
     return tp

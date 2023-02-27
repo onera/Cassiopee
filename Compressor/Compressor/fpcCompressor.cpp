@@ -33,7 +33,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
                         "pack: wrong syntax. Right syntax: packFpc(array or list of arrays");
         return NULL;
     }
-    bool  is_list = false;
+    bool is_list = false;
     std::vector<PyArrayObject *> np_arrays;
     if (PyList_Check(arrays)) 
     {
@@ -57,7 +57,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
         PyArrayObject* an_array = np_arrays[i];
         int       ndims = PyArray_NDIM(an_array);
         npy_intp *dims  = PyArray_DIMS(an_array);
-        std::size_t  an_array_length = PyArray_SIZE(an_array);
+        std::size_t an_array_length = PyArray_SIZE(an_array);
         double* array_data = (double*)PyArray_DATA(an_array);
         bool is_c_order = false;
         if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
@@ -79,7 +79,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
         //for (E_Int i = 0; i < an_array_length; i++) printf("%g ", array_data[i]);
         
         E_Int size = fpc_encode(&ctx, array_data, an_array_length, out_compressed);
-        printf("compression: init=%d, compressed=%d\n", an_array_length*8, size);
+        printf("compression: init=%d, compressed=%d, reserved=%d\n", an_array_length*8, size, outSize);
         //printf("outcompress %d\n", size);
         //for (E_Int i = 0; i < size; i++) printf("%u ", out_compressed[i]);
         
@@ -277,21 +277,22 @@ PyObject* py_fpc_uncompress(PyObject *self, PyObject *args)
         ctx.seed = 0.0;
         memset(fcm, 0, sizeof(fcm));
         memset(dfcm, 0, sizeof(dfcm));
-        printf("compressed size=%d uncomp=%d\n", cpr_length, array_length);
+        printf("decompression: compressed size=%d uncomp=%d\n", cpr_length, array_length*8);
         //printf("cprdata %d\n", cpr_length);
         //for (E_Int i = 0; i < cpr_length; i++) printf("%u ", cpr_data[i]);
         
         //for (E_Int i = 0; i < array_length; i++) py_array_data[i] = 0.;
         fpc_decode(&ctx, cpr_data, py_array_data, array_length);
         //for (E_Int j = 0; j < array_length; j++) printf("%f ", py_array_data[j]);
-        
-        if (!is_list) 
+                
+        if (!is_list)
         {
-            Py_DecRef(lst_out_arrays);
+            Py_DECREF(lst_out_arrays);
             return (PyObject *)py_array;
         }
         PyList_SetItem(lst_out_arrays, i, (PyObject *)py_array);
     }
+    
     return lst_out_arrays;
 }
 }// Fin namespace K_COMPRESSOR

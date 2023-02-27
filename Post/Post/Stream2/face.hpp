@@ -41,16 +41,16 @@ namespace K_POST
     public:
         //_________________ Définition de types (traits) ______________________
         template<typename K> 
-        using const_view_type=K_MEMORY::vector_view<const K>;
+        using const_view_type = K_MEMORY::vector_view<const K>;
         using const_coordinates_type = std::array<const_view_type<E_Float>,3>;
         using intersection_data = std::pair<point3d, E_Int>;
 
         //________________________ Membres publiques __________________________
         //@brief Indices globaux des sommets constituant la face               
         std::vector<E_Int>      indices_vertices;
-        //@brief Indices globaux des éléments contenant la face                
+        //@brief Indices globaux des elements contenant la face                
         std::pair<E_Int,E_Int> indices_cells;
-        //@brief Vue des coordonnées des sommets du maillage contenant la face 
+        //@brief Vue des coordonnees des sommets du maillage contenant la face 
         const_coordinates_type  coordinates_of_zone;
 
         //_________________ Constructeurs et destructeurs _____________________
