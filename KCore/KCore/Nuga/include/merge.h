@@ -746,7 +746,7 @@ merge
  NUGA::int_vector_type& new_IDs, bool do_omp=false)
 {
   NUGA::int_vector_type nodes(coordAcc.size());
-  for (size_t i = 0; i < nodes.size(); ++i)nodes[i]=i;
+  for (size_t i = 0; i < nodes.size(); ++i) nodes[i]=i;
 
   if (!do_omp)
     return ::__merge(coordAcc, tol, nodes, nodes, new_IDs);

@@ -424,7 +424,7 @@ namespace NUGA
               
               for (E_Int c = 0; c < cols; ++c)
               {
-                for (size_t k = 0; k < data_stride; ++k)
+                for (E_Int k = 0; k < data_stride; ++k)
                   a(k, c) = *(p++);
               }
 

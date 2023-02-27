@@ -173,6 +173,7 @@ inline int convert_dico_to_map___transfo_to_vecint
     transfo_to_list[t].resize(sz);
     for (size_t u=0; u < sz; ++u) transfo_to_list[t][u] = dataPtr[u];
   }
+  return 0;
 }
 
 ////////////////////////////////////////////////

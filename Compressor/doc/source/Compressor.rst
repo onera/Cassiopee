@@ -49,6 +49,7 @@ List of functions
    Compressor.PyTree.compressCoords
    Compressor.PyTree.compressFields
    Compressor.PyTree.compressElements
+   Compressor.PyTree.compressAll
    Compressor.PyTree.uncompressAll
 
 Contents
@@ -235,9 +236,26 @@ Object serialize/compression
     .. literalinclude:: ../build/Examples/Compressor/compressElementsPT.py
 
 
+
 ---------------------------------------
 
-.. py:function:: Compressor.PyTree.uncompressAll(a, tol=1.e-8)
+.. py:function:: Compressor.PyTree.compressAll(a)
+
+    Compress zones (fields, connectivity) in a lossless way.
+
+    Exists also as an in-place version (_compressAll) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [zone, list of zones, base, pyTree]
+    :return: identical to input
+
+    * `Zone compression (pyTree) <Examples/Compressor/compressAllPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Compressor/compressAllPT.py
+
+---------------------------------------
+
+.. py:function:: Compressor.PyTree.uncompressAll(a)
 
     Uncompress zones compressed with the previous compressors.
 
