@@ -2177,13 +2177,13 @@ void metric_sensor<mesh_t>::Hexa_adap_compute(E_Int PHi, output_t& adap_incr)
     cell_incr_t cell_incr(0);
 
     E_Int incrX[4] = {f_incr[0].n[0], f_incr[4].n[0], f_incr[1].n[0], f_incr[5].n[0]};
-    cell_incr.n[0] = std::max(0,*std::min_element(incrX, incrX + 4));
+    cell_incr.n[0] = std::max(E_Int(0),*std::min_element(incrX, incrX + 4));
 
     E_Int incrY[4] = {f_incr[0].n[1], f_incr[2].n[0], f_incr[1].n[1], f_incr[3].n[0]};
-    cell_incr.n[1] = std::max(0,*std::min_element(incrY, incrY + 4));
+    cell_incr.n[1] = std::max(E_Int(0),*std::min_element(incrY, incrY + 4));
 
     E_Int incrZ[4] = {f_incr[2].n[1], f_incr[4].n[1], f_incr[3].n[1], f_incr[5].n[1]};
-    cell_incr.n[2] = std::max(0,*std::min_element(incrZ, incrZ + 4));
+    cell_incr.n[2] = std::max(E_Int(0),*std::min_element(incrZ, incrZ + 4));
 
     adap_incr.cell_adap_incr[PHi] = cell_incr;
 }

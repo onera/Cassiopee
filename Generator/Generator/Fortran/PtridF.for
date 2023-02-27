@@ -57,12 +57,14 @@ C ADDED BY CB - INIT Z
       ENDDO
 C END
 
-      DO 10 I=1,M
-      DO 10 J=1,M
+      DO I=1,M
+      DO J=1,M
         Z(I,J,1)=A(I,J,1)
         A(I,J,1)=0.D0
         Z(I,J,N-1)=C(I,J,N-1)
- 10     C(I,J,N-1)=0.D0
+        C(I,J,N-1)=0.D0
+      ENDDO
+      ENDDO
 C
 C
       EPS=1E-13
@@ -74,28 +76,37 @@ C
        STOP
       ENDIF
 C
-      DO 11 L=1,N-1
-      DO 11 I=1,M
+      DO L=1,N-1
+      DO I=1,M
  11     ZA(I,L)=D(I,L)
+      ENDDO
+      ENDDo
       CALL k6SOLBT (M,N-1,B,C,A,ZA,IP)
 
-      DO 12 L=1,N-1
-      DO 12 I=1,M
+      DO L=1,N-1
+      DO I=1,M
  12     D(I,L)=ZA(I,L)
+      ENDDO
+      ENDDO
       
       DO 20 JK=1,M
-      DO 21 L=1,N-1
-      DO 21 I=1,M
+      DO L=1,N-1
+      DO I=1,M
  21     ZA(I,L)=Z(I,JK,L)
- 
+      ENDDO
+      ENDDO
+      
 	  CALL k6SOLBT (M,N-1,B,C,A,ZA,IP)
-      DO 22 L=1,N-1
-      DO 22 I=1,M
+      DO L=1,N-1
+      DO I=1,M
  22     Z(I,JK,L)=ZA(I,L)
+      ENDDO
+      ENDDO
  20     CONTINUE
 
-      DO 23 I=1,M
+      DO I=1,M
  23     Z(I,1,N)=D(I,N)
+      ENDDO
 C
       DO 30 I=1,M
       DO 30 J=1,M

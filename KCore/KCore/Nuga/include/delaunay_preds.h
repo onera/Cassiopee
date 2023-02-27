@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __DELAUNAY_PREDICATES_H__
 #define __DELAUNAY_PREDICATES_H__
@@ -21,7 +21,7 @@ namespace DELAUNAY
 /**
    Predicate that returns true if the input edge is hard.
   */
-  struct HardEdgeCriterion : public std::unary_function <const K_MESH::NO_Edge&, bool>
+  struct HardEdgeCriterion // : public std::unary_function <const K_MESH::NO_Edge&, bool>
 {
 
   explicit HardEdgeCriterion(const NUGA::non_oriented_edge_set_type& hard_edges)
@@ -37,7 +37,7 @@ namespace DELAUNAY
 
 ///
 template <typename T>
-struct no_predicate : public std::unary_function <T, bool>
+struct no_predicate // : public std::unary_function <T, bool>
 {
   inline bool operator() (const T& ) const
   {
@@ -51,7 +51,7 @@ struct no_predicate : public std::unary_function <T, bool>
    */
 
 template <typename T>
-struct DelaunayCriterion : public std::unary_function <E_Int, bool>
+struct DelaunayCriterion // : public std::unary_function <E_Int, bool>
 {
   explicit DelaunayCriterion(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect)
     :_pos(pos), _connect(connect), _m(0){}

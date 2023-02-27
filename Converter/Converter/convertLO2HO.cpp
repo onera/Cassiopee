@@ -223,7 +223,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // ajout pour chaque edge
       if (order == 2)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -234,7 +234,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       }
       else if (order == 3)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -246,7 +246,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       }
       else // if (order == 4)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -330,7 +330,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // ajout pour chaque edge
       if (order == 2)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -341,7 +341,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       }
       else if (order == 3)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -352,7 +352,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
         }
       }
       else // order == 4
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -449,7 +449,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // ajout pour chaque edge
       if (order == 3)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -461,7 +461,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       }
       else // if (order == 4)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -576,7 +576,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // ajout pour chaque edge
       if (order == 2)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -593,7 +593,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       }
       else if (order == 3)
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -614,7 +614,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       }
       else // order == 4
       {
-        for (const std::pair<ETK,E_Int>& elt : map)
+        for (const std::pair<const ETK,E_Int>& elt : map)
         {
           k = elt.first;
           ind = elt.second;
@@ -722,7 +722,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // reprise des sommets LO
       for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
       // ajout pour chaque edge
-      for (const std::pair<ETK,E_Int>& elt : map)
+      for (const std::pair<const ETK,E_Int>& elt : map)
       {
         k = elt.first;
         ind = elt.second;
@@ -793,7 +793,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // reprise des sommets LO
       for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
       // ajout pour chaque edge
-      for (const std::pair<ETK,E_Int>& elt : map)
+      for (const std::pair<const ETK,E_Int>& elt : map)
       {
         k = elt.first;
         ind = elt.second;
@@ -897,7 +897,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // reprise des sommets LO
       for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
       // ajout pour chaque edge
-      for (const std::pair<ETK,E_Int>& elt : map)
+      for (const std::pair<const ETK,E_Int>& elt : map)
       {
         k = elt.first;
         ind = elt.second;
@@ -911,7 +911,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     for (E_Int n = 1; n <= nfld; n++)
     {
       // ajout pour chaque face
-      for (const std::pair<ETK,E_Int>& elt : map2)
+      for (const std::pair<const ETK,E_Int>& elt : map2)
       {
         k = elt.first;
         ind = elt.second;
@@ -1037,7 +1037,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // reprise des sommets LO
       for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
       // ajout pour chaque edge
-      for (const std::pair<ETK,E_Int>& elt : map)
+      for (const std::pair<const ETK,E_Int>& elt : map)
       {
         k = elt.first;
         ind = elt.second;
@@ -1051,7 +1051,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     for (E_Int n = 1; n <= nfld; n++)
     {
       // ajout pour chaque face
-      for (const std::pair<ETK,E_Int>& elt : map2)
+      for (const std::pair<const ETK,E_Int>& elt : map2)
       {
         k = elt.first;
         ind = elt.second;
@@ -1151,7 +1151,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // reprise des sommets LO
       for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
       // ajout pour chaque edge
-      for (const std::pair<ETK,E_Int>& elt : map)
+      for (const std::pair<const ETK,E_Int>& elt : map)
       {
         k = elt.first;
         ind = elt.second;
@@ -1165,7 +1165,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     for (E_Int n = 1; n <= nfld; n++)
     {
       // ajout pour chaque face
-      for (const std::pair<ETK,E_Int>& elt : map2)
+      for (const std::pair<const ETK,E_Int>& elt : map2)
       {
         k = elt.first;
         ind = elt.second;

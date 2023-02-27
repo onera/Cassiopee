@@ -118,8 +118,8 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     // Boundary corrections
     if (BCFields != Py_None)
     {
-      PyObject* indR = PyList_GetItem(BCFields, 0);
-      PyObject* fields = PyList_GetItem(BCFields, 1);
+      //PyObject* indR = PyList_GetItem(BCFields, 0);
+      //PyObject* fields = PyList_GetItem(BCFields, 1);
       //E_Int res = K_ARRAY::getFromArray(fields, varString, FCenter, 
       //                                  ni, nj, nk, c, eltType, true);
       //center2NodeStructBorder(FNode, nin, njn, nkn);

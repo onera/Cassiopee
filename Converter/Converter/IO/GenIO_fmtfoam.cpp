@@ -322,7 +322,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
   strcpy(fullPath, file);
   E_Float ret;
   E_Float max_time = 0;
-  while (dir = readdir(d)) {
+  while ((dir = readdir(d))) {
     strcpy(path, fullPath);
     strcat(path, "/");
     strcat(path, dir->d_name);
@@ -338,7 +338,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
   char dir_name[260] = {0};
   dir_name[0] = '\0';
   d = opendir(file);
-  while (dir = readdir(d)) {
+  while ((dir = readdir(d))) {
     strcpy(path, fullPath);
     strcat(path, "/");
     strcat(path, dir->d_name);
@@ -370,7 +370,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file, std::vector<FldArrayF*>& centerUns
   E_Int field_type[MAX_FIELDS] = {1}; // 1: scalar, 2: vector, 3: tensor
   char field_name[MAX_FIELDS][128];
 
-  while (dir = readdir(d)) {
+  while ((dir = readdir(d))) {
     strcpy(path, fullPath);
     strcat(path, "/");
     strcat(path, dir->d_name);
@@ -1246,7 +1246,7 @@ E_Int K_IO::GenIO::foamwrite(
     E_Int size = PyList_Size(BCs);
 
     if (size == 0) {
-      fprintf(stderr, "    Warning: OpenFOAM requires boundary patches.\n");
+      printf("Warning: foamwrite: requires boundary patches.\n");
       //exit(1);
     }
 
@@ -1263,7 +1263,8 @@ E_Int K_IO::GenIO::foamwrite(
 #endif
       name_per_bc.push_back(0);
       name_per_bc[j] = new char[strlen(name) + 1];
-      strncpy(name_per_bc[j], name, strlen(name));
+      //strncpy(name_per_bc[j], name, strlen(name));
+      strcpy(name_per_bc[j], name);
       PyArrayObject *array = (PyArrayObject *) PyList_GetItem(BCs, 2*j+1);
       ptr = (E_Int *) PyArray_DATA(array);
       np = PyArray_SIZE(array); // number of faces in current boundary

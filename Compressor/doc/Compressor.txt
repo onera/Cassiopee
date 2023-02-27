@@ -1,4 +1,8 @@
 ===============================================================================
+Compressor 3.6 [03/2023]
+Require: C++ compiler, python > 2.4, numpy > 1.0, KCore, Converter 3.6
+- compressFields: add fpc lossless compression for doubles.
+===============================================================================
 Compressor 3.5 [12/2022]
 Require: C++ compiler, python > 2.4, numpy > 1.0, KCore, Converter 3.5
 ===============================================================================

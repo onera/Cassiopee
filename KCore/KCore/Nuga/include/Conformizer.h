@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __CONFORMIZER_H__
 #define	__CONFORMIZER_H__
@@ -27,7 +27,7 @@ namespace NUGA
 {
   
 template<typename Element_t>
-struct isDegenerated : public std::unary_function <const K_FLD::IntArray::iterator&, bool>
+struct isDegenerated // : public std::unary_function <const K_FLD::IntArray::iterator&, bool>
 {
   explicit isDegenerated(){}
 
@@ -36,7 +36,7 @@ struct isDegenerated : public std::unary_function <const K_FLD::IntArray::iterat
 };
 
 template<>
-struct isDegenerated<K_MESH::Edge> : public std::unary_function <const K_FLD::IntArray::iterator&, bool>
+struct isDegenerated<K_MESH::Edge> // : public std::unary_function <const K_FLD::IntArray::iterator&, bool>
 {
   explicit isDegenerated(){}
 

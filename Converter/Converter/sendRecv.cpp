@@ -485,7 +485,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     {
         delete bigBuf[i];
     }
-    delete bigBuf;
+    delete [] bigBuf;
 
 #ifdef _MPI
     MPI_Request* crossRequest = new MPI_Request[1];
@@ -619,7 +619,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     if ((dataType != 1) && (dataType != 2) && (dataType != 3))
     {
         printf("Error: recv: unknown data type (return None).\n"); fflush(stdout);
-        delete initRecvBuf;
+        delete [] initRecvBuf;
         Py_INCREF(Py_None);
         return Py_None;
     } 
@@ -653,7 +653,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             size             = intBuf[0] ; buf+=4;
             char zoneName[size+1];
             for (E_Int k=0; k<size; k++) { zoneName[k]   = buf[k]; }
-            zoneName[size]='\0'; buf+=size;
+            zoneName[size]='\0'; buf += size;
 
             // Nom de la zone donneuse
             (*typeData)       = *buf      ; buf+=1;
@@ -661,7 +661,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             size              = intBuf[0] ; buf+=4;
             char zoneDName[size+1];
             for (E_Int k=0; k<size; k++) { zoneDName[k]   = buf[k]; }
-            zoneDName[size]='\0'; buf+=size;
+            zoneDName[size]='\0'; buf += size;
 
             // Tableau des indices
             (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
@@ -686,7 +686,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             size                = intBuf[0]; buf+=4;
             E_Float* yCoords    = new E_Float[size];
             E_Float* yBuf       = (E_Float*) buf;
-            buf+=size*8;
+            buf += size*8;
 
             // Tableau des Z
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour Z (!=float)\n", rank); fflush(stdout);};
@@ -694,7 +694,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             size                = intBuf[0]; buf+=4;
             E_Float* zCoords    = new E_Float[size];
             E_Float* zBuf       = (E_Float*) buf;
-            buf+=size*8;
+            buf += size*8;
             
             // Remplissage parallele
             #pragma omp parallel
@@ -733,7 +733,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
-            delete indices; delete xCoords; delete yCoords; delete zCoords;
+            delete [] indices; delete [] xCoords; delete [] yCoords; delete [] zCoords;
         }
         else if (dataType == 2)
         {
@@ -810,7 +810,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
-            delete indices; delete fields;
+            delete [] indices; delete [] fields;
 
         }
         else if (dataType == 3)
@@ -885,15 +885,15 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
-            delete indices; delete fields;
+            delete [] indices; delete [] fields;
         }
 
-        delete initBuf;
+        delete [] initBuf;
 
         recvBuf += nOctets; 
     }
 
-    delete initRecvBuf;
+    delete [] initRecvBuf;
 
     
     // Retour des datas

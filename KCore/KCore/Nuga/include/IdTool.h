@@ -205,7 +205,7 @@ E_Int IdTool::compress_unic(std::vector<T>& vec)
 }
 
 ///
-struct unchanged : public std::unary_function <E_Int, bool>
+struct unchanged // : public std::unary_function <E_Int, bool>
 {
   unchanged(const std::vector<E_Int>& indir):_indir(indir){}
   inline bool operator() (E_Int i ) const
@@ -217,7 +217,7 @@ struct unchanged : public std::unary_function <E_Int, bool>
 };
 
 ///
-struct valid : public std::unary_function <E_Int, bool>
+struct valid // : public std::unary_function <E_Int, bool>
 {
   valid(const std::vector<E_Int>& indir):_indir(indir){}
   inline bool operator() (E_Int i ) const
@@ -229,7 +229,7 @@ struct valid : public std::unary_function <E_Int, bool>
 };
 
 ///
-struct invalid : public std::unary_function <E_Int, bool>
+struct invalid // : public std::unary_function <E_Int, bool>
 {
   invalid(const std::vector<E_Int>& indir):_indir(indir){}
   inline bool operator() (E_Int i ) const
@@ -242,7 +242,7 @@ struct invalid : public std::unary_function <E_Int, bool>
 
 ///
 template< typename T = bool>
-struct keep : public std::unary_function <E_Int, bool>
+struct keep // : public std::unary_function <E_Int, bool>
 {
   keep(const std::vector<T>& indir):_indir(indir){}
   inline bool operator() (E_Int i ) const
@@ -253,7 +253,7 @@ struct keep : public std::unary_function <E_Int, bool>
   const std::vector<T>& _indir;
 };
 template< typename T = bool>
-struct keep2 : public std::unary_function <E_Int, bool>
+struct keep2 // : public std::unary_function <E_Int, bool>
 {
   keep2(const T* indir, E_Int n):_indir(indir), _n(n){}
   inline bool operator() (E_Int i ) const
@@ -265,7 +265,7 @@ struct keep2 : public std::unary_function <E_Int, bool>
   E_Int _n;
 };
 
-struct strictly_positive : public std::unary_function <E_Int, bool>
+struct strictly_positive // : public std::unary_function <E_Int, bool>
 {
   strictly_positive(const std::vector<E_Int>& indir):_indir(indir){}
   inline bool operator() (E_Int i ) const

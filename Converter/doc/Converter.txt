@@ -1,4 +1,11 @@
 ==============================================================================
+Converter 3.6 [03/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.6
+Optional: Mpi requires mpi4py
+- Internal.checkPyTree/correctPyTree: add check/correct name length > 32 chars
+==============================================================================
 Converter 3.5 [12/2022]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5
 Optional: libhdf5 > 1.8.6 (hdf file format)

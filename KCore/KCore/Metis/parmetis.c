@@ -105,7 +105,7 @@ int METIS_NodeNDP(idx_t nvtxs, idx_t *xadj, idx_t *adjncy, idx_t *vwgt,
 void MlevelNestedDissectionP(ctrl_t *ctrl, graph_t *graph, idx_t *order, 
          idx_t lastvtx, idx_t npes, idx_t cpos, idx_t *sizes)
 {
-  idx_t i, j, nvtxs, nbnd;
+  idx_t i, nvtxs, nbnd;
   idx_t *label, *bndind;
   graph_t *lgraph, *rgraph;
 
@@ -161,7 +161,6 @@ void MlevelNestedDissectionP(ctrl_t *ctrl, graph_t *graph, idx_t *order,
 int METIS_ComputeVertexSeparator(idx_t *nvtxs, idx_t *xadj, idx_t *adjncy, 
            idx_t *vwgt, idx_t *options, idx_t *r_sepsize, idx_t *part) 
 {
-  idx_t i, j;
   graph_t *graph;
   ctrl_t *ctrl;
 
