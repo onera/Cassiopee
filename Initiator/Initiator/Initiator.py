@@ -90,6 +90,18 @@ def overlayField(a1, a2, MInf=0.5):
     else:
         return initiator.overlayField(a1, a2, MInf)
 
+def initWissocq(a, position=(0.5,0.5), Gamma=0.07, MInf=0.1):
+    """Init a with Wissocq's vortex of
+    intensity Gamma and position (x0,y0).
+    Usage: initWissocq(a, (x0,y0), Gamma, MInf)"""
+    if isinstance(a[0], list):
+        b = []
+        for i in a:
+            b.append(initiator.initWissocq(i, position, Gamma, MInf))
+        return b
+    else:
+        return initiator.initWissocq(a, position, Gamma, MInf)
+
 def cons2Prim(a, Gamma=1.4, Rgas=287.053):
     """Compute primitive variables from conservative variables"""
     a = C.initVars(t, '{VelocityX} = {MomentumX}/{Density}')

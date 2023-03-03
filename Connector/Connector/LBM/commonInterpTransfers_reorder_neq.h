@@ -25,7 +25,6 @@ switch (type)
       indCoef  += sizecoefs;
      } //noind
     } //ne
-
     break;
 
   case 1:
@@ -38,7 +37,6 @@ switch (type)
         vectOfRcvFields[ne][indR] = vectOfDnrFields[ne][indD0];
       }
     }
-
     break;
     
   case 2: // Structure Lineaire O2 par tetra

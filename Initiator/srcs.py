@@ -9,6 +9,7 @@ cpp_srcs = ['Initiator/initByVortex.cpp',
 #==============================================================================
 for_srcs = ['Initiator/Fortran/LambF.for',
             'Initiator/Fortran/ScullyF.for',
+            'Initiator/Fortran/WissocqF.for',
             'Initiator/Fortran/Scully2F.for',
             'Initiator/Fortran/VisbalF.for',
             'Initiator/Fortran/YeeF.for']

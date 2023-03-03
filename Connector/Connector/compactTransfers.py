@@ -12,7 +12,7 @@ except: pass
 ibm_lbm_variables_1 ='Q_'
 ibm_lbm_variables_2 ='Qstar_'
 ibm_lbm_variables_3 ='Qneq_'
-NEQ_LBM =  86
+NEQ_LBM =  89
 
 #==============================================================================
 # Mise a plat (compactage) arbre donneur au niveau de la base
@@ -81,13 +81,25 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
       model    = 'NSLaminar'
       a        = Internal.getNodeFromName2(base, 'GoverningEquations')
       if a is not None: model = Internal.getValue(a)
-      if model=="NSLaminar" or model=="Euler": neq_trans=5
-      elif model=="NSTurbulent": neq_trans=6
+      if model=="NSLaminar" or model=="Euler": neq_base=5
+      elif model=="NSTurbulent": neq_base=6
       elif model=='LBMLaminar':
-           neq_trans = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][NEQ_LBM]
+           neq_base = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][NEQ_LBM]
 
       zones_tc = Internal.getZones(base)
       for z in zones_tc:
+
+        model_z = None
+        a = Internal.getNodeFromName2(z, 'GoverningEquations')
+        if a is not None:
+           model_z = Internal.getValue(a)
+           if model_z=="NSLaminar" or model_z=="Euler": neq_trans=5
+           elif model_z=="NSTurbulent": neq_trans=6
+           elif model_z=='LBMLaminar':
+                neq_trans = Internal.getNodeFromName2(zones[c] , 'Parameter_int')[1][NEQ_LBM]
+
+        else: neq_trans = neq_base
+
         #print(z[0])
         subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         meshtype   = 1
@@ -888,16 +900,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             if kcurv is not None:
               kcurv[1]  = param_real[ ptkcurv : ptkcurv + Nbpts_D ]
 
-            if sd1 is not None:
-              sd1[1]  = param_real[ ptd1 : ptd1 + Nbpts_D ]
-            if sd2 is not None:
-              sd2[1]  = param_real[ ptd2 : ptd2 + Nbpts_D ]
-            if sd3 is not None:
-              sd3[1]  = param_real[ ptd3 : ptd3 + Nbpts_D ]
-            if sd4 is not None:
-              sd4[1]  = param_real[ ptd4 : ptd4 + Nbpts_D ]
-            if sd5 is not None:
-              sd5[1]  = param_real[ ptd5 : ptd5 + Nbpts_D ]
+            if sd1 is not None: sd1[1]  = param_real[ ptd1 : ptd1 + Nbpts_D ]
+            if sd2 is not None: sd2[1]  = param_real[ ptd2 : ptd2 + Nbpts_D ]
+            if sd3 is not None: sd3[1]  = param_real[ ptd3 : ptd3 + Nbpts_D ]
+            if sd4 is not None: sd4[1]  = param_real[ ptd4 : ptd4 + Nbpts_D ]
+            if sd5 is not None: sd5[1]  = param_real[ ptd5 : ptd5 + Nbpts_D ]
 
               
             if yline is not None:
@@ -921,6 +928,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
               if qloc_3[0] is not None:
                   for f_i in range(0,neq_loc):
                       qloc_3[f_i][1]   = param_real[ ptqloc_3[f_i] : ptqloc_3[f_i] + Nbpts_D ]      
+
        param_int[ iadr +rac[pos]*8 ] = adr_coef[pos] + size_coef[pos]          # PtcoefAdr
 
        iadr = iadr +1
@@ -946,7 +954,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
        if tmp is not None: param_int[ iadr +rac[pos]*13  ] = min (5, neq_loc)   # RANSLES
        else:               param_int[ iadr +rac[pos]*13  ] = neq_loc
 
-       #print('raccord',s[0], 'neq=',neq_loc)
+       tmp =  Internal.getNodeFromName1(s , 'NSLBM')
+       if tmp is not None: 
+           if neq_loc==5: param_int[ iadr +rac[pos]*13  ] = 11  # NS vers LBM
+           else:          param_int[ iadr +rac[pos]*13  ] = -5  # LBM vers NS
+
+       #print('raccord',s[0], 'neq=',neq_loc, param_int[ iadr +rac[pos]*13  ] , 'NoDR=',NozoneD, param_int[ iadr +rac[pos]*11  ])
 
        # raccord periodique avec rotation
        if RotationAngle is not None:

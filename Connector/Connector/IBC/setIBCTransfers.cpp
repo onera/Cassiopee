@@ -1559,7 +1559,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
       E_Float teta_out = param_real[ROT_TETA];
       E_Float tetap    = param_real[ROT_TETAP];
-      E_Float teta     = teta_out;
+      //E_Float teta     = teta_out;
+      E_Float teta     = 0;
 
 
     E_Float cay,caz,ctheta, stheta,vx,vy,vz,vn_paroi;

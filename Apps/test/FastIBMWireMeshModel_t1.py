@@ -85,10 +85,10 @@ graph=None
 ts   =None
 (t, tc, metrics) = FastS.warmup(t, tc, graph,tmy=ts)
 
+
 file_select = 1
 time_step   = Internal.getNodeFromName(t, 'time_step')
 time_step   = Internal.getValue(time_step)
-
 
 for it in range(NIT):
     FastS._compute(t, metrics, it, tc, graph,layer="Python")
@@ -96,7 +96,7 @@ for it in range(NIT):
         
     if it%display_probe_freq == 0:
         print('- %d / %d - %f'%(it+it0, NIT+it0, time0))
-        FastS.display_temporal_criteria(t, metrics, it, format='double')
+        FastS.display_temporal_criteria(t, metrics, it)
 
 # time stamp
 Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)

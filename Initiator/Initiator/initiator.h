@@ -25,6 +25,7 @@
 namespace K_INITIATOR
 {
   PyObject* initLamb( PyObject* self, PyObject* args );
+  PyObject* initWissocq( PyObject* self, PyObject* args );
   PyObject* initVisbal( PyObject* self, PyObject* args );
   PyObject* initYee( PyObject* self, PyObject* args );
   PyObject* initScully( PyObject* self, PyObject* args );

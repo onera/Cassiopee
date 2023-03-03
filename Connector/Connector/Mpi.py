@@ -313,7 +313,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 # IN: varType=1,2,3: variablesIBC define (ro,rou,rov,row,roE(,ronutilde)),(ro,u,v,w,t(,nutilde)),(ro,u,v,w,p(,nutilde))
 # Adim: KCore.adim1 for Minf=0.1
 #===============================================================================
-def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type_transfert, nitrun,
+def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type_transfert, it_target,
                          nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
                          graph=None, procDict=None, isWireModel_int=0):
 			 
@@ -337,16 +337,17 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
             #print('transfert local', type_transfert, dest, flush=True)
-            connector.___setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, nitrun, varType,
+            connector.___setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, it_target, varType,
                                             type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage,
                                             isWireModel_intv2)
 
         else:
             #print('transfert global', type_transfert, dest, flush=True)
             rank = Cmpi.rank
-            infos = connector.__setInterpTransfersD(zones, zonesD, vars, dtloc, param_int, param_real, nitrun, varType,
+            infos = connector.__setInterpTransfersD(zones, zonesD, vars, dtloc, param_int, param_real, it_target, varType,
                                                     type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage, rank,
 						    isWireModel_int) 
+
             if infos != []:
                for n in infos:
                   rcvNode = dest
@@ -393,6 +394,8 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
                 listIndices = n[2]
                 z = zones[rcvName]
                 C._setPartialFields(z, [field], [listIndices], loc='centers')
+
+
     return None
 
 #===============================================================================
@@ -402,7 +405,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
 # varType 22 : tc2/tc -> RCV ZONES
 # varType 23 : RCV ZONES -> tc 
 #===============================================================================
-def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_transfert, nitrun,
+def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_transfert, it_target,
                          nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
                          graph=None, procDict=None):
     isWireModelPrep= False
@@ -421,13 +424,13 @@ def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_
 
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
-            connector.___setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, nitrun, varType,
+            connector.___setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, it_target, varType,
                                                   type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage,
                                                   isWireModel)
 
         else:
             if varType != 24: 
-                allInfos = connector.__setInterpTransfersD4GradP(zones, zonesD, vars, param_int, param_real, nitrun, varType,
+                allInfos = connector.__setInterpTransfersD4GradP(zones, zonesD, vars, param_int, param_real, it_target, varType,
                                                         type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage) 
                 infos = allInfos[0]
                 infosGrad = allInfos[1]

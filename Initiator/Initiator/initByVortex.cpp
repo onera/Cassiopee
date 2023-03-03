@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2023 Onera.
+/*
+    Copyright 2013-2020 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,13 +28,13 @@ extern "C"
 {
   void k6lamb_(const E_Float& x0, const E_Float& y0,
                const E_Float& Gamma, const E_Float& MInf,
-               const E_Int& npts,      
+               const E_Int& npts,
                const E_Float* xc, const E_Float* yc, const E_Float* zc,
                E_Float* field);
 
   void k6scully_(const E_Float& x0, const E_Float& y0,
                  const E_Float& Gamma, const E_Float& a, const E_Float& MInf,
-                 const E_Int& npts,      
+                 const E_Int& npts,
                  const E_Float* xc, const E_Float* yc, const E_Float* zc,
                  E_Float* field);
 
@@ -52,7 +52,13 @@ extern "C"
 
   void k6scully2_(const E_Float& x0, const E_Float& y0,
                   const E_Float& Gamma, const E_Float& a, const E_Float& MInf,
-                  const E_Int& npts,      
+                  const E_Int& npts,
+                  const E_Float* xc, const E_Float* yc, const E_Float* zc,
+                  E_Float* field);
+
+  void k6wissocq_(const E_Float& x0, const E_Float& y0,
+                  const E_Float& Gamma, const E_Float& MInf,
+                  const E_Int& npts,
                   const E_Float* xc, const E_Float* yc, const E_Float* zc,
                   E_Float* field);
 }
@@ -68,19 +74,19 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "O(dd)dd", &array,
                         &x0, &y0, &Gam, &MInf) )
 #else
-    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,  
-                          &x0, &y0, &Gam, &MInf)) 
+    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,
+                          &x0, &y0, &Gam, &MInf))
 #endif
     {
       return NULL;
     }
-  
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   FldArrayF cfdField, fieldTot;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
 
   char varStringOut[K_ARRAY::VARSTRINGLENGTH];
@@ -95,18 +101,18 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
       delete f;
       PyErr_SetString(PyExc_ValueError,
                       "initLamb: can't find coordinates in array.");
-      return NULL;        
+      return NULL;
     }
     posx++; posy++; posz++;
-    
+
     E_Int defVars = 0; //says if output array is built using default variables or not
     //E_Int nCfdFld;
     E_Int neqTot = f->getNfld();
     E_Int posro = K_ARRAY::isDensityPresent(varString);
     E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
     E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
-    E_Int posrow = K_ARRAY::isMomentumZPresent(varString); 
-    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString); 
+    E_Int posrow = K_ARRAY::isMomentumZPresent(varString);
+    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString);
     vector<E_Int> posTot;
     if (posro == -1 || posrou == -1 || posrov == -1 || posrow == -1 || posroe == -1)
     {
@@ -115,7 +121,7 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
       neqTot = 8;
       strcpy(varStringOut, "x,y,z,ro,rou,rov,row,roE");
     }
-    else 
+    else
     {
       posro++; posrou++; posrov++; posrow++; posroe++;
       posTot.push_back(posro);
@@ -125,16 +131,16 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
       posTot.push_back(posroe);
       //nCfdFld = neqTot-3;
       strcpy(varStringOut, varString);
-    }  
+    }
     E_Int npts = f->getSize();
 
     FldArrayF cfdField(npts, 5);
     cfdField.setAllValuesAtNull();
 
-    k6lamb_(x0, y0, Gam, MInf, npts, 
+    k6lamb_(x0, y0, Gam, MInf, npts,
             f->begin(posx), f->begin(posy), f->begin(posz),
             cfdField.begin());
-    
+
     fieldTot.malloc(npts, neqTot);
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
@@ -150,7 +156,7 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
         {
           for (E_Int eq = 1; eq <= neqTot; eq++)
             fieldTot(i,eq) = (*f)(i,eq);
-        
+
           for (E_Int c = 0; c < posTotsize; c++)
           {
             E_Int pos0 = posTot[c];
@@ -158,7 +164,7 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
           }
         }
         break;
-        
+
       default:
         for (E_Int i = 0; i < npts; i++)
         {
@@ -168,7 +174,7 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
         }
         break;
     }
-    
+
     // build array
     delete f;
     FldArrayF* an = new FldArrayF(fieldTot);
@@ -202,22 +208,22 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
   E_Float x0, y0, Gam, MInf;
 
 #ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "O(dd)dd", &array, 
+  if (!PyArg_ParseTuple(args, "O(dd)dd", &array,
                         &x0, &y0, &Gam, &MInf))
 #else
-    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,  
-                          &x0, &y0, &Gam, &MInf)) 
+    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,
+                          &x0, &y0, &Gam, &MInf))
 #endif
     {
       return NULL;
     }
-  
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   FldArrayF cfdField, fieldTot;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
   char varStringOut[K_ARRAY::VARSTRINGLENGTH];
 
@@ -231,10 +237,10 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
       delete f;
       PyErr_SetString(PyExc_ValueError,
                       "initVisbal: can't find coordinates in array.");
-      return NULL;        
+      return NULL;
     }
     posx++; posy++; posz++;
-    
+
     E_Int defVars = 0;//says if output array is built using default variables or not
     //E_Int nCfdFld;
     E_Int neqTot = f->getNfld();
@@ -242,8 +248,8 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
     E_Int posro = K_ARRAY::isDensityPresent(varString);
     E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
     E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
-    E_Int posrow = K_ARRAY::isMomentumZPresent(varString); 
-    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString); 
+    E_Int posrow = K_ARRAY::isMomentumZPresent(varString);
+    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString);
     vector<E_Int> posTot;
 
     if (posro == -1 || posrou == -1 || posrov == -1 || posrow == -1 || posroe == -1)
@@ -253,7 +259,7 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
       neqTot = 8;
       strcpy(varStringOut, "x,y,z,ro,rou,rov,row,roE");
     }
-    else 
+    else
     {
       posro++; posrou++; posrov++; posrow++; posroe++;
       posTot.push_back(posro);
@@ -263,16 +269,16 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
       posTot.push_back(posroe);
       //nCfdFld = neqTot-3;
       strcpy(varStringOut, varString);
-    }  
+    }
     E_Int npts = f->getSize();
 
     FldArrayF cfdField(npts, 5);
     cfdField.setAllValuesAtNull();
 
-    k6visbal_(x0, y0, Gam, MInf, npts, 
+    k6visbal_(x0, y0, Gam, MInf, npts,
               f->begin(posx), f->begin(posy), f->begin(posz),
               cfdField.begin());
-    
+
     fieldTot.malloc(npts, neqTot);
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
@@ -284,12 +290,12 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
 
     switch (defVars)
     {
-      case 0 :   
+      case 0 :
         for (E_Int i = 0; i < npts; i++)
         {
           for (E_Int eq = 1; eq <= neqTot; eq++)
             fieldTot(i,eq) = (*f)(i,eq);
-          
+
           for (E_Int c = 0; c < posTotsize; c++)
           {
             E_Int pos0 = posTot[c];
@@ -297,7 +303,7 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
           }
         }
         break;
-        
+
       default:
         for (E_Int i = 0; i < npts; i++)
         {
@@ -307,7 +313,7 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
             fieldTot(i,eq+3) = cfdField(i,eq);
         }
         break;
-    }  
+    }
     // build array
     delete f;
     FldArrayF* an = new FldArrayF(fieldTot);
@@ -340,7 +346,7 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float x0, y0, Gam, coreRadius, MInf;
   E_Int model=0;
-  
+
 #if defined E_DOUBLEREAL && defined E_DOUBLEINT
   if (!PyArg_ParseTuple(args, "O(dd)dddl", &array,
                         &x0, &y0, &Gam, &coreRadius, &MInf, &model)) return NULL;
@@ -354,14 +360,14 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "O(ff)fffi", &array,
                         &x0, &y0, &Gam, &coreRadius, &MInf, &model)) return NULL;
 #endif
-  
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   FldArrayF cfdField, fieldTot;
-  
-  E_Int res = 
+
+  E_Int res =
     K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
   char varStringOut[K_ARRAY::VARSTRINGLENGTH];
 
@@ -386,8 +392,8 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
     E_Int posro = K_ARRAY::isDensityPresent(varString);
     E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
     E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
-    E_Int posrow = K_ARRAY::isMomentumZPresent(varString); 
-    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString); 
+    E_Int posrow = K_ARRAY::isMomentumZPresent(varString);
+    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString);
     vector<E_Int> posTot;
 
     if (posro == -1 || posrou == -1 || posrov == -1 || posrow == -1 || posroe == -1)
@@ -397,7 +403,7 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
       neqTot = 8;
       strcpy(varStringOut, "x,y,z,ro,rou,rov,row,roE");
     }
-    else 
+    else
     {
       posro++; posrou++; posrov++; posrow++; posroe++;
       posTot.push_back(posro);
@@ -407,16 +413,16 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
       posTot.push_back(posroe);
       //nCfdFld = neqTot-3;
       strcpy(varStringOut, varString);
-    }  
+    }
     E_Int npts = f->getSize();
 
     FldArrayF cfdField(npts, 5);
     cfdField.setAllValuesAtNull();
-    
+
     switch (model)
     {
       case 0:
-        k6scully_(x0, y0, Gam, coreRadius, MInf, npts, 
+        k6scully_(x0, y0, Gam, coreRadius, MInf, npts,
                   f->begin(posx), f->begin(posy), f->begin(posz),
                   cfdField.begin());
       default :
@@ -424,7 +430,7 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
                    f->begin(posx), f->begin(posy), f->begin(posz),
                    cfdField.begin());
     }
-    
+
     fieldTot.malloc(npts, neqTot);
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
@@ -436,12 +442,12 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
 
     switch (defVars)
     {
-      case 0 :   
+      case 0 :
         for (E_Int i = 0; i < npts; i++)
         {
           for (E_Int eq = 1; eq <= neqTot; eq++)
             fieldTot(i,eq) = (*f)(i,eq);
-          
+
           for (E_Int c = 0; c < posTotsize; c++)
           {
             E_Int pos0 = posTot[c];
@@ -449,7 +455,7 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
           }
         }
         break;
-        
+
       default:
         for (E_Int i = 0; i < npts; i++)
         {
@@ -494,23 +500,23 @@ K_INITIATOR::initYee(PyObject* self,
   E_Float x0, y0, Gam, Minf;
 
 #ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "O(dd)dd", &array, 
+  if (!PyArg_ParseTuple(args, "O(dd)dd", &array,
                         &x0, &y0, &Gam, &Minf))
 #else
-    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,  
-                          &x0, &y0, &Gam, &Minf)) 
+    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,
+                          &x0, &y0, &Gam, &Minf))
 #endif
     {
       return NULL;
     }
-  
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f;
   char* varString; char* eltType;
   FldArrayI* cn;
   FldArrayF cfdField, fieldTot;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
   char varStringOut[K_ARRAY::VARSTRINGLENGTH];
 
@@ -524,10 +530,10 @@ K_INITIATOR::initYee(PyObject* self,
       delete f;
       PyErr_SetString(PyExc_ValueError,
                       "initYee: can't find coordinates in array.");
-      return NULL;        
+      return NULL;
     }
     posx++; posy++; posz++;
-    
+
     E_Int defVars = 0;//says if output array is built using default variables or not
     //E_Int nCfdFld;
     E_Int neqTot = f->getNfld();
@@ -535,8 +541,8 @@ K_INITIATOR::initYee(PyObject* self,
     E_Int posro = K_ARRAY::isDensityPresent(varString);
     E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
     E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
-    E_Int posrow = K_ARRAY::isMomentumZPresent(varString); 
-    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString); 
+    E_Int posrow = K_ARRAY::isMomentumZPresent(varString);
+    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString);
     vector<E_Int> posTot;
 
     if (posro == -1 || posrou == -1 || posrov == -1 || posrow == -1 || posroe == -1)
@@ -546,7 +552,7 @@ K_INITIATOR::initYee(PyObject* self,
       neqTot = 8;
       strcpy(varStringOut, "x,y,z,ro,rou,rov,row,roE");
     }
-    else 
+    else
     {
       posro++; posrou++; posrov++; posrow++; posroe++;
       posTot.push_back(posro);
@@ -556,16 +562,16 @@ K_INITIATOR::initYee(PyObject* self,
       posTot.push_back(posroe);
       //nCfdFld = neqTot-3;
       strcpy(varStringOut, varString);
-    }  
+    }
     E_Int npts = f->getSize();
 
     FldArrayF cfdField(npts, 5);
     cfdField.setAllValuesAtNull();
 
-    k6yee_(x0, y0, Gam, Minf, npts, 
+    k6yee_(x0, y0, Gam, Minf, npts,
               f->begin(posx), f->begin(posy), f->begin(posz),
               cfdField.begin());
-    
+
     fieldTot.malloc(npts, neqTot);
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
@@ -577,12 +583,12 @@ K_INITIATOR::initYee(PyObject* self,
 
     switch (defVars)
     {
-      case 0 :   
+      case 0 :
         for (E_Int i = 0; i < npts; i++)
         {
           for (E_Int eq = 1; eq <= neqTot; eq++)
             fieldTot(i,eq) = (*f)(i,eq);
-          
+
           for (E_Int c = 0; c < posTotsize; c++)
           {
             E_Int pos0 = posTot[c];
@@ -590,7 +596,7 @@ K_INITIATOR::initYee(PyObject* self,
           }
         }
         break;
-        
+
       default:
         for (E_Int i = 0; i < npts; i++)
         {
@@ -600,7 +606,7 @@ K_INITIATOR::initYee(PyObject* self,
             fieldTot(i,eq+3) = cfdField(i,eq);
         }
         break;
-    }  
+    }
     // build array
     delete f;
     FldArrayF* an = new FldArrayF(fieldTot);
@@ -625,3 +631,139 @@ K_INITIATOR::initYee(PyObject* self,
   }
 }
 
+// ============================================================================
+/* Init by Wissocq's vortex */
+// ============================================================================
+PyObject* K_INITIATOR::initWissocq(PyObject* self, PyObject* args)
+{
+  PyObject* array;
+  E_Float x0, y0, Gam, MInf;
+
+#ifdef E_DOUBLEREAL
+  if (!PyArg_ParseTuple(args, "O(dd)dd", &array,
+                        &x0, &y0, &Gam, &MInf) )
+#else
+    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,
+                          &x0, &y0, &Gam, &MInf))
+#endif
+    {
+      return NULL;
+    }
+
+  // Check array
+  E_Int im, jm, km;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
+  FldArrayF cfdField, fieldTot;
+  E_Int res =
+    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+
+  char varStringOut[K_ARRAY::VARSTRINGLENGTH];
+
+  if (res == 1 || res == 2)
+  {
+    E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+    E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+    E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+    if (posx == -1 || posy == -1 || posz == -1)
+    {
+      delete f;
+      PyErr_SetString(PyExc_ValueError,
+                      "initWissocq: can't find coordinates in array.");
+      return NULL;
+    }
+    posx++; posy++; posz++;
+
+    E_Int defVars = 0; //says if output array is built using default variables or not
+    //E_Int nCfdFld;
+    E_Int neqTot = f->getNfld();
+    E_Int posro = K_ARRAY::isDensityPresent(varString);
+    E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
+    E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
+    E_Int posrow = K_ARRAY::isMomentumZPresent(varString);
+    E_Int posroe = K_ARRAY::isEnergyStagnationDensityPresent(varString);
+    vector<E_Int> posTot;
+    if (posro == -1 || posrou == -1 || posrov == -1 || posrow == -1 || posroe == -1)
+    {
+      defVars = 1;
+      //nCfdFld = 5;
+      neqTot = 8;
+      strcpy(varStringOut, "x,y,z,ro,rou,rov,row,roE");
+    }
+    else
+    {
+      posro++; posrou++; posrov++; posrow++; posroe++;
+      posTot.push_back(posro);
+      posTot.push_back(posrou);
+      posTot.push_back(posrov);
+      posTot.push_back(posrow);
+      posTot.push_back(posroe);
+      //nCfdFld = neqTot-3;
+      strcpy(varStringOut, varString);
+    }
+    E_Int npts = f->getSize();
+
+    FldArrayF cfdField(npts, 5);
+    cfdField.setAllValuesAtNull();
+
+    k6wissocq_(x0, y0, Gam, MInf, npts,
+               f->begin(posx), f->begin(posy), f->begin(posz),
+               cfdField.begin());
+
+    fieldTot.malloc(npts, neqTot);
+    E_Float* xt = f->begin(posx);
+    E_Float* yt = f->begin(posy);
+    E_Float* zt = f->begin(posz);
+    E_Float* xt2 = fieldTot.begin(1);
+    E_Float* yt2 = fieldTot.begin(2);
+    E_Float* zt2 = fieldTot.begin(3);
+    E_Int posTotsize = posTot.size();
+    switch (defVars)
+    {
+      case 0 :
+        for (E_Int i = 0; i < npts; i++)
+        {
+          for (E_Int eq = 1; eq <= neqTot; eq++)
+            fieldTot(i,eq) = (*f)(i,eq);
+
+          for (E_Int c = 0; c < posTotsize; c++)
+          {
+            E_Int pos0 = posTot[c];
+            fieldTot(i,pos0) = cfdField(i,c+1);
+          }
+        }
+        break;
+
+      default:
+        for (E_Int i = 0; i < npts; i++)
+        {
+          xt2[i] = xt[i]; yt2[i] = yt[i]; zt2[i] = zt[i];
+          for (E_Int eq = 1; eq <= 5; eq++)
+            fieldTot(i,eq+3) = cfdField(i,eq);
+        }
+        break;
+    }
+
+    // build array
+    delete f;
+    FldArrayF* an = new FldArrayF(fieldTot);
+    PyObject* tpl;
+    if (res == 1)
+    {
+      tpl = K_ARRAY::buildArray(*an, varStringOut, im, jm, km);
+      delete an;
+    }
+    else
+    {
+      tpl = K_ARRAY::buildArray(*an, varStringOut, *cn, -1, eltType);
+      delete an; delete cn;
+    }
+    return tpl;
+  }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "initWissocq: invalid type of array.");
+    return NULL;
+  }
+}

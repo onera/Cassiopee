@@ -58,7 +58,7 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
             "Connector/indiceToCoord2.cpp",
             "Connector/correctCoeffList.cpp",
             "Connector/modCellN.cpp",
-            "Connector/LBM/setInterpTransfers.cpp",
+            #"Connector/LBM/setInterpTransfers.cpp",
             "Connector/IBC/LBM/setIBCTransfers.cpp",
             "Connector/computeFrictionVelocityIBM.cpp"]
 

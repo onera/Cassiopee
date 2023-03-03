@@ -18,11 +18,11 @@ switch (type)
         val3 += ptrCoefs[ indCoef + kk-1]*vectOfDnrFields[3][indD0];
         val4 += ptrCoefs[ indCoef + kk-1]*vectOfDnrFields[4][indD0];
       }
-      vectOfRcvFields[0][indR] = val0;
-      vectOfRcvFields[1][indR] = val1;
-      vectOfRcvFields[2][indR] = val2;
-      vectOfRcvFields[3][indR] = val3;
-      vectOfRcvFields[4][indR] = val4;
+      vectOfRcvFields[shiftv+0][indR] = val0;
+      vectOfRcvFields[shiftv+1][indR] = val1;
+      vectOfRcvFields[shiftv+2][indR] = val2;
+      vectOfRcvFields[shiftv+3][indR] = val3;
+      vectOfRcvFields[shiftv+4][indR] = val4;
       sizecoefs = ncfLoc;
       noi      += ncfLoc+1;
       indCoef  += sizecoefs;
@@ -35,11 +35,11 @@ switch (type)
       indR   = rcvPts[noind];
       indD0  = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
     
-      vectOfRcvFields[0][indR] = vectOfDnrFields[0][indD0];
-      vectOfRcvFields[1][indR] = vectOfDnrFields[1][indD0];
-      vectOfRcvFields[2][indR] = vectOfDnrFields[2][indD0];
-      vectOfRcvFields[3][indR] = vectOfDnrFields[3][indD0];
-      vectOfRcvFields[4][indR] = vectOfDnrFields[4][indD0];
+      vectOfRcvFields[shiftv+0][indR] = vectOfDnrFields[0][indD0];
+      vectOfRcvFields[shiftv+1][indR] = vectOfDnrFields[1][indD0];
+      vectOfRcvFields[shiftv+2][indR] = vectOfDnrFields[2][indD0];
+      vectOfRcvFields[shiftv+3][indR] = vectOfDnrFields[3][indD0];
+      vectOfRcvFields[shiftv+4][indR] = vectOfDnrFields[4][indD0];
     }
     break;
     
@@ -105,11 +105,11 @@ switch (type)
       val4 += ptrCoefs[ indCoef + 6 ]*vectOfDnrFields[4][ind011];
       val4 += ptrCoefs[ indCoef + 7 ]*vectOfDnrFields[4][ind111];
 
-      vectOfRcvFields[0][indR] = val0; //Density
-      vectOfRcvFields[1][indR] = val1; //VelocityX
-      vectOfRcvFields[2][indR] = val2; //VelocityY
-      vectOfRcvFields[3][indR] = val3; //VelocityZ
-      vectOfRcvFields[4][indR] = val4; //Temperature
+      vectOfRcvFields[shiftv+0][indR] = val0; //Density
+      vectOfRcvFields[shiftv+1][indR] = val1; //VelocityX
+      vectOfRcvFields[shiftv+2][indR] = val2; //VelocityY
+      vectOfRcvFields[shiftv+3][indR] = val3; //VelocityZ
+      vectOfRcvFields[shiftv+4][indR] = val4; //Temperature
       indCoef  += 8;
     }
     break;
@@ -150,11 +150,11 @@ switch (type)
       val4 += ptrCoefs[ indCoef + 2 ]*vectOfDnrFields[4][ind01];
       val4 += ptrCoefs[ indCoef + 3 ]*vectOfDnrFields[4][ind11];
 
-      vectOfRcvFields[0][indR] = val0;
-      vectOfRcvFields[1][indR] = val1;
-      vectOfRcvFields[2][indR] = val2;
-      vectOfRcvFields[3][indR] = val3;
-      vectOfRcvFields[4][indR] = val4;
+      vectOfRcvFields[shiftv+0][indR] = val0;
+      vectOfRcvFields[shiftv+1][indR] = val1;
+      vectOfRcvFields[shiftv+2][indR] = val2;
+      vectOfRcvFields[shiftv+3][indR] = val3;
+      vectOfRcvFields[shiftv+4][indR] = val4;
       indCoef  += 4;
     }
     break;
@@ -180,11 +180,11 @@ switch (type)
             val3 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfDnrFields[3][indD];               
             val4 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfDnrFields[4][indD];               
           }
-      vectOfRcvFields[0][indR] = val0;
-      vectOfRcvFields[1][indR] = val1;
-      vectOfRcvFields[2][indR] = val2;
-      vectOfRcvFields[3][indR] = val3;
-      vectOfRcvFields[4][indR] = val4;
+      vectOfRcvFields[shiftv+0][indR] = val0;
+      vectOfRcvFields[shiftv+1][indR] = val1;
+      vectOfRcvFields[shiftv+2][indR] = val2;
+      vectOfRcvFields[shiftv+3][indR] = val3;
+      vectOfRcvFields[shiftv+4][indR] = val4;
       noi      += 1;
       indCoef  += sizecoefs;
     }
@@ -225,11 +225,11 @@ switch (type)
       val4 += ptrCoefs[ indCoef +1]*vectOfDnrFields[4][ind01];
       val4 += ptrCoefs[ indCoef +2]*vectOfDnrFields[4][ind02];
       val4 += ptrCoefs[ indCoef +3]*vectOfDnrFields[4][ind03];
-      vectOfRcvFields[0][indR] = val0;
-      vectOfRcvFields[1][indR] = val1;
-      vectOfRcvFields[2][indR] = val2;
-      vectOfRcvFields[3][indR] = val3;
-      vectOfRcvFields[4][indR] = val4;
+      vectOfRcvFields[shiftv+0][indR] = val0;
+      vectOfRcvFields[shiftv+1][indR] = val1;
+      vectOfRcvFields[shiftv+2][indR] = val2;
+      vectOfRcvFields[shiftv+3][indR] = val3;
+      vectOfRcvFields[shiftv+4][indR] = val4;
       indCoef  += sizecoefs;
     }
     break;
@@ -254,11 +254,11 @@ switch (type)
             val3 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+5]*ptrCoefs[ indCoef + kk+10]*vectOfDnrFields[3][indD];               
             val4 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+5]*ptrCoefs[ indCoef + kk+10]*vectOfDnrFields[4][indD];               
           }
-      vectOfRcvFields[0][indR] = val0;
-      vectOfRcvFields[1][indR] = val1;
-      vectOfRcvFields[2][indR] = val2;
-      vectOfRcvFields[3][indR] = val3;
-      vectOfRcvFields[4][indR] = val4;
+      vectOfRcvFields[shiftv+0][indR] = val0;
+      vectOfRcvFields[shiftv+1][indR] = val1;
+      vectOfRcvFields[shiftv+2][indR] = val2;
+      vectOfRcvFields[shiftv+3][indR] = val3;
+      vectOfRcvFields[shiftv+4][indR] = val4;
       indCoef  += 15;
     }
     break;

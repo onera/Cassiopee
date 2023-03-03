@@ -1742,6 +1742,11 @@ def _adaptForRANSLES__(tR, tD):
                 if (model_z2=='NSturbulent' or model_z1=='NSturbulent') and  model_z1 != model_z2:
                    datap = numpy.ones(1, numpy.int32)
                    Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
+
+                if (model_z2=='LBMLaminar' or model_z1=='LBMLaminar') and model_z1 != model_z2:
+                    datap = numpy.ones(1, numpy.int32)
+                    Internal.createUniqueChild(s, 'NSLBM', 'DataArray_t', datap)
+
             except: pass
     return None
 

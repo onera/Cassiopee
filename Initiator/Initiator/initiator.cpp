@@ -26,6 +26,7 @@ static PyMethodDef Pyinitiator [] =
 {
   {"initLamb", K_INITIATOR::initLamb, METH_VARARGS},
   {"initVisbal", K_INITIATOR::initVisbal, METH_VARARGS},
+  {"initWissocq", K_INITIATOR::initWissocq, METH_VARARGS},
   {"initYee", K_INITIATOR::initYee, METH_VARARGS},
   {"initScully", K_INITIATOR::initScully, METH_VARARGS},
   {"overlayField", K_INITIATOR::overlayField, METH_VARARGS},

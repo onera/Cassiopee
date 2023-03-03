@@ -1888,3 +1888,86 @@ def maskXRay__(body, delta=0., dim=3, isNot=0, tol=1.e-8):
     surf = C.getFields(Internal.__GridCoordinates__, body)
     pts = Connector.maskXRay__(surf, delta, dim, isNot, tol)
     return C.convertArrays2ZoneNode('XRayPts', [pts])
+
+#==============================================================================
+# Computes the connectivity & BC for NS/LBM interfaces
+#==============================================================================
+def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
+
+    a,typen = Internal.node2PyTree(t)
+    glob = 0
+    #On recupere les zones structurees
+    zones = []
+    for z in Internal.getZones(a):
+        if Internal.getZoneType(z)==1: zones.append(z)
+    # extract empty windows
+    structTags,structWins,structIndirBlkOfWins,typeOfWins,dimsI,dimsJ,dimsK = \
+        getEmptyWindowsInfoStruct__(zones, dim)
+
+    model ='Euler'
+    bases = Internal.getBases(a)
+    if bases != []:
+        c = Internal.getNodeFromName2(bases[0], 'GoverningEquations')
+        if c is not None: model = Internal.getValue(c)
+
+    # Identify matching cells for structured zones
+    if structTags != []:
+        structTags = Connector.identifyMatching(structTags,tol)
+        structTags = Converter.extractVars(structTags,['tag1','tag2'])
+        # Gather into structured patches [[[noz1,noz2],[imin1,imax1,...],[imin2,imax2,...],trirac]]
+        infos = Connector.gatherMatching(structWins,structTags,typeOfWins,structIndirBlkOfWins,
+                                         dimsI, dimsJ, dimsK, dim, tol)
+
+        for info in infos:
+            #print(info)
+            noz1 = info[0][0]; noz2 = info[0][1]
+            range1 = info[1]; range2 = info[2]
+            topp0 = info[3]
+            dimZ = Internal.getZoneDim(zones[noz1])
+            dimzone = dimZ[4]
+            if dimzone == 3: topp = [1,2,3]
+            else:
+                topp = [1,2]
+                topp0 = [topp0[0], topp0[1]]
+
+            if topp0[0] > 0: topp[topp0[0]-1] = 1
+            else: topp[-topp0[0]-1] = -1
+            if topp0[1] > 0: topp[topp0[1]-1] = 2
+            else: topp[-topp0[1]-1] = -2
+            if dimzone == 3:
+                if topp0[2] > 0: topp[topp0[2]-1] = 3
+                else: topp[-topp0[2]-1] = -3
+            #------------------------------------------
+            # addBC2Zone...
+            name1 = 'match%d_%d'%(noz1+1,glob); glob += 1
+            name2 = 'match%d_%d'%(noz2+1,glob); glob += 1
+            C._addBC2Zone(zones[noz1],name1,'BCMatch',range1,zones[noz2],range2,topp0)
+            C._addBC2Zone(zones[noz2],name2,'BCMatch',range2,zones[noz1],range1,topp)
+
+            # couplage  NS/LBM
+            model_z1 = model; model_z2 = model
+            eq= Internal.getNodeFromName2(zones[noz1], 'GoverningEquations')
+            if eq is not None: model_z1 = Internal.getValue(eq)
+            eq= Internal.getNodeFromName2(zones[noz2], 'GoverningEquations')
+            if eq is not None: model_z2 = Internal.getValue(eq)
+
+            if model_z1 == 'LBMLaminar' and model_z1 != model_z2:
+                # creation flag pour transfert LBM/NS
+                datap1 = numpy.ones(1, numpy.int32)
+                datap2 = numpy.ones(1, numpy.int32)
+                Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz1],name1), 'NSLBM', 'DataArray_t', datap1)
+                Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz2],name2), 'NSLBM', 'DataArray_t', datap2)
+                name_extrap = 'NS_LBM%d_%d'%(noz1,noz2)
+                C._addBC2Zone(zones[noz1],name_extrap,'BCReconsLBM',range1) #Reconstruction des VDF cote LBM
+                C._addBC2Zone(zones[noz2],name_extrap,'BCdimNS',range2)     #Permet de gerer l'adim cote NS
+
+            if model_z2 == 'LBMLaminar' and model_z1 != model_z2:
+                datap1 = numpy.ones(1, numpy.int32)
+                datap2 = numpy.ones(1, numpy.int32)
+                Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz2], name2), 'NSLBM', 'DataArray_t', datap2)
+                Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz1], name1), 'NSLBM', 'DataArray_t', datap1)
+                name_extrap = 'NS_LBM%d_%d'%(noz2,noz1)
+                C._addBC2Zone(zones[noz2], name_extrap, 'BCReconsLBM', range2) #Idem : reconstruction des VDF cote LBM
+                C._addBC2Zone(zones[noz1], name_extrap, 'BCdimNS', range1)     #Idem : gestion adim cote NS
+
+    return Internal.pyTree2Node(a, typen)

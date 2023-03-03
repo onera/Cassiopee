@@ -135,6 +135,7 @@ numz={"time_step": 0.0001, "scheme":"roe","slope":"minmod", "time_step_nature":"
 
 Fast._setNum2Zones(t_final, numz); Fast._setNum2Base(t_final, numb)
 
+
 (t_final, tc_final, metrics) = FastS.warmup(t_final, tc_final,verbose=1)
 
 
@@ -144,7 +145,7 @@ for it in range(nit):
     if it%25==0:
        FastS.displayTemporalCriteria(t_final, metrics, it)
 
-C.convertPyTree2File(t_final, 'restart.cgns')
+#C.convertPyTree2File(t_final, 'restart.cgns')
 Internal._rmNodesByName(t_final, '.Solver#Param')
 Internal._rmNodesByName(t_final, '.Solver#ownData')
 Internal._rmNodesByName(t_final, '.Solver#dtloc')

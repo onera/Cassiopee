@@ -112,6 +112,39 @@ def _initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
             z = C.setFields([ac], z, 'centers')
     return None
 
+def initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.1, loc='nodes'):
+    """Init the pyTree with Wissocq's vortex of
+    intensity Gamma and position (x0,y0).
+    Usage: initWissocq(t, (x0,y0), Gamma, MInf)"""
+    tp = Internal.copyRef(t)
+    _initWissocq(tp, position, Gamma, MInf, loc)
+    return tp
+
+def _initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.1, loc='nodes'):
+    nodes = Internal.getZones(t)
+    for z in nodes:
+        coordn = C.getFields(Internal.__GridCoordinates__, z)
+        if coordn == []:
+            print ('Warning: initWissocq: zone '+z[0]+' has no coordinates. Skipped...')
+            continue
+        coordn = coordn[0]
+        if loc == 'nodes':
+            a = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            if a == []: a = coordn
+            else: Converter._addVars([a, coordn])
+            a = Initiator.initWissocq(a, position, Gamma, MInf)
+            z = C.setFields([a], z, 'nodes')
+        else:
+            coordc = Converter.node2Center(coordn)
+            ac = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            if ac == []: ac = coordc
+            else: Converter._addVars([ac, coordc])
+            ac = Initiator.initWissocq(ac, position, Gamma, MInf)
+            ac = Converter.rmVars(ac, ['x', 'y', 'z'])
+            z = C.setFields([ac], z, 'centers')
+    return None
+
+
 def initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     """Init the array defining a grid with a Visbal vortex of intensity Gamma and position (x0,y0).
     Returns the array of the grid + cfd field in centers
