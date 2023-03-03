@@ -491,7 +491,7 @@ py_compress(PyObject *self, PyObject *args)
     }
 
     const char *filename = nullptr;
-    sz_params   parameters;
+    sz_params parameters;
     init_parameters(parameters);
     if (options) {
         if (PyUnicode_Check(options))
@@ -549,12 +549,14 @@ py_compress(PyObject *self, PyObject *args)
             if (ndims > 4) r5 = dims[4];
         }
         unsigned char *compressed_data = SZ_compress(SZ_DOUBLE, PyArray_DATA(an_array), &outSize, r5, r4, r3, r2, r1);
-        npy_intp       out_dim         = outSize;
+        npy_intp out_dim = outSize;
         PyObject *shape = PyTuple_New(ndims);
         for (int i = 0; i < ndims; ++i) PyTuple_SET_ITEM(shape, i, PyLong_FromLong(long(dims[i])));
         PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
         PyArrayObject* data = (PyArrayObject*)PyArray_SimpleNewFromData(1, &out_dim, NPY_BYTE, compressed_data);
+        char* ptr = (char*)PyArray_DATA(data);
+        
         PyArray_ENABLEFLAGS(data, NPY_ARRAY_OWNDATA);
         PyTuple_SET_ITEM(obj, 1, (PyObject*)data);
         if (is_c_order)
@@ -584,7 +586,7 @@ py_compress(PyObject *self, PyObject *args)
 static const char *decompress_doc = R"RAW(
 Decompress a compressed array or a list of compressed arrays.
 -------------------------------------------------------------
-Usage : array = sz.unpack(compressed_array[,options]);
+Usage: array = sz.unpack(compressed_array[,options]);
       or
         lst_of_arrays = sz.unpack([comp_arr1, comp_arr2,..., comp_arrb][,options])
       where :

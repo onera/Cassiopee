@@ -549,8 +549,10 @@ def _uncompressAll(t):
         GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
         FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
         fields = []
-        for c in GC+FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
-        for f in fields: _unpackNode(f)
+        for c in GC+FS: 
+            fields += Internal.getNodesFromType1(c, 'DataArray_t')
+        for f in fields:
+            _unpackNode(f)
         # unpack connectivity
         elts = Internal.getNodesFromType1(z, 'Elements_t')
         for e in elts:

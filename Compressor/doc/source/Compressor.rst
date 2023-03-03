@@ -241,7 +241,7 @@ Object serialize/compression
 
 .. py:function:: Compressor.PyTree.compressAll(a)
 
-    Compress zones (fields, connectivity) in a lossless way.
+    Compress zones (fields, connectivity) in the best and lossless way.
 
     Exists also as an in-place version (_compressAll) which modifies a and returns None.
 

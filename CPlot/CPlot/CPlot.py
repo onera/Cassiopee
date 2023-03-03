@@ -24,47 +24,27 @@ def configure(useRender):
 #==============================================================================
 # -- display --
 def display(arrays,
-            dim=-1,
-            mode=-1,
+            dim=-1, mode=-1,
             scalarField=-1,
             vectorField1=-1, vectorField2=-1, vectorField3=-1,
-            displayBB=-1,
-            displayInfo=-1,
-            displayIsoLegend=-1,
-            meshStyle=-1,
-            solidStyle=-1,
-            scalarStyle=-1,
-            vectorStyle=-1,
-            vectorScale=-1.,
-            vectorDensity=-1.,
-            vectorNormalize=-1,
-            vectorShowSurface=-1,
-            vectorShape=-1,
+            displayBB=-1, displayInfo=-1, displayIsoLegend=-1,
+            meshStyle=-1, solidStyle=-1, scalarStyle=-1,
+            vectorStyle=-1, vectorScale=-1., vectorDensity=-1.,
+            vectorNormalize=-1, vectorShowSurface=-1, vectorShape=-1,
             vectorProjection=-1,
-            colormap=-1,
-            colormapC1="",
-            colormapC2="",
-            colormapC3="",
+            colormap=-1, colormapC1="", colormapC2="", colormapC3="",
             colormapC=None,
-            niso=-1,
-            isoEdges=-1,
-            isoScales=[],
+            niso=-1, isoEdges=-1, isoScales=[],
             win=(-1,-1),
             posCam=(-999,-999,-999),
             posEye=(-999,-999,-999),
             dirCam=(-999,-999,-999),
             viewAngle=-1.,
-            bgColor=-1,
-            backgroundFile="None",
-            shadow=-1,
-            dof=-1,
-            stereo=-1,
-            stereoDist=-1.,
+            bgColor=-1, backgroundFile="None",
+            shadow=-1, dof=-1, stereo=-1, stereoDist=-1.,
             export="None",
             exportResolution="None",
-            zoneNames=[],
-            renderTags=[],
-            frameBuffer=-1,
+            zoneNames=[], renderTags=[], frameBuffer=-1,
             offscreen=0):
     """Display arrays.
     Usage: display(arrays)"""
@@ -96,6 +76,120 @@ def display(arrays,
                        shadow, dof, stereo, stereoDist,
                        export, exportResolution,
                        zoneNames, renderTags, frameBuffer, offscreen)
+
+#==============================================================================
+def displayOSMesa(arrays,
+            dim=-1, mode=-1,
+            scalarField=-1,
+            vectorField1=-1, vectorField2=-1, vectorField3=-1,
+            displayBB=-1, displayInfo=-1, displayIsoLegend=-1,
+            meshStyle=-1, solidStyle=-1, scalarStyle=-1,
+            vectorStyle=-1, vectorScale=-1., vectorDensity=-1.,
+            vectorNormalize=-1, vectorShowSurface=-1, vectorShape=-1,
+            vectorProjection=-1,
+            colormap=-1, colormapC1="", colormapC2="", colormapC3="",
+            colormapC=None,
+            niso=-1, isoEdges=-1, isoScales=[],
+            win=(-1,-1),
+            posCam=(-999,-999,-999),
+            posEye=(-999,-999,-999),
+            dirCam=(-999,-999,-999),
+            viewAngle=-1.,
+            bgColor=-1, backgroundFile="None",
+            shadow=-1, dof=-1, stereo=-1, stereoDist=-1.,
+            export="None",
+            exportResolution="None",
+            zoneNames=[], renderTags=[], frameBuffer=-1,
+            offscreen=0):
+    """Display arrays.
+    Usage: display(arrays)"""
+    global __slot__
+    if arrays != [] and not isinstance(arrays[0], list): arrays = [arrays]
+    if __slot__ is None:
+        import os.path
+        shaderPath = os.path.dirname(__file__)+'/'
+        cplot.setShaderPath(shaderPath)
+        cplot.displayNewOSMesa(arrays, dim, mode, scalarField, vectorField1,
+                     vectorField2, vectorField3, displayBB, displayInfo,
+                     displayIsoLegend, meshStyle, solidStyle,
+                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
+                     vectorShowSurface, vectorShape, vectorProjection, 
+                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                     niso, isoEdges, isoScales, win,
+                     posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                     shadow, dof, stereo, stereoDist,
+                     export, exportResolution, zoneNames, renderTags,
+                     frameBuffer, offscreen)
+    else:
+        cplot.displayAgainOSMesa(arrays, dim, mode, scalarField, vectorField1,
+                       vectorField2, vectorField3, displayBB, displayInfo,
+                       displayIsoLegend, meshStyle, solidStyle,
+                       scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                       vectorShowSurface, vectorShape, vectorProjection,
+                       colormap, colormapC1, colormapC2, colormapC3, colormapC, 
+                       niso, isoEdges, isoScales, win,
+                       posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                       shadow, dof, stereo, stereoDist,
+                       export, exportResolution,
+                       zoneNames, renderTags, frameBuffer, offscreen)
+    __slot__ = 1
+
+#==============================================================================
+def displayFBO(arrays,
+            dim=-1, mode=-1,
+            scalarField=-1,
+            vectorField1=-1, vectorField2=-1, vectorField3=-1,
+            displayBB=-1, displayInfo=-1, displayIsoLegend=-1,
+            meshStyle=-1, solidStyle=-1, scalarStyle=-1,
+            vectorStyle=-1, vectorScale=-1., vectorDensity=-1.,
+            vectorNormalize=-1, vectorShowSurface=-1, vectorShape=-1,
+            vectorProjection=-1,
+            colormap=-1, colormapC1="", colormapC2="", colormapC3="",
+            colormapC=None,
+            niso=-1, isoEdges=-1, isoScales=[],
+            win=(-1,-1),
+            posCam=(-999,-999,-999),
+            posEye=(-999,-999,-999),
+            dirCam=(-999,-999,-999),
+            viewAngle=-1.,
+            bgColor=-1, backgroundFile="None",
+            shadow=-1, dof=-1, stereo=-1, stereoDist=-1.,
+            export="None",
+            exportResolution="None",
+            zoneNames=[], renderTags=[], frameBuffer=-1,
+            offscreen=0):
+    """Display arrays offscreen using FBO.
+    Usage: displayFBO(arrays)"""
+    global __slot__
+    if arrays != [] and not isinstance(arrays[0], list): arrays = [arrays]
+    if __slot__ is None:
+        import os.path
+        shaderPath = os.path.dirname(__file__)+'/'
+        cplot.setShaderPath(shaderPath)
+        cplot.displayNewFBO(arrays, dim, mode, scalarField, vectorField1,
+                     vectorField2, vectorField3, displayBB, displayInfo,
+                     displayIsoLegend, meshStyle, solidStyle,
+                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
+                     vectorShowSurface, vectorShape, vectorProjection, 
+                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                     niso, isoEdges, isoScales, win,
+                     posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                     shadow, dof, stereo, stereoDist,
+                     export, exportResolution, zoneNames, renderTags,
+                     frameBuffer, offscreen)
+    else:
+        cplot.displayAgainFBO(arrays, dim, mode, scalarField, vectorField1,
+                     vectorField2, vectorField3, displayBB, displayInfo,
+                     displayIsoLegend, meshStyle, solidStyle,
+                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
+                     vectorShowSurface, vectorShape, vectorProjection, 
+                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                     niso, isoEdges, isoScales, win,
+                     posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                     shadow, dof, stereo, stereoDist,
+                     export, exportResolution, zoneNames, renderTags,
+                     frameBuffer, offscreen)
+    __slot__ = 1
 
 #==============================================================================
 def render():

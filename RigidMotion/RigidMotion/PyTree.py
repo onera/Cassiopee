@@ -444,13 +444,13 @@ def _copyGrid2GridInit(t, mode=0):
        gridInit = Internal.createNode('GridCoordinates#Init', 'GridCoordinates_t', parent=z)
       xcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateX')
       if xcoord0 is None:
-        xcoord0 = Internal.copyNode(xcoord); gridInit[2].append(xcoord0)
+        xcoord0 = Internal.copyNode(xcoord); xcoord[2] = []; gridInit[2].append(xcoord0)
       ycoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateY')
       if ycoord0 is None:
-        ycoord0 = Internal.copyNode(ycoord); gridInit[2].append(ycoord0)
+        ycoord0 = Internal.copyNode(ycoord); ycoord[2] = []; gridInit[2].append(ycoord0)
       zcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateZ')
       if zcoord0 is None:
-        zcoord0 = Internal.copyNode(zcoord); gridInit[2].append(zcoord0)
+        zcoord0 = Internal.copyNode(zcoord); zcoord[2] = []; gridInit[2].append(zcoord0)
       rigidMotion.copyCoords(xcoord[1], ycoord[1], zcoord[1], xcoord0[1], ycoord0[1], zcoord0[1])
       # copie CartesianData si il y en a
       cd = Internal.getNodeFromName1(grid, 'CartesianData')

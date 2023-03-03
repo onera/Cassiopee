@@ -58,7 +58,7 @@ int new_TightDataPointStorageD_fromFlatBytes(TightDataPointStorageD **this, unsi
 	size_t i, index = 0;
 	size_t pwrErrBoundBytes_size = 0, segmentL = 0, radExpoL = 0, pwrErrBoundBytesL = 0;
 	char version[3];
-	for (i = 0; i < 3; i++)
+    for (i = 0; i < 3; i++)
 		version[i] = flatBytes[index++]; //3
 	unsigned char sameRByte = flatBytes[index++]; //1
 	if(checkVersion2(version)!=1)

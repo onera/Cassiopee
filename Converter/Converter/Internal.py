@@ -2406,7 +2406,7 @@ def duptree__(node, parent):
     for i in node[2]: duptree__(i, d)
     return d
 
-# -- Copy un arbre en gardant des references sur les numpy
+# -- Copy un arbre en gardant des references sur les numpys
 def copyRef(node):
     """Copy a tree sharing node values."""
     ret = isStdNode(node)
@@ -2443,7 +2443,7 @@ def copyTree__(node, parent=None, order='F'):
 
 # -- Copie un noeud (pas de recursivite)
 def copyNode(node):
-    """Copy only this node (no recursion)."""
+    """Copy only this node (no recursion). Share children with node. """
     ret = isStdNode(node)
     if ret == -1:
         if node[1] is not None and isinstance(node[1], numpy.ndarray):

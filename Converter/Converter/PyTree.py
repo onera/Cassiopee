@@ -235,7 +235,7 @@ def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
   for z in nodes:
     varlist = []
     if not excludeXYZ:
-      nodesGC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
+      nodesGC = Internal.getNodesFromName1(z, Internal.__GridCoordinates__)
       for i in nodesGC:
         nodesVar = Internal.getNodesFromType1(i, 'DataArray_t')
         for j in nodesVar: varlist.append(j[0])

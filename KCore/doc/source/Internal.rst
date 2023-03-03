@@ -1428,6 +1428,7 @@ Copy nodes
 .. py:function:: Converter.Internal.copyNode(node) 
 
     Copy only this node (no recursion). Node value (in particular data numpy) is copied.
+    Children of node are shared.
 
     :param node:  input node
     :type  node:  pyTree node or list of pyTree nodes
