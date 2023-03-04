@@ -31,26 +31,10 @@
 using namespace K_FLD;
 using namespace std;
 
-//=============================================================================
-// Cree la boucle glut dans une thread. Cette fonction n'est plus
-// utilise car le threading est fait en python
-//=============================================================================
-/*
-static void* threadFunc(void* v)
-{
-  Data* d = Data::getInstance();
-  int argc = 0;
-  char* com = NULL;
-  glutInit(&argc, &com);
-  d->openGfx();
-  glutMainLoop();
-  return NULL;
-}
-*/
-//=============================================================================
-/* display arrays (generic) */
-//=============================================================================
-PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
+//====================================================================================
+// Cette fonction n'est pas encore utilisee. Elle doit servir a un appel directe
+// des fonctions offscreen (sans passer par le display generique)
+PyObject* K_CPLOT::displayNewFBO(PyObject* self, PyObject* args)
 {
   #include "display1.h"
 
@@ -124,60 +108,21 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   E_Int unstrFSize = unstrF.size();
   for (E_Int i = 0; i < unstrFSize; i++) RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
 
-  if (d->ptrState->offscreen == 1 ||
-      d->ptrState->offscreen == 5 ||
-      d->ptrState->offscreen == 6 ||
-      d->ptrState->offscreen == 7) // MESA offscreen
-  {
-    // Dans ce cas, on ne fait pas de glutInit, car il requiert
-    // un serveur X
-#ifdef __MESA__
-    /* Init */
-
-    // Window size base sur l'export
-    if (d->ptrState->exportWidth == -1) d->ptrState->exportWidth = 1920;
-    if (d->ptrState->exportHeight == -1) d->ptrState->exportHeight = 1080;
-    d->_view.w = d->ptrState->exportWidth; d->_view.h = d->ptrState->exportHeight;
-    //printf("%d %d\n", d->ptrState->exportWidth, d->ptrState->exportHeight);
-    
-    //printf("Creating OS context..."); fflush(stdout);
-    OSMesaContext* ctx = new OSMesaContext();
-    //ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-    (*ctx) = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
-    d->ptrState->ctx = ctx;
-    d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
-    (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
-    OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
-                      GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
-    d->init();
-    d->ptrState->farClip = 1;
-    d->ptrState->render = 0;
-    d->ptrState->shootScreen = 0;
-    gdisplay(); // build DL
-    d->display();
-    d->exportFile();
-    //printf("done.\n");
-    // use finalizeExport to free OSMesaContext
-#else
-    printf("Error: CPlot: mesa offscreen unavailable.\n");
-#endif
-  }
-  else
-  { // direct ou offscreen FBO
-    d->ptrState->farClip = 1;
-    // thread en python
-    Py_BEGIN_ALLOW_THREADS;
-    Data* d = Data::getInstance();
-    d->_save = _save;
-    /* Gfx setup */
-    int argc = 0;
-    char* com = NULL;
-    INITTHREADS;
-    glutInit(&argc, &com);
-    d->openGfx();
-    glutMainLoop();
-    Py_END_ALLOW_THREADS;
-  }
+  d->ptrState->farClip = 1;
+  
+  /* Gfx setup */
+  int argc = 0;
+  char* com = NULL;
+  glutInit(&argc, &com); // not needed?
+  d->openGfx();
+  
+  //d->init();
+  //d->ptrState->farClip = 1;
+  //d->ptrState->render = 0;
+  //d->ptrState->shootScreen = 0;
+  //gdisplay(); // build DL
+  //d->display();
+  //d->exportFile();
 
   // Retourne le hook
   return Py_BuildValue("l", d);

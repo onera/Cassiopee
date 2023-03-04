@@ -11,8 +11,10 @@ import KCore.Dist as Dist
 from KCore.config import *
 
 # If you want to use CPlot as a offscreen plotter (as on clusters)
-# set UseOSMesa to True (requires mesa)
-UseOSMesa = CPlotOffScreen
+# si CPlotOffScreen = 0, production pure OpenGL (GL/glew gl/shader4)
+# si CPlotOffScreen = 1, production pure OSMesa (osmesa/glew mesa/shader2)
+# si CPlotOffScreen = 2, tente les deux (osmesa/glew gl/shader2)
+UseOSMesa = int(CPlotOffScreen)
 
 # Get prefix from command line
 prefix = ARGUMENTS.get('prefix', '')
@@ -39,16 +41,16 @@ includeDirs = [pythonIncDir, numpyIncDir, kcoreIncDir, kcoreLibDir+'/../include'
 libraryDirs += paths; libraries += libs
 
 # Test if OSMesa exists =======================================================
-if UseOSMesa:
+if UseOSMesa == 1 or UseOSMesa == 2:
     (OSMesa, OSMesaIncDir, OSMesaLibDir, libname) = Dist.checkOSMesa(additionalLibPaths,
                                                                      additionalIncludePaths)
     if OSMesa:
         libraries += [libname]
         libraryDirs += [OSMesaLibDir]
         includeDirs += [OSMesaIncDir]
-else: OSMesa = False
-
-if not UseOSMesa: libraries += ["GL"]
+else: 
+    OSMesa = False
+    libraries += ["GL"]
 
 # Test if PNG exists =========================================================
 (png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths, 
@@ -102,7 +104,7 @@ import KCore.installPath
 EXTRA = ['-D__SHADERS__']
 
 if OSMesa: EXTRA += ['-D__MESA__'] 
-if OSMesa and ELSAPROD != 'spiro_r8' and ELSAPROD != 'x86_r8' and ELSAPROD != 'spiro_el8':
+if OSMesa and UseOSMesa == 1:
     EXTRA += ['-DGLEW_OSMESA'] # pour que GLEW ne reference pas X11
 
 if mySystem == 'Darwin': EXTRA += ['-framework OpenGL']

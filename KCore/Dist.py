@@ -1202,6 +1202,22 @@ def checkElsa():
     return (elsA, elsAIncDir, elsALibDir, elsAUseMpi)
 
 #=============================================================================
+# Check for GL (libGL)
+# additionalPaths: chemins d'installation non standards: ['/home/toto',...]
+#=============================================================================
+def checkGL(additionalLibPaths=[], additionalIncludePaths=[]):
+    l = checkLibFile__('libGL.so', additionalLibPaths)
+    if l is None:
+        l = checkLibFile__('libGL.a', additionalLibPaths)
+    i = checkIncFile__('GL/gl.h', additionalIncludePaths)
+    if i is not None and l is not None:
+        print('Info: openGL detected at '+l+'.')
+        return (True, i, l)
+    else:
+        print('Info: openGL or GL/gl.h was not found on your system.')
+        return (False, '', '')
+
+#=============================================================================
 # Check for Glut (libglut)
 # additionalPaths: chemins d'installation non standards: ['/home/toto',...]
 #=============================================================================

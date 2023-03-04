@@ -5,7 +5,7 @@ from KCore.config import *
 (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
                                              additionalIncludePaths)
 # SHADERS=2 (glsl2.0) =4 (glsl4.0)
-if CPlotOffScreen:
+if CPlotOffScreen >= 1:
     # Il semble qu'OSMesa n'implemente en general pas le glsl4
     SHADERS = 2
 else:
@@ -22,7 +22,11 @@ cpp_srcs = ['CPlot/render.cpp',
             'CPlot/DataInstance.cpp',
             'CPlot/DataDL.cpp',
             'CPlot/displayNew.cpp',
+            'CPlot/displayNewFBO.cpp',
+            'CPlot/displayNewOSMesa.cpp',
             'CPlot/displayAgain.cpp',
+            'CPlot/displayAgainFBO.cpp',
+            'CPlot/displayAgainOSMesa.cpp',
             'CPlot/fitView.cpp',
             'CPlot/finalizeExport.cpp',
             'CPlot/getStringsFromPyObj.cpp',
