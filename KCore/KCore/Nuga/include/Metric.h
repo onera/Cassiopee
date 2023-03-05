@@ -269,9 +269,10 @@ namespace DELAUNAY{
     const E_Float& m12 = _field[Ni][1];
     const E_Float& m22 = _field[Ni][2];
     
-    E_Float k2 = 1. /(m11*dir[0]*dir[0] + 2.* m12*dir[0]*dir[1] + m22*dir[1]*dir[1]);
+    E_Float k2 = (m11*dir[0] * dir[0] + 2.* m12*dir[0] * dir[1] + m22 * dir[1] * dir[1]);
+    if (k2 != 0.) k2 = 1. / k2;
 
-    return k2*L2;
+    return k2 * L2;
   }
 
   /// length of edge in metric M[Ni]

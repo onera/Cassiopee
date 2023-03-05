@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
 
 #ifndef NUGA_HIERACHICAL_MESH_HXX
 #define NUGA_HIERACHICAL_MESH_HXX
@@ -680,7 +680,9 @@ template <> inline
 void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::enable_and_transmit_adap_incr_to_next_gen(output_t& adap_incr, int nb_phs0)
 {
 
-std::cout << "enabling and transmitting\n";
+#ifdef DEBUG_HIERARCHICAL_MESH
+  std::cout << "enabling and transmitting\n";
+#endif
 
   using cell_incr_t = typename output_t::cell_incr_t;
   using face_incr_t = typename output_t::face_incr_t;

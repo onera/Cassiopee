@@ -1229,8 +1229,8 @@ namespace NUGA
       }
       else if (PH_directive[i] == XY)
       {
-        HX18 elt(crd, ng, PHi, pos + i, F2E, PGtree);
-        elt.do_reorder = (STYPE == DIR_PROTO); // do reoder (reorder_as_XY call) only if DIR_PROTO
+        bool do_reorder = (STYPE == DIR_PROTO); // do reoder (reorder_as_XY call) only if DIR_PROTO
+        HX18 elt(crd, ng, PHi, pos + i, F2E, PGtree, do_reorder);
 
         if (elt.ok_for_split)
           elt.split(ng, PHi, PHtree, PGtree, F2E, intpos[i], childpos[i]);

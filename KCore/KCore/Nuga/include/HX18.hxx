@@ -27,105 +27,11 @@ namespace NUGA
     E_Int nodes[18];
 
     bool do_reorder;
-    
-    splitting_t<K_MESH::Hexahedron, NUGA::XY, 1>() : splitting_base_t(), do_reorder(false) {}
-
-    template <typename arr_t>
-    void reorder_as_XY(ngon_type& ng, E_Int PHi, const tree<arr_t> & PGtree, const K_FLD::IntArray& F2E)
-    {
-      E_Int* faces = ng.PHs.get_facets_ptr(PHi);
-      E_Int nfaces = ng.PHs.stride(PHi);
-
-      std::vector<E_Int> reord;
-      reord.reserve(6);
-      reord.insert(reord.end(), faces, faces + nfaces);
-
-      E_Int nbc = PGtree.nb_children(faces[0] - 1);
-      if (nbc == 4)
-      {
-        //swap enventually to be relevant with view regardin PH(0,0)
-        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
-        const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
-        E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
-        if (i0 == -1)
-          std::swap(reord[2], reord[3]);//left/right
-        p = ng.PGs.get_facets_ptr(reord[4] - 1);
-        i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
-        if (i0 == -1)
-          std::swap(reord[4], reord[5]);//front/back*/
-      }
-
-      nbc = PGtree.nb_children(faces[2] - 1);
-      if (nbc == 4)
-      {
-        // left  -> bot
-        reord[0] = faces[2];
-        // right -> top
-        reord[1] = faces[3];
-        // top   -> left
-        reord[2] = faces[1];
-        // bot   -> right
-        reord[3] = faces[0];
-
-        //front/back unchanged
-        reord[4] = faces[4];
-        reord[5] = faces[5];
-
-        for (size_t k=0; k < 6; ++k)faces[k] = reord[k];
-        K_MESH::Hexahedron::reorder_pgs(ng, F2E, PHi);
-
-        //swap enventually to be relevant with view regardin PH(0,0)
-        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
-        const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
-        E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
-        if (i0 == -1)
-          std::swap(reord[2], reord[3]);//left/right
-        p = ng.PGs.get_facets_ptr(reord[4] - 1);
-        i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
-        if (i0 == -1)
-          std::swap(reord[4], reord[5]);//front/back*/
-
-        return;
-      }
-
-      nbc = PGtree.nb_children(faces[4] - 1);
-      if (nbc == 4)
-      {
-        // front -> bot
-        reord[0] = faces[4];
-        // back  -> top
-        reord[1] = faces[5];
-        // top   -> front
-        reord[4] = faces[1];
-        // bot   -> back
-        reord[5] = faces[0];
-
-        //left/right unchanged
-        reord[2] = faces[2];
-        reord[3] = faces[3];
-
-        for (size_t k = 0; k < 6; ++k)faces[k] = reord[k];
-        K_MESH::Hexahedron::reorder_pgs(ng, F2E, PHi);
-
-        //swap enventually to be relevant with view regardin PH(0,0)
-        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
-        const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
-        E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
-        if (i0 == -1)
-          std::swap(reord[2], reord[3]);//left/right
-        p = ng.PGs.get_facets_ptr(reord[4] - 1);
-        i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
-        if (i0 == -1)
-          std::swap(reord[4], reord[5]);//front/back*/
-
-        return;
-      }
-    }
 
     ///
     template <typename arr_t>
     splitting_t(K_FLD::FloatArray& crd, ngon_type& ng, E_Int PHi, E_Int centroidId,
-      const K_FLD::IntArray & F2E, const tree<arr_t> & PGtree)
+      const K_FLD::IntArray & F2E, const tree<arr_t> & PGtree, bool do_reord) : splitting_base_t(), do_reorder(do_reord)
     {
 
       E_Int* BOT = FACES;        //ISO
@@ -351,6 +257,98 @@ namespace NUGA
       assert(tmpQ6[5] == nodes[15]);
 #endif
 
+    }
+
+    template <typename arr_t>
+    void reorder_as_XY(ngon_type& ng, E_Int PHi, const tree<arr_t> & PGtree, const K_FLD::IntArray& F2E)
+    {
+      E_Int* faces = ng.PHs.get_facets_ptr(PHi);
+      E_Int nfaces = ng.PHs.stride(PHi);
+
+      std::vector<E_Int> reord;
+      reord.reserve(6);
+      reord.insert(reord.end(), faces, faces + nfaces);
+
+      E_Int nbc = PGtree.nb_children(faces[0] - 1);
+      if (nbc == 4)
+      {
+        //swap enventually to be relevant with view regardin PH(0,0)
+        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
+        const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
+        E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
+        if (i0 == -1)
+        std::swap(reord[2], reord[3]);//left/right
+        p = ng.PGs.get_facets_ptr(reord[4] - 1);
+        i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
+        if (i0 == -1)
+        std::swap(reord[4], reord[5]);//front/back*/
+      }
+
+      nbc = PGtree.nb_children(faces[2] - 1);
+      if (nbc == 4)
+      {
+        // left  -> bot
+        reord[0] = faces[2];
+        // right -> top
+        reord[1] = faces[3];
+        // top   -> left
+        reord[2] = faces[1];
+        // bot   -> right
+        reord[3] = faces[0];
+
+        //front/back unchanged
+        reord[4] = faces[4];
+        reord[5] = faces[5];
+
+        for (size_t k = 0; k < 6; ++k)faces[k] = reord[k];
+        K_MESH::Hexahedron::reorder_pgs(ng, F2E, PHi);
+
+        //swap enventually to be relevant with view regardin PH(0,0)
+        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
+        const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
+        E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
+        if (i0 == -1)
+        std::swap(reord[2], reord[3]);//left/right
+        p = ng.PGs.get_facets_ptr(reord[4] - 1);
+        i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
+        if (i0 == -1)
+        std::swap(reord[4], reord[5]);//front/back*/
+
+        return;
+      }
+
+      nbc = PGtree.nb_children(faces[4] - 1);
+      if (nbc == 4)
+      {
+        // front -> bot
+        reord[0] = faces[4];
+        // back  -> top
+        reord[1] = faces[5];
+        // top   -> front
+        reord[4] = faces[1];
+        // bot   -> back
+        reord[5] = faces[0];
+
+        //left/right unchanged
+        reord[2] = faces[2];
+        reord[3] = faces[3];
+
+        for (size_t k = 0; k < 6; ++k)faces[k] = reord[k];
+        K_MESH::Hexahedron::reorder_pgs(ng, F2E, PHi);
+
+        //swap enventually to be relevant with view regardin PH(0,0)
+        /*const E_Int * nodes = ng.PGs.get_facets_ptr(reord[0] - 1);
+        const E_Int* p = ng.PGs.get_facets_ptr(reord[2] - 1);
+        E_Int i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
+        if (i0 == -1)
+        std::swap(reord[2], reord[3]);//left/right
+        p = ng.PGs.get_facets_ptr(reord[4] - 1);
+        i0 = K_CONNECT::IdTool::get_pos(p, 4, nodes[0]);
+        if (i0 == -1)
+        std::swap(reord[4], reord[5]);//front/back*/
+
+        return;
+      }
     }
 
     ///

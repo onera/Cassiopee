@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SPLITTING_T_HXX
 #define NUGA_SPLITTING_T_HXX
