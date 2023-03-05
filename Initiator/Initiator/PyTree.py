@@ -112,7 +112,7 @@ def _initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
             z = C.setFields([ac], z, 'centers')
     return None
 
-def initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.1, loc='nodes'):
+def initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.5, loc='nodes'):
     """Init the pyTree with Wissocq's vortex of
     intensity Gamma and position (x0,y0).
     Usage: initWissocq(t, (x0,y0), Gamma, MInf)"""
@@ -120,7 +120,7 @@ def initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.1, loc='nodes'):
     _initWissocq(tp, position, Gamma, MInf, loc)
     return tp
 
-def _initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.1, loc='nodes'):
+def _initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.5, loc='nodes'):
     nodes = Internal.getZones(t)
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)

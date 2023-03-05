@@ -34,6 +34,7 @@ List of functions
    initVisbal
    initScully
    initYee
+   initWissocq
    overlayField
 
 **-- Adimensioning**
@@ -211,6 +212,34 @@ If the five conservative variables are not present, then the default output vari
     * `Field initialization with a Yee vortex (pyTree) <Examples/Initiator/yeePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Initiator/yeePT.py
+
+---------------------------------------
+
+.. py:function:: Initiator.initWissocq(a, (x0,y0), Gamma=0.07, MInf=0.5, loc='nodes')
+
+    Initialization of conservative variables by a 2D Wissocq vortex at position (x0,y0), intensity Gamma
+    and infinite Mach number MInf.
+    
+    Exists also as in place version (_initWissocq) that modifies a and returns None.
+
+    :param a:  Input data
+    :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param Gamma: Intensity of vortex
+    :type  Gamma: float
+    :param MInf:  Mach number
+    :type  MInf:  float
+    :param loc: field localisation ('nodes' or 'centers')  - only for pyTree interface
+    :rtype: Identical to a
+ 
+    *Example of use:*
+
+    * `Field initialization with a Wissocq vortex (array) <Examples/Initiator/wissocq.py>`_:
+
+    .. literalinclude:: ../build/Examples/Initiator/wissocq.py
+
+    * `Field initialization with a Wissocq vortex (pyTree) <Examples/Initiator/wissocqPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Initiator/wissocqPT.py
 
 ---------------------------------------
 

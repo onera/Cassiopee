@@ -90,7 +90,7 @@ def overlayField(a1, a2, MInf=0.5):
     else:
         return initiator.overlayField(a1, a2, MInf)
 
-def initWissocq(a, position=(0.5,0.5), Gamma=0.07, MInf=0.1):
+def initWissocq(a, position=(0.5,0.5), Gamma=0.07, MInf=0.5):
     """Init a with Wissocq's vortex of
     intensity Gamma and position (x0,y0).
     Usage: initWissocq(a, (x0,y0), Gamma, MInf)"""
