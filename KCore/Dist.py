@@ -1072,6 +1072,23 @@ def checkFastLBM():
         raise SystemError("Error: fastlbm library is required for the compilation of this module.")
 
 #=============================================================================
+# Check for FastASLBM module
+#=============================================================================
+def checkFastASLBM():
+    try:
+        import FastASLBM
+        import KCore.installPath
+        fastaslbmIncDir = KCore.installPath.includePath
+        fastaslbmIncDir = fastaslbmIncDir.replace('Modules', 'PModules')
+        fastaslbmIncDir = os.path.dirname(fastaslbmIncDir)
+        fastaslbmIncDir = os.path.join(fastaslbmIncDir, 'FastASLBM')
+        fastaslbmLibDir = KCore.installPath.libPath
+        return (FastASLBM.__version__, fastaslbmIncDir, fastaslbmLibDir)
+
+    except ImportError:
+        raise SystemError("Error: fastaslbm library is required for the compilation of this module.")
+
+#=============================================================================
 # Check for Connector module
 #=============================================================================
 def checkConnector():

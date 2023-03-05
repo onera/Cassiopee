@@ -11,9 +11,8 @@ import KCore.Dist as Dist
 from KCore.config import *
 
 # If you want to use CPlot as a offscreen plotter (as on clusters)
-# si CPlotOffScreen = 0, production pure OpenGL (GL/glew gl/shader4)
-# si CPlotOffScreen = 1, production pure OSMesa (osmesa/glew mesa/shader2)
-# si CPlotOffScreen = 2, tente les deux (osmesa/glew gl/shader2)
+# si CPlotOffScreen = False, production pure OpenGL (GL/glew gl/shader4)
+# si CPlotOffScreen = True, production pure OSMesa (osmesa/glew mesa/shader2)
 UseOSMesa = int(CPlotOffScreen)
 
 # Get prefix from command line
@@ -41,7 +40,7 @@ includeDirs = [pythonIncDir, numpyIncDir, kcoreIncDir, kcoreLibDir+'/../include'
 libraryDirs += paths; libraries += libs
 
 # Test if OSMesa exists =======================================================
-if UseOSMesa == 1 or UseOSMesa == 2:
+if UseOSMesa == 1:
     (OSMesa, OSMesaIncDir, OSMesaLibDir, libname) = Dist.checkOSMesa(additionalLibPaths,
                                                                      additionalIncludePaths)
     if OSMesa:
@@ -100,7 +99,6 @@ ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
 env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
 #==============================================================================
-import KCore.installPath
 EXTRA = ['-D__SHADERS__']
 
 if OSMesa: EXTRA += ['-D__MESA__'] 
