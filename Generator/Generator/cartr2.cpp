@@ -173,7 +173,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   //printf("Warning: rk set to %f.\n" , rkinput);
   //}
 
-  E_Int (*getN)(E_Float Xo, E_Float Xf, E_Float H, E_Float R);
+  //E_Int (*getN)(E_Float Xo, E_Float Xf, E_Float H, E_Float R);
   E_Float (*f)(E_Float Xo, E_Float Xf, E_Float H, E_Float N, E_Float R);
   E_Float (*fprime)(E_Float Xo, E_Float Xf, E_Float H, E_Float N, E_Float R);
 

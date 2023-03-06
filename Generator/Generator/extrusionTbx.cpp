@@ -196,7 +196,7 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
 {
-  E_Float tolps = 0.5;
+  //E_Float tolps = 0.5;
   PyObject *array, *normales;
   E_Int kappaType;
   E_Float kappaL, kappaP;
@@ -282,30 +282,30 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
 //#pragma omp parallel default(shared)
   {
     E_Int indP1, indP2;
-    E_Float snc0, snc1, snc2, xpm0, xpm1, xpm2;
+    //E_Float snc0, snc1, snc2, xpm0, xpm1, xpm2;
 
 //#pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
       vector<E_Int>& voisins = cVE[ind];
       E_Int nvoisins = voisins.size();
-      E_Float psmax = tolps;
+      //E_Float psmax = tolps;
       for (E_Int noe1 = 0; noe1 < nvoisins; noe1++)
       {
         E_Int inde1 = voisins[noe1];
-        E_Float xc1 = xc[inde1];// M1
-        E_Float yc1 = yc[inde1];
-        E_Float zc1 = zc[inde1];
+        //E_Float xc1 = xc[inde1];// M1
+        //E_Float yc1 = yc[inde1];
+        //E_Float zc1 = zc[inde1];
 
         for (E_Int noe2 = noe1+1; noe2 < nvoisins; noe2++)        
         {
           E_Int inde2 = voisins[noe2];
-          E_Float sx2 = sx[inde2];
-          E_Float sy2 = sy[inde2];
-          E_Float sz2 = sz[inde2];
-          E_Float xc2 = xc[inde2];//M2
-          E_Float yc2 = yc[inde2];
-          E_Float zc2 = zc[inde2];
+          //E_Float sx2 = sx[inde2];
+          //E_Float sy2 = sy[inde2];
+          //E_Float sz2 = sz[inde2];
+          //E_Float xc2 = xc[inde2];//M2
+          //E_Float yc2 = yc[inde2];
+          //E_Float zc2 = zc[inde2];
           
           //E_Float ps = sx1*sx2+sy1*sy2+sz1*sz2;
           //printf("n1: %f %f %f\n",sx1,sy1,sz1);
@@ -355,9 +355,9 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             E_Float sx1 = sx[inde1];
             E_Float sy1 = sy[inde1];
             E_Float sz1 = sz[inde1];
-            E_Float sx2 = sx[inde2];
-            E_Float sy2 = sy[inde2];
-            E_Float sz2 = sz[inde2];
+            //E_Float sx2 = sx[inde2];
+            //E_Float sy2 = sy[inde2];
+            //E_Float sz2 = sz[inde2];
             // Calcul de l'angle alpha
             E_Float v1x = xc1-xm;
             E_Float v1y = yc1-ym;

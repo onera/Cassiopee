@@ -43,7 +43,8 @@ C_LOCAL
 C  FIND THE PIVOT IN COLUMN K.SEARCH ROWS K TO N.-----------------------
         M = K
       DO 10 I = KP1, N
- 10      IF (ABS(A(I,K)).GT.ABS(A(M,K))) M = I
+        IF (ABS(A(I,K)).GT.ABS(A(M,K))) M = I
+ 10   CONTINUE
         IP(K) = M
 C  INTERCHANGE ELEMENTS IN ROWS K AND M.--------------------------------
         T = A(M,K)
@@ -54,7 +55,8 @@ C  INTERCHANGE ELEMENTS IN ROWS K AND M.--------------------------------
 C  STORE MULTIPLIERS IN A(I,K),I=K+1,...,N.-----------------------------
         T = 1.D0/T
         DO 30 I = KP1, N
- 30       A(I,K) = -A(I,K)*T
+          A(I,K) = -A(I,K)*T
+ 30     CONTINUE
 C APPLY MULTIPLIERS TO OTHER COLUMNS OF A.------------------------------
         DO 50 J = KP1, N
           T = A(M,J)
@@ -62,8 +64,9 @@ C APPLY MULTIPLIERS TO OTHER COLUMNS OF A.------------------------------
           A(K,J) = T
           IF (T.EQ.0) GO TO 50
           DO 40 I = KP1,N
- 40       A(I,J) = A(I,J)+A(I,K)*T
- 50        CONTINUE
+            A(I,J) = A(I,J)+A(I,K)*T
+ 40       CONTINUE
+ 50     CONTINUE
  60     CONTINUE
  70   K = N
       IF (A(N,N).EQ.0.) GO TO 80
