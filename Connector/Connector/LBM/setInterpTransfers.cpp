@@ -82,7 +82,7 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
   ipt_ndimdxD      = new E_Int[nidomD*8];  
   ipt_cnd          = new E_Int*[nidomD];
 
-  ipt_roD          = new E_Float*[nidomD*2];
+  ipt_roD          = new E_Float*[nidomD*8];
   ipt_roD_vert     = ipt_roD + nidomD;
   vector<PyArrayObject*> hook;
   
@@ -106,8 +106,15 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
   // CB DBX
   E_Float** ipt_qD_vert; E_Float** ipt_SD_vert; E_Float** ipt_psiGD_vert;
   E_Float** ipt_qD; E_Float** ipt_SD; E_Float** ipt_psiGD;
+  ipt_qD_vert    = ipt_roD_vert + nidomD;
+  ipt_SD_vert    = ipt_qD_vert + nidomD;
+  ipt_psiGD_vert = ipt_SD_vert + nidomD;
+  ipt_qD         = ipt_psiGD_vert + nidomD;
+  ipt_SD         = ipt_qD + nidomD;
+  ipt_psiGD      = ipt_SD + nidomD;
+
   char* vartmp; char* varname1; char* varname2; char* varname3;
-  E_Int nbvar_inlist   = PyList_Size(pyVariables);
+  E_Int nbvar_inlist = PyList_Size(pyVariables);
   for (E_Int ivar = 0; ivar < nbvar_inlist; ivar++)
     {
       PyObject* tpl0= PyList_GetItem(pyVariables, ivar);

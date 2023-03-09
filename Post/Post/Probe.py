@@ -871,6 +871,8 @@ class Probe:
             pty2 = Internal.getNodeFromName2(nodesX, 'CoordinateY')[1]
             ptz2 = Internal.getNodeFromName2(nodesX, 'CoordinateZ')[1]
             self.slice(ptx, ptx2, cur, sizeTimeCont, ind, dim[2])
+            self.slice(pty, pty2, cur, sizeTimeCont, ind, dim[2])
+            self.slice(ptz, ptz2, cur, sizeTimeCont, ind, dim[2])
             cur += sizeTimeCont
 
         paths = ['CGNSTree/Base/%s/GridCoordinates'%pz[0]]
@@ -879,7 +881,9 @@ class Probe:
         pty2 = Internal.getNodeFromName2(nodesX, 'CoordinateY')[1]
         ptz2 = Internal.getNodeFromName2(nodesX, 'CoordinateZ')[1]
         self.slice(ptx, ptx2, cur, csize, ind, dim[2])
-        
+        self.slice(pty, pty2, cur, csize, ind, dim[2])
+        self.slice(ptz, ptz2, cur, csize, ind, dim[2])
+
         # load FS containers
         cur = 0
         nodes = Internal.getNodesFromName(pz, 'FlowSolution#*')

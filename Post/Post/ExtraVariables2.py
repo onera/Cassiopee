@@ -633,7 +633,7 @@ def extractRtheta(zp, Uinf, Roinf, Muinf):
     """Compute delta, teta and Rteta."""
     # delta
     j = 1
-    while (C.getValue(zp, 'VelocityTangential', (j,1,1)) < 0.99*Uinf): j += 1 
+    while (C.getValue(zp, 'VelocityTangential', (j,1,1)) < 0.99*Uinf): j += 1
     dx = C.getValue(zp, 'CoordinateX', (j,1,1)) - C.getValue(zp, 'CoordinateX', (1,1,1))
     dy = C.getValue(zp, 'CoordinateY', (j,1,1)) - C.getValue(zp, 'CoordinateY', (1,1,1))
     dz = C.getValue(zp, 'CoordinateZ', (j,1,1)) - C.getValue(zp, 'CoordinateZ', (1,1,1))

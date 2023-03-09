@@ -140,7 +140,7 @@
 
   // I Plane
   i = zonep->iPlane;
-  if (i != -1)
+  if (i >= 0) // display single i plane
   {
     if (zonep->blank == 0)
     {
@@ -177,7 +177,7 @@
         }
     }
   }
-  else
+  else if (i == -1) // display both planes
   {
     if (zonep->blank == 0)
     {
@@ -247,7 +247,7 @@
 
   // J Plane
   j = zonep->jPlane;
-  if (j != -1)
+  if (j >= 0)
   {
     if (zonep->blank == 0)
     {
@@ -284,7 +284,7 @@
         }
     }
   }
-  else
+  else if (j == -1)
   {
     if (zonep->blank == 0)
     {
@@ -354,7 +354,7 @@
 
   // K Plane
   k = zonep->kPlane;
-  if (k != -1)
+  if (k >= 0)
   {
     if (zonep->blank == 0)
     {
@@ -423,7 +423,7 @@
           PLOT;
         }
     }
-    else
+    else if (k == -1)
     {
       // With blanking
       for (j = 0; j < nj-stepj; j += stepj)
