@@ -12,7 +12,7 @@ __all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'bla
     'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap', 'setDoublyDefinedBC', 'setHoleInterpolatedPoints', 
     'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers', 'setInterpTransfersD', 'writeCoefs','maskXRay__',
     '_applyBCOverlapsStruct__', 'applyBCOverlapsStruct__', 'applyBCOverlapsNG__',
-    'getInterpolatedPoints__', 'getEXPoints__', '_modCellN1', '_modCellN2']
+    'getInterpolatedPoints__', 'getEXPoints__', '_modCellN1', '_modCellN2', 'changeWall__']
 
 #===============================================================================
 def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):

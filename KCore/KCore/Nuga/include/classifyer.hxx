@@ -239,8 +239,8 @@ namespace NUGA
     eClassify classify(NUGA::aPolyhedron<0> const& ae1, pg_smesh_t const& front, bool deep)
     {
       const double* ae1G = ae1.get_centroid();
-      E_Int nfronts = front.ncells();
-      assert (nfronts);
+      //E_Int nfronts = front.ncells();
+      //assert (nfronts);
 
       E_Int sign(0);
       NUGA::random rando;

@@ -18,7 +18,7 @@ COLOR_LIST_HISTORY = []
 #
 ################################################################################
 class ColorControler(object):
-    def __init__(self,parent,color="#3a65c6",colormapName='Set1',nbColorMap=8,colorHistoryList=None ):
+    def __init__(self, parent, color="#3a65c6", colormapName='Set1', nbColorMap=8, colorHistoryList=None):
         self.parent = parent
         self.color = color
         self.Nstep = 1530
@@ -238,7 +238,7 @@ class ColorControler(object):
         cancelbutton = TTK.Button(buttonFrame,text="Cancel",command=self.cancelButton)
         cancelbutton.grid(row=0,column=1)
 
-    def discretizedColor(self,h):
+    def discretizedColor(self, h):
         # h goes from 0->360
         x = float(h)*1530./360.
         r = self.getRvalue(x)
@@ -246,7 +246,7 @@ class ColorControler(object):
         b = self.getBvalue(x)
         return (r,g,b)
 
-    def getRvalue(self,h):
+    def getRvalue(self, h):
         if h < 255: res = 255
         elif h < 510: res = 510 - h
         elif h < 1020: res = 0
@@ -254,7 +254,7 @@ class ColorControler(object):
         else: res = 255
         return res
 
-    def getGvalue(self,h):
+    def getGvalue(self, h):
         if h < 255: res = h
         elif h < 765: res = 255
         elif h < 1020: res = 1020 - h
@@ -288,7 +288,7 @@ class ColorControler(object):
         ### Redraw the SV space
         self.redrawSVFrame()
 
-    def createColorMap(self,colormapName,nbColorMap):
+    def createColorMap(self, colormapName, nbColorMap):
         colormapList = []
         try: 
             import matplotlib.pyplot as plt

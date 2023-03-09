@@ -102,6 +102,27 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(tpl0)) varname = (char*)PyUnicode_AsUTF8(tpl0); 
 #endif
+ 
+  // CB DBX
+  E_Float** ipt_qD_vert; E_Float** ipt_SD_vert; E_Float** ipt_psiGD_vert;
+  E_Float** ipt_qD; E_Float** ipt_SD; E_Float** ipt_psiGD;
+  char* vartmp; char* varname1; char* varname2; char* varname3;
+  E_Int nbvar_inlist   = PyList_Size(pyVariables);
+  for (E_Int ivar = 0; ivar < nbvar_inlist; ivar++)
+    {
+      PyObject* tpl0= PyList_GetItem(pyVariables, ivar);
+      if (PyString_Check(tpl0)) vartmp = PyString_AsString(tpl0);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl0)) vartmp = (char*)PyUnicode_AsUTF8(tpl0);
+#endif
+      //printf("varname %s \n", vartmp);
+      if     (ivar==0) {varname  = vartmp;}
+      else if(ivar==1) {varname1 = vartmp;}  //En LBM, on a besoin d'echanger les macro !!ET!! les Q donc deux varname
+      else if(ivar==2) {varname2 = vartmp;}  //Pour le couplage NS-LBM, on a besoin d'echanger les Q !!ET!! les macro !!ET!! les gradients
+      else if(ivar==3) {varname3 = vartmp;}
+      else {printf("Warning: souci varname setInterpTransfers \n"); }
+    }
+  // ENDCB
 
   for (E_Int nd = 0; nd < nidomD; nd++){  
     PyObject* zoneD = PyList_GetItem(zonesD, nd);
@@ -829,6 +850,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
  	    E_Int ifin        = 0;
  	    E_Int shiftCoef   = 0;
  	    E_Int shiftDonor  = 0;
+        E_Int shiftv = 0;
      
  	    for (E_Int ndtyp = 0; ndtyp < ntype[0]; ndtyp++){ 
  	      type      = types[ifin];

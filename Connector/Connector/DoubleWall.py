@@ -46,13 +46,13 @@ def getBCWallRanges__(z, familyNames=[]):
 #===============================================================================
 #------------------------------------------------------------------------------
 # Retourne les premiers pts (centres ou noeuds selon loc) pres des fenetres
-# de range wallRanges de la zone z sous forme d une seule zone HEXA
+# de range wallRanges de la zone z sous forme d'une seule zone HEXA
 # Coordonnees + indcellw + dir1 + dir2 + dir3
 #------------------------------------------------------------------------------
 def getFirstPointsInfo0__(z, wallRanges, loc='nodes'):
     if loc == 'nodes':  shift = 0
     elif loc == 'centers': 
-        shift = 1 #decalage d indices de -1 si centres
+        shift = 1 #decalage d'indices de -1 si centres
         z = Converter.node2Center(z)
     else: raise ValueError("getFirstPointsInfo0__: loc must be nodes or centers.")
 
@@ -122,25 +122,26 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes'):
 # Coordonnees + dir1 + dir2 + dir3 + curvature height
 #------------------------------------------------------------------------------
 def getFirstPointsInfo__(z, wallRanges, loc='nodes'):
-    coords = C.getFields(Internal.__GridCoordinates__,z)[0]
+    coords = C.getFields(Internal.__GridCoordinates__, z)[0]
     wallsc = getFirstPointsInfo0__(coords, wallRanges, loc)
     # calcul de la hauteur de courbure
     hmax = Geom.getCurvatureHeight(wallsc)
-    wallsc = Converter.addVars([wallsc,hmax])
+    wallsc = Converter.addVars([wallsc, hmax])
     # conversion en 'NODE'
     wallsc = Converter.convertArray2Node(wallsc)
     return wallsc
 
 #----------------------------------------------------------------------------------------
-# Met a jour les coordonnees des points frontieres d un maillage surfacique 
+# Met a jour les coordonnees des points frontieres d'un maillage surfacique 
 # Pour traiter les surfaces de projection en centres etendus issues de BCWall splittees
 # ----------------------------------------------------------------------------------------
-def modifyBorders__(a, iminL,imaxL,jminL,jmaxL):  
-    return C.TZGC(a, 'nodes', Connector.modifyBorders__, iminL,imaxL,jminL,jmaxL)
+def modifyBorders__(a, iminL, imaxL, jminL, jmaxL):  
+    return C.TZGC(a, 'nodes', Connector.modifyBorders__, iminL, imaxL, jminL, jmaxL)
+
 # ----------------------------------------------------------------------------------------
 # determination de toutes les sous fenetres definissant une frontiere i=imax par ex 
 # ----------------------------------------------------------------------------------------
-def getExtCenterSubWin(wloc,allIndices,dirW=0):
+def getExtCenterSubWin(wloc, allIndices, dirW=0):
     wloc = C.node2ExtCenter(wloc)
     dimsW = Internal.getZoneDim(wloc)        
     niW=dimsW[1]; njW=dimsW[2];nkW=dimsW[3]
@@ -157,20 +158,14 @@ def getExtCenterSubWin(wloc,allIndices,dirW=0):
         niS = dimS[1]; njS = dimS[2]; nkS = dimS[3]
 
         if dirW == 1: 
-            iminL = jmin
-            jminL = kmin
-            imaxL = jmax+1
-            jmaxL = kmax+1
+            iminL = jmin ; jminL = kmin
+            imaxL = jmax+1; jmaxL = kmax+1
         elif dirW == 2:
-            iminL = imin
-            jminL = kmin
-            imaxL = imax+1
-            jmaxL = kmax+1
+            iminL = imin; jminL = kmin
+            imaxL = imax+1; jmaxL = kmax+1
         else: 
-            iminL = imin
-            jminL = jmin
-            imaxL = imax+1
-            jmaxL = jmax+1
+            iminL = imin; jminL = jmin
+            imaxL = imax+1; jmaxL = jmax+1
 
         sLoc = modifyBorders__(wLoc,iminL,imaxL,jminL,jmaxL)
         if dirW == 1: sLoc = T.subzone(sLoc,(jmin,kmin,1),(jmax+1,kmax+1,1))
@@ -200,22 +195,22 @@ def getExtCenterSurfaces__(a, walls):
     surfs = []
     if indicesI1 != []:
         wloc = T.subzone(a,(1,1,1),(2,nj0,nk0))
-        surfs+=getExtCenterSubWin(wloc,indicesI1,1)
+        surfs += getExtCenterSubWin(wloc,indicesI1,1)
     if indicesI2 != []:    
         wloc = T.subzone(a,(ni0-1,1,1),(ni0,nj0,nk0))
-        surfs+=getExtCenterSubWin(wloc,indicesI2,1)
+        surfs += getExtCenterSubWin(wloc,indicesI2,1)
     if indicesJ1 != []:
         wloc = T.subzone(a,(1,1,1),(ni0,2,nk0))
-        surfs+=getExtCenterSubWin(wloc,indicesJ1,2)
+        surfs += getExtCenterSubWin(wloc,indicesJ1,2)
     if indicesJ2 != []:
         wloc = T.subzone(a,(1,nj0-1,1),(ni0,nj0,nk0)) 
-        surfs+=getExtCenterSubWin(wloc,indicesJ2,2)
+        surfs += getExtCenterSubWin(wloc,indicesJ2,2)
     if indicesK1 != []:
         wloc = T.subzone(a,(1,1,1),(ni0,nj0,2)) 
-        surfs+=getExtCenterSubWin(wloc,indicesK1,3)
+        surfs += getExtCenterSubWin(wloc,indicesK1,3)
     if indicesK2 != []:
         wloc = T.subzone(a,(1,1,nk0-1),(ni0,nj0,nk0))         
-        surfs+=getExtCenterSubWin(wloc,indicesK2,3)
+        surfs += getExtCenterSubWin(wloc,indicesK2,3)
 
     return surfs     
 #-------------------------------------------------------------------------------
@@ -288,20 +283,20 @@ def extractDoubleWallInfo__(t):
                     i = 0
                     for indh in indices: 
                         hsLoc[1][0,i]=hsRef[0,indh-1]
-                        i+=1                
+                        i += 1                
                     surfECZ = Converter.addVars([surfECZ,hsLoc])
                     surfECZ = Converter.convertArray2Tetra(surfECZ,split='withBarycenters')
                     surfacesExt[nosz]=[surfECZ]
             for nozOfNob in range(len(firstCenters[nob])):
                 wallZ = firstCenters[nob][nozOfNob]
-                if wallZ !=[]:
+                if wallZ != []:
                     indices2 = Converter.identifyNodes(hook,wallZ)
                     hsLoc = Converter.addVars(wallZ,'hmax')
                     hsLoc = Converter.extractVars(hsLoc,['hmax'])
                     i = 0
                     for indh in indices2: 
                         hsLoc[1][0,i]=hsRef[0,indh-1]
-                        i+=1                
+                        i += 1                
                     firstCenters[nob][nozOfNob] = Converter.addVars([wallZ,hsLoc])
             Converter.freeHook(hook)
         wallSurfacesEC.append(surfacesExt)

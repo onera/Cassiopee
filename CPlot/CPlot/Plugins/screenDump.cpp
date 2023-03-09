@@ -207,7 +207,6 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
         for (E_Int j = 0; j < exportWidth; ++j) 
         {
           unsigned ind = i*exportWidth+j;
-          assert(ind < s);
           if (depth[ind] < offscreenD[ind])
           {
             offscreen[3*ind  ] = buffer[3*ind  ];

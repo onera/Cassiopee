@@ -37,7 +37,6 @@ except ImportError:
         import tkinter.messagebox as tkMessageBox
     except: IMPORTOK = False
 
-# Import matplotlib
 try:
     from matplotlib.widgets import SubplotTool
     import matplotlib
@@ -62,20 +61,14 @@ try:
     pltHSpace = plt.rcParams.get('figure.subplot.hspace')
     pltFontSize = plt.rcParams.get('font.size')
     # subplot param en dur
-    pltLeft = 0.15
-    pltRight = 0.95
-    pltBottom = 0.1
-    pltTop = 0.95
-    pltWSpace = 0.2
-    pltHSpace = 0.2
+    pltLeft = 0.15; pltRight = 0.95
+    pltBottom = 0.1; pltTop = 0.95
+    pltWSpace = 0.2; pltHSpace = 0.2
 except:
     IMPORTOK = False
-    pltLeft = 0.15
-    pltRight = 0.95
-    pltTop = 0.95
-    pltBottom = 0.1
-    pltWSpace = 0.2
-    pltHSpace = 0.2
+    pltLeft = 0.15; pltRight = 0.95
+    pltTop = 0.95; pltBottom = 0.1
+    pltWSpace = 0.2; pltHSpace = 0.2
     pltFontSize = 14.
     class NavigationToolbar2Tk:
         def __init__(self): return

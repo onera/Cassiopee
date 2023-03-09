@@ -194,7 +194,7 @@ namespace NUGA
       if (proj_on_first)  // now apply zmean to front points such remaining ones at the end will be roughly on subj supporting surface
         for (size_t k = nb_pts1; k < zs.size(); ++k) zs[k] = zmean;
       else
-        for (size_t k = 0; k < nb_pts1; ++k) zs[k] = zmean;
+        for (E_Int k = 0; k < nb_pts1; ++k) zs[k] = zmean;
 
       crd.resize(2, crd.cols());//now pure 2D
     }

@@ -1438,6 +1438,8 @@ Array / PyTree common manipulations
 
     Remove variable(s) from a. varNames is a string name or a list of string names.
 
+    Exists also as in place version (_rmVars) that modifies a and returns None.
+
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varNames: names of variable to remove (can starts with 'nodes:' or 'centers:'')

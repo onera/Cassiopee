@@ -1434,14 +1434,14 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
             for noz1 in range(len(zones1)):
                 z1 = zones1[noz1]
                 isTempPeriodicZone1 = 0
-                if Internal.getNodeFromName1(z1,'TempPeriodicZone') is None:
+                if Internal.getNodeFromName1(z1, 'TempPeriodicZone') is None:
                     r1 = Internal.getParentOfNode(a, z1); parent1 = r1[0]; d1 = r1[1]
                 else: isTempPeriodicZone1 = 1
                 ae1 = allExtCenters[nob1][noz1]
                 ac1 = allCenters[nob1][noz1]
-                sol1 = C.getField('centers:cellN',z1)[0]
-                vol1 = C.getField('centers:vol',z1)[0]
-                ac1 = Converter.addVars([ac1,sol1,vol1])
+                sol1 = C.getField('centers:cellN', z1)[0]
+                vol1 = C.getField('centers:vol', z1)[0]
+                ac1 = Converter.addVars([ac1, sol1, vol1])
                 adt1 = allHooks[nob1][noz1]
 
                 firstWallCenters1 = firstWallCenters[nob1][noz1]
@@ -1810,7 +1810,7 @@ def getDoublyDefinedDonorZones__(oversetgcnode, topTreeD):
     for donorName in donorNames:
         dnrZone = Internal.getNodeFromName2(topTreeD,donorName)
         if dnrZone is not None:
-            coords = C.getFields(Internal.__GridCoordinates__,dnrZone)[0]
+            coords = C.getFields(Internal.__GridCoordinates__, dnrZone)[0]
             listOfDnrZones.append(coords)
             cellN2 = C.getField('centers:cellN',dnrZone)[0]
             if cellN2 == []:

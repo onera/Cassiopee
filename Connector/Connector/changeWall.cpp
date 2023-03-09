@@ -54,7 +54,7 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
   char* varStringc; char* eltType;
   E_Int res = K_ARRAY::getFromArray(arrayCenters, varStringc, fc, 
                                     imc, jmc, kmc, cnc, eltType, true); 
-  if (res != 1) 
+  if (res != 1)
   {
     if (res == 2) RELEASESHAREDU(arrayCenters,fc,cnc);
     PyErr_SetString(PyExc_TypeError, 
@@ -89,7 +89,7 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
                               im1, jm1, km1, cn1, eltType1, true); 
   if (res != 2) 
   {
-    if (res == 1) RELEASESHAREDS(firstWallCenters,f1);
+    if (res == 1) RELEASESHAREDS(firstWallCenters, f1);
     RELEASESHAREDS(arrayCenters,fc);
     PyErr_SetString(PyExc_TypeError, 
                     "changeWall: 2nd arg must be unstructured.");
@@ -102,15 +102,15 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
                     "changeWall: 2nd arg must be a NODE array.");
     return NULL;   
   }
-  E_Int posdir1 = K_ARRAY::isNamePresent("dir1",varString1);
-  E_Int posdir2 = K_ARRAY::isNamePresent("dir2",varString1);
-  E_Int posdir3 = K_ARRAY::isNamePresent("dir3",varString1);
-  E_Int poshw   = K_ARRAY::isNamePresent("hmax",varString1);
-  E_Int posindw = K_ARRAY::isNamePresent("indcellw",varString1);
+  E_Int posdir1 = K_ARRAY::isNamePresent("dir1", varString1);
+  E_Int posdir2 = K_ARRAY::isNamePresent("dir2", varString1);
+  E_Int posdir3 = K_ARRAY::isNamePresent("dir3", varString1);
+  E_Int poshw   = K_ARRAY::isNamePresent("hmax", varString1);
+  E_Int posindw = K_ARRAY::isNamePresent("indcellw", varString1);
   if (posdir1 == -1 || posdir2 == -1 || posdir3 == -1 || 
       poshw == -1 || posindw == -1) 
   {
-    RELEASESHAREDS(arrayCenters,fc);RELEASESHAREDU(firstWallCenters,f1, cn1);
+    RELEASESHAREDS(arrayCenters,fc); RELEASESHAREDU(firstWallCenters,f1, cn1);
     PyErr_SetString(PyExc_TypeError, 
                     "changeWall: 2nd arg must contain dir1,dir2,dir3,indcellw,hmax variables.");
     return NULL;
