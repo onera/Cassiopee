@@ -1867,7 +1867,7 @@ def setDoublyDefinedBC(t, depth=2):
                                     imax = win[1]; jmax = win[3]; kmax = win[5]
                                     rangew = [int(imin),int(imax),int(jmin),int(jmax),int(kmin),int(kmax)]
                                     cellNDD = Connector.setDoublyDefinedBC(coords, cellNDD, listOfInterpZones,\
-                                                                               cellns, rangew, depth)
+                                                                           cellns, rangew, depth)
             cellNDD[0] = 'cellN_dd'
             C.setFields([cellNDD], z, 'centers', False)
             #parent[2][d2] = z

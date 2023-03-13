@@ -32,7 +32,7 @@ test.testT(tc_2d, 1)
 i=0
 for z in Internal.getZones(t_2d):
   z[0]= "Cart."+str(i)+"X0"
-  i +=1
+  i += 1
 
 ## determine dx=dy for each zone & store per zone
 dict_ZEXT={}
@@ -50,7 +50,7 @@ for i in dict_ZEXT:
     if dict_ZEXT[i] +1  > Nlevels : Nlevels = dict_ZEXT[i] +1
 
 ## get number of levels
-print("Nlevel, hmin",Nlevels, hmin)
+print("Nlevel, hmin", Nlevels, hmin)
 
 
 ## Create the dict with Nz for each zone
@@ -79,13 +79,13 @@ t_3d, tb_3d = App.extrudeCartesian(t_2d, tb_2d, extrusion=extrusion, NPas=5, spa
 interpDataType = 1 # on suppose maillage non cartesion pour interp
 order          = 2
 
-t_3d, tc_3d = App.prepare1(tb_3d,None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order)
+t_3d, tc_3d = App.prepare1(tb_3d, None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order)
 
 C.convertPyTree2File(t_3d, LOCAL+'/t.cgns')
 C.convertPyTree2File(tc_3d, LOCAL+'/tc.cgns')
 
 # Compute
-t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=300)
+t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=200)
 t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')

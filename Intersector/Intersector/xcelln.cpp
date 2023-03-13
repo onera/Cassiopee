@@ -176,7 +176,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "OOOOOOld", &zones, &zwall_ids, &base_num, &masks, &wall_ids, &priorities, &output_type, &RTOL)) return NULL;
 
   E_Int nb_zones = PyList_Size(zones);
-  E_Int nb_wall_zones = PyList_Size(zwall_ids);
+  //E_Int nb_wall_zones = PyList_Size(zwall_ids);
   E_Int nb_basenum = PyList_Size(base_num);
   E_Int nb_masks = PyList_Size(masks);
   E_Int nb_priority_pairs = PyList_Size(priorities);

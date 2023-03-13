@@ -50,7 +50,7 @@ def getBCWallRanges__(z, familyNames=[]):
 # Coordonnees + indcellw + dir1 + dir2 + dir3
 #------------------------------------------------------------------------------
 def getFirstPointsInfo0__(z, wallRanges, loc='nodes'):
-    if loc == 'nodes':  shift = 0
+    if loc == 'nodes': shift = 0
     elif loc == 'centers': 
         shift = 1 #decalage d'indices de -1 si centres
         z = Converter.node2Center(z)
@@ -218,7 +218,7 @@ def getExtCenterSurfaces__(a, walls):
 # utilise pour setInterpolations 
 # Retourne: res sous forme d'arrays pour chaque base, pour chaque zone
 # res[0]: indices,dir1,dir2,dir3,hmax des premiers points pres de la paroi
-# res[1]: parois decrites par des maillages TRI avec point milieu.Contient hmax
+# res[1]: parois decrites par des maillages TRI avec point milieu. Contient hmax.
 #--------------------------------------------------------------------------------
 def extractDoubleWallInfo__(t):
     firstCenters = [] # indices des premiers centres pres des parois, leur direction et leur hauteur de courbure
@@ -247,7 +247,7 @@ def extractDoubleWallInfo__(t):
     # 2. on passe en centres etendus les parois de projection
     # Il faut assurer la continuite de hmax au passage des raccords : passage en tri de la base
     #
-    nob=0; wallSurfacesEC=[]; 
+    nob=0; wallSurfacesEC=[]
     for base1 in bases:
         zones1 = Internal.getNodesFromType1(base1,"Zone_t")
         surfacesExt=[]; surfacesPerBase=[]
@@ -255,14 +255,14 @@ def extractDoubleWallInfo__(t):
         for z1 in zones1:
             surfs = getExtCenterSurfaces__(z1, wallBndIndicesN[nob][noz])
             if surfs != []:
-                surfs = C.getAllFields(surfs,loc='nodes')
+                surfs = C.getAllFields(surfs, loc='nodes')
                 #surfs = T.merge(surfs)
                 surfs = Converter.convertArray2Hexa(surfs)
                 surfs = Transform.join(surfs)
                 surfacesPerBase.append(surfs)                                
             
             surfacesExt.append(surfs)
-            noz+=1
+            noz += 1
         # Join des surfaces de la meme base pour assurer la continuite de hmax
         surfacesPerBase = Transform.join(surfacesPerBase)
         # Calcul de la hauteur de courbure
@@ -282,10 +282,10 @@ def extractDoubleWallInfo__(t):
                     indices = Converter.identifyNodes(hook, surfECZ)
                     i = 0
                     for indh in indices: 
-                        hsLoc[1][0,i]=hsRef[0,indh-1]
+                        hsLoc[1][0,i] = hsRef[0,indh-1]
                         i += 1                
                     surfECZ = Converter.addVars([surfECZ,hsLoc])
-                    surfECZ = Converter.convertArray2Tetra(surfECZ,split='withBarycenters')
+                    surfECZ = Converter.convertArray2Tetra(surfECZ, split='withBarycenters')
                     surfacesExt[nosz]=[surfECZ]
             for nozOfNob in range(len(firstCenters[nob])):
                 wallZ = firstCenters[nob][nozOfNob]
@@ -295,7 +295,7 @@ def extractDoubleWallInfo__(t):
                     hsLoc = Converter.extractVars(hsLoc,['hmax'])
                     i = 0
                     for indh in indices2: 
-                        hsLoc[1][0,i]=hsRef[0,indh-1]
+                        hsLoc[1][0,i] = hsRef[0,indh-1]
                         i += 1                
                     firstCenters[nob][nozOfNob] = Converter.addVars([wallZ,hsLoc])
             Converter.freeHook(hook)

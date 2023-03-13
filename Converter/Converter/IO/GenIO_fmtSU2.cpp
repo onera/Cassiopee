@@ -584,10 +584,14 @@ E_Int K_IO::GenIO::su2read(
   }
 
   // Cree le nom de zone
-  for (unsigned int i=0; i < unstructField.size(); i++)
+  for (size_t i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+#ifdef E_DOUBLEINT
+    sprintf(zoneName, "Zone%ld", i);
+#else
+    sprintf(zoneName, "Zone%d", (int)i);
+#endif
     zoneNames.push_back(zoneName);
   }
   //printf("%d %d\n", unstructField.size(), connect.size());
@@ -939,8 +943,13 @@ E_Int K_IO::GenIO::su2write(
     return 1;  
   }
 
+#ifdef E_DOUBLEINT
+  fprintf(ptrFile, "NDIME= %ld\n", dim);
+  fprintf(ptrFile, "NELEM= %ld\n", ne);
+#else
   fprintf(ptrFile, "NDIME= %d\n", dim);
   fprintf(ptrFile, "NELEM= %d\n", ne);
+#endif
 
   c = 0;
   for (E_Int i = 0; i < connectBarSize; i++) 
@@ -948,7 +957,11 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectBar[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "3 \t%ld \t%ld \t%ld \n", cp(i,1)-1, cp(i,2)-1, c); c++;
+#else
       fprintf(ptrFile, "3 \t%d \t%d \t%d \n", cp(i,1)-1, cp(i,2)-1, c); c++;
+#endif
     }
   }
 
@@ -957,8 +970,13 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectTri[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "5 \t%ld \t%ld \t%ld \t%ld \n", 
+              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, c); c++;
+#else
       fprintf(ptrFile, "5 \t%d \t%d \t%d \t%d \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, c); c++;
+#endif
     }
   }
  
@@ -967,8 +985,13 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectQuad[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "9 \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
+#else
       fprintf(ptrFile, "9 \t%d \t%d \t%d \t%d \t%d \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
+#endif
     }
   }
   
@@ -977,8 +1000,13 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectTetra[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "10 \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
+#else
       fprintf(ptrFile, "10 \t%d \t%d \t%d \t%d \t%d \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
+#endif
     }
   }
 
@@ -987,8 +1015,13 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectPyra[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "14 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, cp(i,5)-1, c); c++;
+#else
       fprintf(ptrFile, "14 \t%d \t%d \t%d \t%d \t%d \t%d \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, cp(i,5)-1, c); c++;
+#endif
     }
   }
   
@@ -997,9 +1030,15 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectPenta[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "13 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
+              cp(i,5)-1, cp(i,6)-1, c); c++;
+#else
       fprintf(ptrFile, "13 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, c); c++;
+#endif
     }
   }
   
@@ -1008,9 +1047,15 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectHexa[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "12 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
+              cp(i,5)-1, cp(i,6)-1, c); c++;
+#else
       fprintf(ptrFile, "12 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, c); c++;
+#endif
     }
   }
   
@@ -1110,7 +1155,11 @@ E_Int K_IO::GenIO::su2write(
       }
       PyObject* BCs = PyList_GetItem(BCFaces, i);
       E_Int size = PyList_Size(BCs);
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "NMARK= %ld\n", size/2);
+#else
       fprintf(ptrFile, "NMARK= %d\n", size/2);
+#endif
       for (E_Int j = 0; j < size/2; j++) // marker differents
       {
         char* name = NULL; 

@@ -319,17 +319,21 @@ E_Int K_IO::GenIO::cedrewrite(
   }
 
   // Nbre de domaines
-  unsigned int nd = 0;
-  for (unsigned int i = 0; i < eltType.size(); i++)
+  E_Int nd = 0;
+  E_Int eltTypeSize = eltType.size();
+  for (E_Int i = 0; i < eltTypeSize; i++)
   {
     if (eltType[i] == 8) nd++; 
   }
-  if (nd != eltType.size())
+  if (nd != eltTypeSize)
     printf("Warning: cedrewrite: array list contain non-NGons arrays. Skipped...\n");
 
+#ifdef E_DOUBLEINT
+  fprintf(ptrFile, "%ld : Nb de dom.\n", nd);
+#else
   fprintf(ptrFile, "%d : Nb de dom.\n", nd);
+#endif
 
-  E_Int eltTypeSize = eltType.size();
   for (E_Int i = 0; i < eltTypeSize; i++)
   {
     if (eltType[i] == 8)
@@ -359,11 +363,17 @@ E_Int K_IO::GenIO::cedrewrite(
           facLim += np;
         }
       }
+#ifdef E_DOUBLEINT
+      fprintf(ptrFile, "     %ld       NB NOEUDS\n", nvertex);
+      fprintf(ptrFile, "     %ld       NB FACES\n", nfaces);
+      fprintf(ptrFile, "     %ld       NB ELMTS\n", ncells);
+      fprintf(ptrFile, "     %ld       NB FAC LIM\n", facLim);
+#else
       fprintf(ptrFile, "     %d       NB NOEUDS\n", nvertex);
       fprintf(ptrFile, "     %d       NB FACES\n", nfaces);
       fprintf(ptrFile, "     %d       NB ELMTS\n", ncells);
       fprintf(ptrFile, "     %d       NB FAC LIM\n", facLim);
-      
+#endif
       // Coordonnees des noeuds
       fprintf(ptrFile, "1. GRID NODES : NODE no., x, y, z\n");
       for (E_Int j = 0; j < nvertex; j++)
@@ -380,7 +390,11 @@ E_Int K_IO::GenIO::cedrewrite(
         nf = cnp[pt]; pt++;
         fprintf(ptrFile, " %d  %d", j+1, nf);
         for (E_Int k = 0; k < nf; k++)
+#ifdef E_DOUBLEINT
+        { fprintf(ptrFile, " %ld", cnp[pt]); pt++; }
+#else
         { fprintf(ptrFile, " %d", cnp[pt]); pt++; }
+#endif
         fprintf(ptrFile, "\n");
       }
             
@@ -398,21 +412,37 @@ E_Int K_IO::GenIO::cedrewrite(
         if (facesp1[j] == 0 && facesp2[j] == 0)
         {
           nd = 0;
+#ifdef E_DOUBLEINT
+          fprintf(ptrFile, "%ld %ld %ld %ld\n", jp, nd, facesp1[j]+1, facesp2[j]+1); jp++; // this is strange!
+#else
           fprintf(ptrFile, "%d %d %d %d\n", jp, nd, facesp1[j]+1, facesp2[j]+1); jp++; // this is strange!
+#endif
         }
         else if (facesp1[j] == 0)
         {
           nd = 1;
+#ifdef E_DOUBLEINT
+          fprintf(ptrFile, "%ld %ld %ld %ld\n", jp, nd, facesp2[j], facesp1[j]); jp++;
+#else
           fprintf(ptrFile, "%d %d %d %d\n", jp, nd, facesp2[j], facesp1[j]); jp++;
+#endif
         }
         else if (facesp2[j] == 0)
         {
           nd = 1;
+#ifdef E_DOUBLEINT
+          fprintf(ptrFile, "%ld %ld %ld %ld\n", jp, nd, facesp1[j], facesp2[j]); jp++;
+#else
           fprintf(ptrFile, "%d %d %d %d\n", jp, nd, facesp1[j], facesp2[j]); jp++;
+#endif
         }
         else
         { 
+#ifdef E_DOUBLEINT
+          fprintf(ptrFile, "%ld %ld %ld %ld\n", jp, nd, facesp1[j], facesp2[j]); jp++;
+#else
           fprintf(ptrFile, "%d %d %d %d\n", jp, nd, facesp1[j], facesp2[j]); jp++;
+#endif
         }
       }
 

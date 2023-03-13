@@ -1,8 +1,8 @@
 .. Post IBM documentation master file
 
 
-IBM: Immersed boundary method specific post-processing 
-=======================================================
+Post.IBM: immersed boundary method specific post-processing 
+===========================================================
 
 Specific post-processing for immersed boundaries (IB).
 

@@ -11,4 +11,4 @@ SIGMA = 4*CHORD / (math.pi*AR)
 teff = C.convertFile2PyTree('stress_419.cgns')
 
 ret = PR.computeThrustAndTorque(teff, 419., PInf, center=(0,0,0), relativeShaft=0.)
-test.testO(ret, 1)
+test.testO(ret[0], 1)

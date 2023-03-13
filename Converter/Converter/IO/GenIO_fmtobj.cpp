@@ -630,10 +630,17 @@ E_Int K_IO::GenIO::objwrite(
       E_Int* cn3 = cn.begin(3);
       for (E_Int n = 0; n < cn.getSize(); n++)
       {
+#ifdef E_DOUBLEINT
+        fprintf(ptrFile, "f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld\n", 
+                cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
+                cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
+                cn3[n]+ng, cn3[n]+ng, cn3[n]+ng);
+#else
         fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", 
                 cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
                 cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
                 cn3[n]+ng, cn3[n]+ng, cn3[n]+ng);
+#endif
       }
     }
     if (eltType[i] == 3)
@@ -646,11 +653,19 @@ E_Int K_IO::GenIO::objwrite(
       E_Int* cn4 = cn.begin(4);
       for (E_Int n = 0; n < cn.getSize(); n++)
       {
+#ifdef E_DOUBLEINT
+        fprintf(ptrFile, "f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld\n", 
+                cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
+                cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
+                cn3[n]+ng, cn3[n]+ng, cn3[n]+ng,
+                cn4[n]+ng, cn4[n]+ng, cn4[n]+ng);
+#else
         fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n", 
                 cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
                 cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
                 cn3[n]+ng, cn3[n]+ng, cn3[n]+ng,
                 cn4[n]+ng, cn4[n]+ng, cn4[n]+ng);
+#endif
       }
     }
     ng += field.getSize();

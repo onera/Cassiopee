@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SUPERMESH_HXX
 #define NUGA_SUPERMESH_HXX
@@ -81,7 +81,7 @@ inline void __manage_x_points(aPolygon& bit, E_Int n0,
       else
         bit.m_poids[p] = it->second;
 
-      edge_to_xnodes.insert(std::make_pair(le0, bit.m_poids[p])); // on recense le point pour construire a posteriori le ae0 impacté
+      edge_to_xnodes.insert(std::make_pair(le0, bit.m_poids[p])); // on recense le point pour construire a posteriori le ae0 impactï¿½
     }
   }
 }
@@ -203,7 +203,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
   for (E_Int i = 0; i < nbcells0; ++i)
   {
     auto ae0 = m0.aelement(i);
-    int nnodes = ae0.nb_nodes();
+    //int nnodes = ae0.nb_nodes();
 
     double surf0 = ae0.metrics();
     const double *norm0 = ae0.get_normal();
@@ -235,7 +235,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
       const double *normc = ae1.get_normal();
 
       double ps = NUGA::dot<3>(norm0, normc);
-      if (::fabs(ps) < 0.9) continue; // doivent être colineaire
+      if (::fabs(ps) < 0.9) continue; // doivent ï¿½tre colineaire
 
       bool ae1_reversed = false;
       if (ps < 0.) // CLIP::isolated_clip needs input polygons to have same orientation
@@ -308,7 +308,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
           // la cle est est definie par la paire des indices globaux des aretes
           // on retrouve les indices globaux  avec les indices locaux (le0 de ae0 et le1 de ae1)
-          // si ae1 a ete reoriiente, l'indice local doit etre modifié
+          // si ae1 a ete reoriiente, l'indice local doit etre modifiï¿½
          
           // n0 pour conversion de l'indice local d'arete le1
           E_Int n0 = ae1_reversed ? ae1.m_crd.cols() : IDX_NONE;
@@ -645,8 +645,9 @@ int interpolate(
   std::vector<E_Int> cands;
   std::vector<aelt_t> bits;
 
-  size_t n, k, f, b;
+  size_t n, k, b;
   E_Int i, i2;
+  E_Int f;
 
 #pragma omp parallel for private(cands, bits, n, k, i, i2, f, b) if(do_omp)
   for (i = 0; i < nbcells0; ++i)
@@ -737,9 +738,9 @@ int interpolate(
   }
   
 #pragma omp parallel for private(i) if (do_omp)
-  for (i = 0; i < nbcells0; ++i)
+  for (E_Int i = 0; i < nbcells0; ++i)
   {
-    for (f = 0; f < nfields; ++f)
+    for (E_Int f = 0; f < nfields; ++f)
     {
       if (covered_vol[i] != 0.) // discard non interpolated cells
         rec_fields[f][i] /= covered_vol[i];

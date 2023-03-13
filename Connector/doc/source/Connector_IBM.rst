@@ -1,8 +1,8 @@
 .. Connector IBM documentation master file
 
 
-IBM: Immersed boundary method grid connectivity module
-======================================================
+Connector.IBM: immersed boundary method grid connectivity module
+================================================================
 
 **-- READ ME**
 The current documentation is solely for the purposes of tracking the location of the functions previously located in Connector/ToolboxIBM.py and Apps/Fast/IBM.py.

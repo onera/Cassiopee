@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef MEDITH_HXX
 #define MEDITH_HXX
@@ -370,7 +370,7 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
 
     if (toprocess)
     {
-      for (E_Int i = 0; i < toprocess->size(); ++i)
+      for (size_t i = 0; i < toprocess->size(); ++i)
       {
         E_Int PGi = (*toprocess)[i] - idx_start;
         E_Int str = pgs.stride(PGi);
@@ -535,14 +535,14 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
     acrd_t acrd(coord);
     K_FLD::IntArray connectE;
-    E_Int n0, n1;
+    //E_Int n0, n1;
     E_Float P0[3], P1[3], Lmin(NUGA::FLOAT_MAX), L2;
 
     E_Int nb_nodes, E[2];
     const E_Int* pNi = PGs.get_facets_ptr(ith);
     nb_nodes = PGs.stride(ith);
 
-    for (size_t j = 0; j < nb_nodes; ++j)
+    for (E_Int j = 0; j < nb_nodes; ++j)
     {
       E[0] = *(pNi + j) - 1;
       E[1] = *(pNi + (j + 1) % nb_nodes) - 1;

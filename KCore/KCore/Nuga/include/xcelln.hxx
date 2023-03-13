@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_XCELLN_HXX
 #define NUGA_XCELLN_HXX
@@ -266,7 +266,7 @@ namespace NUGA
     const std::vector<K_SEARCH::BBox3D>& comp_boxes,
     typename classifyer_t::outdata_t& z_xcelln, E_Float RTOL)
   {
-    using zmesh_t = typename classifyer_t::zmesh_t;
+    //using zmesh_t = typename classifyer_t::zmesh_t;
     using bmesh_t = typename classifyer_t::bmesh_t;
 
     E_Int err(0);

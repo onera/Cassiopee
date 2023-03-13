@@ -1,8 +1,8 @@
 .. Geom IBM documentation master file
 
 
-IBM: Specific geometry modifications for IBMs 
-==============================================
+Geom.IBM: specific geometry modifications for IBMs 
+==================================================
 
 Specific geometry modification functions for immersed boundaries.
 

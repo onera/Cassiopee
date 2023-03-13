@@ -809,6 +809,7 @@ else if ($MAC == "sator_brw") then
         module load hdf5/1.10.5-intel2120-impi
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
+        module load occt/7.6.1-gnu831
         unsetenv I_MPI_PMI_LIBRARY
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
@@ -829,6 +830,7 @@ else if ($MAC == "sator_sky") then
         module load hdf5/1.10.5-intel2120-impi
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
+        module load occt/7.6.1-gnu831
         unsetenv I_MPI_PMI_LIBRARY
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
@@ -849,6 +851,7 @@ else if ($MAC == "sator_cas") then
         module load hdf5/1.10.5-intel2120-impi
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
+        module load occt/7.6.1-gnu831
         unsetenv I_MPI_PMI_LIBRARY
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3

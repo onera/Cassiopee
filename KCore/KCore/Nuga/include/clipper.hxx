@@ -629,7 +629,7 @@ namespace NUGA
 
           std::vector<E_Int> new_ancE2;
           new_ancE2.reserve(ancE2.size());
-          for (size_t k = 0; k < dupIds.size(); ++k)
+          for (E_Int k = 0; k < E_Int(dupIds.size()); ++k)
           {
             if (dupIds[k] == k)
               new_ancE2.push_back(ancE2[k]);

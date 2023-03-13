@@ -77,7 +77,7 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "changeWall: 1st arg must contain cellN variable.");
-    RELEASESHAREDS(arrayCenters,fc); return NULL; 
+    RELEASESHAREDS(arrayCenters, fc); return NULL; 
   }
   posxc++; posyc++; poszc++; posc++;
 
@@ -205,7 +205,7 @@ void K_CONNECTOR::changeWall(
 {
   E_Float coefhmax = 10.; // tolerance de projection : coefhmax * hmax
   E_Float tolbb = 1.e-6;
-  //Creation des bbtrees pour chaque surface
+  // Creation des bbtrees pour chaque surface de projection
   E_Int nzones = unstrF.size();
   typedef K_SEARCH::BoundingBox<3> BBox3DType;
   vector<K_SEARCH::BbTree3D*> vectOfBBTrees;
@@ -247,7 +247,7 @@ void K_CONNECTOR::changeWall(
   vector<E_Int> indicesElts; vector<E_Int> candidates;
   E_Float pr1[3]; E_Float pr2[3];
   E_Int iA, jA, kA;
-  // Projection des pts interpoles
+  // Projection des pts interpoles des first centers
   // Poids du vecteur delta pour chq pt au dessus du pt pres de la paroi a interpoler : 
   // Si i < no1 : alpha = 1, si no1 <= i< no2 : alpha decroissant, 0 ensuite
   vector<E_Float> xbt; vector<E_Float> ybt; vector<E_Float> zbt; vector<E_Int> dirt;vector<E_Float> hmaxt;
@@ -259,38 +259,43 @@ void K_CONNECTOR::changeWall(
     jA = (indA-kA*imcjmc)/imc;
     iA = indA-jA*imc-kA*imcjmc;
     xa = xc[indA]; ya = yc[indA]; za = zc[indA];
+    //printf("xa %f %f %f\n", xa, ya, za);
     xbt.clear(); ybt.clear(); zbt.clear(); dirt.clear();
     dir1 = E_Int(dirw1[ii]);
     dir2 = E_Int(dirw2[ii]);
     dir3 = E_Int(dirw3[ii]);
+    //printf("dir %d %d %d\n", dir1, dir2, dir3);
     hmax1 = hmaxw[ii];
     // on recupere le pt B si le pt A est un pt paroi dans la direction ortho a i
-    if ( dir1 == 1 || dir1 == -1 )
+    if (dir1 == 1 || dir1 == -1)
     {
       indB = indA + dir1; dir = dir1;
       xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
       xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir); 
     }
-    if ( dir2 == 1 || dir2 == -1 ) 
+    if (dir2 == 1 || dir2 == -1)
     {
       indB = indA + dir2*imc; dir = dir2*2;
       xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
       xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir);
     }
-    if ( dir3 == 1 || dir3 == -1 ) 
+    if (dir3 == 1 || dir3 == -1) 
     {
       indB = indA + dir3*imcjmc; dir = dir3*3;
       xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
       xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir);
     }
+    //printf("xb %f %f %f\n", xb, yb, zb);
     delta = K_CONST::E_MAX_FLOAT; deltax = 0.; deltay = 0.; deltaz = 0.; isProjected = false;
     nbB = xbt.size();
 
-    //1ere tentative : on fait une projection suivant une direction correspondant a la ligne ortho a la paroi
+    // on fait une projection suivant la direction AB
     for (nob = 0; nob < nbB; nob++)
     {
       xb = xbt[nob]; yb = ybt[nob]; zb = zbt[nob]; dir = dirt[nob];
-      for (E_Int v = 0; v < nzones; v++)//parcours des surfaces de projection
+      dirx = xa-xb; diry = ya-yb; dirz = za-zb;// BA
+
+      for (E_Int v = 0; v < nzones; v++) // parcours des surfaces de projection
       {
         E_Int* cn1 = cnt[v]->begin(1);
         E_Int* cn2 = cnt[v]->begin(2);
@@ -301,43 +306,41 @@ void K_CONNECTOR::changeWall(
         xp = K_CONST::E_MAX_FLOAT; yp = K_CONST::E_MAX_FLOAT; zp = K_CONST::E_MAX_FLOAT;
         // Preconditionnement : on ne prend que les indices des elts 
         K_SEARCH::BbTree3D* bbtree = vectOfBBTrees[v];
-        dirx = xa-xb; diry = ya-yb; dirz = za-zb;// BA
         pr1[0] = xa; pr1[1] = ya; pr1[2] = za;
         pr2[0] = xa+dirx; pr2[1] = ya+diry; pr2[2] = za+dirz;
         indicesElts.clear(); candidates.clear();
         bbtree->getIntersectingBoxes(pr1, pr2, indicesElts, tolbb);
-        for (unsigned int noe = 0; noe < indicesElts.size(); noe++)
+        for (size_t noe = 0; noe < indicesElts.size(); noe++)
         {
           indt1 = cn1[indicesElts[noe]]-1;
           indt2 = cn2[indicesElts[noe]]-1;
           indt3 = cn3[indicesElts[noe]]-1;
-          if ( cellNTri[indt1] > 0. ||  cellNTri[indt2] > 0. ||  cellNTri[indt3] > 0. )
+          if (cellNTri[indt1] > 0. ||  cellNTri[indt2] > 0. ||  cellNTri[indt3] > 0.)
             candidates.push_back(indicesElts[noe]);
         } 
         // projection suivant la direction BA sur la surface opposee
         noet = K_COMPGEOM::projectDir(xa, ya, za, dirx, diry, dirz, 
                                       unstrF[v]->begin(posxt[v]), unstrF[v]->begin(posyt[v]), unstrF[v]->begin(poszt[v]),
                                       candidates, *cnt[v], xp, yp, zp);
-        if ( noet != -1 && xp < K_CONST::E_MAX_FLOAT && yp < K_CONST::E_MAX_FLOAT && zp < K_CONST::E_MAX_FLOAT) 
+        if (noet != -1 && xp < K_CONST::E_MAX_FLOAT && yp < K_CONST::E_MAX_FLOAT && zp < K_CONST::E_MAX_FLOAT)
         {
           dxa = xp-xa; dya = yp-ya; dza = zp-za; dAP2 = dxa*dxa + dya*dya + dza*dza;
-          nov1 = cn1[noet]-1; nov2 = cn2[noet]-1;nov3 = cn3[noet]-1;
+          //printf("DAP2 %f\n", dAP2);
+          nov1 = cn1[noet]-1; nov2 = cn2[noet]-1; nov3 = cn3[noet]-1;
           hmax2 = (hmaxTri[nov1]+hmaxTri[nov2]+hmaxTri[nov3])/3.;//moyenne sur le triangle de hmax
           hmax = K_FUNC::E_max(hmax1, hmax2); hmax = hmax*hmax;
-          if (dAP2 < coefhmax*hmax && dAP2 < delta)  
-          {delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
+          if (dAP2 < coefhmax*hmax && dAP2 < delta) 
+          { delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
           else if (hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
-          {
-            delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; 
-          }
+          { delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
         }
       }     
-      if (isProjected == false) goto nextptB;         
-      // printf("Wall double definition : point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
+      if (isProjected == false) goto nextptB;      
+      //printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
       //        xa, ya, za, iA+1, jA+1, kA+1, xa+deltax, ya+deltay,za+deltaz);
     
       shiftAbovePoints(imc, jmc, kmc, dir, indA, iA, jA, kA, 
-                       xa, ya, za, deltax, deltay,deltaz,
+                       xa, ya, za, deltax, deltay, deltaz,
                        xc, yc, zc, cellN, xc2, yc2, zc2);   
       
       nextptB:;
@@ -345,6 +348,8 @@ void K_CONNECTOR::changeWall(
        
     nextpt:;
   }// pour ts les pts interpoles
+  
+  // cleanup
   E_Int nboxes = vectOfBoxes.size();
   for (E_Int v0 = 0; v0 < nboxes; v0++)
   {

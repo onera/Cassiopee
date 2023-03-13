@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_AGGLOMERATOR_H
 #define NUGA_AGGLOMERATOR_H
@@ -1754,7 +1754,7 @@ namespace NUGA
         //break;
         //find tha max id : more chances to be an X point, so more chance to lie on the X interface :
         // it it better if entities crash on the interface to not deform it
-        E_Int Ntarget = -1;
+        //E_Int Ntarget = -1;
         /*for (size_t p = 0; p < 2; ++p) // only needed to cross 2 faces to pass through the four nodes
         {
           E_Int* pnodes = ngio.PGs.get_facets_ptr(pf[p] - 1);
@@ -1774,7 +1774,7 @@ namespace NUGA
         }*/
         double Lmin2=NUGA::FLOAT_MAX;
         E_Int* pf = ngio.PHs.get_facets_ptr(PHi);
-        E_Int Nmin,Nmax;
+        E_Int Nmin=0, Nmax=0;
         for (size_t f = 0; f < 4; ++f)
         {
           E_Int* pnodes = ngio.PGs.get_facets_ptr(pf[f] - 1);
