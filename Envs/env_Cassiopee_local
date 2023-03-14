@@ -41,6 +41,7 @@ set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
 set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
 set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
 set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
+set MAC0=`echo $KC | grep 'jean-zay'`; if ($%MAC0 != 0) set MAC="jean-zay"
 set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 
 if ($?MACHINE != 0) then
@@ -477,17 +478,30 @@ else if ($MAC == "tgcc_irene") then
         # Nombre de threads
         setenv OMP_NUM_THREADS 24
         # modules
-	module purge
-	module load intel/20
-	module load mpi/openmpi
-	module load python/2.7.14
-	module load hdf5/1.8.20
-	#module load scons/3.0.1
-
+        module purge
+        module load intel/20
+        module load mpi/openmpi
+        module load python/2.7.14
+        module load hdf5/1.8.20
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+
+else if ($MAC == "jean-zay") then
+#------------------------------- sator new ------------------------------------
+        setenv ELSAPROD jz_r8
+        module load intel-all/2020.4
+        module load python/3.8.8
+	    # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        # Number of threads
+        setenv OMP_NUM_THREADS 28
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 else if ($MAC == "eos") then
 #-------------------------------- ld (centos6) -----------------------------------------

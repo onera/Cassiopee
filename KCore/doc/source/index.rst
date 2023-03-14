@@ -10,10 +10,7 @@ Contents
 
 .. toctree::
    :maxdepth: 1
-
-   Internal
-   Geom
-   Initiator   
+ 
 
 Indices and tables
 ==================

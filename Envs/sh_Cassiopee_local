@@ -43,6 +43,7 @@ MAC0=$(echo $KC | grep 'xdaap'); if [ "$MAC0" != "" ]; then export MAC="xdaap"; 
 MAC0=$(echo $KC | grep 'spiro'); if [ "$MAC0" != "" ]; then export MAC="spiro_el8"; fi
 MAC0=$(echo $KC | grep 'cobalt'); if [ "$MAC0" != "" ]; then export MAC="cobalt"; fi
 MAC0=$(echo $KC | grep 'irene'); if [ "$MAC0" != "" ]; then export MAC="irene"; fi
+MAC0=$(echo $KC | grep 'jean-zay'); if [ "$MAC0" != "" ]; then export MAC="jean-zay"; fi
 MAC0=$(echo $KC | grep 'node6.cluster'); if [ "$MAC0" != "" ]; then export MAC="macosx"; fi
 
 if [ "$MACHINE" != "" ]; then
@@ -378,6 +379,7 @@ elif [ "$MAC" = "cobalt" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+
 elif [ "$MAC" = "tgcc_irene" ]; then
 #-------------------------------- irene -----------------------------------------
     export ELSAPROD=irene_r8
@@ -397,6 +399,21 @@ elif [ "$MAC" = "tgcc_irene" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+
+elif [ "$MAC" = "jean-zay" ]; then
+#-------------------------------- jean-zay -----------------------------------------
+    export ELSAPROD=jz_r8
+    module load intel-all/2020.4
+    module load python/3.8.8
+	# Set next two lines only if python is not python
+    export PYTHONEXE=python3    
+    alias python python3
+    # Number of threads
+    export OMP_NUM_THREADS=28
+    export PATH=$PATH $CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 elif [ "$MAC" = "xdaap" ]; then
 #----------------------------- xdaap -----------------------------------------

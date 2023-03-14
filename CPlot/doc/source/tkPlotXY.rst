@@ -124,7 +124,8 @@ The first step is to create a graphEditor and to get its Desktop using :
 
 .. py:function:: tkPlotXY.openGraphEditor
 
-.. autosummary:: tkPlotXY.openGraphEditor
+.. autosummary:: 
+    tkPlotXY.openGraphEditor
 
 .. code-block:: python
 

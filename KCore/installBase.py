@@ -712,6 +712,23 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'jean-zay': [ 'Machine IDRIS intel + NVIDIA V100)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=20','-Dvtune','-DSIMD=AVX512'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+
+###############################################################################
 'ubuntu': [ 'Linux ubuntu (Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
