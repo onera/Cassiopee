@@ -535,7 +535,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
     E_Float rx, ry, rz, rad;
 
     //distance of corrected pts to wall pts and image pts 
-    E_Float delta1, delta2;
+    //E_Float delta1, delta2;
     //Corresponding directions
     E_Float nxp, nyp, nzp, nxs, nys, nzs;
     E_Int *cnVert1, *cnVert2, *cnVert3;

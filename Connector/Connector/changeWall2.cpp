@@ -182,5 +182,4 @@ PyObject* K_CONNECTOR::changeWall2(PyObject* self, PyObject* args)
   
   Py_INCREF(Py_None);
   return Py_None;
-
 }

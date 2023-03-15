@@ -618,7 +618,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 	E_Int nvars_loc = ipt_param_int[shift_rac + nrac * 13 + 1];  //nbre variable a transferer pour rans/LES
 
 	E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
-        E_Int overset  =  ipt_param_intD[NoD][LBM_OVERSET];        //flag pour overset en LBM recuperé sur param_int donneuse
+        E_Int overset  =  ipt_param_intD[NoD][LBM_OVERSET];        //flag pour overset en LBM recuperï¿½ sur param_int donneuse
         if      (nvars_loc==19 && overset==0) nvars_loc = nvars_loc + 5;
         else if (nvars_loc==19 && overset==1) nvars_loc = nvars_loc + 5 + 6 + 6;
 
@@ -838,13 +838,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                     // printf("navr_loc %d %d %d \n", nvars_loc, nvars, Rans);
 
                     if ( loc == 0 ) {
-		      printf("transferts optimises pas code en vertex \n");
-		      /*for ( E_Int eq = 0; eq < nvars_loc; eq++ ) {
-			vectOfRcvFields[eq] = frp[count_rac] + eq * nbRcvPts;
-			vectOfDnrFields[eq] = ipt_roD_vert[NoD] + eq * ipt_ndimdxD[NoD + nidomD * 3];
-                        }*/
-		      imd = ipt_ndimdxD[NoD + nidomD * 4];
-		      jmd = ipt_ndimdxD[NoD + nidomD * 5];
+                      printf("transferts optimises pas code en vertex \n");
+                      /*for ( E_Int eq = 0; eq < nvars_loc; eq++ ) {
+                      vectOfRcvFields[eq] = frp[count_rac] + eq * nbRcvPts;
+                      vectOfDnrFields[eq] = ipt_roD_vert[NoD] + eq * ipt_ndimdxD[NoD + nidomD * 3];
+                    }*/
+                    imd = ipt_ndimdxD[NoD + nidomD * 4];
+                    jmd = ipt_ndimdxD[NoD + nidomD * 5];
                     } else {
 
                         /*--------------------------------------------------------------------*/

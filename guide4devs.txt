@@ -8,7 +8,7 @@ Editor :
 
 Python Functions:
 -----------------
-- no snake in function names or arguments. Use Camel.
+- no snake (my_function) in function names or arguments. Use Camel (myFunction).
 - short comment string in function header
 - function must have a test before commit
 - in place function starts with _ and return None

@@ -90,9 +90,9 @@ inline void __impact_ae0(aPolygon& ae0, const std::set<std::pair<E_Int, E_Int>>&
 {
   std::vector<std::pair<double, E_Int>> lambda_to_node;
 
-  int nnodes = ae0.nb_nodes();
+  E_Int nnodes = ae0.nb_nodes();
 
-  for (size_t n = 0; n < nnodes; ++n)
+  for (E_Int n = 0; n < nnodes; ++n)
     lambda_to_node.push_back(std::make_pair(double(n), ae0.m_poids[n]));
 
   double P0PX[3], P0P1[3];
@@ -273,9 +273,9 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
         // car cette info n'est pertinenente que pour le surfacique, et pas le volumique.
         ae1.m_normal[0] = NUGA::FLOAT_MAX;
 
-        int err = NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(subj, ae1, NUGA::INTERSECT::INTERSECTION, ARTOL, bits, true_clip);
+      int err = NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(subj, ae1, NUGA::INTERSECT::INTERSECTION, ARTOL, bits, true_clip);
 
-      if (err) std::cout << "clipping erreor : " << i << "-th cell with " << n << "-th candidates" << std::endl;
+      if (err) std::cout << "clipping error : " << i << "-th cell with " << n << "-th candidates" << std::endl;
       assert(!err);
 
       // check that bits are nearly colinear with subj : fixme : not found yet a better way to detect parasite bits

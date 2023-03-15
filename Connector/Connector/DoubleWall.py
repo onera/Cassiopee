@@ -7,6 +7,7 @@ except: pass
 
 try:
     import Geom
+    import Geom.PyTree as D
     import Transform
     import Transform.PyTree as T
     import Converter
@@ -49,12 +50,16 @@ def getBCWallRanges__(z, familyNames=[]):
 # de range wallRanges de la zone z sous forme d'une seule zone HEXA
 # Coordonnees + indcellw + dir1 + dir2 + dir3
 #------------------------------------------------------------------------------
-def getFirstPointsInfo0__(z, wallRanges, loc='nodes'):
+def getFirstPointsInfo0__(z, wallRanges, loc='nodes', ghostCells=False):
     if loc == 'nodes': shift = 0
-    elif loc == 'centers': 
+    elif loc == 'centers':
         shift = 1 #decalage d'indices de -1 si centres
         z = Converter.node2Center(z)
     else: raise ValueError("getFirstPointsInfo0__: loc must be nodes or centers.")
+
+    # CB: ghost cells in t
+    if ghostCells: s2 = 2
+    else: s2 = 0
 
     ni = z[2]; nj = z[3]; nk = z[4]; ninj = ni*nj
     indwt = Converter.array('indcellw',ni,nj,nk); indca = indwt[1]
@@ -69,26 +74,26 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes'):
         if i1 == i2:
             if i1 == 1: diri=1; ic = 0
             else: diri=-1; ic = i1-shift-1
-            for k in range(k1-1,k2-shift):
-                for j in range(j1-1,j2-shift):
+            for k in range(k1-1-s2,k2-shift+s2):
+                for j in range(j1-1-s2,j2-shift+s2):
                     ind = ic + j*ni + k*ninj
-                    dirz[1][0,ind] = diri   
+                    dirz[1][0,ind] = diri
             
         elif j1 == j2:
             if j1 == 1: diri=1; jc = 0
             else: diri=-1; jc = j1-shift-1
-            for k in range(k1-1,k2-shift):
-                for i in range(i1-1,i2-shift):
+            for k in range(k1-1-s2,k2-shift+s2):
+                for i in range(i1-1-s2,i2-shift+s2):
                     ind = i + jc*ni + k*ninj
-                    dirz[1][1,ind] = diri   
+                    dirz[1][1,ind] = diri
         
         else: # k1 == k2
             if k1 == 1: diri=1; kc = 0
             else: diri=-1; kc = k1-shift-1
-            for j in range(j1-1,j2-shift):
-                for i in range(i1-1,i2-shift):
+            for j in range(j1-1-s2,j2-shift+s2):
+                for i in range(i1-1-s2,i2-shift+s2):
                     ind = i + j*ni + kc*ninj
-                    dirz[1][2,ind] = diri  
+                    dirz[1][2,ind] = diri
 
     z = Converter.addVars([z,indwt,dirz])
     # 2e passe : on subzone pour avoir les bons dir1,dir2,dir3
@@ -97,17 +102,18 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes'):
         if i1 == i2:
             if i1 == 1: diri=1; ic = 1
             else: diri=-1; ic = i1-shift            
-            z2w = Transform.subzone(z,(ic,j1,k1),(ic,j2-shift,k2-shift))
+            z2w = Transform.subzone(z,(ic,j1-s2,k1-s2),(ic,j2-shift+s2,k2-shift+s2))
             
         elif j1 == j2:
             if j1 == 1: diri=1; jc = 1
             else: diri=-1; jc = j1-shift
-            z2w = Transform.subzone(z,(i1,jc,k1),(i2-shift,jc,k2-shift))
+            #print('range', i1-s2, i2-shift+s2, k1-s2, k2-shift+s2, flush=True)
+            z2w = Transform.subzone(z,(i1-s2,jc,k1-s2),(i2-shift+s2,jc,k2-shift+s2))
 
         else: # k1 == k2
             if k1 == 1: diri=1; kc = 1
             else: diri=-1; kc = k1-shift
-            z2w = Transform.subzone(z,(i1,j1,kc),(i2-shift,j2-shift,kc))
+            z2w = Transform.subzone(z,(i1-s2,j1-s2,kc),(i2-shift+s2,j2-shift+s2,kc))
         wallsc.append(z2w)
 
     # conversion en 'QUAD'
@@ -121,9 +127,9 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes'):
 # de range wallRanges de la zone z
 # Coordonnees + dir1 + dir2 + dir3 + curvature height
 #------------------------------------------------------------------------------
-def getFirstPointsInfo__(z, wallRanges, loc='nodes'):
+def getFirstPointsInfo__(z, wallRanges, loc='nodes', ghostCells=False):
     coords = C.getFields(Internal.__GridCoordinates__, z)[0]
-    wallsc = getFirstPointsInfo0__(coords, wallRanges, loc)
+    wallsc = getFirstPointsInfo0__(coords, wallRanges, loc, ghostCells)
     # calcul de la hauteur de courbure
     hmax = Geom.getCurvatureHeight(wallsc)
     wallsc = Converter.addVars([wallsc, hmax])
@@ -302,3 +308,45 @@ def extractDoubleWallInfo__(t):
         wallSurfacesEC.append(surfacesExt)
         nob += 1
     return [firstCenters, wallSurfacesEC]
+
+# listOfMismatch : liste des BCs en mismatch
+# changeWall for Fast t,tc
+# listOfMismatch1 = ['Base1/cart1/wall1']
+def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2):
+
+    for c, w1 in enumerate(listOfMismatch1):
+
+        # firstWallCenters1 - wall a recoller == local
+        name = w1.rsplit('/', 1)
+        z1 = Internal.getNodeFromPath(t, name[0])
+        pr = Internal.getNodeFromPath(z1, 'ZoneBC/'+name[1]+'/PointRange')
+        if pr is not None:
+            wr = Internal.range2Window(pr[1])
+            firstWallCenters1 = getFirstPointsInfo__(z1, [wr], loc='centers', ghostCells=True)
+            #Converter.convertArrays2File(firstWallCenters1, 'first.plt')
+        
+        # surfaceCenters2 - surface de projection ==
+        w2 = listOfMismatch2[c]
+        name = w2.rsplit('/', 2)
+        z2 = Internal.getNodeFromPath(t, name[0])
+        if z2 is not None:
+            walls2 = C.extractBCOfType(z2, 'BCWall')
+            walls2 = C.node2Center(walls2)
+            walls2 = C.convertArray2Tetra(walls2, split='withBarycenters')
+            D._getCurvatureHeight(walls2)
+            surfaceCenters2 = C.getAllFields(walls2, 'nodes')
+            #Converter.convertArrays2File(surfaceCenters2, 'proj.plt')
+
+        # a1c - domaine a recoller ==
+        name = w1.rsplit('/', 1)
+        z1c = Internal.getNodeFromPath(tc, name[0])
+        if z1c is not None:
+            a1c = C.getFields(Internal.__GridCoordinates__, z1c)[0]
+            cellN = C.getField('cellN', z1c)[0]
+            a1c = Converter.addVars([a1c,cellN])
+
+            # a1c : array centres + cellN
+            a1cp = Connector.changeWall__(a1c, firstWallCenters1, surfaceCenters2, planarTol=0.)
+            C.setFields([a1cp], z1c, 'nodes', False)
+            
+    return None
