@@ -383,7 +383,7 @@ namespace NUGA
           // if (rank == 2) std::cout << "racrange_end : " << racrange_end << std::endl;
           // if (rank == 2) std::cout << "receive_data : 10 c 3" << std::endl;
 
-          for (size_t v = racrange_beg; v < racrange_end; ++v)
+          for (E_Int v = racrange_beg; v < racrange_end; ++v)
           {
             assert(v >= 0 && v < rac.size());
             int rid = rac[v];

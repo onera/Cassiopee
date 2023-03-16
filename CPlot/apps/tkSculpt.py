@@ -68,7 +68,7 @@ def sculpt():
     CPlot.unselectAllZones()
 
     w = WIDGETS['sculpt']
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
@@ -79,7 +79,7 @@ def sculpt():
                 l = CPlot.getActivePointIndex()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
+                if not CTK.__BUSY__: break
             if CTK.__BUSY__:
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]
@@ -205,7 +205,7 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
@@ -223,9 +223,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

@@ -1451,7 +1451,7 @@ def createApp(win):
     # - Frame sunken -
     Frame2 = TK.Frame(Frame, border=1, relief=TK.SUNKEN)
     Frame2.columnconfigure(0, weight=1)
-    Frame2.grid(sticky=TK.EW)
+    Frame2.grid(sticky=TK.NSEW)
 
     aw = 230; ah = 210
     if 'tkTreeWidth' in CTK.PREFS: aw = CTK.PREFS['tkTreeWidth']
@@ -1529,7 +1529,7 @@ def onPaste(event):
     
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW, column=1); updateApp()
+    WIDGETS['frame'].grid(sticky=TK.NSEW, column=1); updateApp()
 
 #==============================================================================
 def hideApp(event=None):

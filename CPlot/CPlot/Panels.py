@@ -1324,9 +1324,9 @@ def openLoadPanel(event=None):
     if LOADPANEL is None:
         LOADPANEL = TK.Toplevel()
         LOADPANEL.columnconfigure(0, weight=1)
-        LOADPANEL.columnconfigure(1, weight=0)
-        LOADPANEL.columnconfigure(2, weight=1)
-        LOADPANEL.columnconfigure(3, weight=0)
+        #LOADPANEL.columnconfigure(1, weight=0)
+        #LOADPANEL.columnconfigure(2, weight=1)
+        #LOADPANEL.columnconfigure(3, weight=0)
         LOADPANEL.rowconfigure(0, weight=1)
         LOADPANEL.title("File load panel")
         LOADPANEL.bind_all("<Control-o>", openLoadFileDialog)
@@ -1336,7 +1336,17 @@ def openLoadPanel(event=None):
         ypos = LOADPANEL.master.winfo_rooty()+45
         LOADPANEL.geometry("%+d%+d" % (xpos, ypos))
         F = TK.Frame(LOADPANEL, border=0)
-        F.grid(row=0, column=0, columnspan=2, sticky=TK.W)
+        F.columnconfigure(0, weight=1)
+        F.columnconfigure(1, weight=1)
+        F.columnconfigure(2, weight=0)
+        F.columnconfigure(3, weight=1)
+        F.columnconfigure(4, weight=1)
+        F.columnconfigure(5, weight=0)
+        F.rowconfigure(0, weight=0)
+        F.rowconfigure(1, weight=1)
+        F.rowconfigure(2, weight=0)
+        F.rowconfigure(3, weight=0)
+        F.grid(row=0, column=0, columnspan=1, sticky=TK.NSEW)
 
         # -0- filename
         V = TK.StringVar(F); V.set(CTK.FILE); OVARS.append(V)

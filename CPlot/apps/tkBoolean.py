@@ -10,9 +10,6 @@ import CPlot.Panels as Panels
 import Converter.Internal as Internal
 import Intersector.PyTree as XOR
 
-try: range = xrange
-except: pass
-
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -262,7 +259,7 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets

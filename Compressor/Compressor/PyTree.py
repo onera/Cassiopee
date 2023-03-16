@@ -132,6 +132,9 @@ def _compressCartesian__(z, ztype, gc, tol=1.e-10):
     if xp is None: return False
     if yp is None: return False
     if zp is None: return False
+    if Internal.getNodeFromName1(xp, 'ZData'): return False # already compress by something else
+    if Internal.getNodeFromName1(yp, 'ZData'): return False
+    if Internal.getNodeFromName1(zp, 'ZData'): return False
     xp = xp[1].ravel(order='K')
     yp = yp[1].ravel(order='K')
     zp = zp[1].ravel(order='K')
@@ -215,10 +218,14 @@ def _compressCartesian__(z, ztype, gc, tol=1.e-10):
 
     #print(cartesian, abs(zp[2*ni*nj] - zp[ni*nj] - hk), abs(zp[3*ni*nj] - zp[2*ni*nj] - hk))
     if cartesian:
-        Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read
-        Internal.createUniqueChild(gc, 'CoordinateY', 'DataArray_t', value=[0.]*10)
-        Internal.createUniqueChild(gc, 'CoordinateZ', 'DataArray_t', value=[0.]*10)
-        Internal.createChild(gc, 'CartesianData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk])
+        px = Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read
+        Internal.createChild(px, 'ZData', 'DataArray_t', value=[6., x0, hi, float(ni), float(nj), float(nk)])
+        py = Internal.createUniqueChild(gc, 'CoordinateY', 'DataArray_t', value=[0.]*10)
+        Internal.createChild(py, 'ZData', 'DataArray_t', value=[6., y0, hj, float(ni), float(nj), float(nk)])
+        pz = Internal.createUniqueChild(gc, 'CoordinateZ', 'DataArray_t', value=[0.]*10)
+        Internal.createChild(pz, 'ZData', 'DataArray_t', value=[6., z0, hk, float(ni), float(nj), float(nk)])
+        cd = Internal.createChild(gc, 'CartesianData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk])
+        Internal.createChild(cd, 'ZData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk]) # to avoid recompression of CartesianData
         
     return cartesian
 
@@ -351,12 +358,14 @@ def _uncompressCartesian(t):
         if gc is not None: _uncompressCartesian__(z, ztype, gc)
     return None
 
+# Node data compression
 # ctype=0: compress with sz
 # ctype=1: compress with zfp
 # ctype=2: compress cellN (lossless)
 # ctype=3: compress basic element connectivity (lossless)
 # ctype=4: compress ngon connectivity (losless)
 # ctype=5: compress with fpc (lossless)
+# ctype=6: reserve pour compressCartesian (lossless)
 def _packNode(node, tol=1.e-8, ctype=0):
     if Internal.getNodeFromName1(node, 'ZData') is not None: return None # already compressed node
     if ctype == 0: # sz
@@ -436,7 +445,6 @@ def _unpackNode(node):
             #print('uncompress', node[0], shape, flush=True)
             ret = Compressor.compressor.uncompressFpc((shape,node[1],iscorder))
             node[1] = ret
-            #print('ret', node[1], numpy.isfortran(node[1]))
             Internal._rmNodesFromName1(node, 'ZData')
         else:
             raise ValueError("unpackNode: unknown compression type.")

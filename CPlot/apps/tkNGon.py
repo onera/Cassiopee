@@ -212,7 +212,7 @@ def createApp(win):
     
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 def hideApp(event=None):

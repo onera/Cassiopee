@@ -12,9 +12,6 @@ import Converter.Internal as Internal
 import Connector.PyTree as X
 import Post.PyTree as P
 
-try: range = xrange
-except: pass
-
 # local widgets list
 WIDGETS = {}; VARS = []
 __SPLITFACTOR__ = 180.
@@ -840,7 +837,7 @@ def createApp(win):
 
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 def hideApp(event=None):

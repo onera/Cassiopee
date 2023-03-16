@@ -765,7 +765,7 @@ namespace NUGA
       arity.clear();
       K_MESH::Polyhedron<UNKNOWN>::unique_nodes_arity(ng.PGs, first_pg, nb_pgs, unodes, arity);
 
-      for (E_Int k = 0; k < unodes.size(); k++)
+      for (size_t k = 0; k < unodes.size(); k++)
       {
         // number of faces of the future fine PHc based on the k-th node arity of the j-th coarse-cell to adapt
         pregnant_c[ind] = 2 * arity[k];

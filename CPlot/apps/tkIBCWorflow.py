@@ -14,9 +14,6 @@ import Transform.PyTree as T
 import Converter
 import numpy
 
-try: range = xrange
-except: pass
-
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -467,7 +464,7 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW); updateApp()
+    WIDGETS['frame'].grid(sticky=TK.NSEW); updateApp()
 
 #==============================================================================
 # Called to hide widgets

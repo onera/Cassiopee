@@ -380,7 +380,7 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW); updateApp()
+    WIDGETS['frame'].grid(sticky=TK.NSEW); updateApp()
 
 #==============================================================================
 # Called to hide widgets

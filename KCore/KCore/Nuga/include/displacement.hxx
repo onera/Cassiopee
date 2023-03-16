@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_DISPLACEMENT_HXX
 #define NUGA_DISPLACEMENT_HXX
@@ -348,7 +348,7 @@ namespace NUGA
 
         //std::cout << "Near node : " << Ni << std::endl;
 
-        E_Int count{ 0 };
+        size_t count{ 0 };
 
         //std::cout << "compute the rays angles" << std::endl;
 

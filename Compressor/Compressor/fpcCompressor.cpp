@@ -79,7 +79,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
         //for (E_Int i = 0; i < an_array_length; i++) printf("%g ", array_data[i]);
         
         E_Int size = fpc_encode(&ctx, array_data, an_array_length, out_compressed);
-        printf("compression: init=%d, compressed=%d, reserved=%d\n", an_array_length*8, size, outSize);
+        //printf("compression: init=%d, compressed=%d, reserved=%d\n", an_array_length*8, size, outSize);
         //printf("outcompress %d\n", size);
         //for (E_Int i = 0; i < size; i++) printf("%u ", out_compressed[i]);
         

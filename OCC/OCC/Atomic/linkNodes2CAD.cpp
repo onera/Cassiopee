@@ -348,8 +348,7 @@ PyObject* K_OCC::updateFcadidFromNcadid(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
 
-
-  K_FLD::FloatArray & crd = *f;
+  //K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
   
   typedef ngon_t<K_FLD::IntArray> ngon_type;

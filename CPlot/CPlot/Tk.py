@@ -787,7 +787,7 @@ def loadPrefFile():
 def importTtk():
     try: import tkinter.ttk as ttk
     except ImportError:
-      try: import ttk 
+      try: import ttk
       except ImportError: ttk = None
     return ttk
 
@@ -1346,7 +1346,8 @@ def toolBar(win):
     # Change l'icone de la fenetre
     win.tk.call('wm', 'iconphoto', win._w, iconics.PHOTO[13])
     frame = TTK.Frame(win)
-    
+    frame.rowconfigure(0, weight=0)
+
     B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20, 
                   image=iconics.PHOTO[0], borderwidth=0,
                   command=quickSaveFile)
@@ -1400,7 +1401,7 @@ def toolBar(win):
     BB = infoBulle(parent=B, text='Display main tree.')
     B.grid(row=0, column=9)
 
-    frame.grid(sticky=TK.EW, columnspan=2)
+    frame.grid(sticky=TK.NSEW, columnspan=2)
 
 #==============================================================================
 # Minimum application: win, menu, txt
@@ -1430,14 +1431,14 @@ def minimal(title, show=True):
     win.option_add('*Button.font', BUTTONFONT)
     win.option_add('*Dialog.msg.font', MSGDFONT)
     win.columnconfigure(0, weight=1)
-    win.grid_rowconfigure(0, weight=1)
-    win.grid_columnconfigure(0, weight=1)
-    #win.grid_rowconfigure(1, weight=1)
-    #win.grid_columnconfigure(1, weight=1)
-    #win.grid_rowconfigure(2, weight=1)
-    #win.grid_columnconfigure(2, weight=1)
-    win.resizable(0,0)
-    
+    win.columnconfigure(1, weight=1)
+    win.rowconfigure(0, weight=0)
+    win.rowconfigure(1, weight=0)
+    win.rowconfigure(2, weight=0)
+    win.rowconfigure(3, weight=1)
+    #win.resizable(0,0) # fixed size window
+    win.minsize(325, 325)
+
     menu = TK.Menu(win, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     # menu file
     file = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
@@ -1516,8 +1517,8 @@ def minimal(title, show=True):
     TXT.grid(sticky=TK.EW)
     from . import tkSearchBar 
     E = tkSearchBar.createSearchBar2(F)
-    E.grid(row=1, sticky=TK.EW)
-    F.grid(sticky=TK.EW, columnspan=2)
+    E.grid(row=1, sticky=TK.NSEW)
+    F.grid(sticky=TK.NSEW, columnspan=2)
 
     try: TKTREE = __import__('tkTree'); TKTREE.createApp(win)
     except: TKTREE = None 
@@ -1535,8 +1536,12 @@ def minimal2(title, show=True):
     
     # Frame container
     F = TTK.Frame(win)
-    F.grid(columnspan=2, sticky=TK.EW)
+    F.grid(columnspan=2, sticky=TK.NSEW)
     F.columnconfigure(0, weight=0)
+    F.columnconfigure(1, weight=1)
+    F.rowconfigure(0, weight=0)
+    F.rowconfigure(1, weight=0)
+    F.rowconfigure(2, weight=1)
     
     # Cree le TkTree (colonne1)
     TKTREE = __import__('tkTree')
@@ -1682,7 +1687,7 @@ class noteBook:
 
         # creates notebook's frames structure
         self.rb_fr = TTK.Frame(master, borderwidth=0, relief=TK.RIDGE)
-        self.rb_fr.grid(sticky='ewn', row=0, rowspan=2)
+        self.rb_fr.grid(sticky='ewn', column=0, row=0, rowspan=2)
         self.screen_fr = TTK.Frame(master, borderwidth=1, relief=TK.GROOVE)
         self.screen_fr.columnconfigure(0, weight=1)
         self.screen_fr.grid(column=1, row=1, sticky=TK.NSEW)
