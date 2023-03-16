@@ -279,7 +279,7 @@ def _enforceProcNode(a):
 # Load les variables "var" pour les znp donnes
 # var='Density', 'centers:Density', 'FlowSolution/Density' or list of vars
 #==========================================================================
-def _loadVariables(a, fileName, znp, var, format, uncompress=True):
+def _loadVariables(a, fileName, znp, var, format):
     if isinstance(var, list): vars = var
     else: vars = [var]
     if isinstance(znp, list): znps = znp
@@ -307,9 +307,7 @@ def _loadVariables(a, fileName, znp, var, format, uncompress=True):
         # Ensure location in containers
         zp = Internal.getNodeFromPath(a, p)
         fp = Internal.getNodeFromPath(a, paths[0])
-        if uncompress:
-          try: Compressor._uncompressAll(zp)
-          except: pass
+        Compressor._uncompressAll(zp)
         if zp is not None and fp is not None:
             c = Internal.getNodeFromName1(zp, cont)
             if c is not None and fp[1] is not None:
@@ -324,8 +322,9 @@ def _loadZones(a, fileName, znp, format=None):
   if isinstance(znp, list): znps = znp
   else: znps = [znp]
   _readPyTreeFromPaths(a, fileName, znps, format)
-  # decompression cartesienne eventuelle
+  # decompression eventuelle
   Compressor._uncompressCartesian(a)
+  Compressor._uncompressAll(a)
 
 # Fully load zoneBC_t and GridConnectivity_t of znp
 def _loadZoneBCs(a, fileName, znp, format=None):
@@ -801,8 +800,9 @@ class Handle:
     if loadVariables: skipTypes=None
     else: skipTypes=['FlowSolution_t']
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
-    # Decompression cartesienne eventuelle
+    # Decompression eventuelle
     Compressor._uncompressCartesian(t)
+    Compressor._uncompressAll(t)
     return t
 
   # strategy=strategie pour la distribution (match)
@@ -857,8 +857,9 @@ class Handle:
     else: skipTypes=['FlowSolution_t']
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format, skipTypes=skipTypes)
     _enforceProcNode(t)
-    # Decompression cartesienne eventuelle
+    # Decompression eventuelle
     Compressor._uncompressCartesian(t)
+    Compressor._uncompressAll(t)
     return t
 
   def distributedLoadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size):
@@ -1084,8 +1085,9 @@ class Handle:
           _loadZoneBCs(a, self.fileName, [zp], self.format)
           _loadZoneExtras(a, self.fileName, znp, self.format)
           _convert2PartialTree(Internal.getNodeFromPath(a, zp))
-    # decompression cartesienne eventuelle
+    # decompression eventuelle
     Compressor._uncompressCartesian(a)
+    Compressor._uncompressAll(a)
     return None
 
   # Charge toutes les BCs (avec BCDataSet) des zones de a  
@@ -1118,17 +1120,17 @@ class Handle:
     _loadContainerPartial(a, self.fileName, znp, variablesN, variablesC, self.format)
     return None
    
-  def loadVariables(self, a, var, znp=None, uncompress=True):
+  def loadVariables(self, a, var, znp=None):
     """Load specified variables."""
     b = Internal.copyRef(a)
-    self._loadVariables(b, var, znp, uncompress)
+    self._loadVariables(b, var, znp)
     return b
 
   # Charge la ou les variables "var" pour toutes les zones de a
-  def _loadVariables(self, a, var, znp=None, uncompress=True):
+  def _loadVariables(self, a, var, znp=None):
     """Load specified variables."""
     if znp is None: znp = self.getZonePaths(a)
-    _loadVariables(a, self.fileName, znp, var, self.format, uncompress)
+    _loadVariables(a, self.fileName, znp, var, self.format)
     return None
   
   def isInBBox(self, a, bbox, znp=None):

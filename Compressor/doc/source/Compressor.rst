@@ -195,7 +195,7 @@ Object serialize/compression
 
 ---------------------------------------
 
-.. py:function:: Compressor.PyTree.compressFields(a, tol=1.e-8, varNames=None)
+.. py:function:: Compressor.PyTree.compressFields(a, tol=1.e-8, ctype=0, varNames=None)
 
     Compress zone fields with sz, zfp or fpc libraries.
 

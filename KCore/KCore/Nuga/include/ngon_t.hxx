@@ -3150,7 +3150,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     if (ngon_dim == 3) //volumic
     {
       // /*has_dups = */NG.remove_duplicated_pgs(fcA, pgnidstmp);
-      bool has_dups = NG.remove_duplicated_pgs(fcA, pgnidstmp, do_omp);
+      /*bool has_dups =*/NG.remove_duplicated_pgs(fcA, pgnidstmp, do_omp);
       
       //Propagation de pgnidstmp/phnidstmp
       if ((histo) and (not pgnidstmp.empty())) K_CONNECT::IdTool::propagate(pgnidstmp, *pgnids);

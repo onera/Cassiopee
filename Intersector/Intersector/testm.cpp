@@ -25,7 +25,7 @@ PyObject* K_INTERSECTOR::testmain(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
 
-  K_FLD::FloatArray & crd = *f;
+  //K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
 
   //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;

@@ -293,7 +293,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
   K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
-  E_Int* rcvPts  = rcvPtsI->begin();
+  E_Int* rcvPts = rcvPtsI->begin();
   nbRcvPts = rcvPtsI->getSize();
 
   vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
