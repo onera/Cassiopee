@@ -40,7 +40,7 @@ for node in Internal.getNodesByName(tb,'FlowEquationSet'):
     Internal.addChild(node,eqdim)
     Internal.addChild(node,turbmod)
     
-C._addState(tb, adim='adim1', MInf=0.1, alphaZ=0., alphaY=0., ReInf=40000, MutSMuInf=0.1, TurbLevelInf=1.e-4)
+C._addState(tb, adim='adim1', MInf=0.1, alphaZ=0., alphaY=0., ReInf=40000., MutSMuInf=0.1, TurbLevelInf=1.e-4)
 tb = C.convertArray2Tetra(tb)
 noz = 0
 for z in Internal.getZones(tb):

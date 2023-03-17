@@ -13,7 +13,7 @@ t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'EquationDimension', 2)
 t[2][1] = C.addState(t[2][1], 'GoverningEquations', 'Euler')
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
-t[2][1] = C.addState(t[2][1], 'Reynolds', 100000)
+t[2][1] = C.addState(t[2][1], 'Reynolds', 100000.)
 test.testT(t, 1)
 
 # Add by ref state adim1

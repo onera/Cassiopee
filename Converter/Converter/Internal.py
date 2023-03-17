@@ -2896,8 +2896,7 @@ def createZoneNode(name, array, array2=[],
   # Zone type
   if len(array) == 5: type = 'Structured'
   else: type = 'Unstructured'
-  v = numpy.fromstring(type, 'c')
-  info.append(['ZoneType', v, [], 'ZoneType_t'])
+  _createChild(zone, 'ZoneType', 'ZoneType_t', value=type)
 
   # Coordonnees
   px = KCore.isNamePresent(array, 'CoordinateX')
@@ -2976,8 +2975,7 @@ def createZoneNode(name, array, array2=[],
       vars = array2[0].split(',')
       info.append([FlowSolutionCenters, None, [], 'FlowSolution_t'])
       info = info[len(info)-1]
-      v = numpy.fromstring('CellCenter', 'c')
-      info[2].append(['GridLocation', v, [], 'GridLocation_t'])
+      _createChild(info, 'GridLocation', 'GridLocation_t', value='CellCenter')
       for i in range(nvar):
           node = createDataNode(vars[i], array2, i, cellDim)
           info[2].append(node)

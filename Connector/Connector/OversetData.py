@@ -1765,10 +1765,10 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
     zsr = Internal.getNodesFromName1(z, nameSubRegion)
     # create new subregion for interpolations
     if zsr == []:
-        v = numpy.fromstring(zname, 'c')
-        z[2].append([nameSubRegion, v, [],'ZoneSubRegion_t'])
+        Internal._createChild(z, nameSubRegion, 'ZoneSubRegion_t', value=zname)
         info = z[2][len(z[2])-1]
-        v = numpy.fromstring(tag, 'c'); info[2].append(['ZoneRole',v , [], 'DataArray_t'])
+        Internal._createChild(info, 'ZoneRole', 'DataArray_t', value=tag)
+
         if loc == 'faces':
             info[2].append(['FaceList',      pointlist, [], 'IndexArray_t'])
             info[2].append(['FaceListDonor', pointlistdonor, [], 'IndexArray_t'])
@@ -1785,8 +1785,7 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
             if indicesExtrap.size>0: info[2].append(['ExtrapFaceList',indicesExtrap , [], 'DataArray_t'])
         else:
             if loc == 'centers':
-                v = numpy.fromstring('CellCenter', 'c')
-                info[2].append(['GridLocation', v, [], 'GridLocation_t'])
+                Internal._createChild(info, 'GridLocation', 'GridLocation_t', value='CellCenter')
             info[2].append(['PointList',      pointlist , [], 'IndexArray_t'])
             info[2].append(['PointListDonor', pointlistdonor , [], 'IndexArray_t'])
             if pointlistdonorExtC is not None:
@@ -1849,8 +1848,7 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
             if intd == []:
                 l = len(zsr[0][2]); info = zsr[0][2][l-1]
                 if loc == 'centers':
-                    v = numpy.fromstring('CellCenter', 'c')
-                    zsr[0][2].append(['GridLocation', v, [], 'GridLocation_t'])
+                    Internal._createChild(zsr[0], 'GridLocation', 'GridLocation_t', value='CellCenter')
                 zsr[0][2].append(['PointList',      pointlist, [], 'IndexArray_t'])
                 zsr[0][2].append(['PointListDonor', pointlistdonor, [], 'IndexArray_t'])
                 if pointlistdonorExtC is not None:
@@ -2730,14 +2728,12 @@ def cellN2OversetHoles(t, append=False):
                 info[2].append(['OversetHoles', None, [], 'OversetHoles_t'])
                 info = info[2][len(info[2])-1]
                 if loc == 'centers':
-                    v = numpy.fromstring('CellCenter', 'c')
-                    info[2].append(['GridLocation', v, [], 'GridLocation_t'])
+                    Internal._createChild(info, 'GridLocation', 'GridLocation_t', value='CellCenter')
                 info[2].append(['PointList', pointList, [], 'IndexArray_t'])
             else:
                 PL = Internal.getNodesFromName(OH[0], 'PointList') # prev
                 if PL == []:
-                    OH[0][2].append(['PointList', pointList, [],
-                                     'IndexArray_t'])
+                    OH[0][2].append(['PointList', pointList, [], 'IndexArray_t'])
                 else:
                     if not append:
                         PL[0][1] = pointList
@@ -2801,15 +2797,13 @@ def setOversetHoles(z, indices):
     if OH == []:
         info[2].append(['OversetHoles', None, [], 'OversetHoles_t'])
         info = info[2][len(info[2])-1]
-        v = numpy.fromstring('CellCenter', 'c')
-        info[2].append(['GridLocation', v, [], 'GridLocation_t'])
+        Internal._createChild(info, 'GridLocation', 'GridLocation_t', value='CellCenter')
         if type == 1 or type == 2:
             info[2].append(['PointList', pointList, [], 'IndexArray_t'])
         else: info[2].append(['DeltaList', pointList, [], 'IndexArray_t'])
     else:
         info = OH[0][2][len(info[2])-1]
-        v = numpy.fromstring('CellCenter', 'c')
-        info[2].append(['GridLocation', v, [], 'GridLocation_t'])
+        Internal._createChild(info, 'GridLocation', 'GridLocation_t', value='CellCenter')
         if type == 1 or type == 2:
             info[2].append(['PointList', pointList, [], 'IndexArray_t'])
         else: info[2].append(['DeltaList', pointList, [], 'IndexArray_t'])

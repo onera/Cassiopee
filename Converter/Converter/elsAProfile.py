@@ -1192,9 +1192,9 @@ def _addNeighbours__(t, sameBase=0):
                     if l != len(fams[zi])-1:
                         listFamily = listFamily + ' '
                 v = numpy.fromstring(listFamily, 'c')
-                N[1]=v
-                Ovlp[2][numN]=N
-                F[2][numOvlp]=Ovlp
+                N[1] = v
+                Ovlp[2][numN] = N
+                F[2][numOvlp] = Ovlp
                 bases[i][2][numFamily] = F
             # famille doubly-defined
             gc = Internal.getNodesFromType2(zones[zi],'GridConnectivity_t')
@@ -1218,9 +1218,9 @@ def _addNeighbours__(t, sameBase=0):
                     (parentBaseDD, numFamilyDD) = Internal.getParentOfNode(bases[i],FDD[0])
                     (parentFamilyDD, numOvlpDD) = Internal.getParentOfNode(FDD[0],OvlpDD)
                     (parentOvlpDD, numNDD) = Internal.getParentOfNode(OvlpDD,NDD)
-                    NDD[1]=numpy.fromstring(domsDD, 'c')
-                    OvlpDD[2][numNDD]=NDD
-                    FDD[0][2][numOvlpDD]=OvlpDD
+                    Internal._setValue(NDD, domsDD)
+                    OvlpDD[2][numNDD] = NDD
+                    FDD[0][2][numOvlpDD] = OvlpDD
                     bases[i][2][numFamilyDD] = FDD[0]
 
     cgnsv = Internal.getNodeFromType1(t, 'CGNSLibraryVersion_t')
@@ -1235,11 +1235,10 @@ def addFamilyBCNode__(t):
     for i in range(len(bases)):
         families = Internal.getNodesFromType1(bases[i], 'Family_t')
         for f in families:
+            (parentBase, numFamily) = Internal.getParentOfNode(bases[i], f)
             fbc = Internal.getNodesFromType1(f, 'FamilyBC_t')
-            (parentBase, numFamily) = Internal.getParentOfNode(bases[i],f)
             if fbc == []:
-                ud = numpy.fromstring('UserDefined', 'c')
-                f[2].append(['FamilyBC', ud, [], 'FamilyBC_t'])
+                Internal._createChild(f, 'FamilyBC', 'FamilyBC_t', value='UserDefined')
             else:
                 fbc[0][0] = 'FamilyBC'
             bases[i][2][numFamily] = f
@@ -1330,8 +1329,7 @@ def buildBCOverlap(t):
                                           OvlpDD  = Internal.getNodesFromName(FDD,'.Solver#Overlap')[0]
                                           (parentFamilyDD, numOvlpDD) = Internal.getParentOfNode(FDD,OvlpDD)
                                           FDD[2][numOvlpDD][2].append(['NeighbourList', None, [], 'DataArray_t'])
-                                          dd = numpy.fromstring('active', 'c')
-                                          FDD[2][numOvlpDD][2].append(['doubly_defined', dd, [], 'DataArray_t'])
+                                          Internal._createChild(FDD[2][numOvlpDD], 'doubly_defined', 'DataArray_t', value='active')
                                           bases[i][2][numFamilyDD] = FDD
                               else:
                                   zones[j] = C.addBC2Zone(zones[j], overlapName, 'FamilySpecified:'+familyName, wrange)
@@ -1361,8 +1359,7 @@ def addBaseToDonorZone__(t):
             donorname = s[1].tostring().decode()
             donorzone = Internal.getNodeFromName(tp, donorname)
             base,pos = Internal.getParentOfNode(tp, donorzone)
-            s[1] = numpy.fromstring(base[0]+"/"+donorname,'c')
-
+            Internal._setValue(s, base[0]+"/"+donorname)
     return tp
 
 # Remove useless families
@@ -1448,7 +1445,7 @@ def addMergedFamily__(t, equivalenceNodes):
                             familyNodes = Internal.getNodesFromName(bases[i],e)
                             snl = set(nl) - equivalenceNodes[e]
                             snl.add(e)
-                            NeighbourList[0][1] = numpy.fromstring(" ".join(list(snl)),'c')
+                            Internal._setValue(NeighbourList[0], " ".join(list(snl)))
 
         zones = Internal.getNodesFromType1(bases[i], 'Zone_t')
         for j in range(len(zones)):
@@ -1465,7 +1462,7 @@ def addMergedFamily__(t, equivalenceNodes):
                 familyPath = "%s/%s"%(baseName,familyName)
                 for e in sorted(equivalenceNodes.keys()):
                     if familyPath in equivalenceNodes[e]:
-                        familyNameNodes[k][1] = numpy.fromstring(e.split("/")[1],'c')
+                        Internal._setValue(familyNameNodes[k], e.split("/")[1])
 
             # Updating AdditionalFamilyName_t for Zone_t
             for k in range(len(additionalFamilyNameNodes)):
@@ -1473,7 +1470,8 @@ def addMergedFamily__(t, equivalenceNodes):
                 familyPath = "%s/%s"%(baseName,familyName)
                 for e in sorted(equivalenceNodes.keys()):
                     if familyPath in equivalenceNodes[e]:
-                        additionalFamilyNameNodes[k][1] = numpy.fromstring(e.split("/")[1],'c')
+                        Internal._setValue(additionalFamilyNameNodes[k], e.split("/")[1])
+
 
             # Updating familyName_t for familySpecified BC_t
             zonebcs = Internal.getNodesFromType1(zones[j], 'ZoneBC_t')
@@ -1487,7 +1485,7 @@ def addMergedFamily__(t, equivalenceNodes):
                         familyPath = "%s/%s"%(baseName,familyName)
                         for e in sorted(equivalenceNodes.keys()):
                             if familyPath in equivalenceNodes[e]:
-                                familyNameNodes[0][1] = numpy.fromstring(e.split("/")[1],'c')
+                                Internal._setValue(familyNameNodes[0], e.split("/")[1])
 
                         # Updating AdditionalFamilyName_t for Zone_t
                         for k in range(len(additionalFamilyNameNodes)):
@@ -1495,7 +1493,7 @@ def addMergedFamily__(t, equivalenceNodes):
                             familyPath = "%s/%s"%(baseName,familyName)
                             for e in sorted(equivalenceNodes.keys()):
                                 if familyPath in equivalenceNodes[e]:
-                                    additionalFamilyNameNodes[k][1] = numpy.fromstring(e.split("/")[1],'c')
+                                    Internal._setValue(additionalFamilyNameNodes[k], e.split("/")[1])
 
 
     return tp

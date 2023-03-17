@@ -23,7 +23,7 @@ Internal.addChild(base, D.line((-0.09128554453599108,-0.19576248199991644,0), (0
 
 uinf            = 69.22970250694424*numpy.cos(4* numpy.pi/180)
 Lcharac         = 0.03362355
-C._addState(t, adim='dim4', UInf=uinf, TInf=298.15, PInf=101325,LInf=Lcharac,Mus=1.78938e-5)
+C._addState(t, adim='dim4', UInf=uinf, TInf=298.15, PInf=101325., LInf=Lcharac,Mus=1.78938e-5)
 App._setSnear(t, 0.0025)
 App._setDfar(t, 0.75)
 App._setIBCType(t, 'wiremodel')

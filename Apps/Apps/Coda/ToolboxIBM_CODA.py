@@ -1301,8 +1301,7 @@ def _addIBDataZSR(z, correctedPts, wallPts, imagePts=None, prefix='IBCD_'):
     nameSubRegion = prefix+zname
     zsr = Internal.getNodeFromName1(z, nameSubRegion)
     if zsr is None:
-        v = numpy.fromstring(zname, 'c')
-        z[2].append([nameSubRegion, v, [],'ZoneSubRegion_t'])
+        Internal._createChild(z, nameSubRegion, 'ZoneSubRegion_t', value=zname)
         zsr = Internal.getNodeFromName1(z, nameSubRegion)
 
     coordsPC = Converter.extractVars(correctedPts,['CoordinateX','CoordinateY','CoordinateZ'])[0]
@@ -1490,14 +1489,13 @@ def _create1To1Connectivity(t, tskel=None, dim=3, convertOnly=True):
                 else:
                     r = numpy.array(indicesOppL, dtype=numpy.int32)
                 r = r.reshape((1,r.size), order='F')
-                gc[2].append(["PointListDonor", r,[], "IndexArray_t"])
-                Internal._rmNodesFromName(gc,"PointRange")
-                Internal._rmNodesFromName(gc,"PointRangeDonor")
-                Internal._rmNodesFromName(gc,'Transform')
-                Internal.setType(gc,'GridConnectivity_t')
-                gc[2].append(['GridConnectivityType','Abutting1to1',[],'GridConnectivityType_t'])
-                v = numpy.fromstring('FaceCenter', 'c')
-                gc[2].append(['GridLocation', v, [], 'GridLocation_t'])
+                gc[2].append(["PointListDonor", r, [], "IndexArray_t"])
+                Internal._rmNodesFromName(gc, "PointRange")
+                Internal._rmNodesFromName(gc, "PointRangeDonor")
+                Internal._rmNodesFromName(gc, 'Transform')
+                Internal.setType(gc, 'GridConnectivity_t')
+                Internal._createChild(gc, 'GridConnectivityType', 'GridConnectivityType_t', value='Abutting1to1')
+                Internal._createChild(gc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
         C._mergeGCs(z)     
 
     return None
@@ -1858,9 +1856,10 @@ def _addBC2UnstructZoneLoc__(z, bndName, bndType, wrange=[],
     zoneGC = Internal.createUniqueChild(z, 'ZoneGridConnectivity',
                                         'ZoneGridConnectivity_t')
 
-    if isinstance(zoneDonor, str): v = numpy.fromstring(zoneDonor, 'c')
-    else: v = numpy.fromstring(zoneDonor[0], 'c')
-    zoneGC[2].append([bndName, v, [], 'GridConnectivity_t']); l = len(zoneGC[2])
+    if isinstance(zoneDonor, str): v = zoneDonor
+    else: v = zoneDonor[0]
+    Internal._createChild(zoneGC, bndName, 'GridConnectivity_t', value=v)
+    l = len(zoneGC[2])
     info = zoneGC[2][l-1]
 
     if elementList != []:
@@ -1874,11 +1873,10 @@ def _addBC2UnstructZoneLoc__(z, bndName, bndType, wrange=[],
       r[0,1] = elementRange[1]
       info[2].append([Internal.__ELEMENTRANGE__, r, [], 'IndexRange_t'])
     elif faceList != []:
-      v = numpy.fromstring('FaceCenter', 'c')
-      info[2].append(['GridLocation', v, [], 'GridLocation_t'])
+      Internal._createChild(info, 'GridLocation', 'GridLocation_t', value='FaceCenter')
       if isinstance(faceList, numpy.ndarray): r = faceList
       else: r = numpy.array(faceList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='F')
+      r = r.reshape((1, r.size), order='F')
       info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 
     if elementListDonor is not None:

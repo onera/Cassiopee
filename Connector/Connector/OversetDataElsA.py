@@ -417,9 +417,9 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                     nameSubRegion='Orphan_'+z[0]
                     z[2].append([nameSubRegion, None, [],'ZoneSubRegion_t'])
                     info = z[2][len(z[2])-1]
-                    v = numpy.fromstring('Receiver', 'c'); info[2].append(['ZoneRole',v , [], 'DataArray_t'])
-                    if depth == 1: info[2].append(['OrphanFaceList',numpy.unique(indicesOrphan) , [], 'DataArray_t'])
-                    else: info[2].append(['OrphanPointList',numpy.unique(indicesOrphan) , [], 'DataArray_t'])
+                    Internal._createChild(info, 'ZoneRole', 'DataArray_t', value='Receiver')
+                    if depth == 1: info[2].append(['OrphanFaceList',numpy.unique(indicesOrphan), [], 'DataArray_t'])
+                    else: info[2].append(['OrphanPointList', numpy.unique(indicesOrphan), [], 'DataArray_t'])
     # Delete duplicated periodic zones
     C._removeDuplicatedPeriodicZones__(a)
 

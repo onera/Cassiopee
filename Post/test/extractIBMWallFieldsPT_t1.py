@@ -15,14 +15,14 @@ C._addState(ts, 'GoverningEquations', 'Euler')
 x0 = -2; N = 41; h = 2*abs(x0)/(N-1)
 z = G.cart((x0,x0,x0),(h,h,h),(N,N,N))
 zname = Internal.getName(z)
-v = numpy.fromstring(zname, 'c')
-zsr = ['IBCD_'+zname,v,[],'ZoneSubRegion_t']
-v = numpy.fromstring('CellCenter', 'c')
-zsr[2].append(['GridLocation', v, [], 'GridLocation_t'])
+zsr = Internal.createNode('IBCD_'+zname, 'ZoneSubRegion_t', value=zname)
+
+Internal._createChild(zsr, 'GridLocation', 'GridLocation_t', value='CellCenter')
+
 # mimic the IBM wall pt info
 a2 = D.sphere((0,0,0),1, N=30); a2 = C.convertArray2Tetra(a2); a2 = G.close(a2)
-GC = Internal.getNodeFromType(a2,"GridCoordinates_t")
-FSN = Internal.getNodeFromType(a2,'FlowSolution_t')
+GC = Internal.getNodeFromType(a2, "GridCoordinates_t")
+FSN = Internal.getNodeFromType(a2, 'FlowSolution_t')
 nIBC = Internal.getZoneDim(a2)[1]
 XP = numpy.zeros((nIBC),numpy.float64)
 XN = Internal.getNodeFromName(GC,'CoordinateX')[1]; XP[:]=XN[:]
@@ -40,5 +40,5 @@ zsr[2].append(['Pressure', PRESS, [], 'DataArray_t'])
 zsr[2].append(['Density', DENS, [], 'DataArray_t'])
 z[2].append(zsr)
 tc = C.newPyTree(['CART']); tc[2][1][2].append(z)
-z=P_IBM.extractIBMWallFields(tc, tb=ts)
-test.testT(z,1)
+z = P_IBM.extractIBMWallFields(tc, tb=ts)
+test.testT(z, 1)

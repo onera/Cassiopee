@@ -55,16 +55,16 @@ def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
         # Set it
         motion[2] = []
         motion[2].append(['MotionType', numpy.array([1], dtype=Internal.E_NpyInt), [], 'DataArray_t'])
-        motion[2].append(['tx', numpy.fromstring(tx, 'c'), [], 'DataArray_t'])
-        motion[2].append(['ty', numpy.fromstring(ty, 'c'), [], 'DataArray_t'])
-        motion[2].append(['tz', numpy.fromstring(tz, 'c'), [], 'DataArray_t'])
-        motion[2].append(['cx', numpy.fromstring(cx, 'c'), [], 'DataArray_t'])
-        motion[2].append(['cy', numpy.fromstring(cy, 'c'), [], 'DataArray_t'])
-        motion[2].append(['cz', numpy.fromstring(cz, 'c'), [], 'DataArray_t'])
-        motion[2].append(['ex', numpy.fromstring(ex, 'c'), [], 'DataArray_t'])
-        motion[2].append(['ey', numpy.fromstring(ey, 'c'), [], 'DataArray_t'])
-        motion[2].append(['ez', numpy.fromstring(ez, 'c'), [], 'DataArray_t'])
-        motion[2].append(['angle', numpy.fromstring(angle, 'c'), [], 'DataArray_t'])
+        Internal._createChild(motion, 'tx', 'DataArray_t', value=tx)
+        Internal._createChild(motion, 'ty', 'DataArray_t', value=ty)
+        Internal._createChild(motion, 'tz', 'DataArray_t', value=tz)
+        Internal._createChild(motion, 'cx', 'DataArray_t', value=cx)
+        Internal._createChild(motion, 'cy', 'DataArray_t', value=cy)
+        Internal._createChild(motion, 'cz', 'DataArray_t', value=cz)
+        Internal._createChild(motion, 'ex', 'DataArray_t', value=ex)
+        Internal._createChild(motion, 'ey', 'DataArray_t', value=ey)
+        Internal._createChild(motion, 'ez', 'DataArray_t', value=ez)
+        Internal._createChild(motion, 'angle', 'DataArray_t', value=angle)
         
     return None
 

@@ -487,8 +487,7 @@ def _correctDonors(t, ntype, zoneDonors):
         for n in nodes:
             zdonorname = Internal.getValue(n)
             for zd in zoneDonors:
-                zd1 = numpy.fromstring(zd[1], 'c')
-                if zd[0] == zdonorname: n[1] = zd1
+                if zd[0] == zdonorname: Internal._setValue(n[1], zd[1])
     return None
 
 #==============================================================================

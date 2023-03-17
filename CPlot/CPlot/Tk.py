@@ -1540,8 +1540,10 @@ def minimal2(title, show=True):
     F.columnconfigure(0, weight=0)
     F.columnconfigure(1, weight=1)
     F.rowconfigure(0, weight=0)
-    F.rowconfigure(1, weight=0)
-    F.rowconfigure(2, weight=1)
+    F.rowconfigure(1, weight=1)
+    F.rowconfigure(2, weight=0)
+    F.rowconfigure(3, weight=0)
+    
     
     # Cree le TkTree (colonne1)
     TKTREE = __import__('tkTree')
