@@ -171,13 +171,16 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW)
-
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkCheckPyTree')
+    CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
+    
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['TreeNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -192,7 +195,7 @@ def resetApp():
     CTK.PREFS['tkCheckPyTree0'] = VARS[0].get()
     CTK.PREFS['tkCheckPyTree1'] = VARS[1].get()
     CTK.PREFS['tkCheckPyTree2'] = VARS[2].get()
-    savePrefFile()
+    CTK.savePrefFile()
 
 #==============================================================================
 def saveApp():

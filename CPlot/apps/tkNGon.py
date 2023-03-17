@@ -212,12 +212,15 @@ def createApp(win):
     
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkNGon')
+    CTK.WIDGETS['BlockNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
-
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['BlockNoteBook'].hide(WIDGETS['frame'])
+    
 #==============================================================================
 def updateApp(): return
 

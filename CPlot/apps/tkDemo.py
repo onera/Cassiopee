@@ -131,8 +131,8 @@ def orbite():
         path = []
         for p in paths:
             dim = Internal.getZoneDim(p)
-            if (dim[0] == 'Unstructured' and dim[3] == 'BAR'): path.append(p)
-            if (dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1):
+            if dim[0] == 'Unstructured' and dim[3] == 'BAR': path.append(p)
+            if dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1:
                 path.append(C.convertArray2Tetra(p))
         if path == []: return
         path = T.join(path)
@@ -225,13 +225,16 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkDemo')
+    CTK.WIDGETS['RenderNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['RenderNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes

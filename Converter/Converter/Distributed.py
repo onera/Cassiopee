@@ -271,7 +271,9 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
   loadedZones = Converter.converter.readPyTreeFromPaths(fileName, paths, format, -1, -1, None, None, None)
 
   import Compressor.PyTree as Compressor
-  for z in loadedZones: Compressor._uncompressCartesian(z)
+  for z in loadedZones: 
+     Compressor._uncompressCartesian(z)
+     Compressor._uncompressAll(z)
       
   # Replace/add now loaded zones
   m = 0

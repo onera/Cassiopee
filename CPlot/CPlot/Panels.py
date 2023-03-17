@@ -177,6 +177,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     winl.title('About Cassiopee')
     winl.columnconfigure(0, weight=1)
     winl.rowconfigure(0, weight=1)
+    winl.minsize(320, 300)
     # position de la fenetre parent
     xpos = winl.master.winfo_rootx()+45
     ypos = winl.master.winfo_rooty()+45

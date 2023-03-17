@@ -215,7 +215,7 @@ def differenceCollarMesh():
         if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): surface1.append(z)
+                if z[0] == sname[1]: surface1.append(z)
                 
     # surfaces2
     name = VARS[1].get()
@@ -228,7 +228,7 @@ def differenceCollarMesh():
         if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): surface2.append(z)
+                if z[0] == sname[1]: surface2.append(z)
     # - constraints1 -
     constraints1 = [] 
     name = VARS[8].get()
@@ -434,13 +434,16 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkCollarMesh')
+    CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes

@@ -249,7 +249,7 @@ def createApp(win):
     B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW) 
 
     # - View cellN -
-    norow+=1
+    norow += 1
     B = TTK.Button(Frame, text="View", command=view)
     B.grid(row=norow, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='View the location of specified cellN.\nTree is NOT modified.')
@@ -261,7 +261,7 @@ def createApp(win):
     
     # - chimeraInfo
     # -1- chimeraInfo type
-    norow+=1
+    norow += 1
     V = TK.StringVar(win); V.set('interpolated'); VARS.append(V)
     if 'tkChimeraInfoType' in CTK.PREFS: V.set(CTK.PREFS['tkChimeraInfoType'])
 
@@ -276,13 +276,16 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    CTK.WIDGETS['VisuNoteBook'].add(WIDGETS['frame'], text='tkCellN')
+    CTK.WIDGETS['VisuNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['VisuNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes

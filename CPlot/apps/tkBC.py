@@ -837,11 +837,14 @@ def createApp(win):
 
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkBC')
+    CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['BCNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 def saveApp():

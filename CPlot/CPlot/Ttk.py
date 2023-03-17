@@ -299,6 +299,11 @@ def Listbox(*args, **kwargs):
         return ListboxAuto(*args, **kwargs)
         #return TK.Listbox(*args, **kwargs)
 
+# si ttk, renvoie un NoteBook
+def NoteBook(F):
+    if ttk is None: return TK.Frame(F)
+    else: return ttk.Notebook(F)
+
 def raiseButton(B):
     if ttk is None: B.config(relief=TK.RAISED)
     else: B.configure(style='RAISED.TButton')

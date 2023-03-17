@@ -1,4 +1,4 @@
-# - tkFast -
+# - tkFastSolver -
 """Interface to use Fast solvers."""
 try: import tkinter as TK
 except: import Tkinter as TK
@@ -532,13 +532,16 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkFastSolver')
+    CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['SolverNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes

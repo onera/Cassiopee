@@ -1540,16 +1540,15 @@ def minimal2(title, show=True):
     F.columnconfigure(0, weight=0)
     F.columnconfigure(1, weight=1)
     F.rowconfigure(0, weight=0)
-    F.rowconfigure(1, weight=1)
-    F.rowconfigure(2, weight=0)
+    F.rowconfigure(1, weight=0)
+    F.rowconfigure(2, weight=1)
     F.rowconfigure(3, weight=0)
-    
     
     # Cree le TkTree (colonne1)
     TKTREE = __import__('tkTree')
     TKTREE.createApp(F); TKTREE.showApp()
     
-    # Cree le notebook
+    # Cree le notebook avec boutons
     nb = noteBook(F, TK.LEFT, menu)
     frames = []; menus = []; buttons = []
 
@@ -1559,72 +1558,107 @@ def minimal2(title, show=True):
     tree = TK.Menu(menu, tearoff=0); menus.append(tree)
     bt = nb.add_screen(frame, 'Tree', tree)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['TreeNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['TreeNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour state
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     state = TK.Menu(menu, tearoff=0); menus.append(state)
     bt = nb.add_screen(frame, 'State', state)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['StateNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['StateNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour edge
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     edge = TK.Menu(menu, tearoff=0); menus.append(edge)
     bt = nb.add_screen(frame, 'Edge', edge)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['EdgeNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['EdgeNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour surf
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     surf = TK.Menu(menu, tearoff=0); menus.append(surf)
     bt = nb.add_screen(frame, 'Surf', surf)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['SurfNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['SurfNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour mesh
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     mesh = TK.Menu(menu, tearoff=0); menus.append(mesh)
     bt = nb.add_screen(frame, 'Mesh', mesh)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['MeshNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['MeshNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour block
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     block = TK.Menu(menu, tearoff=0); menus.append(block)
     bt = nb.add_screen(frame, 'Block', block)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['BlockNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['BlockNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour BC
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     bc = TK.Menu(menu, tearoff=0); menus.append(bc)
     bt = nb.add_screen(frame, 'BC', bc)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['BCNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['BCNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour motion
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     bc = TK.Menu(menu, tearoff=0); menus.append(bc)
     bt = nb.add_screen(frame, 'Motion', bc)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['MotionNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['MotionNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour Solver
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     solver = TK.Menu(menu, tearoff=0)
     bt = nb.add_screen(frame, 'Solver', solver); menus.append(solver)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['SolverNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['SolverNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour Post
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     post = TK.Menu(menu, tearoff=0); menus.append(post)
     bt = nb.add_screen(frame, 'Post', post)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['PostNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['PostNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour Visu
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     visu = TK.Menu(menu, tearoff=0); menus.append(visu)
     bt = nb.add_screen(frame, 'Visu', visu)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['VisuNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['VisuNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour Render
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     render = TK.Menu(menu, tearoff=0); menus.append(render)
     bt = nb.add_screen(frame, 'Render', render)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['RenderNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['RenderNoteBook'].grid(sticky=TK.NSEW)
 
     # Sauvegarde
     WIDGETS['noteBook'] = nb
