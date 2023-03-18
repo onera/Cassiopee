@@ -147,7 +147,7 @@ def isType(node, ntype):
 # IN: node: pyTree node
 def isName(node, name):
     """Return True if node has given name."""
-    if isinstance(name, numpy.ndarray): sname = name.tostring().decode()
+    if isinstance(name, numpy.ndarray): sname = name.tobytes().decode()
     else: sname = str(name)
     snode = node[0]
     if ('*' in sname)|('?' in sname)|('[' in sname): return fnmatch.fnmatch(snode, sname)
@@ -181,7 +181,7 @@ def isValue(node, value):
         nodeValue = getValue(node) 
         isNStrNode = isinstance(nodeValue, str)
         if not isNStrNode: return False        
-        if isNStrValue: value = value.tostring().decode()
+        if isNStrValue: value = value.tobytes().decode()
         if isByteValue: value = value.decode()
         # Comparison
         if ('*' in value)|('?' in value)|('[' in value): res = fnmatch.fnmatch(nodeValue, value)
@@ -239,7 +239,7 @@ def setValue(node, value=None):
             else: node[1] = numpy.asfortranarray(value)
         elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64) or isinstance(value,numpy.intc): node[1] = numpy.array([value], dtype=numpy.int32)
         elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value], dtype=numpy.float64)
-        elif isinstance(value, str): node[1] = numpy.array([c for c in value],'c')
+        elif isinstance(value, str): node[1] = numpy.array([c for c in value], 'c')
         elif isinstance(value, list):
             testValue = value
             while isinstance(testValue, list): testValue = testValue[0]
@@ -311,8 +311,8 @@ def setName(node, name):
     """Set name in node."""
     if isinstance(name, str): node[0] = name
     elif isinstance(name, numpy.ndarray):
-        if name.dtype.char == 'S': node[0] = name.tostring().decode()
-        elif name.dtype.char == 'c': node[0] = name.tostring().decode()
+        if name.dtype.char == 'S': node[0] = name.tobytes().decode()
+        elif name.dtype.char == 'c': node[0] = name.tobytes().decode()
         else:
             raise TypeError("setName: name of node must be a string(%s)"%(name.__repr__()[:min(len(name.__repr__()),60)]))
     else: raise TypeError("setName: name of node must be a string(%s)"%(name.__repr__()[:min(len(name.__repr__()),60)]))
@@ -1625,7 +1625,7 @@ def getZonesPerIteration(t, iteration=None, time=None):
         zoneNames = []
         for nbz in range(nbOfZones[iteration]):
             zoneName = zonePtrs[:, nbz, iteration]
-            zoneName = zoneName.tostring().decode().strip()
+            zoneName = zoneName.tobytes().decode().strip()
             zoneNames.append(zoneName)
         return [getNodeFromName2(t,z) for z in zoneNames]
 
@@ -1636,7 +1636,7 @@ def getZonesPerIteration(t, iteration=None, time=None):
             if time == timeValues[i]:
                 for nbz in range(nbOfZones[i]):
                     zoneName = zonePtrs[:, nbz, i]
-                    zoneName = zoneName.tostring().decode().strip()
+                    zoneName = zoneName.tobytes().decode().strip()
                     zoneNames.append(zoneName)
         return [getNodeFromName2(t,z) for z in zoneNames]
 
@@ -1644,7 +1644,7 @@ def getZonesPerIteration(t, iteration=None, time=None):
     for i in range(nbOfZones.shape[0]):
         zones = []
         for nbz in range(nbOfZones[i]):
-            zoneName = zonePtrs[:, nbz, i].tostring().decode().strip()
+            zoneName = zonePtrs[:, nbz, i].tobytes().decode().strip()
             zones.append(getNodeFromName2(t,zoneName))
         zonesPerIteration.append(zones)
     return zonesPerIteration
@@ -2007,22 +2007,22 @@ def getValue(node):
     if isinstance(n, numpy.ndarray):
         if n.dtype.char == 'S':
             if len(n.shape) == 1:
-                if version_info[0] == 2: return n.tostring()
-                else: return n.tostring().decode()
+                if version_info[0] == 2: return n.tobytes()
+                else: return n.tobytes().decode()
             out = []
             for i in range(n.shape[1]):
-                if version_info[0] == 2: v = n[:,i].tostring()
-                else: v = n[:,i].tostring().decode()
+                if version_info[0] == 2: v = n[:,i].tobytes()
+                else: v = n[:,i].tobytes().decode()
                 out.append(v.strip())
             return out
         elif n.dtype.char == 'c':
             if len(n.shape) == 1:
-                if version_info[0] == 2: return n.tostring()
-                else: return n.tostring().decode()
+                if version_info[0] == 2: return n.tobytes()
+                else: return n.tobytes().decode()
             out = []
             for i in range(n.shape[1]):
-                if version_info[0] == 2: v = n[:,i].tostring()
-                else: v = n[:,i].tostring().decode()
+                if version_info[0] == 2: v = n[:,i].tobytes()
+                else: v = n[:,i].tobytes().decode()
                 out.append(v.strip())
             return out
         elif n.dtype == numpy.int32:
@@ -2520,9 +2520,9 @@ def repr__(t, Out=None, DEB='', LAST=False, code=['','','']):
         out += str(t[1])+",["
     elif isinstance(t[1], numpy.ndarray):
         if t[1].dtype == numpy.array('a').dtype and t[1].size < 32:
-            out += "array('%s',dtype='%s'),["%(t[1].tostring(),t[1].dtype)
+            out += "array('%s',dtype='%s'),["%(t[1].tobytes(),t[1].dtype)
         elif t[1].dtype == numpy.array(b'a').dtype and t[1].size < 32:
-            out += "array('%s',dtype='%s'),["%(t[1].tostring(),t[1].dtype)
+            out += "array('%s',dtype='%s'),["%(t[1].tobytes(),t[1].dtype)
         elif t[1].size == 1:
             out += "array(%s,dtype='%s'),["%(t[1].tolist(),t[1].dtype)
         else:
@@ -2998,7 +2998,7 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
         ar2[:] = ar
         ar = ar2
 
-    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring().decode()
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tobytes().decode()
     if gtype == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
@@ -3049,7 +3049,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
         ar2[:] = ar
         ar = ar2
 
-    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring().decode()
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tobytes().decode()
     if gtype == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
@@ -3142,7 +3142,7 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
         ar2[:] = ar
         ar = ar2
 
-    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring().decode()
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tobytes().decode()
     if gtype == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
@@ -4973,7 +4973,7 @@ def _mergeEltsTPerType(t):
                     ERVal = getValue(ER)
                     ERVal[0] = rmin
                     ERVal[1] = rmax2
-                    setValue(ER,ERVal)
+                    setValue(ER, ERVal)
                     ec1 = getNodeFromName(EltsT, 'ElementConnectivity')
                     ec2 = getNodeFromName(EltsT2, 'ElementConnectivity')
                     ec1[1] = numpy.concatenate((ec1[1],ec2[1]))

@@ -228,27 +228,27 @@ def writeUnsteadyCoefs(hook, prefix,nit,format="b"):
 #=========================================================================================
 def convertIndices2File(hook,fileName,iteration,format):
     for name in hook[3]:
-        if (hook[3][name] != []):
+        if hook[3][name] != []:
             convertIndices2File__(hook[0][name],hook[3][name],iteration, 'deltas_%s.fmt'%name, 'fmt_raw')
 
 def convertIndices2File__(iteration,indices,nbTotalIterations,fileName,format):
     fileName=fileName+"_%d"%nbTotalIterations
-    if (format == 'bin_raw'):
+    if format == 'bin_raw':
         tt = numpy.empty( (1,), dtype=numpy.int32)
-        f = file(fileName, "w") # open file for writing
+        f = open(fileName, "w") # open file for writing
         tt[0] = 1 # for endian test
-        f.write(tt.tostring())
+        f.write(tt.tobytes())
         tt[0] = iteration # write first iteration of reading
-        f.write(tt.tostring())
+        f.write(tt.tobytes())
         # write indices
         for i in indices:
             tt[0] = i.size
-            f.write(tt.tostring())
-            f.write(i.tostring())
+            f.write(tt.tobytes())
+            f.write(i.tobytes())
         f.close()
     else:
         tt = numpy.empty( (1,), dtype=numpy.int32)
-        f = file(fileName, "w") # open file for writing
+        f = open(fileName, "w") # open file for writing
         
         tt[0] = iteration # write first iteration of reading
         tt.tofile(f, sep=" ", format='%d') ; f.write('\n')

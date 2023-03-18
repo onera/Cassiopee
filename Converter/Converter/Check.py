@@ -683,7 +683,7 @@ def checkOppositRanges(t, ntype):
                 mtype = Internal.getNodeFromName1(n, 'GridConnectivityType')
                 if mtype is not None:
                     mtype = mtype[1]
-                    if isinstance(mtype, numpy.ndarray): mtype = mtype.tostring().decode()
+                    if isinstance(mtype, numpy.ndarray): mtype = mtype.tobytes().decode()
                 else: mtype = 'Match'
                 zdonorname = Internal.getValue(n)
                 zdonor = Internal.getNodesFromName2(t, zdonorname)
@@ -710,11 +710,11 @@ def checkOppositRanges(t, ntype):
                                 mtypeopp = Internal.getNodeFromName1(nopp, 'GridConnectivityType')
                                 if mtypeopp is not None:
                                     mtypeopp = mtypeopp[1]
-                                    if isinstance(mtypeopp, numpy.ndarray): mtypeopp = mtypeopp.tostring().decode()
+                                    if isinstance(mtypeopp, numpy.ndarray): mtypeopp = mtypeopp.tobytes().decode()
                                 else: mtypeopp = 'Match'
                                 zoppdonorname = nopp[1]
                                 if isinstance(zoppdonorname, numpy.ndarray): 
-                                    zoppdonorname = zoppdonorname.tostring().decode()
+                                    zoppdonorname = zoppdonorname.tobytes().decode()
                                 if zoppdonorname == zname and mtype == mtypeopp:
                                     # current zone
                                     rangez = Internal.range2Window(prange[0][1]) 

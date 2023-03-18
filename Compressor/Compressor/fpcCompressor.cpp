@@ -93,7 +93,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
 
         //= On prepare l'objet compresse
         PyObject *shape = PyTuple_New(ndims);
-        for (int j = 0; j < ndims; ++j) PyTuple_SET_ITEM(shape, j, PyLong_FromLong(long(dims[j])));
+        for (E_Int j = 0; j < ndims; ++j) PyTuple_SET_ITEM(shape, j, PyLong_FromLong(long(dims[j])));
         PyObject *obj = PyTuple_New(3);
         PyTuple_SET_ITEM(obj, 0, shape);
     
@@ -102,7 +102,7 @@ PyObject* py_fpc_compress(PyObject *self, PyObject *args)
         PyArrayObject* cpr_arr = (PyArrayObject*)PyArray_SimpleNew(1, &sz, NPY_BYTE);
         std::uint8_t* buffer = (std::uint8_t*)PyArray_DATA(cpr_arr);
         # pragma omp parallel for
-        for (std::size_t ibyte = 0; ibyte < size; ibyte++)
+        for (npy_intp ibyte = 0; ibyte < size; ibyte++)
         {
             buffer[ibyte] = out_compressed[ibyte];
         }
@@ -263,7 +263,7 @@ PyObject* py_fpc_uncompress(PyObject *self, PyObject *args)
             py_array = (PyArrayObject *)PyArray_EMPTY(ndim, dims, NPY_DOUBLE, 1);
         }
         double* py_array_data = (double*)PyArray_DATA(py_array);
-        std::size_t cpr_length = PyArray_SIZE(np_cpr_arrays[i]);
+        //std::size_t cpr_length = PyArray_SIZE(np_cpr_arrays[i]);
         std::size_t array_length = PyArray_SIZE(py_array);
         std::uint8_t* cpr_data = (std::uint8_t*)PyArray_DATA(np_cpr_arrays[i]);
 
@@ -279,7 +279,7 @@ PyObject* py_fpc_uncompress(PyObject *self, PyObject *args)
         ctx.seed = 0.0;
         memset(fcm, 0, sizeof(fcm));
         memset(dfcm, 0, sizeof(dfcm));
-        printf("decompression: compressed size=%d uncomp=%d\n", cpr_length, array_length*8);
+        //printf("decompression: compressed size=%d uncomp=%d\n", cpr_length, array_length*8);
         //printf("cprdata %d\n", cpr_length);
         //for (E_Int i = 0; i < cpr_length; i++) printf("%u ", cpr_data[i]);
         

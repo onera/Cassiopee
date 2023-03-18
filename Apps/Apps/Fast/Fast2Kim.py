@@ -95,7 +95,7 @@ class KIM:
         '''
         tmp = type_size * len(vector)
         mesh_file.write(struct.pack('i', tmp))
-        mesh_file.write(vector.astype(vector_type).tostring())
+        mesh_file.write(vector.astype(vector_type).tobytes())
         mesh_file.write(struct.pack('i', tmp))
 
     def createKimDonn(self):
