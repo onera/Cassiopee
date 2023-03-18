@@ -407,12 +407,12 @@ elif [ "$MAC" = "jean-zay" ]; then
     module load gcc/9.1.0-cuda-openacc
     module load openmpi/4.1.1-cuda
     module load hdf5/1.10.5
-	# Set next two lines only if python is not python
+    # Set next two lines only if python is not python
     export PYTHONEXE=python3    
-    alias python python3
+    alias python=python3
     # Number of threads
     export OMP_NUM_THREADS=28
-    export PATH=$PATH $CASSIOPEE/Dist/bin
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages

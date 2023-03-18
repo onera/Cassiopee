@@ -495,7 +495,7 @@ else if ($MAC == "jean-zay") then
         module load gcc/9.1.0-cuda-openacc
         module load openmpi/4.1.1-cuda
         module load hdf5/1.10.5
-	    # Set next two lines only if python is not python
+        # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
         # Number of threads

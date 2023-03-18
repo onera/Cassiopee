@@ -129,15 +129,15 @@ def setup(t_in, tc_in, numb, numz, format='single'):
 # it0: iteration correspondant a la fin du cacul
 # time0: temps correspondant a la fin du calcul
 # format: "single" ou "multiple"
-# cartesian: si True, compress le fichier pour le cartesien
+# compress: si 1, compress le fichier pour le cartesien, 2, compressAll
 # ===========================================================================
-def finalize(t, t_out=None, it0=None, time0=None, format='single', cartesian=False):
+def finalize(t, t_out=None, it0=None, time0=None, format='single', compress=0):
     if it0 is not None:
         Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0)
     if time0 is not None:
         Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     if t_out is not None and isinstance(t_out, str):
-        FastC.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
+        FastC.save(t, t_out, split=format, NP=Cmpi.size, compress=compress)
 
 #=====================================================================================
 # IN: t_in : nom du fichier t input ou arbre input
@@ -146,13 +146,13 @@ def finalize(t, t_out=None, it0=None, time0=None, format='single', cartesian=Fal
 # IN: numb, numz: les data numeriques
 # IN: NIT: nbre d'iterations
 # format: single ou multiple
-# cartesian: si True, compress le fichier de sortie pour le cartesien
+# compress: si 1, compress le fichier de sortie pour le cartesien, 2 compressAll
 #======================================================================================
 def compute(t_in, tc_in, 
             t_out, tc_out,
             numb, numz,
             NIT,
-            format='single', cartesian=False):
+            format='single', compress=0):
     if Cmpi.size > 1:
         import FastS.Mpi as FastS
         rank = Cmpi.rank; size = Cmpi.size
@@ -192,7 +192,7 @@ def compute(t_in, tc_in,
     Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     if t_out is not None and isinstance(t_out,str):
-        FastC.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
+        FastC.save(t, t_out, split=format, NP=Cmpi.size, compress=compress)
     if tc_out is not None and isinstance(tc_out,str): 
         FastC.save(tc, tc_out, split=format, NP=Cmpi.size)
     if Cmpi.size > 1: Cmpi.barrier()
@@ -206,7 +206,7 @@ class Common(App):
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
         self.requires(['format', 'numb', 'numz'])
-        self.cartesian = False
+        self.compress = 0
         # default values
         if format is not None: self.set(format=format)
         else: self.set(format='single')
@@ -218,12 +218,12 @@ class Common(App):
     def compute(self, t_in, tc_in, t_out, nit, tc_out=None):
         numb = self.data['numb']
         numz = self.data['numz']
-        cartesian = self.cartesian
+        compress = self.compress
         return compute(t_in, tc_in, t_out, tc_out,
                        numb, numz,
                        nit, 
                        format=self.data['format'],
-                       cartesian=cartesian)
+                       compress=compress)
 
     # warm up et all
     def setup(self, t_in, tc_in):

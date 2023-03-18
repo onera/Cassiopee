@@ -85,7 +85,7 @@ C.convertPyTree2File(t_3d, LOCAL+'/t.cgns')
 C.convertPyTree2File(tc_3d, LOCAL+'/tc.cgns')
 
 # Compute
-t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=200)
+t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=300)
 t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')

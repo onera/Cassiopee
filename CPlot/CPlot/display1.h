@@ -1,4 +1,4 @@
-  
+  // Common part to display methods  
   PyObject* arrays;
   int dim;
   PyObject* modeObject;
