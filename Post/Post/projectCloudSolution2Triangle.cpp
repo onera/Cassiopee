@@ -292,7 +292,6 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
                                     listOfCloudPtsPerVertex.end()); 
       sizeOfCloud = listOfCloudPtsPerVertex.size();
 
-
       if (sizeOfCloud < sizeMinOfCloud) indicesExtrap.push_back(indR);//extrap
       else
       {
@@ -318,7 +317,7 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
         if ( K_FUNC::E_abs(x_max-x_min) < 1.e-6 ) axisConst[0] = 1;
         if ( K_FUNC::E_abs(y_max-y_min) < 1.e-6 ) axisConst[1] = 1;
         if ( K_FUNC::E_abs(z_max-z_min) < 1.e-6 ) axisConst[2] = 1;
-        // if ( listOfCloudPtsPerVertex.size() > 200) printf(" size = %d \n", listOfCloudPtsPerVertex.size() );
+
         E_Int ok = K_INTERP::getInterpCoefMLS(order, dimPb, sizeBasis, pt, xtDnr, ytDnr, ztDnr, 
                                               listOfCloudPtsPerVertex,
                                               radius, axis, axisConst, &cfLoc[0]);
@@ -339,24 +338,26 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
           }
           else
           {
-            for (E_Int posv = 0; posv < nbVars; posv++)
+            E_Float sumCf = 0.;
+            for(E_Int noind = 0; noind < sizeOfCloud; noind++)
             {
-              E_Float* varD = fd->begin(posvarsD[posv]+1);
-              E_Float* varR = fieldROut.begin(posvarsR[posv]+1);
-              E_Float sumCf = 0.;
-              E_Float val = 0.;
-              for(E_Int noind = 0; noind < sizeOfCloud; noind++)
+              sumCf += cfLoc[noind];
+            }
+            if ( K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
+            else // interpolate
+            {
+              for (E_Int posv = 0; posv < nbVars; posv++)
               {
-                E_Int indD = listOfCloudPtsPerVertex[noind];
-                val += cfLoc[noind]*varD[indD];
-                if ( posv == 0)
+                E_Float* varD = fd->begin(posvarsD[posv]+1);
+                E_Float* varR = fieldROut.begin(posvarsR[posv]+1);
+                E_Float val = 0.;
+                for(E_Int noind = 0; noind < sizeOfCloud; noind++)
                 {
-                  sumCf += cfLoc[noind];
+                  E_Int indD = listOfCloudPtsPerVertex[noind];
+                  val += cfLoc[noind]*varD[indD];                  
                 }
+                varR[indR] = val;
               }
-              //varR[indR] = val;
-              if ( K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
-              else varR[indR] = val;
             }
           }          
         }

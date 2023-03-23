@@ -30,9 +30,10 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
     E_Int depth;
-    if (!PYPARSETUPLE(args,"O(ddd)(ddd)l", "O(ddd)(ddd)i", 
-                           "O(fff)(fff)l","O(fff)(fff)i",
-                            &array, &X0, &Y0, &Z0, &ex, &ey, &ez, &depth))
+    E_Float thetaShift;
+    if (!PYPARSETUPLE(args,"O(ddd)(ddd)ld", "O(ddd)(ddd)id", 
+                           "O(fff)(fff)lf","O(fff)(fff)if",
+                      &array, &X0, &Y0, &Z0, &ex, &ey, &ez, &depth, &thetaShift))
         return NULL;
     
     // check array
@@ -82,7 +83,7 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     }
     E_Int ret = K_LOC::cart2Cyl(npts, f->begin(posx), f->begin(posy), f->begin(posz),
                                 X0, Y0, Z0, ex, ey, ez, rt, thetat,  
-                                im, jm, km, depth);
+                                im, jm, km, depth, thetaShift);
     if (ret == 1)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -105,11 +106,12 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    E_Int depth;
-    if (!PYPARSETUPLE(args,"O(ddd)(ddd)lsss", "O(ddd)(ddd)isss", 
-                           "O(fff)(fff)lsss","O(fff)(fff)isss",
-                            &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, 
-                            &depth, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
+    E_Int depth; E_Float thetaShift;
+    if (!PYPARSETUPLE(args,
+                      "O(ddd)(ddd)ldsss", "O(ddd)(ddd)idsss", 
+                      "O(fff)(fff)lfsss","O(fff)(fff)ifsss",
+                      &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, 
+                      &depth, &thetaShift, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;
     
     vector<PyArrayObject*> hook;
@@ -154,7 +156,7 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     }
    
     E_Int ret = K_LOC::cart2Cyl(npts, fields[posx], fields[posy], fields[posz],
-                                X0, Y0, Z0, ex, ey, ez, rt, thetat,  im, jm, km, depth);
+                                X0, Y0, Z0, ex, ey, ez, rt, thetat,  im, jm, km, depth, thetaShift);
     if (ret == 1)
     {
       RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);

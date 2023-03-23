@@ -72,6 +72,7 @@ List of functions
    Geom.orthoDrive
    Geom.axisym
    Geom.connect1D
+   Geom.offsetSurface
 
    .. Geom.volumeFromCrossSections
    .. Geom.addSeparationLine
@@ -969,6 +970,35 @@ Geometry modification
     * `Connect two lines (pyTree) <Examples/Geom/connect1DPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/connect1DPT.py
+
+---------------------------------------
+
+.. py:function:: Geom.offsetSurface(a, offset=1, density=1, algo=0, dim=3)
+  
+    Offset of a surface a  
+
+    :param a: surface to be offset
+    :type a: list of arrays or list of zones 
+    :param offset: distance of a where the offset surface is created
+    :type offset: float
+    :param density: number of points  per unit length
+    :type density: float
+    :param algo: 0: cartesian (faster); 1: octree (less memory)
+    :type algo: integer 
+    :param dim: dimension of the pb (2 or 3)
+    :type dim: integer 
+    :return: a single zone
+    :rtype: array or zone
+
+    *Example of use:*
+
+    * `Offset a surface  (array) <Examples/Geom/offsetSurface.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/offsetSurface.py
+
+    * `Offset a surface (pyTree) <Examples/Geom/offsetSurfacePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/offsetSurfacePT.py
 
 
 1D distributions

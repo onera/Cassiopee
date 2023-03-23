@@ -1004,7 +1004,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
     }
   else if (bctype == 4) // outpres
     {
-      printf("I AM HERE\n");
 #ifdef _OPENMP4
 #pragma omp simd
 #endif

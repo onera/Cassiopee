@@ -7,115 +7,9 @@ import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
-import Generator.PyTree as G
-import Post.PyTree as P
-import Dist2Walls.PyTree
-
+import Geom.PyTree 
 # local widgets list
 WIDGETS = {}; VARS = []
-
-#==============================================================================
-# Calcul la distance a la paroi par differents algos
-# IN: b: maillage ou l'on calcule la distance
-# IN: a: maillage du corps
-# IN: loc='centers', 'nodes': localisation du champ de distance
-#==============================================================================
-def compDistance(b, a, loc):
-    try: 
-        b = Dist2Walls.PyTree.distance2Walls(b, a, type='ortho', 
-                                             loc=loc, signed=1)
-        fail = False
-    except: fail = True
-    if fail:
-        try:
-            b = Dist2Walls.PyTree.distance2Walls(b, a, type='ortho', 
-                                                 loc=loc, signed=0)
-            fail = False
-        except: fail = True
-    if fail:
-        try:
-            b = Dist2Walls.PyTree.distance2Walls(b, a, type='mininterf', 
-                                                 loc=loc, signed=0)
-            fail = False
-        except: raise
-    return b
-
-#==============================================================================
-def withCart(a, offset, density):
-    # Calcul la grille cartesienne
-    BB = G.bbox(a)
-    xmin = BB[0]; ymin = BB[1]; zmin = BB[2]
-    xmax = BB[3]; ymax = BB[4]; zmax = BB[5]
-    ni = density*(xmax-xmin); nj = density*(ymax-ymin);
-    nk = density*(zmax-zmin)
-    if ni < 2: ni = 2
-    if nj < 2: nj = 2
-    if nk < 2: nk = 2
-    hi = (xmax-xmin)/(ni-1); hj = (ymax-ymin)/(nj-1); hk = (zmax-zmin)/(nk-1)
-    h = min(hi, hj); h = min(h, hk); h = max(h, 1.e-6)
-    ni = int((xmax-xmin)/h)+7; nj = int((ymax-ymin)/h)+7
-    nk = int((zmax-zmin)/h)+7
-    ni += int(2*offset/h); nj += int(2*offset/h); nk += int(2*offset/h)
-    b = G.cart( (xmin-3*h-offset, ymin-3*h-offset, zmin-3*h-offset), (h, h, h), (ni,nj,nk) )
-
-    # Calcul la distance a la paroi
-    b = compDistance(b, a, loc='nodes')
-    #C.convertPyTree2File(b, 'out.cgns')
-
-    # Extraction isoSurf
-    iso = P.isoSurfMC([b], 'TurbulentDistance', value=offset)
-    return iso
-
-#==============================================================================
-def withOctree(a, offset, density):
-    # step
-    tol = 1./density
-    
-    # octree
-    snears = []; sec = 0
-    for z in a:
-        bb = G.bbox(z)
-        rx = bb[3]-bb[0]; ry = bb[4]-bb[1]; rz = bb[5]-bb[2]
-        snear = min(rx, ry); snear = min(snear, rz)
-        snear = 0.1*snear
-        sec = max(sec, snear)
-        snears.append(snear)
-    o = G.octree(a, snears, dfar=offset+sec)
-    o = compDistance(o, a, loc='nodes')
-
-    # iteration d'adaptation
-    nit = 0
-    while nit < 10:
-        print('iterating: %d...'%nit)
-
-        o = C.node2Center(o, 'TurbulentDistance')
-        o = G.getVolumeMap(o)
-
-        # adapt
-        C._initVars(o, '{centers:vol}={centers:vol}**0.33333')
-        # was 2.1 factor
-        C._initVars(o, '{centers:indicator}=logical_and({centers:vol} > %20.16g , abs({centers:TurbulentDistance}-%20.16g) < 1.*{centers:vol})'%(tol,offset))
-        o1 = G.adaptOctree(o, 'centers:indicator')
-
-        #C.convertPyTree2File([o1]+a, 'out%d.cgns'%nit)
-
-        # check convergence
-        dim1 = Internal.getZoneDim(o1); dim = Internal.getZoneDim(o)
-        if dim1 == dim: break
-
-        #if (nit%2 == 0): o1 = P.extractMesh([o], o1)
-        o1 = compDistance(o1, a, loc='nodes')
-        o = o1
-        nit += 1
-    
-    o = C.rmVars(o, 'centers:TurbulentDistance')
-    o = C.rmVars(o, 'centers:vol')
-    o = C.rmVars(o, 'centers:indicator')
-    #C.convertPyTree2File(o, 'out.cgns')
-
-    # Iso surface
-    iso = P.isoSurfMC([o], 'TurbulentDistance', value=offset)
-    return iso
 
 #==============================================================================
 def remap():
@@ -151,9 +45,10 @@ def remap():
 
     CTK.saveTree()
 
-    if VARS[2].get() == '0': iso = withCart(a, offset, density)
-    else: iso = withOctree(a, offset, density)
-        
+    if VARS[2].get() == '0': algo = 0
+    else: algo = 1
+    iso = Geom.PyTree.offsetSurface(a, offset, density, algo)
+
     if iso != []:
         nob = CTK.Nb[nzs[0]]+1
         for i in iso: CTK.add(CTK.t, nob, -1, i)

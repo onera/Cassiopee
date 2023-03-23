@@ -558,7 +558,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
         fields[no]->begin(poszs[no]),
         a2[no], a3[no], a4[no],
         centerX, centerY, centerZ,
-        axisX, axisY, axisZ, 0., depth,
+        axisX, axisY, axisZ, thetaShift, depth,
         isBuilt);
     }
 

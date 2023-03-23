@@ -427,7 +427,7 @@ Mesh transformation
 --------------------------
 
 
-.. py:function:: Transform.cart2Cyl(a, C, AXIS)
+.. py:function:: Transform.cart2Cyl(a, C, AXIS, thetaShift)
 
     .. A1.O0.D1
     
@@ -443,6 +443,8 @@ Mesh transformation
     :type C: 3-tuple of floats
     :param AXIS: revolution axis
     :type AXIS: 3-tuple of floats
+    :param thetaShift: angle (in degrees) to be in [-PI,PI] 
+    :type thetaShift: float
     :return: mesh with coordinates in the cylindrical frame
     :rtype: identical to input
 

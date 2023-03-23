@@ -19,5 +19,5 @@ do
     rm -f Data/$v*
   fi
   echo '=======================' $i '======================'
-  kpython $i
+  python $i
 done

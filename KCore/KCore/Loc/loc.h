@@ -89,7 +89,8 @@ namespace K_LOC
                  E_Float X0, E_Float Y0, E_Float Z0,
                  E_Float ex, E_Float ey, E_Float ez,
                  E_Float* rt, E_Float* thetat, 
-                 E_Int ni=0, E_Int nj=0, E_Int nk=0, E_Int depth=0);
+                 E_Int ni=0, E_Int nj=0, E_Int nk=0, E_Int depth=0, 
+                 E_Float thetaShift=0.);
   /* Transformation repere cylindrique -> repere cartesien */
   E_Int cyl2Cart(E_Int npts, E_Float* rt, E_Float* thetat, 
                  E_Float X0, E_Float Y0, E_Float Z0,

@@ -9,6 +9,7 @@ try:
     import Converter
 except ImportError:
     raise ImportError("Geom.PyTree: requires Converter.PyTree module.")
+from .Offset import offsetSurface
 
 def point(P):
     """Create a point.
@@ -473,6 +474,3 @@ def getUV(a, normalDeviationWeight=2., texelsPerUnit=0., fields=None):
     z2 = C.convertArrays2ZoneNode('bumpAtlas', [ret[2]])
     if len(ret) > 3: z3 = C.convertArrays2ZoneNode('speedAtlas', [ret[3]])
     return z0, z1, z2
-    
-    
-

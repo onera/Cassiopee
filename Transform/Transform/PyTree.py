@@ -27,15 +27,15 @@ def _collapse(a):
     """Collapse the smallest edge of each element for TRI arrays. Return a BAR."""    
     return C._TZGC(a, 'nodes', Transform.collapse)
 
-def cart2Cyl(t, center, axis, depth=0):
+def cart2Cyl(t, center, axis, depth=0, thetaShift=0):
     """Transform a mesh in Cartesian coordinates to cylindrical coordinates.
-    Usage: cart2Cyl(t, center, axis, depth)"""
-    return C.TZGC(t, 'nodes', Transform.cart2Cyl, center, axis, depth)
+    Usage: cart2Cyl(t, center, axis, depth, thetaShift)"""
+    return C.TZGC(t, 'nodes', Transform.cart2Cyl, center, axis, depth, thetaShift)
 
-def _cart2Cyl(t, center, axis, depth=0):
+def _cart2Cyl(t, center, axis, depth=0, thetaShift=0):
     """Transform a mesh in Cartesian coordinates to cylindrical coordinates."""
     for z in Internal.getZones(t):
-        transform._cart2CylZ(z, center, axis, depth,
+        transform._cart2CylZ(z, center, axis, depth, thetaShift,
                             Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__)
     return None
 
