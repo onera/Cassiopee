@@ -741,7 +741,7 @@ namespace NUGA
     childpos[nb_phs_ref] = s;
     std::vector<E_Int> unodes;
     E_Int nbFineCells = 0;
-    for (E_Int j = 0; j < PH_to_ref.size(); ++j)
+    for (size_t j = 0; j < PH_to_ref.size(); ++j)
     {
       E_Int* first_pg = ng.PHs.get_facets_ptr(PH_to_ref[j]);
       E_Int  nb_pgs = ng.PHs.stride(PH_to_ref[j]);
@@ -756,7 +756,7 @@ namespace NUGA
     std::vector<E_Int> arity, pregnant_c(nbFineCells);
     E_Int ind = 0;
 
-    for (E_Int j = 0; j < PH_to_ref.size(); ++j)
+    for (size_t j = 0; j < PH_to_ref.size(); ++j)
     {
       E_Int* first_pg = ng.PHs.get_facets_ptr(PH_to_ref[j]);
       E_Int  nb_pgs = ng.PHs.stride(PH_to_ref[j]);
@@ -777,7 +777,7 @@ namespace NUGA
 
     intpos.resize(nb_phs_ref + 1);  //one-pass-the-end size
     s = nb_pgs0;
-    for (size_t i = 0; i < nb_phs_ref; ++i)
+    for (E_Int i = 0; i < nb_phs_ref; ++i)
     {
       intpos[i] = s;
       E_Int PHi = PH_to_ref[i];

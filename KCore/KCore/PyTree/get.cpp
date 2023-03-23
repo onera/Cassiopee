@@ -313,5 +313,4 @@ PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
     if (found == false) return NULL;
     if (*pt == '\0') return next;
   }
-  return next;
 }

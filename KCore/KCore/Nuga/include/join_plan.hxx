@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_JOIN_PLAN_HXX
 #define NUGA_JOIN_PLAN_HXX
@@ -79,7 +79,7 @@ E_Int join_plan<arr_t>::__extract_compact_enabled_tree
   if (nb_tot_enabled_grand_children == 0)
   {
     plan.pushBack(IDX_NONE, 4); // for a directional face, the last two elements in the column will be empty
-    for (size_t uu = 0; uu < nbc; ++uu)plan(uu, cols) = NO_CHILDREN; //set for real children
+    for (E_Int uu = 0; uu < nbc; ++uu) plan(uu, cols) = NO_CHILDREN; //set for real children
     
     return  cols;
   }

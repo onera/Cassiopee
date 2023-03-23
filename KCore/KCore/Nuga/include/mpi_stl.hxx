@@ -7,12 +7,14 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_MPI_STL_HXX
 #define NUGA_MPI_STL_HXX
 
+#ifdef _MPI
 #include "mpi.h"
+#endif
 
 namespace NUGA
 {
@@ -82,7 +84,5 @@ namespace NUGA
 
   }
 }
-
-
 
 #endif

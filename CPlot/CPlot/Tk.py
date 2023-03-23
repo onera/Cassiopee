@@ -1436,8 +1436,8 @@ def minimal(title, show=True):
     win.rowconfigure(1, weight=0)
     win.rowconfigure(2, weight=0)
     win.rowconfigure(3, weight=1)
-    #win.resizable(0,0) # fixed size window
-    win.minsize(325, 325)
+    win.resizable(0,0) # fixed size window
+    #win.minsize(325, 325)
 
     menu = TK.Menu(win, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     # menu file

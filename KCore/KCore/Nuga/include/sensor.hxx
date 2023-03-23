@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SENSOR_HXX
 #define NUGA_SENSOR_HXX
@@ -133,7 +133,7 @@ bool sensor<mesh_t, sensor_input_t>::compute(output_t& adap_incr, bool do_agglo)
   if (this->stop()) return false; // e.g. itermax is reached for geom_sensor
 
   //
-  bool something_filled = this->fill_adap_incr(adap_incr, do_agglo);
+  /* bool something_filled = */ this->fill_adap_incr(adap_incr, do_agglo);
   //if (!something_filled) return false;
 
   // expand adap_incr with over-connected cells : more than twice the nb of natural neighbors
@@ -155,12 +155,12 @@ bool sensor<mesh_t, sensor_input_t>::compute(output_t& adap_incr, bool do_agglo)
 
   if (adap_incr.cell_adap_incr.size() != 0)
   {
-    for (int i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
+    for (size_t i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
       if (adap_incr.cell_adap_incr[i] != 0) return true;
   }
   if (adap_incr.face_adap_incr.size() != 0)
   {
-    for (int i = 0; i < adap_incr.face_adap_incr.size(); ++i)
+    for (size_t i = 0; i < adap_incr.face_adap_incr.size(); ++i)
       if (adap_incr.face_adap_incr[i] != 0) return true;
   }
   

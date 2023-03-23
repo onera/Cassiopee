@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/omp_algo.hxx"
 #include "Nuga/include/mpi_stl.hxx"
@@ -111,8 +111,6 @@ namespace NUGA
     MPI_Comm COM
   )
   {
-    int err(0);
-
     int nranks{ 0 };
     MPI_Comm_size(COM, &nranks);
 
@@ -199,7 +197,7 @@ namespace NUGA
 
     std::vector<MPI_Request> sreqs(NB_TOT_REQS);
     STACK_ARRAY(bool, nranks, has_sent);
-    for (size_t n = 0; n < nranks; ++n) has_sent[n] = false;
+    for (E_Int n = 0; n < nranks; ++n) has_sent[n] = false;
 
     plan_type::isend_data(rank, nranks, COM, rank_to_mpi_data, has_sent.get(), sreqs);
 
@@ -242,7 +240,7 @@ namespace NUGA
     if (rank == 0)
     {
       has_changes = false;
-      for (size_t k = 0; (k < nranks) && !has_changes; ++k)
+      for (E_Int k = 0; (k < nranks) && !has_changes; ++k)
         has_changes |= all_status[k];
 
       //std::cout << " check the change status among received: " << has_changes << std::endl;
@@ -250,7 +248,7 @@ namespace NUGA
       STACK_ARRAY(MPI_Request, nranks - 1, req);
       STACK_ARRAY(MPI_Status, nranks - 1, status);
 
-      for (size_t r = 1; r < nranks; ++r)
+      for (E_Int r = 1; r < nranks; ++r)
         MPI_Isend(&has_changes, 1, MPI_C_BOOL, r, TAG_MPI_EXCH_STATUS, COM, &req[r - 1]);
       MPI_Waitall(nranks - 1, req.get(), status.get());
       //std::cout << "rank : 0 is telling to all change status : " << has_changes << std::endl;

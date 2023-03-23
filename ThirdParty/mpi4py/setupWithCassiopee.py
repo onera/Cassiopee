@@ -25,15 +25,20 @@ from KCore.config import *
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 libraryDirs = [kcoreLibDir, 'build/'+prod]
-libraries = ["dist2walls", "kcore"]
+libraries = ["kcore"]
 from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
+
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
-
+if mpi:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+    libraries += mpiLibs
+    
 # Extensions =================================================================
 extensions = [
     Extension('mpi4py.MPI',

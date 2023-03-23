@@ -1064,6 +1064,8 @@ E_Int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, cons
   //concatenate back to connectB
   connectB.clear();
   for (E_Int i = 0; i < nb_loops; ++i) connectB.pushBack(cntLoops[i]);
+
+  return 0;
 }
 
 E_Int K_OCC::CADviaOCC::__reorient_holed_surface(std::vector<K_FLD::IntArray>& cntLoops, const K_FLD::FloatArray& UVcontour)

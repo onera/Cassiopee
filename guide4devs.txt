@@ -28,3 +28,4 @@ Tests :
 - seq tests finishes by _t1, _t2.
 - parallel test finishes by _m1, _m2 and are run on 2 procs.
 - in tests, dont use input files, create the test case in the script.
+- a test must run in less than 10 seconds (ideally 1 sec).

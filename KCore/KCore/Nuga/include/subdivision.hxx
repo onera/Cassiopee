@@ -154,11 +154,9 @@ namespace NUGA
     {
       E_Int sum(0);
       E_Int nbPHtoadapt = PHlist.size();
-      E_Int PHl, nb_pgs;
-      const E_Int* first_pg;
       for (E_Int l = 0; l < nbPHtoadapt; l++)
       {
-        PHl = PHlist[l];
+        //PHl = PHlist[l];
         const auto& dir = PH_directive[l];
         if (dir == XYZ) sum += 12;
         else if (dir == XY || dir == XZ || dir == YZ) sum += 4;

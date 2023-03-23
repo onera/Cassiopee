@@ -118,9 +118,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx)
   FILE* ptrFile = fopen(file, "r");
   assert(ptrFile);
 
-  E_Int ret;
-
-  ret = readGivenKeyword(ptrFile, "<SCALAR>");
+  readGivenKeyword(ptrFile, "<SCALAR>");
 
   skipLine(ptrFile);
 
@@ -137,7 +135,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx)
   for (E_Int i = 0; i < ncells; i++)
   {
     readline(ptrFile, buf, 1024); pos = 0;
-    ret = readDouble(buf, 1024, pos, fld[i]);
+    readDouble(buf, 1024, pos, fld[i]);
   }
   fclose(ptrFile);
 
@@ -149,7 +147,6 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx)
   FILE* ptrFile = fopen(file, "r");
   assert(ptrFile);
 
-  E_Int ret;
   readGivenKeyword(ptrFile, "<VECTOR>");
   
   skipLine(ptrFile);
@@ -169,9 +166,9 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx)
   for (E_Int i = 0; i < ncells; i++)
   {
     readline(ptrFile, buf, 1024); pos = 1;
-    ret = readDouble(buf, 1024, pos, fldx[i]);
-    ret = readDouble(buf, 1024, pos, fldy[i]);
-    ret = readDouble(buf, 1024, pos, fldz[i]);
+    readDouble(buf, 1024, pos, fldx[i]);
+    readDouble(buf, 1024, pos, fldy[i]);
+    readDouble(buf, 1024, pos, fldz[i]);
   }
   fclose(ptrFile);
 
@@ -183,7 +180,6 @@ E_Int K_IO::GenIO::readTensorField(char *file, FldArrayF& f, E_Int idx)
   FILE* ptrFile = fopen(file, "r");
   assert(ptrFile);
 
-  E_Int ret;
   readGivenKeyword(ptrFile, "<TENSOR>");
   
   skipLine(ptrFile);
@@ -209,15 +205,15 @@ E_Int K_IO::GenIO::readTensorField(char *file, FldArrayF& f, E_Int idx)
   for (E_Int i = 0; i < ncells; i++)
   {
     readline(ptrFile, buf, 1024); pos = 1;
-    ret = readDouble(buf, 1024, pos, fldxx[i]);
-    ret = readDouble(buf, 1024, pos, fldxy[i]);
-    ret = readDouble(buf, 1024, pos, fldxz[i]);
-    ret = readDouble(buf, 1024, pos, fldyx[i]);
-    ret = readDouble(buf, 1024, pos, fldyy[i]);
-    ret = readDouble(buf, 1024, pos, fldyz[i]);
-    ret = readDouble(buf, 1024, pos, fldzx[i]);
-    ret = readDouble(buf, 1024, pos, fldzy[i]);
-    ret = readDouble(buf, 1024, pos, fldzz[i]);
+    readDouble(buf, 1024, pos, fldxx[i]);
+    readDouble(buf, 1024, pos, fldxy[i]);
+    readDouble(buf, 1024, pos, fldxz[i]);
+    readDouble(buf, 1024, pos, fldyx[i]);
+    readDouble(buf, 1024, pos, fldyy[i]);
+    readDouble(buf, 1024, pos, fldyz[i]);
+    readDouble(buf, 1024, pos, fldzx[i]);
+    readDouble(buf, 1024, pos, fldzy[i]);
+    readDouble(buf, 1024, pos, fldzz[i]);
   }
   fclose(ptrFile);
 
@@ -558,9 +554,9 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
   for (E_Int i = 0; i < npts; i++)
   {
     readline(ptrFile, buf, 1024); pos = 1;
-    ret = readDouble(buf, 1024, pos, x[i]);
-    ret = readDouble(buf, 1024, pos, y[i]);
-    ret = readDouble(buf, 1024, pos, z[i]);
+    readDouble(buf, 1024, pos, x[i]);
+    readDouble(buf, 1024, pos, y[i]);
+    readDouble(buf, 1024, pos, z[i]);
   }
   fclose(ptrFile);
 

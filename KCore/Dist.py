@@ -758,7 +758,7 @@ def getCArgs():
         if DEBUG: 
            options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
            #options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC', '-fsanitize=address', '-fsanitize=thread']
-        else: options += ['-DNDEBUG', '-O3', '-Wall']
+        else: options += ['-DNDEBUG', '-O3', '-Wall', '-Werror=return-type']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
         else: options += ['-fPIC']

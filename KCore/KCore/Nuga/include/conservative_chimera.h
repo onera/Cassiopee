@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CONSERVATIVE_CHIMERA_H
 #define NUGA_CONSERVATIVE_CHIMERA_H
@@ -181,8 +181,8 @@ namespace NUGA
         return compute_surf_coeffs_basic(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
       else if (mode == CONSERVATIVE_O1)
         return compute_surf_coeffs_conservative_order1(crdR, cntR, crdD, cntD, dindices, dcoeffs, xr, do_omp);
+      else return 1;
     }
-
 
   }
 

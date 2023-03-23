@@ -1025,9 +1025,9 @@ void metric_sensor<mesh_t>::fix_beta_gamma(E_Int PHi, E_Int NEI, output_t& adap_
         else if (incr[0] == 0 && incr[1] == 0 && incr[2] == 0 && incr[3] == 0) break;
 
         // look for min
-        int MIN = IDX_NONE;
-        int idx = -1;
-        for (int i = 0; i < 4; i++) {
+        E_Int MIN = IDX_NONE;
+        E_Int idx = -1;
+        for (E_Int i = 0; i < 4; i++) {
             if (incr[i] == 0) continue;
             if (incr[i] < MIN) {
                 MIN = incr[i];
@@ -1038,7 +1038,7 @@ void metric_sensor<mesh_t>::fix_beta_gamma(E_Int PHi, E_Int NEI, output_t& adap_
         INCR += MIN;
 
         // decrement
-        for (int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) {
             incr[i] -= MIN;
             if (incr[i] < 0) incr[i] = 0;
         }
@@ -1071,9 +1071,9 @@ void metric_sensor<mesh_t>::fix_alpha_beta(E_Int PHi, E_Int NEI, output_t& adap_
         else if (incr[0] == 0 && incr[1] == 0 && incr[2] == 0 && incr[3] == 0) break;
 
         // look for min
-        int MIN = IDX_NONE;
-        int idx = -1;
-        for (int i = 0; i < 4; i++) {
+        E_Int MIN = IDX_NONE;
+        E_Int idx = -1;
+        for (E_Int i = 0; i < 4; i++) {
             if (incr[i] == 0) continue;
             if (incr[i] < MIN) {
                 MIN = incr[i];
@@ -1084,7 +1084,7 @@ void metric_sensor<mesh_t>::fix_alpha_beta(E_Int PHi, E_Int NEI, output_t& adap_
         INCR += MIN;
 
         // decrement
-        for (int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) {
             incr[i] -= MIN;
             if (incr[i] < 0) incr[i] = 0;
         }
@@ -1118,9 +1118,9 @@ void metric_sensor<mesh_t>::fix_alpha_gamma(E_Int PHi, E_Int NEI, output_t& adap
         else if (incr[0] == 0 && incr[1] == 0 && incr[2] == 0 && incr[3] == 0) break;
 
         // look for min
-        int MIN = IDX_NONE;
-        int idx = -1;
-        for (int i = 0; i < 4; i++) {
+        E_Int MIN = IDX_NONE;
+        E_Int idx = -1;
+        for (E_Int i = 0; i < 4; i++) {
             if (incr[i] == 0) continue;
             if (incr[i] < MIN) {
                 MIN = incr[i];
@@ -1131,7 +1131,7 @@ void metric_sensor<mesh_t>::fix_alpha_gamma(E_Int PHi, E_Int NEI, output_t& adap
         INCR += MIN;
 
         // decrement
-        for (int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) {
             incr[i] -= MIN;
             if (incr[i] < 0) incr[i] = 0;
         }
