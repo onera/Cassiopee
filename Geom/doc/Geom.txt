@@ -1,4 +1,12 @@
 ===============================================================================
+Geom 3.7 [XX/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: pyTree interface requires Converter 3.6
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.6
+Optional: sphere6 requires Transform, Generator 3.6
+Optional: text functions require Converter, Transform, Generator 3.6
+- offsetSurface (same as in tkFilter in the GUI)
+===============================================================================
 Geom 3.6 [03/2023]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
 Optional: pyTree interface requires Converter 3.6
@@ -6,7 +14,6 @@ Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.6
 Optional: sphere6 requires Transform, Generator 3.6
 Optional: text functions require Converter, Transform, Generator 3.6
 - distrib1, distrib2: 1D distributions
-- offset (same as in tkFilter in the GUI)
 ===============================================================================
 Geom 3.5 [12/2022]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5

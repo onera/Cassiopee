@@ -973,13 +973,16 @@ Geometry modification
 
 ---------------------------------------
 
-.. py:function:: Geom.offsetSurface(a, offset=1, density=1, algo=0, dim=3)
+.. py:function:: Geom.offsetSurface(a, offset=1., density=1., algo=0, dim=3)
   
-    Offset of a surface a  
+    Offset a surface of certain distance. The underlaying algorithm uses an 
+    octree (algo=1) or a cartesian grid (algo=0) with density of point
+    determined by the parameter density. Distance is then computed on this grid 
+    and an isosurface of given "offset" distance is output.
 
     :param a: surface to be offset
     :type a: list of arrays or list of zones 
-    :param offset: distance of a where the offset surface is created
+    :param offset: distance where the offset surface is created
     :type offset: float
     :param density: number of points  per unit length
     :type density: float

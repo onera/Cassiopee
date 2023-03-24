@@ -404,7 +404,7 @@ namespace NUGA
       return ret;
     }
 
-    static eClassify classify2D(NUGA::aPolygon & ae1_2D/*!!!*/, NUGA::aPolygon & ae2_2D/*!!!*/, double ABSTOL)
+    static eClassify classify2D(NUGA::aPolygon & ae1_2D/*!!!*/, NUGA::aPolygon& ae2_2D/*!!!*/, double ABSTOL)
     {
       DELAUNAY::Triangulator dt;
 
@@ -413,8 +413,13 @@ namespace NUGA
       {
         const double* P = ae1_2D.m_crd.col(k);
         // if P is in ae1, ae0 is a piece of ae1
-        int err = ae2_2D.fast_is_in_pred<DELAUNAY::Triangulator, 2/*!!!*/>(dt, ae2_2D.m_crd, P, is_in, ABSTOL);
+        #ifdef NDEBUG
+        ae2_2D.fast_is_in_pred<DELAUNAY::Triangulator, 2/*!!!*/>(dt, ae2_2D.m_crd, P, is_in, ABSTOL);
+        #else
+        E_Int err = ae2_2D.fast_is_in_pred<DELAUNAY::Triangulator, 2/*!!!*/>(dt, ae2_2D.m_crd, P, is_in, ABSTOL);
         assert(!err);
+        #endif
+        
         if (!is_in) break;
       }
 

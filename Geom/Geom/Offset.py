@@ -116,7 +116,8 @@ def withOctree(a, offset, density, dim=3):
     return iso
 
 
-def offsetSurface(a, offset=1, density=1, algo=0, dim=3):
+def offsetSurface(a, offset=1., density=1., algo=0, dim=3):
+    """Offset a surface of given distance."""
     if algo==0: iso = withCart(Internal.getZones(a), offset, density, dim)
     else: iso = withOctree(Internal.getZones(a), offset, density, dim)
     return iso

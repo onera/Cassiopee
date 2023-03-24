@@ -148,14 +148,14 @@ def merge(A, Ac=[], sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
     if len(Ac) > 0: return (ret, retc)
     else: return ret
 
-def cart2Cyl(a, center=(0,0,0), axis=(0,0,1), depth=0 ,thetaShift=0.):
+def cart2Cyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0.):
     """Transform a mesh defined in Cartesian coordinates into cylindrical coordinates.
     Usage: cart2Cyl(a, center, axis)"""
     b = Converter.copy(a)
     _cart2Cyl(b, center, axis, depth=depth, thetaShift=thetaShift)
     return b
 
-def _cart2Cyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0):
+def _cart2Cyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0.):
     if isinstance(a[0], list):
         b = []
         for i in a:

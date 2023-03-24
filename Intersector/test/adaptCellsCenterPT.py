@@ -2,6 +2,7 @@
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 import Generator.PyTree as G
+import Converter.Internal as Internal
 import numpy
 
 z = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))

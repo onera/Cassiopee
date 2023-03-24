@@ -427,13 +427,16 @@ Mesh transformation
 --------------------------
 
 
-.. py:function:: Transform.cart2Cyl(a, C, AXIS, thetaShift)
+.. py:function:: Transform.cart2Cyl(a, C, axis, thetaShift=0.)
 
     .. A1.O0.D1
     
     Convert a mesh in Cartesian coordinates into a mesh in cylindrical coordinates. 
-    One of the Cartesian axes, defined by parameter AXIS, must be the revolution axis of the cylindrical frame.
-    AXIS can be one of (0,0,1), (1,0,0) or (0,1,0).
+    One of the Cartesian axes, defined by parameter AXIS, must be the revolution axis 
+    of the cylindrical frame.
+    Axis can be one of (0,0,1), (1,0,0) or (0,1,0).
+    ThetaShift is an optional rotation angle that can be procided to position the grid
+    in the [-PI,PI] quadrant. 
 
     Exists also as an in-place version (_cart2Cyl) which modifies a and returns None.
 
@@ -441,9 +444,9 @@ Mesh transformation
     :type a: [array, list of arrays] or [zone, list of zone, base, pyTree]
     :param C: center of revolution
     :type C: 3-tuple of floats
-    :param AXIS: revolution axis
-    :type AXIS: 3-tuple of floats
-    :param thetaShift: angle (in degrees) to be in [-PI,PI] 
+    :param axis: revolution axis
+    :type axis: 3-tuple of floats
+    :param thetaShift: angle (in degrees) for the grid to be lie in [-PI,PI] 
     :type thetaShift: float
     :return: mesh with coordinates in the cylindrical frame
     :rtype: identical to input

@@ -1242,15 +1242,15 @@ inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::Flo
 {
   pt_is_in = false;
 
-  int err = this->triangulate(dt, crd);
+  E_Int err = this->triangulate(dt, crd);
   if (err != 0)
   {
     std::cout << "error triangulating" << std::endl;
     return err;
   }
-  int ntris = this->nb_tris();
+  E_Int ntris = this->nb_tris();
 
-  for (size_t t = 0; (t < ntris) && !pt_is_in; ++t)
+  for (E_Int t = 0; (t < ntris) && !pt_is_in; ++t)
   {
     E_Int T[3];
     this->triangle(t, T);

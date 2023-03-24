@@ -440,8 +440,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     vector<E_Int> indicesBB; 
     E_Float pr1[3]; E_Float pr2[3]; E_Float pt[3];
     E_Int oriented = 1;
-    E_Int ok, notri, indvert1, indvert2, indvert3, indp, err;
-    E_Float rx, ry, rz, rad;
+    E_Int ok, notri, indvert1, indvert2, indvert3, indp;
+    E_Float rx, ry, rz, rad; 
 
     //distance of corrected pts to wall pts and image pts 
     //E_Float delta1, delta2;
@@ -493,12 +493,11 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             nPtsPerIBCType[notype] = 0;
         }
         FldArrayI typeProj(npts); typeProj.setAllValuesAtNull();
-        E_Int nType1=0, nType2=0, nType3=0,nType4=0;
+        E_Int nType1=0, nType2=0, nType3=0, nType4=0;
         for (E_Int ind = 0; ind < npts; ind++)
         {
             E_Int noibctype = -1;
             xc0 = ptrXC[ind]; yc0 = ptrYC[ind]; zc0 = ptrZC[ind];
-            E_Int okf1=0, okf2=0, okf3=0, okb1=0, okb2=0, okb3=0;
             E_Float distF1 = -1.; E_Float distB1 = -1.;
             E_Float distF2 = -1.; E_Float distB2 = -1.;
             E_Float distF3 = -1.; E_Float distB3 = -1.;
@@ -508,11 +507,11 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             E_Int found = 0;
 
             dirx0 = ptrNX[ind]; diry0 = ptrNY[ind]; dirz0 = ptrNZ[ind];
-	    if (isOrthoFirst==1) {goto ortho_projection;}
+            if (isOrthoFirst == 1) {goto ortho_projection;}
 #  include "IBC/getIBMPts_projectDirFront.h"
-            if ( ok > -1) // projection found
+
+            if (ok > -1) // projection found
             {
-                okf1 = 1; 
                 distF1 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);            
 
                 // projectDir for pt onto the bodies
@@ -521,9 +520,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 dirz0 = sign*dirz0;
 
                 # include "IBC/getIBMPts_projectDirBodies.h"
-                if ( ok > -1) 
+                if (ok > -1) 
                 {
-                    okb1 = 1; 
                     distB1 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
 
                     //check distance
@@ -538,7 +536,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 }
             }
 
-            // found = 1 : image and wall IBM points have been found and set
+            // found = 1: image and wall IBM points have been found and set
 	ortho_projection:
             if (found == 0)
             {
@@ -551,9 +549,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 // std::cout << "found = 0" << std::endl;
                 # include "IBC/getIBMPts_projectOrthoBodies.h"
 
-                if ( ok == 1 )
+                if (ok == 1)
                 { 
-                    okb2 = 1;
                     distB2 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
 
                     xb_ortho = xsb; yb_ortho = ysb; zb_ortho=zsb;
@@ -565,11 +562,10 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                     nxp = dirx0; nyp = diry0; nzp = dirz0; //normale orientee vers l'exterieur
                     #  include "IBC/getIBMPts_projectDirFront.h"
 
-                    if ( ok == 1 )
+                    if (ok == 1)
                     {
                         distF2 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);
-                        okf2 = 1;
-                        if ( distF2  <= distMaxF2 && distB2 <= distMaxB2) 
+                        if (distF2  <= distMaxF2 && distB2 <= distMaxB2) 
                         {
                             ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                             ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
@@ -586,21 +582,19 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 pt[0] = xc0; pt[1] = yc0; pt[2] = zc0;
                 indp = kdtf.getClosest(pt);
                 # include "IBC/getIBMPts_projectOrthoFront.h"
-                if ( ok == 1 )
+                if (ok == 1)
                 {
-                    okf3 = 1;
                     distF3 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);
                     xf_ortho=xsf; yf_ortho=ysf; zf_ortho=zsf;
 
                     //projectDir to get wall pt
                     dirx0 = xc0-xsf; diry0 = yc0-ysf; dirz0 = zc0-zsf;
                     nxs = -dirx0; nys = -diry0; nzs = -dirz0; //normale orientee vers l'exterieur
-                    # include "IBC/getIBMPts_projectDirBodies.h"
-                    if ( ok == 1)
+                    # include "IBC/getIBMPts_projectDirBodies.h" 
+                    if (ok == 1)
                     {
                         distB3 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
-                        okb3 = 1;
-                        if ( distF3  <= distMaxF2 && distB3 <= distMaxB2) 
+                        if (distF3 <= distMaxF2 && distB3 <= distMaxB2) 
                         {
                             ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                             ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
