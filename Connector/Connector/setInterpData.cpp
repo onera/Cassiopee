@@ -824,7 +824,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     for (E_Int no = 0; no < nHooks; no++)
     {
       PyObject* hook = PyList_GetItem(allHooks,no);
-      if ( hook == Py_None) //CARTESIAN
+      if (hook == Py_None) //CARTESIAN
       {
         E_Float* xt = fields[no]->begin(posxs[no]);
         E_Float* yt = fields[no]->begin(posys[no]);
@@ -863,7 +863,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       interpDatas.push_back((K_INTERP::InterpAdt*)(packet[1])); 
      }
     }  
-    if ( oki < 1) 
+    if (oki < 1) 
     {
       RELEASESHAREDB(resr, receiverArray, fr, cnr); 
       for (E_Int no = 0; no < nzones; no++)
@@ -904,7 +904,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     FldArrayI** OMPlistOfRcvInd1D     = new FldArrayI* [ths];
     FldArrayI** OMPlistOfDonorTypes   = new FldArrayI* [ths];
     FldArrayI** OMPlistOfExtrapInd1D  = new FldArrayI* [ths];
-    FldArrayF** OMPlistOfEXdirs       = new FldArrayF* [ths];
+    FldArrayF** OMPlistOfEXdirs = NULL;
+    if (isEX == 1) OMPlistOfEXdirs = new FldArrayF* [ths];
     for (E_Int t=0; t < ths; t++)
     {
       FldArrayF* donorInterpCoefs = new FldArrayF((nbI*ncfmax)/ths+ncfmax);  donorInterpCoefs->setAllValuesAtNull();
@@ -1253,12 +1254,12 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       if (isEX == 1) {delete  listOfEXdirs      [noz][t];}
     }
     // Suppression des pointeurs par zone
-    delete                  listOfInterpCoefs  [noz];
-    delete                  listOfDonorInd1D   [noz];
-    delete                  listOfRcvInd1D     [noz];
-    delete                  listOfDonorTypes   [noz];
-    delete                  listOfExtrapInd1D  [noz];
-    if (isEX == 1) {delete  listOfEXdirs       [noz];}
+    delete []  listOfInterpCoefs [noz];
+    delete []  listOfDonorInd1D  [noz];
+    delete []  listOfRcvInd1D    [noz];
+    delete []  listOfDonorTypes  [noz];
+    delete []  listOfExtrapInd1D [noz];
+    if (isEX == 1) {delete  [] listOfEXdirs[noz];}
   }
 
   // Suppression des pointeurs COMPTEUR
@@ -1269,17 +1270,17 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     delete OMPlistUsedDomp[noz];
     delete OMPlistNbExtraps[noz];
   }
-  delete OMPlistSizeOfIndDonor1D;
-  delete OMPlistSizeCoefs;
-  delete OMPlistUsedDomp;
-  delete OMPlistNbExtraps;
+  delete [] OMPlistSizeOfIndDonor1D;
+  delete [] OMPlistSizeCoefs;
+  delete [] OMPlistUsedDomp;
+  delete [] OMPlistNbExtraps;
   
   // Suppression des orphans points
   for (E_Int t = 0; t < ths; t++)
   {
     delete OMPlistOrphanPts[t];
   } 
-  delete OMPlistOrphanPts;
+  delete [] OMPlistOrphanPts;
 
   return tpl;
 }

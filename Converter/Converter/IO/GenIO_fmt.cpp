@@ -973,7 +973,7 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
   E_Int npts = field.getSize();
   E_Int nbElts = connect.getSize();
 #ifdef E_DOUBLEINT
-  fprintf(ptr_file,"ZONE N=%lld, E=%lld, F=FEPOINT, ET=TRIANGLE\n", npts, nbElts);
+  fprintf(ptr_file,"ZONE N=%ld, E=%ld, F=FEPOINT, ET=TRIANGLE\n", npts, nbElts);
 #else
   fprintf(ptr_file,"ZONE N=%d, E=%d, F=FEPOINT, ET=TRIANGLE\n", npts, nbElts);
 #endif
@@ -1019,7 +1019,7 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
   for (E_Int i = 0; i < nbElts; i++)
   { 
 #ifdef E_DOUBLEINT  
-    fprintf(ptr_file, "%lld %lld %lld\n", connect(i,1), connect(i,2),
+    fprintf(ptr_file, "%ld %ld %ld\n", connect(i,1), connect(i,2),
             connect(i,3));
 #else
     fprintf(ptr_file, "%d %d %d\n", connect(i,1), connect(i,2), connect(i,3));
@@ -1088,7 +1088,7 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
   E_Int npts = field.getSize();
   E_Int nbElts = connect.getSize();
 #ifdef E_DOUBLEINT
-  fprintf(ptr_file, "ZONE N=%lld, E=%lld, F=FEPOINT, ET=QUADRILATERAL\n", npts, nbElts);
+  fprintf(ptr_file, "ZONE N=%ld, E=%ld, F=FEPOINT, ET=QUADRILATERAL\n", npts, nbElts);
 #else
   fprintf(ptr_file, "ZONE N=%d, E=%d, F=FEPOINT, ET=QUADRILATERAL\n", npts, nbElts);
 #endif
@@ -1133,7 +1133,7 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
   for (E_Int i = 0; i < nbElts; i++)
   { 
 #ifdef E_DOUBLEINT  
-    fprintf(ptr_file, "%lld %lld %lld %lld\n", connect(i,1),
+    fprintf(ptr_file, "%ld %ld %ld %ld\n", connect(i,1),
             connect(i,2), connect(i,3), connect(i,4));
 #else
     fprintf(ptr_file,"%d %d %d %d\n", connect(i,1),
@@ -1172,7 +1172,11 @@ E_Int K_IO::GenIO::tpwriteText(char* file, FldArrayF& field, FldArrayI& number)
   // write text number for each point
   for (E_Int np = 0; np < npts; np++)
   {
-    sprintf(numbers, "%d", int(number[np]));
+#ifdef E_DOUBLEINT
+    sprintf(numbers, "%ld", number[np]);
+#else
+    sprintf(numbers, "%d", number[np]);
+#endif
     fprintf(ptr_file, "TEXT\n");
     fprintf(ptr_file, "CS=GRID\n");
     fprintf(ptr_file, "C=BLACK\n");
