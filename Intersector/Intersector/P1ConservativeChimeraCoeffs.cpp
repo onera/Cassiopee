@@ -78,8 +78,7 @@ PyObject* K_INTERSECTOR::P1ConservativeInterpolation(PyObject* self, PyObject* a
   std::unique_ptr<K_FLD::FldArrayI> acn(cn); // to avoid to call explicit delete at several places in the code.
 
   E_Int nfields = fldsC->getNfld();
-  E_Int nvals = fldsC->getSize();
-
+  
   std::vector<field> don_fields(nfields);
 
   for (E_Int j = 0; j < nfields; ++j)

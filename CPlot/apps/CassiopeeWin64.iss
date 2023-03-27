@@ -74,6 +74,7 @@ begin
   
   fileName := ExpandConstant('{app}\Dist\bin\win64\lib\python3.8\site-packages\KCore\installPath.py');
   CassiopeeVar := ExpandConstant('{app}');
+  StringChangeEx(CassiopeeVar, '\', '/', True)
   SetArrayLength(lines, 3);
   lines[0] := 'installPath = "'+CassiopeeVar+'/Dist/bin/win64/lib/python3.8/site-packages"';
   lines[1] := 'libpath = "'+CassiopeeVar+'/Dist/bin/win64/Lib"';

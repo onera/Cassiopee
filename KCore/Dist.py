@@ -1766,6 +1766,23 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                 if l is not None:
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
+    # pgfortran
+    if f77compiler.find('pgfortran') == 0:
+        l = checkLibFile__('libpgf90.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libpgf90.a', additionalLibPaths)
+
+        if l is not None:
+            libs += ['pgc']; paths += [l]
+
+        if useOMP:
+            l = checkLibFile__('libgomp.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libgomp.a', additionalLibPaths)
+            if l is not None:
+                libs += ['gomp']; paths += [l]
+            else: ret = False
+
     return (ret, libs, paths)
 
 #=============================================================================
@@ -1838,6 +1855,32 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
                 if l is not None:
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
+
+    # pgcc
+    if Cppcompiler.find('pgcc') == 0 or Cppcompiler.find('pgc++') == 0:
+        os.environ['CC'] = 'pgcc' # forced to overide setup.cfg
+        os.environ['CXX'] = 'pg++'
+        from distutils import sysconfig
+        cflags = sysconfig.get_config_var('CFLAGS')
+        sysconfig._config_vars['CFLAGS'] = ' ' # kill setup flags for CC
+        ldshared = sysconfig.get_config_var('LDSHARED')
+        sysconfig._config_vars['LDSHARED'] = ' ' # kill setup flags for LD
+
+        l = checkLibFile__('libpgc.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libpgc.a', additionalLibPaths)
+
+        if l is not None:
+            libs += ['pgc']; paths += [l]
+
+        if useOMP:
+            l = checkLibFile__('libgomp.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libgomp.a', additionalLibPaths)
+            if l is not None:
+                libs += ['gomp']; paths += [l]
+            else: ret = False
+
     return (ret, libs, paths)
 
 #==============================================================================

@@ -13,6 +13,7 @@ try:
     import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
+    import Converter.Mpi as Cmpi
 except:
     raise ImportError("Connector.DoubleWall requires Transform, Converter, Geom modules.")
 
@@ -309,11 +310,35 @@ def extractDoubleWallInfo__(t):
         nob += 1
     return [firstCenters, wallSurfacesEC]
 
+#=========================================================================
+# Change wall with explicit wall windows for Fast t,tc
 # listOfMismatch : liste des BCs en mismatch
-# changeWall for Fast t,tc
 # listOfMismatch1 = ['Base1/cart1/wall1']
+# Prend les fenetres de mismatch1, les projetent sur les fenetres de
+# mismatch2 et modifie tc
+#=========================================================================
 def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2):
 
+    # gather proj surfaces of mismatch2
+    for c, w in enumerate(listOfMismatch2):
+        # surfaceCenters2 - surface de projection ==
+        w2 = listOfMismatch2[c]
+        name = w2.rsplit('/', 2)
+        z2 = Internal.getNodeFromPath(t, name[0])
+        if z2 is not None:
+            walls2 = C.extractBCOfType(z2, 'BCWall') # extract window here
+            walls2 = C.node2Center(walls2)
+            walls2 = C.convertArray2Tetra(walls2, split='withBarycenters')
+        else: walls2 = []
+
+    # reduction de walls2
+    walls2 = Cmpi.allgatherZones(walls2)
+    walls2 = T.join(walls2)
+    #if Cmpi.rank == 0: Converter.convertArrays2File(surfaceCenters2, 'proj.plt')
+    D._getCurvatureHeight(walls2)        
+    surfaceCenters2 = C.getAllFields(walls2, 'nodes')
+
+    # Project surfaces of mismatch1
     for c, w1 in enumerate(listOfMismatch1):
 
         # firstWallCenters1 - wall a recoller == local
@@ -325,20 +350,7 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2):
             firstWallCenters1 = getFirstPointsInfo__(z1, [wr], loc='centers', ghostCells=True)
             #Converter.convertArrays2File(firstWallCenters1, 'first.plt')
         
-        # surfaceCenters2 - surface de projection ==
-        w2 = listOfMismatch2[c]
-        name = w2.rsplit('/', 2)
-        z2 = Internal.getNodeFromPath(t, name[0])
-        if z2 is not None:
-            walls2 = C.extractBCOfType(z2, 'BCWall')
-            walls2 = C.node2Center(walls2)
-            walls2 = C.convertArray2Tetra(walls2, split='withBarycenters')
-            D._getCurvatureHeight(walls2)
-            surfaceCenters2 = C.getAllFields(walls2, 'nodes')
-            #Converter.convertArrays2File(surfaceCenters2, 'proj.plt')
-
         # a1c - domaine a recoller ==
-        name = w1.rsplit('/', 1)
         z1c = Internal.getNodeFromPath(tc, name[0])
         if z1c is not None:
             a1c = C.getFields(Internal.__GridCoordinates__, z1c)[0]

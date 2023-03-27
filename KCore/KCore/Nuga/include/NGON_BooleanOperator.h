@@ -663,6 +663,7 @@ public:
   
   bool _triangulator_do_not_shuffle, _triangulator_improve_qual_by_swap, _conformizer_split_swap_afterwards;
   bool simplify_pgs;
+  bool _outward;
   int  hard_mode;
   
   Vector_t<std::pair<E_Float, E_Int> > _palmares;
@@ -681,8 +682,7 @@ public:
   Vector_t<E_Int> _pglist2[2]; // 0 : WALL / 1 : GHOST EXTRUSION
   
   E_Int _nb_cells2;
-  bool _outward;
-
+  
 #ifdef DEBUG_BOOLEAN
   bool _enabled;
 #endif

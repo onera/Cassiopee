@@ -1164,12 +1164,12 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   // On change de container parce qu'il ne faut plus de set ici 
   std::map<E_Int, std::map<E_Int, std::vector<E_Int>>> z1loc_jz_to_ptl1;  
 
-  E_Int shift = 0 ;
+  //E_Int shift = 0;
   std::vector<std::vector<E_Int>> idx_to_remove1(nb_zones1);
   
   for (size_t i=0; i < ng1so.size(); ++i)
   {
-    if (i>0) shift = zoneshiftPG1[i-1] ;
+    //if (i > 0) shift = zoneshiftPG1[i-1];
     crd1so[i] = crd;
     ng1so[i].PGs = ngo.PGs;
     Vector_t<E_Int> pgnids, phnids;
@@ -1181,15 +1181,15 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
       E_Int zid = i.first;
       for (auto& j : i.second)
       {
-	E_Int jzid = j.first;
-	auto & ptl = j.second;
-	for (auto & pg : ptl)
-	{
-	  if (pgnids[pg] !=  E_IDX_NONE)
-	  {
-	    z1loc_jz_to_ptl1[zid][jzid].push_back(pgnids[pg]);
-	  }
-	}
+        E_Int jzid = j.first;
+        auto & ptl = j.second;
+        for (auto & pg : ptl)
+        {
+            if (pgnids[pg] !=  E_IDX_NONE)
+            {
+                z1loc_jz_to_ptl1[zid][jzid].push_back(pgnids[pg]);
+	        }
+	    }
       }
     }
     
