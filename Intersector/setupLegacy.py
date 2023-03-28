@@ -57,7 +57,7 @@ if mpi4py:
 import srcs
 setup(
     name="Intersector",
-    version="3.6",
+    version="3.7",
     description="Mesh-intersection-based services in *Cassiopee*.",
     author="Onera",
     package_dir={"":"."},

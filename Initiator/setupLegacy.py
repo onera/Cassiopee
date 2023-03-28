@@ -44,7 +44,7 @@ import srcs
 # setup =======================================================================
 setup(
     name="Initiator",
-    version="3.6",
+    version="3.7",
     description="Initiator for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

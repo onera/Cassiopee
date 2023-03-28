@@ -49,7 +49,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Transform",
-    version="3.6",
+    version="3.7",
     description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

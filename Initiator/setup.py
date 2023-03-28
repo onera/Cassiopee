@@ -37,7 +37,7 @@ libraryDirs += paths; libraries += libs
 # setup =======================================================================
 setup(
     name="Initiator",
-    version="3.6",
+    version="3.7",
     description="Initiator for *Cassiopee* modules.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

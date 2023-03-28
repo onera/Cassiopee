@@ -46,7 +46,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="Dist2Walls",
-    version="3.6",
+    version="3.7",
     description="Computation of distance to walls.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

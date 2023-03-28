@@ -38,7 +38,7 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="Modeler",
-    version="3.6",
+    version="3.7",
     description="Modeler module.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

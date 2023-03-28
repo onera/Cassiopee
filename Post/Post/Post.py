@@ -1,5 +1,5 @@
 """Post-processing of solutions."""
-__version__ = '3.6'
+__version__ = '3.7'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Christelle Wervaecke, Xavier Juvigny"
 
 from . import post
@@ -348,7 +348,7 @@ def computeVariables2(array, varname,
 
 def _computeVariables2(array, varname,
                        gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
-                       Cs=110.4, mus=1.76e-5, Ts=273.65):
+                       Cs=110.4, mus=1.76e-5, Ts=273.75):
     if varname == []:
         #print('Warning: computeVariables: varname list is empty.')
         return array

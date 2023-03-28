@@ -550,11 +550,11 @@ def extractProfile(t, zonePath, i=-1, j=-1, k=-1):
     if z is None: return None
     #zp = T.subzone(z, (i,j,3), (i,j,-1))
     if k == -1: # suivant k
-        zp = T.subzone(z, (i,j,3), (i,j,-1))
+        zp = T.subzone(z, (i,j,3), (i,j,-3)) # suppress Ghostcells
     elif j == -1:
-        zp = T.subzone(z, (i,3,k), (i,-1,k))
+        zp = T.subzone(z, (i,3,k), (i,-3,k))
     else:
-        zp = T.subzone(z, (3,j,k), (-1,j,k))
+        zp = T.subzone(z, (3,j,k), (-3,j,k))
 
     Internal._rmNodesFromName(zp, 'ZoneBC')
     zp = C.node2Center(zp)
@@ -641,9 +641,13 @@ def extractRtheta(zp, Uinf, Roinf, Muinf):
 
     # subzone la ligne pour faire l'integrale de teta
     zpp = T.subzone(zp, (1,1,1),(j+1,-1,-1))
-    C._initVars(zpp, '{dTheta} = ( 1. - {VelocityTangential} / %20.16g ) * ( {Density} * {VelocityTangential} ) / ( %20.16g * %20.16g)'%(Uinf,Uinf,Roinf) )
-    ret = Pmpi.integ(zpp, 'dTheta')
+    ret = P.integ(zpp, 'dTheta')
     theta = ret[0]
-
     Rtheta = Uinf * theta * Roinf / Muinf
-    return delta,theta,Rtheta
+
+    C._initVars(zpp, '{dDelta} = ( 1. - {VelocityTangential} / %20.16g ) * ( {Density} / %20.16g)'%(Uinf,Roinf) )
+    ret2 = P.integ(zpp, 'dDelta')
+    delta = ret2[0]
+    ShapeFactor = delta / theta    
+
+    return delta,theta,Rtheta,ShapeFactor

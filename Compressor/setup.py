@@ -67,7 +67,7 @@ if srcs.ZFP:
 # Setup ======================================================================
 setup(
     name="Compressor",
-    version="3.6",
+    version="3.7",
     description="Compress CFD solutions.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

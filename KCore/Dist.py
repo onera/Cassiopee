@@ -805,8 +805,8 @@ def getCppArgs():
     except: from config import Cppcompiler
     if (Cppcompiler == 'g++' or Cppcompiler == 'gcc') and getSystem()[0] == 'mingw':
         opt += ["-std=c++11"]
-    elif Cppcompiler == 'pgcc' or Cppcompiler == 'pg++':
-        opt += ["--c++11"]
+    elif Cppcompiler == 'pgcc' or Cppcompiler == 'pgc++':
+        opt += ["-std=c++11"]
     elif Cppcompiler == "icl.exe":
         opt += ["/std=c++11"]
     else:
@@ -1858,13 +1858,13 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
 
     # pgcc
     if Cppcompiler.find('pgcc') == 0 or Cppcompiler.find('pgc++') == 0:
-        os.environ['CC'] = 'pgcc' # forced to overide setup.cfg
-        os.environ['CXX'] = 'pg++'
+        os.environ['CC'] = 'pgc++' # forced to overide setup.cfg
+        os.environ['CXX'] = 'pgc++'
         from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
-        sysconfig._config_vars['CFLAGS'] = ' ' # kill setup flags for CC
+        sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         ldshared = sysconfig.get_config_var('LDSHARED')
-        sysconfig._config_vars['LDSHARED'] = ' ' # kill setup flags for LD
+        sysconfig._config_vars['LDSHARED'] = '' # kill setup flags for LD
 
         l = checkLibFile__('libpgc.so*', additionalLibPaths)
         if l is None:

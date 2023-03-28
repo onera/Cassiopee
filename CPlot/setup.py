@@ -117,7 +117,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="CPlot",
-    version="3.6",
+    version="3.7",
     description="A plotter for *Cassiopee* Modules.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

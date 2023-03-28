@@ -1016,6 +1016,22 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'spiro_pgi': [ 'Machine dev Spiro + compilos pgi (Onera)',
+'pgfortran', # f77compiler
+'pgfortran', # f90compiler
+'pgcc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'chi85bi': [ 'Cluster EDF (Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler

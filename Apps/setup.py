@@ -15,7 +15,7 @@ if prod is None: prod = 'xx'
 # setup ======================================================================
 setup(
     name="Apps",
-    version="3.6",
+    version="3.7",
     description="Application modules",
     author="ONERA",
     packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda'],

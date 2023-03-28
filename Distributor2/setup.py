@@ -34,7 +34,7 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="Distributor2",
-    version="3.6",
+    version="3.7",
     description="Distributor for arrays and pyTrees.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

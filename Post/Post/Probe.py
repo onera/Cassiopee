@@ -398,6 +398,8 @@ class Probe:
                 pt = Internal.getNodeFromName2(cont, 'time')[1]
                 if pt.ndim == 2: pt = pt[:,0]
                 elif pt.ndim == 3: pt = pt[:,0,0]
+                elif pt.ndim == 1: pt = pt[:]
+                else: pt = pt.ravel('k')[:]
                 a = pt > -0.5
                 self._icur = numpy.count_nonzero(a)
             else: self._icur = 0
@@ -506,6 +508,7 @@ class Probe:
             sourcez = source[c]
             pt = Internal.getNodeFromName2(pz, 'time')[1]
             if pt.ndim == 2: pt[self._icur,:] = time
+            elif pt.ndim == 1: pt[self._icur] = time
             else: pt[self._icur,:,:] = time
             # Set zone coordinates
             if self._coords:

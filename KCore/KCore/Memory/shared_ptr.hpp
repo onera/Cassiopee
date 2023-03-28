@@ -20,7 +20,7 @@
 
 #ifndef _KCORE_SHARED_PTR_HPP_
 #define _KCORE_SHARED_PTR_HPP_
-#if  CPPVERSION >= 2011 && ! defined (__PGI)
+#if  CPPVERSION >= 2011
 # include <memory>
 namespace K_MEMORY {
     template<typename K>

@@ -31,6 +31,7 @@ from KCore.config import *
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
+includeDirs = []
 
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
@@ -54,7 +55,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="mpi4py",
-    version="3.6",
+    version="3.7",
     description="",
     author="",
     packages=['mpi4py'],

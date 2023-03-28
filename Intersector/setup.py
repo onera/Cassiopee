@@ -56,7 +56,7 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="Intersector",
-    version="3.6",
+    version="3.7",
     description="Mesh-intersection-based services in *Cassiopee*.",
     author="ONERA",
     url="http://elsa.onera.fr/Cassiopee",

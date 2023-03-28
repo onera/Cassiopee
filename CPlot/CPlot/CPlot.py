@@ -1,6 +1,6 @@
 """Simple plotter for CFD.
 """
-__version__ = '3.6'
+__version__ = '3.7'
 __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier, Bertrand Michel"
 
 from . import cplot
