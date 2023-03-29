@@ -22,7 +22,7 @@
                                                      vol = tk + para[ NDIMDX_MTR]* para[ NEQ_K ];                 }
 
 #define GET_VENT(pos, metric, para, vi, vj, vk) { vi  = K_NUMPY::getNumpyPtrF( PyList_GetItem(metric, pos ) ); \
-                                                  E_Int c=0; if(para[LALE] == 1){ c=1;}                        \
+                                                  E_Int c=0; if(para[LALE] >= 1){ c=1;}                        \
                                                   vj  = vi + para[ NDIMDX_VENT]* para[ NEQ_VENT]*c;            \
                                                   vk  = vj + para[ NDIMDX_VENT]* para[ NEQ_VENT]*c;            }
 

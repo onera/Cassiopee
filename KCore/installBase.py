@@ -552,7 +552,7 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'pgi': [ 'Machine eos avec PGI',
+'eos_pgi': [ 'Machine eos avec PGI',
 'pgf90', # f77compiler
 'pgf90', # f90compiler
 'pgcc', # Cppcompiler
@@ -1000,11 +1000,11 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'spiro': [ 'Machine dev Spiro (Onera)',
-'ifort', # f77compiler
-'ifort', # f90compiler
-'icc', # Cppcompiler
-['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
+'spiro_pgi': [ 'Machine dev Spiro + compilos pgi (Onera)',
+'pgfortran', # f77compiler
+'pgfortran', # f90compiler
+'pgcc', # Cppcompiler
+[], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
@@ -1016,11 +1016,11 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'spiro_pgi': [ 'Machine dev Spiro + compilos pgi (Onera)',
-'pgfortran', # f77compiler
-'pgfortran', # f90compiler
-'pgcc', # Cppcompiler
-[], # CppAdditionalOptions
+'spiro': [ 'Machine dev Spiro (Onera)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static

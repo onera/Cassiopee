@@ -879,7 +879,7 @@ def getForArgs():
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
         return options
-    elif f77compiler == "pgf90" or f77compiler == "pgf77":
+    elif f77compiler.find("pgf"):
         options += ['-fPIC']
         if DEBUG: options += ['-g', '-O0']
         else: options += ['-O3']
@@ -1767,13 +1767,17 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
     # pgfortran
-    if f77compiler.find('pgfortran') == 0:
+    if f77compiler.find('pgf') == 0:
         l = checkLibFile__('libpgf90.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libpgf90.a', additionalLibPaths)
-
         if l is not None:
-            libs += ['pgc']; paths += [l]
+            libs += ['pgf90']; paths += [l]
+        l = checkLibFile__('libcudafor.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libcudafor.a', additionalLibPaths)
+        if l is not None:
+            libs += ['cudafor', 'cudafor2', 'cudadevice', 'acccuda', 'cudanvhpc', 'acccuda10', 'nvf-avx2']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)
@@ -1860,11 +1864,11 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
     if Cppcompiler.find('pgcc') == 0 or Cppcompiler.find('pgc++') == 0:
         os.environ['CC'] = 'pgc++' # forced to overide setup.cfg
         os.environ['CXX'] = 'pgc++'
+        os.environ['LDSHARED'] = 'pgfortran'
         from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
-        ldshared = sysconfig.get_config_var('LDSHARED')
-        sysconfig._config_vars['LDSHARED'] = '' # kill setup flags for LD
+        sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
         l = checkLibFile__('libpgc.so*', additionalLibPaths)
         if l is None:

@@ -162,8 +162,11 @@ void computeFrustumPlanes(ViewInfo& view)
 //=============================================================================
 E_Int isInFrustum(Zone* z, ViewInfo& view)
 {
-  //uncomment this in case of abusive clipping
-  //return 1;
+#ifdef __MESA__
+  // to avoid abusive clipping in osmesa
+  return 1;
+#endif
+
   E_Int out;
   double dist1, dist2, dist3, dist4;
 
