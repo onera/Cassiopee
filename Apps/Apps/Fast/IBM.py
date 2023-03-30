@@ -64,36 +64,37 @@ def _changeNameIBCD__(tc2,NewIBCD):
 
 
 def dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
-    list_final_zones=[]
-    for z in Internal.getZones(t):
-        list_final_zones.append(z[0])
-    
-    tBB =G.BB(t)
-    tbBB=G.BB(tb)
-
-    interDict = X.getIntersectingDomains(tBB, tbBB)    
-
-    #FULL TB
-    zt       = []
-    zt_names = []
-    for i in interDict:
-        if interDict[i]:
-            zt.append(Internal.getNodeByName(t,i))
-            zt_names.append(i)
-
-    if zt_names:
-        DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
-
-    ##PRT1
-    list_additional_zones = getZonesScaleUpDown__(tbBB,tBB,zt_names,dim=dim)
-
-    ###PRT2
-    if list_additional_zones:        
-        zt=[]
-        for i in list_additional_zones:
-            zt.append(Internal.getNodeByName(t,i))
-        
-        DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
+    DTW._distance2Walls(t, tb, type=type, signed=signed, dim=dim, loc=loc)
+    #list_final_zones=[]
+    #for z in Internal.getZones(t):
+    #    list_final_zones.append(z[0])
+    #
+    #tBB =G.BB(t)
+    #tbBB=G.BB(tb)
+    #
+    #interDict = X.getIntersectingDomains(tBB, tbBB)    
+    #
+    ##FULL TB
+    #zt       = []
+    #zt_names = []
+    #for i in interDict:
+    #    if interDict[i]:
+    #        zt.append(Internal.getNodeByName(t,i))
+    #        zt_names.append(i)
+    #
+    #if zt_names:
+    #    DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
+    #
+    ###PRT1
+    #list_additional_zones = getZonesScaleUpDown__(tbBB,tBB,zt_names,dim=dim)
+    #
+    ####PRT2
+    #if list_additional_zones:        
+    #    zt=[]
+    #    for i in list_additional_zones:
+    #        zt.append(Internal.getNodeByName(t,i))
+    #    
+    #    DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
     return None
         
 
