@@ -893,6 +893,7 @@ class IBM_Input:
         self.blankingF42            = False
         self.cartesian              = True
         self.check                  = False
+        self.check_snear            = False
         self.cleanCellN             = True
         self.closedSolid            = []
         self.correctionMultiCorpsF42= False
@@ -979,8 +980,7 @@ class IBM(Common):
             tbFilament = Internal.copyTree(tb)
             for b in Internal.getBases(tb):
                 if b[0] not in self.input_var.closedSolid:
-                    tbFilamentList.append(b[0])
-            
+                    tbFilamentList.append(b)
             if tbFilamentList:
                 for b in tbFilamentList:
                     Internal._rmNode(tb,Internal.getNodeByName(tb,b))
@@ -1040,7 +1040,9 @@ class IBM(Common):
         parento = G_IBM.buildParentOctrees__(o, tb, snears=self.input_var.snears, snearFactor=4., dfar=self.input_var.dfar, dfarList=self.input_var.dfarList, to=self.input_var.to, tbox=self.input_var.tbox, snearsf=self.input_var.snearsf,
                                             dimPb=self.dimPb, vmin=self.input_var.vmin, symmetry=symmetry, fileout=None, rank=self.rank)
         test.printMem(">>> Octree unstruct [end]")
-    
+
+        if self.input_var.check_snear: exit()
+        
         # Split octree
         test.printMem(">>> Octree unstruct split [start]")
         bb = G.bbox(o)
@@ -1086,9 +1088,9 @@ class IBM(Common):
         X_IBM._addExternalBCs(t, bbox=bb, dimPb=self.dimPb)
     
         if self.dimPb == 2:
-            self.dz = 0.01
+            self.input_var.dz = 0.01
             T._addkplane(t)
-            T._contract(t, (0,0,0), (1,0,0), (0,1,0), self.dz)
+            T._contract(t, (0,0,0), (1,0,0), (0,1,0), self.input_var.dz)
     
         # ReferenceState
         C._addState(t, state=self.refstate)
@@ -1104,7 +1106,7 @@ class IBM(Common):
         if (FSC is None or Internal.getNodeFromName(FSC,'TurbulentDistance') is None) and self.input_var.extrusion is None:
             C._initVars(t,'{centers:TurbulentDistance}=1e06')
             if self.dimPb == 2:
-                tb2      = C.initVars(tb, 'CoordinateZ', self.dz*0.5)
+                tb2      = C.initVars(tb, 'CoordinateZ', self.input_var.dz*0.5)
                 self.tbsave   = tb2
                 dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers')
                 
@@ -1112,7 +1114,7 @@ class IBM(Common):
                     C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
                     C._initVars(t,'{centers:TurbulentDistance}=1e06')
                     
-                    tb2           = C.initVars(self.tbFilament, 'CoordinateZ', self.dz*0.5)
+                    tb2           = C.initVars(self.tbFilament, 'CoordinateZ', self.input_var.dz*0.5)
                     self.tbsave   = Internal.merge([self.tbsave,tb2])
                     dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers')
                     C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
@@ -1207,6 +1209,17 @@ class IBM(Common):
     
     def blanking__(self,t,tb):
         test.printMem(">>> Blanking [start]")
+
+        snear_min=10e10
+        for z in Internal.getZones(tb):
+            sdd       = Internal.getNodeFromName1(z, ".Solver#define")
+            if sdd is not None:
+                snearl = Internal.getNodeFromName1(sdd, "snear")
+                if snearl is not None:
+                    snearl = Internal.getValue(snearl)
+            print(snearl)
+            if snearl is not None:  snear_min = min(snear_min,snearl)
+        snear_min = Cmpi.allreduce(snear_min, op=Cmpi.MIN)
         
         if self.input_var.extrusion is None:
            if not self.input_var.isFilamentOnly:
@@ -1239,7 +1252,7 @@ class IBM(Common):
                     cellN= Internal.getNodeByName(sol,'cellN')[1]
                     dist = Internal.getNodeByName(sol,'TurbulentDistanceFilament')[1]
                     ycord= Internal.getNodeByName(z,'CoordinateY')[1]
-                    h    = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+                    h    = abs(C.getValue(z,'CoordinateX',4)-C.getValue(z,'CoordinateX',5))
                     sh   = numpy.shape(dist)
                     for k in range(sh[2]):
                         for j in range(sh[1]):
@@ -1283,7 +1296,9 @@ class IBM(Common):
                        height = G_IBM_Height.computeBestModelisationHeight(Re=self.Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
                        self.input_var.yplus  = G_IBM_Height.computeYplus(Re=self.Reynolds, height=height, L=self.input_var.Lref)
                    if self.input_var.height_in>0.:
-                       if height>self.input_var.height_in: height=self.input_var.height_in
+                       if height>self.input_var.height_in:
+                           height=self.input_var.height_in
+                           #print("Snear min (SM) = %g || Wall Modeling Height (WMH) = %g || WMH/SM = %g"%(snear_min,height,height/snear_min))
                    C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
     
                    if self.input_var.correctionMultiCorpsF42:
@@ -1401,8 +1416,9 @@ class IBM(Common):
             for zdname in interDict[zrname]:
                 zd = Internal.getNodeFromName2(tc, zdname)
                 dnrZones.append(zd)
-            X._setInterpData(zrcv, dnrZones, nature=1, penalty=1, loc='centers', storage='inverse',
-                             sameName=1, interpDataType=self.input_var.interpDataType, order=self.input_var.order, itype='chimera')
+            if dnrZones:
+                X._setInterpData(zrcv, dnrZones, nature=1, penalty=1, loc='centers', storage='inverse',
+                                 sameName=1, interpDataType=self.input_var.interpDataType, order=self.input_var.order, itype='chimera')
             for zd in dnrZones:
                 zdname = zd[0]
                 destProc = self.procDict[zdname]
@@ -1644,7 +1660,9 @@ class IBM(Common):
                             if Generator.bboxIntersection(interpPtsBB,bba,isBB=True):
                                 zname = z[0]
                                 popp  = Cmpi.getProc(z)
-                                Distributed.updateGraph__(graph, popp, self.rank, zname)
+                                if self.input_var.NP>1:
+                                    Distributed.updateGraph__(graph, popp, self.rank, zname)
+                                
                                 if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
                                 else:
                                     if zname not in interDictIBM[zrname]: interDictIBM[zrname].append(zname)
@@ -1662,7 +1680,8 @@ class IBM(Common):
                                     if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
                                         zname = z[0]
                                         popp  = Cmpi.getProc(z)
-                                        Distributed.updateGraph__(graph, popp, self.rank, zname)
+                                        if self.input_var.NP>1:
+                                            Distributed.updateGraph__(graph, popp, self.rank, zname)
                                         if zrname not in interDictIBM2: interDictIBM2[zrname]=[zname]
                                         else:
                                             if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
@@ -1887,6 +1906,12 @@ class IBM(Common):
         if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
         else: tb = Internal.copyTree(t_case)
         
+        if self.input_var.t_in is not None:
+            refState=Internal.getNodeFromName(tb,'ReferenceState')
+            flowEqn =Internal.getNodeFromName(tb,'FlowEquationSet')
+            for b in Internal.getBases(self.input_var.t_in):
+                Internal.addChild(b, refState, pos=0)
+                Internal.addChild(b, flowEqn , pos=0)
         ## ================================================
         ## ============== Prelim. Filament ================
         ## ================================================
@@ -1971,7 +1996,7 @@ class IBM(Common):
         if self.dimPb == 2:
             # Creation du corps 2D pour le preprocessing IBC
             T._addkplane(tb)
-            T._contract(tb, (0,0,0), (1,0,0), (0,1,0), self.dz)
+            T._contract(tb, (0,0,0), (1,0,0), (0,1,0), self.input_var.dz)
         
         X._applyBCOverlaps(t, depth=self.DEPTH, loc='centers', val=2, cellNName='cellN')
         C._initVars(t,'{centers:cellNChim}={centers:cellN}')
@@ -2412,7 +2437,7 @@ def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
              vmin=21, check=False, NP=0, format='single', frontType=1, recomputeDist=False,
-             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
+             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0,check_snear=False):
     prep_local=IBM()
     prep_local.input_var.snears                 =snears
     prep_local.input_var.dfar                   =dfar
@@ -2422,6 +2447,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     prep_local.input_var.yplus                  =yplus
     prep_local.input_var.vmin                   =vmin
     prep_local.input_var.check                  =check
+    prep_local.input_var.check_snear            =check_snear
     prep_local.input_var.NP                     =NP
     prep_local.input_var.format                 =format
     prep_local.input_var.frontType              =frontType
@@ -2444,7 +2470,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
-             height_in=-1.0,isFilamentOnly=False,closedSolid=[],isWireModel=False, cleanCellN=True):
+             height_in=-1.0,isFilamentOnly=False,closedSolid=[],isWireModel=False, cleanCellN=True,check_snear=False):
     prep_local=IBM()
     prep_local.input_var.t_in                   =t_in
     prep_local.input_var.to                     =to
@@ -2457,6 +2483,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     prep_local.input_var.Lref                   =Lref
     prep_local.input_var.vmin                   =vmin
     prep_local.input_var.check                  =check
+    prep_local.input_var.check_snear            =check_snear
     prep_local.input_var.NP                     =NP
     prep_local.input_var.format                 =format
     prep_local.input_var.interpDataType         =interpDataType
