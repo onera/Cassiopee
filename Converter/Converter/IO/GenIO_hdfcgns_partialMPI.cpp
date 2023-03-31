@@ -414,6 +414,11 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
     if (_skeleton == 1) v = getArrayR8Skel(node, tid, dim, _dims);
     else v = getArrayR8(node, tid, dim, _dims, mid, sid);
   }
+  else if (strcmp(_dtype, L3T_I1) == 0)
+  {
+    if (_skeleton == 1) v = getArrayI1Skel(node, tid, dim, _dims);
+    else v = getArrayI1(node, tid, dim, _dims, mid, sid);
+  }
   else if (strcmp(_dtype, L3T_C1) == 0)
   {
     IMPORTNUMPY;
@@ -446,8 +451,7 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
   }
 
   /* Close */
-  H5Sclose(mid);
-  H5Sclose(sid);
+  H5Sclose(mid); H5Sclose(sid);
 
   //if (tid != 0) H5Tclose(tid);
   // PyObject* s = Py_BuildValue("[sOOs]", _name, v, Py_None, _type);

@@ -1777,7 +1777,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
         if l is None:
             l = checkLibFile__('libcudafor.a', additionalLibPaths)
         if l is not None:
-            libs += ['cudafor', 'cudafor2', 'cudadevice', 'acccuda', 'cudanvhpc', 'acccuda10', 'nvf-avx2']; paths += [l]
+            libs += ['cudafor', 'nvf', 'cudafor2']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)
