@@ -5,8 +5,6 @@
 # objects: testO
 from __future__ import print_function
 import numpy, sys, os
-try: range = xrange
-except: pass
 
 # global tolerance on float fields
 TOLERANCE = 1.e-11
@@ -257,51 +255,51 @@ def testO(objet, number=1):
                 return False
             else: return True
         elif isinstance(a, list):        # liste
-            for i in range(len(a)):
-                if type(a[i]) != type(objet[i]):
-                    if isinstance(a[i], (int,float)): pass
-                    elif isinstance(a[i], (numpy.int32, numpy.int64)) and isinstance(objet[i], (numpy.int32, numpy.int64)): pass
-                    elif isinstance(a[i], (numpy.float32, numpy.float64)) and isinstance(objet[i], (numpy.float32, numpy.float64)): pass
+            for i, ai in enumerate(a):
+                if type(ai) != type(objet[i]):
+                    if isinstance(ai, (int,float)): pass
+                    elif isinstance(ai, (numpy.int32, numpy.int64)) and isinstance(objet[i], (numpy.int32, numpy.int64)): pass
+                    elif isinstance(ai, (numpy.float32, numpy.float64)) and isinstance(objet[i], (numpy.float32, numpy.float64)): pass
                     else:
                         print("DIFF: object type differs from "+reference+'.')
                         return False
-                if isinstance(a[i], numpy.ndarray):   # liste d'array
-                    if a[i].shape != objet[i].shape:
+                if isinstance(ai, numpy.ndarray):   # liste d'array
+                    if ai.shape != objet[i].shape:
                         print("DIFF: object shape differs from "+reference+'.')
                         return False
-                    diff = numpy.abs(a[i]-objet[i])
+                    diff = numpy.abs(ai-objet[i])
                     diff = (diff < TOLERANCE)
                     if diff.all() != True:
                         print("DIFF: object value differs from "+reference+'.')
                         return False
                     return True
-                elif isinstance(a[i], list): # liste de tuple/liste
-                    for j in range(len(a[i])):
-                        if isinstance(a[i][j], numpy.ndarray):   # liste de tuple/liste d'array
-                            if a[i][j].shape != objet[i][j].shape:
+                elif isinstance(ai, list): # liste de tuple/liste
+                    for j, aij in enumerate(ai):
+                        if isinstance(aij, numpy.ndarray):   # liste de tuple/liste d'array
+                            if aij.shape != objet[i][j].shape:
                                 print("DIFF: object shape differs from "+reference+'.')
                                 return False
-                            diff = numpy.abs(a[i][j]-objet[i][j])
+                            diff = numpy.abs(aij-objet[i][j])
                             diff = (diff < TOLERANCE)
                             if diff.all() != True:
                                 print("DIFF: object value differs from "+reference+'.')
                                 return False
                             return True
-                        elif isinstance(a[i][j], float):
-                            diff = abs(a[i][j]-objet[i][j])
+                        elif isinstance(aij, float):
+                            diff = abs(aij-objet[i][j])
                             if diff > TOLERANCE:
                                 print("DIFF: object value differs from %s (%g)."%(reference, diff)) 
                             return False
-                        elif a[i][j] != objet[i][j]:  # liste de tuple/liste d'autres objets
+                        elif aij != objet[i][j]:  # liste de tuple/liste d'autres objets
                             print("DIFF: object differs from "+reference+'.')
                             return False
                         else: return True
-                elif isinstance(a[i], float):
-                    diff = abs(a[i]-objet[i])
+                elif isinstance(ai, float):
+                    diff = abs(ai-objet[i])
                     if diff > TOLERANCE:
                         print("DIFF: object value differs from %s (%g)."%(reference, diff)) 
                         return False
-                elif a[i] != objet[i]:      # liste d'autres objets
+                elif ai != objet[i]:      # liste d'autres objets
                     print("DIFF: object differs from "+reference+'.')
                     return False
                 else: return True

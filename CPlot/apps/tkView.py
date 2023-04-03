@@ -12,9 +12,6 @@ import Post.PyTree as P
 import Transform.PyTree as T
 import math
 
-try: range = xrange
-except: pass
-
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -57,17 +54,17 @@ def setMode(event=None):
                 ivar_with_X = -1
                 ivar_with_Y = -1
                 ivar_with_Z = -1
-                for iv in range(lg):
-                    if vars0[iv].find('X') >= 0: ivar_with_X = iv
+                for iv, vars0iv in enumerate(vars0):
+                    if vars0iv.find('X') >= 0: ivar_with_X = iv
                 # On cherche si d'autres variables portent le meme nom avec un Y au lieu d'un X
                 iv = ivar_with_X
                 if iv >= 0:
                     y_var_str = vars0[iv].replace('X','Y')
                     z_var_str = vars0[iv].replace('X','Z')
 
-                    for jv in range(lg):
-                        if vars0[jv] == y_var_str: ivar_with_Y = jv
-                        if vars0[jv] == z_var_str: ivar_with_Z = jv
+                    for jv, vars0jv in enumerate(vars0):
+                        if vars0jv == y_var_str: ivar_with_Y = jv
+                        if vars0jv == z_var_str: ivar_with_Z = jv
                         if ivar_with_Y >= 0 and ivar_with_Z  >= 0: break
 
                 if (ivar_with_X >= 0) and (ivar_with_Y == -1 or ivar_with_Z == -1):
@@ -301,8 +298,8 @@ def displayVector1(event=None):
     index2 = -1
     index3 = -1
     lg = len(zvars)
-    for i in range(lg):
-        if zvars[i] == field1: index1 = i
+    for i, zvarsi in enumerate(zvars):
+        if zvarsi == field1: index1 = i
     if lg > index1: index2 = index1+1
     else: index2 = index1
     if lg > index2: index3 = index2+1
@@ -650,15 +647,27 @@ def setXZ(event=None):
     CPlot.setState(posCam=posCam2, dirCam=dirCam2)
 
 #==============================================================================
-# Compute global min of current field
+# Compute global min of current field (VARMIN)
 #==============================================================================
 def compMin():
     global VARMIN
     if CTK.t == []: return
     if VARNO < 0: return
     var = VARS[18].get()
-    if CTK.__MAINTREE__ == 1: VARMIN = C.getMinValue(CTK.t, var)
-    else: VARMIN = C.getMinValue(CTK.dt, var)
+    if CTK.__MAINTREE__ == 1: 
+        VARMIN = C.getMinValue(CTK.t, var)
+        isFinite = C.isFinite(CTK.t, var)
+        if not isFinite: 
+            CTK.TXT.insert('START', 'NAN values detected.\n')
+            CTK.TXT.insert('START', 'Warning: ', 'Warning')
+            VARMIN = -1.e299
+    else: 
+        VARMIN = C.getMinValue(CTK.dt, var)
+        isFinite = C.isFinite(CTK.dt, var)
+        if not isFinite: 
+            CTK.TXT.insert('START', 'NAN values detected.\n')
+            CTK.TXT.insert('START', 'Warning: ', 'Warning')
+            VARMIN = -1.e299
 
 #==============================================================================
 def compIsoMinFull(event=None):
@@ -680,6 +689,11 @@ def compIsoMin(event=None):
     if zones == []: return
     try:
         varmin = C.getMinValue(zones, var)
+        isFinite = C.isFinite(zones, var)
+        if not isFinite:
+            CTK.TXT.insert('START', 'NAN values detected.\n')
+            CTK.TXT.insert('START', 'Warning: ', 'Warning')
+            varmin = -1.e299
         VARS[9].set(str(varmin))
         #VARS[30].set(str(varmin))
         delta = max(VARMAX-VARMIN, 1.e-12)
@@ -696,8 +710,20 @@ def compMax():
     if CTK.t == []: return
     if VARNO < 0: return
     var = VARS[18].get()
-    if CTK.__MAINTREE__ == 1: VARMAX = C.getMaxValue(CTK.t, var)
-    else: VARMAX = C.getMaxValue(CTK.dt, var)
+    if CTK.__MAINTREE__ == 1: 
+        VARMAX = C.getMaxValue(CTK.t, var)
+        isFinite = C.isFinite(CTK.t, var)
+        if not isFinite: 
+            CTK.TXT.insert('START', 'NAN values detected.\n')
+            CTK.TXT.insert('START', 'Warning: ', 'Warning')
+            VARMAX = +1.e299
+    else: 
+        VARMAX = C.getMaxValue(CTK.dt, var)
+        isFinite = C.isFinite(CTK.t, var)
+        if not isFinite: 
+            CTK.TXT.insert('START', 'NAN values detected.\n')
+            CTK.TXT.insert('START', 'Warning: ', 'Warning')
+            VARMAX = +1.e299
 
 #==============================================================================
 def compIsoMaxFull(event=None):
@@ -719,6 +745,11 @@ def compIsoMax(event=None):
     if zones == []: return
     try:
         varmax = C.getMaxValue(zones, var)
+        isFinite = C.isFinite(zones, var)
+        if not isFinite: 
+            CTK.TXT.insert('START', 'NAN values detected.\n')
+            CTK.TXT.insert('START', 'Warning: ', 'Warning')
+            varmax = +1.e299
         VARS[10].set(str(varmax))
         #VARS[31].set(str(varmax))
         delta = max(VARMAX-VARMIN, 1.e-12)
@@ -814,7 +845,7 @@ def updateIsoWidgets():
         n = pos[1]; l = n.shape[0]
         list = []; c = 0
         while c < l:
-            print(n[c], VARNO)
+            #print(n[c], VARNO)
             if n[c] == VARNO:
                 VARS[2].set(str(int(n[c+1])))
                 VARS[9].set(str(n[c+2]))

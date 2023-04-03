@@ -8,7 +8,12 @@ import Transform.PyTree as T
 import Post.PyTree as P
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
+import Generator.PyTree as G
 import Converter.Internal as Internal
+
+# VIEWDATA
+XYZVIEWDATA = None
+IJKVIEWDATA = None
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -171,7 +176,62 @@ def extract(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.TXT.insert('START', 'Zone extracted in base EXTRACT.\n')
-    
+
+# Met i,j,k dans Coordinates des zones
+def setIJK2Coordinates(z):
+    dim = Internal.getZoneDim(z)
+    if dim[0] == 'Unstructured': pass
+    zc = G.cart((0,0,0), (1,1,1), (dim[1], dim[2], dim[3]))
+    FC = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
+    FN = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
+    if FN is not None: zc[2].append(FN)
+    if FC is not None: zc[2].append(FC)
+    return zc
+
+#==============================================================================
+# viewIJK : affiche la selection en coordonnees IJK
+#==============================================================================
+def viewIJK(event=None):
+    global XYZVIEWDATA
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ != 1: return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return  
+    sel = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        zp = setIJK2Coordinates(z)
+        sel.append(zp)
+    CTK.dt = C.newPyTree(['Base'])
+    CTK.dt[2][1][2] += sel
+    XYZVIEWDATA = CPlot.getState('posCam') + CPlot.getState('posEye') + CPlot.getState('dirCam')
+    if IJKVIEWDATA is not None:
+        posCam = IJKVIEWDATA[0:3]
+        posEye = IJKVIEWDATA[3:6]
+        dirCam = IJKVIEWDATA[6:9]
+        CTK.display(CTK.dt, posCam=posCam, posEye=posEye, dirCam=dirCam, mainTree=CTK.IJK)
+    else:
+        CTK.display(CTK.dt, mainTree=CTK.IJK)
+        CPlot.fitView()
+    CTK.TXT.insert('START', 'Viewing IJK of selection.\n')
+
+def backFromIJK(event=None):
+    global IJKVIEWDATA
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ == CTK.IJK:
+        IJKVIEWDATA = CPlot.getState('posCam') + CPlot.getState('posEye') + CPlot.getState('dirCam')
+        
+    if CTK.__MAINTREE__ != 1 and XYZVIEWDATA is not None:
+        posCam = XYZVIEWDATA[0:3]
+        posEye = XYZVIEWDATA[3:6]
+        dirCam = XYZVIEWDATA[6:9]
+        CTK.display(CTK.t, posCam=posCam, posEye=posEye, dirCam=dirCam, mainTree=CTK.MAIN)
+        CTK.TXT.insert('START', 'Viewing real world.\n')
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -296,8 +356,16 @@ def createApp(win):
     B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
 
     B = TTK.Button(Frame, text="Extract", command=extract)
-    B.grid(row=2, column=0, columnspan=6, sticky=TK.EW)
+    B.grid(row=2, column=0, columnspan=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract subzones to main tree.')
+
+    B = TTK.Button(Frame, text="View IJK", command=viewIJK)
+    B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='View selection as IJK grid.')
+
+    B = TTK.Button(Frame, text="Back", command=backFromIJK)
+    B.grid(row=3, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Back to main view.')
 
 #==============================================================================
 # Called to display widgets

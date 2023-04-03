@@ -757,7 +757,7 @@ def getCArgs():
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
         if DEBUG: 
            options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
-           #options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC', '-fsanitize=address', '-fsanitize=thread']
+           #options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC', '-fsanitize=address']
         else: options += ['-DNDEBUG', '-O3', '-Wall', '-Werror=return-type']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -840,7 +840,7 @@ def getForArgs():
     if f77compiler == "None": return []
     options = getf77AdditionalOptions()
     if f77compiler.find("gfortran") == 0:
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG: options += ['-g', '-O0', '-fbacktrace', '-fbounds-check', '-ffpe-trap=zero,underflow,overflow,invalid']
         else: options += ['-O3']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static']
@@ -853,7 +853,7 @@ def getForArgs():
         return options
     elif f77compiler.find("ifort") == 0:
         if DEBUG:
-            options += ['-g', '-O0', '-CB', '-fpe0']
+            options += ['-g', '-O0', '-CB', '-traceback', '-fpe0', '-check all']
         else: options += ['-O3']
         v = getForVersion()
         if v[0] < 15:
