@@ -62,6 +62,8 @@ namespace K_POST
   PyObject* computeGrad(PyObject* self,PyObject* args);
   PyObject* computeGrad2NGon(PyObject* self,PyObject* args);
   PyObject* computeGrad2Struct(PyObject* self,PyObject* args);
+  PyObject* computeHessian(PyObject *self, PyObject *args);
+  PyObject* computeGradLSQ(PyObject *self, PyObject *args);
   PyObject* computeNormGrad(PyObject* self,PyObject* args);
   PyObject* computeDiv(PyObject* self,PyObject* args);
   PyObject* computeDiv2NGon(PyObject* self,PyObject* args);
@@ -428,7 +430,7 @@ namespace K_POST
    IN: varString: "x,y,z, var1..." avec var1... variables calculees
    OUT: varStringOut "gradxvar1, gradyvar1, gradzvar1...." */
   void computeGradVarsString(char* varString, char*& varStringOut);
-
+  
 /* Creation de la chaine de caracteres pour les fonctions computeDiv/computeDiv2
    IN: varString: "x,y,z, var1..." avec var1... variables calculees
    OUT: varStringOut "divvar1, ...." */

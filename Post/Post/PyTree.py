@@ -1384,6 +1384,60 @@ def computeGrad(t, var):
     C.setFields(centers, tp, 'centers')
     return tp
 
+def computeHessian(t, var, dim):
+    tp = Internal.copyRef(t)
+    _computeHessian(tp, var, dim)
+    return tp
+
+def _computeHessian(t, var, dim):
+    if type(var) == list:
+        raise ValueError("_computeHessian: not available for lists of variables.")
+    vare = var.split(':')
+    if len(vare) > 1: vare = vare[1]
+
+    # Test if field exist
+    solc = C.getFields(Internal.__FlowSolutionCenters__, t)[0]
+    if solc == []:
+        raise ValueError("_computeHessian: no field detected (check container).")
+
+    zones = Internal.getZones(t)
+    for z in zones:
+        f = C.getField(var, z)[0]
+        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+        
+        if f != []:
+            centers = Post.computeHessian(x, f, dim)
+            C.setFields([centers], z, 'centers')
+
+    return None
+
+def computeGradLSQ(t, var, dim):
+    tp = Internal.copyRef(t)
+    _computeGradLSQ(tp, var, dim)
+    return tp
+
+def _computeGradLSQ(t, var, dim):
+    if type(var) == list:
+        raise ValueError("_computeGradLSQ: not available for lists of variables.")
+    vare = var.split(':')
+    if len(vare) > 1: vare = vare[1]
+
+    # Test if field exist
+    solc = C.getFields(Internal.__FlowSolutionCenters__, t)[0]
+    if solc == []:
+        raise ValueError("_computeGradLSQ: no field detected (check container).")
+
+    zones = Internal.getZones(t)
+    for z in zones:
+        f = C.getField(var, z)[0]
+        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+        
+        if f != []:
+            centers = Post.computeGradLSQ(x, f, dim)
+            C.setFields([centers], z, 'centers')
+
+    return None
+
 def computeGrad2(t, var, ghostCells=False, withCellN=True):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t, var)"""

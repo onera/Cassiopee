@@ -12,7 +12,7 @@ except: pass
 
 ## [AJ - KEEP FOR NOW - FROM MASTER]
 __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'computeGrad',
-'computeGrad2', 'computeDiv', 'computeDiv2', 'computeIndicatorField', 'computeIndicatorFieldForBounds',
+'computeGrad2', 'computeGradLSQ', 'computeHessian', 'computeDiv', 'computeDiv2', 'computeIndicatorField', 'computeIndicatorFieldForBounds',
 'computeIndicatorValue', 'computeNormCurl', 'computeNormGrad', 'computeVariables',
 'computeVariables2', '_computeVariables2', 'enforceIndicatorForCoarsestLevel',
 'enforceIndicatorForFinestLevel', 'enforceIndicatorNearBodies', 'exteriorElts',
@@ -425,6 +425,12 @@ def computeNormGrad(array, varname):
         return b
     else:
         return post.computeNormGrad(array, varname)
+
+def computeGradLSQ(array, arrayc, dim):
+    return post.computeGradLSQ(array, arrayc, dim)
+
+def computeHessian(array, arrayc, dim):
+    return post.computeHessian(array, arrayc, dim)
 
 def computeDiv(array, vector):
     """Compute the divergence of the given vector, whose components are defined in array
