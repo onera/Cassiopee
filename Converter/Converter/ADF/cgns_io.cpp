@@ -108,7 +108,7 @@ int cgio_check_file (const char *filename, int *file_type)
 int cgio_find_file (const char *parentfile, const char *filename,
     int file_type, int max_path_len, char *pathname)
 {
-    int n, size, len, type;
+    int size, len, type;
     char *p, *s;
 
     if (filename == NULL || !*filename)

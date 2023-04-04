@@ -827,6 +827,7 @@ else if ($MAC == "spiro_pgi") then
         module purge
         module load python/3.6.1-gnu831
         module load nvhpc/22.2-gnu831-full
+        module load hdf5/1.10.5-gnu831
         module load subversion/1.14.1-gnu831
 
         set path=($path $CASSIOPEE/Dist/bin)

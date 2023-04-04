@@ -207,45 +207,45 @@ extern "C" {
 
 static inline
 void * mycalloc(size_t c, size_t s) {
-  void *ptr;
-  ptr = calloc(c*s+sizeof(size_t),1);
+  char* ptr;
+  ptr = (char*)calloc(c*s+sizeof(size_t),1);
   if (ptr == NULL)
     return NULL;
   else {
-    *((size_t*)ptr)=c*s;
-    ptr+=sizeof(size_t);
+    *((size_t*)ptr) = c*s;
+    ptr += sizeof(size_t);
     return (void*)ptr;
   }
 }
 
 static inline
 void * mymalloc(size_t s) {
-  void *ptr;
-  ptr = malloc(s+sizeof(size_t));
+  char* ptr;
+  ptr = (char*)malloc(s+sizeof(size_t));
   if (ptr == NULL)
     return NULL;
   else {
     *((size_t*)ptr)=s;
-    ptr+=sizeof(size_t);
+    ptr += sizeof(size_t);
     return (void*)ptr;
   }
 }
 
 static inline
 void * myrealloc(void * ptr_in, size_t s, size_t oldsize) {
-  void *ptr;
-  void *ptr_in_c = (char*)ptr_in;
+  char* ptr;
+  char* ptr_in_c = (char*)ptr_in;
   ptr_in_c -= sizeof(size_t);
   if (oldsize != *((size_t*)ptr_in_c)) {
     fprintf(stderr, "myrealloc: Error: freed memory mismatch\n");
     assert(0);
   }
-  ptr = realloc(ptr_in_c, s+sizeof(size_t));
+  ptr = (char*)realloc(ptr_in_c, s+sizeof(size_t));
   if (ptr == NULL)
     return NULL;
   else {
     *((size_t*)ptr)=s;
-    ptr+=sizeof(size_t);
+    ptr += sizeof(size_t);
     return (void*)ptr;
   }
 }

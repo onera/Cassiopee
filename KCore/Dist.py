@@ -364,15 +364,19 @@ def writeSetupCfg():
     if Cppcompiler == "None" or Cppcompiler == "":
         a = os.access("./setup.cfg", os.F_OK)
         if a: os.remove("./setup.cfg")
-    elif Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0 or Cppcompiler.find('icx') == 0:
+    elif Cppcompiler == 'icc' or Cppcompiler == 'icpc' or Cppcompiler == 'icx':
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=intel\n')
         p.close()
-    elif Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0:
+    elif Cppcompiler == 'gcc' or Cppcompiler == 'g++':
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=unix\n')
         p.close()
-    elif Cppcompiler.find('pgcc') == 0 or Cppcompiler.find('pgc++') == 0:
+    elif Cppcompiler == 'pgcc' or Cppcompiler == 'pgc++':
+        p = open("./setup.cfg", 'w')
+        p.write('[build_ext]\ncompiler=unix\n')
+        p.close()
+    elif Cppcompiler == 'nvcc' or Cppcompiler == 'nvc++':
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=unix\n')
         p.close()
@@ -395,21 +399,25 @@ def getDistUtilsCompilers():
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
     if Cppcompiler != 'None' or Cppcompiler != '':
-        if Cppcompiler.find('clang++') != -1:
+        if Cppcompiler == 'clang++':
             vars[0] = Cppcompiler.replace('clang++', 'clang'); vars[1] = Cppcompiler
-        elif Cppcompiler.find('clang') != -1:
+        elif Cppcompiler == 'clang':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('clang', 'clang++')
-        elif Cppcompiler.find('pgcc') != -1:
+        elif Cppcompiler == 'pgcc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('pgcc', 'pgc++')
-        elif Cppcompiler.find('pgc++') != -1:
+        elif Cppcompiler == 'pgc++':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('pgc++', 'pgcc')
+        elif Cppcompiler == 'nvc':
+            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvcc', 'nvc++')
+        elif Cppcompiler == 'nvc++':
+            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvc++', 'nvcc')
         elif Cppcompiler.find('g++') != -1: # g++-version + mingw-g++-version
             vars[0] = Cppcompiler.replace('g++', 'gcc'); vars[1] = Cppcompiler
         elif Cppcompiler.find('gcc') != -1:
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('gcc', 'g++')
-        elif Cppcompiler.find('icpc') != -1:
+        elif Cppcompiler == 'icpc':
             vars[0] = Cppcompiler.replace('icpc', 'icc'); vars[1] = Cppcompiler
-        elif Cppcompiler.find('icc') != -1:
+        elif Cppcompiler == 'icc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icc', 'icpc')
 
     (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = vars
@@ -481,6 +489,16 @@ def useStatic():
     try: from KCore.config import useStatic
     except: from config import useStatic
     if useStatic: return 1
+    else: return 0
+
+#==============================================================================
+# Retourne 1 si on dispose de cuda
+# IN: config.useCuda
+#==============================================================================
+def useCuda():
+    try: from KCore.config import useCuda
+    except: from config import useCuda
+    if useCuda: return 1
     else: return 0
 
 #==============================================================================
@@ -731,8 +749,8 @@ def getCArgs():
     options = getCppAdditionalOptions()[:]
     if EDOUBLEINT: options += ['-DE_DOUBLEINT']
     if GDOUBLEINT: options += ['-DG_DOUBLEINT']
-    if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0 or Cppcompiler.find("icx") == 0:
-        v = getCppVersion() 
+    if Cppcompiler == "icpc" or Cppcompiler == "icc" or Cppcompiler == "icx":
+        v = getCppVersion()
         if DEBUG:
             options += ['-g', '-O0', '-wd47', '-wd1224']
             #options += ['-g', '-O0', '-wd47', '-wd1224', '-check-pointers=rw']
@@ -771,13 +789,25 @@ def getCArgs():
         options += ['/EHsc', '/MT']
         if useOMP() == 1: options += ['/Qopenmp']
         return options
-    elif Cppcompiler.find("pgcc") == 0 or Cppcompiler.find("pgc++") == 0:
-        if DEBUG: options += ['-g', '-O0', '-fPIC']
-        else: options += ['-DNDEBUG', '-O3', '-fPIC']
-        if useOMP() == 1: options += []
+    elif Cppcompiler == "pgcc" or Cppcompiler == "pgc++":
+        if DEBUG: options += ['-g', '-O0']
+        else: options += ['-DNDEBUG', '-O3']
+        if useOMP() == 1: options += ['-target=multicore', '-mp']
+        else: options += ['-nomp']
         if useStatic() == 1: options += []
-        else: options += []
+        else: options += ['-fPIC']
         options += getSimdOptions()
+        if useCuda(): options += ['-target=gpu','-acc', '-Minfo:accel']
+        return options
+    elif Cppcompiler == "nvc" or Cppcompiler == "nvc++":
+        if DEBUG: options += ['-g', '-O0']
+        else: options += ['-DNDEBUG', '-O3']
+        if useOMP() == 1: options += ['-target=multicore', '-mp']
+        else: options += ['-nomp']
+        if useStatic() == 1: options += []
+        else: options += ['-fPIC']
+        options += getSimdOptions()
+        if useCuda(): options += ['-target=gpu', '-acc']
         return options
     elif Cppcompiler == "x86_64-w64-mingw32-gcc" or Cppcompiler == "x86_64-w64-mingw32-g++":
         options += ['-DMS_WIN64', '-fpermissive', '-D__USE_MINGW_ANSI_STDIO=1']
@@ -788,7 +818,7 @@ def getCArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         return options
-    elif Cppcompiler.find("clang") == 0 or Cppcompiler.find("clang++") == 0:
+    elif Cppcompiler == "clang" or Cppcompiler == "clang++":
         if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
         else: options += ['-DNDEBUG', '-O3', '-Wall']
         if useOMP() == 1: options += ['-fopenmp']
@@ -804,9 +834,7 @@ def getCppArgs():
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
     if (Cppcompiler == 'g++' or Cppcompiler == 'gcc') and getSystem()[0] == 'mingw':
-        opt += ["-std=c++11"]
-    elif Cppcompiler == 'pgcc' or Cppcompiler == 'pgc++':
-        opt += ["-std=c++11"]
+        opt += ["-std=c++11"]        
     elif Cppcompiler == "icl.exe":
         opt += ["/std=c++11"]
     else:
@@ -839,7 +867,7 @@ def getForArgs():
     f77compiler = compiler[l]
     if f77compiler == "None": return []
     options = getf77AdditionalOptions()
-    if f77compiler.find("gfortran") == 0:
+    if f77compiler == "gfortran":
         if DEBUG: options += ['-g', '-O0', '-fbacktrace', '-fbounds-check', '-ffpe-trap=zero,underflow,overflow,invalid']
         else: options += ['-O3']
         if useOMP() == 1: options += ['-fopenmp']
@@ -851,9 +879,9 @@ def getForArgs():
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-fdefault-integer-8']
         return options
-    elif f77compiler.find("ifort") == 0:
+    elif f77compiler == "ifort":
         if DEBUG:
-            options += ['-g', '-O0', '-CB', '-traceback', '-fpe0', '-check all']
+            options += ['-g', '-O0', '-CB', '-traceback', '-fpe0']
         else: options += ['-O3']
         v = getForVersion()
         if v[0] < 15:
@@ -869,7 +897,7 @@ def getForArgs():
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
         return options
-    elif f77compiler.find("ifx") == 0:
+    elif f77compiler == "ifx":
         if DEBUG: options += ['-g', '-O0', '-CB', '-fpe0']
         else: options += ['-O3']
         options += ['-fp-model=precise']
@@ -879,8 +907,9 @@ def getForArgs():
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
         return options
-    elif f77compiler.find("pgf"):
-        options += ['-fPIC']
+    elif f77compiler == "pgfortran":
+        if useStatic() == 1: options += ['-static']
+        else: options += ['-fPIC']
         if DEBUG: options += ['-g', '-O0']
         else: options += ['-O3']
         if useOMP() == 1: options += ['-omp']
@@ -917,6 +946,16 @@ def getLinkArgs():
          if useStatic() == 1: out += ['-static']
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
          if useStatic() == 1: out += ['--static']
+    elif Cppcompiler == 'pgcc' or Cppcompiler == 'pgc++':
+         if useStatic() == 1: out += ['-static']
+         else: out += ['-shared']
+         if useOMP() == 1: out += ['-target=multicore', '-mp']
+         if useCuda() == 1: out += ['-target=gpu', '-acc', '-Minfo:accel']
+    elif Cppcompiler == 'nvc' or Cppcompiler == 'nvc++':
+         if useStatic() == 1: out += ['-static']
+         else: out += ['-shared']
+         if useOMP() == 1: out += ['-target=multicore', '-mp']
+         if useCuda() == 1: out += ['-target=gpu', '-acc', '-Minfo:accel']
     mySystem = getSystem()[0]
     if mySystem == 'Darwin':
         if useStatic() == 0: out += ['-dynamiclib']
@@ -1714,7 +1753,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
     paths += additionalLibPaths
 
     # gfortran (gfortran, gomp)
-    if f77compiler.find('gfortran') == 0:
+    if f77compiler == 'gfortran':
         l = checkLibFile__('libgfortran.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libgfortran.a', additionalLibPaths)
@@ -1731,7 +1770,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             else: ret = False
 
     # ifort (ifcore, svml, irc, guide, iomp5)
-    if f77compiler.find('ifort') == 0:
+    if f77compiler == 'ifort':
         l = checkLibFile__('libifcore.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libifcore.a', additionalLibPaths)
@@ -1766,8 +1805,9 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                 if l is not None:
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
+
     # pgfortran
-    if f77compiler.find('pgf') == 0:
+    if f77compiler == 'pgfortran':
         l = checkLibFile__('libpgf90.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libpgf90.a', additionalLibPaths)
@@ -1777,7 +1817,8 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
         if l is None:
             l = checkLibFile__('libcudafor.a', additionalLibPaths)
         if l is not None:
-            libs += ['cudafor', 'nvf', 'cudafor2']; paths += [l]
+            #libs += ['cudafor', 'nvf', 'cudafor2']; paths += [l]
+            libs += ['nvf', 'rt']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)
@@ -1786,6 +1827,10 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             if l is not None:
                 libs += ['gomp']; paths += [l]
             else: ret = False
+
+    # nvfortran
+    if f77compiler == 'nvfortran':
+        libs = ['nvf', 'rt']
 
     return (ret, libs, paths)
 
@@ -1861,7 +1906,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
                 else: ret = False
 
     # pgcc
-    if Cppcompiler.find('pgcc') == 0 or Cppcompiler.find('pgc++') == 0:
+    if Cppcompiler == 'pgcc' or Cppcompiler == 'pgc++':
         os.environ['CC'] = 'pgc++' # forced to overide setup.cfg
         os.environ['CXX'] = 'pgc++'
         os.environ['LDSHARED'] = 'pgfortran'
@@ -1884,6 +1929,18 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             if l is not None:
                 libs += ['gomp']; paths += [l]
             else: ret = False
+
+    # nvc
+    if Cppcompiler == 'nvc' or Cppcompiler == 'nvc++':
+        os.environ['CC'] = 'nvc++' # forced to overide setup.cfg
+        os.environ['CXX'] = 'nvc++'
+        os.environ['LDSHARED'] = 'nvfortran'
+        from distutils import sysconfig
+        cflags = sysconfig.get_config_var('CFLAGS')
+        sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
+        sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
+
+        libs = ['nvc']
 
     return (ret, libs, paths)
 

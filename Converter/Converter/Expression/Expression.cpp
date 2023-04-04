@@ -282,10 +282,13 @@ namespace {
         }
         // std::cerr << "evaluating" << std::endl;
         PyObject *result;
-        if (npts == 1) {
+        if (npts == 1) 
+        {
             std::vector<double> cpp_res = (*self->pt_ast)(cpp_dico);
             return PyFloat_FromDouble(cpp_res[0]);
-        } else {
+        } 
+        else 
+        {
             const char *resultStr = "Result";
             if (res == 1) // Si structure :
             {
@@ -320,7 +323,6 @@ namespace {
             }
             return result;
         }
-        Py_RETURN_NONE;
     }
     // -------------------------------------------------------------------------
     const char *eval_doc =

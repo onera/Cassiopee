@@ -36,6 +36,7 @@ static PyMethodDef Pykcore [] =
   {"getOmpMaxThreads", K_KCORE::getOmpMaxThreads, METH_VARARGS},
   {"empty", K_KCORE::empty, METH_VARARGS},
   {"tester", K_KCORE::tester, METH_VARARGS},
+  {"testerAcc", K_KCORE::testerAcc, METH_VARARGS},
   {NULL, NULL}
 };
 

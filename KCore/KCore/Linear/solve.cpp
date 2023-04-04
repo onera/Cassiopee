@@ -59,5 +59,4 @@ E_Int K_LINEAR::solve(E_Int n, E_Int m,
     else return 1;
   }
   else return 1;
-  return 0;
 }

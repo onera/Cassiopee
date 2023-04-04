@@ -57,6 +57,8 @@ opt1_1 = ['-DSCOTCH_PTSCOTCH']
 if Dist.GDOUBLEINT: opt1 += ['-DINTSIZE64']
 else: opt1 += ['-DINTSIZE32']
 if cc == 'gcc': opt1 += [] # ['-Wrestrict']
+elif cc == 'pgcc': opt1 += []
+elif cc == 'nvc': opt1 += []
 else: opt1 += ['-restrict']
 
 # Options for paradigma - paradigma install path

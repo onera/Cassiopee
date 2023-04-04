@@ -56,6 +56,7 @@ namespace K_KCORE
   PyObject* getOmpMaxThreads(PyObject* self, PyObject* args);
   PyObject* empty(PyObject* self, PyObject* args);
   PyObject* tester(PyObject* self, PyObject* args);
+  PyObject* testerAcc(PyObject* self, PyObject* args);
   PyObject* activation(PyObject* self, PyObject* args);
   int activation(const char* name=NULL);
   void memcpy__(E_Int* a, E_Int* b, E_Int s);

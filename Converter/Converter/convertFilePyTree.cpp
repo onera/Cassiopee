@@ -27,7 +27,9 @@
 #include "converter.h"
 #include "kcore.h"
 #include "IO/GenIO.h"
+#ifdef _HDF5
 #include "hdf5.h" // necessary for definition of H5_HAVE_PARALLEL
+#endif
 
 // ============================================================================
 /* Convert file to pyTree */
