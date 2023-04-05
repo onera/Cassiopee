@@ -380,10 +380,13 @@ def extractSlices(teff, bladeName, psi, radius,
             bandes = C.center2Node(bandes, 'FlowSolution#Centers')
             C._rmVars(bandes, 'FlowSolution#Centers')
             slice = P.isoSurfMC(bandes, 'CoordinateX', rad)
-            slices[rad] = slice[0]
+            if slice == []: print('Warning: extractSlices: no slice found at position %f'%rad)
+            else: slices[rad] = slice[0]
 
     CnM2All = []; CmM2All = []
     for rad in slices:
+        if rad not in slices: continue
+        
         iso = slices[rad]
 
         #no = radius.index(rad) # position du rayon de la slice actuelle dans la liste complete des rayons

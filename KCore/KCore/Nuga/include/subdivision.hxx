@@ -173,7 +173,6 @@ namespace NUGA
       pregnant.resize(nbPHtoadapt);
 
       E_Int PHl, nb_pgs;
-      const E_Int* first_pg;
       for (E_Int l = 0; l < nbPHtoadapt; l++)
       {
         PHl = PHlist[l];

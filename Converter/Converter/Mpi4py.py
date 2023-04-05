@@ -599,7 +599,7 @@ def _addXZones(t, graph, variables=None, noCoordinates=False,
                     if cartesian: Compressor._compressCartesian(zonep, subr=subr)    
                 else: # full zone
                     zonep = Internal.copyRef(zone)
-                    if cartesian: Compressor._compressCartesian(zone)
+                    if cartesian: Compressor._compressCartesian(zonep)
                 if base is not None: zonep[0] = base[0]+'/'+zone[0]
                 data.append(zonep)
             s = KCOMM.isend(data, dest=oppNode)

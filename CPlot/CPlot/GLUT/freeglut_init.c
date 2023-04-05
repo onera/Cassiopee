@@ -847,7 +847,7 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
 
     if (geometry )
     {
-        unsigned int parsedWidth, parsedHeight;
+        unsigned int parsedWidth=0, parsedHeight=0;
         int mask = XParseGeometry( geometry,
                                    &fgState.Position.X, &fgState.Position.Y,
                                    &parsedWidth, &parsedHeight );

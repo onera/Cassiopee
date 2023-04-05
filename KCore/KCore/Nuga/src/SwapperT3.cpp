@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 //#define DEBUG_SWAPPER
 
@@ -382,12 +382,12 @@ void SwapperT3::edit_T3_caracs(const K_FLD::FloatArray& crd, E_Int* pN)
 {
   E_Float hmin, Lmin, lambda_min;
   E_Int himin=-1, limin=-1;
-  Lmin = hmin = NUGA::FLOAT_MAX;
+  Lmin = hmin = lambda_min = NUGA::FLOAT_MAX;
+  E_Float lambda, h;
   
   for (E_Int n=0; n < 3; ++n)
   {
-    E_Float lambda;
-    E_Float h = K_MESH::Edge::edgePointMinDistance<3>(crd.col(pN[n]), crd.col(pN[(n + 1) % 3]), crd.col(pN[(n + 2) % 3]), lambda);
+    h = K_MESH::Edge::edgePointMinDistance<3>(crd.col(pN[n]), crd.col(pN[(n + 1) % 3]), crd.col(pN[(n + 2) % 3]), lambda);
     if (h < hmin)
     {
       hmin = h;

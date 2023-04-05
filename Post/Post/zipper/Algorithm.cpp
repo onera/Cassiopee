@@ -356,7 +356,7 @@ void closePockets(vector<CString*>& strings,
   E_Boolean add = false;
   for (E_Int p = 0; p < pocketsSize; p++)
   {
-    pockets[p]->writeLine("pockets.tp", add);
+    pockets[p]->writeLine((char*)"pockets.tp", add);
     delete pockets[p];
     add = true;
   }
