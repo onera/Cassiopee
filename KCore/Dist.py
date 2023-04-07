@@ -25,7 +25,7 @@ def checkModuleImport(moduleName, raiseOnError=True):
 
     # sec / lock
     moduleBase = moduleName.split('.')[0]
-    os.chmod(moduleBase, 0o700)
+    #os.chmod(moduleBase, 0o700)
 
     # try import module
     try:
@@ -376,7 +376,7 @@ def writeSetupCfg():
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=unix\n')
         p.close()
-    elif Cppcompiler == 'nvcc' or Cppcompiler == 'nvc++':
+    elif Cppcompiler == 'nvc' or Cppcompiler == 'nvc++':
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=unix\n')
         p.close()
@@ -408,9 +408,9 @@ def getDistUtilsCompilers():
         elif Cppcompiler == 'pgc++':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('pgc++', 'pgcc')
         elif Cppcompiler == 'nvc':
-            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvcc', 'nvc++')
+            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvc', 'nvc++')
         elif Cppcompiler == 'nvc++':
-            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvc++', 'nvcc')
+            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvc++', 'nvc')
         elif Cppcompiler.find('g++') != -1: # g++-version + mingw-g++-version
             vars[0] = Cppcompiler.replace('g++', 'gcc'); vars[1] = Cppcompiler
         elif Cppcompiler.find('gcc') != -1:
@@ -792,22 +792,22 @@ def getCArgs():
     elif Cppcompiler == "pgcc" or Cppcompiler == "pgc++":
         if DEBUG: options += ['-g', '-O0']
         else: options += ['-DNDEBUG', '-O3']
-        if useOMP() == 1: options += ['-target=multicore', '-mp']
+        if useOMP() == 1: options += ['-mp=multicore']
         else: options += ['-nomp']
         if useStatic() == 1: options += []
         else: options += ['-fPIC']
         options += getSimdOptions()
-        if useCuda(): options += ['-target=gpu','-acc', '-Minfo:accel']
+        if useCuda(): options += ['-acc=gpu', '-Minfo:accel']
         return options
     elif Cppcompiler == "nvc" or Cppcompiler == "nvc++":
         if DEBUG: options += ['-g', '-O0']
         else: options += ['-DNDEBUG', '-O3']
-        if useOMP() == 1: options += ['-target=multicore', '-mp']
+        if useOMP() == 1: options += ['-mp=multicore']
         else: options += ['-nomp']
-        if useStatic() == 1: options += []
+        if useStatic() == 1: options += ['-static']
         else: options += ['-fPIC']
         options += getSimdOptions()
-        if useCuda(): options += ['-target=gpu', '-acc']
+        if useCuda(): options += ['-acc=gpu', '-Minfo:accel']
         return options
     elif Cppcompiler == "x86_64-w64-mingw32-gcc" or Cppcompiler == "x86_64-w64-mingw32-g++":
         options += ['-DMS_WIN64', '-fpermissive', '-D__USE_MINGW_ANSI_STDIO=1']
@@ -912,7 +912,16 @@ def getForArgs():
         else: options += ['-fPIC']
         if DEBUG: options += ['-g', '-O0']
         else: options += ['-O3']
-        if useOMP() == 1: options += ['-omp']
+        if useOMP() == 1: options += ['-mp=multicore']
+        options += getSimdOptions()
+        if EDOUBLEINT: options += ['-i8']
+        return options
+    elif f77compiler == "nvfortran":
+        if useStatic() == 1: options += ['-static']
+        else: options += ['-fPIC']
+        if DEBUG: options += ['-g', '-O0']
+        else: options += ['-O3']
+        if useOMP() == 1: options += ['-mp=multicore']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
         return options
@@ -949,13 +958,13 @@ def getLinkArgs():
     elif Cppcompiler == 'pgcc' or Cppcompiler == 'pgc++':
          if useStatic() == 1: out += ['-static']
          else: out += ['-shared']
-         if useOMP() == 1: out += ['-target=multicore', '-mp']
-         if useCuda() == 1: out += ['-target=gpu', '-acc', '-Minfo:accel']
+         if useOMP() == 1: out += ['-mp=multicore']
+         if useCuda() == 1: out += ['-acc=gpu', '-Minfo:accel']
     elif Cppcompiler == 'nvc' or Cppcompiler == 'nvc++':
          if useStatic() == 1: out += ['-static']
          else: out += ['-shared']
-         if useOMP() == 1: out += ['-target=multicore', '-mp']
-         if useCuda() == 1: out += ['-target=gpu', '-acc', '-Minfo:accel']
+         if useOMP() == 1: out += ['-mp=multicore']
+         if useCuda() == 1: out += ['-acc=gpu', '-Minfo:accel']
     mySystem = getSystem()[0]
     if mySystem == 'Darwin':
         if useStatic() == 0: out += ['-dynamiclib']
@@ -1808,29 +1817,35 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
 
     # pgfortran
     if f77compiler == 'pgfortran':
-        l = checkLibFile__('libpgf90.so*', additionalLibPaths)
+        l = checkLibFile__('libnvf.so*', additionalLibPaths)
         if l is None:
-            l = checkLibFile__('libpgf90.a', additionalLibPaths)
+            l = checkLibFile__('libnvf.a', additionalLibPaths)
         if l is not None:
-            libs += ['pgf90']; paths += [l]
-        l = checkLibFile__('libcudafor.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libcudafor.a', additionalLibPaths)
-        if l is not None:
-            #libs += ['cudafor', 'nvf', 'cudafor2']; paths += [l]
             libs += ['nvf', 'rt']; paths += [l]
-
+        
         if useOMP:
-            l = checkLibFile__('libgomp.so*', additionalLibPaths)
+            l = checkLibFile__('libnvomp.so*', additionalLibPaths)
             if l is None:
-                l = checkLibFile__('libgomp.a', additionalLibPaths)
+                l = checkLibFile__('libnvomp.a', additionalLibPaths)
             if l is not None:
-                libs += ['gomp']; paths += [l]
+                libs += ['nvomp']; paths += [l]
             else: ret = False
 
     # nvfortran
     if f77compiler == 'nvfortran':
-        libs = ['nvf', 'rt']
+        l = checkLibFile__('libnvf.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libnvf.a', additionalLibPaths)
+        if l is not None:
+            libs += ['nvf', 'rt', 'pthread']; paths += [l]
+        
+        if useOMP:
+            l = checkLibFile__('libnvomp.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libnvomp.a', additionalLibPaths)
+            if l is not None:
+                libs += ['nvomp']; paths += [l]
+            else: ret = False
 
     return (ret, libs, paths)
 
@@ -1915,19 +1930,19 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
-        l = checkLibFile__('libpgc.so*', additionalLibPaths)
+        l = checkLibFile__('libpnvc.so*', additionalLibPaths)
         if l is None:
-            l = checkLibFile__('libpgc.a', additionalLibPaths)
+            l = checkLibFile__('libnvc.a', additionalLibPaths)
 
         if l is not None:
-            libs += ['pgc']; paths += [l]
+            libs += ['nvc']; paths += [l]
 
         if useOMP:
-            l = checkLibFile__('libgomp.so*', additionalLibPaths)
+            l = checkLibFile__('libnvomp.so*', additionalLibPaths)
             if l is None:
-                l = checkLibFile__('libgomp.a', additionalLibPaths)
+                l = checkLibFile__('libnvomp.a', additionalLibPaths)
             if l is not None:
-                libs += ['gomp']; paths += [l]
+                libs += ['nvomp']; paths += [l]
             else: ret = False
 
     # nvc
@@ -1940,7 +1955,20 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
-        libs = ['nvc']
+        l = checkLibFile__('libnvc.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libnvc.a', additionalLibPaths)
+
+        if l is not None:
+            libs += ['nvc']; paths += [l]
+
+        if useOMP:
+            l = checkLibFile__('libnvomp.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libnvomp.a', additionalLibPaths)
+            if l is not None:
+                libs += ['nvomp']; paths += [l]
+            else: ret = False
 
     return (ret, libs, paths)
 

@@ -713,10 +713,10 @@ False, # useCuda
 ],
 ###############################################################################
 'jean-zay': [ 'Machine IDRIS intel + NVIDIA V100)',
-'pgfortran', # f77compiler
-'pgfortran', # f90compiler
-'pgcc', # Cppcompiler
-['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=20','-Dvtune','-DSIMD=AVX512'], # CppAdditionalOptions
+'nvfortran', # f77compiler
+'nvfortran', # f90compiler
+'nvc', # Cppcompiler
+[], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
@@ -724,7 +724,7 @@ True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
-False, # useCuda
+True, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
@@ -1000,9 +1000,9 @@ False, # useCuda
 ],
 ###############################################################################
 'spiro_pgi': [ 'Machine dev Spiro + compilos pgi (Onera)',
-'pgfortran', # f77compiler
-'pgfortran', # f90compiler
-'pgcc', # Cppcompiler
+'nvfortran', # f77compiler
+'nvfortran', # f90compiler
+'nvc', # Cppcompiler
 [], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP

@@ -611,7 +611,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
     if (ft[i] != NULL) delete ft[i];
   } 
   delete [] ft;
-  RELEASESHAREDB(res1, array,f1,cn1);
-  RELEASESHAREDB(res2, normal,f2,cn2);
+  RELEASESHAREDB(res1, array, f1, cn1);
+  RELEASESHAREDB(res2, normal, f2, cn2);
   return tpl;
 }

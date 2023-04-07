@@ -1385,11 +1385,13 @@ def computeGrad(t, var):
     return tp
 
 def computeHessian(t, var, dim):
+    """Compute hessian of fields defined in var."""
     tp = Internal.copyRef(t)
     _computeHessian(tp, var, dim)
     return tp
 
 def _computeHessian(t, var, dim):
+    """Compute hessian of fields defined in var."""
     if type(var) == list:
         raise ValueError("_computeHessian: not available for lists of variables.")
     vare = var.split(':')
@@ -1412,11 +1414,13 @@ def _computeHessian(t, var, dim):
     return None
 
 def computeGradLSQ(t, var, dim):
+    """Compute grad of var by least mean square."""
     tp = Internal.copyRef(t)
     _computeGradLSQ(tp, var, dim)
     return tp
 
 def _computeGradLSQ(t, var, dim):
+    """Compute grad of var by least mean square."""
     if type(var) == list:
         raise ValueError("_computeGradLSQ: not available for lists of variables.")
     vare = var.split(':')

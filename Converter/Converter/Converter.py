@@ -1643,7 +1643,7 @@ def checkFileType(fileName):
         return 'fmt_v3d'
     if beader.find(b"4d4d") == 0: return 'bin_3ds'
     dt = numpy.dtype('<i4')
-    ieader = numpy.fromfile(fileName,dtype=dt,count=128,sep="")
+    ieader = numpy.fromfile(fileName, dtype=dt, count=128, sep="")
     if ieader[0] == 4:
         ninjnk = ieader[1] * 3 * 4   # 3 pour ni,nj,nk, 4 pour 4 octets cas 3D multibloc
         ninj   = ieader[1] * 2 * 4 # 3 pour ni,nj, 4 pour 4 octets cas 2D multibloc

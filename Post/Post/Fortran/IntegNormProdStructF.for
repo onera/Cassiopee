@@ -75,6 +75,7 @@ C
 C==============================================================================
 C Compute surface integral of the product vect(F).vect(n), coordinates 
 C       are defined in nodes and F is defined in center
+C ni,nj : nbre of centers
 C  ============================================================================
       SUBROUTINE k6integnormprodstructnodecenter(ni, nj, ratio, 
      &                                           sx, sy, sz, vx, vy, vz, 
@@ -86,9 +87,9 @@ C  ============================================================================
 C_IN
       INTEGER_E ni, nj
       REAL_E ratio(0:ni*nj-1)
-      REAL_E sx(0:(ni-1)*(nj-1)-1) !surface ( aux centres ) %x
-      REAL_E sy(0:(ni-1)*(nj-1)-1) !surface ( aux centres ) %y
-      REAL_E sz(0:(ni-1)*(nj-1)-1) !surface ( aux centres ) %z
+      REAL_E sx(0:ni*nj-1) !surface ( aux centres ) %x
+      REAL_E sy(0:ni*nj-1) !surface ( aux centres ) %y
+      REAL_E sz(0:ni*nj-1) !surface ( aux centres ) %z
       REAL_E vx(0:ni*nj-1) ! vecteur a integrer %x 
       REAL_E vy(0:ni*nj-1) ! vecteur a integrer %y
       REAL_E vz(0:ni*nj-1) ! vecteur a integrer %z 

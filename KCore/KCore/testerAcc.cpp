@@ -23,41 +23,24 @@
 #include <iostream>
 #include <stdlib.h>
 
-// Les differents tests
-# define EXTARITH       0
 
 //==============================================================================
 PyObject* K_KCORE::testerAcc(PyObject* self, PyObject* args)
 {
-    E_Int n, n2, i, j, k;
+    E_Int n, i;
 
-    n= 100; n2= n*n;
+    n = 100;
+    double* c = new double [n];
 
-    double* a = new double [n2];
-    double* b = new double [n2];
-    double* c = new double [n2];
-
-    for (E_Int i = 0; i < n2 ; ++i)
-    { a[i]=1; b[i]=100; c[i]=0; }
-
-    #pragma acc data copyin(a,b) copy(c)
+    #pragma acc data copy(c)
     {
-        #pragma acc parallel loop collapse(3)
-        for (i = 0; i < n; ++i)
-        {
-            for (j = 0; j < n; ++j)
-            {
-                for (k = 0; k < n; ++k)
-                {
-                    c[i + n*j] = a[i + k*n] * b[ k +j*n] + c[i+j*n];
-                }
-            }
-       }
+        #pragma acc parallel loop
+        for (i = 0; i < n; i++) c[i] = 2;
     }
 
     printf("c=%f\n", c[0]);
 
-    delete [] a; delete [] b; delete [] c; 
+    delete [] c; 
     Py_INCREF(Py_None);
     return Py_None;
 }

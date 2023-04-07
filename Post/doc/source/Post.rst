@@ -41,6 +41,7 @@ List of functions
     Post.computeGrad
     Post.computeGrad2
     Post.computeGradLSQ
+    Post.computeHessian
     Post.computeNormGrad
     Post.computeDiv
     Post.computeDiv2
