@@ -868,8 +868,8 @@ def getForArgs():
     if f77compiler == "None": return []
     options = getf77AdditionalOptions()
     if f77compiler == "gfortran":
-        if DEBUG: options += ['-g', '-O0', '-fbacktrace', '-fbounds-check', '-ffpe-trap=zero,underflow,overflow,invalid']
-        else: options += ['-O3']
+        if DEBUG: options += ['-Wall', '-g', '-O0', '-fbacktrace', '-fbounds-check', '-ffpe-trap=zero,underflow,overflow,invalid']
+        else: options += ['-Wall', '-O3']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static']
         else: options += ['-fPIC']

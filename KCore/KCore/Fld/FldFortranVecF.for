@@ -77,9 +77,9 @@ C =============================================================================
       IMPLICIT NONE
 C_IN
       INTEGER_E length
-      INTEGER rhs(length)
+      INTEGER*4 rhs(length)
 C_OUT
-      INTEGER lhs(length)
+      INTEGER*4 lhs(length)
 C_LOCAL
       INTEGER_E i
 

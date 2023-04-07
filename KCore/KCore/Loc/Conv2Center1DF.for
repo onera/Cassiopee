@@ -97,7 +97,7 @@ C_OUT
 C_LOCAL
       INTEGER_E i, indcenter
       INTEGER_E ind0, ind1, nic, njc
-      REAL_E f, somme, prod
+      REAL_E f, somme
 
       nic = ni-1
       DO i = 1, nic-1

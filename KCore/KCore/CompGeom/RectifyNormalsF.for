@@ -52,7 +52,7 @@ C_LOCAL
       REAL_E n1x, n1y, n1z, n2x, n2y, n2z
       REAL_E norm1, norm2, norm, normab, normac, normp
       INTEGER_E i1,j1, i2, j2, inci1, incj1, inci2, incj2
-      INTEGER_E i, j, ind1p, ind2p
+      INTEGER_E ind1p, ind2p
       INTEGER_E im1, im2, jm1, jm2, ip1, ip2, jp1, jp2
       REAL_E xab, yab, zab, xac, yac, zac
       REAL_E psmin, ps3

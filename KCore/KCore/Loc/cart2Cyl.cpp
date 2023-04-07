@@ -136,7 +136,7 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
                 indm = ind-1; E_Float thetam = thetat[indm];  
                 if (K_FUNC::E_abs(theta-thetam)>DELTATHETAMAX)
                 {   
-                   if ( theta < thetam) thetat[ind] = theta+DEUXPI;
+                   if (theta < thetam) thetat[ind] = theta+DEUXPI;
                    else thetat[ind] = theta-DEUXPI;
                 }  
             }   

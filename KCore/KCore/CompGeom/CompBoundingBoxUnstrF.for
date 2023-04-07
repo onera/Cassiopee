@@ -40,7 +40,7 @@ C_OUT
 
 C_LOCAL
       REAL_E xs, ys, zs
-      INTEGER_E ind, rang
+      INTEGER_E ind
 
 C==============================================================================
 
