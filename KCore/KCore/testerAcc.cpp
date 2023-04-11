@@ -23,19 +23,33 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include "openacc.h"
 
 //==============================================================================
 PyObject* K_KCORE::testerAcc(PyObject* self, PyObject* args)
 {
-    E_Int n, i;
+    E_Int n;
 
     n = 100;
     double* c = new double [n];
 
-    #pragma acc data copy(c)
+    // Get the number of connected device
+    // generally 2 : cpu + gpu
+    //int ndev = acc_get_num_devices(devtype);
+    //printf("ndev=%d\n", ndev); fflush(stdout);
+    // get connected device type (must be 4=gpu)
+    //acc_device_t devtype = acc_get_device_type();
+    //printf("devtype=%d - %d\n", devtype, acc_device_nvidia); fflush(stdout);
+    // force init
+    //acc_init(devtype);
+
+    #pragma acc data copy(c[n])
     {
-        #pragma acc parallel loop
-        for (i = 0; i < n; i++) c[i] = 2;
+        #pragma acc parallel
+        {
+            #pragma acc loop
+            for (int i = 0; i < n; i++) c[i] = 2.;
+        }
     }
 
     printf("c=%f\n", c[0]);

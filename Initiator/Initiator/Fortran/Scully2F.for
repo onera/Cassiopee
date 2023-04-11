@@ -42,7 +42,6 @@ C_LOCAL
       INTEGER_E ind
       REAL_E r, p, ptmp
       REAL_E roinf, uinf, pinf
-      INTEGER_E i,j,k
       REAL_E cos_teta, sin_teta
       REAL_E va, ro, pi
 C==============================================================================
@@ -66,7 +65,7 @@ C     Initialisation
             sin_teta = 0.D0
             va = 0.D0
          ELSE
-            cos_teta = (yc(ind)-y0)/r	
+            cos_teta = (yc(ind)-y0)/r
             sin_teta = -(xc(ind)-x0)/r
             va = Gamma/(2.*pi)*r/(r*r+a*a)
          ENDIF
@@ -84,14 +83,3 @@ C     Initialisation
       RETURN
 
       END
-
-
-
-
-
-
-
-
-
-
-

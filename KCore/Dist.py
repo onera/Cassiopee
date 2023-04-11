@@ -1837,7 +1837,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
         if l is None:
             l = checkLibFile__('libnvf.a', additionalLibPaths)
         if l is not None:
-            libs += ['nvf', 'rt', 'pthread']; paths += [l]
+            libs += ['nvf', 'rt']; paths += [l]
         
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
@@ -1930,12 +1930,12 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
-        l = checkLibFile__('libpnvc.so*', additionalLibPaths)
+        l = checkLibFile__('libnvc.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libnvc.a', additionalLibPaths)
 
         if l is not None:
-            libs += ['nvc']; paths += [l]
+            libs += []; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
@@ -1960,7 +1960,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             l = checkLibFile__('libnvc.a', additionalLibPaths)
 
         if l is not None:
-            libs += ['nvc']; paths += [l]
+            libs += []; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)

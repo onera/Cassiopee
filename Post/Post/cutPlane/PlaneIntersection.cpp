@@ -655,18 +655,18 @@ void K_POST::searchStructIntersectForSegment(
   {
     // pts A et B sont soit dans le plan ou soit dans un plan parallele
     // il suffit donc de le savoir pour le point A
-    if ( fEqualZero(res, 1.e-12) == true)// point A dans le plan 
+    if (fEqualZero(res, 1.e-12) == true)// point A dans le plan 
     { 
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
         intersectPts(cnt,   eq) = field(indA, eq);
         intersectPts(cnt+1, eq) = field(indB, eq);
       }
-      k6compvolofstructcell_( ni, nj, nk, inddummy, indA, field.begin(posx), 
-                              field.begin(posy), field.begin(posz),
+      k6compvolofstructcell_( ni, nj, nk, inddummy, indA, 
+                              xp, yp, zp,
                               volOfIntersectPts[cnt]);
-      k6compvolofstructcell_( ni, nj, nk, inddummy, indB, field.begin(posx), 
-                              field.begin(posy), field.begin(posz),
+      k6compvolofstructcell_( ni, nj, nk, inddummy, indB, 
+                              xp, yp, zp, 
                               volOfIntersectPts[cnt+1]);
       cnt = cnt+2;
     }
@@ -689,9 +689,7 @@ void K_POST::searchStructIntersectForSegment(
         //  intersectPts(cnt, posc) = field(indA, posc);
         
         k6compvolofstructcell_(ni, nj, nk, inddummy, indA, 
-                               field.begin(posx), 
-                               field.begin(posy),
-                               field.begin(posz), 
+                               xp, yp, zp, 
                                volOfIntersectPts[cnt]);
         cnt++;
       }
@@ -705,9 +703,7 @@ void K_POST::searchStructIntersectForSegment(
         //  intersectPts(cnt, posc) = field(indB, posc);
         
         k6compvolofstructcell_(ni, nj, nk, inddummy, indB, 
-                               field.begin(posx), 
-                               field.begin(posy),
-                               field.begin(posz), 
+                               xp, yp, zp, 
                                volOfIntersectPts[cnt]);
         cnt++;
       }
@@ -743,20 +739,16 @@ void K_POST::searchStructIntersectForSegment(
           }
           
           k6compvolofstructcell_(ni, nj, nk, inddummy, indA,
-                                 field.begin(posx), 
-                                 field.begin(posy),
-                                 field.begin(posz), 
+                                 xp, yp, zp,
                                  volOfIntersectPts[cnt]);
-          cnt++; 
+          cnt++;
         }
         else 
         {
           for (E_Int v = 1; v <= nfld; v++)
             intersectPts(cnt,v) = k1*field(indA,v)+k*field(indB,v);
           k6compvolofstructcell_(ni, nj, nk, inddummy, indA, 
-                                 field.begin(posx), 
-                                 field.begin(posy),
-                                 field.begin(posz), 
+                                 xp, yp, zp,
                                  volOfIntersectPts[cnt]);
           cnt++;  
         }
