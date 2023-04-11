@@ -46,7 +46,7 @@ C_LOCAL
       INTEGER_E ind
       REAL_E dr, r
       REAL_E Sinf, roinf, uinf, pinf
-      INTEGER_E i,j,k,m
+      INTEGER_E i,m
       REAL_E rmax, vr, vrdr
       REAL_E cos_teta, sin_teta
       REAL_E va, ss, ro, pp

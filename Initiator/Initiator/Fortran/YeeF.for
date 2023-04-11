@@ -27,15 +27,14 @@ C_OUT
       REAL_E u(0:npts-1,5)     ! field to be initialized
 C_LOCAL  
       
-      REAL_E  ro0, ainf
+      REAL_E ro0, ainf
       REAL_E p0,  u0
       INTEGER_E ind
       REAL_E r2
       REAL_E roinf, uinf, pinf
-      INTEGER_E i,j,k,m
       REAL_E ta
       REAL_E cos_teta, sin_teta
-      REAL_E va, ss, ro, pp, t0
+      REAL_E va, ro, pp, t0
       REAL_E gam,gma,pi,rgp
 C==============================================================================
 

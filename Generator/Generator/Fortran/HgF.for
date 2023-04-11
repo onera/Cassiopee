@@ -44,9 +44,9 @@ C_LOCAL
       REAL_E dydxi
       REAL_E dxdeta
       REAL_E dydeta
-      INTEGER_E IP(2,ni-1)	    !tableau de travail (reste de f77)
-      REAL_E A(2,2,ni)	        !pour resolution du systeme
-      REAL_E B(2,2,ni)	        !tridiagonal par blocs
+      INTEGER_E IP(2,ni-1)      !tableau de travail (reste de f77)
+      REAL_E A(2,2,ni)          !pour resolution du systeme
+      REAL_E B(2,2,ni)           !tridiagonal par blocs
       REAL_E C(2,2,ni)
       REAL_E RHS(2,ni)
       REAL_E Z(2,2,ni-1)
@@ -58,7 +58,7 @@ C_LOCAL
       INTEGER_E indice,ind,indp1,indm1,indp2,indm2,indb
       INTEGER_E eta_start,eta_end,indv
       REAL_E betas,lambda
-      REAL_E cca,ccb,cca2,ccb2,beta2
+      REAL_E cca,ccb,beta2
 C==============================================================================
       indice(i,j) = i+(j-1)*ni
 
@@ -123,7 +123,7 @@ C*
       cos_teta2 = (xd(indm1)-xd(ind))/norm
     
       DO j = 1, nj-1
-C	    WRITE(*,*) '->Computing plane :',j
+C       WRITE(*,*) '->Computing plane :',j
        
 C* dissipation variant lineairement
 
@@ -209,13 +209,13 @@ c i=2
         beta2 = -lambda
 
         B(1,1,1)=ba1+(1.D0/3.D0)*sin_teta1*sin_teta1*ba1- 
-     &		(1./3.)*sin_teta1*cos_teta1*ba2
+     &      (1./3.)*sin_teta1*cos_teta1*ba2
         B(2,1,1)=ba2+(1.D0/3.D0)*sin_teta1*sin_teta1*ba2+ 
-     &		(1./3.)*sin_teta1*cos_teta1*ba1
+     &      (1./3.)*sin_teta1*cos_teta1*ba1
         B(1,2,1)=ba2-(1.D0/3.D0)*sin_teta1*cos_teta1*ba1+ 
-     &		(1./3.)*cos_teta1*cos_teta1*ba2
+     &      (1./3.)*cos_teta1*cos_teta1*ba2
         B(2,2,1)=-ba1-(1.D0/3.D0)*cos_teta1*cos_teta1*ba1- 
-     &		(1./3.)*cos_teta1*sin_teta1*ba2
+     &      (1./3.)*cos_teta1*sin_teta1*ba2
         
         C(1,1,1) = 0.D0
         C(1,2,1) = 0.D0
@@ -223,13 +223,13 @@ c i=2
         C(2,2,1) = 0.D0
         
         A(1,1,1)=1.-(4.D0/3.D0)*sin_teta1*sin_teta1*ba1+ 
-     &		(4.D0/3.D0)*sin_teta1*cos_teta1*ba2
+     &      (4.D0/3.D0)*sin_teta1*cos_teta1*ba2
         A(2,1,1)=-(4.D0/3.D0)*sin_teta1*sin_teta1*ba2- 
-     &		(4.D0/3.D0)*sin_teta1*cos_teta1*ba1
+     &      (4.D0/3.D0)*sin_teta1*cos_teta1*ba1
         A(1,2,1)=(4.D0/3.D0)*sin_teta1*cos_teta1*ba1- 
-     &		(4./3.)*cos_teta1*cos_teta1*ba2
+     &      (4./3.)*cos_teta1*cos_teta1*ba2
         A(2,2,1)=1.+(4.D0/3.D0)*sin_teta1*cos_teta1*ba2+ 
-     &		(4.D0/3.D0)*cos_teta1*cos_teta1*ba1
+     &      (4.D0/3.D0)*cos_teta1*cos_teta1*ba1
         
 C les CL sur la dissipation sont de type eriksson-dissip explicite
         indp2 = indice(FOUR_I,j)
@@ -240,19 +240,19 @@ C les CL sur la dissipation sont de type eriksson-dissip explicite
         
         RHS(1,1)=-2.D0*vol(indv)*b2+xd(ind)+beta*
      &      (-xd(indm1)+3.D0*xd(ind) 
-     &		-3.D0*xd(indp1)+ xd(indp2))+ 
-     &		ba1*cos_teta1*cos_teta1*xd(indb)+ 
-     &		ba2*sin_teta1*sin_teta1*yd(indb)+ 
-     &		ba1*sin_teta1*cos_teta1*yd(indb)+ 
-     &		ba2*sin_teta1*cos_teta1*xd(indb)
+     &      -3.D0*xd(indp1)+ xd(indp2))+ 
+     &      ba1*cos_teta1*cos_teta1*xd(indb)+ 
+     &      ba2*sin_teta1*sin_teta1*yd(indb)+ 
+     &      ba1*sin_teta1*cos_teta1*yd(indb)+ 
+     &      ba2*sin_teta1*cos_teta1*xd(indb)
         
         RHS(2,1)= 2.D0*vol(indv)*b1+yd(ind)+beta*
      &      (-yd(indm1)+3.D0*yd(ind) 
-     &  	-3.D0*yd(indp1)+ yd(indp2))+ 
-     &		ba2*cos_teta1*cos_teta1*xd(indb)+ 
-     &		ba2*cos_teta1*sin_teta1*yd(indb)- 
-     &		ba1*cos_teta1*sin_teta1*xd(indb)- 
-     &		ba1*sin_teta1*sin_teta1*yd(indb)
+     &      -3.D0*yd(indp1)+ yd(indp2))+ 
+     &      ba2*cos_teta1*cos_teta1*xd(indb)+ 
+     &      ba2*cos_teta1*sin_teta1*yd(indb)- 
+     &      ba1*cos_teta1*sin_teta1*xd(indb)- 
+     &      ba1*sin_teta1*sin_teta1*yd(indb)
     
 C i = ni-1
         ni1 = ni-1
@@ -281,22 +281,22 @@ C i = ni-1
         B(2,2,ni1-1) = 0.D0
         
         C(1,1,ni1-1)=-ba1-(1.D0/3.D0)*sin_teta2*sin_teta2*ba1+ 
-     &		(1.D0/3.D0)*sin_teta2*cos_teta2*ba2
+     &      (1.D0/3.D0)*sin_teta2*cos_teta2*ba2
         C(2,1,ni1-1)=-ba2-(1.D0/3.D0)*sin_teta2*sin_teta2*ba2- 
-     &		(1.D0/3.D0)*sin_teta2*cos_teta2*ba1
+     &      (1.D0/3.D0)*sin_teta2*cos_teta2*ba1
         C(1,2,ni1-1)=-ba2+(1.D0/3.D0)*sin_teta2*cos_teta2*ba1- 
-     &		(1.D0/3.D0)*cos_teta2*cos_teta2*ba2
+     &      (1.D0/3.D0)*cos_teta2*cos_teta2*ba2
         C(2,2,ni1-1)= ba1+(1.D0/3.D0)*sin_teta2*cos_teta2*ba2+ 
-     &		(1.D0/3.D0)*cos_teta2*cos_teta2*ba1
+     &      (1.D0/3.D0)*cos_teta2*cos_teta2*ba1
         
         A(1,1,ni1-1)=1.D0+(4.D0/3.D0)*sin_teta2*sin_teta2*ba1- 
-     &		(4.D0/3.D0)*sin_teta2*cos_teta2*ba2	
+     &      (4.D0/3.D0)*sin_teta2*cos_teta2*ba2	
         A(2,1,ni1-1)=(4.D0/3.D0)*sin_teta2*sin_teta2*ba2+ 
-     &		(4.D0/3.D0)*sin_teta2*cos_teta2*ba1
+     &      (4.D0/3.D0)*sin_teta2*cos_teta2*ba1
         A(1,2,ni1-1)=-(4.D0/3.D0)*sin_teta2*cos_teta2*ba1+ 
-     &		(4.D0/3.D0)*cos_teta2*cos_teta2*ba2
+     &      (4.D0/3.D0)*cos_teta2*cos_teta2*ba2
         A(2,2,ni1-1)=1.-(4.D0/3.D0)*sin_teta2*cos_teta2*ba2- 
-     &		(4.D0/3.D0)*cos_teta2*cos_teta2*ba1
+     &      (4.D0/3.D0)*cos_teta2*cos_teta2*ba1
         
         indp1 = indice(ni,j)
         ind = indice(ni-1,j)
@@ -306,17 +306,17 @@ C i = ni-1
     
         RHS(1,ni1-1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(-xd(indp1)+ 
      &    	     3.D0*xd(ind)- 3.D0*xd(indm1)+xd(indm2))- 
-     &	         ba1*cos_teta2*cos_teta2*xd(indb)- 
-     &		     ba2*sin_teta2*cos_teta2*xd(indb)- 
-     &		     ba2*sin_teta2*sin_teta2*yd(indb)- 
-     &		     ba1*cos_teta2*sin_teta2*yd(indb)		
+     &           ba1*cos_teta2*cos_teta2*xd(indb)- 
+     &           ba2*sin_teta2*cos_teta2*xd(indb)- 
+     &           ba2*sin_teta2*sin_teta2*yd(indb)- 
+     &           ba1*cos_teta2*sin_teta2*yd(indb)		
         
         RHS(2,ni1-1)= 2.D0*vol(indv)*b1+yd(ind)+beta*(-yd(indp1)+ 
-     &	         3.D0*yd(ind)- 3.D0*yd(indm1)+yd(indm2))- 
-     &	         ba2*cos_teta2*cos_teta2*xd(indb)- 
-     &	         ba2*sin_teta2*cos_teta2*yd(indb)+ 
-     &	         ba1*sin_teta2*cos_teta2*xd(indb)+ 
-     &	         ba1*sin_teta2*sin_teta2*yd(indb)
+     &           3.D0*yd(ind)- 3.D0*yd(indm1)+yd(indm2))- 
+     &           ba2*cos_teta2*cos_teta2*xd(indb)- 
+     &           ba2*sin_teta2*cos_teta2*yd(indb)+ 
+     &           ba1*sin_teta2*cos_teta2*xd(indb)+ 
+     &           ba1*sin_teta2*sin_teta2*yd(indb)
     
 C* Inversion
         
@@ -351,17 +351,17 @@ C* i=1
         indb = indice(ONE_I,ONE_I)
     
         xd(ind)=-(4.D0/3.D0)*sin_teta1*cos_teta1*yd(indp1)+ 
-     &	               (1.D0/3.D0)*sin_teta1*cos_teta1*yd(indp2)+ 
-     &	               (4.D0/3.D0)*sin_teta1*sin_teta1*xd(indp1)- 
-     &	               (1.D0/3.D0)*sin_teta1*sin_teta1*xd(indp2)+ 
-     &	       cos_teta1*cos_teta1*xd(indb)+sin_teta1*cos_teta1*yd(indb)
+     &                 (1.D0/3.D0)*sin_teta1*cos_teta1*yd(indp2)+ 
+     &                 (4.D0/3.D0)*sin_teta1*sin_teta1*xd(indp1)- 
+     &                 (1.D0/3.D0)*sin_teta1*sin_teta1*xd(indp2)+ 
+     &         cos_teta1*cos_teta1*xd(indb)+sin_teta1*cos_teta1*yd(indb)
         
         yd(ind)=sin_teta1*cos_teta1*xd(indb)+ 
-     &	               sin_teta1*sin_teta1*yd(indb)+ 
-     &	              (4.D0/3.D0)*cos_teta1*cos_teta1*yd(indp1)- 
-     &	              (1.D0/3.D0)*cos_teta1*cos_teta1*yd(indp2)- 
-     &	              (4.D0/3.D0)*sin_teta1*cos_teta1*xd(indp1)+ 
-     &	              (1.D0/3.D0)*sin_teta1*cos_teta1*xd(indp2)
+     &                 sin_teta1*sin_teta1*yd(indb)+ 
+     &                (4.D0/3.D0)*cos_teta1*cos_teta1*yd(indp1)- 
+     &                (1.D0/3.D0)*cos_teta1*cos_teta1*yd(indp2)- 
+     &                (4.D0/3.D0)*sin_teta1*cos_teta1*xd(indp1)+ 
+     &                (1.D0/3.D0)*sin_teta1*cos_teta1*xd(indp2)
     
 C* i=ni	
         ind = indice(ni,j+1)
@@ -370,23 +370,23 @@ C* i=ni
         indb = indice(ni,ONE_I)
             
         xd(ind)=-(4.D0/3.D0)*sin_teta2*cos_teta2*yd(indm1)+ 
-     &	            (1.D0/3.D0)*sin_teta2*cos_teta2*yd(indm2)+ 
-     &	            (4.D0/3.D0)*sin_teta2*sin_teta2*xd(indm1)- 
-     &	            (1.D0/3.D0)*sin_teta2*sin_teta2*xd(indm2)+ 
-     &	    cos_teta2*cos_teta2*xd(indb)+sin_teta2*cos_teta2*yd(indb)
+     &              (1.D0/3.D0)*sin_teta2*cos_teta2*yd(indm2)+ 
+     &              (4.D0/3.D0)*sin_teta2*sin_teta2*xd(indm1)- 
+     &              (1.D0/3.D0)*sin_teta2*sin_teta2*xd(indm2)+ 
+     &      cos_teta2*cos_teta2*xd(indb)+sin_teta2*cos_teta2*yd(indb)
         
         yd(ind)=sin_teta2*cos_teta2*xd(indb)+ 
-     &	          sin_teta2*sin_teta2*yd(indb)+ 
-     &	          (4.D0/3.D0)*cos_teta2*cos_teta2*yd(indm1)- 
-     &	          (1.D0/3.D0)*cos_teta2*cos_teta2*yd(indm2)- 
-     &	          (4.D0/3.D0)*sin_teta2*cos_teta2*xd(indm1)+ 
-     &	          (1.D0/3.D0)*sin_teta2*cos_teta2*xd(indm2)
+     &           sin_teta2*sin_teta2*yd(indb)+ 
+     &            (4.D0/3.D0)*cos_teta2*cos_teta2*yd(indm1)- 
+     &            (1.D0/3.D0)*cos_teta2*cos_teta2*yd(indm2)- 
+     &            (4.D0/3.D0)*sin_teta2*cos_teta2*xd(indm1)+ 
+     &            (1.D0/3.D0)*sin_teta2*cos_teta2*xd(indm2)
     
       ENDIF
     
 C*------*-------*-------*------------*-------------
     
-      IF (type.EQ.1) THEN	!condition aux limites en O
+      IF (type.EQ.1) THEN   !condition aux limites en O
         
         DO i = 3, ni-2
           indv = i+(j-1)*ni
@@ -432,7 +432,7 @@ C*------*-------*-------*------------*-------------
           RHS(1,i1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(xd(indm2)- 
      &        4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
           RHS(2,i1)= 2.D0*vol(indv)*b1+yd(ind)+beta*(yd(indm2)- 
-     &	      4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))
+     &        4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))
 
         ENDDO
 C* i=2
@@ -476,9 +476,9 @@ C* i=2
        indm2 = indice(ni-1,j)
                 
        RHS(1,1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(xd(indm2)- 
-     &	   4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
+     &     4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
        RHS(2,1)= 2.D0*vol(indv)*b1+yd(ind)+beta*(yd(indm2)- 
-     &	   4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))
+     &     4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))
     
 C* i = ni-1
        indv = ni-1+(j-1)*ni
@@ -521,9 +521,9 @@ C* i = ni-1
        indm2 = indice(ni-3,j)
 
        RHS(1,ni-2)=-2.D0*vol(indv)*b2+xd(ind)+beta*(xd(indm2)- 
-     &	   4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
+     &     4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
        RHS(2,ni-2)= 2.D0*vol(indv)*b1+yd(ind)+beta*(yd(indm2)- 
-     &	   4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))   
+     &     4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))   
 
 
 C* i = ni	
@@ -567,9 +567,9 @@ C* i = ni
        indm2 = indice(ni-2,j)
                 
        RHS(1,ni-1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(xd(indm2)- 
-     &	   4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
+     &     4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
        RHS(2,ni-1)= 2.D0*vol(indv)*b1+yd(ind)+beta*(yd(indm2)- 
-     &	   4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))   
+     &     4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))   
         
 C* Inversion
 C        DO i = 1, ni-1
