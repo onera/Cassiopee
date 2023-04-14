@@ -11,13 +11,13 @@ directory_local   += '/Dist/bin/'+elsaprod
 
 file_path = pathlib.Path(directory_cbenoit)
 if file_path.exists():
-    print(elsaprod+'exists')
+    print(elsaprod+' exists.')
     onlyfiles = [f for f in os.listdir(directory_cbenoit+'/lib/') if os.path.isfile(os.path.join(directory_cbenoit+'/lib/', f))]
     file_list_lib=[]
     for file_tmp in onlyfiles:
         if file_tmp.split('.')[1] =='so':
             file_list_lib.append(file_tmp)
-            print('lib:',file_tmp)
+            print('lib: ',file_tmp)
     del onlyfiles
     
    
