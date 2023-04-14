@@ -182,6 +182,11 @@ def checkObject_(a, b, reference):
     elif isinstance(a, list):
         for i, v in enumerate(a):
             checkObject_(v, b[i], reference)
+    elif isinstance(a, float):
+        diff = abs(a-b)
+        if diff > TOLERANCE:
+            print("DIFF: object value differs from "+reference+'.')
+            return False
     else:
         if a != b:
             print("DIFF: object value differs from "+reference+'.')

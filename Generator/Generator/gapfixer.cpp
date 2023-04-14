@@ -96,12 +96,13 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Bool not_a_surface = (( ni != 1) && (nj != 1) && (nk != 1 ));
+  E_Bool not_a_surface = ((ni != 1) && (nj != 1) && (nk != 1));
   not_a_surface &= ((ni*nj == 1) || (ni*nk == 1) || (nj*nk == 1));
   
   if (not_a_surface)
   {
-    delete fC; 
+    delete fC;
+    if (res2 == 2) delete cn2;
     PyErr_SetString(PyExc_TypeError,
                     "gapfixer: array must define a surface.");
     return NULL;

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef _KCORE_DYNARRAY_H_
 #define _KCORE_DYNARRAY_H_
@@ -877,7 +877,7 @@ DynArray<T>::pushBack(const self_type& a){
         new_Ids[i2] = i1;
         const_iterator  it2 = a.col(i2--);
         iterator        it1 = a.col(i1++);
-        __copy (it2, it2 + a._rows, it1);
+        __copy(it2, it2 + a._rows, it1);
       }
     }
     while (carry_on);
