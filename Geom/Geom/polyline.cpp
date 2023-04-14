@@ -63,10 +63,10 @@ PyObject* K_GEOM::polyline( PyObject* self, PyObject* args )
     }
     
     // verifie que chq element de la liste est un triplet (x,y,z)
-    if (dim != 3)
+    if (dim != 3 && dim != 2)
     {        
       PyErr_SetString(PyExc_TypeError,
-                      "polyline: 3 coordinates must be found in each element of the list.");
+                      "polyline: 2 or 3 coordinates must be found in each element of the list.");
       return NULL;  
     }
   }
@@ -82,22 +82,47 @@ PyObject* K_GEOM::polyline( PyObject* self, PyObject* args )
  
   for (E_Int j = 0; j < npts; j++)
   {
-      o = PyList_GetItem(listPts, j); // on recupere les listes des elements
-      if (PyTuple_Check(o) == true)
-      {
-        c1 = PyTuple_GetItem(o, 0);// on recupere les elements
-        c2 = PyTuple_GetItem(o, 1);
-        c3 = PyTuple_GetItem(o, 2);
+    o = PyList_GetItem(listPts, j); // on recupere les listes des elements
+    if (PyTuple_Check(o) == true && PyTuple_Size(o) == 2)
+    {
+      c1 = PyTuple_GetItem(o, 0);
+      c2 = PyTuple_GetItem(o, 1);
+      x[j] = PyFloat_AsDouble(c1);
+      y[j] = PyFloat_AsDouble(c2);
+      z[j] = 0.;
+    }
+    else if (PyList_Check(o) == true && PyList_Size(o) == 2)
+    {
+      c1 = PyList_GetItem(o, 0);
+      c2 = PyList_GetItem(o, 1);
+      x[j] = PyFloat_AsDouble(c1);
+      y[j] = PyFloat_AsDouble(c2);
+      z[j] = 0.;
+    }
+    else if (PyTuple_Check(o) == true && PyTuple_Size(o) == 3)
+    {
+      c1 = PyTuple_GetItem(o, 0);
+      c2 = PyTuple_GetItem(o, 1);
+      c3 = PyTuple_GetItem(o, 2);
+      x[j] = PyFloat_AsDouble(c1);
+      y[j] = PyFloat_AsDouble(c2);
+      z[j] = PyFloat_AsDouble(c3);
+    }
+    else if (PyList_Check(o) == true && PyList_Size(o) == 3)
+    {
+      c1 = PyList_GetItem(o, 0);
+      c2 = PyList_GetItem(o, 1);
+      c3 = PyList_GetItem(o, 2);
+      x[j] = PyFloat_AsDouble(c1);
+      y[j] = PyFloat_AsDouble(c2);
+      z[j] = PyFloat_AsDouble(c3);
     }
     else
     {
-      c1 = PyList_GetItem(o, 0);// on recupere les elements
-      c2 = PyList_GetItem(o, 1);
-      c3 = PyList_GetItem(o, 2);
+      x[j] = 0.;
+      y[j] = 0.;
+      z[j] = 0.;
     }
-    x[j] = PyFloat_AsDouble(c1);
-    y[j] = PyFloat_AsDouble(c2);
-    z[j] = PyFloat_AsDouble(c3);
   }
   
   return tpl;

@@ -123,7 +123,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
 
       // calcul du volume
       if (dim == 1)
-	k6structsurf1dt_(
+        k6structsurf1dt_(
           im, jm , km , 
           xt, yt, zt, volap);
       else if (dim == 2)

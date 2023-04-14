@@ -689,8 +689,9 @@ Mesh transformation
     :param niter: number of smoothing iterations
     :type niter: integer
     :param type: type of smoothing algorithm
-    :type type: integer
-    :param type: 0 (isotropic) or 1 (scale)
+    :type type: integer 0 (isotropic) or 1 (scale)
+    :param varNames: variable names that must be smoothed
+    :type varNames: list of strings 
 
     *Example of use:*
 

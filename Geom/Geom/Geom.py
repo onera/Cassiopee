@@ -49,6 +49,8 @@ def naca(e, N=101, sharpte=True):
 def line(P1, P2, N=100):
     """Create a line of N points. 
     Usage: a = line((x1,y1,z1), (x2,y2,z2), N)"""
+    if len(P1) == 2: P1 = (P1[0],P1[1],0.)
+    if len(P2) == 2: P2 = (P2[0],P2[1],0.)
     return geom.line(P1, P2, N)
 
 def spline(Pts, order=3, N=100, M=100, density=-1):
@@ -75,6 +77,7 @@ def polyline(Pts):
 def circle(C, R, tetas=0., tetae=360., N=100):
     """Create a portion of circle of N points and of center C, radius R, between angle tetas and tetae.
     Usage: a = circle((xc,yc,zc), R, tetas, tetae, N)"""
+    if len(C) == 2: C = (C[0],C[1],0.)
     return geom.circle(C, R, tetas, tetae, N)
 
 def sphere(C, R, N=100):
@@ -194,6 +197,9 @@ def quadrangle(P1, P2, P3, P4, N=0, ntype='QUAD'):
 def triangle(P0, P1, P2, N=0, ntype='TRI'):
     """Create a triangle made of 3 parts.
     Usage: a = triangle(P1, P2, P3, N)"""
+    if len(P0) == 2: P0 = (P0[0],P0[1],0.)
+    if len(P1) == 2: P1 = (P1[0],P1[1],0.)
+    if len(P2) == 2: P2 = (P2[0],P2[1],0.)
     if N == 0 and ntype == 'TRI': return geom.triangle(P0, P1, P2)
     try: import Generator as G; import Transform as T
     except ImportError:

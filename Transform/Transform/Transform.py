@@ -492,7 +492,7 @@ def projectOrthoSmooth(surfaces, arrays, niter=1):
 
     # Projection orthogonale directe
     a = projectOrtho(surfs, arrays)
-    # Calcul du vecteur normal
+    # Calcul du vecteur de projection
     for i in range(len(surfs)):
         a[i][1][:] = surfs[i][1][:]-a[i][1][:]
         a[i][0] = a[i][0].replace('x','nx')
@@ -505,12 +505,14 @@ def projectOrthoSmooth(surfaces, arrays, niter=1):
     # Lissage du vecteur
     n = a; vect = ['nx','ny','nz']
     for i in range(niter):
-        #n = Cpnverter.normalize(n, vect)
-        #for k in n:
-        #    if len(k) == 5: transform.extrapInside(k) # dark hack
-        n = Converter.node2ExtCenter(n)
-        #n = Converter.normalize(n, vect)
-        n = Converter.extCenter2Node(n)
+        for i, z in enumerate(n):
+            if len(z) == 5: # structure
+                n[i] = Converter.node2ExtCenter(n[i])
+                n[i] = Converter.extCenter2Node(n[i])
+            else: # non structure
+                n[i] = Converter.node2Center(n[i])
+                n[i] = Converter.center2Node(n[i])
+    #_smoothField(n, eps=0.25, niter=niter, varNames=vect)
 
     for i in range(len(surfs)):
         surfs[i] = Converter.addVars([surfs[i], n[i]])

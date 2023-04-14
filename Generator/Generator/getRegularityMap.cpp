@@ -127,38 +127,38 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     switch (dir)
     {
       case  2: // dim 1 - dir I
-	      ni = im; dim = 1; dimC = 1;
-	      break;
+          ni = im; dim = 1; dimC = 1;
+          break;
       case  3: // dim 1 - dir J
-	      ni = jm; dim = 1; dimC = 1;
-	      break;
+          ni = jm; dim = 1; dimC = 1;
+          break;
       case  4: // dim 1 - dir K
-	      ni = km; dim = 1; dimC = 1;
-	      break;
+          ni = km; dim = 1; dimC = 1;
+          break;
       case  6: // dim 2 - dir IJ
-	      ni = im;
-	      nj = jm;
-	      dim = 2;
-	      dimC = 2;
-	      if (im == 2) { dimC = 1; ni = jm; nj = 1; }
-	      if (jm == 2) { dimC = 1; ni = im; nj = 1; }
-	      break;
+          ni = im;
+          nj = jm;
+          dim = 2;
+          dimC = 2;
+          if (im == 2) { dimC = 1; ni = jm; nj = 1; }
+          if (jm == 2) { dimC = 1; ni = im; nj = 1; }
+          break;
       case  8: // dim 2 - dir IK
-	      ni = im;
-	      nj = km;
-	      dim = 2;
-	      dimC = 2;
-	      if (im == 2) { dimC = 1; ni = km; nj = 1; }
-	      if (km == 2) { dimC = 1; ni = im; nj = 1; }
-	      break;
+          ni = im;
+          nj = km;
+          dim = 2;
+          dimC = 2;
+          if (im == 2) { dimC = 1; ni = km; nj = 1; }
+          if (km == 2) { dimC = 1; ni = im; nj = 1; }
+          break;
       case 12: // dim 2 - dir JK
-	      ni = jm;
-	      nj = km;
-	      dim = 2;
-	      dimC = 2;
-	      if (im == 2) { dimC = 1; ni = km; nj = 1; }
-	      if (km == 2) { dimC = 1; ni = jm; nj = 1; }
-	      break;
+          ni = jm;
+          nj = km;
+          dim = 2;
+          dimC = 2;
+          if (im == 2) { dimC = 1; ni = km; nj = 1; }
+          if (km == 2) { dimC = 1; ni = jm; nj = 1; }
+          break;
     default:
       if (im == 2) { dimC = 2; ni = jm; nj = km; }
       if (jm == 2) { dimC = 2; ni = im; nj = km; }
@@ -281,7 +281,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
         etVol = vol[ind];
         reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
       }
-	
+
       // Boucle generale sur les indices des cellules interieures
       for (E_Int j = 1; j < nj1-1; j++)
         for (E_Int i = 1; i < ni1-1; i++)
@@ -629,7 +629,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       FldArrayF vol(nelts);
       FldArrayF volDummy(nelts);
       E_Int nedges = 1;
-      //tableau local au fortran
+      // tableau local au fortran
       FldArrayF xint(nelts,nedges);
       FldArrayF yint(nelts,nedges);
       FldArrayF zint(nelts,nedges);
@@ -798,13 +798,14 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       E_Int* cn2 = cn->begin(2);
       FldArrayF vol(nelts);
       E_Int ind1, ind2;
+      E_Float dx, dy, dz;
       for (E_Int i = 0; i < nelts; i++)
       {
         ind1 = cn1[i]-1; 
         ind2 = cn2[i]-1;
-        E_Float dx = xp[ind2]-xp[ind1];
-        E_Float dy = yp[ind2]-yp[ind1];
-        E_Float dz = zp[ind2]-zp[ind1];
+        dx = xp[ind2]-xp[ind1];
+        dy = yp[ind2]-yp[ind1];
+        dz = zp[ind2]-zp[ind1];
         vol[i] = sqrt(dx*dx + dy*dy + dz*dz);
       } 
     }

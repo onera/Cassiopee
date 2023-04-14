@@ -1017,6 +1017,16 @@ def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
         n = C.normalize(n, ['sx','sy','sz'])
     return n
 
+# identique a getSmoothNormalMap mais utilisant smoothField
+def getSmoothNormalMap2(array, niter=2, eps=0.4, algo=0):
+    try: import Converter as C; import Transform as T
+    except: raise ImportError("getSmoothNormalMap: requires Converter, Transform module.")
+    n = getNormalMap(array)
+    n = C.center2Node(n)
+    T._smoothField(n, eps=eps, niter=niter, type=0, varNames=['sx','sy','sz'])
+    n = C.normalize(n, vars=['sx','sy','sz'])
+    return n
+
 #=============================================================================
 # Computes the ratio between the max and min length of all the edges of cells
 #=============================================================================
@@ -2051,7 +2061,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                 n = C.center2Node(n)
                 n = C.normalize(n, vect)
                 n, epsl = modifyNormalWithMetric(surfu, n, algo=0, eps=eps)
-            else:
+            else: # lissage
                 if hmin < 0.01*hmean: # presence de couche limite
                     if k1 < kb1: # pas de lissage ds la couche limite
                         n = getSmoothNormalMap(surfu, niter=0, eps=eps)
@@ -2255,7 +2265,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                         np, epsl = modifyNormalWithMetric(surf, n, algo=0, eps=eps)
                         n[1] = (1-beta0)*n0[1] + beta0*np[1]
                     else: # lissage a fond
-                        n = getSmoothNormalMap(surf,niter=niter, eps=eps)
+                        n = getSmoothNormalMap(surf, niter=niter, eps=eps)
                         np, epsl = modifyNormalWithMetric(surf, n, algo=0, eps=eps)
                         beta0 = float((kmax-2-k1))/float(kmax-2)
                         beta0 = beta0*beta0
