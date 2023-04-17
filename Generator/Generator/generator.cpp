@@ -44,6 +44,7 @@ static PyMethodDef Pygenerator [] =
   {"getVolumeMap", K_GENERATOR::getVolumeMapOfMesh, METH_VARARGS},
   {"getOrthogonalityMap", K_GENERATOR::getOrthogonalityMap, METH_VARARGS},
   {"getRegularityMap", K_GENERATOR::getRegularityMap, METH_VARARGS},
+  {"getAngleRegularityMap", K_GENERATOR::getAngleRegularityMap, METH_VARARGS},
   {"getNormalMap", K_GENERATOR::getNormalMapOfMesh, METH_VARARGS},
   {"getCircumCircleMap", K_GENERATOR::getCircumCircleMap, METH_VARARGS},
   {"getInCircleMap", K_GENERATOR::getInCircleMap, METH_VARARGS},

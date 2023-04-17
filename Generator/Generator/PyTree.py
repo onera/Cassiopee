@@ -1502,6 +1502,14 @@ def getRegularityMap(t):
 
 def _getRegularityMap(t):
     return C._TZGC(t, 'centers', Generator.getRegularityMap)
+
+def getAngleRegularityMap(t):
+    """Return the regularity map in an array (wrt angles).
+    Usage: getAngleRegularityMap(t)"""
+    return C.TZGC(t, 'centers', Generator.getAngleRegularityMap)
+
+def _getAngleRegularityMap(t):
+    return C._TZGC(t, 'centers', Generator.getAngleRegularityMap)
     
 #------------------------------------------------------------------------------
 # Calcul la qualite pour un maillage TRI (0. triangle degenere, 1. equilateral)
