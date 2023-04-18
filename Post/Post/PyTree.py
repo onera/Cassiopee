@@ -1463,8 +1463,12 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True):
         raise ValueError("_computeGrad2: no field detected (check container).")
 
     # Compute fields on BCMatch (for all match connectivities)
-    if not ghostCells: allMatch = C.extractAllBCMatch(t, vare)
-    else: allMatch = {}
+    if not ghostCells:
+        allMatch    = C.extractAllBCMatch(t, vare)
+        allMatchTNC = {} #C.extractAllBCMatchTNC(t,vare) # CW TEMPO
+    else:
+        allMatch    = {}
+        allMatchTNC = {}
 
     zones = Internal.getZones(t)
     for z in zones:
@@ -1510,9 +1514,8 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True):
         # compute field on BCMatch for current zone
         if allMatch != {}:
             indFace, fldFace = C.computeBCMatchField(z, allMatch, vare)
-
+            # --------------------------------------------------------------
             if fldFace is not None:
-
                 fldp = None
                 for fgc in fldFace:
                     fgc = fgc[1][0]
@@ -1527,6 +1530,28 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True):
 
                 if BCField is None: BCField = fldp
                 else: BCField = numpy.concatenate((BCField, fldp))
+            # --------------------------------------------------------------
+
+        # compute field on TNC BCMatch for current zone
+        if allMatchTNC != {}:
+            indFaceTNC, fldFaceTNC = C.computeBCMatchField(z, allMatchTNC, vare)
+            # --------------------------------------------------------------
+            if fldFaceTNC is not None:
+                fldp = None
+                for fgc in fldFaceTNC:
+                    fgc = fgc[1][0]
+                    if fldp is None: fldp = fgc
+                    else: fldp = numpy.concatenate((fldp,fgc))
+
+                indp    = indFaceTNC.ravel(order='K')
+                fldp    = fldp.ravel(order='K')
+
+                if indices is None: indices = indp
+                else: indices = numpy.concatenate((indices, indp))
+
+                if BCField is None: BCField = fldp
+                else: BCField = numpy.concatenate((BCField, fldp))
+            # --------------------------------------------------------------
 
         if f != []:
             centers = Post.computeGrad2(x, f, vol, cellN, indices=indices, BCField=BCField)
@@ -2045,10 +2070,14 @@ def isoSurfMC_opt(t, var, value, list=[]):
 def isoSurfMC(t, var, value, vars=None, split='simple'):
     """Compute an iso surface in volume zones using marching cubes.
     Usage: isoSurfMC(t, var, value, vars, split)"""
+    rmvar = False
     if vars is  None:
       target_var = Internal.__FlowSolutionCenters__
     else:
       target_var=[]; vc = []; vn = ['CoordinateX','CoordinateY','CoordinateZ'];
+      if var not in vars:
+          vars.append(var)
+          rmvar = True
       for v in vars:
          vs = v.split(':')
          if len(vs) == 2 and vs[0] == 'centers':
@@ -2056,7 +2085,7 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
              target_var.append(v)
          elif len(vs) == 2 and vs[0] == 'nodes': vn.append(vs[1])
          else: vn.append(v)
-
+    
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
@@ -2075,8 +2104,14 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
             if a != []:
                 zp = C.convertArrays2ZoneNode(z[0], a)
                 zp[0] = z[0] # pour identification
+
+                if rmvar:
+                    node = Internal.getNodeFromName1(zp, Internal.__FlowSolutionNodes__)
+                    Internal._rmNodesByName(node, var)
+                
                 ret.append(zp)
         except: raise
+        
     return ret
 
 def computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
