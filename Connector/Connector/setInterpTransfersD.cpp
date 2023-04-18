@@ -705,7 +705,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
             else{ printf("souci aiguillage setinterpTransferD %d \n", nvars_loc); }
           }
 
-          if ( nvars_loc == 5 || nvars_loc == 6 )
+          if ( nvars_loc == 5 || nvars_loc == 6  || nvars_loc == 1)
             {
               list_tpl[count_rac]  = K_ARRAY::buildArray( nvars_loc, varStringOut, nbRcvPts, 1, 1 );
               frp[count_rac]       = K_ARRAY::getFieldPtr( list_tpl[count_rac] );

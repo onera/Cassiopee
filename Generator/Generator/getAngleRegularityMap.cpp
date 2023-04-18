@@ -80,10 +80,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
-  // valeur de pi pour exprimer les angles en degre
-  E_Float pi = 4*atan(1.);
-  E_Float degconst = 180.0 / pi;
-
+  
   if (res == 1) // cas structure
   {
     // Dimension du tableau
@@ -131,7 +128,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
       E_Int ni1 = ni - 1;
 
       E_Int ind1, ind2, ind3;
-      E_Float a, b, a2, b2, c2, d; 
+      //E_Float a, b, a2, b2, c2, d; 
 
       // Initialisation
       for (E_Int i = 0; i < ni1; i++)
@@ -198,7 +195,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
       if (nj == 1) nj1 = 1;
 
       E_Int ind, indn, ind1, ind2, ind3;
-      E_Float a, b, a2, b2, c2, d; 
+      //E_Float a, b, a2, b2, c2, d; 
 
       // Initialisation
       for (E_Int j = 0; j < nj1; j++)
@@ -265,7 +262,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
         // calcul de l'angle | (j-1)->j
         ind1 = indn-ni;
-        ind2 = indn;
+        ind2 = indn; 
         ind3 = indn+ni;
         alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
       }
@@ -409,7 +406,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
       if (nk == 1) nk1 = 1;
 
       E_Int ind, indn, ind1, ind2, ind3;
-      E_Float a, b, a2, b2, c2, d; 
+      //E_Float a, b, a2, b2, c2, d; 
 
       // Initialisation
       for (E_Int k = 0; k < nk1; k++)
@@ -1220,7 +1217,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   }
   else // if (res == 2)
   {
-    printf("Warning !!! getAngleRegularityMap: not for unstructured arrays.\n");
+    printf("Warning: getAngleRegularityMap: not for unstructured arrays.\n");
     return 0;
   }
 }
