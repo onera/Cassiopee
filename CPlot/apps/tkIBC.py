@@ -79,7 +79,7 @@ def getData():
         n = Internal.getNodeFromPath(zone, '.Solver#define/inv')
         if n is not None:
             val = Internal.getValue(n)
-            if val == 0: VARS[12].set('out')
+            if val == 0: VARS[3].set('out')
             else: VARS[3].set('in')
         
 #==============================================================================
