@@ -320,21 +320,23 @@ def extractDoubleWallInfo__(t):
 def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2):
 
     # gather proj surfaces of mismatch2
+    walls2 = []
     for c, w in enumerate(listOfMismatch2):
         # surfaceCenters2 - surface de projection ==
         w2 = listOfMismatch2[c]
         name = w2.rsplit('/', 2)
         z2 = Internal.getNodeFromPath(t, name[0])
         if z2 is not None:
-            walls2 = C.extractBCOfType(z2, 'BCWall') # extract window here
-            walls2 = C.node2Center(walls2)
-            walls2 = C.convertArray2Tetra(walls2, split='withBarycenters')
-        else: walls2 = []
+            walls = C.extractBCOfType(z2, 'BCWall') # extract window here
+            walls = C.node2Center(walls)
+            walls = C.convertArray2Tetra(walls, split='withBarycenters')
+            walls2.append(walls)
 
     # reduction de walls2
     walls2 = Cmpi.allgatherZones(walls2)
     walls2 = T.join(walls2)
-    #if Cmpi.rank == 0: Converter.convertArrays2File(surfaceCenters2, 'proj.plt')
+    if Cmpi.rank == 0: C.convertPyTree2File(walls2, 'walls2.cgns')
+
     D._getCurvatureHeight(walls2)        
     surfaceCenters2 = C.getAllFields(walls2, 'nodes')
 
