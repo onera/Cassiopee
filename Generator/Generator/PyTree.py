@@ -3,6 +3,7 @@
 from . import Generator
 from . import generator
 __version__ = Generator.__version__
+import numpy
 
 try:
     import Converter.PyTree as C
@@ -1495,21 +1496,40 @@ def _getOrthogonalityMap(t):
 # 2D: retourne deux champs "reg_i", "reg_j"
 # 3D: retourne 3 champs (dans l'ordre "reg_i", "reg_j", "reg_k" pour les grilles structurees)
 #------------------------------------------------------------------------------
-def getRegularityMap(t):
+def getRegularityMap(t, addGC=False):
     """Return the regularity map in an array.
     Usage: getRegularityMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getRegularityMap)
+    if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    t = C.TZGC(t, 'centers', Generator.getRegularityMap)
+    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return t
 
-def _getRegularityMap(t):
-    return C._TZGC(t, 'centers', Generator.getRegularityMap)
-
-def getAngleRegularityMap(t):
+def _getRegularityMap(t, addGC=False):
+    if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    C._TZGC(t, 'centers', Generator.getRegularityMap)
+    if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return None
+    
+#------------------------------------------------------------------------------
+# Calcul de la regularite (angles entre mailles adjacentes) d'une grille
+# 1D: retourne un champ "reg"
+# 2D: retourne deux champs "reg_i", "reg_j"
+# 3D: retourne 3 champs (dans l'ordre "reg_i", "reg_j", "reg_k" pour les grilles structurees)
+# WARNING !! : ONLY FOR STRUCTURED GRIDS
+#------------------------------------------------------------------------------
+def getAngleRegularityMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles).
     Usage: getAngleRegularityMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getAngleRegularityMap)
+    if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    t = C.TZGC(t, 'centers', Generator.getAngleRegularityMap)
+    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return t
 
-def _getAngleRegularityMap(t):
-    return C._TZGC(t, 'centers', Generator.getAngleRegularityMap)
+def _getAngleRegularityMap(t, addGC=False):
+    if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    C._TZGC(t, 'centers', Generator.getAngleRegularityMap)
+    if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return None
     
 #------------------------------------------------------------------------------
 # Calcul la qualite pour un maillage TRI (0. triangle degenere, 1. equilateral)
@@ -1606,33 +1626,56 @@ def refineIndependently(t, refine=[1,1,1], dim=2):
 #========================================================
 # Mesh quality informations
 #========================================================
-def checkMesh(m):
-    """Return informations on mesh quality."""
-    # volume (neg? Error)
+def getMeshFieldInfo(m, field, critDict, verbose):
+    fmin  = 1.e32
+    fsum  = 0
+    fmax  = -1.
+    fcrit = 0
+    size  = 0
+
+    for z in Internal.getZones(m):
+        f = Internal.getNodeFromName(z, field)[1]
+
+        size_loc  = numpy.size(f)
+        fcrit_loc = numpy.count_nonzero(f<critDict[field]) if field == 'vol' else numpy.count_nonzero(f>critDict[field]) 
+        fmin_loc  = numpy.min(f)
+        fmax_loc  = numpy.max(f)
+        fsum_loc  = numpy.sum(f)
+
+        fmin   = min(fmin_loc, fmin)
+        fmax   = max(fmax_loc, fmax)
+        fsum  += fsum_loc
+        fcrit += fcrit_loc
+        size  += size_loc
+
+        if verbose:
+            print('INFO {} min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'.format(field.upper()+' : ',fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critDict[field],fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,z[0]), flush=True)
+
+    if verbose:
+        print('#'*(len(field)+7))
+        print('INFO {} min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'.format(field.upper()+' : ',fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critDict[field],fcrit,size,fcrit/float(size)*100,'GLOBAL'), flush=True)
+        print('#'*(len(field)+7)+'\n')
+
+    return fmin, fmax, fsum/float(size), fcrit
+
+def checkMesh(m, critDict={'vol':0., 'regularity':0.1, 'orthogonality':15., 'regularityAngle':15.}, addGC=False, verbose=True):
+    """Return information on mesh quality."""
+
     _getVolumeMap(m)
-    vmin = C.getMinValue(m, 'centers:vol')
-    vmean = C.getMeanValue(m, 'centers:vol')
-    vmax = C.getMaxValue(m, 'centers:vol')
-    if vmin < 0: print('Error: mesh contains negative volume cells.')
-    print('INFO: vol: vmin=%g, vmax=%g, vmean=%g'%(vmin,vmax,vmean))
-    Internal._rmNodesFromName(m, 'vol')
+    vmin,vmax,vmean,vcrit = getMeshFieldInfo(m, 'vol', critDict, verbose)
 
-    # reg -> Warning
-    _getRegularityMap(m)
-    rmin = C.getMinValue(m, 'centers:regularity')
-    rmean = C.getMeanValue(m, 'centers:regularity')
-    rmax = C.getMaxValue(m, 'centers:regularity')
-    print('INFO: reg: rmin=%g, rmax=%g, rmean=%g'%(rmin,rmax,rmean))
-    Internal._rmNodesFromName(m, 'regularity')
+    _getRegularityMap(m, addGC)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo(m, 'regularity', critDict, verbose)
 
-    # ortho -> Warning
+    _getAngleRegularityMap(m, addGC)
+    amin,amax,amean,acrit = getMeshFieldInfo(m, 'regularityAngle', critDict, verbose)
+    
     _getOrthogonalityMap(m)
-    omin = C.getMinValue(m, 'centers:orthogonality')
-    omean = C.getMeanValue(m, 'centers:orthogonality')
-    omax = C.getMaxValue(m, 'centers:orthogonality')
-    print('INFO: ortho(deg): rmin=%g, rmax=%g, rmean=%g'%(omin,omax,omean))
-    Internal._rmNodesFromName(m, 'orthogonality')
+    omin,omax,omean,ocrit = getMeshFieldInfo(m, 'orthogonality', critDict, verbose)
 
-    return {'vmin':vmin,'vmax':vmax,'vmean':vmean,
-            'rmin':rmin,'rmax':rmax,'rmean':rmean,
-            'omin':omin,'omax':omax,'omean':omean}
+    C.convertPyTree2File(m, 'checkmesh.cgns')
+
+    return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
+            'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,
+            'amin':amin,'amax':amax,'amean':amean,'acrit':acrit,
+            'omin':omin,'omax':omax,'omean':omean,'ocrit':ocrit}

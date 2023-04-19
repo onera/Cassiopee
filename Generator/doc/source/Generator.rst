@@ -119,6 +119,7 @@ List of functions
    Generator.getSmoothNormalMap
    Generator.getOrthogonalityMap
    Generator.getRegularityMap
+   Generator.getAngleRegularityMap
    Generator.getTriQualityMap
    Generator.getCellPlanarity
    Generator.getCircumCircleMap
@@ -1936,13 +1937,36 @@ Information on generated meshes
 
     *Example of use:*
 
-    * `Computation of cells regularity (array) <Examples/Generator/getRegularityMap.py>`_:
+    * `Computation of cells regularity with respect to volumes (array) <Examples/Generator/getRegularityMap.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/getRegularityMap.py
 
-    * `Computation of cells regularity (pyTree) <Examples/Generator/getRegularityMapPT.py>`_:
+    * `Computation of cells regularity with respect to volumes (pyTree) <Examples/Generator/getRegularityMapPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/getRegularityMapPT.py
+
+---------------------------------------
+
+.. py:function:: Generator.getAngleRegularityMap(a)
+
+    Return the angle regularity map of an array. The angle regularity map corresponds to the maximum angle difference between an element and its neigbouring cells. The angle regularity map is expressed in degree and located at centers. 
+    
+    Exists also as in place version (_getAngleRegularityMap) that modifies a and returns None. 
+
+    :param a:  input mesh
+    :type  a:  array or pyTree
+    :return: modified reference copy of a
+    :rtype: array or pyTree
+
+    *Example of use:*
+
+    * `Computation of cells regularity with respect to angles (array) <Examples/Generator/getAngleRegularityMap.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/getAngleRegularityMap.py
+
+    * `Computation of cells regularity with respect to angles (pyTree) <Examples/Generator/getAngleRegularityMapPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/getAngleRegularityMapPT.py
 
 ---------------------------------------
 
@@ -2081,6 +2105,34 @@ Information on generated meshes
     * `Computation of maximum edge length of cells (pyTree) <Examples/Generator/getMaxLengthPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/getMaxLengthPT.py
+    
+
+---------------------------------------
+
+.. py:function:: Generator.checkMesh(m, critDict={'vol':0., 'regularity':0.1, 'orthogonality':15., 'regularityAngle':15.}, addGC=False, verbose=False)
+
+    Return global information about a given mesh based on four unit tests. Two local tests are used (getVolumeMap and getOrthogonalityMap), as well as two global tests (getRegularityMap and getAngleRegularityMap) to assess the mesh quality.
+    
+    :param m:  input mesh
+    :type  m:  array or pyTree
+    :param critDict: critical values for each unit test. All critical values are used to check if a value is above a given threshold, except for the first unit test (getVolumeMap) for which we usually check for negative volume cells in the mesh
+    :type  critDict:  dictionary
+    :param addGC: if True, add one layer of ghost cells to the pyTree. Useful for global tests (getAngleRegularityMap and getRegularityMap) in the case of multiple zones
+    :type  addGC:  Boolean
+    :param verbose: if True, print mesh info per subzones (local min, max, mean values and percentage of critical cells per test)
+    :type  verbose:  Boolean
+    :return: global min, max and mean values as well as the number of critical cells obtained for each test 
+    :rtype: dictionary
+
+    *Example of use:*
+
+    * `Get global mesh info (array) <Examples/Generator/checkMesh.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/checkMesh.py
+
+    * `Get global mesh info (pyTree) <Examples/Generator/checkMeshPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/checkMeshPT.py
 
 Operations on distributions
 ---------------------------------------

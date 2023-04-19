@@ -32,10 +32,17 @@ inline E_Float computeAngle(E_Float x1,E_Float y1,E_Float z1,E_Float x2,E_Float 
   a2 = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1);
   b2 = (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2);
   c2 = (x3-x1)*(x3-x1)+(y3-y1)*(y3-y1)+(z3-z1)*(z3-z1);
-  a = sqrt(a2);
-  b = sqrt(b2);
-  d = E_max(E_min((a2+b2-c2)/(2.*a*b),1.),-1.);          
-  return E_abs(acos(d)*degconst - 180.);
+  if ((a2 == 0) || (b2==0) || (c2==0))
+  {
+    return 0.;
+  }
+  else
+  {
+    a = sqrt(a2);
+    b = sqrt(b2);
+    d = E_max(E_min((a2+b2-c2)/(2.*a*b),1.),-1.);       
+    return E_abs(acos(d)*degconst - 180.);
+  }
 }
 
 // ============================================================================

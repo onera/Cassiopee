@@ -25,7 +25,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra',
     'fittingPlaster', 'gapfixer', 'gapsmanager', 'front2Hexa', 'front2Struct',
     'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct', 'cutOctant',
     'octree', 'conformOctree3', 'adaptOctree', 'expandLayer', 'forceMatch',
-    '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap', 'getTriQualityMap',
+    '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap', 'getAngleRegularityMap', 'getTriQualityMap',
     'getTriQualityStat', 'quad2Pyra', 'extendCartGrids', 'checkMesh']
 
 def cart(Xo, H, N, api=1):
@@ -2394,7 +2394,7 @@ def getRegularityMap(array):
 
 def getAngleRegularityMap(array):
     """Return the regularity map in an array.
-    Usage: getRegularityMap(array)"""
+    Usage: getAngleRegularityMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
@@ -2437,41 +2437,59 @@ def quad2Pyra(array, hratio = 1.):
      Usage: quad2Pyra(array, hratio)"""
      return generator.quad2Pyra(array, hratio)
 
-def checkMesh(array):
-    """Return informations on mesh quality."""
+def checkMesh(array, critDict={'vol':0., 'regularity':0.1, 'orthogonality':15., 'regularityAngle':15.}, addGC=False, verbose=True):
+    """Return information on mesh quality."""
     if not isinstance(array[0], list): array = [array] 
 
-    vmin = 1.e32; vmax = -1.; vmean = 0. ; size = 0
-    rmin = 1.e32; rmax = -1.; rmean = 0.
-    omin = 1.e32; omax = -1.; omean = 0.
-    
-    for m in array:
-        v = getVolumeMap(m)[1]
-        vmin = min(vmin, numpy.min(v))
-        vmean = vmean + numpy.mean(v)
-        vmax = max(vmax, numpy.max(v))
-        size += vmin.size
+    #addGC: dummy argument to match the pyTree function
 
-        # reg -> Warning
+    vmin = 1.e32 ; vmax = -1. ; vmean = 0. ; vcrit = 0 ; size = 0
+    rmin = 1.e32 ; rmax = -1. ; rmean = 0. ; rcrit = 0
+    amin = 1.e32 ; amax = -1. ; amean = 0. ; acrit = 0
+    omin = 1.e32 ; omax = -1. ; omean = 0. ; ocrit = 0
+
+    for m in array:
+
+        v = getVolumeMap(m)[1]
+        size  += v.size
+        vmin   = min(vmin, numpy.min(v))
+        vmax   = max(vmax, numpy.max(v))
+        vmean  = vmean + numpy.sum(v)
+        vcrit += numpy.count_nonzero(v<critDict['vol'])
+
         r = getRegularityMap(m)[1]
-        rmin = min(rmin, numpy.min(r))
-        rmean = rmean + numpy.mean(r)
-        rmax = max(rmax, numpy.max(r))
+        rmin   = min(rmin, numpy.min(r))
+        rmax   = max(rmax, numpy.max(r))
+        rmean  = rmean + numpy.sum(r)
+        rcrit += numpy.count_nonzero(r>critDict['regularity'])
+
+        a = getRegularityMap(m)[1]
+        amin   = min(amin, numpy.min(a))
+        amax   = max(amax, numpy.max(a))
+        amean  = amean + numpy.sum(a)
+        acrit += numpy.count_nonzero(a>critDict['regularityAngle'])
     
-        # ortho -> Warning
         o = getOrthogonalityMap(m)[1]
-        omin = min(omin, numpy.min(o))
-        omean = omean + numpy.mean(o)
-        omax = max(omax, numpy.max(o))
+        omin   = min(omin, numpy.min(o))
+        omax   = max(omax, numpy.max(o))
+        omean  = rmean + numpy.sum(o)
+        ocrit += numpy.count_nonzero(o>critDict['orthogonality'])
 
     vmean = vmean / size
     rmean = rmean / size
+    amean = amean / size
     omean = omean / size
-    if vmin < 0: print('Error: mesh contains negative volume cells.')
-    print('INFO: vol: vmin=%g, vmax=%g, vmean=%g'%(vmin,vmax,vmean))
-    print('INFO: reg: rmin=%g, rmax=%g, rmean=%g'%(rmin,rmax,rmean))
-    print('INFO: ortho(deg): rmin=%g, rmax=%g, rmean=%g'%(omin,omax,omean))
 
-    return {'vmin':vmin,'vmax':vmax,'vmean':vmean,
-            'rmin':rmin,'rmax':rmax,'rmean':rmean,
-            'omin':omin,'omax':omax,'omean':omean}
+    if verbose:
+        print('INFO {:16s} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit(vol < {}) = {} cells out of {} | {:2.2f}% ({})'.format('vol'.upper(),vmin,vmax,vmean,critDict['vol'],vcrit,size,vcrit/float(size)*100,'GLOBAL'), flush=True)
+
+        print('INFO {:16s} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit(regularity > {}) = {} cells out of {} | {:2.2f}% ({})'.format('regularity'.upper(),rmin,rmax,rmean,critDict['regularity'],rcrit,size,rcrit/float(size)*100,'GLOBAL'), flush=True)
+
+        print('INFO {:16s} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit(regularityAngle > {}) = {} cells out of {} | {:2.2f}% ({})'.format('regularityAngle'.upper(),amin,amax,amean,critDict['regularityAngle'],acrit,size,acrit/float(size)*100,'GLOBAL'), flush=True)
+
+        print('INFO {:16s} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit(orthogonality > {}) = {} cells out of {} | {:2.2f}% ({})'.format('orthogonality'.upper(),omin,omax,omean,critDict['orthogonality'],ocrit,size,ocrit/float(size)*100,'GLOBAL'), flush=True)
+
+    return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
+            'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,
+            'amin':amin,'amax':amax,'amean':amean,'acrit':acrit,
+            'omin':omin,'omax':omax,'omean':omean,'ocrit':ocrit}
