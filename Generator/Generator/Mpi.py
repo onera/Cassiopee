@@ -51,18 +51,19 @@ def _getAngleRegularityMap(t, addGC=False):
 #========================================================
 # Mesh quality informations
 #========================================================
-def getMeshFieldInfo(m, field, critDict, verbose=True):
+def getMeshFieldInfo(m, field, critValue, verbose):
     fmin  = 1.e32
     fsum  = 0
     fmax  = -1.
     fcrit = 0
     size  = 0
+    info = 'INFO {} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
 
     for z in Internal.getZones(m):
         f = Internal.getNodeFromName(z, field)[1]
 
         size_loc  = numpy.size(f)
-        fcrit_loc = numpy.count_nonzero(f<critDict[field]) if field == 'vol' else numpy.count_nonzero(f>critDict[field]) 
+        fcrit_loc = numpy.count_nonzero(f<critValue) if field == 'vol' else numpy.count_nonzero(f>critValue) 
         fmin_loc  = numpy.min(f)
         fmax_loc  = numpy.max(f)
         fsum_loc  = numpy.sum(f)
@@ -73,8 +74,8 @@ def getMeshFieldInfo(m, field, critDict, verbose=True):
         fcrit += fcrit_loc
         size  += size_loc
 
-        if verbose:
-            print('INFO {} min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% (rank {} - {})'.format(field.upper()+' : ',fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critDict[field],fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,Cmpi.rank,z[0]), flush=True)
+        if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
+            print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,Cmpi.rank,z[0]), flush=True)
 
     Cmpi.barrier()
 
@@ -86,33 +87,35 @@ def getMeshFieldInfo(m, field, critDict, verbose=True):
 
     fmean = fsum/float(size)
 
-    if Cmpi.rank == 0 and verbose:
-        print('#'*(len(field)+7))
-        print('INFO {} min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'.format(field.upper()+' : ',fmin,fmax,fmean,field,'<' if field == 'vol' else '>',critDict[field],fcrit,size,fcrit/float(size)*100,'GLOBAL'), flush=True)
-        print('#'*(len(field)+7)+'\n')
+    if Cmpi.rank == 0 and (verbose == 2 or (verbose == 1 and fcrit_loc > 0)):
+        print('#'*(len(field)+7),flush=True)
+        print('INFO {} min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'.format(field.upper()+' : ',fmin,fmax,fmean,field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'), flush=True)
+        print('#'*(len(field)+7)+'\n',flush=True)
 
     Cmpi.barrier()
 
     return fmin, fmax, fmean, fcrit
 
-def checkMesh(m, critDict={'vol':0., 'regularity':0.1, 'orthogonality':15., 'regularityAngle':15.}, addGC=False, verbose=True):
+def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=False, verbose=0):
     """Return information on mesh quality."""
 
     Cmpi.barrier()
 
     G._getVolumeMap(m)
-    vmin,vmax,vmean,vcrit = getMeshFieldInfo(m, 'vol', critDict, verbose)
+    vmin,vmax,vmean,vcrit = getMeshFieldInfo(m, 'vol', critVol, verbose)
+    Internal._rmNodesFromName(m, 'vol')
+
+    G._getOrthogonalityMap(m)
+    omin,omax,omean,ocrit = getMeshFieldInfo(m, 'orthogonality', critOrtho, verbose)
+    Internal._rmNodesFromName(m, 'orthogonality')
 
     _getRegularityMap(m, addGC)
-    rmin,rmax,rmean,rcrit = getMeshFieldInfo(m, 'regularity', critDict, verbose)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo(m, 'regularity', critReg, verbose)
+    Internal._rmNodesFromName(m, 'regularity')
 
     _getAngleRegularityMap(m, addGC)
-    amin,amax,amean,acrit = getMeshFieldInfo(m, 'regularityAngle', critDict, verbose)
-    
-    G._getOrthogonalityMap(m)
-    omin,omax,omean,ocrit = getMeshFieldInfo(m, 'orthogonality', critDict, verbose)
-
-    Cmpi.convertPyTree2File(m, 'checkmesh.cgns')
+    amin,amax,amean,acrit = getMeshFieldInfo(m, 'regularityAngle', critAngReg, verbose)
+    Internal._rmNodesFromName(m, 'regularityAngle')
 
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,

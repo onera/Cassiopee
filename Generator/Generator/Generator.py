@@ -2437,57 +2437,51 @@ def quad2Pyra(array, hratio = 1.):
      Usage: quad2Pyra(array, hratio)"""
      return generator.quad2Pyra(array, hratio)
 
-def checkMesh(array, critDict={'vol':0., 'regularity':0.1, 'orthogonality':15., 'regularityAngle':15.}, addGC=False, verbose=True):
+def getMeshFieldInfo(array, field, critValue, verbose):
+    fmin  = 1.e32
+    fsum  = 0
+    fmax  = -1.
+    fcrit = 0
+    size  = 0
+    info = 'INFO {} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
+
+    DictFunction = {'vol':getVolumeMap, 'orthogonality':getOrthogonalityMap, 'regularity':getRegularityMap, 'regularityAngle':getAngleRegularityMap}
+
+    for cpt, m in enumerate(array):
+        f = DictFunction[field](m)[1]
+
+        size_loc  = numpy.size(f)
+        fcrit_loc = numpy.count_nonzero(f<critValue) if field == 'vol' else numpy.count_nonzero(f>critValue) 
+        fmin_loc  = numpy.min(f)
+        fmax_loc  = numpy.max(f)
+        fsum_loc  = numpy.sum(f)
+
+        fmin   = min(fmin_loc, fmin)
+        fmax   = max(fmax_loc, fmax)
+        fsum  += fsum_loc
+        fcrit += fcrit_loc
+        size  += size_loc
+
+        if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
+            print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"Zone {}".format(cpt)), flush=True)
+
+    if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
+        print('#'*(len(field)+7), flush=True)
+        print(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'), flush=True)
+        print('#'*(len(field)+7)+'\n', flush=True)
+
+    return fmin, fmax, fsum/float(size), fcrit
+
+def checkMesh(array, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=False, verbose=0):
     """Return information on mesh quality."""
     if not isinstance(array[0], list): array = [array] 
 
     #addGC: dummy argument to match the pyTree function
 
-    vmin = 1.e32 ; vmax = -1. ; vmean = 0. ; vcrit = 0 ; size = 0
-    rmin = 1.e32 ; rmax = -1. ; rmean = 0. ; rcrit = 0
-    amin = 1.e32 ; amax = -1. ; amean = 0. ; acrit = 0
-    omin = 1.e32 ; omax = -1. ; omean = 0. ; ocrit = 0
-
-    for m in array:
-
-        v = getVolumeMap(m)[1]
-        size  += v.size
-        vmin   = min(vmin, numpy.min(v))
-        vmax   = max(vmax, numpy.max(v))
-        vmean  = vmean + numpy.sum(v)
-        vcrit += numpy.count_nonzero(v<critDict['vol'])
-
-        r = getRegularityMap(m)[1]
-        rmin   = min(rmin, numpy.min(r))
-        rmax   = max(rmax, numpy.max(r))
-        rmean  = rmean + numpy.sum(r)
-        rcrit += numpy.count_nonzero(r>critDict['regularity'])
-
-        a = getRegularityMap(m)[1]
-        amin   = min(amin, numpy.min(a))
-        amax   = max(amax, numpy.max(a))
-        amean  = amean + numpy.sum(a)
-        acrit += numpy.count_nonzero(a>critDict['regularityAngle'])
-    
-        o = getOrthogonalityMap(m)[1]
-        omin   = min(omin, numpy.min(o))
-        omax   = max(omax, numpy.max(o))
-        omean  = rmean + numpy.sum(o)
-        ocrit += numpy.count_nonzero(o>critDict['orthogonality'])
-
-    vmean = vmean / size
-    rmean = rmean / size
-    amean = amean / size
-    omean = omean / size
-
-    if verbose:
-        print('INFO {:16s} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit(vol < {}) = {} cells out of {} | {:2.2f}% ({})'.format('vol'.upper(),vmin,vmax,vmean,critDict['vol'],vcrit,size,vcrit/float(size)*100,'GLOBAL'), flush=True)
-
-        print('INFO {:16s} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit(regularity > {}) = {} cells out of {} | {:2.2f}% ({})'.format('regularity'.upper(),rmin,rmax,rmean,critDict['regularity'],rcrit,size,rcrit/float(size)*100,'GLOBAL'), flush=True)
-
-        print('INFO {:16s} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit(regularityAngle > {}) = {} cells out of {} | {:2.2f}% ({})'.format('regularityAngle'.upper(),amin,amax,amean,critDict['regularityAngle'],acrit,size,acrit/float(size)*100,'GLOBAL'), flush=True)
-
-        print('INFO {:16s} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit(orthogonality > {}) = {} cells out of {} | {:2.2f}% ({})'.format('orthogonality'.upper(),omin,omax,omean,critDict['orthogonality'],ocrit,size,ocrit/float(size)*100,'GLOBAL'), flush=True)
+    vmin,vmax,vmean,vcrit = getMeshFieldInfo(array, 'vol', critVol, verbose)
+    omin,omax,omean,ocrit = getMeshFieldInfo(array, 'orthogonality', critOrtho, verbose)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo(array, 'regularity', critReg, verbose)
+    amin,amax,amean,acrit = getMeshFieldInfo(array, 'regularityAngle', critAngReg, verbose)
 
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,

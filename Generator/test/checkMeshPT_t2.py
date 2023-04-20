@@ -6,5 +6,5 @@ import KCore.test as test
 
 t = D.sphere6((0,0,0),2,20)
 t = X.connectMatch(t, tol=1.e-6, dim=2)
-infos = G.checkMesh(t, verbose=False, addGC=True)
+infos = G.checkMesh(t, addGC=True)
 test.testO(infos, 1)

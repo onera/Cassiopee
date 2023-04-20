@@ -135,7 +135,6 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
       E_Int ni1 = ni - 1;
 
       E_Int ind1, ind2, ind3;
-      //E_Float a, b, a2, b2, c2, d; 
 
       // Initialisation
       for (E_Int i = 0; i < ni1; i++)
@@ -202,7 +201,6 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
       if (nj == 1) nj1 = 1;
 
       E_Int ind, indn, ind1, ind2, ind3;
-      //E_Float a, b, a2, b2, c2, d; 
 
       // Initialisation
       for (E_Int j = 0; j < nj1; j++)
@@ -413,7 +411,6 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
       if (nk == 1) nk1 = 1;
 
       E_Int ind, indn, ind1, ind2, ind3;
-      //E_Float a, b, a2, b2, c2, d; 
 
       // Initialisation
       for (E_Int k = 0; k < nk1; k++)

@@ -2109,18 +2109,18 @@ Information on generated meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.checkMesh(m, critDict={'vol':0., 'regularity':0.1, 'orthogonality':15., 'regularityAngle':15.}, addGC=False, verbose=False)
+.. py:function:: Generator.checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=False, verbose=0)
 
     Return global information about a given mesh based on four unit tests. Two local tests are used (getVolumeMap and getOrthogonalityMap), as well as two global tests (getRegularityMap and getAngleRegularityMap) to assess the mesh quality.
     
     :param m:  input mesh
     :type  m:  array or pyTree
-    :param critDict: critical values for each unit test. All critical values are used to check if a value is above a given threshold, except for the first unit test (getVolumeMap) for which we usually check for negative volume cells in the mesh
-    :type  critDict:  dictionary
+    :param critVol,...: critical values for each unit test. All critical values are used to check if a value is above a given threshold, except for the first unit test (getVolumeMap) for which we usually check for negative volume cells in the mesh
+    :type  critVol,...:  floats
     :param addGC: if True, add one layer of ghost cells to the pyTree. Useful for global tests (getAngleRegularityMap and getRegularityMap) in the case of multiple zones
     :type  addGC:  Boolean
-    :param verbose: if True, print mesh info per subzones (local min, max, mean values and percentage of critical cells per test)
-    :type  verbose:  Boolean
+    :param verbose: if 2, print mesh info per sub-zone (local min, max, mean values and percentage of critical cells per test). If 1, only print mesh info when critical cells are encountered. If 0, do not print anything
+    :type  verbose:  int
     :return: global min, max and mean values as well as the number of critical cells obtained for each test 
     :rtype: dictionary
 
