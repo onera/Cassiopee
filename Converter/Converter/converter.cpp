@@ -98,6 +98,7 @@ static PyMethodDef Pyconverter [] =
   {"nullifyVectorAtBCFaceStruct", K_CONVERTER::nullifyVectorAtBCFaceStruct, METH_VARARGS},
   {"cpyConnectA2ConnectP", K_CONVERTER::cpyConnectA2ConnectP, METH_VARARGS},
   {"cpyConnectP2ConnectA", K_CONVERTER::cpyConnectP2ConnectA, METH_VARARGS},
+  {"cpyConnectP2ConnectA2", K_CONVERTER::cpyConnectP2ConnectA2, METH_VARARGS},
   {"cpyValueByField", K_CONVERTER::cpyValueByField, METH_VARARGS},
   {"detectEmptyBC", K_CONVERTER::detectEmptyBC, METH_VARARGS},
   {"tagDefinedBC", K_CONVERTER::tagDefinedBC, METH_VARARGS},

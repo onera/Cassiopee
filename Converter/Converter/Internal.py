@@ -3845,22 +3845,30 @@ def adaptConnect__(connects, dim):
     np = dim[1]; ne = dim[2]
     ettype, stype = eltNo2EltName(eltType)
 
-    if eltType == 22: # NGON
+    if eltType == 22: # NGON1/NGON2
         info = connect1[2]
-        c1 = None; nfaces = 0; cr = None
+        c1 = None; nfaces = 0; cr = None; offset1 = None
         for i in info:
           if i[0] == 'ElementConnectivity': c1 = i[1]
-          if i[0] == 'ElementRange': nfaces = i[1][1]-i[1][0]+1
+          elif i[0] == 'ElementRange': nfaces = i[1][1]-i[1][0]+1
+          elif i[0] == 'ElementStartOffset': offset1 = i[1]
         info = connect2[2]
         c2 = None; nelts = 0
         for i in info:
           if i[0] == 'ElementConnectivity': c2 = i[1]
-          if i[0] == 'ElementRange': nelts = i[1][1]-i[1][0]+1
-        if c1 is not None and c2 is not None:
+          elif i[0] == 'ElementRange': nelts = i[1][1]-i[1][0]+1
+          elif i[0] == 'ElementStartOffset': offset2 = i[1]
+        if c1 is not None and c2 is not None and offset1 is None: # NGON1
             st1 = c1.size; st2 = c2.size
             st = st1 + st2 + 4
             cr = numpy.empty((1, st), E_NpyInt)
             converter.cpyConnectP2ConnectA(cr, c1, c2, stype, ne, nfaces, nelts)
+        if c1 is not None and c2 is not None and offset1 is not None and offset2 is not None: # NGON2 (v4)
+            st1 = c1.size+offset1.size-1; st2 = c2.size+offset2.size-1
+            st = st1 + st2 + 4
+            cr = numpy.empty((1, st), E_NpyInt)
+            converter.cpyConnectP2ConnectA2(cr, c1, c2, stype, ne, nfaces, nelts, offset1, offset2)
+
     else: # Autres types
         info = connect[2]
         cr = None

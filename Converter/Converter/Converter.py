@@ -26,7 +26,7 @@ __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'cent
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
     'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
     'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
-    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__']
+    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity']
 
 # -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -1478,6 +1478,27 @@ def _recoverGlobalIndex(a, b):
         else:
             converter.recoverGlobalIndex(b, a)
     return None
+
+# mergeConnectivity: merge deux connectivites en elements basiques
+# en un seul maillage multiconnectivite (array3 uniquement)
+# concatenation simple
+def mergeConnectivity(a1, a2):
+    if a1[0] != a2[0]: raise ValueError('mergeConnectivity: only for same fields.')
+    if len(a1) != 4 or len(a2) != 4: raise ValueError('mergeConnectivity: only for unstructured arrays.')
+    if a1[3] == 'NGON' or a2[3] == 'NGON': raise ValueError('mergeConnectivity: only for element arrays.')
+    
+    # fields
+    f1 = a1[1]; f2 = a2[1]
+    fo = []
+    for c, f in enumerate(f1): fo.append(numpy.concatenate((f, f2[c])))
+    npts = len(f1[0])
+
+    # connectivity
+    c1 = a1[2]; c2 = a2[2]
+    for cp in c2: cp[:] = cp[:]+npts 
+    co = c1+c2
+    return [a1[0], fo, co, a1[3]+','+a2[3]]
+    
 
 # Retourne -1: la variable n'est presente dans aucun array
 # Retourne 0: la variable est presente dans au moins un array

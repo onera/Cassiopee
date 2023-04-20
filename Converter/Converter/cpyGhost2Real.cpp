@@ -292,6 +292,99 @@ PyObject* K_CONVERTER::cpyConnectP2ConnectA(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+// Copy connect array to connect pyTree for NGON2 (CGNS v4)
+//=============================================================================
+PyObject* K_CONVERTER::cpyConnectP2ConnectA2(PyObject* self, PyObject* args)
+{
+  IMPORTNUMPY;
+  PyObject* cA; // connectivite array
+  PyObject* cP1, *cP2; // connectivites PyTree (2 connectivite si NGON, 1 sinon)
+  PyObject* off1, *off2; // offsets
+  E_Int stype=0, ne=0; // stype: nb noeuds/elmt, ne: nb elements
+  E_Int nfaces=0, nelts=0; // nombre de faces et nombre d elements (valent -1 quand element != NGON)
+  if (!PYPARSETUPLEI(args, "OOOllllOO", "OOOiiiiOO", 
+    &cA, &cP1, &cP2, &stype, &ne, &nfaces, &nelts, &off1, &off2)) return NULL;
+
+  PyArrayObject* crA = (PyArrayObject*)cA;
+  PyArrayObject* crP1 = (PyArrayObject*)cP1;
+  E_Int* dataA = (E_Int*)PyArray_DATA(crA);
+  E_Int* dataP1 = (E_Int*)PyArray_DATA(crP1);
+  
+  PyArrayObject* crP2 = (PyArrayObject*)cP2;
+  E_Int* dataP2 = (E_Int*)PyArray_DATA(crP2);
+  E_Int st1 = PyArray_DIMS(crP1)[0]; // dimension de la  connectivite cP1
+  E_Int st2 = PyArray_DIMS(crP2)[0]; // dimension de la  connectivite cP2
+
+  PyArrayObject* crOff1 = (PyArrayObject*)off1;
+  PyArrayObject* crOff2 = (PyArrayObject*)off2;
+  E_Int* poff1 = (E_Int*)PyArray_DATA(crOff1);
+  E_Int* poff2 = (E_Int*)PyArray_DATA(crOff2);
+
+  /*
+  dataA[0] = nfaces;
+  dataA[1] = st1;
+  dataA += 2;
+  for (E_Int p = 0; p < nfaces; p++)
+  {
+    size = poff1[p+1]-poff1[p];
+    dataA[0] = size;
+    for (E_Int j = 0; j < size; j++) dataA[j+1] = dataP1[j];
+    dataA += size+1;
+    dataP1 += size;
+  }
+
+  dataA[0] = nelts;
+  dataA[1] = st2;
+  dataA += 2;
+  for (E_Int p = 0; p < nelts; p++) 
+  {
+    size = poff2[p+1]-poff2[p];
+    dataA[0] = size;
+    for (E_Int j = 0; j < size; j++) dataA[j+1] = dataP2[j];
+    dataA += size+1;
+    dataP2 += size;
+  }
+  */
+
+  dataA[0] = nfaces;
+  dataA[1] = st1+nfaces;
+  dataA += 2;
+
+#pragma omp parallel
+  {
+    E_Int size, p1;
+    #pragma omp for
+    for (E_Int p = 0; p < nfaces; p++)
+    {
+      p1 = poff1[p];
+      size = poff1[p+1]-p1;
+      dataA[p1+p] = size;
+      for (E_Int j = 0; j < size; j++) dataA[p1+p+j+1] = dataP1[p1+j];
+    }
+  }
+
+  dataA[st1+nfaces] = nelts;
+  dataA[st1+nfaces+1] = st2+nelts;
+  dataA += st1+nfaces+2;
+
+#pragma omp parallel
+  {
+    E_Int size, p1;
+    #pragma omp for
+    for (E_Int p = 0; p < nelts; p++)
+    {
+      p1 = poff2[p];
+      size = poff2[p+1]-p1;
+      dataA[p1+p] = size;
+      for (E_Int j = 0; j < size; j++) dataA[p1+p+j+1] = dataP2[p1+j];
+    }
+  }
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
 // Copy connect array to connect pyTree
 //=============================================================================
 PyObject* K_CONVERTER::cpyConnectA2ConnectP(PyObject* self, PyObject* args)

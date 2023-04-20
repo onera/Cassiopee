@@ -97,6 +97,7 @@ namespace K_CONVERTER
   PyObject* cpyReal2Ghost(PyObject* self, PyObject* args);
   PyObject* cpyConnectA2ConnectP(PyObject* self, PyObject* args);
   PyObject* cpyConnectP2ConnectA(PyObject* self, PyObject* args);
+  PyObject* cpyConnectP2ConnectA2(PyObject* self, PyObject* args);
   PyObject* cpyValueByField(PyObject* self, PyObject* args);
   PyObject* detectEmptyBC(PyObject* self, PyObject* args);
   PyObject* tagDefinedBC(PyObject* self, PyObject* args);
