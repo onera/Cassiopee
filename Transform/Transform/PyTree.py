@@ -53,11 +53,13 @@ def _cyl2Cart(t, center, axis):
 def translate(t, transvect):
     """Translate a zone.
     Usage: translate(z, (v1,v2,v3))"""
-    return C.TZGC2(t, Transform.translate, 'nodes', False, transvect)
+    tp = Internal.copyRef(t)
+    _translate(tp, transvect)
+    return tp
 
 def _translate(t, transvect):
     """Translate a zone."""
-    C.__TZGC2(t, Transform._translate, transvect)
+    C.__TZGC3(t, Transform._translate, transvect)
     return None
 
 def rotate(a, center, arg1, arg2=None,
