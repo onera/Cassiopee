@@ -1833,7 +1833,7 @@ def _TZGC(t, locout, F, *args):
   return None
 
 # Recupere les coords, applique _F dessus sans changement topologique
-def __TZGC(api, t, _F, *args):
+def __TZGCX(api, t, _F, *args):
   zones = Internal.getZones(t)
   for z in zones:
     fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
@@ -1841,24 +1841,35 @@ def __TZGC(api, t, _F, *args):
   return None
 
 def __TZGC2(t, _F, *args):
-    return __TZGC(2, t, _F, *args)
+    return __TZGCX(2, t, _F, *args)
 
 def __TZGC3(t, _F, *args):
-    return __TZGC(3, t, _F, *args)
+    return __TZGCX(3, t, _F, *args)
 
 # Recupere les coords, applique F qui renvoie une copie, fait un setFields
-def _TZGC2(t, F, locout, writeDim, *args):
+def _TZGCX(api, t, F, locout, writeDim, *args):
   zones = Internal.getZones(t)
   for z in zones:
-    fc = getFields(Internal.__GridCoordinates__, z, api=2)[0]
+    fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
     if fc != []:
       fcp = F(fc, *args) # copy
       setFields([fcp], z, locout, writeDim)
   return None
 
+def _TZGC2(t, F, locout, writeDim, *args):
+    return _TZGCX(2, t, F, locout, writeDim, *args)
+
+def _TZGC3(t, F, locout, writeDim, *args):
+    return _TZGCX(3, t, F, locout, writeDim, *args)
+
 def TZGC2(t, F, locout, writeDim, *args):
   tp = Internal.copyRef(t)
   _TZGC2(tp, F, locout, writeDim, *args)
+  return tp
+
+def TZGC3(t, F, locout, writeDim, *args):
+  tp = Internal.copyRef(t)
+  _TZGC3(tp, F, locout, writeDim, *args)
   return tp
 
 # -- TZGF

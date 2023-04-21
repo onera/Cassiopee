@@ -1926,12 +1926,15 @@ Information on generated meshes
 
 .. py:function:: Generator.getRegularityMap(a)
 
-    Return the regularity map of an array. The regularity map corresponds to the maximum deviation of the volume ratio of an element and all its neigbouring cells. The regularity map is located at centers. 
+    Return the regularity map of an array. The regularity map corresponds to the maximum deviation of 
+    the volume ratio of an element and all its neigbouring cells. The regularity map is located 
+    at centers in a field "regularity". 
     
     Exists also as in place version (_getRegularityMap) that modifies a and returns None. 
+    Exists also as parallel distributed version (G.Mpi.getRegularityMap).
 
-    :param a:  input mesh
-    :type  a:  array or pyTree
+    :param a: input mesh
+    :type  a: array or pyTree
     :return: modified reference copy of a
     :rtype: array or pyTree
 
@@ -1949,12 +1952,16 @@ Information on generated meshes
 
 .. py:function:: Generator.getAngleRegularityMap(a)
 
-    Return the angle regularity map of an array. The angle regularity map corresponds to the maximum angle difference between an element and its neigbouring cells. The angle regularity map is expressed in degree and located at centers. 
+    Return the angle regularity map of an array. 
+    The angle regularity map corresponds to the maximum angle difference between an element and its 
+    neigbouring cells. The angle regularity map is expressed in degree and located at centers in 
+    a field "regularityAngle".
     
     Exists also as in place version (_getAngleRegularityMap) that modifies a and returns None. 
+    Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).
 
-    :param a:  input mesh
-    :type  a:  array or pyTree
+    :param a: input mesh
+    :type  a: array or pyTree
     :return: modified reference copy of a
     :rtype: array or pyTree
 
