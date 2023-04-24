@@ -20,27 +20,11 @@ def bbox(t):
     Cmpi.Allreduce(bb, bb2, Cmpi.MAX)
     return [bb1[0],bb1[1],bb1[2],bb2[3],bb2[4],bb2[5]]
 
-def getRegularityMap(t, addGC=False):
-    """Return the regularity map in an array.
-    Usage: getRegularityMap(t)"""
-    if addGC: t = Cmpi.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC(t, 'centers', Generator.getRegularityMap)
-    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
-    return t
-
 def _getRegularityMap(t, addGC=False):
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     C._TZGC(t, 'centers', Generator.getRegularityMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
-    
-def getAngleRegularityMap(t, addGC=False):
-    """Return the regularity map in an array (wrt angles).
-    Usage: getAngleRegularityMap(t)"""
-    if addGC: t = Cmpi.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC(t, 'centers', Generator.getAngleRegularityMap)
-    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
-    return t
 
 def _getAngleRegularityMap(t, addGC=False):
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)

@@ -1971,3 +1971,24 @@ def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
                 C._addBC2Zone(zones[noz1], name_extrap, 'BCdimNS', range1)     #Idem : gestion adim cote NS
 
     return Internal.pyTree2Node(a, typen)
+
+#==============================================================================
+# Double Wall treatment for chimera transfers (MPI friendly)
+# Only modify tc
+#==============================================================================
+def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False):
+    from . import DoubleWall
+
+    listOfMismatch1 = []
+    listOfMismatch2 = []
+    for b in Internal.getBases(t):
+        for z in Internal.getZones(b):
+            wall1 = C.getFamilyBCs(z, familyBC1)
+            for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0]) 
+            wall2 = C.getFamilyBCs(z, familyBC2)
+            for w in wall2: listOfMismatch2.append(b[0]+'/'+z[0]+'/'+w[0]) 
+
+    # project interpolated points (cellN=2) from listOfMismatch2 onto listOfMismatch1
+    DoubleWall._changeWall2(t, tc, listOfMismatch1, listOfMismatch2, ghostCells, check)
+
+    return None

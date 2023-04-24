@@ -205,7 +205,7 @@ void K_CONNECTOR::changeWall(
 {
   E_Float coefhmax = 10.; // tolerance de projection : coefhmax * hmax
   E_Float tolbb = 1.e-6;
-  E_Int dirCoeff = 1; // si ghost cells pour trouver la premiere cellule non plate
+  E_Int dirCoeff = 2; // si ghost cells pour trouver la premiere cellule non plate
   // Creation des bbtrees pour chaque surface de projection
   E_Int nzones = unstrF.size();
   typedef K_SEARCH::BoundingBox<3> BBox3DType;
@@ -338,8 +338,8 @@ void K_CONNECTOR::changeWall(
         }
       }     
       if (isProjected == false) goto nextptB;      
-      printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
-                    xa, ya, za, iA+1, jA+1, kA+1, xa+deltax, ya+deltay,za+deltaz);
+    //   printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
+    //                 xa, ya, za, iA+1, jA+1, kA+1, xa+deltax, ya+deltay,za+deltaz);
     
       shiftAbovePoints(imc, jmc, kmc, dir, indA, iA, jA, kA, 
                        xa, ya, za, deltax, deltay, deltaz,

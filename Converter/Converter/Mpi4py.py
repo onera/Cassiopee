@@ -11,7 +11,7 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX',
     'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
     'bcast', 'Bcast', 'gather', 'Gather', 
     'reduce', 'Reduce', 'allreduce', 'Allreduce', 
-    'bcastZone', 'gatherZones', 'allgatherZones', 
+    'bcastZone', 'gatherZones', 'allgatherZones',
     'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 
     'convert2SkeletonTree',
@@ -310,8 +310,8 @@ def bcastTree(t, root=0):
     return t
 
 # data=zone
-# Envoie uniquement les coords de z
-def bcastZone(z, root=0):
+# if variables == [] and coord == True, envoie uniquement les coords de z
+def bcastZone(z, root=0, coord=True, variables=[]):
     # zp = squelette envoye en pickle
     if rank == root:
         zp = Internal.copyRef(z)
@@ -320,47 +320,87 @@ def bcastZone(z, root=0):
         Internal._rmNodesFromType(zp, 'ZoneSubRegion_t')
     else: zp = None
 
-    if rank == root:
-        px = Internal.getNodeFromName2(z, 'CoordinateX')[1]
-        py = Internal.getNodeFromName2(z, 'CoordinateY')[1]
-        pz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
-        sx = px.shape; sy = py.shape; sz = pz.shape
-    else:
-        sx = None; sy = None; sz = None
+    zp = KCOMM.bcast((zp), root)
 
-    zp, sx, sy, sz = KCOMM.bcast((zp, sx, sy, sz), root)
+    if coord:
+        if rank == root:
+            px = Internal.getNodeFromName2(z, 'CoordinateX')[1]
+            py = Internal.getNodeFromName2(z, 'CoordinateY')[1]
+            pz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
+            sx = px.shape; sy = py.shape; sz = pz.shape
+        else:
+            sx = None; sy = None; sz = None
+
+        sx, sy, sz = KCOMM.bcast((sx, sy, sz), root)
+            
+        if rank != root:
+            px = numpy.empty(sx, dtype=numpy.float64, order='F')
+            py = numpy.empty(sy, dtype=numpy.float64, order='F')
+            pz = numpy.empty(sz, dtype=numpy.float64, order='F')
         
-    if rank != root:
-        px = numpy.empty(sx, dtype=numpy.float64, order='F')
-        py = numpy.empty(sy, dtype=numpy.float64, order='F')
-        pz = numpy.empty(sz, dtype=numpy.float64, order='F')
-    
-    KCOMM.Bcast([px,MPI.DOUBLE], root)
-    KCOMM.Bcast([py,MPI.DOUBLE], root)
-    KCOMM.Bcast([pz,MPI.DOUBLE], root)
-    
-    if rank != root:
-        # Reconstruction de la zone
-        Internal._createUniqueChild(zp, Internal.__GridCoordinates__, 'GridCoordinates_t')
-        n = Internal.getNodeFromName1(zp, Internal.__GridCoordinates__)
-        Internal._createUniqueChild(n, 'CoordinateX', 'DataArray_t', value=px)
-        Internal._createUniqueChild(n, 'CoordinateY', 'DataArray_t', value=py)
-        Internal._createUniqueChild(n, 'CoordinateZ', 'DataArray_t', value=pz)
-    else: zp = z
+        KCOMM.Bcast([px,MPI.DOUBLE], root)
+        KCOMM.Bcast([py,MPI.DOUBLE], root)
+        KCOMM.Bcast([pz,MPI.DOUBLE], root)
+        
+        if rank != root:
+            # Reconstruction de la zone
+            Internal._createUniqueChild(zp, Internal.__GridCoordinates__, 'GridCoordinates_t')
+            n = Internal.getNodeFromName1(zp, Internal.__GridCoordinates__)
+            Internal._createUniqueChild(n, 'CoordinateX', 'DataArray_t', value=px)
+            Internal._createUniqueChild(n, 'CoordinateY', 'DataArray_t', value=py)
+            Internal._createUniqueChild(n, 'CoordinateZ', 'DataArray_t', value=pz)
+
+    for cpt, var in enumerate(variables):
+        loc = 'centers' if 'centers' in var else 'nodes'
+        var = var.replace('centers:','')
+
+        if rank == root:
+            pv = Internal.getNodeFromName2(z, var)[1]
+            sv = pv.shape
+        else:
+            sv = None
+
+        sv = KCOMM.bcast((sv), root)
+            
+        if rank != root:
+            pv = numpy.empty(sv, dtype=numpy.float64, order='F')
+        
+        KCOMM.Bcast([pv,MPI.DOUBLE], root)
+        
+        if rank != root:
+            # Reconstruction de la zone
+            flowSol = Internal.__FlowSolutionNodes__ if loc == 'nodes' else Internal.__FlowSolutionCenters__
+            if cpt == 0: 
+                Internal._createUniqueChild(zp, flowSol, 'FlowSolution_t')
+                n = Internal.getNodeFromName1(zp, flowSol)
+                if loc == 'centers': Internal._createUniqueChild(n, 'GridLocation', 'GridLocation_t', 'CellCenter')
+            else:
+                n = Internal.getNodeFromName1(zp, flowSol)
+            Internal._createUniqueChild(n, var, 'DataArray_t', value=pv)
+
+    if rank == root: zp = z
     return zp
 
 # All gather une liste de zones, recuperation identique sur tous les procs
 # dans une liste a plat
-# Uniquement les coordonnees sont envoyees
-def allgatherZones(zones):
+# Partage les coordonnees si coord=True
+# Partage les variables renseignees et supprime les autres 
+def allgatherZones(zones, coord=True, variables=[]):
     # Chaque processeur bcast ses zones vers les autres ranks
     zones = Internal.getZones(zones)
     lenZones = KCOMM.allgather(len(zones))
     allZones = []
     for i in range(size):
         for cz in range(lenZones[i]):
-            if rank == i: zp = bcastZone(zones[cz], root=i)
-            else: zp = bcastZone(None, root=i)
+            if rank == i: 
+                zp = bcastZone(zones[cz], root=i, coord=coord, variables=variables)
+                if variables == []:
+                    Internal._rmNodesFromType(zp, 'FlowSolution_t')
+                else:
+                    for var in C.getVarNames(zp, excludeXYZ=True, loc='both')[0]:
+                        if var not in variables: Internal._rmNodesFromName(zp, var.replace('centers:',''))
+            else: 
+                zp = bcastZone(None, root=i, coord=coord, variables=variables)
             allZones.append(zp)
     return allZones
 
