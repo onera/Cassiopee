@@ -222,7 +222,7 @@ def TFIO(a):
     Nt = a[2]
     if Nt//2 - Nt*0.5 == 0: raise ValueError("TFIO: number of points must be odd.")
 
-    step = int(Nt / 2 / 50)+1; print(step)
+    step = int(Nt / 2 / 50)+1; print('Info: TFIO: steps=%i'%(step))
     for j in range(-Nt//4, Nt//4+1, step):
         for i in range(3,10):
             try:

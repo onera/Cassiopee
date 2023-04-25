@@ -1626,6 +1626,14 @@ def refineIndependently(t, refine=[1,1,1], dim=2):
 #========================================================
 # Mesh quality informations
 #========================================================
+def printFlush(a):
+    import sys
+    if sys.version_info[0] >= 3:
+        print(a,flush=True)
+    else:
+        print(a)
+        sys.stdout.flush()
+
 def getMeshFieldInfo(m, field, critValue, verbose):
     fmin  = 1.e32
     fsum  = 0
@@ -1650,12 +1658,12 @@ def getMeshFieldInfo(m, field, critValue, verbose):
         size  += size_loc
 
         if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
-            print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,z[0]), flush=True)
+            printFlush(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,z[0]))
 
     if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
-        print('#'*(len(field)+7), flush=True)
-        print(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'), flush=True)
-        print('#'*(len(field)+7)+'\n', flush=True)
+        printFlush('#'*(len(field)+7))
+        printFlush(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
+        printFlush('#'*(len(field)+7)+'\n')
 
     return fmin, fmax, fsum/float(size), fcrit
 
