@@ -19,11 +19,13 @@
 
 # include <stdio.h>
 # include <stdlib.h>
-
 # include "converter.h"
 
 using namespace std;
 using namespace K_FLD;
+
+// 1: array1, 2: array1/2, 3: array1/2/3
+#define ARRAYCODE 2
 
 //=============================================================================
 /* Copy the contain of an array in another array */
@@ -33,7 +35,8 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   PyObject* array;  
   if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
 
-/*  // Check array
+#if ARRAYCODE == 1
+/* array1 only code */
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
@@ -66,18 +69,20 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   else
   {
     return NULL;
-  }*/
+  }
+#endif
 
-  // Check array
+#if ARRAYCODE == 2
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, cn, eltType);
   E_Int api = f->getApi();
-  
+  E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
+
   if (res == 1)
   { 
-    E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
+    // for all arrays
     PyObject* tpl = K_ARRAY::buildArray2(nfld, varString, ni, nj, nk, api);
     FldArrayF* f2; FldArrayI* cn2;
     K_ARRAY::getFromArray2(tpl, varString, f2, ni, nj, nk, cn2, eltType);
@@ -202,4 +207,117 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   {
     return NULL;
   }
+#endif
+
+#if ARRAYCODE == 3
+  E_Int ni, nj, nk, res;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
+  E_Int api = f->getApi();
+  if (res == 2) api = max(api, cn->getApi());
+  E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
+
+  if (res == 1) printf("detected apif=%d outapi=%d\n", f->getApi(), api);
+  else printf("detected apif=%d apic=%d outapi=%d\n", f->getApi(), cn->getApi(), api);
+
+  if (res == 1)
+  { 
+    // for all arrays
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk, api);
+    FldArrayF* f2; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, varString, f2, ni, nj, nk, cn2, eltType);
+
+    #pragma omp parallel
+    {
+      for (E_Int n = 1; n <= nfld; n++)
+      {
+        E_Float* fp = f->begin(n);
+        E_Float* f2p = f2->begin(n);
+        #pragma omp for
+        for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+      }
+    } 
+    RELEASESHAREDS(array, f); RELEASESHAREDS(tpl, f2);
+    return tpl;
+  }
+  else if (res == 2)
+  {
+    PyObject* tpl = NULL;
+    FldArrayF* f2; FldArrayI* cn2;
+    printf("eltType=%s\n", eltType); fflush(stdout);
+    
+    if (strcmp(eltType, "NGON") == 0 || strcmp(eltType, "NGON*") == 0)
+    {
+
+    }
+    else // BE
+    {
+      E_Int l = strlen(eltType);
+      E_Boolean center = false;
+      for (E_Int i = 0; i < l; i++)
+      { if (eltType[i] == '*') center = true; break; }
+      printf("centers=%d\n", center);
+
+      E_Int nc = cn->getNConnect();
+      printf("number of connect: nc = %d\n", nc);
+
+      if (nc == 0)
+      {
+        // single BE
+        FldArrayI& cm = *(cn->getConnect(0));
+        E_Int nelts = cm.getSize();
+        printf("nelts=%d\n", nelts); fflush(stdout);
+        tpl = K_ARRAY::buildArray3(nfld, varString,
+                npts, nelts, eltType, center, api);
+        FldArrayF* f2; FldArrayI* cn2;
+        K_ARRAY::getFromArray3(tpl, varString, f2, ni, nj, nk, cn2, eltType);
+        // copie des champs
+        #pragma omp parallel
+        {
+          for (E_Int n = 1; n <= nfld; n++)
+          {
+            E_Float* fp = f->begin(n);
+            E_Float* f2p = f2->begin(n);
+            #pragma omp for
+            for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+          }
+        }
+        
+        FldArrayI& cm2 = *(cn2->getConnect(0));
+        E_Int nvpe = cm.getNfld();
+        #pragma omp parallel
+        {
+          for (E_Int ne = 1; ne <= nvpe; ne++)
+          {
+            #pragma omp for
+            for (E_Int i = 0; i < nelts; i++)
+            {
+              cm2(i, ne) = cm(i, ne);
+            }
+          }
+        }
+      }
+      else
+      {
+        // Multiple BE
+        vector< E_Int> neltsPerType(nc);
+        for (E_Int i = 0; i < nc; i++)
+        { FldArrayI& cm = *(cn->getConnect(i));
+          neltsPerType[i] = cm.getSize(); }
+
+        tpl = K_ARRAY::buildArray3(nfld, varString,
+                npts, neltsPerType,
+                eltType, center, api);
+        K_ARRAY::getFromArray3(tpl, varString, f2, ni, nj, nk, cn2, eltType);
+      }
+    }
+    RELEASESHAREDU(array, f, cn); RELEASESHAREDU(tpl, f2, cn2);
+    return tpl;
+  }
+  else
+  {
+    return NULL;
+  }
+#endif
 }

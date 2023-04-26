@@ -23,7 +23,9 @@
 #include <iostream>
 #include <stdlib.h>
 
+#ifdef _OPENACC
 #include "openacc.h"
+#endif
 
 //==============================================================================
 PyObject* K_KCORE::testerAcc(PyObject* self, PyObject* args)
@@ -32,6 +34,7 @@ PyObject* K_KCORE::testerAcc(PyObject* self, PyObject* args)
 
     n = 100;
     double* c = new double [n];
+    for (E_Int i = 0; i < n; i++) c[i] = 0.;
 
     // Get the number of connected device
     // generally 2 : cpu + gpu
@@ -43,6 +46,7 @@ PyObject* K_KCORE::testerAcc(PyObject* self, PyObject* args)
     // force init
     //acc_init(devtype);
 
+#ifdef _OPENACC
     #pragma acc data copy(c[n])
     {
         #pragma acc parallel
@@ -51,8 +55,9 @@ PyObject* K_KCORE::testerAcc(PyObject* self, PyObject* args)
             for (int i = 0; i < n; i++) c[i] = 2.;
         }
     }
+#endif
 
-    printf("c=%f\n", c[0]);
+    printf("c=%f (must be 2)\n", c[0]);
 
     delete [] c; 
     Py_INCREF(Py_None);

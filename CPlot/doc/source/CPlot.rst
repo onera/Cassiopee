@@ -364,6 +364,8 @@ Actions
     or in mpeg export, close the mpeg file (action=1). Must be called
     when doing offscreen rendering (offscreen=1 or 2 in display function).
     
+    This function is not needed when doing offscreen rendering with osmesa.
+    
     :param action: if 0, means wait until file is written, if 1, means close mpeg file
     :type action: int
 

@@ -157,7 +157,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         //PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
         //PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
-    else
+    else // array3
     {
         ac = PyList_New(0);
         // NGON - sizeNGon

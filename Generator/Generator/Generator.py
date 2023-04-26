@@ -2437,14 +2437,6 @@ def quad2Pyra(array, hratio = 1.):
      Usage: quad2Pyra(array, hratio)"""
      return generator.quad2Pyra(array, hratio)
 
-def printFlush(a):
-    import sys
-    if sys.version_info[0] >= 3:
-        print(a,flush=True)
-    else:
-        print(a)
-        sys.stdout.flush()
-
 def getMeshFieldInfo(array, field, critValue, verbose):
     fmin  = 1.e32
     fsum  = 0
@@ -2471,12 +2463,12 @@ def getMeshFieldInfo(array, field, critValue, verbose):
         size  += size_loc
 
         if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
-            printFlush(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"Zone {}".format(cpt)))
+            print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"Zone {}".format(cpt)))
 
     if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
-        printFlush('#'*(len(field)+7))
-        printFlush(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
-        printFlush('#'*(len(field)+7)+'\n')
+        print('#'*(len(field)+7))
+        print(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
+        print('#'*(len(field)+7)+'\n')
 
     return fmin, fmax, fsum/float(size), fcrit
 

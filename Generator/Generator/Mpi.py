@@ -20,13 +20,31 @@ def bbox(t):
     Cmpi.Allreduce(bb, bb2, Cmpi.MAX)
     return [bb1[0],bb1[1],bb1[2],bb2[3],bb2[4],bb2[5]]
 
+def getRegularityMap(t, addGC=False):
+    """Return the regularity map in an array.
+    Usage: getRegularityMap(t)"""
+    if addGC: t = Cmpi.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    t = C.TZGC(t, 'centers', Generator.getRegularityMap)
+    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return t
+
 def _getRegularityMap(t, addGC=False):
+    """Return the regularity map in an array."""
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     C._TZGC(t, 'centers', Generator.getRegularityMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
 
+def getAngleRegularityMap(t, addGC=False):
+    """Return the regularity map in an array (wrt angles).
+    Usage: getAngleRegularityMap(t)"""
+    if addGC: t = Cmpi.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    t = C.TZGC(t, 'centers', Generator.getAngleRegularityMap)
+    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return t
+    
 def _getAngleRegularityMap(t, addGC=False):
+    """Return the regularity map in an array (wrt angles)."""
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     C._TZGC(t, 'centers', Generator.getAngleRegularityMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
@@ -59,7 +77,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
         size  += size_loc
 
         if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
-            G.printFlush(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"rank {} - {}".format(Cmpi.rank,z[0])))
+            print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"rank {} - {}".format(Cmpi.rank,z[0])))
 
     Cmpi.barrier()
 
@@ -72,9 +90,9 @@ def getMeshFieldInfo(m, field, critValue, verbose):
     fmean = fsum/float(size)
 
     if Cmpi.rank == 0 and (verbose == 2 or (verbose == 1 and fcrit_loc > 0)):
-        G.printFlush('#'*(len(field)+7))
-        G.printFlush(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
-        G.printFlush('#'*(len(field)+7)+'\n')
+        print('#'*(len(field)+7))
+        print(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
+        print('#'*(len(field)+7)+'\n')
 
     Cmpi.barrier()
 

@@ -2007,21 +2007,29 @@ def getValue(node):
     if isinstance(n, numpy.ndarray):
         if n.dtype.char == 'S':
             if len(n.shape) == 1:
-                if version_info[0] == 2: return n.tobytes()
+                if version_info[0] == 2: 
+                    try: return n.tobytes()
+                    except: return n.tostring()
                 else: return n.tobytes().decode()
             out = []
             for i in range(n.shape[1]):
-                if version_info[0] == 2: v = n[:,i].tobytes()
+                if version_info[0] == 2: 
+                    try: v = n[:,i].tobytes()
+                    except: v = n[:,i].tostring()
                 else: v = n[:,i].tobytes().decode()
                 out.append(v.strip())
             return out
         elif n.dtype.char == 'c':
             if len(n.shape) == 1:
-                if version_info[0] == 2: return n.tobytes()
+                if version_info[0] == 2: 
+                    try: return n.tobytes()
+                    except: return n.tostring()
                 else: return n.tobytes().decode()
             out = []
             for i in range(n.shape[1]):
-                if version_info[0] == 2: v = n[:,i].tobytes()
+                if version_info[0] == 2: 
+                    try: v = n[:,i].tobytes()
+                    except: v = n[:,i].tostring()
                 else: v = n[:,i].tobytes().decode()
                 out.append(v.strip())
             return out

@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "CompGeom/compGeom.h"
+#include <cmath>
 
 //==============================================================================
 /*

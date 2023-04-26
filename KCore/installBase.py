@@ -594,6 +594,22 @@ True, # useOMP
 False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
+[], # additionalLibs
+[], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+##############################################################################
+'visung_el8': [ 'Machine de post gfx (Onera)',
+'ifx', # f77compiler
+'ifx', # f90compiler
+'icx', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+False, # CPlotOffScreen
+[], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
 [], # additionalLibPaths
 False, # useCuda
