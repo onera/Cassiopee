@@ -81,6 +81,11 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
     from . import CartGen
     return CartGen.cartRx3(XC0, XC1, HC, XF0, XF1, R, dim, rank, size)
 
+def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=None):
+    """Create a set of regular and geometric cartesian grids with double steps and a hole inside the cartesian region."""
+    from . import CartGen
+    return CartGen.cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim, rank, size)
+
 #------------------------------------------------------------------------------
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste
 # de contours ou surfaces
@@ -1115,11 +1120,11 @@ def TFITri(a1, a2, a3):
             C.convertArrays2ZoneNode('tfi2', [r2]),
             C.convertArrays2ZoneNode('tfi3', [r3])]
 
-def TFIO(a):
+def TFIO(a, weight=None):
     """Generate a transfinite interpolation mesh from 1 input curve.
-    Usage: TFIO(a)"""
+    Usage: TFIO(a, weight)"""
     a = C.getFields(Internal.__GridCoordinates__, a)[0]
-    r1,r2,r3,r4,r5 = Generator.TFIO(a)
+    r1,r2,r3,r4,r5 = Generator.TFIO(a, weight)
     return [C.convertArrays2ZoneNode('tfi1', [r1]),
             C.convertArrays2ZoneNode('tfi2', [r2]),
             C.convertArrays2ZoneNode('tfi3', [r3]),
@@ -1632,7 +1637,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
     fmax  = -1.
     fcrit = 0
     size  = 0
-    info = 'INFO {} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
+    info = 'INFO {}: min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
 
     for z in Internal.getZones(m):
         f = Internal.getNodeFromName(z, field)[1]

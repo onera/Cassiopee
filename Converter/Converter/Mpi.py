@@ -78,6 +78,12 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     tl = rmXZones(tl)
     return tl
 
+def addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
+    """Add ghost cells to pyTree."""
+    tp = Internal.copyRef(t)
+    _addGhostCells(tp, b, d, adaptBCs=adaptBCs, modified=modified, fillCorner=fillCorner)
+    return tp
+
 # addGhostCells parallel
 # si modified=[], transferts tous les champs
 # si modified=None, transfert aucun champ

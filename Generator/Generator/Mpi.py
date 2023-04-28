@@ -59,7 +59,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
     fmax  = -1.
     fcrit = 0
     size  = 0
-    info = 'INFO {} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
+    info = 'INFO {}: min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
 
     for z in Internal.getZones(m):
         f = Internal.getNodeFromName(z, field)[1]

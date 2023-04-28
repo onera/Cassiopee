@@ -894,11 +894,11 @@ def TFITri(a1, a2, a3):
     from . import TFIs
     return TFIs.TFITri(a1, a2, a3)
 
-def TFIO(a):
+def TFIO(a, weight=None):
     """Generate a transfinite interpolation mesh for 1 input curve.
-    Usage: TFIO(a)"""
+    Usage: TFIO(a, weight)"""
     from . import TFIs
-    return TFIs.TFIO(a)
+    return TFIs.TFIO(a, weight)
 
 def TFIHalfO(a1, a2):
     """Generate a transfinite interpolation mesh for 2 input curves.
@@ -2443,7 +2443,7 @@ def getMeshFieldInfo(array, field, critValue, verbose):
     fmax  = -1.
     fcrit = 0
     size  = 0
-    info = 'INFO {} : min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
+    info = 'INFO {}: min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
 
     DictFunction = {'vol':getVolumeMap, 'orthogonality':getOrthogonalityMap, 'regularity':getRegularityMap, 'regularityAngle':getAngleRegularityMap}
 

@@ -177,13 +177,15 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
         {
           E_Int* cn1 = cn->begin(1);
           E_Int* cn2 = cn->begin(2);
+          E_Int ind1, ind2;
+          E_Float dx, dy, dz;
           for (E_Int i = 0; i < nelts; i++)
           {
-            E_Int ind1 = cn1[i]-1; 
-            E_Int ind2 = cn2[i]-1;
-            E_Float dx = xt[ind2]-xt[ind1];
-            E_Float dy = yt[ind2]-yt[ind1];
-            E_Float dz = zt[ind2]-zt[ind1];
+            ind1 = cn1[i]-1; 
+            ind2 = cn2[i]-1;
+            dx = xt[ind2]-xt[ind1];
+            dy = yt[ind2]-yt[ind1];
+            dz = zt[ind2]-zt[ind1];
             fieldp[i] = sqrt(dx*dx + dy*dy + dz*dz);
           }
         }

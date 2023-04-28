@@ -7,6 +7,8 @@ except ImportError:
 try: range = xrange
 except: pass
 
+import numpy
+
 #==============================================================================
 # Evalue la qualite du maillage m
 # Plus le score est elevee pour le maillage est mauvais
@@ -215,16 +217,31 @@ def TFIO__(a, weight, offset=0):
 
 #==============================================================================
 # TFI O (N impair)
+# Cherche a optimiser weight et offset.
+# Weight: poids pour positionner les 4 points interieurs, si weight est grand
+# les points sont plus proche de a.
+# Offset: decalage des points sur a par rapport a une projection nearest node
+# des points interieurs
 #==============================================================================
-def TFIO(a):
+def TFIO(a, weight=None):
     """O-TFI from one edge.""" 
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = a[2]
     if Nt//2 - Nt*0.5 == 0: raise ValueError("TFIO: number of points must be odd.")
 
-    step = int(Nt / 2 / 50)+1; print('Info: TFIO: steps=%i'%(step))
+    # step: si Nt est tres grand, on diminue le nbre de test pour offseter les points
+    step = int(Nt / 2 / 50)+1
+
+    # si weight est donne, on l'utilise sinon plage de recherche de 3 a 10
+    if weight is None: weightRange = numpy.arange(3.,10.,1.)
+    elif isinstance(weight, float): weightRange = numpy.arange(weight, weight+1)
+    elif isinstance(weight, int): weightRange = numpy.arange(weight, weight+1)
+    elif len(weight) == 2: weightRange = numpy.arange(weight[0],weight[1],1.)
+    elif len(weight) == 3: weightRange = numpy.arange(weight[0],weight[1],weight[2])
+    else: weightRange = numpy.arange(3.,10.,1.)
+
     for j in range(-Nt//4, Nt//4+1, step):
-        for i in range(3,10):
+        for i in weightRange:
             try:
                 [m,m1,m2,m3,m4] = TFIO__(a, i, j)
                 score = quality([m,m1,m2,m3,m4])
