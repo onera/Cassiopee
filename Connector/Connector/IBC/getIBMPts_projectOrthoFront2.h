@@ -4,7 +4,7 @@ rad = sqrt(rx*rx+ry*ry+rz*rz);
 minB[0] = pt[0]-rad; minB[1] = pt[1]-rad; minB[2] = pt[2]-rad;
 maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
 dist2 = K_CONST::E_MAX_FLOAT;
-for(E_Int nos = 0; nos < nfront2s; nos++)
+for (E_Int nos = 0; nos < nfront2s; nos++)
 {
     K_SEARCH::BbTree3D* bbtree = vectOfFront2BBTrees[nos];
     bbtree->getOverlappingBoxes(minB, maxB, indicesBB);
@@ -15,9 +15,10 @@ for(E_Int nos = 0; nos < nfront2s; nos++)
         E_Float* zs = unstrf2F[nos]->begin(poszf2[nos]);
         notri = K_COMPGEOM::projectOrthoPrecond(xc0, yc0, zc0, xs, ys, zs, 
                                                 indicesBB, *cnf2[nos], 
-                                                xw0, yw0, zw0);
+                                                xw0, yw0, zw0,
+                                                p0, p1, p2, p);
         indicesBB.clear();
-        if ( notri > -1)
+        if (notri > -1)
         {
             cnVert1 = cnf2[nos]->begin(1);
             cnVert2 = cnf2[nos]->begin(2);

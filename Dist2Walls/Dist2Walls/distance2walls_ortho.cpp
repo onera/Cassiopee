@@ -268,7 +268,7 @@ void K_DIST2WALLS::computeOrthoDist(
   for (E_Int v = 0; v < nwalls; v++)
   {
     nptsmax += fieldsw[v]->getSize();
-#include "mininterf_ortho_npts_limit.h"
+    #include "mininterf_ortho_npts_limit.h"
   }
   FldArrayF* wallpts = new FldArrayF(nptsmax, 3);
   FldArrayF* lmax = new FldArrayF(nptsmax);
@@ -282,6 +282,7 @@ void K_DIST2WALLS::computeOrthoDist(
   E_Int nop = 0;
   E_Int ind;
   vector<FldArrayF> bboxes;
+
   for (E_Int now = 0; now < nwalls; now++)
   {
     FldArrayF* fieldv = fieldsw[now];
@@ -294,7 +295,7 @@ void K_DIST2WALLS::computeOrthoDist(
     FldArrayI& cnloc = *cntw[now];
     E_Int nelts = cnloc.getSize(); E_Int nvert = cnloc.getNfld();
     vector<BBox3DType*> boxes(nelts); // liste des bbox de ts les elements de la paroi courante
-    FldArrayF bbox(nelts, 6);// xmin, ymin, zmin, xmax, ymax, zmax
+    FldArrayF bbox(nelts, 6); // xmin, ymin, zmin, xmax, ymax, zmax
     K_COMPGEOM::boundingBoxOfUnstrCells(cnloc, xw, yw, zw, bbox); bboxes.push_back(bbox);
     E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
     E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
@@ -356,6 +357,7 @@ void K_DIST2WALLS::computeOrthoDist(
   /* Compute the distance with orthogonal projection */
   E_Float pt[3]; 
   vector<E_Int> indicesBB; vector<E_Int> candidates;
+
   for (E_Int v = 0; v < nzones; v++)
   {
     E_Float* xt = fields[v]->begin(posx);
@@ -380,7 +382,8 @@ void K_DIST2WALLS::computeOrthoDist(
     E_Int posxw, posyw, poszw, poscw;
     E_Float A, rad2, alpha, R, xQ, yQ, zQ, rmax;
     E_Float* xw; E_Float* yw; E_Float* zw; E_Float* cellnw;
-
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+  
     if (isFlagged == true)
     {
       #pragma omp for schedule(dynamic)
@@ -410,7 +413,7 @@ void K_DIST2WALLS::computeOrthoDist(
   {
     E_Float* distancep = distances[v]->begin();
     E_Int npts = distances[v]->getSize();
-#pragma omp parallel for
+    #pragma omp parallel for
     for (E_Int ind = 0; ind < npts; ind++)
       distancep[ind] = sqrt(distancep[ind]);
   }

@@ -237,10 +237,10 @@ void K_DIST2WALLS::computeMininterf(
   vector<vector< vector<E_Int>  > >cVE_all;
   vector<E_Int> npts_walls_limit;
   for (E_Int v = 0; v < nwalls; v++)
-    {
-      nptsmax += fieldsw[v]->getSize();
-#include "mininterf_ortho_npts_limit.h"
-    }
+  {
+    nptsmax += fieldsw[v]->getSize();
+    #include "mininterf_ortho_npts_limit.h"
+  }
   FldArrayF* wallpts = new FldArrayF(nptsmax,3);
   E_Float* xw2 = wallpts->begin(1);
   E_Float* yw2 = wallpts->begin(2);
@@ -287,44 +287,47 @@ void K_DIST2WALLS::computeMininterf(
   KdTree<FldArrayF> kdt(coordAcc, E_EPSILON);
   
   /* Detection de la paroi la plus proche */
-  E_Float pt[3];
-  for (E_Int v = 0; v < nzones; v++)
+  #pragma omp parallel
   {
-    E_Int ncells = ncellst[v];
-    E_Float* xt = fields[v]->begin(posx);
-    E_Float* yt = fields[v]->begin(posy);
-    E_Float* zt = fields[v]->begin(posz);
-    E_Float* distancep = distances[v]->begin();
-    if (isminortho == 1)
-    {
-#pragma omp parallel for default(shared) private(pt) schedule(dynamic)
-    for (E_Int ind = 0; ind < ncells; ind++)
-	{
-	  E_Int ret, vw;
-	  E_Int indw2;
+    E_Float pt[3];
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+    E_Int ret, vw, indw2;
 	  E_Float dist, distmin, dx, dy, dz;
-	  pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
-	  indw2 = kdt.getClosest(pt);
-#include "mininterf.h"
-#include "mininterf_ortho.h"
-	  if (ret != -1){
-	    dx = xp_local-pt[0]; dy = yp_local-pt[1]; dz = zp_local-pt[2];
-	    dist = dx*dx + dy*dy + dz*dz;
-	    if (dist < distmin) { distancep[ind] = sqrt(dist); distmin = dist; }
-	  }
-	} // fin boucle
-    }
-    else
+
+    for (E_Int v = 0; v < nzones; v++)
     {
-#pragma omp parallel for default(shared) private(pt) schedule(dynamic)
-      for (E_Int ind = 0; ind < ncells; ind++)
-	{
-	  E_Int indw2;
-	  E_Float dist, distmin, dx, dy, dz;
-	  pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
-	  indw2 = kdt.getClosest(pt);
-#include "mininterf.h"
-	} // fin boucle
+      E_Int ncells = ncellst[v];
+      E_Float* xt = fields[v]->begin(posx);
+      E_Float* yt = fields[v]->begin(posy);
+      E_Float* zt = fields[v]->begin(posz);
+      E_Float* distancep = distances[v]->begin();
+      if (isminortho == 1)
+      {
+#pragma omp for schedule(dynamic)
+        for (E_Int ind = 0; ind < ncells; ind++)
+	      {
+	        pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
+	        indw2 = kdt.getClosest(pt);
+          #include "mininterf.h"
+          #include "mininterf_ortho.h"
+	        if (ret != -1)
+          {
+	          dx = xp_local-pt[0]; dy = yp_local-pt[1]; dz = zp_local-pt[2];
+	          dist = dx*dx + dy*dy + dz*dz;
+	          if (dist < distmin) { distancep[ind] = sqrt(dist); distmin = dist; }
+	        }
+	      } // fin boucle
+      }
+      else
+      {
+#pragma omp for schedule(dynamic)
+        for (E_Int ind = 0; ind < ncells; ind++)
+	      {
+	        pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
+	        indw2 = kdt.getClosest(pt);
+          #include "mininterf.h"
+	      } // fin boucle
+      }
     }
   }
   delete wallpts;

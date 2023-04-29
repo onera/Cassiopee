@@ -68,7 +68,8 @@
     {
         // find the right wall
         ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
-                                              candidates, cnloc, xp, yp, zp);
+                                              candidates, cnloc, xp, yp, zp,
+                                              p0, p1, p2, p);
         if (ret != -1)
         {
           dx = xp-pt[0]; dy = yp-pt[1]; dz = zp-pt[2];
@@ -117,7 +118,8 @@
                 if (prod != 0. && prod != prodCellN2) candidates.push_back(et);
             }
             ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
-                                                candidates, cnloc, xp, yp, zp);
+                                                candidates, cnloc, xp, yp, zp,
+                                                p0, p1, p2, p);
             if (ret != -1)
             {
                 dx = xp-pt[0]; dy = yp-pt[1]; dz = zp-pt[2];
@@ -175,7 +177,8 @@
               if (prod != 0. && prod != prodCellN2) candidates.push_back(et);
             }
             ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
-                                                  candidates, cnloc, xp, yp, zp);
+                                                  candidates, cnloc, xp, yp, zp,
+                                                  p0, p1, p2, p);
             if (ret != -1)
             {
               dx = xp-pt[0]; dy = yp-pt[1]; dz = zp-pt[2];

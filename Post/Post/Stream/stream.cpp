@@ -284,8 +284,8 @@ short K_POST::compRungeKutta4(
   else //ordre 2 structure
   {cf.malloc(8); indi.malloc(1);}
   FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
-
   FldArrayF up2(3);
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
   E_Float vol2 = 0.;
   // Si la surface n'est pas nulle, on projette le point sur cette surface
   if (sizeSurf != 0)
@@ -293,7 +293,8 @@ short K_POST::compRungeKutta4(
     K_COMPGEOM::projectOrtho(xp2, yp2, zp2,
                              xSurf, ySurf, zSurf,
                              connectSurf, 
-                             xp2, yp2, zp2);
+                             xp2, yp2, zp2,
+                             p0, p1, p2, p);
   }
   E_Int type = 0; E_Int noblk = 0;
   short found = K_INTERP::getInterpolationCell(xp2, yp2, zp2, allInterpDatas,
@@ -332,7 +333,8 @@ short K_POST::compRungeKutta4(
     K_COMPGEOM::projectOrtho(xp2, yp2, zp2,
                              xSurf, ySurf, zSurf,
                              connectSurf, 
-                             xp2, yp2, zp2);
+                             xp2, yp2, zp2,
+                             p0, p1, p2, p);
   }
   type = 0; noblk = 0;
   found = K_INTERP::getInterpolationCell( xp2, yp2, zp2, allInterpDatas,
@@ -374,7 +376,8 @@ short K_POST::compRungeKutta4(
     K_COMPGEOM::projectOrtho(xp2, yp2, zp2,
                              xSurf, ySurf, zSurf,
                              connectSurf, 
-                             xp2, yp2, zp2);
+                             xp2, yp2, zp2,
+                             p0, p1, p2, p);
   }
   type = 0; noblk = 0;
   found = K_INTERP::getInterpolationCell( xp2, yp2, zp2, allInterpDatas,
@@ -445,6 +448,7 @@ short K_POST::initStreamLine(
 {
   FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
   E_Int noblkp0 = -1;
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3]; 
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
   vector<K_INTERP::InterpData*> allInterpDatas;
@@ -496,7 +500,8 @@ short K_POST::initStreamLine(
     K_COMPGEOM::projectOrtho(xp, yp, zp,
                              xSurf, ySurf, zSurf,
                              connectSurf, 
-                             xp, yp, zp);
+                             xp, yp, zp,
+                             p0, p1, p2, p);
   }
   // pt 0 : no du blk d interpolation dans interpDatas : demarre a 1 
   E_Int type = 0; E_Int noblkp = 0; E_Float voli = 0.;

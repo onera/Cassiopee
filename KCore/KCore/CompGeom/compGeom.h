@@ -510,13 +510,15 @@ typedef struct {
   E_Int projectOrtho(E_Float x, E_Float y, E_Float z,
                      E_Float* fx2, E_Float* fy2, E_Float* fz2,
                      K_FLD::FldArrayI& cn2, 
-                     E_Float& xo, E_Float& yo, E_Float& zo);
+                     E_Float& xo, E_Float& yo, E_Float& zo,
+                     E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p);
   /* Meme chose mais indices est la liste des elements de cn2 a 
      parcourir uniquement */
   E_Int projectOrthoPrecond(E_Float x, E_Float y, E_Float z,
                             E_Float* fx2, E_Float* fy2, E_Float* fz2,
                             std::vector<E_Int> indices, K_FLD::FldArrayI& cn2, 
-                            E_Float& xo, E_Float& yo, E_Float& zo);
+                            E_Float& xo, E_Float& yo, E_Float& zo,
+                            E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p);
 
   /* Projection orthogonale des pts de coordonnees fx,fy,fz a projeter 
      orthogonalement sur une surface de cn cn2, coords fx2, fy2, fz2. 

@@ -37,12 +37,11 @@ using namespace std;
 E_Int K_COMPGEOM::projectOrtho(E_Float x, E_Float y, E_Float z,
                                E_Float* fx2, E_Float* fy2, E_Float* fz2,
                                K_FLD::FldArrayI& cn2, 
-                               E_Float& xo, E_Float& yo, E_Float& zo)
+                               E_Float& xo, E_Float& yo, E_Float& zo,
+                               E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p)
 {
   E_Int noet = -1;
-  E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
   E_Int ret; 
-  E_Float p[3];
   p[0] = x; p[1] = y; p[2] = z;
   
   E_Float distc = 1.e6;
@@ -114,12 +113,11 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
   E_Float x, E_Float y, E_Float z,
   E_Float* fx2, E_Float* fy2, E_Float* fz2,
   std::vector<E_Int> indices, K_FLD::FldArrayI& cn2, 
-  E_Float& xo, E_Float& yo, E_Float& zo)
+  E_Float& xo, E_Float& yo, E_Float& zo,
+  E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p)
 {
   E_Int noet = -1;
-  E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
   E_Int ret;
-  E_Float p[3];
   p[0] = x; p[1] = y; p[2] = z;
   
   E_Float distc = 1e6;
@@ -194,10 +192,12 @@ void K_COMPGEOM::projectOrthoWithoutPrecond(
 {
   E_Float xo, yo, zo;
   E_Int ret = 0;
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+
   for (E_Int ind = 0; ind < npts; ind++)
   {
     ret = projectOrtho(fx[ind], fy[ind], fz[ind], 
-                       fx2, fy2, fz2, cn2, xo, yo, zo);
+                       fx2, fy2, fz2, cn2, xo, yo, zo, p0, p1, p2, p);
     if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
   }
 }
@@ -240,6 +240,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   
   // projection des pts de f sur f2
   E_Float xo, yo, zo; E_Float pt[3];
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[2]; E_Float p[3];
   E_Int ret = 0; E_Int indp = 0; 
   E_Float rx, ry, rz, rad;
   vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
@@ -265,7 +266,8 @@ void K_COMPGEOM::projectOrthoWithPrecond(
       bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
       
       ret = projectOrthoPrecond(fx[ind], fy[ind], fz[ind], 
-                                fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo);
+                                fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo,
+                                p0, p1, p2, p);
       if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
       indicesBB.clear();
     }
@@ -315,6 +317,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   
   // projection des pts de f sur f2
   E_Float xo, yo, zo; E_Float pt[3];
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
   E_Int ret = 0; E_Int indp = 0; 
   E_Float rx, ry, rz, rad;
   vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
@@ -333,7 +336,8 @@ void K_COMPGEOM::projectOrthoWithPrecond(
     bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
 
     ret = projectOrthoPrecond(fx[ind], fy[ind], fz[ind], 
-                              fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo);
+                              fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo,
+                              p0, p1, p2, p);
     if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
     indicesBB.clear();
   }

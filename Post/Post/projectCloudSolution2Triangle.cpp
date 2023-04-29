@@ -172,6 +172,7 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
   //projection des points de fd(nuage) sur fr(TRI)
   E_Float xo, yo, zo, rx, ry, rz, rad;
   E_Float pt[3];
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
   E_Int indev, indR;
   vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
   E_Int nbPtsD = fd->getSize();
@@ -205,7 +206,8 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
       maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
       bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
       indev = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2],
-                                              xtRcv, ytRcv, ztRcv, indicesBB, *cnr, xo, yo, zo);
+                                              xtRcv, ytRcv, ztRcv, indicesBB, *cnr, 
+                                              xo, yo, zo, p0, p1, p2, p);
       indicesBB.clear();
       if (indev != -1)
       {
@@ -272,7 +274,7 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
                                     listOfCloudPtsPerVertex.end());
       // if the MLS cloud is not big enough : increase it - then closest pt should be used
       E_Int sizeOfCloud = listOfCloudPtsPerVertex.size();
-      if ( sizeOfCloud < sizeMinOfCloud)
+      if (sizeOfCloud < sizeMinOfCloud)
       {
         for (size_t noe = 0; noe < eltsVoisins.size(); noe++)
         {

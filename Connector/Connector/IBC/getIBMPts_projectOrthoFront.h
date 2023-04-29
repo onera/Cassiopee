@@ -15,7 +15,8 @@ for(E_Int nos = 0; nos < nfronts; nos++)
         E_Float* zs = unstrfF[nos]->begin(poszf[nos]);
         notri = K_COMPGEOM::projectOrthoPrecond(xc0, yc0, zc0, xs, ys, zs, 
                                                 indicesBB, *cnf[nos], 
-                                                xw0, yw0, zw0);
+                                                xw0, yw0, zw0,
+                                                p0, p1, p2, p);
         indicesBB.clear();
         if ( notri > -1)
         {

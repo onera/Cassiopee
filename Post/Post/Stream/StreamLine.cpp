@@ -301,7 +301,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                                                 structInterpDatas,
                                                 structVector, vnames);
 
-    if ( found != 1)
+    if (found != 1)
     {
       if ( ress != -1000 ) RELEASESHAREDU(surfArray, f, cnSurf);
       for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
@@ -312,7 +312,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
         RELEASESHAREDS(objs[nos], structF[nos]);
       for (unsigned int nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
-      if (found == -1 ) 
+      if (found == -1) 
         PyErr_SetString(PyExc_ValueError,
                         "streamLine: no field corresponding to vector component.");
       else // found = -2 uniquement pour l instant
@@ -331,18 +331,18 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                                                unstrVarStrings, unstrFields, connectu,
                                                eltTypes, unstrInterpDatas,
                                                unstrVector, vnames); 
-    if ( found != 1)
+    if (found != 1)
     {
       if ( ress != -1000 ) RELEASESHAREDU(surfArray, f, cnSurf);
-      for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+      for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
         delete structInterpDatas1[nos];
-      for (unsigned int nos = 0; nos < unstrInterpDatas2.size(); nos++)
+      for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
         delete unstrInterpDatas2[nos];
-      for (unsigned int nos = 0; nos < objs.size(); nos++)
+      for (size_t nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
-      for (unsigned int nos = 0; nos < obju.size(); nos++)
+      for (size_t nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
-      if (found == -1 ) 
+      if (found == -1) 
         PyErr_SetString(PyExc_ValueError,
                         "streamLine: no field corresponding to vector component.");
       else // found = -2 uniquement pour l instant
@@ -604,13 +604,14 @@ short K_POST::updateStreamLinePoint(
   FldArrayI tmpIndin(indip.getSize()); FldArrayF tmpCfn(cfp.getSize());
 
   E_Int noblkn=0;
-  short isThetaValid = 0; //theta compris entre 2deg et 15deg : 1
+  short isThetaValid=0; //theta compris entre 2deg et 15deg : 1
   short isOk;
   short cnt=0;
   short cntmax=4;
   E_Int noblkn0;
   short found=0;
   FldArrayF un(3);
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
 
   while (isThetaValid == 0 && cnt < cntmax)
   {
@@ -620,7 +621,8 @@ short K_POST::updateStreamLinePoint(
       K_COMPGEOM::projectOrtho(xp, yp, zp,
                                xSurf, ySurf, zSurf,
                                connectSurf,
-                               xp, yp, zp);
+                               xp, yp, zp,
+                               p0, p1, p2, p);
     }
 
     // 1- calcul du pt X(n+1)
@@ -659,7 +661,8 @@ short K_POST::updateStreamLinePoint(
           K_COMPGEOM::projectOrtho(xn, yn, zn,
                                    xSurf, ySurf, zSurf,
                                    connectSurf, 
-                                   xn, yn, zn);
+                                   xn, yn, zn,
+                                   p0, p1, p2, p);
         }
         noblkn0 = noblkn-1;
         // Calcul de Un

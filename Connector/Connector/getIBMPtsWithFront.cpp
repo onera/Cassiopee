@@ -439,6 +439,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     E_Float dist2, distl;
     vector<E_Int> indicesBB; 
     E_Float pr1[3]; E_Float pr2[3]; E_Float pt[3];
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
     E_Int oriented = 1;
     E_Int ok, notri, indvert1, indvert2, indvert3, indp;
     E_Float rx, ry, rz, rad; 

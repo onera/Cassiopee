@@ -980,9 +980,13 @@ def stopTests():
     if PROCESS is not None: 
         if mySystem == 'mingw' or mySystem == 'windows':
             subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
-        else:
-            # use signal.SIGKILL ?
+        else: # unix
+            # try soft, then hard
             os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
+            os.kill(PROCESS.pid, signal.SIGTERM)
+            os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
+            os.kill(PROCESS.pid, signal.SIGKILL)
+            
         PROCESS = None
         displayStatus(0)
 

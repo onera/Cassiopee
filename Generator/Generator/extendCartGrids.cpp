@@ -111,7 +111,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
 
   // Determination des extensions pour chq zone a partir de l'octree
   E_Int extg = ext; E_Int extf = ext;
-  if ( optimized == 1 ) {extg = ext-1;}
+  if (optimized == 1) {extg = ext-1;}
 
   FldArrayI extension(nzones, 6); extension.setAllValuesAtNull();
   vector<E_Int> indicesBB;
@@ -132,7 +132,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   E_Float *xt1, *yt1, *zt1, *xt2, *yt2, *zt2;
   E_Float dhmax;
   E_Int found1, found2, found3, found4;
-  vector< vector<E_Int> > dejaVu(nzones); 
+  vector< vector<E_Int> > dejaVu(nzones);
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
   E_Float diff;
   if (dim == 2) 
   {
@@ -177,7 +178,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt A sur la facette opposee
         ret = K_COMPGEOM::projectOrtho(xt1[indA1], yt1[indA1], zt1[indA1], 
                                        face.begin(1), face.begin(2), 
-                                       face.begin(3), cnf, xp, yp, zp);
+                                       face.begin(3), cnf, xp, yp, zp,
+                                       p0, p1, p2, p);
         dx = xp-xt1[indA1]; dy = yp-yt1[indA1]; dz = zp-zt1[indA1];
         if (ret > -1 && dx*dx + dy*dy + dz*dz <= tol2) 
         {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
@@ -186,7 +188,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt D sur la facette opposee
         ret = K_COMPGEOM::projectOrtho(xt1[indD1], yt1[indD1], zt1[indD1], 
                                        face.begin(1), face.begin(2), 
-                                       face.begin(3), cnf, xp, yp, zp);
+                                       face.begin(3), cnf, xp, yp, zp,
+                                       p0, p1, p2, p);
         dx = xp-xt1[indD1]; dy = yp-yt1[indD1]; dz = zp-zt1[indD1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -246,7 +249,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt B sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indB1], yt1[indB1], zt1[indB1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indB1]; dy = yp-yt1[indB1]; dz = zp-zt1[indB1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
@@ -255,7 +259,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt C sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indC1], yt1[indC1], zt1[indC1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indC1]; dy = yp-yt1[indC1]; dz = zp-zt1[indC1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -317,7 +322,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt A sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indA1], yt1[indA1], zt1[indA1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indA1]; dy = yp-yt1[indA1]; dz = zp-zt1[indA1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
@@ -326,7 +332,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt B sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indB1], yt1[indB1], zt1[indB1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indB1]; dy = yp-yt1[indB1]; dz = zp-zt1[indB1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -386,7 +393,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt B sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indC1], yt1[indC1], zt1[indC1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indC1]; dy = yp-yt1[indC1]; dz = zp-zt1[indC1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
@@ -395,7 +403,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt C sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indD1], yt1[indD1], zt1[indD1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indD1]; dy = yp-yt1[indD1]; dz = zp-zt1[indD1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -482,7 +491,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt A sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indA1], yt1[indA1], zt1[indA1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indA1]; dy = yp-yt1[indA1]; dz = zp-zt1[indA1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
@@ -491,7 +501,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt D sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indD1], yt1[indD1], zt1[indD1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indD1]; dy = yp-yt1[indD1]; dz = zp-zt1[indD1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -500,7 +511,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt H sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indH1], yt1[indH1], zt1[indH1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indH1]; dy = yp-yt1[indH1]; dz = zp-zt1[indH1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found3 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -509,7 +521,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt E sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indE1], yt1[indE1], zt1[indE1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indE1]; dy = yp-yt1[indE1]; dz = zp-zt1[indE1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 )
         { found4 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -577,7 +590,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt B sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indB1], yt1[indB1], zt1[indB1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indB1]; dy = yp-yt1[indB1]; dz = zp-zt1[indB1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -586,7 +600,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt C sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indC1], yt1[indC1], zt1[indC1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indC1]; dy = yp-yt1[indC1]; dz = zp-zt1[indC1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -595,7 +610,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt G sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indG1], yt1[indG1], zt1[indG1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indG1]; dy = yp-yt1[indG1]; dz = zp-zt1[indG1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found3 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -604,7 +620,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt F sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indF1], yt1[indF1], zt1[indF1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indF1]; dy = yp-yt1[indF1]; dz = zp-zt1[indF1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 )
         { found4 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -673,7 +690,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt A sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indA1], yt1[indA1], zt1[indA1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indA1]; dy = yp-yt1[indA1]; dz = zp-zt1[indA1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -682,7 +700,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt B sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indB1], yt1[indB1], zt1[indB1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indB1]; dy = yp-yt1[indB1]; dz = zp-zt1[indB1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -691,7 +710,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt F sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indF1], yt1[indF1], zt1[indF1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indF1]; dy = yp-yt1[indF1]; dz = zp-zt1[indF1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found3 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -700,7 +720,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt E sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indE1], yt1[indE1], zt1[indE1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indE1]; dy = yp-yt1[indE1]; dz = zp-zt1[indE1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 )
         { found4 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -768,7 +789,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt D sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indD1], yt1[indD1], zt1[indD1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indD1]; dy = yp-yt1[indD1]; dz = zp-zt1[indD1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -777,7 +799,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt C sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indC1], yt1[indC1], zt1[indC1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indC1]; dy = yp-yt1[indC1]; dz = zp-zt1[indC1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -786,7 +809,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt G sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indG1], yt1[indG1], zt1[indG1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indG1]; dy = yp-yt1[indG1]; dz = zp-zt1[indG1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found3 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -795,7 +819,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt H sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indH1], yt1[indH1], zt1[indH1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indH1]; dy = yp-yt1[indH1]; dz = zp-zt1[indH1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 )
         { found4 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -861,7 +886,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt A sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indA1], yt1[indA1], zt1[indA1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indA1]; dy = yp-yt1[indA1]; dz = zp-zt1[indA1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
@@ -870,7 +896,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt B sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indB1], yt1[indB1], zt1[indB1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indB1]; dy = yp-yt1[indB1]; dz = zp-zt1[indB1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -879,7 +906,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt C sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indC1], yt1[indC1], zt1[indC1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indC1]; dy = yp-yt1[indC1]; dz = zp-zt1[indC1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found3 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -888,7 +916,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt D sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indD1], yt1[indD1], zt1[indD1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indD1]; dy = yp-yt1[indD1]; dz = zp-zt1[indD1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 )
         { found4 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -955,7 +984,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt E sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indE1], yt1[indE1], zt1[indE1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indE1]; dy = yp-yt1[indE1]; dz = zp-zt1[indE1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
@@ -964,7 +994,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt F sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indF1], yt1[indF1], zt1[indF1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indF1]; dy = yp-yt1[indF1]; dz = zp-zt1[indF1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -973,7 +1004,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt G sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indG1], yt1[indG1], zt1[indG1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indG1]; dy = yp-yt1[indG1]; dz = zp-zt1[indG1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
         { found3 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
@@ -982,7 +1014,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         // projeter le pt H sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indH1], yt1[indH1], zt1[indH1], 
                                         face.begin(1), face.begin(2), 
-                                        face.begin(3), cnf, xp, yp, zp);
+                                        face.begin(3), cnf, xp, yp, zp,
+                                        p0, p1, p2, p);
         dx = xp-xt1[indH1]; dy = yp-yt1[indH1]; dz = zp-zt1[indH1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 )
         { found4 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
