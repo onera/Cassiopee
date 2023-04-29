@@ -65,7 +65,7 @@ E_Int K_COMPGEOM::projectDir(E_Float x, E_Float y, E_Float z,
   pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
   pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
 
-  E_Float distc = 1e6;
+  E_Float distc = 1.e6;
   E_Float dist;
   E_Int ind1, ind2, ind3;
   E_Int nvert = cn2.getNfld();
