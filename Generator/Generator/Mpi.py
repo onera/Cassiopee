@@ -61,8 +61,12 @@ def getMeshFieldInfo(m, field, critValue, verbose):
     size  = 0
     info = 'INFO {}: min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
 
+    dictInfo = {}
+
     for z in Internal.getZones(m):
         f = Internal.getNodeFromName(z, field)[1]
+
+        zname = z[0]
 
         size_loc  = numpy.size(f)
         fcrit_loc = numpy.count_nonzero(f<critValue) if field == 'vol' else numpy.count_nonzero(f>critValue) 
@@ -76,10 +80,18 @@ def getMeshFieldInfo(m, field, critValue, verbose):
         fcrit += fcrit_loc
         size  += size_loc
 
-        if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
-            print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"rank {} - {}".format(Cmpi.rank,z[0])))
+        dictInfo[zname] = [Cmpi.rank, fmin_loc, fmax_loc, fsum_loc, fcrit_loc, size_loc]
 
     Cmpi.barrier()
+
+    dictInfo = Cmpi.gather(dictInfo, root=0)
+
+    if Cmpi.rank == 0:
+        dictInfo = {k:v for d in dictInfo for k,v in d.items()}
+        for zname in dictInfo:
+            rank_loc, fmin_loc, fmax_loc, fsum_loc, fcrit_loc, size_loc = dictInfo[zname]
+            if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
+                print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"rank {} - {}".format(rank_loc,zname)))
 
     fmin  = Cmpi.allreduce(fmin,  op=Cmpi.MIN)
     fmax  = Cmpi.allreduce(fmax,  op=Cmpi.MAX)
