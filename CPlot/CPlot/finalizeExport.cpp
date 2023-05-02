@@ -20,6 +20,7 @@
 # include "kcore.h"
 # include "cplot.h"
 # include "Data.h"
+
 PyObject* K_CPLOT::isDisplayRunning(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();

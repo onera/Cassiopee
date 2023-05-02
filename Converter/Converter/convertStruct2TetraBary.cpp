@@ -92,12 +92,13 @@ PyObject* K_CONVERTER::convertStruct2TetraBary(PyObject* self, PyObject* args)
   E_Int nk1 = E_max(1, E_Int(nk)-1);
   E_Int ncells = ni1*nj1*nk1; // nb de cellules structurees
   E_Int ninj = ni*nj;
+  E_Int ni1nj1 = ni1*nj1;
   E_Int npts = f->getSize();
   E_Int nfld = f->getNfld();
   E_Int nelts = ncells;      // nb d elements pour la nouvelle connectivite TETRA
   E_Int nconnect = 2;        // nb de points par element
   E_Int nptsNewField = npts; // taille des nouveaux champs 
-  if ( dim0 == 1)
+  if (dim0 == 1)
   {
     nelts = ncells*2;
     nconnect = 2;
@@ -129,11 +130,10 @@ PyObject* K_CONVERTER::convertStruct2TetraBary(PyObject* self, PyObject* args)
   // pointeurs sur le nouveau champ
   vector<E_Float*> fnewp(nfld);
   for (E_Int p = 0; p < nfld; p++) {fnewp[p] = fnew.begin(p+1);}
-  // pointeurs sur l ancien champ
+  // pointeurs sur l'ancien champ
   vector<E_Float*> fp(nfld);
   for (E_Int p = 0; p < nfld; p++) {fp[p] = f->begin(p+1);}
-  E_Float* fpp; E_Float* fnpp;
-
+  
   // Type d'element de la nouvelle connectivite
   char newEltType[256];
 
@@ -146,6 +146,8 @@ PyObject* K_CONVERTER::convertStruct2TetraBary(PyObject* self, PyObject* args)
       E_Int indp1, indp2;
       E_Int noind = 0; E_Int et = 0;
       E_Int N;
+      E_Float* fpp; E_Float* fnpp;
+
       if (nk1 == 1 && nj1 == 1) N = ni1;
       else if (ni1 == 1 && nj1 == 1) N = nk1;
       else N = nj1;
@@ -164,7 +166,7 @@ PyObject* K_CONVERTER::convertStruct2TetraBary(PyObject* self, PyObject* args)
           fnpp[noind] = fpp[indp1];
           fnpp[noind+1] = (fpp[indp1]+fpp[indp2])*0.5;
         }
-        noind+= 2; et+= 2;
+        noind+= 2; et += 2;
       }
       //dernier point
       for (E_Int p = 0; p < nfld; p++) 
@@ -178,128 +180,148 @@ PyObject* K_CONVERTER::convertStruct2TetraBary(PyObject* self, PyObject* args)
     {
       strcpy(newEltType, "TRI");
       // tableau des indices des points la cellule
-      E_Int ind1, ind2, ind3, ind4;
-      E_Int indelt = 0; // indice d element de la nouvelle connectivite TETRA
-      E_Int indpt = npts; // indice des nouveaux points
-      E_Int indNewElt; // indice du nouvel elmt
-      
-      for (E_Int j = 0; j < nj1; j++)
-        for (E_Int i = 0; i < ni1; i++)
-        {
-          ind1 = i + j*ni;      //A(  i,  j,1)
-          ind2 = ind1 + 1;      //B(i+1,  j,1)
-          ind3 = ind1 + ni;     //C(  i,j+1,1)
-          ind4 = ind3 + 1;      //D(i+1,j+1,1)
-          // champs pour le barycentre de la cellule
-          for (E_Int p = 0; p < nfld; p++) 
+      #pragma omp parallel
+      {
+        E_Int ind1, ind2, ind3, ind4;
+        E_Int indelt = 0; // indice d'element de la nouvelle connectivite TETRA
+        E_Int indpt = npts; // indice des nouveaux points
+        E_Int indNewElt; // indice du nouvel elmt
+        E_Float* fpp; E_Float* fnpp;
+
+        for (E_Int j = 0; j < nj1; j++)
+          #pragma omp for
+          for (E_Int i = 0; i < ni1; i++)
           {
-            fpp = fp[p]; fnpp = fnewp[p];
-            fnpp[indpt] = (fpp[ind1]+fpp[ind2]+fpp[ind3]+fpp[ind4])*0.25;
-          }
-          indpt++; indNewElt = indpt;
-          // connectivite nouveaux elements
-          cn1[indelt] = ind1+1;
-          cn2[indelt] = ind2+1;
-          cn3[indelt] = indNewElt; indelt++;
+            ind1 = i + j*ni;      //A(  i,  j,1)
+            ind2 = ind1 + 1;      //B(i+1,  j,1)
+            ind3 = ind1 + ni;     //C(  i,j+1,1)
+            ind4 = ind3 + 1;      //D(i+1,j+1,1)
+
+            indpt = i + j*ni1 + npts; indNewElt = indpt+1;
+            indelt = 4*(i+j*ni1);
+
+            // champs pour le barycentre de la cellule
+            for (E_Int p = 0; p < nfld; p++) 
+            {
+              fpp = fp[p]; fnpp = fnewp[p];
+              fnpp[indpt] = (fpp[ind1]+fpp[ind2]+fpp[ind3]+fpp[ind4])*0.25;
+            }
           
-          cn1[indelt] = ind2+1;
-          cn2[indelt] = ind4+1;
-          cn3[indelt] = indNewElt; indelt++;
+            // connectivite nouveaux elements
+            cn1[indelt] = ind1+1;
+            cn2[indelt] = ind2+1;
+            cn3[indelt] = indNewElt; indelt++;
+          
+            cn1[indelt] = ind2+1;
+            cn2[indelt] = ind4+1;
+            cn3[indelt] = indNewElt; indelt++;
             
-          cn1[indelt] = ind4+1;
-          cn2[indelt] = ind3+1;
-          cn3[indelt] = indNewElt; indelt++;
+            cn1[indelt] = ind4+1;
+            cn2[indelt] = ind3+1;
+            cn3[indelt] = indNewElt; indelt++;
           
-          cn1[indelt] = ind3+1;
-          cn2[indelt] = ind1+1;
-          cn3[indelt] = indNewElt; indelt++;
-          // champs du nouvel element tetraedrique pour les neouds [indf1,indf2,indf3,indf4]
-          for (E_Int p = 0; p < nfld; p++) 
-          {
-            fpp = fp[p]; fnpp = fnewp[p];
-            fnpp[ind1] = fpp[ind1]; fnpp[ind2] = fpp[ind2]; 
-            fnpp[ind3] = fpp[ind3]; fnpp[ind4] = fpp[ind4];
+            cn1[indelt] = ind3+1;
+            cn2[indelt] = ind1+1;
+            cn3[indelt] = indNewElt; indelt++;
+
+            // champs du nouvel element tetraedrique pour les neouds [indf1,indf2,indf3,indf4]
+            for (E_Int p = 0; p < nfld; p++) 
+            {
+              fpp = fp[p]; fnpp = fnewp[p];
+              fnpp[ind1] = fpp[ind1]; fnpp[ind2] = fpp[ind2]; 
+              fnpp[ind3] = fpp[ind3]; fnpp[ind4] = fpp[ind4];
+            }
           }
-        }
+      }
     }
     break;
     case 3:
     { 
       strcpy(newEltType, "TETRA");
-      // tableau des indices des points la cellule
-      E_Int ind[8];
-      // indices des points la face
-      E_Int indf1, indf2, indf3, indf4;
       // indir: indirection pour les numerotations des noeuds pour chaque face
       //  ordre des faces dans indir : ABCD, EFGH, ADHE, BCGF, ABFE, DCGH
       E_Int indir[24] = {0,1,2,3,4,5,6,7,0,3,7,4,1,2,6,5,0,1,5,4,3,2,6,7};
-      E_Int indelt = 0; // indice d element de la nouvelle connectivite TETRA
-      E_Int indpt = npts; // indice des nouveaux points
-      E_Int indNewElt, indNewFace; // indices du nouvel elmt et de la nouvelle face
-  
-      // Parcours des cellules
-      for (E_Int k = 0; k < nk1; k++)
-        for (E_Int j = 0; j < nj1; j++)
-          for (E_Int i = 0; i < ni1; i++)
-          {
-            ind[0] = i + j*ni + k*ninj;        //A(  i,  j,k)
-            ind[1] = ind[0] + 1;               //B(i+1,  j,k)
-            ind[2] = ind[1] + ni;              //C(i+1,j+1,k)
-            ind[3] = ind[2] - 1;               //D(  i,j+1,k)
-            ind[4] = ind[0] + ninj;            //E(  i,  j,k+1)
-            ind[5] = ind[1] + ninj;            //F(i+1,  j,k+1)
-            ind[6] = ind[2] + ninj;            //G(i+1,j+1,k+1)
-            ind[7] = ind[3] + ninj;            //H(  i,j+1,k+1) 
 
-            // champs pour le barycentre de la cellule
-            for (E_Int p = 0; p < nfld; p++) 
+      #pragma omp parallel
+      {
+        E_Int indf1, indf2, indf3, indf4;
+        E_Int indelt = 0; // indice d element de la nouvelle connectivite TETRA
+        E_Int indpt = npts; // indice des nouveaux points
+        E_Int indNewElt, indNewFace; // indices du nouvel elmt et de la nouvelle face
+        E_Int ind[8];
+        E_Float* fpp; E_Float* fnpp;
+
+        // Parcours des cellules
+        for (E_Int k = 0; k < nk1; k++)
+          for (E_Int j = 0; j < nj1; j++)
+            #pragma omp for
+            for (E_Int i = 0; i < ni1; i++)
             {
-              fnpp = fnewp[p]; fpp = fp[p];
-              fnpp[indpt] = (fpp[ind[0]]+fpp[ind[1]]+fpp[ind[2]]+fpp[ind[3]]+fpp[ind[4]]+fpp[ind[5]]+fpp[ind[6]]+fpp[ind[7]])*0.125;
-            }
-            indpt ++; indNewElt = indpt;
-            for (E_Int fa = 0; fa < 6; fa++)
-            {
-              // champs pour le barycentre de la face
-              indf1 = ind[indir[4*fa]]; 
-              indf2 = ind[indir[4*fa+1]]; 
-              indf3 = ind[indir[4*fa+2]]; 
-              indf4 = ind[indir[4*fa+3]]; 
+              ind[0] = i + j*ni + k*ninj;        //A(  i,  j,k)
+              ind[1] = ind[0] + 1;               //B(i+1,  j,k)
+              ind[2] = ind[1] + ni;              //C(i+1,j+1,k)
+              ind[3] = ind[2] - 1;               //D(  i,j+1,k)
+              ind[4] = ind[0] + ninj;            //E(  i,  j,k+1)
+              ind[5] = ind[1] + ninj;            //F(i+1,  j,k+1)
+              ind[6] = ind[2] + ninj;            //G(i+1,j+1,k+1)
+              ind[7] = ind[3] + ninj;            //H(  i,j+1,k+1) 
+
+              indpt = 7*(i + j*ni1 + k*ni1nj1) + npts; indNewElt = indpt+1;
+              indelt = 24*(i+j*ni1+k*ni1nj1);
+            
+              // champs pour le barycentre de la cellule
               for (E_Int p = 0; p < nfld; p++) 
               {
                 fnpp = fnewp[p]; fpp = fp[p];
-                fnpp[indpt] = (fpp[indf1]+fpp[indf2]+fpp[indf3]+fpp[indf4])*0.25;
+                fnpp[indpt] = (fpp[ind[0]]+fpp[ind[1]]+fpp[ind[2]]+fpp[ind[3]]+fpp[ind[4]]+fpp[ind[5]]+fpp[ind[6]]+fpp[ind[7]])*0.125;
               }
-              indpt ++; indNewFace = indpt;
-              // connectivite nouveaux elements lies a la face
-              cn1[indelt] = indf1+1;
-              cn2[indelt] = indf2+1;
-              cn3[indelt] = indNewElt;
-              cn4[indelt] = indNewFace; indelt++;
-          
-              cn1[indelt] = indf2+1;
-              cn2[indelt] = indf3+1;
-              cn3[indelt] = indNewElt;
-              cn4[indelt] = indNewFace; indelt++;
-          
-              cn1[indelt] = indf3+1;
-              cn2[indelt] = indf4+1;
-              cn3[indelt] = indNewElt;
-              cn4[indelt] = indNewFace; indelt++;
-          
-              cn1[indelt] = indf4+1;
-              cn2[indelt] = indf1+1;
-              cn3[indelt] = indNewElt;
-              cn4[indelt] = indNewFace; indelt++;
-             // champs du nouvel element tetraedrique pour les neouds [indf1,indf2,indf3,indf4]
-              for (E_Int p = 0; p < nfld; p++) 
+            
+              for (E_Int fa = 0; fa < 6; fa++)
               {
-                fnpp = fnewp[p]; fpp = fp[p];
-                fnpp[indf1] = fpp[indf1]; fnpp[indf2] = fpp[indf2]; 
-                fnpp[indf3] = fpp[indf3]; fnpp[indf4] = fpp[indf4];
+                indpt = 7*(i + j*ni1 + k*ni1nj1) + fa + 1 + npts; indNewFace = indpt+1;
+              
+                // champs pour le barycentre de la face
+                indf1 = ind[indir[4*fa]]; 
+                indf2 = ind[indir[4*fa+1]];
+                indf3 = ind[indir[4*fa+2]];
+                indf4 = ind[indir[4*fa+3]]; 
+                for (E_Int p = 0; p < nfld; p++) 
+                {
+                  fnpp = fnewp[p]; fpp = fp[p];
+                  fnpp[indpt] = (fpp[indf1]+fpp[indf2]+fpp[indf3]+fpp[indf4])*0.25;
+                }
+              
+                // connectivite nouveaux elements lies a la face
+                cn1[indelt] = indf1+1;
+                cn2[indelt] = indf2+1;
+                cn3[indelt] = indNewElt;
+                cn4[indelt] = indNewFace; indelt++;
+          
+                cn1[indelt] = indf2+1;
+                cn2[indelt] = indf3+1;
+                cn3[indelt] = indNewElt;
+                cn4[indelt] = indNewFace; indelt++;
+          
+                cn1[indelt] = indf3+1;
+                cn2[indelt] = indf4+1;
+                cn3[indelt] = indNewElt;
+                cn4[indelt] = indNewFace; indelt++;
+          
+                cn1[indelt] = indf4+1;
+                cn2[indelt] = indf1+1;
+                cn3[indelt] = indNewElt;
+                cn4[indelt] = indNewFace; indelt++;
+
+                // champs du nouvel element tetraedrique pour les neouds [indf1,indf2,indf3,indf4]
+                for (E_Int p = 0; p < nfld; p++) 
+                {
+                  fnpp = fnewp[p]; fpp = fp[p];
+                  fnpp[indf1] = fpp[indf1]; fnpp[indf2] = fpp[indf2]; 
+                  fnpp[indf3] = fpp[indf3]; fnpp[indf4] = fpp[indf4];
+                }
               }
             }
-          }
+      }
     }
     break;
   }

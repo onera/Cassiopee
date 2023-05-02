@@ -1,4 +1,5 @@
- if (isminortho==1){
+ if (isminortho == 1)
+ {
    npts_walls_limit.push_back(nptsmax-1);	
    // calcul de la connectivite vertex->elements 
    // give a vertex & get the elements

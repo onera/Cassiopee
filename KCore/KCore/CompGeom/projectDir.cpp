@@ -58,9 +58,9 @@ E_Int K_COMPGEOM::projectDir(E_Float x, E_Float y, E_Float z,
                              E_Float& xo, E_Float& yo, E_Float& zo, E_Int oriented)
 { 
   E_Int noet = -1;
-  E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
-  E_Int ret; 
-  E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
+  E_Int ret;
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+  E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
   p[0] = x; p[1] = y; p[2] = z;
   pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
   pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
@@ -155,7 +155,7 @@ E_Int K_COMPGEOM::projectOneDirWithPrecond(
   pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
   pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
 
-  E_Float distc = 1e6;
+  E_Float distc = 1.e6;
   E_Float dist;
   E_Int ind1, ind2, ind3;
   E_Int nvert = cn2.getNfld();
@@ -214,6 +214,7 @@ E_Int K_COMPGEOM::projectOneDirWithPrecond(
   for (E_Int v = 0; v < boxesSize; v++) delete boxes[v];
   return noet;
 }
+
 //=============================================================================
 E_Int K_COMPGEOM::projectOneDirWithoutPrecond(
   E_Float x, E_Float y, E_Float z,
@@ -297,71 +298,81 @@ void K_COMPGEOM::projectDirWithPrecond(
   vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
   K_FLD::FldArrayF bbox(nelts2,6);// xmin, ymin, zmin, xmax, ymax, zmax
   K_COMPGEOM::boundingBoxOfUnstrCells(cn2, fx2, fy2, fz2, bbox);
-  E_Float minB[3];  E_Float maxB[3];
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
   E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
   E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
-  for (E_Int et = 0; et < nelts2; et++)
+
+  #pragma omp parallel
   {
-    minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-    maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
-    boxes[et] = new BBox3DType(minB, maxB);
+    E_Float minB[3];  E_Float maxB[3];
+    #pragma omp for
+    for (E_Int et = 0; et < nelts2; et++)
+    {
+      minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
+      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
+      boxes[et] = new BBox3DType(minB, maxB);
+    }
   }
   // Build the box tree.
   K_SEARCH::BbTree3D bbtree(boxes);
     
   // Algorithme de projection
-  E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
-  E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
-  E_Float dist; E_Float distc; 
-  E_Int ret; E_Int ind1, ind2, ind3;
-  E_Float dx, dy, dz, normp, ps;
-  vector<E_Int> indicesBB;
-  E_Int nbboxes, et;
-
-  for (E_Int ind = 0; ind < npts; ind++)
+  #pragma omp parallel
   {
-    p[0] = fx[ind]; p[1] = fy[ind]; p[2] = fz[ind];
-    pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
-    pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
-    bbtree.getIntersectingBoxes(pr1, pr2, indicesBB, tol);
-    
-    distc = 1e6;
-    nbboxes = indicesBB.size();
-    for (E_Int noe = 0; noe < nbboxes; noe++)
+    E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
+    E_Float dist; E_Float distc; 
+    E_Int ret; E_Int ind1, ind2, ind3;
+    E_Float dx, dy, dz, normp, ps;
+    vector<E_Int> indicesBB;
+    E_Int nbboxes, et;
+    E_Float minB[3];  E_Float maxB[3];
+  
+    #pragma omp for
+    for (E_Int ind = 0; ind < npts; ind++)
     {
-      et = indicesBB[noe];
-      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
-      p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
-      p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
-                                             pr1, pr2,
-                                             pi);
-      if (ret == 1)
+      p[0] = fx[ind]; p[1] = fy[ind]; p[2] = fz[ind];
+      pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
+      pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
+      bbtree.getIntersectingBoxes(pr1, pr2, indicesBB, tol);
+    
+      distc = 1.e6;
+      nbboxes = indicesBB.size();
+      for (E_Int noe = 0; noe < nbboxes; noe++)
       {
-        dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
-        dist = dx*dx + dy*dy + dz*dz;
-        if ( oriented != 0 )
+        et = indicesBB[noe];
+        ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
+        p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
+        p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
+        p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
+        ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
+                                               pr1, pr2, pi);
+        if (ret == 1)
         {
-          normp = sqrt(nx*nx+ny*ny+nz*nz);//normale
-          ps = nx*dx+ny*dy+nz*dz/(dist*normp);
-          if ( ps > 0. ) 
+          dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
+          dist = dx*dx + dy*dy + dz*dz;
+          if (oriented != 0)
+          {
+            normp = sqrt(nx*nx+ny*ny+nz*nz);//normale
+            ps = nx*dx+ny*dy+nz*dz/(dist*normp);
+            if (ps > 0.) 
+            {
+              if (dist < distc) 
+              {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist;}
+            }
+          }
+          else 
           {
             if (dist < distc) 
             {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist;}
           }
         }
-        else 
-        {
-          if (dist < distc) 
-          {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist;}
-        }
       }
+      indicesBB.clear();
     }
-    indicesBB.clear();
   }
 
+  // delete
   for (E_Int et = 0; et < nelts2; et++) delete boxes[et];
   boxes.clear();
 }
@@ -385,79 +396,91 @@ void K_COMPGEOM::projectDirWithPrecond(
   vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
   K_FLD::FldArrayF bbox(nelts2,6);// xmin, ymin, zmin, xmax, ymax, zmax
   K_COMPGEOM::boundingBoxOfUnstrCells(cn2, fx2, fy2, fz2, bbox);
-  E_Float minB[3];  E_Float maxB[3];
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
   E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
   E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
-  for (E_Int et = 0; et < nelts2; et++)
+
+  #pragma omp parallel
   {
-    minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-    maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
-    boxes[et] = new BBox3DType(minB, maxB);
+    E_Float minB[3];  E_Float maxB[3];
+    #pragma omp for
+    for (E_Int et = 0; et < nelts2; et++)
+    {
+      minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
+      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
+      boxes[et] = new BBox3DType(minB, maxB);
+    }
   }
+
   // Build the box tree.
   K_SEARCH::BbTree3D bbtree(boxes);
     
   // Algorithme de projection
   E_Int nzones = sizet.size();
 
-  E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
-  E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
-  E_Float dist; E_Float distc; 
-  E_Int ret; E_Int ind1, ind2, ind3;
-  E_Float dx, dy, dz, normp, ps;
-  vector<E_Int> indicesBB;
-  E_Int nbboxes, et;
-  
-  for (E_Int v = 0; v < nzones; v++)
+  #pragma omp parallel
   {
-    E_Int npts = sizet[v];
-    E_Float* fx = fxt[v];
-    E_Float* fy = fyt[v];
-    E_Float* fz = fzt[v];
-    for (E_Int ind = 0; ind < npts; ind++)
+    E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
+    E_Float minB[3];  E_Float maxB[3];
+    E_Float dist; E_Float distc; 
+    E_Int ret; E_Int ind1, ind2, ind3;
+    E_Float dx, dy, dz, normp, ps;
+    vector<E_Int> indicesBB;
+    E_Int nbboxes, et;
+  
+    for (E_Int v = 0; v < nzones; v++)
     {
-      p[0] = fx[ind]; p[1] = fy[ind]; p[2] = fz[ind];
-      pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
-      pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
-      bbtree.getIntersectingBoxes(pr1, pr2, indicesBB, tol);
-      
-      distc = 1e6;
-      nbboxes = indicesBB.size();
-      for (E_Int noe = 0; noe < nbboxes; noe++)
+      E_Int npts = sizet[v];
+      E_Float* fx = fxt[v];
+      E_Float* fy = fyt[v];
+      E_Float* fz = fzt[v];
+
+      #pragma omp for
+      for (E_Int ind = 0; ind < npts; ind++)
       {
-        et = indicesBB[noe];
-        ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
-        p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
-        p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-        p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-        ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
-                                               pr1, pr2,
-                                               pi);
-        if (ret == 1)
+        p[0] = fx[ind]; p[1] = fy[ind]; p[2] = fz[ind];
+        pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
+        pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
+        bbtree.getIntersectingBoxes(pr1, pr2, indicesBB, tol);
+      
+        distc = 1e6;
+        nbboxes = indicesBB.size();
+        for (E_Int noe = 0; noe < nbboxes; noe++)
         {
-          dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
-          dist = dx*dx + dy*dy + dz*dz;
-          if (oriented != 0)
+          et = indicesBB[noe];
+          ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
+          p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
+          p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
+          p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
+          ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
+                                                pr1, pr2, pi);
+          if (ret == 1)
           {
-            normp = sqrt(nx*nx+ny*ny+nz*nz);//normale
-            ps = nx*dx+ny*dy+nz*dz/(dist*normp);
-            if (ps > 0.) 
+            dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
+            dist = dx*dx + dy*dy + dz*dz;
+            if (oriented != 0)
+            {
+              normp = sqrt(nx*nx+ny*ny+nz*nz);//normale
+              ps = nx*dx+ny*dy+nz*dz/(dist*normp);
+              if (ps > 0.) 
+              {
+                if (dist < distc) 
+                {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist;}
+              }
+            }
+            else 
             {
               if (dist < distc) 
               {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist;}
-            }
+            }           
           }
-          else 
-          {
-            if (dist < distc) 
-            {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist;}
-          }          
         }
+        indicesBB.clear();
       }
-      indicesBB.clear();
     }
   }
+  // delete
   for (E_Int et = 0; et < nelts2; et++) delete boxes[et];
   boxes.clear();
 }

@@ -152,11 +152,11 @@ PyObject* K_CONVERTER::convertStruct2Tetra(PyObject* self, PyObject* args)
 
       if (nk1 == 1)
       {
-#pragma omp parallel default(shared) if (nj1 > __MIN_SIZE_MEAN__)
+        #pragma omp parallel
         {
           E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for
           for (E_Int j = 0; j < nj1; j++)
+            #pragma omp for
             for (E_Int i = 0; i < ni1; i++)
             {
               //starts from 1
@@ -179,11 +179,11 @@ PyObject* K_CONVERTER::convertStruct2Tetra(PyObject* self, PyObject* args)
       }
       else if (nj1 == 1)
       {
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
+        #pragma omp parallel
         {
           E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for
           for (E_Int k = 0; k < nk1; k++)
+            #pragma omp for
             for (E_Int i = 0; i < ni1; i++)
             {
               ind1 = i + k*ninj + 1;  //(i,1,k)
@@ -205,11 +205,11 @@ PyObject* K_CONVERTER::convertStruct2Tetra(PyObject* self, PyObject* args)
       }
       else // i1 = 1 
       {
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
+        #pragma omp parallel
         {
           E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for        
           for (E_Int k = 0; k < nk1; k++)
+            #pragma omp for
             for (E_Int j = 0; j < nj1; j++)
             {
               ind1 = 1 + j*nil + k*ninj; //(1,j,k)
@@ -249,115 +249,115 @@ PyObject* K_CONVERTER::convertStruct2Tetra(PyObject* self, PyObject* args)
       E_Int* cn4 = cn.begin(4);
       E_Int ni1nj1 = ni1*nj1;
       
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
+      #pragma omp parallel
       {
-      E_Int sum, ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
-#pragma omp for
-      for (E_Int k = 0; k < nk1; k++)
-        for (E_Int j = 0; j < nj1; j++)
-          for (E_Int i = 0; i < ni1; i++)
-          {
-            sum = i+j+k;
-            ind1 = 1 + i + j*nil + k*ninj; //A(  i,  j,k)
-            ind2 = ind1 + 1;               //B(i+1,  j,k)
-            ind3 = ind2 + nil;             //C(i+1,j+1,k)
-            ind4 = ind3 - 1;               //D(  i,j+1,k)
-            ind5 = ind1 + ninj;            //E(  i,  j,k+1)
-            ind6 = ind2 + ninj;            //F(i+1,  j,k+1)
-            ind7 = ind3 + ninj;            //G(i+1,j+1,k+1)
-            ind8 = ind4 + ninj;            //H(  i,j+1,k+1) 
-              
-            if (sum%2 == 0) // pair 
+        E_Int sum, ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
+        for (E_Int k = 0; k < nk1; k++)
+          for (E_Int j = 0; j < nj1; j++)
+            #pragma omp for
+            for (E_Int i = 0; i < ni1; i++)
             {
-              // tetra ABDE
-              ind = 5*(i+j*ni1+k*ni1nj1);
-              cn1[ind] = ind1;
-              cn2[ind] = ind2;
-              cn3[ind] = ind4;
-              cn4[ind] = ind5;
-                
-              // tetra BCDG
-              ind++;
-              cn1[ind] = ind2;
-              cn2[ind] = ind3;
-              cn3[ind] = ind4;
-              cn4[ind] = ind7;
-                
-              // tetra DEGH
-              ind++;
-              cn1[ind] = ind4;
-              cn2[ind] = ind5;
-              cn3[ind] = ind7;
-              cn4[ind] = ind8;
-                
-              // tetra BEFG
-              ind++;
-              cn1[ind] = ind2;
-              cn2[ind] = ind5;
-              cn3[ind] = ind6;
-              cn4[ind] = ind7;
-                
-              // tetra BDEG
-              ind++;
-              cn1[ind] = ind2;
-              cn2[ind] = ind4;
-              cn3[ind] = ind5;
-              cn4[ind] = ind7;
-            }
-            else // impair 
-            {
-              // tetra ACDH: 1348
-              ind = 5*(i+j*ni1+k*ni1nj1);
-              cn1[ind] = ind1;
-              cn2[ind] = ind3;
-              cn3[ind] = ind4;
-              cn4[ind] = ind8;
-                
-              // tetra AFBC: 1623
-              ind++;
-              cn1[ind] = ind1;
-              cn2[ind] = ind2;
-              cn3[ind] = ind3;
-              cn4[ind] = ind6;
-              //cn1[ind] = ind1;
-              //cn2[ind] = ind6;
-              //cn3[ind] = ind2;
-              //cn4[ind] = ind3;
-
-              // tetra HFGC: 8673
-              ind++;
-              cn1[ind] = ind3;
-              cn2[ind] = ind6;
-              cn3[ind] = ind7;
-              cn4[ind] = ind8;
-              //cn1[ind] = ind8;
-              //cn2[ind] = ind6;
-              //cn3[ind] = ind7;
-              //cn4[ind] = ind3;
-
-              // tetra FHAE: 6815
-              ind++;
-              cn1[ind] = ind6;
-              cn2[ind] = ind5;
-              cn3[ind] = ind8;
-              cn4[ind] = ind1;
-              //cn1[ind] = ind6;
-              //cn2[ind] = ind8;
-              //cn3[ind] = ind1;
-              //cn4[ind] = ind5;
+              sum = i+j+k;
+              ind1 = 1 + i + j*nil + k*ninj; //A(  i,  j,k)
+              ind2 = ind1 + 1;               //B(i+1,  j,k)
+              ind3 = ind2 + nil;             //C(i+1,j+1,k)
+              ind4 = ind3 - 1;               //D(  i,j+1,k)
+              ind5 = ind1 + ninj;            //E(  i,  j,k+1)
+              ind6 = ind2 + ninj;            //F(i+1,  j,k+1)
+              ind7 = ind3 + ninj;            //G(i+1,j+1,k+1)
+              ind8 = ind4 + ninj;            //H(  i,j+1,k+1) 
               
-              // tetra FHAC: 6813
-              ind++;
-              cn1[ind] = ind6;
-              cn2[ind] = ind3;
-              cn3[ind] = ind1;
-              cn4[ind] = ind8;
-              //cn1[ind] = ind6;
-              //cn2[ind] = ind8;
-              //cn3[ind] = ind1;
-              //cn4[ind] = ind3;
+              if (sum%2 == 0) // pair 
+              {
+                // tetra ABDE
+                ind = 5*(i+j*ni1+k*ni1nj1);
+                cn1[ind] = ind1;
+                cn2[ind] = ind2;
+                cn3[ind] = ind4;
+                cn4[ind] = ind5;
+                
+                // tetra BCDG
+                ind++;
+                cn1[ind] = ind2;
+                cn2[ind] = ind3;
+                cn3[ind] = ind4;
+                cn4[ind] = ind7;
+                
+                // tetra DEGH
+                ind++;
+                cn1[ind] = ind4;
+                cn2[ind] = ind5;
+                cn3[ind] = ind7;
+                cn4[ind] = ind8;
+                
+                // tetra BEFG
+                ind++;
+                cn1[ind] = ind2;
+                cn2[ind] = ind5;
+                cn3[ind] = ind6;
+                cn4[ind] = ind7;
+                
+                // tetra BDEG
+                ind++;
+                cn1[ind] = ind2;
+                cn2[ind] = ind4;
+                cn3[ind] = ind5;
+                cn4[ind] = ind7;
+              }
+              else // impair 
+              {
+                // tetra ACDH: 1348
+                ind = 5*(i+j*ni1+k*ni1nj1);
+                cn1[ind] = ind1;
+                cn2[ind] = ind3;
+                cn3[ind] = ind4;
+                cn4[ind] = ind8;
+                
+                // tetra AFBC: 1623
+                ind++;
+                cn1[ind] = ind1;
+                cn2[ind] = ind2;
+                cn3[ind] = ind3;
+                cn4[ind] = ind6;
+                //cn1[ind] = ind1;
+                //cn2[ind] = ind6;
+                //cn3[ind] = ind2;
+                //cn4[ind] = ind3;
+
+                // tetra HFGC: 8673
+                ind++;
+                cn1[ind] = ind3;
+                cn2[ind] = ind6;
+                cn3[ind] = ind7;
+                cn4[ind] = ind8;
+                //cn1[ind] = ind8;
+                //cn2[ind] = ind6;
+                //cn3[ind] = ind7;
+                //cn4[ind] = ind3;
+
+                // tetra FHAE: 6815
+                ind++;
+                cn1[ind] = ind6;
+                cn2[ind] = ind5;
+                cn3[ind] = ind8;
+                cn4[ind] = ind1;
+                //cn1[ind] = ind6;
+                //cn2[ind] = ind8;
+                //cn3[ind] = ind1;
+                //cn4[ind] = ind5;
+              
+                // tetra FHAC: 6813
+                ind++;
+                cn1[ind] = ind6;
+                cn2[ind] = ind3;
+                cn3[ind] = ind1;
+                cn4[ind] = ind8;
+                //cn1[ind] = ind6;
+                //cn2[ind] = ind8;
+                //cn3[ind] = ind1;
+                //cn4[ind] = ind3;
+              }
             }
-          }
       }
     }
     break;

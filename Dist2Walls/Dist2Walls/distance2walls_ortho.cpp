@@ -257,7 +257,6 @@ void K_DIST2WALLS::computeOrthoDist(
   E_Int nzones = fields.size();
   /* 1 - creation du kdtree et du bbtree */
   typedef K_SEARCH::BoundingBox<3> BBox3DType; 
-  E_Float minB[3]; E_Float maxB[3];
   vector< vector<BBox3DType*> > vectOfBoxes; // a detruire a la fin
   // allocate kdtree array: kdtree points are cell vertices
   E_Int nwalls = cntw.size();
@@ -282,7 +281,8 @@ void K_DIST2WALLS::computeOrthoDist(
   E_Int nop = 0;
   E_Int ind;
   vector<FldArrayF> bboxes;
-
+  E_Float minB[3]; E_Float maxB[3];
+  
   for (E_Int now = 0; now < nwalls; now++)
   {
     FldArrayF* fieldv = fieldsw[now];
@@ -354,27 +354,12 @@ void K_DIST2WALLS::computeOrthoDist(
     vectOfBBTrees.push_back(bbtree);
   }
 
-  /* Compute the distance with orthogonal projection */
-  E_Float pt[3]; 
-  vector<E_Int> indicesBB; vector<E_Int> candidates;
-
-  for (E_Int v = 0; v < nzones; v++)
+  /* Compute the distance with orthogonal projection */    
+  #pragma omp parallel
   {
-    E_Float* xt = fields[v]->begin(posx);
-    E_Float* yt = fields[v]->begin(posy);
-    E_Float* zt = fields[v]->begin(posz);
-    E_Float* distancep = distances[v]->begin(); 
-    E_Int npts = distances[v]->getSize();
-    E_Int isFlagged=false;
-    E_Float* flagp = NULL;
-    if (posflag[v] > 0 )
-    { 
-      flagp = fields[v]->begin(posflag[v]);
-      isFlagged=true;
-    }
-    
-#pragma omp parallel default(shared) private(minB, maxB, pt, indicesBB, candidates)
-    {
+    E_Float pt[3]; 
+    vector<E_Int> indicesBB; vector<E_Int> candidates;
+    E_Float minB[3]; E_Float maxB[3];
     E_Int ret,vw;
     E_Float dist, dx, dy, dz, xp, yp, zp, rx, ry, rz, rad;
     E_Float distmin, prod;
@@ -383,40 +368,57 @@ void K_DIST2WALLS::computeOrthoDist(
     E_Float A, rad2, alpha, R, xQ, yQ, zQ, rmax;
     E_Float* xw; E_Float* yw; E_Float* zw; E_Float* cellnw;
     E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
-  
-    if (isFlagged == true)
+
+    for (E_Int v = 0; v < nzones; v++)
     {
-      #pragma omp for schedule(dynamic)
-      for (E_Int ind = 0; ind < npts; ind++)
+      E_Float* xt = fields[v]->begin(posx);
+      E_Float* yt = fields[v]->begin(posy);
+      E_Float* zt = fields[v]->begin(posz);
+      E_Float* distancep = distances[v]->begin(); 
+      E_Int npts = distances[v]->getSize();
+      E_Int isFlagged=false;
+      E_Float* flagp = NULL;
+      if (posflag[v] > 0 )
+      { 
+        flagp = fields[v]->begin(posflag[v]);
+        isFlagged = true;
+      }
+      if (isFlagged == true)
       {
-        if (flagp[ind] == 0.) { ; }
-        else
+        #pragma omp for schedule(dynamic)
+        for (E_Int ind = 0; ind < npts; ind++)
         {
+          if (flagp[ind] == 0.) { ; }
+          else
+          {
+            #include "algoOrtho.h"
+          }
+        }   
+      }
+      else
+      {
+        #pragma omp for schedule(dynamic)
+        for (E_Int ind = 0; ind < npts; ind++)
+        {   
           #include "algoOrtho.h"
-        }
-      }   
+        }  
+      }
     }
-    else
-    {
-      #pragma omp for schedule(dynamic)
-      for (E_Int ind = 0; ind < npts; ind++)
-      {  
-        #include "algoOrtho.h"
-      }  
-    }
-    
-    } // omp
-  }// fin boucle sur les zones ou la distance est a calculer
+  }
   
   // Computes the distance (sqrt)
-  for (E_Int v = 0; v < nzones; v++)
+  #pragma omp parallel
   {
-    E_Float* distancep = distances[v]->begin();
-    E_Int npts = distances[v]->getSize();
-    #pragma omp parallel for
-    for (E_Int ind = 0; ind < npts; ind++)
-      distancep[ind] = sqrt(distancep[ind]);
+    for (E_Int v = 0; v < nzones; v++)
+    {
+        E_Float* distancep = distances[v]->begin();
+        E_Int npts = distances[v]->getSize();
+        #pragma omp for
+        for (E_Int ind = 0; ind < npts; ind++)
+          distancep[ind] = sqrt(distancep[ind]);
+    }
   }
+
   // Cleaning
   E_Int nboxes = vectOfBoxes.size();
   for (E_Int v0 = 0; v0 < nboxes; v0++)

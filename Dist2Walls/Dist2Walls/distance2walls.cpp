@@ -227,7 +227,8 @@ void K_DIST2WALLS::computeMininterf(
   vector<FldArrayF*>& fields, 
   vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv, 
   vector<E_Int>& poscv, vector<FldArrayF*>& fieldsw, 
-  vector<FldArrayF*>& distances,vector<FldArrayI*>& cntw,E_Int isminortho)
+  vector<FldArrayF*>& distances,vector<FldArrayI*>& cntw,
+  E_Int isminortho)
 {
 
   /* 1 - creation du kdtree */
@@ -248,6 +249,7 @@ void K_DIST2WALLS::computeMininterf(
   E_Int c = 0;
   E_Int nzones = fields.size();
   
+  // concatenate walls in a single array
   for (E_Int v = 0; v < nwalls; v++)
   {
     FldArrayF* fieldv = fieldsw[v];
@@ -259,15 +261,17 @@ void K_DIST2WALLS::computeMininterf(
     /* recuperation des points calcules uniquement 
        pas de pts masques et interpoles dans kdtree */
     E_Int poscw = poscv[v]; E_Float* cellnw0 = fieldv->begin(poscw);
+    
     for (E_Int i = 0; i < ncellsw; i++)
     {
       if (cellnw0[i] == 1.)
       { xw2[c] = xw[i]; yw2[c] = yw[i]; zw2[c] = zw[i]; c++; }
     }
-  } // fin kdtree
-  if (c != wallpts->getSize()) wallpts->reAllocMat(c, 3);
+  }
+
+  if (c != wallpts->getSize()) wallpts->reAllocMat(c, 3); // si cellN
   
-  if (c == 0)
+  if (c == 0) // no wall
   {
     for (E_Int v = 0; v < nzones; v++) 
     {
@@ -301,9 +305,9 @@ void K_DIST2WALLS::computeMininterf(
       E_Float* yt = fields[v]->begin(posy);
       E_Float* zt = fields[v]->begin(posz);
       E_Float* distancep = distances[v]->begin();
-      if (isminortho == 1)
+      if (isminortho == 1) // mininterf_ortho
       {
-#pragma omp for schedule(dynamic)
+        #pragma omp for schedule(dynamic)
         for (E_Int ind = 0; ind < ncells; ind++)
 	      {
 	        pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
@@ -318,9 +322,9 @@ void K_DIST2WALLS::computeMininterf(
 	        }
 	      } // fin boucle
       }
-      else
+      else // mininterf
       {
-#pragma omp for schedule(dynamic)
+        #pragma omp for schedule(dynamic)
         for (E_Int ind = 0; ind < ncells; ind++)
 	      {
 	        pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];

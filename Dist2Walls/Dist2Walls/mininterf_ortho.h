@@ -1,8 +1,8 @@
-      for (vw = 0; vw < nwalls ; vw++)
+      for (vw = 0; vw < nwalls; vw++)
       {
-        if (indw2<=npts_walls_limit[vw]) break;
+        if (indw2 <= npts_walls_limit[vw]) break;
       }
-      if (vw>0) indw2=indw2-(npts_walls_limit[vw-1]+1);
+      if (vw > 0) indw2 = indw2-(npts_walls_limit[vw-1]+1);
 
       FldArrayF* fieldv_local = fieldsw[vw];
       E_Int posxw_local = posxv[vw];

@@ -105,11 +105,11 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
                         zonesc[noz] = C.addVars([zonesc[noz], flags[noz]])
             isminortho = 0
             if type == "ortho_local": isminortho = 1
-            dist = dist2walls.distance2WallsOrtho(zonesc, bodies0,isminortho,int(isIBM_F1),dTarget)
+            dist = dist2walls.distance2WallsOrtho(zonesc, bodies0, isminortho, int(isIBM_F1), dTarget)
         else:
             isminortho = 0
             if type == 'mininterf_ortho': isminortho = 1
-            dist = dist2walls.distance2Walls(zonesc, bodies0,isminortho)
+            dist = dist2walls.distance2Walls(zonesc, bodies0, isminortho)
 
     # distance signee
     if signed == 1:
@@ -117,7 +117,6 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
 
     if onezone == 1: return dist[0]
     else: return dist
-
 
 # ========================================================================================
 # Solve eikonal on a Cartesian grid

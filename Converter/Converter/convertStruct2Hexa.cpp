@@ -138,11 +138,11 @@ PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
 
         if (nk1 == 1)
         {
-#pragma omp parallel default(shared) if (nj1 > __MIN_SIZE_MEAN__)
+          #pragma omp parallel
           {
             E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for
             for (E_Int j = 0; j < nj1; j++)
+              #pragma omp for
               for (E_Int i = 0; i < ni1; i++)
               {
                 //starts from 1
@@ -160,11 +160,11 @@ PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
         }
         else if (nj1 == 1)
         {
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
+          #pragma omp parallel
           {
             E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for
             for (E_Int k = 0; k < nk1; k++)
+              #pragma omp for
               for (E_Int i = 0; i < ni1; i++)
               {
                 ind1 = i + k*ninj + 1;  //(i,1,k)
@@ -181,11 +181,11 @@ PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
         }
         else // i1 = 1 
         {
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
+          #pragma omp parallel
           {
             E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for        
             for (E_Int k = 0; k < nk1; k++)
+              #pragma omp for
               for (E_Int j = 0; j < nj1; j++)
               {
                 ind1 = 1 + j*nil + k*ninj; //(1,j,k)
@@ -223,33 +223,33 @@ PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
         E_Int* cn7 = cn.begin(7);
         E_Int* cn8 = cn.begin(8);
 
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
-          {
-            E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
-#pragma omp for
-            for (E_Int k = 0; k < nk1; k++)
-              for (E_Int j = 0; j < nj1; j++)
-                for (E_Int i = 0; i < ni1; i++)
-                {
-                  ind1 = 1 + i + j*nil + k*ninj; //A(  i,  j,k)
-                  ind2 = ind1 + 1;              //B(i+1,  j,k)
-                  ind3 = ind2 + nil;            //C(i+1,j+1,k)
-                  ind4 = ind3 - 1;              //D(  i,j+1,k)
-                  ind5 = ind1 + ninj;           //E(  i,  j,k+1)
-                  ind6 = ind2 + ninj;           //F(i+1,  j,k+1)
-                  ind7 = ind3 + ninj;           //G(i+1,j+1,k+1)
-                  ind8 = ind4 + ninj;           //H(  i,j+1,k+1) 
-                  ind = i+j*ni1+k*ni1*nj1;
-                  cn1[ind] = ind1;
-                  cn2[ind] = ind2;
-                  cn3[ind] = ind3;
-                  cn4[ind] = ind4;
-                  cn5[ind] = ind5;
-                  cn6[ind] = ind6;
-                  cn7[ind] = ind7;
-                  cn8[ind] = ind8;
-                }
-          }
+        #pragma omp parallel
+        {
+          E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
+          for (E_Int k = 0; k < nk1; k++)
+            for (E_Int j = 0; j < nj1; j++)
+              #pragma omp for
+              for (E_Int i = 0; i < ni1; i++)
+              {
+                ind1 = 1 + i + j*nil + k*ninj; //A(  i,  j,k)
+                ind2 = ind1 + 1;              //B(i+1,  j,k)
+                ind3 = ind2 + nil;            //C(i+1,j+1,k)
+                ind4 = ind3 - 1;              //D(  i,j+1,k)
+                ind5 = ind1 + ninj;           //E(  i,  j,k+1)
+                ind6 = ind2 + ninj;           //F(i+1,  j,k+1)
+                ind7 = ind3 + ninj;           //G(i+1,j+1,k+1)
+                ind8 = ind4 + ninj;           //H(  i,j+1,k+1) 
+                ind = i+j*ni1+k*ni1*nj1;
+                cn1[ind] = ind1;
+                cn2[ind] = ind2;
+                cn3[ind] = ind3;
+                cn4[ind] = ind4;
+                cn5[ind] = ind5;
+                cn6[ind] = ind6;
+                cn7[ind] = ind7;
+                cn8[ind] = ind8;
+              }
+        }
       }
       break;
     }
