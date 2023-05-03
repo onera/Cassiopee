@@ -763,7 +763,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         for b in Internal.getBases(aD):
             if b[0] == 'CARTESIAN':
                 for z in Internal.getZones(b):
-                    hooks[z[0]] = None# must be None for Cartesian
+                    hooks[z[0]] = None # must be None for Cartesian
             else:
                 for z in Internal.getZones(b): 
                     hooks[z[0]] = C.createHook(z, 'adt')
@@ -911,7 +911,7 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
 #==============================================================================
 def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_real, type_transfert, nitrun,
                                    nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
-                                   graph=None, procDict=None, graphIBCD=None, graphInvIBCD_WM=None,nvars=5):
+                                   graph=None, procDict=None, graphIBCD=None, graphInvIBCD_WM=None, nvars=5):
 
     variablesIBC=['Density_WM', 'VelocityX_WM', 'VelocityY_WM', 'VelocityZ_WM', 'Temperature_WM', 'TurbulentSANuTilde_WM']
     if nvars == 5:
@@ -996,5 +996,3 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
                                 connector._WM_setVal2tc(dens_wm_new, velx_wm_new, vely_wm_new, velz_wm_new, temp_wm_new, sanu_wm_new,
                                                         dens_wm    , velx_wm    , vely_wm    , velz_wm    , temp_wm    , sanu_wm    )
     return None
-
-#---------------------------------------------------------------------------------------------------------

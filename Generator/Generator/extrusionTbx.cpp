@@ -42,7 +42,7 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getLocalStepFactor: array must unstructured.");
+                    "getLocalStepFactor: array must be unstructured.");
     if (res == 1) RELEASESHAREDS(array,f); return NULL;
   }
   E_Int posx0 = K_ARRAY::isCoordinateXPresent(varString);
@@ -66,7 +66,7 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getLocalStepFactor: array must unstructured.");
+                    "getLocalStepFactor: array must be unstructured.");
     RELEASESHAREDU(array, f, cn); 
     if (res == 1) RELEASESHAREDS(normales, fn);
     return NULL;
@@ -111,33 +111,37 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
   {
     E_Int indP1, indP2;
     E_Float snc0, snc1, snc2, xpm0, xpm1, xpm2;
+    E_Int nvoisins, inde1, inde2;
+    E_Float psmax, sx1, sy1, sz1, xc1, yc1, zc1;
+    E_Float sx2, sy2, sz2, xc2, yc2, zc2, ps, ps2;
+    E_Float xp, yp, zp, alpha, cas2, sas2;
 
-#pragma omp for
+    #pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
       vector<E_Int>& voisins = cVE[ind];
-      E_Int nvoisins = voisins.size();
-      E_Float psmax = tolps;
+      nvoisins = voisins.size();
+      psmax = tolps;
       for (E_Int noe1 = 0; noe1 < nvoisins; noe1++)
       {
-        E_Int inde1 = voisins[noe1];
-        E_Float sx1 = sx[inde1];
-        E_Float sy1 = sy[inde1];
-        E_Float sz1 = sz[inde1];
-        E_Float xc1 = xc[inde1];// M1
-        E_Float yc1 = yc[inde1];
-        E_Float zc1 = zc[inde1];
+        inde1 = voisins[noe1];
+        sx1 = sx[inde1];
+        sy1 = sy[inde1];
+        sz1 = sz[inde1];
+        xc1 = xc[inde1];// M1
+        yc1 = yc[inde1];
+        zc1 = zc[inde1];
 
         for (E_Int noe2 = noe1+1; noe2 < nvoisins; noe2++)        
         {
-          E_Int inde2 = voisins[noe2];
-          E_Float sx2 = sx[inde2];
-          E_Float sy2 = sy[inde2];
-          E_Float sz2 = sz[inde2];
-          E_Float xc2 = xc[inde2];//M2
-          E_Float yc2 = yc[inde2];
-          E_Float zc2 = zc[inde2];
-          E_Float ps = sx1*sx2+sy1*sy2+sz1*sz2;       
+          inde2 = voisins[noe2];
+          sx2 = sx[inde2];
+          sy2 = sy[inde2];
+          sz2 = sz[inde2];
+          xc2 = xc[inde2];//M2
+          yc2 = yc[inde2];
+          zc2 = zc[inde2];
+          ps = sx1*sx2+sy1*sy2+sz1*sz2;       
           if (ps < psmax) 
           {
             psmax = ps;
@@ -161,18 +165,18 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
             fin:;
             if (indP1 != -1 && indP2 != -1)
             {
-              E_Float xp = 0.5*(xn[indP1]+xn[indP2]); E_Float xm = 0.5*(xc2+xc1);
-              E_Float yp = 0.5*(yn[indP1]+yn[indP2]); E_Float ym = 0.5*(yc2+yc1); 
-              E_Float zp = 0.5*(zn[indP1]+zn[indP2]); E_Float zm = 0.5*(zc2+zc1);
+              xp = 0.5*(xn[indP1]+xn[indP2]); E_Float xm = 0.5*(xc2+xc1);
+              yp = 0.5*(yn[indP1]+yn[indP2]); E_Float ym = 0.5*(yc2+yc1); 
+              zp = 0.5*(zn[indP1]+zn[indP2]); E_Float zm = 0.5*(zc2+zc1);
               snc0 = 0.5*(sx1+sx2); snc1 = 0.5*(sy1+sy2); snc2 = 0.5*(sz1+sz2);
               xpm0 = xm-xp; xpm1 = ym-yp; xpm2 = zm-zp;
-              E_Float ps2 = snc0*xpm0+snc1*xpm1+snc2*xpm2;
+              ps2 = snc0*xpm0+snc1*xpm1+snc2*xpm2;
             
               if (ps2 > -tolps) // concavite
               {
-                E_Float alpha = acos(ps)/2.;
-                E_Float cas2 = K_FUNC::E_abs(cos(alpha));
-                E_Float sas2 = K_FUNC::E_abs(sin(alpha));
+                alpha = acos(ps)/2.;
+                cas2 = K_FUNC::E_abs(cos(alpha));
+                sas2 = K_FUNC::E_abs(sin(alpha));
                 fout[ind] = K_FUNC::E_min(1.5,1./K_FUNC::E_max(cas2,sas2));
               }
             }
@@ -211,7 +215,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   if (res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getLocalStepFactor: array must unstructured.");
+                    "getLocalStepFactor: array must be unstructured.");
     if (res == 1) RELEASESHAREDS(array,f); return NULL;
   }
   E_Int posx0 = K_ARRAY::isCoordinateXPresent(varString);
@@ -235,7 +239,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getLocalStepFactor: array must unstructured.");
+                    "getLocalStepFactor: array must be unstructured.");
     RELEASESHAREDU(array, f, cn); 
     if (res == 1) RELEASESHAREDS(normales, fn);
     return NULL;

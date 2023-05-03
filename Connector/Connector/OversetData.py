@@ -1039,8 +1039,8 @@ def _addIBCCoords2__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, b
     return None
 
 def setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
-    aD = Internal.copyRef(tD)
-    aR = Internal.copyRef(tR)
+    aD = Internal.copyRef(aD)
+    aR = Internal.copyRef(aR)
     _setInterpData2(aR, aD, order=order, loc=loc, cartesian=cartesian)
     return aD
 
@@ -1083,7 +1083,7 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
 # IN: itype='both','chimera','abutting': calcule toutes les donnees de transferts, seules les chimere, seules les match/nearmatch
 # OUT: stockage direct: retourne tR avec les donnees d'interpolation
 # OUT: stockage indirect: retourne tD avec les donnees d'interpolation
-# RMQ: method='conservative' -> tout le domaine receveur est pour l instant considere a interpoler (maquette)
+# RMQ: method='conservative' -> tout le domaine receveur est pour l'instant considere a interpoler (maquette)
 #==============================================================================
 def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                   method='lagrangian', loc='nodes', storage='direct',
@@ -2029,7 +2029,7 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
                                                           xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
                                                           density, 
-                                                          bcType, loc, varType, compactT, Gamma, Cv, MuS, Cs, Ts,
+                                                          bcType, loc, varType, compactD, Gamma, Cv, MuS, Cs, Ts,
                                                           Internal.__GridCoordinates__, 
                                                           Internal.__FlowSolutionNodes__, 
                                                           Internal.__FlowSolutionCenters__)

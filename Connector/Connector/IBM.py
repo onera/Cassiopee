@@ -267,10 +267,10 @@ def getIBMFront(tc, frontvar, dim, frontType, isoFront=False, isFront2=False, SH
     if isoFront:
         front = getIBMFrontType0(tc,frontvar,dim,isFront2,frontType,SHIFTB)
     else:
-        if frontType > 0 : front = getIBMFrontType1(tc,frontvar,dim)
+        if frontType > 0: front = getIBMFrontType1(tc,frontvar,dim)
         else: front = getIBMFrontType0(tc,frontvar,dim,isFront2,frontType,SHIFTB)
     front = C.deleteEmptyZones(front)
-    Internal._rmNodesFromName(front,"ID_*")
+    Internal._rmNodesFromName(front, "ID_*")
     if frontType == 0: return front
 
     dxmin = 1.e12
@@ -293,7 +293,7 @@ def getIBMFront(tc, frontvar, dim, frontType, isoFront=False, isFront2=False, SH
                 dxmin = dht[nof]
             if dht[nof] > dxmax:
                 dxmax = dht[nof]
-            nof+=1
+            nof += 1
 
         nlevels = int(math.log(dxmax/dxmin)/math.log(2)+1)
 
@@ -344,8 +344,7 @@ def getIBMFrontType1(tc, frontvar, dim):
 # isosurface of max dist of the first interpolable cells
 def getIBMFrontType0(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
     import Converter.Mpi as Cmpi
-    from mpi4py import MPI
-
+    
     if dim == 2:
         z0 = Internal.getNodeFromType2(tc, 'Zone_t')
         zmean = C.getValue(z0, 'CoordinateZ', 0)
@@ -396,7 +395,7 @@ def getIBMFrontType0(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
             if Cmpi.KCOMM is not None:
                 dmin = numpy.array([dmin])
                 dmin_max = numpy.zeros(1)
-                Cmpi.KCOMM.Allreduce(dmin, dmin_max, MPI.MAX)
+                Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
             tcl = T.addkplane(tc)
@@ -410,7 +409,7 @@ def getIBMFrontType0(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
             if Cmpi.KCOMM is not None:
                 dmin = numpy.array([dmin])
                 dmin_max = numpy.zeros(1)
-                Cmpi.KCOMM.Allreduce(dmin, dmin_max, MPI.MAX)
+                Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
             front = P.isoSurfMC(tc, 'TurbulentDistance', dmin*SHIFTD)
@@ -420,8 +419,7 @@ def getIBMFrontType0(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
 # isosurface of max dist of the first interpolable cells
 def getIBMFrontType0_old(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
     import Converter.Mpi as Cmpi
-    from mpi4py import MPI
-
+    
     if dim == 2:
         z0 = Internal.getNodeFromType2(tc, 'Zone_t')
         zmean = C.getValue(z0, 'CoordinateZ', 0)
@@ -450,7 +448,7 @@ def getIBMFrontType0_old(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=
                 if Cmpi.KCOMM is not None:
                     dmin = numpy.array([dmin])
                     dmin_max = numpy.zeros(1)
-                    Cmpi.KCOMM.Allreduce(dmin, dmin_max, MPI.MAX)
+                    Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                     dmin = dmin_max[0]
             else:
                 dmin = 2*SHIFTB
@@ -475,7 +473,7 @@ def getIBMFrontType0_old(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=
             if Cmpi.KCOMM is not None:
                 dmin = numpy.array([dmin])
                 dmin_max = numpy.zeros(1)
-                Cmpi.KCOMM.Allreduce(dmin, dmin_max, MPI.MAX)
+                Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
             print("before : {}".format(dmin*SHIFTD*1.125))
@@ -502,7 +500,7 @@ def getIBMFrontType0_old(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=
             if Cmpi.KCOMM is not None:
                 dmin = numpy.array([dmin])
                 dmin_max = numpy.zeros(1)
-                Cmpi.KCOMM.Allreduce(dmin, dmin_max, MPI.MAX)
+                Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
             print("before : {}".format(dmin*SHIFTD*1.125))
@@ -520,7 +518,7 @@ def getIBMFrontType0_old(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=
             if Cmpi.KCOMM is not None:
                 dmin = numpy.array([dmin])
                 dmin_max = numpy.zeros(1)
-                Cmpi.KCOMM.Allreduce(dmin, dmin_max, MPI.MAX)
+                Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
             print("before : {}".format(dmin*SHIFTD*1.125))
@@ -842,13 +840,13 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
 
         dico_dx[z[0]] = dxx
         dico_dy[z[0]] = dyy
-        if (dimPb == 2):dico_dz[z[0]] = 1
+        if dimPb == 2:dico_dz[z[0]] = 1
         else : dico_dz[z[0]] = dzz
 
-        if (dimPb == 2):dzz=max(dxx,dyy)
+        if dimPb == 2:dzz=max(dxx,dyy)
 
         dx = min(dxx,dyy,dzz)
-        if (dx > dxmax):dxmax=dx
+        if dx > dxmax:dxmax=dx
 
     niveaux_temps = {}
     cx = {}
@@ -863,7 +861,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
         dyy  = abs(coordy[0,1,0]   - coordy[0,0,0])
         dzz  = abs(coordz[0,0,1]   - coordz[0,0,0])
 
-        if (dimPb == 2):dzz=max(dxx,dyy)
+        if dimPb == 2:dzz=max(dxx,dyy)
 
 
         dx = min(dxx,dyy,dzz)
@@ -872,7 +870,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
 
         N = math.log(dxmax/dx)/math.log(2.0)
         N = round(N) - 2
-        if N < 0 :
+        if N < 0:
             niveaux_temps[z[0]] = 2**0
         else :
             niveaux_temps[z[0]] = 2**N
@@ -1117,8 +1115,8 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
         dico_dx[z[0]] = dxx
         dico_dy[z[0]] = dyy
-        if dimPb == 2:dico_dz[z[0]] = 1
-        else : dico_dz[z[0]] = dzz
+        if dimPb == 2: dico_dz[z[0]] = 1
+        else: dico_dz[z[0]] = dzz
 
         if dimPb == 2:dzz=max(dxx,dyy)
 
@@ -1146,8 +1144,8 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
         N = math.log(dxmax/dx)/math.log(2.0)
         N = round(N)
-        if (N < 6):N=0
-        else:N=1
+        if N < 6: N=0
+        else: N=1
         #if (cx[z[0]] < 0.98): niveaux_temps[z[0]] = 2**N
         #else:  niveaux_temps[z[0]] = 1
         #niveaux_temps['cart.264'] = 2
@@ -2105,7 +2103,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
         C.convertPyTree2File(front, 'IB_front.cgns')
     # C.convertPyTree2File(front, 'front.cgns')
     print('Interpolations IBM')
-    tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isLBM=isLBM)
+    tc = doInterp(t, tc, tbb, tb=tb,typeI='IBCD', dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isLBM=isLBM)
 
     # cleaning...
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)

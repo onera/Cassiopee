@@ -460,8 +460,7 @@ def getValue__(t, var, ind):
         if ((i[0] == var or var == Internal.__GridCoordinates__)
             and (loc == 'nodes' or loc == '*')
             and i[3] == 'DataArray_t'):
-          if cellDim == 3:
-            result.append(i[1][im,jm,km])
+          if cellDim == 3: result.append(i[1][im,jm,km])
           elif cellDim == 2: result.append(i[1][im,jm])
           else: result.append(i[1][im])
 
@@ -5457,10 +5456,8 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
             t1    = tri[0]
             t2    = tri[1]
 
-            if len(tri) == 3:
-                t3 = tri[2]
-            else:
-                t3 = 0
+            if len(tri) == 3: t3 = tri[2]
+            else: t3 = 0
                 
             [indR,fldD]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
                                                                            (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),

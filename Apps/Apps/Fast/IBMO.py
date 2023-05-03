@@ -44,7 +44,6 @@ def buildAllBodies__(t_case, distrib, motion=False):
             tb = h.loadAndSplit(NParts=Cmpi.size)
         else:
             tb = h.loadAndSplit(NParts=max(NP, Cmpi.size))
-
         #tb = Cmpi.convertFile2SkeletonTree(t_case)
     else: tb = t_case
     
@@ -54,7 +53,7 @@ def buildAllBodies__(t_case, distrib, motion=False):
     # tbchim : arbre des corps chimeres 
     tbchim = C.newPyTree()
     tbov = C.newPyTree()
-    tbblank= C.newPyTree()
+    tbblank = C.newPyTree()
     # tbibm : arbre des corps ibms en z = 0
     tbibm = C.newPyTree()    
     # chargement des zones Chimere par proc 
@@ -89,23 +88,23 @@ def buildAllBodies__(t_case, distrib, motion=False):
                     SP = Internal.getNodeFromName(z,'.Solver#Param')
 
                     zwalls = C.extractBCOfType(z, 'BCWall')
-                    now=1
+                    now = 1
                     for zw in zwalls: 
                         zw[0] = b[0]+'_'+z[0]+'_W'+str(now)
                         if TM is not None: zw[2].append(TM)
                         if SD is not None: zw[2].append(SD)
                         if SP is not None: zw[2].append(SP)
-                        now+=1
+                        now += 1
                     basechim[2] += zwalls
 
                     zovs = C.extractBCOfType(z, 'BCOverlap')
-                    nov=1
+                    nov = 1
                     for zo in zovs: 
                         zo[0] = b[0]+'_'+z[0]+'_OV'+str(nov)
                         if TM is not None: zo[2].append(TM)
                         if SD is not None: zo[2].append(SD)
                         if SP is not None: zo[2].append(SP)
-                        nov+=1
+                        nov += 1
                     baseov[2] += zovs
 
         else:
@@ -161,7 +160,7 @@ def createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=3, motion=False)
     if Cmpi.size > 1:
         C._rmBCOfType(t2,'BCMatch')
         Cmpi._addBXZones(t2, depth=DEPTH*2, allB=False)
-        t2 = X.connectMatch(t2, tol=tolMatch, dim=dimPb)
+        t2 = X.connectMatch(t2, tol=1.e-6, dim=dimPb)
     Internal._addGhostCells(t2, t2, DEPTH, adaptBCs=1, fillCorner=0)
 
     # Suppression des XZones et correction des matchs 

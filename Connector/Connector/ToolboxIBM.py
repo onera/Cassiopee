@@ -66,22 +66,22 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
 
 
 def getIBMFront(tc, frontvar, dim, frontType, isoFront=False, isFront2=False, SHIFTB=0.):
-    front=X_IBM.getIBMFront(tc, frontvar, dim, frontType, isoFront=isoFront, isFront2=isFront2, SHIFTB=SHIFTB)
+    front = X_IBM.getIBMFront(tc, frontvar, dim, frontType, isoFront=isoFront, isFront2=isFront2, SHIFTB=SHIFTB)
     return front
 
 
 def getIBMFrontType1(tc, frontvar, dim):
-    front=X_IBM.getIBMFrontType1(tc, frontvar, dim)
+    front = X_IBM.getIBMFrontType1(tc, frontvar, dim)
     return front
 
 
 def getIBMFrontType0(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
-    front=X_IBM.getIBMFrontType0(tc, frontvar, dim, isFront2=isFront2, frontType=frontType, SHIFTB=SHIFTB)
+    front = X_IBM.getIBMFrontType0(tc, frontvar, dim, isFront2=isFront2, frontType=frontType, SHIFTB=SHIFTB)
     return front
 
 
 def getIBMFrontType0_old(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
-    front=X_IBM.getIBMFrontType0_old(tc, frontvar, dim, isFront2=isFront2, frontType=frontType, SHIFTB=SHIFTB)
+    front = X_IBM.getIBMFrontType0_old(tc, frontvar, dim, isFront2=isFront2, frontType=frontType, SHIFTB=SHIFTB)
     return front
 
 
@@ -101,37 +101,35 @@ def _smoothImageFrontBackward(t, tc, dimPb=2):
 
 
 def gatherFront(front):
-    front=X_IBM.gatherFront(front)
+    front = X_IBM.gatherFront(front)
     return front
 
 
 def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1., isLBM=False):    
-    tc=X_IBM.doInterp(t, tc, tbb, tb=tb, typeI=typeI, dim=dim, dictOfADT=dictOfADT, front=front, frontType=frontType, depth=depth, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isLBM=isLBM)
+    tc = X_IBM.doInterp(t, tc, tbb, tb=tb, typeI=typeI, dim=dim, dictOfADT=dictOfADT, front=front, frontType=frontType, depth=depth, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isLBM=isLBM)
     return tc
 
 
 def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1.):
-    tc=X_IBM.doInterp2(t, tc, tbb, tb=tb, typeI=typeI, dim=dim, dictOfADT=dictOfADT, front=front, frontType=frontType, depth=depth, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
+    tc = X_IBM.doInterp2(t, tc, tbb, tb=tb, typeI=typeI, dim=dim, dictOfADT=dictOfADT, front=front, frontType=frontType, depth=depth, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
     return tc
 
 
 def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1.):
-    tc=X_IBM.doInterp3(t, tc, tbb, tb=tb, typeI=typeI, dim=dim, dictOfADT=dictOfADT, frontType=frontType, depth=depth, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
+    tc = X_IBM.doInterp3(t, tc, tbb, tb=tb, typeI=typeI, dim=dim, dictOfADT=dictOfADT, frontType=frontType, depth=depth, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
     return tc
-
 
 def _extractIBMInfo_param(t,tc):
     X_IBM._extractIBMInfo_param(t,tc)
     return None
 
-
 def extractIBMInfo(tc):
-    t=X_IBM.extractIBMInfo(tc)
+    t = X_IBM.extractIBMInfo(tc)
     return t
 
 
 def extractIBMInfo2(tc):
-    t=X_IBM.extractIBMInfo2(tc)
+    t = X_IBM.extractIBMInfo2(tc)
     return t
 
 
@@ -146,17 +144,17 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
 
 
 def prepareIBMData2(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, interpDataType=1):
-    t,tc=X_IBM.prepareIBMData2(t, tbody, DEPTH=DEPTH, loc=loc, frontType=frontType, inv=inv, interpDataType=interpDataType)
+    t,tc = X_IBM.prepareIBMData2(t, tbody, DEPTH=DEPTH, loc=loc, frontType=frontType, inv=inv, interpDataType=interpDataType)
     return t, tc
 
 
 def createWallAdapt(tc):
-    t=X_IBM.createWallAdapt(tc)
+    t = X_IBM.createWallAdapt(tc)
     return t
 
 
 def createIBMWZones(tc,variables=[]):
-    tw=X_IBM.createIBMWZones(tc,variables=variables)
+    tw = X_IBM.createIBMWZones(tc,variables=variables)
     return tw
 
 
@@ -228,27 +226,27 @@ def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=
 
 
 def getMinimumCartesianSpacing(t):
-    dxmin=G_IBM_Height.getMinimumCartesianSpacing(t)
+    dxmin = G_IBM_Height.getMinimumCartesianSpacing(t)
     return dxmin
 
 
 def computeYplus(Re, Cf_law='ANSYS', height=0.1, L=1.):
-    val=G_IBM_Height.computeYplus(Re, Cf_law=Cf_law, height=height, L=L)
+    val = G_IBM_Height.computeYplus(Re, Cf_law=Cf_law, height=height, L=L)
     return val
 
 
 def computeModelisationHeight(Re, Cf_law='ANSYS', yplus=100., L=1.):
-    val=G_IBM_Height.computeModelisationHeight(Re, Cf_law=Cf_law,yplus=yplus,L=L)
+    val = G_IBM_Height.computeModelisationHeight(Re, Cf_law=Cf_law,yplus=yplus,L=L)
     return val
 
 
 def computeBestModelisationHeight(Re, h, Cf_law='ANSYS', L=1., q=1.2):
-    val1,val2=G_IBM_Height.computeBestModelisationHeight(Re, h, Cf_law=Cf_law, L=L, q=q)
+    val1,val2 = G_IBM_Height.computeBestModelisationHeight(Re, h, Cf_law=Cf_law, L=L, q=q)
     return val1,val2
 
 
 def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
-    td=P_IBM.extractIBMWallFields(tc, tb=tb, coordRef=coordRef, famZones=famZones, front=front)
+    td = P_IBM.extractIBMWallFields(tc, tb=tb, coordRef=coordRef, famZones=famZones, front=front)
     return td
 
 

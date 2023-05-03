@@ -38,9 +38,7 @@ import Generator.IBMmodelHeight as G_IBM_Height
 
 try: range = xrange
 except: pass
-from mpi4py import MPI
-COMM_WORLD = MPI.COMM_WORLD
-KCOMM = COMM_WORLD
+KCOMM = Cmpi.KCOMM
 
 RENAMEIBCNODES=False # renommage des ibcd*
 
@@ -602,7 +600,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
 
 
 #================================================================================
-# IBM prepare hybryde cart + curvi
+# IBM prepare hybride cart + curvi
 # in : t_3d arbre cartesien   (from prepare1)
 # in : tc_3d arbre cartesien connectivite   (from prepare1)
 # in : t_curvi arbre curviligne   (with bc and connectivity but without ghost)
@@ -798,7 +796,7 @@ def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
 #====================================================================================
 # Check number of points and cells per zone & in total
 #====================================================================================
-def _checkNcellsNptsPerProc(ts,NP,isAtCenter=False):
+def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
     NPTS   = numpy.zeros(NP)
     NCELLS = numpy.zeros(NP)
     for z in Internal.getZones(ts):
@@ -1198,7 +1196,7 @@ class IBM(Common):
                 C._rmVars(t,['centers:TurbulentDistance_ori'])
     
             #
-            if self.dimPb == 2 and self.input_var.cleanCellN == False : C._initVars(t, '{centers:TurbulentDistanceAllBC}={centers:TurbulentDistance}')
+            if self.dimPb == 2 and self.input_var.cleanCellN == False: C._initVars(t, '{centers:TurbulentDistanceAllBC}={centers:TurbulentDistance}')
     
         else:
             C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistanceAllBC}')
@@ -1207,7 +1205,7 @@ class IBM(Common):
         return None
     
     
-    def blanking__(self,t,tb):
+    def blanking__(self, t, tb):
         test.printMem(">>> Blanking [start]")
 
         snear_min=10e10
@@ -1223,7 +1221,7 @@ class IBM(Common):
         
         if self.input_var.extrusion is None:
            if not self.input_var.isFilamentOnly:
-               t= X_IBM.blankByIBCBodies(t, tb, 'centers', self.dimPb,closedSolid=self.input_var.closedSolid)
+               t = X_IBM.blankByIBCBodies(t, tb, 'centers', self.dimPb,closedSolid=self.input_var.closedSolid)
            if self.dimPb == 2 and self.input_var.cleanCellN == False:
                C._initVars(t, '{centers:cellNIBC_blank}={centers:cellN}')
         else:
@@ -1231,7 +1229,7 @@ class IBM(Common):
 
         C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
             
-        if not self.input_var.isFilamentOnly:X_IBM._signDistance(t)
+        if not self.input_var.isFilamentOnly: X_IBM._signDistance(t)
     
         if self.input_var.extrusion is not None:
            C._initVars(t,'{centers:cellN}={centers:cellNIBC_blank}')
@@ -1258,15 +1256,15 @@ class IBM(Common):
                         for j in range(sh[1]):
                             for i in range(sh[0]):
                                 valy=0.5*(ycord[i,j,k]+ycord[i,j+1,k])
-                                if dist[i,j]<numpy.sqrt(8)*h and valy<maxy and valy>miny :
+                                if dist[i,j]<numpy.sqrt(8)*h and valy<maxy and valy>miny:
                                     cellN[i,j]=2
             C._rmVars(t,['centers:TurbulentDistanceFilament'])
-            if self.tbFilamentList:C._rmVars(t,['centers:TurbulentDistanceSolid'])
+            if self.tbFilamentList: C._rmVars(t,['centers:TurbulentDistanceSolid'])
 
         
         # determination des pts IBC
         if self.input_var.extrusion is None:
-           if self.input_var.frontType != 42 :
+           if self.input_var.frontType != 42:
                if self.input_var.IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-self.DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
                elif self.input_var.IBCType == 1:
                    X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
@@ -1309,14 +1307,12 @@ class IBM(Common):
     
                        # Try to find the best route between two adjacent bodies by finding optimal iso distances
                        def correctionMultiCorps(cellN, cellNF):
-                           if cellN == 2 and cellNF == 2:
-                               return 1
+                           if cellN == 2 and cellNF == 2: return 1
                            return cellN
     
                        def findIsoFront(cellNFront, Dist_1, Dist_2):
                            if Dist_1 < max_dist and Dist_2 < max_dist:
-                               if abs(Dist_1-Dist_2) < epsilon_dist:
-                                   return 2
+                               if abs(Dist_1-Dist_2) < epsilon_dist: return 2
                            return max(cellNFront,1)
     
                        for i in range(1, self.cptBody):
@@ -1579,7 +1575,7 @@ class IBM(Common):
         return None
 
 
-    def _buildFront__(self,t,tc,tb):      
+    def _buildFront__(self, t, tc, tb):
         test.printMem(">>> Building IBM front [start]")
         front = X_IBM.getIBMFront(tc, 'cellNFront', dim=self.dimPb, frontType=self.input_var.frontType)
         front = X_IBM.gatherFront(front)
@@ -1602,8 +1598,8 @@ class IBM(Common):
             self.res = [{},{},{}]
             if self.input_var.twoFronts: self.res2 = [{},{},{}]
         else:
-            self.res    = X_IBM.getAllIBMPoints(self.zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=self.input_var.frontType,
-                                           cellNName='cellNIBC', depth=self.DEPTH, IBCType=self.input_var.IBCType, Reynolds=self.Reynolds, yplus=self.input_var.yplus, Lref=self.input_var.Lref, isOrthoFirst=self.isOrthoProjectFirst)
+            self.res = X_IBM.getAllIBMPoints(self.zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=self.input_var.frontType,
+                                             cellNName='cellNIBC', depth=self.DEPTH, IBCType=self.input_var.IBCType, Reynolds=self.Reynolds, yplus=self.input_var.yplus, Lref=self.input_var.Lref, isOrthoFirst=self.isOrthoProjectFirst)
             if self.input_var.twoFronts:
                 self.res2 = X_IBM.getAllIBMPoints(self.zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=self.input_var.frontType,
                                             cellNName='cellNIBC', depth=self.DEPTH, IBCType=self.input_var.IBCType, Reynolds=self.Reynolds, yplus=self.input_var.yplus, Lref=self.input_var.Lref)
@@ -1623,7 +1619,7 @@ class IBM(Common):
         return None
 
 
-    def _ibcInterpolation__(self,t,tc):            
+    def _ibcInterpolation__(self, t, tc):            
         graph = {}
         datas = {}
     
@@ -1720,7 +1716,6 @@ class IBM(Common):
                         dnrZones = []
                         for zdname in interDictIBM[zrname]:
                             zd = Internal.getNodeFromName2(tc, zdname)
-                            #if zd is not None: dnrZones.append(zd)
                             if zd is None: print('!!!Zone None', zrname, zdname)
                             else: dnrZones.append(zd)
                         XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr],
@@ -1863,7 +1858,7 @@ class IBM(Common):
         return None
 
 
-    def _tInitialize__(self,t,):        
+    def _tInitialize__(self,t,tb=None):        
         if self.input_var.tinit is None: I._initConst(t, loc='centers')
         else:
             t = Pmpi.extractMesh(self.input_var.tinit, t, mode='accurate')

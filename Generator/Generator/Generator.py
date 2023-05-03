@@ -5,6 +5,7 @@ __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre
 
 from . import generator
 import numpy
+import Converter as C
 
 __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 
     'cartPenta', 'cartPyra', 'cartNGon',
@@ -123,9 +124,6 @@ def bbox(arrays):
         raise ValueError("bbox: array list is empty.")
     if not isinstance(arrays[0], list): ars = [arrays]
     else: ars = arrays
-    try: import Converter as C
-    except ImportError:
-        raise ImportError("bbox: requires Converter module.")
     xmin = 1.e256; ymin = 1.e256; zmin = 1.e256
     xmax =-1.e256; ymax =-1.e256; zmax =-1.e256
     for a in ars:
@@ -172,9 +170,6 @@ def bbox(arrays):
 def BB(array, method='AABB', weighting=0, tol=0.):
     """Return the axis-aligned or oriented bounding box of an array as an array.
     Usage: b = BB(a, method='AABB', weighting=0, tol=0.)"""
-    try: import Converter as C
-    except ImportError:
-        raise ImportError("BB: requires Converter module.")
     if isinstance(array[0], list):
         out = []
         for a in array:
@@ -359,7 +354,7 @@ def enforceCurvature(arrayD, arrayC, power=0.5):
 # alpha is the factor of stretch for point of maximum curvature
 #--------------------------------------------------------------
 def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
-    try: import Geom as D; import math; import Converter as C; import KCore
+    try: import Geom as D; import math; import KCore
     except: raise ImportError("enforceCurvature2: requires Converter and Geom modules.")
     
     tol = 1.e-12 # tolerance sur les pts confondues(=close)
@@ -479,7 +474,7 @@ def map1d(array, d):
 
 # map par lignes dans la direction dir
 def map1dpl(array, d, dir, h1, h2, isAvg, pnts):
-    try: import Transform as T; import Converter as C
+    try: import Transform as T
     except:
         raise ImportError("map: requires Transform and Converter modules.")
 
@@ -488,7 +483,6 @@ def map1dpl(array, d, dir, h1, h2, isAvg, pnts):
         islocationdependent = True
         import numpy
         import Geom as D
-        import Converter.Internal as Internal
         import Geom.MapEdge as MapE
         N = len(d[1][0])
     
@@ -559,7 +553,7 @@ def d_local(m,j,k,ni,h1,h2,N):
 
 # map sur une surface
 def map2d(array, d):
-    try: import Transform as T; import Converter as C
+    try: import Transform as T
     except:
         raise ImportError("map: requires Transform and Converter modules.")
     di = T.subzone(d, (1,1,1), (d[2],1,1)); ndi = di[2]
@@ -597,7 +591,7 @@ def mapCurvature(array, N, power, dir):
         return mapCurvature___(array, N, power, dir)
 
 def mapCurvature___(array, N, power, dir):
-    try: import Transform as T; import Converter as C
+    try: import Transform as T
     except: 
         raise ImportError("mapCurvature: requires Transform, Converter modules.")
     if dir == 2: m = T.reorder(array, (2,1,3))
@@ -646,7 +640,7 @@ def refinePerDir__(a, power, dir):
     if not isinstance(power,float): factor = float(power)
     else: factor = power
     try:
-        import Transform as T; import Converter as C
+        import Transform as T
         import Geom as D; import Post as P
     except: raise ImportError("refine: requires Transform, Converter, Geom, Post modules.")
     if dir != 1 and dir != 2 and dir != 3: raise ValueError("refine: dir must be 1, 2 or 3.")
@@ -707,23 +701,23 @@ def refinePerDir__(a, power, dir):
     else: return aout
 
 def defineSizeMapForMMGs(array, hmax, sizeConstraints):
-    import Converter; import KCore; import Generator; import Transform
-    if hmax > 0: array = Converter.initVars(array, 'sizemap=%f'%hmax)
+    import KCore; import Generator; import Transform
+    if hmax > 0: array = C.initVars(array, 'sizemap=%f'%hmax)
     else: 
         vol = Generator.getVolumeMap(array)
-        vol = Converter.initVars(vol, '{vol}=(1.15*{vol})**0.5')
-        vol = Converter.center2Node(vol)
+        vol = C.initVars(vol, '{vol}=(1.15*{vol})**0.5')
+        vol = C.center2Node(vol)
         vol[0] = 'sizemap'
-        array = Converter.addVars([array, vol])
+        array = C.addVars([array, vol])
     pos = KCore.isNamePresent(array, 'sizemap')
 
-    szcs = Converter.convertArray2Hexa(sizeConstraints)
+    szcs = C.convertArray2Hexa(sizeConstraints)
     c = Transform.join(szcs)
     v = Generator.getVolumeMap(c)
-    v = Converter.center2Node(v) # devrait etre max
-    c = Converter.addVars([c,v])
-    hook = Converter.createHook(c, function='nodes')
-    ret = Converter.nearestNodes(hook, array)
+    v = C.center2Node(v) # devrait etre max
+    c = C.addVars([c,v])
+    hook = C.createHook(c, function='nodes')
+    ret = C.nearestNodes(hook, array)
     n = ret[0]; d = ret[1] 
     pt = array[1]
     alpha = numpy.empty(d.size, dtype=numpy.float64)
@@ -732,7 +726,7 @@ def defineSizeMapForMMGs(array, hmax, sizeConstraints):
     alpha[:] = (alpha[:] > 1.)*1.+(alpha[:] <= 1.)*alpha[:]
     if isinstance(pt, list): pt[pos,:] = alpha[:]*pt[pos,:]+(1.-alpha[:])*v[1][0,n[:]-1]
     else: pt[pos][:] = alpha[:]*pt[pos][:]+(1.-alpha[:])*v[1][0,n[:]-1]
-    #Converter.convertArrays2File(array, 'array.plt')
+    #C.convertArrays2File(array, 'array.plt')
     return array
 
 # Remaille une surface avec mmgs
@@ -743,10 +737,9 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
         l = []
         for i in array:
             if fixedConstraints != []:
-                import Converter
                 fixedNodes = []
-                hook = Converter.createHook(i, function='nodes')
-                for c in fixedConstraints: fixedNodes.append(Converter.nearestNodes(hook, c)[0])
+                hook = C.createHook(i, function='nodes')
+                for c in fixedConstraints: fixedNodes.append(C.nearestNodes(hook, c)[0])
             else: fixedNodes = None
             if sizeConstraints != []:
                 i = defineSizeMapForMMGs(i, hmax, sizeConstraints)
@@ -757,10 +750,9 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
         return l
     else:
         if fixedConstraints != []:
-            import Converter
             fixedNodes = []
-            hook = Converter.createHook(array, function='nodes')
-            for c in fixedConstraints: fixedNodes.append(Converter.nearestNodes(hook, c)[0])
+            hook = C.createHook(array, function='nodes')
+            for c in fixedConstraints: fixedNodes.append(C.nearestNodes(hook, c)[0])
         else: fixedNodes = None
         if sizeConstraints != []:
             array = defineSizeMapForMMGs(array, hmax, sizeConstraints)
@@ -835,7 +827,7 @@ def plaster(contours, surfaces, side=0):
     """Create a sticky plaster around contours surrounded by surfaces.
     Usage: plaster(contours, surfaces)"""
     ni = 100; nj = 100
-    try: import Transform as T; import Converter as C
+    try: import Transform as T
     except: raise ImportError("plaster: requires Converter, Transform modules.")
 
     c = C.convertArray2Tetra(contours); c = T.join(c)
@@ -980,8 +972,6 @@ def getNormalMap(array):
 def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
     """Return the map of smoothed surface normals in an array.
     Usage: getSmoothNormalMap(array, niter, eps)"""
-    try: import Converter as C
-    except: raise ImportError("getSmoothNormalMap: requires Converter module.")
     it = 1
     n = getNormalMap(array)
     n = C.normalize(n, ['sx','sy','sz'])
@@ -1019,7 +1009,7 @@ def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
 
 # identique a getSmoothNormalMap mais utilisant smoothField
 def getSmoothNormalMap2(array, niter=2, eps=0.4, algo=0):
-    try: import Converter as C; import Transform as T
+    try: import Transform as T
     except: raise ImportError("getSmoothNormalMap: requires Converter, Transform module.")
     n = getNormalMap(array)
     n = C.center2Node(n)
@@ -1110,7 +1100,6 @@ def buildExtension(c, surfaces, dh, niter=0):
 # OUT: ht the amplification factor of h, the step in the marching direction  
 #==============================================================================
 def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
-    import Converter as C
     sc = C.addVars([s,sn])
     sc = C.node2Center(sc)
     if algo == 0:
@@ -1121,6 +1110,8 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
             ht = C.node2Center(ht)
             ht = C.center2Node(ht)
             it += 1
+        #ht = T.smoothField(ht, eps=0.25, niter=niter)
+            
     else:
         # Nouvelle version
         ht = generator.getLocalStepFactor2(s, sc, kappaType, kappaS[0], kappaS[1])
@@ -1136,7 +1127,8 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
             hl = C.node2Center(hl)
             hl = C.center2Node(hl)
             it += 1
-
+        #hl = T.smoothField(hl, eps=0.25, niter=nitLocal)
+        
         if smoothType == 2: hl[1] = hl[1]*dif
 
         ht[1][1,:] = hl[1][0,:]
@@ -1147,8 +1139,6 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
 # Regle la hauteur des normales, retourne aussi le champ pour le lisseur (algo=1)
 def modifyNormalWithMetric(array, narray, algo=0, smoothType=0, eps=0.4, nitLocal=3, kappaType=0, kappaS=[0.2,1.6]):
     """Correct the normals located at nodes with respect to metric."""
-    try: import Converter as C
-    except: raise ImportError("modifyNormalWithMetric: requires Converter module.")
     a = C.copy(array); n = C.copy(narray)
     if len(a) == 5: a = C.convertArray2Hexa(a); n = C.convertArray2Hexa(n)
     ht = getLocalStepFactor__(a, n, smoothType, nitLocal, kappaType, kappaS, algo)
@@ -1218,7 +1208,7 @@ def addNormalLayers(surface, distrib, check=0,
 def gencartmb(bodies, h, Dfar, nlvl):
     """Generate a muliblock Cartesian mesh."""
     import KCore
-    try: import Transform as T; import Converter as C
+    try: import Transform as T
     except:
         raise ImportError("gencartmb: requires Transform and Converter.")
     for b in bodies:
@@ -1346,7 +1336,7 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
     import KCore
     try: 
         import math
-        import Converter as C; import Transform as T
+        import Transform as T
         import Geom as D
     except:
         raise ImportError("mapSplit: requires Converter, Geom, Transform modules.")
@@ -1430,7 +1420,6 @@ def T3mesher2D(a, grading=1.2, triangulateOnly=0, metricInterpType=0):
     """Create a delaunay mesh given a set of points defined by a.
     Usage: T3mesher2D(a, grading, triangulateOnly, metricInterpType)"""
     try:
-        import Converter as C
         b = C.convertArray2Tetra(a); b = close(b)
         return generator.T3mesher2D(b, grading, triangulateOnly, metricInterpType)
     except:
@@ -1441,7 +1430,7 @@ def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
     """Create a TRI/TETRA mesh given a set of BAR or surfaces in a.
     Usage: tetraMesher(a, maxh, grading)"""
     try:
-        import Converter as C; import Transform as T
+        import Transform as T
         a = C.convertArray2Tetra(a)
         a = T.join(a); a = close(a)
     except: pass
@@ -1461,8 +1450,6 @@ def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
                 if maxh < 0: maxh = 1.e6
                 return generator.netgen1(a, maxh, grading)
             else:
-                try: import Converter as C
-                except: raise ImportError("tetraMesher: requires Converter module.")
                 C.convertArrays2File([a], 'netgen.0120.stl', 'fmt_stl')
                 if maxh < 0: maxh = 1.e6
                 return generator.netgen2(a, maxh, grading)
@@ -1491,9 +1478,7 @@ def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
 def fittingPlaster(contour, bumpFactor=0.):
     """Generate a structured points cloud over a BAR.
     Usage: fittingPlaster(contour, bumpFactor)"""
-    try:
-        import Converter as C
-        contour = C.convertArray2Tetra(contour)
+    try: contour = C.convertArray2Tetra(contour)
     except: pass
     contour = close(contour)
     return generator.fittingPlaster(contour, bumpFactor)
@@ -1503,9 +1488,7 @@ def gapfixer(contour, cloud, hardPoints=None, refine=1):
     Some hard points can be specified to force the constructed surface to pass by.
     If the optional refine argument is set to 0, the resulting surface will be a constrained triangulation of the contour [and the additional hard nodes].
     Usage: gapFixer(contour, cloud, hardPoints, refine)"""
-    try:
-        import Converter as C
-        contour = C.convertArray2Tetra(contour)
+    try: contour = C.convertArray2Tetra(contour)
     except: pass
     contour = close(contour)
     return generator.gapfixer(contour, cloud, hardPoints, refine)
@@ -1516,7 +1499,6 @@ def gapsmanager(components, mode=0, refine=0, coplanar=0):
     The planar argument tells whether the components are coplanar or not (1 for coplanar case).
     Usage: gapsmanager(components, mode, refine, coplanar)"""
     try:
-        import Converter as C
         components = C.convertArray2Tetra(components)
         components = close(components)
     except: pass
@@ -1556,13 +1538,12 @@ def front2Struct(front, surf, distrib, Vmin, dist):
 def snapFront(meshes, surfaces, optimized=1):
     """Adapt meshes to a given surface (cellN defined). 
     Usage: snapFront(meshes, surfaces)"""
-    try:
-        import Converter as C; import Transform as T
+    try: import Transform as T
     except:
         raise ImportError("snapFront: requires Converter, Transform module.")
 
     try:
-        import Converter as C; import Transform as T
+        import Transform as T
         b = C.convertArray2Tetra(surfaces); b = T.join(b)
     except: b = surfaces[0]
 
@@ -1580,7 +1561,6 @@ def snapSharpEdges(meshes, surfaces, step=None, angle=30.):
     corners = out[2]
     if corners == []: corners = None
 
-    #import Converter as C
     #if contours is not None:
     #    C.convertArrays2File(contours, 'contours.plt')
     #if corners is not None:
@@ -1613,7 +1593,7 @@ def refinedSharpEdges__(surfaces, step, angle):
     """Get refined sharp edges from a given surface. 
     Usage: snapSharpEdges(meshes, surfaces)"""
     try:
-        import Post as P; import Geom as D; import Converter as C 
+        import Post as P; import Geom as D 
         import Transform as T; from . import Generator as G
     except:
         raise ImportError("snapSharpEdges: requires Post, Geom, Converter, Transform module.")
@@ -1747,7 +1727,7 @@ def cutOctant(octant, N, ind, dim=3):
 def octree(stlArrays, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None, dfarDir=0):
     """Generate an octree (or a quadtree) mesh starting from a list of TRI (or BAR) arrays defining bodies,
     a list of corresponding snears, and the extension dfar of the mesh."""
-    try: import Converter as C; s = C.convertArray2Tetra(stlArrays)
+    try: s = C.convertArray2Tetra(stlArrays)
     except: s = stlArrays
     if ratio == 2:
         o = generator.octree(s, snearList, dfarList, dfar, levelMax, octant, dfarDir)
@@ -1799,8 +1779,6 @@ def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
     """Expand the layer of octree elements of level l of one additional layer.
     The initial octree must be balanced.
     Usage: expandLayer(octree, level, corners, balancing)"""
-    try: import Converter as C
-    except: raise ImportError("expandLayer: requires Converter module.")
     typeExpand=2 # check neigbours only
     indic = C.node2Center(octreeHexa)
     indic = C.initVars(indic, 'indicator', 0.)
@@ -1809,8 +1787,7 @@ def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
     return adaptOctree(octreeHexa, indic, balancing)
 
 def forceMatch(a1, a2, tol=1.):
-    import Converter
-    b1 = Converter.copy(a1)
+    b1 = C.copy(a1)
     _forceMatch(b1, a2, tol)
     return b1
     
@@ -1837,7 +1814,7 @@ def findBest(diff, bary):
 # Match l'exterieur de a1 sur l'exterieur de a2 si la distance est
 # infierieure a tol
 def _forceMatch1(a1, a2, tol):
-    import Post; import Converter; import KCore; import Geom; import Transform; import Generator
+    import Post; import KCore; import Geom; import Transform; import Generator
         
     # exterior of a1
     ext1 = Post.exteriorFaces(a1)
@@ -1854,22 +1831,22 @@ def _forceMatch1(a1, a2, tol):
     posz2 = KCore.isCoordinateZPresent(a2)
     
     vol1 = getVolumeMap(ext1)
-    vol1 = Converter.center2Node(vol1)[1]
+    vol1 = C.center2Node(vol1)[1]
     vol2 = getVolumeMap(ext2)
-    vol2 = Converter.center2Node(vol2)[1]
+    vol2 = C.center2Node(vol2)[1]
     
     # identifie ext1 sur a1
-    hook = Converter.createHook(a1, function='nodes')
-    indices1 = Converter.identifyNodes(hook, ext1)
+    hook = C.createHook(a1, function='nodes')
+    indices1 = C.identifyNodes(hook, ext1)
     
     # identifie ext2 sur a2
-    hook = Converter.createHook(a2, function='nodes')        
-    indices2 = Converter.identifyNodes(hook, ext2)
+    hook = C.createHook(a2, function='nodes')        
+    indices2 = C.identifyNodes(hook, ext2)
     
     # match ext1 sur ext2
-    hook = Converter.createHook(ext2, function='nodes')
-    nodes,dist = Converter.nearestNodes(hook, ext1)
-    npts = Converter.getNPts(ext1)
+    hook = C.createHook(ext2, function='nodes')
+    nodes,dist = C.nearestNodes(hook, ext1)
+    npts = C.getNPts(ext1)
     for i in range(npts):
         if dist[i] < tol*0.55*vol1[0,i]:
             ind1 = indices1[i]-1
@@ -1882,9 +1859,9 @@ def _forceMatch1(a1, a2, tol):
             a1[1][posz1,ind1] = ext2[1][posz2,ind2]        
         
     # match ext2 sur ext1
-    hook = Converter.createHook(ext1, function='nodes')
-    nodes,dist = Converter.nearestNodes(hook, ext2)
-    npts = Converter.getNPts(ext2)
+    hook = C.createHook(ext1, function='nodes')
+    nodes,dist = C.nearestNodes(hook, ext2)
+    npts = C.getNPts(ext2)
     for i in range(npts):
         if dist[i] < tol*0.55*vol2[0,i]:
             ind1 = nodes[i]-1
@@ -1896,7 +1873,7 @@ def _forceMatch1(a1, a2, tol):
 
 # Force match sur la bande delimitee par P1-P2
 def _forceMatch2(a1, a2, P1, P2):
-    import Post; import Converter; import KCore; import Geom; import Transform; import Generator
+    import Post; import KCore; import Geom; import Transform; import Generator
     
     # exterior of a1
     ext1 = Post.exteriorFaces(a1)
@@ -1905,19 +1882,19 @@ def _forceMatch2(a1, a2, P1, P2):
     ext2 = Post.exteriorFaces(a2)
     
     # Find split index of P1 and P2
-    hook = Converter.createHook(ext1, function='nodes')
-    nodes,dist = Converter.nearestNodes(hook, Geom.point(P1))
+    hook = C.createHook(ext1, function='nodes')
+    nodes,dist = C.nearestNodes(hook, Geom.point(P1))
     ind1s1 = nodes[0]-1
-    nodes,dist = Converter.nearestNodes(hook, Geom.point(P2))    
+    nodes,dist = C.nearestNodes(hook, Geom.point(P2))    
     ind2s1 = nodes[0]-1
-    hook = Converter.createHook(ext2, function='nodes')
-    nodes,dist = Converter.nearestNodes(hook, Geom.point(P1))    
+    hook = C.createHook(ext2, function='nodes')
+    nodes,dist = C.nearestNodes(hook, Geom.point(P1))    
     ind1s2 = nodes[0]-1
-    nodes,dist = Converter.nearestNodes(hook, Geom.point(P2))    
+    nodes,dist = C.nearestNodes(hook, Geom.point(P2))    
     ind2s2 = nodes[0]-1
     ext1 = Transform.splitBAR(ext1, ind1s1, ind2s1)
     ext2 = Transform.splitBAR(ext2, ind1s2, ind2s2)
-    Converter.convertArrays2File(ext1+ext2, 'exts.plt')
+    C.convertArrays2File(ext1+ext2, 'exts.plt')
     # on garde ceux qui ont a peu pres la meme longeur
     # et un barycentre semblable
     n1 = len(ext1); n2 = len(ext2)
@@ -1935,13 +1912,13 @@ def _forceMatch2(a1, a2, P1, P2):
     ind = findBest(diff, bary)
     j = ind//n1; i = ind-j*n1
     ext1 = ext1[i]; ext2 = ext2[j]
-    Converter.convertArrays2File([ext1,ext2], 'exts.plt')
+    C.convertArrays2File([ext1,ext2], 'exts.plt')
     _forceMatch3(a1, a2, ext1, ext2)    
     return None
 
 # force match avec deux courbes en entree
 def _forceMatch3(a1, a2, ext1, ext2):
-    import Post; import Converter; import KCore; import Geom; import Transform; import Generator
+    import Post; import KCore; import Geom; import Transform; import Generator
                 
     # Get pos
     posx1 = KCore.isCoordinateXPresent(a1)
@@ -1952,16 +1929,16 @@ def _forceMatch3(a1, a2, ext1, ext2):
     posz2 = KCore.isCoordinateZPresent(a2)
     
     # identifie ext1 sur a1
-    hook = Converter.createHook(a1, function='nodes')
-    indices1 = Converter.identifyNodes(hook, ext1)
+    hook = C.createHook(a1, function='nodes')
+    indices1 = C.identifyNodes(hook, ext1)
     
     # identifie ext2 sur a2
-    hook = Converter.createHook(a2, function='nodes')        
-    indices2 = Converter.identifyNodes(hook, ext2)
+    hook = C.createHook(a2, function='nodes')        
+    indices2 = C.identifyNodes(hook, ext2)
     
     # match ext1 sur ext2
-    hook = Converter.createHook(ext2, function='nodes')
-    nodes,dist = Converter.nearestNodes(hook, ext1)
+    hook = C.createHook(ext2, function='nodes')
+    nodes,dist = C.nearestNodes(hook, ext1)
         
     ext1[1][posx1,:] = ext2[1][posx2,nodes[:]-1]
     ext1[1][posy1,:] = ext2[1][posy2,nodes[:]-1]
@@ -1971,8 +1948,8 @@ def _forceMatch3(a1, a2, ext1, ext2):
     a1[1][posz1,indices1[:]-1] = ext2[1][posz2,nodes[:]-1]
     
     # match ext2 sur new ext1
-    hook = Converter.createHook(ext1, function='nodes')
-    nodes,dist = Converter.nearestNodes(hook, ext2)
+    hook = C.createHook(ext1, function='nodes')
+    nodes,dist = C.nearestNodes(hook, ext2)
     a2[1][posx2,indices2[:]-1] = ext1[1][posx1,nodes[:]-1]
     a2[1][posy2,indices2[:]-1] = ext1[1][posy1,nodes[:]-1]
     a2[1][posz2,indices2[:]-1] = ext1[1][posz1,nodes[:]-1]
@@ -2001,7 +1978,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                             kappaType=0, kappaS=[0.2,1.6], blanking=False, cellNs=[],
                             algo=0):
     import KCore
-    try: import Converter as C; import Transform as T; import Generator as G
+    try: import Transform as T; import Generator as G
     except: raise ImportError("addNormalLayers: requires Converter, Transform modules.")   
     kmax = distrib[1].shape[1] # nb of layers in the normal direction
 
@@ -2218,7 +2195,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
 def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, niterK=[], 
                            smoothType=0, eps=0.4, nitLocal=3, 
                            kappaType=0, kappaS=[0.2,1.6], blanking=False, cellNs=[], algo=0):
-    try: import Converter as C; import Transform as T; import KCore
+    try: import Transform as T; import KCore
     except: raise ImportError("addNormalLayers: requires Converter, Transform modules.")    
     if isinstance(surface[0], list): surf = T.join(surface)
     else: surf = surface
@@ -2422,8 +2399,6 @@ def getTriQualityStat(array):
     """Return the orthogonality stats (min, max and mean) in aTRI mesh.
     Usage: getTriQualityStat(array)"""
     card = getTriQualityMap(array)
-    try: import Converter as C
-    except: raise ImportError("getTriQualityStat: requires Converter module.")
     meanv10 = C.getMeanRangeValue(card, 'quality', 0., 0.1)
     meanv90 = C.getMeanRangeValue(card, 'quality', 0.9, 1.)
     meanv = C.getMeanValue(card, 'quality')
