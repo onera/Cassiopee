@@ -335,14 +335,14 @@ else if ($MAC == "visung_el8") then
         setenv ELSAPROD visung_el8
         module purge
         module load subversion
-        module load python/3.8.14-intel2220
-        module load intel/22.2.0
-        module load hdf5/1.10.5-intel2220-impi
+        module load python/3.8.14-intel2120
+        module load intel/21.2.0
+        module load hdf5/1.10.5-intel2120-impi
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
         setenv PRODMODE 1
-        # Nombre de threads
+        setenv PIP_DISABLE_PIP_VERSION_CHECK 1
         setenv OMP_NUM_THREADS 72
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)

@@ -6,9 +6,6 @@ from . import OversetData as XOD
 from . import Connector
 from . import connector
 
-try: range = xrange
-except: pass
-
 try:
     import Converter.PyTree as C
     import Generator.PyTree as G
@@ -22,10 +19,7 @@ try:
     import Converter
     import Generator
     import Transform
-    import Converter.GhostCells as CGC
     import KCore
-    import numpy
-    import math
 except:
     raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
 
@@ -65,8 +59,8 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
     return None
 
 
-def getIBMFront(tc, frontvar, dim, frontType, isoFront=False, isFront2=False, SHIFTB=0.):
-    front = X_IBM.getIBMFront(tc, frontvar, dim, frontType, isoFront=isoFront, isFront2=isFront2, SHIFTB=SHIFTB)
+def getIBMFront(tc, frontvar, dim, frontType, isFront2=False, SHIFTB=0.):
+    front = X_IBM.getIBMFront(tc, frontvar, dim, frontType, isFront2=isFront2, SHIFTB=SHIFTB)
     return front
 
 

@@ -1100,6 +1100,7 @@ def buildExtension(c, surfaces, dh, niter=0):
 # OUT: ht the amplification factor of h, the step in the marching direction  
 #==============================================================================
 def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
+    #import Transform
     sc = C.addVars([s,sn])
     sc = C.node2Center(sc)
     if algo == 0:
@@ -1110,7 +1111,7 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
             ht = C.node2Center(ht)
             ht = C.center2Node(ht)
             it += 1
-        #ht = T.smoothField(ht, eps=0.25, niter=niter)
+        #ht = Transform.smoothField(ht, eps=0.25, niter=niter, varNames=['ht'])
             
     else:
         # Nouvelle version
@@ -1127,7 +1128,7 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
             hl = C.node2Center(hl)
             hl = C.center2Node(hl)
             it += 1
-        #hl = T.smoothField(hl, eps=0.25, niter=nitLocal)
+        #hl = Transform.smoothField(hl, eps=0.25, niter=nitLocal, varNames=['hl'])
         
         if smoothType == 2: hl[1] = hl[1]*dif
 

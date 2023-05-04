@@ -651,12 +651,14 @@ General purpose grid generator
 
 ---------------------------------------
 
-.. py:function:: Generator.TFIO(a)
+.. py:function:: Generator.TFIO(a, weight=None)
 
     Generate five meshes by transfinite interpolation around one given curve a. The number of points of a must be odd.
 
     :param a:  curve
-    :type  a:  array
+    :type  a:  array or zone
+    :param weight: if provided, the weight sets the size of the inside square
+    :type weight: None, float or list of floats
     :return: 2D structured mesh (butterfly O-H topology)
     :rtype: array or pyTree
 
