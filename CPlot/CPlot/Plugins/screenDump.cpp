@@ -390,15 +390,17 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
       char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
       float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer]; // stored
       for (E_Int i = 0; i < exportHeight; ++i) {
-      for (E_Int j = 0; j < exportWidth; ++j) {
+      for (E_Int j = 0; j < exportWidth; ++j) 
+      {
         unsigned ind = i*exportWidth+j;
-        if (depth[ind] < offscreenD[ind]) {
+        if (depth[ind] < offscreenD[ind]) 
+        {
           offscreen[3*ind  ] = bufferRGBA[4*ind  ];
           offscreen[3*ind+1] = bufferRGBA[4*ind+1];
           offscreen[3*ind+2] = bufferRGBA[4*ind+2];
           offscreenD[ind]    = depth[ind];
-          }
         }
+      }
       }
     }
     // export dans buffer

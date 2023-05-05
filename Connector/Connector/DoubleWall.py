@@ -334,6 +334,9 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, ghostCells=False, chec
 
     walls1 = Cmpi.allgatherZones(walls1, coord=True, variables=['centers:cellN'])
     walls1 = C.convertArray2Hexa(walls1)
+    if walls1 == []: return
+    #print(walls1, flush=True)
+
     walls1 = T.join(walls1)
     walls1 = C.node2Center(walls1)
     walls1 = C.convertArray2Tetra(walls1, split='withBarycenters')

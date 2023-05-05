@@ -42,10 +42,12 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
   if (finalizeType == 1 || finalizeType == 6 || finalizeType == 7)
   {
 #ifdef __MESA__
-    free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
-    d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
-    OSMesaDestroyContext(*(OSMesaContext*)(d->ptrState->ctx));
-    d->ptrState->ctx = NULL;
+    // We may sometimes need to delete the context (if new image if a new size)
+    // But generally, this is not the case
+    //free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
+    //d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
+    //OSMesaDestroyContext(*(OSMesaContext*)(d->ptrState->ctx));
+    //d->ptrState->ctx = NULL;
 #endif
     return Py_BuildValue("l", KSUCCESS);
   }

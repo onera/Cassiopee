@@ -688,7 +688,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, 
-                   dim=3, itype='both'):
+                   dim=3, itype='abutting'):
     """Compute interpolation data for abutting or chimera intergrid connectivity."""
     # Le graph doit correspondre au probleme
     if itype == 'abutting':

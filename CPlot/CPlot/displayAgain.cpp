@@ -103,6 +103,12 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
         (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
       OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
                     GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+      if (d->ptrState->offscreen == 5)
+      {
+        // in composite mode, this buffer must be deleted in cas of new image
+        free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer+1]);
+        d->ptrState->offscreenBuffer[d->ptrState->frameBuffer+1] = NULL;
+      }
       d->_shaders.init(); // shader are attached to context
       d->_shaders.load();
   }
@@ -114,6 +120,13 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
         (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
       OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
                         GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+
+      if (d->ptrState->offscreen == 5)
+      {
+        // in composite mode, this buffer must be deleted in cas of new image
+        free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer+1]);
+        d->ptrState->offscreenBuffer[d->ptrState->frameBuffer+1] = NULL;
+      }
   }
 
   d->ptrState->farClip = 1;
