@@ -93,15 +93,28 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
 #ifdef __MESA__
   if (d->ptrState->ctx == NULL) 
   {
-      d->ptrState->ctx = new OSMesaContext();
-      *(OSMesaContext*)(d->ptrState->ctx) = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
-  }
-  OSMesaContext& ctx = *((OSMesaContext*)(d->ptrState->ctx));
-  if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
-    d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
-    (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
-  OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
+      //printf("recreating context\n");
+      OSMesaContext* ctx = new OSMesaContext();
+      (*ctx) = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
+      d->ptrState->ctx = ctx;
+
+      if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
+        d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
+        (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
+      OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
                     GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+      d->_shaders.init(); // shader are attached to context
+      d->_shaders.load();
+  }
+  else
+  {
+      OSMesaContext& ctx = *((OSMesaContext*)(d->ptrState->ctx));
+      if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
+        d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
+        (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
+      OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
+                        GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+  }
 
   d->ptrState->farClip = 1;
   d->ptrState->render = 0; // 1 ou pas?
