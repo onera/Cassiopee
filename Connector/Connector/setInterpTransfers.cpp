@@ -922,20 +922,41 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   E_Int pass_inst_fin=1;
   if (nrac_inst > 0) pass_inst_fin=2;
 
+  //
   //on optimise les transfert pour implicit local
+  //
   E_Int impli_local[nidomR];
-  E_Int nssiter = iptdtloc[0];
-  E_Int* ipt_omp = iptdtloc +9 + nssiter;
-  E_Int nbtask = ipt_omp[nstep-1]; 
-  E_Int ptiter = ipt_omp[nssiter+ nstep-1];
+  E_Int nssiter  = iptdtloc[0];
+  E_Int shift_omp= iptdtloc[11];
+  E_Int* ipt_omp = iptdtloc + shift_omp;
+  E_Int nbtask   = ipt_omp[nstep-1]; 
+  E_Int ptiter   = ipt_omp[nssiter+ nstep-1];
 
-  for (E_Int nd = 0; nd < nidomR; nd++) {impli_local[nd]=0;}
-  for (E_Int ntask = 0; ntask < nbtask; ntask++)
+  for (E_Int nd = 0; nd < nidomR; nd++) {impli_local[nd]=0;}//par defaut pas de transfert
+  for (E_Int ntask = 0; ntask < nbtask; ntask++)            //transfert sur les zones modifiees à la ssiter nstep
   {
     E_Int pttask = ptiter + ntask*(6+threadmax_sdm*7);
     E_Int nd = ipt_omp[ pttask ];
     impli_local[nd]=1;
   }
+  E_Int maxlevel      =  iptdtloc[ 9];  //transfert sur les zones qui recupere leur valeur interpolees en LBM
+  E_Int it_cycl_lbm   =  iptdtloc[10];
+  E_Int level_it      =  iptdtloc[12+it_cycl_lbm];
+  E_Int max_it        = pow(2, maxlevel-1);
+
+  E_Int level_next_it =  maxlevel;
+  if (it_cycl_lbm != max_it -1 ) { level_next_it = iptdtloc[12 +it_cycl_lbm +1];}
+
+  for (E_Int nd = 0; nd < nidomR; nd++)   
+    {
+       if (  ipt_param_intR[nd][IFLOW] == 4)
+       {
+          E_Int level = ipt_param_intR[nd][LEVEL];
+          if (level <=level_next_it +1 ){impli_local[nd]=1;}
+          else                          {impli_local[nd]=0;}
+       }
+       //printf("implilocal %d %d %d \n", impli_local[nd], nd, it_cycl_lbm);
+    }
 
   E_Int size_autorisation = nrac_steady+1;
   size_autorisation = K_FUNC::E_max(size_autorisation , nrac_inst+1);

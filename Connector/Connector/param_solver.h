@@ -205,6 +205,12 @@
 #define SA_LOW_RE     130
 #define SA_ROT_CORR   131
 
+
+/* stockage pour interpolation temporelle*/
+#define PT_INTERP     132
+
+#define NONZ          133
+
 /*BC types*/
 #define BC_TYPE	      0
 #define BC_IDIR       1

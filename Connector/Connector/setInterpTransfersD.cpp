@@ -505,8 +505,9 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
   //tableau pour optimisation transfert implicit local. Si zone donneuse non modifiee a la ssiter nstep, on fait rien.
   E_Int impli_local[nidomD];
-  E_Int nssiter = iptdtloc[0];
-  E_Int* ipt_omp = iptdtloc +9 + nssiter;
+  E_Int nssiter  = iptdtloc[0];
+  E_Int shift_omp= iptdtloc[11];
+  E_Int* ipt_omp = iptdtloc + shift_omp;
   E_Int nbtask = ipt_omp[nstep-1]; 
   E_Int ptiter = ipt_omp[nssiter+ nstep-1];
 
