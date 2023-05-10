@@ -212,7 +212,7 @@ void K_COMPGEOM::boundingBoxOfUnstrCells(K_FLD::FldArrayI& connect,
 #pragma omp parallel default(shared)
   {
     E_Float xmin, ymin, zmin, xmax, ymax,zmax;
-#pragma omp for
+    #pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     {
       boundingBoxOfUnstrCell(et, connect, xt, yt, zt,

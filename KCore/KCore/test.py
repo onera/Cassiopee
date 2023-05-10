@@ -947,7 +947,7 @@ def checkCGNSlib(t, number=1):
 #==============================================================================
 def printMem(msg, waitTime=0.1):
     """Write process memory to stdout."""
-    import os, time
+    import time
     pid = os.getpid()
     time.sleep(waitTime)
     try: f = open("/proc/{}/smaps".format(pid))
@@ -970,4 +970,5 @@ def printMem(msg, waitTime=0.1):
     elif tot > 1000.:
         print('{:<40} : {} MB '.format(msg,tot/1000.))
     else: print('{:<40} : {} kB '.format(msg,tot))
+    sys.stdout.flush()
     return tot

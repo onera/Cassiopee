@@ -124,16 +124,15 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   //nt = 0; // pas de multithread pour l'instant
   //clock_gettime(CLOCK_REALTIME, &beg);
   if (algo == 0 ) // Algorithme d'origine FMM
-{
-   Eikonal::FMM::solveOnIsotropGrid( nil, njl, nkl, x[0], y[0], z[0], dh, phi, v);
-
-}
+  {
+    Eikonal::FMM::solveOnIsotropGrid( nil, njl, nkl, x[0], y[0], z[0], dh, phi, v);
+  }
   if (algo == 1 ) // Variant de l'algorithme d'origine : FIM
-{
+  {
     Eikonal::FIM::solveOnIsotropGrid( nil, njl, nkl, x[0], y[0], z[0], dh, phi, v, max_float);
-}
+  }
   if (algo == 2 )// Si on a choisit l'algorithme FIM
-//  if (nt == 0) 
+  //if (nt == 0) 
   {
     solveEikonalOnIsotropGrid(nil, njl, nkl,
                               x[0], y[0], z[0],

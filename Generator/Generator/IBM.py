@@ -11,8 +11,7 @@ import Post.PyTree as P
 import Converter
 import Transform
 import Converter.GhostCells as CGC
-import KCore
-import numpy
+import Connector.PyTree as X
 
 EPSCART = 1.e-6
 

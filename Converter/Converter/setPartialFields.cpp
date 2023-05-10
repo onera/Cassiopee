@@ -100,21 +100,22 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
   E_Int nPts = listIndices->getSize();
   E_Int* indices = listIndices->begin();
   E_Int nfldc = posv.size();//nb de variables communes
+
 #pragma omp parallel default(shared)
   {
-  E_Int ind; E_Int pos1, posv1;
-  for (E_Int eq = 0; eq < nfldc; eq++)
-  {
-    pos1 = posv[eq]; posv1 = posvl[eq]; 
-    E_Float* foutp = fn.begin(pos1);
-    E_Float* fip = fl->begin(posv1);
-#pragma omp for
-    for (E_Int i = 0; i < nPts; i++)
+    E_Int ind; E_Int pos1, posv1;
+    for (E_Int eq = 0; eq < nfldc; eq++)
     {
-      ind = indices[i];
-      foutp[ind] = fip[i];
+      pos1 = posv[eq]; posv1 = posvl[eq]; 
+      E_Float* foutp = fn.begin(pos1);
+      E_Float* fip = fl->begin(posv1);
+      #pragma omp for
+      for (E_Int i = 0; i < nPts; i++)
+      {
+          ind = indices[i];
+          foutp[ind] = fip[i];
+      }
     }
-  }
   }
   RELEASESHAREDN(listIndicesO, listIndices);
   RELEASESHAREDB(res, array, f, cn); 
@@ -203,15 +204,15 @@ PyObject* K_CONVERTER::setPartialFieldsPT(PyObject* self, PyObject* args)
       E_Int ind; E_Int pos1, posv1;
       for (E_Int eq = 0; eq < nfldc; eq++)
       {
-         pos1 = posv[eq]; posv1 = posvl[eq];
-         E_Float* foutp = fields[pos1-1];
-         E_Float* fip = fl->begin(posv1);
-#pragma omp for
-         for (E_Int i = 0; i < nPts; i++)
-         {
-           ind = indices[i]; 
-           foutp[ind] = fip[i];
-         }
+        pos1 = posv[eq]; posv1 = posvl[eq];
+        E_Float* foutp = fields[pos1-1];
+        E_Float* fip = fl->begin(posv1);
+        #pragma omp for
+        for (E_Int i = 0; i < nPts; i++)
+        {
+          ind = indices[i]; 
+          foutp[ind] = fip[i];
+        }
       }
     }
   }
@@ -222,15 +223,15 @@ PyObject* K_CONVERTER::setPartialFieldsPT(PyObject* self, PyObject* args)
       E_Int ind; E_Int pos1, posv1;
       for (E_Int eq = 0; eq < nfldc; eq++)
       {
-         pos1 = posv[eq]; posv1 = posvl[eq];
-         E_Float* foutp = fields[pos1-1];
-         E_Float* fip = fl->begin(posv1);
-#pragma omp for
-         for (E_Int i = 0; i < nPts; i++)
-         {
-           ind = indices[i]-startFrom; 
-           foutp[ind] = fip[i];
-         }
+        pos1 = posv[eq]; posv1 = posvl[eq];
+        E_Float* foutp = fields[pos1-1];
+        E_Float* fip = fl->begin(posv1);
+        #pragma omp for
+        for (E_Int i = 0; i < nPts; i++)
+        {
+          ind = indices[i]-startFrom; 
+          foutp[ind] = fip[i];
+        }
       }
     }
   }
@@ -298,7 +299,8 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
   E_Int* indices = listIndices->begin();
   
   // no check: perfos
-  if (startFrom == 0) { 
+  if (startFrom == 0) 
+  { 
 #pragma omp parallel default(shared)
     {
       E_Int ind;
@@ -308,7 +310,7 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
         {
           E_Float* foutp = fields[v];
           E_Float* fip = listFields[v]->begin();
-#pragma omp for
+          #pragma omp for
           for (E_Int i = 0; i < nPts; i++)
           {
             ind = indices[i];
@@ -318,7 +320,8 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
       }
     }
   }
-  else{
+  else
+  {
 #pragma omp parallel default(shared)
     {
       E_Int ind;
@@ -328,7 +331,7 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
         {
           E_Float* foutp = fields[v];
           E_Float* fip = listFields[v]->begin();
-#pragma omp for
+          #pragma omp for
           for (E_Int i = 0; i < nPts; i++)
           {
             ind = indices[i]-startFrom;

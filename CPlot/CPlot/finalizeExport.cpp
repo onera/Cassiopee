@@ -48,6 +48,12 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
     //d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
     //OSMesaDestroyContext(*(OSMesaContext*)(d->ptrState->ctx));
     //d->ptrState->ctx = NULL;
+    if (d->ptrState->offscreen == 6)
+    {
+      // in composite mode, this buffer must be deleted 
+      free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer+1]);
+      d->ptrState->offscreenBuffer[d->ptrState->frameBuffer+1] = NULL;
+    }
 #endif
     return Py_BuildValue("l", KSUCCESS);
   }
@@ -66,15 +72,17 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
   //{}
   
   // Finalize mpeg
-  if (finalizeType == 1 && strcmp(d->_pref.screenDump->extension, "mpeg") == 0)
+  if (finalizeType == -1 && strcmp(d->_pref.screenDump->extension, "mpeg") == 0)
     d->finalizeExport(); // force l'ecriture finale du fichier
   
   d->ptrState->continuousExport = 0;
   d->ptrState->shootScreen = 0;
   d->ptrState->_mustExport = 0;
   d->ptrState->_isExporting = 0;
-  if (finalizeType == 4) 
+
+  if (finalizeType == 4)
   {
+    // clear compositing buffers
     free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
     d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
     free(d->ptrState->offscreenDepthBuffer[d->ptrState->frameBuffer]);

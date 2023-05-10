@@ -234,123 +234,130 @@ void K_CONNECTOR::changeWall(
     K_SEARCH::BbTree3D* bbtree = new K_SEARCH::BbTree3D(boxes);
     vectOfBBTrees.push_back(bbtree);
   }
+
   E_Int imcjmc = imc*jmc;
   //E_Int ncells = imcjmc*kmc;
-  E_Float delta = K_CONST::E_MAX_FLOAT;
-  E_Float deltax = 0.; E_Float deltay = 0.; E_Float deltaz = 0.;
-  E_Float xp, yp, zp;
-  E_Int noet, indt1, indt2, indt3;
-  E_Int nob, nov1, nov2, nov3;
-  E_Int nbB, dir1, dir2, dir3, dir, indA, indB;
-  E_Boolean isProjected;
-  E_Float xa, ya, za, xb, yb, zb, dAP2, dirx, diry, dirz;
-  E_Float dxa, dya, dza, hmax1, hmax2, hmax;
-  vector<E_Int> indicesElts; vector<E_Int> candidates;
-  E_Float pr1[3]; E_Float pr2[3];
-  E_Int iA, jA, kA;
-  // Projection des pts interpoles des first centers
-  // Poids du vecteur delta pour chq pt au dessus du pt pres de la paroi a interpoler : 
-  // Si i < no1 : alpha = 1, si no1 <= i< no2 : alpha decroissant, 0 ensuite
-  vector<E_Float> xbt; vector<E_Float> ybt; vector<E_Float> zbt; vector<E_Int> dirt;vector<E_Float> hmaxt;
-  for (E_Int ii = 0; ii < nbCentersW; ii++)
-  {
-    indA = E_Int(indicesw[ii]);
-    if (cellN[indA] == 1.) goto nextpt;
-    kA = indA/imcjmc;
-    jA = (indA-kA*imcjmc)/imc;
-    iA = indA-jA*imc-kA*imcjmc;
-    xa = xc[indA]; ya = yc[indA]; za = zc[indA];
-    //printf("xa %f %f %f\n", xa, ya, za);
-    xbt.clear(); ybt.clear(); zbt.clear(); dirt.clear();
-    dir1 = E_Int(dirw1[ii]);
-    dir2 = E_Int(dirw2[ii]);
-    dir3 = E_Int(dirw3[ii]);
-    //printf("dir %d %d %d\n", dir1, dir2, dir3);
-    hmax1 = hmaxw[ii];
-
-    // on recupere le pt B si le pt A est un pt paroi dans la direction ortho a i
-    if (dir1 == 1 || dir1 == -1)
-    {
-      indB = indA + dirCoeff*dir1; dir = dir1;
-      xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
-      xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir); 
-    }
-    if (dir2 == 1 || dir2 == -1)
-    {
-      indB = indA + dirCoeff*dir2*imc; dir = dir2*2;
-      xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
-      xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir);
-    }
-    if (dir3 == 1 || dir3 == -1) 
-    {
-      indB = indA + dirCoeff*dir3*imcjmc; dir = dir3*3;
-      xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
-      xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir);
-    }
-    //printf("xb %f %f %f\n", xb, yb, zb);
-    delta = K_CONST::E_MAX_FLOAT; deltax = 0.; deltay = 0.; deltaz = 0.; isProjected = false;
-    nbB = xbt.size();
-
-    // on fait une projection suivant la direction AB
-    for (nob = 0; nob < nbB; nob++)
-    {
-      xb = xbt[nob]; yb = ybt[nob]; zb = zbt[nob]; dir = dirt[nob];
-      dirx = xa-xb; diry = ya-yb; dirz = za-zb;// BA
-
-      for (E_Int v = 0; v < nzones; v++) // parcours des surfaces de projection
-      {
-        E_Int* cn1 = cnt[v]->begin(1);
-        E_Int* cn2 = cnt[v]->begin(2);
-        E_Int* cn3 = cnt[v]->begin(3);
-
-        E_Float* hmaxTri = unstrF[v]->begin(posht[v]);
-        E_Float* cellNTri = unstrF[v]->begin(posct[v]);
-        xp = K_CONST::E_MAX_FLOAT; yp = K_CONST::E_MAX_FLOAT; zp = K_CONST::E_MAX_FLOAT;
-        // Preconditionnement : on ne prend que les indices des elts 
-        K_SEARCH::BbTree3D* bbtree = vectOfBBTrees[v];
-        pr1[0] = xa; pr1[1] = ya; pr1[2] = za;
-        pr2[0] = xa+dirx; pr2[1] = ya+diry; pr2[2] = za+dirz;
-        indicesElts.clear(); candidates.clear();
-        bbtree->getIntersectingBoxes(pr1, pr2, indicesElts, tolbb);
-        for (size_t noe = 0; noe < indicesElts.size(); noe++)
-        {
-          indt1 = cn1[indicesElts[noe]]-1;
-          indt2 = cn2[indicesElts[noe]]-1;
-          indt3 = cn3[indicesElts[noe]]-1;
-          if (cellNTri[indt1] > 0. ||  cellNTri[indt2] > 0. ||  cellNTri[indt3] > 0.)
-            candidates.push_back(indicesElts[noe]);
-        } 
-        // projection suivant la direction BA sur la surface opposee
-        noet = K_COMPGEOM::projectDir(xa, ya, za, dirx, diry, dirz, 
-                                      unstrF[v]->begin(posxt[v]), unstrF[v]->begin(posyt[v]), unstrF[v]->begin(poszt[v]),
-                                      candidates, *cnt[v], xp, yp, zp);
-        if (noet != -1 && xp < K_CONST::E_MAX_FLOAT && yp < K_CONST::E_MAX_FLOAT && zp < K_CONST::E_MAX_FLOAT)
-        {
-          dxa = xp-xa; dya = yp-ya; dza = zp-za; dAP2 = dxa*dxa + dya*dya + dza*dza;
-          nov1 = cn1[noet]-1; nov2 = cn2[noet]-1; nov3 = cn3[noet]-1;
-          hmax2 = (hmaxTri[nov1]+hmaxTri[nov2]+hmaxTri[nov3])/3.; // moyenne sur le triangle de hmax
-          hmax = K_FUNC::E_max(hmax1, hmax2); hmax = hmax*hmax;
-          //printf("DAP2 %f delta=%f cmax=%f\n", dAP2, delta, coefhmax*hmax);
-          if (dAP2 < coefhmax*hmax && dAP2 < delta) 
-          { delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
-          else if (hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
-          { delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
-        }
-      }     
-      if (isProjected == false) goto nextptB;      
-    //   printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
-    //                 xa, ya, za, iA+1, jA+1, kA+1, xa+deltax, ya+deltay,za+deltaz);
-    
-      shiftAbovePoints(imc, jmc, kmc, dir, indA, iA, jA, kA, 
-                       xa, ya, za, deltax, deltay, deltaz,
-                       xc, yc, zc, cellN, xc2, yc2, zc2);   
-      
-      nextptB:;
-    }//nob
-       
-    nextpt:;
-  }// pour ts les pts interpoles
   
+  #pragma omp parallel
+  {
+    E_Float delta = K_CONST::E_MAX_FLOAT;
+    E_Float deltax = 0.; E_Float deltay = 0.; E_Float deltaz = 0.;
+    E_Float xp, yp, zp;
+    E_Int noet, indt1, indt2, indt3;
+    E_Int nob, nov1, nov2, nov3;
+    E_Int nbB, dir1, dir2, dir3, dir, indA, indB;
+    E_Boolean isProjected;
+    E_Float xa, ya, za, xb, yb, zb, dAP2, dirx, diry, dirz;
+    E_Float dxa, dya, dza, hmax1, hmax2, hmax;
+    vector<E_Int> indicesElts; vector<E_Int> candidates;
+    E_Float pr1[3]; E_Float pr2[3];
+    E_Int iA, jA, kA;
+    vector<E_Float> xbt; vector<E_Float> ybt; vector<E_Float> zbt; vector<E_Int> dirt;vector<E_Float> hmaxt;
+    // Projection des pts interpoles des first centers
+    // Poids du vecteur delta pour chq pt au dessus du pt pres de la paroi a interpoler : 
+    // Si i < no1 : alpha = 1, si no1 <= i< no2 : alpha decroissant, 0 ensuite
+    
+    #pragma omp for schedule(dynamic)
+    for (E_Int ii = 0; ii < nbCentersW; ii++)
+    {
+      indA = E_Int(indicesw[ii]);
+      if (cellN[indA] == 1.) goto nextpt;
+      kA = indA/imcjmc;
+      jA = (indA-kA*imcjmc)/imc;
+      iA = indA-jA*imc-kA*imcjmc;
+      xa = xc[indA]; ya = yc[indA]; za = zc[indA];
+      //printf("xa %f %f %f\n", xa, ya, za);
+      xbt.clear(); ybt.clear(); zbt.clear(); dirt.clear();
+      dir1 = E_Int(dirw1[ii]);
+      dir2 = E_Int(dirw2[ii]);
+      dir3 = E_Int(dirw3[ii]);
+      //printf("dir %d %d %d\n", dir1, dir2, dir3);
+      hmax1 = hmaxw[ii];
+
+      // on recupere le pt B si le pt A est un pt paroi dans la direction ortho a i
+      if (dir1 == 1 || dir1 == -1)
+      {
+        indB = indA + dirCoeff*dir1; dir = dir1;
+        xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
+        xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir); 
+      }
+      if (dir2 == 1 || dir2 == -1)
+      {
+        indB = indA + dirCoeff*dir2*imc; dir = dir2*2;
+        xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
+        xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir);
+      }
+      if (dir3 == 1 || dir3 == -1) 
+      {
+        indB = indA + dirCoeff*dir3*imcjmc; dir = dir3*3;
+        xb = xc[indB]; yb = yc[indB]; zb = zc[indB];
+        xbt.push_back(xb); ybt.push_back(yb); zbt.push_back(zb); dirt.push_back(dir);
+      }
+      //printf("xb %f %f %f\n", xb, yb, zb);
+      delta = K_CONST::E_MAX_FLOAT; deltax = 0.; deltay = 0.; deltaz = 0.; isProjected = false;
+      nbB = xbt.size();
+
+      // on fait une projection suivant la direction AB
+      for (nob = 0; nob < nbB; nob++)
+      {
+        xb = xbt[nob]; yb = ybt[nob]; zb = zbt[nob]; dir = dirt[nob];
+        dirx = xa-xb; diry = ya-yb; dirz = za-zb;// BA
+
+        for (E_Int v = 0; v < nzones; v++) // parcours des surfaces de projection
+        {
+          E_Int* cn1 = cnt[v]->begin(1);
+          E_Int* cn2 = cnt[v]->begin(2);
+          E_Int* cn3 = cnt[v]->begin(3);
+
+          E_Float* hmaxTri = unstrF[v]->begin(posht[v]);
+          E_Float* cellNTri = unstrF[v]->begin(posct[v]);
+          xp = K_CONST::E_MAX_FLOAT; yp = K_CONST::E_MAX_FLOAT; zp = K_CONST::E_MAX_FLOAT;
+          // Preconditionnement : on ne prend que les indices des elts 
+          K_SEARCH::BbTree3D* bbtree = vectOfBBTrees[v];
+          pr1[0] = xa; pr1[1] = ya; pr1[2] = za;
+          pr2[0] = xa+dirx; pr2[1] = ya+diry; pr2[2] = za+dirz;
+          indicesElts.clear(); candidates.clear();
+          bbtree->getIntersectingBoxes(pr1, pr2, indicesElts, tolbb);
+          for (size_t noe = 0; noe < indicesElts.size(); noe++)
+          {
+            indt1 = cn1[indicesElts[noe]]-1;
+            indt2 = cn2[indicesElts[noe]]-1;
+            indt3 = cn3[indicesElts[noe]]-1;
+            if (cellNTri[indt1] > 0. ||  cellNTri[indt2] > 0. ||  cellNTri[indt3] > 0.)
+              candidates.push_back(indicesElts[noe]);
+          } 
+          // projection suivant la direction BA sur la surface opposee
+          noet = K_COMPGEOM::projectDir(xa, ya, za, dirx, diry, dirz, 
+                                        unstrF[v]->begin(posxt[v]), unstrF[v]->begin(posyt[v]), unstrF[v]->begin(poszt[v]),
+                                        candidates, *cnt[v], xp, yp, zp);
+          if (noet != -1 && xp < K_CONST::E_MAX_FLOAT && yp < K_CONST::E_MAX_FLOAT && zp < K_CONST::E_MAX_FLOAT)
+          {
+            dxa = xp-xa; dya = yp-ya; dza = zp-za; dAP2 = dxa*dxa + dya*dya + dza*dza;
+            nov1 = cn1[noet]-1; nov2 = cn2[noet]-1; nov3 = cn3[noet]-1;
+            hmax2 = (hmaxTri[nov1]+hmaxTri[nov2]+hmaxTri[nov3])/3.; // moyenne sur le triangle de hmax
+            hmax = K_FUNC::E_max(hmax1, hmax2); hmax = hmax*hmax;
+            //printf("DAP2 %f delta=%f cmax=%f\n", dAP2, delta, coefhmax*hmax);
+            if (dAP2 < coefhmax*hmax && dAP2 < delta) 
+            { delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
+            else if (hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
+            { delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
+          }
+        }     
+        if (isProjected == false) goto nextptB;      
+        //   printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
+        //                 xa, ya, za, iA+1, jA+1, kA+1, xa+deltax, ya+deltay,za+deltaz);
+    
+        shiftAbovePoints(imc, jmc, kmc, dir, indA, iA, jA, kA, 
+                         xa, ya, za, deltax, deltay, deltaz,
+                         xc, yc, zc, cellN, xc2, yc2, zc2);   
+      
+        nextptB:;
+      }//nob
+       
+      nextpt:;
+    }// pour ts les pts interpoles
+  }
+
   // cleanup
   E_Int nboxes = vectOfBoxes.size();
   for (E_Int v0 = 0; v0 < nboxes; v0++)
@@ -362,6 +369,7 @@ void K_CONNECTOR::changeWall(
   }
   vectOfBoxes.clear(); vectOfBBTrees.clear();
 }
+
 //=============================================================================
 void K_CONNECTOR::shiftAbovePoints(E_Int imc, E_Int jmc, E_Int kmc,
                                    E_Int dir,  E_Int indA, E_Int iA, E_Int jA, E_Int kA,

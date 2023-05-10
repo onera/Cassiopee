@@ -1595,11 +1595,11 @@ def getPathAncestor(path, level=1):
 # -- Retourne les noeuds Zone_t --
 def getZones(t):
     """Return a list of all Zone_t nodes."""
-    result = []; ntype = 'Zone_t'
+    result = []
     isStd = isStdNode(t)
     if isStd >= 0:
-        for c in t[isStd:]: getNodesFromType2__(c, ntype, result)
-    elif isStd == -1: getNodesFromType2__(t, ntype, result)
+        for c in t[isStd:]: getNodesFromType2__(c, 'Zone_t', result)
+    elif isStd == -1: getNodesFromType2__(t, 'Zone_t', result)
     return result
 
 # -- getZonesPerIteration --

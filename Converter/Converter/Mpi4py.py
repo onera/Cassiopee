@@ -378,7 +378,16 @@ def bcastZone(z, root=0, coord=True, variables=[]):
                 n = Internal.getNodeFromName1(zp, flowSol)
             Internal._createUniqueChild(n, var, 'DataArray_t', value=pv)
 
-    if rank == root: zp = z
+    if rank == root: 
+        zp = Internal.copyRef(z)
+        # suppression coord si coord=False et des autres champs
+        if not coord: Internal._rmNodesFromType(zp, 'GridCoordinates_t')
+        if variables == []: Internal._rmNodesFromType(zp, 'FlowSolution_t')
+        else:
+            varszp = C.getVarNames(zp, excludeXYZ=True, loc='both')[0]
+            for var in varszp:
+                if var not in variables: 
+                    Internal._rmNodesFromName(zp, var.replace('centers:',''))
     return zp
 
 # All gather une liste de zones, recuperation identique sur tous les procs
@@ -392,15 +401,21 @@ def allgatherZones(zones, coord=True, variables=[]):
     allZones = []
     for i in range(size):
         for cz in range(lenZones[i]):
-            if rank == i: 
+            if rank == i:
                 zp = bcastZone(zones[cz], root=i, coord=coord, variables=variables)
-                if variables == []:
-                    Internal._rmNodesFromType(zp, 'FlowSolution_t')
-                else:
-                    for var in C.getVarNames(zp, excludeXYZ=True, loc='both')[0]:
-                        if var not in variables: Internal._rmNodesFromName(zp, var.replace('centers:',''))
+            #    if variables == []:
+            #        Internal._rmNodesFromType(zp, 'FlowSolution_t')
+            #    else:
+            #        varszp = C.getVarNames(zp, excludeXYZ=True, loc='both')[0]
+            #        for var in varszp:
+            #            if var not in variables: Internal._rmNodesFromName(zp, var.replace('centers:',''))
             else: 
                 zp = bcastZone(None, root=i, coord=coord, variables=variables)
+
+            #if rank == i: zp = zones[cz]
+            #else: zp = None
+            #zp = bcastZone(zp, root=i, coord=coord, variables=variables)
+            
             allZones.append(zp)
     return allZones
 

@@ -360,13 +360,18 @@ Actions
 
     .. A2.O0.D0
     
-    Finalize an export. Wait for the end of file writing (action=0)
-    or in mpeg export, close the mpeg file (action=1). Must be called
-    when doing offscreen rendering (offscreen=1 or 2 in display function).
+    Finalize an export. Wait for the end of file writing.
     
-    This function is not needed when doing offscreen rendering with osmesa.
+    Argument must be identical to the offscreen argument of display function.
     
-    :param action: if 0, means wait until file is written, if 1, means close mpeg file
+    When doing offscreen rendering with openGL (offscreen=2,3,4), finalize export is needed for
+    offscreen=2 (wait until file is written) and offscreen=4 (wait until file is written and clear buffers for next image).
+    When doing offscreen rendering with osmesa (offscreen=1,5,6,7), finalize export is needed
+    for offscreen=6 (clear buffer for next image).
+
+    if action=-1, close the mpeg file.
+
+    :param action: identical to offscreen argument of display
     :type action: int
 
     *Example of use:*

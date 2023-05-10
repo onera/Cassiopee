@@ -2400,7 +2400,7 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
                         ListOrphan = orphans[0][1]
                         field = Converter.array('orphan', ListOrphan.size,1,1)
                         field = Converter.initVars(field, 'orphan', 1.)
-                        zr = C.setPartialFields(zr, [field], [ListOrphan],loc=locr)
+                        zr = C.setPartialFields(zr, [field], [ListOrphan], loc=locr)
 
     # 2nd pass: storage in donor zones
     zones = Internal.getZones(topTreeD)
@@ -2433,7 +2433,7 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
                         if ListRcv.size > 0:
                             field = Converter.array('interpolated',ListRcv.size,1,1)
                             field = Converter.initVars(field,'interpolated',1.)
-                            zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)
+                            zr = C.setPartialFields(zr, [field], [ListRcv], loc=locr)
                     elif nature == 'extrapolated':
                         ListExtrap = Internal.getNodesFromName1(s,'ExtrapPointList')
                         if ListExtrap != []:
@@ -2443,7 +2443,7 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
                             ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
                             # Somme des |coefs| : necessite ListRcv, ListExtrap, Coefs, DonorType
                             field = connector.getExtrapAbsCoefs(ListRcv, ListExtrap, DonorTypes, Coefs)
-                            zr = C.setPartialFields(zr, [field], [ListExtrap],loc=locr)
+                            zr = C.setPartialFields(zr, [field], [ListExtrap], loc=locr)
                     elif nature == 'orphan':
                         orphans = Internal.getNodesFromName(zd, 'OrphanPointList')
                         if orphans != []:

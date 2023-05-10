@@ -1979,8 +1979,7 @@ def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
 def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False):
     from . import DoubleWall
 
-    listOfMismatch1 = []
-    listOfMismatch2 = []
+    listOfMismatch1 = []; listOfMismatch2 = []
     for b in Internal.getBases(t):
         for z in Internal.getZones(b):
             wall1 = C.getFamilyBCs(z, familyBC1)
@@ -1990,6 +1989,7 @@ def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False):
 
     print(listOfMismatch1)
     print(listOfMismatch2)
+    
     # project interpolated points (cellN=2) from listOfMismatch2 onto listOfMismatch1
     DoubleWall._changeWall2(t, tc, listOfMismatch1, listOfMismatch2, ghostCells, check)
 

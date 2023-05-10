@@ -834,7 +834,7 @@ def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
 ##a mesh generation is performed and if needed it can use more MPI tasks to perform the interpolation
 ##yielding a result.
 #====================================================================================
-def interpolateSolutionCoarse2Fine(tCoarse,tFine,NPprep,NPinterp):
+def interpolateSolutionCoarse2Fine(tCoarse, tFine, NPprep, NPinterp):
     """Interpolate the solution from a coarse IBM mesh to fine IBM mesh. Useful when doing grid convergence studies. This can speed up the convergence rate of the solution on a finer mesh.
         Usage: interpolateSolutionCoarse2Fine(tCoarse,tFine,NPprep,NPinterp)"""
     if isinstance(tCoarse, str):
@@ -1620,9 +1620,11 @@ class IBM(Common):
 
 
     def _ibcInterpolation__(self, t, tc):            
-        graph = {}
-        datas = {}
-    
+        
+        test.printMem(">>> Interpolating IBM [start]")
+        
+        graph = {}; datas = {}
+
         # graph d'intersection des pts images de ce proc et des zones de tbbc
         zones  = Internal.getZones(self.tbbc)
         allBBs = []
@@ -1631,7 +1633,6 @@ class IBM(Common):
         dictOfInterpPtsByIBCType    = self.res[2]
         interDictIBM={}
     
-        
         if self.input_var.twoFronts or self.input_var.isWireModel:
             dictOfCorrectedPtsByIBCType2 = self.res2[0]
             dictOfWallPtsByIBCType2      = self.res2[1]
@@ -1653,7 +1654,7 @@ class IBM(Common):
                         interpPtsBB = Generator.BB(allInterpPts[nozr])
                         for z in zones:
                             bba = C.getFields('GridCoordinates', z)[0]
-                            if Generator.bboxIntersection(interpPtsBB,bba,isBB=True):
+                            if Generator.bboxIntersection(interpPtsBB, bba, isBB=True):
                                 zname = z[0]
                                 popp  = Cmpi.getProc(z)
                                 if self.input_var.NP>1:
@@ -1683,7 +1684,7 @@ class IBM(Common):
                                             if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
         else: graph={}
         allGraph = Cmpi.KCOMM.allgather(graph)
-    
+
         graph = {}
         for i in allGraph:
             for k in i:
@@ -1693,7 +1694,6 @@ class IBM(Common):
                     graph[k][j] += i[k][j]
                     graph[k][j] = list(set(graph[k][j])) # pas utile?
     
-        test.printMem(">>> Interpolating IBM [start]")
         # keyword subr=False to avoid memory overflow
         Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=self.input_var.cartesian, subr=False)
         test.printMem(">>> Interpolating IBM [after addXZones]")
@@ -2083,7 +2083,7 @@ class IBM(Common):
         ## ================================================
         ## ============== IBC Interpolation ===============
         ## ================================================
-        self._ibcInterpolation__(t,tc)
+        self._ibcInterpolation__(t, tc)
         
         C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
         varsRM = ['centers:cellNChim','centers:cellNIBCDnr']

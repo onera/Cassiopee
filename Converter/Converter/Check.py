@@ -7,7 +7,7 @@ from . import Internal
 from . import PyTree as C
 import numpy
 
-# last is 76
+# last is 77
 CGNSTypes = {
     'CGNSTree_t':72,
     'CGNSLibraryVersion_t':1,
@@ -82,6 +82,7 @@ CGNSTypes = {
   
     'ArbitraryGridMotion_t':49,
     'RigidGridMotion_t':55,
+    'TimeRigidMotion_t':77, # non standard
     
     'ZoneBC_t':56,
     'BC_t':57,

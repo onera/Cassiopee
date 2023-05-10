@@ -332,17 +332,21 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, ghostCells=False, chec
             walls = C.extractBCOfType(z1, 'BCWall')
             walls1 += walls
 
+    #C.convertPyTree2File(walls1, 'walls%d.cgns'%Cmpi.rank)
     walls1 = Cmpi.allgatherZones(walls1, coord=True, variables=['centers:cellN'])
-    walls1 = C.convertArray2Hexa(walls1)
-    if walls1 == []: return
-    #print(walls1, flush=True)
+    #if Cmpi.rank == 0: C.convertPyTree2File(walls1, 'walls.cgns')
 
+    if walls1 == []: return None
+
+    walls1 = C.convertArray2Hexa(walls1)
     walls1 = T.join(walls1)
+
     walls1 = C.node2Center(walls1)
     walls1 = C.convertArray2Tetra(walls1, split='withBarycenters')
-    walls1 = T.reorderAll(walls1)
-
-    D._getCurvatureHeight(walls1)        
+    #walls1 = T.reorderAll(walls1)
+    walls1 = T.reorder(walls1, (1,))
+    
+    D._getCurvatureHeight(walls1)
     surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
     if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1.plt')
     

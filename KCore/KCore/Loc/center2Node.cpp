@@ -713,7 +713,7 @@ E_Int K_LOC::center2nodeUnstruct(FldArrayF& FCenter,
           for (E_Int e = 0; e < ne; e++)
           {
             ind = cn[e]-1;
-            temp[ind] =  temp[ind]+cellNCenter[e];
+            temp[ind] = temp[ind]+cellNCenter[e];
           }
         }
         for (E_Int indn = 0; indn < nb; indn++)

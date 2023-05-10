@@ -43,7 +43,7 @@ def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
         # Recupere le conteneur TimeMotion
         cont = Internal.getNodeFromName1(z, 'TimeMotion')
         if cont is None:
-            cont = ['TimeMotion', None, [], 'UseDefinedData_t']
+            cont = ['TimeMotion', None, [], 'UserDefinedData_t']
             z[2].append(cont)
 
         # Le TimeRigidMotion name existe-t-il?
@@ -118,7 +118,7 @@ def _setPrescribedMotion2(t, name,
         # Recupere le conteneur TimeMotion
         cont = Internal.getNodeFromName1(z, 'TimeMotion')
         if cont is None:
-            cont = ['TimeMotion', None, [], 'UseDefinedData_t']
+            cont = ['TimeMotion', None, [], 'UserDefinedData_t']
             z[2].append(cont)
 
         # Le TimeRigidMotion name existe-t-il?
@@ -236,7 +236,7 @@ def _setPrescribedMotion3(t, name, transl_speed=(0.,0.,0.),
         # Recupere le conteneur TimeMotion
         cont = Internal.getNodeFromName1(z, 'TimeMotion')
         if cont is None:
-            cont = ['TimeMotion', None, [], 'UseDefinedData_t']
+            cont = ['TimeMotion', None, [], 'UserDefinedData_t']
             z[2].append(cont)
 
         # Le TimeRigidMotion name existe-t-il?
