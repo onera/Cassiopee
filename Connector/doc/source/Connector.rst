@@ -670,6 +670,8 @@ Overset connectivity
     set the cellN to 2 for the fringe nodes or cells (depending on parameter 'loc'='nodes' or 'centers') near the overlap borders defined in the pyTree t.
     Parameter 'depth' defines the number of layers of interpolated points.
 
+    Exists also as in place version (_applyBCOverlaps) that modifies a and returns None.
+
     *Example of use:* 
 
     * `set cellN to 2 near overlap BCs in a pyTree (pyTree) <Examples/Connector/applyBCOverlapsPT.py>`_:

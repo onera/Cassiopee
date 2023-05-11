@@ -209,7 +209,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     else if (PyUnicode_Check(v)) zname = (char*)PyUnicode_AsUTF8(v); 
 #endif
     
-    if (verbose >= 1) 
+    if (verbose >= 1)
     {
       printf("Zone %s: interpolated=%d; extrapolated=%d; orphans=%d.\n", zname, countInterp, countExtrap, countOrphan);
       if (countOrphan > 0)

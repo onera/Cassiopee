@@ -103,16 +103,18 @@ def run(t=None):
         # upgrade tree
         CTK.t = CTK.upgradeTree(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
-    
+        fileName = os.path.split(CTK.FILE)
+        CPlot.CPlot.cplot.setWindowTitle(fileName[1], fileName[0])
+        
     # - Verifie l'arbre -
     errors = []
     if CTK.t != []:
         errors = Internal.checkPyTree(CTK.t, level=5)
         if errors == []: CTK.display(CTK.t)
-    
+        
     # Load and set prefs for interface
     CTK.loadPrefFile(); CTK.setPrefs()
-
+    
     # Modules a ouvrir automatiquement
     auto = {}
     for app in ALLAPPS:
@@ -129,6 +131,7 @@ def run(t=None):
     # Main window
     (win, frames, menu, menus, file, tools) = CTK.minimal2('Cassiopee '+C.__version__,
                                                            show=False)
+    
     fileName = os.path.split(CTK.FILE)
     CTK.changeWindowTitle(fileName[1], fileName[0])
 
@@ -219,7 +222,7 @@ def run(t=None):
     if CTK.t != []:
         renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
         if renderInfo is not None:
-            CTK.openApp("tkView")
+            CTK.getModule("tkView")
             import tkView; tkView.loadSlot()
 
     # - Main loop -

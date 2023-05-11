@@ -26,9 +26,9 @@ myApp.set(numz={"time_step": 0.0007,
 # case
 a = D.sphere6((0.,0.,0.),1.,N=20)
 for z in a:
-    App._setSnear(z,0.1)
-    App._setDfar(z,10.)
-    App._setIBCType(z,'Musker')
+    App._setSnear(z, 0.2)
+    App._setDfar(z, 10.)
+    App._setIBCType(z, 'Musker')
     
 tb = C.newPyTree(['Body',a])
 for base in Internal.getBases(tb):
@@ -37,14 +37,14 @@ for base in Internal.getBases(tb):
 eqdim = Internal.createNode('EquationDimension', '"int"', value=3, children=[])
 turbmod = Internal.createNode('TurbulenceModel', 'TurbulenceModel_t', value='OneEquation_SpalartAllmaras', children=[])
 for node in Internal.getNodesByName(tb,'FlowEquationSet'):
-    Internal.addChild(node,eqdim)
-    Internal.addChild(node,turbmod)
+    Internal.addChild(node, eqdim)
+    Internal.addChild(node, turbmod)
     
 C._addState(tb, adim='adim1', MInf=0.1, alphaZ=0., alphaY=0., ReInf=40000., MutSMuInf=0.1, TurbLevelInf=1.e-4)
 tb = C.convertArray2Tetra(tb)
 noz = 0
 for z in Internal.getZones(tb):
-    Cmpi._setProc(z,noz%(Cmpi.size))
+    Cmpi._setProc(z, noz%(Cmpi.size))
     noz += 1
     
 if Cmpi.rank==0: C.convertPyTree2File(tb, FILEB)
@@ -52,6 +52,7 @@ Cmpi.barrier()
 
 # Prepare
 myApp.input_var.NP=Cmpi.size
+myApp.input_var.vmin=11
 t,tc = myApp.prepare(FILEB, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns')
 Internal._rmNodesFromType(tc, 'Rind_t')
 Internal._rmNodesFromName(tc, Internal.__GridCoordinates__)
@@ -72,7 +73,7 @@ if Cmpi.rank == 0:
 procDictR = Cmpi.getProcDict(tb)
 Cmpi._convert2PartialTree(tb,rank=Cmpi.rank)
 
-tcw ,graphP= App._prepareSkinReconstruction(tb,tc)
+tcw ,graphP = App._prepareSkinReconstruction(tb,tc)
 App._computeSkinVariables(tb,tc, tcw, graphP)
 Cmpi.convertPyTree2File(tb, LOCAL+'/wall.cgns')
 Cmpi.barrier()

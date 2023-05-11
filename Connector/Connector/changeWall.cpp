@@ -342,11 +342,12 @@ void K_CONNECTOR::changeWall(
             else if (hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
             { delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
           }
-        }     
+        }
         if (isProjected == false) goto nextptB;      
         //   printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
         //                 xa, ya, za, iA+1, jA+1, kA+1, xa+deltax, ya+deltay,za+deltaz);
     
+        // hope no race because shifted points are independant
         shiftAbovePoints(imc, jmc, kmc, dir, indA, iA, jA, kA, 
                          xa, ya, za, deltax, deltay, deltaz,
                          xc, yc, zc, cellN, xc2, yc2, zc2);   

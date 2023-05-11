@@ -86,19 +86,19 @@ void Data::displayUSolidZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
     }
     // END Textured rendering ============================================
 #ifdef __SHADERS__
-    if ( ptrState->mode == RENDER ) 
+    if (ptrState->mode == RENDER) 
     {
-        if ( zonep->selected == 1 && zonep->active == 1 )
-            triggerShader( *zonep, zonep->material, s, color2 );
+        if (zonep->selected == 1 && zonep->active == 1)
+            triggerShader(*zonep, zonep->material, s, color2);
         else
-            triggerShader( *zonep, zonep->material, s, color1 );
+            triggerShader(*zonep, zonep->material, s, color1);
     } 
     else 
     {
-        if ( zonep->selected == 1 && zonep->active == 1 )
-            triggerShader( *zonep, 0, s, color2 );
+        if (zonep->selected == 1 && zonep->active == 1)
+            triggerShader(*zonep, 0, s, color2);
         else
-            triggerShader( *zonep, 0, s, color1 );
+            triggerShader(*zonep, 0, s, color1);
     }
 #endif
 

@@ -1914,7 +1914,7 @@ def save2Doc():
   #Panels.docData['docWindow'].master.wait_window(Panels.docData['docWindow'])
 
 #==============================================================================
-# Change title : change le titre dans la fenetre CPlot + Tk
+# Change title : change le titre dans la fenetre CPlot (if top window) + Tk 
 #==============================================================================
 def changeWindowTitle(fileName, filePath="."):
   if fileName == '': return

@@ -368,6 +368,7 @@ def loadNode():
     node = CTK.TKTREE.getCurrentSelectedNode()
     if node == []: return
     path = Internal.getPath(CTK.t, node)
+    if path is None: return
     depth = VARS[7].get()
     depth = int(depth)
     nodes = Filter.readNodesFromPaths(fileName, [path], maxDepth=depth)
@@ -377,7 +378,7 @@ def loadNode():
     elif depth == -1: 
         node[1] = nodes[0][1]
         node[2] = nodes[0][2]
-    else: 
+    else:
         setByLevel(node, nodes[0], 0, depth)
     updateNode(node)
 
