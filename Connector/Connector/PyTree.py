@@ -1987,10 +1987,10 @@ def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False):
             wall2 = C.getFamilyBCs(z, familyBC2)
             for w in wall2: listOfMismatch2.append(b[0]+'/'+z[0]+'/'+w[0]) 
 
-    print(listOfMismatch1)
-    print(listOfMismatch2)
+    # print(listOfMismatch1)
+    # print(listOfMismatch2)
     
     # project interpolated points (cellN=2) from listOfMismatch2 onto listOfMismatch1
-    DoubleWall._changeWall2(t, tc, listOfMismatch1, listOfMismatch2, ghostCells, check)
+    DoubleWall._changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, ghostCells, check)
 
     return None

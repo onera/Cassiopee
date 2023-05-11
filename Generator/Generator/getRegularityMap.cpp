@@ -182,11 +182,6 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     tpl = K_ARRAY::buildArray(1, "regularity", im1, jm1, km1);
     // pointeur sur le tableau
     E_Float* reg = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF regArray(ncells, 1, reg, true);
-    
-    // variables locales
-    // ...  pour les indices
-    E_Int ind,ind1,ind2,ind3,ind4, ind5, ind6;
       
     // calcul du volume
     FldArrayF vol(ncells);
@@ -212,349 +207,388 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     }
 
     // calcul de la regularite	
-    if (dimC == 1) // dimension 1D
+    #pragma omp parallel
     {
-      // Aux frontieres, traitement degenere.
-      reg[0] = E_abs(vol[1]-vol[0])/E_max(vol[0],E_GEOM_CUTOFF);
-      reg[ni1-1] = E_abs(vol[ni1-2]-vol[ni1-1])/E_max(vol[ni1-1],E_GEOM_CUTOFF);
+      E_Int ithread = __CURRENT_THREAD__;
+      // variables locales pour les indices
+      E_Int ind,ind1,ind2,ind3,ind4,ind5,ind6;
+      if (dimC == 1) // dimension 1D
+      {
+        // Aux frontieres, traitement degenere.
+        if (ithread == 0)
+        {
+          reg[0] = E_abs(vol[1]-vol[0])/E_max(vol[0],E_GEOM_CUTOFF);
+          reg[ni1-1] = E_abs(vol[ni1-2]-vol[ni1-1])/E_max(vol[ni1-1],E_GEOM_CUTOFF);
+        }
 
-      // Boucle sur les indices
-      for (E_Int i = 1; i < ni1-1; i++)
-      {
-        reg[i] = RATIOMAX2(vol[i],vol[i-1],vol[i+1]);
-      }
-    }
-    else if (dimC == 2) // dimension = 2D
-    {
-      E_Float etVol;
-      // Aux coins, traitement degenere.
-      // imin, jmin
-      reg[0] = RATIOMAX2(vol[0],vol[1],vol[ni1]);
-      // imax, jmin
-      ind  = ni1-1;
-      ind1 = ind-1;
-      ind2 = ind+ni1;
-      reg[ind] = RATIOMAX2(vol[ind],vol[ind1],vol[ind2]);
-      // imin, jmax
-      ind  = (nj1-1)*ni1;
-      ind1 = ind+1;
-      ind2 = ind-ni1;
-      reg[ind] = RATIOMAX2(vol[ind],vol[ind1],vol[ind2]);
-      // imax, jmax
-      ind  = nj1*ni1-1;
-      ind1 = ind-1;
-      ind2 = ind-ni1;
-      reg[ind] = RATIOMAX2(vol[ind],vol[ind1],vol[ind2]);
-      
-      // Aux aretes, traitement degenere.
-      for (E_Int i = 1; i < ni1-1; i++)
-      {
-        // jmin
-        ind  = i;
-        ind1 = ind-1;
-        ind2 = ind+1;
-        ind3 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-        // jmax
-        ind  = (nj1-1)*ni1 + i;
-        ind1 = ind-1;
-        ind2 = ind+1;
-        ind3 = ind - ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      }
-      for (E_Int j = 1; j < nj1-1; j++)
-      {
-        // imin
-        ind  = j*ni1;
-        ind1 = ind + 1;
-        ind2 = ind - ni1;
-        ind3 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-        // imax
-        ind  = j*ni1 + ni1-1;
-        ind1 = ind - 1;
-        ind2 = ind - ni1;
-        ind3 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      }
-
-      // Boucle generale sur les indices des cellules interieures
-      for (E_Int j = 1; j < nj1-1; j++)
+        // Boucle sur les indices
+        #pragma omp for schedule(static)
         for (E_Int i = 1; i < ni1-1; i++)
         {
-          ind  = j*ni1 + i;
+          reg[i] = RATIOMAX2(vol[i],vol[i-1],vol[i+1]);
+        }
+      }
+      else if (dimC == 2) // dimension = 2D
+      {
+        E_Float etVol;
+        // Aux coins, traitement degenere.
+        if (ithread == 0)
+        {
+          // imin, jmin
+          reg[0] = RATIOMAX2(vol[0],vol[1],vol[ni1]);
+          // imax, jmin
+          ind  = ni1-1;
+          ind1 = ind-1;
+          ind2 = ind+ni1;
+          reg[ind] = RATIOMAX2(vol[ind],vol[ind1],vol[ind2]);
+          // imin, jmax
+          ind  = (nj1-1)*ni1;
+          ind1 = ind+1;
+          ind2 = ind-ni1;
+          reg[ind] = RATIOMAX2(vol[ind],vol[ind1],vol[ind2]);
+          // imax, jmax
+          ind  = nj1*ni1-1;
+          ind1 = ind-1;
+          ind2 = ind-ni1;
+          reg[ind] = RATIOMAX2(vol[ind],vol[ind1],vol[ind2]);
+        }
+        
+        // Aux aretes, traitement degenere.
+        #pragma omp for schedule(static)
+        for (E_Int i = 1; i < ni1-1; i++)
+        {
+          // jmin
+          ind  = i;
+          ind1 = ind-1;
+          ind2 = ind+1;
+          ind3 = ind + ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // jmax
+          ind  = (nj1-1)*ni1 + i;
+          ind1 = ind-1;
+          ind2 = ind+1;
+          ind3 = ind - ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+        }
+
+        #pragma omp for schedule(static)
+        for (E_Int j = 1; j < nj1-1; j++)
+        {
+          // imin
+          ind  = j*ni1;
+          ind1 = ind + 1;
+          ind2 = ind - ni1;
+          ind3 = ind + ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // imax
+          ind  = j*ni1 + ni1-1;
           ind1 = ind - 1;
-          ind2 = ind + 1;
+          ind2 = ind - ni1;
+          ind3 = ind + ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+        }
+
+        // Boucle generale sur les indices des cellules interieures
+        for (E_Int j = 1; j < nj1-1; j++)
+        {
+          #pragma omp for schedule(static)
+          for (E_Int i = 1; i < ni1-1; i++)
+          {
+            ind  = j*ni1 + i;
+            ind1 = ind - 1;
+            ind2 = ind + 1;
+            ind3 = ind - ni1;
+            ind4 = ind + ni1;
+            etVol = vol[ind];
+            reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          }
+        }
+      }
+      else if (dimC == 3)  // dimension = 3D
+      {	      
+        E_Int ni1nj1 = ni1*nj1;
+        E_Float etVol;
+        // Aux coins, traitement degenere.
+        if (ithread == 0)
+        {
+          // imin, jmin, kmin
+          ind  = 0;
+          ind1 = ind + 1;
+          ind2 = ind + ni1;
+          ind3 = ind + ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // imax, jmin, kmin
+          ind  = ni1 - 1;
+          ind1 = ind - 1;
+          ind2 = ind + ni1;
+          ind3 = ind + ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // imin, jmax, kmin
+          ind  = (nj1-1)*ni1;
+          ind1 = ind + 1;
+          ind2 = ind - ni1;
+          ind3 = ind + ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // imax, jmax, kmin
+          ind  = ni1nj1 - 1;
+          ind1 = ind - 1;
+          ind2 = ind - ni1;
+          ind3 = ind + ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // imin, jmin, kmax
+          ind  = ni1nj1*(nk1-1);
+          ind1 = ind + 1;
+          ind2 = ind + ni1;
+          ind3 = ind - ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // imax, jmin, kmax
+          ind  = ni1nj1*(nk1-1)+ni1-1;
+          ind1 = ind - 1;
+          ind2 = ind + ni1;
+          ind3 = ind - ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // imin, jmax, kmax
+          ind  = ni1nj1*(nk1-1)+(nj1-1)*ni1;
+          ind1 = ind + 1;
+          ind2 = ind - ni1;
+          ind3 = ind - ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+          // imax, jmax, kmax
+          ind  = ni1nj1*(nk1-1)+ni1nj1 - 1;
+          ind1 = ind - 1;
+          ind2 = ind - ni1;
+          ind3 = ind - ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
+        }
+    
+        // Aux aretes, traitement degenere.
+        #pragma omp for schedule(static)
+        for (E_Int i=1; i<ni1-1; i++)
+        {
+          // jmin, kmin
+          ind  = i;
+          ind1 = ind + 1;
+          ind2 = ind - 1;
+          ind3 = ind + ni1nj1;
+          ind4 = ind + ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // jmax, kmin
+          ind  = (nj1-1)*ni1+i;
+          ind1 = ind + 1;
+          ind2 = ind - 1;
+          ind3 = ind + ni1nj1;
+          ind4 = ind - ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // jmin, kmax
+          ind  = ni1nj1*(nk1-1)+i;
+          ind1 = ind + 1;
+          ind2 = ind - 1;
+          ind3 = ind - ni1nj1;
+          ind4 = ind + ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // jmax, kmax
+          ind  = ni1nj1*(nk1-1)+(nj1-1)*ni1+i;
+          ind1 = ind + 1;
+          ind2 = ind - 1;
+          ind3 = ind - ni1nj1;
+          ind4 = ind - ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+        }
+
+        #pragma omp for schedule(static)
+        for (E_Int j=1; j< nj1-1; j++)
+        {
+          // imin, kmin
+          ind  = j*ni1;
+          ind1 = ind + 1;
+          ind2 = ind + ni1nj1;
+          ind3 = ind - ni1;
+          ind4 = ind + ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // imax, kmin
+          ind  = j*ni1 + ni1-1;
+          ind1 = ind - 1;
+          ind2 = ind + ni1nj1;
+          ind3 = ind - ni1;
+          ind4 = ind + ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // imin, kmax
+          ind  = ni1nj1*(nk1-1)+j*ni1;
+          ind1 = ind + 1;
+          ind2 = ind - ni1nj1;
+          ind3 = ind - ni1;
+          ind4 = ind + ni1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // imax, kmax
+          ind  = ni1nj1*(nk1-1)+j*ni1 + ni1-1;
+          ind1 = ind - 1;
+          ind2 = ind - ni1nj1;
           ind3 = ind - ni1;
           ind4 = ind + ni1;
           etVol = vol[ind];
           reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
         }
-    }
-    else if (dimC == 3)  // dimension = 3D
-    {	      
-      E_Int ni1nj1 = ni1*nj1;
-      E_Float etVol;
-      // Aux coins, traitement degenere.
-      // imin, jmin, kmin
-      ind  = 0;
-      ind1 = ind + 1;
-      ind2 = ind + ni1;
-      ind3 = ind + ni1nj1;
-      etVol = vol[ind];
-      reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      // imax, jmin, kmin
-      ind  = ni1 - 1;
-      ind1 = ind - 1;
-      ind2 = ind + ni1;
-      ind3 = ind + ni1nj1;
-      etVol = vol[ind];
-      reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      // imin, jmax, kmin
-      ind  = (nj1-1)*ni1;
-      ind1 = ind + 1;
-      ind2 = ind - ni1;
-      ind3 = ind + ni1nj1;
-      etVol = vol[ind];
-      reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      // imax, jmax, kmin
-      ind  = ni1nj1 - 1;
-      ind1 = ind - 1;
-      ind2 = ind - ni1;
-      ind3 = ind + ni1nj1;
-      etVol = vol[ind];
-      reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      // imin, jmin, kmax
-      ind  = ni1nj1*(nk1-1);
-      ind1 = ind + 1;
-      ind2 = ind + ni1;
-      ind3 = ind - ni1nj1;
-      etVol = vol[ind];
-      reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      // imax, jmin, kmax
-      ind  = ni1nj1*(nk1-1)+ni1-1;
-      ind1 = ind - 1;
-      ind2 = ind + ni1;
-      ind3 = ind - ni1nj1;
-      etVol = vol[ind];
-      reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      // imin, jmax, kmax
-      ind  = ni1nj1*(nk1-1)+(nj1-1)*ni1;
-      ind1 = ind + 1;
-      ind2 = ind - ni1;
-      ind3 = ind - ni1nj1;
-      etVol = vol[ind];
-      reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-      // imax, jmax, kmax
-      ind  = ni1nj1*(nk1-1)+ni1nj1 - 1;
-      ind1 = ind - 1;
-      ind2 = ind - ni1;
-      ind3 = ind - ni1nj1;
-      etVol = vol[ind];
-      reg[ind] = RATIOMAX3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-	
-      // Aux aretes, traitement degenere.
-      for (E_Int i=1; i<ni1-1; i++)
-      {
-        // jmin, kmin
-        ind  = i;
-        ind1 = ind + 1;
-        ind2 = ind - 1;
-        ind3 = ind + ni1nj1;
-        ind4 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // jmax, kmin
-        ind  = (nj1-1)*ni1+i;
-        ind1 = ind + 1;
-        ind2 = ind - 1;
-        ind3 = ind + ni1nj1;
-        ind4 = ind - ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // jmin, kmax
-        ind  = ni1nj1*(nk1-1)+i;
-        ind1 = ind + 1;
-        ind2 = ind - 1;
-        ind3 = ind - ni1nj1;
-        ind4 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // jmax, kmax
-        ind  = ni1nj1*(nk1-1)+(nj1-1)*ni1+i;
-        ind1 = ind + 1;
-        ind2 = ind - 1;
-        ind3 = ind - ni1nj1;
-        ind4 = ind - ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-      }
-      for (E_Int j=1; j< nj1-1; j++)
-      {
-        // imin, kmin
-        ind  = j*ni1;
-        ind1 = ind + 1;
-        ind2 = ind + ni1nj1;
-        ind3 = ind - ni1;
-        ind4 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // imax, kmin
-        ind  = j*ni1 + ni1-1;
-        ind1 = ind - 1;
-        ind2 = ind + ni1nj1;
-        ind3 = ind - ni1;
-        ind4 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // imin, kmax
-        ind  = ni1nj1*(nk1-1)+j*ni1;
-        ind1 = ind + 1;
-        ind2 = ind - ni1nj1;
-        ind3 = ind - ni1;
-        ind4 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // imax, kmax
-        ind  = ni1nj1*(nk1-1)+j*ni1 + ni1-1;
-        ind1 = ind - 1;
-        ind2 = ind - ni1nj1;
-        ind3 = ind - ni1;
-        ind4 = ind + ni1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-      }
-      for (E_Int k = 1; k < nk1-1; k++)
-      {
-        // imin, jmin
-        ind  = k*ni1nj1;
-        ind1 = ind + 1;
-        ind2 = ind + ni1;
-        ind3 = ind - ni1nj1;
-        ind4 = ind + ni1nj1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // imax, jmin
-        ind = k*ni1nj1 + ni1-1;
-        ind1 = ind - 1;
-        ind2 = ind + ni1;
-        ind3 = ind - ni1nj1;
-        ind4 = ind + ni1nj1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // imin, jmax
-        ind = k*ni1nj1+ni1*(nj1-1);
-        ind1 = ind + 1;
-        ind2 = ind - ni1;
-        ind3 = ind - ni1nj1;
-        ind4 = ind + ni1nj1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        // imax, jmax
-        ind = k*ni1nj1+ni1nj1 -1;
-        ind1 = ind - 1;
-        ind2 = ind - ni1;
-        ind3 = ind - ni1nj1;
-        ind4 = ind + ni1nj1;
-        etVol = vol[ind];
-        reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-      }
 
-      // Aux faces, traitement degenere.
-      for (E_Int k=1; k < nk1-1; k++)
-        for (E_Int j=1; j < nj1-1; j++)
+        #pragma omp for schedule(static)
+        for (E_Int k = 1; k < nk1-1; k++)
         {
-          // face imin
-          ind  = k*ni1nj1 + j*ni1;
+          // imin, jmin
+          ind  = k*ni1nj1;
           ind1 = ind + 1;
           ind2 = ind + ni1;
-          ind3 = ind - ni1;
+          ind3 = ind - ni1nj1;
           ind4 = ind + ni1nj1;
-          ind5 = ind - ni1nj1;
           etVol = vol[ind];
-          reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-
-          // face imax
-          ind  = k*ni1nj1 + j*ni1 + ni1 - 1;
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // imax, jmin
+          ind = k*ni1nj1 + ni1-1;
           ind1 = ind - 1;
           ind2 = ind + ni1;
-          ind3 = ind - ni1;
+          ind3 = ind - ni1nj1;
           ind4 = ind + ni1nj1;
-          ind5 = ind - ni1nj1;
           etVol = vol[ind];
-          reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // imin, jmax
+          ind = k*ni1nj1+ni1*(nj1-1);
+          ind1 = ind + 1;
+          ind2 = ind - ni1;
+          ind3 = ind - ni1nj1;
+          ind4 = ind + ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
+          // imax, jmax
+          ind = k*ni1nj1+ni1nj1 -1;
+          ind1 = ind - 1;
+          ind2 = ind - ni1;
+          ind3 = ind - ni1nj1;
+          ind4 = ind + ni1nj1;
+          etVol = vol[ind];
+          reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
         }
 
-      for (E_Int k=1;k<nk1-1;k++)
-        for (E_Int i=1;i<ni1-1;i++)
+        // Aux faces, traitement degenere.
+        for (E_Int k=1; k < nk1-1; k++)
         {
-          // face jmin
-          ind  = k*ni1nj1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind + ni1;
-          ind4 = ind - ni1nj1;
-          ind5 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
+          #pragma omp for schedule(static)
+          for (E_Int j=1; j < nj1-1; j++)
+          {
+            // face imin
+            ind  = k*ni1nj1 + j*ni1;
+            ind1 = ind + 1;
+            ind2 = ind + ni1;
+            ind3 = ind - ni1;
+            ind4 = ind + ni1nj1;
+            ind5 = ind - ni1nj1;
+            etVol = vol[ind];
+            reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
 
-          // face jmax
-          ind  = k*ni1nj1 + (nj1-1)*ni1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind - ni1;
-          ind4 = ind - ni1nj1;
-          ind5 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
+            // face imax
+            ind  = k*ni1nj1 + j*ni1 + ni1 - 1;
+            ind1 = ind - 1;
+            ind2 = ind + ni1;
+            ind3 = ind - ni1;
+            ind4 = ind + ni1nj1;
+            ind5 = ind - ni1nj1;
+            etVol = vol[ind];
+            reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
+          }
         }
 
-      for (E_Int j=1;j<nj1-1;j++)
-        for (E_Int i=1;i<ni1-1;i++)
+        for (E_Int k=1;k<nk1-1;k++)
         {
-          // face kmin
-          ind  =  j*ni1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          ind5 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-
-          // face kmax
-          ind  = (nk1-1)*ni1nj1 + j*ni1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          ind5 = ind - ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-        }
-
-
-      // Boucle generale sur les indices des cellules interieures
-      for (E_Int k=1;k<nk1-1;k++)
-        for (E_Int j=1;j<nj1-1;j++)
+          #pragma omp for schedule(static)
           for (E_Int i=1;i<ni1-1;i++)
           {
-            ind  = k*ni1nj1 + j*ni1 + i;
+            // face jmin
+            ind  = k*ni1nj1 + i;
+            ind1 = ind - 1;
+            ind2 = ind + 1;
+            ind3 = ind + ni1;
+            ind4 = ind - ni1nj1;
+            ind5 = ind + ni1nj1;
+            etVol = vol[ind];
+            reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
+
+            // face jmax
+            ind  = k*ni1nj1 + (nj1-1)*ni1 + i;
+            ind1 = ind - 1;
+            ind2 = ind + 1;
+            ind3 = ind - ni1;
+            ind4 = ind - ni1nj1;
+            ind5 = ind + ni1nj1;
+            etVol = vol[ind];
+            reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
+          }
+        }
+
+        for (E_Int j=1;j<nj1-1;j++)
+        {
+          #pragma omp for schedule(static)
+          for (E_Int i=1;i<ni1-1;i++)
+          {
+            // face kmin
+            ind  =  j*ni1 + i;
+            ind1 = ind - 1;
+            ind2 = ind + 1;
+            ind3 = ind - ni1;
+            ind4 = ind + ni1;
+            ind5 = ind + ni1nj1;
+            etVol = vol[ind];
+            reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
+
+            // face kmax
+            ind  = (nk1-1)*ni1nj1 + j*ni1 + i;
             ind1 = ind - 1;
             ind2 = ind + 1;
             ind3 = ind - ni1;
             ind4 = ind + ni1;
             ind5 = ind - ni1nj1;
-            ind6 = ind + ni1nj1;
             etVol = vol[ind];
-            reg[ind] = RATIOMAX6(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5],vol[ind6]);
+            reg[ind] = RATIOMAX5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
           }
+        }
+
+        // Boucle generale sur les indices des cellules interieures
+        for (E_Int k=1;k<nk1-1;k++)
+        {
+          for (E_Int j=1;j<nj1-1;j++)
+          {
+            #pragma omp for schedule(static)
+            for (E_Int i=1;i<ni1-1;i++)
+            {
+              ind  = k*ni1nj1 + j*ni1 + i;
+              ind1 = ind - 1;
+              ind2 = ind + 1;
+              ind3 = ind - ni1;
+              ind4 = ind + ni1;
+              ind5 = ind - ni1nj1;
+              ind6 = ind + ni1nj1;
+              etVol = vol[ind];
+              reg[ind] = RATIOMAX6(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5],vol[ind6]);
+            }
+          }
+        }
+      }
     }
-    
     RELEASESHAREDS(array, f);
     return tpl;
   }

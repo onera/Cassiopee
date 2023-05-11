@@ -237,15 +237,20 @@ void K_CONNECTOR::changeWall(
 
   E_Int imcjmc = imc*jmc;
   //E_Int ncells = imcjmc*kmc;
+  E_Int cpt=0;
+  E_Int nthreads = __NUMTHREADS__;
+  E_Int* npts_proj = new E_Int [nthreads];
   
   #pragma omp parallel
   {
+    E_Int ithread = __CURRENT_THREAD__;
     E_Float delta = K_CONST::E_MAX_FLOAT;
     E_Float deltax = 0.; E_Float deltay = 0.; E_Float deltaz = 0.;
     E_Float xp, yp, zp;
     E_Int noet, indt1, indt2, indt3;
     E_Int nob, nov1, nov2, nov3;
     E_Int nbB, dir1, dir2, dir3, dir, indA, indB;
+    E_Int cpt_loc=0;
     E_Boolean isProjected;
     E_Float xa, ya, za, xb, yb, zb, dAP2, dirx, diry, dirz;
     E_Float dxa, dya, dza, hmax1, hmax2, hmax;
@@ -346,6 +351,8 @@ void K_CONNECTOR::changeWall(
         if (isProjected == false) goto nextptB;      
         //   printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
         //                 xa, ya, za, iA+1, jA+1, kA+1, xa+deltax, ya+deltay,za+deltaz);
+
+        cpt_loc++;
     
         // hope no race because shifted points are independant
         shiftAbovePoints(imc, jmc, kmc, dir, indA, iA, jA, kA, 
@@ -354,10 +361,15 @@ void K_CONNECTOR::changeWall(
       
         nextptB:;
       }//nob
-       
       nextpt:;
     }// pour ts les pts interpoles
+    npts_proj[ithread] = cpt_loc;
+    // #pragma omp atomic update
+    // cpt += cpt_loc; // ensures that race conditions are avoided
   }
+
+  for (E_Int i = 0; i < nthreads; i++) cpt += npts_proj[i];
+  printf("Info: changeWall: %d points have been projected\n", cpt);
 
   // cleanup
   E_Int nboxes = vectOfBoxes.size();
@@ -369,6 +381,7 @@ void K_CONNECTOR::changeWall(
     delete vectOfBBTrees[v0];
   }
   vectOfBoxes.clear(); vectOfBBTrees.clear();
+  delete [] npts_proj;
 }
 
 //=============================================================================

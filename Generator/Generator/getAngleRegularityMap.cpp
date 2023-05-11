@@ -124,255 +124,731 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     // definissant l'orthogonalite
     tpl = K_ARRAY::buildArray(1, "regularityAngle", im1, jm1, km1);
     // pointeur sur le tableau d'angle
-    E_Float* alpha = K_ARRAY::getFieldPtr(tpl);
+    E_Float* alphamax = K_ARRAY::getFieldPtr(tpl);
     E_Int ncells = im1*jm1*km1;
-    FldArrayF alphamax(ncells, 1, alpha, true);
+    // FldArrayF alphamax(ncells, 1, alpha, true);
     
     // calcul de l'orthogonalite globale
-    if (dim == 1) // dimension = 1D
+    #pragma omp parallel
     {
-      E_Int ni = E_max(im, E_max(jm, km));
-      E_Int ni1 = ni - 1;
-
-      E_Int ind1, ind2, ind3;
-
-      // Initialisation
-      for (E_Int i = 0; i < ni1; i++)
+      E_Int ithread = __CURRENT_THREAD__;
+      if (dim == 1) // dimension = 1D
       {
-        alphamax[i] = -42.;
-      }
+        E_Int ni = E_max(im, E_max(jm, km));
+        E_Int ni1 = ni - 1;
 
-      // Corners
-      if (true)
-      {
-        // imin --------------------------------------------------
-        E_Int i = 0;
-        // calcul de l'angle | i->(i+1)
-        ind1 = i;
-        ind2 = i+1;
-        ind3 = i+2;
-        alphamax[i] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[i]);
+        E_Int ind1, ind2, ind3;
 
-        // imax --------------------------------------------------
-        i = (ni1-1);
-        // calcul de l'angle | (i-1)->i
-        ind1 = i-1;
-        ind2 = i;
-        ind3 = i+1;
-        alphamax[i] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[i]);
-      }
-
-      // Global loop
-      for (E_Int i = 1; i < ni1-1; i++)
-      {
-        // calcul de l'angle | i->(i+1)
-        ind1 = i;
-        ind2 = i+1;
-        ind3 = i+2;
-        alphamax[i] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[i]);
-        
-        // calcul de l'angle | (i-1)->i
-        ind1 = i-1;
-        ind2 = i;
-        ind3 = i+1;
-        alphamax[i] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[i]);
-      }
-      
-    }
-    else if (dim == 2) // dimension = 2D
-    {
-      // (ni,nj) : dimensions of 2D-grid 
-      E_Int ni=1, nj=1;
-      switch (dir)
-      {
-        case 3: // k constant
-          ni = im; nj = jm;
-          break;
-        case 2: // j constant
-          ni = im; nj = km;
-          break;
-        case 1: // i constant
-          ni = jm; nj = km;
-          break;
-      }
-
-      E_Int ni1 = ni - 1; E_Int nj1 = nj - 1;
-      if (ni == 1) ni1 = 1;
-      if (nj == 1) nj1 = 1;
-
-      E_Int ind, indn, ind1, ind2, ind3;
-
-      // Initialisation
-      for (E_Int j = 0; j < nj1; j++)
-      {
+        // Initialisation
+        #pragma omp for schedule(static)
         for (E_Int i = 0; i < ni1; i++)
         {
-          ind = j*ni1+i;
-          alphamax[ind] = -42.;
+          alphamax[i] = -42.;
         }
-      }
 
-      // Corners
-      if (true)
-      {
-        // imin, jmin --------------------------------------------------
-        ind  = 0*ni1+0;
-        indn = 0*ni+0;
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+        // Corners
+        if (ithread == 0)
+        {
+          // imin --------------------------------------------------
+          E_Int i = 0;
+          // calcul de l'angle | i->(i+1)
+          ind1 = i;
+          ind2 = i+1;
+          ind3 = i+2;
+          alphamax[i] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[i]);
 
-        // imax, jmin --------------------------------------------------
-        ind  = 0*ni1+(ni1-1);
-        indn = 0*ni+(ni1-1);
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          // imax --------------------------------------------------
+          i = (ni1-1);
+          // calcul de l'angle | (i-1)->i
+          ind1 = i-1;
+          ind2 = i;
+          ind3 = i+1;
+          alphamax[i] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[i]);
+        }
 
-        // imin, jmax --------------------------------------------------
-        ind  = (nj1-1)*ni1+0;
-        indn = (nj1-1)*ni+0;
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax, jmax --------------------------------------------------
-        ind  = (nj1-1)*ni1+(ni1-1);
-        indn = (nj1-1)*ni+(ni1-1);
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn; 
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-      }
-
-      // Edges
-      for (E_Int j = 1; j < nj1-1; j++) // imin | imax
-      {
-        // imin --------------------------------------------------
-        ind  = j*ni1+0;
-        indn = j*ni+0;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax --------------------------------------------------
-        ind  = j*ni1+(ni1-1);
-        indn = j*ni+(ni1-1);
-
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-      }
-
-      for (E_Int i = 1; i < ni1-1; i++) // jmin | jmax
-      {
-        // jmin --------------------------------------------------
-        ind  = 0*ni1+i;
-        indn = 0*ni+i;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // jmax --------------------------------------------------
-        ind  = (nj1-1)*ni1+i;
-        indn = (nj1-1)*ni+i;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-      }
-
-      // Global loop
-      for (E_Int j = 1; j < nj1-1; j++)
+        // Global loop
+        #pragma omp for schedule(static)
         for (E_Int i = 1; i < ni1-1; i++)
         {
-          ind  = j*ni1+i;
-          indn = j*ni+i;
+          // calcul de l'angle | i->(i+1)
+          ind1 = i;
+          ind2 = i+1;
+          ind3 = i+2;
+          alphamax[i] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[i]);
+          
+          // calcul de l'angle | (i-1)->i
+          ind1 = i-1;
+          ind2 = i;
+          ind3 = i+1;
+          alphamax[i] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[i]);
+        }
+        
+      }
+      else if (dim == 2) // dimension = 2D
+      {
+        // (ni,nj) : dimensions of 2D-grid 
+        E_Int ni=1, nj=1;
+        switch (dir)
+        {
+          case 3: // k constant
+            ni = im; nj = jm;
+            break;
+          case 2: // j constant
+            ni = im; nj = km;
+            break;
+          case 1: // i constant
+            ni = jm; nj = km;
+            break;
+        }
+
+        E_Int ni1 = ni - 1; E_Int nj1 = nj - 1;
+        if (ni == 1) ni1 = 1;
+        if (nj == 1) nj1 = 1;
+
+        E_Int ind, indn, ind1, ind2, ind3;
+
+        // Initialisation
+        for (E_Int j = 0; j < nj1; j++)
+        {
+          #pragma omp for schedule(static)
+          for (E_Int i = 0; i < ni1; i++)
+          {
+            ind = j*ni1+i;
+            alphamax[ind] = -42.;
+          }
+        }
+
+        // Corners
+        if (ithread == 0)
+        {
+          // imin, jmin --------------------------------------------------
+          ind  = 0*ni1+0;
+          indn = 0*ni+0;
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax, jmin --------------------------------------------------
+          ind  = 0*ni1+(ni1-1);
+          indn = 0*ni+(ni1-1);
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imin, jmax --------------------------------------------------
+          ind  = (nj1-1)*ni1+0;
+          indn = (nj1-1)*ni+0;
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax, jmax --------------------------------------------------
+          ind  = (nj1-1)*ni1+(ni1-1);
+          indn = (nj1-1)*ni+(ni1-1);
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn; 
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+        }
+
+        // Edges
+        #pragma omp for schedule(static)
+        for (E_Int j = 1; j < nj1-1; j++) // imin | imax
+        {
+          // imin --------------------------------------------------
+          ind  = j*ni1+0;
+          indn = j*ni+0;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax --------------------------------------------------
+          ind  = j*ni1+(ni1-1);
+          indn = j*ni+(ni1-1);
+
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+        }
+
+        #pragma omp for schedule(static)
+        for (E_Int i = 1; i < ni1-1; i++) // jmin | jmax
+        {
+          // jmin --------------------------------------------------
+          ind  = 0*ni1+i;
+          indn = 0*ni+i;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // jmax --------------------------------------------------
+          ind  = (nj1-1)*ni1+i;
+          indn = (nj1-1)*ni+i;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+        }
+
+        // Global loop
+        for (E_Int j = 1; j < nj1-1; j++)
+        {
+          #pragma omp for schedule(static)
+          for (E_Int i = 1; i < ni1-1; i++)
+          {
+            ind  = j*ni1+i;
+            indn = j*ni+i;
+
+            // calcul de l'angle | i->(i+1)
+            ind1 = indn;
+            ind2 = indn+1;
+            ind3 = indn+2;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+            
+            // calcul de l'angle | (i-1)->i
+            ind1 = indn-1;
+            ind2 = indn;
+            ind3 = indn+1;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | j->(j+1)
+            ind1 = indn;
+            ind2 = indn+ni;
+            ind3 = indn+2*ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (j-1)->j
+            ind1 = indn-ni;
+            ind2 = indn;
+            ind3 = indn+ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          }
+        }
+      }
+      else  // dimension = 3D
+      {
+        // (ni,nj,nk) : dimensions of 3D-grid 
+        E_Int ni = im;
+        E_Int nj = jm;
+        E_Int nk = km;
+        E_Int ni1 = ni - 1; E_Int nj1 = nj - 1; E_Int nk1 = nk - 1;
+        if (ni == 1) ni1 = 1;
+        if (nj == 1) nj1 = 1;
+        if (nk == 1) nk1 = 1;
+
+        E_Int ind, indn, ind1, ind2, ind3;
+
+        // Initialisation
+        for (E_Int k = 0; k < nk1; k++)
+        {
+          for (E_Int j = 0; j < nj1; j++)
+          {
+            #pragma omp for schedule(static)
+            for (E_Int i = 0; i < ni1; i++)
+            {
+              ind = k*ni1*nj1+j*ni1+i;
+              alphamax[ind] = -42.;
+            }
+          }
+        }
+
+        if (ithread == 0)
+        {
+          // Corners
+          // imin, jmin, kmin --------------------------------------------------
+          ind  = 0*ni1*nj1+0*ni1+0;
+          indn = 0*ni*nj+0*ni+0;
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imin, jmin, kmax --------------------------------------------------
+          ind  = (nk1-1)*ni1*nj1+0*ni1+0;
+          indn = (nk1-1)*ni*nj+0*ni+0;
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imin, jmax, kmin --------------------------------------------------
+          ind  = 0*ni1*nj1+(nj1-1)*ni1+0;
+          indn = 0*ni*nj+(nj1-1)*ni+0;
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imin, jmax, kmax --------------------------------------------------
+          ind  = (nk1-1)*ni1*nj1+(nj1-1)*ni1+0;
+          indn = (nk1-1)*ni*nj+(nj1-1)*ni+0;
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax, jmin, kmin --------------------------------------------------
+          ind  = 0*ni1*nj1+0*ni1+(ni1-1);
+          indn = 0*ni*nj+0*ni+(ni1-1);      
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax, jmin, kmax --------------------------------------------------
+          ind  = (nk1-1)*ni1*nj1+0*ni1+(ni1-1);
+          indn = (nk1-1)*ni*nj+0*ni+(ni1-1);      
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax, jmax, kmin --------------------------------------------------
+          ind  = 0*ni1*nj1+(nj1-1)*ni1+(ni1-1);
+          indn = 0*ni*nj+(nj1-1)*ni+(ni1-1);
+          
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax, jmax, kmax
+          ind  = (nk1-1)*ni1*nj1+(nj1-1)*ni1+(ni1-1);
+          indn = (nk1-1)*ni*nj+(nj1-1)*ni+(ni1-1);      
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+        }
+
+        // Edges
+        #pragma omp for schedule(static)
+        for (E_Int k = 1; k < nk1-1; k++) // imin | imax and jmin | jmax
+        {
+          // imin and jmin --------------------------------------------------
+          ind  = k*ni1*nj1+0*ni1+0;
+          indn = k*ni*nj+0*ni+0;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax and jmin --------------------------------------------------
+          ind  = k*ni1*nj1+0*ni1+(ni1-1);
+          indn = k*ni*nj+0*ni+(ni1-1);
+          
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imin and jmax --------------------------------------------------
+          ind  = k*ni1*nj1+(nj1-1)*ni1+0;
+          indn = k*ni*nj+(nj1-1)*ni+0;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax and jmax --------------------------------------------------
+          ind  = k*ni1*nj1+(nj1-1)*ni1+(ni1-1);
+          indn = k*ni*nj+(nj1-1)*ni+(ni1-1);
+          
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+        }
+        
+        #pragma omp for schedule(static)
+        for (E_Int j = 1; j < nj1-1; j++) // imin | imax and kmin | kmax
+        {
+          // imin and kmin --------------------------------------------------
+          ind  = 0*ni1*nj1+j*ni1+0;
+          indn = 0*ni*nj+j*ni+0;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax and kmin --------------------------------------------------
+          ind  = 0*ni1*nj1+j*ni1+(ni1-1);
+          indn = 0*ni*nj+j*ni+(ni1-1);
+
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imin and kmax --------------------------------------------------
+          ind  = (nk1-1)*ni1*nj1+j*ni1+0;
+          indn = (nk1-1)*ni*nj+j*ni+0;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // imax and kmax --------------------------------------------------
+          ind  = (nk1-1)*ni1*nj1+j*ni1+(ni1-1);
+          indn = (nk1-1)*ni*nj+j*ni+(ni1-1);
+
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+        }
+
+        #pragma omp for schedule(static)
+        for (E_Int i = 1; i < ni1-1; i++) // jmin | jmax and kmin | kmax
+        {
+          // jmin and kmin --------------------------------------------------
+          ind  = 0*ni1*nj1+0*ni1+i;
+          indn = 0*ni*nj+0*ni+i;
 
           // calcul de l'angle | i->(i+1)
           ind1 = indn;
@@ -392,797 +868,141 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
           ind3 = indn+2*ni;
           alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
 
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // jmax and kmin --------------------------------------------------
+          ind  = 0*ni1*nj1+(nj1-1)*ni1+i;
+          indn = 0*ni*nj+(nj1-1)*ni+i;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
           // calcul de l'angle | (j-1)->j
           ind1 = indn-ni;
           ind2 = indn;
           ind3 = indn+ni;
           alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | k->(k+1)
+          ind1 = indn;
+          ind2 = indn+ni*nj;
+          ind3 = indn+2*ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // jmin and kmax --------------------------------------------------
+          ind  = (nk1-1)*ni1*nj1+0*ni1+i;
+          indn = (nk1-1)*ni*nj+0*ni+i;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | j->(j+1)
+          ind1 = indn;
+          ind2 = indn+ni;
+          ind3 = indn+2*ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // jmax and kmax --------------------------------------------------
+          ind  = (nk1-1)*ni1*nj1+(nj1-1)*ni1+i;
+          indn = (nk1-1)*ni*nj+(nj1-1)*ni+i;
+
+          // calcul de l'angle | i->(i+1)
+          ind1 = indn;
+          ind2 = indn+1;
+          ind3 = indn+2;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          
+          // calcul de l'angle | (i-1)->i
+          ind1 = indn-1;
+          ind2 = indn;
+          ind3 = indn+1;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (j-1)->j
+          ind1 = indn-ni;
+          ind2 = indn;
+          ind3 = indn+ni;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+          // calcul de l'angle | (k-1)->k
+          ind1 = indn-ni*nj;
+          ind2 = indn;
+          ind3 = indn+ni*nj;
+          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
         }
-    }
-    else  // dimension = 3D
-    {	      
-      // (ni,nj,nk) : dimensions of 3D-grid 
-      E_Int ni = im;
-      E_Int nj = jm;
-      E_Int nk = km;
-      E_Int ni1 = ni - 1; E_Int nj1 = nj - 1; E_Int nk1 = nk - 1;
-      if (ni == 1) ni1 = 1;
-      if (nj == 1) nj1 = 1;
-      if (nk == 1) nk1 = 1;
 
-      E_Int ind, indn, ind1, ind2, ind3;
-
-      // Initialisation
-      for (E_Int k = 0; k < nk1; k++)
-      {
-        for (E_Int j = 0; j < nj1; j++)
+        // Faces
+        for (E_Int k = 1; k < nk1-1; k++) // imin | imax
         {
-          for (E_Int i = 0; i < ni1; i++)
+          #pragma omp for schedule(static)
+          for (E_Int j = 1; j < nj1-1; j++)
           {
-            ind = k*ni1*nj1+j*ni1+i;
-            alphamax[ind] = -42.;
-          }
-        }
-      }
-
-      if (true)
-      {
-        // Corners
-        // imin, jmin, kmin --------------------------------------------------
-        ind  = 0*ni1*nj1+0*ni1+0;
-        indn = 0*ni*nj+0*ni+0;
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imin, jmin, kmax --------------------------------------------------
-        ind  = (nk1-1)*ni1*nj1+0*ni1+0;
-        indn = (nk1-1)*ni*nj+0*ni+0;
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imin, jmax, kmin --------------------------------------------------
-        ind  = 0*ni1*nj1+(nj1-1)*ni1+0;
-        indn = 0*ni*nj+(nj1-1)*ni+0;
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imin, jmax, kmax --------------------------------------------------
-        ind  = (nk1-1)*ni1*nj1+(nj1-1)*ni1+0;
-        indn = (nk1-1)*ni*nj+(nj1-1)*ni+0;
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax, jmin, kmin --------------------------------------------------
-        ind  = 0*ni1*nj1+0*ni1+(ni1-1);
-        indn = 0*ni*nj+0*ni+(ni1-1);      
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax, jmin, kmax --------------------------------------------------
-        ind  = (nk1-1)*ni1*nj1+0*ni1+(ni1-1);
-        indn = (nk1-1)*ni*nj+0*ni+(ni1-1);      
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax, jmax, kmin --------------------------------------------------
-        ind  = 0*ni1*nj1+(nj1-1)*ni1+(ni1-1);
-        indn = 0*ni*nj+(nj1-1)*ni+(ni1-1);
-        
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax, jmax, kmax
-        ind  = (nk1-1)*ni1*nj1+(nj1-1)*ni1+(ni1-1);
-        indn = (nk1-1)*ni*nj+(nj1-1)*ni+(ni1-1);      
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-      }
-
-      // Edges
-      for (E_Int k = 1; k < nk1-1; k++) // imin | imax and jmin | jmax
-      {
-        // imin and jmin --------------------------------------------------
-        ind  = k*ni1*nj1+0*ni1+0;
-        indn = k*ni*nj+0*ni+0;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax and jmin --------------------------------------------------
-        ind  = k*ni1*nj1+0*ni1+(ni1-1);
-        indn = k*ni*nj+0*ni+(ni1-1);
-        
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imin and jmax --------------------------------------------------
-        ind  = k*ni1*nj1+(nj1-1)*ni1+0;
-        indn = k*ni*nj+(nj1-1)*ni+0;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax and jmax --------------------------------------------------
-        ind  = k*ni1*nj1+(nj1-1)*ni1+(ni1-1);
-        indn = k*ni*nj+(nj1-1)*ni+(ni1-1);
-        
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-      }
-
-      for (E_Int j = 1; j < nj1-1; j++) // imin | imax and kmin | kmax
-      {
-        // imin and kmin --------------------------------------------------
-        ind  = 0*ni1*nj1+j*ni1+0;
-        indn = 0*ni*nj+j*ni+0;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax and kmin --------------------------------------------------
-        ind  = 0*ni1*nj1+j*ni1+(ni1-1);
-        indn = 0*ni*nj+j*ni+(ni1-1);
-
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imin and kmax --------------------------------------------------
-        ind  = (nk1-1)*ni1*nj1+j*ni1+0;
-        indn = (nk1-1)*ni*nj+j*ni+0;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // imax and kmax --------------------------------------------------
-        ind  = (nk1-1)*ni1*nj1+j*ni1+(ni1-1);
-        indn = (nk1-1)*ni*nj+j*ni+(ni1-1);
-
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-      }
-
-      for (E_Int i = 1; i < ni1-1; i++) // jmin | jmax and kmin | kmax
-      {
-        // jmin and kmin --------------------------------------------------
-        ind  = 0*ni1*nj1+0*ni1+i;
-        indn = 0*ni*nj+0*ni+i;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // jmax and kmin --------------------------------------------------
-        ind  = 0*ni1*nj1+(nj1-1)*ni1+i;
-        indn = 0*ni*nj+(nj1-1)*ni+i;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | k->(k+1)
-        ind1 = indn;
-        ind2 = indn+ni*nj;
-        ind3 = indn+2*ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // jmin and kmax --------------------------------------------------
-        ind  = (nk1-1)*ni1*nj1+0*ni1+i;
-        indn = (nk1-1)*ni*nj+0*ni+i;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | j->(j+1)
-        ind1 = indn;
-        ind2 = indn+ni;
-        ind3 = indn+2*ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // jmax and kmax --------------------------------------------------
-        ind  = (nk1-1)*ni1*nj1+(nj1-1)*ni1+i;
-        indn = (nk1-1)*ni*nj+(nj1-1)*ni+i;
-
-        // calcul de l'angle | i->(i+1)
-        ind1 = indn;
-        ind2 = indn+1;
-        ind3 = indn+2;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        
-        // calcul de l'angle | (i-1)->i
-        ind1 = indn-1;
-        ind2 = indn;
-        ind3 = indn+1;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (j-1)->j
-        ind1 = indn-ni;
-        ind2 = indn;
-        ind3 = indn+ni;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-        // calcul de l'angle | (k-1)->k
-        ind1 = indn-ni*nj;
-        ind2 = indn;
-        ind3 = indn+ni*nj;
-        alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-      }
-
-      // Faces
-      for (E_Int k = 1; k < nk1-1; k++) // imin | imax
-      {
-        for (E_Int j = 1; j < nj1-1; j++)
-        {
-          // imin --------------------------------------------------
-          ind  = k*ni1*nj1+j*ni1+0;
-          indn = k*ni*nj+j*ni+0;
-
-          // calcul de l'angle | i->(i+1)
-          ind1 = indn;
-          ind2 = indn+1;
-          ind3 = indn+2;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | j->(j+1)
-          ind1 = indn;
-          ind2 = indn+ni;
-          ind3 = indn+2*ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (j-1)->j
-          ind1 = indn-ni;
-          ind2 = indn;
-          ind3 = indn+ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | k->(k+1)
-          ind1 = indn;
-          ind2 = indn+ni*nj;
-          ind3 = indn+2*ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (k-1)->k
-          ind1 = indn-ni*nj;
-          ind2 = indn;
-          ind3 = indn+ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // imax --------------------------------------------------
-          ind  = k*ni1*nj1+j*ni1+(ni1-1);
-          indn = k*ni*nj+j*ni+(ni1-1);
-
-          // calcul de l'angle | (i-1)->i
-          ind1 = indn-1;
-          ind2 = indn;
-          ind3 = indn+1;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | j->(j+1)
-          ind1 = indn;
-          ind2 = indn+ni;
-          ind3 = indn+2*ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (j-1)->j
-          ind1 = indn-ni;
-          ind2 = indn;
-          ind3 = indn+ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | k->(k+1)
-          ind1 = indn;
-          ind2 = indn+ni*nj;
-          ind3 = indn+2*ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (k-1)->k
-          ind1 = indn-ni*nj;
-          ind2 = indn;
-          ind3 = indn+ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        }
-      }
-
-      for (E_Int k = 1; k < nk1-1; k++) // jmin | jmax
-      {
-        for (E_Int i = 1; i < ni1-1; i++)
-        {
-          // jmin --------------------------------------------------
-          ind  = k*ni1*nj1+0*ni1+i;
-          indn = k*ni*nj+0*ni+i;
-
-          // calcul de l'angle | i->(i+1)
-          ind1 = indn;
-          ind2 = indn+1;
-          ind3 = indn+2;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (i-1)->i
-          ind1 = indn-1;
-          ind2 = indn;
-          ind3 = indn+1;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | j->(j+1)
-          ind1 = indn;
-          ind2 = indn+ni;
-          ind3 = indn+2*ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | k->(k+1)
-          ind1 = indn;
-          ind2 = indn+ni*nj;
-          ind3 = indn+2*ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (k-1)->k
-          ind1 = indn-ni*nj;
-          ind2 = indn;
-          ind3 = indn+ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // jmax --------------------------------------------------
-          ind  = k*ni1*nj1+(nj1-1)*ni1+i;
-          indn = k*ni*nj+(nj1-1)*ni+i;
-
-          // calcul de l'angle | i->(i+1)
-          ind1 = indn;
-          ind2 = indn+1;
-          ind3 = indn+2;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (i-1)->i
-          ind1 = indn-1;
-          ind2 = indn;
-          ind3 = indn+1;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (j-1)->j
-          ind1 = indn-ni;
-          ind2 = indn;
-          ind3 = indn+ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | k->(k+1)
-          ind1 = indn;
-          ind2 = indn+ni*nj;
-          ind3 = indn+2*ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (k-1)->k
-          ind1 = indn-ni*nj;
-          ind2 = indn;
-          ind3 = indn+ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        }
-      }
-
-      for (E_Int j = 1; j < nj1-1; j++) // kmin | kmax
-      {
-        for (E_Int i = 1; i < ni1-1; i++)
-        {
-          // kmin --------------------------------------------------
-          ind  = 0*ni1*nj1+j*ni1+i;
-          indn = 0*ni*nj+j*ni+i;
-
-          // calcul de l'angle | i->(i+1)
-          ind1 = indn;
-          ind2 = indn+1;
-          ind3 = indn+2;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (i-1)->i
-          ind1 = indn-1;
-          ind2 = indn;
-          ind3 = indn+1;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | j->(j+1)
-          ind1 = indn;
-          ind2 = indn+ni;
-          ind3 = indn+2*ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (j-1)->j
-          ind1 = indn-ni;
-          ind2 = indn;
-          ind3 = indn+ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | k->(k+1)
-          ind1 = indn;
-          ind2 = indn+ni*nj;
-          ind3 = indn+2*ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // kmax --------------------------------------------------
-          ind  = (nk1-1)*ni1*nj1+j*ni1+i;
-          indn = (nk1-1)*ni*nj+j*ni+i;
-
-          // calcul de l'angle | i->(i+1)
-          ind1 = indn;
-          ind2 = indn+1;
-          ind3 = indn+2;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (i-1)->i
-          ind1 = indn-1;
-          ind2 = indn;
-          ind3 = indn+1;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | j->(j+1)
-          ind1 = indn;
-          ind2 = indn+ni;
-          ind3 = indn+2*ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (j-1)->j
-          ind1 = indn-ni;
-          ind2 = indn;
-          ind3 = indn+ni;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-
-          // calcul de l'angle | (k-1)->k
-          ind1 = indn-ni*nj;
-          ind2 = indn;
-          ind3 = indn+ni*nj;
-          alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-        }
-      }
-
-      // Global loop
-      for (E_Int k = 1; k < nk1-1; k++)
-      {
-        for (E_Int j = 1; j < nj1-1; j++)
-        {
-          for (E_Int i = 1; i < ni1-1; i++)
-          {
-            ind  = k*ni1*nj1+j*ni1+i;
-            indn = k*ni*nj+j*ni+i;
+            // imin --------------------------------------------------
+            ind  = k*ni1*nj1+j*ni1+0;
+            indn = k*ni*nj+j*ni+0;
 
             // calcul de l'angle | i->(i+1)
             ind1 = indn;
             ind2 = indn+1;
             ind3 = indn+2;
             alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
-            
+
+            // calcul de l'angle | j->(j+1)
+            ind1 = indn;
+            ind2 = indn+ni;
+            ind3 = indn+2*ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (j-1)->j
+            ind1 = indn-ni;
+            ind2 = indn;
+            ind3 = indn+ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | k->(k+1)
+            ind1 = indn;
+            ind2 = indn+ni*nj;
+            ind3 = indn+2*ni*nj;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (k-1)->k
+            ind1 = indn-ni*nj;
+            ind2 = indn;
+            ind3 = indn+ni*nj;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // imax --------------------------------------------------
+            ind  = k*ni1*nj1+j*ni1+(ni1-1);
+            indn = k*ni*nj+j*ni+(ni1-1);
+
             // calcul de l'angle | (i-1)->i
             ind1 = indn-1;
             ind2 = indn;
@@ -1212,6 +1032,206 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
             ind2 = indn;
             ind3 = indn+ni*nj;
             alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          }
+        }
+
+        for (E_Int k = 1; k < nk1-1; k++) // jmin | jmax
+        {
+          #pragma omp for schedule(static)
+          for (E_Int i = 1; i < ni1-1; i++)
+          {
+            // jmin --------------------------------------------------
+            ind  = k*ni1*nj1+0*ni1+i;
+            indn = k*ni*nj+0*ni+i;
+
+            // calcul de l'angle | i->(i+1)
+            ind1 = indn;
+            ind2 = indn+1;
+            ind3 = indn+2;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (i-1)->i
+            ind1 = indn-1;
+            ind2 = indn;
+            ind3 = indn+1;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | j->(j+1)
+            ind1 = indn;
+            ind2 = indn+ni;
+            ind3 = indn+2*ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | k->(k+1)
+            ind1 = indn;
+            ind2 = indn+ni*nj;
+            ind3 = indn+2*ni*nj;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (k-1)->k
+            ind1 = indn-ni*nj;
+            ind2 = indn;
+            ind3 = indn+ni*nj;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // jmax --------------------------------------------------
+            ind  = k*ni1*nj1+(nj1-1)*ni1+i;
+            indn = k*ni*nj+(nj1-1)*ni+i;
+
+            // calcul de l'angle | i->(i+1)
+            ind1 = indn;
+            ind2 = indn+1;
+            ind3 = indn+2;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (i-1)->i
+            ind1 = indn-1;
+            ind2 = indn;
+            ind3 = indn+1;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (j-1)->j
+            ind1 = indn-ni;
+            ind2 = indn;
+            ind3 = indn+ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | k->(k+1)
+            ind1 = indn;
+            ind2 = indn+ni*nj;
+            ind3 = indn+2*ni*nj;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (k-1)->k
+            ind1 = indn-ni*nj;
+            ind2 = indn;
+            ind3 = indn+ni*nj;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          }
+        }
+
+        for (E_Int j = 1; j < nj1-1; j++) // kmin | kmax
+        {
+          #pragma omp for schedule(static)
+          for (E_Int i = 1; i < ni1-1; i++)
+          {
+            // kmin --------------------------------------------------
+            ind  = 0*ni1*nj1+j*ni1+i;
+            indn = 0*ni*nj+j*ni+i;
+
+            // calcul de l'angle | i->(i+1)
+            ind1 = indn;
+            ind2 = indn+1;
+            ind3 = indn+2;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (i-1)->i
+            ind1 = indn-1;
+            ind2 = indn;
+            ind3 = indn+1;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | j->(j+1)
+            ind1 = indn;
+            ind2 = indn+ni;
+            ind3 = indn+2*ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (j-1)->j
+            ind1 = indn-ni;
+            ind2 = indn;
+            ind3 = indn+ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | k->(k+1)
+            ind1 = indn;
+            ind2 = indn+ni*nj;
+            ind3 = indn+2*ni*nj;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // kmax --------------------------------------------------
+            ind  = (nk1-1)*ni1*nj1+j*ni1+i;
+            indn = (nk1-1)*ni*nj+j*ni+i;
+
+            // calcul de l'angle | i->(i+1)
+            ind1 = indn;
+            ind2 = indn+1;
+            ind3 = indn+2;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (i-1)->i
+            ind1 = indn-1;
+            ind2 = indn;
+            ind3 = indn+1;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | j->(j+1)
+            ind1 = indn;
+            ind2 = indn+ni;
+            ind3 = indn+2*ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (j-1)->j
+            ind1 = indn-ni;
+            ind2 = indn;
+            ind3 = indn+ni;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+            // calcul de l'angle | (k-1)->k
+            ind1 = indn-ni*nj;
+            ind2 = indn;
+            ind3 = indn+ni*nj;
+            alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+          }
+        }
+
+        // Global loop
+        for (E_Int k = 1; k < nk1-1; k++)
+        {
+          for (E_Int j = 1; j < nj1-1; j++)
+          {
+            #pragma omp for schedule(static)
+            for (E_Int i = 1; i < ni1-1; i++)
+            {
+              ind  = k*ni1*nj1+j*ni1+i;
+              indn = k*ni*nj+j*ni+i;
+
+              // calcul de l'angle | i->(i+1)
+              ind1 = indn;
+              ind2 = indn+1;
+              ind3 = indn+2;
+              alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+              
+              // calcul de l'angle | (i-1)->i
+              ind1 = indn-1;
+              ind2 = indn;
+              ind3 = indn+1;
+              alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+              // calcul de l'angle | j->(j+1)
+              ind1 = indn;
+              ind2 = indn+ni;
+              ind3 = indn+2*ni;
+              alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+              // calcul de l'angle | (j-1)->j
+              ind1 = indn-ni;
+              ind2 = indn;
+              ind3 = indn+ni;
+              alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+              // calcul de l'angle | k->(k+1)
+              ind1 = indn;
+              ind2 = indn+ni*nj;
+              ind3 = indn+2*ni*nj;
+              alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+
+              // calcul de l'angle | (k-1)->k
+              ind1 = indn-ni*nj;
+              ind2 = indn;
+              ind3 = indn+ni*nj;
+              alphamax[ind] = E_max(computeAngle(x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],x[ind3],y[ind3],z[ind3]), alphamax[ind]);
+            }
           }
         }
       }
