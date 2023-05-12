@@ -469,9 +469,10 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
                     if tree == t:
                         h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
                         NPas_local = int(round(span/h))
-                        if NPas_local<2:
-                            print("WARNING:: Zone %s has Nz=%d and is being clipped to Nz=2"%(z[0],NPas_local))
-                            NPas_local=2
+                        if NPas_local<4:
+                            print("WARNING:: Zone %s has Nz=%d and is being clipped to Nz=4"%(z[0],NPas_local))
+                            NPas_local=4
+                    
                         Nk[z[0]]     = NPas_local
                         dz_loc[z[0]] = span/float(Ntranche*Nk[z[0]])
                     else:
@@ -1200,7 +1201,6 @@ class IBM(Common):
     
         else:
             C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistanceAllBC}')
-        
         test.printMem(">>> Wall distance [end]")
         return None
     
@@ -1841,20 +1841,20 @@ class IBM(Common):
         return None
 
 
-    def _recomputeDistRANS__(self,t,tb):        
-        test.printMem(">>> wall distance for viscous wall only - RANS [start]")     
-        if 'outpress' in self.ibctypes or 'inj' in self.ibctypes or 'slip' in self.ibctypes:         
+    def _recomputeDistRANS__(self,t,tb):       
+        if 'outpress' in self.ibctypes or 'inj' in self.ibctypes or 'slip' in self.ibctypes:
+            test.printMem(">>> wall distance for viscous wall only - RANS [start]")     
             for z in Internal.getZones(tb):
                 ibc = Internal.getNodeFromName(z,'ibctype')
                 if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
                     Internal._rmNode(tb,z)
         
-        if self.dimPb == 2:
-            DTW._distance2Walls(t,self.tbsave,type='ortho', signed=0, dim=self.dimPb, loc='centers')
-        else:
-            DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=self.dimPb, loc='centers')
-        C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistance}*({centers:cellN}>0.)+(-1.)*{centers:TurbulentDistance}*({centers:cellN}<1.)')        
-        test.printMem(">>> wall distance for viscous wall only - RANS [end]")  
+            if self.dimPb == 2:
+                DTW._distance2Walls(t,self.tbsave,type='ortho', signed=0, dim=self.dimPb, loc='centers')
+            else:
+                DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=self.dimPb, loc='centers')
+            C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistance}*({centers:cellN}>0.)+(-1.)*{centers:TurbulentDistance}*({centers:cellN}<1.)')        
+            test.printMem(">>> wall distance for viscous wall only - RANS [end]")  
         return None
 
 
