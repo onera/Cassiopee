@@ -463,7 +463,7 @@ typedef struct {
   E_Int projectDir(E_Float x, E_Float y, E_Float z,
                    E_Float dirx, E_Float diry, E_Float dirz,
                    E_Float* fx2, E_Float* fy2, E_Float* fz2,
-                   std::vector<E_Int> indices, K_FLD::FldArrayI& cn2, 
+                   std::vector<E_Int>& indices, K_FLD::FldArrayI& cn2, 
                    E_Float& xo, E_Float& yo, E_Float& zo, E_Int oriented=0);
 
   /* Projette les pts de coordonnees fx, fy, fz suivant une direction 
@@ -516,7 +516,7 @@ typedef struct {
      parcourir uniquement */
   E_Int projectOrthoPrecond(E_Float x, E_Float y, E_Float z,
                             E_Float* fx2, E_Float* fy2, E_Float* fz2,
-                            std::vector<E_Int> indices, K_FLD::FldArrayI& cn2, 
+                            std::vector<E_Int>& indices, K_FLD::FldArrayI& cn2, 
                             E_Float& xo, E_Float& yo, E_Float& zo,
                             E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p);
 

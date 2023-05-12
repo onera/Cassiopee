@@ -54,7 +54,7 @@ E_Int K_COMPGEOM::projectDir(E_Float x, E_Float y, E_Float z,
 E_Int K_COMPGEOM::projectDir(E_Float x, E_Float y, E_Float z,
                              E_Float nx, E_Float ny, E_Float nz,
                              E_Float* fx2, E_Float* fy2, E_Float* fz2,
-                             std::vector<E_Int> indices, FldArrayI& cn2, 
+                             std::vector<E_Int>& indices, FldArrayI& cn2, 
                              E_Float& xo, E_Float& yo, E_Float& zo, E_Int oriented)
 { 
   E_Int noet = -1;
@@ -326,8 +326,7 @@ void K_COMPGEOM::projectDirWithPrecond(
     E_Float dx, dy, dz, normp, ps;
     vector<E_Int> indicesBB;
     E_Int nbboxes, et;
-    E_Float minB[3];  E_Float maxB[3];
-  
+    
     #pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
@@ -422,7 +421,6 @@ void K_COMPGEOM::projectDirWithPrecond(
   {
     E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
     E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
-    E_Float minB[3];  E_Float maxB[3];
     E_Float dist; E_Float distc; 
     E_Int ret; E_Int ind1, ind2, ind3;
     E_Float dx, dy, dz, normp, ps;

@@ -592,7 +592,7 @@ namespace NUGA
       NUGA::vecval average_n;
       average_n.vec[0] = average_n.vec[1] = average_n.vec[2] = 0.;
       bool singular{ false };
-      for (size_t j = 0; j < nnodes; ++j)
+      for (E_Int j = 0; j < nnodes; ++j)
       {
         E_Int Ni = nodes[j] - bit->index_start;
 

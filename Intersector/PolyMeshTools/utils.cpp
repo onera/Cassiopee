@@ -1176,7 +1176,7 @@ PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
   }
 
   std::vector<E_Int> orient;
-  E_Int imax{-1}, imin{-1},PG1max, PG2max;
+  E_Int imax{-1}, imin{-1}, PG1max=-1, PG2max=-1;
   E_Float minA{7.}, maxA{-1.};
   
   //
@@ -1224,7 +1224,7 @@ PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
 
 #ifdef E_DOUBLEINT
   tpl =  Py_BuildValue("l", long(imax));
-   PyList_Append(l, tpl);
+  PyList_Append(l, tpl);
 #else
   tpl =  Py_BuildValue("i", imax);
   PyList_Append(l, tpl);

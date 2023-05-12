@@ -674,16 +674,16 @@ PyObject* call_union(PyObject* args)
       assert (i >=0 && i < phoids1.size());
       
       
-      if (ancPH1 == E_IDX_NONE & ancPH2 == E_IDX_NONE)
+      if (ancPH1 == E_IDX_NONE && ancPH2 == E_IDX_NONE)
       {
-    	o << "Union. ERROR: Cell " << i << " without ancestor." << std::endl; 
+    	o << "Error: Union: Cell " << i << " without ancestor." << std::endl; 
     	PyErr_SetString(PyExc_TypeError, o.str().c_str());
     	err = 1;
       }
       
-      if (ancPH1 != E_IDX_NONE & ancPH2 != E_IDX_NONE)
+      if (ancPH1 != E_IDX_NONE && ancPH2 != E_IDX_NONE)
       {
-    	o << "Union. Warning: 2 ancestors for one cell, not handled yet.";
+    	o << "Error: Union: 2 ancestors for one cell, not handled yet.";
     	PyErr_SetString(PyExc_TypeError, o.str().c_str());
     	err = 1;
       }
@@ -696,14 +696,14 @@ PyObject* call_union(PyObject* args)
     
     K_CONNECT::IdTool::reverse_indirection(phoids0, phnids0);
 
-    for (E_Int i=0; i < phnids0.size(); ++i)
+    for (size_t i=0; i < phnids0.size(); ++i)
     {
       if (phnids0[i] == E_IDX_NONE){ phnids0[i] = -1 ;}
     }
     
     K_CONNECT::IdTool::reverse_indirection(phoids1, phnids1);
 
-    for (E_Int i=0; i < phnids1.size(); ++i)
+    for (size_t i=0; i < phnids1.size(); ++i)
     {
       if (phnids1[i] == E_IDX_NONE){ phnids1[i] = -1 ;}
     }
@@ -731,18 +731,18 @@ PyObject* call_union(PyObject* args)
       pgoids0[i] = ancPG1;
       pgoids1[i] = ancPG2;
 
-      if (ancPG1 == E_IDX_NONE & ancPG2 == E_IDX_NONE)
+      if (ancPG1 == E_IDX_NONE && ancPG2 == E_IDX_NONE)
       {
     	std::ostringstream o;
-    	o << "Union. ERROR: Face " << i << " without ancestor." << std::endl;
+    	o << "Error: Union: Face " << i << " without ancestor." << std::endl;
     	PyErr_SetString(PyExc_TypeError, o.str().c_str());
     	return NULL;	  
       }
       
-      if (ancPG1 != E_IDX_NONE & ancPG2 != E_IDX_NONE)
+      if (ancPG1 != E_IDX_NONE && ancPG2 != E_IDX_NONE)
       {
     	std::ostringstream o;
-    	o << "Union. Warning: Face " << i << " has 2 ancestors. ancPG1 = " << ancPG1 << " and ancPG2 =" <<  ancPG2 << std::endl;
+    	o << "Error: Union: Face " << i << " has 2 ancestors. ancPG1 = " << ancPG1 << " and ancPG2 =" <<  ancPG2 << std::endl;
     	PyErr_SetString(PyExc_TypeError, o.str().c_str());
     	return NULL;
       }
@@ -751,10 +751,10 @@ PyObject* call_union(PyObject* args)
       E_Int elt1 = F2E(0,i);
       E_Int elt2 = F2E(1,i);
       
-      if ( elt1 != E_IDX_NONE & elt2 != E_IDX_NONE )
+      if ( elt1 != E_IDX_NONE && elt2 != E_IDX_NONE )
       {
-	pgoids0[i] = E_IDX_NONE ; 
-	pgoids1[i] = E_IDX_NONE ; 
+	    pgoids0[i] = E_IDX_NONE; 
+	    pgoids1[i] = E_IDX_NONE; 
       }
  
     }
@@ -979,7 +979,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   
   ngon_type ng1;
   K_FLD::FloatArray crd1;
-  for (size_t i=0; i < nb_zones1; ++i)
+  for (E_Int i=0; i < nb_zones1; ++i)
   {
     ngon_type ng(*cnt1s[i]);
     ng.PGs.shift(crd1.cols());
@@ -992,7 +992,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   
   ngon_type ng2;
   K_FLD::FloatArray crd2;
-  for (size_t i=0; i < nb_zones2; ++i)
+  for (E_Int i=0; i < nb_zones2; ++i)
   {
     ngon_type ng(*cnt2s[i]);
     ng.PGs.shift(crd2.cols());
@@ -1198,7 +1198,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     K_FLD::IntArray F2E_loc ; 
     ng1so[i].build_noF2E(F2E_loc);
 
-    for (size_t k = 0; k < ng1so[i].PGs.size(); ++k)
+    for (E_Int k = 0; k < ng1so[i].PGs.size(); ++k)
     {
       E_Int ancPG1 = ng1so[i].PGs._ancEs(0,k);
       glo_pgoids.push_back(ancPG1);
@@ -1212,12 +1212,12 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
       E_Int zid = ii.first;
       for (auto& j : ii.second)
       {
-    	E_Int jzid = j.first;
+    	//E_Int jzid = j.first;
     	auto & ptl = j.second;
     	for (auto & pg : ptl)
     	{
-    	  if (pg !=  E_IDX_NONE)
-	    idx_to_remove1[zid].push_back(pg); 
+    	  if (pg != E_IDX_NONE)
+	        idx_to_remove1[zid].push_back(pg); 
     	}
       }
     }
@@ -1310,7 +1310,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
    
     ngon_type::compact_to_used_nodes(ng2so[i].PGs, crd2so[i]);
     
-    for (size_t k = 0; k < ng2so[i].PGs.size(); ++k)
+    for (E_Int k = 0; k < ng2so[i].PGs.size(); ++k)
     {
       E_Int ancPG2 = ng2so[i].PGs._ancEs(1,k);
  
@@ -1319,23 +1319,23 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     
   }
   
-  // // Remove faces belonging to matches
+  // Remove faces belonging to matches
   for (auto& ii : z2loc_jz_to_ptl2)
     {
       E_Int zid = ii.first;
       for (auto& j : ii.second)
       {
-  	E_Int jzid = j.first;
-  	auto & ptl = j.second;
-  	for (auto & pg : ptl)
-  	{
-    	  if (pg !=  E_IDX_NONE)
-	    idx_to_remove2[zid-nb_zones1].push_back(pg);
-  	}
+        //E_Int jzid = j.first;
+        auto & ptl = j.second;
+        for (auto & pg : ptl)
+        {
+          if (pg !=  E_IDX_NONE)
+            idx_to_remove2[zid-nb_zones1].push_back(pg);
+        }
       }
     }
    
-  prev = 0 ;
+  prev = 0;
   
   for (size_t i=0; i < ng2so.size(); ++i)
   {

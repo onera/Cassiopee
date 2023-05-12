@@ -190,7 +190,8 @@ namespace NUGA
 
       // tell if sent or not to all ranks (to avoid deadlock when receiving)
 
-      for (size_t r = 0; r < nrank; ++r) {
+      for (int r = 0; r < nrank; ++r) 
+      {
         if (r == rank) continue;
         //std::cout << "rank : " << rank  << " over (" << nrank << ") has sent to " << r << " ? : " << has_sent[r] << std::endl;
         MPI_Isend(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreqs[++count_req]);

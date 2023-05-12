@@ -66,8 +66,9 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
   K_FLD::FloatArray CsR(Cs);
   if (axis)
     NUGA::axial_rotate(CsR, center, axis, angle);
-  else if (translation){
-    for (size_t k = 0; k < CsR.cols(); ++k)
+  else if (translation)
+  {
+    for (E_Int k = 0; k < CsR.cols(); ++k)
     {
       CsR(0, k) += translation[0];
       CsR(1, k) += translation[1];

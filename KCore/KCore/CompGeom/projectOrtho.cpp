@@ -113,7 +113,7 @@ E_Int K_COMPGEOM::projectOrtho(E_Float x, E_Float y, E_Float z,
 E_Int K_COMPGEOM::projectOrthoPrecond(
   E_Float x, E_Float y, E_Float z,
   E_Float* fx2, E_Float* fy2, E_Float* fz2,
-  std::vector<E_Int> indices, K_FLD::FldArrayI& cn2, 
+  std::vector<E_Int>& indices, K_FLD::FldArrayI& cn2, 
   E_Float& xo, E_Float& yo, E_Float& zo,
   E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p)
 {
@@ -121,7 +121,7 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
   E_Int ret;
   p[0] = x; p[1] = y; p[2] = z;
   
-  E_Float distc = 1e6;
+  E_Float distc = 1.e6;
   E_Float dist2; E_Float sigma0, sigma1;
   E_Float xp, yp, zp;
   E_Int ind1, ind2, ind3;
@@ -130,7 +130,6 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
   E_Int* cn2p2 = cn2.begin(2);
   E_Int nvert = cn2.getNfld();
   xo = x; yo = y; zo = z;
-  
   E_Int nbb = indices.size();
   E_Int et = 0;
   if (nvert == 2) // bar
@@ -156,7 +155,7 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
     for (E_Int noe = 0; noe < nbb; noe++)
     {
       et = indices[noe];
-      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1;  ind3 = cn2p3[et]-1;
+      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
       p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
@@ -245,6 +244,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
       boxes[et] = new BBox3DType(minB, maxB);
     }
   }
+    
   // Build the box tree.
   K_SEARCH::BbTree3D bbtree(boxes);
   
@@ -254,7 +254,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   #pragma omp parallel
   {
     E_Float xo, yo, zo; E_Float pt[3];
-    E_Float p0[3]; E_Float p1[3]; E_Float p2[2]; E_Float p[3];
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
     E_Int ret=0; E_Int indp=0; 
     E_Float rx, ry, rz, rad;
     E_Float minB[3]; E_Float maxB[3];
@@ -289,6 +289,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
       }
     }
   }
+
   // delete boxes
   E_Int size = boxes.size();
   for (E_Int v = 0; v < size; v++) delete boxes[v];    
