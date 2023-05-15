@@ -1975,22 +1975,43 @@ def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
 #==============================================================================
 # Double Wall treatment for chimera transfers (MPI friendly)
 # Only modify tc
+# familBC* can either be a string or a list of strings
 #==============================================================================
-def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False):
+def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False, surfaceCenters1=None):
     from . import DoubleWall
+
+    if isinstance(familyBC1, str): familyBC1 = [familyBC1]
+    if isinstance(familyBC2, str): familyBC2 = [familyBC2]
 
     listOfMismatch1 = []; listOfMismatch2 = []
     for b in Internal.getBases(t):
         for z in Internal.getZones(b):
-            wall1 = C.getFamilyBCs(z, familyBC1)
-            for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0]) 
-            wall2 = C.getFamilyBCs(z, familyBC2)
-            for w in wall2: listOfMismatch2.append(b[0]+'/'+z[0]+'/'+w[0]) 
-
-    # print(listOfMismatch1)
-    # print(listOfMismatch2)
+            for f1 in familyBC1:
+                wall1 = C.getFamilyBCs(z, f1)
+                for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0]) 
+            for f2 in familyBC2:
+                wall2 = C.getFamilyBCs(z, f2)
+                for w in wall2: listOfMismatch2.append(b[0]+'/'+z[0]+'/'+w[0]) 
     
     # project interpolated points (cellN=2) from listOfMismatch2 onto listOfMismatch1
-    DoubleWall._changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, ghostCells, check)
+    DoubleWall._changeWall2(t, tc, listOfMismatch1, listOfMismatch2, '_'.join(familyBC1), '_'.join(familyBC2), ghostCells, check, surfaceCenters1)
 
     return None
+
+#==============================================================================
+# Double Wall pre processing
+# return surfaceCenters1 (array) to speed up _doubleWall calls
+#==============================================================================
+def initDoubleWall(t, familyBC1, check=False):
+    from . import DoubleWall
+
+    if isinstance(familyBC1, str): familyBC1 = [familyBC1]
+
+    listOfMismatch1 = []
+    for b in Internal.getBases(t):
+        for z in Internal.getZones(b):
+            for f1 in familyBC1:
+                wall1 = C.getFamilyBCs(z, f1)
+                for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0]) 
+
+    return DoubleWall.getProjSurfaceForDoubleWall(t, listOfMismatch1, '_'.join(familyBC1), check)

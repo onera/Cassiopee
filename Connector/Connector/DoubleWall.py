@@ -317,7 +317,7 @@ def extractDoubleWallInfo__(t):
 # Prend les fenetres de mismatch2, les projetent sur les fenetres de
 # mismatch1 et modifie tc
 #=========================================================================
-def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, ghostCells=False, check=False):
+def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, ghostCells=False, check=False, surfaceCenters1=None):
 
     # STEP0 : gather lists
     listOfMismatch1 = Cmpi.allreduce(listOfMismatch1)
@@ -328,31 +328,32 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
         print("Info: changeWall: listOfMismatch2 ({})".format(listOfMismatch2))
     
     # STEP1 : gather proj surfaces of mismatch1 (surfaceCenters1)
-    walls1 = []
-    for w1 in listOfMismatch1:
-        name = w1.rsplit('/', 2)
-        z1 = Internal.getNodeFromPath(t, name[0])
-        if z1 is not None:
-            walls = C.extractBCOfType(z1, 'BCWall')
-            walls1 += walls
+    if surfaceCenters1 is None:
+        walls1 = []
+        for w1 in listOfMismatch1:
+            name = w1.rsplit('/', 1)
+            z1 = Internal.getNodeFromPath(t, name[0])
+            if z1 is not None:
+                walls = C.extractBCOfType(z1, 'BCWall')
+                walls1 += walls
 
-    #C.convertPyTree2File(walls1, 'walls%d.cgns'%Cmpi.rank)
-    walls1 = Cmpi.allgatherZones(walls1, coord=True, variables=['centers:cellN'])
-    #if Cmpi.rank == 0: C.convertPyTree2File(walls1, 'walls.cgns')
+        #C.convertPyTree2File(walls1, 'walls%d.cgns'%Cmpi.rank)
+        walls1 = Cmpi.allgatherZones(walls1, coord=True, variables=['centers:cellN'])
+        #if Cmpi.rank == 0: C.convertPyTree2File(walls1, 'walls.cgns')
 
-    if walls1 == []: return None
+        if walls1 == []: return None
 
-    walls1 = C.convertArray2Hexa(walls1)
-    walls1 = T.join(walls1)
+        walls1 = C.convertArray2Hexa(walls1)
+        walls1 = T.join(walls1)
 
-    walls1 = C.node2Center(walls1)
-    walls1 = C.convertArray2Tetra(walls1, split='withBarycenters')
-    #walls1 = T.reorderAll(walls1)
-    walls1 = T.reorder(walls1, (1,))
-    
-    D._getCurvatureHeight(walls1)
-    surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
-    if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_{}_to_{}.plt'.format(familyBC2, familyBC1))
+        walls1 = C.node2Center(walls1)
+        walls1 = C.convertArray2Tetra(walls1, split='withBarycenters')
+        #walls1 = T.reorderAll(walls1)
+        walls1 = T.reorder(walls1, (1,))
+        
+        D._getCurvatureHeight(walls1)
+        surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
+        if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_{}_to_{}.plt'.format(familyBC2, familyBC1))
     
     # STEP2 : project surfaces of mismatch2 (a2c (domain) and firstWallCenters2 (wall))
     for w2 in listOfMismatch2:
@@ -378,3 +379,35 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
                     if check: Converter.convertArrays2File(a2cp, 'surfaceCenters2p_{}_to_{}_rank{}.plt'.format(familyBC2, familyBC1, Cmpi.rank))
             
     return None
+
+#=========================================================================
+# Generate the projection surface for _changeWall2
+#=========================================================================
+def getProjSurfaceForDoubleWall(t, listOfMismatch1, familyBC1, check=False):
+
+    listOfMismatch1 = Cmpi.allreduce(listOfMismatch1)
+    
+    walls1 = []
+    for w1 in listOfMismatch1:
+        name = w1.rsplit('/', 1)
+        z1 = Internal.getNodeFromPath(t, name[0])
+        if z1 is not None:
+            walls = C.extractBCOfType(z1, 'BCWall')
+            walls1 += walls
+
+    walls1 = Cmpi.allgatherZones(walls1, coord=True, variables=['centers:cellN'])
+
+    if walls1 == []: return None
+
+    walls1 = C.convertArray2Hexa(walls1)
+    walls1 = T.join(walls1)
+
+    walls1 = C.node2Center(walls1)
+    walls1 = C.convertArray2Tetra(walls1, split='withBarycenters')
+    walls1 = T.reorder(walls1, (1,))
+    
+    D._getCurvatureHeight(walls1)
+    surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
+    if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_{}.plt'.format(familyBC1))
+                
+    return surfaceCenters1
