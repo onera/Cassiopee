@@ -705,9 +705,10 @@ def isFinite__(a, var=None):
     for c, v in enumerate(vars):
         if var is None or v == var:
             ptr = a[1][c]
-            b = numpy.isfinite(ptr)
-            res = numpy.all(b)
-            if not res:
+            #b = numpy.isfinite(ptr)
+            #res = numpy.all(b)
+            res = converter.isFinite(ptr)
+            if res > 0:
                 ret = False
                 print('Warning: NAN or INF value in field (%s)'%v)
     return ret

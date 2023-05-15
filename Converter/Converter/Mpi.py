@@ -143,6 +143,13 @@ def getMeanValue(t, varName):
     npts = allreduce(npts, op=SUM)
     return val/npts
 
+def isFinite(t, var=None):
+    """Return true if all fields in a have no NAN or INF values."""
+    val = C.isFinite(t, var)
+    val = allreduce(val, op=SUM)
+    if val == size: return True
+    else: return False
+
 # Ecrit une trace dans un fichier proc0.out
 # si cpu=True, ecrit le temps depuis le trace precedent
 # si mem=True, ecrit l'etat de la mem du noeud

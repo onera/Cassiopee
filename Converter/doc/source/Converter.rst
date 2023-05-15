@@ -2100,6 +2100,8 @@ Array / PyTree analysis
 
     Return True if a contains only finite values (no NAN, no INF).
 
+    Exists also as parallel distributed version (C.Mpi.isFinite).
+
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param var: variable name (optional)

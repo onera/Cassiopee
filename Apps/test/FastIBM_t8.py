@@ -79,13 +79,13 @@ t_3d, tb_3d = App.extrudeCartesian(t_2d, tb_2d, extrusion=extrusion, NPas=5, spa
 interpDataType = 1 # on suppose maillage non cartesion pour interp
 order          = 2
 
-t_3d, tc_3d = App.prepare1(tb_3d, None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order)
+t_3d, tc_3d = App.prepare1(tb_3d, None, None, t_in=t_3d, extrusion=extrusion, interpDataType=interpDataType, order=order, vmin=11)
 
 C.convertPyTree2File(t_3d, LOCAL+'/t.cgns')
 C.convertPyTree2File(tc_3d, LOCAL+'/tc.cgns')
 
 # Compute
-t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=300)
+t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=100)
 t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')

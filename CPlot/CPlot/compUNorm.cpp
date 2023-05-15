@@ -111,19 +111,22 @@ void UnstructZone::compNorm()
 
   // Detecte si les normales sont presentes aux noeuds dans les champs
   E_Float* pnx = NULL; E_Float* pny = NULL; E_Float* pnz = NULL; 
-  for (E_Int nv = 0; nv < nfield; nv++)
+  if (eltType == 2 || eltType == 3) // TRI or QUAD car normale en vertex
   {
-    if (strcmp(varnames[nv], "nx") == 0) pnx = f[nv];
-    if (strcmp(varnames[nv], "ny") == 0) pny = f[nv];
-    if (strcmp(varnames[nv], "nz") == 0) pnz = f[nv];
-  }
-  if (pnx != NULL && pny != NULL && pnz != NULL)
-  {
-    surf = new float[np * 3];
-    for (E_Int i = 0; i < np; i++) surf[i] = pnx[i];
-    for (E_Int i = 0; i < np; i++) surf[i+np] = pny[i];
-    for (E_Int i = 0; i < np; i++) surf[i+2*np] = pnz[i];
-    return;
+    for (E_Int nv = 0; nv < nfield; nv++)
+    {
+      if (strcmp(varnames[nv], "nx") == 0) pnx = f[nv];
+      if (strcmp(varnames[nv], "ny") == 0) pny = f[nv];
+      if (strcmp(varnames[nv], "nz") == 0) pnz = f[nv];
+    }
+    if (pnx != NULL && pny != NULL && pnz != NULL)
+    {
+      surf = new float[np * 3];
+      for (E_Int i = 0; i < np; i++) surf[i] = pnx[i];
+      for (E_Int i = 0; i < np; i++) surf[i+np] = pny[i];
+      for (E_Int i = 0; i < np; i++) surf[i+2*np] = pnz[i];
+      return;
+    }
   }
 
   // Calcule les normales

@@ -49,6 +49,7 @@ static PyMethodDef Pyconverter [] =
   {"normL2", K_CONVERTER::normL2, METH_VARARGS},
   {"normalize", K_CONVERTER::normalize, METH_VARARGS},
   {"magnitude", K_CONVERTER::magnitude, METH_VARARGS},
+  {"isFinite", K_CONVERTER::isFinite, METH_VARARGS},
   {"convertBAR2Struct", K_CONVERTER::convertBAR2Struct, METH_VARARGS},
   {"convertStruct2Tetra", K_CONVERTER::convertStruct2Tetra, METH_VARARGS},
   {"convertStruct2TetraBary", K_CONVERTER::convertStruct2TetraBary, METH_VARARGS},

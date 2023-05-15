@@ -2465,7 +2465,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
-             height_in=-1.0,isFilamentOnly=False,closedSolid=[],isWireModel=False, cleanCellN=True,check_snear=False):
+             height_in=-1.0, isFilamentOnly=False, closedSolid=[], isWireModel=False, cleanCellN=True, check_snear=False):
     prep_local=IBM()
     prep_local.input_var.t_in                   =t_in
     prep_local.input_var.to                     =to

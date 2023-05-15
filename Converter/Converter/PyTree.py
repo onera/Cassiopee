@@ -6154,9 +6154,10 @@ def isFinite(a, var=None):
         for n in nodes:
           if var is None or n[0] == var:
             array = n[1]
-            b = numpy.isfinite(array)
-            res = numpy.all(b)
-            if not res:
+            #b = numpy.isfinite(array)
+            #res = numpy.all(b)
+            res = Converter.converter.isFinite(array)
+            if res > 0:
               ret = False
               print('Warning: NAN or INF value in %s (%s)'%(n[0],z[0]))
   return ret
