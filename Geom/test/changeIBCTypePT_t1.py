@@ -3,7 +3,6 @@ import Converter.Internal as Internal
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Geom.IBM as D_IBM
-import Geom.PyTree as D
 import KCore.test as test
 import numpy 
 

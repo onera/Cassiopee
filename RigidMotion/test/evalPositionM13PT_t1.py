@@ -1,7 +1,6 @@
 # - evalPositionM1 pour motion 3 (pyTree) - 
 # Motion defined by a constant rotation and translation speed
 import RigidMotion.PyTree as R
-import Converter.PyTree as C
 import Geom.PyTree as D
 import Converter.Internal as Internal
 import KCore.test as test

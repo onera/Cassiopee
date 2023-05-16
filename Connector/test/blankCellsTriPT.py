@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
-import Geom.PyTree as D
 import Post.PyTree as P
 
 # Tet mask

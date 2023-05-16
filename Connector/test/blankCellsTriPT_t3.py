@@ -3,13 +3,9 @@ import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
 import Geom.PyTree as D
-import Post.PyTree as P
 import KCore.test as test
 import Transform.PyTree as T
-import numpy, math
-import time
 
-import os, sys
 # Test 1
 # Tet mask
 
@@ -42,6 +38,4 @@ C._initVars(t, 'centers:cellN', 1.)
 t = X.blankCellsTri(t, [[s1]], [], blankingType="cell_intersect", tol=1.e-12)
 #C.convertPyTree2File(t, 'out2.cgns')
 test.testT(t,2)
-
-
 

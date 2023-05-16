@@ -1,7 +1,6 @@
 # - evalPosition (pyTree) - 
 import RigidMotion.PyTree as R
 import KCore.test as test
-import Converter.PyTree as C
 import Generator.PyTree as G
 
 # Mime une pale suivant x, quart avant
@@ -53,7 +52,6 @@ pre_con_pnt = dictBlade["pre_con_pnt"]
 pre_con_vct = dictBlade["pre_con_vct"]
 pre_con_ang = dictBlade["pre_con_ang"]
 
-
 R._setPrescribedMotion2(a, 'Motion_Blade1', transl_speed=transl_speed,
                         psi0=psi0, psi0_b=psi0_b,
                         alp_pnt=alp_pnt, alp_vct=alp_vct, alp0=alp0,
@@ -67,8 +65,8 @@ R._setPrescribedMotion2(a, 'Motion_Blade1', transl_speed=transl_speed,
                         span_vct=span_vct,
                         pre_lag_pnt=pre_lag_pnt, pre_lag_vct=pre_lag_vct, pre_lag_ang=pre_lag_ang,
                         pre_con_pnt=pre_con_pnt, pre_con_vct=pre_con_vct, pre_con_ang=pre_con_ang)
-R._evalPosition(a,time=0.01)
-R._evalGridSpeed(a,time=0.01)
+R._evalPosition(a, time=0.01)
+R._evalGridSpeed(a, time=0.01)
 test.testT(a)
 
 

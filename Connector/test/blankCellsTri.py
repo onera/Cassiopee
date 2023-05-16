@@ -2,7 +2,6 @@
 import Converter as C
 import Connector as X
 import Generator as G
-import Geom as D
 import Post as P
 
 # Tri mask

@@ -6,9 +6,8 @@ import Post.PyTree as P
 import numpy as N
 import Dist2Walls.PyTree as DTW
 import Transform.PyTree as T
-import Initiator.PyTree as I
-import KCore.test as test
 import Converter.Internal as Internal
+import KCore.test as test
 
 a = G.cart((-1,-1,-1),(0.04,0.04,1),(51,51,3))
 s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (15,15,5)) 

@@ -1,5 +1,4 @@
 # - getVal (pyTree) -
-import Generator.PyTree as G
 import Converter.Internal as Internal
 
 # getVal returns always numpys 

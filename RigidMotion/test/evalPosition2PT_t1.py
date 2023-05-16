@@ -1,6 +1,5 @@
 # - evalPosition (PyTree) -
 import RigidMotion.PyTree as R
-import Converter.PyTree as C
 import KCore.test as test
 from math import cos, sin
 

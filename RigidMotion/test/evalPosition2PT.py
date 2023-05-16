@@ -3,7 +3,6 @@
 import RigidMotion.PyTree as R
 import Converter.PyTree as C
 import Generator.PyTree as G
-import Converter.Internal as Internal
 
 time0 = 0.01
 a = G.cart((0.2,-0.075,0), (0.01,0.01,0.1), (131,11,1))

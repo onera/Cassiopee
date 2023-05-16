@@ -2,9 +2,7 @@
 import Converter.PyTree as C
 import Distributor2.PyTree as Distributor2
 import Converter.Mpi as Cmpi
-import Transform.PyTree as T
 import Connector.PyTree as X
-import Converter.Internal as Internal
 import Generator.PyTree as G
 
 # Create test case

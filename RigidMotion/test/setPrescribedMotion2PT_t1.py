@@ -1,7 +1,6 @@
 # - setPrescribedMotion2 (pyTree) - 
 # Motion defined by a rotor motion
 import RigidMotion.PyTree as R
-import Converter.PyTree as C
 import Generator.PyTree as G
 import KCore.test as test
 

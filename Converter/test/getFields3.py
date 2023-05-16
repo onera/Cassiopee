@@ -2,7 +2,6 @@
 # api=3
 import Converter.PyTree as C
 import Generator.PyTree as G
-import KCore.test as test
 import Converter.Internal as Internal
 
 # STRUCT

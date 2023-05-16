@@ -1,6 +1,5 @@
 # - evalPosition (array)  -
 import RigidMotion as R
-import Converter as C
 import KCore.test as test
 from math import *
 

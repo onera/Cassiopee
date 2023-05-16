@@ -1,7 +1,6 @@
 # - evalPositionM1 pour motion 2 (pyTree) - 
 # Rotor motion
 import RigidMotion.PyTree as R
-import Converter.PyTree as C
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import KCore.test as test

@@ -1,7 +1,6 @@
 # - addGhostCells (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import Converter.Internal as Internal
 
 ni = 11; nj = 11; nk = 8
 a = G.cart((0,0,0), (1.,1.,1.), (ni,nj,nk)); a[0]='cart1'

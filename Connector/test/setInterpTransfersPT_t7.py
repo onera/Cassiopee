@@ -7,7 +7,6 @@ import Post.PyTree as P
 import numpy as N
 import Dist2Walls.PyTree as DTW
 import Transform.PyTree as T
-import Initiator.PyTree as I
 import Connector.OversetData as XOD
 import KCore.test as test
 

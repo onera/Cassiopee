@@ -1,5 +1,4 @@
 # - copyGrid2GridInit (pyTree) -
-import Converter.PyTree as C
 import Generator.PyTree as G
 import RigidMotion.PyTree as R
 import KCore.test as test

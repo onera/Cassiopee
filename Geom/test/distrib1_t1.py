@@ -1,7 +1,5 @@
 # - distrib1 (array) -
 import Geom as D
-import Generator as G
-import Converter as C
 import KCore.test as test
 
 a = D.line((0,0,0), (4,4,0), N=30)

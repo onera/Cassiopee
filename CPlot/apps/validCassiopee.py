@@ -304,14 +304,15 @@ def getUnitaryTests(module):
     files = os.listdir(path)
     tests = []
     for f in files:
-        m1 = expTest1.search(f)
         m2 = expTest2.search(f)
+        if m2 is None: continue
         m3 = expTest3.search(f)
+        if m3 is not None: continue
+        if f[0] == '#': continue
+        m1 = expTest1.search(f)
         m4 = expTest4.search(f)
-        if f[0] == '#': m2 = None # enleve les fichiers edite avec emacs
-        if m2 is not None and m3 is None:
-            if m1 is not None: tests.append(f) # test seq
-            elif isMpi and m4 is not None: tests.append(f) # test mpi
+        if m1 is not None: tests.append(f) # test seq
+        elif isMpi and m4 is not None: tests.append(f) # test mpi
     return tests
 
 #==============================================================================
@@ -458,8 +459,6 @@ def runSingleUnitaryTest(no, module, test):
 
     m1 = expTest1.search(test) # seq ou distribue
 
-    #if sys.version_info[0] == 3: pythonExec = 'python3'
-    #else: pythonExec = 'python'
     pythonExec = os.getenv('PYTHONEXE', 'python')
     nthreads = KCore.kcore.getOmpMaxThreads()
 
@@ -1269,7 +1268,7 @@ frame.rowconfigure(0, weight=1)
 frame.columnconfigure(1, weight=1)
 frame.grid(row=0, column=0, sticky=TK.EW)
 
-listbox = TK.Listbox(frame, selectmode=TK.EXTENDED, width=120, height=40,
+listbox = TK.Listbox(frame, selectmode=TK.EXTENDED, width=120, height=39,
                      background='White')
 listbox.grid(row=0, column=0, columnspan=10, sticky=TK.NSEW)
 

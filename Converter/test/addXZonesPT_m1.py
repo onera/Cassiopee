@@ -4,7 +4,6 @@ import Converter.Mpi as Cmpi
 import Distributor2.PyTree as Distributor2
 import Generator.PyTree as G
 import KCore.test as test
-import Converter.Internal as Internal
 
 LOCAL = test.getLocal()
 

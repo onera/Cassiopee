@@ -7,7 +7,6 @@ import Post.PyTree as P
 import numpy as N
 import Dist2Walls.PyTree as DTW
 import Transform.PyTree as T
-import Initiator.PyTree as I
 import KCore.test as test
 
 a = G.cart((-1,-1,-1),(0.04,0.04,1),(51,51,3))

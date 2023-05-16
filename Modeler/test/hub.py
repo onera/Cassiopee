@@ -1,6 +1,5 @@
 # - hub (array) -
 import Converter as C
-import Transform as T
 import Modeler.Models as Models
 
 h1 = Models.hub1(0.1, -2.e-3, 2.e-3, 5.e-3, 51)
