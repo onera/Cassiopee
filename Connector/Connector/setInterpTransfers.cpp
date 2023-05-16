@@ -1200,6 +1200,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
             imdjmd = imd*jmd;
 
+
             ////
             //  Interpolation parallele
             ////
@@ -1266,7 +1267,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
               }
               else if ( isWireModel == 0 and  ibcType==141) linterp = 0;
 
-            if ( nvars_loc==5 && linterp==1 )
+            if ( (nvars_loc==5 || (ibc==1 && solver_R==4)) && linterp==1 )
             {
 #           include "commonInterpTransfers_reorder_5eq.h"
             }
@@ -1319,6 +1320,11 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                                   ipt_tmp, size,
                                   ipt_param_realR[ NoR ],
                                   vectOfDnrFields, vectOfRcvFields);
+
+                  if (solver_R==4)
+                   {
+#                   include "includeTransfers_LBM_feq.h"
+                   }
                 }
                 else if(isWireModel==2)
                 {

@@ -997,7 +997,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 		      }
 
 
-		      if ( nvars_loc == 5 ) {
+		      if ( nvars_loc == 5 || (ibc==1 && solver_R==4) )  {
 #include "commonInterpTransfersD_reorder_5eq.h"
 		      } else if ( nvars_loc == 6 ) {
 #include "commonInterpTransfersD_reorder_6eq.h"
@@ -1047,7 +1047,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 						     xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
 						     densPtr, 
 						     ipt_tmp, size,ipt_param_realD[NoD], 
-						     vectOfDnrFields, vectOfRcvFields );                       
+						     vectOfDnrFields, vectOfRcvFields ); 
+
+                         if (solver_R==4)
+                         {
+#                          include "includeTransfersD_LBM_feq.h"
+                         }
+                      
                         }  // ibc
 
 		      //        } //chunk
