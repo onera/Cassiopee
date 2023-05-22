@@ -2,10 +2,9 @@
 import Converter as C
 import Connector as X
 import Generator as G
-import Geom as D
 import Post as P
-import KCore.test as test
 import Transform as T
+import KCore.test as test
 
 # Tet mask
 m = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
@@ -22,6 +21,4 @@ celln = X.blankCellsTri([a], [ca], m, blankingType=0, tol=1.e-12, cellnval=4, ov
 celln = C.addVars([[a], celln])
 #C.convertArrays2File(celln, 'out0.plt')
 test.testA(celln,1)
-
-
 

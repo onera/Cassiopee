@@ -1,10 +1,8 @@
+# - linkNodes2CAD (pyTree) -
 import OCC
 import OCC.PyTree
 import OCC.occ as occ
-import Converter
 import Converter.PyTree as C
-import Generator
-import Generator.PyTree as GP
 import Converter.Internal as Internal
 import Intersector.PyTree as XOR
 import numpy as np

@@ -4,8 +4,6 @@ import Converter.Internal as Internal
 import Generator.PyTree   as G
 import Post.PyTree        as P
 import KCore.test         as test
-import Intersector.PyTree as XOR
-
 
 def F(x, y, z):
     if (x + 2*y + z > 20.): return True

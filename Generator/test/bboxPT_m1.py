@@ -1,7 +1,6 @@
 # - bbox (pyTree) -
 import Generator.PyTree as G
 import Generator.Mpi as Gmpi
-import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import KCore.test as test
 

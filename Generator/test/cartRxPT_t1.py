@@ -1,6 +1,5 @@
 # - cartRx (pyTree) -
 import Generator.PyTree as G
-import Converter.PyTree as C
 import KCore.test as test
 
 # cartRx avec depth=1 et cellN

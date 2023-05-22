@@ -1,9 +1,9 @@
 # - optimizeOverlap (pyTree) - 
 import Converter.PyTree as C
 import Connector.PyTree as X
-import Transform.PyTree as T
 import Generator.PyTree as G
 import KCore.test as test
+
 a1 = G.cylinder((0.,0.,0.), 0.5, 1., 0., 180., 1.,(25,25,10)); a1[0] = 'mesh1'
 a2 = G.cylinder((0.,0.,0.), 0.5, 1., 45, 90., 1.,(50,50,10)); a2[0] = 'mesh2'
 a1 = C.addBC2Zone(a1,'wall1','BCWall','imin')

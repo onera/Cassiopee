@@ -1,10 +1,11 @@
+# - blankClosestTargetCells (pyTree) -
 import Converter.PyTree as C
 import Dist2Walls.PyTree as DTW
 import Generator.PyTree as G
 import Geom.PyTree as D
 import Connector.PyTree as X
-import Transform.PyTree as T
 import Connector.ToolboxIBM as TIBM
+
 N = 11; N2 = 2*N-1
 h = 1./(N-1)
 a = G.cart((-1.,-1.,-1.),(h,h,h), (N2,N2,2))
