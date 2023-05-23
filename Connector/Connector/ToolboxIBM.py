@@ -3,7 +3,7 @@
 # This module is deprecated, please use Connecor.IBM instead
 
 from Connector.IBM import _blankClosestTargetCells, _removeBlankedGrids, blankByIBCBodies, _addBCOverlaps, _addExternalBCs, \
-    _modifPhysicalBCs__, getIBMFront, getIBMFrontType1, getIBMFrontType0, getIBMFrontType0_old, _pushBackImageFront2, \
+    _modifPhysicalBCs__, getIBMFront, getIBMFrontType1__, getIBMFrontType0__, getIBMFrontType0Old__, _pushBackImageFront2, \
     _smoothImageFront, gatherFront, doInterp, doInterp2, doInterp3, _extractIBMInfo_param, \
     extractIBMInfo, getAllIBMPoints, prepareIBMData, prepareIBMData2, createWallAdapt, \
     createIBMWZones, _computeKcurvParameter, _signDistance
