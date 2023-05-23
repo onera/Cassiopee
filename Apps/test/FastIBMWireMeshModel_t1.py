@@ -13,12 +13,12 @@ LOCAL = test.getLocal()
 
 ##Vertical Line
 t = Internal.newCGNSTree()
-Internal.newCGNSBase('Base1', 3, 3, parent=t);
+Internal.newCGNSBase('IBCFil_Base1', 3, 3, parent=t);
 C._addState(t, 'EquationDimension', 2)
 C._addState(t, 'GoverningEquations', 'NSTurbulent')
 C._addState(t, 'TurbulenceModel', 'OneEquation_SpalartAllmaras')
 
-base=Internal.getNodeByName(t,'Base1')
+base=Internal.getNodeByName(t,'IBCFil_Base1')
 Internal.addChild(base, D.line((-0.09128554453599108,-0.19576248199991644,0), (0.09128554453599105,0.19576248199991644,0),N=800))
 
 uinf            = 69.22970250694424*numpy.cos(4* numpy.pi/180)

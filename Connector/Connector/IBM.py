@@ -91,40 +91,34 @@ def _removeBlankedGrids(t, loc='centers'):
 # IN: tb: immersed bodies
 # IN: loc: "centers" or "nodes"
 # IN: dim: 2 or 3
-# IN: closedSolid: to be modified see [AJ]
 #==============================================================================
-def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN', closedSolid=[]):
+def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
     """Blank by immersed bodies."""
     DIM = dim
     blankalgo='tri'
     #blankalgo='xray'
     if DIM == 2: blankalgo = 'xray'
 
-    if not closedSolid:
-        closedSolid=[]
-        for b in Internal.getBases(tb):
-            closedSolid.append(b[0])
     bodies = []
     for b in Internal.getBases(tb):
-        if b[0] in closedSolid:
-            wallsl = Internal.getNodesFromType1(b, 'Zone_t')
-            #soldef = Internal.getNodeFromName(wallsl,'.Solver#define')
-            bodies.append(wallsl)
-            # if wallsl != []:
-            #     try:
-            #         wallsl = C.convertArray2Tetra(wallsl)
-            #         wallsl = T.join(wallsl)
-            #         wallsl = G.close(wallsl)
-            #         Internal.addChild(wallsl,soldef)
-            #         bodies.append([wallsl])
-            #         # if DIM == 3:
-            #         #     try: P.exteriorFaces(wallsl)
-            #         #     except: pass
-            #         #     bodies.append([wallsl])
-            #         # else: bodies.append([wallsl])
-            #     except:
-            #         wallsl = C.convertArray2Tetra(wallsl)
-            #         bodies.append(wallsl)
+        wallsl = Internal.getNodesFromType1(b, 'Zone_t')
+        #soldef = Internal.getNodeFromName(wallsl,'.Solver#define')
+        bodies.append(wallsl)
+        # if wallsl != []:
+        #     try:
+        #         wallsl = C.convertArray2Tetra(wallsl)
+        #         wallsl = T.join(wallsl)
+        #         wallsl = G.close(wallsl)
+        #         Internal.addChild(wallsl,soldef)
+        #         bodies.append([wallsl])
+        #         # if DIM == 3:
+        #         #     try: P.exteriorFaces(wallsl)
+        #         #     except: pass
+        #         #     bodies.append([wallsl])
+        #         # else: bodies.append([wallsl])
+        #     except:
+        #         wallsl = C.convertArray2Tetra(wallsl)
+        #         bodies.append(wallsl)
 
     nbodies = len(bodies)
     if nbodies == 0:

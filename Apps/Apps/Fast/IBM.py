@@ -894,7 +894,6 @@ class IBM_Input:
         self.check                  = False
         self.check_snear            = False
         self.cleanCellN             = True
-        self.closedSolid            = []
         self.correctionMultiCorpsF42= False
         self.dfar                   = 10.
         self.dfarDir                = 0
@@ -912,7 +911,6 @@ class IBM_Input:
         self.initWithBBox           = -1.
         self.interpDataType         = 0
         self.isCartesianExtrude     = False
-        self.isFilamentOnly         = False
         self.isWireModel            = False                      
         self.order                  = 2
         self.recomputeDist          = False
@@ -953,7 +951,8 @@ class IBM(Common):
         self.res                   = None   
         self.res2                  = None  
         self.tbFilament            = None
-        self.tbFilamentList        = None
+        self.filamentBases         = None
+        self.isFilamentOnly        = None
         self.tbbc                  = None
         self.tbsave                = None
         self.zonesRIBC             = None
@@ -963,32 +962,31 @@ class IBM(Common):
     # Selection/determination of tb for closed solid & filament
     #================================================================================    
     def _determineClosedSolidFilament__(self,tb):
-        self.isOrthoProjectFirst = self.input_var.isFilamentOnly
         ## General case where only a closeSolid is in tb
         ## or tb only has a filament
-        if not self.input_var.closedSolid and not self.input_var.isFilamentOnly:
-            closedSolid=[]
-            for b in Internal.getBases(tb):
-                closedSolid.append(b[0])
-            self.input_var.closedSolid = closedSolid
-        
+
+        self.filamentBases= []
+        len_tb       = len(Internal.getBases(tb))
+        for b in Internal.getBases(tb):
+            if "IBCFil" in b[0]:self.filamentBases.append(b[0])
+
+        self.isFilamentOnly=False
+        if len(self.filamentBases)==len_tb:           
+            self.isFilamentOnly=True
+        self.isOrthoProjectFirst = self.isFilamentOnly
         ## if tb has both a closed solid and filaments
-        tbFilamentList= []
-        tbFilament    = None
-        if not self.input_var.isFilamentOnly:
-            tbFilament = Internal.copyTree(tb)
-            for b in Internal.getBases(tb):
-                if b[0] not in self.input_var.closedSolid:
-                    tbFilamentList.append(b)
-            if tbFilamentList:
-                for b in tbFilamentList:
-                    Internal._rmNode(tb,Internal.getNodeByName(tb,b))
-                for b in self.input_var.closedSolid:
-                    Internal._rmNode(tbFilament,Internal.getNodeByName(tbFilament,b))
-                self.isOrthoProjectFirst = True
-                
-        self.tbFilament    = tbFilament
-        self.tbFilamentList= tbFilamentList 
+        
+        tbFilament = Internal.getBases(tb)
+        if not self.isFilamentOnly:
+            tbFilament    = [];
+            for b in self.filamentBases:
+                node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
+                tbFilament.append(node_local)
+                Internal._rmNode(tb,node_local)     
+                self.isOrthoProjectFirst = True        
+        
+        
+        self.tbFilament = C.newPyTree(tbFilament);        
         return None
     
 
@@ -1109,7 +1107,7 @@ class IBM(Common):
                 self.tbsave   = tb2
                 dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers')
                 
-                if self.tbFilamentList:
+                if self.filamentBases:
                     C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
                     C._initVars(t,'{centers:TurbulentDistance}=1e06')
                     
@@ -1125,7 +1123,7 @@ class IBM(Common):
             else:
                 dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=self.dimPb, loc='centers')
                 
-                if self.tbFilamentList:
+                if self.filamentBases:
                     C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
                     C._initVars(t,'{centers:TurbulentDistance}=1e06')
     
@@ -1220,8 +1218,8 @@ class IBM(Common):
         snear_min = Cmpi.allreduce(snear_min, op=Cmpi.MIN)
         
         if self.input_var.extrusion is None:
-           if not self.input_var.isFilamentOnly:
-               t = X_IBM.blankByIBCBodies(t, tb, 'centers', self.dimPb,closedSolid=self.input_var.closedSolid)
+           if not self.isFilamentOnly:
+               t = X_IBM.blankByIBCBodies(t, tb, 'centers', self.dimPb)
            if self.dimPb == 2 and self.input_var.cleanCellN == False:
                C._initVars(t, '{centers:cellNIBC_blank}={centers:cellN}')
         else:
@@ -1229,21 +1227,21 @@ class IBM(Common):
 
         C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
             
-        if not self.input_var.isFilamentOnly: X_IBM._signDistance(t)
+        if not self.isFilamentOnly: X_IBM._signDistance(t)
     
         if self.input_var.extrusion is not None:
            C._initVars(t,'{centers:cellN}={centers:cellNIBC_blank}')
         else:
            C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
         
-        if self.tbFilamentList or self.input_var.isFilamentOnly:
-            if self.input_var.isFilamentOnly:
+        if self.filamentBases or self.isFilamentOnly:
+            if self.isFilamentOnly:
                 C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
                 maxy=C.getMaxValue(tb, ['CoordinateY']);
                 miny=C.getMinValue(tb, ['CoordinateY']);
-            if self.tbFilamentList:
-                maxy=C.getMaxValue(self.tbFilamentList, ['CoordinateY']);
-                miny=C.getMinValue(self.tbFilamentList, ['CoordinateY']);
+            if self.filamentBases:
+                maxy=C.getMaxValue(self.tbFilament, ['CoordinateY']);
+                miny=C.getMinValue(self.tbFilament, ['CoordinateY']);
             for z in Internal.getZones(t):
                 if C.getMaxValue(z, 'centers:TurbulentDistanceFilament')> 1e-05:
                     sol  = Internal.getNodeByName(z,"FlowSolution#Centers")
@@ -1259,7 +1257,7 @@ class IBM(Common):
                                 if dist[i,j]<numpy.sqrt(8)*h and valy<maxy and valy>miny:
                                     cellN[i,j]=2
             C._rmVars(t,['centers:TurbulentDistanceFilament'])
-            if self.tbFilamentList: C._rmVars(t,['centers:TurbulentDistanceSolid'])
+            if self.filamentBases: C._rmVars(t,['centers:TurbulentDistanceSolid'])
 
         
         # determination des pts IBC
@@ -1369,7 +1367,7 @@ class IBM(Common):
            C._initVars(t, '{centers:cellN}={centers:cellNIBC_hole}')
 
         if self.input_var.extrusion is None:
-           if not self.input_var.isFilamentOnly:X_IBM._removeBlankedGrids(t, loc='centers')
+           if not self.isFilamentOnly:X_IBM._removeBlankedGrids(t, loc='centers')
         test.printMem(">>> Blanking [end]")
                 
         return t
@@ -1910,12 +1908,11 @@ class IBM(Common):
         ## ================================================
         ## ============== Prelim. Filament ================
         ## ================================================
-        ##IN  - closedSolid          :list of names of closed geometries
-        ##IN  - isFilamentOnly       :boolean if there is only a filament in tb
+        ##OUT - filamentBases        :list of names of open geometries
+        ##OUT - isFilamentOnly       :boolean if there is only a filament in tb
         ##OUT - isOrthoProjectFirst  :bolean to do orthonormal projection first
         ##OUT - tb(in place)         :tb of solid geometries only
         ##OUT - tbFilament           :tb of filament geometries only
-        ##OUT - tbFilamentList       :list of names of bases in tbFilament
         self._determineClosedSolidFilament__(tb)            
         
         
@@ -1984,6 +1981,7 @@ class IBM(Common):
         ##IN  - t                     :t tree (cartesian mesh or input mesh)
         ##IN  - tb                    :closed geometry tree (for filaments use tbbox)
         ##IN  - tbFilament            :filament geometry
+        ##IN  - filamentBases         :list of filament bases
         ##OUT - cptBody               :Number of zones/bodies for F42 and multibody
         ##OUT - tbsave                :geometry (closed & filament) tree shifted in the z direction for 2D cases
         self._distance2wallCalc__(t,tb)
@@ -2465,7 +2463,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
-             height_in=-1.0, isFilamentOnly=False, closedSolid=[], isWireModel=False, cleanCellN=True, check_snear=False):
+             height_in=-1.0,isFilamentOnly=False,isWireModel=False, cleanCellN=True, check_snear=False):
     prep_local=IBM()
     prep_local.input_var.t_in                   =t_in
     prep_local.input_var.to                     =to
@@ -2502,8 +2500,6 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     prep_local.input_var.redistribute           =redistribute
     prep_local.input_var.height_in              =height_in
     prep_local.input_var.IBCType                =IBCType
-    prep_local.input_var.isFilamentOnly         =isFilamentOnly
-    prep_local.input_var.closedSolid            =closedSolid
     prep_local.input_var.isWireModel            =isWireModel
     prep_local.input_var.cleanCellN             =cleanCellN
 
