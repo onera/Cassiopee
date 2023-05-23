@@ -27,9 +27,6 @@ List of functions
    Connector.IBM._addExternalBCs
    Connector.IBM._modifPhysicalBCs__
    Connector.IBM.getIBMFront
-   Connector.IBM.getIBMFrontType1
-   Connector.IBM.getIBMFrontType0
-   Connector.IBM.getIBMFrontType0_old
    Connector.IBM._pushBackImageFront2
    Connector.IBM._smoothImageFront
    Connector.IBM._smoothImageFrontBackward

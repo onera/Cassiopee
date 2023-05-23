@@ -277,11 +277,11 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
 def getIBMFront(tc, frontvar, dim, frontType, isFront2=False, SHIFTB=0.):
     """Returns the front used to define the location of the IBM image points."""
 
-    # if frontType == 1 or frontType == 2 : front = getIBMFrontType1(tc,frontvar,dim)
+    # if frontType == 1 or frontType == 2 : front = getIBMFrontType1__(tc,frontvar,dim)
     if frontType == 0:
-        front = getIBMFrontType0(tc,frontvar,dim,isFront2,frontType,SHIFTB)
+        front = getIBMFrontType0__(tc,frontvar,dim,isFront2,frontType,SHIFTB)
     else:
-        front = getIBMFrontType1(tc, frontvar, dim)
+        front = getIBMFrontType1__(tc, frontvar, dim)
     front = C.deleteEmptyZones(front)
     Internal._rmNodesFromName(front, "ID_*")
     if frontType == 0: return front
@@ -325,8 +325,8 @@ def getIBMFront(tc, frontvar, dim, frontType, isFront2=False, SHIFTB=0.):
     return front
 
 
-# front of first computed cells - with overlapping [CB/AJ make internal]
-def getIBMFrontType1(tc, frontvar, dim):
+# front of first computed cells - with overlapping
+def getIBMFrontType1__(tc, frontvar, dim):
     if dim == 2:
         z0 = Internal.getNodeFromType2(tc, 'Zone_t')
         if z0 is not None:
@@ -354,8 +354,8 @@ def getIBMFrontType1(tc, frontvar, dim):
     return front
 
 
-# isosurface of max dist of the first interpolable cells [CB/AJ make internal]
-def getIBMFrontType0(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
+# isosurface of max dist of the first interpolable cells
+def getIBMFrontType0__(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
     import Converter.Mpi as Cmpi
     
     if dim == 2:
@@ -429,8 +429,8 @@ def getIBMFrontType0(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
     return front
 
 
-# isosurface of max dist of the first interpolable cells [CB/AJ make internal]
-def getIBMFrontType0_old(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
+# isosurface of max dist of the first interpolable cells
+def getIBMFrontType0Old__(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.):
     import Converter.Mpi as Cmpi
     
     if dim == 2:
@@ -682,8 +682,21 @@ def gatherFront(front):
 # setInterpDataIBM, modifie tc
 # IN: tbb: bboundingbox tree
 # IN: tb: immersed bodies
-# [AJ] to complete
-def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1., isLBM=False):
+# IN: typeI: type of Connectivity to do (ID=Chimere; IBCD=IBM)
+# IN: dim: dimension
+# IN: dictofADT: dictionary of alternative directivity tree (?)
+# IN: front: front of upon which IBM image points are placed
+# IN: frontType: type of front= 0,1,42
+# IN: depth : depth of overlaps & some IBM points
+# IN: IBCType: type of IBM method: -1 points inside solid; 1 point in fluid
+# IN: interDataType: type of interpolation beteween zones: 0=Cartesian; 1=Chimere
+# IN: Reynolds: Reynolds Number. Need as this will be used to get the modelisation height for frontType 42
+# IN: yplus: target y+. Need as this will be used to get the modelisation height for frontType 42
+# IN: Lref: reference length: Need as this will be used to get the modelisation height for frontType 42
+# IN: isLBM: is the case LBM?
+# IN: isIbmAle: are the IBMs moving? 
+# Note [AJ]: isIbmAle : set to false - will be used in subsequent commits for moving IBMs
+def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1., isLBM=False,isIbmAle=False):
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
     if typeI == 'ID':
         # toutes les zones sont interpolables en Chimere
@@ -770,7 +783,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr], \
                                              nature=1, penalty=1, loc='centers', storage='inverse',
                                              interpDataType=interpDataType, hook=hook0, dim=dim, \
-                                             ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                             ReferenceState=ReferenceState, bcType=ibcTypeL,isIbmAle=isIbmAle)
                     nozr += 1
                     for nod in range(len(dnrZones)):
                         nobd = nobOfDnrBases[nod]
@@ -1359,8 +1372,10 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## IBM INFO
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-# Modify XPC... to be completed [AJ]
+# For FastLBM with IBMs. As FastLBM/IBC will evolve making this function decrepit
+# no additional information will be currently added [May 12, 2023].
+# Get total number of IBM points & puts in param_int. Need to FastLBM/IBC that
+# applies the IBMs on the distribution functions.
 def _extractIBMInfo_param(t, tc):
     """Extract IBM informations from tc."""
     XPC   ={}
@@ -1516,8 +1531,24 @@ def extractIBMInfo(tc, IBCNames="IBCD_*"):
 
 
 # =============================================================================
-# Calcul des points IBM a corriger, paroi et a interpoler
-# [AJ] to complete
+# Compute the IBM points: wall, image, & target
+# IN: loc: "centers" or "nodes"
+# IN: hi:NOT SURE BUT USED WHEN tb IS NOT PROVIDED.
+# IN: he:NOT SURE BUT USED WHEN tb IS NOT PROVIDED.
+# IN: tb: immersed bodies
+# IN: tFront: IBM front for first set of image points (always needed)
+# IN: tFront2: IBM front for second set of image points
+# IN: frontType: type of front= 0,1,42
+# IN: cellNName: name of cellN used to get IBM point.
+# IN: IBCType: type of IBM method: -1 points inside solid; 1 point in fluid
+# IN: depth : depth of overlaps & some IBM points
+# IN: Reynolds: Reynolds Number. Need as this will be used to get the modelisation height for frontType 42
+# IN: yplus: target y+. Need as this will be used to get the modelisation height for frontType 42
+# IN: Lref: reference length: Need as this will be used to get the modelisation height for frontType 42
+# IN: hmod: [AJ] not sure. It is not used. see [BC].
+# IN: isLBM: is it an LBM run?
+# IN: isWireModel: is the Wire Mesh Model used?
+# IN: isOrthoFirst: Apply orthogonal projection first and level set normal decscent second. Needed for IBC filaments only.
 # =============================================================================
 def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=None, frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1., hmod=0.1, isLBM=False,isWireModel=False, isOrthoFirst=False):
     """Returns the dictionary of IBM points."""
@@ -1713,8 +1744,9 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
 # interpDataType = 1 : interpolation par preconditionnement par ADT
 # interpDataType = 0 : interpolation optimisees sur grilles cartesiennes
 # frontType 0, 1, 2
+# Note [AJ]: isIbmAle : set to false - will be used in subsequent commits for moving IBMs
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., Lref=1., wallAdapt=None, blankingF42=False, isLBM=False,LBMQ=False,isPrintDebug=False):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., Lref=1., wallAdapt=None, blankingF42=False, isLBM=False,LBMQ=False,isPrintDebug=False,isIbmAle=False):
     tb =  Internal.copyRef(tbody)
 
     # tb: fournit model et dimension
@@ -1906,7 +1938,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     else: dictOfADT = None
     print('Interpolations Chimere.')
     tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb,
-                  interpDataType=interpDataType, dictOfADT=dictOfADT)
+                  interpDataType=interpDataType, dictOfADT=dictOfADT,isIbmAle=isIbmAle)
     if dictOfADT is not None:
         for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
@@ -1958,11 +1990,12 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
         C.convertPyTree2File(front, 'IB_front.cgns')
     # C.convertPyTree2File(front, 'front.cgns')
     print('Interpolations IBM')
-    tc = doInterp(t, tc, tbb, tb=tb,typeI='IBCD', dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isLBM=isLBM)
+    tc = doInterp(t, tc, tbb, tb=tb,typeI='IBCD', dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isLBM=isLBM,isIbmAle=isIbmAle)
 
     # cleaning...
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
-    Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
+    if not isIbmAle:
+        Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
     C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
     varsRM = ['centers:gradxTurbulentDistance','centers:gradyTurbulentDistance','centers:gradzTurbulentDistance','centers:cellNFront','centers:cellNIBCDnr']
     varsRM += ['centers:cellNChim','centers:cellNIBC']
