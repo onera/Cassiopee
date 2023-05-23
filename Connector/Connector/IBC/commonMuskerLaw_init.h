@@ -1,7 +1,11 @@
 #     include "IBC/commonLaws1.h" 
 // loi de Musker 
 
-twall  = text + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext);               // Temperature a la paroi
+
+// Crocco-Busemann relationship
+//Ta = Tb+0.5*pow(Pr,one_third)/(cv*gamma)*(ub^2-ua^2)
+//In this case a=wall & b=ext(image)
+twall  = text + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext);               // Temperature a la paroi (assumes wall has 0 velocity)
 rowall = pext/twall*cvgaminv;                                               // Densite a la paroi
 // muwall = coefSuth * sqrt(K_FUNC::E_abs(twall)*Tsinv) / (1.+Cs/twall);    // Viscosite a la paroi en utilisant temperature absolue pour reference
 muwall = muext*sqrt(twall/text)*(1+Cs/text)/(1+Cs/twall);                   // Viscosite a la paroi en utilisant temperature exterieure (PI) pour reference (Benjamin's formula)

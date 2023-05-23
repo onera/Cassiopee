@@ -390,15 +390,15 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
   ipt_ndimdxD  = new E_Int[nidomD * 8];  // on stocke ndimdx, imd, jmd, en centre et vertexe, meshtype et cnDfld
   ipt_cnd      = new E_Int*[nidomD];
 
-  ipt_roD      = new E_Float*[nidomD * 9];
-  ipt_roD_vert   = ipt_roD      + nidomD;
-  ipt_roD_Pnt2   = ipt_roD_vert + nidomD;
-  ipt_qD         = ipt_roD_Pnt2 + nidomD;
-  ipt_qD_vert    = ipt_qD       + nidomD;
-  ipt_SD         = ipt_qD_vert  + nidomD;
-  ipt_SD_vert    = ipt_SD       + nidomD;
-  ipt_psiGD      = ipt_SD_vert  + nidomD;
-  ipt_psiGD_vert = ipt_psiGD    + nidomD;
+  ipt_roD      = new E_Float*[nidomD * 9];//1
+  ipt_roD_vert   = ipt_roD      + nidomD; //2
+  ipt_roD_Pnt2   = ipt_roD_vert + nidomD; //3
+  ipt_qD         = ipt_roD_Pnt2 + nidomD; //4
+  ipt_qD_vert    = ipt_qD       + nidomD; //5
+  ipt_SD         = ipt_qD_vert  + nidomD; //6
+  ipt_SD_vert    = ipt_SD       + nidomD; //7
+  ipt_psiGD      = ipt_SD_vert  + nidomD; //8
+  ipt_psiGD_vert = ipt_psiGD    + nidomD; //9
   /*----------------------------------*/
   /* Get  param_int param_real zone donneuse */
   /*----------------------------------*/
