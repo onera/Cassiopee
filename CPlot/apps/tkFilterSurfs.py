@@ -34,7 +34,7 @@ def remap():
     if len(density) != 1:
         CTK.TXT.insert('START', 'Density is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    density = density[0]
+    pointsPerUnitLength = density[0]
     
     # offset
     offset = CTK.varsFromWidget(VARS[1].get(), type=1)
@@ -47,7 +47,7 @@ def remap():
 
     if VARS[2].get() == '0': algo = 0
     else: algo = 1
-    iso = Geom.PyTree.offsetSurface(a, offset, density, algo)
+    iso = Geom.PyTree.offsetSurface(a, offset, pointsPerUnitLength, algo)
 
     if iso != []:
         nob = CTK.Nb[nzs[0]]+1

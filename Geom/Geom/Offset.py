@@ -1,4 +1,4 @@
-"""Filter or offset a surface."""
+"""Offset a surface."""
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
@@ -11,7 +11,7 @@ import Dist2Walls.PyTree as DTW
 # IN: a: maillage du corps
 # IN: loc='centers', 'nodes': localisation du champ de distance
 #==============================================================================
-def _compDistance(b, a, loc):
+def _compDistance__(b, a, loc):
     try: 
         DTW._distance2Walls(b, a, type='ortho', loc=loc, signed=1)
         fail = False
@@ -29,13 +29,14 @@ def _compDistance(b, a, loc):
     return None
 
 #==============================================================================
-def withCart(a, offset, density, dim=3):
+def withCart__(a, offset, pointsPerUnitLength, dim=3):
     # Grille cartesienne
     BB = G.bbox(a)
     xmin = BB[0]; ymin = BB[1]; zmin = BB[2]
     xmax = BB[3]; ymax = BB[4]; zmax = BB[5]
-    ni = density*(xmax-xmin); nj = density*(ymax-ymin)
-    nk = density*(zmax-zmin)
+    ni = pointsPerUnitLength*(xmax-xmin);
+    nj = pointsPerUnitLength*(ymax-ymin)
+    nk = pointsPerUnitLength*(zmax-zmin)
 
     if ni < 2: ni = 2
     if nj < 2: nj = 2
@@ -58,17 +59,16 @@ def withCart(a, offset, density, dim=3):
         b = G.cart( (xc-Lx, yc-Ly, zc-Lz), (h, h, h), (ni,nj,nk) )
 
     # Calcul la distance a la paroi
-    _compDistance(b, a, loc='nodes')
-
+    _compDistance__(b, a, loc='nodes')
     # Extraction isoSurf
     iso = P.isoSurfMC([b], 'TurbulentDistance', value=offset)
     C._rmVars(iso,'TurbulentDistance')
     return iso
 
 #==============================================================================
-def withOctree(a, offset, density, dim=3):
+def withOctree__(a, offset, pointsPerUnitLength, dim=3):
     # step
-    tol = 1./density
+    tol = 1./pointsPerUnitLength
     
     # octree
     snears = []; sec = 0
@@ -81,7 +81,7 @@ def withOctree(a, offset, density, dim=3):
         sec = max(sec, snear)
         snears.append(snear)
     o = G.octree(a, snears, dfar=offset+sec)
-    _compDistance(o, a, loc='nodes')
+    _compDistance__(o, a, loc='nodes')
 
     # iteration d'adaptation
     nit = 0
@@ -104,7 +104,7 @@ def withOctree(a, offset, density, dim=3):
         if dim1 == dim: break
 
         #if (nit%2 == 0): o1 = P.extractMesh([o], o1)
-        _compDistance(o1, a, loc='nodes')
+        _compDistance__(o1, a, loc='nodes')
         o = o1
         nit += 1
     
@@ -116,8 +116,10 @@ def withOctree(a, offset, density, dim=3):
     return iso
 
 
-def offsetSurface(a, offset=1., density=1., algo=0, dim=3):
-    """Offset a surface of given distance."""
-    if algo==0: iso = withCart(Internal.getZones(a), offset, density, dim)
-    else: iso = withOctree(Internal.getZones(a), offset, density, dim)
+
+def offsetSurface(a, offset=1., pointsPerUnitLength=1., algo=0, dim=3):
+    """Offset a surface a given distance.
+    Usage: offsetSurface(t,offset, pointsPerUnitLength, algo, dim)"""
+    if algo==0: iso = withCart__(Internal.getZones(a), offset, pointsPerUnitLength, dim)
+    else: iso = withOctree__(Internal.getZones(a), offset, pointsPerUnitLength, dim)
     return iso
