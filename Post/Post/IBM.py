@@ -359,7 +359,7 @@ def _extractShearStress(ts):
     C._initVars(ts, '{centers:ShearStressXY}={centers:tau_wall}*({centers:tx}*{centers:sy}+{centers:ty}*{centers:sx})')
     C._initVars(ts, '{centers:ShearStressXZ}={centers:tau_wall}*({centers:tx}*{centers:sz}+{centers:tz}*{centers:sx})')
     C._initVars(ts, '{centers:ShearStressYZ}={centers:tau_wall}*({centers:ty}*{centers:sz}+{centers:tz}*{centers:sy})')
-    C._rmVars(ts,["centers:tau_wall", "centers:utau",'centers:tx','centers:ty','centers:tz'])
+    C._rmVars(ts,['centers:utau','centers:tau_wall','centers:tx','centers:ty','centers:tz'])
     return None
 
 #-------------------------------------------------
@@ -447,10 +447,10 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
        
         _computeExtraVariables(ts, Pref, Qref, variables=['Cp','Cf','frictionX','frictionY','frictionZ','frictionMagnitude','ShearStress'])
         
-        #===========================
-        # Compute pressure forces
-        #===========================    
-    res = PE.integCp(ts)[0]
+    #===================================
+    # Compute pressure & friction forces
+    #===================================
+    res  = PE.integCp(ts)[0]
     res2 = PE.integTaun(ts)
     clp=0
     cdp=0

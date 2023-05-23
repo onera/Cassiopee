@@ -2256,7 +2256,7 @@ def checkOccupancyCellN(lowerLimit, t):
     list_occupancy     =[]
     list_zones_below   =[]
     
-    Internal._rmGhostCells(t,t,2,adaptBCs=1) #want "real" cells
+    t=Internal.rmGhostCells(t,t,2,adaptBCs=1) #want "real" cells
 
     for z in Internal.getZones(t):
         cells_zone = 0
@@ -2296,7 +2296,7 @@ def checkOccupancyCellN(lowerLimit, t):
         string2write='Mean Occupancy='+str(numpy.mean(list_occupancy))+'  \n' 
         f.write(string2write)   
 
-    return None
+    return list_zones,list_occupancy,list_zones_below
 
 def printMinMaxAndErrors(t, listVars=[]):
     """Check min/max of given fields"""
