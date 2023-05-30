@@ -125,7 +125,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     tpl = K_ARRAY::buildArray(1, "regularityAngle", im1, jm1, km1);
     // pointeur sur le tableau d'angle
     E_Float* alphamax = K_ARRAY::getFieldPtr(tpl);
-    E_Int ncells = im1*jm1*km1;
+    //E_Int ncells = im1*jm1*km1;
     // FldArrayF alphamax(ncells, 1, alpha, true);
     
     // calcul de l'orthogonalite globale

@@ -239,6 +239,7 @@ void gdisplay()
 void Data::display()
 {
   ptrState->lockDisplay();
+
   // Preprocessing pour le shadow mapping
   if (ptrState->shadow == 1)
   {
@@ -371,7 +372,6 @@ void Data::display()
   if (ptrState->message != NULL) printTmpMessage(ptrState->message);
 
   ptrState->unlockDisplay();
-  //fprintf(stderr, "sortie du display\n");
 
   // Rendering
   if (ptrState->render == 1) glutSwapBuffers();

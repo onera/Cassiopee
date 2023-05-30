@@ -13,10 +13,8 @@ import KCore.test as test
 
 #import Ael.Quantum      as KDG
 
-
-
 # get args
-ifile='hammer.iges'
+ifile = 'hammer.iges'
 forma = 'fmt_iges'
 height = 1
 nlays = 1
@@ -24,10 +22,9 @@ nlays = 1
 hook = occ.readCAD(ifile, forma)
 WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal', 'BCSymmetryPlane']
 
-
 # DISCRETIZED
 t = OCC.PyTree.convertCAD2PyTree(ifile, format=forma,
-                          h=400, chordal_err=0, growth_ratio = 0., algo=1)
+                                 h=400, chordal_err=0, growth_ratio=0., algo=1)
 
 
 # EXTRUDED
@@ -39,7 +36,7 @@ C._fillEmptyBCWith(t, 'wall', 'BCWall')
 (BCs, BCNames, BCTypes) = C.getBCs(t)
 
 # extrude
-t = XOR.extrudeSurf(t, layer_height = height, nlayers = nlays, strategy = 1)
+t = XOR.extrudeSurf(t, layer_height=height, nlayers=nlays, strategy=1)
 
 # put back BCs
 C._recoverBCs(t, (BCs, BCNames, BCTypes), tol=1.e-6)
@@ -131,7 +128,7 @@ hy = C.getFields('CADData', C.extractVars(z, ['hy']))
 hz = C.getFields('CADData', C.extractVars(z, ['hz']))
 ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
 
-occ.linkNodes2CAD( c, wall_face_ids, hook, hx, hy, hz, ncadid )
+occ.linkNodes2CAD(c, wall_face_ids, hook, hx, hy, hz, ncadid)
 
 # Mettre a jour des variables
 t = C.setFields(hx,t, 'nodes')

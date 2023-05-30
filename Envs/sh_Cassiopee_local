@@ -675,7 +675,11 @@ elif [ "$MAC" = "spiro_el8" ]; then
     alias python=python3
     export PRODMODE=0
     unset I_MPI_FABRICS_LIST
+    unset I_MPI_FABRICS
     unset I_MPI_TCP_NETMASK
+    unset I_MPI_PMI_LIBRARY
+    export OMP_PLACES=cores
+        
     # Chemin de l'executable python
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH

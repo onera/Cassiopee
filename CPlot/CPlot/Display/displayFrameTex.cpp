@@ -43,7 +43,7 @@ void Data::displayFrameTex(E_Int mode, double sobelThreshold)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    int shader = _shaders.shader_id(12 + ptrState->stereo);
+    E_Int shader = _shaders.shader_id(12 + ptrState->stereo);
     if (_shaders.currentShader() != shader) _shaders.activate(shader);
     _shaders[shader]->setUniform("leftEyeTexture", (int)0);
     _shaders[shader]->setUniform("rightEyeTexture", (int)1);
@@ -87,6 +87,7 @@ void Data::displayFrameTex(E_Int mode, double sobelThreshold)
   glTexCoord3f(0, 0, 0);
   glVertex3d(0, _view.h, 0);
   glEnd();
+
   glEnable(GL_DEPTH_TEST);
   glColor3f(1., 1., 1.);
 #ifdef __SHADERS__

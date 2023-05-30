@@ -226,7 +226,8 @@ PyObject* K_CPLOT::displayAgainOSMesa(PyObject* self, PyObject* args)
   d->ptrState->render = 0; // 1 ou pas?
   d->ptrState->shootScreen = 0;
   gdisplay(); // build DL
-  d->display();
+  if (d->ptrState->stereo == 0) d->display();
+  else d->displayAnaglyph();
   d->exportFile();
   //printf("done.\n");
 #else

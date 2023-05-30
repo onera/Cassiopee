@@ -127,19 +127,20 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
   unsigned szDepth = 4*s; // Nombre d'octets par pixel si DEPTH32F et STENCIL 8 : 4 bytes pour depth + 1 byte spare + 1 byte stencil
   char* buffer = (char*)malloc(s*3*sizeof(char));
 
-  // Switch viewport
+  // Switch viewport if necessary (different resolution between export and screen)
   E_Int viewWSav = _view.w; E_Int viewHSav = _view.h;
-  _view.w = exportWidth; _view.h = exportHeight;
-  glViewport(0, 0, (GLsizei)exportWidth, (GLsizei)exportHeight);
-  _view.ratio = (double)_view.w/(double)_view.h;
-
-  if (ptrState->stereo == 0) display();
-  else displayAnaglyph();
-
-  // Back viewport
-  _view.w = viewWSav; _view.h = viewHSav;
-  _view.ratio = (double)_view.w/(double)_view.h;
-  glViewport(0, 0, (GLsizei) _view.w, (GLsizei) _view.h);
+  //if (exportWidth != _view.w || exportHeight != _view.h)
+  {
+    _view.w = exportWidth; _view.h = exportHeight;
+    glViewport(0, 0, (GLsizei)exportWidth, (GLsizei)exportHeight);
+    _view.ratio = (double)_view.w/(double)_view.h;
+    if (ptrState->stereo == 0) display();
+    else displayAnaglyph();
+    // Back viewport
+    _view.w = viewWSav; _view.h = viewHSav;
+    _view.ratio = (double)_view.w/(double)_view.h;
+    glViewport(0, 0, (GLsizei) _view.w, (GLsizei) _view.h);
+  }
 
   // Traduction dans buffer
   if (ptrState->offscreen == 1) // mesa RGBA

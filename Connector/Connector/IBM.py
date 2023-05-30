@@ -777,7 +777,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr], \
                                              nature=1, penalty=1, loc='centers', storage='inverse',
                                              interpDataType=interpDataType, hook=hook0, dim=dim, \
-                                             ReferenceState=ReferenceState, bcType=ibcTypeL,isIbmAle=isIbmAle)
+                                             ReferenceState=ReferenceState, bcType=ibcTypeL)
                     nozr += 1
                     for nod in range(len(dnrZones)):
                         nobd = nobOfDnrBases[nod]

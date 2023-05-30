@@ -772,6 +772,7 @@ else if ($MAC == "spiro_el8") then
         unsetenv I_MPI_FABRICS
         unsetenv I_MPI_PMI_LIBRARY
         unsetenv I_MPI_TCP_NETMASK
+        setenv OMP_PLACES cores
         alias inspxe-cl "/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect mi3 -- python3 "
         alias inspxe-cl2 "/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect ti3 -- python3 "
         alias inspxe-gui "/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
