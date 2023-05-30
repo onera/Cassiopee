@@ -323,21 +323,23 @@ PyObject* K_CONNECTOR::identifyMatchingP(PyObject* self, PyObject* args)
   }
   tagDnr.malloc(0); indirB.malloc(0); indirI.malloc(0);
   E_Int sizeI = indicesR.size();
-  if (sizeI > 0 )
+  E_Int indR, indD, nozR, nozD, nptsR, nptsD;
+  E_Float *tagR1, *tagR2, *tagD1, *tagD2;
+  if (sizeI > 0)
   {
     //2eme passe : on est plus tolerant 
     for (E_Int i = 0; i < sizeI; i++)
     {
-      E_Int indR = indicesR[i];//indice local a la zone    
-      E_Int indD = indicesD[i];
-      E_Int nozR = zonesR[i];
-      E_Int nozD = zonesD[i]; 
-      E_Int nptsR = sizeOfFields[nozR];
-      E_Int nptsD = sizeOfFields[nozD];
-      E_Float* tagR1 = fields[nozR]+post1[nozR]*nptsR;
-      E_Float* tagR2 = fields[nozR]+post2[nozR]*nptsR;
-      E_Float* tagD1 = fields[nozD]+post1[nozD]*nptsD;
-      E_Float* tagD2 = fields[nozD]+post2[nozD]*nptsD;
+      indR = indicesR[i];//indice local a la zone    
+      indD = indicesD[i];
+      nozR = zonesR[i];
+      nozD = zonesD[i]; 
+      nptsR = sizeOfFields[nozR];
+      nptsD = sizeOfFields[nozD];
+      tagR1 = fields[nozR]+post1[nozR]*nptsR;
+      tagR2 = fields[nozR]+post2[nozR]*nptsR;
+      tagD1 = fields[nozD]+post1[nozD]*nptsD;
+      tagD2 = fields[nozD]+post2[nozD]*nptsD;
       tagR1[indR] = nozD; tagR2[indR] = indD;        
       tagD1[indD] = nozR; tagD2[indD] = indR;        
     }

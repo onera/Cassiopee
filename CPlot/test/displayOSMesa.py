@@ -1,5 +1,5 @@
 # - display (array) -
-# display offscreen using GL
+# display offscreen using OSMesa
 import CPlot
 import Transform as T
 import Geom as D

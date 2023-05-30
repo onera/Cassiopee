@@ -160,8 +160,10 @@ def testF(infile, number=1):
         return True
     else:
         print("Diffing with '"+reference+"'... done.")
-        ret = os.system("diff "+reference+" "+infile)
-        if ret != 0:
+        import filecmp
+        ret = filecmp.cmp(reference, infile, shallow=False)
+        #ret = os.system("diff "+reference+" "+infile)
+        if not ret:
             print("DIFF: with file "+reference+'.')
             return False
         else: return True

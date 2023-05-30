@@ -273,7 +273,7 @@ def getModules():
     try: mods = os.listdir(path)
     except: mods = []
     for i in mods:
-        if i != 'CPlot' and i not in modules:
+        if i not in modules:
             a = os.access('%s/%s/test'%(path,i), os.F_OK)
             if a: 
                 modules.append(i)
