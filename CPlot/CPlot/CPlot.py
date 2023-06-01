@@ -41,9 +41,9 @@ def display(arrays,
             dirCam=(-999,-999,-999),
             viewAngle=-1.,
             bgColor=-1, backgroundFile="None",
-            shadow=-1, dof=-1, stereo=-1, stereoDist=-1.,
-            export="None",
-            exportResolution="None",
+            shadow=-1, lightOffset=(-999,-999), 
+            dof=-1, stereo=-1, stereoDist=-1.,
+            export="None", exportResolution="None",
             zoneNames=[], renderTags=[], frameBuffer=-1,
             offscreen=0):
     """Display arrays.
@@ -61,7 +61,7 @@ def display(arrays,
                      colormap, colormapC1, colormapC2, colormapC3, colormapC,
                      niso, isoEdges, isoScales, win,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                     shadow, dof, stereo, stereoDist,
+                     shadow, lightOffset, dof, stereo, stereoDist,
                      export, exportResolution, zoneNames, renderTags,
                      frameBuffer, offscreen)
     else:
@@ -73,7 +73,7 @@ def display(arrays,
                        colormap, colormapC1, colormapC2, colormapC3, colormapC, 
                        niso, isoEdges, isoScales, win,
                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                       shadow, dof, stereo, stereoDist,
+                       shadow, lightOffset, dof, stereo, stereoDist,
                        export, exportResolution,
                        zoneNames, renderTags, frameBuffer, offscreen)
 
@@ -96,9 +96,9 @@ def displayOSMesa(arrays,
             dirCam=(-999,-999,-999),
             viewAngle=-1.,
             bgColor=-1, backgroundFile="None",
-            shadow=-1, dof=-1, stereo=-1, stereoDist=-1.,
-            export="None",
-            exportResolution="None",
+            shadow=-1, lightOffset=(-999, -999), 
+            dof=-1, stereo=-1, stereoDist=-1.,
+            export="None", exportResolution="None",
             zoneNames=[], renderTags=[], frameBuffer=-1,
             offscreen=0):
     """Display arrays.
@@ -117,7 +117,7 @@ def displayOSMesa(arrays,
                      colormap, colormapC1, colormapC2, colormapC3, colormapC,
                      niso, isoEdges, isoScales, win,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                     shadow, dof, stereo, stereoDist,
+                     shadow, lightOffset, dof, stereo, stereoDist,
                      export, exportResolution, zoneNames, renderTags,
                      frameBuffer, offscreen)
     else:
@@ -129,7 +129,7 @@ def displayOSMesa(arrays,
                        colormap, colormapC1, colormapC2, colormapC3, colormapC, 
                        niso, isoEdges, isoScales, win,
                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                       shadow, dof, stereo, stereoDist,
+                       shadow, lightOffset, dof, stereo, stereoDist,
                        export, exportResolution,
                        zoneNames, renderTags, frameBuffer, offscreen)
     __slot__ = 1
@@ -153,9 +153,9 @@ def displayFBO(arrays,
             dirCam=(-999,-999,-999),
             viewAngle=-1.,
             bgColor=-1, backgroundFile="None",
-            shadow=-1, dof=-1, stereo=-1, stereoDist=-1.,
-            export="None",
-            exportResolution="None",
+            shadow=-1, lightOffset=(-999,-999),
+            dof=-1, stereo=-1, stereoDist=-1.,
+            export="None", exportResolution="None",
             zoneNames=[], renderTags=[], frameBuffer=-1,
             offscreen=0):
     """Display arrays offscreen using FBO.
@@ -174,7 +174,7 @@ def displayFBO(arrays,
                      colormap, colormapC1, colormapC2, colormapC3, colormapC,
                      niso, isoEdges, isoScales, win,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                     shadow, dof, stereo, stereoDist,
+                     shadow, lightOffset, dof, stereo, stereoDist,
                      export, exportResolution, zoneNames, renderTags,
                      frameBuffer, offscreen)
     else:
@@ -186,7 +186,7 @@ def displayFBO(arrays,
                      colormap, colormapC1, colormapC2, colormapC3, colormapC,
                      niso, isoEdges, isoScales, win,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                     shadow, dof, stereo, stereoDist,
+                     shadow, lightOffset, dof, stereo, stereoDist,
                      export, exportResolution, zoneNames, renderTags,
                      frameBuffer, offscreen)
     __slot__ = 1
@@ -398,10 +398,7 @@ def setState(dim=-1,
              vectorShape=-1,
              vectorProjection=-1,
              colormap=-1,
-             colormapC1="",
-             colormapC2="",
-             colormapC3="",
-             colormapC=None,
+             colormapC1="", colormapC2="", colormapC3="", colormapC=None,
              niso=-1,
              isoEdges=-1,
              isoScales=[],
@@ -781,7 +778,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  colormap, colormapC1, colormapC2, colormapC3, colormapC, 
                  niso, isoEdges, isoScales, win,
                  posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                 shadow, dof, stereo, stereoDist,
+                 shadow, lightOffset, dof, stereo, stereoDist,
                  export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     global __slot__
     import threading
@@ -798,7 +795,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           niso, isoEdges, isoScales,
                           win, posCam, posEye, dirCam, viewAngle, 
                           bgColor, backgroundFile,
-                          shadow, dof, stereo, stereoDist,
+                          shadow, lightOffset, dof, stereo, stereoDist,
                           export, exportResolution,
                           zoneNames, renderTags, frameBuffer, offscreen), {})
     a.start()
@@ -812,7 +809,7 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    colormap, colormapC1, colormapC2, colormapC3, colormapC,
                    niso, isoEdges, isoScales,
                    win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                   shadow, dof, stereo, stereoDist,
+                   shadow, lightOffset, dof, stereo, stereoDist,
                    export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     if colormap != -1: 
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
@@ -825,7 +822,7 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                        colormap, colormapC1, colormapC2, colormapC3, colormapC,
                        niso, isoEdges, isoScales,
                        win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                       shadow, dof, stereo, stereoDist,
+                       shadow, lightOffset, dof, stereo, stereoDist,
                        export, exportResolution, zoneNames, renderTags,
                        frameBuffer, offscreen)
     time.sleep(__timeStep__)

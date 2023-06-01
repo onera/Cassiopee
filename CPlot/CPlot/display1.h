@@ -17,7 +17,8 @@
   PyObject* isoScales;
   char* backgroundFile;
   int bgColor, shadow, dof, offscreen, stereo, frameBuffer;
-  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disiiidssOOii",
+  E_Float lightOffsetX, lightOffsetY;
+  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iidssOOii",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
@@ -30,7 +31,8 @@
                         &xeye, &yeye, &zeye,
                         &dirx, &diry, &dirz, &viewAngle, 
                         &bgColor, &backgroundFile,
-                        &shadow, &dof, &stereo, &stereoDist,
+                        &shadow, &lightOffsetX, &lightOffsetY,
+                        &dof, &stereo, &stereoDist,
                         &exportFile, &exportResolution, 
                         &zoneNamesObject, &renderTagsObject,
                         &frameBuffer, &offscreen))

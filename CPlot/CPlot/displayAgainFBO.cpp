@@ -71,7 +71,9 @@ PyObject* K_CPLOT::displayAgainFBO(PyObject* self, PyObject* args)
 
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
-
+  if (lightOffsetX != -999.) d->ptrState->lightOffsetX = lightOffsetX;
+  if (lightOffsetY != -999.) d->ptrState->lightOffsetY = lightOffsetY;
+  
   // offscreen rendering?
   if (offscreen > 0) { d->ptrState->offscreen = offscreen; d->ptrState->shootScreen = 1; }
   if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;

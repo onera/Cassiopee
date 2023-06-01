@@ -648,6 +648,7 @@ Set / Get functions
     + **lightOffset**: offset to default light position (default: (0,0)).
     + **dofPower**: power of depth of field effect (default: 3.).
     + **gamma**: gamma correction (default: 1.).
+    + **toneMapping**: none (0), ACE (1), Filmic (2), Uchimura (3)
     + **sobelThreshold**: sobel threshold for zone outlines (default: -0.5).
     + **sharpenPower**: power of sharpening image post-processing (default: -0.5).
     + **selectionStyle**: style for selection (default: 0).
