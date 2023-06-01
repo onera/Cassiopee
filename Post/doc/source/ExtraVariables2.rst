@@ -23,6 +23,7 @@ List of functions
     Post.ExtraVariables2.computeVorticityMagnitude2
     Post.ExtraVariables2.computeQCriterion2
     Post.ExtraVariables2.computeLambda2
+    Post.ExtraVariables2.computeLogGradField2
     Post.ExtraVariables2.extractPressure
     Post.ExtraVariables2.extractVelocityMagnitude
     Post.ExtraVariables2.extractMach
@@ -155,6 +156,28 @@ Volume fields
 
     .. literalinclude:: ../build/Examples/Post/computeLambda2PT.py
 
+--------------------
+
+.. py:function:: Post.ExtraVariables2.computeLogGradField2(t, name, ghostCells=False)
+
+    Compute log(grad field) on t from field in centers. 
+    If t contains ghost cells, set argument to True.
+    Exists also as in place function (_computeLogGradField2) that modifies t and returns None.
+
+    :param t: input tree
+    :type  t: [zone, list of zones, base, tree]
+    :param name: name of field
+    :type name: string
+    :param ghostCells: must be true if t contains ghost cells
+    :type ghostCells: boolean
+    :return: tree with "LogGrad"+name in centers
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Compute log(grad pressure) (pyTree) <Examples/Post/computeLogGradField2PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/computeLogGradField2PT.py
 
 --------------------
 

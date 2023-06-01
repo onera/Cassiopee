@@ -166,43 +166,26 @@ def _computeLambda2(t, ghostCells=False):
     C._rmVars(t, ['centers:o12', 'centers:o13', 'centers:o23'])
     return None
 
-def computeLogGradDensity2(t, ghostCells=False):
-    """Compute log(grad density) for density in centers."""
+def computeLogGradField2(t, name, ghostCells=False):
+    """Compute log(grad field) for field in centers."""
     tp = Internal.copyRef(t)
-    _computeLogGradDensity2(tp, ghostCells=ghostCells)
+    _computeLogGradField2(tp, name, ghostCells=ghostCells)
     return tp
 
-# IN: centers:Density
-# OUT: centers:logGradDensity (log10)
-def _computeLogGradDensity2(t, ghostCells=False):
-    """Compute log(grad density) for density in centers."""
-    P._computeGrad2(t, 'centers:Density', ghostCells)
-    C._magnitude(t, ['centers:gradxDensity', 'centers:gradyDensity', 'centers:gradzDensity'])
-    C._rmVars(t, ['centers:gradxDensity', 'centers:gradyDensity', 'centers:gradzDensity'])
+# IN: centers:Field
+# OUT: centers:logGradField (log10)
+def _computeLogGradField2(t, name, ghostCells=False):
+    """Compute log(grad field) for field in centers."""
+    sp = name.split(':')
+    if len(sp) == 2: name = sp[1]
+    P._computeGrad2(t, 'centers:'+name, ghostCells)
+    C._magnitude(t, ['centers:gradx'+name, 'centers:grady'+name, 'centers:gradz'+name])
+    C._rmVars(t, ['centers:gradx'+name, 'centers:grady'+name, 'centers:gradz'+name])
     for z in Internal.getZones(t):
-        n = Internal.getNodeFromName(z, 'gradxDensitygradyDensitygradzDensityMagnitude')
-        n[1] = numpy.log10(n[1])
-        n[0] = 'logGradDensity'
-    return None
-
-def computeLogGradpressure2(t, ghostCells=False):
-    """Compute log(grad pressure) for density, temperature in centers."""
-    tp = Internal.copyRef(t)
-    _computeLogGradPressure2(tp, ghostCells=ghostCells)
-    return tp
-
-# IN: centers:Density, centers:Temperature
-# OUT: centers:logGradPressure (log10)
-def _computeLogGradPressure2(t, ghostCells=False):
-    """Compute log(grad pressure) for density, temperature in centers."""
-    P._computeVariables2(t, ['centers:Pressure'])
-    P._computeGrad2(t, 'centers:Pressure', ghostCells)
-    C._magnitude(t, ['centers:gradxPressure', 'centers:gradyPressure', 'centers:gradzPressure'])
-    C._rmVars(t, ['centers:gradxPressure', 'centers:gradyPressure', 'centers:gradzPressure'])
-    for z in Internal.getZones(t):
-        n = Internal.getNodeFromName(z, 'gradxPressuregradyPressuregradzPressureMagnitude')
-        n[1] = numpy.log10(n[1])
-        n[0] = 'logGradPressure'
+        n = Internal.getNodeFromName(z, 'gradx'+name+'grady'+name+'gradz'+name+'Magnitude')
+        p = numpy.clip(n[1], 1.e-12, None)
+        n[1] = numpy.log10(p)
+        n[0] = 'LogGrad'+name
     return None
 
 # Calcul de la pression dans le volume
