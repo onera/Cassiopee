@@ -71,6 +71,9 @@ PyObject* K_CPLOT::displayAgainOSMesa(PyObject* self, PyObject* args)
 
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
+  if (dofPower != -1.) d->ptrState->dofPower = dofPower;
+  if (gamma != -1.) d->ptrState->gamma = gamma;
+  if (toneMapping != -1) d->ptrState->toneMapping = toneMapping;
   if (lightOffsetX != -999.) d->ptrState->lightOffsetX = lightOffsetX;
   if (lightOffsetY != -999.) d->ptrState->lightOffsetY = lightOffsetY;
   

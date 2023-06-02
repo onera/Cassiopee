@@ -188,6 +188,14 @@ Actions
     :type shadow: int
     :param dof: depth of field smoothing. 0-1 (default: 0)
     :type dof: int
+    :param dofPower: power of depth of field effect (default: 3.)
+    :type dofPower: float 
+    :param lighOffset: offset to default light position (default: (0,0))
+    :type lightOffset: tuple of two floats
+    :param gamma: gamma correction (default: 1.)
+    :type gamma: float 
+    :param toneMapping: none (0), ACE (1), Filmic (2), Uchimura (3)
+    :type toneMapping: int     
     :param stereo: 1 or 2 means red/cyan anaglyph (default: 0)
     :type stereo: int
     :param stereoDist: distance between eyes for stereo
@@ -645,10 +653,6 @@ Set / Get functions
     + **message**: "A string" or "Clear"
     + **viewAngle**: the camera angle (default: 50 degrees).
     + **cursor**: mouse cursor type (0: normal, 1: cross, 2: wait).
-    + **lightOffset**: offset to default light position (default: (0,0)).
-    + **dofPower**: power of depth of field effect (default: 3.).
-    + **gamma**: gamma correction (default: 1.).
-    + **toneMapping**: none (0), ACE (1), Filmic (2), Uchimura (3)
     + **sobelThreshold**: sobel threshold for zone outlines (default: -0.5).
     + **sharpenPower**: power of sharpening image post-processing (default: -0.5).
     + **selectionStyle**: style for selection (default: 0).

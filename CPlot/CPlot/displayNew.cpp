@@ -101,9 +101,11 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
 
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
+  if (dofPower != -1.) d->ptrState->dofPower = dofPower;
+  if (gamma != -1.) d->ptrState->gamma = gamma;
+  if (toneMapping != -1) d->ptrState->toneMapping = toneMapping;
   if (lightOffsetX != -999.) d->ptrState->lightOffsetX = lightOffsetX;
   if (lightOffsetY != -999.) d->ptrState->lightOffsetY = lightOffsetY;
-  
 
   // offscreen rendering?
   if (offscreen > 0) { d->ptrState->offscreen = offscreen; d->ptrState->shootScreen = 1; }

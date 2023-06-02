@@ -18,7 +18,8 @@
   char* backgroundFile;
   int bgColor, shadow, dof, offscreen, stereo, frameBuffer;
   E_Float lightOffsetX, lightOffsetY;
-  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iidssOOii",
+  E_Float dofPower, gamma; int toneMapping;
+  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iddiidssOOii",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
@@ -32,7 +33,8 @@
                         &dirx, &diry, &dirz, &viewAngle, 
                         &bgColor, &backgroundFile,
                         &shadow, &lightOffsetX, &lightOffsetY,
-                        &dof, &stereo, &stereoDist,
+                        &dof, &dofPower, &gamma, &toneMapping, 
+                        &stereo, &stereoDist,
                         &exportFile, &exportResolution, 
                         &zoneNamesObject, &renderTagsObject,
                         &frameBuffer, &offscreen))
