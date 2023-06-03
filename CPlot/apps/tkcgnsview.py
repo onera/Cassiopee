@@ -48,6 +48,19 @@ def run():
     # Del photos
     CTK.PHOTOS = []
 
+
+#==============================================================================
+def loadFullSkeleton():
+    print("in thread start", flush=True)
+    #import time
+    #time.sleep(20)
+    CTK.t = CTK.HANDLE.loadSkeleton(maxDepth=-1)
+    import Converter.Internal as Internal 
+    Internal.printTree(CTK.t)
+    # block by GIL
+    if CTK.TKTREE is not None: CTK.TKTREE.updateApp()
+    print("thread done", flush=True)
+
 #==============================================================================
 if __name__ == "__main__":
     # Ouverture du fichier de la ligne de commande
@@ -57,5 +70,17 @@ if __name__ == "__main__":
         import Converter.Filter as Filter
         CTK.HANDLE = Filter.Handle(files[0])
         CTK.t = CTK.HANDLE.loadSkeleton(maxDepth=-1)
+        #CTK.t = CTK.HANDLE.loadSkeleton(maxDepth=1)
         CTK.FILE = files[0]
+        
+        # Threading is limited to one core
+        #import threading
+        #a = threading.Thread(target=loadFullSkeleton)
+        #a.start()
+
+        # with multiprocessing, we must communicate CTK.t
+        #import multiprocessing
+        #a = multiprocessing.Process(target=loadFullSkeleton)
+        #a.start()
+
     run()

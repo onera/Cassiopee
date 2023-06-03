@@ -1457,20 +1457,14 @@ def minimal(title, show=True):
     menu.add_cascade(label='CPlot', menu=cplot)
     cplot.add_command(label='Display Nodes*', command=setLocNodes)
     cplot.add_command(label='Display Centers', command=setLocCenters)
-    cplot.add_command(label='Toggle blanking (on/off)',
-                      command=changeCPlotBlanking)
+    cplot.add_command(label='Toggle blanking (on/off)', command=changeCPlotBlanking)
     cplot.add_separator()
-    cplot.add_command(label='Export image/movie',
-                      command=cplotExport)
-    cplot.add_command(label='Finalize movie',
-                      command=finalizeExport)
-    cplot.add_command(label='E-mail image/report bug',
-                      command=mail2Friends)
-    cplot.add_command(label='Save image in doc/blog',
-                      command=save2Doc)
+    cplot.add_command(label='Export image/movie', command=cplotExport)
+    cplot.add_command(label='Finalize movie', command=finalizeExport)
+    cplot.add_command(label='E-mail image/report bug', command=mail2Friends)
+    cplot.add_command(label='Save image in doc/blog', command=save2Doc)
     cplot.add_separator()
-    cplot.add_command(label='Undo change', accelerator='Ctrl+z',
-                      command=undo)
+    cplot.add_command(label='Undo change', accelerator='Ctrl+z', command=undo)
 
     # Menu specific tools
     tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
@@ -1483,16 +1477,14 @@ def minimal(title, show=True):
     # Menu Help
     help = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     menu.add_cascade(label='Help', menu=help)
-    help.add_command(label='Online User doc',
-                     command=getOnlineDoc)
-    help.add_command(label='Online Help forum',
-                     command=getOnlineForum)
-    help.add_command(label='Online Tutorials',
-                     command=getOnlineTutorials)
+    help.add_command(label='Online User doc', command=getOnlineDoc)
+    help.add_command(label='Online Help forum', command=getOnlineForum)
+    help.add_command(label='Online Tutorials', command=getOnlineTutorials)
     help.add_separator()
     help.add_command(label='About', command=Panels.about)
 
     win.config(menu=menu)
+
     toolBar(win)
 
     # Text only
@@ -1934,9 +1926,9 @@ def tkLoadFile(files, mode='full'):
     except: 
       print('Error: convertFile2PyTree: fail to read file %s.'%files[0])
       return
-    if size > 1000000000: print('size: %f Gb'%(size/1000000000))
-    elif size > 1000000: print('size: %f Mb'%(size/1000000))
-    else: print('size: %f kb'%(size/1000))
+    if size > 1000000000: print('INFO: size: %f Gb'%(size/1000000000))
+    elif size > 1000000: print('INFO: size: %f Mb'%(size/1000000))
+    else: print('INFO: size: %f kb'%(size/1000))
     maxSize = PREFS.get('maxFileSizeForLoad', 6.) # en Gb
     maxSize = maxSize * 100000000
     if size > maxSize: mode = 'partial'
