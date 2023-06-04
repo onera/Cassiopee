@@ -5,7 +5,7 @@ import os, os.path, sys
 
 #==============================================================================
 # To be called when CTK.t is set
-def run():
+def run(a, q):
     
     # Set cassiopee prefs
     CTK.loadPrefFile(); CTK.setPrefs()
@@ -38,6 +38,11 @@ def run():
     # Place win devant les autres fenetres
     win.deiconify(); win.focus_set()
 
+    # get data from reading process
+    if a is not None and q is not None:
+        CTK.t = q.get()
+        a.join()
+
     # - Update apps -    
     CTK.TKTREE.updateApp()
     #if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
@@ -50,37 +55,33 @@ def run():
 
 
 #==============================================================================
-def loadFullSkeleton():
-    print("in thread start", flush=True)
-    #import time
-    #time.sleep(20)
-    CTK.t = CTK.HANDLE.loadSkeleton(maxDepth=-1)
-    import Converter.Internal as Internal 
-    Internal.printTree(CTK.t)
-    # block by GIL
-    if CTK.TKTREE is not None: CTK.TKTREE.updateApp()
-    print("thread done", flush=True)
-
+# load data skeleton in a separate process
+# IN: q: queue for data export
+# IN: h: file handle
+def loadSkeleton(q, h):
+    t2 = h.loadSkeleton(maxDepth=-1)
+    q.put(t2)
+    
 #==============================================================================
 if __name__ == "__main__":
     # Ouverture du fichier de la ligne de commande
     import sys
+    a = None; q = None
     if len(sys.argv) >= 2:
         files = sys.argv[1:]
         import Converter.Filter as Filter
         CTK.HANDLE = Filter.Handle(files[0])
-        CTK.t = CTK.HANDLE.loadSkeleton(maxDepth=-1)
-        #CTK.t = CTK.HANDLE.loadSkeleton(maxDepth=1)
         CTK.FILE = files[0]
         
-        # Threading is limited to one core
+        # Threading is limited to one core because of GIL
         #import threading
         #a = threading.Thread(target=loadFullSkeleton)
         #a.start()
+        
+        # with multiprocessing, we must communicate CTK.t through Queue
+        import multiprocessing
+        q = multiprocessing.Queue()
+        a = multiprocessing.Process(target=loadSkeleton, args=(q,CTK.HANDLE))
+        a.start()
 
-        # with multiprocessing, we must communicate CTK.t
-        #import multiprocessing
-        #a = multiprocessing.Process(target=loadFullSkeleton)
-        #a.start()
-
-    run()
+    run(a, q)

@@ -1,9 +1,34 @@
 # iconics Photos
 try: import tkinter as TK
 except: import Tkinter as TK
-PHOTO = []
 
-saveImg = TK.PhotoImage(data="""
+# Class to store and provide load on demand of PhotoImages
+class Photo:
+    def __init__(self):
+        self._plist = {}
+    def __getitem__(self, key):
+        if key in self._plist: return self._plist[key]
+        if key == 0: img = createSaveImg()
+        elif key == 1: img = createUndoImg()
+        elif key == 2: img = createDeleteImg()
+        elif key == 3: img = createCopyImg()
+        elif key == 4: img = createFitImg()
+        elif key == 5: img = createSelectallImg()
+        elif key == 6: img = createEyeImg()
+        elif key == 7: img = createMainImg()
+        elif key == 8: img = createGetImg()
+        elif key == 9: img = createPinImg()
+        elif key == 10: img = createPin2Img()
+        elif key == 11: img = createRefreshIconImg()
+        elif key == 12: img = createInvertSelectionImg()
+        elif key == 13: img = createLogoCassiopeeImg()
+        self._plist[key] = img
+        return img
+
+PHOTO = Photo()
+
+def createSaveImg():
+    saveImg = TK.PhotoImage(data="""
 R0lGODlhFAAUAOfPAAEBAQcJCAoFCQsLCw4PEw8SCw4SExQMEhYUDhkSDhMTExQWGRYYFBUZGhkV
 EhoVHBoYFhsbGxccIxcfKh4eIBcjIRYjKR4gIhggKxogMCYVDSAXEiEcGiEgHCUlJSYmKCcoKigo
 JioqKiUuNS0uMC8wMjMzMzY2ODQ9NTA5Pjs5NDk5OQQzXQcsYQUuawMvcAU1YgAzbQY4Ywc8bgk1
@@ -25,8 +50,10 @@ sV7FwoIBi1wLIjPKd+8OQyZsWGSIqJNRtuwX2bBgqGfVapjs5D8TfpMN+8WrF69Zr5iyYpUKmG0T
 xZKR9s2r1qtWrVaZMqWKl+0TuYXFhtWKFapQpkoqWReI/e8vXbNndZ8OKlSpWbZVxMCBg4eWLV3C
 lNkvposWLVTYZtCABgUEADs=
 """)
+    return saveImg
 
-undoImg = TK.PhotoImage(data="""
+def createUndoImg():
+    undoImg = TK.PhotoImage(data="""
 R0lGODlhFAAUAMZrACZj0zNjuyln1Spo1ixp1TBp1Cxr1y5r0zdo0TZp0TZp0jZq0jZq0zxpyzZr
 0zZr1DtqzTdr1DZs1DVt0jds1Ddt1C9w2jdt1Txuwzht1Dhuzzht1Tdu1Tdu1jhu1Dhu1TZv1kVs
 vzhv1Tlv1Tlv1jhw1jRy2Dlw1jlw10Juyj9vzUBvzD1wzzpx0kBvzUFvyzpx1Dlx10FvzDpx1kJv
@@ -39,8 +66,10 @@ hiGFT0MeIyczOT0/O4QpDYNOGR8kMzo+QkRGSEeDNAgQf0oVojY+PRotTVFSUkuCLwkKNRQbJDY4
 AYQ3VVVXGH8yCgwRxDEwh0lbW1N/KwsOFCIoOIeCVFZa3AwSHCU5E+R/UFhZfy4OFx0gBAMH8F5c
 f1Q8uFAAgAADFkyQCwMGHrwxZBySMyNG4iE0XywaUqOx0JkyHQmlCUmoC8mTDgMBADs=
 """)
+    return undoImg
 
-deleteImg = TK.PhotoImage(data="""
+def createDeleteImg():
+    deleteImg = TK.PhotoImage(data="""
 R0lGODlhFAAUAOeEALUFBbcGBrUHB7cHB7cICLkICLgJCboJCboKCrsKCrwKCrwLC7sMDL0MDL4M
 DL8NDcAODrcSEsAPD8EPD8AQEMEQEMIQEMAREbwTE8IREbQXF8MREbMYGL8UFLYYGLMaGrQaGsUT
 E8YTE7gaGrocHMgWFskWFsAaGrodHbseHrweHswZGb0gIMEiIs8cHMYhIcIjI8AlJdMfH8wmJtYi
@@ -61,8 +90,10 @@ gweOHgevGD1yo8WJDhcoVECx8J+UGBgOLHAAocKGFF0FRhDrQEKGECzSCvSSoO2GECVgyD3DoAGE
 DSJMrHBRo+sZBAseWMA7WAaNIgfLGDjgdwOLFy5k2ADCZEvBMQQK1J2gQuAMGkCodDGzZmAYAQEK
 KHhAgiCRJ2LcyKnzRuAHALEXjDDIJY0cPHqsDOQwoICHhXDs8EFTEISGtHO0yN0eEAA7
 """)
+    return deleteImg
 
-fitImg = TK.PhotoImage(data="""
+def createFitImg():
+    fitImg = TK.PhotoImage(data="""
 R0lGODlhFAAVAOeSADo6Ojs7Ozw8PD09PT4+PkBAQEFBQUREREZGRklJSUpKSktLS0xMTP8AAE1N
 TU9PT1BQUFFRUVJSUlRUVFVVVVZWVldXV1hYWFlZWVpaWltbW15eXl9fX2BgYGFhYWJiYmNjY2Rk
 ZGhjY2VlZWpkZGZmZmdnZ21mZmlpaW9nZ2pqamxsbG1tbW5ubm9vb3BwcHFxcXJycnR0dHV1dXZ2
@@ -85,8 +116,10 @@ lCOwhaNH9KMVRE088gCgDh4ANs4AwCHJRthHXEZ0fMjyiAcAGpJ+ABjzD0MAOI02AKhwxYmSLBhE
 M7IzwIJANgI4IIgjPVg0UQA5NGIIBAKsMVBtCqghCSFXvMBCFYJIwoYDmzlkBQEAuECGIiMtYgZZ
 A0yx0T92qDAUASBOZMJSKw6ExAoWPJDBDmnU6KOPAQEAOw==
 """)
+    return fitImg
 
-mainImg = TK.PhotoImage(data="""
+def createMainImg():
+    mainImg = TK.PhotoImage(data="""
 R0lGODlhFAAUAMZ8ABA5ihE9jwc/pwpEqhdEkh1HfSJGiR9Pkh9OnB5QmCFSiyNTgx9YfyNUmBlY
 oxNasxNbsiNYmh1XsCBZoytXpxlfsBxfrxNjvS9boihhlh9iqypgmBxlqRtktRRmvixfryJrphpt
 ujJlqDBnpyFxpTFntilssh10txp2xyRzvEZtgCR4rjl0mRp8xB17xCp7uC18tTt6nzR/rSyDtzGB
@@ -99,8 +132,10 @@ ZYmFcmCCb3BhKpCDVHV4ZHRnTUxeXEWZQmptaGNTUkc9LIZ2e3p3cWJdWVFEOjGJbmtfSFZaSk5G
 QTYvND6FS4NbWDlJQzMuKCkZHRUWhmZVOEA8KycgHB4XCoIHhFdPO383JIIhfwsQD4lQP38yLYMm
 gwokMFRDEAwGgzQ4yJRpQwSGkEZMgJhIRAOKhkogwFhIAgGOgz5QMADyD4YBAkoKCgAAUiAAOw==
 """)
+    return mainImg
 
-eyeImg = TK.PhotoImage(data="""
+def createEyeImg():
+    eyeImg = TK.PhotoImage(data="""
 R0lGODlhFAAUAOd+AAAAAAEBAQICAgMDAwUFBgYGBgcHBwkJCQwMDAwMDRAQEBMTExUVFRUWGBYW
 FhgYGBoaGhsbGxwcHBwcHR0dHR4eHx8fHwkmOiEhISIiIiMjIxApOSQkJCUlJScnJykpKR8zQS8v
 LxM6VjMzMxE9Wx48UTY2Njk5OSRDVz09PUNDQ0VFRUZGRkdHR09PTxxeilFRURJlnldXVxlvqFxc
@@ -121,8 +156,10 @@ Qh0tQbJhQAEQTXowEtqKFACuQumEuaBAwwlPc7ysYQUWrCoqPBJ8oHDC0g4fOk615SoqSYwIEAAI
 YMHgRY5Qe4Wq4oJjwgIEFvBUmDEkFVhQYOtcEZHhwQMHJbTAYSv0IldIVn6QaEAABREnkYSuAmDJ
 J4BPrVAFmhLFSJUuQAQFtVjQYqVSi+JkKaKm0SiLZg72uUjdIhaFA90IvIO9u/fuAQEAOw==
 """)
+    return eyeImg
 
-selectallImg = TK.PhotoImage(data="""
+def createSelectallImg():
+    selectallImg = TK.PhotoImage(data="""
 R0lGODlhFAAUAMZ8ADVHYU1dc2t4i215jHWBk4OOnpCbqZOdq5ynt56puKOrt6+6xbC6xrG7xrG8
 x7O9yLS+ybW/yrrAybLE0LjCzbnDzrrDzrbH07jJ1LrL1r3N18PL1L7N2L7O2MHQ2sfO18LQ2sTS
 28TS3MXS3MXT3MrR2szR18bT3cbU3c3T2c7T2s3U3snW38/U287V3srX38vX4MzY4NDX4dLX3c3Z
@@ -137,8 +174,10 @@ Y86gQXNmDBgEA24ROPDCBxEoVrR0AQOmi5YrCQjc4tNiBIweQJJAmUKFyhQoSJSk49hBBAsaPoAI
 MWJECBAfQ1aqwKABxAkWMWro0FEjBosfK1NMuJCBg4cQJFCcIBHCA490eIowcPAAQoQFDSpUsFCB
 QhRbmzox+hRqFCRJEJQsMcK00ZHdR4IO6S0UIBAAOw==
 """)
+    return selectallImg
 
-copyImg = TK.PhotoImage(data="""
+def createCopyImg():
+    copyImg = TK.PhotoImage(data="""
 R0lGODlhFAAUAOfwAC9HbDBIbTJKbjNLcTRNcDRNczROdjVPdDZPdjVQdzZQdjdQdjdRdzhRdzhS
 eDlSeTpTejlUfDpUejpUezpVfTtWfzxXgD1Xfj1Zgj5Zgz9agT9agz9ahD9bhD9bhUBbhUBchkJc
 hEFdh0JeiERehkNfiUNfikRhi0Vhi0ZhiUVijEVijUZijUZjjUdjjkdkj0lkjEhkj0hlkEhlkUhm
@@ -162,15 +201,19 @@ AOFBAwQFAmQKdkzZM2rVrFmrNq1SUIiacgUjhmxZs2fONKPMJPf9c8kst/QizDDFGFNMMcNIUiAl
 q8Biyy279OKLL73oAkmBkZBySiuvzFKLLbbQIgsjBTbiySikmJLKKqywosopixQoyCCEFGIIIoko
 okgih/AREAA7
 """)
+    return copyImg
 
-getImg = TK.PhotoImage(data="""
+def createGetImg():
+    getImg = TK.PhotoImage(data="""
 R0lGODlhDwARAIQXAMfHx7a2turq6uPj4/j4+Lu7u9zc3JCQkLS0tImJiYGBgb29vaOjo6qqqvHx
 8XFxcaurq7CwsJiYmNTU1KGhocHBwcTExAAAAMzMzP///wAAAAAAAAAAAAAAAAAAAAAAACH+EUNy
 ZWF0ZWQgd2l0aCBHSU1QACH5BAEAAB8ALAAAAAAPABEAAAVC4Cd+FzCeKFmm6ZVdLOq+Zkxm+BrP
 ed3iQBiLF/SNiMEfcCk8Ll+XaPP2ykmGr8dserwkFttCKyFCbG2fxhl9iI5CADs=
 """)
+    return getImg
 
-pinImg = TK.PhotoImage(data="""
+def createPinImg():
+    pinImg = TK.PhotoImage(data="""
 R0lGODlhGgAaAOevAFBQUFRWVzR+nTyAnzOHqm96fjmHrDWJrlyCjDqKqTOLtTKNtTmMsjSOtjiN
 tjeOsjaQt0OOsDuQvIGChTyStkOQtj+RuTuSu0aRujyUuz2Uvj+UvECVvjyYvT2Yv0OYxUaZw0Ob
 vUqZv0mZw0CdwIyMjEibyU+bxk2cxkWgwkiiw1KfyEakxk6kwEulyVikzFWl0Eqpzk6px5iZmpqa
@@ -192,8 +235,10 @@ SPnlkitXqA4FurKDgoUVKfeMYlUKEx0mRmQcqGAgZSVVnSwNKiPlR4sEAgY4SKkqVKE2W6IUsRGC
 QAQRH1JeIpTGShMgNUg02PDCxFMsT5T0iNFhAQcYGJ4WQBAEhwsPF0CcIFsCANmDMwIOfC84ZcL4
 gjTOq19/MCAAOw==
 """)
+    return pinImg
 
-pin2Img = TK.PhotoImage(data="""
+def createPin2Img():
+    pin2Img = TK.PhotoImage(data="""
 R0lGODlhGgAaAOfDAGRlZ2VlZ1iBjXl7fXp7fTSLtHt8fjWTwESauT6byDucyzycyTycyjydxjyd
 yz6dyz2fyj+fyT+gyECgyECgykifvUGhykOjykSk1ESnz0iozUipzEOr1negq0mq10es3Uat2E6r
 2JucnUev25ycnVis1E6u4Vus10ey3U6431O54mC56lq93FW+41m94lm942G83Vu+3VnA4l3A3FvB
@@ -215,21 +260,27 @@ gUuJVN8vNyg4AKIhKyxNnnoJEoPDwoMcCC5wqDhLVCRNtybrkJCgRIUNICq2ApUpkiQ+aI6wiDGD
 RgsVFVfh2jRpESA7ash0kZKESI+KjoIJq6UpUZ84a9BMgRHCRsVOv3SFoiSojhYlLiAvHMBwIuau
 S3rgsKEyJEWDAnoFdhAQv6CIAPUJRhmQf+AbAv0J5IUBAf5DAgAVBQQAOw==
 """)
+    return pin2Img
 
-refreshIconImg = TK.PhotoImage(data="""
+def createRefreshIconImg():
+    refreshIconImg = TK.PhotoImage(data="""
 R0lGODlhFAAUAMIGAAkMCDs9OlpcWYmLiLa4tfz++wAAAAAAACH+EUNyZWF0ZWQgd2l0aCBHSU1Q
 ACH5BAEKAAcALAAAAAAUABQAAANueEcC/o+oOQcgOGMnqRJBIY5iwHkHSJJQN6lr2VJwTAyCJdDh
 iAsYQWn36hEgjyFPNihYAL0A8WMkyKDKYiwmXW5JXW3BhC1gstRr0xKdpnrI8tgNA94G1lE4/dXT
 e31zFBYahRkAAxQMcXFACgkAOw==
 """)
+    return refreshIconImg
 
-invertSelectionImg = TK.PhotoImage(data="""
+def createInvertSelectionImg():
+    invertSelectionImg = TK.PhotoImage(data="""
 R0lGODlhGAAYAKECAAEEAP7//AAAAAAAACH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEKAAIALAAA
 AAAYABgAAAJVlI+py60Ao5wx0XsR3iAAzVGBB07j6UHnd4joirKG+Y7qWnZ1epNttKP5ZsCXayiQ
 GI+yZNF2wf16GykRWLU6Qzot7eh97oyl8bjZM5NzXIjjDY8nCgA7
 """)
+    return invertSelectionImg
 
-logoCassiopeeImg = TK.PhotoImage(data="""
+def createLogoCassiopeeImg():
+    logoCassiopeeImg = TK.PhotoImage(data="""
 R0lGODlhEAAQAMZUAAAAAAABAAADABUPFR8SKCQUMCkTPioaOjcbUUsTf0MaWEkbZkocZXUD/lMb
 eUAkWnMF91IcgHML5YMG/4AH/34J/28S2n0O+mYdsnYT6YkM/0s4AoQR/1ssdYcU/34Z6YsU/30Z
 /2I0RWooqUxBC1g8NnIqoXYl15gh/5ci/YYuyIwp6n02upY122hZEpFAoZ00/KE5+INiCIdoB4Nq
@@ -242,7 +293,5 @@ G4YjAH8UJoNPMoMVEX8pKn8sloNDJRoLf5YeAoIShEs8NS49OoUJpYJFR1FSTjQNDoIohS84Nz5K
 Nh0BghkFhC2WEw9CDB+HhBgATCIHhxwWBH8rgjOEP4QDgheuQIJTRIQwgwiCSEZJOYQxEAaFguwg
 oa3goEAAOw==
 """)
+    return logoCassiopeeImg
 
-PHOTO += [saveImg, undoImg, deleteImg, copyImg, fitImg, selectallImg, eyeImg,
-          mainImg, getImg, pinImg, pin2Img, refreshIconImg, invertSelectionImg,
-          logoCassiopeeImg]

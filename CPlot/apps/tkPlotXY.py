@@ -78,7 +78,7 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Transform.PyTree as T
-    import Generator.PyTree as G
+    #import Generator.PyTree as G
     #import CPlot.PyTree as CPlot
     import CPlot.Tk as CTK
     import CPlot.Ttk as TTK

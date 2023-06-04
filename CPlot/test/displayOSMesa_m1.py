@@ -1,7 +1,6 @@
 # - display (array) -
 # display offscreen using OSMesa parallel
 import CPlot
-import Transform as T
 import Geom as D
 import Converter.Mpi as Cmpi
 import KCore.config

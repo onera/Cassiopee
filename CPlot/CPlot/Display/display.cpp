@@ -320,8 +320,7 @@ void Data::display()
   if (ptrState->gamma != 1.) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
   if (ptrState->toneMapping != 0) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
   if (ptrState->mode == SOLID && ptrState->solidStyle == 4) { post = 1; sobelThreshold = 0.5; }
-  printf("post! %d\n", post);
-
+  
   if (post == 1)
   { 
     // Recupere l'image standard dans _texRight

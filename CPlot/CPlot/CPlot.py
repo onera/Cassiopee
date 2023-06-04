@@ -793,6 +793,8 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
     import threading
     if colormap != -1: 
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
+    if offscreen > 0: daemon = True
+    else: daemon = False
     a = threading.Thread(None, cplot.displayNew, None,
                          (arrays, dim, mode, scalarField, vectorField1,
                           vectorField2, vectorField3, displayBB, displayInfo,
@@ -807,7 +809,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           shadow, lightOffset, dof, dofPower, gamma, toneMapping,  
                           stereo, stereoDist,
                           export, exportResolution,
-                          zoneNames, renderTags, frameBuffer, offscreen), {})
+                          zoneNames, renderTags, frameBuffer, offscreen), {}, daemon=daemon)
     a.start()
     __slot__ = a
 

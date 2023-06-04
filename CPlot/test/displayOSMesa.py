@@ -1,7 +1,6 @@
 # - display (array) -
 # display offscreen using OSMesa
 import CPlot
-import Transform as T
 import Geom as D
 
 a = D.sphere((0,0,0), 1, N=200)

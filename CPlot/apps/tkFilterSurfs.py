@@ -6,7 +6,6 @@ import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import Converter.Internal as Internal
 import Geom.PyTree 
 # local widgets list
 WIDGETS = {}; VARS = []

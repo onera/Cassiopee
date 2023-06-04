@@ -1,7 +1,6 @@
 # - display (array) -
 # display offscreen using OpenGL
 import CPlot
-import Transform as T
 import Geom as D
 import KCore.config
 import KCore.test as test
@@ -27,5 +26,3 @@ CPlot.finalizeExport(3)
 CPlot.display(b, mode=0, offscreen=4, export=LOCAL+'/out2.png')
 CPlot.finalizeExport(4)
 test.testF(LOCAL+'/out2.png', 2)
-
-os._exit(0)
