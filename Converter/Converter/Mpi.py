@@ -71,7 +71,6 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     if graph is None: graph = computeGraph(t, type='match')
     tl = addXZones(t, graph)
     tl = convert2PartialTree(tl)
-    # print info
     #zones = Internal.getZones(tl)
     #print('Rank %d has %d zones.'%(rank, len(zones)))
     tl = C.center2Node(tl, var, cellNType)

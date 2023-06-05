@@ -1,3 +1,4 @@
+# ...
 import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
@@ -11,14 +12,14 @@ import numpy
 
 LOCAL = test.getLocal()
 
-tFile                 = LOCAL+'/t_WMM.cgns'
-tcFile                = LOCAL+'/tc_WMM.cgns'
+tFile                 = 't_WMM.cgns'
+tcFile                = 'tc_WMM.cgns'
 
 ##READING SERIAL & DISTRIBUTING
-App._distribute(tFile, tcFile, NP=Cmpi.size)
+App._distribute(LOCAL+'/'+tFile, LOCAL+'/'+tcFile, NP=Cmpi.size)
 
-t       = Fast.loadTree(tFile , split='single', mpirun=True )
-tc,graph= Fast.loadFile(tcFile, split='single', mpirun=True, graph=True, )
+t       = Fast.loadTree(tFile , split='single', directory=LOCAL, mpirun=True)
+tc,graph= Fast.loadFile(LOCAL+'/'+tcFile, split='single',  mpirun=True, graph=True)
 
 ##COMPUTE
 NIT                        = 25   # number of iterations 

@@ -3,6 +3,9 @@ import Converter.PyTree as C
 import Generator.PyTree as G
 import Converter.Mpi as Cmpi
 import tkPlotXY
+import KCore.test as test
+
+LOCAL = test.getLocal()
 
 # Cas test
 if Cmpi.rank == 0:
@@ -22,4 +25,4 @@ tkPlotXY.plot([a], varx='CoordinateX', vary='centers:G',
               legends=['no1', 'no2'],
               xFontSize=11,
               legendFontSize=30,
-              export='fig.png')
+              export=LOCAL+'/fig.png')

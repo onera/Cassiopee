@@ -1,6 +1,7 @@
 # -- cassiopee cgnsview main app --
 import Converter.PyTree as C
 import CPlot.Tk as CTK
+import CPlot.PyTree as CPlot
 import os, os.path, sys
 
 #==============================================================================
@@ -37,11 +38,13 @@ def run(a, q):
     
     # Place win devant les autres fenetres
     win.deiconify(); win.focus_set()
+    #CPlot.setState(cursor=2) # ne marche pas tant que pas de winloop
 
     # get data from reading process
     if a is not None and q is not None:
         CTK.t = q.get()
         a.join()
+    #CPlot.setState(cursor=0)
 
     # - Update apps -    
     CTK.TKTREE.updateApp()
@@ -61,6 +64,7 @@ def run(a, q):
 def loadSkeleton(q, h):
     t2 = h.loadSkeleton(maxDepth=-1)
     q.put(t2)
+    
     
 #==============================================================================
 if __name__ == "__main__":

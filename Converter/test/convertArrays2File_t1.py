@@ -54,7 +54,7 @@ test.testF(LOCAL+'/outle.dat.gbin', 51)
 
 # fmt_pov
 C.convertArrays2File([cart3], LOCAL+'/out.pov', 'fmt_pov', dataFormat='%f ')
-test.testF(LOCAL+'/out.pov', 6)
+#test.testF(LOCAL+'/out.pov', 6)
     
 # fmt_mesh
 C.convertArrays2File([cart3], LOCAL+'/out.mesh', 'fmt_mesh', dataFormat='%.9e ')

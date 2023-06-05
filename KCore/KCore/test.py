@@ -140,6 +140,11 @@ def outT(t, number=1):
 # Diff byte to byte
 #=============================================================================
 def testF(infile, number=1):
+    # Chek infile
+    a = os.access(infile, os.F_OK)
+    if not a:
+        print("DIFF: file "+infile+' doesnt exist.')
+
     # Check Data directory
     a = os.access(DATA, os.F_OK)
     if not a:

@@ -1003,7 +1003,7 @@ def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=Tr
                             ns = Internal.getNodeFromName1(zs[c], 'XZone')
                             if ns is not None: z[2].append(ns)
                             ns = Internal.getNodeFromName1(zs[c], '.Solver#ownData')
-                            if  ns is not None: 
+                            if ns is not None: 
                                 if 'Parameter_int' in ns[2]: ns[2].remove('Parameter_int')
                                 if 'Parameter_real' in ns[2]: ns[2].remove('Parameter_real')
                                 z[2].append(ns)

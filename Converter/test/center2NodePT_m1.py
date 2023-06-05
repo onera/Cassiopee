@@ -36,5 +36,4 @@ a = Cmpi.center2Node(a, 'centers:Density')
 # a est maintenant un arbre partiel
 a = C.rmVars(a, 'centers:Density')
 
-# Reconstruit l'arbre complet a l'ecriture
 if Cmpi.rank == 0: test.testT(a, 1)
