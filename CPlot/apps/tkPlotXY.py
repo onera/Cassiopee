@@ -15519,7 +15519,7 @@ def main(data):
 
 def createTkDesktop():
     CTK.loadPrefFile(); CTK.setPrefs()
-    (win, menu, file, tools) = CTK.minimal('tkPlotXY')
+    (win, frames, menu, menus, file, tools) = CTK.minimal2('tkPlotXY')
     createApp(win); showApp()
     return DESKTOP, win
 
