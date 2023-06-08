@@ -637,7 +637,7 @@ PyObject* K_CPLOT::setSelectedZones(PyObject* self, PyObject* args)
     int status = PyLong_AsLong(PyTuple_GetItem(tpl, 1));
     if (noz < 0 || noz > d->_numberOfZones-1)
     {
-      printf("Warning: setSelectedZones: number of zone is invalid.\n");
+      //printf("Warning: setSelectedZones: number of zone is invalid.\n");
     }
     else if (status != 1 && status != 0)
     {

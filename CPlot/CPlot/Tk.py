@@ -11,6 +11,7 @@ import Post
 from . import PyTree as CPlot
 from . import cplot
 from . import Panels
+from . import iconics
 import os, os.path
 from sys import version_info
 
@@ -675,6 +676,55 @@ def quickReloadFile(event=None):
       TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
 
 #==============================================================================
+# Quick reload skeleton from file
+#==============================================================================
+def quickReloadSkeleton(event=None):
+  global t; global HANDLE
+  try:
+    import Converter.Filter as Filter
+    h = Filter.Handle(FILE)
+    t = h.loadSkeleton(maxDepth=-1)
+    HANDLE = h
+    TKTREE.updateApp()
+    fileName = os.path.split(FILE)[1]
+    filePath = os.path.split(FILE)[0]
+    TXT.insert('START', 'File %s reloaded.\n'%fileName)
+    changeWindowTitle(fileName, filePath)
+  except:
+    TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
+
+#==============================================================================
+# Load skeleton from file
+#==============================================================================
+def loadFileSkeleton(event=None):
+    global FILE; global t
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
+    files = tkFileDialog.askopenfilenames(
+        filetypes=fileTypes, initialfile=FILE, multiple=1)
+    if files == '' or files is None or files == (): # user cancel
+        return
+    files = fixFileString__(files, FILE)
+    try:
+        FILE = files[0]
+        t = []
+        for file in files:
+            import Converter.Filter as Filter
+            h = Filter.Handle(file)
+            t2 = h.loadSkeleton(maxDepth=-1)
+            if t == []: t = t2
+            else: t = C.mergeTrees(t, t2)
+        HANDLE = Filter.Handle(FILE)
+        TKTREE.updateApp()
+        fileName = os.path.split(FILE)[1]
+        filePath = os.path.split(FILE)[0]
+        TXT.insert('START', 'File %s read.\n'%fileName)
+        changeWindowTitle(fileName, filePath)
+    except:
+        TXT.insert('START', 'Cannot read file '+os.path.split(files[0])[1]+'.\n')
+        TXT.insert('START', 'Error: ', 'Error')
+
+#==============================================================================
 # Save selected zones to a file. Open a dialog.
 #==============================================================================
 def saveSelZones2File():
@@ -1337,66 +1387,80 @@ def getValidZones():
 #==============================================================================
 # Tool bar
 # Create a tool bar on top of win
+# mode = 0: for Cassiopee
+# mode = 1: for kcgnsview
 #==============================================================================
-def toolBar(win):
-    from . import iconics
+def toolBar(win, mode=0):
     # Change l'icone de la fenetre
     win.tk.call('wm', 'iconphoto', win._w, iconics.PHOTO[13])
+
     frame = TTK.Frame(win)
     frame.rowconfigure(0, weight=0)
 
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20, 
-                  image=iconics.PHOTO[0], borderwidth=0,
-                  command=quickSaveFile)
-    BB = infoBulle(parent=B, text='Save.')
-    B.grid(row=0, column=0)
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[11], borderwidth=0,
-                  command=quickReloadFile)
-    BB = infoBulle(parent=B, text='Reload current file.')
-    B.grid(row=0, column=1)
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[1], borderwidth=0,
-                   command=undo)
-    BB = infoBulle(parent=B, text='Undo.')
-    B.grid(row=0, column=2)
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[2], borderwidth=0,
-                   command=rmBlock)
-    BB = infoBulle(parent=B, text='Rm block.')
-    B.grid(row=0, column=3)
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[3], borderwidth=0,
-                   command=copyBlock)
-    BB = infoBulle(parent=B, text='Copy block.')
-    B.grid(row=0, column=4)
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[4], borderwidth=0,
-                   command=lookFor)
-    BB = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
-    B.grid(row=0, column=5)
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[5], borderwidth=0,
-                   command=unselectAll)
-    BB = infoBulle(parent=B, text='Unselect all blocks.')
-    B.grid(row=0, column=6)
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[6], borderwidth=0, 
-                   command=viewDeactivatedZones)
-    BB = infoBulle(parent=B, text='View deactivated zones.')
-    B.grid(row=0, column=7)
-    
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[12], borderwidth=0, 
-                   command=revertActivated)
-    BB = infoBulle(parent=B, text='Toggle active zones.')
-    B.grid(row=0, column=8)
-    
-    B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[7], borderwidth=0, 
-                   command=displayMainTree)
-    BB = infoBulle(parent=B, text='Display main tree.')
-    B.grid(row=0, column=9)
+    if mode == 0: # Cassiopee
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20, 
+                    image=iconics.PHOTO[0], borderwidth=0,
+                    command=quickSaveFile)
+        BB = infoBulle(parent=B, text='Save.')
+        B.grid(row=0, column=0)
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[11], borderwidth=0,
+                    command=quickReloadFile)
+        BB = infoBulle(parent=B, text='Reload current file.')
+        B.grid(row=0, column=1)
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[1], borderwidth=0,
+                    command=undo)
+        BB = infoBulle(parent=B, text='Undo.')
+        B.grid(row=0, column=2)
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[2], borderwidth=0,
+                    command=rmBlock)
+        BB = infoBulle(parent=B, text='Rm block.')
+        B.grid(row=0, column=3)
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[3], borderwidth=0,
+                    command=copyBlock)
+        BB = infoBulle(parent=B, text='Copy block.')
+        B.grid(row=0, column=4)
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[4], borderwidth=0,
+                    command=lookFor)
+        BB = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
+        B.grid(row=0, column=5)
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[5], borderwidth=0,
+                    command=unselectAll)
+        BB = infoBulle(parent=B, text='Unselect all blocks.')
+        B.grid(row=0, column=6)
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[6], borderwidth=0, 
+                    command=viewDeactivatedZones)
+        BB = infoBulle(parent=B, text='View deactivated zones.')
+        B.grid(row=0, column=7)
+        
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[12], borderwidth=0, 
+                    command=revertActivated)
+        BB = infoBulle(parent=B, text='Toggle active zones.')
+        B.grid(row=0, column=8)
+        
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[7], borderwidth=0, 
+                    command=displayMainTree)
+        BB = infoBulle(parent=B, text='Display main tree.')
+        B.grid(row=0, column=9)
+    else: # kcgnsview
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[11], borderwidth=0,
+                    command=quickReloadSkeleton)
+        BB = infoBulle(parent=B, text='Reload current file.')
+        B.grid(row=0, column=0)
+        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+                    image=iconics.PHOTO[1], borderwidth=0,
+                    command=undo)
+        BB = infoBulle(parent=B, text='Undo.')
+        B.grid(row=0, column=1)
 
     frame.grid(sticky=TK.NSEW, columnspan=2)
 
@@ -1404,8 +1468,9 @@ def toolBar(win):
 # Minimum application: win, menu, txt
 # IN: title: application title
 # IN: show: create and show if true
+# IN: mode: 0 (Cassiopee), 1 (kcgnsview)
 #==============================================================================
-def minimal(title, show=True):
+def minimal(title, show=True, mode=0):
     
     global TXT, TKTREE
     win = TK.Tk()
@@ -1437,43 +1502,59 @@ def minimal(title, show=True):
     #win.minsize(325, 325)
 
     menu = TK.Menu(win, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+
     # menu file
-    file = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
-    menu.add_cascade(label='File', menu=file)
-    file.add_command(label='Open', accelerator='Ctrl+o', command=loadFile)
-    file.add_command(label='Add', command=addFile)
-    file.add_command(label='Open load panel', accelerator='Ctrl+p', command=Panels.openLoadPanel)
-    file.add_separator()
-    file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
-    file.add_command(label='Save as...', command=saveFile)
-    file.add_command(label='Save selected zones', command=saveSelZones2File)
-    file.add_command(label='Save selected node', command=saveNode2File)
-    file.add_separator()
-    file.add_command(label='Quit', command=Quit)
-
+    if mode == 0: # Cassiopee
+        file = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        menu.add_cascade(label='File', menu=file)
+        file.add_command(label='Open', accelerator='Ctrl+o', command=loadFile)
+        file.add_command(label='Add', command=addFile)
+        file.add_command(label='Open load panel', accelerator='Ctrl+p', command=Panels.openLoadPanel)
+        file.add_separator()
+        file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
+        file.add_command(label='Save as...', command=saveFile)
+        file.add_command(label='Save selected zones', command=saveSelZones2File)
+        file.add_command(label='Save selected node', command=saveNode2File)
+        file.add_separator()
+        file.add_command(label='Quit', command=Quit)
+    else: # kcgnsview
+        file = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        menu.add_cascade(label='File', menu=file)
+        file.add_command(label='Open', accelerator='Ctrl+o', command=loadFileSkeleton)
+        file.add_separator()
+        file.add_command(label='Quit', command=Quit)
+        
     # menu CPlot
-    cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
-    WIDGETS['cplotMenu'] = cplot
-    menu.add_cascade(label='CPlot', menu=cplot)
-    cplot.add_command(label='Display Nodes*', command=setLocNodes)
-    cplot.add_command(label='Display Centers', command=setLocCenters)
-    cplot.add_command(label='Toggle blanking (on/off)', command=changeCPlotBlanking)
-    cplot.add_separator()
-    cplot.add_command(label='Export image/movie', command=cplotExport)
-    cplot.add_command(label='Finalize movie', command=finalizeExport)
-    cplot.add_command(label='E-mail image/report bug', command=mail2Friends)
-    cplot.add_command(label='Save image in doc/blog', command=save2Doc)
-    cplot.add_separator()
-    cplot.add_command(label='Undo change', accelerator='Ctrl+z', command=undo)
-
+    if mode == 0:
+        cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        WIDGETS['cplotMenu'] = cplot
+        menu.add_cascade(label='CPlot', menu=cplot)
+        cplot.add_command(label='Display Nodes*', command=setLocNodes)
+        cplot.add_command(label='Display Centers', command=setLocCenters)
+        cplot.add_command(label='Toggle blanking (on/off)', command=changeCPlotBlanking)
+        cplot.add_separator()
+        cplot.add_command(label='Export image/movie', command=cplotExport)
+        cplot.add_command(label='Finalize movie', command=finalizeExport)
+        cplot.add_command(label='E-mail image/report bug', command=mail2Friends)
+        cplot.add_command(label='Save image in doc/blog', command=save2Doc)
+        cplot.add_separator()
+        cplot.add_command(label='Undo change', accelerator='Ctrl+z', command=undo)
+    else:
+        cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        WIDGETS['cplotMenu'] = cplot
+        menu.add_cascade(label='CPlot', menu=cplot)
+        
     # Menu specific tools
-    tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
-    menu.add_cascade(label='Tools', menu=tools)
-    tools.add_command(label='Save prefs', command=savePrefFile)
-    tools.add_separator()
-    tools.add_command(label='Activate key', command=Panels.activation)
-    tools.add_separator()
-
+    if mode == 0:
+        tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        menu.add_cascade(label='Tools', menu=tools)
+        tools.add_command(label='Save prefs', command=savePrefFile)
+        tools.add_separator()
+        tools.add_command(label='Activate key', command=Panels.activation)
+    else:
+        tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        menu.add_cascade(label='Tools', menu=tools)
+        
     # Menu Help
     help = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     menu.add_cascade(label='Help', menu=help)
@@ -1485,7 +1566,7 @@ def minimal(title, show=True):
 
     win.config(menu=menu)
 
-    toolBar(win)
+    toolBar(win, mode=mode)
 
     # Text only
     #TXT = TK.Text(win, width=30, height=1, background='White', font=TEXTFONT)
@@ -1518,10 +1599,11 @@ def minimal(title, show=True):
 # Minimum application: tktree, notebook, frames, menu, txt
 # IN: title: application title
 # IN: show: create and show if true
+# IN: mode: 0 (Cassiopee), 1 (kcgnsview)
 #==============================================================================
-def minimal2(title, show=True):
+def minimal2(title, show=True, mode=0):
     global TKTREE
-    (win, menu, file, tools) = minimal(title, show)
+    (win, menu, file, tools) = minimal(title, show, mode)
     
     # Frame container
     F = TTK.Frame(win)
@@ -1809,7 +1891,6 @@ def isAppAutoOpen(name):
 # Interne: appele pour changer le status d'une applet (auto-open ou non)
 #==============================================================================
 def toggleAutoOpen(name, m):
-    from . import iconics
     opened = isAppAutoOpen(name)
     if opened:
         # Le retire de la liste
@@ -1831,7 +1912,6 @@ def toggleAutoOpen(name, m):
 # Ajoute a un TkMenu no m un pin menu
 #==============================================================================
 def addPinMenu(m, name):
-    from . import iconics
     opened = isAppAutoOpen(name)
     if opened: icon = iconics.PHOTO[10]
     else: icon = iconics.PHOTO[9]

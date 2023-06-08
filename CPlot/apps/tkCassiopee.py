@@ -7,7 +7,7 @@ import Converter.Internal as Internal
 import os, os.path, sys
 
 # Liste des apps par sous menu et perso
-TREEAPPS = ['tkTreeOps', 'tkCheckPyTree', '---',
+TREEAPPS = ['tkNodeEdit', 'tkTreeOps', 'tkCheckPyTree', '---',
             'tkFamily']
 STATEAPPS = ['tkState', '---',
              'tkPrefs', 'tkPerfo', 'tkContainers', 'tkCamera', '---',

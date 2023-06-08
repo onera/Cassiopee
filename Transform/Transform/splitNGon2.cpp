@@ -148,7 +148,7 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
   {
     p = parts[i]; partSize[p] += 1;
   }
-  for (E_Int i = 0; i < nparts; i++) printf("Info: partSize=%d\n", partSize[i]);
+  //for (E_Int i = 0; i < nparts; i++) printf("Info: partSize=%d\n", partSize[i]);
   
   // output on field
   for (E_Int i = 0; i < nelts; i++)

@@ -22,7 +22,7 @@ def updateFamilyBCNameList(event=None):
     m.delete(0, TK.END)
     varsp = ['-All BC-']+getAllDefinedBC(CTK.t)
     for i in varsp:
-        m.add_command(label=i, command=lambda v=VARS[0],l=i:viewl(v,l))
+        m.add_command(label=i, command=lambda v=VARS[0],l=i:v.set(l))
 
 def updateFamilyBCNameList2(event=None):
     if CTK.t == []: return

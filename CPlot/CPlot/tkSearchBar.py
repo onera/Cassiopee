@@ -6,9 +6,11 @@ from . import Tk as CTK
 
 # Dictionaire Action->applet
 applet = {
+    # tkNodeEdir
+    'tkNodeEdit':'tkNodeEdit', 'Edit/change node value':'tkNodeEdit', 'Load a node':'tkNodeEdit',
     # tkTreeOps
     'tkTreeOps':'tkTreeOps', 'Move node':'tkTreeOps', 'Delete/remove node':'tkTreeOps', 
-    'Edit/change node value':'tkTreeOps', 'Move zone to another base':'tkTreeOps',
+    'Move zone to another base':'tkTreeOps',
     # tkCheckPyTree
     'tkCheckPyTree':'tkCheckPyTree', 'Correct pyTree':'tkCheckPyTree', 
     'Correct nodes':'tkCheckPyTree', 'Correct BCs':'tkCheckPyTree',

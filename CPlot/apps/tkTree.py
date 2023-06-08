@@ -6,7 +6,7 @@ import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import tkTreeOps # for node inspector
+import tkNodeEdit # for node inspector
 import Converter.Internal as Internal
 try: import tkinter.dnd as Tkdnd # drag and drop
 except: import Tkdnd
@@ -501,7 +501,7 @@ class Node:
             pid = self.id
             # Change the node name
             pid[0] = sw.itemcget(item, "text")
-            try: tkTreeOps.updateNode(pid)
+            try: tkNodeEdit.updateNode(pid)
             except: pass
             sw.focus('')
             sw.select_clear()
@@ -658,7 +658,7 @@ class Node:
             
     def PVT_displayNode(self, clear=False):
         pid = self.id
-        try: tkTreeOps.updateNode(pid)
+        try: tkNodeEdit.updateNode(pid)
         except: pass
 
         if pid[3] == 'CGNSLibraryVersion_t':
@@ -1454,8 +1454,8 @@ def createApp(win):
     Frame2.grid(sticky=TK.NSEW)
 
     aw = 230; ah = 210
-    if 'tkTreeWidth' in CTK.PREFS: aw = CTK.PREFS['tkTreeWidth']
-    if 'tkTreeHeight' in CTK.PREFS: ah = CTK.PREFS['tkTreeHeight']
+    if 'tkTreeWidth' in CTK.PREFS: aw = int(CTK.PREFS['tkTreeWidth'])
+    if 'tkTreeHeight' in CTK.PREFS: ah = int(CTK.PREFS['tkTreeHeight'])
 
     # - Tree -
     B = Tree(master=Frame2,

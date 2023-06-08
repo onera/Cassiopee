@@ -1090,9 +1090,10 @@ def notifyValidOK():
     except: pass
     
     # Write time stamp dans ValidData/base.time
-    if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
-        os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
-    writeFinal(CASSIOPEE+'/Apps/Modules/ValidData/base.time', svnVersion)
+    cassiopee = os.getenv('CASSIOPEE')
+    if not os.path.exists(cassiopee+'/Apps/Modules/ValidData'):
+        os.mkdir(cassiopee+'/Apps/Modules/ValidData')
+    writeFinal(cassiopee+'/Apps/Modules/ValidData/base.time', svnVersion)
 
 #==============================================================================
 def Quit(event=None):

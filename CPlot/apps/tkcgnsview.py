@@ -1,7 +1,6 @@
 # -- cassiopee cgnsview main app --
 import Converter.PyTree as C
 import CPlot.Tk as CTK
-import CPlot.PyTree as CPlot
 import os, os.path, sys
 
 #==============================================================================
@@ -12,22 +11,32 @@ def run(a, q):
     CTK.loadPrefFile(); CTK.setPrefs()
 
     # Passe la dimension par une pseudo pref
-    CTK.PREFS['tkTreeWidth'] = 380
-    CTK.PREFS['tkTreeHeight'] = 290
+    if 'tkTreeWidth' in CTK.PREFS: widthSave = CTK.PREFS['tkTreeWidth']
+    else: widthSave = None
+    if 'tkTreeHeight' in CTK.PREFS: heightSave = CTK.PREFS['tkTreeHeight']
+    else: heightSave = None
+    CTK.PREFS['tkTreeWidth'] = "380"
+    CTK.PREFS['tkTreeHeight'] = "290"
 
     # Main window
     (win, frames, menu, menus, file, tools) = CTK.minimal2('kcgnsview '+C.__version__,
-                                                           show=False)
+                                                           show=False, mode=1)
     fileName = os.path.split(CTK.FILE)
     CTK.changeWindowTitle(fileName[1], fileName[0])
 
+    # remet les vrais valeurs de dimension de la fenetre dans PREFS
+    if widthSave is not None: CTK.PREFS['tkTreeWidth'] = widthSave
+    else: CTK.PREFS.pop('tkTreeWidth')
+    if heightSave is not None: CTK.PREFS['tkTreeHeight'] = heightSave
+    else: CTK.PREFS.pop('tkTreeHeight')
+
     # Add some apps
     auto = {}
-    auto['tkTreeOps'] = True
+    auto['tkNodeEdit'] = True
     auto['tkMeshInfo'] = True
     auto['tkPlotXY'] = False
     submenus = {}
-    for app in ['tkTreeOps']: CTK.addMenuItem(app, menus[0], frames[0], submenus, auto)
+    for app in ['tkNodeEdit']: CTK.addMenuItem(app, menus[0], frames[0], submenus, auto)
     submenus = {}
     for app in ['tkMeshInfo']: CTK.addMenuItem(app, menus[4], frames[4], submenus, auto)
     try:
@@ -38,15 +47,18 @@ def run(a, q):
     
     # Place win devant les autres fenetres
     win.deiconify(); win.focus_set()
-    #CPlot.setState(cursor=2) # ne marche pas tant que pas de winloop
-
+    
+    win.config(cursor="watch")
+    win.update_idletasks()
+    win.update()
+    
     # get data from reading process
     if a is not None and q is not None:
         CTK.t = q.get()
         a.join()
-    #CPlot.setState(cursor=0)
+    win.config(cursor="")
 
-    # - Update apps -    
+    # - Update apps -
     CTK.TKTREE.updateApp()
     #if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
     
@@ -76,12 +88,7 @@ if __name__ == "__main__":
         import Converter.Filter as Filter
         CTK.HANDLE = Filter.Handle(files[0])
         CTK.FILE = files[0]
-        
-        # Threading is limited to one core because of GIL
-        #import threading
-        #a = threading.Thread(target=loadFullSkeleton)
-        #a.start()
-        
+                
         # with multiprocessing, we must communicate CTK.t through Queue
         import multiprocessing
         q = multiprocessing.Queue()
