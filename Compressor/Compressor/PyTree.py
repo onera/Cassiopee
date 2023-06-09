@@ -119,7 +119,7 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
 # bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
 # if subr, the tree subregions are kept during the exchange 
 def compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
-    """For Cartesian grids, replace Grid Coordinates with a UserDefined CartesianData node."""
+    """For Cartesian grids, replace Grid Coordinates with a compressed node."""
     tp = Internal.copyRef(t)
     _compressCartesian(tp, bbox=bbox, layers=layers, subr=subr, tol=tol)
     return tp
@@ -233,6 +233,7 @@ def _compressCartesian__(z, ztype, gc, tol=1.e-10):
 # Ajoute un noeud CartesianData a la zone
 # remplace Coordinates par des noeuds avec des champs de taille 10
 def _compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
+    """For Cartesian grids, replace Grid Coordinates with a compressed node."""
     zones = Internal.getZones(t)
     for z in zones:
         ztype = Internal.getZoneDim(z)
@@ -348,6 +349,7 @@ def _uncompressCartesian__(z, ztype, gc):
 # Reconstruit CoordinateX, CoordinateY, CoordinateZ
 # Supprime CartesianData
 def _uncompressCartesian(t):
+    """For Cartesian grids, recreate Grid Coordinates from compressed zones."""
     zones = Internal.getZones(t)
     for z in zones:
         ztype = Internal.getZoneDim(z)
@@ -452,7 +454,7 @@ def _unpackNode(node):
 
 # compressCoords of zones
 def _compressCoords(t, tol=1.e-8, ctype=0):
-    """Compress coordinates with a relative tolerance."""
+    """Compress coordinates lossless or with a relative tolerance."""
     zones = Internal.getZones(t)
     for z in zones:
         GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
@@ -464,13 +466,13 @@ def _compressCoords(t, tol=1.e-8, ctype=0):
     return None
 
 def compressCoords(t, tol=1.e-8, ctype=0):
-    """Compress coordinates with a relative tolerance."""
+    """Compress coordinates lossless or with a relative tolerance."""
     tp = Internal.copyRef(t)
     _compressCoords(tp, tol, ctype)
     return tp
 
 def _compressFields(t, tol=1.e-8, ctype=0, varNames=None):
-    """Compress fields with a relative tolerance."""
+    """Compress fields lossless or with a relative tolerance."""
     zones = Internal.getZones(t)
     for z in zones:
         if varNames is None:
@@ -501,14 +503,14 @@ def _compressFields(t, tol=1.e-8, ctype=0, varNames=None):
     return None
 
 def compressFields(t, tol=1.e-8, ctype=0, varNames=None):
-    """Compress fields with a relative tolerance."""
+    """Compress fields lossless or with a relative tolerance."""
     tp = Internal.copyRef(t)
     _compressFields(tp, tol, ctype, varNames)
     return tp
 
 # Compresse un cellN 0,1,2
 def _compressCellN(t, varNames=['cellN']):
-    """Compress cellN (0,1,2) on 2 bits."""
+    """Compress cellN (0,1,2) lossless on 2 bits."""
     zones = Internal.getZones(t)
     for name in varNames:
         spl = name.split(':')
@@ -520,14 +522,14 @@ def _compressCellN(t, varNames=['cellN']):
     return None
 
 def compressCellN(t, varNames=['cellN']):
-    """Compress cellN (0,1,2) on 2 bits.""" 
+    """Compress cellN (0,1,2) lossless on 2 bits.""" 
     tp = Internal.copyRef(t)
     _compressCellN(tp, varNames)
     return tp
 
 # Compress Elements_t (elts basiques ou NGONs)
 def _compressElements(t):
-    """Compress Element connectivities."""
+    """Compress lossless Element connectivities."""
     zones = Internal.getZones(t)
     for z in zones:
         elts = Internal.getNodesFromType1(z, 'Elements_t')
@@ -543,7 +545,7 @@ def _compressElements(t):
     return None
     
 def compressElements(t):
-    """Compress Element connectivity.""" 
+    """Compress lossless Element connectivity.""" 
     tp = Internal.copyRef(t)
     _compressElements(tp)
     return tp

@@ -819,7 +819,8 @@ else if ($MAC == "spiro_coda_el8") then
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
-
+        setenv OMP_PLACES cores
+        
         module purge
         setenv CONFIG_SPACK_ROOT /stck/rhea/prod/spacky_2022-centos8
         source $CONFIG_SPACK_ROOT/external/spack/share/spack/setup-env.csh

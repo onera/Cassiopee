@@ -716,6 +716,7 @@ elif [ "$MAC" = "spiro_coda_el8" ]; then
     module load subversion/1.14.1-gnu831
     export PYTHONEXE=python3
     alias python=python3
+    export OMP_PLACES=cores
     # Chemin de l'executable python
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH

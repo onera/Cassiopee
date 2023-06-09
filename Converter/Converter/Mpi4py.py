@@ -193,19 +193,7 @@ def intersect(zone, BBTree):
     return converter.intersect(minBBox, maxBBox, BBTree)
 
 def intersect2(t, BBTree):
-    zones = Internal.getZones(t)
-    # inBB = []
-    # for z in zones:
-    #     gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
-    #     xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
-    #     yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
-    #     zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
-    #     #minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
-    #     #maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
-    #     minBBox = [xCoords[0,0,0], yCoords[0,0,0], zCoords[0,0,0]]
-    #     maxBBox = [xCoords[1,0,0], yCoords[0,1,0], zCoords[0,0,1]]
-    #     inBB.append([minBBox, maxBBox])
-    
+    zones = Internal.getZones(t)    
     inBB = numpy.empty((6*len(zones)), dtype=numpy.float64)
     for c, z in enumerate(zones):
         gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)

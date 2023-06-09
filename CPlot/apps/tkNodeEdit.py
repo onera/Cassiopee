@@ -42,16 +42,18 @@ def showNodeValue(event=None):
     except: index = 0; VARS[1].set('0')
     if index < 0: index = 0; VARS[1].set(str(index))
     v = node[1]
-    if isinstance(v, float): v = strFormat2(v); index = 0
-    elif isinstance(v, int): v = strFormat2(v); index = 0
+    flatView2 = [None, None, None, None] # for display info window: [dim, start, index, last]
+    if isinstance(v, float): v = strFormat2(v); flatView2[2] = v; index = 0
+    elif isinstance(v, int): v = strFormat2(v); flatView2[2] = v; index = 0
     elif isinstance(v, numpy.ndarray):
-        if v.dtype == 'c': v = Internal.getValue(node); index = 0
+        if v.dtype == 'c': 
+            v = Internal.getValue(node); flatView2[2] = v; index = 0
         else:
             sh = v.shape
             if len(sh) == 3:
-                dim = '('+str(sh[0])+';'+str(sh[1])+';'+str(sh[2])+'): '
+                dim = '('+str(sh[0])+'x'+str(sh[1])+'x'+str(sh[2])+'): '
             elif len(sh) == 2:
-                dim = '('+str(sh[0])+';'+str(sh[1])+'): '
+                dim = '('+str(sh[0])+'x'+str(sh[1])+'): '
             elif len(sh) == 1:
                 dim = '('+str(sh[0])+'): '
             else:
@@ -74,6 +76,7 @@ def showNodeValue(event=None):
                 flatView = strFormat(vf[index])
                 CTK.TXT.insert('START', flatView, 'Warning')
                 flatView = dim+'...'+strFormat(vf[index-2])+' '+strFormat(vf[index-1])+' '
+                flatView2[0] = dim
                 CTK.TXT.insert('START', flatView)
                 
             elif index == 2:
@@ -105,7 +108,7 @@ def showNodeValue(event=None):
                 CTK.TXT.insert('START', flatView, 'Warning')
                 flatView = dim+strFormat(vf[index-1])+' '
                 CTK.TXT.insert('START', flatView)
-                 
+                
             elif index == 0:
                 if v.size <= index+1: flatView = ''
                 elif v.size <= index+2:
@@ -120,9 +123,57 @@ def showNodeValue(event=None):
                 CTK.TXT.insert('START', flatView, 'Warning')
                 flatView = dim
                 CTK.TXT.insert('START', flatView)                
+            
             v = strFormat2(vf[index])
+
+            SIZE = 10
+            flatView2[0] = dim
+            if index-SIZE//2 >= 0 and index+SIZE//2 < vf.size: 
+                left = index - SIZE//2
+                right = index + SIZE//2
+            elif index - SIZE//2 < 0:
+                left = max(0, index-SIZE//2)
+                right = min(SIZE - left, vf.size)
+            else:
+                right = min(index+SIZE//2, vf.size)
+                left = max(right - SIZE, 0)
+            
+            rep = ''
+            for i in range(left, index):
+                rep += strFormat(vf[i])+' '
+            if rep != '':
+                if left > 0: rep = '...'+rep 
+                flatView2[1] = rep
+            
+            rep = strFormat(vf[index])+' '
+            flatView2[2] = rep
+            
+            rep = ''
+            for i in range(index+1, right):
+                rep += strFormat(vf[i])+' '
+            
+            if rep != '':
+                if right < vf.size: rep += '...'
+                flatView2[3] = rep
+
+    else: # fall back
+        v = str(node[1]); index = 0
+
     VARS[1].set(str(index))
     VARS[2].set(v)
+
+    # update info window
+    #pos = WIDGETS['infoText'].index(TK.INSERT); print(pos)
+    WIDGETS['infoText'].delete(1.0, TK.END)
+    if flatView2[3] is not None: # last
+        WIDGETS['infoText'].insert('START', flatView2[3])
+    if flatView2[2] is not None: # active
+        WIDGETS['infoText'].insert('START', flatView2[2], 'Active')
+    if flatView2[1] is not None: # start
+        WIDGETS['infoText'].insert('START', flatView2[1])
+    if flatView2[0] is not None: # dim
+        WIDGETS['infoText'].insert('START', flatView2[0]+'\n', 'Dim')
+    #WIDGETS['infoText'].mark_set("insert", pos)
 
 #==============================================================================
 # increase index in inspector
@@ -310,6 +361,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Name'); VARS.append(V)
     # -7- Maxdepth for load
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
+    # -8- display text value
+    V = TK.StringVar(win); VARS.append(V)
 
     # - Small node editor -
     F = TTK.Frame(Frame, borderwidth=0, relief=CTK.FRAMESTYLE, takefocus=1)
@@ -340,20 +393,29 @@ def createApp(win):
     B = TTK.Button(FrameA, text=">", command=increaseIndex, width=2)
     B.grid(row=0, column=2, sticky=TK.EW)
     
-    B = TTK.Entry(F, textvariable=VARS[2], background='White', width=5)
+    B = TTK.Entry(F, textvariable=VARS[2], background='White', width=5, foreground="green")
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Selected node value at given index.\nYou can change this by pressing <Enter>.')
     B.bind('<Return>', setNodeValue)
 
+    # display info text
+    B = TTK.Text(Frame, background='White', width=5, height=5)
+    B.grid(row=1, column=0, columnspan=4, sticky=TK.EW)
+    B.tag_config("Dim", foreground="blue")
+    B.tag_config("Active", foreground="green")
+    B.mark_set('START', TK.INSERT)
+    B.mark_gravity('START', TK.LEFT)
+    WIDGETS['infoText'] = B
+
     # - Load/free Nodes -
     B = TTK.Button(Frame, text="Load node", command=loadNode)
     BB = CTK.infoBulle(parent=B, text='Load selected node from file.')
-    B.grid(row=1, column=0, sticky=TK.EW)
+    B.grid(row=2, column=0, sticky=TK.EW)
     B = TTK.Button(Frame, text="Free", command=freeNode)
     BB = CTK.infoBulle(parent=B, text='Free selected node.')
-    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[7], background='White', width=2)
-    B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=2, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Max depth for load, save and free (-1: full).')
 
 #==============================================================================
