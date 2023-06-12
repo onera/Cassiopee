@@ -30,7 +30,8 @@ import getpass
 import socket
 import os,sys
 
-import Geom.IBM as D_IBM
+from Geom.IBM import setSnear,_setSnear,setDfar,_setDfar,snearFactor,_snearFactor,setFluidInside,_setFluidInside,setIBCType,_setIBCType,changeIBCType,initOutflow,initInj,_initOutflow,_initInj,transformTc2
+
 import Post.IBM as P_IBM
 import Connector.IBM as X_IBM
 import Generator.IBM as G_IBM
@@ -61,59 +62,67 @@ def _changeNameIBCD__(tc2,NewIBCD):
     return None   
 
 
-def dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
-    DTW._distance2Walls(t, tb, type=type, signed=signed, dim=dim, loc=loc)
-    #list_final_zones=[]
-    #for z in Internal.getZones(t):
-    #    list_final_zones.append(z[0])
-    #
-    #tBB =G.BB(t)
-    #tbBB=G.BB(tb)
-    #
-    #interDict = X.getIntersectingDomains(tBB, tbBB)    
-    #
-    ##FULL TB
-    #zt       = []
-    #zt_names = []
-    #for i in interDict:
-    #    if interDict[i]:
-    #        zt.append(Internal.getNodeByName(t,i))
-    #        zt_names.append(i)
-    #
-    #if zt_names:
-    #    DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
-    #
-    ###PRT1
-    #list_additional_zones = getZonesScaleUpDown__(tbBB,tBB,zt_names,dim=dim)
-    #
-    ####PRT2
-    #if list_additional_zones:        
-    #    zt=[]
-    #    for i in list_additional_zones:
-    #        zt.append(Internal.getNodeByName(t,i))
-    #    
-    #    DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
+def dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers',model='NSLaminar'):
+    if model=='NSLaminar':
+        list_final_zones=[]
+        for z in Internal.getZones(t):
+            list_final_zones.append(z[0])
+        
+        tBB =G.BB(t)
+        tbBB=G.BB(tb)
+
+
+        ##PRT1 - Zones flagged by the intersection of the bounding boxes of t and tb
+        interDict = X.getIntersectingDomains(tBB, tbBB)    
+        zt       = []
+        zt_names = []
+        for i in interDict:
+            if interDict[i]:
+                zt.append(Internal.getNodeByName(t,i))
+                zt_names.append(i)
+        
+        if zt_names:
+            DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
+        del zt
+                
+        ###PRT2 - Zones flagged by the intersection of the bounding boxes of t and scaled version of tb
+        list_additional_zones = getZonesScaleUpDown__(tbBB,tBB,zt_names,dim=dim)
+        
+       
+        ##PRT2
+        if list_additional_zones:        
+            zt=[]
+            for i in list_additional_zones:
+                zt.append(Internal.getNodeByName(t,i))
+            DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
+            
+    else:
+        DTW._distance2Walls(t, tb, type=type, signed=signed, dim=dim, loc=loc)    
+        
     return None
         
-
+        
 def getZonesScaleUpDown__(tbBB,tBB,zt_names,diff_percent=0.15,sweep_num=4,scaleDirection=0,dim=2):
-    minval_tb = C.getMinValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
-    maxval_tb = C.getMaxValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
-    mean_tb   = getMean__(maxval_tb,minval_tb)
+    mean_tb=[]
+    for bb in Internal.getZones(tbBB):
+        minval_tb = C.getMinValue(bb, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
+        maxval_tb = C.getMaxValue(bb, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
+        mean_tb.append(getMean__(maxval_tb,minval_tb))
+        
     diff_percentz=diff_percent
     if dim==2: diff_percentz=0
     
     list_additional_zones=[]
+    list_additional_zonesCGNSFile=[]
     for i in range(1,sweep_num+1):
         if scaleDirection>=0:            
-            tbBB_scale    = T.scale(tbBB, factor=(1.0+i*diff_percent,1.0+i*diff_percent,1.0+i*diff_percentz))
+            tbBB_scale = T.scale(tbBB, factor=(1.0+i*diff_percent,1.0+i*diff_percent,1.0+i*diff_percentz))
+            add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
+            
+        if scaleDirection<=0:
+            tbBB_scale = T.scale(tbBB, factor=(1.0-i*diff_percent,1.0-i*diff_percent,1.0-i*diff_percentz))
             add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
 
-        if scaleDirection<=0:
-            tbBB_scale    = T.scale(tbBB, factor=(1.0-i*diff_percent,1.0-i*diff_percent,1.0-i*diff_percentz))            
-            add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
-    
-                    
     return list_additional_zones
 
 
@@ -125,14 +134,18 @@ def getMean__(max_local,min_local):
 
 
 def add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names):
-    minval_tbscale = C.getMinValue(tbBB_scale, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
-    maxval_tbscale = C.getMaxValue(tbBB_scale, ['CoordinateX', 'CoordinateY','CoordinateZ']);
-    mean_tbscale   = getMean__(maxval_tbscale,minval_tbscale) 
-    T._translate(tbBB_scale, (mean_tb[0]-mean_tbscale[0],mean_tb[1]-mean_tbscale[1],mean_tb[2]-mean_tbscale[2]))
-    interDict_scale = X.getIntersectingDomains(tBB, tbBB_scale)
-    for i in interDict_scale:
-        if interDict_scale[i] and i not in list_additional_zones and i not in zt_names:
-            list_additional_zones.append(i)
+    count=0
+    for bb in Internal.getZones(tbBB_scale):
+        minval_tbscale = C.getMinValue(bb, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
+        maxval_tbscale = C.getMaxValue(bb, ['CoordinateX', 'CoordinateY','CoordinateZ']);
+        mean_tbscale   = getMean__(maxval_tbscale,minval_tbscale)
+        T._translate(bb, (mean_tb[count][0]-mean_tbscale[0],mean_tb[count][1]-mean_tbscale[1],mean_tb[count][2]-mean_tbscale[2]))
+        
+        interDict_scale = X.getIntersectingDomains(tBB, bb)
+        for i in interDict_scale:
+            if interDict_scale[i] and i not in list_additional_zones and i not in zt_names:
+                list_additional_zones.append(i)
+        count+=1        
     return None
 
 
@@ -1034,8 +1047,9 @@ class IBM(Common):
         if self.rank==0 and self.input_var.check: C.convertPyTree2File(o,fileout)
         # build parent octree 3 levels higher
         # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-        parento = G_IBM.buildParentOctrees__(o, tb, snears=self.input_var.snears, snearFactor=4., dfar=self.input_var.dfar, dfarList=self.input_var.dfarList, to=self.input_var.to, tbox=self.input_var.tbox, snearsf=self.input_var.snearsf,
-                                            dimPb=self.dimPb, vmin=self.input_var.vmin, symmetry=symmetry, fileout=None, rank=self.rank)
+        parento = G_IBM.buildParentOctrees__(o, tb, snears=self.input_var.snears, snearFactor=4., dfar=self.input_var.dfar, dfarList=self.input_var.dfarList, to=self.input_var.to,
+                                             tbox=self.input_var.tbox, snearsf=self.input_var.snearsf,
+                                             dimPb=self.dimPb, vmin=self.input_var.vmin, symmetry=symmetry, fileout=None, rank=self.rank)
         test.printMem(">>> Octree unstruct [end]")
 
         if self.input_var.check_snear: exit()
@@ -1105,7 +1119,7 @@ class IBM(Common):
             if self.dimPb == 2:
                 tb2      = C.initVars(tb, 'CoordinateZ', self.input_var.dz*0.5)
                 self.tbsave   = tb2
-                dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers')
+                dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
                 
                 if self.filamentBases:
                     C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
@@ -1113,7 +1127,7 @@ class IBM(Common):
                     
                     tb2           = C.initVars(self.tbFilament, 'CoordinateZ', self.input_var.dz*0.5)
                     self.tbsave   = Internal.merge([self.tbsave,tb2])
-                    dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers')
+                    dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
                     C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
                     C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
     
@@ -1121,13 +1135,13 @@ class IBM(Common):
                     C._initVars(t,"{centers:TurbulentDistanceFilament}=({centers:TurbulentDistanceFilament}>1e03)*0+({centers:TurbulentDistanceFilament}<1e03)*{centers:TurbulentDistanceFilament}")
                 
             else:
-                dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=self.dimPb, loc='centers')
+                dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
                 
                 if self.filamentBases:
                     C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
                     C._initVars(t,'{centers:TurbulentDistance}=1e06')
     
-                    dist2wallNearBody__(t, self.tbFilament, type='ortho', signed=0, dim=self.dimPb, loc='centers')
+                    dist2wallNearBody__(t, self.tbFilament, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
     
                     C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
                     C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
@@ -2090,7 +2104,10 @@ class IBM(Common):
         
         #-----------------------------------------
         # Computes distance field for Musker only
-        #-----------------------------------------    
+        #-----------------------------------------
+        ## This was added in Revision 4265 - Comment: "Apps: IBM extrude cart et cylindrique"
+        ## Need to understand why it was added before the recompute for RANS & was not included in the recompute of dist2wall for RANS.
+        ## Left here for now. Not efficient but acceptable (for now).
         if self.model != 'Euler' and self.input_var.recomputeDist and (self.input_var.extrusion!='cyl' and self.input_var.extrusion !='cart'):
             if 'outpress' in self.ibctypes or 'inj' in self.ibctypes or 'slip' in self.ibctypes:
                 test.printMem(">>> wall distance for viscous wall only [start]")
@@ -2158,6 +2175,7 @@ class IBM(Common):
             D2mpi._redispatch(tc)
             D2mpi._redispatch(t)
             self._checkNcellsNptsPerProc(tc,isAtCenter=True)
+            
         ## ================================================
         ## === Recompute Distance for Wall (RANS Only) ====
         ## ================================================
@@ -2298,71 +2316,6 @@ class IBM(Common):
 
     def setInterpData_Hybride(self,t_3d, tc_3d, t_curvi, interpDataType=1):
         return setInterpData_Hybride(t_3d, tc_3d, t_curvi,extrusion=self.input_var.extrusion,interpDataType=interpDataType)
-
-
-## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Geom/Geom/IBM.py
-## The functions below will become decrepit after Jan. 1 2023
-#====================================================================================
-def setSnear(t, value):
-    tp=D_IBM.setSnear(t, value)
-    return tp
-
-def _setSnear(t, value):
-    D_IBM._setSnear(t, value)
-    return None
-
-def setDfar(t, value):
-    tp=D_IBM.setDfar(t, value)
-    return tp
-
-def _setDfar(t, value):
-    D_IBM._setDfar(t, value)
-    return None
-
-def snearFactor(t, factor):
-    tp=D_IBM.snearFactor(t, factor)
-    return tp
-
-def _snearFactor(t, factor):
-    D_IBM._snearFactor(t, factor)
-    return None
-
-def setFluidInside(t):
-    return D_IBM.setFluidInside(t)
-
-def _setFluidInside(t):
-    return D_IBM._setFluidInside(t)
-
-def setIBCType(t, value):
-    tp=D_IBM.setIBCType(t, value)
-    return tp
-
-def _setIBCType(t, value):
-    D_IBM._setIBCType(t, value)
-    return None
-
-def changeBCType(tc, oldBCType, newBCType):
-    tc=D_IBM.changeIBCType(tc, oldBCType, newBCType)
-    return tc
-
-def initOutflow(tc, familyNameOutflow, P_tot):
-    tc=D_IBM.initOutflow(tc, familyNameOutflow, P_tot)
-    return tc
-
-def initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
-    tc=D_IBM.initInj(tc, familyNameInj, P_tot, H_tot, injDir)                    
-    return tc
-
-def _initOutflow(tc, familyNameOutflow, P_tot):
-    return D_IBM._initOutflow(tc, familyNameOutflow, P_tot)
-
-def _initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
-    return D_IBM._initInj(tc, familyNameInj, P_tot, H_tot, injDir)       
-
-def transformTc2(tc2):
-    tc2=D_IBM.transformTc2(tc2)
-    return tc2
 
 
 ## IMPORTANT NOTE !!
