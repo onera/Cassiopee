@@ -207,8 +207,13 @@ def prepare(tinit=None):
 
     import Apps.Fast.IBM as App
     myApp = App.IBM(format='single')
-    CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, 
-                              tbox=tbox, check=False, tinit=tinit)
+    myApp.input_var.vmin =21
+    myApp.input_var.tbox =tbox
+    myApp.input_var.check=False
+    myApp.input_var.tinit=tinit
+    
+    CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns')
+    
     # Preparation pour le front 42
     #CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, 
     #                          tbox=tbox, check=False, tinit=tinit, frontType=42, yplus=150.)
@@ -226,7 +231,7 @@ def compute():
     #import Compressor.PyTree as Compressor
     #tp = Compressor.compressCartesian(CTK.t)
     #C.convertPyTree2File(tp, 'restart.cgns'); tp = None
-    Fast.saveFile(CTK.t, 'restart.cgns', cartesian=True)
+    Fast.saveFile(CTK.t, 'restart.cgns', compress=1)
 
     temporal_scheme = VARS[0].get()
     scheme = VARS[4].get()
