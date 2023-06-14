@@ -57,9 +57,9 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 #==============================================================================
 
 myMod = env.StaticLibrary('compressor', srcs.cpp_srcs)
-myMod2 = env.StaticLibrary('zstd', srcs.zstd_srcs)
-myMod3 = env.StaticLibrary('sz', srcs.sz_srcs)
-myMod4 = env.StaticLibrary('zfp', srcs.zfp_srcs)
+myMod2 = env.StaticLibrary('kzstd', srcs.zstd_srcs)
+myMod3 = env.StaticLibrary('ksz', srcs.sz_srcs)
+myMod4 = env.StaticLibrary('kzfp', srcs.zfp_srcs)
 
 modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)

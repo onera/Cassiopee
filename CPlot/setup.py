@@ -69,18 +69,20 @@ libraryDirs += paths; libraries += libs
 if png:
     libraries += ["png"]
     if mySystem[0] == 'mingw':
-        if Dist.useStatic() == False: libraries += ["zlib1"]
+        if not Dist.useStatic() and prod != "msys64": libraries += ["zlib1"]
         else: libraries += ["z"]
     libraryDirs += [pngLib]
     includeDirs += [pngIncDir]
 
 # Test if MPEG exists =========================================================
-(mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
-                                             additionalIncludePaths)
-if mpeg:
-    libraries += ["avcodec", "avutil"]
-    libraryDirs += [mpegLib]
-    includeDirs += [mpegIncDir]
+from srcs import MPEG
+if MPEG:
+    (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
+                                                 additionalIncludePaths)
+    if mpeg:
+        libraries += ["avcodec", "avutil"]
+        libraryDirs += [mpegLib]
+        includeDirs += [mpegIncDir]
     
 libraryDirs += [kcoreLibDir]
 

@@ -68,7 +68,6 @@ def run(a, q):
     # Del photos
     CTK.PHOTOS = []
 
-
 #==============================================================================
 # load data skeleton in a separate process
 # IN: q: queue for data export

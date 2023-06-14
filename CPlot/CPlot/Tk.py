@@ -1785,7 +1785,7 @@ class noteBook:
     def __init__(self, master, side=TK.LEFT, menu=None):
         self.active_fr = None
         self.count = 0
-        self.choice = TK.IntVar(0)
+        self.choice = TK.IntVar(value=0)
         self.menu = menu
 
         # allows the TOP and BOTTOM radiobuttons' positioning.

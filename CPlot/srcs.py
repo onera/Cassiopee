@@ -1,9 +1,15 @@
 import KCore.Dist as Dist
 from KCore.config import *
+
+MPEG = False
+
 (png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths,
                                          additionalIncludePaths)
-(mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
-                                             additionalIncludePaths)
+if MPEG:
+    (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
+                                                additionalIncludePaths)
+else: mpeg = False
+
 # SHADERS=2 (glsl2.0) =4 (glsl4.0)
 if CPlotOffScreen >= 1:
     # Il semble qu'OSMesa n'implemente en general pas le glsl4

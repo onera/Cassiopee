@@ -60,12 +60,14 @@ if png:
     includeDirs += [pngIncDir]
 
 # Test if MPEG exists =========================================================
-(mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
-                                             additionalIncludePaths)
-if mpeg:
-    libraries += ["avcodec"]
-    libraryDirs += [mpegLib]
-    includeDirs += [mpegIncDir]
+import srcs
+if srcs.MPEG:
+    (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
+                                                additionalIncludePaths)
+    if mpeg:
+        libraries += ["avcodec"]
+        libraryDirs += [mpegLib]
+        includeDirs += [mpegIncDir]
 
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
@@ -75,7 +77,6 @@ if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
 
-import srcs
 if srcs.SHADERS == 2: 
   includeDirs += ['CPlot/Shaders2.0']; print('INFO: using 2.0 shaders.')
 else: includeDirs += ['CPlot/Shaders']

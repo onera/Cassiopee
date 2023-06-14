@@ -36,13 +36,13 @@ extensions = [
               sources=["Compressor/compressor.cpp"],
               include_dirs=["Compressor"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+["zstd"]+additionalLibs,
+              libraries=libraries+["kzstd"]+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs())]
 if srcs.SZ:
   mySystem = Dist.getSystem()
   if mySystem[0] == 'mingw':
-    if Dist.useStatic() == False: additionalLibs += ["zlib1"]
+    if not Dist.useStatic() and prod != "msys64": additionalLibs += ["zlib1"]
     else: additionalLibs += ["z"]
   else: additionalLibs += ["z"]
 
@@ -51,7 +51,7 @@ if srcs.SZ:
                sources=["Compressor/sz/compressor.cpp"],
                include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
                library_dirs=additionalLibPaths+libraryDirs,
-               libraries=libraries+["sz", "zstd"]+additionalLibs,
+               libraries=libraries+["ksz", "kzstd"]+additionalLibs,
                extra_compile_args=Dist.getCppArgs(),
                extra_link_args=Dist.getLinkArgs())]
 if srcs.ZFP:
@@ -60,7 +60,7 @@ if srcs.ZFP:
               sources=["Compressor/zfp/compressor.cpp"],
               include_dirs=["Compressor", "Compressor/zfp/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+["zfp"]+additionalLibs,
+              libraries=libraries+["kzfp"]+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs())]
 
