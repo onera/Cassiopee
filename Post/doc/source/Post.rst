@@ -1072,7 +1072,7 @@ Solution extraction
 
 .. py:function:: Post.usurp(A)
 
-    This function computes a ratio field for structured overlapping surfaces.
+    This function computes a "ratio" field for structured overlapping surfaces.
     The ratio field is located at cell centers. 
     In case of no overset, ratio are set to 1, otherwise ratio represents
     the percentage of overlap of a cell by another mesh.
@@ -1359,7 +1359,7 @@ Solution integration
 ---------------------------------------
 
     Compute the integral :math:`\int F.dS` of a scalar field (whose name is in var string) over
-    the geometry defined by arrays containing the coordinates + field ( + an optional ratio ).
+    the geometry defined by arrays containing the coordinates + field ( + an optional "ratio" field ).
     Solution and ratio can be located at nodes or at centers.
 
     For array interface:

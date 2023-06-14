@@ -60,22 +60,49 @@ else: # try import (may fail - core or hang)
         def seq(F, *args): F(*args)
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
-# Previous times for CPU time measures
+# Previous times for CPU time measures (trace)
 PREVFULLTIME = None # full
 
 #==============================================================================
 # IN: t: full/loaded skel/partial
 #==============================================================================
 def center2Node(t, var=None, cellNType=0, graph=None):
+    allstructured = 1 
+    for z in Internal.getZones(t):
+        type = Internal.getZoneType(z)
+        if type != 1: allstructured = 0; break
+    allstructured = allreduce(allstructured)
+    if allstructured == size: # all zones are structured
+        return center2Node1__(t, var, cellNType) # to be changed to 2
+    else: # mixed or unstructured
+        return center2Node1__(t, var, cellNType, graph)
+
+# generic, use addXZones
+def center2Node1__(t, var=None, cellNType=0, graph=None):
     """Convert a zone or a field from centers to node."""
     if graph is None: graph = computeGraph(t, type='match')
     tl = addXZones(t, graph)
-    tl = convert2PartialTree(tl)
+    _convert2PartialTree(tl)
     #zones = Internal.getZones(tl)
     #print('Rank %d has %d zones.'%(rank, len(zones)))
     tl = C.center2Node(tl, var, cellNType)
-    tl = rmXZones(tl)
+    _rmXZones(tl)
     return tl
+
+# only for all structured grids (use addMXZones)
+def center2Node2__(t, var=None, cellNType=0):
+    """Convert a zone or a field from centers to node (structured grids only)."""
+    tl = Internal.copyRef(t)
+    if var is None: noCoordinates = False
+    else: noCoordinates = True
+    _addMXZones(tl, variables=var, noCoordinates=noCoordinates, keepOldNodes=False)
+    _convert2PartialTree(tl)
+    #zones = Internal.getZones(tl)
+    #print('Rank %d has %d zones.'%(rank, len(zones)))
+    t2 = C.center2Node(tl, var, cellNType)
+    _rmMXZones(tl)
+    _rmMXZones(t2)
+    return t2
 
 def addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
     """Add ghost cells to pyTree."""

@@ -873,7 +873,7 @@ void K_CONVERTER::addGhostCellsNGon3D(E_Int depth,
     { 
       indface = facesExt[nof];
       posface = posFace[indface];
-      ptr1 = cNGp+posface;// connectivite Faces/Noeuds du maillage reel
+      ptr1 = cNGp+posface; // connectivite Faces/Noeuds du maillage reel
       nvertp = ptr1[0];    
       ptrEF2[0] = nvertp+2; //nb de faces ds l elt + 1            
       // (d-1)-ieme face opposee a la face externe
@@ -884,7 +884,7 @@ void K_CONVERTER::addGhostCellsNGon3D(E_Int depth,
       for (E_Int nov = 1; nov <= nvertp; nov++) 
       {
         indorig = ptr1[nov]-1;
-        if ( indirN[indorig] == 0 )//pt pas encore traite
+        if (indirN[indorig] == 0) //pt pas encore traite
         {
           indirN[indorig] = indstart;
           //on ajoute les n champs
@@ -910,7 +910,7 @@ void K_CONVERTER::addGhostCellsNGon3D(E_Int depth,
       for (E_Int noedge = 0; noedge < nedgesOfFace; noedge++)
       {
         indedge = edgesOfFaceLoc[noedge]-1;      
-        if (tagE[indedge] == 0 ) 
+        if (tagE[indedge] == 0) 
         {
           //on cree la face quad
           indv1 = vertexOfEdge1[indedge];

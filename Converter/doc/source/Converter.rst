@@ -1717,6 +1717,8 @@ Array / PyTree common manipulations
     cellNType=1 means that, only if all values of neighbouring centers 
     are cellN=0, its cellN is set to 0.
 
+    Exists also as parallel distributed version (C.Mpi.center2Node).
+
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param var: variables to modify

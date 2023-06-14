@@ -153,6 +153,7 @@ def getDim(t):
 
 #==============================================================================
 def run(event=None):
+    CTK.setCursor(2, WIDGETS['frame'])
     dim = getDim(CTK.t)
     mode = VARS[10].get()
     if mode == 'Body':
@@ -177,6 +178,8 @@ def run(event=None):
         displayByReplace(CTK.t)
     else: displaySlices()
     CTK.TKTREE.updateApp()
+    CTK.setCursor(0, WIDGETS['frame'])
+    return None
 
 # Display replacing all zones in place
 # Prend moins de memoire
@@ -197,6 +200,21 @@ def prepare(tinit=None):
     # Save preventif
     C.convertPyTree2File(CTK.t, 'body.cgns')
 
+    # check state
+    state = Internal.getNodeFromName2(CTK.t, 'ReferenceState')
+    if state is None:
+        CTK.TXT.insert('START', 'No state in case (tkState)')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    # check dim
+    dim = Internal.getNodeFromName2(CTK.t, 'FlowEquationSet')
+    if dim is not None:
+        dim = Internal.getNodeFromName1(dim, 'EquationDimension')
+        dim = Internal.getValue(dim)
+        if dim == 2: 
+            # in 2D, the case must be in XY plane
+            C._initVars(CTK.t, 'CoordinateZ', 0.)
+
     # Recupere la base REFINE
     b = Internal.getNodeFromName1(CTK.t, 'REFINE')
     if b is not None:
@@ -207,10 +225,10 @@ def prepare(tinit=None):
 
     import Apps.Fast.IBM as App
     myApp = App.IBM(format='single')
-    myApp.input_var.vmin =21
-    myApp.input_var.tbox =tbox
-    myApp.input_var.check=False
-    myApp.input_var.tinit=tinit
+    myApp.input_var.vmin = 21
+    myApp.input_var.tbox = tbox
+    myApp.input_var.check = False
+    myApp.input_var.tinit = tinit
     
     CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns')
     
@@ -233,6 +251,13 @@ def compute():
     #C.convertPyTree2File(tp, 'restart.cgns'); tp = None
     Fast.saveFile(CTK.t, 'restart.cgns', compress=1)
 
+    # check state
+    state = Internal.getNodeFromName2(CTK.t, 'ReferenceState')
+    if state is None:
+        CTK.TXT.insert('START', 'No state in case (tkState)\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    # set numerics
     temporal_scheme = VARS[0].get()
     scheme = VARS[4].get()
     a = VARS[11].get()
@@ -282,7 +307,7 @@ def compute():
             CTK.TXT.insert('START', '%d / %d - %f\n'%(it+it0,it0+nit,time0))
             CTK.TXT.update()
         if it%moduloVerif == 0:
-            FastS.display_temporal_criteria(CTK.t, metrics, it, format='single')
+            FastS.display_temporal_criteria(CTK.t, metrics, it, format='single', stopAtNan=False)
             #CTK.display(CTK.t)
     Internal.createUniqueChild(CTK.t, 'Iteration', 'DataArray_t', value=it0+nit)
     Internal.createUniqueChild(CTK.t, 'Time', 'DataArray_t', value=time0)

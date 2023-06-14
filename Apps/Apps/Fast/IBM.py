@@ -25,12 +25,10 @@ import KCore.test as test
 import Generator
 import math
 import numpy
-import timeit
-import getpass
-import socket
-import os,sys
 
-from Geom.IBM import setSnear,_setSnear,setDfar,_setDfar,snearFactor,_snearFactor,setFluidInside,_setFluidInside,setIBCType,_setIBCType,changeIBCType,initOutflow,initInj,_initOutflow,_initInj,transformTc2
+from Geom.IBM import setSnear, _setSnear, setDfar, _setDfar, snearFactor, _snearFactor, \
+setFluidInside, _setFluidInside, setIBCType, _setIBCType, changeIBCType, \
+initOutflow, initInj, _initOutflow, _initInj, transformTc2
 
 import Post.IBM as P_IBM
 import Connector.IBM as X_IBM
@@ -47,30 +45,27 @@ __IBCNameServer__={}
 
 def getIBCDName(proposedName):
     global __IBCNameServer__
-    (ibcname,__IBCNameServer__)=C.getUniqueName(proposedName, __IBCNameServer__)
+    (ibcname,__IBCNameServer__) = C.getUniqueName(proposedName, __IBCNameServer__)
     return ibcname
 
-
-def _changeNameIBCD__(tc2,NewIBCD):
-    ZsubR=Internal.getNodesByType(tc2,'ZoneSubRegion_t')
+def _changeNameIBCD__(tc2, NewIBCD):
+    ZsubR=Internal.getNodesByType(tc2, 'ZoneSubRegion_t')
     for z in ZsubR:
-        zsplit=z[0].split('_')
-        if zsplit[0]=='IBCD':
-            zsplit[1]=str(NewIBCD)
+        zsplit = z[0].split('_')
+        if zsplit[0] == 'IBCD':
+            zsplit[1] = str(NewIBCD)
             znew = '_'.join(zsplit)
             Internal.setName(z, znew)
     return None   
 
-
-def dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers',model='NSLaminar'):
-    if model=='NSLaminar':
+def dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers', model='NSLaminar'):
+    if model == 'NSLaminar':
         list_final_zones=[]
         for z in Internal.getZones(t):
             list_final_zones.append(z[0])
         
         tBB =G.BB(t)
         tbBB=G.BB(tb)
-
 
         ##PRT1 - Zones flagged by the intersection of the bounding boxes of t and tb
         interDict = X.getIntersectingDomains(tBB, tbBB)    
@@ -87,8 +82,7 @@ def dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers',mode
                 
         ###PRT2 - Zones flagged by the intersection of the bounding boxes of t and scaled version of tb
         list_additional_zones = getZonesScaleUpDown__(tbBB,tBB,zt_names,dim=dim)
-        
-       
+               
         ##PRT2
         if list_additional_zones:        
             zt=[]
@@ -102,20 +96,20 @@ def dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers',mode
     return None
         
         
-def getZonesScaleUpDown__(tbBB,tBB,zt_names,diff_percent=0.15,sweep_num=4,scaleDirection=0,dim=2):
+def getZonesScaleUpDown__(tbBB, tBB, zt_names, diff_percent=0.15, sweep_num=4, scaleDirection=0, dim=2):
     mean_tb=[]
     for bb in Internal.getZones(tbBB):
         minval_tb = C.getMinValue(bb, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
         maxval_tb = C.getMaxValue(bb, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
         mean_tb.append(getMean__(maxval_tb,minval_tb))
         
-    diff_percentz=diff_percent
-    if dim==2: diff_percentz=0
+    diff_percentz = diff_percent
+    if dim == 2: diff_percentz=0
     
     list_additional_zones=[]
     list_additional_zonesCGNSFile=[]
-    for i in range(1,sweep_num+1):
-        if scaleDirection>=0:            
+    for i in range(1, sweep_num+1):
+        if scaleDirection >= 0:            
             tbBB_scale = T.scale(tbBB, factor=(1.0+i*diff_percent,1.0+i*diff_percent,1.0+i*diff_percentz))
             add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
             
@@ -126,14 +120,14 @@ def getZonesScaleUpDown__(tbBB,tBB,zt_names,diff_percent=0.15,sweep_num=4,scaleD
     return list_additional_zones
 
 
-def getMean__(max_local,min_local):
+def getMean__(max_local, min_local):
     mean_local=[]
     for i in range(len(max_local)):
         mean_local.append((max_local[i]+min_local[i])/2)
     return mean_local
 
 
-def add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names):
+def add2listAdditionalZones__(list_additional_zones, tbBB_scale, tBB,mean_tb, zt_names):
     count=0
     for bb in Internal.getZones(tbBB_scale):
         minval_tbscale = C.getMinValue(bb, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
@@ -145,7 +139,7 @@ def add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_na
         for i in interDict_scale:
             if interDict_scale[i] and i not in list_additional_zones and i not in zt_names:
                 list_additional_zones.append(i)
-        count+=1        
+        count += 1        
     return None
 
 
@@ -276,7 +270,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
 # IN: gradP: calculate the pressure gradient
 # IN: order: order of the extrapolation of pressure
 # IN: Sref: reference area
-# IN : famZones : list of family names of surface zones on which the solution is projected
+# IN: famZones: list of family names of surface zones on which the solution is projected
 # NOTE: if tc_in = None, t_case is the geometry tree with the projected solution
 #==============================================================================
 def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gradP=False, order=1, Sref=None, famZones=[]):
@@ -368,8 +362,8 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
     zw = T.reorderAll(zw, 1)
 
     ts = C.newPyTree(['SKIN']);
-    if famZones:ts[2][1][2]=zw
-    else:ts[2][1][2]=zw[2][1][2]
+    if famZones: ts[2][1][2] = zw
+    else: ts[2][1][2] = zw[2][1][2]
     #==============================
     # Reference state
     #==============================
@@ -392,8 +386,6 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
     if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
     return ts
 
-
-
 def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
     """Predicts the final size of the mesh when extruding 2D to 3D in the z-direction.
     Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
@@ -412,20 +404,20 @@ def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
     for z in Internal.getZones(t):
         name_zone = z[0]
         if not isCartesianExtrude:
-            if dictNz is not None:Nk     = int(dictNz[name_zone])
-            else:Nk     = NPas-1
+            if dictNz is not None: Nk = int(dictNz[name_zone])
+            else: Nk = NPas-1
         else:
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
             NPas_local = int(round(span/h)/4)
-            if NPas_local<2:
+            if NPas_local < 2:
                 print("WARNING:: MPI rank %d || Zone %s has Nz=%d and is being clipped to Nz=2"%(rank,z[0],NPas_local))
-                NPas_local=2
+                NPas_local = 2
             Nk = NPas_local
-        Nk+=1
-        NPTS[rank]           +=C.getNPts(z)/2*(Nk+4)
-        NCELLS[rank]         +=C.getNCells(z)*(Nk+3)
-        NPTS_noghost[rank]   +=C.getNPts(C.rmGhostCells(z, z, 2))*Nk
-        NCELLS_noghost[rank] +=C.getNCells(C.rmGhostCells(z, z, 2))*(Nk-1)
+        Nk += 1
+        NPTS[rank]           += C.getNPts(z)/2*(Nk+4)
+        NCELLS[rank]         += C.getNCells(z)*(Nk+3)
+        NPTS_noghost[rank]   += C.getNPts(C.rmGhostCells(z, z, 2))*Nk
+        NCELLS_noghost[rank] += C.getNCells(C.rmGhostCells(z, z, 2))*(Nk-1)
     NPTS             = Cmpi.allreduce(NPTS  ,op=Cmpi.SUM)
     NCELLS           = Cmpi.allreduce(NCELLS,op=Cmpi.SUM)
     NPTS_noghost     = Cmpi.allreduce(NPTS_noghost  ,op=Cmpi.SUM)
@@ -499,7 +491,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
                 dz_loc[z[0]] = span/float(Ntranche*Nk_min)
         
         for z in Internal.getZones(tree):
-            Nk[z[0]] +=2*ific-1  # -1, car un plan de maillage deja ajoute dans le cas 2D
+            Nk[z[0]] += 2*ific-1  # -1, car un plan de maillage deja ajoute dans le cas 2D
        
         for z in Internal.getZones(tree):    
             yy_2d   = Internal.getNodeFromName(z, "CoordinateY")[1]
@@ -518,12 +510,12 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             if c==1: period_loc= perio*1.5
             
             sh = numpy.shape(yy)
-            if  len(sh_2d) ==1: #NGON
+            if  len(sh_2d) == 1: #NGON
                 if  extrusion == "cart":
                     for k in range( sh[1]):
                         zz[:,k] = (k-ific)* dz_loc[z[0]]
                 else:
-                    theta0  = numpy.arctan(zz_2d/yy_2d)
+                    theta0 = numpy.arctan(zz_2d/yy_2d)
                     for k in range( sh[1]):
                         shift = perio_loc/float(sh[1]-5.)*(k-ific)
                         zz[:,k] = r[:,0]*numpy.sin(theta0[:] + shift)
@@ -540,14 +532,14 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
                         yy[:,:,k] = r[:,:,0]*numpy.cos(theta0[:,:,0] + shift)
     
         if c==1: break
-        c+=1
+        c += 1
         
         for z in Internal.getZones(tree):    
-            zdim     = Internal.getValue(z)
+            zdim = Internal.getValue(z)
              
             # Modif rind cellule GH en kmin et kmax
             rind = Internal.getNodeFromName1(z, "Rind")[1]
-            rind[4]=ific; rind[5]=ific
+            rind[4] = ific; rind[5] = ific
             # Modif range BC
             BCs = Internal.getNodesFromType(z, "BC_t")
             for bc in BCs:
@@ -615,9 +607,9 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
 
 #================================================================================
 # IBM prepare hybride cart + curvi
-# in : t_3d arbre cartesien   (from prepare1)
-# in : tc_3d arbre cartesien connectivite   (from prepare1)
-# in : t_curvi arbre curviligne   (with bc and connectivity but without ghost)
+# IN: t_3d arbre cartesien   (from prepare1)
+# IN: tc_3d arbre cartesien connectivite   (from prepare1)
+# IN: t_curvi arbre curviligne   (with bc and connectivity but without ghost)
 #==================================================
 def setInterpData_Hybride(t_3d, tc_3d, t_curvi,extrusion=None,interpDataType=1):
     overlap     ='14'
@@ -639,7 +631,7 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi,extrusion=None,interpDataType=1):
             X._applyBCOverlaps(z,loc='centers',depth=2, val=0)
             X._applyBCOverlaps(z,loc='centers',depth=4, val=2)
     
-    if extrusion =='cyl':
+    if extrusion == 'cyl':
         T._cart2Cyl(t_3d , (0,0,0),(1,0,0))
         T._cart2Cyl(tc_3d, (0,0,0),(1,0,0))
         T._cart2Cyl(t_curvi   , (0,0,0),(1,0,0))
@@ -728,9 +720,9 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi,extrusion=None,interpDataType=1):
             #C.convertPyTree2File(z,"rcv2.cgns")
     
     
-    C._initVars(t_3d,'{centers:cellN}={centers:cellN#Init}')
+    C._initVars(t_3d, '{centers:cellN}={centers:cellN#Init}')
     
-    if extrusion =='cyl':
+    if extrusion == 'cyl':
         T._cyl2Cart(t_3d,   (0,0,0),(1,0,0))
         T._cyl2Cart(t_curvi,  (0,0,0),(1,0,0))
         T._cyl2Cart(tc_3d,  (0,0,0),(1,0,0))
@@ -826,7 +818,7 @@ def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
     NptsTot  = numpy.sum(NPTS)
     NcellsTot= numpy.sum(NCELLS)
     ncells_percent=[]
-    if Cmpi.rank ==0:
+    if Cmpi.rank == 0:
         for i in range(NP):
             ncells_percent.append(NCELLS[i]/NcellsTot*100)
             if isAtCenter:
@@ -852,7 +844,7 @@ def interpolateSolutionCoarse2Fine(tCoarse, tFine, NPprep, NPinterp):
     """Interpolate the solution from a coarse IBM mesh to fine IBM mesh. Useful when doing grid convergence studies. This can speed up the convergence rate of the solution on a finer mesh.
         Usage: interpolateSolutionCoarse2Fine(tCoarse,tFine,NPprep,NPinterp)"""
     if isinstance(tCoarse, str):
-        h         = Filter.Handle(tCoarse)
+        h = Filter.Handle(tCoarse)
         if NPinterp == NPprep:
             tCoarse = h.loadFromProc()
         else:
@@ -979,19 +971,19 @@ class IBM(Common):
         ## or tb only has a filament
 
         self.filamentBases= []
-        len_tb       = len(Internal.getBases(tb))
+        len_tb = len(Internal.getBases(tb))
         for b in Internal.getBases(tb):
             if "IBCFil" in b[0]:self.filamentBases.append(b[0])
 
         self.isFilamentOnly=False
-        if len(self.filamentBases)==len_tb:           
+        if len(self.filamentBases) == len_tb:           
             self.isFilamentOnly=True
         self.isOrthoProjectFirst = self.isFilamentOnly
         ## if tb has both a closed solid and filaments
         
         tbFilament = Internal.getBases(tb)
         if not self.isFilamentOnly:
-            tbFilament    = [];
+            tbFilament = []
             for b in self.filamentBases:
                 node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
                 tbFilament.append(node_local)
@@ -1006,7 +998,7 @@ class IBM(Common):
     #================================================================================
     # Cartesian grid generator
     #================================================================================
-    def generateCartesian__(self,tb,ext_local=3,to=None):    
+    def generateCartesian__(self, tb, ext_local=3, to=None):    
         # list of dfars
         if self.input_var.dfarList == []:
             zones = Internal.getZones(tb)
@@ -1044,7 +1036,7 @@ class IBM(Common):
                                   dimPb=self.dimPb, vmin=self.input_var.vmin, symmetry=symmetry, fileout=None, rank=self.rank,
                                   expand=self.input_var.expand, dfarDir=self.input_var.dfarDir)
     
-        if self.rank==0 and self.input_var.check: C.convertPyTree2File(o,fileout)
+        if self.rank==0 and self.input_var.check: C.convertPyTree2File(o, fileout)
         # build parent octree 3 levels higher
         # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
         parento = G_IBM.buildParentOctrees__(o, tb, snears=self.input_var.snears, snearFactor=4., dfar=self.input_var.dfar, dfarList=self.input_var.dfarList, to=self.input_var.to,
@@ -1117,8 +1109,8 @@ class IBM(Common):
         if (FSC is None or Internal.getNodeFromName(FSC,'TurbulentDistance') is None) and self.input_var.extrusion is None:
             C._initVars(t,'{centers:TurbulentDistance}=1e06')
             if self.dimPb == 2:
-                tb2      = C.initVars(tb, 'CoordinateZ', self.input_var.dz*0.5)
-                self.tbsave   = tb2
+                tb2 = C.initVars(tb, 'CoordinateZ', self.input_var.dz*0.5)
+                self.tbsave = tb2
                 dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
                 
                 if self.filamentBases:
@@ -1220,15 +1212,14 @@ class IBM(Common):
     def blanking__(self, t, tb):
         test.printMem(">>> Blanking [start]")
 
-        snear_min=10e10
+        snear_min = 10.e10
         for z in Internal.getZones(tb):
-            sdd       = Internal.getNodeFromName1(z, ".Solver#define")
+            sdd = Internal.getNodeFromName1(z, ".Solver#define")
             if sdd is not None:
                 snearl = Internal.getNodeFromName1(sdd, "snear")
                 if snearl is not None:
                     snearl = Internal.getValue(snearl)
-            print(snearl)
-            if snearl is not None:  snear_min = min(snear_min,snearl)
+                if snearl is not None: snear_min = min(snear_min, snearl)
         snear_min = Cmpi.allreduce(snear_min, op=Cmpi.MIN)
         
         if self.input_var.extrusion is None:
@@ -1279,11 +1270,11 @@ class IBM(Common):
            if self.input_var.frontType != 42:
                if self.input_var.IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-self.DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
                elif self.input_var.IBCType == 1:
-                   X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
+                   X._setHoleInterpolatedPoints(t, depth=1, dir=1, loc='centers', cellNName='cellN', addGC=False) # pour les gradients
                    if self.input_var.frontType < 2:
                        X._setHoleInterpolatedPoints(t,depth=self.DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
                    else:
-                       DEPTHL=self.DEPTH+1
+                       DEPTHL = self.DEPTH+1
                        X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0,loc='centers',cellNName='cellN',addGC=False)
                        #cree des pts extrapoles supplementaires
                        # _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
@@ -1387,7 +1378,7 @@ class IBM(Common):
         return t
 
 
-    def setInterpDataAndSetInterpTransfer__(self,t):
+    def setInterpDataAndSetInterpTransfer__(self, t):
         
         # setInterpData - Chimere
         C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})')# vaut -3, 0, 1, 2 initialement
@@ -1410,7 +1401,7 @@ class IBM(Common):
             test.printMem("setInterpData abutting done.")
     
         # setInterpData parallel pour le chimere
-        self.tbbc      = Cmpi.createBBoxTree(tc)
+        self.tbbc = Cmpi.createBBoxTree(tc)
         interDict = X.getIntersectingDomains(self.tbbc)
         graph     = Cmpi.computeGraph(self.tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
         Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=self.input_var.cartesian)
@@ -1482,7 +1473,7 @@ class IBM(Common):
         return tc
 
 
-    def _specialFront2__(self,t,tc):
+    def _specialFront2__(self, t, tc):
         test.printMem(">>> pushBackImageFront2 [start]")
         
         # bboxDict needed for optimised AddXZones (i.e. "layers" not None)
@@ -1759,7 +1750,7 @@ class IBM(Common):
                             else:
                                 if destProc not in datas: datas[destProc] = []
     
-        if dictOfCorrectedPtsByIBCType2!={}:
+        if dictOfCorrectedPtsByIBCType2 != {}:
             for ibcTypeL in dictOfCorrectedPtsByIBCType2:
                 allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
                 allWallPts2      = dictOfWallPtsByIBCType2[ibcTypeL]
@@ -2015,10 +2006,10 @@ class IBM(Common):
         ##IN  - t                     :t tree (cartesian mesh or input mesh)
         ##IN  - tb                    :closed geometry tree 
         ##OUT - t                     :t tree with blanked done
-        t=self.blanking__(t,tb)
+        t = self.blanking__(t,tb)
         C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
         
-        if self.input_var.IBCType==-1:
+        if self.input_var.IBCType == -1:
             #print('Points IBC interieurs: on repousse le front un peu plus loin.')
             C._initVars(t,'{centers:cellNDummy}=({centers:cellNIBC}>0.5)*({centers:cellNIBC}<1.5)')
             X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNDummy',addGC=False)
@@ -2071,7 +2062,7 @@ class IBM(Common):
         ## ================================================
         ## ======= Specific treatment for front 2 =========
         ## ================================================
-        if self.input_var.frontType == 2:self._specialFront2__(t,tc)
+        if self.input_var.frontType == 2: self._specialFront2__(t, tc)
         
         C._rmVars(t,['centers:cellNFront'])
         if self.input_var.twoFronts:C._rmVars(t,['centers:cellNFront_2', 'centers:cellNIBC_2'])
@@ -2089,7 +2080,7 @@ class IBM(Common):
         ##IN  - tb  :tb tree
         ##OUT - res :IBM point for the 1st front
         ##OUT - res2:IBM point for the 2nd front
-        self._buildFront__(t,tc,tb)
+        self._buildFront__(t, tc, tb)
 
         
         ## ================================================
@@ -2286,12 +2277,12 @@ class IBM(Common):
 
     ##"STAND ALONE" FUNCTIONS
     # distribute
-    def _distribute(self,t_in, tc_in,algorithm='graph', tc2_in=None):
+    def _distribute(self, t_in, tc_in,algorithm='graph', tc2_in=None):
         return _distribute(t_in, tc_in, self.input_var.NP, algorithm='graph', tc2_in=None)
     
 
     # check nulber of points and cells per zone and i total
-    def _checkNcellsNptsPerProc(self,ts,isAtCenter=False):
+    def _checkNcellsNptsPerProc(self, ts, isAtCenter=False):
         return _checkNcellsNptsPerProc(ts,self.input_var.NP,isAtCenter=isAtCenter)
     
 
@@ -2306,7 +2297,7 @@ class IBM(Common):
     
 
     # post-processing: extrait les efforts sur les surfaces
-    def extrudeCartesian(self, t,tb):
+    def extrudeCartesian(self, t, tb):
         return extrudeCartesian(t,tb,check=self.input_var.check, extrusion=self.input_var.extrusion,
                                 dz=self.input_var.dz, NPas=self.input_var.NPas, span=self.input_var.span,
                                 Ntranche=self.input_var.Ntranche,
@@ -2315,7 +2306,7 @@ class IBM(Common):
 
 
     def setInterpData_Hybride(self,t_3d, tc_3d, t_curvi, interpDataType=1):
-        return setInterpData_Hybride(t_3d, tc_3d, t_curvi,extrusion=self.input_var.extrusion,interpDataType=interpDataType)
+        return setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=self.input_var.extrusion, interpDataType=interpDataType)
 
 
 ## IMPORTANT NOTE !!
@@ -2323,7 +2314,7 @@ class IBM(Common):
 ## The functions below will become decrepit after Jan. 1 2023
 #====================================================================================
 def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
-    tibm=P_IBM.extractIBMInfo(tc_in, t_out=t_out)
+    tibm = P_IBM.extractIBMInfo(tc_in, t_out=t_out)
     return tibm
 
 def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, verbose=False):
@@ -2333,11 +2324,11 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     return P_IBM.loads0(ts, Sref=Sref, alpha=alpha, beta=beta, dimPb=dimPb, verbose=verbose)
 
 def extractPressureHO(tc):
-    tp=P_IBM.extractPressureHO(tc)
+    tp = P_IBM.extractPressureHO(tc)
     return tp
 
 def extractPressureHO2(tc):
-    tp=P_IBM.extractPressureHO2(tc)
+    tp = P_IBM.extractPressureHO2(tc)
     return tp
 
 def extractConvectiveTerms(tc):
@@ -2350,7 +2341,7 @@ def _unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
     return P_IBM._unsteadyLoads(tb, Sref=Sref, Pref=Pref, Qref=Qref, alpha=alpha, beta=beta)
 
 def _prepareSkinReconstruction(ts, tc):
-    return P_IBM._prepareSkinReconstruction(ts,tc)
+    return P_IBM._prepareSkinReconstruction(ts, tc)
 
 def _computeSkinVariables(ts, tc, tl, graphWPOST):
     return P_IBM._computeSkinVariables(ts, tc, tl, graphWPOST)
@@ -2367,12 +2358,12 @@ def compute_Cf(Re, Cf_law='ANSYS'):
     val=G_IBM_Height.compute_Cf(Re, Cf_law=Cf_law)
     return val
 
-def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
-    val=G_IBM_Height.computeYplusOpt(Re=Re,tb=tb,Lref=Lref,q=q,snear=snear,Cf_law=Cf_law)
+def computeYplusOpt(Re=None, tb=None, Lref=1., q=1.2, snear=None, Cf_law='ANSYS'):
+    val=G_IBM_Height.computeYplusOpt(Re=Re, tb=tb, Lref=Lref, q=q, snear=snear, Cf_law=Cf_law)
     return val
 
-def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
-    val=G_IBM_Height.computeSnearOpt(Re=Re,tb=tb,Lref=Lref,q=q,yplus=yplus,Cf_law=Cf_law)
+def computeSnearOpt(Re=None, tb=None, Lref=1., q=1.2, yplus=300., Cf_law='ANSYS'):
+    val=G_IBM_Height.computeSnearOpt(Re=Re, tb=tb, Lref=Lref, q=q, yplus=yplus, Cf_law=Cf_law)
     return val
 
 ## IMPORTANT NOTE !!
@@ -2383,7 +2374,7 @@ def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
              vmin=21, check=False, NP=0, format='single', frontType=1, recomputeDist=False,
-             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0,check_snear=False):
+             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, check_snear=False):
     prep_local=IBM()
     prep_local.input_var.snears                 =snears
     prep_local.input_var.dfar                   =dfar

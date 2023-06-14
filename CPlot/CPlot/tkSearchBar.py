@@ -146,6 +146,8 @@ applet = {
     'tkBC':'tkBC', 'Set BC':'tkBC', 'View BC':'tkBC', 'Connect match':'tkBC',
     'Set Boundary conditions':'tkBC', 'Fill empty BCs':'tkBC',
     'View undefined BC':'tkBC', 'Remove BC':'tkBC',
+    # tkIBC
+    'tkIBC':'tkIBC', 'Set snear on surface':'tkIBC',
     # tkChimera
     'tkChimera':'tkChimera', 'Blank cells':'tkChimera', 
     'Optimize overlap':'tkChimera',
@@ -161,7 +163,7 @@ applet = {
     'tkElsaSolver':'tkElsaSolver', 'Create elsAHybrid':'tkElsaSolver',
     'Adapt tree for elsA':'tkElsaSolver',
     # tkFastSolver
-    'tkFastSolver':'tkFastSolver', 'Set snear on surface':'tkFastSolver',
+    'tkFastSolver':'tkFastSolver', 'Compute CFD with IBM':'tkFastSolver',
     # tkVariables
     'tkVariables':'tkVariables', 'Compute variables/fields':'tkVariables',
     'Center2Node or Node2Center variables/fields':'tkVariables', 

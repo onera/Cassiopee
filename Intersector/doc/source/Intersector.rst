@@ -384,10 +384,10 @@ Main Functions
 
     :param t:  an overset surface mesh where components are separated in different bases.
     :type  t:  [pyTree, base, zone, list of zones].
-    :param priorities:   list of one-to-one pairs of priorities between components.
-    :type  priorities:   list of pairs of integers.
-    :param output_type:  ternary blanking field.
-    :type  output_type:   0, 1 or 2.
+    :param priorities:  list of one-to-one pairs of priorities between components.
+    :type  priorities:  list of pairs of integers.
+    :param output_type: ternary blanking field.
+    :type  output_type: 0, 1 or 2.
     :param rtol: relative tolerance for detecting and computing intersections.
     :type  rtol: float.
     

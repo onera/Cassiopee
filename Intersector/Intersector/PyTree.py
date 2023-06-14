@@ -1221,10 +1221,10 @@ def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improv
 
 #==============================================================================
 # XcellN
-# IN : t: 3D NGON mesh
-# IN : priorities : one-to-one priorities between components
-# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
-# IN : rtol : relative tolerance
+# IN: t: 3D NGON mesh
+# IN: priorities: one-to-one priorities between components
+# IN: output_type: 0: binary mask; 1: continuous mask (xcelln); 2: clipped surface.
+# IN: rtol: relative tolerance
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)     
 #==============================================================================
 def XcellN(t, priorities, output_type=0, rtol=0.05):
@@ -1237,8 +1237,8 @@ def XcellN(t, priorities, output_type=0, rtol=0.05):
 #==============================================================================
 # _XcellN (in-place version)
 # IN: t: 3D NGON SURFACE mesh
-# IN : priorities : one-to-one priorities between components
-# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface. 
+# IN: priorities: one-to-one priorities between components
+# IN: output_type: 0: binary mask; 1: continuous mask (xcelln); 2: clipped surface. 
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
 def _XcellN(t, priorities, output_type=0, rtol=0.05):
@@ -1248,9 +1248,8 @@ def _XcellN(t, priorities, output_type=0, rtol=0.05):
   DIM = getTreeDim(t)
   #print ('DIM ? ' +str(DIM))
   if DIM != 2 and DIM != 3 : # and DIM != 21: # 21 NUGA SURFACE
-    print ('XcellN : Input error : the input file has an unsupported format or contain mixed 2D/3D zones.')
-    return
-
+    raise ValueError('XcellN: the input file has an unsupported format or contain mixed 2D/3D zones.')
+    
   _XcellN_(t, priorities, output_type, rtol)
   
 #==============================================================================
@@ -1282,20 +1281,17 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
    #(BCs,BCNames,BCTypes) = C.getBCs(t)
 
   if len(bases) == 1 :
-    print('XcellN : Input error : Only one base in the file. Each component must be separated in a given Base. No check between zones of the same component.')
-    return
+    raise ValueError('XcellN: Only one base in the file. Each component must be separated in a given Base. No check between zones of the same component.')
 
   min_compid = min(min(priorities, key=min))
   max_compid = max(max(priorities, key=max))
   if max_compid < 0 :
-    print('XcellN : Input error : Negativle values passes as priorities. mus be component id (0-based).')
-    return
+    raise ValueError('XcellN: Negativle values passes as priorities. mus be component id (0-based).')
   if max_compid >= len(bases):
-    print('XcellN : Input error : Greatest component specified in priorities exceeds nb of components.')
-    return
+    raise ValueError('XcellN: Greatest component specified in priorities exceeds nb of components.')
 
   # 1 PREPARE INPUTS : NUGA NGON zones + oriented BAR boundaries with wall ids
-  if TIMER == True:
+  if TIMER:
     xcelln_time = time.time()
     xcelln_time2 = time.time()
   # 1.1 convert to NUGA NGON
@@ -1303,10 +1299,10 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   #C.convertPyTree2File(tNG, 'tNG.cgns')
   
   # 1.2 reorient
-  if DIM == 3 :
+  if DIM == 3:
     _reorient(tNG)
 
-  if TIMER == True:
+  if TIMER:
     print ('XCellN : Preparing Inputs ::: NGON convert & reorientation ::: CPU time : ',time.time()-xcelln_time2,'s')
     xcelln_time2 = time.time()
 
@@ -1331,7 +1327,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     zj = concatenate(bNG, tol = 1.e-10) # discard inner joins
     #if DBG == True : C.convertPyTree2File(zj, 'zj_'+str(bid)+'.cgns')
     b_bounds = externalFaces(zj) # keeping orientation
-    if DBG == True : C.convertPyTree2File(b_bounds, 'bound_b_'+str(bid)+'.cgns')
+    if DBG: C.convertPyTree2File(b_bounds, 'bound_b_'+str(bid)+'.cgns')
     
     # empty set (e.g. sphere)
     nbf = nb_cells(b_bounds)
@@ -1351,20 +1347,20 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     if len(walls) != 0:
       if dims[0] == 'Structured': walls = C.convertArray2Hexa(walls)
       walls = T.join(walls)
-      if DIM == 2 :
+      if DIM == 2:
         hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
-      elif DIM == 3 :
+      elif DIM == 3:
         hook = C.createHook(b_bounds, function='faceCenters')
       wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
       #print(wallf)
       wallf = wallf[wallf >= 1]
-      if wallf != [] :
+      if wallf != []:
         wallf -= 1 # make it 0 based
       else : wallf = None
 
     wall_ids.append(wallf)
 
-  if TIMER == True:
+  if TIMER:
     print ('XCellN : Preparing Inputs ::: BC and Walls ::: CPU time : ',time.time()-xcelln_time2,'s')
     xcelln_time2 = time.time()
 
@@ -1381,20 +1377,20 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
         ngons.append(c)
         basenum.append(base_id)
         zwallf = getBCPtListOfType(z, WALLBCS, wallfamilies)
-        if (zwallf != []) : zwallf -= 1 # make it 0 based
+        if zwallf != []: zwallf -= 1 # make it 0 based
         zwall_ids.append(zwallf)
 
   #print(zwall_ids)
   #import sys; sys.exit()
 
-  if TIMER == True:
+  if TIMER:
     print ('XCellN : Preparing Inputs : CPU time : ',time.time()-xcelln_time,'s')
     xcelln_time = time.time()
 
   # 2. COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
   xcellns = XOR.XcellN(ngons, zwall_ids, basenum, boundaries, wall_ids, priorities, output_type, rtol)
 
-  if TIMER == True:
+  if TIMER:
     print ('XCellN : Computing : CPU time : ',time.time()-xcelln_time,'s')
     xcelln_time = time.time()
 
@@ -1432,7 +1428,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     for p in paths: Internal._rmNodeFromPath(t, p)
     G._close(t)
 
-    if TIMER == True:
+    if TIMER:
       print ('XCellN : Writing output : CPU time : ',time.time()-xcelln_time,'s')
       xcelln_time = time.time()
 
@@ -1452,7 +1448,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     bid +=1
     zones = Internal.getZones(b)
     dims = Internal.getZoneDim(zones[0])
-    if dims[0] == 'Structured' : # set field on tNG
+    if dims[0] == 'Structured': # set field on tNG
       has_structured_bases = True
       zonesNG = Internal.getZones(basesNG[bid])
       for z in zonesNG:
@@ -1466,13 +1462,13 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
       C._identifySolutions(b, basesNG[bid], hookN, hookC, tol=1000.)
       C.freeHook(hookC)
       C.freeHook(hookN)
-    else : # set field on t
+    else: # set field on t
       for z in zones:
         zid +=1
         #print('set field on t')
         C.setFields([xcellns[zid]], z, 'centers', False)
 
-  if TIMER == True:
+  if TIMER:
       print ('XCellN : Writing output : CPU time : ',time.time()-xcelln_time,'s')
     
   return None

@@ -312,7 +312,7 @@ def _loadVariables(a, fileName, znp, var, format):
             c = Internal.getNodeFromName1(zp, cont)
             if c is not None and fp[1] is not None:
               if PyTree.getNPts(zp) != fp[1].size:
-                Internal.createUniqueChild(c, 'GridLocation', 'GridLocation_t', 'CellCenter')
+                Internal._createUniqueChild(c, 'GridLocation', 'GridLocation_t', 'CellCenter')
     return None
 
 #==================================================================================
@@ -761,6 +761,12 @@ class Handle:
       a = None; varsN = None; varsC = None
     a = Cmpi.bcast(a)
     self.varsN = Cmpi.bcast(varsN); self.varsC = Cmpi.bcast(varsC)
+
+    # Force GridLocation in FlowSolutionCenters
+    for z in Internal.getZones(a):
+      conts = Internal.getNodesFromName1(z, Internal.__FlowSolutionCenters__)
+      for c in conts:
+        Internal._createUniqueChild(c, 'GridLocation', 'GridLocation_t', 'CellCenter')
 
     return a
 

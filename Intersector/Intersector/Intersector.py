@@ -134,8 +134,8 @@ def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, o
 #==============================================================================
 # XcellN
 # IN: t: 3D NGON SURFACE mesh
-# IN : priorities : one-to-one priorities between components
-# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
+# IN: priorities: one-to-one priorities between components
+# IN: output_type: 0: binary mask; 1: continuous mask (xcelln); 2: clipped surface.
 #      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface ratio of the visible cells
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================

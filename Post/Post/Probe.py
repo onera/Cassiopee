@@ -112,6 +112,8 @@ class Probe:
         else: 
             self._mode = 2
         
+        print('INFO: probe is in mode ', self._mode)
+        
         # Cree la probe et on relit le fichier uniquement en mode=0 et 1
         if self._mode == 0 or self._mode == 1 or self._mode == 4:
             if self._proc is not None and self._fields is not None:
