@@ -71,7 +71,8 @@ libraryDirs += paths; libraries += libs
 
 if png: 
     mySystem = Dist.getSystem()
-    if not Dist.useStatic() and prod != "msys64": libraries += ["zlib1"]
+    if not Dist.useStatic() and mySystem[0] == "mingw" and prod != "msys64":
+        libraries += ["zlib1"]
     else: libraries += ["z"]
     
 # Extensions ==================================================================
