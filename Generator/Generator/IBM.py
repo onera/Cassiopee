@@ -12,6 +12,7 @@ import Converter
 import Transform
 import Converter.GhostCells as CGC
 import Connector.PyTree as X
+import Converter.Mpi as Cmpi
 
 EPSCART = 1.e-6
 
@@ -148,6 +149,96 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
     res = generateCartMesh__(o, parento=parento, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax,
                              check=check, symmetry=symmetry, externalBCType=externalBCType)
     return res
+
+def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
+                    snearsf=None, check=True, symmetry=0, to=None, ext=2,
+                    expand=3, dfarDir=0, check_snear=False):    
+    # list of dfars
+    if dfarList == []:
+        zones = Internal.getZones(tb)
+        dfarList = [dfar*1.]*len(zones)
+        for c, z in enumerate(zones):
+            n = Internal.getNodeFromName2(z, 'dfar')
+            if n is not None: dfarList[c] = Internal.getValue(n)*1.
+
+        # refinementSurfFile: surface meshes describing refinement zones
+    if tbox is not None:
+        if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
+        else: tbox = tbox
+        if snearsf is None:
+            snearsf = []
+            zones = Internal.getZones(tbox)
+            for z in zones:
+                sn = Internal.getNodeFromName2(z, 'snear')
+                if sn is not None: snearsf.append(Internal.getValue(sn))
+                else: snearsf.append(1.)
+    fileout = None
+    if check: fileout = 'octree.cgns'
+    # Octree identical on all procs
+    if to is not None:
+        if isinstance(to, str):
+            o = C.convertFile2PyTree(to)
+            o = Internal.getZones(o)[0]
+        else:
+            o = Internal.getZones(to)[0]
+        parento = None
+    else:
+        o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
+                                to=to, tbox=tbox, snearsf=snearsf,
+                                dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=Cmpi.rank,
+                                expand=expand, dfarDir=dfarDir)
+
+    if Cmpi.rank==0 and check: C.convertPyTree2File(o,fileout)
+    # build parent octree 3 levels higher
+    # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
+    parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
+                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=Cmpi.rank)
+
+    if check_snear: exit()
+    
+    # Split octree
+    bb = G.bbox(o)
+    NPI = Cmpi.size
+    if NPI == 1: p = Internal.copyRef(o) # keep reference
+    else: p = T.splitNParts(o, N=NPI, recoverBC=False)[Cmpi.rank]
+    del o
+
+    # fill vmin + merge in parallel
+    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
+    del p
+    if parento is not None:
+        for po in parento: del po
+    t = C.newPyTree(['CARTESIAN', res])
+    zones = Internal.getZones(t)
+    for z in zones: z[0] = z[0]+'X%d'%Cmpi.rank
+    Cmpi._setProc(t, Cmpi.rank)
+
+    C._addState(t, 'EquationDimension', dimPb)
+
+    # Add xzones for ext
+    tbb = Cmpi.createBBoxTree(t)
+    interDict = X.getIntersectingDomains(tbb)
+    graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
+    del tbb
+    Cmpi._addXZones(t, graph, variables=[], cartesian=True)
+    zones = Internal.getZones(t)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=1, extBnd=0)
+    C.setFields(coords, zones, 'nodes')
+    for noz in range(len(zones)):
+        Internal.newRind(value=rinds[noz], parent=zones[noz])
+    Cmpi._rmXZones(t)
+    coords = None; zones = None
+    
+    X_IBM._addBCOverlaps(t, bbox=bb)
+    X_IBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
+
+    if dimPb == 2:
+        dz = 0.01
+        T._addkplane(t)
+        T._contract(t, (0,0,0), (1,0,0), (0,1,0), dz)
+               
+    return t
 
 
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None,
