@@ -69,7 +69,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
              frontType=1, extrusion=None, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, 
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
-             height_in=-1.0,isFilamentOnly=False,isWireModel=False, cleanCellN=True):
+             height_in=-1.0, isFilamentOnly=False, isWireModel=False, cleanCellN=True):
     
     import Generator.IBM as G_IBM
 
@@ -103,7 +103,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
         
         tbFilament = Internal.getBases(tb)
         if not isFilamentOnly:
-            tbFilament    = [];
+            tbFilament = []
             for b in filamentBases:
                 node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
                 tbFilament.append(node_local)
@@ -187,11 +187,11 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
     #===================
     # STEP 4 : INTERP DATA CHIM
     #===================
-    C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})')# vaut -3, 0, 1, 2 initialement
+    C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})') # vaut -3, 0, 1, 2 initialement
     tc = C.node2Center(t)
 
     # ajouter argument cartesian dans setInterpData
-    if Internal.getNodeFromType(t,"GridConnectivity1to1_t") is not None:
+    if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
         Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=3, itype='abutting', order=order)
     Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=3, itype='chimera', order=order)
     
@@ -340,106 +340,98 @@ def _dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
     #    DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
     return None
 
-def _dist2wallIBM(t, tb, tbFilament=None, extrusion=False, cleanCellN=True, dimPb=3, dz=0.01, 
-                    filamentBases=None, correctionMultiCorpsF42=False, frontType=1, yplus=100, 
-                    Reynolds=1.e6, Lref=1., height_in=1.):
+#=========================================================================
+# Calcul de la distance a paroi pour les IBMs
+# IN: t: arbre du calcul
+# IN: tb: arbre du body IBM
+# OUT: centers:TurbulentDistance field
+#=========================================================================
+def _dist2wallIBM(t, tb, dimPb=3, 
+                  correctionMultiCorpsF42=False, frontType=1, yplus=100, 
+                  Reynolds=1.e6, Lref=1., height_in=1.,
+                  tbFilament=None, filamentBases=None):
     
-    FSC = Internal.getNodeFromType(t,"FlowSolution_t")
-    if (FSC is None or Internal.getNodeFromName(FSC,'TurbulentDistance') is None) and extrusion is None:
-        C._initVars(t,'{centers:TurbulentDistance}=1e06')
-        if dimPb == 2:
-            tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-            _dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
-            
-            if filamentBases:
-                C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
-                C._initVars(t,'{centers:TurbulentDistance}=1e06')
-                
-                tb2           = C.initVars(tbFilament, 'CoordinateZ', dz*0.5)
-                _dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
-                C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
-                C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
-
-                C._initVars(t,"{centers:TurbulentDistanceSolid}=({centers:TurbulentDistanceSolid}>1e03)*0+({centers:TurbulentDistanceSolid}<1e03)*{centers:TurbulentDistanceSolid}")
-                C._initVars(t,"{centers:TurbulentDistanceFilament}=({centers:TurbulentDistanceFilament}>1e03)*0+({centers:TurbulentDistanceFilament}<1e03)*{centers:TurbulentDistanceFilament}")
-            
-        else:
-            _dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
-            
-            if filamentBases:
-                C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
-                C._initVars(t,'{centers:TurbulentDistance}=1e06')
-
-                _dist2wallNearBody__(t, tbFilament, type='ortho', signed=0, dim=dimPb, loc='centers')
-
-                C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
-                C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
-
-                C._initVars(t,"{centers:TurbulentDistanceSolid}=({centers:TurbulentDistanceSolid}>1e03)*0+({centers:TurbulentDistanceSolid}<1e03)*{centers:TurbulentDistanceSolid}")
-                C._initVars(t,"{centers:TurbulentDistanceFilament}=({centers:TurbulentDistanceFilament}>1e03)*0+({centers:TurbulentDistanceFilament}<1e03)*{centers:TurbulentDistanceFilament}")
-
-        C._initVars(t,"{centers:TurbulentDistance}=({centers:TurbulentDistance}>1e03)*0+({centers:TurbulentDistance}<1e03)*{centers:TurbulentDistance}")
-
-        # Compute turbulentdistance wrt each body that is not a sym plan
-        if correctionMultiCorpsF42 and frontType==42:
-            # Keep track of the general turbulentDistance
-            C._initVars(t,'{centers:TurbulentDistance_ori}={centers:TurbulentDistance}')
-
-            if yplus > 0.:
-                shiftDist = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
-            else:
-                snears    = Internal.getNodesFromName(tb, 'snear')
-                h         = max(snears, key=lambda x: x[1])[1]
-                shiftDist = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
-
-            if height_in>0.:
-                if shiftDist>height_in: shiftDist=height_in
-                
-            for z in Internal.getZones(t):
-                cptBody = 1
-                if dimPb == 3: tb2 = tb
-                for body in Internal.getNodesFromType(tb2,'Zone_t'):
-                    if body[0] != "sym" and ("closure" not in body[0]):
-                        # Create extanded BBox around each body
-                        bboxBody = G.BB(body)
-                        coordX = Internal.getNodeFromName(bboxBody, 'CoordinateX')[1]
-                        coordX[0] = coordX[0] - shiftDist
-                        coordX[1] = coordX[1] + shiftDist
-                        Internal.getNodeFromName(bboxBody, 'CoordinateX')[1] = coordX
-                        coordY = Internal.getNodeFromName(bboxBody, 'CoordinateY')[1]
-                        coordY[0][0] = coordY[0][0] - shiftDist
-                        coordY[1][0] = coordY[1][0] - shiftDist
-                        coordY[0][1] = coordY[0][1] + shiftDist
-                        coordY[1][1] = coordY[1][1] + shiftDist
-                        Internal.getNodeFromName(bboxBody, 'CoordinateY')[1] = coordY
-                        coordZ = Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1] 
-                        coordZ[0][0][0] = coordZ[0][0][0] - shiftDist
-                        coordZ[0][1][0] = coordZ[0][1][0] - shiftDist
-                        coordZ[1][0][0] = coordZ[1][0][0] - shiftDist
-                        coordZ[1][1][0] = coordZ[1][1][0] - shiftDist
-                        coordZ[0][0][1] = coordZ[0][0][1] + shiftDist
-                        coordZ[0][1][1] = coordZ[0][1][1] + shiftDist
-                        coordZ[1][0][1] = coordZ[1][0][1] + shiftDist
-                        coordZ[1][1][1] = coordZ[1][1][1] + shiftDist
-                        Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1] = coordZ
-                        bboxZone = G.BB(z)
-
-                        # Compute new individual turbulentDistance when blocks are close enough
-                        if G.bboxIntersection(bboxBody, bboxZone, isBB=True):
-                            DTW._distance2Walls(z, body, type='ortho', signed=0, dim=dimPb, loc='centers')
-                            C._initVars(z,'{centers:TurbulentDistance_body%i={centers:TurbulentDistance}'%cptBody)
-                        else:
-                            C._initVars(z,'{centers:TurbulentDistance_body%i=1000'%cptBody)
-                        cptBody += 1
-                if dimPb == 3: del tb2
-
-            C._initVars(t,'{centers:TurbulentDistance}={centers:TurbulentDistance_ori}')
-            C._rmVars(t,['centers:TurbulentDistance_ori'])
-
-        if dimPb == 2 and cleanCellN == False: C._initVars(t, '{centers:TurbulentDistanceAllBC}={centers:TurbulentDistance}')
-
+    if dimPb == 2:
+        # Set CoordinateZ to a fixed value
+        dz = 0.01
+        tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+        if tbFilament is not None: tbFilament2 = C.initVars(tbFilament, 'CoordinateZ', dz*0.5)
+        else: tbFilament2 = None
     else:
-        C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistanceAllBC}')
+        tb2 = tb; tbFilament2 = tbFilament
+
+    # Compute distance to bodies
+    DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+
+    if filamentBases is not None:
+        C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
+        C._initVars(t,'{centers:TurbulentDistance}=1e06')
+                
+        DTW._distance2Walls(t, tbFilament2, type='ortho', signed=0, dim=dimPb, loc='centers')
+
+        C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
+        C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
+        #C._initVars(t,"{centers:TurbulentDistanceSolid}=({centers:TurbulentDistanceSolid}>1e03)*0+({centers:TurbulentDistanceSolid}<1e03)*{centers:TurbulentDistanceSolid}")
+        #C._initVars(t,"{centers:TurbulentDistanceFilament}=({centers:TurbulentDistanceFilament}>1e03)*0+({centers:TurbulentDistanceFilament}<1e03)*{centers:TurbulentDistanceFilament}")
+    
+    #C._initVars(t,"{centers:TurbulentDistance}=({centers:TurbulentDistance}>1e03)*0+({centers:TurbulentDistance}<1e03)*{centers:TurbulentDistance}")
+
+    # Compute turbulentdistance wrt each body that is not a sym plan (centers:TurbulentDistance_bodyX)
+    if correctionMultiCorpsF42 and frontType == 42:
+        # Keep track of the general turbulentDistance
+        C._initVars(t,'{centers:TurbulentDistance_ori}={centers:TurbulentDistance}')
+
+        if yplus > 0.:
+            shiftDist = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+        else:
+            snears    = Internal.getNodesFromName(tb, 'snear')
+            h         = max(snears, key=lambda x: x[1])[1]
+            shiftDist = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+
+        if height_in > 0.:
+            if shiftDist > height_in: shiftDist = height_in
+                
+        for z in Internal.getZones(t):
+            cptBody = 1
+            if dimPb == 3: tb2 = tb
+            for body in Internal.getNodesFromType(tb2, 'Zone_t'):
+                if body[0] != "sym" and ("closure" not in body[0]):
+                    # Create extanded BBox around each body
+                    bboxBody = G.BB(body)
+                    coordX = Internal.getNodeFromName(bboxBody, 'CoordinateX')[1]
+                    coordX[0] = coordX[0] - shiftDist
+                    coordX[1] = coordX[1] + shiftDist
+                    Internal.getNodeFromName(bboxBody, 'CoordinateX')[1] = coordX
+                    coordY = Internal.getNodeFromName(bboxBody, 'CoordinateY')[1]
+                    coordY[0][0] = coordY[0][0] - shiftDist
+                    coordY[1][0] = coordY[1][0] - shiftDist
+                    coordY[0][1] = coordY[0][1] + shiftDist
+                    coordY[1][1] = coordY[1][1] + shiftDist
+                    Internal.getNodeFromName(bboxBody, 'CoordinateY')[1] = coordY
+                    coordZ = Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1] 
+                    coordZ[0][0][0] = coordZ[0][0][0] - shiftDist
+                    coordZ[0][1][0] = coordZ[0][1][0] - shiftDist
+                    coordZ[1][0][0] = coordZ[1][0][0] - shiftDist
+                    coordZ[1][1][0] = coordZ[1][1][0] - shiftDist
+                    coordZ[0][0][1] = coordZ[0][0][1] + shiftDist
+                    coordZ[0][1][1] = coordZ[0][1][1] + shiftDist
+                    coordZ[1][0][1] = coordZ[1][0][1] + shiftDist
+                    coordZ[1][1][1] = coordZ[1][1][1] + shiftDist
+                    Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1] = coordZ
+                    bboxZone = G.BB(z)
+
+                    # Compute new individual turbulentDistance when blocks are close enough
+                    if G.bboxIntersection(bboxBody, bboxZone, isBB=True):
+                        DTW._distance2Walls(z, body, type='ortho', signed=0, dim=dimPb, loc='centers')
+                        C._initVars(z,'{centers:TurbulentDistance_body%i={centers:TurbulentDistance}'%cptBody)
+                    else:
+                        C._initVars(z,'{centers:TurbulentDistance_body%i=1000'%cptBody)
+                    cptBody += 1
+            if dimPb == 3: del tb2
+
+        C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistance_ori}')
+        C._rmVars(t, ['centers:TurbulentDistance_ori'])
+
     return None
 
 # BLANKING IBM  ##########################
@@ -478,11 +470,11 @@ def _blankingIBM__(t, tb, dimPb=3, extrusion=False, isFilamentOnly=False, filame
     if filamentBases or isFilamentOnly:
         if isFilamentOnly:
             C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
-            maxy = C.getMaxValue(tb, ['CoordinateY']);
-            miny = C.getMinValue(tb, ['CoordinateY']);
+            maxy = C.getMaxValue(tb, ['CoordinateY'])
+            miny = C.getMinValue(tb, ['CoordinateY'])
         if filamentBases:
-            maxy = C.getMaxValue(filamentBases, ['CoordinateY']);
-            miny = C.getMinValue(filamentBases, ['CoordinateY']);
+            maxy = C.getMaxValue(filamentBases, ['CoordinateY'])
+            miny = C.getMinValue(filamentBases, ['CoordinateY'])
         for z in Internal.getZones(t):
             if C.getMaxValue(z, 'centers:TurbulentDistanceFilament')> 1e-05:
                 sol   = Internal.getNodeByName(z,"FlowSolution#Centers")
@@ -495,7 +487,7 @@ def _blankingIBM__(t, tb, dimPb=3, extrusion=False, isFilamentOnly=False, filame
                     for j in range(sh[1]):
                         for i in range(sh[0]):
                             valy = 0.5*(ycord[i,j,k]+ycord[i,j+1,k])
-                            if dist[i,j] < numpy.sqrt(8)*h and valy<maxy and valy>miny:
+                            if dist[i,j] < numpy.sqrt(8.)*h and valy<maxy and valy>miny:
                                 cellN[i,j] = 2
         C._rmVars(t,['centers:TurbulentDistanceFilament'])
         if filamentBases: C._rmVars(t,['centers:TurbulentDistanceSolid'])
@@ -701,10 +693,10 @@ def _pushBackImageFront2__(t, tc, tbbc, interpDataType=0, cartesian=True):
 
     # Reconstruction of cellNFront and cellN from cellNIBC (reduce the communications)
     # cellNFront_origin and cellNIBC_origin are initialised to store the Data of cellNFront and cellNIBC before the transfers
-    C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
-    C._initVars(t,'{centers:cellNFront_origin}={centers:cellNFront}')
-    C._initVars(t,'{centers:cellNIBC_origin}={centers:cellNIBC}')
-    C._initVars(t,'{centers:cellN_interp}=maximum(0.,{centers:cellNChim})') # Second way of building the cellN field, see above
+    C._initVars(t, '{centers:cellN}={centers:cellNIBC}')
+    C._initVars(t, '{centers:cellNFront_origin}={centers:cellNFront}')
+    C._initVars(t, '{centers:cellNIBC_origin}={centers:cellNIBC}')
+    C._initVars(t, '{centers:cellN_interp}=maximum(0.,{centers:cellNChim})') # Second way of building the cellN field, see above
 
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
     C._cpVars(t,'centers:cellNIBC',tc,'cellNIBC')
@@ -725,8 +717,8 @@ def _pushBackImageFront2__(t, tc, tbbc, interpDataType=0, cartesian=True):
             sizeTot = cellNFront.shape[0]*cellNFront.shape[1]*cellNFront.shape[2]
             sizeOne =  int(numpy.sum(cellNFront))
             if sizeOne < sizeTot:
-                X._setHoleInterpolatedPoints(z, depth=1, dir=0, loc='centers',cellNName='cellNFront2',addGC=False)
-                res = X.getInterpolatedPoints(z,loc='centers', cellNName='cellNFront2') # indices,X,Y,Z
+                X._setHoleInterpolatedPoints(z, depth=1, dir=0, loc='centers', cellNName='cellNFront2', addGC=False)
+                res = X.getInterpolatedPoints(z, loc='centers', cellNName='cellNFront2') # indices,X,Y,Z
                 if res is not None:
                     indicesI = res[0]
                     XI = res[1]; YI = res[2]; ZI = res[3]
@@ -840,14 +832,14 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1,
         if twoFronts: res2 = [{},{},{}]
     else:
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
-                                            cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isOrthoFirst=isOrthoProjectFirst)
+                              cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isOrthoFirst=isOrthoProjectFirst)
         if twoFronts:
             res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
-                                        cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
+                                   cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
         if isWireModel:
             res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
-                                            cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,isWireModel=isWireModel,
-                                            isOrthoFirst=isOrthoProjectFirst)
+                                    cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,isWireModel=isWireModel,
+                                    isOrthoFirst=isOrthoProjectFirst)
     
     # cleaning
     C._rmVars(tc,['cellNChim','cellNIBC','TurbulentDistance','cellNFront'])
@@ -912,7 +904,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1,
                                 if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
                                     zname = z[0]
                                     popp  = Cmpi.getProc(z)
-                                    if NP>1:
+                                    if NP > 1:
                                         Distributed.updateGraph__(graph, popp, Cmpi.rank, zname)
                                     if zrname not in interDictIBM2: interDictIBM2[zrname]=[zname]
                                     else:
@@ -1046,11 +1038,11 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1,
 
 # INITIALiZE  ############################
 def _changeNameIBCD__(tc,NewIBCD):
-    ZsubR=Internal.getNodesByType(tc,'ZoneSubRegion_t')
+    ZsubR = Internal.getNodesByType(tc, 'ZoneSubRegion_t')
     for z in ZsubR:
-        zsplit=z[0].split('_')
-        if zsplit[0]=='IBCD':
-            zsplit[1]=str(NewIBCD)
+        zsplit = z[0].split('_')
+        if zsplit[0] == 'IBCD':
+            zsplit[1] = str(NewIBCD)
             znew = '_'.join(zsplit)
             Internal.setName(z, znew)
     return None   
@@ -1082,18 +1074,18 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, isWireModel=False, ibctypes=[
         for zc in Internal.getZones(tc):
             for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):            
                 proposedName = Internal.getName(ibcd)[0:6]+'_X%d'%(Cmpi.rank)
-                ibcd[0]=getIBCDName(proposedName)
+                ibcd[0] = getIBCDName(proposedName)
         
         if twoFronts:
             for zc in Internal.getZones(tc2):
                 for ibcd in Internal.getNodesFromName1(zc,'2_IBCD_*'):            
                     proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(Cmpi.rank)
-                    ibcd[0]=getIBCDName(proposedName)
+                    ibcd[0] = getIBCDName(proposedName)
 
     ##Adding a userdefined node to the tc tree for the IBC conditions that are provided
     ##to FastS solver to reduce the number of input arguments and to make a clear distinction
     ##of the solver parameters and the IBC parameters
-    base      = Internal.getBases(tc)[0]
+    base = Internal.getBases(tc)[0]
     Internal._createUniqueChild(base, '.Solver#IBCdefine', 'UserDefinedData_t')
     solverIBC = Internal.getNodeFromName1(base, '.Solver#IBCdefine')
     
@@ -1134,14 +1126,14 @@ def _tInitialize__(t, tb, tinit=None, model='NSTurbulent', isWireModel=False, in
     
     if isWireModel:
         vars_wm = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
-        if model == 'NSTurbulent':vars_wm.append('TurbulentSANuTilde')     
+        if model == 'NSTurbulent': vars_wm.append('TurbulentSANuTilde')     
         for z in Internal.getZones(t):
             for v_local in vars_wm:
                 C._initVars(z,'{centers:'+v_local+'_WM}=0.')
                 
     # Init with BBox
     if initWithBBox>0.:
-        print('initialisation par bounding box')
+        print('INFO: Initialisation par bounding box')
         bodybb = C.newPyTree(['Base'])
         for base in Internal.getBases(tb):
             bbox = G.bbox(base)
@@ -1251,7 +1243,7 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
         inv = Internal.getNodeFromName(body,'inv')
         if inv is not None: inv = Internal.getValue(inv)
         else: inv = 0
-        if inv==1:
+        if inv == 1:
             bodies.remove(body)
             bodiesInv.append(body)
 
