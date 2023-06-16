@@ -1,4 +1,5 @@
 # Interface pour MPI
+from posixpath import basename
 import Converter.Mpi as Cmpi
 from . import PyTree as X
 import Converter.Internal as Internal
@@ -686,7 +687,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 #=========================================================================
 def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    method='lagrangian', loc='nodes', storage='direct',
-                   interpDataType=1, hook=None,
+                   interpDataType=1, hook=None, cartesian=False, sameBase=0,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, 
                    dim=3, itype='abutting'):
     """Compute interpolation data for abutting or chimera intergrid connectivity."""
@@ -741,17 +742,19 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
             for z in Internal.getZones(b): baseNames[z[0]] = b[0]
 
         # on ne conserve que les intersections inter bases
-        for i in interDict:
-            bi = baseNames[i]
-            out = []
-            for z in interDict[i]: 
-                if bi != baseNames[z]: out.append(z)
-            interDict[i] = out
+        if sameBase == 0:
+            for i in interDict:
+                bi = baseNames[i]
+                out = []
+                for z in interDict[i]:
+                    if bi != baseNames[z]: out.append(z)
+                interDict[i] = out
 
         # Perform addXZones on aD
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
-        Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
-                        cartesian=False, zoneGC=False, keepOldNodes=False)
+        Cmpi._addXZones(aD, graph, variables=['cellN'], noCoordinates=False, 
+                        cartesian=cartesian, zoneGC=False, keepOldNodes=False)
+
         # serialisation eventuelle
         #graphs = Cmpi.splitGraph(graph)
         #for g in graphs:
@@ -777,7 +780,10 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
             for zdname in interDict[zrname]:
                 zd = Internal.getNodeFromName2(aD, zdname)
                 baseNameDnr = baseNames[zd[0]]
-                if baseNameDnr != baseNameRcv: dnrZones.append(zd)
+                if sameBase == 0:
+                    if baseNameDnr != baseNameRcv: dnrZones.append(zd)
+                else:
+                    dnrZones.append(zd)
             
             hookL = []; interpDataTypeL = []
             for z in dnrZones:

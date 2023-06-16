@@ -63,13 +63,10 @@ def getIBCDName(proposedName):
 ####################################################################################
 
 # GLOBAL
-def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
-             tbox=None, snearsf=None, yplus=100., Lref=1.,
-             vmin=21, check=False, NP=0, interpDataType=0, order=2,
-             frontType=1, extrusion=None, balancing=False, recomputeDist=False,
-             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, 
-             correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
-             height_in=-1.0, isFilamentOnly=False, isWireModel=False, cleanCellN=True):
+def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, initWithBBox=-1.,
+                    snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, expand=3, frontType=1, IBCType=1, interpDataType=0,
+                    check=False, balancing=False, recomputeDist=False, distrib=False, redistribute=False, twoFronts=False,
+                    yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
     
     import Generator.IBM as G_IBM
 
@@ -78,7 +75,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
     # STEP 0 : INIT
     #===================
     if True:
-        cartesian = True if extrusion is None else False
+        cartesian = True
         
         if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
         else: tb = Internal.copyTree(t_case)
@@ -89,28 +86,6 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
             for b in Internal.getBases(t_in):
                 Internal.addChild(b, refState, pos=0)
                 Internal.addChild(b, flowEqn , pos=0)
-
-        filamentBases= []
-        len_tb = len(Internal.getBases(tb))
-        for b in Internal.getBases(tb):
-            if "IBCFil" in b[0]: filamentBases.append(b[0])
-
-        isFilamentOnly = False
-        if len(filamentBases)==len_tb:           
-            isFilamentOnly=True
-        isOrthoProjectFirst = isFilamentOnly
-        ## if tb has both a closed solid and filaments
-        
-        tbFilament = Internal.getBases(tb)
-        if not isFilamentOnly:
-            tbFilament = []
-            for b in filamentBases:
-                node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
-                tbFilament.append(node_local)
-                Internal._rmNode(tb,node_local)     
-                isOrthoProjectFirst = True        
-        
-        tbFilament = C.newPyTree(tbFilament)  
 
         # reference state
         refstate = C.getState(tb)
@@ -145,7 +120,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
     #===================
     # STEP 1 : GENERATE MESH
     #===================
-    if dimPb == 2 and cleanCellN == False: C._initVars(tb, 'CoordinateZ', 0.) # forced
+    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
+
     if t_in is None:
         t = G_IBM.generateIBMMeshPara(tb, vmin=vmin, snears=snears, dimPb=dimPb, dfar=dfar, dfarList=dfarList, tbox=tbox,
                     snearsf=snearsf, check=check, symmetry=0, to=to, ext=3,
@@ -158,31 +134,26 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
     else: 
         t = t_in
 
-    if balancing:
+    if balancing and Cmpi.size > 1:
         import Distributor2.Mpi as D2mpi
         ts     = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(t))
-        stats  = D2._distribute(ts, NP, algorithm='graph')
+        stats  = D2._distribute(ts, Cmpi.size, algorithm='graph')
         D2._copyDistribution(t , ts)
         D2mpi._redispatch(t)
         del ts
-            
-    if extrusion == 'cyl':
-        T._cart2Cyl(t, (0,0,0),(1,0,0))
-        T._cart2Cyl(tb, (0,0,0),(1,0,0))
 
     #===================
     # STEP 2 : DIST2WALL
     #===================
-    _dist2wallIBM(t, tb, tbFilament=tbFilament, extrusion=extrusion, cleanCellN=cleanCellN, dimPb=dimPb, dz=0.01, filamentBases=filamentBases, 
-                correctionMultiCorpsF42=correctionMultiCorpsF42, frontType=frontType, yplus=yplus, Reynolds=Reynolds, Lref=Lref, height_in=height_in)
+    _dist2wallIBM(t, tb, dimPb=dimPb, correctionMultiCorpsF42=correctionMultiCorpsF42, frontType=frontType, 
+                    yplus=yplus, Reynolds=Reynolds, Lref=Lref, heightMaxF42=heightMaxF42)
 
     #===================
     # STEP 3 : BLANKING IBM
     #===================
-    _blankingIBM(t, tb, dimPb=dimPb, extrusion=extrusion, isFilamentOnly=isFilamentOnly, filamentBases=filamentBases, 
-                    cleanCellN=cleanCellN, frontType=frontType, IBCType=IBCType, DEPTH=DEPTH, yplus=yplus, 
-                    Reynolds=Reynolds, Lref=Lref, height_in=height_in, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                    wallAdapt=wallAdapt, blankingF42=blankingF42, twoFronts=twoFronts)
+    _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, DEPTH=DEPTH, yplus=yplus, 
+                    Reynolds=Reynolds, Lref=Lref, heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
+                    wallAdaptF42=wallAdaptF42, blankingF42=blankingF42, twoFronts=twoFronts)
 
     #===================
     # STEP 4 : INTERP DATA CHIM
@@ -192,8 +163,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
 
     # ajouter argument cartesian dans setInterpData
     if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
-        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=3, itype='abutting', order=order)
-    Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=3, itype='chimera', order=order)
+        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2)
+    Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2)
     
     #===================
     # STEP 4 : BUILD FRONT
@@ -204,31 +175,29 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
     #===================
     # STEP 5 : INTERP DATA IBM
     #===================
-    _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, NP=NP, frontType=frontType, DEPTH=DEPTH, 
+    _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, DEPTH=DEPTH, 
                         IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
-                        twoFronts=twoFronts, isOrthoProjectFirst=isOrthoProjectFirst, isWireModel=isWireModel, cartesian=cartesian)
+                        twoFronts=twoFronts, cartesian=cartesian)
 
     #===================
     # STEP 6 : DIST2WALL FOR VISCOUS WALL
     #===================
-    _recomputeDistForViscousWall__(t, tb, tbFilament=tbFilament, model=model, dimPb=dimPb, dz=0.01, filamentBases=filamentBases, 
-                                extrusion=extrusion, recomputeDist=recomputeDist, cleanCellN=cleanCellN, ibctypes=ibctypes)
+    _recomputeDistForViscousWall__(t, tb, model=model, dimPb=dimPb, recomputeDist=recomputeDist, ibctypes=ibctypes)
     
     #===================
     # STEP 7 : DISTRIBUTE
     #===================
-    if distrib:
-        if NP == 0: NP = Cmpi.size
+    if distrib and Cmpi.size > 1:
         tbbc = Cmpi.createBBoxTree(tc)
-        stats = D2._distribute(tbbc, NP, algorithm='graph', useCom='ID')
+        stats = D2._distribute(tbbc, Cmpi.size, algorithm='graph', useCom='ID')
         D2._copyDistribution(tc, tbbc)
         D2._copyDistribution(t, tbbc)
         tbbc = None
         
-    if redistribute:
+    if redistribute and Cmpi.size > 1:
         import Distributor2.Mpi as D2mpi
         tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
-        stats  = D2._distribute(tcs, NP, algorithm='graph')
+        stats  = D2._distribute(tcs, Cmpi.size, algorithm='graph')
         D2._copyDistribution(tc, tcs)
         D2._copyDistribution(t , tcs)
         D2mpi._redispatch(tc)
@@ -242,16 +211,14 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
         Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
         del tibm
 
-        if twoFronts or isWireModel:
+        if twoFronts:
             tibm2 = extractIBMInfo(tc, IBCNames="2_IBCD_*")
             Cmpi.convertPyTree2File(tibm2, 'IBMInfo2.cgns')
             del tibm2
 
-    if twoFronts or isWireModel: 
-        tc2 = Internal.copyTree(tc)
-    else: 
-        tc2 = None
-    _tcInitialize__(tc, tc2=tc2, twoFronts=twoFronts, isWireModel=isWireModel, ibctypes=ibctypes)
+    tc2 = Internal.copyTree(tc) if twoFronts else None
+    
+    _tcInitialize__(tc, tc2=tc2, twoFronts=twoFronts, ibctypes=ibctypes)
 
     if isinstance(tc_out, str):
         tcp = Compressor.compressCartesian(tc)
@@ -265,11 +232,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
     #===================
     # STEP 9 : INIT T AND SAVE
     #===================
-    _tInitialize__(t, tb, tinit=tinit, model=model, isWireModel=isWireModel, initWithBBox=initWithBBox)
-
-    if extrusion is not None:
-        vars = ['centers:TurbulentDistanceAllBC','centers:TurbulentDistanceWallBC', 'centers:cellNIBC_hole']
-        C._rmVars(t, vars)
+    _tInitialize__(t, tb, tinit=tinit, model=model, initWithBBox=initWithBBox)
         
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
@@ -280,64 +243,21 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, d
     return t,tc
 
 # DIST2WALL ##############################
-def _recomputeDistForViscousWall__(t, tb, tbFilament=None, model='NSTurbulent', dimPb=3, dz=0.01, 
-                            filamentBases=None, extrusion=None, recomputeDist=False, cleanCellN=False, ibctypes=[]):
-    if model != 'Euler' and recomputeDist and (extrusion!='cyl' and extrusion !='cart'):
+def _recomputeDistForViscousWall__(t, tb, model='NSTurbulent', dimPb=3, 
+                            recomputeDist=True, ibctypes=[]):
+    if model != 'Euler' and recomputeDist:
         if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
             for z in Internal.getZones(tb):
                 ibc = Internal.getNodeFromName(z,'ibctype')
                 if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
-                    Internal._rmNode(tb,z)
+                    Internal._rmNode(tb,z)        
             if dimPb == 2:
+                dz=0.01
                 tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-                DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
-                if filamentBases:
-                    tb2 = C.initVars(tbFilament, 'CoordinateZ', dz*0.5)
-                    DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
-                DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
             else:
-                DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
+                tb2 = tb
+            DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
     
-            if dimPb == 2 and cleanCellN == False: C._initVars(t, '{centers:TurbulentDistanceWallBC}={centers:TurbulentDistance}')
-    else:
-        for z in Internal.getZones(t):
-            dist = Internal.getNodeFromName2(z,'TurbulentDistanceWallBC')
-            if dist is not None:  C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistanceWallBC}')
-
-    return None
-
-def _dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
-    DTW._distance2Walls(t, tb, type=type, signed=signed, dim=dim, loc=loc)
-    #list_final_zones=[]
-    #for z in Internal.getZones(t):
-    #    list_final_zones.append(z[0])
-    #
-    #tBB =G.BB(t)
-    #tbBB=G.BB(tb)
-    #
-    #interDict = X.getIntersectingDomains(tBB, tbBB)    
-    #
-    ##FULL TB
-    #zt       = []
-    #zt_names = []
-    #for i in interDict:
-    #    if interDict[i]:
-    #        zt.append(Internal.getNodeByName(t,i))
-    #        zt_names.append(i)
-    #
-    #if zt_names:
-    #    DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
-    #
-    ###PRT1
-    #list_additional_zones = getZonesScaleUpDown__(tbBB,tBB,zt_names,dim=dim)
-    #
-    ####PRT2
-    #if list_additional_zones:        
-    #    zt=[]
-    #    for i in list_additional_zones:
-    #        zt.append(Internal.getNodeByName(t,i))
-    #    
-    #    DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
     return None
 
 #=========================================================================
@@ -346,38 +266,22 @@ def _dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
 # IN: tb: arbre du body IBM
 # OUT: centers:TurbulentDistance field
 #=========================================================================
-def _dist2wallIBM(t, tb, dimPb=3, 
-                  correctionMultiCorpsF42=False, frontType=1, yplus=100, 
-                  Reynolds=1.e6, Lref=1., height_in=1.,
-                  tbFilament=None, filamentBases=None):
+def _dist2wallIBM(t, tb, dimPb=3, correctionMultiCorpsF42=False, frontType=1, 
+                    yplus=100, Reynolds=1.e6, Lref=1., heightMaxF42=-1.):
     
     if dimPb == 2:
         # Set CoordinateZ to a fixed value
         dz = 0.01
         tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-        if tbFilament is not None: tbFilament2 = C.initVars(tbFilament, 'CoordinateZ', dz*0.5)
-        else: tbFilament2 = None
     else:
-        tb2 = tb; tbFilament2 = tbFilament
+        tb2 = tb
 
     # Compute distance to bodies
     DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
 
-    if filamentBases is not None:
-        C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
-        C._initVars(t,'{centers:TurbulentDistance}=1e06')
-                
-        DTW._distance2Walls(t, tbFilament2, type='ortho', signed=0, dim=dimPb, loc='centers')
-
-        C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
-        C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
-        #C._initVars(t,"{centers:TurbulentDistanceSolid}=({centers:TurbulentDistanceSolid}>1e03)*0+({centers:TurbulentDistanceSolid}<1e03)*{centers:TurbulentDistanceSolid}")
-        #C._initVars(t,"{centers:TurbulentDistanceFilament}=({centers:TurbulentDistanceFilament}>1e03)*0+({centers:TurbulentDistanceFilament}<1e03)*{centers:TurbulentDistanceFilament}")
-    
-    #C._initVars(t,"{centers:TurbulentDistance}=({centers:TurbulentDistance}>1e03)*0+({centers:TurbulentDistance}<1e03)*{centers:TurbulentDistance}")
-
     # Compute turbulentdistance wrt each body that is not a sym plan (centers:TurbulentDistance_bodyX)
     if correctionMultiCorpsF42 and frontType == 42:
+        print("correctionMultiCorpsF42")
         # Keep track of the general turbulentDistance
         C._initVars(t,'{centers:TurbulentDistance_ori}={centers:TurbulentDistance}')
 
@@ -388,8 +292,8 @@ def _dist2wallIBM(t, tb, dimPb=3,
             h         = max(snears, key=lambda x: x[1])[1]
             shiftDist = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
 
-        if height_in > 0.:
-            if shiftDist > height_in: shiftDist = height_in
+        if heightMaxF42 > 0.:
+            if shiftDist > heightMaxF42: shiftDist = heightMaxF42
                 
         for z in Internal.getZones(t):
             cptBody = 1
@@ -435,9 +339,9 @@ def _dist2wallIBM(t, tb, dimPb=3,
     return None
 
 # BLANKING IBM  ##########################
-def _blankingIBM__(t, tb, dimPb=3, extrusion=False, isFilamentOnly=False, filamentBases=[], cleanCellN=True, frontType=1, 
-                    IBCType=1, DEPTH=2, yplus=100, Reynolds=1.e6, Lref=1., height_in=1., correctionMultiCorpsF42=False, 
-                    wallAdapt=None, blankingF42=False):
+def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, DEPTH=2, yplus=100, 
+                    Reynolds=1.e6, Lref=1., heightMaxF42=1., correctionMultiCorpsF42=False, 
+                    wallAdaptF42=None, blankingF42=False):
     
     snear_min = 10e10
     for z in Internal.getZones(tb):
@@ -446,173 +350,131 @@ def _blankingIBM__(t, tb, dimPb=3, extrusion=False, isFilamentOnly=False, filame
             snearl = Internal.getNodeFromName1(sdd, "snear")
             if snearl is not None:
                 snearl = Internal.getValue(snearl)
-        print(snearl)
         if snearl is not None:  snear_min = min(snear_min,snearl)
     snear_min = Cmpi.allreduce(snear_min, op=Cmpi.MIN)
     
-    if extrusion is None:
-        if not isFilamentOnly:
-            t = blankByIBCBodies(t, tb, 'centers', dimPb)
-        if dimPb == 2 and cleanCellN == False:
-            C._initVars(t, '{centers:cellNIBC_blank}={centers:cellN}')
-    else:
-        C._initVars(t, '{centers:cellN}={centers:cellNIBC_blank}')
+    t = blankByIBCBodies(t, tb, 'centers', dimPb)
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
         
-    if not isFilamentOnly: _signDistance(t)
+    _signDistance(t)
 
-    if extrusion is not None:
-        C._initVars(t,'{centers:cellN}={centers:cellNIBC_blank}')
-    else:
-        C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
+    C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
     
-    if filamentBases or isFilamentOnly:
-        if isFilamentOnly:
-            C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
-            maxy = C.getMaxValue(tb, ['CoordinateY'])
-            miny = C.getMinValue(tb, ['CoordinateY'])
-        if filamentBases:
-            maxy = C.getMaxValue(filamentBases, ['CoordinateY'])
-            miny = C.getMinValue(filamentBases, ['CoordinateY'])
-        for z in Internal.getZones(t):
-            if C.getMaxValue(z, 'centers:TurbulentDistanceFilament')> 1e-05:
-                sol   = Internal.getNodeByName(z,"FlowSolution#Centers")
-                cellN = Internal.getNodeByName(sol,'cellN')[1]
-                dist  = Internal.getNodeByName(sol,'TurbulentDistanceFilament')[1]
-                ycord = Internal.getNodeByName(z,'CoordinateY')[1]
-                h     = abs(C.getValue(z,'CoordinateX',4)-C.getValue(z,'CoordinateX',5))
-                sh    = numpy.shape(dist)
-                for k in range(sh[2]):
-                    for j in range(sh[1]):
-                        for i in range(sh[0]):
-                            valy = 0.5*(ycord[i,j,k]+ycord[i,j+1,k])
-                            if dist[i,j] < numpy.sqrt(8.)*h and valy<maxy and valy>miny:
-                                cellN[i,j] = 2
-        C._rmVars(t,['centers:TurbulentDistanceFilament'])
-        if filamentBases: C._rmVars(t,['centers:TurbulentDistanceSolid'])
-
     # determination des pts IBC
-    if extrusion is None:
-        if frontType != 42:
-            if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
-            elif IBCType == 1:
-                X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
-                if frontType < 2:
-                    X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
-                else:
-                    DEPTHL = DEPTH+1
-                    X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0,loc='centers',cellNName='cellN',addGC=False)
-                    #cree des pts extrapoles supplementaires
-                    # _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
+    if frontType != 42:
+        if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
+        elif IBCType == 1:
+            X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
+            if frontType < 2:
+                X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
             else:
-                raise ValueError('prepareIBMData: not valid IBCType. Check model.')
-            
+                DEPTHL = DEPTH+1
+                X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0,loc='centers',cellNName='cellN',addGC=False)
+                #cree des pts extrapoles supplementaires
+                # _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
         else:
-            # F42: tracking of IB points using distance information
-            # the classical algorithm (front 1) is first used to ensure a minimum of two rows of target points around the geometry
-            C._initVars(t,'{centers:cellNMin}={centers:cellNIBC}')
-            if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
-            elif IBCType == 1: X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
-            X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
+            raise ValueError('prepareIBMData: not valid IBCType. Check model.')
+        
+    else:
+        # F42: tracking of IB points using distance information
+        # the classical algorithm (front 1) is first used to ensure a minimum of two rows of target points around the geometry
+        C._initVars(t,'{centers:cellNMin}={centers:cellNIBC}')
+        if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
+        elif IBCType == 1: X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
+        X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
 
+        for z in Internal.getZones(t):
+            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            if yplus > 0.:
+                height = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+            else:
+                height = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+                yplus  = G_IBM_Height.computeYplus(Re=Reynolds, height=height, L=Lref)
+            if heightMaxF42 > 0.:
+                if height > heightMaxF42:
+                    height = heightMaxF42
+                    #print("Snear min (SM) = %g || Wall Modeling Height (WMH) = %g || WMH/SM = %g"%(snear_min,height,height/snear_min))
+            C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
+
+            if correctionMultiCorpsF42:
+                # Prevent different body modeling from overlapping -> good projection of image points in the wall normal direction
+
+                cptBody = 1
+                for body in Internal.getNodesFromType(tb,'Zone_t'):
+                    if body[0] != "sym" and ("closure" not in body[0]):
+                        cptBody += 1
+
+                epsilon_dist = 2*(abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0)))
+                max_dist     = 2*0.1*Lref
+
+                # Try to find the best route between two adjacent bodies by finding optimal iso distances
+                def correctionMultiCorps(cellN, cellNF):
+                    if cellN == 2 and cellNF == 2: return 1
+                    return cellN
+
+                def findIsoFront(cellNFront, Dist_1, Dist_2):
+                    if Dist_1 < max_dist and Dist_2 < max_dist:
+                        if abs(Dist_1-Dist_2) < epsilon_dist: return 2
+                    return max(cellNFront,1)
+
+                for i in range(1, cptBody):
+                    for j in range(1, cptBody):
+                        if j != i:
+                            C._initVars(z,'centers:cellNFrontIso', findIsoFront, ['centers:cellNFrontIso', 'centers:TurbulentDistance_body%i'%i, 'centers:TurbulentDistance_body%i'%j])
+
+                C._initVars(z,'centers:cellN', correctionMultiCorps, ['centers:cellN', 'centers:cellNFrontIso'])
+
+                for i in range(1, cptBody):
+                    C._rmVars(z,['centers:cellN_body%i'%i, 'centers:TurbulentDistance_body%i'%i])
+
+        if wallAdaptF42 is not None:
+            # Use previous computation to adapt the positioning of IB points around the geometry (impose y+PC <= y+ref)
+            # Warning: the wallAdapt file has to be obtained with TIBM.createWallAdapt(tc)
+            C._initVars(t,'{centers:yplus}=100000.')
+            w = C.convertFile2PyTree(wallAdaptF42)
+            total = len(Internal.getZones(t))
+            cpt = 1
             for z in Internal.getZones(t):
-                h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-                if yplus > 0.:
-                    height = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
-                else:
-                    height = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
-                    yplus  = G_IBM_Height.computeYplus(Re=Reynolds, height=height, L=Lref)
-                if height_in > 0.:
-                    if height > height_in:
-                        height = height_in
-                        #print("Snear min (SM) = %g || Wall Modeling Height (WMH) = %g || WMH/SM = %g"%(snear_min,height,height/snear_min))
-                C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
+                print("{} / {}".format(cpt, total))
+                cellN = Internal.getNodeFromName(z,'cellN')[1]
+                if 2 in cellN:
+                    zname = z[0]
+                    zd = Internal.getNodeFromName(w, zname)
+                    if zd is not None:
+                        yplus_w = Internal.getNodeFromName(zd, 'yplus')[1]
+                        listIndices = Internal.getNodeFromName(zd, 'PointListDonor')[1]
+                    
+                        n = numpy.shape(yplus_w)[0]
+                        yplusA = Converter.array('yplus', n, 1, 1)
+                        yplusA[1][:] = yplus_w
 
-                if correctionMultiCorpsF42:
-                    # Prevent different body modeling from overlapping -> good projection of image points in the wall normal direction
+                        C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
 
-                    cptBody = 1
-                    for body in Internal.getNodesFromType(tb,'Zone_t'):
-                        if body[0] != "sym" and ("closure" not in body[0]):
-                            cptBody += 1
+                cpt += 1
 
-                    epsilon_dist = 2*(abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0)))
-                    max_dist     = 2*0.1*Lref
-
-                    # Try to find the best route between two adjacent bodies by finding optimal iso distances
-                    def correctionMultiCorps(cellN, cellNF):
-                        if cellN == 2 and cellNF == 2: return 1
-                        return cellN
-
-                    def findIsoFront(cellNFront, Dist_1, Dist_2):
-                        if Dist_1 < max_dist and Dist_2 < max_dist:
-                            if abs(Dist_1-Dist_2) < epsilon_dist: return 2
-                        return max(cellNFront,1)
-
-                    for i in range(1, cptBody):
-                        for j in range(1, cptBody):
-                            if j != i:
-                                C._initVars(z,'centers:cellNFrontIso', findIsoFront, ['centers:cellNFrontIso', 'centers:TurbulentDistance_body%i'%i, 'centers:TurbulentDistance_body%i'%j])
-
-                    C._initVars(z,'centers:cellN', correctionMultiCorps, ['centers:cellN', 'centers:cellNFrontIso'])
-
-                    for i in range(1, cptBody):
-                        C._rmVars(z,['centers:cellN_body%i'%i, 'centers:TurbulentDistance_body%i'%i])
-
-            if wallAdapt is not None:
-                # Use previous computation to adapt the positioning of IB points around the geometry (impose y+PC <= y+ref)
-                # Warning: the wallAdapt file has to be obtained with TIBM.createWallAdapt(tc)
-                C._initVars(t,'{centers:yplus}=100000.')
-                w = C.convertFile2PyTree(wallAdapt)
-                total = len(Internal.getZones(t))
-                cpt = 1
-                for z in Internal.getZones(t):
-                    print("{} / {}".format(cpt, total))
-                    cellN = Internal.getNodeFromName(z,'cellN')[1]
-                    if 2 in cellN:
-                        zname = z[0]
-                        zd = Internal.getNodeFromName(w, zname)
-                        if zd is not None:
-                            yplus_w = Internal.getNodeFromName(zd, 'yplus')[1]
-                            listIndices = Internal.getNodeFromName(zd, 'PointListDonor')[1]
-                        
-                            n = numpy.shape(yplus_w)[0]
-                            yplusA = Converter.array('yplus', n, 1, 1)
-                            yplusA[1][:] = yplus_w
-
-                            C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
-
-                    cpt += 1
-
-                C.convertPyTree2File(t, 'toto.cgns')
-                
-                C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
+            C.convertPyTree2File(t, 'toto.cgns')
             
-            # final security gate, we ensure that we have at least to layers of target points
-            C._initVars(t, '{centers:cellN} = maximum({centers:cellN}, {centers:cellNMin})')
-            C._rmVars(t,['centers:yplus', 'centers:cellNMin'])
+            C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
+        
+        # final security gate, we ensure that we have at least to layers of target points
+        C._initVars(t, '{centers:cellN} = maximum({centers:cellN}, {centers:cellNMin})')
+        C._rmVars(t,['centers:yplus', 'centers:cellNMin'])
 
-            # propagate max yplus between procs
-            yplus = numpy.array([float(yplus)])
-            yplus = Cmpi.allreduce(yplus, op=Cmpi.MAX)[0]
+        # propagate max yplus between procs
+        yplus = numpy.array([float(yplus)])
+        yplus = Cmpi.allreduce(yplus, op=Cmpi.MAX)[0]
 
-            # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
-            if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)
+        # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
+        if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)
 
-        if dimPb == 2 and cleanCellN == False: C._initVars(t, '{centers:cellNIBC_hole}={centers:cellN}')
-
-    else:  # extrusion
-        C._initVars(t, '{centers:cellN}={centers:cellNIBC_hole}')
-
-    if extrusion is None:
-        if not isFilamentOnly:_removeBlankedGrids(t, loc='centers')
+    _removeBlankedGrids(t, loc='centers')
             
     return None
 
-def _blankingIBM(t, tb, dimPb=3, extrusion=False, isFilamentOnly=False, filamentBases=[], cleanCellN=True, frontType=1, IBCType=1, 
-                DEPTH=2, yplus=100, Reynolds=1.e6, Lref=1., height_in=1., correctionMultiCorpsF42=False, 
-                wallAdapt=None, blankingF42=False, twoFronts=False):
+def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, 
+                DEPTH=2, yplus=100, Reynolds=1.e6, Lref=1., heightMaxF42=-1., correctionMultiCorpsF42=False, 
+                wallAdaptF42=None, blankingF42=False, twoFronts=False):
    
     if dimPb == 2:
         T._addkplane(tb)
@@ -622,9 +484,8 @@ def _blankingIBM(t, tb, dimPb=3, extrusion=False, isFilamentOnly=False, filament
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')
     C._initVars(t, 'centers:cellN', 1.)
     
-    _blankingIBM__(t, tb, dimPb=dimPb, extrusion=extrusion, isFilamentOnly=isFilamentOnly, filamentBases=filamentBases, 
-                    cleanCellN=cleanCellN, frontType=frontType, IBCType=IBCType, DEPTH=DEPTH, yplus=yplus, Reynolds=Reynolds, 
-                    Lref=Lref, height_in=height_in, correctionMultiCorpsF42=correctionMultiCorpsF42, wallAdapt=wallAdapt, blankingF42=blankingF42)
+    _blankingIBM__(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, DEPTH=DEPTH, yplus=yplus, Reynolds=Reynolds, 
+                    Lref=Lref, heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, wallAdaptF42=wallAdaptF42, blankingF42=blankingF42)
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
     
@@ -655,19 +516,6 @@ def _blankingIBM(t, tb, dimPb=3, extrusion=False, isFilamentOnly=False, filament
                                             Internal.__GridCoordinates__,
                                             Internal.__FlowSolutionNodes__,
                                             Internal.__FlowSolutionCenters__)
-
-    ##Ghost kmin et kmax donneuse potentiel
-    if extrusion is not None:
-        listvars_local = ['cellNChim','cellNIBC']
-        for z in Internal.getZones(t):
-            sol = Internal.getNodeFromName(z,'FlowSolution#Centers')
-            for var in listvars_local:
-                cellN = Internal.getNodeFromName(sol,var)[1]
-                sh = numpy.shape(cellN)
-                for k in [0,1, sh[2]-2, sh[2]-1]:
-                    for j in range(sh[1]):
-                        for i in range(sh[0]):
-                            if cellN[i,j,k] != 0:  cellN[i,j,k] =1
 
     return None
 
@@ -816,8 +664,8 @@ def buildFrontIBM(t, tc, dimPb=3, frontType=1, interpDataType=0, cartesian=False
     return t, tc, front, front2
 
 # INTERP DATA IBM  #######################
-def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1, DEPTH=2, IBCType=1, interpDataType=0, Reynolds=1.e6, 
-                    yplus=100, Lref=1., twoFronts=False, isOrthoProjectFirst=False, isWireModel=False, cartesian=False): 
+def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, DEPTH=2, IBCType=1, interpDataType=0, Reynolds=1.e6, 
+                    yplus=100, Lref=1., twoFronts=False, cartesian=False): 
 
     tbbc = Cmpi.createBBoxTree(tc)
 
@@ -832,14 +680,10 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1,
         if twoFronts: res2 = [{},{},{}]
     else:
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
-                              cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isOrthoFirst=isOrthoProjectFirst)
+                              cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
         if twoFronts:
             res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
                                    cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
-        if isWireModel:
-            res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
-                                    cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,isWireModel=isWireModel,
-                                    isOrthoFirst=isOrthoProjectFirst)
     
     # cleaning
     C._rmVars(tc,['cellNChim','cellNIBC','TurbulentDistance','cellNFront'])
@@ -860,7 +704,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1,
     dictOfInterpPtsByIBCType    = res[2]
     interDictIBM={}
 
-    if twoFronts or isWireModel:
+    if twoFronts:
         dictOfCorrectedPtsByIBCType2 = res2[0]
         dictOfWallPtsByIBCType2      = res2[1]
         dictOfInterpPtsByIBCType2    = res2[2]
@@ -884,13 +728,12 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1,
                         if Generator.bboxIntersection(interpPtsBB, bba, isBB=True):
                             zname = z[0]
                             popp  = Cmpi.getProc(z)
-                            if NP>1:
-                                Distributed.updateGraph__(graph, popp, Cmpi.rank, zname)
+                            if Cmpi.size > 1: Distributed.updateGraph__(graph, popp, Cmpi.rank, zname)
                             
                             if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
                             else:
                                 if zname not in interDictIBM[zrname]: interDictIBM[zrname].append(zname)
-        if twoFronts or isWireModel:
+        if twoFronts:
             for ibcTypeL in dictOfCorrectedPtsByIBCType2:
                     allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
                     allWallPts2      = dictOfWallPtsByIBCType2[ibcTypeL]
@@ -904,8 +747,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1,
                                 if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
                                     zname = z[0]
                                     popp  = Cmpi.getProc(z)
-                                    if NP > 1:
-                                        Distributed.updateGraph__(graph, popp, Cmpi.rank, zname)
+                                    if Cmpi.size > 1: Distributed.updateGraph__(graph, popp, Cmpi.rank, zname)
                                     if zrname not in interDictIBM2: interDictIBM2[zrname]=[zname]
                                     else:
                                         if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
@@ -1010,7 +852,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, NP=0, frontType=1,
     dictOfWallPtsByIBCType      = None
     dictOfInterpPtsByIBCType    = None
     interDictIBM = None
-    if twoFronts or isWireModel:
+    if twoFronts:
         dictOfCorrectedPtsByIBCType2 = None
         dictOfWallPtsByIBCType2      = None
         dictOfInterpPtsByIBCType2    = None
@@ -1047,28 +889,15 @@ def _changeNameIBCD__(tc,NewIBCD):
             Internal.setName(z, znew)
     return None   
 
-def _tcInitialize__(tc, tc2=None, twoFronts=False, isWireModel=False, ibctypes=[]):
+def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[]):
     import Geom.IBM as D_IBM
 
-    if twoFronts or isWireModel:
+    if twoFronts:
         tc2 = Internal.copyTree(tc)
         tc2 = Internal.rmNodesByName(tc2, 'IBCD*')
         tc  = Internal.rmNodesByName(tc, '2_IBCD*')
         
-        if isWireModel:
-            tc2 = Internal.rmNodesByName(tc2, 'ID*')
-            tc2 = Internal.rmNodesByName(tc2, 'gradxPressure')
-            tc2 = Internal.rmNodesByName(tc2, 'gradyPressure')
-            tc2 = Internal.rmNodesByName(tc2, 'gradzPressure')
-    
-            D_IBM._transformTc2(tc2)
-            _changeNameIBCD__(tc,140)
-            _changeNameIBCD__(tc2,141)
-            tc=Internal.merge([tc,tc2])
-            del tc2
-
-        else:
-            D_IBM._transformTc2(tc2)
+        D_IBM._transformTc2(tc2)
     
     if RENAMEIBCNODES:
         for zc in Internal.getZones(tc):
@@ -1105,12 +934,6 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, isWireModel=False, ibctypes=[
     if twoFronts:
         Internal._createUniqueChild(solverIBC, 'isgradP'    , 'DataArray_t', 'True')
         Internal._createUniqueChild(solverIBC, 'alphaGrad'  , 'DataArray_t', 0)
-    if isWireModel:
-        Internal._createUniqueChild(solverIBC, 'isWireModel' , 'DataArray_t', 'True')
-        Internal._createUniqueChild(solverIBC, 'DeltaVWire'  , 'DataArray_t', 0)
-        Internal._createUniqueChild(solverIBC, 'KWire'       , 'DataArray_t', 0)
-        Internal._createUniqueChild(solverIBC, 'DiameterWire', 'DataArray_t', 0)
-        Internal._createUniqueChild(solverIBC, 'CtWire'      , 'DataArray_t', 0) 
     if 'TBLE' in ibctypes or 'TBLE_FULL' in ibctypes:
         Internal._createUniqueChild(solverIBC, 'isTBLE'        , 'DataArray_t', 'True')
         Internal._createUniqueChild(solverIBC, 'alphaGrad'     , 'DataArray_t', 0)
@@ -1118,18 +941,10 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, isWireModel=False, ibctypes=[
 
     return None
 
-def _tInitialize__(t, tb, tinit=None, model='NSTurbulent', isWireModel=False, initWithBBox=-1):
+def _tInitialize__(t, tb, tinit=None, model='NSTurbulent', initWithBBox=-1):
     if tinit is None: I._initConst(t, loc='centers')
-    else:
-        t = Pmpi.extractMesh(tinit, t, mode='accurate')
+    else: t = Pmpi.extractMesh(tinit, t, mode='accurate')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
-    
-    if isWireModel:
-        vars_wm = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
-        if model == 'NSTurbulent': vars_wm.append('TurbulentSANuTilde')     
-        for z in Internal.getZones(t):
-            for v_local in vars_wm:
-                C._initVars(z,'{centers:'+v_local+'_WM}=0.')
                 
     # Init with BBox
     if initWithBBox>0.:
