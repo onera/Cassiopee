@@ -877,7 +877,6 @@ def interpolateSolutionCoarse2Fine(tCoarse, tFine, NPprep, NPinterp):
 # dfar, dfarList : liste des dfars, mais c'est mieux si ils sont dans t_case
 # tbox           : arbre de raffinement
 # check          : si true, fait des sorties
-# NP             : is the target number of processors for computation (maybe different from the number of processors the prep is run on)
 # frontType=1,2,3: type de front
 # expand=1,2,3   : sorte d'expand des niveaux (1:classque,2:minimum,3:deux niveaux)
 # tinit          : arbre de champ d'avant pour la reprise
@@ -1049,9 +1048,9 @@ class IBM(Common):
         # Split octree
         test.printMem(">>> Octree unstruct split [start]")
         bb = G.bbox(o)
-        NPI = Cmpi.size
-        if NPI == 1: p = Internal.copyRef(o) # keep reference
-        else: p = T.splitNParts(o, N=NPI, recoverBC=False)[self.rank]
+        self.NP = Cmpi.size
+        if self.NP == 1: p = Internal.copyRef(o) # keep reference
+        else: p = T.splitNParts(o, N=self.NP, recoverBC=False)[self.rank]
         del o
         test.printMem(">>> Octree unstruct split [end]")
     
@@ -1660,7 +1659,7 @@ class IBM(Common):
                             if Generator.bboxIntersection(interpPtsBB, bba, isBB=True):
                                 zname = z[0]
                                 popp  = Cmpi.getProc(z)
-                                if self.input_var.NP>1:
+                                if self.NP>1:
                                     Distributed.updateGraph__(graph, popp, self.rank, zname)
                                 
                                 if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
@@ -1680,7 +1679,7 @@ class IBM(Common):
                                     if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
                                         zname = z[0]
                                         popp  = Cmpi.getProc(z)
-                                        if self.input_var.NP>1:
+                                        if self.NP>1:
                                             Distributed.updateGraph__(graph, popp, self.rank, zname)
                                         if zrname not in interDictIBM2: interDictIBM2[zrname]=[zname]
                                         else:
@@ -1962,7 +1961,8 @@ class IBM(Common):
         if self.dimPb == 2 and self.input_var.cleanCellN == False: C._initVars(tb, 'CoordinateZ', 0.) # forced
         if self.input_var.t_in is None:
             t = self.generateCartesian__(tb,ext_local=self.input_var.ext+1)                    
-        else: 
+        else:
+            self.NP = Cmpi.size
             t = self.input_var.t_in
         
         # Balancing
@@ -1970,7 +1970,7 @@ class IBM(Common):
             test.printMem(">>> balancing [start]")
             import Distributor2.Mpi as D2mpi
             ts     = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(t))
-            stats  = D2._distribute(ts, self.input_var.NP, algorithm='graph')
+            stats  = D2._distribute(ts, self.NP, algorithm='graph')
             D2._copyDistribution(t , ts)
             D2mpi._redispatch(t)
             del ts
@@ -2150,8 +2150,7 @@ class IBM(Common):
         
         # Perform the final distribution
         if self.input_var.distrib:
-            if self.input_var.NP == 0: self.input_var.NP = Cmpi.size
-            stats = D2._distribute(self.tbbc, self.input_var.NP, algorithm='graph', useCom='ID')
+            stats = D2._distribute(self.tbbc, self.NP, algorithm='graph', useCom='ID')
             D2._copyDistribution(tc, self.tbbc)
             D2._copyDistribution(t, self.tbbc)
         
@@ -2160,7 +2159,7 @@ class IBM(Common):
         if self.input_var.redistribute:
             import Distributor2.Mpi as D2mpi
             tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
-            stats  = D2._distribute(tcs, self.input_var.NP, algorithm='graph')
+            stats  = D2._distribute(tcs, self.NP, algorithm='graph')
             D2._copyDistribution(tc, tcs)
             D2._copyDistribution(t , tcs)
             D2mpi._redispatch(tc)
@@ -2278,12 +2277,12 @@ class IBM(Common):
     ##"STAND ALONE" FUNCTIONS
     # distribute
     def _distribute(self, t_in, tc_in,algorithm='graph', tc2_in=None):
-        return _distribute(t_in, tc_in, self.input_var.NP, algorithm='graph', tc2_in=None)
+        return _distribute(t_in, tc_in, self.NP, algorithm='graph', tc2_in=None)
     
 
     # check nulber of points and cells per zone and i total
     def _checkNcellsNptsPerProc(self, ts, isAtCenter=False):
-        return _checkNcellsNptsPerProc(ts,self.input_var.NP,isAtCenter=isAtCenter)
+        return _checkNcellsNptsPerProc(ts,self.NP,isAtCenter=isAtCenter)
     
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces
@@ -2373,7 +2372,7 @@ def computeSnearOpt(Re=None, tb=None, Lref=1., q=1.2, yplus=300., Cf_law='ANSYS'
 # IBM prepare - seq
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
-             vmin=21, check=False, NP=0, format='single', frontType=1, recomputeDist=False,
+             vmin=21, check=False, format='single', frontType=1, recomputeDist=False,
              expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, check_snear=False):
     prep_local=IBM()
     prep_local.input_var.snears                 =snears
@@ -2385,7 +2384,6 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     prep_local.input_var.vmin                   =vmin
     prep_local.input_var.check                  =check
     prep_local.input_var.check_snear            =check_snear
-    prep_local.input_var.NP                     =NP
     prep_local.input_var.format                 =format
     prep_local.input_var.frontType              =frontType
     prep_local.input_var.recomputeDist          =recomputeDist
@@ -2403,7 +2401,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 # IBM prepare - parallel
 def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100., Lref=1.,
-             vmin=21, check=False, NP=0, format='single', interpDataType=0, order=2, ext=2,
+             vmin=21, check=False, format='single', interpDataType=0, order=2, ext=2,
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
@@ -2421,7 +2419,6 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     prep_local.input_var.vmin                   =vmin
     prep_local.input_var.check                  =check
     prep_local.input_var.check_snear            =check_snear
-    prep_local.input_var.NP                     =NP
     prep_local.input_var.format                 =format
     prep_local.input_var.interpDataType         =interpDataType
     prep_local.input_var.order                  =order
