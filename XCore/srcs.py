@@ -1,5 +1,8 @@
 import KCore.Dist as Dist
 from KCore.config import *
+
+SCOTCH=True; PARADIGMA=True; ZOLTAN=False
+
 #==============================================================================
 # Fichiers c++
 #==============================================================================

@@ -128,23 +128,25 @@ namespace CMP {
         m_current_size = 0;
     }
     // ------------------------------------------------------------------------------------------------
-    void RecvBuffer::Implementation::testAndGetLengthOfMessage( ) {
+    void RecvBuffer::Implementation::testAndGetLengthOfMessage( ) 
+    {
 #       if defined(CMP_DEBUG)        
         auto& logg = xcore::context::logger();
         logg << LogTrace << std::endl;
 #endif
         xcore::status status;
-        bool  is_available = m_ref_comm.iprobe(status, m_sender, m_id_tag );
+        bool is_available = m_ref_comm.iprobe(status, m_sender, m_id_tag);
 #       if defined(CMP_DEBUG)        
         logg << LogInformation << "is_available : " << is_available << std::endl;
 #       endif        
-        if ( is_available ) {
+        if ( is_available ) 
+        {
             m_current_size = status.count<unsigned char>();
 #           if defined(CMP_DEBUG)
             logg << LogInformation << "Longueur message a recevoir : " 
                  << m_current_size << std::endl;
 #           endif
-            if (m_current_size > m_rcv_buffer.size() )
+            if (m_current_size > m_rcv_buffer.size())
                 std::vector<value_t>( m_current_size ).swap( m_rcv_buffer );
             m_cur_iterator = m_rcv_buffer.begin( );
         }
