@@ -165,9 +165,11 @@ def run(t=None):
     module = CTK.getModule('tkContainers'); module.updateApp()
 
     # Get tkPlotXY if any
-    module = CTK.getModule('tkPlotXY')
-    if module is not None: CTK.TKPLOTXY = module
-
+    try:
+        module = CTK.getModule('tkPlotXY')
+        if module is not None: CTK.TKPLOTXY = module
+    except: pass
+    
     # - Personal apps  -
     tools.add_command(label='Add a personal app',
                       command=addPersonalApp)

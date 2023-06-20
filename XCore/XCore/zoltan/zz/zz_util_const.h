@@ -48,6 +48,10 @@
 #ifndef __ZOLTAN_UTIL_CONST_H
 #define __ZOLTAN_UTIL_CONST_H
 
+#if defined(_WIN64)
+# define __int64 long long
+#endif
+
 #include <mpi.h>
 #include "zz_const.h"
 #include "zoltan_types.h"

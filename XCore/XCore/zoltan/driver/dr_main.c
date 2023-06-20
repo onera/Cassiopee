@@ -44,6 +44,10 @@
  * @HEADER
  */
 
+#if defined(_WIN64)
+# define __int64 long long
+#endif
+
 #include <mpi.h>
 /*--------------------------------------------------------------------------*/
 /* Purpose: Driver for dynamic load-balance library, ZOLTAN.                */

@@ -8,6 +8,7 @@ import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
 import Converter.Filter as Filter
+import Compressor.PyTree as Compressor
 import numpy
 
 # local widgets list
@@ -284,15 +285,24 @@ def loadNode():
     if path is None: return
     depth = VARS[7].get()
     depth = int(depth)
+
+    # check if node is compressed
+    #zdata = Internal.getNodeFromName1(node, 'ZData')
+    #if zdata is not None:
+    #    if depth == 0: depth = 1 # load zdata also
+
+    # read node
     nodes = Filter.readNodesFromPaths(fileName, [path], maxDepth=depth)
-    
+        
+    # check if node is compressed
+    #if zdata is not None:
+    #    for n in nodes: Compressor._unpackNode(n)
+    # the node must be updated in tkTree
+
     # depth replace
     if depth == 0: node[1] = nodes[0][1]
-    elif depth == -1: 
-        node[1] = nodes[0][1]
-        node[2] = nodes[0][2]
-    else:
-        setByLevel(node, nodes[0], 0, depth)
+    else: setByLevel(node, nodes[0], 0, depth)
+
     updateNode(node)
 
 #==============================================================================

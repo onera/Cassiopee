@@ -44,6 +44,10 @@
  * @HEADER
  */
 
+#if defined(_WIN64)
+# define __int64 long long
+#endif
+
 #include <mpi.h>
 #ifdef TIMER_CALLBACKS
 /* Code that times how much time is spent in the callback functions.

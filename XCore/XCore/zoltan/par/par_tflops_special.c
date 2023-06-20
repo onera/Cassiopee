@@ -43,6 +43,11 @@
  *
  * @HEADER
  */
+
+#if defined(_WIN64)
+# define __int64 long long
+#endif
+
 #include <mpi.h>
 
 #include <stdio.h>

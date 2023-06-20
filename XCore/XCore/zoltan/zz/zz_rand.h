@@ -46,6 +46,10 @@
 #ifndef __ZZ_RAND_H
 #define __ZZ_RAND_H
 
+#if defined(_WIN64)
+# define __int64 long long
+#endif
+
 #include <mpi.h>
 #include <zoltan_types.h>
 

@@ -68,6 +68,10 @@
 /*    10 May 1999:       Date of creation.                                  */
 /*--------------------------------------------------------------------------*/
 
+#if defined(_WIN64)
+# define __int64 long long
+#endif
+
 #include <mpi.h>
 #include <stdlib.h>
 

@@ -473,7 +473,7 @@ intptr_t dummyVal;
   /* Now create searchable map from process rank to number of GIDs 
    */
 
-  destProcMap = Zoltan_Map_Create(zz, nprocs, 1, sizeof(int), 1, 0);
+  destProcMap = Zoltan_Map_Create(zz, nprocs, sizeof(int), 1, 0);
 
   if (destProcMap < 0){
     ZOLTAN_PRINT_ERROR(zz->Proc, yo, "Unable to create second map.");
