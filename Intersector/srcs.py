@@ -1,12 +1,8 @@
 # Test if libmpi exists ======================================================
-try:
-    import KCore.Dist as Dist
-    from KCore.config import *
-
-    (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                         additionalIncludePaths)
-except:
-    mpi = True
+import KCore.Dist as Dist
+from KCore.config import *
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
 
 #==============================================================================
 # Fichiers C++
@@ -14,11 +10,8 @@ except:
 cpp_srcs = ["Intersector/conformUnstr.cpp",
             
             "Intersector/booleanOperations.cpp",
-
             "Intersector/xcelln.cpp",
-            
             "Intersector/selfX.cpp",
-
             "Intersector/P1ConservativeChimeraCoeffs.cpp", 
 
             "PolyMeshTools/splitFaces.cpp",
@@ -26,15 +19,14 @@ cpp_srcs = ["Intersector/conformUnstr.cpp",
             "PolyMeshTools/aggloCells.cpp",
             "PolyMeshTools/splitCells.cpp",
             "PolyMeshTools/adaptCells.cpp",
-            "PolyMeshTools/utils.cpp",
-
-            "Intersector/testm.cpp"
-            
+            "Intersector/testm.cpp",
+            "PolyMeshTools/utils.cpp"
             ]
 
 if mpi:
     cpp_srcs += ["PolyMeshTools/adaptCells_mpi.cpp",
                  "PolyMeshTools/utils_mpi.cpp"]
+else:
     cpp_srcs += ["PolyMeshTools/adaptCells_mpi_stub.cpp",
                  "PolyMeshTools/utils_mpi_stub.cpp"]
 

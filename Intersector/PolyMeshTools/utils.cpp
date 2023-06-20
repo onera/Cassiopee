@@ -42,7 +42,10 @@ E_Int chrono::verbose=1;
 //#include <iostream>
 #include <memory>
 #include "dico_to_stl.h"
+#ifdef _MPI
+// close_cells use mpi calls
 #include "Nuga/include/close_cells.hxx"
+#endif
 
 using namespace std;
 using namespace K_FLD;
@@ -3091,11 +3094,14 @@ PyObject* K_INTERSECTOR::closeCells(PyObject* self, PyObject* args)
   convert_dico_to_map__int_pairint(py_rid_to_zones, rid_to_zones);
 
   // 5. CLOSE
+#ifdef _MPI
+  // CB:  close cells is removed from compilation without mpi
   using para_algo_t = NUGA::omp_algo<NUGA::ph_mesh_t, E_Float>; // SEQ or multi-SEQ
   using closecell_t = NUGA::close_cells< para_algo_t, NUGA::ph_mesh_t>;
 
   closecell_t cc;
   cc.run(ptr_ph_meshes, zids, zid_to_rid_to_list, rid_to_zones);
+#endif
 
   // pushing out the result : the set of closed meshes
   PyObject *l(PyList_New(0));

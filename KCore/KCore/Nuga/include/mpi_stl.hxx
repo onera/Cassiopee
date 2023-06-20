@@ -7,24 +7,22 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_MPI_STL_HXX
 #define NUGA_MPI_STL_HXX
 
 #ifdef _MPI
 #include "mpi.h"
-#endif
 
 namespace NUGA
 {
-
   namespace MPI
   {
 
     template <typename T>
-    static inline MPI_Datatype mpi_get_type() noexcept {
-
+    static inline MPI_Datatype mpi_get_type() noexcept 
+    {
       if (std::is_same<T, signed int>::value) return MPI_INT;
       if (std::is_same<T, signed long int>::value) return MPI_LONG;
       if (std::is_same<T, signed long long int>::value) return MPI_LONG_LONG;
@@ -84,5 +82,45 @@ namespace NUGA
 
   }
 }
+
+#else
+#define MPI_INT int
+#define MPI_Datatype int
+#define MPI_LONG long
+#define MPI_LONG_LONG long
+#define MPI_FLOAT float
+#define MPI_DOUBLE double
+#define MPI_LONG_DOUBLE double
+#define MPI_C_BOOL int
+#define MPI_CHAR char
+#define MPI_SIGNED_CHAR char
+#define MPI_UNSIGNED_CHAR char
+#define MPI_WCHAR char
+#define MPI_SHORT short
+#define MPI_UNSIGNED_SHORT short
+#define MPI_UNSIGNED int
+#define MPI_UNSIGNED_LONG long
+#define MPI_UNSIGNED_LONG_LONG long
+#define MPI_INT8_T int
+#define MPI_INT16_T int
+#define MPI_INT32_T int
+#define MPI_INT64_T int
+#define MPI_UINT8_T int
+#define MPI_UINT16_T int
+#define MPI_UINT32_T int
+#define MPI_UINT64_T int
+#define MPI_Barrier(X)
+#define MPI_Comm_rank(X1,X2)
+#define MPI_Comm_size(X1,X2)
+#define MPI_Recv(X1,X2,X3,X4,X5,X6,X7)
+#define MPI_Waitall(X1,X2,X3)
+#define MPI_Request int
+#define MPI_Isend(X1,X2,X3,X4,X5,X6,X7)
+#define MPI_Send(X1,X2,X3,X4,X5,X6)
+#define MPI_Irecv(X1,X2,X3,X4,X5,X6,X7) 0
+#define MPI_Comm int
+#define MPI_Status int
+#define MPI_DATATYPE_NULL int
+#endif
 
 #endif

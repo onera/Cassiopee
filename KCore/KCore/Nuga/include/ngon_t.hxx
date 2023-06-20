@@ -5779,7 +5779,7 @@ static int validate_moves_by_fluxes
   for (size_t n = 0; n < nids.size(); ++n) if (nids[n] < 0)nids[n] = n;
 
   E_Int nb_valid_moves = 0;
-  for (E_Int n = 0; n < nids.size(); ++n)
+  for (size_t n = 0; n < nids.size(); ++n)
   {
     if (nids[n] != n)
     {

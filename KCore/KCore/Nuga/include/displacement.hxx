@@ -278,7 +278,7 @@ namespace NUGA
     auto sqrmetric1 = m1.get_nodal_metric2(/*mtype*/);
 
     vertices.reserve(m1.crd.cols());
-    for (size_t i = 0; i < m1.crd.cols(); ++i)
+    for (E_Int i = 0; i < m1.crd.cols(); ++i)
     {
       vertices.push_back(NUGA::vertex(m1.crd.col(i), sqrmetric1[i]));
     }
@@ -683,7 +683,7 @@ namespace NUGA
         v.val2 *= v.val2;
         NUGA::normalize<3>(v.vec);
 
-        for (size_t j = 0; j < nnodes; ++j)
+        for (E_Int j = 0; j < nnodes; ++j)
         {
           E_Int Ni = nodes[j] - 1;
 

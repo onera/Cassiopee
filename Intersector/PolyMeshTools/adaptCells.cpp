@@ -38,6 +38,7 @@
 #include "Nuga/include/nodal_sensor.hxx"
 #include "Nuga/include/cell_sensor.hxx"
 #include "Nuga/include/adaptor_para.hxx"
+
 #include "Nuga/include/hierarchical_mesh.hxx"
 #include "Nuga/include/smoother.hxx"
 

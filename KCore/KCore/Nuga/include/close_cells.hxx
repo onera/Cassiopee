@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : SÃ¢m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CLOSE_CELLS_HXX
 #define NUGA_CLOSE_CELLS_HXX

@@ -13,10 +13,12 @@
 #define NUGA_ADAPTOR_MPI_HXX
 
 #include "Nuga/include/mpi_stl.hxx"
-#include "Nuga/include/mpi_messages.hxx"
 #include "Nuga/include/adaptor.hxx"
 #include "Nuga/include/join_sensor.hxx"
+#ifdef _MPI
+#include "Nuga/include/mpi_messages.hxx"
 #include "Nuga/include/hybrid_para_algo.hxx"
+#endif
 #include "Nuga/include/omp_algo.hxx"
 #ifdef ADAPT_TIMER
 #include "Nuga/include/chrono.h"
