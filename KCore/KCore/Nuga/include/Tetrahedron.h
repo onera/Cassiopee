@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __K_MESH_TETRAHEDRON_H__
 #define __K_MESH_TETRAHEDRON_H__
@@ -319,7 +319,7 @@ class Tetrahedron {
       {
         E_Int Fi = first_pg[f] - 1;
         const E_Int* nodes = PGs.get_facets_ptr(Fi);
-        int nnodes = PGs.stride(Fi);
+        //E_Int nnodes = PGs.stride(Fi);
         bool hasN = false;
         for (size_t n = 0; n < 3; ++n)
         {

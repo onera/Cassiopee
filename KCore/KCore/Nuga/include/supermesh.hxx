@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SUPERMESH_HXX
 #define NUGA_SUPERMESH_HXX
@@ -465,7 +465,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
 
         tmpbits.clear();
         bool true_clip(false);
-        int err = NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(bits[b], ae1f, NUGA::INTERSECT::DIFFERENCE, ARTOL, tmpbits, true_clip);
+        NUGA::CLIP::isolated_clip<aelt_t, aelt_t>(bits[b], ae1f, NUGA::INTERSECT::DIFFERENCE, ARTOL, tmpbits, true_clip);
 
         if (!true_clip) continue;
 
@@ -645,11 +645,11 @@ int interpolate(
   std::vector<E_Int> cands;
   std::vector<aelt_t> bits;
 
-  size_t n, k, b;
+  size_t n, b;
   E_Int i, i2;
   E_Int f;
 
-#pragma omp parallel for private(cands, bits, n, k, i, i2, f, b) if(do_omp)
+#pragma omp parallel for private(cands, bits, n, i, i2, f, b) if(do_omp)
   for (i = 0; i < nbcells0; ++i)
   {
     auto ae0 = mrec.aelement(i);

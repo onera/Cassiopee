@@ -57,7 +57,7 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
   
   // WARNING : oids might have IDX_NONE (created entities, e.g. internal faces with adaptCells) and is 0-based 
   E_Int nb_pgs = 0;
-  for (size_t i=0; i < sz; ++i)
+  for (E_Int i=0; i < sz; ++i)
   {
     if (oids[i] == IDX_NONE) continue;
     nb_pgs = std::max(nb_pgs, oids[i]+1);
@@ -475,7 +475,7 @@ PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
 
   K_CONNECT::IdTool::init_inc(m0.cnt.PGs._type, m0.cnt.PGs.size()); // first, all faces assumed intact
   xmesh.cnt._type.resize(sz, IDX_NONE);
-  for (size_t i=0; i < sz; ++i)
+  for (E_Int i=0; i < sz; ++i)
   {
     xmesh.cnt._type[i] = vfoid[i]; // assign history to faces to be appended referring to faces in m0
     assert (vfoid[i] < m0.cnt.PGs.size());

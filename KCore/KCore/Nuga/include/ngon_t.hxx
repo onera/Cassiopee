@@ -4889,7 +4889,7 @@ static void ph_shell(const ngon_t& ng, E_Int PHi, const ngon_unit& neighbors, Ve
 
   //
   const E_Int * neighs = neighbors.get_facets_ptr(PHi);
-  for (size_t n=0; n < neighbors.stride(PHi); ++n)
+  for (E_Int n=0; n < neighbors.stride(PHi); ++n)
   {
     if (neighs[n] != IDX_NONE) 
     {
@@ -4908,7 +4908,7 @@ static void ph_shell(const ngon_t& ng, E_Int PHi, const ngon_unit& neighbors, Ve
     const E_Int * neighs = neighbors.get_facets_ptr(Ki);
     const E_Int* faces = ng.PHs.get_facets_ptr(Ki);
 
-    for (size_t n=0; n < nneighs; ++n)
+    for (E_Int n=0; n < nneighs; ++n)
     {
       E_Int Kn = neighs[n];
 
@@ -4920,7 +4920,7 @@ static void ph_shell(const ngon_t& ng, E_Int PHi, const ngon_unit& neighbors, Ve
       E_Int nnodes = ng.PGs.stride(faces[n]-1);
 
       bool connected=false;
-      for (size_t u=0; (u < nnodes) && !connected; ++u)
+      for (E_Int u=0; (u < nnodes) && !connected; ++u)
         connected = (unodes.find(PGnodes[u]) != unodes.end());
       if (!connected) continue; 
 
@@ -4941,7 +4941,7 @@ static void ph_shell(const ngon_t& ng, E_Int PHi, const ngon_unit& neighbors, Ve
     const E_Int * faces = ng.PHs.get_facets_ptr(PHi);
     E_Int nfaces = ng.PHs.stride(PHi);
 
-    for (size_t f=0; f < nfaces; ++f)
+    for (E_Int f=0; f < nfaces; ++f)
       if (!sboundPGs.insert(faces[f]).second)//already in
         sboundPGs.erase(faces[f]);
   }
@@ -5681,7 +5681,7 @@ static int validate_moves_by_fluxes
       const E_Int* nodes = ngio.PGs.get_facets_ptr(Fi);
       int nnodes = ngio.PGs.stride(Fi);
 
-      for (size_t n = 0; n < nnodes; ++n)
+      for (E_Int n = 0; n < nnodes; ++n)
       {
         E_Int Ni = nodes[n] - 1;
         if (nids[Ni] >= 0) nidsshell[Ni] = nids[Ni];
@@ -5730,7 +5730,7 @@ static int validate_moves_by_fluxes
     clean_connectivity(ngshell, crd, 3/*ngon_dim*/, 0./*tolerance*/, false/*remove_dup_phs*/, false/*do_omp*/);
 
     ngon_unit orientshell;
-    E_Int err = build_orientation_ngu<TriangulatorType>(crd, ngshell, orientshell);
+    build_orientation_ngu<TriangulatorType>(crd, ngshell, orientshell);
 
     // compute new max flux : must decrease to validate
     double newmaxflux = -1.;
@@ -5755,7 +5755,7 @@ static int validate_moves_by_fluxes
     if ( (newmaxflux <= maxflux) || (newmaxflux < ZERO_M && newminvol > minvol) )
     {
       // improvement => validate moves
-      for (size_t f = 0; f < nfaces; ++f)
+      for (E_Int f = 0; f < nfaces; ++f)
       {
         E_Int Fi = faces[f] - 1;
         const E_Int* nodes = ngio.PGs.get_facets_ptr(Fi);

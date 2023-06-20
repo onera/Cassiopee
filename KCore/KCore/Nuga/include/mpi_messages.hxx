@@ -137,10 +137,10 @@ namespace NUGA
               auto p = k.second; //copy to ensure contiguous
 
               assert(p.cols() != 0);
-              E_Int sz0 = rankdata.data.size();
+              //E_Int sz0 = rankdata.data.size();
               rankdata.datarange.push_back(rankdata.data.size());
               rankdata.data.insert(rankdata.data.end(), p.begin(), p.end());
-              assert(rankdata.data.size() > sz0);
+              //assert(rankdata.data.size() > sz0);
               rankdata.pgs.push_back(iloc);
             }
           }
@@ -601,7 +601,7 @@ namespace NUGA
       STACK_ARRAY(MPI_Request, NB_TOT_REQS, sreqs);
 
       STACK_ARRAY(bool, nrank, has_sent);
-      for (size_t n = 0; n < nrank; ++n) has_sent[n] = false;
+      for (E_Int n = 0; n < nrank; ++n) has_sent[n] = false;
       
       int count_req{ -1 };
       for (auto& d : rank_to_data) // WARNING : reference is manadatory ! otherwise ISend might not finish before iteration d copy is deleted

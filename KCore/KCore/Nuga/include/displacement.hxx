@@ -334,7 +334,7 @@ namespace NUGA
         auto PG0 = m2.element(PGi0);
         double dmin2 = FLOAT_MAX;
         E_Int Ni{ IDX_NONE };
-        for (size_t u = 0; u < PG0.nb_nodes(); ++u)
+        for (E_Int u = 0; u < PG0.nb_nodes(); ++u)
         {
           double d2 = NUGA::sqrDistance(m2.crd.col(PG0.node(u)), vertices[i].vec, 3);
           if (d2 < dmin2)
@@ -662,7 +662,7 @@ namespace NUGA
       v.val2 = 0.;
       v.vec[0] = v.vec[1] = v.vec[2] = 0.;
 
-      for (size_t j = 0; j < nnodes; ++j)
+      for (E_Int j = 0; j < nnodes; ++j)
       {
         E_Int Ni = nodes[j] - 1;
         if (all_nodes_disp[Ni].val2 == FLOAT_MAX)

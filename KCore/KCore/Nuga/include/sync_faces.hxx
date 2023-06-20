@@ -110,13 +110,13 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
   //std::cout << "nmerges : " << nmerges << std::endl;
 
   // check wrong auto_match
-  for (size_t i = 0; i <npgs; ++i)
+  for (E_Int i = 0; i < npgs; ++i)
     assert(nids[i] == i);
 
 #ifdef DEBUG_MATCH_PERIO
   std::vector<E_Int> left, right, remain;
 #endif
-  for (E_Int i = npgs; i <nids.size(); ++i)
+  for (size_t i = npgs; i < nids.size(); ++i)
   {
     if (nids[i] == i)
     {
@@ -152,12 +152,14 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
   if (axis)
     NUGA::axial_rotate(crdR, center, axis, angle);
   else if (translation)
-    for (size_t k = 0; k < crdR.cols(); ++k)
+  {
+    for (E_Int k = 0; k < crdR.cols(); ++k)
     {
       crdR(0, k) += translation[0];
       crdR(1, k) += translation[1];
       crdR(2, k) += translation[2];
     }
+  }
   else
   {
     std::cout << "Error : no transfo defined" << std::endl;
@@ -215,8 +217,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
       {
         const double * P = crdR.col(face.node(k));
         // if P is in ae1, ae0 is a piece of ae1
-        int err = faceC.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, m.crd, P, is_in2, RTOL);
-        assert(!err);
+        faceC.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, m.crd, P, is_in2, RTOL);
         if (!is_in2) break;
       }
 
@@ -226,8 +227,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
       {
         const double * P = m.crd.col(faceC.node(k));
         // if P is in ae1, ae0 is a piece of ae1
-        int err = face.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, crdR, P, is_in1, RTOL);
-        assert(!err);
+        face.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, crdR, P, is_in1, RTOL);
         if (!is_in1) break;
       }
 
@@ -524,12 +524,14 @@ inline void duplicate_and_move_period_faces
   if (axis)
     NUGA::axial_rotate(crdR, center, axis, -angle);
   else if (translation)
-    for (size_t k = 0; k < crdR.cols(); ++k)
+  {
+    for (E_Int k = 0; k < crdR.cols(); ++k)
     {
       crdR(0, k) -= translation[0];
       crdR(1, k) -= translation[1];
       crdR(2, k) -= translation[2];
     }
+  }
   else
   {
     std::cout << "Error : no transfo defined" << std::endl;
@@ -575,7 +577,7 @@ inline void duplicate_and_move_period_faces
   //update face_to_bits
   for (auto& i : face_to_bits)
   {
-    E_Int master = i.first;
+    //E_Int master = i.first;
     auto& bits = i.second;
     for (auto& b : bits) b = nids[b];
   }
@@ -598,7 +600,7 @@ inline void replace_faces(
 
     molecPH.clear();
 
-    for (int p = 0; p < nb_pgs; ++p)
+    for (E_Int p = 0; p < nb_pgs; ++p)
     {
       E_Int PGi = *(pPGi + p) - 1;
 
@@ -608,7 +610,7 @@ inline void replace_faces(
       else
       {
         modifiedPHs.insert(i);
-        for (E_Int k = 0; k < itBits->second.size(); ++k)
+        for (size_t k = 0; k < itBits->second.size(); ++k)
           molecPH.push_back(itBits->second[k] + 1);
       }
     }
@@ -734,7 +736,7 @@ inline bool sync_faces
           molecPH.push_back(PGi + 1);
         else
         {
-          for (E_Int k = 0; k < itBits->second.size(); ++k)
+          for (size_t k = 0; k < itBits->second.size(); ++k)
             molecPH.push_back(itBits->second[k] + 1);
         }
       }

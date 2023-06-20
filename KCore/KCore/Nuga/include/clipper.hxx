@@ -87,8 +87,7 @@ namespace NUGA
         }
 
         const double * P = crd2D.col(k);
-        int err = sub.template fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, crd2D, P, is_in, 1.e-9);
-        assert(!err);
+        sub.template fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, crd2D, P, is_in, 1.e-9);
         w_keep[k] = is_in;
       }
 
@@ -129,8 +128,7 @@ namespace NUGA
         }
 
         const double * P = crd2D.col(k);
-        int err = cut.template fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, crd2D, P, is_in, 1.e-9);
-        assert(!err);
+        cut.template fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, crd2D, P, is_in, 1.e-9);
         w_keep[k] = is_in;
       }
 
@@ -346,8 +344,7 @@ namespace NUGA
       //
       E_Int nb_edges0 = cnt.cols();
       err = conformizer.run(crd, cnt, ancE2, nullptr/*&priority*/, ABSTOL2D, nb_edges1, 1 /*one iter only*/);
-      if (err)
-        return err;
+      if (err) return err;
 
 #ifdef DEBUG_CLIPPER
       {

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_AGGLOMERATOR_H
 #define NUGA_AGGLOMERATOR_H
@@ -273,11 +273,10 @@ namespace NUGA
     {
       E_Int i = PHlist[ii];
 
-      if (frozen[i])
-        continue;
+      if (frozen[i]) continue;
 
       E_Int bestn = IDX_NONE;
-      E_Float worst_reflex_a = -1.;
+      //E_Float worst_reflex_a = -1.;
 
 #ifdef DEBUG_AGGLOMERATOR 
       //size_t nbfmax=0;
@@ -413,7 +412,7 @@ namespace NUGA
           //nbfmax = nbf;
           best_agg = cur_agg;
           best_ori = cur_ori;
-          worst_reflex_a = reflex_a;
+          //worst_reflex_a = reflex_a;
           min_delta_reflex = delta_reflex;
           qmax = q;
           
@@ -777,7 +776,7 @@ namespace NUGA
         continue;
 
       E_Int bestn = IDX_NONE;
-      E_Float worst_reflex_a = -1.;
+      //E_Float worst_reflex_a = -1.;
 
 #ifdef DEBUG_AGGLOMERATOR 
       //size_t nbfmax=0;
@@ -806,8 +805,7 @@ namespace NUGA
       for (E_Int n = 0; (n < nb_neighs); ++n)
       {
         E_Int j = *(neighs + n);
-        if (j == IDX_NONE)
-          continue;
+        if (j == IDX_NONE) continue;
 
         if ((bad[j]) && (enforce_reflex_criteria_and_or_badagglo_allowance == 0 || enforce_reflex_criteria_and_or_badagglo_allowance == 1))
           continue;
@@ -830,7 +828,6 @@ namespace NUGA
         convex_edges.clear();
 
         //compuTe now for j
-        bool conc2;
         E_Int nb_reflex_edges_2(0);
 
         reflex_edges_j.clear();
@@ -1962,7 +1959,7 @@ namespace NUGA
     if (splitpgs.size() > 0)
     {
       //medith::write("delta1.mesh", crd, ngio, PHlist[0]);
-      E_Int err = NUGA::Splitter::__split_pgs(crd, ngio, splitpgs, splitoids);
+      NUGA::Splitter::__split_pgs(crd, ngio, splitpgs, splitoids);
       //medith::write("delta2.mesh", crd, ngio, PHlist[0]);
       //medith::write("splitpgs.mesh", crd, splitpgs);
     }

@@ -78,7 +78,7 @@ namespace xcore
 		{
 		   int n;
 		   double PI25DT = 3.141592653589793238462643;
-		   double mypi, h, pi, i, sum;
+		   double mypi=0., h, pi=0., i, sum;
 	       int myid, numprocs;
 
  	       xcore::communicator globCom;
@@ -93,14 +93,14 @@ namespace xcore
 	       sum = 0.0;
            h   = 1.0/n;
     	   /* Compute and Sum the "Heights" of each bar of the integration */
-	       for (i=myid+0.5; i<n; i+=numprocs)
+	       for (i = myid+0.5; i < n; i += numprocs)
     	   {
            		sum += dx_arctan(i*h);
     	   }
     	   /* Multiply by the "Widths" of each bar and 4.0 (arctan(1)=Pi/4) */
     	   mypi = 4.0*h*sum;
 
-	      /* Consolidate and Sum Results on rank 0 (default) */
+	       /* Consolidate and Sum Results on rank 0 (default) */
     	   globCom.reduce(mypi, pi, xcore::sum);
 
 	       if (myid == 0)

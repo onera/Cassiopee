@@ -430,8 +430,7 @@ namespace NUGA
       {
         const double * P = ae2_2D.m_crd.col(k);
         // if P is in ae1, ae0 is a piece of ae1
-        int err = ae1_2D.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, ae1_2D.m_crd, P, is_in, ABSTOL);
-        assert(!err);
+        ae1_2D.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, ae1_2D.m_crd, P, is_in, ABSTOL);
         if (!is_in) break;
       }
 
