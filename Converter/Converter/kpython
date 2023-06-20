@@ -107,42 +107,49 @@ else
         #mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         # intelMpi
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x
     elif [ $ELSAPROD == 'aus_r8' ] # austri
     then
         set -x
         # intelMpi
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x
     elif [ $ELSAPROD == 'sat_r8' ] # sator
     then
         set -x
         # intelMpi
         mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x
     elif [ $ELSAPROD == 'sat_cas_r8' ] # sator-new
     then
         set -x
         # intelMpi
         mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x
     elif [ $ELSAPROD == 'spiro_el8' ] || [ $ELSAPROD == 'spiro_amdrm_r8' ] || [ $ELSAPROD == 'spiro_amdnp_r8' ] || [ $ELSAPROD == 'spiro_sky_r8' ] || [ $ELSAPROD == 'spiro_cas_r8' ] # spiro
     then
     set -x
         # intelMpi
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x
     elif [ $ELSAPROD == 'stv_r8' ] # stelvio
     then
         set -x
         # intelMpi
         mptrun $ARGS -omp $NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x
     elif [ $ELSAPROD == 'cob_r8' ] # cobalt
     then
         set -x
         export OMP_NUM_THREADS=$NTHREADS
         ccc_mprun -n $NPROCS $PYTHONEXE $SCRIPT
+        [ $? != 0 ] && exit 1;
         set +x
 
     elif [ $ELSAPROD == 'msys64' ] # MSYS 2 With Win64 production
@@ -150,16 +157,19 @@ else
         set -x
 	    # MSMPI
 	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x    
     elif [ $ELSAPROD == 'win64' ] # MSYS 2 With Win64 production
     then
         set -x
 	    # MSMPI
 	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x
     else
         set -x
         mpirun $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        [ $? != 0 ] && exit 1;
         set +x
     fi
     unset MPIRUN

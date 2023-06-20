@@ -252,8 +252,11 @@ def _recomputeDistForViscousWall__(t, tb, model='NSTurbulent', dimPb=3,
                 if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
                     Internal._rmNode(tb,z)        
             if dimPb == 2:
-                dz=0.01
-                tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+                z0 = Internal.getNodeFromType2(t, "Zone_t")
+                bb0 = G.bbox(z0); dz = (bb0[5]-bb0[2])*0.5
+                tb2 = Internal.copyRef(tb)
+                tb2 = Internal.copyValue(tb2, byName='CoordinateZ')
+                C._initVars(tb2, 'CoordinateZ', dz)
             else:
                 tb2 = tb
             DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
@@ -271,8 +274,11 @@ def _dist2wallIBM(t, tb, dimPb=3, correctionMultiCorpsF42=False, frontType=1,
     """Compute wall distance for IBM."""
     if dimPb == 2:
         # Set CoordinateZ to a fixed value
-        dz = 0.01
-        tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+        z0 = Internal.getNodeFromType2(t, "Zone_t")
+        bb0 = G.bbox(z0); dz = (bb0[5]-bb0[2])*0.5
+        tb2 = Internal.copyRef(tb)
+        tb2 = Internal.copyValue(tb2, byName='CoordinateZ')
+        C._initVars(tb2, 'CoordinateZ', dz)
     else:
         tb2 = tb
 
@@ -364,7 +370,7 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, DEPTH=2, yplus=100,
         if snearl is not None:  snear_min = min(snear_min,snearl)
     snear_min = Cmpi.allreduce(snear_min, op=Cmpi.MIN)
     
-    t = blankByIBCBodies(t, tb, 'centers', dimPb)
+    _blankByIBCBodies(t, tb, 'centers', dimPb)
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
         
@@ -463,8 +469,6 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, DEPTH=2, yplus=100,
                         C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
 
                 cpt += 1
-
-            C.convertPyTree2File(t, 'toto.cgns')
             
             C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
         
@@ -1028,6 +1032,13 @@ def _removeBlankedGrids(t, loc='centers'):
 #==============================================================================
 def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
     """Blank by immersed bodies."""
+    tp = Internal.copyRef(t)
+    _blankByIBCBodies(tp, tb, loc, dim, cellNName=cellNName)
+
+    return tp
+
+def _blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
+    """Blank by immersed bodies."""
     DIM = dim
     blankalgo='tri'
     #blankalgo='xray'
@@ -1096,16 +1107,16 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
                 tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
             C._cpVars(tc,'%s'%cellNName,t,'centers:%s'%cellNName)
         else:
-            t = X.blankCells(t, bodies, BM, blankingType=typeb, delta=TOLDIST, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
+            X._blankCells(t, bodies, BM, blankingType=typeb, delta=TOLDIST, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
     else:
         BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
         for body in bodiesInv:
             print('Info: blankByIBCBodies: reverse blanking for body.')
-            t = X.blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
+            X._blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
             C._initVars(t,'{centers:%s}=1-{centers:%s}'%(cellNName,cellNName)) # ecoulement interne
         for body in bodies:
-            t = X.blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
-    return t
+            X._blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
+    return None
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
