@@ -572,7 +572,7 @@ def maskXRay__(body, delta=0., dim=3, isNot=0, tol=1.e-8):
 
 # cellN modification
 def _modCellN1(a, cellNName='cellN'):
-    """Change cellN: 0->-1, 2->0"""
+    """Change cellN: 0->-1, 2->1"""
     if isinstance(a[0], list):
         for i in a:
             connector._modCellN1(i, cellNName)

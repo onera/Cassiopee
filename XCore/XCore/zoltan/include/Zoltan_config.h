@@ -30,7 +30,7 @@
 #undef ZHAVE_GZIP
 
 /* define if we want to use MPI */
-#undef HAVE_MPI
+#define HAVE_MPI
 
 /* Define if want to build with nemesis_exodus enabled */
 #undef HAVE_NEMESIS_EXODUS

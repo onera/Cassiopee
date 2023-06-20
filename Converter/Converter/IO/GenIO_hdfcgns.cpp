@@ -170,7 +170,11 @@ static herr_t count_children(hid_t id, const char *name, const H5L_info_t* linfo
   return 0;
 }
 /* ------------------------------------------------------------------------- */
+#if H5_VERSION_LE(1,11,9)
 static herr_t gfind_name(hid_t id, const char *nm, void *snm)
+#else
+static herr_t gfind_name(hid_t id, const char *nm, const H5L_info_t* linfo, void *snm)
+#endif
 {
   /*  printf("GFIND [%s][%s]\n",nm,snm);fflush(stdout); */
   if (!strcmp(nm,(char *)snm)) return 1;
@@ -180,6 +184,7 @@ static herr_t gfind_name(hid_t id, const char *nm, void *snm)
 #define has_child(ID,NAME) H5Giterate(ID, ".", NULL, gfind_name, (void *)NAME)
 #else
 #define has_child(ID,NAME) H5Lexists(ID, NAME, H5P_DEFAULT)
+//#define has_child(ID,NAME) H5Literate2(ID, H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, NULL, gfind_name, (void *)NAME)
 #endif
 /* ------------------------------------------------------------------------- */
 #if H5_VERSION_LE(1,11,9)
@@ -191,7 +196,7 @@ static herr_t delete_children(hid_t id, const char *name, const H5L_info_t* linf
   /* do not change link id with actual here, stop deletion at link node */
   if (name && (name[0] == ' ')) /* leaf node */
   {
-    H5Ldelete(id,name,H5P_DEFAULT);
+    H5Ldelete(id, name, H5P_DEFAULT);
   }
   else 
   {
@@ -289,14 +294,24 @@ hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
   if ((order & H5_INDEX_CRT_ORDER) == H5_INDEX_CRT_ORDER)
   {
     // avec order
+#if H5_VERSION_LE(1,11,9)
     H5Literate(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC,
                NULL, feed_children_ids, (void *)idlist);
+#else
+    H5Literate2(nodeid, H5_INDEX_NAME, H5_ITER_INC,
+               NULL, feed_children_ids, (void *)idlist);
+#endif
   }
   else
   {
     // sans order
+#if H5_VERSION_LE(1,11,9)
     H5Literate(nodeid, H5_INDEX_NAME, H5_ITER_INC,
                NULL, feed_children_ids, (void *)idlist);
+#else
+    H5Literate2(nodeid, H5_INDEX_NAME, H5_ITER_INC,
+                NULL, feed_children_ids, (void *)idlist);
+#endif
   }
 
   // Cette fonction ne marche que si les noeuds ont ete cree avec
@@ -2227,7 +2242,7 @@ hid_t K_IO::GenIOHdf::modifyNode(hid_t node, PyObject* tree)
   // Missing replace value!!
   hid_t child = H5Gopen2(node, s1, H5P_DEFAULT);
 
-  return node;
+  return child;
 }
 //=============================================================================
 hid_t K_IO::GenIOHdf::setSingleR4(hid_t node, float data)

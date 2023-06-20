@@ -196,8 +196,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         
     if redistribute and Cmpi.size > 1:
         import Distributor2.Mpi as D2mpi
-        tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
-        stats  = D2._distribute(tcs, Cmpi.size, algorithm='graph')
+        tcs   = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
+        stats = D2._distribute(tcs, Cmpi.size, algorithm='graph')
         D2._copyDistribution(tc, tcs)
         D2._copyDistribution(t , tcs)
         D2mpi._redispatch(tc)
@@ -268,7 +268,7 @@ def _recomputeDistForViscousWall__(t, tb, model='NSTurbulent', dimPb=3,
 #=========================================================================
 def _dist2wallIBM(t, tb, dimPb=3, correctionMultiCorpsF42=False, frontType=1, 
                     yplus=100, Reynolds=1.e6, Lref=1., heightMaxF42=-1.):
-    
+    """Compute wall distance for IBM."""
     if dimPb == 2:
         # Set CoordinateZ to a fixed value
         dz = 0.01
@@ -338,7 +338,18 @@ def _dist2wallIBM(t, tb, dimPb=3, correctionMultiCorpsF42=False, frontType=1,
 
     return None
 
-# BLANKING IBM  ##########################
+#================================================================
+# Blank t by tb (IBM body)
+# IN: t: tree
+# IN: tb: IBM body
+# IN: dimPb: 2 or 3
+# IN: frontType: 1, ...
+# IN: IBCType: XX
+# IN: DEPTH: number of fringe cells to force the solution
+# IN: yplus: desired y+
+# IN: Reynolds: Reynolds on tb
+# ...
+#=================================================================
 def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, DEPTH=2, yplus=100, 
                     Reynolds=1.e6, Lref=1., heightMaxF42=1., correctionMultiCorpsF42=False, 
                     wallAdaptF42=None, blankingF42=False):
@@ -475,7 +486,7 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, DEPTH=2, yplus=100,
 def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, 
                 DEPTH=2, yplus=100, Reynolds=1.e6, Lref=1., heightMaxF42=-1., correctionMultiCorpsF42=False, 
                 wallAdaptF42=None, blankingF42=False, twoFronts=False):
-   
+    """Blank t by tb for IBM."""
     if dimPb == 2:
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), 0.01)
@@ -665,7 +676,7 @@ def buildFrontIBM(t, tc, dimPb=3, frontType=1, interpDataType=0, cartesian=False
 
 # INTERP DATA IBM  #######################
 def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, DEPTH=2, IBCType=1, interpDataType=0, Reynolds=1.e6, 
-                    yplus=100, Lref=1., twoFronts=False, cartesian=False): 
+                      yplus=100, Lref=1., twoFronts=False, cartesian=False): 
 
     tbbc = Cmpi.createBBoxTree(tc)
 
@@ -878,7 +889,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, DEPTH
 
     return None
 
-# INITIALiZE  ############################
+# INITIALIZE  ############################
 def _changeNameIBCD__(tc,NewIBCD):
     ZsubR = Internal.getNodesByType(tc, 'ZoneSubRegion_t')
     for z in ZsubR:
@@ -1254,7 +1265,7 @@ def getIBMFrontType1__(tc, frontvar, dim):
     front = []
     for z in Internal.getZones(tc):
         if C.getMinValue(z,frontvar)<0.2 and C.getMaxValue(z,frontvar)>0.8:
-            X._maximizeBlankedCells(z,depth=1,dir=1,loc='nodes', cellNName='cellNChim')
+            X._maximizeBlankedCells(z, depth=1, dir=1, loc='nodes', cellNName='cellNChim')
             C._initVars(z,'{cellNChim}=minimum(1.,{cellNChim})')
             f = P.frontFaces(z, frontvar)
             if Internal.getZoneDim(f)[1]>0:

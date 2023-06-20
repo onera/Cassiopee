@@ -157,8 +157,11 @@ if srcs.SCOTCH:
 # zoltan
 if srcs.ZOLTAN:
     if mpi:
+        srcs_zolt = []
+        for i in srcs_zoltan.cpp_srcs: srcs_zolt.append('%s/%s'%('XCore/zoltan',i))
         env5 = env.Clone(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt3, 
                          CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt3)
+        myMod5 = env5.StaticLibrary('zoltan', srcs_zolt)
         dp5 = env5.Install(modDir, myMod5)
         deps.append(dp5)
 
