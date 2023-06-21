@@ -1247,7 +1247,7 @@ def _XcellN(t, priorities, output_type=0, rtol=0.05):
 
   DIM = getTreeDim(t)
   #print ('DIM ? ' +str(DIM))
-  if DIM != 2 and DIM != 3 : # and DIM != 21: # 21 NUGA SURFACE
+  if DIM != 2 and DIM != 3: # and DIM != 21: # 21 NUGA SURFACE
     raise ValueError('XcellN: the input file has an unsupported format or contain mixed 2D/3D zones.')
     
   _XcellN_(t, priorities, output_type, rtol)
@@ -1255,8 +1255,8 @@ def _XcellN(t, priorities, output_type=0, rtol=0.05):
 #==============================================================================
 # _XcellN_ (in-place version)
 # IN: t: 3D NGON SURFACE mesh
-# IN : priorities : one-to-one priorities between components
-# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface. 
+# IN: priorities: one-to-one priorities between components
+# IN: output_type: 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface. 
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
 def _XcellN_(t, priorities, output_type=0, rtol=0.05):
@@ -1280,12 +1280,12 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   bases = Internal.getBases(t)
    #(BCs,BCNames,BCTypes) = C.getBCs(t)
 
-  if len(bases) == 1 :
+  if len(bases) == 1:
     raise ValueError('XcellN: Only one base in the file. Each component must be separated in a given Base. No check between zones of the same component.')
 
   min_compid = min(min(priorities, key=min))
   max_compid = max(max(priorities, key=max))
-  if max_compid < 0 :
+  if max_compid < 0:
     raise ValueError('XcellN: Negativle values passes as priorities. mus be component id (0-based).')
   if max_compid >= len(bases):
     raise ValueError('XcellN: Greatest component specified in priorities exceeds nb of components.')
@@ -1299,11 +1299,10 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   #C.convertPyTree2File(tNG, 'tNG.cgns')
   
   # 1.2 reorient
-  if DIM == 3:
-    _reorient(tNG)
+  if DIM == 3: _reorient(tNG)
 
   if TIMER:
-    print ('XCellN : Preparing Inputs ::: NGON convert & reorientation ::: CPU time : ',time.time()-xcelln_time2,'s')
+    print ('XCellN: Preparing Inputs ::: NGON convert & reorientation ::: CPU time : ',time.time()-xcelln_time2,'s')
     xcelln_time2 = time.time()
 
   #C.convertPyTree2File(tNG, 'tNGo.cgns')
@@ -1323,9 +1322,9 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   basesNG = Internal.getBases(tNG)
   bid=-1
   for bNG in basesNG:
-    bid +=1
+    bid += 1
     zj = concatenate(bNG, tol = 1.e-10) # discard inner joins
-    #if DBG == True : C.convertPyTree2File(zj, 'zj_'+str(bid)+'.cgns')
+    #if DBG: C.convertPyTree2File(zj, 'zj_'+str(bid)+'.cgns')
     b_bounds = externalFaces(zj) # keeping orientation
     if DBG: C.convertPyTree2File(b_bounds, 'bound_b_'+str(bid)+'.cgns')
     
@@ -1356,19 +1355,19 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
       wallf = wallf[wallf >= 1]
       if wallf != []:
         wallf -= 1 # make it 0 based
-      else : wallf = None
+      else: wallf = None
 
     wall_ids.append(wallf)
 
   if TIMER:
-    print ('XCellN : Preparing Inputs ::: BC and Walls ::: CPU time : ',time.time()-xcelln_time2,'s')
+    print ('XCellN: Preparing Inputs ::: BC and Walls ::: CPU time : ',time.time()-xcelln_time2,'s')
     xcelln_time2 = time.time()
 
   # 1.4 get the zones in a single list with parent base id
   ngons = []
   basenum = []
   zwall_ids = [] # for double wall mgt
-  base_id=-1
+  base_id = -1
   for b in basesNG:
     base_id += 1
     zones = Internal.getZones(b)
@@ -1384,14 +1383,14 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   #import sys; sys.exit()
 
   if TIMER:
-    print ('XCellN : Preparing Inputs : CPU time : ',time.time()-xcelln_time,'s')
+    print ('XCellN: Preparing Inputs : CPU time : ',time.time()-xcelln_time,'s')
     xcelln_time = time.time()
 
   # 2. COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
   xcellns = XOR.XcellN(ngons, zwall_ids, basenum, boundaries, wall_ids, priorities, output_type, rtol)
 
   if TIMER:
-    print ('XCellN : Computing : CPU time : ',time.time()-xcelln_time,'s')
+    print ('XCellN: Computing: CPU time: ',time.time()-xcelln_time,'s')
     xcelln_time = time.time()
 
   # 3. OUTPUT
@@ -1429,7 +1428,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     G._close(t)
 
     if TIMER:
-      print ('XCellN : Writing output : CPU time : ',time.time()-xcelln_time,'s')
+      print ('XCellN: Writing output: CPU time: ',time.time()-xcelln_time,'s')
       xcelln_time = time.time()
 
     return None
@@ -1441,8 +1440,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
   tNG = C.convertArray2NGon(t)
   basesNG = Internal.getBases(tNG)
 
-  zid = -1
-  bid = -1
+  zid = -1; bid = -1
   has_structured_bases = False
   for b in bases:
     bid +=1
@@ -1452,7 +1450,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
       has_structured_bases = True
       zonesNG = Internal.getZones(basesNG[bid])
       for z in zonesNG:
-        zid +=1
+        zid += 1
         #print('set field on tNG')
         C.setFields([xcellns[zid]], z, 'centers', False)
       mc = C.node2Center(basesNG[bid])
@@ -1464,12 +1462,11 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
       C.freeHook(hookN)
     else: # set field on t
       for z in zones:
-        zid +=1
-        #print('set field on t')
+        zid += 1
         C.setFields([xcellns[zid]], z, 'centers', False)
 
   if TIMER:
-      print ('XCellN : Writing output : CPU time : ',time.time()-xcelln_time,'s')
+      print('XCellN: Writing output: CPU time: ',time.time()-xcelln_time,'s')
     
   return None
 
@@ -1641,21 +1638,21 @@ def _triangulateSpecifiedFaces(t, pgs, improve_qual=1):
         print('triangulateSpecifiedFaces: input error: nb of polygons packs differ from nb of zones.')
         return None
 
-    i=0
+    i = 0
     for z in zones:
       m = C.getFields(Internal.__GridCoordinates__, z)[0]
       if m == []: continue
-      m = Converter.convertArray2NGon(coords)
+      m = Converter.convertArray2NGon(m)
       m = XOR.triangulateSpecifiedFaces(m, pgs[i], improve_qual)
-      mesh = res[0]
-      pg_oids=res[1]
+      mesh = m[0]
+      pg_oids= m[1]
 
       # MAJ du maillage de la zone
       C.setFields([mesh], z, 'nodes') 
 
       # MAJ POINT LISTS #
       updatePointLists(z, zones, pg_oids)
-      i = i+1
+      i += 1
 
 #==============================================================================
 # triangulateNonBasicFaces
@@ -1681,13 +1678,13 @@ def _triangulateNFaces(t, improve_qual=1, min_nvertices=5, discard_joins=True):
         #coords = Converter.convertArray2NGon(coords)
 
         ptLists=[]
-        if (discard_joins == True):
+        if discard_joins:
             joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-            for j in joins :
+            for j in joins:
                 ptl = Internal.getNodeFromName1(j, 'PointList')
                 ptLists.append(ptl[1])
 
-        if (ptLists != []):
+        if ptLists != []:
             #print ptLists
             ptLists = numpy.concatenate(ptLists) # create a single list
             ptLists = ptLists -1 # 0-based
@@ -2174,8 +2171,8 @@ def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=1, amax = 1.e-12, treat
 
     zones = Internal.getZones(t)
     if len(pgs) != len(zones):
-    	print('agglomerateCellsWithSpecifiedFaces: input error: nb of polygons packs differ from nb of zones : %s versus %s.'%(len(pgs), len(zones)))
-    	return None
+        print('agglomerateCellsWithSpecifiedFaces: input error: nb of polygons packs differ from nb of zones : %s versus %s.'%(len(pgs), len(zones)))
+        return None
 
     if simplify < 0 : simplify = 0
     if simplify > 1 : simplify = 1
@@ -4226,18 +4223,18 @@ def drawOrientation(t):
 #
 def volume(t, fieldname=None):
 
-    try : import Generator.PyTree as G
+    try: import Generator.PyTree as G
     except: raise ImportError("volume: requires Generator module.")
 
     fldname = None
-    if fieldname != None: fldname = 'centers:'+fieldname
+    if fieldname is not None: fldname = 'centers:'+fieldname
 
     zones = Internal.getZones(t)
     v = 0.
     for z in zones:
         xcelln = None
-        if fldname != None : xcelln = C.getField(fldname, z)
-        if xcelln != None : xcelln = xcelln[0]
+        if fldname is not None: xcelln = C.getField(fldname, z)
+        if xcelln is not None: xcelln = xcelln[0]
         
         z = C.convertArray2NGon(z); z = G.close(z)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
@@ -4247,11 +4244,11 @@ def volume(t, fieldname=None):
 
 #==============================================================================
 # syncMacthPeriodicFaces : force periodicity for faces that are supposed to be periodic
-# IN: a                 : 3D NGON mesh
-# IN: rotationCenter : coordinates of the center of rotation for the periodicity
-# IN: rotationAngle : rotation axis for the periodicity (its norm gives the angle of rotation)
-# IN : translation : translation vector for a translation periodicity
-# IN : TOL : tolerance. A negative value give a relative tolerance base on min edge length
+# IN: a                  : 3D NGON mesh
+# IN: rotationCenter: coordinates of the center of rotation for the periodicity
+# IN: rotationAngle: rotation axis for the periodicity (its norm gives the angle of rotation)
+# IN: translation: translation vector for a translation periodicity
+# IN: TOL: tolerance. A negative value give a relative tolerance base on min edge length
 # OUT: returns a 3D NGON Mesh with synchronised faces
 #==============================================================================
 def syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],

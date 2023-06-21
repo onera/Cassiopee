@@ -1,5 +1,7 @@
 .. OCC documentation master file
 
+:tocdepth: 2
+
 
 OCC: interface to open-cascade
 ===============================

@@ -1,5 +1,7 @@
 .. CPlot documentation master file
 
+:tocdepth: 2
+
 CPlot: a light plotter for arrays/pyTree
 =========================================
 

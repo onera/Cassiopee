@@ -1,5 +1,7 @@
 .. elsAProfile documentation master file
 
+:tocdepth: 2
+
 
 Converter.elsAProfile: specific elsA CGNS functions
 =====================================================

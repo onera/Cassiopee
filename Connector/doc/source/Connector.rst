@@ -1,5 +1,7 @@
 .. Connector documentation master file
 
+:tocdepth: 2
+
 
 Connector: Grid connectivity module
 =============================================

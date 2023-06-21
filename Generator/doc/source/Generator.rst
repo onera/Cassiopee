@@ -1,5 +1,7 @@
 .. Generator documentation master file
 
+:tocdepth: 2
+
 Generator: mesh generation module
 =========================================
 

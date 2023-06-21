@@ -1,5 +1,7 @@
 .. Transform documentation master file
 
+:tocdepth: 2
+
 
 Transform: mesh transformation module
 =========================================

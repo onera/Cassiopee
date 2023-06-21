@@ -1,5 +1,7 @@
 .. Dist2Walls documentation master file
 
+:tocdepth: 2
+
 
 Dist2Walls: wall distance computation
 =========================================

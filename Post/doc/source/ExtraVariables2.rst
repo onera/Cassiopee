@@ -1,5 +1,7 @@
 .. Post.ExtraVariables2 documentation master file
 
+:tocdepth: 2
+
 
 ExtraVariables2: derived fields from primitive variables 
 =========================================================

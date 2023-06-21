@@ -1,5 +1,7 @@
 .. Filter documentation master file
 
+:tocdepth: 2
+
 Filter: partial reading/writing of files
 =========================================
 

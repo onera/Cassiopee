@@ -1,5 +1,6 @@
 .. Converter documentation master file
 
+:tocdepth: 2
 
 Converter: CFD data conversion module
 =========================================

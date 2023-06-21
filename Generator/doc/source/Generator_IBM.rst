@@ -1,5 +1,7 @@
 .. Connector IBM documentation master file
 
+:tocdepth: 2
+
 
 IBM: Immersed boundary method mesh generation module
 ====================================================

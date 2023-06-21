@@ -1,5 +1,7 @@
 .. Distributor2 documentation master file
 
+:tocdepth: 2
+
 Distributor2: distribution of grids on processors
 =================================================
 

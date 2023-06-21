@@ -1,5 +1,7 @@
 .. Intersector documentation master file
 
+:tocdepth: 2
+
 Intersector: Mesh-Intersection-Based Services
 =============================================
 

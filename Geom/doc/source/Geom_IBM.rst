@@ -1,5 +1,7 @@
 .. Geom IBM documentation master file
 
+:tocdepth: 2
+
 
 Geom.IBM: specific geometry modifications for IBMs 
 ==================================================

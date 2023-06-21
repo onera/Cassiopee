@@ -1,5 +1,7 @@
 .. Post IBM documentation master file
 
+:tocdepth: 2
+
 
 Post.IBM: immersed boundary method specific post-processing 
 ===========================================================

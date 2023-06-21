@@ -1,5 +1,7 @@
 .. RigidMotion documentation master file
 
+:tocdepth: 2
+
 RigidMotion: compute/define rigid motions
 =========================================
 

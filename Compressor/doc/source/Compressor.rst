@@ -1,5 +1,7 @@
 .. Compressor documentation master file
 
+:tocdepth: 2
+
 
 Compressor: Field compression module
 =====================================

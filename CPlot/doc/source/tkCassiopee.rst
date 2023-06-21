@@ -1,5 +1,7 @@
 .. tkCassiopee documentation master file
 
+:tocdepth: 2
+
 
 Preamble
 ########

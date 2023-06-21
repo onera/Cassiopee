@@ -1,5 +1,7 @@
 .. Converter.Mpi documentation master file
 
+:tocdepth: 2
+
 
 Converter.Mpi: distributed pyTree services
 =============================================

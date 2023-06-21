@@ -1,5 +1,7 @@
 .. Connector IBM documentation master file
 
+:tocdepth: 2
+
 
 Connector.IBM: immersed boundary method grid connectivity module
 ================================================================

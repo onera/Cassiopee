@@ -1,5 +1,7 @@
 .. Post documentation master file
 
+:tocdepth: 2
+
 
 Rotor: rotor specific post-processing 
 ======================================

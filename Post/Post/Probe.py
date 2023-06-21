@@ -99,7 +99,7 @@ class Probe:
         elif ind is not None and blockName is not None:
             self._mode = 1
             if t is not None: self.locateProbeInd(t, ind, blockName)
-            else: int("Warning: probe: need t for probe with index and blockName.")
+            else: print("Warning: probe: need t for probe with index and blockName.")
 
         elif tPermeable is not None:
             self._mode = 3
@@ -112,7 +112,7 @@ class Probe:
         else: 
             self._mode = 2
         
-        print('INFO: probe is in mode ', self._mode)
+        if Cmpi.rank == 0: print('Info: probe is in mode ', self._mode)
         
         # Cree la probe et on relit le fichier uniquement en mode=0 et 1
         if self._mode == 0 or self._mode == 1 or self._mode == 4:
@@ -338,6 +338,7 @@ class Probe:
                 C.convertPyTree2File(self._probeZones, self._fileName)
             else:
                 Cmpi.convertPyTree2File(self._probeZones, self._fileName)
+                
             self._filecur = 0
             return None
 
@@ -562,21 +563,22 @@ class Probe:
 
     def extract3(self, tcs, time, onlyTransfer=False):
         """Extract for mode=3."""
-        if self._probeZones is None: 
+        if self._probeZones is None:
             self.createProbeZones(self._ts)
             self.checkFile(append=self._append)
             for v in self._fields: C._initVars(self._ts, v, 0.)
+        
         Cmpi.barrier()
         # ts: permeable surface
         # tcs: tc for surface interp must be set
         if self._procDicts is None:
             tsBB = Cmpi.createBBoxTree(self._ts)
             self._procDicts = Cmpi.getProcDict(tsBB)
-            if Cmpi.size==1:
+            if Cmpi.size == 1:
                 for i in self._procDicts:
-                    if self._procDicts[i]<0:
-                        self._procDicts[i]=0 
-            
+                    if self._procDicts[i] < 0: self._procDicts[i] = 0 
+        
+        Cmpi.barrier()    
         if self._graph is None:
             tcsBB = Cmpi.createBBoxTree(tcs)
             procDictc = Cmpi.getProcDict(tcsBB)
@@ -621,7 +623,7 @@ class Probe:
 
         self._icur += 1
         if self._icur >= self._bsize: self.flush()
-        
+                
         return None
 
     def extract4(self, t, time,list_vals):

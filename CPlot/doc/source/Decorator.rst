@@ -1,5 +1,7 @@
 .. CPlot.Decorator documentation master file
 
+:tocdepth: 2
+
 CPlot.Decorator: decoration of CPlot images using matplotlib
 ============================================================
 
