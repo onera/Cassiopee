@@ -466,6 +466,15 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             C._initVars(to,'centers:cellN',1.)
             tboxl = C.newPyTree(['BOXLOC']); tboxl[2][1][2] = box
             to = X_IBM.blankByIBCBodies(to, tboxl, 'centers', dim)
+
+            fact = 1.1
+            while C.getMinValue(to, 'centers:cellN') == 1 and fact < 10.:
+                print("Info: addRefinementZones: tbox too small - increase tbox by fact = {:2.1f}".format(fact))
+                box2 = T.scale(box, fact) 
+                tboxl[2][1][2] = box2
+                to = X_IBM.blankByIBCBodies(to, tboxl, 'centers', dim)
+                fact += 0.1
+
             C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%g)'%volmin2)
             nob += 1
 
