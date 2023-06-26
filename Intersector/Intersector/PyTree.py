@@ -108,7 +108,7 @@ def getTreeDim(t):
     if dims[4] != d:return 0; # mixed type : not handled
     if dims[3] == 'NGON' : nb_elts_per_zone += nb_cells(z)
 
-  if d == 3 and nb_elts_per_zone == len(zs) : d = 21 # NGON with one cell per zone => NUGA NGON => 2D
+  if d == 3 and nb_elts_per_zone == len(zs): d = 21 # NGON with one cell per zone => NUGA NGON => 2D
 
   return d
 
@@ -2296,7 +2296,7 @@ def _immerseNodes(t, s, TOL):
     # single surface mesh
     s = T.join(s)
     # convert to NUGA surface
-    if sdims[3] == 'NGON' :
+    if sdims[3] == 'NGON':
       _convertNGON2DToNGON3D(s)
     else:
       _convertBasic2NGONFaces(s)

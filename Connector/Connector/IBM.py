@@ -259,7 +259,7 @@ def _recomputeDistForViscousWall__(t, tb, model='NSTurbulent', dimPb=3,
                 C._initVars(tb2, 'CoordinateZ', dz)
             else:
                 tb2 = tb
-            DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
+            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
     
     return None
 
@@ -270,7 +270,7 @@ def _recomputeDistForViscousWall__(t, tb, model='NSTurbulent', dimPb=3,
 # OUT: centers:TurbulentDistance field
 #=========================================================================
 def _dist2wallIBM(t, tb, dimPb=3, correctionMultiCorpsF42=False, frontType=1, 
-                    yplus=100, Reynolds=1.e6, Lref=1., heightMaxF42=-1.):
+                  yplus=100, Reynolds=1.e6, Lref=1., heightMaxF42=-1.):
     """Compute wall distance for IBM."""
     if dimPb == 2:
         # Set CoordinateZ to a fixed value
@@ -504,7 +504,7 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1,
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
     
-    if IBCType==-1:
+    if IBCType == -1:
         C._initVars(t,'{centers:cellNDummy}=({centers:cellNIBC}>0.5)*({centers:cellNIBC}<1.5)')
         X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNDummy',addGC=False)
         C._initVars(t,'{centers:cellNFront}=logical_and({centers:cellNDummy}>0.5, {centers:cellNDummy}<1.5)')
@@ -634,7 +634,7 @@ def _pushBackImageFront2__(t, tc, tbbc, interpDataType=0, cartesian=True):
     return None
 
 def buildFrontIBM(t, tc, dimPb=3, frontType=1, interpDataType=0, cartesian=False, twoFronts=False, check=False):
-
+    """Build the IBM front."""
     tbbc = Cmpi.createBBoxTree(tc)
     
     C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
@@ -681,7 +681,7 @@ def buildFrontIBM(t, tc, dimPb=3, frontType=1, interpDataType=0, cartesian=False
 # INTERP DATA IBM  #######################
 def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, DEPTH=2, IBCType=1, interpDataType=0, Reynolds=1.e6, 
                       yplus=100, Lref=1., twoFronts=False, cartesian=False): 
-
+    """Compute transfer coefficients and data for IBM."""
     tbbc = Cmpi.createBBoxTree(tc)
 
     zonesRIBC = []
@@ -884,10 +884,11 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, DEPTH
                 zD[2] += IBCDs
 
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    model = Internal.getValue(model)
+    if model is not None: model = Internal.getValue(model)
+    else: model = "NSTurbulent"
 
     C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
-    varsRM = ['centers:cellNChim','centers:cellNIBCDnr']
+    varsRM = ['centers:cellNChim', 'centers:cellNIBCDnr']
     if model == 'Euler': varsRM += ['centers:TurbulentDistance']
     C._rmVars(t, varsRM)
 
