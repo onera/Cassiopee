@@ -1637,7 +1637,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
     fmax  = -1.
     fcrit = 0
     size  = 0
-    info = 'INFO {}: min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
+    info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
 
     for z in Internal.getZones(m):
         f = Internal.getNodeFromName(z, field)[1]
@@ -1655,11 +1655,11 @@ def getMeshFieldInfo(m, field, critValue, verbose):
         size  += size_loc
 
         if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
-            print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,z[0]))
+            print(info%(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,z[0]))
 
     if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
         print('#'*(len(field)+7))
-        print(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
+        print(info%(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
         print('#'*(len(field)+7)+'\n')
 
     return fmin, fmax, fsum/float(size), fcrit

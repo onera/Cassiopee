@@ -161,7 +161,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
             n = Internal.getNodeFromName2(z, 'dfar')
             if n is not None: dfarList[c] = Internal.getValue(n)*1.
 
-        # refinementSurfFile: surface meshes describing refinement zones
+    # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
         else: tbox = tbox
@@ -172,6 +172,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
                 sn = Internal.getNodeFromName2(z, 'snear')
                 if sn is not None: snearsf.append(Internal.getValue(sn))
                 else: snearsf.append(1.)
+                
     fileout = None
     if check: fileout = 'octree.cgns'
     # Octree identical on all procs
@@ -469,7 +470,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
 
             fact = 1.1
             while C.getMinValue(to, 'centers:cellN') == 1 and fact < 10.:
-                print("Info: addRefinementZones: tbox too small - increase tbox by fact = {:2.1f}".format(fact))
+                print("Info: addRefinementZones: tbox too small - increase tbox by fact = %2.1f"%(fact))
                 box2 = T.scale(box, fact) 
                 tboxl[2][1][2] = box2
                 to = X_IBM.blankByIBCBodies(to, tboxl, 'centers', dim)
@@ -491,7 +492,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             volminloc = C.getMinValue(to, 'centers:vol')
     return Internal.getNodeFromType2(to, 'Zone_t')
 
-
+# only in generateIBMMeshPara and generateCartMesh__
 def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6):
     sizeMax=int(sizeMax)
     dim = Internal.getZoneDim(o)
@@ -605,7 +606,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
         X_IBM._addBCOverlaps(zones, bbox0)
     return zones
 
-
+# only in octree2StructLoc__
 def mergeByParent__(zones, parent, sizeMax):
     parent = G.bboxOfCells(parent)
     xmint = Internal.getNodeFromName2(parent,"xmin")[1]
@@ -654,7 +655,7 @@ def mergeByParent__(zones, parent, sizeMax):
         elif len(pool)==1: res += pool
     return res
 
-
+# only in generateIBMMeshPara and generateIBMMesh
 def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None,
                          dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0, dfarDir=0):
     nzones0 = Internal.getZoneDim(o)[2]

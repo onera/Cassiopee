@@ -1,5 +1,4 @@
 # Interface pour MPI
-from posixpath import basename
 import Converter.Mpi as Cmpi
 from . import PyTree as X
 import Converter.Internal as Internal

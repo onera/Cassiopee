@@ -7,26 +7,29 @@ import numpy
 import copy
 import Generator.IBMmodelHeight as G_IBM_Height
 
-varsDeleteIBM=['utau','StagnationEnthalpy','StagnationPressure',
-               'dirx'          ,'diry'          ,'dirz',
-               'gradxPressure' ,'gradyPressure' ,'gradzPressure' ,
-               'gradxVelocityX','gradyVelocityX','gradzVelocityX',
-               'gradxVelocityY','gradyVelocityY','gradzVelocityY',
-               'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
-            'KCurv','yplus']        
+varsDeleteIBM = ['utau','StagnationEnthalpy','StagnationPressure',
+                'dirx'          ,'diry'          ,'dirz',
+                'gradxPressure' ,'gradyPressure' ,'gradzPressure' ,
+                'gradxVelocityX','gradyVelocityX','gradzVelocityX',
+                'gradxVelocityY','gradyVelocityY','gradzVelocityY',
+                'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
+                'KCurv'         ,'yplus']        
 
+#==============================================================================
 # compute the near wall spacing in agreement with the yplus target at image points - front42
+#==============================================================================
 def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
     return G_IBM_Height.computeSnearOpt(Re=Re, tb=tb, Lref=Lref, q=q, yplus=yplus, Cf_law=Cf_law)
 
+#==============================================================================
 # Set snear in zones
+#==============================================================================
 def setSnear(t, value):
     """Set the value of snear in a geometry tree.
     Usage: setSnear(t, value=X)"""
     tp = Internal.copyRef(t)
     _setSnear(tp, value)
     return tp
-
 
 def _setSnear(t, value):
     """Set the value of snear in a geometry tree.
@@ -38,14 +41,15 @@ def _setSnear(t, value):
         Internal._createUniqueChild(n, 'snear', 'DataArray_t', value)
     return None
 
+#==============================================================================
 # Set dfar in zones
+#==============================================================================
 def setDfar(t, value):
     """Set the value of dfar in a geometry tree.
     Usage: setDfar(t,value=X)"""
     tp = Internal.copyRef(t)
     _setDfar(tp, value)
     return tp
-
 
 def _setDfar(t, value):
     """Set the value of dfar in a geometry tree.
@@ -57,6 +61,9 @@ def _setDfar(t, value):
         Internal._createUniqueChild(n, 'dfar', 'DataArray_t', value)
     return None
 
+#==============================================================================
+#
+#==============================================================================
 def getDfarOpt(tb, vmin, snear_opt, factor=10, nlevel=-1):
     """Computes the optimal dfar to get the exact snear.
     Usage: getDfarOpt(tb, vmin, snear_opt, factor=10, nlevel=-1)"""
@@ -77,14 +84,15 @@ def getDfarOpt(tb, vmin, snear_opt, factor=10, nlevel=-1):
     #print('2**n*vmin*snear opt =',(vmin-1)*snear_opt*2**nlevel)
     return dfaropt
 
+#==============================================================================
 # Multiply the snear by factors XX in zones
+#==============================================================================
 def snearFactor(t, sfactor):
     """Multiply the value of snear in a geometry tree by a sfactor.
     Usage: snearFactor(t, sfactor)"""
     tp = Internal.copyRef(t)
     _snearFactor(tp, sfactor)
     return tp
-
 
 def _snearFactor(t, sfactor):
     """Multiply the value of snear in a geometry tree by a sfactor.
@@ -96,8 +104,9 @@ def _snearFactor(t, sfactor):
             Internal._setValue(n, sfactor*Internal.getValue(n))
     return None
 
-
+#==============================================================================
 # Set the IBC type in zones
+#==============================================================================
 def setIBCType(t, value):
     """Set the IBC type in a geometry tree.
     Usage: setIBCType(t, value=X)"""
@@ -115,7 +124,9 @@ def _setIBCType(t, value):
         Internal._createUniqueChild(n, 'ibctype', 'DataArray_t', value)
     return None
 
+#==============================================================================
 # Set the fluid inside the geometry
+#==============================================================================
 def setFluidInside(t):
     """Set fluid inside a geometry tree.
     Usage: setFluidInside(t)"""
@@ -133,7 +144,9 @@ def _setFluidInside(t):
         Internal._createUniqueChild(n, 'inv', 'DataArray_t', value=1)
     return None
 
+#==============================================================================
 # Set the IBC type outpress for zones in familyName
+#==============================================================================
 def initOutflow(tc, familyName, PStatic):
     """Set the value of static pressure PStatic for the outflow pressure IBC with family name familyName.
     Usage: initOutflow(tc,familyName, PStatic)"""
@@ -156,13 +169,15 @@ def _initOutflow(tc, familyName, PStatic):
                     #Internal.setValue(stagPNode,PStatic*numpy.ones(sizeIBC))
     return None
 
+#==============================================================================
+# 
+#==============================================================================
 def initIsoThermal(tc, familyName, TStatic):
     """Set the value of static temperature TStatic for the wall no slip IBC with family name familyName.
     Usage: initIsoThermal(tc,familyName, TStatic)"""
     tc2 = Internal.copyRef(tc)
     _initIsoThermal(tc2, familyName, TStatic)
     return tc2
-
 
 def _initIsoThermal(tc, familyName, TStatic):
     """Set the value of static temperature TStatic for the wall no slip IBC with family name familyName.
@@ -182,14 +197,15 @@ def _initIsoThermal(tc, familyName, TStatic):
                     Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
     return None
 
-
+#==============================================================================
+# 
+#==============================================================================
 def initHeatFlux(tc, familyName, QWall):
     """Set the value of heat flux QWall for the wall no slip IBC with family name familyName.
     Usage: initHeatFlux(tc,familyName, QWall)"""
     tc2 = Internal.copyRef(tc)
     _initHeatFlux(tc2, familyName, QWall)
     return tc2
-
 
 def _initHeatFlux(tc, familyName, QWall):
     """Set the value of heat flux QWall for the wall no slip IBC with family name familyName.
@@ -209,10 +225,9 @@ def _initHeatFlux(tc, familyName, QWall):
                     Internal.setValue(stagPNode,QWall*numpy.ones(sizeIBC))
     return None
 
-
-
-
+#==============================================================================
 # Set the IBC type inj for zones in familyName
+#==============================================================================
 def initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
     """Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.
     Usave: initInj(tc, familyName, PTot, HTot, injDir)"""
@@ -220,7 +235,6 @@ def initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
     _initInj(tc2, familyName, PTot, HTot, injDir)
     return tc2
                  
-
 def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
     """Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.
     Usage: _initInj(tc, familyName, PTot, HTot, injDir)"""
@@ -257,8 +271,9 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
                     
     return None
 
-
+#==============================================================================
 # Add variables to the IBC
+#==============================================================================
 def _addVariablesTcIbc(zsr, ibctype, nIBC):
     Nlength = numpy.zeros((nIBC),numpy.float64)
     if ibctype in [2, 3, 6, 10, 11]:
@@ -295,7 +310,9 @@ def _addVariablesTcIbc(zsr, ibctype, nIBC):
         
     return None
 
-
+#==============================================================================
+# 
+#==============================================================================
 def changeIBCType(tc, oldIBCType, newIBCType):
     """Change the IBC type in a connectivity tree from oldIBCType to newIBCType.
     Usage: changeIBCType(tc, oldIBCType, newIBCType)"""
@@ -324,6 +341,9 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
 
     return None
 
+#==============================================================================
+# 
+#==============================================================================
 def transformTc2(tc2):
     """Change the name of the IBM nodes for the second image point.
     Usage: transformTc2(tc2)"""
@@ -355,5 +375,3 @@ def _transformTc2(tc2):
                 _addVariablesTcIbc(zsr,ibctype,nIBC)
                 
     return None
-
-

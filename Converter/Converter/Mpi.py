@@ -197,7 +197,7 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False):
     if mem:
         pid = os.getpid()
         try: 
-            f = open("/proc/{}/smaps".format(pid))
+            f = open("/proc/%s/smaps"%(pid))
             s = f.readlines()
             f.close()
         except: s = []
@@ -209,9 +209,9 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False):
                 tot += int(ts[5:-3])
                 found = False
             if ts.find("heap") >= 0: found = True
-        if tot > 1.e6: msg += '[{} GB]'.format(tot/1.e6)
-        elif tot > 1000.: msg += '[{} MB]'.format(tot/1000.)
-        else: msg += '[{} kB]'.format(tot)
+        if tot > 1.e6: msg += '[%f GB]'%(tot/1.e6)
+        elif tot > 1000.: msg += '[%f MB]'%(tot/1000.)
+        else: msg += '[%f kB]'%(tot)
     msg += '\n'
 
     if stdout: # ecriture a l'ecran

@@ -59,7 +59,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
     fmax  = -1.
     fcrit = 0
     size  = 0
-    info = 'INFO {}: min = {:1.2e}, max = {:1.2e}, mean = {:1.2e}, crit({} {} {}) = {} cells out of {} | {:2.2f}% ({})'
+    info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
 
     dictInfo = {}
 
@@ -91,7 +91,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
         for zname in dictInfo:
             rank_loc, fmin_loc, fmax_loc, fsum_loc, fcrit_loc, size_loc = dictInfo[zname]
             if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
-                print(info.format(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"rank {} - {}".format(rank_loc,zname)))
+                print(info%(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,"rank %s - %s"%(rank_loc,zname)))
 
     fmin  = Cmpi.allreduce(fmin,  op=Cmpi.MIN)
     fmax  = Cmpi.allreduce(fmax,  op=Cmpi.MAX)
@@ -103,7 +103,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
 
     if Cmpi.rank == 0 and (verbose == 2 or (verbose == 1 and fcrit_loc > 0)):
         print('#'*(len(field)+7))
-        print(info.format(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
+        print(info%(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
         print('#'*(len(field)+7)+'\n')
 
     Cmpi.barrier()

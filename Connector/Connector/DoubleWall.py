@@ -324,8 +324,8 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
     listOfMismatch2 = Cmpi.allreduce(listOfMismatch2)
 
     if Cmpi.rank==0:
-        print("Info: changeWall: listOfMismatch1 ({})".format(listOfMismatch1))
-        print("Info: changeWall: listOfMismatch2 ({})".format(listOfMismatch2))
+        print("Info: changeWall: listOfMismatch1 (%s)"%(listOfMismatch1))
+        print("Info: changeWall: listOfMismatch2 (%s)"%(listOfMismatch2))
     
     # STEP1 : gather proj surfaces of mismatch1 (surfaceCenters1)
     if surfaceCenters1 is None:
@@ -353,7 +353,7 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
         
         D._getCurvatureHeight(walls1)
         surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
-        if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_{}_to_{}.plt'.format(familyBC2, familyBC1))
+        if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_%s_to_%s.plt'%(familyBC2, familyBC1))
     
     # STEP2 : project surfaces of mismatch2 (a2c (domain) and firstWallCenters2 (wall))
     for w2 in listOfMismatch2:
@@ -364,19 +364,19 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
             if pr is not None:
                 wr = Internal.range2Window(pr[1])
                 firstWallCenters2 = getFirstPointsInfo__(z2, [wr], loc='centers', ghostCells=ghostCells)
-                if check: Converter.convertArrays2File(firstWallCenters2, 'firstWallCenters2_{}_to_{}_rank{}.plt'.format(familyBC2, familyBC1, Cmpi.rank))
+                if check: Converter.convertArrays2File(firstWallCenters2, 'firstWallCenters2_%s_to_%s_rank%d.plt'%(familyBC2, familyBC1, Cmpi.rank))
         
                 z2c = Internal.getNodeFromPath(tc, name[0])
                 if z2c is not None:
                     a2c = C.getFields(Internal.__GridCoordinates__, z2c)[0]
                     cellN = C.getField('cellN', z2c)[0]
                     a2c = Converter.addVars([a2c,cellN]) # array at centers with cellN
-                    if check: Converter.convertArrays2File(a2c, 'surfaceCenters2_{}_to_{}_rank{}.plt'.format(familyBC2, familyBC1, Cmpi.rank))
+                    if check: Converter.convertArrays2File(a2c, 'surfaceCenters2_%s_to_%s_rank%d.plt'%(familyBC2, familyBC1, Cmpi.rank))
 
                     a2cp = Connector.changeWall__(a2c, firstWallCenters2, surfaceCenters1, planarTol=0.)
 
                     C.setFields([a2cp], z2c, 'nodes', False) # modify tc
-                    if check: Converter.convertArrays2File(a2cp, 'surfaceCenters2p_{}_to_{}_rank{}.plt'.format(familyBC2, familyBC1, Cmpi.rank))
+                    if check: Converter.convertArrays2File(a2cp, 'surfaceCenters2p_%s_to_%s_rank%d.plt'%(familyBC2, familyBC1, Cmpi.rank))
             
     return None
 
@@ -408,6 +408,6 @@ def getProjSurfaceForDoubleWall(t, listOfMismatch1, familyBC1, check=False):
     
     D._getCurvatureHeight(walls1)
     surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
-    if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_{}.plt'.format(familyBC1))
+    if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_%s.plt'%(familyBC1))
                 
     return surfaceCenters1

@@ -70,12 +70,11 @@ def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
     h0 = (1.*Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+1
     h_opti = (h0-q*snear)/(1.-q) #Hauteur de modelisation opti
     yplus_opti = h_opti/h0 #yplus opti
-
     # print('\nInformation for the body-fitted mesh :')
-    # print('h_opti     = {:.2e}'.format(h_opti))
-    # print('h0         = {:.2e}\n'.format(h0))
+    # print('h_opti     = %1.2e'%(h_opti))
+    # print('h0         = %1.2e\n'%(h0))
     # print('Information for the Cartesian mesh :')
-    # print('yplus_opti = {}\n'.format(math.ceil(yplus_opti)))
+    # print('yplus_opti = %d\n'%(int(math.ceil(yplus_opti))))
     return yplus_opti
 
 
@@ -97,11 +96,11 @@ def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
     h0    = (Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+=1
     n     = int(math.ceil(math.log(1-yplus*(1-q))/math.log(q))) # number of cells in the BF mesh for the height h
     snear_opti = q**(n-1)*h0 # best snear for the target yplus
-    print('\nInformation for the body-fitted mesh :')
-    print('h           = {:.2e}'.format(h_mod))
-    print('h0          = {:.2e}\n'.format(h0))
-    print('Information for the Cartesian mesh :')
-    print('snear_opti  = {:.3e}\n'.format(snear_opti))
+    # print('\nInformation for the body-fitted mesh :')
+    # print('h           = %1.2e'%(h_mod))
+    # print('h0          = %1.2e\n'%(h0))
+    # print('Information for the Cartesian mesh :')
+    # print('snear_opti  = %1.3e\n'%(snear_opti))
     return snear_opti
 
 
