@@ -47,7 +47,7 @@ List of functions
    Connector.IBM.blankingIBM
    Connector.IBM.buildFrontIBM
    Connector.IBM.setInterpDataIBM
-   
+   Connector.IBM.initializeIBM
 
 Contents
 ###########
@@ -200,3 +200,24 @@ Main functions
     * `Compute IBM coefficients (pyTree) <Examples/Connector/setInterpDataIBMPT.py>`_:
     
     .. literalinclude:: ../build/Examples/Connector/setInterpDataIBMPT.py
+
+---------------------------------------
+
+.. py:function:: Connector.IBM.initializeIBM(t, tc, tb, tinit=None, dimPb=3, twoFronts=False)
+
+    Initialize the computational and connectivity trees for IBM pre-processing.
+
+    tinit might be used to initialize the flow solution in t.
+    
+    :param t: computational tree
+    :type t: tree
+    :param tc: connectivity tree
+    :type tc: tree
+    :param tb: geometry tree
+    :type tb: tree
+    :param tinit: computational tree from previous computation
+    :type tinit: tree
+    :param dimPb: problem dimension
+    :type dimPb: 2 or 3
+    :param twoFronts: if True, creates a new connectivity tree that contains second image points information
+    :type twoFronts: boolean

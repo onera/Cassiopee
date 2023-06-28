@@ -49,29 +49,19 @@ def _computeFrictionVelocity(a):
                                            Internal.__FlowSolutionCenters__)
     return None
 
-def _recomputeDistForViscousWall__(t, tb, model='NSTurbulent', dimPb=3, 
-                            recomputeDist=True, ibctypes=[]):
-    if model != 'Euler' and recomputeDist:
-        if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
-            for z in Internal.getZones(tb):
-                ibc = Internal.getNodeFromName(z,'ibctype')
-                if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
-                    Internal._rmNode(tb,z)        
-            if dimPb == 2:
-                z0 = Internal.getNodeFromType2(t, "Zone_t")
-                bb0 = G.bbox(z0); dz = (bb0[5]-bb0[2])*0.5
-                tb2 = Internal.copyRef(tb)
-                tb2 = Internal.copyValue(tb2, byName='CoordinateZ')
-                C._initVars(tb2, 'CoordinateZ', dz)
-            else:
-                tb2 = tb
-            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
-    
-    return None
-
 RENAMEIBCNODES=False
 
 __IBCNameServer__={}
+
+def _changeNameIBCD__(tc,NewIBCD):
+    ZsubR = Internal.getNodesByType(tc, 'ZoneSubRegion_t')
+    for z in ZsubR:
+        zsplit = z[0].split('_')
+        if zsplit[0] == 'IBCD':
+            zsplit[1] = str(NewIBCD)
+            znew = '_'.join(zsplit)
+            Internal.setName(z, znew)
+    return None   
 
 def getIBCDName(proposedName):
     global __IBCNameServer__
@@ -82,84 +72,65 @@ def getIBCDName(proposedName):
 # BMJC ##
 ####################################################################################
 
-# GLOBAL
-def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, initWithBBox=-1.,
+def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None,
                     snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, expand=3, frontType=1, IBCType=1,
-                    check=False, balancing=False, recomputeDist=False, distrib=False, redistribute=False, twoFronts=False, cartesian=False,
+                    check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
                     yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
     
     import Generator.IBM as G_IBM
 
+    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    else: tb = Internal.copyTree(t_case)
+
+    refstate = Internal.getNodeFromName(tb,'ReferenceState')
+    flowEqn  = Internal.getNodeFromName(tb,'FlowEquationSet')          
+
+    Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
+    if Reynolds is not None:
+        Reynolds = Internal.getValue(Reynolds)
+        if Reynolds < 1.e5: frontType = 1
+    else: Reynolds = 1.e6
     
-    #===================
-    # STEP 0 : INIT
-    #===================
-    if True:        
-        if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
-        else: tb = Internal.copyTree(t_case)
-        
-        if t_in is not None:
-            refState=Internal.getNodeFromName(tb,'ReferenceState')
-            flowEqn =Internal.getNodeFromName(tb,'FlowEquationSet')
-            for b in Internal.getBases(t_in):
-                Internal.addChild(b, refState, pos=0)
-                Internal.addChild(b, flowEqn , pos=0)
+    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
+    if dimPb is None: raise ValueError('prepareIBMDataPara: EquationDimension is missing in input geometry tree.')
+    dimPb = Internal.getValue(dimPb)
+    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.)
+    
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError('prepareIBMDataPara: GoverningEquations is missing in input geometry tree.')
+    model = Internal.getValue(model)
 
-        # reference state
-        refstate = C.getState(tb)
-        Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
-        if Reynolds is not None:
-            Reynolds = Internal.getValue(Reynolds)
-            if Reynolds < 1.e5: frontType = 1
-        else:
-            Reynolds = 1.e6
-        
-        # dimension du pb
-        dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-        dimPb = Internal.getValue(dimPb)
-        
-        model = Internal.getNodeFromName(tb, 'GoverningEquations')
-        if model is None: raise ValueError('GoverningEquations is missing in input geometry tree.')
-        model = Internal.getValue(model)    # model : Euler, NSLaminar, NSTurbulent
-        
-        # check Euler non consistant avec Musker
-        if model == 'Euler':
-            ibctype = Internal.getNodesFromName(tb, 'ibctype')
-            if ibctype is not None:
-                if 'Musker' in ibctype or 'Log' in ibctype:
-                    raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
+    ibctypes = Internal.getNodesFromName(tb, 'ibctype')
+    if ibctypes is None: raise ValueError('prepareIBMDataPara: ibc type is missing in input geometry tree.')
+    ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
 
-        #Get the types of IBCs in tb
-        ibctypes = set()
-        for node in Internal.getNodesFromName(tb,'ibctype'):
-            ibctypes.add(Internal.getValue(node))
-        ibctypes = list(ibctypes)    
+    if model == 'Euler':
+        if any(ibc in ['Musker', 'MuskerMob', 'Mafzal', 'Log', 'TBLE', 'TBLE_FULL'] for ibc in ibctypes):
+            raise ValueError("prepareIBMDataPara: governing equations (Euler) not consistent with ibc types {}".format(ibctypes))
 
     #===================
     # STEP 1 : GENERATE MESH
     #===================
-    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
-
     if t_in is None:
         t = G_IBM.generateIBMMeshPara(tb, vmin=vmin, snears=snears, dimPb=dimPb, dfar=dfar, dfarList=dfarList, tbox=tbox,
                     snearsf=snearsf, check=check, symmetry=0, to=to, ext=3,
-                    expand=expand, dfarDir=dfarDir, check_snear=False)           
-
-        C._addState(t, state=refstate)
-        C._addState(t, 'GoverningEquations', model)
-        C._addState(t, 'EquationDimension', dimPb)
+                    expand=expand, dfarDir=dfarDir, check_snear=False)
+        
+        if balancing and Cmpi.size > 1:
+            import Distributor2.Mpi as D2mpi
+            ts     = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(t))
+            stats  = D2._distribute(ts, Cmpi.size, algorithm='graph')
+            D2._copyDistribution(t , ts)
+            D2mpi._redispatch(t)
+            del ts
 
     else: 
         t = t_in
-
-    if balancing and Cmpi.size > 1:
-        import Distributor2.Mpi as D2mpi
-        ts     = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(t))
-        stats  = D2._distribute(ts, Cmpi.size, algorithm='graph')
-        D2._copyDistribution(t , ts)
-        D2mpi._redispatch(t)
-        del ts
-
+        
+    for b in Internal.getBases(t):
+        Internal.addChild(b, refstate, pos=0)
+        Internal.addChild(b, flowEqn , pos=0)
+        
     #===================
     # STEP 2 : DIST2WALL
     #===================
@@ -177,14 +148,11 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     #===================
     # STEP 4 : INTERP DATA CHIM
     #===================
-    C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})') # vaut -3, 0, 1, 2 initialement
-    interpDataType = 0 if cartesian else 1
     tc = C.node2Center(t)
 
-    # ajouter argument cartesian dans setInterpData
     if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
-        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2)
-    Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2)
+        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
+    Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
     
     #===================
     # STEP 4 : BUILD FRONT
@@ -197,62 +165,33 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     #===================
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                     Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
-                    cartesian=cartesian, twoFronts=twoFronts)
+                    cartesian=cartesian, twoFronts=twoFronts, check=check)
 
     #===================
-    # STEP 6 : DIST2WALL FOR VISCOUS WALL
+    # STEP 6 : INIT IBM
     #===================
-    _recomputeDistForViscousWall__(t, tb, model=model, dimPb=dimPb, recomputeDist=recomputeDist, ibctypes=ibctypes)
-    
-    #===================
-    # STEP 7 : DISTRIBUTE
-    #===================
-    if distrib and Cmpi.size > 1:
-        tbbc = Cmpi.createBBoxTree(tc)
-        stats = D2._distribute(tbbc, Cmpi.size, algorithm='graph', useCom='ID')
-        D2._copyDistribution(tc, tbbc)
-        D2._copyDistribution(t, tbbc)
-        tbbc = None
-        
-    if redistribute and Cmpi.size > 1:
+    t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, dimPb=dimPb, twoFronts=twoFronts)
+
+    if distribute and Cmpi.size > 1:
         import Distributor2.Mpi as D2mpi
-        tcs   = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
-        stats = D2._distribute(tcs, Cmpi.size, algorithm='graph')
+        tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
+        stats  = D2._distribute(tcs, Cmpi.size, algorithm='graph')
+        D2._copyDistribution(t, tcs)
         D2._copyDistribution(tc, tcs)
-        D2._copyDistribution(t , tcs)
-        D2mpi._redispatch(tc)
+        if twoFronts: D2._copyDistribution(tc2, tcs)
         D2mpi._redispatch(t)
-
-    #===================
-    # STEP 8 : INIT TC AND SAVE
-    #===================
-    if check:
-        tibm = extractIBMInfo(tc, IBCNames="IBCD_*")
-        Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
-        del tibm
-
-        if twoFronts:
-            tibm2 = extractIBMInfo(tc, IBCNames="2_IBCD_*")
-            Cmpi.convertPyTree2File(tibm2, 'IBMInfo2.cgns')
-            del tibm2
-
-    tc2 = Internal.copyTree(tc) if twoFronts else None
+        D2mpi._redispatch(tc)
+        if twoFronts: D2mpi._redispatch(tc2)
+        del tcs
     
-    _tcInitialize__(tc, tc2=tc2, twoFronts=twoFronts, ibctypes=ibctypes)
-
     if isinstance(tc_out, str):
         tcp = Compressor.compressCartesian(tc)
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
         
         if twoFronts:
             tcp2 = Compressor.compressCartesian(tc2)
-            Cmpi.convertPyTree2File(tcp2, 'tc2.cgns', ignoreProcNodes=True)
-            del tc2
-
-    #===================
-    # STEP 9 : INIT T AND SAVE
-    #===================
-    _tInitialize__(t, tb, tinit=tinit, model=model, initWithBBox=initWithBBox)
+            tc2_out = tc_out.replace('tc', 'tc2') if 'tc' in tc_out else 'tc2.cgns'
+            Cmpi.convertPyTree2File(tcp2, tc2_out, ignoreProcNodes=True)
         
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
@@ -260,7 +199,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         
     if Cmpi.size > 1: Cmpi.barrier()
 
-    return t,tc
+    return t, tc, tc2
 
 #=========================================================================
 # Compute the wall distance for IBM pre-processing.
@@ -568,6 +507,8 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
                                             Internal.__FlowSolutionNodes__,
                                             Internal.__FlowSolutionCenters__)
 
+    C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})') # vaut -3, 0, 1, 2 initialement
+
     return None
 
 #=========================================================================
@@ -732,7 +673,7 @@ def buildFrontIBM(t, tc, dimPb=3, frontType=1, cartesian=False, twoFronts=False,
     return t, tc, front, front2
 
 #=========================================================================
-# Blank t by IBC bodies for IBM pre-processing.
+# Compute the transfer coefficients and data for IBM pre-processing.
 # IN: t (tree): computational tree
 # IN: tc (tree): connectivity tree
 # IN: tb (tree): geometry tree (IBM bodies)
@@ -747,18 +688,20 @@ def buildFrontIBM(t, tc, dimPb=3, frontType=1, cartesian=False, twoFronts=False,
 # IN: Lref (float): characteristic length of the geometry (F42)
 # IN: cartesian (boolean): if True, activates optimized algorithms for Cartesian meshes
 # IN: twoFronts (boolean): if True, performs the IBM pre-processing for an additional image point positioned farther away
+# OUT: IBCD* zones inside tc
+# OUT: (optional) 2_IBCD* zones inside tc
 #=========================================================================
 def setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, 
-                      yplus=100, Lref=1., cartesian=False, twoFronts=False):
+                      yplus=100, Lref=1., cartesian=False, twoFronts=False, check=False):
     """Compute the transfer coefficients and data for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                     Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
-                    cartesian=cartesian, twoFronts=twoFronts)
+                    cartesian=cartesian, twoFronts=twoFronts, check=check)
     return tp
 
 def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, 
-                      yplus=100, Lref=1., cartesian=False, twoFronts=False): 
+                      yplus=100, Lref=1., cartesian=False, twoFronts=False, check=False): 
     """Compute the transfer coefficients and data for IBM pre-processing."""
     tbbc = Cmpi.createBBoxTree(tc)
 
@@ -972,24 +915,53 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
     if model == 'Euler': varsRM += ['centers:TurbulentDistance']
     C._rmVars(t, varsRM)
 
+    if check:
+        tibm = extractIBMInfo(tc, IBCNames="IBCD_*")
+        Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
+        del tibm
+
+        if twoFronts:
+            tibm2 = extractIBMInfo(tc, IBCNames="2_IBCD_*")
+            Cmpi.convertPyTree2File(tibm2, 'IBMInfo2.cgns')
+            del tibm2
+
     return None
 
-# INITIALIZE  ############################
-def _changeNameIBCD__(tc,NewIBCD):
-    ZsubR = Internal.getNodesByType(tc, 'ZoneSubRegion_t')
-    for z in ZsubR:
-        zsplit = z[0].split('_')
-        if zsplit[0] == 'IBCD':
-            zsplit[1] = str(NewIBCD)
-            znew = '_'.join(zsplit)
-            Internal.setName(z, znew)
-    return None   
+#=========================================================================
+# Init the final trees for IBM pre-processing.
+# IN: t (tree): computational tree
+# IN: tc (tree): connectivity tree
+# IN: tb (tree): geometry tree (IBM bodies)
+# IN: tinit (tree): computational tree from previous computation used to initialize the flow solution in t
+# IN: dimPb (2 or 3): problem dimension
+# IN: twoFronts (boolean): if True, creates a new connectivity tree that contains second image points information
+# OUT: updated t, tc
+# OUT: (optional) new connectivity tree tc2
+#=========================================================================
+def _recomputeDistForViscousWall__(t, tb, dimPb=3):
+
+    for z in Internal.getZones(tb):
+        ibc = Internal.getNodeFromName(z,'ibctype')
+        if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
+            Internal._rmNode(tb,z)    
+
+    if dimPb == 2:
+        z0 = Internal.getNodeFromType2(t, "Zone_t")
+        bb0 = G.bbox(z0); dz = (bb0[5]-bb0[2])*0.5
+        tb2 = Internal.copyRef(tb)
+        tb2 = Internal.copyValue(tb2, byName='CoordinateZ')
+        C._initVars(tb2, 'CoordinateZ', dz)
+    else:
+        tb2 = tb
+
+    DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+    
+    return None
 
 def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[]):
     import Geom.IBM as D_IBM
 
     if twoFronts:
-        tc2 = Internal.copyTree(tc)
         tc2 = Internal.rmNodesByName(tc2, 'IBCD*')
         tc  = Internal.rmNodesByName(tc, '2_IBCD*')
         
@@ -1007,9 +979,9 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[]):
                     proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(Cmpi.rank)
                     ibcd[0] = getIBCDName(proposedName)
 
-    ##Adding a userdefined node to the tc tree for the IBC conditions that are provided
-    ##to FastS solver to reduce the number of input arguments and to make a clear distinction
-    ##of the solver parameters and the IBC parameters
+    # Adding a userdefined node to the tc tree for the IBC conditions that are provided
+    # to FastS solver to reduce the number of input arguments and to make a clear distinction
+    # of the solver parameters and the IBC parameters
     base = Internal.getBases(tc)[0]
     Internal._createUniqueChild(base, '.Solver#IBCdefine', 'UserDefinedData_t')
     solverIBC = Internal.getNodeFromName1(base, '.Solver#IBCdefine')
@@ -1021,8 +993,8 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[]):
     Internal._createUniqueChild(solverIBC, 'isWireModel', 'DataArray_t', 'False')
     Internal._createUniqueChild(solverIBC, 'isTBLE'     , 'DataArray_t', 'False')
     
-    ##note: here alphagrad is the corrected nomenclature for alghagradp found in param_solver.h (B.Constant confirmed)
-    ##      changed some other variables names to be consistent with other options/coding "guidelines"
+    # note: here alphagrad is the corrected nomenclature for alghagradp found in param_solver.h (B.Constant confirmed)
+    #      changed some other variables names to be consistent with other options/coding "guidelines"
     if 'Mafzal' in ibctypes:
         Internal._createUniqueChild(solverIBC, 'isgradP'   , 'DataArray_t', 'True')
         Internal._createUniqueChild(solverIBC, 'mafzalMode', 'DataArray_t', 0)
@@ -1037,29 +1009,34 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[]):
 
     return None
 
-def _tInitialize__(t, tb, tinit=None, model='NSTurbulent', initWithBBox=-1):
+def _tInitialize__(t, tinit=None, model='NSTurbulent'):
     if tinit is None: I._initConst(t, loc='centers')
     else: t = Pmpi.extractMesh(tinit, t, mode='accurate')
+
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
-                
-    # Init with BBox
-    if initWithBBox>0.:
-        print('INFO: Initialisation par bounding box')
-        bodybb = C.newPyTree(['Base'])
-        for base in Internal.getBases(tb):
-            bbox = G.bbox(base)
-            bodybbz = D.box(tuple(bbox[:3]),tuple(bbox[3:]), N=2, ntype='STRUCT')
-            Internal._append(bodybb,bodybbz,'Base')
-        T._scale(bodybb, factor=(initWithBBox,initWithBBox,initWithBBox))
-        tbb = G.BB(t)
-        interDict = X.getIntersectingDomains(tbb,bodybb,taabb=tbb,taabb2=bodybb)
-        for zone in Internal.getZones(t):
-            zname = Internal.getName(zone)
-            if interDict[zname] != []:
-                C._initVars(zone, 'centers:MomentumX', 0.)
-                C._initVars(zone, 'centers:MomentumY', 0.)
-                C._initVars(zone, 'centers:MomentumZ', 0.)
     return None
+
+def initializeIBM(t, tc, tb, tinit=None, dimPb=3, twoFronts=False):
+    """Initialize the computational and connectivity trees for IBM pre-processing."""
+
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError('initializeIBM: GoverningEquations is missing in input geometry tree.')
+    model = Internal.getValue(model)
+
+    ibctypes = Internal.getNodesFromName(tb, 'ibctype')
+    if ibctypes is None: raise ValueError('initializeIBM: ibctype is missing in input geometry tree.')
+    ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
+
+    if model != 'Euler':
+        if any(ibc in ['outpress', 'inj', 'slip'] for ibc in ibctypes):
+            _recomputeDistForViscousWall__(t, tb, dimPb=dimPb)
+
+    tc2 = Internal.copyTree(tc) if twoFronts else None
+    
+    _tcInitialize__(tc, tc2=tc2, twoFronts=twoFronts, ibctypes=ibctypes)
+    _tInitialize__(t, tinit=tinit, model=model)
+
+    return t, tc, tc2
 
 ####################################################################################
 
