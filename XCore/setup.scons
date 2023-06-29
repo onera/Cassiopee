@@ -63,11 +63,12 @@ elif cc == 'nvc': opt1 += []
 else: opt1 += ['-restrict']
 
 # Specific options for paradigma - paradigma install path
+#PPATH = 'XCore/paradigma23'
 PPATH = 'XCore/paradigma'
 opt2 = ['-I%s'%PPATH,'-I%s/mpi_wrapper'%PPATH,'-I%s/mesh'%PPATH,'-I%s/util'%PPATH,'-I%s/io'%PPATH,'-I%s/ppart'%PPATH,'-I%s/struct'%PPATH,'-I%s/pario'%PPATH,'-I%s/ext_wrapper'%PPATH]
 opt2 += ['-IXCore/scotch']
 opt2 += ['-std=c99', '-DSCOTCH_RENAME']
-#opt2 +=['-DPDM_HAVE_PTSCOTCH','-DPDM_ENABLE_ANISO_AGGLO=0']
+opt2 +=['-DPDM_HAVE_PTSCOTCH'] #,'-DPDM_ENABLE_ANISO_AGGLO=0']
 
 # Specific options pour zoltan
 opt3 = ['-IXCore/zoltan/include', '-IXCore/zoltan/driver',
@@ -79,8 +80,7 @@ opt3 = ['-IXCore/zoltan/include', '-IXCore/zoltan/driver',
 '-IXCore/zoltan/rcb', '-IXCore/zoltan/reftree', '-IXCore/zoltan/phg',
 '-IXCore/zoltan/tpls', '-IXCore/zoltan/simple', '-IXCore/zoltan/timer']
 
-
-ADDITIONALCPPFLAGS += ['-IXCore']
+ADDITIONALCPPFLAGS += ['-IXCore'] + opt3
 ADDITIONALCFLAGS = ADDITIONALCPPFLAGS
 
 # Env =========================================================================
@@ -103,6 +103,7 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
             
 import srcs
 import srcs_scotch
+#import srcs_paradigma23 as srcs_paradigma
 import srcs_paradigma
 import srcs_zoltan
 

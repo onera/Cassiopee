@@ -1011,10 +1011,10 @@ Immersed boundary (IBM) pre-processing
  
     .. warning:: requires Connector.ToolboxIBM.py module.
 
------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
 
 Overset and Immersed Boundary transfers with pyTrees
-====================================================
+----------------------------------------------------
 
     The following function enables to update the solution at some points, marked as interpolated for overset and IBM approaches.
 

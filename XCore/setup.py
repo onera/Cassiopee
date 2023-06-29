@@ -37,8 +37,13 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-# pdm supprime ici
-libraries = ["xcore", "scotch1", "scotch2", "pdm", "kcore"]
+
+import srcs
+libraries = ["xcore"]
+if srcs.ZOLTAN: libraries += ["zoltan"]
+if srcs.SCOTCH: libraries += ["scotch1", "scotch2"]
+if srcs.PARADIGMA: libraries += ["pdm"]
+libraries += ["kcore"]
 
 mySystem = Dist.getSystem()
 if mySystem[0] == 'mingw': 
@@ -73,6 +78,7 @@ listExtensionsPyx = []
 cython = Dist.checkCython(additionalLibPaths, additionalIncludePaths)
 
 if cython:
+    #import srcs_paradigma23 as srcs_paradigma
     import srcs_paradigma
     from Cython.Build import cythonize
     for c in srcs_paradigma.pyx_srcs:
@@ -82,7 +88,8 @@ if cython:
         listExtensionsPyx.append(
             Extension(name,
                     sources=[c],
-                    include_dirs=["XCore","XCore/paradigma","XCore/paradigma/ppart","XCore/paradigma/struct","XCore/paradigma/pario","XCore/paradigma/mesh"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
+                    include_dirs=["XCore","XCore/paradigma","XCore/paradigma/ppart","XCore/paradigma/struct","XCore/paradigma/pario","XCore/paradigma/mesh","XCore/paradigma/meshgen","XCore/paradigma/mpi_wrapper", "XCore/paradigma/util"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
+                    #include_dirs=["XCore","XCore/paradigma23","XCore/paradigma23/ppart","XCore/paradigma23/struct","XCore/paradigma23/pario","XCore/paradigma23/mesh","XCore/paradigma23/meshgen","XCore/paradigma23/mpi_wrapper", "XCore/paradigma23/util"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
                     library_dirs=additionalLibPaths+libraryDirs,
                     libraries=libraries+additionalLibs,
                     extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
@@ -102,6 +109,7 @@ setup(
     packages=['XCore'],
     package_dir={"":"."},
     ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=["XCore/paradigma"])
+    #ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=["XCore/paradigma23"])
     )
 
 # Check PYTHONPATH ===========================================================

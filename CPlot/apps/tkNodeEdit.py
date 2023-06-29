@@ -261,10 +261,13 @@ def updateNode(node):
 #==============================================================================
 def setByLevel(node1, node2, depth, maxDepth):
     #print("setting", node1[0])
+    zdata = Internal.getNodeFromName1(node2, 'ZData')
+    if zdata is not None: Compressor._unpackNode(node2)
     node1[1] = node2[1]
     if depth < maxDepth or maxDepth == -1:
         for c, n in enumerate(node1[2]):
-            setByLevel(n, node2[2][c], depth+1, maxDepth)
+            if len(node2[2]) > c:
+                setByLevel(n, node2[2][c], depth+1, maxDepth)
 
 #==============================================================================
 def freeByLevel(node1, depth, maxDepth):
@@ -287,24 +290,22 @@ def loadNode():
     depth = int(depth)
 
     # check if node is compressed
-    #zdata = Internal.getNodeFromName1(node, 'ZData')
-    #if zdata is not None:
-    #    if depth == 0: depth = 1 # load zdata also
+    zdata = Internal.getNodeFromName1(node, 'ZData')
+    if zdata is not None:
+        depth += 1 # load zdata also
 
     # read node
     nodes = Filter.readNodesFromPaths(fileName, [path], maxDepth=depth)
         
     # check if node is compressed
-    #if zdata is not None:
-    #    for n in nodes: Compressor._unpackNode(n)
-    # the node must be updated in tkTree
-
+    if zdata is not None:
+        depth -= 1
+        
     # depth replace
-    if depth == 0: node[1] = nodes[0][1]
-    else: setByLevel(node, nodes[0], 0, depth)
+    setByLevel(node, nodes[0], 0, depth)
 
     updateNode(node)
-
+    
 #==============================================================================
 def freeNode():
     if CTK.t == []: return

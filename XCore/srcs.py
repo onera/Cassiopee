@@ -11,5 +11,6 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/xmpi/context_mpi_impl.cpp',
             'XCore/xmpi/context_stub_impl.cpp',
             'XCore/xmpi/communicator.cpp',
+            'XCore/zoltan1.cpp',
             'XCore/SplitElement/splitter.cpp',
             'XCore/test/xmpi_t1.cpp']

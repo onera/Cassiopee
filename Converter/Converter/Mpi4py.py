@@ -7,7 +7,7 @@ from . import converter
 # Acces a Distributed
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths, mergeGraph, splitGraph
 
-__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 
+__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND', 
     'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
     'bcast', 'Bcast', 'gather', 'Gather', 
     'reduce', 'Reduce', 'allreduce', 'Allreduce', 
@@ -38,6 +38,7 @@ size = KCOMM.size
 SUM = MPI.SUM
 MAX = MPI.MAX
 MIN = MPI.MIN
+LAND = MPI.LAND
 
 # version collective
 def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):

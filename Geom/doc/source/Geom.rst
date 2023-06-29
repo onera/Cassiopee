@@ -1036,7 +1036,7 @@ Geometry modification
 
 .. py:function:: Geom.distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0)
 
-    Return the distribution enforcing h1 and h2 at curve a extremities.
+    Return the distribution enforcing h1 and h2 at curve extremities.
 
     :param a: 1D mesh
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones] 
